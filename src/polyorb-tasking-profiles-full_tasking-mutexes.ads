@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---                . F U L L _ T A S K I N G . M U T E X E S                 --
+--              POLYORB.TASKING.PROFILES.FULL_TASKING.MUTEXES               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -46,9 +46,11 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    type Full_Tasking_Mutex_Access is
      access all Full_Tasking_Mutex_Type'Class;
 
-   procedure Enter (M : in out Full_Tasking_Mutex_Type);
+   procedure Enter (M : access Full_Tasking_Mutex_Type);
+   pragma Inline (Enter);
 
-   procedure Leave (M : in out Full_Tasking_Mutex_Type);
+   procedure Leave (M : access Full_Tasking_Mutex_Type);
+   pragma Inline (Leave);
 
    type Full_Tasking_Mutex_Factory_Type is
      new PTM.Mutex_Factory_Type with private;
@@ -64,7 +66,7 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
      return PTM.Mutex_Access;
 
    procedure Destroy
-     (MF : in out Full_Tasking_Mutex_Factory_Type;
+     (MF : access Full_Tasking_Mutex_Factory_Type;
       M  : in out PTM.Mutex_Access);
 
 private

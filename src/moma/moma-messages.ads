@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -45,122 +46,145 @@ package MOMA.Messages is
 
    type Message is tagged private;
 
-   TC_MOMA_Message : TypeCode.Object := TypeCode.TC_Struct;
-
    procedure Acknowledge;
+   --  Acknowledge message.
+   --  XXX not implemented. need to define acknowledgment process.
 
    procedure Clear_Body;
+   --  Clear message payload.
+   --  XXX not implemented.
 
-   --
-   --  Accessor functions to message internals
-   --
+   function Image (Self : Message) return String;
+   --  Image function for message type.
 
-   function Get_Correlation_Id (Self : Message)
-                                return MOMA.Types.String;
-   pragma Inline (Get_Correlation_Id);
+   procedure Set_Default_Message_Header (Self : in out Message);
+   --  Set Message header to its default value.
+   --  XXX define this 'default value'.
 
-   function Get_Persistent (Self : Message)
-                            return MOMA.Types.Boolean;
-   pragma Inline (Get_Persistent);
+   procedure Set_Message_Header
+     (Self            : in out Message;
+      Message_Id      :        MOMA.Types.String;
+      Correlation_Id  :        MOMA.Types.String;
+      Destination     :        MOMA.Destinations.Destination;
+      Reply_To        :        MOMA.Destinations.Destination;
+      Priority        :        MOMA.Types.Priority;
+      Timestamp       :        Ada.Real_Time.Time;
+      Expiration      :        Ada.Real_Time.Time;
+      Is_Persistent   :        MOMA.Types.Boolean;
+      Is_Redelivered  :        MOMA.Types.Boolean);
+   --  Set the Message's header.
 
-   function Get_Destination (Self : Message)
-                             return MOMA.Destinations.Destination;
-   pragma Inline (Get_Destination);
+   --  Accessor to Message internal data.
 
-   function Get_Expiration (Self : Message)
-                            return Ada.Real_Time.Time;
-   pragma Inline (Get_Expiration);
+   function Get_Correlation_Id
+     (Self : Message)
+     return MOMA.Types.String;
 
-   function Get_Message_Id (Self : Message)
-                            return MOMA.Types.String;
-   pragma Inline (Get_Message_Id);
+   function Get_Persistent
+     (Self : Message)
+     return MOMA.Types.Boolean;
 
-   function Get_Payload (Self : Message)
-                         return PolyORB.Any.Any;
-   pragma Inline (Get_Payload);
+   function Get_Destination
+     (Self : Message)
+     return MOMA.Destinations.Destination;
 
-   function Get_Priority (Self : Message)
-                          return MOMA.Types.Priority;
-   pragma Inline (Get_Priority);
+   function Get_Expiration
+     (Self : Message)
+     return Ada.Real_Time.Time;
 
-   function Get_Redelivered (Self : Message)
-                             return MOMA.Types.Boolean;
-   pragma Inline (Get_Redelivered);
+   function Get_Message_Id
+     (Self : Message)
+     return MOMA.Types.String;
 
-   function Get_Reply_To (Self : Message)
-                          return MOMA.Destinations.Destination;
-   pragma Inline (Get_Reply_To);
+   function Get_Payload
+     (Self : Message)
+     return PolyORB.Any.Any;
 
-   function Get_Timestamp (Self : Message)
-                           return Ada.Real_Time.Time;
-   pragma Inline (Get_Timestamp);
+   function Get_Priority
+     (Self : Message)
+     return MOMA.Types.Priority;
 
-   function Get_Type (Self : Message)
-                      return MOMA.Types.Message_Type;
-   pragma Inline (Get_Type);
+   function Get_Redelivered
+     (Self : Message)
+     return MOMA.Types.Boolean;
 
-   procedure Set_Correlation_Id (Self : in out Message;
-                                 Correlation_Id : MOMA.Types.String);
-   pragma Inline (Set_Correlation_Id);
+   function Get_Reply_To
+     (Self : Message)
+     return MOMA.Destinations.Destination;
 
-   procedure Set_Persistent (Self : in out Message;
-                             Is_Persistent : MOMA.Types.Boolean);
-   pragma Inline (Set_Persistent);
+   function Get_Timestamp
+     (Self : Message)
+     return Ada.Real_Time.Time;
 
-   procedure Set_Destination (Self : in out Message;
-                              Destination : MOMA.Destinations.Destination);
-   pragma Inline (Set_Destination);
+   function Get_Type
+     (Self : Message)
+     return MOMA.Types.Message_Type;
 
-   procedure Set_Expiration (Self : in out Message;
-                             Expiration : Ada.Real_Time.Time);
-   pragma Inline (Set_Expiration);
+   procedure Set_Correlation_Id
+     (Self           : in out Message;
+      Correlation_Id :        MOMA.Types.String);
 
-   procedure Set_Message_Id (Self : in out Message;
-                             Id : MOMA.Types.String);
-   pragma Inline (Set_Message_Id);
+   procedure Set_Persistent
+     (Self          : in out Message;
+      Is_Persistent :        MOMA.Types.Boolean);
 
-   procedure Set_Payload (Self : in out Message;
-                          Payload : PolyORB.Any.Any);
-   pragma Inline (Set_Payload);
+   procedure Set_Destination
+     (Self        : in out Message;
+      Destination :        MOMA.Destinations.Destination);
 
-   procedure Set_Priority (Self : in out Message;
-                           Priority : MOMA.Types.Priority);
-   pragma Inline (Set_Priority);
+   procedure Set_Expiration
+     (Self       : in out Message;
+      Expiration :        Ada.Real_Time.Time);
 
-   procedure Set_Redelivered (Self : in out Message;
-                              Redelivered : MOMA.Types.Boolean);
-   pragma Inline (Set_Redelivered);
+   procedure Set_Message_Id
+     (Self : in out Message;
+      Id   :        MOMA.Types.String);
 
-   procedure Set_Reply_To (Self : in out Message;
-                           Reply_To : MOMA.Destinations.Destination);
-   pragma Inline (Set_Reply_To);
+   procedure Set_Payload
+     (Self    : in out Message;
+      Payload :        PolyORB.Any.Any);
 
-   procedure Set_Timestamp (Self : in out Message;
-                            Timestamp : Ada.Real_Time.Time);
-   pragma Inline (Set_Timestamp);
+   procedure Set_Priority
+     (Self     : in out Message;
+      Priority :        MOMA.Types.Priority);
 
-   procedure Set_Type (Self : in out Message;
-                       Type_Of_Message : MOMA.Types.Message_Type);
-   pragma Inline (Set_Type);
+   procedure Set_Redelivered
+     (Self        : in out Message;
+      Redelivered :        MOMA.Types.Boolean);
+
+   procedure Set_Reply_To
+     (Self     : in out Message;
+      Reply_To :        MOMA.Destinations.Destination);
+
+   procedure Set_Timestamp
+     (Self      : in out Message;
+      Timestamp :        Ada.Real_Time.Time);
+
+   procedure Set_Type
+     (Self            : in out Message;
+      Type_Of_Message :        MOMA.Types.Message_Type);
 
    --  XXX Are the following functions junk ?
    --  ??? return
    function Get_Property_Names
      return Integer;
 
-   function Property_Exists (Name : MOMA.Types.String)
-                             return MOMA.Types.Boolean;
+   function Property_Exists
+     (Name : MOMA.Types.String)
+     return MOMA.Types.Boolean;
 
-   procedure Set_Property (Name : MOMA.Types.String;
-                           Value : MOMA.Types.Property_Type);
+   procedure Set_Property
+     (Name  : MOMA.Types.String;
+      Value : MOMA.Types.Property_Type);
 
-   function Get_Property (Name : MOMA.Types.String)
-                          return MOMA.Types.Property_Type;
+   function Get_Property
+     (Name : MOMA.Types.String)
+     return MOMA.Types.Property_Type;
    pragma Inline (Get_Property);
 
-   --
-   --  Message Marshalling/Unmarshalling functions
-   --
+   --  Marshalling support for Message type.
+
+   TC_MOMA_Message : TypeCode.Object := TypeCode.TC_Struct;
 
    function To_Any (Self : Message) return PolyORB.Any.Any;
 
@@ -181,5 +205,29 @@ private
       Is_Redelivered  : MOMA.Types.Boolean;
       Payload         : PolyORB.Any.Any;
    end record;
+
+   pragma Inline (Get_Correlation_Id);
+   pragma Inline (Get_Persistent);
+   pragma Inline (Get_Destination);
+   pragma Inline (Get_Expiration);
+   pragma Inline (Get_Message_Id);
+   pragma Inline (Get_Payload);
+   pragma Inline (Get_Priority);
+   pragma Inline (Get_Redelivered);
+   pragma Inline (Get_Reply_To);
+   pragma Inline (Get_Timestamp);
+   pragma Inline (Get_Type);
+
+   pragma Inline (Set_Correlation_Id);
+   pragma Inline (Set_Persistent);
+   pragma Inline (Set_Destination);
+   pragma Inline (Set_Expiration);
+   pragma Inline (Set_Message_Id);
+   pragma Inline (Set_Payload);
+   pragma Inline (Set_Priority);
+   pragma Inline (Set_Redelivered);
+   pragma Inline (Set_Reply_To);
+   pragma Inline (Set_Timestamp);
+   pragma Inline (Set_Type);
 
 end MOMA.Messages;

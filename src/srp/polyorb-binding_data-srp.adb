@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,13 +38,14 @@
 with PolyORB.Filters;
 with PolyORB.ORB;
 with PolyORB.Protocols.SRP;
-with PolyORB.Transport.Sockets;
+with PolyORB.Transport.Connected.Sockets;
 
 package body PolyORB.Binding_Data.SRP is
 
    use PolyORB.Objects;
    use PolyORB.Sockets;
-   use PolyORB.Transport.Sockets;
+   use PolyORB.Transport;
+   use PolyORB.Transport.Connected.Sockets;
 
    procedure Initialize (P : in out SRP_Profile_Type) is
    begin
@@ -67,16 +69,16 @@ package body PolyORB.Binding_Data.SRP is
       The_ORB : Components.Component_Access)
      return Components.Component_Access
    is
+      use PolyORB.ORB;
       use PolyORB.Protocols.SRP;
       use PolyORB.Sockets;
-      use PolyORB.Transport.Sockets;
 
       S : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       P : aliased SRP_Protocol;
       Session : Components.Component_Access;
-      TE : constant Transport.Transport_Endpoint_Access
-        := new Transport.Sockets.Socket_Endpoint;
+      TE : constant Transport_Endpoint_Access
+        := new Socket_Endpoint;
    begin
       Create_Socket (S);
       Connect_Socket (S, Remote_Addr);
@@ -84,8 +86,10 @@ package body PolyORB.Binding_Data.SRP is
       Create (P'Access, Filters.Filter_Access (Session));
 
       ORB.Register_Endpoint
-        (ORB.ORB_Access (The_ORB), TE,
-         Filters.Filter_Access (Session), ORB.Client);
+        (ORB_Access (The_ORB),
+         TE,
+         Filters.Filter_Access (Session),
+         ORB.Client);
       return Session;
    end Bind_Profile;
 

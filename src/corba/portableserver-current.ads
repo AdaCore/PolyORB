@@ -6,7 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,23 +31,28 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-current.ads#2 $
+--  $Id: //droopi/main/src/corba/portableserver-current.ads#4 $
 
-with CORBA;
+with Ada.Exceptions;
+
 with CORBA.Current;
 
 package PortableServer.Current is
+
    type Ref is new CORBA.Current.Ref with private;
 
    NoContext : exception;
+
    type NoContext_Members is new CORBA.IDL_Exception_Members
      with null record;
+
    procedure Get_Members
-     (From : in  CORBA.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out NoContext_Members);
 
    function get_POA (Self : Ref)
@@ -53,4 +63,5 @@ package PortableServer.Current is
 
 private
    type Ref is new CORBA.Current.Ref with null record;
+
 end PortableServer.Current;

@@ -1,8 +1,4 @@
-pragma Warnings (Off);
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+pragma Style_Checks (Off);
 
 with CORBA.ORB.TypeCode;
 
@@ -12,10 +8,11 @@ with CORBA.Repository_Root.Container;
 with CORBA.Repository_Root.Container.Impl;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.StructDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.StructDef.Skel);
 with CORBA.Repository_Root.IDLType.Impl;
 
-with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
+with Polyorb.CORBA_P.Server_Tools;
 
 package body CORBA.Repository_Root.StructDef.Impl is
 

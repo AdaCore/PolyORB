@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B - T A S K I N G - A D V A N C E D _ M U T E X E S      --
+--     P O L Y O R B . T A S K I N G . A D V A N C E D _ M U T E X E S      --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -73,23 +74,23 @@ package PolyORB.Tasking.Advanced_Mutexes is
 
    type Adv_Mutex_Access is access all Adv_Mutex_Type;
 
-   procedure Enter (M : in out Adv_Mutex_Type);
+   procedure Create (M : out Adv_Mutex_Access);
+   --  Create an advanced mutex.  The object must have been allocated
+   --  by the client of this package.
+
+   procedure Destroy (M : in out Adv_Mutex_Access);
+   --  Destroy the advanced mutex.  The deallocation, if needed, after
+   --  "Destroy" and is the responsability of the client of this
+   --  package.
+
+   procedure Enter (M : access Adv_Mutex_Type);
    --  If the lock is free, or if the current task has it, get the
    --  lock and continue, entering a new critical section; else, wait
    --  until it is free.
 
-   procedure Leave (M : in out Adv_Mutex_Type);
+   procedure Leave (M : access Adv_Mutex_Type);
    --  The current tasks exit of the current critical section. If it is
    --  the first critical section opened by the task, free the lock.
-
-   procedure Create (M : in out Adv_Mutex_Type);
-   --  Create an advanced mutex.  The object must have been allocated
-   --  by the client of this package.
-
-   procedure Destroy (M : in out Adv_Mutex_Type);
-   --  Destroy the advanced mutex.  The deallocation, if needed, after
-   --  "Destroy" and is the responsability of the client of this
-   --  package.
 
 private
    package PTM renames PolyORB.Tasking.Mutexes;
@@ -101,7 +102,7 @@ private
       pragma Atomic (Empty);
       --  If no theres is no owner for this Mutex, True. else, False.
 
-      Current     : Threads.Thread_Id_Access;
+      Current     : Threads.Thread_Id;
       pragma Atomic (Current);
       --  Identity of the thread owning the mutex.
 

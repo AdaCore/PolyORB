@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,64 +37,92 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Jobs is
 
-   procedure Free (X : in out Job_Access)
+   ------------------
+   -- Create_Queue --
+   ------------------
+
+   function Create_Queue return Job_Queue_Access is
+   begin
+      return new Job_Queue;
+   end Create_Queue;
+
+   ---------------
+   -- Fetch_Job --
+   ---------------
+
+   function Fetch_Job
+     (Q        : access Job_Queue;
+      Selector :        Job_Selector := Any_Job)
+      return Job_Access
    is
-      procedure Job_Free is new Ada.Unchecked_Deallocation
+      use Job_Queues;
+
+      Result : Job_Access;
+   begin
+      if Is_Empty (Q) then
+         return null;
+      end if;
+
+      --  If no selector is provided, extract the first element
+
+      if Selector = null then
+         Extract_First (Q.Contents, Result);
+         return Result;
+      end if;
+
+      --  else return the first selected element
+
+      declare
+         It     : Iterator := First (Q.Contents);
+
+      begin
+         while not Last (It) loop
+            if Selector (Job_Access (Value (It).all)) then
+               Result := Job_Access (Value (It).all);
+               Remove (Q.Contents, It);
+               return Result;
+            end if;
+
+            Next (It);
+         end loop;
+
+         return null;
+      end;
+   end Fetch_Job;
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (X : in out Job_Access) is
+      procedure Do_Free is new Ada.Unchecked_Deallocation
         (Job'Class, Job_Access);
    begin
-      Job_Free (X);
+      Do_Free (X);
    end Free;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Queue_Element, Queue_Element_Access);
+   --------------
+   -- Is_Empty --
+   --------------
 
-   function Create_Queue return Job_Queue_Access
+   function Is_Empty
+     (Q : access Job_Queue)
+     return Boolean
    is
-      Q : constant Job_Queue_Access := new Job_Queue;
+      use type Job_Queues.List;
    begin
-      Q.First := null;
-      Q.Last  := null;
+      return Q.Contents = Job_Queues.Empty;
+   end Is_Empty;
 
-      return Q;
-   end Create_Queue;
+   ---------------
+   -- Queue_Job --
+   ---------------
 
    procedure Queue_Job
      (Q : access Job_Queue;
-      J : Job_Access)
-   is
-      E : constant Queue_Element_Access
-        := new Queue_Element'(Next => null, Job  => J);
+      J :        Job_Access) is
    begin
-      if Q.Last = null then
-         pragma Assert (Q.First = null);
-         Q.First := E;
-         Q.Last  := E;
-      else
-         Q.Last.Next := E;
-         Q.Last := E;
-      end if;
+      Job_Queues.Append (Q.Contents, J);
    end Queue_Job;
-
-   function Is_Empty (Q : access Job_Queue) return Boolean is
-   begin
-      return Q.First = null;
-   end Is_Empty;
-
-   function Fetch_Job (Q : access Job_Queue) return Job_Access is
-      First  : Queue_Element_Access := Q.First;
-      Result : Job_Access := null;
-   begin
-      if First /= null then
-         Result := First.Job;
-         Q.First := First.Next;
-         if Q.First = null then
-            Q.Last := null;
-         end if;
-
-         Free (First);
-      end if;
-
-      return Result;
-   end Fetch_Job;
 
 end PolyORB.Jobs;

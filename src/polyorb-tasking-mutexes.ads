@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B - T A S K I N G - M U T E X E S               --
+--              P O L Y O R B . T A S K I N G . M U T E X E S               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -50,31 +51,27 @@ package PolyORB.Tasking.Mutexes is
    --  Mutual exclusion locks (mutexes)  prevent  multiple  threads
    --  from  simultaneously  executing  critical  sections  of code
    --  which access shared data (that is, mutexes are used to seri-
-   --  alize  the  execution of threads).
+   --  alize the execution of threads). While a thread is in the
+   --  critical section protected by a mutex, it is designated as
+   --  the owner of that mutex.
 
-   procedure Enter (M : in out Mutex_Type)
-      is abstract;
-   --  A call to Enter locks the mutex object referenced by mp. If
-   --  the mutex is already locked, the calling thread blocks until the
-   --  mutex is freed; this will return with the mutex object
-   --  referenced by mp in the locked state with the calling thread as
-   --  its owner. If the current owner of a mutex tries to relock the
-   --  mutex, it will result in deadlock.
+   procedure Enter (M : access Mutex_Type) is abstract;
+   --  A call to Enter locks mutex object M. If M is already locked,
+   --  the caller is blocked until it gets unlocked. On exit from Enter,
+   --  M is locked, and the caller is the owner.
+   --  If the current owner of a mutex tries to enter it again, a
+   --  deadlock occurs.
 
-   procedure Leave (M : in out Mutex_Type)
-      is abstract;
-   --  Leave is called by the owner of the mutex object referenced by
-   --  mp to release it. The mutex must be locked and the calling
-   --  thread must be the one that last locked the mutex (the owner).
-   --  If there are threads blocked on the mutex object referenced by
-   --  mp when Leave is called, the mp is freed, and the scheduling
-   --  policy will determine which thread gets the mutex. If the
-   --  calling thread is not the owner of the lock, the behavior of the
-   --  program is undefined.
+   procedure Leave (M : access Mutex_Type) is abstract;
+   --  Release M. M must be locked, and the caller must be the owner.
+   --  The scheduling policy determines which blocked thread is waken
+   --  up next and obtains the mutex.
+   --  It is erroneous for any process other than the owner of a mutex
+   --  to invoke Release.
 
-   ---------------------
+   -------------------
    -- Mutex_Factory --
-   ---------------------
+   -------------------
 
    type Mutex_Factory_Type is abstract tagged limited null record;
    --  This type is a factory for the mutex type.
@@ -95,19 +92,17 @@ package PolyORB.Tasking.Mutexes is
    --  mutex from the configuration module.
 
    procedure Destroy
-     (MF : in out Mutex_Factory_Type;
+     (MF : access Mutex_Factory_Type;
       M  : in out Mutex_Access)
      is abstract;
    --  Destroy M, or just release it if it was preallocated.
 
-   function Get_Mutex_Factory
-     return Mutex_Factory_Access;
-   pragma Inline (Get_Mutex_Factory);
-   --  Get the Mutex_Factory object registered in this package.
-
    procedure Register_Mutex_Factory
      (MF : Mutex_Factory_Access);
    --  Register the factory corresponding to the chosen tasking profile.
+
+   procedure Create (M : out Mutex_Access; Name : String := "");
+   procedure Destroy (M : in out Mutex_Access);
 
 private
 

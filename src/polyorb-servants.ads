@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                      P O L Y O R B . S E R V A N T S                     --
+--                     P O L Y O R B . S E R V A N T S                      --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,6 +35,7 @@
 
 --  $Id$
 
+with PolyORB.Annotations;
 with PolyORB.Components;
 with PolyORB.POA_Policies.Thread_Policy;
 
@@ -59,31 +61,40 @@ package PolyORB.Servants is
    procedure Set_Thread_Policy
      (S  : access Servant;
       TP : POA_Policies.Thread_Policy.ThreadPolicy_Access);
+   pragma Inline (Set_Thread_Policy);
    --  Set a ThreadPolicy pointer for the servant
 
-   pragma Inline (Set_Thread_Policy);
+   function Notepad_Of (S : Servant_Access)
+                       return PolyORB.Annotations.Notepad_Access;
+   pragma Inline (Notepad_Of);
+   --  Return Notepad associated to a servant.
 
 private
 
-   type Servant is abstract new PolyORB.Components.Component
-     with record
-        TP_Access : POA_Policies.Thread_Policy.ThreadPolicy_Access := null;
-     end record;
-   --  TP_Access is a ThreadPolicy_Access. It is a pointer to the
-   --  ThreadPolicy of the OA that manages the Servant. If the OA is not
-   --  a POA, then this policy will be the ORB_CTRL_MODEL policy. This field
-   --  is needed by PolyORB in order to execute a request on a servant with
-   --  the appropriate Thread Policy. We can notice that only the POAs use
-   --  different thread policies, but as the ORB doesn't know if the OA is
-   --  a POA or not, a generic mechanism is needed.
-   --  1) When a Servant is created, TP_Access is set to null;
-   --  2) When the ORB has to execute a job, it executes PolyORB.Jobs.Run
-   --  3) In Jobs.Run, a surrogate is binded to an object (servant, session,..)
-   --     with the References-Binding.Bind function
-   --  4) If the object is a Servant, its Thread_Policy will be set
-   --  5) Then, after the binding, a message will be sent to the servant
-   --  6) The servant will use TP_Access in order to be executed with
-   --     the appropriate thread policy (POA case) or with the ORB_CTRL_MODEL
-   --     (other cases)
+   type Servant is abstract new PolyORB.Components.Component with record
+      TP_Access : POA_Policies.Thread_Policy.ThreadPolicy_Access := null;
 
+      --  TP_Access is a ThreadPolicy_Access. It is a pointer to the
+      --  ThreadPolicy of the OA that manages the Servant. If the OA
+      --  is not a POA, then this policy will be the ORB_CTRL_MODEL
+      --  policy. This field is needed by PolyORB in order to
+      --  execute a request on a servant with the appropriate Thread
+      --  Policy. We can notice that only the POAs use different
+      --  thread policies, but as the ORB doesn't know if the OA is
+      --  a POA or not, a generic mechanism is needed.
+      --  1) When a Servant is created, TP_Access is set to null;
+      --  2) When the ORB has to execute a job, it executes PolyORB.Jobs.Run;
+      --  3) In Jobs.Run, a surrogate is binded to an object
+      --     (servant, session,..)  with the References-Binding.Bind
+      --     function;
+      --  4) If the object is a Servant, its Thread_Policy will be set during
+      --     an upcall to Find_Servant;
+      --  5) Then, after the binding, a message will be sent to the servant;
+      --  6) The servant will use TP_Access in order to be executed with
+      --     the appropriate thread policy (POA case) or with the
+      --     ORB_CTRL_MODEL (other cases).
+
+      Notepad : aliased PolyORB.Annotations.Notepad;
+
+   end record;
 end PolyORB.Servants;

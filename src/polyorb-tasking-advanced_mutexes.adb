@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B - T A S K I N G - A D V A N C E D _ M U T E X E S      --
+--     P O L Y O R B . T A S K I N G . A D V A N C E D _ M U T E X E S      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,41 +35,34 @@
 
 --  $Id$
 
-with Unchecked_Deallocation;
+with Ada.Unchecked_Deallocation;
+with PolyORB.Log;
 
 package body PolyORB.Tasking.Advanced_Mutexes is
 
+   use PolyORB.Log;
+
    package PTT renames PolyORB.Tasking.Threads;
 
-
-   --  Initial value of the condition :
-   --  Passing               : constant Boolean := True;
-
-
-   procedure Free is
-      new Unchecked_Deallocation (PTT.Thread_Id'Class,
-                                  PTT.Thread_Id_Access);
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.advanced_mutexes");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    ------------
    -- Create --
    ------------
 
-   procedure Create (M : in out Adv_Mutex_Type) is
+   procedure Create (M : out Adv_Mutex_Access) is
       use PolyORB.Tasking.Threads;
-
-      My_Mutex_Factory : constant PTM.Mutex_Factory_Access
-         := PTM.Get_Mutex_Factory;
-      My_Condition_Factory : constant PTCV.Condition_Factory_Access
-         := PTCV.Get_Condition_Factory;
-      My_Thread_Factory : constant PTT.Thread_Factory_Access
-        := PTT.Get_Thread_Factory;
-      Self              : constant PTT.Thread_Id'Class
-        := PTT.Get_Current_Thread_Id (My_Thread_Factory);
    begin
-      M.Current := new PTT.Thread_Id'Class'(Self);
+      pragma Debug (O ("Create"));
+
+      M := new Adv_Mutex_Type;
+      M.Current := Current_Task;
       M.Empty := True;
-      M.MMutex := PTM.Create (My_Mutex_Factory);
-      M.MCondition := PTCV.Create (My_Condition_Factory);
+      PTM.Create (M.MMutex);
+      PTCV.Create (M.MCondition);
       M.Level := 0;
       M.Await_Count := 0;
       M.Passing := True;
@@ -78,71 +72,80 @@ package body PolyORB.Tasking.Advanced_Mutexes is
    -- Destroy --
    -------------
 
-   procedure Destroy (M : in out Adv_Mutex_Type) is
-      use PolyORB.Tasking.Threads;
-      My_Mutex_Factory : constant PTM.Mutex_Factory_Access
-        := PTM.Get_Mutex_Factory;
-      My_Condition_Factory : constant PTCV.Condition_Factory_Access
-        := PTCV.Get_Condition_Factory;
+   procedure Destroy (M : in out Adv_Mutex_Access)
+   is
+      procedure Free is
+        new Ada.Unchecked_Deallocation (Adv_Mutex_Type, Adv_Mutex_Access);
    begin
-      Free (M.Current);
-      PTM.Destroy (My_Mutex_Factory.all, M.MMutex);
-      PTCV.Destroy (My_Condition_Factory.all, M.MCondition);
+      pragma Debug (O ("Destroy"));
+
+      PTM.Destroy (M.MMutex);
+      PTCV.Destroy (M.MCondition);
+      Free (M);
    end Destroy;
 
    -----------
    -- Enter --
    -----------
 
-   procedure Enter (M : in out Adv_Mutex_Type) is
+   procedure Enter (M : access Adv_Mutex_Type) is
       use PolyORB.Tasking.Threads;
-
-      My_Thread_Factory : constant PTT.Thread_Factory_Access
-        := PTT.Get_Thread_Factory;
-      Self              : constant PTT.Thread_Id'Class
-        := PTT.Get_Current_Thread_Id (My_Thread_Factory);
+      Self : constant Thread_Id := Current_Task;
    begin
-      PTM.Enter (M.MMutex.all);
-      while not M.Empty
-        and then M.Current.all /= Self loop
+      PTM.Enter (M.MMutex);
+
+      pragma Debug (O (PTT.Image (Self)
+                       & " tries to Enter Adv_Mutex"));
+
+      while not M.Empty and then M.Current /= Self loop
+
+         pragma Debug (O (PTT.Image (Self)
+                          & " will wait for Adv_Mutex, current owner is "
+                          & PTT.Image (M.Current)));
+
          if not M.Passing then
-            PTCV.Wait
-              (M.MCondition.all,
-               M.MMutex);
+            PTCV.Wait (M.MCondition, M.MMutex);
          end if;
+
          M.Passing := False;
+
       end loop;
 
       M.Empty := False;
       M.Level := M.Level + 1;
-      Copy_Thread_Id (My_Thread_Factory, Self, M.Current);
-      PTM.Leave (M.MMutex.all);
+      M.Current := Self;
+
+      pragma Debug (O ("Enter: " & PTT.Image (M.Current)));
+      pragma Debug (O (" new level:" & Integer'Image (M.Level)));
+      PTM.Leave (M.MMutex);
    end Enter;
 
    -----------
    -- Leave --
    -----------
 
-   procedure Leave (M : in out Adv_Mutex_Type) is
+   procedure Leave (M : access Adv_Mutex_Type) is
       use PolyORB.Tasking.Threads;
-      My_Thread_Factory  : constant PTT.Thread_Factory_Access
-        := PTT.Get_Thread_Factory;
-      Self               : constant PTT.Thread_Id'Class
-        := PTT.Get_Current_Thread_Id (My_Thread_Factory);
+      Self : constant Thread_Id := Current_Task;
    begin
-      PTM.Enter (M.MMutex.all);
-      pragma Assert (M.Current.all = Self);
+      PTM.Enter (M.MMutex);
+
+      pragma Debug (O ("Leave, owner was "
+                       & PTT.Image (Self)));
+
+      pragma Assert (M.Current = Self);
       pragma Assert (M.Level > 0);
+
       M.Level := M.Level - 1;
 
       if M.Level = 0 then
          M.Empty := True;
          M.Passing := True;
-         PTCV.Signal (M.MCondition.all);
+         PTCV.Signal (M.MCondition);
       end if;
 
-      PTM.Leave (M.MMutex.all);
-
+      pragma Debug (O (" new level:" & Integer'Image (M.Level)));
+      PTM.Leave (M.MMutex);
    end Leave;
 
 end PolyORB.Tasking.Advanced_Mutexes;

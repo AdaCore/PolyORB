@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---    . F U L L _ T A S K I N G . C O N D I T I O N _ V A R I A B L E S     --
+--        POLYORB.TASKING.PROFILES.FULL_TASKING.CONDITION_VARIABLES         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -50,14 +50,14 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
      access all Full_Tasking_Condition_Type'Class;
 
    procedure Wait
-     (C : in out Full_Tasking_Condition_Type;
+     (C : access Full_Tasking_Condition_Type;
       M : access PTM.Mutex_Type'Class);
 
    procedure Signal
-     (C : in out Full_Tasking_Condition_Type);
+     (C : access Full_Tasking_Condition_Type);
 
    procedure Broadcast
-     (C : in out Full_Tasking_Condition_Type);
+     (C : access Full_Tasking_Condition_Type);
 
    type Full_Tasking_Condition_Factory_Type is
      new PTCV.Condition_Factory_Type with private;
@@ -73,7 +73,7 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables is
      return PTCV.Condition_Access;
 
    procedure Destroy
-     (MF : in out Full_Tasking_Condition_Factory_Type;
+     (MF : access Full_Tasking_Condition_Factory_Type;
       C  : in out PTCV.Condition_Access);
 
 private

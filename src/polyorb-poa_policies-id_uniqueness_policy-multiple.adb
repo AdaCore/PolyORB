@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,22 +26,21 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 with PolyORB.POA;
-with PolyORB.POA_Policies.Implicit_Activation_Policy;
 
 package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
-
-   use PolyORB.POA_Policies.Implicit_Activation_Policy;
 
    ------------
    -- Create --
    ------------
 
-   function Create return Multiple_Id_Policy_Access is
+   function Create
+     return Multiple_Id_Policy_Access is
    begin
       return new Multiple_Id_Policy;
    end Create;
@@ -51,14 +50,16 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    -------------------------
 
    procedure Check_Compatibility
-     (Self           : Multiple_Id_Policy;
-      Other_Policies : AllPolicies)
+     (Self           :        Multiple_Id_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
-   begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self, Other_Policies);
+      pragma Unreferenced (Self, Other_Policies, Error);
       pragma Warnings (On);
+   begin
       null;
+      --  No rule to test.
    end Check_Compatibility;
 
    ---------------
@@ -67,11 +68,13 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
 
    function Policy_Id
      (Self : Multiple_Id_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return "ID_UNIQUENESS_POLICY.MULTIPLE_ID";
    end Policy_Id;
 
@@ -80,15 +83,16 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    -------------------------------
 
    procedure Ensure_Servant_Uniqueness
-     (Self      : Multiple_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access)
+     (Self      :        Multiple_Id_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
    is
-   begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self, OA, P_Servant);
+      pragma Unreferenced (Self, OA, P_Servant, Error);
       pragma Warnings (On);
 
+   begin
       null;
       --  MULTIPLE_ID: nothing to do.
    end Ensure_Servant_Uniqueness;
@@ -97,24 +101,35 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    -- Activate_Again --
    --------------------
 
-   function Activate_Again
-     (Self      : Multiple_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access;
-      Oid       : Object_Id_Access)
-     return Object_Id_Access
+   procedure Activate_Again
+     (Self      :        Multiple_Id_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Oid       :        Object_Id_Access;
+      Result    :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
-   begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self, Oid);
+      pragma Unreferenced (Self);
       pragma Warnings (On);
 
-      return Implicit_Activate_Servant
-        (POA.Implicit_Activation_Policy.all, OA, P_Servant);
+      U_Oid : Unmarshalled_Oid;
+
+   begin
+      PolyORB.POA.Activate_Object
+        (PolyORB.POA.Obj_Adapter_Access (OA),
+         P_Servant,
+         Oid,
+         U_Oid,
+         Error);
       --  Activate servant again, regardless of its current
       --  activation state.
+
+      if PolyORB.Exceptions.Found (Error) then
+         return;
+      end if;
+
+      Result := U_Oid_To_Oid (U_Oid);
    end Activate_Again;
 
 end PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;

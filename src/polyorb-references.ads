@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -53,13 +54,16 @@ package PolyORB.References is
    type Ref is new PolyORB.Smart_Pointers.Ref with null record;
    --  An object reference of any kind.
 
+   Nil_Ref : constant Ref;
+   --  Nil reference.
+
    function Is_Same_Object (Left, Right : Ref) return Boolean;
    --  True iff it is determined that Left Right designate the
    --  same object.
 
    procedure Create_Reference
-     (Profiles : Profile_Array;
-      Type_Id  : String;
+     (Profiles :     Profile_Array;
+      Type_Id  :     String;
       R        : out Ref);
    --  Create a reference with Profiles as its profiles.
    --  The returned ref R is nil iff Profiles'Length = 0.
@@ -101,10 +105,13 @@ package PolyORB.References is
 
 private
 
+   Nil_Ref : constant Ref := (PolyORB.Smart_Pointers.Ref with null record);
+
    subtype Profile_Seq is Profile_Seqs.Sequence;
 
-   type Reference_Info is new PolyORB.Smart_Pointers.Entity with
-      record
+   type Reference_Info is
+     new PolyORB.Smart_Pointers.Non_Controlled_Entity
+     with record
          Type_Id  : Utils.Strings.String_Ptr;
          Profiles : Profile_Seq;
          --  The collection of tagged profiles that designate
@@ -129,8 +136,13 @@ private
          --  than in the designated Binding_Object to allow sharing
          --  of Binding_Objects among references to different objects
          --  residing on the same node.
-      end record;
+     end record;
 
    procedure Finalize (RI : in out Reference_Info);
+
+   --  Note that Reference_Info must not be an Entity, because the
+   --  Finalize operation would then be called *after* (not *before*)
+   --  the controlled components of Reference_Info (including
+   --  Profiles and Binding_Object_Ref) have been finalized.
 
 end PolyORB.References;

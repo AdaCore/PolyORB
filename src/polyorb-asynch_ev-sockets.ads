@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,6 +36,7 @@
 --  $Id$
 
 with PolyORB.Sockets;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Asynch_Ev.Sockets is
 
@@ -43,22 +45,23 @@ package PolyORB.Asynch_Ev.Sockets is
    type Socket_Event_Monitor is new Asynch_Ev_Monitor with private;
 
    procedure Create (AEM : out Socket_Event_Monitor);
+
    procedure Destroy (AEM : in out Socket_Event_Monitor);
 
    type Socket_Event_Source is new Asynch_Ev_Source with private;
 
    procedure Register_Source
      (AEM     : access Socket_Event_Monitor;
-      AES     : Asynch_Ev_Source_Access;
-      Success : out Boolean);
+      AES     :        Asynch_Ev_Source_Access;
+      Success :    out Boolean);
 
    procedure Unregister_Source
      (AEM : in out Socket_Event_Monitor;
-      AES : Asynch_Ev_Source_Access);
+      AES :        Asynch_Ev_Source_Access);
 
    function Check_Sources
      (AEM     : access Socket_Event_Monitor;
-      Timeout : Duration)
+      Timeout :        Duration)
      return AES_Array;
 
    procedure Abort_Check_Sources
@@ -73,14 +76,17 @@ package PolyORB.Asynch_Ev.Sockets is
 
 private
 
-   type Socket_Event_Source is new Asynch_Ev_Source
-     with record
-        Socket : PolyORB.Sockets.Socket_Type;
-     end record;
+   type Socket_Event_Source is new Asynch_Ev_Source with record
+      Socket : PolyORB.Sockets.Socket_Type;
+   end record;
 
-   type Socket_Event_Monitor is new Asynch_Ev_Monitor
-     with record
-        Selector : PolyORB.Sockets.Selector_Type;
-     end record;
+   package Source_Lists is
+      new PolyORB.Utils.Chained_Lists (Asynch_Ev_Source_Access);
+
+   type Socket_Event_Monitor is new Asynch_Ev_Monitor with record
+      Selector      : PolyORB.Sockets.Selector_Type;
+      Monitored_Set : PolyORB.Sockets.Socket_Set_Type;
+      Sources       : Source_Lists.List;
+   end record;
 
 end PolyORB.Asynch_Ev.Sockets;

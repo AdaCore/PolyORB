@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,15 +44,19 @@ with Ada.Unchecked_Deallocation;
 package body PolyORB.Annotations is
 
    use Ada.Tags;
+   use Note_Lists;
+
+   --------------
+   -- Set_Note --
+   --------------
 
    procedure Set_Note (NP : in out Notepad; N : Note'Class)
    is
-      The_Notes : constant Note_Seqs.Element_Array
-        := Note_Seqs.To_Element_Array (Note_Seq (NP));
+      It : Iterator := First (NP);
    begin
-      for I in The_Notes'Range loop
-         if The_Notes (I)'Tag = N'Tag then
-            The_Notes (I).all := N;
+      while not Last (It) loop
+         if Value (It).all'Tag = N'Tag then
+            Value (It).all.all := N;
             --  Here we have checked that The_Notes (I).all and N
             --  are of the same type, but this does not guarantee
             --  that the assignment will succeed: Constraint_Error
@@ -59,38 +64,80 @@ package body PolyORB.Annotations is
             --  without default values.
             return;
          end if;
+         Next (It);
       end loop;
 
-      Note_Seqs.Append (Note_Seq (NP), new Note'Class'(N));
+      Append (NP, new Note'Class'(N));
    end Set_Note;
 
-   procedure Get_Note (NP : Notepad; N : out Note'Class)
+   -------------------------
+   -- Get_Note_If_Present --
+   -------------------------
+
+   procedure Get_Note_If_Present
+     (NP : Notepad;
+      N  : out Note'Class;
+      Present : out Boolean);
+
+   procedure Get_Note_If_Present
+     (NP : Notepad;
+      N  : out Note'Class;
+      Present : out Boolean)
    is
-      The_Notes : constant Note_Seqs.Element_Array
-        := Note_Seqs.To_Element_Array (Note_Seq (NP));
+      It : Iterator := First (NP);
    begin
-      for I in The_Notes'Range loop
-         if The_Notes (I)'Tag = N'Tag then
-            N := The_Notes (I).all;
+      while not Last (It) loop
+         if Value (It).all'Tag = N'Tag then
+            N := Value (It).all.all;
+            Present := True;
             return;
          end if;
+         Next (It);
       end loop;
+      Present := False;
+   end Get_Note_If_Present;
+
+   --------------
+   -- Get_Note --
+   --------------
+
+   procedure Get_Note
+     (NP : Notepad;
+      N : out Note'Class)
+   is
+      Present : Boolean;
+   begin
+      Get_Note_If_Present (NP, N, Present);
+      pragma Assert (Present);
    end Get_Note;
 
-   procedure Destroy (NP : in out Notepad)
+   procedure Get_Note
+     (NP : Notepad;
+      N : out Note'Class;
+      Default : Note'Class)
    is
-      The_Notes : Note_Seqs.Element_Array
-        := Note_Seqs.To_Element_Array (Note_Seq (NP));
+      Present : Boolean;
+   begin
+      Get_Note_If_Present (NP, N, Present);
+      if not Present then
+         N := Default;
+      end if;
+   end Get_Note;
 
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (NP : in out Notepad) is
+      It : Iterator := First (NP);
       procedure Free is new Ada.Unchecked_Deallocation
         (Note'Class, Note_Access);
-
    begin
-      for I in The_Notes'Range loop
-         Free (The_Notes (I));
+      while not Last (It) loop
+         Free (Value (It).all);
+         Next (It);
       end loop;
-
-      NP := Notepad (Note_Seqs.Null_Sequence);
+      Deallocate (NP);
    end Destroy;
 
 end PolyORB.Annotations;

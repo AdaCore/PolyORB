@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,23 +35,53 @@
 
 with Ada.Tags;
 
-with CORBA;
-
 with PolyORB.CORBA_P.Names;
+
+with PolyORB.Exceptions;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Objects.Interface;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Strings;
 
 package body PortableServer is
 
    use PolyORB.Log;
-   use PolyORB.Soft_Links;
+   use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log ("portableserver");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   ---------------------------------------
+   -- Information about a skeleton unit --
+   ---------------------------------------
+
+   type Skeleton_Info is record
+      Type_Id    : CORBA.RepositoryId;
+      Is_A       : Servant_Class_Predicate;
+      Dispatcher : Request_Dispatcher;
+   end record;
+
+   function Find_Info
+     (For_Servant : Servant)
+     return Skeleton_Info;
+
+   package Skeleton_Lists is new PolyORB.Utils.Chained_Lists
+     (Skeleton_Info);
+
+   All_Skeletons : Skeleton_Lists.List;
+   Skeleton_Lock : Mutex_Access;
+
+   Skeleton_Unknown : exception;
+
+   ---------------------
+   -- Execute_Servant --
+   ---------------------
 
    function Execute_Servant
      (Self : access DynamicImplementation;
@@ -60,6 +91,8 @@ package body PortableServer is
       use PolyORB.Objects.Interface;
 
    begin
+      pragma Debug (O ("Execute_Servant: enter"));
+
       if Msg in Execute_Request then
          declare
             use PolyORB.Requests;
@@ -72,14 +105,23 @@ package body PortableServer is
                     CORBA.ServerRequest.Object_Ptr (R));
             --  Redispatch
 
+            pragma Debug (O ("Execute_Servant: executed, setting out args"));
             Set_Out_Args (R);
 
+            pragma Debug (O ("Execute_Servant: leave"));
             return Executed_Request'(Req => R);
          end;
+
       else
+         pragma Debug (O ("Execute_Servant: bad message, leave"));
          raise PolyORB.Components.Unhandled_Message;
+
       end if;
    end Execute_Servant;
+
+   ------------
+   -- Invoke --
+   ------------
 
    procedure Invoke
      (Self    : access Servant_Base;
@@ -91,35 +133,6 @@ package body PortableServer is
       --  and delegate the dispatching of Request to one of
       --  Self's primitive operations to that skeleton.
    end Invoke;
-
-   function Get_Default_POA
-     (For_Servant : Servant_Base)
-     return POA_Forward.Ref is
-   begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Get_Default_POA (For_Servant);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
-   end Get_Default_POA;
-
-   procedure Get_Members
-     (From : in CORBA.Exception_Occurrence;
-      To   : out ForwardRequest_Members) is
-   begin
-      raise PolyORB.Not_Implemented;
-   end Get_Members;
-
-   -----------------------------
-   -- A list of Skeleton_Info --
-   -----------------------------
-
-   package Skeleton_Lists is new PolyORB.Utils.Chained_Lists
-     (Skeleton_Info);
-
-   All_Skeletons : Skeleton_Lists.List;
-
-   Skeleton_Unknown : exception;
 
    ---------------
    -- Find_Info --
@@ -138,7 +151,8 @@ package body PortableServer is
       pragma Debug
         (O ("Find_Info: servant of type "
             & Ada.Tags.External_Tag (For_Servant'Tag)));
-      Enter_Critical_Section;
+
+      Enter (Skeleton_Lock);
       It := First (All_Skeletons);
 
       while not Last (It) loop
@@ -149,12 +163,12 @@ package body PortableServer is
       end loop;
 
       if Last (It) then
-         Leave_Critical_Section;
+         Leave (Skeleton_Lock);
          raise Skeleton_Unknown;
       end if;
 
       Info := Value (It).all;
-      Leave_Critical_Section;
+      Leave (Skeleton_Lock);
 
       return Info;
    end Find_Info;
@@ -170,15 +184,16 @@ package body PortableServer is
    is
       use Skeleton_Lists;
    begin
-      pragma Debug (O ("Register_Skeleton enter"));
-      Enter_Critical_Section;
+      pragma Debug (O ("Register_Skeleton: Enter."));
+
       Prepend (All_Skeletons,
                (Type_Id    => Type_Id,
                 Is_A       => Is_A,
                 Dispatcher => Dispatcher));
+
       pragma Debug (O ("Registered : type_id = " &
                        CORBA.To_Standard_String (Type_Id)));
-      Leave_Critical_Section;
+
    end Register_Skeleton;
 
    -----------------
@@ -190,12 +205,288 @@ package body PortableServer is
      return CORBA.RepositoryId is
    begin
       return Find_Info (For_Servant).Type_Id;
+
    exception
       when Skeleton_Unknown =>
          return CORBA.To_CORBA_String
            (PolyORB.CORBA_P.Names.OMG_RepositoryId ("CORBA/OBJECT"));
+
       when others =>
          raise;
    end Get_Type_Id;
+
+   ------------------------
+   -- String_To_ObjectId --
+   ------------------------
+
+   function String_To_ObjectId
+     (Id : String)
+     return ObjectId is
+   begin
+      return ObjectId (PolyORB.Objects.To_Oid (Id));
+   end String_To_ObjectId;
+
+   ------------------------
+   -- Objectid_To_String --
+   ------------------------
+
+   function ObjectId_To_String
+     (Id : ObjectId)
+     return String is
+   begin
+      return PolyORB.Objects.To_String (PolyORB.Objects.Object_Id (Id));
+   end ObjectId_To_String;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ForwardRequest_Members)
+   is
+      use Ada.Exceptions;
+   begin
+      if Exception_Identity (From) /= ForwardRequest'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      PolyORB.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
+
+   --------------------------
+   -- Raise_ForwardRequest --
+   --------------------------
+
+   procedure Raise_ForwardRequest
+     (Excp_Memb : in ForwardRequest_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise PolyORB.Not_Implemented;
+   end Raise_ForwardRequest;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return ThreadPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return ThreadPolicyValue'Val (Position);
+   end From_Any;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return LifespanPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return LifespanPolicyValue'Val (Position);
+   end From_Any;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return IdUniquenessPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return IdUniquenessPolicyValue'Val (Position);
+   end From_Any;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return IdAssignmentPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return IdAssignmentPolicyValue'Val (Position);
+   end From_Any;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return ImplicitActivationPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return ImplicitActivationPolicyValue'Val (Position);
+   end From_Any;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return ServantRetentionPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return ServantRetentionPolicyValue'Val (Position);
+   end From_Any;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return RequestProcessingPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return RequestProcessingPolicyValue'Val (Position);
+   end From_Any;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any
+     (Item : in ThreadPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_ThreadPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (ThreadPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in LifespanPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_LifespanPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (LifespanPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in IdUniquenessPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_IdUniquenessPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (IdUniquenessPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in IdAssignmentPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_IdAssignmentPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (IdAssignmentPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in ImplicitActivationPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_ImplicitActivationPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (ImplicitActivationPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in ServantRetentionPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_ServantRetentionPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (ServantRetentionPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in RequestProcessingPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_RequestProcessingPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (RequestProcessingPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Create (Skeleton_Lock);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"portableserver",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => Empty,
+       Init      => Initialize'Access));
 
 end PortableServer;

@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           ADABROKER SERVICES                             --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --         C O S N A M I N G . N A M I N G C O N T E X T . I M P L          --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,10 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id$
 
 with CORBA;
 
@@ -37,7 +39,12 @@ with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
-with PolyORB.Soft_Links; use PolyORB.Soft_Links;
+
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Utils.Strings;
 
 with CosNaming; use CosNaming;
 
@@ -62,6 +69,9 @@ package body CosNaming.NamingContext.Impl is
      renames L.Output;
 
    type String_Access is access String;
+
+   package PTM renames PolyORB.Tasking.Mutexes;
+   Critical_Section : PTM.Mutex_Access;
 
    package Names renames IDL_SEQUENCE_CosNaming_NameComponent;
 
@@ -112,7 +122,7 @@ package body CosNaming.NamingContext.Impl is
    procedure Get_Ctx_And_Last_NC
      (Self : access Object;
       N    : in     Name;
-      Len  : in out Natural;
+      Len  : out    Natural;
       Ctx  : out    NamingContext.Ref;
       NC   : out    NameComponent);
    --  Resolve N from a given naming context Self: split a name N into
@@ -145,6 +155,8 @@ package body CosNaming.NamingContext.Impl is
       new Ada.Unchecked_Deallocation (Bound_Object, Bound_Object_Ptr);
 
    Seed : Key_Type := (others => 'A');
+
+   procedure Initialize;
 
    --------------
    -- Allocate --
@@ -240,14 +252,14 @@ package body CosNaming.NamingContext.Impl is
             BON : constant String := Encode (Self.Self, Last);
 
          begin
-            Enter_Critical_Section;
+            PTM.Enter (Critical_Section);
             if Look_For_BO_In_NC (Self.Self, BON) /= null then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                raise AlreadyBound;
             end if;
 
             Append_BO_To_NC (Self.Self, BON, Last, nobject, Obj);
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
          end;
       end if;
    end Bind;
@@ -279,15 +291,15 @@ package body CosNaming.NamingContext.Impl is
             BON : constant String := Encode (Self.Self, Last);
 
          begin
-            Enter_Critical_Section;
+            PTM.Enter (Critical_Section);
             if Look_For_BO_In_NC (Self.Self, BON) /= null then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                raise AlreadyBound;
             end if;
 
             Append_BO_To_NC
               (Self.Self, BON, Last, ncontext, CORBA.Object.Ref (NC));
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
          end;
       end if;
    end Bind_Context;
@@ -429,7 +441,7 @@ package body CosNaming.NamingContext.Impl is
    procedure Get_Ctx_And_Last_NC
      (Self : access Object;
       N    : in     Name;
-      Len  : in out Natural;
+      Len  : out    Natural;
       Ctx  : out    NamingContext.Ref;
       NC   : out    NameComponent)
    is
@@ -439,7 +451,7 @@ package body CosNaming.NamingContext.Impl is
       pragma Debug (O ("Get_Ctx_And_Last_NC: enter"));
       Valid (Self.Self);
 
-      Enter_Critical_Section;
+      PTM.Enter (Critical_Section);
       declare
          NCA         : Element_Array := To_Element_Array (Sequence (N));
          Current_Obj : CORBA.Object.Ref;
@@ -447,7 +459,7 @@ package body CosNaming.NamingContext.Impl is
          Current_Idx : Natural;
 
       begin
-         Leave_Critical_Section;
+         PTM.Leave (Critical_Section);
 
          Len := NCA'Length;
          if Len = 0 then
@@ -511,6 +523,15 @@ package body CosNaming.NamingContext.Impl is
       return N;
    end Hash;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      PTM.Create (Critical_Section);
+   end Initialize;
+
    ----------
    -- List --
    ----------
@@ -531,7 +552,7 @@ package body CosNaming.NamingContext.Impl is
    begin
       Valid (Self.Self);
 
-      Enter_Critical_Section;
+      PTM.Enter (Critical_Section);
 
       --  How many bound objects in this naming context.
 
@@ -572,7 +593,7 @@ package body CosNaming.NamingContext.Impl is
          Head := Head.Next;
       end loop;
 
-      Leave_Critical_Section;
+      PTM.Leave (Critical_Section);
 
       --  Activate object Iterator.
 
@@ -608,7 +629,7 @@ package body CosNaming.NamingContext.Impl is
       My_Ref : NamingContext.Ref;
    begin
       PolyORB.CORBA_P.Server_Tools.Initiate_Servant
-        (PortableServer.Servant (Create), My_Ref);
+        (PortableServer.Servant (Impl.Create), My_Ref);
       return My_Ref;
    end New_Context;
 
@@ -637,11 +658,11 @@ package body CosNaming.NamingContext.Impl is
             BO  : Bound_Object_Ptr;
 
          begin
-            Enter_Critical_Section;
+            PTM.Enter (Critical_Section);
             BO := Look_For_BO_In_NC (Self.Self, BON);
 
             if BO = null then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                declare
                   Member : NotFound_Members;
                begin
@@ -653,7 +674,7 @@ package body CosNaming.NamingContext.Impl is
             end if;
 
             if BO.BT /= nobject then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                declare
                   Member : NotFound_Members;
                begin
@@ -666,7 +687,7 @@ package body CosNaming.NamingContext.Impl is
 
             Remove_BO_From_NC (Self.Self, BO);
             Append_BO_To_NC   (Self.Self, BON, Last, nobject, Obj);
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
          end;
       end if;
    end Rebind;
@@ -696,11 +717,11 @@ package body CosNaming.NamingContext.Impl is
             BO  : Bound_Object_Ptr;
 
          begin
-            Enter_Critical_Section;
+            PTM.Enter (Critical_Section);
             BO := Look_For_BO_In_NC (Self.Self, BON);
 
             if BO = null then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                declare
                   Member : NotFound_Members;
                begin
@@ -712,7 +733,7 @@ package body CosNaming.NamingContext.Impl is
             end if;
 
             if BO.BT /= ncontext then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                declare
                   Member : NotFound_Members;
                begin
@@ -726,7 +747,7 @@ package body CosNaming.NamingContext.Impl is
             Remove_BO_From_NC (Self.Self, BO);
             Append_BO_To_NC
               (Self.Self, BON, Last, ncontext, CORBA.Object.Ref (NC));
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
          end;
       end if;
    end Rebind_Context;
@@ -792,11 +813,11 @@ package body CosNaming.NamingContext.Impl is
             Obj : CORBA.Object.Ref;
 
          begin
-            Enter_Critical_Section;
+            PTM.Enter (Critical_Section);
             BO := Look_For_BO_In_NC (Self.Self, BON);
 
             if BO = null then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                declare
                   Member : NotFound_Members;
 
@@ -809,7 +830,7 @@ package body CosNaming.NamingContext.Impl is
             end if;
 
             Obj := BO.Obj;
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
             return Obj;
          end;
       end if;
@@ -848,11 +869,11 @@ package body CosNaming.NamingContext.Impl is
             BO  : Bound_Object_Ptr;
 
          begin
-            Enter_Critical_Section;
+            PTM.Enter (Critical_Section);
             BO := Look_For_BO_In_NC (Self.Self, BON);
 
             if BO = null then
-               Leave_Critical_Section;
+               PTM.Leave (Critical_Section);
                declare
                   Member : NotFound_Members;
 
@@ -865,7 +886,7 @@ package body CosNaming.NamingContext.Impl is
             end if;
 
             Remove_BO_From_NC (Self.Self, BO);
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
          end;
       end if;
    end Unbind;
@@ -880,10 +901,22 @@ package body CosNaming.NamingContext.Impl is
    begin
       if NC = null then
          if Locked then
-            Leave_Critical_Section;
+            PTM.Leave (Critical_Section);
          end if;
          raise CannotProceed;
       end if;
    end Valid;
 
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"CosNaming.NamingContext.Impl",
+       Conflicts => Empty,
+       Depends   => +"tasking.mutexes",
+       Provides  => Empty,
+       Init      => Initialize'Access));
 end CosNaming.NamingContext.Impl;

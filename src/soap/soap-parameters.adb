@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,7 +41,7 @@ package body SOAP.Parameters is
    use PolyORB.Any;
    use PolyORB.Any.NVList;
    use PolyORB.Any.NVList.Internals;
-   use PolyORB.Any.NVList.Internals.NV_Sequence;
+   use PolyORB.Any.NVList.Internals.NV_Lists;
 
    function Argument_Count (P : in List) return Natural is
    begin
@@ -53,13 +54,13 @@ package body SOAP.Parameters is
       use PolyORB.Types;
 
       Arg_Id : constant Identifier := To_PolyORB_String (Name);
-      Args : constant Element_Array := To_Element_Array
-        (List_Of (Ref (P)).all);
+      It : Iterator := First (List_Of (Ref (P)).all);
    begin
-      for I in Args'Range loop
-         if Args (I).Name = Arg_Id then
-            return Args (I);
+      while not Last (It) loop
+         if Value (It).Name = Arg_Id then
+            return Value (It).all;
          end if;
+         Next (It);
       end loop;
 
       raise SOAP.Types.Data_Error;
@@ -68,7 +69,7 @@ package body SOAP.Parameters is
    function Argument (P : in List; N : in Positive)
      return NamedValue is
    begin
-      return Element_Of (List_Of (Ref (P)).all, N);
+      return Element (List_Of (Ref (P)).all, N - 1).all;
    exception
       when others =>
          raise SOAP.Types.Data_Error;

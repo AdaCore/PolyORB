@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
--- P O L Y O R B . T A S K I N G . F U L L _ T A S K I N G _ P R O F I L E  --
+--        P O L Y O R B . P R O F I L E S . F U L L _ T A S K I N G         --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  //droopi/main/design/tasking/polyorb-tasking-full_tasking_profile.adb
+
+--  $Id$
 
 with PolyORB.Tasking.Profiles.Full_Tasking.Threads;
 pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Threads);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,18 +36,13 @@
 --  $Id$
 
 with PolyORB.Components;
-with PolyORB.Initialization;
 with PolyORB.Filters.Interface;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Utils.Strings;
-with PolyORB.Profiles.No_Tasking;
-with PolyORB.Tasking.Soft_Links;
-
-pragma Warnings (Off, PolyORB.Profiles.No_Tasking);
-pragma Warnings (Off, PolyORB.Tasking.Soft_Links);
-pragma Elaborate_All (PolyORB.Profiles.No_Tasking);
-pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
 
 package body PolyORB.ORB.No_Tasking is
 
@@ -65,13 +61,14 @@ package body PolyORB.ORB.No_Tasking is
 
    procedure Handle_Close_Server_Connection
      (P   : access No_Tasking;
-      TE  : Transport_Endpoint_Access)
+      TE  :        Transport_Endpoint_Access)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Unreferenced (TE);
       pragma Warnings (On);
+
+   begin
       null;
    end Handle_Close_Server_Connection;
 
@@ -81,14 +78,17 @@ package body PolyORB.ORB.No_Tasking is
 
    procedure Handle_New_Client_Connection
      (P   : access No_Tasking;
-      ORB : ORB_Access;
-      C   : Active_Connection) is
-   begin
+      ORB :        ORB_Access;
+      C   :        Active_Connection)
+   is
       pragma Warnings (Off);
-      pragma Unreferenced (P);
+      pragma Unreferenced (P, ORB);
       pragma Warnings (On);
-      pragma Debug (O ("No_Tasking: new client connection"));
-      Insert_Source (ORB, C.AES);
+
+   begin
+
+      pragma Debug (O ("New client connection"));
+
       Components.Emit_No_Reply
         (Component_Access (C.TE),
          Connect_Confirmation'(null record));
@@ -103,14 +103,16 @@ package body PolyORB.ORB.No_Tasking is
 
    procedure Handle_New_Server_Connection
      (P   : access No_Tasking;
-      ORB : ORB_Access;
-      C   : Active_Connection) is
-   begin
+      ORB :        ORB_Access;
+      C   :        Active_Connection)
+   is
       pragma Warnings (Off);
-      pragma Unreferenced (P);
+      pragma Unreferenced (P, ORB);
       pragma Warnings (On);
-      pragma Debug (O ("No_Tasking: new server connection"));
-      Insert_Source (ORB, C.AES);
+
+   begin
+      pragma Debug (O ("New server connection"));
+
       Components.Emit_No_Reply
         (Component_Access (C.TE),
          Connect_Indication'(null record));
@@ -124,14 +126,15 @@ package body PolyORB.ORB.No_Tasking is
 
    procedure Handle_Request_Execution
      (P   : access No_Tasking;
-      ORB : ORB_Access;
-      RJ  : access Request_Job'Class) is
-   begin
+      ORB :        ORB_Access;
+      RJ  : access Request_Job'Class)
+   is
       pragma Warnings (Off);
-      pragma Unreferenced (P);
-      pragma Unreferenced (ORB);
+      pragma Unreferenced (P, ORB);
       pragma Warnings (On);
-      pragma Debug (O ("No_Tasking: request execution"));
+
+   begin
+      pragma Debug (O ("Request execution"));
 
       Run_Request (RJ);
       --  No tasking: execute the request in the current task.
@@ -141,28 +144,25 @@ package body PolyORB.ORB.No_Tasking is
    -- Idle --
    ----------
 
-   procedure Idle (P : access No_Tasking; ORB : ORB_Access) is
-   begin
+   procedure Idle
+     (P         : access No_Tasking;
+      This_Task :        PolyORB.Task_Info.Task_Info;
+      ORB       :        ORB_Access)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (P);
+      pragma Unreferenced (This_Task);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
-      pragma Debug (O ("No_Tasking: Idle -> Program error is raised"));
+
+   begin
+      pragma Debug (O ("Dead lock detected !"));
+
       raise Program_Error;
       --  When there is no tasking, the (only) task in the
       --  application may not go idle, since this would
       --  block the whole system forever.
    end Idle;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-   procedure Initialize is
-   begin
-      Setup.The_Tasking_Policy := new No_Tasking;
-   end Initialize;
 
    ------------------------------
    -- Queue_Request_To_Handler --
@@ -170,15 +170,27 @@ package body PolyORB.ORB.No_Tasking is
 
    procedure Queue_Request_To_Handler
      (P   : access No_Tasking;
-      ORB : ORB_Access;
-      Msg : Message'Class)
+      ORB :        ORB_Access;
+      Msg :        Message'Class)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
       pragma Warnings (On);
+
+   begin
       Emit_No_Reply (Component_Access (ORB), Msg);
    end Queue_Request_To_Handler;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Setup.The_Tasking_Policy := new No_Tasking;
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -187,11 +199,9 @@ package body PolyORB.ORB.No_Tasking is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"orb.no_tasking",
+      (Name      => +"orb.no_tasking",
        Conflicts => Empty,
-       Depends => +"tasking.threads"
-         & "tasking.mutexes"
-         & "tasking.condition_variables",
-       Provides => +"orb.tasking_policy",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"orb.tasking_policy",
+       Init      => Initialize'Access));
 end PolyORB.ORB.No_Tasking;

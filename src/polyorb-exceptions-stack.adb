@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,21 +26,26 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#1 $
+--  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#8 $
 
 with Ada.Unchecked_Deallocation;
 
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Exceptions.Stack is
 
    use PolyORB.Log;
-   use PolyORB.Soft_Links;
+   use PolyORB.Tasking.Mutexes;
 
    package L is new PolyORB.Log.Facility_Log
      ("polyorb.exceptions.stack");
@@ -81,6 +86,9 @@ package body PolyORB.Exceptions.Stack is
 
    Exc_Occ_Head : Exc_Occ_List;
    Exc_Occ_Tail : Exc_Occ_List;
+
+   Exc_Occ_Lock : Mutex_Access;
+   --  Mutex used to safely access Exc_Occ list.
 
    Exc_Occ_List_Size     : Natural := 0;
    Max_Exc_Occ_List_Size : constant Natural := 100;
@@ -132,25 +140,25 @@ package body PolyORB.Exceptions.Stack is
    --------------------------
 
    procedure Get_Or_Purge_Members
-     (Exc_Occ     : PolyORB.Exceptions.Exception_Occurrence;
+     (Exc_Occ     :     Ada.Exceptions.Exception_Occurrence;
       Exc_Mbr     : out PolyORB.Exceptions.Exception_Members'Class;
-      Get_Members : Boolean);
+      Get_Members :     Boolean);
    --  Internal implementation of Get_Members and Purge_Members.
    --  If Get_Members is true, the retrieved members object is
    --  assigned to Exc_Mbr, else the object is discarded and no
    --  assignment is made.
 
    procedure Get_Or_Purge_Members
-     (Exc_Occ     : PolyORB.Exceptions.Exception_Occurrence;
+     (Exc_Occ     :     Ada.Exceptions.Exception_Occurrence;
       Exc_Mbr     : out PolyORB.Exceptions.Exception_Members'Class;
-      Get_Members : Boolean)
+      Get_Members :     Boolean)
    is
       Exc_Occ_Id : Exc_Occ_Id_Type;
       Current    : Exc_Occ_List;
       Previous   : Exc_Occ_List;
 
    begin
-      Enter_Critical_Section;
+      Enter (Exc_Occ_Lock);
       pragma Debug (O ("Get_Members: "
                        & Ada.Exceptions.Exception_Name (Exc_Occ)));
       pragma Debug (O ("    message: "
@@ -161,7 +169,7 @@ package body PolyORB.Exceptions.Stack is
 
       Exc_Occ_Id := Value (Ada.Exceptions.Exception_Message (Exc_Occ));
       if Exc_Occ_Id = Null_Id then
-         Leave_Critical_Section;
+         Leave (Exc_Occ_Lock);
          return;
       end if;
 
@@ -176,12 +184,12 @@ package body PolyORB.Exceptions.Stack is
       end loop;
 
       if Current = null then
-         Leave_Critical_Section;
+         Leave (Exc_Occ_Lock);
 
          --  Too many exceptions were raised and this member is no
          --  longer available.
 
-         PolyORB.Exceptions.Raise_Imp_Limit;
+         --  PolyORB.Exceptions.Raise_Imp_Limit;
       end if;
 
       --  Remove member from list.
@@ -198,7 +206,6 @@ package body PolyORB.Exceptions.Stack is
 
       --  Update out parameter. An exception can be raised here.
 
-
       if Get_Members then
          Exc_Mbr := Current.Mbr.all;
          --  May raise Constraint_Error if the tags do not match.
@@ -207,7 +214,7 @@ package body PolyORB.Exceptions.Stack is
       Free (Current.Mbr);
       Free (Current);
       Exc_Occ_List_Size := Exc_Occ_List_Size - 1;
-      Leave_Critical_Section;
+      Leave (Exc_Occ_Lock);
 
    exception
       when others =>
@@ -218,7 +225,7 @@ package body PolyORB.Exceptions.Stack is
             Free (Current);
          end if;
          Exc_Occ_List_Size := Exc_Occ_List_Size - 1;
-         Leave_Critical_Section;
+         Leave (Exc_Occ_Lock);
          raise;
    end Get_Or_Purge_Members;
 
@@ -227,7 +234,7 @@ package body PolyORB.Exceptions.Stack is
    -----------------
 
    procedure Get_Members
-     (Exc_Occ : in PolyORB.Exceptions.Exception_Occurrence;
+     (Exc_Occ : in  Ada.Exceptions.Exception_Occurrence;
       Exc_Mbr : out PolyORB.Exceptions.Exception_Members'Class) is
    begin
       Get_Or_Purge_Members (Exc_Occ, Exc_Mbr, Get_Members => True);
@@ -238,7 +245,7 @@ package body PolyORB.Exceptions.Stack is
    -------------------
 
    procedure Purge_Members
-     (Exc_Occ : in PolyORB.Exceptions.Exception_Occurrence) is
+     (Exc_Occ : in Ada.Exceptions.Exception_Occurrence) is
    begin
       declare
          Dummy : System_Exception_Members;
@@ -271,7 +278,7 @@ package body PolyORB.Exceptions.Stack is
       Exc_Occ_Id : Exc_Occ_Id_Type;
 
    begin
-      Enter_Critical_Section;
+      Enter (Exc_Occ_Lock);
 
       --  Keep the list size to a max size. Otherwise, remove the
       --  oldest member (first in the list).
@@ -317,7 +324,7 @@ package body PolyORB.Exceptions.Stack is
                        & Ada.Exceptions.Exception_Name (Exc_Id)
                        & ", " & Image (Exc_Occ_Id) & ")."));
       pragma Debug (Dump_All_Occurrences);
-      Leave_Critical_Section;
+      Leave (Exc_Occ_Lock);
 
       Ada.Exceptions.Raise_Exception (Exc_Id, Image (Exc_Occ_Id));
       raise Program_Error;
@@ -363,5 +370,29 @@ package body PolyORB.Exceptions.Stack is
 
       return V;
    end Value;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Create (Exc_Occ_Lock);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"exceptions.stack",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => Empty,
+       Init      => Initialize'Access));
 
 end PolyORB.Exceptions.Stack;

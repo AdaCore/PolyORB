@@ -47,5 +47,5 @@ CLEANFILES+=	stamp-gen
 $(CosTime_GEN): stamp-gen
 
 stamp-gen: $(CosTime_IDL) $(IDLAC)
-	touch stamp-gen
 	$(IDLAC) $(CosTime_IDL) -I$(srcdir)
+	touch $@

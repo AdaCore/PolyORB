@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . T A S K I N G . P R O F I L E S .             --
---                 F U L L _ T A S K I N G . T H R E A D S                  --
+--              POLYORB.TASKING.PROFILES.FULL_TASKING.THREADS               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,36 +26,25 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provide a real implementation for base types for tasking
---  using full Ada tasking. For all comments, see PolyORB.Tasking.Threads.
+--  This package provide an implementation for base types for tasking
+--  using full Ada tasking, yet it does not allow for dynamic priority
+--  modification of a running thread. For all comments, see
+--  PolyORB.Tasking.Threads.
 
 with Ada.Task_Identification;
+
 with PolyORB.Tasking.Threads;
+
 with System;
 
 package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    package PTT renames PolyORB.Tasking.Threads;
-
-   ----------------------------
-   -- Full_Tasking_Thread_Id --
-   ----------------------------
-
-   type Full_Tasking_Thread_Id is new PTT.Thread_Id with private;
-
-   type Full_Tasking_Thread_Id_Access is
-     access all Full_Tasking_Thread_Id'Class;
-
-   function "="
-     (T1 : Full_Tasking_Thread_Id;
-      T2 : Full_Tasking_Thread_Id)
-     return Boolean;
-
-   function Image (T : Full_Tasking_Thread_Id) return String;
 
    ------------------------------
    -- Full_Tasking_Thread Type --
@@ -67,7 +55,7 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    function Get_Thread_Id
      (T : access Full_Tasking_Thread_Type)
-     return PTT.Thread_Id_Access;
+     return PTT.Thread_Id;
 
    type Full_Tasking_Thread_Access
       is access all Full_Tasking_Thread_Type'Class;
@@ -84,16 +72,12 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
 
    The_Thread_Factory : constant Full_Tasking_Thread_Factory_Access;
 
-   procedure Copy_Thread_Id
-     (TF     : access Full_Tasking_Thread_Factory_Type;
-      Source : PTT.Thread_Id'Class;
-      Target : PTT.Thread_Id_Access);
-
    function Run_In_Task
      (TF               : access Full_Tasking_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : PTT.Runnable'Class)
+      R                : PTT.Runnable_Access;
+      C                : PTT.Runnable_Controller_Access)
      return PTT.Thread_Access;
 
    function Run_In_Task
@@ -103,30 +87,43 @@ package PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       P                : PTT.Parameterless_Procedure)
      return PTT.Thread_Access;
 
-   procedure Set_Priority
-     (TF : access Full_Tasking_Thread_Factory_Type;
-      T  : PTT.Thread_Id'Class;
-      P  : System.Any_Priority);
-
    function Get_Current_Thread_Id
      (TF : access Full_Tasking_Thread_Factory_Type)
-     return PTT.Thread_Id'Class;
+     return PTT.Thread_Id;
+
+   function P_To_A_Task_Id (TID : PTT.Thread_Id)
+     return Ada.Task_Identification.Task_Id;
+   pragma Inline (P_To_A_Task_Id);
+   --  Convert PolyORB Task_Id to Ada Task_Id.
+
+   function Thread_Id_Image
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      TID : PTT.Thread_Id)
+     return String;
+
+   procedure Set_Priority
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority);
+   pragma No_Return (Set_Priority);
+   --  Setting priority has no meaning under this profile,
+   --  raise PolyORB.Tasking.Tasking_Profile_Error.
+
+   function Get_Priority
+     (TF : access Full_Tasking_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority;
+   --  XXX not implemented
 
 private
 
-   type Full_Tasking_Thread_Id is new PTT.Thread_Id with record
-      Tid : Ada.Task_Identification.Task_Id;
-   end record;
-
    type Full_Tasking_Thread_Type is new PTT.Thread_Type with record
-      Id        : PTT.Thread_Id_Access;
+      Id        : PTT.Thread_Id;
       Priority  : System.Any_Priority;
    end record;
 
    type Full_Tasking_Thread_Factory_Type is
-     new PTT.Thread_Factory_Type with record
-        null;
-     end record;
+     new PTT.Thread_Factory_Type with null record;
 
    The_Thread_Factory : constant Full_Tasking_Thread_Factory_Access
      := new Full_Tasking_Thread_Factory_Type;

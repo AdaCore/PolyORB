@@ -1,28 +1,37 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                        I D L _ F E . P A R S E R                         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.ads#4 $
 
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
@@ -605,87 +614,87 @@ private
    --  <floating_pt_type> ::= "float"
    --                     |   "double"
    --                     |   "long" "double"
-   procedure Parse_Floating_Pt_Type (Result : in out Node_Id;
+   procedure Parse_Floating_Pt_Type (Result : out Node_Id;
                                      Success : out Boolean);
 
    --  Rule 54
    --  <integer_type> ::= <signed_int>
    --                 |   <unsigned_int>
-   procedure Parse_Integer_Type (Result : in out Node_Id;
+   procedure Parse_Integer_Type (Result : out Node_Id;
                                  Success : out Boolean);
 
    --  Rule 55
    --  <signed_int> ::= <signed_short_int>
    --               |   <signed_long_int>
    --               |   <signed_longlong_int>
-   procedure Parse_Signed_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Int (Result : out Node_Id;
                                Success : out Boolean);
 
    --  Rule 56
    --  <signed_short_int> ::= "short"
-   procedure Parse_Signed_Short_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Short_Int (Result : out Node_Id;
                                      Success : out Boolean);
 
    --  Rule 57
    --  <signed_long_int> := "long"
-   procedure Parse_Signed_Long_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Long_Int (Result : out Node_Id;
                                     Success : out Boolean);
 
    --  Rule 58
    --  <signed_longlong_int> ::= "long" "long"
-   procedure Parse_Signed_Longlong_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Longlong_Int (Result : out Node_Id;
                                         Success : out Boolean);
 
    --  Rule 59
    --  <unsigned_int> ::= <unsigned_short_int>
    --                 |   <unsigned_long_int>
    --                 |   <unsigned_longlong_int>
-   procedure Parse_Unsigned_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Int (Result : out Node_Id;
                                  Success : out Boolean);
 
    --  Rule 60
    --  <unsigned_short_int> ::= "unsigned" "short"
-   procedure Parse_Unsigned_Short_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Short_Int (Result : out Node_Id;
                                        Success : out Boolean);
 
    --  Rule 61
    --  <unsigned_long_int> ::= "unsigned" "long"
-   procedure Parse_Unsigned_Long_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Long_Int (Result : out Node_Id;
                                       Success : out Boolean);
 
    --  Rule 62
    --  <unsigned_longlong_int> ::= "unsigned" "long" "long"
-   procedure Parse_Unsigned_Longlong_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Longlong_Int (Result : out Node_Id;
                                           Success : out Boolean);
 
    --  Rule 63
    --  <char_type> ::= "char"
-   procedure Parse_Char_Type (Result : in out Node_Id;
+   procedure Parse_Char_Type (Result : out Node_Id;
                               Success : out Boolean);
 
    --  Rule 64
    --  <wide_char_type> ::= "wchar"
-   procedure Parse_Wide_Char_Type (Result : in out Node_Id;
+   procedure Parse_Wide_Char_Type (Result : out Node_Id;
                                    Success : out Boolean);
 
    --  Rule 65
    --  <boolean_type> ::= "boolean"
-   procedure Parse_Boolean_Type (Result : in out Node_Id;
+   procedure Parse_Boolean_Type (Result : out Node_Id;
                                  Success : out Boolean);
 
    --  Rule 66
    --  <octet_type> ::= "octet"
-   procedure Parse_Octet_Type (Result : in out Node_Id;
+   procedure Parse_Octet_Type (Result : out Node_Id;
                                Success : out Boolean);
 
    --  Rule 67
    --  <any_type> ::= "any"
-   procedure Parse_Any_Type (Result : in out Node_Id;
+   procedure Parse_Any_Type (Result : out Node_Id;
                              Success : out Boolean);
 
    --  Rule 68
    --  <object_type> ::= "object"
-   procedure Parse_Object_Type (Result : in out Node_Id;
+   procedure Parse_Object_Type (Result : out Node_Id;
                                 Success : out Boolean);
 
    --  Rule 69
@@ -861,7 +870,7 @@ private
 
    --  Rule 98
    --  <value_base_type> ::= "ValueBase"
-   procedure Parse_Value_Base_Type (Result : in out Node_Id;
+   procedure Parse_Value_Base_Type (Result : out Node_Id;
                                     Success : out Boolean);
 
    ------------------------------

@@ -8,7 +8,6 @@ with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.Container.Impl;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
-with PolyORB.Exceptions;
 
 with CORBA.Repository_Root.IRObject.Skel;
 pragma Warnings (Off, CORBA.Repository_Root.IRObject.Skel);
@@ -83,7 +82,10 @@ package body CORBA.Repository_Root.IRObject.Impl is
             dk_Repository |
             dk_Primitive  =>
             --  You are not allowed to destroy rarepository aree a primitive
-            PolyORB.Exceptions.Raise_Bad_Inv_Order (Minor => 2);
+            CORBA.Raise_Bad_Inv_Order
+              (CORBA.System_Exception_Members'
+               (Minor => 2,
+                Completed => CORBA.Completed_No));
          when others =>
             --  dispatching call
             --  Destroy (Object_Ptr (Self));

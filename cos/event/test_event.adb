@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           ADABROKER SERVICES                             --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                           T E S T _ E V E N T                            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,25 +26,35 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CosNaming; use CosNaming;
+--  Test PolyORB COS event capabilities.
 
-with CosNaming.NamingContext;
-with CosNaming.NamingContext.Impl;
-with CosNaming.NamingContext.Helper;
+--  $Id$
+
+with Ada.Command_Line;
+with Ada.Exceptions;
+with Ada.Text_IO;
+
+with CORBA.Impl;
+with CORBA.Object;
+with CORBA.ORB;
+
+with PortableServer;
 
 with CosNaming.BindingIterator;
 
-with CosEventChannelAdmin; use CosEventChannelAdmin;
+with CosNaming.NamingContext.Impl;
+with CosNaming.NamingContext.Helper;
 
-with CosEventChannelAdmin.EventChannel;
+with CosEventChannelAdmin.ConsumerAdmin;
+
 with CosEventChannelAdmin.EventChannel.Impl;
 with CosEventChannelAdmin.EventChannel.Helper;
-with CosEventChannelAdmin.ConsumerAdmin;
+
 with CosEventChannelAdmin.SupplierAdmin;
 
 with CosEventChannelAdmin.ProxyPullConsumer;
@@ -52,38 +62,52 @@ with CosEventChannelAdmin.ProxyPullSupplier;
 with CosEventChannelAdmin.ProxyPushConsumer;
 with CosEventChannelAdmin.ProxyPushSupplier;
 
-with CosEventComm; use CosEventComm;
-
-with CosEventComm.PullConsumer;
-with CosEventComm.PullSupplier;
-with CosEventComm.PushConsumer;
-with CosEventComm.PushSupplier;
-
 with CosEventComm.PullConsumer.Helper;
-with CosEventComm.PullSupplier.Helper;
-with CosEventComm.PushConsumer.Helper;
-with CosEventComm.PushSupplier.Helper;
-
 with CosEventComm.PullConsumer.Impl;
+
+with CosEventComm.PullSupplier.Helper;
 with CosEventComm.PullSupplier.Impl;
+
+with CosEventComm.PushConsumer.Helper;
 with CosEventComm.PushConsumer.Impl;
+
+with CosEventComm.PushSupplier.Helper;
 with CosEventComm.PushSupplier.Impl;
 
-with CORBA;
-with CORBA.Object;
-with CORBA.Impl;
-with CORBA.ORB;
+with PolyORB.CORBA_P.Server_Tools;
 
-with Broca.Server_Tools; use Broca.Server_Tools;
+with PolyORB.Tasking.Condition_Variables;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Threads;
 
-with PortableServer; use PortableServer;
+with PolyORB.Setup.Thread_Pool_Server;
+pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
+pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
-with Menu; use Menu;
+with Auto_Print;
+--  Auxiliary code to output pushconsumer incoming messages.
 
-with Ada.Text_IO;
-with Ada.Exceptions; use Ada.Exceptions;
+with Menu;
+--  From COS Naming, provide text interface.
 
 procedure Test_Event is
+
+   use Ada.Exceptions;
+
+   use Auto_Print;
+   use Menu;
+
+   use PortableServer;
+
+   use CosNaming;
+   use CosEventChannelAdmin;
+   use CosEventComm;
+   use CosEventComm.PushConsumer.Impl;
+
+   use PolyORB.CORBA_P.Server_Tools;
+   use PolyORB.Tasking.Condition_Variables;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Threads;
 
    type Command is
      (Help,
@@ -92,26 +116,26 @@ procedure Test_Event is
       Sleep,
       Connect,
       Consume,
+      TryConsume,
       Produce,
+      AutoDisplay,
       Create);
 
    Syntax_Error : exception;
 
-   function M (S : String) return String_Access;
-   function M (S : String) return String_Access is
-   begin
-      return new String'(S);
-   end M;
-
    Help_Messages : constant array (Command) of String_Access
-     := (Help    => M ("print this message"),
-         Quit    => M ("quit this shell"),
-         Run     => M ("run <file of commands from this language"),
-         Sleep   => M ("sleep <seconds>"),
-         Create  => M ("create <kind> <entity>"),
-         Connect => M ("connect <entity> to <channel>"),
-         Consume => M ("consume in <entity>"),
-         Produce => M ("produce <string> in <entity>"));
+     := (Help        => +(ASCII.HT & "print this message"),
+         Quit        => +(ASCII.HT & "quit this shell"),
+         Run         => +(ASCII.HT
+                          & "run <file of commands from this language>"),
+         Sleep       => +(ASCII.HT & "sleep <seconds>"),
+         Create      => +(ASCII.HT & "create <kind> <entity>"),
+         Connect     => +(ASCII.HT & "connect <entity> to <channel>"),
+         Consume     => +(ASCII.HT & "consume in <entity>"),
+         TryConsume  => +("tryconsume in <entity>"),
+         AutoDisplay => +("autodisplay <pushconsumer>"),
+         Produce     => +(ASCII.HT
+                          & "produce <string> in <entity> [<N> times]"));
 
    type Entity_Kind is
      (K_Channel,
@@ -136,6 +160,11 @@ procedure Test_Event is
    procedure Connect_Entity
      (Entity  : in CORBA.Object.Ref;
       Kind    : in Entity_Kind;
+      Channel : in EventChannel.Ref);
+
+   procedure Connect_Entity
+     (Entity  : in CORBA.Object.Ref;
+      Kind    : in Entity_Kind;
       Channel : in EventChannel.Ref)
    is
       O : CORBA.Impl.Object_Ptr;
@@ -149,8 +178,8 @@ procedure Test_Event is
                E : PullConsumer.Ref;
 
             begin
-               A := EventChannel.For_Consumers (Channel);
-               P := ConsumerAdmin.Obtain_Pull_Supplier (A);
+               A := EventChannel.for_consumers (Channel);
+               P := ConsumerAdmin.obtain_pull_supplier (A);
                E := PullConsumer.Helper.To_Ref (Entity);
                Reference_To_Servant (E, Servant (O));
                PullConsumer.Impl.Connect_Proxy_Pull_Supplier
@@ -164,8 +193,8 @@ procedure Test_Event is
                E : PullSupplier.Ref;
 
             begin
-               A := EventChannel.For_Suppliers (Channel);
-               P := SupplierAdmin.Obtain_Pull_Consumer (A);
+               A := EventChannel.for_suppliers (Channel);
+               P := SupplierAdmin.obtain_pull_consumer (A);
                E := PullSupplier.Helper.To_Ref (Entity);
                Reference_To_Servant (E, Servant (O));
                PullSupplier.Impl.Connect_Proxy_Pull_Consumer
@@ -179,8 +208,8 @@ procedure Test_Event is
                E : PushConsumer.Ref;
 
             begin
-               A := EventChannel.For_Consumers (Channel);
-               P := ConsumerAdmin.Obtain_Push_Supplier (A);
+               A := EventChannel.for_consumers (Channel);
+               P := ConsumerAdmin.obtain_push_supplier (A);
                E := PushConsumer.Helper.To_Ref (Entity);
                Reference_To_Servant (E, Servant (O));
                PushConsumer.Impl.Connect_Proxy_Push_Supplier
@@ -194,8 +223,8 @@ procedure Test_Event is
                E : PushSupplier.Ref;
 
             begin
-               A := EventChannel.For_Suppliers (Channel);
-               P := SupplierAdmin.Obtain_Push_Consumer (A);
+               A := EventChannel.for_suppliers (Channel);
+               P := SupplierAdmin.obtain_push_consumer (A);
                E := PushSupplier.Helper.To_Ref (Entity);
                Reference_To_Servant (E, Servant (O));
                PushSupplier.Impl.Connect_Proxy_Push_Consumer
@@ -210,6 +239,11 @@ procedure Test_Event is
    -------------------
    -- Consume_Event --
    -------------------
+
+   function Consume_Event
+     (Entity : CORBA.Object.Ref;
+      Kind   : Entity_Kind)
+     return String;
 
    function Consume_Event
      (Entity : CORBA.Object.Ref;
@@ -235,7 +269,6 @@ procedure Test_Event is
          when K_PushConsumer =>
             declare
                C : PushConsumer.Ref;
-
             begin
                C := PushConsumer.Helper.To_Ref (Entity);
                Reference_To_Servant (C, Servant (O));
@@ -249,13 +282,73 @@ procedure Test_Event is
       return "";
    end Consume_Event;
 
+   -----------------------
+   -- Try_Consume_Event --
+   -----------------------
+
+   function Try_Consume_Event
+     (Entity : CORBA.Object.Ref;
+      Kind   : Entity_Kind)
+     return String;
+
+   function Try_Consume_Event
+     (Entity : CORBA.Object.Ref;
+      Kind   : Entity_Kind)
+     return String
+   is
+      O : CORBA.Impl.Object_Ptr;
+      A : CORBA.Any;
+      B : CORBA.Boolean;
+   begin
+      case Kind is
+         when K_PullConsumer =>
+            declare
+               C : PullConsumer.Ref;
+
+            begin
+               C := PullConsumer.Helper.To_Ref (Entity);
+               Reference_To_Servant (C, Servant (O));
+               PullConsumer.Impl.Try_Pull
+                 (PullConsumer.Impl.Object_Ptr (O), B, A);
+               if B then
+                  return To_Standard_String (From_Any (A));
+               else
+                  return "Nothing to consume!!!";
+               end if;
+            end;
+
+         when K_PushConsumer =>
+            declare
+               C : PushConsumer.Ref;
+            begin
+               C := PushConsumer.Helper.To_Ref (Entity);
+               Reference_To_Servant (C, Servant (O));
+               PushConsumer.Impl.Try_Pull
+                 (PushConsumer.Impl.Object_Ptr (O), B, A);
+               if B then
+                  return To_Standard_String (From_Any (A));
+               else
+                  return "Nothing to consume!!!";
+               end if;
+            end;
+
+         when others =>
+            null;
+      end case;
+      return "";
+   end Try_Consume_Event;
+
    -------------------
    -- Create_Entity --
    -------------------
 
    procedure Create_Entity
      (Entity : out CORBA.Object.Ref;
-      Kind   : in Entity_Kind) is
+      Kind   : in  Entity_Kind);
+
+   procedure Create_Entity
+     (Entity : out CORBA.Object.Ref;
+      Kind   : in  Entity_Kind) is
    begin
       case Kind is
          when K_Channel =>
@@ -310,7 +403,12 @@ procedure Test_Event is
    -----------------
 
    procedure Find_Entity
-     (Name   : in String_Access;
+     (Name   : in  String_Access;
+      Entity : out CORBA.Object.Ref;
+      Kind   : out Entity_Kind);
+
+   procedure Find_Entity
+     (Name   : in  String_Access;
       Entity : out CORBA.Object.Ref;
       Kind   : out Entity_Kind)
    is
@@ -323,17 +421,17 @@ procedure Test_Event is
       NC   : NameComponent;
 
    begin
-      NamingContext.List (Ctx, 0, BL, BI);
+      NamingContext.list (Ctx, 0, BL, BI);
       Iter := BindingIterator.Convert_Forward.To_Ref (BI);
       loop
-         BindingIterator.Next_One (Iter, B, Done);
+         BindingIterator.next_one (Iter, B, Done);
          exit when not Done;
-         NC := Element_Of (B.Binding_Name, 1);
-         if NC.Id = Id then
+         NC := Element_Of (B.binding_name, 1);
+         if NC.id = Id then
             for K in Image'Range loop
-               if NC.Kind = Image (K) then
+               if NC.kind = Image (K) then
                   Kind   := K;
-                  Entity := NamingContext.Resolve (Ctx, B.Binding_Name);
+                  Entity := NamingContext.resolve (Ctx, B.binding_name);
                   return;
                end if;
             end loop;
@@ -350,7 +448,14 @@ procedure Test_Event is
    procedure Produce_Event
      (Entity : CORBA.Object.Ref;
       Kind   : Entity_Kind;
-      Event  : String_Access)
+      Event  : String_Access;
+      Times  : Natural);
+
+   procedure Produce_Event
+     (Entity : CORBA.Object.Ref;
+      Kind   : Entity_Kind;
+      Event  : String_Access;
+      Times  : Natural)
    is
       O : CORBA.Impl.Object_Ptr;
       A : CORBA.Any := To_Any (To_CORBA_String (Event.all));
@@ -364,7 +469,12 @@ procedure Test_Event is
             begin
                S := PullSupplier.Helper.To_Ref (Entity);
                Reference_To_Servant (S, Servant (O));
-               PullSupplier.Impl.Push (PullSupplier.Impl.Object_Ptr (O), A);
+               Ada.Text_IO.New_Line;
+               for J in 1 .. Times loop
+                  PullSupplier.Impl.Push (PullSupplier.Impl.Object_Ptr (O), A);
+                  Ada.Text_IO.Put (".");
+               end loop;
+               Ada.Text_IO.New_Line;
             end;
 
          when K_PushSupplier =>
@@ -374,7 +484,12 @@ procedure Test_Event is
             begin
                S := PushSupplier.Helper.To_Ref (Entity);
                Reference_To_Servant (S, Servant (O));
-               PushSupplier.Impl.Push (PushSupplier.Impl.Object_Ptr (O), A);
+               Ada.Text_IO.New_Line;
+               for J in 1 .. Times loop
+                  PushSupplier.Impl.Push (PushSupplier.Impl.Object_Ptr (O), A);
+                  Ada.Text_IO.Put (".");
+               end loop;
+               Ada.Text_IO.New_Line;
             end;
 
          when others =>
@@ -389,176 +504,293 @@ procedure Test_Event is
    function To_Name
      (S   : String_Access;
       K   : Entity_Kind)
+     return Name;
+
+   function To_Name
+     (S   : String_Access;
+      K   : Entity_Kind)
       return Name
    is
       Element : NameComponent;
       Result  : Name;
 
    begin
-      Element.Id   := CosNaming.To_CORBA_String (S.all);
-      Element.Kind := CosNaming.To_CORBA_String (K'Img);
+      Element.id   := CosNaming.To_CORBA_String (S.all);
+      Element.kind := CosNaming.To_CORBA_String (K'Img);
       Append (Result, Element);
       return Result;
    end To_Name;
 
-   -----------
-   -- Usage --
-   -----------
+   ------------------
+   -- Display_Help --
+   ------------------
 
-   procedure Usage is
+   procedure Display_Help;
+
+   procedure Display_Help is
    begin
       for C in Help_Messages'Range loop
          Ada.Text_IO.Put_Line
-           (C'Img & Ascii.HT & Help_Messages (C).all);
+           (C'Img & ASCII.HT & ASCII.HT & Help_Messages (C).all);
+
          if C = Create then
-            Ada.Text_IO.Put (Ascii.HT & "<kind> in");
+            Ada.Text_IO.Put (ASCII.HT & "<kind> in");
             for E in Entity_Kind'Range loop
                declare
-                  I : String := E'Img;
+                  I : constant String := Entity_Kind'Image (E);
                begin
                   Ada.Text_IO.Put (' ' & I (3 .. I'Last));
                end;
             end loop;
             Ada.Text_IO.New_Line;
          end if;
+
       end loop;
       Ada.Text_IO.New_Line;
-   end Usage;
+   end Display_Help;
 
-   Argc    : Natural;
-   Entity  : CORBA.Object.Ref;
-   Channel : EventChannel.Ref;
-   Kind    : Entity_Kind;
+   --------------
+   -- Exit_All --
+   --------------
 
-begin
-   Initiate_Server;
+   procedure Exit_All;
 
-   if Count ("enter naming IOR [otherwise create one]: ") = 0 then
-      Servant_To_Reference (Servant (NamingContext.Impl.Create), Ctx);
-      Ada.Text_IO.Put_Line
-        (CORBA.To_Standard_String
-         (CORBA.Object.Object_To_String
-          (CORBA.Object.Ref (Ctx))));
+   procedure Exit_All is
+   begin
+      CORBA.ORB.Shutdown (False);
+   end Exit_All;
 
-   else
-      declare
-         Obj : CORBA.Object.Ref;
+   ---------------
+   -- Main_Loop --
+   ---------------
 
-      begin
-         CORBA.ORB.String_To_Object
-           (CORBA.To_CORBA_String (Argument (1).all), Obj);
-         Ctx := NamingContext.Helper.To_Ref (Obj);
-      end;
-   end if;
+   procedure Main_Loop;
 
-   loop
-      Argc := Count;
-      if Argc > 0
-        and then Argument (1)(Argument (1)'First) /= '#'
-      then
-         begin
-            case Command'Value (Argument (1).all) is
-               when Help =>
-                  Usage;
+   procedure Main_Loop
+   is
+      Argc    : Natural;
+      Entity  : CORBA.Object.Ref;
+      Channel : EventChannel.Ref;
+      Kind    : Entity_Kind;
+   begin
+      loop
+         Argc := Count;
+         if Argc > 0
+           and then Argument (1)(Argument (1)'First) /= '#'
+         then
+            begin
+               case Command'Value (Argument (1).all) is
+                  when Help =>
+                     Display_Help;
 
-               when Quit =>
-                  exit;
+                  when Quit =>
+                     Exit_All;
+                     exit;
 
-               when Create =>
-                  if Argc /= 3 then
-                     raise Syntax_Error;
-                  end if;
-
-                  Kind := Entity_Kind'Value ("K_" & Argument (2).all);
-                  declare
-                     EK : Entity_Kind;
-
-                  begin
-                     Find_Entity (Argument (3), Entity, EK);
-
-                     if EK /= Kind then
-                        Ada.Text_IO.Put_Line
-                          ("entity " & Argument (3).all &
-                           " is a " & EK'Img);
+                  when Create =>
+                     if Argc /= 3 then
                         raise Syntax_Error;
                      end if;
 
-                  exception
-                     when NamingContext.NotFound =>
-                        Create_Entity (Entity, Kind);
-                        NamingContext.Bind
-                          (Ctx, To_Name (Argument (3), Kind), Entity);
-                  end;
+                     Kind := Entity_Kind'Value ("K_" & Argument (2).all);
+                     declare
+                        EK : Entity_Kind;
 
-               when Connect =>
-                  if Argc /= 4 then
-                     raise Syntax_Error;
-                  end if;
+                     begin
+                        Find_Entity (Argument (3), Entity, EK);
 
-                  if Argument (3).all /= "to" then
-                     raise Syntax_Error;
-                  end if;
+                        if EK /= Kind then
+                           Ada.Text_IO.Put_Line
+                             ("entity " & Argument (3).all &
+                              " is a " & EK'Img);
+                           raise Syntax_Error;
+                        end if;
 
-                  Find_Entity (Argument (4), Entity, Kind);
-                  if Kind /= K_Channel then
-                     raise Syntax_Error;
-                  end if;
-                  Channel := EventChannel.Helper.To_Ref (Entity);
+                     exception
+                        when NamingContext.NotFound =>
+                           Create_Entity (Entity, Kind);
+                           NamingContext.bind
+                             (Ctx, To_Name (Argument (3), Kind), Entity);
+                     end;
 
-                  Find_Entity (Argument (2), Entity, Kind);
-                  Connect_Entity (Entity, Kind, Channel);
+                  when Connect =>
+                     if Argc /= 4
+                       or else Argument (3).all /= "to"
+                     then
+                        raise Syntax_Error;
+                     end if;
 
-               when Consume =>
-                  if Argc /= 3 then
-                     raise Syntax_Error;
-                  end if;
+                     Find_Entity (Argument (4), Entity, Kind);
+                     if Kind /= K_Channel then
+                        raise Syntax_Error;
+                     end if;
+                     Channel := EventChannel.Helper.To_Ref (Entity);
 
-                  if Argument (2).all /= "in" then
-                     raise Syntax_Error;
-                  end if;
+                     Find_Entity (Argument (2), Entity, Kind);
+                     Connect_Entity (Entity, Kind, Channel);
 
-                  Find_Entity (Argument (3), Entity, Kind);
-                  Ada.Text_IO.Put_Line (Consume_Event (Entity, Kind));
+                  when Consume =>
+                     if Argc /= 3
+                       or else Argument (2).all /= "in"
+                     then
+                        raise Syntax_Error;
+                     end if;
 
-               when Produce =>
-                  if Argc /= 4 then
-                     raise Syntax_Error;
-                  end if;
+                     Find_Entity (Argument (3), Entity, Kind);
+                     Ada.Text_IO.Put_Line (Consume_Event (Entity, Kind));
 
-                  if Argument (3).all /= "in" then
-                     raise Syntax_Error;
-                  end if;
-                  Find_Entity (Argument (4), Entity, Kind);
-                  Produce_Event (Entity, Kind, Argument (2));
+                  when TryConsume =>
+                     if Argc /= 3
+                       or else Argument (2).all /= "in"
+                     then
+                        raise Syntax_Error;
+                     end if;
 
-               when Run =>
-                  if Argc /= 2 then
-                     raise Syntax_Error;
-                  end if;
+                     Find_Entity (Argument (3), Entity, Kind);
+                     Ada.Text_IO.Put_Line (Try_Consume_Event (Entity, Kind));
 
-                  Menu.Set_Input (Argument (2));
+                  when Produce =>
+                     if (Argc /= 4
+                         and then Argc /= 6)
+                       or else Argument (3).all /= "in"
+                     then
+                        raise Syntax_Error;
+                     end if;
 
-               when Sleep =>
-                  if Argc /= 2 then
-                     raise Syntax_Error;
-                  end if;
+                     declare
+                        N : Natural := 1;
+                     begin
+                        if Argc = 6 then
+                           if Argument (6).all = "times" then
+                              N  := Natural'Value (Argument (5).all);
+                           else
+                              raise Syntax_Error;
+                           end if;
+                        end if;
 
-                  declare
-                     N : Natural := Natural'Value (Argument (2).all);
-                  begin
-                     delay Duration (N);
-                  end;
-            end case;
+                        Find_Entity (Argument (4), Entity, Kind);
+                        Produce_Event (Entity, Kind, Argument (2), N);
+                     end;
 
-         exception
-            when Syntax_Error =>
-               Ada.Text_IO.Put_Line ("syntax error");
+                  when Run =>
+                     if Argc /= 2 then
+                        raise Syntax_Error;
+                     end if;
 
-            when E : others =>
-               Ada.Text_IO.Put_Line ("raise "& Exception_Name (E));
-               Ada.Text_IO.Put_Line (Exception_Message (E));
+                     Set_Input (Argument (2));
+
+                  when Sleep =>
+                     if Argc /= 2 then
+                        raise Syntax_Error;
+                     end if;
+
+                     declare
+                        N : constant Natural
+                          := Natural'Value (Argument (2).all);
+                     begin
+                        delay Duration (N);
+                     end;
+
+                  when AutoDisplay =>
+                     if Argc /= 2 then
+                        raise Syntax_Error;
+                     end if;
+
+                     declare
+                        Item : String (1 .. 255);
+                        Last : Natural;
+                        C : PushConsumer.Ref;
+                        O : CORBA.Impl.Object_Ptr;
+
+                     begin
+                        Find_Entity (Argument (2), Entity, Kind);
+                        if Kind /= K_PushConsumer then
+                           Ada.Text_IO.Put_Line
+                             ("Can be called only with a PushConsumer");
+                        else
+                           C := PushConsumer.Helper.To_Ref (Entity);
+                           Reference_To_Servant (C, Servant (O));
+                           Ensure_Initialization;
+                           Enter (Session_Mutex);
+                           A_S := O;
+                           Create_Task (Auto_Display'Access);
+                           Wait (Session_Taken, Session_Mutex);
+                           Leave (Session_Mutex);
+
+                           Ada.Text_IO.Get_Line (Item, Last);
+                           EndDisplay := True;
+                        end if;
+                     end;
+               end case;
+
+            exception
+               when Syntax_Error =>
+                  Ada.Text_IO.Put_Line ("syntax error");
+
+               when E : others =>
+                  Ada.Text_IO.Put_Line ("raise "& Exception_Name (E));
+                  Ada.Text_IO.Put_Line (Exception_Message (E));
+                  Ada.Text_IO.Put_Line (Exception_Information (E));
+            end;
+         end if;
+      end loop;
+   end Main_Loop;
+
+   --  main procedure begins here.
+
+begin
+
+   CORBA.ORB.Initialize ("ORB");
+
+   Initiate_Server (True);
+
+   if Ada.Command_Line.Argument_Count = 0 then
+
+      --  Test_Event is used in interactive mode.
+
+      if Count ("enter naming IOR [otherwise create one]: ") = 0 then
+         Servant_To_Reference (Servant (NamingContext.Impl.Create), Ctx);
+         Ada.Text_IO.Put_Line
+           (CORBA.To_Standard_String
+            (CORBA.Object.Object_To_String
+             (CORBA.Object.Ref (Ctx))));
+
+      else
+         declare
+            Obj : CORBA.Object.Ref;
+
+         begin
+            CORBA.ORB.String_To_Object
+              (CORBA.To_CORBA_String (Argument (1).all), Obj);
+            Ctx := NamingContext.Helper.To_Ref (Obj);
          end;
       end if;
-   end loop;
 
+      Display_Help;
+      Main_Loop;
+
+   else
+
+      --  Test_Event is used in batch mode.
+
+      if Ada.Command_Line.Argument_Count /= 2 then
+         Ada.Text_IO.New_Line;
+         Ada.Text_IO.Put_Line
+           ("usage: test_event [<COSNAMING_IOR> <script_file>]");
+         Exit_All;
+      end if;
+
+      declare
+         Obj : CORBA.Object.Ref;
+      begin
+         CORBA.ORB.String_To_Object
+           (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)), Obj);
+         Ctx := NamingContext.Helper.To_Ref (Obj);
+      end;
+
+      Set_Input (+Ada.Command_Line.Argument (2));
+
+      Main_Loop;
+   end if;
 end Test_Event;
+

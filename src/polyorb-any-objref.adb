@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,17 +35,18 @@
 
 --  $Id$
 
-with PolyORB.Locks;
-
 package body PolyORB.Any.ObjRef is
 
-   use PolyORB.Locks;
+   --  'Object Reference' content
 
    type Content_ObjRef is new Content with record
       Value : PolyORB.References.Ref_Ptr;
    end record;
+
    type Content_ObjRef_Ptr is access all Content_ObjRef;
+
    procedure Deallocate (Object : access Content_ObjRef);
+
    function Duplicate
      (Object : access Content_ObjRef)
      return Any_Content_Ptr;
@@ -53,7 +55,9 @@ package body PolyORB.Any.ObjRef is
    -- Deallocate --
    ----------------
 
-   procedure Deallocate (Object : access Content_ObjRef) is
+   procedure Deallocate
+     (Object : access Content_ObjRef)
+   is
       Obj : Any_Content_Ptr := Any_Content_Ptr (Object);
    begin
       PolyORB.References.Deallocate (Object.Value);
@@ -64,8 +68,9 @@ package body PolyORB.Any.ObjRef is
    -- Duplicate --
    ---------------
 
-   function Duplicate (Object : access Content_ObjRef)
-                       return Any_Content_Ptr is
+   function Duplicate
+     (Object : access Content_ObjRef)
+     return Any_Content_Ptr is
    begin
       return new Content_ObjRef'
         (Value => new PolyORB.References.Ref'
@@ -76,7 +81,9 @@ package body PolyORB.Any.ObjRef is
    -- To_Any --
    ------------
 
-   function To_Any (Item : in PolyORB.References.Ref) return Any
+   function To_Any
+     (Item : in PolyORB.References.Ref)
+     return Any
    is
       Result : Any;
       Content : constant Any_Content_Ptr := new Content_ObjRef;
@@ -94,8 +101,9 @@ package body PolyORB.Any.ObjRef is
    -- From_Any --
    --------------
 
-   function From_Any (Item : in Any) return PolyORB.References.Ref
-   is
+   function From_Any
+     (Item : in Any)
+     return PolyORB.References.Ref is
    begin
       if (TypeCode.Kind (Get_Unwound_Type (Item)) /= Tk_Objref) then
          raise TypeCode.Bad_TypeCode;
@@ -111,22 +119,24 @@ package body PolyORB.Any.ObjRef is
 
    procedure Set_Any_Value
      (Any_Value : in out Any;
-      Value : in PolyORB.References.Ref)
+      Value     : in     PolyORB.References.Ref)
    is
       use TypeCode;
+
+      Container : constant Any_Container_Ptr
+        := Any_Container_Ptr (Entity_Of (Any_Value));
+
    begin
       if TypeCode.Kind (Get_Unwound_Type (Any_Value)) /= Tk_Objref then
          raise TypeCode.Bad_TypeCode;
       end if;
 
-      Lock_W (Any_Value.Any_Lock);
-      if Any_Value.The_Value.all /= null then
-         Content_ObjRef_Ptr (Any_Value.The_Value.all).Value.all := Value;
+      if Container.The_Value /= null then
+         Content_ObjRef_Ptr (Container.The_Value).Value.all := Value;
       else
-         Any_Value.The_Value.all := new Content_ObjRef'
+         Container.The_Value := new Content_ObjRef'
            (Value => new PolyORB.References.Ref'(Value));
       end if;
-      Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
 end PolyORB.Any.ObjRef;

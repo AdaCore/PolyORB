@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,16 +26,20 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Helper functions for CORBA servers.
 
+--  XXX The Initiatie Server and stuff related to the Root POA should
+--  be placed in the CORBA app. personnality init. process !!
+
 --  $Id$
 
 with CORBA.Object;
-with PortableServer;
+with PortableServer.POA;
 
 package PolyORB.CORBA_P.Server_Tools is
 
@@ -43,25 +47,35 @@ package PolyORB.CORBA_P.Server_Tools is
 
    type Hook_Type is access procedure;
    Initiate_Server_Hook : Hook_Type;
+   --  Access to a procedure to be called upon start up.
+   --  See Initiate_Server for more details.
 
    procedure Initiate_Server (Start_New_Task : Boolean := False);
-   --  This procedure starts a new ORB. If Start_New_Task is True,
-   --  a new task will be created and control will be returned to the
-   --  caller. Otherwise, the ORB will be executing in the current
-   --  context. If the Initiate_Server_Hook variable is not null,
-   --  the designated procedure will be called after initializing the ORB,
+   --  Start a new ORB, and initialize the Root POA.
+   --  If Start_New_Task is True, a new task will be created and
+   --  control will be returned to the caller.  Otherwise, the ORB
+   --  will be executing in the current context.
+   --  If the Initiate_Server_Hook variable is not null, the
+   --  designated procedure will be called after initializing the ORB,
    --  prior to entering the server loop.
+
+   function Get_Root_POA return PortableServer.POA.Ref;
+   --  Return the Root_POA attached to the current ORB instance.
 
    procedure Initiate_Servant
      (S : in PortableServer.Servant;
       R : out CORBA.Object.Ref'Class);
+   --  Initiate a servant: register a servant to the Root POA.
+   --  If the Root POA has not been initialized, initialize it.
 
    procedure Reference_To_Servant
      (R : in CORBA.Object.Ref'Class;
       S : out PortableServer.Servant);
+   --  Convert a CORBA.Object.Ref into a PortableServer.Servant.
 
    procedure Servant_To_Reference
      (S : in PortableServer.Servant;
       R : out CORBA.Object.Ref'Class);
+   --  Convert a PortableServer.Servant into CORBA.Object.Ref.
 
 end PolyORB.CORBA_P.Server_Tools;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,6 +41,7 @@ package body PolyORB.Any.NVList is
 
    use PolyORB.Log;
    use PolyORB.Types;
+   use Internals;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any.nvlist");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
@@ -53,29 +55,16 @@ package body PolyORB.Any.NVList is
      (Self       :    Ref;
       Item_Name  : in Identifier;
       Item       : in Any;
-      Item_Flags : in Flags)
-   is
+      Item_Flags : in Flags) is
    begin
       pragma Debug (O ("Add_Item (4 params) : enter"));
-      --  pragma Debug (O ("Add_Item (4 params) : Item type is "
-      --    & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
-      --  Item may be an empty any, in which case Get_Value (Item) is
-      --  a null pointer.
-      pragma Debug (O ("Add_Item (4 params) : ref_counter = "
-                       & Positive'Image (Get_Counter (Item))));
 
-      Add_Item (Self, (Name => Item_Name,
-                       Argument => Item,
+      Add_Item (Self, (Name      => Item_Name,
+                       Argument  => Item,
                        Arg_Modes => Item_Flags));
 
-      pragma Debug (O ("Add_Item (4 params) : ref_counter = "
-                       & Positive'Image (Get_Counter (Item))));
       pragma Debug (O ("Add_Item (4 params) : end"));
    end Add_Item;
-
-   --------------
-   -- Add_Item --
-   --------------
 
    procedure Add_Item
      (Self : Ref;
@@ -84,23 +73,35 @@ package body PolyORB.Any.NVList is
       Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
       pragma Debug (O ("Add_Item (2 params) : enter"));
-      pragma Debug (O ("Add_Item (2 params) : ref_counter = "
-                       & Positive'Image (Item.Argument.Ref_Counter.all)));
-      NV_Sequence.Append (Obj.List, Item);
-      pragma Debug (O ("Add_Item (2 params) : ref_counter = "
-                       & Positive'Image (Item.Argument.Ref_Counter.all)));
+
+      NV_Lists.Append (Obj.List, Item);
+
       pragma Debug (O ("Add_Item (2 params) : end"));
    end Add_Item;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize
+     (X : in out Object) is
+   begin
+      Internals.NV_Lists.Deallocate (X.List);
+   end Finalize;
 
    ----------
    -- Free --
    ----------
 
-   procedure Free (Self : Ref) is
-   begin
+   procedure Free
+     (Self : Ref)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
+      pragma Debug (O ("Free"));
       null;
    end Free;
 
@@ -108,59 +109,48 @@ package body PolyORB.Any.NVList is
    -- Get_Count --
    ---------------
 
-   function Get_Count (Self : Ref) return Types.Long
-   is
+   function Get_Count
+     (Self : Ref)
+     return Types.Long is
    begin
       if Is_Null (Self) then
          return 0;
       else
-         declare
-            Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
-         begin
-            return Types.Long (NV_Sequence.Length (Obj.List));
-         end;
+         return Types.Long (NV_Lists.Length (List_Of (Self).all));
       end if;
    end Get_Count;
-
-   -------------------
-   -- Create_Object --
-   -------------------
-
-   function Create_Object return Object_Ptr;
-   --  Create a new and empty Object
-
-   function Create_Object return Object_Ptr
-   is
-      Res : constant Object_Ptr := new Object;
-   begin
-      return Res;
-   end Create_Object;
 
    ------------
    -- Create --
    ------------
 
-   procedure Create (NVList : out Ref)
-   is
-      Object : constant Object_Ptr := Create_Object;
+   procedure Create
+     (NVList : out Ref) is
    begin
-      Set (NVList, PolyORB.Smart_Pointers.Entity_Ptr (Object));
+      Set (NVList, PolyORB.Smart_Pointers.Entity_Ptr'(new Object));
    end Create;
 
-   function Image (NVList : Ref) return Standard.String
+   -----------
+   -- Image --
+   -----------
+
+   function Image
+     (NVList : Ref)
+     return Standard.String
    is
-      use NV_Sequence;
+      use NV_Lists;
 
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (NVList));
       Result : Ada.Strings.Unbounded.Unbounded_String;
    begin
       if Obj /= null then
          declare
-            NVs : constant Element_Array := To_Element_Array (Obj.List);
+            It : Iterator := First (Obj.List);
          begin
-            for I in NVs'Range loop
-               Ada.Strings.Unbounded.Append (Result, Image (NVs (I)));
-               if I /= NVs'Last then
+            while not Last (It) loop
+               Ada.Strings.Unbounded.Append (Result, Image (Value (It).all));
+               Next (It);
+               if not Last (It) then
                   Ada.Strings.Unbounded.Append (Result, ' ');
                end if;
             end loop;
@@ -172,9 +162,15 @@ package body PolyORB.Any.NVList is
       end if;
    end Image;
 
+   --------------------------------
+   -- Package body for Internals --
+   --------------------------------
+
    package body Internals is
 
-      function List_Of (NVList : Ref) return NV_Sequence_Access
+      function List_Of
+        (NVList : Ref)
+        return NV_List_Access
       is
          use type PolyORB.Smart_Pointers.Entity_Ptr;
          Entity : constant PolyORB.Smart_Pointers.Entity_Ptr

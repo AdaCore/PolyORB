@@ -6,7 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,40 +31,51 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-servantlocator.ads#2 $
+--  $Id: //droopi/main/src/corba/portableserver-servantlocator.ads#5 $
 
 with CORBA;
+
 with PortableServer.ServantManager;
-with PortableServer.POA;
+
+with PolyORB.POA_Types;
 
 package PortableServer.ServantLocator is
 
-   type Ref is new PortableServer.ServantManager.Ref
-     with null record;
+   type Ref is new PortableServer.ServantManager.Ref with private;
 
-   type Cookie_Base is tagged null record;
-   --  ... implementation defined, tagged type Cookie is access all
-   --  Cookie_Base'CLASS;
+   type Root_Cookie is new PolyORB.POA_Types.Cookie_Base with private;
+
+   type Cookie_Base is new Root_Cookie with private;
+
    type Cookie is access all Cookie_Base'Class;
 
    procedure Preinvoke
-     (Self       : in Ref;
-      Oid        : in ObjectId;
-      Adapter    : in PortableServer.POA.Ref;
-      Operation  : in CORBA.Identifier;
+     (Self       : in  Ref;
+      Oid        : in  ObjectId;
+      Adapter    : in  PortableServer.POA_Forward.Ref;
+      Operation  : in  CORBA.Identifier;
       The_Cookie : out Cookie;
       Returns    : out Servant);
 
    procedure Postinvoke
      (Self        : in Ref;
       Oid         : in ObjectId;
-      Adapter     : in PortableServer.POA.Ref;
+      Adapter     : in PortableServer.POA_Forward.Ref;
       Operation   : in CORBA.Identifier;
       The_Cookie  : in Cookie;
       The_Servant : in Servant);
+
+private
+
+   type Ref is new PortableServer.ServantManager.Ref with null record;
+
+   type Root_Cookie is new PolyORB.POA_Types.Cookie_Base with null record;
+
+   type Cookie_Base is new Root_Cookie with null record;
 
 end PortableServer.ServantLocator;

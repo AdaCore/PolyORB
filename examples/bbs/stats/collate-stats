@@ -1,0 +1,60 @@
+#! /bin/sh
+# $Id$
+
+output=/infres/shalmaneser/quinot/polyorb-output
+
+force=false
+all=false
+
+while getopts fa opt; do
+  case $opt in
+    f) force=true ;;
+    a) all=true ;;
+    *) echo "Usage: $0 [-fa]"; exit 1 ;;
+  esac
+done
+shift `expr $OPTIND - 1`
+
+get_threads() {
+  t=4
+  if [ -f "$d/$1.conf" ]; then
+     tconf=`grep ^polyorb.orb.thread_pool.threads "$d/evolutedp.conf"`
+     if [ "$tconf" != "" ]; then
+       t=`echo $tconf | sed "s/^.*=//"`
+     fi
+  fi
+  echo "$1_thr=$t"
+}
+
+if [ "$#" = 0 ]; then
+  set -- $output/*
+fi
+
+for d in "$@"; do
+  if [ ! -d $d ]; then continue; fi
+  if $force || [ ! -f $d/99RESULTS ]; then
+    cp $d/00PARAMETERS $d/99RESULTS
+    . $d/00PARAMETERS
+    
+    (
+    get_threads serverp
+    get_threads evolutedp
+    for f in $d/cli*; do
+      sed -n '/.*Elapsed *: \([0-9]*\.[0-9]*\)$/s//\1/p' < $f
+    done | awk 'BEGIN { sup = 0; inf = 0; }
+                { sum += $1; sqsum += $1 * $1;
+                  if (sup == 0 || $1 > sup) sup = $1;
+                  if (inf == 0 ||$1 < inf) inf = $1; }
+                END { if (sum > 0 && NR == '"$nmax"') {
+                        print "status=OK"
+                        avg = sum / NR;
+                        printf "inf=%.12g\nsup=%.12g\nmoy=%.12g\nect=%.12g\n",
+                          inf, sup, (sum / NR), sqrt(sqsum/NR - (avg * avg))
+                      } else { print "status=FAILED"; } }'
+    ) >> $d/99RESULTS
+  fi
+  if $all || grep status=OK $d/99RESULTS > /dev/null; then
+    cat $d/99RESULTS
+    echo "----------"
+  fi
+done

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -74,7 +75,9 @@ package PolyORB.Components is
      return Message'Class
       is abstract;
    --  Called internally when component C is to receive message M.
-   --  Return True if M has been handled, false otherwise.
+   --  Return a reply (possibly Null_Message if no specific contents
+   --  are to be returned to the sender) if M has been handled.
+   --  Otherwise, exception Unhandled_Message is raised.
    --  Each component type overloads this primitive, and
    --  thus defines its behaviour in terms of replies to
    --  a set of external stimuli (messages).

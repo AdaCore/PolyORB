@@ -1,8 +1,4 @@
-pragma Warnings (Off);
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+pragma Style_Checks (Off);
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IDLType;
@@ -10,11 +6,11 @@ with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.IRObject.Impl;
 
-with PolyORB.Exceptions;
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
 with CORBA.Repository_Root.ConstantDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.ConstantDef.Skel);
 
 package body CORBA.Repository_Root.ConstantDef.Impl is
 
@@ -119,7 +115,9 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
       then
          Self.Value := To;
       else
-         PolyORB.Exceptions.Raise_Bad_Param (2);
+         CORBA.Raise_Bad_Param (CORBA.System_Exception_Members'
+                                (Minor => 2,
+                                 Completed => CORBA.Completed_No));
       end if;
    end set_value;
 
@@ -142,7 +140,7 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
       Result := (Kind => Get_Def_Kind (Self),
                  Value => CORBA.Repository_Root.Helper.To_Any (Desc));
       return Result;
-   end Describe;
+   end describe;
 
 
 end CORBA.Repository_Root.ConstantDef.Impl;

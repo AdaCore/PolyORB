@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B - T A S K I N G - M U T E X E S               --
+--              P O L Y O R B . T A S K I N G . M U T E X E S               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,38 +36,56 @@
 
 --  $Id$
 
+with PolyORB.Log;
+
 package body PolyORB.Tasking.Mutexes is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.mutexes");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    My_Factory : Mutex_Factory_Access;
    --  Real factory, corresponding to the chosen tasking profile.
 
-   Initialized : Boolean := False;
-   --  Set to True when this package is initialized.
+   ------------
+   -- Create --
+   ------------
 
-   -------------------------
-   -- Get_Mutex_Factory --
-   -------------------------
-
-   function Get_Mutex_Factory
-     return Mutex_Factory_Access is
+   procedure Create
+     (M    : out Mutex_Access;
+      Name : String := "") is
    begin
-      pragma Assert (Initialized);
-      return My_Factory;
-   end Get_Mutex_Factory;
+      pragma Debug (O ("Create"));
+      pragma Assert (My_Factory /= null);
 
-   ------------------------------
+      M := Create (My_Factory, Name);
+   end Create;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy
+     (M    : in out Mutex_Access) is
+   begin
+      pragma Debug (O ("Destroy"));
+      pragma Assert (My_Factory /= null);
+
+      Destroy (My_Factory, M);
+   end Destroy;
+
+   ----------------------------
    -- Register_Mutex_Factory --
-   ------------------------------
+   ----------------------------
 
    procedure Register_Mutex_Factory
      (MF : Mutex_Factory_Access) is
    begin
-      pragma Assert (not Initialized);
-
-      if not Initialized then
-         My_Factory := MF;
-         Initialized := True;
-      end if;
+      pragma Assert (My_Factory = null);
+      My_Factory := MF;
    end Register_Mutex_Factory;
 
 end PolyORB.Tasking.Mutexes;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,9 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  MText message type.
+--
+--  A MText message's payload is a string.
 
 --  $Id$
 
@@ -38,17 +43,20 @@ package MOMA.Messages.MTexts is
 
    type MText is new Message with private;
 
-   function Get_Text (Self : MText)
-                      return MOMA.Types.String;
-
-   procedure Set_Text (Self : in out MText;
-                       Value : MOMA.Types.String);
-
    function Create_Text_Message return Messages.MTexts.MText;
+   --  Create a MText message.
 
    function Image (Self : MText) return String;
+   --  Image function for MText type.
+
+   --  Accessors to MText payload.
+
+   function Get_Text (Self : MText) return MOMA.Types.String;
+
+   procedure Set_Text (Self : in out MText; Value : MOMA.Types.String);
 
 private
+
    type MText is new Message with null record;
 
 end MOMA.Messages.MTexts;

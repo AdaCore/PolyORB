@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--            Copyright (C) 2001 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,11 +39,20 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Asynch_Ev is
 
-   function Notepad_Of (AES : Asynch_Ev_Source_Access)
+   ----------------
+   -- Notepad_Of --
+   ----------------
+
+   function Notepad_Of
+     (AES : Asynch_Ev_Source_Access)
      return Annotations.Notepad_Access is
    begin
       return AES.Notes'Access;
    end Notepad_Of;
+
+   -----------------------
+   -- Unregister_Source --
+   -----------------------
 
    procedure Unregister_Source
      (AES : Asynch_Ev_Source_Access) is
@@ -50,6 +60,10 @@ package body PolyORB.Asynch_Ev is
       pragma Assert (AES /= null and then AES.Monitor /= null);
       Unregister_Source (AES.Monitor.all, AES);
    end Unregister_Source;
+
+   -------------
+   -- Destroy --
+   -------------
 
    procedure Destroy
      (AES : in out Asynch_Ev_Source_Access)
@@ -60,5 +74,27 @@ package body PolyORB.Asynch_Ev is
    begin
       Free (AES);
    end Destroy;
+
+   ---------
+   -- Run --
+   ---------
+
+   procedure Run
+     (AEH : access AES_Event_Handler)
+   is
+      use PolyORB.Jobs;
+   begin
+      Handle_Event
+        (AES_Event_Handler'Class (AEH.all)'Access);
+      --  Redispatch.
+
+      if AEH.AES = null then
+         declare
+            V_AEH : Job_Access := Job_Access (AEH);
+         begin
+            Free (V_AEH);
+         end;
+      end if;
+   end Run;
 
 end PolyORB.Asynch_Ev;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,9 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  Actual implementation of the Message_Pool object. It is derived
+--  from PolyORB's Minimal_Servant. This package contains Message_Pool
+--  skeleton and implementation subroutines.
 
 --  $Id$
 
@@ -38,6 +43,7 @@ with MOMA.Provider.Warehouse;
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
 with PolyORB.Obj_Adapters.Simple;
+with PolyORB.References;
 
 package MOMA.Provider.Message_Pool is
 
@@ -45,21 +51,25 @@ package MOMA.Provider.Message_Pool is
 
    type Object_Acc is access Object;
 
-   procedure Initialize (Self : access Object;
-                        Info : MOMA.Types.Message_Pool);
+   procedure Initialize
+     (Self : access Object;
+      Info :        MOMA.Types.Message_Pool);
    --  Initialize the object.
 
    procedure Invoke
      (Self : access Object;
       Req  : in     PolyORB.Requests.Request_Access);
-   --  Middleware 'glue'.
+   --  Message_Pool servant skeleton.
 
    function If_Desc
      return PolyORB.Obj_Adapters.Simple.Interface_Description;
    pragma Inline (If_Desc);
-   --  Middleware 'glue'.
+   --  Interface description for SOA object adapter.
 
 private
+
+   use MOMA.Types;
+   use PolyORB.References;
 
    type Object is new PolyORB.Minimal_Servant.Servant with record
      Pool : MOMA.Types.Message_Pool;
@@ -75,6 +85,14 @@ private
 
      Last_Read_Id : Natural := 0;
          --  XXX Dummy counter for message_id, to be trashed ...
+
+     Message_Handler : PolyORB.References.Ref := Nil_Ref;
+         --  Reference of the Message_Handler to which Notify or Handle
+         --  Requests must be sent.
+
+     Behavior : MOMA.Types.Call_Back_Behavior := None;
+         --  Specifies if a Notify or Handle request must be sent on reception
+         --  of a message, or none.
 
    end record;
 

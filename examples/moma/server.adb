@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,8 +35,11 @@
 
 --  $Id$
 
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Command_Line;
+with Ada.Text_IO;
 
+with PolyORB.Initialization;
+with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
@@ -44,21 +48,37 @@ with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
+with PolyORB.Services.Naming.Tools;
+
 with MOMA.Configuration.Server;
 with MOMA.Types;
-with PolyORB.MOMA_P.Tools;
 
 procedure Server is
+
+   use Ada.Command_Line;
+   use Ada.Text_IO;
+
+   use PolyORB.Minimal_Servant.Tools;
+   use PolyORB.Services.Naming.Tools;
 
    use MOMA.Configuration;
    use MOMA.Configuration.Server;
    use MOMA.Types;
-   use PolyORB.MOMA_P.Tools;
 
    MOMA_Ref : PolyORB.References.Ref;
    Pool_1   : Message_Pool;
 
 begin
+
+   --  Initialize World
+   PolyORB.Initialization.Initialize_World;
+
+   --  Argument check.
+   if Argument_Count > 1 then
+      Put_Line ("usage : server [Naming_Service_IOR]");
+      return;
+   end if;
+
    --  Load Configuration File.
    Load_Configuration_File ("destinations.conf");
 
@@ -71,6 +91,15 @@ begin
    --  Outputs its reference.
    Put_Line (PolyORB.Types.To_Standard_String
              (PolyORB.References.IOR.Object_To_String (MOMA_Ref)));
+
+   --  Register reference to naming service.
+   if Argument_Count = 1 then
+      Init (PolyORB.References.IOR.String_To_Object
+            (PolyORB.Types.To_PolyORB_String
+             (Ada.Command_Line.Argument (1))));
+
+      Register ("Pool_1", MOMA_Ref);
+   end if;
 
    --  Run the server.
    Run_Server;

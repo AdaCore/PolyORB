@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---  P O L Y O R B - T A S K I N G - C O N D I T I O N _ V A R I A B L E S   --
+--  P O L Y O R B . T A S K I N G . C O N D I T I O N _ V A R I A B L E S   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,24 +36,47 @@
 
 --  $Id$
 
+with PolyORB.Log;
+
 package body PolyORB.Tasking.Condition_Variables is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.condition_variables");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
+   procedure Inc renames L.Increment;
+   procedure Dec renames L.Decrement;
 
    My_Factory : Condition_Factory_Access;
    --  Real factory, corresponding to the chosen tasking profile.
 
-   Initialized : Boolean := False;
-   --  Set to True when this package is initialized.
+   ------------
+   -- Create --
+   ------------
 
-   ---------------------------
-   -- Get_Condition_Factory --
-   ---------------------------
-
-   function Get_Condition_Factory
-     return Condition_Factory_Access is
+   procedure Create (C : out Condition_Access; Name : String := "") is
    begin
-      pragma Assert (Initialized);
-      return My_Factory;
-   end Get_Condition_Factory;
+      pragma Debug (O ("Create: enter"));
+      pragma Debug (Inc);
+      pragma Assert (My_Factory /= null);
+      C := Create (My_Factory, Name);
+      pragma Debug (O ("Create: leave"));
+   end Create;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy (C : in out Condition_Access) is
+   begin
+      pragma Debug (O ("Destroy: enter"));
+      pragma Debug (Dec);
+      pragma Assert (My_Factory /= null);
+      Destroy (My_Factory, C);
+      pragma Debug (O ("Destroy: leave"));
+   end Destroy;
 
    --------------------------------
    -- Register_Condition_Factory --
@@ -61,12 +85,8 @@ package body PolyORB.Tasking.Condition_Variables is
    procedure Register_Condition_Factory
      (MF : Condition_Factory_Access) is
    begin
-      pragma Assert (not Initialized);
-
-      if not Initialized then
-         My_Factory := MF;
-         Initialized := True;
-      end if;
+      pragma Assert (My_Factory = null);
+      My_Factory := MF;
    end Register_Condition_Factory;
 
 end PolyORB.Tasking.Condition_Variables;

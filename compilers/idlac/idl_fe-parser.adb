@@ -1,28 +1,37 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                        I D L _ F E . P A R S E R                         --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2001 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#11 $
 
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
@@ -697,17 +706,19 @@ package body Idl_Fe.Parser is
                      end if;
 
                      if Build_Module then
+                        --  Creation of the node
+                        Result := Make_Module (Get_Previous_Token_Location);
+
                         declare
-                           Ok : Boolean;
-                        begin
-                           --  Creation of the node
-                           Result := Make_Module (Get_Previous_Token_Location);
+                           Ok : constant Boolean
+                             := Add_Identifier (Result, Get_Token_String);
+                           pragma Warnings (Off);
+                           pragma Unreferenced (Ok);
+                           pragma Warnings (On);
                            --  here, the addentifier is really added only if
                            --  we're not in the case where the module name
                            --  was already defined
-                           Ok := Add_Identifier
-                             (Result,
-                              Get_Token_String);
+                        begin
                            Set_Default_Repository_Id (Result);
                            Set_Initial_Current_Prefix (Result);
                         end;
@@ -1214,7 +1225,7 @@ package body Idl_Fe.Parser is
 
    procedure Parse_Scoped_Name (Result : out Node_Id;
                                 Success : out Boolean) is
-      Res, Prev : Node_Id;
+      Res : Node_Id;
       Scope : Node_Id;
       A_Name : Node_Id := No_Node;
    begin
@@ -1222,7 +1233,6 @@ package body Idl_Fe.Parser is
 
       Result := No_Node;
       Success := False;
-      Prev := No_Node;
       --  creation of a scoped_name node
       Res := Make_Scoped_Name (Get_Token_Location);
       --  if it begins with :: then the scope of reference is
@@ -2883,12 +2893,11 @@ package body Idl_Fe.Parser is
    -----------------------
    procedure Parse_Const_Exp (Result : out Node_Id;
                               Constant_Type : in Node_Id;
-                              Success : out Boolean) is
-      Loc : Errors.Location;
+                              Success : out Boolean)
+   is
       C_Type : Constant_Value_Ptr;
    begin
       pragma Debug (O2 ("Parse_Const_Exp: enter"));
-      Loc := Get_Token_Location;
       if Constant_Type /= No_Node then
          case Kind (Constant_Type) is
             when K_Short =>
@@ -4848,7 +4857,7 @@ package body Idl_Fe.Parser is
    ------------------------------
    --  Parse_Floating_Pt_Type  --
    ------------------------------
-   procedure Parse_Floating_Pt_Type (Result : in out Node_Id;
+   procedure Parse_Floating_Pt_Type (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
       case Get_Token is
@@ -4872,7 +4881,7 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_Integer_Type  --
    --------------------------
-   procedure Parse_Integer_Type (Result : in out Node_Id;
+   procedure Parse_Integer_Type (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
       case Get_Token is
@@ -4889,7 +4898,7 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Parse_Signed_Int  --
    ------------------------
-   procedure Parse_Signed_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Int (Result : out Node_Id;
                                Success : out Boolean) is
    begin
       case Get_Token is
@@ -4909,7 +4918,7 @@ package body Idl_Fe.Parser is
    ------------------------------
    --  Parse_Signed_Short_Int  --
    ------------------------------
-   procedure Parse_Signed_Short_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Short_Int (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
       Next_Token;
@@ -4920,7 +4929,7 @@ package body Idl_Fe.Parser is
    -----------------------------
    --  Parse_Signed_Long_Int  --
    -----------------------------
-   procedure Parse_Signed_Long_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Long_Int (Result : out Node_Id;
                                     Success : out Boolean) is
    begin
       Next_Token;
@@ -4931,7 +4940,7 @@ package body Idl_Fe.Parser is
    ---------------------------------
    --  Parse_Signed_Longlong_Int  --
    ---------------------------------
-   procedure Parse_Signed_Longlong_Int (Result : in out Node_Id;
+   procedure Parse_Signed_Longlong_Int (Result : out Node_Id;
                                         Success : out Boolean) is
    begin
       Next_Token;
@@ -4943,7 +4952,7 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_Unsigned_Int  --
    --------------------------
-   procedure Parse_Unsigned_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Int (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
       case View_Next_Token is
@@ -4981,7 +4990,7 @@ package body Idl_Fe.Parser is
    --------------------------------
    --  Parse_Unsigned_Short_Int  --
    --------------------------------
-   procedure Parse_Unsigned_Short_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Short_Int (Result : out Node_Id;
                                        Success : out Boolean) is
    begin
       Next_Token;
@@ -4993,7 +5002,7 @@ package body Idl_Fe.Parser is
    -------------------------------
    --  Parse_Unsigned_Long_Int  --
    -------------------------------
-   procedure Parse_Unsigned_Long_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Long_Int (Result : out Node_Id;
                                       Success : out Boolean) is
    begin
       Next_Token;
@@ -5005,7 +5014,7 @@ package body Idl_Fe.Parser is
    -----------------------------------
    --  Parse_Unsigned_Longlong_Int  --
    -----------------------------------
-   procedure Parse_Unsigned_Longlong_Int (Result : in out Node_Id;
+   procedure Parse_Unsigned_Longlong_Int (Result : out Node_Id;
                                           Success : out Boolean) is
    begin
       Next_Token;
@@ -5018,7 +5027,7 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Char_Type  --
    -----------------------
-   procedure Parse_Char_Type (Result : in out Node_Id;
+   procedure Parse_Char_Type (Result : out Node_Id;
                               Success : out Boolean) is
    begin
       Next_Token;
@@ -5029,7 +5038,7 @@ package body Idl_Fe.Parser is
    ----------------------------
    --  Parse_Wide_Char_Type  --
    ----------------------------
-   procedure Parse_Wide_Char_Type (Result : in out Node_Id;
+   procedure Parse_Wide_Char_Type (Result : out Node_Id;
                                    Success : out Boolean) is
    begin
       Next_Token;
@@ -5040,7 +5049,7 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_Boolean_Type  --
    --------------------------
-   procedure Parse_Boolean_Type (Result : in out Node_Id;
+   procedure Parse_Boolean_Type (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
       Next_Token;
@@ -5051,7 +5060,7 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Parse_Octet_Type  --
    ------------------------
-   procedure Parse_Octet_Type (Result : in out Node_Id;
+   procedure Parse_Octet_Type (Result : out Node_Id;
                                Success : out Boolean) is
    begin
       Next_Token;
@@ -5062,7 +5071,7 @@ package body Idl_Fe.Parser is
    ----------------------
    --  Parse_Any_Type  --
    ----------------------
-   procedure Parse_Any_Type (Result : in out Node_Id;
+   procedure Parse_Any_Type (Result : out Node_Id;
                              Success : out Boolean) is
    begin
       Next_Token;
@@ -5073,7 +5082,7 @@ package body Idl_Fe.Parser is
    -------------------------
    --  Parse_Object_Type  --
    -------------------------
-   procedure Parse_Object_Type (Result : in out Node_Id;
+   procedure Parse_Object_Type (Result : out Node_Id;
                                 Success : out Boolean) is
    begin
       Result := Make_Object (Get_Token_Location);
@@ -5669,10 +5678,10 @@ package body Idl_Fe.Parser is
       case Get_Token is
          when T_Case =>
             declare
-               Loc : Errors.Location;
+--                Loc : Errors.Location;
             begin
                Next_Token;
-               Loc := Get_Token_Location;
+--                Loc := Get_Token_Location;
                Parse_Const_Exp (Result, Switch_Type, Success);
                if not Success then
                   return;
@@ -7020,7 +7029,7 @@ package body Idl_Fe.Parser is
    -----------------------------
    --  Parse_Value_Base_Type  --
    -----------------------------
-   procedure Parse_Value_Base_Type (Result : in out Node_Id;
+   procedure Parse_Value_Base_Type (Result : out Node_Id;
                                     Success : out Boolean) is
    begin
       Result := No_Node;
@@ -8169,15 +8178,21 @@ package body Idl_Fe.Parser is
             end if;
          when C_LongLong =>
             if Full then
+               pragma Warnings (Off);
+               --  Condition is always false.
                if N.Integer_Value < Idl_LongLong_Min
                  or else N.Integer_Value > Idl_LongLong_Max then
                   Integer_Precision_Exceeded;
                end if;
+               pragma Warnings (On);
             else
+               pragma Warnings (Off);
+               --  Condition is always false.
                if N.Integer_Value < Idl_LongLong_Min
                  or else N.Integer_Value > Idl_ULongLong_Max then
                   Integer_Precision_Exceeded;
                end if;
+               pragma Warnings (On);
             end if;
          when C_UShort =>
             if Full then
@@ -8210,10 +8225,13 @@ package body Idl_Fe.Parser is
                   Integer_Precision_Exceeded;
                end if;
             else
+               pragma Warnings (Off);
+               --  Condition is always false.
                if N.Integer_Value < Idl_LongLong_Min
                  or else N.Integer_Value > Idl_ULongLong_Max then
                   Integer_Precision_Exceeded;
                end if;
+               pragma Warnings (On);
             end if;
          when C_Float =>
             if N.Float_Value < Idl_Float_Min

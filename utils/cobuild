@@ -2,9 +2,11 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#12 $
+# $Id: //droopi/main/utils/cobuild#20 $
 
 PROJECT=DROOPI
+GNUMAKE=gmake
+export GNUMAKE
 
 usage () {
   echo "Usage: $0 -m EMAIL_ADDRESS -C CLIENT_WORKSPACE_TOP -o OUTPUT_DIR [ -c CHANGELIST ]"
@@ -71,6 +73,7 @@ if [ "x$CHANGELIST" = x ]
 then
   CHANGELIST=`p4 changes -m 1 ... | awk '{print \$2}'`
 fi
+export CHANGELIST
 
 # Kill any previous build.
 
@@ -102,10 +105,7 @@ echo "---------- Syncing"
 
 #p4 sync "#none"
 #rm -fr $CLIENT_TOP/*
-p4 sync -f @$CHANGELIST
-
-CHANGE=`p4 changes -m 1 ...#have | awk '{print \$2}'`
-export CHANGE
+p4 sync @$CHANGELIST
 
 /usr/local/bin/rungroup /bin/sh -c '(
   set -e
@@ -120,18 +120,20 @@ export CHANGE
 
   if [ -x $CLIENT_TOP/configure ]
   then
-    $CLIENT_TOP/configure --disable-shared --enable-debug --enable-corba \
-       --enable-moma --enable-soap --enable-srp --prefix=$OUTDIR/install
-  fi && make && make install
+    $CLIENT_TOP/configure --disable-shared --enable-debug \
+       --with-proto-perso="giop soap srp" --with-appli-perso="corba moma" \
+       --with-services="naming ir event time" --prefix=$OUTDIR/install
+  fi && ${GNUMAKE} && ${GNUMAKE} install
   RC=$?
   exit $RC
 )' &
 
-# The build is now running in background. Save PID and
-# release mutex.
+# The build is now running in background. Save PID and changelist #,
+# and release mutex.
 
 THISPID=$!
 echo $THISPID > $PIDFILE
+echo $CHANGELIST > $CHGFILE
 
 trap '' 0
 rm -f $PIDFILE.lock
@@ -161,9 +163,9 @@ fi
 
 if $SUCCESS
 then
-  echo -e "$MSG" | Mail -s "${PROJECT} build $CHANGE $STATUS" $MAILTO
+  echo -e "$MSG" | Mail -s "${PROJECT} build $CHANGELIST $STATUS" $MAILTO
 else
-  cat $OUTDIR/build.log | Mail -s "${PROJECT} BUILD $CHANGE FAILED" $MAILTO
+  cat $OUTDIR/build.log | Mail -s "${PROJECT} BUILD $CHANGELIST FAILED" $MAILTO
 fi
 
 lockfile $PIDFILE.lock

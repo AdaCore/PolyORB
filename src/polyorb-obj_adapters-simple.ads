@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,17 +26,17 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Object adapters: entities that manage the association
---  of references with servants.
+--  Simple implementation of a PolyORB's Object Adapter.
 
 --  $Id$
 
 with PolyORB.Sequences.Unbounded;
-with PolyORB.Soft_Links;
+with PolyORB.Tasking.Mutexes;
 
 package PolyORB.Obj_Adapters.Simple is
 
@@ -48,20 +48,23 @@ package PolyORB.Obj_Adapters.Simple is
 
    procedure Destroy (OA : access Simple_Obj_Adapter);
 
-   function Export
-     (OA  : access Simple_Obj_Adapter;
-      Obj :        Servants.Servant_Access;
-      Key :        Objects.Object_Id_Access := null)
-      return Objects.Object_Id;
+   procedure Export
+     (OA    : access Simple_Obj_Adapter;
+      Obj   :        Servants.Servant_Access;
+      Key   :        Objects.Object_Id_Access;
+      Oid   :    out Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
    procedure Unexport
-     (OA : access Simple_Obj_Adapter;
-      Id :        Objects.Object_Id_Access);
+     (OA    : access Simple_Obj_Adapter;
+      Id    :        Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
-   function Object_Key
-     (OA : access Simple_Obj_Adapter;
-      Id :        Objects.Object_Id_Access)
-      return Objects.Object_Id;
+   procedure Object_Key
+     (OA      : access Simple_Obj_Adapter;
+      Id      :        Objects.Object_Id_Access;
+      User_Id :    out Objects.Object_Id_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
 
    --  In the Simple Object Adapter, the methods of an object
    --  are described using two factory functions (provided by
@@ -98,10 +101,11 @@ package PolyORB.Obj_Adapters.Simple is
       Method :        String)
      return Any.Any;
 
-   function Find_Servant
-     (OA : access Simple_Obj_Adapter;
-      Id : access Objects.Object_Id)
-     return Servants.Servant_Access;
+   procedure Find_Servant
+     (OA      : access Simple_Obj_Adapter;
+      Id      : access Objects.Object_Id;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
 
    procedure Release_Servant
      (OA      : access Simple_Obj_Adapter;
@@ -126,7 +130,7 @@ private
       --  Object_Ids are simply the indices of the objects
       --  within the object map.
 
-      Lock : Soft_Links.Adv_Mutex_Access;
+      Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
    end record;
 
 end PolyORB.Obj_Adapters.Simple;

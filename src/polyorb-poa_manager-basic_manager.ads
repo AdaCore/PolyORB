@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,41 +35,41 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
-
-with PolyORB.POA_Types;
-with PolyORB.Locks;
 with PolyORB.Components;
-with PolyORB.Locked_Queue;
+with PolyORB.Exceptions;
+with PolyORB.Objects.Interface;
+with PolyORB.POA_Types;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.Servants;
+with PolyORB.Tasking.Rw_Locks;
 
 package PolyORB.POA_Manager.Basic_Manager is
 
    pragma Elaborate_Body;
 
+   use PolyORB.Objects.Interface;
    use PolyORB.POA_Types;
 
    type Basic_POA_Manager is new POAManager with private;
    type Basic_POA_Manager_Access is access all Basic_POA_Manager;
-
-   Invalid_Obj_Adapter : exception
-     renames PolyORB.POA_Manager.Invalid_Obj_Adapter;
 
    ----------------------------------------------------------------------
    --  Procedures and functions to implement the POAManager interface  --
    ----------------------------------------------------------------------
 
    procedure Activate
-     (Self : access Basic_POA_Manager);
+     (Self  : access Basic_POA_Manager;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
    procedure Hold_Requests
      (Self                : access Basic_POA_Manager;
-      Wait_For_Completion :        Boolean);
+      Wait_For_Completion :        Boolean;
+      Error               : in out PolyORB.Exceptions.Error_Container);
 
    procedure Discard_Requests
      (Self                : access Basic_POA_Manager;
-      Wait_For_Completion :        Boolean);
-
+      Wait_For_Completion :        Boolean;
+      Error               : in out PolyORB.Exceptions.Error_Container);
    procedure Deactivate
      (Self                : access Basic_POA_Manager;
       Etherealize_Objects :        Boolean;
@@ -90,16 +91,16 @@ package PolyORB.POA_Manager.Basic_Manager is
 
    procedure Remove_POA
      (Self : access Basic_POA_Manager;
-      OA   : Obj_Adapter_Access);
+      OA   :        Obj_Adapter_Access);
 
    function Get_Hold_Servant
      (Self : access Basic_POA_Manager;
       OA   :        Obj_Adapter_Access)
      return PolyORB.Servants.Servant_Access;
 
-   ---------------------------------------------------
-   --  Servant used to implement the holding state  --
-   ---------------------------------------------------
+   -----------------------------------
+   --  Holding state implementation --
+   -----------------------------------
 
    --  When the POAManager is in the HOLDING state:
    --    A new entry to the queue is created, along with a Hold_Servant
@@ -113,66 +114,47 @@ package PolyORB.POA_Manager.Basic_Manager is
    --    Beware that the requests are queued in the ORB queue, and are not
    --    first.
 
-   type Queue_Element_Access is private;
    type Hold_Servant is new PolyORB.Servants.Servant with private;
    type Hold_Servant_Access is access all Hold_Servant;
-
-   function "="
-     (Left, Right : Hold_Servant)
-     return Boolean;
 
    function Execute_Servant
      (Obj : access Hold_Servant;
       Msg :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
+   --  Implementation of the Hold_Servant servant.
 
 private
-   Queue_Size : constant Positive := 10;
-   --  The size max of the queue
 
-   type Queue_Element is
-      record
-         OA  : Obj_Adapter_Access;
-         --         Msg : PolyORB.Components.Message;
-         --  ??? How do we queue de messages?
-      end record;
-   type Queue_Element_Access is access all Queue_Element;
+   package Requests_Queue_P is new PolyORB.Sequences.Unbounded
+     (Execute_Request);
+   subtype Requests_Queue is Requests_Queue_P.Sequence;
 
-   package Requests_Queue_P is new PolyORB.Locked_Queue (Queue_Element_Access);
-   subtype Requests_Queue is Requests_Queue_P.Queue;
+   type Basic_POA_Manager is new POAManager with record
+      Usage_Count     : Integer := 0;
+      --  XXX bad name.
+      --  Number of POA managed by the POA Manager.
 
-   type Basic_POA_Manager is new POAManager with
-      record
-         Usage_Count     : Integer := 0;
-         Holded_Requests : Requests_Queue;
+      State_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
+      --  Lock the state.
 
-         State_Lock      : PolyORB.Locks.Rw_Lock_Access;
-         --  Lock the state
-         Count_Lock      : PolyORB.Locks.Rw_Lock_Access;
-         --  Lock on the usage counter
-         POAs_Lock       : PolyORB.Locks.Rw_Lock_Access;
-         --  Lock on the sequence of managed POAs
-         Queue_Lock      : PolyORB.Locks.Rw_Lock_Access;
-         --  Lock on the queue of pending requests
-      end record;
+      Count_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
+      --  Lock on the usage counter.
 
-   procedure Inc_Usage_Counter (Self : access Basic_POA_Manager);
+      POAs_Lock       : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
+      --  Lock on the sequence of managed POAs.
 
-   procedure Dec_Usage_Counter (Self : access Basic_POA_Manager);
+      PM_Hold_Servant : Hold_Servant_Access := null;
+      --  Reference to the holding servant.
 
-   type Hold_Servant is new PolyORB.Servants.Servant with
-      record
-         Queue_Entry : Queue_Element_Access;
-      end record;
+      Held_Requests : Requests_Queue;
+      --  List of requests held by the POAManager.
 
-   procedure Create
-     (HS  : in out Hold_Servant;
-      QEA : in Queue_Element_Access);
+      Queue_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
+      --  Lock on the queue of pending requests.
+   end record;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Basic_POA_Manager, Basic_POA_Manager_Access);
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Hold_Servant, Hold_Servant_Access);
+   type Hold_Servant is new PolyORB.Servants.Servant with record
+      PM : Basic_POA_Manager_Access := null;
+   end record;
 
 end PolyORB.POA_Manager.Basic_Manager;

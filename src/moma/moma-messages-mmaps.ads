@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,17 +44,20 @@ package MOMA.Messages.MMaps is
 
    type MMap is new Message with private;
 
-   function Get_Map (Self : MMap)
-                     return MOMA.Types.Map;
-
-   procedure Set_Map (Self : in out MMap;
-                      Value : MOMA.Types.Map);
-
    function Create_Map_Message return Messages.MMaps.MMap;
+   --  Create a MMap message.
 
    function Image (Self : MMap) return String;
+   --  Image function for MMap type.
+
+   --  Accessors to MMap payload.
+
+   function Get_Map (Self : MMap) return MOMA.Types.Map;
+
+   procedure Set_Map (Self : in out MMap; Value : MOMA.Types.Map);
 
 private
+
    type MMap is new Message with null record;
 
 end MOMA.Messages.MMaps;

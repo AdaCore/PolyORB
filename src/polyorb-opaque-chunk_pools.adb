@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#7 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.adb#11 $
 
 with Ada.Unchecked_Deallocation;
 with System;
@@ -40,6 +41,11 @@ with System;
 package body PolyORB.Opaque.Chunk_Pools is
 
    use Ada.Streams;
+   use Chunk_Lists;
+
+   ----------------
+   -- Initialize --
+   ----------------
 
    procedure Initialize (X : in out Chunk) is
    begin
@@ -48,15 +54,23 @@ package body PolyORB.Opaque.Chunk_Pools is
       pragma Assert (X.Data /= null);
    end Initialize;
 
+   --------------
+   -- Finalize --
+   --------------
+
    procedure Finalize (X : in out Chunk) is
    begin
       Free (X.Data);
    end Finalize;
 
+   --------------
+   -- Allocate --
+   --------------
+
    procedure Allocate
      (Pool    : access Pool_Type;
-      A_Chunk : out Chunk_Access;
-      Size    : Stream_Element_Count := Default_Chunk_Size)
+      A_Chunk :    out Chunk_Access;
+      Size    :        Stream_Element_Count := Default_Chunk_Size)
    is
       Allocation_Size : Stream_Element_Count;
       New_Chunk       : Chunk_Access;
@@ -73,75 +87,58 @@ package body PolyORB.Opaque.Chunk_Pools is
          Pool.Prealloc_Used := True;
       else
          New_Chunk := new Chunk (Size => Allocation_Size);
-         New_Chunk.Next := null;
          New_Chunk.Data.all := (others => 176);
          New_Chunk.Metadata := Null_Metadata;
       end if;
 
-      if Pool.Last = null then
-         pragma Assert (Pool.First = null);
-
-         Pool.First := New_Chunk;
-         Pool.Last  := New_Chunk;
-      else
-         Pool.Last.Next := New_Chunk;
-         Pool.Last := New_Chunk;
-      end if;
+      Append (Pool.Chunks, New_Chunk);
 
       A_Chunk := New_Chunk;
    end Allocate;
+
+   -------------------
+   -- Chunk_Storage --
+   -------------------
 
    function Chunk_Storage
      (A_Chunk : Chunk_Access)
      return Opaque_Pointer is
    begin
-      return Opaque_Pointer'
-        (Zone   => A_Chunk.Data,
-         Offset => A_Chunk.Data'First);
+      return A_Chunk.Data (A_Chunk.Data'First)'Address;
    end Chunk_Storage;
+
+   -------------
+   -- Release --
+   -------------
 
    procedure Release
      (Pool : access Pool_Type)
    is
-
       procedure Free is new Ada.Unchecked_Deallocation
         (Chunk, Chunk_Access);
 
-      Current : Chunk_Access
-        := Pool.First;
+      It : Chunk_Lists.Iterator := First (Pool.Chunks);
 
    begin
-      while Current /= null loop
+      while not Last (It) loop
          declare
             use type System.Address;
-            Next : constant Chunk_Access := Current.Next;
+            This : Chunk_Access renames Value (It).all;
          begin
-            if Current.all'Address /= Pool.Prealloc'Address then
-               Free (Current);
+            if This.all'Address /= Pool.Prealloc'Address then
+               Free (This);
             end if;
-            Current := Next;
          end;
+         Next (It);
       end loop;
 
-      Pool.Prealloc.Next := null;
-      Pool.First := null;
-      Pool.Last  := null;
+      Deallocate (Pool.Chunks);
       Pool.Prealloc_Used := False;
    end Release;
 
-   function First
-     (Pool : Pool_Type)
-     return Chunk_Access is
-   begin
-      return Pool.First;
-   end First;
-
-   function Next
-     (A_Chunk : Chunk_Access)
-     return Chunk_Access is
-   begin
-      return A_Chunk.Next;
-   end Next;
+   --------------
+   -- Metadata --
+   --------------
 
    function Metadata
      (A_Chunk : Chunk_Access)
@@ -151,4 +148,3 @@ package body PolyORB.Opaque.Chunk_Pools is
    end Metadata;
 
 end PolyORB.Opaque.Chunk_Pools;
-

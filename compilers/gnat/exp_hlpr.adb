@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $LastChangedRevision$
---                                                                          --
---          Copyright (C) 1992-2002, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2003, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -58,7 +56,9 @@ package body Exp_Hlpr is
       Decl  : Node_Id;
       Arr   : Entity_Id;
       Check : Boolean);
+   pragma Warnings (Off);
    pragma Unreferenced (Compile_Stream_Body_In_Scope);
+   pragma Warnings (On);
    --  The body for a stream subprogram may be generated outside of the scope
    --  of the type. If the type is fully private, it may depend on the full
    --  view of other types (e.g. indices) that are currently private as well.
@@ -91,6 +91,97 @@ package body Exp_Hlpr is
       return Entity_Id;
    --  Return the name to be assigned for stream subprogram Nam of Typ.
    --  (copied from exp_strm.adb)
+
+   ------------------------------------------------------------
+   -- Common subprograms for building various tree fragments --
+   ------------------------------------------------------------
+
+   function Build_Get_Aggregate_Element
+     (Loc : Source_Ptr;
+      Any : Entity_Id;
+      TC  : Node_Id;
+      Idx : Node_Id)
+     return Node_Id;
+   --  Build a call to Get_Aggregate_Element on Any
+   --  for typecode TC, returning the Idx'th element.
+
+   generic
+      Subprogram : Entity_Id;
+      --  Reference location for Make_Implicit_Loop_Statement.
+
+      Arry : Entity_Id;
+      --  For 'Range and Etype.
+
+      Indices : List_Id;
+      --  For the construction of the innermost element expression.
+
+      with procedure Add_Process_Element
+        (Stmts   : List_Id;
+         Any     : Entity_Id;
+         Counter : Entity_Id;
+         Datum   : Node_Id);
+
+   procedure Append_Array_Iterator
+     (Stmts   : List_Id;
+      Any     : Entity_Id;
+      Counter : Entity_Id := Empty;
+      Depth   : Pos       := 1);
+   --  Build nested loop statements that iterate over the elements
+   --  of an array Arry. The statement(s) built by Add_Process_Element
+   --  are executed for each element; Indices is the list of indices to be
+   --  used in the construction of the indexed component that denotes
+   --  the current element. Subprogram is the entity for the subprogram
+   --  for which this iterator is generated.
+   --  The generated statements are appended to Stmts.
+
+   generic
+      with procedure Process_One_Field (E : Entity_Id);
+   procedure Add_Component_List (Clist : Node_Id);
+   --  Process component list Clist. Individual fields are passed
+   --  to Field_Processing. Each variant part is also processed.
+
+   ------------------------
+   -- Add_Component_List --
+   ------------------------
+
+   procedure Add_Component_List (Clist : Node_Id)
+   is
+      CI : constant List_Id := Component_Items (Clist);
+      VP : constant Node_Id := Variant_Part (Clist);
+
+      procedure Add_Fields (CL : List_Id);
+      --  Process each item of CL.
+
+      procedure Add_Fields (CL : List_Id)
+      is
+         Item : Node_Id;
+         Def  : Entity_Id;
+      begin
+         Item := First (CL);
+         while Present (Item) loop
+            Def := Defining_Identifier (Item);
+            if not Is_Internal_Name (Chars (Def)) then
+               Process_One_Field (Def);
+            end if;
+            Next (Item);
+         end loop;
+      end Add_Fields;
+
+   begin
+      Add_Fields (CI);
+
+      if Present (VP) then
+         raise Program_Error;
+         --  XXX Variant Part not implemented yet.
+
+--          Process_Union (VP);
+--          --> while Present (Variant) loop
+--          -->    Process_Struct (Variant);
+--          -->    Add_Component_List (Component_List_Of (Variant));
+--          --> end;
+--          end loop;
+      end if;
+   end Add_Component_List;
 
    -------------------------
    -- Build_From_Any_Call --
@@ -261,200 +352,370 @@ package body Exp_Hlpr is
       if Is_Derived_Type (Typ)
         and then not Is_Tagged_Type (Typ)
       then
-         declare
-            Rt_Type : constant Entity_Id
-              := Root_Type (Typ);
-         begin
+         Append_To (Stms,
+           Make_Return_Statement (Loc,
+             Expression =>
+               OK_Convert_To (
+                 Typ,
+                 Build_From_Any_Call (
+                   Root_Type (Typ),
+                   New_Occurrence_Of (Any_Parameter, Loc),
+                   Decls))));
+
+      elsif Is_Record_Type (Typ)
+        and then not Is_Derived_Type (Typ)
+      then
+         if Nkind (Declaration_Node (Typ)) = N_Subtype_Declaration then
             Append_To (Stms,
               Make_Return_Statement (Loc,
                 Expression =>
                   OK_Convert_To (
                     Typ,
                     Build_From_Any_Call (
-                      Rt_Type,
+                      Etype (Typ),
                       New_Occurrence_Of (Any_Parameter, Loc),
                       Decls))));
-         end;
-      elsif Is_Record_Type (Typ)
-        and then not Is_Derived_Type (Typ)
-      then
-         declare
-            Disc : Entity_Id := Empty;
-            Discriminant_Associations : List_Id;
-            Rdef : constant Node_Id :=
-              Type_Definition (Declaration_Node (Typ));
-            Element_Count : Int := 0;
+         else
+            declare
+               Disc : Entity_Id := Empty;
+               Discriminant_Associations : List_Id;
+               Rdef : constant Node_Id :=
+                 Type_Definition (Declaration_Node (Typ));
+               Element_Count : Int := 0;
 
-            --  The returned object
+               --  The returned object
 
-            Res : constant Entity_Id :=
-              Make_Defining_Identifier (Loc,
-                New_Internal_Name ('R'));
+               Res : constant Entity_Id :=
+                 Make_Defining_Identifier (Loc,
+                   New_Internal_Name ('R'));
 
-            Res_Definition : Node_Id :=
-              New_Occurrence_Of (Typ, Loc);
+               Res_Definition : Node_Id :=
+                 New_Occurrence_Of (Typ, Loc);
 
-            --  XXX The organisation of the subprograms below is
-            --  very similar between Build_TypeCode_Function,
-            --  Build_To_Any_Function, and (probably)
-            --  Build_From_Any_Function. It should be factored of
-            --  these three places somehow.
+               procedure Add_Field
+                 (F    : Entity_Id);
+               --  Add processing for field F to statement list Stms.
 
-            procedure Add_Component_List
-              (Stms  : List_Id;
-               Clist : Node_Id);
-            --  Append aggegate elements to Elements, corresponding
-            --  to component list Clist, to statements list Stms.
+               function Get_Current_Aggregate_Element
+                 (Typ : Entity_Id)
+                  return Node_Id;
+               --  Return the Element_Count'th element, of type Typ,
+               --  in the aggregate being processed.
 
-            procedure Add_Field
-              (Stms : List_Id;
-               F    : Entity_Id);
-            --  Add processing for field F to statement list Stms.
+               procedure Add_Field (F : Entity_Id) is
+               begin
+                  Append_To (Stms,
+                    Make_Assignment_Statement (Loc,
+                      Name =>
+                        Make_Selected_Component (Loc,
+                          Prefix =>
+                            New_Occurrence_Of (Res, Loc),
+                          Selector_Name =>
+                            New_Occurrence_Of (F, Loc)),
+                      Expression =>
+                        Get_Current_Aggregate_Element (Etype (F))));
+               end Add_Field;
 
-            procedure Add_Fields
-              (Stms : List_Id;
-               CL   : List_Id);
-            --  Add processing for the fields listed in CL to statements
-            --  list Stms.
+               procedure FA_Add_Component_List is
+                  new Add_Component_List (Add_Field);
 
-            function Get_Current_Aggregate_Element
-              (Typ : Entity_Id)
-               return Node_Id;
-            --  Return the Element_Count'th element, of type Typ,
-            --  in the aggregate being processed.
+               function Get_Current_Aggregate_Element
+                 (Typ : Entity_Id)
+                  return Node_Id
+               is
+                  Res : constant Node_Id :=
+                    Build_From_Any_Call (Typ,
+                      Build_Get_Aggregate_Element (Loc,
+                        Any => Any_Parameter,
+                        Tc  => Build_TypeCode_Call (Loc, Typ, Decls),
+                        Idx => Make_Integer_Literal (Loc, Element_Count)),
+                      Decls);
+               begin
+                  Element_Count := Element_Count + 1;
+                  return Res;
+               end Get_Current_Aggregate_Element;
 
-            procedure Add_Component_List
-              (Stms  : List_Id;
-               Clist : Node_Id)
-            is
-               CI : constant List_Id := Component_Items (Clist);
-               VP : constant Node_Id := Variant_Part (Clist);
             begin
-               Add_Fields (Stms, CI);
 
-               if Present (VP) then
-                  raise Program_Error;
-                  --  XXX Variant Part not implemented yet.
+               --  First all discriminants
+
+               if Has_Discriminants (Typ) then
+                  Disc := First_Discriminant (Typ);
+                  Discriminant_Associations := New_List;
+
+                  while Present (Disc) loop
+                     declare
+                        Disc_Var_Name : constant Entity_Id :=
+                          Make_Defining_Identifier (Loc, Chars (Disc));
+                        Disc_Type : constant Entity_Id :=
+                          Etype (Disc);
+                     begin
+                        Append_To (Decls,
+                          Make_Object_Declaration (Loc,
+                            Defining_Identifier =>
+                              Disc_Var_Name,
+                            Constant_Present => True,
+                            Object_Definition =>
+                              New_Occurrence_Of (Disc_Type, Loc),
+                            Expression =>
+                              Get_Current_Aggregate_Element (Disc_Type)));
+                        Append_To (Discriminant_Associations,
+                          Make_Discriminant_Association (Loc,
+                            Selector_Names => New_List (
+                              New_Occurrence_Of (Disc, Loc)),
+                            Expression =>
+                              New_Occurrence_Of (Disc_Var_Name, Loc)));
+                     end;
+                     Next_Discriminant (Disc);
+                  end loop;
+
+                  Res_Definition := Make_Subtype_Indication (Loc,
+                    Subtype_Mark => Res_Definition,
+                    Constraint   =>
+                      Make_Index_Or_Discriminant_Constraint (Loc,
+                        Discriminant_Associations));
                end if;
-            end Add_Component_List;
 
-            procedure Add_Field
-              (Stms : List_Id;
-               F    : Entity_Id)
-            is
-            begin
+               --  Now we have all the discriminants in variables,
+               --  we can declared a constrained object. Note that
+               --  we are not initializing (non-discriminant) components
+               --  directly in the object declarations, because which
+               --  fields to initialize depends (at run time) on the
+               --  discriminant values.
+
+               Append_To (Decls,
+                 Make_Object_Declaration (Loc,
+                   Defining_Identifier =>
+                     Res,
+                   Object_Definition =>
+                     Res_Definition));
+
+               --  ... then all components
+
+               FA_Add_Component_List (Component_List (Rdef));
+
                Append_To (Stms,
+                 Make_Return_Statement (Loc,
+                   Expression => New_Occurrence_Of (Res, Loc)));
+            end;
+         end if;
+
+      elsif Is_Array_Type (Typ) then
+
+         declare
+
+            Constrained : constant Boolean := Is_Constrained (Typ);
+
+            procedure From_Any_Add_Process_Element
+              (Stmts   : List_Id;
+               Any     : Entity_Id;
+               Counter : Entity_Id;
+               Datum   : Node_Id);
+            --  Assign the current element (as identified by Counter) of
+            --  Any to the variable denoted by name Datum, and advance Counter
+            --  by 1.
+            --  If Datum is not an Any, a call to From_Any for its type
+            --  is inserted.
+
+            procedure From_Any_Add_Process_Element
+              (Stmts   : List_Id;
+               Any     : Entity_Id;
+               Counter : Entity_Id;
+               Datum   : Node_Id)
+            is
+               Assignment : constant Node_Id :=
+                 Make_Assignment_Statement (Loc,
+                   Name       => Datum,
+                   Expression => Empty);
+
+               Element_Any : constant Node_Id :=
+                 Build_Get_Aggregate_Element (Loc,
+                   Any => Any,
+                   Tc  => Build_TypeCode_Call (Loc, Etype (Datum), Decls),
+                   Idx => New_Occurrence_Of (Counter, Loc));
+
+            begin
+
+               --  Note: here we *prepend* statements to Stmts, so
+               --  we must do it in reverse order.
+
+               Prepend_To (Stmts,
                  Make_Assignment_Statement (Loc,
                    Name =>
-                     Make_Selected_Component (Loc,
-                       Prefix =>
-                         New_Occurrence_Of (Res, Loc),
-                       Selector_Name =>
-                         New_Occurrence_Of (F, Loc)),
+                     New_Occurrence_Of (Counter, Loc),
                    Expression =>
-                     Get_Current_Aggregate_Element (Etype (F))));
-            end Add_Field;
+                     Make_Op_Add (Loc,
+                       Left_Opnd =>
+                         New_Occurrence_Of (Counter, Loc),
+                       Right_Opnd =>
+                         Make_Integer_Literal (Loc, 1))));
 
-            procedure Add_Fields
-              (Stms : List_Id;
-               CL   : List_Id)
-            is
-               Item : Node_Id;
-               Def  : Entity_Id;
-            begin
-               Item := First (CL);
-               while Present (Item) loop
-                  Def := Defining_Identifier (Item);
-                  if not Is_Internal_Name (Chars (Def)) then
-                     Add_Field (Stms, Def);
+               if Nkind (Datum) /= N_Attribute_Reference then
+
+                  --  We ignore the value of the length of each
+                  --  dimension, since the target array has already
+                  --  been constrained anyway.
+
+                  if Etype (Datum) /= RTE (RE_Any) then
+                     Set_Expression (Assignment,
+                        Build_From_Any_Call (
+                          Component_Type (Typ),
+                          Element_Any,
+                          Decls));
+                  else
+                     Set_Expression (Assignment, Element_Any);
                   end if;
-                  Next (Item);
-               end loop;
-            end Add_Fields;
+                  Prepend_To (Stmts, Assignment);
+               end if;
+            end From_Any_Add_Process_Element;
 
-            function Get_Current_Aggregate_Element
-              (Typ : Entity_Id)
-               return Node_Id
-            is
-               Res : constant Node_Id :=
-                 Build_From_Any_Call (Typ,
-                   Make_Function_Call (Loc,
-                     Name =>
-                       New_Occurrence_Of (
-                         RTE (RE_Get_Aggregate_Element), Loc),
-                     Parameter_Associations => New_List (
-                       New_Occurrence_Of (Any_Parameter, Loc),
-                       Build_TypeCode_Call (Loc, Typ, Decls),
-                       Make_Integer_Literal (Loc,
-                         Element_Count))), Decls);
-            begin
-               Element_Count := Element_Count + 1;
-               return Res;
-            end Get_Current_Aggregate_Element;
+            Counter : constant Entity_Id
+              := Make_Defining_Identifier (Loc, Name_J);
+            Initial_Counter_Value : Int := 0;
+            Component_TC : constant Entity_Id
+              := Make_Defining_Identifier (Loc, Name_T);
+
+            Res : constant Entity_Id
+              := Make_Defining_Identifier (Loc, Name_R);
+
+            procedure Append_From_Any_Array_Iterator is
+              new Append_Array_Iterator (
+                Subprogram => Fnam,
+                Arry       => Res,
+                Indices    => New_List,
+                Add_Process_Element => From_Any_Add_Process_Element);
+
+            Res_Subtype_Indication : Node_Id
+              := New_Occurrence_Of (Typ, Loc);
 
          begin
+            if not Constrained then
+               declare
+                  Ndim : constant Int := Number_Dimensions (Typ);
+                  Lnam : Name_Id;
+                  Hnam : Name_Id;
+                  Indx : Node_Id := First_Index (Typ);
+                  Indt : Entity_Id;
+                  Ranges : constant List_Id := New_List;
+               begin
+                  for J in 1 .. Ndim loop
 
-            --  First all discriminants
+                     Lnam := New_External_Name ('L', J);
+                     Hnam := New_External_Name ('H', J);
+                     Indt := Etype (Indx);
 
-            if Has_Discriminants (Typ) then
-               Disc := First_Discriminant (Typ);
-               Discriminant_Associations := New_List;
-
-               while Present (Disc) loop
-                  declare
-                     Disc_Var_Name : constant Entity_Id :=
-                       Make_Defining_Identifier (Loc, Chars (Disc));
-                     Disc_Type : constant Entity_Id :=
-                       Etype (Disc);
-                  begin
                      Append_To (Decls,
                        Make_Object_Declaration (Loc,
                          Defining_Identifier =>
-                           Disc_Var_Name,
-                         Constant_Present => True,
-                         Object_Definition =>
-                           New_Occurrence_Of (Disc_Type, Loc),
-                         Expression =>
-                           Get_Current_Aggregate_Element (Disc_Type)));
-                     Append_To (Discriminant_Associations,
-                       Make_Discriminant_Association (Loc,
-                         Selector_Names => New_List (
-                           New_Occurrence_Of (Disc, Loc)),
-                         Expression =>
-                           New_Occurrence_Of (Disc_Var_Name, Loc)));
-                  end;
-                  Next_Discriminant (Disc);
-               end loop;
+                           Make_Defining_Identifier (Loc, Lnam),
+                         Constant_Present    => True,
+                         Object_Definition   => New_Occurrence_Of (Indt, Loc),
+                         Expression          => Build_From_Any_Call (
+                           Indt,
+                           Build_Get_Aggregate_Element (Loc,
+                             Any => Any_Parameter,
+                             Tc  => Build_TypeCode_Call (Loc, Indt, Decls),
+                             Idx => Make_Integer_Literal (Loc, J - 1)),
+                           Decls)));
 
-               Res_Definition := Make_Subtype_Indication (Loc,
-                 Subtype_Mark => Res_Definition,
-                 Constraint   =>
-                   Make_Index_Or_Discriminant_Constraint (Loc,
-                     Discriminant_Associations));
+                     Append_To (Decls,
+                       Make_Object_Declaration (Loc,
+                         Defining_Identifier =>
+                           Make_Defining_Identifier (Loc, Hnam),
+                         Constant_Present    => True,
+                         Object_Definition   => New_Occurrence_Of (Indt, Loc),
+                         Expression =>
+                           Make_Attribute_Reference (Loc,
+                             Prefix         => New_Occurrence_Of (Indt, Loc),
+                             Attribute_Name => Name_Val,
+                             Expressions    => New_List (
+                               Make_Op_Subtract (Loc,
+                                 Left_Opnd =>
+                                   Make_Op_Add (Loc,
+                                     Left_Opnd =>
+                                       Make_Attribute_Reference (Loc,
+                                         Prefix         =>
+                                           New_Occurrence_Of (Indt, Loc),
+                                         Attribute_Name =>
+                                           Name_Pos,
+                                         Expressions    => New_List (
+                                           Make_Identifier (Loc, Lnam))),
+                                     Right_Opnd =>
+                                       Make_Function_Call (Loc,
+                                         Name =>
+                                           New_Occurrence_Of (
+                                             RTE (
+                                               RE_Get_Nested_Sequence_Length),
+                                               Loc),
+                                         Parameter_Associations => New_List (
+                                           New_Occurrence_Of (
+                                             Any_Parameter, Loc),
+                                           Make_Integer_Literal (Loc, J)))),
+                                 Right_Opnd =>
+                                   Make_Integer_Literal (Loc, 1))))));
+
+                     Append_To (Ranges,
+                       Make_Range (Loc,
+                         Low_Bound  => Make_Identifier (Loc, Lnam),
+                         High_Bound => Make_Identifier (Loc, Hnam)));
+
+                     Next_Index (Indx);
+                  end loop;
+
+                  --  Now we have all the necessary bound information:
+                  --  apply the set of range constraints to the (unconstrained)
+                  --  nominal subtype of Res.
+
+                  Initial_Counter_Value := Ndim;
+                  Res_Subtype_Indication := Make_Subtype_Indication (Loc,
+                    Subtype_Mark =>
+                      Res_Subtype_Indication,
+                    Constraint   =>
+                      Make_Index_Or_Discriminant_Constraint (Loc,
+                        Constraints => Ranges));
+               end;
             end if;
-
-            --  Now we have all the discriminants in variables,
-            --  we can declared a constrained object. Note that
-            --  we are not initializing (non-discriminant) components
-            --  directly in the object declarations, because which
-            --  fields to initialize depends (at run time) on the
-            --  discriminant values.
 
             Append_To (Decls,
               Make_Object_Declaration (Loc,
-                Defining_Identifier =>
-                  Res,
+                Defining_Identifier => Res,
+                Object_Definition => Res_Subtype_Indication));
+            Set_Etype (Res, Typ);
+
+            Append_To (Decls,
+              Make_Object_Declaration (Loc,
+                Defining_Identifier => Counter,
                 Object_Definition =>
-                  Res_Definition));
+                  New_Occurrence_Of (RTE (RE_Long_Unsigned), Loc),
+                Expression =>
+                  Make_Integer_Literal (Loc, Initial_Counter_Value)));
 
-            --  ... then all components
+            Append_To (Decls,
+              Make_Object_Declaration (Loc,
+                Defining_Identifier => Component_TC,
+                Constant_Present => True,
+                Object_Definition =>
+                  New_Occurrence_Of (RTE (RE_TypeCode), Loc),
+                Expression =>
+                  Build_TypeCode_Call (Loc, Component_Type (Typ), Decls)));
 
-            Add_Component_List (Stms, Component_List (Rdef));
+            Append_From_Any_Array_Iterator (Stms, Any_Parameter, Counter);
 
             Append_To (Stms,
               Make_Return_Statement (Loc,
                 Expression => New_Occurrence_Of (Res, Loc)));
          end;
+
+      elsif Is_Integer_Type (Typ) or else Is_Unsigned_Type (Typ) then
+         Append_To (Stms,
+           Make_Return_Statement (Loc,
+             Expression =>
+               Unchecked_Convert_To (
+                 Typ,
+                 Build_From_Any_Call (
+                   Find_Numeric_Representation (Typ),
+                   New_Occurrence_Of (Any_Parameter, Loc),
+                   Decls))));
 
       else
          declare
@@ -484,6 +745,28 @@ package body Exp_Hlpr is
             Make_Handled_Sequence_Of_Statements (Loc,
               Statements => Stms));
    end Build_From_Any_Function;
+
+   ---------------------------------
+   -- Build_Get_Aggregate_Element --
+   ---------------------------------
+
+   function Build_Get_Aggregate_Element
+     (Loc : Source_Ptr;
+      Any : Entity_Id;
+      TC  : Node_Id;
+      Idx : Node_Id)
+      return Node_Id
+   is
+   begin
+      return Make_Function_Call (Loc,
+        Name =>
+          New_Occurrence_Of (
+            RTE (RE_Get_Aggregate_Element), Loc),
+        Parameter_Associations => New_List (
+          New_Occurrence_Of (Any, Loc),
+          TC,
+          Idx));
+   end Build_Get_Aggregate_Element;
 
    -----------------------
    -- Build_To_Any_Call --
@@ -609,6 +892,9 @@ package body Exp_Hlpr is
       elsif U_Type = Standard_String then
          Lib_RE := RE_TA_String;
 
+      elsif U_Type = Underlying_Type (RTE (RE_TypeCode)) then
+         Lib_RE := RE_TA_TC;
+
       --  Other (non-primitive) types
 
       else
@@ -647,10 +933,11 @@ package body Exp_Hlpr is
       Decls : constant List_Id := New_List;
       Stms : constant List_Id := New_List;
       Expr_Parameter : constant Entity_Id
-        := Make_Defining_Identifier (Loc, New_Internal_Name ('E'));
+        := Make_Defining_Identifier (Loc, Name_E);
       Any : constant Entity_Id :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
+        Make_Defining_Identifier (Loc, Name_A);
       Any_Decl : Node_Id;
+      Result_TC : Node_Id := Build_TypeCode_Call (Loc, Typ, Decls);
    begin
       Fnam := Make_Stream_Procedure_Function_Name (Loc, Typ, Name_uTo_Any);
 
@@ -664,6 +951,7 @@ package body Exp_Hlpr is
               Parameter_Type =>
                 New_Occurrence_Of (Typ, Loc))),
           Subtype_Mark => New_Occurrence_Of (RTE (RE_Any), Loc));
+      Set_Etype (Expr_Parameter, Typ);
 
       Any_Decl :=
         Make_Object_Declaration (Loc,
@@ -685,162 +973,223 @@ package body Exp_Hlpr is
 
          begin
             Set_Expression (Any_Decl, Build_To_Any_Call (Expr, Decls));
-            Append_To (Decls, Any_Decl);
-
-            Append_To (Stms,
-              Make_Procedure_Call_Statement (Loc,
-                Name => New_Occurrence_Of (RTE (RE_Set_TC), Loc),
-                Parameter_Associations => New_List (
-                  New_Occurrence_Of (Any, Loc),
-                  Build_TypeCode_Call (Loc, Typ, Decls))));
          end;
       elsif Is_Record_Type (Typ)
         and then not Is_Tagged_Type (Typ)
       then
-         declare
-            Disc : Entity_Id := Empty;
-            Rdef : constant Node_Id :=
-              Type_Definition (Declaration_Node (Typ));
-            Element_Count : Int := 0;
-            Elements : List_Id := New_List;
+         if Nkind (Declaration_Node (Typ)) = N_Subtype_Declaration then
+            declare
+               Rt_Type : constant Entity_Id
+                 := Etype (Typ);
+               Expr : constant Node_Id
+                 := OK_Convert_To (
+                      Rt_Type,
+                      New_Occurrence_Of (Expr_Parameter, Loc));
 
-            --  XXX The organisation of the subprograms below is
-            --  very similar between Build_TypeCode_Function,
-            --  Build_To_Any_Function, and (probably)
-            --  Build_From_Any_Function. It should be factored of
-            --  these three places somehow.
-
-            procedure Add_Component_List
-              (Stms  : List_Id;
-               Clist : Node_Id);
-            --  Append aggegate elements, corresponding
-            --  to component list Clist.
-
-            procedure Add_Field (Stms : List_Id; E : Entity_Id);
-            --  Append an aggegate element, corresponding
-            --  to component E of the record.
-
-            procedure Add_Fields (Stms : List_Id; CL : List_Id);
-            --  Append an aggegate element to Elements, corresponding
-            --  to the listed components.
-
-            procedure Add_Component_List
-              (Stms  : List_Id;
-               Clist : Node_Id) is
-               CI : constant List_Id := Component_Items (Clist);
-               VP : constant Node_Id := Variant_Part (Clist);
             begin
-               Add_Fields (Stms, CI);
+               Set_Expression (Any_Decl, Build_To_Any_Call (Expr, Decls));
+            end;
+         else
+            declare
+               Disc : Entity_Id := Empty;
+               Rdef : constant Node_Id :=
+                 Type_Definition (Declaration_Node (Typ));
+               Element_Count : Int := 0;
+               Elements : List_Id := New_List;
 
-               if Present (VP) then
-                  raise Program_Error;
-                  --  XXX Variant Part not implemented yet.
-               end if;
-            end Add_Component_List;
+               procedure Add_Field (E : Entity_Id);
+               --  Append an aggegate element, corresponding
+               --  to component E of the record.
 
-            procedure Add_Field (Stms : List_Id; E : Entity_Id) is
-            begin
-               Append_To (Stms,
-                 Make_Procedure_Call_Statement (Loc,
-                   Name =>
-                     New_Occurrence_Of (
-                       RTE (RE_Add_Aggregate_Element), Loc),
-                   Parameter_Associations => New_List (
-                     New_Occurrence_Of (Any, Loc),
-                     Build_To_Any_Call (
-                       Make_Selected_Component (Loc,
-                         Prefix =>
-                           New_Occurrence_Of (Expr_Parameter, Loc),
-                         Selector_Name =>
-                           New_Occurrence_Of (E, Loc)), Decls))));
-            end Add_Field;
-
-            procedure Add_Fields (Stms : List_Id; CL : List_Id) is
-               Item : Node_Id;
-               Def  : Entity_Id;
-            begin
-               Item := First (CL);
-               while Present (Item) loop
-                  Def := Defining_Identifier (Item);
-                  if not Is_Internal_Name (Chars (Def)) then
-                     Add_Field (Stms, Def);
-                  end if;
-                  Next (Item);
-               end loop;
-            end Add_Fields;
-
-         begin
-
-            --  First all discriminants
-
-            if Has_Discriminants (Typ) then
-               Disc := First_Discriminant (Typ);
-
-               while Present (Disc) loop
-                  Append_To (Elements,
-                    Make_Component_Association (Loc,
-                      Choices => New_List (
-                        Make_Integer_Literal (Loc, Element_Count)),
-                      Expression =>
+               procedure Add_Field (E : Entity_Id) is
+               begin
+                  Append_To (Stms,
+                    Make_Procedure_Call_Statement (Loc,
+                      Name =>
+                        New_Occurrence_Of (
+                          RTE (RE_Add_Aggregate_Element), Loc),
+                      Parameter_Associations => New_List (
+                        New_Occurrence_Of (Any, Loc),
                         Build_To_Any_Call (
                           Make_Selected_Component (Loc,
                             Prefix =>
                               New_Occurrence_Of (Expr_Parameter, Loc),
                             Selector_Name =>
-                              New_Occurrence_Of (Disc, Loc)),
-                          Decls)));
-                  Element_Count := Element_Count + 1;
-                  Next_Discriminant (Disc);
-               end loop;
-            else
-               declare
-                  Dummy_Any : constant Entity_Id :=
-                    Make_Defining_Identifier (Loc,
-                      New_Internal_Name ('A'));
-               begin
-                  Append_To (Decls,
-                    Make_Object_Declaration (Loc,
-                      Defining_Identifier => Dummy_Any,
-                      Object_Definition   =>
-                        New_Occurrence_Of (RTE (RE_Any), Loc)));
+                              New_Occurrence_Of (E, Loc)), Decls))));
+               end Add_Field;
 
-                  Append_To (Elements,
-                    Make_Component_Association (Loc,
-                      Choices => New_List (
-                        Make_Range (Loc,
-                          Low_Bound  =>
-                            Make_Integer_Literal (Loc, 1),
-                          High_Bound =>
-                            Make_Integer_Literal (Loc, 0))),
-                      Expression =>
-                        New_Occurrence_Of (Dummy_Any, Loc)));
-               end;
-            end if;
+               procedure TA_Add_Component_List is
+                  new Add_Component_List (Add_Field);
 
+            begin
+
+               --  First all discriminants
+
+               if Has_Discriminants (Typ) then
+                  Disc := First_Discriminant (Typ);
+
+                  while Present (Disc) loop
+                     Append_To (Elements,
+                       Make_Component_Association (Loc,
+                         Choices => New_List (
+                           Make_Integer_Literal (Loc, Element_Count)),
+                         Expression =>
+                           Build_To_Any_Call (
+                             Make_Selected_Component (Loc,
+                               Prefix =>
+                                 New_Occurrence_Of (Expr_Parameter, Loc),
+                               Selector_Name =>
+                                 New_Occurrence_Of (Disc, Loc)),
+                             Decls)));
+                     Element_Count := Element_Count + 1;
+                     Next_Discriminant (Disc);
+                  end loop;
+
+               else
+
+                  --  Make elements an empty array
+
+                  declare
+                     Dummy_Any : constant Entity_Id :=
+                       Make_Defining_Identifier (Loc,
+                         New_Internal_Name ('A'));
+                  begin
+                     Append_To (Decls,
+                       Make_Object_Declaration (Loc,
+                         Defining_Identifier => Dummy_Any,
+                         Object_Definition   =>
+                           New_Occurrence_Of (RTE (RE_Any), Loc)));
+
+                     Append_To (Elements,
+                       Make_Component_Association (Loc,
+                         Choices => New_List (
+                           Make_Range (Loc,
+                             Low_Bound  =>
+                               Make_Integer_Literal (Loc, 1),
+                             High_Bound =>
+                               Make_Integer_Literal (Loc, 0))),
+                         Expression =>
+                           New_Occurrence_Of (Dummy_Any, Loc)));
+                  end;
+               end if;
+
+               Set_Expression (Any_Decl,
+                 Make_Function_Call (Loc,
+                   Name =>
+                     New_Occurrence_Of (RTE (RE_Any_Aggregate_Build), Loc),
+                   Parameter_Associations => New_List (
+                     Result_TC,
+                     Make_Aggregate (Loc,
+                       Component_Associations => Elements))));
+               Result_TC := Empty;
+
+               --  ... then all components
+
+               TA_Add_Component_List (Component_List (Rdef));
+            end;
+         end if;
+
+      elsif Is_Array_Type (Typ) then
+
+         declare
+
+            Constrained : constant Boolean := Is_Constrained (Typ);
+
+            procedure To_Any_Add_Process_Element
+              (Stmts   : List_Id;
+               Any     : Entity_Id;
+               Counter : Entity_Id;
+               Datum   : Node_Id);
+
+            procedure To_Any_Add_Process_Element
+              (Stmts   : List_Id;
+               Any     : Entity_Id;
+               Counter : Entity_Id;
+               Datum   : Node_Id)
+            is
+               pragma Unreferenced (Counter);
+
+               Element_Any : Node_Id;
+            begin
+               if Etype (Datum) = RTE (RE_Any) then
+                  Element_Any := Datum;
+               else
+                  Element_Any := Build_To_Any_Call (Datum, Decls);
+               end if;
+
+               Append_To (Stmts,
+                 Make_Procedure_Call_Statement (Loc,
+                   Name =>
+                     New_Occurrence_Of (RTE (RE_Add_Aggregate_Element), Loc),
+                   Parameter_Associations => New_List (
+                     New_Occurrence_Of (Any, Loc),
+                     Element_Any)));
+            end To_Any_Add_Process_Element;
+
+            procedure Append_To_Any_Array_Iterator is
+              new Append_Array_Iterator (
+                Subprogram => Fnam,
+                Arry       => Expr_Parameter,
+                Indices    => New_List,
+                Add_Process_Element => To_Any_Add_Process_Element);
+
+            Index : Node_Id;
+         begin
             Set_Expression (Any_Decl,
               Make_Function_Call (Loc,
                 Name =>
-                  New_Occurrence_Of (RTE (RE_Any_Aggregate_Build), Loc),
-                Parameter_Associations => New_List (
-                  Build_TypeCode_Call (Loc, Typ, Decls),
-                  Make_Aggregate (Loc,
-                    Component_Associations => Elements))));
-            Append_To (Decls, Any_Decl);
+                  New_Occurrence_Of (RTE (RE_Get_Empty_Any_Aggregate), Loc),
+                Parameter_Associations => New_List (Result_TC)));
+            Result_TC := Empty;
 
-            --  ... then all components
+            if not Constrained then
+               Index := First_Index (Typ);
+               for J in 1 .. Number_Dimensions (Typ) loop
+                  Append_To (Stms,
+                    Make_Procedure_Call_Statement (Loc,
+                      Name =>
+                        New_Occurrence_Of (
+                          RTE (RE_Add_Aggregate_Element), Loc),
+                      Parameter_Associations => New_List (
+                        New_Occurrence_Of (Any, Loc),
+                        Build_To_Any_Call (
+                          OK_Convert_To (Etype (Index),
+                            Make_Attribute_Reference (Loc,
+                              Prefix         =>
+                                New_Occurrence_Of (Expr_Parameter, Loc),
+                              Attribute_Name => Name_First,
+                              Expressions    => New_List (
+                                Make_Integer_Literal (Loc, J)))),
+                          Decls))));
+                  Next_Index (Index);
+               end loop;
+            end if;
 
-            Add_Component_List (Stms, Component_List (Rdef));
+            Append_To_Any_Array_Iterator (Stms, Any);
 
          end;
-
+      elsif Is_Integer_Type (Typ) or else Is_Unsigned_Type (Typ) then
+         Set_Expression (Any_Decl,
+           Build_To_Any_Call (
+             OK_Convert_To (
+               Find_Numeric_Representation (Typ),
+               New_Occurrence_Of (Expr_Parameter, Loc)),
+             Decls));
       else
-         Append_To (Decls, Any_Decl);
+         null;
+         --  XXX we might be missing some cases here.
+         --  Assert (False) ?
+      end if;
+
+      Append_To (Decls, Any_Decl);
+
+      if Present (Result_TC) then
          Append_To (Stms,
            Make_Procedure_Call_Statement (Loc,
              Name => New_Occurrence_Of (RTE (RE_Set_TC), Loc),
              Parameter_Associations => New_List (
                New_Occurrence_Of (Any, Loc),
-               Build_TypeCode_Call (Loc, Typ, Decls))));
+               Result_TC)));
       end if;
 
       Append_To (Stms,
@@ -876,147 +1225,168 @@ package body Exp_Hlpr is
 
       Fnam : Entity_Id := Empty;
       Tnam : Entity_Id := Empty;
+      Pnam : Entity_Id := Empty;
       Args : List_Id := Empty_List;
       Lib_RE  : RE_Id := RE_Null;
 
+      Expr : Node_Id;
    begin
 
-      --  First simple case where the TypeCode is present
-      --  in the type's TSS.
+      --  Special case System.PolyORB.Interface.Any: its primitives
+      --  have not been set yet, so can't call Find_Inherited_TSS.
 
-      Fnam := Find_Inherited_TSS (U_Type, Name_uTypeCode);
+      if Typ = RTE (RE_Any) then
+         Fnam := RTE (RE_TC_Any);
+      else
 
-      --  Check first for Boolean and Character. These are enumeration types,
-      --  but we treat them specially, since they may require special handling
-      --  in the transfer protocol. However, this special handling only applies
-      --  if they have standard representation, otherwise they are treated like
-      --  any other enumeration type.
+         --  First simple case where the TypeCode is present
+         --  in the type's TSS.
 
-      if Sloc (U_Type) <= Standard_Location then
-         U_Type := Base_Type (U_Type);
-         --  Do not try to build alias typecodes for subtypes from Standard.
+         Fnam := Find_Inherited_TSS (U_Type, Name_uTypeCode);
+
+         if Present (Fnam) then
+            --  When a TypeCode TSS exists, it has a single parameter
+            --  that is an anonymous access to the corresponding type.
+            --  This parameter is not used in any way; its purpose is
+            --  solely to provide overloading of the TSS.
+
+            Tnam := Make_Defining_Identifier (Loc,
+                      New_Internal_Name ('T'));
+            Pnam := Make_Defining_Identifier (Loc,
+                      New_Internal_Name ('P'));
+
+            Append_To (Decls,
+              Make_Full_Type_Declaration (Loc,
+                Defining_Identifier => Tnam,
+                Type_Definition =>
+                  Make_Access_To_Object_Definition (Loc,
+                    Subtype_Indication =>
+                      New_Occurrence_Of (U_Type, Loc))));
+            Append_To (Decls,
+              Make_Object_Declaration (Loc,
+                Defining_Identifier => Pnam,
+                Constant_Present    => True,
+                Object_Definition   => New_Occurrence_Of (Tnam, Loc),
+                Expression          => Make_Null (Loc)));
+            --  Use a variable here to force proper freezing of Tnam.
+
+            Args := New_List (New_Occurrence_Of (Pnam, Loc));
+            --  Normally, calling _TypeCode with a null access parameter
+            --  should raise Constraint_Error, but this check is suppressed
+            --  for expanded code, and we do not care anyway because we do not
+            --  actually ever use this value.
+
+
+         end if;
       end if;
 
-      if Present (Fnam) then
-         --  When a TypeCode TSS exists, it has a single parameter
-         --  that is an anonymous access to the corresponding type.
-         --  This parameter is not used in any way; its purpose is
-         --  solely to provide overloading of the TSS.
+      if No (Fnam) then
+         if Sloc (U_Type) <= Standard_Location then
+            U_Type := Base_Type (U_Type);
+            --  Do not try to build alias typecodes for subtypes from Standard.
+         end if;
 
-         Tnam := Make_Defining_Identifier (Loc,
-                   New_Internal_Name ('T'));
+         if Is_Itype (U_Type) then
+            return Build_TypeCode_Call
+              (Loc, Associated_Node_For_Itype (U_Type), Decls);
+         end if;
 
-         Append_To (Decls,
-           Make_Full_Type_Declaration (Loc,
-             Defining_Identifier => Tnam,
-             Type_Definition =>
-               Make_Access_To_Object_Definition (Loc,
-                 Subtype_Indication =>
-                   New_Occurrence_Of (U_Type, Loc))));
+         if U_Type = Standard_Boolean then
+            Lib_RE := RE_TC_B;
 
-         Args := New_List (
-           Make_Qualified_Expression (Loc,
-             Subtype_Mark =>
-               New_Occurrence_Of (Tnam, Loc),
-             Expression =>
-                Make_Null (Loc)));
-         --  Normally, calling _TypeCode with a null access parameter
-         --  should raise Constraint_Error, but this check is suppressed
-         --  for expanded code, and we do not care anyway because we do not
-         --  actually ever use this value.
+         elsif U_Type = Standard_Character then
+            Lib_RE := RE_TC_C;
 
-      elsif U_Type = Standard_Boolean then
-         Lib_RE := RE_TC_B;
+         elsif U_Type = Standard_Wide_Character then
+            Lib_RE := RE_TC_WC;
 
-      elsif U_Type = Standard_Character then
-         Lib_RE := RE_TC_C;
+         --  Floating point types
 
-      elsif U_Type = Standard_Wide_Character then
-         Lib_RE := RE_TC_WC;
+         elsif U_Type = Standard_Short_Float then
+            Lib_RE := RE_TC_SF;
 
-      --  Floating point types
+         elsif U_Type = Standard_Float then
+            Lib_RE := RE_TC_F;
 
-      elsif U_Type = Standard_Short_Float then
-         Lib_RE := RE_TC_SF;
+         elsif U_Type = Standard_Long_Float then
+            Lib_RE := RE_TC_LF;
 
-      elsif U_Type = Standard_Float then
-         Lib_RE := RE_TC_F;
+         elsif U_Type = Standard_Long_Long_Float then
+            Lib_RE := RE_TC_LLF;
 
-      elsif U_Type = Standard_Long_Float then
-         Lib_RE := RE_TC_LF;
+         --  Integer types (walk back to the base type)
 
-      elsif U_Type = Standard_Long_Long_Float then
-         Lib_RE := RE_TC_LLF;
+         elsif U_Type = Etype (Standard_Short_Short_Integer) then
+               Lib_RE := RE_TC_SSI;
 
-      --  Integer types (walk back to the base type)
+         elsif U_Type = Etype (Standard_Short_Integer) then
+            Lib_RE := RE_TC_SI;
 
-      elsif U_Type = Etype (Standard_Short_Short_Integer) then
-            Lib_RE := RE_TC_SSI;
+         elsif U_Type = Etype (Standard_Integer) then
+            Lib_RE := RE_TC_I;
 
-      elsif U_Type = Etype (Standard_Short_Integer) then
-         Lib_RE := RE_TC_SI;
+         elsif U_Type = Etype (Standard_Long_Integer) then
+            Lib_RE := RE_TC_LI;
 
-      elsif U_Type = Etype (Standard_Integer) then
-         Lib_RE := RE_TC_I;
+         elsif U_Type = Etype (Standard_Long_Long_Integer) then
+            Lib_RE := RE_TC_LLI;
 
-      elsif U_Type = Etype (Standard_Long_Integer) then
-         Lib_RE := RE_TC_LI;
+         --  Unsigned integer types
 
-      elsif U_Type = Etype (Standard_Long_Long_Integer) then
-         Lib_RE := RE_TC_LLI;
+         elsif U_Type = RTE (RE_Short_Short_Unsigned) then
+            Lib_RE := RE_TC_SSU;
 
-      --  Unsigned integer types
+         elsif U_Type = RTE (RE_Short_Unsigned) then
+            Lib_RE := RE_TC_SU;
 
-      elsif U_Type = RTE (RE_Short_Short_Unsigned) then
-         Lib_RE := RE_TC_SSU;
+         elsif U_Type = RTE (RE_Unsigned) then
+            Lib_RE := RE_TC_U;
 
-      elsif U_Type = RTE (RE_Short_Unsigned) then
-         Lib_RE := RE_TC_SU;
+         elsif U_Type = RTE (RE_Long_Unsigned) then
+            Lib_RE := RE_TC_LU;
 
-      elsif U_Type = RTE (RE_Unsigned) then
-         Lib_RE := RE_TC_U;
+         elsif U_Type = RTE (RE_Long_Long_Unsigned) then
+            Lib_RE := RE_TC_LLU;
 
-      elsif U_Type = RTE (RE_Long_Unsigned) then
-         Lib_RE := RE_TC_LU;
+         --  Access types
 
-      elsif U_Type = RTE (RE_Long_Long_Unsigned) then
-         Lib_RE := RE_TC_LLU;
+   --        elsif Is_Access_Type (U_Type) then
+   --           if P_Size > System_Address_Size then
+   --              Lib_RE := RE_TC_AD;
+   --           else
+   --              Lib_RE := RE_TC_AS;
+   --           end if;
 
-      --  Access types
+         elsif U_Type = Standard_String then
+            Lib_RE := RE_TC_String;
 
---        elsif Is_Access_Type (U_Type) then
---           if P_Size > System_Address_Size then
---              Lib_RE := RE_TC_AD;
---           else
---              Lib_RE := RE_TC_AS;
---           end if;
+         --  Other (non-primitive) types
 
-      elsif U_Type = Standard_String then
-         Lib_RE := RE_TC_String;
+         else
+            declare
+               Decl : Entity_Id;
+            begin
+               Build_TypeCode_Function (Loc, U_Type, Decl, Fnam);
+               Append_To (Decls, Decl);
+            end;
+         end if;
 
-      --  Other (non-primitive) types
-
-      else
-         declare
-            Decl : Entity_Id;
-         begin
-            Build_TypeCode_Function (Loc, U_Type, Decl, Fnam);
-            Append_To (Decls, Decl);
-         end;
+         if Lib_RE /= RE_Null then
+            Fnam := RTE (Lib_RE);
+         end if;
       end if;
 
       --  Call the function
 
-      if Lib_RE /= RE_Null then
-         pragma Assert (No (Fnam));
-         Fnam := RTE (Lib_RE);
-      end if;
+      Expr := Make_Function_Call (Loc,
+                Name => New_Occurrence_Of (Fnam, Loc),
+                Parameter_Associations => Args);
 
-      return
-          Make_Function_Call (Loc,
-            Name => New_Occurrence_Of (Fnam, Loc),
-            Parameter_Associations => Args);
+      Set_Etype (Expr, RTE (RE_TypeCode));
+      --  Allows Expr to be used as an argument to
+      --  Build_To_Any_Call immediately.
 
+      return Expr;
    end Build_TypeCode_Call;
 
    -----------------------------
@@ -1046,6 +1416,12 @@ package body Exp_Hlpr is
          Repo_Id_String : String_Id);
       --  Return a list that contains the first two parameters
       --  for a parameterized typecode: name and repository id.
+
+      function Make_Constructed_TypeCode
+        (Kind : Entity_Id;
+         Parameters : List_Id)
+         return Node_Id;
+      --  Call TC_Build with the given kind and parameters.
 
       procedure Return_Constructed_TypeCode (Kind : Entity_Id);
       --  Make a return statement that calls TC_Build with
@@ -1097,45 +1473,38 @@ package body Exp_Hlpr is
          Return_Constructed_TypeCode (RTE (RE_TC_Alias));
       end Return_Alias_TypeCode;
 
+      function Make_Constructed_TypeCode
+        (Kind : Entity_Id;
+         Parameters : List_Id)
+         return Node_Id
+      is
+         Constructed_TC : constant Node_Id :=
+           Make_Function_Call (Loc,
+             Name =>
+               New_Occurrence_Of (RTE (RE_TC_Build), Loc),
+             Parameter_Associations => New_List (
+               New_Occurrence_Of (Kind, Loc),
+               Make_Aggregate (Loc,
+                  Expressions => Parameters)));
+      begin
+         Set_Etype (Constructed_TC, RTE (RE_TypeCode));
+         return Constructed_TC;
+      end Make_Constructed_TypeCode;
+
       procedure Return_Constructed_TypeCode (Kind : Entity_Id) is
       begin
          Append_To (Stms,
            Make_Return_Statement (Loc,
              Expression =>
-               Make_Function_Call (Loc,
-                 Name =>
-                   New_Occurrence_Of (RTE (RE_TC_Build), Loc),
-                 Parameter_Associations => New_List (
-                   New_Occurrence_Of (Kind, Loc),
-                   Make_Aggregate (Loc,
-                      Expressions => Parameters)))));
+                Make_Constructed_TypeCode (Kind, Parameters)));
       end Return_Constructed_TypeCode;
 
       ------------------
       -- Record types --
       ------------------
 
-      procedure Add_Component_List (Clist : Node_Id);
-      --  Process a complete component list.
-
       procedure Add_Field (F : Entity_Id);
       --  Process a single component.
-
-      procedure Add_Fields (CL : List_Id);
-      --  Process a complete component list.
-
-      procedure Add_Component_List (Clist : Node_Id)
-      is
-         CI : constant List_Id := Component_Items (Clist);
-         VP : constant Node_Id := Variant_Part (Clist);
-      begin
-         Add_Fields (CI);
-
-         if Present (VP) then
-            raise Program_Error;
-            --  XXX Variant Part not implemented yet.
-         end if;
-      end Add_Component_List;
 
       procedure Add_Field (F : Entity_Id) is
       begin
@@ -1145,24 +1514,12 @@ package body Exp_Hlpr is
          Add_String_Parameter (String_From_Name_Buffer);
       end Add_Field;
 
-      procedure Add_Fields (CL : List_Id) is
-         Item : Node_Id;
-         Def  : Entity_Id;
-      begin
-         Item := First (CL);
-         while Present (Item) loop
-            Def := Defining_Identifier (Item);
-            if not Is_Internal_Name (Chars (Def)) then
-               Add_Field (Def);
-            end if;
-            Next (Item);
-         end loop;
-      end Add_Fields;
-
-   --  Build_TypeCode_Function
+      procedure TC_Add_Component_List is
+         new Add_Component_List (Add_Field);
 
       Type_Name_Str : String_Id;
    begin
+      pragma Assert (not Is_Itype (Typ));
 
       Fnam := Make_Stream_Procedure_Function_Name
         (Loc, Typ, Name_uTypeCode);
@@ -1212,25 +1569,88 @@ package body Exp_Hlpr is
       elsif Is_Record_Type (Typ)
         and then not Is_Tagged_Type (Typ)
       then
-         declare
-            Disc : Entity_Id := Empty;
-            Rdef : constant Node_Id :=
-              Type_Definition (Declaration_Node (Typ));
-         begin
-            --  First all discriminants
+         if Nkind (Declaration_Node (Typ)) = N_Subtype_Declaration then
+            Return_Alias_TypeCode (
+              Build_TypeCode_Call (Loc, Etype (Typ), Decls));
+         else
+            declare
+               Disc : Entity_Id := Empty;
+               Rdef : constant Node_Id :=
+                 Type_Definition (Declaration_Node (Typ));
+            begin
+               --  First all discriminants
 
-            if Has_Discriminants (Typ) then
-               Disc := First_Discriminant (Typ);
-            end if;
-            while Present (Disc) loop
-               Add_Field (Disc);
-               Next_Discriminant (Disc);
+               if Has_Discriminants (Typ) then
+                  Disc := First_Discriminant (Typ);
+               end if;
+               while Present (Disc) loop
+                  Add_Field (Disc);
+                  Next_Discriminant (Disc);
+               end loop;
+
+               --  ... then all components
+
+               TC_Add_Component_List (Component_List (Rdef));
+               Return_Constructed_TypeCode (RTE (RE_TC_Struct));
+            end;
+         end if;
+
+      elsif Is_Array_Type (Typ) then
+
+         declare
+            Ndim : constant Pos := Number_Dimensions (Typ);
+            Inner_TypeCode : Node_Id;
+            Constrained : constant Boolean := Is_Constrained (Typ);
+            Indx : Node_Id := First_Index (Typ);
+         begin
+            Inner_TypeCode := Build_TypeCode_Call (Loc,
+              Component_Type (Typ),
+              Decls);
+
+            for J in 1 .. Ndim loop
+               if Constrained then
+                  Inner_TypeCode := Make_Constructed_TypeCode
+                    (RTE (RE_TC_Array), New_List (
+                      Build_To_Any_Call (
+                        OK_Convert_To (RTE (RE_Long_Unsigned),
+                          Make_Attribute_Reference (Loc,
+                            Prefix =>
+                              New_Occurrence_Of (Typ, Loc),
+                            Attribute_Name =>
+                              Name_Length,
+                            Expressions => New_List (
+                              Make_Integer_Literal (Loc, Ndim - J + 1)))),
+                        Decls),
+                      Build_To_Any_Call (Inner_TypeCode, Decls)));
+               else
+
+                  --  Unconstrained case: add low bound for each dimension.
+
+                  Add_TypeCode_Parameter
+                    (Build_TypeCode_Call (Loc, Etype (Indx), Decls));
+                  Get_Name_String (New_External_Name ('L', J));
+                  Add_String_Parameter (String_From_Name_Buffer);
+                  Next_Index (Indx);
+
+                  Inner_TypeCode := Make_Constructed_TypeCode
+                    (RTE (RE_TC_Sequence), New_List (
+                      Build_To_Any_Call (
+                        OK_Convert_To (RTE (RE_Long_Unsigned),
+                          Make_Integer_Literal (Loc, 0)),
+                        Decls),
+                      Build_To_Any_Call (Inner_TypeCode, Decls)));
+               end if;
             end loop;
 
-            --  ... then all components
-
-            Add_Component_List (Component_List (Rdef));
-            Return_Constructed_TypeCode (RTE (RE_TC_Struct));
+            if Constrained then
+               Return_Alias_TypeCode (Inner_TypeCode);
+            else
+               Add_TypeCode_Parameter (Inner_TypeCode);
+               Start_String;
+               Store_String_Char ('V');
+               Add_String_Parameter (End_String);
+               Return_Constructed_TypeCode (RTE (RE_TC_Struct));
+            end if;
          end;
 
       else
@@ -1424,6 +1844,185 @@ package body Exp_Hlpr is
       --  XXX numeric types with a biased representation??
 
    end Find_Numeric_Representation;
+
+   ---------------------------
+   -- Append_Array_Iterator --
+   ---------------------------
+
+   procedure Append_Array_Iterator
+     (Stmts   : List_Id;
+      Any     : Entity_Id;
+      Counter : Entity_Id := Empty;
+      Depth   : Pos       := 1)
+   is
+      Constrained : constant Boolean := Is_Constrained (Arry);
+
+      Loc       : constant Source_Ptr := Sloc (Subprogram);
+      Typ       : constant Entity_Id  := Etype (Arry);
+      Ndim      : constant Pos        := Number_Dimensions (Typ);
+      Inner_Any, Inner_Counter : Entity_Id;
+      Loop_Stm  : Node_Id;
+      Inner_Stmts : constant List_Id := New_List;
+   begin
+      if Depth > Ndim then
+
+         --  Processing for one element of an array.
+
+         declare
+            Element_Expr : constant Node_Id
+              := Make_Indexed_Component (Loc,
+                   New_Occurrence_Of (Arry, Loc), Indices);
+         begin
+            Set_Etype (Element_Expr, Component_Type (Typ));
+            Add_Process_Element (Stmts,
+              Any     => Any,
+              Counter => Counter,
+              Datum   => Element_Expr);
+         end;
+
+         return;
+      end if;
+
+      Append_To (Indices,
+        Make_Identifier (Loc, New_External_Name ('L', Depth)));
+
+      if Constrained then
+         Inner_Any := Any;
+         Inner_Counter := Counter;
+      else
+         Inner_Any := Make_Defining_Identifier (Loc,
+           New_External_Name ('A', Depth));
+         Set_Etype (Inner_Any, RTE (RE_Any));
+
+         if Present (Counter) then
+            Inner_Counter := Make_Defining_Identifier (Loc,
+              New_External_Name ('J', Depth));
+         else
+            Inner_Counter := Empty;
+         end if;
+
+      end if;
+
+      Append_Array_Iterator (Inner_Stmts,
+        Any     => Inner_Any,
+        Counter => Inner_Counter,
+        Depth   => Depth + 1);
+
+      Loop_Stm :=
+        Make_Implicit_Loop_Statement (Subprogram,
+          Iteration_Scheme =>
+            Make_Iteration_Scheme (Loc,
+              Loop_Parameter_Specification =>
+                Make_Loop_Parameter_Specification (Loc,
+                  Defining_Identifier =>
+                    Make_Defining_Identifier (Loc,
+                      Chars => New_External_Name ('L', Depth)),
+
+                  Discrete_Subtype_Definition =>
+                    Make_Attribute_Reference (Loc,
+                      Prefix         => New_Occurrence_Of (Arry, Loc),
+                      Attribute_Name => Name_Range,
+
+                      Expressions => New_List (
+                        Make_Integer_Literal (Loc, Depth))))),
+          Statements => Inner_Stmts);
+
+      if Constrained then
+         Append_To (Stmts, Loop_Stm);
+         return;
+      end if;
+
+      declare
+         Decls : constant List_Id := New_List;
+         Dimen_Stmts : constant List_Id := New_List;
+         Length_Node : Node_Id;
+         Inner_Any_TypeCode : constant Entity_Id :=
+           Make_Defining_Identifier (Loc,
+             New_External_Name ('T', Depth));
+         Inner_Any_TypeCode_Expr : Node_Id;
+      begin
+
+         if Depth = 1 then
+            Inner_Any_TypeCode_Expr :=
+              Make_Function_Call (Loc,
+                Name =>
+                  New_Occurrence_Of (RTE (RE_Member_Type), Loc),
+                Parameter_Associations => New_List (
+                  Make_Function_Call (Loc,
+                    Name =>
+                      New_Occurrence_Of (RTE (RE_Get_Type), Loc),
+                    Parameter_Associations => New_List (
+                      New_Occurrence_Of (Any, Loc))),
+                  Make_Integer_Literal (Loc, Ndim)));
+         else
+            Inner_Any_TypeCode_Expr :=
+              Make_Function_Call (Loc,
+                Name =>
+                  New_Occurrence_Of (RTE (RE_Content_Type), Loc),
+                Parameter_Associations => New_List (
+                  Make_Identifier (Loc, New_External_Name ('T', Depth - 1))));
+         end if;
+
+         Append_To (Decls,
+           Make_Object_Declaration (Loc,
+             Defining_Identifier => Inner_Any_TypeCode,
+             Constant_Present    => True,
+             Object_Definition   => New_Occurrence_Of (RTE (RE_TypeCode), Loc),
+             Expression          => Inner_Any_TypeCode_Expr));
+         Append_To (Decls,
+           Make_Object_Declaration (Loc,
+             Defining_Identifier => Inner_Any,
+             Object_Definition   => New_Occurrence_Of (RTE (RE_Any), Loc),
+             Expression          =>
+               Make_Function_Call (Loc,
+                 Name =>
+                   New_Occurrence_Of (
+                     RTE (RE_Get_Empty_Any_Aggregate), Loc),
+                 Parameter_Associations => New_List (
+                   New_Occurrence_Of (Inner_Any_TypeCode, Loc)))));
+
+         if Present (Inner_Counter) then
+            Append_To (Decls,
+              Make_Object_Declaration (Loc,
+                Defining_Identifier => Inner_Counter,
+                Object_Definition   =>
+                  New_Occurrence_Of (RTE (RE_Long_Unsigned), Loc),
+                Expression          =>
+                  Make_Integer_Literal (Loc, 0)));
+         end if;
+
+         Length_Node := Make_Attribute_Reference (Loc,
+               Prefix         => New_Occurrence_Of (Arry, Loc),
+               Attribute_Name => Name_Length,
+               Expressions    =>
+                 New_List (Make_Integer_Literal (Loc, Depth)));
+         Set_Etype (Length_Node, RTE (RE_Long_Unsigned));
+
+         Add_Process_Element (Dimen_Stmts,
+           Datum   => Length_Node,
+           Any     => Inner_Any,
+           Counter => Inner_Counter);
+
+         Append_To (Dimen_Stmts, Loop_Stm);
+         --  Loop_Stm does approrpriate processing for each element
+         --  of Inner_Any.
+
+         Add_Process_Element (Dimen_Stmts,
+           Any     => Any,
+           Counter => Counter,
+           Datum   => New_Occurrence_Of (Inner_Any, Loc));
+         --  Link outer and inner any.
+
+         Append_To (Stmts,
+           Make_Block_Statement (Loc,
+             Declarations =>
+               Decls,
+             Handled_Statement_Sequence =>
+               Make_Handled_Sequence_Of_Statements (Loc,
+                 Statements => Dimen_Stmts)));
+      end;
+
+   end Append_Array_Iterator;
 
    -----------------------------------------
    -- Make_Stream_Procedure_Function_Name --

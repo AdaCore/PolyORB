@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,7 +37,8 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -- Create --
    ------------
 
-   function Create return No_Activation_Policy_Access is
+   function Create
+     return No_Activation_Policy_Access is
    begin
       return new No_Activation_Policy;
    end Create;
@@ -46,15 +48,19 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : No_Activation_Policy;
-      Other_Policies   : AllPolicies)
+     (Self           :        No_Activation_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
+      pragma Unreferenced (Error);
       pragma Warnings (On);
+
+   begin
       null;
+      --  No rule to test.
    end Check_Compatibility;
 
    ---------------
@@ -63,31 +69,44 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
 
    function Policy_Id
      (Self : No_Activation_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return "IMPLICIT_ACTIVATION_POLICY.NO_ACTIVATION";
    end Policy_Id;
 
-   ----------------------
-   -- Activate_Servant --
-   ----------------------
+   -------------------------------
+   -- Implicit_Activate_Servant --
+   -------------------------------
 
-   function Implicit_Activate_Servant
-     (Self      : No_Activation_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access)
-     return Object_Id_Access
+   procedure Implicit_Activate_Servant
+     (Self      :        No_Activation_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Hint      :        Object_Id_Access;
+      Oid       :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
    is
-   begin
-      pragma Warnings (Off);
+      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
       pragma Unreferenced (P_Servant);
-      pragma Warnings (On);
-      return null;
+      pragma Unreferenced (Hint);
+      pragma Warnings (On);  --  WAG:3.15
+
+      use PolyORB.Exceptions;
+
+   begin
+      Oid := null;
+
+      Throw
+        (Error,
+         ServantNotActive_E,
+         Null_Member);
    end Implicit_Activate_Servant;
 
 end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -57,55 +58,28 @@ package body MOMA.Provider.Message_Producer is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Publish (Self    : in PolyORB.References.Ref;
-                      Message : in PolyORB.Any.Any);
    --  Actual function implemented by the servant.
 
-   ------------
-   -- Invoke --
-   ------------
+   procedure Publish
+     (Self    : in PolyORB.References.Ref;
+      Message : in PolyORB.Any.Any);
+   --  Publish a message.
 
-   procedure Invoke
-     (Self : access Object;
-      Req  : in     PolyORB.Requests.Request_Access)
-   is
-      Args : PolyORB.Any.NVList.Ref;
-   begin
-      pragma Debug (O ("The server is executing the request:"
-                    & PolyORB.Requests.Image (Req.all)));
-
-      Create (Args);
-
-      if Req.all.Operation = To_PolyORB_String ("Publish") then
-
-         --  Publish
-
-         Add_Item (Args,
-                   (Name => To_PolyORB_String ("Message"),
-                    Argument => Get_Empty_Any (TC_MOMA_Message),
-                    Arg_Modes => PolyORB.Any.ARG_IN));
-         Arguments (Req, Args);
-
-         declare
-            use PolyORB.Any.NVList.Internals;
-            Args_Sequence : constant NV_Sequence_Access
-              := List_Of (Args);
-            Publish_Arg : PolyORB.Any.Any :=
-              NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument;
-         begin
-            Publish (Self.Remote_Ref, Publish_Arg);
-         end;
-
-      end if;
-   end Invoke;
-
-   ---------------------------
-   -- Get_Parameter_Profile --
-   ---------------------------
+   --  Accessors to servant interface.
 
    function Get_Parameter_Profile
      (Method : String)
      return PolyORB.Any.NVList.Ref;
+   --  Parameters part of the interface description.
+
+   function Get_Result_Profile
+     (Method : String)
+     return PolyORB.Any.Any;
+   --  Result part of the interface description.
+
+   ---------------------------
+   -- Get_Parameter_Profile --
+   ---------------------------
 
    function Get_Parameter_Profile
      (Method : String)
@@ -133,13 +107,20 @@ package body MOMA.Provider.Message_Producer is
       return Result;
    end Get_Parameter_Profile;
 
+   --------------------
+   -- Get_Remote_Ref --
+   --------------------
+
+   function Get_Remote_Ref
+     (Self : Object)
+     return PolyORB.References.Ref is
+   begin
+      return Self.Remote_Ref;
+   end Get_Remote_Ref;
+
    ------------------------
    -- Get_Result_Profile --
    ------------------------
-
-   function Get_Result_Profile
-     (Method : String)
-     return PolyORB.Any.Any;
 
    function Get_Result_Profile
      (Method : String)
@@ -168,12 +149,50 @@ package body MOMA.Provider.Message_Producer is
          RP_Desc => Get_Result_Profile'Access);
    end If_Desc;
 
+   ------------
+   -- Invoke --
+   ------------
+
+   procedure Invoke
+     (Self : access Object;
+      Req  : in     PolyORB.Requests.Request_Access)
+   is
+      Args : PolyORB.Any.NVList.Ref;
+   begin
+      pragma Debug (O ("The server is executing the request:"
+                    & PolyORB.Requests.Image (Req.all)));
+
+      Create (Args);
+
+      if Req.all.Operation = To_PolyORB_String ("Publish") then
+
+         --  Publish
+
+         Add_Item (Args,
+                   (Name => To_PolyORB_String ("Message"),
+                    Argument => Get_Empty_Any (TC_MOMA_Message),
+                    Arg_Modes => PolyORB.Any.ARG_IN));
+         Arguments (Req, Args);
+
+         declare
+            use PolyORB.Any.NVList.Internals;
+            use PolyORB.Any.NVList.Internals.NV_Lists;
+         begin
+            Publish
+              (Self.Remote_Ref,
+               Value (First (List_Of (Args).all)).Argument);
+         end;
+
+      end if;
+   end Invoke;
+
    -------------
    -- Publish --
    -------------
 
-   procedure Publish (Self    : in PolyORB.References.Ref;
-                      Message : in PolyORB.Any.Any)
+   procedure Publish
+     (Self    : in PolyORB.References.Ref;
+      Message : in PolyORB.Any.Any)
    is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
@@ -204,4 +223,17 @@ package body MOMA.Provider.Message_Producer is
 
       PolyORB.Requests.Destroy_Request (Request);
    end Publish;
+
+   --------------------
+   -- Set_Remote_Ref --
+   --------------------
+
+   procedure Set_Remote_Ref
+     (Self : in out Object;
+      Ref  :        PolyORB.References.Ref)
+   is
+   begin
+      Self.Remote_Ref := Ref;
+   end Set_Remote_Ref;
+
 end MOMA.Provider.Message_Producer;

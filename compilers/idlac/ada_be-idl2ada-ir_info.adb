@@ -1,26 +1,33 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --               A D A _ B E . I D L 2 A D A . I R _ I N F O                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -618,11 +625,17 @@ package body Ada_Be.Idl2Ada.IR_Info is
          PL (CU, "end if;");
          NL (CU);
 
+         Add_With (CU, "CORBA.Object");
          Divert (CU, Registration);
          PL (CU, "declare");
          II (CU);
+         PL (CU, "pragma Warnings (Off); --  WAG:3.15");
          PL (CU, "Dummy : CORBA.Object.Ref'Class");
          PL (CU, "  := " & Name & ";");
+         PL (CU, "pragma Warnings (On);  --  WAG:3.15");
+         PL (CU, "pragma Warnings (Off); --  WAG:3.14");
+         PL (CU, "pragma Unreferenced (Dummy);");
+         PL (CU, "pragma Warnings (On);  --  WAG:3.14");
          DI (CU);
          PL (CU, "begin");
          II (CU);
@@ -656,7 +669,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "name => CORBA.To_CORBA_String");
       PL (CU, "  (""" & Name (Node) & """),");
       PL (CU, "version => CORBA.Repository_Root.To_CORBA_String");
-      PL (CU, "  (""" & Image (Version (Node)) & """),");
+      PL (CU, "  (""" & Version (Node) & """),");
    end Gen_Standard_Create_Parameters;
 
    ------------------------------
@@ -772,7 +785,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "  (" & Repository_Id_Name (Node) & "),");
       PL (CU, "CORBA.To_CORBA_String");
       PL (CU, "  (""" & Name (Node) & """),");
-      PL (CU, "To_CORBA_String (""" & Image (Version (Node))
+      PL (CU, "To_CORBA_String (""" & Version (Node)
           & """),");
       PL (CU, "Base_Ifs,");
       PL (CU, Boolean'Image (Abst (Node)) & "));");
@@ -950,8 +963,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
    is
       IRN : constant String := Ada_IR_Name (Node);
    begin
-      Add_With (CU, CRR & ".ModuleDef.Helper");
-
       Gen_IR_Function_Prologue (CU, Node, For_Body => True);
       Gen_Parent_Container_Lookup (CU, Node);
 
@@ -966,7 +977,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "CORBA.To_CORBA_String");
       PL (CU, "  (""" & Name (Node) & """),");
       PL (CU, "CORBA.Repository_Root.To_CORBA_String");
-      PL (CU, "  (""" & Image (Version (Node)) & """)));");
+      PL (CU, "  (""" & Version (Node) & """)));");
       DI (CU);
       NL (CU);
       PL (CU, "return Cached_" & IRN & ";");
@@ -1035,7 +1046,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "CORBA.To_CORBA_String");
       PL (CU, "  (""" & Name (Node) & """),");
       PL (CU, "CORBA.Repository_Root.To_CORBA_String");
-      PL (CU, "  (""" & Image (Version (Node)) & """),");
+      PL (CU, "  (""" & Version (Node) & """),");
       PL (CU, "Members));");
       DI (CU);
       DI (CU);
@@ -1192,9 +1203,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
             Get_Next_Node (It, M_Node);
             T_Node := Case_Type (M_Node);
 
-            Add_With (CU, Ada_Helper_Name (T_Node));
-            Add_With (CU, Ada_IR_Info_Name (T_Node));
-
             Init (It2, Labels (M_Node));
             while not Is_End (It2) loop
                declare
@@ -1213,11 +1221,13 @@ package body Ada_Be.Idl2Ada.IR_Info is
                      PL (CU, "CORBA.To_Any (CORBA.Octet'(0)),");
                   else
                      PL (CU, ST_Helper & ".To_Any");
-                     Put (CU, " (");
+                     II (CU);
+                     Put (CU, "(");
                      Gen_Node_Stubs_Spec (CU, ST_Node);
                      Put (CU, "'(");
                      Gen_Constant_Value (CU, L_Node);
                      PL (CU, ")),");
+                     DI (CU);
                   end if;
 
                   PL (CU, " IDL_type =>");
@@ -1228,7 +1238,13 @@ package body Ada_Be.Idl2Ada.IR_Info is
                   II (CU);
                   PL (CU, "IDLType.Convert_Forward.To_Forward");
                   PL (CU, "  (IDLType.Helper.To_Ref");
-                  PL (CU, "   (" & Ada_Full_IR_Name (T_Node) & "))));");
+                  II (CU);
+                  Put (CU, "(");
+                  II (CU);
+                  Gen_IDLType (CU, T_Node, Case_Decl (M_Node));
+                  PL (CU, "))));");
+                  DI (CU);
+                  DI (CU);
                   DI (CU);
                   DI (CU);
                end;
@@ -1547,7 +1563,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
       Add_With (CU, CRR, Use_It => True);
       Add_With (CU, "PolyORB.CORBA_P.IR_Tools", Use_It => True);
       NL (CU);
-      PL (CU, "pragma Warnings (Off);");
       Divert (CU, Registration);
       NL (CU);
       PL (CU, "procedure Register_IR_Info is");

@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---                  . N O _ T A S K I N G . M U T E X E S                   --
+--               POLYORB.TASKING.PROFILES.NO_TASKING.MUTEXES                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,14 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Implementation of POSIX-like mutexes under the
---  No_Tasking profile.
+--  Implementation of POSIX-like mutexes under the No_Tasking profile.
 
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
@@ -62,7 +63,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    -------------
 
    procedure Destroy
-     (MF : in out No_Tasking_Mutex_Factory_Type;
+     (MF : access No_Tasking_Mutex_Factory_Type;
       M  : in out PTM.Mutex_Access) is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
@@ -75,7 +76,8 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    -- Enter --
    -----------
 
-   procedure Enter (M : in out No_Tasking_Mutex_Type) is
+   procedure Enter (M : access No_Tasking_Mutex_Type)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (M);
       pragma Warnings (On);
@@ -97,7 +99,8 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    -- Leave --
    -----------
 
-   procedure Leave (M : in out No_Tasking_Mutex_Type) is
+   procedure Leave (M : access No_Tasking_Mutex_Type)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (M);
       pragma Warnings (On);

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 M O M A . M E S S A G E S . M T E X T S                  --
+--                  M O M A . M E S S A G E S . M A N Y S                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,25 +26,22 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
 with MOMA.Types;
-with PolyORB.Any;
 
 package body MOMA.Messages.MAnys is
-
-   use MOMA.Types;
 
    --------------
    -- Get_Any --
    --------------
 
-   function Get_Any (Self : MAny)
-                     return PolyORB.Any.Any is
+   function Get_Any (Self : MAny) return PolyORB.Any.Any is
    begin
       return Get_Payload (Self);
    end Get_Any;
@@ -53,8 +50,8 @@ package body MOMA.Messages.MAnys is
    -- Set_Any --
    --------------
 
-   procedure Set_Any (Self  : in out MAny;
-                      Value : PolyORB.Any.Any) is
+   procedure Set_Any (Self  : in out MAny; Value : PolyORB.Any.Any) is
+
    begin
       Set_Payload (Self, Value);
    end Set_Any;
@@ -63,13 +60,14 @@ package body MOMA.Messages.MAnys is
    -- Create_Any_Message --
    -------------------------
 
-   function Create_Any_Message
-            return MAny
+   function Create_Any_Message return MAny
    is
       Result : MAny;
+
    begin
-      Set_Type (Result, Any_M);
-      --  XXX should initialize other fields as well ???
+      Set_Type (Result, MOMA.Types.Any_M);
+      Set_Default_Message_Header (Result);
+
       return Result;
    end Create_Any_Message;
 
@@ -77,9 +75,7 @@ package body MOMA.Messages.MAnys is
    -- Image --
    -----------
 
-   function Image (Self : MAny) return String
-   is
-      use PolyORB.Any;
+   function Image (Self : MAny) return String is
    begin
       return Image (Get_Any (Self));
    end Image;

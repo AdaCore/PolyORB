@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract transport service access points and
---  communication endpoints.
+--  Abstract transport service access points and transport endpoints.
 
 --  $Id$
 
@@ -49,9 +49,8 @@ package PolyORB.Transport is
 
    -------------------------------------------------------------
    -- A transport service access point:                       --
-   --                                                         --
-   -- an object that has an address within a communcation     --
-   -- domain, on which connections can be established by      --
+   -- An object that has an address within a communication    --
+   -- domain, to which connections can be established by      --
    -- remote entities that wish to communicate with this ORB. --
    -------------------------------------------------------------
 
@@ -59,7 +58,7 @@ package PolyORB.Transport is
       is abstract new Components.Component with private;
    type Transport_Access_Point_Access is
      access all Transport_Access_Point'Class;
-   --  A listening transport service access point.
+   --  A listening transport service access point
 
    function Notepad_Of (TAP : Transport_Access_Point_Access)
      return Annotations.Notepad_Access;
@@ -73,18 +72,19 @@ package PolyORB.Transport is
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TAP as an asyncrhonous event source.
+   --  This function MUST create an Event Handler for this acces point.
+   --  The Event Handler will be referenced by the AES.Handler Note.
 
    function Handle_Message
      (TAP : access Transport_Access_Point;
       Msg : Components.Message'Class)
      return Components.Message'Class;
 
-   ----------------------------------------------------------------
-   -- A transport service endpoint:                              --
-   --                                                            --
-   -- an object that represent a connection that was established --
-   -- when a transport access point was contacted.               --
-   ----------------------------------------------------------------
+   -----------------------------------------------------------------
+   -- A transport service endpoint:                               --
+   -- An object that represents a connection that was established --
+   -- when a transport access point was contacted.                --
+   -----------------------------------------------------------------
 
    type Transport_Endpoint
       is abstract new Components.Component with private;
@@ -107,7 +107,8 @@ package PolyORB.Transport is
    function Handle_Message
      (TE  : access Transport_Endpoint;
       Msg : Components.Message'Class)
-     return Components.Message'Class;
+     return Components.Message'Class
+     is abstract;
 
    function Upper (TE : Transport_Endpoint_Access)
                    return Components.Component_Access;
@@ -122,23 +123,13 @@ package PolyORB.Transport is
    --  These primitives are invoked from event-driven ORB
    --  threads, and /must not/ be blocking.
 
-   procedure Accept_Connection
-     (TAP : Transport_Access_Point;
-      TE  : out Transport_Endpoint_Access)
-      is abstract;
-   --  Accept a pending new connection on TAP and create
-   --  a new associated TE.
-
-   --  function Address (TAP : Transport_Access_Point)
-   --    return Binding_Data is abstract;
-
-   Connection_Closed : exception;
-
    function Create_Event_Source
      (TE : Transport_Endpoint)
      return Asynch_Ev.Asynch_Ev_Source_Access
       is abstract;
    --  Create a view of TE as an asyncrhonous event source.
+   --  This function MUST create an Event Handler for this acces point.
+   --  The Event Handler will be referenced by the AES.Handler Note.
 
    procedure Read
      (TE     : in out Transport_Endpoint;
@@ -156,6 +147,15 @@ package PolyORB.Transport is
    --  Write out the contents of Buffer onto TE.
 
    procedure Close (TE : in out Transport_Endpoint) is abstract;
+
+   --  Handler for AES associated with a Transport Access Point
+   --  is defined in polyorb-binding_data.ads
+
+   type TE_AES_Event_Handler
+      is abstract new PolyORB.Asynch_Ev.AES_Event_Handler with record
+      TE : PolyORB.Transport.Transport_Endpoint_Access;
+      end record;
+   --  Handler for AES associated with a Transport End Point
 
 private
 

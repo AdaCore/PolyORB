@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---             . R A V E N S C A R . I N D E X _ M A N A G E R              --
+--            POLYORB.TASKING.PROFILES.RAVENSCAR.INDEX_MANAGER              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -64,7 +64,10 @@ package PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
 
    Identifier_Already_Released : exception;
 
-   procedure Initialize;
+   procedure Initialize (Error_On_Initialize : Boolean := True);
    --  initialize this package.
+   --  If Error_On_Initialise is set to false, we can call initialize
+   --  several times. In this case, if the package was already initialized
+   --  no initialization is done.
 
 end PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;

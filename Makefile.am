@@ -1,16 +1,30 @@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 ACLOCAL_AMFLAGS = -I support
 
-if ENABLE_CORBA
-SUBDIRS = compilers src idls cos examples
+corba_dir =
+dsa_dir   =
+moma_dir  =
+
+giop_dir  =
+soap_dir  =
+srp_dir   =
+
+if DEBUG
+TESTSUITE=testsuite
 else
-SUBDIRS = compilers src examples
+TESTSUITE=
 endif
 
+SUBDIRS = support compilers idls src cos examples @DOC_DIR@ $(TESTSUITE) @APPLI_DIRS@ @PROTO_DIRS@
+
 CLEANFILES = config-stamp
+DISTCLEANFILES = support/adacompiler support/native-adacompiler support/linker polyorb-config
 
 depend:
 	cd src && ${MAKE} depend
+
+run_tests:
+	cd testsuite && ${MAKE} run_tests
 
 install-exec-local:
 	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin

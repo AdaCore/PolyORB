@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           ADABROKER SERVICES                             --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                            T E S T _ T I M E                             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,27 +26,49 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO;                use Ada.Text_IO;
-with Broca.Server_Tools;
-with CORBA.Object;
-with CosTime;                    use CosTime;
-with CosTime.TimeService;        use CosTime.TimeService;
-with CosTime.TimeService.Helper;
-with CosTime.TimeService.Impl;
-with CosTime.TIO;                use CosTime.TIO;
-with CosTime.UTO;                use CosTime.UTO;
+--  $Id$
+
+with Ada.Text_IO;
+
+with CORBA.ORB;
+pragma Elaborate_All (CORBA.ORB);  -- WAG:3.15
+
 with PortableServer;
-with TimeBase;                   use TimeBase;
+
+with CosTime.TimeService;
+pragma Elaborate_All (CosTime.TimeService);  -- WAG:3.15
+
+with CosTime.TimeService.Impl;
+
+with CosTime.TIO;
+pragma Elaborate_All (CosTime.TIO);  -- WAG:3.15
+
+with CosTime.UTO;
+pragma Elaborate_All (CosTime.UTO);  -- WAG:3.15
+
+with TimeBase;
+
+with PolyORB.CORBA_P.Server_Tools;
+pragma Elaborate_All (PolyORB.CORBA_P.Server_Tools);  -- WAG:3.15
+
+with PolyORB.Setup.Thread_Pool_Server;
+pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
+pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 
 package body Test_Time is
 
-   procedure Display (Time : in TIO.Ref);
-   procedure Display (Time : in UTO.Ref);
+   use Ada.Text_IO;
+
+   use CosTime;
+   use CosTime.TimeService;
+   use CosTime.TIO;
+   use CosTime.UTO;
+   use TimeBase;
 
    type TimeService_Ptr is access CosTime.TimeService.Impl.Object;
 
@@ -59,6 +81,8 @@ package body Test_Time is
    -- Display --
    -------------
 
+   procedure Display (Time : in TIO.Ref);
+
    procedure Display (Time : in TIO.Ref) is
       IT : constant IntervalT := get_time_interval (Time);
    begin
@@ -70,6 +94,8 @@ package body Test_Time is
    -- Display --
    -------------
 
+   procedure Display (Time : in UTO.Ref);
+
    procedure Display (Time : in UTO.Ref) is
    begin
       Put_Line ("Time:      " & TimeT'Image (get_time (Time)));
@@ -78,18 +104,27 @@ package body Test_Time is
    end Display;
 
 begin
-   Broca.Server_Tools.Initiate_Server;
-   Broca.Server_Tools.Initiate_Servant
+   CORBA.ORB.Initialize ("ORB");
+
+   PolyORB.CORBA_P.Server_Tools.Initiate_Server (True);
+
+   PolyORB.CORBA_P.Server_Tools.Initiate_Servant
      (PortableServer.Servant
-      (Timeservice_Ptr'(new CosTime.TimeService.Impl.Object)),
+      (TimeService_Ptr'(new CosTime.TimeService.Impl.Object)),
       Ref);
-   UTO1 := Universal_Time (Ref);
+
+   UTO1 := universal_time (Ref);
    Display (UTO1);
+
    Put_Line ("Waiting for 3 seconds");
    delay 3.0;
-   UTO2 := Universal_Time (Ref);
+
+   UTO2 := universal_time (Ref);
    Display (UTO2);
    Put_Line ("Interval is");
+
    TIO1 := TIO.Convert_Forward.To_Ref (time_to_interval (UTO1, UTO2));
    Display (TIO1);
+
+   Put_Line ("End test");
 end Test_Time;

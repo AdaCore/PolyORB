@@ -1,0 +1,11 @@
+README for the PolyORB CORBA examples
+-------------------------------------
+
+$Id$
+
+This directory contains CORBA examples.
+ all_functions/ : tests CORBA method invocations,
+ all_types/     : tests CORBA types,
+ echo/          : simple echo program,
+ random/        : random test, see http://www.random.org/corba.html for more
+                  details.

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B - T A S K I N G - S E M A P H O R E S            --
+--           P O L Y O R B . T A S K I N G . S E M A P H O R E S            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,16 +26,25 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
---  This package provides an implementation of semaphores
+
+--  This package provides an implementation of counting semaphores.
 
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
+with PolyORB.Log;
 
 package body PolyORB.Tasking.Semaphores is
+
+   use PolyORB.Log;
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.semaphores");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    ----------
    -- Free --
@@ -49,55 +58,78 @@ package body PolyORB.Tasking.Semaphores is
    ------------
 
    procedure Create (S : out Semaphore_Access) is
-      Result                : Semaphore;
-      The_Mutex_Factory     : constant PTM.Mutex_Factory_Access
-        := PTM.Get_Mutex_Factory;
-      The_Condition_Factory : constant PTCV.Condition_Factory_Access
-        := PTCV.Get_Condition_Factory;
    begin
-      Result.Value := 0;
-      Result.Mutex := PTM.Create (The_Mutex_Factory);
-      Result.Condition := PTCV.Create (The_Condition_Factory);
-      S := new Semaphore'(Result);
+      pragma Debug (O ("Create"));
+
+      S := new Semaphore;
+      S.Value := 0;
+      PTM.Create (S.Mutex);
+      PTCV.Create (S.Condition);
    end Create;
 
+   -------------
+   -- Destroy --
+   -------------
+
    procedure Destroy (S : in out Semaphore_Access) is
-      The_Mutex_Factory     : constant PTM.Mutex_Factory_Access
-        := PTM.Get_Mutex_Factory;
-      The_Condition_Factory : constant PTCV.Condition_Factory_Access
-        := PTCV.Get_Condition_Factory;
    begin
-      PTM.Destroy (The_Mutex_Factory.all, S.Mutex);
-      PTCV.Destroy (The_Condition_Factory.all, S.Condition);
+      pragma Debug (O ("Destroy semaphore, Value was "
+                       & Integer'Image (S.Value)));
+
+      PTM.Destroy (S.Mutex);
+      PTCV.Destroy (S.Condition);
       Free (S);
    end Destroy;
 
-   procedure Up (S : Semaphore_Access) is
-   begin
-      PTM.Enter (S.Mutex.all);
-      S.Value := S.Value + 1;
-      PTCV.Signal (S.Condition.all);
-      PTM.Leave (S.Mutex.all);
-   end Up;
+   -------
+   -- V --
+   -------
 
-   procedure Down (S : Semaphore_Access) is
+   procedure V (S : Semaphore_Access) is
    begin
-      PTM.Enter (S.Mutex.all);
+      PTM.Enter (S.Mutex);
+
+      pragma Debug (O ("V (sem), value ="
+                       & Integer'Image (S.Value)));
+
+      S.Value := S.Value + 1;
+      PTCV.Signal (S.Condition);
+      PTM.Leave (S.Mutex);
+   end V;
+
+   -------
+   -- P --
+   --------
+
+   procedure P (S : Semaphore_Access) is
+   begin
+      PTM.Enter (S.Mutex);
+      pragma Debug (O ("P (sem)"));
 
       while S.Value = 0 loop
-         PTCV.Wait (S.Condition.all, S.Mutex);
+         pragma Debug (O ("Value is null, wait in semaphore"));
+         PTCV.Wait (S.Condition, S.Mutex);
       end loop;
+
       S.Value := S.Value - 1;
 
-      PTM.Leave (S.Mutex.all);
-   end Down;
+      PTM.Leave (S.Mutex);
+   end P;
+
+   -----------
+   -- State --
+   -----------
 
    function State (S : Semaphore_Access) return Natural is
       Result : Integer;
    begin
-      PTM.Enter (S.Mutex.all);
+      PTM.Enter (S.Mutex);
       Result := S.Value;
-      PTM.Leave (S.Mutex.all);
+
+      pragma Debug (O ("Get Semaphore value, value ="
+                       & Integer'Image (S.Value)));
+
+      PTM.Leave (S.Mutex);
       return Result;
    end State;
 

@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---                . F U L L _ T A S K I N G . M U T E X E S                 --
+--              POLYORB.TASKING.PROFILES.FULL_TASKING.MUTEXES               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,28 +26,33 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Implementation of mutexes under the Full_Tasking profile.
 
-with Unchecked_Deallocation;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
+with PolyORB.Log;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
-   procedure Initialize;
+   use PolyORB.Log;
 
-   ----------
-   -- Free --
-   ----------
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.profiles.full_tasking.mutexes");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
-   procedure Free is new Unchecked_Deallocation
-     (Full_Tasking_Mutex_Type'Class,
-      Full_Tasking_Mutex_Access);
+   -------------------------------------------------------------
+   -- Underlying protected object for Full_Tasking_Mutex_Type --
+   -------------------------------------------------------------
 
    protected type Mutex_PO is
       --  Protected object which is the real implementation of
@@ -63,7 +67,18 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    private
       Locked   : Boolean := False;
       --  False when the lock is free; else True;
+
    end Mutex_PO;
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (PTM.Mutex_Type'Class, PTM.Mutex_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Mutex_PO, Mutex_PO_Access);
 
    ------------
    -- Create --
@@ -72,14 +87,19 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    function Create
      (MF   : access Full_Tasking_Mutex_Factory_Type;
       Name : String := "")
-     return PTM.Mutex_Access is
+      return PTM.Mutex_Access
+   is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
+
       pragma Unreferenced (Name);
-      pragma Warnings (On);
       --  XXX The use of Name is not yet implemented
+
+      pragma Warnings (On);
+
       M : Full_Tasking_Mutex_Access := new Full_Tasking_Mutex_Type;
    begin
+      pragma Debug (O ("Create Mutex"));
       M.The_PO := new Mutex_PO;
       return PTM.Mutex_Access (M);
    end Create;
@@ -89,68 +109,79 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    -------------
 
    procedure Destroy
-     (MF : in out Full_Tasking_Mutex_Factory_Type;
-      M  : in out PTM.Mutex_Access) is
+     (MF : access Full_Tasking_Mutex_Factory_Type;
+      M  : in out PTM.Mutex_Access)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
       pragma Warnings (On);
+
    begin
-      Free (Full_Tasking_Mutex_Access (M));
+      pragma Debug (O ("Detroy Mutex"));
+      Free (Full_Tasking_Mutex_Access (M).The_PO);
+      Free (M);
    end Destroy;
 
    -----------
    -- Enter --
    -----------
 
-   procedure Enter (M : in out Full_Tasking_Mutex_Type) is
+   procedure Enter (M : access Full_Tasking_Mutex_Type) is
    begin
       M.The_PO.Enter;
    end Enter;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-      PTM.Register_Mutex_Factory (PTM.Mutex_Factory_Access
-                                    (The_Mutex_Factory));
-   end Initialize;
 
    -----------
    -- Leave --
    -----------
 
-   procedure Leave (M : in out Full_Tasking_Mutex_Type) is
+   procedure Leave (M : access Full_Tasking_Mutex_Type) is
    begin
       M.The_PO.Leave;
    end Leave;
 
-   ----------------
+   ---------------
    -- Mutex_PO --
-   ----------------
+   ---------------
 
    protected body Mutex_PO is
 
-      ----------------------
+      --------------------
       -- Mutex_PO.Enter --
-      ----------------------
+      --------------------
 
       entry Enter when not Locked is
       begin
+         pragma Debug (O ("Enter mutex"));
+
          Locked := True;
       end Enter;
 
-      ----------------------
+      --------------------
       -- Mutex_PO.Leave --
-      ----------------------
+      --------------------
 
       procedure Leave is
       begin
+         pragma Assert (Locked = True);
+         pragma Debug (O ("Leave mutex"));
          Locked := False;
       end Leave;
 
    end Mutex_PO;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      pragma Debug (O ("Initialize package Profiles.Full_Tasking.Mutexes"));
+      PTM.Register_Mutex_Factory (PTM.Mutex_Factory_Access
+                                    (The_Mutex_Factory));
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

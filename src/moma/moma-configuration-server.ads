@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,18 +26,32 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  This package provides utility functions to setup a MOMA server node.
 
 --  $Id$
 
 with MOMA.Types;
+
 with PolyORB.References;
 
 package MOMA.Configuration.Server is
 
-   procedure Create_Message_Pool (Pool : MOMA.Types.Message_Pool;
-                                  Ref  : out PolyORB.References.Ref);
+   procedure Create_Message_Pool
+     (Pool :     MOMA.Types.Message_Pool;
+      Ref  : out PolyORB.References.Ref);
+   --  Create a message pool and return its reference.
+
+   procedure Create_Router
+     (Id         :     MOMA.Types.String;
+      Ref        : out PolyORB.References.Ref;
+      Router_Ref :     PolyORB.References.Ref := PolyORB.References.Nil_Ref);
+   --  Create a router and return its reference.
+   --  If Router_Ref is specified, it's a reference to another router on the
+   --  network.
 
 end MOMA.Configuration.Server;

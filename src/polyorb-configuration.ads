@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -77,7 +78,13 @@ package PolyORB.Configuration is
      := "environment";
 
    procedure Load_Configuration_File (Conf_File_Name : String);
-   --  Load 'Conf_File_Name' configuration file.
+   --  Load Conf_File_Name configuration file.
+
+   function PolyORB_Configuration_File return String;
+   --  Return PolyORB Configuration file filename.
+
+   procedure Initialize;
+   --  Initialize Configuration subsystem.
 
    function Get_Conf (Section, Key : String; Default : String := "")
      return String;

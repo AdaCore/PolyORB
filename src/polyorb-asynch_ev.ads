@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,19 +35,18 @@
 
 --  $Id$
 
-with PolyORB.Sequences.Unbounded;
-
 with PolyORB.Annotations;
+with PolyORB.Jobs;
+with PolyORB.Components;
 
 package PolyORB.Asynch_Ev is
 
    pragma Elaborate_Body;
 
-   --  Some environment components can produce events in an asynchronous
+   --  Some environment components can produce events in an
    --  asynchronous fashion, i.e. independently of middleware actions
-   --  currently in progress. A typical example of such components is a
-   --  connection to the outside world.
-   --  outside world.)
+   --  currently in progress. A typical example of such components is
+   --  a connection from the outside world.
 
    --  Such components are represented within PolyORB as Asynch_Ev_Source
    --  objects. These objects are registered in collections called
@@ -56,6 +56,7 @@ package PolyORB.Asynch_Ev is
    --  events have occured on any of their member Asynch_Ev_Sources.
 
    type Asynch_Ev_Monitor is abstract tagged limited private;
+
    type Asynch_Ev_Monitor_Access is
      access all Asynch_Ev_Monitor'Class;
 
@@ -64,43 +65,48 @@ package PolyORB.Asynch_Ev is
    --  A function that allocates an instance of a concrete AEM type.
 
    type Asynch_Ev_Source is abstract tagged limited private;
+
    type Asynch_Ev_Source_Access is
      access all Asynch_Ev_Source'Class;
 
-   function Notepad_Of (AES : Asynch_Ev_Source_Access)
+   function Notepad_Of
+     (AES : Asynch_Ev_Source_Access)
      return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
    --  An Asynch_Ev_Source is an annotable object (cf. PolyORB.Annotations),
    --  so clients can associate it with any information that is necessary
    --  to process events that occur on it.
-   --  This functions returns an access to AES' Notepad component.
+   --  This functions returns an access to AES' Notepad attribute.
 
-   function AEM_Factory_Of (AES : Asynch_Ev_Source)
-     return AEM_Factory is abstract;
-   pragma Inline (AEM_Factory_Of);
-   --  Return a factory capable of creating an AEM that can
-   --  monitor AES.
-
-   procedure Create (AEM : out Asynch_Ev_Monitor)
-     is abstract;
-   --  Initialize.
-
-   procedure Destroy (AEM : in out Asynch_Ev_Monitor)
+   function AEM_Factory_Of
+     (AES : Asynch_Ev_Source)
+     return AEM_Factory
       is abstract;
-   --  Finalize.
+   pragma Inline (AEM_Factory_Of);
+   --  Return a factory capable of creating an AEM that can monitor AES.
+
+   procedure Create
+     (AEM : out Asynch_Ev_Monitor)
+      is abstract;
+   --  Initialize AEM.
+
+   procedure Destroy
+     (AEM : in out Asynch_Ev_Monitor)
+      is abstract;
+   --  Finalize AEM.
 
    procedure Register_Source
      (AEM     : access Asynch_Ev_Monitor;
-      AES     : Asynch_Ev_Source_Access;
-      Success : out Boolean)
-     is abstract;
+      AES     :        Asynch_Ev_Source_Access;
+      Success :    out Boolean)
+      is abstract;
    --  Try to register AES for monitoring by AEM.
    --  On exit, Success is True iff AEM accepts AES for monitoring.
 
    procedure Unregister_Source
      (AEM : in out Asynch_Ev_Monitor;
-      AES : Asynch_Ev_Source_Access)
-     is abstract;
+      AES :        Asynch_Ev_Source_Access)
+      is abstract;
    --  Remove AES from the set of sources monitored by AEM.
 
    procedure Unregister_Source
@@ -116,40 +122,71 @@ package PolyORB.Asynch_Ev is
 
    function Check_Sources
      (AEM     : access Asynch_Ev_Monitor;
-      Timeout : Duration)
+      Timeout :        Duration)
      return AES_Array
       is abstract;
-   --  Wait for events on sources monitored by AEM, and prepare Job
-   --  structures for their processing.
+   --  Wait for events on sources monitored by AEM.
    --  Return when one event source in AEM has had an event.
    --  If no event happened within Timeout, an empty array is returned.
+   --  Otherwise, the returned array contains those sources on which
+   --  events have occurred, and these sources are removed from AEM.
    --  Note that a Timeout of 0.0 returns immediatly.
    --  A Timeout of PolyORB.Constants.Forever means to not return
    --  until an event occurs.
 
    procedure Abort_Check_Sources
      (AEM : Asynch_Ev_Monitor)
-     is abstract;
-   --  Send an abort signal to AEM.
+      is abstract;
+   --  Send an persistent abort signal to AEM. This signal aborts any
+   --  task currently executing Check_Sources on AEM, or will abort
+   --  next call to Check_Sources.
+
+   -------------------------------------
+   -- Reactor for asynchronous events --
+   -------------------------------------
+
+   --  The middleware core implements the Reactor pattern to handle
+   --  event occurring on asynchronous event sources.  An event
+   --  handler is associated with each asynchronous event source. The
+   --  handling of an event constitutes a Job that can be performed by
+   --  an ORB task.
+
+   type AES_Event_Handler is abstract new PolyORB.Jobs.Job with record
+      ORB : PolyORB.Components.Component_Access;
+      AES : Asynch_Ev_Source_Access;
+   end record;
+   type AES_Event_Handler_Access is access AES_Event_Handler'Class;
+
+   procedure Handle_Event
+     (H : access AES_Event_Handler)
+      is abstract;
+   --  Handle an event that has occurred on this asynchronous event
+   --  source. If AES is null on exit, then the asynchronous event
+   --  source has been destroyed, and the handler must be deallocated.
+
+   --  In this implementation of the Reactor pattern, the association
+   --  between an event source and its event handler is made using an
+   --  Annotation on the event source.
+
+   procedure Run (AEH : access  AES_Event_Handler);
+   --  Call Handle_Event.
+
+   type AES_Note is new Annotations.Note with record
+      Handler : AES_Event_Handler_Access;
+   end record;
 
 private
 
    type Asynch_Ev_Source is abstract tagged limited record
       Monitor : Asynch_Ev_Monitor_Access;
-      --  The AEM with which this source was registered.
-      --  A concrete implementation of Register_Source returning
-      --  with Success = True must set this member of its AES
-      --  argument to the value of its AEM argument.
+      --  The AEM with which this source was registered. A concrete
+      --  implementation of Register_Source returning with Success =
+      --  True must set this member of its AES argument to the value
+      --  of its AEM argument.
 
       Notes   : aliased Annotations.Notepad;
    end record;
 
-   package Source_Seqs is new PolyORB.Sequences.Unbounded
-     (Asynch_Ev_Source_Access);
-   subtype Source_Seq is Source_Seqs.Sequence;
-
-   type Asynch_Ev_Monitor is abstract tagged limited record
-      Sources : Source_Seq;
-   end record;
+   type Asynch_Ev_Monitor is abstract tagged limited null record;
 
 end PolyORB.Asynch_Ev;

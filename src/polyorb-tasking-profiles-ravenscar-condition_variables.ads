@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---       . R A V E N S C A R . C O N D I T I O N _ V A R I A B L E S        --
+--         POLYORB.TASKING.PROFILES.RAVENSCAR.CONDITION_VARIABLES           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,9 +37,13 @@
 
 with PolyORB.Tasking.Condition_Variables;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Profiles.Ravenscar.Configuration;
 with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
+with PolyORB.Tasking.Profiles.Ravenscar.Threads;
 
+generic
+   with package Threads_For_CV is
+     new PolyORB.Tasking.Profiles.Ravenscar.Threads (<>);
+   Number_Of_Conditions : Integer;
 package PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
 
    use PolyORB.Tasking.Condition_Variables;
@@ -53,14 +57,14 @@ package PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
      access all Ravenscar_Condition_Type'Class;
 
    procedure Wait
-     (C : in out Ravenscar_Condition_Type;
+     (C : access Ravenscar_Condition_Type;
       M : access Mutex_Type'Class);
 
    procedure Signal
-     (C : in out Ravenscar_Condition_Type);
+     (C : access Ravenscar_Condition_Type);
 
    procedure Broadcast
-     (C : in out Ravenscar_Condition_Type);
+     (C : access Ravenscar_Condition_Type);
 
    type Ravenscar_Condition_Factory_Type is
      new Condition_Factory_Type with private;
@@ -78,26 +82,25 @@ package PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables is
      return Condition_Access;
 
    procedure Destroy
-     (MF : in out Ravenscar_Condition_Factory_Type;
+     (MF : access Ravenscar_Condition_Factory_Type;
       C  : in out Condition_Access);
 
    procedure Initialize;
    --  Initialize the package.
 
 private
-   use PolyORB.Tasking.Profiles.Ravenscar.Configuration;
+   use Threads_For_CV;
 
-   subtype Extended_Thread_Index is
-     Integer range -1 .. Number_Of_Threads - 1;
+   subtype Extended_Synchro_Index is Integer
+     range Integer (Synchro_Index_Type'First) - 1 ..
+     Integer (Synchro_Index_Type'Last);
 
-   Null_Thread_Index : constant Extended_Thread_Index := -1;
-
-   subtype Thread_Index is
-     Extended_Thread_Index range 0 .. Number_Of_Threads - 1;
+   Null_Synchro_Index : constant Extended_Synchro_Index
+     := Integer (Synchro_Index_Type'First) - 1;
 
    package Condition_Index_Manager is
       new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
-     (Configuration.Number_Of_Conditions);
+     (Number_Of_Conditions);
 
    subtype Condition_Index_Type is Condition_Index_Manager.Index_Type;
 

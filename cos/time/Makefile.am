@@ -1,14 +1,11 @@
 include $(srcdir)/../Makefile.common
 
-GNATMAKE_FLAGS = -z -I$(srcdir) \
+COS_GNATMAKE_FLAGS = -z -I$(srcdir) \
 	-I../event \
 	-I$(srcdir)/../event \
 	-I$(COS_DIRS) \
 	-I../../src \
-	-I$(srcdir)/../../src \
-	$(ADASOCKETS_INCLUDE) \
-	-g -O2 -m -gnata \
-	-largs $(ADASOCKETS_LIBS)
+	-I$(srcdir)/../../src
 
 PROGS = test_time
 

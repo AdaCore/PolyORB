@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,7 +35,7 @@
 
 --  $Id$
 
-with PolyORB.Exceptions;
+with PolyORB.CORBA_P.Exceptions;
 with PolyORB.Requests;
 
 with CORBA.Context;
@@ -42,6 +43,10 @@ with CORBA.NVList;
 with CORBA.Object;
 
 package body CORBA.Request is
+
+   --------------------
+   -- Create_Request --
+   --------------------
 
    procedure Create_Request
      (Self      : in     CORBA.AbstractBase.Ref;
@@ -100,6 +105,10 @@ package body CORBA.Request is
          Req_Flags => PolyORB.Requests.Flags (Req_Flags));
    end Create_Request;
 
+   ------------
+   -- Invoke --
+   ------------
+
    procedure Invoke
      (Self         : in out Object;
       Invoke_Flags : in     Flags  := 0)
@@ -111,15 +120,29 @@ package body CORBA.Request is
         (Self.The_Request, PolyORB.Requests.Flags (Invoke_Flags));
 
       if not Is_Empty (Self.The_Request.Exception_Info) then
-         PolyORB.Exceptions.Raise_From_Any
+         --  XXX warning, should verify that the raised exception
+         --  is either a system exception or a declared user
+         --  exception before propagating it: if an unknown
+         --  user exception gets up to here, CORBA.UNKNOWN
+         --  must be raised.
+
+         PolyORB.CORBA_P.Exceptions.Raise_From_Any
            (Self.The_Request.Exception_Info);
       end if;
    end Invoke;
+
+   ------------
+   -- Delete --
+   ------------
 
    procedure Delete (Self : in out Object) is
    begin
       PolyORB.Requests.Destroy_Request (Self.The_Request);
    end Delete;
+
+   ------------------------
+   -- To_PolyORB_Request --
+   ------------------------
 
    function To_PolyORB_Request
      (Request : Object)
@@ -127,6 +150,10 @@ package body CORBA.Request is
    begin
       return Request.The_Request;
    end To_PolyORB_Request;
+
+   --------------
+   -- Finalize --
+   --------------
 
    procedure Finalize (X : in out Object) is
    begin

@@ -1,13 +1,21 @@
 #! /bin/sh
-#
-# Replaces "-o .libs/foobar.lo" by "-o tmp/foobar.o" then does a move
-#
 
-ADA="@ADA_FOR_TARGET@"
+# Wrapper for GNAT
+
+NATIVE_ADA="@ADA@"
+CROSS_ADA="@ADA_FOR_TARGET@"
+
+case "`basename "$0"`" in
+  native-*)
+    ADA="${NATIVE_ADA}"
+    ;;
+  *)
+    ADA="${CROSS_ADA}"
+    ;;
+esac
 
 while [ $# -gt 1 ]; do
-    first=$1
-    case "$first" in
+    case "$1" in
       *.ad[sb])
         src="$1"
 	srcdir=`dirname "$src"`
@@ -17,8 +25,8 @@ while [ $# -gt 1 ]; do
 	fi
         ;;
     esac
+    cline="$cline$1 "
     shift
-    cline="$cline$first "
 done
 
 tmp="tmp$$"

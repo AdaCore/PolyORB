@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,44 +44,33 @@
 
 with Ada.Streams;
 
-with PolyORB.Buffers;      use PolyORB.Buffers;
+with PolyORB.Buffers;
 with PolyORB.Types;
-
-with PolyORB.Sequences.Unbounded;
+with PolyORB.Binding_Data;
 
 package PolyORB.References.IOR is
 
+   use PolyORB.Buffers;
 
-   type Marshall_Profile_Body_Type is access procedure
-     (Buffer  : access Buffers.Buffer_Type;
-      Profile : Binding_Data.Profile_Access);
+   procedure Marshall_Profile
+     (Buffer  : access Buffer_Type;
+      P       :        Binding_Data.Profile_Access;
+      Success :    out Boolean);
 
-   type Unmarshall_Profile_Body_Type is access function
-     (Buffer  : access Buffers.Buffer_Type)
+   function Unmarshall_Profile
+     (Buffer : access Buffer_Type)
      return Binding_Data.Profile_Access;
-
-   type Profile_Record is record
-      Tag                     : Binding_Data.Profile_Tag;
-      Marshall_Profile_Body   : Marshall_Profile_Body_Type;
-      Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
-   end record;
-
-   package Profile_Record_Seq is
-      new PolyORB.Sequences.Unbounded (Profile_Record);
-
-   --  An object reference (whose supported interface is not
-   --  reflected by its Ada type) and the associated type information
-   --  (within the PolyORB typing model).
+   --  return null if failed
 
    subtype IOR_Type is PolyORB.References.Ref;
 
    procedure Marshall_IOR
      (Buffer : access Buffer_Type;
-      Value  : in IOR_Type);
+      Value  : in     IOR_Type);
 
    function  Unmarshall_IOR
      (Buffer : access Buffer_Type)
-   return  IOR_Type;
+     return  IOR_Type;
 
    --------------------------------------
    -- Object reference <-> opaque data --
@@ -97,19 +87,29 @@ package PolyORB.References.IOR is
    -- Object reference <-> stringified IOR --
    ------------------------------------------
 
-   function Object_To_String (IOR : IOR_Type)
-      return Types.String;
+   function Object_To_String
+     (IOR : IOR_Type)
+     return Types.String;
 
-   function  String_To_Object (Str : Types.String)
+   function String_To_Object
+     (Str : Types.String)
      return IOR_Type;
+
+   ---------------------
+   -- Profile Factory --
+   ---------------------
+
+   type Marshall_Profile_Body_Type is access procedure
+     (Buffer  : access Buffers.Buffer_Type;
+      Profile :        Binding_Data.Profile_Access);
+
+   type Unmarshall_Profile_Body_Type is access function
+     (Buffer  : access Buffers.Buffer_Type)
+     return Binding_Data.Profile_Access;
 
    procedure Register
      (Profile                 : in Binding_Data.Profile_Tag;
       Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
-
-private
-
-   Callbacks : Profile_Record_Seq.Sequence;
 
 end PolyORB.References.IOR;

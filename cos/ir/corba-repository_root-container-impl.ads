@@ -1,8 +1,3 @@
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
-
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.IRObject.Impl;

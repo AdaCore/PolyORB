@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  PolyORB components
+--  Any's that contain object references.
 
 --  $Id$
-
---  Any's that contain object references.
 
 with PolyORB.References;
 
@@ -42,8 +41,14 @@ package PolyORB.Any.ObjRef is
 
    pragma Elaborate_Body;
 
-   function To_Any (Item : in PolyORB.References.Ref) return Any;
-   function From_Any (Item : in Any) return PolyORB.References.Ref;
+   function To_Any
+     (Item : in PolyORB.References.Ref)
+     return Any;
+
+   function From_Any
+     (Item : in Any)
+     return PolyORB.References.Ref;
+
    procedure Set_Any_Value
      (Any_Value : in out Any;
       Value     : in     PolyORB.References.Ref);

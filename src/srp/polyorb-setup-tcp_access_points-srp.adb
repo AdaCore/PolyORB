@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Setup for SRP access point.
-
---  $Id$
 
 with PolyORB.Binding_Data.SRP;
 with PolyORB.Protocols.SRP;
@@ -40,16 +39,18 @@ with PolyORB.Protocols.SRP;
 with PolyORB.Configuration;
 with PolyORB.Filters;
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.ORB;
 with PolyORB.Protocols;
-with PolyORB.Transport.Sockets;
+with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Setup.TCP_Access_Points.SRP is
 
    use PolyORB.Filters;
    use PolyORB.ORB;
-   use PolyORB.Transport.Sockets;
+   use PolyORB.Transport.Connected.Sockets;
 
    --  The 'SRP' access point.
 
@@ -96,6 +97,5 @@ begin
        Depends => +"orb",
        Provides => String_Lists.Empty,
        Init => Initialize_Access_Points'Access));
-
 
 end PolyORB.Setup.TCP_Access_Points.SRP;

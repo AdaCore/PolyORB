@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---  P O L Y O R B - T A S K I N G - C O N D I T I O N _ V A R I A B L E S   --
+--  P O L Y O R B . T A S K I N G . C O N D I T I O N _ V A R I A B L E S   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,14 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Implementation of a POSIX-like condition variables
 
---  A complete implementation of this package is provided for all
---  tasking profiles.
+--  A complete implementation of this package is provided for each
+--  tasking profile.
 
 --  $Id$
 
@@ -54,37 +55,35 @@ package PolyORB.Tasking.Condition_Variables is
    --  Type for condition variables.
 
    procedure Wait
-     (C : in out Condition_Type;
+     (C : access Condition_Type;
       M : access Mutex_Type'Class)
       is abstract;
-   --  This function waits for Condition_Type C to be notified. When
-   --  called, it atomically (1) releases the associated Mutex_Type M
-   --  (which the caller must hold while evaluating the condition
-   --  expression) and (2) goes to sleep awaiting a subsequent
-   --  notification from another thread (via the Signal or Broadcast
-   --  operations described next). M will be locked when
-   --  Wait returns.
+   --  Wait for a notification on condition variable C.
+   --  This procedure atomically:
+   --    (1) leaves the critical section protected by M (which the
+   --         caller must own);
+   --    (2) blocks until a subsequent notification from another
+   --        task (via the Signal or Broadcast operations described below);
+   --  On return, M is owned again.
 
    procedure Broadcast
-     (C : in out Condition_Type)
+     (C : access Condition_Type)
       is abstract;
-   --  This procedure unblocks all the threads waiting on condition variable C.
+   --  Unblock all tasks blocked on C.
 
    procedure Signal
-     (C : in out Condition_Type)
+     (C : access Condition_Type)
       is abstract;
-   --  This procedure unblocks one thread waiting on condition variable C.
+   --  Unblock one task blocked on C.
 
    -----------------------
    -- Condition_Factory --
    -----------------------
 
    type Condition_Factory_Type is abstract tagged limited null record;
-   --  This type is a factory for all synchronisation types.
+   --  Factory of condition variables.
    --  A subclass of this factory exists for every tasking profile:
    --  Full Tasking, Ravenscar and No Tasking.
-   --  This type provides functionalities for creating mutexes and condition
-   --  variables corresponding with the chosen tasking profile.
 
    type Condition_Factory_Access is access all Condition_Factory_Type'Class;
 
@@ -95,22 +94,20 @@ package PolyORB.Tasking.Condition_Variables is
       is abstract;
    --  Create a new condition variable, or get a preallocated one.
    --  Name will be used to get the configuration of this
-   --  mutex from the configuration module.
+   --  condition variable from the configuration module.
 
    procedure Destroy
-     (MF : in out Condition_Factory_Type;
+     (MF : access Condition_Factory_Type;
       C  : in out Condition_Access)
      is abstract;
    --  Destroy C, or just release it if it was preallocated.
 
-   function Get_Condition_Factory
-     return Condition_Factory_Access;
-   pragma Inline (Get_Condition_Factory);
-   --  Get the Condition_Factory object registered in this package.
-
    procedure Register_Condition_Factory
      (MF : Condition_Factory_Access);
    --  Register the factory corresponding to the chosen tasking profile.
+
+   procedure Create (C : out Condition_Access; Name : String := "");
+   procedure Destroy (C : in out Condition_Access);
 
 private
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,37 +26,103 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  A Message_Consumer object is the client view of the message receiving
+--  process. It is the facade to all communications carried out with
+--  a message pool to receive messages; it contains the stub to access
+--  Message_Consumer servants (see MOMA.Provider for more details).
+
+--  NOTE: A MOMA client must use only this package to receive messages from a
+--  message pool.
+
 --  $Id$
 
+with Ada.Real_Time;
+
 with MOMA.Destinations;
+with MOMA.Messages;
+with MOMA.Sessions;
+with MOMA.Types;
+
 with PolyORB.References;
 
 package MOMA.Message_Consumers is
 
-   type Message_Consumer is abstract tagged private;
+   type Message_Consumer is private;
+   --  Destination   : origin of all messages received.
+   --  Ref           : reference to the provider servant
+
+   type Message_Consumer_Acc is access Message_Consumer;
+
+   function Create_Consumer
+     (Session : MOMA.Sessions.Session;
+      Dest    : MOMA.Destinations.Destination)
+     return Message_Consumer_Acc;
+   --  Create a new message consumer.
+
+   function Create_Consumer
+     (Session          : MOMA.Sessions.Session;
+      Dest             : MOMA.Destinations.Destination;
+      Message_Selector : MOMA.Types.String)
+     return Message_Consumer_Acc;
+   --  XXX Not implemented.
 
    procedure Close;
+   --  XXX not implemented. Rename it to Destroy ?
 
    function Get_Message_Selector return String;
+   --  XXX not implemented.
 
-   function Get_Ref (Self : Message_Consumer) return PolyORB.References.Ref;
+   function Receive
+     (Self : Message_Consumer)
+     return MOMA.Messages.Message'Class;
+   --  Get next message from the pool if it is non empty; otherwise the call
+   --  is blocking until a new message is received by the pool.
+   --  XXX not all cases are tested !
 
-   procedure Set_Ref (Self : in out Message_Consumer;
-                      Ref  : PolyORB.References.Ref);
+   function Receive
+     (Timeout : Ada.Real_Time.Time)
+     return MOMA.Messages.Message;
+   --  Get next message from the pool if it is non empty; otherwise will
+   --  wait during Timeout until a new message arrives.
+   --  XXX not implemented.
 
-   function Get_Destination (Self : Message_Consumer)
-                             return MOMA.Destinations.Destination;
+   function Receive_No_Wait return MOMA.Messages.Message;
+   --  Get next message from the pool if it is non empty; exit otherwise.
+   --  XXX not implemented.
 
-   procedure Set_Destination (Self : in out Message_Consumer'Class;
-                              Dest : MOMA.Destinations.Destination);
+   --  Accessors to Message_Consumer internal data.
+
+   function Get_Ref
+     (Self : Message_Consumer)
+     return PolyORB.References.Ref;
+
+   procedure Set_Ref
+     (Self : in out Message_Consumer;
+      Ref  :        PolyORB.References.Ref);
+
+   function Get_Destination
+     (Self : Message_Consumer)
+     return MOMA.Destinations.Destination;
+
+   procedure Set_Destination
+     (Self : in out Message_Consumer;
+      Dest :        MOMA.Destinations.Destination);
 
 private
-   type Message_Consumer is abstract tagged record
+
+   type Message_Consumer is record
       Destination    : MOMA.Destinations.Destination;
       Ref            : PolyORB.References.Ref;
    end record;
+
+   pragma Inline (Get_Ref);
+   pragma Inline (Set_Ref);
+   pragma Inline (Get_Destination);
+   pragma Inline (Set_Destination);
+
 end MOMA.Message_Consumers;

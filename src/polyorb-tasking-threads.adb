@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +26,14 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
+
+with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Tasking.Threads is
 
@@ -38,6 +41,56 @@ package body PolyORB.Tasking.Threads is
    --  Thread_Factory of the chosen profile.
 
    Initialised       : Boolean := False;
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Runnable'Class, Runnable_Access);
+
+   -----------------
+   -- Create_Task --
+   -----------------
+
+   procedure Create_Task
+     (Main : Parameterless_Procedure)
+   is
+      T : constant Thread_Access
+        := Run_In_Task
+             (TF => My_Thread_Factory,
+              P  => Main);
+      pragma Warnings (Off);
+      pragma Unreferenced (T);
+      pragma Warnings (On);
+   begin
+      null;
+   end Create_Task;
+
+   ------------------
+   -- Current_Task --
+   ------------------
+
+   function Current_Task
+     return Thread_Id is
+   begin
+      return Get_Current_Thread_Id (My_Thread_Factory);
+   end Current_Task;
+
+   -------------------
+   -- Free_Runnable --
+   -------------------
+
+   procedure Free_Runnable
+     (C : in out Runnable_Controller;
+      R : in out Runnable_Access)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (C);
+      pragma Warnings (On);
+   begin
+      Free (R);
+   end Free_Runnable;
 
    ------------------------
    -- Get_Thread_Factory --
@@ -47,8 +100,19 @@ package body PolyORB.Tasking.Threads is
      return Thread_Factory_Access is
    begin
       pragma Assert (Initialised);
+
       return My_Thread_Factory;
    end Get_Thread_Factory;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (TID : Thread_Id)
+                  return String is
+   begin
+      return Thread_Id_Image (My_Thread_Factory, TID);
+   end Image;
 
    -----------------------------
    -- Register_Thread_Factory --
@@ -64,5 +128,35 @@ package body PolyORB.Tasking.Threads is
          Initialised := True;
       end if;
    end Register_Thread_Factory;
+
+   --------------------
+   -- Null_Thread_Id --
+   --------------------
+
+   function Null_Thread_Id
+     return Thread_Id is
+   begin
+      return Thread_Id (System.Null_Address);
+   end Null_Thread_Id;
+
+   ----------------
+   -- To_Address --
+   ----------------
+
+   function To_Address (TID : Thread_Id)
+                       return System.Address is
+   begin
+      return System.Address (TID);
+   end To_Address;
+
+   ------------------
+   -- To_Thread_Id --
+   ------------------
+
+   function To_Thread_Id (A : System.Address)
+                         return Thread_Id is
+   begin
+      return Thread_Id (A);
+   end To_Thread_Id;
 
 end PolyORB.Tasking.Threads;

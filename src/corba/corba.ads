@@ -6,7 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +31,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#23 $
+--  $Id: //droopi/main/src/corba/corba.ads#29 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -203,189 +209,375 @@ package CORBA is
    --  abstract and empty but all other records will inherit from it.
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
-      To   : out IDL_Exception_Members) is abstract;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out IDL_Exception_Members)
+      is abstract;
    --  This method return the member corresponding to an exception
    --  occurence This method must be redefined for each new member
    --  type. That's why it is declared abstract.
 
-   --  Free method associated to the type Idl_Exception_Members_Ptr
+   type Completion_Status is new PolyORB.Exceptions.Completion_Status;
+   --     (Completed_Yes,
+   --      Completed_No,
+   --      Completed_Maybe);
+   --  Type used for characterize the state of an exception.
 
-   subtype Completion_Status is PolyORB.Exceptions.Completion_Status;
-   --  Type used for characterize the state of an exception It is defined
-   --  by the CORBA specification.
+   function From_Any
+     (Item : PolyORB.Any.Any)
+     return CORBA.Completion_Status;
+
+   function To_Any
+     (Item : CORBA.Completion_Status)
+     return PolyORB.Any.Any;
 
    type Exception_Type is (No_Exception, System_Exception, User_Exception);
-   --  Type used for characterize exceptions.  It is defined by the CORBA
-   --  specification.
+   --  Type used for characterize exceptions.
+
+   -----------------------
+   -- System Exceptions --
+   -----------------------
+
+   Unknown                 : exception; --  unknown exception
+   Bad_Param               : exception; --  an invalid parameter was passed
+   No_Memory               : exception; --  dynamic memory allocation failure
+   Imp_Limit               : exception; --  violated implementation limit
+   Comm_Failure            : exception; --  communication failure
+   Inv_Objref              : exception; --  invalid object reference
+   No_Permission           : exception; --  no permission for attempted op.
+   Internal                : exception; --  ORB internal error
+   Marshal                 : exception; --  error marshalling param/result
+   Initialization_Failure  : exception; --  ORB initialization failure
+   No_Implement            : exception; --  operation impleme. unavailable
+   Bad_TypeCode            : exception; --  bad typecode
+   Bad_Operation           : exception; --  invalid operation
+   No_Resources            : exception; --  insufficient resources for req.
+   No_Response             : exception; --  response to request not available
+   Persist_Store           : exception; --  persistent storage failure
+   Bad_Inv_Order           : exception; --  routine invocations out of order
+   Transient               : exception; --  transient failure - reissue request
+   Free_Mem                : exception; --  cannot free memory
+   Inv_Ident               : exception; --  invalid identifier syntax
+   Inv_Flag                : exception; --  invalid flag was specified
+   Intf_Repos              : exception; --  error accessing intf. repository
+   Bad_Context             : exception; --  error processing context object
+   Obj_Adapter             : exception; --  failure detected by object adapter
+   Data_Conversion         : exception; --  data conversion error
+   Object_Not_Exist        : exception; --  non-existent object, delete ref.
+   Transaction_Required    : exception; --  transaction required
+   Transaction_Rolledback  : exception; --  transaction rolled back
+   Invalid_Transaction     : exception; --  invalid transaction
+   Inv_Policy              : exception; --  invalid policy
+   Codeset_Incompatible    : exception; --  incompatible code set
+   Rebind                  : exception; --  rebind needed
+   Timeout                 : exception; --  operation timed out
+   Transaction_Unavailable : exception; --  no transaction
+   Transaction_Mode        : exception; --  invalid transaction mode
+   Bad_Qos                 : exception; --  bad quality of service
 
    type System_Exception_Members is new PolyORB.Exceptions.Exception_Members
      with record
-         Minor     : Unsigned_Long;
-         Completed : Completion_Status;
+        Minor     : CORBA.Unsigned_Long;
+        Completed : CORBA.Completion_Status;
      end record;
 
-   subtype Exception_Occurrence is PolyORB.Exceptions.Exception_Occurrence;
-   --  Not in CORBA spec !
-
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in  Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members);
-   --  This method return the member corresponding to a system exception
-   --  occurence.
+   --  Return the member corresponding to a system exception occurence.
 
-   Unknown       : exception;          --  the unknown exception
-   Bad_Param     : exception;          --  an invalid parameter was passed
-   No_Memory     : exception;          --  dynamic memory allocation failure
-   Imp_Limit     : exception;          --  violated implementation limit
-   Comm_Failure  : exception;          --  communication failure
-   Inv_Objref    : exception;          --  invalid object reference
-   No_Permission : exception;          --  no permission for attempted op.
-   Internal      : exception;          --  ORB internal error
-   Marshal       : exception;          --  error marshalling param/result
-   Initialization_Failure : exception; --  ORB initialization failure
-   No_Implement  : exception;          --  operation implementation unavailable
-   Bad_TypeCode  : exception;          --  bad typecode
-   Bad_Operation : exception;          --  invalid operation
-   No_Resources  : exception;          --  insufficient resources for req.
-   No_Response   : exception;          --  response to request not available
-   Persist_Store : exception;          --  persistent storage failure
-   Bad_Inv_Order : exception;          --  routine invocations out of order
-   Transient     : exception;          --  transient failure - reissue request
-   Free_Mem      : exception;          --  cannot free memory
-   Inv_Ident     : exception;          --  invalid identifier syntax
-   Inv_Flag      : exception;          --  invalid flag was specified
-   Intf_Repos    : exception;          --  error accessing interface repository
-   Bad_Context   : exception;          --  error processing context object
-   Obj_Adapter   : exception;          --  failure detected by object adapter
-   Data_Conversion : exception;        --  data conversion error
-   Object_Not_Exist       : exception;
-   Transaction_Required   : exception;
-   Transaction_Rolledback : exception;
-   Invalid_Transaction    : exception;
+   procedure Raise_From_Error
+     (Error : in out PolyORB.Exceptions.Error_Container);
 
-   Adapter_Already_Exists : exception;
-   Invalid_Policy         : exception;
-   Wrong_Policy           : exception;
-   Servant_Already_Active : exception;
-   Object_Already_Active  : exception;
-   Servant_Not_Active     : exception;
-   Object_Not_Active      : exception;
-   Adapter_Inactive       : exception;
+   procedure Raise_System_Exception
+     (Excp      : in Ada.Exceptions.Exception_Id;
+      Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_System_Exception);
 
-   type Unknown_Members         is new System_Exception_Members
+   procedure Raise_Unknown
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Unknown);
+
+   procedure Raise_Bad_Param
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Bad_Param);
+
+   procedure Raise_No_Memory
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_No_Memory);
+
+   procedure Raise_Imp_Limit
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Imp_Limit);
+
+   procedure Raise_Comm_Failure
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Comm_Failure);
+
+   procedure Raise_Inv_Objref
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Inv_Objref);
+
+   procedure Raise_No_Permission
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_No_Permission);
+
+   procedure Raise_Internal
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Internal);
+
+   procedure Raise_Marshal
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Marshal);
+
+   procedure Raise_Initialization_Failure
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Initialization_Failure);
+
+   procedure Raise_No_Implement
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_No_Implement);
+
+   procedure Raise_Bad_TypeCode
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Bad_TypeCode);
+
+   procedure Raise_Bad_Operation
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Bad_Operation);
+
+   procedure Raise_No_Resources
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_No_Resources);
+
+   procedure Raise_No_Response
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_No_Response);
+
+   procedure Raise_Persist_Store
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Persist_Store);
+
+   procedure Raise_Bad_Inv_Order
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Bad_Inv_Order);
+
+   procedure Raise_Transient
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Transient);
+
+   procedure Raise_Free_Mem
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Free_Mem);
+
+   procedure Raise_Inv_Ident
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Inv_Ident);
+
+   procedure Raise_Inv_Flag
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Inv_Flag);
+
+   procedure Raise_Intf_Repos
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Intf_Repos);
+
+   procedure Raise_Bad_Context
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Bad_Context);
+
+   procedure Raise_Obj_Adapter
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Obj_Adapter);
+
+   procedure Raise_Data_Conversion
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Data_Conversion);
+
+   procedure Raise_Object_Not_Exist
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Object_Not_Exist);
+
+   procedure Raise_Transaction_Required
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Transaction_Required);
+
+   procedure Raise_Transaction_Rolledback
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Transaction_Rolledback);
+
+   procedure Raise_Invalid_Transaction
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Invalid_Transaction);
+
+   procedure Raise_Inv_Policy
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Inv_Policy);
+
+   procedure Raise_Codeset_Incompatible
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Codeset_Incompatible);
+
+   procedure Raise_Rebind
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Rebind);
+
+   procedure Raise_Timeout
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Timeout);
+
+   procedure Raise_Transaction_Unavailable
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Transaction_Unavailable);
+
+   procedure Raise_Transaction_Mode
+     (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Transaction_Mode);
+
+   procedure Raise_Bad_Qos
+        (Excp_Memb : in System_Exception_Members);
+   pragma No_Return (Raise_Bad_Qos);
+
+   Default_Sys_Member : constant System_Exception_Members
+     := System_Exception_Members'(Minor => 0,
+                                  Completed => CORBA.Completed_No);
+
+   type Unknown_Members                 is new System_Exception_Members
      with null record;
-   type Bad_Param_Members       is new System_Exception_Members
+   type Bad_Param_Members               is new System_Exception_Members
      with null record;
-   type No_Memory_Members       is new System_Exception_Members
+   type No_Memory_Members               is new System_Exception_Members
      with null record;
-   type Imp_Limit_Members       is new System_Exception_Members
+   type Imp_Limit_Members               is new System_Exception_Members
      with null record;
-   type Comm_Failure_Members    is new System_Exception_Members
+   type Comm_Failure_Members            is new System_Exception_Members
      with null record;
-   type Inv_Objref_Members      is new System_Exception_Members
+   type Inv_Objref_Members              is new System_Exception_Members
      with null record;
-   type No_Permission_Members   is new System_Exception_Members
+   type No_Permission_Members           is new System_Exception_Members
      with null record;
-   type Internal_Members        is new System_Exception_Members
+   type Internal_Members                is new System_Exception_Members
      with null record;
-   type Marshal_Members         is new System_Exception_Members
+   type Marshal_Members                 is new System_Exception_Members
      with null record;
-   type Initialization_Failure_Members is new System_Exception_Members
+   type Initialization_Failure_Members  is new System_Exception_Members
      with null record;
-   type No_Implement_Members    is new System_Exception_Members
+   type No_Implement_Members            is new System_Exception_Members
      with null record;
-   type Bad_Typecode_Members    is new System_Exception_Members
+   type Bad_Typecode_Members            is new System_Exception_Members
      with null record;
-   type Bad_Operation_Members   is new System_Exception_Members
+   type Bad_Operation_Members           is new System_Exception_Members
      with null record;
-   type No_Resources_Members    is new System_Exception_Members
+   type No_Resources_Members            is new System_Exception_Members
      with null record;
-   type No_Response_Members     is new System_Exception_Members
+   type No_Response_Members             is new System_Exception_Members
      with null record;
-   type Persist_Store_Members   is new System_Exception_Members
+   type Persist_Store_Members           is new System_Exception_Members
      with null record;
-   type Bad_Inv_Order_Members   is new System_Exception_Members
+   type Bad_Inv_Order_Members           is new System_Exception_Members
      with null record;
-   type Transient_Members       is new System_Exception_Members
+   type Transient_Members               is new System_Exception_Members
      with null record;
-   type Free_Mem_Members        is new System_Exception_Members
+   type Free_Mem_Members                is new System_Exception_Members
      with null record;
-   type Inv_Ident_Members       is new System_Exception_Members
+   type Inv_Ident_Members               is new System_Exception_Members
      with null record;
-   type Inv_Flag_Members        is new System_Exception_Members
+   type Inv_Flag_Members                is new System_Exception_Members
      with null record;
-   type Intf_Repos_Members      is new System_Exception_Members
+   type Intf_Repos_Members              is new System_Exception_Members
      with null record;
-   type Bad_Context_Members     is new System_Exception_Members
+   type Bad_Context_Members             is new System_Exception_Members
      with null record;
-   type Obj_Adapter_Members     is new System_Exception_Members
+   type Obj_Adapter_Members             is new System_Exception_Members
      with null record;
-   type Data_Conversion_Members is new System_Exception_Members
+   type Data_Conversion_Members         is new System_Exception_Members
      with null record;
-   type Object_Not_Exist_Members       is new System_Exception_Members
+   type Object_Not_Exist_Members        is new System_Exception_Members
      with null record;
-   type Transaction_Required_Members   is new System_Exception_Members
+   type Transaction_Required_Members    is new System_Exception_Members
      with null record;
-   type Transaction_Rolledback_Members is new System_Exception_Members
+   type Transaction_Rolledback_Members  is new System_Exception_Members
      with null record;
-   type Invalid_Transaction_Members    is new System_Exception_Members
+   type Invalid_Transaction_Members     is new System_Exception_Members
      with null record;
-   type Adapter_Already_Exists_Members is new System_Exception_Members
+   type Inv_Policy_Members              is new System_Exception_Members
      with null record;
-   type Invalid_Policy_Members         is new System_Exception_Members
+   type Codeset_Incompatible_Members    is new System_Exception_Members
+     with null record;
+   type Rebind_Members                  is new System_Exception_Members
+     with null record;
+   type Timeout_Members                 is new System_Exception_Members
+     with null record;
+   type Transaction_Unavailable_Members is new System_Exception_Members
+     with null record;
+   type Transaction_Mode_Members        is new System_Exception_Members
+     with null record;
+   type Bad_Qos_Members                 is new System_Exception_Members
      with null record;
 
-   -----------------------------
-   -- exceptions for the ORB  --
-   -----------------------------
+   ------------
+   -- Policy --
+   ------------
 
    --  Defined in 4.7
+
    type PolicyType is new CORBA.Unsigned_Long;
+
+   type PolicyErrorCode is new CORBA.Short;
+
+   BAD_POLICY               : constant PolicyErrorCode := PolicyErrorCode'(0);
+   UNSUPPORTED_POLICY       : constant PolicyErrorCode := PolicyErrorCode'(1);
+   BAD_POLICY_TYPE          : constant PolicyErrorCode := PolicyErrorCode'(2);
+   BAD_POLICY_VALUE         : constant PolicyErrorCode := PolicyErrorCode'(3);
+   UNSUPPORTED_POLICY_VALUE : constant PolicyErrorCode := PolicyErrorCode'(4);
+
+   --------------------
+   -- ORB Exceptions --
+   --------------------
 
    --  exception PolicyError
    PolicyError : exception;
 
-   type PolicyErrorCode is new Short;
-
-   type PolicyError_Members is new CORBA.IDL_Exception_Members
-     with record
-        Reason : PolicyErrorCode;
-     end record;
+   type PolicyError_Members is new CORBA.IDL_Exception_Members with record
+      Reason : PolicyErrorCode;
+   end record;
 
    procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To : out PolicyError_Members);
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out PolicyError_Members);
 
    --  exception InvalidName
    InvalidName : exception;
+
    type InvalidName_Members is new CORBA.IDL_Exception_Members
      with null record;
+
    procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To : out InvalidName_Members);
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out InvalidName_Members);
 
    --  exception InconsistentTypeCode
    InconsistentTypeCode : exception;
+
    type InconsistentTypeCode_Members is new CORBA.IDL_Exception_Members
      with null record;
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To : out InconsistentTypeCode_Members);
 
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out InconsistentTypeCode_Members);
 
    -------------------------
    -- Types and constants --
    -------------------------
-   type ServiceType is new Unsigned_Short;
-   type ServiceOption is new Unsigned_Long;
-   type ServiceDetailType is new Unsigned_Long;
+
+   type ServiceType       is new CORBA.Unsigned_Short;
+   type ServiceOption     is new CORBA.Unsigned_Long;
+   type ServiceDetailType is new CORBA.Unsigned_Long;
 
    Security : constant ServiceType := 1;
 
-   -----------
-   --  Any  --
-   -----------
+   ---------
+   -- Any --
+   ---------
 
    subtype Any is PolyORB.Any.Any;
    subtype Any_Ptr is PolyORB.Any.Any;
@@ -538,6 +730,10 @@ package CORBA is
    --  Note that the Any can be empty. In this case, the value
    --  will be created
    --  Should never be called outside the broca.cdr package
+
+   --  XXX investigate the last comment, does it means these functions
+   --  are useless for the CORBA personality ???
+
    procedure Set_Any_Value (Any_Value : in out CORBA.Any;
                             Value : in CORBA.Octet);
    procedure Set_Any_Value (Any_Value : in out CORBA.Any;
@@ -575,7 +771,8 @@ package CORBA is
 
    --  This one is a bit special : it doesn't put any value but
    --  create the aggregate value if it does not exist.
-   procedure Set_Any_Aggregate_Value (Any_Value : in out CORBA.Any);
+   procedure Set_Any_Aggregate_Value
+     (Any_Value : in out CORBA.Any);
 
    --  Not in spec : some methods to deal with any aggregates.
    --  What is called any aggregate is an any, made of an aggregate
@@ -583,13 +780,16 @@ package CORBA is
    --  unions, enums, arrays, sequences, objref, values...
 
    --  returns the number of elements in an any aggregate
-   function Get_Aggregate_Count (Value : Any) return CORBA.Unsigned_Long;
+   function Get_Aggregate_Count
+     (Value : Any)
+     return CORBA.Unsigned_Long;
 
    --  Adds an element to an any aggregate
    --  This element is given as a typecode but only its value is
    --  added to the aggregate
-   procedure Add_Aggregate_Element (Value : in out Any;
-                                    Element : in Any);
+   procedure Add_Aggregate_Element
+     (Value : in out Any;
+      Element : in Any);
 
    --  Gets an element in an any agregate
    --  returns an any made of the typecode Tc and the value read in
@@ -659,7 +859,7 @@ private
    VTM_TRUNCATABLE : constant ValueModifier := PolyORB.Any.VTM_TRUNCATABLE;
 
    PRIVATE_MEMBER : constant Visibility := PolyORB.Any.PRIVATE_MEMBER;
-   PUBLIC_MEMBER  : constant Visibility := PolyORB.Any.PRIVATE_MEMBER;
+   PUBLIC_MEMBER  : constant Visibility := PolyORB.Any.PUBLIC_MEMBER;
 
    pragma Inline (To_Any);
    pragma Inline (From_Any);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,23 +26,26 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#12 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#16 $
 
 with Ada.Finalization;
 
 with PolyORB.Components;
+with PolyORB.Asynch_Ev;
 with PolyORB.Objects;
 with PolyORB.Smart_Pointers;
 pragma Elaborate_All (PolyORB.Smart_Pointers);
 with PolyORB.Transport;
 with PolyORB.Types;
+with PolyORB.Filters;
 
 package PolyORB.Binding_Data is
 
@@ -55,7 +58,6 @@ package PolyORB.Binding_Data is
    type Profile_Type is abstract
      new Ada.Finalization.Limited_Controlled with private;
    type Profile_Access is access all Profile_Type'Class;
-
    --  A profile is an element of information that contains:
    --    - a profile tag identifying a communication system and a
    --      method invocation protocol stack;
@@ -67,10 +69,10 @@ package PolyORB.Binding_Data is
    --      expressed by the user for the choice of a profile type
    --      among a set of profiles.
 
-   --  subtype Profile_Tag is CORBA.Unsigned_Long;
    subtype Profile_Tag is Types.Unsigned_Long;
 
    Tag_Internet_IOP        : constant Profile_Tag;
+   Tag_UIPMC               : constant Profile_Tag;
    Tag_Multiple_Components : constant Profile_Tag;
    Tag_Local               : constant Profile_Tag;
    Tag_SRP                 : constant Profile_Tag;
@@ -78,7 +80,7 @@ package PolyORB.Binding_Data is
    Tag_Test                : constant Profile_Tag;
 
    type Profile_Preference is new Integer range 0 .. Integer'Last;
-   --  Profile_Preference'First means "unsupported profile type"
+   --  Profile_Preference'First means "unsupported profile type".
 
    Preference_Default : constant Profile_Preference;
    --  Default value for profile preference.
@@ -93,22 +95,20 @@ package PolyORB.Binding_Data is
       The_ORB : Components.Component_Access)
      return Components.Component_Access
       is abstract;
-   --  Find or create a transport endpoint and an attached protocol
+   --  Retrieve a transport endpoint and an attached protocol
    --  stack instance (or create new ones) that match this profile,
-   --  in order to send a message to the designated middleware.
-   --  The Filter at the top of the protocol stack (i.e. the session)
+   --  in order to send a message to the middleware that hosts the
+   --  designated object.
+   --  The Filter at the top of the protocol stack (i.e. the Session)
    --  is returned. Concrete implementations are responsible for
    --  registering the TE with the ORB if necessary.
 
-   function Get_Profile_Tag
-     (Profile : Profile_Type)
-     return Profile_Tag
+   function Get_Profile_Tag (Profile : Profile_Type) return Profile_Tag
       is abstract;
    pragma Inline (Get_Profile_Tag);
    --  Return the profile tag associated with this profile type.
 
-   function Get_Profile_Preference
-     (Profile : Profile_Type)
+   function Get_Profile_Preference (Profile : Profile_Type)
      return Profile_Preference
       is abstract;
    pragma Inline (Get_Profile_Preference);
@@ -154,11 +154,34 @@ package PolyORB.Binding_Data is
    --  Continuation. Used for proxy profiles (which are actually
    --  indirect pointers to remote objects).
 
+   --------------------------------
+   -- Access Point Event Handler --
+   --------------------------------
+
+   type TAP_AES_Event_Handler
+      is abstract new PolyORB.Asynch_Ev.AES_Event_Handler with record
+      TAP : PolyORB.Transport.Transport_Access_Point_Access;
+      --  Factory of Transport_Endpoint components.
+
+      Filter_Factory_Chain : Filters.Factory_Access;
+      --  Factory of Filter (protocol stack) components.
+
+      Profile_Factory : Binding_Data.Profile_Factory_Access;
+      --  Factory of profiles capable of associating the
+      --  address of TAP and the specification of the
+      --  protocol implemented by Filter_Factory_Chain
+      --  with an object id.
+      end record;
+
 private
 
    --  Standard tags defined by CORBA
 
    Tag_Internet_IOP        : constant Profile_Tag := 0;
+   --  UIPMC Jacorb Value
+   --  Tag_UIPMC               : constant Profile_Tag := 4050;
+   --  UIPMC TAO Value
+   Tag_UIPMC               : constant Profile_Tag := 1413566220;
    Tag_Multiple_Components : constant Profile_Tag := 1;
 
    --  Tags defined by PolyORB

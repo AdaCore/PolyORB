@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                     P O L Y O R B . C A L L _ B A C K                    --
+--                    P O L Y O R B . C A L L _ B A C K                     --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,23 +26,24 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
 with Ada.Tags;
+
 with PolyORB.Log;
-with PolyORB.Components;
-with PolyORB.Requests;
 with PolyORB.Objects.Interface;
+with PolyORB.Requests;
 
 package body PolyORB.Call_Back is
 
    use PolyORB.Log;
-   use PolyORB.Requests;
    use PolyORB.Objects.Interface;
+   use PolyORB.Requests;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.call_back");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -70,8 +71,7 @@ package body PolyORB.Call_Back is
             pragma Debug (O (Requests.Image (Req.all)));
 
             --  Execute Call Back function
-
-            CB_Handler.CB_Function.all (Req.all, CB_Handler.Dest_Ref);
+            CB_Handler.CB_Function.all (Req.all, CB_Handler);
 
             --  Complete Request execution
             Req.Completed := True;
@@ -91,10 +91,11 @@ package body PolyORB.Call_Back is
 
    procedure Attach_Request_To_CB
      (Req        : access PolyORB.Requests.Request;
-      CB_Handler :        PolyORB.Components.Component_Access)
+      CB_Handler :        PolyORB.Call_Back.CBH_Access)
    is
    begin
-      Req.Requesting_Component := CB_Handler;
+      Req.Requesting_Component :=
+        PolyORB.Components.Component_Access (CB_Handler);
    end Attach_Request_To_CB;
 
    --------------------------
@@ -109,18 +110,15 @@ package body PolyORB.Call_Back is
       CB_Handler.CB_Function := CB_Function;
    end Attach_Handler_To_CB;
 
-   ---------------------------
-   -- Attach_Dest_Ref_To_CB --
-   ---------------------------
+   ----------------
+   -- Notepad_Of --
+   ----------------
 
-   procedure Attach_Dest_Ref_To_CB
-     (CB_Handler : in out PolyORB.Call_Back.Call_Back_Handler;
-      Dest_Ref   :        PolyORB.References.Ref)
-   is
+   function Notepad_Of
+     (CB_Handler : access PolyORB.Call_Back.Call_Back_Handler)
+     return PolyORB.Annotations.Notepad_Access is
    begin
-      CB_Handler.Dest_Ref := Dest_Ref;
-   end Attach_Dest_Ref_To_CB;
-
-
+      return CB_Handler.Notepad'Access;
+   end Notepad_Of;
 
 end PolyORB.Call_Back;

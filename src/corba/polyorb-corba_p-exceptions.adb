@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,29 +26,18 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#12 $
-
-with Ada.Exceptions;
-with Ada.Unchecked_Conversion;
-
-pragma Warnings (Off);
-with System.Exception_Table;
-with System.Standard_Library;
-pragma Warnings (On);
---  Mapping between exception names and exception ids.
---  GNAT internal exception table is used to maintain a list of
---  all exceptions.
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#21 $
 
 with CORBA;
 
 with PolyORB.Any;
 with PolyORB.Exceptions;
 with PolyORB.Log;
-with PolyORB.Utils;
 with PolyORB.Types;
 
 package body PolyORB.CORBA_P.Exceptions is
@@ -56,130 +45,188 @@ package body PolyORB.CORBA_P.Exceptions is
    use Ada.Exceptions;
 
    use PolyORB.Any;
+   use PolyORB.Exceptions;
    use PolyORB.Log;
+   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.exceptions");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   ---------------------------------
-   -- Get_ExcepId_By_RepositoryId --
-   ---------------------------------
+   procedure Exception_Name_To_Error_Id
+     (Name     :     String;
+      Is_Error : out Boolean;
+      Id       : out Error_Id);
+   --  Convert an exception name into a PolyORB's Error Id.
 
-   procedure Get_ExcepId_By_RepositoryId
-     (RepoId              : in     Standard.String;
-      ExcpId              :    out Ada.Exceptions.Exception_Id;
-      Is_CORBA_System_Exc :    out Boolean);
-   --  Return the corresponding Ada Exception_Id for
-   --  a repository id.
+   --------------------------------
+   -- Exception_Name_To_Error_Id --
+   --------------------------------
 
-   procedure Get_ExcepId_By_RepositoryId
-     (RepoId              : in     Standard.String;
-      ExcpId              :    out Ada.Exceptions.Exception_Id;
-      Is_CORBA_System_Exc :    out Boolean)
+   procedure Exception_Name_To_Error_Id
+     (Name     :     String;
+      Is_Error : out Boolean;
+      Id       : out Error_Id)
    is
+      Prefix_Length : constant Natural := PolyORB_Exc_Prefix'Length;
+      Version_Length : constant Natural
+        := To_Standard_String (PolyORB_Exc_Version)'Length;
 
-      use PolyORB.Utils;
-
-      Colon1 : constant Integer := Find (RepoId, RepoId'First, ':');
-      Colon2 : constant Integer := Find (RepoId, Colon1 + 1, ':');
-
-      function To_Exception_Id is new Ada.Unchecked_Conversion
-        (System.Standard_Library.Exception_Data_Ptr,
-         Ada.Exceptions.Exception_Id);
-
-      --  A repository ID is of the form 'MODEL:X/Y/Z:VERSION'
-
-      Model : constant String   := RepoId (RepoId'First .. Colon1 - 1);
-      Internal_Name : String    := RepoId (Colon1 + 1 .. Colon2 - 1);
-
-      Result : Ada.Exceptions.Exception_Id;
    begin
-      pragma Debug (O ("RepoId : " & RepoId));
-      Is_CORBA_System_Exc := False;
+      if Name'Length > Prefix_Length + Version_Length
+        and then Name (Name'First .. Name'First + Prefix_Length - 1)
+        = PolyORB_Exc_Prefix
+      then
+         declare
+            Error_Id_Name : constant String
+              := Name (Name'First + Prefix_Length ..
+                       Name'Last - Version_Length) & "_E";
 
-      if RepoId = "" then
-         ExcpId := Ada.Exceptions.Null_Id;
-         return;
-      end if;
+         begin
+            pragma Debug (O ("Error_Id_Name : " & Error_Id_Name));
 
-      for J in Internal_Name'Range loop
-         if Internal_Name (J) = '/' then
-            Internal_Name (J) := '.';
-         end if;
-      end loop;
-
-      pragma Debug (O ("Internal_Name : " & Internal_Name));
-      Result := To_Exception_Id
-        (System.Exception_Table.Internal_Exception
-           (Internal_Name));
-
-      if Result = Ada.Exceptions.Null_Id then
-         ExcpId := CORBA.Unknown'Identity;
-         Is_CORBA_System_Exc := True;
+            Is_Error := True;
+            Id := Error_Id'Value (Error_Id_Name);
+         end;
       else
-         ExcpId := Result;
-         Is_CORBA_System_Exc
-           := (Model = "IDL"
-           and then Internal_Name'Length > 5
-           and then Internal_Name
-                 (Internal_Name'First .. Internal_Name'First + 5)
-                 = "CORBA.");
+         Is_Error := False;
+         Id := No_Error;
       end if;
-   end Get_ExcepId_By_RepositoryId;
+
+      pragma Debug (O (Name & " is a PolyORB error ? "
+                       & Boolean'Image (Is_Error)));
+   end Exception_Name_To_Error_Id;
 
    --------------------
    -- Raise_From_Any --
    --------------------
 
-   procedure Raise_From_Any (Occurrence : Any.Any) is
+   procedure Raise_From_Any
+     (Occurrence : Any.Any)
+   is
       Repository_Id : constant PolyORB.Types.RepositoryId
         := Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
 
-      System_Id : Ada.Exceptions.Exception_Id;
-      Is_CORBA_System_Exc : Boolean;
+      EId : constant String := To_Standard_String (Repository_Id);
+
+      Is_Error : Boolean;
+      Id       : Error_Id;
+      Error    : Error_Container;
+
    begin
-      Get_ExcepId_By_RepositoryId
-        (PolyORB.Types.To_Standard_String (Repository_Id),
-         System_Id,
-         Is_CORBA_System_Exc);
+      pragma Debug (O ("Raise_From_Any: enter"));
 
-      if Is_CORBA_System_Exc then
-         --  This is a system exception.
+      Exception_Name_To_Error_Id (EId, Is_Error, Id);
 
-         declare
-            Minor : constant PolyORB.Types.Unsigned_Long
-              := From_Any
-              (Get_Aggregate_Element
-               (Occurrence, TC_Unsigned_Long,
-                PolyORB.Types.Unsigned_Long (0)));
+      if Is_Error then
 
-            Completed : constant CORBA.Completion_Status
-              := PolyORB.Exceptions.From_Any
-              (Get_Aggregate_Element
-               (Occurrence, PolyORB.Exceptions.TC_Completion_Status,
-                PolyORB.Types.Unsigned_Long (1)));
-         begin
-            PolyORB.Exceptions.Raise_System_Exception
-              (System_Id,
-               PolyORB.Exceptions.System_Exception_Members'
-                 (Minor => Minor, Completed => Completed));
+         Error.Kind := Id;
 
-            raise Program_Error;
-            --  Not reached.
+         case Error.Kind is
+            when ORB_System_Error =>
+               Error.Member := new System_Exception_Members'
+                 (Minor =>
+                    From_Any
+                  (Get_Aggregate_Element
+                   (Occurrence, TC_Unsigned_Long,
+                    PolyORB.Types.Unsigned_Long (0))),
+                  Completed =>
+                    From_Any
+                  (Get_Aggregate_Element
+                   (Occurrence, PolyORB.Exceptions.TC_Completion_Status,
+                    PolyORB.Types.Unsigned_Long (1))));
 
-         end;
+            when others =>
+               Error.Member := new Null_Members'(Null_Member);
+         end case;
+
+         pragma Debug (O ("Raising " & Error_Id'Image (Error.Kind)));
+         Raise_From_Error (Error);
+
+      else
+         pragma Debug (O ("Raising " & EId));
+         Raise_User_Exception_From_Any (Repository_Id, Occurrence);
+
       end if;
-
-      declare
-         EInfo : constant PolyORB.Exceptions.Exception_Info :=
-           PolyORB.Exceptions.Find_Exception_Info (Repository_Id);
-      begin
-         EInfo.Raiser.all (Occurrence);
-      end;
 
       raise Program_Error;
       --  Never reached (Raiser raises an exception.)
    end Raise_From_Any;
+
+   -----------------------------
+   -- System_Exception_To_Any --
+   -----------------------------
+
+   function System_Exception_To_Any
+     (E : Ada.Exceptions.Exception_Occurrence)
+      return PolyORB.Any.Any
+   is
+      Name    : RepositoryId;
+      Members : CORBA.System_Exception_Members;
+      TC      : TypeCode.Object;
+      Result  : Any.Any;
+
+   begin
+      pragma Debug (O ("System_Exception_To_Any: enter."));
+      pragma Debug (O ("Exception_Name: " & Exception_Name (E)));
+      pragma Debug (O ("Exception_Message: " & Exception_Message (E)));
+      pragma Debug (O ("Exception_Information: " & Exception_Information (E)));
+
+      begin
+         Name := Occurrence_To_Name (E);
+         CORBA.Get_Members (E, Members);
+      exception
+         when others =>
+            pragma Debug (O ("No matching system exception found, "
+                             & "will use CORBA.UNKNOWN"));
+            Name := To_PolyORB_String ("UNKNOWN");
+            Members := (1, CORBA.Completed_Maybe);
+      end;
+
+      --  Construct exception typecode
+      TC := System_Exception_TypeCode (To_Standard_String (Name));
+
+      Result := Get_Empty_Any_Aggregate (TC);
+      Add_Aggregate_Element (Result, CORBA.To_Any (Members.Minor));
+      Add_Aggregate_Element (Result, CORBA.To_Any (Members.Completed));
+
+      pragma Debug (O ("System_Exception_To_Any: leave"));
+      return Result;
+   end System_Exception_To_Any;
+
+   ----------------------
+   -- Raise_From_Error --
+   ----------------------
+
+   procedure Raise_From_Error
+     (Error : in out PolyORB.Exceptions.Error_Container) is
+   begin
+      pragma Debug (O ("About to raise exception: "
+                       & Error_Id'Image (Error.Kind)));
+
+      pragma Assert (Is_Error (Error));
+
+      if Error.Kind in ORB_System_Error then
+         pragma Debug (O ("Raising CORBA Exception"));
+         CORBA_Raise_From_Error (Error);
+
+      elsif Error.Kind in POA_Error then
+         pragma Debug (O ("Raising PORTABLESERVER.POA Exception"));
+         POA_Raise_From_Error (Error);
+
+      elsif Error.Kind in POAManager_Error then
+         pragma Debug (O ("Raising PORTABLESERVER.POAManager Exception"));
+         POAManager_Raise_From_Error (Error);
+
+      elsif Error.Kind in PolyORB_Internal_Error then
+         --  PolyORB internal errors are mapped to CORBA.Unknown
+
+         pragma Debug (O ("Raising CORBA.UNKNOWN"));
+         CORBA.Raise_Unknown (CORBA.Default_Sys_Member);
+      end if;
+
+      raise Program_Error;
+      --  Never reached (Raiser raises an exception.)
+   end Raise_From_Error;
 
 end PolyORB.CORBA_P.Exceptions;

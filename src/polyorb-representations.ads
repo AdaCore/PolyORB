@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Data representation methods
+--  Data representation methods.
+
+--  A Representation is a method for transforming an arbitrary piece
+--  of data (in the form of an 'Any' object) into a sequence of
+--  Stream_Elements, and back.
 
 --  $Id$
 
@@ -40,20 +45,17 @@ with PolyORB.Buffers;
 package PolyORB.Representations is
 
    type Representation is abstract tagged limited private;
+
    type Representation_Access is access all Representation;
-   --  A Representation is a method for transforming an
-   --  arbitrary piece of data (in the form of an 'Any'
-   --  object) into a sequence of Stream_Elements, and
-   --  back.
 
    procedure Marshall_From_Any
-     (R      : Representation;
+     (R      :        Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any)
+      Data   : in     Any.Any)
      is abstract;
 
    procedure Unmarshall_To_Any
-     (R      : Representation;
+     (R      :        Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any)
      is abstract;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,19 +41,18 @@ with Ada.Text_IO;
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
---  XXX this package should be renamed to PolyORB.Setup.No_Tasking_Node ...
-
 --  XXX do not change Tasking model for now, otherwise there is a risk
 --  of a race condition between producer and consumer ...
 
-with MOMA.Connection_Factories.Queues;
-with MOMA.Connections.Queues;
+with PolyORB.Services.Naming.Tools;
+
+with MOMA.Connection_Factories;
 with MOMA.Connections;
-with MOMA.Sessions.Queues;
+with MOMA.Sessions;
 with MOMA.Destinations;
 
-with MOMA.Message_Producers.Queues;
-with MOMA.Message_Consumers.Queues;
+with MOMA.Message_Producers;
+with MOMA.Message_Consumers;
 
 with MOMA.Messages;
 with MOMA.Messages.MAnys;
@@ -63,35 +63,52 @@ with MOMA.Messages.MTexts;
 with MOMA.Types;
 
 with PolyORB.Any;
+with PolyORB.Initialization;
+with PolyORB.References;
+with PolyORB.References.IOR;
 with PolyORB.Types;
-
-with Report;
+with PolyORB.Utils.Report;
 
 procedure Client is
 
    use Ada.Command_Line;
    use Ada.Text_IO;
 
-   use MOMA.Connection_Factories.Queues;
-   use MOMA.Sessions.Queues;
+   use MOMA.Connection_Factories;
+   use MOMA.Sessions;
    use MOMA.Connections;
-   use MOMA.Message_Producers.Queues;
-   use MOMA.Message_Consumers.Queues;
+   use MOMA.Destinations;
+   use MOMA.Message_Producers;
+   use MOMA.Message_Consumers;
    use MOMA.Messages;
    use MOMA.Types;
-   use PolyORB.Types;
-   use Report;
 
-   MOMA_Queue         : MOMA.Connections.Queues.Queue;
-   MOMA_Session       : MOMA.Sessions.Queues.Queue;
-   MOMA_Destination   : MOMA.Destinations.Destination;
-   MOMA_Producer      : MOMA.Message_Producers.Queues.Queue;
-   MOMA_Consumer      : MOMA.Message_Consumers.Queues.Queue;
+   use PolyORB.References;
+   use PolyORB.Services.Naming.Tools;
+   use PolyORB.Types;
+   use PolyORB.Utils.Report;
+
+   Arg1               : MOMA.Types.String;
+   Arg2               : MOMA.Types.String;
+   Arg3               : MOMA.Types.String;
+   Pool_Ref           : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
+   Router_Ref         : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
+   MOMA_Factory       : Connection_Factory;
+   MOMA_Connection    : MOMA.Connections.Connection;
+   MOMA_Session       : MOMA.Sessions.Session;
+   MOMA_Dest_Router   : MOMA.Destinations.Destination;
+   MOMA_Dest_Pool     : MOMA.Destinations.Destination;
+   MOMA_Producer      : MOMA.Message_Producers.Message_Producer;
+   MOMA_Consumer      : MOMA.Message_Consumers.Message_Consumer;
+   MOMA_Consumer_Acc  : MOMA.Message_Consumers.Message_Consumer_Acc;
 
    Ok : Boolean;
 
-   type Scenario_T is (Full, Stor, Retr);
+   type Scenario_T is (Full, Stor, Retr, Sub, Unsub);
    Scenario : Scenario_T;
+
+   type Kind_T is (Naming, Pool, Topic);
+   Kind : Kind_T;
 
    ----------------------
    -- Any Message Test --
@@ -106,6 +123,7 @@ procedure Client is
 
       MAny_Message_Sent : MOMA.Messages.MAnys.MAny;
       MAny_Message_Rcvd : MOMA.Messages.MAnys.MAny;
+
    begin
       --  Create new Any Message
       MAny_Message_Sent := Create_Any_Message;
@@ -176,7 +194,7 @@ procedure Client is
             end;
          end if;
 
-         if Scenario /= Stor then
+         if Scenario = Full or Scenario = Retr then
             --  Print result.
             Ok := Get_Payload (MByte_Message_Sent)
               = Get_Payload (MByte_Message_Rcvd);
@@ -331,49 +349,161 @@ procedure Client is
 
    end Test_MText;
 
-   --------------------
-   -- Main procedure --
-   --------------------
+   ---------------
+   -- Put_Usage --
+   ---------------
 
-begin
-   --  Argument check
-   if Argument_Count < 2 then
-      Put_Line ("usage : client <IOR_string_from_server> <scenario>");
-      Put_Line (" where scenario is in {full, stor, retr}");
+   procedure Put_Usage;
+
+   procedure Put_Usage
+   is
+   begin
+      Put_Line ("usage : client <scenario> <kind> <IOR>");
+      Put_Line (" where <scenario> is in {full, stor, retr}");
       Put_Line ("  - full : full demo, send and receive messages");
       Put_Line ("  - stor : only send messages");
       Put_Line ("  - retr : only retrieve messages");
+      Put_Line (" where <kind> is in {pool, naming}");
+      Put_Line ("  - pool   : <IOR> is the IOR of a message pool");
+      Put_Line ("  - naming : <IOR> is the IOR of a naming service");
+      New_Line;
+      Put_Line ("or    : client stor topic <IOR>");
+      Put_Line (" where <IOR> is the IOR of a router");
+      New_Line;
+      Put_Line ("or    : client <submode> <IOR1> <IOR2>");
+      Put_Line (" where <submode> is in (sub, unsub)");
+      Put_Line ("       <IOR1> is the IOR of the message pool to sub / unsub");
+      Put_Line ("       <IOR2> is the IOR of a router");
       New_Line;
       Put_Line ("{stor, retr} scenarios are to test persistency");
+   end Put_Usage;
+
+   ---------------------
+   -- Check_Arguments --
+   ---------------------
+
+   function Check_Arguments return Boolean;
+
+   function Check_Arguments return Boolean
+   is
+   begin
+      if Argument_Count /= 3 then
+         return False;
+      end if;
+      Arg1 := To_MOMA_String (Ada.Command_Line.Argument (1));
+      Arg2 := To_MOMA_String (Ada.Command_Line.Argument (2));
+      Arg3 := To_MOMA_String (Ada.Command_Line.Argument (3));
+      if Arg1 = "full" then
+         Scenario := Full;
+      elsif Arg1 = "stor" then
+         Scenario := Stor;
+      elsif Arg1 = "retr" then
+         Scenario := Retr;
+      elsif Arg1 = "sub" then
+         Scenario := Sub;
+         Kind := Topic;
+         return True;
+      elsif Arg1 = "unsub" then
+         Scenario := Unsub;
+         Kind := Topic;
+         return True;
+      else
+         return False;
+      end if;
+      if Arg2 = "pool" then
+         Kind := Pool;
+      elsif Arg2 = "naming" then
+         Kind := Naming;
+      elsif Arg2 = "topic" then
+         Kind := Topic;
+         if Arg1 /= "stor" then
+            return False;
+         end if;
+      else
+         return False;
+      end if;
+      return True;
+   end Check_Arguments;
+
+   --------------------
+   -- Main Procedure --
+   --------------------
+
+begin
+
+   --  Argument check
+   if not (Check_Arguments) then
+      Put_Usage;
       return;
    end if;
 
-   --  Determine scenario to run
-   if Ada.Command_Line.Argument (2) = "full" then
-      Scenario := Full;
-   elsif Ada.Command_Line.Argument (2) = "stor" then
-      Scenario := Stor;
-   elsif Ada.Command_Line.Argument (2) = "retr" then
-      Scenario := Retr;
+   --  Initialize World
+   PolyORB.Initialization.Initialize_World;
+
+   --  Get a reference on the message pool to use.
+   if Kind = Pool then
+      Pool_Ref := PolyORB.References.IOR.String_To_Object (Arg3);
+   elsif Kind = Naming then
+      Init (PolyORB.References.IOR.String_To_Object (Arg3));
+      Pool_Ref := Locate ("Pool_1");
+      Kind := Pool;
+   elsif Kind = Topic then
+      Router_Ref := PolyORB.References.IOR.String_To_Object (Arg3);
+      if Scenario = Sub or Scenario = Unsub then
+         Pool_Ref := PolyORB.References.IOR.String_To_Object (Arg2);
+      end if;
    end if;
 
-   --  Create Queue using Queue Connection Factory
-   MOMA_Queue := Create (To_MOMA_String (Ada.Command_Line.Argument (1)));
+   --  Initialize the connection factory
+   --  (should be done by the administrator).
+   MOMA.Connection_Factories.Create (MOMA_Factory, Pool_Ref);
 
-   --  Create Destination Queue associated to the connection
-   MOMA_Destination := Create_Queue (MOMA_Queue,
-                                     To_MOMA_String ("queue1"));
+   --  Create connection using Connection Factory.
+   MOMA_Connection :=
+      MOMA.Connections.Create_Connection (MOMA_Factory);
 
-   --  Create Session,
-   MOMA_Session := Create_Session (False, 1);
+   --  Initialize the destination
+   --  (should be usually done by the administrator).
+   --  NB : in this example the destination and the provider are references
+   --       to the same thing (Pool_Ref). This will probably change later.
+   if Pool_Ref /= PolyORB.References.Nil_Ref then
+      MOMA_Dest_Pool := MOMA.Destinations.Create_Destination
+         (To_MOMA_String ("queue1"),
+          Pool_Ref,
+          MOMA.Types.Pool);
+   end if;
+   if Router_Ref /= PolyORB.References.Nil_Ref then
+      MOMA_Dest_Router := MOMA.Destinations.Create_Destination
+         (To_MOMA_String ("Test"),
+          Router_Ref,
+          MOMA.Types.Topic);
+   end if;
 
-   --  Create Message Producer associated to the Session
-   MOMA_Producer := Create_Sender (MOMA_Session, MOMA_Destination);
+   --  Create Session.
+   MOMA_Session := Create_Session (MOMA_Connection, False, 1);
 
-   --  Create Message Consumer associated to the Session
-   MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Destination);
+   --  Create Message Producer associated to the Session.
+   if Kind = Pool then
+      MOMA_Producer := Create_Producer (MOMA_Session, MOMA_Dest_Pool);
+   elsif Kind = Topic then
+      MOMA_Producer := Create_Producer (MOMA_Session, MOMA_Dest_Router);
+   end if;
 
-   Output ("Initilisation", True);
+   --  Create Message Consumer associated to the Session.
+   MOMA_Consumer_Acc := Create_Consumer (MOMA_Session, MOMA_Dest_Pool);
+   MOMA_Consumer := MOMA_Consumer_Acc.all;
+
+   --  Subscribe / Unsubscribe to the "Test" topic.
+   if Kind = Topic then
+      if Scenario = Sub then
+         MOMA.Sessions.Subscribe (MOMA_Dest_Router, MOMA_Dest_Pool);
+      elsif Scenario = Unsub then
+         MOMA.Sessions.Unsubscribe (MOMA_Dest_Router, MOMA_Dest_Pool);
+      end if;
+   end if;
+
+   --  Initialization is completed.
+   Output ("Initialization", True);
 
    --  Testing MAny messages.
    Test_MAny;
@@ -381,7 +511,7 @@ begin
    --  Testing MByte messages.
    Test_MByte;
 
-   --  Testing MMap messages;
+   --  Testing MMap messages.
    Test_MMap;
 
    --  Testing MText messages.

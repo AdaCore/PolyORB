@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -72,9 +73,32 @@ package PolyORB.ORB.Interface is
    type Oid_Translate is new Components.Message with record
       Oid : Objects.Object_Id_Access;
    end record;
+   --  When sent by middleware core to object adapter:
+   --    Request that Oid be translated into a relative URI.
+   --    The expected reply is URI_Translate.
+   --  When replied by object adapter to middleware core:
+   --    Returns relative URI translated to object id.
 
    type URI_Translate is new Components.Message with record
       Path : Types.String;
    end record;
+   --  When sent by middleware core to object adapter:
+   --    Request that Path (a relative URI) be translated into
+   --    an object id.
+   --    The expected reply is Oid_Translate.
+   --  When replied by object adapter to middleware core:
+   --    Returns object id translated to relative URI.
+
+   type Monitor_Access_Point is new Components.Message with record
+      TAP : Transport.Transport_Access_Point_Access;
+   end record;
+   --  A binding object requests that the designated transport
+   --  access point be monitored for incoming data.
+
+   type Monitor_Endpoint is new Components.Message with record
+      TE : Transport.Transport_Endpoint_Access;
+   end record;
+   --  A binding object requests that the designated transport
+   --  endpoint be monitored for incoming data.
 
 end PolyORB.ORB.Interface;

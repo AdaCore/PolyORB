@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---             . R A V E N S C A R . I N D E X _ M A N A G E R              --
+--            POLYORB.TASKING.PROFILES.RAVENSCAR.INDEX_MANAGER              --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,13 +26,24 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Implementation of a thread safe index manager.
 
+with PolyORB.Log;
+
 package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.profiles.ravenscar.index_manager");
+
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    type Flag_Array is array (Index_Type) of Boolean;
 
@@ -54,7 +64,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
       procedure Release (Id : in Index_Type);
       --  Release Id.
 
-      procedure Init;
+      procedure Init (Error_On_Initialize : Boolean := True);
       --  Initialize the Index_Manager.
 
    private
@@ -93,6 +103,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
          Id := Free_Stack (Offset);
          Offset := Modular (Integer (Offset) - 1);
          Number_Of_Used := Number_Of_Used + 1;
+         pragma Debug (O ("Get " & Integer'Image (Id)));
          Used (Id) := True;
       end Get;
 
@@ -100,16 +111,18 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
       -- Index_Manager.Init --
       ------------------------
 
-      procedure Init is
+      procedure Init (Error_On_Initialize : Boolean := True) is
       begin
-         pragma Assert (not Initialized);
-         for J in Free_Stack'Range loop
-            Free_Stack (J) := J;
-            Used (J) := False;
-         end loop;
-         Number_Of_Used := 0;
-         Offset := Free_Stack'Last;
-         Initialized := True;
+         pragma Assert (not (Initialized and then Error_On_Initialize));
+         if not Initialized then
+            for J in Free_Stack'Range loop
+               Free_Stack (J) := J;
+               Used (J) := False;
+            end loop;
+            Number_Of_Used := 0;
+            Offset := Free_Stack'Last;
+            Initialized := True;
+         end if;
       end Init;
 
       ---------------------------
@@ -118,6 +131,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
 
       procedure Release (Id : in Index_Type) is
       begin
+         pragma Debug (O ("Release" & Integer'Image (Id)));
          pragma Assert (Initialized);
          if not Used (Id) then
             raise Identifier_Already_Released;
@@ -134,9 +148,9 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Index_Manager is
    -- Initialize --
    ----------------
 
-   procedure Initialize is
+   procedure Initialize  (Error_On_Initialize : Boolean := True) is
    begin
-      Index_Manager.Init;
+      Index_Manager.Init (Error_On_Initialize);
    end Initialize;
 
    -------------

@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           ADABROKER SERVICES                             --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
--- C O S E V E N T C H A N N E L A D M I N . C O N S U M E R A D M I N . I M P L  --
+--                 COSEVENTCHANNELADMIN.CONSUMERADMIN.IMPL                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,12 +26,19 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CosEventChannelAdmin; use CosEventChannelAdmin;
+with CORBA.Impl;
+pragma Warnings (Off, CORBA.Impl);
+
+with CORBA.Sequences.Unbounded;
+
+with PortableServer;
+
+with CosEventChannelAdmin;
 
 with CosEventChannelAdmin.ProxyPullSupplier;
 with CosEventChannelAdmin.ProxyPullSupplier.Helper;
@@ -42,24 +49,30 @@ with CosEventChannelAdmin.ProxyPushSupplier.Helper;
 with CosEventChannelAdmin.ProxyPushSupplier.Impl;
 
 with CosEventChannelAdmin.ConsumerAdmin.Helper;
+pragma Elaborate (CosEventChannelAdmin.ConsumerAdmin.Helper);
+pragma Warnings (Off, CosEventChannelAdmin.ConsumerAdmin.Helper);
+
 with CosEventChannelAdmin.ConsumerAdmin.Skel;
+pragma Elaborate (CosEventChannelAdmin.ConsumerAdmin.Skel);
+pragma Warnings (Off, CosEventChannelAdmin.ConsumerAdmin.Skel);
 
-with Broca.Server_Tools; use Broca.Server_Tools;
-with Broca.Soft_Links;    use  Broca.Soft_Links;
+with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.Tasking.Mutexes;
 
-with CORBA.Sequences.Unbounded;
-
-with CORBA.Impl;
-
-with PortableServer; use PortableServer;
-
-with Broca.Debug;
-pragma Elaborate_All (Broca.Debug);
+with PolyORB.Log;
 
 package body CosEventChannelAdmin.ConsumerAdmin.Impl is
 
-   Flag : constant Natural := Broca.Debug.Is_Active ("consumeradmin");
-   procedure O is new Broca.Debug.Output (Flag);
+   use CosEventChannelAdmin;
+   use PortableServer;
+
+   use PolyORB.CORBA_P.Server_Tools;
+   use PolyORB.Tasking.Mutexes;
+
+   use PolyORB.Log;
+   package L is new PolyORB.Log.Facility_Log ("consumeradmin");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    package PushSuppliers is
       new CORBA.Sequences.Unbounded (ProxyPushSupplier.Impl.Object_Ptr);
@@ -67,13 +80,31 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
    package PullSuppliers is
       new CORBA.Sequences.Unbounded (ProxyPullSupplier.Impl.Object_Ptr);
 
-   type Consumer_Admin_Record is
-      record
-         This    : Object_Ptr;
-         Channel : EventChannel.Impl.Object_Ptr;
-         Pushs   : PushSuppliers.Sequence;
-         Pulls   : PullSuppliers.Sequence;
-      end record;
+   type Consumer_Admin_Record is record
+      This    : Object_Ptr;
+      Channel : EventChannel.Impl.Object_Ptr;
+      Pushs   : PushSuppliers.Sequence;
+      Pulls   : PullSuppliers.Sequence;
+   end record;
+
+   ---------------------------
+   -- Ensure_Initialization --
+   ---------------------------
+
+   procedure Ensure_Initialization;
+   pragma Inline (Ensure_Initialization);
+   --  Ensure that the Mutexes are initialized.
+
+   T_Initialized : Boolean := False;
+   Self_Mutex : Mutex_Access;
+
+   procedure Ensure_Initialization is
+   begin
+      if not T_Initialized then
+         Create (Self_Mutex);
+         T_Initialized := True;
+      end if;
+   end Ensure_Initialization;
 
    ------------
    -- Create --
@@ -88,11 +119,12 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
    begin
       pragma Debug (O ("create consumer admin"));
 
-      Consumer        := new Object;
-      Consumer.X      := new Consumer_Admin_Record;
+      Consumer           := new Object;
+      Consumer.X         := new Consumer_Admin_Record;
       Consumer.X.This    := Consumer;
       Consumer.X.Channel := Channel;
       Initiate_Servant (Servant (Consumer), My_Ref);
+
       return Consumer;
    end Create;
 
@@ -110,11 +142,15 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
    begin
       pragma Debug (O ("obtain proxy pull supplier from consumer admin"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       Supplier := ProxyPullSupplier.Impl.Create (Self.X.This);
       PullSuppliers.Append (Self.X.Pulls, Supplier);
-      Leave_Critical_Section;
+      Leave (Self_Mutex);
+
       Servant_To_Reference (Servant (Supplier), Its_Ref);
+
       return Its_Ref;
    end Obtain_Pull_Supplier;
 
@@ -132,11 +168,15 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
    begin
       pragma Debug (O ("obtain proxy push supplier from consumer admin"));
 
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       Supplier := ProxyPushSupplier.Impl.Create (Self.X.This);
       PushSuppliers.Append (Self.X.Pushs, Supplier);
-      Leave_Critical_Section;
+      Leave (Self_Mutex);
+
       Servant_To_Reference (Servant (Supplier), Its_Ref);
+
       return Its_Ref;
    end Obtain_Push_Supplier;
 
@@ -146,24 +186,28 @@ package body CosEventChannelAdmin.ConsumerAdmin.Impl is
 
    procedure Post
      (Self : access Object;
-      Data : in CORBA.Any) is
+      Data : in     CORBA.Any) is
    begin
-      Enter_Critical_Section;
+      Ensure_Initialization;
+
+      Enter (Self_Mutex);
       declare
-         Pulls : PullSuppliers.Element_Array
+         Pulls : constant PullSuppliers.Element_Array
            := PullSuppliers.To_Element_Array (Self.X.Pulls);
-         Pushs : PushSuppliers.Element_Array
+         Pushs : constant PushSuppliers.Element_Array
            := PushSuppliers.To_Element_Array (Self.X.Pushs);
       begin
-         Leave_Critical_Section;
+         Leave (Self_Mutex);
+
          pragma Debug (O ("post new data to proxy pull suppliers"));
 
-         for I in Pulls'Range loop
-            ProxyPullSupplier.Impl.Post (Pulls (I), Data);
+         for J in Pulls'Range loop
+            ProxyPullSupplier.Impl.Post (Pulls (J), Data);
          end loop;
+
          pragma Debug (O ("post new data to proxy push suppliers"));
-         for I in Pushs'Range loop
-            ProxyPushSupplier.Impl.Post (Pushs (I), Data);
+         for J in Pushs'Range loop
+            ProxyPushSupplier.Impl.Post (Pushs (J), Data);
          end loop;
       end;
    end Post;

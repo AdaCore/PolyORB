@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,18 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Pools of memory chunks, with associated client metadata.
 
---  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#5 $
+--  $Id: //droopi/main/src/polyorb-opaque-chunk_pools.ads#10 $
 
 with Ada.Finalization;
+
+with PolyORB.Utils.Chained_Lists;
 
 generic
 
@@ -49,9 +52,10 @@ package PolyORB.Opaque.Chunk_Pools is
 
    type Chunk (Size : Ada.Streams.Stream_Element_Count) is
      new Ada.Finalization.Limited_Controlled with private;
+
    type Chunk_Access is access all Chunk;
 
-   Default_Chunk_Size : constant Ada.Streams.Stream_Element_Count := 4096;
+   Default_Chunk_Size : constant Ada.Streams.Stream_Element_Count := 512;
 
    type Pool_Type is limited private;
    --  A Pool of chunks with one preallocated chunk and a
@@ -61,8 +65,8 @@ package PolyORB.Opaque.Chunk_Pools is
 
    procedure Allocate
      (Pool    : access Pool_Type;
-      A_Chunk : out Chunk_Access;
-      Size    : Ada.Streams.Stream_Element_Count := Default_Chunk_Size);
+      A_Chunk :    out Chunk_Access;
+      Size    :        Ada.Streams.Stream_Element_Count := Default_Chunk_Size);
    --  Create a chunk in Pool and return an access to it.
    --  On the first call where Size is no more than Default_Chunk_Size,
    --  the Prealloc chunk is returned. On all other calls, a chunk of
@@ -79,18 +83,6 @@ package PolyORB.Opaque.Chunk_Pools is
    --  Signals that Pool will not be used anymore.
    --  The associated storage is returned to the system.
 
-   function First
-     (Pool : Pool_Type)
-     return Chunk_Access;
-   --  Returns an access to the first chunk in Pool.
-
-   function Next
-     (A_Chunk : Chunk_Access)
-     return Chunk_Access;
-   --  Returns the chunk that follows A_Chunk in its
-   --  pool. Returns a null access if A_Chunk designates
-   --  the last chunk in a pool.
-
    function Metadata
      (A_Chunk : Chunk_Access)
      return Metadata_Access;
@@ -100,14 +92,13 @@ package PolyORB.Opaque.Chunk_Pools is
 
 private
 
+   pragma Inline (Metadata);
+
    --  A chunk pool is managed as a linked list
    --  of chunks.
 
    type Chunk (Size : Ada.Streams.Stream_Element_Count) is
      new Ada.Finalization.Limited_Controlled with record
-        Next     : Chunk_Access;
-         --  The next chunk in the pool.
-
         Metadata : aliased Chunk_Metadata;
          --  Metadata associated by a client to this chunk.
 
@@ -118,6 +109,8 @@ private
    procedure Initialize (X : in out Chunk);
    procedure Finalize (X : in out Chunk);
 
+   package Chunk_Lists is new Utils.Chained_Lists (Chunk_Access);
+
    type Pool_Type is limited record
       Prealloc : aliased Chunk (Default_Chunk_Size);
       --  A pre-allocated chunk.
@@ -125,10 +118,8 @@ private
       Prealloc_Used : Boolean := False;
       --  The pre-allocated chunk has been used.
 
-      First    : Chunk_Access;
-      Last     : Chunk_Access;
-      --  The first and last elements of the list
-      --  of dynamically-allocated chunks.
+      Chunks   : Chunk_Lists.List;
+      --  The list of all dynamically allocated chunks in this pool.
    end record;
 
 end PolyORB.Opaque.Chunk_Pools;

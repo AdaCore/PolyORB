@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,33 +26,30 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  This package provides accessors to data contained in MOMA configuration
+--  files. See '*.conf' files for more details about their syntax.
 
 --  $Id$
 
 with MOMA.Types;
+
 with PolyORB.Configuration;
 
 package MOMA.Configuration is
 
    procedure Load_Configuration_File (Conf_File_Name : String)
     renames PolyORB.Configuration.Load_Configuration_File;
+   --  Load the content of Conf_File_Name into PolyORB configuration table.
+
+   --  Accessors to MOMA destination configuration files data.
 
    function Get_Message_Pool (Number : Natural)
                               return MOMA.Types.Message_Pool;
-
-   function Get_Name (Pool : MOMA.Types.Message_Pool)
-                      return MOMA.Types.String;
-   pragma Inline (Get_Name);
-
-   function Get_Type (Pool : MOMA.Types.Message_Pool)
-                      return MOMA.Types.Pool_Type;
-   pragma Inline (Get_Type);
-
-   function Get_Persistence (Pool : MOMA.Types.Message_Pool)
-                           return MOMA.Types.Persistence_Mode;
-   pragma Inline (Get_Persistence);
+   --  Get information about message pool #Number.
 
 end MOMA.Configuration;

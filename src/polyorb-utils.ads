@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -55,7 +56,7 @@ package PolyORB.Utils is
      (S : String)
      return Ada.Streams.Stream_Element_Array;
    --  Return the Stream_Element_Array represented by the
-   --  string of hexadecimal digits contaned in S.
+   --  string of hexadecimal digits contained in S.
 
    function URI_Encode (S : String) return String;
    --  Return S with special characters replaced by

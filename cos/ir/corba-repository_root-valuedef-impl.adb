@@ -1,11 +1,6 @@
-pragma Warnings (Off);
-----------------------------------------------
---  This file has been generated automatically
---  by AdaBroker (http://adabroker.eu.org/)
-----------------------------------------------
+pragma Style_Checks (Off);
 
 with CORBA.ORB.TypeCode;
-with CORBA.Object;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IRObject.Impl;
@@ -18,6 +13,7 @@ with CORBA.Repository_Root.ValueMemberDef;
 with CORBA.Repository_Root.ValueMemberDef.Impl;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.ValueDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.ValueDef.Skel);
 with CORBA.Repository_Root.InterfaceDef;
 with CORBA.Repository_Root.InterfaceDef.Impl;
 with CORBA.Repository_Root.Helper;
@@ -244,7 +240,12 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       id : in CORBA.RepositoryId)
      return CORBA.Boolean
    is
+      pragma Warnings (Off); --  WAG:3.14
+      pragma Unreferenced (Self, Id);
+      pragma Warnings (On);  --  WAG:3.14
       Result : CORBA.Boolean;
+      pragma Warnings (Off, Result);
+      --  XXX is_a is not implemented yet.
    begin
 
       --  Insert implementation of is_a
@@ -258,6 +259,13 @@ package body CORBA.Repository_Root.ValueDef.Impl is
      return CORBA.Repository_Root.ValueDef.FullValueDescription
    is
       Result : CORBA.Repository_Root.ValueDef.FullValueDescription;
+      pragma Warnings (Off, Result);
+      --  XXX describe_value is not implemented yet.
+
+      pragma Warnings (Off); --  WAG:3.14
+      pragma Unreferenced (Self);
+      pragma Warnings (On);  --  WAG:3.14
+
    begin
 
       --  Insert implementation of describe_value
@@ -284,7 +292,8 @@ package body CORBA.Repository_Root.ValueDef.Impl is
       end if;
       declare
          Result : CORBA.Repository_Root.ValueMemberDef.Ref;
-         Obj : ValueMemberDef.Impl.Object_Ptr := new ValueMemberDef.Impl.Object;
+         Obj : constant ValueMemberDef.Impl.Object_Ptr
+           := new ValueMemberDef.Impl.Object;
       begin
          --  initialization of the object
          ValueMemberDef.Impl.Init (Obj,
@@ -322,14 +331,17 @@ package body CORBA.Repository_Root.ValueDef.Impl is
    is
       Nil_Ref : CORBA.Repository_Root.AttributeDef.Ref;
    begin
-       if not Check_Structure (Self, Dk_Attribute) or
-        not Check_Id (Self, Id) or
-        not Check_Name (Self, Name) then
+      if not (Check_Structure (Self, Dk_Attribute)
+              and then Check_Id (Self, Id)
+              and then Check_Name (Self, Name))
+      then
          return Nil_Ref;
       end if;
+
       declare
          Result : CORBA.Repository_Root.AttributeDef.Ref;
-         Obj : AttributeDef.Impl.Object_Ptr := new AttributeDef.Impl.Object;
+         Obj : constant AttributeDef.Impl.Object_Ptr
+           := new AttributeDef.Impl.Object;
       begin
          --  initialization of the object
          AttributeDef.Impl.Init (Obj,
@@ -370,14 +382,17 @@ package body CORBA.Repository_Root.ValueDef.Impl is
    is
       Nil_Ref : CORBA.Repository_Root.OperationDef.Ref;
    begin
-      if not Check_Structure (Self, Dk_Operation) or
-        not Check_Id (Self, Id) or
-        not Check_Name (Self, Name) then
+      if not (Check_Structure (Self, Dk_Operation)
+              and then Check_Id (Self, Id)
+              and then Check_Name (Self, Name))
+      then
          return Nil_Ref;
       end if;
+
       declare
          Result : CORBA.Repository_Root.OperationDef.Ref;
-         Obj : OperationDef.Impl.Object_Ptr := new OperationDef.Impl.Object;
+         Obj : constant OperationDef.Impl.Object_Ptr
+           := new OperationDef.Impl.Object;
       begin
          --  initialization of the object
          OperationDef.Impl.Init (Obj,
@@ -584,7 +599,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
    begin
       for I in Val_Array'Range loop
          declare
-            Val : Object_Ptr
+            Val : constant Object_Ptr
               := To_Object (Val_Array (I));
          begin
             IdSeq.Append (IdSeq.Sequence (Result), Get_Id (Val));

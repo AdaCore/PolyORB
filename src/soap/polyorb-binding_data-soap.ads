@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,12 +44,16 @@ package PolyORB.Binding_Data.SOAP is
    pragma Elaborate_Body;
 
    type SOAP_Profile_Type is new Profile_Type with private;
-
-   procedure Initialize;
+   --  A profile that designates an object accessible through
+   --  SOAP RPC over HTTP.
 
    procedure Initialize (P : in out SOAP_Profile_Type);
    procedure Adjust     (P : in out SOAP_Profile_Type);
    procedure Finalize   (P : in out SOAP_Profile_Type);
+
+   ----------------------------------------------------
+   -- Overloaded abstract operations of Profile_Type --
+   ----------------------------------------------------
 
    function Bind_Profile
      (Profile : SOAP_Profile_Type;
@@ -65,9 +70,25 @@ package PolyORB.Binding_Data.SOAP is
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
-   function Get_URI_Path
-     (Profile : SOAP_Profile_Type)
-     return Types.String;
+   -----------------------------------------------
+   -- Supplementary operations of SOAP profiles --
+   -----------------------------------------------
+
+   function Get_URI_Path (Profile : SOAP_Profile_Type) return Types.String;
+   --  Return the 'path' component of the object URI.
+
+   function To_URI (Prof : SOAP_Profile_Type) return String;
+   --  Convert a SOAP profile to an equivalent URI.
+
+   function Create_Profile (URI : Types.String) return Profile_Access;
+   --  Create a SOAP RPC/HTTP profile from an absolute URI.
+
+   function Image (Prof : SOAP_Profile_Type) return String;
+   --  Represent Prof as a string, for debugging purposes.
+
+   ----------------------------
+   -- SOAP profile factories --
+   ----------------------------
 
    type SOAP_Profile_Factory is new Profile_Factory with private;
 
@@ -81,14 +102,15 @@ package PolyORB.Binding_Data.SOAP is
       Oid : Objects.Object_Id)
      return Profile_Access;
 
-   function Create_Profile
-     (URI : Types.String)
-     return Profile_Access;
-
    function Is_Local_Profile
      (PF : access SOAP_Profile_Factory;
       P  : access Profile_Type'Class)
       return Boolean;
+
+   -------------------------------------------
+   --  Profile representation subprograms   --
+   --  (used for the construction of IORs). --
+   -------------------------------------------
 
    procedure Marshall_SOAP_Profile_Body
      (Buf     : access Buffers.Buffer_Type;
@@ -97,9 +119,6 @@ package PolyORB.Binding_Data.SOAP is
    function   Unmarshall_SOAP_Profile_Body
      (Buffer   : access Buffers.Buffer_Type)
     return  Profile_Access;
-
-   function Image (Prof : SOAP_Profile_Type) return String;
-   function To_URI (Prof : SOAP_Profile_Type) return String;
 
 private
 
@@ -110,7 +129,6 @@ private
 
    type SOAP_Profile_Factory is new Profile_Factory with record
       Address : Sockets.Sock_Addr_Type;
-      ORB     : Components.Component_Access;
    end record;
 
 end PolyORB.Binding_Data.SOAP;

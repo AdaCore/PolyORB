@@ -187,6 +187,8 @@ package body SOAP.Message.XML is
       S        : in State;
       Expected_Type : in PolyORB.Any.TypeCode.Object)
      return PolyORB.Any.NamedValue;
+   --  Parse any parameter. This is notionally the Unmashall_To_Any
+   --  representation operation.
 
 --    function Parse_Array
 --      (N : in DOM.Core.Node;
@@ -1008,20 +1010,19 @@ package body SOAP.Message.XML is
    procedure Parse_Wrapper (N : in DOM.Core.Node; S : in out State) is
       use type SOAP.Parameters.List;
       use PolyORB.Any.NVList.Internals;
-      use PolyORB.Any.NVList.Internals.NV_Sequence;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
 
       NL   : constant DOM.Core.Node_List := Child_Nodes (N);
       Name : constant String := Local_Name (N);
 
-      Args_Index : Integer := 0;
-      Args_List : NV_Sequence_Access;
+      It : Iterator;
 
       Constructing_Args_List : Boolean;
       --  True iff the args list is initially empty and we have
       --  to determine the types of the arguments using only the
       --  XML attributes in the message.
 
-      NV : PolyORB.Any.NamedValue;
+      NV : Element_Access;
       No_TypeCode : PolyORB.Any.TypeCode.Object;
    begin
       S.Wrapper_Name := To_Unbounded_String (Name);
@@ -1032,11 +1033,9 @@ package body SOAP.Message.XML is
          SOAP.Parameters.Create (S.Parameters);
       end if;
 
-      Args_List := List_Of (PolyORB.Any.NVList.Ref (S.Parameters));
+      It := First (List_Of (PolyORB.Any.NVList.Ref (S.Parameters)).all);
 
-      for I in 0 .. Length (NL) - 1 loop
-         Args_Index := Args_Index + 1;
-
+      for J in 0 .. Length (NL) - 1 loop
          if not Constructing_Args_List then
             loop
 
@@ -1045,20 +1044,20 @@ package body SOAP.Message.XML is
                --  request, IN elements when parsing a response;
                --  INOUT elements are never skipped.)
 
-               NV := Element_Of (Args_List.all, Args_Index);
+               NV := Value (It);
                exit when NV.Arg_Modes = ARG_INOUT
                  or else (S.Kind = Payload xor NV.Arg_Modes = ARG_OUT);
-               Args_Index := Args_Index + 1;
+               Next (It);
             end loop;
 
             Copy_Any_Value
               (NV.Argument,
                Parse_Param
-               (Item (NL, I), S, Get_Type (NV.Argument)).Argument);
+               (Item (NL, J), S, Get_Type (NV.Argument)).Argument);
          else
             SOAP.Parameters.Add_Item
               (S.Parameters, Parse_Param
-               (Item (NL, I), S, No_TypeCode));
+               (Item (NL, J), S, No_TypeCode));
          end if;
       end loop;
    end Parse_Wrapper;

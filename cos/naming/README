@@ -1,0 +1,23 @@
+README for PolyORB Naming Service
+----------------------------------
+
+$Id$
+
+PolyORB provides two implementations of a Naming Service :
+
+ab_names : It is an implementation of the CORBA COS Naming built
+	   on top of the CORBA personality. It is compliant to
+	   OMG's specifications.
+
+po_names : It provides an interface similar to CORBA COS Naming,
+	   without any dependencies on CORBA. It is useful to
+           provide naming functionnalities to DSA or MOMA
+	   applications.
+
+ir_ab_names : XXX to be written
+
+test_naming : provide a shell to test ab_names.
+
+test_naming_generic : test programs to interact either with ab_names or 
+test_naming_corba     po_names.
+

@@ -1,26 +1,33 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                       A D A _ B E . I D L 2 A D A                        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2002 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -535,8 +542,8 @@ package body Ada_Be.Idl2Ada is
                   PL (CU, "--  Sanity check");
                   PL (CU, "if Is_Nil (" & Self_Expr & ") then");
                   II (CU);
-                  Add_With (CU, "PolyORB.Exceptions");
-                  PL (CU, "PolyORB.Exceptions.Raise_Inv_Objref;");
+                  Add_With (CU, "CORBA");
+                  PL (CU, "CORBA.Raise_Inv_Objref (Default_Sys_Member);");
                   DI (CU);
                   PL (CU, "end if;");
                   NL (CU);
@@ -773,8 +780,19 @@ package body Ada_Be.Idl2Ada is
                           (S.IR_Info (Unit_Body), Decl_Node);
                      end if;
                   end if;
-
                end loop;
+
+               if Kind (Node) = K_Module then
+
+                  Gen_Repository_Id (Node, S.Stubs (Unit_Spec));
+
+                  if Intf_Repo then
+                     IR_Info.Gen_Node_Spec (S.IR_Info (Unit_Spec), Node);
+                     IR_Info.Gen_Node_Body (S.IR_Info (Unit_Body), Node);
+                  end if;
+
+               end if;
+
             end;
 
          when K_Interface =>
@@ -1393,10 +1411,15 @@ package body Ada_Be.Idl2Ada is
      (CU : in out Compilation_Unit) is
    begin
       NL (CU);
+      PL (CU, "pragma Warnings (Off);");
+      --  All cases might already have been covered
+      --  by explicit when clauses.
+
       PL (CU, "when others =>");
       II (CU);
       PL (CU, "null;");
       DI (CU);
+      PL (CU, "pragma Warnings (On);");
    end Gen_When_Others_Clause;
 
    -------------------------
@@ -1413,7 +1436,7 @@ package body Ada_Be.Idl2Ada is
 
          when
            K_Repository |
-           K_Module =>
+           K_Module     =>
             null;
 
          when K_Interface  =>
@@ -1634,6 +1657,7 @@ package body Ada_Be.Idl2Ada is
                               Put (CU, " - 1");
                            end loop;
                            PL (CU, ") of");
+                           II (CU);
                         else
                            Put (CU, "  ");
                            if not (Is_Ref or else Is_Fixed) then
@@ -1643,6 +1667,10 @@ package body Ada_Be.Idl2Ada is
 
                         Gen_Node_Stubs_Spec (CU, T_Type (Node));
                         PL (CU, ";");
+
+                        if Is_Array then
+                           DI (CU);
+                        end if;
                      end;
 
                      if Original_Node (Decl_Node) = No_Node then
@@ -1739,19 +1767,19 @@ package body Ada_Be.Idl2Ada is
                               Unit, Typ);
                Add_With (CU, -Unit);
                if B_Node /= No_Node then
-                  Add_With (CU, "PolyORB.Sequences.Bounded",
+                  Add_With (CU, "CORBA.Sequences.Bounded",
                             Use_It => False,
                             Elab_Control => Elaborate_All);
-                  PL (CU, "  new PolyORB.Sequences.Bounded");
+                  PL (CU, "  new CORBA.Sequences.Bounded");
                   PL (CU, "    ("
                       & (-Typ)
                       & ", " & Img (Integer_Value (B_Node))
                       & ");");
                else
-                  Add_With (CU, "PolyORB.Sequences.Unbounded",
+                  Add_With (CU, "CORBA.Sequences.Unbounded",
                             Use_It => False,
                             Elab_Control => Elaborate_All);
-                  PL (CU, "  new PolyORB.Sequences.Unbounded");
+                  PL (CU, "  new CORBA.Sequences.Unbounded");
                   PL (CU, "    ("
                       & (-Typ)
                       & ");");
@@ -1793,7 +1821,11 @@ package body Ada_Be.Idl2Ada is
             end if;
 
          when K_Const_Dcl =>
+
             NL (CU);
+            Put (CU, "use type ");
+            Gen_Node_Stubs_Spec (CU, Constant_Type (Node));
+            PL (CU, ";");
             Put (CU, Name (Node) & " : constant ");
             Gen_Node_Stubs_Spec (CU, Constant_Type (Node));
             NL (CU);
@@ -1936,7 +1968,6 @@ package body Ada_Be.Idl2Ada is
                          Use_It    => True,
                          Elab_Control => Elaborate_All);
 
-               Add_With (CU, "PolyORB.Exceptions");
                Add_With (CU, "PolyORB.CORBA_P.Exceptions");
                Add_With (CU, "PolyORB.Any.NVList");
                Add_With (CU, "PolyORB.Requests");
@@ -1964,23 +1995,36 @@ package body Ada_Be.Idl2Ada is
                         declare
                            Arg_Name : constant String
                              := Ada_Name (Declarator (P_Node));
-                           Prefix   : constant String
-                             := Helper_Unit (Param_Type (P_Node));
+                           P_Typ : constant Node_Id := Param_Type (P_Node);
+                           Helper_Name : constant String
+                             := Helper_Unit (P_Typ);
                         begin
+                           Add_With (CU, Helper_Name);
                            PL (CU, T_Arg_Name & Arg_Name
                                & " : PolyORB.Types.Identifier");
                            PL (CU, "  := PolyORB.Types.To_PolyORB_String ("""
                                & Arg_Name & """);");
 
-                           Add_With (CU, Prefix);
-
                            PL (CU, T_Argument & Arg_Name & " : CORBA.Any");
-                           PL (CU, "  := " & Prefix & ".To_Any");
-                           Put (CU, "  (");
-                           Gen_Forward_Conversion
-                             (CU, Param_Type (P_Node),
-                              "From_Forward", Arg_Name);
-                           PL (CU, ");");
+                           if Mode (P_Node) /= Mode_Out then
+                              PL (CU, "  := " & Helper_Name & ".To_Any");
+                              Put (CU, "  (");
+                              Gen_Forward_Conversion
+                                (CU, P_Typ, "From_Forward", Arg_Name);
+                              PL (CU, ");");
+                           else
+                              declare
+                                 TC_Helper_Name   : constant String
+                                   := Ada_Helper_Name (P_Typ);
+                              begin
+                                 Add_With (CU, TC_Helper_Name);
+                                 PL (CU, "  := CORBA.Get_Empty_Any");
+                                 II (CU);
+                                 PL (CU, "("
+                                   & Ada_Full_TC_Name (P_Typ) & ");");
+                                 DI (CU);
+                              end;
+                           end if;
                         end;
                      end if;
                   end loop;
@@ -2015,7 +2059,7 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "if CORBA.Object.Is_Nil (" & T_Self_Ref & ") then");
                II (CU);
-               PL (CU, "PolyORB.Exceptions.Raise_Inv_Objref;");
+               PL (CU, "CORBA.Raise_Inv_Objref (Default_Sys_Member);");
                DI (CU);
                PL (CU, "end if;");
                NL (CU);
@@ -2069,8 +2113,7 @@ package body Ada_Be.Idl2Ada is
                   while not Is_End (It) loop
                      Get_Next_Node (It, R_Node);
                      E_Node := Value (R_Node);
-                     Add_With_Entity (CU, E_Node);
-
+                     Add_With (CU, Ada_Helper_Name (E_Node));
                      if First then
                         NL (CU);
                         PL (CU, "--  Create exceptions list.");
@@ -2535,7 +2578,7 @@ package body Ada_Be.Idl2Ada is
             Put (CU, Img (Boolean_Value (Node)));
 
          when K_Lit_Enum =>
-            Put (CU, Ada_Name (Enum_Value (Node)));
+            Put (CU, Ada_Full_Name (Enum_Value (Node)));
 
          when K_Primary_Expr =>
             Gen_Node_Default (CU, Operand (Node));
@@ -2632,7 +2675,7 @@ package body Ada_Be.Idl2Ada is
            K_Sequence_Instance |
            K_String_Instance =>
 
-            return Helper_Unit (Node) & ".TC_" & Ada_Name (Node);
+            return Ada_Helper_Name (Node) & ".TC_" & Ada_Name (Node);
 
          when K_Declarator =>
             declare
@@ -2651,12 +2694,12 @@ package body Ada_Be.Idl2Ada is
                           K_Forward_ValueType =>
                            return TC_Name (T_Node);
                         when others =>
-                           return Helper_Unit (Node) & ".TC_"
+                           return Ada_Helper_Name (Node) & ".TC_"
                              & Ada_Name (Node);
                      end case;
                   end;
                else
-                  return Helper_Unit (Node) & ".TC_" & Ada_Name (Node);
+                  return Ada_Helper_Name (Node) & ".TC_" & Ada_Name (Node);
                end if;
             end;
 
@@ -2744,6 +2787,23 @@ package body Ada_Be.Idl2Ada is
    begin
 
       case NK is
+         when K_Declarator =>
+            declare
+               P_T_Type : constant Node_Id := T_Type (Parent (Node));
+               Is_Ref : constant Boolean
+                 := Is_Interface_Type (P_T_Type)
+                 or else Kind (P_T_Type) = K_Object;
+            begin
+               if Is_Ref then
+                  --  This node is mapped to a subtype of the
+                  --  original reference type: use that type's
+                  --  From_Any and To_Any.
+                  return Helper_Unit (P_T_Type);
+               else
+                  return Ada_Helper_Name (Node);
+               end if;
+            end;
+
          when
            K_Forward_Interface |
            K_Forward_ValueType =>

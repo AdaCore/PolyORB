@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -52,11 +53,15 @@ with PolyORB.Buffer_Sources;
 with PolyORB.Filters.AWS_Interface;
 with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Methods;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Objects.Interface;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.SOAP_Pr is
 
@@ -72,6 +77,13 @@ package body PolyORB.Protocols.SOAP_Pr is
    --------------------
    -- Implementation --
    --------------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      null;
+   end Initialize;
 
    procedure Create
      (Proto   : access SOAP_Protocol;
@@ -150,7 +162,7 @@ package body PolyORB.Protocols.SOAP_Pr is
          use PolyORB.Any;
          use PolyORB.Any.NVList;
          use PolyORB.Any.NVList.Internals;
-         use PolyORB.Any.NVList.Internals.NV_Sequence;
+         use PolyORB.Any.NVList.Internals.NV_Lists;
 
          use SOAP.Parameters;
 
@@ -159,20 +171,20 @@ package body PolyORB.Protocols.SOAP_Pr is
            (SOAP.Message.Payload.Object (S.Current_SOAP_Req.all));
          RP : SOAP.Parameters.List;
 
-         Args : constant NV_Sequence_Access
-           := List_Of (R.Args);
-         A : Any.NamedValue;
+         It  : Iterator := First (List_Of (R.Args).all);
+         Arg : Element_Access;
       begin
          SOAP.Message.Payload.Free (S.Current_SOAP_Req);
          RP := +R.Result;
-         for I in 1 .. Get_Count (R.Args) loop
-            A :=  NV_Sequence.Element_Of (Args.all, Positive (I));
+         while not Last (It) loop
+            Arg := Value (It);
             if False
-              or else A.Arg_Modes = ARG_INOUT
-              or else A.Arg_Modes = ARG_OUT
+              or else Arg.Arg_Modes = ARG_INOUT
+              or else Arg.Arg_Modes = ARG_OUT
             then
-               RP := RP & A;
+               RP := RP & Arg.all;
             end if;
+            Next (It);
          end loop;
 
          SOAP.Message.Set_Parameters (RO, RP);
@@ -201,7 +213,7 @@ package body PolyORB.Protocols.SOAP_Pr is
       use PolyORB.Any;
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
-      use PolyORB.Any.NVList.Internals.NV_Sequence;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
 
       R : constant Requests.Request_Access := S.Pending_Rq;
 
@@ -384,4 +396,16 @@ package body PolyORB.Protocols.SOAP_Pr is
       end if;
    end Handle_Message;
 
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name => +"protocols.soap",
+       Conflicts => Empty,
+       Depends => +"http_methods" & "http_headers",
+       Provides => Empty,
+       Init => Initialize'Access));
 end PolyORB.Protocols.SOAP_Pr;

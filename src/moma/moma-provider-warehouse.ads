@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,26 +26,24 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A dynamic, protected  dictionnary of Any, indexed by Strings.
+--  A dynamic, protected  dictionary of Any, indexed by Strings. It is used
+--  as a placeholder for received messages.
 
 --  $Id$
 
 with PolyORB.Any;
+with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Utils.HFunctions.Mul;
 with PolyORB.Utils.HTables.Perfect;
-with PolyORB.Locks;
 
 with MOMA.Types;
 
 package MOMA.Provider.Warehouse is
-
-   package Perfect_Htable is
-      new PolyORB.Utils.HTables.Perfect (PolyORB.Any.Any);
-
-   use Perfect_Htable;
 
    Key_Not_Found : exception;
 
@@ -53,13 +51,13 @@ package MOMA.Provider.Warehouse is
 
    procedure Register
      (W : in out Warehouse;
-      K : String;
-      V : PolyORB.Any.Any);
+      K :        String;
+      V :        PolyORB.Any.Any);
    --  Associate key K with value V.
 
    procedure Unregister
      (W : in out Warehouse;
-      K : String);
+      K :        String);
    --  Remove any association for K. Key_Not_Found is raised
    --  if no value was registered for this key.
 
@@ -72,28 +70,38 @@ package MOMA.Provider.Warehouse is
    --  key.
 
    function Lookup
-     (W : Warehouse;
-      K : String;
+     (W       : Warehouse;
+      K       : String;
       Default : PolyORB.Any.Any)
      return PolyORB.Any.Any;
    --  As above, but Default is returned for non-registered keys,
-   --  insted of raising an exception.
+   --  instead of raising an exception.
 
-   procedure Set_Persistence (W : in out Warehouse;
-                              Persistence : MOMA.Types.Persistence_Mode);
+   procedure Set_Persistence
+     (W           : in out Warehouse;
+      Persistence :        MOMA.Types.Persistence_Mode);
    --  Set persistency flag for this warehouse,
-   --  Note : this override any flag set for a message if set to a mode
+   --  Note : this overrides any flag set for a message if set to a mode
    --  allowing persistence.
 
    --  XXX Warning : not safe in case of multiple message pools !!!!
 
 private
 
+   package Perfect_Htable is
+      new PolyORB.Utils.HTables.Perfect
+     (PolyORB.Any.Any,
+      PolyORB.Utils.HFunctions.Mul.Hash_Mul_Parameters,
+      PolyORB.Utils.HFunctions.Mul.Default_Hash_Parameters,
+      PolyORB.Utils.HFunctions.Mul.Hash,
+      PolyORB.Utils.HFunctions.Mul.Next_Hash_Parameters);
+   use Perfect_Htable;
+
    type Warehouse is record
       T             : Table_Instance;
       T_Initialized : Boolean := False;
       T_Persistence : MOMA.Types.Persistence_Mode := MOMA.Types.None;
-      T_Lock        : PolyORB.Locks.Rw_Lock_Access;
+      T_Lock        : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
    end record;
 
 end MOMA.Provider.Warehouse;

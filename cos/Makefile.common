@@ -3,42 +3,30 @@ IDLAC_DIR=	$(COS_ROOT)/../compilers/idlac
 IDLAC=		$(IDLAC_DIR)/idlac
 LINKER=		$(COS_ROOT)/../support/linker
 
-if ENABLE_CORBA
-CORBA_LIB="$(COS_ROOT)/../src/corba/libpolyorb-corba.la"
-endif
-
-if ENABLE_GIOP
-GIOP_LIB="$(COS_ROOT)/../src/giop/libpolyorb-giop.la"
-endif
-
-if ENABLE_MOMA
-MOMA_LIB="$(COS_ROOT)/../src/moma/libpolyorb-moma.la"
-endif
-
-if ENABLE_SOAP
-SOAP_LIB="$(COS_ROOT)/../src/soap/libpolyorb-soap.la"
-endif
+corba_lib=$(COS_ROOT)/../src/corba/libpolyorb-corba.la
+giop_lib=$(COS_ROOT)/../src/giop/libpolyorb-giop.la $(COS_ROOT)/../src/giop/iiop/libpolyorb-iiop.la
+moma_lib=$(COS_ROOT)/../src/moma/libpolyorb-moma.la
+soap_lib=$(COS_ROOT)/../src/soap/libpolyorb-soap.la
+srp_lib=$(COS_ROOT)/../src/srp/libpolyorb-srp.la
 
 POLYORB_LIBS = \
 $(COS_ROOT)/../src/libpolyorb.la \
-$(CORBA_LIB) \
-$(GIOP_LIB) \
-$(MOMA_LIB) \
-$(SOAP_LIB)
+@PROTO_LIBS@ \
+@APPLI_LIBS@
+
+corba_inc=-I$(srcdir)/$(COS_ROOT)/../src/corba -I$(COS_ROOT)/../src/corba
+giop_inc=-I$(srcdir)/$(COS_ROOT)/../src/giop -I$(COS_ROOT)/../src/giop -I$(srcdir)/$(COS_ROOT)/../src/giop/iiop -I$(COS_ROOT)/../src/giop/iiop
+soap_inc=-I$(srcdir)/$(COS_ROOT)/../src/soap -I$(COS_ROOT)/../src/soap
+srp_inc=-I$(srcdir)/$(COS_ROOT)/../src/srp -I$(COS_ROOT)/../src/srp
+
+ir_inc=-I$(COS_ROOT)/ir -I$(srcdir)/$(COS_ROOT)/ir
+
+POLYORB_INCS=-I$(srcdir) -I$(srcdir)/$(COS_ROOT)/../src -I$(COS_ROOT)/../src \
+             @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@
 
 GNATMAKE_FLAGS = \
-	-I$(srcdir) \
-	-I$(srcdir)/$(COS_ROOT)/../src \
-	-I$(srcdir)/$(COS_ROOT)/../src/corba \
-	-I$(srcdir)/$(COS_ROOT)/../src/giop \
-	-I$(srcdir)/$(COS_ROOT)/../src/soap \
-	-I$(srcdir)/$(COS_ROOT)/../src/srp \
-	-I$(COS_ROOT)/../src \
-	-I$(COS_ROOT)/../src/corba \
-	-I$(COS_ROOT)/../src/giop \
-	-I$(COS_ROOT)/../src/soap \
-	-I$(COS_ROOT)/../src/srp \
-	$(XMLADA_INCLUDE) \
+	$(POLYORB_INCS) \
+	$(XMLADA_INCS) \
 	-m \
 	$(COS_GNATMAKE_FLAGS) \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \
@@ -47,19 +35,25 @@ GNATMAKE_FLAGS = \
 
 CLEANFILES = b~*.* *.o *.ali
 
-DISTCLEANFILES = $(PROGS)
+DISTCLEANFILES =  $(PROGS)
 
-SUFFIXES = .idl .ads .adb
+SUFFIXES = .idl .ads .adb .ali
 
 all-local:: $(PROGS) $(EXTRA)
 
 .idl.ads .idl.adb:
 	$(IDLAC) -I$(srcdir) $<
 
+.adb.ali:
+	$(GNATMAKE_FOR_TARGET) -c $< $(GNATMAKE_FLAGS)
+
 .PHONY: force
 
 $(IDLAC): force
 	cd $(IDLAC_DIR) && $(MAKE)
+
+$(PROGS): $(FORCE) $(GEN)
+	$(GNATMAKE_FOR_TARGET) $@ $(GNATMAKE_FLAGS)
 
 force::
 	cd ../../src && $(MAKE)
@@ -67,3 +61,5 @@ force::
 	do\
 	  (cd $$dir && $(MAKE));\
 	done
+
+gen: $(GEN)

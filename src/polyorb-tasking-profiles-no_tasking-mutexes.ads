@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---                  . N O _ T A S K I N G . M U T E X E S                   --
+--               POLYORB.TASKING.PROFILES.NO_TASKING.MUTEXES                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -50,11 +50,8 @@ package PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
      access all No_Tasking_Mutex_Type'Class;
    --  Type for mutexes with no Ada tasking.
 
-   procedure Enter (M : in out No_Tasking_Mutex_Type);
-   --  Enter critical section.
-
-   procedure Leave (M : in out No_Tasking_Mutex_Type);
-   --  Leave critical section.
+   procedure Enter (M : access No_Tasking_Mutex_Type);
+   procedure Leave (M : access No_Tasking_Mutex_Type);
 
    type No_Tasking_Mutex_Factory_Type is
      new PTM.Mutex_Factory_Type with private;
@@ -74,7 +71,7 @@ package PolyORB.Tasking.Profiles.No_Tasking.Mutexes is
    --  Mutex from the configuration module.
 
    procedure Destroy
-     (MF : in out No_Tasking_Mutex_Factory_Type;
+     (MF : access No_Tasking_Mutex_Factory_Type;
       M  : in out PTM.Mutex_Access);
    --  Destroy M.
 

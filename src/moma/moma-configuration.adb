@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -52,37 +53,41 @@ package body MOMA.Configuration is
    -- Get_Message_Pool --
    ----------------------
 
-   function Get_Message_Pool (Number : Natural)
-                              return MOMA.Types.Message_Pool
+   function Get_Message_Pool
+     (Number : Natural)
+     return MOMA.Types.Message_Pool
    is
-      Section : constant String
-        := "destination" & Natural'Image (Number);
+      Section : constant String := "destination" & Natural'Image (Number);
 
       Pool_S : constant String := Get_Conf (Section, "type");
       Persistent_S : constant String := Get_Conf (Section, "persistent");
 
       Result : Message_Pool;
    begin
-      Result.Name := To_MOMA_String (Get_Conf (Section, "name"));
+      Set_Name (Result, To_MOMA_String (Get_Conf (Section, "name")));
 
       pragma Debug (O ("Pool #" & Natural'Image (Number) & " : "
-                       & "Name : " & To_Standard_String (Result.Name)
+                       & "Name : " & To_Standard_String (Get_Name (Result))
                        & ", Type : " & Pool_S
                        & ", Persistent : " & Persistent_S));
 
       if Pool_S = "queue" then
-         Result.Pool := Queue;
+         Set_Type (Result, Queue);
+
       elsif Pool_S = "topic" then
-         Result.Pool := Topic;
+         Set_Type (Result, Topic);
+
       else
          raise Program_Error;
          --  XXX should raise something else ...
       end if;
 
       if Persistent_S = "none" then
-         Result.Persistence := None;
+         Set_Persistence (Result, None);
+
       elsif Persistent_S = "file" then
-         Result.Persistence := File;
+         Set_Persistence (Result, File);
+
       else
          raise Program_Error;
          --  XXX should raise something else ...
@@ -90,35 +95,5 @@ package body MOMA.Configuration is
 
       return Result;
    end Get_Message_Pool;
-
-   --------------
-   -- Get_Name --
-   --------------
-
-   function Get_Name (Pool : MOMA.Types.Message_Pool)
-                      return MOMA.Types.String is
-   begin
-      return Pool.Name;
-   end Get_Name;
-
-   --------------
-   -- Get_Type --
-   --------------
-
-   function Get_Type (Pool : MOMA.Types.Message_Pool)
-                      return Pool_Type is
-   begin
-      return Pool.Pool;
-   end Get_Type;
-
-   --------------------
-   -- Get_Persistent --
-   --------------------
-
-   function Get_Persistence (Pool : MOMA.Types.Message_Pool)
-                            return Persistence_Mode is
-   begin
-      return Pool.Persistence;
-   end Get_Persistence;
 
 end MOMA.Configuration;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,78 +26,112 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Basic POA implementation.
 
+--  As an implementation package of abstract functions defined in
+--  PolyORB.POA, this package provides an implementation for both the
+--  CORBA-like POA API (defined in PolyORB.POA) and PolyORB Obj_Adapter
+--  (defined in PolyORB.Obj_Adapters) upon which the Basic POA depends.
+
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
-
-with PolyORB.Any;
 with PolyORB.Any.NVList;
+with PolyORB.Exceptions;
 with PolyORB.Objects;
-with PolyORB.Servants;
 with PolyORB.POA_Policies;
 with PolyORB.References;
+with PolyORB.Servants;
 
 package PolyORB.POA.Basic_POA is
 
    pragma Elaborate_Body;
 
-   type Basic_Obj_Adapter is new POA.Obj_Adapter
-     with private;
+   type Basic_Obj_Adapter is new POA.Obj_Adapter with private;
    type Basic_Obj_Adapter_Access is access all Basic_Obj_Adapter;
    --  The POA object
 
-   --------------------------------------------------
-   --  Procedures and functions required by CORBA  --
-   --------------------------------------------------
+   ---------------------------------------------
+   -- CORBA-like POA interface implementation --
+   ---------------------------------------------
 
-   function Create_POA
+   procedure Create_POA
      (Self         : access Basic_Obj_Adapter;
       Adapter_Name :        Types.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        POA_Policies.PolicyList)
-     return Obj_Adapter_Access;
-   --  Create a POA given its name and a list of policies
-   --  Policies are optionnal : defaults values are provided
+      Policies     :        POA_Policies.PolicyList;
+      POA          :    out Obj_Adapter_Access;
+      Error        : in out PolyORB.Exceptions.Error_Container);
+
+   procedure Find_POA
+     (Self        : access Basic_Obj_Adapter;
+      Name        :        String;
+      Activate_It :        Boolean;
+      POA         :    out Obj_Adapter_Access;
+      Error       : in out PolyORB.Exceptions.Error_Container);
 
    procedure Destroy
      (Self                : access Basic_Obj_Adapter;
-      Etherealize_Objects : in     Boolean;
-      Wait_For_Completion : in     Boolean);
+      Etherealize_Objects : in     Types.Boolean;
+      Wait_For_Completion : in     Types.Boolean);
 
-   function Create_Object_Identification
-     (Self : access Basic_Obj_Adapter;
-      Hint :        Object_Id_Access := null)
-     return Unmarshalled_Oid;
+   procedure Create_Object_Identification
+     (Self  : access Basic_Obj_Adapter;
+      Hint  :        Object_Id_Access;
+      U_Oid :    out Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
-   function Activate_Object
+   procedure Activate_Object
      (Self      : access Basic_Obj_Adapter;
-      P_Servant :        Servants.Servant_Access;
-      Hint      :        Object_Id_Access := null)
-     return Object_Id;
+      P_Servant : in     Servants.Servant_Access;
+      Hint      :        Object_Id_Access;
+      U_Oid     :    out Unmarshalled_Oid;
+      Error     : in out PolyORB.Exceptions.Error_Container);
 
    procedure Deactivate_Object
      (Self      : access Basic_Obj_Adapter;
-      Oid       : in Object_Id);
+      Oid       : in     Object_Id;
+      Error     : in out PolyORB.Exceptions.Error_Container);
 
-   function Servant_To_Id
+   procedure Servant_To_Id
      (Self      : access Basic_Obj_Adapter;
-      P_Servant : in     Servants.Servant_Access)
-     return Object_Id;
+      P_Servant : in     Servants.Servant_Access;
+      Oid       :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container);
 
-   function Id_To_Servant
-     (Self : access Basic_Obj_Adapter;
-      Oid  :        Object_Id)
-     return Servants.Servant_Access;
+   procedure Id_To_Servant
+     (Self    : access Basic_Obj_Adapter;
+      Oid     :        Object_Id;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
 
-   --------------------------------------------------------
-   --  Functions and procedures to interface with PolyORB --
-   --------------------------------------------------------
+   procedure Get_Servant
+     (Self    : access Basic_Obj_Adapter;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
+   procedure Set_Servant
+     (Self    : access Basic_Obj_Adapter;
+      Servant :        Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
+   procedure Get_Servant_Manager
+     (Self    : access Basic_Obj_Adapter;
+      Manager :    out ServantManager_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
+   procedure Set_Servant_Manager
+     (Self    : access Basic_Obj_Adapter;
+      Manager :        ServantManager_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
+   --------------------------------------------------
+   -- PolyORB Obj_Adapter interface implementation --
+   --------------------------------------------------
 
    procedure Create
      (OA : access Basic_Obj_Adapter);
@@ -105,20 +139,23 @@ package PolyORB.POA.Basic_POA is
    procedure Destroy
      (OA : access Basic_Obj_Adapter);
 
-   function Export
-     (OA  : access Basic_Obj_Adapter;
-      Obj :        Servants.Servant_Access;
-      Key : Objects.Object_Id_Access := null)
-     return Objects.Object_Id;
+   procedure Export
+     (OA    : access Basic_Obj_Adapter;
+      Obj   :        Servants.Servant_Access;
+      Key   :        Objects.Object_Id_Access;
+      Oid   :    out Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
    procedure Unexport
-     (OA : access Basic_Obj_Adapter;
-      Id :        Objects.Object_Id_Access);
+     (OA    : access Basic_Obj_Adapter;
+      Id    :        Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
-   function Object_Key
-     (OA : access Basic_Obj_Adapter;
-      Id :        Objects.Object_Id_Access)
-      return Objects.Object_Id;
+   procedure Object_Key
+     (OA      : access Basic_Obj_Adapter;
+      Id      :        Objects.Object_Id_Access;
+      User_Id :    out Objects.Object_Id_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
 
    function Get_Empty_Arg_List
      (OA     : access Basic_Obj_Adapter;
@@ -132,19 +169,20 @@ package PolyORB.POA.Basic_POA is
       Method :        String)
      return Any.Any;
 
-   function Find_Servant
-     (OA : access Basic_Obj_Adapter;
-      Id : access Objects.Object_Id)
-     return Servants.Servant_Access;
+   procedure Find_Servant
+     (OA      : access Basic_Obj_Adapter;
+      Id      : access Objects.Object_Id;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
 
    procedure Release_Servant
      (OA      : access Basic_Obj_Adapter;
       Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access);
 
-   -------------------------------------------------
-   --  Utilities, neither in CORBA nor in PolyORB  --
-   -------------------------------------------------
+   ----------------------
+   -- Utility function --
+   ----------------------
 
    procedure Copy_Obj_Adapter
      (From : in     Basic_Obj_Adapter;
@@ -153,8 +191,6 @@ package PolyORB.POA.Basic_POA is
    procedure Remove_POA_By_Name
      (Self       : access Basic_Obj_Adapter;
       Child_Name :        Types.String);
-   --  Remove a child POA from Self's list of children
-   --  Doesn't lock the list of children
 
    --------------------------------
    -- Proxy namespace management --
@@ -169,10 +205,11 @@ package PolyORB.POA.Basic_POA is
       Oid : access Objects.Object_Id)
      return Boolean;
 
-   function To_Proxy_Oid
-     (OA : access Basic_Obj_Adapter;
-      R  :        References.Ref)
-     return Object_Id_Access;
+   procedure To_Proxy_Oid
+     (OA    : access Basic_Obj_Adapter;
+      R     :        References.Ref;
+      Oid   :    out Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
    function Proxy_To_Ref
      (OA  : access Basic_Obj_Adapter;
@@ -186,10 +223,5 @@ private
       --  The child POA used for management of the proxy objects
       --  namespace (used only in the Root POA instance.)
    end record;
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Basic_Obj_Adapter, Basic_Obj_Adapter_Access);
-
-   type Check_State is (CHECK, NO_CHECK);
 
 end PolyORB.POA.Basic_POA;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,22 +26,25 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A dynamic, protected dictionnary of Any, indexed by Strings.
+--  A dynamic, protected dictionary of Any, indexed by Strings.
 
 --  $Id$
 
 with Ada.Streams;
 with Ada.Streams.Stream_IO;
 
+with System;
+
 with PolyORB.Any;
 with PolyORB.Buffers;
-with PolyORB.Locks;
 with PolyORB.Opaque;
 with PolyORB.Representations.CDR;
+with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Utils.HTables.Perfect;
 
 with MOMA.Messages;
@@ -53,9 +56,9 @@ package body MOMA.Provider.Warehouse is
 
    use PolyORB.Any;
    use PolyORB.Buffers;
-   use PolyORB.Locks;
    use PolyORB.Opaque;
    use PolyORB.Representations.CDR;
+   use PolyORB.Tasking.Rw_Locks;
 
    use MOMA.Messages;
    use MOMA.Types;
@@ -100,17 +103,27 @@ package body MOMA.Provider.Warehouse is
 
       if W.T_Persistence = None then
          Lock_R (W.T_Lock);
-         Result := Lookup (W.T, K);
-         Unlock_R (W.T_Lock);
-
+         begin
+            Result := Lookup (W.T, K);
+            Unlock_R (W.T_Lock);
+         exception
+            when No_Key =>
+               Unlock_R (W.T_Lock);
+               raise Key_Not_Found;
+         end;
       else
          Ada.Streams.Stream_IO.Open (Stream_File, In_File, "message_" & K);
          Allocate_And_Insert_Cooked_Data (Buffer, 1024, Data);
-         Ada.Streams.Stream_IO.Read (Stream_File, Data.Zone
-                                     (Data.Offset .. Data.Offset + 1024),
-                                     Last);
+         declare
+            Z_Addr : constant System.Address := Data;
+            Z : Stream_Element_Array (0 .. 1023);
+            for Z'Address use Z_Addr;
+            pragma Import (Ada, Z);
+         begin
+            Ada.Streams.Stream_IO.Read (Stream_File, Z, Last);
+         end;
 
-         Received := Last - Data.Offset + 1;
+         Received := Last + 1;
          Unuse_Allocation (Buffer, 1024 - Received);
          Ada.Streams.Stream_IO.Close (Stream_File);
 
@@ -120,13 +133,11 @@ package body MOMA.Provider.Warehouse is
       end if;
 
       return Result;
-   exception
-         when No_Key => raise Key_Not_Found;
    end Lookup;
 
    function Lookup
-     (W : Warehouse;
-      K : String;
+     (W       : Warehouse;
+      K       : String;
       Default : PolyORB.Any.Any)
      return PolyORB.Any.Any
    is
@@ -148,8 +159,8 @@ package body MOMA.Provider.Warehouse is
 
    procedure Register
      (W : in out Warehouse;
-      K : String;
-      V : PolyORB.Any.Any)
+      K :        String;
+      V :        PolyORB.Any.Any)
    is
       Stream_File : Ada.Streams.Stream_IO.File_Type;
       Buffer      : constant Buffer_Access := new Buffer_Type;
@@ -178,7 +189,7 @@ package body MOMA.Provider.Warehouse is
 
    procedure Unregister
      (W : in out Warehouse;
-      K : String)
+      K :        String)
    is
       Stream_File : Ada.Streams.Stream_IO.File_Type;
    begin
@@ -194,16 +205,15 @@ package body MOMA.Provider.Warehouse is
          Ada.Streams.Stream_IO.Delete (Stream_File);
       end if;
 
-   exception
-      when No_Key => raise Key_Not_Found;
    end Unregister;
 
    ---------------------
    -- Set_Persistence --
    ---------------------
 
-   procedure Set_Persistence (W : in out Warehouse;
-                             Persistence : MOMA.Types.Persistence_Mode) is
+   procedure Set_Persistence
+     (W           : in out Warehouse;
+      Persistence :        MOMA.Types.Persistence_Mode) is
    begin
       W.T_Persistence := Persistence;
    end Set_Persistence;

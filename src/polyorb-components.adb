@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -51,12 +52,20 @@ package body PolyORB.Components is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   -------------
+   -- Connect --
+   -------------
+
    procedure Connect
      (Port : out Component_Access;
       Target : Component_Access) is
    begin
       Port := Target;
    end Connect;
+
+   ----------
+   -- Emit --
+   ----------
 
    function Emit
      (Port : Component_Access;
@@ -78,6 +87,10 @@ package body PolyORB.Components is
       end if;
    end Emit;
 
+   -------------------
+   -- Emit_No_Reply --
+   -------------------
+
    procedure Emit_No_Reply
      (Port : Component_Access;
       Msg    : Message'Class)
@@ -90,6 +103,10 @@ package body PolyORB.Components is
       pragma Assert (Reply in Null_Message);
       null;
    end Emit_No_Reply;
+
+   -------------
+   -- Destroy --
+   -------------
 
    procedure Destroy (C : in out Component_Access)
    is
@@ -110,6 +127,10 @@ package body PolyORB.Components is
       end case;
    end Destroy;
 
+   --------------------------
+   -- Set_Allocation_Class --
+   --------------------------
+
    procedure Set_Allocation_Class
      (C   : in out Component'Class;
       CAC : Component_Allocation_Class) is
@@ -118,6 +139,10 @@ package body PolyORB.Components is
       C.Allocation_Class := CAC;
    end Set_Allocation_Class;
 
+   ---------------
+   -- Subscribe --
+   ---------------
+
    procedure Subscribe
      (G      : in out Group;
       Target : Component_Access) is
@@ -125,6 +150,10 @@ package body PolyORB.Components is
       pragma Assert (Target /= null);
       Append (G.Members, Target);
    end Subscribe;
+
+   -----------------
+   -- Unsubscribe --
+   -----------------
 
    procedure Unsubscribe
      (G      : in out Group;
@@ -142,6 +171,10 @@ package body PolyORB.Components is
          end if;
       end loop;
    end Unsubscribe;
+
+   --------------------
+   -- Handle_Message --
+   --------------------
 
    function Handle_Message
      (Grp : access Multicast_Group;
@@ -171,6 +204,10 @@ package body PolyORB.Components is
          raise Unhandled_Message;
       end if;
    end Handle_Message;
+
+   --------------------
+   -- Handle_Message --
+   --------------------
 
    function Handle_Message
      (Grp : access Anycast_Group;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B - P R O F I L E S - R A V E N S C A R            --
+--           P O L Y O R B . P R O F I L E S . R A V E N S C A R            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,52 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
---  Set up a ravenscar profile
 
---  //droopi/main/design/tasking/polyorb-tasking-full_tasking_profile.ads
+--  You should instanciate this package to set up a ravenscar profile.
+
+--  $Id$
+
+with System;
+with PolyORB.Tasking.Profiles.Ravenscar.Threads;
+with PolyORB.Tasking.Profiles.Ravenscar.Mutexes;
+with PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables;
+
+generic
+   Number_Of_Application_Tasks    : Integer;
+   --  Number of tasks created by the user.
+
+   Number_Of_System_Tasks         : Integer;
+   --  Number of tasks created by the PolyORB run-time library.
+
+   Number_Of_Conditions           : Integer;
+   --  Number of preallocated conditions.
+
+   Number_Of_Mutexes              : Integer;
+   --  Number of preallocated mutexes.
+
+   Task_Priority                  : System.Priority;
+   --  Priority affected  to the tasks of the pool.
 
 package PolyORB.Profiles.Ravenscar is
-   pragma Elaborate_Body;
+
+   package Threads_Package is
+      new PolyORB.Tasking.Profiles.Ravenscar.Threads
+     (Number_Of_Application_Tasks,
+      Number_Of_System_Tasks,
+      Task_Priority);
+
+   package Conditions_Package is
+      new PolyORB.Tasking.Profiles.Ravenscar.Condition_Variables
+     (Threads_Package,
+      Number_Of_Conditions);
+
+   package Mutexes_Package is
+      new PolyORB.Tasking.Profiles.Ravenscar.Mutexes
+     (Threads_Package,
+      Number_Of_Mutexes);
+
 end PolyORB.Profiles.Ravenscar;

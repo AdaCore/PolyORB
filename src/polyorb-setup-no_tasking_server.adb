@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,18 +36,24 @@
 --  $Id$
 
 with PolyORB.Initialization;
-with PolyORB.ORB.No_Tasking;
-with PolyORB.Setup.Server;
-
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Server);
-
 pragma Warnings (Off, PolyORB.Initialization);
+
+with PolyORB.ORB;
+pragma Elaborate_All (PolyORB.ORB);
+pragma Warnings (Off, PolyORB.ORB);
+
+with PolyORB.Profiles.No_Tasking;
+pragma Warnings (Off, PolyORB.Profiles.No_Tasking);
+pragma Elaborate_All (PolyORB.Profiles.No_Tasking);
+
+with PolyORB.ORB.No_Tasking;
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
+pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+
+with PolyORB.Setup.Server;
+pragma Elaborate_All (PolyORB.Setup.Server);
 pragma Warnings (Off, PolyORB.Setup.Server);
 
 package body PolyORB.Setup.No_Tasking_Server is
 
-begin
-   PolyORB.Initialization.Initialize_World;
 end PolyORB.Setup.No_Tasking_Server;

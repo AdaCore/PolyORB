@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -41,7 +42,8 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    -- Create --
    ------------
 
-   function Create return Transient_Policy_Access is
+   function Create
+     return Transient_Policy_Access is
    begin
       return new Transient_Policy;
    end Create;
@@ -51,15 +53,19 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : Transient_Policy;
-      Other_Policies   : AllPolicies)
+     (Self           :        Transient_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
+      pragma Unreferenced (Error);
       pragma Warnings (On);
+
+   begin
       null;
+      --  No rule to test.
    end Check_Compatibility;
 
    ---------------
@@ -68,11 +74,13 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
 
    function Policy_Id
      (Self : Transient_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return "LIFESPAN_POLICY.TRANSIENT";
    end Policy_Id;
 
@@ -83,11 +91,13 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    function Get_Lifespan_Cookie
      (Self : Transient_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
-     return Lifespan_Cookie is
-   begin
+     return Lifespan_Cookie
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return Lifespan_Cookie (PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time);
    end Get_Lifespan_Cookie;
 
@@ -96,17 +106,25 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
    ---------------------
 
    procedure Ensure_Lifespan
-     (Self  : Transient_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid) is
-   begin
+     (Self  :        Transient_Policy;
+      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid :        Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+      use PolyORB.Exceptions;
+
+   begin
       if U_Oid.Persistency_Flag
         /= PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time
       then
-         raise PolyORB.POA.Object_Not_Exist;
+         Throw (Error,
+                Object_Not_Exist_E,
+                System_Exception_Members'(Minor => 0,
+                                          Completed => Completed_No));
       end if;
    end Ensure_Lifespan;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,11 +26,11 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.POA;
 with PolyORB.Types;
 
 package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
@@ -41,7 +41,8 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
    -- Create --
    ------------
 
-   function Create return Persistent_Policy_Access is
+   function Create
+     return Persistent_Policy_Access is
    begin
       return new Persistent_Policy;
    end Create;
@@ -51,16 +52,19 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : Persistent_Policy;
-      Other_Policies   : AllPolicies)
+     (Self           :        Persistent_Policy;
+      Other_Policies :        AllPolicies;
+      Error          : in out PolyORB.Exceptions.Error_Container)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Other_Policies);
+      pragma Unreferenced (Error);
       pragma Warnings (On);
+
+   begin
       null;
-      --  XXX Is this OK for policy PERSISTENT??
+      --  No rule to test.
    end Check_Compatibility;
 
    ---------------
@@ -69,11 +73,13 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
 
    function Policy_Id
      (Self : Persistent_Policy)
-     return String is
-   begin
+     return String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
+   begin
       return "LIFESPAN_POLICY.PERSISTENT";
    end Policy_Id;
 
@@ -84,12 +90,14 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
    function Get_Lifespan_Cookie
      (Self : Persistent_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
-     return Time_Stamp is
-   begin
+     return Time_Stamp
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self, OA);
       pragma Warnings (On);
-      return 0;
+
+   begin
+      return Null_Time_Stamp;
    end Get_Lifespan_Cookie;
 
    ---------------------
@@ -97,15 +105,23 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
    ---------------------
 
    procedure Ensure_Lifespan
-     (Self  : Persistent_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid) is
-   begin
+     (Self  :        Persistent_Policy;
+      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid :        Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self, OA);
       pragma Warnings (On);
-      if U_Oid.Persistency_Flag /= 0 then
-         raise PolyORB.POA.Object_Not_Exist;
+
+      use PolyORB.Exceptions;
+
+   begin
+      if U_Oid.Persistency_Flag /= Null_Time_Stamp then
+         Throw (Error,
+                Object_Not_Exist_E,
+                System_Exception_Members'(Minor => 0,
+                                          Completed => Completed_No));
       end if;
    end Ensure_Lifespan;
 

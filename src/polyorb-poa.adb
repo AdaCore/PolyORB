@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,27 +35,47 @@
 
 --  $Id$
 
+with PolyORB.Log;
 with PolyORB.Utils;
 
 package body PolyORB.POA is
 
+   use PolyORB.Log;
    use PolyORB.Types;
    use PolyORB.Utils;
+
+   package L is new Log.Facility_Log ("polyorb.poa");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
+
+   --------------------
+   -- Oid_To_Rel_URI --
+   --------------------
 
    function Oid_To_Rel_URI
      (OA : access Obj_Adapter;
       Id : access Object_Id)
      return Types.String
    is
-      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
-      URI : Types.String := To_PolyORB_String ("/");
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
+
+      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
+      URI : Types.String := To_PolyORB_String ("/");
+   begin
+      pragma Debug (O ("Oid: Creator: "
+                         & To_Standard_String (U_Oid.Creator)
+                         & ", Id: " & To_Standard_String (U_Oid.Id)
+                         & ", sys = " & Boolean'Image
+                         (U_Oid.System_Generated)
+                         & ", pf = " & Lifespan_Cookie'Image
+                         (U_Oid.Persistency_Flag)));
+
       if Length (U_Oid.Creator) /= 0 then
          URI := URI & U_Oid.Creator & To_PolyORB_String ("/");
       end if;
+
       URI := URI & URI_Encode (To_Standard_String (U_Oid.Id));
       --  XXX Here we make the assumption that Id needs to be
       --  URI-escaped, and Creator needs not, but there is
@@ -71,31 +92,45 @@ package body PolyORB.POA is
            (Integer (U_Oid.Persistency_Flag));
       end if;
 
+      pragma Debug (O ("-> URI: " & To_Standard_String (URI)));
+
       return URI;
    end Oid_To_Rel_URI;
 
+   --------------------
+   -- Rel_URI_To_Oid --
+   --------------------
+
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
-      URI : Types.String)
+      URI :        Types.String)
      return Object_Id_Access
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
+
       U_Oid : aliased Unmarshalled_Oid;
       S : constant String := To_Standard_String (URI);
 
       Colon : Integer := Find (S, S'First, ';');
       Last_Slash : Integer := Colon - 1;
    begin
-      while S (Last_Slash) /= '/' and then Last_Slash >= S'First loop
+      pragma Debug (O ("URI: " & To_Standard_String (URI)));
+
+      while S (Last_Slash) /= '/'
+        and then Last_Slash >= S'First loop
          Last_Slash := Last_Slash - 1;
       end loop;
-      pragma Assert (S (S'First) = '/' and then Last_Slash >= S'First);
+
+      pragma Assert (S (S'First) = '/'
+                     and then Last_Slash >= S'First);
+
       U_Oid.Creator := To_PolyORB_String (S (S'First + 1 .. Last_Slash - 1));
 
       U_Oid.Id := To_PolyORB_String
         (URI_Decode (S (Last_Slash + 1 .. Colon - 1)));
+
       if Colon + 3 <= S'Last
         and then S (Colon + 1 .. Colon + 3) = "sys"
       then
@@ -110,9 +145,19 @@ package body PolyORB.POA is
       then
          U_Oid.Persistency_Flag
            := Lifespan_Cookie'Value (S (Colon + 4 .. S'Last));
+      else
+         U_Oid.Persistency_Flag := 0;
       end if;
+
+      pragma Debug (O ("-> Oid: Creator: "
+                         & To_Standard_String (U_Oid.Creator)
+                         & ", Id: " & To_Standard_String (U_Oid.Id)
+                         & ", sys = " & Boolean'Image
+                         (U_Oid.System_Generated)
+                         & ", pf = " & Lifespan_Cookie'Image
+                         (U_Oid.Persistency_Flag)));
+
       return U_Oid_To_Oid (U_Oid);
    end Rel_URI_To_Oid;
-
 
 end PolyORB.POA;

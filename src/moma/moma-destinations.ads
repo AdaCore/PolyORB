@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,45 +26,98 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Definition of the 'destination' object.
+--  A Destination contains data to reference an object to which messages
+--  can be sent, or from which messages can be retrieved.
 
 --  $Id$
 
 with MOMA.Types;
+
+with PolyORB.Any;
 with PolyORB.References;
 
 package MOMA.Destinations is
 
-   type Destination is tagged private;
-   --  A destination is a structure embedding a reference to an object
-   --  (message pool or message router) to which message must be sent.
+   type Destination is private;
+   --  Name : Logical name of the destination. When Kind is set to Topic, Name
+   --         must be set to the Topic_Id.
+   --  Ref  : Reference to the actual destination object.
+   --  Kind : The kind of object it is really (message pool, router, ...).
 
-   function Get_Name (Self : Destination) return MOMA.Types.String;
-   pragma Inline (Get_Name);
+   function Create_Destination
+     (Name    : MOMA.Types.String;
+      Ref     : PolyORB.References.Ref;
+      Kind    : MOMA.Types.Destination_Type := MOMA.Types.Unknown)
+      return Destination;
+   --  Create a destination structure.
 
-   procedure Set_Name (Self : in out Destination;
-                       Name : MOMA.Types.String);
-   pragma Inline (Set_Name);
+   function "=" (Dest1 : Destination; Dest2 : Destination) return Boolean;
+   --  Compare two destinations.
+   --  XXX Comparison is made only on the name.
 
-   function Get_Ref (Self : Destination) return PolyORB.References.Ref;
-   pragma Inline (Get_Ref);
+   function Create_Destination return Destination;
+   --  Create an empty destination structure.
 
-   procedure Set_Ref (Self : in out Destination;
-                      Ref  : PolyORB.References.Ref);
-   pragma Inline (Set_Ref);
+   function Create_Temporary return Destination;
+   --  Create a temporary destination
+   --  XXX Not implemented.
+
+   function Image (Self : Destination) return String;
+   --  Image function for destination type.
+
+   --  Accessors to Destination internal data.
+
+   function Get_Name
+     (Self : Destination)
+      return MOMA.Types.String;
+
+   procedure Set_Name
+     (Self : in out Destination;
+      Name :        MOMA.Types.String);
+
+   function Get_Kind
+     (Self : Destination)
+     return MOMA.Types.Destination_Type;
+
+   function Get_Ref
+     (Self : Destination)
+     return PolyORB.References.Ref;
+   --  XXX should be restricted to internal use only ...
+
+   procedure Set_Ref
+     (Self : in out Destination;
+      Ref  :        PolyORB.References.Ref);
+   --  XXX should be restricted to internal use only ...
+
+   --  Marshalling support for Destination type.
+
+   TC_MOMA_Destination : PolyORB.Any.TypeCode.Object
+         := PolyORB.Any.TypeCode.TC_Struct;
+
+   function To_Any (Self : Destination) return PolyORB.Any.Any;
+
+   function From_Any (Self : PolyORB.Any.Any) return Destination;
 
    procedure Delete;
    --  XXX really useful in this context ?
 
 private
-   type Destination is tagged record
-      Name : MOMA.Types.String;
 
+   type Destination is record
+      Name : MOMA.Types.String;
       Ref  : PolyORB.References.Ref;
-      --  Reference to the actual destination object.
+      Kind : MOMA.Types.Destination_Type;
    end record;
+
+   pragma Inline (Get_Name);
+   pragma Inline (Set_Name);
+   pragma Inline (Get_Ref);
+   pragma Inline (Set_Ref);
+   pragma Inline (Get_Kind);
+
 end MOMA.Destinations;

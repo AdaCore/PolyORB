@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -50,6 +51,7 @@ package body PolyORB.Protocols is
    use PolyORB.Log;
    use PolyORB.Objects.Interface;
    use PolyORB.Protocols.Interface;
+   use Unsigned_Long_Flags;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -59,24 +61,15 @@ package body PolyORB.Protocols is
    -- Finalize --
    --------------
 
-   procedure Finalize (S : in out Session)
+   procedure Finalize
+     (S : in out Session)
    is
-      --  V : Version_Id;
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (S);
       pragma Warnings (On);
+
+   begin
       pragma Debug (O ("Finalizing Session."));
-      --      if S.Request_Watcher /= null then
-      --  Create (S.Finalize_Watcher);
-      --  Lookup (S.Finalize_Watcher, V);
-      --  S.Is_Open := False;
-      --  Update (S.Request_Watcher);
-      --  Differ (S.Finalize_Watcher, V);
-      --  Destroy (S.Request_Watcher);
-      --  Destroy (S.Finalize_Watcher);
-      --  Deallocate (S.Request_List);
-      --  end if;
       null;
    end Finalize;
 
@@ -89,8 +82,9 @@ package body PolyORB.Protocols is
       Args : in out Any.NVList.Ref) is
    begin
       raise Program_Error;
-      --  By default: no support for deferred arguments
-      --  unmarshalling.
+      --  By default: no support for deferred arguments unmarshalling.
+      --  Concrete Session implementations may override this operation
+      --  to provide this functionality.
    end Handle_Unmarshall_Arguments;
 
    --------------------
@@ -99,25 +93,30 @@ package body PolyORB.Protocols is
 
    function Handle_Message
      (Sess : access Session;
-      S : Components.Message'Class)
+      S    :        Components.Message'Class)
      return Components.Message'Class
    is
       Nothing : Components.Null_Message;
       Req : Request_Access;
+
    begin
       pragma Debug
         (O ("Handling message of type "
             & Ada.Tags.External_Tag (S'Tag)));
       if S in Connect_Indication then
          Handle_Connect_Indication (Session_Access (Sess));
+
       elsif S in Connect_Confirmation then
          Handle_Connect_Confirmation (Session_Access (Sess));
+
       elsif S in Disconnect_Indication then
          Handle_Disconnect (Session_Access (Sess));
+
       elsif S in Data_Indication then
          Handle_Data_Indication
            (Session_Access (Sess),
             Data_Indication (S).Data_Amount);
+
       elsif S in Unmarshall_Arguments then
          declare
             Args : PolyORB.Any.NVList.Ref
@@ -127,9 +126,18 @@ package body PolyORB.Protocols is
               (Session_Access (Sess), Args);
             return Unmarshalled_Arguments'(Args => Args);
          end;
+
       elsif S in Set_Server then
          Sess.Server := Set_Server (S).Server;
+
       elsif S in Execute_Request then
+         declare
+            use type Binding_Data.Profile_Access;
+         begin
+            pragma Assert (Execute_Request (S).Pro /= null);
+            null;
+         end;
+
          Req := Execute_Request (S).Req;
 
          if Req.Deferred_Arguments_Session /= null then
@@ -137,19 +145,21 @@ package body PolyORB.Protocols is
             --  This session object participates in a proxy
             --  construct: now is the last place we can determine
             --  the signature of the called method in order to
-            --  translate the request.
-
-            --  XXX this may require an interface repository lookup,
-            --      which is not implemented. For now we do our best,
-            --      hoping that the protocol on the server session
-            --      can make sense of the args without an arg list.
+            --  translate the request. As we do not possess the
+            --  actual servant on the local node, we need another
+            --  way of retrieving an interface description (i.e.
+            --  a parameter and result profile). This is typically
+            --  achieved by looking up the target interface in an
+            --  interface repository. In PolyORB, such operations
+            --  are abstracted by the If_Descriptor interface.
 
             declare
                use Protocols.Interface;
                use PolyORB.If_Descriptors;
 
-               Desc : If_Descriptor_Access
-                 renames Default_If_Descriptor;
+               Desc : If_Descriptor_Access renames Default_If_Descriptor;
+               --  Delegate the decision and lookup process to
+               --  the default interface descriptor objet.
 
                Args : Any.NVList.Ref
                  := Get_Empty_Arg_List
@@ -174,8 +184,7 @@ package body PolyORB.Protocols is
 
          end if;
 
-         Invoke_Request
-           (Session_Access (Sess), Req, Execute_Request (S).Pro);
+         Invoke_Request (Session_Access (Sess), Req, Execute_Request (S).Pro);
 
          --  At this point, the request has been sent to the server
          --  'With_Transport' synchronisation policy has been completed.
@@ -191,102 +200,48 @@ package body PolyORB.Protocols is
             Req : Request_Access
               := Executed_Request (S).Req;
          begin
-            --  Send reply only if expected.
-            if Is_Set (Sync_With_Target, Req.Req_Flags) or
-              Is_Set (Sync_Call_Back, Req.Req_Flags) then
-               Send_Reply (Session_Access (Sess), Req);
-               Destroy_Request (Req);
 
-            elsif Is_Set (Sync_With_Server, Req.Req_Flags) then
-               Send_Reply (Session_Access (Sess), Req);
+            if Is_Set (Sync_With_Target, Req.Req_Flags)
+              or else Is_Set (Sync_Call_Back, Req.Req_Flags)
+            then
+               --  Send a reply if one is expected.
 
-               --   XXX The request has been deleted otherwise
+               Send_Reply (Session_Access (Sess), Req);
             end if;
+
+            Destroy_Request (Req);
          end;
 
       elsif S in Disconnect_Request then
          return Emit (Lower (Sess), S);
+
       else
          raise Components.Unhandled_Message;
       end if;
+
       return Nothing;
    end Handle_Message;
 
-   -------------------------
+   -------------------
    -- Get_Task_Info --
-   -------------------------
+   -------------------
 
    function Get_Task_Info
      (S : in Session_Access)
-     return PolyORB.Annotations.Notepad_Access
-   is
+     return PolyORB.Annotations.Notepad_Access is
    begin
       return S.N;
    end Get_Task_Info;
 
-   -------------------------
-   -- Set_Request_Watcher --
-   -------------------------
+   -------------------
+   -- Set_Task_Info --
+   -------------------
 
    procedure Set_Task_Info
      (S : in Session_Access;
-      N : PolyORB.Annotations.Notepad_Access)
-   is
+      N : PolyORB.Annotations.Notepad_Access) is
    begin
       S.N := N;
    end Set_Task_Info;
-
-   --    -------------------------
-   --    -- Get_First_Request --
-   --    -------------------------
-
-   --    procedure Get_First_Request
-   --      (S      : in out Session_Access;
-   --       Result : out Request_Info)
-   --    is
-   --    begin
-   --       pragma Debug (O ("Get Length : "
-   --                        & Integer'Image (Length (S.Request_List))));
-   --       Request_Queue.Extract_Element (S.Request_List, 0, Result);
-   --       pragma Debug (O ("Get Length : "
-   --                        & Integer'Image (Length (S.Request_List))));
-   --    end Get_First_Request;
-
-   --    -----------------
-   --    -- Add_Request --
-   --    -----------------
-   --    procedure Add_Request
-   --      (S : in out Session_Access;
-   --       RI : Request_Info)
-   --    is
-   --    begin
-   --       pragma Debug (O ("Add Length : "
-   --                        & Integer'Image (Length (S.Request_List))));
-   --       Request_Queue.Append (S.Request_List, RI);
-   --       pragma Debug (O ("Add Length : "
-   --                        & Integer'Image (Length (S.Request_List))));
-   --       Update (S.Request_Watcher);
-   --    end Add_Request;
-
-   -------------
-   -- Is_Open --
-   -------------
-   --  function Is_Open
-   --      (S : in Session_Access)
-   --      return Boolean
-   --    is
-   --    begin
-   --       return S.Is_Open;
-   --    end Is_Open;
-
-   -----------------------
-   -- Can_Close_Session --
-   -----------------------
-   --    procedure Can_Close_Session
-   --      (S : Session_Access)
-   --    is
-   --    begin
-   --       Update (S.Finalize_Watcher);
-   --    end Can_Close_Session;
 
 end PolyORB.Protocols;

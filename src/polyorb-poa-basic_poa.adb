@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,18 +26,23 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Basic POA implementation.
 
+--  XXX double check concurrent accesses for this implementation !!!
+--  e.g. copy obj_adapter, find_poa ...
+
 --  $Id$
 
-with Ada.Real_Time;
 with Ada.Streams;
 with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Deallocation;
 
+with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.POA_Config;
@@ -46,40 +51,36 @@ with PolyORB.POA_Types;
 with PolyORB.References.IOR;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
+with PolyORB.Utils;
 
 package body PolyORB.POA.Basic_POA is
 
-   use PolyORB.Locks;
+   use PolyORB.Exceptions;
    use PolyORB.Log;
    use PolyORB.POA_Manager;
    use PolyORB.POA_Manager.Basic_Manager;
    use PolyORB.POA_Policies;
    use PolyORB.POA_Types;
+   use PolyORB.Tasking.Rw_Locks;
    use PolyORB.Types;
 
    package L is new Log.Facility_Log ("polyorb.poa.basic_poa");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   POA_Path_Separator : constant String := "/";
+   POA_Path_Separator : constant Character := '/';
 
    --------------------------------------------------------
    -- Declaration of additional procedures and functions --
    --------------------------------------------------------
 
-   function Get_Boot_Time return Time_Stamp;
-
-   function Get_Child
-     (Adapter : access Basic_Obj_Adapter;
-      Name    : in     String)
-      return POA_Types.Obj_Adapter_Access;
-   --  Look in the list of children of the Adapter if an OA with
-   --  the given name already exists.
-   --  The function doesn't take care of locking the list of children!
+   function Get_Boot_Time
+     return Time_Stamp;
 
    procedure Init_With_User_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : POA_Policies.PolicyList);
+      Policies :        POA_Policies.PolicyList);
+   --  Initialize OA with a set of policies provided by the user.
 
    procedure Init_With_Default_Policies
      (OA : access Basic_Obj_Adapter);
@@ -87,108 +88,40 @@ package body PolyORB.POA.Basic_POA is
    --  the currently active POA configuration.
 
    procedure Check_Policies_Compatibility
-     (OA : Basic_Obj_Adapter_Access);
+     (OA    :        Basic_Obj_Adapter_Access;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
-   function Register_Child
+   procedure Register_Child
      (Self  : access Basic_Obj_Adapter;
-      Child :        Basic_Obj_Adapter_Access)
-     return Positive;
-   --  Add a child to the current POA
-   --  The procedure doesn't take care of locking the list of children!
+      Child :        Basic_Obj_Adapter_Access);
+   --  Add a child to the current POA.
+   --  This procedure should be called from a point that protects the
+   --  Self's Children List.
 
-   procedure Destroy_Policies (OA : in out Basic_Obj_Adapter);
+   procedure Destroy_Policies
+     (OA : in out Basic_Obj_Adapter);
    pragma Warnings (Off);
    pragma Unreferenced (Destroy_Policies);
    pragma Warnings (On);
-   --  Destroys OA's policies
+   --  Destroys OA's policies.
 
-   procedure Destroy_Locks (OA : in out Basic_Obj_Adapter);
-   --  Destroys OA's locks
+   procedure Destroy_OA
+     (OA : in out Basic_Obj_Adapter_Access);
+   --  Destroy OA's components.
 
-   procedure Destroy_OA (OA : access Basic_Obj_Adapter);
-   --  Destroy OA's components, and frees OA
+   procedure Create_Root_POA
+     (New_Obj_Adapter : access Basic_Obj_Adapter);
+   --  Create the Root of all POAs.
 
-   function Find_Servant
+   procedure Find_Servant
      (OA       : access Basic_Obj_Adapter;
       Id       : access Objects.Object_Id;
-      Do_Check :        Check_State)
-     return Servants.Servant_Access;
+      Do_Check :        Boolean;
+      Servant  :    out Servants.Servant_Access;
+      Error    : in out PolyORB.Exceptions.Error_Container);
    --  The Find_Servant from PolyORB, plus a parameter.
-   --  If check is NO_CHECK, the POA doesn't check its state.
-
-   function Find_POA_Recursively
-     (Self : access Basic_Obj_Adapter;
-      Name :        Types.String)
-     return Basic_Obj_Adapter_Access;
-   --  Starting from given POA, looks for the POA in all the descendancy whose
-   --  name is Name. Returns null if not found.
-
-   function POA_Manager_Of (OA : access Basic_Obj_Adapter)
-     return POA_Manager.POAManager_Access;
-
-   ------------------------------------
-   --  Code of additional functions  --
-   ------------------------------------
-
-   --------------------
-   -- POA_Manager_Of --
-   --------------------
-
-   function POA_Manager_Of (OA : access Basic_Obj_Adapter)
-     return POA_Manager.POAManager_Access
-   is
-      use Smart_Pointers;
-
-      E : constant Entity_Ptr := Entity_Of (OA.POA_Manager);
-   begin
-      pragma Assert (E.all in POA_Manager.POAManager'Class);
-      return POAManager_Access (E);
-   end POA_Manager_Of;
-
-   ---------------
-   -- Get_Child --
-   ---------------
-
-   function Get_Child
-     (Adapter : access Basic_Obj_Adapter;
-      Name    : in     String)
-     return POA_Types.Obj_Adapter_Access
-   is
-      use POA_Sequences;
-      A_Child : POA_Types.Obj_Adapter_Access;
-   begin
-      if Adapter.Children /= null then
-         for I in 1 .. Length (Adapter.Children.all) loop
-            A_Child := Element_Of (Adapter.Children.all, I);
-            if POA.Obj_Adapter_Access (A_Child).Name = Name then
-               return A_Child;
-            end if;
-         end loop;
-      end if;
-      return null;
-   end Get_Child;
-
-   -------------------
-   -- Get_Boot_Time --
-   -------------------
-
-   function Get_Boot_Time
-     return Time_Stamp
-   is
-      use Ada.Real_Time;
-      T  : Time;
-      SC : Seconds_Count;
-      TS : Time_Span;
-   begin
-      T := Clock;
-      Split (T, SC, TS);
-
-      return Time_Stamp (Unsigned_Long (SC));
-   end Get_Boot_Time;
-
-   ------------------
-   -- Set_Policies --
-   ------------------
+   --  If Do_Check is True, then the POA checks the state of its POA
+   --  Manager.
 
    procedure Set_Policies
      (OA       : access Basic_Obj_Adapter;
@@ -199,20 +132,72 @@ package body PolyORB.POA.Basic_POA is
    --  are not yet explicitly set in OA. If Default is False,
    --  set all policies, and warn for duplicates.
 
+   function POA_Manager_Of
+     (OA : access Basic_Obj_Adapter)
+     return POA_Manager.POAManager_Access;
+   --  Return the POA Manager associated to 'OA'.
+
+   ----------------------
+   -- Global POA Table --
+   ----------------------
+
+   Global_POATable : POATable;
+
+   --  This table is used to shortcut POA recursive search, when
+   --  possible. It contains all registred POAs with full path name.
+
+   ------------------------------------
+   --  Code of additional functions  --
+   ------------------------------------
+
+   --------------------
+   -- POA_Manager_Of --
+   --------------------
+
+   function POA_Manager_Of
+     (OA : access Basic_Obj_Adapter)
+     return POA_Manager.POAManager_Access
+   is
+      use Smart_Pointers;
+
+      E : constant Entity_Ptr := Entity_Of (OA.POA_Manager);
+   begin
+      pragma Assert (E.all in POA_Manager.POAManager'Class);
+
+      return POAManager_Access (E);
+   end POA_Manager_Of;
+
+   -------------------
+   -- Get_Boot_Time --
+   -------------------
+
+   function Get_Boot_Time
+     return Time_Stamp is
+   begin
+      return Time_Stamp (16#0deadc0d#);
+      --  XXX should compute a real time stamp! But:
+      --  Cannot depend on Ada.Real_Time (which pulls the tasking runtime)
+      --  Cannot depend on Ada.Calendar (not permitted by Ravenscar).
+   end Get_Boot_Time;
+
+   ------------------
+   -- Set_Policies --
+   ------------------
+
    procedure Set_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : POA_Policies.PolicyList;
-      Default  : Boolean)
+      Policies :        POA_Policies.PolicyList;
+      Default  :        Boolean)
    is
       use Policy_Sequences;
 
-      Policies_Array : constant Element_Array
-        := To_Element_Array (Policies);
+      Policies_Array : constant Element_Array := To_Element_Array (Policies);
       A_Policy : Policy_Access;
    begin
-      pragma Debug (O ("Init Basic_POA with user provided policies"));
-      for I in Policies_Array'Range loop
-         A_Policy := Policies_Array (I);
+      Lock_W (OA.POA_Lock);
+
+      for J in Policies_Array'Range loop
+         A_Policy := Policies_Array (J);
 
          if A_Policy.all in ThreadPolicy'Class then
             if OA.Thread_Policy = null or else not Default then
@@ -295,6 +280,8 @@ package body PolyORB.POA.Basic_POA is
             pragma Debug (O ("Unknown policy ignored"));
          end if;
       end loop;
+
+      Unlock_W (OA.POA_Lock);
    end Set_Policies;
 
    -----------------------------
@@ -303,9 +290,10 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Init_With_User_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : POA_Policies.PolicyList) is
+      Policies :        POA_Policies.PolicyList) is
    begin
-      pragma Debug (O ("Init Basic_POA with user provided policies"));
+      pragma Debug (O ("Init POA with user provided policies"));
+
       Set_Policies (OA, Policies, Default => False);
    end Init_With_User_Policies;
 
@@ -316,10 +304,11 @@ package body PolyORB.POA.Basic_POA is
    procedure Init_With_Default_Policies
      (OA : access Basic_Obj_Adapter) is
    begin
-      pragma Debug (O ("Init Basic_POA with default policies"));
+      pragma Debug (O ("Init POA with default policies"));
+
       Set_Policies
-        (OA, POA_Config.Default_Policies
-         (POA_Config.Configuration.all),
+        (OA,
+         POA_Config.Default_Policies (POA_Config.Configuration.all),
          Default => True);
    end Init_With_Default_Policies;
 
@@ -328,11 +317,15 @@ package body PolyORB.POA.Basic_POA is
    ----------------------------------
 
    procedure Check_Policies_Compatibility
-     (OA : Basic_Obj_Adapter_Access)
+     (OA    :        Basic_Obj_Adapter_Access;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
       OA_Policies : AllPolicies;
+
    begin
-      pragma Debug (O ("Check compatibilities between policies"));
+      pragma Debug (O ("Check compatibilities between policies: enter"));
+      Lock_R (OA.POA_Lock);
+
       OA_Policies (1) := Policy_Access (OA.Thread_Policy);
       OA_Policies (2) := Policy_Access (OA.Lifespan_Policy);
       OA_Policies (3) := Policy_Access (OA.Id_Uniqueness_Policy);
@@ -340,61 +333,70 @@ package body PolyORB.POA.Basic_POA is
       OA_Policies (5) := Policy_Access (OA.Servant_Retention_Policy);
       OA_Policies (6) := Policy_Access (OA.Request_Processing_Policy);
       OA_Policies (7) := Policy_Access (OA.Implicit_Activation_Policy);
+
       Check_Compatibility
         (OA.Thread_Policy.all,
-         OA_Policies);
+         OA_Policies,
+         Error);
+
       Check_Compatibility
         (OA.Lifespan_Policy.all,
-         OA_Policies);
+         OA_Policies,
+         Error);
+
       Check_Compatibility
         (OA.Id_Uniqueness_Policy.all,
-         OA_Policies);
+         OA_Policies,
+         Error);
+
       Check_Compatibility
         (OA.Id_Assignment_Policy.all,
-         OA_Policies);
+         OA_Policies,
+         Error);
+
       Check_Compatibility
         (OA.Servant_Retention_Policy.all,
-         OA_Policies);
+         OA_Policies,
+         Error);
+
       Check_Compatibility
         (OA.Request_Processing_Policy.all,
-         OA_Policies);
+         OA_Policies,
+         Error);
+
       Check_Compatibility
         (OA.Implicit_Activation_Policy.all,
-         OA_Policies);
+         OA_Policies,
+         Error);
+
+      Unlock_R (OA.POA_Lock);
+      pragma Debug (O ("Check compatibilities between policies: leave"));
    end Check_Policies_Compatibility;
 
    --------------------
    -- Register_Child --
    --------------------
 
-   function Register_Child
+   procedure Register_Child
      (Self  : access Basic_Obj_Adapter;
       Child :        Basic_Obj_Adapter_Access)
-     return Positive
    is
-      use POA_Types.POA_Sequences;
+      use PolyORB.POA_Types.POA_HTables;
+
    begin
       pragma Debug (O (To_Standard_String (Self.Name)
-                       & "registers child "
-                         & To_Standard_String (Child.Name)));
+                       & " registers child "
+                       & To_Standard_String (Child.Name)));
 
-      if (Self.Children = null) then
-         Self.Children := new POAList;
+      if Self.Children = null then
+         Self.Children := new POATable;
+         Initialize (Self.Children.all);
       end if;
 
-      for I in 1 .. Length (Sequence (Self.Children.all)) loop
-         if Element_Of (Sequence (Self.Children.all), I) = null then
-            Replace_Element (Sequence (Self.Children.all), I,
-                             POA_Types.Obj_Adapter_Access (Child));
-            return I;
-         end if;
-      end loop;
+      Insert (Self.Children.all,
+              To_Standard_String (Child.Name),
+              POA_Types.Obj_Adapter_Access (Child));
 
-      Append
-        (Sequence (Self.Children.all),
-         POA_Types.Obj_Adapter_Access (Child));
-
-      return Length (Sequence (Self.Children.all));
    end Register_Child;
 
    ----------------------
@@ -416,31 +418,15 @@ package body PolyORB.POA.Basic_POA is
       Free (Policy_Access (OA.Servant_Retention_Policy));
    end Destroy_Policies;
 
-   -------------------
-   -- Destroy_Locks --
-   -------------------
-
-   procedure Destroy_Locks
-     (OA : in out Basic_Obj_Adapter)
-   is
-      use Locks;
-   begin
-      if OA.Children_Lock /= null then
-         Destroy (OA.Children_Lock);
-      end if;
-      if OA.Map_Lock /= null then
-         Destroy (OA.Map_Lock);
-      end if;
-   end Destroy_Locks;
-
    ----------------
    -- Destroy_OA --
    ----------------
 
    procedure Destroy_OA
-     (OA : access Basic_Obj_Adapter)
-   is
+     (OA : in out Basic_Obj_Adapter_Access) is
    begin
+      pragma Debug (O ("Destroy_OA: enter"));
+
       if not Is_Nil (OA.POA_Manager) then
          Remove_POA
            (POA_Manager_Of (OA),
@@ -451,13 +437,42 @@ package body PolyORB.POA.Basic_POA is
       --  XXX Cannot destroy_policies here because another
       --  POA initialised from the default configuration could
       --  be using the same instances of policy objects!
-      Destroy_Locks    (OA.all);
-      declare
-         OA_Access : Basic_Obj_Adapter_Access
-           := Basic_Obj_Adapter_Access (OA);
-      begin
-         Free (OA_Access);
-      end;
+
+      --  XXX if so why don't we make policies a derived type from a
+      --  Smart Pointer ??
+
+      --  Destroy Locks.
+
+      --  As Destroy_OA may be called when an exception is raised in
+      --  OA initialization, we first test the call is valid.
+
+      if OA.POA_Lock /= null then
+         Destroy (OA.POA_Lock);
+      end if;
+
+      if OA.Children_Lock /= null then
+         Destroy (OA.Children_Lock);
+      end if;
+
+      if OA.Map_Lock /= null then
+         Destroy (OA.Map_Lock);
+      end if;
+
+      --  These members may be null, test before freeing
+
+      if OA.Adapter_Activator /= null then
+         Free (OA.Adapter_Activator);
+      end if;
+
+      if OA.Servant_Manager /= null then
+         Free (OA.Servant_Manager);
+      end if;
+
+      --  Basic_Obj_Adapter is derived from Smart Pointers
+      --  so there is no need to deallocate the OA itself.
+      --  XXX is it pertinent to have this ???
+
+      pragma Debug (O ("Destroy_OA: end"));
    end Destroy_OA;
 
    ---------------------
@@ -465,21 +480,22 @@ package body PolyORB.POA.Basic_POA is
    ---------------------
 
    procedure Create_Root_POA
-     (New_Obj_Adapter : access Basic_Obj_Adapter);
+     (New_Obj_Adapter : access Basic_Obj_Adapter)
+   is
+      use PolyORB.POA_Types.POA_HTables;
 
-   procedure Create_Root_POA
-     (New_Obj_Adapter : access Basic_Obj_Adapter) is
    begin
-      pragma Debug (O ("Create a new Root_POA"));
+      pragma Debug (O ("Create Root_POA"));
 
-      --  Create new Obj Adapter
+      --  Create new Obj Adapter.
       New_Obj_Adapter.Boot_Time        := Get_Boot_Time;
       New_Obj_Adapter.Name             := To_PolyORB_String ("RootPOA");
       New_Obj_Adapter.Absolute_Address := To_PolyORB_String ("");
-
+      Create (New_Obj_Adapter.POA_Lock);
       Create (New_Obj_Adapter.Children_Lock);
       Create (New_Obj_Adapter.Map_Lock);
 
+      --  Attach a POA Manager to the root POA.
       Set (New_Obj_Adapter.POA_Manager, new Basic_POA_Manager);
       Create (POA_Manager_Of (New_Obj_Adapter));
       Register_POA
@@ -487,53 +503,74 @@ package body PolyORB.POA.Basic_POA is
          POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
 
       --  Create and initialize policies factory
-      POA_Config.Initialize
-        (POA_Config.Configuration.all);
+      POA_Config.Initialize (POA_Config.Configuration.all);
+      --  XXX is this really the role of Create_Root_POA to initialize this ???
 
-      --  Use default policies
+      --  Use default policies.
       Init_With_Default_Policies (New_Obj_Adapter);
+
+      --  Initialize Global POA Table
+      Initialize (Global_POATable);
    end Create_Root_POA;
 
-   -------------------------------------------------
-   -- Procedures and functions required by Corba  --
-   -------------------------------------------------
+   ---------------------------------------------
+   -- CORBA-like POA interface implementation --
+   ---------------------------------------------
 
    ----------------
    -- Create_POA --
    ----------------
 
-   function Create_POA
+   procedure Create_POA
      (Self         : access Basic_Obj_Adapter;
       Adapter_Name :        Types.String;
       A_POAManager :        POA_Manager.POAManager_Access;
-      Policies     :        POA_Policies.PolicyList)
-     return Obj_Adapter_Access
+      Policies     :        POA_Policies.PolicyList;
+      POA          :    out Obj_Adapter_Access;
+      Error        : in out PolyORB.Exceptions.Error_Container)
    is
+      use PolyORB.Exceptions;
+      use PolyORB.POA_Types.POA_HTables;
+
       New_Obj_Adapter : Basic_Obj_Adapter_Access;
-      Children_Locked : Boolean := False;
-      Child_Id : Integer;
 
    begin
+      pragma Debug (O ("Creating POA: " & To_String (Adapter_Name)));
+
       --  Validity checks on Adapter_Name
       if Adapter_Name = ""
-        or else Index (Adapter_Name, POA_Path_Separator) /= 0
+        or else Index (Adapter_Name, (1 => POA_Path_Separator)) /= 0
       then
-         raise POA.Invalid_Name;
+         Throw (Error,
+                WrongAdapter_E,
+                Null_Members'(Null_Member));
+         --  XXX Check  error name
+         return;
       end if;
 
       --  Look if there is already a child with this name
+
       if Self.Children /= null then
+         pragma Debug (O ("Check if a POA with the same name exists."));
+
          Lock_W (Self.Children_Lock);
          --  Write Lock here: content of children has to be the same when
          --  we add the new child.
-         Children_Locked := True;
-         if Get_Child (Self, To_Standard_String (Adapter_Name)) /= null then
-            raise POA.Adapter_Already_Exists;
+
+         if Lookup (Self.Children.all,
+                    To_Standard_String (Adapter_Name), null) /= null then
+            Throw (Error,
+                   AdapterAlreadyExists_E,
+                   Null_Members'(Null_Member));
+
+            Unlock_W (Self.Children_Lock);
+            return;
          end if;
       end if;
 
       --  Create new object adapter
       New_Obj_Adapter           := new Basic_Obj_Adapter;
+      Create (New_Obj_Adapter.POA_Lock);
       Create (New_Obj_Adapter.Children_Lock);
       Create (New_Obj_Adapter.Map_Lock);
       New_Obj_Adapter.Boot_Time := Get_Boot_Time;
@@ -543,53 +580,65 @@ package body PolyORB.POA.Basic_POA is
       if A_POAManager = null then
          Set (New_Obj_Adapter.POA_Manager, new Basic_POA_Manager);
          Create (POA_Manager_Of (New_Obj_Adapter));
-         Register_POA
-           (POA_Manager_Of (New_Obj_Adapter),
-            POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
+         Register_POA (POA_Manager_Of (New_Obj_Adapter),
+                       POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
       else
-         Set
-           (New_Obj_Adapter.POA_Manager,
-            Smart_Pointers.Entity_Ptr (A_POAManager));
-         Register_POA
-           (A_POAManager,
-            POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
+         Set (New_Obj_Adapter.POA_Manager,
+              Smart_Pointers.Entity_Ptr (A_POAManager));
+         Register_POA (A_POAManager,
+                       POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
       end if;
 
-      --  Init policies with those given by the user
-      Init_With_User_Policies (New_Obj_Adapter, Policies);
+      --  Note that New_Obj_Adapter.Children is initialized iff we
+      --  need it, see the procedure Register_Child for more details.
 
-      --  Use default policies if not provided by the user
-      Init_With_Default_Policies (New_Obj_Adapter);
-
-      --  Check compatibilities between policies
-      Check_Policies_Compatibility (New_Obj_Adapter);
-
-      --  Register new obj_adapter as a sibling of the current POA
-      if not Children_Locked then
+      --  Register new obj_adapter as a sibling of the current POA.
+      if not Is_Set_W (Self.Children_Lock) then
          Lock_W (Self.Children_Lock);
       end if;
 
-      Child_Id := Register_Child (Self, New_Obj_Adapter);
+      Register_Child (Self, New_Obj_Adapter);
+      Unlock_W (Self.Children_Lock);
+
+      --  Construct POA Absolute name.
       if Length (Self.Absolute_Address) > 0 then
          New_Obj_Adapter.Absolute_Address := Self.Absolute_Address
-           & To_PolyORB_String (POA_Path_Separator) & Adapter_Name;
+           & To_PolyORB_String ((1 => POA_Path_Separator)) & Adapter_Name;
       else
          New_Obj_Adapter.Absolute_Address
            := Self.Absolute_Address & Adapter_Name;
       end if;
-      pragma Debug (O
-                    ("Absolute name of created POA is "
-                     & To_Standard_String (New_Obj_Adapter.Absolute_Address)));
-      Unlock_W (Self.Children_Lock);
 
-      return Obj_Adapter_Access (New_Obj_Adapter);
+      pragma Debug
+        (O ("Absolute name of new POA is "
+            & To_Standard_String (New_Obj_Adapter.Absolute_Address)));
 
-   exception
-      when POA.Adapter_Already_Exists =>
-         raise;
-      when others =>
-         Destroy_OA (New_Obj_Adapter);
-         raise;
+      --  First initialize POA with default policies.
+      Init_With_Default_Policies (New_Obj_Adapter);
+
+      --  then override POA policies with those given by the user.
+      Init_With_User_Policies (New_Obj_Adapter, Policies);
+
+      --  Check compatibilities between policies.
+      Check_Policies_Compatibility (New_Obj_Adapter, Error);
+
+      if Found (Error) then
+         pragma Debug (O ("Got Error, destroying POA"));
+         Destroy (New_Obj_Adapter, False, False);
+         return;
+      end if;
+
+      --  Insert POA into Global_POATable
+      pragma Debug (O ("Insert POA into Global_POATable"));
+      Insert (Global_POATable,
+              To_Standard_String (New_Obj_Adapter.Absolute_Address),
+              POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
+
+      --  Return the created POA.
+      pragma Debug (O ("POA " & To_String (Adapter_Name) & " created."));
+
+      POA := Obj_Adapter_Access (New_Obj_Adapter);
+
    end Create_POA;
 
    -------------
@@ -598,98 +647,137 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Destroy
      (Self                : access Basic_Obj_Adapter;
-      Etherealize_Objects : in     Boolean;
-      Wait_For_Completion : in     Boolean)
+      Etherealize_Objects : in     Types.Boolean;
+      Wait_For_Completion : in     Types.Boolean)
    is
-      use POA_Types.POA_Sequences;
-      A_Child : POA.Obj_Adapter_Access;
-      Name    : Types.String := Self.Name;
+      use PolyORB.POA_Types.POA_HTables;
+
+      Name : constant String := To_Standard_String (Self.Name);
    begin
-      pragma Debug (O ("Start destroying POA "
-                       & To_Standard_String (Name)));
+      pragma Debug (O ("Start destroying POA: " & Name));
+
+      --  Remove 'Self' from Global POA Table
+      pragma Debug (O ("Removing POA from Global POA Table"));
+      PolyORB.POA_Types.POA_HTables.Delete
+        (Global_POATable,
+         To_Standard_String (Self.Absolute_Address));
 
       --  Destroy all children
-      Lock_W (Self.Children_Lock);
-      if Self.Children /= null then
-         for I in 1 .. Length (Sequence (Self.Children.all)) loop
-            A_Child := POA.Obj_Adapter_Access
-              (Element_Of (Sequence (Self.Children.all), I));
-            POA.Destroy
-              (A_Child.all'Access,
-               Etherealize_Objects,
-               Wait_For_Completion);
-            Replace_Element (Sequence (Self.Children.all), I, null);
-         end loop;
+      if Self.Children /= null
+        and then not Is_Empty (Self.Children.all) then
+         Lock_W (Self.Children_Lock);
+
+         declare
+            It : Iterator := First (Self.Children.all);
+            A_Child : Basic_Obj_Adapter_Access;
+         begin
+            while not Last (It) loop
+               A_Child := Basic_Obj_Adapter (Value (It).all)'Access;
+
+               Destroy (A_Child,
+                        Etherealize_Objects,
+                        Wait_For_Completion);
+
+               --  NOTE: there is no need to delete A_Child from
+               --  Self.Children, this will be done when finalizing it.
+
+               Next (It);
+            end loop;
+
+            Finalize (Self.Children.all);
+            Free (Self.Children);
+
+            Unlock_W (Self.Children_Lock);
+
+         exception
+            when others =>
+               pragma Debug (O ("Got exception when destroying Child POA"));
+               Unlock_W (Self.Children_Lock);
+               raise;
+         end;
       end if;
-      Unlock_W (Self.Children_Lock);
 
       --  Tell father to remove current POA from its list of children
       if Self.Father /= null then
+         pragma Debug (O ("Notify parent POA of POA destruction"));
+
          POA.Remove_POA_By_Name
-           (POA.Obj_Adapter_Access (Self.Father).all'Access,
+           (POA.Obj_Adapter_Access (Self.Father),
             Self.Name);
       end if;
 
       --  Destroy self (also unregister from the POAManager)
-      --  ??? Add code for Etherealize_Objects and Wait_For_Completion
-      Destroy_OA (Self);
-      pragma Debug (O ("POA "
-                       & To_Standard_String (Name)
-                       & " destroyed"));
-   exception
-      when others =>
-         Unlock_W (Self.Children_Lock);
-         raise;
+      pragma Debug (O ("About to destroy POA"));
+
+      --  Destroy POA components.
+      declare
+         OA : Basic_Obj_Adapter_Access := Basic_Obj_Adapter_Access (Self);
+      begin
+         Destroy_OA (OA);
+      end;
+
+      pragma Debug (O ("POA '" & Name & "' destroyed"));
+
+      --  XXX Add code for Etherealize_Objects and Wait_For_Completion ???
+
    end Destroy;
 
    ----------------------------------
    -- Create_Object_Identification --
    ----------------------------------
 
-   function Create_Object_Identification
-     (Self : access Basic_Obj_Adapter;
-      Hint :        Object_Id_Access := null)
-     return Unmarshalled_Oid is
+   procedure Create_Object_Identification
+     (Self  : access Basic_Obj_Adapter;
+      Hint  :        Object_Id_Access;
+      U_Oid :    out Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container) is
    begin
-      return Assign_Object_Identifier
+      Assign_Object_Identifier
         (Self.Id_Assignment_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
-         Hint);
+         Hint,
+         U_Oid,
+         Error);
    end Create_Object_Identification;
 
    ---------------------
    -- Activate_Object --
    ---------------------
 
-   function Activate_Object
+   procedure Activate_Object
      (Self      : access Basic_Obj_Adapter;
       P_Servant : in     Servants.Servant_Access;
-      Hint      :        Object_Id_Access := null)
-     return Object_Id
-   is
-      Allocated_Oid : constant Unmarshalled_Oid
-        := Create_Object_Identification (Self, Hint);
-      --  Must be free'd when the object is deactivated.
+      Hint      :        Object_Id_Access;
+      U_Oid     :    out Unmarshalled_Oid;
+      Error     : in out PolyORB.Exceptions.Error_Container) is
    begin
+      pragma Debug (O ("Activate_Object: enter"));
+
+      --  Build a well formed Oid from the 'Hint' provided by the user.
+
+      Assign_Object_Identifier
+        (Self.Id_Assignment_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         Hint,
+         U_Oid,
+         Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
       Retain_Servant_Association
         (Self.Servant_Retention_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
-         P_Servant, Allocated_Oid);
+         P_Servant,
+         U_Oid,
+         Error);
 
-      declare
-         A_Oid : Object_Id_Access := U_Oid_To_Oid (Allocated_Oid);
-         Oid : constant Object_Id := A_Oid.all;
-      begin
-         Free (A_Oid);
-         return Oid;
-         --  XXX yuk yuk:
-         --    a number of Oid copies;
-         --    excessive stack allocation.
-      end;
-   exception
-      when Invalid_Policy =>
-         --  Deallocate_Object_Identification (Self, Allocated_Oid);
-         raise;
+      if Found (Error) then
+         return;
+      end if;
+
+      pragma Debug (O ("Activate_Object: leave"));
    end Activate_Object;
 
    -----------------------
@@ -697,13 +785,25 @@ package body PolyORB.POA.Basic_POA is
    -----------------------
 
    procedure Deactivate_Object
-     (Self      : access Basic_Obj_Adapter;
-      Oid       : in Object_Id)
+     (Self  : access Basic_Obj_Adapter;
+      Oid   : in     Object_Id;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
-      A_Oid : aliased Object_Id := Oid;
-      U_Oid : Unmarshalled_Oid
-        := Oid_To_U_Oid (A_Oid'Unchecked_Access);
+      U_Oid : Unmarshalled_Oid;
    begin
+      pragma Debug (O ("Deactivate_Object: enter"));
+
+      Reconstruct_Object_Identifier
+        (Self.Id_Assignment_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         Oid,
+         U_Oid,
+         Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
       Etherealize_All
         (Self.Request_Processing_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
@@ -712,111 +812,323 @@ package body PolyORB.POA.Basic_POA is
       Forget_Servant_Association
         (Self.Servant_Retention_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
-         U_Oid);
+         U_Oid,
+         Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
       --  XXX ??? Wait for completion?
+
+      pragma Debug (O ("Deactivate_Object: leave"));
    end Deactivate_Object;
 
    -------------------
    -- Servant_To_Id --
    -------------------
 
-   function Servant_To_Id
+   procedure Servant_To_Id
      (Self      : access Basic_Obj_Adapter;
-      P_Servant : in     Servants.Servant_Access)
-     return Object_Id
+      P_Servant : in     Servants.Servant_Access;
+      Oid       :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
    is
-      Oid : Object_Id_Access
-        := Retained_Servant_To_Id
+      Temp_Oid, Temp_Oid2 : Object_Id_Access;
+   begin
+      Temp_Oid := Retained_Servant_To_Id
         (Self.Servant_Retention_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
          P_Servant);
-   begin
-      Oid := Activate_Again
+
+      Activate_Again
         (Self.Id_Uniqueness_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
          P_Servant,
-         Oid);
+         Temp_Oid,
+         Temp_Oid2,
+         Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
+      Oid := Temp_Oid2;
 
       if Oid = null then
+         Throw (Error,
+                ServantNotActive_E,
+                Null_Members'(Null_Member));
 
          --  XXX here should also check whether we are in the
          --  context of executing a dispatched operation on
          --  Servant, and if it is the case return the 'current'
          --  oid (for USE_DEFAULT_SERVANT policy).
-         raise POA.Servant_Not_Active;
       end if;
-      return Oid.all;
+
+      Object_Identifier
+        (Self.Id_Assignment_Policy.all,
+         Temp_Oid2,
+         Oid);
+
    end Servant_To_Id;
 
    -------------------
    -- Id_To_Servant --
    -------------------
 
-   function Id_To_Servant
-     (Self : access Basic_Obj_Adapter;
-      Oid  :        Object_Id)
-     return Servants.Servant_Access
+   procedure Id_To_Servant
+     (Self    : access Basic_Obj_Adapter;
+      Oid     :        Object_Id;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
    is
       A_Oid : aliased Object_Id := Oid;
-      U_Oid : constant Unmarshalled_Oid
+
+      U_Oid : Unmarshalled_Oid
         := Oid_To_U_Oid (A_Oid'Access);
+
    begin
       Ensure_Lifespan
         (Self.Lifespan_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
-         U_Oid);
+         U_Oid,
+         Error);
 
-      return Id_To_Servant
+      if Found (Error) then
+         return;
+      end if;
+
+      Id_To_Servant
         (Self.Request_Processing_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
-         U_Oid);
+         U_Oid,
+         Servant,
+         Error);
    end Id_To_Servant;
 
-   --------------------------
-   -- Find_POA_Recursively --
-   --------------------------
+   --------------
+   -- Find_POA --
+   --------------
 
-   function Find_POA_Recursively
-     (Self : access Basic_Obj_Adapter;
-      Name : Types.String)
-     return Basic_Obj_Adapter_Access
+   procedure Find_POA
+     (Self        : access Basic_Obj_Adapter;
+      Name        :        String;
+      Activate_It :        Boolean;
+      POA         :    out Obj_Adapter_Access;
+      Error       : in out PolyORB.Exceptions.Error_Container)
    is
-      use POA_Types.POA_Sequences;
+      use PolyORB.Exceptions;
+      use PolyORB.POA_Types.POA_HTables;
 
-      Split_Point      : constant Natural
-        := Index (Name, POA_Path_Separator);
+      --------------------------
+      -- Find_POA_Recursively --
+      --------------------------
 
-      Remaining_Name   : Types.String;
-      A_Child_Name     : Types.String;
-      A_Child          : Obj_Adapter_Access;
-   begin
-      pragma Debug (O ("Find_POA_Recursively: enter, Name = "
-                       & To_Standard_String (Name)));
+      procedure Find_POA_Recursively
+        (Self        : access Basic_Obj_Adapter;
+         Name        :        String;
+         Activate_It :        Boolean;
+         POA         :    out Obj_Adapter_Access;
+         Error       : in out PolyORB.Exceptions.Error_Container);
+      --  Looks for 'name', searching from 'Self', using a recursive search.
+      --  If necessary, will invoke AdapterActivator call backs.
 
-      if Name = "" then
-         return Basic_Obj_Adapter_Access (Self);
-      end if;
+      procedure Find_POA_Recursively
+        (Self        : access Basic_Obj_Adapter;
+         Name        :        String;
+         Activate_It :        Boolean;
+         POA         :    out Obj_Adapter_Access;
+         Error       : in out PolyORB.Exceptions.Error_Container)
+      is
 
-      pragma Assert (Split_Point /= 1);
-      if Split_Point = 0 then
-         A_Child_Name := Name;
-      else
-         A_Child_Name := Head (Name, Split_Point - 1);
-         Remaining_Name := Tail (Name, Length (Name) - Split_Point);
-      end if;
+         A_Child     : Obj_Adapter_Access;
+         Split_Point : constant Integer
+           := PolyORB.Utils.Find (Name, Name'First, POA_Path_Separator);
+         Result : Boolean;
 
-      for I in 1 .. Length (Sequence (Self.Children.all)) loop
-         A_Child := Obj_Adapter_Access
-           (Element_Of (Sequence (Self.Children.all), I));
-
-         if A_Child.Name = A_Child_Name then
-            return Find_POA_Recursively
-              (Basic_Obj_Adapter (A_Child.all)'Access,
-               Remaining_Name);
+      begin
+         if Found (Error) then
+            return;
          end if;
-      end loop;
-      return null;
-   end Find_POA_Recursively;
+
+         pragma Debug (O ("Find_POA_Recursively: enter, Name = " & Name));
+
+         if Name'Length = 0 then
+            POA := Obj_Adapter_Access (Self);
+            return;
+         end if;
+
+         pragma Assert (Split_Point /= Name'First);
+
+         if Self.Children /= null then
+            A_Child := PolyORB.POA.Obj_Adapter_Access
+              (Lookup (Self.Children.all,
+                       Name (Name'First .. Split_Point - 1), null));
+         end if;
+
+         if A_Child /= null then
+            Find_POA
+              (Basic_Obj_Adapter (A_Child.all)'Access,
+               Name (Split_Point + 1 .. Name'Last),
+               Activate_It,
+               POA,
+               Error);
+
+         else
+            if Activate_It
+              and then Self.Adapter_Activator /= null
+            then
+               Unknown_Adapter
+                 (Self.Adapter_Activator,
+                  Self,
+                  Name (Name'First .. Split_Point - 1),
+                  Result,
+                  Error);
+
+               if Found (Error) then
+                  return;
+               end if;
+
+               if not Result then
+                  Throw (Error,
+                         AdapterNonExistent_E,
+                         Null_Member);
+               end if;
+
+               Find_POA
+                 (Self,
+                  Name,
+                  Activate_It,
+                  POA,
+                  Error);
+            else
+               POA := null;
+
+               Throw (Error,
+                      AdapterNonExistent_E,
+                      Null_Member);
+            end if;
+         end if;
+      end Find_POA_Recursively;
+
+      Full_POA_Name : constant String
+        := To_Standard_String (Self.Absolute_Address)
+        & POA_Path_Separator
+        & Name;
+
+   begin
+
+      --  Name is null => We were looking for ourself
+      if Name'Length = 0 then
+         POA := Obj_Adapter_Access (Self);
+         return;
+      end if;
+
+      --  Then look up 'name' in Global POA Table
+      pragma Debug (O ("Find_POA: enter, Name = "
+                       & Full_POA_Name));
+
+      POA := PolyORB.POA.Obj_Adapter_Access
+        (Lookup
+         (Global_POATable,
+          Full_POA_Name,
+          null));
+
+      if POA /= null then
+         pragma Debug (O ("Found POA in Global_POATable"));
+         return;
+      end if;
+
+      --  Then make a recursive look up, activating POA if necessary.
+
+      pragma Debug (O ("Looking for " & Name & " recursively"));
+
+      Find_POA_Recursively
+        (Self,
+         Name,
+         Activate_It,
+         POA,
+         Error);
+
+   end Find_POA;
+
+   -----------------
+   -- Get_Servant --
+   -----------------
+
+   procedure Get_Servant
+     (Self    : access Basic_Obj_Adapter;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container) is
+   begin
+      Get_Servant
+        (Self.Request_Processing_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         Servant,
+         Error);
+   end Get_Servant;
+
+   -----------------
+   -- Set_Servant --
+   -----------------
+
+   procedure Set_Servant
+     (Self    : access Basic_Obj_Adapter;
+      Servant :        Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container) is
+   begin
+      Set_Servant
+        (Self.Request_Processing_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         Servant,
+         Error);
+   end Set_Servant;
+
+   -------------------------
+   -- Get_Servant_Manager --
+   -------------------------
+
+   procedure Get_Servant_Manager
+     (Self    : access Basic_Obj_Adapter;
+      Manager :    out ServantManager_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container) is
+   begin
+      Ensure_Servant_Manager
+        (Self.Request_Processing_Policy.all,
+         Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
+      Manager := Self.Servant_Manager;
+   end Get_Servant_Manager;
+
+   -------------------------
+   -- Set_Servant_Manager --
+   -------------------------
+
+   procedure Set_Servant_Manager
+     (Self    : access Basic_Obj_Adapter;
+      Manager :        ServantManager_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container) is
+   begin
+      Ensure_Servant_Manager
+        (Self.Request_Processing_Policy.all,
+         Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
+      Ensure_Servant_Manager_Type
+        (Self.Servant_Retention_Policy.all,
+         Manager.all,
+         Error);
+
+      Self.Servant_Manager := Manager;
+   end Set_Servant_Manager;
 
    ----------------------
    -- Copy_Obj_Adapter --
@@ -824,25 +1136,30 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Copy_Obj_Adapter
      (From : in     Basic_Obj_Adapter;
-      To   : access Basic_Obj_Adapter)
-   is
+      To   : access Basic_Obj_Adapter) is
    begin
-      To.Name              := From.Name;
-      To.POA_Manager       := From.POA_Manager;
-      To.Boot_Time         := From.Boot_Time;
-      To.Absolute_Address  := From.Absolute_Address;
-      To.Active_Object_Map := From.Active_Object_Map;
+      Lock_R (From.POA_Lock);
+      Lock_W (To.POA_Lock);
+
+      To.Name                       := From.Name;
+      To.POA_Manager                := From.POA_Manager;
+      To.Boot_Time                  := From.Boot_Time;
+      To.Absolute_Address           := From.Absolute_Address;
+      To.Active_Object_Map          := From.Active_Object_Map;
       To.Thread_Policy              := From.Thread_Policy;
       To.Request_Processing_Policy  := From.Request_Processing_Policy;
-      To.Id_Assignment_Policy      := From.Id_Assignment_Policy;
+      To.Id_Assignment_Policy       := From.Id_Assignment_Policy;
       To.Id_Uniqueness_Policy       := From.Id_Uniqueness_Policy;
       To.Servant_Retention_Policy   := From.Servant_Retention_Policy;
       To.Lifespan_Policy            := From.Lifespan_Policy;
       To.Implicit_Activation_Policy := From.Implicit_Activation_Policy;
-      To.Father            := From.Father;
-      To.Children          := From.Children;
-      To.Children_Lock     := From.Children_Lock;
-      To.Map_Lock          := From.Map_Lock;
+      To.Father                     := From.Father;
+      To.Children                   := From.Children;
+      To.Children_Lock              := From.Children_Lock;
+      To.Map_Lock                   := From.Map_Lock;
+
+      Unlock_R (From.POA_Lock);
+      Unlock_W (To.POA_Lock);
    end Copy_Obj_Adapter;
 
    ------------------------
@@ -851,35 +1168,28 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Remove_POA_By_Name
      (Self       : access Basic_Obj_Adapter;
-      Child_Name :        Types.String)
-   is
-      use POA_Sequences;
-      A_Child : POA_Types.Obj_Adapter_Access;
+      Child_Name :        Types.String) is
    begin
       pragma Debug (O (To_Standard_String (Self.Name)
                        & ": removing POA with name "
                        & To_Standard_String (Child_Name)
                        & " from my children."));
-      for I in 1 .. Length (Self.Children.all) loop
-         A_Child := Element_Of (Self.Children.all, I);
-         if A_Child /= null
-           and then POA.Obj_Adapter_Access (A_Child).Name = Child_Name
-         then
-            Replace_Element (Sequence (Self.Children.all), I, null);
-            return;
-         end if;
-      end loop;
+
+      PolyORB.POA_Types.POA_HTables.Delete (Self.Children.all,
+                                            To_Standard_String (Child_Name));
+
    end Remove_POA_By_Name;
 
-   ---------------------------------------------------
-   --  Procedures and functions required by PolyORB  --
-   ---------------------------------------------------
+   --------------------------------------------------
+   -- PolyORB Obj_Adapter interface implementation --
+   --------------------------------------------------
 
    ------------
    -- Create --
    ------------
 
-   procedure Create (OA : access Basic_Obj_Adapter) is
+   procedure Create
+     (OA : access Basic_Obj_Adapter) is
    begin
       Create_Root_POA (OA);
    end Create;
@@ -891,26 +1201,36 @@ package body PolyORB.POA.Basic_POA is
    procedure Destroy
      (OA : access Basic_Obj_Adapter)
    is
+      The_OA : constant Basic_Obj_Adapter_Access :=
+        Basic_Obj_Adapter_Access (OA);
+
    begin
-      Destroy (OA, False, False);
-      --  ??? False or True
+      Destroy (The_OA, True, True);
    end Destroy;
 
    ------------
    -- Export --
    ------------
 
-   function Export
-     (OA  : access Basic_Obj_Adapter;
-      Obj :        Servants.Servant_Access;
-      Key :        Objects.Object_Id_Access       := null)
-     return Objects.Object_Id
-   is
-      Oid : Objects.Object_Id_Access;
+   procedure Export
+     (OA    : access Basic_Obj_Adapter;
+      Obj   :        Servants.Servant_Access;
+      Key   :        Objects.Object_Id_Access;
+      Oid   :    out Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container) is
    begin
+      --  NOTE: Per construction, this procedure has the same semantics as
+      --  Servant_To_Ref CORBA procedure.
 
       --  First find out whether we have retained a previous
       --  association for this servant.
+
+      --  NOTE: Per construction, we can retain an Id iff we are using
+      --  'unique' Id_Uniqueness policy and 'retain' Servant_Retention
+      --  policy. Thus, a non null Oid implies we are using this two
+      --  policies. There is no need to test them.
+
+      --  XXX complete explanation
 
       Oid := Retained_Servant_To_Id
         (Self      => OA.Servant_Retention_Policy.all,
@@ -918,34 +1238,17 @@ package body PolyORB.POA.Basic_POA is
          P_Servant => Obj);
 
       if Oid /= null then
-         return Oid.all;
+         return;
       end if;
 
-      return Activate_Object (OA, Obj, Hint => Key);
-      --  XXX Is it approriate to call Activate_Object
-      --  (a standard operation of the POA) at this point?
+      Implicit_Activate_Servant
+        (OA.Implicit_Activation_Policy.all,
+         POA_Types.Obj_Adapter_Access (OA),
+         Obj,
+         Key,
+         Oid,
+         Error);
 
-      --  Activation will actually be performed only if
-      --  Obj has not already been activated *and*
-      --  the implicit activation policy allows implicit activation.
-
-      --  If the implicit allocation policy does not allow implicit
-      --  activation, then this call to Activate_Object must not
-      --  activate Obj. It must return the previous Id if Obj has
-      --  been activated *and* the retention policy is RETAIN.
-      --  It must return an error condition if Obj has not been
-      --  activated, or if the retention policy is NON_RETAIN.
-
-      --  If implicit activation is allowed but the object has
-      --  already been activated, and the retention policy is RETAIN,
-      --  then the previous ID must be return and no activation must
-      --  be performed. If the retention policy is not RETAIN, the
-      --  behaviour then depends on the Id_Uniqueness_Policy...
-
-      --  To make a long story short: there are a number of conditions
-      --  where the correct behaviour here consists in NOT activating
-      --  an object. So, is the above correct? This is not a
-      --  trivial question.
    end Export;
 
    --------------
@@ -953,33 +1256,36 @@ package body PolyORB.POA.Basic_POA is
    --------------
 
    procedure Unexport
-     (OA : access Basic_Obj_Adapter;
-      Id :        Objects.Object_Id_Access)
-   is
+     (OA    : access Basic_Obj_Adapter;
+      Id    :        Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container) is
    begin
-      Deactivate_Object (OA, Id.all);
+      Deactivate_Object (OA, Id.all, Error);
    end Unexport;
 
    ----------------
    -- Object_Key --
    ----------------
 
-   function Object_Key
-     (OA : access Basic_Obj_Adapter;
-      Id :        Objects.Object_Id_Access)
-      return Objects.Object_Id
+   procedure Object_Key
+     (OA      : access Basic_Obj_Adapter;
+      Id      :        Objects.Object_Id_Access;
+      User_Id :    out Objects.Object_Id_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
 
-      U_Oid : constant Unmarshalled_Oid
-        := Oid_To_U_Oid (Id);
+      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
    begin
       if U_Oid.System_Generated then
-         raise Invalid_Object_Id;
+         Throw (Error,
+                Invalid_Object_Id_E,
+                Null_Members'(Null_Member));
       else
-         return Objects.To_Oid (To_Standard_String (U_Oid.Id));
+         User_Id := new Objects.Object_Id'
+           (Objects.To_Oid (To_Standard_String (U_Oid.Id)));
       end if;
    end Object_Key;
 
@@ -1060,72 +1366,107 @@ package body PolyORB.POA.Basic_POA is
    -- Find_Servant --
    ------------------
 
-   function Find_Servant
-     (OA : access Basic_Obj_Adapter;
-      Id : access Objects.Object_Id)
-     return Servants.Servant_Access
-   is
+   procedure Find_Servant
+     (OA      : access Basic_Obj_Adapter;
+      Id      : access Objects.Object_Id;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container) is
    begin
-      return Find_Servant (OA, Id, CHECK);
+      Find_Servant (OA, Id, True, Servant, Error);
    end Find_Servant;
 
-   ------------------
-   -- Find_Servant --
-   ------------------
-
-   function Find_Servant
+   procedure Find_Servant
      (OA       : access Basic_Obj_Adapter;
       Id       : access Objects.Object_Id;
-      Do_Check :        Check_State)
-     return Servants.Servant_Access
+      Do_Check :        Boolean;
+      Servant  :    out Servants.Servant_Access;
+      Error    : in out PolyORB.Exceptions.Error_Container)
    is
-      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
+      use type PolyORB.Servants.Servant_Access;
+
+      U_Oid    : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
+
+      Obj_OA   : Obj_Adapter_Access;
+      Basic_OA : Basic_Obj_Adapter_Access;
    begin
-      if Do_Check = CHECK then
-         case Get_State (POA_Manager_Of (OA).all) is
+      pragma Debug (O ("Find_Servant: Enter."));
+
+      Find_POA (OA,
+                To_Standard_String (U_Oid.Creator),
+                True,
+                Obj_OA,
+                Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
+      if Obj_OA = null then
+         Throw (Error,
+                Object_Not_Exist_E,
+                System_Exception_Members'(Minor => 0,
+                                          Completed => Completed_No));
+         return;
+      end if;
+
+      Basic_OA := Basic_Obj_Adapter_Access (Obj_OA);
+
+      Lock_R (Basic_OA.POA_Lock);
+
+      --  Check POA Manager state.
+
+      if Do_Check then
+         case Get_State (POA_Manager_Of (Basic_OA).all) is
             when DISCARDING | INACTIVE =>
-               --  Raise_Transient (1);
-               --  ??? Do we have to do something special for INACTIVE
-               raise Transient;
+               --  XXX Do we have to do something special for INACTIVE ???
+               Throw (Error,
+                      Transient_E,
+                      System_Exception_Members'(Minor => 0,
+                                                Completed => Completed_No));
+               return;
+
             when HOLDING =>
-               declare
-                  S : Servants.Servant_Access;
-               begin
-                  S := Servants.Servant_Access
-                    (Get_Hold_Servant
-                     (POA_Manager_Of (OA),
-                      POA_Types.Obj_Adapter_Access (OA)));
-                  return S;
-               end;
+               Servant := Servants.Servant_Access
+                 (Get_Hold_Servant
+                  (POA_Manager_Of (Basic_OA),
+                   POA_Types.Obj_Adapter_Access (Basic_OA)));
+               Servants.Set_Thread_Policy (Servant, Basic_OA.Thread_Policy);
+               return;
+
             when others =>
                null;
          end case;
       end if;
 
+      --  Find servant.
+
       pragma Debug
-        (O ("Look for OA with name #"
-            & To_Standard_String (U_Oid.Creator)
-            & "# starting from RootPOA"));
+        (O ("OA : " & To_Standard_String (Basic_OA.Name)
+            & " looks for servant associated with Id "
+            & Objects.To_String (Id.all)));
 
-      declare
-         The_OA : constant Basic_Obj_Adapter_Access
-           := Find_POA_Recursively (OA, U_Oid.Creator);
-         S      : Servants.Servant_Access;
-      begin
-         pragma Debug
-           (O ("OA : " & To_Standard_String (The_OA.Name)
-               & " looks for servant associated with Id "
-               & Objects.To_String (Id.all)));
+      Id_To_Servant (Basic_OA,
+                     Id.all,
+                     Servant,
+                     Error);
 
-         if The_OA /= null then
-            S := Servants.Servant_Access (Id_To_Servant (The_OA, Id.all));
-            Servants.Set_Thread_Policy (S, The_OA.Thread_Policy);
-            return S;
-         else
-            raise Invalid_Object_Id;
-            --  This is an exception from PolyORB
-         end if;
-      end;
+      Unlock_R (Basic_OA.POA_Lock);
+
+      if Found (Error) then
+         return;
+      end if;
+
+      if Servant = null then
+         Throw (Error,
+                Object_Not_Exist_E,
+                System_Exception_Members'(Minor => 0,
+                                          Completed => Completed_No));
+         return;
+      end if;
+
+      Servants.Set_Thread_Policy (Servant, Basic_OA.Thread_Policy);
+
+      pragma Debug (O ("Find_Servant: Leave."));
    end Find_Servant;
 
    ---------------------
@@ -1137,27 +1478,33 @@ package body PolyORB.POA.Basic_POA is
       Id      : access Objects.Object_Id;
       Servant : in out Servants.Servant_Access)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Unreferenced (Id);
       pragma Unreferenced (Servant);
       pragma Warnings (On);
-
+   begin
       null;
       --  XXX if servant has been created on the fly, should
       --  destroy it now (else do nothing).
    end Release_Servant;
 
+   --------------------
+   -- Set_Proxies_OA --
+   --------------------
+
    procedure Set_Proxies_OA
      (OA         : access Basic_Obj_Adapter;
-      Proxies_OA :        Basic_Obj_Adapter_Access)
-   is
+      Proxies_OA :        Basic_Obj_Adapter_Access) is
    begin
-      pragma Assert (OA.Proxies_OA = null and then Proxies_OA /= null);
+      pragma Assert (OA.Proxies_OA = null
+                       and then Proxies_OA /= null);
       OA.Proxies_OA := Proxies_OA;
    end Set_Proxies_OA;
 
+   ------------------
+   -- Is_Proxy_Oid --
+   ------------------
 
    function Is_Proxy_Oid
      (OA  : access Basic_Obj_Adapter;
@@ -1166,41 +1513,68 @@ package body PolyORB.POA.Basic_POA is
    is
       U_Oid : constant Unmarshalled_Oid
         := Oid_To_U_Oid (Oid);
-      Id_OA : constant Basic_Obj_Adapter_Access
-        := Find_POA_Recursively (OA, U_Oid.Creator);
+
+      Obj_OA : Obj_Adapter_Access;
+      Error  : PolyORB.Exceptions.Error_Container;
    begin
+      Find_POA (OA,
+                To_Standard_String (U_Oid.Creator),
+                False,
+                Obj_OA,
+                Error);
+
       return OA.Proxies_OA /= null
-        and then Id_OA = OA.Proxies_OA;
+        and then Basic_Obj_Adapter_Access (Obj_OA) = OA.Proxies_OA;
    end Is_Proxy_Oid;
 
-   use Ada.Streams;
+   ------------------
+   -- To_Proxy_Oid --
+   ------------------
 
-   function To_Proxy_Oid
-     (OA : access Basic_Obj_Adapter;
-      R  :        References.Ref)
-     return Object_Id_Access
-   is
+   procedure To_Proxy_Oid
+     (OA    : access Basic_Obj_Adapter;
+      R     :        References.Ref;
+      Oid   :    out Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container) is
    begin
       pragma Debug (O ("To_Proxy_Oid: enter"));
 
       if OA.Proxies_OA = null then
          pragma Debug (O ("No Proxies_OA."));
-         return null;
+         Oid := null;
+         return;
       end if;
 
       declare
          Oid_Data : aliased Object_Id
            := Object_Id (References.IOR.Object_To_Opaque (R));
-         U_Oid : constant Unmarshalled_Oid
-           := Create_Object_Identification
-           (OA.Proxies_OA, Oid_Data'Unchecked_Access);
+
+         U_Oid : Unmarshalled_Oid;
+
       begin
-         pragma Debug (O ("TPO: Oid data length:"
-                          & Oid_Data'Length'Img));
+         pragma Debug (O ("To_Proxy_Oid: Oid data length:"
+                          & Integer'Image (Oid_Data'Length)));
+
+         Assign_Object_Identifier
+           (OA.Id_Assignment_Policy.all,
+            POA_Types.Obj_Adapter_Access (OA),
+            Oid_Data'Unchecked_Access,
+            U_Oid,
+            Error);
+
+         if Found (Error) then
+            return;
+         end if;
+
          pragma Debug (O ("To_Proxy_Oid: leave"));
-         return U_Oid_To_Oid (U_Oid);
+
+         Oid := U_Oid_To_Oid (U_Oid);
       end;
    end To_Proxy_Oid;
+
+   ------------------
+   -- Proxy_To_Ref --
+   ------------------
 
    function Proxy_To_Ref
      (OA  : access Basic_Obj_Adapter;
@@ -1211,6 +1585,8 @@ package body PolyORB.POA.Basic_POA is
       pragma Unreferenced (OA);
       pragma Warnings (On);
 
+      use Ada.Streams;
+
       Oid_Data : aliased Object_Id := Objects.To_Oid
         (To_Standard_String (Oid_To_U_Oid (Oid).Id));
       type SEA_Access is access all Ada.Streams.Stream_Element_Array;
@@ -1219,7 +1595,8 @@ package body PolyORB.POA.Basic_POA is
 
    begin
       pragma Debug (O ("PTR: Oid data length:"
-                       & Oid_Data'Length'Img));
+                       & Integer'Image (Oid_Data'Length)));
+
       return References.IOR.Opaque_To_Object
         (As_SEA_Access (Oid_Data'Unchecked_Access));
    end Proxy_To_Ref;

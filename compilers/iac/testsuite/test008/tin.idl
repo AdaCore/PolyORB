@@ -1,0 +1,68 @@
+//
+// Copyright (c) 1997 X/Open Company Ltd., A member of The Open Group.
+//
+// All rights reserved. No part of this source code may be reproduced,
+// stored in a retrieval system, or transmitted, in any form or by any
+// means, electronic, mechanical, photocopying, recording or otherwise,
+// except as stated in the end-user licence agreement, without the prior
+// permission of the copyright owners.
+//
+// Developed for X/Open by ApTest Ireland Limited.
+//
+// Project: CORVAL2
+//
+
+
+typedef float Apple;
+typedef double Carrots;
+typedef long BlackCherry;
+typedef short Rhubarb;
+
+
+#if !defined(MACRO1)
+	#define MACRO1 ABC D EF  S A 
+#endif
+
+#if defined(MACRO1)
+	#undef MACRO1
+	#define MACRO1 Apple
+#endif
+
+#ifndef MACRO1
+#error MACRO1 not defined
+#else
+#define MACRO2 interface \
+                   idlServer
+#endif
+
+
+#ifdef MACRO2
+	#define MACRO3 in
+#endif
+
+#if 0
+	This code will not be compiled
+#elif 1
+
+
+MACRO2 {
+
+typedef unsigned long Pumpkin;
+typedef unsigned short WaterMelon;
+typedef char Dates;
+typedef boolean Lychees;
+
+
+
+
+  MACRO1  GardenPeas(
+    MACRO3 ::Apple p1,
+    out    ::BlackCherry p2,
+
+#endif
+
+    inout  ::idlServer::Dates p3
+  );
+};
+
+

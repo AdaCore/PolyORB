@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---      . N O _ T A S K I N G . C O N D I T I O N _ V A R I A B L E S       --
+--         POLYORB.TASKING.PROFILES.NO_TASKING.CONDITION_VARIABLES          --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,6 +35,8 @@
 --  No_Tasking profile.
 
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
@@ -46,7 +48,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    ---------------
 
    procedure Broadcast
-     (C : in out No_Tasking_Condition_Type) is
+     (C : access No_Tasking_Condition_Type) is
       pragma Warnings (Off);
       pragma Unreferenced (C);
       pragma Warnings (On);
@@ -75,8 +77,9 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    -------------
 
    procedure Destroy
-     (MF : in out No_Tasking_Condition_Factory_Type;
-      C  : in out PTCV.Condition_Access) is
+     (MF : access No_Tasking_Condition_Factory_Type;
+      C  : in out PTCV.Condition_Access)
+  is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
       pragma Warnings (On);
@@ -99,7 +102,7 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    ------------
 
    procedure Signal
-     (C : in out No_Tasking_Condition_Type) is
+     (C : access No_Tasking_Condition_Type) is
       pragma Warnings (Off);
       pragma Unreferenced (C);
       pragma Warnings (On);
@@ -112,13 +115,13 @@ package body PolyORB.Tasking.Profiles.No_Tasking.Condition_Variables is
    ----------
 
    procedure Wait
-     (C : in out No_Tasking_Condition_Type;
-      M : access PTM.Mutex_Type'Class) is
+     (C : access No_Tasking_Condition_Type;
+      M : access PTM.Mutex_Type'Class)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (M);
       pragma Unreferenced (C);
       pragma Warnings (On);
-      B : Boolean;
    begin
       raise Tasking.Tasking_Profile_Error;
    end Wait;

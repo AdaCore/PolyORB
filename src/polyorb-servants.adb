@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                      P O L Y O R B . S E R V A N T S                     --
+--                     P O L Y O R B . S E R V A N T S                      --
 --                                                                          --
---                                 I m p l                                  --
+--                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,33 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
 with PolyORB.Objects.Interface;
+with PolyORB.Log;
 
 package body PolyORB.Servants is
+
+   use PolyORB.Log;
+
+   package L is new PolyORB.Log.Facility_Log ("polyorb.servants");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
+
+   ----------------
+   -- Notepad_Of --
+   ----------------
+
+   function Notepad_Of (S : Servant_Access)
+     return PolyORB.Annotations.Notepad_Access is
+   begin
+      return S.Notepad'Access;
+   end Notepad_Of;
 
    -----------------------
    -- Set_Thread_Policy --
@@ -42,8 +60,7 @@ package body PolyORB.Servants is
 
    procedure Set_Thread_Policy
      (S  : access Servant;
-      TP : POA_Policies.Thread_Policy.ThreadPolicy_Access)
-   is
+      TP : POA_Policies.Thread_Policy.ThreadPolicy_Access) is
    begin
       S.TP_Access := TP;
    end Set_Thread_Policy;
@@ -59,14 +76,25 @@ package body PolyORB.Servants is
    is
       use PolyORB.Objects.Interface;
       use PolyORB.POA_Policies.Thread_Policy;
+
    begin
       if Msg in Execute_Request then
-         --  Dispatch by OA thread policies
+
+         if S.TP_Access = null then
+            O ("No thread policy specified for servant");
+            raise Program_Error;
+         end if;
+
+         --  Dispatch by OA thread policy
+         pragma Debug (O ("POA Thread policy is "
+                          & Policy_Id (S.TP_Access.all)));
          return Handle_Request_Execution
            (S.TP_Access,
             Msg,
             PolyORB.Components.Component_Access (S));
+
       else
+         pragma Debug (O ("Message not in Execute_Request"));
          raise PolyORB.Components.Unhandled_Message;
       end if;
    end Handle_Message;

@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---                   . R A V E N S C A R . M U T E X E S                    --
+--               POLYORB.TASKING.PROFILES.RAVENSCAR.MUTEXES                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -35,9 +35,13 @@
 --  Ravenscar profile. For more comments see PolyORB.Tasking.Mutexes
 
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Profiles.Ravenscar.Configuration;
 with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
+with PolyORB.Tasking.Profiles.Ravenscar.Threads;
 
+generic
+   with package Threads_For_Mutexes is
+     new PolyORB.Tasking.Profiles.Ravenscar.Threads (<>);
+   Number_Of_Mutexes : Integer;
 package PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    use PolyORB.Tasking.Mutexes;
@@ -48,11 +52,8 @@ package PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
 
    type Ravenscar_Mutex_Access is access all Ravenscar_Mutex_Type'Class;
 
-   procedure Enter (M : in out Ravenscar_Mutex_Type);
-   --  Enter critical section.
-
-   procedure Leave (M : in out Ravenscar_Mutex_Type);
-   --  Leave critical section.
+   procedure Enter (M : access Ravenscar_Mutex_Type);
+   procedure Leave (M : access Ravenscar_Mutex_Type);
 
    type Ravenscar_Mutex_Factory_Type is
      new Mutex_Factory_Type with private;
@@ -70,26 +71,25 @@ package PolyORB.Tasking.Profiles.Ravenscar.Mutexes is
      return Mutex_Access;
 
    procedure Destroy
-     (MF : in out Ravenscar_Mutex_Factory_Type;
+     (MF : access Ravenscar_Mutex_Factory_Type;
       M  : in out Mutex_Access);
 
    procedure Initialize;
    --  Initialize the package.
 
 private
-   use PolyORB.Tasking.Profiles.Ravenscar.Configuration;
+   use Threads_For_Mutexes;
 
-   subtype Extended_Thread_Index is
-     Integer range -1 .. Number_Of_Threads - 1;
+   subtype Extended_Synchro_Index is Integer
+     range Integer (Synchro_Index_Type'First) - 1 ..
+     Integer (Synchro_Index_Type'Last);
 
-   Null_Thread_Index : constant Extended_Thread_Index := -1;
-
-   subtype Thread_Index is
-     Extended_Thread_Index range 0 .. Number_Of_Threads - 1;
+   Null_Synchro_Index : constant Extended_Synchro_Index
+     := Extended_Synchro_Index'First;
 
    package Mutex_Index_Manager is
       new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
-     (Configuration.Number_Of_Mutexes);
+     (Number_Of_Mutexes);
 
    subtype Mutex_Index_Type is Mutex_Index_Manager.Index_Type;
 

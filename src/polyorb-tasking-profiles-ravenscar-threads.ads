@@ -2,12 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             P O L Y O R B . T A S K I N G . P R O F I L E S              --
---                   . R A V E N S C A R . T H R E A D S                    --
+--               POLYORB.TASKING.PROFILES.RAVENSCAR.THREADS                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -27,53 +26,51 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  Abstraction types for Ravenscar tasking.
 
---  Under the Ravenscar profile, "Threads" are
---  associated with an unique synchronisation
---  object on which is the only one they can wait on.
---  This assures that only one task wait on every
---  entry, as required in the Ravenscar profile.
+--  Under the Ravenscar profile, "Threads" are associated with an
+--  unique synchronisation object which is the only one they can wait
+--  on. This assures that only one task wait on every entry, as
+--  required in the Ravenscar profile.
 
---  The child packages of this package should only
---  be packages providing tasking facilities. Other
---  packages shoud not have access to "suspend" and "resume",
---  the procedures affecting the internal
---  synchronisation object.
-
-with PolyORB.Tasking.Threads;
 with System;
 
+with PolyORB.Tasking.Threads;
+with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
+
+generic
+   Number_Of_Application_Tasks : Integer;
+   --  Number of tasks created by the user.
+
+   Number_Of_System_Tasks      : Integer;
+   --  Number of tasks created by the PolyORB run-time library.
+
+   Task_Priority               : System.Priority;
+   --  Priority of the system tasks.
+
 package PolyORB.Tasking.Profiles.Ravenscar.Threads is
+
    pragma Elaborate_Body;
 
    use PolyORB.Tasking.Threads;
 
+   package PTT renames PolyORB.Tasking.Threads;
+
    --  Ravenscar tasking profile.
    --  The documentation for the following declarations can be
    --  found in PolyORB.Tasking.Threads.
-
-   type Ravenscar_Thread_Id is new Thread_Id with private;
-
-   type Ravenscar_Thread_Id_Access is access all Ravenscar_Thread_Id'Class;
-
-   function "="
-     (T1 : Ravenscar_Thread_Id;
-      T2 : Ravenscar_Thread_Id)
-     return Boolean;
-
-   function Image (T : Ravenscar_Thread_Id) return String;
 
    type Ravenscar_Thread_Type is new Thread_Type with private;
 
    type Ravenscar_Thread_Access is access all Ravenscar_Thread_Type'Class;
 
    function Get_Thread_Id (T : access Ravenscar_Thread_Type)
-     return Thread_Id_Access;
+     return Thread_Id;
 
    type Ravenscar_Thread_Factory_Type is
      new Thread_Factory_Type with private;
@@ -88,7 +85,8 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
      (TF               : access Ravenscar_Thread_Factory_Type;
       Name             : String := "";
       Default_Priority : System.Any_Priority := System.Default_Priority;
-      R                : Runnable'Class)
+      R                : Runnable_Access;
+      C                : Runnable_Controller_Access)
      return Thread_Access;
 
    function Run_In_Task
@@ -98,75 +96,141 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
       P                : Parameterless_Procedure)
      return Thread_Access;
 
-   procedure Set_Priority
-     (TF : access Ravenscar_Thread_Factory_Type;
-      T  : Thread_Id'Class;
-      P  : System.Any_Priority);
-   --  This function has no sense in Ravenscar profile,
-   --  It simply raises a Tasking.Tasking_Profile_Error.
-
    function Get_Current_Thread_Id
      (TF : access Ravenscar_Thread_Factory_Type)
-     return Thread_Id'Class;
+     return Thread_Id;
 
-   procedure Copy_Thread_Id
-     (TF     : access Ravenscar_Thread_Factory_Type;
-      Source : Thread_Id'Class;
-      Target : Thread_Id_Access);
+   function Thread_Id_Image
+     (TF : access Ravenscar_Thread_Factory_Type;
+      TID : PTT.Thread_Id)
+     return String;
+
+   procedure Set_Priority
+     (TF : access Ravenscar_Thread_Factory_Type;
+      T  :        PTT.Thread_Id;
+      P  :        System.Any_Priority);
+   pragma No_Return (Set_Priority);
+   --  Setting priority has no meaning under this profile,
+   --  raise PolyORB.Tasking.Tasking_Profile_Error.
+
+   function Get_Priority
+     (TF : access Ravenscar_Thread_Factory_Type;
+      T  :        PTT.Thread_Id)
+     return System.Any_Priority;
+   --  XXX not (yet) implemented,
+   --  raise PolyORB.Tasking.Tasking_Profile_Error.
+
+   -------------------------------------------------
+   --  Ravenscar specific synchronization objects --
+   -------------------------------------------------
 
    --  The following procedures make access to the
-   --  internal synchronisation object, so it should
+   --  profile-specific synchronisation objects, so it should
    --  only be used by other packages that thread pool ones,
    --  and synchronisations.
 
-   procedure Suspend (T : Ravenscar_Thread_Id);
-   --  Calling this procedure, the current task await on the internal
-   --  synchronisation.
-   --  The calling task MUST be the one which abstraction
-   --  is "T". Else, it would wait on a synchronisation
-   --  object that doesn't belong to her, which would
-   --  raise a Program_Error if another task call
-   --  "Suspend" on the same synchronisation object.
+   --  Semantics:
 
-   procedure Determinist_Suspend (T : Ravenscar_Thread_Id);
-   --  This procedure is only used for determinist suspension:
-   --  for example, the wait in a bounded FIFO for
-   --  a mutex.
-   --  The same conditions that Suspend applies.
+   --  A thread has three states : Prepared, Waiting, Free.  It is
+   --  initialy Free.
+   --  If it is Free, it can become Prepared after a call to Prepare_Suspend.
+   --  If it is Prepared, it can become Waiting after a call to Suspend,
+   --  or it can become Free by a call to Abort_Suspend.
+   --  If it is Waiting, it can become Free by a call (by another thread)
+   --  to Resume.
+   --  Any other transition makes no sense, and will raise an Assertion
+   --  failure, which will (most likely) be a bug in the Ravenscar profile.
+   --
+   --  To illustrate it, those typical sequences are authorized
+   --  (from the state Free):
+   --
+   --  1:
+   --  prepare_suspend
+   --  suspend
+   --
+   --
+   --  2:
+   --  prepare_suspend
+   --  abort_suspend
+   --
+   --  3:
+   --  prepare_suspend
+   --  abort_suspend
+   --  prepare_suspend
+   --  suspend
 
-   procedure Resume (T : Ravenscar_Thread_Id);
+   --  These one will raise an assertion failure :
+   --  (From Free)
+   --
+   --  1:
+   --  suspend
+   --
+   --  2:
+   --  abort_suspend
+   --
+   --  3:
+   --  prepare_suspend
+   --  abort_suspend
+   --  abort_suspend
+
+   package Synchro_Index_Manager is
+      new PolyORB.Tasking.Profiles.Ravenscar.Index_Manager
+     (Number_Of_System_Tasks + Number_Of_Application_Tasks);
+   --  The number of synchronization objects is the maximum number of
+   --  tasks. Note that if a task have a synchronization object handle
+   --  and it may NOT be blocked; this mean that if all the tasks have
+   --  an handle, it is not an error per se.
+
+
+   type Synchro_Index_Type is new Synchro_Index_Manager.Index_Type;
+   --  A Synchro_Index_Type represents an index in a pool of synchro objects.
+   --  The synchro objects are managed by pools, and are reallocated
+   --  at every call to a suspension functionality.
+
+   function Prepare_Suspend return Synchro_Index_Type;
+   --  This function registers thread-safely the current task
+   --  as a suspending task. It MUST be called before a
+   --  corresponding Suspend.
+
+   procedure Abort_Suspend (S : Synchro_Index_Type);
+   --  This function abort the previous call to Prepare_Suspend.
+
+   procedure Suspend (S : Synchro_Index_Type);
+   --  Calling this procedure, the current task awaits on S (that is,
+   --  wait that another thread call Resume on S). The task that calls
+   --  Suspend MUST have called Prepare_Suspend before; Otherwise, it
+   --  will raise an assertion.
+
+   procedure Resume (S : Synchro_Index_Type);
    --  The call to this procedure free the task waiting
-   --  on the internal synchronisation object of "T".
+   --  on S.
+   --  If no task is about to Wait (that is, if no call to
+   --  Prepare_Wait were done before the call to Resume),
+   --  the signal is lost.
 
-   procedure Determinist_Resume (T : Ravenscar_Thread_Id);
-   --  The call to this procedure free the task waiting
-   --  on the internal synchronisation object of "T" dedicated
-   --  to the determinist suspension.
-
-   function Get_Thread_Index (T : Ravenscar_Thread_Id)
-                             return Integer;
-   --  return a different integer for each Thread_Id.
-
-   procedure Initialize;
-   --  Initialize the package.
+   function Get_Thread_Index (T : Thread_Id) return Integer;
+   --  Return a different integer for each Thread_Id.
 
 private
 
-   type Ravenscar_Thread_Id is new Thread_Id with record
-      Id : Integer;
-   end record;
-
-   type Ravenscar_Thread_Factory_Type is new Thread_Factory_Type with record
-        null;
-   end record;
+   type Ravenscar_Thread_Factory_Type is new Thread_Factory_Type
+     with null record;
 
    The_Thread_Factory : constant Ravenscar_Thread_Factory_Access
      := new Ravenscar_Thread_Factory_Type;
 
    type Ravenscar_Thread_Type is new Thread_Type with record
-      Id   : aliased Ravenscar_Thread_Id;
+      Id      : PTT.Thread_Id;
       --  Id of the Thread.
 
+      Sync_Id : Synchro_Index_Type;
+      pragma Atomic (Sync_Id);
+      --  if the thread is available to be allocated to a caller of
+      --  Run_In_Task, Sync_Id is the Id of the Synchro on which the
+      --  corresponding task is waiting.
    end record;
+
+   procedure Initialize;
+   --  Package Initialization procedure.
 
 end PolyORB.Tasking.Profiles.Ravenscar.Threads;

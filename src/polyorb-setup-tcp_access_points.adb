@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,11 +37,11 @@
 --  $Id$
 
 with PolyORB.Components;
-with PolyORB.Transport.Sockets;
+with PolyORB.Transport.Connected.Sockets;
 
 package body PolyORB.Setup.TCP_Access_Points is
 
-   use PolyORB.Transport.Sockets;
+   use PolyORB.Transport.Connected.Sockets;
 
    procedure Initialize_Socket
      (DAP  : in out Access_Point_Info;
@@ -60,7 +61,7 @@ package body PolyORB.Setup.TCP_Access_Points is
          (Reuse_Address, True));
 
       if DAP.SAP = null then
-         DAP.SAP := new Transport.Sockets.Socket_Access_Point;
+         DAP.SAP := new Socket_Access_Point;
       end if;
       loop
          DAP.Address.Port := Port;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . U T I L S . S I M P L E _ F L A G S         --
+--           P O L Y O R B . U T I L S . S I M P L E _ F L A G S            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,20 +35,56 @@
 
 --  $Id$
 
-with PolyORB.Types;
-
+generic
+   type Flags_Type is mod <>;
+   with function Shift_Left
+     (Value : Flags_Type;
+      N     : Natural)
+     return Flags_Type;
 package PolyORB.Utils.Simple_Flags is
 
-   type Flags is new Types.Unsigned_Long;
+   type Bit_Count is new Natural range 0 .. (Flags_Type'Size - 1);
 
-   function Is_Set (Flag_To_Test : Flags;
-                    In_Flags     : Flags) return Boolean;
+   function Mask
+     (N : Bit_Count)
+     return Flags_Type;
+   pragma Inline (Mask);
+   --  Create a binary mask equal to 2^N
+
+   function Is_Set
+     (Flag_To_Test : Flags_Type;
+      In_Flags     : Flags_Type)
+     return Boolean;
    pragma Inline (Is_Set);
    --  Test if Flag_To_Test has been set in In_Flags
+   --  Flag_To_Test is a mask
 
-   function Set (Flag_To_Set : Flags;
-                 In_Flags    : Flags) return Flags;
+   function Is_Set
+     (N        : Bit_Count;
+      In_Flags : Flags_Type)
+     return Boolean;
+   pragma Inline (Is_Set);
+   --  Test if bit N has been set in In_Flags
+
+   function Set
+     (Flag_To_Set : Flags_Type;
+      In_Flags    : Flags_Type)
+     return Flags_Type;
    pragma Inline (Set);
    --  Set Flag_To_Set in In_Flags
+   --  Flag_To_Set is a mask
+
+   function Set
+     (N        : Bit_Count;
+      In_Flags : Flags_Type)
+     return Flags_Type;
+   pragma Inline (Set);
+   --  Set bit N in In_Flags
+
+   procedure Set
+     (Flag_Field : in out Flags_Type;
+      N          : Bit_Count;
+      Value      : Boolean);
+   --  Set bit N of Flag_Field to Value
 
 end PolyORB.Utils.Simple_Flags;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,20 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-helper.adb#1 $
+--  $Id: //droopi/main/src/corba/corba-helper.adb#3 $
+
+with PolyORB.Any;
 
 package body CORBA.Helper is
+
+   ----------------------
+   -- TC_Repository_Id --
+   ----------------------
 
    function TC_RepositoryId return CORBA.TypeCode.Object
    is
@@ -51,6 +58,10 @@ package body CORBA.Helper is
       return Result;
    end TC_RepositoryId;
 
+   --------------
+   -- From_Any --
+   --------------
+
    function From_Any (Item : in CORBA.Any)
       return CORBA.RepositoryId is
       Result : CORBA.String := CORBA.From_Any (Item);
@@ -58,14 +69,24 @@ package body CORBA.Helper is
       return CORBA.RepositoryId (Result);
    end From_Any;
 
+   ------------
+   -- To_Any --
+   ------------
+
    function To_Any
      (Item : in CORBA.RepositoryId)
      return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Set_Type (Result, TC_RepositoryId);
+      PolyORB.Any.Set_Volatile (Result, True);
+
       return Result;
    end To_Any;
+
+   -------------------
+   -- TC_Identifier --
+   -------------------
 
    function TC_Identifier return CORBA.TypeCode.Object
    is
@@ -84,6 +105,10 @@ package body CORBA.Helper is
       return Result;
    end TC_Identifier;
 
+   --------------
+   -- From_Any --
+   --------------
+
    function From_Any (Item : in CORBA.Any)
       return CORBA.Identifier is
       Result : CORBA.String := CORBA.From_Any (Item);
@@ -91,14 +116,24 @@ package body CORBA.Helper is
       return CORBA.Identifier (Result);
    end From_Any;
 
+   ------------
+   -- To_Any --
+   ------------
+
    function To_Any
      (Item : in CORBA.Identifier)
      return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Set_Type (Result, TC_Identifier);
+      PolyORB.Any.Set_Volatile (Result, True);
+
       return Result;
    end To_Any;
+
+   -------------------
+   -- TC_ScopedName --
+   -------------------
 
    function TC_ScopedName return CORBA.TypeCode.Object
    is
@@ -117,6 +152,10 @@ package body CORBA.Helper is
       return Result;
    end TC_ScopedName;
 
+   --------------
+   -- From_Any --
+   --------------
+
    function From_Any (Item : in CORBA.Any)
       return CORBA.ScopedName is
       Result : CORBA.String := CORBA.From_Any (Item);
@@ -124,12 +163,18 @@ package body CORBA.Helper is
       return CORBA.ScopedName (Result);
    end From_Any;
 
+   ------------
+   -- To_Any --
+   ------------
+
    function To_Any
      (Item : in CORBA.ScopedName)
      return CORBA.Any is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Set_Type (Result, TC_ScopedName);
+      PolyORB.Any.Set_Volatile (Result, True);
+
       return Result;
    end To_Any;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,34 +26,140 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
-with Ada.Streams; use Ada.Streams;
-
-with PolyORB.Sequences.Unbounded;
+with Ada.Streams;
 
 with PolyORB.Binding_Data;
-with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.Log;
 with PolyORB.Representations.CDR;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.Types;
 with PolyORB.Utils;
 
 package body PolyORB.References.IOR is
 
+   use Ada.Streams;
+
    use PolyORB.Log;
    use PolyORB.Utils;
    use PolyORB.Representations.CDR;
    use PolyORB.Binding_Data;
-   use Profile_Record_Seq;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.ior");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   type Profile_Record is record
+      Tag                     : Binding_Data.Profile_Tag;
+      Marshall_Profile_Body   : Marshall_Profile_Body_Type;
+      Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
+   end record;
+
+   package Profile_Record_Seq is
+      new PolyORB.Sequences.Unbounded (Profile_Record);
+
+   use Profile_Record_Seq;
+
+   Callbacks : Profile_Record_Seq.Sequence;
+
+   ----------------------
+   -- Marshall Profile --
+   ----------------------
+
+   procedure Marshall_Profile
+     (Buffer  : access Buffer_Type;
+      P       :        Binding_Data.Profile_Access;
+      Success :    out Boolean)
+   is
+      use PolyORB.Types;
+   begin
+      Success := False;
+      pragma Assert (P /= null);
+      pragma Debug (O ("Marshall profile with tag :"
+                       & Get_Profile_Tag (P.all)'Img));
+      for J in 1 .. Length (Callbacks) loop
+         declare
+            T : constant Profile_Tag
+              := Get_Profile_Tag (P.all);
+
+            Info : constant Profile_Record
+              := Element_Of (Callbacks, J);
+         begin
+            pragma Debug
+              (O ("... with callback" & Integer'Image (J)
+                  & " whose tag is "
+                  & Profile_Tag'Image (Info.Tag)));
+
+            if T = Info.Tag then
+               Marshall
+                 (Buffer, Types.Unsigned_Long
+                  (T));
+               Element_Of (Callbacks, J).Marshall_Profile_Body
+                 (Buffer, P);
+               Success := True;
+               return;
+            end if;
+         end;
+      end loop;
+   end Marshall_Profile;
+
+   ------------------------
+   -- Unmarshall_Profile --
+   ------------------------
+
+   function Unmarshall_Profile
+     (Buffer : access Buffer_Type)
+     return Profile_Access
+   is
+      use PolyORB.Types;
+
+      Temp_Tag : constant Types.Unsigned_Long := Unmarshall (Buffer);
+      Tag      : constant Profile_Tag := Profile_Tag (Temp_Tag);
+      Known    : Boolean := False;
+      Prof     : Profile_Access;
+   begin
+      pragma Debug (O ("Considering profile with tag" & Tag'Img));
+
+      for J in 1 .. Length (Callbacks) loop
+         pragma Debug
+           (O ("... with callback" & Integer'Image (J)
+               & " whose tag is "
+               & Profile_Tag'Image (Element_Of (Callbacks, J).Tag)));
+
+         if Element_Of (Callbacks, J).Tag = Tag then
+            Prof := Element_Of (Callbacks, J).Unmarshall_Profile_Body (Buffer);
+            Known := True;
+            --  Profiles dynamically allocated here
+            --  will be freed when the returned
+            --  reference is finalised.
+         end if;
+      end loop;
+
+      if not Known then
+         --  No callback matches this tag.
+         declare
+            pragma Debug (O ("Profile with tag"
+                             & Tag'Img
+                             & " not found"));
+            pragma Warnings (Off);
+            Discarded_Body : constant Encapsulation
+              := Unmarshall (Buffer);
+            --  Consider the profile body as an encapsulation
+            --  (our best bet).
+            pragma Unreferenced (Discarded_Body);
+            pragma Warnings (On);
+         begin
+            return null;
+         end;
+      end if;
+      return Prof;
+   end Unmarshall_Profile;
 
    ------------------
    -- Marshall_IOR --
@@ -67,78 +173,51 @@ package body PolyORB.References.IOR is
       use Profile_Seqs;
 
    begin
-      pragma Debug (O ("Marshall: enter"));
+      pragma Debug (O ("Marshall IOR: Enter"));
 
       if Is_Nil (Value) then
          Marshall
            (Buffer, PolyORB.Types.String'(To_PolyORB_String ("")));
          Marshall (Buffer, Types.Unsigned_Long'(0));
+         pragma Debug (O ("IOR Empty"));
       else
+         Marshall
+           (Buffer, PolyORB.Types.String'
+            (To_PolyORB_String (Type_Id_Of (Value))));
+         Pad_Align (Buffer, 4);
          declare
             Profs    : constant Profile_Array
               := Profiles_Of (Value);
-
-            Last_Callback  : Integer := 0;
-            Callback_Index : Integer;
-            Valid_Callbacks : array (1 .. Length (Callbacks))
-              of Profile_Record;
+            Counter  : Types.Unsigned_Long := 0;
+            Count_Buf : Buffer_Access := new Buffer_Type;
+            Reserv   : Reservation;
+            Success  : Boolean;
          begin
-
+            Set_Initial_Position (Count_Buf, CDR_Position (Buffer));
+            Reserv := Reserve (Buffer, Counter'Size / Types.Octet'Size);
+            pragma Debug (O (Type_Id_Of (Value)));
             for Profile_Index in Profs'Range loop
-               pragma Debug
-                 (O ("Considering profile with tag"
-                     & Get_Profile_Tag
-                     (Profs (Profile_Index).all)'Img));
-
-               for I in 1 .. Length (Callbacks) loop
-                  pragma Assert (Profs (Profile_Index) /= null);
-
-                  declare
-                     T : constant Profile_Tag
-                       := Get_Profile_Tag
-                       (Profs (Profile_Index).all);
-
-                     Info : constant Profile_Record
-                       := Element_Of (Callbacks, I);
-                  begin
-                     pragma Debug
-                       (O ("... with callback" & I'Img
-                           & " whose tag is "
-                           & Profile_Tag'Image (Info.Tag)));
-
-                     if T = Info.Tag then
-                        Last_Callback := Last_Callback + 1;
-                        Valid_Callbacks (Last_Callback) := Info;
-                     end if;
-                  end;
-               end loop;
-            end loop;
-
-            Marshall
-              (Buffer, PolyORB.Types.String'
-               (To_PolyORB_String (Type_Id_Of (Value))));
-            Marshall (Buffer, Types.Unsigned_Long (Last_Callback));
-
-            Callback_Index := Valid_Callbacks'First;
-            for Profile_Index in Profs'Range loop
-               exit when Callback_Index > Last_Callback;
-
-               if Get_Profile_Tag (Profs (Profile_Index).all)
-                 = Valid_Callbacks (Callback_Index).Tag
-               then
-                  Marshall
-                    (Buffer, Types.Unsigned_Long
-                     (Valid_Callbacks (Callback_Index).Tag));
-
-                  Valid_Callbacks
-                    (Callback_Index).Marshall_Profile_Body
-                    (Buffer, Profs (Profile_Index));
-                  Callback_Index := Callback_Index + 1;
+               pragma Assert (Profs (Profile_Index) /= null);
+               Marshall_Profile (Buffer, Profs (Profile_Index), Success);
+               if Success then
+                  Counter := Counter + 1;
+               else
+                  pragma Debug (O ("Profile with tag"
+                                   & Get_Profile_Tag
+                                   (Profs (Profile_Index).all)'Img
+                                   & " not found"));
+                  null;
                end if;
             end loop;
+
+            pragma Debug (O (Counter'Img & " profile(s)"));
+
+            Marshall (Count_Buf, Counter);
+            Copy_Data (Count_Buf.all, Reserv);
+            Release (Count_Buf);
          end;
       end if;
-      pragma Debug (O ("Marshall: Leave"));
+      pragma Debug (O ("Marshall IOR: Leave"));
    end Marshall_IOR;
 
    --------------------
@@ -147,7 +226,7 @@ package body PolyORB.References.IOR is
 
    function Unmarshall_IOR
      (Buffer : access Buffer_Type)
-   return  IOR_Type
+     return  IOR_Type
    is
       use PolyORB.Types;
       use Profile_Seqs;
@@ -168,56 +247,19 @@ package body PolyORB.References.IOR is
 
       pragma Debug
         (O ("Decapsulate_IOR: type " & Type_Id
-            & " (" & N_Profiles'Img & " profiles)."));
+            & " (" & Unsigned_Long'Image (N_Profiles) & " profiles)."));
 
-      All_Profiles :
       for N in 1 .. N_Profiles loop
          declare
-            Temp_Tag : constant Types.Unsigned_Long := Unmarshall (Buffer);
-            Tag      : constant Profile_Tag := Profile_Tag (Temp_Tag);
-            Known    : Boolean := False;
+            Pro : Profile_Access;
          begin
-            pragma Debug (O ("Considering profile with tag"
-                             & Profile_Tag'Image (Tag)));
-
-            All_Callbacks :
-            for I in 1 .. Length (Callbacks) loop
-               pragma Debug
-                 (O ("... with callback" & I'Img & " whose tag is "
-                     & Profile_Tag'Image (Element_Of (Callbacks, I).Tag)));
-               if Element_Of (Callbacks, I).Tag = Tag then
-                  Last_Profile := Last_Profile + 1;
-                  Profs (Last_Profile) := Element_Of (Callbacks, I).
-                    Unmarshall_Profile_Body (Buffer);
-                  Known := True;
-                  --  Profiles dynamically allocated here
-                  --  will be freed when the returned
-                  --  reference is finalised.
-               end if;
-            end loop All_Callbacks;
-
-            if not Known then
-
-               --  No callback matches this tag.
-
-               declare
-                  pragma Warnings (Off);
-                  Discarded_Body : constant Encapsulation
-                    := Unmarshall (Buffer);
-                  --  Consider the profile body as an encapsulation
-                  --  (our best bet).
-                  pragma Unreferenced (Discarded_Body);
-                  pragma Warnings (On);
-               begin
-                  null;
-                  --  XXX
-                  --  Actually we should keep the tag and encapsulation
-                  --  as an 'unsupported profile'.
-               end;
-
+            Pro := Unmarshall_Profile (Buffer);
+            if Pro /= null then
+               Last_Profile := Last_Profile + 1;
+               Profs (Last_Profile) := Pro;
             end if;
          end;
-      end loop All_Profiles;
+      end loop;
 
       if Last_Profile >= Profs'First then
          Create_Reference

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,13 +26,16 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  The Request object.
 
 --  $Id$
+
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
 with PolyORB.ORB;
@@ -70,6 +73,8 @@ package body PolyORB.Requests is
    is
       Res : constant Request_Access := new Request;
    begin
+      pragma Debug (O ("Creating request"));
+
       Res.Target    := Target;
       Res.Operation := To_PolyORB_String (Operation);
       Res.Args      := Arg_List;
@@ -86,6 +91,20 @@ package body PolyORB.Requests is
 
       Req := Res;
    end Create_Request;
+
+   ---------------------
+   -- Destroy_Request --
+   ---------------------
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Request, Request_Access);
+
+   procedure Destroy_Request
+     (R : in out Request_Access) is
+   begin
+      Annotations.Destroy (R.Notepad);
+      Free (R);
+   end Destroy_Request;
 
    ------------
    -- Invoke --
@@ -105,15 +124,17 @@ package body PolyORB.Requests is
 
    begin
       PolyORB.ORB.Queue_Request_To_Handler
-        (The_ORB.Tasking_Policy, The_ORB,
+        (The_ORB.Tasking_Policy,
+         The_ORB,
          Queue_Request'
          (Request   => Self,
           Requestor => Self.Requesting_Component));
       --   Requestor => null));
 
       --  Execute the ORB until the request is completed.
-      ORB.Run
-        (The_ORB, Exit_Condition_T'
+      PolyORB.ORB.Run
+        (The_ORB,
+         Exit_Condition_T'
          (Condition => Self.Completed'Access,
           Task_Info => Self.Requesting_Task'Access),
          May_Poll => True);
@@ -135,11 +156,11 @@ package body PolyORB.Requests is
       use PolyORB.Any;
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
-      use PolyORB.Any.NVList.Internals.NV_Sequence;
+      use PolyORB.Any.NVList.Internals.NV_Lists;
 
-      Src_Arg_Index : Integer := 1;
-      Src_Arg_Count : constant Integer
-        := Integer (Get_Count (Src_Args));
+      Src_It : Iterator := First (List_Of (Src_Args).all);
+      Dst_It : Iterator := First (List_Of (Dst_Args).all);
+
    begin
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
 
@@ -175,17 +196,16 @@ package body PolyORB.Requests is
       --  XXX actually for now we do not check names at all:
       --  we skip Src_Args with the wrong direction and then assume
       --  strict positional association.
-      --  If we were brave guys, we should attempt
-      --  should be made to reconcile argument names and argument types
-      --  (tricky. See how Ada compilers do parameter reconciliation with
-      --  support for both named and positional parameter associations.)
+      --  If we were brave guys, we should attempt to reconcile
+      --  argument names and argument types (Tricky: see how Ada
+      --  compilers do parameter reconciliation with support for both
+      --  named and positional parameter associations.)
 
-      for Dst_Arg_Index in 1 .. Get_Count (Dst_Args) loop
-         --  Index in Args (application layer arguments)
+      while not Last (Dst_It) loop
+
          declare
-            Dst_Arg : NamedValue
-              := Element_Of (List_Of (Dst_Args).all,
-                             Integer (Dst_Arg_Index));
+            Dst_Arg : constant Element_Access := Value (Dst_It);
+
          begin
             if Dst_Arg.Arg_Modes = ARG_INOUT
               or else Dst_Arg.Arg_Modes = Direction
@@ -200,20 +220,19 @@ package body PolyORB.Requests is
 
                loop
                   declare
-                     Src_Arg : constant NamedValue
-                       := Element_Of (List_Of (Src_Args).all, Src_Arg_Index);
+                     Src_Arg : constant Element_Access := Value (Src_It);
                   begin
                      if Ignore_Src_Mode
                        or else Src_Arg.Arg_Modes = ARG_INOUT
                        or else Src_Arg.Arg_Modes = Direction
                      then
                         Copy_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
-                        Src_Arg_Index := Src_Arg_Index + 1;
+                        Next (Src_It);
                         --  These MUST be type-compatible!
                         exit;
                      else
-                        Src_Arg_Index := Src_Arg_Index + 1;
-                        if Src_Arg_Index > Src_Arg_Count then
+                        Next (Src_It);
+                        if Last (Src_It) then
                            raise Program_Error;
                         end if;
                      end if;
@@ -221,6 +240,7 @@ package body PolyORB.Requests is
 
                end loop;
             end if;
+            Next (Dst_It);
          end;
       end loop;
 
@@ -261,6 +281,7 @@ package body PolyORB.Requests is
             Self.Args := Args;
          end;
          Self.Deferred_Arguments_Session := null;
+
       else
          pragma Assert
            (Self.Deferred_Arguments_Session = null
@@ -269,9 +290,11 @@ package body PolyORB.Requests is
          pragma Debug (O ("in Arguments: " & Image (Self.Args)));
 
          Pump_Up_Arguments
-           (Dst_Args => Args, Src_Args => Self.Args,
+           (Dst_Args  => Args,
+            Src_Args  => Self.Args,
             Direction => Any.ARG_IN);
       end if;
+
       Self.Out_Args := Args;
    end Arguments;
 
@@ -279,17 +302,22 @@ package body PolyORB.Requests is
    -- Image --
    -----------
 
-   function Image (Req : Request) return String
+   function Image
+     (Req : Request)
+     return String
    is
       S1 : constant String
-        := "Operation: " & To_Standard_String (Req.Operation)
-        & " on object " & References.Image (Req.Target);
+        := "Operation: "
+        & To_Standard_String (Req.Operation)
+        & " on object "
+        & References.Image (Req.Target);
    begin
       declare
          S2 : constant String := Any.NVList.Image (Req.Args);
       begin
          return S1 & " with arguments " & S2;
       end;
+
    exception
       when others =>
          --  For some kinds of Any's, bugs in the respective
@@ -311,6 +339,7 @@ package body PolyORB.Requests is
       Val  : Any.Any)
    is
       use PolyORB.Any;
+
    begin
       if TypeCode.Kind (Get_Type (Self.Result.Argument)) = Tk_Void then
          Self.Result :=
@@ -318,7 +347,7 @@ package body PolyORB.Requests is
             Argument  => Val,
             Arg_Modes => ARG_OUT);
       else
-         PolyORB.Any.Copy_Any_Value (Self.Result.Argument, Val);
+         Copy_Any_Value (Self.Result.Argument, Val);
       end if;
    end Set_Result;
 
@@ -326,11 +355,13 @@ package body PolyORB.Requests is
    -- Set_Out_Args --
    ------------------
 
-   procedure Set_Out_Args (Self : Request_Access) is
+   procedure Set_Out_Args
+     (Self : Request_Access) is
    begin
       Pump_Up_Arguments
-        (Dst_Args => Self.Args, Src_Args => Self.Out_Args,
-         Direction => PolyORB.Any.ARG_OUT,
+        (Dst_Args        => Self.Args,
+         Src_Args        => Self.Out_Args,
+         Direction       => PolyORB.Any.ARG_OUT,
          Ignore_Src_Mode => False);
       --  Copy back inout and out arguments from Out_Args
       --  to Args, so the requestor finds them where

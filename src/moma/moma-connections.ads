@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,58 +26,77 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  A Connection provides access to the provider for the client.
+
 --  $Id$
 
-with MOMA.Message_Consumers;
+with MOMA.Connection_Factories;
 with MOMA.Types;
+
 with PolyORB.References;
 
 package MOMA.Connections is
 
-   type Connection is abstract tagged private;
+   type Connection is private;
+   --  Client_Id : Id of the MOMA client.
+   --  Ref       : Reference.
 
    procedure Close;
+   --  Close the connection.
 
-   function Get_Client_Id (Self : Connection)
-                           return MOMA.Types.String;
+   function Create_Connection
+     (Factory : MOMA.Connection_Factories.Connection_Factory)
+      return Connection;
+   --  Create a new connection using this connection factory.
 
-   procedure Set_Client_Id (Self : in out Connection;
-                            Client_Id : MOMA.Types.String);
+   function Create_Connection
+     (Factory   : MOMA.Connection_Factories.Connection_Factory;
+      Username  : String;
+      Password  : String)
+      return Connection;
+   --  Create a new connection using this connection factory
+   --  and providing a username/password.
+   --  XXX Not implemented.
 
-   function Get_Ref (Self : Connection)
-                     return PolyORB.References.Ref;
+   --  Accessors to Connection internal data.
 
-   procedure Set_Ref (Self : in out Connection;
-                      Ref  : in PolyORB.References.Ref);
+   function Get_Client_Id
+     (Self : Connection)
+     return MOMA.Types.String;
+
+   procedure Set_Client_Id
+     (Self      : in out Connection;
+      Client_Id :        MOMA.Types.String);
+
+   function Get_Ref
+     (Self : Connection)
+     return PolyORB.References.Ref;
+
+   procedure Set_Ref
+     (Self : in out Connection;
+      Ref  : in     PolyORB.References.Ref);
 
    procedure Start;
+   --  Start the connection, i.e activate all rattached message producers
+   --  and consumers.
+   --  XXX to be implemented.
 
    procedure Stop;
+   --  Stop the connection, i.e desactivate all rattached message producers
+   --  and consumers.
+   --  XXX to be implemented.
+
+   --  XXX check the conformance and pertinence of the above spec.
 
    function Get_Meta_Data return MOMA.Types.Meta_Data;
 
-
-   function Create_Consumer return Message_Consumers.Message_Consumer
-      is abstract;
-   --  XXX should REALLY be there ? check JMS ...
-
-   ---------------------------------------
-   -- Abstract Create_Session Function --
-   ---------------------------------------
-
-   --  function Create_Session (Self : Connection;
-   --                         Transacted : Boolean;
-   --                         Ackowledge_Mode : Acknowledge_Type)
-   --                        return Sessions.Session
-   --  is abstract;
-
-
 private
-   type Connection is abstract tagged record
+   type Connection is record
       Client_Id  : MOMA.Types.String;
       Ref        : PolyORB.References.Ref;
    end record;

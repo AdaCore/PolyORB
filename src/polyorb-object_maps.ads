@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,23 +26,25 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract model for the Active Object Map.
---  An implementation of this map needs to be able to access an entry
---  by its index (an Integer).
+--  Abstract model for the POA Active Object Map.
 
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Sequences.Unbounded;
-with PolyORB.Servants;
 with PolyORB.POA_Types;
+with PolyORB.Servants;
 
 package PolyORB.Object_Maps is
+
+   ----------------------
+   -- Object_Map_Entry --
+   ----------------------
 
    type Object_Map_Entry is limited record
       Oid     : PolyORB.POA_Types.Unmarshalled_Oid_Access;
@@ -54,20 +56,13 @@ package PolyORB.Object_Maps is
    procedure Free is new Ada.Unchecked_Deallocation
      (Object_Map_Entry, Object_Map_Entry_Access);
 
-   type Object_Map is limited private;
-   type Object_Map_Access is access all Object_Map;
+   ----------------
+   -- Object_Map --
+   ----------------
 
-   function Add
-     (O_Map : access Object_Map;
-      Obj   : in     Object_Map_Entry_Access)
-     return Integer;
-   --  Adds a new entry in the map, returning its index.
+   type Object_Map is abstract tagged limited private;
 
-   procedure Replace_By_Index
-     (O_Map : access Object_Map;
-      Obj   : in     Object_Map_Entry_Access;
-      Index : in     Integer);
-   --  Replace an element in the map, given its index.
+   type Object_Map_Access is access all Object_Map'Class;
 
    function Is_Servant_In
      (O_Map : in Object_Map;
@@ -86,50 +81,35 @@ package PolyORB.Object_Maps is
    function Get_By_Id
      (O_Map : in Object_Map;
       Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
-     return Object_Map_Entry_Access;
+     return Object_Map_Entry_Access
+      is abstract;
    --  Given an Object_Id, look up the corresponding map entry.
    --  If not found, returns null.
 
    function Get_By_Servant
      (O_Map  : in Object_Map;
       Item   : in PolyORB.Servants.Servant_Access)
-     return Object_Map_Entry_Access;
+     return Object_Map_Entry_Access
+      is abstract;
    --  Given a servant, looks for the corresponding map entry
    --  Doesn't check that the servant is only once in the map
    --  If not found, returns null.
 
-   function Get_By_Index
-     (O_Map : in Object_Map;
-      Index : in Integer)
-     return Object_Map_Entry_Access;
-   --  Given an index, returns the corrsponding map entry
-   --  If Index is out of bounds, returns null.
-
    function Remove_By_Id
      (O_Map : access Object_Map;
-      Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
-     return Object_Map_Entry_Access;
+      Item  : in     PolyORB.POA_Types.Unmarshalled_Oid)
+     return Object_Map_Entry_Access
+     is abstract;
    --  Given an Object_Id, removes an entry from the map
    --  and returns it . A null value means
    --  that the object_id wasn't in the map.
 
-   function Remove_By_Index
-     (O_Map : access Object_Map;
-      Index : in     Integer)
-     return Object_Map_Entry_Access;
-   --  Given an index, removes an entry from the map
-   --  and returns it. A null value means that the index
-   --  points to an empty value.
-   --  The caller is responsible for freeing the Oid
-   --  and the object map entry.
-
 private
 
-   package Map_Entry_Seqs is new PolyORB.Sequences.Unbounded
-     (Object_Map_Entry_Access);
+   type Object_Map is abstract tagged limited null record;
 
-   type Object_Map is limited record
-      Map : Map_Entry_Seqs.Sequence;
-   end record;
+   function Is_Null
+     (Item : in Object_Map_Entry_Access)
+     return Boolean;
 
 end PolyORB.Object_Maps;

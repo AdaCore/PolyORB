@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,19 +26,20 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Object adapters: entities that manage the association
---  of references with servants.
+--  This package provides the root definition of all Object adapters.
+--  An Object Adapter manages the association of references to servants.
 
 --  $Id$
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-
 with PolyORB.Components;
+with PolyORB.Exceptions;
 with PolyORB.Objects;
 with PolyORB.Servants;
 with PolyORB.References;
@@ -73,11 +74,12 @@ package PolyORB.Obj_Adapters is
    -- Interface to application objects --
    --------------------------------------
 
-   function Export
-     (OA  : access Obj_Adapter;
-      Obj :        Servants.Servant_Access;
-      Key :        Objects.Object_Id_Access := null)
-      return Objects.Object_Id
+   procedure Export
+     (OA    : access Obj_Adapter;
+      Obj   :        Servants.Servant_Access;
+      Key   :        Objects.Object_Id_Access;
+      Oid   :    out Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Create an identifier for Obj within OA. If Key is
    --  not null, use it as an application-level identifier
@@ -85,19 +87,21 @@ package PolyORB.Obj_Adapters is
    --  local identifier).
 
    procedure Unexport
-     (OA : access Obj_Adapter;
-      Id :        Objects.Object_Id_Access)
+     (OA    : access Obj_Adapter;
+      Id    :        Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Id is an object identifier attributed by OA.
    --  The corresponding association is suppressed.
 
-   function Object_Key
-     (OA : access Obj_Adapter;
-      Id :        Objects.Object_Id_Access)
-      return Objects.Object_Id
+   procedure Object_Key
+     (OA      : access Obj_Adapter;
+      Id      :        Objects.Object_Id_Access;
+      User_Id :    out Objects.Object_Id_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
       is abstract;
-   --  Return the application-level identifier associated
-   --  with Id.
+   --  If Id is user defined associated with Id, return user
+   --  identifier component of Id,  else raise an error.
 
    ----------------------------------------------------
    -- Interface to ORB (acting on behalf of clients) --
@@ -109,7 +113,7 @@ package PolyORB.Obj_Adapters is
       Method : String)
       return Any.NVList.Ref
       is abstract;
-   --  Return the paramter profile of the given method, so the
+   --  Return the parameter profile of the given method, so the
    --  protocol layer can unmarshall the message into a Request object.
 
    function Get_Empty_Result
@@ -120,13 +124,14 @@ package PolyORB.Obj_Adapters is
       is abstract;
    --  Return the result profile of the given method.
 
-   function Find_Servant
-     (OA : access Obj_Adapter;
-      Id : access Objects.Object_Id)
-      return Servants.Servant_Access
+   procedure Find_Servant
+     (OA      : access Obj_Adapter;
+      Id      : access Objects.Object_Id;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Retrieve the servant managed by OA for logical object Id.
-   --  The servant that incarnates the object is return.
+   --  The servant that incarnates the object is returned.
 
    procedure Release_Servant
      (OA      : access Obj_Adapter;
@@ -172,10 +177,11 @@ package PolyORB.Obj_Adapters is
       Oid : access Objects.Object_Id)
      return Boolean;
 
-   function To_Proxy_Oid
-     (OA : access Obj_Adapter;
-      R  :        References.Ref)
-     return Objects.Object_Id_Access;
+   procedure To_Proxy_Oid
+     (OA    : access Obj_Adapter;
+      R     :        References.Ref;
+      Oid   :    out Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container);
 
    function Proxy_To_Ref
      (OA  : access Obj_Adapter;

@@ -1,6 +1,41 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                                  R C I                                   --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
+
+--  $Id$
+
 with Ada.Text_IO; use Ada.Text_IO;
 with System.Address_Image;
-with Ada.Real_Time;
+with Ada.Real_Time; use Ada.Real_Time;
 
 package body RCI is
 
@@ -60,6 +95,17 @@ package body RCI is
       end if;
    end Get_Obj;
 
+   function echoVector (V : Vector) return Vector is
+   begin
+      Put_Line ("Got vector" & Integer'Image (V'First)
+                & " .." & Integer'Image (V'Last) & ":");
+      for J in V'Range loop
+         Put (Integer'Image (V (J)));
+      end loop;
+      New_Line;
+      return V;
+   end echoVector;
+
    function echoString (S : String) return String is
    begin
       Put_Line ("Thus spake my client unto me: «" & S & "».");
@@ -77,4 +123,34 @@ package body RCI is
    begin
       return Z.Re * Z.Re + Z.Im * Z.Im;
    end Modulus2;
+
+   Cookie : Integer := 0;
+
+   function Get_Cookie return Integer is
+   begin
+      return Cookie;
+   end Get_Cookie;
+
+   procedure Delayed_Set_Cookie (Cookie : Integer) is
+   begin
+      delay until Clock + Milliseconds (2_000);
+      RCI.Cookie := Cookie;
+   end Delayed_Set_Cookie;
+
+   procedure Raise_Program_Error is
+   begin
+      raise Program_Error;
+   end Raise_Program_Error;
+
+   procedure Raise_Visible is
+   begin
+      raise Visible;
+   end Raise_Visible;
+
+   procedure Raise_Invisible is
+      Invisible : exception;
+   begin
+      raise Invisible;
+   end Raise_Invisible;
+
 end RCI;

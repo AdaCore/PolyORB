@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,66 +26,103 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with Ada.Streams; use Ada.Streams;
-
-with PolyORB.Buffers;
-with PolyORB.References;
-with PolyORB.References.IOR;
-with PolyORB.Binding_Data;
-with PolyORB.Types;
+with PolyORB.Protocols.GIOP.Common;
+pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
 
 package PolyORB.Protocols.GIOP.GIOP_1_0 is
 
-   pragma Elaborate_Body;
+   use PolyORB.Protocols.GIOP.Common;
+
+   type GIOP_Implem_1_0 is tagged private;
+   type GIOP_Implem_1_0_Access is access all GIOP_Implem_1_0'Class;
+
+   type GIOP_Ctx_1_0 is tagged private;
+   type GIOP_Ctx_1_0_Access is access all GIOP_Ctx_1_0;
+
+private
+
+   type GIOP_Implem_1_0 is new GIOP_Implem with null record;
+
+   --  GIOP Message Type
+
+   type Msg_Type is
+     (Request,
+      Reply,
+      Cancel_Request,
+      Locate_Request,
+      Locate_Reply,
+      Close_Connection,
+      Message_Error);
+
+   --  GIOP 1.0 context
+
+   type GIOP_Ctx_1_0 is new GIOP_Ctx with record
+      Message_Type : Msg_Type;
+      Request_Id   : aliased Types.Unsigned_Long;
+      Reply_Status : aliased Reply_Status_Type;
+   end record;
+
+   procedure Initialize_Implem
+     (Implem : access GIOP_Implem_1_0);
+
+   procedure Initialize_Session
+     (Implem : access GIOP_Implem_1_0;
+      S      : access Session'Class);
+
+   procedure Finalize_Session
+     (Implem : access GIOP_Implem_1_0;
+      S      : access Session'Class);
+
+   procedure Unmarshall_GIOP_Header
+     (Implem  : access GIOP_Implem_1_0;
+      S       : access Session'Class);
 
    procedure Marshall_GIOP_Header
-     (Buffer       : access Buffers.Buffer_Type;
-      Message_Type : in Msg_Type;
-      Message_Size : in Stream_Element_Offset);
-      --  Total message size (including GIOP header).
+     (Implem  : access GIOP_Implem_1_0;
+      S       : access Session'Class;
+      Buffer  : access PolyORB.Buffers.Buffer_Type);
 
-   procedure Marshall_Request_Message
-     (Buffer            : access Buffers.Buffer_Type;
-      Request_Id        : in Types.Unsigned_Long;
-      Target_Profile    : in Binding_Data.Profile_Access;
-      Response_Expected : in Boolean;
-      Operation         : in String);
+   procedure Marshall_GIOP_Header_Reply
+     (Implem  : access GIOP_Implem_1_0;
+      S       : access Session'Class;
+      Buffer  : access PolyORB.Buffers.Buffer_Type);
 
-   procedure Marshall_No_Exception
-    (Buffer      : access Buffers.Buffer_Type;
-     Request_Id  : in Types.Unsigned_Long);
+   procedure Process_Message
+     (Implem : access GIOP_Implem_1_0;
+      S      : access Session'Class);
 
-   procedure Marshall_Exception
-     (Buffer         : access Buffers.Buffer_Type;
-      Request_Id     : in     Types.Unsigned_Long;
-      Exception_Type : in     Reply_Status_Type;
-      Occurrence     : in     Any.Any);
+   procedure Process_Reply
+     (Implem  : access GIOP_Implem_1_0;
+      S       : access Session'Class;
+      Request :        Requests.Request_Access);
 
-   procedure Marshall_Location_Forward
-    (Buffer           : access Buffers.Buffer_Type;
-     Request_Id       : in  Types.Unsigned_Long;
-     Forward_Ref      : in  PolyORB.References.IOR.IOR_Type);
+   procedure Locate_Object
+     (Implem : access GIOP_Implem_1_0;
+      S      : access Session'Class;
+      R      : in     Pending_Request_Access);
 
-   --------------------------------------
-   -- Unmarshalling receiving messages --
-   --------------------------------------
+   procedure Send_Request
+     (Implem : access GIOP_Implem_1_0;
+      S      : access Session'Class;
+      R      : in     Pending_Request_Access);
 
-   procedure Unmarshall_Request_Message
-     (Buffer            : access Buffers.Buffer_Type;
-      Request_Id        : out Types.Unsigned_Long;
-      Response_Expected : out Boolean;
-      Object_Key        : out Objects.Object_Id_Access;
-      Operation         : out Types.String);
+   procedure Process_Abort_Request
+     (Implem : access GIOP_Implem_1_0;
+      S      : access Session'Class;
+      R      : in     Request_Access);
 
-   procedure Unmarshall_Reply_Message
-      (Buffer       : access Buffers.Buffer_Type;
-       Request_Id   : out Types.Unsigned_Long;
-       Reply_Status : out Reply_Status_Type);
+   --  Data alignment
+
+   Data_Alignment_1_0 : constant Opaque.Alignment_Type := 1;
+
+   --  Principal
+
+   Nobody_Principal : constant Types.String :=
+     Types.To_PolyORB_String ("nobody");
 
 end PolyORB.Protocols.GIOP.GIOP_1_0;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,22 +35,23 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
-
 with PolyORB.Annotations;
 with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.References;
-with PolyORB.Storage_Pools;
 with PolyORB.Task_Info;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
+pragma Elaborate_All (PolyORB.Utils.Simple_Flags); --  WAG:3.15
 
 package PolyORB.Requests is
 
-   type Flags is new PolyORB.Utils.Simple_Flags.Flags;
+   type Flags is new Types.Unsigned_Long;
+
+   package Unsigned_Long_Flags is
+      new PolyORB.Utils.Simple_Flags (Flags, Shift_Left);
 
    ------------------------------------------
    -- Synchronisation of request execution --
@@ -83,7 +85,7 @@ package PolyORB.Requests is
    -- Request --
    -------------
 
-   Default_Flags       : constant Flags;
+   Default_Flags : constant Flags;
    --  Default flag for member Req_Flags of request.
 
    type Request is limited record
@@ -132,16 +134,28 @@ package PolyORB.Requests is
       --      on a proxy object?
 
       Exception_Info : Any.Any;
-      --  If non-empty, information relatuve to an exception
+      --  If non-empty, information relative to an exception
       --  raised during execution of this request.
 
       --  Ctxt_List  : CORBA.ContextList.Ref;
 
       Req_Flags : Flags;
+      --  Addition flags
 
       Completed : aliased Boolean := False;
-      Requesting_Task : aliased Task_Info.Task_Info_Access;
+      --  Indicate whether the request is completed or not.
+      --  Note: request execution state when completing the request
+      --  depends on synchronisation flags used.
+
+      Requesting_Task : aliased PolyORB.Task_Info.Task_Info_Access;
+      --  Task requesting request completion. This task will be 'used'
+      --  by ORB main loop until the request is completed.
+      --  Note: Requesting_Task is set up when entering ORB main loop,
+      --  see PolyORB.ORB.Run for more details.
+
       Requesting_Component : Components.Component_Access;
+      --  Component requesting request execution. The response, if
+      --  any, will be redirected to this component.
 
       Notepad : Annotations.Notepad;
       --  Request objects are manipulated by both the
@@ -167,8 +181,6 @@ package PolyORB.Requests is
    end record;
 
    type Request_Access is access all Request;
-   for Request_Access'Storage_Pool
-     use PolyORB.Storage_Pools.Debug_Pool;
 
    procedure Create_Request
      (Target    : in     References.Ref;
@@ -191,7 +203,7 @@ package PolyORB.Requests is
    --  Run Self.
 
    procedure Arguments
-     (Self : Request_Access;
+     (Self :        Request_Access;
       Args : in out Any.NVList.Ref);
    --  Retrieve the invocation's arguments into Args.
    --  Call back the protocol layer to do the unmarshalling,
@@ -204,15 +216,13 @@ package PolyORB.Requests is
       Val  : Any.Any);
    --  Set the value of Self's result to Val.
 
-   procedure Set_Out_Args (Self : Request_Access);
+   procedure Set_Out_Args
+     (Self : Request_Access);
    --  Copy back the values of out and inout arguments
    --  from Out_Args to Args.
 
-   procedure Destroy_Request is new Ada.Unchecked_Deallocation
-     (Request, Request_Access);
-
-   function Image (Req : Request) return String;
-   --  For debugging purposes.
+   procedure Destroy_Request
+     (R : in out Request_Access);
 
    procedure Pump_Up_Arguments
      (Dst_Args        : in out Any.NVList.Ref;
@@ -223,11 +233,18 @@ package PolyORB.Requests is
    --  protocol arguments list P_Args (either from a request, on server
    --  side, or for a reply, on client side) into A_Args.
 
+   function Image
+     (Req : Request)
+     return String;
+   --  For debugging purposes.
+
 private
+
    Sync_None           : constant Flags := 1;
    Sync_With_Transport : constant Flags := 2;
    Sync_With_Server    : constant Flags := 4;
    Sync_With_Target    : constant Flags := 8;
    Sync_Call_Back      : constant Flags := 16;
    Default_Flags       : constant Flags := Sync_With_Target;
+
 end PolyORB.Requests;

@@ -6,7 +6,12 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +31,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,16 +44,17 @@ with CORBA.Context;
 with CORBA.ExceptionList;
 with CORBA.NVList;
 with CORBA.Object;
+with CORBA.Policy;
+with CORBA.Sequences.Unbounded;
 
 with PolyORB.References;
-with PolyORB.Sequences.Unbounded;
 
 package CORBA.ORB is
 
    pragma Elaborate_Body;
 
    package Octet_Sequence is
-      new PolyORB.Sequences.Unbounded (Octet);
+      new CORBA.Sequences.Unbounded (Octet);
 
    type ServiceDetail is record
       Service_Detail_Type : ServiceDetailType;
@@ -55,10 +62,10 @@ package CORBA.ORB is
    end record;
 
    package IDL_Sequence_ServiceOption is new
-     PolyORB.Sequences.Unbounded (ServiceOption);
+     CORBA.Sequences.Unbounded (ServiceOption);
 
    package IDL_Sequence_ServiceDetail is new
-     PolyORB.Sequences.Unbounded (ServiceDetail);
+     CORBA.Sequences.Unbounded (ServiceDetail);
 
    type ServiceInformation is record
       service_options : IDL_Sequence_ServiceOption.Sequence;
@@ -68,7 +75,7 @@ package CORBA.ORB is
    type ObjectId is new CORBA.String;
 
    package IDL_Sequence_ObjectId is new
-     PolyORB.Sequences.Unbounded (ObjectId);
+     CORBA.Sequences.Unbounded (ObjectId);
 
    type ObjectIdList is new IDL_Sequence_ObjectId.Sequence;
 
@@ -177,11 +184,10 @@ package CORBA.ORB is
 
    --  Policy related operations
 
-   --  ??? in the spec this is declared a function.
-
-   procedure Create_Policy
+   function Create_Policy
      (The_Type : in PolicyType;
-      Val      : Any);
+      Val      :    Any)
+     return CORBA.Policy.Ref;
 
    --  The following subprograms are not in CORBA spec.
 

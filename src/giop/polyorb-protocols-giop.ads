@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,177 +26,34 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with Ada.Streams;   use Ada.Streams;
+with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Buffers;
-with PolyORB.Binding_Data;
-with PolyORB.Objects;
 with PolyORB.ORB;
-with PolyORB.References;
-with PolyORB.References.IOR;
-with PolyORB.Requests;
+with PolyORB.Opaque;
 with PolyORB.Sequences.Unbounded;
-with PolyORB.Storage_Pools;
 with PolyORB.Types;
-with PolyORB.Representations.CDR;
+with PolyORB.Utils.Simple_Flags;
+with PolyORB.Filters.Interface;
 
 package PolyORB.Protocols.GIOP is
 
-   --  Body requires child units GIOP_<version>:
-   --  no elab control pragmas.
+   use Ada.Streams;
 
-   use PolyORB.Binding_Data;
-   use ORB;
+   --  GIOP exceptions
 
    GIOP_Error : exception;
-
-   --    package Arg_Seq is new Sequences.Unbounded (Any.NamedValue);
-
-   Message_Header_Size  : constant Stream_Element_Offset;
-   Maximum_Message_Size : constant Stream_Element_Offset;
-   Byte_Order_Offset    : constant Stream_Element_Offset;
-   Max_Data_Received    : constant Integer;
-
-   Max_Nb_Tries         : constant Integer;
+   GIOP_Bad_Function_Call : exception;
+   GIOP_Unknown_Version : exception;
 
    type GIOP_Session is new Session with private;
    type GIOP_Protocol is new Protocol with private;
-
-   type Sync_Scope is (NONE, WITH_TRANSPORT, WITH_SERVER, WITH_TARGET);
-
-   type IOR_Addressing_Info is record
-      Selected_Profile_Index : Types.Unsigned_Long;
-      IOR                    : References.IOR.IOR_Type;
-   end record;
-
-   type IOR_Addressing_Info_Access is access all IOR_Addressing_Info;
-   for IOR_Addressing_Info_Access'Storage_Pool
-     use PolyORB.Storage_Pools.Debug_Pool;
-
-   type Addressing_Disposition is (Key_Addr, Profile_Addr, Reference_Addr);
-
-   type Target_Address (Address_Type : Addressing_Disposition) is record
-      case Address_Type is
-         when Key_Addr =>
-            Object_Key : Objects.Object_Id_Access;
-         when Profile_Addr  =>
-            Profile : Binding_Data.Profile_Access;
-         when Reference_Addr  =>
-            Ref : IOR_Addressing_Info_Access;
-      end case;
-   end record;
-
-   type Target_Address_Access is access all Target_Address;
-   for Target_Address_Access'Storage_Pool
-     use PolyORB.Storage_Pools.Debug_Pool;
-
-   procedure Free is
-      new Ada.Unchecked_Deallocation
-     (Target_Address, Target_Address_Access);
-
-   --  GIOP:: MsgType
-   type Msg_Type is
-     (Request,
-      Reply,
-      Cancel_Request,
-      Locate_Request,
-      Locate_Reply,
-      Close_Connection,
-      Message_Error,
-      Fragment);
-
-   --  GIOP::ReplyStatusType
-   type Reply_Status_Type is
-     (No_Exception,
-      User_Exception,
-      System_Exception,
-      Location_Forward,
-      Location_Forward_Perm,
-      Needs_Addressing_Mode);
-
-   --  GIOP::LocateStatusType
-   type Locate_Status_Type is
-     (Unknown_Object,
-      Object_Here,
-      Object_Forward,
-      Object_Forward_Perm,
-      Loc_System_Exception,
-      Loc_Needs_Addressing_Mode);
-
-   type Pending_Request is private;
-
-   type Send_Request_Result_Type is
-     (Sr_No_Reply,
-      Sr_Reply,
-      Sr_User_Exception,
-      Sr_Forward,
-      Sr_Forward_Perm,
-      Sr_Needs_Addressing_Mode
-      );
-
-   type Locate_Request_Result_Type is
-     (Sr_Unknown_Object,
-      Sr_Object_Here,
-      Sr_Object_Forward,
-      Sr_Object_Forward_Perm,
-      Sr_Loc_System_Exception,
-      Sr_Loc_Needs_Addressing_Mode
-      );
-
-   type ServiceId is
-     (Transaction_Service,
-      Code_Sets,
-      Chain_By_Pass_Check,
-      Chain_By_Pass_Info,
-      Logical_Thread_Id,
-      Bi_Dir_IIOP,
-      Sending_Context_Run_Time,
-      Invocation_Policies,
-      Forwarded_Identity,
-      Unknown_Exception_Info);
-
-   procedure Initialize;
-   procedure Finalize;
-
-   -------------------
-   -- Store_Profile --
-   -------------------
-
-   procedure Store_Profile
-    (Ses     : access GIOP_Session;
-     Profile : Profile_Access);
-   --  XXX What does this procedure do?
-   --  Why does it need to be visible?
-
-   -------------------
-   -- Store_Request --
-   -------------------
-
-   procedure Store_Request
-     (Ses     : access GIOP_Session;
-      R       :        Requests.Request_Access;
-      Profile :        Profile_Access;
-      Pending :    out Pending_Request);
-   --  XXX What does this procedure do?
-   --  Why does it need to be visible?
-
-   -----------------
-   -- Set_Version --
-   -----------------
-
-   procedure Set_Version
-     (S             : access GIOP_Session;
-      Major_Version :        Types.Octet;
-      Minor_Version :        Types.Octet);
-   --  Set the version of the protocol to be used
-   --  on a newly-created GIOP session.
 
    ------------------------
    -- Session primitives --
@@ -204,270 +61,401 @@ package PolyORB.Protocols.GIOP is
 
    procedure Create
      (Proto   : access GIOP_Protocol;
-      Session : out Filter_Access);
+      Session :    out Filter_Access);
 
    procedure Invoke_Request
-     (S   : access GIOP_Session;
-      R   : Requests.Request_Access;
-      Pro : access Binding_Data.Profile_Type'Class);
+     (Sess : access GIOP_Session;
+      R    :        Requests.Request_Access;
+      Pro  : access Binding_Data.Profile_Type'Class);
 
-   procedure Abort_Request (S : access GIOP_Session;
-                 R : Requests.Request_Access);
+   procedure Abort_Request
+     (Sess : access GIOP_Session;
+      R    :        Requests.Request_Access);
 
-   procedure Send_Reply (S : access GIOP_Session;
-                 R : Requests.Request_Access);
+   procedure Send_Reply
+     (Sess : access GIOP_Session;
+      R    :        Requests.Request_Access);
 
-   procedure Handle_Connect_Indication (S : access GIOP_Session);
+   procedure Handle_Connect_Indication
+     (Sess : access GIOP_Session);
 
-   procedure Handle_Connect_Confirmation (S : access GIOP_Session);
+   procedure Handle_Connect_Confirmation
+     (Sess : access GIOP_Session);
 
    procedure Handle_Data_Indication
-     (S : access GIOP_Session;
-      Data_Amount : Stream_Element_Count);
+     (Sess        : access GIOP_Session;
+      Data_Amount :        Stream_Element_Count);
 
-   procedure Handle_Disconnect (S : access GIOP_Session);
+   procedure Handle_Disconnect
+     (Sess : access GIOP_Session);
 
-   ----------------------------------
-   -- Utility function for testing --
-   ----------------------------------
+   procedure Handle_Unmarshall_Arguments
+     (Sess : access GIOP_Session;
+      Args : in out Any.NVList.Ref);
 
-   procedure To_Buffer
-     (S   : access GIOP_Session;
-      Octets : access Representations.CDR.Encapsulation);
+   ----------------
+   -- GIOP State --
+   ----------------
+
+   type GIOP_State is
+     (Not_Initialized,        --  Session initialized
+      Expect_Header,          --  Waiting for a new message header
+      Expect_Body,            --  Waiting for body message
+      Waiting_Unmarshalling   --  Waiting argument unsmarshalling
+      );
+
+   type GIOP_Data_Expected is
+     new PolyORB.Filters.Interface.Data_Expected with record
+        State : GIOP_State;
+     end record;
 
 private
 
-   -------------------------
-   -- Marshalling helpers --
-   -------------------------
+   type GIOP_Protocol is new Protocol with null record;
 
-   --  Specs
+   package Octet_Flags is
+      new PolyORB.Utils.Simple_Flags (Types.Octet, Types.Shift_Left);
 
-   procedure Marshall
-     (Buffer : access Buffers.Buffer_Type;
-      Value  : in Msg_Type);
+   type Pending_Request is record
+      Req            : Requests.Request_Access;
+      Locate_Req_Id  : Types.Unsigned_Long;
+      Request_Id     : Types.Unsigned_Long;
+      Target_Profile : Binding_Data.Profile_Access;
+      --  XXX This attribute should be removed, and
+      --  Get_Reference_Info on Req.Target should be
+      --  used instead when it is necessary to access the target
+      --  profile.
+   end record;
 
-   procedure Marshall
-     (Buffer : access Buffers.Buffer_Type;
-      Value  : in Reply_Status_Type);
+   type Pending_Request_Access is access Pending_Request;
 
-   procedure Marshall
-     (Buffer : access Buffers.Buffer_Type;
-      Value  : in Locate_Status_Type);
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Pending_Request, Pending_Request_Access);
 
-   function Unmarshall
-     (Buffer : access Buffers.Buffer_Type)
-     return Msg_Type;
+   package Pend_Req_Seq is new Sequences.Unbounded (Pending_Request_Access);
 
-   function Unmarshall
-     (Buffer : access Buffers.Buffer_Type)
-     return Reply_Status_Type;
+   --------------------
+   -- GIOP Send Mode --
+   --------------------
 
-   function Unmarshall
-     (Buffer : access Buffers. Buffer_Type)
-     return Locate_Status_Type;
+   Default_Locate_Then_Request : constant Boolean := True;
 
-   ----------------------------------------------------------
-   -- Common marshalling procedures for GIOP 1.0, 1.1, 1.2 --
-   ----------------------------------------------------------
+   ------------------
+   -- GIOP Version --
+   ------------------
 
-   --  procedure Marshall_Exception
-   --   (Buffer           : access Buffers.Buffer_Type;
-   --    Request_Id       : in Types.Unsigned_Long;
-   --    Exception_Type   : in Reply_Status_Type;
-   --    Occurence        : in Types.Exception_Occurrence);
+   type GIOP_Version is record
+      Major : Types.Octet;
+      Minor : Types.Octet;
+   end record;
 
+   --  Default GIOP_Version
 
-   --  procedure Marshall_Location_Forward
-   --   (Buffer           : access Buffers.Buffer_Type;
-   --    Request_Id       : in  Types.Unsigned_Long;
-   --    Forward_Ref      : in  PolyORB.References.Ref);
+   GIOP_Default_Version : constant GIOP_Version :=
+     (Major => 1,
+      Minor => 2);
 
+   procedure Get_GIOP_Implem
+     (Sess    : access GIOP_Session;
+      Version :        GIOP_Version);
+   --  Get a GIOP_Implem from GIOP Version
 
-   procedure Marshall_Cancel_Request
-     (Buffer           : access Buffers.Buffer_Type;
-      Request_Id       : in Types.Unsigned_Long);
+   Max_GIOP_Implem : constant Natural := 3;
+   --  number of GIOP Implem that system can handle
 
-   procedure Marshall_Locate_Request
-     (Buffer           : access Buffers.Buffer_Type;
-      Request_Id       : in Types.Unsigned_Long;
-      Object_Key       : access Objects.Object_Id);
+   -----------------
+   -- GIOP_Implem --
+   -----------------
 
-   procedure Marshall_Locate_Reply
-     (Buffer         : access Buffers.Buffer_Type;
-      Request_Id     : in Types.Unsigned_Long;
-      Locate_Status  : in Locate_Status_Type);
+   type GIOP_Implem is abstract tagged record
+      Version             : GIOP_Version;
+      --  This values must be set at Implem initialization !
+      Data_Alignment      : Opaque.Alignment_Type;
+      Locate_Then_Request : Boolean;
+      --  Configuration values
+      Section             : Types.String;
+      Prefix              : Types.String;
+   end record;
 
-   ----------------
-   -- Unmarshall --
-   ----------------
+   type GIOP_Implem_Access is access all GIOP_Implem'Class;
+
+   --  Function which are version specific
+   --  Must be implemented by each implem
+
+   procedure Initialize_Implem
+     (Implem : access GIOP_Implem)
+      is abstract;
+   --  Initialize global parameters for implem
+   --  Called at PolyORB initialization
+
+   procedure Initialize_Session
+     (Implem : access GIOP_Implem;
+      S      : access Session'Class)
+      is abstract;
+   --  Initialize parameters for a session (a ctx for example)
+   --  Called at GIOP Session initialization
+
+   procedure Finalize_Session
+     (Implem : access GIOP_Implem;
+      S      : access Session'Class)
+      is abstract;
+   --  Finalize for a session (free parameters)
 
    procedure Unmarshall_GIOP_Header
-     (Ses                   : access GIOP_Session;
-      Message_Type          : out Msg_Type;
-      Message_Size          : out Types.Unsigned_Long;
-      Fragment_Next         : out Types.Boolean;
-      Success               : out Boolean);
+     (Implem  : access GIOP_Implem;
+      S       : access Session'Class)
+      is abstract;
 
-   procedure Unmarshall_Locate_Reply
-     (Buffer        : access Buffers.Buffer_Type;
-      Request_Id    : out Types.Unsigned_Long;
-      Locate_Status : out Locate_Status_Type);
+   procedure Marshall_GIOP_Header
+     (Implem  : access GIOP_Implem;
+      S       : access Session'Class;
+      Buffer  : access PolyORB.Buffers.Buffer_Type)
+      is abstract;
 
-   ------------------------
-   -- Marshalling switch --
-   ------------------------
+   procedure Process_Message
+     (Implem     : access GIOP_Implem;
+      S          : access Session'Class)
+      is abstract;
 
-   procedure Request_Message
-     (Ses               : access GIOP_Session;
-      Pend_Req          : access Pending_Request;
-      Response_Expected : in Boolean;
-      Fragment_Next     : out Boolean;
-      Sync_Type         : in Sync_Scope);
+   procedure Emit_Message
+     (Implem : access GIOP_Implem;
+      S      : access Session'Class;
+      Buffer :        PolyORB.Buffers.Buffer_Access);
+   --  function which emit data to lower layer
+   --  can be overidden to fragment messages
 
-   procedure No_Exception_Reply
-     (Ses           : access GIOP_Session;
-      Request       :        Requests.Request_Access;
-      Fragment_Next :    out Boolean);
+   procedure Process_Abort_Request
+     (Implem : access GIOP_Implem;
+      S      : access Session'Class;
+      R      : in     Request_Access)
+      is abstract;
+   --  cancel a request
 
-   procedure Exception_Reply
-     (Ses             : access GIOP_Session;
-      Request         :  Requests.Request_Access;
-      Exception_Type  : in Reply_Status_Type;
-      Occurence       : in Any.Any;
-      Fragment_Next   : out Boolean);
+   procedure Process_Reply
+     (Implem  : access GIOP_Implem;
+      S       : access Session'Class;
+      Request :        Requests.Request_Access)
+      is abstract;
 
-   procedure Location_Forward_Reply
-     (Ses             : access GIOP_Session;
-      Request         :  Requests.Request_Access;
-      Forward_Ref     : in PolyORB.References.IOR.IOR_Type;
-      Fragment_Next   : out Boolean);
+   procedure Send_Request
+     (Implem : access GIOP_Implem;
+      S      : access Session'Class;
+      R      : in     Pending_Request_Access)
+      is abstract;
+   --  send a request
 
-   procedure Needs_Addressing_Mode_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Address_Type    : in Addressing_Disposition);
+   procedure Locate_Object
+     (Implem : access GIOP_Implem;
+      S      : access Session'Class;
+      R      : in     Pending_Request_Access)
+      is abstract;
+   --  send a locate request to loacte an object
 
-   procedure Cancel_Request_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access);
+   procedure Marshall_Argument_List
+     (Implem              : access GIOP_Implem;
+      Buffer              :        PolyORB.Buffers.Buffer_Access;
+      Args                : in out Any.NVList.Ref;
+      Direction           :        Any.Flags;
+      First_Arg_Alignment :        Opaque.Alignment_Type);
+   --  Internal subprogram: Marshall arguments from Args
+   --  into Buf.
+   --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
+   --  with Arg_Modes equal to either ARG_INOUT or Direction
+   --  will be considered. The first argument marshalled will
+   --  be aligned on First_Arg_Alignment.
 
-   procedure Locate_Request_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Object_Key      : access Objects.Object_Id;
-      Fragment_Next   : out Boolean);
+   procedure Unmarshall_Argument_List
+     (Implem              : access GIOP_Implem;
+      Buffer              :        PolyORB.Buffers.Buffer_Access;
+      Args                : in out Any.NVList.Ref;
+      Direction           :        Any.Flags;
+      First_Arg_Alignment :        PolyORB.Opaque.Alignment_Type);
+   --  Internal subprogram: set the values of arguments in
+   --  Args by unmarshalling them from Ses.
+   --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
+   --  with Arg_Modes equal to either ARG_INOUT or Direction
+   --  will be considered. The first argument is assumed to
+   --  be aligned on First_Arg_Alignment.
+--  functions used to factorize code
 
-   procedure Locate_Reply_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Locate_Status   : in Locate_Status_Type);
+   procedure Marshall_GIOP_Header_Reply
+     (Implem  : access GIOP_Implem;
+      S       : access Session'Class;
+      Buffer  : access PolyORB.Buffers.Buffer_Type)
+      is abstract;
 
-   --  Explicit bounds are required in the nominal subtype
-   --  in order to comply with Ravenscar restriction
-   --  No_Implicit_Heap_Allocation.
+   --  GIOP Implem management
+   type GIOP_Create_Implem_Func is access
+     function return GIOP_Implem_Access;
 
+   type GIOP_Implem_Array is array (1 .. Max_GIOP_Implem)
+     of GIOP_Implem_Access;
+
+   --  Register a GIOP Implem
+   procedure Global_Register_GIOP_Version
+     (Version : GIOP_Version;
+      Implem  : GIOP_Create_Implem_Func);
+
+   ------------------------------------------------
+
+   --  Giop Context
+   --  will be extended by each implem
+   type GIOP_Ctx is tagged record
+      Message_Endianness : PolyORB.Buffers.Endianness_Type
+        := PolyORB.Buffers.Host_Order;
+      Message_Size       : Types.Unsigned_Long;
+   end record;
+
+   type GIOP_Ctx_Access is access all GIOP_Ctx'Class;
+
+   ---------------------------------------------------
+
+   ------------------
+   -- GIOP_Session --
+   ------------------
+
+   type GIOP_Session is new Session with record
+      Implem       : GIOP_Implem_Access;
+      State        : GIOP_State := Not_Initialized;
+      Ctx          : GIOP_Ctx_Access;
+      Buffer_In    : Buffers.Buffer_Access;
+      Role         : ORB.Endpoint_Role;
+      Pending_Reqs : Pend_Req_Seq.Sequence;
+      Req_Index    : Types.Unsigned_Long := 1;
+      --  GIOP configuration
+      GIOP_Def_Ver     : GIOP_Version;
+      GIOP_Implem_List : GIOP_Implem_Array := (others => null);
+      Nb_Implem        : Natural range  0 .. Max_GIOP_Implem := 0;
+   end record;
+
+   type GIOP_Session_Access is access all GIOP_Session;
+
+   procedure Initialize (S : in out GIOP_Session);
+   procedure Finalize (S : in out GIOP_Session);
+
+   --  Magic identifier
+   --  Begin of all GIOP Messages
    Magic : constant Stream_Element_Array (1 .. 4)
      := (Character'Pos ('G'),
          Character'Pos ('I'),
          Character'Pos ('O'),
          Character'Pos ('P'));
 
-   type Pending_Request is
-     record
-       Req             : Requests.Request_Access;
-       Target_Profile  : Binding_Data.Profile_Access;
-     end record;
+   --  Header size of GIOP_packet (non version specific header)
+   GIOP_Header_Size : constant Stream_Element_Offset := 12;
 
-   package Pend_Req_Seq is new Sequences.Unbounded (Pending_Request);
+   --  Place of endianess in a giop packet
+   Flags_Index    : constant Stream_Element_Offset := 7;
+   Bit_Endianness : constant Octet_Flags.Bit_Count := 0;
 
-   package Req_Seq is new Sequences.Unbounded (Requests.Request_Access);
+   ---------------------------------------------------
 
-   type GIOP_State is
-     (Expect_Header,
-      --  Waiting for a new message header.
+   ---------------------------
+   -- Global GIOP Functions --
+   ---------------------------
 
-      Expect_Body,
-      --  A message header has been received, waiting for
-      --  the corresponding message body.
+   --  GIOP_Header, non specific version
+   procedure Unmarshall_Global_GIOP_Header
+     (Buffer  : access Buffers.Buffer_Type;
+      Version :    out GIOP_Version);
 
-      Arguments_Ready
-      --  A Request message has been received, and the arguments
-      --  for the request are ready for unmarshalling at the input
-      --  buffer's current position.
-      );
+   procedure Marshall_Global_GIOP_Header
+     (Sess   : access GIOP_Session;
+      Buffer : access PolyORB.Buffers.Buffer_Type);
 
-   type GIOP_Session is new Session with record
-      Major_Version        : Types.Octet := 1;
-      Minor_Version        : Types.Octet := 2;
-      --  By default, we implement GIOP 1.2.
+   procedure Marshall_Global_GIOP_Header
+     (Version :        GIOP_Version;
+      Buffer  : access PolyORB.Buffers.Buffer_Type);
 
-      Buffer_Out           : Buffers.Buffer_Access;
-      Buffer_In            : Buffers.Buffer_Access;
-      Role                 : ORB.Endpoint_Role;
-      Pending_Rq           : Pend_Req_Seq.Sequence;
-      Current_Profile      : Profile_Access;
-      Object_Found         : Boolean := False;
-      --  XXX wrong.
-      --  You can have many independent pending Locate_Requests
-      --  on the same session!
-      Nbr_Tries            : Natural := 0;
-      State                : GIOP_State;
-      Mess_Type_Received   : Msg_Type;
+   --  Prepare S to receive next GIOP message.
+   --  This must be called once when a session is established
+   --  (in Handle_Connect_Indication for a server session,
+   --  in Handle_Connect_Confirmation for a client session),
+   --  and then exactly once after a message has been received.
+   --  This must not be called after sending a message (because
+   --  message sends and receives can be interleaved in an
+   --  arbitrary way, and Expect_Message must not be called
+   --  twice in a row).
+   procedure Expect_GIOP_Header
+     (Sess : access GIOP_Session);
+
+   --  A note can be attached to a PolyORB request to augment
+   --  it with personality-specific information. The GIOP stack
+   --  uses such a note to associate the Request with its
+   --  Request_Id.
+   type Request_Note is new PolyORB.Annotations.Note with record
+     Id : Types.Unsigned_Long;
    end record;
 
-   procedure Initialize (S : in out GIOP_Session);
-   procedure Finalize (S : in out GIOP_Session);
+   --  cancel all current requests
+   procedure Cancel_Pending_Request
+     (Sess : access GIOP_Session);
 
-   procedure Handle_Unmarshall_Arguments
-     (Ses : access GIOP_Session;
-      Args : in out Any.NVList.Ref);
+   function Select_Profile
+     (Buffer  : access PolyORB.Buffers.Buffer_Type)
+     return PolyORB.Binding_Data.Profile_Access;
 
-   --  XXX The components of GIOP session should be documented!
+   --  Initialize a GIOP Session, reading PolyORB configuration
+   procedure Initialize
+     (Sess                : in out GIOP_Session;
+      Version             :        GIOP_Version;
+      Locate_Then_Request :        Boolean;
+      Section             :        String;
+      Prefix              :        String);
 
-   type GIOP_Protocol is new Protocol with null record;
+   --------------------------------
+   -- Pending Request management --
+   --------------------------------
 
-   ----------------------------------------------
-   -- Constants shared by all versions of GIOP --
-   ----------------------------------------------
-
-   Nobody_Principal : constant Types.String
-     := Types.To_PolyORB_String ("nobody");
-
-   Message_Header_Size : constant Stream_Element_Offset := 12;
-
-   Maximum_Message_Size : constant Stream_Element_Offset := 1000;
-
-   Byte_Order_Offset : constant Stream_Element_Offset := 6;
-
-   Max_Data_Received : constant Integer := 1024;
-
-   Max_Nb_Tries : constant Integer := 100;
-
-   subtype Bit_Order_Type is Integer
-     range 0 .. Types.Octet'Size;
-
-   function Is_Set
-     (Bit_Field : Types.Octet;
-      Bit_Order : Bit_Order_Type)
-     return Boolean;
-   pragma Inline (Is_Set);
-   --  True if, and only if, the bit of order
-   --  Bit_Order is set in Bit_Field.
-   --  (Bit_Order = 0 is the least significant bit).
-
-   procedure Set
-     (Bit_Field : in out Types.Octet;
-      Bit_Order : Bit_Order_Type;
-      Bit_Value : Boolean);
-   pragma Inline (Set);
-   --  Set the value of bit Bit_Order in Bit_Field
-   --  to 1 if Bit_Value = True, to 0 otherwise.
-
-   Endianness_Bit : constant Bit_Order_Type := 0;
-   Fragment_Bit   : constant Bit_Order_Type := 1;
-
-   function Get_Request_Id return Types.Unsigned_Long;
+   function Get_Request_Id
+     (Sess : access GIOP_Session)
+     return Types.Unsigned_Long;
    --  Obtain a new, unique request identifier.
+
+   procedure Add_Pending_Request
+     (Sess     : access GIOP_Session;
+      Pend_Req : in     Pending_Request_Access);
+   --  Add Pend_Req to the list of pending requests on S.
+   --  The Req and Target_Profile fields must be already
+   --  initialized; this procedure sets the Request_Id.
+
+   procedure Get_Pending_Request
+     (Sess    : access GIOP_Session;
+      Id      :        Types.Unsigned_Long;
+      Req     :    out Pending_Request_Access;
+      Success :    out Boolean);
+   --  Retrieve a pending request of Ses by its request id.
+
+   procedure Get_Pending_Request_By_Locate
+     (Sess    : access GIOP_Session;
+      Id      :        Types.Unsigned_Long;
+      Req     :    out Pending_Request_Access;
+      Success :    out Boolean);
+   --  Retrieve a pending request of Ses by its locate request id.
+
+   procedure Free_Pending_Request
+     (Sess : access GIOP_Session;
+      Id   :        Types.Unsigned_Long);
+   --  Free the pending request
+
+   ---------------------------------
+   -- Marshall Unmarshall helpers --
+   ---------------------------------
+
+   --  Context_List
+   procedure Marshall_Service_Context_List
+     (Buffer : access Buffers.Buffer_Type);
+
+   procedure Unmarshall_Service_Context_List
+     (Buffer : access Buffers.Buffer_Type);
+   --  XXX Dummy unmarshalling for Service Context List.
+
+   procedure Unmarshall_System_Exception_To_Any
+     (Buffer : PolyORB.Buffers.Buffer_Access;
+      Info   : out Any.Any);
+
+   function Get_Conf_Chain
+     (Implem : access GIOP_Implem'Class)
+     return String;
 
 end PolyORB.Protocols.GIOP;

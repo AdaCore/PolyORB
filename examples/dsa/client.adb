@@ -1,12 +1,50 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                               C L I E N T                                --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
+
+--  $Id$
+
+with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Real_Time; use Ada.Real_Time;
 with RCI;
 with RT;
 with SP;
 
-pragma Warnings (Off);
 with PolyORB.Initialization;
-with PolyORB.ORB.No_Tasking;
+with System.RPC;
 
+pragma Warnings (Off);
+with PolyORB.ORB.No_Tasking;
 with PolyORB.ORB;
 with PolyORB.Setup;
 with PolyORB.Setup.Client;
@@ -33,9 +71,15 @@ procedure Client is
    Z : constant RCI.Complex := (Re => 2.0, Im => 3.0);
 
 begin
+   --  XXX BEGIN PolyORB INITIAL SETUP
+   PolyORB.Initialization.Initialize_World;
+   --  XXX END PolyORB INITIAL SETUP
+
    SP.Shared_Integer := 42;
    Put_Line ("I said: " & S);
-   Put_Line ("The server replied: "
+   Put_Line ("The server (on partition"
+     & System.RPC.Partition_ID'Image (RCI'Partition_Id)
+     & ") replied: "
      & RCI.echoString (S));
    RAS := RCI.echoString'Access;
    Put_Line ("through RAS: " & RAS (S & " (RASI)"));
@@ -44,5 +88,52 @@ begin
    Try_RACW ("");
    Try_RACW ("Elvis");
 
+   declare
+      use type RCI.Vector;
+
+      V : constant RCI.Vector := (3 => 111, 4 => 222, 5 => 333);
+   begin
+      Put_Line ("V passed? " & Boolean'Image (V = RCI.echoVector (V)));
+   end;
+
    Put_Line ("|2 + 3i|^2 = " & Float'Image (RCI.Modulus2 (Z)));
+
+   declare
+      C : constant Integer := RCI.Get_Cookie;
+   begin
+      Put_Line ("Cookie value:" & Integer'Image (C));
+      RCI.Delayed_Set_Cookie (C + 1);
+   end;
+   delay until Clock + Milliseconds (500);
+   Put_Line ("Cookie value after 0.5 s:" & Integer'Image (RCI.Get_Cookie));
+   delay until Clock + Milliseconds (2_500);
+   Put_Line ("Cookie value after 3 s:" & Integer'Image (RCI.Get_Cookie));
+
+   begin
+      Put ("Raise_Program_Error: ");
+      RCI.Raise_Program_Error;
+      Put_Line ("no exception.");
+   exception
+      when E : others =>
+         Put_Line ("raised " & Ada.Exceptions.Exception_Name (E));
+   end;
+
+   begin
+      Put ("Raise_Visible: ");
+      RCI.Raise_Visible;
+      Put_Line ("no exception.");
+   exception
+      when E : others =>
+         Put_Line ("raised " & Ada.Exceptions.Exception_Name (E));
+   end;
+
+   begin
+      Put ("Raise_Invisible: ");
+      RCI.Raise_Invisible;
+      Put_Line ("no exception.");
+   exception
+      when E : others =>
+         Put_Line ("raised " & Ada.Exceptions.Exception_Name (E));
+   end;
+
 end Client;

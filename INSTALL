@@ -1,0 +1,127 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
+--                                                                          --
+------------------------------------------------------------------------------
+
+This file details the compilation and installation of PolyORB.
+
+Supported Platforms
+-------------------
+
+PolyORB has been compiled and successfully tested on the following platforms:
+
+- FreeBSD
+- HP-UX
+- Linux
+- Solaris
+- Windows
+
+Build requirements
+------------------
+
+Ada 95 compiler: GNAT 3.15a (or the public release 3.15p) or later.
+
+Optional: XmlAda (http://libre.act-europe.fr/xmlada/) if you want to
+build the SOAP protocol personality.
+
+Note: per construction, the macro 'configure' uses to find your GNAT
+compiler looks first to the executables 'gnatgcc', then 'adagcc' and
+finally to 'gcc' to find out which Ada compiler to use. You should be
+very careful with your path and executables if you have multiple GNAT
+versions installed. See below explanations on the ADA environment
+variable if you need to override the default guess.
+
+Build instructions
+------------------
+
+NOTE: Developers building PolyORB from the version control repository
+who need to rebuild the configure and Makefile.in files should
+use the script support/reconfig for this purpose.
+
+To install PolyORB, execute:
+
+  % ./configure [some options]
+  % make              (or gmake if your make is not GNU make)
+  % make install      (ditto)
+
+This will install files in standard locations.
+
+If you want to choose another prefix than /usr/local, give configure a
+--prefix=whereveryouwant argument.
+
+Note: at this time, you MUST use GNU make to compile this software.
+
+Available options for the 'configure' script include:
+
+  --with-appli-perso="...": application personalities to build
+      Available personalities: CORBA, DSA, MOMA
+      e.g.   --with-appli-perso="corba moma" to build both the CORBA 
+             and MOMA personnalities
+
+  --with-proto-perso="...": personalities to build
+      Available personalities: GIOP, SOAP, SRP
+      e.g.   --with-proto-perso="giop soap" to build both the GIOP 
+             and SOAP personnalities
+
+  --with-services="...": CORBA COS services to build
+      Available services: event, ir, naming, time
+      e.g.  --with-services="event naming" to build only
+      COS Event and COS Naming.	
+
+By default, only the CORBA and GIOP personalities are built, no CORBA
+Services are built.
+
+  --enable-shared: build shared libraries.
+
+  --enable-debug:  enable debugging information generation and supplementary
+                   runtime checks.
+
+The following environment variables can be used to override configure's
+guess at what compilers to use:
+  CC:  the C compiler
+  ADA: the Ada 95 compiler
+
+For example, if you have two versions of GNAT installed and available
+in your PATH, and configure picks the wrong one, you can indicate
+what compiler should be used with the following syntax:
+
+ADA=/path/to/good/compiler/gcc ./configure [options]
+
+Platform notes
+--------------
+
+Solaris 2.8:
+
+  * /usr/bin/sed and /usr/ucb/sed will silently chop long
+    lines, and /usr/xpg4/bin/sed will enter an endless loop while
+    processing PolyORB files.
+    GNU sed is required to configure and build PolyORB.
+
+  * /usr/ucb/tr does not handle control character escape sequences: it
+    cannot be used to recompute dependencies ('make depend');
+    /usr/bin/tr or /usr/xpg4/bin/tr must be used.
+

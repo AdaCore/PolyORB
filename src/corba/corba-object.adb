@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -363,6 +364,10 @@ package body CORBA.Object is
       return Internal_Object_Access (Entity_Of (R)).The_Object.all;
    end To_PolyORB_Object;
 
+   --------------------
+   -- To_PolyORB_Ref --
+   --------------------
+
    function To_PolyORB_Ref (R : in Ref)
      return PolyORB.References.Ref
    is
@@ -374,6 +379,10 @@ package body CORBA.Object is
       return Result;
    end To_PolyORB_Ref;
 
+   --------------------------
+   -- Convert_To_CORBA_Ref --
+   --------------------------
+
    procedure Convert_To_CORBA_Ref
      (Neutral_Ref : in     PolyORB.References.Ref;
       CORBA_Ref   : in out CORBA.Object.Ref'Class)
@@ -384,6 +393,10 @@ package body CORBA.Object is
       Set (CORBA_Ref, E);
    end Convert_To_CORBA_Ref;
 
+   ---------------
+   -- TC_Object --
+   ---------------
+
    function TC_Object return CORBA.TypeCode.Object is
       use PolyORB.Any.TypeCode;
 
@@ -391,6 +404,7 @@ package body CORBA.Object is
    begin
       Add_Parameter (T, To_Any (To_CORBA_String ("Object")));
       Add_Parameter (T, To_Any (To_CORBA_String ("IDL:CORBA/Object:1.0")));
+
       return T;
    end TC_Object;
 

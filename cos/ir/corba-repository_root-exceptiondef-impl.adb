@@ -1,4 +1,4 @@
-pragma Warnings (Off);
+pragma Style_Checks (Off);
 ----------------------------------------------
 --  This file has been generated automatically
 --  by AdaBroker (http://adabroker.eu.org/)
@@ -7,6 +7,7 @@ pragma Warnings (Off);
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.ExceptionDef.Skel;
+pragma Warnings (Off, CORBA.Repository_Root.ExceptionDef.Skel);
 with CORBA.Repository_Root.Container.Impl;
 with CORBA.Repository_Root.Contained.Impl;
 with CORBA.Repository_Root.IRObject.Impl;
@@ -260,7 +261,7 @@ package body CORBA.Repository_Root.ExceptionDef.Impl is
    begin
       for I in Exc_Array'Range loop
          declare
-            Exc : Object_Ptr
+            Exc : constant Object_Ptr
               := To_Object (Exc_Array (I));
             Des : ExceptionDescription;
          begin

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,6 +44,7 @@ package body PolyORB.Filters.Slicers is
    use Ada.Streams;
 
    use PolyORB.Buffers;
+   use PolyORB.Components;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
 
@@ -50,6 +52,9 @@ package body PolyORB.Filters.Slicers is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ------------
+   -- Create --
+   ------------
 
    procedure Create
      (Fact   : access Slicer_Factory;
@@ -67,6 +72,10 @@ package body PolyORB.Filters.Slicers is
       Slicer := Res;
    end Create;
 
+   --------------------
+   -- Handle_Message --
+   --------------------
+
    function Handle_Message
      (F : access Slicer_Filter;
       S : Components.Message'Class)
@@ -74,7 +83,7 @@ package body PolyORB.Filters.Slicers is
    is
       Res : Components.Null_Message;
    begin
-      if S in Data_Expected then
+      if S in Data_Expected'Class then
          declare
             DEM : Data_Expected renames Data_Expected (S);
          begin
@@ -107,17 +116,17 @@ package body PolyORB.Filters.Slicers is
             pragma Debug (O ("Expected" & F.Data_Expected'Img
                              & " bytes, received"
                              & Data_Received'Img));
-            pragma Assert
-              (Data_Received = Length (F.In_Buf) - F.Buffer_Length);
-            --  Integrity check: Receive_Buffer must have increased
-            --  Length (F.In_Buf) by exactly the amount of data received.
-
             if F.In_Buf = null
               or else Data_Received > F.Data_Expected
             then
                raise Unexpected_Data;
                --  This exception will be propagated to the ORB.
             end if;
+
+            pragma Assert
+              (Data_Received = Length (F.In_Buf) - F.Buffer_Length);
+            --  Integrity check: Receive_Buffer must have increased
+            --  Length (F.In_Buf) by exactly the amount of data received.
 
             F.Data_Expected := F.Data_Expected - Data_Received;
             F.Buffer_Length := Length (F.In_Buf);
@@ -156,11 +165,13 @@ package body PolyORB.Filters.Slicers is
         or else S in Set_Server
       then
          return Emit (F.Upper, S);
+
       elsif False
         or else S in Data_Out
         or else S in Disconnect_Request
       then
          return Emit (F.Lower, S);
+
       else
          raise Unhandled_Message;
       end if;

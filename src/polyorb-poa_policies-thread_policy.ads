@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -37,24 +38,14 @@ with PolyORB.Components;
 package PolyORB.POA_Policies.Thread_Policy is
 
    type ThreadPolicy is abstract new Policy with null record;
-   subtype Thread_Policy is ThreadPolicy;
+
    type ThreadPolicy_Access is access all ThreadPolicy'Class;
-   subtype Thread_Policy_Access is ThreadPolicy_Access;
-
-   procedure Check_Compatibility
-     (Self : ThreadPolicy;
-      Other_Policies   : AllPolicies)
-     is abstract;
-
-   function Policy_Id
-     (Self : ThreadPolicy)
-      return String is abstract;
 
    function Handle_Request_Execution
      (Self      : access ThreadPolicy;
       Msg       : PolyORB.Components.Message'Class;
       Requestor : PolyORB.Components.Component_Access)
-      return PolyORB.Components.Message'Class
+     return PolyORB.Components.Message'Class
       is abstract;
 
 end PolyORB.POA_Policies.Thread_Policy;

@@ -1,26 +1,33 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                A D A _ B E . I D L 2 A D A . H E L P E R                 --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2002 ENST Paris University, France.          --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -331,6 +338,8 @@ package body Ada_Be.Idl2Ada.Helper is
             II (CU);
             PL (CU, Raise_From_Any_Name (Node) & "'Access);");
             DI (CU);
+            Divert (CU, Initialization_Dependencies);
+            PL (CU, "& ""exceptions""");
             Divert (CU, Visible_Declarations);
          when others =>
             null;
@@ -493,10 +502,6 @@ package body Ada_Be.Idl2Ada.Helper is
    procedure Gen_Body_Prelude
      (CU : in out Compilation_Unit) is
    begin
-      NL (CU);
-      PL (CU, "pragma Warnings (Off);");
-      PL (CU, "--  Constructing typecodes tends to yield long lines.");
-
       Divert (CU, Deferred_Initialization);
       PL (CU, "procedure Deferred_Initialization is");
       PL (CU, "begin");
@@ -509,7 +514,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Divert (CU, Initialization_Dependencies);
       II (CU); II (CU); II (CU);
-      PL (CU, "+""soft_links""");
+      PL (CU, "Empty");
 
       Divert (CU, Visible_Declarations);
    end Gen_Body_Prelude;
@@ -673,7 +678,6 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       pragma Assert (Kind (Node) = K_ValueType);
 
-      Add_With (CU, "PolyORB.Exceptions");
       Add_With (CU, "CORBA.Value");
       Add_With (CU, "PolyORB.Log");
       Add_With (CU, "Ada.Strings.Unbounded");
@@ -714,7 +718,7 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "else");
       II (CU);
-      PL (CU, "PolyORB.Exceptions.Raise_Bad_Param;");
+      PL (CU, "CORBA.Raise_Bad_Param (Default_Sys_Member);");
       DI (CU);
       PL (CU, "end if;");
       DI (CU);
@@ -1190,8 +1194,6 @@ package body Ada_Be.Idl2Ada.Helper is
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
-         Add_With (CU, "PolyORB.Exceptions");
-
          NL (CU);
          PL (CU, "function Unchecked_To_" & Type_Defining_Name);
          Add_With (CU, "CORBA.Object");
@@ -1254,7 +1256,7 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "end if;");
 
-         PL (CU, "PolyORB.Exceptions.Raise_Bad_Param;");
+         PL (CU, "CORBA.Raise_Bad_Param (Default_Sys_Member);");
          DI (CU);
          PL (CU, "end To_" & Type_Defining_Name & ";");
       end;
@@ -1337,8 +1339,6 @@ package body Ada_Be.Idl2Ada.Helper is
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
-         Add_With (CU, "PolyORB.Exceptions");
-
          NL (CU);
          PL (CU, "function Unchecked_To_" & Short_Type_Name);
          Add_With (CU, "CORBA.Object");
@@ -1381,7 +1381,7 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "end if;");
 
-         PL (CU, "PolyORB.Exceptions.Raise_Bad_Param;");
+         PL (CU, "CORBA.Raise_Bad_Param (Default_Sys_Member);");
          DI (CU);
          PL (CU, "end To_" & Short_Type_Name & ";");
       end;
@@ -1501,7 +1501,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "                             "
              & "CORBA.Unsigned_Long (0));");
          DI (CU);
-         PL (CU, "Position : CORBA.Unsigned_Long "
+         PL (CU, "Position : constant CORBA.Unsigned_Long "
              & ":= CORBA.From_Any (Index);");
          DI (CU);
          PL (CU, "begin");
@@ -1645,8 +1645,10 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Struct_Exception_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : in     Node_Id)
+   is
       Struct_Node : Node_Id;
+      Is_Empty : Boolean;
    begin
       if Generate_Dyn then
          if Kind (Node) = K_Struct then
@@ -1655,134 +1657,135 @@ package body Ada_Be.Idl2Ada.Helper is
             Struct_Node := Members_Type (Node);
          end if;
 
-         declare
-            Is_Empty : Boolean;
-         begin
-            Is_Empty := Length (Members (Node)) = 0;
+         Is_Empty := Length (Members (Node)) = 0;
 
-            --  From_Any
-            Add_With (CU, "CORBA", Use_It => True);
-            NL (CU);
-            Gen_From_Any_Profile (CU, Struct_Node);
-            PL (CU, " is");
+         --  From_Any
+         Add_With (CU, "CORBA", Use_It => True);
+         NL (CU);
+         Gen_From_Any_Profile (CU, Struct_Node);
+         PL (CU, " is");
+         II (CU);
+         if not Is_Empty then
+            PL (CU, "Index : CORBA.Any;");
+            declare
+               It   : Node_Iterator;
+               Member_Node : Node_Id;
+            begin
+               Init (It, Members (Struct_Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Member_Node);
+                  declare
+                     It2   : Node_Iterator;
+                     Decl_Node : Node_Id;
+                  begin
+                     Init (It2, Decl (Member_Node));
+                     while not Is_End (It2) loop
+                        Get_Next_Node (It2, Decl_Node);
+                        PL (CU, "Result_"
+                            & Ada_Name (Decl_Node)
+                            & " : "
+                            & Ada_Type_Name (M_Type (Member_Node))
+                            & ";");
+                     end loop;
+                  end;
+               end loop;
+            end;
+         else
+            PL (CU, "Result : "
+                & Ada_Name (Struct_Node)
+                & ";");
+         end if;
+         if Is_Empty then
+            PL (CU, "pragma Warnings (Off);");
+            PL (CU, "pragma Unreferenced (Item);");
+            PL (CU, "pragma Warnings (On);");
+         end if;
+         DI (CU);
+         PL (CU, "begin");
+         II (CU);
+         if Is_Empty then
+            PL (CU, "return Result;");
+         else
+            declare
+               It   : Node_Iterator;
+               Member_Node : Node_Id;
+               I : Integer := 0;
+            begin
+               Init (It, Members (Struct_Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Member_Node);
+                  declare
+                     It2   : Node_Iterator;
+                     Decl_Node : Node_Id;
+                  begin
+                     Init (It2, Decl (Member_Node));
+                     while not Is_End (It2) loop
+                        Get_Next_Node (It2, Decl_Node);
+                        PL (CU,
+                            "Index := CORBA.Get_Aggrega"
+                            & "te_Element (Item,");
+                        Add_With (CU, Ada_Helper_Name
+                                  (M_Type (Member_Node)));
+                        PL (CU,
+                            "                                      "
+                            & Ada_Full_TC_Name (M_Type (Member_Node))
+                            & ",");
+                        PL (CU,
+                            "                                      "
+                            & "CORBA.Unsigned_Long ("
+                            & Integer'Image (I)
+                            &"));");
+                        Add_With (CU, Ada_Helper_Name
+                                  (M_Type (Member_Node)));
+                        PL (CU, "Result_"
+                            & Ada_Name (Decl_Node)
+                            & " := "
+                            & Ada_Helper_Name (M_Type (Member_Node))
+                            & ".From_Any (Index);");
+                        I := I + 1;
+                     end loop;
+                  end;
+               end loop;
+            end;
+            PL (CU, "return");
             II (CU);
-            if not Is_Empty then
-               PL (CU, "Index : CORBA.Any;");
-               declare
-                  It   : Node_Iterator;
-                  Member_Node : Node_Id;
-               begin
-                  Init (It, Members (Struct_Node));
-                  while not Is_End (It) loop
-                     Get_Next_Node (It, Member_Node);
-                     declare
-                        It2   : Node_Iterator;
-                        Decl_Node : Node_Id;
-                     begin
-                        Init (It2, Decl (Member_Node));
-                        while not Is_End (It2) loop
-                           Get_Next_Node (It2, Decl_Node);
-                           PL (CU, "Result_"
-                               & Ada_Name (Decl_Node)
-                               & " : "
-                               & Ada_Type_Name (M_Type (Member_Node))
-                               & ";");
-                        end loop;
-                     end;
-                  end loop;
-               end;
-            else
-               PL (CU, "Result : "
-                   & Ada_Name (Struct_Node)
-                   & ";");
-            end if;
+            declare
+               First_Member : Boolean := True;
+               Begin_Of_Line : String (1 .. 1) := "(";
+               End_Of_Line : String (1 .. 2) := ", ";
+               It   : Node_Iterator;
+               Member_Node : Node_Id;
+            begin
+               Init (It, Members (Struct_Node));
+               while not Is_End (It) loop
+                  Get_Next_Node (It, Member_Node);
+                  declare
+                     It2   : Node_Iterator;
+                     Decl_Node : Node_Id;
+                  begin
+                     Init (It2, Decl (Member_Node));
+                     while not Is_End (It2) loop
+                        Get_Next_Node (It2, Decl_Node);
+                        if Is_End (It) and Is_End (It2) then
+                           End_Of_Line := ");";
+                        end if;
+                        PL (CU, Begin_Of_Line
+                            & Ada_Name (Decl_Node)
+                            & " => Result_"
+                            & Ada_Name (Decl_Node)
+                            & End_Of_Line);
+                        if First_Member then
+                           First_Member := False;
+                           Begin_Of_Line := " ";
+                        end if;
+                     end loop;
+                  end;
+               end loop;
+            end;
             DI (CU);
-            PL (CU, "begin");
-            II (CU);
-            if Is_Empty then
-               PL (CU, "return Result;");
-            else
-               declare
-                  It   : Node_Iterator;
-                  Member_Node : Node_Id;
-                  I : Integer := 0;
-               begin
-                  Init (It, Members (Struct_Node));
-                  while not Is_End (It) loop
-                     Get_Next_Node (It, Member_Node);
-                     declare
-                        It2   : Node_Iterator;
-                        Decl_Node : Node_Id;
-                     begin
-                        Init (It2, Decl (Member_Node));
-                        while not Is_End (It2) loop
-                           Get_Next_Node (It2, Decl_Node);
-                           PL (CU,
-                               "Index := CORBA.Get_Aggrega"
-                               & "te_Element (Item,");
-                           Add_With (CU, Ada_Helper_Name
-                                     (M_Type (Member_Node)));
-                           PL (CU,
-                               "                                      "
-                               & Ada_Full_TC_Name (M_Type (Member_Node))
-                               & ",");
-                           PL (CU,
-                               "                                      "
-                               & "CORBA.Unsigned_Long ("
-                               & Integer'Image (I)
-                               &"));");
-                           Add_With (CU, Ada_Helper_Name
-                                     (M_Type (Member_Node)));
-                           PL (CU, "Result_"
-                               & Ada_Name (Decl_Node)
-                               & " := "
-                               & Ada_Helper_Name (M_Type (Member_Node))
-                               & ".From_Any (Index);");
-                           I := I + 1;
-                        end loop;
-                     end;
-                  end loop;
-               end;
-               PL (CU, "return");
-               II (CU);
-               declare
-                  First_Member : Boolean := True;
-                  Begin_Of_Line : String (1 .. 1) := "(";
-                  End_Of_Line : String (1 .. 2) := ", ";
-                  It   : Node_Iterator;
-                  Member_Node : Node_Id;
-               begin
-                  Init (It, Members (Struct_Node));
-                  while not Is_End (It) loop
-                     Get_Next_Node (It, Member_Node);
-                     declare
-                        It2   : Node_Iterator;
-                        Decl_Node : Node_Id;
-                     begin
-                        Init (It2, Decl (Member_Node));
-                        while not Is_End (It2) loop
-                           Get_Next_Node (It2, Decl_Node);
-                           if Is_End (It) and Is_End (It2) then
-                              End_Of_Line := ");";
-                           end if;
-                           PL (CU, Begin_Of_Line
-                               & Ada_Name (Decl_Node)
-                               & " => Result_"
-                               & Ada_Name (Decl_Node)
-                               & End_Of_Line);
-                           if First_Member then
-                              First_Member := False;
-                              Begin_Of_Line := " ";
-                           end if;
-                        end loop;
-                     end;
-                  end loop;
-               end;
-               DI (CU);
-            end if;
-            DI (CU);
-            PL (CU, "end From_Any;");
-         end;
+         end if;
+         DI (CU);
+         PL (CU, "end From_Any;");
 
          --  To_Any
 
@@ -1797,6 +1800,11 @@ package body Ada_Be.Idl2Ada.Helper is
              & Ada_TC_Name (Node)
              & ");");
          DI (CU);
+         if Is_Empty then
+            PL (CU, "pragma Warnings (Off);");
+            PL (CU, "pragma Unreferenced (Item);");
+            PL (CU, "pragma Warnings (On);");
+         end if;
          DI (CU);
          PL (CU, "begin");
          II (CU);
@@ -2069,7 +2077,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "                             "
              & "CORBA.Unsigned_Long (0));");
          DI (CU);
-         PL (CU, "Label : "
+         PL (CU, "Label : constant "
              & Ada_Type_Name (Switch_Type (Node))
              & " := "
              & Ada_Helper_Name (Switch_Type (Node))
@@ -2278,7 +2286,7 @@ package body Ada_Be.Idl2Ada.Helper is
              & "));");
          PL (CU, "CORBA.TypeCode.Add_Parameter ("
              & Ada_TC_Name (Node)
-             & ", CORBA.To_Any (CORBA.Long ("
+             & ", CORBA.To_Any (CORBA.Long'("
              & Long_Integer_Img (Default_Index (Node))
           & ")));");
 
@@ -2299,10 +2307,12 @@ package body Ada_Be.Idl2Ada.Helper is
                   if Default_Index (Node) = I then
                      PL (CU, "CORBA.TypeCode.Add_Parameter ("
                          & Ada_TC_Name (Node)
-                         & ", " & Ada_Helper_Name (Switch_Type (Node))
+                         & ", CORBA.To_Any ("
+                         & Ada_Helper_Name (Switch_Type (Node))
                          & ".To_Any ("
                          & Ada_Type_Name (Switch_Type (Node))
-                         & "'First));");
+                         & "'First)));");
+
                      Add_With (CU, Ada_Helper_Name (Case_Type (Case_Node)));
                      PL (CU, "CORBA.TypeCode.Add_Parameter ("
                          & Ada_TC_Name (Node)
@@ -2320,12 +2330,14 @@ package body Ada_Be.Idl2Ada.Helper is
                         Get_Next_Node (It2, Label_Node);
                         Put (CU, "CORBA.TypeCode.Add_Parameter ("
                              & Ada_TC_Name (Node)
-                             & ", " & Ada_Helper_Name (Switch_Type (Node))
+                             & ", CORBA.To_Any ("
+                             & Ada_Helper_Name (Switch_Type (Node))
                              & ".To_Any ("
                              & Ada_Type_Name (Switch_Type (Node))
-                             & " (");
+                             & "'(");
                         Gen_Constant_Value (CU, Label_Node);
-                        PL (CU, ")));");
+                        PL (CU, "))));");
+
                         Add_With (CU, Ada_Helper_Name (Case_Type (Case_Node)));
                         PL (CU, "CORBA.TypeCode.Add_Parameter ("
                             & Ada_TC_Name (Node)
@@ -2566,7 +2578,7 @@ package body Ada_Be.Idl2Ada.Helper is
             PL (CU, "return Result;");
 
          else
-            PL (CU, "Result : "
+            PL (CU, "Result : constant "
                 & Ada_Type_Name (Type_Node)
                 & " := "
                 & Ada_Helper_Name (Type_Node)
@@ -2718,8 +2730,9 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "CORBA.Unsigned_Long (0));");
          DI (CU);
          DI (CU);
-         PL (CU, "Nb_Long : CORBA.Unsigned_Long := CORBA.From_Any (Nb_Any);");
-         PL (CU, "Nb : Integer := Integer (nb_Long);");
+         PL (CU, "Nb : constant Integer");
+         PL (CU, "  := Integer (CORBA.Unsigned_Long'"
+                 & "(CORBA.From_Any (Nb_Any)));");
          PL (CU, "Index : CORBA.Any;");
          PL (CU, "Result : Element_Array (1 .. Nb);");
          DI (CU);
@@ -2731,13 +2744,12 @@ package body Ada_Be.Idl2Ada.Helper is
             Gen_Constant_Value (CU, Bound (Sequence (Node)));
             PL (CU, " then");
             II (CU);
-            Add_With (CU, "PolyORB.Exceptions");
-            PL (CU, "PolyORB.Exceptions.Raise_Bad_TypeCode;");
+            PL (CU, "CORBA.Raise_Bad_TypeCode (Default_Sys_Member);");
             DI (CU);
             PL (CU, "end if;");
          end if;
 
-         PL (CU, "for I in 1 .. Nb loop");
+         PL (CU, "for I in Result'Range loop");
          II (CU);
          PL (CU, "Index :=");
          II (CU);
@@ -2765,7 +2777,8 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, " is");
          II (CU);
          PL (CU, "use " & Ada_Name (Node) & ";");
-         PL (CU, "Array_Item : Element_Array := To_Element_Array (Item);");
+         PL (CU, "Array_Item : constant Element_Array"
+           & " := To_Element_Array (Item);");
          Add_With (CU, "CORBA");
          PL (CU, "Result : CORBA.Any := CORBA.Get_Empty_Any_Aggregate");
          PL (CU, "  ("

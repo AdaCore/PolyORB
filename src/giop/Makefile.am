@@ -1,18 +1,20 @@
-SUBDIRS = .
+SUBDIRS = . iiop
 
 include $(srcdir)/../Makefile.common
 
 alidir = $(libdir)/polyorb-giop
 
 ADA_SPECS_WITH_BODY = \
-	polyorb-binding_data-iiop.ads \
+	polyorb-giop_p-exceptions.ads \
+	polyorb-giop_p-tagged_components.ads \
+	polyorb-protocols-giop-common.ads \
 	polyorb-protocols-giop-giop_1_0.ads \
 	polyorb-protocols-giop-giop_1_1.ads \
 	polyorb-protocols-giop-giop_1_2.ads \
-	polyorb-protocols-giop.ads \
-	polyorb-setup-tcp_access_points-iiop.ads
+	polyorb-protocols-giop.ads
 
-ADA_SPECS = $(ADA_SPECS_WITH_BODY)
+ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
+	polyorb-giop_p.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
@@ -43,10 +45,22 @@ SUFFIXES = .adb .ads .lo .ali
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
-	$(INSTALL) -m 444 $(srcdir)/*.ad[bs] $(DESTDIR)$(alidir)
-	$(INSTALL) -m 444 *.ali $(DESTDIR)$(alidir)
+	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
-depend-local: all
-	$(srcdir)/../../support/mkdep -I$(srcdir)/.. $(srcdir)
+depend-local:
+	for d in $(SUBDIRS);do \
+		(cd $$d && ${MAKE} depend-local-local); \
+	done
+
+depend-local-local: all
+	$(srcdir)/../../support/mkdep $(srcdir)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
+polyorb-giop_p.lo:polyorb-giop_p.ads 
+polyorb-giop_p-exceptions.lo:polyorb-giop_p.ads polyorb-giop_p-exceptions.adb polyorb-giop_p-exceptions.ads 
+polyorb-giop_p-tagged_components.lo:polyorb-giop_p.ads polyorb-giop_p-tagged_components.adb polyorb-giop_p-tagged_components.ads 
+polyorb-protocols-giop.lo:polyorb-giop_p.ads polyorb-giop_p-exceptions.ads polyorb-protocols-giop.adb polyorb-protocols-giop.ads 
+polyorb-protocols-giop-common.lo:polyorb-giop_p.ads polyorb-giop_p-exceptions.ads polyorb-protocols-giop.ads polyorb-protocols-giop-common.adb polyorb-protocols-giop-common.ads 
+polyorb-protocols-giop-giop_1_0.lo:polyorb-giop_p.ads polyorb-giop_p-exceptions.ads polyorb-protocols-giop.ads polyorb-protocols-giop-common.adb polyorb-protocols-giop-common.ads polyorb-protocols-giop-giop_1_0.adb polyorb-protocols-giop-giop_1_0.ads 
+polyorb-protocols-giop-giop_1_1.lo:polyorb-giop_p.ads polyorb-giop_p-exceptions.ads polyorb-protocols-giop.ads polyorb-protocols-giop-common.adb polyorb-protocols-giop-common.ads polyorb-protocols-giop-giop_1_1.adb polyorb-protocols-giop-giop_1_1.ads 
+polyorb-protocols-giop-giop_1_2.lo:polyorb-giop_p.ads polyorb-giop_p-exceptions.ads polyorb-protocols-giop.ads polyorb-protocols-giop-common.adb polyorb-protocols-giop-common.ads polyorb-protocols-giop-giop_1_2.adb polyorb-protocols-giop-giop_1_2.ads 

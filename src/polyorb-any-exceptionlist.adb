@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,10 +40,6 @@ with PolyORB.Smart_Pointers;
 
 package body PolyORB.Any.ExceptionList is
 
-   -----------
-   -- Debug --
-   -----------
-
    use PolyORB.Log;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.any.exceptionlist");
@@ -53,30 +50,41 @@ package body PolyORB.Any.ExceptionList is
    -- Finalize --
    --------------
 
-   procedure Finalize (Obj : in out Object) is
+   procedure Finalize
+     (Obj : in out Object) is
    begin
+      pragma Debug (O ("Finalize : enter"));
+      pragma Debug (O ("length" &
+                       Integer'Image (Exception_Sequences.Length (Obj.List))));
       Exception_Sequences.Delete
         (Obj.List, 1, Exception_Sequences.Length (Obj.List));
+      pragma Debug (O ("Finalize : leave"));
    end Finalize;
 
-   -----------------
-   --  Get_Count  --
-   -----------------
+   ---------------
+   -- Get_Count --
+   ---------------
+
    function Get_Count
      (Self : in Ref)
-      return PolyORB.Types.Unsigned_Long is
+     return PolyORB.Types.Unsigned_Long
+   is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
+      if Obj = null then
+         return 0;
+      end if;
       return PolyORB.Types.Unsigned_Long
         (Exception_Sequences.Length (Obj.List));
    end Get_Count;
 
-   -----------
-   --  Add  --
-   -----------
+   ---------
+   -- Add --
+   ---------
+
    procedure Add
      (Self : in Ref;
-      Exc : in PolyORB.Any.TypeCode.Object)
+      Exc  : in PolyORB.Any.TypeCode.Object)
    is
       Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
@@ -88,7 +96,7 @@ package body PolyORB.Any.ExceptionList is
    ----------
 
    function Item
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in PolyORB.Types.Unsigned_Long)
       return PolyORB.Any.TypeCode.Object
    is
@@ -97,11 +105,12 @@ package body PolyORB.Any.ExceptionList is
       return Exception_Sequences.Element_Of (Obj.List, Positive (Index));
    end Item;
 
-   --------------
-   --  Remove  --
-   --------------
+   ------------
+   -- Remove --
+   ------------
+
    procedure Remove
-     (Self : in Ref;
+     (Self  : in Ref;
       Index : in PolyORB.Types.Unsigned_Long)
    is
       Obj : Object_Ptr := Object_Ptr (Entity_Of (Self));
@@ -120,7 +129,13 @@ package body PolyORB.Any.ExceptionList is
       return new Object;
    end Create_Object;
 
-   procedure Create_List (Self : out Ref) is
+   -----------------
+   -- Create_List --
+   -----------------
+
+   procedure Create_List
+     (Self : out Ref)
+   is
       Result : Ref;
    begin
       Set (Result, PolyORB.Smart_Pointers.Entity_Ptr (Create_Object));
@@ -167,12 +182,18 @@ package body PolyORB.Any.ExceptionList is
       pragma Debug (O ("Search_Exception_Id : Obj.list length is " &
                        PolyORB.Types.Unsigned_Long'Image (Get_Count (Self))));
       pragma Debug (O ("Search_Exception_Id : Name = """ &
-                       To_Standard_String (Name) & """"));
+                         To_Standard_String (Name) & """"));
+
+      if Obj = null then
+         pragma Debug (O ("Search_Exception_Id: null list."));
+         return 0;
+      end if;
+
       pragma Debug (O ("Search_Exception_Id : first excpt id = """ &
                        To_Standard_String
                        (TypeCode.Id
                         (Exception_Sequences.Element_Of
-                         (Obj.List, 1))) & """"));
+                           (Obj.List, 1))) & """"));
       return PolyORB.Types.Unsigned_Long
         (Exception_Search.Index (Obj.List, Name));
    end Search_Exception_Id;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,18 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  with PortableServer.AdapterActivator.Impl;
-
---  $Id: //droopi/main/src/corba/portableserver-adapteractivator.adb#3 $
+--  $Id: //droopi/main/src/corba/portableserver-adapteractivator.adb#6 $
 
 package body PortableServer.AdapterActivator is
+
+   ---------------------
+   -- Unknown_Adapter --
+   ---------------------
 
    function Unknown_Adapter
      (Self   : Ref;
@@ -42,13 +45,13 @@ package body PortableServer.AdapterActivator is
       Name   : CORBA.String)
       return Boolean
    is
-      --  Res : Boolean;
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Parent);
+      pragma Unreferenced (Name);
+      pragma Warnings (On); --  WAG:3.15
+
    begin
---       Impl.Unknown_Adapter
---         (Impl.Object'Class (Object_Of (Self).all),
---          Parent, Name, Res);
---       return Res;
-      raise PolyORB.Not_Implemented;
       return False;
    end Unknown_Adapter;
 

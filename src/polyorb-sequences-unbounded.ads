@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,15 +26,18 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  This package provides the definitions required by the IDL-to-Ada
---  mapping specification for unbounded sequences.  This package is
---  instantiated for each IDL unbounded sequence type.  This package
---  defines the sequence type and the operations upon it.  This package is
---  modelled after Ada.Strings.Unbounded
+--  mapping specification for unbounded sequences. This package is
+--  instantiated for each IDL unbounded sequence type. This package
+--  defines the sequence type and the operations upon it. This package
+--  is modelled after Ada.Strings.Unbounded and is compliant with the
+--  specifications of CORBA.Sequences.Unounded defined in the CORBA
+--  Ada Mapping.
 --
 --  Most query operations are not usable until the sequence object has been
 --  initialized through an assignment.
@@ -75,48 +78,81 @@ package PolyORB.Sequences.Unbounded is
    function Length (Source : in Sequence) return Natural;
 
    type Element_Array_Access is access all Element_Array;
+
    procedure Free (X : in out Element_Array_Access);
 
-   function To_Sequence (Source : in Element_Array) return Sequence;
+   --------------------------------------------------------
+   -- Conversion, Concatenation, and Selection functions --
+   --------------------------------------------------------
 
-   function To_Sequence (Length : in Natural) return Sequence;
+   function To_Sequence
+     (Source : in Element_Array)
+     return Sequence;
 
-   function To_Element_Array (Source : in Sequence) return Element_Array;
+   procedure Set
+     (Item   : in out Sequence;
+      Source : in     Element_Array);
+
+   function To_Sequence
+     (Length : in Natural)
+     return Sequence;
+
+   function To_Element_Array
+     (Source : in Sequence)
+     return Element_Array;
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in Sequence);
+      New_Item : in     Sequence);
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in Element_Array);
+      New_Item : in     Element_Array);
 
    procedure Append
      (Source   : in out Sequence;
-      New_Item : in Element);
+      New_Item : in     Element);
 
-   function "&" (Left, Right : in Sequence) return Sequence;
+   function "&"
+     (Left, Right : in Sequence)
+     return Sequence;
 
-   function "&" (Left : in Sequence;
-                 Right : in Element_Array) return Sequence;
+   function "&"
+     (Left  : in Sequence;
+      Right : in Element_Array)
+     return Sequence;
 
-   function "&" (Left : in Element_Array;
-                 Right : in Sequence) return Sequence;
+   function "&"
+     (Left  : in Element_Array;
+      Right : in Sequence)
+     return Sequence;
 
-   function "&" (Left : in Sequence;
-                 Right : in Element) return Sequence;
+   function "&"
+     (Left  : in Sequence;
+      Right : in Element)
+     return Sequence;
 
-   function "&" (Left : in Element;
-                 Right : in Sequence) return Sequence;
+   function "&"
+     (Left  : in Element;
+      Right : in Sequence)
+     return Sequence;
 
    function Element_Of
      (Source : in Sequence;
-      Index  : in Positive) return Element;
+      Index  : in Positive)
+     return Element;
+
+   function Get_Element
+     (Source : in Sequence;
+      Index  : in Positive)
+     return Element
+     renames Element_Of;
+   --  For compliance with CORBA specifications.
 
    procedure Replace_Element
      (Source : in out Sequence;
-      Index  : in Positive;
-      By     : in Element);
+      Index  : in     Positive;
+      By     : in     Element);
 
    function Slice
      (Source : in Sequence;
@@ -124,13 +160,28 @@ package PolyORB.Sequences.Unbounded is
       High   : in Natural)
       return Element_Array;
 
-   function "=" (Left, Right : in Sequence) return Boolean;
+   function "="
+     (Left, Right : in Sequence)
+     return Boolean;
 
-   function "=" (Left : in Element_Array;
-                 Right : in Sequence) return Boolean;
+   function "="
+     (Left  : in Element_Array;
+      Right : in Sequence)
+     return Boolean;
 
-   function "=" (Left : in Sequence;
-                 Right : in Element_Array) return Boolean;
+   function "="
+     (Left  : in Sequence;
+      Right : in Element_Array)
+     return Boolean;
+
+   function Is_Null
+     (Source : in Sequence)
+     return Boolean;
+   --  Equivalent to (Source = Null_Sequence).
+
+   ----------------------
+   -- Search functions --
+   ----------------------
 
    function Index
      (Source  : in Sequence;
@@ -143,6 +194,10 @@ package PolyORB.Sequences.Unbounded is
       Pattern : in Element_Array)
       return Natural;
 
+   -----------------------------------------
+   -- Sequence transformation subprograms --
+   -----------------------------------------
+
    function Replace_Slice
      (Source : in Sequence;
       Low    : in Positive;
@@ -152,9 +207,9 @@ package PolyORB.Sequences.Unbounded is
 
    procedure Replace_Slice
      (Source : in out Sequence;
-      Low    : in Positive;
-      High   : in Natural;
-      By     : in Element_Array);
+      Low    : in     Positive;
+      High   : in     Natural;
+      By     : in     Element_Array);
 
    function Insert
      (Source   : in Sequence;
@@ -164,8 +219,8 @@ package PolyORB.Sequences.Unbounded is
 
    procedure Insert
      (Source   : in out Sequence;
-      Before   : in Positive;
-      New_Item : in Element_Array);
+      Before   : in     Positive;
+      New_Item : in     Element_Array);
 
    function Overwrite
      (Source   : in Sequence;
@@ -175,8 +230,8 @@ package PolyORB.Sequences.Unbounded is
 
    procedure Overwrite
      (Source   : in out Sequence;
-      Position : in Positive;
-      New_Item : in Element_Array);
+      Position : in     Positive;
+      New_Item : in     Element_Array);
 
    function Delete
      (Source  : in Sequence;
@@ -186,9 +241,12 @@ package PolyORB.Sequences.Unbounded is
 
    procedure Delete
      (Source  : in out Sequence;
-      From    : in Positive;
-      Through : in Natural);
+      From    : in     Positive;
+      Through : in     Natural);
 
+   -----------------------------------
+   -- Sequence selector subprograms --
+   -----------------------------------
 
    function Head
      (Source : in Sequence;
@@ -198,8 +256,8 @@ package PolyORB.Sequences.Unbounded is
 
    procedure Head
      (Source : in out Sequence;
-      Count  : in Natural;
-      Pad    : in Element);
+      Count  : in     Natural;
+      Pad    : in     Element);
 
    function Tail
      (Source : in Sequence;
@@ -209,18 +267,27 @@ package PolyORB.Sequences.Unbounded is
 
    procedure Tail
      (Source : in out Sequence;
-      Count  : in Natural;
-      Pad    : in Element);
+      Count  : in     Natural;
+      Pad    : in     Element);
 
+   --------------------------------------
+   -- Sequence constructor subprograms --
+   --------------------------------------
 
-   function "*" (Left : in Natural;
-                 Right : in Element) return Sequence;
+   function "*"
+     (Left  : in Natural;
+      Right : in Element)
+     return Sequence;
 
-   function "*" (Left : in Natural;
-                 Right : in Element_Array) return Sequence;
+   function "*"
+     (Left  : in Natural;
+      Right : in Element_Array)
+     return Sequence;
 
-   function "*" (Left : in Natural;
-                 Right : in Sequence) return Sequence;
+   function "*"
+     (Left  : in Natural;
+      Right : in Sequence)
+     return Sequence;
 
 private
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -40,8 +41,7 @@ package body PolyORB.Obj_Adapters is
 
    procedure Set_ORB
      (OA      : access Obj_Adapter;
-      The_ORB :        Components.Component_Access)
-   is
+      The_ORB :        Components.Component_Access) is
    begin
       OA.ORB := The_ORB;
    end Set_ORB;
@@ -49,36 +49,49 @@ package body PolyORB.Obj_Adapters is
    --  Default relative URI representation of an object ID:
    --  "/" & hexadecimal representation of oid value.
 
+   --------------------
+   -- Oid_To_Rel_URI --
+   --------------------
+
    function Oid_To_Rel_URI
      (OA : access Obj_Adapter;
       Id : access Objects.Object_Id)
-     return Types.String is
-   begin
+     return Types.String
+   is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
-
+   begin
       return Types.To_PolyORB_String
         ("/" & Objects.To_String (Id.all));
    end Oid_To_Rel_URI;
+
+   --------------------
+   -- Rel_URI_To_Oid --
+   --------------------
 
    function Rel_URI_To_Oid
      (OA  : access Obj_Adapter;
       URI : Types.String)
      return Objects.Object_Id_Access
    is
-      S : constant String := Types.To_Standard_String (URI);
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
 
+      S : constant String := Types.To_Standard_String (URI);
+   begin
       if S (S'First) /= '/' then
          raise Constraint_Error;
       end if;
+
       return new Objects.Object_Id'
         (Objects.To_Oid (S (S'First + 1 .. S'Last)));
    end Rel_URI_To_Oid;
+
+   ------------------
+   -- Is_Proxy_Oid --
+   ------------------
 
    function Is_Proxy_Oid
      (OA  : access Obj_Adapter;
@@ -95,18 +108,26 @@ package body PolyORB.Obj_Adapters is
       --  a proxy oid.
    end Is_Proxy_Oid;
 
-   function To_Proxy_Oid
-     (OA : access Obj_Adapter;
-      R  :        References.Ref)
-     return Objects.Object_Id_Access
+   ------------------
+   -- To_Proxy_Oid --
+   ------------------
+
+   procedure To_Proxy_Oid
+     (OA    : access Obj_Adapter;
+      R     :        References.Ref;
+      Oid   :    out Objects.Object_Id_Access;
+      Error : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (OA, R);
+      pragma Unreferenced (OA, R, Oid, Error);
       pragma Warnings (On);
    begin
       raise Not_Implemented;
-      return null;
    end To_Proxy_Oid;
+
+   ------------------
+   -- Proxy_To_Ref --
+   ------------------
 
    function Proxy_To_Ref
      (OA  : access Obj_Adapter;
@@ -115,6 +136,7 @@ package body PolyORB.Obj_Adapters is
    is
    begin
       raise Not_Implemented;
+
       pragma Warnings (Off);
       return Proxy_To_Ref (OA, Oid);
       pragma Warnings (On);

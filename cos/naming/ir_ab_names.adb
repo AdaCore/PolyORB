@@ -1,21 +1,21 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           ADABROKER SERVICES                             --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
---                             A B _ N A M E S                              --
+--                          I R _ A B _ N A M E S                           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2000 ENST Paris University, France.          --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
@@ -26,18 +26,27 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with AB_Names;
-with IR_AB_Names_Setup;
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.If_Descriptors;
+with PolyORB.If_Descriptors.CORBA_IR;
 
 procedure IR_AB_Names is
+   procedure IR_AB_Names_Setup;
+   procedure IR_AB_Names_Setup is
+   begin
+      PolyORB.If_Descriptors.Default_If_Descriptor
+        := new PolyORB.If_Descriptors.CORBA_IR.IR_If_Descriptor;
+   end IR_AB_Names_Setup;
 begin
    PolyORB.CORBA_P.Server_Tools.Initiate_Server_Hook
-     := IR_AB_Names_Setup'Access;
+     := IR_AB_Names_Setup'Unrestricted_Access;
    AB_Names;
 end IR_AB_Names;

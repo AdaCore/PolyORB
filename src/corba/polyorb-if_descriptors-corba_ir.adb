@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2002 Free Software Fundation                --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -36,7 +37,6 @@
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
-with PolyORB.Exceptions;
 with PolyORB.CORBA_P.IR_Tools;
 with PolyORB.Log;
 with PolyORB.Types;
@@ -137,7 +137,7 @@ package body PolyORB.If_Descriptors.CORBA_IR is
                raise;
          end;
       end loop Base_Intfs_Loop;
-      PolyORB.Exceptions.Raise_Bad_Operation;
+      CORBA.Raise_Bad_Operation (CORBA.Default_Sys_Member);
    end Find_Operation;
 
    -------------------------------------------

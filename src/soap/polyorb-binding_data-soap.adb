@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -38,12 +39,15 @@ with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Any;
 with PolyORB.Configuration;
-with PolyORB.Initialization;
 with PolyORB.Filters;
 with PolyORB.Filters.HTTP;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols;
 with PolyORB.Protocols.SOAP_Pr;
+with PolyORB.Setup;
 
 with PolyORB.References.IOR;
 with PolyORB.Representations.CDR;
@@ -52,7 +56,7 @@ with PolyORB.Representations.CDR;
 --  would be specific of how IORs are constructed) (but we could
 --  say that the notion of IOR is cross-platform!).
 
-with PolyORB.Transport.Sockets;
+with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
 
 with AWS.URL;
@@ -65,12 +69,20 @@ package body PolyORB.Binding_Data.SOAP is
    use PolyORB.Protocols.SOAP_Pr;
    use PolyORB.Representations.CDR;
    --  use PolyORB.Sockets;
-   use PolyORB.Transport.Sockets;
+   use PolyORB.Transport;
+   use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Types;
 
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
    --  by Get_Profile_Preference for SOAP profiles.
+
+   --------------------------
+   -- Internal subprograms --
+   --------------------------
+
+   procedure Initialize;
+   --  Initialize the SOAP binding subsystem.
 
    procedure Marshall_Socket
      (Buffer   : access Buffer_Type;
@@ -108,6 +120,7 @@ package body PolyORB.Binding_Data.SOAP is
      return Components.Component_Access
    is
       use PolyORB.Components;
+      use PolyORB.ORB;
       use PolyORB.Protocols;
       use PolyORB.Sockets;
       use PolyORB.Filters;
@@ -117,7 +130,7 @@ package body PolyORB.Binding_Data.SOAP is
       Pro  : aliased SOAP_Protocol;
       Htt  : aliased HTTP_Filter_Factory;
       TE : constant Transport.Transport_Endpoint_Access
-        := new Transport.Sockets.Socket_Endpoint;
+        := new Socket_Endpoint;
       Filter : Filter_Access;
    begin
       Create_Socket (Sock);
@@ -132,7 +145,10 @@ package body PolyORB.Binding_Data.SOAP is
       --  the stack (the HTTP filter in the case of SOAP/HTTP).
 
       ORB.Register_Endpoint
-        (ORB.ORB_Access (The_ORB), TE, Filter, ORB.Client);
+        (ORB_Access (The_ORB),
+         TE,
+         Filter,
+         ORB.Client);
       --  Register the endpoint and lowest filter with the ORB.
 
       return Component_Access (Upper (Filter));
@@ -170,10 +186,13 @@ package body PolyORB.Binding_Data.SOAP is
    procedure Create_Factory
      (PF : out SOAP_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
-      ORB : Components.Component_Access) is
+      ORB : PolyORB.Components.Component_Access)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (ORB);
+      pragma Warnings (On);
    begin
       PF.Address := Address_Of (Socket_Access_Point (TAP.all));
-      PF.ORB := ORB;
    end Create_Factory;
 
    function Create_Profile
@@ -181,7 +200,7 @@ package body PolyORB.Binding_Data.SOAP is
       Oid : Objects.Object_Id)
      return Profile_Access
    is
-      use PolyORB.Transport.Sockets;
+      use PolyORB.Transport.Connected.Sockets;
 
       Result : constant Profile_Access
         := new SOAP_Profile_Type;
@@ -194,15 +213,13 @@ package body PolyORB.Binding_Data.SOAP is
       TResult.Address   := PF.Address;
 
       declare
-         PF_ORB : PolyORB.Components.Component_Access renames PF.ORB;
-
          Oid_Translate : constant ORB.Interface.Oid_Translate
            := (PolyORB.Components.Message with Oid => TResult.Object_Id);
-         TOid_Translate : PolyORB.Components.Message'Class
-           renames PolyORB.Components.Message'Class (Oid_Translate);
+
          M : constant PolyORB.Components.Message'Class
            := PolyORB.Components.Emit
-           (Port => PF_ORB,  Msg => TOid_Translate);
+           (Port => Components.Component_Access (Setup.The_ORB),
+            Msg => Oid_Translate);
          TM : ORB.Interface.URI_Translate renames
            ORB.Interface.URI_Translate (M);
       begin
@@ -240,7 +257,26 @@ package body PolyORB.Binding_Data.SOAP is
       TResult.Address.Port := Port_Type (Positive'(Port (URL)));
 
       TResult.URI_Path := To_PolyORB_String (AWS.URL.URI (URL));
-      --  XXX do we need to fill in TResult.Oid ?
+
+      if ORB.Is_Profile_Local (Setup.The_ORB, Result) then
+
+         --  Fill Oid from URI for a local profile.
+
+         declare
+            URI_Translate : constant ORB.Interface.URI_Translate
+              := (PolyORB.Components.Message
+                    with Path => TResult.URI_Path);
+
+            M : constant PolyORB.Components.Message'Class
+              := PolyORB.Components.Emit
+              (Port => Components.Component_Access (Setup.The_ORB),
+               Msg => URI_Translate);
+            TM : ORB.Interface.Oid_Translate renames
+              ORB.Interface.Oid_Translate (M);
+         begin
+            TResult.Object_Id := TM.Oid;
+         end;
+      end if;
 
       return Result;
    end Create_Profile;

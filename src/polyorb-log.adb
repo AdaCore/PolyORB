@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,19 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
-pragma Warnings (Off);
-with System.IO; use System.IO;
---  Package System.IO is GNAT-specific; for other compilers use
---  Ada.Text_IO instead.
-pragma Warnings (On);
-
---  with PolyORB.Configuration;
+with Interfaces.C;
+with System;
 
 package body PolyORB.Log is
 
@@ -46,12 +42,11 @@ package body PolyORB.Log is
    -- Get_Log_Level --
    -------------------
 
-   Log_Section : constant String := "log";
+   function Get_Log_Level (Facility : in String) return Log_Level;
+   --  Returns the user-requested log level for facility Flag.
 
-   Default_Log_Level : constant Log_Level := Notice;
-
-   function Get_Log_Level (Facility : in String) return Log_Level
-   is
+   function Get_Log_Level (Facility : in String)
+                          return Log_Level is
    begin
       if Get_Conf_Hook /= null then
          return Log_Level'Value
@@ -70,13 +65,17 @@ package body PolyORB.Log is
 
    package body Facility_Log is
 
-      Initialized : Boolean := False;
+      Initialized    : Boolean   := False;
       Facility_Level : Log_Level := Info;
+      Counter        : Natural   := 0;
+
+      ------------
+      -- Output --
+      ------------
 
       procedure Output
         (Message : in String;
-         Level   : Log_Level := Debug)
-      is
+         Level   : Log_Level := Debug) is
       begin
          if not Initialized then
             Facility_Level := Get_Log_Level (Facility);
@@ -84,9 +83,71 @@ package body PolyORB.Log is
          end if;
 
          if Level >= Facility_Level then
-            Put_Line (Facility & ": " & Message);
+            Internals.Put_Line (Facility & ": " & Message);
          end if;
       end Output;
+
+      ---------------
+      -- Increment --
+      ---------------
+
+      procedure Increment
+      is
+         Old_Counter : constant Natural := Counter;
+      begin
+         Counter := Counter + 1;
+         Output ("Counter "
+                 & Integer'Image (Old_Counter)
+                 & " -> "
+                 & Integer'Image (Counter));
+      end Increment;
+
+      ---------------
+      -- Decrement --
+      ---------------
+
+      procedure Decrement
+      is
+         Old_Counter : constant Natural := Counter;
+      begin
+         Counter := Counter - 1;
+
+         if Counter < 0 then
+            raise Program_Error;
+         end if;
+
+         Output ("Counter "
+                 & Integer'Image (Old_Counter)
+                 & " -> "
+                 & Integer'Image (Counter));
+      end Decrement;
    end Facility_Log;
+
+   --------------------------------
+   -- Package body for Internals --
+   --------------------------------
+
+   package body Internals is
+
+      --------------
+      -- Put_Line --
+      --------------
+
+      procedure Put_Line (S : String)
+      is
+         SS : aliased String := S & ASCII.LF;
+
+         procedure C_Write
+           (Fd  : Interfaces.C.int;
+            P   : System.Address;
+            Len : Interfaces.C.int);
+         pragma Import (C, C_Write, "write");
+      begin
+         C_Write (2, SS (SS'First)'Address, SS'Length);
+         --  2 is standard error.
+
+      end Put_Line;
+
+   end Internals;
 
 end PolyORB.Log;

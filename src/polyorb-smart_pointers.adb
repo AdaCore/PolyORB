@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,26 +26,27 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#11 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#27 $
 
-with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
 
 with PolyORB.Initialization;
-with PolyORB.Log;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.Soft_Links;
+with PolyORB.Log;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Smart_Pointers is
 
    use PolyORB.Log;
-   use PolyORB.Soft_Links;
+   use PolyORB.Tasking.Mutexes;
 
    Counter_Lock : Mutex_Access;
 
@@ -53,56 +54,38 @@ package body PolyORB.Smart_Pointers is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Initialize is
-   begin
-      Create (Counter_Lock);
-   end Initialize;
-
-   procedure Finalize is
-   begin
-      Destroy (Counter_Lock);
-   end Finalize;
-
-   procedure Free is new Ada.Unchecked_Deallocation (Entity'Class, Entity_Ptr);
-
-   function Img (I : Integer) return String;
-   function Img (I : Integer) return String
-   is
-      S : constant String
-        := Integer'Image (I);
-   begin
-      return S (S'First + 1 .. S'Last);
-   end Img;
-
    ---------------
    -- Inc_Usage --
    ---------------
 
-   procedure Inc_Usage (Obj : Entity_Ptr) is
+   procedure Inc_Usage
+     (Obj : Entity_Ptr) is
    begin
       pragma Assert (Obj.Counter /= -1);
+
       pragma Debug (O ("Inc_Usage: Obj is a "
                        & Ada.Tags.External_Tag (Obj.all'Tag)));
 
       Enter (Counter_Lock);
       pragma Debug (O ("Inc_Usage: Counter"
-                       & Obj.Counter'Img
-                       & " -> "
-                       & Img (Obj.Counter + 1)));
+                       & Natural'Image (Obj.Counter)
+                       & " ->"
+                       & Natural'Image (Obj.Counter + 1)));
       Obj.Counter := Obj.Counter + 1;
       Leave (Counter_Lock);
-   exception
-      when E : others =>
-         pragma Debug (O ("Inc_Usage: caught "
-                          & Ada.Exceptions.Exception_Information (E)));
-         raise;
+
    end Inc_Usage;
 
    ---------------
    -- Dec_Usage --
    ---------------
 
-   procedure Dec_Usage (Obj : in out Entity_Ptr) is
+   procedure Dec_Usage
+     (Obj : in out Entity_Ptr)
+   is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Non_Controlled_Entity'Class, Entity_Ptr);
+
    begin
       pragma Assert (Obj.Counter /= -1);
       pragma Debug (O ("Dec_Usage: Obj is a "
@@ -110,24 +93,41 @@ package body PolyORB.Smart_Pointers is
 
       Enter (Counter_Lock);
       pragma Debug (O ("Dec_Usage: Counter"
-                       & Obj.Counter'Img
-                       & " -> "
-                       & Img (Obj.Counter - 1)));
+                       & Natural'Image (Obj.Counter)
+                       & " ->"
+                       & Natural'Image (Obj.Counter - 1)));
       Obj.Counter := Obj.Counter - 1;
-      Leave (Counter_Lock);
 
       if Obj.Counter = 0 then
-         pragma Debug
-           (O ("Dec_Usage: deallocating."));
+
+         pragma Debug (O ("Dec_Usage: deallocating."));
+
+         Leave (Counter_Lock);
+         --  Releasing Counter_Lock at this stage is sufficient to
+         --  ensure that only one task finalizes 'Obj.all' and
+         --  frees 'Obj'.
+
+         if Obj.all not in Entity'Class then
+            --  This entity is not controlled: finalize it ourselves
+
+            Finalize (Obj.all);
+         end if;
+
          Free (Obj);
+      else
+         Leave (Counter_Lock);
       end if;
 
       pragma Debug (O ("Leaving Dec_Usage"));
    end Dec_Usage;
 
+   ---------
+   -- Set --
+   ---------
+
    procedure Set
-     (The_Ref : in out Ref;
-      The_Entity : Entity_Ptr) is
+     (The_Ref    : in out Ref;
+      The_Entity :        Entity_Ptr) is
    begin
       pragma Debug (O ("Set: enter."));
 
@@ -142,7 +142,52 @@ package body PolyORB.Smart_Pointers is
    -- Initialize --
    ----------------
 
-   procedure Initialize (The_Ref : in out Ref) is
+   procedure Initialize
+     (X : in out Entity_Controller) is
+   begin
+      pragma Debug (O ("Initializing Entity"));
+      Initialize (X.E.all);
+   end Initialize;
+
+   procedure Initialize
+     (X : in out Entity)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (X);
+      pragma Warnings (On);
+
+   begin
+      pragma Assert (Counter_Lock /= null);
+      null;
+   end Initialize;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize
+     (X : in out Entity_Controller) is
+   begin
+      Finalize (X.E.all);
+   end Finalize;
+
+   procedure Finalize
+     (X : in out Non_Controlled_Entity)
+   is
+      pragma Warnings (Off);
+      pragma Unreferenced (X);
+      pragma Warnings (On);
+
+   begin
+      null;
+   end Finalize;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (The_Ref : in out Ref) is
    begin
       pragma Assert (The_Ref.A_Ref = null);
       pragma Debug (O ("Initialized a Ref"));
@@ -153,45 +198,50 @@ package body PolyORB.Smart_Pointers is
    -- Adjust --
    ------------
 
-   procedure Adjust (The_Ref : in out Ref) is
+   procedure Adjust
+     (The_Ref : in out Ref) is
    begin
       pragma Debug (O ("Adjust: enter"));
+
       if The_Ref.A_Ref /= null then
          Inc_Usage (The_Ref.A_Ref);
       else
          pragma Debug (O ("Adjust: null ref"));
          null;
       end if;
+
+      pragma Debug (O ("Adjust: leave"));
    end Adjust;
 
    --------------
    -- Finalize --
    --------------
 
-   procedure Finalize (The_Ref : in out Ref) is
+   procedure Finalize
+     (The_Ref : in out Ref) is
    begin
       pragma Debug (O ("Finalize: enter, The_Ref is a "
                        & Ada.Tags.External_Tag
                        (Ref'Class (The_Ref)'Tag)));
+
       if The_Ref.A_Ref /= null then
          Dec_Usage (The_Ref.A_Ref);
       else
          pragma Debug (O ("Finalize: null ref"));
          null;
       end if;
+
       The_Ref.A_Ref := null;
-   exception
-      when E : others =>
-         pragma Debug (O ("Finalize: caught "
-                          & Ada.Exceptions.Exception_Information (E)));
-         raise;
+      pragma Debug (O ("Finalize: leave"));
    end Finalize;
 
    ------------
    -- Is_Nil --
    ------------
 
-   function Is_Nil (The_Ref : Ref) return Boolean is
+   function Is_Nil
+     (The_Ref : Ref)
+     return Boolean is
    begin
       return The_Ref.A_Ref = null;
    end Is_Nil;
@@ -200,7 +250,8 @@ package body PolyORB.Smart_Pointers is
    -- Release --
    -------------
 
-   procedure Release (The_Ref : in out Ref) is
+   procedure Release
+     (The_Ref : in out Ref) is
    begin
       The_Ref := (Ada.Finalization.Controlled with A_Ref => null);
    end Release;
@@ -209,10 +260,24 @@ package body PolyORB.Smart_Pointers is
    -- Entity_Of --
    ---------------
 
-   function Entity_Of (The_Ref : Ref) return Entity_Ptr is
+   function Entity_Of
+     (The_Ref : Ref)
+     return Entity_Ptr is
    begin
+      pragma Debug (O ("Entity_Of"));
       return The_Ref.A_Ref;
    end Entity_Of;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Create (Counter_Lock);
+   end Initialize;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;
@@ -221,9 +286,9 @@ package body PolyORB.Smart_Pointers is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"smart_pointers",
+      (Name      => +"smart_pointers",
        Conflicts => Empty,
-       Depends => +"soft_links",
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => +"tasking.mutexes",
+       Provides  => Empty,
+       Init      => Initialize'Access));
 end PolyORB.Smart_Pointers;

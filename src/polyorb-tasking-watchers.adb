@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -34,43 +35,75 @@
 
 --  $Id$
 
+with Ada.Unchecked_Deallocation;
+
+with PolyORB.Log;
+
 package body PolyORB.Tasking.Watchers is
+
+   use PolyORB.Log;
 
    package PTM renames PolyORB.Tasking.Mutexes;
 
    package PTCV renames PolyORB.Tasking.Condition_Variables;
 
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.tasking.watchers");
+
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
+
+   ---------
+   -- "<" --
+   ---------
+
+   function "<" (L, R : Version_Id) return Boolean is
+      Version_Id_Window : constant Version_Id := Version_Id'Last / 2;
+   begin
+      return Integer (R - L) < Integer (Version_Id_Window);
+   end "<";
+
    ------------
    -- Create --
    ------------
 
-   procedure Create
-     (W : in out Watcher_Type) is
-      My_Mutex_Factory : constant Mutex_Factory_Access
-        := PTM.Get_Mutex_Factory;
-      My_Condition_Factory : constant Condition_Factory_Access
-        := PTCV.Get_Condition_Factory;
+   procedure Create (W : in out Watcher_Type) is
    begin
+      pragma Debug (O ("Create"));
       W.Version := Version_Id'First;
-      W.WMutex := PTM.Create (My_Mutex_Factory);
-      W.WCondition := PTCV.Create (My_Condition_Factory);
-      W.Passing := True;
+      PTM.Create (W.WMutex);
+      PTCV.Create (W.WCondition);
+      W.Updated := False;
       W.Await_Count := 0;
+   end Create;
+
+   procedure Create (W : out Watcher_Access) is
+   begin
+      W := new Watcher_Type;
+      Create (W.all);
    end Create;
 
    -------------
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (W : in out Watcher_Type) is
-      My_Mutex_Factory : constant Mutex_Factory_Access
-        := PTM.Get_Mutex_Factory;
-      My_Condition_Factory : constant Condition_Factory_Access
-        := PTCV.Get_Condition_Factory;
+   procedure Destroy (W : in out Watcher_Type) is
    begin
-      PTM.Destroy (My_Mutex_Factory.all, W.WMutex);
-      PTCV.Destroy (My_Condition_Factory.all, W.WCondition);
+      pragma Debug (O ("Destroy"));
+      PTM.Destroy (W.WMutex);
+      PTCV.Destroy (W.WCondition);
+   end Destroy;
+
+   procedure Destroy (W : in out Watcher_Access)
+   is
+      procedure Free is
+         new Ada.Unchecked_Deallocation (Watcher_Type, Watcher_Access);
+
+   begin
+      if W /= null then
+         Destroy (W.all);
+         Free (W);
+      end if;
    end Destroy;
 
    ------------
@@ -81,31 +114,47 @@ package body PolyORB.Tasking.Watchers is
      (W : in out Watcher_Type;
       V : in Version_Id) is
    begin
-      PTM.Enter (W.WMutex.all);
+      pragma Debug (O ("Differ: enter, V =" & Version_Id'Image (V)));
+      PTM.Enter (W.WMutex);
+      pragma Debug (O ("... W.Version =" & Version_Id'Image (W.Version)));
 
       while W.Version = V loop
-         while not W.Passing loop
-            PTCV.Wait
-              (W.WCondition.all,
-               W.WMutex);
+
+         while W.Updated loop
+            pragma Debug (O ("Pending update"));
+            PTCV.Wait (W.WCondition, W.WMutex);
+            pragma Debug (O ("Resumed from pending update, W.Version ="
+              & Version_Id'Image (W.Version)));
          end loop;
 
          if W.Version = V then
             W.Await_Count := W.Await_Count + 1;
-            while W.Passing loop
-               PTCV.Wait (W.WCondition.all, W.WMutex);
+            pragma Debug (O ("Differ: suspend, Cnt =" & W.Await_Count'Img));
+            while not W.Updated loop
+               PTCV.Wait (W.WCondition, W.WMutex);
+               pragma Debug (O ("Differ: resume, Cnt =" & W.Await_Count'Img
+                 & ", W.Version =" & Version_Id'Image (W.Version)));
             end loop;
+            pragma Debug (O ("Differ: updated!"));
             W.Await_Count := W.Await_Count - 1;
 
             if W.Await_Count = 0 then
-               W.Passing := True;
-               PTCV.Broadcast (W.WCondition.all);
+               pragma Debug (O ("Clearing Updated"));
+               W.Updated := False;
+               PTCV.Broadcast (W.WCondition);
             end if;
 
          end if;
 
       end loop;
-      PTM.Leave (W.WMutex.all);
+      pragma Debug (O ("Differ: end"));
+      PTM.Leave (W.WMutex);
+   end Differ;
+
+   procedure Differ (W : in Watcher_Access; V : in Version_Id) is
+   begin
+      pragma Assert (W /= null);
+      Differ (W.all, V);
    end Differ;
 
    ------------
@@ -116,9 +165,16 @@ package body PolyORB.Tasking.Watchers is
      (W : in Watcher_Type;
       V : out Version_Id) is
    begin
-      Enter (W.WMutex.all);
+      Enter (W.WMutex);
+      pragma Debug (O ("Lookup"));
       V := W.Version;
-      Leave (W.WMutex.all);
+      Leave (W.WMutex);
+   end Lookup;
+
+   procedure Lookup (W : in Watcher_Access; V : out Version_Id) is
+   begin
+      pragma Assert (W /= null);
+      Lookup (W.all, V);
    end Lookup;
 
    ------------
@@ -128,13 +184,24 @@ package body PolyORB.Tasking.Watchers is
    procedure Update
      (W : in out Watcher_Type) is
    begin
-      Enter (W.WMutex.all);
+      Enter (W.WMutex);
+
       W.Version := W.Version + 1;
+      pragma Debug (O ("Update: new version " & Version_Id'Image (W.Version)));
+
       if W.Await_Count /= 0 then
-         W.Passing := False;
-         Broadcast (W.WCondition.all);
+         pragma Debug (O ("Clients waiting:" & W.Await_Count'Img));
+         W.Updated := True;
+         Broadcast (W.WCondition);
       end if;
-      Leave (W.WMutex.all);
+
+      Leave (W.WMutex);
+   end Update;
+
+   procedure Update (W : in Watcher_Access) is
+   begin
+      pragma Assert (W /= null);
+      Update (W.all);
    end Update;
 
 end PolyORB.Tasking.Watchers;

@@ -1,28 +1,37 @@
------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                           POLYORB COMPONENTS                             --
 --                                                                          --
 --                     A D A _ B E . E X P A N S I O N                      --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1999-2002 ENST Paris University, France.          --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
--- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
 -- Software Foundation;  either version 2,  or (at your option)  any  later --
--- version. AdaBroker  is distributed  in the hope that it will be  useful, --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
 -- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
 -- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
 -- License  for more details.  You should have received  a copy of the GNU  --
--- General Public License distributed with AdaBroker; see file COPYING. If  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
 -- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
 -- Boston, MA 02111-1307, USA.                                              --
 --                                                                          --
---             AdaBroker is maintained by ENST Paris University.            --
---                     (email: broker@inf.enst.fr)                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#17 $
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -414,6 +423,9 @@ package body Ada_Be.Expansion is
 
             Idl_File_Node : Node_Id;
             Success : Boolean;
+
+            Has_Named_Subnodes : Boolean := False;
+            Named_Subnodes : Node_Iterator;
          begin
             Get_Next_Node (Iterator, Current);
             Loc := Get_Location (Current);
@@ -479,23 +491,33 @@ package body Ada_Be.Expansion is
                   pragma Assert (Success);
                end if;
 
-            elsif Is_Type_Declarator (Current) then
+               if Is_Enum (Current) then
+                  Has_Named_Subnodes := True;
+                  Init (Named_Subnodes, Enumerators (Current));
+                  --  Reparent all enumerators of current node.
+               end if;
 
+            elsif Is_Type_Declarator (Current) then
+               Has_Named_Subnodes := True;
+               Init (Named_Subnodes, Declarators (Current));
                --  Reparent all declarators of current node.
 
+            end if;
+
+            --  If the current node has named subnodes, reparent
+            --  them now.
+
+            if Has_Named_Subnodes then
                declare
-                  Dcl_It : Node_Iterator;
                   Dcl_Node : Node_Id;
                begin
-                  Init (Dcl_It, Declarators (Current));
-                  while not Is_End (Dcl_It) loop
-                     Get_Next_Node (Dcl_It, Dcl_Node);
+                  while not Is_End (Named_Subnodes) loop
+                     Get_Next_Node (Named_Subnodes, Dcl_Node);
                      Success := Add_Identifier
                        (Dcl_Node, Name (Dcl_Node));
                      pragma Assert (Success);
                   end loop;
                end;
-
             end if;
          end;
       end loop;
@@ -1034,14 +1056,29 @@ package body Ada_Be.Expansion is
          Set_Initial_Current_Prefix (Members_Struct);
          Set_Members (Members_Struct, Members (Node));
          Set_Is_Exception_Members (Members_Struct, True);
-         Expand_Node (Members_Struct);
+         Set_Members_Type (Node, Members_Struct);
+
+         --  Members_Struct must be expanded as though it was
+         --  encountered during the traversal of the Enclosing_List,
+         --  for the necessary ancillary types (arrays, sequences...)
+         --  to be declared correctly before it. We thus need to
+         --  insert it at the proper position, and then temporarily
+         --  fake Current_Position_In_List.
 
          Insert_Before
            (List => Enclosing_List,
             Node => Members_Struct,
             Before => Node);
          Set_Contents (Enclosing_Scope, Enclosing_List);
-         Set_Members_Type (Node, Members_Struct);
+
+         pragma Assert (Current_Position_In_List = Node);
+         --  If this were not the case we would need to save
+         --  Current_Position_In_List in a temporary variable
+         --  so we can restore it after expanding Member_Struct.
+
+         Current_Position_In_List := Members_Struct;
+         Expand_Node (Members_Struct);
+         Current_Position_In_List := Node;
       end;
    end Expand_Exception;
 

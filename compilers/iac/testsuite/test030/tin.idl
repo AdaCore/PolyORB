@@ -1,0 +1,228 @@
+//
+// Copyright (c) 1997 X/Open Company Ltd., A member of The Open Group.
+//
+// All rights reserved. No part of this source code may be reproduced,
+// stored in a retrieval system, or transmitted, in any form or by any
+// means, electronic, mechanical, photocopying, recording or otherwise,
+// except as stated in the end-user licence agreement, without the prior
+// permission of the copyright owners.
+//
+// Developed for X/Open by ApTest Ireland Limited.
+//
+// Project: CORVAL2
+//
+
+
+typedef sequence<sequence<sequence<char,18> > >  Zucchini1[18];
+
+typedef sequence<sequence<sequence<boolean> > >  RedOnion1;
+
+typedef sequence<sequence<sequence<boolean> ,13> >  JuniperBerries1[15];
+
+typedef sequence<sequence<sequence<boolean,11> ,7> ,10>  Tarragon1;
+
+typedef sequence<sequence<sequence<octet> ,19> ,12>  Elderberry1[6];
+
+typedef sequence<sequence<sequence<sequence<float> > > >  Plantain1;
+
+typedef sequence<sequence<sequence<sequence<float> ,9> > >  Sharanfruit1[7];
+
+typedef sequence<sequence<sequence<sequence<float,4> > > ,2>  Damsons1;
+
+typedef sequence<sequence<sequence<sequence<float,5> ,3> > ,9>  Eddo1[3];
+
+typedef sequence<sequence<sequence<sequence<double> > ,17> ,6>  CoxPippin1;
+
+typedef sequence<sequence<sequence<sequence<double,6> > > >  KiwanoMelon1[18];
+
+typedef sequence<sequence<sequence<sequence<double,15> ,11> ,7> >  RedCabbage1;
+
+typedef sequence<sequence<sequence<sequence<long> > ,14> ,11>  Pimpernel1[5];
+
+typedef sequence<sequence<sequence<sequence<long,2> > > ,16>  BlackCherry2;
+
+typedef sequence<sequence<sequence<sequence<long,4> ,5> ,14> ,2>  Cucumber2;
+
+interface idlServer {
+
+  exception Zucchini1Excpt{
+    ::Zucchini1 ex1;
+  };
+
+  attribute ::Zucchini1 Zucchini1Attr;
+
+  ::Zucchini1 Zucchini1Op(
+    in    ::Zucchini1 p1,
+    out   ::Zucchini1 p2,
+    inout ::Zucchini1 p3
+  ) raises (Zucchini1Excpt);
+
+  exception RedOnion1Excpt{
+    ::RedOnion1 ex1;
+  };
+
+  attribute ::RedOnion1 RedOnion1Attr;
+
+  ::RedOnion1 RedOnion1Op(
+    in    ::RedOnion1 p1,
+    out   ::RedOnion1 p2,
+    inout ::RedOnion1 p3
+  ) raises (RedOnion1Excpt);
+
+  exception JuniperBerries1Excpt{
+    ::JuniperBerries1 ex1;
+  };
+
+  attribute ::JuniperBerries1 JuniperBerries1Attr;
+
+  ::JuniperBerries1 JuniperBerries1Op(
+    in    ::JuniperBerries1 p1,
+    out   ::JuniperBerries1 p2,
+    inout ::JuniperBerries1 p3
+  ) raises (JuniperBerries1Excpt);
+
+  exception Tarragon1Excpt{
+    ::Tarragon1 ex1;
+  };
+
+  attribute ::Tarragon1 Tarragon1Attr;
+
+  ::Tarragon1 Tarragon1Op(
+    in    ::Tarragon1 p1,
+    out   ::Tarragon1 p2,
+    inout ::Tarragon1 p3
+  ) raises (Tarragon1Excpt);
+
+  exception Elderberry1Excpt{
+    ::Elderberry1 ex1;
+  };
+
+  attribute ::Elderberry1 Elderberry1Attr;
+
+  ::Elderberry1 Elderberry1Op(
+    in    ::Elderberry1 p1,
+    out   ::Elderberry1 p2,
+    inout ::Elderberry1 p3
+  ) raises (Elderberry1Excpt);
+
+  exception Plantain1Excpt{
+    ::Plantain1 ex1;
+  };
+
+  attribute ::Plantain1 Plantain1Attr;
+
+  ::Plantain1 Plantain1Op(
+    in    ::Plantain1 p1,
+    out   ::Plantain1 p2,
+    inout ::Plantain1 p3
+  ) raises (Plantain1Excpt);
+
+  exception Sharanfruit1Excpt{
+    ::Sharanfruit1 ex1;
+  };
+
+  attribute ::Sharanfruit1 Sharanfruit1Attr;
+
+  ::Sharanfruit1 Sharanfruit1Op(
+    in    ::Sharanfruit1 p1,
+    out   ::Sharanfruit1 p2,
+    inout ::Sharanfruit1 p3
+  ) raises (Sharanfruit1Excpt);
+
+  exception Damsons1Excpt{
+    ::Damsons1 ex1;
+  };
+
+  attribute ::Damsons1 Damsons1Attr;
+
+  ::Damsons1 Damsons1Op(
+    in    ::Damsons1 p1,
+    out   ::Damsons1 p2,
+    inout ::Damsons1 p3
+  ) raises (Damsons1Excpt);
+
+  exception Eddo1Excpt{
+    ::Eddo1 ex1;
+  };
+
+  attribute ::Eddo1 Eddo1Attr;
+
+  ::Eddo1 Eddo1Op(
+    in    ::Eddo1 p1,
+    out   ::Eddo1 p2,
+    inout ::Eddo1 p3
+  ) raises (Eddo1Excpt);
+
+  exception CoxPippin1Excpt{
+    ::CoxPippin1 ex1;
+  };
+
+  attribute ::CoxPippin1 CoxPippin1Attr;
+
+  ::CoxPippin1 CoxPippin1Op(
+    in    ::CoxPippin1 p1,
+    out   ::CoxPippin1 p2,
+    inout ::CoxPippin1 p3
+  ) raises (CoxPippin1Excpt);
+
+  exception KiwanoMelon1Excpt{
+    ::KiwanoMelon1 ex1;
+  };
+
+  attribute ::KiwanoMelon1 KiwanoMelon1Attr;
+
+  ::KiwanoMelon1 KiwanoMelon1Op(
+    in    ::KiwanoMelon1 p1,
+    out   ::KiwanoMelon1 p2,
+    inout ::KiwanoMelon1 p3
+  ) raises (KiwanoMelon1Excpt);
+
+  exception RedCabbage1Excpt{
+    ::RedCabbage1 ex1;
+  };
+
+  attribute ::RedCabbage1 RedCabbage1Attr;
+
+  ::RedCabbage1 RedCabbage1Op(
+    in    ::RedCabbage1 p1,
+    out   ::RedCabbage1 p2,
+    inout ::RedCabbage1 p3
+  ) raises (RedCabbage1Excpt);
+
+  exception Pimpernel1Excpt{
+    ::Pimpernel1 ex1;
+  };
+
+  attribute ::Pimpernel1 Pimpernel1Attr;
+
+  ::Pimpernel1 Pimpernel1Op(
+    in    ::Pimpernel1 p1,
+    out   ::Pimpernel1 p2,
+    inout ::Pimpernel1 p3
+  ) raises (Pimpernel1Excpt);
+
+  exception BlackCherry2Excpt{
+    ::BlackCherry2 ex1;
+  };
+
+  attribute ::BlackCherry2 BlackCherry2Attr;
+
+  ::BlackCherry2 BlackCherry2Op(
+    in    ::BlackCherry2 p1,
+    out   ::BlackCherry2 p2,
+    inout ::BlackCherry2 p3
+  ) raises (BlackCherry2Excpt);
+
+  exception Cucumber2Excpt{
+    ::Cucumber2 ex1;
+  };
+
+  attribute ::Cucumber2 Cucumber2Attr;
+
+  ::Cucumber2 Cucumber2Op(
+    in    ::Cucumber2 p1,
+    out   ::Cucumber2 p2,
+    inout ::Cucumber2 p3
+  ) raises (Cucumber2Excpt);
+};
+

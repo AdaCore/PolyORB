@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,9 +26,15 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---              PolyORB is maintained by ENST Paris University.             --
+--                PolyORB is maintained by ACT Europe.                      --
+--                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
+--  MByte message type.
+--
+--  A MByte message's payload is a basic type among: Boolean, Byte, Char,
+--  Double, Float, Long, Short, Unsigned_Short, Unsigned_Long.
 
 --  $Id$
 
@@ -38,67 +44,88 @@ package MOMA.Messages.MBytes is
 
    type MByte is new Message with private;
 
-   function Create_Byte_Message
-            return MByte;
+   function Create_Byte_Message return MByte;
+   --  Create a MByte message.
 
-   function Image (Self : MByte)
-                   return String;
+   function Image (Self : MByte) return String;
+   --  Image function for MByte type.
 
-   function Get_Boolean (Self : MByte)
-                         return MOMA.Types.Boolean;
+   --  Accessors to MByte payload.
 
-   procedure Set_Boolean (Self : in out MByte;
-                          Value : MOMA.Types.Boolean);
+   function Get_Boolean
+     (Self : MByte)
+     return MOMA.Types.Boolean;
 
-   function Get_Byte (Self : MByte)
-                      return MOMA.Types.Byte;
+   procedure Set_Boolean
+     (Self  : in out MByte;
+      Value :        MOMA.Types.Boolean);
 
-   procedure Set_Byte (Self : in out MByte;
-                       Value : MOMA.Types.Byte);
+   function Get_Byte
+     (Self : MByte)
+     return MOMA.Types.Byte;
 
-   function Get_Char (Self : MByte)
-                      return MOMA.Types.Char;
+   procedure Set_Byte
+     (Self  : in out MByte;
+      Value :        MOMA.Types.Byte);
 
-   procedure Set_Char (Self : in out MByte;
-                       Value : MOMA.Types.Char);
+   function Get_Char
+     (Self : MByte)
+     return MOMA.Types.Char;
 
-   function Get_Double (Self : MByte)
-                        return MOMA.Types.Double;
+   procedure Set_Char
+     (Self  : in out MByte;
+      Value :        MOMA.Types.Char);
 
-   procedure Set_Double (Self : in out MByte;
-                         Value : MOMA.Types.Double);
+   function Get_Double
+     (Self : MByte)
+     return MOMA.Types.Double;
 
-   function Get_Float (Self : MByte)
-                       return MOMA.Types.Float;
+   procedure Set_Double
+     (Self  : in out MByte;
+      Value :        MOMA.Types.Double);
 
-   procedure Set_Float (Self : in out MByte;
-                        Value : MOMA.Types.Float);
+   function Get_Float
+     (Self : MByte)
+     return MOMA.Types.Float;
 
-   function Get_Long (Self : MByte)
-                      return MOMA.Types.Long;
+   procedure Set_Float
+     (Self  : in out MByte;
+      Value :        MOMA.Types.Float);
 
-   procedure Set_Long (Self : in out MByte;
-                       Value : MOMA.Types.Long);
+   function Get_Long
+     (Self : MByte)
+     return MOMA.Types.Long;
 
-   function Get_Short (Self : MByte)
-                       return MOMA.Types.Short;
+   procedure Set_Long
+     (Self  : in out MByte;
+      Value :        MOMA.Types.Long);
 
-   procedure Set_Short (Self : in out MByte;
-                        Value : MOMA.Types.Short);
+   function Get_Short
+     (Self : MByte)
+     return MOMA.Types.Short;
 
-   function Get_Unsigned_Short (Self : MByte)
-                                return MOMA.Types.Unsigned_Short;
+   procedure Set_Short
+     (Self  : in out MByte;
+      Value :        MOMA.Types.Short);
 
-   procedure Set_Unsigned_Short (Self : in out MByte;
-                                 Value : MOMA.Types.Unsigned_Short);
+   function Get_Unsigned_Short
+     (Self : MByte)
+     return MOMA.Types.Unsigned_Short;
 
-   function Get_Unsigned_Long (Self : MByte)
-                               return MOMA.Types.Unsigned_Long;
+   procedure Set_Unsigned_Short
+     (Self  : in out MByte;
+      Value :        MOMA.Types.Unsigned_Short);
 
-   procedure Set_Unsigned_Long (Self : in out MByte;
-                                Value : MOMA.Types.Unsigned_Long);
+   function Get_Unsigned_Long
+     (Self : MByte)
+     return MOMA.Types.Unsigned_Long;
+
+   procedure Set_Unsigned_Long
+     (Self  : in out MByte;
+      Value :        MOMA.Types.Unsigned_Long);
 
 private
+
    type MByte is new Message with null record;
 
 end MOMA.Messages.MBytes;
