@@ -1,3 +1,10 @@
+2004-06-15  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-nutils.adb, backend-be_ada-generator.adb,
+	backend-be_ada-nutils.adb, backend-be_ada-nodes.idl,
+	backend-be_ada.adb: Rename nodes and atributes for better
+	understanding.
+
 2004-06-13  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_ada.adb, backend-be_ada-nodes.idl,

@@ -59,44 +59,41 @@ module Backend::BE_Ada::Nodes {
     Name_Id    Comment; /* To explain why this pragma is necessary */
   };
 
-  interface Ada_Pragma_List : List_Id {
-  };
+  /*****************/
+  /* Package nodes */
+  /*****************/
 
-  interface Ada_With_List : List_Id {
-  };
+  interface Declaration_List : List_Id {};
 
-  interface Ada_With : Node_Id {
+  interface Statement_List : List_Id {};
+
+  interface Withed_Package : Node_Id {
     Node_Id    Identifier;
-    boolean    Do_Use;
-    List_Id    Pragma_List;
+    boolean    Used;
+    boolean    Elaborated;
   };
 
-  interface Ada_Definition_List : List_Id {
+  interface Withed_Packages : List_Id {
   };
 
-  interface Ada_Package_List : List_Id {
-  };
-
-  interface Ada_Package_Spec : Node_Id {
-    Name_Id    Prologue;
-    List_Id    With_Part;
-    List_Id    Public_Part;
+  interface Package_Specification : Node_Id {
+    Node_Id    Package_Declaration;
+    List_Id    Withed_Packages;
+    List_Id    Visible_Part;
     List_Id    Private_Part;
   };
 
-  interface Ada_Package_Body : Node_Id {
-    Name_Id    Prologue;
-    List_Id    With_Part;
+  interface Package_Implementation : Node_Id {
+    Node_Id    Package_Declaration;
+    List_Id    Withed_Packages;
     List_Id    Declarations;
-    List_Id    Pack_Body;
+    List_Id    Statements;
   };
 
-  interface Ada_Packages : Node_Id {
-    Node_Id    Identifier;
+  interface Package_Declaration : Definition {
     Node_Id    Parent;
-    Node_Id    Package_Spec;
-    Node_Id    Package_Body;
-    Node_Id    IDL_Node; 
+    Node_Id    Package_Specification;
+    Node_Id    Package_Implementation;
   };
 
 

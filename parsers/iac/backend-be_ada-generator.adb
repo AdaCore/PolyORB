@@ -13,7 +13,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Package_Spec (E : Node_Id);
    procedure Generate_Package_Body (E : Node_Id);
    procedure Generate_Subprogram_Spec (E : Node_Id);
-   procedure Generate_Public_Part (L : List_Id);
+   procedure Generate_Visible_Part (L : List_Id);
    procedure Generate_Private_Part (L : List_Id);
    procedure Generate_Parameter (E : Node_Id);
    procedure Generate_Parameter_List (L : List_Id);
@@ -21,7 +21,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Enumeration_Type (E : Node_Id);
    procedure Generate_Identifier (E : Node_Id);
    procedure Generate_Package (E : Node_Id);
-   procedure Generate_With_Part (L : List_Id);
+   procedure Generate_Package_With (L : List_Id);
    procedure Generate_Record_Type_Spec (E : Node_Id);
    procedure Generate_Type_Declaration (E : Node_Id);
    procedure Generate_Type_Spec (E : Node_Id);
@@ -41,12 +41,14 @@ package body Backend.BE_Ada.Generator is
       N := First_Node (E);
       while Present (N) loop
          case Kind (N) is
-            when K_Ada_Packages =>
+            when K_Package_Declaration =>
                Generate_Package (N);
+
             when others =>
                Set_Str_To_Name_Buffer ("Ada Package Node");
                Error_Name (1) := Name_Find;
                DE ("% Expected.");
+
          end case;
          Write_Eol;
          N := Next_Node (N);
@@ -131,11 +133,11 @@ package body Backend.BE_Ada.Generator is
       null;
    end Generate_Private_Part;
 
-   --------------------------
-   -- Generate_Public_Part --
-   --------------------------
+   ---------------------------
+   -- Generate_Visible_Part --
+   ---------------------------
 
-   procedure Generate_Public_Part (L : List_Id) is
+   procedure Generate_Visible_Part (L : List_Id) is
       N : Node_Id;
    begin
       if Is_Empty (L) then
@@ -156,7 +158,7 @@ package body Backend.BE_Ada.Generator is
          end case;
          N := Next_Node (N);
       end loop;
-   end Generate_Public_Part;
+   end Generate_Visible_Part;
 
    ------------------------------
    -- Generate_Type_Extension --
@@ -214,8 +216,8 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Package (E : Node_Id) is
    begin
       Push_Package (E);
-      Generate_Package_Spec (Package_Spec (E));
-      Generate_Package_Body (Package_Body (E));
+      Generate_Package_Spec (Package_Specification (E));
+      Generate_Package_Body (Package_Implementation (E));
       Pop_Package;
    end Generate_Package;
 
@@ -225,13 +227,13 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Package_Spec (E : Node_Id) is
    begin
-      Generate_With_Part (With_Part (E));
+      Generate_Package_With (Withed_Packages (E));
       Write_Indentation;
       Write_Str  ("package ");
       Write_Str  (Full_Package_Name (Current_Package));
       Write_Line (" is");
       Increment_Indentation;
-      Generate_Public_Part  (Public_Part (E));
+      Generate_Visible_Part (Visible_Part (E));
       Generate_Private_Part (Private_Part (E));
       Decrement_Indentation;
       Write_Indentation;
@@ -250,15 +252,15 @@ package body Backend.BE_Ada.Generator is
       null;
    end Generate_Package_Body;
 
-   ------------------------
-   -- Generate_With_Part --
-   ------------------------
+   ---------------------------
+   -- Generate_Package_With --
+   ---------------------------
 
-   procedure Generate_With_Part (L : List_Id) is
+   procedure Generate_Package_With (L : List_Id) is
       pragma Unreferenced (L);
    begin
       null;
-   end Generate_With_Part;
+   end Generate_Package_With;
 
    -------------------------------
    -- Generate_Record_Type_Spec --

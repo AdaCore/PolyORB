@@ -21,8 +21,8 @@ package body Backend.BE_Ada.Nutils is
 
       if L = No_List then
          case Kind (E) is
-            when K_Ada_Packages =>
-               List_Kind := K_Ada_Package_List;
+            when K_Declaration_List =>
+               List_Kind := K_Declaration_List;
             when others =>
                List_Kind := K_List_Id;
          end case;
