@@ -3,10 +3,11 @@ interface Chicken ;
 interface Egg ;
 
 interface Chicken {
+typedef long mylong;
   Egg lay() ;
 };
 
-interface Egg {
-  Chicken hatch() ;
+interface Egg : Chicken{
+  mylong hatch() ;
 };
 

@@ -45,10 +45,10 @@ adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinitio
   // before doing anything compute the ada name
   
   compute_ada_name(); 
-  bool first = true;
   with.add("Ada.Unchecked_Deallocation") ;
   with.add("Corba");
   with.add("AdaBroker") ;
+  body = "Package " + get_ada_full_name()+ " is\n";
   
   // For each declaration in the node produce the code
   
@@ -68,10 +68,6 @@ adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinitio
 	case AST_Decl::NT_struct:
 	case AST_Decl::NT_enum:
 	case AST_Decl::NT_typedef:
-	  if (first) {
-	    body = "Package " + get_ada_full_name()+ " is\n";
-	    first = false;    
-	  }
 	  previousdefinition += body;
 	  body ="";
 	case AST_Decl::NT_interface_fwd:
@@ -130,9 +126,7 @@ adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinitio
 	  break;
 	}
     }
-  if (!first) {
-    body += "end " + get_ada_full_name() + " ;";
-  }
+  body += "end " + get_ada_full_name() + " ;";
 
 }
 
@@ -591,8 +585,7 @@ adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousd
   body += "with MembufferedStream ; use MembufferedStream ;\n";
   with.add ("Giop_C");
   with.add ("Corba");
-
-  bool first = true;
+  body += "Package " + get_ada_full_name() + ".marshal is\n";
   
   // For each declaration in the node produce the code
   
@@ -611,10 +604,6 @@ adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousd
 	case AST_Decl::NT_enum:
 	case AST_Decl::NT_typedef:
 	case AST_Decl::NT_string:
-	  if (first) {
-	    body += "Package " + get_ada_full_name() + ".marshal is\n";
-	    first = false;
-	  }
 	  dynamic_cast<adabe_name *>(d)->produce_marshal_ads(with, body, previousdefinition);
 	  break;
 	case AST_Decl::NT_module:
@@ -667,9 +656,7 @@ adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousd
 	  break;
 	}
     }
-  if (!first) {
-    body += "end " + get_ada_full_name() + ".marshal ;";
-  }
+  body += "end " + get_ada_full_name() + ".marshal ;";
 
 }
 
@@ -715,17 +702,20 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	    module->produce_marshal_adb(module_with,module_body,module_previous);
 	    string module_with_string = *module_with.produce("with ");
 	    string module_use_string = *module_with.produce("use ");
-	    
-	    string module_file_name =
-	      remove_dot(module->get_ada_full_name()) + "-marshal.adb";
-	    char *lower_case_name = lower(module_file_name.c_str());
-	    ofstream module_file(lower_case_name); 
-	    delete[] lower_case_name;
-	    module_file << module_with_string;
-	    module_file << module_use_string;
-	    module_file << module_previous;
-	    module_file << module_body;
-	    module_file.close();
+
+	    if (module_body != "")
+	      {
+		string module_file_name =
+		  remove_dot(module->get_ada_full_name()) + "-marshal.adb";
+		char *lower_case_name = lower(module_file_name.c_str());
+		ofstream module_file(lower_case_name); 
+		delete[] lower_case_name;
+		module_file << module_with_string;
+		module_file << module_use_string;
+		module_file << module_previous;
+		module_file << module_body;
+		module_file.close();
+	      }
 	  }
 	  break;
 	  

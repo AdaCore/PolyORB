@@ -84,4 +84,16 @@ interface all_types {
   square echo9 (in square arg);
   cube echo10 (in cube arg);
   
+  // Object
+  //-------
+  all_types echo11(in all_types arg);
+  Object echo12(in Object arg);
+
 };
+
+
+
+
+
+
+
