@@ -1,11 +1,11 @@
 2004-07-06  souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-runtime.ads: Add To_Any_0, To_Get_Empty_Any_0,
-	To_Any_1 and To_Get_Empty_Any_1 to RE_Id to handle new runtimes
+	To_Any_1 and To_Get_Empty_Any_1 to RE_Id to handle new runtime
 	entities. 	
 
-	* backend-be_ada.adb: Update FE_Node attribut of Type_Spec
-	Nodes. Use type helper functions. 	
+	* backend-be_ada.adb: Update FE_Node attribute of Type_Spec
+	node. Use type helper functions. 	
 
 2004-07-05  Laurent Pautet  <pautet@dorine.enst.fr>
 
@@ -157,13 +157,11 @@
 
 2004-06-29  Saber Souli   <souli@enst.fr>
 
-	* backend-be_ada_nutils.adb :  Modification of To_Ada : To  insert
-	"IDL_" string before identifiers that collide with an Ada
-	reserved word.
+	* backend-be_ada_nutils.adb : In To_Ada, insert "IDL_" string
+	when identifier collides with an Ada reserved word.
 
-	* backend-be_ada-generator.adb : Factoring  Token_Type and it's
-	subprograms in orther be used from other packages. 
-
+	* backend-be_ada-generator.adb : Define Token_Type and its
+	subprograms.
 
 2004-06-29  Laurent Pautet  <pautet@dorine.enst.fr>
 
@@ -216,11 +214,11 @@
 	* iac.adb : Fix bug introduced when the path name of the IDL file
 	contain a leading dot.
 
-	* backend-be_ada.adb : Using backend-be_ada-rutime, and all the
-	useless variables are deleted.
+	* backend-be_ada.adb : Use Backend.BE_Ada.Runtime and remove all
+	the variables which are now useless.
 
 	* backend-be_ada-generator.adb : Minor change in the generated
-	code, to generate exactly the same output as idlac.  
+	code to produce exactly the same output as idlac.
 	
 2004-06-28  Saber Souli   <souli@enst.fr>
 
