@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#21 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#22 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -419,6 +419,9 @@ package body CIAO.Translator is
 
          Push_Scope (State.Current_Node);
          Translate_List (Parameter_Profile, State);
+         --  XXX CAVEAT! In DSA, GNAT reorders the parameter
+         --  list to have all unconstrained parameters first
+         --  (see Exp_Dist.Build_Ordered_Parameter_List).
          Pop_Scope;
 
          State.Current_Node := Old_Current_Node;

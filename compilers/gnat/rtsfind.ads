@@ -1035,8 +1035,9 @@ package Rtsfind is
      RE_NVList_Ref,                      -- System.PolyORB_Interface
      RE_NVList_Create,                   -- System.PolyORB_Interface
      RE_NVList_Add_Item,                 -- System.PolyORB_Interface
-     RE_Request_Create,                  -- System.PolyORB_Interface
      RE_Request_Access,                  -- System.PolyORB_Interface
+     RE_Request_Create,                  -- System.PolyORB_Interface
+     RE_Request_Invoke,                  -- System.PolyORB_Interface
      RE_Nil_Exc_List,                    -- System.PolyORB_Interface
 
      RE_FA_AD,                           -- System.PolyORB_Interface
@@ -2024,8 +2025,9 @@ package Rtsfind is
      RE_NVList_Ref                       => System_PolyORB_Interface,
      RE_NVList_Create                    => System_PolyORB_Interface,
      RE_NVList_Add_Item                  => System_PolyORB_Interface,
-     RE_Request_Create                   => System_PolyORB_Interface,
      RE_Request_Access                   => System_PolyORB_Interface,
+     RE_Request_Create                   => System_PolyORB_Interface,
+     RE_Request_Invoke                   => System_PolyORB_Interface,
      RE_Nil_Exc_List                     => System_PolyORB_Interface,
 
      RE_FA_AD                            => System_PolyORB_Interface,

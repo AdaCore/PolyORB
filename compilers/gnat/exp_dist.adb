@@ -1435,7 +1435,7 @@ package body Exp_Dist is
       Asynchronous     : Node_Id;
 
       Is_Function : constant Boolean :=
-                      Nkind (Type_Def) = N_Access_Function_Definition;
+        Nkind (Type_Def) = N_Access_Function_Definition;
 
       Spec : constant Node_Id := Type_Def;
 
@@ -2475,26 +2475,11 @@ package body Exp_Dist is
       if not Is_Known_Asynchronous then
 
          Non_Asynchronous_Statements := New_List (
-           Make_Null_Statement (Loc));
-
---          Non_Asynchronous_Statements := New_List (
---            Make_Procedure_Call_Statement (Loc,
---              Name                   =>
---                New_Occurrence_Of (RTE (RE_Do_Rpc), Loc),
---              Parameter_Associations => New_List (
---                New_Occurrence_Of (Target_Partition, Loc),
-
---                Make_Attribute_Reference (Loc,
---                  Prefix         =>
---                    New_Occurrence_Of (Stream_Parameter, Loc),
---                  Attribute_Name =>
---                    Name_Access),
-
---                Make_Attribute_Reference (Loc,
---                  Prefix         =>
---                    New_Occurrence_Of (Result_Parameter, Loc),
---                  Attribute_Name =>
---                    Name_Access))));
+            Make_Procedure_Call_Statement (Loc,
+              Name                   =>
+                New_Occurrence_Of (RTE (RE_Request_Invoke), Loc),
+              Parameter_Associations => New_List (
+                New_Occurrence_Of (Request_Parameter, Loc))));
 
 --          --  Read the exception occurrence from the result stream and
 --          --  reraise it. It does no harm if this is a Null_Occurrence since
@@ -2531,19 +2516,26 @@ package body Exp_Dist is
             Append_To (Non_Asynchronous_Statements,
               Make_Tag_Check (Loc,
                 Make_Return_Statement (Loc,
-                  Expression =>
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of (
-                          Etype (Subtype_Mark (Spec)), Loc),
+               --  Expression =>
+               --   Make_Attribute_Reference (Loc,
+               --     Prefix         =>
+               --       New_Occurrence_Of (
+               --         Etype (Subtype_Mark (Spec)), Loc),
 
-                      Attribute_Name => Name_Input,
+               --     Attribute_Name => Name_Input,
 
-                      Expressions    => New_List (
-                        Make_Attribute_Reference (Loc,
-                          Prefix         =>
-                            New_Occurrence_Of (Result_Parameter, Loc),
-                          Attribute_Name => Name_Access))))));
+               --     Expressions    => New_List (
+               --       Make_Attribute_Reference (Loc,
+               --         Prefix         =>
+               --           New_Occurrence_Of (Result_Parameter, Loc),
+               --         Attribute_Name => Name_Access)))
+                    Build_From_Any_Call (
+                      Etype (Subtype_Mark (Spec)),
+                      Make_Selected_Component (Loc,
+                        Prefix =>
+                          New_Occurrence_Of (Result_NV_Parameter, Loc),
+                        Selector_Name =>
+                          Make_Identifier (Loc, Name_Argument))))));
 
          else
             --  Loop around parameters and assign out (or in out) parameters.
@@ -2561,21 +2553,33 @@ package body Exp_Dist is
                    Etype (Parameter_Type (Current_Parameter)) /= Object_Type
                then
                   Append_To (Non_Asynchronous_Statements,
-                    Make_Attribute_Reference (Loc,
-                      Prefix         =>
-                        New_Occurrence_Of (
-                          Etype (Parameter_Type (Current_Parameter)), Loc),
+--                      Make_Attribute_Reference (Loc,
+--                        Prefix         =>
+--                          New_Occurrence_Of (
+--                            Etype (Parameter_Type (Current_Parameter)), Loc),
 
-                      Attribute_Name => Name_Read,
+--                        Attribute_Name => Name_Read,
 
-                      Expressions    => New_List (
-                        Make_Attribute_Reference (Loc,
-                          Prefix         =>
-                            New_Occurrence_Of (Result_Parameter, Loc),
-                          Attribute_Name =>
-                            Name_Access),
+--                        Expressions    => New_List (
+--                          Make_Attribute_Reference (Loc,
+--                            Prefix         =>
+--                              New_Occurrence_Of (Result_Parameter, Loc),
+--                            Attribute_Name =>
+--                              Name_Access),
+--                          New_Occurrence_Of (
+--                            Defining_Identifier (Current_Parameter), Loc)))
+                    Make_Assignment_Statement (Loc,
+                      Name =>
                         New_Occurrence_Of (
-                          Defining_Identifier (Current_Parameter), Loc))));
+                          Defining_Identifier (Current_Parameter), Loc),
+                        Expression =>
+                          Build_From_Any_Call (
+                            Etype (Parameter_Type (Current_Parameter)),
+                            Make_Selected_Component (Loc,
+                              Prefix =>
+                                New_Occurrence_Of (Result_NV_Parameter, Loc),
+                              Selector_Name =>
+                                Make_Identifier (Loc, Name_Argument)))));
                end if;
 
                Next (Current_Parameter);

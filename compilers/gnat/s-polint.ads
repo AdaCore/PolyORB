@@ -53,25 +53,36 @@ package System.PolyORB_Interface is
       Deferred_Arguments_Session : in PolyORB.Components.Component_Access := null
      ) renames PolyORB.Requests.Create_Request;
 
---       function FA_AD (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_AS (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_B (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_C (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_F (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_I (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_LF (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_LI (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_LLF (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_LLI (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_LLU (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_LU (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_SF (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_SI (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_SSI (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_SSU (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_SU (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_U (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
---       function FA_WC (Item : PolyORB.Any.Any) return X renames PolyORB.Any.From_Any;
+   procedure Request_Invoke
+     (R : PolyORB.Requests.Request_Access;
+     Invoke_Flags : PolyORB.Any.Flags := 0)
+     renames PolyORB.Requests.Invoke;
+
+   type Long_Long_Unsigned is mod 2 ** Long_Long_Integer'Size;
+   type Long_Unsigned is mod 2 ** Long_Integer'Size;
+   type Short_Short_Unsigned is mod 2 ** Short_Short_Integer'Size;
+   type Short_Unsigned is mod 2 ** Short_Integer'Size;
+   type Unsigned is mod 2 ** Integer'Size;
+
+--       function FA_AD (Item : PolyORB.Any.Any) return X;
+--       function FA_AS (Item : PolyORB.Any.Any) return X;
+   function FA_B (Item : PolyORB.Any.Any) return Boolean;
+   function FA_C (Item : PolyORB.Any.Any) return Character;
+   function FA_F (Item : PolyORB.Any.Any) return Float;
+   function FA_I (Item : PolyORB.Any.Any) return Integer;
+   function FA_LF (Item : PolyORB.Any.Any) return Long_Float;
+   function FA_LI (Item : PolyORB.Any.Any) return Long_Integer;
+   function FA_LLF (Item : PolyORB.Any.Any) return Long_Long_Float;
+   function FA_LLI (Item : PolyORB.Any.Any) return Long_Long_Integer;
+--       function FA_LLU (Item : PolyORB.Any.Any) return X;
+--       function FA_LU (Item : PolyORB.Any.Any) return X;
+   function FA_SF (Item : PolyORB.Any.Any) return Short_Float;
+   function FA_SI (Item : PolyORB.Any.Any) return Short_Integer;
+   function FA_SSI (Item : PolyORB.Any.Any) return Short_Short_Integer;
+--       function FA_SSU (Item : PolyORB.Any.Any) return X;
+--       function FA_SU (Item : PolyORB.Any.Any) return X;
+--       function FA_U (Item : PolyORB.Any.Any) return X;
+   function FA_WC (Item : PolyORB.Any.Any) return Wide_Character;
 
 --     function TA_AD (X) return PolyORB.Any.Any;
 --     function TA_AS (X) return PolyORB.Any.Any;

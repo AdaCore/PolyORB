@@ -85,6 +85,207 @@ package body Exp_Hlpr is
    --  Return the name to be assigned for stream subprogram Nam of Typ.
    --  (copied from exp_strm.adb)
 
+   -------------------------
+   -- Build_From_Any_Call --
+   -------------------------
+
+   function Build_From_Any_Call
+     (Typ : Entity_Id;
+      N   : Node_Id)
+      return Node_Id
+   is
+      Loc : constant Source_Ptr := Sloc (N);
+      U_Type  : constant Entity_Id  := Underlying_Type (Typ);
+
+      --  Rt_Type : constant Entity_Id  := Root_Type (U_Type);
+      --  FST     : constant Entity_Id  := First_Subtype (U_Type);
+      --  P_Size  : constant Uint       := Esize (FST);
+
+      Fnam : Entity_Id := Empty;
+      Lib_RE  : RE_Id := RE_Null;
+
+   begin
+
+      --  First simple case where the From_Any function is present
+      --  in the type's TSS.
+
+      Fnam := Find_Inherited_TSS (U_Type, Name_uFrom_Any);
+
+      --  Check first for Boolean and Character. These are enumeration types,
+      --  but we treat them specially, since they may require special handling
+      --  in the transfer protocol. However, this special handling only applies
+      --  if they have standard representation, otherwise they are treated like
+      --  any other enumeration type.
+
+      if Present (Fnam) then
+         null;
+
+      elsif U_Type = Standard_Boolean then
+         Lib_RE := RE_FA_B;
+
+      elsif U_Type = Standard_Character then
+         Lib_RE := RE_FA_C;
+
+      elsif U_Type = Standard_Wide_Character then
+         Lib_RE := RE_FA_WC;
+
+      --  Floating point types
+
+      elsif U_Type = Standard_Short_Float then
+         Lib_RE := RE_FA_SF;
+
+      elsif U_Type = Standard_Float then
+         Lib_RE := RE_FA_F;
+
+      elsif U_Type = Standard_Long_Float then
+         Lib_RE := RE_FA_LF;
+
+      elsif U_Type = Standard_Long_Long_Float then
+         Lib_RE := RE_FA_LLF;
+
+      --  Integer types
+
+      elsif U_Type = Standard_Short_Short_Integer then
+            Lib_RE := RE_FA_SSI;
+
+      elsif U_Type = Standard_Short_Integer then
+         Lib_RE := RE_FA_SI;
+
+      elsif U_Type = Standard_Integer then
+         Lib_RE := RE_FA_I;
+
+      elsif U_Type = Standard_Long_Integer then
+         Lib_RE := RE_FA_LI;
+
+      elsif U_Type = Standard_Long_Long_Integer then
+         Lib_RE := RE_FA_LLI;
+
+      --  Unsigned integer types
+
+--        elsif U_Type = Standard_Short_Short_Integer then
+--           Lib_RE := RE_FA_SSU;
+
+--        elsif U_Type = Standard_Short_Integer then
+--           Lib_RE := RE_FA_SU;
+
+--        elsif U_Type = Standard_Integer then
+--           Lib_RE := RE_FA_U;
+
+--        elsif U_Type = Standard_Long_Integer then
+--           Lib_RE := RE_FA_LU;
+
+--        elsif U_Type = Standard_Long_Long_Integer then
+--           Lib_RE := RE_FA_LLU;
+
+      --  Access types
+
+--        elsif Is_Access_Type (U_Type) then
+--           if P_Size > System_Address_Size then
+--              Lib_RE := RE_FA_AD;
+--           else
+--              Lib_RE := RE_FA_AS;
+--           end if;
+
+      --  Other (non-primitive) types
+
+      else
+         declare
+            Decl : Entity_Id;
+         begin
+            Build_From_Any_Function (Loc, U_Type, Decl, Fnam);
+            Append_Freeze_Action (U_Type, Decl);
+            Analyze (Decl);
+            --  Set_TSS (U_Type, Decl);
+         end;
+      end if;
+
+      --  Call the function
+
+      if Lib_RE /= RE_Null then
+         pragma Assert (No (Fnam));
+         Fnam := RTE (Lib_RE);
+      end if;
+
+      return
+          Make_Function_Call (Loc,
+            Name => New_Occurrence_Of (Fnam, Loc),
+            Parameter_Associations => New_List (N));
+   end Build_From_Any_Call;
+
+   -----------------------------
+   -- Build_From_Any_Function --
+   -----------------------------
+
+   procedure Build_From_Any_Function
+     (Loc  :     Source_Ptr;
+      Typ  :     Entity_Id;
+      Decl : out Node_Id;
+      Fnam : out Entity_Id)
+   is
+      Spec : Node_Id;
+      Decls : constant List_Id := New_List;
+      Stms : constant List_Id := New_List;
+      Any_Parameter : constant Entity_Id
+        := Make_Defining_Identifier (Loc, Name_A);
+   begin
+      Fnam := Make_Stream_Procedure_Function_Name (Loc, Typ, Name_uFrom_Any);
+
+      Spec :=
+        Make_Function_Specification (Loc,
+          Defining_Unit_Name => Fnam,
+          Parameter_Specifications => New_List (
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier =>
+                Any_Parameter,
+              Parameter_Type =>
+                New_Occurrence_Of (RTE (RE_Any), Loc))),
+          Subtype_Mark => New_Occurrence_Of (Typ, Loc));
+
+      if Is_Derived_Type (Typ)
+        and then not Is_Tagged_Type (Typ)
+      then
+         declare
+            Rt_Type : constant Entity_Id
+              := Root_Type (Typ);
+         begin
+            Append_To (Stms,
+              Make_Return_Statement (Loc,
+                Expression =>
+                  OK_Convert_To (
+                    Typ,
+                    Build_From_Any_Call (
+                      Rt_Type,
+                      New_Occurrence_Of (Any_Parameter, Loc)))));
+         end;
+      else
+         declare
+            Res_Parameter : constant Entity_Id
+              := Make_Defining_Identifier (Loc,
+                   New_Internal_Name ('R'));
+         begin
+            --  XXX dummy placeholder (the any is not initialised).
+            Append_To (Decls,
+             Make_Object_Declaration (Loc,
+               Defining_Identifier =>
+                 Res_Parameter,
+               Aliased_Present     => False,
+               Object_Definition   =>
+                 New_Occurrence_Of (Typ, Loc)));
+            Append_To (Stms,
+              Make_Return_Statement (Loc,
+                Expression => New_Occurrence_Of (Res_Parameter, Loc)));
+         end;
+      end if;
+
+      Decl :=
+        Make_Subprogram_Body (Loc,
+          Specification => Spec,
+          Declarations => Decls,
+          Handled_Statement_Sequence =>
+            Make_Handled_Sequence_Of_Statements (Loc,
+              Statements => Stms));
+   end Build_From_Any_Function;
+
    -----------------------
    -- Build_To_Any_Call --
    -----------------------
@@ -214,9 +415,9 @@ package body Exp_Hlpr is
             Parameter_Associations => New_List (N));
    end Build_To_Any_Call;
 
-   -----------------------------
+   ---------------------------
    -- Build_To_Any_Function --
-   -----------------------------
+   ---------------------------
 
    procedure Build_To_Any_Function
      (Loc  :     Source_Ptr;
