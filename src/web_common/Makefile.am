@@ -52,8 +52,11 @@ depend-local: all
 	$(srcdir)/../../support/mkdep -I$(srcdir)/.. $(srcdir)
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
-
-
-
-
-
+aws.lo:aws.ads 
+aws-mime.lo:aws.ads aws-mime.adb aws-mime.ads 
+aws-url.lo:aws.ads aws-url.adb aws-url.ads aws-url-raise_url_error.ads aws-utils.ads md5.ads ./../polyorb.ads ./../polyorb-utils.ads 
+aws-url-raise_url_error.lo:aws.ads aws-url.ads aws-url-raise_url_error.adb aws-url-raise_url_error.ads 
+aws-utils.lo:aws.ads aws-utils.adb aws-utils.ads md5.ads 
+md5.lo:md5.adb md5.ads 
+soap.lo:soap.ads 
+soap-utils.lo:soap.ads soap-utils.adb soap-utils.ads 
