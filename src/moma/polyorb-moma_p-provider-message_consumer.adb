@@ -33,8 +33,6 @@
 
 --  Message_Consumer servant.
 
---  $Id$
-
 with MOMA.Destinations;
 with MOMA.Types;
 with MOMA.Messages;

@@ -37,8 +37,6 @@
 --  construction, its implementation subroutines contain parts of a
 --  stub for the Message_Pool object.
 
---  $Id$
-
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
 with PolyORB.Obj_Adapters.Simple;
