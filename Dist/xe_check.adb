@@ -33,7 +33,7 @@ with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Make;             use Make;
 with Namet;            use Namet;
 with Opt;
-with Osint;            use Osint;
+with Osint;
 with Table;
 with Types;            use Types;
 with XE;               use XE;
@@ -166,10 +166,12 @@ package body XE_Check is
       --  Initialize parameters for Compile_Sources
       if not No_Recompilation then
          Arguments
-           := new Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
+           := new Argument_List (Osint.Gcc_Switches.First ..
+                                 Osint.Gcc_Switches.Last);
          Display_Commands (Verbose_Mode or Building_Script);
-         for Switch in Gcc_Switches.First .. Gcc_Switches.Last loop
-            Arguments (Switch) := Gcc_Switches.Table (Switch);
+         for Switch in Osint.Gcc_Switches.First ..
+                       Osint.Gcc_Switches.Last loop
+            Arguments (Switch) := Osint.Gcc_Switches.Table (Switch);
          end loop;
       end if;
 
@@ -556,8 +558,8 @@ package body XE_Check is
 
       Mask_Object_Consistency_Check;
 
-      Afile := Lib_File_Name (Source);
-      Text  := Read_Library_Info (Afile);
+      Afile := Osint.Lib_File_Name (Source);
+      Text  := Osint.Read_Library_Info (Afile);
 
       --  Decide later on if the compilation failure is a problem
       if Text = null then
@@ -568,7 +570,7 @@ package body XE_Check is
 
       A := Scan_ALI (Afile, Text, False, True);
       Free (Text);
-      ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (Afile);
+      ALIs.Table (A).Ofile_Full_Name := Osint.Full_Lib_File_Name (Afile);
       Set_Source_Table (A);
 
       --  If we succeed to compile the spec, then check whether it
@@ -632,7 +634,7 @@ package body XE_Check is
    begin
       S := Find_Source (Uname);
       if Afile = No_File then
-         L := Lib_File_Name (S);
+         L := Osint.Lib_File_Name (S);
       else
          L := Afile;
       end if;
@@ -657,7 +659,7 @@ package body XE_Check is
          return;
       end if;
 
-      T := Read_Library_Info (L);
+      T := Osint.Read_Library_Info (L);
       if T = null then
          if S = No_File then
             Source_File_Error (Uname);
@@ -667,7 +669,7 @@ package body XE_Check is
 
       A := Scan_ALI (L, T, False, True);
       Free (T);
-      ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (L);
+      ALIs.Table (A).Ofile_Full_Name := Osint.Full_Lib_File_Name (L);
       Set_Source_Table (A);
 
       for I in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
@@ -733,14 +735,14 @@ package body XE_Check is
          return;
       end if;
 
-      T := Read_Library_Info (L);
+      T := Osint.Read_Library_Info (L);
       if T = null then
          Compilation_Error (Withs.Table (W).Sfile);
       end if;
 
       A := Scan_ALI (L, T, False, True);
       Free (T);
-      ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (L);
+      ALIs.Table (A).Ofile_Full_Name := Osint.Full_Lib_File_Name (L);
       Set_Source_Table (A);
 
       --  Special case: we can afford to load only withed units of a RCI
@@ -862,7 +864,7 @@ package body XE_Check is
          return;
       end if;
 
-      Afile  := Lib_File_Name (Source);
+      Afile  := Osint.Lib_File_Name (Source);
       if Get_ALI_Id (Afile) /= No_ALI_Id then
          return;
       end if;
