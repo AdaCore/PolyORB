@@ -929,9 +929,9 @@ private
    --
    --  To be able to carry values of different types, the second
    --  field is an Any_Content_Ptr which is an access to any type
-   --  deriving from Content. Every basic types XXX that can be carried
-   --  into an Any should be associated to a child of Content (Content_XXX)
-   --  which contains a field of the XXX type.
+   --  deriving from Content. Every basic types Foo that can be carried
+   --  into an Any should be associated to a child of Content (Content_Foo)
+   --  which contains a field of the Foo type.
    --  For complex types (with several values, like structures, arrays...),
    --  we use a special child of Content, Content_Aggregate, which has a field
    --  pointing on a list of childs of Content; various methods are provided
