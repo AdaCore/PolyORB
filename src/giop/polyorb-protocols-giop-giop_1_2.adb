@@ -39,6 +39,7 @@ with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Exceptions;
 with PolyORB.Filters;
+with PolyORB.GIOP_P.Service_Contexts;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
@@ -57,6 +58,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    use PolyORB.Buffers;
    use PolyORB.Components;
+   use PolyORB.GIOP_P.Service_Contexts;
    use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.Representations.CDR;

@@ -457,14 +457,6 @@ private
    -- Marshall Unmarshall helpers --
    ---------------------------------
 
-   --  Context_List
-   procedure Marshall_Service_Context_List
-     (Buffer : access Buffers.Buffer_Type);
-
-   procedure Unmarshall_Service_Context_List
-     (Buffer : access Buffers.Buffer_Type);
-   --  XXX Dummy unmarshalling for Service Context List.
-
    procedure Unmarshall_System_Exception_To_Any
      (Buffer : PolyORB.Buffers.Buffer_Access;
       Info   : out Any.Any);

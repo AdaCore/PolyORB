@@ -659,6 +659,8 @@ src/giop/miop/polyorb-setup-uipmc.adb
 src/giop/miop/polyorb-setup-uipmc.ads
 src/giop/polyorb-giop_p-exceptions.adb
 src/giop/polyorb-giop_p-exceptions.ads
+src/giop/polyorb-giop_p-service_contexts.adb
+src/giop/polyorb-giop_p-service_contexts.ads
 src/giop/polyorb-giop_p-tagged_components-policies-priority_model_policy.adb
 src/giop/polyorb-giop_p-tagged_components-policies-priority_model_policy.ads
 src/giop/polyorb-giop_p-tagged_components-policies.adb

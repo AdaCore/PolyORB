@@ -36,6 +36,7 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Any;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
+with PolyORB.GIOP_P.Service_Contexts;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
@@ -50,6 +51,7 @@ with PolyORB.Utils.Strings;
 package body PolyORB.Protocols.GIOP.GIOP_1_0 is
 
    use PolyORB.Buffers;
+   use PolyORB.GIOP_P.Service_Contexts;
    use PolyORB.Log;
    use PolyORB.Objects;
    use PolyORB.Representations.CDR;
