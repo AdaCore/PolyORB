@@ -73,4 +73,5 @@ AC_OUTPUT([Makefile idlac/Makefile idlac/platform.ads src/Makefile
            examples/all_types/Makefile examples/echo/Makefile
            examples/module/Makefile examples/random/Makefile
 	   examples/local/Makefile
-	   cos/Makefile cos/naming/Makefile cos/time/Makefile])
+	   cos/Makefile cos/event/Makefile cos/naming/Makefile
+           cos/time/Makefile])
