@@ -18,6 +18,10 @@ package body Idl_Fe.Parser is
      := Idl_Fe.Debug.Is_Active ("idl_fe.parser");
    procedure O is new Idl_Fe.Debug.Output (Flag);
 
+   Flag2 : constant Natural
+     := Idl_Fe.Debug.Is_Active ("idl_fe.parser_method_trace");
+   procedure O2 is new Idl_Fe.Debug.Output (Flag2);
+
    ---------------------
    --  Initialization --
    ---------------------
@@ -389,7 +393,7 @@ package body Idl_Fe.Parser is
    function Parse_Specification return Node_Id is
       Result : Node_Id;
    begin
-      pragma Debug (O ("Parse_Specification : enter"));
+      pragma Debug (O2 ("Parse_Specification : enter"));
       --  first call next_token in order to initialize the location
       Next_Token;
       Result := Make_Repository;
@@ -418,6 +422,7 @@ package body Idl_Fe.Parser is
          end loop;
       end;
       Pop_Scope;
+      pragma Debug (O2 ("Parse_Specification : end"));
       return Result;
    end Parse_Specification;
 
@@ -428,7 +433,7 @@ package body Idl_Fe.Parser is
      (Result : out Node_Id;
       Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Definition : enter"));
+      pragma Debug (O2 ("Parse_Definition : enter"));
       case Get_Token is
          when T_Typedef
            | T_Struct
@@ -533,6 +538,7 @@ package body Idl_Fe.Parser is
       else
          Next_Token;
       end if;
+      pragma Debug (O2 ("Parse_Definition : end"));
       return;
    end Parse_Definition;
 
@@ -542,7 +548,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Module (Result : out Node_Id;
                            Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Module : enter"));
+      pragma Debug (O2 ("Parse_Module : enter"));
       --  Is there an identifier ?
       Next_Token;
       case Get_Token is
@@ -639,6 +645,7 @@ package body Idl_Fe.Parser is
             Success := False;
       end case;
       return;
+      pragma Debug (O2 ("Parse_Module : end"));
    end Parse_Module;
 
    -----------------------
@@ -652,7 +659,7 @@ package body Idl_Fe.Parser is
       Fd_Res : Node_Id;
       Definition : Identifier_Definition_Acc;
    begin
-      pragma Debug (O ("Parse_Interface : enter"));
+      pragma Debug (O2 ("Parse_Interface : enter"));
       --  interface header.
       Res := Make_Interface;
       --  is the interface abstracted
@@ -793,6 +800,7 @@ package body Idl_Fe.Parser is
          return;
       end if;
       return;
+      pragma Debug (O2 ("Parse_Interface : end"));
    end Parse_Interface;
 
    --------------------
@@ -868,7 +876,7 @@ package body Idl_Fe.Parser is
       Success : out Boolean) is
       Body_Success : Boolean;
    begin
-      pragma Debug (O ("Parse_Interface_Dcl_End : enter"));
+      pragma Debug (O2 ("Parse_Interface_Dcl_End : enter"));
       --  interface header.
       if Get_Token = T_Colon then
          --  inheritance_spec
@@ -939,6 +947,7 @@ package body Idl_Fe.Parser is
       end if;
       Success := True;
       return;
+      pragma Debug (O2 ("Parse_Interface_Dcl_End : end"));
    end Parse_Interface_Dcl_End;
 
 
@@ -979,60 +988,46 @@ package body Idl_Fe.Parser is
       Scope : Node_Id;
       A_Name : Node_Id;
    begin
-      pragma Debug (O ("Parse_Scoped_Name : enter"));
+      pragma Debug (O2 ("Parse_Scoped_Name : enter"));
       Result := No_Node;
       Success := False;
       Prev := No_Node;
+      --  creation of a scoped_name node
       Res := Make_Scoped_Name;
       Set_Location (Res, Get_Token_Location);
+      --  if it begins with :: then the scope of reference is
+      --  the root scope
       if Get_Token = T_Colon_Colon then
          Scope := Get_Root_Scope;
-         pragma Debug (O ("Parse_Scoped_Name : root scope is " &
-                          Name (Get_Root_Scope)));
+         pragma Debug (O ("Parse_Scoped_Name : root scope is defined at " &
+                          Idl_Fe.Errors.Display_Location
+                          (Get_Location (Scope))));
       else
          --  token should be an identifier
          if Get_Token /= T_Identifier then
             Idl_Fe.Errors.Parser_Error
-              (" identifier expected in the scoped name",
+              (" identifier or '::' expected at the " &
+               "beginning of a scoped name",
                Idl_Fe.Errors.Error,
                Get_Token_Location);
             Success := False;
             Result := No_Node;
+            pragma Debug (O2 ("Parse_Scoped_Name : end"));
             return;
          end if;
---          if Name (Get_Current_Scope) = Get_Token_String then
---             Storage_Not_Defined := True;
---             Next_Token;
---             if Get_Token /= T_Colon_Colon then
---                declare
---                  Loc : Idl_Fe.Errors.Location;
---                begin
---                   Loc := Get_Previous_Token_Location;
---                   Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
---                   Idl_Fe.Errors.Parser_Error
---                     (Ada.Characters.Latin_1.Quotation &
---                      "::" &
---                      Ada.Characters.Latin_1.Quotation &
---                      " expected in scoped name. You can not use " &
---                      "the name of a scope except in a scoped name " &
---                      "before the end of this scope definition.",
---                      Idl_Fe.Errors.Error,
---                      Loc);
---                   Success := False;
---                   Result := No_Node;
---                   return;
---                end;
---             end if;
---          else
+         --  gets the name of the scope of reference for this scoped_name
          A_Name := Find_Identifier_Node (Get_Token_String);
+         --  If it does not correspond to a previously defined scope
          if A_Name = No_Node then
             pragma Debug (O ("Parse_Scoped_Name : name is null"));
             Idl_Fe.Errors.Parser_Error
-              ("Bad identifier in scoped name",
+              ("Bad identifier in scoped name : " &
+               "this identifier does not exist",
                Idl_Fe.Errors.Error,
                Get_Token_Location);
-            Success := False;
-            Result := No_Node;
+            Go_To_End_Of_Scoped_Name;
+            Success := True;
+            pragma Debug (O2 ("Parse_Scoped_Name : end"));
             return;
          end if;
          --  If we are not in its definition scope,
@@ -1042,9 +1037,9 @@ package body Idl_Fe.Parser is
          --  we should import it in the parent scope of the
          --  current scope if necessary;
          --  else we should import it in the current scope.
-         --  If it is a module or repository, the
-         --  add function won't do anything.
-
+         --  If it is a module, an interface, a valuetype
+         --  or the repository, the add function won't do
+         --  anything.
          declare
             CSK : constant Node_Kind := Kind (Get_Current_Scope);
          begin
@@ -1074,82 +1069,36 @@ package body Idl_Fe.Parser is
                end if;
             end if;
          end;
-
-         if View_Next_Token /= T_Colon_Colon then
-            Set_Value (Res, A_Name);
-
-            if Kind (A_Name) = K_Declarator
-              and then Kind (Parent (A_Name)) = K_Type_Declarator
-            then
-               pragma Debug (O ("Parse_Scoped_Name : the scoped" &
-                                " name is defined in a typedef"));
-               if Kind (T_Type (Parent (A_Name))) = K_Scoped_Name then
-                  Set_S_Type (Res, S_Type (T_Type (Parent (A_Name))));
-               else
-                  Set_S_Type (Res, T_Type (Parent (A_Name)));
-               end if;
-            elsif Kind (A_Name) = K_Struct
-              or else Kind (A_Name) = K_Union
-              or else Kind (A_Name) = K_Enum
-              or else Kind (A_Name) = K_Interface
-              or else Kind (A_Name) = K_ValueType
-              or else Kind (A_Name) = K_Forward_Interface
-              or else Kind (A_Name) = K_Forward_ValueType
-            then
-               Set_S_Type (Res, A_Name);
+         --  here we deal with the case of an identifier
+         --  with '::' after it : it must denote a scope
+         if View_Next_Token = T_Colon_Colon then
+            --  Is the identifier a scope?
+            if not Is_Scope (A_Name) then
+               Idl_Fe.Errors.Parser_Error
+                 ("Bad identifier in scoped name : " &
+                  "this identifier does not denote a scope",
+                  Idl_Fe.Errors.Error,
+                  Get_Token_Location);
+               Go_To_End_Of_Scoped_Name;
+               Success := True;
+               pragma Debug (O2 ("Parse_Scoped_Name : end"));
+               return;
             else
-               pragma Debug (O ("Parse_Scoped_Name : the scoped" &
-                                " name does not denote a type"));
-               Set_S_Type (Res, No_Node);
+               Scope := A_Name;
             end if;
-
-            if (Kind (Get_Current_Scope) = K_Struct
-                or Kind (Get_Current_Scope) = K_Union)
-              and Get_Current_Scope = A_Name then
-               --  recursivity is allowed through sequences
-               if View_Previous_Previous_Token /= T_Sequence then
-                  Idl_Fe.Errors.Parser_Error
-                    ("Recursive definitions not allowed",
-                     Idl_Fe.Errors.Error,
-                     Get_Token_Location);
-                  Success := False;
-                  Result := No_Node;
-                  return;
-               end if;
-            end if;
-            --  to eat the last identifier
+            --  to eat the identifier representing the current scope
             Next_Token;
-            Success := True;
-            Result := Res;
-            pragma Debug (O ("Parse_Scoped_Name : " &
-                             "end if simple identifier"));
-            return;
-         end if;
-
-         --  Is the identifier a scope?
-         if not Is_Scope (A_Name) then
-            Idl_Fe.Errors.Parser_Error
-              ("Bad identifier in scoped name",
-               Idl_Fe.Errors.Error,
-               Get_Token_Location);
-            Success := False;
-            Result := No_Node;
-            return;
-         else
-            Scope := A_Name;
          end if;
       end if;
-      --  to eat the identifier representing the current scope
-      Next_Token;
-
-      pragma Debug (O ("Parse_Scoped_Name : begining of loop"));
-
+      pragma Debug (O ("Parse_Scoped_Name : beginning of loop"));
       --  Loop through the scopes to get the right definition
       declare
          Def : Identifier_Definition_Acc;
       begin
-         loop
+         while Get_Token = T_Colon_Colon loop
+            --  consumes the '::'
             Next_Token;
+            --  we should have an identifier here
             if Get_Token /= T_Identifier then
                Idl_Fe.Errors.Parser_Error
                  (" identifier expected in the scoped name",
@@ -1157,64 +1106,79 @@ package body Idl_Fe.Parser is
                   Get_Token_Location);
                Success := False;
                Result := No_Node;
+               pragma Debug (O2 ("Parse_Scoped_Name : end"));
                return;
             end if;
-
-            --  Find the identifier in the scope
-            --  FIXME: Code duplication (maybe)
-            --  (look for "Bad identifier" above).
+            --  Find the identifier in the reference scope
             Def := Find_Identifier_In_Storage
               (Scope, Get_Token_String);
+            --  if it does not exist
             if Def = null then
                Idl_Fe.Errors.Parser_Error
-                 ("Bad identifier in scoped name",
+                 ("Bad identifier in scoped name : " &
+                  "This identifier does not exist in the given scope",
                   Idl_Fe.Errors.Error,
                   Get_Token_Location);
-               Success := False;
-               Result := No_Node;
+               Go_To_End_Of_Scoped_Name;
+               Success := True;
+               pragma Debug (O2 ("Parse_Scoped_Name : end"));
                return;
             end if;
             A_Name := Def.Node;
+            --  if it is not the end of the scoped name, the
+            --  current identifier may denote a node
             if View_Next_Token = T_Colon_Colon then
                if not Is_Scope (A_Name) then
                   Idl_Fe.Errors.Parser_Error
-                    ("Bad identifier in scoped name",
+                    ("Bad identifier in scoped name : " &
+                     "this identifier does not denote a scope",
                      Idl_Fe.Errors.Error,
                      Get_Token_Location);
-                  Success := False;
-                  Result := No_Node;
+                  Go_To_End_Of_Scoped_Name;
+                  Success := True;
+                  pragma Debug (O2 ("Parse_Scoped_Name : end"));
                   return;
                else
                   Scope := A_Name;
                end if;
-            else
-               exit;
+               --  consumes the identifier
+               Next_Token;
             end if;
-            --  to set the current location to the T_Colon_Colon
-            --  don't move it
-            Next_Token;
          end loop;
-
-         if A_Name = No_Node then
-            raise Idl_Fe.Errors.Internal_Error;
-         end if;
+         pragma Debug (O ("Parse_Scoped_Name : end of loop"));
          Set_Value (Res, A_Name);
-         --  FIXME: Code duplication (see above).
+         --  sets the S_Type field of the scoped-name node
+         --  to the type of the declaration pointed to
          if Kind (A_Name) = K_Declarator
            and then Kind (Parent (A_Name)) = K_Type_Declarator
          then
+            --  if the declaration was a typedef, we have to
+            --  use the type of it
+            pragma Debug (O ("Parse_Scoped_Name : the scoped" &
+                             " name is defined in a typedef"));
             if Kind (T_Type (Parent (A_Name))) = K_Scoped_Name then
                Set_S_Type (Res, S_Type (T_Type (Parent (A_Name))));
             else
                Set_S_Type (Res, T_Type (Parent (A_Name)));
             end if;
+         elsif Kind (A_Name) = K_Struct
+           or else Kind (A_Name) = K_Union
+           or else Kind (A_Name) = K_Enum
+           or else Kind (A_Name) = K_Interface
+           or else Kind (A_Name) = K_ValueType
+           or else Kind (A_Name) = K_Forward_Interface
+           or else Kind (A_Name) = K_Forward_ValueType
+         then
+            Set_S_Type (Res, A_Name);
          else
+            pragma Debug (O ("Parse_Scoped_Name : the scoped" &
+                             " name does not denote a type"));
             Set_S_Type (Res, No_Node);
          end if;
-
+         --  Here we try to avoid recursivity in structs and unions
          if (Kind (Get_Current_Scope) = K_Struct
              or Kind (Get_Current_Scope) = K_Union)
-           and Get_Current_Scope = Def.Node then
+           and Get_Current_Scope = A_Name then
             --  recursivity is allowed through sequences
             if View_Previous_Previous_Token /= T_Sequence then
                Idl_Fe.Errors.Parser_Error
@@ -1223,15 +1187,18 @@ package body Idl_Fe.Parser is
                   Get_Token_Location);
                Success := False;
                Result := No_Node;
+               pragma Debug (O2 ("Parse_Scoped_Name : end"));
                return;
             end if;
          end if;
       end;
-      --  to eat the last identifier
+      --  consumes the last identifier
       Next_Token;
       Success := True;
       Result := Res;
-      pragma Debug (O ("Parse_Scoped_Name : return"));
+      pragma Debug (O ("Parse_Scoped_Name : " &
+                       "end if simple identifier"));
+      pragma Debug (O2 ("Parse_Scoped_Name : end"));
       return;
    end Parse_Scoped_Name;
 
@@ -1241,7 +1208,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Value (Result : out Node_Id;
                           Success : out Boolean) is
    begin
-      pragma Debug (O ("Initialize_Local_Object : enter"));
+      pragma Debug (O2 ("Initialize_Local_Object : enter"));
       case Get_Token is
          when T_Custom =>
             Next_Token;
@@ -1259,6 +1226,7 @@ package body Idl_Fe.Parser is
          when others =>
             raise Idl_Fe.Errors.Internal_Error;
       end case;
+      pragma Debug (O2 ("Initialize_Local_Object : end"));
       return;
    end Parse_Value;
 
@@ -1268,7 +1236,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Custom_Value (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Custom_Value : enter"));
+      pragma Debug (O2 ("Parse_Custom_Value : enter"));
       if Get_Token /= T_ValueType then
          declare
             Loc : Idl_Fe.Errors.Location;
@@ -1302,6 +1270,7 @@ package body Idl_Fe.Parser is
             Parse_End_Value_Dcl (Result, Success, True, False);
          end if;
       end if;
+      pragma Debug (O2 ("Parse_Custom_Value : enter"));
       return;
    end Parse_Custom_Value;
 
@@ -1311,7 +1280,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Abstract_Value (Result : out Node_Id;
                                    Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Abstract_Value : enter"));
+      pragma Debug (O2 ("Parse_Abstract_Value : enter"));
       if Get_Token /= T_ValueType then
          declare
             Loc : Idl_Fe.Errors.Location;
@@ -1377,7 +1346,7 @@ package body Idl_Fe.Parser is
             end case;
          end if;
       end if;
-      pragma Debug (O ("Parse_Abstract_Value : end"));
+      pragma Debug (O2 ("Parse_Abstract_Value : end"));
       return;
    end Parse_Abstract_Value;
 
@@ -1387,7 +1356,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Direct_Value (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Direct_Value : enter"));
+      pragma Debug (O2 ("Parse_Direct_Value : enter"));
       Next_Token;
       if Get_Token /= T_Identifier then
          declare
@@ -1462,6 +1431,7 @@ package body Idl_Fe.Parser is
                Success := False;
          end case;
       end if;
+      pragma Debug (O2 ("Parse_Direct_Value : end"));
       return;
    end Parse_Direct_Value;
 
@@ -1474,7 +1444,7 @@ package body Idl_Fe.Parser is
                                   Abst : in Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
-      pragma Debug (O ("Parse_End_Value_Dcl : enter"));
+      pragma Debug (O2 ("Parse_End_Value_Dcl : enter"));
       Result := Make_ValueType;
       Set_Abst (Result, Abst);
       Set_Custom (Result, Custom);
@@ -1581,7 +1551,7 @@ package body Idl_Fe.Parser is
       --  consumes the right Cbracket
       Next_Token;
       Success := True;
-      pragma Debug (O ("Parse_End_Value_Dcl : end"));
+      pragma Debug (O2 ("Parse_End_Value_Dcl : end"));
       return;
    end Parse_End_Value_Dcl;
 
@@ -1714,7 +1684,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Value_Inheritance_Spec (Result : in out Node_Id;
                                            Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Value_Inheritance_Spec : enter"));
+      pragma Debug (O2 ("Parse_Value_Inheritance_Spec : enter"));
       if Get_Token = T_Colon then
          Next_Token;
          if Get_Token = T_Truncatable then
@@ -2010,7 +1980,7 @@ package body Idl_Fe.Parser is
                Success := False;
             end;
       end case;
-      pragma Debug (O ("Parse_Value_Inheritance_Spec : enter"));
+      pragma Debug (O2 ("Parse_Value_Inheritance_Spec : enter"));
    end Parse_Value_Inheritance_Spec;
 
    ---------------------------
@@ -2364,7 +2334,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Const_Dcl (Result : out Node_Id;
                               Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Const_Dcl : enter"));
+      pragma Debug (O2 ("Parse_Const_Dcl : enter"));
       Next_Token;
       Result := Make_Const_Dcl;
       Set_Location (Result, Get_Previous_Token_Location);
@@ -2462,7 +2432,7 @@ package body Idl_Fe.Parser is
          Set_Expression (Result, Node);
       end;
       return;
-      pragma Debug (O ("Parse_Const_Dcl : end"));
+      pragma Debug (O2 ("Parse_Const_Dcl : end"));
    end Parse_Const_Dcl;
 
    ------------------------
@@ -2471,7 +2441,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Const_Type (Result : out Node_Id;
                                Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Const_Type : enter"));
+      pragma Debug (O2 ("Parse_Const_Type : enter"));
       case Get_Token is
          when T_Long =>
             if View_Next_Token = T_Double then
@@ -2585,7 +2555,7 @@ package body Idl_Fe.Parser is
             Success := False;
             Result := No_Node;
       end case;
-      pragma Debug (O ("Parse_Const_Type : end"));
+      pragma Debug (O2 ("Parse_Const_Type : end"));
       return;
    end Parse_Const_Type;
 
@@ -2598,7 +2568,7 @@ package body Idl_Fe.Parser is
       Loc : Idl_Fe.Errors.Location;
       C_Type : Const_Type_Ptr;
    begin
-      pragma Debug (O ("Parse_Const_Exp : enter"));
+      pragma Debug (O2 ("Parse_Const_Exp : enter"));
       Loc := Get_Token_Location;
       case Kind (Constant_Type) is
          when K_Short
@@ -2715,6 +2685,7 @@ package body Idl_Fe.Parser is
 --                               Errors.Error,
 --                               Loc);
 --       end if;
+      pragma Debug (O2 ("Parse_Const_Exp : end"));
    end Parse_Const_Exp;
 
    --------------------
@@ -3370,7 +3341,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Literal (Result : out Node_Id;
                             Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Literal : enter"));
+      pragma Debug (O2 ("Parse_Literal : enter"));
       case Get_Token is
          when T_Lit_Decimal_Integer
               | T_Lit_Octal_Integer
@@ -3447,6 +3418,7 @@ package body Idl_Fe.Parser is
          when others =>
             raise Errors.Internal_Error;
       end case;
+      pragma Debug (O2 ("Parse_Literal : enter"));
    end Parse_Literal;
 
    -----------------------------
@@ -3482,7 +3454,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Type_Dcl (Result : out Node_Id;
                              Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Type_Dcl : enter"));
+      pragma Debug (O2 ("Parse_Type_Dcl : enter"));
       Result := No_Node;
       Success := False;
       case Get_Token is
@@ -3540,7 +3512,7 @@ package body Idl_Fe.Parser is
          when others =>
             raise Idl_Fe.Errors.Internal_Error;
       end case;
-      pragma Debug (O ("Parse_Type_Dcl : end"));
+      pragma Debug (O2 ("Parse_Type_Dcl : end"));
       return;
    end Parse_Type_Dcl;
 
@@ -3550,7 +3522,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Type_Declarator (Result : out Node_Id;
                                     Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Type_declarator : enter"));
+      pragma Debug (O2 ("Parse_Type_declarator : enter"));
       Result := Make_Type_Declarator;
       Set_Location (Result, Get_Token_Location);
       declare
@@ -3563,6 +3535,7 @@ package body Idl_Fe.Parser is
       end;
       if not Success then
          pragma Debug (O ("Parse_Type_Declarator : type_spec return false"));
+         pragma Debug (O2 ("Parse_Type_declarator : end"));
          return;
       end if;
       declare
@@ -3574,6 +3547,7 @@ package body Idl_Fe.Parser is
                             Success);
          Set_Declarators (Result, Node);
       end;
+      pragma Debug (O2 ("Parse_Type_declarator : end"));
       return;
    end Parse_Type_Declarator;
 
@@ -3584,7 +3558,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Type_Spec (Result : out Node_Id;
                               Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Type_Spec : enter"));
+      pragma Debug (O2 ("Parse_Type_Spec : enter"));
       case Get_Token is
          when T_Float
            | T_Double
@@ -3616,7 +3590,7 @@ package body Idl_Fe.Parser is
             Success := False;
             Result := No_Node;
       end case;
-      pragma Debug (O ("Parse_Type_Spec : end"));
+      pragma Debug (O2 ("Parse_Type_Spec : end"));
       return;
    end  Parse_Type_Spec;
 
@@ -3627,7 +3601,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Simple_Type_Spec (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Simple_Type_Spec : enter"));
+      pragma Debug (O2 ("Parse_Simple_Type_Spec : enter"));
       pragma Debug (O ("Parse_Simple_Type_Spec : token is " &
                        Idl_Token'Image (Get_Token)));
       case Get_Token is
@@ -3651,22 +3625,66 @@ package body Idl_Fe.Parser is
             Parse_Template_Type_Spec (Result, Success);
          when T_Colon_Colon
            | T_Identifier =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Scoped_Name (Res, Success);
-               Result := Res;
-               --  FIXME
-               --  >>>>>>>>>>>>>>>>> what are the accepted types?
-            end;
+            Parse_Scoped_Name (Result, Success);
+            --  checks that the scoped name denotes a type and
+            --  not an interface for example
+            if Result /= No_Node then
+               declare
+                  Not_A_Type : Boolean := False;
+               begin
+                  pragma Debug (O ("Parse_Simple_Type_Spec : " &
+                                   "kind of result is " &
+                                   Node_Kind'Image (Kind (Result))));
+                  if S_Type (Result) /= No_Node then
+                     pragma Debug (O ("Parse_Simple_Type_Spec : " &
+                                      "scoped name without an S_Type"));
+                     case Kind (S_Type (Result)) is
+                        when K_Float
+                          | K_Double
+                          | K_Long_Double
+                          | K_Long
+                          | K_Long_Long
+                          | K_Short
+                          | K_Unsigned_Long
+                          | K_Unsigned_Long_Long
+                          | K_Unsigned_Short
+                          | K_Char
+                          | K_Wide_Char
+                          | K_Boolean
+                          | K_Octet
+                          | K_Any
+                          | K_Object
+                          | K_ValueBase
+                          | K_Sequence
+                          | K_String
+                          | K_Wide_String
+                          | K_Fixed
+                          | K_Enum
+                          | K_Struct
+                          | K_Union =>
+                           null;
+                        when others =>
+                           Not_A_Type := True;
+                     end case;
+                  else
+                     Not_A_Type := True;
+                  end if;
+                  if Not_A_Type then
+                     Idl_Fe.Errors.Parser_Error ("The scope name must " &
+                                                 "denote a type.",
+                                                 Idl_Fe.Errors.Error,
+                                                 Get_Token_Location);
+                  end if;
+               end;
+            end if;
          when others =>
             Idl_Fe.Errors.Parser_Error ("simple type specification expected.",
-                                 Idl_Fe.Errors.Error,
-                                 Get_Token_Location);
+                                        Idl_Fe.Errors.Error,
+                                        Get_Token_Location);
             Result := No_Node;
             Success := False;
       end case;
-      pragma Debug (O ("Parse_Simple_Type_Spec : end"));
+      pragma Debug (O2 ("Parse_Simple_Type_Spec : end"));
       return;
    end Parse_Simple_Type_Spec;
 
@@ -3676,7 +3694,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Base_Type_Spec (Result : out Node_Id;
                                    Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Base_Type_Spec : enter"));
+      pragma Debug (O2 ("Parse_Base_Type_Spec : enter"));
       case Get_Token is
          when T_Float
            | T_Double =>
@@ -3742,8 +3760,8 @@ package body Idl_Fe.Parser is
          when others =>
             raise Idl_Fe.Errors.Internal_Error;
       end case;
+      pragma Debug (O2 ("Parse_Base_Type_Spec : end"));
       return;
-      pragma Debug (O ("Parse_Base_Type_Spec : end"));
    end Parse_Base_Type_Spec;
 
    --------------------------------
@@ -3861,7 +3879,7 @@ package body Idl_Fe.Parser is
                                Parent : in Node_Id;
                                Success : out Boolean) is
    begin
-      pragma Debug (O ("parse_declarator : enter"));
+      pragma Debug (O2 ("parse_declarator : enter"));
       if Get_Token /= T_Identifier then
          Idl_Fe.Errors.Parser_Error ("Identifier expected.",
                               Idl_Fe.Errors.Error,
@@ -3878,6 +3896,7 @@ package body Idl_Fe.Parser is
             Parse_Simple_Declarator (Result, Parent, Success);
          end if;
       end if;
+      pragma Debug (O2 ("parse_declarator : end"));
       return;
    end Parse_Declarator;
 
@@ -4199,6 +4218,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Struct_Type (Result : out Node_Id;
                                 Success : out Boolean) is
    begin
+      pragma Debug (O2 ("Parse_Struct_Type : enter"));
       Next_Token;
       if Get_Token /= T_Identifier then
          declare
@@ -4234,7 +4254,8 @@ package body Idl_Fe.Parser is
       Set_Location (Result, Get_Token_Location);
       if not Add_Identifier (Result, Get_Token_String) then
          --  the error was raised before
-         Success := False;
+--         Success := False;
+         null;
       end if;
       Next_Token;
       if Get_Token /= T_Left_Cbracket then
@@ -4274,6 +4295,7 @@ package body Idl_Fe.Parser is
          return;
       end if;
       Next_Token;
+      pragma Debug (O2 ("Parse_Struct_Type : end"));
       return;
    end Parse_Struct_Type;
 
@@ -4284,6 +4306,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Member_List (Result : out Node_List;
                                 Success : out Boolean) is
    begin
+      pragma Debug (O2 ("Parse_Member_List : enter"));
       Result := Nil_List;
       if Get_Token = T_Right_Cbracket then
          Idl_Fe.Errors.Parser_Error
@@ -4305,8 +4328,9 @@ package body Idl_Fe.Parser is
          end;
          exit when Get_Token = T_Right_Cbracket or Get_Token = T_Eof;
       end loop;
-         Success := True;
-         return;
+      Success := True;
+      pragma Debug (O2 ("Parse_Member_List : end"));
+      return;
    end Parse_Member_List;
 
    --------------------
@@ -4317,6 +4341,7 @@ package body Idl_Fe.Parser is
       Type_Spec : Node_Id;
       Loc : Idl_Fe.Errors.Location;
    begin
+      pragma Debug (O2 ("Parse_Member : enter"));
       Loc := Get_Token_Location;
       Parse_Type_Spec (Type_Spec, Success);
       if not Success then
@@ -4347,6 +4372,7 @@ package body Idl_Fe.Parser is
       end if;
       --  to eat the semi-colon
       Next_Token;
+      pragma Debug (O2 ("Parse_Member : end"));
       return;
    end Parse_Member;
 
@@ -4356,7 +4382,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Union_Type (Result : out Node_Id;
                                Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Union_Type : enter"));
+      pragma Debug (O2 ("Parse_Union_Type : enter"));
       Next_Token;
       if Get_Token /= T_Identifier then
          declare
@@ -4495,7 +4521,7 @@ package body Idl_Fe.Parser is
       end if;
       Next_Token;
       return;
-      pragma Debug (O ("Parse_Union_Type : end"));
+      pragma Debug (O2 ("Parse_Union_Type : end"));
    end Parse_Union_Type;
 
    ------------------------------
@@ -4532,14 +4558,12 @@ package body Idl_Fe.Parser is
             end;
          when T_Colon_Colon
            | T_Identifier =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Scoped_Name (Res, Success);
-               --  The <scoped_name> in the <switch_type_spec> production
-               --  must be a previously defined integer, char, boolean
-               --  or enum type.
-               case Kind (S_Type (Res)) is
+            Parse_Scoped_Name (Result, Success);
+            --  The <scoped_name> in the <switch_type_spec> production
+            --  must be a previously defined integer, char, boolean
+            --  or enum type.
+            if Result /= No_Node then
+               case Kind (S_Type (Result)) is
                   when K_Short
                     | K_Long
                     | K_Long_Long
@@ -4560,8 +4584,7 @@ package body Idl_Fe.Parser is
                         Idl_Fe.Errors.Error,
                         Get_Token_Location);
                end case;
-               Result := Res;
-            end;
+            end if;
          when others =>
             Idl_Fe.Errors.Parser_Error
               ("switch type expected.",
@@ -4581,7 +4604,7 @@ package body Idl_Fe.Parser is
                                 Success : out Boolean) is
       Default_Clause : Boolean := False;
    begin
-      pragma Debug (O ("Parse_Switch_Body : enter"));
+      pragma Debug (O2 ("Parse_Switch_Body : enter"));
       Result := Nil_List;
       if Get_Token = T_Right_Cbracket then
          Idl_Fe.Errors.Parser_Error
@@ -4624,7 +4647,7 @@ package body Idl_Fe.Parser is
 --      Release_All_Used_Values;
       Success := True;
       return;
-      pragma Debug (O ("Parse_Switch_Body : end"));
+      pragma Debug (O2 ("Parse_Switch_Body : end"));
    end Parse_Switch_Body;
 
    ------------------
@@ -4636,7 +4659,7 @@ package body Idl_Fe.Parser is
       Default_Label : Boolean := False;
       Loc : Idl_Fe.Errors.Location;
    begin
-      pragma Debug (O ("Parse_Case : enter"));
+      pragma Debug (O2 ("Parse_Case : enter"));
       Loc := Get_Token_Location;
       case Get_Token is
          when T_Case
@@ -4709,7 +4732,7 @@ package body Idl_Fe.Parser is
       else
          Next_Token;
       end if;
-      pragma Debug (O ("Parse_Case : end"));
+      pragma Debug (O2 ("Parse_Case : end"));
       return;
    end Parse_Case;
 
@@ -4720,7 +4743,7 @@ package body Idl_Fe.Parser is
                                Switch_Type : in Node_Id;
                                Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_case_label : enter"));
+      pragma Debug (O2 ("Parse_case_label : enter"));
       case Get_Token is
          when T_Case =>
             declare
@@ -4757,6 +4780,7 @@ package body Idl_Fe.Parser is
          Next_Token;
       end if;
       return;
+      pragma Debug (O2 ("Parse_case_label : end"));
    end Parse_Case_Label;
 
    --------------------------
@@ -4767,13 +4791,13 @@ package body Idl_Fe.Parser is
                                  Parent : in Node_Id;
                                  Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Element_Spec : enter"));
+      pragma Debug (O2 ("Parse_Element_Spec : enter"));
       Parse_Type_Spec (Element_Type, Success);
       if not Success then
          return;
       end if;
       Parse_Declarator (Element_Decl, Parent, Success);
-      pragma Debug (O ("Parse_Element_Spec : end"));
+      pragma Debug (O2 ("Parse_Element_Spec : end"));
       return;
    end Parse_Element_Spec;
 
@@ -4941,7 +4965,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Sequence_Type (Result : out Node_Id;
                                   Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Sequence_Type : Enter"));
+      pragma Debug (O2 ("Parse_Sequence_Type : Enter"));
       Next_Token;
       if Get_Token /= T_Less then
          Idl_Fe.Errors.Parser_Error
@@ -5024,6 +5048,7 @@ package body Idl_Fe.Parser is
             Success := False;
             return;
       end case;
+      pragma Debug (O2 ("Parse_Sequence_Type : End"));
       return;
    end Parse_Sequence_Type;
 
@@ -5108,7 +5133,7 @@ package body Idl_Fe.Parser is
                                      Parent : in Node_Id;
                                      Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Array_declarator : enter"));
+      pragma Debug (O2 ("Parse_Array_Declarator : enter"));
       Result := Make_Declarator;
       Set_Location (Result, Get_Token_Location);
       Set_Parent (Result, Parent);
@@ -5124,16 +5149,13 @@ package body Idl_Fe.Parser is
                (Get_Location (Definition.Node)),
                Idl_Fe.Errors.Error,
                Get_Token_Location);
-            Result := No_Node;
-            Success := False;
-            return;
          end;
-      else
-         --  no previous definition
-         if not Add_Identifier (Result,
-                                Get_Token_String) then
-            raise Idl_Fe.Errors.Internal_Error;
-         end if;
+      end if;
+      --  if any previous definition, just ignore the identifier
+      --  but keep parsing parsing (no syntax error)
+      if not Add_Identifier (Result,
+                             Get_Token_String) then
+         null;
       end if;
       Set_Array_Bounds (Result, Nil_List);
       --  consumes the identifier
@@ -5144,8 +5166,9 @@ package body Idl_Fe.Parser is
          begin
             Parse_Fixed_Array_Size (Expr, Success);
             if not Success then
-               pragma Debug (O ("Parse_Array_declarator : " &
+               pragma Debug (O ("Parse_Array_Declarator : " &
                                 "Parse_Fixed_Array_Size returned false"));
+               pragma Debug (O2 ("Parse_Array_Declarator : end"));
                return;
             end if;
             Set_Array_Bounds (Result,
@@ -5153,7 +5176,7 @@ package body Idl_Fe.Parser is
                                            Expr));
          end;
       end loop;
-      pragma Debug (O ("Parse_Array_declarator : end"));
+      pragma Debug (O2 ("Parse_Array_Declarator : end"));
       return;
    end Parse_Array_Declarator;
 
@@ -5163,6 +5186,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Fixed_Array_Size (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
+      pragma Debug (O2 ("Parse_Fixed_Array_Size : enter"));
       Next_Token;
       Parse_Positive_Int_Const (Result, Success);
       if not Success then
@@ -5185,6 +5209,7 @@ package body Idl_Fe.Parser is
          return;
       end if;
       Next_Token;
+      pragma Debug (O2 ("Parse_Fixed_Array_Size : end"));
       return;
    end Parse_Fixed_Array_Size;
 
@@ -5194,7 +5219,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Except_Dcl (Result : out Node_Id;
                                Success : out Boolean) is
    begin
-      pragma Debug (O ("Parse_Except_Dcl : enter"));
+      pragma Debug (O2 ("Parse_Except_Dcl : enter"));
       pragma Debug (O ("Parse_Except_Dcl : first token " &
                        Idl_Token'Image (Get_Token)));
       if Get_Token /= T_Exception then
@@ -5271,6 +5296,7 @@ package body Idl_Fe.Parser is
       Next_Token;
       Success := True;
       return;
+      pragma Debug (O2 ("Parse_Except_Dcl : end"));
    end Parse_Except_Dcl;
 
    --------------------
@@ -5482,7 +5508,7 @@ package body Idl_Fe.Parser is
                               Success : out boolean) is
       Attr_Success : Boolean;
    begin
-      pragma Debug (O ("Parse_Param_Dcl : enter"));
+      pragma Debug (O2 ("Parse_Param_Dcl : enter"));
       Result := Make_Param;
       Set_Location (Result, Get_Token_Location);
       declare
@@ -5532,6 +5558,7 @@ package body Idl_Fe.Parser is
          Parse_Simple_Declarator (Node, Result, Success);
          Set_Declarator (Result, Node);
       end;
+      pragma Debug (O2 ("Parse_Param_Dcl : end"));
       return;
    end Parse_Param_Dcl;
 
@@ -5608,6 +5635,15 @@ package body Idl_Fe.Parser is
          if not Success then
             return;
          end if;
+         if Name /= No_Node then
+            if Kind (Value (Name)) /= K_Exception then
+               Idl_Fe.Errors.Parser_Error
+                 ("This scoped name is supposed " &
+                  "to denote an exception.",
+                  Idl_Fe.Errors.Error,
+                  Get_Token_Location);
+            end if;
+         end if;
          Append_Node (Result, Name);
       end;
       while Get_Token = T_Comma loop
@@ -5618,6 +5654,15 @@ package body Idl_Fe.Parser is
             Parse_Scoped_Name (Name, Success);
             if not Success then
                return;
+            end if;
+            if Name /= No_Node then
+               if Kind (Value (Name)) /= K_Exception then
+                  Idl_Fe.Errors.Parser_Error
+                    ("This scoped name is supposed " &
+                     "to denote an exception.",
+                     Idl_Fe.Errors.Error,
+                     Get_Token_Location);
+               end if;
             end if;
             Append_Node (Result, Name);
          end;
@@ -5745,12 +5790,57 @@ package body Idl_Fe.Parser is
                Result := Res;
             end;
          when T_Colon_Colon | T_Identifier =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Scoped_Name (Res, Success);
-               Result := Res;
-            end;
+            Parse_Scoped_Name (Result, Success);
+            --  checks that the scoped name denotes a type and
+            --  not an interface for example
+            if Result /= No_Node then
+               declare
+                  Not_A_Type : Boolean := False;
+               begin
+                  pragma Debug (O ("Parse_Simple_Type_Spec : " &
+                                   "kind of result is " &
+                                   Node_Kind'Image (Kind (Result))));
+                  if S_Type (Result) /= No_Node then
+                     pragma Debug (O ("Parse_Simple_Type_Spec : " &
+                                      "scoped name without an S_Type"));
+                     case Kind (S_Type (Result)) is
+                        when K_Float
+                          | K_Double
+                          | K_Long_Double
+                          | K_Long
+                          | K_Long_Long
+                          | K_Short
+                          | K_Unsigned_Long
+                          | K_Unsigned_Long_Long
+                          | K_Unsigned_Short
+                          | K_Char
+                          | K_Wide_Char
+                          | K_Boolean
+                          | K_Octet
+                          | K_Any
+                          | K_Object
+                          | K_ValueBase
+                          | K_String
+                          | K_Wide_String
+                          | K_Enum
+                          | K_Struct
+                          | K_Union =>
+                           null;
+                        when others =>
+                           Not_A_Type := True;
+                     end case;
+                  else
+                     Not_A_Type := True;
+                  end if;
+                  if Not_A_Type then
+                     Idl_Fe.Errors.Parser_Error ("The scope name must denote" &
+                                                 " a type compatible with a " &
+                                                 "param type.",
+                                                 Idl_Fe.Errors.Error,
+                                                 Get_Token_Location);
+                  end if;
+               end;
+            end if;
          when others =>
             Idl_Fe.Errors.Parser_Error
               ("param type specifier expected.",
@@ -6953,6 +7043,22 @@ package body Idl_Fe.Parser is
       end loop;
       Next_Token;
    end Go_To_End_Of_Case_Label;
+
+   --------------------------------
+   --  Go_To_End_Of_Scoped_Name  --
+   --------------------------------
+   procedure Go_To_End_Of_Scoped_Name is
+   begin
+      --  skip the current token : an identifier
+      Next_Token;
+      --  while there are '::', skip them and the next identifier
+      while Get_Token = T_Colon_Colon loop
+         Next_Token;
+         if Get_Token = T_Identifier then
+            Next_Token;
+         end if;
+      end loop;
+   end Go_To_End_Of_Scoped_Name;
 
 
 

@@ -1014,4 +1014,7 @@ private
    --  Goes to the end of a case label in an union (see rule 75)
    procedure Go_To_End_Of_Case_Label;
 
+   --  Goes to the end of a scoped name (see rule 12)
+   procedure Go_To_End_Of_Scoped_Name;
+
 end Idl_Fe.Parser;
