@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#9 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#10 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -31,18 +31,17 @@ with Asis.Declarations;
 with Asis.Definitions;
 with Asis.Elements;
 with Asis.Expressions;
+with Asis.Extensions;
 with Asis.Iterator;
 pragma Elaborate_All (Asis.Iterator);
 with Asis.Text;
 
 with CIAO.ASIS_Queries; use CIAO.ASIS_Queries;
 
---  with CIAO.IDL_Tree;     use CIAO.IDL_Tree;
---  with CIAO.IDL_Syntax;   use CIAO.IDL_Syntax;
---  with CIAO.IDL_Syntax.Scoped_Names; use CIAO.IDL_Syntax.Scoped_Names;
---  with CIAO.Nlists;       use CIAO.Nlists;
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree;  use Idl_Fe.Tree;
+with Idl_Fe.Tree.Synthetic;
+with Idl_Fe.Utils; use Idl_Fe.Utils;
 with Errors;       use Errors;
 
 with CIAO.Translator.Maps;  use CIAO.Translator.Maps;
@@ -188,10 +187,10 @@ package body CIAO.Translator is
      (Element : in Asis.Element;
       Control : in out Traverse_Control;
       State   : in out Translator_State);
---    procedure Process_Expression
---      (Element : in Asis.Element;
---       Control : in out Traverse_Control;
---       State   : in out Translator_State);
+   procedure Process_Expression
+     (Element : in Asis.Element;
+      Control : in out Traverse_Control;
+      State   : in out Translator_State);
    procedure Process_Type_Definition
      (Element : in Asis.Element;
       Control : in out Traverse_Control;
@@ -229,6 +228,9 @@ package body CIAO.Translator is
 --    procedure Translate_Type_Definition
 --      (Def     : in Asis.Definition;
 --       State   : in out Translator_State);
+   procedure Translate_List
+     (List  : in     Asis.Element_List;
+      State : in out Translator_State);
 
    procedure Translate_Formal_Parameter
      (Specification    : in Asis.Definition;
@@ -239,10 +241,24 @@ package body CIAO.Translator is
    --  Return a new node corresponding to the type to be
    --  assigned to opaque entities.
 
+   function New_Integer_Literal (Value : Integer) return Node_Id;
+   --  Return a new node corresponding to an integer literal
+   --  with the given Value.
+
    function New_Opaque_Type return Node_Id is
    begin
       return Make_Native (No_Location);
    end New_Opaque_Type;
+
+   function New_Integer_Literal (Value : Integer) return Node_Id
+   is
+      Result : constant Node_Id := Make_Lit_Integer (No_Location);
+   begin
+      Set_Expr_Value
+        (Result, new Constant_Value (Kind => C_General_Integer));
+      Expr_Value (Result).Integer_Value := Long_Long_Integer (Value);
+      return Result;
+   end New_Integer_Literal;
 
    ---------------------------------------------------------------
    -- Pre_Translate_Element                                     --
@@ -272,10 +288,11 @@ package body CIAO.Translator is
             Control := Abandon_Children;
 
          when A_Defining_Name =>
-            Raise_Translation_Error
-              (Element, "Unexpected element (A_Defining_Name).");
-            --  Must have been translated explicitly when processing
-            --  the enclosing declaration.
+            null;
+            --  Defining names are translated explicitly when
+            --  processing the enclosing declaration. The children
+            --  of that declaration may then be traversed recursively,
+            --  so we need to just ignore the defining_name here.
 
          when A_Declaration =>
             Process_Declaration (Element, Control, State);
@@ -284,14 +301,7 @@ package body CIAO.Translator is
             Process_Definition (Element, Control, State);
 
          when An_Expression =>
-            --  In this version of CIAO, whenever an expression
-            --  can be encountered, it is a usage occurrence of
-            --  a name and should have been replaced by a pointer
-            --  to the translation of the corresponding entity's
-            --  definition. Expressions are therefore never
-            --  encountererd in the implicit traversal.
-            Raise_Translation_Error
-              (Element, "Unexpected element (An_Expression).");
+            Process_Expression (Element, Control, State);
 
          when An_Association =>
             --  In a DSA unit declaration, An_Association can occur
@@ -585,6 +595,8 @@ package body CIAO.Translator is
                        (State.Current_Node, Node);
                      Set_Translation (Element, Node);
 
+                     Set_Previous_Current_Node
+                       (Element, State.Current_Node);
                      State.Current_Node := Node;
 
                      --  Process children recursively.
@@ -795,16 +807,14 @@ package body CIAO.Translator is
                --  Only one defining_name in an
                --  enumeration_literal_specification.
 
-               Set_Enumerators
-                 (State.Current_Node,
-                  Append_Node
-                  (Enumerators (State.Current_Node),
-                   Enumerator_Node));
+               Append_Node_To_Enumerators
+                 (State.Current_Node, Enumerator_Node);
+
                Success := Add_Identifier
                  (Enumerator_Node, Map_Defining_Name
                   (Defining_Name));
                pragma Assert (Success);
-               State.Current_Node := Old_Current_Node;
+               Set_Translation (Element, Enumerator_Node);
 
                Control := Abandon_Children;
                --  Children were processed explicitly.
@@ -1028,7 +1038,7 @@ package body CIAO.Translator is
             declare
                Visible_Part : constant Declarative_Item_List
                  := Declarations.Visible_Part_Declarative_Items
-                 (Declaration => Element,
+                 (Declaration     => Element,
                   Include_Pragmas => True);
                Success : Boolean;
             begin
@@ -1066,13 +1076,14 @@ package body CIAO.Translator is
                   pragma Assert (Success);
                end if;
 
-               Do_Visible_Part :
-               for I in Visible_Part'Range loop
-                  Translate_Tree (Visible_Part (I), Control, State);
-                  if Control = Abandon_Siblings then
-                     exit Do_Visible_Part;
-                  end if;
-               end loop Do_Visible_Part;
+--                Do_Visible_Part :
+--                for I in Visible_Part'Range loop
+--                   Translate_Tree (Visible_Part (I), Control, State);
+--                   if Control = Abandon_Siblings then
+--                      exit Do_Visible_Part;
+--                   end if;
+--                end loop Do_Visible_Part;
+               Translate_List (Visible_Part, State);
 
                Pop_Scope;
                State.Current_Node := Old_Current_Node;
@@ -1171,8 +1182,18 @@ package body CIAO.Translator is
             raise Program_Error;
 
          when A_Discrete_Range =>              --  3.6.1(3)
-            --  XXX Does this ever happen?
-            raise Program_Error;
+            case Kind (State.Current_Node) is
+               when K_Union =>
+                  --  A discrete_range as a discrete_choice for a variant
+                  null;
+                  --  XXX TODO: generate one Label for each value
+                  --  of the anonymous subtype declared by the discrete_range,
+                  --  and append each of these labels to
+                  --  Labels (State.Current_Node).
+
+               when others =>
+                  null;
+            end case;
 
          when An_Unknown_Discriminant_Part =>  --  3.7(3)
             --  XXX Does this ever happen?
@@ -1194,42 +1215,123 @@ package body CIAO.Translator is
          when A_Variant_Part =>                --  3.8.1(2)
             declare
                Member_Node : constant Node_Id := Make_Member (No_Location);
-               Union_Node : constant Node_Id := Make_Union (No_Location);
+               Decl_Node   : constant Node_Id := Make_Declarator (No_Location);
+               Union_Node  : constant Node_Id := Make_Union (No_Location);
+               Success : Boolean;
             begin
                Append_Node_To_Members (State.Current_Node, Member_Node);
-               --  Add_Identifier_With_Renaming (Member_Node, "variant");
-               raise Program_Error;
+               Append_Node_To_Decl (Member_Node, Decl_Node);
+               Add_Identifier_With_Renaming (Decl_Node, "variant");
+               Success := Add_Identifier
+                 (Union_Node, Idl_Fe.Tree.Synthetic.Name
+                  (Decl_Node) & "_union");
+               pragma Assert (Success);
+               Set_M_Type (Member_Node, Union_Node);
 
---                Set_M_Type (Member_Node, Union_Node);
-
---                Set_Switch_Type
---                  (Union_Node,
---                   Translate_Subtype_Mark
---                   (Discriminant_Subtype_Mark
---                    (Corresponding_Entity_Name_Declaration
---                     (Discriminant_Direct_Name (Element)))));
---                Set_Translation (Element, Union_Node);
---                Set_Previous_Current_Node (Element, State.Current_Node);
---                State.Current_Node := Union_Node;
+               Set_Switch_Type
+                 (Union_Node,
+                  Translate_Subtype_Mark
+                  (Declaration_Subtype_Mark
+                   (Corresponding_Entity_Name_Declaration
+                    (Discriminant_Direct_Name (Element)))));
+               Set_Translation (Element, Union_Node);
+               Set_Previous_Current_Node (Element, State.Current_Node);
+               State.Current_Node := Union_Node;
 
                --  Process children recursively.
             end;
 
          when A_Variant =>                     --  3.8.1(3)
-            --  XXX TODO
-            null;
+            --  Enclosing node is the union corresponding to the
+            --  Variant_Part.
+
+            declare
+               Case_Node : constant Node_Id := Make_Case (No_Location);
+               Decl_Node : constant Node_Id := Make_Declarator (No_Location);
+               Union_Node : constant Node_Id := State.Current_Node;
+
+               Variant_Components : constant Asis.Record_Component_List
+                 := Record_Components (Element);
+               Variant_Component : Asis.Declaration
+                 renames Variant_Components (Variant_Components'First);
+
+               Struct_Node : Node_Id;
+               Success : Boolean;
+            begin
+               Append_Node_To_Cases (State.Current_Node, Case_Node);
+               State.Current_Node := Case_Node;
+               Translate_List (Variant_Choices (Element), State);
+               State.Current_Node := Union_Node;
+
+               if Is_In_List (Labels (Case_Node), No_Node) then
+                  --  The default label is denoted by an empty node.
+                  Set_Default_Index
+                    (State.Current_Node,
+                     Long_Integer
+                     (Length (Cases (Union_Node))) - 1);
+               end if;
+
+               Set_Case_Decl (Case_Node, Decl_Node);
+
+               if Variant_Components'Length = 1
+                 and then Element_Kind (Variant_Component) = A_Declaration
+               then
+                  declare
+                     Component_Defining_Names :
+                       constant Asis.Defining_Name_List
+                       := Declarations.Names (Variant_Component);
+                     Component_Defining_Name : Asis.Defining_Name
+                       := Component_Defining_Names
+                       (Component_Defining_Names'First);
+                  begin
+                     Success := Add_Identifier
+                       (Decl_Node,
+                        Map_Defining_Name (Component_Defining_Name));
+                     pragma Assert (Success);
+
+                     Set_Case_Type
+                       (Case_Node, Translate_Subtype_Mark
+                        (Asis.Definitions.Subtype_Mark
+                         (Component_Subtype_Indication
+                          (Object_Declaration_View
+                           (Variant_Component)))));
+                  end;
+               else
+                  Struct_Node := Make_Struct (No_Location);
+                  Add_Identifier_With_Renaming
+                    (Decl_Node, "variant_components");
+                  Success := Add_Identifier
+                    (Struct_Node, Idl_Fe.Tree.Synthetic.Name
+                     (Decl_Node) & "_struct");
+                  pragma Assert (Success);
+                  Set_Case_Type (Case_Node, Struct_Node);
+                  State.Current_Node := Struct_Node;
+                  Translate_List (Variant_Components, State);
+               end if;
+
+               State.Current_Node := Union_Node;
+               --  Restore value.
+
+               Control := Abandon_Children;
+               --  They have been processed explicitly.
+            end;
 
          when An_Others_Choice =>              --  3.8.1(5)
             --  => 4.3.1(5) => 4.3.3(5) => 11.2(5)
-            --  XXX TODO
-            null;
+
+            if Kind (State.Current_Node) = K_Case then
+               Append_Node_To_Labels
+                 (State.Current_Node, No_Node);
+               --  The default label is denoted by an empty node.
+            end if;
 
          when
            A_Private_Type_Definition        |  --  7.3(2)
            A_Tagged_Private_Type_Definition |  --  7.3(2)
            A_Private_Extension_Definition   => --  7.3(3)
-            --  XXX Does this ever happen? (should not)
-            raise Program_Error;
+            --  Should probably never happen.
+            Raise_Translation_Error
+              (Element, "Unexpected element (a private type definition).");
 
          when
            A_Task_Definition      |            --  9.1(4)
@@ -1297,17 +1399,45 @@ package body CIAO.Translator is
         (Element, "Unexpected standard type definition.");
    end Base_Type_For_Standard_Definition;
 
---    procedure Process_Expression
---      (Element : in Asis.Element;
---       Control : in out Traverse_Control;
---       State   : in out Translator_State) is
---       EK : constant Asis.Expression_Kinds
---         := Expression_Kind (Element);
---    begin
---       case EK is
---          when Not_An_Expression =>                --  An unexpected element
---             Raise_Translation_Error
---               (Element, "Unexpected element (Not_An_Expression).");
+   procedure Process_Expression
+     (Element : in     Asis.Element;
+      Control : in out Traverse_Control;
+      State   : in out Translator_State)
+   is
+      use Asis.Extensions;
+      --  In this subprogram we use ASIS-for-GNAT extensions
+      --  to determine the value of static expressions.
+
+      EK : constant Asis.Expression_Kinds
+        := Expression_Kind (Element);
+      EI : constant String
+        := To_String (Static_Expression_Value_Image (Element));
+
+      EI_Valid : constant Boolean := True
+        and then Is_True_Expression (Element)
+        and then Is_Static (Element)
+        and then EI'Length /= 0;
+
+   begin
+      case Kind (State.Current_Node) is
+         when K_Union =>
+            pragma Assert (EK = An_Identifier);
+            --  A Discriminant_Direct_Name.
+            --  XXX record that the discriminant for this union
+            --  is actually that member of the enclosing struct.
+            return;
+         when K_Case =>
+            null;
+            --  see below.
+         when others =>
+            Raise_Translation_Error
+              (Element, "Unexpected expression.");
+      end case;
+
+      case EK is
+         when Not_An_Expression =>                --  An unexpected element
+            Raise_Translation_Error
+              (Element, "Unexpected element (Not_An_Expression).");
 
 --          when
 --            An_Identifier        |                 --  4.1
@@ -1372,23 +1502,25 @@ package body CIAO.Translator is
 --                      & " (An_Attribute_Reference).");
 --             end case;
 
---          ------------------------------------------------------
---          -- All other Expression_Kinds are inappropriate.    --
---          -- Encountering one of these cases denotes a bug in --
---          -- either the Ada/ASIS environment or CIAO.         --
---          ------------------------------------------------------
+         when An_Integer_Literal =>
+            Append_Node_To_Labels
+              (State.Current_Node,
+               New_Integer_Literal (Integer'Value (EI)));
 
 --          when
 --            An_Integer_Literal     |               --  2.4
---            A_Real_Literal         |               --  2.4.1
---            A_String_Literal       |               --  2.6
 --            A_Character_Literal    |               --  4.1
 --            An_Enumeration_Literal |               --  4.1
 --            A_Null_Literal         =>              --  4.4
 --             Raise_Translation_Error
 --               (Element, "Unexpected element (a literal).");
+         when
+           A_Real_Literal         |               --  2.4.1
+           A_String_Literal       =>              --  2.6
+            Raise_Translation_Error
+            (Element, "Unexpected element (a non-scalar literal).");
 
---          when
+--         when
 --            An_Operator_Symbol      |              --  4.1
 --            A_Function_Call         =>             --  4.1
 --             Raise_Translation_Error
@@ -1423,13 +1555,65 @@ package body CIAO.Translator is
 --             Raise_Translation_Error
 --               (Element, "Unexpected element (An_Expression).");
 
---          when
---            An_Allocation_From_Subtype |           --  4.8
---            An_Allocation_From_Qualified_Expression => --  4.8
---             Raise_Translation_Error
---               (Element, "Unexpected element (an allocator).");
---       end case;
---    end Process_Expression;
+         when
+           An_Allocation_From_Subtype |           --  4.8
+           An_Allocation_From_Qualified_Expression => --  4.8
+            Raise_Translation_Error
+               (Element, "Unexpected element (an allocator).");
+
+         when others =>
+            if EI_Valid then
+               if Has_Enumeration_Type (Element) then
+                  declare
+                     Scoped_Name_Node : Node_Id := No_Node;
+                     Enum_Type : constant Asis.Definition
+                       := Type_Declaration_View
+                       (Corresponding_First_Subtype
+                        (Corresponding_Expression_Type (Element)));
+                     Literals : constant Asis.Declaration_List
+                       := Enumeration_Literal_Declarations (Enum_Type);
+                  begin
+                     Scan_Enumerators :
+                     for I in Literals'Range loop
+                        declare
+                           Literal_Names : constant Asis.Defining_Name_List
+                             := Names (Literals (I));
+                           Literal_Name : Asis.Defining_Name
+                             renames Literal_Names (Literal_Names'First);
+                           Pos_Image : constant String
+                             := To_String
+                             (Position_Number_Image (Literal_Name));
+                        begin
+                           pragma Assert (Literal_Names'Length = 1);
+                           if Pos_Image = EI then
+                              Scoped_Name_Node := Make_Scoped_Name
+                                (No_Location);
+                              Set_Value
+                                (Scoped_Name_Node,
+                                 Get_Translation (Literals (I)));
+                              Append_Node_To_Labels
+                                (State.Current_Node, Scoped_Name_Node);
+                              exit Scan_Enumerators;
+                           end if;
+                        end;
+                     end loop Scan_Enumerators;
+                     if Scoped_Name_Node = No_Node then
+                        Raise_Translation_Error
+                          (Element,
+                           "Could not resolve enumerator name: " & EI);
+                     end if;
+                  end;
+               elsif Has_Integer_Type (Element) then
+                  Append_Node_To_Labels
+                    (State.Current_Node,
+                     New_Integer_Literal (Integer'Value (EI)));
+               end if;
+            else
+               Raise_Translation_Error
+                 (Element, "Cannot resolve expression value.");
+            end if;
+      end case;
+   end Process_Expression;
 
    procedure Process_Type_Definition
      (Element : in Asis.Element;
@@ -1551,12 +1735,7 @@ package body CIAO.Translator is
                              (Declarator_Node, "Low_Bounds");
                            pragma Assert (Success);
 
-                           Size_Node := Make_Lit_Integer (No_Location);
-                           Set_Expr_Value
-                             (Size_Node, new Constant_Value
-                              (Kind => C_General_Integer));
-                           Expr_Value (Size_Node).Integer_Value
-                             := Long_Long_Integer (Dimensions);
+                           Size_Node := New_Integer_Literal (Dimensions);
                            Set_Array_Bounds
                              (Declarator_Node,
                               Append_Node
@@ -1794,6 +1973,18 @@ package body CIAO.Translator is
 --       Translate_Tree (Def, Control, State);
 --       State.Pass := Current_Pass;
 --    end Translate_Type_Definition;
+
+   procedure Translate_List
+     (List  : in     Asis.Element_List;
+      State : in out Translator_State)
+   is
+      Control : Traverse_Control := Continue;
+   begin
+      for I in List'Range loop
+         Translate_Tree (List (I), Control, State);
+         exit when Control = Abandon_Siblings;
+      end loop;
+   end Translate_List;
 
    procedure Translate_Formal_Parameter
      (Specification    : in Asis.Definition;
