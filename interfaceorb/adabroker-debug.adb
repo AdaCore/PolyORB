@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -98,8 +98,6 @@ begin
 
    exception
       when others =>
-         pragma Debug
-           (Put_Line ("** No debugging options file : " & Filename & " **"));
       null;
    end;
 end AdaBroker.Debug;
