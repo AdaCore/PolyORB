@@ -211,7 +211,8 @@ package System.Garlic.Heart is
      (Partition : in Types.Partition_ID;
       Operation : in Opcode;
       Params    : access Streams.Params_Stream_Type);
-   --  Send something to a remote partition
+   --  Send something to a remote partition after calling the appropriate
+   --  filter.
 
    procedure Receive
      (Operation : in Opcode;
@@ -220,9 +221,10 @@ package System.Garlic.Heart is
    --  receiver will have to read the Params_Stream_Type before returning.
 
    procedure Has_Arrived
-     (Partition : in Types.Partition_ID;
-      Data      : in Ada.Streams.Stream_Element_Array);
-   --  Called by a protocol to signal that something has arrived
+     (Partition     : in Types.Partition_ID;
+      Filtered_Data : in Ada.Streams.Stream_Element_Array);
+   --  Called by a protocol to signal that something has arrived. Data has
+   --  not been unfiltered yet.
 
    ----------------
    -- PID server --
