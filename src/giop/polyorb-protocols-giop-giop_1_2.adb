@@ -457,7 +457,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                Handle_Unmarshall_Arguments (S, Args);
 
             else
-               pragma Debug (O ("Unmarshalling of arguments deffered"));
+               pragma Debug (O ("Unmarshalling of arguments deferred"));
                Def_Args := Component_Access (S);
 
             end if;
@@ -484,14 +484,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             Create_Reference ((1 => Target_Addr.Profile), "", Target);
 
             Def_Args := Component_Access (S);
-            --  XXX By default, we do deffered unmarshalling, we
+            --  XXX By default, we do deferred unmarshalling, we
             --  have no way to get servant signature.
 
          when Reference_Addr =>
             Target := References.Ref (Target_Addr.Ref.IOR);
 
             Def_Args := Component_Access (S);
-            --  XXX By default, we do deffered unmarshalling, we
+            --  XXX By default, we do deferred unmarshalling, we
             --  have no way to get servant signature.
       end case;
 

@@ -288,7 +288,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
            (S, Args);
 
       else
-         pragma Debug (O ("Unmarshalling of arguments deffered"));
+         pragma Debug (O ("Unmarshalling of arguments deferred"));
          S.State := Waiting_Unmarshalling;
          Def_Args := Component_Access (S);
       end if;
