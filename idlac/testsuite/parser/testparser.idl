@@ -61,7 +61,7 @@ valuetype forward_value;
 valuetype forward_value long;
 valuetype toto long;
 valuetype rightboxedvalue long;
-valuetype FooSeq sequence <FooSeq>;
+//valuetype FooSeq sequence <FooSeq>;
 
 /* Test of rule 19 */
 /* test errors */

@@ -435,6 +435,7 @@ package body Idl_Fe.Types is
       Table_Low_Bound => Nil_Uniq_Id + 1, Table_Initial => 256,
       Table_Increment => 100);
 
+
    ------------
    --  Hash  --
    -------------
@@ -498,6 +499,14 @@ package body Idl_Fe.Types is
       return Current_Scope.Scope;
    end Get_Current_Scope;
 
+   -------------------------
+   --  Get_Current_Scope  --
+   -------------------------
+   function Get_Previous_Scope return N_Scope_Acc is
+   begin
+      return Current_Scope.Parent.Scope;
+   end Get_Previous_Scope;
+
    ------------------
    --  Push_Scope  --
    ------------------
@@ -535,7 +544,6 @@ package body Idl_Fe.Types is
          Id_Table.Table (Definition_List.Definition.Id).Definition :=
            Definition_List.Definition.Previous_Definition;
          --  memory leak
-         --  FIXME >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
          if Definition_List.Definition.Previous_Definition = null then
             Hash_Index := Hash (Definition_List.Definition.Name.all)
               mod Hash_Mod;
@@ -753,6 +761,7 @@ package body Idl_Fe.Types is
       Id_Table.Table (Index).Definition := Definition;
       Add_Identifier_Definition (Current_Scope.Scope.all, Definition.all);
       Node.Definition := Definition;
+      pragma Debug (O ("Add_Identifier : end"));
       return True;
    end Add_Identifier;
 
@@ -878,11 +887,15 @@ package body Idl_Fe.Types is
       Index : Uniq_Id;
       Scope : N_Imports_Acc;
    begin
-      if Get_Kind (Current_Scope.Scope.all) = K_Repository or
-        Get_Kind (Current_Scope.Scope.all) = K_Module then
+      if Current_Scope.Scope.all not in N_Imports'Class then
          return Nil_Uniq_Id;
       end if;
-
+      --      pragma Debug (O ("Check_Imported_Identifier : current_scope_is "
+      --                     & Current_Scope.Scope.Definition.Name.all));
+      if Get_Kind (Current_Scope.Scope.all) = K_Interface then
+         null;
+         pragma Debug (O ("Check_Imported_Identifier : is interface "));
+      end if;
       Scope := N_Imports_Acc (Current_Scope.Scope);
       Index := Scope.Imported_Table.Hash_Table (Hash_Index);
       if Index /= Nil_Uniq_Id then
@@ -914,8 +927,7 @@ package body Idl_Fe.Types is
       Scope : N_Imports_Acc;
    begin
       --  there is no imports in moduls types
-      if Get_Kind (Current_Scope.Scope.all) = K_Repository or
-        Get_Kind (Current_Scope.Scope.all) = K_Module then
+      if Current_Scope.Scope.all not in N_Imports'Class then
          return null;
       end if;
 
@@ -931,20 +943,13 @@ package body Idl_Fe.Types is
    --------------------------------------
    --  Create_Indentifier_In_Imported  --
    --------------------------------------
-   function Create_Identifier_In_Imported (Identifier : String)
-                                          return Uniq_Id is
+   function Create_Identifier_In_Imported (Identifier : String;
+                                           Scope : N_Imports_Acc)
+                                           return Uniq_Id is
       use Idl_Fe.Lexer;
       Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id;
-      Scope : N_Imports_Acc;
    begin
-      --  check if we are in value type or interfaces (we should be);
-      if Get_Kind (Current_Scope.Scope.all) = K_Repository or
-        Get_Kind (Current_Scope.Scope.all) = K_Module then
-         raise Idl_Fe.Errors.Internal_Error;
-      end if;
-
-      Scope := N_Imports_Acc (Current_Scope.Scope);
       Index := Scope.Imported_Table.Hash_Table (Hash_Index);
       if Index = Nil_Uniq_Id then
          Increment_Last (Scope.Imported_Table.Content_Table);
@@ -980,28 +985,27 @@ package body Idl_Fe.Types is
    --  Add_Definition_To_Imported --
    --------------------------------
    procedure Add_Definition_To_Imported
-     (Definition : in Identifier_Definition_Acc) is
+     (Definition : in Identifier_Definition_Acc; Scope : in N_Scope_Acc) is
       Index : Uniq_Id;
       Definition_Test : Identifier_Definition_Acc;
-      Scope : N_Imports_Acc;
+      Scope_Im : N_Imports_Acc;
    begin
       --  check if we are in value type or interfaces (we should be);
-      if Get_Kind (Current_Scope.Scope.all) = K_Repository or
-        Get_Kind (Current_Scope.Scope.all) = K_Module then
+      if Scope.all not in N_Imports'Class then
          return;
       end if;
 
-      Scope := N_Imports_Acc (Current_Scope.Scope);
-      Index := Create_Identifier_In_Imported (Definition.Name.all);
+      Scope_Im := N_Imports_Acc (Scope);
+      Index := Create_Identifier_In_Imported (Definition.Name.all, Scope_Im);
       Definition_Test :=
-        Scope.Imported_Table.Content_Table.Table (Index).Definition;
+        Scope_Im.Imported_Table.Content_Table.Table (Index).Definition;
       if Definition_Test /= null then
          if Definition_Test /= Definition then
             raise Idl_Fe.Errors.Internal_Error;
             return;
          end if;
       end if;
-      Scope.Imported_Table.Content_Table.
+      Scope_Im.Imported_Table.Content_Table.
         Table (Index).Definition := Definition;
       return;
    end Add_Definition_To_Imported;
@@ -1046,8 +1050,7 @@ package body Idl_Fe.Types is
       First_List : Node_List := null;
    begin
       --  there is no imports in moduls types
-      if Get_Kind (Current_Scope.Scope.all) = K_Repository or
-        Get_Kind (Current_Scope.Scope.all) = K_Module then
+      if Current_Scope.Scope.all not in N_Imports'Class then
          return null;
       end if;
       Find_Identifier_In_Inheritance (Name,

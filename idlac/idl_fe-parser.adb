@@ -579,7 +579,9 @@ package body Idl_Fe.Parser is
          Definition := Find_Identifier_Definition (Get_Token_String);
          --  Is there a previous definition and in the same scope !
          if Definition /= null
-           and then Definition.Parent_Scope = Get_Current_Scope then
+           and then (Definition.Parent_Scope = Get_Current_Scope or
+           Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id)
+         then
             --  is it a forward declaration
             if Get_Kind (Definition.Node.all) = K_Forward_Interface then
                --  Check if they are both of the same abstract kind
@@ -704,33 +706,16 @@ package body Idl_Fe.Parser is
       return;
    end Parse_Interface;
 
-
-   ----------------------------
-   --  Parse_Interface_Body  --
-   ----------------------------
-   procedure Parse_Interface_Body (List : in out Node_List;
-                                   Success : out Boolean) is
-      Ite : Node_Iterator;
-   begin
-      Init (Ite, List);
-      Success := True;
---       loop
---          exit when Token = T_Right_Cbracket;
---          Parse_Export (List);
---       end loop;
-   end Parse_Interface_Body;
-
-
    --------------------
    --  Parse_Export  --
    --------------------
    procedure Parse_Export (Result : out N_Root_Acc;
                            Success : out Boolean) is
    begin
-      Result := null;
-      Success := True;
---       case Token is
---          when T_Readonly | T_Attribute =>
+      --      Result := null;
+--      Success := True;
+      case Get_Token is
+         --          when T_Readonly | T_Attribute =>
 --             Parse_Attr_Dcl (List);
 --          when T_Oneway | T_Void | T_Colon_Colon | T_Identifier |
 --            T_Short | T_Long | T_Float | T_Double | T_Unsigned |
@@ -741,27 +726,50 @@ package body Idl_Fe.Parser is
 --             return;
 --          when T_Exception =>
 --             Append_Node (List, N_Root_Acc (Parse_Except_Dcl));
---          when T_Union =>
---             Append_Node (List, N_Root_Acc (Parse_Union_Type));
---          when T_Struct =>
---             Append_Node (List, N_Root_Acc (Parse_Struct_Type));
---          when T_Enum =>
---             Append_Node (List, N_Root_Acc (Parse_Enum_Type));
---          when T_Typedef =>
---             Append_Node (List, Parse_Type_Dcl);
---          when others =>
---             Idl_Fe.Errors.Parser_Error
---               ("declaration of an operation expected",
---                                  Idl_Fe.Errors.Error);
---             raise Parse_Error;
---       end case;
---       if Token /= T_Semi_Colon then
---          Idl_Fe.Errors.Parser_Error ("`;' expected here, found "
---                               & Idl_Token'Image (Token),
---                               Idl_Fe.Errors.Error);
---       else
---          Next_Token;
---       end if;
+         when T_Union =>
+            declare
+               Result_Union : N_Union_Acc;
+            begin
+               Parse_Union_Type (Result_Union, Success);
+               Result := N_Root_Acc (Result_Union);
+            end;
+         when T_Struct =>
+            declare
+               Result_Struct : N_Struct_Acc;
+            begin
+               Parse_Struct_Type (Result_Struct, Success);
+               Result := N_Root_Acc (Result_Struct);
+            end;
+         when T_Enum =>
+            declare
+               Result_Enum : N_Enum_Acc;
+            begin
+               Parse_Enum_Type (Result_Enum, Success);
+               Result := N_Root_Acc (Result_Enum);
+            end;
+         when T_Typedef =>
+            Parse_Type_Dcl (Result, Success);
+         when others =>
+            Idl_Fe.Errors.Parser_Error
+              ("declaration of an operation expected",
+               Idl_Fe.Errors.Error,
+               Get_Token_Location);
+            Success := False;
+            Result := null;
+            return;
+      end case;
+      if Get_Token /= T_Semi_Colon then
+         declare
+            Loc : Idl_Fe.Errors.Location;
+         begin
+            Loc := Get_Token_Location;
+            Loc.Col := Loc.Col + Get_Previous_Token_String'Length + 1;
+            Idl_Fe.Errors.Parser_Error ("`;' expected",
+                                        Idl_Fe.Errors.Error,
+                                        Loc);
+         end;
+      end if;
+      Next_Token;
    end Parse_Export;
 
    --------------------------------
@@ -828,6 +836,30 @@ package body Idl_Fe.Parser is
    end Parse_Interface_Dcl_End;
 
 
+
+   ----------------------------
+   --  Parse_Interface_Body  --
+   ----------------------------
+   procedure Parse_Interface_Body (List : in out Node_List;
+                                   Success : out Boolean) is
+      Export_Success : Boolean;
+      Result : N_Root_Acc;
+   begin
+      Success := True;
+      loop
+         exit when Get_Token = T_Right_Cbracket;
+         Parse_Export (Result, Export_Success);
+
+         if not Export_Success then
+            Go_To_Next_Export;
+         else
+            pragma Debug (O ("Parse_Interface_Body : Export_Success = True"));
+            Append_Node (List, Result);
+         end if;
+      end loop;
+   end Parse_Interface_Body;
+
+
    -------------------------
    --  Parse_Scoped_Name  --
    -------------------------
@@ -873,9 +905,25 @@ package body Idl_Fe.Parser is
             end;
          end if;
          Next_Token;
-         --  we should import this identifier if it is not in the scope
-         if Get_Current_Scope /= Get_Definition (Name).Parent_Scope then
-            Add_Definition_To_Imported (Get_Definition (Name));
+         --  we should perhaps import this identifier :
+         --  first we should look at the current scope.
+         --  If it is a Struct, Union, Operation or Exception
+         --  we should import it in the parent scope of the
+         --  current scope if necessary;
+         --  else we should import it in the current scope.
+         --  If it is a module or repository, the
+         --  add function won't do anything
+         if Get_Current_Scope.all not in N_Forward'Class and
+           Get_Current_Scope.all not in N_Imports'Class then
+            if Get_Previous_Scope /= Get_Definition (Name).Parent_Scope then
+               Add_Definition_To_Imported (Get_Definition (Name),
+                                           Get_Previous_Scope);
+            end if;
+         else
+            if Get_Current_Scope /= Get_Definition (Name).Parent_Scope then
+               Add_Definition_To_Imported (Get_Definition (Name),
+                                           Get_Current_Scope);
+            end if;
          end if;
          if Get_Token /= T_Colon_Colon then
             Res.Value := Name;
@@ -1216,7 +1264,8 @@ package body Idl_Fe.Parser is
       Definition := Find_Identifier_Definition (Get_Token_String);
       --  Is there a previous definition and in the same scope ?
       if Definition /= null
-        and then Definition.Parent_Scope = Get_Current_Scope then
+        and then (Definition.Parent_Scope = Get_Current_Scope or
+        Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id) then
          --  There was probably a forward declaration
          if Get_Kind (Definition.Node.all) = K_Forward_ValueType then
             declare
@@ -1324,7 +1373,8 @@ package body Idl_Fe.Parser is
       Definition := Find_Identifier_Definition (Get_Token_String);
       --  Is there a previous definition and in the same scope ?
       if Definition /= null
-        and then Definition.Parent_Scope = Get_Current_Scope then
+        and then (Definition.Parent_Scope = Get_Current_Scope or
+        Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id) then
          --  There was probably a previous forward declaration
          if Get_Kind (Definition.Node.all) = K_Forward_ValueType then
             --  nothing to do : this new forward declaration is useless
@@ -1370,7 +1420,8 @@ package body Idl_Fe.Parser is
       Definition := Find_Identifier_Definition (Get_Token_String);
       --  Is there a previous definition and in the same scope ?
       if Definition /= null
-        and then Definition.Parent_Scope = Get_Current_Scope then
+        and then (Definition.Parent_Scope = Get_Current_Scope or
+        Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id) then
          --  There was probably a previous forward declaration
          if Get_Kind (Definition.Node.all) = K_Forward_ValueType then
             Idl_Fe.Errors.Parser_Error
@@ -1843,7 +1894,8 @@ package body Idl_Fe.Parser is
       Definition := Find_Identifier_Definition (Get_Token_String);
       --  Is there a previous definition and in the same scope ?
       if Definition /= null
-        and then Definition.Parent_Scope = Get_Current_Scope then
+        and then (Definition.Parent_Scope = Get_Current_Scope or
+        Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id) then
          Idl_Fe.Errors.Parser_Error
            ("The identifier used for this initializer is already "
             & "defined in the same scope : " &
@@ -2040,7 +2092,9 @@ package body Idl_Fe.Parser is
          Definition := Find_Identifier_Definition (Get_Token_String);
          --  Is there a previous definition and in the same scope ?
          if Definition /= null
-           and then Definition.Parent_Scope = Get_Current_Scope then
+           and then (Definition.Parent_Scope = Get_Current_Scope or
+           Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id)
+         then
             Idl_Fe.Errors.Parser_Error
               ("This identifier is already used in this scope : " &
                Idl_Fe.Errors.Display_Location
@@ -3453,6 +3507,8 @@ package body Idl_Fe.Parser is
             Parse_Simple_Declarator (Result, Success);
          end if;
       end if;
+      --  >>>>>>>>>>>>>>>>>>>>>>> Vince added it
+      Next_Token;
       return;
    end Parse_Declarator;
 
@@ -3472,9 +3528,11 @@ package body Idl_Fe.Parser is
       else
          --  try to find a previous definition
          Definition := Find_Identifier_Definition (Get_Token_String);
-         --  Is there a previous definition and in the same scope ?
+         --  Is there in a previous definition and in the same scope ?
          if Definition /= null
-           and then Definition.Parent_Scope = Get_Current_Scope then
+           and then (Definition.Parent_Scope = Get_Current_Scope or
+           Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id)
+         then
             Idl_Fe.Errors.Parser_Error
               ("This identifier is already used in this scope : " &
                Idl_Fe.Errors.Display_Location
@@ -3780,7 +3838,9 @@ package body Idl_Fe.Parser is
          Definition := Find_Identifier_Definition (Get_Token_String);
          --  Is there a previous definition and in the same scope ?
          if Definition /= null
-           and then Definition.Parent_Scope = Get_Current_Scope then
+           and then (Definition.Parent_Scope = Get_Current_Scope or
+           Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id)
+         then
             Idl_Fe.Errors.Parser_Error
               ("This identifier is already used in this scope : " &
                Idl_Fe.Errors.Display_Location
@@ -3826,7 +3886,8 @@ package body Idl_Fe.Parser is
          return;
       end if;
       if not Add_Identifier (Result, Name.all) then
-         --  the error was raised before
+         --  the error was raised before <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+         Success := False;
          null;
       end if;
       Free_String_Ptr (Name);
@@ -3838,6 +3899,8 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       end if;
+      Next_Token;
+      return;
    end Parse_Struct_Type;
 
 
@@ -3900,6 +3963,8 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       end if;
+      --  to eat the semi-colon
+      Next_Token;
       return;
    end Parse_Member;
 
@@ -3932,7 +3997,9 @@ package body Idl_Fe.Parser is
          Definition := Find_Identifier_Definition (Get_Token_String);
          --  Is there a previous definition and in the same scope ?
          if Definition /= null
-           and then Definition.Parent_Scope = Get_Current_Scope then
+           and then (Definition.Parent_Scope = Get_Current_Scope or
+           Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id)
+         then
             Idl_Fe.Errors.Parser_Error
               ("This identifier is already used in this scope : " &
                Idl_Fe.Errors.Display_Location
@@ -4030,6 +4097,7 @@ package body Idl_Fe.Parser is
       end if;
       if not Add_Identifier (Result, Name.all) then
          --  the error was raised before
+         Success := False;
          null;
       end if;
       Free_String_Ptr (Name);
@@ -4332,7 +4400,9 @@ package body Idl_Fe.Parser is
          Definition := Find_Identifier_Definition (Get_Token_String);
          --  Is there a previous definition and in the same scope ?
          if Definition /= null
-           and then Definition.Parent_Scope = Get_Current_Scope then
+           and then (Definition.Parent_Scope = Get_Current_Scope or
+           Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id)
+         then
             Idl_Fe.Errors.Parser_Error
               ("This identifier is already used in this scope : " &
                Idl_Fe.Errors.Display_Location
@@ -4436,7 +4506,9 @@ package body Idl_Fe.Parser is
          Definition := Find_Identifier_Definition (Get_Token_String);
          --  Is there a previous definition and in the same scope ?
          if Definition /= null
-           and then Definition.Parent_Scope = Get_Current_Scope then
+           and then (Definition.Parent_Scope = Get_Current_Scope or
+           Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id)
+         then
             Idl_Fe.Errors.Parser_Error
               ("This identifier is already used in this scope : " &
                Idl_Fe.Errors.Display_Location
@@ -4596,7 +4668,9 @@ package body Idl_Fe.Parser is
       Definition := Find_Identifier_Definition (Get_Token_String);
       --  Is there a previous definition and in the same scope ?
       if Definition /= null
-        and then Definition.Parent_Scope = Get_Current_Scope then
+        and then (Definition.Parent_Scope = Get_Current_Scope or
+        Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id)
+      then
          Idl_Fe.Errors.Parser_Error
            ("This identifier is already used in this scope : " &
             Idl_Fe.Errors.Display_Location
@@ -4712,7 +4786,9 @@ package body Idl_Fe.Parser is
             Definition := Find_Identifier_Definition (Get_Token_String);
             --  Is there a previous definition and in the same scope ?
             if Definition /= null
-              and then Definition.Parent_Scope = Get_Current_Scope then
+              and then (Definition.Parent_Scope = Get_Current_Scope or
+             Check_Imported_Identifier_Index (Get_Token_String) /= Nil_Uniq_Id)
+            then
                Idl_Fe.Errors.Parser_Error
                  ("This identifier is already used in this scope : " &
                   Idl_Fe.Errors.Display_Location
@@ -6260,7 +6336,13 @@ package body Idl_Fe.Parser is
    -------------------------
    procedure Go_To_Next_Export is
    begin
-      null;
+      while Get_Token /= T_Eof and Get_Token /= T_Semi_Colon
+        and Get_Token /= T_Right_Cbracket loop
+         Next_Token;
+      end loop;
+      if Get_Token /= T_Right_Cbracket then
+         Next_Token;
+      end if;
    end Go_To_Next_Export;
 
    --------------------------------
@@ -6297,7 +6379,13 @@ package body Idl_Fe.Parser is
    -------------------------
    procedure Go_To_Next_Member is
    begin
-      null;
+      while Get_Token /= T_Eof and Get_Token /= T_Semi_Colon
+        and Get_Token /= T_Right_Cbracket loop
+         Next_Token;
+      end loop;
+      if Get_Token /= T_Right_Cbracket then
+         Next_Token;
+      end if;
    end Go_To_Next_Member;
 
    -------------------------

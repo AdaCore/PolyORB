@@ -296,6 +296,9 @@ package Idl_Fe.Types is
    function Get_Root_Scope return N_Scope_Acc;
    function Get_Current_Scope return N_Scope_Acc;
 
+   --  Get the scope of the current scope
+   function Get_Previous_Scope return N_Scope_Acc;
+
    --  Create a new scope, defined by a N_scope node, add it in
    --  the current scope, and activate it.
    procedure Push_Scope (Scope : access N_Scope'Class);
@@ -391,14 +394,17 @@ package Idl_Fe.Types is
    function Find_Imported_Identifier_Definition (Name : String)
                                           return Identifier_Definition_Acc;
 
-   --  Create the uniq_id entry for an identifier in the imported table
+   --  Create the uniq_id entry for an identifier in the imported table of
+   --  the given scope
    --  return it
-   function Create_Identifier_In_Imported (Identifier : String) return Uniq_Id;
+   function Create_Identifier_In_Imported (Identifier : String;
+                                           Scope : N_Imports_Acc)
+                                           return Uniq_Id;
 
 
-   --  add the imported definition to the current scope imported table.
+   --  add the imported definition to the given scope imported table.
    procedure Add_Definition_To_Imported
-     (Definition : in Identifier_Definition_Acc);
+     (Definition : in Identifier_Definition_Acc; Scope : in N_Scope_Acc);
 
    --  Find the identifier in the scope's parents (in each one recursively)
    --  add the different definitions to the node list

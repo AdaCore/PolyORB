@@ -73,10 +73,8 @@ package body Idl_Fe.Display_Tree is
 
       case Get_Kind (N) is
          when K_Scoped_Name =>
---             Put_Line
---               ("scoped name: " & Get_Name (N_Scoped_Name (N).Value.all));
-            Put_Line ("Scoped Name");
-
+            Put_Line
+              ("scoped name: " & Get_Name (N_Scoped_Name (N).Value.all));
          when K_Repository =>
             Put_Line ("repository");
             Disp_List (N_Repository (N).Contents, N_Indent, Full);
@@ -91,26 +89,26 @@ package body Idl_Fe.Display_Tree is
                Put ("abstract ");
             end if;
             Put_Line ("interface " & Get_Name (N_Interface (N)));
---             if Full then
---                if N_Interface (N).Parents /= Nil_List then
---                   Disp_Indent (N_Indent);
---                   Put_Line ("base:");
---                   Disp_List (N_Interface (N).Parents, N_Indent, False);
---                end if;
---                Disp_List (N_Interface (N).Contents, N_Indent, Full);
---             end if;
+            if Full then
+               if N_Interface (N).Parents /= Nil_List then
+                  Disp_Indent (N_Indent);
+                  Put_Line ("base:");
+                  Disp_List (N_Interface (N).Parents, N_Indent, False);
+               end if;
+            end if;
+            Disp_List (N_Interface (N).Contents, N_Indent, Full);
          when K_Forward_Interface =>
             if N_Forward_Interface (N).Abst then
                Put ("abstract ");
             end if;
-               if N_Forward_Interface (N).Forward /= null then
-                  Put_Line ("forward interface "
-                            & Get_Name (N_Forward_Interface (N).Forward.all)
-                            );
-               else
-                  Put_Line ("forward interface (never declared!!) "
-                            & Get_Name (N_Forward_Interface (N)));
-               end if;
+            if N_Forward_Interface (N).Forward /= null then
+               Put_Line ("forward interface "
+                         & Get_Name (N_Forward_Interface (N).Forward.all)
+                         );
+            else
+               Put_Line ("forward interface (never declared!!) "
+                         & Get_Name (N_Forward_Interface (N)));
+            end if;
 
          when K_ValueType =>
             Put_Line ("valuetype " & Get_Name (N_ValueType (N)));
