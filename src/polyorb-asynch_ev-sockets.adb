@@ -112,12 +112,12 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    begin
       Empty (R_Set);
+      Empty (W_Set);
       for I in Monitored_Set'Range loop
          S := Socket_Event_Source (Monitored_Set (I).all).Socket;
          Set (R_Set, S);
          pragma Debug (O ("Monitoring socket" & Image (S)));
       end loop;
-      Empty (W_Set);
 
       if T = Constants.Forever then
          --  Convert special value of Timeout.
@@ -149,6 +149,12 @@ package body PolyORB.Asynch_Ev.Sockets is
          end loop;
          pragma Assert (Last >= Result'First);
       end if;
+
+      --  Free the storage space associated with our socket sets.
+
+      Empty (R_Set);
+      Empty (W_Set);
+
       return Result (1 .. Last);
 
    end Check_Sources;
