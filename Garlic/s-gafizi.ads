@@ -47,25 +47,19 @@ private
 
    type Compress_Filter_Type is new Filter_Type with null record;
 
-   type Compress_Filter_Params is new Filter_Params with null record;
-
-   function Filter_Outgoing
-     (Filter   : in     Compress_Filter_Type;
-      F_Params : in     Filter_Params_Access;
-      Stream   : access System.RPC.Params_Stream_Type)
-     return Streams.Stream_Element_Access;
+   type Compress_Filter_Params_Type is new Filter_Params_Type with null record;
 
    function Filter_Incoming
-      (Filter   : in Compress_Filter_Type;
-       F_Params : in Filter_Params_Access;
-       Stream   : in Ada.Streams.Stream_Element_Array)
+      (Filter : in Compress_Filter_Type;
+       Params : in Filter_Params_Access;
+       Stream : in Ada.Streams.Stream_Element_Array)
       return Streams.Stream_Element_Access;
 
-   procedure Generate_Params
-      (Filter                : in  Compress_Filter_Type;
-       F_Params              : out Filter_Params_Access;
-       Private_F_Params      : out Filter_Params_Access;
-       Needs_Params_Exchange : out Boolean);
+   function Filter_Outgoing
+     (Filter : in     Compress_Filter_Type;
+      Params : in     Filter_Params_Access;
+      Stream : access System.RPC.Params_Stream_Type)
+     return Streams.Stream_Element_Access;
 
    function Filter_Params_Read
       (Filter : Compress_Filter_Type;
@@ -74,12 +68,20 @@ private
 
    function Filter_Params_Write
       (Filter : Compress_Filter_Type;
-       P      : Filter_Params_Access)
+       Params : Filter_Params_Access)
       return Streams.Stream_Element_Access;
+
+   procedure Free
+     (Params  : in     Compress_Filter_Params_Type;
+      Pointer : in out Filter_Params_Access);
+
+   procedure Generate_Params
+      (Filter          : in  Compress_Filter_Type;
+       Public_Params   : out Filter_Params_Access;
+       Private_Params  : out Filter_Params_Access;
+       Exchange_Params : out Boolean);
 
    function Get_Name (Filter : Compress_Filter_Type)
       return String;
-
-   procedure Print_Params (P : Compress_Filter_Params);
 
 end System.Garlic.Filters.Zip;

@@ -37,36 +37,17 @@
 -- GARLIC  developed at  the  Software Engineering Laboratory of the  Swiss --
 -- Federal Institute of Technology in Lausanne (EPFL).                      --
 
-with System.Garlic.Filters;
-pragma Elaborate_All (System.Garlic.Filters);
+with Ada.Streams;           use Ada.Streams;
 
-with System.Garlic.Debug;
-with System.Garlic.Utils;
-with System.RPC;
-with Ada.Streams;
 with Interfaces.C;
 
-use Ada.Streams;
-
-use System.Garlic.Debug;
-use System.Garlic.Utils;
-use System.RPC;
+with System.Garlic.Filters;
+pragma Elaborate_All (System.Garlic.Filters);
+with System.Garlic.Streams; use System.Garlic.Streams;
 
 package body System.Garlic.Filters.Zip is
 
-   Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("FILTER", "(s-gafizi): ");
-
-   procedure D
-     (Level   : in Debug_Level;
-      Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
-     renames Print_Debug_Info;
-
-   use System.Garlic.Streams;
-
    package C renames Interfaces.C;
-
    use C;
 
    package Zipper is
@@ -89,137 +70,146 @@ package body System.Garlic.Filters.Zip is
 
    use Zipper;
 
-   Compressor        : aliased Compress_Filter_Type;
-   Compressor_Params : aliased Compress_Filter_Params;
+   Compressor   : aliased Compress_Filter_Type;
 
-   Bytes_Per_SE : constant := Stream_Element'Size / System.Storage_Unit;
-
-   function Filter_Outgoing
-      (Filter   : in     Compress_Filter_Type;
-       F_Params : in     Filter_Params_Access;
-       Stream   : access System.RPC.Params_Stream_Type)
-      return Stream_Element_Access is
-
-      dest_len   : Stream_Element_Offset;
-      dest_bytes,
-      src_bytes  : C.long;
-      Buf        : Stream_Element_Access := To_Stream_Element_Access (Stream);
-
-   begin
-      src_bytes  := Buf'Length;
-      dest_bytes := ((src_bytes + 12) * 11) / 10;
-      dest_len   := Stream_Element_Offset (dest_bytes);
-      declare
-         Result : Stream_Element_Access :=
-           new Stream_Element_Array (1 .. dest_len + 4);
-         res    : C.int;
-         len    : Integer;
-         Ret    : Stream_Element_Access;
-      begin
-         D (D_Debug, "Compressing" & src_bytes'Img & " bytes");
-         if src_bytes = 0 then
-            dest_bytes := 0;
-         else
-            res := Compress (Result (5)'Address, dest_bytes'Address,
-                             Buf (Buf'First)'Address, src_bytes);
-         end if;
-         dest_len := Stream_Element_Offset (dest_bytes);
-         D (D_Debug, "Compressed to" & dest_bytes'Img & " bytes");
-
-         len := Buf.all'Length;
-         D (D_Debug, "Stream length =" & dest_len'Img);
-
-         for I in Stream_Element_Offset range 1 .. 4 loop
-            Result (I) := Stream_Element (len mod 256);
-            len        := len / 256;
-         end loop;
-         Ret := new Stream_Element_Array'(Result (1 .. dest_len + 4));
-         Free (Result);
-         Free (Buf);
-         return Ret;
-      end;
-   end Filter_Outgoing;
+   ---------------------
+   -- Filter_Incoming --
+   ---------------------
 
    function Filter_Incoming
-      (Filter   : in Compress_Filter_Type;
-       F_Params : in Filter_Params_Access;
-       Stream   : in Ada.Streams.Stream_Element_Array)
+      (Filter : in Compress_Filter_Type;
+       Params : in Filter_Params_Access;
+       Stream : in Ada.Streams.Stream_Element_Array)
       return Stream_Element_Access is
-
-      Len : Stream_Element_Offset := 0;
+      Target_Length : Stream_Element_Offset := 0;
+      Target_Buffer : Stream_Element_Access;
+      target_bytes  : C.long;
+      source_bytes  : C.long;
+      result        : C.int;
 
    begin
-      D (D_Debug, "Incoming length " & Stream'Length'Img);
-      for I in reverse Stream_Element_Offset
-                          range Stream'First .. Stream'First + 4 - 1
-      loop
-         Len := Len * 256 + Stream_Element_Offset (Stream (I));
+      for I in reverse Stream'First .. Stream'First + 3 loop
+         Target_Length :=
+           Target_Length * 256 + Stream_Element_Offset (Stream (I));
       end loop;
-      D (D_Debug, "Decompressing: stream length" & Len'Img);
-      declare
-         Result    : constant Stream_Element_Access :=
-           new Stream_Element_Array (1 .. Len);
-         res       : C.int;
-         res_bytes : C.long := C.long (Len);
-         src_bytes : C.long := Stream'Length;
-      begin
-         if Len > 0 then
-            D (D_Debug, "Decompressing" & src_bytes'Img & " bytes");
-            res := Decompress
-                      (Result (1)'Address, res_bytes'Address,
-                       Stream (Stream'First + 4)'Address, src_bytes - 4);
-            D (D_Debug, "Decompressed length =" & res_bytes'Img);
-         end if;
-         return Result;
-      end;
+      Target_Buffer := new Stream_Element_Array (1 .. Target_Length);
+      if Target_Length > 0 then
+         source_bytes := Stream'Length - 4;
+         result := Decompress
+           (Target_Buffer (Target_Buffer'First)'Address, target_bytes'Address,
+            Stream (Stream'First + 4)'Address, source_bytes);
+      end if;
+      return Target_Buffer;
    end Filter_Incoming;
 
-   procedure Generate_Params
-      (Filter                : in  Compress_Filter_Type;
-       F_Params              : out Filter_Params_Access;
-       Private_F_Params      : out Filter_Params_Access;
-       Needs_Params_Exchange : out Boolean) is
+   ---------------------
+   -- Filter_Outgoing --
+   ---------------------
+
+   function Filter_Outgoing
+      (Filter : in     Compress_Filter_Type;
+       Params : in     Filter_Params_Access;
+       Stream : access System.RPC.Params_Stream_Type)
+      return Stream_Element_Access is
+      Source_Length : Stream_Element_Offset;
+      Target_Length : Stream_Element_Offset;
+      target_bytes,
+      source_bytes  : C.long;
+      Source_Buffer : Stream_Element_Access;
+      Target_Buffer : Stream_Element_Access;
+      result        : C.int;
+      Result_Buffer : Stream_Element_Access;
+
    begin
-      F_Params              := Compressor_Params'Access;
-      Private_F_Params      := Compressor_Params'Access;
-      Needs_Params_Exchange := false;
-   end Generate_Params;
+      Source_Buffer := To_Stream_Element_Access (Stream);
+      source_bytes  := Source_Buffer'Length;
+      Source_Length := Stream_Element_Offset (source_bytes);
+
+      target_bytes  := ((source_bytes + 12) * 11) / 10;
+      Target_Length := Stream_Element_Offset (target_bytes);
+      Target_Buffer := new Stream_Element_Array (1 .. Target_Length + 4);
+
+      if source_bytes = 0 then
+         target_bytes := 0;
+      else
+         result := Compress
+           (Target_Buffer (5)'Address, target_bytes'Address,
+            Source_Buffer (Source_Buffer'First)'Address, source_bytes);
+      end if;
+      Target_Length := Stream_Element_Offset (target_bytes);
+      for I in Target_Buffer'First .. Target_Buffer'First + 3 loop
+         Target_Buffer (I) := Stream_Element (Source_Length mod 256);
+         Source_Length     := Source_Length / 256;
+      end loop;
+      Result_Buffer :=
+       new Stream_Element_Array'(Target_Buffer (1 .. Target_Length + 4));
+      Free (Source_Buffer);
+      Free (Target_Buffer);
+      return Result_Buffer;
+   end Filter_Outgoing;
+
+   ------------------------
+   -- Filter_Params_Read --
+   ------------------------
 
    function Filter_Params_Read
       (Filter : Compress_Filter_Type;
        Stream : Stream_Element_Array)
      return Filter_Params_Access is
-      S : aliased Params_Stream_Type (Stream'Length);
-      P : Compress_Filter_Params;
    begin
-      To_Params_Stream_Type (Stream, S'Access);
-      Compress_Filter_Params'Read (S'Access, P);
-      Print_Params (P);
-      return new Compress_Filter_Params'(P);
+      return null;
    end Filter_Params_Read;
 
+   -------------------------
+   -- Filter_Params_Write --
+   -------------------------
 
    function Filter_Params_Write
       (Filter : Compress_Filter_Type;
-       P      : Filter_Params_Access)
+       Params : Filter_Params_Access)
      return Stream_Element_Access is
-      S : aliased Params_Stream_Type (0);
    begin
-      Compress_Filter_Params'Write (S'Access,
-                                    Compress_Filter_Params (P.all));
-      return To_Stream_Element_Access (S'Access);
+      return null;
    end Filter_Params_Write;
 
-   function Get_Name (Filter : Compress_Filter_Type)
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free
+     (Params  : in     Compress_Filter_Params_Type;
+      Pointer : in out Filter_Params_Access) is
+   begin
+      --  Nothing allocated, so nothing to deallocate.
+      null;
+   end Free;
+
+
+   ---------------------
+   -- Generate_Params --
+   ---------------------
+
+   procedure Generate_Params
+      (Filter          : in  Compress_Filter_Type;
+       Public_Params   : out Filter_Params_Access;
+       Private_Params  : out Filter_Params_Access;
+       Exchange_Params : out Boolean) is
+   begin
+      Public_Params   := null;
+      Private_Params  := null;
+      Exchange_Params := False;
+   end Generate_Params;
+
+   --------------
+   -- Get_Name --
+   --------------
+
+   function Get_Name
+     (Filter : Compress_Filter_Type)
      return String is
    begin
-      return "ZIP";
+      return "zip";
    end Get_Name;
-
-   procedure Print_Params (P : Compress_Filter_Params) is
-   begin
-      null;
-   end Print_Params;
 
 begin
    Register_Filter (Compressor'Access);
