@@ -12,11 +12,11 @@ fname=`gnatkr ${name}`.ads
 
 # List of include files to look for (from /usr/include)
 
-incfiles="stdio.h sys/types.h sys/socket.h errno.h netdb.h netinet/in.h signal.h fcntl.h termio.h termios.h sys/file.h sys/ioctl.h netinet/tcp.h sys/systeminfo.h poll.h"
+incfiles="stdio.h sys/types.h sys/socoket.h errno.h netdb.h netinet/in.h signal.h fcntl.h termio.h termios.h sys/file.h sys/ioctl.h netinet/tcp.h sys/systeminfo.h poll.h stropts.h sys/conf.h"
 
 # List of constants we need to know
 
-constants="TCP_NODELAY AF_INET SOCK_STREAM SOCK_DGRAM EINTR EAGAIN EWOULDBLOCK EINPROGRESS EALREADY EISCONN ECONNREFUSED FNDELAY FASYNC-FIOASYNC F_GETFL F_SETFL F_SETOWN-FIOSSAIOOWN SO_RCVBUF SO_REUSEADDR SOL_SOCKET SIGTERM SIGKILL O_RDONLY O_WRONLY O_RDWR HOST_NOT_FOUND TRY_AGAIN NO_RECOVERY NO_DATA NO_ADDRESS POLLIN POLLPRI POLLOUT POLLERR POLLHUP POLLNVAL"
+constants="TCP_NODELAY AF_INET SOCK_STREAM SOCK_DGRAM EINTR EAGAIN EWOULDBLOCK EINPROGRESS EALREADY EISCONN ECONNREFUSED FNDELAY FASYNC-FIOASYNC F_GETFL F_SETFL F_SETOWN-FIOSSAIOOWN SO_RCVBUF SO_REUSEADDR SOL_SOCKET SIGTERM SIGKILL O_RDONLY O_WRONLY O_RDWR HOST_NOT_FOUND TRY_AGAIN NO_RECOVERY NO_DATA NO_ADDRESS POLLIN POLLPRI POLLOUT POLLERR POLLHUP POLLNVAL I_SETSIG S_RDNORM S_WRNORM"
 
 # Debug
 
@@ -26,7 +26,7 @@ debug=$1
 
 tmph=./tmph$$.c
 tmpe=./tmpe$$
-# trap "rm -f ${tmpe} ${tmph}" 0 1 2 3 15
+trap "rm -f ${tmpe} ${tmph}" 0 1 2 3 15
 for i in ${incfiles}; do
   if [ -f "/usr/include/$i" ]; then
     echo "#include <$i>" >> ${tmph}
@@ -88,7 +88,10 @@ void loosecase(char *s)
 main()
 {
   struct cons *i; for (i=list;i->name;i++) {loosecase(i->name);
-  printf("   %-20s : constant := 16#%04X#;\n", i->name, i->value);}
+  if (i->value != -1)
+    printf("   %-20s : constant := 16#%04X#;\n", i->name, i->value);
+  else
+    printf("   %-20s : constant := -1;        --  Unavailable\n", i->name);}
 }
 EOF
 if [ "${debug}" = "-d" ]; then
