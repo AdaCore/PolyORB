@@ -53,13 +53,19 @@ package body System.Garlic.Heart is
    --  This barrier will be no longer blocking when the elaboration is
    --  terminated.
 
+   function Get_Protocol
+     (Partition : Partition_ID)
+      return Protocols.Protocol_Access;
+   pragma Inline (Get_Protocol);
+   --  Return (fast) the protocol of a partition using a cache
+   --  whenever possible.
+
    protected type Local_Partition_ID_Type is
       entry Get (Partition : out Partition_ID);
       procedure Set (Partition : in Partition_ID);
       function Get_Immediately return Partition_ID;
    private
       In_Progress     : Boolean := False;
-      Local_Partition : Partition_ID := Null_Partition_ID;
    end Local_Partition_ID_Type;
    --  Local partition ID.
 
@@ -70,6 +76,9 @@ package body System.Garlic.Heart is
 
    Local_Partition_ID : Local_Partition_ID_Access :=
      new Local_Partition_ID_Type;
+
+   Local_Partition : Partition_ID := Null_Partition_ID;
+   --  Fast version for direct access.
 
    Is_Boot : Boolean;
    --  Set to True if we are on the boot partition.
@@ -105,6 +114,9 @@ package body System.Garlic.Heart is
    --  This acts as a Cache for Partition_Map, this means that if Known
    --  is True for a given partition, there is no need to use the overhead
    --  of the protected type to query a partition location.
+
+   Protocols_Cache : array (Partition_ID) of Protocols.Protocol_Access;
+   --  Copy of the protocol type of the Partition_Map_Cache.
 
    type Partition_Map_Access is access Partition_Map_Type;
    procedure Free is
@@ -302,7 +314,11 @@ package body System.Garlic.Heart is
 
    function Get_My_Partition_ID_Immediately return Partition_ID is
    begin
-      return Local_Partition_ID.Get_Immediately;
+      if Local_Partition = Null_Partition_ID then
+         return Local_Partition_ID.Get_Immediately;
+      else
+         return Local_Partition;
+      end if;
    end Get_My_Partition_ID_Immediately;
 
    ----------------------------
@@ -347,6 +363,25 @@ package body System.Garlic.Heart is
       end if;
       return Data.Location;
    end Get_Partition_Location;
+
+   ------------------
+   -- Get_Protocol --
+   ------------------
+
+   function Get_Protocol (Partition : Partition_ID)
+     return Protocols.Protocol_Access
+   is
+   begin
+      if not Partition_Map_Cache (Partition) .Known then
+         declare
+            Dummy : constant Physical_Location.Location :=
+              Get_Partition_Location (Partition);
+         begin
+            null;
+         end;
+      end if;
+      return Protocols_Cache (Partition);
+   end Get_Protocol;
 
    ---------------------
    -- Handle_Internal --
@@ -595,6 +630,8 @@ package body System.Garlic.Heart is
       begin
          Map (Partition) := Data;
          Partition_Map_Cache (Partition) := Data;
+         Protocols_Cache (Partition) :=
+           Physical_Location.Get_Protocol (Data.Location);
       end Set_Data;
 
       -------------------
@@ -701,10 +738,8 @@ package body System.Garlic.Heart is
       Operation : in Opcode;
       Params    : access System.RPC.Params_Stream_Type)
    is
-      Location  : constant Physical_Location.Location :=
-        Get_Partition_Location (Partition);
       Protocol  : constant Protocols.Protocol_Access :=
-        Physical_Location.Get_Protocol (Location);
+        Get_Protocol (Partition);
       Op_Params : aliased Params_Stream_Type (0);
       use type Ada.Streams.Stream_Element_Array;
    begin

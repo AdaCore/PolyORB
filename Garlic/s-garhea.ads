@@ -107,6 +107,7 @@ package System.Garlic.Heart is
 
    function Get_My_Partition_ID_Immediately
      return System.RPC.Partition_ID;
+   pragma Inline (Get_My_Partition_ID_Immediately);
    --  Return the Partition_ID if it's known otherwise return
    --  Null_Partition_ID.
 

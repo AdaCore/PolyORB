@@ -128,7 +128,7 @@ s-gartcp.o: s-gartcp.adb s-garlic.ads s-garcon.ads s-gardeb.adb s-garhea.adb s-g
 s-garter.o: s-garter.adb s-garlic.ads s-garhea.adb s-garuti.adb s-rpc.adb s-garter.ads s-garlic.ads s-rpc.adb
 s-garthi.o: s-garthi.ads s-garlic.ads s-garcon.ads
 s-garuti.o: s-garuti.adb s-garuti.ads s-garlic.ads s-rpc.adb
-s-gtplsp.o: s-gtplsp.ads s-garlic.ads s-ganobl.adb s-gartcp.adb
+s-gtplsp.o: s-gtplsp.ads s-garlic.ads s-gartcp.adb s-garthi.ads
 s-parint.o: s-parint.adb s-garlic.ads s-gardeb.adb s-garhea.adb s-garter.adb s-rpc.adb s-parint.ads s-partyp.ads s-rpc.adb
 s-partyp.o: s-partyp.ads s-rpc.adb
 s-rpc.o: s-rpc.adb s-garlic.ads s-gardeb.adb s-garhea.adb s-garter.adb s-rpc.ads

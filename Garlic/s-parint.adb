@@ -110,7 +110,10 @@ package body System.Partition_Interface is
 
    Unit_Map : Unit_Map_Access := new Unit_Map_Type;
 
-   function Get_Unit_Info (Name : Unit_Name) return Unit_Info;
+   function Get_Unit_Info
+     (Name        : Unit_Name;
+      Elaboration : Elaboration_Access := null)
+      return Unit_Info;
    --  Get unit info (and retrieve it if needed).
 
    type Name_Opcode is (Get_Unit_Info, Set_Unit_Info);
@@ -176,7 +179,20 @@ package body System.Partition_Interface is
          Done      : out Boolean)
       when True is
       begin
-         raise Program_Error; --  XXXXX Not implemented
+         if RCI_Unit = null then
+            Done      := False;
+
+            --  Those two initializations are needed to not raise
+            --  Constraint_Error.
+
+            Receiver  := null;
+            Partition := Partition_ID'First;
+
+         else
+            Done      := True;
+            Receiver  := Package_Receiver;
+            Partition := Active_Partition;
+         end if;
       end Get_RCI_Data;
 
       ------------------
@@ -185,8 +201,7 @@ package body System.Partition_Interface is
 
       function Get_RCI_Unit return Unit_Name_Access is
       begin
-         raise Program_Error; --  XXXXX Not implemented
-         return null;
+         return RCI_Unit;
       end Get_RCI_Unit;
 
       ---------------------------
@@ -208,7 +223,9 @@ package body System.Partition_Interface is
          Partition : System.RPC.Partition_ID)
       is
       begin
-         raise Program_Error; --  XXXXX Not implemented
+         RCI_Unit         := RCI_Name;
+         Package_Receiver := Receiver;
+         Active_Partition := Partition;
       end Set_RCI_Data;
 
    end Elaboration_Type;
@@ -241,10 +258,17 @@ package body System.Partition_Interface is
    function Get_Active_Partition_ID
      (RCI_Unit    : in Unit_Name_Access;
       Elaboration : in Elaboration_Access)
-      return Partition_ID is
+     return Partition_ID is
+      Receiver  : RPC_Receiver;
+      Partition : Partition_ID;
+      Done      : Boolean;
    begin
-      --  XXXXX Does not use Elaboration
-      return Get_Active_Partition_ID (RCI_Unit.all);
+      Elaboration.Get_RCI_Data (Receiver, Partition, Done);
+      if Done then
+         return Partition;
+      else
+         return Get_Unit_Info (RCI_Unit.all, Elaboration) .Id;
+      end if;
    end Get_Active_Partition_ID;
 
    ------------------------
@@ -282,17 +306,27 @@ package body System.Partition_Interface is
    function Get_RCI_Package_Receiver
      (RCI_Unit    : in Unit_Name_Access;
       Elaboration : in Elaboration_Access)
-      return RPC_Receiver is
+     return RPC_Receiver is
+      Receiver  : RPC_Receiver;
+      Partition : Partition_ID;
+      Done      : Boolean;
    begin
-      --  XXXXX Does not use Elaboration
-      return Get_RCI_Package_Receiver (RCI_Unit.all);
+      Elaboration.Get_RCI_Data (Receiver, Partition, Done);
+      if Done then
+         return Receiver;
+      else
+         return Get_Unit_Info (RCI_Unit.all, Elaboration) .Receiver;
+      end if;
    end Get_RCI_Package_Receiver;
 
    -------------------
    -- Get_Unit_Info --
    -------------------
 
-   function Get_Unit_Info (Name : Unit_Name) return Unit_Info is
+   function Get_Unit_Info
+     (Name        : Unit_Name;
+      Elaboration : Elaboration_Access := null)
+     return Unit_Info is
       Result_P : Unit_Info_Access;
       Low_Name : constant Unit_Name := To_Lower (Name);
    begin
@@ -325,6 +359,11 @@ package body System.Partition_Interface is
       end if;
 
       D (D_RNS, "Info for package " & Low_Name & " is available");
+      if Elaboration /= null then
+         Elaboration.Set_RCI_Data (Result_P.Name,
+                                   Result_P.Receiver,
+                                   Result_P.Id);
+      end if;
       return Result_P.all;
    end Get_Unit_Info;
 

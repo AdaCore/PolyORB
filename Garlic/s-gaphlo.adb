@@ -8,6 +8,11 @@ package body System.Garlic.Physical_Location is
 
    use System.Garlic.Protocols;
 
+   type Location_Body is record
+      Protocol : Protocols.Protocol_Access;
+      Data     : String_Ptr;
+   end record;
+
    type Node;
    type Node_Ptr is access Node;
    type Node is record
@@ -32,27 +37,6 @@ package body System.Garlic.Physical_Location is
 
    function Lookup_Protocol (P : String) return Protocol_Access;
    --  Return a protocol or null if no protocol with this name was found.
-
-   ------------
-   -- Adjust --
-   ------------
-
-   procedure Adjust (L : in out Location) is
-   begin
-      if L.Data /= null then
-         L.Data := new String'(L.Data.all);
-      end if;
-   end Adjust;
-
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize (L : in out Location) is
-      procedure Free is new Unchecked_Deallocation (String, String_Ptr);
-   begin
-      Free (L.Data);
-   end Finalize;
 
    --------------
    -- Get_Data --
@@ -236,24 +220,24 @@ package body System.Garlic.Physical_Location is
       for Look_For_Colon in L'Range loop
          if L (Look_For_Colon) = ':' then
             if Look_For_Colon = L'Last then
-               return (Ada.Finalization.Controlled with
-                       Protocol => Lookup_Protocol (L (L'First ..
-                                                       Look_For_Colon - 1)),
-                       Data     => new String'(""));
+               return new Location_Body'
+                 (Protocol => Lookup_Protocol (L (L'First ..
+                                                  Look_For_Colon - 1)),
+                  Data     => new String'(""));
             end if;
             if Look_For_Colon + 2 > L'Last or else
               L (Look_For_Colon + 1 .. Look_For_Colon + 2) /= "//" then
                raise Malformed_Location;
             end if;
-            return (Ada.Finalization.Controlled with
-                    Protocol => Lookup_Protocol (L (L'First ..
-                                                    Look_For_Colon - 1)),
-                    Data     => new String'(L (Look_For_Colon + 3 .. L'Last)));
+            return new Location_Body'
+              (Protocol => Lookup_Protocol (L (L'First ..
+                                               Look_For_Colon - 1)),
+               Data     => new String'(L (Look_For_Colon + 3 .. L'Last)));
          end if;
       end loop;
-      return (Ada.Finalization.Controlled with
-              Protocol => Lookup_Protocol (L),
-              Data     => new String'(""));
+      return new Location_Body'
+        (Protocol => Lookup_Protocol (L),
+         Data     => new String'(""));
    end To_Location;
 
    -----------------
@@ -266,9 +250,8 @@ package body System.Garlic.Physical_Location is
      return Location
    is
    begin
-      return (Ada.Finalization.Controlled with
-              Protocol => P,
-              Data => new String'(D));
+      return new Location_Body'(Protocol => P,
+                                Data => new String'(D));
    end To_Location;
 
    ---------------

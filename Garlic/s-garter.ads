@@ -51,10 +51,12 @@ package System.Garlic.Termination is
    --  not changed.
 
    procedure Add_Non_Terminating_Task;
+   pragma Inline (Add_Non_Terminating_Task);
    --  Let Garlic know that a task is not going to terminate and that
    --  it should not be taken into account during distributed termination.
 
    procedure Sub_Non_Terminating_Task;
+   pragma Inline (Add_Non_Terminating_Task);
    --  Let Garlic know that a task is no longer a non terminating task.
 
    function Get_Active_Task_Count return Natural;
@@ -68,6 +70,7 @@ package System.Garlic.Termination is
    --  Initialization.
 
    procedure Activity_Detected;
+   pragma Inline (Activity_Detected);
    --  Some activity has been detected. This means that the current
    --  shutdown procedure (if any) must be terminated.
 

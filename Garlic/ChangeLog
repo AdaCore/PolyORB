@@ -1,5 +1,10 @@
 Mon Aug 12 16:13:54 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-gaphlo.ads: Use pointers instead of controlled objects for
+	  efficiency.
+
+	* s-gaphlo.adb: Idem.
+
 	* s-ganobl.adb: Added two "with abort" which were missing.
 
 	* s-rpc.adb: More debugging information.

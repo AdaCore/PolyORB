@@ -186,9 +186,8 @@ package body System.Garlic.Debug is
       Key     : in Debug_Key)
    is
    begin
-      if Assertions_Turned_On and then Key /= Not_Debugging then
-         Real_Print_Debug_Info (Level, Message, Key);
-      end if;
+      pragma Debug (Real_Print_Debug_Info (Level, Message, Key));
+      null;
    end Print_Debug_Info;
 
    ---------------------------
@@ -201,15 +200,19 @@ package body System.Garlic.Debug is
       Key     : in Debug_Key)
    is
       use type GNAT.Os_Lib.String_Access;
-      Banner : constant GNAT.Os_Lib.String_Access := Banner_Map (Key);
-      Flag   : constant Boolean                   := Flags_Map (Key, Level);
+      Banner : GNAT.Os_Lib.String_Access;
+      Flag   : Boolean;
    begin
-      if Flag then
-         pragma Assert (Banner /= null);
-         Semaphore.P;
-         System.IO.Put (Banner.all);
-         System.IO.Put_Line (Message);
-         Semaphore.V;
+      if Key /= Not_Debugging then
+         Banner := Banner_Map (Key);
+         Flag   := Flags_Map (Key, Level);
+         if Flag then
+            pragma Assert (Banner /= null);
+            Semaphore.P;
+            System.IO.Put (Banner.all);
+            System.IO.Put_Line (Message);
+            Semaphore.V;
+         end if;
       end if;
    end Real_Print_Debug_Info;
 

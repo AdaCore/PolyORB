@@ -2,7 +2,6 @@
 --  $Id$
 --
 
-with Ada.Finalization;
 with Ada.Streams;
 with System.Garlic.Protocols;
 with System.RPC;
@@ -94,13 +93,9 @@ private
 
    type String_Ptr is access String;
 
-   type Location is new Ada.Finalization.Controlled with record
-      Protocol : Protocols.Protocol_Access;
-      Data     : String_Ptr;
-   end record;
+   type Location_Body;
 
-   procedure Adjust   (L : in out Location);
-   procedure Finalize (L : in out Location);
+   type Location is access Location_Body;
 
    procedure Location_Read_Attribute
      (P : access Ada.Streams.Root_Stream_Type'Class;

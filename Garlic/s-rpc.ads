@@ -80,6 +80,9 @@ package System.RPC is
 
 private
 
+   pragma Inline (Read);
+   pragma Inline (Write);
+
    type Node (<>);
    type Node_Ptr is access Node;
 

@@ -24,12 +24,14 @@ private package System.Garlic.Utils is
    function To_Stream_Element_Array
      (Params : access System.RPC.Params_Stream_Type)
       return Ada.Streams.Stream_Element_Array;
+   pragma Inline (To_Stream_Element_Array);
    --  This routine "looks" into the Params structure to extract the
    --  Stream_Element_Array which will be sent accross the network.
 
    procedure To_Params_Stream_Type
      (Content : Ada.Streams.Stream_Element_Array;
       Params  : access System.RPC.Params_Stream_Type);
+   pragma Inline (To_Params_Stream_Type);
    --  Other way.
 
 end System.Garlic.Utils;

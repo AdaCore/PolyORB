@@ -74,8 +74,10 @@ package body System.Garlic.TCP is
 
    package Net renames Platform_Specific.Net;
 
+   In_Address_Any : constant Naming.Address := Any_Address;
+
    type Host_Location is record
-      Addr : Naming.Address   := Any_Address;
+      Addr : Naming.Address   := In_Address_Any;
       Port : C.Unsigned_short := 0;
    end record;
 
@@ -137,7 +139,9 @@ package body System.Garlic.TCP is
 
    procedure Physical_Receive
      (FD : in C.int; Data : out Stream_Element_Array);
+   pragma Inline (Physical_Receive);
    procedure Physical_Send (FD : in C.int; Data : in Stream_Element_Array);
+   pragma Inline (Physical_Send);
    --  Receive and send data. Physical_Receive loops as long as Data has
    --  not been filled and Physical_Send as long as everything has not been
    --  sent.
@@ -147,10 +151,12 @@ package body System.Garlic.TCP is
 
    Partition_ID_Length_Cache : Stream_Element_Count := 0;
    function Partition_ID_Length return Stream_Element_Count;
+   pragma Inline (Partition_ID_Length);
    --  Return the length in stream elements needed to store a Partition_ID.
 
    Stream_Element_Count_Length_Cache : Stream_Element_Count := 0;
    function Stream_Element_Count_Length return Stream_Element_Count;
+   pragma Inline (Stream_Element_Count_Length);
    --  Idem for a stream element count.
 
    task Accept_Handler is
@@ -185,33 +191,33 @@ package body System.Garlic.TCP is
 
       --  Infinite loop on C_Accept.
 
-      loop
-         declare
-            Sin    : Sockaddr_In_Access := new Sockaddr_In;
-            Length : aliased C.int := Sin.all'Size / 8;
-            FD     : C.int;
-            NT     : Incoming_Connection_Handler_Access;
-         begin
-            select
-               Shutdown_Keeper.Wait;
-               D (D_Debug,
-                  "Accept_Handler exiting because of Shutdown_Keeper");
-               raise Communication_Error;
-            then abort
+      select
+         Shutdown_Keeper.Wait;
+         D (D_Debug,
+            "Accept_Handler exiting because of Shutdown_Keeper");
+         raise Communication_Error;
+      then abort
+         loop
+            declare
+               Sin    : Sockaddr_In_Access := new Sockaddr_In;
+               Length : aliased C.int := Sin.all'Size / 8;
+               FD     : C.int;
+               NT     : Incoming_Connection_Handler_Access;
+            begin
                Add_Non_Terminating_Task;
                FD := Net.C_Accept (Self_Host.FD, To_Sockaddr_Access (Sin),
                                    Length'Access);
-            end select;
-            Sub_Non_Terminating_Task;
-            if FD = Failure then
-               raise Communication_Error;
-            end if;
-            NT :=
-               new Incoming_Connection_Handler (FD,
-                                                Receiving => True,
-                                                Remote => Null_Partition_ID);
-         end;
-      end loop;
+               Sub_Non_Terminating_Task;
+               if FD = Failure then
+                  raise Communication_Error;
+               end if;
+               NT :=
+                new Incoming_Connection_Handler (FD,
+                                                 Receiving => True,
+                                                 Remote => Null_Partition_ID);
+            end;
+         end loop;
+      end select;
    end Accept_Handler;
 
    --------------------------
@@ -226,13 +232,8 @@ package body System.Garlic.TCP is
    begin
       D (D_Garlic, "Asking for a Partition_ID");
       Partition_ID'Write (Params'Access, Null_Partition_ID);
-      select
-         Shutdown_Keeper.Wait;
-         raise Communication_Error;
-      then abort
-         Physical_Send (FD, To_Stream_Element_Array (Params'Access));
-         Physical_Receive (FD, Result_P);
-      end select;
+      Physical_Send (FD, To_Stream_Element_Array (Params'Access));
+      Physical_Receive (FD, Result_P);
       To_Params_Stream_Type (Result_P, Result'Access);
       Partition_ID'Read (Result'Access, Partition);
       D (D_Garlic, "My Partition_ID is" & Partition_ID'Image (Partition));
@@ -267,15 +268,8 @@ package body System.Garlic.TCP is
       end if;
       Sin.Sin_Addr := To_In_Addr (Location.Addr);
       Sin.Sin_Port := Location.Port;
-      select
-         Shutdown_Keeper.Wait;
-         Code := C_Close (FD);
-         Free (Sin);
-         raise Communication_Error;
-      then abort
-         Code := Net.C_Connect (FD,
-                                To_Sockaddr_Access (Sin), Sin.all'Size / 8);
-      end select;
+      Code := Net.C_Connect (FD,
+                             To_Sockaddr_Access (Sin), Sin.all'Size / 8);
       if Code = Failure then
          Code := C_Close (FD);
          Free (Sin);
@@ -370,23 +364,22 @@ package body System.Garlic.TCP is
       Partition : Partition_ID := Null_Partition_ID;
    begin
 
-      if Receiving then
+      select
+         Shutdown_Keeper.Wait;
+         raise Communication_Error;
+      then abort
 
-         --  The first thing we will receive is the Partition_ID. As an
-         --  exception, Null_Partition_ID means that the remote side hasn't
-         --  got a Partition_ID.
+         if Receiving then
 
-         declare
-            Stream_P  : Stream_Element_Array (1 .. Partition_ID_Length);
-            Stream    : aliased Params_Stream_Type (Partition_ID_Length);
-         begin
-            D (D_Communication, "New communication task started");
-            select
-               Shutdown_Keeper.Wait;
-               D (D_Debug,
-                  "ICH exiting because of Shutdown_Keeper");
-               raise Communication_Error;
-            then abort
+            --  The first thing we will receive is the Partition_ID. As an
+            --  exception, Null_Partition_ID means that the remote side hasn't
+            --  got a Partition_ID.
+
+            declare
+               Stream_P  : Stream_Element_Array (1 .. Partition_ID_Length);
+               Stream    : aliased Params_Stream_Type (Partition_ID_Length);
+            begin
+               D (D_Communication, "New communication task started");
 
                --  We do not call Add_Non_Terminating_Task since we want to
                --  receive the whole partition ID. Moreover, we will signal
@@ -394,19 +387,14 @@ package body System.Garlic.TCP is
 
                Activity_Detected;
                Physical_Receive (FD, Stream_P);
-            end select;
-            To_Params_Stream_Type (Stream_P, Stream'Access);
-            Partition_ID'Read (Stream'Access, Partition);
-            if Partition = Null_Partition_ID then
-               declare
-                  Result : aliased Params_Stream_Type (Partition_ID_Length);
-               begin
-                  Partition := Allocate_Partition_ID;
-                  Partition_ID'Write (Result'Access, Partition);
-                  select
-                     Shutdown_Keeper.Wait;
-                     raise Communication_Error;
-                  then abort
+               To_Params_Stream_Type (Stream_P, Stream'Access);
+               Partition_ID'Read (Stream'Access, Partition);
+               if Partition = Null_Partition_ID then
+                  declare
+                     Result : aliased Params_Stream_Type (Partition_ID_Length);
+                  begin
+                     Partition := Allocate_Partition_ID;
+                     Partition_ID'Write (Result'Access, Partition);
                      Add_Non_Terminating_Task;
                      begin
                         Physical_Send
@@ -416,43 +404,40 @@ package body System.Garlic.TCP is
                            Sub_Non_Terminating_Task;
                            raise Communication_Error;
                      end;
-                  end select;
-                  Sub_Non_Terminating_Task;
-               end;
-            end if;
+                     Sub_Non_Terminating_Task;
+                  end;
+               end if;
+               D (D_Communication,
+                  "This task is in charge of partition" &
+                  Partition_ID'Image (Partition));
+               Partition_Map.Lock (Partition);
+               Data           := Partition_Map.Get_Immediate (Partition);
+               Data.FD        := FD;
+               Data.Connected := True;
+               Partition_Map.Set_Locked (Partition, Data);
+               Partition_Map.Unlock (Partition);
+            end;
+
+         else
+
+            Partition := Remote;
             D (D_Communication,
-               "This task is in charge of partition" &
+               "New task to handle partition" &
                Partition_ID'Image (Partition));
-            Partition_Map.Lock (Partition);
-            Data           := Partition_Map.Get_Immediate (Partition);
-            Data.FD        := FD;
-            Data.Connected := True;
-            Partition_Map.Set_Locked (Partition, Data);
-            Partition_Map.Unlock (Partition);
-         end;
 
-      else
+         end if;
 
-         Partition := Remote;
-         D (D_Communication,
-            "New task to handle partition" & Partition_ID'Image (Partition));
+         --  Then we have an (almost) infinite loop to get requests or
+         --  answers.
 
-      end if;
-
-      --  Then we have an (almost) infinite loop to get requests or
-      --  answers.
-
-      loop
-         declare
-            Header_P : Stream_Element_Array (1 .. Stream_Element_Count_Length);
-            Header   : aliased Params_Stream_Type
-                          (Stream_Element_Count_Length);
-            Length   : Stream_Element_Count;
-         begin
-            select
-               Shutdown_Keeper.Wait;
-               raise Communication_Error;
-            then abort
+         loop
+            declare
+               Header_P : Stream_Element_Array
+                 (1 .. Stream_Element_Count_Length);
+               Header   : aliased Params_Stream_Type
+                 (Stream_Element_Count_Length);
+               Length   : Stream_Element_Count;
+            begin
                Add_Non_Terminating_Task;
                begin
                   Physical_Receive (FD, Header_P);
@@ -461,26 +446,21 @@ package body System.Garlic.TCP is
                      Sub_Non_Terminating_Task;
                      raise Communication_Error;
                end;
-            end select;
-            Sub_Non_Terminating_Task;
-            To_Params_Stream_Type (Header_P, Header'Access);
-            Stream_Element_Count'Read (Header'Access, Length);
-            declare
-               Request_P : Stream_Element_Array (1 .. Length);
-            begin
-               select
-                  Shutdown_Keeper.Wait;
-                  raise Communication_Error;
-               then abort
+               Sub_Non_Terminating_Task;
+               To_Params_Stream_Type (Header_P, Header'Access);
+               Stream_Element_Count'Read (Header'Access, Length);
+               declare
+                  Request_P : Stream_Element_Array (1 .. Length);
+               begin
 
                   --  No Add_Non_Terminating_Task either (see above).
 
                   Physical_Receive (FD, Request_P);
-               end select;
-               Has_Arrived (Partition, Request_P);
+                  Has_Arrived (Partition, Request_P);
+               end;
             end;
-         end;
-      end loop;
+         end loop;
+      end select;
 
    exception
 
@@ -657,93 +637,95 @@ package body System.Garlic.TCP is
       Remote_Data : Host_Data;
       Header      : aliased Params_Stream_Type (Stream_Element_Count_Length);
    begin
-      Partition_Map.Lock (Partition);
-      Partition_Map.Get (Partition) (Remote_Data);
-      if Remote_Data.Queried and then not Remote_Data.Known then
-         Partition_Map.Unlock (Partition);
-         declare
-            Temp : Host_Location;
-         begin
-            Temp := Split_Data (Get_Data (Get_Partition_Location (Partition)));
-            Partition_Map.Lock (Partition);
-            Remote_Data := Partition_Map.Get_Immediate (Partition);
-            Remote_Data.Location := Temp;
-            Remote_Data.Known := True;
-            Remote_Data.Queried := False;
-            Partition_Map.Set_Locked (Partition, Remote_Data);
-         end;
-      end if;
-      begin
-         if not Remote_Data.Connected then
-
-            D (D_Communication,
-               "Willing to connect to " &
-               Image (Remote_Data.Location.Addr) & " port" &
-               C.unsigned_short'Image (Remote_Data.Location.Port));
-
+      select
+         Shutdown_Keeper.Wait;
+         raise Communication_Error;
+      then abort
+         Partition_Map.Lock (Partition);
+         Partition_Map.Get (Partition) (Remote_Data);
+         if Remote_Data.Queried and then not Remote_Data.Known then
+            Partition_Map.Unlock (Partition);
             declare
-               Retries : Natural := 1;
+               Temp : Host_Location;
             begin
-               if Partition = Get_Boot_Server then
-                  Retries := Options.Get_Connection_Hits;
-               end if;
-               for I in 1 .. Retries loop
-                  begin
-                     D (D_Communication,
-                        "Trying to connect to partition" &
-                        Partition_ID'Image (Partition));
-                     Remote_Data.FD :=
-                       Establish_Connection (Remote_Data.Location);
-                     Remote_Data.Connected := True;
-                     exit;
-                  exception
-                     when Communication_Error =>
-                        if I = Retries then
-                           D (D_Communication,
-                              "Cannot connect to partition" &
-                              Partition_ID'Image (Partition));
-                           raise Communication_Error;
-                        else
-                           delay 2.0;
-                        end if;
-                  end;
-               end loop;
-               D (D_Communication,
-                  "Connected to partition" & Partition_ID'Image (Partition));
+               Temp := Split_Data
+                 (Get_Data (Get_Partition_Location (Partition)));
+               Partition_Map.Lock (Partition);
+               Remote_Data := Partition_Map.Get_Immediate (Partition);
+               Remote_Data.Location := Temp;
+               Remote_Data.Known := True;
+               Remote_Data.Queried := False;
+               Partition_Map.Set_Locked (Partition, Remote_Data);
             end;
-
-            Partition_Map.Set_Locked (Partition, Remote_Data);
-            if Get_My_Partition_ID_Immediately = Null_Partition_ID then
-               Set_My_Partition_ID (Ask_For_Partition_ID (Remote_Data.FD));
-            else
-               Send_My_Partition_ID (Remote_Data.FD);
-            end if;
-
-            --  Now create a task to get data on this connection.
-
-            declare
-               NT : Incoming_Connection_Handler_Access;
-            begin
-               NT := new Incoming_Connection_Handler
-                 (Remote_Data.FD, Receiving => False, Remote => Partition);
-            end;
-
          end if;
-         Stream_Element_Count'Write (Header'Access, Data'Length);
-         select
-            Shutdown_Keeper.Wait;
-            raise Communication_Error;
-         then abort
+         begin
+            if not Remote_Data.Connected then
+
+               D (D_Communication,
+                  "Willing to connect to " &
+                  Image (Remote_Data.Location.Addr) & " port" &
+                  C.unsigned_short'Image (Remote_Data.Location.Port));
+
+               declare
+                  Retries : Natural := 1;
+               begin
+                  if Partition = Get_Boot_Server then
+                     Retries := Options.Get_Connection_Hits;
+                  end if;
+                  for I in 1 .. Retries loop
+                     begin
+                        D (D_Communication,
+                           "Trying to connect to partition" &
+                           Partition_ID'Image (Partition));
+                        Remote_Data.FD :=
+                          Establish_Connection (Remote_Data.Location);
+                        Remote_Data.Connected := True;
+                        exit;
+                     exception
+                        when Communication_Error =>
+                           if I = Retries then
+                              D (D_Communication,
+                                 "Cannot connect to partition" &
+                                 Partition_ID'Image (Partition));
+                              raise Communication_Error;
+                           else
+                              delay 2.0;
+                           end if;
+                     end;
+                  end loop;
+                  D (D_Communication,
+                     "Connected to partition" &
+                     Partition_ID'Image (Partition));
+               end;
+
+               Partition_Map.Set_Locked (Partition, Remote_Data);
+               if Get_My_Partition_ID_Immediately = Null_Partition_ID then
+                  Set_My_Partition_ID (Ask_For_Partition_ID (Remote_Data.FD));
+               else
+                  Send_My_Partition_ID (Remote_Data.FD);
+               end if;
+
+               --  Now create a task to get data on this connection.
+
+               declare
+                  NT : Incoming_Connection_Handler_Access;
+               begin
+                  NT := new Incoming_Connection_Handler
+                    (Remote_Data.FD, Receiving => False, Remote => Partition);
+               end;
+
+            end if;
+            Stream_Element_Count'Write (Header'Access, Data'Length);
             Physical_Send
               (Remote_Data.FD, To_Stream_Element_Array (Header'Access));
             Physical_Send (Remote_Data.FD, Data);
-         end select;
-         Partition_Map.Unlock (Partition);
-      exception
-         when Communication_Error =>
             Partition_Map.Unlock (Partition);
-            raise Communication_Error;
-      end;
+         exception
+            when Communication_Error =>
+               Partition_Map.Unlock (Partition);
+               raise Communication_Error;
+         end;
+      end select;
    end Send;
 
    --------------------------
@@ -754,12 +736,7 @@ package body System.Garlic.TCP is
       Stream : aliased Params_Stream_Type (Partition_ID_Length);
    begin
       Partition_ID'Write (Stream'Access, Get_My_Partition_ID);
-      select
-         Shutdown_Keeper.Wait;
-         raise Communication_Error;
-      then abort
-         Physical_Send (FD, To_Stream_Element_Array (Stream'Access));
-      end select;
+      Physical_Send (FD, To_Stream_Element_Array (Stream'Access));
    end Send_My_Partition_ID;
 
    -------------------

@@ -38,7 +38,7 @@ with System.Partition_Interface;
 
 package body RCI_Info is
 
-   Elaboration : System.Partition_Interface.Elaboration_Access
+   Elaboration : constant System.Partition_Interface.Elaboration_Access
                := new System.Partition_Interface.Elaboration_Type;
 
    -----------------------------

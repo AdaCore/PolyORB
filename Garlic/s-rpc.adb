@@ -63,6 +63,7 @@ package body System.RPC is
    procedure Copy
      (Source : in out Params_Stream_Type;
       Dest   : access Params_Stream_Type);
+   pragma Inline (Copy);
    --  Deep copy Source into Dest and read the original packet. This is
    --  needed to be able to drop the Params_Stream_Type without losing its
    --  content.
