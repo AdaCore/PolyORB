@@ -1,16 +1,16 @@
 This example describes GLADE filtering features. It is based on the
-Erathostene algorithme (see other examples). We have three partitions,
+Erathostene algorithm (see other examples). We have three partitions,
 each one includes a RCI unit.
 
    P1 : Partition := (prime_1);
    P2 : Partition := (prime_2);
    P3 : Partition := (prime_3);
 
-Partition P4 is just here to ensure compilation of the simple
-filtering packages included in this example. You can discard this
-partition in the following explanations.
+Partition P4 ensures the compilation of filtering packages included in
+this example. You can discard this partition in the following
+explanations.
 
-   P4 : Partition := (System.Garlic.Filters.Double,
+   P4 : Partition := (System.Garlic.Filters.Doubling,
                       System.Garlic.Filters.Shuffling,
                       System.Garlic.Filters.Reversing);
 
@@ -23,43 +23,56 @@ A channel is a pair of partitions. These partitions have to be
 declared before. Some attributes apply on channels (as well as on
 partitions).
 
-(1)   for Partition'Filter use "double";
+(1)   for Partition'Filter use "doubling";
 
-This indicates to GLADE that as a default rule, partitions use filter
-"double" to communication to each others.
+This indicates to GLADE that as a default rule, filter "doubling"
+is used between any partition communication.
 
 (2)   for Channel'Filter use "shuffling";
 
-This indicates to GLADE that as a default rule, channels use filter
-"shuffling" when these channels are declared in the configuration
-file.
+This indicates to GLADE that as a default rule, filter "shuffling" is used
+between 2 partitions when they belong to a channel declared in the
+configuration file.
 
-(3)  for C1'Filter use "reversing";
+(3)  for C1'Filter use "zip";
 
-This indicates to GLADE that the communication channel between P1, and
-P2 uses filter "reversing".
+This indicates to GLADE that filter "zip" is used between P1 and P2.
 
 
-We have the following :
+As a result, we have the following:
 
-P1 <=> P2 :
+
+Filter "zip" is used between P1 and P2.
 
 Rule (1) applies, but C1 (P1, P2) has been declared. Rule (1) is
-overloaded by rule (2). C1 has a representation clause on it. Therefore, rule (2) is overloaded by rule (3).
+overloaded by rule (2). C1 has a representation clause on
+it. Therefore, rule (2) is overloaded by rule (3).
 
-P2 <=> P3 :
 
-Rule (1) applies, but C2 (P2, P3)  has been declared. Rule (1) is
-overloaded by rule (2). 
+Filter "shuffling" is used between P2 and P3.
 
-P3 <=> P1 :
+Rule (1) applies, but C2 (P2, P3) has been declared. Rule (1) is
+overloaded by rule (2).
+
+
+Filter "doubling" is used between P1 and P3.
 
 Rule (1) applies.
 
 
 At last, we have the following configuration :
 
-        P1  -- "reversing" --> P2  -- "shuffling" --> P3
-        ^                                             |
-        +------------------ "double" -----------------+
+        P1  -- "zip" --> P2  -- "shuffling" --> P3
+        ^                                       |
+        +-------------- "doubling" -------------+
 
+
+Filter "shuffling" generates a key which is used to shuffle each
+message byte. This key is generated dynamically by a partition and has
+to be sent to the partition on the other side. This exchange can also
+be filtered. This filter is called the registration filter. There is
+only one registration filter for the whole configuration. We declare
+filter "reversing" as a registration filter with the following
+statement:
+
+   pragma Registration_Filter ("reversing");
