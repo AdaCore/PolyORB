@@ -61,4 +61,10 @@ package System.Garlic.Platform_Specific is
    Default_Storage_Name : constant String  :=
      "@DEFSTORAGENAME@";
 
+   Rsh_Command          : constant String  :=
+     "@RSH_CMD@";
+
+   Rsh_Options          : constant String  :=
+     "@RSH_OPT@";
+
 end System.Garlic.Platform_Specific;
