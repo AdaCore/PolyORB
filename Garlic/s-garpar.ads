@@ -90,8 +90,9 @@ package System.Garlic.Partitions is
    function Get_Self_Location return Physical_Location.Location_Type;
 
    function Global_Termination_Partitions return Types.Partition_List;
-   function Local_Termination_Partitions return Types.Partition_List;
    function Known_Partitions return Types.Partition_List;
+   function Local_Termination_Partitions return Types.Partition_List;
+   function Online_Partitions return Types.Partition_List;
 
    procedure Handle_Partition_Request
      (Partition : in Types.Partition_ID;
@@ -136,6 +137,12 @@ package System.Garlic.Partitions is
    procedure Set_Boot_Location
      (Location : in System.Garlic.Physical_Location.Location_Type);
    --  Set boot server coordinates
+
+   procedure Set_Online
+     (Partition : in Types.Partition_ID;
+      Online    : in Boolean);
+   --  Indicates whether a communication link has been initialized
+   --  with this partition.
 
    procedure Shutdown;
    --  Resume tasks waiting for an update of partition info table to

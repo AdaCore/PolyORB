@@ -1,5 +1,12 @@
 1999-07-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* s-garpar.adb, s-garpar.ads: Add new subprograms Set_Online and
+ 	Online_Partitions to get the list of partitions a partition has
+ 	communicated with.
+
+	* s-gartcp.adb: Call Set_Online subprogram to signal whether the
+	current partition has a connection with a given partition.
+
 	* s-garhea.adb: When we send a message is sent to boot server,
 	retry only when the boot server partition id has changed.
 

@@ -363,6 +363,7 @@ package body System.Garlic.TCP is
                      New_Info := Sockets.Get_Component (New_PID);
                      New_Info.Socket := Peer;
                      Sockets.Set_Component (New_PID, New_Info);
+                     Set_Online (New_PID, True);
                   end;
                   Leave (New_PID);
                else
@@ -375,6 +376,8 @@ package body System.Garlic.TCP is
                      Sockets.Set_Component (New_PID, Old_Info);
                      Old_Info.Socket := Failure;
                      Sockets.Set_Component (Old_PID, Old_Info);
+                     Set_Online (Old_PID, False);
+                     Set_Online (New_PID, True);
                   end;
                   Leave (New_PID);
                   Leave (Old_PID);
@@ -414,6 +417,7 @@ package body System.Garlic.TCP is
                New_Info := Sockets.Get_Component (New_PID);
                New_Info.Socket := Failure;
                Sockets.Set_Component (New_PID, New_Info);
+               Set_Online (New_PID, False);
             end;
             Leave (New_PID);
          end if;
@@ -908,6 +912,7 @@ package body System.Garlic.TCP is
          end if;
 
          pragma Debug (D ("Connected to partition" & Partition'Img));
+         Set_Online (Partition, True);
 
          --  Now create a task to get data on this connection
 
@@ -974,6 +979,7 @@ package body System.Garlic.TCP is
             Physical_Send (Peer, Quit_Stream'Access, Quit_Stream'First, Error);
             Catch (Error);
             Peer := Net.C_Close (Peer);
+            Set_Online (P, False);
          end if;
       end loop;
 

@@ -65,6 +65,7 @@ package body System.Garlic.Partitions is
       Has_Light_PCS  : Boolean;
       Is_Boot_Mirror : Boolean;
       Boot_Partition : Types.Partition_ID;
+      Online         : Boolean;
       Status         : Types.Status_Type;
       Allocated      : Boolean;
    end record;
@@ -78,6 +79,7 @@ package body System.Garlic.Partitions is
    --  Has_Light_PCS  : true for a partition which does not receive request
    --  Is_Boot_Mirror : true for a partition which has a copy of PID table
    --  Boot_Partition : pid of the partition used to boot a partition
+   --  Online         : a communication link has been established
    --  Status         : partition info status
 
    --  A partition can be allocated. This means that this partition id
@@ -97,6 +99,7 @@ package body System.Garlic.Partitions is
       Has_Light_PCS  => False,
       Is_Boot_Mirror => False,
       Boot_Partition => Types.Null_PID,
+      Online         => False,
       Status         => Types.None);
 
    type Request_Kind is
@@ -172,6 +175,9 @@ package body System.Garlic.Partitions is
 
    function Is_Known (Info : Partition_Info) return Boolean;
    --  Return True when the partition is known (done or dead).
+
+   function Is_Online (Info : Partition_Info) return Boolean;
+   --  Return True when the partition is done and online.
 
    type Matching_Function is
      access function (Info : Partition_Info) return Boolean;
@@ -321,6 +327,7 @@ package body System.Garlic.Partitions is
       D ("  Reconnection   " & Info.Reconnection'Img);
       D ("  Is_Boot_Mirror " & Info.Is_Boot_Mirror'Img);
       D ("  Boot_Partition"  & Info.Boot_Partition'Img);
+      D ("  Online         "  & Info.Online'Img);
       D ("  Status:        " & Status_Type'Image (Info.Status));
    end Dump_Partition_Info;
 
@@ -847,6 +854,16 @@ package body System.Garlic.Partitions is
         and then Info.Status in Done .. Dead;
    end Is_Known;
 
+   ---------------
+   -- Is_Online --
+   ---------------
+
+   function Is_Online (Info : Partition_Info) return Boolean is
+   begin
+      return Info.Status = Done
+        and then Info.Online;
+   end Is_Online;
+
    ----------------------
    -- Known_Partitions --
    ----------------------
@@ -945,6 +962,22 @@ package body System.Garlic.Partitions is
 
       pragma Assert (False);
    end Next_Boot_Mirror;
+
+   -----------------------
+   -- Online_Partitions --
+   -----------------------
+
+   function Online_Partitions return Partition_List is
+   begin
+      Partitions.Enter;
+      declare
+         Result : Partition_List := Matching_Partitions
+           (First_PID, Partitions.Last, Is_Known'Access);
+      begin
+         Partitions.Leave;
+         return Result;
+      end;
+   end Online_Partitions;
 
    --------------------
    -- Read_Partition --
@@ -1058,6 +1091,7 @@ package body System.Garlic.Partitions is
          Has_Light_PCS  => Can_Have_A_Light_Runtime,
          Is_Boot_Mirror => Options.Is_Boot_Mirror,
          Boot_Partition => Null_PID,
+         Online         => False,
          Status         => Done);
 
       --  This is step 1.
@@ -1084,6 +1118,7 @@ package body System.Garlic.Partitions is
          Has_Light_PCS  => False,
          Is_Boot_Mirror => True,
          Boot_Partition => Null_PID,
+         Online         => False,
          Status         => Done);
    begin
       if Options.Is_Boot_Server then
@@ -1098,6 +1133,22 @@ package body System.Garlic.Partitions is
       Partitions.Set_Component (Boot_PID, Info);
       Boot_Mirrors := Boot_Mirrors + 1;
    end Set_Boot_Location;
+
+   ----------------
+   -- Set_Online --
+   ----------------
+
+   procedure Set_Online
+     (Partition : in Partition_ID;
+      Online    : in Boolean) is
+      Info : Partition_Info;
+   begin
+      Info := Partitions.Get_Component (Partition);
+      Info.Online := Online;
+      Partitions.Set_Component (Partition, Info);
+
+      pragma Debug (Dump_Partition_Table);
+   end Set_Online;
 
    --------------
    -- Shutdown --
