@@ -51,6 +51,9 @@ with PolyORB.ORB.Task_Policies;
 with PolyORB.ORB;
 pragma Elaborate_All (PolyORB.ORB);
 
+with PolyORB.Binding_Data.SOAP;
+pragma Elaborate_All (PolyORB.Binding_Data.SOAP);
+
 package body PolyORB.Setup.CORBA_Client is
 
    use PolyORB.ORB;
@@ -77,6 +80,9 @@ package body PolyORB.Setup.CORBA_Client is
       -------------------------------------------
       -- Initialize personality-specific stuff --
       -------------------------------------------
+
+      PolyORB.Binding_Data.SOAP.Initialize;
+      Put (" binding-soap");
 
       PolyORB.Binding_Data.IIOP.Initialize;
       Put (" binding-iiop");

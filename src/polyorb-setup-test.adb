@@ -74,8 +74,8 @@ with PolyORB.Protocols.GIOP;
 with PolyORB.Binding_Data.SRP;
 with PolyORB.Protocols.SRP;
 
---  --  SOAP
---  with PolyORB.Binding_Data.SOAP;
+--  SOAP
+with PolyORB.Binding_Data.SOAP;
 with PolyORB.Filters.HTTP;
 with PolyORB.Protocols.SOAP_Pr;
 
@@ -184,8 +184,7 @@ package body PolyORB.Setup.Test is
      := (Socket  => No_Socket,
          Address => No_Sock_Addr,
          SAP     => new Socket_Access_Point,
-         --         PF      => new Binding_Data.SOAP.SOAP_Profile_Factory);
-         PF      => null);
+         PF      => new Binding_Data.SOAP.SOAP_Profile_Factory);
    HTTP_Filter   : aliased PolyORB.Filters.HTTP.HTTP_Filter_Factory;
    SOAP_Protocol : aliased Protocols.SOAP_Pr.SOAP_Protocol;
    --  XXX
@@ -223,6 +222,9 @@ package body PolyORB.Setup.Test is
 
       PolyORB.Binding_Data.IIOP.Initialize;
       Put (" binding-iiop");
+
+      PolyORB.Binding_Data.SOAP.Initialize;
+      Put (" binding-soap");
 
       --------------------------
       -- Create ORB singleton --

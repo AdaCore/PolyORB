@@ -82,8 +82,24 @@ package body PolyORB.Protocols.SOAP_Pr is
      (S   : access SOAP_Session;
       R   : Requests.Request_Access)
    is
+      P : SOAP.Message.Payload.Object;
+      --  RD : AWS.Request.Data;
    begin
-      raise PolyORB.Not_Implemented;
+      pragma Assert (S.Pending_Rq = null);
+      S.Pending_Rq := R;
+      --  Actually should support concurrent calls to invoke_request
+      --  with a mutex on Session.Pending_Request that would be taken
+      --  here in Invoke_Request and released when the answer is
+      --  received.
+      P := SOAP.Message.Payload.Build
+        (Types.To_Standard_String (R.Operation),
+         SOAP.Parameters.List'(R.Args with null record));
+
+      pragma Debug (O ("SOAP message constructed: "));
+      pragma Debug (O (SOAP.Message.XML.Image (P)));
+      --  RD := (R_Headers, R_Body => SOAP.Message.XML.Image (P));
+      --  Components.Emit_No_Reply (Lower (S), AWS_Request_Out'(Data => RD));
+      raise Not_Implemented;
    end Invoke_Request;
 
    procedure Abort_Request

@@ -42,6 +42,7 @@ with PolyORB.Filters.HTTP;
 with PolyORB.Protocols;
 with PolyORB.Protocols.SOAP_Pr;
 
+with PolyORB.References.IOR;
 with PolyORB.Representations.CDR;
 --  XXX Unfortunate dependency on CDR code. Should provide
 --  To_Any methods instead!!!!!! (but actually the Any in question
@@ -272,12 +273,18 @@ package body PolyORB.Binding_Data.SOAP is
       function "+" (S : Standard.String) return Types.String
         renames To_PolyORB_String;
    begin
+      TC_Sock_Addr := Any.TypeCode.TC_Struct;
       Add_Parameter (TC_Sock_Addr, To_Any (+"sock_addr"));
       Add_Parameter (TC_Sock_Addr, To_Any (+"IDL:sock_addr:1.0"));
       Add_Parameter (TC_Sock_Addr, To_Any (Any.TC_String));
       Add_Parameter (TC_Sock_Addr, To_Any (+"host"));
       Add_Parameter (TC_Sock_Addr, To_Any (Any.TC_Unsigned_Short));
       Add_Parameter (TC_Sock_Addr, To_Any (+"port"));
+
+      References.IOR.Register
+        (Tag_SOAP,
+         Marshall_SOAP_Profile_Body'Access,
+         Unmarshall_SOAP_Profile_Body'Access);
    end Initialize;
 
    function To_Any (SA : Sockets.Sock_Addr_Type) return Any.Any is

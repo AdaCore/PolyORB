@@ -34,6 +34,7 @@
 
 with PolyORB.Buffers;
 with PolyORB.ORB;
+with PolyORB.Requests;
 with PolyORB.Types;
 
 package PolyORB.Protocols.SOAP_Pr is
@@ -78,6 +79,7 @@ private
       In_Buf : PolyORB.Buffers.Buffer_Access;
       Role   : PolyORB.ORB.Endpoint_Role;
       Target : PolyORB.Types.String;
+      Pending_Rq : PolyORB.Requests.Request_Access;
    end record;
 
    function Handle_Message

@@ -87,6 +87,9 @@ package body PolyORB.References.IOR is
       pragma Debug (O ("Marshall: enter"));
 
       for N in Profs'Range loop
+         pragma Debug (O ("Considering profile with tag"
+                          & Get_Profile_Tag (Profs (N).all)'Img));
+
          for I in 1 .. Length (Callbacks) loop
             pragma Assert (Profs (N) /= null);
 
@@ -94,6 +97,9 @@ package body PolyORB.References.IOR is
                T : constant Profile_Tag
                  := Get_Profile_Tag (Profs (N).all);
             begin
+               pragma Debug (O ("... with callback" & I'Img
+                                & " whose tag is "
+                                & Element_Of (Callbacks, I).Tag'Img));
                if T = Element_Of (Callbacks, I).Tag then
                   Marshall (Buffer, Types.Unsigned_Long (T));
 
@@ -106,7 +112,7 @@ package body PolyORB.References.IOR is
          end loop;
       end loop;
 
-      pragma Debug (O ("Marshall Profile : Leave"));
+      pragma Debug (O ("Marshall: Leave"));
    end Marshall;
 
    ----------------

@@ -124,10 +124,9 @@ package body PolyORB.Utils is
 
    function URI_Encode (S : String) return String is
       Result : String (1 .. 3 * S'Length);
-      SI : Integer := S'First;
       DI : Integer := Result'First;
    begin
-      while SI <= S'Last loop
+      for SI in S'Range loop
          if Need_Escape (S (SI)) then
             Result (DI .. DI + 2)
               := '%' & Hex (Character'Pos (S (SI)) / 16)
@@ -141,7 +140,6 @@ package body PolyORB.Utils is
             end if;
             DI := DI + 1;
          end if;
-         SI := SI + 1;
       end loop;
       return Result (Result'First .. DI - 1);
    end URI_Encode;
