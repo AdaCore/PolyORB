@@ -70,8 +70,8 @@ package body PolyORB.If_Descriptors.CORBA_IR is
      (Object : PolyORB.References.Ref)
      return InterfaceDef.Ref is
    begin
-      raise Not_Implemented;
-      return Corresponding_InterfaceDef (Object);
+      return InterfaceDef.Helper.To_Ref
+        (CORBA.Object.get_interface (To_CORBA_Ref (Object));
    end Corresponding_InterfaceDef;
 
    function Find_Operation
