@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B - P R O F I L E S - R A V E N S C A R            --
+--           P O L Y O R B . P R O F I L E S . R A V E N S C A R            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -29,9 +29,10 @@
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 --  You should instanciate this package to set up a ravenscar profile.
 
---  //droopi/main/design/tasking/polyorb-tasking-full_tasking_profile.ads
+--  $Id$
 
 with System;
 with PolyORB.Tasking.Profiles.Ravenscar.Threads;
