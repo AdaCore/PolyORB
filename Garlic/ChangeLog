@@ -1,3 +1,15 @@
+2002-07-11  Pascal Obry <obry@gnat.com>
+
+	* s-garhea.adb:
+	(Send): Initialize PID to avoid GNAT warnings about entity
+	 referenced before it has a value.
+	Work for B711-005.
+
+	* s-gaprre.adb:
+	(Engine_Type): Initialize PID to avoid GNAT warnings about entity
+	 referenced before it has a value.
+	Work for B711-005.
+	
 2002-05-09  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* b_gaprco.adb: Fix header.
