@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Testing MOMA server.
+--  Sample MOMA server
 
 --  $Id$
 
@@ -70,27 +70,34 @@ procedure Server is
 begin
 
    --  Initialize World
+
    PolyORB.Initialization.Initialize_World;
 
-   --  Argument check.
+   --  Argument check
+
    if Argument_Count > 1 then
       Put_Line ("usage : server [Naming_Service_IOR]");
       return;
    end if;
 
    --  Load Configuration File.
+
    Load_Configuration_File ("destinations.conf");
 
-   --  Get information about destination #1.
+   --  Get information about destination #1
+
    Pool_1 := Get_Message_Pool (1);
 
-   --  Create one message pool.
+   --  Create one message pool
+
    Create_Message_Pool (Pool_1, MOMA_Ref);
 
-   --  Outputs its reference.
+   --  Outputs its reference
+
    Put_Line (PolyORB.References.IOR.Object_To_String (MOMA_Ref));
 
-   --  Register reference to naming service.
+   --  Register reference to naming service
+
    if Argument_Count = 1 then
       declare
          R : PolyORB.References.Ref;
@@ -103,7 +110,8 @@ begin
       Register ("Pool_1", MOMA_Ref);
    end if;
 
-   --  Run the server.
+   --  Run the server
+
    Run_Server;
 
 end Server;

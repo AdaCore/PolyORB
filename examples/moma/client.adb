@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Testing MOMA client.
+--  Sample MOMA client
 
 --  $Id$
 
@@ -109,11 +109,12 @@ procedure Client is
    type Kind_T is (Naming, Pool, Topic);
    Kind : Kind_T;
 
-   ----------------------
-   -- Any Message Test --
-   ----------------------
+   ---------------
+   -- Test_MAny --
+   ---------------
 
    procedure Test_MAny;
+   --  Test MAny message
 
    procedure Test_MAny
    is
@@ -125,23 +126,29 @@ procedure Client is
 
    begin
       --  Create new Any Message
+
       MAny_Message_Sent := Create_Any_Message;
       Set_Any (MAny_Message_Sent, To_Any (To_MOMA_String ("Hi MOM !")));
 
       if Scenario in Full .. Stor then
          --  Send Any Message
+
          Send (MOMA_Producer, MAny_Message_Sent);
       end if;
 
-      if Scenario = Full or Scenario = Retr then
+      if Scenario = Full
+        or else Scenario = Retr
+      then
          --  Get Any Message
+
          declare
             MOMA_Message_Temp : MOMA.Messages.Message'Class
               := Receive (MOMA_Consumer);
          begin
             if MOMA_Message_Temp in MOMA.Messages.MAnys.MAny then
-               MAny_Message_Rcvd :=
-                 MOMA.Messages.MAnys.MAny (MOMA_Message_Temp);
+               MAny_Message_Rcvd
+                 := MOMA.Messages.MAnys.MAny (MOMA_Message_Temp);
+
             else
                raise Program_Error;
             end if;
@@ -154,11 +161,12 @@ procedure Client is
 
    end Test_MAny;
 
-   -----------------------
-   -- Byte Message Test --
-   -----------------------
+   ----------------
+   -- Test_MByte --
+   ----------------
 
    procedure Test_MByte;
+   --  Test MByte message
 
    procedure Test_MByte
    is
@@ -174,84 +182,96 @@ procedure Client is
       begin
 
          if Scenario in Full .. Stor then
-            --  Send Byte message.
+            --  Send Byte message
+
             Send (MOMA_Producer, MByte_Message_Sent);
          end if;
 
-         if Scenario = Full or Scenario = Retr then
-            --  Get Byte Message.
+         if Scenario = Full
+           or else Scenario = Retr
+         then
+            --  Get Byte Message
+
             declare
                MOMA_Message_Temp : MOMA.Messages.Message'Class
                  := Receive (MOMA_Consumer);
             begin
                if MOMA_Message_Temp in MOMA.Messages.MBytes.MByte then
-                  MByte_Message_Rcvd :=
-                    MOMA.Messages.MBytes.MByte (MOMA_Message_Temp);
+                  MByte_Message_Rcvd
+                    := MOMA.Messages.MBytes.MByte (MOMA_Message_Temp);
+
                else
                   raise Program_Error;
                end if;
             end;
-         end if;
 
-         if Scenario = Full or Scenario = Retr then
-            --  Print result.
             Ok := Get_Payload (MByte_Message_Sent)
               = Get_Payload (MByte_Message_Rcvd);
             Output ("Testing " & Test_Name & " Message ", Ok);
          end if;
-      end Send_Receive_MByte;
 
-      use PolyORB.Any;
+      end Send_Receive_MByte;
 
    begin
 
       --  Create new Byte Message
+
       MByte_Message_Sent := Create_Byte_Message;
 
       --  Byte/Boolean Test
+
       Set_Boolean (MByte_Message_Sent, MOMA.Types.Boolean (True));
       Send_Receive_MByte ("Byte/Boolean");
 
       --  Byte/Byte Test
+
       Set_Byte (MByte_Message_Sent, MOMA.Types.Byte (42));
       Send_Receive_MByte ("Byte/Byte");
 
       --  Byte/Char Test
+
       Set_Char (MByte_Message_Sent,
                 MOMA.Types.Char (Character'('A')));
       Send_Receive_MByte ("Byte/Char");
 
       --  Byte/Double Test
+
       Set_Double (MByte_Message_Sent, MOMA.Types.Double (42.0));
       Send_Receive_MByte ("Byte/Double");
 
       --  Byte/Float Test
+
       Set_Float (MByte_Message_Sent, MOMA.Types.Float (42.0));
       Send_Receive_MByte ("Byte/Float");
 
       --  Byte/Short Test
+
       Set_Short (MByte_Message_Sent, MOMA.Types.Short (3));
       Send_Receive_MByte ("Byte/Short");
 
       --  Byte/Long Test
+
       Set_Long (MByte_Message_Sent, MOMA.Types.Long (21));
       Send_Receive_MByte ("Byte/Long");
 
       --  Byte/Unsigned_Long Test
+
       Set_Unsigned_Long (MByte_Message_Sent, MOMA.Types.Unsigned_Long (12345));
       Send_Receive_MByte ("Byte/Unsigned_Long");
 
       --  Byte/Unsigned_Short Test
+
       Set_Unsigned_Short (MByte_Message_Sent, MOMA.Types.Unsigned_Short (123));
       Send_Receive_MByte ("Byte/Unsigned_Short");
 
    end Test_MByte;
 
-   ----------------------
-   -- Map Message Test --
-   ----------------------
+   ---------------
+   -- Test_MMap --
+   ---------------
 
    procedure Test_MMap;
+   --  Test MMap message
 
    procedure Test_MMap
    is
@@ -274,16 +294,21 @@ procedure Client is
       Append (My_Map, Element_2);
 
       --  Create new Map Message
+
       MMap_Message_Sent := Create_Map_Message;
       Set_Map (MMap_Message_Sent, My_Map);
 
       if Scenario in Full .. Stor then
          --  Send Map Message
+
          Send (MOMA_Producer, MMap_Message_Sent);
       end if;
 
-      if Scenario = Full or Scenario = Retr then
+      if Scenario = Full
+        or else Scenario = Retr
+      then
          --  Get Map Message
+
          declare
             MOMA_Message_Temp : MOMA.Messages.Message'Class
               := Receive (MOMA_Consumer);
@@ -302,11 +327,12 @@ procedure Client is
 
    end Test_MMap;
 
-   -----------------------
-   -- Text Message Test --
-   -----------------------
+   ----------------
+   -- Test_MText --
+   ----------------
 
    procedure Test_MText;
+   --  Test MText message
 
    procedure Test_MText
    is
@@ -317,16 +343,21 @@ procedure Client is
       MText_Message_Rcvd : MOMA.Messages.MTexts.MText;
    begin
       --  Create new Text Message
+
       MText_Message_Sent := Create_Text_Message;
       Set_Text (MText_Message_Sent, To_MOMA_String ("Hi MOM !"));
 
       if Scenario in Full .. Stor then
          --  Send Text Message
+
          Send (MOMA_Producer, MText_Message_Sent);
       end if;
 
-      if Scenario = Full or Scenario = Retr then
+      if Scenario = Full
+        or else Scenario = Retr
+      then
          --  Get Text Message
+
          declare
             MOMA_Message_Temp : MOMA.Messages.Message'Class
               := Receive (MOMA_Consumer);
@@ -334,12 +365,14 @@ procedure Client is
             if MOMA_Message_Temp in MOMA.Messages.MTexts.MText then
                MText_Message_Rcvd :=
                  MOMA.Messages.MTexts.MText (MOMA_Message_Temp);
+
             else
                raise Program_Error;
             end if;
          end;
 
          --  Print results
+
          Ok := Get_Text (MText_Message_Sent)
            = Get_Text (MText_Message_Rcvd);
 
@@ -354,8 +387,7 @@ procedure Client is
 
    procedure Put_Usage;
 
-   procedure Put_Usage
-   is
+   procedure Put_Usage is
    begin
       Put_Line ("usage : client <scenario> <kind> <IOR>");
       Put_Line (" where <scenario> is in {full, stor, retr}");
@@ -383,12 +415,12 @@ procedure Client is
 
    function Check_Arguments return Boolean;
 
-   function Check_Arguments return Boolean
-   is
+   function Check_Arguments return Boolean is
    begin
       if Argument_Count /= 3 then
          return False;
       end if;
+
       if Arg1 = "full" then
          Scenario := Full;
       elsif Arg1 = "stor" then
@@ -406,6 +438,7 @@ procedure Client is
       else
          return False;
       end if;
+
       if Arg2 = "pool" then
          Kind := Pool;
       elsif Arg2 = "naming" then
@@ -418,61 +451,75 @@ procedure Client is
       else
          return False;
       end if;
+
       return True;
    end Check_Arguments;
 
-   --------------------
-   -- Main Procedure --
-   --------------------
+   --  Start of processing for Client
 
 begin
 
    --  Argument check
+
    if not (Check_Arguments) then
       Put_Usage;
       return;
    end if;
 
    --  Initialize World
+
    PolyORB.Initialization.Initialize_World;
 
-   --  Get a reference on the message pool to use.
-   if Kind = Pool then
-      PolyORB.References.String_To_Object (Arg3, Pool_Ref);
-   elsif Kind = Naming then
-      declare
-         Naming_Ref : PolyORB.References.Ref;
-      begin
-         PolyORB.References.String_To_Object (Arg3, Naming_Ref);
-         Init (Naming_Ref);
-      end;
-      Pool_Ref := Locate ("Pool_1");
-      Kind := Pool;
-   elsif Kind = Topic then
-      PolyORB.References.String_To_Object (Arg3, Router_Ref);
-      if Scenario = Sub or Scenario = Unsub then
-         PolyORB.References.String_To_Object (Arg2, Pool_Ref);
-      end if;
-   end if;
+   --  Get a reference on the message pool to use
+
+   case Kind is
+      when Pool =>
+         PolyORB.References.String_To_Object (Arg3, Pool_Ref);
+
+      when Naming =>
+         declare
+            Naming_Ref : PolyORB.References.Ref;
+         begin
+            PolyORB.References.String_To_Object (Arg3, Naming_Ref);
+            Init (Naming_Ref);
+         end;
+         Pool_Ref := Locate ("Pool_1");
+         Kind := Pool;
+
+      when Topic =>
+         PolyORB.References.String_To_Object (Arg3, Router_Ref);
+
+         if Scenario = Sub
+           or else Scenario = Unsub
+         then
+            PolyORB.References.String_To_Object (Arg2, Pool_Ref);
+         end if;
+   end case;
 
    --  Initialize the connection factory
    --  (should be done by the administrator).
+
    MOMA.Connection_Factories.Create (MOMA_Factory, Pool_Ref);
 
-   --  Create connection using Connection Factory.
-   MOMA_Connection :=
-      MOMA.Connections.Create_Connection (MOMA_Factory);
+   --  Create connection using Connection Factory
+
+   MOMA_Connection
+      := MOMA.Connections.Create_Connection (MOMA_Factory);
 
    --  Initialize the destination
    --  (should be usually done by the administrator).
-   --  NB : in this example the destination and the provider are references
-   --       to the same thing (Pool_Ref). This will probably change later.
+
+   --  Note : in this example the destination and the provider are
+   --  references to the same object (Pool_Ref). This will probably
+   --  change later.
+
    if Pool_Ref /= PolyORB.References.Nil_Ref then
       MOMA_Dest_Pool := MOMA.Destinations.Create_Destination
          (To_MOMA_String ("queue1"),
           Pool_Ref,
           MOMA.Types.Pool);
    end if;
+
    if Router_Ref /= PolyORB.References.Nil_Ref then
       MOMA_Dest_Router := MOMA.Destinations.Create_Destination
          (To_MOMA_String ("Test"),
@@ -480,21 +527,25 @@ begin
           MOMA.Types.Topic);
    end if;
 
-   --  Create Session.
+   --  Create Session
+
    MOMA_Session := Create_Session (MOMA_Connection, False, 1);
 
-   --  Create Message Producer associated to the Session.
+   --  Create Message Producer associated to the Session
+
    if Kind = Pool then
       MOMA_Producer := Create_Producer (MOMA_Session, MOMA_Dest_Pool);
    elsif Kind = Topic then
       MOMA_Producer := Create_Producer (MOMA_Session, MOMA_Dest_Router);
    end if;
 
-   --  Create Message Consumer associated to the Session.
+   --  Create Message Consumer associated to the Session
+
    MOMA_Consumer_Acc := Create_Consumer (MOMA_Session, MOMA_Dest_Pool);
    MOMA_Consumer := MOMA_Consumer_Acc.all;
 
-   --  Subscribe / Unsubscribe to the "Test" topic.
+   --  Subscribe / Unsubscribe to the "Test" topic
+
    if Kind = Topic then
       if Scenario = Sub then
          MOMA.Sessions.Subscribe (MOMA_Dest_Router, MOMA_Dest_Pool);
@@ -503,19 +554,24 @@ begin
       end if;
    end if;
 
-   --  Initialization is completed.
+   --  Initialization is completed
+
    Output ("Initialization", True);
 
-   --  Testing MAny messages.
+   --  Testing MAny messages
+
    Test_MAny;
 
-   --  Testing MByte messages.
+   --  Testing MByte messages
+
    Test_MByte;
 
-   --  Testing MMap messages.
+   --  Testing MMap messages
+
    Test_MMap;
 
-   --  Testing MText messages.
+   --  Testing MText messages
+
    Test_MText;
 
    --  XXX should destroy all structures here !
