@@ -115,6 +115,10 @@ package body MOMA.Message_Producers.Queues is
 --      Argument_Mesg2 : PolyORB.Any.Any := PolyORB.Any.To_Any
 --        (To_PolyORB_String (""));
    begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Kind);
+      pragma Warnings (On);
+
       pragma Debug (O ("Sending to MOM object : "
                        & PolyORB.Any.Image (Argument_Mesg)));
       PolyORB.Any.NVList.Create (Arg_List);
