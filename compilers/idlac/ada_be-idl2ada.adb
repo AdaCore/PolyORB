@@ -2744,6 +2744,23 @@ package body Ada_Be.Idl2Ada is
    begin
 
       case NK is
+         when K_Declarator =>
+            declare
+               P_T_Type : constant Node_Id := T_Type (Parent (Node));
+               Is_Ref : constant Boolean
+                 := Is_Interface_Type (P_T_Type)
+                 or else Kind (P_T_Type) = K_Object;
+            begin
+               if Is_Ref then
+                  --  This node is mapped to a subtype of the
+                  --  original reference type: use that type's
+                  --  From_Any and To_Any.
+                  return Helper_Unit (P_T_Type);
+               else
+                  return Ada_Helper_Name (Node);
+               end if;
+            end;
+
          when
            K_Forward_Interface |
            K_Forward_ValueType =>
