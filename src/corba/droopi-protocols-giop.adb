@@ -26,6 +26,7 @@ with Droopi.Opaque;              use Droopi.Opaque;
 with Droopi.Buffers;             use Droopi.Buffers;
 with Droopi.Binding_Data;        use Droopi.Binding_Data;
 with Droopi.Binding_Data.IIOP;
+with Droopi.Binding_Data.Local;
 with Droopi.Protocols;           use Droopi.Protocols;
 with Droopi.Protocols.GIOP.GIOP_1_0;
 with Droopi.Protocols.GIOP.GIOP_1_1;
@@ -62,14 +63,6 @@ package body Droopi.Protocols.GIOP is
    use Droopi.Representations.CDR;
    use Droopi.Binding_Data.IIOP;
 
-
-   --  The offset of the byte_order boolean field in a GIOP message
-   --  header.
-
-   Prof_Factory : Binding_Data.Profile_Factory_Access;
-
-   --  XXX Remove dynamic allocation from elaboration
-   --  (move it to an Initialize procedure).
 
    Pend_Req : Pending_Request;
 
@@ -277,23 +270,41 @@ package body Droopi.Protocols.GIOP is
 
       use CORBA;
 
-      --  Message_Header_Message : aliased Buffer_Type := Ses.Buffer_In'All;
+      Stream_Header          : Encapsulation := Encapsulate(Ses.Buffer_In);
+      Zone_Address           : Zone_Access := new Stream_Element_Array'(Stream_Header);
+      Message_Header         : Buffer_Access := new Buffer_Type;
+
       Message_Magic          : Stream_Element_Array (Magic'Range);
       Message_Major_Version  : Version;
       Message_Minor_Version  : Version;
-      --  Endianness             : Endianness_Type;
       Message_Endianness     : Endianness_Type;
+      Endianness             : Endianness_Type;
       Flags                  : CORBA.Octet;
-      Op_Ptr                 : Opaque_Pointer;
+
 
    begin
 
       Success := False;
 
+      if CORBA.Boolean'Val
+           (CORBA.Octet (Stream_Header
+                         (Stream_Header'First
+                          + Byte_Order_Offset)) and 1) then
+         Message_Endianness := Little_Endian;
+      else
+         Message_Endianness := Big_Endian;
+      end if;
+
+      Buffers.Initialize_Buffer
+        (Message_Header, Message_Header_Size, Opaque_Pointer'(Zone => Zone_Address,
+         Offset => 0), Message_Endianness, 0);
+
       --  Magic
       for I in Message_Magic'Range loop
+
          Message_Magic (I) := Stream_Element
-           (CORBA.Octet'(Unmarshall (Ses.Buffer_In)));
+           (CORBA.Octet'(Unmarshall (Message_Header)));
+
       end loop;
 
       if Message_Magic /= Magic then
@@ -302,8 +313,8 @@ package body Droopi.Protocols.GIOP is
       end if;
 
       --  Test if the GIOP version of the Message received is supported
-      Message_Major_Version := Unmarshall (Ses.Buffer_In);
-      Message_Minor_Version := Unmarshall (Ses.Buffer_In);
+      Message_Major_Version := Unmarshall (Message_Header);
+      Message_Minor_Version := Unmarshall (Message_Header);
 
       if not (Message_Major_Version =  Ses.Major_Version)
         or else (Ses.Minor_Version < Message_Minor_Version)
@@ -313,47 +324,32 @@ package body Droopi.Protocols.GIOP is
          return;
       end if;
 
-      Flags := Unmarshall (Ses.Buffer_In);
+      Flags := Unmarshall (Message_Header);
       if (Flags and 2 ** Endianness_Bit) /= 0 then
-         Message_Endianness := Little_Endian;
+          Endianness := Little_Endian;
       else
-         Message_Endianness := Big_Endian;
+          Endianness := Big_Endian;
       end if;
 
+      pragma Assert (Message_Endianness = Endianness);
 
       if Message_Minor_Version /= Ver0 then
-         Fragment_Next := ((Flags and 2 ** Fragment_Bit) /= 0);
+          Fragment_Next := ((Flags and 2 ** Fragment_Bit) /= 0);
       end if;
 
-
-      --   Buffers.Extract_Data (Ses.Buffer_In.Contents, Op_Ptr,
-      --                Byte_Order_Offset, 1);
-
-      --     if CORBA.Boolean'Val
-      --           (CORBA.Octet (Op_Ptr.Zone (Op_Ptr.Offset) and 1))
-      --     then
-      --             Endianness := Little_Endian;
-      --     else
-      --             Endianness := Big_Endian;
-      --     end if;
-
-      --    Buffers.Initialize_Buffer
-      --      (Ses.Buffer_In, Message_Header_Size,
-      --       Opaque_Pointer'(Zone=>null, Offset=>0),
-      --       Endianness, 0);
-
-
       --  Message type
-      Message_Type := Unmarshall (Ses.Buffer_In);
+      Message_Type := Unmarshall (Message_Header);
 
       --  Message size
-      Message_Size := Unmarshall (Ses.Buffer_In);
+      Message_Size := Unmarshall (Message_Header);
 
       --  Everything allright
       Ses.Major_Version := Message_Major_Version;
       Ses.Minor_Version := Message_Minor_Version;
 
       Success := True;
+      Release_Contents(Message_Header.all);
+
    end Unmarshall_GIOP_Header;
 
    --------------------------------
@@ -962,6 +958,7 @@ package body Droopi.Protocols.GIOP is
       use CORBA.AbstractBase;
       use Obj_Adapters.Simple;
       use Binding_Data.IIOP;
+      use Binding_Data.Local;
       use Internals;
       use Internals.NV_Sequence;
 
@@ -977,10 +974,9 @@ package body Droopi.Protocols.GIOP is
 
       Req    : Request_Access := null;
       Args   : CORBA.NVList.Ref;
-      Obj    : Object_Ptr;
       Result : CORBA.NamedValue;
       Temp   : CORBA.NamedValue;
-      Target_Profile : Binding_Data.Profile_Access := new IIOP_Profile_Type;
+      Target_Profile : Binding_Data.Profile_Access := new Local_Profile_Type;
       Target : References.Ref;
       Target_Ref  : Target_Address_Access := null;
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
@@ -1017,14 +1013,9 @@ package body Droopi.Protocols.GIOP is
                Target_Ref.all,
                Operation.all);
 
-            case Target_Ref.Address_Type is
-               when Key_Addr =>
+            if Target_Ref.Address_Type = Key_Addr then
                   Object_Key := Target_Ref.Object_Key;
-               when Profile_Addr =>
-                  Object_Key.all := Get_Object_Key (Target_Ref.Profile.all);
-               when Reference_Addr =>
-                  raise Not_Implemented;
-            end case;
+            end if;
 
       end case;
 
@@ -1048,22 +1039,18 @@ package body Droopi.Protocols.GIOP is
                   To_Standard_String (Operation.all)),
                  Arg_Modes => 0);
 
-      if Ses.Minor_Version = Ver2
-        and then Target_Ref.Address_Type /= Key_Addr
-      then
+      if Ses.Minor_Version = Ver2 and  Target_Ref.Address_Type /= Key_Addr
+           then
 
-         if  Target_Ref.Address_Type = Profile_Addr then
-            References.Create_Reference ((1 => Target_Ref.Profile), Target);
-         else
-            Target := Target_Ref.Ref.IOR.Ref;
-         end if;
-
-         --  else
-         --  Creating the profile need the Socket Address
-         --  Transp_AP.Socket := Lower (Lower (Ses)).Socket;
-         --  Target_Profile := Create_Profile
-         --    (Prof_Factory, Transp_AP, Object_Key);
-         --  Create_Reference ((1 => Target_Profile), Target);
+           if  Target_Ref.Address_Type = Profile_Addr then
+                 Create_Reference ((1 => Target_Ref.Profile), Target);
+           else
+                 Target := Target_Ref.Ref.IOR.Ref;
+           end if;
+      else
+         Create_Local_Profile
+              (Object_Key.all, Local_Profile_Type (Target_Profile.all));
+         Create_Reference ((1 => Target_Profile), Target);
       end if;
 
       Create_Request
@@ -1103,7 +1090,6 @@ package body Droopi.Protocols.GIOP is
       Target_Profile : Binding_Data.Profile_Access
         := new IIOP_Profile_Type;
       Target : References.Ref;
-   --   Target_Switch : Target_Address_Access;
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
 
       Transp_AP : Transport_Access_Point_Access := new Socket_Access_Point;
@@ -1182,8 +1168,10 @@ package body Droopi.Protocols.GIOP is
                  (IIOP_Profile_Type (Pend_Req.Target_Profile.all),
                   TE,
                   Component_Access (New_Ses));
-               --  Release the previous session not yet implemented
-               --  XXX What does this mean?
+               -- release the previous session buffers
+               Release(Ses.Buffer_In);
+               Release(Ses.Buffer_Out);
+
                Invoke_Request (New_Ses, Pend_Req.Req.all);
             end;
 
@@ -1219,6 +1207,7 @@ package body Droopi.Protocols.GIOP is
             Target_Ref.all);
       end if;
    end Locate_Request_Receive;
+
 
    ------------------------------------
    -- Initialize the Profile_Factory --
@@ -1369,7 +1358,7 @@ package body Droopi.Protocols.GIOP is
       --  Sending the message
       --  Sli.In_Buf := Ses.Buffer_Out;
       Data_Send.Out_Buf := S.Buffer_In;
-      --    Handle_Message (S, Data_Send);
+      --  Handle_Message (S, Data_Send);
 
       --  Expecting data
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
@@ -1385,8 +1374,8 @@ package body Droopi.Protocols.GIOP is
    is
 
    begin
-      pragma Debug (O ("Received new connection to echo service..."));
 
+      pragma Debug (O ("Received new connection to echo service..."));
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
 
    end Handle_Connect_Indication;
@@ -1408,21 +1397,16 @@ package body Droopi.Protocols.GIOP is
       use ORB;
       use References;
       use References.IOR;
+      Req           : Request_Access := null;
+      Mess_Type     : Msg_Type;
+      Mess_Size     :  CORBA.Unsigned_Long;
+      Fragment_Next : Boolean;
+      Success       : Boolean;
+
 
    begin
       pragma Debug (O ("Received data on socket service..."));
       pragma Debug (Buffers.Show (S.Buffer_In.all));
-
-      declare
-      --   Sli    : Filters.Slicers.Slicer_Filter;
-         Req           : Request_Access := null;
-         Mess_Type     : Msg_Type;
-         Mess_Size     :  CORBA.Unsigned_Long;
-         Fragment_Next : Boolean;
-         Success       : Boolean;
-
-      begin
-
 
          if S.Expect_Header then
             Unmarshall_GIOP_Header (S, Mess_Type, Mess_Size,
@@ -1489,7 +1473,7 @@ package body Droopi.Protocols.GIOP is
                         when Object_Forward | Object_Forward_Perm =>
                            declare
                               Ref     : References.IOR.IOR_Type
-                                := Unmarshall (S.Buffer_In);
+                                           := Unmarshall (S.Buffer_In);
                               TE      : Transport_Endpoint_Access;
                               New_Ses : Session_Access;
                            begin
@@ -1499,17 +1483,17 @@ package body Droopi.Protocols.GIOP is
                                 (IIOP_Profile_Type
                                  (Pend_Req.Target_Profile.all),
                                  TE, Component_Access (New_Ses));
-                              --  Release the previous session
-                              --  not yet implemented
-                              --  XXX What does this mean?
-                              Invoke_Request (New_Ses, Pend_Req.Req.all);
+                             -- release the previous session buffers
+                             Release(S.Buffer_In);
+                             Release(S.Buffer_Out);
+
+                             Invoke_Request (New_Ses, Pend_Req.Req.all);
                            end;
                         when Loc_Needs_Addressing_Mode =>
                            raise Not_Implemented;
 
                         when Loc_System_Exception =>
-                           raise Not_Implemented;
-
+                           Unmarshall_And_Raise (S.Buffer_In);
 
                      end case;
                   end;
@@ -1530,13 +1514,14 @@ package body Droopi.Protocols.GIOP is
             when Fragment =>
                raise Not_Implemented;
          end case;
-      end;
+
 
       S.Expect_Header := True;
       Buffers.Release_Contents (S.Buffer_In.all);
-      Expect_Data (S, S.Buffer_In, Message_Header_Size);
 
       --  Prepare to receive next message.
+      Expect_Data (S, S.Buffer_In, Message_Header_Size);
+
    end Handle_Data_Indication;
 
 

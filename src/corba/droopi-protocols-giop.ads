@@ -43,10 +43,11 @@ package Droopi.Protocols.GIOP is
 
    Message_Header_Size  : constant Stream_Element_Offset;
    Maximum_Message_Size : constant Stream_Element_Offset;
+   Byte_Order_Offset    : constant Stream_Element_Offset;
    Max_Data_Received    : constant Integer;
    Endianness_Bit       : constant Integer;
    Fragment_Bit         : constant Integer;
-   Byte_Order_Offset    : constant Integer;
+
    Max_Nb_Tries         : constant Integer;
 
 
@@ -394,13 +395,13 @@ private
 
    Maximum_Message_Size : constant Stream_Element_Offset := 1000;
 
+   Byte_Order_Offset : constant Stream_Element_Offset := 6;
+
    Max_Data_Received : constant Integer := 1024;
 
    Endianness_Bit : constant Integer := 1;
 
    Fragment_Bit : constant Integer := 2;
-
-   Byte_Order_Offset : constant Integer := 6;
 
    Max_Nb_Tries : constant Integer := 100;
 
