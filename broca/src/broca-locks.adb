@@ -1,30 +1,17 @@
---  XXX
-with Ada.Task_Identification; use Ada.Task_Identification;
-with Ada.Text_IO; use Ada.Text_IO;
---  XXX
-
 package body Broca.Locks is
 
    protected body Mutex_Type is
       entry Lock when Owner = Null_Task_Id is
       begin
          Owner := Lock'Caller;
-         Put_Line ("In Lock, Owner = " & Image (Owner));
       end Lock;
 
       procedure Unlock is
       begin
-         --  XXX
-         Put_Line ("In Unlock, Owner = " & Image (Owner)
-                   & ", Current = " & Image (Current_Task));
-         --  XXX
          if Owner /= Current_Task then
-            Put_Line ("Unlock is committing suicide as a"
-                      & " consequence of schizophrenia.");
             raise Program_Error;
          else
             Owner := Null_Task_Id;
-            Put_Line ("Did unlock, returning to caller.");
          end if;
       end Unlock;
 

@@ -18,7 +18,7 @@ pragma Elaborate_All (PortableServer.AdapterActivator.Impl);
 
 package body GenericServer is
    Object_Ref : CORBA.Object.Ref;
-   
+
    procedure Decode_Options is
       use Ada.Command_Line;
       use Ada.Text_IO;
@@ -156,7 +156,8 @@ package body GenericServer is
          PortableServer.POAManager.Activate
            (PortableServer.POA.Get_The_POAManager (Res));
 
-         Ref_To_Export := Obj;
+         --  XXX THIS IS WRONG !!!!
+         --  Ref_To_Export := Obj;
 
          Returns := True;
       else
@@ -211,12 +212,14 @@ package body GenericServer is
       use PortableServer;
       Res : Ref;
       Thread_Policy : ThreadPolicyValue;
+      Uniqueness_Policy : IdUniqueNessPolicyValue;
       Nil : PortableServer.POAManager.Ref;
       A_Ref : CORBA.Object.Ref;
       Oid : PortableServer.ObjectId;
    begin
       My_Aa_Ref := AdapterActivator.Impl.To_Ref (new My_Aa_Object);
       Set_The_Activator (Poa, My_Aa_Ref);
+
       Res := Ref (Find_POA (Poa, CORBA.To_CORBA_String ("test_1"), True));
 
       My_Servant_Manager :=
@@ -228,25 +231,37 @@ package body GenericServer is
          Thread_Policy := ORB_CTRL_MODEL;
       end if;
 
+      if Flag_Servant_Policy = USE_DEFAULT_SERVANT then
+         Uniqueness_Policy := MULTIPLE_ID;
+      else
+         Uniqueness_Policy := UNIQUE_ID;
+      end if;
+
       --  The type conversion prevents a dynamically tagged expression!
       Res := Ref (Create_POA (Poa,
                               CORBA.To_CORBA_String ("test_st"),
                               Nil,
                               Thread_Policy,
                               PortableServer.TRANSIENT,
-                              UNIQUE_ID,
+                              Uniqueness_Policy,
                               SYSTEM_ID,
                               NO_IMPLICIT_ACTIVATION,
                               RETAIN,
                               Flag_Servant_Policy));
 
-
       case Flag_Servant_Policy is
          when PortableServer.USE_DEFAULT_SERVANT =>
-            A_Ref := PortableServer.POA.Create_Reference
-              (Poa, CORBA.To_CORBA_String (Repository_Id.all));
-            PortableServer.POA.Set_Servant
-              (Poa, PortableServer.Servant (My_Obj));
+            --  A_Ref := PortableServer.POA.Create_Reference
+            --    (Poa, CORBA.To_CORBA_String (Repository_Id.all));
+            --  PortableServer.POA.Set_Servant
+            --    (Poa, PortableServer.Servant (My_Obj));
+
+            --  XXX  review required. RootPOA does not have
+            --  USE_DEFAULT_SERVANT policy, and so Set_Servant fails..
+
+            pragma Assert (False);
+            null;
+
          when PortableServer.USE_ACTIVE_OBJECT_MAP_ONLY =>
             Oid := PortableServer.POA.Activate_Object
               (Poa, PortableServer.Servant (My_Obj));
@@ -269,11 +284,11 @@ package body GenericServer is
    procedure Main
      (Obj : in PortableServer.Servant) is
       use CORBA.ORB.IDL_SEQUENCE_ObjectId;
-      
+
       Poa : PortableServer.POA.Ref;
       Poa_Manager : PortableServer.POAManager.Ref;
       Oid : PortableServer.ObjectId;
-      
+
       Ior : CORBA.String;
       Oid_List : ObjectIdList;
    begin
@@ -281,106 +296,106 @@ package body GenericServer is
 
       --  Disp the list of known initial services.
       if Flag_Verbose then
-	 Put_Line ("list of initial services:");
-	 Oid_List := List_Initial_Services;
-	 for I in 1 .. Length (Oid_List) loop
-	    Put_Line (To_Standard_String (Element_Of (Oid_List, I)));
-	 end loop;
+         Put_Line ("list of initial services:");
+         Oid_List := List_Initial_Services;
+         for I in 1 .. Length (Oid_List) loop
+            Put_Line (To_Standard_String (Element_Of (Oid_List, I)));
+         end loop;
       end if;
-      
+
       --  Find the Root POA.
       declare
-	 Root_Poa : PortableServer.POA.Ref;
-	 Object_Ref : CORBA.Object.Ref;
+         Root_Poa : PortableServer.POA.Ref;
+         Object_Ref : CORBA.Object.Ref;
       begin
-	 Object_Ref := Resolve_Initial_References (To_CORBA_String ("RootPOA"));
-	 Root_Poa := PortableServer.POA.To_Ref (Object_Ref);
-	 Poa := Build_Poa_Tree (Root_Poa);
-	 Poa_Manager := PortableServer.POA.Get_The_POAManager (Root_Poa);
+         Object_Ref := Resolve_Initial_References (To_CORBA_String ("RootPOA"));
+         Root_Poa := PortableServer.POA.To_Ref (Object_Ref);
+         Poa := Build_Poa_Tree (Root_Poa);
+         Poa_Manager := PortableServer.POA.Get_The_POAManager (Root_Poa);
       exception
-	 when InvalidName =>
-	    Put_Line ("No RootPOA (add `with broca.rootpoa;')");
-	    return;
+         when InvalidName =>
+            Put_Line ("No RootPOA (add `with broca.rootpoa;')");
+            return;
       end;
 
       --  displays the IOR of the implementation object.
       Ior := CORBA.Object.Object_To_String (Ref_To_Export);
       Put_Line ("'" & To_Standard_String (Ior) & "'");
-      
+
       if Flag_Ior_File /= null then
-	 declare
-	    use Ada.Text_IO;
-	    File : File_Type;
-	 begin
-	    Create (File, Out_File, Flag_Ior_File.all);
-	    Put_Line (File, To_Standard_String (Ior));
-	    Close (File);
-	 end;
+         declare
+            use Ada.Text_IO;
+            File : File_Type;
+         begin
+            Create (File, Out_File, Flag_Ior_File.all);
+            Put_Line (File, To_Standard_String (Ior));
+            Close (File);
+         end;
       end if;
 
       if Flag_Discard then
-	 PortableServer.POAManager.Discard_Requests (Poa_Manager, False);
+         PortableServer.POAManager.Discard_Requests (Poa_Manager, False);
       else
-	 --  Activate the RootPOA.
-	 PortableServer.POAManager.Activate (Poa_Manager);
+         --  Activate the RootPOA.
+         PortableServer.POAManager.Activate (Poa_Manager);
       end if;
-      
+
       --  Run the ORB: accept requests.
       if Flag_Tilt
       then
-	 declare
-	    task Orb;
-	    
-	    task body Orb is
-	    begin
-	       --  Run the ORB: accept requests.
-	       CORBA.ORB.Run;
-	    end Orb;
-	 begin
-	    loop
-	       Put ("activate RootPOA...");
-	       --  Activate the RootPOA.
-	       PortableServer.POAManager.Activate (Poa_Manager);
-	       Put_Line ("done");
-	       delay 5.0;
-	       
-	       Put ("discarding requests for RootPOA...");
-	       --  Activate the RootPOA.
-	       PortableServer.POAManager.Discard_Requests (Poa_Manager, True);
-	       Put_Line ("done");
-	       delay 5.0;
-	       
-	       Put ("suspending requests for RootPOA...");
-	       --  Activate the RootPOA.
-	       PortableServer.POAManager.Hold_Requests (Poa_Manager, True);
-	       Put_Line ("done");
-	       delay 5.0;
-	    end loop;
-	 end;
+         declare
+            task Orb;
+
+            task body Orb is
+            begin
+               --  Run the ORB: accept requests.
+               CORBA.ORB.Run;
+            end Orb;
+         begin
+            loop
+               Put ("activate RootPOA...");
+               --  Activate the RootPOA.
+               PortableServer.POAManager.Activate (Poa_Manager);
+               Put_Line ("done");
+               delay 5.0;
+
+               Put ("discarding requests for RootPOA...");
+               --  Activate the RootPOA.
+               PortableServer.POAManager.Discard_Requests (Poa_Manager, True);
+               Put_Line ("done");
+               delay 5.0;
+
+               Put ("suspending requests for RootPOA...");
+               --  Activate the RootPOA.
+               PortableServer.POAManager.Hold_Requests (Poa_Manager, True);
+               Put_Line ("done");
+               delay 5.0;
+            end loop;
+         end;
       else
-	 CORBA.ORB.Run;
+         CORBA.ORB.Run;
       end if;
 
       exception
-	 when Bad_Option =>
-	    null;
-	    
-	 when E : CORBA.Internal =>
-	    declare
-	       Memb : System_Exception_Members;
-	    begin
-	       Get_Members (E, Memb);
-	       Put ("received exception ");
-	       Put (Ada.Exceptions.Exception_Name (E));
-	       Put (", minor");
-	       Put (Unsigned_Long'Image (Memb.Minor));
-	       Put (", completion status: ");
-	       Put_Line (Completion_Status'Image (Memb.Completed));
-	    end;
-	    
-	 when E : others =>
-	    Put_Line (Ada.Exceptions.Exception_Information (E));
+         when Bad_Option =>
+            null;
+
+         when E : CORBA.Internal =>
+            declare
+               Memb : System_Exception_Members;
+            begin
+               Get_Members (E, Memb);
+               Put ("received exception ");
+               Put (Ada.Exceptions.Exception_Name (E));
+               Put (", minor");
+               Put (Unsigned_Long'Image (Memb.Minor));
+               Put (", completion status: ");
+               Put_Line (Completion_Status'Image (Memb.Completed));
+            end;
+
+         when E : others =>
+            Put_Line (Ada.Exceptions.Exception_Information (E));
 
    end Main;
-   
+
 end GenericServer;

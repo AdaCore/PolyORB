@@ -3,8 +3,9 @@ with Broca.Buffers;
 
 package Broca.Refs is
 
-   type Ref_Type is new Ada.Finalization.Limited_Controlled
-     with private;
+   --  type Ref_Type is new Ada.Finalization.Limited_Controlled
+   --    with private;
+   type Ref_Type is tagged limited private;
    --  Ref_Type is the base type of all objects that can be
    --  referenced. It contains a Counter, which is the number of
    --  references to this object, and is automatically destroyed when
@@ -62,11 +63,12 @@ package Broca.Refs is
 
 private
 
-   type Ref_Type is new Ada.Finalization.Limited_Controlled with
+   --   type Ref_Type is new Ada.Finalization.Limited_Controlled with
+   type Ref_Type is tagged limited
       record
          --  COUNTER is used to count the number of references, unless
          --  COUNTER is -1 (caused by disable_usage).
-         Counter : integer := 0;
+         Counter : Integer := 0;
       end record;
 
    type Ref is new Ada.Finalization.Controlled with

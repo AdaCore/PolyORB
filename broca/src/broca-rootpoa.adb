@@ -1,3 +1,4 @@
+with Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with CORBA;
@@ -330,8 +331,7 @@ package body Broca.Rootpoa is
       Request_Id : CORBA.Unsigned_Long;
       Reponse_Expected : CORBA.Boolean;
       Message : in out Broca.Buffers.Buffer_Descriptor);
-   function Create_POA
-     (Self          : access Object;
+   function Create_POA     (Self          : access Object;
       Adapter_Name  : CORBA.String;
       A_POAManager  : POAManager_Object_Ptr;
       Thread_Policy : ThreadPolicyValue;
@@ -1366,11 +1366,14 @@ package body Broca.Rootpoa is
             Created := PortableServer.AdapterActivator.Unknown_Adapter
               (Self.Activator, Poa_Ref, Adapter_Name);
          exception
-            when others =>
+            when E : others =>
                --  FIXME:
                --  9.3.3
                --  If unknown_adapter raises a system exception, the ORB will
                --  report an OBJ_ADAPTER exception.
+               pragma Debug (O ("Unknown_Adapter raised "
+                                & Ada.Exceptions.Exception_Name (E)));
+               pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
                Created := False;
          end;
 
