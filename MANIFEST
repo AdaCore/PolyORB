@@ -349,7 +349,7 @@ NEWS
 README
 aclocal.m4
 configure
-ada/a-ctrl_c.c
+ada/ctrl_c.c
 ada/ali-util.adb
 ada/ali-util.ads
 ada/ali.adb
