@@ -16,13 +16,13 @@ CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Corba_Boa.o
 
 COMMAND_LINE = -I$(ADABROKER_PATH) \
 -largs $(CPP_LINK_FILES) \
--L../../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
--lomniORB2 -lomniDynamic2 -lomnithread -lpthread -ltcpwrapGK
+
+include ../../InterfaceORB/Makefile.sys_dep
 
 main: .
 	make -C ../../InterfaceORB main
-	gnatmake -gnatf -gnata -m -i client $(COMMAND_LINE)
-	gnatmake -gnatf -gnata -m -i server $(COMMAND_LINE)
+	gnatmake -gnatf -gnata -m -i client $(COMMAND_LINE) $(OMNIORB_LIBS)
+	gnatmake -gnatf -gnata -m -i server $(COMMAND_LINE) $(OMNIORB_LIBS)
 
 clean:
 	rm *.ali *.o *~

@@ -22,7 +22,6 @@ package body Echo.impl is
                        Message : in Corba.String) return Corba.String is
       Result : Corba.String := Message ;
    begin
-      raise Constraint_Error ;
       Output(Echo_Impl,"*** Je suis dans echoString") ;
       return Result ;
    end ;
