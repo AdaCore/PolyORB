@@ -1443,7 +1443,7 @@ package body PolyORB.POA is
                 Null_Members'(Null_Member));
       else
          User_Id := new Objects.Object_Id'
-           (Objects.To_Oid (To_Standard_String (U_Oid.Id)));
+           (Objects.Hex_String_To_Oid (To_Standard_String (U_Oid.Id)));
       end if;
    end Object_Key;
 
@@ -1608,7 +1608,7 @@ package body PolyORB.POA is
       pragma Debug
         (O ("OA : " & Obj_OA.Name.all
             & " looks for servant associated with Id "
-            & Objects.To_String (Id.all)));
+            & Objects.Oid_To_Hex_String (Id.all)));
 
       Id_To_Servant (Obj_OA,
                      Id.all,

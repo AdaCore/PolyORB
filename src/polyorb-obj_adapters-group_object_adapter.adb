@@ -168,18 +168,18 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
    begin
       Enter (GOA.Lock);
 
-      GS := Lookup (GOA.Registered_Groups, To_String (Id.all), null);
+      GS := Lookup (GOA.Registered_Groups, Oid_To_Hex_String (Id.all), null);
 
       if GS = null then
-         pragma Debug (O ("Invalid group : " & To_String (Id.all)));
+         pragma Debug (O ("Invalid group : " & Oid_To_Hex_String (Id.all)));
          Throw (Error,
                 Invalid_Object_Id_E,
                 Null_Members'(Null_Member));
       else
          Destroy_Group_Servant (GS);
-         Delete (GOA.Registered_Groups, To_String (Id.all));
+         Delete (GOA.Registered_Groups, Oid_To_Hex_String (Id.all));
          pragma Debug (O ("Group removed with success : "
-                          & To_String (Id.all)));
+                          & Oid_To_Hex_String (Id.all)));
       end if;
 
       Leave (GOA.Lock);
@@ -268,11 +268,12 @@ package body PolyORB.Obj_Adapters.Group_Object_Adapter is
       use type PolyORB.Servants.Servant_Access;
 
    begin
-      pragma Debug (O ("Find_Servant " & To_String (Id.all)));
+      pragma Debug (O ("Find_Servant " & Oid_To_Hex_String (Id.all)));
 
       Enter (GOA.Lock);
 
-      Servant := Lookup (GOA.Registered_Groups, To_String (Id.all), null);
+      Servant := Lookup (GOA.Registered_Groups,
+                         Oid_To_Hex_String (Id.all), null);
       if Servant = null then
          pragma Debug (O ("Servant not found"));
          Throw (Error,

@@ -195,7 +195,8 @@ package body PolyORB.POA.Basic_POA is
 
       declare
          Oid_Data : aliased Object_Id :=
-                      Objects.To_Oid (To_Standard_String (U_Oid.Id));
+                      Objects.Hex_String_To_Oid (
+                        To_Standard_String (U_Oid.Id));
          type SEA_Access is access all Ada.Streams.Stream_Element_Array;
          function As_SEA_Access is new Ada.Unchecked_Conversion
            (Object_Id_Access, SEA_Access);

@@ -33,7 +33,6 @@
 
 with PolyORB.Buffers;
 with PolyORB.Representations.CDR.Common;
-with PolyORB.Utils;
 
 package body PolyORB.MIOP_P.Groups is
 
@@ -75,10 +74,7 @@ package body PolyORB.MIOP_P.Groups is
       Marshall (Buffer, G_I.Object_Group_Id);
       Marshall (Buffer, G_I.Object_Group_Ref_Version);
       Marshall (Buffer, Types.Identifier (G_I.Group_Domain_Id));
-      Oid := new Object_Id'
-        (To_Oid
-         (PolyORB.Utils.To_String
-          (To_Stream_Element_Array (Buffer))));
+      Oid := new Object_Id'(Object_Id (To_Stream_Element_Array (Buffer)));
       Release (Buffer);
       return Oid;
    end To_Object_Id;

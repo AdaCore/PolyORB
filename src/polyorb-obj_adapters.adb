@@ -71,7 +71,8 @@ package body PolyORB.Obj_Adapters is
       pragma Warnings (On);
    begin
       URI := Types.To_PolyORB_String
-        ("/" & Objects.To_String (Id.all));
+        ("/" & Objects.Oid_To_Hex_String (Id.all));
+      --  XXX should URI_Encode the oid, not hexify it!
    end Oid_To_Rel_URI;
 
    --------------------
@@ -94,7 +95,7 @@ package body PolyORB.Obj_Adapters is
       end if;
 
       return new Objects.Object_Id'
-        (Objects.To_Oid (S (S'First + 1 .. S'Last)));
+        (Objects.Hex_String_To_Oid (S (S'First + 1 .. S'Last)));
    end Rel_URI_To_Oid;
 
    ------------------

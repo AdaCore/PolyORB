@@ -74,13 +74,6 @@ package PolyORB.Representations.SRP is
                           return Ada.Streams.Stream_Element_Array;
    --  Decode B64_Data using the base64 algorithm
 
-   -----------------------------------
-
-   --  Only encodes the parameters' values
-   --  Warning, Str must be a well-formed SRP string, otherwise
-   --  Constraint_Error may be raised
-   function Encode_URL (Str : in String) return String;
-
    function Encode_URL (SRP_Info : Split_SRP) return Types.String;
 
    --  Only encodes the parameters' values

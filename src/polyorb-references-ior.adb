@@ -322,7 +322,7 @@ package body PolyORB.References.IOR is
    is
       use PolyORB.Types;
    begin
-      return IOR_Prefix & To_String (Object_To_Opaque (IOR));
+      return IOR_Prefix & SEA_To_Hex_String (Object_To_Opaque (IOR));
    end Object_To_String;
 
    ----------------------
@@ -341,7 +341,7 @@ package body PolyORB.References.IOR is
          pragma Debug (O ("IOR Header ok"));
          declare
             Octets : aliased Stream_Element_Array
-              := To_Stream_Element_Array
+              := Hex_String_To_SEA
               (Str (Str'First + IOR_Prefix'Length .. Str'Last));
          begin
             return Opaque_To_Object (Octets'Access);

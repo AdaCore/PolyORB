@@ -48,12 +48,12 @@ package PolyORB.Objects is
    procedure Free is new Ada.Unchecked_Deallocation
      (Object_Id, Object_Id_Access);
 
-   function To_String (Oid : Object_Id) return String;
-   pragma Inline (To_String);
+   function Oid_To_Hex_String (Oid : Object_Id) return String;
+   pragma Inline (Oid_To_Hex_String);
    --  Convert an OID to a printable string representation.
 
-   function To_Oid (S : String) return Object_Id;
-   pragma Inline (To_Oid);
+   function Hex_String_To_Oid (S : String) return Object_Id;
+   pragma Inline (Hex_String_To_Oid);
    --  Convert an OID from a printable string representation.
 
    function Image (Oid : Object_Id) return String;

@@ -116,7 +116,7 @@ package body PolyORB.POA_Types is
      return Types.String is
    begin
       return To_PolyORB_String
-        (PolyORB.Objects.To_String (PolyORB.Objects.Object_Id (Oid)));
+        (PolyORB.Objects.Oid_To_Hex_String (PolyORB.Objects.Object_Id (Oid)));
    end Image;
 
    ---------------

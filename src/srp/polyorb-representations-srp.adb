@@ -31,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
 with Ada.Unchecked_Conversion;
 
@@ -263,32 +262,6 @@ package body PolyORB.Representations.SRP is
       return Result (1 .. R - 1 - Pad);
    end Base64_Decode;
 
-
-   -----------------------------------
-
-   ----------------
-   -- Encode_URL --
-   ----------------
-   --  ??? Should be removed
-   function Encode_URL (Str : in String) return String
-   is
-      use Characters.Handling;
-
---       Split_URL : Split_SRP := Split (Str);
---       Current_Arg : Arg_Info_Ptr := Split_URL.Args;
-   begin
-      raise Deprecated;
---       while Current_Arg /= null loop
---          --  ??? Free mem ?
---          Current_Arg.all.Value :=
---            new String'(Encode_String (Current_Arg.all.Value.all));
---          Current_Arg := Current_Arg.all.Next;
---       end loop;
-
---       return Types.To_Standard_String (Any.From_Any (Join (Split_URL)));
-      return "";
-   end Encode_URL;
-
    ----------------
    -- Encode_URL --
    ----------------
@@ -300,7 +273,7 @@ package body PolyORB.Representations.SRP is
       Current_Arg : Arg_Info_Ptr := SRP_Info.Args;
    begin
       Append (Result, SRP_Info.Method.all & " " &
-              Objects.To_String (SRP_Info.Oid.all));
+              Objects.Oid_To_Hex_String (SRP_Info.Oid.all));
       if Current_Arg /= null then
          Append (Result, "?");
       end if;
@@ -343,28 +316,7 @@ package body PolyORB.Representations.SRP is
    -------------------
 
    function Encode_String (Str : String) return String
-   is
-      subtype Character_SEA is Stream_Element_Array
-        (1 .. Character'Size / Stream_Element'Size);
-      --  SEA means Stream_Element_Array
-
-      function Char_To_SEA is
-         new Ada.Unchecked_Conversion (Character, Character_SEA);
-      --  SEA means Stream_Element_Array
-
-      Encoded_String : Unbounded_String;
-   begin
-      for I in Str'Range loop
-         if Characters.Handling.Is_Alphanumeric (Str (I)) = False then
-            Append (Encoded_String,
-                    "%" & PolyORB.Utils.To_String
-                    (Char_To_SEA (Str (I))));
-         else
-            Append (Encoded_String, Str (I));
-         end if;
-      end loop;
-      return To_String (Encoded_String);
-   end Encode_String;
+     renames Utils.URI_Encode;
 
    -------------------------------------------
    -- Conversions between PolyORB signed and --

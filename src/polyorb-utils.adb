@@ -90,13 +90,11 @@ package body PolyORB.Utils is
       end if;
    end Hex_Value;
 
-   ---------------
-   -- To_String --
-   ---------------
+   -----------------------
+   -- SEA_To_Hex_String --
+   -----------------------
 
-   function To_String
-     (A : Stream_Element_Array)
-     return String
+   function SEA_To_Hex_String (A : Stream_Element_Array) return String
    is
       S : String (1 .. 2 * A'Length);
    begin
@@ -108,15 +106,13 @@ package body PolyORB.Utils is
       end loop;
 
       return S;
-   end To_String;
+   end SEA_To_Hex_String;
 
-   -----------------------------
-   -- To_Stream_Element_Array --
-   -----------------------------
+   -----------------------
+   -- Hex_String_To_SEA --
+   -----------------------
 
-   function To_Stream_Element_Array
-     (S : String)
-     return Stream_Element_Array
+   function Hex_String_To_SEA (S : String) return Stream_Element_Array
    is
       A : Stream_Element_Array (1 .. S'Length / 2);
    begin
@@ -128,7 +124,7 @@ package body PolyORB.Utils is
       end loop;
 
       return A;
-   end To_Stream_Element_Array;
+   end Hex_String_To_SEA;
 
    ----------------
    -- URI_Encode --

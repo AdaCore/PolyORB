@@ -353,7 +353,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       end if;
 
       pragma Debug (O ("Object Key : "
-                       & To_String (Object_Key.all)));
+                       & Oid_To_Hex_String (Object_Key.all)));
 
       Args := Get_Empty_Arg_List
         (Object_Adapter (ORB),

@@ -292,11 +292,9 @@ package body PortableServer is
    -- String_To_ObjectId --
    ------------------------
 
-   function String_To_ObjectId
-     (Id : String)
-     return ObjectId is
+   function String_To_ObjectId (Id : String) return ObjectId is
    begin
-      return ObjectId (PolyORB.Objects.To_Oid (Id));
+      return ObjectId (PolyORB.Objects.Hex_String_To_Oid (Id));
    end String_To_ObjectId;
 
    ------------------------
@@ -307,7 +305,8 @@ package body PortableServer is
      (Id : ObjectId)
      return String is
    begin
-      return PolyORB.Objects.To_String (PolyORB.Objects.Object_Id (Id));
+      return PolyORB.Objects.Oid_To_Hex_String (
+               PolyORB.Objects.Object_Id (Id));
    end ObjectId_To_String;
 
    -----------------

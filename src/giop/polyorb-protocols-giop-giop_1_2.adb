@@ -472,7 +472,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          when Key_Addr =>
 
             pragma Debug (O ("Object Key : "
-                             & To_String (Target_Addr.Object_Key.all)));
+                             & Oid_To_Hex_String (
+                                 Target_Addr.Object_Key.all)));
 
             Args := Get_Empty_Arg_List
               (Object_Adapter (ORB),

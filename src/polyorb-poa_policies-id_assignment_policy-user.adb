@@ -143,11 +143,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
       end if;
 
       pragma Debug (O ("Object Name is '"
-                       & PolyORB.Objects.To_String (Hint.all)
+                       & PolyORB.Objects.Oid_To_Hex_String (Hint.all)
                        & "'"));
 
       U_Oid := PolyORB.POA_Types.Create_Id
-        (Name             => PolyORB.Objects.To_String (Hint.all),
+        (Name             => PolyORB.Objects.Oid_To_Hex_String (Hint.all),
          System_Generated => False,
          Persistency_Flag =>
            Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
@@ -180,7 +180,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    begin
 
       U_Oid := PolyORB.POA_Types.Create_Id
-        (Name             => PolyORB.Objects.To_String (Oid),
+        (Name             => PolyORB.Objects.Oid_To_Hex_String (Oid),
          System_Generated => False,
          Persistency_Flag =>
            Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
@@ -208,7 +208,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
          return;
       end if;
       Result := new Object_Id'
-        (PolyORB.Objects.To_Oid
+        (PolyORB.Objects.Hex_String_To_Oid
          (PolyORB.Types.To_Standard_String (U_Oid.Id)));
    end Object_Identifier;
 

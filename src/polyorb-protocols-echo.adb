@@ -218,9 +218,9 @@ package body PolyORB.Protocols.Echo is
          Argv : String_Array
            := Split (Unmarshall_String (Rep, S.Buffer));
 
-         Method     : constant String := Argv (1).all;
-         Oid        : aliased Object_Id := To_Oid (Argv (2).all);
-         Arg_String : constant String := Argv (3).all;
+         Method     : constant String   := Argv (1).all;
+         Oid        : aliased Object_Id := Hex_String_To_Oid (Argv (2).all);
+         Arg_String : constant String   := Argv (3).all;
 
          Req : Request_Access := null;
          Args   : Any.NVList.Ref;

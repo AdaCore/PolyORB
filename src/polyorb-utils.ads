@@ -44,13 +44,13 @@ package PolyORB.Utils is
    --  If C is not a valid hexadecimal digit, Constraint_Error
    --  is raised.
 
-   function To_String
+   function SEA_To_Hex_String
      (A : Ada.Streams.Stream_Element_Array)
      return String;
    --  Return a string of hexadecimal digits representing the
    --  contents of A.
 
-   function To_Stream_Element_Array
+   function Hex_String_To_SEA
      (S : String)
      return Ada.Streams.Stream_Element_Array;
    --  Return the Stream_Element_Array represented by the
@@ -123,7 +123,7 @@ package PolyORB.Utils is
 
 private
 
-   pragma Inline (Hex_Value, To_String, To_Stream_Element_Array,
+   pragma Inline (Hex_Value, SEA_To_Hex_String, Hex_String_To_SEA,
                   URI_Encode, URI_Decode, Trimmed_Image, Find_Skip);
 
 end PolyORB.Utils;

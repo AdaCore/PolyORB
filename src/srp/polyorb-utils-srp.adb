@@ -118,9 +118,9 @@ package body PolyORB.Utils.SRP is
 
       --  Stores the Object Id
       Result.Oid :=
-        new Object_Id'(To_Oid (String'(To_Standard_String (S)
-                                       (Matches (2).First ..
-                                        Matches (2).Last))));
+        new Object_Id'(Hex_String_To_Oid (String'(To_Standard_String (S)
+                                                   (Matches (2).First ..
+                                                    Matches (2).Last))));
 
       --  Stores the last string containing the arguments
       Args_Ptr := new Types.String'(To_PolyORB_String
@@ -172,7 +172,8 @@ package body PolyORB.Utils.SRP is
       URL : Types.String;
       --  Current_Arg : Arg_Info_Ptr := Data.Args;
    begin
-      Append (URL, Data.Method.all & " " & To_String (Data.Oid.all) & "?");
+      Append (URL, Data.Method.all & " "
+              & Oid_To_Hex_String (Data.Oid.all) & "?");
       raise Program_Error;
 --      while Current_Arg /= null loop
 --          Append (URL, Current_Arg.all.Name.all & "=" &
