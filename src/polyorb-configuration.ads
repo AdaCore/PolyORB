@@ -78,7 +78,7 @@ package PolyORB.Configuration is
      := "environment";
 
    procedure Load_Configuration_File (Conf_File_Name : String);
-   --  Load 'Conf_File_Name' configuration file.
+   --  Load Conf_File_Name configuration file.
 
    function PolyORB_Configuration_File return String;
    --  Return PolyORB Configuration file filename.

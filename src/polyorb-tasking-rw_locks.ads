@@ -33,7 +33,7 @@
 
 --  Inter-process synchronisation objects.
 
---  $Id: //droopi/main/src/polyorb-tasking-rw_locks.ads#5 $
+--  $Id: //droopi/main/src/polyorb-tasking-rw_locks.ads#6 $
 
 with PolyORB.Tasking.Condition_Variables;
 
@@ -73,10 +73,10 @@ package PolyORB.Tasking.Rw_Locks is
    --  Release read mode lock.
 
    function Is_Set_W (L : access Rw_Lock_Type) return Boolean;
-   --  Return 'True' iff the lock is held in write mode.
+   --  Return True if the lock is held in write mode.
 
    function Is_Set_R (L : access Rw_Lock_Type) return Boolean;
-   --  Return 'True' iff the lock is held in read mode.
+   --  Return True if the lock is held in read mode.
 
    procedure Set_Max_Count
      (L : access Rw_Lock_Type;

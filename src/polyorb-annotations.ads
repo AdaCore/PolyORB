@@ -65,7 +65,7 @@ package PolyORB.Annotations is
                        N : out Note'Class;
                        Default : Note'Class);
    --  Retrieve a note of N's type from NP.
-   --  Return 'Default' if the note cannot be found.
+   --  Return Default if the note cannot be found.
 
    procedure Destroy (NP : in out Notepad);
    --  Removes all notes in NP and return any associated

@@ -34,7 +34,7 @@
 --  A Message_Consumer object is the client view of the message receiving
 --  process. It is the facade to all communications carried out with
 --  a message pool to receive messages; it contains the stub to access
---  'Message_Consumer' servants (see MOMA.Provider for more details).
+--  Message_Consumer servants (see MOMA.Provider for more details).
 
 --  NOTE: A MOMA client must use only this package to receive messages from a
 --  message pool.
@@ -84,7 +84,7 @@ package MOMA.Message_Consumers is
    function Receive (Timeout : Ada.Real_Time.Time)
       return MOMA.Messages.Message;
    --  Get next message from the pool if it is non empty; otherwise will
-   --  wait 'Timeout' until a new message arrives.
+   --  wait during Timeout until a new message arrives.
    --  XXX not implemented.
 
    function Receive_No_Wait return MOMA.Messages.Message;

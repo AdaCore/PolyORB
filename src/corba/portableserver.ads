@@ -130,10 +130,10 @@ package PortableServer is
    type ObjectId is new PolyORB.Objects.Object_Id;
 
    function String_To_ObjectId (Id : String) return ObjectId;
-   --  Convert string 'Id' into an ObjectID.
+   --  Convert string Id into an ObjectID.
 
    function ObjectId_To_String (Id : ObjectId) return String;
-   --  Convert ObjectId 'Id' into a string.
+   --  Convert ObjectId Id into a string.
 
    --  XXX these functions are not defined in the CORBA specification,
    --  but defined in various C++ ORB implementation. Moreover, how
@@ -323,7 +323,7 @@ package PortableServer is
    type Request_Dispatcher is access procedure
      (For_Servant : in Servant;
       Request     : in CORBA.ServerRequest.Object_Ptr);
-   --  Same signature as primitive 'Invoke' of type
+   --  Same signature as primitive Invoke of type
    --  DynamicImplementation.
 
    type Servant_Class_Predicate is access function

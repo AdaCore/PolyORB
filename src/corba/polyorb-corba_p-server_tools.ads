@@ -52,7 +52,7 @@ package PolyORB.CORBA_P.Server_Tools is
 
    procedure Initiate_Server (Start_New_Task : Boolean := False);
    --  Start a new ORB, and initialize the Root POA.
-   --  If 'Start_New_Task' is True, a new task will be created and
+   --  If Start_New_Task is True, a new task will be created and
    --  control will be returned to the caller.  Otherwise, the ORB
    --  will be executing in the current context.
    --  If the Initiate_Server_Hook variable is not null, the

@@ -200,7 +200,7 @@ package PolyORB.Tasking.Threads is
      (TF : access Thread_Factory_Type;
       T  :        Thread_Id;
       P  :        System.Any_Priority) is abstract;
-   --  Change the priority of the task 'T'.
+   --  Change the priority of the task T.
    --  Raise PolyORB.Tasking.Tasking_Profile_Error if it is not
    --  permitted by tasking profile in use.
 
@@ -208,7 +208,7 @@ package PolyORB.Tasking.Threads is
      (TF : access Thread_Factory_Type;
       T  :        Thread_Id)
      return System.Any_Priority is abstract;
-   --  Return the priority of the task 'T'.
+   --  Return the priority of the task T.
    --  Raise PolyORB.Tasking.Tasking_Profile_Error if it is not
    --  permitted by tasking profile in use.
 

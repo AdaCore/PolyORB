@@ -146,7 +146,7 @@ package PolyORB.ORB is
    --  The calling task must hold ORB_Lock before calling Idle;
    --  the tasking policy shall release it while the task is
    --  idling, and re-assert it before Idle returns.
-   --  'This_Task' holds information on this waiting task.
+   --  This_Task holds information on this waiting task.
 
    procedure Queue_Request_To_Handler
      (P   : access Tasking_Policy_Type;

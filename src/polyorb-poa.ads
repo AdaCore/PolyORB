@@ -143,7 +143,7 @@ package PolyORB.POA is
       is abstract;
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided.
-   --  Compability of 'Policies' is checked.
+   --  Compability of Policies is checked.
 
    procedure Find_POA
      (Self        : access Obj_Adapter;

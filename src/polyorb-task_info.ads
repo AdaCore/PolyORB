@@ -74,20 +74,20 @@ package PolyORB.Task_Info is
      (TI       : in out Task_Info;
       Selector :        Asynch_Ev.Asynch_Ev_Monitor_Access);
    pragma Inline (Set_Status_Blocked);
-   --  The task refereed by TI will be blocked on 'Selector'
+   --  The task refereed by TI will be blocked on Selector
 
    procedure Set_Status_Idle
      (TI        : in out Task_Info;
       Condition :        PTCV.Condition_Access);
    pragma Inline (Set_Status_Idle);
    --  The task refereed by TI will go Idle;
-   --  signaling condition variable 'Condition' will awake it.
+   --  signaling condition variable Condition will awake it.
 
    procedure Set_Status_Running
      (TI : in out Task_Info);
    pragma Inline (Set_Status_Running);
    --  The task refereed by TI is now running;
-   --  this procedure resets Selector or Conditions it was blocked on.
+   --  this procedure resets Selector or Condition it was blocked on.
 
    function Status (TI : Task_Info)
      return Task_Status;
@@ -124,11 +124,11 @@ private
       --  Current Task status
 
       Selector  : Asynch_Ev.Asynch_Ev_Monitor_Access;
-      --  Monitor on which Task referred by 'Id' is blocked;
+      --  Monitor on which Task referred by Id is blocked;
       --  meaningful only when Status = Blocked.
 
       Condition : Tasking.Condition_Variables.Condition_Access;
-      --  Condition Variable on which Task referred by 'Id' is
+      --  Condition Variable on which Task referred by Id is
       --  blocked; meaningful only when Status = Idle.
    end record;
 

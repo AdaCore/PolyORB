@@ -33,7 +33,7 @@
 
 --  Definition of the container type 'Any'
 
---  $Id: //droopi/main/src/polyorb-any.ads#34 $
+--  $Id: //droopi/main/src/polyorb-any.ads#35 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -161,21 +161,21 @@ package PolyORB.Any is
         return Types.RepositoryId;
       --  Return the Id associated with a typecode in case its kind is
       --  objref, struct, union, enum, alias, value, valueBox, native,
-      --  abstract_interface or except. Raise 'BadKind' else.
+      --  abstract_interface or except. Raise BadKind else.
 
       function Name
         (Self : in Object)
         return Types.Identifier;
       --  Return the name associated with a typecode in case its kind is
       --  objref, struct, union, enum, alias, value, valueBox, native,
-      --  abstract_interface or except. Raise 'BadKind' else.
+      --  abstract_interface or except. Raise BadKind else.
 
       function Member_Count
         (Self : in Object)
         return Types.Unsigned_Long;
       --  Return the number of members associated with a typecode in
       --  case its kind is struct, union, enum, value or except.
-      --  Raise 'BadKind' else.
+      --  Raise BadKind else.
 
       function Member_Name
         (Self  : in Object;
@@ -183,8 +183,8 @@ package PolyORB.Any is
         return Types.Identifier;
       --  Return the name of a given member associated with a typecode
       --  in case its kind is struct, union, enum, value or except.
-      --  Raise 'BadKind' else.
-      --  If there is not enough members, Raise 'Bounds'.
+      --  Raise BadKind else.
+      --  If there is not enough members, Raise Bounds.
 
       function Member_Type
         (Self  : in Object;
@@ -192,8 +192,8 @@ package PolyORB.Any is
         return Object;
       --  Return the type of a given member associated with a typecode
       --  in case its kind is struct, union, value or except.
-      --  Raise 'BadKind' else.
-      --  If there is not enough members, Raise 'Bounds'.
+      --  Raise BadKind else.
+      --  If there is not enough members, Raise Bounds.
 
       function Member_Label
         (Self  : in Object;
@@ -201,29 +201,29 @@ package PolyORB.Any is
         return Any;
       --  Return the label of a given member associated with a typecode
       --  in case its kind is union.
-      --  Raise 'BadKind' else.
-      --  If there is not enough members, Raise 'Bounds'.
+      --  Raise BadKind else.
+      --  If there is not enough members, Raise Bounds.
 
       function Enumerator_Name
         (Self  : in Object;
          Index : in Types.Unsigned_Long)
         return Types.Identifier;
       --  Return the name of the Index'th enumerator in an enumeration.
-      --  If there is not enough members, Raise 'Bounds'.
+      --  If there is not enough members, Raise Bounds.
 
       function Discriminator_Type
         (Self : in Object)
         return Object;
       --  Return the discriminator type associated with a typecode
       --  in case its kind is union.
-      --  Raise 'BadKind' else.
+      --  Raise BadKind else.
 
       function Default_Index
         (Self : in Object)
         return Types.Long;
       --  Return the position of the default index in the parameters
       --  of a typecode in case its kind is union.
-      --  Raise 'BadKind' else.
+      --  Raise BadKind else.
       --  If there is no default index, return -1
 
       function Length
@@ -231,28 +231,28 @@ package PolyORB.Any is
         return Types.Unsigned_Long;
       --  Return the length associated with a typecode
       --  in case its kind is string, wide_string, sequence or array.
-      --  Raise 'BadKind' else.
+      --  Raise BadKind else.
 
       function Content_Type
         (Self : in Object)
         return Object;
       --  Return the content type associated with a typecode
       --  in case its kind is sequence, array, valueBox or alias.
-      --  Raise 'BadKind' else.
+      --  Raise BadKind else.
 
       function Fixed_Digits
         (Self : in Object)
         return Types.Unsigned_Short;
       --  Return the number of digits associated with a typecode
       --  in case its kind is fixed.
-      --  Raise 'BadKind' else.
+      --  Raise BadKind else.
 
       function Fixed_Scale
         (Self : in Object)
         return Types.Short;
       --  Return the scale associated with a typecode
       --  in case its kind is fixed.
-      --  Raise 'BadKind' else.
+      --  Raise BadKind else.
 
       function Member_Visibility
         (Self  : in Object;
@@ -260,22 +260,22 @@ package PolyORB.Any is
         return Visibility;
       --  Return the visibility associated with a member of a typecode
       --  in case its kind is value.
-      --  Raise 'BadKind' else.
-      --  If there is not enough members, Raise 'Bounds'.
+      --  Raise BadKind else.
+      --  If there is not enough members, Raise Bounds.
 
       function Type_Modifier
         (Self : in Object)
         return ValueModifier;
       --  Return the type modifier associated with a typecode
       --  in case its kind is value.
-      --  Raise 'BadKind' else.
+      --  Raise BadKind else.
 
       function Concrete_Base_Type
         (Self : in Object)
         return Object;
       --  Return the concrete base type associated with a typecode
       --  in case its kind is value.
-      --  Raise 'BadKind' else.
+      --  Raise BadKind else.
 
       -----------------
       -- Not in spec --
@@ -290,8 +290,8 @@ package PolyORB.Any is
       --  union typecode for a given label. The index is the index
       --  of the member among the members associated with Label. The
       --  other members are not taken into account
-      --  Raise 'BadKind' if Self is not an union typecode.
-      --  If there is not enough members, Raise 'Bounds'.
+      --  Raise BadKind if Self is not an union typecode.
+      --  If there is not enough members, Raise Bounds.
 
       function Member_Count_With_Label
         (Self  : in Object;
@@ -299,7 +299,7 @@ package PolyORB.Any is
          return Types.Unsigned_Long;
       --  Return the number of members associated with a typecode of
       --  kind union for a given label.
-      --  Raise 'BadKind' if Self is not an union typecode.
+      --  Raise BadKind if Self is not an union typecode.
 
       function Get_Parameter
         (Self  : in Object;
@@ -318,18 +318,18 @@ package PolyORB.Any is
       procedure Set_Volatile
         (Self        : in out Object;
          Is_Volatile : in     Boolean);
-      --  Set to 'True' if TypeCode is volatile, i.e. can be destroyed.
-      --  'False' otherwise.
+      --  Set to True if TypeCode is volatile, i.e. can be destroyed,
+      --  False otherwise.
 
       procedure Destroy_TypeCode
         (Self : in out Object);
-      --  Free all elements contained in 'Self' iff 'Self' has been marked
+      --  Free all elements contained in Self iff Self has been marked
       --  volatile.
 
       procedure Set_Kind
         (Self : out Object;
          Kind : in  TCKind);
-      --  Return a typecode of kind 'Kind', with an empty parameter list.
+      --  Return a typecode of kind Kind, with an empty parameter list.
 
       --  Simple typecodes
       function TC_Null               return TypeCode.Object;
@@ -652,7 +652,7 @@ package PolyORB.Any is
    procedure Set_Volatile
      (Obj         : in out Any;
       Is_Volatile : in    Boolean);
-   --  Not in spec : mark the 'Obj' 's TypeCode as 'volatile', see
+   --  Not in spec : mark the Obj's TypeCode as volatile, see
    --  Set_Volatile in package PolyORB.Any.TypeCode for more details.
 
    generic

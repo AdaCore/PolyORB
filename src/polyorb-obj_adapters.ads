@@ -100,8 +100,8 @@ package PolyORB.Obj_Adapters is
       User_Id :    out Objects.Object_Id_Access;
       Error   : in out PolyORB.Exceptions.Error_Container)
       is abstract;
-   --  If 'Id' is user defined associated with Id, return user
-   --  identifier component of 'Id'.  else raise an error.
+   --  If Id is user defined associated with Id, return user
+   --  identifier component of Id,  else raise an error.
 
    ----------------------------------------------------
    -- Interface to ORB (acting on behalf of clients) --

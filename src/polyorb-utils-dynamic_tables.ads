@@ -154,11 +154,11 @@ package PolyORB.Utils.Dynamic_Tables is
    procedure Allocate (T   : in out Instance;
                        Num : Integer := 1);
    pragma Inline (Allocate);
-   --  Allocate room for 'Num' Table_Component_Type in table 'T',
+   --  Allocate room for Num Table_Component_Type in table T,
    --  eventually reallocate T.
 
    procedure Deallocate (T : in out Instance);
-   --  Deallocate 'T' instance.
+   --  Deallocate T instance.
 
 private
 

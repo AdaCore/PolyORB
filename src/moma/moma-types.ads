@@ -79,12 +79,11 @@ package MOMA.Types is
    --  MOMA specific types.
    --
 
-   --  The 'Map' type, see JMS spec. for more details.
-   --  As implemented, a 'Map' is an unbounded sequence of
-   --  'Map_Elements'.
+   --  The Map type, see JMS spec. for more details.  As implemented,
+   --  a Map is an unbounded sequence of Map_Elements.
    --
-   --  Note that 'Map' type inherits all primitives from
-   --  the PolyORB.Sequences.Unbounded package.
+   --  Note that Map type inherits all primitives from the
+   --  PolyORB.Sequences.Unbounded package.
 
    --  Map_Element type.
 

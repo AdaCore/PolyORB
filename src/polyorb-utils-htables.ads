@@ -41,7 +41,7 @@ package PolyORB.Utils.HTables is
 
    No_Key : exception;
 
-   --  Every hash table 'HTable' on a given 'Item' type must define
+   --  Every hash table HTable on a given Item type must define
    --  the following procedures and functions.
 
    --     function Lookup
@@ -49,23 +49,23 @@ package PolyORB.Utils.HTables is
    --        Key         : String;
    --        Error_Value : Item)
    --        return Item;
-   --     --  Find 'Key' in hash table and return its associated Item.
-   --     --  When 'Key' does not exist, the function returns 'Error_Value'.
+   --     --  Find Key in hash table and return its associated Item.
+   --     --  When Key does not exist, the function returns Error_Value.
 
    --     function Lookup
    --       (T     : HTable;
    --        Key   : String)
    --        return Item;
-   --     --  Find 'Key' in hash table and return its associated Item.
-   --     --  When 'Key' does not exist, the function raise 'No_Key' exception.
+   --     --  Find Key in hash table and return its associated Item.
+   --     --  When Key does not exist, the function raise No_Key exception.
 
    --     procedure Insert
    --       (T     : HTable;
    --        Key   : String;
    --        Value : Item);
    --     --  Insert (Key, Value) in hash table.
-   --     --  'Key' is the string to hash and 'Value' its associated Item.
-   --     --  If 'Key' already exists, nothing is done.
+   --     --  Key is the string to hash and Value its associated Item.
+   --     --  If Key already exists, nothing is done.
 
    --     procedure Delete
    --       (T   : HTable;
