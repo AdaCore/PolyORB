@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -57,64 +57,52 @@ package body XE_Reg is
 
    ERROR_SUCCESS      : constant := 0;
 
-   ------------------
-   -- RegOpenKeyEx --
-   ------------------
-
-   function RegOpenKeyEx (hKey       : XE_Reg.HKEY;
-                          lpSubKey   : Address;
-                          ulOptions  : DWORD;
-                          samDesired : REGSAM;
-                          phkResult  : PHKEY)
-     return LONG;
+   function RegOpenKeyEx
+     (hKey       : XE_Reg.HKEY;
+      lpSubKey   : Address;
+      ulOptions  : DWORD;
+      samDesired : REGSAM;
+      phkResult  : PHKEY)
+      return       LONG;
    pragma Import (Stdcall, RegOpenKeyEx, "RegOpenKeyExA");
 
-   ----------------------
-   -- RegQueryValueExA --
-   ----------------------
+   function RegQueryValueEx
+     (hKey        : XE_Reg.HKEY;
+      lpValueName : Address;
+      lpReserved  : LPDWORD;
 
-   function RegQueryValueEx (hKey        : XE_Reg.HKEY;
-                             lpValueName : Address;
-                             lpReserved  : LPDWORD;
-                             lpType      : LPDWORD;
-                             lpData      : Address;
-                             lpcbData    : LPDWORD)
-     return LONG;
+      lpType      : LPDWORD;
+      lpData      : Address;
+      lpcbData    : LPDWORD)
+      return        LONG;
    pragma Import (Stdcall, RegQueryValueEx, "RegQueryValueExA");
-
-   -----------------
-   -- RegCloseKey --
-   -----------------
 
    function RegCloseKey (hKey : XE_Reg.HKEY) return LONG;
    pragma Import (Stdcall, RegCloseKey, "RegCloseKey");
 
-   function Open_Key (From_Key : in HKEY; Name : in String)
-     return HKEY;
+   function Open_Key (From_Key : HKEY; Name : String) return HKEY;
    --  open the Name registry key and return its handle
 
-   function Get_Key (Key  : in HKEY;
-                     Name : in String) return String;
+   function Get_Key (Key : HKEY; Name : String) return String;
    --  key the key name value for Name in the registry Key.
 
    --------------
    -- Open_Key --
    --------------
 
-   function Open_Key (From_Key : in HKEY; Name : in String)
-                      return HKEY
-   is
+   function Open_Key (From_Key : in HKEY; Name : in String) return HKEY is
       use type LONG;
 
       C_Name  : constant String := Name & ASCII.NUL;
       New_Key : aliased HKEY;
       Result  : LONG;
    begin
-      Result := RegOpenKeyEx (From_Key,
-                              C_Name'Address,
-                              0,
-                              KEY_QUERY_VALUE + KEY_SET_VALUE,
-                              New_Key'Unchecked_Access);
+      Result := RegOpenKeyEx
+        (From_Key,
+         C_Name'Address,
+         0,
+         KEY_QUERY_VALUE + KEY_SET_VALUE,
+         New_Key'Unchecked_Access);
 
       if Result /= ERROR_SUCCESS then
          raise REG_ERROR;
@@ -127,9 +115,7 @@ package body XE_Reg is
    -- Get_Key --
    -------------
 
-   function Get_Key (Key  : in HKEY;
-                     Name : in String) return String
-   is
+   function Get_Key (Key : HKEY; Name : String) return String is
       use type ULONG;
       use type LONG;
 
@@ -146,12 +132,13 @@ package body XE_Reg is
       --  read value of the GCC key
       Size_Value := Value'Length;
 
-      Result := RegQueryValueEx (Key,
-                                 C_Name'Address,
-                                 null,
-                                 Type_Value'Unchecked_Access,
-                                 Value'Address,
-                                 Size_Value'Unchecked_Access);
+      Result := RegQueryValueEx
+        (Key,
+         C_Name'Address,
+         null,
+         Type_Value'Unchecked_Access,
+         Value'Address,
+         Size_Value'Unchecked_Access);
 
       if Result /= ERROR_SUCCESS then
          raise REG_ERROR;
