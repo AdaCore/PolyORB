@@ -284,16 +284,15 @@ AC_SUBST(XMLADA_INCS)
 AC_SUBST(XMLADA_LIBS)
 
 ##########################################
-# Test : if IR is built,
+# Test : if a CORBA COS is built
 #        then CORBA must be built
 ##########################################
 
 corba_enabled=`echo ${APPLI_LIST} | ${AWK} '/corba/{print "yes"}'`
-ir_enabled=`echo ${SERVICE_LIST} | ${AWK} '/ir/{print "yes"}'`
 
-if test x$ir_enabled = xyes -a x$corba_enabled != xyes
+if test x"$SERVICE_LIST" != x" " -a x$corba_enabled != xyes
 then
-   AC_MSG_ERROR("Interface Repository requires CORBA application personality")
+   AC_MSG_ERROR("CORBA COS require CORBA application personality")
 fi
 
 ##########################################
