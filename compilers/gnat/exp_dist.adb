@@ -1094,10 +1094,10 @@ package body Exp_Dist is
       RPC_Receiver : constant Entity_Id
         := Make_Defining_Identifier (Loc, New_Internal_Name ('H'));
 
-      RPC_Receiver_Statements        : List_Id;
+      RPC_Receiver_Statements        : List_Id          := No_List;
       RPC_Receiver_Case_Alternatives : constant List_Id := New_List;
-      RPC_Receiver_Request           : Entity_Id;
-      RPC_Receiver_Subp_Id           : Entity_Id;
+      RPC_Receiver_Request           : Entity_Id        := Empty;
+      RPC_Receiver_Subp_Id           : Entity_Id        := Empty;
 
       Subp_Str : String_Id;
 
@@ -1113,7 +1113,7 @@ package body Exp_Dist is
       Current_Receiver      : Entity_Id;
       Current_Receiver_Body : Node_Id;
 
-      RPC_Receiver_Decl : Node_Id;
+      RPC_Receiver_Decl : Node_Id := Empty;
 
       Possibly_Asynchronous : Boolean;
 
@@ -2469,7 +2469,7 @@ package body Exp_Dist is
 
       Proc :=
         Make_Defining_Identifier (Loc,
-          Chars => Make_TSS_Name (Ras_Type, TSS_RAS_Dereference));
+          Chars => Make_TSS_Name (RAS_Type, TSS_RAS_Dereference));
 
       if Is_Function then
          Proc_Spec :=
@@ -4511,9 +4511,9 @@ package body Exp_Dist is
          declare
             Etyp        : Entity_Id;
             Constrained : Boolean;
-            Any         : Entity_Id;
-            Object      : Entity_Id;
-            Expr        : Node_Id := Empty;
+            Any         : Entity_Id := Empty;
+            Object      : Entity_Id := Empty;
+            Expr        : Node_Id   := Empty;
 
             Is_Controlling_Formal : constant Boolean
               := Is_RACW_Controlling_Formal
