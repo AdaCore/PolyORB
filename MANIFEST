@@ -480,6 +480,7 @@ src/moma/moma-destinations-queues.adb
 src/moma/moma-destinations-queues.ads
 src/moma/moma-destinations-topics.adb
 src/moma/moma-destinations-topics.ads
+src/moma/moma-destinations.adb
 src/moma/moma-destinations.ads
 src/moma/moma-message_consumers-queues.adb
 src/moma/moma-message_consumers-queues.ads
