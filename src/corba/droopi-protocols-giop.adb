@@ -415,8 +415,8 @@ package body Droopi.Protocols.GIOP is
       Ses.Minor_Version := Message_Minor_Version;
       --  XXX questionable.
 
-      pragma Debug (O ("Major:" & Ses.Major_Version'Img));
-      pragma Debug (O ("Major:" & Ses.Minor_Version'Img));
+      pragma Debug (O ("Version:" & Ses.Major_Version'Img
+                       & "." & Ses.Minor_Version'Img));
 
       Success := True;
       Release_Contents (Buffer.all);
@@ -1126,6 +1126,7 @@ package body Droopi.Protocols.GIOP is
       List     : NV_Sequence_Access;
 
    begin
+      pragma Debug (O ("Request_Received: entering"));
 
       case Ses.Minor_Version is
          when 0 =>
@@ -1151,13 +1152,16 @@ package body Droopi.Protocols.GIOP is
                Response_Expected,
                Target_Ref,
                Operation);
+
             if Target_Ref.Address_Type = Key_Addr then
                Object_Key := Target_Ref.Object_Key;
             end if;
+
          when others =>
             raise GIOP_Error;
       end case;
 
+      pragma Debug (O ("Request_Received: Unmarshalled request header"));
       Args := Obj_Adapters.Get_Empty_Arg_List
         (Object_Adapter (ORB),
          Object_Key.all,
@@ -1436,7 +1440,15 @@ package body Droopi.Protocols.GIOP is
       --     Buf2 :=
       --  end if;
 
-      if S.Object_Found = False then
+      --  XXX
+      --  The following block (force Locate_Request before each
+      --  invocation) is disabled because:
+      --    * it is not known for sure that it is correct and
+      --      desirable;
+      --    * Locate_Request handling is not implemented by
+      --      the Server part of this GIOP stack.
+
+      if False and then S.Object_Found = False then
          if  S.Nbr_Tries <= Max_Nb_Tries then
             declare
                Oid : Object_Id := Get_Object_Key
@@ -1626,16 +1638,20 @@ package body Droopi.Protocols.GIOP is
       --   Expect_Data ();
       --   return;
       --  end if
-
       --  XXX what is that?
 
+      pragma Debug (O ("Processing message body of type "
+                       & S.Mess_Type_Received'Img));
+
       case S.Mess_Type_Received  is
+
          when Request =>
             if S.Role = Server then
                Request_Received (S);
             else
                raise GIOP_Error;
             end if;
+
          when Reply =>
             if S.Role = Client then
                Reply_Received (S);
