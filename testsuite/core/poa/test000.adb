@@ -403,7 +403,7 @@ procedure Test000 is
       Error : Error_Container;
 
       Id1 : PolyORB.POA_Types.Unmarshalled_Oid;
-      Id2 : PolyORB.POA_Types.Unmarshalled_Oid;
+      Id2 : PolyORB.POA_Types.Object_Id_Access;
 
    begin
       S1 := new My_Servant;
@@ -425,48 +425,17 @@ procedure Test000 is
             raise Program_Error;
          end if;
 
-         Activate_Object (Root_POA,
-                          PolyORB.Servants.Servant_Access (S1),
-                          null,
-                          Id2,
-                          Error);
+         Servant_To_Id (Root_POA,
+                        PolyORB.Servants.Servant_Access (S1),
+                        Id2,
+                        Error);
 
          if Found (Error) then
-            Output ("Got error", True);
-            Catch (Error);
-         else
-            Output ("Got error", False);
+            raise Program_Error;
          end if;
 
          PolyORB.POA.Destroy (Root_POA);
          Output ("Servant_To_Id", True);
-      end;
-
-      begin
-         Root_POA := new PolyORB.POA.Basic_POA.Basic_Obj_Adapter;
-         PolyORB.POA.Create (Root_POA);
-
-         declare
-            pragma Warnings (Off);
-            Id2 : PolyORB.POA_Types.Object_Id_Access;
-
-            pragma Unreferenced (Id2);
-            pragma Warnings (On);
-         begin
-            Servant_To_Id (Root_POA,
-                           PolyORB.Servants.Servant_Access (S1),
-                           Id2,
-                           Error);
-
-            if Found (Error) then
-               Output ("Got error", True);
-               Catch (Error);
-            else
-               Output ("Got error", False);
-            end if;
-
-            PolyORB.POA.Destroy (Root_POA);
-         end;
       end;
 
    end Test_Servant_To_Id;
