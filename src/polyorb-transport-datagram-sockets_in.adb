@@ -143,28 +143,34 @@ package body PolyORB.Transport.Datagram.Sockets_In is
    procedure Read
      (TE     : in out Socket_In_Endpoint;
       Buffer :        Buffers.Buffer_Access;
-      Size   : in out Stream_Element_Count)
+      Size   : in out Stream_Element_Count;
+      Error  :    out Exceptions.Error_Container)
    is
+      use PolyORB.Exceptions;
+
       Data_Received : Stream_Element_Count;
       Request : Request_Type (N_Bytes_To_Read);
    begin
-      --  Must read all data in one call in udp socket
-      --  Amount read is often greater than asked amount
+      --  Must read all data in one call from datagram socket.
+      --  Amount read is often greater than asked amount.
 
       Control_Socket (TE.Socket, Request);
       Size := Stream_Element_Offset (Request.Size);
       pragma Debug (O ("To read :" & Size'Img));
-      PolyORB.Buffers.Receive_Buffer
-        (Buffer, TE.Socket, Size, Data_Received);
+      begin
+         PolyORB.Buffers.Receive_Buffer
+           (Buffer, TE.Socket, Size, Data_Received);
+      exception
+         when PolyORB.Sockets.Socket_Error =>
+            Throw (Error, Comm_Failure_E, System_Exception_Members'
+                   (Minor => 0, Completed => Completed_Maybe));
 
-      pragma Debug (O (Size'Img & " byte(s) received"));
-
-      if Data_Received = 0 then
-         O ("Connection closed on fd " & Image (TE.Socket));
-         Close (TE);
-
-         raise Read_Error;
-      end if;
+         when others =>
+            Throw (Error, Unknown_E, System_Exception_Members'
+                   (Minor => 0, Completed => Completed_Maybe));
+      end;
+      pragma Assert (Data_Received /= 0);
+      pragma Debug (O (Data_Received'Img & " byte(s) received"));
       pragma Assert (Data_Received <= Size);
       Size := Data_Received;
    end Read;
@@ -175,9 +181,12 @@ package body PolyORB.Transport.Datagram.Sockets_In is
 
    procedure Write
      (TE     : in out Socket_In_Endpoint;
-      Buffer :        Buffers.Buffer_Access) is
+      Buffer :        Buffers.Buffer_Access;
+      Error  :    out Exceptions.Error_Container)
+   is
    begin
       raise End_Point_Read_Only;
+      --  Should never happen.
    end Write;
 
    -----------

@@ -179,19 +179,31 @@ package body PolyORB.Transport.Connected.Sockets is
    procedure Read
      (TE     : in out Socket_Endpoint;
       Buffer :        Buffers.Buffer_Access;
-      Size   : in out Stream_Element_Count)
+      Size   : in out Stream_Element_Count;
+      Error  :    out Exceptions.Error_Container)
    is
+      use PolyORB.Exceptions;
+
       Data_Received : Stream_Element_Count;
    begin
-      PolyORB.Buffers.Receive_Buffer
-        (Buffer, TE.Socket, Size, Data_Received);
+      begin
+         PolyORB.Buffers.Receive_Buffer
+           (Buffer, TE.Socket, Size, Data_Received);
+      exception
+         when PolyORB.Sockets.Socket_Error =>
+            Throw
+              (Error, Comm_Failure_E,
+               System_Exception_Members'
+               (Minor => 0, Completed => Completed_Maybe));
 
-      if Data_Received = 0 then
-         O ("Connection closed on fd " & Image (TE.Socket));
-         Close (TE);
+         when others =>
+            Throw
+              (Error, Unknown_E,
+               System_Exception_Members'
+               (Minor => 0, Completed => Completed_Maybe));
 
-         raise Connection_Closed;
-      end if;
+      end;
+
       pragma Assert (Data_Received <= Size);
       Size := Data_Received;
    end Read;
@@ -202,7 +214,10 @@ package body PolyORB.Transport.Connected.Sockets is
 
    procedure Write
      (TE     : in out Socket_Endpoint;
-      Buffer :        Buffers.Buffer_Access) is
+      Buffer :        Buffers.Buffer_Access;
+      Error  :    out Exceptions.Error_Container)
+   is
+      use PolyORB.Exceptions;
    begin
       pragma Debug (O ("Write: enter"));
 
@@ -211,7 +226,19 @@ package body PolyORB.Transport.Connected.Sockets is
       Enter (TE.Mutex);
       pragma Debug (O ("TE mutex acquired"));
 
-      PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket);
+      begin
+         PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket);
+      exception
+         when PolyORB.Sockets.Socket_Error =>
+            Throw
+              (Error, Comm_Failure_E, System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
+
+         when others =>
+            Throw
+              (Error, Unknown_E, System_Exception_Members'
+                (Minor => 0, Completed => Completed_Maybe));
+      end;
       Leave (TE.Mutex);
    end Write;
 

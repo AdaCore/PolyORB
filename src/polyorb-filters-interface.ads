@@ -39,6 +39,7 @@ with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.Components; use PolyORB.Components;
+with PolyORB.Exceptions;
 with PolyORB.Types;
 
 package PolyORB.Filters.Interface is
@@ -91,6 +92,10 @@ package PolyORB.Filters.Interface is
    --  Semantics: a transport endpoint has been closed.
    --    upper layers must release all associated resources.
 
+   type Disconnect_Confirmation is new Root_Data_Unit with null record;
+   --  Direction: from upper to lower
+   --  Semantics: a disconnect indication has been acted upon.
+
    type Disconnect_Request is new Root_Data_Unit with null record;
    --  Direction: from upper to lower.
    --  Semantics: the upper layer requests that the whole
@@ -120,6 +125,14 @@ package PolyORB.Filters.Interface is
 
       Out_Buf : Buffer_Access;
       --  The data to be sent down.
+   end record;
+
+   type Filter_Error is new Root_Data_Unit with record
+      --  Direction: from lower to upper.
+      --  Semantics: an error in the transport or filtering layers
+      --  has occured.
+
+      Error : Exceptions.Error_Container;
    end record;
 
    ---------------------

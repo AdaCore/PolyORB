@@ -88,13 +88,15 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
    procedure Read
      (TE     : in out Socket_Out_Endpoint;
       Buffer :        Buffers.Buffer_Access;
-      Size   : in out Stream_Element_Count)
+      Size   : in out Stream_Element_Count;
+      Error  :    out Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (TE, Buffer, Size);
       pragma Warnings (On);
    begin
       raise End_Point_Write_Only;
+      --  Never happens.
    end Read;
 
    -----------
@@ -102,8 +104,11 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
    -----------
 
    procedure Write
-     (TE     : in out Socket_Out_Endpoint;
-      Buffer :        Buffers.Buffer_Access) is
+   (TE     : in out Socket_Out_Endpoint;
+    Buffer :        Buffers.Buffer_Access;
+    Error  :    out Exceptions.Error_Container)
+   is
+      use PolyORB.Exceptions;
    begin
       pragma Debug (O ("Write: enter"));
       pragma Debug (O ("Send to : " & Image (TE.Addr)));
@@ -111,9 +116,17 @@ package body PolyORB.Transport.Datagram.Sockets_Out is
       --  Send_Buffer is not atomic, needs to be protected.
 
       Enter (TE.Mutex);
+      begin
+         PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket, TE.Addr);
+      exception
+         when PolyORB.Sockets.Socket_Error =>
+            Throw (Error, Comm_Failure_E, System_Exception_Members'
+                   (Minor => 0, Completed => Completed_Maybe));
 
-      PolyORB.Buffers.Send_Buffer (Buffer, TE.Socket, TE.Addr);
-
+         when others =>
+            Throw (Error, Unknown_E, System_Exception_Members'
+                   (Minor => 0, Completed => Completed_Maybe));
+      end;
       Leave (TE.Mutex);
       pragma Debug (O ("Write: leave"));
    end Write;

@@ -42,8 +42,6 @@ package PolyORB.Transport.Datagram is
    use PolyORB.Asynch_Ev;
    use PolyORB.Binding_Data;
 
-   Read_Error : exception;
-
    ------------------
    -- Access Point --
    ------------------

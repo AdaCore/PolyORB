@@ -88,15 +88,20 @@ package PolyORB.Transport.Datagram.Sockets_In is
 
    procedure Read
      (TE     : in out Socket_In_Endpoint;
-      Buffer : Buffers.Buffer_Access;
-      Size   : in out Ada.Streams.Stream_Element_Count);
+      Buffer :        Buffers.Buffer_Access;
+      Size   : in out Ada.Streams.Stream_Element_Count;
+      Error  :    out Exceptions.Error_Container);
    --  Read data from datagram socket
 
    procedure Write
      (TE     : in out Socket_In_Endpoint;
-      Buffer : Buffers.Buffer_Access);
-   --  Write data to datagram socket
-   --  Socket is read-only, raise an exception
+      Buffer :        Buffers.Buffer_Access;
+      Error  :    out Exceptions.Error_Container);
+   pragma No_Return (Write);
+   pragma Unreferenced (Write);
+   --  Write data to datagram socket.
+   --  Unused for read-only transport endpoints, an exception will be raised
+   --  at run-time.
 
    procedure Close (TE : in out Socket_In_Endpoint);
 

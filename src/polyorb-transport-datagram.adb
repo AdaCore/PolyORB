@@ -131,10 +131,11 @@ package body PolyORB.Transport.Datagram is
       Msg : Components.Message'Class)
      return Components.Message'Class
    is
+      use PolyORB.Buffers;
       use PolyORB.Components;
+      use PolyORB.Exceptions;
       use PolyORB.Filters;
       use PolyORB.Filters.Interface;
-      use PolyORB.Buffers;
 
       Nothing : Components.Null_Message;
    begin
@@ -157,39 +158,47 @@ package body PolyORB.Transport.Datagram is
       elsif Msg in Data_Indication then
          pragma Debug (O ("Data received"));
 
-         if TE.In_Buf = null then
-            O ("Unexpected data (no buffer)");
-
-            Close (Transport_Endpoint'Class (TE.all));
-            raise Read_Error;
-            --  Notify the ORB that the socket is closed.
-         end if;
-
          declare
             use type Ada.Streams.Stream_Element_Count;
             Size : Ada.Streams.Stream_Element_Count := TE.Max;
+            Error : Exceptions.Error_Container;
          begin
-            Read (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size);
-
-            if Size = 0 then
-               O ("Connection closed.");
+            if TE.In_Buf = null then
+               O ("Unexpected data (no buffer)");
 
                Close (Transport_Endpoint'Class (TE.all));
-               raise Read_Error;
+
+               --  XXX raise Connection_Closed;
+               Throw (Error, Comm_Failure_E,
+                      System_Exception_Members'
+                      (Minor => 0, Completed => Completed_Maybe));
                --  Notify the ORB that the socket is closed.
-               --  The sender of the Data_Indication message is
-               --  reponsible for handling this exception and closing
-               --  the transport endpoint, if necessary.
+            else
+               Read
+                 (Transport_Endpoint'Class (TE.all), TE.In_Buf, Size, Error);
             end if;
 
-            return Emit (TE.Upper, Data_Indication'(Data_Amount => Size));
-            --  Note: this component guarantees that the upper layers will
-            --  only receive Data_Indications with a non-zero Data_Amount.
-
+            if not Is_Error (Error) then
+               pragma Assert (Size > 0);
+               return Emit (TE.Upper, Data_Indication'(Data_Amount => Size));
+               --  Note: this component guarantees that the upper layers will
+               --  only receive Data_Indications with a non-zero Data_Amount.
+            else
+               return Emit (TE.Upper, Filter_Error'(Error => Error));
+            end if;
          end;
 
       elsif Msg in Data_Out then
-         Write (Transport_Endpoint'Class (TE.all), Data_Out (Msg).Out_Buf);
+         declare
+            Error : Exceptions.Error_Container;
+         begin
+            Write
+              (Transport_Endpoint'Class (TE.all),
+               Data_Out (Msg).Out_Buf, Error);
+            if Exceptions.Is_Error (Error) then
+               return Filter_Error'(Error => Error);
+            end if;
+         end;
 
       elsif Msg in Set_Server then
          TE.Server := Set_Server (Msg).Server;

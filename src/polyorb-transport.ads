@@ -41,6 +41,7 @@ with PolyORB.Annotations;
 with PolyORB.Asynch_Ev;
 with PolyORB.Buffers;
 with PolyORB.Components;
+with PolyORB.Exceptions;
 
 package PolyORB.Transport is
 
@@ -137,7 +138,8 @@ package PolyORB.Transport is
    procedure Read
      (TE     : in out Transport_Endpoint;
       Buffer :        Buffers.Buffer_Access;
-      Size   : in out Ada.Streams.Stream_Element_Count)
+      Size   : in out Ada.Streams.Stream_Element_Count;
+      Error  :    out Exceptions.Error_Container)
       is abstract;
    --  Receive data from TE into Buffer. When Read is Called,
    --  Size is set to the maximum size of the data to be received.
@@ -145,7 +147,8 @@ package PolyORB.Transport is
 
    procedure Write
      (TE     : in out Transport_Endpoint;
-      Buffer :        Buffers.Buffer_Access)
+      Buffer :        Buffers.Buffer_Access;
+      Error  :    out Exceptions.Error_Container)
       is abstract;
    --  Write out the contents of Buffer onto TE.
 

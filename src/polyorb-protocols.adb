@@ -111,6 +111,7 @@ package body PolyORB.Protocols is
 
       elsif S in Disconnect_Indication then
          Handle_Disconnect (Session_Access (Sess));
+         return Disconnect_Confirmation'(null record);
 
       elsif S in Data_Indication then
          Handle_Data_Indication

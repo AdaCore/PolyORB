@@ -89,12 +89,14 @@ package PolyORB.Transport.Connected.Sockets is
 
    procedure Read
      (TE     : in out Socket_Endpoint;
-      Buffer : Buffers.Buffer_Access;
-      Size   : in out Ada.Streams.Stream_Element_Count);
+      Buffer :        Buffers.Buffer_Access;
+      Size   : in out Ada.Streams.Stream_Element_Count;
+      Error  :    out Exceptions.Error_Container);
 
    procedure Write
      (TE     : in out Socket_Endpoint;
-      Buffer : Buffers.Buffer_Access);
+      Buffer :        Buffers.Buffer_Access;
+      Error  :    out Exceptions.Error_Container);
 
    procedure Close (TE : in out Socket_Endpoint);
 
