@@ -1225,7 +1225,7 @@ if test "${enable_debug+set}" = set; then
   enableval="$enable_debug"
   GNATFLAGS="-g -O2 -Wall -gnata"
 else
-  GNATFLAGS="-O2 -gnatn"
+  GNATFLAGS="-O2 -gnatpn"
 fi
 
 
