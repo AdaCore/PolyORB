@@ -1167,7 +1167,7 @@ package body Ada_Be.Expansion is
                   --  Also note that Expand_Member should not be
                   --  called on New_Node, because the M_Type
                   --  has already been expanded; only the declarators
-                  --  of New_Node have node been expanded.
+                  --  of New_Node have not been expanded yet.
 
                   Position := New_Node;
                end;
