@@ -674,7 +674,11 @@ package body Namet is
    function Is_Internal_Name (Id : Name_Id) return Boolean is
    begin
       Get_Name_String (Id);
+      return Is_Internal_Name;
+   end Is_Internal_Name;
 
+   function Is_Internal_Name return Boolean is
+   begin
       for J in 1 .. Name_Len loop
          if Is_OK_Internal_Letter (Name_Buffer (J)) then
             return True;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$                            --
 --                                                                          --
 --          Copyright (C) 1992-1997, Free Software Foundation, Inc.         --
 --                                                                          --
@@ -90,9 +90,9 @@ package Opt is
    --  Force brief error messages to standard error, even if verbose mode is
    --  set (so that main error messages go to standard output).
 
-   Check_Internal_Files : Boolean := False;
+   Check_Readonly_Files : Boolean := False;
    --  GNATMAKE
-   --  Set to True to check GNAT internal files during the make process.
+   --  Set to True to check readonly files during the make process.
 
    Check_Object_Consistency : Boolean := False;
    --  GNATBIND, GNATMAKE
@@ -155,6 +155,10 @@ package Opt is
    --  GNATMAKE
    --  Set to True if no actual compilations should be undertaken.
 
+   Dynamic_Elaboration_Checks : Boolean := False;
+   --  GNAT
+   --  Set True (-gnatE switch) for dynamic inter-unit elaboration checks
+
    Elab_Dependency_Output : Boolean := False;
    --  GNATBIND
    --  Set to True to output complete list of elaboration constraints
@@ -175,26 +179,28 @@ package Opt is
    --  GNAT, GNATF
    --  Set True to generate full source listing with embedded errors
 
-   type Float_Format_Type is (IEEE, VAX);
-   Float_Format : Float_Format_Type :=
-                    Float_Format_Type'Val (Boolean'Pos (OpenVMS));
-   --  Indicates Float_Format in use. The value is initialized to
-   --  IEEE in all environnments except OpenVMS where the default
-   --  is VAX. The value can be changed by use of the configuration
-   --  pragma Float_Representation (but the value VAX is only possible
-   --  on OpenVMS versions of GNAT).
+   Float_Format : Character := ' ';
+   --  GNAT, GNATBIND
+   --  A non-blank value indicates that a Float_Format pragma has been
+   --  processed, in which case this variable is set to 'I' for IEEE or
+   --  to 'V' for VAX. The setting of 'V' is only possible on OpenVMS
+   --  versions of GNAT. In the binder, a non-blank value indicates that
+   --  at least one unit has an F line indicating the use of the pragma.
 
-   type Float_Format_Long_Type is (D_Float, G_Float);
-   Float_Format_Long : Float_Format_Long_Type := G_Float;
-   --  This indicates the representation used on OpenVMS systems for
-   --  Stadard.Long_Float if Float_Format is set to VAX (the setting
-   --  of this variable is irrelevant if Float_Format is set to IEEE).
-   --  The setting may be changed by the use of the configuraqtion
-   --  pragma Long_Float.
+   Float_Format_Long : Character := ' ';
+   --  GNAT
+   --  A non-blank value indicates that a Long_Float pragma has been
+   --  processed (this pragma is recognized only in OpenVMS versions
+   --  of GNAT), in which case this variable is set to D or G for
+   --  D_Float or G_Float.
 
    Full_Elaboration_Semantics : Boolean := False;
    --  GNATBIND
    --  True if binding with full Ada elaboration semantics (-f switch set)
+
+   Global_Discard_Names : Boolean := False;
+   --  GNAT
+   --  Set true if a pragma Discard_Names applies to the current unit
 
    GNAT_Mode : Boolean := False;
    --  GNAT, GNATF
@@ -246,6 +252,12 @@ package Opt is
    --  subprograms, regardless of individual pragmas.
    --  Used by GNAT1, ignored by GNATF.
 
+   In_Place_Mode : Boolean := False;
+   --  GNATMAKE
+   --  Set True to store ALI and object files in place ie in the object
+   --  directory if these files already exist or in the source directory
+   --  if not.
+
    Keep_Going : Boolean := False;
    --  GNATMAKE
    --  When True signals gnatmake to ignore compilation errors and keep
@@ -291,7 +303,7 @@ package Opt is
 
    Normalize_Scalars : Boolean := False;
    --  GNAT
-   --  Set true it a pragma Normalize_Scalars applies to the current unit
+   --  Set true if a pragma Normalize_Scalars applies to the current unit
 
    type Operating_Mode_Type is (Check_Syntax, Check_Semantics, Generate_Code);
    Operating_Mode : Operating_Mode_Type := Generate_Code;
@@ -306,8 +318,10 @@ package Opt is
    --  as equivalent to Check_Semantics.
 
    Output_Filename_Present : Boolean := False;
-   --  GNATBIND
+   --  GNATBIND, GNAT
    --  Set to True when the output C filename is given with option -o
+   --  for GNATBIND or when the object filename is given with option
+   --  -gnatO for GNAT.
 
    Queuing_Policy : Character := ' ';
    --  GNAT1, GNATF, GNATBIND

@@ -439,6 +439,23 @@ package body GNAT.OS_Lib is
       return Is_Regular_File (F_Name'Address) /= 0;
    end Is_Regular_File;
 
+   ----------------------
+   -- Is_Writable_File --
+   ----------------------
+
+   function Is_Writable_File (Name : String) return Boolean is
+
+      function Is_Writable_File (Name : Address) return Integer;
+      pragma Import (C, Is_Writable_File, "is_writable_file");
+
+      F_Name : String (1 .. Name'Length + 1);
+
+   begin
+      F_Name (1 .. Name'Length) := Name;
+      F_Name (Name'Length + 1) := Ascii.NUL;
+      return Is_Writable_File (F_Name'Address) /= 0;
+   end Is_Writable_File;
+
    -------------------------
    -- Locate_Exec_On_Path --
    -------------------------

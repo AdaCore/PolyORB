@@ -407,7 +407,7 @@ package body Osint is
    --------------------------------
 
    procedure Create_Output_Library_Info is
-      --  ??? Needs to be coordinated with -o option
+
       Dot_Index : Natural;
 
    begin
@@ -427,6 +427,29 @@ package body Osint is
       if Dot_Index = 0 then
          null;
          pragma Assert (False);
+      end if;
+
+      --  Make sure that the output file name matches the source file name.
+      --  To compare them, remove filename directories and extensions.
+
+      if Output_Filename /= null then
+         declare
+            Name : String  := Name_Buffer (1 .. Dot_Index);
+            Len  : Natural := Dot_Index;
+         begin
+
+            Name_Buffer (1 .. Output_Filename'Length) := Output_Filename.all;
+            for J in reverse Output_Filename'Range loop
+               if Name_Buffer (J) = '.' then
+                  Dot_Index := J;
+                  exit;
+               end if;
+            end loop;
+
+            if Name /= Name_Buffer (Dot_Index - Len + 1 .. Dot_Index) then
+               Fail ("incorrect object file name");
+            end if;
+         end;
       end if;
 
       Name_Buffer (Dot_Index + 1 .. Dot_Index + 3) := ALI_Suffix.all;
@@ -905,10 +928,6 @@ package body Osint is
       Software_Overflow_Checking := True;
       Suppress_Options.Overflow_Checks := True;
 
-      --  Similarly, the default is elaboration checks off
-
-      Suppress_Options.Elaboration_Checks := True;
-
       --  Reserve the first slot in the search paths table.  This is the
       --  directory of the main source file or main library file and is
       --  filled in by each call to Next_Main_Source/Next_Main_Lib_File with
@@ -1024,6 +1043,26 @@ package body Osint is
 
          Next_Arg := Next_Arg + 1;
       end loop Scan_Args;
+
+      --  Make sure that the object file has the expected extension.
+
+      if Output_Filename /= null then
+         declare
+            S1 : String_Access := Get_Object_Suffix;
+            S2 : String_Ptr    := Output_Filename;
+            L1 : Natural := S1'Length;
+            L2 : Natural := S2'Length;
+         begin
+            if Distribution_Stub_Mode /= Generate_Caller_Stub_Body
+                 and then
+               Distribution_Stub_Mode /= Generate_Receiver_Stub_Body
+            then
+               if L2 <= L1 or else S2 (L2 - L1 + 1 .. L2) /= S1.all then
+                  Fail ("incorrect object file extension");
+               end if;
+            end if;
+         end;
+      end if;
 
    end Scan_Compiler_Args;
 

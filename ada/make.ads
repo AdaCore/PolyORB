@@ -72,10 +72,11 @@ package Make is
       Most_Recent_Obj_File  : out Name_Id;
       Most_Recent_Obj_Stamp : out Time_Stamp_Type;
       Main_Unit             : out Boolean;
-      Check_Internal_Files  : Boolean  := False;
+      Check_Readonly_Files  : Boolean  := False;
       Dont_Execute          : Boolean  := False;
       Force_Compilations    : Boolean  := False;
       Keep_Going            : Boolean  := False;
+      In_Place_Mode         : Boolean  := False;
       Initialize_Ali_Data   : Boolean  := True;
       Max_Process           : Positive := 1);
    --  Compile_Sources will recursively compile all the sources needed by
@@ -103,19 +104,23 @@ package Make is
    --    If Dont_Execute is False and First_Compiled_File /= No_Name
    --    the value of Main_Unit is always False.
    --
-   --    Check_Internal_Files set it to True to compile GNAT predefined files.
-   --    When compiling GNAT predifined files the "-gnatg" flag is used.
+   --    Check_Readonly_Files set it to True to compile source files
+   --    which library files are read-only. When compiling GNAT predefined
+   --    files the "-gnatg" flag is used.
    --
    --    Dont_Execute set it to True to find out the first source that needs
    --    to be recompiled, but without recompiling it. This file is saved
    --    in First_Compiled_File.
    --
    --    Force_Compilations forces all compilations no matter what but
-   --    recompiles GNAT predifined files only if Check_Internal_Files
+   --    recompiles read-only files only if Check_Readonly_Files
    --    is set.
    --
    --    Keep_Going when True keep compiling even in the presence of
    --    compilation errors.
+   --
+   --    In_Place_Mode when True save library/object files in their object
+   --    directory if they already exist; otherwise, in the source directory.
    --
    --    Initialize_Ali_Data set it to True when you want to intialize Ali
    --    data-structures. This is what you should do most of the time.
@@ -190,8 +195,6 @@ package Make is
    --     Note that there is no file listed under W unchecked_deallocation%s
    --     so no generic body should ever be explicitely compiled (unless the
    --     Main_Source at the start was a generic body).
-   --     Also if Check_Internal_Files is False, then no file corresponding
-   --     to a language defined unit is ever put into the Q.
    --
    --  4. Repeat steps 2 and 3 above until the Q is empty
    --
@@ -211,7 +214,7 @@ package Make is
    --  Flags in Package Opt Affecting Gnatmake
    --  ---------------------------------------
    --
-   --    Check_Internal_Files:     True  when -a present in command line
+   --    Check_Readonly_Files:     True  when -a present in command line
    --    Check_Object_Consistency: Set to True by Gnatmake
    --    Compile_Only:             True  when -c present in command line
    --    Force_Compilations:       True  when -f present in command line

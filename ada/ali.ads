@@ -135,6 +135,9 @@ package ALI is
       --  pragma was present or that this is a language defined unit.
       --  Otherwise set to first character (upper case) of policy name.
 
+      Float_Format : Character;
+      --  Set to float format (set to I if no float-format given)
+
    end record;
 
    No_Main_Priority : constant Int := -1;
