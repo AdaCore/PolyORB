@@ -1166,7 +1166,7 @@ package body Idl_Fe.Lexer is
             Add_Argument ("-ansi");
 
             Goto_Section ("cppargs");
-            while Getopt ("*") /= Ascii.NUL loop
+            while Getopt ("*") /= ASCII.Nul loop
                --  Pass user options to the preprocessor.
                Add_Argument (Full_Switch);
             end loop;

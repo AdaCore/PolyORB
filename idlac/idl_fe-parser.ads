@@ -819,7 +819,7 @@ private
    --  Rule 91
    --  <param_dcl> ::= <param_attribute> <param_type_spec> <simple_declarator>
    procedure Parse_Param_Dcl (Result : out Node_Id;
-                              Success : out boolean);
+                              Success : out Boolean);
 
    --  Rule 92
    --  <param_attribute> ::= "in"

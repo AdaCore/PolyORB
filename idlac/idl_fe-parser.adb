@@ -1505,7 +1505,7 @@ package body Idl_Fe.Parser is
                   declare
                      Res : Node_Id;
                   begin
-                     Parse_End_Value_Dcl (Res, Success, False, true);
+                     Parse_End_Value_Dcl (Res, Success, False, True);
                      Result := Res;
                   end;
                when T_Semi_Colon =>
@@ -4082,7 +4082,7 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
       end if;
       Next_Token;
-      Success := true;
+      Success := True;
       return;
    end Parse_Boolean_Literal;
 
@@ -6280,7 +6280,7 @@ package body Idl_Fe.Parser is
    --  Parse_Param_Dcl  --
    -----------------------
    procedure Parse_Param_Dcl (Result : out Node_Id;
-                              Success : out boolean) is
+                              Success : out Boolean) is
       Attr_Success : Boolean;
    begin
       pragma Debug (O2 ("Parse_Param_Dcl : enter"));
@@ -7251,7 +7251,7 @@ package body Idl_Fe.Parser is
                Get_Token_Location);
       end case;
       Next_Token;
-      Success := true;
+      Success := True;
       pragma Debug (O2 ("Parse_Integer_Literal : end"));
       return;
    end Parse_Integer_Literal;
@@ -7327,7 +7327,7 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
       end if;
       Next_Token;
-      Success := true;
+      Success := True;
       pragma Debug (O2 ("Parse_String_Literal : end"));
       return;
    end Parse_String_Literal;
@@ -7399,7 +7399,7 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
       end if;
       Next_Token;
-      Success := true;
+      Success := True;
       return;
    end Parse_Wide_String_Literal;
 
@@ -7434,7 +7434,7 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
       end if;
       Next_Token;
-      Success := true;
+      Success := True;
       return;
    end Parse_Char_Literal;
 
@@ -7469,7 +7469,7 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
       end if;
       Next_Token;
-      Success := true;
+      Success := True;
       return;
    end Parse_Wide_Char_Literal;
 
@@ -7551,7 +7551,7 @@ package body Idl_Fe.Parser is
                Get_Token_Location);
       end case;
       Next_Token;
-      Success := true;
+      Success := True;
       return;
    end Parse_Floating_Pt_Literal;
 
@@ -7647,7 +7647,7 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
       end if;
       Next_Token;
-      Success := true;
+      Success := True;
       return;
    end Parse_Fixed_Pt_Literal;
 

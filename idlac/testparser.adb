@@ -48,7 +48,7 @@ begin
 
    loop
       case Getopt ("q e") is
-         when Ascii.NUL => exit;
+         when ASCII.Nul => exit;
 
          when 'q' =>
             --  Quiet.

@@ -73,7 +73,7 @@ begin
 
       loop
          case Getopt ("i k p q") is
-            when Ascii.NUL => exit;
+            when ASCII.Nul => exit;
 
             when 'i' =>
                Generate_Impl_Template
