@@ -54,56 +54,11 @@ with PortableServer; use PortableServer;
 with CORBA.Impl;
 pragma Warnings (Off, CORBA.Impl);
 
-with PolyORB.Tasking.Soft_Links; use PolyORB.Tasking.Soft_Links;
-
 with PolyORB.Log;
-with Priority_Queue;
-
-with PolyORB.Tasking.Threads;
-with PolyORB.Tasking.Mutexes;
-with PolyORB.Tasking.Condition_Variables;
 
 package body CosEventChannelAdmin.EventChannel.Impl is
 
    use  PolyORB.CORBA_P.Server_Tools;
-
-   use PolyORB.Tasking.Condition_Variables;
-   use PolyORB.Tasking.Mutexes;
-   use PolyORB.Tasking.Threads;
-
-   A_S   : Object_Ptr := null;
-   --  This variable is used to initialize the threads local variable.
-   --  it is used to replace the 'accept' statement.
-
-   Session_Mutex : Mutex_Access;
-   Session_Taken : Condition_Access;
-   --  Synchornisation of task initialization.
-
-   T_Initialized : Boolean := False;
-
-   procedure Ensure_Initialization;
-   pragma Inline (Ensure_Initialization);
-   --  Ensure that the Mutexes are initialized
-
-   ---------------------------
-   -- Ensure_Initialization --
-   ---------------------------
-
-   procedure Ensure_Initialization is
-   begin
-      if T_Initialized then
-         return;
-      end if;
-      Create (Session_Mutex);
-      Create (Session_Taken);
-      T_Initialized := True;
-   end Ensure_Initialization;
-
-   ---------------------------
-   -- Priority_Queue_Engine --
-   ---------------------------
-
-   procedure Priority_Queue_Engine;
 
    -----------
    -- Debug --
@@ -124,40 +79,7 @@ package body CosEventChannelAdmin.EventChannel.Impl is
          This            : Object_Ptr;
          Consumer        : ConsumerAdmin.Impl.Object_Ptr;
          Supplier        : SupplierAdmin.Impl.Object_Ptr;
-         Queue           : Priority_Queue.Priority_Queue_Access;
-         Engine_Launch   : Boolean := False;
       end record;
-
-   --------------------------------
-   --    Priority_Queue_Engine   --
-   --------------------------------
-
-   procedure Priority_Queue_Engine is
-      Data  : CORBA.Any;
-      This  : Object_Ptr;
-      Queue : Priority_Queue.Priority_Queue_Access;
-   begin
-      --  Thread initialization.
-      Ensure_Initialization;
-      This := A_S;
-      --  A_S is a global variable used to pass an argument to this task
-      --  This is initialized
-      --  we can let For_Consumers go
-      Enter (Session_Mutex);
-      Signal (Session_Taken);
-      Leave (Session_Mutex);
-      loop
-         Enter_Critical_Section;
-         Queue := This.X.Queue;
-         Leave_Critical_Section;
-         begin
-            Priority_Queue.Pop (Queue, Data);
-         exception when others =>
-            exit;
-         end;
-         ConsumerAdmin.Impl.Post (This.X.Consumer, Data);
-      end loop;
-   end Priority_Queue_Engine;
 
    ------------
    -- Create --
@@ -176,7 +98,6 @@ package body CosEventChannelAdmin.EventChannel.Impl is
       Channel.X.This     := Channel;
       Channel.X.Consumer := ConsumerAdmin.Impl.Create (Channel);
       Channel.X.Supplier := SupplierAdmin.Impl.Create (Channel);
-      Priority_Queue.Create (Channel.X.Queue, 0);
       Initiate_Servant (Servant (Channel), My_Ref);
       return Channel;
    end Create;
@@ -207,16 +128,7 @@ package body CosEventChannelAdmin.EventChannel.Impl is
    begin
       pragma Debug (O ("create consumer admin for channel"));
       Servant_To_Reference (Servant (Self.X.Consumer), R);
-      if Self.X.Engine_Launch = False then
-         Self.X.Engine_Launch := True;
-         Ensure_Initialization;
-         Enter (Session_Mutex);
-         A_S := Self.X.This;
-         Create_Task (Priority_Queue_Engine'Access);
-         Wait (Session_Taken, Session_Mutex);
-         --  wait A_S initialization in Priority_Queue_Engine
-         Leave (Session_Mutex);
-      end if;
+
       return R;
    end For_Consumers;
 
@@ -245,8 +157,7 @@ package body CosEventChannelAdmin.EventChannel.Impl is
      (Self : access Object;
       Data : in CORBA.Any) is
    begin
-      --  ConsumerAdmin.Impl.Post (Self.X.Consumer, Data);
-      Priority_Queue.Insert (Self.X.Queue, Data, 0);
+      ConsumerAdmin.Impl.Post (Self.X.Consumer, Data);
    end Post;
 
 end CosEventChannelAdmin.EventChannel.Impl;
