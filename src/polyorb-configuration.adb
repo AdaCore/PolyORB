@@ -72,7 +72,7 @@ package body PolyORB.Configuration is
    procedure O (S : String) is
    begin
       if Debug then
-         PolyORB.Log.Put_Line (S);
+         PolyORB.Log.Internals.Put_Line (S);
       end if;
    end O;
 

@@ -44,26 +44,6 @@ with System;
 
 package body PolyORB.Log is
 
-   --------------
-   -- Put_Line --
-   --------------
-
-   procedure Put_Line (S : String)
-   is
-      SS : aliased String := S & ASCII.LF;
-
-      procedure C_Write
-        (Fd  : Interfaces.C.int;
-         P   : System.Address;
-         Len : Interfaces.C.int);
-      pragma Import (C, C_Write, "write");
-   begin
-      C_Write (2, SS (SS'First)'Address, SS'Length);
-      --  '2' is STDERR, see 'unistd.h' standard include C file
-      --  for more details about standard file descriptors.
-
-   end Put_Line;
-
    -------------------
    -- Get_Log_Level --
    -------------------
@@ -109,7 +89,7 @@ package body PolyORB.Log is
          end if;
 
          if Level >= Facility_Level then
-            Put_Line (Facility & ": " & Message);
+            Internals.Put_Line (Facility & ": " & Message);
          end if;
       end Output;
 
@@ -148,5 +128,34 @@ package body PolyORB.Log is
                  & Integer'Image (Counter));
       end Decrement;
    end Facility_Log;
+
+   --------------------------------
+   -- Package body for Internals --
+   --------------------------------
+
+   package body Internals is
+
+      --------------
+      -- Put_Line --
+      --------------
+
+      procedure Put_Line (S : String)
+      is
+         SS : aliased String := S & ASCII.LF;
+
+         procedure C_Write
+           (Fd  : Interfaces.C.int;
+            P   : System.Address;
+            Len : Interfaces.C.int);
+         pragma Import (C, C_Write, "write");
+      begin
+         C_Write (2, SS (SS'First)'Address, SS'Length);
+         --  '2' is STDERR, see 'unistd.h' standard include C file
+         --  for more details about standard file descriptors.
+
+      end Put_Line;
+
+   end Internals;
+
 
 end PolyORB.Log;

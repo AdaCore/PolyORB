@@ -38,9 +38,6 @@ package PolyORB.Log is
 
    pragma Preelaborate;
 
-   procedure Put_Line (S : String);
-   --  Output S to stderr.
-
    --  Log_Levels are used to classify the importance of messages
 
    type Log_Level is
@@ -106,5 +103,14 @@ package PolyORB.Log is
    --  facility. The configuration values must be in the
    --  section named by Log_Section, and the keys used are
    --  the facility names.
+
+   package Internals is
+
+      procedure Put_Line (S : String);
+      --  Output S to stderr.
+
+      --  Note: this function is to be utilised if and only if we cannot
+      --  instanciate PolyORB.Log.Facility_Log.
+   end Internals;
 
 end PolyORB.Log;
