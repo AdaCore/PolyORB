@@ -1514,6 +1514,10 @@ package body PolyORB.Any is
    function Image (A : Any) return Standard.String is
       Kind : constant TCKind := TypeCode.Kind (Get_Unwound_Type (A));
    begin
+      if Is_Empty (A) then
+         return "<empty>";
+      end if;
+
       case Kind is
          when Tk_Short =>
             return Short'Image (From_Any (A));
