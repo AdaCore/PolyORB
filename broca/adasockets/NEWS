@@ -1,5 +1,11 @@
 -*- outline -*-
 
+* New in AdaSockets 0.1.7
+
+** Add support for FreeBSD
+
+FreeBSD 3.x, 4.0 and 5.0-CURRENT are now supported out of the box.
+
 * New in AdaSockets 0.1.6
 
 ** Add a `adasockets-config' script
