@@ -35,6 +35,7 @@ Contents.
    The Configuration Language.
    Remote Shell Notes.
    Warnings.
+   Filtering.
    Restrictions.
 ---------------------------------------------------------------------------
 
@@ -242,6 +243,33 @@ configuration My_Config is
   --  assigned. When the pragma Version is set to False, no
   --  consistency check is performed.
 
+  Channel_1 : Channel := (Partition_1, Partition_4);
+  Channel_2 : Channel := (Partition_2, Partition_3);
+  --  Declare two channels. Other channels between partitions remain unknown.
+
+  for Channel_1'Filter use "ZIP";
+  --  Use transparent compression/decompression for the arguments and results
+  --  of any remote calls on channel "Channel_1", i.e. between "Partition_1"
+  --  and "Partition_4".
+
+  for Channel_2'Filter use "My_Own_Filter";
+  --  Use filter "My_Own_Filter" on "Channel_2". This filter must be imple-
+  --  mented in a package "System.Garlic.Filters.My_Own_Filter".
+
+  for Partition_3'Filter use "ZIP";
+  --  For all data exchanged with "Partition_3", use the filter "ZIP". (I.e.
+  --  for both arriving remote calls as well as for calls made by this parti-
+  --  tion.) Only for calls on "Channel_2" (i.e. for communication between
+  --  "Partition_2" and "Partition_3"), the filter "My_Own_Filter" is used.
+
+  pragma Registration_Filter ("Some_Filter");
+  --  "Some_Filter" will be used to exchange a filter's parameters between
+  --  two partitions. "Some_Filter" itself must be an algorithm that doesn't
+  --  need its own parameters to be filtered again!
+
+  --  On all other channels (i.e., for remote calls between partitions where
+  --  no channel was declared), filtering is not used.
+
 begin
   --  The configuration body is optional. You may have fully described your
   --  configuration in the declaration part.
@@ -300,6 +328,107 @@ common directory named "dsa". You may remove this whole directory and
 its content when you do not intend to rebuild your distributed
 applications.
 
+
+Filtering.
+----------
+
+GLADE contains a transparent extensible filtering mechanism allowing the
+user to define various data transformations to be performed on the arguments
+and return values of remote calls. One possible application would be to
+compress all data before sending it and to decompress it on the receiving
+partition.
+
+With GLADE, it is no longer necessary that the application take care of such
+transformations. Instead, users can write their own data transformations and
+hook them into GLADE so that they are automatically and transparently applied
+depending on the configuration of the distributed application.
+
+   Configuring filtering
+   ---------------------
+
+   The configuration language not only knows about partitions, it also knows
+   about the connections between them. Such a connection is called a "Channel"
+   and represents a bi-directional link between two partitions. In order to
+   define filtering, one must first declare the cannels between the partitions
+   of an application:
+
+       A_Channel : Channel := (Partition_1, Partition_2);
+
+   This gives the link between partitions "Partition_1" and "Partition_2" the
+   name "A_Channel". It is not possible to declare more than one  channel
+   between the same two partitions.
+
+   Now that this channel is known, the data transformation that is to be
+   applied on all data sent through it can be defined:
+
+       for A_Channel'Filter use "ZIP";
+
+   This specifies that all data sent over this channel should be transformed
+   by the filter named "ZIP". (There must be a filter with this name, imple-
+   mented in the package 'System.Garlic.Filters.Zip'.)
+
+   Some filtering algorithms require that some parameters must be sent to the
+   receiver first to enable it to correctly de-filter the data. If this is
+   the case, it may be necessary to filter these parameters again. For such
+   purposes, it is possible to install a global filter for all partitions,
+   which then will be used to filter the parameters of other filters. This
+   filter is called the "registration filter". It can be set by a pragma:
+
+       pragma Registration_Filter ("Filter_Name");
+
+   (Note: this is a pragma of the configuration language, not of Ada 95!).
+
+   It may also be useful to specify that a partition use a certain filter for
+   all remote calls, regardless of the channel (i.e., regardless of the
+   partition that'll receive the remote call). This can be specified using
+   the attribute 'Filter on a partition:
+
+      for Partition_1'Filter use "ZIP";
+
+   or even
+
+      for Partition'Filter use "ZIP";
+
+   (The latter set the default filter for all partitions of the application,
+   the former only sets the default filter for the partition "Partition_1".)
+   It is also possible to apply a default filter and to override this default
+   for specific channels:
+
+     My_Channel : Channel := (Partition_1, Partition_2);
+
+     for My_Channel'Filter  use "ZIP";
+     for Partition_1'Filter use "Some_Other_Filter";
+
+   This makes 'Partition_1' use "Some_Other_Filter" for all remote calls
+   except for any communication with 'Partition_2', where the filter "ZIP"
+   is applied.
+
+   Gnatdist takes care of consistency checking of a filter definition. By
+   default, no filtering is done. Filtering is only active if specified
+   explicitly in the configuration file.
+ 
+   Implementing your own Filters
+   -----------------------------
+
+   As has been briefly mentioned above, a filter with a name "NAME" must be
+   implemented in a package called 'System.Garlic.Filters.Name'. You may
+   write your own filters, which must implement their filtering of data
+   in the primitive operations of a type derived from the type
+   'System.Garlic.Filters.Filter_Type'. Your filter package must then
+   register an instance of your newly derived type with GLADE by calling
+   'System.Garlic.Filters.Register'. From that on, your filter is ready to
+   be used.
+
+   For more information on how to write your own filter packages see the
+   sample implementation of a ZIP filter in files 's-gafizi.ad[bs]' in
+   the distribution. You might also want to look at the example in the
+   'Filtering' directory of the GLADE distribution.
+
+   The basic principles behind this implementation of hooks for filtering
+   is described in the following paper: J. Kienzle, Th. Wolf, A. Strohmeier:
+   "Secure Communication in Distributed Ada", Proceedings of Ada-Europe '96,
+   Montreux, Switzerland, June 1996, published as Lecture Notes in Computer
+   Science 1088, pp. 198 - 210, Springer 1996.
 
 Restrictions.
 -------------
