@@ -619,18 +619,48 @@ package body PolyORB.ORB is
       Wait_For_Completion :        Boolean := True) is
    begin
 
-      --  Stop accepting incoming connections.
-      --  XX TBD
+      pragma Debug (O ("Shutdown: enter"));
+
+      --  1. Stop accepting incoming connections.
+      --  XXX TBD
 
       if Wait_For_Completion then
-         --  XX TBD
+         --  XXX TBD
          raise Not_Implemented;
       end if;
 
+      --  2. Shutdown the ORB
+
       Enter (ORB.ORB_Lock);
+
       ORB.Shutdown := True;
+      --  Each task that reevaluates its exit condition will now exit
+      --  ORB Mail loop.
+
+      --  3. Force all tasks to reevaluate their exit conditions.
+
+      --  'running' tasks
+
+      --  Nothing to be done: they will reevaluate it automatically,
+      --  see 'Check Condition' loop in PolyORB.ORB.Run.
+
+      --  'blocked' task
+
+      if ORB.Polling then
+         pragma Debug (O ("Shutdown: stopping 'blocked' task"));
+         pragma Assert (ORB.Selector /= null);
+         Abort_Check_Sources (ORB.Selector.all);
+      end if;
       Leave (ORB.ORB_Lock);
 
+      --  'idle' tasks
+
+      pragma Debug (O ("Shutdown: awake all idle tasks"));
+      Broadcast (ORB.Idle_Tasks);
+      --  XXX This is correct because per construction all 'idle' tasks are
+      --  waiting on this condition variable.
+
+      pragma Debug (O ("Shutdown: leave"));
    end Shutdown;
 
    ------------------------
