@@ -22,13 +22,13 @@ package CosTime.TIO.Impl is
      (Self : access Object;
       time : in UTO.Ref;
       overlap : out Ref;
-      Returns : out CORBA.Boolean);
+      Returns : out OverlapType);
 
    procedure overlaps
      (Self : access Object;
       interval : in Ref;
       overlap : out Ref;
-      Returns : out CORBA.Boolean);
+      Returns : out OverlapType);
 
    function time
      (Self : access Object)

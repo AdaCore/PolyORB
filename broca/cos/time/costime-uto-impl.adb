@@ -104,12 +104,12 @@ package body CosTime.UTO.Impl is
       uto : in Ref)
      return TIO_Forward.Ref
    is
-      Result : constant TIO_Ptr := new CosTime.TIO.Impl.Object;
-      R      : CORBA.Object.Ref;
+      Other_Time : constant TimeT   := get_time (uto);
+      Result     : constant TIO_Ptr := new CosTime.TIO.Impl.Object;
+      R          : CORBA.Object.Ref;
    begin
-      Result.Interval.Lower_Bound :=
-        (Self.Time + Self.Tdf) - (get_time (uto) - get_tdf (uto));
-      Result.Interval.Upper_Bound := Result.Interval.Lower_Bound;
+      Result.Interval.Lower_Bound := TimeT'Min (Self.Time, Other_Time);
+      Result.Interval.Upper_Bound := TimeT'Max (Self.Time, Other_Time);
       Broca.Basic_Startup.Initiate_Servant
         (PortableServer.Servant (Result), R);
       return CosTime.TIO.Convert_Forward.To_Forward

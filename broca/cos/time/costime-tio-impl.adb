@@ -10,6 +10,7 @@ with CosTime.UTO.Impl;
 with CosTime.UTO.Helper;
 with PortableServer;
 with Broca.Basic_Startup;
+with Time_Utils; use Time_Utils;
 
 package body CosTime.TIO.Impl is
 
@@ -17,6 +18,12 @@ package body CosTime.TIO.Impl is
 
    type TIO_Ptr is access Object;
    type UTO_Ptr is access UTO.Impl.Object;
+
+   procedure Do_Overlap
+     (A_Interval : in IntervalT;
+      B_Interval : in IntervalT;
+      Returns    : out OverlapType;
+      Overlaps   : out IntervalT);
 
    function get_time_interval
      (Self : access Object)
@@ -30,42 +37,77 @@ package body CosTime.TIO.Impl is
      (Self : access Object;
       time : in CosTime.UTO.Ref;
       overlap : out CosTime.TIO.Ref;
-      Returns : out CORBA.Boolean) is
+      Returns : out OverlapType)
+   is
+      Tim        : constant TimeT       := UTO.get_time (time);
+      Ina        : constant InaccuracyT := UTO.get_inaccuracy (time);
+      B_Interval : constant IntervalT   := (Lower_Bound => Tim - Ina,
+                                            Upper_Bound => Tim + Ina);
+      Result     : constant TIO_Ptr := new Object;
+      R          : CORBA.Object.Ref;
    begin
-      --  Does nothing XXXXX FIXME
-      null;
+      Do_Overlap (A_Interval => Self.Interval,
+                  B_Interval => B_Interval,
+                  Overlaps   => Result.Interval,
+                  Returns    => Returns);
+      Broca.Basic_Startup.Initiate_Servant
+        (PortableServer.Servant (Result), R);
+      overlap := Helper.To_Ref (R);
    end spans;
 
    procedure overlaps
      (Self : access Object;
       interval : in CosTime.TIO.Ref;
       overlap : out CosTime.TIO.Ref;
-      Returns : out CORBA.Boolean)
+      Returns : out OverlapType)
    is
       A_Interval : IntervalT renames Self.Interval;
       B_Interval : constant IntervalT := get_time_interval (interval);
-      Result     : constant TIO_Ptr := new TIO.Impl.Object;
+      Result     : constant TIO_Ptr := new Object;
       R          : CORBA.Object.Ref;
    begin
-      if A_Interval.Upper_Bound < B_Interval.Lower_Bound then
-         Returns := False;
-         Result.Interval.Lower_Bound := A_Interval.Upper_Bound;
-         Result.Interval.Upper_Bound := B_Interval.Lower_Bound;
-      elsif B_Interval.Upper_Bound < A_Interval.Lower_Bound then
-         Returns := False;
-         Result.Interval.Lower_Bound := B_Interval.Upper_Bound;
-         Result.Interval.Upper_Bound := A_Interval.Lower_Bound;
-      else
-         Returns := True;
-         Result.Interval.Lower_Bound :=
-           TimeT'Max (A_Interval.Lower_Bound, B_Interval.Lower_Bound);
-         Result.Interval.Upper_Bound :=
-           TimeT'Min (A_Interval.Upper_Bound, B_Interval.Upper_Bound);
-      end if;
+      Do_Overlap (A_Interval => Self.Interval,
+                  B_Interval => get_time_interval (interval),
+                  Overlaps   => Result.Interval,
+                  Returns    => Returns);
       Broca.Basic_Startup.Initiate_Servant
         (PortableServer.Servant (Result), R);
       overlap := Helper.To_Ref (R);
    end overlaps;
+
+   procedure Do_Overlap
+     (A_Interval : in IntervalT;
+      B_Interval : in IntervalT;
+      Returns    : out OverlapType;
+      Overlaps   : out IntervalT)
+   is
+   begin
+      if A_Interval.Upper_Bound < B_Interval.Lower_Bound
+        or else A_Interval.Lower_Bound > B_Interval.Upper_Bound
+      then
+         Returns := OTNoOverlap;
+         Overlaps.Lower_Bound :=
+           TimeT'Min (A_Interval.Upper_Bound, B_Interval.Upper_Bound);
+         Overlaps.Upper_Bound :=
+           TimeT'Max (A_Interval.Lower_Bound, B_Interval.Lower_Bound);
+      elsif A_Interval.Lower_Bound <= B_Interval.Lower_Bound
+        and then A_Interval.Upper_Bound >= B_Interval.Upper_Bound
+      then
+         Returns := OTContainer;
+         Overlaps := B_Interval;
+      elsif A_Interval.Lower_Bound >= B_Interval.Lower_Bound
+        and then A_Interval.Upper_Bound <= B_Interval.Upper_Bound
+      then
+         Returns := OTContained;
+         Overlaps := A_Interval;
+      else
+         Returns := OTOverlap;
+         Overlaps.Lower_Bound :=
+           TimeT'Max (A_Interval.Lower_Bound, B_Interval.Lower_Bound);
+         Overlaps.Upper_Bound :=
+           TimeT'Min (A_Interval.Upper_Bound, B_Interval.Upper_Bound);
+      end if;
+   end Do_Overlap;
 
    function time
      (Self : access Object)

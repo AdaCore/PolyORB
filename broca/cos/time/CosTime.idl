@@ -49,10 +49,10 @@ module CosTime {
 	
 	interface TIO {
 		readonly attribute TimeBase::IntervalT 	time_interval;
-		boolean spans (
+		OverlapType spans (
 			in	UTO			time,
 			out TIO			overlap);
-		boolean overlaps (
+		OverlapType overlaps (
 			in 	TIO			interval,
 			out TIO			overlap);
 		UTO time ();
