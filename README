@@ -78,6 +78,10 @@ Build instructions
 
 See file INSTALL.
 
+Developers building PolyORB from the version control repository
+who need to rebuild the configure and Makefile.in files should
+use the script support/reconfig for this purpose.
+
 Available options for the 'configure' script include:
   --enable-xmlada: set if you have XmlAda and you want to build the
                    SOAP protocol personality.
