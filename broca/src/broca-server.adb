@@ -1057,7 +1057,7 @@ package body Broca.Server is
       pragma Debug (O ("Marshall : enter"));
 
       --   0 ..  3: boot time or 0 if persistent POA.
-      if The_POA.Lifespan_Policy = PortableServer.TRANSIENT then
+      if The_POA.Lifespan_Policy = PortableServer.PERSISTENT then
          Marshall (Buffer, CORBA.Unsigned_Long'(0));
 
       else
@@ -1126,10 +1126,17 @@ package body Broca.Server is
       --  Lock the table, so that we are sure the poa won't be destroyed.
       Broca.POA.All_POAs_Lock.Lock_R;
 
-      if All_POAs /= null
-        and then POA_Index in All_POAs.all'Range
-        and then All_POAs (POA_Index).Date = POA_Date
-      then
+      if Boot_Time /= 0 then
+
+         --  We are dealing with a transient POA
+
+         if All_POAs = null
+           or else POA_Index not in All_POAs.all'Range
+           or else All_POAs (POA_Index).Date /= POA_Date
+         then
+            Broca.Exceptions.Raise_Object_Not_Exist;
+         end if;
+
          POA := All_POAs (POA_Index).POA;
 
          --  Neither the POA won't be destroyed, nor its children.

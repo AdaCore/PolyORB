@@ -34,10 +34,15 @@
 with CORBA.Sequences.Unbounded;
 with CORBA.Impl;
 
+with Broca.Buffers;
+with Broca.CDR;
 with Broca.IOP;
+with Broca.Environment;
 with Broca.Exceptions;
+with Broca.Names;
 with Broca.Object;
 with Broca.Repository;
+with Broca.Sequences;
 
 with Broca.Debug;
 pragma Elaborate (Broca.Debug);
@@ -62,10 +67,15 @@ package body Broca.ORB is
    package IDL_SEQUENCE_Ref is
      new CORBA.Sequences.Unbounded (CORBA.Object.Ref);
 
+   Initial_References_POA_Name : constant CORBA.String :=
+     CORBA.To_CORBA_String ("InitialReferences");
+
    Identifiers : ObjectIdList;
    References  : IDL_SEQUENCE_Ref.Sequence;
 
    References_POA         : Broca.POA.POA_Object_Ptr;
+
+   type Profile_IIOP_Ptr is access Broca.IIOP.Profile_IIOP_Type;
 
    type References_Locator is
      new PortableServer.ServantLocator.Impl.Object with null record;
@@ -93,6 +103,80 @@ package body Broca.ORB is
    function To_String (Oid : PortableServer.ObjectId)
      return String;
 
+   function Build_Remote_Naming_Reference return CORBA.Object.Ref;
+
+   function Build_Object_Key
+     (POA_Name    : CORBA.String;
+      Object_Name : CORBA.String)
+     return Broca.Sequences.Octet_Sequence;
+   --  Build an object key for a persistent POA and a fixed object name.
+
+   ----------------------
+   -- Build_Object_Key --
+   ----------------------
+
+   function Build_Object_Key
+     (POA_Name    : CORBA.String;
+      Object_Name : CORBA.String)
+     return Broca.Sequences.Octet_Sequence
+   is
+      use Broca.Buffers, Broca.CDR;
+      Buffer : aliased Buffer_Type;
+   begin
+      Start_Encapsulation (Buffer'Access);
+
+      --  Boot time: 0 for a persistent POA
+      Marshall (Buffer'Access, CORBA.Unsigned_Long'(0));
+
+      --  POA index (useless)
+      Marshall (Buffer'Access, CORBA.Unsigned_Long'(0));
+
+      --  Date of the entry (useless)
+      Marshall (Buffer'Access, CORBA.Unsigned_Long'(0));
+
+      --  Number of POAs in the POA path name: 1
+      Marshall (Buffer'Access, CORBA.Unsigned_Long'(1));
+
+      --  Name of the POA
+      Marshall (Buffer'Access, POA_Name);
+
+      --  Object key for the POA
+      Marshall (Buffer'Access, Object_Name);
+
+      return
+        Broca.Sequences.Octet_Sequences.To_Sequence
+        (Broca.Sequences.To_CORBA_Octet_Array (Encapsulate (Buffer'Access)));
+   end Build_Object_Key;
+
+   -----------------------------------
+   -- Build_Remote_Naming_Reference --
+   -----------------------------------
+
+   function Build_Remote_Naming_Reference return CORBA.Object.Ref is
+      use Broca.Environment;
+      Host : constant String   := Get_Conf (Naming_Host, Naming_Host_Default);
+      Port : constant Positive :=
+        Positive'Value (Get_Conf (Naming_Port, Naming_Port_Default));
+      Profile : Profile_IIOP_Ptr := new Broca.IIOP.Profile_IIOP_Type;
+      Obj     : Broca.Object.Object_Ptr := new Broca.Object.Object_Type;
+      Result  : CORBA.Object.Ref;
+   begin
+      Obj.Type_Id             :=
+        CORBA.To_CORBA_String
+        (Broca.Names.OMG_RepositoryId ("CosNaming/NamingContext"));
+      Profile.Host   := CORBA.To_CORBA_String (Host);
+      Profile.Port   := CORBA.Unsigned_Short (Port);
+      Profile.ObjKey :=
+        Build_Object_Key
+        (Initial_References_POA_Name,
+         CORBA.String (Name_Service_ObjectId));
+      Obj.Profiles :=
+        new Broca.IOP.Profile_Ptr_Array'(1 =>
+                                           Broca.IOP.Profile_Ptr (Profile));
+      CORBA.Object.Set (Result, CORBA.Impl.Object_Ptr (Obj));
+      return Result;
+   end Build_Remote_Naming_Reference;
+
    --------------------------------------
    -- Ensure_References_POA_Is_Started --
    --------------------------------------
@@ -118,7 +202,7 @@ package body Broca.ORB is
             References_POA :=
               Broca.POA.Create_POA
               (Self         => RootPOA_Ptr,
-               Adapter_Name => CORBA.To_CORBA_String ("InitialReferences"),
+               Adapter_Name => Initial_References_POA_Name,
                A_POAManager => null,
                Tp           => ORB_CTRL_MODEL,
                Lp           => PERSISTENT,
@@ -269,6 +353,9 @@ package body Broca.ORB is
             return Element_Of (References, I);
          end if;
       end loop;
+      if To_Standard_String (Identifier) = "NamingService" then
+         return Build_Remote_Naming_Reference;
+      end if;
       raise CORBA.InvalidName;
    end Resolve_Initial_References;
 
