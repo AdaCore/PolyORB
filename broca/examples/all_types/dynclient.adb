@@ -1099,17 +1099,15 @@ begin
          Ok := False;
          declare
             Member : UnknownUserException_Members;
-            Info : CORBA.Long;
+            Actual_Member : My_Exception_Members;
          begin
             testException (Myall_types, 2485);
          exception
             when E : UnknownUserException =>
                Get_Members (E, Member);
-               Info := From_Any
-                 (Get_Aggregate_Element (Member.IDL_Exception,
-                                         CORBA.TC_Long,
-                                         CORBA.Unsigned_Long (0)));
-               Ok := (Info = 2485);
+               Actual_Member :=
+                 All_Types.Helper.From_Any (Member.IDL_Exception);
+               Ok := (Actual_Member.Info = 2485);
          end;
          Output ("test exception", Ok);
       end;
