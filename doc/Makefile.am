@@ -7,6 +7,7 @@ polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
 	polyorb-corba_p-corbaloc.texi \
 	polyorb-corba_p-server_tools.texi \
 	polyorb-corba_p-naming_tools.texi \
+	polyorb-rtcorba_p-setup.texi \
 	echo.texi \
 	echo-impl-spec.texi \
 	echo-impl-body.texi \
@@ -25,6 +26,9 @@ polyorb-corba_p-naming_tools.ads: $(top_srcdir)/cos/naming/polyorb-corba_p-namin
 
 polyorb-corba_p-server_tools.ads: $(top_srcdir)/src/corba/polyorb-corba_p-server_tools.ads
 	cp -f $(top_srcdir)/src/corba/polyorb-corba_p-server_tools.ads .
+
+polyorb-rtcorba_p-setup.ads: $(top_srcdir)/src/corba/rtcorba/polyorb-rtcorba_p-setup.ads
+	cp -f $(top_srcdir)/src/corba/rtcorba/polyorb-rtcorba_p-setup.ads .
 
 polyorb_ug_ref.texi: polyorb_ug_ref.bbl
 	@${SED} -e 's/~/ /g' \

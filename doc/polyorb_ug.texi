@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#31 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#32 $
 
 @include version.texi
 
@@ -116,6 +116,7 @@ entitled ``GNU Free Documentation License''.
 * Overview of PolyORB personalities::
 * Building an application with PolyORB::
 * CORBA::
+* RT-CORBA::
 * GIOP::
 * SOAP::
 * Tools::
@@ -176,6 +177,14 @@ CORBA
 * Building a CORBA application with PolyORB::
 * Configuring a CORBA application::
 * PolyORB specific APIs::
+* Implementation Notes::
+
+RT-CORBA
+
+* What you should know before Reading this section2::
+* Installing RT-CORBA::
+* Configuring RT-CORBA::
+* RTCORBA.PriorityMapping::
 
 GIOP
 
@@ -241,6 +250,9 @@ personalities, or distribution mechanisms, PolyORB provides.
 different steps to build a distributed application using PolyORB.
 
 @item @ref{CORBA} describes PolyORB's implementation of OMG's CORBA.
+
+@item @ref{RT-CORBA} describes PolyORB's implementation of RT-CORBA,
+the real-time extenstions of OMG's CORBA.
 
 @item @ref{GIOP} describes PolyORB's implementation of GIOP, the
 protocol defined as part of CORBA.
@@ -1647,6 +1659,89 @@ Server.
 @cindex @code{PolyORB.CORBA_P.Server_Tools}
 
 @include polyorb-corba_p-server_tools.texi
+
+@c -------------------------------------------------------------------
+@node RT-CORBA
+@chapter RT-CORBA
+@cindex RT-CORBA
+@c -------------------------------------------------------------------
+
+@menu
+* What you should know before Reading this section2::
+* Installing RT-CORBA::
+* Configuring RT-CORBA::
+* RTCORBA.PriorityMapping::
+@end menu
+
+@c -------------------------------------------------------------------
+@node What you should know before Reading this section2
+@section What you should know before Reading this section
+@c -------------------------------------------------------------------
+
+@noindent
+This section assumes that the reader is familiar with the Real-Time
+CORBA specifications described in @cite{[OMG02a]} and @cite{[OMG03]}.
+
+@c -------------------------------------------------------------------
+@node Installing RT-CORBA
+@section Installing RT-CORBA
+@c -------------------------------------------------------------------
+
+@noindent 
+The RT-CORBA library is installed as part of the installation of the
+CORBA personality. Note that you may have to select specific run-time
+options to enable full compliance with RT-CORBA specifications and
+ensure real time behavior. @b{XXX TO BE COMPLETED}
+
+@c -------------------------------------------------------------------
+@node Configuring RT-CORBA
+@section Configuring RT-CORBA
+@c -------------------------------------------------------------------
+
+@menu
+* PolyORB.RTCORBA_P.Setup::
+@end menu
+
+@noindent 
+This section details how to configure your application to use the
+RT-CORBA library.
+
+@c -------------------------------------------------------------------
+@node PolyORB.RTCORBA_P.Setup
+@subsection @code{PolyORB.RTCORBA_P.Setup}
+@cindex @code{PolyORB.RTCORBA_P.Setup}
+@c -------------------------------------------------------------------
+
+@noindent 
+RT-CORBA specifications mandates the implementation provides a
+mechanism to set up some of its internals.
+
+The package @code{PolyORB.RTCORBA_P.Setup} provides an API to set up
+the @code{PriorityMapping} and @code{PriorityTransform} objects.
+
+@include polyorb-rtcorba_p-setup.texi
+
+@c -------------------------------------------------------------------
+@node RTCORBA.PriorityMapping
+@section @code{RTCORBA.PriorityMapping}
+@cindex @code{RTCORBA.PriorityMapping}
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB provides different implementations of this specification:
+
+@itemize @bullet
+
+@item @code{RTCORBA.PriorityMapping.Direct} maps CORBA priorities 
+directly to native priorities. If the CORBA priority is not in
+@code{System.Priority'Range}, then the mapping is not possible.
+
+@item @code{RTCORBA.PriorityMapping.Linear} maps each individual
+native priority to a contiguous range of CORBA priorities, so that the
+complete CORBA priority range is used up for the mapping. See
+@file{rtcorba-prioritymapping-linear.adb} for more details.
+
+@end itemize
 
 @c -------------------------------------------------------------------
 @node GIOP
