@@ -93,10 +93,8 @@ package body MOMA.Destinations is
    function From_Any (Self : PolyORB.Any.Any)
                       return MOMA.Destinations.Destination
    is
-      Index    : PolyORB.Any.Any;
       Kind     : MOMA.Types.Destination_Type := MOMA.Types.Unknown;
       Name     : MOMA.Types.String;
-      Position : MOMA.Types.Unsigned_Long;
       Ref      : PolyORB.References.Ref;
    begin
       Name := From_Any
@@ -109,11 +107,10 @@ package body MOMA.Destinations is
                                 TypeCode.TC_Object,
                                 PolyORB.Types.Unsigned_Long (1)));
 
-      Index := Get_Aggregate_Element (Self,
-                                      TypeCode.TC_Unsigned_Long,
-                                      PolyORB.Types.Unsigned_Long (2));
-      Position := PolyORB.Any.From_Any (Index);
-      Kind := Destination_Type'Val (Position);
+      Kind := MOMA.Types.From_Any
+         (Get_Aggregate_Element (Self,
+                                 MOMA.Types.TC_Destination_Type,
+                                 PolyORB.Types.Unsigned_Long (2)));
 
       return Create (Name, Ref, Kind);
    end From_Any;
@@ -239,10 +236,7 @@ package body MOMA.Destinations is
    begin
       Add_Aggregate_Element (Result, To_Any (Self.Name));
       Add_Aggregate_Element (Result, To_Any (Self.Ref));
-      Add_Aggregate_Element
-         (Result,
-          To_Any
-            (PolyORB.Types.Unsigned_Long (Destination_Type'Pos (Self.Kind))));
+      Add_Aggregate_Element (Result, MOMA.Types.To_Any (Self.Kind));
       return Result;
    end To_Any;
 
@@ -278,7 +272,8 @@ package body MOMA.Destinations is
       TypeCode.Add_Parameter (TC_MOMA_Destination,
                               To_Any (To_PolyORB_String ("ref")));
 
-      TypeCode.Add_Parameter (TC_MOMA_Destination, To_Any (TC_Unsigned_Long));
+      TypeCode.Add_Parameter (TC_MOMA_Destination,
+                              To_Any (MOMA.Types.TC_Destination_Type));
       TypeCode.Add_Parameter (TC_MOMA_Destination,
                               To_Any (To_PolyORB_String ("kind")));
    end Initialize;

@@ -199,6 +199,12 @@ package MOMA.Types is
                              Pool,
                              Topic);
 
+   TC_Destination_Type : TypeCode.Object := TypeCode.TC_Enum;
+
+   --  Conversion Any <-> Destination_Type.
+   function From_Any (Item : in PolyORB.Any.Any) return Destination_Type;
+   function To_Any (Item : in Destination_Type) return PolyORB.Any.Any;
+
    type Pool_Type is (Queue,
                       Topic);
 

@@ -99,6 +99,16 @@ package body MOMA.Types is
       return Map (Result);
    end From_Any;
 
+   function From_Any (Item : in PolyORB.Any.Any) return Destination_Type
+   is
+      Index    : Any := Get_Aggregate_Element (Item,
+                                               TC_Unsigned_Long,
+                                               Unsigned_Long (0));
+      Position : Unsigned_Long := From_Any (Index);
+   begin
+      return Destination_Type'Val (Position);
+   end From_Any;
+
    ------------
    -- To_Any --
    ------------
@@ -142,6 +152,16 @@ package body MOMA.Types is
    begin
       pragma Debug (O ("To_Any : (Map)"));
       Set_Type (Result, TC_Map);
+      return Result;
+   end To_Any;
+
+   function To_Any (Item : in Destination_Type) return PolyORB.Any.Any
+   is
+      Result : Any := Get_Empty_Any_Aggregate (TC_Destination_Type);
+   begin
+      Add_Aggregate_Element
+         (Result,
+          To_Any (Unsigned_Long (Destination_Type'Pos (Item))));
       return Result;
    end To_Any;
 
@@ -467,6 +487,7 @@ package body MOMA.Types is
                               To_Any (To_PolyORB_String ("value")));
 
       --  Map.
+
       TypeCode.Add_Parameter (TC_IDL_SEQUENCE_Map_Element,
                               To_Any (Unsigned_Long (0)));
       TypeCode.Add_Parameter (TC_IDL_SEQUENCE_Map_Element,
@@ -476,6 +497,23 @@ package body MOMA.Types is
       TypeCode.Add_Parameter (TC_Map, To_Any (To_PolyORB_String
                                                      ("MOMA:types/map:1.0")));
       TypeCode.Add_Parameter (TC_Map, To_Any (TC_IDL_SEQUENCE_Map_Element));
+
+      --  Destination_Type.
+
+      declare
+         Name           : String := To_PolyORB_String ("Destination_Type");
+         Id             : String := To_PolyORB_String
+                                       ("MOMA:types/destination_type:1.0");
+         Unknown_Name   : String := To_PolyORB_String ("Unknown");
+         Pool_Name      : String := To_PolyORB_String ("Pool");
+         Topic_Name     : String := To_PolyORB_String ("Topic");
+      begin
+         TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Name));
+         TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Id));
+         TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Unknown_Name));
+         TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Pool_Name));
+         TypeCode.Add_Parameter (TC_Destination_Type, To_Any (Topic_Name));
+      end;
 
    end Initialize;
 
