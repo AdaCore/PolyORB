@@ -3,6 +3,8 @@ with CORBA;
 
 package Broca.CDR is
 
+   pragma Elaborate_Body;
+
    --  This package takes care of CDR and GIOP encoding. It has not been
    --  tuned for efficiency yet, but should be easy to use.
 
@@ -39,6 +41,7 @@ package Broca.CDR is
      (Buffer    : access Buffer_Type;
       Octets    : in Octet_Array;
       Alignment : in Alignment_Type := 1);
+   --  Marshall any kind of data
 
    function Unmarshall_Opaque
      (Buffer    : access Buffer_Type;
@@ -49,6 +52,7 @@ package Broca.CDR is
    procedure Marshall
      (Buffer : access Buffer_Type;
       Inner  : in Buffer_Type);
+   --  Marshall a buffer into another one
 
    function Unmarshall (Buffer : access Buffer_Type) return Buffer_Type;
 
@@ -109,6 +113,9 @@ private
       Content   : Octet_Array_Access;
       Index     : Index_Type;
    end record;
+   --  The current implementation works like a realloc() each time something
+   --  gets written in the buffer. It should be replaced by a linked list
+   --  with fixed size preallocation for efficiency reasons.
 
    procedure Initialize (Buffer : in out Buffer_Type);
    procedure Adjust     (Buffer : in out Buffer_Type);
