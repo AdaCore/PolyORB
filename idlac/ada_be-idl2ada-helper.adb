@@ -428,22 +428,56 @@ package body Ada_Be.Idl2Ada.Helper is
       Gen_To_Any_Profile (CU, Node);
       PL (CU, ";");
 
-      --  if the interface was forward declared
-      if Forward (Node) /= No_Node then
-         --  From_Any
-         NL (CU);
-         Gen_From_Any_Profile (CU, Forward (Node));
-         PL (CU, ";");
-
-         --  To_Any
-         NL (CU);
-         Gen_To_Any_Profile (CU, Forward (Node));
-         PL (CU, ";");
-      end if;
-
       --  Fill in typecode TC_<name of the type>
       Add_Elaborate_Body (CU);
    end Gen_Interface_Spec;
+
+   ----------------------------------
+   --  Gen_Forward_Interface_Spec  --
+   ----------------------------------
+   procedure Gen_Forward_Interface_Spec
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id) is
+   begin
+      --  Unchecked_To_<reference>
+      declare
+         Short_Type_Name : constant String
+           := Ada_Type_Defining_Name (Forward (Node));
+         Type_Name : constant String
+           := Ada_Type_Name (Forward (Node));
+      begin
+         Add_With (CU, "CORBA.Object");
+         NL (CU);
+         PL (CU, "function Unchecked_To_" & Short_Type_Name);
+         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  return " & Type_Name & ";");
+         PL (CU, "function To_" & Short_Type_Name);
+         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  return " & Type_Name & ";");
+      end;
+
+      --  TypeCode
+      NL (CU);
+      Add_With (CU, "CORBA");
+      PL (CU, Ada_TC_Name (Forward (Node))
+          & " : CORBA.TypeCode.Object := ");
+      II (CU);
+      PL (CU, "CORBA.TypeCode.TC_ObjRef;");
+      DI (CU);
+
+      --  From_Any
+      NL (CU);
+      Gen_From_Any_Profile (CU, Forward (Node));
+      PL (CU, ";");
+
+      --  To_Any
+      NL (CU);
+      Gen_To_Any_Profile (CU, Forward (Node));
+      PL (CU, ";");
+
+      --  Fill in typecode TC_<name of the type>
+      Add_Elaborate_Body (CU);
+   end Gen_Forward_Interface_Spec;
 
    ------------------------
    -- Gen_ValueType_Spec --
@@ -672,35 +706,6 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "end To_Any;");
 
-      --  if the interface was forward declared
-      if Forward (Node) /= No_Node then
-         --  From_Any
-         Add_With (CU, "CORBA.Object.Helper");
-         NL (CU);
-         Gen_From_Any_Profile (CU, Forward (Node));
-         PL (CU, " is");
-         PL (CU, "begin");
-         II (CU);
-         PL (CU, "return Convert_Forward.To_Forward (To_"
-             & Ada_Type_Defining_Name (Forward (Node))
-             & " (CORBA.Object.Helper."
-             & "From_Any (Item)));");
-         DI (CU);
-         PL (CU, "end From_Any;");
-
-         --  To_Any
-         Add_With (CU, "CORBA.Object.Helper");
-         NL (CU);
-         Gen_To_Any_Profile (CU, Forward (Node));
-         PL (CU, " is");
-         PL (CU, "begin");
-         II (CU);
-         PL (CU, "return CORBA.Object.Helper.To_Any "
-          & "(CORBA.Object.Ref (Convert_Forward.To_Ref (Item)));");
-         DI (CU);
-         PL (CU, "end To_Any;");
-      end if;
-
       --  Fill in the typecode TC_<name of the type>
 
       Divert (CU, Elaboration);
@@ -727,6 +732,127 @@ package body Ada_Be.Idl2Ada.Helper is
       PL (CU, "end;");
       Divert (CU, Visible_Declarations);
    end Gen_Interface_Body;
+
+   --------------------------------
+   -- Gen_Forward_Interface_Body --
+   --------------------------------
+
+   procedure Gen_Forward_Interface_Body
+     (CU        : in out Compilation_Unit;
+      Node      : in     Node_Id) is
+   begin
+
+      --  Unchecked_To_<reference>
+
+      declare
+         Short_Type_Name : constant String
+           := Ada_Type_Defining_Name (Forward (Node));
+         Type_Name : constant String
+           := Ada_Type_Name (Forward (Node));
+      begin
+         Add_With (CU, "Broca.Refs");
+         Add_With (CU, "Broca.Exceptions");
+
+         NL (CU);
+         PL (CU, "function Unchecked_To_" & Short_Type_Name);
+         Add_With (CU, "CORBA.Object");
+         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  return " & Type_Name);
+         PL (CU, "is");
+         II (CU);
+         PL (CU, "Result : " & Type_Name & ";");
+         DI (CU);
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, Ada_Name (Forward (Node)) & ".Set (Result,");
+         PL (CU,
+             "     CORBA.Object.Object_Of (The_Ref));");
+         PL (CU, "return Result;");
+         DI (CU);
+         PL (CU, "end Unchecked_To_" & Short_Type_Name & ";");
+
+         --  To_<reference>
+         --  see the corresponding comment in gen_interface_body
+         --  if you want more information.
+
+         NL (CU);
+         PL (CU, "function To_" & Short_Type_Name);
+         PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
+         PL (CU, "  return " & Type_Name);
+         PL (CU, "is");
+         II (CU);
+         PL (CU, "use CORBA;");
+         DI (CU);
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, "if CORBA.Object.Is_A (The_Ref, CORBA.To_CORBA_String ("""
+             & Idl_Repository_Id (Node) & """)) then");
+         II (CU);
+         PL (CU, "return Unchecked_To_"
+             & Short_Type_Name
+             & " (The_Ref);");
+         DI (CU);
+         PL (CU, "end if;");
+
+         PL (CU, "Broca.Exceptions.Raise_Bad_Param;");
+         DI (CU);
+         PL (CU, "end To_" & Short_Type_Name & ";");
+      end;
+
+      --  From_Any
+
+      Add_With (CU, "CORBA.Object.Helper");
+      NL (CU);
+      Gen_From_Any_Profile (CU, Forward (Node));
+      PL (CU, " is");
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "return To_"
+          & Ada_Type_Defining_Name (Forward (Node))
+          & " (CORBA.Object.Helper."
+          & "From_Any (Item));");
+      DI (CU);
+      PL (CU, "end From_Any;");
+
+      --  To_Any
+
+      Add_With (CU, "CORBA.Object.Helper");
+      NL (CU);
+      Gen_To_Any_Profile (CU, Forward (Node));
+      PL (CU, " is");
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "return CORBA.Object.Helper.To_Any "
+          & "(CORBA.Object.Ref (Item));");
+      DI (CU);
+      PL (CU, "end To_Any;");
+
+      --  Fill in the typecode TC_<name of the type>
+
+      Divert (CU, Elaboration);
+      NL (CU);
+      PL (CU, "declare");
+      II (CU);
+      Add_With (CU, "CORBA");
+      PL (CU, "Name : CORBA.String := CORBA.To_CORBA_String ("""
+          & Ada_Name (Forward (Node))
+          & """);");
+      PL (CU, "Id : CORBA.String := CORBA.To_CORBA_String ("""
+          & Idl_Repository_Id (Forward (Node))
+          & """);");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "CORBA.TypeCode.Add_Parameter ("
+          & Ada_TC_Name (Forward (Node))
+          & ", CORBA.To_Any (Name));");
+      PL (CU, "CORBA.TypeCode.Add_Parameter ("
+          & Ada_TC_Name (Forward (Node))
+          & ", CORBA.To_Any (Id));");
+      DI (CU);
+      PL (CU, "end;");
+      Divert (CU, Visible_Declarations);
+   end Gen_Forward_Interface_Body;
 
    -------------------
    -- Gen_Enum_Spec --
@@ -2047,6 +2173,7 @@ package body Ada_Be.Idl2Ada.Helper is
       case NK is
          when
            K_Interface         |
+           K_Forward_Interface |
             --          K_ValueType         |
             --          K_Forward_ValueType |
            K_Sequence_Instance |
@@ -2056,10 +2183,6 @@ package body Ada_Be.Idl2Ada.Helper is
            K_Exception         |
            K_Declarator        =>
             return Prefix & Ada_Name (Node);
-
-         when
-           K_Forward_Interface =>
-            return Prefix & Ada_Name (Forward (Node));
 
 --          when K_String_Instance =>
 --             return Ada_Full_Name (Node) & ".Bounded_String";
@@ -2147,7 +2270,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
          when
            K_Forward_Interface =>
-            return Ada_Full_Name (Forward (Node)) & ".Helper";
+            return Parent_Scope_Name (Node) & ".Helper";
 
             --          K_ValueType         |
             --          K_Forward_ValueType |

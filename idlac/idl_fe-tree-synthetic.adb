@@ -41,13 +41,18 @@ package body Idl_Fe.Tree.Synthetic is
      (Node : Node_Id)
      return Boolean is
    begin
+      pragma Debug (O ("Is_Interface_Type : enter"));
       case Kind (Node) is
          when
            K_Interface         |
            K_Forward_Interface =>
+            pragma Debug (O ("Is_Interface_Type : dealing with an interface "
+                             & "or value, end"));
             return True;
 
          when K_Scoped_Name =>
+            pragma Debug (O ("Is_Interface_Type : dealing with a scoped_name, "
+                             & "end"));
             return Is_Interface_Type
               (Node_Id (Value (Node)));
 
@@ -59,13 +64,17 @@ package body Idl_Fe.Tree.Synthetic is
                pragma Assert (Is_Type_Declarator (P_Node));
 
                if Is_Empty (Array_Bounds (Node)) then
+                  pragma Debug (O ("Is_Interface_Type : end"));
                   return Is_Interface_Type (T_Type (P_Node));
                else
+                  pragma Debug (O ("Is_Interface_Type : end"));
                   return False;
                end if;
             end;
 
          when others =>
+            pragma Debug (O ("Is_Interface_Type : dealing with something "
+                             & "else, end"));
             return False;
       end case;
    end Is_Interface_Type;
