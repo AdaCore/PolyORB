@@ -830,23 +830,6 @@ package body PolyORB.Buffers is
          end if;
       end Iovecs_Address;
 
-      ----------------
-      -- Get_Iovecs --
-      ----------------
-
-      procedure Get_Iovecs
-        (Iovec_Pool : access Iovec_Pool_Type;
-         First      : out Iovec_Access;
-         Count      : out Integer) is
-      begin
-         if Is_Dynamic (Iovec_Pool.all) then
-            First := Iovec_Pool.Dynamic_Array (1)'Access;
-         else
-            First := Iovec_Pool.Prealloc_Array (1)'Access;
-         end if;
-         Count := Iovec_Pool.Length;
-      end Get_Iovecs;
-
       ------------
       -- Extend --
       ------------

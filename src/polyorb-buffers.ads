@@ -427,13 +427,6 @@ private
       -- stream of an Iovec_Pool.          --
       ---------------------------------------
 
-      procedure Get_Iovecs
-        (Iovec_Pool : access Iovec_Pool_Type;
-         First      : out Iovec_Access;
-         Count      : out Integer);
-      --  Lowlevel accessor: return an access to the first iovec in
-      --  the pool, and the total number of iovecs.
-
       procedure Dump
         (Iovec_Pool : Iovec_Pool_Type;
          Into       : Opaque.Opaque_Pointer);
