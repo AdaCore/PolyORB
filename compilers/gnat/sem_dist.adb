@@ -345,6 +345,7 @@ package body Sem_Dist is
       Async_E               : Entity_Id;
       All_Calls_Remote_E    : Entity_Id;
       Attribute_Subp        : Entity_Id;
+      Local_Addr            : Node_Id;
 
    begin
       --  Check if we have to expand the access attribute
@@ -391,11 +392,17 @@ package body Sem_Dist is
       All_Calls_Remote_E :=
         Boolean_Literals (Has_All_Calls_Remote (RS_Pkg_E));
 
+      Local_Addr :=
+        Make_Attribute_Reference (Loc,
+          Prefix         => New_Occurrence_Of (Remote_Subp, Loc),
+          Attribute_Name => Name_Address);
+
       Tick_Access_Conv_Call :=
         Make_Function_Call (Loc,
           Name => New_Occurrence_Of (Attribute_Subp, Loc),
           Parameter_Associations =>
             New_List (
+              Local_Addr,
               Make_String_Literal (Loc, Full_Qualified_Name (RS_Pkg_E)),
               Build_Subprogram_Id (Loc, Remote_Subp),
               New_Occurrence_Of (Async_E, Loc),
@@ -514,7 +521,7 @@ package body Sem_Dist is
               New_Occurrence_Of (Subpkg, Loc)));
       Set_Is_Remote_Call_Interface (Subpkg, Is_RCI);
       Set_Is_Remote_Types (Subpkg, Is_RT);
-      Insert_After (N, Subpkg_Decl);
+      Insert_After_And_Analyze (N, Subpkg_Decl);
 
       --  Many parts of the analyzer and expander expect
       --  that the fat pointer type used to implement remote
@@ -536,9 +543,9 @@ package body Sem_Dist is
                           False,
                         Subtype_Indication  =>
                           New_Occurrence_Of (RACW_Type, Loc)))))));
-      Insert_After (Subpkg_Decl, Fat_Type_Decl);
       Set_Equivalent_Type (User_Type, Fat_Type);
       Set_Corresponding_Remote_Type (Fat_Type, User_Type);
+      Insert_After_And_Analyze (Subpkg_Decl, Fat_Type_Decl);
 
       --  The reason we suppress the initialization procedure is that we know
       --  that no initialization is required (even if Initialize_Scalars mode
@@ -548,10 +555,6 @@ package body Sem_Dist is
       Set_Suppress_Init_Proc (Fat_Type);
 
       if Expander_Active then
-         Analyze (Subpkg_Decl);
-         Analyze (Fat_Type_Decl);
-         --  Set up RACW features.
-
          Add_RAST_Features (Parent (User_Type));
       end if;
    end Process_Remote_AST_Declaration;
