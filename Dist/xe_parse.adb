@@ -106,7 +106,8 @@ package body XE_Parse is
    --  Print a configuration node.
 
    procedure Has_Not_Been_Already_Declared
-     (Declaration_Name : in  Name_Id);
+     (Declaration_Name : in Name_Id;
+      Declaration_Sloc : in Location_Type);
    --  Check that this declaration is not already present.
 
    procedure Search_Declaration
@@ -221,6 +222,7 @@ package body XE_Parse is
       Variable_Name : in  Name_Id;
       Variable_Type : in  Type_Id;
       Is_Unique     : in  Boolean;
+      Variable_Sloc : in  Location_Type;
       Variable_Node : out Variable_Id);
    --  Declare a new variable into the configuration context. This variable
    --  of name Variable_Name has a corresponding type, indicated by the
@@ -266,6 +268,7 @@ package body XE_Parse is
    procedure Declare_Subprogram
      (Subprogram_Name  : in  Name_Id;
       Is_A_Procedure   : in  Boolean;
+      Subprogram_Sloc  : in  Location_Type;
       Subprogram_Node  : out Subprogram_Id);
    --  Declare a subprogram into the configuration context. This subprogram
    --  is possibly a function. At this point, the subprogram has no
@@ -341,8 +344,10 @@ package body XE_Parse is
    procedure P_Full_Ada_Identifier;
 
    procedure P_Aggregate_Assignement     (Variable_Node   : in Variable_Id);
-   procedure P_Variable_List_Declaration (Previous_Name   : in Name_Id);
    procedure Associate_Actual_To_Formal  (Subprogram_Node : in Subprogram_Id);
+   procedure P_Variable_List_Declaration
+     (Previous_Name   : in Name_Id;
+      Previous_Sloc   : in Location_Type);
 
    --------------
    -- No_Match --
@@ -639,6 +644,7 @@ package body XE_Parse is
       Declare_Subprogram
         (Function_Name,
          False,
+         Get_Token_Location,
          Function_Node);
 
       T_Left_Paren;
@@ -780,8 +786,10 @@ package body XE_Parse is
    procedure P_Procedure_Declaration is
       Unit_Name      : Name_Id;
       Unit_Node      : Variable_Id;
+      Unit_Sloc      : Location_Type;
       Partition_Name : Name_Id;
       Partition_Node : Variable_Id;
+      Partition_Sloc : Location_Type;
       Component_Node : Component_Id;
       Procedure_Node : Subprogram_Id;
    begin
@@ -791,6 +799,7 @@ package body XE_Parse is
       T_Identifier;
 
       Unit_Name := Token_Name;
+      Unit_Sloc := Get_Token_Location;
       Search_Variable
         (Unit_Name,
          Unit_Node);
@@ -802,7 +811,7 @@ package body XE_Parse is
          --  If yes, then it has to be an ada unit.
 
          if Get_Variable_Type (Unit_Node) /= Ada_Unit_Type_Node then
-            Write_Location (Get_Token_Location);
+            Write_Location (Unit_Sloc);
             Write_Name (Unit_Name);
             Write_Str  (" conflicts with a previous declaration");
             Write_Eol;
@@ -825,6 +834,7 @@ package body XE_Parse is
                Unit_Name,
                Ada_Unit_Type_Node,
                Unique,
+               Unit_Sloc,
                Unit_Node);
 
             T_In;
@@ -833,6 +843,7 @@ package body XE_Parse is
 
             T_Identifier;
             Partition_Name := Token_Name;
+            Partition_Sloc := Get_Token_Location;
             Search_Variable
               (Partition_Name,
                Partition_Node);
@@ -842,7 +853,7 @@ package body XE_Parse is
 
             if Partition_Node = Null_Variable or else
               Get_Variable_Type (Partition_Node) /= Partition_Type_Node then
-               Write_Location (Get_Token_Location);
+               Write_Location (Partition_Sloc);
                Write_Str  ("variable has not been declared as a partition");
                Write_Eol;
                Exit_On_Parsing_Error;
@@ -870,6 +881,7 @@ package body XE_Parse is
             Declare_Subprogram
               (Unit_Name,
                True,
+               Unit_Sloc,
                Procedure_Node);
 
          when others =>
@@ -893,6 +905,7 @@ package body XE_Parse is
       Comp_Node   : Component_Id;
       Expr_Name   : Name_Id;
       Expr_Node   : Node_Id;
+      Expr_Sloc   : Location_Type;
       Is_A_Type   : Boolean;
    begin
 
@@ -975,6 +988,7 @@ package body XE_Parse is
       T_Use;
       Take_Token ((Tok_Identifier, Tok_String_Literal));
       Expr_Name := Token_Name;
+      Expr_Sloc := Get_Token_Location;
 
       --  If string literal, declare an anonymous variable.
 
@@ -984,6 +998,7 @@ package body XE_Parse is
             Expr_Name,
             String_Type_Node,
             Unique,
+            Expr_Sloc,
             Variable_Id (Expr_Node));
 
       --  Otherwise, retrieve the declaration.
@@ -991,7 +1006,7 @@ package body XE_Parse is
       else
          Search_Declaration (Expr_Name, Expr_Node);
          if Expr_Node = Null_Node then
-            Write_Location (Get_Token_Location);
+            Write_Location (Expr_Sloc);
             Write_Name (Expr_Name);
             Write_Str (" has not been declared");
             Write_Eol;
@@ -1028,8 +1043,8 @@ package body XE_Parse is
       Location   : Location_Type;
    begin
       loop
-         Location := Get_Token_Location;
          Next_Token;
+         Location := Get_Token_Location;
 
          --  If token is '.' then continue ...
 
@@ -1056,6 +1071,7 @@ package body XE_Parse is
    procedure P_Aggregate_Assignement (Variable_Node : in Variable_Id) is
       Expression_Name : Name_Id;
       Expression_Node : Variable_Id;
+      Expression_Sloc : Location_Type;
       Component_Node  : Component_Id;
    begin
       T_Left_Paren;
@@ -1065,6 +1081,7 @@ package body XE_Parse is
 
          --  Ada unit names are allowed.
 
+         Expression_Sloc := Get_Token_Location;
          P_Full_Ada_Identifier;
          Expression_Name := Token_Name;
 
@@ -1075,6 +1092,7 @@ package body XE_Parse is
             Expression_Name,
             Ada_Unit_Type_Node,
             Unique,
+            Expression_Sloc,
             Expression_Node);
 
          --  As a naming convention, we use the keyword Conf_Ada_Unit
@@ -1102,13 +1120,16 @@ package body XE_Parse is
    ---------------------------------
 
    procedure P_Variable_List_Declaration
-     (Previous_Name : in Name_Id) is
+     (Previous_Name : in Name_Id;
+      Previous_Sloc : in Location_Type) is
       Previous_Node : Variable_Id;
       Variable_Name : Name_Id;
       Variable_Node : Variable_Id;
+      Variable_Sloc : Location_Type;
       Var_Type_Name : Name_Id;
       Var_Type_Node : Type_Id;
       Var_Type_Kind : Predefined_Type;
+      Var_Type_Sloc : Location_Type;
    begin
 
       Take_Token ((Tok_Comma, Tok_Colon));
@@ -1119,6 +1140,7 @@ package body XE_Parse is
 
          T_Identifier;
          Variable_Name := Token_Name;
+         Variable_Sloc := Get_Token_Location;
 
          --  Declare a temporary variable of any type.
 
@@ -1127,13 +1149,14 @@ package body XE_Parse is
             Previous_Name,
             Partition_Type_Node,
             Unique,
+            Previous_Sloc,
             Previous_Node);
 
          --  Call recursively P_Variable_List_Declaration until the
          --  end of list. Variable_Node is a node to the next
          --  declared variable.
 
-         P_Variable_List_Declaration (Variable_Name);
+         P_Variable_List_Declaration (Variable_Name, Variable_Sloc);
          Search_Variable (Variable_Name, Variable_Node);
 
          --  Update the temporary variable type with variable_node type
@@ -1155,6 +1178,7 @@ package body XE_Parse is
 
          T_Identifier;
          Var_Type_Name := Token_Name;
+         Var_Type_Sloc := Get_Token_Location;
 
          --  Has this type been declared ?
 
@@ -1164,8 +1188,9 @@ package body XE_Parse is
             Var_Type_Node);
 
          if Var_Type_Node = Null_Type then
-            Write_Location (Get_Token_Location);
-            Write_Str  ("unexpected type");
+            Write_Location (Var_Type_Sloc);
+            Write_Str  ("unexpected type ");
+            Write_Name (Var_Type_Name);
             Write_Eol;
             Exit_On_Parsing_Error;
          end if;
@@ -1177,6 +1202,7 @@ package body XE_Parse is
             Previous_Name,
             Var_Type_Node,
             Unique,
+            Previous_Sloc,
             Previous_Node);
 
          Take_Token ((Tok_Semicolon, Tok_Colon_Equal));
@@ -1250,6 +1276,7 @@ package body XE_Parse is
       Actual_Name    : Name_Id;
       Formal_Name    : Name_Id;
       Actual_Node    : Variable_Id;
+      Actual_Sloc    : Location_Type;
       Formal_Node    : Parameter_Id;
       Literal_Node   : Variable_Id;
       N_Parameter    : Int;
@@ -1293,6 +1320,7 @@ package body XE_Parse is
                      Token_Name,
                      String_Type_Node,
                      Unique,
+                     Get_Token_Location,
                      Literal_Node);
 
                end if;
@@ -1317,12 +1345,14 @@ package body XE_Parse is
                      Convention := Named;
                      Take_Token ((Tok_String_Literal, Tok_Identifier));
                      Actual_Name := Token_Name;
+                     Actual_Sloc := Get_Token_Location;
                      if Token = Tok_String_Literal then
                         Declare_Variable
                           (Configuration_Node,
                            Actual_Name,
                            String_Type_Node,
                            Unique,
+                           Actual_Sloc,
                            Literal_Node);
                      end if;
                      Take_Token ((Tok_Comma, Tok_Right_Paren));
@@ -1350,12 +1380,14 @@ package body XE_Parse is
                   T_Arrow;
                   Take_Token ((Tok_String_Literal, Tok_Identifier));
                   Actual_Name := Token_Name;
+                  Actual_Sloc := Get_Token_Location;
                   if Token = Tok_String_Literal then
                      Declare_Variable
                        (Configuration_Node,
                         Actual_Name,
                         String_Type_Node,
                         Unique,
+                        Actual_Sloc,
                         Literal_Node);
                   end if;
                   Take_Token ((Tok_Comma, Tok_Right_Paren));
@@ -1489,7 +1521,7 @@ package body XE_Parse is
                P_Pragma;
 
             when Tok_Identifier =>
-               P_Variable_List_Declaration (Token_Name);
+               P_Variable_List_Declaration (Token_Name, Get_Token_Location);
 
             when Tok_Begin      =>
                P_Configuration_Body;
@@ -1646,6 +1678,7 @@ package body XE_Parse is
          Str_To_Id ("ada"),
          Starter_Type_Node,
          Not_Unique,
+         Null_Location,
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
@@ -1656,6 +1689,7 @@ package body XE_Parse is
          Str_To_Id ("shell"),
          Starter_Type_Node,
          Not_Unique,
+         Null_Location,
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
@@ -1666,6 +1700,7 @@ package body XE_Parse is
          Str_To_Id ("none"),
          Starter_Type_Node,
          Not_Unique,
+         Null_Location,
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
@@ -1685,6 +1720,7 @@ package body XE_Parse is
          Str_To_Id ("true"),
          Boolean_Type_Node,
          Not_Unique,
+         Null_Location,
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
@@ -1695,6 +1731,7 @@ package body XE_Parse is
          Str_To_Id ("false"),
          Boolean_Type_Node,
          Unique,
+         Null_Location,
          Variable_Node);
       --  To easily retrieve the enumeration literal.
       Set_Variable_Mark (Variable_Node, 0);
@@ -1714,6 +1751,7 @@ package body XE_Parse is
          Str_To_Id ("ada"),
          Convention_Type_Node,
          Not_Unique,
+         Null_Location,
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
@@ -1724,6 +1762,7 @@ package body XE_Parse is
          Str_To_Id ("shell"),
          Convention_Type_Node,
          Not_Unique,
+         Null_Location,
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
@@ -1736,6 +1775,7 @@ package body XE_Parse is
       Declare_Subprogram
         (Pragma_Prefix & Str_To_Id ("starter"),
          True,
+         Null_Location,
          Pragma_Starter_Node);
 
       --  To easily retrieve the enumeration literal.
@@ -1756,6 +1796,7 @@ package body XE_Parse is
       Declare_Subprogram
         (Pragma_Prefix & Str_To_Id ("import"),
          True,
+         Null_Location,
          Pragma_Import_Node);
 
       --  To easily retrieve the enumeration literal.
@@ -1786,6 +1827,7 @@ package body XE_Parse is
       Declare_Subprogram
         (Pragma_Prefix & Str_To_Id ("invocation"),
          True,
+         Null_Location,
          Pragma_Invocation_Node);
 
       --  To easily retrieve the enumeration literal.
@@ -1834,12 +1876,15 @@ package body XE_Parse is
    procedure Declare_Subprogram
      (Subprogram_Name  : in  Name_Id;
       Is_A_Procedure   : in  Boolean;
+      Subprogram_Sloc  : in  Location_Type;
       Subprogram_Node  : out Subprogram_Id) is
       Node : Subprogram_Id;
       Junk : Variable_Id;
    begin
 
-      Has_Not_Been_Already_Declared (Subprogram_Name);
+      Has_Not_Been_Already_Declared
+        (Subprogram_Name,
+         Subprogram_Sloc);
 
       Create_Subprogram         (Node, Subprogram_Name);
       Subprogram_Is_A_Procedure (Node, Is_A_Procedure);
@@ -1856,6 +1901,7 @@ package body XE_Parse is
          Subprogram_Name,
          Ada_Unit_Type_Node,
          Not_Unique,
+         Subprogram_Sloc,
          Junk);
 
       Set_Variable_Value (Junk, Variable_Id (Node));
@@ -1894,7 +1940,7 @@ package body XE_Parse is
       T : Type_Id;
    begin
 
-      Has_Not_Been_Already_Declared (Type_Name);
+      Has_Not_Been_Already_Declared (Type_Name, Get_Token_Location);
       Create_Type         (T, Type_Name);
       Type_Is_A_Structure (T, Structure);
       Set_Type_Mark       (T, Convert (Type_Kind));
@@ -1912,12 +1958,13 @@ package body XE_Parse is
       Variable_Name : in  Name_Id;
       Variable_Type : in  Type_Id;
       Is_Unique     : in  Boolean;
+      Variable_Sloc : in  Location_Type;
       Variable_Node : out Variable_Id) is
       V : Variable_Id;
    begin
 
       if Is_Unique then
-         Has_Not_Been_Already_Declared (Variable_Name);
+         Has_Not_Been_Already_Declared (Variable_Name, Variable_Sloc);
       end if;
       Create_Variable    (V, Variable_Name);
       Append_Declaration (Conf_Node, Node_Id (V));
@@ -2214,7 +2261,8 @@ package body XE_Parse is
    -----------------------------------
 
    procedure Has_Not_Been_Already_Declared
-     (Declaration_Name : in Name_Id) is
+     (Declaration_Name : in Name_Id;
+      Declaration_Sloc : in Location_Type) is
       Node : Node_Id;
    begin
       Search_Declaration (Declaration_Name, Node);
@@ -2225,7 +2273,7 @@ package body XE_Parse is
          Pre_Type_Unknown then
          return;
       end if;
-      Write_Location (Get_Token_Location);
+      Write_Location (Declaration_Sloc);
       Write_Name (Declaration_Name);
       Write_Str (" conflicts with a previous declaration");
       Write_Eol;

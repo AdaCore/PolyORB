@@ -30,9 +30,9 @@ with XE;           use XE;
 package XE_Scan is
 
    type Location_Type is record
-      Line    : Int;
-      Start   : Source_Ptr;
-      Current : Source_Ptr;
+      Line  : Int;
+      First : Source_Ptr;
+      Last  : Source_Ptr;
    end record;
 
    procedure Initialize;
@@ -45,7 +45,7 @@ package XE_Scan is
    --  Find next token and update internal variables.
 
    function  Get_Token_Location return Location_Type;
-   procedure Set_Token_Location (Location : in Location_Type);
+   procedure Set_Token_Location (Where : in Location_Type);
 
    procedure Write_Location (Where : in Location_Type);
    --  Display line and column where the error occured
@@ -54,5 +54,7 @@ package XE_Scan is
 
    Token_Name     : Name_Id;
    Token          : Token_Type;
+
+   Null_Location  : constant Location_Type := (0, 0, 0);
 
 end XE_Scan;

@@ -34,9 +34,9 @@ with XE;            use XE;
 
 package body XE_Scan is
 
-   Token_Location : Location_Type;
-   Buffer         : Source_Buffer_Ptr;
-   Scan_Ptr       : Source_Ptr;
+   Location : Location_Type;
+   Buffer   : Source_Buffer_Ptr;
+   Scan_Ptr : Source_Ptr;
 
    Up_To_Low : constant := Character'Pos ('A') - Character'Pos ('a');
 
@@ -106,10 +106,10 @@ package body XE_Scan is
 
    procedure New_Line is
    begin
-      Scan_Ptr := Scan_Ptr + 1;
-      Token_Location.Line    := Token_Location.Line + 1;
-      Token_Location.Start   := Scan_Ptr;
-      Token_Location.Current := Scan_Ptr;
+      Scan_Ptr       := Scan_Ptr + 1;
+      Location.Line  := Location.Line + 1;
+      Location.First := Scan_Ptr;
+      Location.Last  := Scan_Ptr;
    end New_Line;
 
    ---------------
@@ -129,9 +129,9 @@ package body XE_Scan is
       else
          Scan_Ptr := Buffer.all'First;
       end if;
-      Token_Location.Line    := 1;
-      Token_Location.Start   := Scan_Ptr;
-      Token_Location.Current := Scan_Ptr;
+      Location.Line  := 1;
+      Location.First := Scan_Ptr;
+      Location.Last  := Scan_Ptr;
    end Load_File;
 
    ----------------
@@ -235,7 +235,7 @@ package body XE_Scan is
 
          --  First non-blank character
 
-         Token_Location.Current := Scan_Ptr;
+         Location.Last  := Scan_Ptr;
 
          Found := True;
 
@@ -407,7 +407,7 @@ package body XE_Scan is
 
             T := Get_Token (Token_Name);
             if T = Tok_Reserved then
-               Write_Location (Token_Location);
+               Write_Location (Location);
                Write_Str  ("reserved word """);
                Write_Name (Token_Name);
                Write_Str  (""" cannot be used as identifier");
@@ -421,7 +421,7 @@ package body XE_Scan is
 
       elsif Token = Tok_Unknown then
 
-         Write_Location (Token_Location);
+         Write_Location (Location);
          Write_Str ("character '");
          Write_Char (Buffer (Scan_Ptr));
          Write_Str ("' not allowed (");
@@ -440,18 +440,18 @@ package body XE_Scan is
 
    function Get_Token_Location return Location_Type is
    begin
-      Token_Location.Current := Scan_Ptr;
-      return Token_Location;
+      return Location;
    end Get_Token_Location;
 
    ------------------------
    -- Set_Token_Location --
    ------------------------
 
-   procedure Set_Token_Location (Location : in Location_Type) is
+   procedure Set_Token_Location
+     (Where : in Location_Type) is
    begin
-      Token_Location := Location;
-      Scan_Ptr := Location.Current;
+      Location := Where;
+      Scan_Ptr := Where.Last;
    end Set_Token_Location;
 
    --------------------
@@ -463,14 +463,12 @@ package body XE_Scan is
 
       use Ascii;
 
-      Index : Source_Ptr := Where.Start;
-
    begin
       Write_Name (Configuration_File);
       Write_Str (":");
       Write_Int (Where.Line);
       Write_Str (":");
-      Write_Int (Int (Where.Current - Where.Start) + 1);
+      Write_Int (Int (Where.Last - Where.First) + 1);
       Write_Str (": ");
    end Write_Location;
 
