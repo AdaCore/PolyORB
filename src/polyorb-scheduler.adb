@@ -335,10 +335,14 @@ package body PolyORB.Scheduler is
                   declare
                      use PolyORB.Asynch_Ev;
 
-                     Sel : constant Asynch_Ev_Monitor_Access
-                       := Selector (E.TI.all);
+                     Sel : constant Asynch_Ev_Monitor_Access :=
+                       Selector (E.TI.all);
                   begin
                      pragma Debug (O ("About to abort block"));
+
+                     Blocked_Tasks := Blocked_Tasks - 1;
+                     Unscheduled_Tasks := Unscheduled_Tasks + 1;
+
                      pragma Assert (Sel /= null);
                      Abort_Check_Sources (Sel.all);
                      pragma Debug (O ("Aborted."));
@@ -346,6 +350,9 @@ package body PolyORB.Scheduler is
 
                when Idle =>
                   pragma Debug (O ("Signal requesting task"));
+
+                  Idle_Tasks := Idle_Tasks - 1;
+                  Unscheduled_Tasks := Unscheduled_Tasks + 1;
                   Signal (Condition (E.TI.all));
 
                when Terminated | Unscheduled =>
