@@ -52,9 +52,15 @@ package body Egg.Proxies is
    begin
       Output(True,"Egg.Proxies.Unmarshal_Returned_Values : start") ;
       Corba.Object.Unmarshall(Result, Giop_Client) ;
+      Output(True, "***********INITOK unmarshall 1 : "
+             & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Result.Omniobj.all.Init_Ok))) ;
       Output(True,"Egg.Proxies.Unmarshal_Returned_Values : chicken unmarshalled") ;
       Self.Private_Result := new Chicken.Ref'(Result) ;
+      Output(True, "***********INITOK unmarshall2 : "
+             & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Self.Private_Result.all.Omniobj.all.Init_Ok))) ;
       Chicken.Adjust(Self.Private_Result.all) ;
+      Output(True, "***********INITOK unmarshall3 : "
+             & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Self.Private_Result.all.Omniobj.all.Init_Ok))) ;
       Output(True,"Egg.Proxies.Unmarshal_Returned_Values : Exiting procedure : OK") ;
    end ;
 
