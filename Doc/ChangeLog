@@ -1,3 +1,7 @@
+2003-11-12  Samuel Tardieu  <sam@rfc1149.net>
+
+	* glade_ug.texi: Add proper reference to the GFDL.
+
 2003-01-31  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* glade_ug.texi: Fix spelling mistakes
