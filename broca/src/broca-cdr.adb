@@ -404,7 +404,7 @@ package body Broca.CDR is
             end;
          when Tk_TypeCode =>
             declare
-               T : CORBA.Typecode.Object := From_Any (Data);
+               T : CORBA.TypeCode.Object := From_Any (Data);
             begin
                Marshall (Buffer, T);
             end;
