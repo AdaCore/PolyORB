@@ -1,18 +1,17 @@
-with SPIF_IO;
-use  SPIF_IO;
+with SPIF.IO;
 package body SPIF_RCI is
 
-   procedure Synchronous (M : String; S : out Boolean;) is
+   procedure Synchronous (M : in String; S : out Boolean) is
    begin
-      SPIF_IO.Put_Line ("From server (S) > " & M);
+      SPIF.IO.Put_Line ("From server (S) > " & M);
       S := True;
    exception when others =>
       S := False;
    end Synchronous;
 
-   procedure Asynchronous is 
+   procedure Asynchronous (M : in String) is
    begin
-      SPIF_IO.Put_Line ("From server (A) > " & M);
+      SPIF.IO.Put_Line ("From server (A) > " & M);
    end Asynchronous;
 
 end SPIF_RCI;
