@@ -42,7 +42,7 @@ package System.Partition_Interface is
 
    subtype Unit_Name is String;
    type Unit_Name_Access is access String;
-   --  XXXXX Should be access to Unit_Name (workaround for GNAT 3.09 bug)
+   --  XXXXX Should be access to Unit_Name (workaround for GNAT 3.09 bugs)
    --  Name of RCI unit.
 
    function Get_Local_Partition_ID return RPC.Partition_ID;
