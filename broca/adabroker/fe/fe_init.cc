@@ -85,7 +85,7 @@ trademarks or registered trademarks of Sun Microsystems, Inc.
 #pragma hdrstop
 #endif
 
-#include        <../omniORB2_be/o2be.h>
+/* #include        <../omniORB2_be/o2be.h> */
 /*
  * Create a scoped name
  */
