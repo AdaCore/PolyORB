@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#15 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-expansion.adb#16 $
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -507,16 +507,18 @@ package body Ada_Be.Expansion is
             --  If the current node has named subnodes, reparent
             --  them now.
 
-            declare
-               Dcl_Node : Node_Id;
-            begin
-               while not Is_End (Named_Subnodes) loop
-                  Get_Next_Node (Named_Subnodes, Dcl_Node);
-                  Success := Add_Identifier
-                    (Dcl_Node, Name (Dcl_Node));
-                  pragma Assert (Success);
-               end loop;
-            end;
+            if Has_Named_Subnodes then
+               declare
+                  Dcl_Node : Node_Id;
+               begin
+                  while not Is_End (Named_Subnodes) loop
+                     Get_Next_Node (Named_Subnodes, Dcl_Node);
+                     Success := Add_Identifier
+                       (Dcl_Node, Name (Dcl_Node));
+                     pragma Assert (Success);
+                  end loop;
+               end;
+            end if;
          end;
       end loop;
 
