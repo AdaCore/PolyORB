@@ -435,9 +435,10 @@ statically bound operation, because the compiler can determine the identity
 of the subprogram being called.
 
 Dynamically bound calls are provided through two mechanisms:
-@itemize bullet
-@item
 
+@itemize @bullet
+
+@item
 The dereference of an access_to_subprogram value, i.e. a value whose type is 
 a remote_access_to_subprogram (RAS).
 
@@ -446,6 +447,8 @@ A dispatching call whose controlling argument is
 an access-to-class-wide operand,  (remote access on class wide
 types - RACW). These remote access types can be declared in a RCI
 package as well.
+
+@end itemize
 
 A remote access type (RAS or RACW) can be viewed as a fat pointer, that is 
 to say a structure with a remote address and a local address (like an URL:
