@@ -1,3 +1,8 @@
+1998-09-09  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* VERSION.INFO (glade_version): Change syntax that causes trouble
+	with braindead shell.
+
 1998-09-06  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* VERSION.INFO (glade_version): Now defaults to gnat_version to
