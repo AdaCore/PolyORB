@@ -35,7 +35,7 @@
 
 with Ada.Dynamic_Priorities;
 with Ada.Exceptions;
-pragma Warnings (Off, Exceptions);
+pragma Warnings (Off, Ada.Exceptions);
 with Ada.Unchecked_Deallocation;
 with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;
