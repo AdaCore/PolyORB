@@ -1,8 +1,8 @@
-Announcing the release of PolyORB 1.0a
+Announcing the release of PolyORB 1.0p
 ======================================
 
 Ada Core Technologies and ACT Europe announce the first supported
-release of PolyORB, PolyORB 1.0a (http://libre.act-europe.fr/polyorb).
+release of PolyORB, PolyORB 1.0p (http://libre.act-europe.fr/polyorb).
 
 This contains a CORBA-compliant instantiation of the PolyORB generic
 middleware. It includes:
@@ -121,8 +121,10 @@ development branch, available through CVS access):
       Ada 95 (DSA), MOMA - MOM for Ada. Interaction between CORBA and
       DSA partitions has been successfully tested;
 
-    * protocol personalities: SOAP, GIOP/IIOP (CORBA protocol layer)
-      and MIOP/DIOP
+    * protocol personalities: SOAP, GIOP (CORBA generic protocol
+      layer) and the folowing instanciations: IIOP (over TCP/IP), DIOP
+      (over UDP/IP for oneway requests), and MIOP/UIPMC (group
+      communication over multicast/IP)
 
     * under development: Web Services personality, an adaptation of
       the AWS API to PolyORB.
