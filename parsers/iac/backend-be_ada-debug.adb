@@ -99,7 +99,7 @@ package body Backend.BE_Ada.Debug is
    -----------------
 
    procedure W_Full_Tree is
-      N : Node_Id := FEN.BE_Node (Scopes.IDL_Spec);
+      N : Node_Id := FEN.Stub_Node (FEN.BE_Node (Scopes.IDL_Spec));
    begin
       N_Indents := 0;
       while Present (N) loop

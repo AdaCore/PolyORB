@@ -5,12 +5,16 @@ with Locations; use Locations;
 with Namet;     use Namet;
 with Utils;     use Utils;
 
-with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
 with Frontend.Nodes;
+with Frontend.Nutils;
+
+with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
+
 
 package body Backend.BE_Ada.Nutils is
 
    package FEN renames Frontend.Nodes;
+   package FEU renames Frontend.Nutils;
    package BEN renames Backend.BE_Ada.Nodes;
 
    type Entity_Stack_Entry is record
@@ -278,10 +282,7 @@ package body Backend.BE_Ada.Nutils is
          Capitalize (Name_Buffer (1 .. Name_Len));
          VN (V) := Name_Find;
       end loop;
-
-
    end Initialize;
-
 
    --------------
    -- Is_Empty --
@@ -799,7 +800,7 @@ package body Backend.BE_Ada.Nutils is
      return Node_Id
    is
       N : Node_Id;
-
+      B : Node_Id;
    begin
       Entries.Increment_Last;
       N := Entries.Last;
@@ -807,7 +808,12 @@ package body Backend.BE_Ada.Nutils is
       Set_Kind (N, Kind);
       if Present (From) then
          BEN.Set_FE_Node (N, From);
-         FEN.Set_BE_Node (From, N);
+         B := FEN.BE_Node (From);
+         if No (B) then
+            B := FEU.New_Node (FEN.K_BE_CORBA, No_Location);
+         end if;
+         FEN.Set_Stub_Node (B, N);
+         FEN.Set_BE_Node (From, B);
          Set_Loc  (N, FEN.Loc (From));
       else
          Set_Loc  (N, No_Location);

@@ -22,8 +22,7 @@ package body Backend.BE_Ada.Helpers is
       function To_Any_Spec
         (E : Node_Id)
         return Node_Id;
-      --  return an any conversions functions for a given type
-      --  (T) node in the helper package.
+      --  return an any conversions functions for a given type (E).
       function Narrowing_Ref_Spec
         (E : Node_Id)
         return Node_Id;
@@ -31,8 +30,7 @@ package body Backend.BE_Ada.Helpers is
       function TypeCode_Spec
         (E : Node_Id)
         return Node_Id;
-      --  return a TypeCode constant for a given type (T) node in the Helper
-      --  package.
+      --  return a TypeCode constant for a given type (E).
       function Widening_Ref_Spec
         (E : Node_Id)
         return Node_Id;
@@ -66,7 +64,7 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_From_Any)),
             Profile,
-            Expand_Designator (BE_Node (Identifier (E))));
+            Expand_Designator (Stub_Node (BE_Node (Identifier (E)))));
          return N;
       end From_Any_Spec;
 
@@ -83,7 +81,7 @@ package body Backend.BE_Ada.Helpers is
          N         : Node_Id;
       begin
          N := Subtype_Indication
-           (Type_Definition (BE_Node (Identifier (E))));
+           (Type_Definition (Stub_Node (BE_Node (Identifier (E)))));
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_The_Ref)),
@@ -93,7 +91,7 @@ package body Backend.BE_Ada.Helpers is
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_Unchecked_To_Ref)),
             Profile, Expand_Designator
-            (BE_Node (Identifier (E))));
+            (Stub_Node (BE_Node (Identifier (E)))));
          return N;
       end Narrowing_Ref_Spec;
 
@@ -112,7 +110,7 @@ package body Backend.BE_Ada.Helpers is
          Profile  := New_List (K_Parameter_Profile);
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Item)),
-            Expand_Designator (BE_Node (Identifier (E))));
+            Expand_Designator (Stub_Node (BE_Node (Identifier (E)))));
          Append_Node_To_List (Parameter, Profile);
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Any)),
@@ -136,17 +134,17 @@ package body Backend.BE_Ada.Helpers is
       begin
          case FEN.Kind (E) is
             when K_Enumeration_Type =>
-               N := BE_Node (Identifier (E));
+               N := Stub_Node (BE_Node (Identifier (E)));
                P := RE (RE_TC_Enum);
 
             when K_Interface_Declaration =>
                N := Package_Declaration
-                 (BEN.Parent (BE_Node (Identifier (E))));
+                 (BEN.Parent (Stub_Node (BE_Node (Identifier (E)))));
                P := RE (RE_TC_Object);
 
             when  K_Complex_Declarator | K_Simple_Declarator =>
 
-               N := BE_Node (Identifier (E));
+               N := Stub_Node (BE_Node (Identifier (E)));
                T := Type_Spec
                  (Declaration (E));
                if Is_Base_Type (T) then
@@ -157,7 +155,7 @@ package body Backend.BE_Ada.Helpers is
                end if;
 
             when K_Structure_Type =>
-               N := BE_Node (Identifier (E));
+               N := Stub_Node (BE_Node (Identifier (E)));
                P := RE (RE_TC_Struct);
 
             when K_Union_Type =>
@@ -237,7 +235,7 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         N := BEN.Parent (BE_Node (Identifier (E)));
+         N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
          Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
          Set_Helper_Spec;
 
@@ -267,7 +265,7 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Module (E : Node_Id) is
          D : Node_Id;
       begin
-         Push_Entity (BE_Node (Identifier (E)));
+         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
          D := First_Entity (Definitions (E));
          while Present (D) loop
             Visit (D);
@@ -283,7 +281,7 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Specification (E : Node_Id) is
          Definition : Node_Id;
       begin
-         Push_Entity (BE_Node (Identifier (E)));
+         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
          Definition := First_Entity (Definitions (E));
          while Present (Definition) loop
             Visit (Definition);
@@ -358,7 +356,7 @@ package body Backend.BE_Ada.Helpers is
          Parameter := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Self)),
             Expand_Designator
-            (BE_Node (Identifier (E))));
+            (Stub_Node (BE_Node (Identifier (E)))));
          Append_Node_To_List (Parameter, Profile);
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_To_Ref)), Profile, RE (RE_Any));
@@ -375,8 +373,8 @@ package body Backend.BE_Ada.Helpers is
       function To_Any_Body
         (E : Node_Id)
         return Node_Id;
-      --  return an any conversions functions for a given type
-      --  (T) node in the helper package.
+      --  returns an any conversions functions for a given type
+      --  (E) node.
       function Narrowing_Ref_Body
         (E : Node_Id)
         return Node_Id;
@@ -384,7 +382,7 @@ package body Backend.BE_Ada.Helpers is
       function TypeCode_Body
         (E : Node_Id)
         return Node_Id;
-      --  return a TypeCode constant for a given type (T) node in the Helper
+      --  return a TypeCode constant for a given type (E) node in the Helper
       --  package.
       function Widening_Ref_Body
         (E : Node_Id)

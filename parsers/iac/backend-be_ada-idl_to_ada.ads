@@ -2,17 +2,9 @@ with Types; use Types;
 
 package Backend.BE_Ada.IDL_To_Ada is
 
-   procedure Bind_FE_To_BE
+   procedure Bind_FE_To_Stub
      (F : Node_Id;
       B : Node_Id);
-
-   procedure Link_FE_To_BE
-     (F : Node_Id;
-      B : Node_Id);
-
-   procedure Link_BE_To_FE
-     (B : Node_Id;
-      F : Node_Id);
 
    function Is_Base_Type
      (N : Node_Id)

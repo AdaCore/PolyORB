@@ -69,9 +69,9 @@ package body Backend.BE_Ada is
       end if;
 
       if Print_Ada_Tree then
-         W_Node_Id (BE_Node (Identifier (E)));
+         W_Node_Id (Stub_Node (BE_Node (Identifier (E))));
       else
-         Generator.Generate (BE_Node (Identifier (E)));
+         Generator.Generate (Stub_Node (BE_Node (Identifier (E))));
       end if;
    end Generate;
 

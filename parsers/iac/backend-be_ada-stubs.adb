@@ -174,7 +174,7 @@ package body Backend.BE_Ada.Stubs is
            (Map_Defining_Identifier (E),
             Make_Enumeration_Type_Definition (Enum_Literals));
 
-         Bind_FE_To_BE  (Identifier (E), Enum_Type_Decl);
+         Bind_FE_To_Stub  (Identifier (E), Enum_Type_Decl);
          Append_Node_To_List
            (Enum_Type_Decl,
             Visible_Part (Current_Package));
@@ -260,7 +260,7 @@ package body Backend.BE_Ada.Stubs is
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
            (Map_Repository_Declaration (E), Visible_Part (Current_Package));
-         Bind_FE_To_BE (Identifier (E), N);
+         Bind_FE_To_Stub (Identifier (E), N);
          N := First_Entity (Interface_Body (E));
 
          while Present (N) loop
@@ -323,9 +323,9 @@ package body Backend.BE_Ada.Stubs is
          while Present (IDL_Param) loop
             Type_Designator := Map_Designator
               (Type_Spec (IDL_Param));
-            Link_BE_To_FE
-              (Defining_Identifier (Type_Designator),
-               Type_Spec (IDL_Param));
+            --  Link_BE_To_FE
+            --  (Defining_Identifier (Type_Designator),
+            --   Type_Spec (IDL_Param));
             Ada_Param := Make_Parameter_Specification
               (Map_Defining_Identifier (Declarator (IDL_Param)),
                Type_Designator,
@@ -358,9 +358,9 @@ package body Backend.BE_Ada.Stubs is
                Append_Node_To_List (Ada_Param, Profile);
             end if;
          end if;
-         Link_BE_To_FE
-           (Defining_Identifier (Type_Designator),
-            Type_Spec (E));
+         --  Link_BE_To_FE
+         --  (Defining_Identifier (Type_Designator),
+         --   Type_Spec (E));
 
          --  Add subprogram to main specification
 
@@ -368,7 +368,7 @@ package body Backend.BE_Ada.Stubs is
          Subp_Spec := Make_Subprogram_Specification
            (Map_Defining_Identifier (E), Profile, Returns);
          Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
-         Link_BE_To_FE (Subp_Spec, E);
+         --  Link_BE_To_FE (Subp_Spec, E);
 
          --  Add subprogram to main implementation
 
@@ -411,7 +411,7 @@ package body Backend.BE_Ada.Stubs is
             Make_Record_Type_Definition
             (Make_Record_Definition
              (Map_Members_Definition (Members (E)))));
-         Bind_FE_To_BE (Identifier (E), N);
+         Bind_FE_To_Stub (Identifier (E), N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List
@@ -444,7 +444,7 @@ package body Backend.BE_Ada.Stubs is
                   (Subtype_Indication    => T,
                    Record_Extension_Part => No_Node));
             end if;
-            Bind_FE_To_BE (Identifier (D), N);
+            Bind_FE_To_Stub (Identifier (D), N);
             Append_Node_To_List
               (N, Visible_Part (Current_Package));
             Append_Node_To_List
@@ -479,7 +479,7 @@ package body Backend.BE_Ada.Stubs is
             Make_Component_Declaration
             (Make_Defining_Identifier (CN (C_Switch)), T,
              Make_Type_Attribute (T, A_First)));
-         Link_BE_To_FE (E, N);
+         --  Link_BE_To_FE (E, N);
          Append_Node_To_List
            (N, Visible_Part (Current_Package));
          Append_Node_To_List

@@ -1,8 +1,10 @@
 with Namet;     use Namet;
+with Locations;  use Locations;
 with Types;     use Types;
 with Values;    use Values;
 
 with Frontend.Nodes;            use Frontend.Nodes;
+with Frontend.Nutils;
 
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
@@ -13,24 +15,31 @@ package body Backend.BE_Ada.IDL_To_Ada is
    Setter : constant Character := 'S';
 
    package FEN renames Frontend.Nodes;
+   package FEU renames Frontend.Nutils;
    package BEN renames Backend.BE_Ada.Nodes;
 
    function Convert
      (K : FEN.Node_Kind)
      return RE_Id;
 
-   -------------------
-   -- Bind_FE_To_BE --
-   -------------------
+   ---------------------
+   -- Bind_FE_To_Stub --
+   ---------------------
 
-   procedure Bind_FE_To_BE
+   procedure Bind_FE_To_Stub
      (F : Node_Id;
       B : Node_Id)
    is
+      N : Node_Id;
    begin
-      FEN.Set_BE_Node (F, B);
+      N := BE_Node (F);
+      if No (N) then
+         N := FEU.New_Node (FEN.K_BE_CORBA, No_Location);
+      end if;
+      FEN.Set_Stub_Node (N, B);
+      FEN.Set_BE_Node (F, N);
       BEN.Set_FE_Node (B, F);
-   end Bind_FE_To_BE;
+   end Bind_FE_To_Stub;
 
    -------------
    -- Convert --
@@ -74,34 +83,6 @@ package body Backend.BE_Ada.IDL_To_Ada is
       end if;
    end Is_Base_Type;
 
-   -------------------
-   -- Link_BE_To_FE --
-   -------------------
-
-   procedure Link_BE_To_FE
-     (B : Node_Id;
-      F : Node_Id)
-   is
-   begin
-      if Present (F) then
-         BEN.Set_FE_Node (F, B);
-      end if;
-   end Link_BE_To_FE;
-
-   -------------------
-   -- Link_FE_To_BE --
-   -------------------
-
-   procedure Link_FE_To_BE
-     (F : Node_Id;
-      B : Node_Id)
-   is
-   begin
-      if Present (B) then
-         FEN.Set_BE_Node (B, F);
-      end if;
-   end Link_FE_To_BE;
-
    ------------------------------
    -- Map_Accessor_Declaration --
    ------------------------------
@@ -128,9 +109,9 @@ package body Backend.BE_Ada.IDL_To_Ada is
       Param_Type := Map_Designator
         (Type_Spec (Declaration (Attribute)));
 
-      Link_BE_To_FE
-        (Defining_Identifier (Param_Type),
-         Type_Spec (Declaration (Attribute)));
+      --  Link_BE_To_FE
+      --  (Defining_Identifier (Param_Type),
+      --   Type_Spec (Declaration (Attribute)));
 
       --  For the setter subprogram, add the second parameter To.
 

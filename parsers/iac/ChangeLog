@@ -1,3 +1,10 @@
+2004-07-20  Saber Souli  <souli@neraka.enst.fr>
+
+	* frontend-nodes.idl: Add BE_CORBA node, which contain four nodes
+	: Stub_Node point to the stub, Helper_Node point to the helper,
+	Skel_Node to the Skeleton and finally Impl_node point to the
+	implementation node.   
+
 2004-07-19  Saber Souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-helpers.adb: Reflecting changes to helper
