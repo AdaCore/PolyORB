@@ -75,7 +75,8 @@ private
 
    function Init return Object'Class;
    pragma CPP_Constructor (Init);
-   pragma Import (CPP,Init,"__3Boa");
+   pragma Import (CPP,Init,"__Q25CORBA3BOA");
    -- wrapped around the C constructor of BOA
 
 end Corba.Boa ;
+

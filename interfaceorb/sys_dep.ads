@@ -20,16 +20,15 @@ with Interfaces.C ;
 
 package Sys_Dep is
 
-   subtype C_Boolean is Interfaces.C.int ;
+   subtype C_Boolean is Interfaces.C.Unsigned_char ;
    C_True : C_Boolean := 1 ;
    C_False : C_Boolean := 0 ;
    --    Definition of C_Boolean, the Ada equivalent of the C++
    -- bool type. Needed to interface C functions in Ada
-   --    It is supposed here that the system variable HAS_Cplusplus_Bool
-   -- exists. Otherwise, this file does not compile and raise an error.
-   --    The C_Boolean type seems to be useless since it is the same as
-   -- Interfaces.Cpp.Bool but you can change it if HAS_Cplusplus_Bool
-   -- does not exist without any problem in the rest of the code.
+   --    It is supposed here that the C internal representation of type
+   -- boolean need one Byte. If it is not the case, an error will occur
+   -- when compiling and executing Ada_sys_Dep.cc and you will never come
+   -- to this file.
 
    function Boolean_C_To_Ada (C_Bool : C_Boolean) return Boolean;
    function Boolean_Ada_To_C (Bool : Boolean) return C_Boolean;
