@@ -19,7 +19,7 @@
 --  Main subprogram for the CIAO generation tool.
 --  Some code is taken from display-source, gnatstub and gnatelim.
 
---  $Id: //droopi/main/compilers/ciao/ciao-driver.adb#6 $
+--  $Id: //droopi/main/compilers/ciao/ciao-driver.adb#7 $
 
 with Ada.Command_Line;           use Ada.Command_Line;
 with Ada.Exceptions;             use Ada.Exceptions;
@@ -48,6 +48,7 @@ with Idl_Fe.Display_Tree;
 
 with Ada_Be.Expansion;
 with Ada_Be.Idl2Ada;
+with Ada_Be.Mappings.DSA;
 
 procedure CIAO.Driver is
 
@@ -538,8 +539,6 @@ begin  --  CIAO.Driver's body.
    Translate (Library_Unit, IDL_Tree);
    --  Translate service specification to IDL syntax tree.
 
-   Put_Line ("Successfully translated.");
-
 --    IDL.Generate (IDL_Tree, IDL_File);
 --    --  Produce IDL_Source_File.
 
@@ -557,9 +556,10 @@ begin  --  CIAO.Driver's body.
 
    if Generate then
       Ada_Be.Idl2Ada.Generate
-        (IDL_Tree,
-         Implement => False,
-         To_Stdout => True);
+        (Use_Mapping => Ada_Be.Mappings.DSA.The_DSA_Mapping,
+         Node        => IDL_Tree,
+         Implement   => False,
+         To_Stdout   => True);
    end if;
 
    Clean;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                A D A _ B E . M A P P I N G S . C O R B A                 --
+--                  A D A _ B E . M A P P I N G S . D S A                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -24,9 +24,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The CORBA personality IDL mapping.
+--  The DSA personality IDL mapping.
 
 --  $Id$
+
+with Ada.Characters.Handling; use Ada.Characters.Handling;
+
+with Asis.Elements; use Asis.Elements;
+with Asis.Compilation_Units; use Asis.Compilation_Units;
 
 with Errors; use Errors;
 
@@ -35,12 +40,14 @@ with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 with Ada_Be.Identifiers; use Ada_Be.Identifiers;
 with Ada_Be.Idl2Ada; use Ada_Be.Idl2Ada;
 
-package body Ada_Be.Mappings.CORBA is
+with CIAO.Translator.State; use CIAO.Translator.State;
+
+package body Ada_Be.Mappings.DSA is
 
    use Idl_Fe.Types;
 
    function Library_Unit_Name
-     (Self : access CORBA_Mapping_Type;
+     (Self : access DSA_Mapping_Type;
       Node : Node_Id)
      return String
    is
@@ -52,7 +59,17 @@ package body Ada_Be.Mappings.CORBA is
            K_Module       |
            K_ValueType    |
            K_Ben_Idl_File =>
-            return Ada_Full_Name (Node);
+            declare
+               E : constant Asis.Element := Get_Origin (Node);
+            begin
+               if not Is_Nil (E) then
+                  return To_String
+                    (Unit_Full_Name
+                     (Enclosing_Compilation_Unit (E)));
+               else
+                  return "Standard";
+               end if;
+            end;
 
          when
            K_Enum              |
@@ -84,13 +101,17 @@ package body Ada_Be.Mappings.CORBA is
            K_Double             |
            K_Long_Double        |
            K_String             |
-           K_Wide_String        |
-           K_Octet              |
-           K_Any                =>
-            return "CORBA";
+           K_Wide_String        =>
+            return "Standard";
+
+         when K_Octet =>
+            return "Ada.Streams";
+
+         when K_Any =>
+            return "PolyORB.Any";
 
          when K_Object =>
-            return "CORBA.Object";
+            return "DSA.Object";
 
          when others =>
             Error
@@ -102,7 +123,7 @@ package body Ada_Be.Mappings.CORBA is
    end Library_Unit_Name;
 
    procedure Map_Type_Name
-     (Self : access CORBA_Mapping_Type;
+     (Self : access DSA_Mapping_Type;
       Node : Node_Id;
       Unit : out ASU.Unbounded_String;
       Typ  : out ASU.Unbounded_String)
@@ -139,55 +160,61 @@ package body Ada_Be.Mappings.CORBA is
             Map_Type_Name (Self, Value (Node), Unit, Typ);
 
          when K_Short =>
-            Typ := +"CORBA.Short";
+            Typ := +"Integer";
+            --  XXX What if a subtype thereof was meant?
 
          when K_Long =>
-            Typ := +"CORBA.Long";
+            Typ := +"Integer";
+            --  XXX ditto
 
          when K_Long_Long =>
-            Typ := +"CORBA.Long_Long";
+            Typ := +"Integer";
+            --  XXX ditto
 
          when K_Unsigned_Short =>
-            Typ := +"CORBA.Unsigned_Short";
+            Typ := +"Natural";
+            --  XXX ditto
 
          when K_Unsigned_Long =>
-            Typ := +"CORBA.Unsigned_Long";
+            Typ := +"Natural";
+            --  XXX ditto
 
          when K_Unsigned_Long_Long =>
-            Typ := +"CORBA.Unsigned_Long_Long";
+            Typ := +"Natural";
+            --  XXX ditto
 
          when K_Char =>
-            Typ := +"CORBA.Char";
+            Typ := +"Character";
 
          when K_Wide_Char =>
-            Typ := +"CORBA.Wide_Char";
+            Typ := +"Wide_Character";
 
          when K_Boolean =>
-            Typ := +"CORBA.Boolean";
+            Typ := +"Boolean";
 
          when K_Float =>
-            Typ := +"CORBA.Float";
+            Typ := +"Float";
 
          when K_Double =>
-            Typ := +"CORBA.Double";
+            Typ := +"Float";
 
          when K_Long_Double =>
-            Typ := +"CORBA.Long_Double";
+            Typ := +"Float";
 
          when K_String =>
-            Typ := +"CORBA.String";
+            Typ := +"String";
 
          when K_Wide_String =>
-            Typ := +"CORBA.Wide_String";
+            Typ := +"Wide_String";
 
          when K_Octet =>
-            Typ := +"CORBA.Octet";
+            Typ := +"Ada.Streams.Stream_Element";
 
          when K_Object =>
-            Typ := +"CORBA.Object.Ref";
+            Typ := +"DSA.Object.Ref";
 
          when K_Any =>
-            Typ := +"CORBA.Any";
+            Typ := +"PolyORB.Any.Any";
 
          when others =>
             --  Improper use: node N is not
@@ -204,4 +231,4 @@ package body Ada_Be.Mappings.CORBA is
       end case;
    end Map_Type_Name;
 
-end Ada_Be.Mappings.CORBA;
+end Ada_Be.Mappings.DSA;

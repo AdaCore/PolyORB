@@ -584,7 +584,7 @@ package body Ada_Be.Idl2Ada.Skel is
                   PL (CU, Impl_Name & "."
                       & Ada_Operation_Name (Node));
                   Put (CU, "  (" & Impl_Name
-                       & " .Object'Class (Self.all)'Access");
+                       & ".Object'Class (Self.all)'Access");
                end;
 
                declare

@@ -26,13 +26,15 @@
 
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
+with Ada_Be.Mappings;
 
 package Ada_Be.Idl2Ada is
 
    procedure Generate
-     (Node      : in Node_Id;
-      Implement : Boolean := False;
-      To_Stdout : Boolean := False);
+     (Use_Mapping :    Ada_Be.Mappings.Mapping_Type'Class;
+      Node        : in Node_Id;
+      Implement   :    Boolean                            := False;
+      To_Stdout   :    Boolean                            := False);
    --  Generate the Ada mapping of the IDL tree
    --  rooted at Node.
    --  If Implement is true, produce only a template

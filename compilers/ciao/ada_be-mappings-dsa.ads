@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                      A D A _ B E . M A P P I N G S                       --
+--                  A D A _ B E . M A P P I N G S . D S A                   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -24,52 +24,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The abstract interface for all personality mappings of distributed
---  object service descriptions (i.e. IDL trees).
+--  The DSA personality IDL mapping.
 
 --  $Id$
 
-with Ada.Strings.Unbounded;
-with Idl_Fe.Types;
+package Ada_Be.Mappings.DSA is
 
-package Ada_Be.Mappings is
+   pragma Elaborate_Body;
 
-   package ASU renames Ada.Strings.Unbounded;
-
-   function "+" (S : String)
-     return ASU.Unbounded_String
-     renames ASU.To_Unbounded_String;
-
-   function "-" (US : ASU.Unbounded_String)
-     return String
-     renames ASU.To_String;
-
-   type Mapping_Type is abstract tagged private;
-   --  The root type for all personality mappings. Each
-   --  mapping must provide a concrete derivation of Mapping_Type
-   --  that implements the following operations.
+   type DSA_Mapping_Type is new Mapping_Type with private;
 
    function Library_Unit_Name
-     (Self : access Mapping_Type;
+     (Self : access DSA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
-     return String
-      is abstract;
-   --  Return the name of the library unit that contains the
-   --  entity mapping Node.
+     return String;
 
    procedure Map_Type_Name
-     (Self : access Mapping_Type;
+     (Self : access DSA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id;
       Unit : out ASU.Unbounded_String;
-      Typ  : out ASU.Unbounded_String)
-      is abstract;
-   --  Given a Node that denotes a type, provide a library
-   --  unit name (Unit) and a complete entity name (Typ) that
-   --  resolves to denote a type declaration within Unit
-   --  which declares the type that maps Node.
+      Typ  : out ASU.Unbounded_String);
+
+   The_DSA_Mapping : constant DSA_Mapping_Type;
 
 private
 
-   type Mapping_Type is abstract tagged null record;
+   type DSA_Mapping_Type is new Mapping_Type with null record;
 
-end Ada_Be.Mappings;
+   The_DSA_Mapping : constant DSA_Mapping_Type
+     := (Mapping_Type with null record);
+
+end Ada_Be.Mappings.DSA;

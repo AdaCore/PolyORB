@@ -31,7 +31,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#17 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#18 $
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
@@ -56,7 +56,6 @@ with Ada_Be.Idl2Ada.Value_Skel;
 with Ada_Be.Idl2Ada.Skel;
 
 with Ada_Be.Mappings; use Ada_Be.Mappings;
-with Ada_Be.Mappings.CORBA; use Ada_Be.Mappings.CORBA;
 
 with Errors;                use Errors;
 with Utils;                 use Utils;
@@ -71,7 +70,8 @@ package body Ada_Be.Idl2Ada is
    function Skeleton return Skel.Skel_Kind renames Skel.Skeleton;
    function Delegate return Skel.Skel_Kind renames Skel.Delegate;
 
-   Mapping : Ada_Be.Mappings.CORBA.CORBA_Mapping_Type;
+   type Mapping_Access is access Ada_Be.Mappings.Mapping_Type'Class;
+   Mapping : Mapping_Access;
 
    -------------------------------------------------
    -- General purpose code generation subprograms --
@@ -123,11 +123,12 @@ package body Ada_Be.Idl2Ada is
    --  Generate code for Repository_Id and Is_A
    --  object reference operation.
 
-   procedure Gen_Object_Reference_Declaration
+   procedure Gen_Client_Stub_Type_Declaration
      (CU        : in out Compilation_Unit;
       Node      : Node_Id);
-   --  Generate the declaration of a reference type
-   --  for an interface or valuetype.
+   --  Generate the declaration of a client stub type
+   --  for an interface or valuetype (in the standard
+   --  IDL -> Ada mapping, this is the Ref type.)
 
    procedure Gen_Object_Servant_Declaration
      (CU        : in out Compilation_Unit;
@@ -178,15 +179,18 @@ package body Ada_Be.Idl2Ada is
    ----------------------------------------------
 
    procedure Generate
-     (Node : in Node_Id;
-      Implement : Boolean := False;
-      To_Stdout : Boolean := False)
+     (Use_Mapping :    Ada_Be.Mappings.Mapping_Type'Class;
+      Node        : in Node_Id;
+      Implement   :    Boolean                            := False;
+      To_Stdout   :    Boolean                            := False)
    is
       S_Node : Node_Id;
       It : Node_Iterator;
    begin
       pragma Assert (Is_Repository (Node));
 
+      Mapping := new Mappings.Mapping_Type'Class'
+        (Use_Mapping);
       Init (It, Contents (Node));
       while not Is_End (It) loop
          Get_Next_Node (It, S_Node);
@@ -277,7 +281,7 @@ package body Ada_Be.Idl2Ada is
 
       --  ValueType reference type
 
-      Gen_Object_Reference_Declaration
+      Gen_Client_Stub_Type_Declaration
         (Stubs_Spec, Node);
       Gen_Repository_Id (Node, Stubs_Spec);
 
@@ -692,7 +696,7 @@ package body Ada_Be.Idl2Ada is
 
             --  Object reference type
 
-            Gen_Object_Reference_Declaration
+            Gen_Client_Stub_Type_Declaration
               (Stubs_Spec, Node);
 
             if not Abst (Node) then
@@ -1060,15 +1064,16 @@ package body Ada_Be.Idl2Ada is
    end Gen_Local_Is_A;
 
    --------------------------------------
-   -- Gen_Object_Reference_Declaration --
+   -- Gen_Client_Stub_Type_Declaration --
    --------------------------------------
 
-   procedure Gen_Object_Reference_Declaration
+   procedure Gen_Client_Stub_Type_Declaration
      (CU        : in out Compilation_Unit;
       Node      : Node_Id)
    is
       Primary_Parent : Node_Id
         := Idl_Fe.Tree.Synthetic.Primary_Parent (Node);
+      Unit, Typ : ASU.Unbounded_String;
    begin
       pragma Assert (False
          or else Kind (Node) = K_Interface
@@ -1115,8 +1120,9 @@ package body Ada_Be.Idl2Ada is
          end case;
 
       else
-         Add_With (CU, Ada_Full_Name (Primary_Parent));
-         Put (CU, Ada_Type_Name (Primary_Parent));
+         Map_Type_Name (Mapping, Primary_Parent, Unit, Typ);
+         Add_With (CU, -Unit);
+         Put (CU, -Typ);
       end if;
 
       PL (CU, " with null record;");
@@ -1125,8 +1131,7 @@ package body Ada_Be.Idl2Ada is
       --  a generic actual parameter to instanciate
       --  CORBA.Forward.
 
-   end Gen_Object_Reference_Declaration;
-
+   end Gen_Client_Stub_Type_Declaration;
 
    ---------------------------------------
    --  Gen_Convert_Forward_Declaration  --
@@ -1578,15 +1583,18 @@ package body Ada_Be.Idl2Ada is
                  := Sequence (Node);
                B_Node : constant Node_Id
                  := Bound (S_Node);
+               Unit, Typ : ASU.Unbounded_String;
             begin
-               Add_With_Entity (CU, Sequence_Type (S_Node));
+               Map_Type_Name (Mapping, Sequence_Type (S_Node),
+                              Unit, Typ);
+               Add_With (CU, -Unit);
                if B_Node /= No_Node then
                   Add_With (CU, "Sequences.Bounded",
                             Use_It => False,
                             Elab_Control => Elaborate_All);
                   PL (CU, "  new Sequences.Bounded");
                   PL (CU, "    ("
-                      & Ada_Type_Name (Sequence_Type (S_Node))
+                      & (-Typ)
                       & ", " & Img (Integer_Value (B_Node))
                       & ");");
                else
@@ -1595,7 +1603,7 @@ package body Ada_Be.Idl2Ada is
                             Elab_Control => Elaborate_All);
                   PL (CU, "  new Sequences.Unbounded");
                   PL (CU, "    ("
-                      & Ada_Type_Name (Sequence_Type (S_Node))
+                      & (-Typ)
                       & ");");
                end if;
             end;
@@ -2179,7 +2187,7 @@ package body Ada_Be.Idl2Ada is
             --  Formals
 
             NL (CU);
-            if not Is_Implicit_Self (Node) then
+            if not Is_Explicit_Self (Node) then
                Put (CU, "  (Self : " & Object_Type);
                II (CU);
                First := False;
@@ -2216,12 +2224,13 @@ package body Ada_Be.Idl2Ada is
             declare
                O_Type : constant Node_Id
                  := Operation_Type (Node);
+               Unit, Typ : ASU.Unbounded_String;
             begin
                if Kind (O_Type) /= K_Void then
                   NL (CU);
-                  Add_With_Entity (CU, O_Type);
-                  Put (CU, "  return "
-                       & Ada_Type_Name (O_Type));
+                  Map_Type_Name (Mapping, O_Type, Unit, Typ);
+                  Add_With (CU, -Unit);
+                  Put (CU, "  return " & (-Typ));
 
                   --  FIXME:
                   --  This is disabled for now because
@@ -2266,10 +2275,11 @@ package body Ada_Be.Idl2Ada is
             declare
                T_Node : constant Node_Id
                  := Param_Type (Node);
+               Unit, Typ : ASU.Unbounded_String;
             begin
-               Add_With_Entity (CU, T_Node);
-
-               Put (CU, Ada_Type_Name (T_Node));
+               Map_Type_Name (Mapping, T_Node, Unit, Typ);
+               Add_With (CU, -Unit);
+               Put (CU, -Typ);
 
                --  FIXME:
                --  Code disabled, see above.
@@ -2317,10 +2327,6 @@ package body Ada_Be.Idl2Ada is
                      Put (CU, Ada_Full_Name (Node));
 
                   when others =>
-
---                      Add_With_Entity (CU, Node);
---                      Put (CU, Ada_Type_Name (Node));
-
                      Map_Type_Name (Mapping, Node, Unit, Typ);
                      Add_With (CU, -Unit);
                      Put (CU, -Typ);
@@ -2350,16 +2356,9 @@ package body Ada_Be.Idl2Ada is
            K_Octet              |
            K_Object             |
            K_Any                =>
---             Add_With (CU, "CORBA");
---             Put (CU, Ada_Type_Name (Node));
-
             Map_Type_Name (Mapping, Node, Unit, Typ);
             Add_With (CU, -Unit);
             Put (CU, -Typ);
-
---          when K_Object =>
---             Add_With (CU, "CORBA.Object");
---             Put (CU, Ada_Type_Name (Node));
 
          when K_Enumerator =>
             Put (CU, Ada_Name (Node));
@@ -2464,100 +2463,10 @@ package body Ada_Be.Idl2Ada is
      (Node : Node_Id)
      return String
    is
-      NK : constant Node_Kind
-        := Kind (Node);
+      Unit, Typ : ASU.Unbounded_String;
    begin
-
-      case NK is
-         when
-           K_Interface         |
-           K_Forward_Interface |
-           K_ValueType         |
-           K_Forward_ValueType =>
-            return Ada_Full_Name (Node) & "." & Ada_Type_Defining_Name (Node);
-
-         when K_Sequence_Instance =>
-            return Ada_Full_Name (Node) & ".Sequence";
-
-         when K_String_Instance =>
-            return Ada_Full_Name (Node) & ".Bounded_String";
-
-         when
-           K_Enum       |
-           K_Union      |
-           K_Struct     |
-           K_Exception  |
-           K_Boxed_ValueType |
-           K_Declarator =>
-            return Ada_Full_Name (Node);
-
-         when K_Scoped_Name =>
-            return Ada_Type_Name (Value (Node));
-
-         when K_Short =>
-            return "CORBA.Short";
-
-         when K_Long =>
-            return "CORBA.Long";
-
-         when K_Long_Long =>
-            return "CORBA.Long_Long";
-
-         when K_Unsigned_Short =>
-            return "CORBA.Unsigned_Short";
-
-         when K_Unsigned_Long =>
-            return "CORBA.Unsigned_Long";
-
-         when K_Unsigned_Long_Long =>
-            return "CORBA.Unsigned_Long_Long";
-
-         when K_Char =>
-            return "CORBA.Char";
-
-         when K_Wide_Char =>
-            return "CORBA.Wide_Char";
-
-         when K_Boolean =>
-            return "CORBA.Boolean";
-
-         when K_Float =>
-            return "CORBA.Float";
-
-         when K_Double =>
-            return "CORBA.Double";
-
-         when K_Long_Double =>
-            return "CORBA.Long_Double";
-
-         when K_String =>
-            return "CORBA.String";
-
-         when K_Wide_String =>
-            return "CORBA.Wide_String";
-
-         when K_Octet =>
-            return "CORBA.Octet";
-
-         when K_Object =>
-            return "CORBA.Object.Ref";
-
-         when K_Any =>
-            return "CORBA.Any";
-
-         when others =>
-            --  Improper use: node N is not
-            --  mapped to an Ada type.
-
-            Error
-              ("This Ada_Type_Name : A " & NK'Img
-               & " does not denote a type.",
-               Fatal, Get_Location (Node));
-
-            --  Keep the compiler happy.
-            raise Program_Error;
-
-      end case;
+      Map_Type_Name (Mapping, Node, Unit, Typ);
+      return -Typ;
    end Ada_Type_Name;
 
    --------------------
@@ -2784,69 +2693,18 @@ package body Ada_Be.Idl2Ada is
      (CU : in out Compilation_Unit;
       Node : Node_Id)
    is
---      NK : constant Node_Kind := Kind (Node);
    begin
---       case NK is
---          when
---            K_Interface    |
---            K_Module       |
---            K_ValueType    |
---            K_Ben_Idl_File =>
---             Add_With (CU, Ada_Full_Name (Node));
-
---          when
---            K_Enum              |
---            K_Union             |
---            K_Struct            |
---            K_Declarator        |
---            K_Forward_Interface |
---            K_Forward_ValueType |
---            K_Boxed_ValueType   |
---            K_Exception         |
---            K_Sequence_Instance |
---            K_String_Instance   =>
---             Add_With_Entity (CU, Parent_Scope (Node));
-
---          when K_Scoped_Name =>
---             Add_With_Entity (CU, Value (Node));
-
---          when
---            K_Short              |
---            K_Long               |
---            K_Long_Long          |
---            K_Unsigned_Short     |
---            K_Unsigned_Long      |
---            K_Unsigned_Long_Long |
---            K_Char               |
---            K_Wide_Char          |
---            K_Boolean            |
---            K_Float              |
---            K_Double             |
---            K_Long_Double        |
---            K_String             |
---            K_Wide_String        |
---            K_Octet              |
---            K_Object             |
---            K_Any                =>
---             Add_With (CU, "CORBA");
-
---          when others =>
---             Error
---               ("A " & NK'Img
---                & " is not a mapped entity.",
---                Fatal, Get_Location (Node));
---       end case;
       Add_With (CU, Library_Unit_Name (Mapping, Node));
    end Add_With_Entity;
 
    ---------------------------------------------------------
-   --  Ada_Operation_Name and Idl_Operation_Id differ      --
+   -- Ada_Operation_Name and Idl_Operation_Id differ      --
    -- for operations that are created by the expander and --
-   --  represent attributes:                               --
-   --  given an attribute Foo of an interface, the "get"   --
-   --  and "set" operations will be generated with         --
-   --  Ada_Operation_Names "get_Foo" and "set_Foo", and    --
-   --  Idl_Operation_Ids "_get_Foo" and "_set_Foo".        --
+   -- represent attributes:                               --
+   -- given an attribute Foo of an interface, the "get"   --
+   -- and "set" operations will be generated with         --
+   -- Ada_Operation_Names "get_Foo" and "set_Foo", and    --
+   -- Idl_Operation_Ids "_get_Foo" and "_set_Foo".        --
    ---------------------------------------------------------
 
    function Ada_Operation_Name

@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#7 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#8 $
 
 with Asis;
 
@@ -74,5 +74,10 @@ package CIAO.Translator.State is
    function Get_Previous_Current_Node (Element : Asis.Element)
      return Node_Id;
    pragma Inline (Get_Previous_Current_Node);
+   function Get_Origin (Node : Node_Id) return Asis.Element;
+   pragma Inline (Get_Origin);
+   --  Return the original ASIS element at the origin of Node.
+   --  If no such information was recorded (by a previous call
+   --  to Set_Translation), return Nil_Element.
 
 end CIAO.Translator.State;

@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.adb#6 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.adb#7 $
 
 with Asis.Elements; use Asis.Elements;
 
@@ -79,11 +79,8 @@ package body CIAO.Translator.State is
    --  If no information was set, Nil_Map_Info is returned.
 
    procedure Set_Origin (Node : Node_Id; Element : Asis.Element);
+   pragma Inline (Set_Origin);
    --  Record the original ASIS element at the origin of Node.
-
-   function Get_Origin (Node : Node_Id) return Asis.Element;
-   --  Return the original ASIS element at the origin of Node.
-   --  If no such information was recorded, return Nil_Element.
 
    --------------------------------
    -- High-level state accessors --

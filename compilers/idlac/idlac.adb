@@ -40,6 +40,7 @@ with Errors;
 
 with Ada_Be.Expansion;
 with Ada_Be.Idl2Ada;
+with Ada_Be.Mappings.CORBA;
 
 procedure Idlac is
 
@@ -207,9 +208,10 @@ begin
 
       --  Generate code
       Ada_Be.Idl2Ada.Generate
-        (Rep,
-         Implement => Generate_Impl_Template,
-         To_Stdout => To_Stdout);
+        (Use_Mapping => Ada_Be.Mappings.CORBA.The_CORBA_Mapping,
+         Node        => Rep,
+         Implement   => Generate_Impl_Template,
+         To_Stdout   => To_Stdout);
    end if;
 
 end Idlac;

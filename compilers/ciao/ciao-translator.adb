@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#15 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#16 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -376,6 +376,7 @@ package body CIAO.Translator is
          --  XXX for now do not define the forward interface.
 
          Node := Make_Interface (No_Location);
+         Set_Abst (Node, False);
 
 --          Set_Forward (Node, Forward_Node);
 --          Set_Forward (Forward_Node, Node);
@@ -490,6 +491,7 @@ package body CIAO.Translator is
                   --  This is the definition of a Remote Access to
                   --  Subprogram type.
                   Node := Make_Interface (No_Location);
+                  Set_Abst (Node, False);
                   Append_Node_To_Contents
                     (State.Current_Node, Node);
                   Success := Add_Identifier
@@ -947,10 +949,9 @@ package body CIAO.Translator is
                         Op_Node => Op_Node);
                   end if;
 
-                  Set_Is_Implicit_Self (Op_Node, True);
-                  --  XXX the name of this flag is misleading.
-                  --  Its meaning is that Self should not be explicitly
-                  --  generated in stubs profiles.
+                  if State.Unit_Category /= Remote_Call_Interface then
+                     Set_Is_Explicit_Self (Op_Node, True);
+                  end if;
 
                   Set_Translation (Element, Op_Node);
                   --  The translation of a subprogram declaration is
@@ -1002,12 +1003,19 @@ package body CIAO.Translator is
                   State.Current_Node := Old_Current_Node;
 
                   if Trait_Kind (Element) = An_Access_Definition_Trait then
-
-                     Mode := Mode_Inout;
-                     --  XXX Wrong. If Element is an access definition whose
-                     --  that resolves to denote a tagged limited private type,
-                     --  then the parameter should be of mode in because
-                     --  the type passed is an object reference.
+                     if Is_Interface
+                       (Get_Translation
+                        (Corresponding_Entity_Name_Declaration
+                         (Declaration_Subtype_Mark (Element))))
+                     then
+                        Mode := Mode_In;
+                        --  An anonymous access type definition
+                        --  that designates a distributed object.
+                     else
+                        Mode := Mode_Inout;
+                        --  Any other case of anonymous access type
+                        --  definition.
+                     end if;
                   else
                      case Mode_Kind (Element) is
                         when Not_A_Mode     =>   --  An unexpected element
@@ -1045,6 +1053,7 @@ package body CIAO.Translator is
                   --  is an <interface>
 
                   Node := Make_Interface (No_Location);
+                  Set_Abst (Node, False);
                   Append_Node_To_Contents (State.Current_Node, Node);
                   Success := Add_Identifier
                     (Node, Map_Defining_Name (Defining_Name));

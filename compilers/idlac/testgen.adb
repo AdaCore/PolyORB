@@ -31,8 +31,10 @@ with Idl_Fe.Parser;
 
 with Ada_Be.Expansion;
 with Ada_Be.Idl2Ada;
+with Ada_Be.Mappings.CORBA;
 
 procedure testgen is
+   The_CORBA_Mapping : Ada_Be.Mappings.CORBA.CORBA_Mapping_Type;
    Rep : Idl_Fe.Types.Node_Id;
 begin
    Idl_Fe.Parser.Initialize
@@ -44,6 +46,9 @@ begin
 
    Ada_Be.Expansion.Expand_Repository (Rep);
 
-   Ada_Be.Idl2Ada.Generate (Rep, Implement => True);
+   Ada_Be.Idl2Ada.Generate
+     (Use_Mapping => The_CORBA_Mapping,
+      Node        => Rep,
+      Implement   => True);
 
 end testgen;

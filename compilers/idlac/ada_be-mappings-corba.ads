@@ -35,18 +35,23 @@ package Ada_Be.Mappings.CORBA is
    type CORBA_Mapping_Type is new Mapping_Type with private;
 
    function Library_Unit_Name
-     (Self : CORBA_Mapping_Type;
+     (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id)
      return String;
 
    procedure Map_Type_Name
-     (Self : CORBA_Mapping_Type;
+     (Self : access CORBA_Mapping_Type;
       Node : Idl_Fe.Types.Node_Id;
       Unit : out ASU.Unbounded_String;
       Typ  : out ASU.Unbounded_String);
 
+   The_CORBA_Mapping : constant CORBA_Mapping_Type;
+
 private
 
    type CORBA_Mapping_Type is new Mapping_Type with null record;
+
+   The_CORBA_Mapping : constant CORBA_Mapping_Type
+     := (Mapping_Type with null record);
 
 end Ada_Be.Mappings.CORBA;
