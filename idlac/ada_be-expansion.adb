@@ -1211,9 +1211,13 @@ package body Ada_Be.Expansion is
            (Array_Type_Node,
             Append_Node (Nil_List, Array_Node));
          Set_Parent (Array_Node, Array_Type_Node);
+         pragma Debug (O ("Expand_Array_Declarator : "
+                          & "about to call add_identifier"));
          Success := Add_Identifier
            (Array_Node, Name (Node) & "_Array", Get_Current_Gen_Scope);
          pragma Assert (Success);
+         pragma Debug (O ("Expand_Array_Declarator : "
+                          & "add_identifier successfully called"));
 
          Insert_Before_Current (Array_Type_Node);
          Set_Array_Bounds (Array_Node, Array_Bounds (Node));

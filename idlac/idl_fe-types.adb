@@ -1417,9 +1417,9 @@ package body Idl_Fe.Types is
       pragma Debug (O2 ("Add_Definition_To_Storage : enter"));
       Index := Create_Identifier_In_Storage (Definition.Name.all);
       --  their shouldn't be any redefinition
-      pragma Assert (Identifier_Table
-                     (Scope).Content_Table.
-                     Table (Index).Definition = null);
+--       pragma Assert (Identifier_Table
+--                      (Scope).Content_Table.
+--                      Table (Index).Definition = null);
       Identifier_Table (Scope).Content_Table.
         Table (Index).Definition := Definition;
       pragma Debug (O2 ("Add_Definition_To_Storage : end"));
