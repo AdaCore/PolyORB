@@ -56,7 +56,7 @@ void marshall (IOP::TaggedProfileList* t, Ada_netBufferedStream &s)
 ADABROKER_TRY
   // verify that t is not null
   if (t != NULL)
-    *t >>= *(s.C_Object) ;
+    *t >>= *(s.CPP_Object) ;
   else
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -75,7 +75,7 @@ ADABROKER_TRY
   // see CORBA::UnMarshalObjRef in objectRef.cc
   // it is done like that
   t = new IOP::TaggedProfileList() ;
-  *t <<= *(s.C_Object) ;
+  *t <<= *(s.CPP_Object) ;
 ADABROKER_CATCH
 }
 
@@ -85,7 +85,7 @@ void marshall (IOP::TaggedProfileList* t, Ada_memBufferedStream &s)
 ADABROKER_TRY
   // verify that t is not null
   if (t != NULL)
-    *t >>= *(s.C_Object) ;
+    *t >>= *(s.CPP_Object) ;
   else
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -104,7 +104,7 @@ ADABROKER_TRY
   // see CORBA::UnMarshalObjRef in objectRef.cc
   // it is done like that
   t = new IOP::TaggedProfileList() ;
-  *t <<= *(s.C_Object) ;
+  *t <<= *(s.CPP_Object) ;
 ADABROKER_CATCH
 }
 

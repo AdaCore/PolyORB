@@ -83,7 +83,7 @@ adabe_structure::produce_marshal_ads(dep_list &with, string &body, string &previ
   body += get_ada_local_name();
   body += " ;\n";
   body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
-  body += "   procedure UnMarshall (A : out ";
+  body += "   procedure Unmarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
@@ -113,7 +113,7 @@ adabe_structure::produce_marshal_adb(dep_list &with, string &body, string &previ
   marshall += "                      S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
   marshall += "   begin\n";
   
-  unmarshall += "   procedure UnMarshall(A : out ";
+  unmarshall += "   procedure Unmarshall(A : out ";
   unmarshall += get_ada_local_name();
   unmarshall += " ;\n";
   unmarshall += "                        S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";

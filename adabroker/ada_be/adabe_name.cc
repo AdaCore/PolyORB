@@ -585,7 +585,7 @@ adabe_name::is_imported (dep_list& with)
 	    // if the interface is forwarded, the full
 	    // name of the file is the interface
 	    // name+"_forward"
-	    with.add (get_ada_full_name() + "_forward");
+	    with.add (get_ada_full_name() + "_Forward");
 	  }
 	else
 	  {

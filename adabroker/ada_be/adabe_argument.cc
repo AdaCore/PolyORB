@@ -306,7 +306,7 @@ adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
   if ((direction() == AST_Argument::dir_IN) || (direction() == AST_Argument::dir_INOUT))
     {
       no_in = false;
-      unmarshall += "            UnMarshall(";
+      unmarshall += "            Unmarshall(";
       unmarshall += get_ada_local_name ();
       unmarshall += ", Orls) ;\n";
     }

@@ -118,7 +118,7 @@ adabe_typedef::produce_marshal_ads(dep_list& with, string &body, string &previou
   body += get_ada_local_name();
   body += " ;\n";
   body += "                      S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
-  body += "   procedure UnMarshall (A : out ";
+  body += "   procedure Unmarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                        S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
@@ -169,12 +169,12 @@ adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previou
   body += "(A), S) ;\n";
   body += "   end ;\n\n\n";
 	    
-  body += "   procedure UnMarshall(A : out ";
+  body += "   procedure Unmarshall(A : out ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                        S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
   body += "   begin\n";
-  body += "      UnMarshall(";
+  body += "      Unmarshall(";
   body += name;
   body += "(A) ,S) ;\n";
   body += "   end ;\n\n\n";

@@ -122,7 +122,7 @@ public:
   // declared in rope.h
   
   
-  NetBufferedStream *C_Object;
+  NetBufferedStream *CPP_Object;
   // Pointer on the underlying netBufferedStream object
   // nedded in Ada_Iop.cc
   

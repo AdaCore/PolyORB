@@ -7,7 +7,7 @@
 with CORBA.Object;
 
 with AdaBroker; use AdaBroker;
-with AdaBroker.OmniObject;
+with AdaBroker.OmniORB;
 with AdaBroker.OmniProxyCallDesc;
 
 package AdaBroker.OmniProxyCallWrapper is
@@ -28,7 +28,7 @@ package AdaBroker.OmniProxyCallWrapper is
 private
 
    function Omni_Call_Transient_Exception_Handler
-     (Obj     : in OmniObject.Object'Class;
+     (Obj     : in AdaBroker.OmniORB.OmniObject'Class;
       Retries : in CORBA.Unsigned_Long;
       Minor   : in CORBA.Unsigned_Long;
       Status  : in CORBA.Completion_Status)
@@ -37,7 +37,7 @@ private
    --  _omni_callTransientExceptionHandler ( see Ada_CORBA_Exceptions.hh)
 
    function Omni_Comm_Failure_Exception_Handler
-     (Obj     : in OmniObject.Object'Class;
+     (Obj     : in AdaBroker.OmniORB.OmniObject'Class;
       Retries : in CORBA.Unsigned_Long;
       Minor   : in CORBA.Unsigned_Long;
       Status  : in CORBA.Completion_Status)
@@ -46,7 +46,7 @@ private
    --  _omni_commFailureExceptionHandler ( see Ada_CORBA_Exceptions.hh)
 
    function Omni_System_Exception_Handler
-     (Obj     : in OmniObject.Object'Class;
+     (Obj     : in AdaBroker.OmniORB.OmniObject'Class;
       Retries : in CORBA.Unsigned_Long;
       Minor   : in CORBA.Unsigned_Long;
       Status  : in CORBA.Completion_Status)

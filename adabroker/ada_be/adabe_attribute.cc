@@ -1,27 +1,4 @@
-/*************************************************************************************************
-***                              ADA BACK-END COMPILER                                         ***
-***                             file:  adabe_attribute.cc                                      ***
-***                                                                                            ***
-***      This file provides the implementation of class adabe_attribute declared in adabe.h    ***
-***   (L 443). This class is the correspondant of the Sun's Front-End class AST_Attribute.     ***
-***   It provides produce functions for each generated file and a constructor.                 ***
-***                                                                                            ***
-***   Copyright 1999                                                                           ***
-***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
-***                                                                                            ***
-***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
-***   General Public License, as published by the Free Software Foundation.                    ***
-***                                                                                            ***
-***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
-***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
-***  PURPOSE.                                                                                  ***
-***                                                                                            ***
-***  See the GNU General Public License for more details.                                      ***
-***                                                                                            ***
-***                                                                                            ***
-*************************************************************************************************/
 #include <adabe.h>
-
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////      constructor    ///////////////////////////////////
@@ -186,47 +163,58 @@ adabe_attribute::produce_proxies_ads(dep_list& with, string &body, string &priva
 
   // Declaration of the get function :
   // first the public part
-  body += "   -----------------------------------------------------------\n" ;
-  body += "   ---               Get_" + get_ada_local_name() + "\n" ; 
-  body += "   -----------------------------------------------------------\n\n" ;
-  body += "   type Get_" + get_ada_local_name() +"_Proxy is new AdaBroker.OmniProxyCallDesc.Object with private;\n\n";
-  body += "   procedure Init(Self : in out Get_" + get_ada_local_name() + "_Proxy) ;\n\n";
-  body += "   function Operation(Self : in Get_" + get_ada_local_name() + "_Proxy)\n";
-  body += "                      return CORBA.String ;\n\n" ;
-  body += "   procedure Unmarshal_Returned_Values(Self : in out Get_" + get_ada_local_name() + "_Proxy ;\n";
-  body += "                                       Giop_Client : in out AdaBroker.GIOP_C.Object);\n\n";
-  body += "   function Get_Result (Self : in Get_" + get_ada_local_name() + "_Proxy )\n";
-  body += "                        return " +  name + "; \n\n\n";
+  body += "   type Get_" + get_ada_local_name() +"_Proxy is\n";
+  body += "      new AdaBroker.OmniProxyCallDesc.Object with private;\n\n";
+  body += "   procedure Init\n";
+  body += "     (Self : in out Get_" + get_ada_local_name() + "_Proxy);\n\n";
+  body += "   function Operation\n";
+  body += "     (Self : in Get_" + get_ada_local_name() + "_Proxy)\n";
+  body += "      return CORBA.String;\n\n" ;
+  body += "   procedure Unmarshal_Returned_Values\n";
+  body += "     (Self : in out Get_" + get_ada_local_name() + "_Proxy;\n";
+  body += "      GIOP_Client : in out AdaBroker.GIOP_C.Object);\n\n";
+  body += "   function Get_Result\n";
+  body += "     (Self : in Get_" + get_ada_local_name() + "_Proxy )\n";
+  body += "      return " +  name + "; \n\n\n";
 
   // next the private part
-  private_definition += "   type Get_" + get_ada_local_name() + "_Proxy is new AdaBroker.OmniProxyCallDesc.Object with record \n";
-  private_definition += "      Private_Result : " + name + ";\n";
-  private_definition += "   end record ;\n";
-  private_definition += "   procedure Finalize (Self : in out Get_" + get_ada_local_name() + "_Proxy) ;\n\n";
+  private_definition += "   type Get_" + get_ada_local_name() + "_Proxy is\n";
+  private_definition += "      new AdaBroker.OmniProxyCallDesc.Object\n";
+  private_definition += "      with record\n";
+  private_definition += "         Private_Result : " + name + ";\n";
+  private_definition += "      end record ;\n";
+  private_definition += "   procedure Finalize\n";
+  private_definition += "     (Self : in out Get_" + get_ada_local_name() + "_Proxy);\n\n";
 
   // Declaration of the set function
   if (!readonly())
     {
       // the public part
-      body += "   -----------------------------------------------------------\n" ;
-      body += "   ---               Set_" + get_ada_local_name() + "\n" ; 
-      body += "   -----------------------------------------------------------\n\n" ;
-      body += "   type Set_" + get_ada_local_name() +"_Proxy is new AdaBroker.OmniProxyCallDesc.Object with private ;\n\n";
-      body += "   procedure Init(Self : in out Set_" + get_ada_local_name() + "_Proxy ;\n";
-      body += "                  Arg : in " + name + ") ;\n\n";
-      body += "   function Operation(Self : in Set_" + get_ada_local_name() + "_Proxy)\n";
-      body += "                      return CORBA.String ;\n\n" ;
-      body += "   function Align_Size(Self : in Set_" + get_ada_local_name() + "_Proxy ;\n";
-      body += "                       Size_In : in CORBA.Unsigned_Long)\n";
-      body += "                       return CORBA.Unsigned_Long ;\n\n";
-      body += "   procedure Marshal_Arguments(Self : in Set_" + get_ada_local_name() + "_Proxy ;\n";
-      body += "                               Giop_Client : in out AdaBroker.GIOP_C.Object);\n\n";
+      body += "   type Set_" + get_ada_local_name() +"_Proxy is\n";
+      body += "      new AdaBroker.OmniProxyCallDesc.Object\n";
+      body += "      with private;\n\n";
+      body += "   procedure Init\n";
+      body += "     (Self : in out Set_" + get_ada_local_name() + "_Proxy;\n";
+      body += "      Arg  : in " + name + ");\n\n";
+      body += "   function Operation\n";
+      body += "     (Self : in Set_" + get_ada_local_name() + "_Proxy)\n";
+      body += "      return CORBA.String;\n\n" ;
+      body += "   function Align_Size\n";
+      body += "     (Self : in Set_" + get_ada_local_name() + "_Proxy;\n";
+      body += "      Size_In : in CORBA.Unsigned_Long)\n";
+      body += "      return CORBA.Unsigned_Long ;\n\n";
+      body += "   procedure Marshal_Arguments\n";
+      body += "     (Self : in Set_" + get_ada_local_name() + "_Proxy;\n";
+      body += "      GIOP_Client : in out AdaBroker.GIOP_C.Object);\n\n";
 
       // the private part
-      private_definition += "   type Set_" + get_ada_local_name() + "_Proxy is new AdaBroker.OmniProxyCallDesc.Object with record \n";
+      private_definition += "   type Set_" + get_ada_local_name() + "_Proxy is\n";
+      private_definition += "      new AdaBroker.OmniProxyCallDesc.Object\n";
+      private_definition += "      with record \n";
       private_definition += "      Arg : " + name + ";\n";
       private_definition += "   end record ;\n";
-      private_definition += "   procedure Finalize (Self : in out Set_" + get_ada_local_name() + "_Proxy) ;\n\n";
+      private_definition += "   procedure Finalize\n";
+      private_definition += "     (Self : in out Set_" + get_ada_local_name() + "_Proxy) ;\n\n";
     }  
 }
 
@@ -247,87 +235,73 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
 
   // body of the functions defined in
   // the -proxies.ads file
-  body += "   -----------------------------------------------------------\n" ;
-  body += "   ---               Get_" + get_ada_local_name() + "\n" ; 
-  body += "   -----------------------------------------------------------\n\n" ;
-  body += "   -- Init\n" ;
-  body += "   -------\n" ;
-  body += "   procedure Init(Self : in out Get_" + get_ada_local_name() + "_Proxy) is\n";
+  body += "   procedure Init\n";
+  body += "     (Self : in out Get_" + get_ada_local_name() + "_Proxy) is\n";
   body += "   begin\n";
-  body += "      Set_User_Exceptions(Self, False) ;\n";
-  body += "   end ;\n\n\n";
-  body += "   -- Operation\n" ;
-  body += "   ------------\n" ;
-  body += "   function Operation(Self : in Get_" + get_ada_local_name() + "_Proxy)\n";
-  body += "                      return CORBA.String is\n";
+  body += "      Set_User_Exceptions (Self, False);\n";
+  body += "   end Init;\n\n\n";
+  body += "   function Operation\n";
+  body += "     (Self : in Get_" + get_ada_local_name() + "_Proxy)\n";
+  body += "      return CORBA.String is\n";
   body += "   begin\n";
-  body += "      return CORBA.To_Corba_String(Standard.String'(\"_get_" + get_ada_local_name() + "\")) ;\n";
-  body += "   end ;\n\n\n";
-  body += "   -- Unmarshal_Returned_Values\n" ;
-  body += "   ----------------------------\n" ;
-  body += "   procedure Unmarshal_Returned_Values(Self : in out Get_" + get_ada_local_name() + "_Proxy ;\n";
-  body += "                                       Giop_Client : in out AdaBroker.GIOP_C.Object) is\n";
-  body += "      Result : " + name + " ;\n";
+  body += "      return CORBA.To_Corba_String\n";
+  body += "         (Standard.String'(\"_get_" + get_ada_local_name() + "\"));\n";
+  body += "   end Operation;\n\n\n";
+  body += "   procedure Unmarshal_Returned_Values\n";
+  body += "     (Self : in out Get_" + get_ada_local_name() + "_Proxy;\n";
+  body += "      GIOP_Client : in out AdaBroker.GIOP_C.Object) is\n";
+  body += "      Result : " + name + ";\n";
   body += "   begin\n";
-  body += "      Unmarshall(Result, Giop_client) ;\n";
+  body += "      Unmarshall (Result, GIOP_client);\n";
   body += "      Self.Private_Result := Result;\n";
-  body += "   end ;\n\n\n" ;
-  body += "   -- Get_Result\n" ;
-  body += "   -------------\n" ;
-  body += "   function Get_Result (Self : in Get_" + get_ada_local_name() + "_Proxy )\n";
-  body += "                        return " +  name + " is\n";
+  body += "   end Unmarshal_Returned_Values;\n\n\n" ;
+  body += "   function Get_Result\n";
+  body += "     (Self : in Get_" + get_ada_local_name() + "_Proxy)\n";
+  body += "      return " +  name + " is\n";
   body += "   begin\n";
   body += "      return Self.Private_Result;\n";
-  body += "   end ;\n\n\n";
-  body += "   -- Finalize\n" ;
-  body += "   -----------\n" ;
-  body += "   procedure Finalize (Self : in out Get_" + get_ada_local_name() + "_Proxy) is\n";
+  body += "   end Get_Result;\n\n\n";
+  body += "   procedure Finalize\n";
+  body += "     (Self : in out Get_" + get_ada_local_name() + "_Proxy) is\n";
   body += "   begin\n";
   body += "      null;\n";
-  body += "   end ;\n\n\n";
+  body += "   end Finalize;\n\n\n";
 
   if (!readonly())
     {
       // the same for the set function
-      body += "   -----------------------------------------------------------\n" ;
-      body += "   ---               Set_" + get_ada_local_name() + "\n" ; 
-      body += "   -----------------------------------------------------------\n\n" ;
-      body += "   -- Init\n" ;
-      body += "   -------\n" ;
-      body += "   procedure Init(Self : in out Set_" + get_ada_local_name() + "_Proxy ;\n";
-      body += "                  Arg : in " + name + ") is\n";
+      body += "   procedure Init\n";
+      body += "     (Self : in out Set_" + get_ada_local_name() + "_Proxy;\n";
+      body += "      Arg : in " + name + ") is\n";
       body += "   begin\n";
-      body += "      Set_User_Exceptions(Self, False) ;\n";
+      body += "      Set_User_Exceptions (Self, False);\n";
       body += "      Self.Arg := Arg;\n";
-      body += "   end ;\n\n\n";
-      body += "   -- Operation\n" ;
-      body += "   ------------\n" ;
-      body += "   function Operation(Self : in Set_" + get_ada_local_name() + "_Proxy)\n";
-      body += "                      return CORBA.String is\n";
+      body += "   end Init;\n\n\n";
+      body += "   function Operation\n";
+      body += "     (Self : in Set_" + get_ada_local_name() + "_Proxy)\n";
+      body += "      return CORBA.String is\n";
       body += "   begin\n";
-      body += "      return CORBA.To_Corba_String(Standard.String'(\"_set_" + get_ada_local_name() + "\")) ;\n";
-      body += "   end ;\n\n\n";
-      body += "   -- Align_Size\n" ;
-      body += "   -------------\n" ;
-      body += "   function Align_Size(Self : in Set_" + get_ada_local_name() + "_Proxy ;\n";
-      body += "                       Size_In : in CORBA.Unsigned_Long)\n";
-      body += "                       return CORBA.Unsigned_Long is\n";
+      body += "      return CORBA.To_Corba_String\n";
+      body += "         (Standard.String'(\"_set_" + get_ada_local_name() + "\"));\n";
+      body += "   end Operation;\n\n\n";
+      body += "   function Align_Size\n";
+      body += "     (Self : in Set_" + get_ada_local_name() + "_Proxy;\n";
+      body += "      Size_In : in CORBA.Unsigned_Long)\n";
+      body += "      return CORBA.Unsigned_Long is\n";
       body += "   begin\n";
-      body += "      return Align_Size(Self.Arg, Size_In) ;\n";
-      body += "   end ;\n\n\n";
-      body += "   -- Marshall_Arguments\n" ;
-      body += "   ---------------------\n" ;
-      body += "   procedure Marshal_Arguments(Self : in Set_" +	get_ada_local_name() + "_Proxy ;\n";
-      body += "                               Giop_Client : in out AdaBroker.GIOP_C.Object) is\n";
+      body += "      return Align_Size (Self.Arg, Size_In);\n";
+      body += "   end Align_Size;\n\n\n";
+      body += "   procedure Marshal_Arguments\n";
+      body += "     (Self : in Set_" +	get_ada_local_name() + "_Proxy;\n";
+      body += "      GIOP_Client : in out AdaBroker.GIOP_C.Object) is\n";
       body += "   begin\n";
-      body += "      Marshall(Self.Arg, Giop_client) ;\n";
-      body += "   end ;\n\n\n";
-      body += "   -- Finalize\n" ;
-      body += "   -----------\n" ;
-      body += "   procedure Finalize (Self : in out Set_" + get_ada_local_name() + "_Proxy) is\n";
+      body += "      Marshall (Self.Arg, GIOP_client);\n";
+      body += "   end Marshal_Arguments;\n\n\n";
+      body += "   procedure Finalize\n";
+      body += "     (Self : in out Set_" + get_ada_local_name() + "_Proxy) is\n";
       body += "   begin\n";
       body += "      null;\n";
-      body += "   end ;\n\n\n";
+      body += "   end Finalize;\n\n\n";
     }  
 }
 

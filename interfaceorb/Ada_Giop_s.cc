@@ -66,7 +66,7 @@ Ada_Giop_s::Ada_Giop_s () : Ada_netBufferedStream::Ada_netBufferedStream ()
 //------------
 Ada_Giop_s::Ada_Giop_s(GIOP_S *c_obj) {
   Init_Ok = true ;
-  C_Object = c_obj ; 
+  CPP_Object = c_obj ; 
 };
 
 
@@ -75,7 +75,7 @@ Ada_Giop_s::Ada_Giop_s(GIOP_S *c_obj) {
 void
 Ada_Giop_s::Init (Strand *s)
 {
-  C_Object = new GIOP_S (s);
+  CPP_Object = new GIOP_S (s);
   Init_Ok = true;
 };
 
@@ -88,8 +88,8 @@ Ada_Giop_s::RequestReceived(_CORBA_Boolean skip)
 ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    ( (GIOP_S *) C_Object )->RequestReceived(skip);
+    // function on CPP_Object
+    ( (GIOP_S *) CPP_Object )->RequestReceived(skip);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -109,8 +109,8 @@ Ada_Giop_s::InitialiseReply(const int status,
 ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    ((GIOP_S *) C_Object)->InitialiseReply((GIOP::ReplyStatusType) status,
+    // function on CPP_Object
+    ((GIOP_S *) CPP_Object)->InitialiseReply((GIOP::ReplyStatusType) status,
 					   msgsize);
   } else {
     // else raise an Ada Exception
@@ -130,8 +130,8 @@ Ada_Giop_s::ReplyCompleted()
 ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    ((GIOP_S *) C_Object)->ReplyCompleted();
+    // function on CPP_Object
+    ((GIOP_S *) CPP_Object)->ReplyCompleted();
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,

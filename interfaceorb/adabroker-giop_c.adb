@@ -9,7 +9,7 @@ with Ada.Strings.Unbounded;
 
 with AdaBroker; use AdaBroker;
 with AdaBroker.Debug;
-pragma Elaborate (AdaBroker.Debug);
+pragma Elaborate_All (AdaBroker.Debug);
 
 with CORBA;
 

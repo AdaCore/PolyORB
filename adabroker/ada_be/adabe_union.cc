@@ -144,7 +144,7 @@ adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
   body += " ;\n";
   body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
 
-  body += "   procedure UnMarshall (A : out ";
+  body += "   procedure Unmarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
@@ -190,7 +190,7 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   marshall += "      Marshall (A.Switch,S) ;\n";
   marshall += "      case A.Switch is\n";
   
-  unmarshall += "   procedure UnMarshall(A : out ";
+  unmarshall += "   procedure Unmarshall(A : out ";
   unmarshall += get_ada_local_name();
   unmarshall += " ;\n";
   unmarshall += "                        S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
@@ -198,7 +198,7 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   unmarshall += disc_name;
   unmarshall += " ;\n";
   unmarshall += "   begin\n";
-  unmarshall += "      UnMarshall (Switch,S) ;\n";
+  unmarshall += "      Unmarshall (Switch,S) ;\n";
   unmarshall += "      declare\n";
   unmarshall += "         Tmp : ";
   unmarshall += get_ada_local_name ();

@@ -35,6 +35,7 @@ CXXSRCS       =   \
 
 DIR_CPPFLAGS = -I. -I$(TOP)/include
 DIR_CPPFLAGS += $(CORBA_CPPFLAGS) 
+DIR_CPPFLAGS += -g
 
 lib = $(patsubst %,$(LibPattern),adabroker)
 
@@ -56,7 +57,7 @@ Ada_Sys_Dep: Ada_Sys_Dep.cc
 
 
 adaobjs: adabroker-sysdep.ads
-	gnatmake -gnata -m -i all_adabroker.ads -gnatg
+	gnatmake -g -gnata -i all_adabroker.ads -gnatg
 
 adabroker-sysdep.ads : sysdep.tpl
 	sed -f $(ADABROKER_BOOL_DIR)/$(platform) sysdep.tpl >adabroker-sysdep.ads

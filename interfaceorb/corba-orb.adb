@@ -1,19 +1,13 @@
 with Interfaces.C.Strings;
 
-with System;
-
-with AdaBroker; use AdaBroker;
-with AdaBroker.OmniObject;
 with AdaBroker.Debug;
-pragma Elaborate (AdaBroker.Debug);
+pragma Elaborate_All (AdaBroker.Debug);
 
 with CORBA.Command_Line;
 with CORBA.Object;
 with CORBA.Object.OmniORB;
 
 package body CORBA.ORB is
-
-   use type OmniObject.Object_Ptr;
 
    Flag : constant Natural := AdaBroker.Debug.Is_Active ("corba.orb");
    procedure O is new AdaBroker.Debug.Output (Flag);
@@ -38,19 +32,18 @@ package body CORBA.ORB is
       C_ORB_Name : Interfaces.C.Strings.chars_ptr;
       Result     : Object;
    begin
-      pragma Debug (O ("-- CORBA.ORB.ORB_Init --"));
+      pragma Debug (O ("ORB_Init : enter"));
       pragma Debug (O (ORB_Name));
 
       C_ORB_Name := Interfaces.C.Strings.New_String (ORB_Name);
-      --  Deallocated 4 lines further
 
-      pragma Debug (O ("ORB_Init : calling CORBA::ORB_init"));
+      pragma Debug (O ("ORB_Init : invoke CORBA::ORB_init"));
 
       Result := C_ORB_Init (CORBA.Command_Line.Argc,
                             CORBA.Command_Line.Argv,
                             C_ORB_Name);
 
-      pragma Debug (O ("ORB_Init : ORB initialized"));
+      pragma Debug (O ("ORB_Init : leave"));
 
       Interfaces.C.Strings.Free (C_ORB_Name);
       return Result;
@@ -83,7 +76,6 @@ package body CORBA.ORB is
       Result     : CORBA.BOA.Object;
    begin
       C_BOA_Name := Interfaces.C.Strings.New_String (BOA_Name);
-      --  Deallocated 4 lines further
 
       Result := C_BOA_Init
         (Self,
@@ -118,5 +110,17 @@ package body CORBA.ORB is
    begin
       CORBA.Object.OmniORB.String_To_Object (From, To);
    end String_To_Object;
+
+   --------------------------------
+   -- Resolve_Initial_References --
+   --------------------------------
+
+   --  function Resolve_Initial_References
+   --    (Identifier : in CORBA.String)
+   --    return CORBA.Object.Ref
+   --  is
+   --  begin
+   --     return CORBA.Object.OmniORB.Resolve_Initial_References (Identifier);
+   --  end Resolve_Initial_References;
 
 end CORBA.ORB;

@@ -711,8 +711,7 @@ package body AdaBroker.MemBufferedStream is
          when others =>
             Ada.Exceptions.Raise_Exception
               (CORBA.AdaBroker_Fatal_Error'Identity,
-               "Expected Completion_Status in UnMarshall" & CORBA.CRLF &
-               "Short out of range" & CORBA.CRLF &
+               "incorrect Completion_Status in unmarshall " &
                "(see membufferedstream L660)");
 
       end case;

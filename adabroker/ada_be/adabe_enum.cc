@@ -81,7 +81,7 @@ adabe_enum::produce_marshal_ads(dep_list& with, string &body, string &previous)
   body += " ;\n";
   body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
 
-  body += "   procedure UnMarshall (A : out ";
+  body += "   procedure Unmarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
@@ -108,17 +108,17 @@ adabe_enum::produce_marshal_adb(dep_list& with, string &body, string &previous)
   body += "      Marshall (CORBA.Unsigned_Long("+get_ada_local_name()+"'Pos(A)), S) ;\n";
   body += "   end Marshall ;\n\n";
 
-  body += "   procedure UnMarshall (A : out ";
+  body += "   procedure Unmarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) is \n";
   body += "      Tmp : CORBA.Unsigned_Long ;\n";
   body += "   begin\n";
-  body += "      UnMarshall (Tmp,S) ;\n";
+  body += "      Unmarshall (Tmp,S) ;\n";
   body += "      A := ";
   body += get_ada_local_name();
   body += "'Val(Tmp) ;\n";
-  body += "   end UnMarshall ;\n\n";
+  body += "   end Unmarshall ;\n\n";
 
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();

@@ -59,7 +59,7 @@ adabe_field::produce_marshal_adb(dep_list& with, string &body, string &marshall,
   marshall += get_ada_local_name ();
   marshall += ",S) ;\n";
   
-  unmarshall += "      UnMarshall(A.";
+  unmarshall += "      Unmarshall(A.";
   unmarshall += get_ada_local_name ();
   unmarshall += ",S) ;\n";
   

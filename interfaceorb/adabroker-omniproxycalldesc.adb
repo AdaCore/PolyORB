@@ -68,9 +68,7 @@ package body AdaBroker.OmniProxyCallDesc is
       if Self.Pd_Has_User_Exception then
          Ada.Exceptions.Raise_Exception
            (CORBA.AdaBroker_Fatal_Error'Identity,
-            "Omniproxycalldesc.User_Exception" & CORBA.CRLF
-            & "Should not be called for a calldesc that can throw exceptions" &
-            CORBA.CRLF & "This procedure should have been overloaded");
+            "call desc throwing exception not allowed in User_Exception");
       else
          --  Nothing to be done since we do not throw any exception
          null;

@@ -63,7 +63,7 @@ ADABROKER_TRY
   // creates an exception object
   CORBA::TRANSIENT ex (minor, status);
   // throws it
-  return _omni_callTransientExceptionHandler (omniobj->C_Object,
+  return _omni_callTransientExceptionHandler (omniobj->CPP_Object,
 					      retries,
 					      ex);
 ADABROKER_CATCH
@@ -83,7 +83,7 @@ ADABROKER_TRY
   // creates an exception object
   CORBA::COMM_FAILURE ex (minor, status);
   // throws it
-  return _omni_callCommFailureExceptionHandler (omniobj->C_Object,
+  return _omni_callCommFailureExceptionHandler (omniobj->CPP_Object,
 						retries,
 						ex);
 ADABROKER_CATCH
@@ -103,7 +103,7 @@ ADABROKER_TRY
   // creates an exception object
   CORBA::SystemException ex (minor, status);
   // throws it
-  return _omni_callSystemExceptionHandler (omniobj->C_Object,
+  return _omni_callSystemExceptionHandler (omniobj->CPP_Object,
 					   retries,
 					   ex);
 ADABROKER_CATCH

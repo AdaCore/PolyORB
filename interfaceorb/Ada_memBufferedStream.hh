@@ -78,7 +78,7 @@ public:
   static void unmarshall (_CORBA_Double& a, Ada_memBufferedStream& s);
   // wrapper around friend inliney void operator<<=
 
-  MemBufferedStream *C_Object;
+  MemBufferedStream *CPP_Object;
   // Pointer on the underlying memBufferedStream object
   // needed in Ada_Iop.cc
   

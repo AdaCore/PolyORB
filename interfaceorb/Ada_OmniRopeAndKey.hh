@@ -63,7 +63,7 @@ public:
   // underlying omniRopeAndKey constructor
   
   void Free() ;
-  // deletes the underlying C_Object
+  // deletes the underlying CPP_Object
 
   Rope* rope();
   // wrapper around inline Rope* rope() const
@@ -77,7 +77,7 @@ public:
   _CORBA_Boolean equals(Ada_OmniRopeAndKey other) ;
   // compares two objects, imported in Ada
   
-  omniRopeAndKey *C_Object;
+  omniRopeAndKey *CPP_Object;
   // Pointer on the underlying Rope object
 
   bool assertInit_Ok () const ;

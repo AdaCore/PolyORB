@@ -4,7 +4,8 @@
 --  the BOA class and their equivalent in Ada. (the first ones have a C_
 --  prefix.)
 
-with AdaBroker.Sysdep; use AdaBroker.Sysdep;
+with AdaBroker.Sysdep;  use AdaBroker.Sysdep;
+with AdaBroker.OmniORB; use AdaBroker.OmniORB;
 
 package body CORBA.BOA is
 
@@ -41,12 +42,12 @@ package body CORBA.BOA is
 
    procedure Object_Is_Ready
      (Self : in Object;
-      Obj  : in OmniObject.Implemented_Object'Class)
+      Obj  : in ImplObject'Class)
    is
    begin
       --  It does not take the BOA into account because thereis only one
       --  BOA in omniORB2. ( See corbaBoa.cc)
-      OmniObject.Object_Is_Ready (Obj);
+      Object_Is_Ready (Obj);
    end Object_Is_Ready;
 
    ---------------------
@@ -55,12 +56,12 @@ package body CORBA.BOA is
 
    procedure Dispose_Object
      (Self : in Object;
-      Obj  : in OmniObject.Implemented_Object'Class)
+      Obj  : in ImplObject'Class)
    is
    begin
       --  It does not take the BOA into account because thereis only one
       --  BOA in omniORB2. ( See corbaBoa.cc)
-      OmniObject.Dispose_Object (Obj);
+      Dispose_Object (Obj);
    end Dispose_Object;
 
 end CORBA.BOA;

@@ -57,7 +57,7 @@
 //----------------------
 Ada_netBufferedStream::Ada_netBufferedStream ()
 {
-  C_Object = 0 ;
+  CPP_Object = 0 ;
   Init_Ok = false;
 };
 
@@ -70,7 +70,7 @@ Ada_netBufferedStream::Init (Rope *r, _CORBA_Boolean RdLock,
 {
 ADABROKER_TRY
   // Creation of the underlying omniobject_C2Ada object
-  C_Object = new NetBufferedStream (r,RdLock,WrLock,Bufsize);
+  CPP_Object = new NetBufferedStream (r,RdLock,WrLock,Bufsize);
   // updating of Init_OK flag
   Init_Ok = true;
   return;
@@ -86,8 +86,8 @@ Ada_netBufferedStream::marshall (_CORBA_Char a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a >>= *(s.C_Object);
+    // function on CPP_Object
+    a >>= *(s.CPP_Object);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -106,8 +106,8 @@ Ada_netBufferedStream::unmarshall (_CORBA_Char& a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a <<= *(s.C_Object);
+    // function on CPP_Object
+    a <<= *(s.CPP_Object);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -126,8 +126,8 @@ Ada_netBufferedStream::marshall (_CORBA_Boolean a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a >>= *(s.C_Object) ;
+    // function on CPP_Object
+    a >>= *(s.CPP_Object) ;
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -146,8 +146,8 @@ Ada_netBufferedStream::unmarshall (_CORBA_Boolean& a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a <<= *(s.C_Object) ;
+    // function on CPP_Object
+    a <<= *(s.CPP_Object) ;
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -166,8 +166,8 @@ Ada_netBufferedStream::marshall (_CORBA_Short a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a >>= *(s.C_Object);
+    // function on CPP_Object
+    a >>= *(s.CPP_Object);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -186,8 +186,8 @@ Ada_netBufferedStream::unmarshall (_CORBA_Short& a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a <<= *(s.C_Object);
+    // function on CPP_Object
+    a <<= *(s.CPP_Object);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -206,8 +206,8 @@ Ada_netBufferedStream::marshall (_CORBA_UShort a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a >>= *(s.C_Object);
+    // function on CPP_Object
+    a >>= *(s.CPP_Object);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -226,8 +226,8 @@ Ada_netBufferedStream::unmarshall (_CORBA_UShort& a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a <<= *(s.C_Object);
+    // function on CPP_Object
+    a <<= *(s.CPP_Object);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -246,8 +246,8 @@ Ada_netBufferedStream::marshall (_CORBA_Long a, Ada_netBufferedStream &s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a >>= *(s.C_Object) ;
+    // function on CPP_Object
+    a >>= *(s.CPP_Object) ;
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -263,8 +263,8 @@ Ada_netBufferedStream::unmarshall (_CORBA_Long& a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a <<=  *(s.C_Object) ;
+    // function on CPP_Object
+    a <<=  *(s.CPP_Object) ;
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -283,8 +283,8 @@ Ada_netBufferedStream::marshall (_CORBA_ULong a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a >>= *(s.C_Object);
+    // function on CPP_Object
+    a >>= *(s.CPP_Object);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -303,8 +303,8 @@ Ada_netBufferedStream::unmarshall (_CORBA_ULong& a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a <<= *(s.C_Object);
+    // function on CPP_Object
+    a <<= *(s.CPP_Object);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -323,8 +323,8 @@ Ada_netBufferedStream::marshall (_CORBA_Float a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a >>= *(s.C_Object);
+    // function on CPP_Object
+    a >>= *(s.CPP_Object);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -343,8 +343,8 @@ Ada_netBufferedStream::unmarshall (_CORBA_Float& a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a <<= *(s.C_Object);
+    // function on CPP_Object
+    a <<= *(s.CPP_Object);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -363,8 +363,8 @@ Ada_netBufferedStream::marshall (_CORBA_Double a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a >>= *(s.C_Object);
+    // function on CPP_Object
+    a >>= *(s.CPP_Object);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -383,8 +383,8 @@ Ada_netBufferedStream::unmarshall (_CORBA_Double& a, Ada_netBufferedStream& s)
 ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    a <<= *(s.C_Object) ;
+    // function on CPP_Object
+    a <<= *(s.CPP_Object) ;
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -404,8 +404,8 @@ Ada_netBufferedStream::isReUsingExistingConnection()
 ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    return C_Object->isReUsingExistingConnection();
+    // function on CPP_Object
+    return CPP_Object->isReUsingExistingConnection();
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,

@@ -1,11 +1,10 @@
 with System;
 
-with AdaBroker; use AdaBroker;
-with AdaBroker.OmniObject;
+with AdaBroker.OmniORB;
 
 package CORBA.BOA is
 
-   type Object is new System.Address;
+   type Object is private;
 
    procedure Implementation_Is_Ready
      (Self         : in Object;
@@ -56,17 +55,21 @@ package CORBA.BOA is
 
    procedure Object_Is_Ready
      (Self : in Object;
-      Obj  : in OmniObject.Implemented_Object'Class);
-   --  Tells the BOA that this object is ready to accept connexions it has
+      Obj  : in AdaBroker.OmniORB.ImplObject'Class);
+   --  Tell the BOA that this object is ready to accept connexions it has
    --  to be done once (and only once) for each local object.  The user HAS
    --  to call this function, it cannot be called automatically.
 
    procedure Dispose_Object
      (Self : in Object;
-      Obj  : in OmniObject.Implemented_Object'Class);
-   --  Tells the BOA that this object is going to be destroyed and that it
+      Obj  : in AdaBroker.OmniORB.ImplObject'Class);
+   --  Tell the BOA that this object is going to be destroyed and that it
    --  should not accept connexions any longer The user HAS to call this
    --  function, it cannot be called automatically.
+
+private
+
+   type Object is new System.Address;
 
 end CORBA.BOA;
 

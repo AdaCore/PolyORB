@@ -128,7 +128,7 @@ adabe_sequence::produce_marshal_ads(dep_list& with, string &body,string &previou
   body += " ;\n";
   body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
 
-  body += "   procedure UnMarshall (A : out ";
+  body += "   procedure Unmarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
@@ -165,20 +165,20 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   body += "      end loop ;\n";
   body += "   end ;\n\n\n";
   
-  body += "   procedure UnMarshall (A : out ";
+  body += "   procedure Unmarshall (A : out ";
   body += type_name;
   body += " ;\n"; 
   body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
   body += "      Len : CORBA.Unsigned_Long ;\n";
   body += "   begin\n";
-  body += "      UnMarshall (Len,S);\n";
+  body += "      Unmarshall (Len,S);\n";
   body += "      declare\n";
   body += "         Val : ";
   body += name;
   body += " ;\n";  
   body += "      begin\n";
   body += "         for I in 1..Len loop\n";
-  body += "            UnMarshall (Val,S) ;\n";
+  body += "            Unmarshall (Val,S) ;\n";
   body += "            A := ";
   body += inter_name;
   body += ".\"&\" (A,Val) ;\n";

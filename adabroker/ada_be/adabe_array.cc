@@ -212,7 +212,7 @@ adabe_array::produce_marshal_ads(dep_list& with,string &body, string &previous)
   body += " ;\n";
   body += "      S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
 
-  body += "   procedure UnMarshall (A : out ";
+  body += "   procedure Unmarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "      S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
@@ -274,7 +274,7 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   marshall += "   begin\n";
 
   // declaration of the function unmarshall
-  unmarshall += "   procedure UnMarshall (A : out ";
+  unmarshall += "   procedure Unmarshall (A : out ";
   unmarshall += get_ada_local_name();
   unmarshall += " ;\n";
   unmarshall += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";
@@ -341,7 +341,7 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
     }
 
   marshall += spaces + "Marshall (A(I1";
-  unmarshall += spaces + "UnMarshall (A(I1";
+  unmarshall += spaces + "Unmarshall (A(I1";
   if (!b->has_fixed_size())
     align_size += spaces + "   Tmp := Align_Size (A(I1";
 
@@ -376,7 +376,7 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
     }
       
   marshall += "   end Marshall ;\n\n";
-  unmarshall += "   end UnMarshall ;\n\n";
+  unmarshall += "   end Unmarshall ;\n\n";
   if (!b->has_fixed_size())
     align_size += "      end loop ;\n";
   align_size += "      return Tmp ;\n";

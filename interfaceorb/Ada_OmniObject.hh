@@ -56,30 +56,31 @@
 #include "Ada_OmniRopeAndKey.hh"
 
 
-class omniObject_C2Ada ;
+class omniObject_C2Ada;
 
 
 class Ada_OmniObject {
 
 public:
 
-  Ada_OmniObject (void) ;
+  Ada_OmniObject (void);
   // default constructor
   
-  Ada_OmniObject (omniObject_C2Ada* c_obj) ;
+  Ada_OmniObject (omniObject_C2Ada* cpp_object,
+		  int               interface);
   // constructor for proxy objects, only called in C++
   // that makes this Ada_OmniObject point on an already existent
   // omniObject_C2Ada
   
-  virtual ~Ada_OmniObject() ;
+  virtual ~Ada_OmniObject();
 
-  static Ada_OmniObject *Constructor() ;
+  static Ada_OmniObject *Constructor();
   // static constructor.
   // this is a workaround for gnat 3.11p where we cannot
   // write "new Object"
   // it is only called to create local objects
   
-  static void Destructor(Ada_OmniObject* o) ;
+  static void Destructor(Ada_OmniObject* o);
   // static destructor that will be called from the Ada code
   // because the virtual destructor cannot be called from tha Ada code
 
@@ -96,45 +97,45 @@ public:
 			  IOP::TaggedProfileList *profiles,
 			  _CORBA_Boolean release); 
   // Initialisation of a proxy object via call to the
-  // omniObject_C2Ada constructor on C_Object
+  // omniObject_C2Ada constructor on CPP_Object
   
   
-  static Ada_OmniObject* objectDuplicate(Ada_OmniObject* omniobj) ;
+  static Ada_OmniObject* objectDuplicate(Ada_OmniObject* omniobj);
   // Creation of an Ada_OmniObject referencing the same
   // omniObject ( used for Omniobject.Duplicate )
   
-  void objectIsReady() ;
-  // calls omni::objectIsReady on C_Object
+  void objectIsReady();
+  // calls omni::objectIsReady on CPP_Object
   // to tell the ORB that this local object is
   // ready to accpet connexions
   
-  void disposeObject() ;
+  void disposeObject();
   // calls omni::disposeObject on C_OmniObject
   // it has to be done only for local object
   // to tell the ORB they cannot receive connexions any longer
 
-  bool non_existent() ;
+  bool non_existent();
   // returns true if the ORB is sure that the
   // implementation referenced by this proxy object
   // does not exist
   
-  _CORBA_ULong hash(_CORBA_ULong maximum) ;
+  _CORBA_ULong hash(_CORBA_ULong maximum);
   // returns a hash value for this object
 
   void setRopeAndKey(const Ada_OmniRopeAndKey& l,_CORBA_Boolean keepIOP=1);
-  // calls the setRopeAndKey function of C_Object
+  // calls the setRopeAndKey function of CPP_Object
 
   void  getRopeAndKey(Ada_OmniRopeAndKey& l, _CORBA_Boolean &success);
-  // calls the getRopeAndKey function of C_Object
+  // calls the getRopeAndKey function of CPP_Object
 
   void resetRopeAndKey();
-  // calls the resetRopeAdnKey function of C_Object
+  // calls the resetRopeAdnKey function of CPP_Object
   
   void assertObjectExistent();
-  // calls the assertObjectExistent function of C_Object
+  // calls the assertObjectExistent function of CPP_Object
   
   _CORBA_Boolean is_proxy();
-  // calls the is_proxy function of C_Object
+  // calls the is_proxy function of CPP_Object
   
   virtual void dispatch(Ada_Giop_s &,
 			const char *operation,
@@ -146,54 +147,58 @@ public:
   // this function is made a procedure because it takes
   // arguments passed by reference
 
-  _CORBA_Boolean Ada_Is_A(const char *repoid) ;
+  _CORBA_Boolean Ada_Is_A(const char *repoid);
   // it is implemented in omniobject.ads
   // returns true if this object can be
   // widened/narrow into this interface
   
-  const char* getRepositoryID() ;
+  const char* getRepositoryID();
   // calls th NP_repositoryId of omniObject
   
-  static Ada_OmniObject* string_to_ada_object(const char *repoId) ;
+  static Ada_OmniObject* string_to_ada_object(const char *repoId);
   // this function executes omni::stringToObject,
   // and cast the result into an Ada_OmniObject.
   // it can only be called by Corba.Orb.String_To_Object
   
   static Ada_OmniObject* ada_create_objref(const char* repoId,
 					   IOP::TaggedProfileList* profiles,
-					   _CORBA_Boolean release) ;
+					   _CORBA_Boolean release);
   // this function is called by the Ada code
   // to create aCorba.Object.Ref when unmarshalling
   // out of a bufferedstream.
   // it calls omni:: createObjRef
   // in objectRef.cc L 391
 
-  static char* ada_object_to_string(Ada_OmniObject* objptr) ;
+  static char* ada_object_to_string(Ada_OmniObject* objptr);
   // this function calls omni::objectToString
   // on the underlying object
   
-  IOP::TaggedProfileList* iopProfiles() ; 
+  IOP::TaggedProfileList* iopProfiles(); 
   // this function calls omniobject::iopProfiles()
   // on the underlying object
 
 
-  omniObject_C2Ada *getOmniObject() ;
-  // returns the unserlying C_Object
+  omniObject_C2Ada *getOmniObject();
+  // returns the unserlying CPP_Object
   // used in proxyObjectFactory_C2Ada
   
 private:
 
-  void setRepositoryID(const char *repoId) ;
+  void setRepositoryID(const char *repoId);
   // sets the repository id for a local object
   
-  void* Implobj ;
+  void* Implobj;
   // This pointer is only used by the Ada side of this object
 
+  int  Interface;
+  // This index is only used by the Ada side of this object
+
 public:
-  omniObject_C2Ada *C_Object;
+  omniObject_C2Ada *CPP_Object;
   // Pointer on the underlying omniObject_C2Ada object
 
 private:
+
   bool Init_Ok;
   // This flag tells if an init function was called or not
 

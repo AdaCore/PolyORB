@@ -214,7 +214,7 @@ adabe_exception::produce_proxies_adb (dep_list &with, string &body)
       // we need to raise a special exception:
       // it can't be mapped directly into an
       // ADA exception
-      body += "            UnMarshall(member,GIOP_Client) ;\n";
+      body += "            Unmarshall(member,GIOP_Client) ;\n";
       body += "            CORBA.Raise_Corba_Exception(";
       body += get_ada_local_name ();
       body += "'Identity,\n";
@@ -248,7 +248,7 @@ adabe_exception::produce_marshal_ads (dep_list& with,string &body, string &previ
       body += "_Members ;\n";
       body += "                       S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
       
-      body += "   procedure UnMarshall (A : out ";
+      body += "   procedure Unmarshall (A : out ";
       body += get_ada_local_name();
       body += "_Members ;\n";
       body += "                         S : in out AdaBroker.NetBufferedStream.Object'Class) ;\n\n";
@@ -289,7 +289,7 @@ adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previ
       marshall += "   begin\n";
 
       // declaration of the function unmarshall
-      unmarshall += "   procedure UnMarshall(A : out ";
+      unmarshall += "   procedure Unmarshall(A : out ";
       unmarshall += get_ada_local_name();
       unmarshall += "_Members ;\n";
       unmarshall += "                        S : in out AdaBroker.NetBufferedStream.Object'Class) is\n";

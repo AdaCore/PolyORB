@@ -12,7 +12,7 @@ with AdaBroker.Exceptions;
 pragma Warnings (Off, AdaBroker.Exceptions);
 with AdaBroker.Constants;
 with AdaBroker.Debug;
-pragma Elaborate (AdaBroker.Debug);
+pragma Elaborate_All (AdaBroker.Debug);
 
 package body CORBA.Exceptions is
 
@@ -96,19 +96,18 @@ package body CORBA.Exceptions is
 
          Ada.Exceptions.Raise_Exception
            (AdaBroker_Fatal_Error'Identity,
-            "CORBA.exceptions.Get (Standard.String)" & CORBA.CRLF &
-            "Member associated to exception " &
-            Ada.Exceptions.Exception_Name (From) & " not found.");
+            "cannot translate member associated to " &
+            Ada.Exceptions.Exception_Name (From));
 
       else
          loop
-            pragma Debug (O ("get another loop"));
+            pragma Debug (O ("get : enter loop"));
 
             if Tmp.all.ID = ID then
                declare
                   Member : IDL_Exception_Members'Class := Tmp.all.Value.all;
                begin
-                  pragma Debug (O ("get found the right member"));
+                  pragma Debug (O ("get : find correct member"));
                   --  We can suppress the correponding cell
                   if Old = null then
                      List := Tmp.all.Next;
@@ -116,7 +115,7 @@ package body CORBA.Exceptions is
                      Old.all.Next := Tmp.all.Next;
                   end if;
 
-                  pragma Debug (O ("get free memory"));
+                  pragma Debug (O ("get : free memory"));
 
                   Free (Tmp.all.Value);
                   Free (Tmp);
@@ -130,7 +129,7 @@ package body CORBA.Exceptions is
                   --  At last, return the result
                   Result := Member;
 
-                  pragma Debug (O ("get leave"));
+                  pragma Debug (O ("get : leave loop"));
                   return;
                end;
 
@@ -139,18 +138,17 @@ package body CORBA.Exceptions is
                if Tmp.all.Next = null then
 
                --  Raise an Ada Exception AdaBroker_Fatal_Error
-                  pragma Debug (O ("get member * not found *"));
+                  pragma Debug (O ("get : cannot find member"));
 
                   Ada.Exceptions.Raise_Exception
                     (AdaBroker_Fatal_Error'Identity,
-                     "CORBA.exceptions.Get (Standard.String)" & CORBA.CRLF &
-                     "Member associated to exception " &
-                     Ada.Exceptions.Exception_Name (From) & " not found.");
+                     "cannot translate member associated to " &
+                     Ada.Exceptions.Exception_Name (From));
 
                else
                   --  Else go to the next element of the list
                   Old := Tmp;
-                  Tmp := Tmp.all.Next;
+                  Tmp := Tmp.Next;
                end if;
             end if;
          end loop;
@@ -166,9 +164,9 @@ package body CORBA.Exceptions is
       To   : out IDL_Exception_Members'Class)
    is
    begin
-      pragma Debug (O ("get_member enter"));
+      pragma Debug (O ("get_member : enter"));
       Get (From, To);
-      pragma Debug (O ("get_member leave"));
+      pragma Debug (O ("get_member : leave"));
    end Get_Members;
 
    ---------------------------

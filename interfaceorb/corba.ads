@@ -1,5 +1,4 @@
 with Ada.Exceptions;
-with Ada.Characters.Latin_1;
 with Ada.Strings.Unbounded;
 
 with Interfaces;
@@ -277,7 +276,7 @@ package CORBA is
    -- AdaBroker --
    ---------------
 
-   --  This should be moved elsewhere.
+   --  This should be moved somewhere else.
 
    type Unknown_Members         is new Ex_Body with null record;
    type Bad_Param_Members       is new Ex_Body with null record;
@@ -312,12 +311,6 @@ package CORBA is
    --  Raises the corresponding exception corba exception and stores its
    --  member so that it can be retrieved with Get_Members
 
-
-   CRLF : constant Standard.String
-     := (Ada.Characters.Latin_1.LF, Ada.Characters.Latin_1.CR);
-   --  Definition of the cariage return-line feed string used when one
-   --  wants to split a string into sevral lines : just write "first line"
-   --  & CORBA.CRLF & "second line"
 
    AdaBroker_Fatal_Error         : exception;
    --  Error in the AdaBroker runtime

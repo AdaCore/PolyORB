@@ -1,27 +1,3 @@
-/*************************************************************************************************
-***                              ADA BACK-END COMPILER                                         ***
-***                             file:  adabe_operation.cc                                      ***
-***                                                                                            ***
-***      This file provides the implementation of class adabe_operation declared in adabe.h    ***
-***   (L 466). This class is the correspondant of the Sun's Front-End class AST_Operation.     ***
-***   It provides produce functions for each generated file, a constructor and two little      ***
-***   functions : is_function() and return_is_void().                                          ***
-***                                                                                            ***
-***                                                                                            ***
-***   Copyright 1999                                                                           ***
-***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
-***                                                                                            ***
-***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
-***   General Public License, as published by the Free Software Foundation.                    ***
-***                                                                                            ***
-***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
-***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
-***  PURPOSE.                                                                                  ***
-***                                                                                            ***
-***  See the GNU General Public License for more details.                                      ***
-***                                                                                            ***
-***                                                                                            ***
-*************************************************************************************************/
 #include <adabe.h>
 
 ////////////////////////////////////////////////////////////////////////
@@ -33,7 +9,6 @@ adabe_operation::adabe_operation(AST_Type *rt, AST_Operation::Flags fl,
 		  AST_Decl(AST_Decl::NT_op, n, p),
 		  UTL_Scope(AST_Decl::NT_op),
 		  adabe_name(AST_Decl::NT_op, n, p)
-
 {
 }
 
@@ -41,7 +16,9 @@ adabe_operation::adabe_operation(AST_Type *rt, AST_Operation::Flags fl,
 ////////////////     produce_ads     ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 void
-adabe_operation::produce_ads(dep_list &with,string &body, string &previous)
+adabe_operation::produce_ads(dep_list & with,
+			     string   & body,
+			     string   & previous)
   // this method produce the ads_file,
   // with is the dependance-list
   // body is th main part of the file
@@ -59,19 +36,23 @@ adabe_operation::produce_ads(dep_list &with,string &body, string &previous)
       break;
     }
 
-  // we have a specific treatement for the operation which should be mapped in fonction
+  // we have a specific treatement for the operation which should be
+  // mapped in fonction
   if (is_function())
     {
       // the space is calculated for the presentation (length of the name)
       string space = "";
-      for (unsigned int i=0;i<get_ada_local_name().length();i++) space += " ";
+      for (unsigned int i = 0; i < get_ada_local_name().length(); i++)
+	space += " ";
       body += "   function " + get_ada_local_name() + "(Self : in Ref";
 
-      // we declare a scope(node list) to check all the nodes of the operation and dump them
+      // we declare a scope(node list) to check all the nodes of the
+      // operation and dump them
       UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
 
-      // while the list of node is not empty do the produce of the  argument in the ads-file
-      // all the nodes shoulb be arguments, else we throw an exception
+      // while the list of node is not empty do the produce of the
+      // argument in the ads-file all the nodes shoulb be arguments,
+      // else we throw an exception
       while (!i.is_done())
 	{
 	  body += " ;\n";
@@ -82,7 +63,10 @@ adabe_operation::produce_ads(dep_list &with,string &body, string &previous)
 	  if (d->node_type() == AST_Decl::NT_argument)
 	    // we cast it to select the method at run time
 	    dynamic_cast<adabe_name *>(d)->produce_ads(with, body, previous);
-	  else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
+	  else throw adabe_internal_error
+		 (__FILE__,
+		  __LINE__,
+		  "Unexpected node in operation");
        	  i.next();
 	}
       body += ")\n";
@@ -136,7 +120,7 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
   // previous contains the local definition of complexe types in the operation
 {
   // add some usefull package to the dep-list
-  with.add("AdaBroker.OmniProxyCallWrapper");
+  with.add ("AdaBroker.OmniProxyCallWrapper");
 
   // this boolean is set to determine if the operation is oneway or not
   bool oneway = false ;

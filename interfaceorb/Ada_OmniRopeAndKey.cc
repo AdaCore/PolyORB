@@ -57,7 +57,7 @@
 Ada_OmniRopeAndKey::Ada_OmniRopeAndKey ()
 {
   Init_Ok = false;
-  C_Object = 0 ;
+  CPP_Object = 0 ;
 };
 
 
@@ -67,10 +67,10 @@ void
 Ada_OmniRopeAndKey::Init ()
 {
 ADABROKER_TRY
-  if (C_Object) {
-    delete C_Object ;
+  if (CPP_Object) {
+    delete CPP_Object ;
   }
-  C_Object = new omniRopeAndKey ();
+  CPP_Object = new omniRopeAndKey ();
   Init_Ok = true;
 ADABROKER_CATCH
 };
@@ -81,8 +81,8 @@ void
 Ada_OmniRopeAndKey::Free ()
 {
 ADABROKER_TRY
-  if (C_Object) {
-    delete C_Object ;
+  if (CPP_Object) {
+    delete CPP_Object ;
   }
   Init_Ok = false ;
 ADABROKER_CATCH
@@ -97,8 +97,8 @@ Ada_OmniRopeAndKey::rope()
 ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    return C_Object->rope();
+    // function on CPP_Object
+    return CPP_Object->rope();
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -120,8 +120,8 @@ Ada_OmniRopeAndKey::key()
 ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    return C_Object->key();
+    // function on CPP_Object
+    return CPP_Object->key();
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -143,8 +143,8 @@ Ada_OmniRopeAndKey::keysize()
 ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    return C_Object->keysize();
+    // function on CPP_Object
+    return CPP_Object->keysize();
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
@@ -167,13 +167,13 @@ ADABROKER_TRY
     // if Initialisation was made then 
     // compare effectively the two objects
     // this code is pasted from corbaObject.cc L160
-    if (C_Object->keysize() != other.C_Object->keysize() ||
-	memcmp((void*)(C_Object->key()),(void*)(other.C_Object->key()),
-	       C_Object->keysize()) != 0) {
+    if (CPP_Object->keysize() != other.CPP_Object->keysize() ||
+	memcmp((void*)(CPP_Object->key()),(void*)(other.CPP_Object->key()),
+	       CPP_Object->keysize()) != 0) {
       return 0 ;
     }
     
-    if (C_Object->rope() == other.C_Object->rope())
+    if (CPP_Object->rope() == other.CPP_Object->rope())
       return 1;
     else
       return 0;      

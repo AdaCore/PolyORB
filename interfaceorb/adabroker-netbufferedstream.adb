@@ -19,7 +19,7 @@ with CORBA;
 
 with AdaBroker.Omni;
 with AdaBroker.Debug;
-pragma Elaborate (AdaBroker.Debug);
+pragma Elaborate_All (AdaBroker.Debug);
 
 package body AdaBroker.NetBufferedStream is
 
@@ -884,8 +884,7 @@ package body AdaBroker.NetBufferedStream is
          when others =>
             Ada.Exceptions.Raise_Exception
               (CORBA.AdaBroker_Fatal_Error'Identity,
-               "Expected Completion_Status in Unmarshall" & CORBA.CRLF &
-               "Short out of range" & CORBA.CRLF &
+               "incorrect Completion_Status in unmarshall " &
                "(see netbufferedstream L660)");
       end case;
    end Unmarshall;

@@ -14,6 +14,9 @@ CORBA::ORB_ptr
 Ada_ORB_init(int argc, char **argv,const char *orb_identifier)
 {
 ADABROKER_TRY
+#ifdef DEBUG
+  omniORB::traceLevel = 100;
+#endif
   return CORBA::ORB_init(argc, argv, orb_identifier) ;
 ADABROKER_CATCH
   // never reach here just a default return for dummy compilers.

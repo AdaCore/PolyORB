@@ -69,10 +69,10 @@ void
 Ada_Giop_c::Init (Rope *r)
 {
 ADABROKER_TRY
-  if (C_Object) {
+  if (CPP_Object) {
     // if we already have an object, release it
     // before creating a new one !
-    delete (GIOP_C*) C_Object ;
+    delete (GIOP_C*) CPP_Object ;
   }
 
 #ifdef DEBUG
@@ -81,7 +81,7 @@ ADABROKER_TRY
   }
 #endif
 
-  C_Object = new GIOP_C (r);
+  CPP_Object = new GIOP_C (r);
   Init_Ok = true;
 ADABROKER_CATCH
 };
@@ -93,9 +93,9 @@ void
 Ada_Giop_c::Free()
 {
 ADABROKER_TRY
-  if (C_Object) {
-    delete (GIOP_C*) C_Object ;
-    C_Object = 0 ;
+  if (CPP_Object) {
+    delete (GIOP_C*) CPP_Object ;
+    CPP_Object = 0 ;
   }
   Init_Ok = false ;
 ADABROKER_CATCH
@@ -115,8 +115,8 @@ Ada_Giop_c::InitialiseRequest(const void          *objkey,
 ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    ((GIOP_C *) C_Object)->InitialiseRequest(objkey,
+    // function on CPP_Object
+    ((GIOP_C *) CPP_Object)->InitialiseRequest(objkey,
 					     objkeysize,
 					     opname,
 					     opnamesize,
@@ -139,11 +139,11 @@ Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
 ADABROKER_TRY
     if (Init_Ok) {
       // if Initialisation was made then call the corresponding
-      // function on C_Object
+      // function on CPP_Object
 #ifdef DEBUG
     cerr << "Ada_Giop_c::ReceiveReply : call the omniORB function" << endl ;
 #endif
-      result = ((GIOP_C *) C_Object)->ReceiveReply();
+      result = ((GIOP_C *) CPP_Object)->ReceiveReply();
 #ifdef DEBUG
     cerr << "Ada_Giop_c::ReceiveReply : the omniORB function returned successfull" << endl ;
 #endif
@@ -165,8 +165,8 @@ Ada_Giop_c::RequestCompleted(_CORBA_Boolean skip)
 ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
-    // function on C_Object
-    ((GIOP_C *) C_Object)->RequestCompleted (skip);
+    // function on CPP_Object
+    ((GIOP_C *) CPP_Object)->RequestCompleted (skip);
   } else {
     // else raise an Ada Exception
     throw omniORB::fatalException(__FILE__,
