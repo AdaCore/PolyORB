@@ -46,9 +46,7 @@ with Broca.Exceptions;
 with Broca.GIOP;
 with Broca.Stream;
 with Broca.Flags;
-
 with Broca.ORB;
-pragma Elaborate_All (Broca.ORB);
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);

@@ -40,6 +40,8 @@ pragma Elaborate_All (CORBA);
 
 package Broca.ORB is
 
+   pragma Elaborate_Body;
+
    procedure IOR_To_Object
      (IOR : access Broca.Buffers.Buffer_Type;
       Ref : out CORBA.Object.Ref'Class);

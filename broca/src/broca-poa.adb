@@ -34,14 +34,12 @@
 with Broca.Exceptions;
 with Broca.Refs;
 with Broca.Sequences;
-with Broca.Opaque;
 with Broca.CDR;
 with Broca.Buffers; use Broca.Buffers;
+with Broca.Server;
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
-
-with Ada.Unchecked_Conversion;
 
 package body Broca.POA is
 
@@ -65,9 +63,11 @@ package body Broca.POA is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Value  : in Skeleton) is
+      Value  : Skeleton) is
    begin
-      Broca.Sequences.Marshall (Buffer, Value.IOR);
+      Broca.CDR.Marshall
+        (Buffer,
+         Skeleton_To_Ref (Value));
    end Marshall;
 
    -----------------
@@ -117,23 +117,21 @@ package body Broca.POA is
    ---------------------
 
    function Skeleton_To_Ref
-     (Skel : Skeleton_Ptr)
+     (Skel : Skeleton)
      return CORBA.Object.Ref
    is
       use Broca.Sequences;
-      use Broca.Opaque;
       use Broca.Sequences.Octet_Sequences;
 
-      Len : constant Natural := Length (Skel.IOR);
-      subtype T1 is Element_Array (1 .. Len);
-      subtype T2 is Octet_Array (1 .. Index_Type (Len));
-      function T1_To_T2 is new Ada.Unchecked_Conversion (T1, T2);
-      A : aliased Octet_Array := T1_To_T2 (To_Element_Array (Skel.IOR));
+      IOR_Encapsulation : aliased Encapsulation
+        := Broca.Server.Build_IOR
+        (Skel.Type_Id, Skel.POA, Skel.Object_Key.all);
+
       B : aliased Buffer_Type;
       R : CORBA.Object.Ref;
 
    begin
-      Broca.Buffers.Decapsulate (A'Access, B'Access);
+      Broca.Buffers.Decapsulate (IOR_Encapsulation'Access, B'Access);
       Show (B);
       Broca.CDR.Unmarshall (B'Access, R);
       Release (B);

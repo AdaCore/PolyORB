@@ -474,7 +474,7 @@ package body Portableserver.POA is
       end if;
 
       return Broca.POA.Skeleton_To_Ref
-        (Broca.POA.Servant_To_Skeleton (POA, P_Servant));
+        (Broca.POA.Servant_To_Skeleton (POA, P_Servant).all);
    end Servant_To_Reference;
 
    ---------------------
@@ -576,7 +576,7 @@ package body Portableserver.POA is
          raise PortableServer.POA.ObjectNotActive;
       end if;
 
-      return Broca.POA.Skeleton_To_Ref (Skel);
+      return Broca.POA.Skeleton_To_Ref (Skel.all);
    end Id_To_Reference;
 
 end Portableserver.POA;

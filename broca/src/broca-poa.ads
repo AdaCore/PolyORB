@@ -34,12 +34,13 @@
 with CORBA;
 with CORBA.Object;
 with CORBA.Impl;
+
 with PortableServer; use PortableServer;
 with PortableServer.AdapterActivator;
 with PortableServer.ServantManager;
+
 with Broca.Buffers;
 with Broca.Locks;
-with Broca.Sequences;
 
 package Broca.POA is
 
@@ -118,12 +119,14 @@ package Broca.POA is
    type Internal_Skeleton_Ptr is access all Internal_Skeleton;
 
    --  Can raise Bad_Param.
-   function To_Internal_Skeleton (Ref : CORBA.Object.Ref'Class)
-                                  return Internal_Skeleton_Ptr;
+   function To_Internal_Skeleton
+     (Ref : CORBA.Object.Ref'Class)
+     return Internal_Skeleton_Ptr;
 
    --  Also set usage counter to 1.
-   function Create_Internal_Skeleton (P_Servant : PortableServer.Servant)
-                                      return Internal_Skeleton_Ptr;
+   function Create_Internal_Skeleton
+     (P_Servant : PortableServer.Servant)
+     return Internal_Skeleton_Ptr;
 
    ----------------
    --  Skeleton  --
@@ -131,12 +134,13 @@ package Broca.POA is
 
    --  A Skeleton is the internal object for an object implementation.
 
+   type Object_Key_Ptr is access Broca.Buffers.Encapsulation;
+
    type Skeleton is new CORBA.Impl.Object with
    --  type Skeleton is new Broca.Refs.Ref_Type with
       record
-         --  IOR created for this object.
-         IOR : Broca.Sequences.Octet_Sequence :=
-           Broca.Sequences.Null_Sequence;
+         Type_Id    : CORBA.RepositoryId;
+         Object_Key : Object_Key_Ptr;
 
          P_Servant : PortableServer.Servant;
 
@@ -155,7 +159,7 @@ package Broca.POA is
    type Skeleton_Ptr is access all Skeleton;
 
    function Skeleton_To_Ref
-     (Skel : Skeleton_Ptr)
+     (Skel : Skeleton)
      return CORBA.Object.Ref;
 
    --  Can raise Bad_Param.
@@ -307,4 +311,5 @@ package Broca.POA is
                           Wait_For_Completion : CORBA.Boolean) is abstract;
 
    procedure Cleanup (Self : access POA_Object) is abstract;
+
 end Broca.POA;

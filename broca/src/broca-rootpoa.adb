@@ -32,34 +32,35 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Ada.Task_Attributes;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
+
 with CORBA;
 with CORBA.Object;
+with CORBA.Impl;
+
+
 with PortableServer; use PortableServer;
 with PortableServer.POA;
 with PortableServer.AdapterActivator;
 with PortableServer.ServantManager;
 with PortableServer.ServantActivator.Impl;
 with PortableServer.ServantLocator.Impl;
+
+with Broca.Flags;
 with Broca.Refs;
 with Broca.Exceptions;
-with Broca.POA; use Broca.POA;
-with Broca.Sequences;
 with Broca.ORB;
+with Broca.POA; use Broca.POA;
 with Broca.Vararray;
 with Broca.Buffers; use Broca.Buffers;
+with Broca.CDR;
 with Broca.Server;
 with Broca.Inet_Server;
 with Broca.Locks;
-with Broca.CDR;
-with Broca.Flags;
-with Ada.Task_Attributes;
-
-with CORBA.Impl;
 
 pragma Elaborate_All (Broca.Vararray);
-pragma Elaborate_All (Broca.ORB);
 pragma Elaborate_All (Broca.Refs);
 pragma Elaborate_All (CORBA.Object);
 pragma Elaborate_All (Broca.Server);
@@ -718,13 +719,12 @@ package body Broca.Rootpoa is
       Oid       : ObjectId)
      return Broca.POA.Skeleton_Ptr
    is
-      use Broca.Sequences;
-
       Key : aliased Buffer_Type;
       Obj : Broca.POA.Skeleton_Ptr;
 
    begin
       Obj := new Broca.POA.Skeleton;
+      Obj.Type_Id := Type_Id;
       Obj.P_Servant := P_Servant;
       Obj.Object_Id := Oid;
       Obj.POA := POA_Object_Ptr (Self);
@@ -741,11 +741,11 @@ package body Broca.Rootpoa is
          Build_Key_For_ObjectId (Key'Access, Oid);
       end if;
 
-      Obj.IOR := Octet_Sequences.To_Sequence
-        (To_CORBA_Octet_Array
-         (Broca.Server.Build_IOR
-          (Type_Id, Broca.POA.POA_Object_Ptr (Self),
-           Encapsulate (Key'Access))));
+      --  FIXME: Memory leak. This allocation
+      --    should be freed when the skeleton
+      --    is not in use anymore.
+      Obj.Object_Key := new Encapsulation'
+        (Encapsulate (Key'Access));
 
       Release (Key);
 
