@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -50,6 +50,8 @@ package body XE_Utils is
    Gnatbind       : String_Access;
    Gnatlink       : String_Access;
    Gnatmake       : String_Access;
+
+   Up_To_Low : constant := Character'Pos ('A') - Character'Pos ('a');
 
    EOL : constant String := (1 => Ascii.LF);
 
@@ -758,7 +760,7 @@ package body XE_Utils is
       L2 : String_Access;
 
    begin
-      
+
       D1 := DSA_Dir &
             Dir_Sep_Id & Configuration &
             Dir_Sep_Id & Partition;
@@ -833,6 +835,30 @@ package body XE_Utils is
       Get_Name_String (Name);
       return Name_Len;
    end Strlen;
+
+   --------------
+   -- To_Lower --
+   --------------
+
+   procedure To_Lower (S : in out String) is
+   begin
+      for I in S'Range loop
+         if S (I) in 'A' .. 'Z' then
+            S (I) := Character'Val (Character'Pos (S (I)) - Up_To_Low);
+         end if;
+      end loop;
+   end To_Lower;
+
+   --------------
+   -- To_Lower --
+   --------------
+
+   procedure To_Lower (N : in out Name_Id) is
+   begin
+      Get_Name_String (N);
+      To_Lower (Name_Buffer (1 .. Name_Len));
+      N := Name_Find;
+   end To_Lower;
 
    ------------
    -- U_To_N --

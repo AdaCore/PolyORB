@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -202,6 +202,9 @@ package XE_Utils is
    --  Set into name table and return id.
 
    function Strlen (Name : in Name_Id) return Natural;
+
+   procedure To_Lower (S : in out String);
+   procedure To_Lower (N : in out Name_Id);
 
    function U_To_N
      (U : in Unit_Name_Type)

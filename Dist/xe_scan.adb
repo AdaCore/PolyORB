@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -38,8 +38,6 @@ package body XE_Scan is
    Location : Location_Type;
    Buffer   : Source_Buffer_Ptr;
    Scan_Ptr : Source_Ptr;
-
-   Up_To_Low : constant := Character'Pos ('A') - Character'Pos ('a');
 
    procedure New_Line;
    --  Update SLOC.
@@ -282,10 +280,7 @@ package body XE_Scan is
 
                   Char := Buffer (Scan_Ptr);
                   case Char is
-                     when 'A' .. 'Z' =>
-                        Char := Character'Val
-                          (Character'Pos (Char) - Up_To_Low);
-                     when 'a' .. 'z' | '0' .. '9' | '_' =>
+                     when 'A' .. 'Z' | 'a' .. 'z' | '0' .. '9' | '_' =>
                         null;
                      when others =>
                         exit;
@@ -299,6 +294,7 @@ package body XE_Scan is
                if Name_Len = 0 then
                   Token      := Tok_Unknown;
                else
+                  To_Lower (Name_Buffer (1 .. Name_Len));
                   Token      := Tok_Identifier;
                   Token_Name := Name_Find;
                end if;
