@@ -52,8 +52,7 @@ package PortableInterceptor.ServerRequestInfo is
    function Get_ORB_Id (Self : in Local_Ref) return ORBId;
    --  Not implemented.
 
---   function Get_Adapter_Name (Self : in Local_Ref) return AdapterName;
---   --  Not implemented.
+   function Get_Adapter_Name (Self : in Local_Ref) return AdapterName;
 
    function Get_Object_Id (Self : in Local_Ref) return ObjectId;
 

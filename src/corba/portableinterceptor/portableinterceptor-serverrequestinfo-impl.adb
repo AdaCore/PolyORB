@@ -42,7 +42,7 @@ with PolyORB.Binding_Data;
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.Objects;
-with PolyORB.References;
+with PolyORB.POA;
 
 package body PortableInterceptor.ServerRequestInfo.Impl is
 
@@ -63,11 +63,37 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
 --
 --   function Get_Adapter_Id (Self : access Object) return CORBA.OctetSeq;
 
---   ----------------------
---   -- Get_Adapter_Name --
---   ----------------------
---
---   function Get_Adapter_Name (Self : access Object) return AdapterName;
+   ----------------------
+   -- Get_Adapter_Name --
+   ----------------------
+
+   function Get_Adapter_Name
+     (Self : access Object)
+      return AdapterName
+   is
+   begin
+      if Self.Point = Receive_Request_Service_Contexts then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      declare
+         use type PolyORB.POA.Obj_Adapter_Access;
+
+         OA     : PolyORB.POA.Obj_Adapter_Access
+           := PolyORB.POA.Obj_Adapter_Access
+               (PolyORB.Binding_Data.Get_OA (Self.Profile.all));
+         Result : AdapterName;
+      begin
+         while OA /= null loop
+            Result := CORBA.String (OA.Name) & Result;
+            OA     := PolyORB.POA.Obj_Adapter_Access (OA.Father);
+         end loop;
+
+         return Result;
+      end;
+   end Get_Adapter_Name;
 
    -------------------
    -- Get_Arguments --
@@ -85,7 +111,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
       end if;
 
       --  If Receive_Request interception point called from Set_Exception
-      --  then the arguments is not available and No_Resource (with minor
+      --  then the arguments is not available and NO_RESOURCES (with minor
       --  code 1) raised. If Set_Exception called after Arguments then
       --  interception point called only once from Arguments.
 
@@ -177,11 +203,6 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
      (Self : access Object)
       return ObjectId
    is
-      use Ada.Streams;
-      use PolyORB.Binding_Data;
-      use PolyORB.Objects;
-      use PolyORB.References;
-
    begin
       if Self.Point = Receive_Request_Service_Contexts then
          CORBA.Raise_Bad_Inv_Order
@@ -206,11 +227,11 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
       end if;
 
       declare
-         Profiles : constant Profile_Array
-           := Profiles_Of (Self.Request.Target);
-         Key      : constant Object_Id_Access
-           := Get_Object_Key (Profiles (Profiles'First).all);
-         Id       : IDL_Sequence_Octet.Element_Array (1 .. Key'Length);
+         use type Ada.Streams.Stream_Element_Offset;
+
+         Key : constant PolyORB.Objects.Object_Id_Access
+           := PolyORB.Binding_Data.Get_Object_Key (Self.Profile.all);
+         Id  : IDL_Sequence_Octet.Element_Array (1 .. Key'Length);
 
          function To_Octet is new Ada.Unchecked_Conversion
            (Ada.Streams.Stream_Element, CORBA.Octet);
@@ -384,6 +405,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
      (Self         : access Object;
       Point        : in     Server_Interception_Point;
       Request      : in     PolyORB.Requests.Request_Access;
+      Profile      : in     PolyORB.Binding_Data.Profile_Access;
       Args_Present : in     Boolean)
    is
    begin
@@ -391,6 +413,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
        (RequestInfo.Impl.Object (Self.all)'Access, Request);
       Self.Point        := Point;
       Self.Request      := Request;
+      Self.Profile      := Profile;
       Self.Args_Present := Args_Present;
    end Init;
 

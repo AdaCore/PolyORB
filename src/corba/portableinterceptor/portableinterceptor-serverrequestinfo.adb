@@ -58,23 +58,23 @@ package body PortableInterceptor.ServerRequestInfo is
 --        Service_Context,
 --        Replace);
 
---   ----------------------
---   -- Get_Adapter_Name --
---   ----------------------
---
---   function Get_Adapter_Name (Self : in Local_Ref) return AdapterName is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return
---        PortableInterceptor.ServerRequestInfo.Impl.Get_Adapter_Name
---         (PortableInterceptor.ServerRequestInfo.Impl.Object_Ptr
---           (Entity_Of (Self)));
---   end Get_Adapter_Name;
+   ----------------------
+   -- Get_Adapter_Name --
+   ----------------------
+
+   function Get_Adapter_Name (Self : in Local_Ref) return AdapterName is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return
+        PortableInterceptor.ServerRequestInfo.Impl.Get_Adapter_Name
+         (PortableInterceptor.ServerRequestInfo.Impl.Object_Ptr
+           (Entity_Of (Self)));
+   end Get_Adapter_Name;
 
 --   --------------------
 --   -- Get_Adapter_Id --

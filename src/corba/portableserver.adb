@@ -39,6 +39,7 @@ with PolyORB.CORBA_P.Names;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 
 with PolyORB.Annotations;
+with PolyORB.Binding_Data;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Requests;
@@ -84,7 +85,8 @@ package body PortableServer is
 
    procedure Default_Invoke
      (Servant : access PolyORB.Smart_Pointers.Entity'Class;
-      Request : in     PolyORB.Requests.Request_Access);
+      Request : in     PolyORB.Requests.Request_Access;
+      Profile : in     PolyORB.Binding_Data.Profile_Access);
    --  This is the default server side invocation handler.
 
    --------------------
@@ -93,8 +95,10 @@ package body PortableServer is
 
    procedure Default_Invoke
      (Servant : access PolyORB.Smart_Pointers.Entity'Class;
-      Request : in     PolyORB.Requests.Request_Access)
+      Request : in     PolyORB.Requests.Request_Access;
+      Profile : in     PolyORB.Binding_Data.Profile_Access)
    is
+      pragma Unreferenced (Profile);
    begin
       Invoke (DynamicImplementation'Class (Servant.all)'Access,
               Request);
@@ -117,15 +121,17 @@ package body PortableServer is
 
       if Msg in Execute_Request then
          declare
+            use PolyORB.Binding_Data;
             use PolyORB.Requests;
             use CORBA.ServerRequest;
             use PolyORB.Exceptions;
 
             R : constant Request_Access := Execute_Request (Msg).Req;
+            P : constant Profile_Access := Execute_Request (Msg).Pro;
             Error : Error_Container;
          begin
             PolyORB.CORBA_P.Interceptors_Hooks.Server_Invoke
-              (DynamicImplementation'Class (Self.all)'Access, R);
+              (DynamicImplementation'Class (Self.all)'Access, R, P);
 
             if R.Arguments_Called then
 

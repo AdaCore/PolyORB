@@ -33,6 +33,7 @@
 
 --  Hook to set up request's invoke method used by the CORBA personality.
 
+with PolyORB.Binding_Data;
 with PolyORB.Requests;
 with PolyORB.Smart_Pointers;
 
@@ -45,7 +46,8 @@ package PolyORB.CORBA_P.Interceptors_Hooks is
    type Server_Invoke_Handler is access procedure
      (Self    : access PolyORB.Smart_Pointers.Entity'Class;
       --  Actually must be PortableServer.DynamicImplementation'Class.
-      Request : in     PolyORB.Requests.Request_Access);
+      Request : in     PolyORB.Requests.Request_Access;
+      Profile : in     PolyORB.Binding_Data.Profile_Access);
 
    type Server_Intermediate_Handler is access procedure
      (Self           : in PolyORB.Requests.Request_Access;

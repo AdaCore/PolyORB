@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Object;
-with PolyORB.Any;
 with PolyORB.CORBA_P.Exceptions;
 with PolyORB.CORBA_P.Interceptors_Hooks;
 with PolyORB.CORBA_P.Interceptors_Slots;
@@ -108,7 +107,8 @@ package body PolyORB.CORBA_P.Interceptors is
 
    procedure Server_Invoke
      (Servant : access PolyORB.Smart_Pointers.Entity'Class;
-      Request : in     PolyORB.Requests.Request_Access);
+      Request : in     PolyORB.Requests.Request_Access;
+      Profile : in     PolyORB.Binding_Data.Profile_Access);
 
    procedure Server_Intermediate
      (Request        : in PolyORB.Requests.Request_Access;
@@ -116,6 +116,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
    function Create_Server_Request_Info
      (Request      : in PolyORB.Requests.Request_Access;
+      Profile      : in PolyORB.Binding_Data.Profile_Access;
       Point        : in Server_Interception_Point;
       Args_Present : in Boolean)
       return PortableInterceptor.ServerRequestInfo.Local_Ref;
@@ -549,6 +550,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
    function Create_Server_Request_Info
      (Request      : in PolyORB.Requests.Request_Access;
+      Profile      : in PolyORB.Binding_Data.Profile_Access;
       Point        : in Server_Interception_Point;
       Args_Present : in Boolean)
       return PortableInterceptor.ServerRequestInfo.Local_Ref
@@ -558,7 +560,7 @@ package body PolyORB.CORBA_P.Interceptors is
       Info_Ref : PortableInterceptor.ServerRequestInfo.Local_Ref;
    begin
       PortableInterceptor.ServerRequestInfo.Impl.Init
-       (Info_Ptr, Point, Request, Args_Present);
+       (Info_Ptr, Point, Request, Profile, Args_Present);
 
       PortableInterceptor.ServerRequestInfo.Set
         (Info_Ref, PolyORB.Smart_Pointers.Entity_Ptr (Info_Ptr));
@@ -664,7 +666,7 @@ package body PolyORB.CORBA_P.Interceptors is
             Call_Receive_Request
               (Element (All_Server_Interceptors, J).all,
                Create_Server_Request_Info
-                 (Request, Receive_Request, From_Arguments),
+                 (Request, Note.Profile, Receive_Request, From_Arguments),
                Note.Exception_Info,
                Note.Forward_Request);
 
@@ -690,7 +692,8 @@ package body PolyORB.CORBA_P.Interceptors is
 
    procedure Server_Invoke
      (Servant : access PolyORB.Smart_Pointers.Entity'Class;
-      Request : in     PolyORB.Requests.Request_Access)
+      Request : in     PolyORB.Requests.Request_Access;
+      Profile : in     PolyORB.Binding_Data.Profile_Access)
    is
       use ServerRequestInterceptor_Lists;
 
@@ -714,6 +717,7 @@ package body PolyORB.CORBA_P.Interceptors is
       Skip_Invocation : Boolean := False;
       Note            : Server_Interceptor_Note
         := (PolyORB.Annotations.Note with
+              Profile             => Profile,
               Last_Interceptor    => Length (All_Server_Interceptors),
               Forward_Request     => False,
               Exception_Info      => Empty_Any,
@@ -727,7 +731,7 @@ package body PolyORB.CORBA_P.Interceptors is
          Call_Receive_Request_Service_Contexts
            (Element (All_Server_Interceptors, J).all,
             Create_Server_Request_Info
-              (Request, Receive_Request_Service_Contexts, False),
+              (Request, Profile, Receive_Request_Service_Contexts, False),
             Note.Exception_Info,
             Note.Forward_Request);
 
@@ -780,7 +784,8 @@ package body PolyORB.CORBA_P.Interceptors is
             if Note.Forward_Request then
                Call_Send_Other
                  (Element (All_Server_Interceptors, J).all,
-                  Create_Server_Request_Info (Request, Send_Other, True),
+                  Create_Server_Request_Info
+                    (Request, Profile, Send_Other, True),
                   Note.Exception_Info,
                   Note.Forward_Request);
 
@@ -790,7 +795,8 @@ package body PolyORB.CORBA_P.Interceptors is
             else
                Call_Send_Exception
                  (Element (All_Server_Interceptors, J).all,
-                  Create_Server_Request_Info (Request, Send_Exception, True),
+                  Create_Server_Request_Info
+                    (Request, Profile, Send_Exception, True),
                   Note.Exception_Info,
                   Note.Forward_Request);
 
@@ -802,7 +808,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
             Call_Send_Reply
               (Element (All_Server_Interceptors, J).all,
-               Create_Server_Request_Info (Request, Send_Reply, True),
+               Create_Server_Request_Info (Request, Profile, Send_Reply, True),
                Note.Exception_Info,
                Note.Forward_Request);
 

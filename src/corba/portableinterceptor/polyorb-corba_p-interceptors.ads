@@ -33,6 +33,7 @@
 
 with PolyORB.Annotations;
 with PolyORB.Any;
+with PolyORB.Binding_Data;
 with PortableInterceptor.ClientRequestInterceptor;
 with PortableInterceptor.ORBInitializer;
 with PortableInterceptor.ServerRequestInterceptor;
@@ -95,6 +96,7 @@ private
    --  Server interceptors
 
    type Server_Interceptor_Note is new PolyORB.Annotations.Note with record
+      Profile             : PolyORB.Binding_Data.Profile_Access;
       Last_Interceptor    : Natural;
       Forward_Request     : Boolean;
       Exception_Info      : PolyORB.Any.Any;

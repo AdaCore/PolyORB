@@ -38,6 +38,7 @@
 
 with CORBA;
 with CORBA.Policy;
+with PolyORB.Binding_Data;
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.Requests;
 
@@ -57,6 +58,7 @@ package PortableInterceptor.ServerRequestInfo.Impl is
       Point        : in
         PolyORB.CORBA_P.Interceptors.Server_Interception_Point;
       Request      : in     PolyORB.Requests.Request_Access;
+      Profile      : in     PolyORB.Binding_Data.Profile_Access;
       Args_Present : in     Boolean);
 
    function Get_Sending_Exception (Self : access Object) return CORBA.Any;
@@ -65,7 +67,7 @@ package PortableInterceptor.ServerRequestInfo.Impl is
 
    function Get_ORB_Id (Self : access Object) return ORBId;
 
---   function Get_Adapter_Name (Self : access Object) return AdapterName;
+   function Get_Adapter_Name (Self : access Object) return AdapterName;
 
    function Get_Object_Id (Self : access Object) return ObjectId;
 
@@ -107,6 +109,7 @@ private
    record
       Point        : PolyORB.CORBA_P.Interceptors.Server_Interception_Point;
       Request      : PolyORB.Requests.Request_Access;
+      Profile      : PolyORB.Binding_Data.Profile_Access;
       Args_Present : Boolean;
    end record;
 
