@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#13 $
+--  $Id: //droopi/main/src/polyorb-any.ads#14 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -967,7 +967,7 @@ private
    procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr);
    function Get_Value (Obj : Any) return Any_Content_Ptr;
    function Get_Value_Ptr (Obj : Any) return Any_Content_Ptr_Ptr;
-   function Get_Counter (Obj : Any) return Natural_Ptr;
+   function Get_Counter (Obj : Any) return Natural;
 
    --  The control procedures to the Any type
    procedure Initialize (Object : in out Any);

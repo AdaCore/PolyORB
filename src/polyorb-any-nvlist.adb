@@ -66,12 +66,13 @@ package body PolyORB.Any.NVList is
       pragma Debug (O ("Add_Item (4 params) : Item type is "
                        & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
-                       & Positive'Image (Get_Counter (Item).all)));
+                       & Positive'Image (Get_Counter (Item))));
       Lock_W (Item.Any_Lock);
       The_Value := Item.The_Value;
       The_Counter := Item.Ref_Counter;
       Item.Ref_Counter.all := Item.Ref_Counter.all + 1;
       Unlock_W (Item.Any_Lock);
+
       Argument := (Ada.Finalization.Controlled with
                    The_Value => The_Value,
                    The_Type => Item.The_Type,
@@ -82,7 +83,7 @@ package body PolyORB.Any.NVList is
                        Argument => Argument,
                        Arg_Modes => Item_Flags));
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
-                       & Positive'Image (Get_Counter (Item).all)));
+                       & Positive'Image (Get_Counter (Item))));
       pragma Debug (O ("Add_Item (4 params) : end"));
    end Add_Item;
 

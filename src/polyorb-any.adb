@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#21 $
+--  $Id: //droopi/main/src/polyorb-any.adb#22 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -2923,7 +2923,7 @@ package body PolyORB.Any is
       pragma Debug (O2 ("Adjust : enter, Object = "
                         & System.Address_Image (Object'Address)));
       pragma Debug (O2 ("  Cnt = "
-                         & Integer'Image (Get_Counter (Object).all)));
+                         & Integer'Image (Get_Counter (Object))));
       pragma Debug (O2 ("  Lck = "
                         & System.Address_Image
                         (Object.Any_Lock.all'Address)));
@@ -2994,16 +2994,19 @@ package body PolyORB.Any is
       return Get_Value_Ptr (Obj).all;
    end Get_Value;
 
-   -------------------
-   --  Get_Counter  --
-   -------------------
-   function Get_Counter (Obj : Any) return Natural_Ptr is
-      Counter : Natural_Ptr;
+   -----------------
+   -- Get_Counter --
+   -----------------
+
+   function Get_Counter (Obj : Any) return Natural is
    begin
       Lock_R (Obj.Any_Lock);
-      Counter := Obj.Ref_Counter;
-      Unlock_R (Obj.Any_Lock);
-      return Counter;
+      declare
+         Counter : constant Natural := Obj.Ref_Counter.all;
+      begin
+         Unlock_R (Obj.Any_Lock);
+         return Counter;
+      end;
    end Get_Counter;
 
    ---------------
