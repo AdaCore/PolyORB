@@ -12,6 +12,14 @@ package all_types.Stream is
 
    procedure Marshall
       (Stream : access Broca.Buffers.Buffer_Type;
+       Val : Ref);
+
+   function Unmarshall
+      (Stream : access Broca.Buffers.Buffer_Type)
+       return Ref;
+
+   procedure Marshall
+      (Stream : access Broca.Buffers.Buffer_Type;
        Val : my_exception_Members);
 
    function Unmarshall

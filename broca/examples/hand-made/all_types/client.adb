@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.1 $
+--                            $Revision: 1.2 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -38,6 +38,8 @@ with all_types; use all_types;
 with Report;    use Report;
 
 procedure Client is
+   One_Shot : constant Boolean := True;
+
    IOR : CORBA.String;
    Myall_types : all_types.Ref;
 begin
@@ -214,14 +216,15 @@ begin
                  Counter_Second_Value = Counter_First_Value + 1);
       end;
 
+      exit when One_Shot;
+
    end loop;
 
---     declare
---        X : all_types.Ref;
---     begin
---        X := echoRef (Myall_types, Myall_types);
---        Output ("test self reference", echoLong (X, 31337) = 31337);
---     end;
-   Output ("test self reference", False);
+   declare
+      X : all_types.Ref;
+   begin
+      X := echoRef (Myall_types, Myall_types);
+      Output ("test self reference", echoLong (X, 31337) = 31337);
+   end;
 
 end Client;

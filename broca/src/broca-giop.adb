@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.21 $
+--                            $Revision: 1.22 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -265,7 +265,7 @@ package body Broca.GIOP is
       Marshall (Buffer, Broca.GIOP.Location_Forward);
 
       --  Reference
-      Broca.Refs.Marshall
+      Broca.Refs.Marshall_Reference
         (Buffer, Broca.Refs.Ref (Reference));
    end Marshall;
 

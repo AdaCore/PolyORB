@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.14 $
+--                            $Revision: 1.15 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -159,7 +159,7 @@ package body Broca.Refs is
    -- Marshall --
    --------------
 
-   procedure Marshall
+   procedure Marshall_Reference
      (Buffer : access Buffer_Type;
       Value  : in Ref) is
    begin
@@ -167,13 +167,13 @@ package body Broca.Refs is
          Broca.Exceptions.Raise_Marshal;
       end if;
       Marshall (Buffer, Value.A_Ref.all);
-   end Marshall;
+   end Marshall_Reference;
 
    ----------------
    -- Unmarshall --
    ----------------
 
-   procedure Unmarshall
+   procedure Unmarshall_Reference
      (Buffer : access Buffer_Type;
       Value  : out Ref)
    is
@@ -184,7 +184,7 @@ package body Broca.Refs is
       Unmarshall (Buffer, Obj.all);
       Set (New_Ref, Obj);
       Value := New_Ref;
-   end Unmarshall;
+   end Unmarshall_Reference;
 
    ---------
    -- Get --

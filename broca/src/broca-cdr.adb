@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -75,6 +75,24 @@ package body Broca.CDR is
    --  Size octets from it.
    --  The data is returned in big-endian byte order.
 
+   procedure Align_Marshall_Host_Endian_Copy
+     (Buffer    : access Buffer_Type;
+      Octets    : Octet_Array;
+      Alignment : Alignment_Type := 1);
+   --  Align Buffer on Alignment, then marshall a copy of
+   --  Octets into it.
+   --  The data in Octets shall be presented in the
+   --  host's byte order.
+
+   function Align_Unmarshall_Host_Endian_Copy
+     (Buffer    : access Buffer_Type;
+      Size      : Index_Type;
+      Alignment : Alignment_Type := 1)
+     return Octet_Array;
+   --  Align Buffer on Alignment, then unmarshall a copy of
+   --  Size octets from it.
+   --  The data is returned in the host's byte order.
+
    procedure Align_Marshall_Copy
      (Buffer    : access Buffer_Type;
       Octets    : in Octet_Array;
@@ -107,6 +125,25 @@ package body Broca.CDR is
    function To_Unsigned_Short is
       new Ada.Unchecked_Conversion
      (CORBA.Short, CORBA.Unsigned_Short);
+
+   -------------------------------------------
+   --  Conversions for floating point types --
+   -------------------------------------------
+
+   subtype Double_Buf is Octet_Array (1 .. 8);
+
+   function To_Unsigned_Long is
+      new Ada.Unchecked_Conversion
+     (CORBA.Float, CORBA.Unsigned_Long);
+   function To_Float is
+      new Ada.Unchecked_Conversion
+     (CORBA.Unsigned_Long, CORBA.Float);
+   function To_Double_Buf is
+      new Ada.Unchecked_Conversion
+     (CORBA.Double, Double_Buf);
+   function To_Double is
+      new Ada.Unchecked_Conversion
+     (Double_Buf, CORBA.Double);
 
    ----------------------------------
    -- Marshall-by-copy subprograms --
@@ -177,6 +214,25 @@ package body Broca.CDR is
    is
    begin
       Marshall (Buffer, To_Unsigned_Short (Data));
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data : in CORBA.Float)
+   is
+   begin
+      Marshall (Buffer, To_Unsigned_Long (Data));
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data : in CORBA.Double)
+   is
+      Buf : Double_Buf
+        := To_Double_Buf (Data);
+   begin
+      Align_Marshall_Host_Endian_Copy
+        (Buffer, Buf, 8);
    end Marshall;
 
    procedure Marshall
@@ -252,6 +308,20 @@ package body Broca.CDR is
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : access CORBA.Unsigned_Long) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Float) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Double) is
    begin
       Marshall (Buffer, Data.all);
    end Marshall;
@@ -335,6 +405,23 @@ package body Broca.CDR is
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Float
+   is
+   begin
+      return To_Float (Unmarshall (Buffer));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Double
+   is
+      Octets : constant Octet_Array :=
+        Align_Unmarshall_Host_Endian_Copy (Buffer, 8, 8);
+
+   begin
+      return To_Double (Double_Buf (Octets));
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.String
    is
       Length : constant CORBA.Unsigned_Long
@@ -395,6 +482,23 @@ package body Broca.CDR is
       end if;
    end Align_Marshall_Big_Endian_Copy;
 
+   -------------------------------------
+   -- Align_Marshall_Host_Endian_Copy --
+   -------------------------------------
+
+   procedure Align_Marshall_Host_Endian_Copy
+     (Buffer    : access Buffer_Type;
+      Octets    : Octet_Array;
+      Alignment : Alignment_Type := 1)
+   is
+   begin
+      if Endianness (Buffer.all) = Host_Order then
+         Align_Marshall_Copy (Buffer, Octets, Alignment);
+      else
+         Align_Marshall_Copy (Buffer, Rev (Octets), Alignment);
+      end if;
+   end Align_Marshall_Host_Endian_Copy;
+
    -------------------------
    -- Align_Marshall_Copy --
    -------------------------
@@ -442,6 +546,25 @@ package body Broca.CDR is
                      (Buffer, Size, Alignment));
       end if;
    end Align_Unmarshall_Big_Endian_Copy;
+
+   --------------------------------------
+   -- Align_Unmarshall_Host_Endian_Copy --
+   --------------------------------------
+
+   function Align_Unmarshall_Host_Endian_Copy
+     (Buffer    : access Buffer_Type;
+      Size      : Index_Type;
+      Alignment : Alignment_Type := 1)
+     return Octet_Array
+   is
+   begin
+      if Endianness (Buffer.all) = Host_Order then
+         return Align_Unmarshall_Copy (Buffer, Size, Alignment);
+      else
+         return Rev (Align_Unmarshall_Copy
+                     (Buffer, Size, Alignment));
+      end if;
+   end Align_Unmarshall_Host_Endian_Copy;
 
    ---------------------------
    -- Align_Unmarshall_Copy --

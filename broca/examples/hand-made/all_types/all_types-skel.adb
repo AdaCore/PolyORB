@@ -264,28 +264,28 @@ package body all_types.Skel is
          end;
       end if;
 
---        if Operation = "echoRef" then
---           declare
---              IDL_arg : Ref;
---              Returns : Ref;
---           begin
---              --  Unmarshalls arguments
---              IDL_arg := Unmarshall (Request_Buffer);
---              --  Call implementation
---              Returns := echoRef (Object_Ptr (Obj), IDL_arg);
---
---              --  service context
---              Marshall (Reply_Buffer,
---                        CORBA.Unsigned_Long (Broca.GIOP.No_Context));
---              --  request id
---              Marshall (Reply_Buffer, Request_Id);
---              --  reply status
---              Broca.GIOP.Marshall (Reply_Buffer, Broca.GIOP.No_Exception);
---              --  return value
---              Marshall (Reply_Buffer, Returns);
---              return;
---           end;
---        end if;
+      if Operation = "echoRef" then
+         declare
+            IDL_arg : Ref;
+            Returns : Ref;
+         begin
+            --  Unmarshalls arguments
+            IDL_arg := Unmarshall (Request_Buffer);
+            --  Call implementation
+            Returns := echoRef (Object_Ptr (Obj), IDL_arg);
+
+            --  service context
+            Marshall (Reply_Buffer,
+                      CORBA.Unsigned_Long (Broca.GIOP.No_Context));
+            --  request id
+            Marshall (Reply_Buffer, Request_Id);
+            --  reply status
+            Broca.GIOP.Marshall (Reply_Buffer, Broca.GIOP.No_Exception);
+            --  return value
+            Marshall (Reply_Buffer, Returns);
+            return;
+         end;
+      end if;
 
       if Operation = "echoColor" then
          declare

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -59,7 +59,7 @@ package body CORBA.Object is
    is
       Buffer : aliased Buffer_Type;
    begin
-      Marshall (Buffer'Access, Obj);
+      Marshall_Reference (Buffer'Access, Obj);
       declare
          Result : constant CORBA.String
            := Broca.IOR.Buffer_To_IOR_String

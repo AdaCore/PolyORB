@@ -419,43 +419,43 @@ package body all_types is
       end loop;
    end echoString;
 
---     echoRef_Operation : constant CORBA.Identifier :=
---       CORBA.To_CORBA_String ("echoRef");
---
---     function echoRef
---       (Self : in Ref;
---        arg : in Ref)
---        return Ref
---     is
---        Returns : Ref;
---        use Broca.CDR;
---        use Broca.Refs;
---        Handler : Broca.GIOP.Request_Handler;
---        Sr_Res : Broca.GIOP.Send_Request_Result_Type;
---     begin
---        loop
---           Broca.GIOP.Send_Request_Marshall
---             (Handler, Broca.Object.Object_Ptr (Get (Self)),
---              True, echoRef_Operation);
---           Marshall (Handler.Buffer'Access, arg);
---           Broca.GIOP.Send_Request_Send
---             (Handler, Broca.Object.Object_Ptr (Get (Self)), True, Sr_Res);
---           case Sr_Res is
---              when Broca.GIOP.Sr_Reply =>
---                 --  Inout and out parameters.
---                 Returns := Unmarshall (Handler.Buffer'Access);
---                 --  Returns := Unmarshall (Handler.Buffer'Access);
---                 return Returns;
---              when Broca.GIOP.Sr_No_Reply =>
---                 raise Program_Error;
---              when Broca.GIOP.Sr_User_Exception =>
---                 raise Program_Error;
---              when Broca.GIOP.Sr_Forward =>
---                 null;
---           end case;
---        end loop;
---     end echoRef;
---
+   echoRef_Operation : constant CORBA.Identifier :=
+     CORBA.To_CORBA_String ("echoRef");
+
+   function echoRef
+     (Self : in Ref;
+      arg : in Ref)
+      return Ref
+   is
+      Returns : Ref;
+      use Broca.CDR;
+      use Broca.Refs;
+      Handler : Broca.GIOP.Request_Handler;
+      Sr_Res : Broca.GIOP.Send_Request_Result_Type;
+   begin
+      loop
+         Broca.GIOP.Send_Request_Marshall
+           (Handler, Broca.Object.Object_Ptr (Get (Self)),
+            True, echoRef_Operation);
+         Marshall (Handler.Buffer'Access, arg);
+         Broca.GIOP.Send_Request_Send
+           (Handler, Broca.Object.Object_Ptr (Get (Self)), True, Sr_Res);
+         case Sr_Res is
+            when Broca.GIOP.Sr_Reply =>
+               --  Inout and out parameters.
+               Returns := Unmarshall (Handler.Buffer'Access);
+               --  Returns := Unmarshall (Handler.Buffer'Access);
+               return Returns;
+            when Broca.GIOP.Sr_No_Reply =>
+               raise Program_Error;
+            when Broca.GIOP.Sr_User_Exception =>
+               raise Program_Error;
+            when Broca.GIOP.Sr_Forward =>
+               null;
+         end case;
+      end loop;
+   end echoRef;
+
    echoColor_Operation : constant CORBA.Identifier :=
      CORBA.To_CORBA_String ("echoColor");
 

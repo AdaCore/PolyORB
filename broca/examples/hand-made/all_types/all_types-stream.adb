@@ -1,12 +1,30 @@
 with Broca.CDR;
---  with Broca.Refs;
 --  with Broca.Exceptions;
 with all_types.Stream;
 use Broca.CDR;
---  use Broca.Refs;
 --  use Broca.Exceptions;
 use all_types.Stream;
 package body all_types.Stream is
+
+   procedure Marshall
+      (Stream : access Broca.Buffers.Buffer_Type;
+       Val : Ref)
+   is
+   begin
+      Marshall_Reference (Stream, Val);
+      --  Marshall_Reference is inherited from Broca.Refs.Ref.
+   end Marshall;
+
+   function Unmarshall
+      (Stream : access Broca.Buffers.Buffer_Type)
+     return Ref
+   is
+      New_Ref : Ref;
+   begin
+      Unmarshall_Reference (Stream, New_Ref);
+      --  Unmarshall_Reference is inherited from Broca.Refs.Ref.
+      return New_Ref;
+   end Unmarshall;
 
    procedure Marshall
       (Stream : access Broca.Buffers.Buffer_Type;

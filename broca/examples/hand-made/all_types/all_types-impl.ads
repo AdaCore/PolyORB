@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.1 $
+--                            $Revision: 1.2 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -95,10 +95,10 @@ private
       arg : in CORBA.String)
       return CORBA.String;
 
---     function echoRef
---       (Self : access Object;
---        arg : in all_types.Ref)
---        return all_types.Ref;
+   function echoRef
+     (Self : access Object;
+      arg : in all_types.Ref)
+     return all_types.Ref;
 
    function echoColor
      (Self : access Object;

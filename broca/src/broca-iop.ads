@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -85,8 +85,8 @@ package Broca.IOP is
    -------------------------------------------------------
 
    subtype Profile_Tag is CORBA.Unsigned_Long;
-   Tag_Internet_IOP        : constant Profile_Tag := 0;
-   Tag_Multiple_Components : constant Profile_Tag := 1;
+   Tag_Internet_IOP        : constant Profile_Tag := 254; --  0;
+   Tag_Multiple_Components : constant Profile_Tag := 255; --  1;
 
    type Profile_Type is abstract tagged limited private;
 
@@ -128,25 +128,25 @@ package Broca.IOP is
       Type_Id  : out CORBA.String;
       Profiles : out Profile_Ptr_Array_Ptr);
 
-   type Encapsulate_Profile_Type is
+   type Marshall_Profile_Body_Type is
      access procedure
      (Buffer  : access Buffers.Buffer_Type;
       Profile : access Profile_Type'Class);
 
-   type Decapsulate_Profile_Type is
+   type Unmarshall_Profile_Body_Type is
      access procedure
      (Buffer  : access Buffers.Buffer_Type;
       Profile : out Profile_Ptr);
 
    procedure Register
      (Profile     : in Profile_Tag;
-      Encapsulate : in Encapsulate_Profile_Type;
-      Decapsulate : in Decapsulate_Profile_Type);
+      Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
+      Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
 
    type Profile_Record is
       record
-         Encapsulate : Encapsulate_Profile_Type;
-         Decapsulate : Decapsulate_Profile_Type;
+         Marshall_Profile_Body   : Marshall_Profile_Body_Type;
+         Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
       end record;
 
    Callbacks : array (Tag_Internet_IOP .. Tag_Multiple_Components)

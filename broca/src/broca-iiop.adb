@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.21 $
+--                            $Revision: 1.22 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -55,11 +55,11 @@ package body Broca.IIOP is
    function Port_To_Network_Port (Port : CORBA.Unsigned_Short)
      return Interfaces.C.unsigned_short;
 
-   procedure Decapsulate_Profile
+   procedure Unmarshall_IIOP_Profile_Body
      (Buffer   : access Buffer_Type;
       Profile  : out Profile_Ptr);
 
-   procedure Encapsulate_Profile
+   procedure Marshall_IIOP_Profile_Body
      (IOR   : access Buffer_Type;
       Profile  : access Profile_Type'Class);
 
@@ -74,11 +74,11 @@ package body Broca.IIOP is
       return Tag_Internet_IOP;
    end Get_Profile_Tag;
 
-   -------------------------
-   -- Decapsulate_Profile --
-   -------------------------
+   ----------------------------------
+   -- Unmarshall_IIOP_Profile_Body --
+   ----------------------------------
 
-   procedure Decapsulate_Profile
+   procedure Unmarshall_IIOP_Profile_Body
      (Buffer   : access Buffer_Type;
       Profile  : out Profile_Ptr)
    is
@@ -107,13 +107,13 @@ package body Broca.IIOP is
       --  Set_Endianess (Profile_Body_Buffer'Access, Old_Endian);
 
       Profile :=  Profile_Ptr (IIOP_Profile);
-   end Decapsulate_Profile;
+   end Unmarshall_IIOP_Profile_Body;
 
    -------------------------
-   -- Encapsulate_Profile --
+   -- Marshall_IIOP_Profile_Body --
    -------------------------
 
-   procedure Encapsulate_Profile
+   procedure Marshall_IIOP_Profile_Body
      (IOR     : access Buffer_Type;
       Profile : access Profile_Type'Class)
    is
@@ -143,13 +143,10 @@ package body Broca.IIOP is
       --  Object key
       Marshall (Profile_Body'Access, IIOP_Profile.Object_Key);
 
-      --  Marshall the TaggedProfile into IOR.
-      --  XXX Check that the tag is not marshalled twice:
-      --  once by the caller, another here.
-      Marshall (IOR, Broca.IOP.Tag_Internet_IOP);
+      --  Marshall the Profile_Body into IOR.
       Marshall (IOR, Encapsulate (Profile_Body'Access));
       Release (Profile_Body);
-   end Encapsulate_Profile;
+   end Marshall_IIOP_Profile_Body;
 
    --------------------
    -- Get_Object_Key --
@@ -183,9 +180,9 @@ package body Broca.IIOP is
    --------------------
 
    --  XXX This contains duplicate functionality
-   --  XXX WRT Decapsulate_Profile.
+   --  XXX WRT Unmarshall_IIOP_Profile_Body.
    --  ==> This must be rewritten in terms of
-   --  Decapsulate_Profile.
+   --  Unmarshall_IIOP_Profile_Body.
 
    procedure Create_Profile
      (Buffer : access Buffer_Type;
@@ -454,6 +451,6 @@ package body Broca.IIOP is
 begin
    Register
      (Tag_Internet_IOP,
-      Encapsulate_Profile'Access,
-      Decapsulate_Profile'Access);
+      Marshall_IIOP_Profile_Body'Access,
+      Unmarshall_IIOP_Profile_Body'Access);
 end Broca.IIOP;

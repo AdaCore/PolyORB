@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.1 $
+--                            $Revision: 1.2 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -120,14 +120,14 @@ package body all_types.Impl is
       return arg;
    end echoString;
 
---     function echoRef
---       (Self : access Object;
---        arg : in all_types.Ref)
---        return all_types.Ref
---     is
---     begin
---        return arg;
---     end echoRef;
+   function echoRef
+     (Self : access Object;
+      arg : in all_types.Ref)
+     return all_types.Ref
+   is
+   begin
+      return arg;
+   end echoRef;
 
    function echoColor
      (Self : access Object;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.19 $
+--                            $Revision: 1.20 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -35,6 +35,7 @@
 
 with Broca.Buffers; use Broca.Buffers;
 with CORBA; use CORBA;
+with Broca.CDR;
 with Broca.IOP;
 with Broca.IIOP;
 with Sockets.Thin; use Sockets.Thin;
@@ -648,6 +649,7 @@ package body Broca.Inet_Server is
       IOR        : access Broca.Buffers.Buffer_Type;
       Object_Key : Encapsulation)
    is
+      use Broca.CDR;
       use Broca.Sequences;
 
       Server_Profile : aliased Broca.IIOP.Profile_IIOP_Type;
@@ -657,7 +659,8 @@ package body Broca.Inet_Server is
       Server_Profile.Object_Key := Octet_Sequences.To_Sequence
         (To_CORBA_Octet_Array (Object_Key));
 
-      Broca.IOP.Callbacks (Broca.IOP.Tag_Internet_IOP).Encapsulate
+      Marshall (IOR, Broca.IOP.Tag_Internet_IOP);
+      Broca.IOP.Callbacks (Broca.IOP.Tag_Internet_IOP).Marshall_Profile_Body
         (IOR, Server_Profile'Access);
    end Marshall_Profile;
 

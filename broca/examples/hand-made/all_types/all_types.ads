@@ -67,10 +67,10 @@ package all_types is
       arg : in CORBA.String)
       return CORBA.String;
 
-   --  function echoRef
-   --    (Self : in Ref;
-   --     arg : in Ref)
-   --     return Ref;
+   function echoRef
+     (Self : in Ref;
+      arg : in Ref)
+      return Ref;
 
    type Color is
      (Red,

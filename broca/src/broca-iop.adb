@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.9 $
+--                            $Revision: 1.10 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -68,6 +68,9 @@ package body Broca.IOP is
    begin
       Type_Id := Unmarshall (Buffer);
       N_Profiles := Unmarshall (Buffer);
+      pragma Debug (O ("Decapsulate_IOR: type "
+                       & To_Standard_String (Type_Id)
+                       & " (" & N_Profiles'Img & " profiles)."));
 
       Profiles := new Profile_Ptr_Array (1 .. N_Profiles);
 
@@ -76,7 +79,7 @@ package body Broca.IOP is
             Profile    : constant Profile_Tag
               := Unmarshall (Buffer);
          begin
-            Callbacks (Profile).Decapsulate
+            Callbacks (Profile).Unmarshall_Profile_Body
               (Buffer, Profiles (N));
          end;
       end loop;
@@ -97,7 +100,7 @@ package body Broca.IOP is
 
       for N in Profiles'Range loop
          Marshall (Buffer, Get_Profile_Tag (Profiles (N).all));
-         Callbacks (Get_Profile_Tag (Profiles (N).all)).Encapsulate
+         Callbacks (Get_Profile_Tag (Profiles (N).all)).Marshall_Profile_Body
            (Buffer, Profiles (N));
       end loop;
    end Encapsulate_IOR;
@@ -108,11 +111,11 @@ package body Broca.IOP is
 
    procedure Register
      (Profile     : in Profile_Tag;
-      Encapsulate : in Encapsulate_Profile_Type;
-      Decapsulate : in Decapsulate_Profile_Type) is
+      Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
+      Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type) is
    begin
-      Callbacks (Profile).Encapsulate := Encapsulate;
-      Callbacks (Profile).Decapsulate := Decapsulate;
+      Callbacks (Profile).Marshall_Profile_Body := Marshall_Profile_Body;
+      Callbacks (Profile).Unmarshall_Profile_Body := Unmarshall_Profile_Body;
    end Register;
 
 end Broca.IOP;

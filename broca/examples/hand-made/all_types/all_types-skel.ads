@@ -56,10 +56,10 @@ package all_types.Skel is
       arg : in CORBA.String)
       return CORBA.String is abstract;
 
-   --  function echoRef
-   --    (Self : access Object;
-   --     arg : in Ref)
-   --     return Ref is abstract;
+   function echoRef
+     (Self : access Object;
+      arg : in Ref)
+     return Ref is abstract;
 
    function echoColor
      (Self : access Object;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.11 $
+--                            $Revision: 1.12 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -45,12 +45,6 @@ package Broca.Refs is
    --  the counter reachs 0.  It is not abstract, because used for
    --  instanciate System.Address_To_Access_Conversions.
 
-   procedure Disable_Usage (Obj : in out Ref_Type);
-   --  Disable Counter of references. This is used for object derived
-   --  from Ref_type by the user (eg: servant, AdapterActivator...).
-   --  Must be called just after creation, when Counter is -1
-   --  (otherwise, CORBA.internal is raised).
-
    procedure Marshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : in Ref_Type);
@@ -58,6 +52,12 @@ package Broca.Refs is
    procedure Unmarshall
      (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : out Ref_Type);
+
+   procedure Disable_Usage (Obj : in out Ref_Type);
+   --  Disable Counter of references. This is used for object derived
+   --  from Ref_type by the user (eg: servant, AdapterActivator...).
+   --  Must be called just after creation, when Counter is -1
+   --  (otherwise, CORBA.internal is raised).
 
    type Ref_Ptr is access all Ref_Type'Class;
 
@@ -78,13 +78,17 @@ package Broca.Refs is
    --  Set the object (can destroyed the previous one, if it was the only
    --  reference).
 
-   procedure Marshall
+   procedure Marshall_Reference
      (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : in Ref);
 
-   procedure Unmarshall
+   procedure Unmarshall_Reference
      (Buffer : access Broca.Buffers.Buffer_Type;
       Value  : out Ref);
+
+   --  function Unmarshall
+   --    (Buffer : access Broca.Buffers.Buffer_Type)
+   --    return Ref'Class;
 
 private
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -111,6 +111,26 @@ package Broca.CDR is
 
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Long;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Float);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Float);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Float;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Double);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Double);
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.Double;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
