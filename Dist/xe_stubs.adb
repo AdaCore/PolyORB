@@ -114,6 +114,9 @@ package body XE_Stubs is
    function SGP_Initialize (N : Name_Id) return String;
    --  Return System.Garlic.Protocols.<N>.Initialize
 
+   function SGS_Initialize (N : Name_Id) return String;
+   --  Return System.Garlic.Storage.<N>.Initialize
+
    Strip_Flag : constant String_Access := new String'("-s");
    --  Option to strip an executable at link time
 
@@ -1021,7 +1024,7 @@ package body XE_Stubs is
                if L = Null_LID then
                   L := Def_Data_Location;
                end if;
-               M := SG (C (Locations.Table (L).Major));
+               M := SGS (C (Locations.Table (L).Major));
                Dwrite_With_Clause (File, False, M);
                Dwrite_Call (File, 0, "pragma Elaborate_All", M);
             end;
@@ -1038,7 +1041,7 @@ package body XE_Stubs is
                declare
                   M : Name_Id;
                begin
-                  M := SG (C (Locations.Table (Def_Data_Location).Major));
+                  M := SGS (C (Locations.Table (Def_Data_Location).Major));
                   Dwrite_With_Clause (File, False, M);
                   Dwrite_Call (File, 0, "pragma Elaborate_All", M);
                end;
@@ -1073,7 +1076,7 @@ package body XE_Stubs is
                   Location := Def_Data_Location;
                end if;
                Major := C (Locations.Table (Location).Major);
-               Dwrite_Call (File, 2, SG_Initialize (Major));
+               Dwrite_Call (File, 2, SGS_Initialize (Major));
             end;
          end if;
       end loop;
@@ -1083,7 +1086,7 @@ package body XE_Stubs is
             Major : Name_Id;
          begin
             Major := C (Locations.Table (Def_Data_Location).Major);
-            Dwrite_Call (File, 2, SG_Initialize (Major));
+            Dwrite_Call (File, 2, SGS_Initialize (Major));
          end;
       end if;
 
@@ -1541,5 +1544,16 @@ package body XE_Stubs is
       Add_Str_To_Name_Buffer (".Initialize");
       return Name_Buffer (1 .. Name_Len);
    end SGP_Initialize;
+
+   --------------------
+   -- SGS_Initialize --
+   --------------------
+
+   function SGS_Initialize (N : Name_Id) return String is
+   begin
+      Get_Name_String (SGS (N));
+      Add_Str_To_Name_Buffer (".Initialize");
+      return Name_Buffer (1 .. Name_Len);
+   end SGS_Initialize;
 
 end XE_Stubs;

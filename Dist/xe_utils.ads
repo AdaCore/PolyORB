@@ -96,9 +96,11 @@ package XE_Utils is
    function S   (X : String) return Types.Name_Id;
    function SG  (X : String) return Types.Name_Id;
    function SGP (X : String) return Types.Name_Id;
+   function SGS (X : String) return Types.Name_Id;
    function S   (N : Types.Name_Id) return Types.Name_Id;
    function SG  (N : Types.Name_Id) return Types.Name_Id;
    function SGP (N : Types.Name_Id) return Types.Name_Id;
+   function SGS (N : Types.Name_Id) return Types.Name_Id;
 
    procedure Change_Dir (To : in Types.File_Name_Type);
    --  Changes the working directory of the current execution environment

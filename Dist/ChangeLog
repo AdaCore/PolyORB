@@ -1,7 +1,18 @@
+2000-09-08  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* xe_stubs.adb, xe_utils.ads, xe_utils.adb: Move storage supports
+ 	like DFS into the Storages hierarchy in order to have a model
+ 	similar to the Protocoles one.
+
+2000-09-07  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* xe_check.adb: Remove use of Get_File_Name.
+
 2000-09-06  Laurent Pautet  <pautet@inf.enst.fr>
 
-	* xe_check.adb: Use immediate fix to solve problem of incorrect
-	use of Get_File_Name.
+	* xe_utils.adb, xe_check.adb: Use immediate fix to solve problem
+ 	of incorrect use of Get_File_Name, File_Name_Of_Spec and
+	File_Name_Of_Body.
 
 2000-07-03  Laurent Pautet  <pautet@inf.enst.fr>
 

@@ -1231,6 +1231,28 @@ package body XE_Utils is
       return SG (Name_Find);
    end SGP;
 
+   ---------
+   -- SGS --
+   ---------
+
+   function SGS (X : String) return Name_Id is
+   begin
+      return SGS (Str_To_Id (X));
+   end SGS;
+
+   ---------
+   -- SGS --
+   ---------
+
+   function SGS (N : Name_Id) return Name_Id is
+      CN : Name_Id := C (N);
+   begin
+      Name_Len := 0;
+      Add_Str_To_Name_Buffer ("Storages.");
+      Get_Name_String_And_Append (CN);
+      return SG (Name_Find);
+   end SGS;
+
    -----------------------
    -- Source_File_Error --
    -----------------------
