@@ -1,5 +1,5 @@
 CLEANFILES = *.o *.ali sockets-constants.ads
-DISTCLEANFILES = b_split.c split constants_nodef
+DISTCLEANFILES = b_split.c b~split.ad? split constants_nodef
 
 constants_nodef: constants.c config.h
 	$(CC) -I. -o constants_nodef $(srcdir)/constants.c
