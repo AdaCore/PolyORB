@@ -1,3 +1,3 @@
 BROCA_TOP=..
-BROCA_CURRENT=example
+BROCA_CURRENT=doc
 include $(BROCA_TOP)/config/config.mk

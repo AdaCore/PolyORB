@@ -1,5 +1,0 @@
-#! /bin/sh
-#
-
-umask 022
-cvs update
