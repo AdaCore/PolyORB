@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.adb#3 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.adb#4 $
 
 with Asis;
 with Asis.Elements;
@@ -64,6 +64,10 @@ package body CIAO.Translator.State is
      (Translation           => No_Node,
       Previous_Current_Node => No_Node);
 
+   -------------------------------------
+   -- Elementary hash table accessors --
+   -------------------------------------
+
    procedure Set_Map_Info (Element : Asis.Element; Info : Map_Info);
    pragma Inline (Set_Map_Info);
    --  Set the Map_Info for the Element.
@@ -73,6 +77,52 @@ package body CIAO.Translator.State is
    pragma Inline (Get_Map_Info);
    --  Retrieve the mapping information for an Element.
    --  If no information was set, Nil_Map_Info is returned.
+
+   procedure Set_Origin (Node : Node_Id; Element : Asis.Element);
+   --  Record the original ASIS element at the origin of Node.
+
+   function Get_Origin (Node : Node_Id) return Asis.Element;
+   --  Return the original ASIS element at the origin of Node.
+   --  If no such information was recorded, return Nil_Element.
+
+   --------------------------------
+   -- High-level state accessors --
+   --------------------------------
+
+   procedure Set_Translation
+     (Element     : Asis.Element;
+      Translation : Node_Id) is
+      Info : Map_Info := Get_Map_Info (Element);
+   begin
+      Info.Translation := Translation;
+      Set_Map_Info (Element, Info);
+      Set_Origin (Translation, Element);
+   end Set_Translation;
+
+   procedure Set_Previous_Current_Node
+     (Element               : Asis.Element;
+      Previous_Current_Node : Node_Id) is
+      Info : Map_Info := Get_Map_Info (Element);
+   begin
+      Info.Previous_Current_Node := Previous_Current_Node;
+      Set_Map_Info (Element, Info);
+   end Set_Previous_Current_Node;
+
+   function Get_Translation (Element : Asis.Element)
+     return Node_Id is
+   begin
+      return Get_Map_Info (Element).Translation;
+   end Get_Translation;
+
+   function Get_Previous_Current_Node (Element : Asis.Element)
+     return Node_Id is
+   begin
+      return Get_Map_Info (Element).Previous_Current_Node;
+   end Get_Previous_Current_Node;
+
+   -------------------------------------------------------------------
+   -- Implementation of the hash functions and hash table accessors --
+   -------------------------------------------------------------------
 
    type Map_HTable_Header_Num is range 1 .. 256;
 
@@ -102,38 +152,6 @@ package body CIAO.Translator.State is
    --  Ids.Id value). The Map_HTable is notionally part of the
    --  translator's state.
 
-   procedure Set_Translation
-     (Element     : Asis.Element;
-      Translation : Node_Id) is
-      Info : Map_Info := Get_Map_Info (Element);
-   begin
-      Info.Translation := Translation;
-      Set_Map_Info (Element, Info);
-      --  Set_Origin (Translation, Element);
-      --  XXX might be needed later when generating code.
-   end Set_Translation;
-
-   procedure Set_Previous_Current_Node
-     (Element               : Asis.Element;
-      Previous_Current_Node : Node_Id) is
-      Info : Map_Info := Get_Map_Info (Element);
-   begin
-      Info.Previous_Current_Node := Previous_Current_Node;
-      Set_Map_Info (Element, Info);
-   end Set_Previous_Current_Node;
-
-   function Get_Translation (Element : Asis.Element)
-     return Node_Id is
-   begin
-      return Get_Map_Info (Element).Translation;
-   end Get_Translation;
-
-   function Get_Previous_Current_Node (Element : Asis.Element)
-     return Node_Id is
-   begin
-      return Get_Map_Info (Element).Previous_Current_Node;
-   end Get_Previous_Current_Node;
-
    procedure Set_Map_Info (Element : Asis.Element; Info : Map_Info) is
    begin
       Map_HTable.Set (Element, Info);
@@ -144,6 +162,40 @@ package body CIAO.Translator.State is
       return Map_HTable.Get (Element);
    end Get_Map_Info;
 
+   function Hash_Node_Id (N : Node_Id)
+     return Map_HTable_Header_Num;
+   --  Hash function for a node id.
+
+   function Hash_Node_Id (N : Node_Id)
+     return Map_HTable_Header_Num
+   is
+   begin
+      return Map_HTable_Header_Num
+        (Integer (Map_HTable_Header_Num'First)
+         + Integer (N)
+         mod Asis.ASIS_Integer (Map_HTable_Header_Num'Last -
+                                Map_HTable_Header_Num'First + 1));
+   end Hash_Node_Id;
+
+   package Origin_HTable is new GNAT.HTable.Simple_HTable
+     (Header_Num => Map_HTable_Header_Num,
+      Element    => Asis.Element,
+      No_Element => Asis.Nil_Element,
+      Key        => Node_Id,
+      Hash       => Hash_Node_Id,
+      Equal      => "=");
+   --  A table that records the original ASIS element corresponding
+   --  to an IDL node. The Origin_HTable is notionally part of the
+   --  translator's state.
+
+   procedure Set_Origin (Node : Node_Id; Element : Asis.Element) is
+   begin
+      Origin_HTable.Set (Node, Element);
+   end Set_Origin;
+
+   function Get_Origin (Node : Node_Id) return Asis.Element is
+   begin
+      return Origin_HTable.Get (Node);
+   end Get_Origin;
+
 end CIAO.Translator.State;
-
-
