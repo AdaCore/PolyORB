@@ -1,7 +1,11 @@
 Wed Apr 30 15:32:43 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-rpcpoo.ads: New routine Allocate_Task to enforce the pool
+	  abstraction.
+
 	* s-rpc.adb: Splitted System.RPC into 3 packages (System.RPC,
-	  System.RPC.Pool and System.RPC.Util)
+	  System.RPC.Pool and System.RPC.Util). Do not use Anonymous_Task
+	  directly.
 
 Wed Apr 23 11:36:04 1997  Samuel Tardieu  <sam@inf.enst.fr>
 

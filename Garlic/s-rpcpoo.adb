@@ -60,16 +60,39 @@ package body System.RPC.Pool is
 
    Task_Pool : Task_Pool_Access := new Task_Pool_Type;
 
+   task type Anonymous_Task (Partition    : Partition_ID;
+                             Id           : Request_Id;
+                             Params       : Params_Stream_Access;
+                             Asynchronous : Boolean) is
+      pragma Storage_Size (300_000);
+   end Anonymous_Task;
+   type Anonymous_Task_Access is access Anonymous_Task;
+   --  An anonymous task will serve a request.
+
    ----------------
    -- Abort_Task --
    ----------------
-   
+
    procedure Abort_Task (Partition : in Partition_ID;
                          Id        : in Request_Id)
    is
    begin
       Task_Pool.Abort_One (Partition, Id);
    end Abort_Task;
+
+   -------------------
+   -- Allocate_Task --
+   -------------------
+
+   procedure Allocate_Task (Partition    : in Partition_ID;
+                            Id           : in Request_Id;
+                            Params       : in Params_Stream_Access;
+                            Asynchronous : in Boolean)
+   is
+      Anonymous : Anonymous_Task_Access;
+   begin
+      Anonymous := new Anonymous_Task (Partition, Id, Params, Asynchronous);
+   end Allocate_Task;
 
    --------------------
    -- Anonymous_Task --

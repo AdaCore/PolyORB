@@ -369,7 +369,6 @@ package body System.RPC is
             declare
                Params_Copy  : Params_Stream_Access :=
                  new Params_Stream_Type (Params.Initial_Size);
-               Anonymous    : Anonymous_Task_Access;
                Id           : Request_Id := Request_Id'First;
                Asynchronous : constant Boolean := Header.Kind = APC_Request;
             begin
@@ -384,10 +383,7 @@ package body System.RPC is
                     (D (D_Debug,
                         "(request id is" & Id'Img & ")"));
                end if;
-               Anonymous := new Anonymous_Task (Partition,
-                                                Id,
-                                                Params_Copy,
-                                                Asynchronous);
+               Allocate_Task (Partition, Id, Params_Copy, Asynchronous);
             end;
 
          when RPC_Answer =>
