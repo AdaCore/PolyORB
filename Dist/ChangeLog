@@ -1,5 +1,7 @@
 Fri Feb  7 09:53:09 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
+	* config.sdefault: Break S1, S2 and S3 declaration lines.
+
 	* xe_usage.adb: gnatmake -l has been changed into -M. Propagates
  	this change to gnatdist.
 
