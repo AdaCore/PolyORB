@@ -42,9 +42,11 @@ package body Echo is
 
 
    --------------------------------------------------
-   ----              not in  spec                ----
+   ----    not in  spec omniORB specific         ----
    --------------------------------------------------
 
+   -- AlignedSize
+   --------------
    function AlignedSize(Self: in OmniProxyCallDesc_Echo;
                           MsgSize: in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long is
@@ -53,7 +55,8 @@ package body Echo is
       return MsgSize;
    end;
 
-
+   -- MarshalArguments
+   -------------------
    procedure MarshalArguments(Self: in OmniProxyCallDesc_Echo;
                                 Giop_Client: in out Giop_C) is
       Len : CORBA.Unsigned_Long;
@@ -67,11 +70,31 @@ package body Echo is
       end if;
    end;
 
+   -- UnMarshalReturnValues
+   ------------------------
    procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo;
                                      Giop_Client: in out Giop_C) is
    begin
       Result :=  UnMarshall(Giop_Client);
-   end
+   end ;
+
+
+   --------------------------------------------------
+   ----    not in  spec AdaBroker specific       ----
+   --------------------------------------------------
+
+   -- AdaBroker_Cast_To_Parent
+   ---------------------------
+   procedure AdaBroker_Cast_To_Parent(Real_Object: in Ref;
+                                      Result: out Corba.Object'Class) is
+      Data_Conversion_Error : Corba.Data_Conversion ;
+   begin
+      if Real_Object'Tag = Result'Tag then
+         Result := Real_Object ;
+      else
+         raise Data_Conversion_Error;
+      end if ;
+   end ;
 
 
 End Echo ;
