@@ -52,8 +52,8 @@ with System.Garlic.Priorities;
 with System.Garlic.Soft_Links;            use System.Garlic.Soft_Links;
 with System.Garlic.Streams;               use System.Garlic.Streams;
 with System.Garlic.Thin;                  use System.Garlic.Thin;
-with System.Garlic.TCP.Platform_Specific;
-pragma Warnings (Off, System.Garlic.TCP.Platform_Specific);
+with System.Garlic.TCP_Platform_Specific;
+pragma Warnings (Off, System.Garlic.TCP_Platform_Specific);
 with System.Storage_Elements;             use System.Storage_Elements;
 
 package body System.Garlic.TCP is

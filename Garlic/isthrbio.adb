@@ -39,6 +39,9 @@ with GNAT.OS_Lib;        use GNAT.OS_Lib;
 with Interfaces.C;       use Interfaces.C;
 with System.Garlic.Thin; use System.Garlic.Thin;
 
+with System.Garlic.TCP_Platform_Specific;
+use System.Garlic.TCP_Platform_Specific;
+
 --  Is Thread Blocking IO
 
 procedure IsThrBIO is

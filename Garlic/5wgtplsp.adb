@@ -35,7 +35,7 @@
 
 with System.Garlic.Thin;
 
-package body System.Garlic.TCP.Platform_Specific is
+package body System.Garlic.TCP_Platform_Specific is
 
    --  Windows NT version of this package.
 
@@ -479,4 +479,4 @@ package body System.Garlic.TCP.Platform_Specific is
       return Std_Socket (Domain, Typ, Protocol);
    end C_Socket;
 
-end System.Garlic.TCP.Platform_Specific;
+end System.Garlic.TCP_Platform_Specific;

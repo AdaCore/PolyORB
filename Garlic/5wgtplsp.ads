@@ -35,7 +35,7 @@
 
 with Interfaces.C;
 
-package System.Garlic.TCP.Platform_Specific is
+package System.Garlic.TCP_Platform_Specific is
 
    pragma Elaborate_Body;
 

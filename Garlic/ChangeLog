@@ -1,3 +1,13 @@
+1998-08-04  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* 5egtplsp.ads, 5sgtplsp.ads, 5wgtplsp.adb, 5wgtplsp.ads,
+ 	5xgtplsp.ads, s-gartcp.adb: Change s-gtplsp unit
+ 	name to avoid recompiling too many files when isthrbio is built at
+ 	configuration time.
+	
+	* isthrbio.adb: With System.Garlic.TCP_Platform_Specific to
+	please Windows configuration.
+	
 1998-08-04  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am (inlining): Fix a bug causing an error at

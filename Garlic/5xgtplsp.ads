@@ -36,7 +36,7 @@
 with System.Garlic.Thin;
 pragma Warnings (Off, System.Garlic.Thin);
 
-package System.Garlic.TCP.Platform_Specific is
+package System.Garlic.TCP_Platform_Specific is
 
    --  Sinix version of this package.
 

@@ -33,7 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package System.Garlic.TCP.Platform_Specific is
+package System.Garlic.TCP_Platform_Specific is
 
    --  This is the Solaris version of this package.
 
@@ -42,4 +42,4 @@ private
    pragma Linker_Options ("-lnsl");
    pragma Linker_Options ("-lsocket");
 
-end System.Garlic.TCP.Platform_Specific;
+end System.Garlic.TCP_Platform_Specific;
