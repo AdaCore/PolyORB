@@ -116,12 +116,6 @@ private
       Header : in Request_Header);
    --  Add a Request_Header in front of Params
 
-   procedure Initialize;
-   --  Initialize the runtime of System.RPC
-
-   procedure Shutdown;
-   --  Shutdown System.RPC and its private child packages
-
    procedure When_Established;
    --  Wait for partition to be established.
 

@@ -228,8 +228,6 @@ Garlic/s-rpc.adb
 Garlic/s-rpc.ads
 Garlic/s-rpcpoo.adb
 Garlic/s-rpcpoo.ads
-Garlic/s-rpcini.adb
-Garlic/s-rpcini.ads
 Garlic/s-stratt.adb
 Garlic/split.adb
 Garlic/s-rpstio.adb

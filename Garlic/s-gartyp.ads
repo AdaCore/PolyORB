@@ -43,6 +43,8 @@ package System.Garlic.Types is
 
    Communication_Error : exception;
 
+   type Shutdown_Access is access procedure;
+
    --  This package defines basic types that are used throughout Garlic
    --  as well as commonly used deallocation and conversion subprograms.
 

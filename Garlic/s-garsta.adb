@@ -70,9 +70,6 @@ pragma Elaborate_All (System.Garlic.Filters);
 with System.Garlic.Trace;
 pragma Elaborate_All (System.Garlic.Trace);
 
-with System.RPC.Initialization;
-pragma Elaborate_All (System.RPC.Initialization);
-
 with System.Garlic.Elaboration;
 pragma Elaborate_All (System.Garlic.Elaboration);
 
@@ -114,7 +111,7 @@ begin
 
       if Boot_Protocol = null then
          pragma Debug (D (D_Elaborate, "No boot protocol, aborting"));
-         raise System.RPC.Communication_Error;
+         raise Program_Error;
       end if;
 
       --  Phase (3) (see s-garlic.ads)
@@ -151,7 +148,6 @@ begin
 
       --  Phase (7) (see s-garlic.ads)
 
-      System.RPC.Initialization.Initialize;
       Termination.Initialize;
 
    end;

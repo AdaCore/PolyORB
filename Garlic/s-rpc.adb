@@ -40,11 +40,15 @@ with Ada.Unchecked_Deallocation;
 with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Heart;        use System.Garlic.Heart;
+pragma Elaborate_All (System.Garlic.Heart);
 with System.Garlic.Streams;
 with System.Garlic.Types;
 with System.Garlic.Utils;        use System.Garlic.Utils;
-pragma Elaborate (System.Garlic.Utils);
+pragma Elaborate_All (System.Garlic.Utils);
 with System.RPC.Pool;            use System.RPC.Pool;
+pragma Elaborate (System.RPC.Pool);
+with System.RPC.Stream_IO;
+pragma Elaborate (System.RPC.Stream_IO);
 
 package body System.RPC is
 
@@ -137,6 +141,9 @@ package body System.RPC is
       Operation : in Public_Opcode;
       Params    : access Streams.Params_Stream_Type);
    --  Receive data
+
+   procedure Shutdown;
+   --  Shutdown System.RPC and its private child packages
 
    procedure Partition_Error_Notification
      (Partition : in Types.Partition_ID);
@@ -244,15 +251,6 @@ package body System.RPC is
          RPC_Barrier.Wait;
       end if;
    end When_Established;
-
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize is
-   begin
-      Receive (Remote_Call, Public_RPC_Receiver'Access);
-   end Initialize;
 
    --------------------
    -- Insert_Request --
@@ -527,6 +525,7 @@ package body System.RPC is
       pragma Debug (D (D_Debug, "Shutdown has been called"));
       Free (Request_Id_Server);
       Free (Result_Watcher);
+      Pool.Shutdown;
    end Shutdown;
 
    -----------
@@ -540,4 +539,10 @@ package body System.RPC is
       Streams.Write (Stream.X, Item);
    end Write;
 
+
+begin
+   Receive (Remote_Call, Public_RPC_Receiver'Access);
+   Pool.Initialize;
+   Stream_IO.Initialize;
+   Register_RPC_Shutdown (Shutdown'Access);
 end System.RPC;

@@ -47,7 +47,6 @@ with System.Garlic.Termination;
 with System.Garlic.Trace;             use System.Garlic.Trace;
 with System.Garlic.Types;             use System.Garlic.Types;
 with System.Garlic.Utils;
-with System.RPC.Initialization;
 with System.Standard_Library;
 
 pragma Warnings (Off);
@@ -92,6 +91,8 @@ package body System.Garlic.Heart is
    Elaboration_Barrier : Barrier_Type;
    --  This barrier will be no longer blocking when the elaboration is
    --  terminated.
+
+   System_RPC_Shutdown : Shutdown_Access;
 
    function Get_Protocol
      (Partition : Partition_ID)
@@ -233,8 +234,8 @@ package body System.Garlic.Heart is
    --  Call this procedure when a partition dies
 
    procedure Partition_RPC_Receiver
-     (Params : access System.RPC.Params_Stream_Type;
-      Result : access System.RPC.Params_Stream_Type);
+     (Params : access Streams.Params_Stream_Type;
+      Result : access Streams.Params_Stream_Type);
    --  Global RPC receiver
 
    --------------------------
@@ -857,11 +858,11 @@ package body System.Garlic.Heart is
    ----------------------------
 
    procedure Partition_RPC_Receiver
-     (Params : access System.RPC.Params_Stream_Type;
-      Result : access System.RPC.Params_Stream_Type) is
-      Receiver : System.RPC.RPC_Receiver;
+     (Params : access Streams.Params_Stream_Type;
+      Result : access Streams.Params_Stream_Type) is
+      Receiver : Streams.RPC_Receiver;
    begin
-      System.RPC.RPC_Receiver'Read (Params, Receiver);
+      Streams.RPC_Receiver'Read (Params, Receiver);
       Receiver (Params, Result);
    end Partition_RPC_Receiver;
 
@@ -913,6 +914,15 @@ package body System.Garlic.Heart is
    begin
       Partition_Error_Notification := Callback;
    end Register_Partition_Error_Notification;
+
+   ---------------------------
+   -- Register_RPC_Shutdown --
+   ---------------------------
+
+   procedure Register_RPC_Shutdown (S : Shutdown_Access) is
+   begin
+      System_RPC_Shutdown := S;
+   end Register_RPC_Shutdown;
 
    ----------------------------
    -- Remote_Partition_Error --
@@ -1068,7 +1078,7 @@ package body System.Garlic.Heart is
       Trace.Shutdown;
       Termination.Shutdown;
       Physical_Location.Shutdown;
-      System.RPC.Initialization.Shutdown;
+      System_RPC_Shutdown.all;
       Free (Local_Partition_ID);
       Free (Partition_Map);
       Free (Partition_ID_Allocation);

@@ -1,3 +1,20 @@
+1998-06-04  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am, Makefile.in: Update dependencies and remove
+ 	s-rpcini.ad[bs].
+
+	* s-rpc.adb, s-rpc.adb: Remove Initialize which is now included in
+ 	the elaboration code. Remove Shutdown which is now an internal
+ 	procedure.
+
+	* s-gartyp.ads: Add a type Shutdow_Access.
+
+	* s-garsta.adb: Remove any dependency from System.RPC.
+
+	* s-garhea.ads, s-garhea.adb: Remove any dependency from
+ 	System.RPC. Add a new procedure Register_RPC_Shutdown to allow
+ 	System.RPC shutdown to be invoked when Heart.Shutdown is invoked.
+
 1998-06-02  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garhea.adb (Send): Detect calls for the local partition (in
