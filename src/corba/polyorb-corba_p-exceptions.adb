@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#21 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#22 $
 
 with CORBA;
 
@@ -161,10 +161,10 @@ package body PolyORB.CORBA_P.Exceptions is
      (E : Ada.Exceptions.Exception_Occurrence)
       return PolyORB.Any.Any
    is
-      Name    : RepositoryId;
-      Members : CORBA.System_Exception_Members;
-      TC      : TypeCode.Object;
-      Result  : Any.Any;
+      Repository_Id : RepositoryId;
+      Members       : CORBA.System_Exception_Members;
+      TC            : TypeCode.Object;
+      Result        : Any.Any;
 
    begin
       pragma Debug (O ("System_Exception_To_Any: enter."));
@@ -173,18 +173,31 @@ package body PolyORB.CORBA_P.Exceptions is
       pragma Debug (O ("Exception_Information: " & Exception_Information (E)));
 
       begin
-         Name := Occurrence_To_Name (E);
+         Repository_Id := Occurrence_To_Name (E);
          CORBA.Get_Members (E, Members);
       exception
          when others =>
             pragma Debug (O ("No matching system exception found, "
                              & "will use CORBA.UNKNOWN"));
-            Name := To_PolyORB_String ("UNKNOWN");
+            Repository_Id := To_PolyORB_String ("CORBA.UNKNOWN");
             Members := (1, CORBA.Completed_Maybe);
       end;
 
-      --  Construct exception typecode
-      TC := System_Exception_TypeCode (To_Standard_String (Name));
+      declare
+         CORBA_Exception_Namespace : constant String := "CORBA.";
+         --  All CORBA System exceptions are prefixed by this string
+
+         Name : constant String := To_Standard_String (Repository_Id);
+
+      begin
+         --  Construct exception typecode
+
+         TC := System_Exception_TypeCode
+           (Name (Name'First + CORBA_Exception_Namespace'Length .. Name'Last));
+         --  Remove 'CORBA.' from exception name to produce a name
+         --  compatible with internal naming scheme for exceptions.
+
+      end;
 
       Result := Get_Empty_Any_Aggregate (TC);
       Add_Aggregate_Element (Result, CORBA.To_Any (Members.Minor));
