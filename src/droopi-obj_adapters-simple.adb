@@ -26,7 +26,7 @@ package body Droopi.Obj_Adapters.Simple is
    --  Check that Index is a valid object Index (associated
    --  to a non-null Servant) for object adapter OA, and
    --  return the associated entry. If Index is out of range
-   --  or associated to a null Servant, Invalid_Oid is raised.
+   --  or associated to a null Servant, Invalid_Object_Id is raised.
 
    function Find_Entry
      (OA    : Simple_Obj_Adapter;
@@ -38,14 +38,14 @@ package body Droopi.Obj_Adapters.Simple is
            := Element_Of (OA.Object_Map, Index);
       begin
          if OME.Servant = null then
-            raise Invalid_Oid;
+            raise Invalid_Object_Id;
          end if;
 
          return OME;
       end;
    exception
       when Sequences.Index_Error =>
-         raise Invalid_Oid;
+         raise Invalid_Object_Id;
       when others =>
          raise;
    end Find_Entry;
@@ -167,8 +167,9 @@ package body Droopi.Obj_Adapters.Simple is
             OME : Object_Map_Entry
               := Find_Entry (OA, Index);
          begin
-            pragma Assert (OME.Servant /= null and then
-              OME.If_Desc.PP_Desc /= null);
+            if OME.If_Desc.PP_Desc = null then
+               raise Invalid_Method;
+            end if;
             Result := OME.If_Desc.PP_Desc (Method);
          end;
       exception
@@ -197,8 +198,10 @@ package body Droopi.Obj_Adapters.Simple is
             OME : Object_Map_Entry
               := Find_Entry (OA, Index);
          begin
-            pragma Assert (OME.Servant /= null and then
-              OME.If_Desc.PP_Desc /= null);
+            if OME.If_Desc.PP_Desc = null then
+               raise Invalid_Method;
+            end if;
+
             Result := OME.If_Desc.RP_Desc (Method);
          end;
       exception

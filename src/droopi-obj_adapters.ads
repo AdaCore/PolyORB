@@ -20,9 +20,12 @@ package Droopi.Obj_Adapters is
    procedure Destroy (OA : in out Obj_Adapter) is abstract;
    --  Finalize.
 
-   Invalid_Oid : exception;
+   Invalid_Object_Id : exception;
    --  An invalid object identifier was passed to an object
    --  adapter subprogram.
+
+   Invalid_Method : exception;
+   --  A method was invoked on an object that does not implement it.
 
    --------------------------------------
    -- Interface to application objects --

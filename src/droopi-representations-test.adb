@@ -4,6 +4,22 @@
 
 package body Droopi.Representations.Test is
 
+   procedure Marshall_From_Any
+     (R      : Rep_Test;
+      Buffer : access Buffers.Buffer_Type;
+      Data   : CORBA.Any) is
+   begin
+      raise Not_Implemented;
+   end Marshall_From_Any;
+
+   procedure Unmarshall_To_Any
+     (R      : Rep_Test;
+      Buffer : access Buffers.Buffer_Type;
+      Data   : in out CORBA.Any) is
+   begin
+      raise Not_Implemented;
+   end Unmarshall_To_Any;
+
    procedure Marshall_Char
      (B : access Buffer_Type;
       C : Character) is
