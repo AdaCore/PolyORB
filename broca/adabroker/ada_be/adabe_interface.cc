@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.14 $
+//                            $Revision: 1.15 $
 //                                                                          //
 //         Copyright (C) 1999 ENST Paris University, France.                //
 //                                                                          //
@@ -669,7 +669,7 @@ adabe_interface::produce_skel_ads (dep_list & with,
     "     (Obj : access Object;\n"
     "      Operation : String;\n"
     "      Request_Id : CORBA.Unsigned_Long;\n"
-    "      Reponse_Expected : CORBA.Boolean;\n"
+    "      Response_Expected : CORBA.Boolean;\n"
     "      Stream : in out Broca.Buffers.Buffer_Descriptor);\n";
 
   // End of the package
@@ -736,7 +736,7 @@ adabe_interface::produce_skel_adb (dep_list & with,
     "     (Obj : access Object;\n"
     "      Operation : String;\n"
     "      Request_Id : CORBA.Unsigned_Long;\n"
-    "      Reponse_Expected : CORBA.Boolean;\n"
+    "      Response_Expected : CORBA.Boolean;\n"
     "      Stream : in out Broca.Buffers.Buffer_Descriptor)\n"
     "   is\n"
     "      use Broca.Marshalling;\n"
@@ -825,7 +825,7 @@ adabe_interface::produce_skel_adb (dep_list & with,
     {
       body += 
 	"      " + corps1 + ".Skel.Dispatch\n"
-	"         (Obj, Operation, Request_Id, Reponse_Expected, Stream);\n";
+	"         (Obj, Operation, Request_Id, Response_Expected, Stream);\n";
     }
   body += "   end Giop_Dispatch;\n\n";
 
