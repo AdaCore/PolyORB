@@ -11,13 +11,42 @@ s-gafizi.o
 zipSOURCES = \
 ${srcdir}/s-gafizi.ads ${srcdir}/s-gafizi.adb
 
-zipLIBOBJS = adler32.o compress.o crc32.o gzio.o \
-	uncompr.o deflate.o trees.o zutil.o \
-	inflate.o infblock.o inftrees.o \
-	infcodes.o infutil.o inffast.o
+zipLIBSRCS = \
+$(srcdir)/zlib/adler32.c \
+$(srcdir)/zlib/compress.c \
+$(srcdir)/zlib/crc32.c \
+$(srcdir)/zlib/gzio.c \
+$(srcdir)/zlib/uncompr.c \
+$(srcdir)/zlib/deflate.c \
+$(srcdir)/zlib/trees.c \
+$(srcdir)/zlib/zutil.c \
+$(srcdir)/zlib/inflate.c \
+$(srcdir)/zlib/infblock.c \
+$(srcdir)/zlib/inftrees.c \
+$(srcdir)/zlib/infcodes.c \
+$(srcdir)/zlib/infutil.c \
+$(srcdir)/zlib/inffast.c
 
-%.o: $(srcdir)/zlib/%.c
-	$(CC) -c -O2 -I$(srcdir)/zlib $<
+zipLIBOBJS = \
+adler32.o \
+compress.o \
+crc32.o \
+gzio.o \
+uncompr.o \
+deflate.o \
+trees.o \
+zutil.o \
+inflate.o \
+infblock.o \
+inftrees.o \
+infcodes.o \
+infutil.o \
+inffast.o
+
+$(zipLIBOBJS): $(zipLIBSRCS)
+	@for s in $(zipLIBSRCS); do \
+	  $(CC) -c -O2 -I$(srcdir)/zlib $$s; \
+	done
 
 libz.a: $(zipLIBOBJS)
 	$(AR) cq libz.a $(zipLIBOBJS)
