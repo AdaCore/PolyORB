@@ -128,11 +128,7 @@ package PolyORB.POA_Types is
    function Oid_To_U_Oid
      (Oid : access Object_Id)
      return Unmarshalled_Oid;
-
---    function Oid_To_U_Oid
---      (Oid : Object_Id)
---      return Unmarshalled_Oid_Access;
---    --  Unmarshall an Object_Id into a Unmarshalled_Oid
+   --  Unmarshall an Object_Id into a Unmarshalled_Oid
 
    function U_Oid_To_Oid
      (U_Oid : Unmarshalled_Oid)

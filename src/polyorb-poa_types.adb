@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,6 +46,45 @@ package body PolyORB.POA_Types is
    package L is new PolyORB.Log.Facility_Log ("polyorb.poa_types");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   --  Object ids are represented as stream element arrays
+   --  using a private representation, that need not be
+   --  compatible with anything external. The only constraint
+   --  is that the Get_* and Put_* subprograms below be
+   --  consistent.
+
+   --  The Get_* procedures operate at index SEI in array SEA,
+   --  and advance SEI by the number of consumed Stream_Elements.
+
+   procedure Get_ULong
+     (SEA : in     Stream_Element_Array;
+      SEI : in out Stream_Element_Offset;
+      ULo :    out Types.Unsigned_Long);
+   --  Extract an unsigned long.
+
+   function Put_ULong (ULo : Types.Unsigned_Long)
+     return Stream_Element_Array;
+   --  Store an unsigned long.
+
+   procedure Get_Boolean
+     (SEA : in     Stream_Element_Array;
+      SEI : in out Stream_Element_Offset;
+      Boo :    out Types.Boolean);
+   --  Extract a boolean.
+
+   function Put_Boolean (Boo : Types.Boolean)
+     return Stream_Element_Array;
+   --  Store a boolean.
+
+   procedure Get_String
+     (SEA : in     Stream_Element_Array;
+      SEI : in out Stream_Element_Offset;
+      Str :    out Types.String);
+   --  Extract a string.
+
+   function Put_String (Str : Types.String)
+     return Stream_Element_Array;
+   --  Store a string.
 
    ----------
    -- Left --
@@ -96,10 +135,6 @@ package body PolyORB.POA_Types is
          Persistency_Flag => Persistency_Flag);
    end Create_Id;
 
-   ---------------
-   -- Create_Id --
-   ---------------
-
    function Create_Id
      (Name             : in Types.String;
       System_Generated : in Types.Boolean;
@@ -116,48 +151,9 @@ package body PolyORB.POA_Types is
           Creator          => Creator));
    end Create_Id;
 
-   --  Object ids are represented as stream element arrays
-   --  using a private representation, that need not be
-   --  compatible with anything external. The only constraint
-   --  is that the Get_* and Put_* subprograms below be
-   --  consistent.
-
-   --  The Get_* procedures operate at index SEI in array SEA,
-   --  and advance SEI by the number of consumed Stream_Elements.
-
-   procedure Get_ULong
-     (SEA : in     Stream_Element_Array;
-      SEI : in out Stream_Element_Offset;
-      ULo :    out Types.Unsigned_Long);
-   --  Extract an unsigned long.
-
-   function Put_ULong (ULo : Types.Unsigned_Long)
-     return Stream_Element_Array;
-   --  Store an unsigned long.
-
-   procedure Get_Boolean
-     (SEA : in     Stream_Element_Array;
-      SEI : in out Stream_Element_Offset;
-      Boo :    out Types.Boolean);
-   --  Extract a boolean.
-
-   function Put_Boolean (Boo : Types.Boolean)
-     return Stream_Element_Array;
-   --  Store a boolean.
-
-   procedure Get_String
-     (SEA : in     Stream_Element_Array;
-      SEI : in out Stream_Element_Offset;
-      Str :    out Types.String);
-   --  Extract a string.
-
-   function Put_String (Str : Types.String)
-     return Stream_Element_Array;
-   --  Store a string.
-
-   ---------------------
-   -- Implementations --
-   ---------------------
+   ---------------
+   -- Get_ULong --
+   ---------------
 
    procedure Get_ULong
      (SEA : in     Stream_Element_Array;
@@ -174,6 +170,10 @@ package body PolyORB.POA_Types is
       SEI := SEI + 4;
    end Get_ULong;
 
+   ---------------
+   -- Put_ULong --
+   ---------------
+
    function Put_ULong (ULo : Types.Unsigned_Long)
      return Stream_Element_Array
    is
@@ -186,6 +186,10 @@ package body PolyORB.POA_Types is
       end loop;
       return R;
    end Put_ULong;
+
+   -----------------
+   -- Get_Boolean --
+   -----------------
 
    procedure Get_Boolean
      (SEA : in     Stream_Element_Array;
@@ -203,6 +207,10 @@ package body PolyORB.POA_Types is
       SEI := SEI + 1;
    end Get_Boolean;
 
+   -----------------
+   -- Put_Boolean --
+   -----------------
+
    function Put_Boolean (Boo : Types.Boolean)
      return Stream_Element_Array
    is
@@ -211,6 +219,10 @@ package body PolyORB.POA_Types is
       if Boo then R (0) := 1; else R (0) := 0; end if;
       return R;
    end Put_Boolean;
+
+   ----------------
+   -- Get_String --
+   ----------------
 
    procedure Get_String
      (SEA : in     Stream_Element_Array;
@@ -232,6 +244,10 @@ package body PolyORB.POA_Types is
       end;
       SEI := SEI + Stream_Element_Offset (Len);
    end Get_String;
+
+   ----------------
+   -- Put_String --
+   ----------------
 
    function Put_String (Str : Types.String)
      return Stream_Element_Array
