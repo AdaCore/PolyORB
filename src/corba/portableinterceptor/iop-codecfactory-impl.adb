@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.Impl;
 with PolyORB.Representations.CDR;
 with PolyORB.Types;

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Any;
 
 package IOP.CodecFactory.Helper is

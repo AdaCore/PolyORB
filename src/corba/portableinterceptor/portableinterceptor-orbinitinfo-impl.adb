@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.CORBA_P.Initial_References;
