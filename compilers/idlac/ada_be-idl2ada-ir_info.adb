@@ -629,13 +629,9 @@ package body Ada_Be.Idl2Ada.IR_Info is
          Divert (CU, Registration);
          PL (CU, "declare");
          II (CU);
-         PL (CU, "pragma Warnings (Off); --  WAG:3.15");
          PL (CU, "Dummy : CORBA.Object.Ref'Class");
          PL (CU, "  := " & Name & ";");
-         PL (CU, "pragma Warnings (On);  --  WAG:3.15");
-         PL (CU, "pragma Warnings (Off); --  WAG:3.14");
          PL (CU, "pragma Unreferenced (Dummy);");
-         PL (CU, "pragma Warnings (On);  --  WAG:3.14");
          DI (CU);
          PL (CU, "begin");
          II (CU);

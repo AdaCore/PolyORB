@@ -341,12 +341,6 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       if In_Scope = null then
-         Add_With
-           (S.Helper (Unit_Spec), "PolyORB.Any",
-            Elab_Control => Elaborate_All,
-            No_Warnings => True);
-         --  Work-around for GNAT bug 9530-011.
-
          Gen_Module_Init_Prelude (S.Helper (Unit_Body));
          Gen_Module_Init_Prelude (S.Skel (Unit_Body));
 
@@ -706,13 +700,8 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       if In_Scope = null then
-         --  Really starting a new gen scope
 
-         Add_With
-           (S.Helper (Unit_Spec), "PolyORB.Any",
-            Elab_Control => Elaborate_All,
-            No_Warnings => True);
-         --  Work-around for GNAT bug 9530-011.
+         --  Really starting a new gen scope
 
          Gen_Module_Init_Prelude (S.Helper (Unit_Body));
          Gen_Module_Init_Prelude (S.Skel (Unit_Body));

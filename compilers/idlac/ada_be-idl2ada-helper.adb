@@ -449,6 +449,7 @@ package body Ada_Be.Idl2Ada.Helper is
          --  TypeCode
          NL (CU);
          Add_With (CU, "CORBA");
+         Add_With (CU, "PolyORB.Any");
          PL (CU, Ada_TC_Name (Node)
              & " : CORBA.TypeCode.Object");
          PL (CU, "  := PolyORB.Any.TypeCode.TC_Object;");
@@ -497,6 +498,7 @@ package body Ada_Be.Idl2Ada.Helper is
          --  TypeCode
          NL (CU);
          Add_With (CU, "CORBA");
+         Add_With (CU, "PolyORB.Any");
          PL (CU, Ada_TC_Name (Node)
              & " : CORBA.TypeCode.Object");
          PL (CU, "  := PolyORB.Any.TypeCode.TC_Object;");
@@ -2662,13 +2664,9 @@ package body Ada_Be.Idl2Ada.Helper is
       end if;
 
       if Bound (Sequence (Node)) = No_Node then
-         Add_With (CU, "PolyORB.Sequences.Unbounded.Helper",
-                   Elab_Control => Elaborate_All);
-         --  WAG:3.15
+         Add_With (CU, "PolyORB.Sequences.Unbounded.Helper");
       else
-         Add_With (CU, "PolyORB.Sequences.Bounded.Helper",
-                   Elab_Control => Elaborate_All);
-         --  WAG:3.15
+         Add_With (CU, "PolyORB.Sequences.Bounded.Helper");
       end if;
 
       Add_With (CU, Ada_Helper_Name (Sequence_Type (Sequence (Node))));
