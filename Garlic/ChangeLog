@@ -1,3 +1,7 @@
+2000-07-10  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-gprese.ads: Typo.
+
 2000-07-04  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* Makefile.am, Makefile.in: Add all the server children and rename
