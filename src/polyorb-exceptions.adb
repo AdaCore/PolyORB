@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions.adb#7 $
+--  $Id: //droopi/main/src/polyorb-exceptions.adb#8 $
 
 with Ada.Unchecked_Conversion;
 
@@ -74,10 +74,6 @@ package body PolyORB.Exceptions is
 
    All_Exceptions_Lock : Mutex_Access;
    --  Mutex used to safely access All_Exceptions list.
-
-   function To_Internal_Name (Name : Standard.String)
-                             return Standard.String;
-   --  Return the name of an exception.
 
    -----------------------------
    -- User exception handling --
@@ -147,26 +143,36 @@ package body PolyORB.Exceptions is
    -- System exception handling --
    -------------------------------
 
-   ----------------------
-   -- To_Internal_Name --
-   ----------------------
+   --------------------
+   -- Exception_Name --
+   --------------------
 
-   function To_Internal_Name (Name : Standard.String)
-                            return Standard.String
+   function Exception_Name
+     (Repository_Id : Standard.String)
+      return Standard.String
    is
-      Colon1 : constant Integer := Find (Name, Name'First, ':');
-      Colon2 : constant Integer := Find (Name, Colon1 + 1, '/');
-      Colon3 : constant Integer := Find (Name, Colon2 + 1, ':');
+      Colon1 : constant Integer
+        := Find (Repository_Id, Repository_Id'First, ':');
+      Colon2 : constant Integer
+        := Find (Repository_Id, Colon1 + 1, ':');
+      Slash : Integer := Colon1;
+      Next_Slash : Integer;
 
    begin
-      pragma Debug (O ("To_Intermal_Name " & Name));
+      pragma Debug (O ("Exception_Name " & Repository_Id));
 
-      if Colon1 < Name'Last then
-         return Name (Colon2 + 1 .. Colon3 - 1);
+      loop
+         Next_Slash := Find (Repository_Id, Colon1 + 1, '/');
+         exit when Next_Slash > Colon2;
+         Slash := Next_Slash;
+      end loop;
+
+      if Colon1 < Repository_Id'Last then
+         return Repository_Id (Slash + 1 .. Colon2 - 1);
       else
-         return Name;
+         return Repository_Id;
       end if;
-   end To_Internal_Name;
+   end Exception_Name;
 
    -------------------------
    -- Find_Exception_Info --
@@ -226,7 +232,7 @@ package body PolyORB.Exceptions is
 
       --  A repository ID is of the form 'MODEL:X/Y/Z:VERSION'
 
-      Internal_Name : Standard.String  := To_Internal_Name (RepoId);
+      Internal_Name : Standard.String  := Exception_Name (RepoId);
 
       Result : Ada.Exceptions.Exception_Id;
    begin
