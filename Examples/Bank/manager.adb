@@ -71,7 +71,7 @@ begin
                      Put_Line (String (Get_Customer (ID)));
                      Put ("   Password : ");
                      Put_Line (String (Get_Password (ID)));
-                     Put ("   Customer : ");
+                     Put ("   Balance  : ");
                      Put_Line (Integer'Image (Get_Balance (ID)));
                      New_Line;
                   end if;
