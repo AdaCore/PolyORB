@@ -14,7 +14,7 @@ if test -z "$ADA"; then
   ADA="$CC"
 fi])
 
-dnl Usage: AM_TRY_ADA(gnatmake, filename, content, success, failure)
+dnl Usage: AM_TRY_ADA(gnatmake, filename, content, pragmas, success, failure)
 dnl Compile, bind and link an Ada program and report its success or failure
 
 AC_DEFUN([AM_TRY_ADA],
@@ -22,13 +22,16 @@ AC_DEFUN([AM_TRY_ADA],
 cat > conftest/src.ada <<EOF
 [$3]
 EOF
+cat > conftest/gnat.adc <<EOF
+[$4]
+EOF
 ac_try="cd conftest && $GNATCHOP -q src.ada && $1 $2 > /dev/null 2>../conftest.out"
 if AC_TRY_EVAL(ac_try); then
-  ifelse([$4], , :, [rm -rf conftest*
-  $4])
-else
-  ifelse([$5], , :, [ rm -rf conftest*
+  ifelse([$5], , :, [rm -rf conftest*
   $5])
+else
+  ifelse([$6], , :, [ rm -rf conftest*
+  $6])
 fi
 rm -f conftest*])
 
@@ -38,8 +41,7 @@ dnl Check whether a given configuration pragma is supported.
 AC_DEFUN([AM_TRY_ADA_CONFPRAGMA],
 [AC_REQUIRE([AM_CROSS_PROG_GNATMAKE])
 AM_TRY_ADA($GNATMAKE_FOR_TARGET,[check.adb],
-[$1
-procedure Check is begin null; end Check;],[$2],[$3])])
+[procedure Check is begin null; end Check;],[$1],[$2],[$3])])
 
 dnl Usage: AM_PROG_WORKING_ADA
 dnl Try to compile a simple Ada program to test the compiler installation
@@ -53,7 +55,7 @@ procedure Check is
 begin
    null;
 end Check;
-], [AC_MSG_RESULT(yes)],
+], [], [AC_MSG_RESULT(yes)],
 [AC_MSG_RESULT(no)
 AC_MSG_ERROR([Ada compiler is not working])])])
 
@@ -162,7 +164,7 @@ procedure Check is
 begin
    GNAT.Sockets.Copy (S1, S2);
 end Check;
-], [AC_MSG_RESULT(yes)
+], [], [AC_MSG_RESULT(yes)
 MISS_GNAT_SOCKETS_COPY="--  "],
 [AC_MSG_RESULT(no)
 HAVE_GNAT_SOCKETS_COPY="--  "])
@@ -183,7 +185,7 @@ procedure Check is
 begin
    GNAT.OS_Lib.Close (FD, Status);
 end Check;
-], [AC_MSG_RESULT(yes)
+], [], [AC_MSG_RESULT(yes)
 MISS_GNAT_OS_LIB_CLOSE_WITH_STATUS="--  "],
 [AC_MSG_RESULT(no)
 HAVE_GNAT_OS_LIB_CLOSE_WITH_STATUS="--  "])
