@@ -1130,14 +1130,36 @@ procedure Test000 is
          Obj_Ref : Echo.Ref;
 
          Oid : constant ObjectId
-           := PortableServer.String_To_ObjectId ("MyServant");
+           := PortableServer.String_To_ObjectId ("dead");
 
       begin
-
-         --  Explicit Object Activation with user supplied Id.
+         --  Explicit Object Activation with User supplied Object_Id.
 
          PortableServer.POA.Activate_Object_With_Id
            (POA, Oid, Servant);
+
+         --  Repository Id sanity check
+
+         Temp := Echo.Repository_Id = To_Standard_String
+           (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
+
+         if not Temp then
+            pragma Debug (O ("Get_Type_Id failed"));
+            Result.Get_Type_Id := False;
+         end if;
+
+         --  Test Servant to Id integrity.
+         declare
+            Oid2 : constant ObjectId
+              := PortableServer.POA.Servant_To_Id (POA, Servant);
+         begin
+            if Oid /= Oid2 then
+               Result.Fatal := True;
+               pragma Debug (O (PortableServer.ObjectId_To_String (Oid)));
+               pragma Debug (O (PortableServer.ObjectId_To_String (Oid2)));
+               --  Having Oid /= Oid2 is valid when using MULTIPLE_ID
+            end if;
+         end;
 
          --  Call Servant_To_Reference.
 
@@ -1153,6 +1175,31 @@ procedure Test000 is
             Result.Fatal := True;
          end if;
 
+         --  Deactivate Object
+
+         begin
+            PortableServer.POA.Deactivate_Object
+              (POA, Oid);
+         exception
+            when E : others =>
+               pragma Debug (O ("Got exception "
+                                & Exception_Name (E)
+                                & " : "
+                                & Exception_Message (E)));
+               pragma Debug (O ("Deactivaion_Id failed"));
+               Result.Deactivation_Id := False;
+         end;
+
+         begin
+            Temp := Invoke_On_Servant (Obj_Ref);
+
+            pragma Debug (O ("FATAL: Invoke_On_Servant raised no exception"));
+            Result.Fatal := True;
+         exception
+            when others =>
+               null;
+         end;
+
          --  Try to invoke on a Ref created from the User's Oid
 
          declare
@@ -1162,25 +1209,24 @@ procedure Test000 is
                (POA,
                 Oid,
                 To_CORBA_String (Echo.Repository_Id)));
+
+            Temp_Oid : PortableServer.ObjectId
+              := PortableServer.POA.Activate_Object
+              (POA, Reference_To_Servant (POA, Obj_Ref2));
+
          begin
             --  Repository Id sanity check
 
             Temp := Echo.Repository_Id = To_Standard_String
-              (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
+              (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref2)));
 
             if not Temp then
                pragma Debug (O ("Get_Type_Id failed"));
                Result.Get_Type_Id := False;
             end if;
 
-            --  Invocation
-
             Temp := Invoke_On_Servant (Obj_Ref2);
 
-            if not Temp then
-               pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
-               Result.Fatal := True;
-            end if;
          exception
             when E : others =>
                pragma Debug (O ("Got exception "
@@ -1192,52 +1238,14 @@ procedure Test000 is
                Result.Fatal := True;
          end;
 
-         --  Repository Id sanity check
-
-         Temp := Echo.Repository_Id = To_Standard_String
-           (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
-
-         if not Temp then
-            pragma Debug (O ("Get_Type_Id failed"));
-            Result.Get_Type_Id := False;
-         end if;
-
          --  Activate twice the same Object with the same Id.
 
          begin
             PortableServer.POA.Activate_Object_With_Id (POA, Oid, Servant);
+            PortableServer.POA.Activate_Object_With_Id (POA, Oid, Servant);
             Result.Unique_Activation_Id := False;
          exception
             when PortableServer.POA.ServantAlreadyActive =>
-               null;
-         end;
-
-         --  Deactivate Object
-
-         --  Note: Oid is not a valid Object ID, it is incomplete, we use
-         --  Reference_To_Id to construct a valid POA Oid.
-
-         begin
-            PortableServer.POA.Deactivate_Object
-              (POA, Reference_To_Id (POA, Obj_Ref));
-         exception
-            when E : others =>
-               pragma Debug (O ("Got exception "
-                                & Exception_Name (E)
-                                & " : "
-                                & Exception_Message (E)));
-               pragma Debug (O ("Deactivaion_Id failed"));
-
-               Result.Deactivation_Id := False;
-         end;
-
-         begin
-            Temp := Invoke_On_Servant (Obj_Ref);
-
-            pragma Debug (O ("FATAL: Invoke_On_Servant raised no exception"));
-            Result.Fatal := True;
-         exception
-            when others =>
                null;
          end;
 
@@ -1332,6 +1340,7 @@ procedure Test000 is
          exception
             when CORBA.Bad_Param =>
                Result.Default_Servant_No_Id := False;
+               pragma Debug (O ("Default_Servant_No_Id failed"));
          end;
 
          --  Test invocation on default servant with User Id
@@ -1342,13 +1351,13 @@ procedure Test000 is
                  := Echo.Helper.To_Ref
                  (Create_Reference_With_Id
                   (POA,
-                   PortableServer.String_To_ObjectId ("foo"),
+                   PortableServer.String_To_ObjectId ("dead"),
                    To_CORBA_String (Echo.Repository_Id)));
             begin
                Temp := Invoke_On_Servant (Obj_Ref2);
 
                if not Temp then
-                  pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+                  pragma Debug (O ("FATAL: Invoke_On_Servant failed"));
                   Result.Fatal := True;
                end if;
             end;
@@ -1356,12 +1365,16 @@ procedure Test000 is
          exception
             when CORBA.Bad_Param =>
                Result.Default_Servant_Id := False;
+               pragma Debug (O ("Default_Servant_Id failed"));
          end;
 
       exception
          when PortableServer.POA.WrongPolicy =>
             Result.Default_Servant_Id := False;
+            pragma Debug (O ("Default_Servant_Id failed"));
+
             Result.Default_Servant_No_Id := False;
+            pragma Debug (O ("Default_Servant_No_Id failed"));
 
          when E : others =>
             pragma Debug (O ("Got exception B"
@@ -1378,7 +1391,9 @@ procedure Test000 is
    exception
       when E : others =>
          pragma Debug (Put_Line ("Got exception @end "
-                                 & Exception_Name (E)));
+                                 & Exception_Name (E)
+                                 & " "
+                                 & Exception_Message (E)));
          Result.Fatal := True;
 
          return Result;
@@ -1464,7 +1479,7 @@ procedure Test000 is
       if (Result.Unique_Activation_Id
           and then Up /= UNIQUE_ID)
       then
-         Output ("Result.Unique_Activation_No_Id", True);
+         Output ("Result.Unique_Activation_Id", True);
          return False;
       end if;
 
