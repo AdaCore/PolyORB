@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,12 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#15 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#16 $
 
 with Ada.Exceptions;
 
 with PolyORB.Any;
 with PolyORB.Exceptions;
+with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Utils;
 
@@ -44,29 +45,45 @@ package body PolyORB.CORBA_P.Exceptions is
    use Ada.Exceptions;
 
    use PolyORB.Any;
+   use PolyORB.Exceptions;
+   use PolyORB.Log;
    use PolyORB.Types;
    use PolyORB.Utils;
+
+   package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.exceptions");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    ----------------------------
    -- To_CORBA_Internal_Name --
    ----------------------------
 
    function To_CORBA_Exception (Name : String) return String;
-   --  Map PolyORB sytem exception repository IDs to CORBA
+   --  Map PolyORB system exception Repository Ids into CORBA
    --  ones; leave other repository IDs unchanged.
 
-   function To_CORBA_Exception (Name : String) return String
+   function To_CORBA_Exception
+     (Name : String) return String
    is
       use PolyORB.Utils;
 
       Colon1 : constant Integer := Find (Name, Name'First, ':');
       Slash  : constant Integer := Find (Name, Colon1 + 1, '/');
-      Root : String  renames Name (Name'First .. Slash);
 
+      Root      : String renames Name (Name'First .. Slash);
+      Base_Name : String renames Name (Slash + 1 .. Name'Last);
    begin
-      if Root = "INTERNAL:POLYORB/" then
-         return "IDL:CORBA/" & Name (Slash + 1 .. Name'Last);
+      pragma Debug (O ("To_CORBA_Exception: name was " & Name));
+
+      if Root = PolyORB_Prefix then
+         pragma Debug (O ("To_CORBA_Exception: new name is "
+                          & "IDL:CORBA/" & Base_Name));
+
+         return "IDL:CORBA/" & Base_Name;
+
       else
+         pragma Debug (O (" not changed: " & Name));
+
          return Name;
       end if;
    end To_CORBA_Exception;
@@ -75,31 +92,39 @@ package body PolyORB.CORBA_P.Exceptions is
    -- Raise_From_Any --
    --------------------
 
-   procedure Raise_From_Any (Occurrence : Any.Any)
+   procedure Raise_From_Any
+     (Occurrence : Any.Any)
    is
-      use PolyORB.Exceptions;
-
       Repository_Id : constant PolyORB.Types.RepositoryId
         := Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
 
-      Is_CORBA_System_Exc : constant Boolean
-        := Is_System_Exception
-        (To_Standard_String (Repository_Id));
+      EId : constant String := To_Standard_String (Repository_Id);
 
-      CORBA_Repository_Id : constant String
-        := To_CORBA_Exception (PolyORB.Types.To_Standard_String
-                                 (Repository_Id));
-
-      System_Id : constant Ada.Exceptions.Exception_Id
-        := PolyORB.Exceptions.Get_ExcepId_By_RepositoryId
-        (CORBA_Repository_Id);
    begin
-      if Is_CORBA_System_Exc then
-         PolyORB.Exceptions.Raise_System_Exception_From_Any
-           (System_Id, Occurrence);
+      pragma Debug (O ("Raise_From_Any: enter"));
+
+      if Is_System_Exception (EId) then
+         declare
+            CORBA_Repository_Id : constant String
+              := To_CORBA_Exception (EId);
+
+            System_Id : constant Ada.Exceptions.Exception_Id
+              := PolyORB.Exceptions.Get_ExcepId_By_RepositoryId
+              (CORBA_Repository_Id);
+
+         begin
+            pragma Debug (O ("Raising "
+                             & Ada.Exceptions.Exception_Name (System_Id)));
+
+            PolyORB.Exceptions.Raise_System_Exception_From_Any
+              (System_Id, Occurrence);
+         end;
       else
+         pragma Debug (O ("Raising " & EId));
+
          PolyORB.Exceptions.Raise_User_Exception_From_Any
            (Repository_Id, Occurrence);
+
       end if;
 
       raise Program_Error;
