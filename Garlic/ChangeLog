@@ -1,6 +1,7 @@
 1998-03-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* Makefile.am: Add output infos. Update dependencies.
+	* Makefile.am, Makefile.in: Add output infos. Update
+	dependencies. Fix a small bug of re-installation.
 
 1998-03-20  Laurent Pautet  <pautet@scapin.enst.fr>
 

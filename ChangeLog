@@ -1,3 +1,7 @@
+1998-03-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in, configure: Add some platform configurations.
+
 1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure, configure.in: Remove substitution in
