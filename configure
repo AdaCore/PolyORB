@@ -14,6 +14,10 @@ ac_default_prefix=/usr/local
 ac_help="$ac_help
   --enable-debug          Turn on debugging options"
 ac_help="$ac_help
+  --with-embedded         Don't include launching facilities"
+ac_help="$ac_help
+  --with-protocols        Enumerate protocol list"
+ac_help="$ac_help
   --with-platform=letter  Select another platform's specific files (debug)"
 ac_help="$ac_help
   --with-extra-libs=libs  Add extra libraries when building a program"
@@ -614,7 +618,7 @@ else
   yes;
 #endif
 EOF
-if { ac_try='${CC-cc} -E conftest.c'; { (eval echo configure:618: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
+if { ac_try='${CC-cc} -E conftest.c'; { (eval echo configure:622: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } | egrep yes >/dev/null 2>&1; then
   ac_cv_prog_gcc=yes
 else
   ac_cv_prog_gcc=no
@@ -913,6 +917,38 @@ else
 fi
 
 
+# Check whether --with-embedded or --without-embedded was given.
+if test "${with_embedded+set}" = set; then
+  withval="$with_embedded"
+  NON_EMBEDDED_SOURCES="\$(NON_EMBEDDED_SOURCES)";
+ NON_EMBEDDED_OBJECTS="\$(NON_EMBEDDED_OBJECTS)"
+
+else
+  NON_EMBEDDED_SOURCES="";
+ NON_EMBEDDED_OBJECTS=""
+fi
+
+
+
+# Check whether --with-protocols or --without-protocols was given.
+if test "${with_protocols+set}" = set; then
+  withval="$with_protocols"
+  for P in "${withal}"; do
+    case ${P} in
+    TCP|tcp) 
+             PROTOCOLS_SOURCES="${PROTOCOLS_SOURCES} \$(TCP_SOURCES)";
+             PROTOCOLS_OBJECTS="${PROTOCOLS_OBJECTS} \$(TCP_OBJECTS)";;
+    no)     
+             PROTOCOLS_SOURCES=""; PROTOCOLS_OBJECTS="";;
+    *)       echo "Unknown ${P} protocol";;
+    esac;
+done
+else
+  PROTOCOLS_SOURCES="\$(TCP_SOURCES)"; PROTOCOLS_OBJECTS="\$(TCP_OBJECTS)"
+fi
+
+
+
 #
 # Find GNAT sources
 #
@@ -1164,6 +1200,10 @@ s%@build_cpu@%$build_cpu%g
 s%@build_vendor@%$build_vendor%g
 s%@build_os@%$build_os%g
 s%@GNATFLAGS@%$GNATFLAGS%g
+s%@NON_EMBEDDED_SOURCES@%$NON_EMBEDDED_SOURCES%g
+s%@NON_EMBEDDED_OBJECTS@%$NON_EMBEDDED_OBJECTS%g
+s%@PROTOCOLS_SOURCES@%$PROTOCOLS_SOURCES%g
+s%@PROTOCOLS_OBJECTS@%$PROTOCOLS_OBJECTS%g
 s%@GNAT_SOURCE@%$GNAT_SOURCE%g
 s%@SET_MAKE@%$SET_MAKE%g
 s%@PLATFORM_SPECIFIC@%$PLATFORM_SPECIFIC%g
