@@ -1,5 +1,8 @@
 Mon Feb 24 09:18:50 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
+	* xe_parse.adb: Add a general Write_Error_Message procedure.
+	Update Declare_Subprogram to handle new subprogram definition.
+	
 	* xe_scan.adb: Fix a bug (string without end delimiter).
 
 	* xe.ads, xe.adb: Change xxx_Parameter_Mark into

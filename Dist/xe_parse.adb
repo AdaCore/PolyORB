@@ -37,6 +37,25 @@ with XE_Stdcnf;        use XE_Stdcnf;
 
 package body XE_Parse is
 
+   procedure Write_Conflict_Error
+     (SLOC  : in Location_Type;
+      Name  : in Name_Id);
+
+   procedure Write_Declaration_Error
+     (SLOC  : in Location_Type;
+      Name  : in Name_Id);
+
+   procedure Write_Error_Message
+     (SLOC  : in Location_Type;
+      Mesg1 : in String  := "";
+      Name1 : in Name_Id := No_Name;
+      Mesg2 : in String  := "";
+      Name2 : in Name_Id := No_Name);
+
+   procedure Write_Type_Error
+     (SLOC  : in Location_Type;
+      Name  : in Name_Id);
+
    ------------------------
    -- Check_Not_Declared --
    ------------------------
@@ -48,12 +67,7 @@ package body XE_Parse is
    begin
       Search_Declaration (Declaration_Name, Node);
       if Node /= Null_Node then
-         Write_Location (Declaration_Sloc);
-         Write_Str  ("""");
-         Write_Name (Declaration_Name);
-         Write_Str  (""" conflicts with a previous declaration");
-         Write_Eol;
-         Exit_On_Parsing_Error;
+         Write_Conflict_Error (Declaration_Sloc, Declaration_Name);
       end if;
    end Check_Not_Declared;
 
@@ -66,13 +80,15 @@ package body XE_Parse is
       Literal_Type : in  Type_Id;
       Literal_Sloc : in  Location_Type;
       Literal_Node : out Variable_Id) is
-      V : Variable_Id;
+      L : Variable_Id;
    begin
 
-      Create_Variable    (V, Literal_Name);
-      Set_Variable_Type  (V, Literal_Type);
-      Set_Node_Location  (Node_Id (V), Literal_Sloc);
-      Literal_Node := V;
+      --  A literal is a variable which is not linked into the
+      --  configuration declaration list.
+      Create_Variable    (L, Literal_Name);
+      Set_Variable_Type  (L, Literal_Type);
+      Set_Node_Location  (Node_Id (L), Literal_Sloc);
+      Literal_Node := L;
 
    end Declare_Literal;
 
@@ -91,31 +107,23 @@ package body XE_Parse is
 
       Old_Subprogram := Subprogram_Node;
 
-      --  As a parser naming convention, the convetion name ISN_Proc_Call
-      --  indicates a procedure call.
+      --  Parser naming convention: ISN_Proc_Call indicates a procedure call.
 
-      Create_Statement
-        (New_Statement,
-         ISN_Proc_Call);
+      Create_Statement (New_Statement, ISN_Proc_Call);
 
       --  Make a entire copy of subprogram node.
 
       Create_Subprogram
-        (New_Subprogram,
-         Get_Node_Name (Node_Id (Old_Subprogram)));
-      Set_Pragma_Kind
-        (New_Subprogram,
-         Get_Pragma_Kind (Old_Subprogram));
+        (New_Subprogram, Get_Node_Name (Node_Id (Old_Subprogram)));
       Subprogram_Is_A_Procedure
-        (New_Subprogram,
-         Is_Subprogram_A_Procedure (Old_Subprogram));
+        (New_Subprogram, Is_Subprogram_A_Procedure (Old_Subprogram));
+      Set_Pragma_Kind
+        (New_Subprogram, Get_Pragma_Kind (Old_Subprogram));
 
-      First_Subprogram_Parameter
-        (Old_Subprogram,
-         Old_Parameter);
+      --  Make a copy of parameters.
+
+      First_Subprogram_Parameter (Old_Subprogram, Old_Parameter);
       while Old_Parameter /= Null_Parameter loop
-
-         --  Make a copy of parameters.
 
          Declare_Subprogram_Parameter
            (Get_Node_Name (Node_Id (Old_Parameter)),
@@ -124,14 +132,14 @@ package body XE_Parse is
             Null_Location,
             New_Parameter);
 
-         --  and assign the formal parameters as they were during
-         --  the parameter matching phase.
+         --  Assign the formal parameters as they were during the parameter
+         --  matching phase.
 
          Duplicate_Variable
            (Get_Variable_Value (Variable_Id (Old_Parameter)),
             Variable_Id (New_Parameter));
 
-         Parameter_Is_Initialized (New_Parameter, True);
+         Parameter_Is_Initialized  (New_Parameter, True);
          Next_Subprogram_Parameter (Old_Parameter);
 
       end loop;
@@ -149,21 +157,52 @@ package body XE_Parse is
 
    procedure Declare_Subprogram
      (Subprogram_Name  : in  Name_Id;
+      Pragma_Kind      : in  Pragma_Type;
       Is_A_Procedure   : in  Boolean;
       Subprogram_Sloc  : in  Location_Type;
       Subprogram_Node  : out Subprogram_Id) is
       Node : Subprogram_Id;
+      Unit : Variable_Id;
    begin
 
-      Check_Not_Declared (Subprogram_Name, Subprogram_Sloc);
+      if Pragma_Kind = Pragma_Unknown then
+
+         --  An ada unit node should be defined and its value holds the
+         --  subprogram node. This way, function or procedure are handled
+         --  as normal ada units.
+
+         Search_Variable (Subprogram_Name, Ada_Unit_Type_Node, Unit);
+         if Unit = Null_Variable then
+            Declare_Variable
+              (Subprogram_Name,
+               Ada_Unit_Type_Node,
+               Subprogram_Sloc,
+               Unit);
+
+         elsif Get_Variable_Value (Unit) /= Null_Variable then
+
+            --  In this case, the ada unit is already declared, but already
+            --  holds a function or procedure node.
+            Write_Conflict_Error (Subprogram_Sloc, Subprogram_Name);
+
+         end if;
+      end if;
 
       Create_Subprogram             (Node, Subprogram_Name);
       Set_Node_Location             (Node_Id (Node), Subprogram_Sloc);
       Subprogram_Is_A_Procedure     (Node, Is_A_Procedure);
-      Set_Pragma_Kind               (Node, Pragma_Unknown);
+      Set_Pragma_Kind               (Node, Pragma_Kind);
       Subprogram_Node := Node;
 
-      Add_Configuration_Declaration (Configuration_Node, Node_Id (Node));
+      if Pragma_Kind = Pragma_Unknown then
+
+         --  If it is an ada unit (variable) then it is already linked into
+         --  the configuration declaration list.
+         Set_Variable_Value (Unit, Variable_Id (Node));
+
+      else
+         Add_Configuration_Declaration (Configuration_Node, Node_Id (Node));
+      end if;
 
    end Declare_Subprogram;
 
@@ -234,15 +273,12 @@ package body XE_Parse is
       A : Attribute_Id;
    begin
 
-      --  An attribute is stored as a component and marked as an attribute.
-
       Declare_Type_Component
         (Type_Node,
          Attribute_Prefix & Attribute_Name,
          Attr_Type_Node,
          Attribute_Sloc,
          Component_Id (A));
-
       Set_Attribute_Kind        (Component_Id (A), Attribute_Kind);
       Attribute_Node := A;
 
@@ -290,7 +326,9 @@ package body XE_Parse is
       Create_Variable    (V, Variable_Name);
       Set_Variable_Type  (V, Variable_Type);
 
-      --  This type is a structure, duplicate the structure.
+      --  This type is a structure, duplicate the structure (but not
+      --  attributes).
+
       S := Get_Component_List_Size (Variable_Type);
       if S /= 0 and then S /= Unbounded then
          First_Type_Component (Variable_Type, C);
@@ -373,13 +411,12 @@ package body XE_Parse is
       V : Variable_Id;
    begin
 
-      pragma Assert (Get_Variable_Type (Source) = Get_Variable_Type (Target));
-
       T := Get_Variable_Type (Source);
-
-      --  Do we need to assign a element list or a single element ?
+      pragma Assert (Get_Variable_Type (Target) = T);
 
       if Get_Array_Component_Type (T) /= Null_Type then
+
+         --  This is a list assignment.
          First_Variable_Component (Source, C);
          while C /= Null_Component loop
             if Get_Attribute_Kind (C) = Attribute_Unknown then
@@ -392,9 +429,10 @@ package body XE_Parse is
          end loop;
 
       else
-         --  Assign a single element.
 
+         --  Assign a single element.
          Set_Variable_Value (Target, Source);
+
       end if;
 
    end Duplicate_Variable;
@@ -557,151 +595,103 @@ package body XE_Parse is
 
       --  At the beginning, convention is unknown.
 
-      if N_Parameter > 0 then
-         T_Left_Paren;
+      if N_Parameter <= 0 then
+         return;
+      end if;
 
-         --  What is the the convention used here.
+      T_Left_Paren;
+
+      --  What is the the convention used here.
+
+      Take_Token ((Tok_Identifier, Tok_String_Literal));
+      Location := Get_Token_Location;
+      Take_Token ((Tok_Arrow, Tok_Comma, Tok_Right_Paren));
+      if Token = Tok_Arrow then
+         Convention := Named;
+      else
+         Convention := Positional;
+      end if;
+      Set_Token_Location (Location);
+
+      loop
+         Location := Get_Token_Location;
+
+         if Convention = Named then
+            T_Identifier;
+            Formal_Name := Token_Name;
+            T_Arrow;
+         end if;
+
+         --  If convention = named, check that such a formal parameter
+         --     belongs to the subprogram parameter list.
+         --  If convention = positional, retrieve the first unmarked
+         --     (unmatched) parameter (name and node).
+
+         Search_Matching_Parameter
+           (Subprogram_Node,
+            Convention,
+            Formal_Name,
+            Formal_Type,
+            Formal_Node);
+
+         if Formal_Node = Null_Parameter then
+            Write_Error_Message (Location, "formal parameter mismatch");
+         end if;
 
          Take_Token ((Tok_Identifier, Tok_String_Literal));
-         Location := Get_Token_Location;
-         Take_Token ((Tok_Arrow, Tok_Comma, Tok_Right_Paren));
-         if Token = Tok_Arrow then
-            Convention := Named;
+         Location    := Get_Token_Location;
+         Actual_Name := Token_Name;
+
+         if Token = Tok_String_Literal then
+
+            if Formal_Type /= String_Type_Node then
+               Write_Error_Message (Location, "actual parameter mismatch");
+            end if;
+
+            --  Create a dummy declaration that contains the literal.
+
+            Declare_Literal
+              (Actual_Name,
+               String_Type_Node,
+               Location,
+               Actual_Node);
+
          else
-            Convention := Positional;
+
+            --  Does this actual parameter really exist ?
+
+            Search_Actual_Parameter (Actual_Name, Formal_Type, Actual_Node);
+
+            if Actual_Node = Null_Variable then
+               Write_Error_Message (Location, "actual parameter mismatch");
+            end if;
+
          end if;
-         Set_Token_Location (Location);
 
-         loop
-            Location := Get_Token_Location;
+         --  Mark the matching parameter and set its value to actual
+         --  parameter value.
 
-            if Convention = Named then
-               T_Identifier;
-               Formal_Name := Token_Name;
-               T_Arrow;
-            end if;
+         Duplicate_Variable (Actual_Node, Variable_Id (Formal_Node));
 
-            --  If convention = named, check that such a formal parameter
-            --     belongs to the subprogram parameter list.
-            --  If convention = positional, retrieve the first unmarked
-            --     (unmatched) parameter (name and node).
+         --  There is one less parameter to match.
 
-            Search_Matching_Parameter
-              (Subprogram_Node,
-               Convention,
-               Formal_Name,
-               Formal_Type,
-               Formal_Node);
+         Parameter_Is_Initialized (Formal_Node, True);
+         N_Parameter := N_Parameter - 1;
 
-            if Formal_Node = Null_Parameter then
-               Write_Location (Location);
-               Write_Str ("formal parameter mismatch");
-               Write_Eol;
-               Exit_On_Parsing_Error;
-            end if;
+         Take_Token ((Tok_Comma, Tok_Right_Paren));
 
-            Take_Token ((Tok_Identifier, Tok_String_Literal));
-            Location    := Get_Token_Location;
-            Actual_Name := Token_Name;
+         if Token = Tok_Right_Paren then
+            exit when N_Parameter = 0;
+            Write_Error_Message (Get_Token_Location, "missing parameters");
+         elsif Token /= Tok_Right_Paren and then N_Parameter = 0 then
+            Write_Error_Message (Get_Token_Location, "too many parameters");
+         end if;
 
-            if Token = Tok_String_Literal then
-
-               if Formal_Type /= String_Type_Node then
-                  Write_Location (Location);
-                  Write_Str ("actual parameter mismatch");
-                  Write_Eol;
-                  Exit_On_Parsing_Error;
-               end if;
-
-               --  Create a dummy declaration that contains the literal.
-
-               Declare_Literal
-                 (Actual_Name,
-                  String_Type_Node,
-                  Location,
-                  Actual_Node);
-
-            else
-
-               --  Does this actual parameter really exist ?
-
-               Search_Actual_Parameter
-                 (Actual_Name,
-                  Formal_Type,
-                  Actual_Node);
-
-               if Actual_Node = Null_Variable then
-                  Write_Location (Location);
-                  Write_Str ("actual parameter mismatch");
-                  Write_Eol;
-                  Exit_On_Parsing_Error;
-               end if;
-
-            end if;
-
-            --  Mark the matching parameter and set its value to actual
-            --  parameter value.
-
-            Duplicate_Variable (Actual_Node, Variable_Id (Formal_Node));
-
-            --  There is one less parameter to match.
-
-            Parameter_Is_Initialized (Formal_Node, True);
-            N_Parameter := N_Parameter - 1;
-
-            Take_Token ((Tok_Comma, Tok_Right_Paren));
-
-            if Token = Tok_Right_Paren then
-               exit when N_Parameter = 0;
-               Write_Location (Get_Token_Location);
-               Write_Str ("missing parameters");
-               Write_Eol;
-               Exit_On_Parsing_Error;
-            elsif Token /= Tok_Right_Paren and then
-               N_Parameter = 0 then
-               Write_Location (Get_Token_Location);
-               Write_Str ("too many parameters");
-               Write_Eol;
-               Exit_On_Parsing_Error;
-            end if;
-
-         end loop;
-
-      end if;
+      end loop;
 
       T_Semicolon;
 
    end Match_Actual_With_Formal;
-
-   --------------
-   -- No_Match --
-   --------------
-
-   procedure No_Match (L : Token_List_Type) is
-   begin
-      Write_Location (Get_Token_Location);
-      Write_Token (L (L'First));
-      for Index in L'First + 1 .. L'Last loop
-         Write_Str (" or ");
-         Write_Token (L (Index));
-      end loop;
-      Write_Str (" was expected");
-      Write_Eol;
-      Exit_On_Parsing_Error;
-   end No_Match;
-
-   --------------
-   -- No_Match --
-   --------------
-
-   procedure No_Match (T : Token_Type) is
-   begin
-      Write_Location (Get_Token_Location);
-      Write_Token (T);
-      Write_Str (" was expected");
-      Write_Eol;
-      Exit_On_Parsing_Error;
-   end No_Match;
 
    -----------------------------
    -- P_Aggregate_Assignement --
@@ -724,10 +714,8 @@ package body XE_Parse is
       T_Left_Paren;
 
       if Comp_List_Size = 0 then
-         Write_Location (Get_Token_Location);
-         Write_Str  ("only aggregate are allowed");
-         Write_Eol;
-         Exit_On_Parsing_Error;
+         Write_Error_Message
+           (Get_Token_Location, "only aggregate are allowed");
       end if;
 
       if Comp_List_Size = Unbounded then
@@ -746,10 +734,8 @@ package body XE_Parse is
             Search_Uninitialized_Component
               (Variable_Node, Null_Type, List_Element_Node);
             if List_Element_Node = Null_Component then
-               Write_Location (Expression_Sloc);
-               Write_Str  ("too many components for record aggregate");
-               Write_Eol;
-               Exit_On_Parsing_Error;
+               Write_Error_Message
+                 (Expression_Sloc, "too many components for record aggregate");
             end if;
 
             List_Element_Type := Get_Component_Type (List_Element_Node);
@@ -767,22 +753,11 @@ package body XE_Parse is
          if Expression_Node /= Null_Variable then
 
             if Get_Variable_Type (Expression_Node) /= List_Element_Type then
-               Write_Location (Expression_Sloc);
-               Write_Str  ("""");
-               Write_Name (Expression_Name);
-               Write_Str  (""" conflicts with a previous declaration");
-               Write_Eol;
-               Exit_On_Parsing_Error;
+               Write_Conflict_Error (Expression_Sloc, Expression_Name);
             end if;
 
          elsif Is_Type_Frozen (List_Element_Type) then
-
-            Write_Location (Expression_Sloc);
-            Write_Str  ("""");
-            Write_Name (Expression_Name);
-            Write_Str  (""" has not been declared");
-            Write_Eol;
-            Exit_On_Parsing_Error;
+            Write_Declaration_Error (Expression_Sloc, Expression_Name);
 
          else
 
@@ -802,19 +777,17 @@ package body XE_Parse is
             --  as a anonymous component name.
 
             Declare_Variable_Component
-              (Variable_Node      => Variable_Node,
-               Component_Name     => ISN_Array_Comp,
-               Component_Type     => List_Element_Type,
-               Component_Value    => Expression_Node,
-               Attribute_Kind     => Attribute_Unknown,
-               Component_Sloc     => Expression_Sloc,
-               Component_Node     => List_Element_Node);
+              (Variable_Node,
+               ISN_Array_Comp,
+               List_Element_Type,
+               Expression_Node,
+               Attribute_Unknown,
+               Expression_Sloc,
+               List_Element_Node);
 
          else
 
-            Set_Component_Value
-              (List_Element_Node,
-               Node_Id (Expression_Node));
+            Set_Component_Value (List_Element_Node, Node_Id (Expression_Node));
 
          end if;
 
@@ -847,12 +820,7 @@ package body XE_Parse is
                Name := Token_Name;
                Search_Variable (Name, Variable_Node);
                if Variable_Node = Null_Variable then
-                  Write_Location (Get_Token_Location);
-                  Write_Str ("""");
-                  Write_Name (Name);
-                  Write_Str (""" has not been declared");
-                  Write_Eol;
-                  Exit_On_Parsing_Error;
+                  Write_Declaration_Error (Get_Token_Location, Name);
                end if;
                T_Colon_Equal;
 
@@ -919,10 +887,7 @@ package body XE_Parse is
 
       if Token = Tok_Identifier then
          if Get_Node_Name (Node_Id (Configuration_Node)) /= Token_Name then
-            Write_Location (Get_Token_Location);
-            Write_Str ("name mismatch");
-            Write_Eol;
-            Exit_On_Parsing_Error;
+            Write_Error_Message (Get_Token_Location, "name mismatch");
          end if;
          T_Semicolon;
       end if;
@@ -964,7 +929,6 @@ package body XE_Parse is
    ----------------------------
 
    procedure P_Function_Declaration is
-      Ada_Unit_Node  : Variable_Id;
       Function_Name  : Name_Id;
       Function_Sloc  : Location_Type;
       Function_Node  : Subprogram_Id;
@@ -987,51 +951,12 @@ package body XE_Parse is
       Function_Name := Token_Name;
       Function_Sloc := Get_Token_Location;
 
-      --  This function is going to match a real ada unit, anyway. Check
-      --  that this ada unit has not been already declared. If not, then
-      --  declare it.
-
-      Search_Variable (Function_Name, Ada_Unit_Node);
-      if Ada_Unit_Node = Null_Variable then
-
-         Declare_Variable
-           (Function_Name,
-            Ada_Unit_Type_Node,
-            Function_Sloc,
-            Ada_Unit_Node);
-
-      elsif not Is_Variable (Node_Id (Ada_Unit_Node)) then
-
-         Write_Location (Function_Sloc);
-         Write_Str  ("""");
-         Write_Name (Function_Name);
-         Write_Str  (""" conflicts with a previous declaration");
-         Write_Eol;
-         Exit_On_Parsing_Error;
-
-      end if;
-
-      --  This variable should have a value which is the subprogram itself.
-      --  Check that this subprogram is not already there. If so, then this
-      --  function has already been declared.
-
-      if Get_Variable_Value (Ada_Unit_Node) /= Null_Variable then
-         Write_Location (Function_Sloc);
-         Write_Str  ("""");
-         Write_Name (Function_Name);
-         Write_Str  (""" conflicts with a previous declaration");
-         Write_Eol;
-         Exit_On_Parsing_Error;
-      end if;
-
-      --  Create a new subprogram node for this newly declared function.
-
-      Create_Subprogram         (Function_Node, Function_Name);
-      Set_Node_Location         (Node_Id (Function_Node), Function_Sloc);
-      Subprogram_Is_A_Procedure (Function_Node, False);
-      Set_Pragma_Kind           (Function_Node, Pragma_Unknown);
-
-      Set_Variable_Value (Ada_Unit_Node, Variable_Id (Function_Node));
+      Declare_Subprogram
+        (Function_Name,
+         Pragma_Unknown,
+         False,
+         Function_Sloc,
+         Function_Node);
 
       T_Left_Paren;
 
@@ -1054,12 +979,9 @@ package body XE_Parse is
       --  String is the only expected type.
 
       if Para_Type_Node /= String_Type_Node then
-         Write_Location (Para_Type_Sloc);
-         Write_Str  ("""");
-         Write_Name (Para_Type_Name);
-         Write_Str  (""" is not the expected type");
-         Write_Eol;
-         Exit_On_Parsing_Error;
+         Write_Error_Message
+           (Para_Type_Sloc, """",
+            Para_Type_Name, """ is not the expected type");
       end if;
 
       --  Declare <X> as a formal parameter.
@@ -1085,12 +1007,7 @@ package body XE_Parse is
       --  String is the only type allowed at this level.
 
       if Para_Type_Node /= String_Type_Node then
-         Write_Location (Para_Type_Sloc);
-         Write_Str  ("""");
-         Write_Name (Para_Type_Name);
-         Write_Str  (""" is not the expected type");
-         Write_Eol;
-         Exit_On_Parsing_Error;
+         Write_Type_Error (Para_Type_Sloc, Para_Type_Name);
       end if;
 
       --  Declare returned parameter type. As a naming convention
@@ -1129,12 +1046,8 @@ package body XE_Parse is
 
       Search_Pragma (Pragma_Name, Pragma_Kind, Pragma_Node);
       if Pragma_Node = Null_Subprogram then
-         Write_Location (Get_Token_Location);
-         Write_Str  ("unrecognized pragma """);
-         Write_Name (Token_Name);
-         Write_Str  ("""");
-         Write_Eol;
-         Exit_On_Parsing_Error;
+         Write_Error_Message
+           (Get_Token_Location, "unrecognized pragma """, Token_Name, """");
       end if;
 
       --  Parse a pragma as a procedure call.
@@ -1153,13 +1066,13 @@ package body XE_Parse is
 
    procedure P_Procedure_Declaration is
       Ada_Unit_Node  : Variable_Id;
+      Constant_True  : Variable_Id;
       Partition_Name : Name_Id;
       Partition_Node : Variable_Id;
       Partition_Sloc : Location_Type;
       Procedure_Sloc : Location_Type;
       Procedure_Name : Name_Id;
       Procedure_Node : Subprogram_Id;
-      Variable_Node  : Variable_Id;
       Component_Node : Component_Id;
    begin
 
@@ -1170,33 +1083,12 @@ package body XE_Parse is
       Procedure_Name := Token_Name;
       Procedure_Sloc := Get_Token_Location;
 
-      Search_Variable (Procedure_Name, Ada_Unit_Node);
-      if Ada_Unit_Node = Null_Variable then
-
-         Declare_Variable
-           (Procedure_Name,
-            Ada_Unit_Type_Node,
-            Procedure_Sloc,
-            Ada_Unit_Node);
-
-      elsif not Is_Variable (Node_Id (Ada_Unit_Node)) or else
-        Get_Variable_Type (Ada_Unit_Node) /= Ada_Unit_Type_Node then
-
-         Write_Location (Procedure_Sloc);
-         Write_Str  ("""");
-         Write_Name (Procedure_Name);
-         Write_Str  (""" conflicts with a previous declaration");
-         Write_Eol;
-         Exit_On_Parsing_Error;
-
-      end if;
-
-      Create_Subprogram         (Procedure_Node, Procedure_Name);
-      Set_Node_Location         (Node_Id (Procedure_Node), Procedure_Sloc);
-      Subprogram_Is_A_Procedure (Procedure_Node, True);
-      Set_Pragma_Kind           (Procedure_Node, Pragma_Unknown);
-
-      Set_Variable_Value (Ada_Unit_Node, Variable_Id (Procedure_Node));
+      Declare_Subprogram
+        (Procedure_Name,
+         Pragma_Unknown,
+         True,
+         Procedure_Sloc,
+         Procedure_Node);
 
       Take_Token ((Tok_Is, Tok_Semicolon));
 
@@ -1216,32 +1108,27 @@ package body XE_Parse is
 
          if Partition_Node = Null_Variable or else
            Get_Variable_Type (Partition_Node) /= Partition_Type_Node then
-            Write_Location (Partition_Sloc);
-            Write_Str  ("""");
-            Write_Name (Partition_Name);
-            Write_Str  (""" conflicts with a previous declaration");
-            Write_Eol;
-            Exit_On_Parsing_Error;
+            Write_Conflict_Error (Partition_Sloc, Partition_Name);
          end if;
 
-         Search_Variable (Procedure_Name, Variable_Node);
+         Search_Variable (Procedure_Name, Ada_Unit_Node);
 
          Declare_Variable_Component
            (Variable_Node      => Partition_Node,
             Component_Name     => Attribute_Prefix & Str_To_Id ("main"),
             Component_Type     => Ada_Unit_Type_Node,
-            Component_Value    => Variable_Node,
+            Component_Value    => Ada_Unit_Node,
             Attribute_Kind     => Attribute_Main,
             Component_Sloc     => Procedure_Sloc,
             Component_Node     => Component_Node);
 
-         Search_Variable (Str_To_Id ("true"), Variable_Node);
+         Search_Variable (Str_To_Id ("true"), Constant_True);
 
          Declare_Variable_Component
            (Variable_Node      => Partition_Node,
             Component_Name     => Attribute_Prefix & Str_To_Id ("_leader"),
             Component_Type     => Boolean_Type_Node,
-            Component_Value    => Variable_Node,
+            Component_Value    => Constant_True,
             Attribute_Kind     => Attribute_Leader,
             Component_Sloc     => Procedure_Sloc,
             Component_Node     => Component_Node);
@@ -1293,22 +1180,13 @@ package body XE_Parse is
          --  Only variables and types are subject to representation clause.
 
          else
-            Write_Location (Get_Token_Location);
-            Write_Str ("identifier """);
-            Write_Name (Direct_Name);
-            Write_Str (""" is neither a variable");
-            Write_Str (" nor a predefined type");
-            Write_Eol;
-            Exit_On_Parsing_Error;
+            Write_Error_Message
+              (Get_Token_Location,
+               "attribute cannot be given to ", Direct_Name);
          end if;
 
       else
-         Write_Location (Get_Token_Location);
-         Write_Str ("identifier """);
-         Write_Name (Direct_Name);
-         Write_Str (""" is undefined here");
-         Write_Eol;
-         Exit_On_Parsing_Error;
+         Write_Declaration_Error (Get_Token_Location, Direct_Name);
       end if;
 
       T_Apostrophe;
@@ -1330,12 +1208,8 @@ package body XE_Parse is
 
       if Attr_Node = Null_Component or else
         Get_Attribute_Kind (Attr_Node) = Attribute_Unknown then
-         Write_Location (Get_Token_Location);
-         Write_Str  ("unrecognized attribute """);
-         Write_Name (Attr_Name);
-         Write_Str  ("""");
-         Write_Eol;
-         Exit_On_Parsing_Error;
+         Write_Error_Message
+           (Get_Token_Location, "unrecognized attribute """, Attr_Name, """");
       end if;
 
       Attr_Name := Attribute_Prefix & Attr_Name;
@@ -1359,12 +1233,7 @@ package body XE_Parse is
       else
          Search_Declaration (Expr_Name, Expr_Node);
          if Expr_Node = Null_Node then
-            Write_Location (Expr_Sloc);
-            Write_Str ("""");
-            Write_Name (Expr_Name);
-            Write_Str (""" has not been declared");
-            Write_Eol;
-            Exit_On_Parsing_Error;
+            Write_Declaration_Error (Expr_Sloc, Expr_Name);
          end if;
       end if;
 
@@ -1373,12 +1242,10 @@ package body XE_Parse is
       --  Check that the expression has the correct type.
 
       if not Is_Expression_Of_Type (Expr_Node, Attr_Type) then
-         Write_Location (Get_Token_Location);
-         Write_Str ("""");
-         Write_Name (Get_Node_Name (Node_Id (Expr_Node)));
-         Write_Str (""" is an invalid expression here");
-         Write_Eol;
-         Exit_On_Parsing_Error;
+         Write_Error_Message
+           (Get_Token_Location, """",
+            Get_Node_Name (Node_Id (Expr_Node)),
+            """ is an invalid expression here");
       end if;
 
       if Is_A_Type then
@@ -1471,12 +1338,7 @@ package body XE_Parse is
             Var_Type_Node);
 
          if Var_Type_Node = Null_Type then
-            Write_Location (Var_Type_Sloc);
-            Write_Str  ("unexpected type """);
-            Write_Name (Var_Type_Name);
-            Write_Str  ("""");
-            Write_Eol;
-            Exit_On_Parsing_Error;
+            Write_Type_Error (Var_Type_Sloc, Var_Type_Name);
          end if;
 
          --  Declare this new variable of type Var_Type_Node.
@@ -1873,12 +1735,7 @@ package body XE_Parse is
          Next_Configuration_Declaration (Actual);
       end loop;
 
-      Write_Location (Get_Token_Location);
-      Write_Str  ("identifier """);
-      Write_Name (Actual_Name);
-      Write_Str  (""" is undefined here");
-      Write_Eol;
-      Exit_On_Parsing_Error;
+      Write_Declaration_Error (Get_Token_Location, Actual_Name);
 
    end Search_Actual_Parameter;
 
@@ -1999,10 +1856,7 @@ package body XE_Parse is
          Next_Subprogram_Parameter (Parameter_Node);
       end loop;
 
-      Write_Location (Get_Token_Location);
-      Write_Str  ("no matching parameter");
-      Write_Eol;
-      Exit_On_Parsing_Error;
+      Write_Error_Message (Get_Token_Location, "no matching parameter");
 
    end Search_Matching_Parameter;
 
@@ -2348,7 +2202,11 @@ package body XE_Parse is
    begin
       Next_Token;
       if T /= Token then
-         No_Match (T);
+         Write_Location (Get_Token_Location);
+         Write_Token (T);
+         Write_Str (" was expected");
+         Write_Eol;
+         Exit_On_Parsing_Error;
       end if;
    end Take_Token;
 
@@ -2362,7 +2220,78 @@ package body XE_Parse is
       if Match (L) then
          return;
       end if;
-      No_Match (L);
+      Write_Location (Get_Token_Location);
+      Write_Token (L (L'First));
+      for Index in L'First + 1 .. L'Last loop
+         Write_Str (" or ");
+         Write_Token (L (Index));
+      end loop;
+      Write_Str (" was expected");
+      Write_Eol;
+      Exit_On_Parsing_Error;
    end Take_Token;
+
+   --------------------------
+   -- Write_Conflict_Error --
+   --------------------------
+
+   procedure Write_Conflict_Error
+     (SLOC  : in Location_Type;
+      Name  : in Name_Id) is
+   begin
+      Write_Error_Message
+        (SLOC, """", Name, """ conflicts with a previous declaration");
+   end Write_Conflict_Error;
+
+   -----------------------------
+   -- Write_Declaration_Error --
+   -----------------------------
+
+   procedure Write_Declaration_Error
+     (SLOC  : in Location_Type;
+      Name  : in Name_Id) is
+   begin
+      Write_Error_Message
+        (SLOC, """", Name, """ is undefined");
+   end Write_Declaration_Error;
+
+   -------------------------
+   -- Write_Error_Message --
+   -------------------------
+
+   procedure Write_Error_Message
+     (SLOC  : in Location_Type;
+      Mesg1 : in String  := "";
+      Name1 : in Name_Id := No_Name;
+      Mesg2 : in String  := "";
+      Name2 : in Name_Id := No_Name) is
+   begin
+      Write_Location (SLOC);
+      if Mesg1 /= "" then
+         Write_Str (Mesg1);
+      end if;
+      if Name1 /= No_Name then
+         Write_Name (Name1);
+      end if;
+      if Mesg2 /= "" then
+         Write_Str (Mesg2);
+      end if;
+      if Name2 /= No_Name then
+         Write_Name (Name2);
+      end if;
+      Write_Eol;
+      Exit_On_Parsing_Error;
+   end Write_Error_Message;
+
+   ----------------------
+   -- Write_Type_Error --
+   ----------------------
+
+   procedure Write_Type_Error
+     (SLOC  : in Location_Type;
+      Name  : in Name_Id) is
+   begin
+      Write_Error_Message (SLOC, """", Name, """ is not the expected type");
+   end Write_Type_Error;
 
 end XE_Parse;

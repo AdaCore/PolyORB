@@ -50,7 +50,6 @@ package XE_Parse is
       Literal_Type : in  Type_Id;
       Literal_Sloc : in  Location_Type;
       Literal_Node : out Variable_Id);
-   --  Declare a new literal.
 
    procedure Declare_Procedure_Call
      (Subprogram_Node : in Subprogram_Id);
@@ -59,6 +58,7 @@ package XE_Parse is
 
    procedure Declare_Subprogram
      (Subprogram_Name  : in  Name_Id;
+      Pragma_Kind      : in  Pragma_Type;
       Is_A_Procedure   : in  Boolean;
       Subprogram_Sloc  : in  Location_Type;
       Subprogram_Node  : out Subprogram_Id);
@@ -114,7 +114,8 @@ package XE_Parse is
       Variable_Sloc : in  Location_Type;
       Variable_Node : out Variable_Id);
    --  Declare a new variable into the configuration context. This variable
-   --  of name Variable_Name is of type Variable_Type.
+   --  of name Variable_Name is of type Variable_Type. Allocate the
+   --  component nodes if needed (not attributes).
 
    procedure Declare_Variable_Component
      (Variable_Node      : in Variable_Id;
@@ -158,11 +159,6 @@ package XE_Parse is
      (Subprogram_Node : in Subprogram_Id);
    --  Parse a subprogram call and associate actual parameters to formal
    --  parameters.
-
-   procedure No_Match (L : in Token_List_Type);
-
-   procedure No_Match (T : in Token_Type);
-   --  Utilities.
 
    procedure P_Aggregate_Assignement
      (Variable_Node   : in Variable_Id);
