@@ -285,7 +285,6 @@ package body Ada_Be.Expansion is
 
          --  Allocate a name for the node's repository ID
 
-
          if Kind (Node) /= K_Repository
            and then Kind (Node) /= K_Ben_Idl_File then
             declare

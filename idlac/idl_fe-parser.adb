@@ -636,7 +636,7 @@ package body Idl_Fe.Parser is
        Reopen  : out Boolean)
    is
    begin
-      pragma Debug (O2 ("Parse_Module : enter"));
+      pragma Debug (O2 ("Parse_Module: enter"));
       Reopen := False;
       --  Is there an identifier ?
       Next_Token;
@@ -660,7 +660,7 @@ package body Idl_Fe.Parser is
                              Def.Parent_Scope = Get_Current_Scope then
                               --  if the previous definition was a module in
                               --  the same scope then reopen it.
-                              pragma Debug (O ("Parse_Module : reopening a " &
+                              pragma Debug (O ("Parse_Module: reopening a " &
                                                "module"));
                               Reopen := True;
                               Result := Def.Node;
@@ -707,9 +707,9 @@ package body Idl_Fe.Parser is
                      Definition : Node_Id;
                      Definition_Result : Boolean;
                   begin
-                     pragma Debug (O ("Parse_Module : parse body"));
+                     pragma Debug (O ("Parse_Module: parse body"));
                      Push_Scope (Result);
-                     pragma Debug (O ("parse_module : after push_scope, " &
+                     pragma Debug (O ("Parse_Module: after push_scope, " &
                                       "current scope is : " &
                                       Name (Get_Current_Scope)));
                      if Get_Token = T_Right_Cbracket then
@@ -733,7 +733,7 @@ package body Idl_Fe.Parser is
                         end if;
                      end loop;
                      Pop_Scope;
-                     pragma Debug (O ("parse_module : after pop_scope, " &
+                     pragma Debug (O ("Parse_Module: after pop_scope, " &
                                       "current scope is : " &
                                       Name (Get_Current_Scope)));
                      --  consume the T_Right_Cbracket token
@@ -768,7 +768,7 @@ package body Idl_Fe.Parser is
             Success := False;
       end case;
       return;
-      pragma Debug (O2 ("Parse_Module : end"));
+      pragma Debug (O2 ("Parse_Module: end"));
    end Parse_Module;
 
    -----------------------
@@ -782,7 +782,7 @@ package body Idl_Fe.Parser is
       Fd_Res : Node_Id;
       Definition : Identifier_Definition_Acc;
    begin
-      pragma Debug (O2 ("Parse_Interface : enter"));
+      pragma Debug (O2 ("Parse_Interface: enter"));
       --  interface header.
       Res := Make_Interface (Get_Token_Location);
       --  is the interface abstracted
@@ -1206,7 +1206,8 @@ package body Idl_Fe.Parser is
       Scope : Node_Id;
       A_Name : Node_Id := No_Node;
    begin
-      pragma Debug (O2 ("Parse_Scoped_Name : enter"));
+      pragma Debug (O2 ("Parse_Scoped_Name: enter"));
+
       Result := No_Node;
       Success := False;
       Prev := No_Node;
@@ -1216,7 +1217,7 @@ package body Idl_Fe.Parser is
       --  the root scope
       if Get_Token = T_Colon_Colon then
          Scope := Get_Root_Scope;
-         pragma Debug (O ("Parse_Scoped_Name : root scope is defined at " &
+         pragma Debug (O ("Parse_Scoped_Name: root scope is defined at " &
                           Errors.Location_To_String
                           (Get_Location (Scope))));
       else
@@ -1232,6 +1233,7 @@ package body Idl_Fe.Parser is
             pragma Debug (O2 ("Parse_Scoped_Name : end"));
             return;
          end if;
+
          --  gets the name of the scope of reference for this scoped_name
          --  if the current scope is one of the following :
          --    struct, union, operation, exception
@@ -1241,6 +1243,7 @@ package body Idl_Fe.Parser is
          --  enum type definition inside the switch statement. In this
          --  precise case, one of the label of the enum can be used inside
          --  the union.
+
          case Kind (Get_Current_Scope) is
             when K_Struct
               | K_Exception
@@ -1306,16 +1309,22 @@ package body Idl_Fe.Parser is
             pragma Debug (O2 ("Parse_Scoped_Name : end"));
             return;
          end if;
+
          --  If we are not in its definition scope,
          --  we should perhaps import this identifier:
+         --
          --  first we should look at the current scope.
          --  If it is a Struct, Union, Operation or Exception
-         --  we should import it in the parent scope of the
-         --  current scope if necessary;
-         --  else we should import it in the current scope.
+         --  we should import the identifier into the parent scope
+         --  of the current scope if necessary;
+         --  else we should import it into the current scope.
+         --
          --  If it is a module, an interface, a valuetype
          --  or the repository, the add function won't do
          --  anything.
+         --  XXX Thomas 2000-08-25: I don't understand the above
+         --      3 lines /at all/.
+
          declare
             CSK : constant Node_Kind := Kind (Get_Current_Scope);
          begin
@@ -1324,21 +1333,29 @@ package body Idl_Fe.Parser is
               or else CSK = K_Interface
               or else CSK = K_ValueType
             then
+               pragma Debug
+                 (O ("Parse_Scope_Name: Current_Scope is a Gen_Scope."));
                if Get_Current_Scope
                    /= Definition (A_Name).Parent_Scope
                  or else Name (Get_Current_Scope)
                    /= Get_Token_String
                then
+                  pragma Debug (O ("Parse_Scoped_Name: importing """
+                                   & Get_Token_String & """ into Current_Scope"));
                   Add_Definition_To_Imported
                     (Definition (A_Name),
                      Get_Current_Scope);
                end if;
             else
+               pragma Debug
+                 (O ("Parse_Scoped_Name: Current_Scope is not a Gen_Scope."));
                if Get_Previous_Scope
                    /= Definition (A_Name).Parent_Scope
                  or else Name (Get_Previous_Scope)
                  /= Get_Token_String
                then
+                  pragma Debug (O ("Parse_Scoped_Name: importing """
+                                   & Get_Token_String & """ into Previous_Scope"));
                   Add_Definition_To_Imported
                     (Definition (A_Name),
                      Get_Previous_Scope);
