@@ -92,15 +92,15 @@ OBJECTS =  	sockets-constants.o 	sockets-link.o 	sockets-multicast.o 	sockets-na
 
 ALIS = $(OBJECTS:.o=.ali)
 
-CLEANFILES = *.o *.ali
+CLEANFILES = *.o *.ali sockets-constants.ads
 DISTCLEANFILES = b_split.c split constants_nodef
-mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/../support/mkinstalldirs
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =  sockets-link.ads adasockets-config
 SCRIPTS =  $(bin_SCRIPTS)
 
-DIST_COMMON =  ./stamp-h.in ChangeLog Makefile.am Makefile.in \
-adasockets-config.in config.h.in sockets-link.ads.in
+DIST_COMMON =  ./stamp-h.in Makefile.am Makefile.in adasockets-config.in \
+config.h.in sockets-link.ads.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)

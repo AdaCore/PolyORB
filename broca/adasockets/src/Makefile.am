@@ -26,7 +26,7 @@ OBJECTS = \
 
 ALIS = $(OBJECTS:.o=.ali)
 
-CLEANFILES = *.o *.ali
+CLEANFILES = *.o *.ali sockets-constants.ads
 DISTCLEANFILES = b_split.c split constants_nodef
 
 constants_nodef: constants.c config.h

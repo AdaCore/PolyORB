@@ -5,7 +5,7 @@ ADA_FULL = \
 	   broca-debug.ads \
 	   broca-opaque-chunk_pools.ads \
 	   broca-buffers.ads \
-	   broca-buffers-io_operations.ads
+	   broca-buffers-io_operations.ads \
            broca-exceptions.ads \
            broca-flags.ads \
            broca-giop.ads \
@@ -37,6 +37,7 @@ ADA_FULL = \
            portableserver-servantlocator.ads \
            portableserver-servantmanager-impl.ads \
            portableserver.ads
+
 #           broca-policy.ads \
 #           corba-boa.ads \
 #           corba-policy.ads \
@@ -53,11 +54,15 @@ ADA_SPECS = $(ADA_FULL) \
            portableserver-servantlocator-impl.ads \
            portableserver-servantmanager.ads
 
+ADA_BODIES = $(ADA_FULL:.ads=.adb)
+
+ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
+
 ADA_OBJS = $(ADA_SPECS:.ads=.o)
 
 lib_LTLIBRARIES = libbroca.la
-libbroca_la_SOURCES = $(ADA_SPECS) $(ADA_FULL:.ads=.adb)
-libbroca_la_LIBADD = $(ADA_FULL:.ads=.lo)
+libbroca_la_SOURCES = $(ADA_SPECS) $(ADA_BODIES)
+libbroca_la_LIBADD = $(ADA_LIBADD)
 libbroca_la_LDFLAGS = -lgnat -no-undefined -release 0.9.0
 
 CLEANFILES = *.ali

@@ -43,8 +43,9 @@ with System.IO;        use System.IO;
 
 procedure Split is
 
-   Column     : Natural  := 0;
-   Max_Column : constant := 50;
+   Column          : Natural  := 0;
+   Max_Column      : constant := 65;
+   Hard_Max_Column : constant := 78;
 
 begin
    if Argument_Count /= 1 then
@@ -55,9 +56,16 @@ begin
          if Argument (1) (I) = ' ' and then Column >= Max_Column then
             New_Line;
             Column := 0;
+         elsif Argument (1) (I) = ' ' and then Column = 0 then
+            null;
+         elsif Column >= Hard_Max_Column then
+            New_Line;
+            Put ("--  " & Argument (1) (I));
+            Column := 5;
          else
             if Column = 0 then
                Put ("--  ");
+               Column := 4;
             end if;
             Put (Argument (1) (I));
             Column := Column + 1;

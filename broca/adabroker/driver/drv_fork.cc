@@ -119,6 +119,12 @@ typedef int pid_t;
 #include      <wait.h>                // POSIX definition of wait()
 #endif
 
+#if defined(__freebsd__)
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
+
 #if !defined(__WIN32__) && !defined(__VMS)
 
 // Note that Windows NT version can only handle one file on command line.

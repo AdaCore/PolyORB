@@ -85,7 +85,8 @@ VERSION = @VERSION@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 ACLOCAL_AMFLAGS = -I ../support
 
-ADA_FULL =  	   broca-debug.ads 	   broca-buffers.ads            broca-exceptions.ads            broca-flags.ads            broca-giop.ads            broca-iiop.ads            broca-inet_server.ads            broca-ior.ads            broca-locks.ads            broca-cdr.ads            broca-object.ads            broca-orb.ads            broca-poa.ads            broca-refs.ads            broca-repository.ads            broca-rootpoa.ads            broca-sequences.ads            broca-server.ads            broca-stream.ads            broca-vararray.ads            corba-forward.ads            corba-object.ads            corba-orb.ads            corba-sequences-unbounded.ads            corba.ads            portableserver-adapteractivator-impl.ads            portableserver-adapteractivator.ads            portableserver-poa.ads            portableserver-poamanager.ads            portableserver-servantactivator.ads            portableserver-servantlocator.ads            portableserver-servantmanager-impl.ads            portableserver.ads
+ADA_FULL =  	   broca-debug.ads 	   broca-opaque-chunk_pools.ads 	   broca-buffers.ads 	   broca-buffers-io_operations.ads            broca-exceptions.ads            broca-flags.ads            broca-giop.ads            broca-iiop.ads            broca-inet_server.ads            broca-ior.ads            broca-locks.ads            broca-cdr.ads            broca-object.ads            broca-orb.ads            broca-poa.ads            broca-refs.ads            broca-repository.ads            broca-rootpoa.ads            broca-sequences.ads            broca-server.ads            broca-stream.ads            broca-vararray.ads            corba-forward.ads            corba-object.ads            corba-orb.ads            corba-sequences-unbounded.ads            corba.ads            portableserver-adapteractivator-impl.ads            portableserver-adapteractivator.ads            portableserver-poa.ads            portableserver-poamanager.ads            portableserver-servantactivator.ads            portableserver-servantlocator.ads            portableserver-servantmanager-impl.ads            portableserver.ads
+
 
 #           broca-policy.ads \
 #           corba-boa.ads \
@@ -94,14 +95,18 @@ ADA_FULL =  	   broca-debug.ads 	   broca-buffers.ads            broca-exception
 #           portableserver-servantretentionpolicy.ads \
 #           portableserver-threadpolicy.ads
 
-ADA_SPECS = $(ADA_FULL)            broca.ads            broca-iop.ads            corba-sequences.ads            portableserver-servantactivator-impl.ads            portableserver-servantlocator-impl.ads            portableserver-servantmanager.ads
+ADA_SPECS = $(ADA_FULL)            broca.ads 	   broca-opaque.ads            broca-iop.ads            corba-sequences.ads            portableserver-servantactivator-impl.ads            portableserver-servantlocator-impl.ads            portableserver-servantmanager.ads
 
+
+ADA_BODIES = $(ADA_FULL:.ads=.adb)
+
+ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
 
 ADA_OBJS = $(ADA_SPECS:.ads=.o)
 
 lib_LTLIBRARIES = libbroca.la
-libbroca_la_SOURCES = $(ADA_SPECS) $(ADA_FULL:.ads=.adb)
-libbroca_la_LIBADD = $(ADA_FULL:.ads=.lo)
+libbroca_la_SOURCES = $(ADA_SPECS) $(ADA_BODIES)
+libbroca_la_LIBADD = $(ADA_LIBADD)
 libbroca_la_LDFLAGS = -lgnat -no-undefined -release 0.9.0
 
 CLEANFILES = *.ali
@@ -111,7 +116,7 @@ LINK = libtool $(ADA) -o libbroca.la
 ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao -I../adasockets/src -g -O2 $(CFLAGS)
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/../support/mkinstalldirs
-CONFIG_CLEAN_FILES = 
+CONFIG_CLEAN_FILES =  adacompiler
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 
@@ -119,21 +124,24 @@ DEFS = @DEFS@ -I. -I$(srcdir)
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libbroca_la_DEPENDENCIES =  broca-debug.lo broca-buffers.lo \
-broca-exceptions.lo broca-flags.lo broca-giop.lo broca-iiop.lo \
-broca-inet_server.lo broca-ior.lo broca-locks.lo broca-marshalling.lo \
-broca-object.lo broca-orb.lo broca-poa.lo broca-refs.lo \
-broca-repository.lo broca-rootpoa.lo broca-sequences.lo broca-server.lo \
-broca-stream.lo broca-vararray.lo corba-forward.lo corba-object.lo \
-corba-orb.lo corba-sequences-unbounded.lo corba.lo \
+libbroca_la_DEPENDENCIES =  broca-debug.lo broca-opaque-chunk_pools.lo \
+broca-buffers.lo broca-buffers-io_operations.lo broca-exceptions.lo \
+broca-flags.lo broca-giop.lo broca-iiop.lo broca-inet_server.lo \
+broca-ior.lo broca-locks.lo broca-cdr.lo broca-object.lo broca-orb.lo \
+broca-poa.lo broca-refs.lo broca-repository.lo broca-rootpoa.lo \
+broca-sequences.lo broca-server.lo broca-stream.lo broca-vararray.lo \
+corba-forward.lo corba-object.lo corba-orb.lo \
+corba-sequences-unbounded.lo corba.lo \
 portableserver-adapteractivator-impl.lo \
 portableserver-adapteractivator.lo portableserver-poa.lo \
 portableserver-poamanager.lo portableserver-servantactivator.lo \
 portableserver-servantlocator.lo portableserver-servantmanager-impl.lo \
-portableserver.lo
+portableserver.lo broca.lo broca-opaque.lo broca-iop.lo \
+corba-sequences.lo portableserver-servantactivator-impl.lo \
+portableserver-servantlocator-impl.lo portableserver-servantmanager.lo
 libbroca_la_OBJECTS = 
-DIST_COMMON =  ChangeLog Makefile.am Makefile.in aclocal.m4 configure \
-configure.in
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in aclocal.m4 \
+adacompiler.in configure configure.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -160,6 +168,8 @@ config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	$(SHELL) ./config.status --recheck
 $(srcdir)/configure: $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
 	cd $(srcdir) && $(AUTOCONF)
+adacompiler: $(top_builddir)/config.status adacompiler.in
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 mostlyclean-libLTLIBRARIES:
 
