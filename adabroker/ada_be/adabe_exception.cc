@@ -12,7 +12,7 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
   compute_ada_name ();
   
   // beginning of the exception declaration ...
-    
+
   body+=  "   " + get_ada_local_name() + " : exception ;\n";
   
   body +=  "   type " +get_ada_local_name() +"_Members is new CORBA.IDL_Exception_Members with ";
@@ -35,7 +35,6 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
 		body += "record\n" ;
 		first = false;
 	      }
-	    body += "      ";
 	    adabe_field->produce_ads (with, body, previous);
 	    break;
 	  }
@@ -52,7 +51,7 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
     }
   else
     {
-      body += "    end record\n";
+      body += "   end record\n";
     }
   
   // Problem in the mapping  ????

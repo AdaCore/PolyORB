@@ -13,16 +13,16 @@ void
 adabe_attribute::produce_ads(dep_list& with, string &body, string &previous)
 {
   compute_ada_name();
-  body += "   function get_" + get_ada_local_name() +"(Self : in Ref) return "; 
+  body += "   function Get_" + get_ada_local_name() +"(Self : in Ref) return "; 
   AST_Decl *d = field_type();
   string name = dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
-  body += name + ";\n";
+  body += name + " ;\n";
   if (!readonly())
     {
-      body += "   procedure set_" + get_ada_local_name();
-      body += "(Self : in Ref, To : in ";
+      body += "   procedure Get_" + get_ada_local_name();
+      body += "(Self : in Ref ; To : in ";
       body += name;
-      body += ");\n";
+      body += ") ;\n";
     }
 }
 

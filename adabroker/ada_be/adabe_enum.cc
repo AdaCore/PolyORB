@@ -19,7 +19,8 @@ adabe_enum::adabe_enum(UTL_ScopedName *n, UTL_StrList *p)
 void
 adabe_enum::produce_ads(dep_list& with,string &body, string &previous) {
   
-  body += "type " + get_ada_local_name() + "is (\n";
+  compute_ada_name ();
+  body += "   type " + get_ada_local_name() + " is ( ";
   UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
   while (!activator.is_done())
     {
@@ -33,9 +34,9 @@ adabe_enum::produce_ads(dep_list& with,string &body, string &previous) {
 	default:
 	  throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope in enumeration type");
 	}
-      if (!activator.is_done()) body += ",";
+      if (!activator.is_done()) body += ", ";
     }
-  body +=");\n";
+  body +=" ) ;\n";
   set_already_defined();
 }
 

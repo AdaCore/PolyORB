@@ -81,7 +81,7 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
     body +=number;
     body +=" )";
   }
-  body+="of\n\t\t"+ (dynamic_cast<adabe_name *>(base_type())->dump_name(with, previous));
+  body+=" of "+ (dynamic_cast<adabe_name *>(base_type())->dump_name(with, previous));
   body += " ;\n" ;
   set_already_defined();
 }
