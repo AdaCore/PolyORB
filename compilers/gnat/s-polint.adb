@@ -316,7 +316,7 @@ package body System.PolyORB_Interface is
                   begin
                      Create_Reference
                        (The_ORB, Oid'Access,
-                        Stub.Name.all & ":" & Stub.Version.all,
+                        "DSA:" & Stub.Name.all & ":" & Stub.Version.all,
                         Ref);
 
                      declare
@@ -516,13 +516,18 @@ package body System.PolyORB_Interface is
       use PolyORB.POA_Config;
       use PolyORB.POA_Manager;
 
-      POA : constant Obj_Adapter_Access
-        := Create_POA
+      POA : Obj_Adapter_Access;
+   begin
+      if RACW_POA_Config = null then
+         return;
+      end if;
+
+      POA := Create_POA
         (Self         => Root_POA_Object,
          Adapter_Name => PolyORB.Types.To_PolyORB_String (Name),
          A_POAManager => null,
          Policies     => Default_Policies (RACW_POA_Config.all));
-   begin
+
       POA.Default_Servant := PolyORB.Objects.Servant_Access
         (Default_Servant);
 

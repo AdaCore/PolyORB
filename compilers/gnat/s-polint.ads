@@ -27,6 +27,23 @@ package System.PolyORB_Interface is
    --  i.e. one for each RCI library unit, and one for each
    --  type that is the designated type of one or more RACW type.
 
+   subtype Message is PolyORB.Components.Message;
+   subtype Null_Message is PolyORB.Components.Null_Message;
+   subtype Execute_Request is
+     PolyORB.Objects.Interface.Execute_Request;
+   subtype Executed_Request is
+     PolyORB.Objects.Interface.Executed_Request;
+
+   function Caseless_String_Eq (S1, S2 : String) return Boolean;
+   --  Case-less equality of S1 and S2.
+
+   generic
+      RCI_Name : String;
+   package RCI_Info is
+      function Get_RCI_Package_Ref
+        return PolyORB.References.Ref;
+   end RCI_Info;
+
    type Message_Handler_Access is access
      function (M : PolyORB.Components.Message'Class)
                return PolyORB.Components.Message'Class;
@@ -116,17 +133,6 @@ package System.PolyORB_Interface is
      return String
      renames PolyORB.Types.To_Standard_String;
 
-   subtype Any is PolyORB.Any.Any;
-   Mode_In    : PolyORB.Any.Flags renames PolyORB.Any.ARG_IN;
-   Mode_Out   : PolyORB.Any.Flags renames PolyORB.Any.ARG_OUT;
-   Mode_Inout : PolyORB.Any.Flags renames PolyORB.Any.ARG_INOUT;
-   subtype NamedValue is PolyORB.Any.NamedValue;
-   subtype TypeCode is PolyORB.Any.TypeCode.Object;
-   procedure Set_TC
-     (A : in out PolyORB.Any.Any;
-      T : PolyORB.Any.TypeCode.Object)
-      renames PolyORB.Any.Set_Type;
-
    subtype Object_Ref is PolyORB.References.Ref;
 
    function Is_Nil (R : PolyORB.References.Ref) return Boolean
@@ -151,6 +157,24 @@ package System.PolyORB_Interface is
    --  object whose address is Addr, whose type is the designated
    --  type of a RACW type associated with Servant.
 
+   ------------------------------
+   -- Any and associated types --
+   ------------------------------
+
+   Result_Name : constant PolyORB.Types.Identifier
+     := PolyORB.Types.To_PolyORB_String ("Result");
+
+   subtype Any is PolyORB.Any.Any;
+   Mode_In    : PolyORB.Any.Flags renames PolyORB.Any.ARG_IN;
+   Mode_Out   : PolyORB.Any.Flags renames PolyORB.Any.ARG_OUT;
+   Mode_Inout : PolyORB.Any.Flags renames PolyORB.Any.ARG_INOUT;
+   subtype NamedValue is PolyORB.Any.NamedValue;
+   subtype TypeCode is PolyORB.Any.TypeCode.Object;
+   procedure Set_TC
+     (A : in out PolyORB.Any.Any;
+      T : PolyORB.Any.TypeCode.Object)
+      renames PolyORB.Any.Set_Type;
+
    function Get_Empty_Any
      (Tc : PolyORB.Any.TypeCode.Object)
       return PolyORB.Any.Any
@@ -166,36 +190,8 @@ package System.PolyORB_Interface is
       Item_Flags : in PolyORB.Any.Flags)
      renames PolyORB.Any.NVList.Add_Item;
 
-   subtype Request_Access is PolyORB.Requests.Request_Access;
-   Nil_Exc_List : PolyORB.Any.ExceptionList.Ref
-      renames PolyORB.Any.ExceptionList.Nil_Ref;
 
-   procedure Request_Create
-     (Target    : in     PolyORB.References.Ref;
-      Operation : in     PolyORB.Requests.Operation_Id;
-      Arg_List  : in     PolyORB.Any.NVList.Ref;
-      Result    : in out PolyORB.Any.NamedValue;
-      Exc_List  : in     PolyORB.Any.ExceptionList.Ref
-        := PolyORB.Any.ExceptionList.Nil_Ref;
-      Req       :    out PolyORB.Requests.Request_Access;
-      Req_Flags : in     PolyORB.Requests.Flags := 0;
-      Deferred_Arguments_Session :
-        in PolyORB.Components.Component_Access := null
-     ) renames PolyORB.Requests.Create_Request;
-
-   procedure Request_Invoke
-     (R            : PolyORB.Requests.Request_Access;
-      Invoke_Flags : PolyORB.Requests.Flags          := 0)
-     renames PolyORB.Requests.Invoke;
-
-   procedure Request_Arguments
-     (R    :        PolyORB.Requests.Request_Access;
-      Args : in out PolyORB.Any.NVList.Ref)
-     renames PolyORB.Requests.Arguments;
-
-   procedure Request_Set_Out
-     (R : PolyORB.Requests.Request_Access)
-     renames PolyORB.Requests.Set_Out_Args;
+   --  Elementary From_Any and To_Any operations
 
 --       function FA_AD (Item : PolyORB.Any.Any) return X;
 --       function FA_AS (Item : PolyORB.Any.Any) return X;
@@ -322,31 +318,45 @@ package System.PolyORB_Interface is
    procedure Copy_Any_Value (Dest, Src : PolyORB.Any.Any)
      renames PolyORB.Any.Copy_Any_Value;
 
+   --------------
+   -- Requests --
+   --------------
+
+   subtype Request_Access is PolyORB.Requests.Request_Access;
+   Nil_Exc_List : PolyORB.Any.ExceptionList.Ref
+      renames PolyORB.Any.ExceptionList.Nil_Ref;
+
+   procedure Request_Create
+     (Target    : in     PolyORB.References.Ref;
+      Operation : in     PolyORB.Requests.Operation_Id;
+      Arg_List  : in     PolyORB.Any.NVList.Ref;
+      Result    : in out PolyORB.Any.NamedValue;
+      Exc_List  : in     PolyORB.Any.ExceptionList.Ref
+        := PolyORB.Any.ExceptionList.Nil_Ref;
+      Req       :    out PolyORB.Requests.Request_Access;
+      Req_Flags : in     PolyORB.Requests.Flags := 0;
+      Deferred_Arguments_Session :
+        in PolyORB.Components.Component_Access := null
+     ) renames PolyORB.Requests.Create_Request;
+
+   procedure Request_Invoke
+     (R            : PolyORB.Requests.Request_Access;
+      Invoke_Flags : PolyORB.Requests.Flags          := 0)
+     renames PolyORB.Requests.Invoke;
+
+   procedure Request_Arguments
+     (R    :        PolyORB.Requests.Request_Access;
+      Args : in out PolyORB.Any.NVList.Ref)
+     renames PolyORB.Requests.Arguments;
+
+   procedure Request_Set_Out
+     (R : PolyORB.Requests.Request_Access)
+     renames PolyORB.Requests.Set_Out_Args;
+
    procedure Set_Result
      (Self : PolyORB.Requests.Request_Access;
       Val  : PolyORB.Any.Any)
      renames PolyORB.Requests.Set_Result;
-
-
-   subtype Message is PolyORB.Components.Message;
-   subtype Null_Message is PolyORB.Components.Null_Message;
-   subtype Execute_Request is
-     PolyORB.Objects.Interface.Execute_Request;
-   subtype Executed_Request is
-     PolyORB.Objects.Interface.Executed_Request;
-
-   function Caseless_String_Eq (S1, S2 : String) return Boolean;
-   --  Case-less equality of S1 and S2.
-
-   generic
-      RCI_Name : String;
-   package RCI_Info is
-      function Get_RCI_Package_Ref
-        return PolyORB.References.Ref;
-   end RCI_Info;
-
-   Result_Name : constant PolyORB.Types.Identifier
-     := PolyORB.Types.To_PolyORB_String ("Result");
 
 private
 
