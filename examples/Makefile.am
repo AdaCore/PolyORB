@@ -12,5 +12,3 @@ all: orb
 
 orb:
 	(cd $(top_builddir)/src && $(MAKE) all)
-
-
