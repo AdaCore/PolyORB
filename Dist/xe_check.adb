@@ -348,8 +348,46 @@ package body XE_Check is
          Write_Name (Main_Subprogram);
          Write_Str (""" is not a main program");
          Write_Eol;
-         raise Partitioning_Error;
+         Inconsistent := True;
       end if;
+
+      declare
+         Upper, Lower : Name_Id;
+      begin
+         for C in Channels.First .. Channels.Last loop
+            if Channels.Table (C).Upper.My_Partition =
+              Channels.Table (C).Lower.My_Partition then
+               Write_Program_Name;
+               Write_Str (": channel """);
+               Write_Name (Channels.Table (C).Name);
+               Write_Str (""" is an illegal pair of partitions");
+               Write_Eol;
+               Inconsistent := True;
+            end if;
+            Lower :=
+              Partitions.Table (Channels.Table (C).Lower.My_Partition).Name;
+            Upper :=
+              Partitions.Table (Channels.Table (C).Upper.My_Partition).Name;
+            Set_CID (Lower & Parent_Dir & Upper, Null_CID);
+         end loop;
+         for C in Channels.First .. Channels.Last loop
+            Lower :=
+              Partitions.Table (Channels.Table (C).Lower.My_Partition).Name;
+            Upper :=
+              Partitions.Table (Channels.Table (C).Upper.My_Partition).Name;
+            if Get_CID (Lower & Parent_Dir & Upper) /= Null_CID then
+               Write_Program_Name;
+               Write_Str  (": two channels define """);
+               Write_Name (Lower);
+               Write_Str  (""" and """);
+               Write_Name (Upper);
+               Write_Str  (""" pair");
+               Write_Eol;
+               Inconsistent := True;
+            end if;
+            Set_CID (Lower & Parent_Dir & Upper, C);
+         end loop;
+      end;
 
       if Inconsistent then
          raise Partitioning_Error;

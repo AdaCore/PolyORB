@@ -1,7 +1,13 @@
 Thu Feb 27 11:07:05 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
+	* xe_check.adb: Check that a channel has not been declared twice
+ 	(wuth a different name like (C1, C2 : Channel := (P1, P2)). Check
+ 	that the pair of partitions is a real pair, and not twice the same
+ 	partition.
+
 	* xe_stubs.adb: Predefined type partition filer was incorrectly
- 	generated. The peer partition name was also incorrect.
+ 	generated. The peer partition name was also incorrect.  Forgot to
+ 	check that the default filter was not null => illegal with.
 
 	xe.ads, xe.adb: Add Get_Filter for a partition.
 
