@@ -98,13 +98,23 @@ package Corba.Object is
    -- in objectRef.cc L744
 
 
-
-
 private
 
-   type Ref is new Ada.Finalization.Controlled with null record ;
+   type Ref is new Ada.Finalization.Controlled with record
+      Dynamic_Object : access Ref'Class := null ;
+   end record ;
 
+   procedure Initialise (Self: in out Ref'Class);
+   -- called each time a Ref object is created
+   -- initialise the Dynamic_Object pointer
 
+   procedure Adjust (Self: in out Ref'Class);
+   -- called each time you duplicate a Ref object using :=
+   -- update the value of the Dynamic_Object pointer
+
+   procedure Finalize (Self: in out Ref'Class);
+   -- called each time a Ref object must be trashed
+   -- nothing to do for the moment
 
    -------------------------------------------------------------------
    -- ancienne methode compliquee sans les types controlled
@@ -123,5 +133,3 @@ private
    --   end record ;
 
    end Corba.Object ;
-
-
