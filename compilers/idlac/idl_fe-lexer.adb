@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#10 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#11 $
 
 with Ada.Command_Line;
 with Ada.Text_IO;
@@ -44,6 +44,7 @@ with Ada.Strings.Maps;
 with GNAT.Command_Line;
 with GNAT.Case_Util;
 with GNAT.OS_Lib;
+with GNAT.Directory_Operations;
 
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
@@ -1044,11 +1045,11 @@ package body Idl_Fe.Lexer is
                      Set_End_Mark_On_Previous_Char;
                      declare
                         use GNAT.OS_Lib;
+                        use GNAT.Directory_Operations;
                         use Errors;
                         use Ada.Strings.Fixed;
                         use Ada.Strings.Maps;
                         use Ada.Strings;
-                        Separator : Natural;
                         Text : constant String := Get_Marked_Text;
                      begin
                         if Text (Text'First) = '<'
@@ -1076,20 +1077,18 @@ package body Idl_Fe.Lexer is
                               Get_Real_Location);
                         end if;
 
-                        Separator := Index
-                          (Text, To_Set (Directory_Separator),
-                           Inside, Backward);
-
-                        if Separator /= 0 then
-                           Current_Location.Dirname := new String'
-                             (Text (Text'First .. Separator - 1));
+                        declare
+                           Dirname : constant String := Dir_Name (Text);
+                        begin
+                           if Dirname /= "" then
+                              Current_Location.Dirname := new String'
+                                (Dirname);
+                           else
+                              Current_Location.Dirname := null;
+                           end if;
                            Current_Location.Filename := new String'
-                             (Text (Separator + 1 .. Text'Last));
-                        else
-                           Current_Location.Dirname := null;
-                           Current_Location.Filename := new String'
-                             (Text (Text'First .. Text'Last));
-                        end if;
+                             (Base_Name (Text));
+                        end;
                      end;
                   <<Ignore_Location>>
                      Skip_Spaces;
