@@ -123,7 +123,6 @@ package body PolyORB.Locked_Queue is
       Q.Count := 0;
       Create (Q.Empty_Lock);
       Create (Q.Full_Lock);
-      Create (Q.State_Lock);
       Leave (Q.State_Lock);
 
       Enter (Q.Empty_Lock);
