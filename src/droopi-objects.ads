@@ -11,6 +11,11 @@ package Droopi.Objects is
    pragma Elaborate_Body;
 
    type Object_Id is new Stream_Element_Array;
+   type Object_Id_Access is access all Object_Id;
+
+   procedure Free (X : in out Object_Id_Access);
+   pragma Inline (Free);
+
    --  XXX ???
    function To_String (Oid : Object_Id) return String;
    function To_Oid (S : String) return Object_Id;

@@ -1,7 +1,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#5 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#6 $
 
 with Ada.Finalization;
 
@@ -72,6 +72,21 @@ package Droopi.Binding_Data is
    pragma Inline (Get_Profile_Preference);
    --  Return the profile priority associated with this profile type.
 
+   type Profile_Factory is abstract tagged limited private;
+   type Profile_Factory_Access is access all Profile_Factory'Class;
+
+   function Create_Profile
+     (PF  : access Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access;
+      Oid : Objects.Object_Id)
+     return Profile_Access
+      is abstract;
+   --  Create a profile of the type determined by PF, using
+   --  the address of TAP, and Oid as the object specification.
+
+   procedure Destroy_Profile (P : in out Profile_Access);
+   pragma Inline (Destroy_Profile);
+
 private
 
    --  Standard tags defined by CORBA
@@ -85,5 +100,7 @@ private
 
    type Profile_Type is abstract
      new Ada.Finalization.Limited_Controlled with null record;
+
+   type Profile_Factory is abstract tagged limited null record;
 
 end Droopi.Binding_Data;

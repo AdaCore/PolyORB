@@ -3,8 +3,6 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
-
 package body Droopi.Binding_Data.Local is
 
    use Droopi.Objects;
@@ -21,10 +19,7 @@ package body Droopi.Binding_Data.Local is
       end if;
    end Adjust;
 
-   procedure Finalize (P : in out Local_Profile_Type)
-   is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Object_Id, Object_Id_Access);
+   procedure Finalize (P : in out Local_Profile_Type) is
    begin
       Free (P.Object_Id);
    end Finalize;

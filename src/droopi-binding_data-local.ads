@@ -38,11 +38,14 @@ package Droopi.Binding_Data.Local is
      return Profile_Preference;
    pragma Inline (Get_Profile_Preference);
 
+   --  Since Local profiles are not associated with any
+   --  transport endpoint, there is no need to define
+   --  an associated Profile_Factory.
+
 private
 
-   type Object_Id_Access is access all Objects.Object_Id;
    type Local_Profile_Type is new Profile_Type with record
-      Object_Id : Object_Id_Access;
+      Object_Id : Objects.Object_Id_Access;
    end record;
 
 end Droopi.Binding_Data.Local;

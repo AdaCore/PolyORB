@@ -8,6 +8,7 @@
 with Sequences.Unbounded;
 
 with Droopi.Asynch_Ev;
+with Droopi.Binding_Data;
 with Droopi.Components;
 with Droopi.Filters;
 with Droopi.Jobs;
@@ -120,7 +121,8 @@ package Droopi.ORB is
    procedure Register_Access_Point
      (ORB   : access ORB_Type;
       TAP   : Transport_Access_Point_Access;
-      Chain : Filters.Factory_Access);
+      Chain : Filters.Factory_Access;
+      PF    : Binding_Data.Profile_Factory_Access);
    --  Register a newly-created transport access point with
    --  ORB. When a connection is received on TAP, a filter
    --  chain is instanciated using Chain, and associated

@@ -4,7 +4,6 @@
 
 with Ada.Text_IO; use Ada.Text_IO;
 
---  with Droopi.Filters;
 with Droopi.Log;
 with Droopi.No_Tasking;
 with Droopi.Obj_Adapters.Simple;
@@ -104,9 +103,10 @@ begin
 
    Create (Socket_Access_Point (SAP.all), Server);
    Register_Access_Point
-     (The_ORB,
-      TAP => SAP,
-      Chain => new Protocols.Echo.Echo_Protocol);
+     (ORB    => The_ORB,
+      TAP    => SAP,
+      Chain  => new Protocols.Echo.Echo_Protocol,
+      PF     => null);
    --  Register socket with ORB object, associating a protocol
    --  to the transport service access point.
 

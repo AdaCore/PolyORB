@@ -2,7 +2,17 @@
 
 --  $Id$
 
+with Ada.Unchecked_Deallocation;
+
 package body Droopi.Objects is
+
+   procedure Free (X : in out Object_Id_Access)
+   is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Object_Id, Object_Id_Access);
+   begin
+      Free (X);
+   end Free;
 
    Hex : constant array (16#0# .. 16#f#) of Character
      := "0123456789abcdef";
