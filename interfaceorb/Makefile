@@ -72,23 +72,23 @@ Ada_Corba_Orb.o : Ada_Corba_Orb.hh Ada_Corba_Orb.cc
 Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh exceptions.ads \
 exceptions.adb
 
-Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc Ada_netBufferedStream.o
+Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc Ada_netBufferedStream.hh
 
-Ada_Giop_s.o : Ada_Giop_s.hh Ada_Giop_s.cc Ada_netBufferedStream.o
+Ada_Giop_s.o : Ada_Giop_s.hh Ada_Giop_s.cc Ada_netBufferedStream.hh
 
 Ada_memBufferedStream.o : Ada_memBufferedStream.hh Ada_memBufferedStream.cc
 
 Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc
 
-Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc omniObject_C2Ada.o \
-omniobject.ads omniobject.adb Ada_OmniRopeAndKey.o
+Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc omniObject_C2Ada.hh \
+omniobject.ads Ada_OmniRopeAndKey.hh
 
 Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc
 
 omniObject_C2Ada.o : omniObject_C2Ada.hh omniObject_C2Ada.cc
 
 proxyObjectFactory_C2Ada.o: proxyObjectFactory_C2Ada.hh \
-proxyObjectFactory_C2Ada.cc omniObject_C2Ada.o Ada_OmniObject.o
+proxyObjectFactory_C2Ada.cc omniObject_C2Ada.hh Ada_OmniObject.hh
 
 
 
@@ -115,68 +115,68 @@ omniproxycallwrapper.ali omniropeandkey.ali rope.ali sys_dep.ali
 
 adabroker_debug.ali: adabroker_debug.ads adabroker_debug.adb
 
-corba.ali: corba.ads corba.adb corba-exceptions.ali
+corba.ali: corba.ads corba.adb corba-exceptions.ads
 
-corba-boa.ali : corba-boa.ads corba-boa.adb corba-object.ali omniobject.ali \
-corba.ali
+corba-boa.ali : corba-boa.ads corba-boa.adb corba-object.ads omniobject.ads \
+corba.ads
 
 corba-command_line.ali : corba-command_line.ads corba-command_line.adb \
-corba.ali
+corba.ads
 
 corba-exceptions.ali : corba-exceptions.ads corba-exceptions.adb \
- Ada_Corba_Exceptions.o sys_dep.ali corba.ads
+ Ada_Corba_Exceptions.hh sys_dep.ads corba.ads
 
-corba-forward.ali: corba-forward.ads corba-forward.adb corba.ali
+corba-forward.ali: corba-forward.ads corba-forward.adb corba.ads
 
-corba-object.ali : corba-object.ads corba-object.adb omniobject.ali \
-omniropeandkey.ali netbufferedstream.ali membufferedstream.ali \
-iop.ali corba.ali
+corba-object.ali : corba-object.ads corba-object.adb omniobject.ads \
+omniropeandkey.ads netbufferedstream.ads membufferedstream.ads \
+iop.ads corba.ads
 
-corba-orb.ali : corba-orb.ads corba-orb.adb corba-object.ali \
-corba-object.ali corba-boa.ali omniobject.ali corba-command_line.ali \
-adabroker_debug.ali corba.ali
+corba-orb.ali : corba-orb.ads corba-orb.adb corba-object.ads \
+corba-object.ads corba-boa.ads omniobject.ads corba-command_line.ads \
+adabroker_debug.ads corba.ads
 
 corba-sequences-bounded.ali: corba-sequences-bounded.ads \
-corba-sequences-bounded.adb corba-sequences.ali corba.ali
+corba-sequences-bounded.adb corba-sequences.ads corba.ads
 
 corba-sequences-unbounded.ali: corba-sequences-unbounded.ads \
-corba-sequences-unbounded.adb corba-sequences.ali corba.ali
+corba-sequences-unbounded.adb corba-sequences.ads corba.ads
 
 exceptions.ali : exceptions.ads exceptions.adb
 
 giop.ali : giop.ads giop.adb
 
-giop_c.ali : giop_c.ads giop_c.adb Ada_Giop_c.o corba.ali giop.ali \
-sys_dep.ali rope.ali netbufferedstream.ali
+giop_c.ali : giop_c.ads giop_c.adb Ada_Giop_c.o corba.ads giop.ads \
+sys_dep.ads rope.ads netbufferedstream.ads
 
-giop_s.ali : giop_s.ads giop_s.adb Ada_Giop_s.o corba.ali giop.ali \
-sys_dep.ali netbufferedstream.ali
+giop_s.ali : giop_s.ads giop_s.adb Ada_Giop_s.o corba.ads giop.ads \
+sys_dep.ads netbufferedstream.ads
 
-iop.ali : iop.ads iop.adb netbufferedstream.ali membufferedstream.ali \
-corba.ali
+iop.ali : iop.ads iop.adb netbufferedstream.ads membufferedstream.ads \
+corba.ads
 
 membufferedstream.ali : membufferedstream.ads membufferedstream.adb \
-corba.ali sys_dep.ali Ada_memBufferedStream.o omni.ali
+corba.ads sys_dep.ads Ada_memBufferedStream.o omni.ads
 
 netbufferedstream.ali : netbufferedstream.ads netbufferedstream.adb \
-corba.ali sys_dep.ali rope.ali Ada_netBufferedStream.o omni.ali
+corba.ads sys_dep.ads rope.ads Ada_netBufferedStream.o omni.ads
 
-omni.ali: omni.ads omni.adb corba.ali
+omni.ali: omni.ads omni.adb corba.ads
 
-omniobject.ali : omniobject.ads omniobject.adb corba.ali omni.ali \
-membufferedstream.ali netbufferedstream.ali giop_s.ali sys_dep.ali \
-iop.ali rope.ali omniropeandkey.ali
+omniobject.ali : omniobject.ads omniobject.adb corba.ads omni.ads \
+membufferedstream.ads netbufferedstream.ads giop_s.ads sys_dep.ads \
+iop.ads rope.ads omniropeandkey.ads
 
 omniproxycalldesc.ali: omniproxycalldesc.ads omniproxycalldesc.adb \
-corba.ali giop_c.ali
+corba.ads giop_c.ads
 
 omniproxycallwrapper.ali: omniproxycallwrapper.ads omniproxycallwrapper.adb \
-omniproxycalldesc.ali corba-object.ali corba.ali omniobject.ali \
-omniropeandkey.ali giop_c.ali netbufferedstream.ali giop.ali \
-corba-exceptions.ali rope.ali
+omniproxycalldesc.ads corba-object.ads corba.ads omniobject.ads \
+omniropeandkey.ads giop_c.ads netbufferedstream.ads giop.ads \
+corba-exceptions.ads rope.ads
 
-omniropeandkey.ali : omniropeandkey.ads omniropeandkey.adb corba.ali \
-rope.ali Ada_OmniRopeAndKey.o sys_dep.ali
+omniropeandkey.ali : omniropeandkey.ads omniropeandkey.adb corba.ads \
+rope.ads Ada_OmniRopeAndKey.o sys_dep.ads
 
 rope.ali : rope.ads
 
@@ -197,7 +197,7 @@ corba-sequences.ali omniowproxycalldesc.ali
 corba-sequences.ali : corba-sequences.ads
 	$(ADA_COMP) $(DO_NOT_LINK) corba-sequences.ads
 
-omniowproxycalldesc.ali: omniowproxycalldesc.ads corba.ali giop_c.ali
+omniowproxycalldesc.ali: omniowproxycalldesc.ads corba.ads giop_c.ads
 
 
 
