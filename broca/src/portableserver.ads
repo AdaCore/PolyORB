@@ -31,10 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Finalization;
-
 with CORBA;
 with CORBA.Object;
+with CORBA.Impl;
 with CORBA.Sequences.Unbounded;
 with CORBA.Forward;
 pragma Elaborate_All (CORBA.Forward);
@@ -45,7 +44,8 @@ package PortableServer is
 
    package POA_Forward is new CORBA.Forward;
 
-   type Servant_Base is new Ada.Finalization.Controlled with private;
+   type Servant_Base is new CORBA.Impl.Object with private;
+
    --  21.41.1
    --  Conforming implementations must provide a controlled (tagged)
    --  Servant_Base type and default implementations of the primitve
@@ -200,6 +200,6 @@ package PortableServer is
 
 private
 
-   type Servant_Base is new Ada.Finalization.Controlled with null record;
+   type Servant_Base is new CORBA.Impl.Object with null record;
 
 end PortableServer;

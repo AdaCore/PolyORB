@@ -35,6 +35,12 @@ with Broca;
 pragma Warnings (Off, Broca);
 with Broca.RootPOA;
 pragma Warnings (Off, Broca.RootPOA);
+with Broca.Server;
+pragma Warnings (Off, Broca.Server);
+with Broca.ORB;
+pragma Warnings (Off, Broca.ORB);
+with PortableServer.POA;
+pragma Warnings (Off, PortableServer.POA);
 
 procedure Allsrc is
 begin
