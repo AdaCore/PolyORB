@@ -24,4 +24,6 @@ interface all_types {
   attribute example f;
 
   simple_struct foo (in Data h) raises (simple_exception, complexe_exception);
+
+void foofoo (out long to);
 };
