@@ -64,7 +64,7 @@ package System.Partition_Interface is
 
    function Get_Active_Partition_ID
      (Name : Unit_Name)
-      return RPC.Partition_ID;
+      return System.RPC.Partition_ID;
    --  Similar in some respects to RCI_Info.Get_Active_Partition_ID
 
    function Get_Active_Version
@@ -77,13 +77,20 @@ package System.Partition_Interface is
 
    function Get_Passive_Partition_ID
      (Name : Unit_Name)
-     return RPC.Partition_ID;
+     return System.RPC.Partition_ID;
    --  Return the Partition_ID of the given shared passive partition
 
    function Get_RCI_Package_Receiver
      (Name : Unit_Name)
-      return RPC.RPC_Receiver;
+      return System.RPC.RPC_Receiver;
    --  Similar in some respects to RCI_Info.Get_RCI_Package_Receiver
+
+   procedure Register_Receiving_Stub
+     (Name     : in Unit_Name;
+      Receiver : in System.RPC.RPC_Receiver;
+      Version  : in String := "");
+   --  Register the fact that the Name receiving stub is now elaborated.
+   --  Register the access value to the package RPC_Receiver procedure.
 
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access);
@@ -114,14 +121,13 @@ package System.Partition_Interface is
    end RCI_Info;
    --  RCI package information caching
 
-   procedure Register_Receiving_Stub
-     (Name     : in Unit_Name;
-      Receiver : in RPC.RPC_Receiver;
-      Version  : in String := "");
-   --  Register the fact that the Name receiving stub is now elaborated.
-   --  Register the access value to the package RPC_Receiver procedure.
+   function Register_Address (Addr : System.Address) return Natural;
+   --  Register an address and return a unique number corresponding to it
+
+   function Get_Address (Handle : Natural) return System.Address;
+   --  Get the address associated to this handle
 
    procedure Run (Main : in Main_Subprogram_Type);
-   --  Run the main subprogram.
+   --  Run the main subprogram
 
 end System.Partition_Interface;

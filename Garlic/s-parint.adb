@@ -38,6 +38,7 @@ with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 
 with GNAT.HTable;           use GNAT.HTable;
+with GNAT.Table;
 
 with System.Garlic.Debug;   use System.Garlic.Debug;
 
@@ -123,6 +124,23 @@ package body System.Partition_Interface is
    procedure Free is
       new Ada.Unchecked_Deallocation (RACW_Stub_Type, RACW_Stub_Type_Access);
 
+   function Hash (K : Address) return Hash_Index;
+
+   package Address_HTable is
+      new Simple_HTable (Header_Num => Hash_Index,
+                         Element    => Natural,
+                         No_Element => 0,
+                         Key        => Address,
+                         Hash       => Hash,
+                         Equal      => "=");
+
+   package Address_Table is
+      new GNAT.Table (Table_Component_Type => Address,
+                      Table_Index_Type     => Natural,
+                      Table_Low_Bound      => 1,
+                      Table_Initial        => 16,
+                      Table_Increment      => 100);
+
    ---------------------
    -- Compare_Content --
    ---------------------
@@ -172,6 +190,22 @@ package body System.Partition_Interface is
       Units.Apply (U, Get_Unit_Request, Process'Access);
       return Units.Get_Component (U).Version.all;
    end Get_Active_Version;
+
+   -----------------
+   -- Get_Address --
+   -----------------
+
+   function Get_Address (Handle : Natural) return Address is
+      Result : Address;
+   begin
+      if Handle = 0 then
+         return Null_Address;
+      end if;
+      Enter (Global_Mutex);
+      Result := Address_Table.Table (Handle);
+      Leave (Global_Mutex);
+      return Result;
+   end Get_Address;
 
    ----------------------------
    -- Get_Local_Partition_ID --
@@ -236,6 +270,15 @@ package body System.Partition_Interface is
    function Hash (K : RACW_Stub_Type_Access) return Hash_Index is
    begin
       return Hash_Index (Natural (K.Addr) mod Positive (Hash_Index'Last + 1));
+   end Hash;
+
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash (K : Address) return Hash_Index is
+   begin
+      return Hash_Index (Integer (K) mod Integer (Hash_Index'Last));
    end Hash;
 
    -------------------------------
@@ -425,6 +468,27 @@ package body System.Partition_Interface is
       Ada.Exceptions.Raise_Exception (Program_Error'Identity,
         "Illegal usage of remote access to class-wide type. See RM E.4(18)");
    end Raise_Program_Error_For_E_4_18;
+
+   ----------------------
+   -- Register_Address --
+   ----------------------
+
+   function Register_Address (Addr : Address) return Natural is
+      Index  : Natural;
+   begin
+      if Addr = Null_Address then
+         return 0;
+      end if;
+      Enter (Global_Mutex);
+      Index := Address_HTable.Get (Addr);
+      if Index = 0 then
+         Index := Address_Table.Allocate;
+         Address_HTable.Set (Addr, Index);
+         Address_Table.Table (Index) := Addr;
+      end if;
+      Leave (Global_Mutex);
+      return Index;
+   end Register_Address;
 
    -----------------------------
    -- Register_Receiving_Stub --
