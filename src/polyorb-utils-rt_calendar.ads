@@ -41,25 +41,11 @@ with Ada.Real_Time;
 
 package PolyORB.Utils.RT_Calendar is
 
-   procedure Initialize;
-   --  Initializes this package
-
    type RT_Time_Type is new Time_Type with private;
    type RT_Time_Type_Access is access all RT_Time_Type;
 
-   type RT_Clock_Factory is new Clock_Factory_Type with null record;
-
-   function Create (CF : access RT_Clock_Factory)
-                   return Time_Type_Access;
-
-   function Clock (CF : access RT_Clock_Factory)
-                     return Time_Type'Class;
-
-   procedure Destroy (CF : access RT_Clock_Factory;
-                      Clock : in out Time_Type_Access);
-
    procedure Split
-     (Date    : RT_Time_Type;
+     (Date    :     RT_Time_Type;
       Year    : out Year_Number;
       Month   : out Month_Number;
       Day     : out Day_Number;
@@ -75,26 +61,29 @@ package PolyORB.Utils.RT_Calendar is
       Month   : Month_Number;
       Day     : Day_Number;
       Seconds : Day_Duration := 0.0)
-      return    RT_Time_Type;
+     return    RT_Time_Type;
 
-   function "+" (Left : RT_Time_Type; Right : Duration)
-                return RT_Time_Type;
-   function "+" (Left : Duration; Right : RT_Time_Type)
-                return RT_Time_Type;
-   function "-" (Left : RT_Time_Type; Right : Duration)
-                return RT_Time_Type;
-   function "-" (Left : RT_Time_Type; Right : RT_Time_Type)
-                return Duration;
+   function "+" (Left : RT_Time_Type; Right : Duration) return RT_Time_Type;
+   function "+" (Left : Duration; Right : RT_Time_Type) return RT_Time_Type;
+
+   function "-" (Left : RT_Time_Type; Right : Duration) return RT_Time_Type;
+   function "-" (Left : RT_Time_Type; Right : RT_Time_Type) return Duration;
 
    function "<"  (Left, Right : RT_Time_Type) return Boolean;
    function "<=" (Left, Right : RT_Time_Type) return Boolean;
    function ">"  (Left, Right : RT_Time_Type) return Boolean;
    function ">=" (Left, Right : RT_Time_Type) return Boolean;
 
-   type RT_Clock_Factory_Access is
-     access all RT_Clock_Factory;
+   type RT_Clock_Factory is new Clock_Factory_Type with null record;
+   type RT_Clock_Factory_Access is access all RT_Clock_Factory;
 
-   The_RT_Clock_Factory : aliased RT_Clock_Factory;
+   function Create (CF : access RT_Clock_Factory) return Time_Type_Access;
+
+   function Clock (CF : access RT_Clock_Factory) return Time_Type'Class;
+
+   procedure Destroy
+     (CF    : access RT_Clock_Factory;
+      Clock : in out Time_Type_Access);
 
 private
 

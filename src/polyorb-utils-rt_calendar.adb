@@ -33,13 +33,13 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
 with Ada.Real_Time;
+with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Utils.Strings;
-with Ada.Unchecked_Conversion;
 
 package body PolyORB.Utils.RT_Calendar is
 
@@ -48,6 +48,8 @@ package body PolyORB.Utils.RT_Calendar is
 
    function To_Time is new Ada.Unchecked_Conversion
      (Duration, Ada.Real_Time.Time);
+
+   The_RT_Clock_Factory : aliased RT_Clock_Factory;
 
    ------------------------
    -- Local Declarations --
@@ -87,7 +89,6 @@ package body PolyORB.Utils.RT_Calendar is
    --  mktime returns -1 in case the calendar time given by components of
    --  TM.all cannot be represented.
 
-
    Unix_Year_Min : constant := 1970;
    Unix_Year_Max : constant := 2038;
 
@@ -96,8 +97,8 @@ package body PolyORB.Utils.RT_Calendar is
 
    --  Some basic constants used throughout
 
-   Days_In_Month : constant array (Month_Number) of Day_Number :=
-     (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+   Days_In_Month : constant array (Month_Number) of Day_Number
+     := (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
 
    Days_In_4_Years     : constant := 365 * 3 + 366;
    Seconds_In_4_Years  : constant := 86_400 * Days_In_4_Years;
@@ -110,9 +111,7 @@ package body PolyORB.Utils.RT_Calendar is
    -- Create --
    ------------
 
-   function Create (CF : access RT_Clock_Factory)
-                   return Time_Type_Access
-   is
+   function Create (CF : access RT_Clock_Factory) return Time_Type_Access is
       pragma Warnings (Off);
       pragma Unreferenced (CF);
       pragma Warnings (On);
@@ -127,12 +126,14 @@ package body PolyORB.Utils.RT_Calendar is
    -- Destroy --
    -------------
 
-   procedure Destroy (CF : access RT_Clock_Factory;
-                      Clock : in out Time_Type_Access)
+   procedure Destroy
+     (CF    : access RT_Clock_Factory;
+      Clock : in out Time_Type_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (CF);
       pragma Warnings (On);
+
    begin
       Free (RT_Time_Type_Access (Clock));
    end Destroy;
@@ -142,7 +143,7 @@ package body PolyORB.Utils.RT_Calendar is
    -----------
 
    procedure Split
-     (Date    : RT_Time_Type;
+     (Date    :     RT_Time_Type;
       Year    : out Year_Number;
       Month   : out Month_Number;
       Day     : out Day_Number;
@@ -285,7 +286,7 @@ package body PolyORB.Utils.RT_Calendar is
       Day     : Day_Number;
       Seconds : Day_Duration := 0.0)
      return    RT_Time_Type
-      is
+   is
       Result_Secs : aliased time_t;
       TM_Val      : aliased tm;
       Int_Secs    : constant Integer := Integer (Seconds);
@@ -364,7 +365,6 @@ package body PolyORB.Utils.RT_Calendar is
       end;
    end Time_Of;
 
-
    ----------
    -- Year --
    ----------
@@ -425,26 +425,26 @@ package body PolyORB.Utils.RT_Calendar is
       return DS;
    end Seconds;
 
-
    -----------
    -- Clock --
    -----------
 
-   function Clock (CF : access RT_Clock_Factory)
-                     return Time_Type'Class
-   is
+   function Clock (CF : access RT_Clock_Factory) return Time_Type'Class is
       pragma Warnings (Off);
       pragma Unreferenced (CF);
       pragma Warnings (On);
+
       Result : RT_Time_Type;
    begin
       Result.Time := Ada.Real_Time.Clock;
       return Result;
    end Clock;
 
-   function "+" (Left : RT_Time_Type; Right : Duration)
-                return RT_Time_Type
-   is
+   ---------
+   -- "+" --
+   ---------
+
+   function "+" (Left : RT_Time_Type; Right : Duration) return RT_Time_Type is
       use Ada.Real_Time;
       Result : RT_Time_Type;
    begin
@@ -452,9 +452,7 @@ package body PolyORB.Utils.RT_Calendar is
       return Result;
    end "+";
 
-   function "+" (Left : Duration; Right : RT_Time_Type)
-                return RT_Time_Type
-   is
+   function "+" (Left : Duration; Right : RT_Time_Type) return RT_Time_Type is
       use Ada.Real_Time;
       Result : RT_Time_Type;
    begin
@@ -462,9 +460,11 @@ package body PolyORB.Utils.RT_Calendar is
       return Result;
    end "+";
 
-   function "-" (Left : RT_Time_Type; Right : Duration)
-                return RT_Time_Type
-   is
+   ---------
+   -- "-" --
+   ---------
+
+   function "-" (Left : RT_Time_Type; Right : Duration) return RT_Time_Type is
       use Ada.Real_Time;
       Result : RT_Time_Type;
    begin
@@ -472,9 +472,7 @@ package body PolyORB.Utils.RT_Calendar is
       return Result;
    end "-";
 
-   function "-" (Left : RT_Time_Type; Right : RT_Time_Type)
-                return Duration
-   is
+   function "-" (Left : RT_Time_Type; Right : RT_Time_Type) return Duration is
       use Ada.Real_Time;
       Result : Duration;
    begin
@@ -482,29 +480,41 @@ package body PolyORB.Utils.RT_Calendar is
       return Result;
    end "-";
 
-   function "<"  (Left, Right : RT_Time_Type) return Boolean
-   is
+   ---------
+   -- "<" --
+   ---------
+
+   function "<"  (Left, Right : RT_Time_Type) return Boolean is
       use Ada.Real_Time;
    begin
       return Left.Time < Right.Time;
    end "<";
 
-   function "<=" (Left, Right : RT_Time_Type) return Boolean
-   is
+   ----------
+   -- "<=" --
+   ----------
+
+   function "<=" (Left, Right : RT_Time_Type) return Boolean is
       use Ada.Real_Time;
    begin
       return Left.Time <= Right.Time;
    end "<=";
 
-   function ">"  (Left, Right : RT_Time_Type) return Boolean
-   is
+   ---------
+   -- ">" --
+   ---------
+
+   function ">"  (Left, Right : RT_Time_Type) return Boolean is
       use Ada.Real_Time;
    begin
       return Left.Time > Right.Time;
    end ">";
 
-   function ">=" (Left, Right : RT_Time_Type) return Boolean
-   is
+   ---------
+   -- ">=" --
+   ---------
+
+   function ">=" (Left, Right : RT_Time_Type) return Boolean is
       use Ada.Real_Time;
    begin
       return Left.Time >= Right.Time;
@@ -513,6 +523,8 @@ package body PolyORB.Utils.RT_Calendar is
    ----------------
    -- Initialize --
    ----------------
+
+   procedure Initialize;
 
    procedure Initialize is
    begin
@@ -527,9 +539,9 @@ package body PolyORB.Utils.RT_Calendar is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"tasking.profiles.full_tasking.calendar",
+      (Name      => +"tasking.profiles.full_tasking.calendar",
        Conflicts => Empty,
-       Depends => Empty,
-       Provides => +"calendar",
-       Init => Initialize'Access));
+       Depends   => Empty,
+       Provides  => +"calendar",
+       Init      => Initialize'Access));
 end PolyORB.Utils.RT_Calendar;
