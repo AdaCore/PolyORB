@@ -197,14 +197,55 @@ package body Analyzer is
    -- Analyze_Attribute_Declaration --
    -----------------------------------
 
-   procedure Analyze_Attribute_Declaration (E : Node_Id)
-   is
-      D : Node_Id := First_Entity (Declarators (E));
+   procedure Analyze_Attribute_Declaration (E : Node_Id) is
+
+      procedure No_Interface_Attribute_Of_Local_Type
+        (T : Node_Id; I : Node_Id);
+
+      ------------------------------------------
+      -- No_Interface_Attribute_Of_Local_Type --
+      ------------------------------------------
+
+      procedure No_Interface_Attribute_Of_Local_Type
+        (T : Node_Id; I : Node_Id)
+      is
+         PT : Node_Id := T;
+         TK : Node_Kind;
+
+      begin
+         if Present (PT) and then Kind (PT) = K_Scoped_Name then
+            PT := Reference (PT);
+         end if;
+         if No (PT) then
+            return;
+         end if;
+         TK := Kind (PT);
+         if (TK = K_Forward_Interface_Declaration
+             or else TK = K_Forward_Interface_Declaration)
+           and then Is_Local_Interface (PT)
+         then
+            Error_Loc (1)  := Loc (T);
+            Error_Name (1) := IDL_Name (Identifier (T));
+            Error_Name (1) := IDL_Name (Identifier (I));
+            DE ("local interface#cannot appear as attribute " &
+                "in unconstrained interface#");
+         end if;
+      end No_Interface_Attribute_Of_Local_Type;
+
+
+      Declarator : Node_Id := First_Entity (Declarators (E));
+      Decl_Type  : constant Node_Id := Type_Spec (E);
+      Interface  : constant Node_Id := Current_Scope;
+
    begin
-      Analyze (Type_Spec (E));
-      while Present (D) loop
-         Analyze (D);
-         D := Next_Entity (D);
+      Analyze (Decl_Type);
+      if not Is_Local_Interface (Interface) then
+         No_Interface_Attribute_Of_Local_Type (Decl_Type, Interface);
+      end if;
+
+      while Present (Declarator) loop
+         Analyze (Declarator);
+         Declarator := Next_Entity (Declarator);
       end loop;
    end Analyze_Attribute_Declaration;
 
@@ -447,9 +488,11 @@ package body Analyzer is
          end loop;
       end Inherit_From_Interface;
 
-      Parent     : Node_Id;
-      Definition : Node_Id;
-      Scope_Name : Node_Id;
+      Parent      : Node_Id;
+      Definition  : Node_Id;
+      Scope_Name  : Node_Id;
+      Is_Local    : constant Boolean := Is_Local_Interface (E);
+      Is_Abstract : constant Boolean := Is_Abstract_Interface (E);
 
    begin
       Enter_Name_In_Scope (Identifier (E));
@@ -477,6 +520,22 @@ package body Analyzer is
                --  Do not consider this interface later on.
 
                Set_Reference (Scope_Name, No_Node);
+
+            elsif not Is_Local then
+               if Is_Local_Interface (Parent) then
+                  Error_Loc (1) := Loc (E);
+                  DE ("interface cannot inherit " &
+                      "from a local interface");
+                  Set_Reference (Scope_Name, No_Node);
+               end if;
+
+            elsif Is_Abstract then
+               if not Is_Abstract_Interface (Parent) then
+                  Error_Loc (1) := Loc (E);
+                  DE ("abstract interface cannot inherit " &
+                      "from a non-abstract interface");
+                  Set_Reference (Scope_Name, No_Node);
+               end if;
             end if;
          end if;
          Scope_Name := Next_Entity (Scope_Name);
@@ -567,72 +626,182 @@ package body Analyzer is
    -- Analyze_Operation_Declaration --
    -----------------------------------
 
-   procedure Analyze_Operation_Declaration (E : Node_Id)
-   is
-      Node   : Node_Id;
-      List   : List_Id;
-      Oneway : Boolean := Is_Oneway (E);
-      TSpec  : Node_Id;
+   procedure Analyze_Operation_Declaration (E : Node_Id) is
+
+      procedure No_Operation_Parameter_Of_Local_Type
+        (T : Node_Id; I : Node_Id);
+      procedure No_Exception_Member_Of_Local_Type
+        (X : Node_Id; I : Node_Id);
+
+      ------------------------------------------
+      -- No_Operation_Parameter_Of_Local_Type --
+      ------------------------------------------
+
+      procedure No_Operation_Parameter_Of_Local_Type
+        (T : Node_Id; I : Node_Id)
+      is
+         PT : Node_Id := T;
+         TK : Node_Kind;
+
+      begin
+         if Present (PT) and then Kind (PT) = K_Scoped_Name then
+            PT := Reference (PT);
+         end if;
+         if No (PT) then
+            return;
+         end if;
+         TK := Kind (PT);
+         if (TK = K_Forward_Interface_Declaration
+             or else TK = K_Forward_Interface_Declaration)
+           and then Is_Local_Interface (PT)
+         then
+            Error_Loc (1)  := Loc (T);
+            Error_Name (1) := IDL_Name (Identifier (T));
+            Error_Name (1) := IDL_Name (Identifier (I));
+            DE ("local interface#cannot appear as parameter " &
+                "in unconstrained interface#");
+         end if;
+      end No_Operation_Parameter_Of_Local_Type;
+
+      ---------------------------------------
+      -- No_Exception_Member_Of_Local_Type --
+      ---------------------------------------
+
+      procedure No_Exception_Member_Of_Local_Type
+        (X : Node_Id; I : Node_Id)
+      is
+         EX : Node_Id := X;
+         EM : Node_Id;
+         MT : Node_Id;
+         TK : Node_Kind;
+
+      begin
+         if Present (EX) and then Kind (EX) = K_Scoped_Name then
+            EX := Reference (EX);
+         end if;
+         if No (EX) then
+            return;
+         end if;
+
+         EM := First_Entity (Members (EX));
+         while Present (EM) loop
+            MT := Type_Spec (EM);
+            if Present (MT) and then Kind (MT) = K_Scoped_Name then
+               MT := Reference (MT);
+            end if;
+            if Present (MT) then
+               TK := Kind (MT);
+               if (TK = K_Forward_Interface_Declaration
+                   or else TK = K_Forward_Interface_Declaration)
+                 and then Is_Local_Interface (MT)
+               then
+                  Error_Loc (1)  := Loc (EM);
+                  Error_Name (1) := IDL_Name (Identifier (MT));
+                  Error_Name (1) := IDL_Name (Identifier (I));
+                  DE ("local interface#cannot appear " &
+                      "as an exception declaration " &
+                      "in unconstrained interface#");
+               end if;
+            end if;
+            EM := Next_Entity (EM);
+         end loop;
+      end No_Exception_Member_Of_Local_Type;
+
+      Interface     : constant Node_Id := Current_Scope;
+      Is_Local      : constant Boolean := Is_Local_Interface (Interface);
+      Oneway        : Boolean := Is_Oneway (E);
+      Param_Type    : Node_Id;
+      Op_Parameter  : Node_Id;
+      Op_Exception  : Node_Id;
+      Op_Context    : Node_Id;
 
    begin
-      TSpec := Type_Spec (E);
-      Analyze (TSpec);
+      Enter_Name_In_Scope (Identifier (E));
 
-      --  Use Oneway to check that this operation is a possible oneway
-      --  operation.
+      Param_Type := Type_Spec (E);
+      Analyze (Param_Type);
 
-      TSpec := Resolve_Type (TSpec);
-      if Oneway and then Kind (TSpec) /= K_Void then
-         Oneway := False;
-         Error_Loc (1)  := Loc (Type_Spec (E));
-         Error_Name (1) := IDL_Name (Identifier (TSpec));
-         DE ("oneway operation cannot return%");
+      if Kind (Param_Type) = K_Scoped_Name then
+         Param_Type := Reference (Param_Type);
       end if;
 
-      Enter_Name_In_Scope (Identifier (E));
+      --  When operation is oneway, check return type is void.
+
+      if Oneway and then Kind (Param_Type) /= K_Void then
+         Oneway := False;
+         Error_Loc (1)  := Loc (Type_Spec (E));
+         DE ("oneway operation cannot return a non-void result");
+      end if;
+
+      --  When the current interface is not local, check that its
+      --  operations do not use local types.
+
+      if not Is_Local then
+         No_Operation_Parameter_Of_Local_Type (Param_Type, Interface);
+      end if;
 
       --  Analyze parameters
 
-      List := Parameters (E);
-      if not Is_Empty (List) then
+      if not Is_Empty (Parameters (E)) then
          Push_Scope (E);
-         Node := First_Entity (List);
-         while Present (Node) loop
-            Analyze (Node);
-            if Oneway and then Parameter_Mode (Node) /= Mode_In then
+         Op_Parameter := First_Entity (Parameters (E));
+         while Present (Op_Parameter) loop
+            Analyze (Op_Parameter);
+
+            --  When operation is oneway, check parameter mode is "in"
+
+            if Oneway and then Parameter_Mode (Op_Parameter) /= Mode_In then
                Oneway := False;
-               Error_Loc (1) := Loc (Node);
+               Error_Loc (1) := Loc (Op_Parameter);
                DE ("oneway operation can only have ""in"" parameters");
             end if;
-            Node := Next_Entity (Node);
+
+            --  When the current interface is not local, check
+            --  operation parameter are not local types.
+
+            Param_Type := Type_Spec (Op_Parameter);
+            if not Is_Local then
+               No_Operation_Parameter_Of_Local_Type (Param_Type, Interface);
+            end if;
+
+            Op_Parameter := Next_Entity (Op_Parameter);
          end loop;
          Pop_Scope;
       end if;
 
       --  Analyze exceptions
 
-      List := Exceptions (E);
-      if not Is_Empty (List) then
-         Node := First_Entity (List);
-         while Present (Node) loop
-            Analyze (Node);
+      if not Is_Empty (Exceptions (E)) then
+         Op_Exception := First_Entity (Exceptions (E));
+         while Present (Op_Exception) loop
+            Analyze (Op_Exception);
+
+            --  When operation is oneway, no exception is allowed
+
             if Oneway then
                Oneway := False;
-               Error_Loc (1) := Loc (Node);
+               Error_Loc (1) := Loc (Op_Exception);
                DE ("oneway operation cannot raise exceptions");
             end if;
-            Node := Next_Entity (Node);
+
+            --  When the current interface is not local, check
+            --  an exception member is not of local type.
+
+            if not Is_Local then
+               No_Exception_Member_Of_Local_Type (Op_Exception, Interface);
+            end if;
+
+            Op_Exception := Next_Entity (Op_Exception);
          end loop;
       end if;
 
       --  Analyze contexts
 
-      List := Contexts (E);
-      if not Is_Empty (List) then
-         Node := First_Entity (List);
-         while Present (Node) loop
-            Analyze (Node);
-            Node := Next_Entity (Node);
+      if not Is_Empty (Contexts (E)) then
+         Op_Context := First_Entity (Contexts (E));
+         while Present (Op_Context) loop
+            Analyze (Op_Context);
+            Op_Context := Next_Entity (Op_Context);
          end loop;
       end if;
    end Analyze_Operation_Declaration;
@@ -1464,6 +1633,7 @@ package body Analyzer is
 
    function Resolve_Type (N : Node_Id) return Node_Id is
       T : Node_Id := N;
+
    begin
       while Present (T) loop
          case Kind (T) is

@@ -1,18 +1,25 @@
 2004-07-02  Laurent Pautet  <pautet@dorine.enst.fr>
 
+	* frontend-nodes.idl: Remove Base_Interface since it always
+	corresponds to Current_Scope. Add atttribute Is_Local_Interface.
+
+	* parser.adb: Parse local interface. Do not forget to set sequence
+	size to its value.
+
 	* backend-be_idl.adb: Generate fully qualified name for
 	enumerators. Fix indentation for elements. Generate abstract
 	interfaces.
 
-	* analyzer.adb: Minor reformatting.
+	* analyzer.adb: Minor reformatting. Analyze consistency of parent
+	interfaces in regards to local and abstract properties. Check that
+	a local type does not appear as a parameter, attribute, return
+	type or exception declaration of an unconstrained interface.
 
 	* values.adb: Fix Image for non printable characters (use \xxx
 	representation).
 
 	* backend-be_ada-generator.adb: Generate sequence size in sequence
 	type when needed.
-
-	* parser.adb: Do not forget to set sequence size to its value.
 
 2004-07-01  Laurent Pautet  <pautet@dorine.enst.fr>
 

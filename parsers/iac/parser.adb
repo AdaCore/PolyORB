@@ -1231,16 +1231,21 @@ package body Parser is
       Identifier  : Node_Id;
       Node        : Node_Id;
       Is_Abstract : Boolean := False;
+      Is_Local    : Boolean := False;
       State       : Location;
       Fwd_Loc     : Location;
 
    begin
       Save_Lexer (State);
 
-      Scan_Token; --  past "abstract" or "interface"
+      Scan_Token; --  past "abstract", "local" or "interface"
       Fwd_Loc := Token_Location;
       if Token = T_Abstract then
          Is_Abstract := True;
+         Scan_Token; --  past "interface"
+
+      elsif Token = T_Local then
+         Is_Local := True;
          Scan_Token; --  past "interface"
       end if;
 
@@ -1254,6 +1259,7 @@ package body Parser is
             Node := New_Node (K_Forward_Interface_Declaration, Fwd_Loc);
             Bind_Identifier_To_Entity (Identifier, Node);
             Set_Is_Abstract_Interface (Node, Is_Abstract);
+            Set_Is_Local_Interface (Node, Is_Local);
 
          when T_Left_Brace
            | T_Colon =>
@@ -1294,6 +1300,10 @@ package body Parser is
 
       if Token = T_Abstract then
          Set_Is_Abstract_Interface (Node, True);
+         Scan_Token; --  past "interface"
+
+      elsif Token = T_Local then
+         Set_Is_Local_Interface (Node, True);
          Scan_Token; --  past "interface"
       end if;
 
