@@ -199,6 +199,9 @@ ADABROKER_TRY
     cerr << "Ada_OmniObject::objectDuplicate : exiting ... OK" << endl ;
 #endif
   } else {
+#ifdef DEBUG
+    cerr << "Ada_OmniObject::objectDuplicate : Init_Ok = FALSE !!!!!!!! raising fatalException" << endl ;
+#endif
     throw omniORB::fatalException(__FILE__,
 				  __LINE__,
 				  "Call of Ada_OmniObject::objectDuplicate without initialising object.") ;

@@ -334,12 +334,13 @@ package body Corba.Object is
    -- Internal_Copy
    ----------------
    procedure Internal_Copy(From : in Ref'Class ;
-                           To : out Ref'Class) is
+                           To : in out Ref'Class) is
    begin
       pragma Debug(Output(Debug,"Corba.Object.Internal_Copy : entering ...")) ;
       Finalize(To) ;
       To.Omniobj := From.Omniobj ;
       To.Dynamic_Type := From.Dynamic_Type ;
+      pragma Debug(Output(Debug,"Corba.Object.Internal_Copy : adjusting ...")) ;
       Adjust(To) ;
       pragma Debug(Output(Debug,"Corba.Object.Internal_Copy : exiting ... OK")) ;
    end ;
@@ -548,6 +549,7 @@ package body Corba.Object is
    begin
       pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust : entering ...")) ;
       if not Is_Nil(Self) then
+      pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust : not nil -> duplicating  ...")) ;
          Self.Omniobj := Omniobject.Omniobject_Duplicate(Self.Omniobj) ;
       end if ;
       pragma Debug(Output(Debug_Fin,"Corba.Object.Adjust : exiting ... OK")) ;

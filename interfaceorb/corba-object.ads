@@ -159,7 +159,7 @@ package Corba.Object is
    -- returns the underlying Omniobject.Object
 
    procedure Internal_Copy(From : in Ref'Class ;
-                           To : out Ref'Class) ;
+                           To : in out Ref'Class) ;
    -- This is a workaround for a bug in gnat 3.11p
    -- it simply copies the two fields of From
    -- into To. It also finalizes and adjusts whrn needed
