@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.9 $
+--                            $Revision: 1.10 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -79,9 +79,8 @@ package body AdaBroker.NetBufferedStream is
       Bufsize : in Interfaces.C.unsigned_long);
 
    pragma Import (CPP, C_Init, "__17NetBufferedStreamP4RopebT2Ui");
-   --  Wrapper around Ada_netBufferedStream function Init (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : Init
+   --  Wrapper around Ada_netBufferedStream function Init
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Init
 
    ----------
    -- Init --
@@ -114,10 +113,10 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Marshall_1,
       "marshall__21Ada_netBufferedStreamUcR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : Marshall
-
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  name was changed to avoid conflict
+   
    --------------
    -- Marshall --
    --------------
@@ -142,10 +141,10 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Unmarshall_1,
       "unmarshall__21Ada_netBufferedStreamRUcR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : UnMarshall
-
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : UnMarshall
+   --  name was changed to avoid conflict
+   
    ----------------
    -- Unmarshall --
    ----------------
@@ -185,9 +184,9 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Marshall_2,
       "marshall__21Ada_netBufferedStreambR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : Marshall
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  name was changed to avoid conflict
 
    --------------
    -- Marshall --
@@ -214,10 +213,10 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Unmarshall_2,
       "unmarshall__21Ada_netBufferedStreamRbR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : UnMarshall
-
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : UnMarshall
+   --  name was changed to avoid conflict
+   
    ----------------
    -- Unmarshall --
    ----------------
@@ -259,9 +258,9 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Marshall_3,
       "marshall__21Ada_netBufferedStreamsR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : Marshall
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) called by the Ada equivalent : Marshall
+   --  name was changed to avoid conflict
 
    --------------
    -- Marshall --
@@ -288,10 +287,10 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Unmarshall_3,
       "unmarshall__21Ada_netBufferedStreamRsR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : UnMarshall
-
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : UnMarshall
+   --  name was changed to avoid conflict
+   
    ----------------
    -- Unmarshall --
    ----------------
@@ -332,9 +331,9 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Marshall_4,
       "marshall__21Ada_netBufferedStreamUsR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : Marshall
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  name was changed to avoid conflict
 
    --------------
    -- Marshall --
@@ -361,10 +360,9 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_UnMarshall_4,
       "unmarshall__21Ada_netBufferedStreamRUsR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : UnMarshall
-
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : UnMarshall
+   --  name was changed to avoid conflict
 
    ----------------
    -- Unmarshall --
@@ -407,9 +405,9 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Marshall_5,
       "marshall__21Ada_netBufferedStreamlR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : Marshall
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  name was changed to avoid conflict
 
    --------------
    -- Marshall --
@@ -436,9 +434,9 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Unmarshall_5,
       "unmarshall__21Ada_netBufferedStreamRlR21Ada_netBufferedStream");
-   --  Wrapperw around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : UnMarshall
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : UnMarshall
+   --  name was changed to avoid conflict
 
    ----------------
    -- Unmarshall --
@@ -481,9 +479,9 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Marshall_6,
       "marshall__21Ada_netBufferedStreamUlR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : Marshall
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  name was changed to avoid conflict
 
    --------------
    -- Marshall --
@@ -515,9 +513,9 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Unmarshall_6,
       "unmarshall__21Ada_netBufferedStreamRUlR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : Unmarshall
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Unmarshall
+   --  name was changed to avoid conflict
 
    ----------------
    -- Unmarshall --
@@ -561,9 +559,9 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Marshall_7,
       "marshall__21Ada_netBufferedStreamfR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : Marshall
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  name was changed to avoid conflict
 
    --------------
    -- Marshall --
@@ -593,9 +591,9 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Unmarshall_7,
       "unmarshall__21Ada_netBufferedStreamRfR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : Unmarshall
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Unmarshall
+   --  name was changed to avoid conflict
 
    ----------------
    -- Unmarshall --
@@ -638,9 +636,9 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Marshall_8,
       "marshall__21Ada_netBufferedStreamdR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : Marshall
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  name was changed to avoid conflict
 
    --------------
    -- Marshall --
@@ -670,9 +668,9 @@ package body AdaBroker.NetBufferedStream is
    pragma Import
      (CPP, C_Unmarshall_8,
       "unmarshall__21Ada_netBufferedStreamRdR21Ada_netBufferedStream");
-   --  Wrapper around Ada_netBufferedStream function marshall (see
-   --  Ada_netBufferedStream.hh) name was changed to avoid conflict called
-   --  by the Ada equivalent : Unmarshall
+   --  Wrapper around Ada_netBufferedStream function marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Unmarshall
+   --  name was changed to avoid conflict
 
    ----------------
    -- Unmarshall --
@@ -717,8 +715,8 @@ package body AdaBroker.NetBufferedStream is
       "marshall__21Ada_netBufferedStreamUcR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall FOR CHAR TYPE
    --  BECAUSE IT IS THE SAME TYPE IN C++ (see Ada_netBufferedStream.hh)
-   --  name was changed to avoid conflict called by the Ada equivalent :
-   --  Marshall
+   --  called by the Ada equivalent Marshall
+   --  name was changed to avoid conflict
 
    --------------
    -- Marshall --
@@ -744,8 +742,8 @@ package body AdaBroker.NetBufferedStream is
       "unmarshall__21Ada_netBufferedStreamRUcR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall FOR CHAR TYPE
    --  BECAUSE IT IS THE SAME TYPE IN C++ (see Ada_netBufferedStream.hh)
-   --  name was changed to avoid conflict called by the Ada equivalent :
-   --  Unmarshall
+   --  called by the Ada equivalent Unmarshall
+   --  name was changed to avoid conflict
 
    ----------------
    -- Unmarshall --
@@ -978,8 +976,8 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Is_Reusing_Existing_Connection,
       "isReUsingExistingConnection__21Ada_netBufferedStream");
    --  Wrapper around _CORBA_Boolean isReUsingExistingConnection() const;
-   --  (see rope.h L 395) called by the Ada equivalent :
-   --  Is_Reusing_Existing_Connection
+   --  (see rope.h L 395)
+   --  called by the Ada equivalent Is_Reusing_Existing_Connection
 
    ------------------------------------
    -- Is_Reusing_Existing_Connection --
