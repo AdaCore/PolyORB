@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . C O R B A _ P . P O A _ C O N F I G            --
+--    P O R T A B L E S E R V E R . I D U N I Q U E N E S S P O L I C Y     --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
@@ -30,19 +30,55 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Utility package to convert a CORBA.PolicyList into a
---  PolyORB.POA_Policies.PolicyList.
-
 --  $Id$
 
-with CORBA.Policy;
+package body PortableServer.IdUniquenessPolicy is
 
-with PolyORB.POA_Policies;
+   ---------------------------------
+   -- Create_Id_Uniqueness_Policy --
+   ---------------------------------
 
-package PolyORB.CORBA_P.POA_Config is
+   function Create_Id_Uniqueness_Policy
+     (Value : in PortableServer.IdUniquenessPolicyValue)
+     return CORBA.Policy.Ref'Class
+   is
+      Result : PortableServer.IdUniquenessPolicy.Ref;
+   begin
+      Result.Type_Of_Ref := ID_UNIQUENESS_POLICY_ID;
+      Result.IdUniquenessPolicy := Value;
 
-   function Convert_PolicyList
-     (List : CORBA.Policy.PolicyList)
-     return PolyORB.POA_Policies.PolicyList;
+      return Result;
+   end Create_Id_Uniqueness_Policy;
 
-end PolyORB.CORBA_P.POA_Config;
+   -------------------
+   -- Create_Policy --
+   -------------------
+
+   function Create_Policy
+     (The_Type : in CORBA.PolicyType;
+      Val      : CORBA.Any)
+     return PortableServer.IdUniquenessPolicy.Ref
+   is
+      use CORBA;
+
+   begin
+      if The_Type /= ID_UNIQUENESS_POLICY_ID then
+         raise Program_Error;
+      end if;
+
+      return PortableServer.IdUniquenessPolicy.Ref
+        (Create_Id_Uniqueness_Policy (From_Any (Val)));
+   end Create_Policy;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   function Get_Value
+     (Self : Ref)
+     return PortableServer.IdUniquenessPolicyValue is
+   begin
+      return Self.IdUniquenessPolicy;
+   end Get_Value;
+
+end PortableServer.IdUniquenessPolicy;

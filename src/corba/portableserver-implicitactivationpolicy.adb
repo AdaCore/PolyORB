@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . C O R B A _ P . P O A _ C O N F I G            --
+--                 PORTABLESERVER.IMPLICITACTIVATIONPOLICY                  --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
@@ -30,19 +30,55 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Utility package to convert a CORBA.PolicyList into a
---  PolyORB.POA_Policies.PolicyList.
-
 --  $Id$
 
-with CORBA.Policy;
+package body PortableServer.ImplicitActivationPolicy is
 
-with PolyORB.POA_Policies;
+   ---------------------------------------
+   -- Create_Implicit_Activation_Policy --
+   ---------------------------------------
 
-package PolyORB.CORBA_P.POA_Config is
+   function Create_Implicit_Activation_Policy
+     (Value : in PortableServer.ImplicitActivationPolicyValue)
+     return CORBA.Policy.Ref'Class
+   is
+      Result : PortableServer.ImplicitActivationPolicy.Ref;
+   begin
+      Result.Type_Of_Ref := IMPLICIT_ACTIVATION_POLICY_ID;
+      Result.ImplicitActivationPolicy := Value;
 
-   function Convert_PolicyList
-     (List : CORBA.Policy.PolicyList)
-     return PolyORB.POA_Policies.PolicyList;
+      return Result;
+   end Create_Implicit_Activation_Policy;
 
-end PolyORB.CORBA_P.POA_Config;
+   -------------------
+   -- Create_Policy --
+   -------------------
+
+   function Create_Policy
+     (The_Type : in CORBA.PolicyType;
+      Val      : CORBA.Any)
+     return PortableServer.ImplicitActivationPolicy.Ref
+   is
+      use CORBA;
+
+   begin
+      if The_Type /= IMPLICIT_ACTIVATION_POLICY_ID then
+         raise Program_Error;
+      end if;
+
+      return PortableServer.ImplicitActivationPolicy.Ref
+        (Create_Implicit_Activation_Policy (From_Any (Val)));
+   end Create_Policy;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   function Get_Value
+     (Self : Ref)
+     return PortableServer.ImplicitActivationPolicyValue is
+   begin
+      return Self.ImplicitActivationPolicy;
+   end Get_Value;
+
+end PortableServer.ImplicitActivationPolicy;

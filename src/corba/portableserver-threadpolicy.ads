@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,14 +30,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-threadpolicy.ads#2 $
+--  $Id: //droopi/main/src/corba/portableserver-threadpolicy.ads#3 $
 
-with CORBA;
 with CORBA.Policy;
 
 package PortableServer.ThreadPolicy is
-   type Ref is new CORBA.Policy.Ref with null record;
-   --  function Copy (Self: Ref) return Ref;
 
-   function Get_Value (Self : Ref) return PortableServer.ThreadPolicyValue;
+   type Ref is new CORBA.Policy.Ref with private;
+
+   function Create_Thread_Policy
+     (Value : in PortableServer.ThreadPolicyValue)
+     return CORBA.Policy.Ref'Class;
+   --  XXX This function should be in PortableServer,
+   --  yet this would create a circular dependency ...
+
+   function Create_Policy
+     (The_Type : in CORBA.PolicyType;
+      Val      : CORBA.Any)
+     return PortableServer.ThreadPolicy.Ref;
+   --  Implementation of CORBA.ORB.Create_Policy.
+
+   function Get_Value
+     (Self : Ref)
+     return PortableServer.ThreadPolicyValue;
+
+private
+
+   type Ref is new CORBA.Policy.Ref with record
+      ThreadPolicy : PortableServer.ThreadPolicyValue;
+   end record;
+
 end PortableServer.ThreadPolicy;

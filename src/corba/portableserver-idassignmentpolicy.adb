@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . C O R B A _ P . P O A _ C O N F I G            --
+--    P O R T A B L E S E R V E R . I D A S S I G N M E N T P O L I C Y     --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
@@ -30,19 +30,55 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Utility package to convert a CORBA.PolicyList into a
---  PolyORB.POA_Policies.PolicyList.
-
 --  $Id$
 
-with CORBA.Policy;
+package body PortableServer.IdAssignmentPolicy is
 
-with PolyORB.POA_Policies;
+   ---------------------------------
+   -- Create_Id_Assignment_Policy --
+   ---------------------------------
 
-package PolyORB.CORBA_P.POA_Config is
+   function Create_Id_Assignment_Policy
+     (Value : in PortableServer.IdAssignmentPolicyValue)
+     return CORBA.Policy.Ref'Class
+   is
+      Result : PortableServer.IdAssignmentPolicy.Ref;
+   begin
+      Result.Type_Of_Ref := ID_ASSIGNMENT_POLICY_ID;
+      Result.IdAssignmentPolicy := Value;
 
-   function Convert_PolicyList
-     (List : CORBA.Policy.PolicyList)
-     return PolyORB.POA_Policies.PolicyList;
+      return Result;
+   end Create_Id_Assignment_Policy;
 
-end PolyORB.CORBA_P.POA_Config;
+   -------------------
+   -- Create_Policy --
+   -------------------
+
+   function Create_Policy
+     (The_Type : in CORBA.PolicyType;
+      Val      : CORBA.Any)
+     return PortableServer.IdAssignmentPolicy.Ref
+   is
+      use CORBA;
+
+   begin
+      if The_Type /= ID_ASSIGNMENT_POLICY_ID then
+         raise Program_Error;
+      end if;
+
+      return PortableServer.IdAssignmentPolicy.Ref
+        (Create_Id_Assignment_Policy (From_Any (Val)));
+   end Create_Policy;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   function Get_Value
+     (Self : Ref)
+     return PortableServer.IdAssignmentPolicyValue is
+   begin
+      return Self.IdAssignmentPolicy;
+   end Get_Value;
+
+end PortableServer.IdAssignmentPolicy;

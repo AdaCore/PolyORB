@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,6 +38,7 @@ with CORBA.Context;
 with CORBA.ExceptionList;
 with CORBA.NVList;
 with CORBA.Object;
+with CORBA.Policy;
 
 with PolyORB.References;
 with PolyORB.Sequences.Unbounded;
@@ -177,11 +178,13 @@ package CORBA.ORB is
 
    --  Policy related operations
 
-   --  ??? in the spec this is declared a function.
-
-   procedure Create_Policy
+   function Create_Policy
      (The_Type : in PolicyType;
-      Val      : Any);
+      Val      : Any)
+     return CORBA.Policy.Ref
+     is abstract;
+   --  XXX This function is not marked abstract in the Ada Mapping.
+   --  It should be abstract to be compatible with CORBA.Policy.
 
    --  The following subprograms are not in CORBA spec.
 

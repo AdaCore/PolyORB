@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . C O R B A _ P . P O A _ C O N F I G            --
+--        P O R T A B L E S E R V E R . L I F E S P A N P O L I C Y         --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
@@ -30,19 +30,55 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Utility package to convert a CORBA.PolicyList into a
---  PolyORB.POA_Policies.PolicyList.
-
 --  $Id$
 
-with CORBA.Policy;
+package body PortableServer.LifespanPolicy is
 
-with PolyORB.POA_Policies;
+   ----------------------------
+   -- Create_Lifespan_Policy --
+   ----------------------------
 
-package PolyORB.CORBA_P.POA_Config is
+   function Create_Lifespan_Policy
+     (Value : in PortableServer.LifespanPolicyValue)
+     return CORBA.Policy.Ref'Class
+   is
+      Result : PortableServer.LifespanPolicy.Ref;
+   begin
+      Result.Type_Of_Ref := LIFESPAN_POLICY_ID;
+      Result.LifespanPolicy := Value;
 
-   function Convert_PolicyList
-     (List : CORBA.Policy.PolicyList)
-     return PolyORB.POA_Policies.PolicyList;
+      return Result;
+   end Create_Lifespan_Policy;
 
-end PolyORB.CORBA_P.POA_Config;
+   -------------------
+   -- Create_Policy --
+   -------------------
+
+   function Create_Policy
+     (The_Type : in CORBA.PolicyType;
+      Val      : CORBA.Any)
+     return PortableServer.LifespanPolicy.Ref
+   is
+      use CORBA;
+
+   begin
+      if The_Type /= LIFESPAN_POLICY_ID then
+         raise Program_Error;
+      end if;
+
+      return PortableServer.LifespanPolicy.Ref
+        (Create_Lifespan_Policy (From_Any (Val)));
+   end Create_Policy;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   function Get_Value
+     (Self : Ref)
+     return PortableServer.LifespanPolicyValue is
+   begin
+      return Self.LifespanPolicy;
+   end Get_Value;
+
+end PortableServer.LifespanPolicy;

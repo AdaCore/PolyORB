@@ -40,6 +40,7 @@ with CORBA.Object;
 with CORBA.Impl;
 with CORBA.Forward;
 pragma Elaborate_All (CORBA.Forward);
+
 with CORBA.ServerRequest;
 
 package PortableServer is
@@ -102,6 +103,16 @@ package PortableServer is
 
    type ObjectId is new PolyORB.Objects.Object_Id;
 
+   function String_To_ObjectId (Id : String) return ObjectId;
+   --  Convert string 'Id' into an ObjectID.
+
+   function ObjectId_To_String (Id : ObjectId) return String;
+   --  Convert ObjectId 'Id' into a string.
+
+   --  XXX these functions are not defined in the CORBA specification,
+   --  but defined in various C++ ORB implementation. Moreover, how
+   --  can we build an ObjectId without such a conversion function ?
+
    ------------------------------
    -- Exception ForwardRequest --
    ------------------------------
@@ -159,6 +170,80 @@ package PortableServer is
      (USE_ACTIVE_OBJECT_MAP_ONLY,
       USE_DEFAULT_SERVANT,
       USE_SERVANT_MANAGER);
+
+   -----------------------------
+   -- Helpers for PolicyValue --
+   -----------------------------
+
+   TC_ThreadPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
+
+   function From_Any (Item : in CORBA.Any)
+                     return ThreadPolicyValue;
+
+   function To_Any
+     (Item : in ThreadPolicyValue)
+     return CORBA.Any;
+
+   TC_LifespanPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
+
+   function From_Any (Item : in CORBA.Any)
+                     return LifespanPolicyValue;
+
+   function To_Any
+     (Item : in LifespanPolicyValue)
+     return CORBA.Any;
+
+   TC_IdUniquenessPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
+
+   function From_Any (Item : in CORBA.Any)
+                     return IdUniquenessPolicyValue;
+
+   function To_Any
+     (Item : in IdUniquenessPolicyValue)
+     return CORBA.Any;
+
+   TC_IdAssignmentPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
+
+   function From_Any (Item : in CORBA.Any)
+                     return IdAssignmentPolicyValue;
+
+   function To_Any
+     (Item : in IdAssignmentPolicyValue)
+     return CORBA.Any;
+
+   TC_ImplicitActivationPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
+
+   function From_Any (Item : in CORBA.Any)
+                     return ImplicitActivationPolicyValue;
+
+   function To_Any
+     (Item : in ImplicitActivationPolicyValue)
+     return CORBA.Any;
+
+   TC_ServantRetentionPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
+
+   function From_Any (Item : in CORBA.Any)
+                     return ServantRetentionPolicyValue;
+
+   function To_Any
+     (Item : in ServantRetentionPolicyValue)
+     return CORBA.Any;
+
+   TC_RequestProcessingPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
+
+   function From_Any (Item : in CORBA.Any)
+                     return RequestProcessingPolicyValue;
+
+   function To_Any
+     (Item : in RequestProcessingPolicyValue)
+     return CORBA.Any;
 
    --  XXX Old AdaBroker-specific spec, kept here for
    --  now for easy reference. Please do not remove yet.

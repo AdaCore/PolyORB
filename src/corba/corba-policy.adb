@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . C O R B A _ P . P O A _ C O N F I G            --
+--                         C O R B A . P O L I C Y                          --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
@@ -30,19 +30,36 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Utility package to convert a CORBA.PolicyList into a
---  PolyORB.POA_Policies.PolicyList.
-
 --  $Id$
 
-with CORBA.Policy;
+with PolyORB;
 
-with PolyORB.POA_Policies;
+package body CORBA.Policy is
 
-package PolyORB.CORBA_P.POA_Config is
+   ---------------------
+   -- Get_Policy_Type --
+   ---------------------
 
-   function Convert_PolicyList
-     (List : CORBA.Policy.PolicyList)
-     return PolyORB.POA_Policies.PolicyList;
+   function Get_Policy_Type
+     (Self : Ref)
+     return PolicyType is
+   begin
+      return Self.Type_Of_Ref;
+   end Get_Policy_Type;
 
-end PolyORB.CORBA_P.POA_Config;
+   ----------
+   -- Copy --
+   ----------
+
+   function Copy
+     (Self : Ref)
+     return Ref'Class is
+   begin
+      raise PolyORB.Not_Implemented;
+
+      pragma Warnings (Off);
+      return Copy (Self);
+      pragma Warnings (On);
+   end Copy;
+
+end CORBA.Policy;

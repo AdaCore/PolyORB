@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . C O R B A _ P . P O A _ C O N F I G            --
+--                 PORTABLESERVER.IMPLICITACTIVATIONPOLICY                  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,19 +30,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Utility package to convert a CORBA.PolicyList into a
---  PolyORB.POA_Policies.PolicyList.
-
 --  $Id$
 
 with CORBA.Policy;
 
-with PolyORB.POA_Policies;
+package PortableServer.ImplicitActivationPolicy is
 
-package PolyORB.CORBA_P.POA_Config is
+   type Ref is new CORBA.Policy.Ref with private;
 
-   function Convert_PolicyList
-     (List : CORBA.Policy.PolicyList)
-     return PolyORB.POA_Policies.PolicyList;
+   function Create_Implicit_Activation_Policy
+     (Value : in PortableServer.ImplicitActivationPolicyValue)
+     return CORBA.Policy.Ref'Class;
+   --  XXX This function should be in PortableServer,
+   --  yet this would create a circular dependency ...
 
-end PolyORB.CORBA_P.POA_Config;
+   function Create_Policy
+     (The_Type : in CORBA.PolicyType;
+      Val      : CORBA.Any)
+     return PortableServer.ImplicitActivationPolicy.Ref;
+   --  Implementation of CORBA.ORB.Create_Policy.
+
+   function Get_Value
+     (Self : Ref)
+     return PortableServer.ImplicitActivationPolicyValue;
+
+private
+
+   type Ref is new CORBA.Policy.Ref with record
+      ImplicitActivationPolicy : PortableServer.ImplicitActivationPolicyValue;
+   end record;
+
+end PortableServer.ImplicitActivationPolicy;

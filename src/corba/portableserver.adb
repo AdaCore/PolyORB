@@ -40,7 +40,9 @@ with PolyORB.CORBA_P.Names;
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Objects.Interface;
+with PolyORB.POA_Types;
 with PolyORB.Tasking.Soft_Links;
+with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 
 package body PortableServer is
@@ -224,5 +226,237 @@ package body PortableServer is
       when others =>
          raise;
    end Get_Type_Id;
+
+   ------------------------
+   -- String_To_ObjectId --
+   ------------------------
+
+   function String_To_ObjectId
+     (Id : String)
+     return ObjectId
+   is
+      use PolyORB.POA_Types;
+
+      U_OID : constant Unmarshalled_Oid
+        := Create_Id
+        (Name => PolyORB.Types.To_PolyORB_String (Id),
+         System_Generated => False,
+         Persistency_Flag => 0,
+         Creator => PolyORB.Types.To_PolyORB_String (""));
+
+      OID : constant Object_Id := U_Oid_To_Oid (U_OID);
+   begin
+      return ObjectId (OID);
+   end String_To_ObjectId;
+
+   ------------------------
+   -- Objectid_To_String --
+   ------------------------
+
+   function ObjectId_To_String
+     (Id : ObjectId)
+     return String
+   is
+      use PolyORB.POA_Types;
+   begin
+      return PolyORB.Types.To_String (Get_Name (Object_Id (Id)));
+   end ObjectId_To_String;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return ThreadPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return ThreadPolicyValue'Val (Position);
+   end From_Any;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return LifespanPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return LifespanPolicyValue'Val (Position);
+   end From_Any;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return IdUniquenessPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return IdUniquenessPolicyValue'Val (Position);
+   end From_Any;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return IdAssignmentPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return IdAssignmentPolicyValue'Val (Position);
+   end From_Any;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return ImplicitActivationPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return ImplicitActivationPolicyValue'Val (Position);
+   end From_Any;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return ServantRetentionPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return ServantRetentionPolicyValue'Val (Position);
+   end From_Any;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return RequestProcessingPolicyValue
+   is
+      Index : CORBA.Any :=
+        CORBA.Get_Aggregate_Element (Item,
+                                     CORBA.TC_Unsigned_Long,
+                                     CORBA.Unsigned_Long (0));
+      Position : constant CORBA.Unsigned_Long := CORBA.From_Any (Index);
+   begin
+      return RequestProcessingPolicyValue'Val (Position);
+   end From_Any;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any
+     (Item : in ThreadPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_ThreadPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (ThreadPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in LifespanPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_LifespanPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (LifespanPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in IdUniquenessPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_IdUniquenessPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (IdUniquenessPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in IdAssignmentPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_IdAssignmentPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (IdAssignmentPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in ImplicitActivationPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_ImplicitActivationPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (ImplicitActivationPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in ServantRetentionPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_ServantRetentionPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (ServantRetentionPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
+
+   function To_Any
+     (Item : in RequestProcessingPolicyValue)
+     return CORBA.Any
+   is
+      Result : CORBA.Any :=
+        CORBA.Get_Empty_Any_Aggregate (TC_RequestProcessingPolicyValue);
+   begin
+      CORBA.Add_Aggregate_Element
+        (Result,
+         CORBA.To_Any
+         (CORBA.Unsigned_Long (RequestProcessingPolicyValue'Pos (Item))));
+      return Result;
+   end To_Any;
 
 end PortableServer;

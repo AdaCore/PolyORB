@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . C O R B A _ P . P O A _ C O N F I G            --
+--                  PORTABLESERVER.SERVANTRETENTIONPOLICY                   --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
@@ -30,19 +30,55 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Utility package to convert a CORBA.PolicyList into a
---  PolyORB.POA_Policies.PolicyList.
-
 --  $Id$
 
-with CORBA.Policy;
+package body PortableServer.ServantRetentionPolicy is
 
-with PolyORB.POA_Policies;
+   -------------------------------------
+   -- Create_Servant_Retention_Policy --
+   -------------------------------------
 
-package PolyORB.CORBA_P.POA_Config is
+   function Create_Servant_Retention_Policy
+     (Value : in PortableServer.ServantRetentionPolicyValue)
+     return CORBA.Policy.Ref'Class
+   is
+      Result : PortableServer.ServantRetentionPolicy.Ref;
+   begin
+      Result.Type_Of_Ref := SERVANT_RETENTION_POLICY_ID;
+      Result.ServantRetentionPolicy := Value;
 
-   function Convert_PolicyList
-     (List : CORBA.Policy.PolicyList)
-     return PolyORB.POA_Policies.PolicyList;
+      return Result;
+   end Create_Servant_Retention_Policy;
 
-end PolyORB.CORBA_P.POA_Config;
+   -------------------
+   -- Create_Policy --
+   -------------------
+
+   function Create_Policy
+     (The_Type : in CORBA.PolicyType;
+      Val      : CORBA.Any)
+     return PortableServer.ServantRetentionPolicy.Ref
+   is
+      use CORBA;
+
+   begin
+      if The_Type /= SERVANT_RETENTION_POLICY_ID then
+         raise Program_Error;
+      end if;
+
+      return PortableServer.ServantRetentionPolicy.Ref
+        (Create_Servant_Retention_Policy (From_Any (Val)));
+   end Create_Policy;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   function Get_Value
+     (Self : Ref)
+     return PortableServer.ServantRetentionPolicyValue is
+   begin
+      return Self.ServantRetentionPolicy;
+   end Get_Value;
+
+end PortableServer.ServantRetentionPolicy;

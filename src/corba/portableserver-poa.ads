@@ -30,12 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.ads#4 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.ads#5 $
 
 with CORBA.Object;
+with CORBA.Policy;
+
 with PortableServer.POAManager;
 with PortableServer.AdapterActivator;
 with PortableServer.ServantManager;
+
 --  with PortableServer.ThreadPolicy;
 
 package PortableServer.POA is
@@ -44,7 +47,8 @@ package PortableServer.POA is
 
    AdapterAlreadyExists : exception;
 
-   type AdapterAlreadyExists_Members is new CORBA.IDL_Exception_Members
+   type AdapterAlreadyExists_Members is
+     new CORBA.IDL_Exception_Members
      with null record;
 
    procedure Get_Members
@@ -75,22 +79,8 @@ package PortableServer.POA is
      (Self         : Ref;
       Adapter_Name : CORBA.String;
       A_POAManager : PortableServer.POAManager.Ref;
-      Tp           : ThreadPolicyValue;
-      Lp           : LifespanPolicyValue;
-      Up           : IdUniquenessPolicyValue;
-      Ip           : IdAssignmentPolicyValue;
-      Ap           : ImplicitActivationPolicyValue;
-      Sp           : ServantRetentionPolicyValue;
-      Rp           : RequestProcessingPolicyValue)
+      Policies     : CORBA.Policy.PolicyList)
      return Ref'Class;
-
-   --    function Create_POA
-   --      (Self         : Ref;
-   --       Adapter_Name : CORBA.String;
-   --       A_POAManager : PortableServer.POAManager.Ref;
-   --       Value : ThreadPolicyValue)
-   --       Policies     : CORBA.Policy.PolicyList)
-   --      return Ref'Class;
 
    function Find_POA
      (Self         : Ref;
@@ -100,15 +90,8 @@ package PortableServer.POA is
 
    procedure Destroy
      (Self                : in out Ref;
-      Etherealize_Objects : in CORBA.Boolean;
-      Wait_For_Completion : in CORBA.Boolean);
-
-   --  Policies
-
-   --    function Create_Thread_Policy
-   --      (Self  : Ref;
-   --       Value : ThreadPolicyValue)
-   --      return PortableServer.ThreadPolicy.Ref;
+      Etherealize_Objects : in     CORBA.Boolean;
+      Wait_For_Completion : in     CORBA.Boolean);
 
    function Get_The_Name
      (Self : Ref)
@@ -201,6 +184,7 @@ package PortableServer.POA is
       Oid  : ObjectId)
      return CORBA.Object.Ref;
 
-   package Convert is new PortableServer.POA_Forward.Convert (Ref);
+   package Convert is new
+     PortableServer.POA_Forward.Convert (Ref);
 
 end PortableServer.POA;

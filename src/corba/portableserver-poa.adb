@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#27 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#28 $
 
 with Ada.Exceptions;
 
@@ -313,13 +313,7 @@ package body PortableServer.POA is
      (Self         : Ref;
       Adapter_Name : CORBA.String;
       A_POAManager : PortableServer.POAManager.Ref;
-      Tp           : ThreadPolicyValue;
-      Lp           : LifespanPolicyValue;
-      Up           : IdUniquenessPolicyValue;
-      Ip           : IdAssignmentPolicyValue;
-      Ap           : ImplicitActivationPolicyValue;
-      Sp           : ServantRetentionPolicyValue;
-      Rp           : RequestProcessingPolicyValue)
+      Policies     : CORBA.Policy.PolicyList)
      return Ref'Class
    is
       use PolyORB.CORBA_P.POA_Config;
@@ -337,7 +331,7 @@ package body PortableServer.POA is
          PolyORB.Types.String (Adapter_Name),
          PolyORB.POA_Manager.POAManager_Access
          (PortableServer.POAManager.Entity_Of (A_POAManager)),
-         Create_PolicyList (Tp, Lp, Up, Ip, Ap, Sp, Rp));
+         Convert_PolicyList (Policies));
 
       pragma Debug (O ("POA created"));
 
@@ -347,6 +341,7 @@ package body PortableServer.POA is
       begin
          return New_Ref;
       end;
+
    end Create_POA;
 
    --------------

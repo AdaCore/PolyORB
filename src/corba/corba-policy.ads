@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . C O R B A _ P . P O A _ C O N F I G            --
+--                         C O R B A . P O L I C Y                          --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,19 +30,31 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Utility package to convert a CORBA.PolicyList into a
---  PolyORB.POA_Policies.PolicyList.
+--  Note: this package specification has been adapted to work around
+--  Ada semantics errors present in OMG Ada mapping (version 1.2).
 
 --  $Id$
 
-with CORBA.Policy;
+with CORBA.Object;
+with CORBA.Sequences.Unbounded_AT;
 
-with PolyORB.POA_Policies;
+package CORBA.Policy is
 
-package PolyORB.CORBA_P.POA_Config is
+   type Ref is abstract new CORBA.Object.Ref with record
+      Type_Of_Ref : PolicyType;
+   end record;
 
-   function Convert_PolicyList
-     (List : CORBA.Policy.PolicyList)
-     return PolyORB.POA_Policies.PolicyList;
+   type Ref_Access is access all Ref'Class;
 
-end PolyORB.CORBA_P.POA_Config;
+   function Get_Policy_Type (Self : Ref) return PolicyType;
+
+   function Copy (Self : Ref) return Ref'Class;
+
+   package IDL_Sequence_Policy is new
+     CORBA.Sequences.Unbounded_AT (Ref, Ref_Access);
+   --  Note : Ref is an abstract type, thus we cannot use
+   --  CORBA.Sequences.Unbounded and use this package instead.
+
+   subtype PolicyList is IDL_Sequence_Policy.Sequence;
+
+end CORBA.Policy;

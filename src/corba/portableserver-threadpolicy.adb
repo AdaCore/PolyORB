@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . C O R B A _ P . P O A _ C O N F I G            --
+--          P O R T A B L E S E R V E R . T H R E A D P O L I C Y           --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
@@ -30,19 +30,55 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Utility package to convert a CORBA.PolicyList into a
---  PolyORB.POA_Policies.PolicyList.
-
 --  $Id$
 
-with CORBA.Policy;
+package body PortableServer.ThreadPolicy is
 
-with PolyORB.POA_Policies;
+   --------------------------
+   -- Create_Thread_Policy --
+   --------------------------
 
-package PolyORB.CORBA_P.POA_Config is
+   function Create_Thread_Policy
+     (Value : in PortableServer.ThreadPolicyValue)
+     return CORBA.Policy.Ref'Class
+   is
+      Result : PortableServer.ThreadPolicy.Ref;
+   begin
+      Result.Type_Of_Ref := THREAD_POLICY_ID;
+      Result.ThreadPolicy := Value;
 
-   function Convert_PolicyList
-     (List : CORBA.Policy.PolicyList)
-     return PolyORB.POA_Policies.PolicyList;
+      return Result;
+   end Create_Thread_Policy;
 
-end PolyORB.CORBA_P.POA_Config;
+   -------------------
+   -- Create_Policy --
+   -------------------
+
+   function Create_Policy
+     (The_Type : in CORBA.PolicyType;
+      Val      : CORBA.Any)
+     return PortableServer.ThreadPolicy.Ref
+   is
+      use CORBA;
+
+   begin
+      if The_Type /= THREAD_POLICY_ID then
+         raise Program_Error;
+      end if;
+
+      return PortableServer.ThreadPolicy.Ref
+        (Create_Thread_Policy (From_Any (Val)));
+   end Create_Policy;
+
+   ---------------
+   -- Get_Value --
+   ---------------
+
+   function Get_Value
+     (Self : Ref)
+     return PortableServer.ThreadPolicyValue is
+   begin
+      return Self.ThreadPolicy;
+   end Get_Value;
+
+end PortableServer.ThreadPolicy;

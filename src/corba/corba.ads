@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 2001-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#23 $
+--  $Id: //droopi/main/src/corba/corba.ads#24 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -346,16 +346,28 @@ package CORBA is
    --  exception PolicyError
    PolicyError : exception;
 
-   type PolicyErrorCode is new Short;
+   type PolicyErrorCode is new CORBA.Short;
 
-   type PolicyError_Members is new CORBA.IDL_Exception_Members
-     with record
-        Reason : PolicyErrorCode;
-     end record;
+   BAD_POLICY               : constant PolicyErrorCode
+     := PolicyErrorCode'(0);
+   UNSUPPORTED_POLICY       : constant PolicyErrorCode
+     := PolicyErrorCode'(1);
+   BAD_POLICY_TYPE          : constant PolicyErrorCode
+     := PolicyErrorCode'(2);
+   BAD_POLICY_VALUE         : constant PolicyErrorCode
+     := PolicyErrorCode'(3);
+   UNSUPPORTED_POLICY_VALUE : constant PolicyErrorCode
+     := PolicyErrorCode'(4);
+
+   type PolicyError_Members is
+     new CORBA.IDL_Exception_Members with
+      record
+         Reason : PolicyErrorCode;
+      end record;
 
    procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To : out PolicyError_Members);
+     (From : in     Ada.Exceptions.Exception_Occurrence;
+      To   :    out PolicyError_Members);
 
    --  exception InvalidName
    InvalidName : exception;
@@ -373,10 +385,10 @@ package CORBA is
      (From : Ada.Exceptions.Exception_Occurrence;
       To : out InconsistentTypeCode_Members);
 
-
    -------------------------
    -- Types and constants --
    -------------------------
+
    type ServiceType is new Unsigned_Short;
    type ServiceOption is new Unsigned_Long;
    type ServiceDetailType is new Unsigned_Long;

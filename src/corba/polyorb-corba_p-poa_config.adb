@@ -32,6 +32,15 @@
 
 --  $Id$
 
+with CORBA.Policy;
+with PortableServer.IdAssignmentPolicy;
+with PortableServer.IdUniquenessPolicy;
+with PortableServer.ImplicitActivationPolicy;
+with PortableServer.LifespanPolicy;
+with PortableServer.RequestProcessingPolicy;
+with PortableServer.ServantRetentionPolicy;
+with PortableServer.ThreadPolicy;
+
 with PolyORB.POA_Policies.Id_Assignment_Policy.System;
 with PolyORB.POA_Policies.Id_Assignment_Policy.User;
 
@@ -56,6 +65,19 @@ with PolyORB.POA_Policies.Thread_Policy.Main_Thread;
 
 package body PolyORB.CORBA_P.POA_Config is
 
+   use CORBA;
+
+   use PortableServer;
+   use PortableServer.IdAssignmentPolicy;
+   use PortableServer.IdUniquenessPolicy;
+   use PortableServer.ImplicitActivationPolicy;
+   use PortableServer.LifespanPolicy;
+   use PortableServer.RequestProcessingPolicy;
+   use PortableServer.ServantRetentionPolicy;
+   use PortableServer.ThreadPolicy;
+
+   use PolyORB.POA_Policies;
+
    use PolyORB.POA_Policies.Id_Assignment_Policy.System;
    use PolyORB.POA_Policies.Id_Assignment_Policy.User;
 
@@ -70,6 +92,7 @@ package body PolyORB.CORBA_P.POA_Config is
 
    use PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;
    use PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+   package RPP renames PolyORB.POA_Policies.Request_Processing_Policy;
 
    use PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
    use PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
@@ -78,124 +101,187 @@ package body PolyORB.CORBA_P.POA_Config is
    use PolyORB.POA_Policies.Thread_Policy.Single_Thread;
    use PolyORB.POA_Policies.Thread_Policy.Main_Thread;
 
-   use PortableServer;
-   use PolyORB.POA_Policies;
+   ------------------------
+   -- Convert_PolicyList --
+   ------------------------
 
-   -----------------------
-   -- Create_PolicyList --
-   -----------------------
-
-   function Create_PolicyList
-     (Tp           : PortableServer.ThreadPolicyValue;
-      Lp           : PortableServer.LifespanPolicyValue;
-      Up           : PortableServer.IdUniquenessPolicyValue;
-      Ip           : PortableServer.IdAssignmentPolicyValue;
-      Ap           : PortableServer.ImplicitActivationPolicyValue;
-      Sp           : PortableServer.ServantRetentionPolicyValue;
-      Rp           : PortableServer.RequestProcessingPolicyValue)
+   function Convert_PolicyList
+     (List : CORBA.Policy.PolicyList)
      return PolyORB.POA_Policies.PolicyList
    is
-      use PolyORB.POA_Policies.Policy_Sequences;
+
+      package PS renames PolyORB.POA_Policies.Policy_Sequences;
+      package ISP renames CORBA.Policy.IDL_Sequence_Policy;
+
+      CORBA_Policy_Array : constant
+        ISP.Element_Array := ISP.To_Element_Array (ISP.Sequence (List));
 
       Result : PolicyList;
+      Policy : CORBA.PolicyType;
+
    begin
+      for J in CORBA_Policy_Array'Range loop
+         Policy := PortableServer.ThreadPolicy.Get_Policy_Type
+           (PortableServer.ThreadPolicy.Ref (CORBA_Policy_Array (J).all));
 
-      --  Thread policy.
+         case Policy is
 
-      case Tp is
-         when ORB_CTRL_MODEL =>
-            Append (Result, Policy_Access (Thread_Policy.ORB_Ctrl.Create));
+            when THREAD_POLICY_ID =>
+               declare
+                  PolicyValue : constant ThreadPolicyValue
+                    := Get_Value (PortableServer.ThreadPolicy.Ref
+                                  (CORBA_Policy_Array (J).all));
+               begin
+                  case PolicyValue is
+                     when ORB_CTRL_MODEL =>
+                        PS.Append
+                          (Result,
+                           Policy_Access (Thread_Policy.ORB_Ctrl.Create));
 
-         when SINGLE_THREAD_MODEL =>
-            Append (Result,
-                    Policy_Access (Thread_Policy.Single_Thread.Create));
+                     when SINGLE_THREAD_MODEL =>
+                        PS.Append
+                          (Result,
+                           Policy_Access (Thread_Policy.Single_Thread.Create));
 
-         when MAIN_THREAD_MODEL =>
-            Append (Result,
-                    Policy_Access (Thread_Policy.Main_Thread.Create));
-      end case;
+                     when MAIN_THREAD_MODEL =>
+                        PS.Append
+                          (Result,
+                           Policy_Access (Thread_Policy.Main_Thread.Create));
+                  end case;
+               end;
 
-      --  Lifespan policy.
+            when LIFESPAN_POLICY_ID =>
+               declare
+                  PolicyValue : constant LifespanPolicyValue
+                    := Get_Value (PortableServer.LifespanPolicy.Ref
+                                  (CORBA_Policy_Array (J).all));
+               begin
+                  case PolicyValue is
+                     when PortableServer.TRANSIENT =>
+                        PS.Append
+                          (Result,
+                           Policy_Access (Lifespan_Policy.Transient.Create));
 
-      case Lp is
-         when TRANSIENT =>
-            Append (Result, Policy_Access (Lifespan_Policy.Transient.Create));
 
-         when PERSISTENT =>
-            Append (Result, Policy_Access (Lifespan_Policy.Persistent.Create));
+                     when PERSISTENT =>
+                        PS.Append
+                          (Result,
+                           Policy_Access (Lifespan_Policy.Persistent.Create));
+                  end case;
+               end;
 
-      end case;
+            when ID_UNIQUENESS_POLICY_ID =>
+               declare
+                  PolicyValue : constant IdUniquenessPolicyValue
+                    := Get_Value (PortableServer.IdUniquenessPolicy.Ref
+                                  (CORBA_Policy_Array (J).all));
+               begin
+                  case PolicyValue is
+                     when UNIQUE_ID =>
+                        PS.Append
+                          (Result,
+                           Policy_Access (Id_Uniqueness_Policy.Unique.Create));
 
-      --  IdUniqueness policy.
+                     when MULTIPLE_ID =>
+                        PS.Append
+                          (Result,
+                           Policy_Access
+                           (Id_Uniqueness_Policy.Multiple.Create));
+                  end case;
+               end;
 
-      case Up is
-         when UNIQUE_ID =>
-            Append (Result,
-                    Policy_Access (Id_Uniqueness_Policy.Unique.Create));
+            when ID_ASSIGNMENT_POLICY_ID =>
+               declare
+                  PolicyValue : constant IdAssignmentPolicyValue
+                    := Get_Value (PortableServer.IdAssignmentPolicy.Ref
+                                  (CORBA_Policy_Array (J).all));
+               begin
+                  case PolicyValue is
+                     when USER_ID =>
+                        PS.Append
+                          (Result,
+                           Policy_Access (Id_Assignment_Policy.User.Create));
 
-         when MULTIPLE_ID =>
-            Append (Result,
-                    Policy_Access (Id_Uniqueness_Policy.Multiple.Create));
+                     when SYSTEM_ID =>
+                        PS.Append
+                          (Result,
+                           Policy_Access (Id_Assignment_Policy.System.Create));
+                  end case;
+               end;
 
-      end case;
+            when IMPLICIT_ACTIVATION_POLICY_ID =>
+               declare
+                  PolicyValue : constant ImplicitActivationPolicyValue
+                    := Get_Value (PortableServer.ImplicitActivationPolicy.Ref
+                                  (CORBA_Policy_Array (J).all));
+               begin
+                  case PolicyValue is
+                     when IMPLICIT_ACTIVATION =>
+                        PS.Append
+                          (Result,
+                           Policy_Access
+                           (Implicit_Activation_Policy.Activation.Create));
 
-      --  IdAssignment policy.
+                     when NO_IMPLICIT_ACTIVATION =>
+                        PS.Append
+                          (Result,
+                           Policy_Access
+                           (Implicit_Activation_Policy.No_Activation.Create));
+                  end case;
+               end;
 
-      case Ip is
-         when USER_ID =>
-            Append (Result, Policy_Access (Id_Assignment_Policy.User.Create));
+            when SERVANT_RETENTION_POLICY_ID =>
+               declare
+                  PolicyValue : constant ServantRetentionPolicyValue
+                    := Get_Value (PortableServer.ServantRetentionPolicy.Ref
+                                  (CORBA_Policy_Array (J).all));
+               begin
+                  case PolicyValue is
+                     when RETAIN =>
+                        PS.Append
+                          (Result,
+                           Policy_Access
+                           (Servant_Retention_Policy.Retain.Create));
 
-         when SYSTEM_ID =>
-            Append (Result,
-                    Policy_Access (Id_Assignment_Policy.System.Create));
-      end case;
+                     when NON_RETAIN =>
+                        PS.Append
+                          (Result,
+                           Policy_Access
+                           (Servant_Retention_Policy.Non_Retain.Create));
+                  end case;
+               end;
 
-      --  ImplicitActivation policy.
+            when REQUEST_PROCESSING_POLICY_ID =>
+               declare
+                  PolicyValue : constant RequestProcessingPolicyValue
+                    := Get_Value (PortableServer.RequestProcessingPolicy.Ref
+                                  (CORBA_Policy_Array (J).all));
+               begin
+                  case PolicyValue is
 
-      case Ap is
-         when IMPLICIT_ACTIVATION =>
-            Append (Result,
-                    Policy_Access
-                    (Implicit_Activation_Policy.Activation.Create));
+                     when USE_ACTIVE_OBJECT_MAP_ONLY =>
+                        PS.Append
+                          (Result,
+                           Policy_Access (RPP.Active_Object_Map_Only.Create));
 
-         when NO_IMPLICIT_ACTIVATION =>
-            Append (Result,
-                    Policy_Access
-                    (Implicit_Activation_Policy.No_Activation.Create));
-      end case;
+                     when USE_DEFAULT_SERVANT =>
+                        PS.Append
+                          (Result,
+                           Policy_Access (RPP.Use_Default_Servant.Create));
 
-      --  ServantRetention policy.
 
-      case Sp is
-         when RETAIN =>
-            Append (Result,
-                    Policy_Access (Servant_Retention_Policy.Retain.Create));
+                     when USE_SERVANT_MANAGER =>
+                        raise Not_Implemented;
+                  end case;
+               end;
 
-         when NON_RETAIN =>
-            Append (Result,
-                    Policy_Access
-                    (Servant_Retention_Policy.Non_Retain.Create));
+            when others =>
+               raise Program_Error;
+         end case;
 
-      end case;
-
-      --  RequestProcessing policy.
-
-      case Rp is
-         when USE_ACTIVE_OBJECT_MAP_ONLY =>
-            Append (Result,
-                    Policy_Access
-                    (Request_Processing_Policy.Active_Object_Map_Only.Create));
-
-         when USE_DEFAULT_SERVANT =>
-            Append (Result,
-                    Policy_Access
-                    (Request_Processing_Policy.Use_Default_Servant.Create));
-
-         when USE_SERVANT_MANAGER =>
-            raise Not_Implemented;
-      end case;
+      end loop;
 
       return Result;
-   end Create_PolicyList;
+   end Convert_PolicyList;
 
 end PolyORB.CORBA_P.POA_Config;

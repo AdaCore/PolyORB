@@ -190,18 +190,6 @@ package body CORBA.ORB is
       pragma Warnings (On);
    end Create_Native_Tc;
 
-   -------------------
-   -- Create_Policy --
-   -------------------
-
-   procedure Create_Policy
-     (The_Type : in PolicyType;
-      Val      : Any)
-   is
-   begin
-      raise PolyORB.Not_Implemented;
-   end Create_Policy;
-
    ----------------------------------
    -- Create_Recursive_Sequence_Tc --
    ----------------------------------
@@ -319,8 +307,7 @@ package body CORBA.ORB is
 
    procedure Register_Initial_Reference
      (Identifier : ObjectId;
-      Ref        : CORBA.Object.Ref)
-   is
+      Ref        : CORBA.Object.Ref) is
    begin
       Referenced_Objects.Register
         (To_Standard_String (Identifier), Ref);
