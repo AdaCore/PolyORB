@@ -1,3 +1,8 @@
+1999-05-18  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_utils.adb: Fix from Bart Nickerson for VMS (incorrect
+	executable lookup).
+
 1999-05-15  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* xe_parse.adb: Main subprogram cannot be a child subprogram (fix

@@ -929,13 +929,10 @@ package body XE_Utils is
    begin
       Name_Len := Exec_Name'Length;
       Name_Buffer (1 .. Name_Len) := Exec_Name;
-      if Exe_Suffix /= No_Name then
-         Get_Name_String_And_Append (Exe_Suffix);
-      end if;
       declare
          Exe : constant String := Name_Buffer (1 .. Name_Len);
       begin
-         Loc := Locate_Regular_File (Exe, Path.all);
+         Loc := GNAT.OS_Lib.Locate_Exec_On_Path (Exe);
          if Loc = null and then Show_Error then
             Message (Exe, No_Name, "is not in your path");
             raise Fatal_Error;
