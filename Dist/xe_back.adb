@@ -107,12 +107,8 @@ package body XE_Back is
 
    begin
       if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": add partition ");
-         Write_Name (Partition);
-         Write_Str  (" to channel ");
-         Write_Name (Channels.Table (To).Name);
-         Write_Eol;
+         Message (": add partition ", Partition,
+                  " to channel ", Channels.Table (To).Name);
       end if;
       if Channels.Table (To).Lower = Null_Channel_Partition then
          Update_Channel_Partition (Channels.Table (To).Lower, PID, To);
@@ -138,12 +134,8 @@ package body XE_Back is
       end if;
 
       if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": configuring unit ");
-         Write_Name (CU);
-         Write_Str  (" on partition ");
-         Write_Name (Partitions.Table (To).Name);
-         Write_Eol;
+         Message (": configuring unit ", CU,
+                  " on partition ", Partitions.Table (To).Name);
       end if;
 
       --  Mark this configured unit as already partitioned.
@@ -380,10 +372,7 @@ package body XE_Back is
       Channel : CID_Type;
    begin
       if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": create channel ");
-         Write_Name (Name);
-         Write_Eol;
+         Message (": create channel ", Name);
       end if;
 
       Channels.Increment_Last;
@@ -408,10 +397,7 @@ package body XE_Back is
       Host : HID_Type;
    begin
       if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": create host ");
-         Write_Name (Name);
-         Write_Eol;
+         Message (": create host ", Name);
       end if;
 
       Hosts.Increment_Last;
@@ -436,10 +422,7 @@ package body XE_Back is
       Partition : PID_Type;
    begin
       if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": create partition ");
-         Write_Name (Name);
-         Write_Eol;
+         Message (": create partition ", Name);
       end if;
 
       Partitions.Increment_Last;
@@ -460,7 +443,7 @@ package body XE_Back is
       Partitions.Table (Partition).To_Build        := True;
       Partitions.Table (Partition).Most_Recent     := Configuration_File;
       Partitions.Table (Partition).Task_Pool       := No_Task_Pool;
-      Partitions.Table (Partition).Light_PCS       := False;
+      Partitions.Table (Partition).Light_PCS       := True;
       PID := Partition;
    end Create_Partition;
 
@@ -822,6 +805,7 @@ package body XE_Back is
       Partitions.Table (P).Command_Line     := No_Command_Line;
       Partitions.Table (P).Termination      := Unknown_Termination;
       Partitions.Table (P).Filter           := No_Filter_Name;
+      Partitions.Table (P).Most_Recent      := No_Name;
 
       Name_Len := 1;
 
@@ -867,10 +851,7 @@ package body XE_Back is
       Text : Text_Buffer_Ptr;
    begin
       if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": loading all units from ");
-         Write_Name (From);
-         Write_Eol;
+         Message (": loading all units from ", From);
       end if;
       if Already_Loaded (From) then
          return;
@@ -879,10 +860,7 @@ package body XE_Back is
       if Full_Source_Name (File) = No_Name then
          File := From & ADS_Suffix;
          if Full_Source_Name (File) = No_Name then
-            Write_Program_Name;
-            Write_Str (": no spec or body found for unit ");
-            Write_Name (From);
-            Write_Eol;
+            Message (": no spec or body found for unit ", From);
             raise Fatal_Error;
          end if;
       end if;
@@ -896,27 +874,16 @@ package body XE_Back is
    end Load_All_Units;
 
    -----------------------
-   -- More_Recent_Stamp --
+   -- Most_Recent_Stamp --
    -----------------------
 
-   procedure More_Recent_Stamp (P : in PID_Type; F : in File_Name_Type) is
+   procedure Most_Recent_Stamp (P : in PID_Type; F : in File_Name_Type) is
    begin
-      if F > Partitions.Table (P).Most_Recent then
-         if Debug_Mode then
-            Write_Program_Name;
-            Write_Str   (": ");
-            Write_Name  (F);
-            Write_File_Stamp (F);
-            Write_Str   (", ");
-            Write_Name  (Partitions.Table (P).Name);
-            Write_Str   ("'s most recent file (previously ");
-            Write_File_Stamp (Partitions.Table (P).Most_Recent);
-            Write_Str   (")");
-            Write_Eol;
-         end if;
+      if Partitions.Table (P).Most_Recent = No_Name
+        or else F > Partitions.Table (P).Most_Recent then
          Partitions.Table (P).Most_Recent := F;
       end if;
-   end More_Recent_Stamp;
+   end Most_Recent_Stamp;
 
    ----------------
    -- Set_ALI_Id --
@@ -1036,9 +1003,9 @@ package body XE_Back is
    -- Set_Light_PCS --
    -------------------
 
-   procedure Set_Light_PCS (P : PID_Type) is
+   procedure Set_Light_PCS (P : PID_Type; B : Boolean) is
    begin
-      Partitions.Table (P).Light_PCS := True;
+      Partitions.Table (P).Light_PCS := B;
    end Set_Light_PCS;
 
    -----------------------------
@@ -1537,11 +1504,6 @@ package body XE_Back is
                   when Unknown_Termination =>
                      null;
                end case;
-               Write_Eol;
-            end if;
-
-            if Get_Light_PCS (P) then
-               Write_Str ("   Light PCS   : True");
                Write_Eol;
             end if;
 

@@ -40,42 +40,6 @@ with XE_Utils;         use XE_Utils;
 
 package body XE_Check is
 
-   function Has_RCI_Pkg_Or_RACW_Var (P : in PID_Type) return Boolean;
-   --  Return True if a partition can be remotely invoked by another one,
-   --  that means a RCI package has been configured on it or a remote
-   --  dispatching call can be invoked on a RACW present on this partition.
-
-   -----------------------------
-   -- Has_RCI_Pkg_Or_RACW_Var --
-   -----------------------------
-
-   function Has_RCI_Pkg_Or_RACW_Var (P : in PID_Type) return Boolean is
-
-      UID : CUID_Type;
-
-   begin
-
-      --  Mark all the RCI callers.
-      UID := Partitions.Table (P).First_Unit;
-      while UID /= Null_CUID loop
-         if Unit.Table (CUnit.Table (UID).My_Unit).RCI then
-            return True;
-         end if;
-         Mark_RCI_Callers (P, CUnit.Table (UID).My_ALI);
-         UID := CUnit.Table (UID).Next;
-      end loop;
-
-      for U in CUnit.First .. CUnit.Last loop
-         if Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = P
-           and then Unit.Table (CUnit.Table (U).My_Unit).Has_RACW_Type then
-            return True;
-         end if;
-      end loop;
-
-      return False;
-
-   end Has_RCI_Pkg_Or_RACW_Var;
-
    ----------------
    -- Initialize --
    ----------------
@@ -106,17 +70,18 @@ package body XE_Check is
       PID  : PID_Type;
       Ali  : ALI_Id;
 
-      Compiled  : Name_Id;
-      Obj       : Name_Id;
-      Args      : Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
-      Main      : Boolean;
-      Stamp     : Time_Stamp_Type;
+      Compiled    : Name_Id;
+      Args        : Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
+      Main        : Boolean;
 
       procedure Recompile (Unit : Name_Id);
 
       procedure Recompile (Unit : Name_Id) is
          File_Name    : Name_Id;
          Missing_Alis : Boolean;
+         Object       : Name_Id;
+         Stamp        : Time_Stamp_Type;
+
       begin
 
          if not Already_Loaded (Unit) then
@@ -125,11 +90,7 @@ package body XE_Check is
             if Full_Source_Name (File_Name) = No_File then
                File_Name := File_Name_Of_Spec (Unit);
                if Full_Source_Name (File_Name) = No_File then
-                  Osint.Write_Program_Name;
-                  Write_Str (": """);
-                  Write_Name (Unit);
-                  Write_Str (""" cannot be found");
-                  Write_Eol;
+                  Message (": """, Unit, """ cannot be found");
                   Exit_Program (E_Fatal);
                end if;
             end if;
@@ -138,7 +99,7 @@ package body XE_Check is
               (Main_Source           => File_Name,
                Args                  => Args,
                First_Compiled_File   => Compiled,
-               Most_Recent_Obj_File  => Obj,
+               Most_Recent_Obj_File  => Object,
                Most_Recent_Obj_Stamp => Stamp,
                Main_Unit             => Main,
                Missing_Alis          => Missing_Alis,
@@ -156,11 +117,10 @@ package body XE_Check is
          end if;
       end Recompile;
 
-
    begin
 
       if Debug_Mode then
-         Write_Message ("unmark configured units");
+         Message ("unmark configured units");
       end if;
 
       for U in CUnit.First .. CUnit.Last loop
@@ -183,7 +143,7 @@ package body XE_Check is
       end if;
 
       if Debug_Mode then
-         Write_Message ("load dist. app. units");
+         Message ("load dist. app. units");
       end if;
 
       for U in CUnit.First .. CUnit.Last loop
@@ -196,7 +156,7 @@ package body XE_Check is
       end loop;
 
       if Debug_Mode then
-         Write_Message ("load external configured units");
+         Message ("load external configured units");
       end if;
 
       for H in Hosts.First .. Hosts.Last loop
@@ -210,7 +170,7 @@ package body XE_Check is
       --  Set configured unit name key to No_Ali_Id.       (1)
 
       if Debug_Mode then
-         Write_Message ("set configured unit name key to No_Ali_Id");
+         Message ("set configured unit name key to No_Ali_Id");
       end if;
 
       for U in CUnit.First .. CUnit.Last loop
@@ -221,8 +181,8 @@ package body XE_Check is
       --  Set configured unit name key to the ali file id. (3)
 
       if Debug_Mode then
-         Write_Message ("set ada unit name key to null");
-         Write_Message ("set configured unit name key to the ali file id");
+         Message ("set ada unit name key to null");
+         Message ("set configured unit name key to the ali file id");
       end if;
 
       for U in Unit.First .. Unit.Last loop
@@ -235,7 +195,7 @@ package body XE_Check is
       --  Set partition name key to Null_PID.              (4)
 
       if Debug_Mode then
-         Write_Message ("set partition name key to Null_PID");
+         Message ("set partition name key to Null_PID");
       end if;
 
       for P in Partitions.First + 1 .. Partitions.Last loop
@@ -243,17 +203,15 @@ package body XE_Check is
       end loop;
 
       if not Quiet_Output then
-         Write_Program_Name;
-         Write_Str (": checking configuration consistency");
-         Write_Eol;
+         Message (": checking configuration consistency");
       end if;
 
       --  Check conf. unit name key to detect non-Ada unit.
       --  Check conf. unit are not multiply configured.
 
       if Debug_Mode then
-         Write_Message ("check conf. unit name key to detect non-Ada unit");
-         Write_Message ("check conf. unit are not multiply configured");
+         Message ("check conf. unit name key to detect non-Ada unit");
+         Message ("check conf. unit are not multiply configured");
       end if;
 
       for U in CUnit.First .. CUnit.Last loop
@@ -268,11 +226,8 @@ package body XE_Check is
             --  This unit is not an ada unit
             --  as no ali file has been found.
 
-            Write_Program_Name;
-            Write_Str (": configured unit """);
-            Write_Name (CUnit.Table (U).CUname);
-            Write_Str (""" is not an Ada unit");
-            Write_Eol;
+            Message (": configured unit """, CUnit.Table (U).CUname,
+                     """ is not an Ada unit");
             Inconsistent := True;
 
          else
@@ -285,11 +240,8 @@ package body XE_Check is
                   --  configured rci unit name to a partition.
 
                   if Get_CUID (Unit.Table (I).Uname) /= Null_CUID  then
-                     Write_Program_Name;
-                     Write_Str  (": RCI Ada unit """);
-                     Write_Name (CUnit.Table (U).CUname);
-                     Write_Str  (""" has been assigned twice");
-                     Write_Eol;
+                     Message (": RCI Ada unit """, CUnit.Table (U).CUname,
+                              """ has been assigned twice");
                      Inconsistent := True;
                   end if;
 
@@ -323,7 +275,7 @@ package body XE_Check is
       --  Use (5) and (2). To check all RCI units are configured.
 
       if Debug_Mode then
-         Write_Message ("check all RCI units are configured");
+         Message ("check all RCI units are configured");
       end if;
 
       for U in Unit.First .. Unit.Last loop
@@ -341,18 +293,15 @@ package body XE_Check is
       --  Use (7). Check that no partition is empty.
 
       if Debug_Mode then
-         Write_Message ("check that no partition is empty");
+         Message ("check that no partition is empty");
       end if;
 
       for P in Partitions.First + 1 .. Partitions.Last loop
          PID := Get_PID (Partitions.Table (P).Name);
          if PID = Null_PID and then
            Partitions.Table (P).Main_Subprogram = No_Name then
-            Write_Program_Name;
-            Write_Str  (": partition """);
-            Write_Name (Partitions.Table (P).Name);
-            Write_Str  (""" is empty");
-            Write_Eol;
+            Message (": partition """, Partitions.Table (P).Name,
+                     """ is empty");
             Inconsistent := True;
          end if;
       end loop;
@@ -371,11 +320,7 @@ package body XE_Check is
 
       Main_Subprogram := Get_Main_Subprogram (Main_Partition);
       if ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None then
-         Write_Program_Name;
-         Write_Str (": """);
-         Write_Name (Main_Subprogram);
-         Write_Str (""" is not a main program");
-         Write_Eol;
+         Message (": """, Main_Subprogram, """ is not a main program");
          Inconsistent := True;
       end if;
 
@@ -385,11 +330,8 @@ package body XE_Check is
          for C in Channels.First + 1 .. Channels.Last loop
             if Channels.Table (C).Upper.My_Partition =
               Channels.Table (C).Lower.My_Partition then
-               Write_Program_Name;
-               Write_Str (": channel """);
-               Write_Name (Channels.Table (C).Name);
-               Write_Str (""" is an illegal pair of partitions");
-               Write_Eol;
+               Message (": channel """, Channels.Table (C).Name,
+                        """ is an illegal pair of partitions");
                Inconsistent := True;
             end if;
             Lower :=
@@ -404,24 +346,13 @@ package body XE_Check is
             Upper :=
               Partitions.Table (Channels.Table (C).Upper.My_Partition).Name;
             if Get_CID (Lower & Parent_Dir & Upper) /= Null_CID then
-               Write_Program_Name;
-               Write_Str  (": two channels define """);
-               Write_Name (Lower);
-               Write_Str  (""" and """);
-               Write_Name (Upper);
-               Write_Str  (""" pair");
-               Write_Eol;
+               Message (": two channels define """, Lower,
+                        """ and """, Upper, """ pair");
                Inconsistent := True;
             end if;
             Set_CID (Lower & Parent_Dir & Upper, C);
          end loop;
       end;
-
-      for P in Partitions.First + 1 .. Partitions.Last loop
-         if not Has_RCI_Pkg_Or_RACW_Var (P) then
-            Set_Light_PCS (P);
-         end if;
-      end loop;
 
       if Inconsistent then
          raise Partitioning_Error;

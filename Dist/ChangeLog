@@ -1,3 +1,20 @@
+Wed Sep  3 20:19:31 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
+	* xe_utils.ads, xe_utils.adb: Add Message procedure and remove
+ 	Write_Message (more general). Add Strip_Unit_Suffix to remove
+	%[bs] suffixes in a unit name.
+
+	* xe_back.ads, xe_back.adb: Change More_Recent_Stamp into
+ 	Most_Recent_Stamp. Add a boolean parameter to Set_Light_PCS. Use
+ 	new Message procedure to reduce code.
+
+	* xe_build.adb, xe_lead.adb, xe_scan.adb, xe_check.adb: Use new
+ 	Message procedure.
+
+	* xe_stubs.adb, xe_stubs.adb: Use new Message
+ 	procedure. Optimization of recompilation due to stamp
+ 	inconsistency. Add procedure Mark_Units_On_Partition.
+
 Fri Aug 29 21:45:27 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* xe_stubs.adb, xe_back.adb, xe_back.ads, xe_check.adb,

@@ -109,11 +109,7 @@ begin
          --  If the filename is not already correct.
          if not Is_Regular_File (N) then
 
-            Write_Program_Name;
-            Write_Str  (": ");
-            Write_Name (N);
-            Write_Str  (" not found");
-            Write_Eol;
+            Message (": ", N, " not found");
             Exit_Program (E_Fatal);
          else
             Configuration_File := N;
@@ -134,12 +130,8 @@ begin
       Name_Len := Name_Len - 4;
       if Configuration /= Name_Find then
          if not Quiet_Output then
-            Write_Program_Name;
-            Write_Str (": file name does not match configuration name,");
-            Write_Str (" should be """);
-            Write_Name (Configuration);
-            Write_Str (".cfg""");
-            Write_Eol;
+            Message (": configuration file name should be """, Configuration,
+                     ".cfg""");
          end if;
          raise Fatal_Error;
       end if;
@@ -168,9 +160,7 @@ begin
                P : PID_Type := Get_PID (N);
             begin
                if P = Null_PID then
-                  Write_Program_Name;
-                  Write_Name (N);
-                  Write_Str (" is not a partition");
+                  Message ("", N, " is not a partition");
                   raise Fatal_Error;
                end if;
                Partitions.Table (P).To_Build := True;
@@ -188,39 +178,25 @@ begin
 
 exception
    when Scanning_Error =>
-      Write_Program_Name;
-      Write_Str (": *** scanning failed");
-      Write_Eol;
+      Message (": *** scanning failed");
       Exit_Program (E_Fatal);
    when Parsing_Error =>
-      Write_Program_Name;
-      Write_Str (": *** parsing failed");
-      Write_Eol;
+      Message (": *** parsing failed");
       Exit_Program (E_Fatal);
    when Partitioning_Error =>
-      Write_Program_Name;
-      Write_Str (": *** partitionning failed");
-      Write_Eol;
+      Message (": *** partitionning failed");
       Exit_Program (E_Fatal);
    when Usage_Error =>
-      Write_Program_Name;
-      Write_Str (": *** wrong argument(s)");
-      Write_Eol;
+      Message (": *** wrong argument(s)");
       Exit_Program (E_Fatal);
    when Not_Yet_Implemented =>
-      Write_Program_Name;
-      Write_Str (": *** unimplemented feature");
-      Write_Eol;
+      Message (": *** unimplemented feature");
       Exit_Program (E_Fatal);
    when Fatal_Error =>
-      Write_Program_Name;
-      Write_Str (": *** can't continue");
-      Write_Eol;
+      Message (": *** can't continue");
       Exit_Program (E_Fatal);
    when others =>
-      Write_Program_Name;
-      Write_Str (": *** unknown error");
-      Write_Eol;
+      Message (": *** unknown error");
       raise;  --  hope GNAT will output its name
 
 end XE_Build;

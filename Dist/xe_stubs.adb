@@ -99,6 +99,9 @@ package body XE_Stubs is
    -----------
 
    procedure Build is
+
+      CUID  : CUID_Type;
+
    begin
 
       Get_Name_String (Original_Dir & Dir_Sep_Id);
@@ -133,11 +136,7 @@ package body XE_Stubs is
       for CUID in CUnit.First .. CUnit.Last loop
          if Unit.Table (CUnit.Table (CUID).My_Unit).RCI then
             if Verbose_Mode then
-               Write_Program_Name;
-               Write_Str (": building ");
-               Write_Name (CUnit.Table (CUID).CUname);
-               Write_Str (" stubs");
-               Write_Eol;
+               Message (": building ", CUnit.Table (CUID).CUname, " stubs");
             end if;
             Build_Stub
               (Get_Unit_Sfile (CUnit.Table (CUID).My_Unit),
@@ -156,27 +155,66 @@ package body XE_Stubs is
                Create_Dir (Directory);
             end if;
 
-            Create_Partition_Main_File (PID);
-            Create_Elaboration_File (PID);
+            --  Mark all units present on this partition.
+            CUID := Partitions.Table (PID).First_Unit;
+            while CUID /= Null_CUID loop
+               Mark_Units_On_Partition (PID, CUnit.Table (CUID).My_ALI);
+               Set_PID (CUnit.Table (CUID).CUname, PID);
+               CUID := CUnit.Table (CUID).Next;
+            end loop;
 
-            --  Copy RCI receiver stubs when this unit has been assigned on
-            --  PID partition. RCI caller stubs are not needed because GNATDIST
-            --  add the caller directory in its include path.
+            for U in Unit.First .. Unit.Last loop
 
-            for UID in CUnit.First .. CUnit.Last loop
-               if Unit.Table (CUnit.Table (UID).My_Unit).RCI then
-                  if CUnit.Table (UID).Partition = PID then
+               if Get_PID (Unit.Table (U).Uname) = PID then
+
+                  if not Unit.Table (U).RCI then
+
+                     Most_Recent_Stamp
+                       (PID, ALIs.Table (Unit.Table (U).My_ALI).Afile);
+
+                  elsif Get_PID (Strip_Unit_Suffix (Unit.Table (U).Uname))
+                        = PID then
+
+                     --  Copy RCI receiver stubs when this unit has been
+                     --  assigned on PID partition. RCI caller stubs are
+                     --  not needed because GNATDIST add the caller directory
+                     --  in its include path.
+
                      Copy_Stub
                        (Receiver_Dir,
                         Directory,
-                        Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
+                        Unit.Table (U).Sfile);
+
+                     Most_Recent_Stamp
+                       (PID, Directory & Dir_Sep_Id &
+                             Receiver_Dir & Dir_Sep_Id &
+                             Lib_File_Name (Unit.Table (U).Sfile));
+
+                     Set_Light_PCS (PID, False);
+
                   else
+
                      Delete_Stub
                        (Directory,
-                        Get_Unit_Sfile (CUnit.Table (UID).My_Unit));
+                        Unit.Table (U).Sfile);
+
+                     Most_Recent_Stamp
+                       (PID, Directory & Dir_Sep_Id &
+                             Caller_Dir & Dir_Sep_Id &
+                             Lib_File_Name (Unit.Table (U).Sfile));
+
+                     if Unit.Table (U).Has_RACW_Type then
+                        Set_Light_PCS (PID, False);
+                     end if;
+
                   end if;
+
                end if;
+
             end loop;
+
+            Create_Partition_Main_File (PID);
+            Create_Elaboration_File (PID);
 
             --  Bind and link each partition.
 
@@ -197,6 +235,10 @@ package body XE_Stubs is
 
             Build_Partition (PID, Executable);
 
+         elsif Verbose_Mode then
+
+            Message ("no need to build ", Partitions.Table (PID).Name);
+
          end if;
 
       end loop;
@@ -211,40 +253,56 @@ package body XE_Stubs is
      (Partition  : in PID_Type;
       Executable : in File_Name_Type) is
 
-      Part_Name : Name_Id := Partitions.Table (Partition).Name;
-      Exec_File : File_Name_Type := Executable;
+      Part_Name  : Name_Id := Partitions.Table (Partition).Name;
+      Exec_File  : File_Name_Type := Executable;
 
-      Directory : File_Name_Type
+      Directory  : File_Name_Type
         := DSA_Dir & Dir_Sep_Id & Configuration & Dir_Sep_Id & Part_Name;
-      Stmp_File : File_Name_Type
+
+      Stamp_File : File_Name_Type
         := Directory & Dir_Sep_Id & Build_Stamp_File;
 
    begin
 
-      if not Is_Regular_File (Executable) or else
-        not Is_Regular_File (Stmp_File) or else
-        Partitions.Table (Partition).Most_Recent > Executable or else
-        Executable > Stmp_File then
-
-         Change_Dir (Directory);
-
-         if not Quiet_Output then
-            Write_Program_Name;
-            Write_Str  (": building partition ");
-            Write_Name (Part_Name);
-            Write_Eol;
+      if not Is_Regular_File (Executable) then
+         if Verbose_Mode then
+            Message (": ", Executable, " doesn't exist");
          end if;
 
-         --  Is it a relative storage directory ?
-         if Is_Relative_Dir (Executable) then
-            Exec_File := Original_Dir & Dir_Sep_Id & Executable;
+      elsif not Is_Regular_File (Stamp_File) then
+         if Verbose_Mode then
+            Message (": ", Stamp_File, " doesn't exist");
          end if;
 
-         Produce_Partition_Executable (Part_Name, Exec_File);
+      elsif Partitions.Table (Partition).Most_Recent > Stamp_File then
+         if Verbose_Mode then
+            Write_Stamp_Comparison
+              (Partitions.Table (Partition).Most_Recent, Stamp_File);
+         end if;
 
-         Change_Dir (Original_Dir);
+      elsif Executable > Stamp_File then
+         if Verbose_Mode then
+            Write_Stamp_Comparison (Executable, Stamp_File);
+         end if;
 
+      else
+         return;
       end if;
+
+      Change_Dir (Directory);
+
+      if not Quiet_Output then
+         Message (": building partition ", Part_Name);
+      end if;
+
+      --  Is it a relative storage directory ?
+      if Is_Relative_Dir (Executable) then
+         Exec_File := Original_Dir & Dir_Sep_Id & Executable;
+      end if;
+
+      Produce_Partition_Executable (Part_Name, Exec_File);
+
+      Change_Dir (Original_Dir);
 
    end Build_Partition;
 
@@ -329,12 +387,7 @@ package body XE_Stubs is
       if Obsolete then
 
          if not Quiet_Output then
-            Write_Program_Name;
-            Write_Str  (": building ");
-            Write_Name (Caller_Body);
-            Write_Str  (" from ");
-            Write_Name (Full_RCI_Spec);
-            Write_Eol;
+            Message (": building ", Caller_Body, " from ", Full_RCI_Spec);
          end if;
 
          Change_Dir (Caller_Dir);
@@ -344,11 +397,7 @@ package body XE_Stubs is
          Change_Dir (Original_Dir);
 
       elsif not Quiet_Output then
-         Write_Program_Name;
-         Write_Str  (":    ");
-         Write_Name (Caller_Body);
-         Write_Str  (" caller stub is up to date");
-         Write_Eol;
+         Message (":    ", Caller_Body, " caller stub is up to date");
       end if;
 
       --  If no RCI body is available, use RCI spec.
@@ -402,12 +451,7 @@ package body XE_Stubs is
       if Obsolete then
 
          if not Quiet_Output then
-            Write_Program_Name;
-            Write_Str  (": building ");
-            Write_Name (Receiver_Body);
-            Write_Str  (" from ");
-            Write_Name (Full_RCI_Body);
-            Write_Eol;
+            Message (": building ", Receiver_Body, " from ", Full_RCI_Body);
          end if;
 
          Change_Dir (Receiver_Dir);
@@ -417,11 +461,7 @@ package body XE_Stubs is
          Change_Dir (Original_Dir);
 
       elsif not Quiet_Output then
-         Write_Program_Name;
-         Write_Str  (":    ");
-         Write_Name (Receiver_Body);
-         Write_Str  (" receiver stub is up to date");
-         Write_Eol;
+         Message (":    ", Receiver_Body, " receiver stub is up to date");
       end if;
 
    end Build_Stub;
@@ -432,18 +472,20 @@ package body XE_Stubs is
 
    procedure Copy_Stub
      (Source_Dir, Target_Dir, Base_Name : in File_Name_Type) is
+      Name    : File_Name_Type
+        := Strip_Suffix (Base_Name);
       ALI_Src : File_Name_Type
-        := Source_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
+        := Source_Dir & Dir_Sep_Id & Name & ALI_Suffix;
       ALI_Tgt : File_Name_Type
-        := Target_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
+        := Target_Dir & Dir_Sep_Id & Name & ALI_Suffix;
       Obj_Src : File_Name_Type
-        :=  Source_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
+        :=  Source_Dir & Dir_Sep_Id & Name & Obj_Suffix;
       Obj_Tgt : File_Name_Type
-        := Target_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
+        := Target_Dir & Dir_Sep_Id & Name & Obj_Suffix;
       ADB_Src : File_Name_Type
-        := Source_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
+        := Source_Dir & Dir_Sep_Id & Name & ADB_Suffix;
       ADB_Tgt : File_Name_Type
-        := Target_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
+        := Target_Dir & Dir_Sep_Id & Name & ADB_Suffix;
    begin
 
       --  Copy the stubs from source directory to the target directory.
@@ -693,8 +735,7 @@ package body XE_Stubs is
 
       Close (FD);
 
-      More_Recent_Stamp (PID, Elaboration);
-      Delete (Directory & Dir_Sep_Id & Build_Stamp_File);
+      Most_Recent_Stamp (PID, Elaboration);
 
    end Create_Elaboration_File;
 
@@ -740,13 +781,6 @@ package body XE_Stubs is
       end if;
 
       Create (FD, Main_File);
-
-      --  Mark all the RCI callers.
-      UID := Partitions.Table (PID).First_Unit;
-      while UID /= Null_CUID loop
-         Mark_RCI_Callers (PID, CUnit.Table (UID).My_ALI);
-         UID := CUnit.Table (UID).Next;
-      end loop;
 
       --  Force the RCI receivers to be present on the partition.
       Dwrite_Eol (FD);
@@ -957,8 +991,7 @@ package body XE_Stubs is
 
       Close (FD);
 
-      More_Recent_Stamp (PID, Main_File);
-      Delete (Directory & Dir_Sep_Id & Build_Stamp_File);
+      Most_Recent_Stamp (PID, Main_File);
 
    end Create_Partition_Main_File;
 
@@ -989,11 +1022,11 @@ package body XE_Stubs is
 
    end Delete_Stub;
 
-   ----------------------
-   -- Mark_RCI_Callers --
-   ----------------------
+   -----------------------------
+   -- Mark_Units_On_Partition --
+   -----------------------------
 
-   procedure Mark_RCI_Callers
+   procedure Mark_Units_On_Partition
      (PID : in PID_Type;
       ALI : in ALI_Id) is
 
@@ -1003,15 +1036,8 @@ package body XE_Stubs is
    begin
 
       if Debug_Mode then
-         Write_Program_Name;
-         Write_Str  (": mark ali file ");
-         Write_Name (ALIs.Table (ALI).Afile);
-         Write_Eol;
+         Message (": mark ali file ", ALIs.Table (ALI).Afile);
       end if;
-
-      --  If this unit is one of the most recent compiled unit,
-      --  update Partitions.Table (PID).Most_Recent.
-      More_Recent_Stamp (PID, ALIs.Table (ALI).Afile);
 
       --  Mark this unit to avoid infinite recursive search.
       for I in ALIs.Table (ALI).First_Unit ..
@@ -1074,14 +1100,14 @@ package body XE_Stubs is
 
                --  This unit is not a RCI unit or has not been scanned.
                if Continue then
-                  Mark_RCI_Callers (PID, Current_ALI);
+                  Mark_Units_On_Partition (PID, Current_ALI);
                end if;
             end if;
 
          end loop;
       end loop;
 
-   end Mark_RCI_Callers;
+   end Mark_Units_On_Partition;
 
    -------------------
    -- Update_Switch --

@@ -51,6 +51,8 @@ package XE_Utils is
    subtype Main_Program_Type   is ALI.Main_Program_Type;
    subtype Unit_Type           is ALI.Unit_Type;
 
+   No_Stamp   : constant Time_Stamp_Type   := Types.Empty_Time_Stamp;
+
    No_Name    : constant Name_Id           := Types.No_Name;
    No_File    : constant File_Name_Type    := Types.No_File;
 
@@ -134,8 +136,8 @@ package XE_Utils is
 
    function ">" (X, Y : Int) return Boolean renames Types.">";
    function ">" (X, Y : Time_Stamp_Type) return Boolean renames Types.">";
-   procedure Change_Dir (To : in File_Name_Type);
 
+   procedure Change_Dir (To : in File_Name_Type);
    procedure Close (FD : File_Descriptor) renames GNAT.Os_Lib.Close;
 
    procedure Compile_RCI_Caller
@@ -156,9 +158,8 @@ package XE_Utils is
      (File : in out File_Descriptor;
       Name : in File_Name_Type;
       Exec : in Boolean := False);
-
-   procedure Create_Dir (To : in File_Name_Type);
-
+   procedure Create_Dir
+     (To : in File_Name_Type);
    procedure Delete
      (File : in File_Name_Type);
 
@@ -170,17 +171,24 @@ package XE_Utils is
      (Source, Target : in File_Name_Type);
    --  Generates the source's receiver stubs into target (-gnatzr).
 
-   procedure Initialize;
+   function Strip_Unit_Suffix (Uname : Name_Id) return Name_Id;
+   --  Extract %[bs] suffix.
 
+   procedure Initialize;
    procedure Initialize_ALI renames ALI.Initialize_ALI;
 
    function Is_Directory    (File : File_Name_Type) return Boolean;
-
    function Is_Regular_File (File : File_Name_Type) return Boolean;
-
    function Is_Relative_Dir (File : File_Name_Type) return Boolean;
 
    function ">" (File1, File2 : Name_Id) return Boolean;
+
+   procedure Message
+     (S1 : in String  := "";
+      S2 : in Name_Id := No_Name;
+      S3 : in String  := "";
+      S4 : in Name_Id := No_Name;
+      S5 : in String  := "");
 
    procedure Produce_Partition_Executable
      (Partition     : in Name_Id;
@@ -188,10 +196,14 @@ package XE_Utils is
    --  Generates the partition ada main subprogram (compilation, bind and
    --  link).
 
-   procedure Read_ALI (Id : ALI_Id) renames ALI.Read_ALI;
-   function Scan_ALI (F : File_Name_Type; T : Text_Buffer_Ptr)
-                      return ALI_Id renames ALI.Scan_ALI;
-   function Str_To_Id           (S : String) return Name_Id;
+   procedure Read_ALI
+     (Id : ALI_Id) renames ALI.Read_ALI;
+
+   function  Scan_ALI
+     (F : File_Name_Type; T : Text_Buffer_Ptr)
+      return ALI_Id renames ALI.Scan_ALI;
+
+   function Str_To_Id (S : String) return Name_Id;
    --  Set into name table and return id.
 
    function Strlen (Name : in Name_Id) return Natural;
@@ -209,9 +221,6 @@ package XE_Utils is
 
    procedure Write_File_Stamp
      (File : in File_Name_Type);
-
-   procedure Write_Message
-     (Message : in String);
 
    procedure Write_Missing_File
      (File  : in File_Name_Type);

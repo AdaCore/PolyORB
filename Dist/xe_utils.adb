@@ -160,20 +160,14 @@ package body XE_Utils is
    begin
 
       if Debug_Mode then
-         Write_Program_Name;
-         Write_Str  (": change to dir ");
-         Write_Name (To);
-         Write_Eol;
+         Message (": change to dir ", To);
       end if;
 
       Get_Name_String (To);
       C_Path (1 .. Name_Len) := Name_Buffer (1 .. Name_Len);
       C_Path (Name_Len + 1) := Ascii.Nul;
       if Chdir (C_Path'Address) /= 0 then
-         Write_Program_Name;
-         Write_Str (": Cannot change dir to ");
-         Write_Name (To);
-         Write_Eol;
+         Message (": Cannot change dir to ", To);
          raise Fatal_Error;
       end if;
 
@@ -266,19 +260,13 @@ package body XE_Utils is
       File_Name (File_Name_Len + 1) := Ascii.Nul;
 
       if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": creating file ");
-         Write_Name (Name);
-         Write_Eol;
+         Message (": creating file ", Name);
       end if;
 
       File := Create_File (File_Name'Address, Text);
 
       if File = Invalid_FD then
-         Write_Program_Name;
-         Write_Str  (": cannot create file ");
-         Write_Name (Name);
-         Write_Eol;
+         Message (": cannot create file ", Name);
          raise Fatal_Error;
       end if;
 
@@ -323,10 +311,7 @@ package body XE_Utils is
       Error : Boolean;
    begin
       if Verbose_Mode then
-         Write_Program_Name;
-         Write_Str  (": deleting ");
-         Write_Name (File);
-         Write_Eol;
+         Message (": deleting ", File);
       end if;
       Get_Name_String (File);
       Name_Len := Name_Len + 1;
@@ -371,11 +356,7 @@ package body XE_Utils is
       Spawn (Prog.all, Args, Success);
 
       if not Success then
-         Write_Program_Name;
-         Write_Str (": ");
-         Write_Str (Prog.all);
-         Write_Str (" failed");
-         Write_Eol;
+         Message (": ", No_Name, Prog.all, No_Name, " failed");
          raise Fatal_Error;
       end if;
 
@@ -607,6 +588,17 @@ package body XE_Utils is
           I_GARLIC_Dir));
    end Expand_And_Compile_RCI_Receiver;
 
+   -----------------------
+   -- Strip_Unit_Suffix --
+   -----------------------
+
+   function Strip_Unit_Suffix (Uname : Name_Id) return Name_Id is
+   begin
+      Get_Name_String (Uname);
+      Name_Len := Name_Len - 2;
+      return Name_Find;
+   end Strip_Unit_Suffix;
+
    ----------------
    -- Initialize --
    ----------------
@@ -765,11 +757,7 @@ package body XE_Utils is
    begin
       Prog := Locate_Regular_File (Exec_Name, Path.all);
       if Prog = null and then Show_Error then
-         Write_Program_Name;
-         Write_Str (": ");
-         Write_Str (Exec_Name);
-         Write_Str (" is not in your path");
-         Write_Eol;
+         Message (": ", No_Name, Exec_Name, No_Name, " is not in your path");
          raise Fatal_Error;
       end if;
       return Prog;
@@ -790,6 +778,36 @@ package body XE_Utils is
          return False;
       end if;
    end ">";
+
+   -------------
+   -- Message --
+   -------------
+
+   procedure Message
+     (S1 : in String  := "";
+      S2 : in Name_Id := No_Name;
+      S3 : in String  := "";
+      S4 : in Name_Id := No_Name;
+      S5 : in String  := "") is
+   begin
+      Write_Program_Name;
+      if S1 /= "" then
+         Write_Str (S1);
+      end if;
+      if S2 /= No_Name then
+         Write_Name (S2);
+      end if;
+      if S3 /= "" then
+         Write_Str (S3);
+      end if;
+      if S4 /= No_Name then
+         Write_Name (S4);
+      end if;
+      if S5 /= "" then
+         Write_Str (S5);
+      end if;
+      Write_Eol;
+   end Message;
 
    ----------------------------------
    -- Produce_Partition_Executable --
@@ -930,19 +948,6 @@ package body XE_Utils is
       Write_Str (")");
    end Write_File_Stamp;
 
-   -------------------
-   -- Write_Message --
-   -------------------
-
-   procedure Write_Message
-     (Message : in String) is
-   begin
-      Write_Program_Name;
-      Write_Str (": ");
-      Write_Str (Message);
-      Write_Eol;
-   end Write_Message;
-
    ------------------------
    -- Write_Missing_File --
    ------------------------
@@ -950,11 +955,7 @@ package body XE_Utils is
    procedure Write_Missing_File
      (File  : in File_Name_Type) is
    begin
-      Write_Program_Name;
-      Write_Str (": ");
-      Write_Name (File);
-      Write_Str (" does not exist");
-      Write_Eol;
+      Message (": ", File, " does not exist");
    end Write_Missing_File;
 
    ----------------

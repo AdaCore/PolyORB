@@ -306,7 +306,7 @@ package XE_Back is
    --  Recursively update GNAT internal tables by downloading all Uname
    --  dependent units if available.
 
-   procedure More_Recent_Stamp (P : in PID_Type; F : in File_Name_Type);
+   procedure Most_Recent_Stamp (P : in PID_Type; F : in File_Name_Type);
    --  The more recent stamp of files needed to build a partition is
    --  updated.
 
@@ -317,7 +317,7 @@ package XE_Back is
 
    procedure Set_CUID  (N : Name_Id; U : CUID_Type);
 
-   procedure Set_Light_PCS (P : PID_Type);
+   procedure Set_Light_PCS (P : PID_Type; B : Boolean);
    --  Set when neither RCI nor RACW are present.
 
    procedure Set_HID  (N : Name_Id; H : HID_Type);
