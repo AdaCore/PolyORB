@@ -1,3 +1,10 @@
+2000-10-21  Pascal Obry  <obry@gnat.com>
+
+	* isthrbio.adb: Fix buid failure introduce by work on 8207-001.
+
+	* Makefile.in: Fix test argument (some shell do no recognize test -e).
+	Should fix GLADE build failure introduce by work on 8207-001.
+	
 2000-10-20  Pascal Obry  <obry@gnat.com>
 
 	* Makefile.in: add support for platform specific
