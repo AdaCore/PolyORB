@@ -35,195 +35,14 @@ with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.Repository;
 with CORBA.Repository_Root.Container;
-with CORBA.Repository_Root.Container.Helper;
 with CORBA.Repository_Root.Contained;
-with CORBA.Repository_Root.Moduledef.Helper;
-with CORBA.Repository_Root.UnionDef.Helper;
-with CORBA.Repository_Root.StructDef.Helper;
-with CORBA.Repository_Root.InterfaceDef.Helper;
-with CORBA.Repository_Root.ExceptionDef.Helper;
-with CORBA.Repository_Root.ValueDef.Helper;
+with CORBA.Repository_Root.InterfaceDef;
+with CORBA.Repository_Root.OperationDef;
+with CORBA.Repository_Root.IDLType;
+with CORBA.Repository_Root.ModuleDef;
+
 
 procedure Client is
-
-   procedure Print_Description (Des : Contained.Description;
-                                Inc : Standard.String) is
-   begin
-      case Des.Kind is
-         when
-           Dk_Repository |
-           Dk_Primitive  |
-           Dk_String     |
-           Dk_Sequence   |
-           Dk_Array      |
-           Dk_Wstring    |
-           Dk_Fixed      |
-           Dk_Typedef    |
-           Dk_All        |
-           Dk_None       =>
-            null;
-         when
-           --  child objects
-           Dk_Attribute  |
-           Dk_Constant   |
-           Dk_Operation  |
-           Dk_ValueMember =>
-            null;
-         when
-           Dk_Alias      |
-           Dk_Struct     |
-           Dk_Union      |
-           Dk_Enum       |
-           Dk_ValueBox   |
-           dk_Native =>
-            declare
-               D : TypeDescription :=
-                 Helper.From_Any (Des.Value);
-            begin
-               Put_Line (Inc & "TC_Type :" &
-                         TCKind'Image
-                         (TypeCode.Kind (D.IDL_Type)));
-            end;
-         when
-           Dk_Exception  =>
-            declare
-               D : ExceptionDescription :=
-                 Helper.From_Any (Des.Value);
-            begin
-               null;
-            end;
-         when
-           Dk_Module     =>
-            declare
-               D : ModuleDescription :=
-                 Helper.From_Any (Des.Value);
-            begin
-               null;
-            end;
-         when
-           Dk_Value      =>
-            declare
-               D : ValueDescription :=
-                 Helper.From_Any (Des.Value);
-            begin
-               null;
-            end;
-         when
-           Dk_Interface  =>
-            declare
-               D : InterfaceDescription :=
-                 Helper.From_Any (Des.Value);
-            begin
-               null;
-            end;
-      end case;
-   end;
-
-   procedure Print_Content (In_Seq : ContainedSeq;
-                            Inc : Standard.String) is
-
-      Package Contained_For_Seq renames
-        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
-      Cont_Array : Contained_For_Seq.Element_Array
-        := Contained_For_Seq.To_Element_Array
-        (Contained_For_Seq.Sequence (In_Seq));
-      use Contained;
-      Descri : Contained.Description;
-   begin
-      for I in Cont_Array'Range loop
-         declare
-            The_Ref : Contained.Ref := Convert_Forward.To_Ref (Cont_Array (I));
-         begin
-            Put_Line (Inc & "Node     : " &
-                      DefinitionKind'Image
-                      (Get_Def_Kind (The_Ref)));
-            Put_Line (Inc & "Name     : " &
-                      CORBA.To_Standard_String
-                      (CORBA.String (Get_Name (The_Ref))));
-            Put_Line (Inc & "Id       : " &
-                      CORBA.To_Standard_String
-                      (CORBA.String (Get_Id (The_Ref))));
-            Put_Line (Inc & "Vers     : " &
-                      CORBA.To_Standard_String
-                      (CORBA.String (Get_Version (The_Ref))));
-            Put_Line (Inc & "Abs-Name : " &
-                      CORBA.To_Standard_String
-                      (CORBA.String
-                       (Get_Absolute_Name (The_Ref))));
-            Descri := Contained.Describe (The_Ref);
-            Put_Line ("Before print_description");
-            Print_Description (Descri, Inc);
-            Put_Line (" ");
-
-            --  recursivity
-            case Contained.Get_Def_Kind (The_Ref) is
-               when Dk_Module =>
-                  declare
-                     R : Container.Ref := Container.Helper.To_Ref
-                       (ModuleDef.Helper.To_Ref (The_Ref));
-                  begin
-                     Print_Content (Container.Contents (R,
-                                                        Dk_All,
-                                                        True),
-                                    Inc & "          ");
-                  end;
-               when Dk_Exception =>
-                  declare
-                     R : Container.Ref := Container.Helper.To_Ref
-                       (Exceptiondef.Helper.To_Ref (The_Ref));
-                  begin
-                     Print_Content (Container.Contents (R,
-                                                        Dk_All,
-                                                        True),
-                                    Inc & "          ");
-                  end;
-               when Dk_Interface =>
-                  declare
-                     R : Container.Ref := Container.Helper.To_Ref
-                       (InterfaceDef.Helper.To_Ref (The_Ref));
-                  begin
-                     Print_Content (Container.Contents (R,
-                                                        Dk_All,
-                                                        True),
-                                    Inc & "          ");
-                  end;
-               when Dk_Value =>
-                  declare
-                     R : Container.Ref := Container.Helper.To_Ref
-                       (ValueDef.Helper.To_Ref (The_Ref));
-                  begin
-                     Print_Content (Container.Contents (R,
-                                                        Dk_All,
-                                                        True),
-                                    Inc & "          ");
-                  end;
-               when Dk_Struct =>
-                  declare
-                     R : Container.Ref := Container.Helper.To_Ref
-                       (StructDef.Helper.To_Ref (The_Ref));
-                  begin
-                     Print_Content (Container.Contents (R,
-                                                        Dk_All,
-                                                        True),
-                                    Inc & "          ");
-                  end;
-               when Dk_Union =>
-                  declare
-                     R : Container.Ref := Container.Helper.To_Ref
-                       (UnionDef.Helper.To_Ref (The_Ref));
-                  begin
-                     Print_Content (Container.Contents (R,
-                                                        Dk_All,
-                                                        True),
-                                    Inc & "          ");
-                  end;
-               when others =>
-                  null;
-            end case;
-         end;
-      end loop;
-
-   end;
 
    Sent_Msg, Rcvd_Msg, IOR : CORBA.String;
    Myrep : Repository.Ref;
@@ -251,22 +70,12 @@ begin
    declare
       Mod1 : ModuleDef_Forward.Ref;
       Int1 : InterfaceDef_Forward.Ref;
-      Int2 : InterfaceDef_Forward.Ref;
+      Op1 : OperationDef.Ref;
       Id : RepositoryId;
       Name : Identifier;
       Version : VersionSpec;
       package IDS renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
-
    begin
-      Id := To_CORBA_String ("idl:tutu:1.0");
-      Name := To_CORBA_String ("tutu");
-      Version := To_CORBA_String ("1.0");
-      Int2 := Repository.Create_Interface (Myrep,
-                                           Id,
-                                           Name,
-                                           Version,
-                                           InterfaceDefSeq (IDS.Null_Sequence),
-                                           False);
       Id := To_CORBA_String ("idl:toto:1.1");
       Name := To_CORBA_String ("toto");
       Version := To_CORBA_String ("1.1");
@@ -274,7 +83,7 @@ begin
                                         Id,
                                         Name,
                                         Version);
-      Id := To_CORBA_String ("idl:titi:1.0");
+      Id := To_CORBA_String ("idl:toto/titi:1.0");
       Name := To_CORBA_String ("titi");
       Version := To_CORBA_String ("1.0");
       Int1 := ModuleDef.Create_Interface (ModuleDef.Convert_Forward.To_Ref (Mod1),
@@ -283,12 +92,44 @@ begin
                                           Version,
                                           InterfaceDefSeq (IDS.Null_Sequence),
                                           False);
+      declare
+         package PDS renames
+           IDL_SEQUENCE_CORBA_Repository_Root_ParameterDescription;
+         package EDS renames
+           IDL_SEQUENCE_CORBA_Repository_Root_ExceptionDef_Forward;
+         package CIS renames
+           IDL_SEQUENCE_CORBA_Repository_Root_ContextIdentifier;
+         Mem : ParDescriptionSeq
+           := ParDescriptionSeq (PDS.Null_Sequence);
+         Exc : ExceptionDefSeq
+           := ExceptionDefSeq (EDS.Null_Sequence);
+         Con : ContextIdSeq
+           := ContextIdSeq (CIS.Null_Sequence);
+      begin
+         Id := To_CORBA_String ("idl:toto/titi/myop:1.0");
+         Name := To_CORBA_String ("myop");
+         Version := To_CORBA_String ("1.1");
+         Op1 := InterfaceDef.Create_Operation (InterfaceDef.Convert_Forward.
+                                               To_Ref (Int1),
+                                               Id,
+                                               Name,
+                                               Version,
+                                               IDLType.Ref
+                                               (Repository.Get_Primitive
+                                                (Myrep,
+                                                 Pk_Long)),
+                                               OP_NORMAL,
+                                               Mem,
+                                               Exc,
+                                               Con);
+
+      end;
    end;
 
-   Print_Content (Repository.Contents (Myrep,
-                                       Dk_All,
-                                       True),
-                  " ");
+--   Print_Content (Repository.Contents (Myrep,
+--                                       Dk_All,
+--                                       True),
+--                  " ");
 
 exception
       when E : CORBA.Bad_Param =>
