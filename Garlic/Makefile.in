@@ -370,3 +370,7 @@ s-rpcuti.o: s-garlic.ads s-garcac.ads s-garcac.adb s-rpc.ads s-rpcuti.ads s-rpcu
 s-rpstio.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-gaphlo.ads s-garpro.ads s-garuti.ads s-rpc.ads s-rpstio.ads s-rpstio.adb
 s-stratt.o: s-stratt.adb
 split.o: split.adb
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:
