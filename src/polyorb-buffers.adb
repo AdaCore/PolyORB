@@ -330,14 +330,11 @@ package body PolyORB.Buffers is
 
       Grow_Shrink (Buffer.Contents'Access, Padding, Padding_Space);
 
-      --  If debugging, intitialize the padding space to a known value
-
-      pragma Debug (Fill (Padding_Space, Padding));
 
       if Is_Null (Padding_Space) then
-         --  Grow was unable to extend the last Iovec:
-         --  insert a non-growable iovec corresponding
-         --  to static null data.
+
+         --  Grow_Shrink was unable to extend the last Iovec:
+         --  insert a non-growable iovec corresponding to static null data.
 
          declare
             Padding_Iovec : constant Iovec
@@ -348,6 +345,14 @@ package body PolyORB.Buffers is
               (Iovec_Pool => Buffer.Contents,
                An_Iovec   => Padding_Iovec);
          end;
+      else
+
+         --  Grow_Shrink allocated padding space by growing an existing chunk.
+         --  If debugging, make sure this space is initialized with a known
+         --  value.
+
+         pragma Debug (Fill (Padding_Space, Padding));
+         null;
       end if;
 
       Buffer.Length := Buffer.Length + Padding;
