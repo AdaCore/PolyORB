@@ -284,7 +284,7 @@ package body XE_Utils is
    procedure Write_Stamp (File : Name_Id) is
    begin
       Write_Str (" (");
-      Write_Str (Source_File_Stamp (File));
+      Write_Str (String (Source_File_Stamp (File)));
       Write_Str (")");
    end Write_Stamp;
 
