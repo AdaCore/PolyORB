@@ -1,3 +1,7 @@
+Sun May 18 18:30:03 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garhea.adb: Puzzling bug signaled by Thomas Hautesserres fixed.
+
 Wed May 14 15:05:52 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-rpcpoo.adb: Use values provided by System.Garlic.Options.

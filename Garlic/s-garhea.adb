@@ -814,7 +814,7 @@ package body System.Garlic.Heart is
       entry Get (Partition : out Partition_ID)
       when Local_Partition /= Null_Partition_ID or not In_Progress is
       begin
-         if Partition = Null_Partition_ID then
+         if Local_Partition = Null_Partition_ID then
             In_Progress := True;
          end if;
          Partition := Local_Partition;
