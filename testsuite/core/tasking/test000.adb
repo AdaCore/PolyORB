@@ -36,7 +36,7 @@
 
 with PolyORB.Initialization;
 
-with Report;
+with PolyORB.Report;
 
 with PolyORB.Profiles.Full_Tasking;
 pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
@@ -54,5 +54,5 @@ begin
    Test_Synchronisations;
    Test_Mutexes;
    Test_Watchers;
-   Report.End_Report;
+   PolyORB.Report.End_Report;
 end Test000;

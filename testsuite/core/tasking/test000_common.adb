@@ -34,7 +34,7 @@
 
 --  $Id$
 
-with Report;
+with PolyORB.Report;
 
 with Ada.Real_Time;
 with Ada.Exceptions;
@@ -306,7 +306,7 @@ package body Test000_Common is
 
    procedure End_Tests is
    begin
-      Report.Output ("END TESTS", True);
+      PolyORB.Report.Output ("END TESTS", True);
    end End_Tests;
 
    -------------------
@@ -989,7 +989,7 @@ package body Test000_Common is
                & Exception_Message (Exc));
             Ok := False;
       end;
-      Report.Output ("retest threads before synchro tests", Ok);
+      PolyORB.Report.Output ("retest threads before synchro tests", Ok);
 
       Synchro.Reset;
       Counter.Reset;
@@ -997,7 +997,7 @@ package body Test000_Common is
 
       Synchro.Signal (1);
       Synchro_Joiner.Join;
-      Report.Output ("test mutual exclusion", Ok);
+      PolyORB.Report.Output ("test mutual exclusion", Ok);
       Ok := True;
 
       Synchro.Signal (2);
@@ -1008,19 +1008,19 @@ package body Test000_Common is
       Leave (My_SMutex);
       Synchro_Joiner.Join;
       Ok := Counter.Get = 1;
-      Report.Output ("test the mutex is unlocked on Wait", Ok);
+      PolyORB.Report.Output ("test the mutex is unlocked on Wait", Ok);
       Counter.Reset;
       Ok := True;
 
       Synchro.Signal (3);
       Synchro_Joiner.Join;
-      Report.Output ("test that a Wait on True is not blocking", Ok);
+      PolyORB.Report.Output ("test that a Wait on True is not blocking", Ok);
       Counter.Reset;
       Ok := True;
 
       Synchro.Signal (4);
       Synchro_Joiner.Join;
-      Report.Output ("test that Wait outside the monitor raise an exception",
+      PolyORB.Report.Output ("test that Wait outside the monitor raise an exception",
                      Ok);
       Counter.Reset;
       Ok := True;
@@ -1035,7 +1035,7 @@ package body Test000_Common is
       Signal;
       Leave (My_SMutex);
       Synchro_Joiner.Join;
-      Report.Output
+      PolyORB.Report.Output
         ("test the mutual exclusion after a Wait", Ok);
       Counter.Reset;
       Ok := True;
@@ -1045,7 +1045,7 @@ package body Test000_Common is
       Signal;
       Synchro.Signal (7);
       Synchro_Joiner.Join;
-      Report.Output
+      PolyORB.Report.Output
         ("same test with a condition already fulfilled", Ok);
       Counter.Reset;
       Ok := True;
@@ -1093,14 +1093,14 @@ package body Test000_Common is
                & Exception_Message (Exc));
             Ok := False;
       end;
-      Report.Output ("retest threads before Adv mutex tests", Ok);
+      PolyORB.Report.Output ("retest threads before Adv mutex tests", Ok);
 
 
       Synchro.Simple_Release;
 
       Synchro.Signal (1);
       Synchro_Joiner.Join;
-      Report.Output ("test mutual exclusion for Adv mutex", Ok);
+      PolyORB.Report.Output ("test mutual exclusion for Adv mutex", Ok);
       Ok := True;
 
       Synchro.Signal (2);
@@ -1122,7 +1122,7 @@ package body Test000_Common is
       end;
 
       Synchro_Joiner.Join;
-      Report.Output ("same test, with the main task involved", Ok);
+      PolyORB.Report.Output ("same test, with the main task involved", Ok);
       Ok := True;
 
       Synchro.Signal (3);
@@ -1150,7 +1150,7 @@ package body Test000_Common is
       end;
 
       Synchro_Joiner.Join;
-      Report.Output
+      PolyORB.Report.Output
         ("same test, with Enter called several times", Ok);
       Ok := True;
 
@@ -1199,8 +1199,9 @@ package body Test000_Common is
       end;
       Synchro_Joiner.Join;
       Ok := (Counter.Get = Number_Of_Tasks) and Ok;
-      Report.Output ("test that the expected number of tasks is created",
-                     Ok);
+      PolyORB.Report.Output
+        ("test that the expected number of tasks is created", Ok);
+
       Ok := True;
       Counter.Reset;
 
@@ -1235,7 +1236,7 @@ package body Test000_Common is
                & Exception_Message (Exc));
       end;
       Ok := (Counter.Get >= 1) and Ok;
-      Report.Output ("test Get_Current_Thread",
+      PolyORB.Report.Output ("test Get_Current_Thread",
                      Ok);
       Ok := True;
    end Test_Threads;
@@ -1279,7 +1280,7 @@ package body Test000_Common is
                & " : "
                & Exception_Message (Exc));
       end;
-      Report.Output ("retest threads before watcher test", Ok);
+      PolyORB.Report.Output ("retest threads before watcher test", Ok);
       Ok := True;
 
       Synchro.Simple_Release;
@@ -1302,7 +1303,7 @@ package body Test000_Common is
                & Exception_Message (Exc));
       end;
       Ok := Ok and Counter.Get = 1;
-      Report.Output ("test watchers", Ok);
+      PolyORB.Report.Output ("test watchers", Ok);
       Ok := True;
 
    end Test_Watchers;

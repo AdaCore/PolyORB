@@ -51,7 +51,7 @@ with PolyORB.ORB.Interface;
 with PolyORB.ORB;
 with PolyORB.Setup;
 
-with Report;
+with PolyORB.Report;
 with Test_Servant;
 
 procedure Test000 is
@@ -83,13 +83,13 @@ procedure Test000 is
       --  Link object adapter with ORB.
       Set_Object_Adapter (The_ORB, Obj_Adapter);
 
-      Report.Output ("Created Object Adapter", True);
+      PolyORB.Report.Output ("Created Object Adapter", True);
 
       --  Create Servant.
       S1 := new My_Servant;
       S1.Nb    := 1;
       S1.Name  := To_PolyORB_String ("Servant1");
-      Report.Output ("Servant Created", True);
+      PolyORB.Report.Output ("Servant Created", True);
 
       --  Servant manipulation tests.
 
@@ -110,23 +110,23 @@ procedure Test000 is
          Create_Reference (The_ORB, My_Id, "POLYORB:TEST_SERVANT:1.0", My_Ref);
          --  Obtain object reference.
 
-         Report.Output ("Registered object", True);
+         PolyORB.Report.Output ("Registered object", True);
 
          declare
             IOR : constant String :=
               PolyORB.Types.To_Standard_String
               (PolyORB.References.IOR.Object_To_String (My_Ref));
          begin
-            Report.Output("IOR created", True);
+            PolyORB.Report.Output("IOR created", True);
          end;
 
          PolyORB.Obj_Adapters.Unexport (Obj_Adapter, My_Id);
-         Report.Output ("Unregistered object", True);
+         PolyORB.Report.Output ("Unregistered object", True);
       end;
 
       --  Destroy object adapter
       PolyORB.Obj_Adapters.Destroy (Obj_Adapter);
-      Report.Output ("Destroyed Object Adapter", True);
+      PolyORB.Report.Output ("Destroyed Object Adapter", True);
    end Test_SOA;
 
 
@@ -134,7 +134,7 @@ begin
    PolyORB.Initialization.Initialize_World;
 
    Test_SOA;
-   Report.End_Report;
+   PolyORB.Report.End_Report;
 
 exception
    when E : others =>
@@ -142,6 +142,6 @@ exception
                 & Exception_Name (E)
                 & " : "
                 & Exception_Message (E));
-      Report.Output ("END TESTS", False);
+      PolyORB.Report.Output ("END TESTS", False);
 
 end Test000;

@@ -1,6 +1,6 @@
 with Ada.Text_IO;
 
-package body Report is
+package body PolyORB.Report is
 
    Max : constant Natural := 60;
    Passed : Boolean := True;
@@ -37,5 +37,5 @@ package body Report is
       Output ("END TESTS", Passed);
    end End_Report;
 
-end Report;
+end PolyORB.Report;
 

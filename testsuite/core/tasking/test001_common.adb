@@ -1,6 +1,6 @@
 with PolyORB.Initialization;
 
-with Report;
+with PolyORB.Report;
 
 with PolyORB.Profiles.Full_Tasking;
 pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
@@ -52,11 +52,11 @@ package body Test001_Common is
 
    procedure Test_Task is
    begin
---      Report.Output ("Enter task: "
+--      PolyORB.Report.Output ("Enter task: "
 --                     & Image (Get_Current_Thread_Id (My_Thread_Factory)),
 --                     True);
       delay 1.0;
---      Report.Output ("End task: "
+--      PolyORB.Report.Output ("End task: "
 --                     & Image (Get_Current_Thread_Id (My_Thread_Factory)),
 --                     True);
    end Test_Task;

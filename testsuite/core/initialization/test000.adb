@@ -37,7 +37,7 @@ with Ada.Text_IO;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
-with Report;
+with PolyORB.Report;
 
 procedure Test000 is
 
@@ -95,6 +95,6 @@ begin
 
    Initialize_World;
 
-   Report.Output ("Test initialization #0", True);
-   Report.End_Report;
+   PolyORB.Report.Output ("Test initialization #0", True);
+   PolyORB.Report.End_Report;
 end Test000;

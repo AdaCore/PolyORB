@@ -37,7 +37,7 @@ with Ada.Text_IO;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
-with Report;
+with PolyORB.Report;
 
 procedure Test001 is
 
@@ -104,14 +104,14 @@ begin
        Init => Init_Fred'Unrestricted_Access));
 
    Initialize_World;
-   Report.Output ("Test initialization #1", False);
+   PolyORB.Report.Output ("Test initialization #1", False);
 
 exception
    when PolyORB.Initialization.Conflict =>
-      Report.Output ("Test initialization #1", True);
-      Report.End_Report;
+      PolyORB.Report.Output ("Test initialization #1", True);
+      PolyORB.Report.End_Report;
 
    when others =>
-      Report.Output ("Test initialization #1", False);
+      PolyORB.Report.Output ("Test initialization #1", False);
 
 end Test001;

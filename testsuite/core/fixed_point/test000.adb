@@ -1,7 +1,7 @@
 with Ada.Exceptions;
 with PolyORB.Fixed_Point; use PolyORB.Fixed_Point;
 with Ada.Text_IO; use Ada.Text_IO;
-with Report; use Report;
+with PolyORB.Report; use PolyORB.Report;
 
 procedure Test000 is
    type Megabucks is delta 0.01 digits 15;

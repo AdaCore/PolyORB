@@ -1,6 +1,6 @@
 with PolyORB.Dynamic_Dict;
 
-with Report;
+with PolyORB.Report;
 
 procedure Test000 is
 
@@ -54,7 +54,7 @@ procedure Test000 is
             if Result = null
               or else Result.all /= "foo" then
 
-               Report.Output ("Regression occured for key "
+               PolyORB.Report.Output ("Regression occured for key "
                               & Values (K).all
                               & " at stage #"
                               & Integer'Image (J),
@@ -68,10 +68,10 @@ procedure Test000 is
          My_Dict.Unregister (Values (J).all);
       end loop;
 
-      Report.Output ("Regression did not occured", True);
+      PolyORB.Report.Output ("Regression did not occured", True);
    exception
       when others =>
-         Report.Output ("Regression test failed", False);
+         PolyORB.Report.Output ("Regression test failed", False);
 
    end Test_Regression;
 
@@ -106,7 +106,7 @@ procedure Test000 is
                if Content = null
                  or else Value /= Content.all then
 
-                  Report.Output ("Regression occured for key "
+                  PolyORB.Report.Output ("Regression occured for key "
                                  & Key
                                  & " at stage #"
                                  & Integer'Image (How_Many),
@@ -131,14 +131,14 @@ procedure Test000 is
             Test_Lookup (J);
          end;
       end loop;
-      Report.Output ("Register", True);
+      PolyORB.Report.Output ("Register", True);
 
    end Test_Register;
 
 begin
-   Report.Output ("Initialization", True);
+   PolyORB.Report.Output ("Initialization", True);
    Test_Register (500);
    Test_Regression;
-   Report.End_Report;
+   PolyORB.Report.End_Report;
 
 end Test000;

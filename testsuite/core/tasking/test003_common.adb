@@ -1,6 +1,6 @@
 with PolyORB.Initialization;
 
-with Report;
+with PolyORB.Report;
 
 with PolyORB.Profiles.Full_Tasking;
 pragma Elaborate_All (PolyORB.Profiles.Full_Tasking);
@@ -63,19 +63,22 @@ package body Test003_Common is
 
    procedure Wait_Task is
    begin
-      Report.Output ("Enter task: "
-                     & Image (Get_Current_Thread_Id (My_Thread_Factory)),
-                     True);
+      PolyORB.Report.Output
+        ("Enter task: "
+         & Image (Get_Current_Thread_Id (My_Thread_Factory)),
+         True);
       Enter (Global_AM);
-      Report.Output ("Task "
-                     & Image (Get_Current_Thread_Id (My_Thread_Factory))
-                     & " entered.",
-                     True);
+      PolyORB.Report.Output
+        ("Task "
+         & Image (Get_Current_Thread_Id (My_Thread_Factory))
+         & " entered.",
+         True);
       delay 10.0;
       Leave (Global_AM);
-      Report.Output ("End task: "
-                     & Image (Get_Current_Thread_Id (My_Thread_Factory)),
-                     True);
+      PolyORB.Report.Output
+        ("End task: "
+         & Image (Get_Current_Thread_Id (My_Thread_Factory)),
+         True);
    end Wait_Task;
 
    -------------
