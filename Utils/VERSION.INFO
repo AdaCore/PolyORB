@@ -17,7 +17,7 @@ if test "x$1" != x; then
   glade_version=`echo $1 | sed -e 's/^[^-]*-//'`
   gnat_version=${glade_version}
 else
-  gnat_version=`sed -n -e '/Gnat_Vers/s/[^"]*"\([^" ]*\).*/\1/p' ada/gnatvsn.ads`
+  gnat_version=`sed -n -e '/Gnat_Version_String/s/[^"]*"\([^" ]*\).*/\1/p' ada/gnatvsn.ads`
   glade_version=${gnat_version}
 fi
 

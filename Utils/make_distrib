@@ -69,10 +69,10 @@ if [ -f Utils/VERSION.INFO ]; then
   echo "Sourcing version file, then deleting it"
   if $s; then
     echo "(with no implicit version information)"
-    . Utils/VERSION.INFO
+    /bin/sh Utils/VERSION.INFO
   else
     echo "(with GNAT/GLADE version information derived from ${dir})"
-    . Utils/VERSION.INFO ${dir}
+    /bin/sh Utils/VERSION.INFO ${dir}
   fi
   rm -f Utils/VERSION.INFO
 else
