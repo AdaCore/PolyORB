@@ -4,7 +4,7 @@
 --                                                                          --
 --             S Y S T E M . G A R L I C . P R I O R I T I E S              --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
@@ -33,35 +33,28 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package System.Garlic.Priorities is
+package body System.Garlic.Priorities is
 
-   --  This package implements the suggestion from IRTAW99 and some
-   --  enhancements taken from CORBA.
-
-   --  Portable priorities
-   type Global_Priority is range 0 .. 255;
-
-   --  During a RPC, set rpc handler priority either to default
-   --  priority (server_declared) or to client priority
-   --  (client_propagated).
-   type Priority_Policy is (Server_Declared, Client_Propagated);
-
-   Default_RPC_Handler_Priority_Policy : constant Priority_Policy
-     := Client_Propagated;
-
-   Default_RPC_Handler_Priority : constant Global_Priority
-     := Global_Priority'Last;
-
-   RPC_Handler_Priority : Global_Priority
-     := Default_RPC_Handler_Priority;
-
-   RPC_Handler_Priority_Policy : Priority_Policy
-     := Default_RPC_Handler_Priority_Policy;
+   -----------------------------
+   -- Set_RPC_Handler_Prioity --
+   -----------------------------
 
    procedure Set_RPC_Handler_Priority
-     (A_Priority : in Global_Priority);
+     (A_Priority : in Global_Priority)
+   is
+   begin
+      RPC_Handler_Priority := A_Priority;
+   end Set_RPC_Handler_Priority;
+
+   -------------------------------------
+   -- Set_RPC_Handler_Priority_Policy --
+   -------------------------------------
 
    procedure Set_RPC_Handler_Priority_Policy
-     (A_Policy : in Priority_Policy);
+     (A_Policy : in Priority_Policy)
+   is
+   begin
+      RPC_Handler_Priority_Policy := A_Policy;
+   end Set_RPC_Handler_Priority_Policy;
 
 end System.Garlic.Priorities;

@@ -2,9 +2,9 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---             S Y S T E M . G A R L I C . P R I O R I T I E S              --
+--     S Y S T E M . G A R L I C . P R I O R I T I E S . M A P P I N G      --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
@@ -33,35 +33,38 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package System.Garlic.Priorities is
+package body System.Garlic.Priorities.Mapping is
 
-   --  This package implements the suggestion from IRTAW99 and some
-   --  enhancements taken from CORBA.
+   Global_Priority_Range : constant Natural
+     := Natural (Global_Priority'Last - Global_Priority'First + 1);
 
-   --  Portable priorities
-   type Global_Priority is range 0 .. 255;
+   Native_Priority_Range : constant Natural
+     := Natural (Priority'Last - Priority'First + 1);
 
-   --  During a RPC, set rpc handler priority either to default
-   --  priority (server_declared) or to client priority
-   --  (client_propagated).
-   type Priority_Policy is (Server_Declared, Client_Propagated);
+   function To_Global_Priority
+     (A_Priority : in System.Priority)
+     return Global_Priority
+   is
+      Offset : Natural := Natural (A_Priority - Priority'First);
 
-   Default_RPC_Handler_Priority_Policy : constant Priority_Policy
-     := Client_Propagated;
+   begin
+      Offset := Offset * Global_Priority_Range;
+      Offset := Offset / Native_Priority_Range;
 
-   Default_RPC_Handler_Priority : constant Global_Priority
-     := Global_Priority'Last;
+      return Global_Priority'First + Global_Priority (Offset);
+   end To_Global_Priority;
 
-   RPC_Handler_Priority : Global_Priority
-     := Default_RPC_Handler_Priority;
+   function To_Native_Priority
+     (A_Priority : in Global_Priority)
+     return System.Priority
+   is
+      Offset : Natural := Natural (A_Priority - Global_Priority'First);
 
-   RPC_Handler_Priority_Policy : Priority_Policy
-     := Default_RPC_Handler_Priority_Policy;
+   begin
+      Offset := Offset * Native_Priority_Range;
+      Offset := Offset / Global_Priority_Range;
 
-   procedure Set_RPC_Handler_Priority
-     (A_Priority : in Global_Priority);
+      return Priority'First + Priority (Offset);
+   end To_Native_Priority;
 
-   procedure Set_RPC_Handler_Priority_Policy
-     (A_Policy : in Priority_Policy);
-
-end System.Garlic.Priorities;
+end System.Garlic.Priorities.Mapping;
