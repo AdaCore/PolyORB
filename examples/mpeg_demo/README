@@ -1,3 +1,0 @@
-To recompile the server on a platform outside the ENST,
-you have to update the Makefile.vars and run make depend.
-The Ada client can be compiled anywhere 'as is'

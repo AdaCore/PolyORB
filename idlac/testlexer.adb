@@ -43,8 +43,16 @@ begin
          when T_Lit_Decimal_Integer |
            T_Lit_Octal_Integer |
            T_Lit_Hexa_Integer |
-           T_Lit_Char |
-           T_Lit_Wide_Char |
+           T_Lit_Simple_Char |
+           T_Lit_Escape_Char |
+           T_Lit_Octal_Char |
+           T_Lit_Hexa_Char |
+           T_Lit_Unicode_Char |
+           T_Lit_Wide_Simple_Char |
+           T_Lit_Wide_Escape_Char |
+           T_Lit_Wide_Octal_Char |
+           T_Lit_Wide_Hexa_Char |
+           T_Lit_Wide_Unicode_Char |
            T_Lit_Simple_Floating_Point |
            T_Lit_Exponent_Floating_Point |
            T_Lit_Pure_Exponent_Floating_Point |

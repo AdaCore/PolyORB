@@ -1,0 +1,43 @@
+$ ./serverp -ORBlog --save-ior ior
+listening on host: 137.194.168.25, port:  36603
+ORB log: register_poa: root
+ORB log: register_poa: test_1
+unknown_adapter called
+ORB log: register_poa: test_1
+ORB log: ObjectId created
+ORB log: register_poa: test_st
+ORB log: ObjectId created
+'IOR:000000000000000d49444c3a4563686f3a312e30000
+00000000000010000000000000038000100000000000f313
+3372e3139342e3136382e323500008efb000000000018000
+000000000000300000000000000000000000400000000'
+ORB log: unqueue requests
+ORB log: poll on fd
+ORB log: accepting a connection of fd 9 
+from 137.194.168.25 port 36608
+ORB log: message received from fd 9
+ORB log: handle request message
+ORB log: invoke method
+preinvoke: forward request
+ORB log: poll on fd
+ORB log: accepting a connection of fd 10
+from 137.194.168.25 port 36609
+ORB log: message received from fd 10
+ORB log: handle request message
+ORB log: invoke method
+ORB log: poll on fd
+ORB log: connection closed on fd 9
+ORB log: connection closed on fd 10
+
+
+$ ./client `cat ior`
+host: 137.194.168.25
+port:  36603
+host: 137.194.168.25
+port:  36603
+dec_usage: deallocate BROCA.OBJECT.OBJECT_TYPE
+I said : Hello Ada !
+The object answered : Hello Ada !
+dec_usage: deallocate BROCA.OBJECT.OBJECT_TYPE
+
+
