@@ -308,8 +308,9 @@ package body PolyORB.ORB is
    -----------------------
 
    --  This is the main loop for all general-purpose
-   --  ORB tasks. This function MUST NOT be called
-   --  recursively.
+   --  ORB tasks. This function MUST NOT be called recursively.
+   --  Exceptions may not be propagated from within a critical
+   --  section (i.e. with ORB_Lock held).
 
    procedure Run
      (ORB            : access ORB_Type;
@@ -487,14 +488,15 @@ package body PolyORB.ORB is
 
    exception
       when E : others =>
-         pragma Debug (O ("ORB main loop got exception:"));
-         pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
+         --  XXX at this point it is assumed that ORB_Lock is
+         --  not being held by this task.
+
+         O ("ORB main loop got exception:", Error);
+         O (Ada.Exceptions.Exception_Information (E), Error);
 
          if Exit_Condition.Task_Info /= null then
             Exit_Condition.Task_Info.all := null;
          end if;
-         Leave (ORB.ORB_Lock.all);
-
          raise;
    end Run;
 
