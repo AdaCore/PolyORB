@@ -450,7 +450,7 @@ package body NetBufferedStream is
                          S : in out Object'Class) is
       C_A : Interfaces.C.Unsigned_Long ;
    begin
-      pragma Debug(Output(Debug,"Netbufferedstream : UNmarshalling Unsigned Long")) ;
+      pragma Debug(Output(Debug,"Netbufferedstream : unmarshalling Unsigned Long")) ;
       C_UnMarshall_6 (C_A,S) ;
       A := Corba.Unsigned_Long(C_A) ;
    end;
