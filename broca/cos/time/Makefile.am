@@ -1,5 +1,14 @@
 include $(srcdir)/../Makefile.common
 
+GNATMAKE_FLAGS = -I$(srcdir) \
+	-I../event \
+	-I$(srcdir)/../event \
+	-I../../src \
+	-I$(srcdir)/../../src \
+	-I../../adasockets/src \
+	-I$(srcdir)/../../adasockets/src \
+	-g -O2 -m -gnata
+
 PROGRAM = test_time
 
 CLEANFILES += $(GEN_COSTIME)
