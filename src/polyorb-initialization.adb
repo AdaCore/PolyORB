@@ -36,6 +36,8 @@
 
 with PolyORB.Dynamic_Dict;
 pragma Elaborate_All (PolyORB.Dynamic_Dict);
+with PolyORB.Configuration;
+pragma Elaborate_All (PolyORB.Configuration);
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Utils.Chained_Lists;
@@ -93,6 +95,13 @@ package body PolyORB.Initialization is
    is
       M : Module;
    begin
+      if Configuration.Get_Conf ("modules", Info.Name.all, "enable")
+        = "disable"
+      then
+         pragma Debug (O (Info.Name.all & " is disabled."));
+         return;
+      end if;
+
       M.Info := Info;
       Append (World, new Module'(M));
    end Register_Module;
