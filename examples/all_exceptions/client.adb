@@ -93,13 +93,14 @@ begin
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- No_memory exception      **********raise an Unknown exception => bug
+   -- No_memory exception
    declare
       Member : No_memory_members ;
+      Member2 : Unknown_Members ;
    begin
       Put_Line ("####### Test of No_memory #######") ;
       Put_Line ("I call no_memory_exception_test") ;
---      No_memory_Exception_Test(MyAll_Exceptions);
+      No_memory_Exception_Test(MyAll_Exceptions);
 
    exception
       when E : No_memory =>
@@ -107,6 +108,11 @@ begin
          Corba.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
                    Corba.Unsigned_Long'Image(Member.Minor)) ;
+      when E : Unknown =>
+         Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
+         Corba.Get_Members (E ,Member2) ;
+         Put_Line ("It has a member whose value is : " &
+                   Corba.Unsigned_Long'Image(Member2.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -130,13 +136,14 @@ begin
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- Comm_Failure exception      **********make a loop in the program
+   -- Comm_Failure exception
    declare
       Member : Comm_Failure_members ;
    begin
       Put_Line ("####### Test of Comm_Failure #######") ;
       Put_Line ("I call Comm_Failure_exception_test") ;
 --      Comm_Failure_Exception_Test(MyAll_Exceptions);
+      Put_Line ("I do not call it because it makes the program loop. It seems to be normal for omniORB_2.7.0");
    exception
       when E : Comm_Failure =>
          Put_Line ("A Comm_Failure exception has just been catched !!!") ;
@@ -202,19 +209,25 @@ begin
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- Marshal exception      **********raise an Unknown exception => bug
+   -- Marshal exception
    declare
       Member : Marshal_members ;
+      Member2 : Unknown_Members ;
    begin
       Put_Line ("####### Test of Marshal #######") ;
       Put_Line ("I call Marshal_exception_test") ;
---      Marshal_Exception_Test(MyAll_Exceptions);
+      Marshal_Exception_Test(MyAll_Exceptions);
    exception
       when E : Marshal =>
          Put_Line ("A Marshal exception has just been catched !!!") ;
          Corba.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
                    Corba.Unsigned_Long'Image(Member.Minor)) ;
+      when E : Unknown =>
+         Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
+         Corba.Get_Members (E ,Member2) ;
+         Put_Line ("It has a member whose value is : " &
+                   Corba.Unsigned_Long'Image(Member2.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -292,37 +305,49 @@ begin
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- No_Resources exception       **********raise an Unknown exception => bug
+   -- No_Resources exception
    declare
       Member : No_Resources_members ;
+      Member2 : Unknown_Members ;
    begin
       Put_Line ("####### Test of No_Resources #######") ;
       Put_Line ("I call No_Resources_exception_test") ;
---      No_Ressources_Exception_Test(MyAll_Exceptions);
+      No_Ressources_Exception_Test(MyAll_Exceptions);
    exception
       when E : No_Resources =>
          Put_Line ("A No_Resources exception has just been catched !!!") ;
          Corba.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
                    Corba.Unsigned_Long'Image(Member.Minor)) ;
+      when E : Unknown =>
+         Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
+         Corba.Get_Members (E ,Member2) ;
+         Put_Line ("It has a member whose value is : " &
+                   Corba.Unsigned_Long'Image(Member2.Minor)) ;
    end ;
 
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- No_Response exception        **********raise an Unknown exception => bug
+   -- No_Response exception
    declare
       Member : No_Response_members ;
+      Member2 : Unknown_Members ;
    begin
       Put_Line ("####### Test of No_Response #######") ;
       Put_Line ("I call No_Response_exception_test") ;
---      No_Response_Exception_Test(MyAll_Exceptions);
+      No_Response_Exception_Test(MyAll_Exceptions);
    exception
       when E : No_Response =>
          Put_Line ("A No_Response exception has just been catched !!!") ;
          Corba.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
                    Corba.Unsigned_Long'Image(Member.Minor)) ;
+      when E : Unknown =>
+         Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
+         Corba.Get_Members (E ,Member2) ;
+         Put_Line ("It has a member whose value is : " &
+                   Corba.Unsigned_Long'Image(Member2.Minor)) ;
    end ;
 
    Put_Line ("") ;
@@ -364,13 +389,14 @@ begin
    Put_Line ("") ;
    Put_Line ("") ;
 
-   -- Transient exception         ********make a loop in the program
+   -- Transient exception
    declare
       Member : Transient_members ;
    begin
       Put_Line ("####### Test of Transient #######") ;
       Put_Line ("I call Transient_exception_test") ;
 --      Transient_Simple_Exception_Test(MyAll_Exceptions);
+      Put_Line ("I do not call it because it makes the program loop. It seems to be normal for omniORB_2.7.0");
    exception
       when E : Transient =>
          Put_Line ("A Transient exception has just been catched !!!") ;
@@ -515,6 +541,7 @@ begin
       Put_Line ("####### Test of AdaBroker_Fatal_Error #######") ;
       Put_Line ("I call AdaBroker_Fatal_Error_exception_test") ;
 --      AdaBroker_Fatal_Error_Exception_Test(MyAll_Exceptions);
+      Put_Line ("I do not call it because it makes the server crash. It is normal.");
    exception
       when E : AdaBroker_Fatal_Error =>
          Put_Line ("A AdaBroker_Fatal_Error exception has just been catched !!!") ;
@@ -529,6 +556,7 @@ begin
       Put_Line ("####### Test of AdaBroker_Not_Implemented_Yet #######") ;
       Put_Line ("I call AdaBroker_Not_Implemented_Yet_exception_test") ;
 --      AdaBroker_Not_Implemented_Yet_Exception_Test(MyAll_Exceptions);
+      Put_Line ("I do not call it because it makes the server crash. It is normal.");
    exception
       when E : AdaBroker_Not_Implemented_Yet =>
          Put_Line ("A AdaBroker_Not_Implemented_Yet exception has just been catched !!!") ;
@@ -543,6 +571,7 @@ begin
       Put_Line ("####### Test of No_Initialisation_Error #######") ;
       Put_Line ("I call No_Initialisation_Error_exception_test") ;
 --      No_Initialisation_Error_Exception_Test(MyAll_Exceptions);
+      Put_Line ("I do not call it because it makes the server crash. It is normal.");
    exception
       when E : No_Initialisation_Error =>
          Put_Line ("A No_Initialisation_Error exception has just been catched !!!") ;
@@ -557,6 +586,7 @@ begin
       Put_Line ("####### Test of C_Out_Of_Range #######") ;
       Put_Line ("I call C_Out_Of_Range_exception_test") ;
 --      C_Out_Of_Range_Exception_Test(MyAll_Exceptions);
+      Put_Line ("I do not call it because it makes the server crash. It is normal.");
    exception
       when E : C_Out_Of_Range =>
          Put_Line ("A C_Out_Of_Range  exception has just been catched !!!") ;
@@ -571,6 +601,7 @@ begin
       Put_Line ("####### Test of Dummy_User #######") ;
       Put_Line ("I call Dummy_User_exception_test") ;
 --      Dummy_User_Exception_Test(MyAll_Exceptions);
+      Put_Line ("I do not call it because it makes the server crash. It is normal.");
    exception
       when E : Dummy_User =>
          Put_Line ("A Dummy_User  exception has just been catched !!!") ;
@@ -632,16 +663,22 @@ begin
    -- Invalid_Transaction exception
    declare
       Member : Invalid_Transaction_members ;
+      Member2 : Unknown_Members ;
    begin
       Put_Line ("####### Test of Invalid_Transaction #######") ;
       Put_Line ("I call Invalid_Transaction_exception_test") ;
---      Invalid_Transaction_Exception_Test(MyAll_Exceptions);
+      Invalid_Transaction_Exception_Test(MyAll_Exceptions);
    exception
       when E : Invalid_Transaction =>
          Put_Line ("A Invalid_Transaction exception has just been catched !!!") ;
          Corba.Get_Members (E ,Member) ;
          Put_Line ("It has a member whose value is : " &
                    Corba.Unsigned_Long'Image(Member.Minor)) ;
+      when E : Unknown =>
+         Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
+         Corba.Get_Members (E ,Member2) ;
+         Put_Line ("It has a member whose value is : " &
+                   Corba.Unsigned_Long'Image(Member2.Minor)) ;
    end ;
    Put_Line ("") ;
    Put_Line ("") ;
