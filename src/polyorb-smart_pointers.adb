@@ -249,26 +249,38 @@ package body PolyORB.Smart_Pointers is
       return The_Ref.A_Ref;
    end Entity_Of;
 
+   -----------------
+   -- Entity_Lock --
+   -----------------
+
    procedure Entity_Lock (X : in out Unsafe_Entity) is
       pragma Unreferenced (X);
+
    begin
       null;
    end Entity_Lock;
 
-   procedure Entity_Unlock (X : in out Unsafe_Entity) is
-      pragma Unreferenced (X);
-   begin
-      null;
-   end Entity_Unlock;
-
    procedure Entity_Lock (X : in out Non_Controlled_Entity) is
       pragma Unreferenced (X);
+
    begin
       Enter (Counter_Lock);
    end Entity_Lock;
 
+   -------------------
+   -- Entity_Unlock --
+   -------------------
+
+   procedure Entity_Unlock (X : in out Unsafe_Entity) is
+      pragma Unreferenced (X);
+
+   begin
+      null;
+   end Entity_Unlock;
+
    procedure Entity_Unlock (X : in out Non_Controlled_Entity) is
       pragma Unreferenced (X);
+
    begin
       Leave (Counter_Lock);
    end Entity_Unlock;
