@@ -30,7 +30,7 @@ package Droopi.Protocols.GIOP.GIOP_1_0  is
 
    procedure GIOP_Header_Marshall
      (Buffer       : access Buffer_Type;
-      Message_Type : in MsgType;
+      Message_Type : in Msg_Type;
       Message_Size : in Stream_Element_Offset);
 
 
@@ -50,7 +50,7 @@ package Droopi.Protocols.GIOP.GIOP_1_0  is
    procedure Exception_Marshall
     (Buffer           : access Buffer_Type;
      Request_Id       : in CORBA.Unsigned_Long;
-     Exception_Type   : in ReplyStatusType;
+     Exception_Type   : in Reply_Status_Type;
      Occurence        : in CORBA.Exception_Occurrence);
 
 

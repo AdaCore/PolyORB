@@ -67,7 +67,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
 
    procedure GIOP_Header_Marshall
      (Buffer       : access Buffer_Type;
-      Message_Type : in MsgType;
+      Message_Type : in Msg_Type;
       Message_Size : in Stream_Element_Offset)
    is
       use representations.CDR;
@@ -117,9 +117,6 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
 
     begin
 
-      --  Reserve space for message header
-      Set_Initial_Position
-        (Buffer, Message_Header_Size);
 
       --  Service context
       Marshall (Buffer, CORBA.Unsigned_Long (No_Context));
@@ -131,8 +128,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       Marshall (Buffer, Response_Expected);
 
       --  Object key
-      representations.CDR.Marshall
-        (Buffer,
+      Marshall (Buffer,
          Binding_Data.Get_Object_Key(Target_Profile));
 
       --  Operation
@@ -140,7 +136,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
 
       --  Principal
       Marshall(Buffer,
-           CORBA.String(nobody_Principal));
+               CORBA.String(Nobody_Principal));
 
     end Request_Message_Marshall;
 
@@ -182,14 +178,12 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
    procedure Exception_Marshall
     ( Buffer           : access Buffer_Type;
       Request_Id       : in CORBA.Unsigned_long;
-      Exception_Type   : in ReplyStatusType range User_Exception..System_Exception;
+      Exception_Type   : in Reply_Status_Type range User_Exception..System_Exception;
       Occurence        : in CORBA.Exception_Occurrence)
    is
      use representations.CDR;
    begin
 
-      Set_Initial_Position
-       (Buffer, Message_Header_Size);
 
       --  Service context
       Marshall (Buffer, CORBA.Unsigned_Long (No_Context));
@@ -219,8 +213,6 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
        use representations.CDR;
     begin
 
-     Set_Initial_Position
-      (Buffer, Message_Header_Size);
 
       --  Service context
       Marshall (Buffer, CORBA.Unsigned_Long (No_Context));
@@ -246,10 +238,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
 
    procedure Request_Message_Unmarshall
      ( Buffer            : access Buffer_Type;
-       Request_Id        : out Corba.Unisgned_Long;
+       Request_Id        : out CORBA.Unisgned_Long;
        Response_Expected : out Boolean;
        Object_Key        : out Objects.Object_Id;
-       Operation         : out Corba.String)
+       Operation         : out CORBA.String)
    is
        use representations.CDR;
        Service_Context : CORBA.Unsigned_Long;
@@ -289,7 +281,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
 
   procedure Reply_Message_Unmarshall
       (Buffer       : access Buffer_Type;
-       Request_Id   : out Corba.Unsigned_Long;
+       Request_Id   : out CORBA.Unsigned_Long;
        Reply_Status : out Reply_Status_Type)
 
   is

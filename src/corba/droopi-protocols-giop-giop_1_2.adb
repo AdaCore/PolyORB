@@ -10,7 +10,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams; Uses Ada.Streams;
+with Ada.Streams; use Ada.Streams;
 with Ada.Unchecked_Deallocation;
 
 with CORBA;
@@ -30,14 +30,13 @@ pragma Elaborate_All (Droopi.Debug);
 package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
 
-
    --------------------------
    -- Marshall_GIOP_Header --
    --------------------------
 
    procedure GIOP_Header_Marshall
      (Buffer        : access Buffer_Type;
-      Message_Type  : in MsgType;
+      Message_Type  : in Msg_Type;
       Message_Size  : in Stream_Element_Offset;
       Fragment_Next : in Boolean)
    is
@@ -58,7 +57,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Marshall (Buffer, Minor_Version);
 
       --  Flags
-      if(Endianness(Buffer.all) = Little_Endian) then
+      if Endianness(Buffer.all) = Little_Endian then
          Flags = Flags or 2**Endianess_bit;
       end if;
 
@@ -88,20 +87,19 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
      (Buffer            : access Buffers.Buffer_Type;
       Request_Id        : in CORBA.Unsigned_Long;
       Operation         : in Requests.Operation_Id;
-      Addess_Type       : in AddressingDisposition;
-      Target_Ref        : in TargetAddress;
+      Addess_Type       : in Addressing_Disposition;
+      Target_Ref        : in Target_Address;
       Sync_Type         : in CORBA.SyncScope)
 
   is
       use representations.CDR;
       use Binding_Data.Iiop;
-      Reserved: constant Corba.Octet:=0;
+      use Droopi.References.IOR;
+      Reserved: constant CORBA.Octet:=0;
 
   begin
 
-      --  Reserve space for message header
-      Set_Initial_Position
-        (Buffer, Message_Header_Size);
+
 
       -- Request id
       Marshall (Buffer, Request_Id);
@@ -119,15 +117,15 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
              CORBA.Unsigned_Short(Addressing_Disposition'Pos(Address_Type)));
 
       case Address_Type is
-       when KeyAddr =>
+       when 0 =>
          Marshall(Ses.Buffer_Out,
           Binding_Data.Get_Objet_Key(Target_Ref.Profile.all));
-       when ProfileAddr =>
+       when 1 =>
          Marshall_IIOP_Profile_Body
            (Ses.Buffer_Out, Target_Ref.Profile.all);
-
-        -- IOR not yet implemented
-       --when ReferenceAddr =>
+       when 2 =>
+         Marshall(Ses.Buffer_Out, Target_Ref.Ref.Selected_Profile_Index);
+         Representations.IOR.Marshall(Ses.Buffer_Out, Target_Ref.Ref.Ior);
       end case
 
       --  Operation
@@ -135,6 +133,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
       --  Service context
       Marshall (Buffer,  Stream_Element_Array(Service_Context_List_1_2));
+
    end Request_Message_Marshall;
 
 
@@ -156,8 +155,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
    is
     use  representations.CDR;
    begin
-     Set_Initial_Position
-        (Buffer, Message_Header_Size);
+
 
      -- Request id
      Marshall(Buffer, Request_Id);
@@ -179,7 +177,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
    procedure Exception_Marshall
     ( Buffer      : access Buffers.Buffer_Type;
       Request_Id  : access CORBA.Unsigned_Long ;
-      Reply_Type  : in ReplyStatusType range User_Exception..System_Exception;
+      Reply_Type  : in Reply_Status_Type range User_Exception..System_Exception;
       Occurence   : in CORBA.Exception_Occurrence)
 
    is
@@ -207,7 +205,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
     procedure Location_Forward_Marshall
     ( Buffer        :   access Buffers.Buffer_Type;
       Request_Id    :   in  CORBA.Unsigned_Long;
-      Reply_Type    :   in  ReplyStatusType  range Location_Forward .. Location_Forward_Perm;
+      Reply_Type    :   in  Reply_Status_Type  range Location_Forward .. Location_Forward_Perm;
       Target_Ref    :   in  Droopi.References)
     is
        use  representations.CDR;
@@ -264,7 +262,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
    procedure Locate_Request_Marshall
     (Buffer            : access Buffer_Type;
-     Request_Id        : in Corba.Unsigned_long;
+     Request_Id        : in CORBA.Unsigned_long;
      Address_Type      : in Addressing_Disposition;
      Target_Ref        : in Target_Address)
 
@@ -273,9 +271,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       use Binding_Data.Iiop;
    begin
 
-      --  Reserve space for message header
-      Set_Initial_Position
-        (Buffe, Message_Header_Size);
+
 
       -- Request id
       Marshall (Buffer, Request_Id);
@@ -288,7 +284,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
       case Address_Type is
        when KeyAddr =>
-         Corba.CDR.Marshall(Sess.Buffer_Out,
+         CORBA.CDR.Marshall(Sess.Buffer_Out,
           Binding_Data.Get_Objet_Key(Target_Ref.Profile.all));
        when ProfileAddr =>
           Marshall_IIOP_Profile_Body
@@ -310,9 +306,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
    is
       use  representations.CDR;
    begin
-     --  Reserve space for message header
-      Set_Initial_Position
-        (Buffer, Message_Header_Size);
+
 
       -- Request id
       Marshall(Buffer, Request_Id);
@@ -326,9 +320,9 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
    procedure Request_Message_Unmarshall
      ( Buffer            : access Buffer_Type;
-       Request_Id        : out Corba.Unisgned_Long;
+       Request_Id        : out CORBA.Unisgned_Long;
        Response_Expected : out Boolean;
-       Target_Ref        : out TargetAddress;
+       Target_Ref        : out Target_Address;
        Operation         : out Requests.Operation_Id)
    is
        use  representations.CDR;
@@ -365,7 +359,8 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
          when 1 =>
            Target_Ref.Profile  := Unmarshall(Buffer);
          when 2 =>
-            Target_Ref.Ref  := Unmarshall(Buffer);
+            Target_Ref.Ref.Selected_Profile_Index := Unmarshall(Buffer);
+            Target_Ref.Ref.Ior  := Unmarshall(Buffer);
       end case;
 
       -- Operation
@@ -395,7 +390,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
    procedure Reply_Message_Unmarshall
       (Buffer       : access Buffer_Type;
-       Request_Id   : out Corba.Unsigned_Long;
+       Request_Id   : out CORBA.Unsigned_Long;
        Reply_Status : out Reply_Status_Type)
    is
       use  representations.CDR;

@@ -18,8 +18,11 @@ with CORBA;
 with Droopi.Opaque;
 with Droopi.Buffers;
 with Droopi.Binding_Data;
+with Droopi.Binding_Data.IIOP;
 with Droopi.References;
+with Droopi.References.IOR;
 with Droopi.Protocols;
+with Droopi.Requests;
 
 package CORBA.GIOP_Session is
 
@@ -39,15 +42,24 @@ package CORBA.GIOP_Session is
 
    type Bits_8 is CORBA.Octet;
 
-   type TargetAddress(Address_Type: Integer) is
+   type IOR_Addressing_Info is
+    record
+       Selected_Profile_Index : CORBA.Unsigned_Long;
+       Ior                    : References.IOR.IOR_Type;
+    end record;
+
+
+   subtype Addressing_Disposition is range 0..2;
+
+   type Target_Address(Address_Type: Addressing_Diposition) is
     record
      case Address_Type is
       when 0 =>
-        Object_key: Objects.Object_Id;
+        Object_Key : Objects.Object_Id;
       when 1 =>
-        Profile: Binding_Data.Iiop.Iiop_Profile_Type;
+        Profile : Binding_Data.IIOP.IIOP_Profile_Type;
       when 2 =>
-        Ref    : References.ref;
+        Ref : IOR_Addressing_Info;
      end case;
     end record;
 
@@ -84,15 +96,15 @@ package CORBA.GIOP_Session is
 
    type Pending_Request is private;
 
-   type Response_Sync(Version :  range 0 .. 1) is
-    record
-       case Version is
-         when 0 =>
-            Response_Expected : CORBA.Boolean;
-         when 1 | 2 =>
-            Sync_Type         : GIOP.SyncScope;
-       end case;
-    end record;
+   --  type Response_Sync(Version :  range 0 .. 1) is
+   --  record
+   --    case Version is
+   --      when 0 =>
+   --         Response_Expected : CORBA.Boolean;
+   --      when 1 | 2 =>
+   --         Sync_Type         : SyncScope;
+   --    end case;
+   --   end record;
 
    type Send_Request_Result_Type is
      (Sr_No_Reply,
@@ -123,7 +135,7 @@ package CORBA.GIOP_Session is
 
    type ServiceId is (
        Transaction_Service, CodeSets, ChainByPassCheck,
-       ChainByPassInfo, LogicalThreadId, Bi_Dir_Iiop,
+       ChainByPassInfo, LogicalThreadId, Bi_Dir_IIOP,
        SendingContextRunTime, Invocation_Policies,
        Forwarded_Identity, UnknownExceptionInfo
        );
@@ -183,20 +195,24 @@ package CORBA.GIOP_Session is
   --- Marshalling switch  -----------
   --------------------------------------
 
-
    procedure Request_Message
-    (Ses             : access GIOP_Session;
-     Message_Size    : in Stream_Element_Offset;
-     Target_Profile  : in Binding_Data.Profile_Type;
-     Sync            : in Response_Sync;
-     Fragment_Next   : out boolean )
+    (Ses               : access GIOP_Session;
+     Response_Expected : in Boolean;
+     Message_Size      : in CORBA.Unsigned_Long;
+     Fragment_Next     : out boolean);
+
+   procedure No_Exception_Reply
+    (Ses           : access GIOP_Session;
+     Request_Id    : in CORBA.Unsigned_Long;
+     Message_Size  : in CORBA.Unsignd_Long;
+     Fragment_Next : out boolean);
 
 
     procedure Exception_Reply
     (Ses             : access GIOP_Session;
      Message_Size    : in Stream_Element_Offset ;
      Exception_Type  : in Reply_Status_Type range User_Exception..System_Exception;
-     Occurence       : in CORBA.Exception_Occurrence)
+     Occurence       : in CORBA.Exception_Occurrence);
 
 
     procedure Location_Forward_Reply
@@ -209,11 +225,11 @@ package CORBA.GIOP_Session is
     procedure Need_Addressing_Mode_Message
     (Ses             : access GIOP_Session;
      Message_Size    : in Stream_Element_Offset;
-     Address_Type    : in Addressing_Disposition)
+     Address_Type    : in Addressing_Disposition);
 
     procedure Cancel_Request_Message
     (Ses             : access GIOP_Session;
-     Message_Size    : in Stream_Element_Offset)
+     Message_Size    : in Stream_Element_Offset);
 
     procedure Locate_Request_Message
     (Ses             : access GIOP_Session;
@@ -225,7 +241,7 @@ package CORBA.GIOP_Session is
     procedure Locate_Reply_Message
     (Ses             : access GIOP_Session;
      Message_Size    : in Stream_Element_Offset;
-     Locate_Status   : in Locate_Status_Type)
+     Locate_Status   : in Locate_Status_Type);
 
 
    -------------------------------------------
@@ -259,9 +275,9 @@ package CORBA.GIOP_Session is
    ---  Pending requests primitives
    ---------------------------------------
 
-   procedure Initialise_Request
+   procedure Store_Request
      (Req     : access Request;
-      Profile : in Iiop_Profile_type);
+      Profile : in IIOP_Profile_type);
 
 
 private
@@ -281,17 +297,10 @@ private
    type GIOP_Protocol is new Protocol with null record;
 
    type Pending_Request is record
-     Req             : Requests.Request_Access;
+     Req             : Requests.Request_Access := null;
      Request_Id      : Corba.Unsigned_Long := 0;
-     Target_Profile  : Binding_Data.Iiop.Iiop_Profile_Type;
+     Target_Profile  : Binding_Data.IIOP.IIOP_Profile_Type := null ;
    end record;
-
-
-   -- type Message_Param is record
-   --  Mess_Type : Msg_Type;
-   --  Mess_Size : CORBA.Unsigned_Long;
-   -- end record;
-
 
    procedure Expect_Data
      (S             : access GIOP_Session;

@@ -29,7 +29,6 @@ pragma Elaborate_All (Droopi.Log);
 package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
 
-
    Endianess_Bit: constant Integer:=1;
    Fragment_Bit: constant Integer:=2;
 
@@ -49,20 +48,17 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
    procedure GIOP_Header_Marshall
      ( Buffer        : access Buffer_Type;
-       Message_Type  : in MsgType;
+       Message_Type  : in Msg_Type;
        Message_Size  : in Stream_Element_Offset;
        Fragment_Next : in Boolean)
 
    is
       use representations.CDR;
+      use Droopi.Buffers;
       Flags: Bits_8:=0;
    begin
 
-     --  Magic
-      if (Fragment_Next=True) and  (Message_Size+12 mod 8 =0) then
-        raise GIOP_ERROR;
-      end if;
-
+      --  Magic
       for I in Magic'Range loop
          Marshall (Buffer, CORBA.Octet (Magic (I)));
       end loop;
@@ -72,11 +68,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
       Marshall (Buffer, Minor_Version);
 
       --  Flags
-      if(Buffers.Endianness(Buffer.all) = Little_Endian) then
+      if Endianness(Buffer.all) = Little_Endian then
          Flags = Flags or 2**Endianess_bit;
       end if;
 
-      if(Fragment_Next=True) then
+      if Fragment_Next = True then
          Flags = Flags or 2**Fragment_bit;
       end if;
 
@@ -106,13 +102,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
     is
       use representations.CDR;
-      Reserved: constant Corba.Octet:=0;
+      Reserved: constant CORBA.Octet:=0;
 
     begin
 
-      --  Reserve space for message header
-      Set_Initial_Position
-        (Ses.Buffer_out, Message_Header_Size);
 
       -- Service context
       Marshall(Buffer,  Stream_Element_Array'(Service_Context_List_1_1));
@@ -139,7 +132,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
       --  Principal
       Marshall(Ses.Buffer_Out,
-               Corba.String'(Nobody_Principal));
+               CORBA.String'(Nobody_Principal));
 
     end Request_Message_Marshall;
 
@@ -155,8 +148,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
    is
     use  representations.CDR;
    begin
-     Set_Initial_Position
-        (Buffer, Message_Header_Size);
+
 
      --  Service context
      Marshall(Buffer,  Stream_Element_Array'(Service_Context_List_1_1));
@@ -178,14 +170,12 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
    procedure Exception_Marshall
     ( Buffer           : access Buffer_Type;
       Request_Id       : in CORBA.Unsigned_long;
-      Exception_Type   : in ReplyStatusType range User_Exception..System_Exception;
+      Exception_Type   : in Reply_Status_Type range User_Exception..System_Exception;
       Occurence        : in CORBA.Exception_Occurrence)
    is
      use representations.CDR;
    begin
 
-      Set_Initial_Position
-       (Buffer, Message_Header_Size);
 
       --  Service context
       Marshall(Buffer,  Stream_Element_Array'(Service_Context_List_1_1));
@@ -209,13 +199,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
     procedure Location_Forward_Marshall
     ( Buffer           : access Buffer_Type;
       Request_Id       : in  CORBA.Unsigned_Long;
-      Forward_Ref      : in  Droopi.References.Ref)
+      Forward_Ref      : in  Droopi.References.Ior.Ior_Type)
     is
-
+      use References.IOR;
     begin
 
-     Set_Initial_Position
-      (Buffer, Message_Header_Size);
 
       --  Service context
       Marshall(Buffer,  Stream_Element_Array'(Service_Context_List_1_1));
@@ -226,9 +214,8 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
       -- Reply Status
       Marshall(Buffer, GIOP.Location_Forward);
 
-
       -- Object reference
-      Marshall(Buffer, Forward_Ref);
+      References.IOR.Marshall(Buffer, Forward_Ref);
 
     end Location_Forward_Marshall;
 
@@ -245,16 +232,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
    is
       use representations.CDR;
-
    begin
 
-      --  Reserve space for message header
-      Set_Initial_Position
-        (Buffer, Message_Header_Size);
 
       -- Request id
       Marshall(Buffer, Request_Id);
-
    end Fragment_Marshall;
 
    ----------------------------------
@@ -263,7 +245,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
    procedure Request_Message_Unmarshall
      ( Buffer            : access Buffer_Type;
-       Request_Id        : out Corba.Unisgned_Long;
+       Request_Id        : out CORBA.Unisgned_Long;
        Response_Expected : out Boolean;
        Object_Key        : out Objects.Object_Id;
        Operation         : out Requests.Operation_Id)
@@ -315,7 +297,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
 
    procedure Reply_Message_Unmarshall
       (Buffer       : access Buffer_Type;
-       Request_Id   : out Corba.Unsigned_Long;
+       Request_Id   : out CORBA.Unsigned_Long;
        Reply_Status : out Reply_Status_Type)
 
    is
@@ -340,7 +322,5 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
       Unmarshall(Reply_Status);
 
    end Reply_Message_Unmarshall;
-
-
 
 end Droopi.Protocols.GIOP.GIOP_1_1;

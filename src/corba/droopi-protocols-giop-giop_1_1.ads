@@ -54,7 +54,7 @@ package Droopi.Protocols.GIOP.GIOP_1_1  is
    procedure Exception_Marshall
     (Buffer           : access Buffer_Type;
      Request_Id       : in CORBA.Unsigned_Long;
-     Exception_Type   : in ReplyStatusType;
+     Exception_Type   : in Reply_Status_Type;
      Occurence        : in CORBA.Exception_Occurrence);
 
 
