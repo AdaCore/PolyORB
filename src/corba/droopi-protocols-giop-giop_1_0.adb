@@ -32,6 +32,7 @@ pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.Protocols.GIOP.GIOP_1_0 is
 
+   use Droopi.Objects;
 
    Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String
      := Ada.Strings.Unbounded.To_Unbounded_String ("nobody");
@@ -209,7 +210,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       Request_Id        : out CORBA.Unsigned_Long;
       Response_Expected : out Boolean;
       Object_Key        : out Objects.Object_id;
-      Operation         : out String)
+      Operation         : out CORBA.String)
    is
       use CORBA;
       Service_Context : CORBA.Unsigned_Long := Unmarshall (Buffer);
@@ -229,9 +230,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_0 is
       Response_Expected := Unmarshall (Buffer);
 
       --  Object Key
-
-      Object_Key := Unmarshall(Buffer);
-
+      declare
+         Obj : Stream_Element_Array := Unmarshall(Buffer);
+      begin
+         Object_Key := Object_Id(Obj);
+      end;
       --  Operation
       Operation :=  Unmarshall (Buffer);
 

@@ -258,9 +258,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
      ( Buffer            : access Buffer_Type;
        Request_Id        : out CORBA.Unsigned_Long;
        Response_Expected : out Boolean;
-       Object_Key        : out CORBA.String;
+       Object_Key        : out Objects.Object_Id;
        Operation         : out CORBA.String)
    is
+       use Droopi.Objects;
        Service_Context1  : CORBA.Unsigned_Long := Unmarshall (Buffer);
        Service_Context2  : CORBA.Unsigned_Long := Unmarshall (Buffer);
        Reserved          : CORBA.Octet;
@@ -288,7 +289,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_1 is
       end loop;
 
       --  Object Key
-      Object_Key := Unmarshall (Buffer);
+      declare
+         Obj : Stream_Element_Array := Unmarshall(Buffer);
+      begin
+         Object_Key := Object_Id(Obj);
+      end;
 
       -- Operation
       Operation :=  Unmarshall (Buffer);

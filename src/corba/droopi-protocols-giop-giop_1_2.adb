@@ -37,6 +37,7 @@ pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
+   use Droopi.Objects;
 
    --------------------------
    -- Marshall_GIOP_Header --
@@ -124,7 +125,8 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       case Target_Ref.Address_Type is
        when Key_Addr  =>
          Marshall(Buffer,
-          Binding_Data.Get_Object_Key(Target_Ref.Profile.all));
+          Stream_Element_Array
+             (Binding_Data.Get_Object_Key(Target_Ref.Profile.all)));
        when Profile_Addr  =>
          Marshall_IIOP_Profile_Body(Buffer, Target_Ref.Profile);
        when Reference_Addr  =>
@@ -310,7 +312,8 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       case Target_Ref.Address_Type is
        when Key_Addr =>
           Marshall(Buffer,
-          Binding_Data.Get_Object_Key(Target_Ref.Profile.all));
+           Stream_Element_Array(
+           Binding_Data.Get_Object_Key(Target_Ref.Profile.all)));
        when Profile_Addr =>
           Marshall_IIOP_Profile_Body
              (Buffer, Target_Ref.Profile);
@@ -382,7 +385,12 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
       case  Temp_Octet  is
          when 0  =>
-            Target_Ref := Target_Address'(Address_Type => Key_Addr, Object_Key => Unmarshall(Buffer));
+            declare
+              Obj: Stream_Element_Array :=  Unmarshall(Buffer);
+            begin
+              Target_Ref := Target_Address'(Address_Type => Key_Addr,
+                 Object_Key => new Object_Id'(Object_Id(Obj)));
+            end;
          when 1  =>
             Target_Ref := Target_Address'(Address_Type => Profile_Addr,
                    Profile  => Binding_Data.IIOP. Unmarshall_IIOP_Profile_Body(Buffer));
@@ -477,7 +485,13 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
       case  Temp_Octet  is
          when 0  =>
-            Target_Ref := Target_Address'(Address_Type => Key_Addr, Object_Key => Unmarshall(Buffer));
+            declare
+              Obj: Stream_Element_Array :=  Unmarshall(Buffer);
+            begin
+               Target_Ref := Target_Address'(Address_Type => Key_Addr,
+                 Object_Key => new Object_Id'(Object_Id(Obj)));
+            end;
+
          when 1  =>
             Target_Ref := Target_Address'(Address_Type => Profile_Addr,
                    Profile  => Binding_Data.IIOP. Unmarshall_IIOP_Profile_Body(Buffer));
