@@ -147,6 +147,7 @@ package body Broca.Refs is
 
    procedure Finalize (The_Ref : in out Ref) is
    begin
+      pragma Debug (O ("Finalize : enter"));
       if The_Ref.A_Ref /= null then
          Dec_Usage (The_Ref.A_Ref);
       end if;

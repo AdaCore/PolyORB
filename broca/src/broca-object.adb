@@ -40,7 +40,7 @@ with Broca.Debug;
 
 package body Broca.Object is
 
-   Flag : constant Natural := Broca.Debug.Is_Active ("broca.refs");
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.object");
    procedure O is new Broca.Debug.Output (Flag);
 
    --------------

@@ -289,7 +289,7 @@ package body Broca.Buffers is
         (Iovec_Pool => Buffer.Contents,
          An_Iovec   => Data_Iovec);
       Buffer.CDR_Position := Buffer.CDR_Position + Size;
-      Buffer.Length := Buffer.Length;
+      Buffer.Length := Buffer.Length + Size;
    end Insert_Raw_Data;
 
    procedure Allocate_And_Insert_Cooked_Data
@@ -395,8 +395,8 @@ package body Broca.Buffers is
                        & Endianness_Type'Image (Buffer.Endianness)
                        & " buffer, CDR position is "
                        & Index_Type'Image
-                       (Buffer.CDR_Position) & " (of" &
-                       Index_Type'Image (Buffer.Length) & ")"));
+                       (Buffer.CDR_Position) & " (length is" &
+                       Buffer.Length'Img & ")"));
 
       Show (Iovec_Pools.Dump (Buffer.Contents));
    end Show;

@@ -29,9 +29,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Command_Line;            use Ada.Command_Line;
 with Ada.Exceptions;              use Ada.Exceptions;
 with Ada.Text_IO;
+with Ada.Strings.Unbounded;
+with GNAT.Command_Line;           use GNAT.Command_Line;
 with Menu;                        use Menu;
 
 with CORBA;
@@ -54,7 +55,7 @@ with File.Helper;
 with Naming_Tools;                 use Naming_Tools;
 
 with Broca.Server_Tools;
-pragma Elaborate (Broca.Server_Tools);
+with Broca.GIOP;
 
 procedure Test_Naming is
 
@@ -313,39 +314,111 @@ procedure Test_Naming is
    Back    : Name := To_Name (new String'(".."));
    Here    : Name := To_Name (new String'("."));
    Cmmd    : Command;
+   Register_Service : Boolean := False;
+
+   procedure Bind_Self
+      (Self : CosNaming.NamingContext.Ref;
+       As   : String)
+   is
+      As_Name : Name := To_Name (new String'(As));
+   begin
+      Bind_Context (Self, As_Name, Self);
+   exception
+      when E : others =>
+         Ada.Text_IO.Put ("Warning: could not bind " & As & ": ");
+         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
+   end Bind_Self;
 
 begin
    Broca.Server_Tools.Initiate_Server;
+   begin
+      Initialize_Option_Scan ('-', False, "");
 
-   if Argument_Count > 0 and then Argument (1) = "-i" then
-      begin
-         Ada.Text_IO.Put ("retrieving root directory initial reference...");
-         Ada.Text_IO.Flush;
-         WDR := NamingContext.Helper.To_Ref
-           (CORBA.ORB.Resolve_Initial_References
-            (CORBA.ORB.To_CORBA_String ("NamingService")));
-         Ada.Text_IO.Put_Line (" done");
-      exception
-         when others =>
-            Ada.Text_IO.Put_Line ("error");
-            raise;
-      end;
-   elsif Argument_Count > 0 and then Argument (1) = "-n" then
-      begin
-         Ada.Text_IO.Put ("locating main service by name...");
-         Ada.Text_IO.Flush;
-         WDR := NamingContext.Helper.To_Ref (Locate (Test_Name));
-         Ada.Text_IO.Put_Line (" done");
-      exception
-         when others =>
-            Ada.Text_IO.Put_Line (" error");
-            raise;
-      end;
-   else
+      loop
+         case Getopt ("i n s I: p:") is
+            when ASCII.Nul =>
+               exit;
+
+            when 's' =>
+               Register_Service := True;
+
+            when 'i' =>
+               begin
+                  Ada.Text_IO.Put ("retrieving root directory initial reference...");
+                  Ada.Text_IO.Flush;
+                  if not Is_Nil (WDR) then
+                     raise Program_Error;
+                  end if;
+                  WDR := NamingContext.Helper.To_Ref
+                    (CORBA.ORB.Resolve_Initial_References
+                     (CORBA.ORB.To_CORBA_String ("NamingService")));
+                  Ada.Text_IO.Put_Line (" done");
+               exception
+                  when others =>
+                     Ada.Text_IO.Put_Line ("error");
+                     raise;
+               end;
+
+            when 'I' =>
+               begin
+                  Ada.Text_IO.Put ("locating main service by IOR...");
+                  Ada.Text_IO.Flush;
+                  if not Is_Nil (WDR) then
+                     raise Program_Error;
+                  end if;
+                  CORBA.ORB.String_To_Object
+                    (CORBA.To_CORBA_String (Parameter), WDR);
+                  Ada.Text_IO.Put_Line (" done");
+               exception
+                  when others =>
+                     Ada.Text_IO.Put_Line (" error");
+                     raise;
+               end;
+
+            when 'n' =>
+               begin
+                  Ada.Text_IO.Put ("locating main service by name...");
+                  Ada.Text_IO.Flush;
+                  if not Is_Nil (WDR) then
+                     raise Program_Error;
+                  end if;
+
+                  WDR := NamingContext.Helper.To_Ref (Locate (Test_Name));
+                  Ada.Text_IO.Put_Line (" done");
+               exception
+                  when others =>
+                     Ada.Text_IO.Put_Line (" error");
+                     raise;
+               end;
+
+            when 'p' =>
+               Broca.GIOP.Set_Default_Principal
+                 (Ada.Strings.Unbounded.To_Unbounded_String (Parameter));
+
+            when others =>
+               --  This never happens.
+               raise Program_Error;
+         end case;
+      end loop;
+
+   exception
+      when Invalid_Switch    =>
+         Ada.Text_IO.Put_Line
+           (Ada.Text_IO.Current_Error, "Invalid Switch " & Full_Switch);
+         Usage;
+      when Invalid_Parameter =>
+         Ada.Text_IO.Put_Line
+           (Ada.Text_IO.Current_Error, "No parameter for " & Full_Switch);
+         Usage;
+   end;
+
+   if Is_Nil (WDR) then
       Ada.Text_IO.Put_Line ("creating root directory");
       Broca.Server_Tools.Servant_To_Reference
         (PortableServer.Servant (NamingContext.Impl.Create), WDR);
-      if Argument_Count > 0 and then Argument (1) = "-s" then
+
+      if Register_Service then
          Ada.Text_IO.Put ("registering main service by name...");
          Ada.Text_IO.Flush;
          begin
@@ -359,13 +432,8 @@ begin
       end if;
    end if;
 
-   begin
-      Bind_Context (WDR, Here, WDR);
-      Bind_Context (WDR, Back, WDR);
-   exception
-      when others =>
-         null;
-   end;
+   Bind_Self (WDR, ".");
+   Bind_Self (WDR, "..");
 
    loop
       Argc := Count;

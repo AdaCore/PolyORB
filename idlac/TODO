@@ -1,25 +1,43 @@
-* parenthetized expressions
-* constant reduction (computation)
-* warnings for impossible mapping (interface post reference, inter module ref)
-* warning for identifier clash (Returns, TC_, IDL_, Context, Set_, Get_,
-	_Array, _Declarator ...)
-* indentifiers case.
-* handling of comments
-* handling of pragmas
-* logical filename, line number.
-* GNAT output
-* tokens: check all tokens
-* parse: adding remaining rules.
-* interfaces (scope, sem during parse, inheritance).
-* convert a file name into an Ada identifier, this is needed for file package.
-* attribute/argument if the enclosing interface type.
-* indentation of output.
-* flags for ada: always generate file package.
-* literal mapping (base, fp, fixed, char, string...)
-* add comments about generated code.
-* add blank lines.
-* expansion: (see README.Expansion)
-* code generation:
-  - Repository_Id;
-  - Is_A;
-  - native types.
+These are some points to be implemented or improved in idlac :
+
+	- the token T_ERROR is not taken into account in the parser. It creates parser errors while the error in only in the lexer.
+
+
+	- the parsing of sequences is not completly done. Some tricky cases are not taken into account. The problem is the following code :
+		const long r = 5;
+		interface Bug {
+			typedef sequence <sequence <long, 5 >> r >> s;
+		}
+the first ">>" is not well understood since it is difficult to know whether it is the name of the type (r could be overloaded) or the second operand of the >> operation. Some code is to be added in parse_sequence_type in idl_fe-parser.adb.
+
+
+	- all_errors.idl is not complete.
+
+
+	- the types Idl_Integer and Idl_Float should have an unlimited precision. It is not the case and moreover, there is no check on the length of the entry in the functions get_integer, get_float and get_fixed of idl_fe-parser.idl
+
+
+	- in the value definitions, some special cases are not correctly handled :
+		- you should not be able to overload an operation or an attribute
+		- the support of interfaces is badly managed : clashes between attributes or operations are not detected
+		- you should not be able to overload a factory or a member
+
+
+	- I'm not sure that the ranges of the types float, double and long double are right. To be checked using paragraph 3.10.1.2 of the specification.
+
+
+	- some useless cases in switch statement are potentially not detected (for example case 1, default : ...)
+
+
+	- there is no verification that all the cases of a switch are distincts. There was some code written to handle a list of all values already used in a given switch statement. But this was never used. You can find this code after the lines :
+   ---------------------------------
+   --  Management of expressions  --
+   ---------------------------------
+in idl_fe-parser.adb and idl_fe-parser.ads.
+
+
+	- some FIXMES were left in the code (5 at this moment). They explain the problem
+
+	- the function Img for constant_value_ptr in utils.adb does only work for integers
+
+	- merge torture and all_definitions examples.

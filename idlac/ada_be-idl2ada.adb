@@ -190,7 +190,7 @@ package body Ada_Be.Idl2Ada is
 
          when others =>
             raise Program_Error;
-            --  should never happen
+            --  Should never happen
       end case;
    end Gen_Scope;
 
@@ -269,6 +269,7 @@ package body Ada_Be.Idl2Ada is
       if not Abst (Node) then
          --  Value_Impl type
          Value_Impl.Gen_Node_Spec (Value_Impl_Spec, Node);
+         Value_Impl.Gen_Node_Body (Value_Impl_Body, Node);
          Suppress_Warning_Message (Value_Impl_Body);
 
          --  value_skel package
@@ -1554,9 +1555,10 @@ package body Ada_Be.Idl2Ada is
    end Gen_Node_Stubs_Spec;
 
 
-   ---------------------------
-   --  Gen_Node_Stubs_Body  --
-   ---------------------------
+   --------------------------
+   -- Gen_Node_Stubs_Body  --
+   --------------------------
+
    procedure Gen_Node_Stubs_Body
      (CU   : in out Compilation_Unit;
       Node : Node_Id) is
@@ -1739,6 +1741,8 @@ package body Ada_Be.Idl2Ada is
 
                else
                   PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
+                  --  FIXME: Got a reply when none is expected.
+                  --    What to do?
                   PL (CU, "raise Program_Error;");
                end if;
 
@@ -1806,8 +1810,14 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "end if;");
                   end loop;
                end;
+
                PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
-               PL (CU, "raise Program_Error;");
+               NL (CU);
+               PL (CU, "--  A user exception was raise, but it is not");
+               PL (CU, "--  listed in this operation's ""raises"" clause.");
+               NL (CU);
+               PL (CU, "Broca.Exceptions.Raise_Unknown");
+               PL (CU, "  (Status => CORBA.Completed_Maybe);");
 
                if not Is_Empty (Raises (Node)) then
                   DI (CU);
@@ -2105,6 +2115,9 @@ package body Ada_Be.Idl2Ada is
          when K_Lit_String =>
             Put (CU, String_Value (Node));
 
+         when K_Lit_Character =>
+            Put (CU, Img (Character_Value (Node)));
+
          when K_Lit_Integer =>
             Put (CU, Img (Integer_Value (Node)));
 
@@ -2367,13 +2380,23 @@ package body Ada_Be.Idl2Ada is
             Add_With (CU, Ada_Full_Name (Node) & Stream.Suffix,
                       Use_It => True);
 
-         when K_Forward_Interface
-           | K_Forward_ValueType
-           | K_Boxed_ValueType   =>
+         when K_Forward_Interface =>
             Add_With (CU, "Broca.CDR", Use_It => True);
             Add_With (CU, Ada_Full_Name (Parent_Scope (Node))
                       & Stream.Suffix,
                       Use_It => True);
+
+         when K_Forward_ValueType =>
+            Add_With (CU, "Broca.CDR", Use_It => True);
+            Add_With (CU, Ada_Full_Name (Parent_Scope (Node))
+                      & Stream.Suffix,
+                      Use_It => True);
+
+         when K_Boxed_ValueType   =>
+            Add_With (CU, "Broca.CDR", Use_It => True);
+            Add_With (CU, Parent_Scope_Name (Node) & Stream.Suffix,
+                      Use_It => True);
+
          when
            K_Enum              |
            K_Union             |
@@ -2556,6 +2579,11 @@ package body Ada_Be.Idl2Ada is
 
       if Response_Expected then
          PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
+         --  FIXME: Got no reply when one is expected.
+         --    What to do? (see also similar comment in
+         --    Gen_Node_Stubs_Body / K_Operation for
+         --    the opposed problem: got a reply when
+         --    none is expected.)
          PL (CU, "raise Program_Error;");
       else
          PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");

@@ -1,3 +1,4 @@
+EXAMPLES_ROOT=..
 EXAMPLE = all_functions
 
 EXTRA = dynclient

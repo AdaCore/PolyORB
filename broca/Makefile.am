@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 ACLOCAL_AMFLAGS = -I support
-SUBDIRS = idlac $(ADASOCKETSDIR) src examples cos
+SUBDIRS = idlac idls $(ADASOCKETSDIR) src cos examples man
 CLEANFILES = config-stamp
 
 if HAS_ADASOCKETS

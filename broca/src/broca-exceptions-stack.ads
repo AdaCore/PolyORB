@@ -38,10 +38,14 @@ package Broca.Exceptions.Stack is
    procedure Get_Members
      (Exc_Occ : in CORBA.Exception_Occurrence;
       Exc_Mbr : out IDL_Exception_Members'Class);
-   --  Find the member object associated to a given exception. Remove
-   --  it from the stack and any other member whose corresponding
-   --  exception was thrown after this one. Raise CORBA.Imp_Limit if
+   --  Find the members object associated to a given exception occurrence.
+   --  Remove it from the stack and return it. Raise CORBA.Imp_Limit if
    --  the members are not in this stack.
+
+   procedure Purge_Members
+     (Exc_Occ : in CORBA.Exception_Occurrence);
+   --  Remove the members object associated to a given exception occurrence.
+   --  No exception is raised.
 
    procedure Raise_Exception
      (Exc_Id  : in Ada.Exceptions.Exception_Id;

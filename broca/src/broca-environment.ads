@@ -44,6 +44,9 @@ package Broca.Environment is
    --     (2) For every lookup, the environment is searched first then the
    --         configuration file is used. This way, a user can override the
    --         values present in the file with environment variables.
+   --  Each time a resolved value starts with file:, the content of the file
+   --  is used instead. This is not used for ADABROKER_CONF as it has to be
+   --  a file.
 
    Default_Filename  : constant String := "/etc/adabroker.conf";
    Filename_Variable : constant String := "ADABROKER_CONF";
@@ -54,8 +57,10 @@ package Broca.Environment is
 
    Naming_Host         : constant String := "ADABROKER_NAMING_HOST";
    Naming_Port         : constant String := "ADABROKER_NAMING_PORT";
+   Naming_IOR          : constant String := "ADABROKER_NAMING_IOR";
    Naming_Host_Default : constant String := "localhost";
    Naming_Port_Default : constant String := "4161";
+   Naming_IOR_Default  : constant String := "";
    --  Naming_Host is used to locate the COSNaming service from within
    --  Resolve_Initial_Reference. Naming_Port is used for creating and
    --  locating the COSNaming service from Register_Initial_Reference and
@@ -67,5 +72,9 @@ package Broca.Environment is
    --  Port to use for an internet server. If none is specified, Port_Default
    --  is used unless it is "0", in which case an system-assigned
    --  one will be used.
+
+   Principal           : constant String := "ADABROKER_PRINCIPAL";
+   Principal_Default   : constant String := "";
+   --  Default principle file to use. Useful for gnome.
 
 end Broca.Environment;

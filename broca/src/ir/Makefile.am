@@ -56,7 +56,7 @@ GNATMAKE_FLAGS=	-I${srcdir} -I.. -I${srcdir}/.. ${ADASOCKETS_INCLUDE} \
 
 IDLAC= ../../idlac/idlac
 
-NAMING= -I${srcdir}/../../cos/naming
+NAMING= -I../../idls/cos/naming -I${srcdir}/../../cos/naming
 
 if ENABLE_IR
 all-local: server client print
@@ -83,6 +83,3 @@ print: print.adb ${SOURCE} ${DEP} force
 .PHONY: force
 
 force:
-
-
-

@@ -1,6 +1,7 @@
 with Broca.Exceptions;
 with Broca.Soft_Links;
-with Broca.Repository;
+with Ada.Characters.Handling;
+with CORBA;
 
 --  A store to register operations with RepositoryIds
 
@@ -16,6 +17,28 @@ package body Broca.Operation_Store is
    end record;
 
    The_Store : Operation_Store_Ptr := null;
+
+   --------------------
+   --  Is_Equivalent --
+   --------------------
+   function Is_Equivalent
+     (RI1 : in CORBA.RepositoryId;
+      RI2 : in CORBA.RepositoryId)
+      return Boolean;
+   --  copied from broca.Repository to avaoid circular
+   --  dependancy
+   function Is_Equivalent
+     (RI1 : in CORBA.RepositoryId;
+      RI2 : in CORBA.RepositoryId)
+      return Boolean
+   is
+      use CORBA;
+      use Ada.Characters.Handling;
+   begin
+      return To_Lower (To_Standard_String (RI1))
+        = To_Lower (To_Standard_String (RI2));
+   end Is_Equivalent;
+
 
    ------------------------
    -- Register_Operation --
@@ -64,7 +87,7 @@ package body Broca.Operation_Store is
       Temp := The_Store;
       Broca.Soft_Links.Enter_Critical_Section;
       while Temp /= null loop
-         exit when Broca.Repository.Is_Equivalent (Temp.RepoId, RepoId);
+         exit when Is_Equivalent (Temp.RepoId, RepoId);
          Temp := Temp.Next;
       end loop;
       if Temp = null then

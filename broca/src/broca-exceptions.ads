@@ -50,16 +50,20 @@ package Broca.Exceptions is
    --  Declarations for user exceptions.  --
    -----------------------------------------
 
-   --  Extract members from an exception occurence.
    procedure User_Get_Members
      (Occurrence : in CORBA.Exception_Occurrence;
       Members    : out CORBA.IDL_Exception_Members'Class);
+   --  Extract members from an exception occurence
 
-   --  Raise an user exception.
+   procedure User_Purge_Members
+     (Occurrence : in CORBA.Exception_Occurrence);
+   --  Forget exception members associated with an exception occurrence
+
    procedure User_Raise_Exception
      (Id      : in Ada.Exceptions.Exception_Id;
       Members : in CORBA.IDL_Exception_Members'Class);
    pragma No_Return (User_Raise_Exception);
+   --  Raise a user exception
 
    -------------------------------------------
    --  Declarations for system exceptions.  --
@@ -91,67 +95,64 @@ package Broca.Exceptions is
      constant array (Completion_Status) of CORBA.Unsigned_Long
      := (Completed_Yes => 0, Completed_No => 1, Completed_Maybe => 2);
 
-   -------------------------------------------
-   --  Utilities to raise System Exceptions --
-   -------------------------------------------
+   ------------------------------------------
+   -- Utilities to raise System Exceptions --
+   ------------------------------------------
 
-   --  Raise CORBA.bad_param with minor = 0.
-   procedure Raise_Bad_Param (Minor : CORBA.Unsigned_Long := 0;
-                              Status : Completion_Status := Completed_No);
+   procedure Raise_Unknown (Minor : Unsigned_Long := 0;
+                            Status : Completion_Status := Completed_No);
+   pragma No_Return (Raise_Unknown);
+
+   procedure Raise_Bad_Param
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_Param);
 
-   --  Raise CORBA.marshal with minor = 0.
-   procedure Raise_Marshal (Minor : CORBA.Unsigned_Long := 0;
-                            Status : Completion_Status := Completed_No);
+   procedure Raise_Marshal
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Marshal);
 
-   --  Raise CORBA.comm_failure with minor = 0.
-   procedure Raise_Comm_Failure (Minor : CORBA.Unsigned_Long := 0;
-                                 Status : Completion_Status := Completed_No);
+   procedure Raise_Comm_Failure
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Comm_Failure);
 
-   --  Raise CORBA.inv_objref with minor = 0.
-   procedure Raise_Inv_Objref (Minor : CORBA.Unsigned_Long := 0;
-                               Status : Completion_Status := Completed_No);
+   procedure Raise_Inv_Objref
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Inv_Objref);
 
-   --  Raise CORBA.object_not_exist with minor = 0.
    procedure Raise_Object_Not_Exist
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Object_Not_Exist);
 
-   --  Raise CORBA.obj_adapter with minor = 0.
    procedure Raise_Obj_Adapter
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Obj_Adapter);
 
-   --  Raise CORBA.bad_operation with minor = 0.
    procedure Raise_Bad_Operation
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_Operation);
 
-   --  Raise CORBA.transient with minor = 0.
    procedure Raise_Transient
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Transient);
 
-   --  Raise CORBA.no_implement with minor = 0.
    procedure Raise_No_Implement
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_No_Implement);
 
-   --  Raise CORBA.internal
    procedure Raise_Internal
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Internal);
 
-   --  Raise_Imp_Limit
    procedure Raise_Imp_Limit (Minor : Unsigned_Long := 0;
                               Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Imp_Limit);
@@ -161,8 +162,9 @@ package Broca.Exceptions is
                                   Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_Inv_Order);
 
-   procedure Raise_Bad_TypeCode  (Minor : CORBA.Unsigned_Long := 0;
-                                  Status : Completion_Status := Completed_No);
+   procedure Raise_Bad_TypeCode
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_TypeCode);
 
 end Broca.Exceptions;

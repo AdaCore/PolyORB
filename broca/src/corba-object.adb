@@ -107,12 +107,14 @@ package body CORBA.Object is
               (Handler, Self_Ref, True, Send_Request_Result);
 
             case Send_Request_Result is
+
                when Broca.GIOP.Sr_No_Reply =>
                   Broca.GIOP.Release (Handler);
-                  Broca.GIOP.Release (Handler);
                   raise Program_Error;
+
                when Broca.GIOP.Sr_Forward =>
                   null;
+
                when Broca.GIOP.Sr_Reply =>
 
                   --  Unmarshall return value.
@@ -120,9 +122,11 @@ package body CORBA.Object is
 
                   Broca.GIOP.Release (Handler);
                   return Returns;
+
                when Broca.GIOP.Sr_User_Exception =>
                   Broca.GIOP.Release (Handler);
-                  raise Program_Error;
+                  Broca.Exceptions.Raise_Unknown
+                    (Status => Completed_Maybe);
             end case;
          end loop;
       end;

@@ -43,6 +43,9 @@ pragma Elaborate_All (Sequences.Unbounded.Search);
 
 with Broca.Buffers;  use Broca.Buffers;
 
+with Broca.Operation_Store;
+pragma Elaborate_All (Broca.Operation_Store);
+
 with Broca.Value.Operation_Store;
 pragma Elaborate_All (Broca.Value.Operation_Store);
 
@@ -91,17 +94,23 @@ package Broca.Value.Stream is
    --  A match is found when the Object_Ptr is the same, ie when
    --  the two refs reference the same object.
 
+   function Match (Item : in Indirection_Element;
+                   Needle : in CORBA.Long) return Standard.Boolean;
+
    package Indirection_Seq is new Sequences.Unbounded (Indirection_Element);
    package ISeq renames Indirection_Seq;
 
    package ISS_Ptr is new ISeq.Search (CORBA.AbstractBase.Ref, Match);
-
+   package ISS_Offset is new ISeq.Search (CORBA.Long, Match);
    --  Store for Marshall operation
    --------------------------------
    type Marshall_Type is access
      procedure (Buffer : access Buffer_Type;
                 Val    : in CORBA.Impl.Object_Ptr;
-                Already_Marshalled : in out ISeq.Sequence);
+                Already_Marshalled : in out ISeq.Sequence;
+                Formal : in CORBA.RepositoryId;
+                Only_Members : in Boolean;
+                Nesting_Depth : in CORBA.Long);
 
    package Marshall_Store is
       new Broca.Value.Operation_Store (Marshall_Type);
@@ -111,11 +120,14 @@ package Broca.Value.Stream is
    ----------------------------------
    type Unmarshall_Fields_Type is access procedure
      (Buffer : access Buffer_Type;
-      Result : out CORBA.Value.Base'Class;
-      Already_Unmarshalled : in out ISeq.Sequence);
+      Result : in out CORBA.Value.Base'Class;
+      Already_Unmarshalled : in out ISeq.Sequence;
+      With_Chunking : in Boolean;
+      Nesting_Depth : in CORBA.Long;
+      Closing_Tag_Read : out CORBA.Long);
 
    package Unmarshall_Fields_Store is
-     new Broca.Value.Operation_Store (Unmarshall_Fields_Type);
+     new Broca.Operation_Store (Unmarshall_Fields_Type);
    --  registered with ref tag
 
    --  Utility subprograms
@@ -145,16 +157,31 @@ package Broca.Value.Stream is
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Value.Base'Class;
-      Already_Marshalled : in out ISeq.Sequence);
+      Formal : in CORBA.RepositoryId;
+      Already_Marshalled : in out ISeq.Sequence;
+      Nesting_Depth : in CORBA.Long);
 
 
    procedure Unmarshall
      (Buffer : access Buffer_Type;
-      Data   : out CORBA.Value.Base'Class);
+      Formal : in CORBA.RepositoryId;
+      Result   : in out CORBA.Value.Base'Class);
+
 
    procedure Unmarshall
      (Buffer : access Buffer_Type;
-      Data   : out CORBA.Value.Base'Class;
-      Already_Unmarshalled : in out ISeq.Sequence);
+      Formal : in CORBA.RepositoryId;
+      Result : in out CORBA.Value.Base'Class;
+      Already_Unmarshalled : in out ISeq.Sequence;
+      With_Chunking : in Boolean;
+      Nesting_Depth : in CORBA.Long;
+      Closing_Tag_Read : out CORBA.Long);
+
+   procedure Append
+     (Buffer : access Buffer_Type;
+      Already_Unmarshalled : in out ISeq.Sequence;
+      Data : in CORBA.Value.Base'Class);
+   --  Appends a freshly unmarshalled object to the
+   --  Already_Unmarshalled list
 
 end Broca.Value.Stream;

@@ -29,6 +29,11 @@
 
 with Ada.Tags;
 with Ada.Command_Line;
+with Ada.Interrupts; use Ada.Interrupts;
+with Ada.Interrupts.Names;
+
+with Handler;
+
 with CORBA; use CORBA;
 with CORBA.ORB;
 with CORBA.Object;
@@ -57,8 +62,9 @@ with CosNaming.NamingContext;
 with Ada.Text_IO; use Ada.Text_IO;
 
 with StringSeq;
+with Interfaces.C;
 
-procedure Server_Plus is
+procedure Server is
 
    procedure Create_Operation (Rep : Repository.Ref;
                                Int : in InterfaceDef_Forward.Ref;
@@ -118,6 +124,20 @@ procedure Server_Plus is
      := new Calculators.Calculator_Plus.Impl.Object;
    package IDS renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
 
+   --  this task is waiting for a SIGINT and removes
+   --  this server from the naming service when it occurs
+   task Wait_SIGINT;
+   task body Wait_SIGINT is
+      procedure Quit (I : in Interfaces.C.int);
+      pragma Import (C, quit, "exit");
+   begin
+      Handler.Handle_Kill.Wait;
+      Put_Line ("Removing this server from cosnaming");
+      Naming_Tools.Unregister ("calculators/calculator_plus");
+      Put_Line ("Thank you for using our servers.");
+      Quit (Interfaces.C.Int (2));
+   end;
+
    Myrep : Repository.Ref;
    Look_Is_Nil : Boolean;
 begin
@@ -170,15 +190,6 @@ begin
       begin
          Look := Repository.Lookup_Id (Myrep,
                                        To_CORBA_String ("IDL:calculators/calculator_plus:1.0"));
-         Look_Is_Nil := Contained.Is_Nil (Look);
-         --  This is a work-around to supply a bug of the ORB
-      exception
-         when others =>
-            Look_Is_Nil := True;
-      end;
-      begin
-         Look := Repository.Lookup_Id (Myrep,
-                                       To_CORBA_String ("IDL:calculators/simple_calculator:1.0"));
          Look_Is_Nil := Contained.Is_Nil (Look);
          --  This is a work-around to supply a bug of the ORB
       exception
@@ -332,6 +343,12 @@ begin
          Naming_Tools.Register ("calculators/calculator_plus", Ref, Rebind => True);
    end;
 
+   --------------------------------
+   --  Unregister to the naming  --
+   --------------------------------
+   --  deal with the SIGINT Signal
+   Attach_Handler (Handler.Handle_Kill.Response'Access,
+                   Names.SIGINT);
 
    ----------------------
    --  Run the server  --
@@ -348,5 +365,4 @@ exception
          Put_Line (Unsigned_Long'Image (Memb.Minor));
       end;
 
-end Server_Plus;
-
+end Server;

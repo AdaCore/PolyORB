@@ -90,9 +90,9 @@ package body Broca.Server_Tools is
    -- Initiate_Server --
    ---------------------
 
-   procedure Initiate_Server is
+   procedure Initiate_Server (Start_New_Task : Boolean := True)
+   is
       ORBMainLoop : ORBTaskPtr;
-
    begin
       Broca.Inet_Server.Ensure_Started;
 
@@ -102,7 +102,12 @@ package body Broca.Server_Tools is
 
       PortableServer.POAManager.Activate
         (PortableServer.POA.Get_The_POAManager (Root_POA));
-      ORBMainLoop := new ORBTask;
+
+      if Start_New_Task then
+         ORBMainLoop := new ORBTask;
+      else
+         CORBA.ORB.Run;
+      end if;
    end Initiate_Server;
 
    ----------------------

@@ -222,8 +222,9 @@ package body PortableServer is
       Info : Skeleton_Info;
 
    begin
-      pragma Debug (O ("GIOP_Dispatch"));
+      pragma Debug (O ("GIOP_Dispatch : enter"));
       Info := Find_Info (For_Servant);
+      pragma Debug (O ("GIOP_Dispatch : info found"));
       Info.Dispatcher
         (For_Servant,
          Operation,
@@ -231,11 +232,13 @@ package body PortableServer is
          Response_Expected,
          Request_Buffer,
          Reply_Buffer);
+      pragma Debug (O ("GIOP_Dispatch : dispatcher called"));
    exception
       when Skeleton_Unknown =>
          pragma Debug (O ("Skeleton is unknown"));
          Broca.Exceptions.Raise_Bad_Operation;
       when others =>
+         pragma Debug (O ("GIOP_Dispatch : exception raised"));
          raise;
    end GIOP_Dispatch;
 

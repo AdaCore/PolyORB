@@ -1,0 +1,22 @@
+module tvtforward {
+
+  valuetype first;
+
+  valuetype second {
+    public first att;
+    public long l; 
+  };
+
+  valuetype first {
+    public string s;
+    public second att;
+
+    factory create (in long l, in string s);
+    void print();
+  };
+
+  interface main {
+    second sendSecond (in first f);
+  };
+  
+};

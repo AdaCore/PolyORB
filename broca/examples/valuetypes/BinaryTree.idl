@@ -1,4 +1,4 @@
-module ExampleA {
+module BinaryTree {
 
 	typedef sequence<unsigned long> WeightSeq;
 

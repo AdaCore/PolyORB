@@ -61,11 +61,12 @@ with Broca.Locks;
 with Broca.GIOP;
 with Broca.Task_Attributes;
 
-pragma Elaborate_All (CORBA.Object);
-pragma Elaborate_All (Broca.Vararray);
-pragma Elaborate_All (Broca.Refs);
-pragma Elaborate_All (Broca.Server);
+pragma Elaborate (Broca.Refs);
+pragma Elaborate (CORBA.Object);
+pragma Elaborate (Broca.Server);
+
 pragma Elaborate_All (Broca.POA);
+pragma Elaborate_All (Broca.Vararray);
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
@@ -1333,6 +1334,11 @@ package body Broca.RootPOA is
                Response_Expected, Message, Reply);
             pragma Debug (O ("GIOP_Invoke: giop_dispatch returned"));
          exception
+
+            --  CORBA user exceptions are caught in GIOP_Dispatch:
+            --  only system and unknown exceptions are propagated
+            --  up to this point.
+
             when E : others =>
                pragma Debug (O ("GIOP_Invoke: system exception " &
                                 Ada.Exceptions.Exception_Name (E)));
@@ -1342,7 +1348,24 @@ package body Broca.RootPOA is
                   Broca.CDR.Marshall (Reply, Request_Id);
                   Broca.GIOP.Marshall
                     (Reply, Broca.GIOP.System_Exception);
-                  Broca.CDR.Marshall (Reply, E);
+
+                  begin
+                     Broca.CDR.Marshall (Reply, E);
+                  exception
+                     when others =>
+
+                        --  An exception was raised will trying to marshall
+                        --  an exception: marshall UNKNOWN instead.
+
+                        begin
+                           Broca.Exceptions.Raise_Unknown
+                             (Status => CORBA.Completed_Maybe);
+                        exception
+                           when E : others =>
+                              Broca.CDR.Marshall (Reply, E);
+                        end;
+
+                  end;
                end if;
          end;
 
@@ -1363,15 +1386,21 @@ package body Broca.RootPOA is
          POA_Manager_Ptr (Self.POA_Manager).State.Dec_Usage;
 
       exception
-         when others =>
+         when OtExcep : others =>
+         pragma Debug (O ("GIOP_Invoke : inner exception caught: "
+                          & Ada.Exceptions.Exception_Name (OtExcep)
+                          &", reraising it"));
             if Self.Servant_Policy = RETAIN then
                Self.Object_Map (Slot).Requests_Lock.Unlock_R;
             end if;
             raise;
       end;
-
+      pragma Debug (O ("GIOP_Invoke : end"));
    exception
-      when others =>
+      when OE : others =>
+         pragma Debug (O ("GIOP_Invoke : exception caught: "
+                          & Ada.Exceptions.Exception_Name (OE)
+                          &", reraising it"));
          Self.Requests_Lock.Unlock_R;
          POA_Manager_Ptr (Self.POA_Manager).State.Dec_Usage;
          raise;

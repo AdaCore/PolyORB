@@ -167,9 +167,8 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
    is
       Result : CORBA.Boolean;
    begin
-
       --  Insert implementation of is_a
-
+      raise Program_Error;
       return Result;
    end is_a;
 
@@ -232,23 +231,24 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
 
 
    function create_operation
-     (Self : access Object;
-      id : in CORBA.RepositoryId;
-      name : in CORBA.Identifier;
-      version : in CORBA.Repository_Root.VersionSpec;
+     (Self       : access Object;
+      id         : in CORBA.RepositoryId;
+      name       : in CORBA.Identifier;
+      version    : in CORBA.Repository_Root.VersionSpec;
       IDL_result : in CORBA.Repository_Root.IDLType.Ref;
-      mode : in CORBA.Repository_Root.OperationMode;
-      params : in CORBA.Repository_Root.ParDescriptionSeq;
+      mode       : in CORBA.Repository_Root.OperationMode;
+      params     : in CORBA.Repository_Root.ParDescriptionSeq;
       exceptions : in CORBA.Repository_Root.ExceptionDefSeq;
-      contexts : in CORBA.Repository_Root.ContextIdSeq)
-     return CORBA.Repository_Root.OperationDef.Ref
-   is
+      contexts   : in CORBA.Repository_Root.ContextIdSeq)
+     return CORBA.Repository_Root.OperationDef.Ref is
    begin
-      if not Check_Structure (Self, Dk_Operation) or
-        not Check_Id (Self, Id) or
-        not Check_Name (Self, Name) then
+      if not (Check_Structure (Self, Dk_Operation)
+        and then Check_Id (Self, Id)
+        and then Check_Name (Self, Name))
+      then
          return (CORBA.Object.Nil_Ref with null record);
       end if;
+
       declare
          Result : CORBA.Repository_Root.OperationDef.Ref;
          Obj : OperationDef.Impl.Object_Ptr := new OperationDef.Impl.Object;

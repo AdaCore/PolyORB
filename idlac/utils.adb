@@ -32,6 +32,15 @@ package body Utils is
    -- Img --
    ---------
 
+   function Img (N : Character) return String is
+   begin
+      return (1 => N);
+   end Img;
+
+   ---------
+   -- Img --
+   ---------
+
    function Img (N : Long_Long_Integer) return String is
       S : constant String := Long_Long_Integer'Image (N);
    begin
@@ -131,6 +140,55 @@ package body Utils is
          Integer_Address := Integer_Address / 16;
       end loop;
       return Result;
+   end Img;
+
+   ---------
+   -- Img --
+   ---------
+
+   function Img (A : Constant_Value_Ptr) return String is
+   begin
+      case A.all.Kind is
+         when C_Octet
+           | C_Short
+           | C_Long
+           | C_LongLong
+           | C_UShort
+           | C_ULong
+           | C_ULongLong
+           | C_General_Integer =>
+            return Img (A.all.Integer_Value);
+         when C_Char =>
+            --  FIXME : not a correct image
+            return "";
+         when C_WChar =>
+            --  FIXME : not a correct image
+            return "";
+         when C_Boolean =>
+            --  FIXME : not a correct image
+            return "";
+         when C_Float
+           | C_Double
+           | C_LongDouble
+           | C_General_Float =>
+            --  FIXME : not a correct image
+            return "";
+         when C_String =>
+            --  FIXME : not a correct image
+            return "";
+         when C_WString =>
+            --  FIXME : not a correct image
+            return "";
+         when C_Fixed
+           | C_General_Fixed =>
+            --  FIXME : not a correct image
+            return "";
+         when C_Enum =>
+            --  FIXME : not a correct image
+            return "";
+         when C_No_Kind =>
+            return "";
+      end case;
    end Img;
 
 end Utils;

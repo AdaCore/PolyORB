@@ -1,22 +1,21 @@
-IDLAC = ../../idlac/idlac
-SOCK_CONS = ../../adasockets/src/sockets-constants.ads
+IDLAC = $(EXAMPLES_ROOT)/../idlac/idlac
+SOCK_CONS = $(EXAMPLES_ROOT)/../adasockets/src/sockets-constants.ads
 
-EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir) \
-                          -I$(srcdir)/../generic \
-                          -I../../src \
-                          -I$(srcdir)/../../src \
-                          $(ADASOCKETS_INCLUDE) \
-                          -g -O2 -m -gnata \
-                          -largs $(ADASOCKETS_LIBS)
+GNATMAKE_FLAGS = \
+	-I$(srcdir) \
+	-I$(srcdir)/$(EXAMPLES_ROOT)/generic \
+	-I$(srcdir)/$(EXAMPLES_ROOT)/../src \
+	-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming \
+	-I$(EXAMPLES_ROOT)/../src \
+	-I$(EXAMPLES_ROOT)/../cos/naming \
+	-I$(EXAMPLES_ROOT)/../idls/cos/naming $(ADASOCKETS_INCLUDE) \
+	-g -O2 -m -gnata \
+	$(EXAMPLE_GNATMAKE_FLAGS)
+	-largs $(ADASOCKETS_LIBS)
 
-CLEANFILES = b~*.* \
-	*.o *.ali \
-	$(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb \
-	$(EXAMPLE)_idl_file-helper.ads $(EXAMPLE)_idl_file-helper.adb \
-	$(EXAMPLE).ads $(EXAMPLE).adb \
-	$(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb \
-	$(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb \
-	$(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb
+# Due to a bug in Automake 1.4, this line must not be splitted.
+
+CLEANFILES = b~*.* *.o *.ali $(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb $(EXAMPLE)_idl_file-helper.ads $(EXAMPLE)_idl_file-helper.adb $(EXAMPLE).ads $(EXAMPLE).adb $(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb $(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb $(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb
 
 DISTCLEANFILES = client server
 
@@ -33,13 +32,14 @@ $(EXAMPLE).ads: $(EXAMPLE).idl $(IDLAC)
 	$(IDLAC) $<
 
 $(IDLAC): force
-	cd ../../idlac && $(MAKE) idlac
+	cd $(EXAMPLES_ROOT)/../idlac && $(MAKE) idlac
 
 $(SOCK_CONS):
-	cd ../../adasockets/src && $(MAKE) sockets-constants.ads
+	cd $(EXAMPLES_ROOT)/../adasockets/src && $(MAKE) sockets-constants.ads
 
 client server $(EXTRA): force $(EXAMPLE).ads
-	$(GNATMAKE) $@ $(EXAMPLES_GNATMAKE_FLAGS)
+	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
 
 force::
-	cd ../../src && $(MAKE)
+	cd $(EXAMPLES_ROOT)/../src && $(MAKE)
+	cd $(EXAMPLES_ROOT)/../cos/naming && $(MAKE)

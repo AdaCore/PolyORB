@@ -24,10 +24,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Idl_Fe.Types; use Idl_Fe.Types;
 with Errors;
 
 package Idl_Fe.Lexer is
+
+   pragma Elaborate_Body;
 
    -------------------------------
    --  idl keywords and tokens  --
@@ -37,58 +38,6 @@ package Idl_Fe.Lexer is
    --
    --  IDL Syntax and semantics, CORBA V2.3 § 3.2.4
    --
-   --  must be synchronized with the token declarations
-   All_Idl_Keywords : array (1 .. 47) of String_Cacc :=
-     (new String'("abstract"),
-      new String'("any"),
-      new String'("attribute"),
-      new String'("boolean"),
-      new String'("case"),
-      new String'("char"),
-      new String'("const"),
-      new String'("context"),
-      new String'("custom"),
-      new String'("default"),
-      new String'("double"),
-      new String'("enum"),
-      new String'("exception"),
-      new String'("factory"),
-      new String'("FALSE"),
-      new String'("fixed"),
-      new String'("float"),
-      new String'("in"),
-      new String'("inout"),
-      new String'("interface"),
-      new String'("long"),
-      new String'("module"),
-      new String'("native"),
-      new String'("Object"),
-      new String'("octet"),
-      new String'("oneway"),
-      new String'("out"),
-      new String'("private"),
-      new String'("public"),
-      new String'("raises"),
-      new String'("readonly"),
-      new String'("sequence"),
-      new String'("short"),
-      new String'("string"),
-      new String'("struct"),
-      new String'("supports"),
-      new String'("switch"),
-      new String'("TRUE"),
-      new String'("truncatable"),
-      new String'("typedef"),
-      new String'("unsigned"),
-      new String'("union"),
-      new String'("ValueBase"),
-      new String'("valuetype"),
-      new String'("void"),
-      new String'("wchar"),
-      new String'("wstring")
-      );
-
-
    --  All the idl tokens.
    type Idl_Token is
       (
@@ -193,6 +142,12 @@ package Idl_Fe.Lexer is
    procedure Initialize (Filename : in String;
                          Preprocess : in Boolean;
                          Keep_Temporary_Files : in Boolean);
+
+   --  Preprocess a file and output the result on standard out.
+   procedure Preprocess_File (Filename : in String);
+
+   --  Remove temporary files
+   procedure Remove_Temporary_Files;
 
    --  Analyses further and returns the next token.
    --  Returns t_error if the entry is invalid.
