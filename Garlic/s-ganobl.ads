@@ -80,10 +80,14 @@ package System.Garlic.Non_Blocking is
    --  Thread blocking write
 
    protected Sigio is
+      procedure Stats (S, T : out Natural);
       procedure Signal;
+      procedure Timeout;
       entry Wait;
       pragma Attach_Handler (Signal, Ada.Interrupts.Names.SIGIO);
    private
+      Signals  : Natural := 0;
+      Timeouts : Natural := 0;
       Occurred : Boolean := False;
    end Sigio;
 

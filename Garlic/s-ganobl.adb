@@ -130,13 +130,9 @@ package body System.Garlic.Non_Blocking is
 
    PID : constant Thin.pid_t := Thin.C_Getpid;
 
-   procedure Set_Asynchronous (FD : in Descriptors);
-   pragma Inline (Set_Asynchronous);
-   --  Set a file descriptor to be asynchronous
-
-   procedure Set_Non_Blocking (FD : in Descriptors);
-   pragma Inline (Set_Non_Blocking);
-   --  Set a file descriptor to be non-blocking
+   procedure Set_Asynchronous_Non_Blocking (FD : in Descriptors);
+   pragma Inline (Set_Asynchronous_Non_Blocking);
+   --  Set a file descriptor to be asynchronous and non-blocking
 
    task Sigio_Simulation is
       pragma Priority (Priorities.Polling_Priority);
@@ -184,7 +180,6 @@ package body System.Garlic.Non_Blocking is
          Dummy : int;
          Empty : Boolean;
       begin
-         Set_Asynchronous (RRFD);
          if Len = 0 then
             Timeout.all  := Immediat;
             Rfds.all := 2 ** Integer (RRFD);
@@ -265,7 +260,6 @@ package body System.Garlic.Non_Blocking is
       when True is
          Dummy : int;
       begin
-         Set_Asynchronous (RSFD);
          Dummy := Thin.C_Send (RSFD, Buf, Len, Flags);
          if Dummy = Thin.Failure and then Errno = Eagain then
             Send_Mask (RSFD) := True;
@@ -322,7 +316,7 @@ package body System.Garlic.Non_Blocking is
       Dummy    : int;
       Dummy_CP : chars_ptr := Null_Ptr;
    begin
-      Set_Non_Blocking (S);
+      Set_Asynchronous_Non_Blocking (S);
       pragma Debug
         (D (D_Debug, "Blocking until there is something to accept"));
       Asynchronous.Recv (S) (Dummy_CP, 0, 0, Dummy);
@@ -355,7 +349,7 @@ package body System.Garlic.Non_Blocking is
       Dummy    : int;
       Dummy_CP : chars_ptr := Null_Ptr;
    begin
-      Set_Non_Blocking (S);
+      Set_Asynchronous_Non_Blocking (S);
       Dummy := Thin.C_Connect (S, Name, Namelen);
       pragma Debug
         (D (D_Debug,
@@ -518,37 +512,41 @@ package body System.Garlic.Non_Blocking is
          Soft_Links.Sub_Non_Terminating_Task;
    end Selection;
 
-   ----------------------
-   -- Set_Asynchronous --
-   ----------------------
+   -----------------------------------
+   -- Set_Asynchronous_Non_Blocking --
+   -----------------------------------
 
-   procedure Set_Asynchronous (FD : in Descriptors) is
+   procedure Set_Asynchronous_Non_Blocking (FD : in Descriptors) is
       Dummy : int;
    begin
-      if not (SVR4_Stream_IO
-               or else Thin.C_Fcntl (FD, F_Setown, int (PID)) = Thin.Failure)
-      then
-         Dummy := Thin.C_Fcntl (FD, F_Setfl, Fasync);
+      if not SVR4_Stream_IO then
+         if Thin.C_Fcntl (FD, F_Setown, int (PID)) = Thin.Failure then
+            SVR4_Stream_IO := True;
+         end if;
+      end if;
+
+      pragma Debug (D (D_Debug, "Set asynchronous non-blocking"));
+      if not SVR4_Stream_IO then
+         --  Use an alternate method for SVR4
+
+         pragma Debug (D (D_Debug, "Set flag fasync or fndelay"));
+         Dummy := Thin.C_Fcntl (FD, F_Setfl, Fasync + Fndelay);
+         pragma Debug (D (D_Debug, "Return " & Dummy'Img));
+
       elsif I_Setsig /= -1
         and then S_Rdnorm /= -1
         and then S_Wrnorm /= -1
       then
          --  Use an alternate method for SVR4
 
-         SVR4_Stream_IO := True;
-         Dummy          := Thin.C_Ioctl (FD, I_Setsig, S_Rdnorm + S_Wrnorm);
+         pragma Debug (D (D_Debug, "Set non-blocking with alternate method"));
+         Dummy := Thin.C_Fcntl (FD, F_Setfl, Fndelay);
+         pragma Debug (D (D_Debug, "Return " & Dummy'Img));
+         pragma Debug (D (D_Debug, "Set asynchronous with alternate method"));
+         Dummy := Thin.C_Ioctl (FD, I_Setsig, S_Rdnorm + S_Wrnorm);
+         pragma Debug (D (D_Debug, "Return " & Dummy'Img));
       end if;
-   end Set_Asynchronous;
-
-   ----------------------
-   -- Set_Non_Blocking --
-   ----------------------
-
-   procedure Set_Non_Blocking (FD : in Descriptors) is
-      Dummy : int;
-   begin
-      Dummy := Thin.C_Fcntl (FD, F_Setfl, Fndelay);
-   end Set_Non_Blocking;
+   end Set_Asynchronous_Non_Blocking;
 
    -----------
    -- Sigio --
@@ -556,14 +554,35 @@ package body System.Garlic.Non_Blocking is
 
    protected body Sigio is
 
+      -----------
+      -- Stats --
+      -----------
+
+      procedure Stats (S, T : out Natural) is
+      begin
+         S := Signals;
+         T := Timeouts;
+      end Stats;
+
       ------------
       -- Signal --
       ------------
 
       procedure Signal is
       begin
+         Signals  := Signals + 1;
          Occurred := True;
       end Signal;
+
+      -------------
+      -- Timeout --
+      -------------
+
+      procedure Timeout is
+      begin
+         Timeouts := Timeouts + 1;
+         Occurred := True;
+      end Timeout;
 
       ----------
       -- Wait --
@@ -581,13 +600,17 @@ package body System.Garlic.Non_Blocking is
    ----------------------
 
    task body Sigio_Simulation is
+      Signals, Timeouts : Natural;
    begin
       Soft_Links.Add_Non_Terminating_Task;
       while not Shutdown loop
          delay Safety_Delay;
          pragma Debug (D (D_Debug, "Simulate SIGIO"));
-         Sigio.Signal;
+         Sigio.Timeout;
       end loop;
+      Sigio.Stats (Signals, Timeouts);
+      pragma Debug (D (D_Debug, "signals  =" & Signals'Img));
+      pragma Debug (D (D_Debug, "timeouts =" & Timeouts'Img));
       Soft_Links.Sub_Non_Terminating_Task;
 
    exception

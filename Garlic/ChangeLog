@@ -1,3 +1,19 @@
+1998-07-20  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-ganobl.ads: Add some stat info to count sigpoll interrupts and 
+	sigpoll timeouts.
+
+	* s-ganobl.adb: Merge Set_Asynchronous and Set_Non_Blocking
+ 	because they were both executing Fcntl (FD, F_Setfl, ...) such a
+ 	way that the flag status of the first call was removed by the
+ 	second. We have only one call to Fcntl with Fasync + Fndelay. Add
+ 	some stat info to count sigpoll interrupts and sigpoll timeouts.
+
+	* s-gasoli.adb: Add some debugging info.
+
+	* Makefile.am, Makefile.in: Just recompile linktest and bind
+	it. Don't try to link it.
+	
 1998-07-20  Pascal Obry  <obry@gnat.com>
 
 	* Makefile.am, Makefile.in: Fix a bug for NT build.

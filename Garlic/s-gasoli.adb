@@ -33,15 +33,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  with GNAT.IO; --  Help to debug this package.
+
 package body System.Garlic.Soft_Links is
 
    generic
+      Name : String;
    package Proc is
       procedure Register (P : in Parameterless_Procedure);
       procedure Call;
       pragma Inline (Call);
-   private
-      Var : Parameterless_Procedure;
    end Proc;
 
    ----------
@@ -50,6 +51,8 @@ package body System.Garlic.Soft_Links is
 
    package body Proc is
 
+      Var : Parameterless_Procedure;
+
       ----------
       -- Call --
       ----------
@@ -57,7 +60,11 @@ package body System.Garlic.Soft_Links is
       procedure Call is
       begin
          if Var /= null then
+            --  GNAT.IO.Put_Line (Name & ": exec call");
             Var.all;
+         else
+            --  GNAT.IO.Put_Line (Name & ": fake call");
+            null;
          end if;
       end Call;
 
@@ -67,6 +74,7 @@ package body System.Garlic.Soft_Links is
 
       procedure Register (P : in Parameterless_Procedure) is
       begin
+         --  GNAT.IO.Put_Line (Name & ": register");
          Var := P;
       end Register;
 
@@ -76,42 +84,42 @@ package body System.Garlic.Soft_Links is
    -- Termination services --
    --------------------------
 
-   package P_Add_Non_Terminating_Task is new Proc;
+   package P_Add_Non_Terminating_Task is new Proc ("Add_Non_Terminating_Task");
    procedure Register_Add_Non_Terminating_Task
      (P : in Parameterless_Procedure)
      renames P_Add_Non_Terminating_Task.Register;
    procedure Add_Non_Terminating_Task
      renames P_Add_Non_Terminating_Task.Call;
 
-   package P_Sub_Non_Terminating_Task is new Proc;
+   package P_Sub_Non_Terminating_Task is new Proc ("Sub_Non_Terminating_Task");
    procedure Register_Sub_Non_Terminating_Task
      (P : in Parameterless_Procedure)
      renames P_Sub_Non_Terminating_Task.Register;
    procedure Sub_Non_Terminating_Task
      renames P_Sub_Non_Terminating_Task.Call;
 
-   package P_Termination_Shutdown is new Proc;
+   package P_Termination_Shutdown is new Proc ("Termination_Shutdown");
    procedure Register_Termination_Shutdown
      (P : in Parameterless_Procedure)
      renames P_Termination_Shutdown.Register;
    procedure Termination_Shutdown
      renames P_Termination_Shutdown.Call;
 
-   package P_Termination_Initialize is new Proc;
+   package P_Termination_Initialize is new Proc ("Termination_Initialize");
    procedure Register_Termination_Initialize
      (P : in Parameterless_Procedure)
      renames P_Termination_Initialize.Register;
    procedure Termination_Initialize
      renames P_Termination_Initialize.Call;
 
-   package P_Activity_Detected is new Proc;
+   package P_Activity_Detected is new Proc ("Activity_Detected");
    procedure Register_Activity_Detected
      (P : in Parameterless_Procedure)
      renames P_Activity_Detected.Register;
    procedure Activity_Detected
      renames P_Activity_Detected.Call;
 
-   package P_Local_Termination is new Proc;
+   package P_Local_Termination is new Proc ("Local_Termination");
    procedure Register_Local_Termination
      (P : in Parameterless_Procedure)
      renames P_Local_Termination.Register;

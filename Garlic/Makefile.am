@@ -18,6 +18,7 @@ INCFLAGS     = -I. -I${srcdir}
 LINKTEST     = @LINKTEST@
 
 GNATMAKE     = gnatmake
+GNATBIND     = gnatbind
 
 PLATFORM            = @PLATFORM_SPECIFIC@
 
@@ -249,7 +250,8 @@ inlining: all-local
 	fi
 
 linktest: ${srcdir}/linktest.adb ${OBJECTS}
-	${GNATMAKE} -v -a -m -I${srcdir} -I. ${srcdir}/linktest.adb
+	${GNATMAKE} -c -a -m -I${srcdir} -I. ${srcdir}/linktest.adb
+	${GNATBIND} ${srcdir}/linktest.ali -I.
 
 install-extra-libs: ${FILTERINSTALL} inlining
 
