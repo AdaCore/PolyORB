@@ -566,7 +566,7 @@ package body Exp_Hlpr is
          Append_To (Stms,
            Make_Return_Statement (Loc,
              Expression =>
-               OK_Convert_To (
+               Unchecked_Convert_To (
                  Typ,
                  Build_From_Any_Call (
                    Find_Numeric_Representation (Typ),
