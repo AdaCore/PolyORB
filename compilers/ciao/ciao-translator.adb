@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#20 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#21 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -985,6 +985,10 @@ package body CIAO.Translator is
                         when An_In_Out_Mode =>   --  P : IN OUT T
                            Mode := Mode_Inout;
                      end case;
+                     --  XXX warning: for out or inout parameters
+                     --  with a dynamic constrained status, DSA
+                     --  needs an extra formal to transmit that
+                     --  status.
                   end if;
                   Set_Mode (Node, Mode);
                end loop;

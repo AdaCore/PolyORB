@@ -2080,10 +2080,6 @@ package body Exp_Dist is
       Request_Parameter : Node_Id;
       --  The request object constructed by these stubs.
 
-      Arguments_Anys : List_Id := Empty_List;
-      --  The declarations of the Any objects for each of the
-      --  arguments of the operation.
-
       Result_NV_Parameter : Node_Id;
       --  The named value that receives the result of the invocation
       --  (non-APC case).
@@ -2289,6 +2285,10 @@ package body Exp_Dist is
                                Is_Constrained (Etyp)
                                  or else Is_Elementary_Type (Etyp);
 
+               Any_Parameter : constant Entity_Id :=
+                                 Make_Defining_Identifier (Loc,
+                                   New_Internal_Name ('A'));
+
                Mode_Expr : Node_Id;
             begin
 --                if In_Present (Current_Parameter)
@@ -2309,11 +2309,10 @@ package body Exp_Dist is
 --                         New_Occurrence_Of (
 --                           Defining_Identifier (Current_Parameter), Loc))));
 --                end if;
-               Append_To (Arguments_Anys,
+               Append_To (Decls,
                  Make_Object_Declaration (Loc,
                    Defining_Identifier =>
-                     Make_Defining_Identifier (Loc,
-                       New_Internal_Name ('A')),
+                     Any_Parameter,
                    Aliased_Present     => False,
                    Object_Definition   =>
                      New_Occurrence_Of (RTE (RE_Any), Loc),
@@ -2338,9 +2337,7 @@ package body Exp_Dist is
                              (Get_Name_String
                               (Chars (Defining_Identifier
                                (Current_Parameter))))))),
-                     New_Occurrence_Of
-                       (Defining_Identifier
-                        (Last (Arguments_Anys)), Loc))));
+                     New_Occurrence_Of (Any_Parameter, Loc))));
 
                if Out_Present (Current_Parameter) then
                   if In_Present (Current_Parameter)
@@ -2380,44 +2377,77 @@ package body Exp_Dist is
             --  in the stream after the regular parameters.
 
             declare
-               Extra_Parameter : constant Entity_Id :=
+               Extra_Any_Parameter : constant Entity_Id :=
                                    Make_Defining_Identifier
                                      (Loc, New_Internal_Name ('P'));
 
             begin
+--                Append_To (Decls,
+--                  Make_Object_Declaration (Loc,
+--                    Defining_Identifier => Extra_Parameter,
+--                    Constant_Present    => True,
+--                    Object_Definition   =>
+--                      New_Occurrence_Of (Standard_Boolean, Loc),
+--                    Expression          =>
+--                      Make_Attribute_Reference (Loc,
+--                        Prefix         =>
+--                          New_Occurrence_Of (
+--                            Defining_Identifier (Current_Parameter), Loc),
+--                        Attribute_Name => Name_Constrained)));
+
+
                Append_To (Decls,
                  Make_Object_Declaration (Loc,
-                   Defining_Identifier => Extra_Parameter,
-                   Constant_Present    => True,
+                   Defining_Identifier =>
+                     Extra_Any_Parameter,
+                   Aliased_Present     => False,
                    Object_Definition   =>
-                     New_Occurrence_Of (Standard_Boolean, Loc),
+                     New_Occurrence_Of (RTE (RE_Any), Loc),
                    Expression          =>
-                     Make_Attribute_Reference (Loc,
-                       Prefix         =>
-                         New_Occurrence_Of (
-                           Defining_Identifier (Current_Parameter), Loc),
-                       Attribute_Name => Name_Constrained)));
+                     --  Make_To_Any_Function_Call (Loc,
+                     --  Parameter_Association =>
+--                      Make_Attribute_Reference (Loc,
+--                        Prefix         =>
+--                          New_Occurrence_Of (
+--                            Defining_Identifier (Current_Parameter), Loc),
+--                        Attribute_Name => Name_Constrained)));
+                     Empty));
 
                Append_To (Extra_Formal_Statements,
-                 Make_Attribute_Reference (Loc,
-                   Prefix         =>
-                     New_Occurrence_Of (Standard_Boolean, Loc),
-                   Attribute_Name =>
-                     Name_Write,
-                   Expressions    => New_List (
-                     Make_Attribute_Reference (Loc,
-                       Prefix         =>
-                         New_Occurrence_Of (Stream_Parameter, Loc),
-                       Attribute_Name =>
-                         Name_Access),
-                     New_Occurrence_Of (Extra_Parameter, Loc))));
+                 Make_Procedure_Call_Statement (Loc,
+                   Name =>
+                     New_Occurrence_Of
+                       (RTE (RE_NVList_Add_Item), Loc),
+                   Parameter_Associations => New_List (
+                     New_Occurrence_Of (Args_Parameter, Loc),
+                     Make_Function_Call (Loc,
+                       Name =>
+                         New_Occurrence_Of
+                           (RTE (RE_To_PolyORB_String), Loc),
+                       Parameter_Associations => New_List (
+                         Make_String_Literal (Loc,
+                           Strval => Get_String_Id
+                             (Get_Name_String
+                              (Chars (Extra_Any_Parameter)))))),
+                     New_Occurrence_Of (Extra_Any_Parameter, Loc))));
+--             Append_To (Extra_Formal_Statements,
+--                  Make_Attribute_Reference (Loc,
+--                    Prefix         =>
+--                      New_Occurrence_Of (Standard_Boolean, Loc),
+--                    Attribute_Name =>
+--                      Name_Write,
+--                    Expressions    => New_List (
+--                      Make_Attribute_Reference (Loc,
+--                        Prefix         =>
+--                          New_Occurrence_Of (Stream_Parameter, Loc),
+--                        Attribute_Name =>
+--                          Name_Access),
+--                      New_Occurrence_Of (Extra_Parameter, Loc))));
             end;
          end if;
 
          Next (Current_Parameter);
       end loop;
-
-      Append_List_To (Decls, Arguments_Anys);
 
       --  Append the formal statements list to the statements
 
@@ -2462,53 +2492,56 @@ package body Exp_Dist is
 
       if not Is_Known_Asynchronous then
 
-         --  Build the call to System.RPC.Do_RPC
+--          --  Build the call to System.RPC.Do_RPC
 
          Non_Asynchronous_Statements := New_List (
-           Make_Procedure_Call_Statement (Loc,
-             Name                   =>
-               New_Occurrence_Of (RTE (RE_Do_Rpc), Loc),
-             Parameter_Associations => New_List (
-               New_Occurrence_Of (Target_Partition, Loc),
+           Make_Null_Statement (Loc));
 
-               Make_Attribute_Reference (Loc,
-                 Prefix         =>
-                   New_Occurrence_Of (Stream_Parameter, Loc),
-                 Attribute_Name =>
-                   Name_Access),
+--          Non_Asynchronous_Statements := New_List (
+--            Make_Procedure_Call_Statement (Loc,
+--              Name                   =>
+--                New_Occurrence_Of (RTE (RE_Do_Rpc), Loc),
+--              Parameter_Associations => New_List (
+--                New_Occurrence_Of (Target_Partition, Loc),
 
-               Make_Attribute_Reference (Loc,
-                 Prefix         =>
-                   New_Occurrence_Of (Result_Parameter, Loc),
-                 Attribute_Name =>
-                   Name_Access))));
+--                Make_Attribute_Reference (Loc,
+--                  Prefix         =>
+--                    New_Occurrence_Of (Stream_Parameter, Loc),
+--                  Attribute_Name =>
+--                    Name_Access),
 
-         --  Read the exception occurrence from the result stream and
-         --  reraise it. It does no harm if this is a Null_Occurrence since
-         --  this does nothing.
+--                Make_Attribute_Reference (Loc,
+--                  Prefix         =>
+--                    New_Occurrence_Of (Result_Parameter, Loc),
+--                  Attribute_Name =>
+--                    Name_Access))));
 
-         Append_To (Non_Asynchronous_Statements,
-           Make_Attribute_Reference (Loc,
-             Prefix         =>
-               New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc),
+--          --  Read the exception occurrence from the result stream and
+--          --  reraise it. It does no harm if this is a Null_Occurrence since
+--          --  this does nothing.
 
-             Attribute_Name =>
-               Name_Read,
+--          Append_To (Non_Asynchronous_Statements,
+--            Make_Attribute_Reference (Loc,
+--              Prefix         =>
+--                New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc),
 
-             Expressions    => New_List (
-               Make_Attribute_Reference (Loc,
-                 Prefix         =>
-                   New_Occurrence_Of (Result_Parameter, Loc),
-                 Attribute_Name =>
-                   Name_Access),
-               New_Occurrence_Of (Exception_Return_Parameter, Loc))));
+--              Attribute_Name =>
+--                Name_Read,
 
-         Append_To (Non_Asynchronous_Statements,
-           Make_Procedure_Call_Statement (Loc,
-             Name                   =>
-               New_Occurrence_Of (RTE (RE_Reraise_Occurrence), Loc),
-             Parameter_Associations => New_List (
-               New_Occurrence_Of (Exception_Return_Parameter, Loc))));
+--              Expressions    => New_List (
+--                Make_Attribute_Reference (Loc,
+--                  Prefix         =>
+--                    New_Occurrence_Of (Result_Parameter, Loc),
+--                  Attribute_Name =>
+--                    Name_Access),
+--                New_Occurrence_Of (Exception_Return_Parameter, Loc))));
+
+--          Append_To (Non_Asynchronous_Statements,
+--            Make_Procedure_Call_Statement (Loc,
+--              Name                   =>
+--                New_Occurrence_Of (RTE (RE_Reraise_Occurrence), Loc),
+--              Parameter_Associations => New_List (
+--                New_Occurrence_Of (Exception_Return_Parameter, Loc))));
 
          if Is_Function then
 
