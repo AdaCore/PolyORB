@@ -1,10 +1,62 @@
----------------------------------------------------------------------
----                                                               ---
----       AdaBroker : package body corba.sequences.bounded        ---
----                                                               ---
----  The implementation is the one provided by the Gnack project  ---
----                                                               ---
----------------------------------------------------------------------
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+----                                                               ----
+----                         AdaBroker                             ----
+----                                                               ----
+----             package Corba.Sequences-bounded                   ----
+----                                                               ----
+----                                                               ----
+----   Copyright (C) 1999 ENST                                     ----
+----                                                               ----
+----   This file is part of the AdaBroker library                  ----
+----                                                               ----
+----   The AdaBroker library is free software; you can             ----
+----   redistribute it and/or modify it under the terms of the     ----
+----   GNU Library General Public License as published by the      ----
+----   Free Software Foundation; either version 2 of the License,  ----
+----   or (at your option) any later version.                      ----
+----                                                               ----
+----   This library is distributed in the hope that it will be     ----
+----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
+----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
+----   PURPOSE.  See the GNU Library General Public License for    ----
+----   more details.                                               ----
+----                                                               ----
+----   You should have received a copy of the GNU Library General  ----
+----   Public License along with this library; if not, write to    ----
+----   the Free Software Foundation, Inc., 59 Temple Place -       ----
+----   Suite 330, Boston, MA 02111-1307, USA                       ----
+----                                                               ----
+----                                                               ----
+----                                                               ----
+----   Description                                                 ----
+----   -----------                                                 ----
+----                                                               ----
+----   This package provides the definitions required by the       ----
+----   IDL-to-Ada mapping specification for bounded sequences.     ----
+----   This package is instantiated for each IDL bounded sequence  ----
+----   type. This package defines the sequence type and the        ----
+----   operations upon it. This package is modeled after           ----
+----   Ada.Strings.                                                ----
+----                                                               ----
+----   Most query operations are not usable until the sequence     ----
+----   object has been initialized through an assignment.          ----
+----                                                               ----
+----   Value semantics apply to assignment, that is, assignment    ----
+----   of a sequence value to a sequence object yields a copy of   ----
+----   the value.                                                  ----
+----                                                               ----
+----   The exception INDEX_ERROR is raised when indexes are not    ----
+----   in the range of the object being manipulated.               ----
+----                                                               ----
+----   The exception CONSTRAINT_ERROR is raised when objects that  ----
+----   have not been initialized or assigned to are manipulated.   ----
+----                                                               ----
+----                                                               ----
+----   author : unknown                                            ----
+----                                                               ----
+----                                                               ----
+-----------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
 

@@ -56,7 +56,8 @@ omniropeandkey.o omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o \
 omniobject.o giop.o Ada_Giop_s.o giop_s.o Ada_Giop_c.o giop_c.o \
 Ada_memBufferedStream.o membufferedstream.o Ada_netBufferedStream.o \
 netbufferedstream.o corba-object.o corba-boa.o membufferedstream.o \
-iop.o proxyObjectFactory_C2Ada.o  corba-orb.o corba-exceptions.o
+iop.o proxyObjectFactory_C2Ada.o  corba-orb.o corba-exceptions.o \
+exceptions.o
 #omni_C2Ada.o omni.o 
 
 
@@ -82,7 +83,9 @@ Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc
 omniropeandkey.o : omniropeandkey.ads omniropeandkey.adb corba.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omniropeandkey.adb
 
-omniobjectmanager.o : omniobjectmanager.ads omniobjectmanager.adb
+omniobjectmanager.o : omniobjectmanager.ads omniobjectmanager.adb giop_s.ali \
+sys_dep.ali iop.ali rope.ali omniropeandkey.ali netbufferedstream.ali \
+membufferedstream.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omniobjectmanager.adb
 
 omniObject_C2Ada.o : omniObject_C2Ada.hh omniObject_C2Ada.cc
@@ -91,7 +94,7 @@ omniObject_C2Ada.o : omniObject_C2Ada.hh omniObject_C2Ada.cc
 Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_OmniObject.cc
 
-omniobject.o : omniobject.ads omniobject.adb corba.ali
+omniobject.o : omniobject.ads omniobject.adb corba.ali omni.ali 
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omniobject.adb
 
 giop.o : giop.ads giop.adb
@@ -121,13 +124,15 @@ Ada_memBufferedStream.o : Ada_memBufferedStream.hh Ada_memBufferedStream.cc
 membufferedstream.o : membufferedstream.ads membufferedstream.adb
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) membufferedstream.adb
 
-corba-object.o : corba-object.ads corba-object.adb
+corba-object.o : corba-object.ads corba-object.adb omniobject.o omniropeandkey.o \
+netbufferedstream.o membufferedstream.o iop.o
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-object.adb
 
-corba-boa.o : corba-boa.ads corba-boa.adb corba-object.ali
+corba-boa.o : corba-boa.ads corba-boa.adb corba-object.ali omniobject.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-boa.adb
 
-corba-orb.o: corba-orb.ads corba-orb.adb corba-object.ali
+corba-orb.o: corba-orb.ads corba-orb.adb corba-object.ali corba-object.o corba-boa.o \
+omniobject.o corba-command_line.ali adabroker_debug.ali
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) corba-orb.adb
 
 iop.o : iop.ads iop.adb
@@ -159,7 +164,8 @@ corba-exceptions.o : corba-exceptions.ads corba-exceptions.adb
 adaonly: corba.ali corba-object.ali giop_s.ali giop.ali omni.ali \
 netbufferedstream.ali corba-command_line.ali  \
 omniproxycalldesc.ali omniproxycallwrapper.ali \
-adabroker_debug.ali
+adabroker_debug.ali corba-sequences.o corba-sequences-bounded.ali \
+corba-sequences-unbounded.ali
 
 .SUFFIXES: .adb .ali
 
@@ -186,6 +192,20 @@ omniproxycallwrapper.ali: omniproxycallwrapper.ads omniproxycallwrapper.adb \
 omniproxycalldesc.ali corba-object.ali
 
 adabroker_debug.ali: adabroker_debug.ads adabroker_debug.adb
+
+corba-forward.ali: corba-forward.ads corba-forward.adb
+# not implemented yet, does not compile
+
+corba-sequences.o: corba-sequences.ads
+	$(ADA_COMP) $(DO_NOT_LINK) corba-sequences.ads
+
+
+corba-sequences-bounded.ali: corba-sequences-bounded.ads corba-sequences-bounded.adb \
+corba-sequences.o
+
+corba-sequences-unbounded.ali: corba-sequences-unbounded.ads \
+corba-sequences-unbounded.adb corba-sequences.o
+
 
 ##############################################################
 clean :

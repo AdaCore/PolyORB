@@ -1,6 +1,36 @@
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 ----                                                               ----
-----                  AdaBroker                                    ----
+----                         AdaBroker                             ----
+----                                                               ----
+----                   package Exceptions                          ----
+----                                                               ----
+----                                                               ----
+----   Copyright (C) 1999 ENST                                     ----
+----                                                               ----
+----   This file is part of the AdaBroker library                  ----
+----                                                               ----
+----   The AdaBroker library is free software; you can             ----
+----   redistribute it and/or modify it under the terms of the     ----
+----   GNU Library General Public License as published by the      ----
+----   Free Software Foundation; either version 2 of the License,  ----
+----   or (at your option) any later version.                      ----
+----                                                               ----
+----   This library is distributed in the hope that it will be     ----
+----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
+----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
+----   PURPOSE.  See the GNU Library General Public License for    ----
+----   more details.                                               ----
+----                                                               ----
+----   You should have received a copy of the GNU Library General  ----
+----   Public License along with this library; if not, write to    ----
+----   the Free Software Foundation, Inc., 59 Temple Place -       ----
+----   Suite 330, Boston, MA 02111-1307, USA                       ----
+----                                                               ----
+----                                                               ----
+----                                                               ----
+----   Description                                                 ----
+----   -----------                                                 ----
 ----                                                               ----
 ----     This package deals with the raising of C exceptions in    ----
 ----   Ada and ada ones in C.                                      ----
@@ -11,31 +41,25 @@
 ----   implemented in Ada. Both translate exceptions in the other  ----
 ----   language.                                                   ----
 ----                                                               ----
-----                  package omniRopeAndKey                       ----
 ----                                                               ----
-----   authors : Sebastien Ponce                                   ----
-----   date    : 03/04/99                                          ----
+----   authors : Sebastien Ponce, Fabien Azavant                   ----
+----   date    : 02/28/99                                          ----
 ----                                                               ----
-----                                                               ----
+-----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
 
-with Interfaces.C ;
-with Corba ;
 with Ada.Exceptions ;
+with Interfaces.C ;
+
+with Corba ;
 
 package Exceptions is
 
-   procedure C_Raise_C_UNKNOWN_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
-                                          Pd_Status : in Interfaces.C.Int) ;
-   pragma Import (Cpp,C_Raise_C_UNKNOWN_Exception,"Raise_C_UNKNOWN_Exception__FUlQ25CORBA16CompletionStatus");
-   -- Wrapped around C function Raise_C_UNKNOWN_Exception
-   -- declared in Ada_exceptions.hh
-   -- Called by Ada code.
-   -- Handles in C a Corba exception that was raised in Ada.
 
    procedure Raise_C_UNKNOWN_Exception (E : in Ada.Exceptions.Exception_Occurrence) ;
-   -- Ada equivalent of C procedure C_Raise_C_Exception
+   -- raises the equivalent C exception
+
 
    procedure C_Raise_Ada_UNKNOWN_Exception (Pd_Minor : in Interfaces.C.Unsigned_Long ;
                                             Pd_Status : in Interfaces.C.Int) ;
@@ -46,19 +70,5 @@ package Exceptions is
    -- declared in Ada_exceptions.hh
    -- Called by C code.
    -- Handles in Ada a Corba exception that was raised in C.
-
-   procedure Raise_Ada_UNKNOWN_Exception (Pd_Minor : in Corba.Unsigned_Long ;
-                                          Pd_Status : in Corba.Completion_Status) ;
-   -- Ada equivalent of C procedure C_Raise_Ada_Exception
-
-
-
-private
-
-   function Int_To_Status (N : in Interfaces.C.Int)
-                           return Corba.Completion_Status ;
-
-   function Status_To_Int (Status : in Corba.Completion_Status)
-                           return Interfaces.C.Int ;
 
 end Exceptions ;

@@ -1,28 +1,54 @@
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 ----                                                               ----
-----                  AdaBroker                                    ----
+----                         AdaBroker                             ----
+----                                                               ----
+----                    package Corba.Boa                          ----
+----                                                               ----
+----                                                               ----
+----   Copyright (C) 1999 ENST                                     ----
+----                                                               ----
+----   This file is part of the AdaBroker library                  ----
+----                                                               ----
+----   The AdaBroker library is free software; you can             ----
+----   redistribute it and/or modify it under the terms of the     ----
+----   GNU Library General Public License as published by the      ----
+----   Free Software Foundation; either version 2 of the License,  ----
+----   or (at your option) any later version.                      ----
+----                                                               ----
+----   This library is distributed in the hope that it will be     ----
+----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
+----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
+----   PURPOSE.  See the GNU Library General Public License for    ----
+----   more details.                                               ----
+----                                                               ----
+----   You should have received a copy of the GNU Library General  ----
+----   Public License along with this library; if not, write to    ----
+----   the Free Software Foundation, Inc., 59 Temple Place -       ----
+----   Suite 330, Boston, MA 02111-1307, USA                       ----
+----                                                               ----
+----                                                               ----
+----                                                               ----
+----   Description                                                 ----
+----   -----------                                                 ----
 ----                                                               ----
 ----     This package is wrapped around a C++ class whose name     ----
 ----   is BOA declared in file CORBA.h.                            ----
 ----     It provides two types of methods : the C functions        ----
-----   of the Ada_OmniObject class and their equivalent in         ----
+----   of the BOA class and their equivalent in                    ----
 ----   Ada. (the first ones have a C_ prefix.)                     ----
 ----                                                               ----
 ----                                                               ----
-----                  package body Boa                             ----
-----                                                               ----
-----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/24/99                                          ----
+----   date    : 02/28/99                                          ----
 ----                                                               ----
-----                                                               ----
+-----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
 
 with System.Address_To_Access_Conversions ;
 
 package body Corba.Boa is
-
 
    -- Object_Is_Ready
    -------------------
@@ -32,6 +58,7 @@ package body Corba.Boa is
       Omniobject.Object_Is_Ready(Obj) ;
    end ;
 
+
    -- Object_Is_Ready
    -------------------
    procedure Object_Is_Ready(Self: in Object'Class ;
@@ -39,56 +66,6 @@ package body Corba.Boa is
    begin
       Corba.Object.Object_Is_Ready(Obj) ;
    end ;
-
-
-
-   -- Address_To_Object
-   --------------------
-   package Address_To_Object is
-     new System.Address_To_Access_Conversions (Object) ;
-   -- needed to convert System.Address into Object
-
-
---   -- C_Get_Boa
---   ----------
---   function C_Get_Boa (Self: in Object'Class)
---                      return System.Address ;
---   pragma Import (C,C_Get_Boa,"toto") ;
---   -- wrapper around BOA function getBOA
---   -- (see CORBA.h)
---
---   -- Get_Boa
---   ----------
---   function Get_Boa (Self: in Object'Class)
---                    return Object'Class is
---      C_Result : System.Address ;
---   begin
---      -- calls the C function ...
---      C_Result := C_Get_Boa (Self) ;
---      -- ... and transforms the result into an Ada type
---      return Address_To_Object.To_Pointer(C_result).All ;
---   end ;
---
---
---   -- C_Dispose
---   ------------
---   procedure C_Dispose (Self : in Object'Class ;
---                        object : in System.Address) ;
---   pragma Import (C,C_Dispose,"toto") ;
---   -- wrapper around BOA function dispose
---   -- (see CORBA.h)
---
---   -- Dispose
---   ----------
---   procedure Dispose(Self: in Object'Class ;
---                     Obj : in Corba.Object.Ref'Class) is
---      C_Obj : System.Address ;
---   begin
---      -- transforms the arguments into a C type ...
---      C_Obj := Obj'Address ;
---      -- ... and calls the C procedure
---      C_Dispose (Self,C_Obj);
---   end ;
 
 
 end Corba.Boa ;

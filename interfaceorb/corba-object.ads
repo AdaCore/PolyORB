@@ -1,55 +1,98 @@
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 ----                                                               ----
-----                  AdaBroker                                    ----
+----                         AdaBroker                             ----
 ----                                                               ----
-----                  package CORBA.Object                         ----
+----                       package Giop                            ----
+----                                                               ----
+----                                                               ----
+----   Copyright (C) 1999 ENST                                     ----
+----                                                               ----
+----   This file is part of the AdaBroker library                  ----
+----                                                               ----
+----   The AdaBroker library is free software; you can             ----
+----   redistribute it and/or modify it under the terms of the     ----
+----   GNU Library General Public License as published by the      ----
+----   Free Software Foundation; either version 2 of the License,  ----
+----   or (at your option) any later version.                      ----
+----                                                               ----
+----   This library is distributed in the hope that it will be     ----
+----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
+----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
+----   PURPOSE.  See the GNU Library General Public License for    ----
+----   more details.                                               ----
+----                                                               ----
+----   You should have received a copy of the GNU Library General  ----
+----   Public License along with this library; if not, write to    ----
+----   the Free Software Foundation, Inc., 59 Temple Place -       ----
+----   Suite 330, Boston, MA 02111-1307, USA                       ----
+----                                                               ----
+----                                                               ----
+----                                                               ----
+----   Description                                                 ----
+----   -----------                                                 ----
+----                                                               ----
+----   This package corresponds to the CORBA 2.0 specification.    ----
+----   It contains the definition of type Corba.Object.Ref,        ----
+----   which is the base class of all proxy objects                ----
+----                                                               ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/08/99                                          ----
-----                                                               ----
+----   date    : 02/28/99                                          ----
 ----                                                               ----
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 
-with Iop ;
-with Omniobject ;
-
--- with Omniobjectmanager, Omniropeandkey ;
-
-with NetBufferedStream, MemBufferedStream ;
-with Giop_S ;
 
 with Ada.Finalization ;
 
+with Omniobject ;
+with NetBufferedStream, MemBufferedStream ;
+
+
 package Corba.Object is
+
+
+   --------------------------------------------------
+   ---        CORBA 2.2 specifications            ---
+   --------------------------------------------------
 
    type Ref is tagged private ;
    type Ref_Ptr is access all Ref'Class ;
    type Constant_Ref_Ptr is  access constant Corba.Object.Ref'Class ;
 
-
-   -- constant Ref
+   -- constant Nil Ref
    Nil_Ref : aliased constant Ref ;
 
-   --I boolean is_nil();
+
    function Is_Nil(Self: in Ref'Class) return Corba.Boolean;
    function Is_Null(Self: in Ref'Class) return Corba.Boolean renames Is_Nil;
+   -- returns nil if the ORB is sure that this is a nil object
+   -- ie, it points nowhere
 
-   --I void release();
+
    procedure Release (Self : in out Ref'class);
+   -- releases all the resources this proxy object
+   -- uses.
 
-   --I Object duplicate();
-   -- use assignment
+
+   -- Object duplicate() is not needed in Ada
+   -- we use assignment according to the CORBA 2.0 specification
+
 
    function Is_A(Self: in Ref ;
                  Logical_Type_Id : in Corba.String)
                  return Corba.Boolean ;
-  -- returns true if this object is of this Logical_Type_Id
+   -- returns true if this object is of this Logical_Type_Id
+   -- ( where Logical_Type_Id is a Repository_Id )
    -- or one of its descendants
+
 
    function Is_A(Logical_Type_Id : in Corba.String)
                  return Corba.Boolean ;
-   -- sam, but non dispatching, must be called
+   -- same, but non dispatching, must be called
    -- Corba.Object.Is_A(...)
+
 
    function Non_Existent(Self : in Ref) return Corba.Boolean ;
    -- returns false if this reference is nil
@@ -60,41 +103,135 @@ package Corba.Object is
    function Is_Equivalent(Self : in Ref ;
                           Other : in Ref)
                           return Corba.Boolean ;
+   -- returns True if both objects point to the same
+   -- distant implementation
+
 
    function Hash(Self : in Ref ;
                  Maximum : in Corba.Unsigned_long)
                  return Corba.Unsigned_Long ;
+   -- return a hash value for this object
+   -- not implemented yet, it returns 0
+
 
    -- get_implementation and get_interface
    -- are not supported
+
+
+   function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
+   -- used to cast any Corba.Object.Ref'Class into a Corba.Object.Ref
+   -- it has to be overloaded for all descendants of Corba.Object.Ref
+
 
    --------------------------------------------------
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
 
-   procedure Register(RepoId : in Corba.String ;
-                      Dyn_Type : in Corba.Object.Constant_Ref_Ptr) ;
-   -- this procedure registers a new static object in the list
-   -- cf comment at the end of this file
-
-   function Get_Dynamic_Type(Self: in Ref) return Ref'Class ;
-   function Get_Nil_Ref(Self: in Ref) return Ref ;
-
    Repository_Id : Corba.String := Corba.To_Corba_String("IDL:omg.org/CORBA/Object:1.0") ;
+   -- Repository Id for Corba.Object.Ref
+
    function Get_Repository_Id(Self : in Ref) return Corba.String ;
+   -- returns the Repository Id of the ADA type of Self
+   -- it must be overloaded for all the descendants of Ref
+   -- BEWARE : the repository ID of the ADA type of
+   -- Self may not be the same as its dynamic repository ID
+   -- For example : if a descendant Myref has been cast into
+   -- Ref using To_Ref, Get_Repository_Id will return
+   -- the repository ID of Corba.Object.Ref
 
-   function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
 
-   procedure Assert_Ref_Not_Nil(Self : in Ref) ;
+   function Get_Nil_Ref(Self: in Ref) return Ref ;
+   -- this function returns a Nil_Ref of the same type
+   -- of the object it is given. It is used for
+   -- typing (see below)
 
 
    function Object_To_String (Self : in CORBA.Object.Ref'class)
                               return CORBA.String ;
    -- returns the IOR corresponding to this object
+   -- it is called by Corba.Orb.Object_To_String
+   -- see CORBA specification for details
 
    procedure String_to_Object (From : in CORBA.String;
                                To : out Ref'class) ;
    -- returns a Ref'Class out of an IOR
+   -- it is called by Corba.Orb.String_To_Object
+   -- see CORBA specification for details
+
+
+   procedure Object_Is_Ready(Self : in Ref'Class) ;
+   -- calls the C++ function omni::objectIsReady
+   -- has to be done when an object has been created
+   -- to register it into the ORB
+   -- (as a proxy object)
+   -- BEWARE : MUST BE CALLED ONLY ONCE FOR EACH OBJECT
+
+
+   --------------------------------------------------
+   ---   registering new interfaces into the ORB  ---
+   --------------------------------------------------
+
+   procedure Create_Proxy_Object_Factory(RepoID : in Corba.String) ;
+   -- The ORB has to know how to create new proxy objects
+   -- when we ask him to (out of an IOR for example.
+   -- To do that, it keeps a global variable which
+   -- is a list of proxyObjectFactories.
+   -- They all have a method newProxyObject
+   -- which construct a proxy object of the desired type
+   --
+   -- From the ORB's point of view, all Ada objects
+   -- are of the same type, all we have to do is register
+   -- the Repositoty ID of the new interface, this is
+   -- done in this function, which has to be called
+   -- in the elaboration of all the packages that contain
+   -- a descendant of Corba.Object.Ref
+
+
+
+-----------------------------------------------------------------------
+----                                                               ----
+----          dynamic typing of objects                            ----
+----                                                               ----
+----    An omniobject.Object carries                               ----
+----   information about its most derived type in its reposituryID ----
+----     In Corba.Object.Ref, the information of the most          ----
+----   derived type is stored as a pointer to a static variable    ----
+----   of the most derived clas of the object. (Nil_Ref is used)   ----
+----                                                               ----
+----   Ada typing cannot be used, because the Ada dynamic          ----
+----   type does not correspond to the IDL dynamic type            ----
+----   when To_Ref is used.                                        ----
+----                                                               ----
+----    It is easy to retrieve the repositoryID out of a static    ----
+----   object via the dispatching method Get_Repository_Id,        ----
+----   and this package provides a function                        ----
+----   Get_Dynamic_Type_From_Repository_Id                         ----
+----   to do the conversion the other way round.                   ----
+----                                                               ----
+----                                                               ----
+----     As for now, this package is implemented using a           ----
+----     list. It would probably be more efficient with a          ----
+----     hashtable.                                                ----
+----                                                               ----
+----     THE FUNCTIONS ARE NOT THREAD-SAFE                         ----
+----                                                               ----
+-----------------------------------------------------------------------
+
+
+   procedure Register(RepoId : in Corba.String ;
+                      Dyn_Type : in Corba.Object.Constant_Ref_Ptr) ;
+   -- this procedure registers a new static object in the list
+
+
+   function Get_Dynamic_Type(Self: in Ref) return Ref'Class ;
+   -- returns a Ref_Ptr which is of the same class
+   -- as the most derived repository id of this Ref'Class
+
+
+
+   --------------------------------------------------
+   ---       Marshalling operators                ---
+   --------------------------------------------------
 
    function Align_Size (Obj : in Ref_Ptr ;
                         Initial_Offset : in Corba.Unsigned_Long)
@@ -118,42 +255,6 @@ package Corba.Object is
    -- This procedure marshalls the object Obj into the stream S
 
 
-   --------------------------------------------------
-   ---        omniORB specific                    ---
-   --------------------------------------------------
-
-   procedure Create_Proxy_Object_Factory(RepoID : in Corba.String) ;
-   -- stores in a global variable in the ORB the fact
-   -- that a new IDL interface can be used
-   -- must be called when elaborating each package
-   -- where a descendant of Corba.Object.Ref is defined
-
-   procedure Object_Is_Ready(Self : in Ref'Class) ;
-   -- calls the C++ function omni::objectIsReady
-   -- has to be done when an object has been created
-   -- to register it into the ORB
-   -- (as a proxy object)
-   -- BEWARE : MUST BE CALLED ONLY ONCE FOR EACH OBJECT
-
-
-
-   -- procedure AdaBroker_Dispatch (Self : in out Corba.Object.Object ;
-   --                             Orls : in Giop_S.Object ;
-   --                             Orl_Op : in Corba.String ;
-   --                             Orl_Response_Expected : in Corba.Boolean ;
-   --                             Returns : out Corba.Boolean ) ;
-   -- dispatches a call received by the Orb to invoke
-   -- the right function on a Corba.Object
-
-   -- The five following subprograms are marshalling operators
-   -- they will be inherited by all the descedants of Corba.Object.Ref
-   -- so there is no need to redefine them in each new package
-   -- ( it is done in C++ )
-   --function NP_Aligned_Size(The_Ref : in Ref ;
-   --                         Initial_Offset : in Corba.Unsigned_Long)
-   --  return Corba.Unsigned_Long ;
-
-
 
 
 private
@@ -167,45 +268,27 @@ private
       Dynamic_Type : Constant_Ref_Ptr := null ;
    end record ;
 
-   procedure Initialize (Self: in out Ref);
-   -- nothing to do
+
+   --------------------------------------------------
+   ---          controlling functions             ---
+   --------------------------------------------------
 
    procedure Adjust (Self: in out Ref);
    -- duplicate the underlying omniobject
 
+
    procedure Finalize (Self: in out Ref);
    -- release th underlying omniobject
+
 
    Nil_Ref :  aliased constant Ref := (Ada.Finalization.Controlled
                                        with Omniobj => null,
                                        Dynamic_Type => null) ;
 
-   --------------------------------------------------
-   ---   The following lines concern the typing   ---
-   ---   of newly created Corba.Object.Ref'Class  ---
-   ---  This functiocs used to be in a seperate   ---
-   ---  package, but there was circular           ---
-   ---  referencs between packages                ---
-   --------------------------------------------------
------------------------------------------------------------------------
-----     As a matter of fact, an omniobject.Object carries         ----
-----   information about its most derived type in its reposituryID ----
-----     In Corba.Object.Ref, the information of the most          ----
-----   derived type is stored as a pointer to a static variable    ----
-----   of the most derived clas of the object.                     ----
-----    It is easy to retrieve the repositoryID out of a static    ----
-----   object via the dispatching method Get_Repository_Id,        ----
-----   and this package provides a function Get_Dynamic_Type       ----
-----   to do the conversion the other way round.                   ----
-----                                                               ----
-----                                                               ----
-----     As for now, this package is implemented using a           ----
-----     list. It would probably be more efficient with a          ----
-----     hashtable.                                                ----
-----                                                               ----
-----     THE FUNCTIONS ARE NOT THREAD-SAFE                         ----
-----                                                               ----
------------------------------------------------------------------------
+
+    --------------------------------------------------
+    ---     dynamic typing of objects              ---
+    --------------------------------------------------
 
    function Get_Dynamic_Type_From_Repository_Id(RepoID : in Corba.String)
                                                 return Corba.Object.Constant_Ref_ptr ;

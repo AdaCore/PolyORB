@@ -1,24 +1,58 @@
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 ----                                                               ----
-----                  AdaBroker                                    ----
+----                         AdaBroker                             ----
 ----                                                               ----
-----                  package body CORBA.Object                    ----
+----                       package Giop                            ----
+----                                                               ----
+----                                                               ----
+----   Copyright (C) 1999 ENST                                     ----
+----                                                               ----
+----   This file is part of the AdaBroker library                  ----
+----                                                               ----
+----   The AdaBroker library is free software; you can             ----
+----   redistribute it and/or modify it under the terms of the     ----
+----   GNU Library General Public License as published by the      ----
+----   Free Software Foundation; either version 2 of the License,  ----
+----   or (at your option) any later version.                      ----
+----                                                               ----
+----   This library is distributed in the hope that it will be     ----
+----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
+----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
+----   PURPOSE.  See the GNU Library General Public License for    ----
+----   more details.                                               ----
+----                                                               ----
+----   You should have received a copy of the GNU Library General  ----
+----   Public License along with this library; if not, write to    ----
+----   the Free Software Foundation, Inc., 59 Temple Place -       ----
+----   Suite 330, Boston, MA 02111-1307, USA                       ----
+----                                                               ----
+----                                                               ----
+----                                                               ----
+----   Description                                                 ----
+----   -----------                                                 ----
+----                                                               ----
+----   This package corresponds to the CORBA 2.0 specification.    ----
+----   It contains the definition of type Corba.Object.Ref,        ----
+----   which is the base class of all proxy objects                ----
+----                                                               ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/08/99                                          ----
-----                                                               ----
+----   date    : 02/28/99                                          ----
 ----                                                               ----
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 
-with Ada.Tags ;
+
+with Ada.Exceptions ;
+
+with Iop ;
 with Omniobject ;
 use type Omniobject.Object_Ptr ;
 with Omniropeandkey ; use Omniropeandkey ;
-with Ada.Exceptions ;
+
 
 package body Corba.Object is
-
-
 
    --------------------------------------------------
    ---        CORBA 2.2 specifications            ---
@@ -42,26 +76,26 @@ package body Corba.Object is
    end ;
 
 
-
-    -- Is_A
-    -------
-    function Is_A(Self: in Ref ;
+   -- Is_A
+   -------
+   function Is_A(Self: in Ref ;
                  Logical_Type_Id : in Corba.String)
                  return Corba.Boolean is
-    begin
-       return (Repository_Id = Logical_Type_Id) ;
-    end ;
-
-    -- Is_A
-    -------
-    function Is_A(Logical_Type_Id : in Corba.String)
-                  return Corba.Boolean is
-    begin
-       return (Repository_Id = Logical_Type_Id) ;
-    end ;
+   begin
+      return (Repository_Id = Logical_Type_Id) ;
+   end ;
 
 
-    -- Non_Existent
+   -- Is_A
+   -------
+   function Is_A(Logical_Type_Id : in Corba.String)
+                 return Corba.Boolean is
+   begin
+      return (Repository_Id = Logical_Type_Id) ;
+   end ;
+
+
+   -- Non_Existent
    ---------------
    function Non_Existent(Self : in Ref) return Corba.Boolean is
    begin
@@ -101,43 +135,17 @@ package body Corba.Object is
    end ;
 
 
-   -- Object_Is_Ready
-   ------------------
-   procedure Object_Is_Ready(Self : in Ref'Class) is
-   begin
-      if not Is_Nil(Self) then
-         Omniobject.Omniobject_Is_Ready(Self.Omniobj.all) ;
-      else
-         Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
-                                        "Corba.Object.Object_Is_Ready(Corba.Object.Ref)"
-                                        & Corba.CRLF
-                                        & "Cannot be called on nil object") ;
-      end if ;
-   end ;
+    -- To_Ref
+    ---------
+    function To_Ref(The_Ref : in Ref'Class) return Ref is
+    begin
+       return Ref(The_Ref) ;
+    end ;
+
+
    --------------------------------------------------
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
-
-   -- Get_Nil_Ref
-   --------------
-   function Get_Nil_Ref(Self : in Ref) return Ref is
-   begin
-      return Nil_Ref ;
-   end ;
-
-    -- Assert_Ref_Not_Nil
-   ---------------------
-   procedure Assert_Ref_Not_Nil(Self : in Ref) is
-   begin
-      if Corba.Object.Is_Nil(Self) then
-         declare
-         begin
-            Corba.Raise_Corba_Exception(Corba.Bad_Operation'Identity,
-                                        new Corba.Bad_Param_Members'(0, Corba.Completed_No)) ;
-         end ;
-      end if ;
-   end ;
-
 
    -- Get_Repository_Id
    --------------------
@@ -146,20 +154,13 @@ package body Corba.Object is
       return Repository_Id ;
    end ;
 
-   --  Get_Dynamic_Type
-   ----------------------
-    function Get_Dynamic_Type(Self: in Ref) return Ref'Class is
-    begin
-       return Self.Dynamic_Type.all ;
-    end ;
 
-
-    -- To_Ref
-    ---------
-    function To_Ref(The_Ref : in Ref'Class) return Ref is
-    begin
-       return Ref(The_Ref) ;
-    end ;
+   -- Get_Nil_Ref
+   --------------
+   function Get_Nil_Ref(Self : in Ref) return Ref is
+   begin
+      return Nil_Ref ;
+   end ;
 
 
    -- Object_To_String
@@ -173,6 +174,7 @@ package body Corba.Object is
          return Omniobject.Object_To_String(Self.Omniobj) ;
       end if ;
    end ;
+
 
    -- String_To_Object
    -------------------
@@ -207,21 +209,120 @@ package body Corba.Object is
 
    end ;
 
-   -- Set_Fields
-   -------------
-   procedure Set_Fields(Self : in out Ref'Class ;
-                        O : in Omniobject.Object_Ptr  ;
-                        Dt : in Constant_Ref_Ptr ) is
+
+   -- Object_Is_Ready
+   ------------------
+   procedure Object_Is_Ready(Self : in Ref'Class) is
    begin
-      Self.Omniobj := O ;
-      Self.Dynamic_Type := Dt ;
+      if not Is_Nil(Self) then
+         Omniobject.Omniobject_Is_Ready(Self.Omniobj.all) ;
+      else
+         Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
+                                        "Corba.Object.Object_Is_Ready(Corba.Object.Ref)"
+                                        & Corba.CRLF
+                                        & "Cannot be called on nil object") ;
+      end if ;
    end ;
 
 
+   --  Get_Dynamic_Type
+   ----------------------
+    function Get_Dynamic_Type(Self: in Ref) return Ref'Class is
+    begin
+       return Self.Dynamic_Type.all ;
+    end ;
+
+
+   --------------------------------------------------
+   ---   registering new interfaces into the ORB  ---
+   --------------------------------------------------
+
+
+    -- C_Create_Proxy_Object_Factory
+   ---------------------------------
+   procedure C_Create_Proxy_Object_Factory(RepoID : in Interfaces.C.Strings.Chars_ptr) ;
+   pragma Import (CPP, C_Create_Proxy_Object_Factory, "createProxyObjectFactory__FPCc") ;
+   -- corresponds to
+   -- void createProxyObjectFactory(const char* repoID)
+   -- see proxyObjectFactory.hh
+
+
+   -- Create_Proxy_Object_Factory
+   ------------------------------
+   procedure Create_Proxy_Object_Factory(RepoID : in Corba.String) is
+      C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
+      Tmp : Standard.String := Corba.To_Standard_String(RepoId) ;
+   begin
+      C_Repoid := Interfaces.C.Strings.New_String(Tmp) ;
+      -- never deallocated because it is stored in a global
+      -- variable in omniORB (proxyStubs)
+      C_Create_Proxy_Object_Factory(C_RepoId) ;
+   end ;
+
 
     --------------------------------------------------
-    ---        omniORB specific                    ---
+    ---     dynamic typing of objects              ---
     --------------------------------------------------
+
+
+   type Cell ;
+   type Cell_Ptr is access all Cell ;
+   type Cell is  record
+      ID : Corba.String ;
+      Value : Corba.Object.Constant_Ref_Ptr ;
+      Next : Cell_Ptr ;
+   end record ;
+
+   Pd_List : Cell_Ptr := null ;
+   -- This is a static list that contains all the
+   -- pairs (repoID, static object ref)
+
+   -- Free : free the memory
+   procedure Free is new Ada.Unchecked_Deallocation(Cell, Cell_Ptr) ;
+
+
+   -- Register :
+   -------------
+   procedure Register (RepoId : in Corba.String ;
+                      Dyn_Type : in Corba.Object.Constant_Ref_Ptr) is
+      Temp : Cell_Ptr ;
+   begin
+      -- makes a new cell ...
+      Temp := new Cell'(ID => RepoID,
+                        Value => Dyn_Type,
+                        Next => Pd_list) ;
+      -- ... and add it in front of the list
+      Pd_List := Temp ;
+   end ;
+
+
+   -- Get_Dynamic_Type_From_Repository_Id
+   --------------------------------------
+   function Get_Dynamic_Type_From_Repository_Id(RepoID : in Corba.String)
+                                                return Corba.Object.Constant_Ref_Ptr is
+      Temp : Cell_Ptr := Pd_List ;
+   begin
+      loop
+         if Temp = null then
+            Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity,
+                                            "Corba.Get_Dynamic_Type_From_Repository_Id"
+                                            & Corba.CRLF
+                                            & "No match found for "
+                                            & Corba.To_Standard_String(RepoId)) ;
+         else if Temp.all.ID = repoID then
+            return Temp.all.Value ;
+         else
+            Temp := Temp.all.Next ;
+         end if ;
+         end if ;
+      end loop ;
+   end ;
+
+
+   --------------------------------------------------
+   ---       Marshalling operators                ---
+   --------------------------------------------------
+
 
    -- Create_Ref
    -------------
@@ -261,7 +362,7 @@ package body Corba.Object is
 
    -- Get_Profile_List
    -------------------
-   function Get_Profile_List (Obj : in Ref)
+   function Get_Profile_List (Obj : in Ref'Class)
                               return Iop.Tagged_Profile_List is
    begin
       return Omniobject.Get_Profile_List (Obj.Omniobj.all) ;
@@ -366,50 +467,10 @@ package body Corba.Object is
    end ;
 
 
-    -- C_Create_Proxy_Object_Factory
-   ---------------------------------
-   procedure C_Create_Proxy_Object_Factory(RepoID : in Interfaces.C.Strings.Chars_ptr) ;
-   pragma Import (CPP, C_Create_Proxy_Object_Factory, "createProxyObjectFactory__FPCc") ;
-   -- corresponds to
-   -- void createProxyObjectFactory(const char* repoID)
-   -- see proxyObjectFactory.hh
-
-
-   -- Create_Proxy_Object_Factory
-   ------------------------------
-   procedure Create_Proxy_Object_Factory(RepoID : in Corba.String) is
-      C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
-      Tmp : Standard.String := Corba.To_Standard_String(RepoId) ;
-   begin
-      C_Repoid := Interfaces.C.Strings.New_String(Tmp) ;
-      -- never deallocated because it is stored in a global
-      -- variable in omniORB (proxyStubs)
-      C_Create_Proxy_Object_Factory(C_RepoId) ;
-   end ;
-
-
-
 
    --------------------------------------------------
+   ---          controlling functions             ---
    --------------------------------------------------
-   --------------------------------------------------
-   ---            private part                    ---
-   --------------------------------------------------
-   --------------------------------------------------
-   --------------------------------------------------
-
-
-   --------------------------------------------------
-   ---     references to implementations          ---
-   --------------------------------------------------
-
-   -- Initialize
-   -------------
-   procedure Initialize (Self: in out Ref) is
-   begin
-      null ;
-   end ;
-
 
    -- Adjust
    ---------
@@ -430,71 +491,13 @@ package body Corba.Object is
    end ;
 
 
-   --------------------------------------------------
-   ---   The following lines concern the typing   ---
-   ---   of newly created Corba.Object.Ref'Class  ---
-   ---  This functiocs used to be in a seperate   ---
-   ---  package, but there was circular           ---
-   ---  referencs between packages                ---
-   --------------------------------------------------
-
-   type Cell ;
-   type Cell_Ptr is access all Cell ;
-   type Cell is  record
-      ID : Corba.String ;
-      Value : Corba.Object.Constant_Ref_Ptr ;
-      Next : Cell_Ptr ;
-   end record ;
-
-   Pd_List : Cell_Ptr := null ;
-   -- This is a static list that contains all the
-   -- pairs (repoID, static object ref)
-
-   -- Free : free the memory
-   procedure Free is new Ada.Unchecked_Deallocation(Cell, Cell_Ptr) ;
-
-
-   -- Register :
-   -------------
-   procedure Register (RepoId : in Corba.String ;
-                      Dyn_Type : in Corba.Object.Constant_Ref_Ptr) is
-      Temp : Cell_Ptr ;
-   begin
-      -- makes a new cell ...
-      Temp := new Cell'(ID => RepoID,
-                        Value => Dyn_Type,
-                        Next => Pd_list) ;
-      -- ... and add it in front of the list
-      Pd_List := Temp ;
-   end ;
-
-
-   -- Get_Dynamic_Type_From_Repository_Id
-   --------------------------------------
-   function Get_Dynamic_Type_From_Repository_Id(RepoID : in Corba.String)
-                                                return Corba.Object.Constant_Ref_Ptr is
-      Temp : Cell_Ptr := Pd_List ;
-   begin
-      loop
-         if Temp = null then
-            Ada.Exceptions.Raise_Exception (AdaBroker_Fatal_Error'Identity,
-                                            "Corba.Get_Dynamic_Type_From_Repository_Id"
-                                            & Corba.CRLF
-                                            & "No match found for "
-                                            & Corba.To_Standard_String(RepoId)) ;
-         else if Temp.all.ID = repoID then
-            return Temp.all.Value ;
-         else
-            Temp := Temp.all.Next ;
-         end if ;
-         end if ;
-      end loop ;
-   end ;
 
 
 begin
 
    Register(Repository_Id, Nil_Ref'Access) ;
+   -- registers the fact that a new IDL interface : the root of all the others
+   -- can be used in the program
 
 end Corba.Object ;
 

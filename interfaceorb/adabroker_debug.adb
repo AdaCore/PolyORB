@@ -1,21 +1,64 @@
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 ----                                                               ----
-----                       AdaBroker                               ----
+----                         AdaBroker                             ----
+----                                                               ----
+----                package AdaBroker_Debug                        ----
+----                                                               ----
+----                                                               ----
+----   Copyright (C) 1999 ENST                                     ----
+----                                                               ----
+----   This file is part of the AdaBroker library                  ----
+----                                                               ----
+----   The AdaBroker library is free software; you can             ----
+----   redistribute it and/or modify it under the terms of the     ----
+----   GNU Library General Public License as published by the      ----
+----   Free Software Foundation; either version 2 of the License,  ----
+----   or (at your option) any later version.                      ----
+----                                                               ----
+----   This library is distributed in the hope that it will be     ----
+----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
+----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
+----   PURPOSE.  See the GNU Library General Public License for    ----
+----   more details.                                               ----
+----                                                               ----
+----   You should have received a copy of the GNU Library General  ----
+----   Public License along with this library; if not, write to    ----
+----   the Free Software Foundation, Inc., 59 Temple Place -       ----
+----   Suite 330, Boston, MA 02111-1307, USA                       ----
+----                                                               ----
+----                                                               ----
+----                                                               ----
+----   Description                                                 ----
+----   -----------                                                 ----
 ----                                                               ----
 ----    This is a debugging package for AdaBroker.                 ----
+----    usage : add at the beginnig of each package :              ----
+----                                                               ----
+----    with Adabroker_Debug ;                                     ----
+----    pragma Elaborate(Adabroker_Debug) ;                        ----
+----                                                               ----
+----   Debug : constant Boolean                                    ----
+----           := Adabroker_Debug.Is_Active("specific_name") ;     ----
+----                                                               ----
+----   and then :                                                  ----
+----                                                               ----
+----     pragma Debug(Output(Debug, "degug info !!"))  ;           ----
 ----                                                               ----
 ----                                                               ----
+----    The printing will be done if the Debug_Filename file       ----
+----    contains a line with "specific_name"                       ----
 ----                                                               ----
-----                  package AdaBroker_Debug                      ----
 ----                                                               ----
-----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/17/99                                          ----
-----                                                               ----
+----   authors : Fabien Azavant                                    ----
+----   date    : 03/10/99                                          ----
 ----                                                               ----
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 
-with Text_Io ; use Text_Io ;
+
 with Ada.Unchecked_Deallocation ;
+with Text_Io ; use Text_Io ;
 
 package body Adabroker_Debug is
 
@@ -70,8 +113,9 @@ package body Adabroker_Debug is
    end ;
 
 
-   -- reading the debug file
-
+   -----------------------------
+   -- reading the debug file  --
+   -----------------------------
    File : File_Type ;
    S : String(1..100) ;
    N : Natural ;

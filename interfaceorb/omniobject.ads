@@ -1,6 +1,36 @@
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 ----                                                               ----
-----                       AdaBroker                               ----
+----                         AdaBroker                             ----
+----                                                               ----
+----                    package Omniobject                         ----
+----                                                               ----
+----                                                               ----
+----   Copyright (C) 1999 ENST                                     ----
+----                                                               ----
+----   This file is part of the AdaBroker library                  ----
+----                                                               ----
+----   The AdaBroker library is free software; you can             ----
+----   redistribute it and/or modify it under the terms of the     ----
+----   GNU Library General Public License as published by the      ----
+----   Free Software Foundation; either version 2 of the License,  ----
+----   or (at your option) any later version.                      ----
+----                                                               ----
+----   This library is distributed in the hope that it will be     ----
+----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
+----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
+----   PURPOSE.  See the GNU Library General Public License for    ----
+----   more details.                                               ----
+----                                                               ----
+----   You should have received a copy of the GNU Library General  ----
+----   Public License along with this library; if not, write to    ----
+----   the Free Software Foundation, Inc., 59 Temple Place -       ----
+----   Suite 330, Boston, MA 02111-1307, USA                       ----
+----                                                               ----
+----                                                               ----
+----                                                               ----
+----   Description                                                 ----
+----   -----------                                                 ----
 ----                                                               ----
 ----     This package is wrapped around a C++ class whose name     ----
 ----   is Ada_OmniObject.                                          ----
@@ -11,21 +41,22 @@
 ----   that allows C functions to raise the ada No_Initialisation  ----
 ----   exception.                                                  ----
 ----                                                               ----
-----                                                               ----
-----                  package omniObject                           ----
+-----                                                               ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
-----   date    : 02/17/99                                          ----
-----                                                               ----
+----   date    : 02/28/99                                          ----
 ----                                                               ----
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
+
 
 with Ada.Finalization ;
 with Interfaces.CPP ;
 with Interfaces.C.Strings ;
 with System ;
-with Giop_S ;
+
 with Corba ;
+with Giop_S ;
 with Sys_Dep ;
 with OmniObjectManager ;
 with Iop ;
@@ -86,8 +117,26 @@ package OmniObject is
    -- calls the C++ Init to set the init_ok boolean to true
    -- and sets the repoID of this object
 
+
    function Is_Nil(Self : in Implemented_Object) return Corba.Boolean ;
    function Is_Null(Self: in Implemented_Object) return Corba.Boolean renames Is_Nil;
+   -- returns True if this is a nil object
+
+
+   function Get_Repository_Id(Self : in Implemented_Object)
+                              return Corba.String ;
+
+
+    Repository_Id : Corba.String
+     := Corba.To_Corba_String("IDL:omg.org/CORBA/Object:1.0") ;
+
+
+    function Is_A(Self: in Implemented_Object ;
+                 Logical_Type_Id : in Corba.String)
+                 return Corba.Boolean ;
+   -- returns true if this object is of this Logical_Type_Id
+   -- ( where Logical_Type_Id is a Repository_Id )
+   -- or one of its descendants
 
 
    procedure Object_Is_Ready(Self : in Implemented_Object'Class) ;
@@ -97,21 +146,11 @@ package OmniObject is
    -- (as a local object)
    -- BEWARE : MUST BE CALLED ONLY ONCE FOR EACH OBJECT
 
-   function Is_A(Self: in Implemented_Object ;
-                 Logical_Type_Id : in Corba.String)
-                 return Corba.Boolean ;
-   -- returns true if this object is of this Logical_Type_Id
-   -- or one of its descendants
-
-   Repository_Id : Corba.String
-     := Corba.To_Corba_String("IDL:omg.org/CORBA/Object:1.0") ;
-
-   function Get_Repository_Id(Self : in Implemented_Object)
-                              return Corba.String ;
 
    function Object_To_String(Self : in Implemented_Object'Class)
                              return Corba.String ;
    -- return the IOR corresponding to this object
+
 
    function Dispatch (Self : in Implemented_Object ;
                       Orls : in Giop_S.Object ;
@@ -122,14 +161,17 @@ package OmniObject is
    -- It is implemented in the sub-classes of omniObject
    -- this function on this object should never be called
 
+
    function Align_Size (Obj : in Implemented_Object_Ptr ;
                         Initial_Offset : in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long ;
    -- This function computes the size needed to marshall the object obj
 
+
    procedure Marshall (Obj : in Implemented_Object_Ptr ;
                        S : in out NetBufferedStream.Object) ;
    -- This procedure marshalls the object Obj into the stream S
+
 
    procedure Marshall (Obj : in Implemented_Object_Ptr ;
                        S : in out MemBufferedStream.Object) ;
@@ -150,13 +192,16 @@ package OmniObject is
                         return Corba.Unsigned_Long ;
    -- This function computes the size needed to marshall the object obj
 
+
    procedure Marshall (Obj : in Object_Ptr ;
                        S : in out NetBufferedStream.Object) ;
    -- This procedure marshalls the object Obj into the stream S
 
+
    procedure Marshall (Obj : in Object_Ptr ;
                        S : in out MemBufferedStream.Object) ;
    -- This procedure marshalls the object Obj into the stream S
+
 
    function Create_Omniobject(Most_Derived_Repoid : in Corba.String ;
                               Profiles : in Iop.Tagged_Profile_List ;
@@ -167,16 +212,19 @@ package OmniObject is
    -- We use this when we want to unmarshall an object out of
    -- a bufferedstream, and to create a Corba.object.ref'class.
 
+
    procedure Duplicate(Self : in Object'Class) ;
    -- calls the C++ equivalent :
    -- omni::objectDuplicate(omniObject*)
    -- it increments the reference count by one
+
 
    procedure Release(Self : in Object'Class) ;
    -- calls the C++ equivalent :
    -- omni::objectRelease(omniObject*)
    -- it decrements the reference count by one
    -- and releases the resources if it comes to 0
+
 
    procedure Omniobject_Is_Ready(Self : in Object'Class) ;
    pragma Import (C,Omniobject_Is_Ready,"objectIsReady__4omniP10omniObject") ;
@@ -197,23 +245,24 @@ package OmniObject is
                               return Corba.String ;
    -- returns the repository_id for this object
 
+
    function String_To_Object(RepoId : in Corba.String)
                              return Object_Ptr ;
    -- this function trys to create the Object
    -- corresponding to this resitory_id,
    -- returns null on failure
 
+
    function Object_To_String(Obj_ptr : in Object_Ptr) return Corba.String ;
    -- returns the IOR for this object
    -- Obj can be null
+
 
    function Get_Profile_List (Self : in Object'Class)
                               return Iop.Tagged_Profile_List ;
    -- returns the Profile list of an object
 
 private
-
-
 
    -----------------------------------------------
    --         Implemented_Object                --
@@ -243,6 +292,7 @@ private
    procedure Finalize (Self: in out Implemented_Object);
    -- release the underlying omniobject
 
+
    -----------------------------------------------
    --             Omniobject                    --
    --     this type is imported from C++        --
@@ -252,51 +302,22 @@ private
    -----------------------------------------------
 
 
-
-   procedure Set_Repository_Id(Self : in out Object'class ;
-                               Repo_Id : in Corba.String) ;
-
-
-   procedure Init (Self : in out Object'Class ;
-                   RepoId : in String ;
-                   R : in Rope.Object ;
-                   Key : in Corba.Octet ;
-                   Keysize : in Corba.Unsigned_Long ;
-                   Profiles : in Iop.Tagged_Profile_List ;
-                   Release : Corba.Boolean ) ;
-   -- initialization of proxy objects
-
-
-
-
-   procedure C_Set_Rope_And_Key (Self : in out Object'Class ;
-                                 L : in System.Address ;
-                                 KeepIOP : in Sys_Dep.C_Boolean) ;
-   pragma Import (CPP,C_Set_Rope_And_Key,
-                  "setRopeAndKey__10omniObjectRC14omniRopeAndKeyb") ;
-   -- wrapper around  Ada_OmniObject function setRopeAndKey
-   -- (see Ada_OmniObject.hh)
-
-   procedure Set_Rope_And_Key (Self : in out Object'Class ;
-                               L : in Omniropeandkey.Object ;
-                               KeepIOP : in Boolean) ;
-   -- Ada equivalent of C procedure C_Set_Rope_And_Key
-
-
-
-   procedure Assert_Object_Existent (Self : in Object'Class) ;
-   pragma Import (CPP,Assert_Object_Existent,
-                  "assertObjectExistent__10omniObject");
-   -- wrapper around  Ada_OmniObject function assertObjectExistent
-   -- (see Ada_OmniObject.hh)
-   -- no Ada equivalent since there is no arguments
-
-
    function Is_Proxy (Self : in Object'Class)
                       return Boolean ;
    -- returns true if this is a proxy object
    -- there is no need to call the C++ function
    -- To Know It Because We Have The Information in Ada
+
+
+   procedure Set_Repository_Id(Self : in out Object'class ;
+                               Repo_Id : in Corba.String) ;
+   -- sets the reopsitory ID for this object
+   -- it is called by Init(Omniobject.Implemented_Object)
+
+   procedure Set_Rope_And_Key (Self : in out Object'Class ;
+                               L : in Omniropeandkey.Object ;
+                               KeepIOP : in Boolean) ;
+   -- sets the rope and key for this object
 
 
    function C_Dispatch (Self : in Object'Class ;
@@ -311,27 +332,38 @@ private
    -- This function is implemented in Ada and exported to C
    -- it calls th Ada function Dispatch
 
+
    function  C_Is_A(Self : in Object'Class ;
                    RepoId : in Interfaces.C.Strings.Chars_Ptr)
                    return  Sys_Dep.C_Boolean ;
    pragma Export(CPP, C_Is_A, "Ada_Is_A__14Ada_OmniObjectPCc") ;
+   -- returns true if self is in repoID,
+   -- or one of its descendant
 
 
+   procedure Assert_Object_Existent (Self : in Object'Class) ;
+   pragma Import (CPP,Assert_Object_Existent,
+                  "assertObjectExistent__10omniObject");
+   -- wrapper around  Ada_OmniObject function assertObjectExistent
+   -- (see Ada_OmniObject.hh)
+   -- no Ada equivalent since there is no arguments
+
+   -----------------------------------------------
+   ---         memory handling                 ---
+   -----------------------------------------------
 
    function Constructor return Object'Class;
    pragma Import (CPP,Constructor,"__14Ada_OmniObject");
    pragma CPP_Constructor (Constructor);
    -- wrapped around the C constructor of Ada_OmniObject
 
+
+   function Object_Ptr_Constructor return Object_Ptr ;
    -- This is a workaround for gnat 3.11p
    -- we cannot write
    -- toto : Object_Ptr := new Object
    -- we have to call the C++ constructor to create objects
-   function C_Object_Ptr_Constructor return System.Address ;
-   pragma Import (CPP,C_Object_Ptr_Constructor,"__14Ada_OmniObject") ;
 
-   function Object_Ptr_Constructor return Object_Ptr ;
-   -- corresponding Ada function ;
 
    procedure Object_Destructor(Self : in out Object'Class) ;
    pragma Import (CPP,Object_Destructor,

@@ -1,6 +1,36 @@
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 ----                                                               ----
-----                  AdaBroker                                    ----
+----                         AdaBroker                             ----
+----                                                               ----
+----                       package Giop                            ----
+----                                                               ----
+----                                                               ----
+----   Copyright (C) 1999 ENST                                     ----
+----                                                               ----
+----   This file is part of the AdaBroker library                  ----
+----                                                               ----
+----   The AdaBroker library is free software; you can             ----
+----   redistribute it and/or modify it under the terms of the     ----
+----   GNU Library General Public License as published by the      ----
+----   Free Software Foundation; either version 2 of the License,  ----
+----   or (at your option) any later version.                      ----
+----                                                               ----
+----   This library is distributed in the hope that it will be     ----
+----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
+----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
+----   PURPOSE.  See the GNU Library General Public License for    ----
+----   more details.                                               ----
+----                                                               ----
+----   You should have received a copy of the GNU Library General  ----
+----   Public License along with this library; if not, write to    ----
+----   the Free Software Foundation, Inc., 59 Temple Place -       ----
+----   Suite 330, Boston, MA 02111-1307, USA                       ----
+----                                                               ----
+----                                                               ----
+----                                                               ----
+----   Description                                                 ----
+----   -----------                                                 ----
 ----                                                               ----
 ----     This package is a sub package of package corba dealing    ----
 ----   with Corba exceptions.                                      ----
@@ -10,12 +40,10 @@
 ----   all kinds of datas he needs.                                ----
 ----                                                               ----
 ----                                                               ----
-----                   package Corba.Exceptions                    ----
+----   authors : Sebastien Ponce, Fabien Azavant                   ----
+----   date    : 02/28/99                                          ----
 ----                                                               ----
-----   authors : Sebastien Ponce                                   ----
-----   date    : 03/08/99                                          ----
-----                                                               ----
-----                                                               ----
+-----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
 
@@ -25,6 +53,7 @@ package body Corba.Exceptions is
    ID_Number : ID_Num := 0;
    -- Number of exceptions raised until now
    -- used to build an identifier for each exception
+
 
    type Cell ;
    type Cell_Ptr is access all Cell ;
@@ -50,10 +79,12 @@ package body Corba.Exceptions is
 
 
    -- Free : free the memory
+   -------------------------
    procedure Free is new Ada.Unchecked_Deallocation(Cell, Cell_Ptr) ;
 
 
    -- Put : add a member to the list
+   ---------------------------------
    procedure Put (V : in Idl_Exception_Members_Ptr ;
                   ID_V : in Standard.String) is
       Temp : Cell_Ptr ;
@@ -69,6 +100,7 @@ package body Corba.Exceptions is
 
 
    -- Get : get a member from the list
+   ------------------------------------
    function Get (From : in Ada.Exceptions.Exception_Occurrence)
                  return Ex_Body is
       Temp, Old_Temp : Cell_Ptr ;
@@ -118,6 +150,7 @@ package body Corba.Exceptions is
          end if ;
       end loop ;
    end ;
+
 
    -- Get_Members
    --------------
