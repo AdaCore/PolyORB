@@ -29,17 +29,17 @@ AR = ar cq
 MKDIRHIER = mkdirhier
 INSTALL           = $(TOP)/bin/scripts/install-sh -c 
 
-CPP = /usr/ccs/lib/cpp
+CPP = g++
 
 #
 # To use SunPro compilers, uncomment the following lines:
 #
-CXX = CC
-CXXMAKEDEPEND = $(TOP)/$(BINDIR)/omkdepend -D__SUNPRO_CC -D__cplusplus
-CXXDEBUGFLAGS = -O2 -fsimple
-CXXMTFLAG     = -mt
-CXXLINK		= $(CXX)
-CXXLINKOPTIONS  = $(CXXDEBUGFLAGS) $(CXXOPTIONS)
+#CXX = CC
+#CXXMAKEDEPEND = $(TOP)/$(BINDIR)/omkdepend -D__SUNPRO_CC -D__cplusplus
+#CXXDEBUGFLAGS = -O2 -fsimple
+#CXXMTFLAG     = -mt
+#CXXLINK		= $(CXX)
+#CXXLINKOPTIONS  = $(CXXDEBUGFLAGS) $(CXXOPTIONS)
 
 # CXXLINKOPTIONS += $(patsubst %,-R %,$(IMPORT_LIBRARY_DIRS))
 # Note: the -R linker option in CXXLINKOPTIONS instruct the Sun linker to
@@ -55,18 +55,18 @@ CXXLINKOPTIONS  = $(CXXDEBUGFLAGS) $(CXXOPTIONS)
 #
 # To use gcc, uncomment the following lines:
 #
-#CPP = gcc
+CPP = gcc
 #
-#CXX = g++
-#CXXMAKEDEPEND = $(TOP)/$(BINDIR)/omkdepend -D__cplusplus -D__GNUG__ -D__GNUC__
-#CXXDEBUGFLAGS = 
-#CXXOPTIONS    =  -fhandle-exceptions -Wall -Wno-unused
-#CXXMTFLAG     =
+CXX = g++
+CXXMAKEDEPEND = $(TOP)/$(BINDIR)/omkdepend -D__cplusplus -D__GNUG__ -D__GNUC__
+CXXDEBUGFLAGS = 
+CXXOPTIONS    =  -fhandle-exceptions -Wall -Wno-unused
+CXXMTFLAG     =
 #
-#CXXLINK		= $(CXX)
-#CXXLINKOPTIONS  = $(CXXDEBUGFLAGS) $(CXXOPTIONS)
+CXXLINK		= $(CXX)
+CXXLINKOPTIONS  = $(CXXDEBUGFLAGS) $(CXXOPTIONS)
 #
-# CXXLINKOPTIONS += $(patsubst %,-R %,$(IMPORT_LIBRARY_DIRS))
+ CXXLINKOPTIONS += $(patsubst %,-R %,$(IMPORT_LIBRARY_DIRS))
 # Note: the -R linker option in CXXLINKOPTIONS instruct the Sun linker to
 # record the pathname of the shared libraries in the executable.
 
