@@ -47,13 +47,14 @@ package MOMA.Sessions.Queues is
    function Create_Destination (Name   : MOMA.Types.String;
                                 Remote : PolyORB.References.Ref)
                                 return MOMA.Destinations.Destination;
-   --  create a destination whose target is the Remote reference
+   --  Create a destination whose target is the Remote reference (currently a
+   --  message pool)
 
    function Create_Session (Connection       : MOMA.Connections.Queues.Queue;
                             Transacted       : Boolean;
                             Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
                             return MOMA.Sessions.Queues.Queue;
-   --  create a session from a Connection
+   --  Create a session from a Connection.
 
    function Create_Receiver (Self : Queue;
                              Dest : MOMA.Destinations.Destination)

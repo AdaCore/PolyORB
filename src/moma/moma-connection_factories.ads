@@ -44,26 +44,27 @@ package MOMA.Connection_Factories is
    procedure Create (Self     : out Connection_Factory;
                      Remote   : PolyORB.References.Ref)
       is abstract;
-   --  create a new connection factory, with the provider Remote
+   --  Create a new connection factory, with the provider Remote.
 
    function Create_Connection (Self   : Connection_Factory)
                                return MOMA.Connections.Connection'Class
       is abstract;
-   --  create a new connection using this connection factory
+   --  Create a new connection using this connection factory.
 
    function Create_Connection (Self      : Connection_Factory;
                                Username  : String;
                                Password  : String)
                                return MOMA.Connections.Connection'Class
       is abstract;
-   --  create a new connection using this connection factory
-   --  and providing a username/password
+   --  Create a new connection using this connection factory
+   --  and providing a username/password.
 
 private
 
    type Connection_Factory is abstract tagged record
       Remote : PolyORB.References.Ref;
-      --  the reference to the provider
+      --  The access point to the MOMA domain.
+      --  XXX : this is a concept to clarify
    end record;
 
    procedure Set_Ref (Self    : in out Connection_Factory;

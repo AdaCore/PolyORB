@@ -385,27 +385,27 @@ begin
    end if;
 
    --  Initialize the connection factory
-   --  (should be done by the administrator)
+   --  (should be done by the administrator).
    MOMA.Connection_Factories.Queues.Create (MOMA_Factory, Pool_Ref);
 
-   --  Create connection using Queue Connection Factory
+   --  Create connection using Queue Connection Factory.
    MOMA_Connection := MOMA.Connections.Queues.Queue
       (MOMA.Connection_Factories.Queues.Create_Connection (MOMA_Factory));
 
    --  Initialize the destination
-   --  (should be usually done by the administrator)
+   --  (should be usually done by the administrator).
    --  NB : in this example the destination and the provider are references
-   --       to the same thing (Pool_Ref). This will probably change later
+   --       to the same thing (Pool_Ref). This will probably change later.
    MOMA_Destination := MOMA.Sessions.Queues.Create_Destination
       (To_MOMA_String ("queue1"), Pool_Ref);
 
-   --  Create Session,
+   --  Create Session.
    MOMA_Session := Create_Session (MOMA_Connection, False, 1);
 
-   --  Create Message Producer associated to the Session
+   --  Create Message Producer associated to the Session.
    MOMA_Producer := Create_Sender (MOMA_Session, MOMA_Destination);
 
-   --  Create Message Consumer associated to the Session
+   --  Create Message Consumer associated to the Session.
    MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Destination);
 
    --  Initialization is completed.
@@ -417,7 +417,7 @@ begin
    --  Testing MByte messages.
    Test_MByte;
 
-   --  Testing MMap messages;
+   --  Testing MMap messages.
    Test_MMap;
 
    --  Testing MText messages.
