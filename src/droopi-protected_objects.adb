@@ -1,5 +1,6 @@
 --  $Id$
 
+with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
 pragma Warnings (Off);
@@ -447,15 +448,34 @@ package body Droopi.Protected_Objects is
       return PO_Task_Id'(X => Ada.Task_Identification.Current_Task);
    end Get_Current_Task;
 
+   ---------------
+   -- Null_Task --
+   ---------------
+
    function Get_Null_Task return Soft_Links.Task_Id'Class is
    begin
       return PO_Task_Id'(X => Ada.Task_Identification.Null_Task_Id);
    end Get_Null_Task;
+
+   -----------
+   -- Image --
+   -----------
 
    function Image (T : PO_Task_Id) return String is
    begin
       return Ada.Task_Identification.Image (T.X);
    end Image;
 
+   ----------------
+   -- To_Integer --
+   ----------------
+
+   function To_Integer (T : PO_Task_Id) return Integer
+   is
+      function Task_Id_To_Integer is new Ada.Unchecked_Conversion
+        (Ada.Task_Identification.Task_Id, Integer);
+   begin
+      return Task_Id_To_Integer (T.X);
+   end To_Integer;
 
 end Droopi.Protected_Objects;

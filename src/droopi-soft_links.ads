@@ -215,5 +215,11 @@ package Droopi.Soft_Links is
    function Null_Task return Task_Id'Class;
 
    function Image (T : Task_Id) return String is abstract;
+   --  Return a printable string representing T unambiguously
+   --  (typically intended for debugging purposes).
+
+   function To_Integer (T : Task_Id) return Integer is abstract;
+   --  Return an integer representing T unambiguously
+   --  (typically intended for hashing purposes).
 
 end Droopi.Soft_Links;

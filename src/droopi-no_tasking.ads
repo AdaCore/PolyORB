@@ -97,6 +97,9 @@ package Droopi.No_Tasking is
    function Image (T : No_Task_Id) return String;
    pragma Inline (Image);
 
+   function To_Integer (T : No_Task_Id) return Integer;
+   pragma Inline (To_Integer);
+
 private
 
    type Unprotected_Mutex_Type is

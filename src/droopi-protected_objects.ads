@@ -98,6 +98,9 @@ package Droopi.Protected_Objects is
    function Image (T : PO_Task_Id) return String;
    pragma Inline (Image);
 
+   function To_Integer (T : PO_Task_Id) return Integer;
+   pragma Inline (To_Integer);
+
 private
 
    type Barrier_PO;

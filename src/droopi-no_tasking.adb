@@ -261,10 +261,18 @@ package body Droopi.No_Tasking is
       return No_Task_Id'(Is_Null => False);
    end Get_Current_Task;
 
+   ---------------
+   -- Null_Task --
+   ---------------
+
    function Get_Null_Task return Soft_Links.Task_Id'Class is
    begin
       return No_Task_Id'(Is_Null => True);
    end Get_Null_Task;
+
+   -----------
+   -- Image --
+   -----------
 
    function Image (T : No_Task_Id) return String is
    begin
@@ -274,5 +282,14 @@ package body Droopi.No_Tasking is
          return "environment_task";
       end if;
    end Image;
+
+   ----------------
+   -- To_Integer --
+   ----------------
+
+   function To_Integer (T : No_Task_Id) return Integer is
+   begin
+      return 0;
+   end To_Integer;
 
 end Droopi.No_Tasking;

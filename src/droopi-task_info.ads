@@ -5,7 +5,7 @@
 --  $Id$
 
 with Droopi.Asynch_Ev;
-with Droopi.Soft_Links;
+with Droopi.Soft_Links; use Droopi.Soft_Links;
 
 package Droopi.Task_Info is
 
@@ -27,6 +27,10 @@ package Droopi.Task_Info is
    type Task_Info (Kind : Task_Kind) is limited private;
    type Task_Info_Access is access all Task_Info;
 
+   ------------------------------------
+   -- Task_Info components accessors --
+   ------------------------------------
+
    procedure Set_Status_Blocked
      (TI       : in out Task_Info;
       Selector : Asynch_Ev.Asynch_Ev_Monitor_Access);
@@ -34,7 +38,7 @@ package Droopi.Task_Info is
 
    procedure Set_Status_Idle
      (TI      : in out Task_Info;
-      Watcher : Soft_Links.Watcher_Access);
+      Watcher : Watcher_Access);
    pragma Inline (Set_Status_Idle);
 
    procedure Set_Status_Running
@@ -50,8 +54,23 @@ package Droopi.Task_Info is
    pragma Inline (Selector);
 
    function Watcher (TI : Task_Info)
-     return Soft_Links.Watcher_Access;
+     return Watcher_Access;
    pragma Inline (Watcher);
+
+   --------------------------------------------
+   -- Task_Info global dictionnary accessors --
+   --------------------------------------------
+
+   procedure Set_Task_Info
+     (I : Task_Info_Access;
+      T : Task_Id'Class := Current_Task);
+
+   function Get_Task_Info
+     (T : Task_Id'Class := Current_Task)
+     return Task_Info_Access;
+
+   procedure Reset_Task_Info
+     (T : Task_Id'Class := Current_Task);
 
 private
 
@@ -61,7 +80,7 @@ private
       Selector : Asynch_Ev.Asynch_Ev_Monitor_Access;
       --  Meaningful only when Status = Blocked
 
-      Watcher  : Soft_Links.Watcher_Access;
+      Watcher  : Watcher_Access;
       --  Meaningful only when Status = Idle
    end record;
 
