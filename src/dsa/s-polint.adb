@@ -91,7 +91,7 @@ package body System.PolyORB_Interface is
      renames L.Output;
 
    package PSNNC renames PolyORB.Services.Naming.NamingContext;
-   package PTM renames PolyORB.Tsaking.Mutexes;
+   package PTM renames PolyORB.Tasking.Mutexes;
 
    --------------------------------------------------------------
    -- Special operation names for remote call interface objets --
