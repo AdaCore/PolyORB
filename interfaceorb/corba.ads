@@ -202,6 +202,7 @@ package Corba is
     Data_Conversion : exception ;         -- data conversion error
 
 
+
     -- And the associated member types :
     ------------------------------------
     type Unknown_Members is new Ex_Body with null record ;
@@ -286,11 +287,11 @@ package Corba is
 
     -- OmniORB2 specific system exceptions :
     -----------------------------------------
-    Object_Not_Exist : exception ;        -- data conversion errr
-    Transaction_Required : exception ;    -- data conversion error
-    Transaction_Rolledback : exception ;  -- data conversion error
-    Invalid_Transaction : exception ;     -- data conversion error
-    Wrong_Transaction : exception ;       -- data conversion error
+    Object_Not_Exist : exception ;
+    Transaction_Required : exception ;
+    Transaction_Rolledback : exception ;
+    Invalid_Transaction : exception ;
+    Wrong_Transaction : exception ;
 
 
     -- And the correponding member types :

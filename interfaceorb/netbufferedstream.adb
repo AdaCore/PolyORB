@@ -662,11 +662,11 @@ package body NetBufferedStream is
       -- and marshall the right one
       case A is
          when Corba.Completed_Yes =>
-            Marshall (Corba.Unsigned_Short (1),S) ;
+            Marshall (Corba.Unsigned_Long (1),S) ;
          when Corba.Completed_No =>
-            Marshall (Corba.Unsigned_Short (2),S) ;
+            Marshall (Corba.Unsigned_Long (2),S) ;
          when Corba.Completed_Maybe =>
-            Marshall (Corba.Unsigned_Short (3),S) ;
+            Marshall (Corba.Unsigned_Long (3),S) ;
       end case ;
    end ;
 
@@ -675,7 +675,7 @@ package body NetBufferedStream is
    -------------
    procedure UnMarshall (A : out Corba.Completion_Status ;
                          S : in out Object'Class) is
-      Tmp : Corba.Unsigned_Short ;
+      Tmp : Corba.Unsigned_Long ;
    begin
       -- unmarshalls an unsigned short
       UnMarshall (Tmp,S) ;
@@ -702,10 +702,11 @@ package body NetBufferedStream is
                         Initial_Offset : in Corba.Unsigned_Long ;
                         N : in Corba.Unsigned_Long := 1)
                         return Corba.Unsigned_Long is
+      Tmp : Corba.Unsigned_Long ;
    begin
-      -- no alignment needed here
-      return Initial_Offset + N ;
-      -- a Completion_Status is marshalled as an unsigned_short
+      Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_4) ;
+      return Tmp + (4 * N) ;
+      -- a Completion_Status is marshalled as an unsigned_long
    end ;
 
 
@@ -745,9 +746,9 @@ package body NetBufferedStream is
       Tmp : Corba.Unsigned_Long ;
    begin
       Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_4) ;
-      return Initial_Offset + (8 * N) - 3 ;
+      return Tmp + (8 * N) ;
       -- an Ex_body has two fields : an unsigned_long -> 4 bytes
-      --                             and a Completion_Status -> 1 bytes
+      --                             and a Completion_Status -> 4 bytes
    end ;
 
 
