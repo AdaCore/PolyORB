@@ -1,3 +1,5 @@
+AUTOMAKE_OPTIONS = no-dependencies
+
 include $(srcdir)/../Makefile.common
 
 GNATMAKE_FLAGS = -I$(srcdir) \
