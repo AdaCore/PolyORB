@@ -1,3 +1,8 @@
+1998-07-20  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Move Sam's 1998-06-16 fix to the right
+	place. Fix regressions in ACVC tests.
+
 1998-07-16  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Insert pragma Warnings (On) a little bit later.
