@@ -45,7 +45,7 @@ package body Broca.Repository is
       end loop;
 
       --  Return a null object.
-      pragma Debug (O ("Cannot create object of this type"));
+      pragma Debug (O ("No factory for this type."));
       CORBA.Object.Set (Reference, null);
       return Reference;
 

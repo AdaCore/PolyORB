@@ -383,7 +383,7 @@ package body Broca.GIOP is
                               Message_Type, Message_Size,
                               Header_Correct);
 
-      if not Header_Correct then
+      if not (Header_Correct and then Message_Type = Reply) then
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
 

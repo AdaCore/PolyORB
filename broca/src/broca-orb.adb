@@ -43,7 +43,7 @@ package body Broca.ORB is
       Obj : Broca.Object.Object_Ptr;
       Endianess : Boolean;
    begin
-      pragma Debug (O ("Ior_To_Object : enter"));
+      pragma Debug (O ("IOR_To_Object : enter"));
       --  Extract endianness
       Unmarshall (IOR, Endianess);
       Broca.Buffers.Set_Endianess (IOR, Endianess);
@@ -55,17 +55,16 @@ package body Broca.ORB is
            Broca.Repository.Create (CORBA.RepositoryId (Type_Id));
       begin
          if CORBA.Object.Is_Nil (A_Ref) then
-            --  FIXME:
             --  No classes for the string was found.
-            --  What can be done ?
-            pragma Debug (O ("Ior_To_Object : A_Ref is nil"));
-            Broca.Refs.Set (Broca.Refs.Ref (Ref), null);
-            return;
+            --  Create a CORBA.Object.Ref.
+            pragma Debug (O ("IOR_To_Object : A_Ref is nil."));
+            Broca.Refs.Set (Broca.Refs.Ref (A_Ref),
+                            new Broca.Object.Object_Type);
          end if;
 
          --  Get the access to the internal object.
-         Obj :=
-           Broca.Object.Object_Ptr (Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
+         Obj := Broca.Object.Object_Ptr
+           (Broca.Refs.Get (Broca.Refs.Ref (A_Ref)));
 
          Unmarshall (IOR, Nbr_Profiles);
 

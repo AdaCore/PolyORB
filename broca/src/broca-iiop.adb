@@ -306,24 +306,33 @@ package body Broca.IIOP is
      (Connection : access Strand_Connection_Type;
       Buffer     : in out Buffer_Descriptor)
    is
-      use Sockets.Thin;
-      use Interfaces.C;
-      Length : Buffer_Index_Type := Size_Left (Buffer);
-      Bytes  : Buffer_Type (0 .. Length - 1);
-      Result : Interfaces.C.int;
+      Length : constant Buffer_Index_Type := Size_Left (Buffer);
    begin
-      Result := C_Recv
-        (Connection.Strand.Fd,
-         Bytes'Address,
-         Interfaces.C.int (Length), 0);
-
-      if Result /=  Interfaces.C.int (Length) then
-         Broca.Exceptions.Raise_Comm_Failure;
+      if Length = 0 then
+         pragma Debug (O ("Null length in Receive"));
+         return;
       end if;
-      Write (Buffer, Bytes);
 
-      pragma Debug (O ("Dump incoming buffer of length" & Length'Img));
-      Broca.Buffers.Dump (Bytes);
+      declare
+         use Sockets.Thin;
+         use Interfaces.C;
+
+         Bytes  : Buffer_Type (0 .. Length - 1);
+         Result : Interfaces.C.int;
+      begin
+         Result := C_Recv
+           (Connection.Strand.Fd,
+            Bytes'Address,
+            Interfaces.C.int (Length), 0);
+
+         if Result /=  Interfaces.C.int (Length) then
+            Broca.Exceptions.Raise_Comm_Failure;
+         end if;
+         Write (Buffer, Bytes);
+
+         pragma Debug (O ("Dump incoming buffer of length" & Length'Img));
+         Broca.Buffers.Dump (Bytes);
+      end;
    end Receive;
 
    function Get_Request_Id (Connection : access Strand_Connection_Type)

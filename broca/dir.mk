@@ -1,9 +1,7 @@
-SUBDIRS = adabroker src doc examples
+SUBDIRS = adabroker src examples
 
 all::
 	@$(MakeSubdirs)
 
 clean::
 	@$(MakeSubdirs)
-
-

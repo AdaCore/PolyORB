@@ -4,7 +4,7 @@
 --                                                                          --
 --                               R E A D M E                                --
 --                                                                          --
---                            $Revision: 1.1 $
+--                            $Revision: 1.2 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -35,8 +35,9 @@ Build requirements
 C++ compiler: any compiler supported by OmniORB.
 Ada 95 compiler: GNAT 3.12p.
 
-AdaBroker has been tested only with EGCS, but should work OK with most
-recent C++ compilers. However, we have had failure reports with GCC 2.8.1.
+AdaBroker has only been tested with an EGCS G++ and a GCC 2.8.1 GNAT.
+The C++ part should work correctly with any C++ compiler supported
+by omniORB.  However, we have had failure reports with GCC 2.8.1.
 This will be fixed as soon as GNAT is officially ported on EGCS.
 
 Build instructions
@@ -46,11 +47,13 @@ Build instructions
    Take care to select the proper C++ compiler here. These settings
    have no influence on the build of the Ada components of AdaBroker.
 
+-  Make sure that the gnatmake binary from GNAT 3.12p is in your PATH.
+
 -  In the top-level source directory, run "make". This will build:
 
    adabroker/adabroker: the IDL-to-Ada compiler.
-   adasockets/lib/adasockets/*.{ali,o}: a custom version of the Ada sockets
-      library for internal Broca use.
+   adasockets/lib/adasockets/*.{ali,o}: the Ada sockets
+      library.
    src/{*.ali,libbroca.a}: Broca, the AdaBroker ORB
    examples/*: miscellaneous examples.
 
