@@ -40,8 +40,8 @@ with Rtsfind;     use Rtsfind;
 with Sem;         use Sem;
 with Sem_Ch3;     use Sem_Ch3;
 with Sem_Ch8;     use Sem_Ch8;
-with Sem_Eval;    use Sem_Eval;
 with Sem_Dist;    use Sem_Dist;
+with Sem_Eval;    use Sem_Eval;
 with Sem_Util;    use Sem_Util;
 with Sinfo;       use Sinfo;
 with Snames;      use Snames;
@@ -270,7 +270,9 @@ package body Exp_Dist is
    function Build_Ordered_Parameters_List (Spec : Node_Id) return List_Id;
    --  Return an ordered parameter list: unconstrained parameters are put
    --  at the beginning of the list and constrained ones are put after. If
-   --  there are no parameters, an empty list is returned.
+   --  there are no parameters, an empty list is returned. Special case:
+   --  the controlling formal of the equivalent RACW operation for a RAS
+   --  type is always left in first position.
 
    procedure Add_Calling_Stubs_To_Declarations
      (Pkg_Spec : Node_Id;
@@ -339,14 +341,6 @@ package body Exp_Dist is
       Stmts  : List_Id);
    --  Append the declaration of NVList to Decls, and its
    --  initialization to Stmts.
-
-   function Parameter_Passing_Mode
-     (Loc         : Source_Ptr;
-      Parameter   : Entity_Id;
-      Constrained : Boolean) return Node_Id;
-   --  Return an expression that denotes the parameter passing
-   --  mode to be used for Parameter in distribution stubs,
-   --  where Constrained is Parameter's constrained status.
 
    function Add_Parameter_To_NVList
      (Loc         : Source_Ptr;
@@ -781,6 +775,44 @@ package body Exp_Dist is
       RACW_Ctrl   : Boolean := False;
       Any         : Entity_Id) return Node_Id
    is
+      function Parameter_Passing_Mode
+        (Loc         : Source_Ptr;
+         Parameter   : Entity_Id;
+         Constrained : Boolean) return Node_Id;
+      --  Return an expression that denotes the parameter passing
+      --  mode to be used for Parameter in distribution stubs,
+      --  where Constrained is Parameter's constrained status.
+
+      ----------------------------
+      -- Parameter_Passing_Mode --
+      ----------------------------
+
+      function Parameter_Passing_Mode
+        (Loc         : Source_Ptr;
+         Parameter   : Entity_Id;
+         Constrained : Boolean)
+      return Node_Id
+      is
+         Lib_RE : RE_Id;
+      begin
+         if Out_Present (Parameter) then
+            if In_Present (Parameter)
+              or else not Constrained
+            then
+               --  Unconstrained formals must be translated
+               --  to 'in' or 'inout', not 'out', because
+               --  they need to be constrained by the actual.
+
+               Lib_RE := RE_Mode_Inout;
+            else
+               Lib_RE := RE_Mode_Out;
+            end if;
+         else
+            Lib_RE := RE_Mode_In;
+         end if;
+         return New_Occurrence_Of (RTE (Lib_RE), Loc);
+      end Parameter_Passing_Mode;
+
       Parameter_Name_String : String_Id;
       Parameter_Mode : Node_Id;
    begin
@@ -1616,6 +1648,50 @@ package body Exp_Dist is
 
       All_Calls_Remote_E  : Entity_Id;
 
+      procedure Append_Stubs_To
+        (RPC_Receiver_Cases : List_Id;
+         Declaration        : Node_Id;
+         Stubs              : Node_Id;
+         Subprogram_Number  : Int);
+      --  Add one case to the specified RPC receiver case list
+      --  associating Subprogram_Number with the subprogram declared
+      --  by Declaration, for which we have receiving stubs in Stubs.
+
+      ---------------------
+      -- Append_Stubs_To --
+      ---------------------
+
+      procedure Append_Stubs_To
+        (RPC_Receiver_Cases : List_Id;
+         Declaration        : Node_Id;
+         Stubs              : Node_Id;
+         Subprogram_Number  : Int)
+      is
+         Case_Stmts : List_Id;
+      begin
+         Case_Stmts := New_List (
+           Make_Procedure_Call_Statement (Loc,
+             Name                   =>
+               New_Occurrence_Of (
+                 Defining_Entity (Stubs), Loc),
+             Parameter_Associations =>
+               New_List (New_Occurrence_Of (Request, Loc))));
+         if Nkind (Specification (Declaration))
+           = N_Function_Specification
+           or else not
+             Is_Asynchronous (Defining_Entity (Specification (Declaration)))
+         then
+            Append_To (Case_Stmts, Make_Return_Statement (Loc));
+         end if;
+
+         Append_To (RPC_Receiver_Cases,
+           Make_Case_Statement_Alternative (Loc,
+             Discrete_Choices =>
+               New_List (Make_Integer_Literal (Loc, Subprogram_Number)),
+             Statements       =>
+               Case_Stmts));
+      end Append_Stubs_To;
+
    --  Start of processing for Add_Receiving_Stubs_To_Declarations
 
    begin
@@ -1748,7 +1824,6 @@ package body Exp_Dist is
                      Suffix       => 'D',
                      Suffix_Index => -1));
 
-               Case_Stmts        : List_Id;
                Proxy_Object_Addr : Entity_Id;
 
             begin
@@ -1820,19 +1895,14 @@ package body Exp_Dist is
                            Attribute_Name => Name_Length),
                          New_Occurrence_Of (Proxy_Object_Addr, Loc)))));
 
-               Case_Stmts := New_List (
-                 Make_Procedure_Call_Statement (Loc,
-                    Name                   =>
-                      New_Occurrence_Of (
-                        Defining_Entity (Current_Stubs), Loc),
-                    Parameter_Associations =>
-                      New_List (New_Occurrence_Of (Request, Loc))));
-               if Nkind (Specification (Current_Declaration))
-                   = N_Function_Specification
-                 or else not Is_Asynchronous (Subp_Def)
-               then
-                  Append_To (Case_Stmts, Make_Return_Statement (Loc));
-               end if;
+               Append_Stubs_To (Pkg_RPC_Receiver_Cases,
+                 Declaration =>
+                   Current_Declaration,
+                 Stubs =>
+                   Current_Stubs,
+                 Subprogram_Number =>
+                   Current_Subprogram_Number);
+
                Append_To (Dispatch_On_Name,
                  Make_Elsif_Part (Loc,
                    Condition =>
@@ -1861,14 +1931,6 @@ package body Exp_Dist is
                        New_Occurrence_Of (Subp_Index, Loc),
                        Make_Integer_Literal (Loc,
                           Current_Subprogram_Number)))));
-               Append_To (Pkg_RPC_Receiver_Cases,
-                 Make_Case_Statement_Alternative (Loc,
-                   Discrete_Choices =>
-                     New_List (
-                       Make_Integer_Literal (Loc,
-                          Current_Subprogram_Number)),
-                   Statements       =>
-                     Case_Stmts));
             end;
 
             Current_Subprogram_Number := Current_Subprogram_Number + 1;
@@ -2531,8 +2593,7 @@ package body Exp_Dist is
 
          if Is_Function then
 
-            --  If this is a function call, then read the value and return
-            --  it. The return value is written/read using 'Output/'Input.
+            --  If this is a function call, then read the value and return it
 
             Append_To (Non_Asynchronous_Statements,
               Make_Tag_Check (Loc,
@@ -2615,6 +2676,9 @@ package body Exp_Dist is
       Unconstrained_List : List_Id;
       Current_Parameter  : Node_Id;
 
+      First_Parameter : Node_Id;
+      For_RAS         : Boolean := False;
+
    begin
       if not Present (Parameter_Specifications (Spec)) then
          return New_List;
@@ -2622,16 +2686,24 @@ package body Exp_Dist is
 
       Constrained_List   := New_List;
       Unconstrained_List := New_List;
+      First_Parameter    := First (Parameter_Specifications (Spec));
+
+      if Nkind (Parameter_Type (First_Parameter)) = N_Access_Definition
+        and then Chars (Defining_Identifier (First_Parameter)) = Name_uS
+      then
+         For_RAS := True;
+      end if;
 
       --  Loop through the parameters and add them to the right list
 
-      Current_Parameter := First (Parameter_Specifications (Spec));
+      Current_Parameter := First_Parameter;
       while Present (Current_Parameter) loop
-         if Nkind (Parameter_Type (Current_Parameter)) = N_Access_Definition
+         if (Nkind (Parameter_Type (Current_Parameter)) = N_Access_Definition
              or else
-           Is_Constrained (Etype (Parameter_Type (Current_Parameter)))
+               Is_Constrained (Etype (Parameter_Type (Current_Parameter)))
              or else
-           Is_Elementary_Type (Etype (Parameter_Type (Current_Parameter)))
+               Is_Elementary_Type (Etype (Parameter_Type (Current_Parameter))))
+           and then not (For_RAS and then Current_Parameter = First_Parameter)
          then
             Append_To (Constrained_List, New_Copy (Current_Parameter));
          else
@@ -4970,36 +5042,6 @@ package body Exp_Dist is
             Stream,
             Object));
    end Pack_Node_Into_Stream_Access;
-
-   ----------------------------
-   -- Parameter_Passing_Mode --
-   ----------------------------
-
-   function Parameter_Passing_Mode
-     (Loc         : Source_Ptr;
-      Parameter   : Entity_Id;
-      Constrained : Boolean)
-      return Node_Id
-   is
-      Lib_RE : RE_Id;
-   begin
-      if Out_Present (Parameter) then
-         if In_Present (Parameter)
-           or else not Constrained
-         then
-            --  Unconstrained formals must be translated
-            --  to 'in' or 'inout', not 'out', because
-            --  they need to be constrained by the actual.
-
-            Lib_RE := RE_Mode_Inout;
-         else
-            Lib_RE := RE_Mode_Out;
-         end if;
-      else
-         Lib_RE := RE_Mode_In;
-      end if;
-      return New_Occurrence_Of (RTE (Lib_RE), Loc);
-   end Parameter_Passing_Mode;
 
    ---------------------
    -- PolyORB_Support --
