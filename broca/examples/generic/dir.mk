@@ -20,5 +20,5 @@ stubs:: $(IDL_INTERFACE).idl
 force::
 
 clean::
-	-rm -f b_*.c *.o *.ali *~ server client $(GENERATED_FILES)
+	-rm -f b~*.ad[sb] *.o *.ali *~ server client $(GENERATED_FILES)
 
