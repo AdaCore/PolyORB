@@ -1014,6 +1014,21 @@ package body PolyORB.Utils.HTables.Perfect is
       return Items (Elements (I.Position).Item_Index).all;
    end Value;
 
+   ---------
+   -- Key --
+   ---------
+
+   function Key
+     (I : Iterator)
+     return String
+   is
+      Elements : Dynamic_Element_Array.Table_Ptr
+        renames I.On_Table.T.HTable.Elements.Table;
+
+   begin
+      return Elements (I.Position).Key.all;
+   end Key;
+
    ----------
    -- Last --
    ----------
