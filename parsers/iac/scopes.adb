@@ -72,8 +72,6 @@ package body Scopes is
          elsif Is_A_Forward_Of (C, E) then
             if Kind (C) = K_Forward_Interface_Declaration then
                Set_Forward             (C, E);
-               Set_Scope_Entity        (H, No_Node);
-               Set_Potential_Scope     (H, No_Node);
                Set_Explicitely_Visible (H, False);
                Set_Implicitely_Visible (H, False);
                Remove_From_Homonyms    (H);

@@ -1457,6 +1457,12 @@ package body Analyzer is
             when K_Scoped_Name =>
                T := Reference (T);
 
+            when K_Forward_Interface_Declaration
+              |  K_Value_Forward_Declaration
+              |  K_Forward_Structure_Type
+              |  K_Forward_Union_Type =>
+               T := Forward (T);
+
             when others =>
                exit;
          end case;

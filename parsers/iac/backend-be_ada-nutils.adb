@@ -348,16 +348,16 @@ package body Backend.BE_Ada.Nutils is
    ------------------------------------
 
    function Make_Subprogram_Implementation
-     (Subprogram_Specification : Node_Id;
-      Declarations             : List_Id;
-      Statements               : List_Id)
+     (Specification : Node_Id;
+      Declarations  : List_Id;
+      Statements    : List_Id)
      return Node_Id
    is
       N : Node_Id;
 
    begin
       N := New_Node (K_Subprogram_Implementation);
-      Set_Subprogram_Specification (N, Subprogram_Specification);
+      Set_Specification (N, Specification);
       Set_Declarations (N, Declarations);
       Set_Statements (N, Statements);
       return N;

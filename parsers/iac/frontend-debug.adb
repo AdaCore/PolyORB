@@ -8,7 +8,8 @@ with Types;       use Types;
 with Utils;       use Utils;
 with Values;      use Values;
 
-with Frontend.Nodes; use Frontend.Nodes;
+with Frontend.Nodes;  use Frontend.Nodes;
+with Frontend.Nutils; use Frontend.Nutils;
 
 package body Frontend.Debug is
 
@@ -49,7 +50,7 @@ package body Frontend.Debug is
 
    function Image (N : Mode_Id) return String is
    begin
-      return Quoted (Image (Token_Type'Val (N)));
+      return Quoted (Image (Parameter_Mode (N)));
    end Image;
 
    function Image (N : Value_Id) return String is

@@ -99,9 +99,9 @@ package Backend.BE_Ada.Nutils is
      return Node_Id;
 
    function Make_Subprogram_Implementation
-     (Subprogram_Specification : Node_Id;
-      Declarations             : List_Id;
-      Statements               : List_Id)
+     (Specification : Node_Id;
+      Declarations  : List_Id;
+      Statements    : List_Id)
      return Node_Id;
 
    function Make_Subprogram_Specification

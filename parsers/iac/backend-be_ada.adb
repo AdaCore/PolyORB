@@ -21,7 +21,7 @@ package body Backend.BE_Ada is
    CORBA_Object_Designator     : Node_Id;
    CORBA_Object_Ref_Designator : Node_Id;
 
-   --  Return_Parameter_Name  : Name_Id;
+   Returns_Parameter_Name : Name_Id;
    Self_Parameter_Name    : Name_Id;
    To_Parameter_Name      : Name_Id;
 
@@ -114,8 +114,8 @@ package body Backend.BE_Ada is
       Set_Parent_Unit_Name
         (CORBA_Object_Ref_Designator, CORBA_Object_Designator);
 
-      --  Set_Str_To_Name_Buffer ("Return");
-      --  Return_Parameter_Name := Name_Find;
+      Set_Str_To_Name_Buffer ("Returns");
+      Returns_Parameter_Name := Name_Find;
       Set_Str_To_Name_Buffer ("Self");
       Self_Parameter_Name := Name_Find;
       Set_Str_To_Name_Buffer ("To");
@@ -496,16 +496,13 @@ package body Backend.BE_Ada is
       end if;
       if M = Mode_Out then
          R := Make_Designator (Type_Spec (E));
+      else
+         P := Make_Parameter_Specification
+           (Make_Defining_Identifier (Returns_Parameter_Name),
+            Make_Designator (Type_Spec (E)),
+            Mode_Out);
+         Append_Node_To_List (P, L);
       end if;
-      --  if M = Mode_Out then
-      --  R := Make_Designator (Type_Spec (E));
-      --  else
-      --  P := Make_Parameter_Specification
-      --  (Make_Defining_Identifier (Return_Parameter_Name),
-      --  Make_Designator (Type_Spec (E)),
-      --  Mode_Out);
-      --  Append_Node_To_List (P, L);
-      --  end if;
       O := Make_Subprogram_Specification
         (Make_Defining_Identifier (E), L, R);
       Append_Node_To_List (O, Visible_Part (Current_Package));

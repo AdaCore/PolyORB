@@ -103,7 +103,8 @@ module Backend::BE_Ada::Nodes {
 
   /* Subprogram Body */
 
-  interface Subprogram_Implementation : Subprogram_Specification {
+  interface Subprogram_Implementation : Node_Id {
+    Node_Id    Specification;
     List_Id    Declarations;
     List_Id    Statements;
   };
