@@ -1,7 +1,7 @@
 #!/bin/sh
 S1="/usr/local/lib/gcc-lib/`gcc -dumpmachine`/`gcc -dumpversion`/adainclude/"
 S2="/usr/local/lib/gcc-lib/`gcc -dumpmachine`/`gcc -dumpversion`/adalib/"
-S3=`gcc -c -dumpmachine | sed 's/\013//'`
+S3=`gcc -c -dumpmachine | sed 's/\015//'`
 for i in `gnatls -v | sed -e '1,/Source Search Path/ d' | \
                       sed -e '/Object Search Path/,$ d' | \
                       grep -v 'Current_Directory'`; do

@@ -1,3 +1,7 @@
+1999-02-02  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* config.sdefault: Fix installation on NT (Arno's suggestion).
+
 1999-01-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_utils.adb: Use GLADE_LIBRARY_DIR env. var. to search GARLIC
