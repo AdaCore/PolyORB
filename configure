@@ -911,7 +911,7 @@ test "$program_transform_name" = "" && program_transform_name="s,x,x,"
 # Check whether --enable-debug or --disable-debug was given.
 if test "${enable_debug+set}" = set; then
   enableval="$enable_debug"
-  GNATFLAGS="-g -gnata"
+  GNATFLAGS="-g -gnata -gnato"
 else
   GNATFLAGS="-O2 -gnatn"
 fi
