@@ -36,7 +36,6 @@ package body Parser is
    function P_No_Such_Node return Node_Id;
 
    function P_Attribute_Declaration return Node_Id;
-   function P_Complex_Declarator return Node_Id;
    function P_Constant_Declaration return Node_Id;
    function P_Constant_Expression return Node_Id;
    function P_Constant_Type return Node_Id;
@@ -233,53 +232,6 @@ package body Parser is
 
       return Attribute_Decl;
    end P_Attribute_Declaration;
-
-   --------------------------
-   -- P_Complex_Declarator --
-   --------------------------
-
-   --  (52) <complex_declarator> ::= <array_declarator>
-   --
-   --  (83) <array_declarator> ::= <identifier> <fixed_array_size> +
-   --  (84) <fixed_array_size> ::= "[" <positive_int_const> "]"
-
-   function P_Complex_Declarator return Node_Id is
-      Identifier  : Node_Id;
-      Node        : Node_Id;
-      Array_Sizes : List_Id;
-      Array_Size  : Node_Id;
-   begin
-      Identifier := P_Identifier;
-      if No (Identifier) then
-         return No_Node;
-      end if;
-
-      Node := New_Node (K_Complex_Declarator, Loc (Identifier));
-      Bind_Identifier_To_Entity (Identifier, Node);
-
-      Array_Sizes := New_List (K_Array_Size_List, Token_Location);
-      Set_Array_Sizes (Node, Array_Sizes);
-
-      loop
-         Scan_Token; --  past '['
-
-         Array_Size := P_Constant_Expression;
-         if No (Array_Size) then
-            return No_Node;
-         end if;
-
-         Append_Node_To_List (Array_Size, Array_Sizes);
-
-         Scan_Token (T_Right_Bracket);
-         if Token = T_Error then
-            return No_Node;
-         end if;
-
-         exit when Next_Token /= T_Left_Bracket;
-      end loop;
-
-      return Node;
-   end P_Complex_Declarator;
 
    ----------------------------
    -- P_Constant_Declaration --
@@ -798,22 +750,48 @@ package body Parser is
    --  (84) <fixed_array_size> ::= "[" <positive_int_const> "]"
 
    function P_Declarator return Node_Id is
-      State  : Location;
+      Identifier  : Node_Id;
+      Array_Sizes : List_Id;
+      Array_Size  : Node_Id;
+      Node        : Node_Id;
 
    begin
-      Save_Lexer (State);
-      if No (P_Identifier) then
+      Identifier := P_Identifier;
+      if No (Identifier) then
          return No_Node;
       end if;
 
-      if Next_Token = T_Left_Bracket then
-         Restore_Lexer (State);
-         return P_Complex_Declarator;
-
-      else
-         Restore_Lexer (State);
-         return P_Simple_Declarator;
+      if Next_Token /= T_Left_Bracket then
+         Node := New_Node (K_Simple_Declarator, Loc (Identifier));
+         Bind_Identifier_To_Entity (Identifier, Node);
+         return Node;
       end if;
+
+      Node := New_Node (K_Complex_Declarator, Loc (Identifier));
+      Bind_Identifier_To_Entity (Identifier, Node);
+
+      Array_Sizes := New_List (K_Array_Size_List, Token_Location);
+      Set_Array_Sizes (Node, Array_Sizes);
+
+      loop
+         Scan_Token; --  past '['
+
+         Array_Size := P_Constant_Expression;
+         if No (Array_Size) then
+            return No_Node;
+         end if;
+
+         Append_Node_To_List (Array_Size, Array_Sizes);
+
+         Scan_Token (T_Right_Bracket);
+         if Token = T_Error then
+            return No_Node;
+         end if;
+
+         exit when Next_Token /= T_Left_Bracket;
+      end loop;
+
+      return Node;
    end P_Declarator;
 
    -----------------------
@@ -1966,9 +1944,9 @@ package body Parser is
    --                              | <fixed_pt_type>
 
    function P_Simple_Type_Spec return Node_Id is
-      State : Location;
       List  : Token_List_Type (1 .. 3) := (others => T_Error);
       Size  : Natural := 0;
+      Next  : Token_Type;
 
       procedure Push_Base_Type_Token (T : Token_Type);
       --  Push token in the list above. This token is either T_Float,
@@ -1997,19 +1975,17 @@ package body Parser is
 
    begin
       Size := 0;
-      Save_Lexer (State);
-      Scan_Token;
-      Push_Base_Type_Token (Token);
-      case Token is
+      Next := Next_Token;
+      Push_Base_Type_Token (Next);
+      case Next is
          when T_Long =>
-            Save_Lexer (State);
-            Scan_Token;
-            if Token = T_Double
-              or else Token = T_Long
+            Scan_Token; -- skip long
+            Next := Next_Token;
+            if Next = T_Double
+              or else Next = T_Long
             then
-               Push_Base_Type_Token (Token);
-            else
-               Restore_Lexer (State);
+               Scan_Token;
+               Push_Base_Type_Token (Next);
             end if;
             return Resolve_Base_Type;
 
@@ -2023,44 +1999,41 @@ package body Parser is
            | T_Any
            | T_Object
            | T_Value_Base =>
+            Scan_Token;
             return Resolve_Base_Type;
 
          when T_Unsigned =>
+            Scan_Token; --  skip unsigned
             Scan_Token ((T_Short, T_Long));
             Push_Base_Type_Token (Token);
             if Token = T_Error then
                return No_Node;
 
             elsif Token = T_Long then
-               Save_Lexer (State);
-               Scan_Token;
-               if Token = T_Long then
-                  Push_Base_Type_Token (Token);
-               else
-                  Restore_Lexer (State);
+               Next := Next_Token;
+               if Next = T_Long then
+                  Scan_Token; -- skip long
+                  Push_Base_Type_Token (Next);
                end if;
             end if;
             return Resolve_Base_Type;
 
          when T_String
            | T_Wstring =>
-            Restore_Lexer (State);
             return P_String_Type;
 
          when T_Fixed =>
-            Restore_Lexer (State);
             return P_Fixed_Point_Type;
 
          when T_Identifier
            | T_Colon_Colon =>
-            Restore_Lexer (State);
             return P_Scoped_Name;
 
          when T_Sequence =>
-            Restore_Lexer (State);
             return P_Sequence_Type;
 
          when others =>
+            Scan_Token;
             Unexpected_Token (Token, "type specifier");
             return No_Node;
       end case;

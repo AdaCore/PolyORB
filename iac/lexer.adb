@@ -24,6 +24,10 @@ package body Lexer is
    procedure Make_Cleanup;
    --  Cleanup temporary files when needed
 
+   procedure Skip_Identifier;
+   --  Skip a sequence of identifier characters as the current
+   --  identifier or literal is not well-formed.
+
    function Quoted_Image (T : Token_Type) return String;
    --  Return an image of token T. Keywords are output between double
    --  quotes and characters between single quotes.
@@ -69,7 +73,7 @@ package body Lexer is
    --  not. If not and a character looks like '/u...' then an error is
    --  raised
 
-   procedure Scan_Numeric_Literal_Value;
+   procedure Scan_Numeric_Literal_Value (Fatal : Boolean);
    --
    --  Integers Literals : (3.2.5.1)
    --  An integer literal consisting of a sequence of digits is taken
@@ -100,13 +104,33 @@ package body Lexer is
    --  (or D)) may be missing
 
    procedure Scan_Integer_Literal_Value
-     (Base : Unsigned_Short_Short;
-      Size : Natural := Natural'Last);
-   --  Scan an integer literal in Base with a maximum of Size
-   --  digits. The result is stored in Integer_Literal_Value and Token
-   --  is set to T_Integer_Literal. When the procedure cannot read any
-   --  digit or when a digit is greater than the base, Token is set to
-   --  T_Error and Integer_Literal_Value is set to 0.
+     (Base  : Unsigned_Short_Short;
+      Fatal : Boolean;
+      Size  : Natural := Natural'Last);
+   --  Scan an integer literal in Base with less than Size digits. The
+   --  result is stored in Integer_Literal_Value and Token is set to
+   --  T_Integer_Literal. When the procedure cannot read any digit or
+   --  when a digit is greater than Base, Token is set to T_Error.
+   --  The procedure skips the literal and an error message is output
+   --  when Fatal is true.
+
+   procedure Scan_Integer_To_Name_Buffer
+     (Base  : Unsigned_Short_Short;
+      Fatal : Boolean;
+      Size  : Natural := Natural'Last);
+   --  Scan an integer literal in Base with a max of Size digits. The
+   --  result is appended to Name_Buffer. Token is set to
+   --  T_Error on failure and to T_Integer_Literal on success.
+
+   procedure Eval_Integer_From_Name_Buffer
+     (Base  : Unsigned_Short_Short;
+      Fatal : Boolean);
+   --  Evaluate integer literal stored in Name_Buffer. Token is set to
+   --  T_Error on failure and to T_Integer_Literal on success. The
+   --  result is stored in Integer_Literal_Value on success. The
+   --  literal is not always well-formed since a character may not be
+   --  incorrect. When Fatal is true, the primitive outputs an error
+   --  message.
 
    procedure Scan_Identifier;
    --
@@ -619,8 +643,7 @@ package body Lexer is
                --  Read 1, 2 or 3 octal digits
 
                when '0' .. '7' =>
-
-                  Scan_Integer_Literal_Value (8, 3);
+                  Scan_Integer_Literal_Value (8, Fatal, 3);
                   if Token = T_Error then
                      if Fatal then
                         Errors := Errors + 1;
@@ -635,7 +658,7 @@ package body Lexer is
 
                when 'x' =>
                   Token_Location.Scan := Token_Location.Scan + 1;
-                  Scan_Integer_Literal_Value (16, 2);
+                  Scan_Integer_Literal_Value (16, Fatal, 2);
                   if Token = T_Error then
                      if Fatal then
                         Errors := Errors + 1;
@@ -659,7 +682,7 @@ package body Lexer is
                   end if;
 
                   Token_Location.Scan := Token_Location.Scan + 1;
-                  Scan_Integer_Literal_Value (16, 4);
+                  Scan_Integer_Literal_Value (16, Fatal, 4);
                   if Token = T_Error then
                      if Fatal then
                         Errors := Errors + 1;
@@ -755,229 +778,309 @@ package body Lexer is
    --------------------------------
 
    procedure Scan_Integer_Literal_Value
-     (Base : Unsigned_Short_Short;
-      Size : Natural := Natural'Last)
+     (Base  : Unsigned_Short_Short;
+      Fatal : Boolean;
+      Size  : Natural := Natural'Last)
    is
-      C      : Character;
-      Length : Integer := 0;
-      Digit  : Unsigned_Short_Short;
+   begin
+      Token := T_Integer_Literal;
+      Name_Len := 0;
+      Scan_Integer_To_Name_Buffer (Base, Fatal, Size);
+      if Token = T_Error then
+         return;
+      end if;
+      Eval_Integer_From_Name_Buffer (Base, Fatal);
+      if Token = T_Error then
+         return;
+      end if;
+   end Scan_Integer_Literal_Value;
+
+   -----------------------------------
+   -- Eval_Integer_From_Name_Buffer --
+   -----------------------------------
+
+   procedure Eval_Integer_From_Name_Buffer
+     (Base  : Unsigned_Short_Short;
+      Fatal : Boolean)
+   is
+      C : Character;
+      D : Natural;
    begin
       Integer_Literal_Value := 0;
-      Token := T_Integer_Literal;
+      for I in 1 .. Name_Len loop
+         C := Name_Buffer (I);
+         if Integer_Literal_Base = 8 and then C in '8' .. '9' then
+            if Fatal then
+               Error_Loc (1)      := Token_Location;
+               Error_Loc (1).Scan := Error_Loc (1).Scan + Text_Ptr (I - 1);
+               DE ("digit >= base");
+            end if;
+            Skip_Identifier;
+            Token := T_Error;
+            return;
+         end if;
 
-      while Length < Size loop
-         C := To_Lower (Buffer (Token_Location.Scan));
          if C in '0' .. '9' then
-            Digit := Character'Pos (C) - Character'Pos ('0');
+            D := Character'Pos (C) - Character'Pos ('0');
+         else
+            D := Character'Pos (C) - Character'Pos ('a') + 10;
+         end if;
+
+         Integer_Literal_Value :=
+           Integer_Literal_Value * Unsigned_Long_Long (Base)
+           + Unsigned_Long_Long (D);
+      end loop;
+   end Eval_Integer_From_Name_Buffer;
+
+   ---------------------------------
+   -- Scan_Integer_To_Name_Buffer --
+   ---------------------------------
+
+   procedure Scan_Integer_To_Name_Buffer
+     (Base  : Unsigned_Short_Short;
+      Fatal : Boolean;
+      Size  : Natural := Natural'Last)
+   is
+      C   : Character;
+      Len : Integer  := 0;
+      Loc : Location := Token_Location;
+   begin
+      while Len < Size loop
+         C := To_Lower (Buffer (Loc.Scan));
+         if C in '0' .. '9' then
+            if Base = 8 and then C in '8' .. '9' then
+               if Fatal then
+                  Error_Loc (1) := Loc;
+                  DE ("digit >= base");
+               end if;
+               Skip_Identifier;
+               Token := T_Error;
+               return;
+            end if;
 
          elsif Base = 16 and then C in 'a' .. 'f' then
-            Digit := Character'Pos (C) - Character'Pos ('a') + 10;
+            null;
+
+         elsif Base = 10 and then (C = 'e' or else C = 'd') then
+            exit;
+
+         elsif Is_Identifier_Character (C) then
+            if Fatal then
+               Error_Loc (1) := Loc;
+               DE ("illegal character");
+            end if;
+            Skip_Identifier;
+            Token := T_Error;
+            return;
 
          else
             exit;
          end if;
 
-         if Digit >= Base then
-            Error_Loc (1) := Token_Location;
-            DE ("digit >= base");
-            Token := T_Error;
-            Integer_Literal_Value := 0;
-            return;
-         end if;
-
-         Length := Length + 1;
-         Token_Location.Scan := Token_Location.Scan + 1;
-
-         Integer_Literal_Value :=
-           Integer_Literal_Value * Unsigned_Long_Long (Base)
-           + Unsigned_Long_Long (Digit);
+         Len := Len + 1;
+         Add_Char_To_Name_Buffer (C);
+         Loc.Scan := Loc.Scan + 1;
       end loop;
 
-      if Length = 0 then
-         Integer_Literal_Value := 0;
-         Token := T_Error;
-      end if;
-   end Scan_Integer_Literal_Value;
+      Token_Location := Loc;
+   end Scan_Integer_To_Name_Buffer;
 
    --------------------------------
    -- Scan_Numeric_Literal_Value --
    --------------------------------
 
-   procedure Scan_Numeric_Literal_Value is
-      C              : Character;
-      Found_Exponent : constant Unsigned_Short_Short := 2 ** 2;
-      Found_Fraction : constant Unsigned_Short_Short := 2 ** 1;
-      Found_Integer  : constant Unsigned_Short_Short := 2 ** 0;
-      Found_Parts    : Unsigned_Short_Short := 0;
-      Integer_Part   : Unsigned_Long_Long := 0;
-      Fraction_Part  : Unsigned_Long_Long := 0;
-      Exponent_Part  : Unsigned_Long_Long := 0;
-      Exponent_Sign  : Short_Short := 1;
-      Point_Location : Text_Ptr    := 0;
+   procedure Scan_Numeric_Literal_Value (Fatal : Boolean)
+   is
+      C : Character;
+      L : Location renames Token_Location;
+
    begin
-      Token := T_Error;
+      L := Token_Location;
+      Token := T_Integer_Literal;
+      Name_Len := 0;
       Integer_Literal_Base := 10;
+      Integer_Literal_Sign := 1;
 
-      --  Specific case to get the base
+      --  Read the sign
 
-      if Buffer (Token_Location.Scan) = '0' then
-         C := To_Lower (Buffer (Token_Location.Scan + 1));
+      C := To_Lower (Buffer (L.Scan));
+      if C = '+' or else C = '-' then
+         if C = '-' then
+            Integer_Literal_Sign := -1;
+         end if;
+         L.Scan := L.Scan + 1;
+         C := To_Lower (Buffer (L.Scan));
+      end if;
+
+      --  Read the base when base is 16.
+
+      if C = '0' then
+         C := To_Lower (Buffer (L.Scan + 1));
 
          --  Base is 16
 
          if C = 'x' then
             Integer_Literal_Base := 16;
-            Token_Location.Scan := Token_Location.Scan + 2;
+            L.Scan := L.Scan + 2;
 
-            C := To_Lower (Buffer (Token_Location.Scan));
+            --  Check the next character is a digit
+
+            C := To_Lower (Buffer (L.Scan));
             if C not in '0' .. '9' and then C not in 'a' .. 'f' then
-               Error_Loc (1) := Token_Location;
-               DE ("digit excepted");
+               if Fatal then
+                  Error_Loc (1) := L;
+                  DE ("digit excepted");
+               end if;
+               Skip_Identifier;
+               Token := T_Error;
                return;
             end if;
-
-         --  Base is 8
-
-         elsif C in '0' .. '9' then
-            Integer_Literal_Base := 8;
-            Token_Location.Scan := Token_Location.Scan + 1;
-
          end if;
       end if;
 
-      --  Read the integer part. If Base is not 10, we are sure that
-      --  the current character is a digit in Base.
+      --  Read the integer part
 
-      if Buffer (Token_Location.Scan) /= '.' then
-         Scan_Integer_Literal_Value (Integer_Literal_Base);
+      if C /= '.' then
+         Scan_Integer_To_Name_Buffer (Integer_Literal_Base, Fatal);
+
+         --  Check whether there is a well-formed integer part
+
          if Token = T_Error then
             return;
          end if;
-         Found_Parts  := Found_Parts or Found_Integer;
-         Integer_Part := Integer_Literal_Value;
 
-         if Integer_Literal_Base /= 10 then
-            Token := T_Integer_Literal;
-            return;
-         end if;
+         C := To_Lower (Buffer (L.Scan));
       end if;
 
-      C := To_Lower (Buffer (Token_Location.Scan));
-
-      --  Read the fraction part.
+      --  Read the fraction part
 
       if C = '.' then
-         Point_Location := Token_Location.Scan;
-         Token_Location.Scan := Token_Location.Scan + 1;
-         if Buffer (Token_Location.Scan) in '0' .. '9' then
-            Scan_Integer_Literal_Value (10);
-            Found_Parts   := Found_Parts or Found_Fraction;
-            Fraction_Part := Integer_Literal_Value;
+
+         --  It may be a fixed literal. This will be updated when the
+         --  fixed literal suffix is detected.
+
+         Token := T_Floating_Point_Literal;
+
+         --  As there is a decimal point, the base is 10. Having a
+         --  previous base sets to 8 is not a problem since the
+         --  previous digits are in the range '0' .. '7'. But there is
+         --  a problem with base 16 as the literal starts with 0x.
+
+         if Integer_Literal_Base = 16 then
+            if Fatal then
+               Error_Loc (1) := L;
+               DE ("cannot parse integer literal");
+            end if;
+            Skip_Identifier;
+            Token := T_Error;
+            return;
          end if;
+         Integer_Literal_Base := 10;
 
-         --  Update C to get either the exponent or the fixed suffix
+         --  Append the decimal point and read the fraction part
 
-         if To_Lower (Buffer (Token_Location.Scan)) in 'd' .. 'e' then
-            C := To_Lower (Buffer (Token_Location.Scan));
+         Add_Char_To_Name_Buffer (C);
+         L.Scan  := L.Scan + 1;
+         C := To_Lower (Buffer (L.Scan));
+         if C in '0' .. '9' then
+            Scan_Integer_To_Name_Buffer (10, Fatal);
+
+            --  Check that the fraction part is a well-formed literal
+
+            if Token = T_Error then
+               return;
+            end if;
+            C := To_Lower (Buffer (L.Scan));
          end if;
       end if;
 
-      --  Read the exponent.
+      --  Read the exponent
 
       if C = 'e' then
-         Token_Location.Scan := Token_Location.Scan + 1;
+         Token := T_Floating_Point_Literal;
+         Add_Char_To_Name_Buffer (C);
 
          --  Read the exponent sign.
 
-         if Buffer (Token_Location.Scan) = '-' then
-            Exponent_Sign := -1;
-            Token_Location.Scan := Token_Location.Scan + 1;
-         elsif Buffer (Token_Location.Scan) = '+' then
-            Exponent_Sign := 1;
-            Token_Location.Scan := Token_Location.Scan + 1;
+         C := Buffer (L.Scan + 1);
+         if C = '-' or else C = '+' then
+            Add_Char_To_Name_Buffer (C);
+            L.Scan := L.Scan + 1;
          end if;
 
-         --  Read the exponent part.
+         --  Check that the exponent part exists
 
-         if Buffer (Token_Location.Scan) in '0' .. '9' then
-            Scan_Integer_Literal_Value (10);
-            Found_Parts   := Found_Parts or Found_Exponent;
-            Exponent_Part := Integer_Literal_Value;
+         C := Buffer (L.Scan + 1);
+         if C not in '0' .. '9' then
+            if Fatal then
+               Error_Loc (1) := L;
+               DE ("exponent part cannot be missing");
+            end if;
+            Skip_Identifier;
+            Token := T_Error;
+            return;
+         end if;
+         L.Scan := L.Scan + 1;
+
+         --  Read the exponent part
+
+         Scan_Integer_To_Name_Buffer (10, Fatal);
+
+         --  Check that the exponent part is a well-formed literal
+
+         if Token = T_Error then
+            return;
          end if;
 
       --  Skip fixed literal suffix
 
       elsif C = 'd' then
-         if Point_Location = 0 then
-            Decimal_Point_Position := 0;
-         else
-            Decimal_Point_Position :=
-              Unsigned_Short_Short (Token_Location.Scan - Point_Location - 1);
-         end if;
-         Token_Location.Scan := Token_Location.Scan + 1;
-      end if;
-
-      if (Found_Parts and Found_Integer) = 0
-        and then (Found_Parts and Found_Fraction) = 0
-      then
-         Error_Loc (1) := Token_Location;
-         DE ("both integer and fraction part cannot be missing");
-         return;
-      end if;
-
-      if C = 'e'
-        and then (Found_Parts and Found_Exponent) = 0
-      then
-         Error_Loc (1) := Token_Location;
-         DE ("exponent part cannot be missing");
-         return;
-      end if;
-
-      --  Find a fixed point literal
-
-      if C = 'd' then
          Token := T_Fixed_Point_Literal;
-
-      --  Find a floating point literal
-
-      elsif C = 'e'
-        or else C = '.'
-        or else (Found_Parts and Found_Fraction) /= 0
-      then
-         Token := T_Floating_Point_Literal;
-
-      --  Find an integer literal
-
-      else
-         Token := T_Integer_Literal;
+         L.Scan := L.Scan + 1;
       end if;
 
-      Set_Dnat_To_Name_Buffer (Dnat (Integer_Part));
+      if (Name_Len > 0
+          and then Name_Buffer (1) = '.')
+        and then (Name_Len = 1
+                  or else (Name_Len > 1
+                           and then Name_Buffer (2) not in '0' .. '9'))
+      then
+         if Fatal then
+            Error_Loc (1) := L;
+            DE ("both integer and fraction part cannot be missing");
+         end if;
+         Skip_Identifier;
+         Token := T_Error;
+         return;
+      end if;
 
       if Token = T_Floating_Point_Literal then
-         Add_Char_To_Name_Buffer ('.');
-         Add_Dnat_To_Name_Buffer (Dnat (Fraction_Part));
+         Float_Literal_Value :=
+           Long_Long_Float'Value (Name_Buffer (1 .. Name_Len));
 
-         if Token = T_Floating_Point_Literal then
-            Add_Char_To_Name_Buffer ('E');
-            if Exponent_Sign = -1 then
-               Add_Char_To_Name_Buffer ('-');
+      else
+         if Token = T_Fixed_Point_Literal then
+            Decimal_Point_Position := 0;
+            for I in 1 .. Name_Len loop
+               if Name_Buffer (I) = '.' then
+                  Decimal_Point_Position :=
+                    Unsigned_Short_Short (Name_Len - I);
+               end if;
+               if Decimal_Point_Position > 0 then
+                  Name_Buffer (I) := Name_Buffer (I + 1);
+               end if;
+            end loop;
+
+            if Decimal_Point_Position > 0 then
+               Name_Len := Name_Len - 1;
             end if;
-            Add_Dnat_To_Name_Buffer (Dnat (Exponent_Part));
+
+         elsif Name_Len > 0 and then Name_Buffer (1) = '0' then
+            Integer_Literal_Base := 8;
          end if;
 
-         Float_Literal_Value
-           := Long_Long_Float'Value (Name_Buffer (1 .. Name_Len));
-
-      elsif Token = T_Fixed_Point_Literal then
-         if Decimal_Point_Position /= 0 then
-            Add_Dnat_To_Name_Buffer (Dnat (Fraction_Part));
-         end if;
-         Integer_Literal_Value :=
-           Unsigned_Long_Long'Value (Name_Buffer (1 .. Name_Len));
+         Eval_Integer_From_Name_Buffer (Integer_Literal_Base, Fatal);
       end if;
-
-      Token_Name := Name_Find;
    end Scan_Numeric_Literal_Value;
 
    ---------------------------------
@@ -997,7 +1100,7 @@ package body Lexer is
          declare
             Line : Natural;
          begin
-            Scan_Integer_Literal_Value (10);
+            Scan_Integer_Literal_Value (10, True);
             Line := Natural (Integer_Literal_Value);
 
             Skip_Spaces;
@@ -1067,6 +1170,7 @@ package body Lexer is
          else
             Loc := Token_Location;
          end if;
+
          Error_Loc (1) := Loc;
          DE ("expected token " & Quoted_Image (T));
          Token := T_Error;
@@ -1261,10 +1365,10 @@ package body Lexer is
                Token := T_Right_Bracket;
 
             when '0' .. '9' =>
-               Scan_Numeric_Literal_Value;
+               Scan_Numeric_Literal_Value (Fatal);
 
             when '.' =>
-               Scan_Numeric_Literal_Value;
+               Scan_Numeric_Literal_Value (Fatal);
 
             when ''' =>
                Token_Location.Scan := Token_Location.Scan + 1;
@@ -1373,6 +1477,17 @@ package body Lexer is
          Scan_Token (Delimiter);
       end if;
    end Skip_Declaration;
+
+   ---------------------
+   -- Skip_Identifier --
+   ---------------------
+
+   procedure Skip_Identifier is
+   begin
+      while Is_Identifier_Character (Buffer (Token_Location.Scan)) loop
+         Token_Location.Scan := Token_Location.Scan + 1;
+      end loop;
+   end Skip_Identifier;
 
    ---------------
    -- Skip_Line --

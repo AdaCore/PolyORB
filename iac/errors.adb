@@ -32,6 +32,7 @@ package body Errors is
       I : Natural := 1;
       N : Natural := 1;
       M : Boolean := False; --  Meta-character
+      J : Natural := S'First;
    begin
       if K = K_Error then
          N_Errors := N_Errors + 1;
@@ -47,8 +48,17 @@ package body Errors is
       L := L + 1;
       Add_Str_To_Name_Buffer (": ");
 
-      for J in S'Range loop
-         if S (J) = '%' then
+      while J <= S'Last loop
+
+         --  Escape meta-character
+
+         if S (J) = '|' then
+            if J < S'Last then
+               J := J + 1;
+            end if;
+            Add_Char_To_Name_Buffer (S (J));
+
+         elsif S (J) = '%' then
             Check_Space;
             Get_Name_String_And_Append (Error_Name (N));
             N := N + 1;
@@ -91,6 +101,8 @@ package body Errors is
             end if;
             Add_Char_To_Name_Buffer (S (J));
          end if;
+
+         J := J + 1;
       end loop;
       Set_Standard_Error;
       Write_Line (Name_Buffer (1 .. Name_Len));
