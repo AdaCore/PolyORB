@@ -192,30 +192,11 @@ begin
                  (Child_POA_Server,
                   PortableServer.Servant (Obj2),
                   11000);
-
+               pragma Unreferenced (Oid);
             begin
-               Output ("Activate_Object_With_Priority did not raise exception",
-                       True);
-
-               --  Call Servant_To_Reference
-
-               Ref_Server := PortableServer.POA.Id_To_Reference
-                 (PortableServer.POA.Ref (Child_POA_Server), Oid);
-
-               --  Output object IOR
-
-               New_Line;
-               Put_Line
-                 ("'"
-                  & CORBA.To_Standard_String
-                  (CORBA.Object.Object_To_String (Ref_Server))
-                  & "'");
-               New_Line;
-
+               Output ("Activate_Object_With_Priority raised no exception",
+                       False);
             end;
-
-            Output ("Activate_Object_With_Priority raised no exception",
-                    False);
          exception
             when PortableServer.POA.WrongPolicy =>
             Output ("Activate_Object_With_Priority raised an exception", True);
@@ -231,7 +212,6 @@ begin
          Child_POA_Server : RTPortableServer.POA.Ref;
          Policies_Server : CORBA.Policy.PolicyList;
          Ref_Server : CORBA.Object.Ref;
-
 
          Implicit_Activation_Policy : CORBA.Policy.Ref
            := CORBA.Policy.Ref
