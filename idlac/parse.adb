@@ -1783,7 +1783,7 @@ package body Parse is
       if not Success then
          return;
       end if;
-      Parse_Simple_Declarator (Result, Success);
+      Parse_Simple_Declarator (N_Named_Acc (Result), Success);
       return;
    end Parse_Init_Param_Decl;
 
@@ -1820,40 +1820,72 @@ package body Parse is
    begin
       Result := null;
       Success := False;
---    function Parse_Type_Dcl return N_Root_Acc is
---    begin
---       case Token is
---          when T_Typedef =>
---             Next_Token;
---             return N_Root_Acc (Parse_Type_Declarator);
---          when T_Struct =>
---             return N_Root_Acc (Parse_Struct_Type);
---          when T_Union =>
---             return N_Root_Acc (Parse_Union_Type);
---          when T_Enum =>
---             return N_Root_Acc (Parse_Enum_Type);
---          when T_Native =>
---             declare
---                Res : N_Native_Acc;
---             begin
---                Res := new N_Native;
---                Set_Location (Res.all, Get_Location);
---                Expect (T_Native);
---                Next_Token;
---                Res.Decl := Parse_Declarator;
---                if Res.Decl.Array_Bounds /= Nil_List then
---                   Errors.Parser_Error ("simple declarator expected",
---                                        Errors.Error);
---                end if;
---                return N_Root_Acc (Res);
---             end;
---          when others =>
---             Errors.Parser_Error ("type declarator expected",
---                                  Errors.Error);
---             raise Parse_Error;
---       end case;
---    end Parse_Type_Dcl;
+      case Get_Token is
+         when T_Typedef =>
+            Next_Token;
+            declare
+               Res : N_Type_Declarator_Acc;
+            begin
+               Parse_Type_Declarator (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Struct =>
+            declare
+               Res : N_Struct_Acc;
+            begin
+               Parse_Struct_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Union =>
+            declare
+               Res : N_Union_Acc;
+            begin
+               Parse_Union_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Enum =>
+            declare
+               Res : N_Enum_Acc;
+            begin
+               Parse_Enum_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Native =>
+            declare
+               Res : N_Native_Acc;
+            begin
+               Res := new N_Native;
+               Set_Location (Res.all, Get_Token_Location);
+               Next_Token;
+               Parse_Simple_Declarator (N_Named_Acc (Res), Success);
+               if not Success then
+                  Result := null;
+                  return;
+               end if;
+               Result :=  N_Root_Acc (Res);
+            end;
+         when others =>
+            raise Errors.Internal_Error;
+      end case;
+      return;
    end Parse_Type_Dcl;
+
+   -----------------------------
+   --  Parse_Type_Declarator  --
+   -----------------------------
+   procedure Parse_Type_Declarator (Result : out N_Type_Declarator_Acc;
+                                    Success : out Boolean) is
+   begin
+      Result := new N_Type_Declarator;
+      Set_Location (Result.all, Get_Token_Location);
+      Parse_Type_Spec (Result.T_Type, Success);
+      if not Success then
+         return;
+      end if;
+      Parse_Declarators (Result.Declarators, Success);
+      return;
+   end Parse_Type_Declarator;
+
 
    -----------------------
    --  Parse_Type_Spec  --
@@ -1861,30 +1893,242 @@ package body Parse is
    procedure Parse_Type_Spec (Result : out N_Root_Acc;
                               Success : out Boolean) is
    begin
+      case Get_Token is
+         when T_Float
+           | T_Double
+           | T_Long
+           | T_Short
+           | T_Unsigned
+           | T_Char
+           | T_Wchar
+           | T_Boolean
+           | T_Octet
+           | T_Any
+           | T_Object
+           | T_ValueBase
+           | T_Sequence
+           | T_String
+           | T_Wstring
+           | T_Fixed
+           | T_Colon_Colon
+           | T_Identifier =>
+            Parse_Simple_Type_Spec (Result, Success);
+         when T_Enum
+           | T_Struct
+           | T_Union =>
+            Parse_Constr_Type_Spec (Result, Success);
+         when others =>
+            Errors.Parser_Error ("type specification expected.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Success := False;
+            Result := null;
+      end case;
+      return;
+   end  Parse_Type_Spec;
+
+
+   ------------------------------
+   --  Parse_Simple_Type_Spec  --
+   ------------------------------
+   procedure Parse_Simple_Type_Spec (Result : out N_Root_Acc;
+                                     Success : out Boolean) is
+   begin
+      case Get_Token is
+         when T_Float
+           | T_Double
+           | T_Long
+           | T_Short
+           | T_Unsigned
+           | T_Char
+           | T_Wchar
+           | T_Boolean
+           | T_Octet
+           | T_Any
+           | T_Object
+           | T_ValueBase =>
+            Parse_Base_Type_Spec (Result, Success);
+         when T_Sequence
+           | T_String
+           | T_Wstring
+           | T_Fixed =>
+            Parse_Template_Type_Spec (Result, Success);
+         when T_Colon_Colon
+           | T_Identifier =>
+            declare
+               Res : N_Scoped_Name_Acc;
+            begin
+               Parse_Scoped_Name (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when others =>
+            Errors.Parser_Error ("simple type specification expected.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Result := null;
+            Success := False;
+      end case;
+      return;
+   end Parse_Simple_Type_Spec;
+
+   ----------------------------
+   --  Parse_Base_Type_Spec  --
+   ----------------------------
+   procedure Parse_Base_Type_Spec (Result : out N_Root_Acc;
+                                   Success : out Boolean) is
+   begin
+      case Get_Token is
+         when T_Float
+           | T_Double =>
+            Parse_Floating_Pt_Type (Result, Success);
+         when T_Long =>
+            if View_Next_Token = T_Double then
+               Parse_Floating_Pt_Type (Result, Success);
+            else
+               Parse_Integer_Type (Result, Success);
+            end if;
+         when T_Short
+           | T_Unsigned =>
+            Parse_Integer_Type (Result, Success);
+         when T_Char =>
+            Parse_Char_Type (Result, Success);
+         when T_Wchar =>
+            Parse_Wide_Char_Type (Result, Success);
+         when T_Boolean =>
+            Parse_Boolean_Type (Result, Success);
+         when T_Octet =>
+            Parse_Octet_Type (Result, Success);
+         when T_Any =>
+            Parse_Any_Type (Result, Success);
+         when T_Object =>
+            Parse_Object_Type (Result, Success);
+         when T_ValueBase =>
+            Parse_Value_Base_Type (Result, Success);
+         when others =>
+            raise Errors.Internal_Error;
+      end case;
+      return;
+   end Parse_Base_Type_Spec;
+
+--       case Token is
+--          when T_Float =>
+--             Next_Token;
+--             return N_Root_Acc'(new N_Float);
+--          when T_Double =>
+--             Next_Token;
+--             return N_Root_Acc'(new N_Double);
+--          when T_Short =>
+--             Next_Token;
+--             return N_Root_Acc'(new N_Short);
+--          when T_Long =>
+--             Next_Token;
+--             case Token is
+--                when T_Double =>
+--                   Next_Token;
+--                   return N_Root_Acc'(new N_Long_Double);
+--                when T_Long =>
+--                   Next_Token;
+--                   return N_Root_Acc'(new N_Long_Long);
+--                when others =>
+--                   return N_Root_Acc'(new N_Long);
+--             end case;
+--          when T_Unsigned =>
+--             Next_Token;
+--             case Token is
+--                when T_Short =>
+--                   Next_Token;
+--                   return N_Root_Acc'(new N_Unsigned_Short);
+--                when T_Long =>
+--                   Next_Token;
+--                   if Token = T_Long then
+--                      Next_Token;
+--                      return N_Root_Acc'(new N_Unsigned_Long_Long);
+--                   else
+--                      return N_Root_Acc'(new N_Unsigned_Long);
+--                   end if;
+--                when others =>
+--                   Errors.Parser_Error ("`unsigned' must be followed either "
+--                                        & "by `short' or `long'",
+--                                        Errors.Error);
+--                   Errors.Parser_Error ("`unsigned long' assumed",
+--                                        Errors.Error);
+--                   return N_Root_Acc'(new N_Unsigned_Long);
+--             end case;
+--          when T_Char =>
+--             Next_Token;
+--             return N_Root_Acc'(new N_Char);
+--          when T_Wchar =>
+--             Next_Token;
+--             return N_Root_Acc'(new N_Wchar);
+--          when T_Boolean =>
+--             Next_Token;
+--             return N_Root_Acc'(new N_Boolean);
+--          when T_Octet =>
+--             Next_Token;
+--             return N_Root_Acc'(new N_Octet);
+--          when T_Any =>
+--             Next_Token;
+--             return N_Root_Acc'(new N_Any);
+--          when T_Object =>
+--             Next_Token;
+--             return N_Root_Acc'(new N_Object);
+--          when others =>
+--             Errors.Parser_Error ("base type expected",
+--                                  Errors.Error);
+--             raise Errors.Internal_Error;
+--       end case;
+
+   --------------------------------
+   --  Parse_Template_Type_Spec  --
+   --------------------------------
+   procedure Parse_Template_Type_Spec (Result : out N_Root_Acc;
+                                       Success : out Boolean) is
+   begin
       Result := null;
       Success := False;
 --       case Token is
---          when T_Float | T_Double | T_Long | T_Short | T_Unsigned |
---            T_Char | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object |
---            T_Sequence | T_String | T_Wstring | T_Fixed |
---            T_Colon_Colon | T_Identifier =>
---             return Parse_Simple_Type_Spec;
---          when T_Enum | T_Struct | T_Union =>
---             return Parse_Constr_Type_Spec;
+--          when T_Sequence =>
+--             return N_Root_Acc (Parse_Sequence_Type);
+--          when T_String =>
+--             return N_Root_Acc (Parse_String_Type);
+--          when T_Wstring =>
+--             return N_Root_Acc (Parse_Wide_String_Type);
+--          when T_Fixed =>
+--             return N_Root_Acc (Parse_Fixed_Pt_Type);
 --          when others =>
---             Errors.Parser_Error ("type specifier expected",
---                                   Errors.Error);
---             raise Parse_Error;
+--             raise Errors.Internal_Error;
 --       end case;
-   end  Parse_Type_Spec;
+   end Parse_Template_Type_Spec;
+
+   ------------------------------
+   --  Parse_Constr_Type_Spec  --
+   ------------------------------
+   procedure Parse_Constr_Type_Spec (Result : out N_Root_Acc;
+                                     Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--       case Token is
+--          when T_Struct =>
+--             return N_Root_Acc (Parse_Struct_Type);
+--          when T_Union =>
+--             return N_Root_Acc (Parse_Union_Type);
+--          when T_Enum =>
+--             return N_Root_Acc (Parse_Enum_Type);
+--          when others =>
+--             Errors.Parser_Error ("constructed type expected",
+--                                  Errors.Error);
+--             raise Errors.Internal_Error;
+--       end case;
+   end Parse_Constr_Type_Spec;
 
    -------------------------
    --  Parse_Declarators  --
    -------------------------
-   procedure Parse_Declarators (Result : out N_Declarator_Acc;
-                               Success : out Boolean) is
+   procedure Parse_Declarators (Result : out Node_List;
+                                Success : out Boolean) is
    begin
-      Result := null;
+      Result := Nil_List;
       Success := False;
 --    procedure Parse_Declarators (List : in out Node_List) is
 --       El : N_Declarator_Acc;
@@ -1900,13 +2144,12 @@ package body Parse is
    -------------------------------
    --  Parse_Simple_Declarator  --
    -------------------------------
-   procedure Parse_Simple_Declarator (Result : in out N_Param_Acc;
+   procedure Parse_Simple_Declarator (Result : in out N_Named_Acc;
                                       Success : out Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
       if Get_Token /= T_Identifier then
-         Errors.Parser_Error ("Identifier expected in parameter " &
-                              "declaration.",
+         Errors.Parser_Error ("Identifier expected.",
                               Errors.Error,
                               Get_Token_Location);
          Success := False;
@@ -1918,8 +2161,7 @@ package body Parse is
          if Definition /= null
            and then Definition.Parent_Scope = Get_Current_Scope then
             Errors.Parser_Error
-              ("This identifier is already used in this parameters " &
-               "declaration : " &
+              ("This identifier is already used in this scope : " &
                Errors.Display_Location (Get_Location (Definition.Node.all)),
                Errors.Error,
                Get_Token_Location);
@@ -1934,6 +2176,193 @@ package body Parse is
       Success := True;
       return;
    end Parse_Simple_Declarator;
+
+   ------------------------------
+   --  Parse_Floating_Pt_Type  --
+   ------------------------------
+   procedure Parse_Floating_Pt_Type (Result : in out N_Root_Acc;
+                                     Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_Floating_Pt_Type;
+
+   --------------------------
+   --  Parse_Integer_Type  --
+   --------------------------
+   procedure Parse_Integer_Type (Result : in out N_Root_Acc;
+                                 Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_Integer_Type;
+
+   -----------------------
+   --  Parse_Char_Type  --
+   -----------------------
+   procedure Parse_Char_Type (Result : in out N_Root_Acc;
+                              Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_Char_Type;
+
+   ----------------------------
+   --  Parse_Wide_Char_Type  --
+   ----------------------------
+   procedure Parse_Wide_Char_Type (Result : in out N_Root_Acc;
+                                   Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_Wide_Char_Type;
+
+   --------------------------
+   --  Parse_Boolean_Type  --
+   --------------------------
+   procedure Parse_Boolean_Type (Result : in out N_Root_Acc;
+                                 Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_Boolean_Type;
+
+   ------------------------
+   --  Parse_Octet_Type  --
+   ------------------------
+   procedure Parse_Octet_Type (Result : in out N_Root_Acc;
+                               Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_Octet_Type;
+
+   ----------------------
+   --  Parse_Any_Type  --
+   ----------------------
+   procedure Parse_Any_Type (Result : in out N_Root_Acc;
+                             Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_Any_Type;
+
+   -------------------------
+   --  Parse_Object_Type  --
+   -------------------------
+   procedure Parse_Object_Type (Result : in out N_Root_Acc;
+                                Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_Object_Type;
+
+   -------------------------
+   --  Parse_Struct_Type  --
+   -------------------------
+   procedure Parse_Struct_Type (Result : out N_Struct_Acc;
+                                Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--       Res : N_Struct_Acc;
+--    begin
+--       Res := new N_Struct;
+--       Set_Location (Res.all, Get_Location);
+--       Scan_Expect (T_Identifier);
+--       Add_Identifier (Res);
+--       Scan_Expect (T_Left_Cbracket);
+--       Next_Token;
+--       Push_Scope (Res);
+--       Parse_Member_List (Res.Members);
+--       Expect (T_Right_Cbracket);
+--       Pop_Scope;
+--       Next_Token;
+--       return Res;
+   end Parse_Struct_Type;
+
+
+   ------------------------
+   --  Parse_Union_Type  --
+   ------------------------
+   procedure Parse_Union_Type (Result : out N_Union_Acc;
+                               Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--       Res : N_Union_Acc;
+--    begin
+--       Res := new N_Union;
+--       Set_Location (Res.all, Get_Location);
+--       Expect (T_Union);
+--       Scan_Expect (T_Identifier);
+--       Add_Identifier (Res);
+--       Scan_Expect (T_Switch);
+--       Scan_Expect (T_Left_Paren);
+--       Next_Token;
+--       case Token is
+--          when T_Short | T_Unsigned | T_Boolean =>
+--             Res.Switch_Type := Parse_Base_Type_Spec;
+--          when T_Long =>
+--             Next_Token;
+--             if Token = T_Long then
+--                Next_Token;
+--                Res.Switch_Type := new N_Long_Long;
+--             else
+--                Res.Switch_Type := new N_Long;
+--             end if;
+--          when T_Enum =>
+--             raise Errors.Internal_Error;
+--          when T_Colon_Colon | T_Identifier =>
+--             Res.Switch_Type := N_Root_Acc (Parse_Scoped_Name);
+--          when others =>
+--             Errors.Parser_Error ("switch type expected",
+--                                  Errors.Error);
+--             raise Parse_Error;
+--       end case;
+--       Expect (T_Right_Paren);
+--       Scan_Expect (T_Left_Cbracket);
+--       Push_Scope (Res);
+--       Next_Token;
+--       loop
+--          Append_Node (Res.Cases, N_Root_Acc (Parse_Case));
+--          exit when Token = T_Right_Cbracket;
+--       end loop;
+--       Pop_Scope;
+--       Next_Token;
+--       return Res;
+   end Parse_Union_Type;
+
+   -----------------------
+   --  Parse_Enum_Type  --
+   -----------------------
+   procedure Parse_Enum_Type (Result : out N_Enum_Acc;
+                              Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+--       Res : N_Enum_Acc;
+--       El : N_Enumerator_Acc;
+--    begin
+--       Res := new N_Enum;
+--       Set_Location (Res.all, Get_Location);
+--       Expect (T_Enum);
+--       Scan_Expect (T_Identifier);
+--       Add_Identifier (Res);
+--       Scan_Expect (T_Left_Cbracket);
+--       loop
+--          Scan_Expect (T_Identifier);
+--          El := new N_Enumerator;
+--          Set_Location (El.all, Get_Location);
+--          Add_Identifier (El);
+--          Append_Node (Res.Enumerators, N_Root_Acc (El));
+--          Next_Token;
+--          exit when Token /= T_Comma;
+--       end loop;
+--       Expect (T_Right_Cbracket);
+--       Next_Token;
+--       return Res;
+   end Parse_Enum_Type;
 
    ------------------------
    --  Parse_Except_Dcl  --
@@ -1987,6 +2416,15 @@ package body Parse is
 --       end case;
    end Parse_Param_Type_Spec;
 
+   -----------------------------
+   --  Parse_Value_Base_Type  --
+   -----------------------------
+   procedure Parse_Value_Base_Type (Result : in out N_Root_Acc;
+                                    Success : out Boolean) is
+   begin
+      Result := null;
+      Success := False;
+   end Parse_Value_Base_Type;
 
 
 
@@ -2412,141 +2850,6 @@ package body Parse is
 --       return null;
 --    end Parse_Fixed_Pt_Type;
 
---    --  Rule 31:
---    --  <base_type_spec> ::= <floating_pt_type>
---    --                   |   <integer_type>
---    --                   |   <char_type>
---    --                   |   <wide_char_type>
---    --                   |   <boolean_type>
---    --                   |   <octet_type>
---    --                   |   <any_type>
---    --                   |   <object_type>
---    --
---    --  Rule 38:
---    --  <floating_pt_type> ::= "float"
---    --                     |   "double"
---    --                     |   "long" "double"
---    --
---    --  Rule 39:
---    --  <integer_type> ::= <signed_int>
---    --                 |   <unsigned_int>
---    --
---    --  Rule 40:
---    --  <signed_int> ::= <signed_short_int>
---    --               |   <signed_long_int>
---    --               |   <signed_longlong_int>
---    --
---    --  Rule 41:
---    --  <signed_short_int> ::= "short"
---    --
---    --  Rule 42:
---    --  <signed_long_int> := "long"
---    --
---    --  Rule 43:
---    --  <signed_longlong_int> ::= "long" "long"
---    --
---    --  Rule 44:
---    --  <unsigned_int> ::= <unsigned_short_int>
---    --                 |   <unsigned_long_int>
---    --                 |   <unsigned_longlong_int>
---    --
---    --  Rule 45:
---    --  <unsigned_short_int> ::= "unsigned" "short"
---    --
---    --  Rule 46:
---    --  <unsigned_long_int> ::= "unsigned" "long"
---    --
---    --  Rule 47:
---    --  <unsigned_longlong_int> ::= "unsigned" "long" "long"
---    --
---    --  Rule 48:
---    --  <char_type> ::= "char"
---    --
---    --  Rule 49:
---    --  <wide_char_type> ::= "wchar"
---    --
---    --  Rule 50:
---    --  <boolean_type> ::= "boolean"
---    --
---    --  Rule 51:
---    --  <octet_type> ::= "octet"
---    --
---    --  Rule 52:
---    --  <any_type> ::= "any"
---    --
---    --  Rule 53:
---    --  <object_type> ::= "Object"
---    function Parse_Base_Type_Spec return N_Root_Acc is
---    begin
---       case Token is
---          when T_Float =>
---             Next_Token;
---             return N_Root_Acc'(new N_Float);
---          when T_Double =>
---             Next_Token;
---             return N_Root_Acc'(new N_Double);
---          when T_Short =>
---             Next_Token;
---             return N_Root_Acc'(new N_Short);
---          when T_Long =>
---             Next_Token;
---             case Token is
---                when T_Double =>
---                   Next_Token;
---                   return N_Root_Acc'(new N_Long_Double);
---                when T_Long =>
---                   Next_Token;
---                   return N_Root_Acc'(new N_Long_Long);
---                when others =>
---                   return N_Root_Acc'(new N_Long);
---             end case;
---          when T_Unsigned =>
---             Next_Token;
---             case Token is
---                when T_Short =>
---                   Next_Token;
---                   return N_Root_Acc'(new N_Unsigned_Short);
---                when T_Long =>
---                   Next_Token;
---                   if Token = T_Long then
---                      Next_Token;
---                      return N_Root_Acc'(new N_Unsigned_Long_Long);
---                   else
---                      return N_Root_Acc'(new N_Unsigned_Long);
---                   end if;
---                when others =>
---                   Errors.Parser_Error ("`unsigned' must be followed either "
---                                        & "by `short' or `long'",
---                                        Errors.Error);
---                   Errors.Parser_Error ("`unsigned long' assumed",
---                                        Errors.Error);
---                   return N_Root_Acc'(new N_Unsigned_Long);
---             end case;
---          when T_Char =>
---             Next_Token;
---             return N_Root_Acc'(new N_Char);
---          when T_Wchar =>
---             Next_Token;
---             return N_Root_Acc'(new N_Wchar);
---          when T_Boolean =>
---             Next_Token;
---             return N_Root_Acc'(new N_Boolean);
---          when T_Octet =>
---             Next_Token;
---             return N_Root_Acc'(new N_Octet);
---          when T_Any =>
---             Next_Token;
---             return N_Root_Acc'(new N_Any);
---          when T_Object =>
---             Next_Token;
---             return N_Root_Acc'(new N_Object);
---          when others =>
---             Errors.Parser_Error ("base type expected",
---                                  Errors.Error);
---             raise Errors.Internal_Error;
---       end case;
---    end Parse_Base_Type_Spec;
-
 --    --  Rule 70:
 --    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
 --    --                 <simple_declarator> { "," <simple_declarator> }*
@@ -2570,47 +2873,6 @@ package body Parse is
 --       Next_Token;
 --    end Parse_Attr_Dcl;
 
---    --  Rule 32:
---    --  <template_type_spec> ::= <sequence_type>
---    --                       |   <string_type>
---    --                       |   <wide_string_type>
---    --                       |   <fixed_pt_type>
---    function Parse_Template_Type_Spec return N_Root_Acc is
---    begin
---       case Token is
---          when T_Sequence =>
---             return N_Root_Acc (Parse_Sequence_Type);
---          when T_String =>
---             return N_Root_Acc (Parse_String_Type);
---          when T_Wstring =>
---             return N_Root_Acc (Parse_Wide_String_Type);
---          when T_Fixed =>
---             return N_Root_Acc (Parse_Fixed_Pt_Type);
---          when others =>
---             raise Errors.Internal_Error;
---       end case;
---    end Parse_Template_Type_Spec;
-
---    --  Rule 30:
---    --  <simple_type_spec> ::= <base_type_spec>
---    --                     |   <template_type_spec>
---    --                     |   <scoped_name>
---    function Parse_Simple_Type_Spec return N_Root_Acc is
---    begin
---       case Token is
---          when T_Colon_Colon | T_Identifier =>
---             return N_Root_Acc (Parse_Scoped_Name);
---          when T_Sequence | T_String | T_Wstring | T_Fixed =>
---             return Parse_Template_Type_Spec;
---          when T_Float | T_Double | T_Long | T_Short | T_Unsigned |
---            T_Char | T_Wchar | T_Octet | T_Boolean | T_Any | T_Object =>
---             return Parse_Base_Type_Spec;
---          when others =>
---             Errors.Parser_Error ("simple type expected",
---                                   Errors.Error);
---             raise Parse_Error;
---       end case;
---    end Parse_Simple_Type_Spec;
 
 --    --  Rule 65:
 --    --  <sequence_type> ::= "sequence" "<" <simple_type_spec>
@@ -2726,143 +2988,7 @@ package body Parse is
 --       return Res;
 --    end Parse_Case;
 
---    --  Rule 57:
---    --  <union_type> ::= "union" <identifier>
---    --                   "switch" "(" <switch_type_spec> ")"
---    --                   "{" <switch_body> "}"
---    --
---    --  Rule 58:
---    --  <switch_type_spec> ::= <integer_type>
---    --                     |   <char_type>
---    --                     |   <boolean_type>
---    --                     |   <enum_type>
---    --                     |   <scoped_name>
---    --
---    --  Rule 59:
---    --  <switch_body> ::= <case>+
---    function Parse_Union_Type return N_Union_Acc is
---       Res : N_Union_Acc;
---    begin
---       Res := new N_Union;
---       Set_Location (Res.all, Get_Location);
---       Expect (T_Union);
---       Scan_Expect (T_Identifier);
---       Add_Identifier (Res);
---       Scan_Expect (T_Switch);
---       Scan_Expect (T_Left_Paren);
---       Next_Token;
---       case Token is
---          when T_Short | T_Unsigned | T_Boolean =>
---             Res.Switch_Type := Parse_Base_Type_Spec;
---          when T_Long =>
---             Next_Token;
---             if Token = T_Long then
---                Next_Token;
---                Res.Switch_Type := new N_Long_Long;
---             else
---                Res.Switch_Type := new N_Long;
---             end if;
---          when T_Enum =>
---             raise Errors.Internal_Error;
---          when T_Colon_Colon | T_Identifier =>
---             Res.Switch_Type := N_Root_Acc (Parse_Scoped_Name);
---          when others =>
---             Errors.Parser_Error ("switch type expected",
---                                  Errors.Error);
---             raise Parse_Error;
---       end case;
---       Expect (T_Right_Paren);
---       Scan_Expect (T_Left_Cbracket);
---       Push_Scope (Res);
---       Next_Token;
---       loop
---          Append_Node (Res.Cases, N_Root_Acc (Parse_Case));
---          exit when Token = T_Right_Cbracket;
---       end loop;
---       Pop_Scope;
---       Next_Token;
---       return Res;
---    end Parse_Union_Type;
 
---    --  Rule 54:
---    --  <struct_type> ::= "struct" <identifier> "{" <member_list> "}"
---    function Parse_Struct_Type return N_Struct_Acc is
---       Res : N_Struct_Acc;
---    begin
---       Res := new N_Struct;
---       Set_Location (Res.all, Get_Location);
---       Scan_Expect (T_Identifier);
---       Add_Identifier (Res);
---       Scan_Expect (T_Left_Cbracket);
---       Next_Token;
---       Push_Scope (Res);
---       Parse_Member_List (Res.Members);
---       Expect (T_Right_Cbracket);
---       Pop_Scope;
---       Next_Token;
---       return Res;
---    end Parse_Struct_Type;
-
---    --  Rule 63:
---    --  <enum_type> ::= "enum" <identifier> "{" <enumerator>
---    --                  { "," <enumerator> }* "}"
---    --  Rule 64:
---    --  <enumerator> ::= <identifier>
---    function Parse_Enum_Type return N_Enum_Acc is
---       Res : N_Enum_Acc;
---       El : N_Enumerator_Acc;
---    begin
---       Res := new N_Enum;
---       Set_Location (Res.all, Get_Location);
---       Expect (T_Enum);
---       Scan_Expect (T_Identifier);
---       Add_Identifier (Res);
---       Scan_Expect (T_Left_Cbracket);
---       loop
---          Scan_Expect (T_Identifier);
---          El := new N_Enumerator;
---          Set_Location (El.all, Get_Location);
---          Add_Identifier (El);
---          Append_Node (Res.Enumerators, N_Root_Acc (El));
---          Next_Token;
---          exit when Token /= T_Comma;
---       end loop;
---       Expect (T_Right_Cbracket);
---       Next_Token;
---       return Res;
---    end Parse_Enum_Type;
-
---    --  Rule 33:
---    --  <constr_type_spec> ::= <struct_type>
---    --                     |   <union_type>
---    --                     |   <enum_type>
---    function Parse_Constr_Type_Spec return N_Root_Acc is
---    begin
---       case Token is
---          when T_Struct =>
---             return N_Root_Acc (Parse_Struct_Type);
---          when T_Union =>
---             return N_Root_Acc (Parse_Union_Type);
---          when T_Enum =>
---             return N_Root_Acc (Parse_Enum_Type);
---          when others =>
---             Errors.Parser_Error ("constructed type expected",
---                                  Errors.Error);
---             raise Errors.Internal_Error;
---       end case;
---    end Parse_Constr_Type_Spec;
-
---    --  Rule 28:
---    --  <type_declarator> ::= <type_spec> <declarators>
---    function Parse_Type_Declarator return N_Type_Declarator_Acc is
---       Res : N_Type_Declarator_Acc;
---    begin
---       Res := new N_Type_Declarator;
---       Set_Location (Res.all, Get_Location);
---       Res.T_Type := Parse_Type_Spec;
---       Parse_Declarators (Res.Declarators);
---       return Res;
---    end Parse_Type_Declarator;
 
 
 

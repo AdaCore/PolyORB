@@ -159,7 +159,7 @@ package body Disp is
             Disp_Tree (N_State_Member (N).State_Type.all,
                        N_Indent + Offset,
                        Full);
-            Disp_Tree (N_State_Member (N).State_Declarators.all,
+            Disp_List (N_State_Member (N).State_Declarators,
                        N_Indent + Offset,
                        Full);
 
@@ -295,15 +295,15 @@ package body Disp is
                           N_Indent + Offset, True);
             end if;
 
---          when K_Union =>
---             Put_Line ("union " & Get_Name (N_Union (N)));
---             if Full then
---                Disp_Indent (N_Indent, "switch type:");
---                Disp_Tree (N_Union (N).Switch_Type.all,
---                           N_Indent + Offset, True);
---                Disp_Indent (N_Indent, "cases:");
---                Disp_List (N_Union (N).Cases, N_Indent + Offset, True);
---             end if;
+         when K_Union =>
+            Put_Line ("union " & Get_Name (N_Union (N)));
+            if Full then
+               Disp_Indent (N_Indent, "switch type:");
+               Disp_Tree (N_Union (N).Switch_Type.all,
+                          N_Indent + Offset, True);
+               Disp_Indent (N_Indent, "cases:");
+               Disp_List (N_Union (N).Cases, N_Indent + Offset, True);
+            end if;
 
 --          when K_Case =>
 --             Put_Line ("case");
@@ -381,31 +381,31 @@ package body Disp is
 --          when K_Lit_Wstring =>
 --             raise Errors.Internal_Error;
 
---          when K_Struct =>
---             Put_Line ("struct " & Get_Name (N_Struct (N)));
---             if Full then
---                Disp_Indent (N_Indent, "members:");
---                Disp_List (N_Struct (N).Members, N_Indent + Offset, True);
---             end if;
+         when K_Struct =>
+            Put_Line ("struct " & Get_Name (N_Struct (N)));
+            if Full then
+               Disp_Indent (N_Indent, "members:");
+               Disp_List (N_Struct (N).Members, N_Indent + Offset, True);
+            end if;
 
---          when K_Enum =>
---             Put_Line ("enum " & Get_Name (N_Enum (N)));
---             if Full then
---                Disp_Indent (N_Indent, "enumerators:");
---                Disp_List (N_Enum (N).Enumerators, N_Indent + Offset, True);
---             end if;
+         when K_Enum =>
+            Put_Line ("enum " & Get_Name (N_Enum (N)));
+            if Full then
+               Disp_Indent (N_Indent, "enumerators:");
+               Disp_List (N_Enum (N).Enumerators, N_Indent + Offset, True);
+            end if;
 
 --          when K_Enumerator =>
 --             Put_Line ("enumerator: " & Get_Name (N_Enumerator (N)));
 
---          when K_Type_Declarator =>
---             Put_Line ("type declarator:");
---             Disp_Indent (N_Indent, "type:");
---             Disp_Tree (N_Type_Declarator (N).T_Type.all,
---                        N_Indent + Offset, Full);
---             Disp_Indent (N_Indent, "declarators:");
---             Disp_List (N_Type_Declarator (N).declarators,
---                        N_Indent + Offset, Full);
+         when K_Type_Declarator =>
+            Put_Line ("type declarator:");
+            Disp_Indent (N_Indent, "type:");
+            Disp_Tree (N_Type_Declarator (N).T_Type.all,
+                       N_Indent + Offset, Full);
+            Disp_Indent (N_Indent, "declarators:");
+            Disp_List (N_Type_Declarator (N).Declarators,
+                       N_Indent + Offset, Full);
 
 --          when K_Sequence =>
 --             Put_Line ("sequence");
@@ -424,9 +424,9 @@ package body Disp is
             Disp_Indent (N_Indent, "expr:");
             Disp_Tree (N_Const (N).Expression.all, N_Indent + Offset, Full);
 
---          when K_Native =>
---             Put_Line ("native:");
---             Disp_Tree (N_Native (N).Decl.all, N_Indent, Full);
+         when K_Native =>
+            Put_Line ("native:" & Get_Name (N_Const (N)));
+
       end case;
    end Disp_Tree;
 

@@ -100,7 +100,7 @@ package Tree is
 
    type N_State_Member is new N_Root with record
       State_Type : N_Root_Acc;
-      State_Declarators : N_Declarator_Acc;
+      State_Declarators : Node_List;
       Is_Public : Boolean;
    end record;
    type N_State_Member_Acc is access all N_State_Member;
@@ -235,18 +235,16 @@ package Tree is
 --    type N_Member_Acc is access all N_Member;
 --    function Get_Kind (N : N_Member) return Node_Kind;
 
---    type N_Native is new N_Root with record
---       Decl : N_Declarator_Acc;
---    end record;
---    type N_Native_Acc is access all N_Native;
---    function Get_Kind (N : N_Native) return Node_Kind;
+   type N_Native is new N_Named with null record;
+   type N_Native_Acc is access all N_Native;
+   function Get_Kind (N : N_Native) return Node_Kind;
 
---    type N_Union is new N_Scope with record
---       Switch_Type : N_Root_Acc;
---       Cases : Node_List;
---    end record;
---    type N_Union_Acc is access all N_Union;
---    function Get_Kind (N : N_Union) return Node_Kind;
+   type N_Union is new N_Scope with record
+      Switch_Type : N_Root_Acc;
+      Cases : Node_List;
+   end record;
+   type N_Union_Acc is access all N_Union;
+   function Get_Kind (N : N_Union) return Node_Kind;
 
 --    --  Labels is a list of const_expression.  For the "default" label,
 --    --  a null element is used.
@@ -258,28 +256,28 @@ package Tree is
 --    type N_Case_Acc is access all N_Case;
 --    function Get_Kind (N : N_Case) return Node_Kind;
 
---    type N_Struct is new N_Scope with record
---       Members : Node_List;
---    end record;
---    type N_Struct_Acc is access all N_Struct;
---    function Get_Kind (N : N_Struct) return Node_Kind;
+   type N_Struct is new N_Scope with record
+      Members : Node_List;
+   end record;
+   type N_Struct_Acc is access all N_Struct;
+   function Get_Kind (N : N_Struct) return Node_Kind;
 
---    type N_Enum is new N_Named with record
---       Enumerators : Node_List;
---    end record;
---    type N_Enum_Acc is access all N_Enum;
---    function Get_Kind (N : N_Enum) return Node_Kind;
+   type N_Enum is new N_Named with record
+      Enumerators : Node_List;
+   end record;
+   type N_Enum_Acc is access all N_Enum;
+   function Get_Kind (N : N_Enum) return Node_Kind;
 
 --    type N_Enumerator is new N_Named with null record;
 --    type N_Enumerator_Acc is access all N_Enumerator;
 --    function Get_Kind (N : N_Enumerator) return Node_Kind;
 
---    type N_Type_Declarator is new N_Root with record
---       T_Type : N_Root_Acc;
---       Declarators : Node_List;
---    end record;
---    type N_Type_Declarator_Acc is access all N_Type_Declarator;
---    function Get_Kind (N : N_Type_Declarator) return Node_Kind;
+   type N_Type_Declarator is new N_Root with record
+      T_Type : N_Root_Acc;
+      Declarators : Node_List;
+   end record;
+   type N_Type_Declarator_Acc is access all N_Type_Declarator;
+   function Get_Kind (N : N_Type_Declarator) return Node_Kind;
 
 --    --  If BOUND is null, then this is an unbounded sequence.
 --    type N_Sequence is new N_Root with record

@@ -131,8 +131,6 @@ valuetype value46 {
   factory factory4 ()
 };
 
-/* Test of rule 24 */
-
 /* Test of rule 25 */
 valuetype value47 {
   factory factory1 (out long l);
@@ -141,8 +139,16 @@ valuetype value47 {
   factory factory4 (out long l, out l ll);
 };
 
-/* Test of rule 51 */
+/* Test of rule 44 */
 valuetype value48 {
+  private Error;
+};
+
+/* Test of Rule 45 */
+typedef sequence <Error>;
+
+/* Test of rule 51 */
+valuetype value49 {
   factory factory1 (in long);
   factory factory1 (in long l, in short l);
 };

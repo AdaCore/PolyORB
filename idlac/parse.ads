@@ -338,21 +338,162 @@ private
    procedure Parse_Type_Dcl (Result : out N_Root_Acc;
                              Success : out Boolean);
 
+   --  Rule 43
+   --  <type_declarator> ::= <type_spec> <declarators>
+   procedure Parse_Type_Declarator (Result : out N_Type_Declarator_Acc;
+                                    Success : out Boolean);
+
    --  Rule 44
    --  <type_spec> ::= <simple_type_spec>
    --              |   <constr_type_spec>
    procedure Parse_Type_Spec (Result : out N_Root_Acc;
                               Success : out Boolean);
 
+   --  Rule 45
+   --  <simple_type_spec> ::= <base_type_spec>
+   --                     |   <template_type_spec>
+   --                     |   <scoped_name>
+   procedure Parse_Simple_Type_Spec (Result : out N_Root_Acc;
+                                     Success : out Boolean);
+
+   --  Rule 46
+   --  <base_type_spec> ::= <floating_pt_type>
+   --                   |   <integer_type>
+   --                   |   <char_type>
+   --                   |   <wide_char_type>
+   --                   |   <boolean_type>
+   --                   |   <octet_type>
+   --                   |   <any_type>
+   --                   |   <object_type>
+   procedure Parse_Base_Type_Spec (Result : out N_Root_Acc;
+                                   Success : out Boolean);
+
+   --  Rule 47
+   --  <template_type_spec> ::= <sequence_type>
+   --                       |   <string_type>
+   --                       |   <wide_string_type>
+   --                       |   <fixed_pt_type>
+   procedure Parse_Template_Type_Spec (Result : out N_Root_Acc;
+                                       Success : out Boolean);
+
+   --  Rule 48
+   --  <constr_type_spec> ::= <struct_type>
+   --                     |   <union_type>
+   --                     |   <enum_type>
+   procedure Parse_Constr_Type_Spec (Result : out N_Root_Acc;
+                                     Success : out Boolean);
+
    --  Rule 49
    --  <declarators> ::= <declarator> { "," <declarator> }*
-   procedure Parse_Declarators (Result : out N_Declarator_Acc;
+   procedure Parse_Declarators (Result : out Node_List;
                                 Success : out Boolean);
 
    --  Rule 51
    --  <simple_declarator> ::= <identifier>
-   procedure Parse_Simple_Declarator (Result : in out N_Param_Acc;
+   procedure Parse_Simple_Declarator (Result : in out N_Named_Acc;
                                       Success : out Boolean);
+
+   --  Rule 53
+   --  <floating_pt_type> ::= "float"
+   --                     |   "double"
+   --                     |   "long" "double"
+   procedure Parse_Floating_Pt_Type (Result : in out N_Root_Acc;
+                                     Success : out Boolean);
+
+   --  Rule 54
+   --  <integer_type> ::= <signed_int>
+   --                 |   <unsigned_int>
+   procedure Parse_Integer_Type (Result : in out N_Root_Acc;
+                                 Success : out Boolean);
+
+   --  Rule 55
+   --  <signed_int> ::= <signed_short_int>
+   --               |   <signed_long_int>
+   --               |   <signed_longlong_int>
+
+   --  Rule 56
+   --  <signed_short_int> ::= "short"
+
+   --  Rule 57
+   --  <signed_long_int> := "long"
+
+   --  Rule 58
+   --  <signed_longlong_int> ::= "long" "long"
+
+   --  Rule 59
+   --  <unsigned_int> ::= <unsigned_short_int>
+   --                 |   <unsigned_long_int>
+   --                 |   <unsigned_longlong_int>
+
+   --  Rule 60
+   --  <unsigned_short_int> ::= "unsigned" "short"
+
+   --  Rule 61
+   --  <unsigned_long_int> ::= "unsigned" "long"
+
+   --  Rule 62
+   --  <unsigned_longlong_int> ::= "unsigned" "long" "long"
+
+   --  Rule 63
+   --  <char_type> ::= "char"
+   procedure Parse_Char_Type (Result : in out N_Root_Acc;
+                              Success : out Boolean);
+
+   --  Rule 64
+   --  <wide_char_type> ::= "wchar"
+   procedure Parse_Wide_Char_Type (Result : in out N_Root_Acc;
+                                   Success : out Boolean);
+
+   --  Rule 65
+   --  <boolean_type> ::= "boolean"
+   procedure Parse_Boolean_Type (Result : in out N_Root_Acc;
+                                 Success : out Boolean);
+
+   --  Rule 66
+   --  <octet_type> ::= "octet"
+   procedure Parse_Octet_Type (Result : in out N_Root_Acc;
+                               Success : out Boolean);
+
+   --  Rule 67
+   --  <any_type> ::= "any"
+   procedure Parse_Any_Type (Result : in out N_Root_Acc;
+                             Success : out Boolean);
+
+   --  Rule 68
+   --  <object_type> ::= "object"
+   procedure Parse_Object_Type (Result : in out N_Root_Acc;
+                                Success : out Boolean);
+
+   --  Rule 69
+   --  <struct_type> ::= "struct" <identifier> "{" <member_list> "}"
+   procedure Parse_Struct_Type (Result : out N_Struct_Acc;
+                                Success : out Boolean);
+
+   --  Rule 72
+   --  <union_type> ::= "union" <identifier>
+   --                   "switch" "(" <switch_type_spec> ")"
+   --                   "{" <switch_body> "}"
+   procedure Parse_Union_Type (Result : out N_Union_Acc;
+                               Success : out Boolean);
+
+   --  Rule 73
+   --  <switch_type_spec> ::= <integer_type>
+   --                     |   <char_type>
+   --                     |   <boolean_type>
+   --                     |   <enum_type>
+   --                     |   <scoped_name>
+
+   --  Rule 74
+   --  <switch_body> ::= <case>+
+
+   --  Rule 78
+   --  <enum_type> ::= "enum" <identifier> "{" <enumerator>
+   --                  { "," <enumerator> }* "}"
+   procedure Parse_Enum_Type (Result : out N_Enum_Acc;
+                              Success : out Boolean);
+
+   --  Rule 79
+   --  <enumerator> ::= <identifier>
 
    --  Rule 86
    --  <except_dcl> ::= "exception" <identifier> "{" <member>* "}"
@@ -367,6 +508,10 @@ private
    procedure Parse_Param_Type_Spec (Result : out N_Root_Acc;
                                     Success : out Boolean);
 
+   --  Rule 98
+   --  <value_base_type> ::= "ValueBase"
+   procedure Parse_Value_Base_Type (Result : in out N_Root_Acc;
+                                    Success : out Boolean);
 
 
    ------------------------------
@@ -516,89 +661,11 @@ private
 --    --                       <integer_literal> ">"
 --    function Parse_Fixed_Pt_Type return N_Root_Acc is
 
---    --  Rule 31:
---    --  <base_type_spec> ::= <floating_pt_type>
---    --                   |   <integer_type>
---    --                   |   <char_type>
---    --                   |   <wide_char_type>
---    --                   |   <boolean_type>
---    --                   |   <octet_type>
---    --                   |   <any_type>
---    --                   |   <object_type>
 --    --
---    --  Rule 38:
---    --  <floating_pt_type> ::= "float"
---    --                     |   "double"
---    --                     |   "long" "double"
---    --
---    --  Rule 39:
---    --  <integer_type> ::= <signed_int>
---    --                 |   <unsigned_int>
---    --
---    --  Rule 40:
---    --  <signed_int> ::= <signed_short_int>
---    --               |   <signed_long_int>
---    --               |   <signed_longlong_int>
---    --
---    --  Rule 41:
---    --  <signed_short_int> ::= "short"
---    --
---    --  Rule 42:
---    --  <signed_long_int> := "long"
---    --
---    --  Rule 43:
---    --  <signed_longlong_int> ::= "long" "long"
---    --
---    --  Rule 44:
---    --  <unsigned_int> ::= <unsigned_short_int>
---    --                 |   <unsigned_long_int>
---    --                 |   <unsigned_longlong_int>
---    --
---    --  Rule 45:
---    --  <unsigned_short_int> ::= "unsigned" "short"
---    --
---    --  Rule 46:
---    --  <unsigned_long_int> ::= "unsigned" "long"
---    --
---    --  Rule 47:
---    --  <unsigned_longlong_int> ::= "unsigned" "long" "long"
---    --
---    --  Rule 48:
---    --  <char_type> ::= "char"
---    --
---    --  Rule 49:
---    --  <wide_char_type> ::= "wchar"
---    --
---    --  Rule 50:
---    --  <boolean_type> ::= "boolean"
---    --
---    --  Rule 51:
---    --  <octet_type> ::= "octet"
---    --
---    --  Rule 52:
---    --  <any_type> ::= "any"
---    --
---    --  Rule 53:
---    --  <object_type> ::= "Object"
---    function Parse_Base_Type_Spec return N_Root_Acc is
-
 --    --  Rule 70:
 --    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
 --    --                 <simple_declarator> { "," <simple_declarator> }*
 --    procedure Parse_Attr_Dcl (List : in out Node_List) is
-
---    --  Rule 32:
---    --  <template_type_spec> ::= <sequence_type>
---    --                       |   <string_type>
---    --                       |   <wide_string_type>
---    --                       |   <fixed_pt_type>
---    function Parse_Template_Type_Spec return N_Root_Acc is
-
---    --  Rule 30:
---    --  <simple_type_spec> ::= <base_type_spec>
---    --                     |   <template_type_spec>
---    --                     |   <scoped_name>
---    function Parse_Simple_Type_Spec return N_Root_Acc is
 
 --    --  Rule 65:
 --    --  <sequence_type> ::= "sequence" "<" <simple_type_spec>
@@ -634,43 +701,6 @@ private
 --    --  <case_label> ::= "case" <const_exp> ":"
 --    --               |   "default ":"
 --    function Parse_Case return N_Case_Acc is
-
---    --  Rule 57:
---    --  <union_type> ::= "union" <identifier>
---    --                   "switch" "(" <switch_type_spec> ")"
---    --                   "{" <switch_body> "}"
---    --
---    --  Rule 58:
---    --  <switch_type_spec> ::= <integer_type>
---    --                     |   <char_type>
---    --                     |   <boolean_type>
---    --                     |   <enum_type>
---    --                     |   <scoped_name>
---    --
---    --  Rule 59:
---    --  <switch_body> ::= <case>+
---    function Parse_Union_Type return N_Union_Acc is
-
---    --  Rule 54:
---    --  <struct_type> ::= "struct" <identifier> "{" <member_list> "}"
---    function Parse_Struct_Type return N_Struct_Acc is
-
---    --  Rule 63:
---    --  <enum_type> ::= "enum" <identifier> "{" <enumerator>
---    --                  { "," <enumerator> }* "}"
---    --  Rule 64:
---    --  <enumerator> ::= <identifier>
---    function Parse_Enum_Type return N_Enum_Acc is
-
---    --  Rule 33:
---    --  <constr_type_spec> ::= <struct_type>
---    --                     |   <union_type>
---    --                     |   <enum_type>
---    function Parse_Constr_Type_Spec return N_Root_Acc is
-
---    --  Rule 28:
---    --  <type_declarator> ::= <type_spec> <declarators>
---    function Parse_Type_Declarator return N_Type_Declarator_Acc is
 
 
 --    --  Rule 13:
