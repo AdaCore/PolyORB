@@ -468,7 +468,7 @@ package body PolyORB.Sequences.Unbounded is
       procedure Deallocate is new Ada.Unchecked_Deallocation
         (Element_Array, Element_Array_Access);
    begin
-      if X /= Get_Null_Contents then
+      if X /= Null_Contents then
          Deallocate (X);
       end if;
    end Free;
@@ -901,8 +901,15 @@ package body PolyORB.Sequences.Unbounded is
    ----------------------
 
    function To_Element_Array (Source : in Sequence) return Element_Array is
+      Null_Element : Element;
+      pragma Warnings (Off, Null_Element);
+      --  Not initialised explicitly.
    begin
-      return Source.Content (1 .. Source.Length);
+      if Source.Content /= null then
+         return Source.Content (1 .. Source.Length);
+      else
+         return (1 .. 0 => Null_Element);
+      end if;
    end To_Element_Array;
 
    -----------------

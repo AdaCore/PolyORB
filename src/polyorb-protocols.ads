@@ -75,10 +75,6 @@ package PolyORB.Protocols is
 
    procedure Finalize (S : in out Session);
 
-   procedure Destroy_Session (S : in out Session_Access);
-   --  Destroy the session associated with S, return any associated
-   --  resources to the system, and assign null to S.
-
    --------------------------------------------------
    -- Primitives needed with some tasking policies --
    --------------------------------------------------

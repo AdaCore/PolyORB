@@ -35,7 +35,6 @@
 --  $Id$
 
 with Ada.Tags;
-with Ada.Unchecked_Deallocation;
 
 with PolyORB.Filters.Interface;
 with PolyORB.If_Descriptors;
@@ -57,24 +56,13 @@ package body PolyORB.Protocols is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Session'Class, Session_Access);
-
-   ---------------------
-   -- Destroy_Session --
-   ---------------------
-
-   procedure Destroy_Session (S : in out Session_Access) is
-   begin
-      Free (S);
-   end Destroy_Session;
-
    --------------
    -- Finalize --
    --------------
 
    procedure Finalize (S : in out Session) is
    begin
+      pragma Debug (O ("Finalizing Session."));
       if S.Request_Watcher /= null then
          Destroy (S.Request_Watcher);
       end if;

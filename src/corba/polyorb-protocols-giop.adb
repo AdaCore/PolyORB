@@ -1129,6 +1129,7 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Initialize (S : in out GIOP_Session) is
    begin
+      Protocols.Initialize (Protocols.Session (S));
       S.Buffer_In  := new Buffer_Type;
       S.Buffer_Out := new Buffer_Type;
    end Initialize;
@@ -1140,6 +1141,7 @@ package body PolyORB.Protocols.GIOP is
    procedure Finalize (S : in out GIOP_Session) is
    begin
       pragma Debug (O ("Finalizing GIOP session"));
+      Protocols.Finalize (Protocols.Session (S));
       if S.Current_Profile /= null then
          pragma Debug (O ("... destroying server profile."));
          Destroy_Profile (S.Current_Profile);
