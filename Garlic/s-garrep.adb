@@ -35,10 +35,7 @@
 
 with Ada.Real_Time;                   use Ada.Real_Time;
 with Ada.Streams.Stream_IO;           use Ada.Streams.Stream_IO;
-
 with System.Garlic.Debug;             use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
-
 with System.Garlic.Heart;             use System.Garlic.Heart;
 with System.Garlic.Options;           use System.Garlic.Options;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;

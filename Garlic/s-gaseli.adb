@@ -34,11 +34,12 @@
 ------------------------------------------------------------------------------
 
 with Interfaces.C;
-with System.Garlic.Debug; use System.Garlic.Debug;
-with System.Garlic.Heart; use System.Garlic.Heart;
+with System.Garlic.Debug;             use System.Garlic.Debug;
+with System.Garlic.Heart;             use System.Garlic.Heart;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
-with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
-with System.Garlic.Utils; use System.Garlic.Utils;
+with System.Garlic.PID_Server;        use System.Garlic.PID_Server;
+with System.Garlic.Soft_Links;        use System.Garlic.Soft_Links;
+with System.Garlic.Utils;             use System.Garlic.Utils;
 
 package body System.Garlic.Serial_Line is
 

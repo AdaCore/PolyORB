@@ -39,7 +39,6 @@ with Interfaces.C;            use Interfaces.C;
 with Interfaces.C.Strings;    use Interfaces.C.Strings;
 with System.Garlic.Constants; use System.Garlic.Constants;
 with System.Garlic.Debug;     use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Utils;     use System.Garlic.Utils;
 with Unchecked_Conversion;
 with Unchecked_Deallocation;

@@ -33,8 +33,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with System.Garlic.Locking;
+pragma Warnings (Off, System.Garlic.Locking);
 with System.Garlic.Termination;
+pragma Warnings (Off, System.Garlic.Termination);
 with System.Partition_Interface;
+pragma Warnings (Off, System.Partition_Interface);
 
 procedure Linktest is
 

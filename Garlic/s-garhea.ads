@@ -53,18 +53,9 @@ pragma Warnings (Off, System.Tasking.Protected_Objects);
 
 package System.Garlic.Heart is
 
-   Null_Partition_ID : constant Types.Partition_ID;
-   --  Means "no Partition_ID known at this time"
-
    -----------------
    -- Boot server --
    -----------------
-
-   function Get_Boot_Server return String;
-   --  This function returns the coordinates of the boot server
-
-   function Get_Boot_Server return Types.Partition_ID;
-   --  Return the partition of the boot server
 
    procedure Initialize;
    --  Initialize the package
@@ -73,6 +64,7 @@ package System.Garlic.Heart is
    --  Called when we are on the boot partition
 
    function Is_Boot_Partition return Boolean;
+   pragma Inline (Is_Boot_Partition);
    --  This function return True when the local partition is the boot
    --  partition.
 
@@ -230,20 +222,5 @@ package System.Garlic.Heart is
    --  Called by a protocol to signal that something has arrived. Data has
    --  not been unfiltered yet. Offset represents the number of bytes that
    --  should not been considered.
-
-   ----------------
-   -- PID server --
-   ----------------
-
-   function Allocate_Partition_ID return Types.Partition_ID;
-   --  Allocate a new partition ID
-
-   function Latest_Allocated_Partition_ID return Types.Partition_ID;
-   --  This function is used by the Termination mechanism which needs
-   --  to address all the partitions.
-
-private
-
-   Null_Partition_ID : constant Types.Partition_ID := Types.Partition_ID'First;
 
 end System.Garlic.Heart;

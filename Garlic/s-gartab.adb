@@ -38,7 +38,6 @@ with System.Garlic.Utils;        use System.Garlic.Utils;
 with System.Garlic.Name_Table;   use System.Garlic.Name_Table;
 with System.Garlic.Soft_Links;   use System.Garlic.Soft_Links;
 with System.Garlic.Debug;        use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
 
 package body System.Garlic.Table is
 

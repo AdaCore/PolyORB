@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug;    use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Types;    use System.Garlic.Types;
 with System.Garlic.Utils;    use System.Garlic.Utils;
 with Unchecked_Deallocation;

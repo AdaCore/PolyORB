@@ -35,11 +35,12 @@
 
 with Interfaces;
 with System.Garlic.Table;
-with System.Garlic.Heart;
 with System.Garlic.Types;
 with System.Garlic.Utils;
 
 package System.Garlic.Units is
+
+   pragma Elaborate_Body;
 
    --  This package needs comments ???
 
@@ -97,7 +98,7 @@ package System.Garlic.Units is
 
    Null_Unit : constant Unit_Type
      := (Next_Unit => Null_Unit_Id,
-         Partition => System.Garlic.Heart.Null_Partition_ID,
+         Partition => System.Garlic.Types.Null_Partition_ID,
          Receiver  => 0,
          Version   => null,
          Cache     => null,
@@ -125,7 +126,7 @@ package System.Garlic.Units is
 
    Null_Request : constant Request_Type :=
      (Command   => Get_Unit,
-      Partition => System.Garlic.Heart.Null_Partition_ID,
+      Partition => System.Garlic.Types.Null_Partition_ID,
       Receiver  => 0,
       Version   => null,
       Cache     => null);

@@ -38,33 +38,18 @@ with Ada.Exceptions;             use Ada.Exceptions;
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 with System.Garlic;              use System.Garlic;
-
 with System.Garlic.Debug;        use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
-
 with System.Garlic.Heart;        use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
-
-with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
-pragma Elaborate_All (System.Garlic.Soft_Links);
-
+with System.Garlic.Soft_Links;   use System.Garlic.Soft_Links;
 with System.Garlic.Startup;
-pragma Elaborate_All (System.Garlic.Startup);
-
 pragma Warnings (Off, System.Garlic.Startup);
-
 with System.Garlic.Streams;
 with System.Garlic.Types;
-
 with System.Garlic.Units;        use System.Garlic.Units;
-pragma Elaborate_All (System.Garlic.Units);
-
 with System.Garlic.Utils;        use System.Garlic.Utils;
-pragma Elaborate_All (System.Garlic.Utils);
-
 with System.RPC.Pool;            use System.RPC.Pool;
 pragma Elaborate (System.RPC.Pool);
-
 with System.RPC.Stream_IO;
 pragma Elaborate (System.RPC.Stream_IO);
 
@@ -98,7 +83,8 @@ package body System.RPC is
       procedure Raise_Partition_Error (Partition : in Types.Partition_ID);
    private
       Latest      : Request_Id := Request_Id'First;
-      Destination : Request_Array := (others => Null_Partition_ID);
+      Destination : Request_Array :=
+        (others => System.Garlic.Types.Null_Partition_ID);
       Count       : Request_Id := 0;
    end Request_Id_Server_Type;
 
@@ -443,8 +429,8 @@ package body System.RPC is
 
       procedure Free (Id : in Request_Id) is
       begin
-         if Destination (Id) /= Null_Partition_ID then
-            Destination (Id) := Null_Partition_ID;
+         if Destination (Id) /= System.Garlic.Types.Null_Partition_ID then
+            Destination (Id) := System.Garlic.Types.Null_Partition_ID;
             Count := Count - 1;
          end if;
       end Free;
@@ -456,7 +442,9 @@ package body System.RPC is
       entry Get (Id : out Request_Id; Partition : in Types.Partition_ID)
       when Count < Request_Id'Last is
       begin
-         while Destination (Latest) /= Null_Partition_ID loop
+         while
+           Destination (Latest) /= System.Garlic.Types.Null_Partition_ID
+         loop
             Latest := Latest + 1;
          end loop;
          Id := Latest;

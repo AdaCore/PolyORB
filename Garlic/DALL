@@ -1,8 +1,10 @@
 export S_GAFIZI=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GANATA=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
+export S_GANASE=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GANEUT=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GANOBL=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GAPHLO=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
+export S_GAPISE=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GARFIL=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GARHEA=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y
 export S_GARNAM=C:D:X:E:F:I:K:L:M:P:R:Q:S:T:Z:W:G:Y

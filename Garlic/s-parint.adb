@@ -36,41 +36,21 @@
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
-
 with GNAT.HTable;              use GNAT.HTable;
 with GNAT.Table;
-
 with System.Garlic.Debug;      use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
-
 with System.Garlic.Exceptions; use System.Garlic.Exceptions;
-pragma Elaborate (System.Garlic.Exceptions);
-
 with System.Garlic.Heart;      use System.Garlic.Heart;
 pragma Elaborate (System.Garlic.Heart);
-
 with System.Garlic.Options;    use System.Garlic.Options;
 with System.Garlic.Remote;     use System.Garlic.Remote;
-
 with System.Garlic.Soft_Links;
-pragma Elaborate (System.Garlic.Soft_Links);
-
 with System.Garlic.Startup;
-pragma Elaborate (System.Garlic.Startup);
 pragma Warnings (Off, System.Garlic.Startup);
-
 with System.Garlic.Streams;    use System.Garlic.Streams;
-pragma Elaborate (System.Garlic.Streams);
-
 with System.Garlic.Types;      use System.Garlic.Types;
-pragma Elaborate (System.Garlic.Types);
-
 with System.Garlic.Units;      use System.Garlic.Units;
-pragma Elaborate (System.Garlic.Units);
-
 with System.Garlic.Utils;      use System.Garlic.Utils;
-pragma Elaborate (System.Garlic.Utils);
-
 with System.RPC;
 
 package body System.Partition_Interface is

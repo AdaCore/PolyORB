@@ -1,3 +1,37 @@
+1998-09-02  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* All files: Remove useless pragma Elaborate or Elaborate_All when 
+	the withed unit is already Pure, Preelaborate or Elaborate_Body.
+
+	* DALL, DALL.el, DALL.rc, UNDALL, UNDALL.el, UNDALL.rc: Add
+	S_GANASE and S_GAPISE.
+
+	* s-gartyp.ads: Put PID related constants and subtypes here to
+	avoid dragging System.Garlic.Heart when those are needed.
+
+	* s-gapise.ads, s-gapise.adb: New package System.Garlic.PID_Server 
+	that isolates all the PID-server-related services.
+
+	* s-gartcp.adb, s-gaseli.adb: Use subprograms from new package
+	System.Garlic.PID_Server.
+
+	* s-gardeb.adb: Move assertion to the right place.
+
+	* s-ganase.ads, s-ganase.adb: New package
+	System.Garlic.Name_Server that isolates all the partition-related
+	name services.
+
+	* Makefile.am (COMMONSOURCES): Add s-ganase.ad[bs].
+
+	* s-garhea.ads: Add pragma Inline where appropriate.
+	Move some subprograms into System.Garlic.Name_Server.
+
+	* s-garhea.adb: Remove useless "use type" and undetected unused
+	variable.
+
+	* s-garter.adb, s-gartcp.adb, s-garsta.adb, s-garrem.adb,
+	s-garuni.adb: Use subprograms from System.Garlic.Name_Server.
+
 1998-09-01  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garhea.adb, s-gardeb.ads, s-gardeb.adb: Minor reformatting.

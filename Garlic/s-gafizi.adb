@@ -35,16 +35,10 @@
 
 with Ada.Streams;           use Ada.Streams;
 with Interfaces.C;
-
 with System.Garlic.Filters;
-pragma Elaborate (System.Garlic.Filters);
 pragma Warnings (Off, System.Garlic.Filters);
-
 with System.Garlic.Debug; use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
-
 with System.Garlic.Streams; use System.Garlic.Streams;
-pragma Elaborate (System.Garlic.Streams);
 
 package body System.Garlic.Filters.Zip is
 

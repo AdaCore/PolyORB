@@ -1,5 +1,4 @@
 with System.Garlic.Debug; use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
 
 package body System.Garlic.Network_Utilities is
 

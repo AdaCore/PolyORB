@@ -34,26 +34,15 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug;       use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
-
-with System.Garlic.Heart; use System.Garlic.Heart;
+with System.Garlic.Heart;       use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
-
+with System.Garlic.Name_Server; use System.Garlic.Name_Server;
 with System.Garlic.Startup;
 pragma Warnings (Off, System.Garlic.Startup);
-pragma Elaborate_All (System.Garlic.Startup);
-
-with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
-pragma Elaborate_All (System.Garlic.Soft_Links);
-
-with System.Garlic.Streams; use System.Garlic.Streams;
-pragma Elaborate_All (System.Garlic.Streams);
-
-with System.Garlic.Types; use System.Garlic.Types;
-pragma Elaborate_All (System.Garlic.Types);
-
-with System.Garlic.Utils;      use System.Garlic.Utils;
-pragma Elaborate_All (System.Garlic.Utils);
+with System.Garlic.Soft_Links;  use System.Garlic.Soft_Links;
+with System.Garlic.Streams;     use System.Garlic.Streams;
+with System.Garlic.Types;       use System.Garlic.Types;
+with System.Garlic.Utils;       use System.Garlic.Utils;
 
 package body System.Garlic.Units is
 

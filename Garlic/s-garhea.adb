@@ -37,12 +37,11 @@ with Ada.Exceptions;                  use Ada.Exceptions;
 pragma Warnings (Off, Ada.Exceptions);
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;             use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Filters;           use System.Garlic.Filters;
+with System.Garlic.Name_Server;       use System.Garlic.Name_Server;
 with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
-pragma Elaborate_All (System.Garlic.Name_Table);
 with System.Garlic.Options;
-pragma Elaborate (System.Garlic.Options);
+with System.Garlic.PID_Server;        use System.Garlic.PID_Server;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Protocols;
 with System.Garlic.Soft_Links;        use System.Garlic.Soft_Links;
@@ -56,6 +55,8 @@ with System.Garlic.Linker_Options;
 pragma Warnings (Off, System.Garlic.Linker_Options);
 
 package body System.Garlic.Heart is
+
+   use Ada.Streams, System.Garlic.Types, System.Garlic.Utils;
 
    --  The protocol used is:
    --
@@ -72,17 +73,6 @@ package body System.Garlic.Heart is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use Ada.Streams, System.Garlic.Types, System.Garlic.Utils;
-   use type Ada.Exceptions.Exception_Id;
-
-   subtype Valid_Partition_ID is Partition_ID
-     range Partition_ID'Succ (Null_Partition_ID) .. Partition_ID'Last;
-   --  A partition whose ID fits in Valid_Partition_ID is a real partition
-
-   Server_Partition_ID : constant Valid_Partition_ID :=
-     Valid_Partition_ID'First;
-   --  The partition ID server does have this partition ID
-
    Shutdown_Policy     : Shutdown_Type     := Shutdown_On_Boot_Partition_Error;
    --  These parameters control how Garlic will act in face of errors.
    --  They don't need extra protection because they should not be modified
@@ -95,46 +85,6 @@ package body System.Garlic.Heart is
 
    Shutdown_In_Progress : Boolean := False;
    pragma Atomic (Shutdown_In_Progress);
-
-   type Public_Data is record
-      Location     : Location_Type;
-      Name         : Name_Id;
-      Termination  : Termination_Type;
-      Reconnection : Reconnection_Type;
-      Alive        : Boolean := False;
-   end record;
-   --  This structure represents the public data that can be shared
-   --  concerning a partition. The fields are:
-   --    Location     : physical location of the partition
-   --    Name         : name of the partition (may be duplicated)
-   --    Termination  : the way the partition wants termination to be handled
-   --    Reconnection : reconnection policy to adopt for this partition
-   --    Alive        : false if the partition is known to be dead;
-   --                   this field is preset to False so that we can
-   --                   detect that the local data has not been initialized
-
-   type Partition_Data is record
-      Public   : Public_Data;
-      Known    : Boolean;
-      Queried  : Boolean;
-   end record;
-   --  Location holds the location, Name the name of the partition, Known
-   --  the fact that we already have information on this partition, and
-   --  Queried the fact that the caller has to obtain the information using
-   --  another way.
-
-   function Get_Partition_Data (Partition : Partition_ID)
-     return Partition_Data;
-   --  Return a partition's data
-
-   function Get_Public_Data (Partition : Partition_ID) return Public_Data;
-   --  Return a partition's public data
-
-   function Get_Protocol
-     (Partition : Partition_ID)
-      return Protocols.Protocol_Access;
-   pragma Inline (Get_Protocol);
-   --  Return the protocol of a partition using a cache whenever possible
 
    function Opcode_Read (Operation : Stream_Element) return Opcode;
    pragma Inline (Opcode_Read);
@@ -167,75 +117,11 @@ package body System.Garlic.Heart is
    Is_Boot : Boolean;
    --  Set to True if we are on the boot partition
 
-   type Partition_Data_Array is array (Valid_Partition_ID) of Partition_Data;
-
-   protected type Partition_Map_Type is
-      procedure Set_Data
-        (Partition : in Partition_ID;
-         Data      : in Partition_Data);
-      function Get_Data (Partition : Partition_ID) return Partition_Data;
-      entry Wait_For_Data (Partition : in  Partition_ID;
-                           Data      : out Partition_Data);
-
-   private
-      entry Queue (Partition : in  Partition_ID;
-                   Data      : out Partition_Data);
-
-      Map : Partition_Data_Array;
-      New_Data : Boolean := False;
-      --  Local barrier
-
-   end Partition_Map_Type;
-   --  Data available for a partition. When the data is not available for
-   --  a given partition, Wait_For_Data will block, unless the caller *has*
-   --  to ask for information about the given partition (in this case,
-   --  the Queried field is set to True). If we are on the server, Queried
-   --  is never set to True since we wait for the partition itself to
-   --  register (this should have occurred already in a normal utilization
-   --  since there is no way for a partition to ask for another one if
-   --  the name server has not mapped the name of the wanted package on the
-   --  partition number).
-
-   Partition_Map_Cache : Partition_Data_Array;
-   --  This acts as a Cache for Partition_Map, this means that if Known
-   --  is True for a given partition, there is no need to use the overhead
-   --  of the protected type to query a partition location.
-
-   Protocols_Cache : array (Partition_ID) of Protocols.Protocol_Access;
-   --  Copy of the protocol type of the Partition_Map_Cache
-
-   type Partition_Map_Access is access Partition_Map_Type;
-   procedure Free is
-      new Ada.Unchecked_Deallocation (Partition_Map_Type,
-                                      Partition_Map_Access);
-   Partition_Map : Partition_Map_Access := new Partition_Map_Type;
-   --  Same kludge as above to raise Program_Error at deallocation time ???
-
    My_Public_Data : Public_Data;
    --  Public data of the local partition
 
    type Allocated_Map is array (Partition_ID range <>) of Boolean;
    --  Type of allocated partitions
-
-   protected type Partition_ID_Allocation_Type is
-      procedure Allocate (Partition : out Partition_ID);
-      procedure Free (Partition : in Partition_ID);
-      function Latest return Partition_ID;
-   private
-      Latest_Partition : Valid_Partition_ID :=
-        Server_Partition_ID;
-      Allocated        : Allocated_Map (Valid_Partition_ID) :=
-        (Server_Partition_ID => True,
-         others              => False);
-   end Partition_ID_Allocation_Type;
-
-   type Partition_ID_Allocation_Access is access Partition_ID_Allocation_Type;
-   procedure Free is
-      new Ada.Unchecked_Deallocation (Partition_ID_Allocation_Type,
-                                      Partition_ID_Allocation_Access);
-   Partition_ID_Allocation : Partition_ID_Allocation_Access :=
-     new Partition_ID_Allocation_Type;
-   --  Same kludge as above ???
 
    procedure Handle_Internal
      (Partition : in Partition_ID;
@@ -293,18 +179,6 @@ package body System.Garlic.Heart is
       pragma Debug (D (D_Debug, "Sending a No_Operation"));
       Send (Partition, No_Operation, Empty'Access);
    end Add_New_Partition_ID;
-
-   ---------------------------
-   -- Allocate_Partition_ID --
-   ---------------------------
-
-   function Allocate_Partition_ID return Partition_ID is
-      Partition : Partition_ID;
-   begin
-      Partition_ID_Allocation.Allocate (Partition);
-      pragma Debug (D (D_Server, "Allocating partition" & Partition'Img));
-      return Partition;
-   end Allocate_Partition_ID;
 
    ------------------------
    -- Blocking_Partition --
@@ -375,26 +249,6 @@ package body System.Garlic.Heart is
    end Complete_Elaboration;
 
    ---------------------
-   -- Get_Boot_Server --
-   ---------------------
-
-   function Get_Boot_Server return Partition_ID is
-   begin
-      return Server_Partition_ID;
-   end Get_Boot_Server;
-
-   ---------------------
-   -- Get_Boot_Server --
-   ---------------------
-
-   function Get_Boot_Server return String is
-      Data : Partition_Data;
-   begin
-      Partition_Map.Wait_For_Data (Server_Partition_ID, Data);
-      return To_String (Data.Public.Location);
-   end Get_Boot_Server;
-
-   ---------------------
    -- Get_My_Location --
    ---------------------
 
@@ -448,86 +302,6 @@ package body System.Garlic.Heart is
          return Local_Partition;
       end if;
    end Get_My_Partition_ID_Immediately;
-
-   ------------------------
-   -- Get_Partition_Data --
-   ------------------------
-
-   function Get_Partition_Data (Partition : Partition_ID)
-     return Partition_Data is
-      Data : Partition_Data;
-
-   begin
-      pragma Debug
-        (D (D_Table,
-            "Looking locally for information on partition" & Partition'Img));
-
-      --  If the partition location is in the cache, then get it from
-      --  there instead of using the protected type.
-
-      if Partition_Map_Cache (Partition) .Known then
-         return Partition_Map_Cache (Partition);
-      end if;
-
-      Partition_Map.Wait_For_Data (Partition, Data);
-      if Data.Queried then
-
-         --  We have to query the server for the public data of the partition
-
-         declare
-            Params : aliased Params_Stream_Type (0);
-         begin
-            pragma Debug
-              (D (D_Garlic,
-                  "Asking for information on partition" & Partition'Img));
-            Partition_ID'Write (Params'Access, Partition);
-            Send (Server_Partition_ID, Query_Public_Data, Params'Access);
-         end;
-
-         Partition_Map.Wait_For_Data (Partition, Data);
-
-         pragma Debug
-           (D (D_Table,
-               "Caching information on partition" & Partition'Img));
-      end if;
-
-      return Data;
-   end Get_Partition_Data;
-
-   ------------------
-   -- Get_Protocol --
-   ------------------
-
-   function Get_Protocol
-     (Partition : Partition_ID)
-      return Protocols.Protocol_Access is
-   begin
-      --  If the partition is the boot server, then the protocol is
-      --  already known even when Partition_Data is only partially
-      --  initialized.
-
-      if Partition /= Server_Partition_ID
-        and then not Partition_Map_Cache (Partition) .Known then
-         declare
-            pragma Warnings (Off);
-            Dummy : constant Partition_Data := Get_Partition_Data (Partition);
-            pragma Warnings (On);
-         begin
-            null;
-         end;
-      end if;
-
-      return Protocols_Cache (Partition);
-   end Get_Protocol;
-
-   ---------------------
-   -- Get_Public_Data --
-   ---------------------
-
-   function Get_Public_Data (Partition : Partition_ID) return Public_Data is
-   begin
-      return Get_Partition_Data (Partition) .Public;
-   end Get_Public_Data;
 
    ---------------------
    -- Handle_Internal --
@@ -731,8 +505,6 @@ package body System.Garlic.Heart is
    ----------------
 
    procedure Initialize is
-      Stream : aliased Params_Stream_Type (32);
-      --  Some size that certainly is enough
    begin
       My_Public_Data.Name         := Get (Options.Partition_Name.all);
       My_Public_Data.Termination  := Options.Termination;
@@ -747,7 +519,6 @@ package body System.Garlic.Heart is
       pragma Debug
         (D (D_Debug,
             "My reconnection policy is " & Options.Reconnection'Img));
-
    end Initialize;
 
    -----------------------
@@ -767,15 +538,6 @@ package body System.Garlic.Heart is
    begin
       return Shutdown_In_Progress;
    end Is_Shutdown_In_Progress;
-
-   -----------------------------------
-   -- Latest_Allocated_Partition_ID --
-   -----------------------------------
-
-   function Latest_Allocated_Partition_ID return Partition_ID is
-   begin
-      return Partition_ID_Allocation.Latest;
-   end Latest_Allocated_Partition_ID;
 
    -----------------------------
    -- Local_Partition_ID_Type --
@@ -861,132 +623,6 @@ package body System.Garlic.Heart is
    begin
       return Opcode'Pos (Operation);
    end Opcode_Write;
-
-   ----------------------------------
-   -- Partition_ID_Allocation_Type --
-   ----------------------------------
-
-   protected body Partition_ID_Allocation_Type is
-
-      --------------
-      -- Allocate --
-      --------------
-
-      procedure Allocate (Partition : out Partition_ID) is
-      begin
-         for I in Allocated'Range loop
-            if not Allocated (I) then
-               Partition := I;
-               Allocated (I) := True;
-               if I > Latest_Partition then
-                  Latest_Partition := I;
-               end if;
-               return;
-            end if;
-         end loop;
-         raise Constraint_Error;
-      end Allocate;
-
-      ----------
-      -- Free --
-      ----------
-
-      procedure Free (Partition : in Partition_ID) is
-      begin
-         Allocated (Partition) := False;
-         if Partition = Latest_Partition then
-            for I in reverse Allocated'First .. Partition - 1 loop
-               if Allocated (I) then
-                  Latest_Partition := I;
-                  return;
-               end if;
-            end loop;
-
-            --  We should not be here, since the server partition id
-            --  has to stay allocated.
-
-            pragma Assert (False);
-            raise Program_Error;
-
-         end if;
-      end Free;
-
-      ------------
-      -- Latest --
-      ------------
-
-      function Latest return Partition_ID is
-      begin
-         return Latest_Partition;
-      end Latest;
-
-   end Partition_ID_Allocation_Type;
-
-   ------------------------
-   -- Partition_Map_Type --
-   ------------------------
-
-   protected body Partition_Map_Type is
-
-      --------------
-      -- Get_Data --
-      --------------
-
-      function Get_Data (Partition : Partition_ID) return Partition_Data is
-      begin
-         return Map (Partition);
-      end Get_Data;
-
-      --------------
-      -- Set_Data --
-      --------------
-
-      procedure Set_Data
-        (Partition : in Partition_ID;
-         Data      : in Partition_Data) is
-      begin
-         Map (Partition) := Data;
-         Partition_Map_Cache (Partition) := Data;
-         Protocols_Cache (Partition) :=
-           Physical_Location.Get_Protocol (Data.Public.Location);
-         if Queue'Count > 0 then
-            New_Data := True;
-         end if;
-      end Set_Data;
-
-      -------------------
-      -- Wait_For_Data --
-      -------------------
-
-      entry Wait_For_Data
-         (Partition : in Partition_ID;
-          Data      : out Partition_Data)
-         when not New_Data is
-      begin
-         if Map (Partition).Known then
-            Data := Map (Partition);
-         elsif Map (Partition).Queried then
-            requeue Queue with abort;
-         else
-            Map (Partition).Queried := True;
-            Data := Map (Partition);
-         end if;
-      end Wait_For_Data;
-
-      --  Local entries implementing wait queues below.
-
-      entry Queue
-         (Partition : in Partition_ID;
-          Data      : out Partition_Data)
-         when New_Data is
-      begin
-         if Queue'Count = 0 then
-            New_Data := False;
-         end if;
-         requeue Wait_For_Data with abort;
-      end Queue;
-
-   end Partition_Map_Type;
 
    ----------------------------
    -- Partition_RPC_Receiver --
@@ -1203,11 +839,8 @@ package body System.Garlic.Heart is
    procedure Set_My_Partition_ID (Partition : in Partition_ID) is
       use System.Garlic.Trace;
    begin
-
       System.Standard_Library.Local_Partition_ID := Natural (Partition);
-
       Local_Partition_ID.Set (Partition);
-
       if Options.Execution_Mode = Trace_Mode then
          Trace_Partition_ID (Partition);
       end if;
@@ -1237,7 +870,6 @@ package body System.Garlic.Heart is
       RPC_Shutdown;
       Free (Local_Partition_ID);
       Free (Partition_Map);
-      Free (Partition_ID_Allocation);
       Free (Receiver_Map);
       Delete_Termination_Sanity_File;
    end Shutdown;
@@ -1251,7 +883,7 @@ package body System.Garlic.Heart is
       Shutdown_In_Progress := True;
       if Is_Boot_Partition then
          for Partition in
-           Server_Partition_ID + 1 .. Partition_ID_Allocation.Latest loop
+           Server_Partition_ID + 1 .. Latest_Allocated_Partition_ID loop
             if Termination_Policy (Partition) /= Local_Termination then
                declare
                   Empty : aliased Params_Stream_Type (0);
@@ -1271,8 +903,7 @@ package body System.Garlic.Heart is
    ------------------------
 
    function Termination_Policy (Partition : Partition_ID)
-     return Termination_Type
-   is
+     return Termination_Type is
    begin
       return Get_Public_Data (Partition) .Termination;
    end Termination_Policy;

@@ -85,6 +85,17 @@ package System.Garlic.Types is
                         Result : access Streams.Params_Stream_Type);
    --  Similar to System.RPC.RPC_Receiver
 
+   Null_Partition_ID : constant Partition_ID := Partition_ID'First;
+   --  Means "no Partition_ID known at this time"
+
+   subtype Valid_Partition_ID is Partition_ID
+     range Partition_ID'Succ (Null_Partition_ID) .. Partition_ID'Last;
+   --  A partition whose ID fits in Valid_Partition_ID is a real partition
+
+   Server_Partition_ID : constant Valid_Partition_ID :=
+     Valid_Partition_ID'First;
+   --  The partition ID server does have this partition ID
+
 private
 
    pragma Inline (To_Address);

@@ -35,7 +35,6 @@
 
 with Ada.Task_Identification;  use Ada.Task_Identification;
 with System.Garlic.Soft_Links;
-pragma Elaborate_All (System.Garlic.Soft_Links);
 
 package body System.Garlic.Locking is
 

@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug; use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
 
 package body System.Garlic.Soft_Links is
 

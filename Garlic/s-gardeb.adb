@@ -38,15 +38,9 @@
 --  partitions.
 
 with GNAT.IO;
-pragma Elaborate_All (GNAT.IO);
-
 with GNAT.OS_Lib;                     use GNAT.OS_Lib;
-pragma Elaborate_All (GNAT.OS_Lib);
-
 with Interfaces.C;                    use Interfaces.C;
-
 with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
-pragma Elaborate_All (System.Garlic.Platform_Specific);
 
 package body System.Garlic.Debug is
 
@@ -198,8 +192,8 @@ package body System.Garlic.Debug is
    procedure Delete_Termination_Sanity_File is
       Success : Boolean;
    begin
-      pragma Assert (Termination_Filename /= null);
       if Termination_Sanity_FD /= Invalid_FD then
+         pragma Assert (Termination_Filename /= null);
          Delete_File (Termination_Filename.all'Address, Success);
       end if;
    end Delete_Termination_Sanity_File;

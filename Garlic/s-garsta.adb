@@ -34,40 +34,24 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug; use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
-
 with System.Garlic.Protocols; use System.Garlic.Protocols;
 pragma Elaborate_All (System.Garlic.Protocols);
-
 with System.Garlic.Protocols.Config;
-pragma Elaborate_All (System.Garlic.Protocols.Config);
-
 with System.Garlic.Options; use System.Garlic.Options;
-pragma Elaborate_All (System.Garlic.Options);
-
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 pragma Elaborate_All (System.Garlic.Physical_Location);
-
 with System.Garlic.Heart; use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
-
 with System.Garlic.Soft_Links;
-pragma Elaborate_All (System.Garlic.Soft_Links);
-
 with System.Garlic.Types; use System.Garlic.Types;
-pragma Elaborate_All (System.Garlic.Types);
-
 with System.Garlic.Services;
 pragma Elaborate_All (System.Garlic.Services);
-
 with System.Garlic.Filters;
-pragma Elaborate_All (System.Garlic.Filters);
-
 with System.Garlic.Trace;
 pragma Elaborate_All (System.Garlic.Trace);
-
 with System.Garlic.Elaboration;
 pragma Elaborate_All (System.Garlic.Elaboration);
+with System.Garlic.Name_Server; use System.Garlic.Name_Server;
 
 package body System.Garlic.Startup is
 

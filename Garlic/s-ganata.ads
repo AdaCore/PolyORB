@@ -37,6 +37,8 @@ with Ada.Streams;
 
 package System.Garlic.Name_Table is
 
+   pragma Elaborate_Body;
+
    --  Name table used by Garlic. A value of type Name_Id can be safely
    --  exchanged between partitions. When a new Name_Id is read from a
    --  stream, its new information will be set to Empty_Info.

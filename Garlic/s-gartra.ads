@@ -35,7 +35,6 @@
 
 with Ada.Real_Time;
 with Ada.Streams;
-with System.Garlic.Heart;
 with System.Garlic.Streams;
 with System.Garlic.Types;
 
@@ -61,7 +60,7 @@ package System.Garlic.Trace is
       Time : Ada.Real_Time.Time_Span;
       Data : System.Garlic.Streams.Stream_Element_Access;
       PID  : System.Garlic.Types.Partition_ID :=
-        System.Garlic.Heart.Null_Partition_ID;
+        System.Garlic.Types.Null_Partition_ID;
    end record;
 
    procedure Read (S : access Ada.Streams.Root_Stream_Type'Class;

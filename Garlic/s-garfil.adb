@@ -35,7 +35,6 @@
 
 with Ada.Streams;              use Ada.Streams;
 with System.Garlic.Debug;      use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Name_Table; use System.Garlic.Name_Table;
 with System.Garlic.Streams;    use System.Garlic.Streams;

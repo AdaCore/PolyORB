@@ -34,9 +34,10 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Debug;         use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
 with System.Garlic.Heart;         use System.Garlic.Heart;
+with System.Garlic.Name_Server;   use System.Garlic.Name_Server;
 with System.Garlic.Options;
+with System.Garlic.PID_Server;    use System.Garlic.PID_Server;
 with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
 with System.Garlic.Streams;       use System.Garlic.Streams;
 with System.Garlic.Types;         use System.Garlic.Types;

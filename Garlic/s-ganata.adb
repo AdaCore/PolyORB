@@ -33,11 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Table;
 with System.Garlic.Utils; use System.Garlic.Utils;
-
-with System.Garlic.Debug; use System.Garlic.Debug;
-pragma Elaborate_All (System.Garlic.Debug);
 
 package body System.Garlic.Name_Table is
 

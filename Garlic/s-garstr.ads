@@ -37,9 +37,10 @@ with Ada.Streams;
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;
 with System.Garlic.Storage_Handling;
-pragma Elaborate_All (System.Garlic.Storage_Handling);
 
 package System.Garlic.Streams is
+
+   pragma Elaborate_Body;
 
    --  This package defines types and utilities related to Stream handling.
    --  These types are not defined in System.Garlic.Types because they are
