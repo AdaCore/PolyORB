@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#43 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#44 $
 
 @include version.texi
 
@@ -505,8 +505,7 @@ GNAT and the @code{GNAT.Sockets} package are available.}
 @c -------------------------------------------------------------------
 
 @noindent
-Ada 95 compiler: GNAT 3.16a1 (or later), GNAT 5.02a1 (or later), GCC
-3.4.1 (or later).
+Ada 95 compiler: GNAT 5.02a1 (or later), GCC 3.4.1 (or later).
 
 Optional: 
 
