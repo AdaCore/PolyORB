@@ -1066,6 +1066,11 @@ package Rtsfind is
      RE_Get_Unique_Remote_Pointer,       -- System.PolyORB_Interface
      RE_Get_RAS_Ref,                     -- System.PolyORB_Interface
      RE_Asynchronous_P_To_Sync_Scope,    -- System.PolyORB_Interface
+     RE_Buffer_Stream_Type,              -- System.PolyORB_Interface
+     RE_Allocate_Buffer,                 -- System.PolyORB_Interface
+     RE_Release_Buffer,                  -- System.PolyORB_Interface
+     RE_BS_To_Any,                       -- System.PolyORB_Interface
+     RE_Any_To_BS,                       -- System.PolyORB_Interface
 
      RE_FA_AD,                           -- System.PolyORB_Interface
      RE_FA_AS,                           -- System.PolyORB_Interface
@@ -1135,6 +1140,7 @@ package Rtsfind is
      RE_TC_SU,                           -- System.PolyORB_Interface
      RE_TC_U,                            -- System.PolyORB_Interface
      RE_TC_Void,                         -- System.PolyORB_Interface
+     RE_TC_Opaque,                       -- System.PolyORB_Interface,
      RE_TC_WC,                           -- System.PolyORB_Interface
      RE_TC_Array,                        -- System.PolyORB_Interface,
      RE_TC_Sequence,                     -- System.PolyORB_Interface,
@@ -2105,6 +2111,11 @@ package Rtsfind is
      RE_Get_Unique_Remote_Pointer        => System_PolyORB_Interface,
      RE_Get_RAS_Ref                      => System_PolyORB_Interface,
      RE_Asynchronous_P_To_Sync_Scope     => System_PolyORB_Interface,
+     RE_Buffer_Stream_Type               => System_PolyORB_Interface,
+     RE_Allocate_Buffer                  => System_PolyORB_Interface,
+     RE_Release_Buffer                   => System_PolyORB_Interface,
+     RE_BS_To_Any                        => System_PolyORB_Interface,
+     RE_Any_To_BS                        => System_PolyORB_Interface,
 
      RE_FA_AD                            => System_PolyORB_Interface,
      RE_FA_AS                            => System_PolyORB_Interface,
@@ -2174,6 +2185,7 @@ package Rtsfind is
      RE_TC_SU                            => System_PolyORB_Interface,
      RE_TC_U                             => System_PolyORB_Interface,
      RE_TC_Void                          => System_PolyORB_Interface,
+     RE_TC_Opaque                        => System_PolyORB_Interface,
      RE_TC_WC                            => System_PolyORB_Interface,
      RE_TC_Array                         => System_PolyORB_Interface,
      RE_TC_Sequence                      => System_PolyORB_Interface,

@@ -33,14 +33,17 @@
 
 --  $Id$
 
+with Ada.Streams;
+with Interfaces;
+
 with System.RPC;
 with System.Unsigned_Types;
-with Interfaces;
 
 with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Any.ObjRef;
+with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Obj_Adapters;
 with PolyORB.POA_Config;
@@ -304,8 +307,9 @@ package System.PolyORB_Interface is
       Item_Flags : in PolyORB.Any.Flags)
      renames PolyORB.Any.NVList.Add_Item;
 
-
-   --  Elementary From_Any and To_Any operations
+   -----------------------------------------------
+   -- Elementary From_Any and To_Any operations --
+   -----------------------------------------------
 
    subtype Unsigned is System.Unsigned_Types.Unsigned;
    subtype Long_Unsigned is
@@ -433,6 +437,7 @@ package System.PolyORB_Interface is
      renames PolyORB.Any.TypeCode.TC_String;
    function TC_Void return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Void;
+   function TC_Opaque return PolyORB.Any.TypeCode.Object;
 
    function TC_Alias return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Alias;
@@ -480,6 +485,29 @@ package System.PolyORB_Interface is
    --  Return the length of the sequence at nesting level Depth
    --  within Value, a Tk_Struct any representing an unconstrained
    --  array.
+
+   -----------------------------------------------------------------------
+   -- Support for opaque data transfer using stream-oriented attributes --
+   -----------------------------------------------------------------------
+
+   type Buffer_Stream_Type is new Ada.Streams.Root_Stream_Type with private;
+
+   --  A stream based on a PolyORB buffer
+
+   procedure Read
+     (Stream : in out Buffer_Stream_Type;
+      Item   : out Ada.Streams.Stream_Element_Array;
+      Last   : out Ada.Streams.Stream_Element_Offset);
+
+   procedure Write
+     (Stream : in out Buffer_Stream_Type;
+      Item   : in Ada.Streams.Stream_Element_Array);
+
+   procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type);
+   procedure BS_To_Any (Stream : Buffer_Stream_Type; Item : out Any);
+
+   procedure Allocate_Buffer (Stream : in out Buffer_Stream_Type);
+   procedure Release_Buffer (Stream : in out Buffer_Stream_Type);
 
    --------------
    -- Requests --
@@ -592,5 +620,8 @@ private
 
    All_Receiving_Stubs : Receiving_Stub_Lists.List;
 
+   type Buffer_Stream_Type is new Ada.Streams.Root_Stream_Type with record
+      Buf : PolyORB.Buffers.Buffer_Access;
+   end record;
 
 end System.PolyORB_Interface;

@@ -54,13 +54,18 @@ with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
-with PolyORB.Servants.Interface;
+pragma Warnings (Off);
+--  WAG:5.01
+--  C926-001
+with PolyORB.Opaque;
+pragma Warnings (On);
 with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Config;
 with PolyORB.POA_Types;
 with PolyORB.References;
 with PolyORB.Servants;
+with PolyORB.Servants.Interface;
 with PolyORB.Services.Naming;
 with PolyORB.Services.Naming.Helper;
 with PolyORB.Services.Naming.NamingContext.Client;
@@ -80,6 +85,8 @@ with PolyORB.Setup.Proxies_POA;
 package body System.PolyORB_Interface is
 
    use Ada.Characters.Handling;
+   use Ada.Streams;
+
    use PolyORB.Any;
    use PolyORB.Log;
    use PolyORB.References;
@@ -89,8 +96,11 @@ package body System.PolyORB_Interface is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   --  A few handy aliases
+
+   package PATC  renames PolyORB.Any.TypeCode;
    package PSNNC renames PolyORB.Services.Naming.NamingContext;
-   package PTM renames PolyORB.Tasking.Mutexes;
+   package PTM   renames PolyORB.Tasking.Mutexes;
 
    --------------------------------------------------------------
    -- Special operation names for remote call interface objets --
@@ -293,8 +303,6 @@ package body System.PolyORB_Interface is
    is
       use PolyORB.Exceptions;
       use PolyORB.Types;
-
-      package PATC renames PolyORB.Any.TypeCode;
 
       Name : constant RepositoryId := Occurrence_To_Name (E);
       TC : PATC.Object := PATC.TC_Except;
@@ -1469,6 +1477,112 @@ package body System.PolyORB_Interface is
       end loop;
       return Result;
    end TC_Build;
+
+   ---------------
+   -- TC_Opaque --
+   ---------------
+
+   function TC_Opaque return PolyORB.Any.TypeCode.Object
+   is
+      Result : PolyORB.Any.TypeCode.Object := PATC.TC_Sequence;
+   begin
+      PATC.Add_Parameter (Result, TA_U (0));
+      PATC.Add_Parameter (Result, To_Any (TC_Octet));
+      return Result;
+   end TC_Opaque;
+
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (Stream : in out Buffer_Stream_Type;
+      Item   : out Stream_Element_Array;
+      Last   : out Stream_Element_Offset)
+   is
+      use PolyORB.Buffers;
+
+      Transfer_Length : constant Stream_Element_Count
+        := Stream_Element_Count'Min
+        (Remaining (Stream.Buf), Item'Length);
+      Data : PolyORB.Opaque.Opaque_Pointer;
+   begin
+      Extract_Data (Stream.Buf, Data, Transfer_Length);
+      Last := Item'First + Transfer_Length - 1;
+      declare
+         Z_Addr : constant System.Address := Data;
+         Z : Stream_Element_Array (Item'First .. Last);
+         for Z'Address use Z_Addr;
+         pragma Import (Ada, Z);
+      begin
+         Item (Item'First .. Last) := Z;
+      end;
+   end Read;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (Stream : in out Buffer_Stream_Type;
+      Item   : in Stream_Element_Array)
+   is
+      use PolyORB.Buffers;
+
+      Data : PolyORB.Opaque.Opaque_Pointer;
+   begin
+      Allocate_And_Insert_Cooked_Data (Stream.Buf, Item'Length, Data);
+      declare
+         Z_Addr : constant System.Address := Data;
+         Z : Stream_Element_Array (Item'Range);
+         for Z'Address use Z_Addr;
+         pragma Import (Ada, Z);
+      begin
+         Z := Item;
+      end;
+   end Write;
+
+   ---------------------
+   -- Allocate_Buffer --
+   ---------------------
+
+   procedure Allocate_Buffer (Stream : in out Buffer_Stream_Type) is
+      use type PolyORB.Buffers.Buffer_Access;
+   begin
+      pragma Assert (Stream.Buf = null);
+      Stream.Buf := new PolyORB.Buffers.Buffer_Type;
+   end Allocate_Buffer;
+
+   --------------------
+   -- Release_Buffer --
+   --------------------
+
+   procedure Release_Buffer (Stream : in out Buffer_Stream_Type) is
+   begin
+      PolyORB.Buffers.Release (Stream.Buf);
+   end Release_Buffer;
+
+   ---------------
+   -- Any_To_BS --
+   ---------------
+
+   procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type) is
+      pragma Unreferenced (Item, Stream);
+   begin
+      --  XXX TBD
+      null;
+   end Any_To_BS;
+
+   ---------------
+   -- BS_To_Any --
+   ---------------
+
+   procedure BS_To_Any (Stream : Buffer_Stream_Type; Item : out Any) is
+      pragma Unreferenced (Item, Stream);
+   begin
+      --  XXX TBD
+      null;
+   end BS_To_Any;
 
    use PolyORB.Initialization;
    use PolyORB.Utils.Strings;

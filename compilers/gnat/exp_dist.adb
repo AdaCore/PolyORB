@@ -457,7 +457,8 @@ package body Exp_Dist is
    --  already used in the overload table, so no clashes
    --  occur with user code (RCIs implement the NamingContext
    --  interface to allow their methods to be accessed as
-   --  objects (RAS)).
+   --  objects, for the implementation of remote access-to-subprogram
+   --  types).
 
    function RCI_Package_Locator
      (Loc          : Source_Ptr;
