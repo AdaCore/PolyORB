@@ -81,18 +81,19 @@ package body PolyORB.References is
    ----------------------
 
    procedure Create_Reference
-     (Profiles : Profile_Array;
-      Type_Id  : String;
+     (Profiles :     Profile_Array;
+      Type_Id  :     String;
       R        : out Ref)
    is
       use type Binding_Data.Profile_Access;
+
    begin
       if Profiles'Length = 0 then
          Set (R, null);
       else
-         for I in Profiles'Range loop
+         for J in Profiles'Range loop
             null;
-            pragma Assert (Profiles (I) /= null);
+            pragma Assert (Profiles (J) /= null);
          end loop;
 
          declare
@@ -113,22 +114,24 @@ package body PolyORB.References is
    -- Finalize --
    --------------
 
-   procedure Finalize (RI : in out Reference_Info)
-   is
+   procedure Finalize
+     (RI : in out Reference_Info) is
    begin
       pragma Debug (O ("Finalize (Reference_Info): enter"));
+
       declare
          Profiles : Profile_Array
            := Profile_Seqs.To_Element_Array (RI.Profiles);
       begin
          Free (RI.Type_Id);
-         for I in Profiles'Range loop
+         for J in Profiles'Range loop
             pragma Debug
               (O ("Destroying profile of type "
-                  & Ada.Tags.External_Tag (Profiles (I)'Tag)));
-            Binding_Data.Destroy_Profile (Profiles (I));
+                  & Ada.Tags.External_Tag (Profiles (J)'Tag)));
+            Binding_Data.Destroy_Profile (Profiles (J));
          end loop;
       end;
+
       pragma Debug (O ("Finalize (Reference_Info): leave"));
    end Finalize;
 
@@ -136,13 +139,14 @@ package body PolyORB.References is
    -- Finalize --
    --------------
 
-   procedure Finalize (X : in out Binding_Object)
+   procedure Finalize
+     (X : in out Binding_Object)
    is
       M : Filters.Interface.Disconnect_Request;
    begin
       pragma Debug (O ("Finalizing binding object"));
-      Components.Emit_No_Reply
-        (X.BO_Component, M);
+
+      Components.Emit_No_Reply (X.BO_Component, M);
       X.BO_Component := null;
    end Finalize;
 
@@ -178,7 +182,9 @@ package body PolyORB.References is
    -- Image --
    -----------
 
-   function Image (R : Ref) return String
+   function Image
+     (R : Ref)
+     return String
    is
       P : constant Profile_Array := Profiles_Of (R);
       Res : Unbounded_String
@@ -188,10 +194,11 @@ package body PolyORB.References is
          Res := Res & "<nil or invalid reference>";
       else
          Res := Res & Type_Id_Of (R) & ASCII.LF;
-         for I in P'Range loop
+
+         for J in P'Range loop
             Res := Res & "  " & Ada.Tags.External_Tag
-              (P (I).all'Tag) & ASCII.LF;
-            Res := Res & "    " & Binding_Data.Image (P (I).all)
+              (P (J).all'Tag) & ASCII.LF;
+            Res := Res & "    " & Binding_Data.Image (P (J).all)
               & ASCII.LF;
          end loop;
       end if;
@@ -203,7 +210,9 @@ package body PolyORB.References is
    -- Is_Same_Object --
    --------------------
 
-   function Is_Same_Object (Left, Right : Ref) return Boolean
+   function Is_Same_Object
+     (Left, Right : Ref)
+     return Boolean
    is
       use Profile_Seqs;
       use PolyORB.Binding_Data;
@@ -229,7 +238,7 @@ package body PolyORB.References is
 
             --  XXX We cannot compare directly profiles sequence as it
             --  contains pointers to actual profiles, and thus has no
-            --  meaning.
+            --  meaning in this context.
 
          end loop;
          return Result;
@@ -242,8 +251,12 @@ package body PolyORB.References is
    -- Profiles_Of --
    -----------------
 
-   function Profiles_Of (R : Ref) return Profile_Array is
+   function Profiles_Of
+     (R : Ref)
+     return Profile_Array
+   is
       RI : constant Reference_Info_Access := Ref_Info_Of (R);
+
    begin
       if RI /= null then
          return Profile_Seqs.To_Element_Array (RI.Profiles);
@@ -260,8 +273,12 @@ package body PolyORB.References is
    -- Ref_Info_Of --
    -----------------
 
-   function Ref_Info_Of (R : Ref) return Reference_Info_Access is
+   function Ref_Info_Of
+     (R : Ref)
+     return Reference_Info_Access
+   is
       E : constant Entity_Ptr := Entity_Of (R);
+
    begin
       if E /= null then
          if E.all in Reference_Info'Class then
@@ -275,6 +292,7 @@ package body PolyORB.References is
          pragma Debug (O ("Ref_Info_Of: nil ref."));
          null;
       end if;
+
       return null;
    end Ref_Info_Of;
 
@@ -290,9 +308,11 @@ package body PolyORB.References is
       RI : constant Reference_Info_Access := Ref_Info_Of (R);
       BOP : constant Entity_Ptr := new Binding_Object;
       BO : Binding_Object renames Binding_Object (BOP.all);
+
    begin
       pragma Assert (Is_Nil (RI.Binding_Object_Ref));
       pragma Assert (BOC /= null);
+
       BO.BO_Component := BOC;
       Set (RI.Binding_Object_Ref, BOP);
       RI.Binding_Object_Profile := Pro;
@@ -308,8 +328,10 @@ package body PolyORB.References is
    is
       RD : constant Reference_Info_Access := Ref_Info_Of (Dest);
       RS : constant Reference_Info_Access := Ref_Info_Of (Source);
+
    begin
       RD.Binding_Object_Ref := RS.Binding_Object_Ref;
+
       if RD.Type_Id'Length = 0 then
          Free (RD.Type_Id);
          RD.Type_Id := new String'(RS.Type_Id.all);
@@ -320,7 +342,9 @@ package body PolyORB.References is
    -- Type_Id_Of --
    ----------------
 
-   function Type_Id_Of (R : Ref) return String is
+   function Type_Id_Of
+     (R : Ref)
+     return String is
    begin
       return Ref_Info_Of (R).Type_Id.all;
       --  XXX Perhaps some cases of R not designating

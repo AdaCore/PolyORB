@@ -40,8 +40,8 @@ with Ada.Streams;
 with PolyORB.Any.NVList;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
-with PolyORB.Filters; use PolyORB.Filters;
-with PolyORB.Requests; use PolyORB.Requests;
+with PolyORB.Filters;
+with PolyORB.Requests;
 with PolyORB.Annotations;
 
 package PolyORB.Protocols is
@@ -49,8 +49,11 @@ package PolyORB.Protocols is
    --  A protocol is a factory of sessions. Each session corresponds
    --  to a connection to a remote protocol entity.
 
-   --  This package needs some comments and in particular the callback
-   --  and the demux stuff.
+   --  XXX This package needs some comments and in particular the
+   --  callback and the demux stuff.
+
+   use PolyORB.Filters;
+   use PolyORB.Requests;
 
    type Protocol is abstract new Filters.Factory with private;
    type Protocol_Access is access all Protocol'Class;
@@ -60,7 +63,7 @@ package PolyORB.Protocols is
 
    procedure Create
      (Proto   : access Protocol;
-      Session : out Filter_Access)
+      Session :    out Filter_Access)
       is abstract;
    --  Create a Session for protocol Proto using filter Lower.
    --  Request_Watcher should not be created here, it will
@@ -74,7 +77,7 @@ package PolyORB.Protocols is
 
    procedure Set_Task_Info
      (S : in Session_Access;
-      N : PolyORB.Annotations.Notepad_Access);
+      N :    PolyORB.Annotations.Notepad_Access);
    --  Set the notes associated with session
 
    function Get_Task_Info
@@ -88,7 +91,7 @@ package PolyORB.Protocols is
 
    procedure Invoke_Request
      (S : access Session;
-      R : Requests.Request_Access;
+      R :        Requests.Request_Access;
       P : access Binding_Data.Profile_Type'Class)
       is abstract;
    --  Send a method invocation message for request R on session S.
@@ -97,11 +100,13 @@ package PolyORB.Protocols is
 
    procedure Abort_Request
      (S : access Session;
-      R :  Request_Access)
+      R :        Request_Access)
       is abstract;
    --  Abort pending invocation of R.
 
-   procedure Send_Reply (S : access Session; R :  Request_Access)
+   procedure Send_Reply
+     (S : access Session;
+      R :  Request_Access)
       is abstract;
    --  Send back a reply on S notifying caller of the result
    --  of executing R.
@@ -110,17 +115,19 @@ package PolyORB.Protocols is
    -- Callback point (interface to lower layers) --
    ------------------------------------------------
 
-   procedure Handle_Connect_Indication (S : access Session)
+   procedure Handle_Connect_Indication
+     (S : access Session)
       is abstract;
    --  A new server connection has been accepted as session S.
 
-   procedure Handle_Connect_Confirmation (S : access Session)
+   procedure Handle_Connect_Confirmation
+     (S : access Session)
       is abstract;
    --  A new client connection has been established as session S.
 
    procedure Handle_Data_Indication
-     (S : access Session;
-      Data_Amount : Ada.Streams.Stream_Element_Count)
+     (S           : access Session;
+      Data_Amount :        Ada.Streams.Stream_Element_Count)
       is abstract;
    --  Invoked when some data arrives for session S.
 
@@ -140,7 +147,7 @@ package PolyORB.Protocols is
 
    function Handle_Message
      (Sess : access Session;
-      S : Components.Message'Class)
+      S    :        Components.Message'Class)
      return Components.Message'Class;
    --  Demultiplex Messages to the above specialized operations.
 
