@@ -29,18 +29,18 @@ package body Broca.IOP is
       Profiles : out Profile_Ptr_Array_Ptr)
    is
       Old_Endian : Boolean := Get_Endianess (Buffer);
-      New_Endian : Boolean;
       N_Profiles : CORBA.Unsigned_Long;
+      Profile_Length : CORBA.Unsigned_Long;
       Profile    : Profile_Id;
    begin
-      Unmarshall    (Buffer, New_Endian);
-      Set_Endianess (Buffer, New_Endian);
       Unmarshall    (Buffer, Type_Id);
       Unmarshall    (Buffer, N_Profiles);
+
       Profiles := new Profile_Ptr_Array (1 .. N_Profiles);
 
       for N in Profiles'Range loop
          Unmarshall  (Buffer, Profile);
+         Unmarshall (Buffer, Profile_Length);
          Callbacks (Profile).Decapsulate (Buffer, Profiles (N));
       end loop;
       Set_Endianess (Buffer, Old_Endian);
@@ -58,10 +58,10 @@ package body Broca.IOP is
    is
       Buffers  : array (Profiles'Range) of Buffer_Descriptor;
       Offsets  : array (Profiles'Range) of Buffer_Index_Type;
+      Profile_Lengths : array (Profiles'Range) of CORBA.Long;
    begin
       Rewind              (Buffer);
       Skip_Bytes          (Buffer, From);
-      Compute_New_Size    (Buffer, O_Size, O_Size);
       Compute_New_Size    (Buffer, Type_Id);
 
       --  Number of profiles
@@ -72,21 +72,23 @@ package body Broca.IOP is
          Compute_New_Size    (Buffer, UL_Size, UL_Size);
 
          --  Length of profile
-         --  NOT XXXX Compute_New_Size    (Buffer, UL_Size, UL_Size);
+         Compute_New_Size    (Buffer, UL_Size, UL_Size);
 
          Offsets (N) := Size_Used (Buffer);
          Callbacks (Get_Profile_Id (Profiles (N).all)).Encapsulate
            (Buffers (N), Offsets (N), Profiles (N));
 
          --  Skip space for profile
-         Skip_Bytes (Buffer, Full_Size (Buffers (N)) - Offsets (N));
+         Profile_Lengths (N) :=
+           CORBA.Long (Full_Size (Buffers (N)) - Offsets (N));
+
+         Skip_Bytes (Buffer, Buffer_Index_Type (Profile_Lengths (N)));
       end loop;
 
       Allocate_Buffer_And_Clear_Pos (Buffer, Full_Size (Buffer));
 
       Skip_Bytes          (Buffer, From);
 
-      Marshall (Buffer, Is_Little_Endian);
       Marshall (Buffer, Type_Id);
       Marshall (Buffer, CORBA.Unsigned_Long (Profiles'Length));
 
@@ -96,8 +98,9 @@ package body Broca.IOP is
          pragma Debug (O ("Dump Buffers (N)"));
          pragma Debug (Show (Buffers (N)));
          Marshall      (Buffer, Get_Profile_Id (Profiles (N).all));
-         --  XXX NOT
-         --  Marshall  (Buffer, CORBA.Unsigned_Long (Size_Left (Buffers (N))));
+
+         Marshall  (Buffer, Profile_Lengths (N));
+
          Skip_Bytes    (Buffer, Offsets (N) - Size_Used (Buffer));
          Append_Buffer (Buffer, Buffers (N));
          Destroy       (Buffers (N));

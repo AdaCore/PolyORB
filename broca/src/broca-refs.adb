@@ -4,10 +4,6 @@ with Broca.Locks;
 with Broca.Exceptions;
 with Broca.Object;
 
---  XXX
-with Ada.Task_Identification; use Ada.Task_Identification;
---  XXX
-
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
@@ -42,15 +38,9 @@ package body Broca.Refs is
    procedure Inc_Usage (Obj : in Ref_Ptr) is
    begin
       if Obj.Counter /= -1 then
-         pragma Debug (O ("inc_usage: locking for " & Image (Current_Task)));
          Counter_Global_Lock.Lock;
-         pragma Debug (O ("inc_usage: locked for " & Image (Current_Task)));
-
          Obj.Counter := Obj.Counter + 1;
-
-         pragma Debug (O ("inc_usage: unlocking for " & Image (Current_Task)));
          Counter_Global_Lock.Unlock;
-         pragma Debug (O ("inc_usage: unlocked for " & Image (Current_Task)));
       end if;
    end Inc_Usage;
 
@@ -61,23 +51,10 @@ package body Broca.Refs is
    procedure Dec_Usage (Obj : in out Ref_Ptr) is
    begin
       if Obj.Counter /= -1 then
-         begin
-            pragma Debug
-              (O ("dec_usage: locking for " & Image (Current_Task)));
-            Counter_Global_Lock.Lock;
-            pragma Debug
-              (O ("dec_usage: locked for " & Image (Current_Task)));
-         exception
-            when others =>
-               pragma Debug (O ("dec_usage: exception in Lock"));
-               null;
-         end;
-
+         Counter_Global_Lock.Lock;
          Obj.Counter := Obj.Counter - 1;
-
-         pragma Debug (O ("dec_usage: unlocking for " & Image (Current_Task)));
          Counter_Global_Lock.Unlock;
-         pragma Debug (O ("dec_usage: unlocked for " & Image (Current_Task)));
+
          if Obj.Counter = 0 then
             pragma Debug
               (O ("dec_usage: deallocate " &

@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.8 $
+//                            $Revision: 1.9 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -134,7 +134,7 @@ adabe_attribute::produce_adb (dep_list & with,
     body += set_attr_name;
     body += 
       " : constant CORBA.Identifier :=\n"
-      "     CORBA.To_CORBA_String (\"Set_" + get_ada_local_name () + "\");\n\n"
+      "     CORBA.To_CORBA_String (\"_set_" + get_ada_local_name () + "\");\n\n"
       "   procedure Set_" + get_ada_local_name () + "\n"
       "     (Self : in Ref; " + in_decls + ")\n   is\n";
 
@@ -185,7 +185,7 @@ adabe_attribute::produce_adb (dep_list & with,
   body +=
     "   " + get_attr_name +
     " : constant CORBA.Identifier :=\n"
-    "     CORBA.To_CORBA_String (\"Get_";
+    "     CORBA.To_CORBA_String (\"_get_";
   body += get_ada_local_name ();
   body += "\");\n\n";
 
@@ -298,7 +298,7 @@ adabe_attribute::produce_skel_adb (dep_list & with,
   if (!readonly ()) {
     // Set value
     body +=
-      "      if Operation = \"Set_" + get_ada_local_name () + "\" then\n"
+      "      if Operation = \"_set_" + get_ada_local_name () + "\" then\n"
       "         declare\n" + 
       in_decls +
       "         begin\n" +
@@ -333,7 +333,7 @@ adabe_attribute::produce_skel_adb (dep_list & with,
 
   // Get value
   body +=
-    "      if Operation = \"Get_" + get_ada_local_name () + "\" then\n"
+    "      if Operation = \"_get_" + get_ada_local_name () + "\" then\n"
     "         declare\n" + 
     "            Returns : " + type_name + ";\n"
     "         begin\n" +

@@ -177,12 +177,12 @@ begin
                  Counter_Second_Value = Counter_First_Value + 1);
       end;
 
-      --      declare
-      --         X : All_Types.Ref;
-      --      begin
-      --         X := EchoRef (MyAll_Types, MyAll_Types);
-      --         Output ("test self reference", EchoLong (X, 31337) = 31337);
-      --      end;
+      declare
+         X : All_Types.Ref;
+      begin
+         X := EchoRef (MyAll_Types, MyAll_Types);
+         Output ("test self reference", EchoLong (X, 31337) = 31337);
+      end;
 
       exit when True;
 

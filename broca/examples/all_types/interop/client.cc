@@ -146,35 +146,34 @@ main (int argc, char **argv)
 	Output ("test unbounded sequence", Pass);
       }
 
-      /*	
-	declare
-	Member : My_Exception_Members;
-      begin
-         Ok := False;
-         TestException (Myall_types, 2485);
-      exception
-         when E : My_Exception =>
-            Get_Members (E, Member);
-            Ok := (Member.Info = 2485);
-      end;
-      Output ("test exception", Ok);
-      */
+      {
+	bool Pass = 0;
+
+	try {
+	  at->testException (2485);
+	} catch (all_types::my_exception& ex) {
+	  Pass = (ex.info == 2485);
+	} catch (...) {
+	  /* Nothing. */
+	}
+	Output ("test exception", Pass);
+      }
 
       {
-        all_types::simple_array  X = { 2, 3, 5, 7, 11 };
+	all_types::simple_array  X = { 2, 3, 5, 7, 11 };
 	all_types::simple_array_var Y;
 	bool Pass = 1;
 	int i;
-
+	
 	Y = at->echoArray (X);
-
+	
 	for (i = 0 ; Pass && i < 5 ; i++) {
 	  Pass &= X [i] == Y [i];
 	}
-
+	
 	Output ("test simple array", Pass);
       }
-
+      
       {
          all_types::matrix M = { { 0xfe, 0xe1, 0x5a },
 		      { 0xde, 0xad, 0xa5 },
@@ -184,106 +183,46 @@ main (int argc, char **argv)
 	 bool Pass = 1;
 
 	 N = at->echoMatrix (M);
-	 for (i = 0 ; /* Pass && */ i < 3 ; i++)
-	   for (j = 0 ; /* Pass && */ j < 3 ; j++) {
+#define DEBUG 0
+#if DEBUG
+#define Continue_If_Pass 1
+#else
+#define Continue_If_Pass Pass
+#endif
+	 for (i = 0 ; Continue_If_Pass && i < 3 ; i++)
+	   for (j = 0 ; Continue_If_Pass && j < 3 ; j++) {
 	     Pass &= M [i][j] == N [i][j];
+#if DEBUG
 	     cout << "M[" << i << " ][" << j << "] == " << M[i][j] << endl;
 	     cout << "N[" << i << " ][" << j << "] == " << N[i][j] << endl;
+#endif
 	   }
 
          Output ("test multi-dimensional array", Pass);
       }
 
+      at->myColor (all_types::Green);
+      Output ("test attribute", at->myColor () == all_types::Green);
 
-      /*
---   declare
---      X : Simple_Struct := (A => (0,1,2,3,4,5,6,7,8,9), B => 10);
---   begin
---      Output ("test simple structure", at->Echo2 (Myall_types, X) = X);
---   end;
+      {
+	CORBA::Long Counter_First_Value
+           = at->Counter ();
+	CORBA::Long Counter_Second_Value
+           = at->Counter ();
 
---   Output ("test enumeration", at->Echo3 (Myall_types, Blue) = Blue);
---
-   -- bounded sequences
---   declare
---      X : B_Sequence := B_Sequence (IDL_SEQUENCE_Long_1.Null_Sequence);
---   begin
---      X := X & 1 & 2 & 3 & 4 & 5;
---      Output ("test bounded sequence",  at->Echo7 (Myall_types, X) = X);
---   end;
+	Output ("test read-only attribute",
+                Counter_Second_Value == Counter_First_Value + 1);
+      }
 
---   declare
---      X : all_types.Line
---        := ((Switch => 1, Counter => 19),
---            (Switch => 2, Flags => True),
---            (Switch => 3, Unknown => 25));
---   begin
---      Output ("test arrays (1)", at->Echo8 (Myall_types, X) = X);
---   end;
---
---   declare
---      X : Square
---        := (((A => (0,1,2,3,4,5,6,7,8,9), B=> 23),
---             (A => (9,8,7,6,5,4,3,2,1,0), B=> 17)),
---            ((A => (0,1,2,3,4,5,6,7,8,9), B=> 23),
---             (A => (9,8,7,6,5,4,3,2,1,0), B=> 17)));
---   begin
---      Output ("test arrays (2)", at->Echo9 (Myall_types, X) = X);
---   end;
---
---   declare
---      X : Cube
---        := (((To_CORBA_String (Standard.String'("case1")),
---              To_CORBA_String (Standard.String'("case2"))),
---             (To_CORBA_String (Standard.String'("case3")),
---              To_CORBA_String (Standard.String'("case4")))),
---            ((To_CORBA_String (Standard.String'("case5")),
---              To_CORBA_String (Standard.String'("case6"))),
---             (To_CORBA_String (Standard.String'("case7")),
---              To_CORBA_String (Standard.String'("case8")))));
---   begin
---      Output ("test arrays (3)", at->Echo10 (Myall_types, X) = X);
---   end;
+      {
+	all_types_var X;
 
---   declare
---      X : all_types.Ref;
---      Y : Example := (Switch => 2, Flags => False);
---   begin
---      Set_N_Attribute (Myall_types, Y);
---      X := at->Echo11 (Myall_types, Myall_types);
---      Output ("test reference", Get_N_Attribute (X) = Y);
---   end;
+	X = at->echoRef (at);
+	Output ("test self reference", X->echoLong (31337) == 31337);
+      }
 
---   declare
---      X : CORBA.Object.Ref := CORBA.Object.Ref (To_Ref (Myall_types));
---   begin
---      Output ("test CORBA.Object.Ref",
---         Is_Equivalent (at->Echo12 (Myall_types, X), X));
---   end;
-
-      Set_MyColor (Myall_types, Green);
-      Output ("test attribute", Get_MyColor (Myall_types) = Green);
-      declare
-         Counter_First_Value : CORBA.Long
-           := Get_Counter (Myall_types);
-         Counter_Second_Value : CORBA.Long
-           := Get_Counter (Myall_types);
-      begin
-         Output ("test read-only attribute",
-                 Counter_Second_Value = Counter_First_Value + 1);
-      end;
-
-      --      declare
-      --         X : all_types.Ref;
-      --      begin
-      --         X := at->EchoRef (Myall_types, Myall_types);
-      --         Output ("test self reference", at->EchoLong (X, 31337) = 31337);
-      --      end;
-   end loop;
-
-     */
-    // The end.
-    break;
+      // The end.
+      break;
     }
   } catch(CORBA::COMM_FAILURE& ex) {
     cerr << "Caught system exception COMM_FAILURE, unable to contact the "
