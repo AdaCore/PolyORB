@@ -317,6 +317,8 @@ ada/krunch.adb
 ada/krunch.ads
 ada/make.adb
 ada/make.ads
+ada/makeusg.adb
+ada/makeusg.ads
 ada/namet.adb
 ada/namet.ads
 ada/opt.adb
