@@ -43,7 +43,7 @@ package Droopi.POA_Types is
                      return Droopi.Any.Any;
 
    type Interface_Description is record
-      External_Name : Identifier;
+      External_Name : Types.String;
       --  External representation of the interface name.
 
       PP_Desc : Parameter_Profile_Description;
@@ -54,7 +54,10 @@ package Droopi.POA_Types is
       record
          If_Desc : Interface_Description;
          --  Description of the most derived interface supported
-         --  by this servant.
+         --  by this servant. This must be set either by the
+         --  personality-specific generated code (for servers
+         --  that are statically described in the personality)
+         --  or by the user (for dynamic servers).
       end record;
    type Servant_Access is access all Servant'Class;
 

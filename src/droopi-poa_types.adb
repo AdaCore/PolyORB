@@ -35,8 +35,8 @@ package body Droopi.POA_Types is
      return Types.String
    is
    begin
-      return To_Droopi_String (Droopi.Objects.To_String
-                              (Droopi.Objects.Object_Id (Oid)));
+      return To_Droopi_String
+        (Droopi.Objects.To_String (Droopi.Objects.Object_Id (Oid)));
    end Image;
 
    ---------------

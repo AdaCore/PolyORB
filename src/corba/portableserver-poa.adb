@@ -33,9 +33,12 @@
 
 with Ada.Exceptions;
 
+with Droopi.Log;
+pragma Elaborate_All (Droopi.Log);
 with Droopi.ORB;
 with Droopi.POA;
 with Droopi.POA_Manager;
+with Droopi.POA_Types;
 with Droopi.References;
 with Droopi.Setup;
 with Droopi.Smart_Pointers;
@@ -47,6 +50,13 @@ with Droopi.CORBA_P.Exceptions;
 --  with PortableServer.ServantLocator.Impl;
 
 package body PortableServer.POA is
+
+   use Droopi.Log;
+
+   package L is new Droopi.Log.Facility_Log ("portableserver.poa");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
+
 
    function Create_Ref
      (Referenced : Droopi.Smart_Pointers.Entity_Ptr) return Ref;
@@ -564,9 +574,18 @@ package body PortableServer.POA is
       Droopi.ORB.Create_Reference (Droopi.Setup.The_ORB, Oid, The_Ref);
       --  Obtain object reference.
 
-      CORBA.Object.Reference_Info (The_Ref_Info.all).IOR :=
-        (Ref     => The_Ref,
-         Type_Id => CORBA.To_CORBA_String (""));
+      declare
+         The_Type_Id : constant CORBA.String
+           := Droopi.POA_Types.Servant
+           (To_Droopi_Servant (P_Servant).all).If_Desc.External_Name;
+      begin
+         pragma Debug
+           (O ("Creating a Reference_Info with type "
+               & CORBA.To_Standard_String (The_Type_Id)));
+         CORBA.Object.Reference_Info (The_Ref_Info.all).IOR :=
+           (Ref     => The_Ref,
+            Type_Id => The_Type_Id);
+      end;
       --  XXX Type_Id should be obtained by Servant.If_Desc.External_Name
       --  *if* Servant was a Droopi.POA_Types.Servant. Unfortunately, Servant
       --  is a PortableServer.Servant_Base'Class, which has nothing in common

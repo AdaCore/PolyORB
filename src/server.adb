@@ -30,9 +30,13 @@ with Echo.Impl;
 
 with CORBA;
 with CORBA.Object;
+with CORBA.Impl;
+
+with PortableServer;
 
 with Droopi.CORBA_P.Server_Tools; use Droopi.CORBA_P.Server_Tools;
 pragma Elaborate (Droopi.CORBA_P.Server_Tools);
+with Droopi.POA_Types;
 
 with GNAT.Command_Line;  use GNAT.Command_Line;
 with Ada.Text_IO;
@@ -61,15 +65,21 @@ begin
 
    --  Should we use the Delegate or the regular version?
 
---    if Use_Delegate then
---       Initiate_Servant
---         (PortableServer.Servant
---          (Delegated_Server.Delegated.Create
---           (Delegated_Server.Dummy'Access)),
---          Ref);
---    else
-   Initiate_Servant (new Echo.Impl.Object, Ref);
-   --  end if;
+   declare
+      use CORBA.Impl;
+
+      Obj : constant Object_Ptr
+        := new Echo.Impl.Object;
+   begin
+      Droopi.POA_Types.Servant_Access
+        (To_Droopi_Servant
+         (CORBA.Impl.Object (Obj.all)'Access)).If_Desc.External_Name
+        := CORBA.To_CORBA_String ("IDL:Echo:1.0");
+      --  XXX Set the interface description for Echo
+      Initiate_Servant (PortableServer.Servant (Obj), Ref);
+      --  Note that Ref is a smart pointer to a Reference_Info, *not*
+      --  to a CORBA.Impl.Object.
+   end;
 
    --  If the server is to be registered, check whether there is a name
    --  given on the command line, use "echo" otherwise.

@@ -14,7 +14,6 @@
 -- Get_Default_Context --
 -- Get_Service_Information --
 -- List_Initial_Services --
--- Object_To_String --
 -- Perform_Work --
 -- Resolve_Initial_References --
 -- Run --
@@ -308,9 +307,27 @@ package body CORBA.ORB is
      (Obj : in CORBA.Object.Ref'Class)
       return CORBA.String
    is
+      use Droopi.Smart_Pointers;
+
+      E : constant Entity_Ptr := CORBA.Object.Entity_Of (Obj);
    begin
-      raise Droopi.Not_Implemented;
-      return To_CORBA_String ("");
+      if E /= null and then E.all in Object.Reference_Info'Class then
+         return Droopi.References.IOR.Object_To_String
+           (Object.Reference_Info (E.all).IOR);
+      else
+         --  XXX
+         --  This ref does not contain a Reference_Info,
+         --  i.e. it is likely to be directly a pointer to
+         --  a CORBA.Impl.Object'Class. Can this happen?
+         --  I.e. do we have provided a means for the
+         --  user to construct such a ref (most likely
+         --  the standard CORBA API does allow it, because
+         --  the user sees the Set primitive of C.O.Ref).
+         --  Is it legitimate to call O_to_S on such a Ref?
+         --  Maybe not, for the Servant would not have been
+         --  activated. Or can it have??? To be determined.
+         raise Program_Error;
+      end if;
    end Object_To_String;
 
    ----------------------

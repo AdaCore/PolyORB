@@ -28,12 +28,10 @@ package Droopi.Objects is
 
    type Servant is abstract new Droopi.Components.Component
      with private;
-   --  XXX or: is new Droopi.Refs.Entity?
    type Servant_Access is access all Servant'Class;
-   for Servant_Access'Storage_Pool
-     use Droopi.Storage_Pools.Debug_Pool;
    --  A Servant is a Component that supports the messages
-   --  defined in Droopi.Objects.Interface.
+   --  defined in Droopi.Objects.Interface. This type may
+   --  be further derived by personality-specific units.
 
    function Handle_Message
      (S   : access Servant;
