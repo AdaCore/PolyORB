@@ -49,7 +49,7 @@ with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Group_Object_Adapter;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.Parameters;
 with PolyORB.References.Binding;
 with PolyORB.References.IOR;
@@ -411,7 +411,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       use PolyORB.Exceptions;
       use PolyORB.Obj_Adapters;
       use PolyORB.ORB;
-      use PolyORB.ORB.Interface;
+      use PolyORB.ORB.Iface;
       use PolyORB.References;
       use PolyORB.Types;
 
@@ -643,7 +643,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    is
       use PolyORB.Types;
       use PolyORB.Components;
-      use PolyORB.Filters.Interface;
+      use PolyORB.Filters.Iface;
       use Octet_Flags;
 
       Sess : GIOP_Session renames GIOP_Session (S.all);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@ with PolyORB.GIOP_P.Exceptions;
 with PolyORB.Log;
 with PolyORB.References.IOR;
 with PolyORB.Representations.CDR.Common;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
 
 package body PolyORB.Protocols.GIOP.Common is
@@ -430,7 +430,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
                   Components.Emit_No_Reply
                     (Components.Component_Access (ORB),
-                     Servants.Interface.Executed_Request'(Req => Req.Req));
+                     Servants.Iface.Executed_Request'(Req => Req.Req));
 
                   Remove_Pending_Request_By_Locate
                     (Sess,
@@ -471,7 +471,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
                Components.Emit_No_Reply
                  (Components.Component_Access (ORB),
-                  Servants.Interface.Executed_Request'
+                  Servants.Iface.Executed_Request'
                   (Req => Req.Req));
 
                Remove_Pending_Request_By_Locate
@@ -623,7 +623,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
             Emit_No_Reply
               (Current_Req.Req.Requesting_Component,
-               Servants.Interface.Executed_Request'
+               Servants.Iface.Executed_Request'
                (Req => Current_Req.Req));
 
          when System_Exception =>
@@ -634,7 +634,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
             Emit_No_Reply
               (Component_Access (ORB),
-               Servants.Interface.Executed_Request'
+               Servants.Iface.Executed_Request'
                (Req => Current_Req.Req));
 
          when User_Exception =>
@@ -725,7 +725,7 @@ package body PolyORB.Protocols.GIOP.Common is
                end if;
                Emit_No_Reply
                  (Component_Access (ORB),
-                  Servants.Interface.Executed_Request'
+                  Servants.Iface.Executed_Request'
                   (Req => Current_Req.Req));
             end;
 
@@ -743,7 +743,7 @@ package body PolyORB.Protocols.GIOP.Common is
 
             Emit_No_Reply
               (Component_Access (ORB),
-               Servants.Interface.Executed_Request'
+               Servants.Iface.Executed_Request'
                (Req => Current_Req.Req));
 
          when others =>

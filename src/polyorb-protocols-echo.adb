@@ -40,13 +40,13 @@ with PolyORB.Any.NVList;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Buffers;
 with PolyORB.Filters;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Log;
 
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.ORB;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.References;
 with PolyORB.Requests; use PolyORB.Requests;
 
@@ -58,10 +58,10 @@ package body PolyORB.Protocols.Echo is
 
    use PolyORB.Components;
    use PolyORB.Filters;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.ORB;
-   use PolyORB.ORB.Interface;
+   use PolyORB.ORB.Iface;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.echo");
    procedure O (Message : in String; Level : Log_Level := Debug)

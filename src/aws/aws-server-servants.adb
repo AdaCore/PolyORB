@@ -14,10 +14,10 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Requests;
 with PolyORB.Objects;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Types;
 with PolyORB.Setup;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.Log;
 with PolyORB.References;
 with PolyORB.Binding_Data;
@@ -129,9 +129,9 @@ package body AWS.Server.Servants is
             use PolyORB.Any.NVList;
             use PolyORB.Exceptions;
             use PolyORB.Setup;
-            use PolyORB.ORB.Interface;
+            use PolyORB.ORB.Iface;
 
-            Oid_Translate : constant ORB.Interface.Oid_Translate :=
+            Oid_Translate : constant ORB.Iface.Oid_Translate :=
               (PolyORB.Components.Message with Oid => The_Oid);
 
             M : constant PolyORB.Components.Message'Class :=
@@ -139,8 +139,8 @@ package body AWS.Server.Servants is
               (Port => Components.Component_Access (Setup.The_ORB),
                Msg  => Oid_Translate);
 
-            TM : ORB.Interface.URI_Translate renames
-              ORB.Interface.URI_Translate (M);
+            TM : ORB.Iface.URI_Translate renames
+              ORB.Iface.URI_Translate (M);
 
             URI : constant String := To_String (TM.Path);
          begin
@@ -404,7 +404,7 @@ package body AWS.Server.Servants is
       Msg : Components.Message'Class)
      return Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
 
    begin
       if Msg in Execute_Request then
@@ -439,7 +439,7 @@ package body AWS.Server.Servants is
       Msg : Components.Message'Class)
      return Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
 
    begin
       if Msg in Execute_Request then

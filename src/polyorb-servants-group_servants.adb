@@ -38,11 +38,11 @@ with PolyORB.Components;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Objects;
-with PolyORB.ORB.Interface;
-with PolyORB.Protocols.Interface;
+with PolyORB.ORB.Iface;
+with PolyORB.Protocols.Iface;
 with PolyORB.References;
 with PolyORB.Requests;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Setup;
 with PolyORB.Types;
 
@@ -78,7 +78,7 @@ package body PolyORB.Servants.Group_Servants is
       Msg  :        Components.Message'Class)
       return Components.Message'Class
    is
-      use PolyORB.Protocols.Interface;
+      use PolyORB.Protocols.Iface;
 
    begin
       pragma Assert (Msg in Unmarshall_Arguments);
@@ -236,9 +236,9 @@ package body PolyORB.Servants.Group_Servants is
       use PolyORB.ORB;
       use PolyORB.Any;
       use PolyORB.Setup;
-      use PolyORB.ORB.Interface;
+      use PolyORB.ORB.Iface;
       use PolyORB.Any.NVList;
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
       use Unsigned_Long_Flags;
 
       Request : Request_Access;
@@ -340,8 +340,8 @@ package body PolyORB.Servants.Group_Servants is
       Msg  :        Components.Message'Class)
      return Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
-      use PolyORB.Protocols.Interface;
+      use PolyORB.Servants.Iface;
+      use PolyORB.Protocols.Iface;
 
       Res : PolyORB.Components.Null_Message;
 

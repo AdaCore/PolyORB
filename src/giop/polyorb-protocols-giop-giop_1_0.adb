@@ -43,7 +43,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
 with PolyORB.Objects;
 with PolyORB.Obj_Adapters;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.References;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Representations.CDR.GIOP_1_0;
@@ -255,7 +255,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
      (S : access GIOP_Session)
    is
       use PolyORB.ORB;
-      use PolyORB.ORB.Interface;
+      use PolyORB.ORB.Iface;
       use PolyORB.Components;
       use PolyORB.Exceptions;
       use PolyORB.Binding_Data;

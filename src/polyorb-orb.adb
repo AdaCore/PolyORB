@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,15 +43,15 @@ with PolyORB.Binding_Data.Local;
 with PolyORB.Binding_Objects;
 with PolyORB.Exceptions;
 with PolyORB.Filters;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.References;
 with PolyORB.References.Binding;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers.Initialization;
 with PolyORB.Tasking.Threads;
@@ -600,7 +600,7 @@ package body PolyORB.ORB is
 
       Emit_No_Reply
         (Component_Access (TE),
-         Filters.Interface.Set_Server'
+         Filters.Iface.Set_Server'
          (Server         => Component_Access (ORB),
           Binding_Object =>
             Binding_Objects.Binding_Object_Access
@@ -864,7 +864,7 @@ package body PolyORB.ORB is
             J.Request.Completed := True;
 
             Emit_No_Reply (J.Requestor,
-                           Servants.Interface.Executed_Request'
+                           Servants.Iface.Executed_Request'
                            (Req => J.Request));
          end if;
 
@@ -896,7 +896,7 @@ package body PolyORB.ORB is
                Catch (Error);
 
                Emit_No_Reply (J.Requestor,
-                              Servants.Interface.Executed_Request'
+                              Servants.Iface.Executed_Request'
                               (Req => J.Request));
                return;
             end if;
@@ -917,7 +917,7 @@ package body PolyORB.ORB is
                              & " Acknowledge_Request message"));
 
             Emit_No_Reply (J.Requestor,
-                           Servants.Interface.Acknowledge_Request'
+                           Servants.Iface.Acknowledge_Request'
                            (Req => J.Request));
          end if;
 
@@ -929,7 +929,7 @@ package body PolyORB.ORB is
          declare
             Result : constant Components.Message'Class
               := Emit (Surrogate,
-                       Servants.Interface.Execute_Request'
+                       Servants.Iface.Execute_Request'
                        (Req => J.Request,
                         Pro => Pro));
          begin
@@ -1041,7 +1041,7 @@ package body PolyORB.ORB is
       Msg :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
 
       Nothing : Components.Null_Message;
 
@@ -1049,10 +1049,10 @@ package body PolyORB.ORB is
       pragma Debug (O ("Handling message of type "
                        & Ada.Tags.External_Tag (Msg'Tag)));
 
-      if Msg in Interface.Queue_Request then
+      if Msg in Iface.Queue_Request then
          declare
-            QR : Interface.Queue_Request
-              renames Interface.Queue_Request (Msg);
+            QR : Iface.Queue_Request
+              renames Iface.Queue_Request (Msg);
             Req : Requests.Request_Access renames QR.Request;
 
             J  : constant Job_Access := new Request_Job;
@@ -1138,7 +1138,7 @@ package body PolyORB.ORB is
             Leave_ORB_Critical_Section (ORB.ORB_Controller);
          end;
 
-      elsif Msg in Interface.Oid_Translate then
+      elsif Msg in Iface.Oid_Translate then
          declare
             use PolyORB.Exceptions;
             URI   : Types.String;
@@ -1146,30 +1146,30 @@ package body PolyORB.ORB is
             Empty : Components.Null_Message;
          begin
             Obj_Adapters.Oid_To_Rel_URI
-              (ORB.Obj_Adapter, Interface.Oid_Translate (Msg).Oid,
+              (ORB.Obj_Adapter, Iface.Oid_Translate (Msg).Oid,
                URI, Error);
             if Found (Error) then
                Catch (Error);
                return Empty;
             end if;
 
-            return Interface.URI_Translate'(Path => URI);
+            return Iface.URI_Translate'(Path => URI);
          end;
 
-      elsif Msg in Interface.URI_Translate then
+      elsif Msg in Iface.URI_Translate then
          declare
-            Result : constant Interface.Oid_Translate
+            Result : constant Iface.Oid_Translate
               := (Oid => Obj_Adapters.Rel_URI_To_Oid
-                  (ORB.Obj_Adapter, Interface.URI_Translate (Msg).Path));
+                  (ORB.Obj_Adapter, Iface.URI_Translate (Msg).Path));
 
          begin
             return Result;
          end;
 
-      elsif Msg in Interface.Monitor_Endpoint then
+      elsif Msg in Iface.Monitor_Endpoint then
          declare
             TE : constant Transport_Endpoint_Access
-              := Interface.Monitor_Endpoint (Msg).TE;
+              := Iface.Monitor_Endpoint (Msg).TE;
             Note : TE_Note;
 
          begin
@@ -1185,10 +1185,10 @@ package body PolyORB.ORB is
             end if;
          end;
 
-      elsif Msg in Interface.Monitor_Access_Point then
+      elsif Msg in Iface.Monitor_Access_Point then
          declare
             TAP : constant Transport_Access_Point_Access
-              := Interface.Monitor_Access_Point (Msg).TAP;
+              := Iface.Monitor_Access_Point (Msg).TAP;
             Note : TAP_Note;
 
          begin
@@ -1198,14 +1198,14 @@ package body PolyORB.ORB is
             Insert_Source (ORB, Note.AES);
          end;
 
-      elsif Msg in Interface.Unregister_Endpoint then
+      elsif Msg in Iface.Unregister_Endpoint then
          declare
             Note : TE_Note;
 
          begin
             Get_Note
               (Notepad_Of
-               (Interface.Unregister_Endpoint (Msg).TE).all, Note);
+               (Iface.Unregister_Endpoint (Msg).TE).all, Note);
 
             if Note.AES /= null then
                Delete_Source (ORB, Note.AES);

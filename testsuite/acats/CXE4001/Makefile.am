@@ -43,7 +43,7 @@ cxe4001_decl_pure.ali: $(srcdir)/cxe4001_decl_pure.ads
 part1: part1.stubs/polyorb-dsa_p-partitions.ali part1.stubs/cxe4001_partition_a.ali part1.stubs/cxe4001_partition_b.ali cxe4001_decl_pure.ali
 part2: part2.stubs/polyorb-dsa_p-partitions.ali part2.stubs/cxe4001_partition_a.ali part2.stubs/cxe4001_partition_b.ali cxe4001_decl_pure.ali
 
-clean: clean-stubs
+clean: clean-stubs clean-am
 clean-stubs:
 	rm -fr part1.stubs part2.stubs
 

@@ -42,7 +42,7 @@ with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Requests;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
@@ -115,7 +115,7 @@ package body PortableServer is
       Msg  :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
 
    begin
       pragma Debug (O ("Execute_Servant: enter"));

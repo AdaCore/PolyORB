@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          P O L Y O R B . P R O T O C O L S . I N T E R F A C E           --
+--                P O L Y O R B . F I L T E R S . I F A C E                 --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--          Copyright (C) 2001-2005 Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,42 +31,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Interface for Sessions
+--  Messages exchanged by Filter components.
 
-with PolyORB.Any.NVList;
-with PolyORB.Components;
+package body PolyORB.Filters.Iface is
 
-package PolyORB.Protocols.Interface is
+   procedure Expect_Data
+     (Self   : access Filter'Class;
+      In_Buf : Buffers.Buffer_Access;
+      Max    : Ada.Streams.Stream_Element_Count) is
+   begin
+      Emit_No_Reply
+        (Port   => Lower (Self),
+         Msg    => Data_Expected'
+           (In_Buf => In_Buf, Max => Max));
+   end Expect_Data;
 
-   type Unmarshall_Arguments is new Components.Message with record
-      Args : Any.NVList.Ref;
-   end record;
-
-   type Unmarshalled_Arguments is new Components.Message with record
-      Args : Any.NVList.Ref;
-   end record;
-
-   type Arguments_Error is new Components.Message with record
-      Error : Exceptions.Error_Container;
-   end record;
-
-   type Flush is new Components.Message with null record;
-
-   --  When a Session receives a method invocation request,
-   --  it is not always possible to determine the signature
-   --  for the called method immediately; it may be necessary
-   --  to wait until the servant has started handling the
-   --  request, and performs a call to ServerRequest.Arguments.
-
-   --  In that case, where unmarshalling is deferred until request
-   --  execution commences, the message Unmarshall_Arguments must
-   --  be sent to the Session with a properly-type NVList in it
-   --  so the unmarshalling can take place. An Unmarshalled_Arguments
-   --  message is returned.
-
-   --  If an error is dectected when unmarshalling, then
-   --  Arguments_Error is returned.
-
-   --  The Flush message reinitializes the session object.
-
-end PolyORB.Protocols.Interface;
+end PolyORB.Filters.Iface;

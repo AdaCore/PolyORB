@@ -33,7 +33,7 @@
 
 with PolyORB.Components;
 with PolyORB.Filters;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
@@ -53,7 +53,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    use PolyORB.Asynch_Ev;
    use PolyORB.Components;
    use PolyORB.Filters;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Threads;

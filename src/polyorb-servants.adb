@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 
 package body PolyORB.Servants is
 
@@ -67,7 +67,7 @@ package body PolyORB.Servants is
       Msg :        Components.Message'Class)
       return Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
 
    begin
       if Msg in Execute_Request then

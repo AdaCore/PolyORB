@@ -35,19 +35,19 @@
 
 with Ada.Tags;
 
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.If_Descriptors;
 with PolyORB.Log;
-with PolyORB.Protocols.Interface;
-with PolyORB.Servants.Interface;
+with PolyORB.Protocols.Iface;
+with PolyORB.Servants.Iface;
 
 package body PolyORB.Protocols is
 
    use PolyORB.Components;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
-   use PolyORB.Protocols.Interface;
-   use PolyORB.Servants.Interface;
+   use PolyORB.Protocols.Iface;
+   use PolyORB.Servants.Iface;
    use Unsigned_Long_Flags;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.protocols");
@@ -150,7 +150,7 @@ package body PolyORB.Protocols is
             --  are abstracted by the If_Descriptor interface.
 
             declare
-               use Protocols.Interface;
+               use Protocols.Iface;
                use PolyORB.If_Descriptors;
 
                Desc : If_Descriptor_Access renames Default_If_Descriptor;
@@ -218,7 +218,7 @@ package body PolyORB.Protocols is
 
                Emit_No_Reply
                  (Component_Access (Sess),
-                  Protocols.Interface.Flush'(Message with null record));
+                  Protocols.Iface.Flush'(Message with null record));
             end if;
 
             if Is_Set (Sync_With_Target, Req.Req_Flags)

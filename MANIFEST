@@ -891,8 +891,8 @@ src/polyorb-exceptions.adb
 src/polyorb-exceptions.ads
 src/polyorb-filters-fragmenter.adb
 src/polyorb-filters-fragmenter.ads
-src/polyorb-filters-interface.adb
-src/polyorb-filters-interface.ads
+src/polyorb-filters-iface.adb
+src/polyorb-filters-iface.ads
 src/polyorb-filters-slicers.adb
 src/polyorb-filters-slicers.ads
 src/polyorb-filters.adb
@@ -932,7 +932,7 @@ src/polyorb-opaque-chunk_pools.adb
 src/polyorb-opaque-chunk_pools.ads
 src/polyorb-opaque.adb
 src/polyorb-opaque.ads
-src/polyorb-orb-interface.ads
+src/polyorb-orb-iface.ads
 src/polyorb-orb-no_tasking.adb
 src/polyorb-orb-no_tasking.ads
 src/polyorb-orb-thread_per_request.adb
@@ -1019,7 +1019,7 @@ src/polyorb-poa_types.adb
 src/polyorb-poa_types.ads
 src/polyorb-protocols-echo.adb
 src/polyorb-protocols-echo.ads
-src/polyorb-protocols-interface.ads
+src/polyorb-protocols-iface.ads
 src/polyorb-protocols.adb
 src/polyorb-protocols.ads
 src/polyorb-references-binding.adb
@@ -1073,7 +1073,7 @@ src/polyorb-sequences-unbounded.ads
 src/polyorb-sequences.ads
 src/polyorb-servants-group_servants.adb
 src/polyorb-servants-group_servants.ads
-src/polyorb-servants-interface.ads
+src/polyorb-servants-iface.ads
 src/polyorb-servants.adb
 src/polyorb-servants.ads
 src/polyorb-services-naming-helper.adb

@@ -36,7 +36,7 @@
 
 with Ada.Exceptions;
 
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Components;
 with PolyORB.Log;
 
@@ -60,7 +60,7 @@ package body PolyORB.Binding_Objects is
    begin
       pragma Debug (O ("Finalizing binding object."));
       Emit_No_Reply (Component_Access (X.Transport_Endpoint),
-                     Filters.Interface.Disconnect_Indication'(null record));
+                     Filters.Iface.Disconnect_Indication'(null record));
       pragma Debug (O ("Destroying protocol stack"));
       Destroy (Component_Access (X.Transport_Endpoint));
       --  This will recursively destroy all the protocol stack.

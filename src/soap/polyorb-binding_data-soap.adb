@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,7 +40,7 @@ with PolyORB.Filters.HTTP;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.Parameters;
 with PolyORB.Protocols;
 with PolyORB.Protocols.SOAP_Pr;
@@ -220,7 +220,7 @@ package body PolyORB.Binding_Data.SOAP is
       TResult.Address   := PF.Address;
 
       declare
-         Oid_Translate : constant ORB.Interface.Oid_Translate :=
+         Oid_Translate : constant ORB.Iface.Oid_Translate :=
            (PolyORB.Components.Message with Oid => TResult.Object_Id);
 
          M : constant PolyORB.Components.Message'Class :=
@@ -228,8 +228,7 @@ package body PolyORB.Binding_Data.SOAP is
            (Port => Components.Component_Access (Setup.The_ORB),
             Msg  => Oid_Translate);
 
-         TM : ORB.Interface.URI_Translate renames
-           ORB.Interface.URI_Translate (M);
+         TM : ORB.Iface.URI_Translate renames ORB.Iface.URI_Translate (M);
       begin
          TResult.URI_Path := TM.Path;
       end;
@@ -270,7 +269,7 @@ package body PolyORB.Binding_Data.SOAP is
          --  Fill Oid from URI for a local profile.
 
          declare
-            URI_Translate : constant ORB.Interface.URI_Translate :=
+            URI_Translate : constant ORB.Iface.URI_Translate :=
               (PolyORB.Components.Message with Path => TResult.URI_Path);
 
             M : constant PolyORB.Components.Message'Class :=
@@ -278,8 +277,7 @@ package body PolyORB.Binding_Data.SOAP is
               (Port => Components.Component_Access (Setup.The_ORB),
                Msg  => URI_Translate);
 
-            TM : ORB.Interface.Oid_Translate renames
-              ORB.Interface.Oid_Translate (M);
+            TM : ORB.Iface.Oid_Translate renames ORB.Iface.Oid_Translate (M);
          begin
             TResult.Object_Id := TM.Oid;
          end;

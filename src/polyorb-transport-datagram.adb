@@ -34,8 +34,8 @@
 with PolyORB.Binding_Objects;
 with PolyORB.Log;
 with PolyORB.Filters;
-with PolyORB.Filters.Interface;
-with PolyORB.ORB.Interface;
+with PolyORB.Filters.Iface;
+with PolyORB.ORB.Iface;
 with PolyORB.Transport.Handlers;
 
 package body PolyORB.Transport.Datagram is
@@ -72,7 +72,7 @@ package body PolyORB.Transport.Datagram is
    is
       use PolyORB.Components;
       use PolyORB.ORB;
-      use PolyORB.ORB.Interface;
+      use PolyORB.ORB.Iface;
       use PolyORB.Filters;
 
       --  Create associated Endpoint
@@ -110,7 +110,7 @@ package body PolyORB.Transport.Datagram is
       use PolyORB.Components;
       use PolyORB.Exceptions;
       use PolyORB.Filters;
-      use PolyORB.Filters.Interface;
+      use PolyORB.Filters.Iface;
 
       Nothing : Components.Null_Message;
    begin
@@ -127,7 +127,7 @@ package body PolyORB.Transport.Datagram is
          end;
 
          return Emit
-           (TE.Server, ORB.Interface.Monitor_Endpoint'
+           (TE.Server, ORB.Iface.Monitor_Endpoint'
               (TE => Transport_Endpoint_Access (TE)));
 
       elsif Msg in Data_Indication then

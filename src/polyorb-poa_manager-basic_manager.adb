@@ -35,7 +35,7 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Components;
 with PolyORB.Log;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.Requests;
 with PolyORB.Setup;
 
@@ -396,7 +396,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
 
    procedure Reemit_Requests (Self : access Basic_POA_Manager) is
       use PolyORB.Components;
-      use PolyORB.ORB.Interface;
+      use PolyORB.ORB.Iface;
       use Requests_Queue_P;
 
       R : Execute_Request;

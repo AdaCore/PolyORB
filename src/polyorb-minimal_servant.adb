@@ -35,7 +35,7 @@ with Ada.Tags;
 
 with PolyORB.Log;
 with PolyORB.Requests;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Exceptions;
 
 package body PolyORB.Minimal_Servant is
@@ -55,7 +55,7 @@ package body PolyORB.Minimal_Servant is
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
 
    begin
       pragma Debug (O ("Handling message of type "

@@ -66,7 +66,7 @@ with PolyORB.References;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Sequences.Unbounded.Helper;
 with PolyORB.Servants;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Services.Naming;
 with PolyORB.Services.Naming.Helper;
 with PolyORB.Services.Naming.NamingContext.Client;
@@ -397,7 +397,7 @@ package body System.PolyORB_Interface is
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class
    is
-      use PolyORB.Servants.Interface;
+      use PolyORB.Servants.Iface;
 
       Result : PolyORB.Components.Null_Message;
    begin

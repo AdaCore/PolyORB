@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                P O L Y O R B . O R B . I N T E R F A C E                 --
+--               P O L Y O R B . S E R V A N T S . I F A C E                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--          Copyright (C) 2003-2005 Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,64 +31,36 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The messages supported by ORBs (middleware core module).
+--  The messages supported by Servants (object implementations).
 
+with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Requests;
-with PolyORB.Transport;
-with PolyORB.Types;
 
-package PolyORB.ORB.Interface is
+package PolyORB.Servants.Iface is
 
-   type Queue_Request is new Components.Message with record
-      Request   : Requests.Request_Access;
-      Requestor : Components.Component_Access;
+   type Execute_Request is new Components.Message with record
+      Req : Requests.Request_Access;
+      Pro : PolyORB.Binding_Data.Profile_Access;
    end record;
-   --  Queue method invocation request Req for execution by Server
-   --  on behalf of a remote caller. No reply expected.
-   --  When the request is executed, a message will be sent
-   --  back to Requestor (asynchronously). If this request comes
-   --  from a Session, Requestor must be set to that Session.
-   --  If the request is submitted directly by a local client task,
-   --  Requestor must be set to null.
-   --  The client the responsible of the destruction of
-   --  the Request after its execution is completed.
+   --  Request the receiving Servant to execute Req. On the client
+   --  side, Pro is the profile of the target object reference that
+   --  was used to establish a binding object with the target.
+   --  The expected reply is Executed_Request, or Null_Message
+   --  if the request was not processed immediately.
 
-   type Unregister_Endpoint is new Components.Message with record
-      TE : Transport.Transport_Endpoint_Access;
+   type Executed_Request is new Components.Message with record
+      Req : Requests.Request_Access;
    end record;
-   --  Request that TE be removed from the set of endpoints
-   --  managed by the ORB.
+   --  Notify the completion of Req's execution. This message can
+   --  be a synchronous reply to Execute_Request, or it can be
+   --  emitted asynchronously to the requesting component if
+   --  Null_Message was returned as the reply for Execute_Request.
 
-   type Oid_Translate is new Components.Message with record
-      Oid : Objects.Object_Id_Access;
+   type Acknowledge_Request is new Components.Message with record
+      Req : Requests.Request_Access;
    end record;
-   --  When sent by middleware core to object adapter:
-   --    Request that Oid be translated into a relative URI.
-   --    The expected reply is URI_Translate.
-   --  When replied by object adapter to middleware core:
-   --    Returns relative URI translated to object id.
+   --  Acknowledge the reception of Req. This message can be a
+   --  synchronous reply to Execute_Request.
 
-   type URI_Translate is new Components.Message with record
-      Path : Types.String;
-   end record;
-   --  When sent by middleware core to object adapter:
-   --    Request that Path (a relative URI) be translated into
-   --    an object id.
-   --    The expected reply is Oid_Translate.
-   --  When replied by object adapter to middleware core:
-   --    Returns object id translated to relative URI.
-
-   type Monitor_Access_Point is new Components.Message with record
-      TAP : Transport.Transport_Access_Point_Access;
-   end record;
-   --  A binding object requests that the designated transport
-   --  access point be monitored for incoming data.
-
-   type Monitor_Endpoint is new Components.Message with record
-      TE : Transport.Transport_Endpoint_Access;
-   end record;
-   --  A binding object requests that the designated transport
-   --  endpoint be monitored for incoming data.
-
-end PolyORB.ORB.Interface;
+end PolyORB.Servants.Iface;

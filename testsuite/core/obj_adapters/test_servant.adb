@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2003-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,13 +39,13 @@ with PolyORB.Components;
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Requests;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 
 package body Test_Servant is
 
    use PolyORB.Any;
    use PolyORB.Requests;
-   use PolyORB.Servants.Interface;
+   use PolyORB.Servants.Iface;
    use PolyORB.Types;
 
    function echoInteger

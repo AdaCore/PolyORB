@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,7 +36,7 @@
 with PolyORB.Components;
 with PolyORB.Exceptions;
 with PolyORB.POA_Types;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
 
@@ -45,7 +45,7 @@ package PolyORB.POA_Manager.Basic_Manager is
    pragma Elaborate_Body;
 
    use PolyORB.POA_Types;
-   use PolyORB.Servants.Interface;
+   use PolyORB.Servants.Iface;
 
    type Basic_POA_Manager is new POAManager with private;
    type Basic_POA_Manager_Access is access all Basic_POA_Manager;

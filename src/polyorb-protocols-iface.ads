@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---           P O L Y O R B . S E R V A N T S . I N T E R F A C E            --
+--              P O L Y O R B . P R O T O C O L S . I F A C E               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,36 +31,42 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  The messages supported by Servants (object implementations).
+--  Interface for Sessions
 
-with PolyORB.Binding_Data;
+with PolyORB.Any.NVList;
 with PolyORB.Components;
-with PolyORB.Requests;
 
-package PolyORB.Servants.Interface is
+package PolyORB.Protocols.Iface is
 
-   type Execute_Request is new Components.Message with record
-      Req : Requests.Request_Access;
-      Pro : PolyORB.Binding_Data.Profile_Access;
+   type Unmarshall_Arguments is new Components.Message with record
+      Args : Any.NVList.Ref;
    end record;
-   --  Request the receiving Servant to execute Req. On the client
-   --  side, Pro is the profile of the target object reference that
-   --  was used to establish a binding object with the target.
-   --  The expected reply is Executed_Request, or Null_Message
-   --  if the request was not processed immediately.
 
-   type Executed_Request is new Components.Message with record
-      Req : Requests.Request_Access;
+   type Unmarshalled_Arguments is new Components.Message with record
+      Args : Any.NVList.Ref;
    end record;
-   --  Notify the completion of Req's execution. This message can
-   --  be a synchronous reply to Execute_Request, or it can be
-   --  emitted asynchronously to the requesting component if
-   --  Null_Message was returned as the reply for Execute_Request.
 
-   type Acknowledge_Request is new Components.Message with record
-      Req : Requests.Request_Access;
+   type Arguments_Error is new Components.Message with record
+      Error : Exceptions.Error_Container;
    end record;
-   --  Acknowledge the reception of Req. This message can be a
-   --  synchronous reply to Execute_Request.
 
-end PolyORB.Servants.Interface;
+   type Flush is new Components.Message with null record;
+
+   --  When a Session receives a method invocation request,
+   --  it is not always possible to determine the signature
+   --  for the called method immediately; it may be necessary
+   --  to wait until the servant has started handling the
+   --  request, and performs a call to ServerRequest.Arguments.
+
+   --  In that case, where unmarshalling is deferred until request
+   --  execution commences, the message Unmarshall_Arguments must
+   --  be sent to the Session with a properly-type NVList in it
+   --  so the unmarshalling can take place. An Unmarshalled_Arguments
+   --  message is returned.
+
+   --  If an error is dectected when unmarshalling, then
+   --  Arguments_Error is returned.
+
+   --  The Flush message reinitializes the session object.
+
+end PolyORB.Protocols.Iface;

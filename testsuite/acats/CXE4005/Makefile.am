@@ -58,7 +58,7 @@ part1: part1.stubs/polyorb-dsa_p-partitions.ali part1.stubs/cxe4005_part_a1.ali 
 part2: part2.stubs/polyorb-dsa_p-partitions.ali part2.stubs/cxe4005_part_a1.ali part2.stubs/cxe4005_part_a2.ali part2.stubs/cxe4005_part_b.ali
 part1 part2: s-polint.ali
 
-clean: clean-stubs
+clean: clean-stubs clean-am
 clean-stubs:
 	rm -fr part1.stubs part2.stubs
 

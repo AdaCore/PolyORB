@@ -39,7 +39,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Requests;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Tasking.Threads;
 with PolyORB.Types;
 
@@ -48,7 +48,7 @@ package body PolyORB.Test_Object_SOA is
    use Ada.Text_IO;
 
    use PolyORB.Any;
-   use PolyORB.Servants.Interface;
+   use PolyORB.Servants.Iface;
    use PolyORB.Requests;
    use PolyORB.Types;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,7 +45,7 @@ with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.Representations.CDR.Common;
 with PolyORB.Representations.CDR.GIOP_Utils;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Types;
 
 package body PolyORB.Protocols.GIOP is
@@ -398,7 +398,7 @@ package body PolyORB.Protocols.GIOP is
             begin
                Emit_No_Reply
                  (Component_Access (ORB),
-                  Servants.Interface.Executed_Request'(Req => R));
+                  Servants.Iface.Executed_Request'(Req => R));
             end;
          end if;
 
@@ -433,7 +433,7 @@ package body PolyORB.Protocols.GIOP is
             begin
                Emit_No_Reply
                  (Component_Access (ORB),
-                  Servants.Interface.Executed_Request'(Req => R));
+                  Servants.Iface.Executed_Request'(Req => R));
             end;
          end if;
       end if;
@@ -493,7 +493,7 @@ package body PolyORB.Protocols.GIOP is
       pragma Unreferenced (Implem);
       pragma Warnings (On);
 
-      use PolyORB.Filters.Interface;
+      use PolyORB.Filters.Iface;
 
    begin
       Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => Buffer));

@@ -37,8 +37,8 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Exceptions;
 with PolyORB.Log;
-with PolyORB.ORB.Interface;
-with PolyORB.Protocols.Interface;
+with PolyORB.ORB.Iface;
+with PolyORB.Protocols.Iface;
 with PolyORB.Request_QoS;
 with PolyORB.Setup;
 
@@ -160,7 +160,7 @@ package body PolyORB.Requests is
       pragma Warnings (On);
 
       use PolyORB.ORB;
-      use PolyORB.ORB.Interface;
+      use PolyORB.ORB.Iface;
       use PolyORB.Setup;
 
    begin
@@ -724,7 +724,7 @@ package body PolyORB.Requests is
       if Is_Nil (Self.Args) then
          pragma Assert (Self.Deferred_Arguments_Session /= null);
          declare
-            use Protocols.Interface;
+            use Protocols.Iface;
 
             Reply : constant Components.Message'Class
               := Components.Emit

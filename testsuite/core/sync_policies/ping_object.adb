@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@ with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Requests;
-with PolyORB.Servants.Interface;
+with PolyORB.Servants.Iface;
 with PolyORB.Types;
 with PolyORB.Exceptions;
 
@@ -48,7 +48,7 @@ package body Ping_Object is
 
    use PolyORB.Any;
    use PolyORB.Requests;
-   use PolyORB.Servants.Interface;
+   use PolyORB.Servants.Iface;
 
    Count : Natural := 0;
    --  Count number of invocations

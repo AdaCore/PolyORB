@@ -2,6 +2,8 @@
 
 # Wrapper for GNAT
 
+set -e
+
 NATIVE_ADA="@ADA@"
 CROSS_ADA="@ADA_FOR_TARGET@"
 SED="@SED@"

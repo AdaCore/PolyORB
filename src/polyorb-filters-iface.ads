@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . F I L T E R S . I N T E R F A C E             --
+--                P O L Y O R B . F I L T E R S . I F A C E                 --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--          Copyright (C) 2001-2005 Free Software Foundation, Inc.          --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -41,7 +41,7 @@ with PolyORB.Components; use PolyORB.Components;
 with PolyORB.Exceptions;
 with PolyORB.Types;
 
-package PolyORB.Filters.Interface is
+package PolyORB.Filters.Iface is
 
    pragma Elaborate_Body;
 
@@ -133,5 +133,4 @@ package PolyORB.Filters.Interface is
    --  Signal Lower (Self) that data is expected using
    --  Data_Expected message.
 
-end PolyORB.Filters.Interface;
-
+end PolyORB.Filters.Iface;

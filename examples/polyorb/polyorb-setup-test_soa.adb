@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -42,7 +42,7 @@ with PolyORB.Components;
 with PolyORB.Exceptions;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Objects;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Requests;
@@ -139,7 +139,7 @@ package body PolyORB.Setup.Test_SOA is
          use PolyORB.Any;
          use PolyORB.Any.NVList;
          use PolyORB.Components;
-         use PolyORB.ORB.Interface;
+         use PolyORB.ORB.Iface;
          use PolyORB.Requests;
          use PolyORB.Types;
 

@@ -38,8 +38,8 @@ with PolyORB.Binding_Objects;
 with PolyORB.Components;
 with PolyORB.Log;
 with PolyORB.Filters;
-with PolyORB.Filters.Interface;
-with PolyORB.ORB.Interface;
+with PolyORB.Filters.Iface;
+with PolyORB.ORB.Iface;
 
 package body PolyORB.Transport.Connected is
 
@@ -58,7 +58,7 @@ package body PolyORB.Transport.Connected is
    is
       use PolyORB.Components;
       use PolyORB.ORB;
-      use PolyORB.ORB.Interface;
+      use PolyORB.ORB.Iface;
       use PolyORB.Filters;
 
       New_TE : Transport_Endpoint_Access;
@@ -97,7 +97,7 @@ package body PolyORB.Transport.Connected is
       use PolyORB.Components;
       use PolyORB.Exceptions;
       use PolyORB.Filters;
-      use PolyORB.Filters.Interface;
+      use PolyORB.Filters.Iface;
 
       Nothing : Components.Null_Message;
    begin
@@ -125,7 +125,7 @@ package body PolyORB.Transport.Connected is
             pragma Debug (O ("No enough data on TE, ORB will monitor TE"));
 
             return Emit
-              (TE.Server, ORB.Interface.Monitor_Endpoint'
+              (TE.Server, ORB.Iface.Monitor_Endpoint'
                (TE => Transport_Endpoint_Access (TE)));
          end if;
 

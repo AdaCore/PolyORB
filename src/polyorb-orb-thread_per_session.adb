@@ -35,12 +35,12 @@ with Ada.Unchecked_Deallocation;
 
 with PolyORB.Components;
 with PolyORB.Filters;
-with PolyORB.Filters.Interface;
+with PolyORB.Filters.Iface;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
-with PolyORB.ORB.Interface;
+with PolyORB.ORB.Iface;
 with PolyORB.Protocols;
 with PolyORB.Setup;
 with PolyORB.Tasking.Condition_Variables;
@@ -53,9 +53,9 @@ package body PolyORB.ORB.Thread_Per_Session is
    use PolyORB.Asynch_Ev;
    use PolyORB.Components;
    use PolyORB.Filters;
-   use PolyORB.Filters.Interface;
+   use PolyORB.Filters.Iface;
    use PolyORB.Log;
-   use PolyORB.ORB.Interface;
+   use PolyORB.ORB.Iface;
    use PolyORB.Protocols;
    use PolyORB.Tasking.Condition_Variables;
    use PolyORB.Tasking.Semaphores;
@@ -291,7 +291,7 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Warnings (On);
 
    begin
-      if Msg in Interface.Queue_Request then
+      if Msg in Iface.Queue_Request then
          Emit_No_Reply
            (Component_Access (ORB), Msg);
 

@@ -30,7 +30,7 @@ part2.stubs/cxe2001_part_b.ali: $(srcdir)/cxe2001_part_b.adb
 part1: part1.stubs/polyorb-dsa_p-partitions.ali part1.stubs/cxe2001_part_b.ali
 part2: part2.stubs/polyorb-dsa_p-partitions.ali part2.stubs/cxe2001_part_b.ali
 
-clean: clean-stubs
+clean: clean-stubs clean-am
 clean-stubs:
 	rm -fr part1.stubs part2.stubs
 
