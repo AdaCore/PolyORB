@@ -42,6 +42,8 @@ with CORBA.Local;
 with CORBA.Object;
 with CORBA.Policy;
 
+with PolyORB.Tasking.Mutexes;
+
 package CORBA.PolicyManager is
 
    type Local_Ref is new CORBA.Object.Ref with null record;
@@ -58,7 +60,9 @@ package CORBA.PolicyManager is
 
 private
 
-   type Object is new CORBA.Local.Object with null record;
+   type Object is new CORBA.Local.Object with record
+      Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
+   end record;
 
    type Object_Ptr is access all Object'Class;
 

@@ -33,12 +33,21 @@
 
 --  $Id$
 
+with PolyORB.Annotations;
 with PolyORB.CORBA_P.Initial_References;
+with PolyORB.CORBA_P.Policy_Management;
 with PolyORB.Initialization;
+with PolyORB.ORB;
+with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
 package body CORBA.PolicyManager is
+
+   use PolyORB.Annotations;
+   use PolyORB.CORBA_P.Policy_Management;
+   use PolyORB.Setup;
+   use PolyORB.Tasking.Mutexes;
 
    ----------
    -- Is_A --
@@ -84,13 +93,19 @@ package body CORBA.PolicyManager is
       TS   : in     CORBA.Policy.PolicyTypeSeq)
      return CORBA.Policy.PolicyList
    is
-      pragma Unreferenced (Self);
-      pragma Unreferenced (TS);
-
+      Npad   : Notepad_Access;
+      Note   : Policy_Manager_Note;
       Result : CORBA.Policy.PolicyList;
-   begin
 
-      --  Insert implementation of get_policy_overrides
+   begin
+      Enter (Self.Lock);
+
+      Npad := PolyORB.ORB.Notepad_Of (The_ORB);
+      Get_Note (Npad.all, Note, Empty_Policy_Manager_Note);
+
+      Result := Get_Policy_Overrides (Note.Overrides, TS);
+
+      Leave (Self.Lock);
 
       return Result;
    end Get_Policy_Overrides;
@@ -119,15 +134,35 @@ package body CORBA.PolicyManager is
       Policies : in     CORBA.Policy.PolicyList;
       Set_Add  : in     CORBA.SetOverrideType)
    is
-      pragma Unreferenced (Self);
-      pragma Unreferenced (Policies);
-      pragma Unreferenced (Set_Add);
+      Npad    : Notepad_Access;
+      Note    : Policy_Manager_Note;
+      Indexes : CORBA.Short;
 
    begin
+      Enter (Self.Lock);
 
-      --  Insert implementation of set_policy_overrides
+      Npad := PolyORB.ORB.Notepad_Of (The_ORB);
 
-      null;
+      if Set_Add = ADD_OVERRIDE then
+         Get_Note (Npad.all, Note, Empty_Policy_Manager_Note);
+      end if;
+
+      Add_Policy_Overrides (Note.Overrides, Policies, ORB_Level);
+
+      Check_Compatibility (Note.Overrides, Indexes);
+
+      if Indexes /= 0 then
+         raise PolyORB.Not_Implemented;
+         --  XXX should raise the CORBA.InvalidPolicies exception
+      end if;
+
+      Set_Note (Npad.all, Note);
+      Leave (Self.Lock);
+
+   exception
+      when others =>
+         Leave (Self.Lock);
+         raise;
    end Set_Policy_Overrides;
 
    -----------------------------
@@ -137,14 +172,17 @@ package body CORBA.PolicyManager is
    procedure Deferred_Initialization;
 
    procedure Deferred_Initialization is
-      Ptr : constant Object_Ptr := new Object;
+      PM_Object : constant Object_Ptr := new Object;
       Ref : CORBA.Object.Ref;
    begin
-      CORBA.Object.Set (Ref, PolyORB.Smart_Pointers.Entity_Ptr (Ptr));
+      Create (PM_Object.Lock);
+
+      CORBA.Object.Set (Ref, PolyORB.Smart_Pointers.Entity_Ptr (PM_Object));
 
       PolyORB.CORBA_P.Initial_References.Register_Initial_Reference
         ("ORBPolicyManager",
          Ref);
+      --  There is at most one ORBPolicyManager per partition
    end Deferred_Initialization;
 
    use PolyORB.Initialization;
