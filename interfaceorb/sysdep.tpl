@@ -8,7 +8,7 @@ package AdaBroker.Sysdep is
    pragma Linker_Options ("-lomniDynamic2");
    pragma Linker_Options ("-lomnithread");
    pragma Linker_Options ("-lpthread");
-   pragma Linker_Options ("-lposix4");
+   @POSIX4@pragma Linker_Options ("-lposix4");
    @SOCKET@pragma Linker_Options ("-lsocket");
    @SOCKET@pragma Linker_Options ("-lnsl");
    pragma Linker_Options ("-ltcpwrapGK");
