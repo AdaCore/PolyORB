@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -40,7 +40,6 @@ with CORBA.BOA;
 with CORBA.Command_Line;
 with CORBA.Context;
 with CORBA.Environment;
-with CORBA.Exceptions;
 with CORBA.Forward;
 with CORBA.NVList;
 with CORBA.Object;
@@ -73,7 +72,6 @@ pragma Warnings (Off, AdaBroker.Constants);
 pragma Warnings (Off, CORBA.BOA);
 pragma Warnings (Off, CORBA.Command_Line);
 pragma Warnings (Off, CORBA.Context);
-pragma Warnings (Off, CORBA.Exceptions);
 pragma Warnings (Off, CORBA.Environment);
 pragma Warnings (Off, CORBA.Forward);
 pragma Warnings (Off, CORBA.Object);
