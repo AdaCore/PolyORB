@@ -75,7 +75,7 @@ package body System.RPC is
    --  needed to be able to drop the Params_Stream_Type without losing its
    --  content.
 
-   type Request_Array is array (Request_Id) of System.RPC.Partition_Id;
+   type Request_Array is array (Request_Id) of System.RPC.Partition_ID;
 
    protected type Request_Id_Server_Type is
       entry Get  (Id : out Request_Id; Partition : in System.RPC.Partition_ID);
