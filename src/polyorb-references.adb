@@ -55,6 +55,30 @@ package body PolyORB.References is
 
    type Reference_Info_Access is access all Reference_Info'Class;
 
+   --------------------------------
+   -- System location management --
+   --------------------------------
+
+   type Prefix_Record is record
+      Prefix : Types.String;
+      Func   : String_To_Object_Func;
+   end record;
+
+   Prefix_Table : array (1 .. 2) of Prefix_Record;
+   Prefix_Index : Natural := 0;
+
+   --------------
+   -- Register --
+   --------------
+
+   procedure Register
+     (Prefix : Types.String;
+      Func   : String_To_Object_Func) is
+   begin
+      Prefix_Index := Prefix_Index + 1;
+      Prefix_Table (Prefix_Index) := (Prefix, Func);
+   end Register;
+
    ------------------------
    -- Local declarations --
    ------------------------
@@ -350,5 +374,31 @@ package body PolyORB.References is
       --  XXX Perhaps some cases of R not designating
       --  a ref_info should be supported here?
    end Type_Id_Of;
+
+   ----------------------
+   -- String_To_Object --
+   ----------------------
+
+   procedure String_To_Object
+     (Str     : in     Types.String;
+      The_Ref :    out Ref)
+   is
+      use PolyORB.Types;
+
+   begin
+      for J in 1 .. Prefix_Index loop
+         declare
+            Prefix : Types.String
+              renames Prefix_Table (J).Prefix;
+         begin
+            if Length (Str) > Length (Prefix)
+              and then To_String (Str) (1 .. Length (Prefix)) = Prefix then
+               The_Ref := Prefix_Table (J).Func (Str);
+               return;
+            end if;
+         end;
+      end loop;
+      raise Constraint_Error;
+   end String_To_Object;
 
 end PolyORB.References;

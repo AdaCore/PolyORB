@@ -112,4 +112,7 @@ package PolyORB.References.IOR is
       Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
 
+   IOR_Prefix : constant Types.String
+     := PolyORB.Types.To_PolyORB_String ("IOR:");
+
 end PolyORB.References.IOR;

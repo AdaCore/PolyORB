@@ -38,6 +38,7 @@
 with Ada.Unchecked_Deallocation;
 with PolyORB.Sequences.Unbounded;
 
+with PolyORB.Types;
 with PolyORB.Binding_Data;
 with PolyORB.Components;
 with PolyORB.Smart_Pointers;
@@ -99,6 +100,10 @@ package PolyORB.References is
    function Image (R : Ref) return String;
    --  For debugging purposes.
 
+   procedure String_To_Object
+     (Str     : in     Types.String;
+      The_Ref :    out Ref);
+
    type Ref_Ptr is access all Ref;
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (Ref, Ref_Ptr);
@@ -144,5 +149,12 @@ private
    --  Finalize operation would then be called *after* (not *before*)
    --  the controlled components of Reference_Info (including
    --  Profiles and Binding_Object_Ref) have been finalized.
+
+   type String_To_Object_Func
+   is access function (Str : Types.String) return Ref;
+
+   procedure Register
+     (Prefix : Types.String;
+      Func   : String_To_Object_Func);
 
 end PolyORB.References;

@@ -36,20 +36,22 @@
 with Ada.Streams;
 
 with PolyORB.Binding_Data;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
 with PolyORB.Representations.CDR;
 with PolyORB.Sequences.Unbounded;
 with PolyORB.Types;
-with PolyORB.Utils;
+with PolyORB.Utils.Strings;
 
 package body PolyORB.References.IOR is
 
    use Ada.Streams;
 
-   use PolyORB.Log;
-   use PolyORB.Utils;
-   use PolyORB.Representations.CDR;
    use PolyORB.Binding_Data;
+   use PolyORB.Log;
+   use PolyORB.Representations.CDR;
+   use PolyORB.Utils;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.ior");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -308,38 +310,44 @@ package body PolyORB.References.IOR is
    -- Object_To_String --
    ----------------------
 
-   function Object_To_String (IOR : IOR_Type)
-     return Types.String is
+   function Object_To_String
+     (IOR : IOR_Type)
+     return Types.String
+   is
+      use PolyORB.Types;
    begin
-      return Types.To_PolyORB_String
-        ("IOR:" & To_String (Object_To_Opaque (IOR)));
+      return IOR_Prefix & To_String (Object_To_Opaque (IOR));
    end Object_To_String;
 
    ----------------------
    -- String_To_Object --
    ----------------------
 
-   function String_To_Object (Str : Types.String)
+   function String_To_Object
+     (Str : Types.String)
      return IOR_Type
    is
+      use PolyORB.Types;
       use PolyORB.Buffers;
-      S       : constant String
-        := Types.To_Standard_String (Str);
-      Length  : constant Natural := S'Length;
-   begin
-      if Length <= 4
-        or else Length mod 2 /= 0
-        or else S (S'First .. S'First + 3) /= "IOR:"
-      then
-         raise Constraint_Error;
-      end if;
+      use PolyORB.Utils.Strings;
 
-      declare
-         Octets : aliased Stream_Element_Array
-           := To_Stream_Element_Array (S (S'First + 4 .. S'Last));
-      begin
-         return Opaque_To_Object (Octets'Access);
-      end;
+      S : Types.String := Str;
+      Success : Boolean;
+   begin
+      pragma Debug (O ("Try to decode IOR"));
+      Check_And_Remove_Header (S, IOR_Prefix, Success);
+
+      if Success then
+         pragma Debug (O ("IOR Header ok"));
+         declare
+            Octets : aliased Stream_Element_Array
+              := To_Stream_Element_Array
+              (To_Standard_String (S));
+         begin
+            return Opaque_To_Object (Octets'Access);
+         end;
+      end if;
+      raise Constraint_Error;
    end String_To_Object;
 
    --------------
@@ -358,4 +366,27 @@ package body PolyORB.References.IOR is
       Append (Callbacks, Elt);
    end Register;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Register (IOR_Prefix, String_To_Object'Access);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"references.ior",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => Empty,
+       Init      => Initialize'Access));
 end PolyORB.References.IOR;
