@@ -135,7 +135,7 @@ SOURCES =  $(PROTOCOLSSOURCES) $(FILTERSSOURCES) $(COMMONSOURCES)
 CLEANFILES = lib*.a *.ali *.o split b_*.c b~*.ad[bs] 	s-gaprco.adb s-galiop.ads 	inlining gnatlib/* constants_nodef 	b_gaprco$(EXEECT) isthrbio$(EXEEXT) 	$(FILTERSOBJECTS)
 
 
-DISTCLEANFILES = Makefile.fil
+DISTCLEANFILES = Makefile.fil s-garrem.adb
 
 SUFFIXES = .adb .ads .ali .o .xrb
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs

@@ -130,7 +130,7 @@ CLEANFILES = lib*.a *.ali *.o split b_*.c b~*.ad[bs]\
 	b_gaprco$(EXEECT) isthrbio$(EXEEXT)\
 	$(FILTERSOBJECTS)
 
-DISTCLEANFILES = Makefile.fil
+DISTCLEANFILES = Makefile.fil s-garrem.adb
 
 SUFFIXES = .adb .ads .ali .o .xrb
 
