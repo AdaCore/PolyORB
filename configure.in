@@ -296,7 +296,8 @@ AC_OUTPUT([Makefile
 	   examples/Makefile 
 	   examples/corba/Makefile examples/corba/all_types/Makefile 
 	   examples/corba/all_functions/Makefile examples/corba/echo/Makefile
-	   examples/corba/random/Makefile examples/dsa/Makefile 
+	   examples/corba/random/Makefile
+	   examples/dsa/Makefile examples/bbs/Makefile
            examples/moma/Makefile examples/polyorb/Makefile
 	   support/adacompiler support/native-adacompiler
            support/linker polyorb-config])

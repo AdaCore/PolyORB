@@ -1,7 +1,7 @@
 LINKER=	../support/linker
 
 corba_dir = corba
-dsa_dir   = dsa
+dsa_dir   = dsa bbs
 moma_dir  = moma
 giop_dir  =
 soap_dir  = 

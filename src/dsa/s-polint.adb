@@ -475,6 +475,7 @@ package body System.PolyORB_Interface is
             Stub : Receiving_Stub renames Value (It).all;
 
          begin
+            pragma Debug (O ("Setting up RPC receiver: " & Stub.Name.all));
             Setup_Object_RPC_Receiver
               (Stub.Name.all, Stub.Receiver);
             --  Establish a child POA for this stub. For RACWs,
@@ -505,6 +506,7 @@ package body System.PolyORB_Interface is
                        (The_ORB, Oid'Access,
                         "DSA:" & Stub.Name.all & ":" & Stub.Version.all,
                         Ref);
+                     pragma Debug (O ("Registering RCI: " & Stub.Name.all));
                      Known_RCIs.Register
                        (Stub.Name.all, RCI_Info'
                           (Base_Ref            => Ref,
