@@ -2465,7 +2465,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "end;");
          Divert (CU, Visible_Declarations);
 
-         if Is_Interface_Type (Type_Node) then
+         if Is_Interface_Type (Type_Node) and then not Is_Array then
             return;
          end if;
 
