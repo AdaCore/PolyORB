@@ -385,13 +385,24 @@ package body PolyORB.Binding_Data.IIOP is
       Addr_Image : constant Standard.String
         := PolyORB.Types.To_Standard_String
         (PolyORB.Types.String'(Unmarshall (Buffer)));
-
       Port : constant Types.Unsigned_Short := Unmarshall (Buffer);
+      Hostname_Seen : Boolean := False;
    begin
-      --  Unmarshalling of the Host
-      Sock.Addr := Inet_Addr (Addr_Image);
+      for J in Addr_Image'Range loop
+         if Addr_Image (J) not in '0' .. '9'
+           and then Addr_Image (J) /= '.'
+         then
+            Hostname_Seen := True;
+            exit;
+         end if;
+      end loop;
 
-      --  Unmarshalling of the port
+      if Hostname_Seen then
+         Sock.Addr := Addresses (Get_Host_By_Name (Addr_Image), 1);
+      else
+         Sock.Addr := Inet_Addr (Addr_Image);
+      end if;
+
       Sock.Port := Port_Type (Port);
 
    end Unmarshall_Socket;
