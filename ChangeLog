@@ -1,3 +1,11 @@
+1998-09-02  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in (TISTHRBIO): Use a reliable method that works with
+	GNAT-inlined/GLADE-not-inlined, GNAT-not-inlined/GLADE-inlined,
+	both-inlined or both-non-inlined. The two previous versions had a
+	problem with some combinations, the last one causing nightly build 
+	failures.
+
 1998-09-01  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* MANIFEST: Remove Examples/Filters/localhost as it will not work
