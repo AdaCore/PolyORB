@@ -445,7 +445,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "  return " & Type_Name & ";");
       end;
 
-      if Generate_Dyn and then not Local (Node) then
+      if Generate_Dyn then
          --  TypeCode
          NL (CU);
          Add_With (CU, "CORBA");
@@ -1213,7 +1213,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "end To_" & Type_Defining_Name & ";");
       end;
 
-      if Generate_Dyn and then not Local (Node) then
+      if Generate_Dyn then
          --  From_Any
 
          Add_With (CU, "CORBA.Object.Helper");
