@@ -249,8 +249,7 @@ package body PortableInterceptor.RequestInfo.Impl is
       return CORBA.Unsigned_Long
    is
    begin
-      raise Program_Error;
-      return 0;
+      return Self.Request_Id;
    end Get_Request_Id;
 
    ---------------------------------
@@ -391,11 +390,13 @@ package body PortableInterceptor.RequestInfo.Impl is
    ----------
 
    procedure Init
-     (Self    : access Object;
-      Request : in     PolyORB.Requests.Request_Access)
+     (Self       : access Object;
+      Request    : in     PolyORB.Requests.Request_Access;
+      Request_Id : in     CORBA.Unsigned_Long)
    is
    begin
-      Self.Request := Request;
+      Self.Request    := Request;
+      Self.Request_Id := Request_Id;
    end Init;
 
    ----------------------------
