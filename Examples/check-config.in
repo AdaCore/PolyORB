@@ -8,7 +8,7 @@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-EXEEXT = @EXEEXT@
+EXEEXT=@EXEEXT@
 
 #
 # Utilities
