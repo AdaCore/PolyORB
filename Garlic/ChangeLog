@@ -1,3 +1,8 @@
+1998-04-29  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am, Makefile.in: Fix a glitch concerning target
+ 	inlining.
+
 1998-04-29  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-parint.ads: Define Raise_Program_Error_For_E_4_18 which will
