@@ -67,7 +67,7 @@
 (defun center-ada (l)
   (let* ((tt 71)
 	 (n (length l))
-	 (s (- (/ (- tt n) 2) 1)))
+	 (s (/ (- tt n) 2)))
     (concat "-- " (spaces-ada s) l (spaces-ada (- tt (+ s n))) "  --\n")))
 
 (defun spaces-ada (n)
