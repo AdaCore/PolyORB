@@ -556,7 +556,6 @@ package body XE_Back is
       Node : Node_Id;
       Host : Host_Id;
    begin
-      Hosts.Increment_Last;
 
       First_Configuration_Declaration (Configuration_Node, Node);
       while Node /= Null_Node loop

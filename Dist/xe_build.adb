@@ -43,6 +43,7 @@ with XE_Check;         use XE_Check;
 with XE_Utils;         use XE_Utils;
 with GNAT.Os_Lib;      use GNAT.Os_Lib;
 with XE;               use XE;
+with Make;             use Make;
 with Opt;
 procedure XE_Build is
 
@@ -51,20 +52,7 @@ procedure XE_Build is
 
 begin
 
-   --  Dont'ask me why : Done this in Make.Gnatmake.
-   Opt.Check_Internal_Files     := False;
-   Opt.Check_Object_Consistency := True;
-   Opt.Compile_Only             := False;
-   Opt.Dont_Execute             := False;
-   Opt.Force_Compilations       := False;
-   Opt.Quiet_Output             := False;
-   Opt.Smart_Compilations       := False;
-   Opt.Verbose_Mode             := False;
-
-   Initialize (Make);
-   Namet.Initialize;
-   Csets.Initialize;
-
+   Make.Initialize;
    --  Use Gnatmake already defined switches.
    Verbose_Mode       := Opt.Verbose_Mode;
    Debug_Mode         := Debug.Debug_Flag_Q;
