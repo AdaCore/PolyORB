@@ -67,9 +67,11 @@ Features
   working with AdaBroker. The 'examples' subdirectory provides
   several examples of the available features.
 
-- This release has been successfully tested on Solaris 2.5.1. It has been
-  reported to work on Debian GNU/Linux with the standard G++ and GNAT
-  compilers from the 'potato' distribution.
+- This release has been succesfully tested on:
+
+    - Debian GNU/Linux 2.2 (Potato) on Intel and Sparc
+    - FreeBSD 4.0 and 5.0-CURRENT
+    - Solaris 2.6 and 2.7 on Sparc
 
 - If you need to debug AdaBroker, you can create a file broca.opt in
   your current directory. This file should contain lines with package
