@@ -42,7 +42,7 @@ with PolyORB.ORB;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols.Interface;
 with PolyORB.Setup;
-with PolyORB.Dynamic_Dict;
+--  with PolyORB.Dynamic_Dict;
 with PolyORB.Exceptions;
 
 package body PolyORB.Requests is
@@ -163,7 +163,25 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList.Internals.NV_Lists;
       use PolyORB.Exceptions;
 
-      package Dst_Names is new PolyORB.Dynamic_Dict (Integer);
+      function Name_Exists (Iter : Iterator; Name : Types.Identifier)
+                           return Boolean;
+
+
+      function Name_Exists (Iter : Iterator; Name : Types.Identifier)
+                           return Boolean
+      is
+         It    : Iterator := Iter;
+      begin
+         while not Last (It) loop
+            if Value (It).Name = Name then
+               return True;
+            end if;
+
+            Next (It);
+         end loop;
+
+         return False;
+      end Name_Exists;
 
       Member : constant System_Exception_Members
         := (Minor => 1, Completed => Completed_No);
@@ -174,7 +192,6 @@ package body PolyORB.Requests is
       Src_Idx : Long;
       Src_It : Iterator;
       Copy_Argument : Boolean;
-      Occurence_Of_Src_Arg_Name : Integer;
       Identification_By_Name, Identification_By_Position : Boolean := True;
       --  By default, we assume that arguments are identified by both
       --  name and position (this is the ideal case).
@@ -211,38 +228,6 @@ package body PolyORB.Requests is
       --  be marked as 'IN'. Also, there is no guarantee that the order
       --  of arguments is the same in Args and Self.Args.)
 
-      declare
-         Loc_Dst_It : Iterator := First (List_Of (Dst_Args).all);
-      begin
-         while not Last (Loc_Dst_It) loop
-            declare
-               Name : constant String := To_String (Value (Loc_Dst_It).Name);
-               Occurences : Integer := Dst_Names.Lookup (Name, 0);
-            begin
-               Occurences := Occurences + 1;
-               if Occurences /= 1 then
-                  --  This means the hash table did not contain an
-                  --  entry for this name
-
-                  begin
-                     Dst_Names.Unregister (Name);
-                  exception
-                     when Dst_Names.Key_Not_Found =>
-                        pragma Debug (O ("Pump_Up_Arguments: Error while "
-                                         & "scanning args names of dst_args"));
-
-                        --  This should never happen
-
-                        null;
-                  end;
-               end if;
-
-               Dst_Names.Register (Name, Occurences);
-               Next (Loc_Dst_It);
-            end;
-         end loop;
-      end;
-
       --  The reconciliation mechanism itself
 
       while not Last (Dst_It) loop
@@ -274,10 +259,6 @@ package body PolyORB.Requests is
                       or else Value (Src_It).Arg_Modes = Direction)
                     and then Copied_Src_Args (Src_Idx) = False
                   then
-                     Occurence_Of_Src_Arg_Name
-                       := Dst_Names.Lookup (To_String
-                                            (Value (Src_It).Name), 0);
-
                      pragma Debug (O ("Src_Arg: "
                                       & To_String (Value (Src_It).Name)));
                      if PolyORB.Any.TypeCode.Equal
@@ -291,31 +272,33 @@ package body PolyORB.Requests is
                         --  are identified both by name and position.
 
                         else
-                           if Identification_By_Position then
+                           if Identification_By_Position
+                             and then not Identification_By_Name
+                           then
                               Copy_Argument := True;
                               --  The name does not match. It is not a
                               --  problem if we are identifying
-                              --  arguments by their positions, since
-                              --  we then do not consider the
-                              --  names.
+                              --  arguments by their positions and not
+                              --  by their names, since we then do not
+                              --  consider the names.
 
-                           end if;
 
-                           if Identification_By_Name
-                             and then Occurence_Of_Src_Arg_Name > 0
+                           elsif Identification_By_Name
+                             and then Name_Exists (Src_It, Value (Dst_It).Name)
                            then
                               Identification_By_Position := False;
                               Copy_Argument := False;
                               --  If the name does not match, but
-                              --  exists in the hash table, and we are
-                              --  performing identification by name
-                              --  (and possibly identification by
-                              --  position), then we assume that the
-                              --  argument will match by name latern
-                              --  and then we are not performing
-                              --  identification by position any
-                              --  more. Thus identification by name
-                              --  has the priority.
+                              --  exists, and we are performing
+                              --  identification by name (and possibly
+                              --  identification by position), then we
+                              --  assume that the argument will match
+                              --  by name later and then we are not
+                              --  performing identification by
+                              --  position any more. Thus
+                              --  identification by name has the
+                              --  priority.
+
 
                            else
                               Identification_By_Name := False;
@@ -326,7 +309,9 @@ package body PolyORB.Requests is
                               --  table, then we cannot perform such
                               --  identification any more.
 
-                              if Identification_By_Position = False then
+                              if Identification_By_Position then
+                                 Copy_Argument := True;
+                              else
                                  Throw (Error, Bad_TypeCode_E, Member);
                                  pragma Debug (O ("dead end"));
                                  return;
@@ -348,7 +333,9 @@ package body PolyORB.Requests is
                         --  positions.
 
                         if Identification_By_Name then
-                           if Occurence_Of_Src_Arg_Name <= 0 then
+                           if not Name_Exists
+                             (Src_It, Value (Dst_It).Name)
+                           then
                               --  If the name does not exist, this
                               --  means that we will never be able to
                               --  make this argument match.
@@ -383,21 +370,6 @@ package body PolyORB.Requests is
                      Copy_Any_Value (Dst_Arg.Argument,
                                      Value (Src_It).Argument);
                      Copied_Src_Args (Src_Idx) := True;
-                     declare
-                        Occurence : Integer
-                          := Dst_Names.Lookup (To_String (Dst_Arg.Name), 0);
-                     begin
-                        Occurence := Occurence - 1;
-                        Dst_Names.Unregister (To_String (Dst_Arg.Name));
-                     exception
-                        when Dst_Names.Key_Not_Found =>
-                           pragma Debug
-                             (O ("Pump_Up_Arguments: Error when "
-                                 & "updating dst_names hash table"));
-                           Throw (Error, Internal_E, Member);
-                           pragma Debug (O ("hash error"));
-                           return;
-                     end;
                      exit;
                   else
                      Src_Idx := Src_Idx + 1;
