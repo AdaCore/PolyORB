@@ -33,26 +33,23 @@
 --  $Id$
 
 with PolyORB.References;
-with PolyORB.References.IOR;
 with MOMA.Connections;
 
 package body MOMA.Connection_Factories.Queues is
 
    use PolyORB.References;
-   use PolyORB.References.IOR;
    use MOMA.Connections;
 
    ------------
    -- Create --
    ------------
 
-   function Create (IOR_String : MOMA.Types.String)
+   function Create (Remote : PolyORB.References.Ref)
                     return MOMA.Connections.Queues.Queue
    is
       Queue : MOMA.Connections.Queues.Queue;
-      IOR : constant IOR_Type := String_To_Object (IOR_String);
    begin
-      Set_Ref (Connection (Queue), IOR);
+      Set_Ref (Connection (Queue), Remote);
       return Queue;
    end Create;
 

@@ -33,7 +33,8 @@
 --  $Id$
 
 with MOMA.Connections;
-with MOMA.Types;
+
+with PolyORB.References;
 
 package MOMA.Connection_Factories is
 
@@ -47,7 +48,7 @@ package MOMA.Connection_Factories is
    --  Abstract Create Functions --
    --------------------------------
 
-   function Create (IOR_String : MOMA.Types.String)
+   function Create (Remote : PolyORB.References.Ref)
                     return Connections.Connection is abstract;
 
    function Create (Username : String; Password : String)
