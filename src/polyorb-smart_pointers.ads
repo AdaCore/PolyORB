@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.ads#5 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.ads#6 $
 
 with Ada.Finalization;
 
@@ -89,10 +89,15 @@ package PolyORB.Smart_Pointers is
 
    function Entity_Of (The_Ref : Ref) return Entity_Ptr;
 
-private
+   --  The following two low-level functions are exposed for
+   --  cases where controlled types cannot be directly used
+   --  in a personality. Great care must be taken when
+   --  using them outside of this unit!
 
    procedure Inc_Usage (Obj : Entity_Ptr);
    procedure Dec_Usage (Obj : in out Entity_Ptr);
+
+private
 
    type Entity is abstract
      new Ada.Finalization.Limited_Controlled with

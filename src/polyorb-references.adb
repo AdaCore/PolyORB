@@ -42,6 +42,7 @@ with PolyORB.Log;
 
 package body PolyORB.References is
 
+   use type PolyORB.Components.Component_Access;
    use PolyORB.Log;
    use PolyORB.Smart_Pointers;
    use PolyORB.Utils.Strings;
@@ -52,29 +53,26 @@ package body PolyORB.References is
 
    type Reference_Info_Access is access all Reference_Info'Class;
 
-   -----------------
-   -- Ref_Info_Of --
-   -----------------
+   ------------------------
+   -- Local declarations --
+   ------------------------
 
    function Ref_Info_Of (R : Ref) return Reference_Info_Access;
+   --  Obtain the object reference information from R.
 
-   function Ref_Info_Of (R : Ref) return Reference_Info_Access is
-      E : constant Entity_Ptr := Entity_Of (R);
-   begin
-      if E /= null then
-         if E.all in Reference_Info'Class then
-            return Reference_Info_Access (E);
-         else
-            pragma Debug (O ("Ref_Info_Of: entity is a "
-                             & Ada.Tags.External_Tag (E'Tag)));
-            null;
-         end if;
-      else
-         pragma Debug (O ("Ref_Info_Of: nil ref."));
-         null;
-      end if;
-      return null;
-   end Ref_Info_Of;
+   --  When an object reference is bound (i.e. associated at
+   --  runtime with a transport service endpoint and a messaging
+   --  protocol stack), it becomes associated with a Binding_Object
+   --  which will remain in existence until all references to
+   --  the object have been finalized (at which time the transport
+   --  connection and protocol stack will be torn down, as a
+   --  result of finalizing the binding object).
+
+   type Binding_Object is new Smart_Pointers.Entity with record
+      BO_Component : Components.Component_Access;
+   end record;
+
+   procedure Finalize (X : in out Binding_Object);
 
    ----------------------
    -- Create_Reference --
@@ -105,40 +103,67 @@ package body PolyORB.References is
          end;
       end if;
 
-      --  Outputs created reference.
       pragma Debug (O ("New " & Image (R)));
 
    end Create_Reference;
 
-   -----------------
-   -- Profiles_Of --
-   -----------------
+   --------------
+   -- Finalize --
+   --------------
 
-   function Profiles_Of (R : Ref) return Profile_Array is
+   procedure Finalize (RI : in out Reference_Info)
+   is
+      Profiles : Profile_Array
+        := Profile_Seqs.To_Element_Array (RI.Profiles);
+   begin
+      Free (RI.Type_Id);
+      for I in Profiles'Range loop
+         pragma Debug
+           (O ("Destroying profile of type "
+               & Ada.Tags.External_Tag (Profiles (I)'Tag)));
+         Binding_Data.Destroy_Profile (Profiles (I));
+      end loop;
+   end Finalize;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (X : in out Binding_Object)
+   is
+      M : Filters.Interface.Disconnect_Request;
+   begin
+      pragma Debug (O ("Finalizing binding object"));
+      Components.Emit_No_Reply
+        (X.BO_Component, M);
+   end Finalize;
+
+   ----------------------
+   -- Get_Binding_Info --
+   ----------------------
+
+   procedure Get_Binding_Info
+     (R   :     Ref;
+      BOC : out Components.Component_Access;
+      Pro : out Binding_Data.Profile_Access)
+   is
       RI : constant Reference_Info_Access
         := Ref_Info_Of (R);
+      BOP : constant Entity_Ptr := Entity_Of (RI.Binding_Object_Ref);
    begin
-      if RI /= null then
-         return Profile_Seqs.To_Element_Array (RI.Profiles);
+      if BOP = null then
+         BOC := null;
+         Pro := null;
       else
          declare
-            Null_Profile_Array : Profile_Array (1 .. 0);
+            BO : Binding_Object renames Binding_Object (BOP.all);
          begin
-            return Null_Profile_Array;
+            pragma Assert (BO.BO_Component /= null);
+            BOC := BO.BO_Component;
+            Pro := RI.Binding_Object_Profile;
          end;
       end if;
-   end Profiles_Of;
-
-   ----------------
-   -- Type_Id_Of --
-   ----------------
-
-   function Type_Id_Of (R : Ref) return String is
-   begin
-      return Ref_Info_Of (R).Type_Id.all;
-      --  XXX Perhaps some cases of R not designating
-      --  a ref_info should be supported here?
-   end Type_Id_Of;
+   end Get_Binding_Info;
 
    -----------
    -- Image --
@@ -165,69 +190,60 @@ package body PolyORB.References is
       return To_String (Res);
    end Image;
 
-   --------------
-   -- Finalize --
-   --------------
+   --------------------
+   -- Is_Same_Object --
+   --------------------
 
-   procedure Finalize (RI : in out Reference_Info)
+   function Is_Same_Object (Left, Right : Ref) return Boolean
    is
-      Profiles : Profile_Array
-        := Profile_Seqs.To_Element_Array (RI.Profiles);
+      use type Profile_Seqs.Sequence;
+
+      Left_RI : constant Reference_Info_Access := Ref_Info_Of (Left);
+      Right_RI : constant Reference_Info_Access := Ref_Info_Of (Right);
    begin
-      Free (RI.Type_Id);
-      for I in Profiles'Range loop
-         pragma Debug
-           (O ("Destroying profile of type "
-               & Ada.Tags.External_Tag (Profiles (I)'Tag)));
-         Binding_Data.Destroy_Profile (Profiles (I));
-      end loop;
-   end Finalize;
+      return Left_RI.Type_Id.all = Right_RI.Type_Id.all
+        and then Left_RI.Profiles = Right_RI.Profiles;
+   end Is_Same_Object;
 
-   type Binding_Object is new Smart_Pointers.Entity with record
-      BO_Component : Components.Component_Access;
-   end record;
+   -----------------
+   -- Profiles_Of --
+   -----------------
 
-   procedure Finalize (X : in out Binding_Object);
-
-   procedure Finalize (X : in out Binding_Object)
-   is
-      pragma Warnings (Off);
-      M : Filters.Interface.Disconnect_Request;
-      pragma Warnings (On);
+   function Profiles_Of (R : Ref) return Profile_Array is
+      RI : constant Reference_Info_Access := Ref_Info_Of (R);
    begin
-      pragma Debug (O ("Finalizing binding object"));
-      Components.Emit_No_Reply
-        (X.BO_Component, M);
-   end Finalize;
-
-   ----------------------
-   -- Get_Binding_Info --
-   ----------------------
-
-   use type Components.Component_Access;
-
-   procedure Get_Binding_Info
-     (R   :     Ref;
-      BOC : out Components.Component_Access;
-      Pro : out Binding_Data.Profile_Access)
-   is
-      RI : constant Reference_Info_Access
-        := Ref_Info_Of (R);
-      BOP : constant Entity_Ptr := Entity_Of (RI.Binding_Object_Ref);
-   begin
-      if BOP = null then
-         BOC := null;
-         Pro := null;
+      if RI /= null then
+         return Profile_Seqs.To_Element_Array (RI.Profiles);
       else
          declare
-            BO : Binding_Object renames Binding_Object (BOP.all);
+            Null_Profile_Array : Profile_Array (1 .. 0);
          begin
-            pragma Assert (BO.BO_Component /= null);
-            BOC := BO.BO_Component;
-            Pro := RI.Binding_Object_Profile;
+            return Null_Profile_Array;
          end;
       end if;
-   end Get_Binding_Info;
+   end Profiles_Of;
+
+   -----------------
+   -- Ref_Info_Of --
+   -----------------
+
+   function Ref_Info_Of (R : Ref) return Reference_Info_Access is
+      E : constant Entity_Ptr := Entity_Of (R);
+   begin
+      if E /= null then
+         if E.all in Reference_Info'Class then
+            return Reference_Info_Access (E);
+         else
+            pragma Debug (O ("Ref_Info_Of: entity is a "
+                             & Ada.Tags.External_Tag (E'Tag)));
+            null;
+         end if;
+      else
+         pragma Debug (O ("Ref_Info_Of: nil ref."));
+         null;
+      end if;
+      return null;
+   end Ref_Info_Of;
 
    ----------------------
    -- Set_Binding_Info --
@@ -266,5 +282,16 @@ package body PolyORB.References is
          RD.Type_Id := new String'(RS.Type_Id.all);
       end if;
    end Share_Binding_Info;
+
+   ----------------
+   -- Type_Id_Of --
+   ----------------
+
+   function Type_Id_Of (R : Ref) return String is
+   begin
+      return Ref_Info_Of (R).Type_Id.all;
+      --  XXX Perhaps some cases of R not designating
+      --  a ref_info should be supported here?
+   end Type_Id_Of;
 
 end PolyORB.References;

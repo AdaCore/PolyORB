@@ -218,11 +218,15 @@ package body CORBA.Object is
    function Is_Equivalent
      (Self         : Ref;
       Other_Object : Ref'Class)
-     return Boolean
+      return Boolean
    is
-      use PolyORB.Smart_Pointers;
+      use PolyORB.References;
+
+      Left, Right : PolyORB.References.Ref;
    begin
-      return (Entity_Of (Self) = Entity_Of (Other_Object));
+      Set (Left, Entity_Of (Self));
+      Set (Right, Entity_Of (Other_Object));
+      return Is_Same_Object (Left, Right);
    end Is_Equivalent;
 
    ------------

@@ -1,10 +1,16 @@
 with Ada.Characters.Handling;
+with Ada.Streams;
+with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Deallocation;
+
+with GNAT.HTable;
 
 with CORBA.Object;
 with PolyORB.CORBA_P.Naming_Tools;
 --  XXX while RCI initial refs are managed through the CORBA
 --  naming service.
 
+with PolyORB.Binding_Data;
 with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Setup;
@@ -12,6 +18,7 @@ with PolyORB.Obj_Adapters;
 with PolyORB.ORB;
 with PolyORB.References;
 with PolyORB.References.IOR;
+with PolyORB.Soft_Links;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
@@ -30,12 +37,23 @@ package body System.PolyORB_Interface is
    use Ada.Characters.Handling;
    use PolyORB.Any;
    use PolyORB.Log;
+   use PolyORB.References;
    use PolyORB.Utils.Strings;
 
    package L is new PolyORB.Log.Facility_Log ("system.polyorb_interface");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ------------------------
+   -- Local declarations --
+   ------------------------
+
+   --  During elaboration, each RCI package on this partition is
+   --  registered as a Receiving_Stub entry.
+   --
+   --  The All_Receiving_Stubs list is subsequently traversed
+   --  during PolyORB's initialization, so the proper structures
+   --  are registered with the middleware and the naming service.
 
    type Receiving_Stub is record
       Name     : String_Ptr;
@@ -51,6 +69,39 @@ package body System.PolyORB_Interface is
    procedure Initialize;
    --  Initialization procedure to be called during the
    --  global PolyORB initialization.
+
+   --  To limit the amount of memory leaked by the use of
+   --  distributed object stub types, these are referenced
+   --  in a hash table and reused whenever possible.
+
+   type Hash_Index is range 0 .. 100;
+   function Hash (K : RACW_Stub_Type_Access) return Hash_Index;
+
+   function Compare_Content (Left, Right : RACW_Stub_Type_Access)
+     return Boolean;
+
+   package Objects_HTable is
+      new GNAT.HTable.Simple_HTable
+     (Header_Num => Hash_Index,
+      Element    => RACW_Stub_Type_Access,
+      No_Element => null,
+      Key        => RACW_Stub_Type_Access,
+      Hash       => Hash,
+      Equal      => Compare_Content);
+
+   procedure Free is
+      new Ada.Unchecked_Deallocation (RACW_Stub_Type, RACW_Stub_Type_Access);
+
+   --  When a RACW must be constructed to designate a local object,
+   --  an object identifier is created using the address of the object.
+
+   use type Ada.Streams.Stream_Element_Offset;
+   subtype Local_Oid is PolyORB.Objects.Object_Id
+     (1 .. System.Address'Size / 8);
+--     function To_Local_Oid is
+--        new Ada.Unchecked_Conversion (System.Address, Local_Oid);
+   function To_Address is
+      new Ada.Unchecked_Conversion (Local_Oid, System.Address);
 
    ------------------------
    -- Caseless_String_Eq --
@@ -71,6 +122,30 @@ package body System.PolyORB_Interface is
 
       return True;
    end Caseless_String_Eq;
+
+   ---------------------
+   -- Compare_Content --
+   ---------------------
+
+   function Compare_Content (Left, Right : RACW_Stub_Type_Access)
+     return Boolean
+   is
+      use Interfaces;
+      use System.RPC;
+
+      Left_Object, Right_Object : PolyORB.References.Ref;
+
+   begin
+      Set (Left_Object, Left.Target);
+      Set (Right_Object, Right.Target);
+
+      return Left /= null and then Right /= null
+        and then Left.Origin = Right.Origin
+        and then Left.Receiver = Right.Receiver
+        and then Left.Addr = Right.Addr
+        and then PolyORB.References.Is_Same_Object
+        (Left_Object, Right_Object);
+   end Compare_Content;
 
    --------------
    -- From_Any --
@@ -140,6 +215,20 @@ package body System.PolyORB_Interface is
    begin
       return PolyORB.Types.To_String (From_Any (Item));
    end FA_String;
+
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash_String is new GNAT.HTable.Hash (Hash_Index);
+
+   function Hash (K : RACW_Stub_Type_Access) return Hash_Index
+   is
+      K_Ref : PolyORB.References.Ref;
+   begin
+      Set (K_Ref, K.Target);
+      return Hash_String (PolyORB.References.Image (K_Ref));
+   end Hash;
 
    --------------------
    -- Handle_Message --
@@ -267,21 +356,26 @@ package body System.PolyORB_Interface is
       Is_Local : out Boolean;
       Addr     : out System.Address)
    is
-      use PolyORB.References;
-
       Profiles : constant Profile_Array
-        := Profiles_Of (Ref);
+        := PolyORB.References.Profiles_Of (Ref);
    begin
       for J in Profiles'Range loop
          if PolyORB.ORB.Is_Profile_Local
            (PolyORB.Setup.The_ORB,
             Profiles (J))
          then
-            Is_Local := True;
-            Addr := Null_Address;
-            --  XXX need to construct Addr from
-            --  Ref's object key.
-            return;
+            declare
+               Key : constant PolyORB.Objects.Object_Id
+                 := PolyORB.Obj_Adapters.Object_Key
+                 (OA => PolyORB.Obj_Adapters.Obj_Adapter_Access
+                    (Root_POA_Object),
+                  Id => PolyORB.Binding_Data.Get_Object_Key
+                    (Profiles (J).all));
+            begin
+               Is_Local := True;
+               Addr := To_Address (Key (Key'Range));
+               return;
+            end;
          end if;
       end loop;
 
@@ -295,9 +389,20 @@ package body System.PolyORB_Interface is
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access)
    is
+      Answer : RACW_Stub_Type_Access;
    begin
-      null;
-      --  XXX TBD.
+      PolyORB.Soft_Links.Enter_Critical_Section;
+      Answer := Objects_HTable.Get (Handler);
+      if Answer = null then
+         Objects_HTable.Set (Handler, Handler);
+      else
+         PolyORB.Smart_Pointers.Dec_Usage (Handler.Target);
+         --  Corresponds to a call to Adjust in generated code,
+         --  at the time Handler was instantiated.
+         Free (Handler);
+         Handler := Answer;
+      end if;
+      PolyORB.Soft_Links.Leave_Critical_Section;
    end Get_Unique_Remote_Pointer;
 
    -----------------------------

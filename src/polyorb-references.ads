@@ -53,6 +53,10 @@ package PolyORB.References is
    type Ref is new PolyORB.Smart_Pointers.Ref with null record;
    --  An object reference of any kind.
 
+   function Is_Same_Object (Left, Right : Ref) return Boolean;
+   --  True iff it is determined that Left Right designate the
+   --  same object.
+
    procedure Create_Reference
      (Profiles : Profile_Array;
       Type_Id  : String;

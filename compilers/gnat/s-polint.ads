@@ -37,7 +37,7 @@ package System.PolyORB_Interface is
       Origin       : System.RPC.Partition_ID;
       Receiver     : Interfaces.Unsigned_64;
       Addr         : Interfaces.Unsigned_64;
-      --  XXX the fields above are placeholders and must not
+      --  XXX the 2 fields above are placeholders and must not
       --  be used.
 
       Target       : Entity_Ptr;
