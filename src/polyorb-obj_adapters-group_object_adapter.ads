@@ -140,7 +140,7 @@ private
       --  Mutex
 
       Registered_Groups : Table_Instance;
-      --  List of regsitered groups
+      --  List of registered groups
 
       S_Exec : aliased Simple_Executor;
 
