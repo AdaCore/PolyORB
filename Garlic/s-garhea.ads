@@ -53,21 +53,8 @@ pragma Warnings (On);
 
 package System.Garlic.Heart is
 
-   My_Partition_Name : Name_Table.Name_Id;
-
    Null_Partition_ID : constant Types.Partition_ID;
    --  Means "no Partition_ID known at this time"
-
-   type Partition_Data is record
-      Location : Physical_Location.Location_Type;
-      Name     : Name_Table.Name_Id;
-      Known    : Boolean;
-      Queried  : Boolean;
-   end record;
-   --  Location holds the location, Name the name of the partition, Known
-   --  the fact that we already have information on this partition, and
-   --  Queried the fact that the caller has to obtain the information using
-   --  another way.
 
    -----------------
    -- Boot server --
@@ -97,30 +84,10 @@ package System.Garlic.Heart is
    -- Settings --
    --------------
 
-   type Reconnection_Type is (Immediately,
-                              When_Needed);
-   --  Immediately reconnects as soon as a connection is broken (default).
-   --  When_Needed waits for this connection to be necessary.
-
-   type Shutdown_Type is (Shutdown_On_Any_Partition_Error,
-                          Shutdown_On_Boot_Partition_Error,
-                          Never_Shutdown_On_Partition_Error);
-   --  Three ways of terminating Garlic
-
-   type Termination_Type is (Unknown_Termination,
-                             Local_Termination,
-                             Global_Termination,
-                             Deferred_Termination);
-   --  Three ways of terminating a partition. Should be synchronized with
-   --  the type above ???
-
-   type Execution_Mode_Type is (Trace_Mode,
-                                Replay_Mode,
-                                Normal_Mode);
-
    procedure Set_Policy
-     (Reconnection : Reconnection_Type := Immediately;
-      Shutdown     : Shutdown_Type     := Shutdown_On_Boot_Partition_Error);
+     (Reconnection : Types.Reconnection_Type := Types.Immediately;
+      Shutdown     : Types.Shutdown_Type     :=
+        Types.Shutdown_On_Boot_Partition_Error);
    --  Sets Garlic policy about Shutdowns and reconnections
 
    -------------------------
@@ -149,6 +116,25 @@ package System.Garlic.Heart is
    --  transfer of control blocks. It will be unblocked whenever
    --  a shutdown has been decided. It prevents requests from being
    --  blocked upon program logical termination.
+
+   function Blocking_Partition (Partition : Types.Partition_ID) return Boolean;
+   --  Return True if a partition has a local termination but is still
+   --  alive. This means that the whole distributed program cannot terminate
+   --  because a client is still working.
+
+   function Termination_Policy (Partition : Types.Partition_ID)
+     return Types.Termination_Type;
+   --  Return the termination policy of a remote partition
+
+   function Name (Partition : Types.Partition_ID)
+     return Name_Table.Name_Id;
+   function Name (Partition : Types.Partition_ID)
+     return String;
+   --  Return the name of a partition in its coded or plaintext form
+
+   function Location (Partition : Types.Partition_ID)
+     return Physical_Location.Location_Type;
+   --  Return the location of a partition
 
    -----------------------
    -- Execution control --
@@ -194,6 +180,11 @@ package System.Garlic.Heart is
    procedure Set_My_Partition_ID (Partition : Types.Partition_ID);
    --  Set my partition ID
 
+   function Can_Have_A_Light_Runtime return Boolean;
+   --  Return True if this partition is suitable for having a light runtime.
+   --  The result is built from several checks concerning the termination
+   --  policy and some other static parameters.
+
    ----------------------
    -- Remote partition --
    ----------------------
@@ -214,15 +205,11 @@ package System.Garlic.Heart is
    --  Register a procedure that will be called whenever a communication
    --  error occurs during a remote call.
 
-   function Get_Partition_Data (Partition : Types.Partition_ID)
-     return Partition_Data;
-   --  Return a partition's location
-
    type Opcode is (Invalid_Operation,        -- First Internal Opcode
                    No_Operation,
-                   Set_Location,
-                   Query_Location,
-                   Query_Location_Answer,
+                   Set_Public_Data,
+                   Query_Public_Data,
+                   Query_Public_Data_Answer,
                    Shutdown,                 -- Last Internal Opcode
                    Remote_Call,              -- First Public Opcode
                    Shutdown_Synchronization,
@@ -235,7 +222,10 @@ package System.Garlic.Heart is
      range Remote_Call .. Filtering;
    --  Type of the current operation. Note that Invalid_Operation is here
    --  to catch the trivial case where zeros are sent instead of a real
-   --  request. These types *must* be updated as soon as Opcode is updated
+   --  request. These types *must* be updated as soon as Opcode is updated.
+   --  The definition of a public opcode is an opcode that will be used by
+   --  an external module, while an internal opcode will be handled by this
+   --  package.
 
    type Public_Receiver is
       access procedure (Partition : in Types.Partition_ID;

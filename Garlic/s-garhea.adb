@@ -33,16 +33,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;                  use Ada.Exceptions;
+pragma Warnings (Off, Ada.Exceptions);
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Filters;           use System.Garlic.Filters;
 with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
+pragma Elaborate_All (System.Garlic.Name_Table);
 with System.Garlic.Options;
 pragma Elaborate (System.Garlic.Options);
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Protocols;
+with System.Garlic.Soft_Links;
 with System.Garlic.Streams;           use System.Garlic.Streams;
-with System.Garlic.Termination;
 with System.Garlic.Trace;             use System.Garlic.Trace;
 with System.Garlic.Types;             use System.Garlic.Types;
 with System.Garlic.Utils;
@@ -56,9 +59,9 @@ package body System.Garlic.Heart is
 
    --  The protocol used is:
    --
-   --   - <QUERY_LOCATION> <PARTITION_ID>
-   --   - <QUERY_LOCATION_ANSWER> <PARTITION_ID> <LOCATION> <NAME>
-   --   - <SET_LOCATION> <LOCATION> <NAME>
+   --   - <QUERY_PUBLIC_DATA> <PARTITION_ID>
+   --   - <QUERY_PUBLIC_DATA_ANSWER> <PARTITION_ID> <PUBLIC_DATA>
+   --   - <SET_PUBLIC_DATA> <PUBLIC_DATA>
    --   - <SHUTDOWN>
 
    Private_Debug_Key : constant Debug_Key :=
@@ -92,6 +95,40 @@ package body System.Garlic.Heart is
    --  terminated.
 
    System_RPC_Shutdown : Shutdown_Access;
+
+   type Public_Data is record
+      Location           : Location_Type;
+      Name               : Name_Id;
+      Termination_Policy : Termination_Type;
+      Alive              : Boolean := False;
+   end record;
+   --  This structure represents the public data that can be shared
+   --  concerning a partition. The fields are:
+   --    Location           : physical location of the partition
+   --    Name               : name of the partition (may be duplicated)
+   --    Termination_Policy : the way the partition wants the termination to
+   --                         be handled
+   --    Alive              : false if the partition is known to be dead;
+   --                         this field is preset to False so that we can
+   --                         detect that the local data has not been
+   --                         initialized
+
+   type Partition_Data is record
+      Public   : Public_Data;
+      Known    : Boolean;
+      Queried  : Boolean;
+   end record;
+   --  Location holds the location, Name the name of the partition, Known
+   --  the fact that we already have information on this partition, and
+   --  Queried the fact that the caller has to obtain the information using
+   --  another way.
+
+   function Get_Partition_Data (Partition : Partition_ID)
+     return Partition_Data;
+   --  Return a partition's data
+
+   function Get_Public_Data (Partition : Partition_ID) return Public_Data;
+   --  Return a partition's public data
 
    function Get_Protocol
      (Partition : Partition_ID)
@@ -171,8 +208,8 @@ package body System.Garlic.Heart is
    Partition_Map : Partition_Map_Access := new Partition_Map_Type;
    --  Same kludge as above to raise Program_Error at deallocation time ???
 
-   My_Location : Location_Type;
-   --  Location of the current partition
+   My_Public_Data : Public_Data;
+   --  Public data of the local partition
 
    type Allocated_Map is array (Partition_ID range <>) of Boolean;
    --  Type of allocated partitions
@@ -237,6 +274,10 @@ package body System.Garlic.Heart is
       Result : access Streams.Params_Stream_Type);
    --  Global RPC receiver
 
+   procedure Dump_Partition_Information (Partition : in Partition_ID;
+                                         Public    : in Public_Data);
+   --  Dump a summary of all the information we have on a partition
+
    --------------------------
    -- Add_New_Partition_ID --
    --------------------------
@@ -264,6 +305,62 @@ package body System.Garlic.Heart is
       pragma Debug (D (D_Server, "Allocating partition" & Partition'Img));
       return Partition;
    end Allocate_Partition_ID;
+
+   ------------------------
+   -- Blocking_Partition --
+   ------------------------
+
+   function Blocking_Partition (Partition : Partition_ID) return Boolean is
+      Public : constant Public_Data := Get_Public_Data (Partition);
+   begin
+      return Public.Termination_Policy = Local_Termination
+        and then Public.Alive;
+   end Blocking_Partition;
+
+   ------------------------------
+   -- Can_Have_A_Light_Runtime --
+   ------------------------------
+
+   function Can_Have_A_Light_Runtime return Boolean is
+   begin
+      --  If the termination is not Local_Termination, fail
+
+      if Options.Termination /= Local_Termination then
+         return False;
+      end if;
+
+      --  If there is any RCI or RACW package, fail
+
+      if Options.Has_RCI_Pkg_Or_RACW_Var then
+         return False;
+      end if;
+
+      --  If this is the main partition, fail
+
+      if Is_Boot_Partition then
+         return False;
+      end if;
+
+      --  There is no reason not to have a light runtime
+
+      return True;
+   end Can_Have_A_Light_Runtime;
+
+   --------------------------------
+   -- Dump_Partition_Information --
+   --------------------------------
+
+   procedure Dump_Partition_Information (Partition : in Partition_ID;
+                                         Public    : in Public_Data)
+   is
+   begin
+      D (D_Debug, "Information on partition" & Partition_ID'Image (Partition));
+      D (D_Debug, "  Name:        " & Get (Public.Name));
+      D (D_Debug, "  Location:    " & To_String (Public.Location));
+      D (D_Debug, "  Termination: " &
+                  Termination_Type'Image (Public.Termination_Policy));
+      D (D_Debug, "  Alive:       " & Boolean'Image (Public.Alive));
+   end Dump_Partition_Information;
 
    -------------------------------
    -- Elaboration_Is_Terminated --
@@ -328,7 +425,7 @@ package body System.Garlic.Heart is
       Data : Partition_Data;
    begin
       Partition_Map.Wait_For_Data (Server_Partition_ID, Data);
-      return To_String (Data.Location);
+      return To_String (Data.Public.Location);
    end Get_Boot_Server;
 
    ---------------------
@@ -337,7 +434,7 @@ package body System.Garlic.Heart is
 
    function Get_My_Location return Location_Type is
    begin
-      return My_Location;
+      return My_Public_Data.Location;
    end Get_My_Location;
 
    -------------------------
@@ -356,19 +453,23 @@ package body System.Garlic.Heart is
 
          begin
 
-            --  We will send a Set_Location to the server. This will cause
+            --  We will send a Set_Public_Data to the server. This will cause
             --  a dialog to be established and a new Partition_ID to be
             --  allocated, and our location will be registered into
             --  the server's base.
 
-            Location_Type'Write (Params'Access, My_Location);
-            String'Output (Params'Access, Get (My_Partition_Name));
-            Send (Server_Partition_ID, Set_Location, Params'Access);
+            pragma Assert (My_Public_Data.Alive);
+            Public_Data'Write (Params'Access, My_Public_Data);
+            Send (Server_Partition_ID, Set_Public_Data, Params'Access);
             Local_Partition_ID.Get (Partition);
          end;
       end if;
 
       return Partition;
+   exception
+      when E : others =>
+         pragma Debug (D (D_Debug, Exception_Information (E)));
+         raise;
    end Get_My_Partition_ID;
 
    -------------------------------------
@@ -407,7 +508,7 @@ package body System.Garlic.Heart is
       Partition_Map.Wait_For_Data (Partition, Data);
       if Data.Queried then
 
-         --  We have to query the server for the location.
+         --  We have to query the server for the public data of the partition
 
          declare
             Params : aliased Params_Stream_Type (0);
@@ -417,7 +518,7 @@ package body System.Garlic.Heart is
               (D (D_Garlic,
                   "Asking for information on partition" & Partition'Img));
             Partition_ID'Write (Params'Access, Partition);
-            Send (Server_Partition_ID, Query_Location, Params'Access);
+            Send (Server_Partition_ID, Query_Public_Data, Params'Access);
          end;
 
          Partition_Map.Wait_For_Data (Partition, Data);
@@ -457,6 +558,15 @@ package body System.Garlic.Heart is
    end Get_Protocol;
 
    ---------------------
+   -- Get_Public_Data --
+   ---------------------
+
+   function Get_Public_Data (Partition : Partition_ID) return Public_Data is
+   begin
+      return Get_Partition_Data (Partition) .Public;
+   end Get_Public_Data;
+
+   ---------------------
    -- Handle_Internal --
    ---------------------
 
@@ -469,36 +579,36 @@ package body System.Garlic.Heart is
 
    begin
 
-      Termination.Activity_Detected;
+      Soft_Links.Activity_Detected;
 
       case Operation is
 
          when No_Operation => null;
 
-         when Set_Location =>
+         when Set_Public_Data =>
 
             pragma Debug
               (D (D_Server,
                   "Receive information on partition" & Partition'Img));
 
-            Location_Type'Read (Params, Data.Location);
+            Public_Data'Read (Params, Data.Public);
             if Options.Execution_Mode = Replay_Mode then
-               Data.Location := To_Location ("replay://");
+               Data.Public.Location := To_Location ("replay://");
             end if;
 
-            Data.Name    := Get (String'Input (Params));
-            Data.Known   := True;
-            Data.Queried := False;
+            pragma Debug (Dump_Partition_Information (Partition, Data.Public));
+            Data.Known       := True;
+            Data.Queried     := False;
 
             pragma Debug
               (D (D_Server,
                   "Receive that partition" & Partition'Img &
-                  " is named " & Get (Data.Name) &
-                  " and is located at " & To_String (Data.Location)));
+                  " is named " & Get (Data.Public.Name) &
+                  " and is located at " & To_String (Data.Public.Location)));
 
             Partition_Map.Set_Data (Partition, Data);
 
-         when Query_Location =>
+         when Query_Public_Data =>
             declare
                Answer : aliased Params_Stream_Type (0);
 
@@ -518,17 +628,15 @@ package body System.Garlic.Heart is
 
                pragma Debug
                  (D (D_Server,
-                     "Reply that partition" & Asked'Img &
-                     " is named " & Get (Data.Name) &
-                     " and is located at " & To_String (Data.Location)));
+                     "Return information on partition" & Asked'Img));
+               pragma Debug (Dump_Partition_Information (Asked, Data.Public));
 
                Partition_ID'Write (Answer'Access, Asked);
-               Location_Type'Write (Answer'Access, Data.Location);
-               String'Output (Answer'Access, Get (Data.Name));
-               Send (Partition, Query_Location_Answer, Answer'Access);
+               Public_Data'Write (Answer'Access, Data.Public);
+               Send (Partition, Query_Public_Data_Answer, Answer'Access);
             end;
 
-         when Query_Location_Answer =>
+         when Query_Public_Data_Answer =>
 
             Partition_ID'Read (Params, Asked);
             if not Asked'Valid then
@@ -540,15 +648,15 @@ package body System.Garlic.Heart is
               (D (D_Garlic,
                   "Receive query for information on partition" & Asked'Img));
 
-            Location_Type'Read (Params, Data.Location);
+            Public_Data'Read (Params, Data.Public);
             if Options.Execution_Mode = Replay_Mode then
-               Data.Location := To_Location ("replay://");
+               Data.Public.Location := To_Location ("replay://");
             end if;
-
-            Data.Name    := Get (String'Input (Params));
-            Data.Known   := True;
-            Data.Queried := False;
+            Data.Known       := True;
+            Data.Queried     := False;
             Partition_Map.Set_Data (Asked, Data);
+
+            pragma Debug (Dump_Partition_Information (Asked, Data.Public));
 
          when Shutdown =>
 
@@ -561,8 +669,9 @@ package body System.Garlic.Heart is
       end case;
 
       exception
-         when others =>
-            pragma Debug (D (D_Garlic, "Handle internal: fatal error"));
+         when E : others =>
+            pragma Debug (D (D_Garlic, "Handle_Internal: fatal exception"));
+            pragma Debug (D (D_Debug, Exception_Information (E)));
             raise Communication_Error;
    end Handle_Internal;
 
@@ -578,7 +687,7 @@ package body System.Garlic.Heart is
       Receiver : Public_Receiver;
    begin
       if Operation /= Shutdown_Synchronization then
-         Termination.Activity_Detected;
+         Soft_Links.Activity_Detected;
       end if;
       Receiver_Map.Get (Operation) (Receiver);
       Receiver (Partition, Operation, Params);
@@ -654,10 +763,16 @@ package body System.Garlic.Heart is
       Stream : aliased Params_Stream_Type (32);
       --  Some size that certainly is enough
    begin
-      My_Partition_Name := Get (Options.Partition_Name.all);
+      My_Public_Data.Name               := Get (Options.Partition_Name.all);
+      My_Public_Data.Termination_Policy := Options.Termination;
+      My_Public_Data.Alive              := True;
 
       pragma Debug
-        (D (D_Debug, "My partition name is " & Get (My_Partition_Name)));
+        (D (D_Debug, "My partition name is " & Get (My_Public_Data.Name)));
+      pragma Debug
+        (D (D_Debug,
+            "My termination policy is " &
+            Termination_Type'Image (Options.Termination)));
 
       Opcode'Write (Stream'Access, Opcode'Last);
       declare
@@ -725,6 +840,33 @@ package body System.Garlic.Heart is
       end Set;
 
    end Local_Partition_ID_Type;
+
+   --------------
+   -- Location --
+   --------------
+
+   function Location (Partition : Partition_ID) return Location_Type is
+   begin
+      return Get_Public_Data (Partition) .Location;
+   end Location;
+
+   ----------
+   -- Name --
+   ----------
+
+   function Name (Partition : Partition_ID) return Name_Id is
+   begin
+      return Get_Public_Data (Partition) .Name;
+   end Name;
+
+   ----------
+   -- Name --
+   ----------
+
+   function Name (Partition : Partition_ID) return String is
+   begin
+      return Get (Name (Partition));
+   end Name;
 
    ----------------------------------
    -- Partition_ID_Allocation_Type --
@@ -812,7 +954,7 @@ package body System.Garlic.Heart is
          Map (Partition) := Data;
          Partition_Map_Cache (Partition) := Data;
          Protocols_Cache (Partition) :=
-           Physical_Location.Get_Protocol (Data.Location);
+           Physical_Location.Get_Protocol (Data.Public.Location);
          if Queue'Count > 0 then
             New_Data := True;
          end if;
@@ -859,9 +1001,9 @@ package body System.Garlic.Heart is
    procedure Partition_RPC_Receiver
      (Params : access Streams.Params_Stream_Type;
       Result : access Streams.Params_Stream_Type) is
-      Receiver : Streams.RPC_Receiver;
+      Receiver : RPC_Receiver;
    begin
-      Streams.RPC_Receiver'Read (Params, Receiver);
+      RPC_Receiver'Read (Params, Receiver);
       Receiver (Params, Result);
    end Partition_RPC_Receiver;
 
@@ -928,10 +1070,15 @@ package body System.Garlic.Heart is
    ----------------------------
 
    procedure Remote_Partition_Error (Partition : in Partition_ID) is
+      Data : Partition_Data;
    begin
       pragma Debug
         (D (D_Communication,
-            "It seems that partition" & Partition'Img & " is dead"));
+            "It looks like partition" & Partition'Img & " is dead"));
+      pragma Debug (D (D_Debug, "Registering the partition as not alive"));
+      Data := Partition_Map.Get_Data (Partition);
+      Data.Public.Alive := False;
+      Partition_Map.Set_Data (Partition, Data);
       if Shutdown_Policy = Shutdown_On_Any_Partition_Error then
          pragma Debug
             (D (D_Communication, "Due to the policy, I will shutdown"));
@@ -943,7 +1090,10 @@ package body System.Garlic.Heart is
            (D (D_Communication, "I cannot live without a boot partition"));
          Soft_Shutdown;
       end if;
-      Partition_Error_Notification (Partition);
+      if Partition_Error_Notification /= null then
+         pragma Debug (D (D_Debug, "Calling the registered callback"));
+         Partition_Error_Notification (Partition);
+      end if;
    end Remote_Partition_Error;
 
    ----------
@@ -1002,16 +1152,22 @@ package body System.Garlic.Heart is
    -- Set_Boot_Location --
    -----------------------
 
-   procedure Set_Boot_Location
-     (Location : in Location_Type) is
-      Data : Partition_Data := (Location, Null_Name, False, False);
-
+   procedure Set_Boot_Location (Location : in Location_Type)
+   is
+      Public : constant Public_Data :=
+        (Location           => Location,
+         Name               => Null_Name,
+         Termination_Policy => Global_Termination,
+         Alive              => False);
+      Data : Partition_Data :=
+        (Public  => Public,
+         Queried => False,
+         Known   => False);
    begin
       if Is_Boot_Partition then
-         Data.Name  := My_Partition_Name;
-         Data.Known := True;
+         Data.Public := My_Public_Data;
+         Data.Known  := True;
       end if;
-
       Partition_Map.Set_Data (Server_Partition_ID, Data);
    end Set_Boot_Location;
 
@@ -1034,7 +1190,9 @@ package body System.Garlic.Heart is
    procedure Set_My_Location (Location : in Location_Type)
    is
    begin
-      My_Location := Location;
+      pragma Debug (D (D_Debug,
+                       "Setting my location to " & To_String (Location)));
+      My_Public_Data.Location := Location;
    end Set_My_Location;
 
    -------------------------
@@ -1075,7 +1233,7 @@ package body System.Garlic.Heart is
    begin
       Shutdown_Keeper.Signal;
       Trace.Shutdown;
-      Termination.Shutdown;
+      Soft_Links.Termination_Shutdown;
       Physical_Location.Shutdown;
       System_RPC_Shutdown.all;
       Free (Local_Partition_ID);
@@ -1129,17 +1287,30 @@ package body System.Garlic.Heart is
       if Is_Boot_Partition then
          for Partition in
            Server_Partition_ID + 1 .. Partition_ID_Allocation.Latest loop
-            declare
-               Empty : aliased Params_Stream_Type (0);
-            begin
-               Send (Partition, Shutdown, Empty'Access);
-            exception
-               when Communication_Error => null;
-            end;
+            if Termination_Policy (Partition) /= Local_Termination then
+               declare
+                  Empty : aliased Params_Stream_Type (0);
+               begin
+                  Send (Partition, Shutdown, Empty'Access);
+               exception
+                  when Communication_Error => null;
+               end;
+            end if;
          end loop;
       end if;
       Heart.Shutdown;
    end Soft_Shutdown;
+
+   ------------------------
+   -- Termination_Policy --
+   ------------------------
+
+   function Termination_Policy (Partition : Partition_ID)
+     return Termination_Type
+   is
+   begin
+      return Get_Public_Data (Partition) .Termination_Policy;
+   end Termination_Policy;
 
    ------------------------------------------
    -- Wait_Until_Elaboration_Is_Terminated --
