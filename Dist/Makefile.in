@@ -298,8 +298,10 @@ xe_defs.adb: Makefile
 	   echo "with XE_Reg;" >>xe_defs.adb;\
 	fi
 	@echo "package body XE_Defs is" >>xe_defs.adb;
-	@echo "   GARLIC_Dir : aliased constant String" >>xe_defs.adb;
-	@echo "      := \"$(GARLIC)\";" >>xe_defs.adb;
+	if [ "$(PSNAME)" != "Windows NT" ]; then \
+	   @echo "   GARLIC_Dir : aliased constant String" >>xe_defs.adb; \
+	   @echo "      := \"$(GARLIC)\";" >>xe_defs.adb; \
+	fi;
 	@for i in GARLIC; do \
 	  echo "   function Get_"$$i"_Dir return String_Access is"; \
 	  echo "   begin"; \
@@ -341,10 +343,10 @@ xe_defs.adb: Makefile
 	@echo "end XE_Defs;" >>xe_defs.adb
 
 xe_defs.o: xe_defs.ads xe_defs.adb
-	$(ADA) -c -g -O2 -gnatp -I$(srcdir) -I$(GNATSRC) xe_defs.adb
+	$(ADA) -c -g -O2 -gnatpg -I$(srcdir) -I$(GNATSRC) xe_defs.adb
 
 xe_sysdep.o: xe_sysdep.ads xe_sysdep.adb
-	$(ADA) -c -g -O2 -gnatp -I$(srcdir) -I$(GNATSRC) xe_sysdep.adb
+	$(ADA) -c -g -O2 -gnatpg -I$(srcdir) -I$(GNATSRC) xe_sysdep.adb
 
 sdefault.adb: $(srcdir)/config.sdefault
 	@if [ -f $(GNATSRC)/sdefault.adb ]; then \
