@@ -1,3 +1,2 @@
-corba_dir=rtcurrent
+corba_dir=
 SUBDIRS= @PROTO_DIRS@ @APPLI_DIRS@
-
