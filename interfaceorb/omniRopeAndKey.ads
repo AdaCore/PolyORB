@@ -2,7 +2,7 @@
 ----                                                               ----
 ----                  AdaBroker                                    ----
 ----                                                               ----
-----                  package omni                                 ----
+----                  package omniRopeAndKey                       ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
 ----   date    :                                                   ----
@@ -11,29 +11,23 @@
 -----------------------------------------------------------------------
 
 
+package OmniRopeAndKey is
 
-package Omni is
+   type Object is limited private ;
 
+   procedure Init (Self : in out Object,
+                     ...
+                     );
+   -- wrapper around inline omniRopeAndKey(Rope *r,
+   --                              _CORBA_Octet *k, _CORBA_ULong ksize)
+   -- in omniInternal.h L 234
 
-   procedure ObjectIsReady (...) ;
-   -- wrapper around omni::ObjectIsReady(omniObject* obj)
-   -- in omniInternal.h L 172
-
-
-   function Align_To (...) ;
-   -- wrapper around   static inline ptr_arith_t align_to(ptr_arith_t p, alignment_t align)
-   -- In Internal.h L 166
-
-   type Alignment_T is new Integer;
-   ALIGN_1 : constant Alignment_T := 1;
-   ALIGN_2 : constant Alignment_T := 2;
-   ALIGN_4 : constant Alignment_T := 4;
-   ALIGN_8 : constant Alignment_T := 8;
-   -- corresponds to enum alignment_t { ALIGN_1 = 1, ALIGN_2 = 2, ALIGN_4 = 4, ALIGN_8 = 8 };
-   -- In Internal.h L 162
+   function Key (Self : in Object) return CORBA::Octet;
+   -- wrapper around inline _CORBA_Octet* key()
+   -- in omniInternal.h L 250
 
 private
 
 
 
-end Rope ;
+end OmniRopeAndKey ;

@@ -54,7 +54,6 @@ package Corba is
    ----           Exceptions                               ---
    -----------------------------------------------------------
 
-
     type Idl_Exception_Members is abstract tagged null record;
 
     procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
@@ -64,23 +63,18 @@ package Corba is
     --I #define ex_body{ unsigned long minor, completion_status completed;}
     --I enum completion_status{COMPLETED_YES, COMPLETED_NO, COMPLETED_MAYBE};
     type Completion_Status is (Completed_Yes, Completed_No, Completed_Maybe);
--- SUN Solaris
-   pragma Convention (C, Completion_Status);
--- DEC
---     for Completion_Status'Size use 32;
+
 
     --I enum exception_type{ NO_EXCEPTION, USER_EXCEPTION, SYSTEM_EXCEPTION};
     type Exception_Type is (No_Exception, System_Exception, User_Exception);
--- SUN Solaris
-   pragma Convention (C, Exception_Type);
--- DEC
---     for Exception_Type'Size use 32;
+
 
     type System_Exception_Members is new Corba.Idl_Exception_Members with
         record
             Minor : Corba.Unsigned_Long;
             Completed : Completion_Status;
         end record;
+
 
     procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
                            To : out System_Exception_Members);
@@ -110,8 +104,6 @@ package Corba is
     Bad_Context : exception;  -- error processing context object
     Obj_Adapter : exception;  -- failure detected by object adapter
     Data_Conversion : exception;  -- data conversion error
-    Object_Not_Exist : exception;  -- implementation object does not exist
-    Ansa_Exception : exception;  -- ANSA specific error
 
 
     type Unknown_Members is new System_Exception_Members with null record;
@@ -123,8 +115,7 @@ package Corba is
     type No_Permission_Members is new System_Exception_Members with null record;
     type Internal_Members is new System_Exception_Members with null record;
     type Marshal_Members is new System_Exception_Members with null record;
-    type Initialization_Failure_Members is new
-       System_Exception_Members with null record;
+    type Initialization_Failure_Members is new System_Exception_Members with null record;
     type No_Implement_Members is new System_Exception_Members with null record;
     type Bad_Typecode_Members is new System_Exception_Members with null record;
     type Bad_Operation_Members is new System_Exception_Members with null record;
@@ -139,17 +130,17 @@ package Corba is
     type Intf_Repos_Members is new System_Exception_Members with null record;
     type Bad_Context_Members is new System_Exception_Members with null record;
     type Obj_Adapter_Members is new System_Exception_Members with null record;
-    type Data_Conversion_Members is new
-       System_Exception_Members with null record;
-    type Object_Not_Exist_Members is new
-       System_Exception_Members with null record;
-    type Ansa_Exception_Members is new System_Exception_Members with
-        record
-            Ansa : Corba.Unsigned_Long;
-        end record;
+    type Data_Conversion_Members is new System_Exception_Members with null record;
 
-    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
-                           To : out Ansa_Exception_Members);
+
+
+
+   -----------------------------------------------------------
+   ----           functions, procedures                    ---
+   -----------------------------------------------------------
+
+
+
 
 
 
@@ -206,5 +197,7 @@ private
 
 
 end Corba;
+
+
 
 

@@ -20,6 +20,8 @@ package Corba.Object is
    -- Not implemented in omniORB
    -- neither here
 
+   --I Object duplicate();
+   -- use assignment
 
 
    --------------------------------------------------
@@ -31,8 +33,8 @@ package Corba.Object is
    -- in corbaObject.cc L121
 
    function PR_Getobj(  ) return ;
-   -- wrapper around void CORBA::Object::PR_setobj(omniObject *obj)
-   -- in corbaObject.cc L121
+   -- wrapper around omniObject* CORBA::Object::PR_getobj()
+   -- in corbaObject.cc L128
 
 
 

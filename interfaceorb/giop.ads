@@ -2,7 +2,7 @@
 ----                                                               ----
 ----                  AdaBroker                                    ----
 ----                                                               ----
-----                  package omni                                 ----
+----                  package giop                                 ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
 ----   date    :                                                   ----
@@ -12,28 +12,15 @@
 
 
 
-package Omni is
+package Giop is
 
-
-   procedure ObjectIsReady (...) ;
-   -- wrapper around omni::ObjectIsReady(omniObject* obj)
-   -- in omniInternal.h L 172
-
-
-   function Align_To (...) ;
-   -- wrapper around   static inline ptr_arith_t align_to(ptr_arith_t p, alignment_t align)
-   -- In Internal.h L 166
-
-   type Alignment_T is new Integer;
-   ALIGN_1 : constant Alignment_T := 1;
-   ALIGN_2 : constant Alignment_T := 2;
-   ALIGN_4 : constant Alignment_T := 4;
-   ALIGN_8 : constant Alignment_T := 8;
-   -- corresponds to enum alignment_t { ALIGN_1 = 1, ALIGN_2 = 2, ALIGN_4 = 4, ALIGN_8 = 8 };
-   -- In Internal.h L 162
+   type ReplyStatusType is (NO_EXCEPTION, USER_EXCEPTION,
+                            SYSTEM_EXCEPTION, LOCATION_FORWARD);
+   --  corresponds to enum ReplyStatusType { NO_EXCEPTION, USER_EXCEPTION,
+   --                                      SYSTEM_EXCEPTION, LOCATION_FORWARD }
+   -- in GIOP.h L 81
 
 private
 
+end Giop ;
 
-
-end Rope ;
