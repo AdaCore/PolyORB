@@ -72,7 +72,7 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                     := Ada_Operation_Name (Node);
                begin
                   Add_With (CU, "CORBA.Impl");
-                  Add_With (CU, "Broca.Value.Operation_Store");
+                  Add_With (CU, "PolyORB.CORBA_P.Value.Operation_Store");
                   NL (CU);
                   Put (CU,
                        "type "
@@ -86,7 +86,7 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                   PL (CU,
                       "package "
                       & Opname
-                      & "_Store is new Broca.Value.Operation_Store");
+                      & "_Store is new PolyORB.CORBA_P.Value.Operation_Store");
                   II (CU);
                   PL (CU,
                       "("
@@ -121,9 +121,10 @@ package body Ada_Be.Idl2Ada.Value_Skel is
             Ada_Be.Idl2Ada.Gen_Local_Is_A (CU, Node);
 
             Divert (CU, Elaboration);
-            Add_With (CU, "Broca.Value.Value_Skel");
+            Add_With (CU, "PolyORB.CORBA_P.Value.Value_Skel");
             PL (CU,
-                "Broca.Value.Value_Skel.Is_A_Store.Register_Operation");
+                "PolyORB.CORBA_P.Value.Value_Skel." &
+                "Is_A_Store.Register_Operation");
             PL (CU,
                 "  ("
                 & Ada_Full_Name (Node)
