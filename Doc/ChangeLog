@@ -1,3 +1,8 @@
+Thu Nov  7 14:08:40 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* user_guide.txt: Description of --nolaunch and addition of
+	  --slave.
+
 Fri Jul  5 16:33:00 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* user_guide.txt: Franco's changes.

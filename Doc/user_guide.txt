@@ -256,7 +256,13 @@ have to do is:
    (b) Then for each partition PART, start manually the corresponding
        executable on the corresponding host as follows
 
-           % PART --nolaunch --boot_server tcp://MAIN_HOST:PORT_NUM
+        % PART [--nolaunch] [--slave] --boot_server tcp://MAIN_HOST:PORT_NUM
+
+       The --nolaunch parameter must be included for the main
+       partition, it means that this partition is not in charge of
+       launching others. The --slave parameter must be included for
+       other partitions, meaning that in no case the name server is
+       located on them.
 
 3. If you want to kill the distributed application before it
    terminates, kill MAIN_PART.
