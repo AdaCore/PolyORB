@@ -12,10 +12,9 @@ package all_types.Impl is
 
 private
 
-   type Object is new All_Types.Skel.Object with null record;
---      Pd_Col : Color := Blue ;
---      Pd_Ex : Example := (Switch => 1, Counter => 23) ;
---   end record;
+   type Object is new All_Types.Skel.Object with record
+      Attr_My_Color : Color := Blue;
+   end record;
 
    function echoBoolean
      (Self : access Object;
@@ -101,6 +100,14 @@ private
      (Self : access Object;
       arg : in myUnion)
      return myUnion;
+
+   procedure Set_MyColor
+     (Self : access Object;
+      arg : in Color);
+
+   function Get_MyColor
+     (Self : access Object)
+     return Color;
 
 --   procedure simple_exception_test
 --     (Self : access Object);

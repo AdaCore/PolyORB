@@ -23,10 +23,8 @@ interface all_types {
 
   // Exceptions
   //-----------
-//  exception simple_exception {};
   exception my_exception {long info;};
 
-//  void simple_exception_test () raises (simple_exception);
   void testException (in long arg) raises (my_exception);
 
 
@@ -58,22 +56,11 @@ interface all_types {
 
   simple_struct echoStruct (in simple_struct arg);
 
-//  struct manu_struct {
-//    boolean a;
-//    long b;
-//  };
-
-//  manu_struct inverseStruct (in manu_struct arg);
-
-
-
   // Strings
   //--------
-//  typedef string U_string;
-//  typedef string<30> B_string;
+  //typedef string<30> B_string;
 
-//  U_string echo4 (in U_string arg);
-//  B_string echo5 (in B_string arg);
+  //B_string echoBstring (in B_string arg);
 
 
   // Sequences
@@ -88,27 +75,5 @@ interface all_types {
   // Attributes
   //-----------
 //  readonly attribute Color R_attribute;
-//  attribute example N_attribute;
-
-  // Arrays
-  //-------
-//  typedef example line[3] ;
-//  typedef simple_struct square[2][2];
-//  typedef string cube[2][2][2] ;
-
-//  line echo8 (in line arg);
-//  square echo9 (in square arg);
-//  cube echo10 (in cube arg);
-  
-  // Object
-  //-------
-//  all_types echo11(in all_types arg);
-//  Object echo12(in Object arg);
-//  all_types get_myself() ;
-
-
-  // array
-//  typedef long simple_array[10];
-//  simple_array echoArray(in simple_array arg);
-
+  attribute Color myColor;
 };

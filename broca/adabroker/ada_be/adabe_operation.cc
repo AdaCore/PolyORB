@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.15 $
+//                            $Revision: 1.16 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -501,9 +501,9 @@ adabe_operation::produce_skel_adb (dep_list & with,
       call_args += ", Returns ";
     }
   
-  body += "      if Operation = \"" + get_ada_local_name () + "\" then\n";
-  body += "         declare\n";
-  body += in_decls;
+  body +=
+    "      if Operation = \"" + get_ada_local_name () + "\" then\n"
+    "         declare\n" + in_decls;
 
   // If return type is not void, declare Result. It's either an
   // argument or a return value.

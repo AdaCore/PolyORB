@@ -90,12 +90,6 @@ begin
    end;
    Output ("test exception", Ok);
 
---   declare
---      X : Example := (Switch => 2, Flags => True);
---   begin
---      Output ("test union", Echo1 (MyAll_Types, X) = X);
---   end;
-
    declare
       X : Simple_Array := (2,3,5,7,11);
    begin
@@ -198,10 +192,14 @@ begin
 --         Is_Equivalent (Echo12 (MyAll_Types, X), X));
 --   end;
 
+   Set_MyColor (MyAll_Types, Green);
+   Output ("test attribute", Get_MyColor (MyAll_Types) = Green);
+
    declare
       X : All_Types.Ref;
    begin
       X := EchoRef (MyAll_Types, MyAll_Types);
       Output ("test self reference", EchoLong (X, 16#dead#) = 16#dead#);
    end;
+
 end Client;

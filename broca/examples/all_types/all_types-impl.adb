@@ -155,6 +155,21 @@ package body all_types.Impl is
       return Arg;
    end EchoUnion;
 
+   procedure Set_MyColor
+     (Self : access Object;
+      arg : in Color)
+   is
+   begin
+      Self.Attr_My_Color := Arg;
+   end Set_MyColor;
+
+   function Get_MyColor
+     (Self : access Object)
+     return Color
+   is
+   begin
+      return Self.Attr_My_Color;
+   end Get_MyColor;
 
 --   procedure simple_exception_test
 --     (Self : access Object)
