@@ -87,6 +87,13 @@ begin
 
    String_To_Object (Ada.Command_Line.Argument (1), Obj_Ref);
 
+   if Is_Nil (Obj_Ref) then
+      Put_Line ("Error", "Null reference !");
+
+      Flush;
+      return;
+   end if;
+
    declare
       Profiles : constant Profile_Array := Profiles_Of (Obj_Ref);
 
