@@ -28,8 +28,6 @@
 --  covered by the  GNU Public License.                                     --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.SOAP_P.Message.Payload;
 with PolyORB.SOAP_P.Message.Response;
 
