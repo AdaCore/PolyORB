@@ -30,14 +30,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/server.adb#6 $
+--  $Id: //droopi/main/src/server.adb#7 $
 
 with Echo.Impl;
 
 with CORBA;
 with CORBA.Object;
 with CORBA.Impl;
-
 with PortableServer;
 
 with PolyORB.CORBA_P.Server_Tools; use PolyORB.CORBA_P.Server_Tools;
@@ -46,10 +45,6 @@ with PolyORB.POA_Types;
 
 with GNAT.Command_Line;  use GNAT.Command_Line;
 with Ada.Text_IO;
-
---  with PortableServer;
-
---  with Broca.Naming_Tools; use Broca.Naming_Tools;
 
 procedure Server is
    Ref             : CORBA.Object.Ref;
