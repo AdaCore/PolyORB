@@ -50,35 +50,34 @@ package body Droopi.References.IOR is
       use Droopi.Types;
       use Profile_Seqs;
       Profs  : Profile_Array := Profiles_Of (Value.Ref);
+      Counter  : Integer := 0;
 
    begin
 
 
 
       Marshall (Buffer, Value.Type_Id);
-      Marshall (Buffer, CORBA.Unsigned_Long (Profs'Length));
-      --  Put_Line ("Length" & (Integer'Image (Integer (Profs'Length))));
+      Marshall (Buffer, CORBA.Unsigned_Long (Length (Callbacks)));
 
       pragma Debug (O ("Marshall Profile : Enter"));
 
       for N in Profs'Range loop
-         Marshall (Buffer, CORBA.Unsigned_Long (Get_Profile_Tag
-                                                (Profs (N).all)));
-         pragma Debug
-              (O (Integer'Image (Integer (CORBA.Unsigned_Long
-                    (Get_Profile_Tag (Profs (N).all)))) & ASCII.LF));
-         Put_Line ("Profile_tag : " & (Integer'Image (Integer
-                    (CORBA.Unsigned_Long
-                    (Get_Profile_Tag (Profs (N).all))))));
-
          for I in 1 .. Length (Callbacks) loop
             if Element_Of (Callbacks, I).Tag =
                Get_Profile_Tag (Profs (N).all) then
+               Marshall (Buffer, CORBA.Unsigned_Long (Get_Profile_Tag
+                         (Profs (N).all)));
+
                Element_Of (Callbacks, I).
-               Marshall_Profile_Body (Buffer, Profs (N));
+                         Marshall_Profile_Body (Buffer, Profs (N));
+               Put_Line ("Profile_tag : " & (Integer'Image (Integer
+                    (CORBA.Unsigned_Long
+                    (Get_Profile_Tag (Profs (N).all))))));
+               Counter := Counter + 1;
             end if;
          end loop;
       end loop;
+
 
       pragma Debug (O ("Marshall Profile : Leave"));
 
@@ -162,8 +161,6 @@ package body Droopi.References.IOR is
          Release (Buf);
          return To_CORBA_String (S);
       end;
-
-
 
    end Object_To_String;
 
