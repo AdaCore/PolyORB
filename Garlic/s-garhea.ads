@@ -162,7 +162,7 @@ package System.Garlic.Heart is
    --  handling.
 
    procedure Analyze_Stream
-     (Partition  : out Types.Partition_ID;
+     (Partition  : in out Types.Partition_ID;
       Protocol   : in Protocols.Protocol_Access;
       Opcode     : out Any_Opcode;
       Unfiltered : out Streams.Stream_Element_Access;
@@ -175,10 +175,11 @@ package System.Garlic.Heart is
    --  considered. Extract the beginning of the stream: PID, Opcode
    --  and Unfiltered. This way, the protocol task knows the partition
    --  it has in charge. The protocol used to communicate with this
-   --  partition is preserved on the first connection to this
-   --  partition. This partition may have no self location. By
-   --  preserving the protocol, we will be able to contact the
-   --  partition back.
+   --  partition is passed on the first connection with this
+   --  partition. To indicate a first connection, the caller passes a
+   --  Partition set to Null_PID. This partition may have no self
+   --  location. By preserving the protocol, we will be able to
+   --  contact the partition back.
 
    procedure Handle_Any_Request
      (Partition : in Types.Partition_ID;

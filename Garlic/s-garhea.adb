@@ -210,7 +210,7 @@ package body System.Garlic.Heart is
    --------------------
 
    procedure Analyze_Stream
-     (Partition  : out Partition_ID;
+     (Partition  : in out Partition_ID;
       Protocol   : in Protocol_Access;
       Opcode     : out Any_Opcode;
       Unfiltered : out Stream_Element_Access;
@@ -275,10 +275,12 @@ package body System.Garlic.Heart is
          if Found (Error) then
             return;
          end if;
+      end if;
 
-         --  This partition was unknown. We save how to communicate with
-         --  this partition as it may have no self location itself.
+      --  This partition was unknown. We save how to communicate with
+      --  this partition as it may have no self location itself.
 
+      if Partition = Null_PID then
          Set_Used_Protocol (PID, Protocol);
       end if;
 

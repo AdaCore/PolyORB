@@ -1,5 +1,14 @@
 2000-05-26  Laurent Pautet  <pautet@inf.enst.fr>
 
+	* s-garhea.adb: Change Partition mode in Analyze_Stream from out
+ 	to in out in order to test whether the partition is a newly
+ 	connected partition. It was wrong to initialize this location only
+ 	for newly created partition. A pure client partition may have no
+ 	self location. When it calls a remote subprogram on a partition
+ 	after being already registered on the boot partition, the callee
+ 	may be unable to send the reply (no self location). Therefore,
+ 	always initialize the network used location on first connection.
+
 	* all files: Update copyright.
 
 	* Makefile.am, Makefile.in: Add s-gartyp.adb.
