@@ -21,9 +21,9 @@ with Errors;
 
 package Types is
 
-   ------------------------
-   --  type definitions  --
-   ------------------------
+   -------------------------------
+   --  simple type definitions  --
+   -------------------------------
 
    --  used for the identifiers
    type String_Cacc is access constant String;
@@ -100,6 +100,11 @@ package Types is
    Nil_Uniq_Id : constant Uniq_Id;
 
 
+
+   --------------------------------------------
+   --  Root of the tree parsed from the idl  --
+   --------------------------------------------
+
    --  The basic type of the tree. Every Node type is a descendant
    --  of this one.
    --  In all this file, N_ means that the type is a node type
@@ -112,6 +117,14 @@ package Types is
    --  For a N_root, this method is abstract
    function Get_Kind (N : N_Root) return Node_Kind is abstract;
 
+   --  To manipulate the location of a node
+   procedure Set_Location (N : in out N_Root'Class; Loc : Errors.Location);
+   function Get_Location (N : N_Root'Class) return Errors.Location;
+
+
+   ---------------------------------------------------
+   --  Named nodes in the tree parsed from the idl  --
+   ---------------------------------------------------
 
    --  Basic type for a named_node.
    --  An identifier can be attached only to a named node.
@@ -121,11 +134,22 @@ package Types is
    type N_Named is abstract new N_Root with private;
    type N_Named_Acc is access all N_Named'Class;
 
+   --  To get the name of a named node
+   function Get_Name (Node : in N_Named'Class) return String;
+
+
+   --------------------------------------------------------------
+   --  Nodes defining a scope in the tree parsed from the idl  --
+   --------------------------------------------------------------
 
    --  Basic type for nodes that define a scope
    type N_Scope is abstract new N_Named with private;
    type N_Scope_Acc is access all N_Scope'Class;
 
+
+   ----------------------------------------
+   --  Type of an identifier definition  --
+   ----------------------------------------
 
    --  An identifier definition contains the following :
    --    - the name of the identifier
@@ -145,24 +169,6 @@ package Types is
 
    --  Definition of a list of identifier_definition
    type Identifier_Definition_List is private;
-
-
-
-   ---------------------------
-   --  operations on Nodes  --
-   ---------------------------
-
-   --  To manipulate the location of a node
-   procedure Set_Location (N : in out N_Root'Class; Loc : Errors.Location);
-   function Get_Location (N : N_Root'Class) return Errors.Location;
-
-   --  To get the name of a named node
-   function Get_Name (Node : in N_Named'Class) return String;
-
-
-   --------------------------------------------
-   --  operations on identifier definitions  --
-   --------------------------------------------
 
    --  Return the named node corresponding to the identifier
    --  definition.
@@ -209,14 +215,6 @@ package Types is
    --  If this identifier is not defined, returns a null pointer.
    function Find_Identifier_Node return N_Named_Acc;
 
-   --  Find the node corresponding to the current identifier in a
-   --  given scope.
-   --  The current identifier is the one just scanned by the lexer
-   --  If this identifier is not defined in the given scope,
-   --  returns a null pointer.
---   function Find_Identifier_Node (Scope : N_Scope_Acc)
---                                  return N_Named_Acc;
-
    --  Change the definition (associed node) of CELL.
    --  only used in the case of a forward interface definition
    procedure Redefine_Identifier
@@ -232,6 +230,10 @@ package Types is
 
 private
 
+   --------------------------------------------
+   --  Root of the tree parsed from the idl  --
+   --------------------------------------------
+
    --  The basic node only contains its location (filename, line,
    --  column)
    type N_Root is abstract tagged record
@@ -240,16 +242,28 @@ private
 
    Nil_Node : constant N_Root_Acc := null;
 
+   ---------------------------------------------------
+   --  Named nodes in the tree parsed from the idl  --
+   ---------------------------------------------------
+
    --  A named node contains its identifier definition
    type N_Named is abstract new N_Root with record
       Definition : Identifier_Definition_Acc;
    end record;
+
+   --------------------------------------------------------------
+   --  Nodes defining a scope in the tree parsed from the idl  --
+   --------------------------------------------------------------
 
    --  A scope contains all the definitions of the enclosed
    --  identifiers
    type N_Scope is abstract new N_Named with record
       Identifier_List : Identifier_Definition_List;
    end record;
+
+   ----------------------------------------
+   --  Type of an identifier definition  --
+   ----------------------------------------
 
    --  classical definition of a list for the identifier_definition_list
    type Identifier_Definition_Cell;
@@ -261,53 +275,16 @@ private
 
    Nil_Uniq_Id : constant Uniq_Id := 0;
 
-
    --  Adds an identifier definition to a scope
    procedure Add_Identifier_Definition (Scope : in out N_Scope'Class;
                                         Identifier : in Identifier_Definition);
-
-
 
    ----------------------------
    --  identifiers handling  --
    ----------------------------
 
-   --  Each identifier is given a unique id number. This number is
-   --  its location in the table of all the identifiers definitions :
-   --  the id_table.
-   --  In order to find easily a given identifier in this id_table,
-   --  an hashtable of the position of the identifiers in the
-   --  id_table is maintained : the Hash_table. This one keeps the
-   --  position in the id_table of the first identifier defined for
-   --  each possible hash value. All the identifiers having the same
-   --  hash_value are then linked : each one has a pointer on the
-   --  next defined.
-
    --  dimension of the hashtable
    type Hash_Value_Type is mod 2**32;
-   Hash_Mod : constant Hash_Value_Type := 2053;
-
-   --  The hash table of the location of the identifiers in the
-   --  id_table
-   type Hash_Table_Type is array (0 .. Hash_Mod - 1) of Uniq_Id;
-   Hash_Table : Hash_Table_Type := (others => Nil_Uniq_Id);
-
-   --  Type of an entry in the id_table.
-   --  it contains the following :
-   --    - the identifier_definition,
-   --    - a pointer on the entry correponding to the definition
-   --  of an identifier with the same hash value.
-   type Hash_Entry is record
-      Definition : Identifier_Definition_Acc := null;
-      Next : Uniq_Id;
-   end record;
-
-   --  The id_table. It is actually an variable size table. If it
-   --  becomes to little, it grows automatically.
-   package Id_Table is new GNAT.Table
-     (Table_Component_Type => Hash_Entry, Table_Index_Type => Uniq_Id,
-      Table_Low_Bound => Nil_Uniq_Id + 1, Table_Initial => 256,
-      Table_Increment => 100);
 
    --  The hashing function. Takes an identifier and return its hash
    --  value
@@ -358,6 +335,14 @@ private
 --    --  already defined in the current scope and cannot be imported.
 --    function Import_Uniq_Identifier (Node : N_Named_Acc) return Boolean;
 --
+   --  Find the node corresponding to the current identifier in a
+   --  given scope.
+   --  The current identifier is the one just scanned by the lexer
+   --  If this identifier is not defined in the given scope,
+   --  returns a null pointer.
+--   function Find_Identifier_Node (Scope : N_Scope_Acc)
+--                                  return N_Named_Acc;
+
 
 
 end Types;
