@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#51 $
+--  $Id: //droopi/main/src/polyorb-any.adb#52 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -239,6 +239,14 @@ package body PolyORB.Any is
 
    function Get_Content_List_Length (List : in Content_List)
      return Types.Unsigned_Long;
+   --  Return the length of the aggregate contents List.
+   --  The corresponding Any_Lock must be held.
+
+   function Internal_Get_Aggregate_Count
+     (Value : Any)
+      return Unsigned_Long;
+   --  Return the length of the contents of Value, which must be
+   --  an aggregate. Value.Any_Lock must be held.
 
    --  For complex types that could be defined in Idl a content_aggregate
    --  will be used.
@@ -2596,13 +2604,30 @@ package body PolyORB.Any is
    -- Get_Aggregate_Count --
    -------------------------
 
-   function Get_Aggregate_Count (Value : Any)
-     return Unsigned_Long is
+   function Get_Aggregate_Count
+     (Value : Any)
+      return Unsigned_Long
+   is
+      Result : Unsigned_Long;
+   begin
+      Enter (Value.Any_Lock);
+      Result := Internal_Get_Aggregate_Count (Value);
+      Leave (Value.Any_Lock);
+      return Result;
+
+   end Get_Aggregate_Count;
+
+   ----------------------------------
+   -- Internal_Get_Aggregate_Count --
+   ----------------------------------
+
+   function Internal_Get_Aggregate_Count
+     (Value : Any)
+      return Unsigned_Long is
    begin
       return Get_Content_List_Length
-        (Content_Aggregate_Ptr
-         (Get_Value (Value)).Value);
-   end Get_Aggregate_Count;
+        (Content_Aggregate_Ptr (Value.The_Value.all).Value);
+   end Internal_Get_Aggregate_Count;
 
    ---------------------------
    -- Add_Aggregate_Element --
@@ -2645,6 +2670,11 @@ package body PolyORB.Any is
       Enter (Value.Any_Lock);
       pragma Assert (Value.The_Value /= null);
       Ptr := Content_Aggregate_Ptr (Value.The_Value.all).Value;
+      pragma Debug (O ("Get_Aggregate_Element : Index = "
+                       & Unsigned_Long'Image (Index)
+                       & ", aggregate_count = "
+                       & Unsigned_Long'Image
+                       (Internal_Get_Aggregate_Count (Value))));
 
       Result.The_Value.all
         := Duplicate
