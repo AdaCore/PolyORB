@@ -42,5 +42,5 @@ CosTime_GEN= \
 
 DEPS=$(CosTime_GEN)
 
-$(CosTime_GEN): $(CosTime_IDL)
+$(CosTime_GEN): $(CosTime_IDL) $(IDLAC)
 	$(IDLAC) $(CosTime_IDL) -I$(srcdir)
