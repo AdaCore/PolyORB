@@ -49,8 +49,8 @@ stamp-gen: $(IDL) $(IDLAC)
 ab_names test_naming: $(FORCE) $(GEN)
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
 
-ir_test_naming: $(FORCE) $(GEN)
-	$(GNATMAKE) $@ $(GNATMAKE_FLAGS) $(IR_GNATMAKE_FLAGS)
+ir_ab_names: $(FORCE) $(GEN)
+	$(GNATMAKE) $@ $(IR_GNATMAKE_FLAGS) $(GNATMAKE_FLAGS)
 	
 force-ir:
 	cd ../ir && $(MAKE)
