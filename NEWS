@@ -1,3 +1,65 @@
+Changes since GLADE 3.16a
+=========================
+
+New Functionnalities
+--------------------
+
+*   These are user-transparent functionalities. They have been
+    introduced to use PolyORB as PCS instead of GARLIC.
+
+Bug fixes
+---------
+
+*   When a pure client partition was dying during a RPC, the server
+    was unable to terminate because it was trying forver to send the
+    result of the RPC.
+
+
+Changes since GLADE 3.15a
+=========================
+
+New Functionnalities
+--------------------
+
+*   GLADE used to propagate the client priority to the server during a
+    RPC. The server was executing the RPC at this priority level. It
+    provides now two priority policies like RT-CORBA :
+    Client_Propagated which corresponds to the previous policy and
+    Server_Propagated which executes the RPC request to a given
+    priority. This priority is set by the partition attribute
+    Priority. Implement the proposals from "Towards a Real-Time
+    Distributed Systems Annex in Ada", J. Gutierrez, M. Gonzales
+    Harbour, IRTAW'2000.
+
+Bug fixes
+---------
+
+*   Fix several bugs in the DSM storage implementation
+
+
+Changes since GLADE 3.14a
+=========================
+
+New Functionnalities
+--------------------
+
+*   The pragma Remote_Shell allows to decide which remote shell to use
+    when the main partition launches the other partitions.
+
+Bug fixes
+---------
+
+*   The lightweight PCS was incorrectly activated when RACW were
+    configured on a partition.
+
+*   Some problems were raised by the first implementation of the
+    passive partitions. There are fixed now. One of them was to
+    incorrectly allow a DSM data storage to be configured for a
+    passive partition when it is supposed to executed Li and Hudak's
+    algorithm. This release provides few new examples on shared
+    passive packages use and storage data configuration.
+
+
 Changes since GLADE 3.13a
 =========================
 
