@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions.adb#8 $
+--  $Id: //droopi/main/src/polyorb-exceptions.adb#9 $
 
 with Ada.Unchecked_Conversion;
 
@@ -155,20 +155,15 @@ package body PolyORB.Exceptions is
         := Find (Repository_Id, Repository_Id'First, ':');
       Colon2 : constant Integer
         := Find (Repository_Id, Colon1 + 1, ':');
-      Slash : Integer := Colon1;
-      Next_Slash : Integer;
 
    begin
       pragma Debug (O ("Exception_Name " & Repository_Id));
 
-      loop
-         Next_Slash := Find (Repository_Id, Colon1 + 1, '/');
-         exit when Next_Slash > Colon2;
-         Slash := Next_Slash;
-      end loop;
-
-      if Colon1 < Repository_Id'Last then
-         return Repository_Id (Slash + 1 .. Colon2 - 1);
+      if Repository_Id'First <= Colon1
+        and then Colon1 <= Colon2
+        and then Colon2 <= Repository_Id'Last
+      then
+         return Repository_Id (Colon1 + 1 .. Colon2 - 1);
       else
          return Repository_Id;
       end if;
@@ -236,7 +231,7 @@ package body PolyORB.Exceptions is
 
       Result : Ada.Exceptions.Exception_Id;
    begin
-      pragma Debug (O ("Internal_Name : " & Internal_Name));
+      pragma Debug (O ("Internal_Name: " & Internal_Name));
 
       if Internal_Name = "" then
          ExcpId := Ada.Exceptions.Null_Id;
@@ -255,6 +250,9 @@ package body PolyORB.Exceptions is
 
       if Result = Ada.Exceptions.Null_Id then
          ExcpId := Default;
+         --  XXX Hum, this should never happen: for an unknown
+         --  exception, System.Exception_Table will create an
+         --  exception_id on the fly.
       else
          ExcpId := Result;
       end if;

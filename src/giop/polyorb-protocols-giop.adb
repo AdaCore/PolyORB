@@ -1699,9 +1699,49 @@ package body PolyORB.Protocols.GIOP is
                  (Current_Req.Req.Exc_List, RepositoryId);
             begin
                if Except_Index = 0 then
-                  --  Current_Req.Req.Exception_Info
-                  --    := To_Any (UNKNOWN);
-                  raise Not_Implemented;
+                  declare
+                     --  Received an unexpected exception: we'll
+                     --  have to conjure up a minimal exception
+                     --  TypeCode to get at least the repo. ID
+                     --  right.
+
+                     --  Actually we could be more clever here
+                     --  and ask the ORB to provide a TypeCode
+                     --  (maybe by querying an application
+                     --  personality or interface repository
+                     --  for information about this repository ID).
+
+                     RID : constant Types.String
+                       := Unmarshall (Ses.Buffer_In);
+                     Exception_Name : constant String
+                       := Exceptions.Exception_Name
+                       (To_Standard_String (RID));
+                     Slash, Next_Slash : Integer;
+
+                     TC : Any.TypeCode.Object := TypeCode.TC_Except;
+                  begin
+                     Slash := Exception_Name'First - 1;
+                     loop
+                        Next_Slash := Utils.Find
+                          (Exception_Name, Slash + 1, '/');
+                        exit when Next_Slash > Exception_Name'Last;
+                        pragma Assert (Next_Slash > Slash);
+                        Slash := Next_Slash;
+                     end loop;
+                     if Slash = Exception_Name'First - 1 then
+                        Slash := Slash + 1;
+                     end if;
+
+                     TypeCode.Add_Parameter
+                       (TC, To_Any (To_PolyORB_String
+                                      (Exception_Name
+                                         (Slash .. Exception_Name'Last))));
+                     TypeCode.Add_Parameter
+                       (TC, To_Any (RID));
+                     Current_Req.Req.Exception_Info
+                       := PolyORB.Any.Get_Empty_Any (TC);
+                  end;
+
                else
                   Current_Req.Req.Exception_Info
                     := PolyORB.Any.Get_Empty_Any

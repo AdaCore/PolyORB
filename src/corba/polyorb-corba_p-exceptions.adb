@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#13 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#14 $
 
 with Ada.Exceptions;
 
@@ -53,27 +53,25 @@ package body PolyORB.CORBA_P.Exceptions is
    -- To_CORBA_Internal_Name --
    ----------------------------
 
-   function To_CORBA_Internal_Name (Name : String)
-                           return String;
+   function To_CORBA_Exception (Name : String) return String;
+   --  Map PolyORB sytem exception repository IDs to CORBA
+   --  ones; leave other repository IDs unchanged.
 
-   function To_CORBA_Internal_Name (Name : String)
-                           return String
+   function To_CORBA_Exception (Name : String) return String
    is
       use PolyORB.Utils;
 
       Colon1 : constant Integer := Find (Name, Name'First, ':');
-      Colon2 : constant Integer := Find (Name, Colon1 + 1, '/');
-      Colon3 : constant Integer := Find (Name, Colon2 + 1, ':');
-
-      Root  : constant String   := Name (Name'First .. Colon2);
+      Slash  : constant Integer := Find (Name, Colon1 + 1, '/');
+      Root : String  renames Name (Name'First .. Slash);
 
    begin
       if Root = "INTERNAL:POLYORB/" then
-         return "CORBA/" & Name (Colon2 + 1 .. Colon3 - 1);
+         return "IDL:CORBA/" & Name (Slash + 1 .. Name'Last);
       else
-         return Name (Colon1 + 1 .. Colon3 - 1);
+         return Name;
       end if;
-   end To_CORBA_Internal_Name;
+   end To_CORBA_Exception;
 
    --------------------
    -- Raise_From_Any --
@@ -86,17 +84,20 @@ package body PolyORB.CORBA_P.Exceptions is
       Repository_Id : constant PolyORB.Types.RepositoryId
         := Any.TypeCode.Id (PolyORB.Any.Get_Type (Occurrence));
 
-      Name : constant String
-        := To_CORBA_Internal_Name (PolyORB.Types.To_Standard_String
-                                   (Repository_Id));
+      Is_CORBA_System_Exc : constant Boolean
+        := Is_System_Exception
+        (To_Standard_String (Repository_Id));
+
+      CORBA_Repository_Id : constant String
+        := To_CORBA_Exception (PolyORB.Types.To_Standard_String
+                                 (Repository_Id));
 
       System_Id : Ada.Exceptions.Exception_Id;
 
-      Is_CORBA_System_Exc : constant Boolean
-        := Is_System_Exception (To_Standard_String (Repository_Id));
    begin
       PolyORB.Exceptions.Get_ExcepId_By_RepositoryId
-        (Name, System_Id, CORBA.Unknown'Identity);
+        (CORBA_Repository_Id, System_Id,
+         Default => CORBA.Unknown'Identity);
 
       if Is_CORBA_System_Exc then
          PolyORB.Exceptions.Raise_System_Exception_From_Any
