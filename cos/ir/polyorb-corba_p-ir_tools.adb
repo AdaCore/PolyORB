@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,19 +26,17 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.ORB;
 with CORBA.Repository_Root.Repository.Helper;
-with PolyORB.CORBA_P.Naming_Tools;
 
 package body PolyORB.CORBA_P.IR_Tools is
 
-   use CORBA.Repository_Root.Repository;
-
-   Repo_Root_Ref : Ref;
+   Repo_Root_Ref : CORBA.Repository_Root.Repository.Ref;
 
    -----------------
    -- Get_IR_Root --
@@ -46,11 +44,13 @@ package body PolyORB.CORBA_P.IR_Tools is
 
    function Get_IR_Root return CORBA.Repository_Root.Repository.Ref is
    begin
-      if Is_Nil (Repo_Root_Ref) then
-         Repo_Root_Ref := Helper.To_Ref
-           (PolyORB.CORBA_P.Naming_Tools.Locate
-            ("Interface_Repository"));
+      if CORBA.Repository_Root.Repository.Is_Nil (Repo_Root_Ref) then
+         Repo_Root_Ref :=
+           CORBA.Repository_Root.Repository.Helper.To_Ref
+           (CORBA.ORB.Resolve_Initial_References
+            (CORBA.ORB.To_CORBA_String ("InterfaceRepository")));
       end if;
+
       return Repo_Root_Ref;
    end Get_IR_Root;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -777,6 +777,9 @@ package body CORBA.ORB is
       Naming_IOR : constant Standard.String :=
         PolyORB.Parameters.Get_Conf
         (Section => "corba", Key => "naming_ior", Default => "");
+      InterfaceRepository_IOR : constant Standard.String :=
+        PolyORB.Parameters.Get_Conf
+        (Section => "corba", Key => "ir_ior", Default => "");
 
    begin
       --  Register initial reference for NamingService
@@ -785,6 +788,14 @@ package body CORBA.ORB is
          Register_Initial_Reference
            (To_CORBA_String ("NamingService"),
             To_CORBA_String (Naming_IOR));
+      end if;
+
+      --  Register initial reference for Interface Repository
+
+      if InterfaceRepository_IOR /= "" then
+         Register_Initial_Reference
+           (To_CORBA_String ("InterfaceRepository"),
+            To_CORBA_String (InterfaceRepository_IOR));
       end if;
 
       PolyORB.CORBA_P.ORB_Init.Register
