@@ -1,17 +1,24 @@
-GNAT_STYLE=-gnaty3bcefhikmt
-GNATMAKE_FLAGS= $(GNAT_STYLE) -g -gnatf -gnatwu -gnatwe -gnatgao
-all: testlexer testparser testexpansion #testgen idlac # gidlac # idlac
+#GNAT_STYLE=-gnaty3bcefhikmt
+#GNATMAKE_FLAGS= $(GNAT_STYLE) -g -gnatf -gnatwu -gnatwe -gnatao
+GNATMAKE_FLAGS=-g -gnatfao
 
-ACCESSOR_FILES=idl_fe-tree-accessors.ads idl_fe-tree-accessors.adb
+all: testlexer testparser testexpansion testgen idlac # gidlac # idlac
 
-$(ACCESSORS_FILES): idl_fe-tree.ads
-	./mk_accessors.py
+#ACCESSOR_FILES=idl_fe-tree-accessors.ads idl_fe-tree-accessors.adb
+#
+#$(ACCESSORS_FILES): idl_fe-tree.ads
+#	./mk_accessors.py
+#
+#CONSTRUCTOR_FILES=idl_fe-tree-constructors.ads idl_fe-tree-constructors.adb
+#
+#$(CONSTRUCTOR_FILES): idl_fe-tree.ads
+#	./mk_constructors.py
 
-CONSTRUCTOR_FILES=idl_fe-tree-constructors.ads idl_fe-tree-constructors.adb
-
-$(CONSTRUCTOR_FILES): idl_fe-tree.ads
-	./mk_constructors.py
-
+TREE_FILES=idl_fe-tree.ads idl_fe-tree.adb
+$(TREE_FILES): nodes.txt
+	./make_nodes.py > idl_fe-tree.ada
+	gnatchop -w idl_fe-tree.ada
+	-rm idl_fe-tree.ada
 
 testparser testlexer testgen gidlac idlac ada_be-expansion testexpansion: force #$(ACCESSOR_FILES) $(CONSTRUCTOR_FILES)
 	gnatmake $(GNATMAKE_FLAGS) $@
@@ -27,6 +34,6 @@ test:
 .PHONY: clean force
 
 clean:
-	$(RM) *.o *.ali *.c *~ idlac gidlac testlexer b~*
+	$(RM) *.o *.ali *.c *~ idlac gidlac testlexer b~* $(TREE_FILES)
 
 force:

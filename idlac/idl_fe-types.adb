@@ -4,7 +4,7 @@ with GNAT.Case_Util;
 with Idl_Fe.Errors;
 with Idl_Fe.Lexer;
 with Idl_Fe.Debug;
-with Idl_Fe.Tree;
+with Idl_Fe.Tree; use Idl_Fe.Tree;
 
 pragma Elaborate_All (Idl_Fe.Debug);
 
@@ -26,34 +26,26 @@ package body Idl_Fe.Types is
    --------------------
    --  Set_Location  --
    --------------------
-   procedure Set_Location (N : in out N_Root'Class;
-                           Loc : Idl_Fe.Errors.Location) is
+   procedure Set_Location
+     (N : Node_Id;
+      Loc : Idl_Fe.Errors.Location) is
    begin
-      N.Loc := Loc;
+      Set_Loc (N, Loc);
    end Set_Location;
 
    --------------------
    --  Get_Location  --
    --------------------
-   function Get_Location (N : N_Root'Class) return Idl_Fe.Errors.Location is
+   function Get_Location
+     (N : Node_Id)
+     return Idl_Fe.Errors.Location is
    begin
-      return N.Loc;
+      return Loc (N);
    end Get_Location;
 
-   ---------------
-   --  Set_Old  --
-   ---------------
-   procedure Set_Old (N : in out N_Root'Class;
-                      Old : in N_Root_Acc) is
-   begin
-      N.Old := Old;
-   end Set_Old;
-
-
-
-   ------------------------------------
-   --  A usefull list of root nodes  --
-   ------------------------------------
+   -----------------------
+   --  A list of nodes  --
+   -----------------------
 
    ------------
    --  Init  --
@@ -66,7 +58,7 @@ package body Idl_Fe.Types is
    ----------------
    --  Get_Node  --
    ----------------
-   function Get_Node (It : Node_Iterator) return N_Root_Acc is
+   function Get_Node (It : Node_Iterator) return Node_Id is
    begin
       return It.Car;
    end Get_Node;
@@ -90,7 +82,11 @@ package body Idl_Fe.Types is
    -------------------
    --  Append_Node  --
    -------------------
-   procedure Append_Node (List : in out Node_List; Node : N_Root_Acc) is
+
+   procedure Append_Node
+     (List : in out Node_List;
+      Node : Node_Id)
+   is
       Cell, Last : Node_List;
    begin
       Cell := new Node_List_Cell'(Car => Node, Cdr => null);
@@ -108,7 +104,11 @@ package body Idl_Fe.Types is
    ------------------
    --  Is_In_List  --
    ------------------
-   function Is_In_List (List : Node_List; Node : N_Root_Acc) return Boolean is
+
+   function Is_In_List
+     (List : Node_List;
+      Node : Node_Id)
+     return Boolean is
    begin
       if List = Nil_List then
          return False;
@@ -123,9 +123,14 @@ package body Idl_Fe.Types is
    -------------------
    --  Remove_Node  --
    -------------------
-   procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
+
+   procedure Unchecked_Deallocation is
+      new Ada.Unchecked_Deallocation
      (Node_List_Cell, Node_List);
-   procedure Remove_Node (List : in out Node_List; Node : N_Root_Acc) is
+
+   procedure Remove_Node
+     (List : in out Node_List;
+      Node : Node_Id) is
       Old_List : Node_List;
    begin
       if List = null then
@@ -148,13 +153,14 @@ package body Idl_Fe.Types is
       end if;
    end Remove_Node;
 
-
    --------------------
    --  Replace_Node  --
    --------------------
-   procedure Replace_Node (List : in out Node_List;
-                           Old : in N_Root_Acc;
-                           New_Node : in N_Root_Acc) is
+
+   procedure Replace_Node
+     (List : in out Node_List;
+      Old : in Node_Id;
+      New_Node : in Node_Id) is
    begin
       if (Old = New_Node) then
          return;
@@ -169,12 +175,13 @@ package body Idl_Fe.Types is
       end if;
    end Replace_Node;
 
-
-
    ------------
    --  Free  --
    ------------
-   procedure Free (List : in out Node_List) is
+
+   procedure Free
+     (List : in out Node_List)
+   is
       Old_List : Node_List;
    begin
       while List /= null loop
@@ -187,7 +194,11 @@ package body Idl_Fe.Types is
    ------------------
    --  Get_Length  --
    ------------------
-   function Get_Length (List : Node_List) return Integer is
+
+   function Get_Length
+     (List : Node_List)
+     return Integer
+   is
       Temp_List : Node_List := List;
       Result : Integer := 0;
    begin
@@ -198,15 +209,17 @@ package body Idl_Fe.Types is
       return Result;
    end Get_Length;
 
-
    --------------------------
    --  Simplify node list  --
    --------------------------
 
-   function Simplify_Node_List (In_List : Node_List) return Node_List is
+   function Simplify_Node_List
+     (In_List : Node_List)
+     return Node_List
+   is
       Result_List : Node_List := null;
       It : Node_Iterator;
-      Node : N_Root_Acc;
+      Node : Node_Id;
    begin
       Init (It, In_List);
       while not Is_End (It) loop
@@ -219,20 +232,20 @@ package body Idl_Fe.Types is
       return Result_List;
    end Simplify_Node_List;
 
-
    ---------------------------------------------------
-   --  Named nodes in the tree parsed from the idl  --
+   --  Named nodes in the tree parsed from the IDL  --
    ---------------------------------------------------
 
    ----------------
    --  Get_Name  --
    ----------------
-   function Get_Name (Node : in N_Named'Class) return String is
+
+   function Get_Name (Node : in Node_Id) return String is
    begin
-      if Node.Definition /= null then
-         return Node.Definition.Name.all;
+      if Definition (Node) /= null then
+         return Definition (Node).Name.all;
       else
-         return "*null*";
+         return "--null--";
       end if;
    end Get_Name;
 
@@ -243,10 +256,12 @@ package body Idl_Fe.Types is
    ----------------
    --  Get_Node  --
    ----------------
-   function Get_Node (Definition : Identifier_Definition_Acc)
-                      return N_Named_Acc is
+
+   function Get_Node
+     (Definition : Identifier_Definition_Acc)
+     return Node_Id is
    begin
-      if Definition /= null then
+      if Definition  /= null then
          return Definition.Node;
       else
          raise Idl_Fe.Errors.Fatal_Error;
@@ -256,32 +271,36 @@ package body Idl_Fe.Types is
    ----------------------
    --  Get_Definition  --
    ----------------------
-   function Get_Definition (Node : N_Named_Acc)
-                            return Identifier_Definition_Acc is
+   function Get_Definition
+     (Node : Node_Id)
+     return Identifier_Definition_Acc is
    begin
-      if Node /= null then
-         return Node.Definition;
+      if Node /= No_Node then
+         return Definition (Node);
       else
          raise Idl_Fe.Errors.Fatal_Error;
       end if;
    end Get_Definition;
 
    --  To deallocate an identifier_definition_list
-   procedure Unchecked_Deallocation is new Ada.Unchecked_Deallocation
+   procedure Unchecked_Deallocation is
+      new Ada.Unchecked_Deallocation
      (Object => Identifier_Definition_Cell,
-      Name => Identifier_Definition_List);
+      Name   => Identifier_Definition_List);
 
    ---------------------------------
    --  Add_Identifier_Definition  --
    ---------------------------------
-   procedure Add_Identifier_Definition (Scope : in out N_Scope'Class;
-                                        Identifier : in Identifier_Definition)
+   procedure Add_Identifier_Definition
+     (Scope : Node_Id;
+      Identifier : in Identifier_Definition)
    is
       List : Identifier_Definition_List;
    begin
-      List := new Identifier_Definition_Cell'(Definition => Identifier,
-                                              Next => Scope.Identifier_List);
-      Scope.Identifier_List := List;
+      List := new Identifier_Definition_Cell'
+        (Definition => Identifier,
+         Next => Identifier_List (Scope));
+      Set_Identifier_List (Scope, List);
    end Add_Identifier_Definition;
 
    ----------------------------
@@ -293,7 +312,7 @@ package body Idl_Fe.Types is
    type Scope_Stack_Acc is access Scope_Stack;
    type Scope_Stack is record
       Parent : Scope_Stack_Acc;
-      Scope : N_Scope_Acc;
+      Scope : Node_Id;
    end record;
 
    --  To deallocate a Scope_Stack
@@ -305,7 +324,6 @@ package body Idl_Fe.Types is
    --  the bottom in Root_Scope
    Current_Scope : Scope_Stack_Acc := null;
    Root_Scope : Scope_Stack_Acc := null;
-
 
    ------------------------------------------------
    --  The Gnat_Table type implemented functions --
@@ -488,35 +506,38 @@ package body Idl_Fe.Types is
    ---------------------------
    --  Add_Int_Val_Forward  --
    ---------------------------
-   procedure Add_Int_Val_Forward (Node : in N_Named_Acc) is
+
+   procedure Add_Int_Val_Forward
+     (Node : in Node_Id)
+   is
+      UF : Node_List
+        := Unimplemented_Forwards (Current_Scope.Scope);
    begin
-      if Get_Kind (Current_Scope.Scope.all) /= K_Repository and
-        Get_Kind (Current_Scope.Scope.all) /= K_Module then
-         raise Idl_Fe.Errors.Internal_Error;
-         return;
-      end if;
-      Append_Node (N_Forward_Acc (Current_Scope.Scope).Unimplemented_Forwards,
-                   N_Root_Acc (Node));
+      Append_Node (UF, Node);
+      Set_Unimplemented_Forwards
+        (Current_Scope.Scope, UF);
    end Add_Int_Val_Forward;
 
    ------------------------------
    --  Add_Int_Val_Definition  --
    ------------------------------
-   procedure Add_Int_Val_Definition (Node : in N_Named_Acc) is
+   procedure Add_Int_Val_Definition
+     (Node : in Node_Id)
+   is
+      UF : Node_List
+        := Unimplemented_Forwards (Current_Scope.Scope);
    begin
-      if Get_Kind (Current_Scope.Scope.all) /= K_Repository and
-        Get_Kind (Current_Scope.Scope.all) /= K_Module then
-         raise Idl_Fe.Errors.Internal_Error;
-         return;
-      end if;
-      Remove_Node (N_Forward_Acc (Current_Scope.Scope).Unimplemented_Forwards,
-                   N_Root_Acc (Node));
+      Remove_Node (UF, Node);
+      Set_Unimplemented_Forwards
+        (Current_Scope.Scope, UF);
    end Add_Int_Val_Definition;
 
    ----------------------
    --  Get_Root_Scope  --
    ----------------------
-   function Get_Root_Scope return N_Scope_Acc is
+
+   function Get_Root_Scope
+     return Node_Id is
    begin
       return Root_Scope.Scope;
    end Get_Root_Scope;
@@ -524,7 +545,9 @@ package body Idl_Fe.Types is
    -------------------------
    --  Get_Current_Scope  --
    -------------------------
-   function Get_Current_Scope return N_Scope_Acc is
+
+   function Get_Current_Scope
+     return Node_Id is
    begin
       return Current_Scope.Scope;
    end Get_Current_Scope;
@@ -532,7 +555,9 @@ package body Idl_Fe.Types is
    -------------------------
    --  Get_Current_Scope  --
    -------------------------
-   function Get_Previous_Scope return N_Scope_Acc is
+
+   function Get_Previous_Scope
+     return Node_Id is
    begin
       return Current_Scope.Parent.Scope;
    end Get_Previous_Scope;
@@ -540,12 +565,15 @@ package body Idl_Fe.Types is
    ------------------
    --  Push_Scope  --
    ------------------
-   procedure Push_Scope (Scope : access N_Scope'Class) is
+
+   procedure Push_Scope
+     (Scope : Node_Id)
+   is
       Stack : Scope_Stack_Acc;
    begin
       Stack := new Scope_Stack;
       Stack.Parent := Current_Scope;
-      Stack.Scope := N_Scope_Acc (Scope);
+      Stack.Scope := Scope;
       if Current_Scope = null then
          Root_Scope := Stack;
       end if;
@@ -555,19 +583,20 @@ package body Idl_Fe.Types is
    -----------------
    --  Pop_Scope  --
    -----------------
+
    procedure Pop_Scope is
       Old_Scope : Scope_Stack_Acc;
       Definition_List : Identifier_Definition_List;
       Old_Definition_List : Identifier_Definition_List;
       Forward_Defs : Node_Iterator;
-      Forward_Def : N_Root_Acc;
+      Forward_Def : Node_Id;
       Hash_Index : Hash_Value_Type;
       Index : Uniq_Id;
    begin
       --  Remove all definition of scope from the hash table, and
       --  replace them by the previous one.
       --  Add these definition to the identifier_table of the current_scope
-      Definition_List := Current_Scope.Scope.Identifier_List;
+      Definition_List := Identifier_List (Current_Scope.Scope);
       while Definition_List /= null loop
          Add_Definition_To_Storage
            (Id_Table.Table (Definition_List.Definition.Id).Definition);
@@ -597,25 +626,34 @@ package body Idl_Fe.Types is
       Old_Scope := Current_Scope;
       Current_Scope := Old_Scope.Parent;
       --  Test if all forward definitions were implemented
-      if Get_Kind (Old_Scope.Scope.all) = K_Repository or
-        Get_Kind (Old_Scope.Scope.all) = K_Module then
+      if Kind (Old_Scope.Scope) = K_Repository or
+        Kind (Old_Scope.Scope) = K_Module then
          Init (Forward_Defs,
-               N_Forward_Acc (Old_Scope.Scope).Unimplemented_Forwards);
+               Unimplemented_Forwards (Old_Scope.Scope));
       end if;
       while not Is_End (Forward_Defs) loop
          Forward_Def := Get_Node (Forward_Defs);
-         Idl_Fe.Errors.Parser_Error ("The forward declaration " &
-                              Idl_Fe.Errors.Display_Location
-                              (Get_Location (Forward_Def.all)) &
-                              " is not implemented.",
-                              Idl_Fe.Errors.Error,
-                              Get_Location (Old_Scope.Scope.all));
+         Idl_Fe.Errors.Parser_Error
+           ("The forward declaration " &
+            Idl_Fe.Errors.Display_Location
+            (Get_Location (Forward_Def)) &
+            " is not implemented.",
+            Idl_Fe.Errors.Error,
+            Get_Location (Old_Scope.Scope));
          Next (Forward_Defs);
       end loop;
-      --  frees the forward definition list
-      if Get_Kind (Old_Scope.Scope.all) = K_Repository or
-        Get_Kind (Old_Scope.Scope.all) = K_Module then
-         Free (N_Forward_Acc (Old_Scope.Scope).Unimplemented_Forwards);
+
+      --  Free the forward definition list
+
+      if Kind (Old_Scope.Scope) = K_Repository
+        or else Kind (Old_Scope.Scope) = K_Module then
+         declare
+            UF : Node_List
+              := Unimplemented_Forwards (Old_Scope.Scope);
+         begin
+            Set_Unimplemented_Forwards (Old_Scope.Scope, Nil_List);
+            Free (UF);
+         end;
       end if;
 
       Unchecked_Deallocation (Old_Scope);
@@ -631,34 +669,34 @@ package body Idl_Fe.Types is
    --  Is_Redefinable  --
    ----------------------
    function Is_Redefinable (Name : String) return Boolean is
-      Definition : Identifier_Definition_Acc;
+      A_Definition : Identifier_Definition_Acc;
    begin
       --  Checks if the identifier is already imported
       if Check_Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
          return False;
       end if;
 
-      Definition := Find_Identifier_Definition (Name);
-      if Definition /= null then
+      A_Definition := Find_Identifier_Definition (Name);
+      if A_Definition /= null then
          pragma Debug (O ("Is_Redefinable : " &
                           "Definition found is" &
                           Node_Kind'Image
-                          (Get_Kind (Definition.Node.all))));
+                          (Kind (A_Definition.Node))));
          --  Checks if the identifier is not being redefined in the same
          --  scope.
-         if Definition.Parent_Scope = Current_Scope.Scope then
+         if A_Definition.Parent_Scope = Current_Scope.Scope then
             return False;
          end if;
          --  A attribute or operation may not be redefined
-         if Get_Kind (Definition.Node.all) = K_Operation or
-           Get_Kind (Definition.Node.all) = K_Attribute_Declarator then
+         if Kind (A_Definition.Node) = K_Operation or
+           Kind (A_Definition.Node) = K_Attribute_Declarator then
             pragma Debug (O ("Is_Redefinable : cannot redefine an op, attr"));
             return False;
          end if;
          --  Ckecks if identifier found is the current scope name:
          --  it is not allowed except for the operation
-         if Get_Kind (Current_Scope.Scope.all) /= K_Operation and
-           Definition = Current_Scope.Scope.Definition then
+         if Kind (Current_Scope.Scope) /= K_Operation
+           and then A_Definition = Definition (Current_Scope.Scope) then
             return False;
          end if;
       end if;
@@ -761,7 +799,7 @@ package body Idl_Fe.Types is
          pragma Debug (O ("Find_Identifier_Definition : " &
                           "Inherited definition is of type " &
                           Node_Kind'Image
-                          (Get_Kind (Inherited_Definition.Node.all))));
+                          (Kind (Inherited_Definition.Node))));
          return Inherited_Definition;
       end if;
       --  the definition is in a upper scope
@@ -771,12 +809,12 @@ package body Idl_Fe.Types is
    ----------------------------
    --  Find_Identifier_Node  --
    ----------------------------
-   function Find_Identifier_Node (Name : String) return N_Named_Acc is
+   function Find_Identifier_Node (Name : String) return Node_Id is
       Definition : Identifier_Definition_Acc;
    begin
       Definition := Find_Identifier_Definition (Name);
       if Definition = null then
-         return null;
+         return No_Node;
       else
          return Definition.Node;
       end if;
@@ -785,16 +823,20 @@ package body Idl_Fe.Types is
    ---------------------------
    --  Redefine_Identifier  --
    ---------------------------
+
    procedure Redefine_Identifier
-     (Definition : Identifier_Definition_Acc; Node : access N_Named'Class) is
+     (A_Definition : Identifier_Definition_Acc;
+      Node : Node_Id) is
    begin
-      if Definition.Node = null or else Node.Definition /= null then
+      if A_Definition.Node = No_Node
+        or else Definition (Node) /= null then
          raise Idl_Fe.Errors.Internal_Error;
       end if;
-      Definition.Node.Definition := null;
+
+      Set_Definition (A_Definition.Node, null);
       --  free????????
-      Definition.Node := N_Named_Acc (Node);
-      Node.Definition := Definition;
+      A_Definition.Node := Node;
+      Set_Definition (Node, A_Definition);
    end Redefine_Identifier;
 
    ----------------------
@@ -802,7 +844,7 @@ package body Idl_Fe.Types is
    ----------------------
 
    function Add_Identifier
-     (Node : access N_Named'Class;
+     (Node : Node_Id;
       Name : String)
      return Boolean
    is
@@ -820,12 +862,12 @@ package body Idl_Fe.Types is
       Definition := new Identifier_Definition;
       Definition.Name := new String'(Name);
       Definition.Id := Index;
-      Definition.Node := N_Named_Acc (Node);
+      Definition.Node := Node;
       Definition.Previous_Definition := Id_Table.Table (Index).Definition;
       Definition.Parent_Scope := Current_Scope.Scope;
       Id_Table.Table (Index).Definition := Definition;
-      Add_Identifier_Definition (Current_Scope.Scope.all, Definition.all);
-      Node.Definition := Definition;
+      Add_Identifier_Definition (Current_Scope.Scope, Definition.all);
+      Set_Definition (Node, Definition);
       pragma Debug (O ("Add_Identifier : end"));
       return True;
    end Add_Identifier;
@@ -835,45 +877,50 @@ package body Idl_Fe.Types is
    -----------------------------------
 
    function Check_Identifier_In_Storage
-     (Scope : N_Scope_Acc;
+     (Scope : Node_Id;
       Identifier : String)
      return Uniq_Id
    is
       use Idl_Fe.Lexer;
-      Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
+
+      Hash_Index : Hash_Value_Type
+        := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id;
    begin
-      Index := Scope.Identifier_Table.Hash_Table (Hash_Index);
+      Index := Identifier_Table (Scope).Hash_Table (Hash_Index);
       if Index /= Nil_Uniq_Id then
-         while Scope.Identifier_Table.Content_Table.Table (Index).
+         while Identifier_Table (Scope).Content_Table.Table (Index).
            Definition.Name /= null loop
             if Idl_Identifier_Equal
-              (Scope.Identifier_Table.Content_Table.Table (Index).
+              (Identifier_Table (Scope).Content_Table.Table (Index).
                Definition.Name.all, Identifier) /= Differ
             then
                return Index;
             end if;
-            if Scope.Identifier_Table.Content_Table.Table (Index).Next =
+            if Identifier_Table (Scope).Content_Table.Table (Index).Next =
               Nil_Uniq_Id then
                exit;
             end if;
-            Index := Scope.Identifier_Table.Content_Table.Table (Index).Next;
+            Index := Identifier_Table (Scope).Content_Table.Table (Index).Next;
          end loop;
       end if;
       return  Nil_Uniq_Id;
    end Check_Identifier_In_Storage;
 
-
    ----------------------------------
    --  Find_Identifier_In_Storage  --
    ----------------------------------
-   function Find_Identifier_In_Storage (Scope : N_Scope_Acc; Name : String)
-                                        return Identifier_Definition_Acc is
+
+   function Find_Identifier_In_Storage
+     (Scope : Node_Id;
+      Name : String)
+     return Identifier_Definition_Acc
+   is
       Index : Uniq_Id;
    begin
       Index := Check_Identifier_In_Storage (Scope, Name);
       if Index /= Nil_Uniq_Id then
-         return Scope.Identifier_Table.Content_Table.Table (Index).Definition;
+         return Identifier_Table (Scope).Content_Table.Table (Index).Definition;
       else
          return null;
       end if;
@@ -890,41 +937,43 @@ package body Idl_Fe.Types is
       use Idl_Fe.Lexer;
 
       Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
+      IT : Storage := Identifier_Table (Current_Scope.Scope);
       Index : Uniq_Id :=
-        Current_Scope.Scope.Identifier_Table.Hash_Table (Hash_Index);
+        IT.Hash_Table (Hash_Index);
    begin
       if Index = Nil_Uniq_Id then
-         Increment_Last (Current_Scope.Scope.Identifier_Table.Content_Table);
-         Index := Last (Current_Scope.Scope.Identifier_Table.Content_Table);
-         Current_Scope.Scope.Identifier_Table.Hash_Table (Hash_Index) := Index;
+         Increment_Last (IT.Content_Table);
+         Index := Last (IT.Content_Table);
+         IT.Hash_Table (Hash_Index) := Index;
       else
-         while Current_Scope.Scope.Identifier_Table.Content_Table.
+         while IT.Content_Table.
            Table (Index).Definition.Name /= null loop
             if Idl_Identifier_Equal
-              (Current_Scope.Scope.Identifier_Table.Content_Table.
+              (IT.Content_Table.
                Table (Index).Definition.Name.all, Identifier) /= Differ
             then
                return Index;
             end if;
-            if  Current_Scope.Scope.Identifier_Table.Content_Table.
+            if  IT.Content_Table.
               Table (Index).Next = Nil_Uniq_Id then
-               Increment_Last (Current_Scope.Scope.Identifier_Table.
+               Increment_Last (IT.
                                Content_Table);
-               Current_Scope.Scope.Identifier_Table.Content_Table.
+               IT.Content_Table.
                  Table (Index).Next :=
-                 Last (Current_Scope.Scope.Identifier_Table.Content_Table);
-               Index := Last (Current_Scope.Scope.Identifier_Table.
+                 Last (IT.Content_Table);
+               Index := Last (IT.
                               Content_Table);
                exit;
             end if;
             Index :=
-              Current_Scope.Scope.Identifier_Table.Content_Table.
+              IT.Content_Table.
               Table (Index).Next;
          end loop;
       end if;
       --  Add an entry in INDEX.
-      Current_Scope.Scope.Identifier_Table.Content_Table.Table (Index) :=
+      IT.Content_Table.Table (Index) :=
         (Definition => null, Next => Nil_Uniq_Id);
+      Set_Identifier_Table (Current_Scope.Scope, IT);
       return Index;
    end Create_Identifier_In_Storage;
 
@@ -940,14 +989,14 @@ package body Idl_Fe.Types is
    begin
       Index := Create_Identifier_In_Storage (Definition.Name.all);
       Definition_Test :=
-        Current_Scope.Scope.Identifier_Table.Content_Table.
+        Identifier_Table (Current_Scope.Scope).Content_Table.
         Table (Index).Definition;
       --  their shouldn't be any redefinition
       if Definition_Test /= null then
          raise Idl_Fe.Errors.Internal_Error;
          return;
       end if;
-      Current_Scope.Scope.Identifier_Table.Content_Table.
+      Identifier_Table (Current_Scope.Scope).Content_Table.
         Table (Index).Definition := Definition;
    end Add_Definition_To_Storage;
 
@@ -961,35 +1010,34 @@ package body Idl_Fe.Types is
    is
       use Idl_Fe.Lexer;
 
-      Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
+      Hash_Index : Hash_Value_Type
+        := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id;
-      Scope : N_Imports_Acc;
+      Scope : Node_Id;
    begin
-      if Current_Scope.Scope.all not in N_Imports'Class then
-         return Nil_Uniq_Id;
-      end if;
       --      pragma Debug (O ("Check_Imported_Identifier : current_scope_is "
       --                     & Current_Scope.Scope.Definition.Name.all));
-      if Get_Kind (Current_Scope.Scope.all) = K_Interface then
+      if Kind (Current_Scope.Scope) = K_Interface then
          null;
          pragma Debug (O ("Check_Imported_Identifier : is interface "));
       end if;
-      Scope := N_Imports_Acc (Current_Scope.Scope);
-      Index := Scope.Imported_Table.Hash_Table (Hash_Index);
+      Scope := Current_Scope.Scope;
+      Index := Imported_Table (Scope).Hash_Table (Hash_Index);
       if Index /= Nil_Uniq_Id then
-         while Scope.Imported_Table.Content_Table.Table (Index).Definition.Name
+         while Imported_Table (Scope).Content_Table.Table (Index).Definition.Name
            /= null loop
             if Idl_Identifier_Equal
-              (Scope.Imported_Table.Content_Table.Table (Index).
+              (Imported_Table (Scope).Content_Table.Table (Index).
                Definition.Name.all, Identifier) /= Differ
             then
                return Index;
             end if;
-            if Scope.Imported_Table.Content_Table.Table (Index).Next =
+            if Imported_Table (Scope).Content_Table.Table (Index).Next =
               Nil_Uniq_Id then
                exit;
             end if;
-            Index := Scope.Imported_Table.Content_Table.Table (Index).Next;
+            Index := Imported_Table (Scope).Content_Table.Table
+              (Index).Next;
          end loop;
       end if;
       return  Nil_Uniq_Id;
@@ -1005,17 +1053,12 @@ package body Idl_Fe.Types is
      return Identifier_Definition_Acc
    is
       Index : Uniq_Id;
-      Scope : N_Imports_Acc;
+      Scope : Node_Id;
    begin
-      --  there is no imports in moduls types
-      if Current_Scope.Scope.all not in N_Imports'Class then
-         return null;
-      end if;
-
-      Scope := N_Imports_Acc (Current_Scope.Scope);
+      Scope := Current_Scope.Scope;
       Index := Check_Imported_Identifier_Index (Name);
       if Index /= Nil_Uniq_Id then
-         return Scope.Imported_Table.Content_Table.Table (Index).Definition;
+         return Imported_Table (Scope).Content_Table.Table (Index).Definition;
       else
          return null;
       end if;
@@ -1027,7 +1070,7 @@ package body Idl_Fe.Types is
 
    function Create_Identifier_In_Imported
      (Identifier : String;
-      Scope : N_Imports_Acc)
+      Scope : Node_Id)
      return Uniq_Id
    is
       use Idl_Fe.Lexer;
@@ -1035,35 +1078,37 @@ package body Idl_Fe.Types is
       Hash_Index : Hash_Value_Type
         := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id;
+      IT : Storage := Imported_Table (Scope);
    begin
-      Index := Scope.Imported_Table.Hash_Table (Hash_Index);
+      Index := IT.Hash_Table (Hash_Index);
       if Index = Nil_Uniq_Id then
-         Increment_Last (Scope.Imported_Table.Content_Table);
-         Index := Last (Scope.Imported_Table.Content_Table);
-         Scope.Imported_Table.Hash_Table (Hash_Index) := Index;
+         Increment_Last (IT.Content_Table);
+         Index := Last (IT.Content_Table);
+         IT.Hash_Table (Hash_Index) := Index;
       else
-         while Scope.Imported_Table.Content_Table.
+         while IT.Content_Table.
            Table (Index).Definition.Name /= null loop
-            if Idl_Identifier_Equal (Scope.Imported_Table.Content_Table.
+            if Idl_Identifier_Equal (IT.Content_Table.
                Table (Index).Definition.Name.all, Identifier) /= Differ
             then
                return Index;
             end if;
-            if  Scope.Imported_Table.Content_Table.
+            if  IT.Content_Table.
               Table (Index).Next = Nil_Uniq_Id then
-               Increment_Last (Scope.Imported_Table.Content_Table);
-               Scope.Imported_Table.Content_Table.Table (Index).Next :=
-                 Last (Scope.Imported_Table.Content_Table);
-               Index := Last (Scope.Imported_Table.Content_Table);
+               Increment_Last (IT.Content_Table);
+               IT.Content_Table.Table (Index).Next :=
+                 Last (IT.Content_Table);
+               Index := Last (IT.Content_Table);
                exit;
             end if;
             Index :=
-              Scope.Imported_Table.Content_Table.Table (Index).Next;
+              IT.Content_Table.Table (Index).Next;
          end loop;
       end if;
       --  Add an entry in INDEX.
-      Scope.Imported_Table.Content_Table.Table (Index) :=
+      IT.Content_Table.Table (Index) :=
         (Definition => null, Next => Nil_Uniq_Id);
+      Set_Imported_Table (Scope, IT);
       return Index;
    end Create_Identifier_In_Imported;
 
@@ -1073,32 +1118,30 @@ package body Idl_Fe.Types is
 
    procedure Add_Definition_To_Imported
      (Definition : in Identifier_Definition_Acc;
-      Scope : in N_Scope_Acc)
+      Scope : in Node_Id)
    is
       Index : Uniq_Id;
       Definition_Test : Identifier_Definition_Acc;
-      Scope_Im : N_Imports_Acc;
    begin
       --  check if we are in value type or interfaces (we should be);
-      if Scope.all not in N_Imports'Class then
-         return;
-      end if;
 
-      Scope_Im := N_Imports_Acc (Scope);
-      Index := Create_Identifier_In_Imported (Definition.Name.all, Scope_Im);
+      --  if all (Scope) not in N_Imports'Class then
+      --     return;
+      --  end if;
+      pragma Assert (Kind (Scope) = K_Interface
+             or else Kind (Scope) = K_ValueType);
+
+      Index := Create_Identifier_In_Imported (Definition.Name.all, Scope);
       Definition_Test :=
-        Scope_Im.Imported_Table.Content_Table.Table (Index).Definition;
+        Imported_Table (Scope).Content_Table.Table (Index).Definition;
       if Definition_Test /= null then
          if Definition_Test /= Definition then
             raise Idl_Fe.Errors.Internal_Error;
-            return;
          end if;
       end if;
-      Scope_Im.Imported_Table.Content_Table.
+      Imported_Table (Scope).Content_Table.
         Table (Index).Definition := Definition;
-      return;
    end Add_Definition_To_Imported;
-
 
    --------------------------------
    --  Find_Identifier_In_Scope  --
@@ -1106,33 +1149,33 @@ package body Idl_Fe.Types is
 
    procedure Find_Identifier_In_Inheritance
      (Name : in String;
-      Scope : in N_Imports_Acc;
+      Scope : in Node_Id;
       List : in out Node_List)
    is
       It : Node_Iterator;
-      Node : N_Root_Acc;
+      Node : Node_Id;
       Definition : Identifier_Definition_Acc;
       Parent : Node_List;
    begin
 
-      Parent :=  Get_Parents (Scope.all);
+      Parent :=  Parents (Scope);
       Init (It, Parent);
       --  loop for all the Parent of the scope
       while not Is_End (It) loop
          Node := Get_Node (It);
-         if Get_Kind (Node.all) /= K_Scoped_Name then
+         if Kind (Node) /= K_Scoped_Name then
             raise Idl_Fe.Errors.Internal_Error;
          end if;
          pragma Debug (O ("Find_Identifier_In_Inheritance : " &
-                          Node_Kind'Image (Get_Kind (Node.all))));
+                          Node_Kind'Image (Kind (Node))));
          Definition := Find_Identifier_In_Storage
-           (N_Scope_Acc (Idl_Fe.Tree.N_Scoped_Name_Acc (Node).Value), Name);
+           (Value (Node), Name);
          if Definition /= null then
-            Append_Node (List, N_Root_Acc (Definition.Node));
+            Append_Node (List, Definition.Node);
          else
             Find_Identifier_In_Inheritance
               (Name,
-               N_Imports_Acc (Idl_Fe.Tree.N_Scoped_Name_Acc (Node).Value),
+               Value (Node),
                List);
          end if;
          Next (It);
@@ -1152,12 +1195,13 @@ package body Idl_Fe.Types is
       First_List : Node_List := null;
    begin
       --  there is no imports in moduls types
-      if Current_Scope.Scope.all not in N_Imports'Class then
+      if not (Kind (Current_Scope.Scope) = K_Interface
+        or else Kind (Current_Scope.Scope) = K_ValueType) then
          return null;
       end if;
       Find_Identifier_In_Inheritance
         (Name,
-         N_Imports_Acc (Current_Scope.Scope),
+         Current_Scope.Scope,
          First_List);
       Result_List := Simplify_Node_List (First_List);
       Free (First_List);
@@ -1168,22 +1212,19 @@ package body Idl_Fe.Types is
       elsif  Get_Length (Result_List) = 1 then
          declare
             It : Node_Iterator;
-            Node : N_Root_Acc;
+            Node : Node_Id;
          begin
             pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
                              "One definition found in inheritance"));
             Init (It, Result_List);
             Node := Get_Node (It);
             Free (Result_List);
-            if Node.all not in N_Named'Class then
-               raise Idl_Fe.Errors.Internal_Error;
-            end if;
-            return Get_Definition (N_Named_Acc (Node));
+            return Definition (Node);
          end;
       else
          declare
             It : Node_Iterator;
-            Node : N_Root_Acc;
+            Node : Node_Id;
          begin
             --  there is multiple definition
             pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
@@ -1197,75 +1238,9 @@ package body Idl_Fe.Types is
             Init (It, Result_List);
             Node := Get_Node (It);
             Free (Result_List);
-            if Node.all not in N_Named'Class then
-               raise Idl_Fe.Errors.Internal_Error;
-            end if;
-            return Get_Definition (N_Named_Acc (Node));
+            return Get_Definition (Node);
          end;
       end if;
    end Find_Inherited_Identifier_Definition;
-
-
-
---  INUTILE ???
---    procedure Set_Back_End (N : in out N_Root'Class;
---                            Be : access N_Back_End'Class) is
---    begin
---       if N.Back_End /= null then
---          raise Idl_Fe.Errors.Internal_Error;
---       end if;
---       N.Back_End := N_Back_End_Acc (Be);
---    end Set_Back_End;
-
---    function Get_Back_End (N : N_Root'Class) return N_Back_End_Acc is
---    begin
---       return N.Back_End;
---    end Get_Back_End;
---
---
---    function Is_Identifier_Imported (Cell : Identifier_Definition_Acc)
---                                     return Boolean is
---    begin
---       return Cell.Parent = Current_Scope.Scope;
---    end Is_Identifier_Imported;
---
---
---    procedure Disp_Id_Table is
---       use Ada.Text_IO;
---    begin
---       for I in Id_Table.First .. Id_Table.Last loop
---          Put_Line (Uniq_Id'Image (I) & "str: `" & Id_Table.Table (I).Str.all
---                    & "', next: " & Uniq_Id'Image (Id_Table.Table (I).Next));
---       end loop;
---    end Disp_Id_Table;
---
---
---    procedure Import_Identifier (Node : N_Named_Acc) is
---    begin
---       raise Idl_Fe.Errors.Internal_Error;
---    end Import_Identifier;
---
---
---    function Import_Uniq_Identifier (Node : N_Named_Acc) return Boolean is
---    begin
---       return Add_Node_To_Id_Table (Node.Cell.Identifier, Node) /= null;
---    end Import_Uniq_Identifier;
-
---   function Find_Identifier_Node (Scope : N_Scope_Acc; Name : String)
---                                  return N_Named_Acc is
---      Definition : Identifier_Definition_Acc;
---   begin
---      Definition := Find_Identifier_Definition (Name);
---      loop
---         if Definition = null then
---            return null;
---         end if;
---         if Definition.Parent_Scope = Scope then
---            return Definition.Node;
---         else
---            Definition := Definition.Previous_Definition;
---         end if;
---      end loop;
---   end Find_Identifier_Node;
 
 end Idl_Fe.Types;

@@ -8,90 +8,11 @@ package Idl_Fe.Types is
    --  simple type definitions  --
    -------------------------------
 
+   type Node_Id is new Integer;
+   No_Node : constant Node_Id := 0;
+
    --  used for the identifiers
    type String_Cacc is access constant String;
-
-
-   --  all the possible kinds of node
-   type Node_Kind is
-      (K_Repository,                --  structuring nodes
-       K_Module,
-       K_Interface,
-       K_Forward_Interface,
-       K_ValueType,
-       K_Forward_ValueType,
-       K_Boxed_ValueType,
-       K_State_Member,
-       K_Initializer,
-       K_Operation,
-       K_Attribute,
-       K_Attribute_Declarator,
-       K_Param,
-       K_Exception,
-       K_Member,
-       K_Declarator,
-       K_Type_Declarator,
-       K_Const_Dcl,
-       K_Union,
-       K_Case,
-       K_Sequence,
-       K_Struct,
-       K_ValueBase,
-       K_Enum,
-       K_Enumerator,
-       K_Native,
-       K_Scoped_Name,
-       K_Object,
-       K_Any,
-       K_Void,
-       K_Fixed,
-
-       K_Short,                     --  Simple type nodes
-       K_Long,
-       K_Long_Long,
-       K_Unsigned_Short,
-       K_Unsigned_Long,
-       K_Unsigned_Long_Long,
-       K_Char,
-       K_Wide_Char,
-       K_Boolean,
-       K_Float,
-       K_Double,
-       K_Long_Double,
-       K_String,
-       K_Wide_String,
-       K_Octet,
-
-       K_Or,                   --  Binary operators.
-       K_Xor,
-       K_And,
-       K_Shr,
-       K_Shl,
-       K_Sub,
-       K_Add,
-       K_Mul,
-       K_Div,
-       K_Mod,
-       K_Id,                   --  Unary operators.
-       K_Neg,
-       K_Not,
-       K_Primary_Expr,              --  Primary expression
---        K_Lit_Integer,          --  Literals.
---        K_Lit_Floating_Point,
---        K_Lit_Fixed_Point,
---        K_Lit_Char,
---        K_Lit_Wchar,
-       K_Lit_String,
-       K_Lit_Boolean,
---        K_Lit_Wstring,
---        K_Lit_True,
---        K_Lit_False
-       K_Unknown       --  used for BE nodes, to extend the tree
-       );
-
-   subtype K_Simple_Type is
-     Node_Kind range K_Short .. K_Octet;
-
    --  all the possible kind of constants
    --  These types are used in the evaluation of constants to check
    --  that each subexpression of an expression does not exceed the
@@ -101,6 +22,7 @@ package Idl_Fe.Types is
    --  unsigned short.
    --  The distinction is kept for long long due to the special way
    --  to code it : see idl_fe.tree.ads.
+
    type Const_Kind is
      (C_Short,
       C_Long,
@@ -144,33 +66,42 @@ package Idl_Fe.Types is
    type Uniq_Id is new Natural;
    Nil_Uniq_Id : constant Uniq_Id := 0;
 
+   type Param_Mode is (Mode_In, Mode_Inout, Mode_Out);
 
+   ----------------------------------
+   --  Management of const values  --
+   ----------------------------------
 
+   --  generic type for constant values (except floating ones)
+   --  This type is used for all values (short as well as long long)
+   --  in order to have operations between longs and shorts for
+   --  example. The way it is used for long long and unsigned long
+   --  long is a bit strange : both use the whole 64 bits and you
+   --  can not add a long long and an unsigned long long without
+   --  care.
+   type Idl_Value is mod (2 ** 64);
 
-   --------------------------------------------
-   --  Root of the tree parsed from the idl  --
-   --------------------------------------------
+   --  These are the limits for each Idl type.
+   Idl_Short_Min : constant Idl_Value := (-2 ** 15);
+   Idl_Short_Max : constant Idl_Value := (2 ** 15) - 1;
+   Idl_Long_Min : constant Idl_Value := (-2 ** 31);
+   Idl_Long_Max : constant Idl_Value := (2 ** 31) - 1;
+   Idl_LongLong_Min : constant Idl_Value := (-2 ** 63);
+   Idl_LongLong_Max : constant Idl_Value := (2 ** 63) - 1;
+   Idl_UShort_Min : constant Idl_Value := 0;
+   Idl_UShort_Max : constant Idl_Value := (2 ** 16) - 1;
+   Idl_ULong_Min : constant Idl_Value := 0;
+   Idl_ULong_Max : constant Idl_Value := (2 ** 32) - 1;
+   Idl_ULongLong_Min : constant Idl_Value := 0;
+   Idl_ULongLong_Max : constant Idl_Value := (2 ** 64) - 1;
 
-   --  The basic type of the tree. Every Node type is a descendant
-   --  of this one.
-   --  In all this file, N_ means that the type is a node type
-   type N_Root is abstract tagged private;
-   type N_Root_Acc is access all N_Root'Class;
-   Nil_Node : constant N_Root_Acc;
-
-   --  To get the kind of a node. Each node type has to redifine
-   --  this method, returning the right type.
-   --  For a N_root, this method is abstract
-   function Get_Kind (N : N_Root) return Node_Kind is abstract;
+   Idl_Enum_Max : constant Idl_Value := (2 ** 32) - 1;
 
    --  To manipulate the location of a node
-   procedure Set_Location (N : in out N_Root'Class;
-                           Loc : Idl_Fe.Errors.Location);
-   function Get_Location (N : N_Root'Class) return Idl_Fe.Errors.Location;
-
-   --  To set the "old" node of a root (for expansion only)
-   procedure Set_Old (N : in out N_Root'Class;
-                     Old : in N_Root_Acc);
+   subtype Location is Idl_Fe.Errors.Location;
+   procedure Set_Location (N : Node_Id;
+                           Loc : Location);
+   function Get_Location (N : Node_Id) return Location;
 
    ---------------------------------
    -- A useful list of root nodes --
@@ -208,28 +139,28 @@ package Idl_Fe.Types is
    --      next (it);
    --    end loop;
    procedure Init (It : out Node_Iterator; List : Node_List);
-   function Get_Node (It : Node_Iterator) return N_Root_Acc;
+   function Get_Node (It : Node_Iterator) return Node_Id;
    procedure Next (It : in out Node_Iterator);
    function Is_End (It : Node_Iterator) return Boolean;
 
    --  Appends a node at the end of a list.
-   procedure Append_Node (List : in out Node_List; Node : N_Root_Acc);
+   procedure Append_Node (List : in out Node_List; Node : Node_Id);
 
    --  Look whether node is in list or not
-   function Is_In_List (List : Node_List; Node : N_Root_Acc) return Boolean;
+   function Is_In_List (List : Node_List; Node : Node_Id) return Boolean;
 
    --  Removes a node from the list. Actually only removes the first
    --  occurence of the node or does nothing if the node was not in
    --  the list.
-   procedure Remove_Node (List : in out Node_List; Node : N_Root_Acc);
+   procedure Remove_Node (List : in out Node_List; Node : Node_Id);
 
    --  Replaces a node in the list by another one
-   --  Raise constraint error if the node was not in the list
+   --  Raises Constraint_Error if the node was not in the list
    --  does not free the old node because it is supposed to be
    --  referenced by the new one
    procedure Replace_Node (List : in out Node_List;
-                           Old : in N_Root_Acc;
-                           New_Node : in N_Root_Acc);
+                           Old : in Node_Id;
+                           New_Node : in Node_Id);
 
    --  Frees all the list
    procedure Free (List : in out Node_List);
@@ -241,46 +172,6 @@ package Idl_Fe.Types is
    --  returns the resulting node list
    --  usefull for the inheritance treatement
    function Simplify_Node_List (In_List : Node_List) return Node_List;
-
-   ---------------------------------------------------
-   --  Named nodes in the tree parsed from the idl  --
-   ---------------------------------------------------
-
-   --  Basic type for a named_node.
-   --  This is a node with a name, such as an identifier, a module,
-   --  an interface, a function...
-   type N_Named is abstract new N_Root with private;
-   type N_Named_Acc is access all N_Named'Class;
-
-   --  To get the name of a named node
-   function Get_Name (Node : in N_Named'Class) return String;
-
-
-   --------------------------------------------------------------
-   --  Nodes defining a scope in the tree parsed from the idl  --
-   --------------------------------------------------------------
-
-   --  Basic type for nodes that define a scope
-   type N_Scope is abstract new N_Named with private;
-   type N_Scope_Acc is access all N_Scope'Class;
-
-
-   --------------------------------------------------------------
-   --  Nodes defining a scope containig forward declaration    --
-   --------------------------------------------------------------
-
-   --  Basic type for nodes that define a scope
-   type N_Forward is abstract new N_Scope with private;
-   type N_Forward_Acc is access all N_Forward'Class;
-
-   ---------------------------------------------------------------------
-   --  Nodes defining a scope that could contain imported identifier  --
-   ---------------------------------------------------------------------
-
-   --  Basic type for nodes that define a scope
-   type N_Imports is abstract new N_Scope with private;
-   type N_Imports_Acc is access all N_Imports'Class;
-
 
    ----------------------------------------
    --  Type of an identifier definition  --
@@ -297,9 +188,9 @@ package Idl_Fe.Types is
    type Identifier_Definition is record
       Name : String_Cacc := null;
       Id : Uniq_Id;
-      Node : N_Named_Acc;
+      Node : Node_Id;
       Previous_Definition : Identifier_Definition_Acc;
-      Parent_Scope : N_Scope_Acc;
+      Parent_Scope : Node_Id;
    end record;
 
    --  Definition of a list of identifier_definition
@@ -309,15 +200,15 @@ package Idl_Fe.Types is
    --  definition.
    --  Raises fatal_error if Cell is a null pointer
    function Get_Node (Definition : Identifier_Definition_Acc)
-                      return N_Named_Acc;
+                      return Node_Id;
 
    --  Return the identifier definition corresponding to the node
    --  Raises fatal_error if Node is a null pointer
-   function Get_Definition (Node : N_Named_Acc)
+   function Get_Definition (Node : Node_Id)
                             return Identifier_Definition_Acc;
 
    --  Return the node list containing the inherited interfaces
-   function Get_Parents (Node : N_Imports)
+   function Get_Parents (Node : Node_Id)
                          return Node_List is abstract;
 
    ----------------------
@@ -328,15 +219,15 @@ package Idl_Fe.Types is
    --  In a scope, an identifier has at most one meaning.
 
    --  Get the root (the oldest) and current (the newest) scope.
-   function Get_Root_Scope return N_Scope_Acc;
-   function Get_Current_Scope return N_Scope_Acc;
+   function Get_Root_Scope return Node_Id;
+   function Get_Current_Scope return Node_Id;
 
    --  Get the scope of the current scope
-   function Get_Previous_Scope return N_Scope_Acc;
+   function Get_Previous_Scope return Node_Id;
 
-   --  Create a new scope, defined by a N_scope node, add it in
+   --  Create a new scope, defined by a Scope node, add it in
    --  the current scope, and activate it.
-   procedure Push_Scope (Scope : access N_Scope'Class);
+   procedure Push_Scope (Scope : Node_Id);
 
    --  Unstack the current scope.
    procedure Pop_Scope;
@@ -347,13 +238,11 @@ package Idl_Fe.Types is
    --  into account
 
    --  To add a forward declaration in the list
-   procedure Add_Int_Val_Forward (Node : in N_Named_Acc);
+   procedure Add_Int_Val_Forward (Node : in Node_Id);
 
    --  To take an implementation into account and remove the
    --  corresponding forward declaration from the list.
-   procedure Add_Int_Val_Definition (Node : in N_Named_Acc);
-
-
+   procedure Add_Int_Val_Definition (Node : in Node_Id);
 
    ----------------------------
    --  identifiers handling  --
@@ -381,42 +270,46 @@ package Idl_Fe.Types is
    --  Find the node corresponding to the current identifier.
    --  The current identifier is the one just scanned by the lexer
    --  If this identifier is not defined, returns a null pointer.
-   function Find_Identifier_Node (Name : String) return N_Named_Acc;
+   function Find_Identifier_Node (Name : String) return Node_Id;
 
---   function Find_Identifier_Node (Scope : N_Scope_Acc; Name : String)
---                                  return N_Named_Acc;
+--   function Find_Identifier_Node (Scope : Node_Id; Name : String)
+--                                  return Node_Id;
 
 
    --  Change the definition (associed node) of CELL.
    --  only used in the case of a forward interface definition
    procedure Redefine_Identifier
-     (Definition : Identifier_Definition_Acc; Node : access N_Named'Class);
+     (A_Definition : Identifier_Definition_Acc;
+      Node : Node_Id);
 
    --  Creates an identifier definition for the current identifier
    --  and add it to the current scope.
    --  Node is the node where the identifier is defined.
    --  Returns true if successfull, false if the identifier was
    --  already in this scope.
-   function Add_Identifier (Node : access N_Named'Class;
+   function Add_Identifier (Node : Node_Id;
                             Name : String) return Boolean;
 
 
    --  Check if the  uniq_id from an identifier is already defined
    --  in the scope and return it or Nil_Uniq_Id
-   function Check_Identifier_In_Storage (Scope : N_Scope_Acc;
-                                         Identifier : String)
-                                             return Uniq_Id;
+   function Check_Identifier_In_Storage
+     (Scope : Node_Id;
+      Identifier : String)
+     return Uniq_Id;
 
    --  Find the identifier definition in Scope.
    --  If this identifier is not defined, returns a null pointer.
-   function Find_Identifier_In_Storage (Scope : N_Scope_Acc; Name : String)
-                                        return Identifier_Definition_Acc;
+   function Find_Identifier_In_Storage
+     (Scope : Node_Id; Name : String)
+     return Identifier_Definition_Acc;
 
    --  Create the uniq_id entry for an identifier in the storage table
    --  at the end of the scope parsing
    --  return it
-   function Create_Identifier_In_Storage (Identifier : String) return Uniq_Id;
-
+   function Create_Identifier_In_Storage
+     (Identifier : String)
+     return Uniq_Id;
 
    --  add the definition to the current scope storage table.
    --  It is done at the end of the scope parsing (called by pop_scope)
@@ -438,19 +331,19 @@ package Idl_Fe.Types is
    --  the given scope
    --  return it
    function Create_Identifier_In_Imported (Identifier : String;
-                                           Scope : N_Imports_Acc)
+                                           Scope : Node_Id)
                                            return Uniq_Id;
 
 
    --  add the imported definition to the given scope imported table.
    procedure Add_Definition_To_Imported
-     (Definition : in Identifier_Definition_Acc; Scope : in N_Scope_Acc);
+     (Definition : in Identifier_Definition_Acc; Scope : in Node_Id);
 
    --  Find the identifier in the scope's parents (in each one recursively)
    --  add the different definitions to the node list
    --  it is usefull for looking in the inherited interfaces or value types
    procedure Find_Identifier_In_Inheritance (Name : in String;
-                                             Scope : in N_Imports_Acc;
+                                             Scope : in Node_Id;
                                              List : in out Node_List);
 
    --  Find the identifier definition in the inherited interface.
@@ -584,41 +477,6 @@ package Idl_Fe.Types is
 
 private
 
-   --------------------------------------------
-   --  Root of the tree parsed from the idl  --
-   --------------------------------------------
-
-   --  The basic node only contains its location (filename, line,
-   --  column)
-   type N_Root is abstract tagged record
-      Loc : Idl_Fe.Errors.Location := Idl_Fe.Errors.No_Location;
-      --  for expansion, to remember from what an expression was expanded
-      Old : N_Root_Acc := Nil_Node;
-   end record;
-
-   Nil_Node : constant N_Root_Acc := null;
-
-   ---------------------------------------------------
-   --  Named nodes in the tree parsed from the idl  --
-   ---------------------------------------------------
-
-   --  A named node contains its identifier definition
-   type N_Named is abstract new N_Root with record
-      Definition : Identifier_Definition_Acc;
-   end record;
-
-   --------------------------------------------------------------
-   --  Nodes defining a scope in the tree parsed from the idl  --
-   --------------------------------------------------------------
-
-   --  A scope contains all the definitions of the enclosed
-   --  identifiers as well as a list of the forwarded interfaces
-   --  and values still not defined
-   type N_Scope is abstract new N_Named with record
-      Identifier_List : Identifier_Definition_List;
-      Identifier_Table : Storage;
-   end record;
-
    ----------------------------------------
    --  Type of an identifier definition  --
    ----------------------------------------
@@ -632,87 +490,12 @@ private
    end record;
 
    --  Adds an identifier definition to a scope
-   procedure Add_Identifier_Definition (Scope : in out N_Scope'Class;
-                                        Identifier : in Identifier_Definition);
-
-   -----------------------------------------------------
-   --  Nodes defining particular scopes in the tree   --
-   -----------------------------------------------------
-
-   --  A scope that can contained interfaces and value types.
-   --  These can be forward declared, thus the following field.
-   --  This type represent for instance the repository or a module.
-   type N_Forward is abstract new N_Scope with record
-      Unimplemented_Forwards : Node_List := null;
-   end record;
-
-   --  the following node is a scope
-   --  where you can import identifier from other scopes.
-   --  It is for instance interfaces or value types.
-   --  So it contains the imported identifiers hash table.
-   --  This can also be forward declared.
-   type N_Imports is abstract new N_Scope with record
-      Imported_Table : Storage;
-   end record;
-
-
-
-
-
+   procedure Add_Identifier_Definition
+     (Scope : Node_Id;
+      Identifier : in Identifier_Definition);
 
    --  The hashing function. Takes an identifier and return its hash
    --  value
    function Hash (Str : in String) return Hash_Value_Type;
-
---
---   INUTILE ???
---
---   type N_Root is abstract tagged record
---      Loc : Idl_Fe.Errors.Location;
---      Back_End : N_Back_End_Acc := null;
---   end record;
---
---    subtype Binary_Node_Kind is Node_Kind range K_Or .. K_Mod;
---
---    --  The basic way to add back end information to a node.
---    type N_Back_End is abstract tagged private;
---    type N_Back_End_Acc is access all N_Back_End'Class;
-
---    --  The basic type of the tree.
---    type N_Root is abstract tagged private;
-
---    --  Primitives of a node.
---    procedure Set_Back_End (N : in out N_Root'Class;
---                            Be : access N_Back_End'Class);
---    function Get_Back_End (N : N_Root'Class) return N_Back_End_Acc;
---
---  private
---
---    type N_Back_End is abstract tagged null record;
---
---   function Add_Identifier (Id : String_Cacc) return Uniq_Id;
---
---
---    --  Import an identifier from an other scope (this is checked) to the
---    --  current scope.
---    --  If the identifier was already defined (but not imported) in the
---    --  current
---    --  scope, this has no effect (except the check).
---    --  If the identifier was already imported in the current scope, this
---    --  cancel the meaning of the identifier, so that find_identifier returns
---    --  null.  However, the identifier can be defined.
---    procedure Import_Identifier (Node : N_Named_Acc);
---
---    --  Import an identifier from an other scope to the current scope.
---    --  Return TRUE in case of success, false if the identifier was
---    --  already defined in the current scope and cannot be imported.
---    function Import_Uniq_Identifier (Node : N_Named_Acc) return Boolean;
---
-   --  Find the node corresponding to the current identifier in a
-   --  given scope.
-   --  The current identifier is the one just scanned by the lexer
-   --  If this identifier is not defined in the given scope,
-   --  returns a null pointer.
-
 
 end Idl_Fe.Types;

@@ -6,13 +6,19 @@ import string, sys
 class Node:
 
     nodes = {}
-
+    children = {}
+    
     def __init__ (self, name, parent = None):
         self.name = name
         if parent: self.parent = parent
         elif name == "Root": self.parent = None
         else: self.parent = "Root"
         self.fields = []
+        if self.parent:
+            if Node.children.has_key (self.parent):
+                Node.children[self.parent].append (self.name)
+            else:
+                Node.children[self.parent] = [self.name]
         Node.nodes [name] = self
 
     def add_field (self, name, type):
@@ -82,17 +88,27 @@ for n in nodes:
     spec.append ("   --")
     spec.append ("")
     spec.append ("   function Make_%s return Node_Id;" % n)
+    spec.append ("   function Is_%s (N : Node_Id) return Boolean;" % n)
     spec.append ("")
     body.append ("   function Make_%s return Node_Id is" % n)
     body.append ("      Node  : constant Node_Access := new Node_Type;")
-    body.append ("      Index : constant Node_Id     := Allocate;")
+    body.append ("      Index : constant Node_Id     := Nodes_Table.Allocate;")
     body.append ("   begin")
     body.append ("      Node.Kind := K_%s;" % n)
-    body.append ("      Table (Index) := Node;")
+    body.append ("      Nodes_Table.Table (Index) := Node;")
     body.append ("      return Index;")
     body.append ("   end Make_%s;" % n)
     body.append ("")
-
+    body.append ("   function Is_%s (N : Node_Id) return Boolean is" % n)
+    body.append ("   begin")
+    body.append ("      return Kind (N) = K_%s" % n)
+    if Node.children.has_key (n):
+        for c in Node.children[n]:
+            body.append ("        or else Is_%s (N)" % (c))
+    body.append ("        or else False;")
+    body.append ("   end Is_%s;" % n)
+    body.append ("")
+    
 f = fields.keys ()
 f.sort ()
 
@@ -103,19 +119,19 @@ for name in f:
     spec.append ("   procedure Set_%s (N : Node_Id; V : %s);" % (name, type))
     spec.append ("")
     body.append ("   function %s (N : Node_Id) return %s is" % (name, type))
-    body.append ("      Node : constant Node_Access := Retrieve_Node (N);")
+    body.append ("      Node : constant Node_Access := Nodes_Table.Table (N);")
     body.append ("   begin")
     for k in range (len (kinds)):
         if k == 0:
             if len (kinds) == 1:
-                assrt = ["      pragma Assert (Node.Kind = %s);" % kinds [k]]
+                assrt = ["      pragma Assert (Node.Kind = K_%s);" % kinds [k]]
             else:
-                assrt = ["      pragma Assert (Node.Kind = %s" %
+                assrt = ["      pragma Assert (Node.Kind = K_%s" %
                          kinds [k]]
         else:
             if k == len (kinds) - 1: expr = ");"
             else: expr = ""
-            assrt.append ("             or else Node.Kind = %s%s" %
+            assrt.append ("             or else Node.Kind = K_%s%s" %
                           (kinds [k], expr))
     body = body + assrt
     body.append ("      return Node.%s;" % name)
@@ -123,18 +139,18 @@ for name in f:
     body.append ("")
     body.append ("   procedure Set_%s (N : Node_Id; V : %s)" % (name, type))
     body.append ("   is")
-    body.append ("      Node : constant Node_Access := Retrieve_Node (N);")
+    body.append ("      Node : constant Node_Access := Nodes_Table.Table (N);")
     body.append ("   begin")
     body = body + assrt
     body.append ("      Node.%s := V;" % name)
     body.append ("   end Set_%s;" % name)
     body.append ("")
 
+# with Nodes;      use Nodes;
 print """with GNAT.Table;
-with Nodes;      use Nodes;
-with Types;      use Types;
+with Idl_Fe.Types; use Idl_Fe.Types;
 
-package Nodes_Access is
+package Idl_Fe.Tree is
 
    type Node_Kind is"""
 for n in range (len (types)):
@@ -165,12 +181,12 @@ print """
                       Table_Initial        => 1024,
                       Table_Increment      => 100);
 
-end Nodes_Access;"""
+end Idl_Fe.Tree;"""
 
-print "package body Nodes_Access is"
+print "package body Idl_Fe.Tree is"
 print
 print "   use Nodes_Table;"
 print
 for i in body:
     print i
-print "end Nodes_Access;"
+print "end Idl_Fe.Tree;"

@@ -223,11 +223,11 @@ package body Idl_Fe.Parser is
    ----------------------
    --  Add_Used_Value  --
    ----------------------
-   function Add_Used_Value (C : N_Expr_Acc) return Boolean is
+   function Add_Used_Value (C : Node_Id) return Boolean is
       Old_Used : Set_Ptr := null;
       Used : Set_Ptr := Used_Values;
    begin
-      while Used /= null and then Used.Interval.Max < C.Value loop
+      while Used /= null and then Used.Interval.Max < Value (C) loop
          Old_Used := Used;
          Used := Used.Next;
       end loop;
@@ -235,11 +235,11 @@ package body Idl_Fe.Parser is
          if Old_Used = null then
             Used_Values := new Set;
             Used_Values.Next := null;
-            Used_Values.Interval := (Min => C.Value, Max => C.Value);
+            Used_Values.Interval := (Min => Value (C), Max => Value (C));
          else
-            if Used.Interval.Max = C.Value - 1 then
+            if Used.Interval.Max = Value (C) - 1 then
                if Used.Next /= null
-                 and then C.Value = Used.Next.Interval.Min - 1 then
+                 and then Value (C) = Used.Next.Interval.Min - 1 then
                   --  merge the intervals
                   declare
                      Old_Used : Set_Ptr := Used.Next;
@@ -250,31 +250,32 @@ package body Idl_Fe.Parser is
                   end;
                else
                   --  only change the upper bound of the interval
-                  Used.Interval.Max := C.Value;
+                  Used.Interval.Max := Value (C);
                end if;
             else
                Old_Used.Next := new Set;
                Old_Used.Next.all.Next := null;
-               Old_Used.Next.all.Interval := (Min => C.Value, Max => C.Value);
+               Old_Used.Next.all.Interval := (Min => Value (C), Max => Value (C));
             end if;
          end if;
       else
-         if Used.Interval.Min > C.Value then
-            if C.Value = Used.Interval.Min - 1 then
+         if Used.Interval.Min > Value (C) then
+            if Value (C) = Used.Interval.Min - 1 then
                if Old_Used /= null
-                 and then Old_Used.Interval.Max = C.Value - 1 then
+                 and then Old_Used.Interval.Max = Value (C) - 1 then
                   --  merge the intervals
                   Old_Used.Interval.Max := Used.Interval.Max;
                   Old_Used.Next := Used.Next;
                   Free (Used);
                else
                   --  only change the lower bound of the interval
-                  Used.Interval.Min := C.Value;
+                  Used.Interval.Min := Value (C);
                end if;
             else
                Old_Used.Next := new Set;
                Old_Used.Next.all.Next := Used;
-               Old_Used.Next.all.Interval := (Min => C.Value, Max => C.Value);
+               Old_Used.Next.all.Interval
+                 := (Min => Value (C), Max => Value (C));
             end if;
          else
             return False;
@@ -286,6 +287,7 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Release_All_Values  --
    --------------------------
+
    procedure Release_All_Used_Values is
       Old_Used_Values : Set_Ptr;
    begin
@@ -305,11 +307,12 @@ package body Idl_Fe.Parser is
    ---------------------------
    --  Parse_Specification  --
    ---------------------------
-   function Parse_Specification return N_Repository_Acc is
-      Result : N_Repository_Acc;
+
+   function Parse_Specification return Node_Id is
+      Result : Node_Id;
    begin
-      Result := new N_Repository;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Repository;
+      Set_Location (Result, Get_Token_Location);
       --  The repository is the root scope.
       Push_Scope (Result);
       Next_Token;
@@ -320,7 +323,7 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
       end if;
       declare
-         Definition : N_Root_Acc;
+         Definition : Node_Id;
          Definition_Result : Boolean;
       begin
          while Get_Token /= T_Eof loop
@@ -340,8 +343,9 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Parse_Definition  --
    ------------------------
-   procedure Parse_Definition (Result : out N_Root_Acc;
-                               Success : out Boolean) is
+   procedure Parse_Definition
+     (Result : out Node_Id;
+      Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Definition : enter"));
       case Get_Token is
@@ -355,47 +359,35 @@ package body Idl_Fe.Parser is
                return;
             end if;
          when T_Const =>
-            declare
-               Res : N_Const_Dcl_Acc;
-            begin
-               Parse_Const_Dcl (Res, Success);
-               Result := N_Root_Acc (Res);
-               if not Success then
-                  return;
-               end if;
-            end;
+            Parse_Const_Dcl (Result, Success);
+
+            if not Success then
+               return;
+            end if;
+
          when T_Exception =>
-            declare
-               Res : N_Exception_Acc;
-            begin
-               Parse_Except_Dcl (Res, Success);
-               Result := N_Root_Acc (Res);
-               if not Success then
-                  return;
-               end if;
-            end;
+            Parse_Except_Dcl (Result, Success);
+
+            if not Success then
+               return;
+            end if;
+
          when T_Abstract =>
             case View_Next_Token is
                when T_Interface =>
-                  declare
-                     Res : N_Named_Acc;
-                  begin
-                     Parse_Interface (Res, Success);
-                     Result := N_Root_Acc (Res);
-                     if not Success then
-                        return;
-                     end if;
-                  end;
+                  Parse_Interface (Result, Success);
+
+                  if not Success then
+                     return;
+                  end if;
+
                when T_ValueType  =>
-                  declare
-                     Res : N_Named_Acc;
-                  begin
-                     Parse_Value (Res, Success);
-                     Result := N_Root_Acc (Res);
-                     if not Success then
-                        return;
-                     end if;
-                  end;
+                  Parse_Value (Result, Success);
+
+                  if not Success then
+                     return;
+                  end if;
+
                when others =>
                   declare
                      Loc : Idl_Fe.Errors.Location;
@@ -421,41 +413,33 @@ package body Idl_Fe.Parser is
                   end;
             end case;
          when T_Interface =>
-            declare
-               Res : N_Named_Acc;
-            begin
-               Parse_Interface (Res, Success);
-               Result := N_Root_Acc (Res);
-               if not Success then
-                  return;
-               end if;
-            end;
+            Parse_Interface (Result, Success);
+
+            if not Success then
+               return;
+            end if;
+
          when T_Module =>
-            declare
-               Res : N_Module_Acc;
-            begin
-               Parse_Module (Res, Success);
-               Result := N_Root_Acc (Res);
-               if not Success then
-                  return;
-               end if;
-            end;
-         when T_ValueType
-           | T_Custom =>
-            declare
-               Res : N_Named_Acc;
-            begin
-               Parse_Value (Res, Success);
-               Result := N_Root_Acc (Res);
-               if not Success then
-                  return;
-               end if;
-            end;
+            Parse_Module (Result, Success);
+
+            if not Success then
+               return;
+            end if;
+
+         when
+           T_ValueType |
+           T_Custom    =>
+            Parse_Value (Result, Success);
+
+            if not Success then
+               return;
+            end if;
+
          when others =>
             Idl_Fe.Errors.Parser_Error ("definition expected.",
                                  Idl_Fe.Errors.Error,
                                  Get_Token_Location);
-            Result := null;
+            Result := No_Node;
             Success := False;
             return;
       end case;
@@ -474,7 +458,7 @@ package body Idl_Fe.Parser is
    --------------------
    --  Parse_Module  --
    --------------------
-   procedure Parse_Module (Result : out N_Module_Acc;
+   procedure Parse_Module (Result : out Node_Id;
                            Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Module : enter"));
@@ -485,8 +469,8 @@ package body Idl_Fe.Parser is
             case View_Next_Token is
                when T_Left_Cbracket =>
                   --  Creation of the node
-                  Result := new N_Module;
-                  Types.Set_Location (Result.all,
+                  Result := New_Module;
+                  Types.Set_Location (Result,
                                       Get_Previous_Token_Location);
                   --  try to add the identifier to the scope
                   if not Types.Add_Identifier (Result,
@@ -510,7 +494,7 @@ package body Idl_Fe.Parser is
                   --  parse the module body
                   Next_Token;
                   declare
-                     Definition : N_Root_Acc;
+                     Definition : Node_Id;
                      Definition_Result : Boolean;
                   begin
                      pragma Debug (O ("Parse_Interface : parse body"));
@@ -555,7 +539,7 @@ package body Idl_Fe.Parser is
                                           Idl_Fe.Errors.Error,
                                           Loc);
                   end;
-                  Result := null;
+                  Result := No_Node;
                   Success := False;
             end case;
          when others =>
@@ -568,7 +552,7 @@ package body Idl_Fe.Parser is
                                     Idl_Fe.Errors.Error,
                                     Loc);
             end;
-            Result := null;
+            Result := No_Node;
             Success := False;
       end case;
       return;
@@ -577,15 +561,17 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Interface  --
    -----------------------
-   procedure Parse_Interface (Result : out  N_Named_Acc;
-                              Success : out Boolean) is
-      Res : N_Interface_Acc;
-      Fd_Res : N_Forward_Interface_Acc;
+
+   procedure Parse_Interface
+     (Result : out  Node_Id;
+      Success : out Boolean) is
+      Res : Node_Id;
+      Fd_Res : Node_Id;
       Definition : Identifier_Definition_Acc;
    begin
       pragma Debug (O ("Parse_Interface : enter"));
       --  interface header.
-      Res := new N_Interface;
+      Res := New_Interface;
       --  is the interface abstracted
       if Get_Token = T_Abstract then
          Res.Abst := True;
@@ -595,7 +581,7 @@ package body Idl_Fe.Parser is
       else
          Res.Abst := False;
       end if;
-      Set_Location (Res.all, Get_Token_Location);
+      Set_Location (Res, Get_Token_Location);
       Next_Token;
       --  Expect an identifier
       if Get_Token = T_Identifier then
@@ -606,13 +592,13 @@ package body Idl_Fe.Parser is
             if Definition.Parent_Scope = Get_Current_Scope and
               Get_Kind (Definition.Node.all) = K_Forward_Interface then
                --  Check if they are both of the same abstract kind
-               if N_Forward_Interface_Acc (Definition.Node).Abst
+               if Node_Id (Definition.Node).Abst
                  /= Res.Abst then
                   declare
                      Loc : Idl_Fe.Errors.Location;
                   begin
                         Loc := Types.Get_Location
-                          (N_Forward_Interface_Acc (Definition.Node).all);
+                          (Node_Id (Definition.Node).all);
                         Idl_Fe.Errors.Parser_Error
                           ("Forward declaration "
                            & Idl_Fe.Errors.Display_Location (Loc)
@@ -621,7 +607,7 @@ package body Idl_Fe.Parser is
                            Get_Previous_Token_Location);
                   end;
                end if;
-               Fd_Res := N_Forward_Interface_Acc (Get_Node (Definition));
+               Fd_Res := Get_Node (Definition);
                --  is this interface not a forward declaration
                --  FIXME >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                if View_Next_Token /= T_Semi_Colon then
@@ -629,7 +615,7 @@ package body Idl_Fe.Parser is
                   Res.Forward := Fd_Res;
                   Redefine_Identifier (Definition, Res);
                   --  the forward declaration is now implemented
-                  Add_Int_Val_Definition (N_Named_Acc (Fd_Res));
+                  Add_Int_Val_Definition (Fd_Res);
                end if;
             else
                declare
@@ -644,15 +630,15 @@ package body Idl_Fe.Parser is
                      Idl_Fe.Errors.Error,
                      Get_Token_Location);
                   Success := False;
-                  Result := null;
-                  Fd_Res := null;
+                  Result := No_Node;
+                  Fd_Res := No_Node;
                   return;
                end;
             end if;
          else
             pragma Debug (O ("Parse_Interface : identifier not defined"));
-            Fd_Res := null;
-            Res.Forward := null;
+            Fd_Res := No_Node;
+            Set_Forward (Res, No_Node);
             if not Add_Identifier (Res,
                                    Get_Token_String) then
                raise Idl_Fe.Errors.Internal_Error;
@@ -690,27 +676,27 @@ package body Idl_Fe.Parser is
                   Idl_Fe.Errors.Display_Location (Loc),
                   Idl_Fe.Errors.Warning,
                   Get_Token_Location);
-               Fd_Res := new N_Forward_Interface;
-               Set_Location (Fd_Res.all, Get_Location (Res.all));
-               Fd_Res.Forward := null;
-               Fd_Res.Abst := Res.Abst;
+               Fd_Res := New_Forward_Interface;
+               Set_Location (Fd_Res, Get_Location (Res.all));
+               Set_Forward (Fd_Res, No_Node);
+               Set_Abst (Fd_Res, Abst (Res));
                --  The first forward should be the right one
                --  not the last
                --  Redefine_Identifier (Definition, Fd_Res);
                Success := True;
-               Result := N_Named_Acc (Fd_Res);
+               Result := Fd_Res;
                return;
             end;
          else
-            Fd_Res := new N_Forward_Interface;
-            Set_Location (Fd_Res.all, Get_Location (Res.all));
-            Fd_Res.Forward := null;
-            Fd_Res.Abst := Res.Abst;
+            Fd_Res := New_Forward_Interface;
+            Set_Location (Fd_Res, Get_Location (Res.all));
+            Fd_Res.Forward := No_Node;
+            Set_Abst (Fd_Res, Abst (Res));
             Redefine_Identifier (Definition, Fd_Res);
             --  A forward declaration should be added
-            Add_Int_Val_Forward (N_Named_Acc (Fd_Res));
+            Add_Int_Val_Forward (Fd_Res);
             --  Free (Res); ???????????????????
-            Result := N_Named_Acc (Fd_Res);
+            Result := Fd_Res;
             Success := True;
             return;
          end if;
@@ -718,9 +704,9 @@ package body Idl_Fe.Parser is
          --  use the Interface4 rule
          Parse_Interface_Dcl_End (Res, Success);
          if not Success then
-            Result := null;
+            Result := No_Node;
          else
-            Result := N_Named_Acc (Res);
+            Result := Res;
          end if;
          return;
       end if;
@@ -730,40 +716,40 @@ package body Idl_Fe.Parser is
    --------------------
    --  Parse_Export  --
    --------------------
-   procedure Parse_Export (Result : out N_Root_Acc;
+   procedure Parse_Export (Result : out Node_Id;
                            Success : out Boolean) is
    begin
       case Get_Token is
          when T_Readonly | T_Attribute =>
             declare
-               Result_Attr : N_Attribute_Acc;
+               Result_Attr : Node_Id;
             begin
                Parse_Attr_Dcl (Result_Attr, Success);
-               Result := N_Root_Acc (Result_Attr);
+               Result := Result_Attr;
             end;
          when T_Oneway | T_Void | T_Colon_Colon | T_Identifier |
            T_Short | T_Long | T_Float | T_Double | T_Unsigned |
            T_Char | T_Wchar | T_Boolean | T_Octet | T_Any | T_Object |
            T_String | T_Wstring =>
             declare
-               Result_Operation : N_Operation_Acc;
+               Result_Operation : Node_Id;
             begin
                Parse_Op_Dcl (Result_Operation, Success);
-               Result := N_Root_Acc (Result_Operation);
+               Result := Result_Operation;
             end;
          when T_Exception =>
             declare
-               Result_Except : N_Exception_Acc;
+               Result_Except : Node_Id;
             begin
                Parse_Except_Dcl (Result_Except, Success);
-               Result := N_Root_Acc (Result_Except);
+               Result := Result_Except;
             end;
          when T_Const =>
             declare
-               Result_Const : N_Const_Dcl_Acc;
+               Result_Const : Node_Id;
             begin
                Parse_Const_Dcl (Result_Const, Success);
-               Result := N_Root_Acc (Result_Const);
+               Result := Result_Const;
             end;
          when T_Union
            | T_Struct
@@ -800,8 +786,10 @@ package body Idl_Fe.Parser is
    --------------------------------
    --  Parse_Interface_Decl_End  --
    --------------------------------
-   procedure Parse_Interface_Dcl_End (Result : in out N_Interface_Acc;
-                                     Success : out Boolean) is
+
+   procedure Parse_Interface_Dcl_End
+     (Result : in Node_Id;
+      Success : out Boolean) is
       Body_Success : Boolean;
    begin
       --  interface header.
@@ -811,7 +799,7 @@ package body Idl_Fe.Parser is
             Next_Token;
             declare
                Scoped_Success : Boolean;
-               Name : N_Scoped_Name_Acc;
+               Name : Node_Id;
             begin
                --  FIXME : no test on scoped_success
                Parse_Scoped_Name (Name, Scoped_Success);
@@ -820,13 +808,13 @@ package body Idl_Fe.Parser is
                   exit;
                else
                   --  the inheritance should be an interface
-                  if Get_Kind (Name.Value.all) /= K_Interface then
+                  if Kind (Value (Name)) /= K_Interface then
                      Idl_Fe.Errors.Parser_Error
                        ("inheritance is not an interface",
                         Idl_Fe.Errors.Error,
                         Get_Previous_Token_Location);
                   else
-                     Append_Node (Result.Parents, N_Root_Acc (Name));
+                     Append_Node (Result.Parents, Name);
                   end if;
                end if;
             end;
@@ -873,10 +861,13 @@ package body Idl_Fe.Parser is
    ----------------------------
    --  Parse_Interface_Body  --
    ----------------------------
-   procedure Parse_Interface_Body (List : in out Node_List;
-                                   Success : out Boolean) is
+
+   procedure Parse_Interface_Body
+     (List : in out Node_List;
+      Success : out Boolean)
+   is
       Export_Success : Boolean;
-      Result : N_Root_Acc;
+      Result : Node_Id;
    begin
       Success := True;
       loop
@@ -896,18 +887,21 @@ package body Idl_Fe.Parser is
    -------------------------
    --  Parse_Scoped_Name  --
    -------------------------
-   procedure Parse_Scoped_Name (Result : out N_Scoped_Name_Acc;
-                                Success : out Boolean) is
-      Res, Prev : N_Scoped_Name_Acc;
-      Scope : N_Scope_Acc;
-      Name : N_Named_Acc;
+
+   procedure Parse_Scoped_Name
+     (Result : out Node_Id;
+      Success : out Boolean)
+   is
+      Res, Prev : Node_Id;
+      Scope : Node_Id;
+      Name : Node_Id;
    begin
       pragma Debug (O ("Parse_Scoped_Name : enter"));
-      Result := null;
+      Result := No_Node;
       Success := False;
-      Prev := null;
-      Res := new N_Scoped_Name;
-      Set_Location (Res.all, Get_Token_Location);
+      Prev := No_Node;
+      Res := New_Scoped_Name;
+      Set_Location (Res, Get_Token_Location);
       if Get_Token = T_Colon_Colon then
          Scope := Get_Root_Scope;
       else
@@ -918,18 +912,18 @@ package body Idl_Fe.Parser is
                Idl_Fe.Errors.Error,
                Get_Token_Location);
             Success := False;
-            Result := null;
+            Result := No_Node;
             return;
          end if;
          Name := Find_Identifier_Node (Get_Token_String);
-         if Name = null then
+         if Name = No_Node then
             pragma Debug (O ("Parse_Scoped_Name : name is null"));
             Idl_Fe.Errors.Parser_Error
               ("Bad identifier in scoped name",
                Idl_Fe.Errors.Error,
                Get_Token_Location);
             Success := False;
-            Result := null;
+            Result := No_Node;
             return;
          end if;
          Next_Token;
@@ -941,18 +935,28 @@ package body Idl_Fe.Parser is
          --  else we should import it in the current scope.
          --  If it is a module or repository, the
          --  add function won't do anything
-         if Get_Current_Scope.all not in N_Forward'Class and
-           Get_Current_Scope.all not in N_Imports'Class then
-            if Get_Previous_Scope /= Get_Definition (Name).Parent_Scope then
-               Add_Definition_To_Imported (Get_Definition (Name),
-                                           Get_Previous_Scope);
+         declare
+            CSK : constant Node_Kind
+              := Kind (Get_Current_Scope);
+         begin
+            if not (False
+              or else CSK = K_Repository
+              or else CSK = K_Module
+              or else CSK = K_Interface
+              or else CSK = K_ValueType)
+            then
+               if Get_Previous_Scope /= Get_Definition (Name).Parent_Scope then
+                  Add_Definition_To_Imported (Get_Definition (Name),
+                                              Get_Previous_Scope);
+               end if;
+            else
+               if Get_Current_Scope /= Get_Definition (Name).Parent_Scope then
+                  Add_Definition_To_Imported (Get_Definition (Name),
+                                              Get_Current_Scope);
+               end if;
             end if;
-         else
-            if Get_Current_Scope /= Get_Definition (Name).Parent_Scope then
-               Add_Definition_To_Imported (Get_Definition (Name),
-                                           Get_Current_Scope);
-            end if;
-         end if;
+         end;
+
          if Get_Token /= T_Colon_Colon then
             Res.Value := Name;
             Success := True;
@@ -976,7 +980,7 @@ package body Idl_Fe.Parser is
                return;
             end;
          else
-            Scope := N_Scope_Acc (Name);
+            Scope := Name;
          end if;
       end if;
       --  now we will loop in the scopes to get the right definition
@@ -1025,7 +1029,7 @@ package body Idl_Fe.Parser is
                   return;
                end;
             else
-               Scope := N_Scope_Acc (Name);
+               Scope := Name;
             end if;
          end if;
          exit when Get_Token /= T_Colon_Colon;
@@ -1043,7 +1047,7 @@ package body Idl_Fe.Parser is
    -------------------
    --  Parse_Value  --
    -------------------
-   procedure Parse_Value (Result : out N_Named_Acc;
+   procedure Parse_Value (Result : out Node_Id;
                           Success : out Boolean) is
    begin
       pragma Debug (O ("Initialize_Local_Object : enter"));
@@ -1051,10 +1055,10 @@ package body Idl_Fe.Parser is
          when T_Custom =>
             Next_Token;
             declare
-               Res : N_ValueType_Acc;
+               Res : Node_Id;
             begin
                Parse_Custom_Value (Res, Success);
-               Result := N_Named_Acc (Res);
+               Result := Res;
             end;
          when T_Abstract =>
             Next_Token;
@@ -1070,7 +1074,7 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_Custom_Value  --
    --------------------------
-   procedure Parse_Custom_Value (Result : out N_ValueType_Acc;
+   procedure Parse_Custom_Value (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Custom_Value : enter"));
@@ -1113,7 +1117,7 @@ package body Idl_Fe.Parser is
    ----------------------------
    --  Parse_Abstract_Value  --
    ----------------------------
-   procedure Parse_Abstract_Value (Result : out N_Named_Acc;
+   procedure Parse_Abstract_Value (Result : out Node_Id;
                                    Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Abstract_Value : enter"));
@@ -1153,17 +1157,17 @@ package body Idl_Fe.Parser is
                  | T_Supports
                  | T_Left_Cbracket =>
                   declare
-                     Res : N_ValueType_Acc;
+                     Res : Node_Id;
                   begin
                      Parse_End_Value_Dcl (Res, Success, False, true);
-                     Result := N_Named_Acc (Res);
+                     Result := Res;
                   end;
                when T_Semi_Colon =>
                   declare
-                     Res : N_Forward_ValueType_Acc;
+                     Res : Node_Id;
                   begin
                      Parse_End_Value_Forward_Dcl (Res, Success, True);
-                     Result := N_Named_Acc (Res);
+                     Result := Res;
                   end;
                when others =>
                   declare
@@ -1189,7 +1193,7 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_Direct_Value  --
    --------------------------
-   procedure Parse_Direct_Value (Result : out N_Named_Acc;
+   procedure Parse_Direct_Value (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Direct_Value : enter"));
@@ -1230,26 +1234,26 @@ package body Idl_Fe.Parser is
               | T_Union
               | T_Enum =>
                declare
-                  Res : N_Boxed_ValueType_Acc;
+                  Res : Node_Id;
                begin
                   Parse_End_Value_Box_Dcl (Res, Success);
-                  Result := N_Named_Acc (Res);
+                  Result := Res;
                end;
             when T_Semi_Colon =>
                declare
-                  Res : N_Forward_ValueType_Acc;
+                  Res : Node_Id;
                begin
                   Parse_End_Value_Forward_Dcl (Res, Success, False);
-                  Result := N_Named_Acc (Res);
+                  Result := Res;
                end;
             when T_Colon
               | T_Supports
               | T_Left_Cbracket =>
                declare
-                  Res : N_ValueType_Acc;
+                  Res : Node_Id;
                begin
                   Parse_End_Value_Dcl (Res, Success, False, False);
-                  Result := N_Named_Acc (Res);
+                  Result := Res;
                end;
             when others =>
                declare
@@ -1273,20 +1277,20 @@ package body Idl_Fe.Parser is
    ---------------------------
    --  Parse_End_Value_Dcl  --
    ---------------------------
-   procedure Parse_End_Value_Dcl (Result : out N_ValueType_Acc;
+   procedure Parse_End_Value_Dcl (Result : out Node_Id;
                                   Success : out Boolean;
                                   Custom : in Boolean;
                                   Abst : in Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
       pragma Debug (O ("Parse_End_Value_Dcl : enter"));
-      Result := new N_ValueType;
+      Result := New_ValueType;
       Result.Abst := Abst;
       Result.Custom := Custom;
       if (Abst or Custom) then
-         Set_Location (Result.all, Get_Previous_Previous_Token_Location);
+         Set_Location (Result, Get_Previous_Previous_Token_Location);
       else
-         Set_Location (Result.all, Get_Previous_Token_Location);
+         Set_Location (Result, Get_Previous_Token_Location);
       end if;
       --  try to find a previous definition
       Definition := Find_Identifier_Definition (Get_Token_String);
@@ -1294,12 +1298,12 @@ package body Idl_Fe.Parser is
       if not Is_Redefinable (Get_Token_String) then
          --  is it a forward ?
          if  Definition.Parent_Scope = Get_Current_Scope and
-           Get_Kind (Definition.Node.all) = K_Forward_ValueType then
+           Kind (Definition.Node) = K_Forward_ValueType then
             declare
-               Fd_Decl : N_Forward_ValueType_Acc;
+               Fd_Decl : Node_Id;
             begin
-               Fd_Decl := N_Forward_ValueType_Acc (Get_Node (Definition));
-               Add_Int_Val_Definition (N_Named_Acc (Fd_Decl));
+               Fd_Decl := Node_Id (Get_Node (Definition));
+               Add_Int_Val_Definition (Fd_Decl);
                Fd_Decl.Forward := Result;
                Result.Forward := Fd_Decl;
                Redefine_Identifier (Definition, Result);
@@ -1358,7 +1362,7 @@ package body Idl_Fe.Parser is
       while Get_Token /= T_Right_Cbracket loop
          declare
             Element_Success : Boolean;
-            Element : N_Root_Acc;
+            Element : Node_Id;
          begin
             if Abst then
                --  rule Value5
@@ -1385,17 +1389,17 @@ package body Idl_Fe.Parser is
    -----------------------------------
    --  Parse_End_Value_Forward_Dcl  --
    -----------------------------------
-   procedure Parse_End_Value_Forward_Dcl (Result : out N_Forward_ValueType_Acc;
+   procedure Parse_End_Value_Forward_Dcl (Result : out Node_Id;
                                           Success : out Boolean;
                                           Abst : in Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
-      Result := new N_Forward_ValueType;
+      Result := New_Forward_ValueType;
       Result.Abst := Abst;
       if Abst then
-         Set_Location (Result.all, Get_Previous_Previous_Token_Location);
+         Set_Location (Result, Get_Previous_Previous_Token_Location);
       else
-         Set_Location (Result.all, Get_Previous_Token_Location);
+         Set_Location (Result, Get_Previous_Token_Location);
       end if;
       --  try to find a previous definition
       Definition := Find_Identifier_Definition (Get_Token_String);
@@ -1403,7 +1407,7 @@ package body Idl_Fe.Parser is
       if not Is_Redefinable (Get_Token_String) then
          --  is it a forward
          if Definition.Parent_Scope = Get_Current_Scope and
-           Get_Kind (Definition.Node.all) = K_Forward_ValueType then
+           Kind (Definition.Node) = K_Forward_ValueType then
             --  nothing to do : this new forward declaration is useless
             Idl_Fe.Errors.Parser_Error
               ("This valuetype was already declared forward : " &
@@ -1429,7 +1433,7 @@ package body Idl_Fe.Parser is
       end if;
       --  consumes the identifier
       Next_Token;
-      Add_Int_Val_Forward (N_Named_Acc (Result));
+      Add_Int_Val_Forward (Result);
       Success := True;
       return;
    end Parse_End_Value_Forward_Dcl;
@@ -1437,19 +1441,19 @@ package body Idl_Fe.Parser is
    -------------------------------
    --  Parse_End_Value_Box_Dcl  --
    -------------------------------
-   procedure Parse_End_Value_Box_Dcl (Result : out N_Boxed_ValueType_Acc;
+   procedure Parse_End_Value_Box_Dcl (Result : out Node_Id;
                                       Success : out Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
-      Result := new N_Boxed_ValueType;
-      Set_Location (Result.all, Get_Previous_Token_Location);
+      Result := New_Boxed_ValueType;
+      Set_Location (Result, Get_Previous_Token_Location);
       --  try to find a previous definition
       Definition := Find_Identifier_Definition (Get_Token_String);
       --  Is there a previous definition and in the same scope ?
       if not Is_Redefinable (Get_Token_String) then
          --  is it a forward
          if Definition.Parent_Scope = Get_Current_Scope and
-           Get_Kind (Definition.Node.all) = K_Forward_ValueType then
+           Kind (Definition.Node) = K_Forward_ValueType then
             --  nothing to do : this new forward declaration is useless
             Idl_Fe.Errors.Parser_Error
               ("This valuetype was forward declared : " &
@@ -1494,7 +1498,7 @@ package body Idl_Fe.Parser is
    ------------------------------------
    --  Parse_Value_Inheritance_Spec  --
    ------------------------------------
-   procedure Parse_Value_Inheritance_Spec (Result : in out N_ValueType_Acc;
+   procedure Parse_Value_Inheritance_Spec (Result : in out Node_Id;
                                            Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Value_Inheritance_Spec : enter"));
@@ -1521,15 +1525,15 @@ package body Idl_Fe.Parser is
          pragma Debug (O ("Parse_Value_Inheritance_Spec : truncable treated"));
          --  parse value inheritance
          declare
-            Name : N_Scoped_Name_Acc;
+            Name : Node_Id;
             Name_Success : Boolean;
          begin
             Parse_Value_Name (Name, Name_Success);
             if Name_Success then
-               case Get_Kind (Name.Value.all) is
+               case Kind (Name.Value) is
                   when K_ValueType =>
                      if Result.Abst then
-                        if not N_ValueType_Acc (Name.Value).Abst then
+                        if not Node_Id (Name.Value).Abst then
                            Idl_Fe.Errors.Parser_Error
                              ("An abstract value may not inherit from a " &
                               "stateful one.",
@@ -1537,7 +1541,7 @@ package body Idl_Fe.Parser is
                               Get_Token_Location);
                         end if;
                      else
-                        if N_ValueType_Acc (Name.Value).Abst then
+                        if Node_Id (Name.Value).Abst then
                            Idl_Fe.Errors.Parser_Error
                              ("The truncatable modifier may not be used " &
                               "for an abstract value inheritance.",
@@ -1545,7 +1549,7 @@ package body Idl_Fe.Parser is
                               Get_Token_Location);
                         end if;
                      end if;
-                     Append_Node (Result.Parents, N_Root_Acc (Name));
+                     Append_Node (Result.Parents, Name);
                   when K_Forward_ValueType =>
                      Idl_Fe.Errors.Parser_Error
                        ("A value may not inherit from a forward declared" &
@@ -1587,23 +1591,23 @@ package body Idl_Fe.Parser is
          while Get_Token = T_Comma loop
             Next_Token;
             declare
-               Name : N_Scoped_Name_Acc;
+               Name : Node_Id;
                Name_Success : Boolean;
             begin
                Parse_Value_Name (Name, Name_Success);
                if Name_Success then
-                  case Get_Kind (Name.Value.all) is
+                  case Kind (Name.Value) is
                      when K_ValueType =>
                         pragma Debug (O ("Parse_Value_Inheritance_Spec : " &
                                          "parent is a valuetype"));
-                        if Is_In_List (Result.Parents, N_Root_Acc (Name)) then
+                        if Is_In_List (Result.Parents, Name) then
                            --  already inherited
                            Idl_Fe.Errors.Parser_Error
                              ("Already inherited of this value.",
                               Idl_Fe.Errors.Error,
                               Get_Token_Location);
                         else
-                           if not N_ValueType_Acc (Name.Value).Abst then
+                           if not Node_Id (Name.Value).Abst then
                               Idl_Fe.Errors.Parser_Error
                                 ("A stateful value may only derive from a " &
                                  "single stateful value and this one must " &
@@ -1611,7 +1615,7 @@ package body Idl_Fe.Parser is
                                  Idl_Fe.Errors.Error,
                                  Get_Token_Location);
                            end if;
-                           Append_Node (Result.Parents, N_Root_Acc (Name));
+                           Append_Node (Result.Parents, Name);
                         end if;
                      when K_Forward_ValueType =>
                         Idl_Fe.Errors.Parser_Error
@@ -1663,17 +1667,17 @@ package body Idl_Fe.Parser is
             begin
                --  parse interface inheritance
                declare
-                  Name : N_Scoped_Name_Acc;
+                  Name : Node_Id;
                   Name_Success : Boolean;
                begin
                   Parse_Value_Name (Name, Name_Success);
                   if Name_Success then
-                     case Get_Kind (Name.Value.all) is
+                     case Kind (Name.Value) is
                         when K_Interface =>
-                           if not N_Interface_Acc (Name.Value).Abst then
+                           if not Node_Id (Name.Value).Abst then
                               Non_Abstract_Interface := True;
                            end if;
-                           Append_Node (Result.Supports, N_Root_Acc (Name));
+                           Append_Node (Result.Supports, Name);
                         when K_Forward_Interface =>
                            Idl_Fe.Errors.Parser_Error
                              ("A value may not support a forward declared" &
@@ -1710,15 +1714,15 @@ package body Idl_Fe.Parser is
                while Get_Token = T_Comma loop
                   Next_Token;
                   declare
-                     Name : N_Scoped_Name_Acc;
+                     Name : Node_Id;
                      Name_Success : Boolean;
                   begin
                      Parse_Value_Name (Name, Name_Success);
                      if Name_Success then
-                        case Get_Kind (Name.Value.all) is
+                        case Kind (Name.Value) is
                            when K_Interface =>
                               if not Result.Abst
-                                and then not N_Interface_Acc
+                                and then not Node_Id
                                 (Name.Value).Abst then
                                  if Non_Abstract_Interface then
                                     Idl_Fe.Errors.Parser_Error
@@ -1731,7 +1735,7 @@ package body Idl_Fe.Parser is
                                     Non_Abstract_Interface := True;
                                  end if;
                               end if;
-                              Append_Node (Result.Supports, N_Root_Acc (Name));
+                              Append_Node (Result.Supports, Name);
                            when K_Forward_Interface =>
                               Idl_Fe.Errors.Parser_Error
                                 ("A value may not support a forward declared" &
@@ -1792,7 +1796,7 @@ package body Idl_Fe.Parser is
    ---------------------------
    --  Parse_Value_Element  --
    ---------------------------
-   procedure Parse_Value_Element  (Result : out N_Root_Acc;
+   procedure Parse_Value_Element  (Result : out Node_Id;
                                    Success : out Boolean) is
    begin
       case Get_Token is
@@ -1827,17 +1831,17 @@ package body Idl_Fe.Parser is
          when T_Public
            | T_Private =>
             declare
-               Res : N_State_Member_Acc;
+               Res : Node_Id;
             begin
                Parse_State_Member (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Factory =>
             declare
-               Res : N_Initializer_Acc;
+               Res : Node_Id;
             begin
                Parse_Init_Dcl (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when others =>
             Idl_Fe.Errors.Parser_Error ("value_element expected.",
@@ -1852,11 +1856,11 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_State_Member  --
    --------------------------
-   procedure Parse_State_Member (Result : out N_State_Member_Acc;
+   procedure Parse_State_Member (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
-      Result := new N_State_Member;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_State_Member;
+      Set_Location (Result, Get_Token_Location);
       case Get_Token is
          when T_Public =>
             Result.Is_Public := True;
@@ -1892,7 +1896,7 @@ package body Idl_Fe.Parser is
    ----------------------
    --  Parse_Init_Dcl  --
    ----------------------
-   procedure Parse_Init_Dcl (Result : out N_Initializer_Acc;
+   procedure Parse_Init_Dcl (Result : out Node_Id;
                              Success : out Boolean) is
    begin
       if View_Next_Token /= T_Identifier then
@@ -1912,8 +1916,8 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       end if;
-      Result := new N_Initializer;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Initializer;
+      Set_Location (Result, Get_Token_Location);
       --  consume T_Factory
       Next_Token;
       --  Is there a previous definition
@@ -1998,12 +2002,12 @@ package body Idl_Fe.Parser is
    begin
       Result := Nil_List;
       declare
-         Decl : N_Param_Acc;
+         Decl : Node_Id;
          Decl_Success : Boolean;
       begin
          Parse_Init_Param_Decl (Decl, Decl_Success);
          if Decl_Success then
-            Append_Node (Result, N_Root_Acc (Decl));
+            Append_Node (Result, Decl);
          else
             Success := False;
             return;
@@ -2012,12 +2016,12 @@ package body Idl_Fe.Parser is
       while Get_Token = T_Comma loop
          Next_Token;
          declare
-            Decl : N_Param_Acc;
+            Decl : Node_Id;
             Decl_Success : Boolean;
          begin
             Parse_Init_Param_Decl (Decl, Decl_Success);
             if Decl_Success then
-               Append_Node (Result, N_Root_Acc (Decl));
+               Append_Node (Result, Decl);
             else
                Success := False;
                return;
@@ -2031,7 +2035,7 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Init_Decl  --
    -----------------------
-   procedure Parse_Init_Param_Decl (Result : out N_Param_Acc;
+   procedure Parse_Init_Param_Decl (Result : out Node_Id;
                                     Success : out Boolean) is
    begin
       case Get_Token is
@@ -2083,8 +2087,8 @@ package body Idl_Fe.Parser is
             Result := null;
             return;
       end case;
-      Result := new N_Param;
-      Set_Location (Result.all, Get_Previous_Token_Location);
+      Result := New_Param;
+      Set_Location (Result, Get_Previous_Token_Location);
       Result.Mode := Mode_In;
       Parse_Param_Type_Spec (Result.Param_Type, Success);
       if not Success then
@@ -2097,13 +2101,13 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Const_Dcl  --
    -----------------------
-   procedure Parse_Const_Dcl (Result : out N_Const_Dcl_Acc;
+   procedure Parse_Const_Dcl (Result : out Node_Id;
                               Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Const_Dcl : enter"));
       Next_Token;
-      Result := new N_Const_Dcl;
-      Set_Location (Result.all, Get_Previous_Token_Location);
+      Result := New_Const_Dcl;
+      Set_Location (Result, Get_Previous_Token_Location);
       Parse_Const_Type (Result.Constant_Type, Success);
       if not Success then
          return;
@@ -2191,7 +2195,7 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Parse_Const_Type  --
    ------------------------
-   procedure Parse_Const_Type (Result : out N_Root_Acc;
+   procedure Parse_Const_Type (Result : out Node_Id;
                                Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Const_Type : end"));
@@ -2207,60 +2211,60 @@ package body Idl_Fe.Parser is
             Parse_Integer_Type (Result, Success);
          when T_Char =>
             declare
-               Res : N_Char_Acc;
+               Res : Node_Id;
             begin
                Parse_Char_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Wchar =>
             declare
-               Res : N_Wide_Char_Acc;
+               Res : Node_Id;
             begin
                Parse_Wide_Char_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Boolean =>
             declare
-               Res : N_Boolean_Acc;
+               Res : Node_Id;
             begin
                Parse_Boolean_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Float
            | T_Double =>
             Parse_Floating_Pt_Type (Result, Success);
          when T_String =>
             declare
-               Res : N_String_Acc;
+               Res : Node_Id;
             begin
                Parse_String_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Wstring =>
             declare
-               Res : N_Wide_String_Acc;
+               Res : Node_Id;
             begin
                Parse_Wide_String_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Fixed =>
             declare
-               Res : N_Fixed_Acc;
+               Res : Node_Id;
             begin
                Parse_Fixed_Pt_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Colon_Colon
            | T_Identifier =>
             declare
-               Res : N_Scoped_Name_Acc;
+               Res : Node_Id;
             begin
                Parse_Scoped_Name (Res, Success);
                --  The <scoped_name> in the <const_type> production
                --  must be a previously defined integer, char, wide_char,
                --  boolean, floating_pt, string, wide_string, octet or
                --  enum type.
-               case Get_Kind (Res.Value.all) is
+               case Kind (Res.Value) is
                   when K_Short
                     | K_Long
                     | K_Long_Long
@@ -2289,14 +2293,14 @@ package body Idl_Fe.Parser is
                         Get_Token_Location);
                      Success := False;
                end case;
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Octet =>
             declare
-               Res : N_Octet_Acc;
+               Res : Node_Id;
             begin
                Parse_Octet_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when others =>
             Idl_Fe.Errors.Parser_Error ("constant type expected.",
@@ -2312,15 +2316,15 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Const_Exp  --
    -----------------------
-   procedure Parse_Const_Exp (Result : out N_Expr_Acc;
-                              Constant_Type : in N_Root_Acc;
+   procedure Parse_Const_Exp (Result : out Node_Id;
+                              Constant_Type : in Node_Id;
                               Success : out Boolean) is
       Loc : Idl_Fe.Errors.Location;
       C_Type : Const_Type_Ptr;
    begin
       pragma Debug (O ("Parse_Const_Exp : enter"));
       Loc := Get_Token_Location;
-      case Get_Kind (Constant_Type.all) is
+      case Kind (Constant_Type) is
          when K_Short
            | K_Unsigned_Short =>
             C_Type := new Const_Type (Kind => C_Short);
@@ -2356,7 +2360,7 @@ package body Idl_Fe.Parser is
          when K_Enum =>
             C_Type := new Const_Type (Kind => C_Enum);
          when K_Scoped_Name =>
-            case Get_Kind (N_Scoped_Name_Acc
+            case Get_Kind (Node_Id
                             (Constant_Type).Value.all) is
                when K_Short
                  | K_Unsigned_Short =>
@@ -2404,7 +2408,7 @@ package body Idl_Fe.Parser is
       end if;
       --  check compatibility between the constant expression
       --  and its supposed type in the case of short and long
-      if (Get_Kind (Constant_Type.all) = K_Short and
+      if (Kind (Constant_Type) = K_Short and
         Result.Expr_Type.Kind = C_Short) and then
         Result.Value > Idl_Short_Max then
          Errors.Parser_Error ("this value exceed the range " &
@@ -2412,7 +2416,7 @@ package body Idl_Fe.Parser is
                               Errors.Error,
                               Loc);
       end if;
-      if (Get_Kind (Constant_Type.all) = K_Unsigned_Short and
+      if (Kind (Constant_Type) = K_Unsigned_Short and
         Result.Expr_Type.Kind = C_Short) and then
         Result.Value < Idl_UShort_Min then
          Errors.Parser_Error ("this value exceed the range " &
@@ -2420,7 +2424,7 @@ package body Idl_Fe.Parser is
                               Errors.Error,
                               Loc);
       end if;
-      if (Get_Kind (Constant_Type.all) = K_Long and
+      if (Kind (Constant_Type) = K_Long and
         Result.Expr_Type.Kind = C_Long) and then
         Result.Value > Idl_Long_Max then
          Errors.Parser_Error ("this value exceed the range " &
@@ -2428,7 +2432,7 @@ package body Idl_Fe.Parser is
                               Errors.Error,
                               Loc);
       end if;
-      if (Get_Kind (Constant_Type.all) = K_Unsigned_Long and
+      if (Kind (Constant_Type) = K_Unsigned_Long and
         Result.Expr_Type.Kind = C_Long) and then
         Result.Value < Idl_ULong_Min then
          Errors.Parser_Error ("this value exceed the range " &
@@ -2441,10 +2445,10 @@ package body Idl_Fe.Parser is
    --------------------
    --  Parse_Or_Exp  --
    --------------------
-   procedure Parse_Or_Expr (Result : out N_Expr_Acc;
+   procedure Parse_Or_Expr (Result : out Node_Id;
                             Success : out Boolean;
                             Expr_Type : in Const_Type_Ptr) is
-      Xor_Exp : N_Expr_Acc;
+      Xor_Exp : Node_Id;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
@@ -2459,16 +2463,16 @@ package body Idl_Fe.Parser is
                               Loc);
       end if;
 --          declare
---             Res : N_Or_Expr_Acc;
+--             Res : Node_Id;
 --          begin
 --             Next_Token;
---             Res := new N_Or_Expr;
---             Set_Location (Result.all, Loc);
+--             Res := New_Or_Expr;
+--             Set_Location (Result, Loc);
 --             Res.Expr_Type := Duplicate (Expr_Type);
---             Res.Left := N_Expr_Acc (Xor_Exp);
+--             Res.Left := Xor_Exp;
 --             Parse_Or_Expr (Res.Right, Success, Duplicate (Expr_Type));
 --             if not Success then
---                Result := N_Expr_Acc (Res);
+--                Result := Res;
 --                return;
 --             end;
 --             case Expr_Type is
@@ -2622,7 +2626,7 @@ package body Idl_Fe.Parser is
 --                when others =>
 --                   Res.Value = 0;
 --             end case;
---             Result := N_Expr_Acc (Res);
+--             Result := Res;
 --          end;
 --       else
       Result := Xor_Exp;
@@ -2633,10 +2637,10 @@ package body Idl_Fe.Parser is
    ---------------------
    --  Parse_Xor_Exp  --
    ---------------------
-   procedure Parse_Xor_Expr (Result : out N_Expr_Acc;
+   procedure Parse_Xor_Expr (Result : out Node_Id;
                              Success : out Boolean;
                              Expr_Type : in Const_Type_Ptr) is
-      And_Exp : N_Expr_Acc;
+      And_Exp : Node_Id;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
@@ -2651,12 +2655,12 @@ package body Idl_Fe.Parser is
                               Loc);
       end if;
 --          declare
---             Res : N_Xor_Expr_Acc;
+--             Res : Node_Id;
 --          begin
 --             Next_Token;
---             Res := new N_Xor_Expr;
---             Set_Location (Result.all, Loc);
---             Res.Left := N_Expr_Acc (And_Exp);
+--             Res := New_Xor_Expr;
+--             Set_Location (Result, Loc);
+--             Res.Left := And_Exp;
 --             Parse_Xor_Expr (Res.Right, Success, Expr_Type);
 --             if Success then
 --                Eval_Xor_Expr (Res.Left.Value,
@@ -2664,7 +2668,7 @@ package body Idl_Fe.Parser is
 --                               Res.Value,
 --                               Loc);
 --             end if;
---             Result := N_Expr_Acc (Res);
+--             Result := Res;
 --          end;
 --       else
       Result := And_Exp;
@@ -2675,10 +2679,10 @@ package body Idl_Fe.Parser is
    ---------------------
    --  Parse_And_Exp  --
    ---------------------
-   procedure Parse_And_Expr (Result : out N_Expr_Acc;
+   procedure Parse_And_Expr (Result : out Node_Id;
                              Success : out Boolean;
                              Expr_Type : in Const_Type_Ptr) is
-      Shift_Exp : N_Expr_Acc;
+      Shift_Exp : Node_Id;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
@@ -2693,12 +2697,12 @@ package body Idl_Fe.Parser is
                               Loc);
       end if;
 --          declare
---             Res : N_And_Expr_Acc;
+--             Res : Node_Id;
 --          begin
 --             Next_Token;
---             Res := new N_And_Expr;
---             Set_Location (Result.all, Loc);
---             Res.Left := N_Expr_Acc (Shift_Exp);
+--             Res := New_And_Expr;
+--             Set_Location (Result, Loc);
+--             Res.Left := Shift_Exp;
 --             Parse_And_Expr (Res.Right, Success);
 --             if Success then
 --                Eval_And_Expr (Res.Left.Value,
@@ -2706,7 +2710,7 @@ package body Idl_Fe.Parser is
 --                               Res.Value,
 --                               Loc);
 --             end if;
---             Result := N_Expr_Acc (Res);
+--             Result := Res;
 --          end;
 --       else
       Result := Shift_Exp;
@@ -2717,10 +2721,10 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Shift_Exp  --
    -----------------------
-   procedure Parse_Shift_Expr (Result : out N_Expr_Acc;
+   procedure Parse_Shift_Expr (Result : out Node_Id;
                                Success : out Boolean;
                                Expr_Type : in Const_Type_Ptr) is
-      Add_Exp : N_Expr_Acc;
+      Add_Exp : Node_Id;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
@@ -2734,12 +2738,12 @@ package body Idl_Fe.Parser is
                               Errors.Error,
                               Loc);
 --          declare
---             Res : N_Shr_Expr_Acc;
+--             Res : Node_Id;
 --          begin
 --             Next_Token;
---             Res := new N_Shr_Expr;
---             Set_Location (Result.all, Loc);
---             Res.Left := N_Expr_Acc (Add_Exp);
+--             Res := New_Shr_Expr;
+--             Set_Location (Result, Loc);
+--             Res.Left := Add_Exp;
 --             Parse_Shift_Expr (Res.Right, Success);
 --             if Success then
 --                Eval_Shr_Expr (Res.Left.Value,
@@ -2747,7 +2751,7 @@ package body Idl_Fe.Parser is
 --                               Res.Value,
 --                               Loc);
 --             end if;
---             Result := N_Expr_Acc (Res);
+--             Result := Res;
 --          end;
       elsif Get_Token = T_Less_Less then
          Errors.Parser_Error ("only simple constants are " &
@@ -2756,12 +2760,12 @@ package body Idl_Fe.Parser is
                               Loc);
       end if;
 --          declare
---             Res : N_Shl_Expr_Acc;
+--             Res : Node_Id;
 --          begin
 --             Next_Token;
---             Res := new N_Shl_Expr;
---             Set_Location (Result.all, Loc);
---             Res.Left := N_Expr_Acc (Add_Exp);
+--             Res := New_Shl_Expr;
+--             Set_Location (Result, Loc);
+--             Res.Left := Add_Exp;
 --             Parse_Shift_Expr (Res.Right, Success);
 --             if Success then
 --                Eval_Shl_Expr (Res.Left.Value,
@@ -2769,7 +2773,7 @@ package body Idl_Fe.Parser is
 --                               Res.Value,
 --                               Loc);
 --             end if;
---             Result := N_Expr_Acc (Res);
+--             Result := Res;
 --          end;
 --       else
       Result := Add_Exp;
@@ -2780,10 +2784,10 @@ package body Idl_Fe.Parser is
    ---------------------
    --  Parse_Add_Exp  --
    ---------------------
-   procedure Parse_Add_Expr (Result : out N_Expr_Acc;
+   procedure Parse_Add_Expr (Result : out Node_Id;
                              Success : out Boolean;
                              Expr_Type : in Const_Type_Ptr) is
-      Mult_Exp : N_Expr_Acc;
+      Mult_Exp : Node_Id;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
@@ -2797,12 +2801,12 @@ package body Idl_Fe.Parser is
                               Errors.Error,
                               Loc);
 --          declare
---             Res : N_Add_Expr_Acc;
+--             Res : Node_Id;
 --          begin
 --             Next_Token;
---             Res := new N_Add_Expr;
---             Set_Location (Result.all, Loc);
---             Res.Left := N_Expr_Acc (Mult_Exp);
+--             Res := New_Add_Expr;
+--             Set_Location (Result, Loc);
+--             Res.Left := Mult_Exp;
 --             Parse_Add_Expr (Res.Right, Success);
 --             if Success then
 --                Eval_Add_Expr (Res.Left.Value,
@@ -2810,7 +2814,7 @@ package body Idl_Fe.Parser is
 --                               Res.Value,
 --                               Loc);
 --             end if;
---             Result := N_Expr_Acc (Res);
+--             Result := Res;
 --          end;
       elsif Get_Token = T_Minus then
          Errors.Parser_Error ("only simple constants are " &
@@ -2819,12 +2823,12 @@ package body Idl_Fe.Parser is
                               Loc);
       end if;
 --          declare
---             Res : N_Sub_Expr_Acc;
+--             Res : Node_Id;
 --          begin
 --             Next_Token;
---             Res := new N_Sub_Expr;
---             Set_Location (Result.all, Loc);
---             Res.Left := N_Expr_Acc (Mult_Exp);
+--             Res := New_Sub_Expr;
+--             Set_Location (Result, Loc);
+--             Res.Left := Mult_Exp;
 --             Parse_Add_Expr (Res.Right, Success);
 --             if Success then
 --                Eval_Sub_Expr (Res.Left.Value,
@@ -2832,7 +2836,7 @@ package body Idl_Fe.Parser is
 --                               Res.Value,
 --                               Loc);
 --             end if;
---             Result := N_Expr_Acc (Res);
+--             Result := Res;
 --          end;
 --       else
       Result := Mult_Exp;
@@ -2843,10 +2847,10 @@ package body Idl_Fe.Parser is
    ----------------------
    --  Parse_Mult_Exp  --
    ----------------------
-   procedure Parse_Mult_Expr (Result : out N_Expr_Acc;
+   procedure Parse_Mult_Expr (Result : out Node_Id;
                               Success : out Boolean;
                               Expr_Type : in Const_Type_Ptr) is
-      Unary_Exp : N_Expr_Acc;
+      Unary_Exp : Node_Id;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
@@ -2860,12 +2864,12 @@ package body Idl_Fe.Parser is
                               Errors.Error,
                               Loc);
 --          declare
---             Res : N_Mul_Expr_Acc;
+--             Res : Node_Id;
 --          begin
 --             Next_Token;
---             Res := new N_Mul_Expr;
---             Set_Location (Result.all, Loc);
---             Res.Left := N_Expr_Acc (Unary_Exp);
+--             Res := New_Mul_Expr;
+--             Set_Location (Result, Loc);
+--             Res.Left := Unary_Exp;
 --             Parse_Mult_Expr (Res.Right, Success);
 --             if Success then
 --                Eval_Mul_Expr (Res.Left.Value,
@@ -2873,7 +2877,7 @@ package body Idl_Fe.Parser is
 --                               Res.Value,
 --                               Loc);
 --             end if;
---             Result := N_Expr_Acc (Res);
+--             Result := Res;
 --          end;
       elsif Get_Token = T_Slash then
          Errors.Parser_Error ("only simple constants are " &
@@ -2881,12 +2885,12 @@ package body Idl_Fe.Parser is
                               Errors.Error,
                               Loc);
 --          declare
---             Res : N_Div_Expr_Acc;
+--             Res : Node_Id;
 --          begin
 --             Next_Token;
---             Res := new N_Div_Expr;
---             Set_Location (Result.all, Loc);
---             Res.Left := N_Expr_Acc (Unary_Exp);
+--             Res := New_Div_Expr;
+--             Set_Location (Result, Loc);
+--             Res.Left := Unary_Exp;
 --             Parse_Mult_Expr (Res.Right, Success);
 --             if Success then
 --                Eval_Div_Expr (Res.Left.Value,
@@ -2894,7 +2898,7 @@ package body Idl_Fe.Parser is
 --                               Res.Value,
 --                               Loc);
 --             end if;
---             Result := N_Expr_Acc (Res);
+--             Result := Res;
 --          end;
       elsif Get_Token = T_Percent then
          Errors.Parser_Error ("only simple constants are " &
@@ -2903,12 +2907,12 @@ package body Idl_Fe.Parser is
                               Loc);
       end if;
 --          declare
---             Res : N_Mod_Expr_Acc;
+--             Res : Node_Id;
 --          begin
 --             Next_Token;
---             Res := new N_Mod_Expr;
---             Set_Location (Result.all, Loc);
---             Res.Left := N_Expr_Acc (Unary_Exp);
+--             Res := New_Mod_Expr;
+--             Set_Location (Result, Loc);
+--             Res.Left := Unary_Exp;
 --             Parse_Mult_Expr (Res.Right, Success);
 --             if Success then
 --                Eval_Mod_Expr (Res.Left.Value,
@@ -2916,7 +2920,7 @@ package body Idl_Fe.Parser is
 --                               Res.Value,
 --                               Loc);
 --             end if;
---             Result := N_Expr_Acc (Res);
+--             Result := Res;
 --          end;
 --       else
       Result := Unary_Exp;
@@ -2927,7 +2931,7 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Unary_Exp  --
    -----------------------
-   procedure Parse_Unary_Expr (Result : out N_Expr_Acc;
+   procedure Parse_Unary_Expr (Result : out Node_Id;
                                Success : out Boolean;
                                Expr_Type : in Const_Type_Ptr) is
    begin
@@ -2938,18 +2942,18 @@ package body Idl_Fe.Parser is
                                  Errors.Error,
                                  Get_Token_Location);
 --             declare
---                Res : N_Neg_Expr_Acc;
+--                Res : Node_Id;
 --             begin
 --                Next_Token;
---                Res := new N_Neg_Expr;
---                Set_Location (Res.all, Get_Previous_Token_Location);
+--                Res := New_Neg_Expr;
+--                Set_Location (Res, Get_Previous_Token_Location);
 --                Parse_Primary_Expr (Res.Operand, Success, Expr_Type);
 --                if Success then
 --                   Eval_Neg_Expr (Res.Operand.Value,
 --                                  Res.Value,
 --                                  Get_Previous_Token_Location);
 --                end if;
---                Result := N_Expr_Acc (Res);
+--                Result := Res;
 --             end;
          when T_Plus =>
             Errors.Parser_Error ("only simple constants are " &
@@ -2957,16 +2961,16 @@ package body Idl_Fe.Parser is
                                  Errors.Error,
                                  Get_Token_Location);
 --             declare
---                Res : N_Id_Expr_Acc;
+--                Res : Node_Id;
 --             begin
 --                Next_Token;
---                Res := new N_Id_Expr;
---                Set_Location (Res.all, Get_Previous_Token_Location);
+--                Res := New_Id_Expr;
+--                Set_Location (Res, Get_Previous_Token_Location);
 --                Parse_Primary_Expr (Res.Operand, Success, Expr_Type);
 --                if Success then
 --                   Res.Value := Res.Operand.Value;
 --                end if;
---                Result := N_Expr_Acc (Res);
+--                Result := Res;
 --             end;
          when T_Tilde =>
             Errors.Parser_Error ("only simple constants are " &
@@ -2974,18 +2978,18 @@ package body Idl_Fe.Parser is
                                  Errors.Error,
                                  Get_Token_Location);
 --             declare
---                Res : N_Not_Expr_Acc;
+--                Res : Node_Id;
 --             begin
 --                Next_Token;
---                Res := new N_Not_Expr;
---                Set_Location (Res.all, Get_Previous_Token_Location);
+--                Res := New_Not_Expr;
+--                Set_Location (Res, Get_Previous_Token_Location);
 --                Parse_Primary_Expr (Res.Operand, Success, Expr_Type);
 --                if Success then
 --                   Eval_Not_Expr (Res.Operand.Value,
 --                                  Res.Value,
 --                                  Get_Previous_Token_Location);
 --                end if;
---                Result := N_Expr_Acc (Res);
+--                Result := Res;
 --             end;
          when others =>
             Parse_Primary_Expr (Result, Success, Expr_Type);
@@ -2998,22 +3002,22 @@ package body Idl_Fe.Parser is
    -------------------------
    --  Parse_Primary_Exp  --
    -------------------------
-   procedure Parse_Primary_Expr (Result : out N_Expr_Acc;
+   procedure Parse_Primary_Expr (Result : out Node_Id;
                                  Success : out Boolean;
                                  Expr_Type : in Const_Type_Ptr) is
-      Res : N_Primary_Expr_Acc;
+      Res : Node_Id;
    begin
-      Res := new N_Primary_Expr;
-      Set_Location (Res.all, Get_Token_Location);
+      Res := New_Primary_Expr;
+      Set_Location (Res, Get_Token_Location);
       Res.Expr_Type := Expr_Type;
       case Get_Token is
             when  T_Colon_Colon
               | T_Identifier =>
                declare
-                  Local_Res : N_Scoped_Name_Acc;
+                  Local_Res : Node_Id;
                begin
                   Parse_Scoped_Name (Local_Res, Success);
-                  Res.Operand := N_Root_Acc (Local_Res);
+                  Res.Operand := Local_Res;
                end;
          when T_Lit_Decimal_Integer
            | T_Lit_Octal_Integer
@@ -3062,10 +3066,10 @@ package body Idl_Fe.Parser is
          when T_Left_Paren =>
             Next_Token;
             declare
-               Local_Res : N_Expr_Acc;
+               Local_Res : Node_Id;
             begin
                Parse_Or_Expr (Local_Res, Success, Expr_Type);
-               Res.Operand := N_Root_Acc (Local_Res);
+               Res.Operand := Local_Res;
             end;
             if not Success then
                return;
@@ -3086,14 +3090,14 @@ package body Idl_Fe.Parser is
             Success := False;
             return;
       end case;
-      Result := N_Expr_Acc (Res);
+      Result := Res;
       return;
    end Parse_Primary_Expr;
 
    ---------------------
    --  Parse_Literal  --
    ---------------------
-   procedure Parse_Literal (Result : out N_Root_Acc;
+   procedure Parse_Literal (Result : out Node_Id;
                             Success : out Boolean) is
    begin
       case Get_Token is
@@ -3101,17 +3105,17 @@ package body Idl_Fe.Parser is
               | T_Lit_Octal_Integer
               | T_Lit_Hexa_Integer =>
             declare
-               Res : N_Lit_String_Acc;
+               Res : Node_Id;
             begin
                Parse_Integer_Literal (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Lit_String =>
             declare
-               Res : N_Lit_String_Acc;
+               Res : Node_Id;
             begin
                Parse_String_Literal (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Lit_Simple_Char
            | T_Lit_Escape_Char
@@ -3119,27 +3123,27 @@ package body Idl_Fe.Parser is
            | T_Lit_Hexa_Char
            | T_Lit_Unicode_Char =>
             declare
-               Res : N_Lit_String_Acc;
+               Res : Node_Id;
             begin
                Parse_Char_Literal (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Lit_Simple_Floating_Point
            | T_Lit_Exponent_Floating_Point
            | T_Lit_Pure_Exponent_Floating_Point =>
             declare
-               Res : N_Lit_String_Acc;
+               Res : Node_Id;
             begin
                Parse_Floating_Pt_Literal (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_True
            | T_False =>
             declare
-               Res : N_Lit_Boolean_Acc;
+               Res : Node_Id;
             begin
                Parse_Boolean_Literal (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when others =>
             raise Errors.Internal_Error;
@@ -3149,11 +3153,11 @@ package body Idl_Fe.Parser is
    -----------------------------
    --  Parse_Boolean_Literal  --
    -----------------------------
-   procedure Parse_Boolean_Literal (Result : out N_Lit_Boolean_Acc;
+   procedure Parse_Boolean_Literal (Result : out Node_Id;
                                     Success : out Boolean) is
    begin
-      Result := new N_Lit_Boolean;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Lit_Boolean;
+      Set_Location (Result, Get_Token_Location);
       if Get_Token = T_True then
          Result.Value := True;
       else
@@ -3167,7 +3171,7 @@ package body Idl_Fe.Parser is
    --------------------------------
    --  Parse_Positive_Int_Const  --
    --------------------------------
-   procedure Parse_Positive_Int_Const (Result : out N_Expr_Acc;
+   procedure Parse_Positive_Int_Const (Result : out Node_Id;
                                        Success : out Boolean) is
    begin
       Parse_Or_Expr (Result, Success, new Const_Type (Kind => C_ULongLong));
@@ -3176,7 +3180,7 @@ package body Idl_Fe.Parser is
    ----------------------
    --  Parse_Type_Dcl  --
    ----------------------
-   procedure Parse_Type_Dcl (Result : out N_Root_Acc;
+   procedure Parse_Type_Dcl (Result : out Node_Id;
                              Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Type_Dcl : enter"));
@@ -3186,45 +3190,45 @@ package body Idl_Fe.Parser is
          when T_Typedef =>
             Next_Token;
             declare
-               Res : N_Type_Declarator_Acc;
+               Res : Node_Id;
             begin
                Parse_Type_Declarator (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Struct =>
             declare
-               Res : N_Struct_Acc;
+               Res : Node_Id;
             begin
                Parse_Struct_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Union =>
             declare
-               Res : N_Union_Acc;
+               Res : Node_Id;
             begin
                Parse_Union_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Enum =>
             declare
-               Res : N_Enum_Acc;
+               Res : Node_Id;
             begin
                Parse_Enum_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Native =>
             declare
-               Res : N_Native_Acc;
+               Res : Node_Id;
             begin
-               Res := new N_Native;
-               Set_Location (Res.all, Get_Token_Location);
+               Res := New_Native;
+               Set_Location (Res, Get_Token_Location);
                Next_Token;
                Parse_Simple_Declarator (Res.Declarator, Success);
                if not Success then
                   Result := null;
                   return;
                end if;
-               Result :=  N_Root_Acc (Res);
+               Result :=  Res;
             end;
          when others =>
             raise Idl_Fe.Errors.Internal_Error;
@@ -3236,11 +3240,11 @@ package body Idl_Fe.Parser is
    -----------------------------
    --  Parse_Type_Declarator  --
    -----------------------------
-   procedure Parse_Type_Declarator (Result : out N_Type_Declarator_Acc;
+   procedure Parse_Type_Declarator (Result : out Node_Id;
                                     Success : out Boolean) is
    begin
-      Result := new N_Type_Declarator;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Type_Declarator;
+      Set_Location (Result, Get_Token_Location);
       Parse_Type_Spec (Result.T_Type, Success);
       if not Success then
          pragma Debug (O ("Parse_Type_declarator : type_spec return false"));
@@ -3254,7 +3258,7 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Type_Spec  --
    -----------------------
-   procedure Parse_Type_Spec (Result : out N_Root_Acc;
+   procedure Parse_Type_Spec (Result : out Node_Id;
                               Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Type_Spec : enter"));
@@ -3297,7 +3301,7 @@ package body Idl_Fe.Parser is
    ------------------------------
    --  Parse_Simple_Type_Spec  --
    ------------------------------
-   procedure Parse_Simple_Type_Spec (Result : out N_Root_Acc;
+   procedure Parse_Simple_Type_Spec (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Simple_Type_Spec : enter"));
@@ -3323,10 +3327,10 @@ package body Idl_Fe.Parser is
          when T_Colon_Colon
            | T_Identifier =>
             declare
-               Res : N_Scoped_Name_Acc;
+               Res : Node_Id;
             begin
                Parse_Scoped_Name (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
                --  FIXME
                --  >>>>>>>>>>>>>>>>> what are the accepted types?
             end;
@@ -3344,7 +3348,7 @@ package body Idl_Fe.Parser is
    ----------------------------
    --  Parse_Base_Type_Spec  --
    ----------------------------
-   procedure Parse_Base_Type_Spec (Result : out N_Root_Acc;
+   procedure Parse_Base_Type_Spec (Result : out Node_Id;
                                    Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Base_Type_Spec : enter"));
@@ -3363,52 +3367,52 @@ package body Idl_Fe.Parser is
             Parse_Integer_Type (Result, Success);
          when T_Char =>
             declare
-               Res : N_Char_Acc;
+               Res : Node_Id;
             begin
                Parse_Char_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Wchar =>
             declare
-               Res : N_Wide_Char_Acc;
+               Res : Node_Id;
             begin
                Parse_Wide_Char_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Boolean =>
             declare
-               Res : N_Boolean_Acc;
+               Res : Node_Id;
             begin
                Parse_Boolean_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Octet =>
             declare
-               Res : N_Octet_Acc;
+               Res : Node_Id;
             begin
                Parse_Octet_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Any =>
             declare
-               Res : N_Any_Acc;
+               Res : Node_Id;
             begin
                Parse_Any_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Object =>
             declare
-               Res : N_Object_Acc;
+               Res : Node_Id;
             begin
                Parse_Object_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_ValueBase =>
             declare
-               Res : N_ValueBase_Acc;
+               Res : Node_Id;
             begin
                Parse_Value_Base_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when others =>
             raise Idl_Fe.Errors.Internal_Error;
@@ -3420,37 +3424,37 @@ package body Idl_Fe.Parser is
    --------------------------------
    --  Parse_Template_Type_Spec  --
    --------------------------------
-   procedure Parse_Template_Type_Spec (Result : out N_Root_Acc;
+   procedure Parse_Template_Type_Spec (Result : out Node_Id;
                                        Success : out Boolean) is
    begin
       case Get_Token is
          when T_Sequence =>
             declare
-               Res : N_Sequence_Acc;
+               Res : Node_Id;
             begin
                Parse_Sequence_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_String =>
             declare
-               Res : N_String_Acc;
+               Res : Node_Id;
             begin
                Parse_String_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Wstring =>
             declare
-               Res : N_Wide_String_Acc;
+               Res : Node_Id;
             begin
                Parse_Wide_String_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Fixed =>
             declare
-               Res : N_Fixed_Acc;
+               Res : Node_Id;
             begin
                Parse_Fixed_Pt_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when others =>
             raise Idl_Fe.Errors.Internal_Error;
@@ -3460,30 +3464,30 @@ package body Idl_Fe.Parser is
    ------------------------------
    --  Parse_Constr_Type_Spec  --
    ------------------------------
-   procedure Parse_Constr_Type_Spec (Result : out N_Root_Acc;
+   procedure Parse_Constr_Type_Spec (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
       case Get_Token is
          when T_Struct =>
             declare
-               Res : N_Struct_Acc;
+               Res : Node_Id;
             begin
                Parse_Struct_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Union =>
             declare
-               Res : N_Union_Acc;
+               Res : Node_Id;
             begin
                Parse_Union_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Enum =>
             declare
-               Res : N_Enum_Acc;
+               Res : Node_Id;
             begin
                Parse_Enum_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when others =>
             raise Idl_Fe.Errors.Internal_Error;
@@ -3498,26 +3502,26 @@ package body Idl_Fe.Parser is
    begin
       Result := Nil_List;
       declare
-         Res : N_Declarator_Acc;
+         Res : Node_Id;
       begin
          Parse_Declarator (Res, Success);
          if not Success then
             pragma Debug (O ("Parse_Declarators : first success = false"));
             return;
          else
-            Append_Node (Result, N_Root_Acc (Res));
+            Append_Node (Result, Res);
          end if;
       end;
       while Get_Token = T_Comma loop
          Next_Token;
          declare
-            Res : N_Declarator_Acc;
+            Res : Node_Id;
          begin
             Parse_Declarator (Res, Success);
             if not Success then
                return;
             else
-               Append_Node (Result, N_Root_Acc (Res));
+               Append_Node (Result, Res);
             end if;
          end;
       end loop;
@@ -3527,7 +3531,7 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Parse_Declarator  --
    ------------------------
-   procedure Parse_Declarator (Result : out N_Declarator_Acc;
+   procedure Parse_Declarator (Result : out Node_Id;
                                Success : out Boolean) is
    begin
       pragma Debug (O ("parse_declarator : enter"));
@@ -3553,7 +3557,7 @@ package body Idl_Fe.Parser is
    -------------------------------
    --  Parse_Simple_Declarator  --
    -------------------------------
-   procedure Parse_Simple_Declarator (Result : out N_Declarator_Acc;
+   procedure Parse_Simple_Declarator (Result : out Node_Id;
                                       Success : out Boolean) is
    begin
       if Get_Token /= T_Identifier then
@@ -3564,7 +3568,7 @@ package body Idl_Fe.Parser is
          return;
       else
          pragma Debug (O ("Parse_Simple_Declarator : the scope is " &
-                          Node_Kind'Image (Get_Kind (Get_Current_Scope.all))));
+                          Node_Kind'Image (Kind (Get_Current_Scope))));
          --  Is there a previous definition
          if not Is_Redefinable (Get_Token_String) then
             declare
@@ -3585,8 +3589,8 @@ package body Idl_Fe.Parser is
                return;
             end;
          else
-            Result := new N_Declarator;
-            Set_Location (Result.all, Get_Token_Location);
+            Result := New_Declarator;
+            Set_Location (Result, Get_Token_Location);
             --  no previous definition
             if not Add_Identifier (Result,
                                    Get_Token_String) then
@@ -3603,30 +3607,30 @@ package body Idl_Fe.Parser is
    --------------------------------
    --  Parse_Complex_Declarator  --
    --------------------------------
-   procedure Parse_Complex_Declarator (Result : out N_Declarator_Acc;
+   procedure Parse_Complex_Declarator (Result : out Node_Id;
                                        Success : out Boolean)
      renames Parse_Array_Declarator;
 
    ------------------------------
    --  Parse_Floating_Pt_Type  --
    ------------------------------
-   procedure Parse_Floating_Pt_Type (Result : in out N_Root_Acc;
+   procedure Parse_Floating_Pt_Type (Result : in out Node_Id;
                                      Success : out Boolean) is
    begin
       case Get_Token is
          when T_Float =>
             Next_Token;
-            Result := new N_Float;
-            Set_Location (Result.all, Get_Token_Location);
+            Result := New_Float;
+            Set_Location (Result, Get_Token_Location);
          when T_Double =>
             Next_Token;
-            Result := new N_Double;
-            Set_Location (Result.all, Get_Token_Location);
+            Result := New_Double;
+            Set_Location (Result, Get_Token_Location);
          when T_Long =>
             Next_Token;
             Next_Token;
-            Result := new N_Long_Double;
-            Set_Location (Result.all, Get_Token_Location);
+            Result := New_Long_Double;
+            Set_Location (Result, Get_Token_Location);
          when others =>
                raise Idl_Fe.Errors.Internal_Error;
       end case;
@@ -3637,7 +3641,7 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_Integer_Type  --
    --------------------------
-   procedure Parse_Integer_Type (Result : in out N_Root_Acc;
+   procedure Parse_Integer_Type (Result : in out Node_Id;
                                  Success : out Boolean) is
    begin
       case Get_Token is
@@ -3654,7 +3658,7 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Parse_Signed_Int  --
    ------------------------
-   procedure Parse_Signed_Int (Result : in out N_Root_Acc;
+   procedure Parse_Signed_Int (Result : in out Node_Id;
                                Success : out Boolean) is
    begin
       case Get_Token is
@@ -3674,44 +3678,44 @@ package body Idl_Fe.Parser is
    ------------------------------
    --  Parse_Signed_Short_Int  --
    ------------------------------
-   procedure Parse_Signed_Short_Int (Result : in out N_Root_Acc;
+   procedure Parse_Signed_Short_Int (Result : in out Node_Id;
                                      Success : out Boolean) is
    begin
       Next_Token;
-      Result := new N_Short;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Short;
+      Set_Location (Result, Get_Token_Location);
       Success := True;
    end Parse_Signed_Short_Int;
 
    -----------------------------
    --  Parse_Signed_Long_Int  --
    -----------------------------
-   procedure Parse_Signed_Long_Int (Result : in out N_Root_Acc;
+   procedure Parse_Signed_Long_Int (Result : in out Node_Id;
                                     Success : out Boolean) is
    begin
       Next_Token;
-      Result := new N_Long;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Long;
+      Set_Location (Result, Get_Token_Location);
       Success := True;
    end Parse_Signed_Long_Int;
 
    ---------------------------------
    --  Parse_Signed_Longlong_Int  --
    ---------------------------------
-   procedure Parse_Signed_Longlong_Int (Result : in out N_Root_Acc;
+   procedure Parse_Signed_Longlong_Int (Result : in out Node_Id;
                                         Success : out Boolean) is
    begin
       Next_Token;
       Next_Token;
-      Result := new N_Long_Long;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Long_Long;
+      Set_Location (Result, Get_Token_Location);
       Success := True;
    end Parse_Signed_Longlong_Int;
 
    --------------------------
    --  Parse_Unsigned_Int  --
    --------------------------
-   procedure Parse_Unsigned_Int (Result : in out N_Root_Acc;
+   procedure Parse_Unsigned_Int (Result : in out Node_Id;
                                  Success : out Boolean) is
    begin
       case View_Next_Token is
@@ -3749,111 +3753,111 @@ package body Idl_Fe.Parser is
    --------------------------------
    --  Parse_Unsigned_Short_Int  --
    --------------------------------
-   procedure Parse_Unsigned_Short_Int (Result : in out N_Root_Acc;
+   procedure Parse_Unsigned_Short_Int (Result : in out Node_Id;
                                        Success : out Boolean) is
    begin
       Next_Token;
       Next_Token;
-      Result := new N_Unsigned_Short;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Unsigned_Short;
+      Set_Location (Result, Get_Token_Location);
       Success := True;
    end Parse_Unsigned_Short_Int;
 
    -------------------------------
    --  Parse_Unsigned_Long_Int  --
    -------------------------------
-   procedure Parse_Unsigned_Long_Int (Result : in out N_Root_Acc;
+   procedure Parse_Unsigned_Long_Int (Result : in out Node_Id;
                                       Success : out Boolean) is
    begin
       Next_Token;
       Next_Token;
-      Result := new N_Unsigned_Long;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Unsigned_Long;
+      Set_Location (Result, Get_Token_Location);
       Success := True;
    end Parse_Unsigned_Long_Int;
 
    -----------------------------------
    --  Parse_Unsigned_Longlong_Int  --
    -----------------------------------
-   procedure Parse_Unsigned_Longlong_Int (Result : in out N_Root_Acc;
+   procedure Parse_Unsigned_Longlong_Int (Result : in out Node_Id;
                                           Success : out Boolean) is
    begin
       Next_Token;
       Next_Token;
       Next_Token;
-      Result := new N_Unsigned_Long_Long;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Unsigned_Long_Long;
+      Set_Location (Result, Get_Token_Location);
       Success := True;
    end Parse_Unsigned_Longlong_Int;
 
    -----------------------
    --  Parse_Char_Type  --
    -----------------------
-   procedure Parse_Char_Type (Result : in out N_Char_Acc;
+   procedure Parse_Char_Type (Result : in out Node_Id;
                               Success : out Boolean) is
    begin
       Next_Token;
-      Result := new N_Char;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Char;
+      Set_Location (Result, Get_Token_Location);
       Success := True;
    end Parse_Char_Type;
 
    ----------------------------
    --  Parse_Wide_Char_Type  --
    ----------------------------
-   procedure Parse_Wide_Char_Type (Result : in out N_Wide_Char_Acc;
+   procedure Parse_Wide_Char_Type (Result : in out Node_Id;
                                    Success : out Boolean) is
    begin
       Next_Token;
-      Result := new N_Wide_Char;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Wide_Char;
+      Set_Location (Result, Get_Token_Location);
       Success := True;
    end Parse_Wide_Char_Type;
 
    --------------------------
    --  Parse_Boolean_Type  --
    --------------------------
-   procedure Parse_Boolean_Type (Result : in out N_Boolean_Acc;
+   procedure Parse_Boolean_Type (Result : in out Node_Id;
                                  Success : out Boolean) is
    begin
       Next_Token;
-      Result := new N_Boolean;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Boolean;
+      Set_Location (Result, Get_Token_Location);
       Success := True;
    end Parse_Boolean_Type;
 
    ------------------------
    --  Parse_Octet_Type  --
    ------------------------
-   procedure Parse_Octet_Type (Result : in out N_Octet_Acc;
+   procedure Parse_Octet_Type (Result : in out Node_Id;
                                Success : out Boolean) is
    begin
       Next_Token;
-      Result := new N_Octet;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Octet;
+      Set_Location (Result, Get_Token_Location);
       Success := True;
    end Parse_Octet_Type;
 
    ----------------------
    --  Parse_Any_Type  --
    ----------------------
-   procedure Parse_Any_Type (Result : in out N_Any_Acc;
+   procedure Parse_Any_Type (Result : in out Node_Id;
                              Success : out Boolean) is
    begin
       Next_Token;
-      Result := new N_Any;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Any;
+      Set_Location (Result, Get_Token_Location);
       Success := True;
    end Parse_Any_Type;
 
    -------------------------
    --  Parse_Object_Type  --
    -------------------------
-   procedure Parse_Object_Type (Result : in out N_Object_Acc;
+   procedure Parse_Object_Type (Result : in out Node_Id;
                                 Success : out Boolean) is
    begin
-      Result := new N_Object;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Object;
+      Set_Location (Result, Get_Token_Location);
       Success := True;
       Next_Token;
       return;
@@ -3862,7 +3866,7 @@ package body Idl_Fe.Parser is
    -------------------------
    --  Parse_Struct_Type  --
    -------------------------
-   procedure Parse_Struct_Type (Result : out N_Struct_Acc;
+   procedure Parse_Struct_Type (Result : out Node_Id;
                                 Success : out Boolean) is
       Name : String_Ptr;
    begin
@@ -3896,8 +3900,8 @@ package body Idl_Fe.Parser is
                Get_Token_Location);
          end;
       end if;
-      Result := new N_Struct;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Struct;
+      Set_Location (Result, Get_Token_Location);
       --  here we keep the name of the struct without adding it
       --  to the scope in order to avoid recursive constructed
       --  type as in :
@@ -3966,14 +3970,14 @@ package body Idl_Fe.Parser is
       end if;
       loop
          declare
-            Member : N_Member_Acc;
+            Member : Node_Id;
             Member_Success : Boolean;
          begin
             Parse_Member (Member, Member_Success);
             if not Member_Success then
                Go_To_Next_Member;
             else
-               Append_Node (Result, N_Root_Acc (Member));
+               Append_Node (Result, Member);
             end if;
          end;
          exit when Get_Token = T_Right_Cbracket;
@@ -3985,9 +3989,9 @@ package body Idl_Fe.Parser is
    --------------------
    --  Parse_Member  --
    --------------------
-   procedure Parse_Member (Result : out N_Member_Acc;
+   procedure Parse_Member (Result : out Node_Id;
                            Success : out Boolean) is
-      Type_Spec : N_Root_Acc;
+      Type_Spec : Node_Id;
       Loc : Idl_Fe.Errors.Location;
    begin
       Loc := Get_Token_Location;
@@ -3995,8 +3999,8 @@ package body Idl_Fe.Parser is
       if not Success then
          return;
       end if;
-      Result := new N_Member;
-      Set_Location (Result.all, Loc);
+      Result := New_Member;
+      Set_Location (Result, Loc);
       Result.M_Type := Type_Spec;
       Parse_Declarators (Result.Decl, Success);
       if not Success then
@@ -4018,7 +4022,7 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Parse_Union_Type  --
    ------------------------
-   procedure Parse_Union_Type (Result : out N_Union_Acc;
+   procedure Parse_Union_Type (Result : out Node_Id;
                                Success : out Boolean) is
       Name : String_Ptr;
    begin
@@ -4053,8 +4057,8 @@ package body Idl_Fe.Parser is
                Get_Token_Location);
          end;
       end if;
-      Result := new N_Union;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Union;
+      Set_Location (Result, Get_Token_Location);
       --  here we keep the name of the union without adding it
       --  to the scope in order to avoid recursive constructed
       --  type as in :
@@ -4163,7 +4167,7 @@ package body Idl_Fe.Parser is
    ------------------------------
    --  Parse_Switch_Type_Spec  --
    ------------------------------
-   procedure Parse_Switch_Type_Spec (Result : out N_Root_Acc;
+   procedure Parse_Switch_Type_Spec (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
       case Get_Token is
@@ -4173,35 +4177,35 @@ package body Idl_Fe.Parser is
             Parse_Integer_Type (Result, Success);
          when T_Char =>
             declare
-               Res : N_Char_Acc;
+               Res : Node_Id;
             begin
                Parse_Char_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Boolean =>
             declare
-               Res : N_Boolean_Acc;
+               Res : Node_Id;
             begin
                Parse_Boolean_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Enum =>
             declare
-               Res : N_Enum_Acc;
+               Res : Node_Id;
             begin
                Parse_Enum_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Colon_Colon
            | T_Identifier =>
             declare
-               Res : N_Scoped_Name_Acc;
+               Res : Node_Id;
             begin
                Parse_Scoped_Name (Res, Success);
                --  The <scoped_name> in the <switch_type_spec> production
                --  must be a previously defined integer, char, boolean
                --  or enum type.
-               case Get_Kind (Res.Value.all) is
+               case Kind (Res.Value) is
                   when K_Short
                     | K_Long
                     | K_Long_Long
@@ -4222,7 +4226,7 @@ package body Idl_Fe.Parser is
                         Idl_Fe.Errors.Error,
                         Get_Token_Location);
                end case;
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when others =>
             Idl_Fe.Errors.Parser_Error
@@ -4239,7 +4243,7 @@ package body Idl_Fe.Parser is
    --  Parse_Switch_Body  --
    -------------------------
    procedure Parse_Switch_Body (Result : out Node_List;
-                                Switch_Type : in N_Root_Acc;
+                                Switch_Type : in Node_Id;
                                 Success : out Boolean) is
       Default_Clause : Boolean := False;
    begin
@@ -4254,7 +4258,7 @@ package body Idl_Fe.Parser is
       end if;
       loop
          declare
-            Case_Clause : N_Case_Acc;
+            Case_Clause : Node_Id;
             Case_Success : Boolean;
             Loc : Idl_Fe.Errors.Location;
          begin
@@ -4266,7 +4270,7 @@ package body Idl_Fe.Parser is
             if not Case_Success then
                Go_To_End_Of_Case;
             else
-               Append_Node (Result, N_Root_Acc (Case_Clause));
+               Append_Node (Result, Case_Clause);
                if Default_Clause then
                   if Is_In_List (Case_Clause.Labels, null) then
                      Idl_Fe.Errors.Parser_Error
@@ -4298,8 +4302,8 @@ package body Idl_Fe.Parser is
    ------------------
    --  Parse_Case  --
    ------------------
-   procedure Parse_Case (Result : out N_Case_Acc;
-                         Switch_Type : in N_Root_Acc;
+   procedure Parse_Case (Result : out Node_Id;
+                         Switch_Type : in Node_Id;
                          Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Case : enter"));
@@ -4324,19 +4328,19 @@ package body Idl_Fe.Parser is
             return;
       end case;
       pragma Debug (O ("Parse_case : first token ok"));
-      Result := new N_Case;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Case;
+      Set_Location (Result, Get_Token_Location);
       Result.Labels := Nil_List;
       while Get_Token = T_Case or Get_Token = T_Default loop
          declare
-            Case_Label : N_Expr_Acc;
+            Case_Label : Node_Id;
             Case_Success : Boolean;
          begin
             Parse_Case_Label (Case_Label, Switch_Type, Case_Success);
             if not Case_Success then
                Go_To_End_Of_Case_Label;
             else
-               Append_Node (Result.Labels, N_Root_Acc (Case_Label));
+               Append_Node (Result.Labels, Case_Label);
             end if;
          end;
       end loop;
@@ -4363,8 +4367,8 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Parse_Case_Label  --
    ------------------------
-   procedure Parse_Case_Label (Result : out N_Expr_Acc;
-                               Switch_Type : in N_Root_Acc;
+   procedure Parse_Case_Label (Result : out Node_Id;
+                               Switch_Type : in Node_Id;
                                Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_case_label : enter"));
@@ -4410,8 +4414,8 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_Element_Spec  --
    --------------------------
-   procedure Parse_Element_Spec (Element_Type : out N_Root_Acc;
-                                 Element_Decl : out N_Declarator_Acc;
+   procedure Parse_Element_Spec (Element_Type : out Node_Id;
+                                 Element_Decl : out Node_Id;
                                  Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Element_Spec : enter"));
@@ -4427,7 +4431,7 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Enum_Type  --
    -----------------------
-   procedure Parse_Enum_Type (Result : out N_Enum_Acc;
+   procedure Parse_Enum_Type (Result : out Node_Id;
                               Success : out Boolean) is
    begin
       Next_Token;
@@ -4447,8 +4451,8 @@ package body Idl_Fe.Parser is
             return;
          end;
       end if;
-      Result := new N_Enum;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Enum;
+      Set_Location (Result, Get_Token_Location);
       Result.Enumerators := Nil_List;
       --  Is there a previous definition
       if not Is_Redefinable (Get_Token_String) then
@@ -4494,13 +4498,13 @@ package body Idl_Fe.Parser is
             Get_Token_Location);
       end if;
       declare
-         Enum : N_Enumerator_Acc;
+         Enum : Node_Id;
       begin
          Parse_Enumerator (Enum, Success);
          if not Success then
             return;
          end if;
-         Append_Node (Result.Enumerators, N_Root_Acc (Enum));
+         Append_Node (Result.Enumerators, Enum);
       end;
       declare
          Count : Long_Long_Integer := 1;
@@ -4508,7 +4512,7 @@ package body Idl_Fe.Parser is
          while Get_Token = T_Comma loop
             Next_Token;
             declare
-               Enum : N_Enumerator_Acc;
+               Enum : Node_Id;
             begin
                Parse_Enumerator (Enum, Success);
                if not Success then
@@ -4522,7 +4526,7 @@ package body Idl_Fe.Parser is
                      Idl_Fe.Errors.Error,
                      Get_Token_Location);
                end if;
-               Append_Node (Result.Enumerators, N_Root_Acc (Enum));
+               Append_Node (Result.Enumerators, Enum);
             end;
          end loop;
       end;
@@ -4542,7 +4546,7 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Parse_Enumerator  --
    ------------------------
-   procedure Parse_Enumerator (Result : out N_Enumerator_Acc;
+   procedure Parse_Enumerator (Result : out Node_Id;
                                Success : out Boolean) is
    begin
       if Get_Token /= T_Identifier then
@@ -4552,8 +4556,8 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       else
-         Result := new N_Enumerator;
-         Set_Location (Result.all, Get_Token_Location);
+         Result := New_Enumerator;
+         Set_Location (Result, Get_Token_Location);
          --  Is there a previous definition
          if not Is_Redefinable (Get_Token_String) then
             declare
@@ -4583,7 +4587,7 @@ package body Idl_Fe.Parser is
    ---------------------------
    --  Parse_Sequence_Type  --
    ---------------------------
-   procedure Parse_Sequence_Type (Result : out N_Sequence_Acc;
+   procedure Parse_Sequence_Type (Result : out Node_Id;
                                   Success : out Boolean) is
    begin
       Next_Token;
@@ -4595,8 +4599,8 @@ package body Idl_Fe.Parser is
          Success := False;
          return;
       end if;
-      Result := new N_Sequence;
-      Set_Location (Result.all, Get_Previous_Token_Location);
+      Result := New_Sequence;
+      Set_Location (Result, Get_Previous_Token_Location);
       Next_Token;
       Parse_Simple_Type_Spec (Result.Sequence_Type, Success);
       if not Success then
@@ -4623,7 +4627,7 @@ package body Idl_Fe.Parser is
          when T_Greater =>
             Next_Token;
          when T_Greater_Greater =>
-            if Get_Kind (Get_Current_Scope.all) = K_Sequence then
+            if Kind (Get_Current_Scope) = K_Sequence then
                Idl_Fe.Errors.Parser_Error
                  ("'>' expected. You probably forgot " &
                   "the space between both letters.",
@@ -4653,12 +4657,12 @@ package body Idl_Fe.Parser is
    -------------------------
    --  Parse_String_Type  --
    -------------------------
-   procedure Parse_String_Type (Result : out N_String_Acc;
+   procedure Parse_String_Type (Result : out Node_Id;
                                 Success : out Boolean) is
    begin
       Next_Token;
-      Result := new N_String;
-      Set_Location (Result.all, Get_Previous_Token_Location);
+      Result := New_String;
+      Set_Location (Result, Get_Previous_Token_Location);
       if Get_Token = T_Less then
          Parse_Positive_Int_Const (Result.Bound, Success);
          if not Success then
@@ -4682,12 +4686,12 @@ package body Idl_Fe.Parser is
    ------------------------------
    --  Parse_Wide_String_Type  --
    ------------------------------
-   procedure Parse_Wide_String_Type (Result : out N_Wide_String_Acc;
+   procedure Parse_Wide_String_Type (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
       Next_Token;
-      Result := new N_Wide_String;
-      Set_Location (Result.all, Get_Previous_Token_Location);
+      Result := New_Wide_String;
+      Set_Location (Result, Get_Previous_Token_Location);
       if Get_Token = T_Less then
          Parse_Positive_Int_Const (Result.Bound, Success);
          if not Success then
@@ -4711,12 +4715,12 @@ package body Idl_Fe.Parser is
    ------------------------------
    --  Parse_Array_Declarator  --
    ------------------------------
-   procedure Parse_Array_Declarator (Result : out N_Declarator_Acc;
+   procedure Parse_Array_Declarator (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Array_declarator : enter"));
-      Result := new N_Declarator;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Declarator;
+      Set_Location (Result, Get_Token_Location);
       --  Is there a previous definition
       if not Is_Redefinable (Get_Token_String) then
          declare
@@ -4745,7 +4749,7 @@ package body Idl_Fe.Parser is
       Next_Token;
       while Get_Token = T_Left_Sbracket loop
          declare
-            Expr : N_Expr_Acc;
+            Expr : Node_Id;
          begin
             Parse_Fixed_Array_Size (Expr, Success);
             if not Success then
@@ -4753,7 +4757,7 @@ package body Idl_Fe.Parser is
                                 "Parse_Fixed_Array_Size returned false"));
                return;
             end if;
-            Append_Node (Result.Array_Bounds, N_Root_Acc (Expr));
+            Append_Node (Result.Array_Bounds, Expr);
          end;
       end loop;
       pragma Debug (O ("Parse_Array_declarator : end"));
@@ -4763,7 +4767,7 @@ package body Idl_Fe.Parser is
    ------------------------------
    --  Parse_Fixed_Array_Size  --
    ------------------------------
-   procedure Parse_Fixed_Array_Size (Result : out N_Expr_Acc;
+   procedure Parse_Fixed_Array_Size (Result : out Node_Id;
                                      Success : out Boolean) is
    begin
       Next_Token;
@@ -4794,7 +4798,7 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Parse_Except_Dcl  --
    ------------------------
-   procedure Parse_Except_Dcl (Result : out N_Exception_Acc;
+   procedure Parse_Except_Dcl (Result : out Node_Id;
                                Success : out Boolean) is
    begin
       pragma Debug (O ("Parse_Except_Dcl : enter"));
@@ -4809,9 +4813,9 @@ package body Idl_Fe.Parser is
          Result := null;
          return;
       end if;
-      Result := new N_Exception;
+      Result := New_Exception;
       --  memory leak
-      Set_Location (Result.all, Get_Token_Location);
+      Set_Location (Result, Get_Token_Location);
       Next_Token;
       if Get_Token /= T_Identifier then
          Idl_Fe.Errors.Parser_Error
@@ -4854,14 +4858,14 @@ package body Idl_Fe.Parser is
       Push_Scope (Result);
       while Get_Token /= T_Right_Cbracket loop
          declare
-            Mem : N_Member_Acc;
+            Mem : Node_Id;
             Mem_Success : Boolean;
          begin
             Parse_Member (Mem, Mem_Success);
             if not Mem_Success then
                Go_To_Next_Member;
             else
-               Append_Node (Result.Members, N_Root_Acc (Mem));
+               Append_Node (Result.Members, Mem);
             end if;
          end;
       end loop;
@@ -4875,11 +4879,11 @@ package body Idl_Fe.Parser is
    --------------------
    --  parse_op_dcl  --
    --------------------
-   procedure Parse_Op_Dcl (Result : out N_Operation_Acc;
+   procedure Parse_Op_Dcl (Result : out Node_Id;
                            Success : out Boolean) is
    begin
-      Result := new N_Operation;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Operation;
+      Set_Location (Result, Get_Token_Location);
       if Get_Token = T_Oneway then
          Result.Is_Oneway := True;
          Next_Token;
@@ -4952,13 +4956,13 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_Op_Type_Spec  --
    --------------------------
-   procedure Parse_Op_Type_Spec (Result : out N_Root_Acc;
+   procedure Parse_Op_Type_Spec (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
       case Get_Token is
          when T_Void =>
-            Result := new N_Void;
-            Set_Location (Result.all, Get_Token_Location);
+            Result := New_Void;
+            Set_Location (Result, Get_Token_Location);
             Next_Token;
             Success := True;
             return;
@@ -5015,25 +5019,25 @@ package body Idl_Fe.Parser is
       Next_Token;
       if Get_Token /= T_Right_Paren then
          declare
-            Param : N_Param_Acc;
+            Param : Node_Id;
          begin
             Parse_Param_Dcl (Param, Success);
             if not Success then
                return;
             end if;
-            Append_Node (Result, N_Root_Acc (Param));
+            Append_Node (Result, Param);
          end;
       end if;
       while Get_Token = T_Comma loop
          Next_Token;
          declare
-            Param : N_Param_Acc;
+            Param : Node_Id;
          begin
             Parse_Param_Dcl (Param, Success);
             if not Success then
                return;
             end if;
-            Append_Node (Result, N_Root_Acc (Param));
+            Append_Node (Result, Param);
          end;
       end loop;
       if Get_Token /= T_Right_Paren then
@@ -5053,12 +5057,12 @@ package body Idl_Fe.Parser is
    -----------------------
    --  Parse_Param_Dcl  --
    -----------------------
-   procedure Parse_Param_Dcl (Result : out N_Param_Acc;
+   procedure Parse_Param_Dcl (Result : out Node_Id;
                               Success : out boolean) is
       Attr_Success : Boolean;
    begin
-      Result := new N_Param;
-      Set_Location (Result.all, Get_Token_Location);
+      Result := New_Param;
+      Set_Location (Result, Get_Token_Location);
       Parse_Param_Attribute (Result.Mode, Attr_Success);
       if not Attr_Success then
          case Get_Token is
@@ -5158,24 +5162,24 @@ package body Idl_Fe.Parser is
          return;
       end if;
       declare
-         Name : N_Scoped_Name_Acc;
+         Name : Node_Id;
       begin
          Parse_Scoped_Name (Name, Success);
          if not Success then
             return;
          end if;
-         Append_Node (Result, N_Root_Acc (Name));
+         Append_Node (Result, Name);
       end;
       while Get_Token = T_Comma loop
          Next_Token;
          declare
-            Name : N_Scoped_Name_Acc;
+            Name : Node_Id;
          begin
             Parse_Scoped_Name (Name, Success);
             if not Success then
                return;
             end if;
-            Append_Node (Result, N_Root_Acc (Name));
+            Append_Node (Result, Name);
          end;
       end loop;
       if Get_Token /= T_Right_Paren then
@@ -5230,26 +5234,26 @@ package body Idl_Fe.Parser is
          return;
       end if;
       declare
-         Name : N_Lit_String_Acc;
+         Name : Node_Id;
       begin
          Parse_String_Literal (Name, Success);
          if not Success then
             return;
          end if;
          Check_Context_String (Name.Value.all);
-         Append_Node (Result, N_Root_Acc (Name));
+         Append_Node (Result, Name);
       end;
       while Get_Token = T_Comma loop
          Next_Token;
          declare
-            Name : N_Lit_String_Acc;
+            Name : Node_Id;
          begin
             Parse_String_Literal (Name, Success);
             if not Success then
                return;
             end if;
             Check_Context_String (Name.Value.all);
-            Append_Node (Result, N_Root_Acc (Name));
+            Append_Node (Result, Name);
          end;
       end loop;
       if Get_Token /= T_Right_Paren then
@@ -5267,7 +5271,7 @@ package body Idl_Fe.Parser is
    -----------------------------
    --  Parse_Param_Type_Spec  --
    -----------------------------
-   procedure Parse_Param_Type_Spec (Result : out N_Root_Acc;
+   procedure Parse_Param_Type_Spec (Result : out Node_Id;
                                     Success : out Boolean) is
    begin
       case Get_Token is
@@ -5286,17 +5290,17 @@ package body Idl_Fe.Parser is
             Parse_Base_Type_Spec (Result, Success);
          when T_String =>
             declare
-               Res : N_String_Acc;
+               Res : Node_Id;
             begin
                Parse_String_Type (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when T_Colon_Colon | T_Identifier =>
             declare
-               Res : N_Scoped_Name_Acc;
+               Res : Node_Id;
             begin
                Parse_Scoped_Name (Res, Success);
-               Result := N_Root_Acc (Res);
+               Result := Res;
             end;
          when others =>
             Idl_Fe.Errors.Parser_Error
@@ -5311,12 +5315,12 @@ package body Idl_Fe.Parser is
    ---------------------------
    --  Parse_Fixed_Pt_Type  --
    ---------------------------
-   procedure Parse_Fixed_Pt_Type (Result : out N_Fixed_Acc;
+   procedure Parse_Fixed_Pt_Type (Result : out Node_Id;
                                   Success : out Boolean) is
    begin
       Next_Token;
-      Result := new N_Fixed;
-      Set_Location (Result.all, Get_Previous_Token_Location);
+      Result := New_Fixed;
+      Set_Location (Result, Get_Previous_Token_Location);
       if Get_Token /= T_Less then
          Idl_Fe.Errors.Parser_Error
            ("'<' expected in fixed point type definition.",
@@ -5383,7 +5387,7 @@ package body Idl_Fe.Parser is
    -----------------------------
    --  Parse_Value_Base_Type  --
    -----------------------------
-   procedure Parse_Value_Base_Type (Result : in out N_ValueBase_Acc;
+   procedure Parse_Value_Base_Type (Result : in out Node_Id;
                                     Success : out Boolean) is
    begin
       Result := null;
@@ -5394,7 +5398,7 @@ package body Idl_Fe.Parser is
    --  Parse_Attribute_Declarator  --
    ----------------------------------
    procedure Parse_Attribute_Declarator
-     (Result : out N_Attribute_Declarator_Acc;
+     (Result : out Node_Id;
       Success : out Boolean) is
    begin
       if Get_Token /= T_Identifier then
@@ -5405,7 +5409,7 @@ package body Idl_Fe.Parser is
          return;
       else
          pragma Debug (O ("Parse_Attribute_Declarator : the scope is " &
-                          Node_Kind'Image (Get_Kind (Get_Current_Scope.all))));
+                          Node_Kind'Image (Kind (Get_Current_Scope))));
          --  Is there a previous definition
          if not Is_Redefinable (Get_Token_String) then
             declare
@@ -5422,8 +5426,8 @@ package body Idl_Fe.Parser is
                return;
             end;
          else
-            Result := new N_Attribute_Declarator;
-            Set_Location (Result.all, Get_Token_Location);
+            Result := New_Attribute_Declarator;
+            Set_Location (Result, Get_Token_Location);
             --  no previous definition
             if not Add_Identifier (Result,
                                    Get_Token_String) then
@@ -5440,12 +5444,12 @@ package body Idl_Fe.Parser is
    --  Parse_Attr_Dcl --
    ---------------------
 
-   procedure Parse_Attr_Dcl (Result : out N_Attribute_Acc;
+   procedure Parse_Attr_Dcl (Result : out Node_Id;
                              Success : out Boolean) is
-      El : N_Attribute_Acc;
+      El : Node_Id;
    begin
-      El := new N_Attribute;
-      Set_Location (El.all, Get_Token_Location);
+      El := New_Attribute;
+      Set_Location (El, Get_Token_Location);
       if Get_Token = T_Readonly then
          El.Is_Readonly := True;
          Next_Token;
@@ -5481,7 +5485,7 @@ package body Idl_Fe.Parser is
          return;
       end if;
       declare
-         Res : N_Attribute_Declarator_Acc;
+         Res : Node_Id;
       begin
          Parse_Attribute_Declarator (Res, Success);
          if not Success then
@@ -5491,13 +5495,13 @@ package body Idl_Fe.Parser is
             return;
          else
             Res.Attribute := El;
-            Append_Node (El.Declarators, N_Root_Acc (Res));
+            Append_Node (El.Declarators, Res);
          end if;
       end;
       while Get_Token = T_Comma loop
          Next_Token;
          declare
-            Res : N_Attribute_Declarator_Acc;
+            Res : Node_Id;
          begin
             Parse_Attribute_Declarator (Res, Success);
             if not Success then
@@ -5507,7 +5511,7 @@ package body Idl_Fe.Parser is
                return;
             else
                Res.Attribute := El;
-               Append_Node (El.Declarators, N_Root_Acc (Res));
+               Append_Node (El.Declarators, Res);
             end if;
          end;
       end loop;
@@ -5537,15 +5541,15 @@ package body Idl_Fe.Parser is
 --    --  Rule 56:
 --    --  <member> ::= <type_spec> <declarators> ";"
 --    procedure Parse_Member_List (List : in out Node_List) is
---       Res : N_Member_Acc;
+--       Res : Node_Id;
 --    begin
 --       loop
---          Res := new N_Member;
---          Set_Location (Res.all, Get_Location);
+--          Res := New_Member;
+--          Set_Location (Res, Get_Location);
 --          Res.M_Type := Parse_Type_Spec;
 --          Parse_Declarators (Res.Decl);
 --          Expect (T_Semi_Colon);
---          Append_Node (List, N_Root_Acc (Res));
+--          Append_Node (List, Res);
 --          Next_Token;
 --          exit when Token = T_Right_Cbracket;
 --       end loop;
@@ -5560,12 +5564,12 @@ package body Idl_Fe.Parser is
    -----------------------------
    --  Parse_Integer_Literal  --
    -----------------------------
-   procedure Parse_Integer_Literal (Result : out N_Lit_String_Acc;
+   procedure Parse_Integer_Literal (Result : out Node_Id;
                                     Success : out Boolean) is
    begin
-      Result := new N_Lit_String;
-      Set_Location (Result.all, Get_Token_Location);
-      Result.Value := new String'(Get_Token_String);
+      Result := New_Lit_String;
+      Set_Location (Result, Get_Token_Location);
+      Set_String_Value (Result, new String'(Get_Token_String));
       Next_Token;
       Success := true;
       return;
@@ -5574,12 +5578,12 @@ package body Idl_Fe.Parser is
    ----------------------------
    --  Parse_String_Literal  --
    ----------------------------
-   procedure Parse_String_Literal (Result : out N_Lit_String_Acc;
+   procedure Parse_String_Literal (Result : out Node_Id;
                                    Success : out Boolean) is
    begin
-      Result := new N_Lit_String;
-      Set_Location (Result.all, Get_Token_Location);
-      Result.Value := new String'(Get_Token_String);
+      Result := New_Lit_String;
+      Set_Location (Result, Get_Token_Location);
+      Set_String_Value (Result, new String'(Get_Token_String));
       Next_Token;
       Success := true;
       return;
@@ -5588,12 +5592,12 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Parse_Char_Literal  --
    --------------------------
-   procedure Parse_Char_Literal (Result : out N_Lit_String_Acc;
+   procedure Parse_Char_Literal (Result : out Node_Id;
                                  Success : out Boolean) is
    begin
-      Result := new N_Lit_String;
-      Set_Location (Result.all, Get_Token_Location);
-      Result.Value := new String'(Get_Token_String);
+      Result := New_Lit_String;
+      Set_Location (Result, Get_Token_Location);
+      Set_String_Value (Result, new String'(Get_Token_String));
       Next_Token;
       Success := true;
       return;
@@ -5602,12 +5606,12 @@ package body Idl_Fe.Parser is
    ---------------------------------
    --  Parse_Floating_Pt_Literal  --
    ---------------------------------
-   procedure Parse_Floating_Pt_Literal (Result : out N_Lit_String_Acc;
+   procedure Parse_Floating_Pt_Literal (Result : out Node_Id;
                                         Success : out Boolean) is
    begin
-      Result := new N_Lit_String;
-      Set_Location (Result.all, Get_Token_Location);
-      Result.Value := new String'(Get_Token_String);
+      Result := New_Lit_String;
+      Set_Location (Result, Get_Token_Location);
+      Set_String_Value (Result, new String'(Get_Token_String));
       Next_Token;
       Success := true;
       return;
