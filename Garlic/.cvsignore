@@ -1,8 +1,9 @@
 *.ali
 *.o
-.gdb_history
 *.xrs *.xrb
+.gdb_history
 Makefile
+Makefile.fil
 Makefile.in
 b_*.c
 s-gaosli.ads
