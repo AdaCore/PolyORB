@@ -18,8 +18,8 @@ with Echo ;
 
 procedure Client is
 
-   Orb : Corba.Orb.Object ;
-   Boa : Corba.Boa.Object ;
+   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2");
+   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
 
    Sent_Msg, Rcvd_Msg, IOR : CORBA.String ;
 
@@ -29,14 +29,6 @@ procedure Client is
 begin
 
    Put_Line("main : Starting client") ;
-
-   Orb := Corba.Orb.Orb_Init("omniORB2") ;
-   Put_Line("main : ORB initialized") ;
-
-   Boa := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
-   Put_Line("main : BOA initialized") ;
-
-
 
 
    if Ada.Command_Line.Argument_Count < 1 then
