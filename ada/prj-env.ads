@@ -31,54 +31,57 @@
 
 package Prj.Env is
 
-   procedure Set_Verbosity (To : Verbosity);
-   --  Set the verbosity when using the services of this package.
+   procedure Initialize;
+   --  Put Standard_Naming_Data into the Namings table.
+   --  Called by Prj.Initialize.
 
    procedure Print_Sources;
    --  Output the list of sources, after Project files have been scanned.
 
-   procedure Create_Gnat_Adc (Ref : Reference);
-   --  Create a gnat.adc file in the current directory,
+   procedure Create_Gnat_Adc (Project : Project_Id);
+   --  If there needs to have SFN pragmas, either for non standard
+   --  naming schemes or for individual units,
+   --  create a new gnat.adc file in the current directory,
    --  while saving a possibly existing gnat.adc under another name.
 
    procedure Restore_Gnat_Adc;
    --  Delete the dynamically created gnat.adc (created by
    --  Create_Gnat_Adc), and restore the one that existed before, if any.
 
-   function Ada_Include_Path (Ref : Reference) return String;
+   function Ada_Include_Path (Project : Project_Id) return String;
    --  Compute (and cache) the ADA_INCLUDE_PATH of a Project file.
 
-   function Ada_Objects_Path (Ref : Reference) return String;
+   function Ada_Objects_Path (Project : Project_Id) return String;
    --  Compute (and cache) the ADA_OBJECTS_PATH of a Project file.
 
    function Path_Name_Of_Library_Unit_Body
-     (Name : String;
-      Ref  : Reference)
+     (Name    : String;
+      Project : Project_Id)
       return String;
-   --  Returns the Path of la library unit.
+   --  Returns the Path of a library unit.
 
    function File_Name_Of_Library_Unit_Body
-     (Name : String;
-      Ref  : Reference)
+     (Name    : String;
+      Project : Project_Id)
       return String;
    --  Returns the file name of a library unit.
 
    procedure Get_Reference
      (Source_File_Name : String;
-      Ref              : in out Reference;
-      Path             : in out String_Access);
+      Project          : out Project_Id;
+      Path             : out Name_Id);
    --  Returns the project of a source.
 
    generic
       with procedure Action (Path : String);
-   procedure For_All_Source_Dirs (Ref : Reference);
+   procedure For_All_Source_Dirs (Project : Project_Id);
    --  Iterate through all the source directories of a project,
-   --  including those of imported projects.
+   --  including those of imported or modified projects.
 
    generic
       with procedure Action (Path : String);
-   procedure For_All_Object_Dirs (Ref : Reference);
+   procedure For_All_Object_Dirs (Project : Project_Id);
    --  Iterate through all the object directories of a project,
-   --  including those of imported projects.
+   --  including those of imported or modified projects.
 
 end Prj.Env;

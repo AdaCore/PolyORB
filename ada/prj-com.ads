@@ -29,50 +29,64 @@
 --  The following package declares data types for GNAT project.
 --  These data types are used in the bodies of the Prj hierarchy.
 
+with GNAT.HTable;
+with Table;
+with Types; use Types;
+
 package Prj.Com is
 
    --  At one point, this package was private.
    --  It cannot be private, because it is used outside of
    --  the Prj hierarchy.
 
+   Tool_Name : Name_Id := No_Name;
+
+   Current_Verbosity : Verbosity := Default;
+
    type Spec_Or_Body is
      (Specification, Body_Part);
 
    type File_Name_Data is record
-      Name : String_Access;
-      Path : String_Access;
+      Name         : Name_Id := No_Name;
+      Path         : Name_Id := No_Name;
+      Project      : Project_Id := No_Project;
       Needs_Pragma : Boolean := False;
    end record;
    --  File and Path name of a spec or body.
 
    type File_Names_Data is array (Spec_Or_Body) of File_Name_Data;
 
-   type Unit_Data;
-   type Unit_List is access Unit_Data;
+   type Unit_Id is new Nat;
+   No_Unit : constant Unit_Id := 0;
    type Unit_Data is record
-      Name : String_Access;
+      Name       : Name_Id    := No_Name;
       File_Names : File_Names_Data;
-      Ref : Reference;
-      Next : Unit_List;
    end record;
    --  File and Path names of a unit, with a reference to its
-   --  GNAT Project File. All units are linked together in a
-   --  list.
+   --  GNAT Project File.
 
-   First_Unit : Unit_List;
-   Last_Unit : Unit_List;
-   --  The list of all units of all GNAT Project Files.
+   package Units is new Table.Table
+     (Table_Component_Type => Unit_Data,
+      Table_Index_Type     => Unit_Id,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 100,
+      Table_Increment      => 100,
+      Table_Name           => "Prj.Com.Units");
 
-   type Project_Data;
-   type Project_Ref is access Project_Data;
-   type Project_Data is record
-      Project : Reference;
-      Next : Project_Ref;
-   end record;
-   --  Used to build a list of all GNAT Project Files.
+   type Header_Num is range 0 .. 2047;
 
-   First_Project : Project_Ref;
-   Last_Project : Project_Ref;
-   --  The list of all GNAT Project_Files.
+   function Hash is new GNAT.HTable.Hash (Header_Num => Header_Num);
+
+   function Hash (Name : Name_Id) return Header_Num;
+
+   function Hash (Name : String_Id) return Header_Num;
+
+   package Units_Htable is new GNAT.HTable.Simple_HTable
+     (Header_Num => Header_Num,
+      Element    => Unit_Id,
+      No_Element => No_Unit,
+      Key        => Name_Id,
+      Hash       => Hash,
+      Equal      => "=");
 
 end Prj.Com;

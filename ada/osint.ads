@@ -102,7 +102,10 @@ package Osint is
    --  Returns File_Name_Type of the full file name if found, No_File if
    --  file not found. Note that for the special case of gnat.adc, only the
    --  compilation environment directory is searched, i.e. the directory
-   --  where the ali and object files are written
+   --  where the ali and object files are written. Another special case is
+   --  when Debug_Generated_Code is set and the file name ends on ".dg",
+   --  in which case we look for the generated file only in the current
+   --  directory, since that is where it is always built.
 
    function Get_Switch_Character return Character;
    pragma Import (C, Get_Switch_Character,

@@ -29,29 +29,30 @@
 --  Utilities when using project files.
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
+with Types;       use Types;
 
 package Prj.Util is
 
    function Value_Of
-     (Index    : String;
-      In_Array : Array_Component_Reference)
-      return     String_Access;
+     (Index    : Name_Id;
+      In_Array : Array_Element_Id)
+      return     Name_Id;
    --  Get a single string array component.
-   --  Returns null if there is no component Index (case sensitive),
+   --  Returns No_Name if there is no component Index (case sensitive),
    --  if In_Array is null, or if the component is a String list.
 
    function Value_Of
-     (Index    : String;
-      In_Array : Array_Component_Reference)
+     (Index    : Name_Id;
+      In_Array : Array_Element_Id)
       return     Variable_Value;
    --  Get a string array component (single String or String list).
    --  Returns Nil_Variable_Value if there is no component Index
    --  (case sensitive), or if In_Array is null.
 
    function Value_Of
-     (Name                   : String;
-      Variable_Or_Array_Name : String;
-      In_Package             : Package_List)
+     (Name                   : Name_Id;
+      Variable_Or_Array_Name : Name_Id;
+      In_Package             : Package_Id)
       return                   Variable_Value;
    --  In a specific package,
    --   - if there exists an array Variable_Or_Array_Name with an index
@@ -62,36 +63,36 @@ package Prj.Util is
    --  If In_Package is null, returns Nil_Variable_Value.
 
    function Value_Of
-     (Index     : String;
-      In_Array  : String;
-      In_Arrays : Array_List)
-      return      String_Access;
+     (Index     : Name_Id;
+      In_Array  : Name_Id;
+      In_Arrays : Array_Id)
+      return      Name_Id;
    --  Get a string array component in an array of an array list.
-   --  Returns null if there is no component Index (case sensitive),
+   --  Returns No_Name if there is no component Index (case sensitive),
    --  if In_Arrays is null, if In_Array is not found in In_Arrays,
    --  or if the component is a String list.
 
    function Value_Of
-     (Name      : String;
-      In_Arrays : Array_List)
-      return      Array_Component_Reference;
+     (Name      : Name_Id;
+      In_Arrays : Array_Id)
+      return      Array_Element_Id;
    --  Returns a specified array in an array list.
-   --  Returns null if In_Arrays is null or if Name is not the
+   --  Returns No_Array_Element if In_Arrays is null or if Name is not the
    --  name of an array in In_Arrays.
    --  Assumption: Name is in lower case.
 
    function Value_Of
-     (Name        : String;
-      In_Packages : Package_List)
-      return        Package_List;
+     (Name        : Name_Id;
+      In_Packages : Package_Id)
+      return        Package_Id;
    --  Returns a specified package in a package list.
-   --  Returns null if In_Packages is null or if Name is not the
+   --  Returns No_Package if In_Packages is null or if Name is not the
    --  name of a package in Package_List.
    --  Assumption: Name is in lower case.
 
    function Value_Of
-     (Variable_Name : String;
-      In_Variables  : Variable_List)
+     (Variable_Name : Name_Id;
+      In_Variables  : Variable_Id)
       return          Variable_Value;
    --  Returns a specified variable in a variable list.
    --  Returns null if In_Variables is null or if Variable_Name

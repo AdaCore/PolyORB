@@ -2,13 +2,13 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                              G N A T V S N                               --
+--                              P R J . C O M                               --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--             Copyright (C) 2000 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,32 +26,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package spec holds version information for GNAT, GNATBIND and
---  GNATMAKE. It is updated whenever the release number is changed.
+with Namet;   use Namet;
+with Stringt; use Stringt;
 
-package Gnatvsn is
+package body Prj.Com is
 
-   Gnat_Version_String : constant String := "3.14w (20001217)";
-   --  Version output when GNAT (compiler), or its related tools, including
-   --  GNATBIND, GNATCHOP, GNATFIND, GNATLINK, GNATMAKE, GNATXREF, are run
-   --  (with appropriate verbose option switch set).
-   --
-   --  WARNING: some gnatmail scripts (at least make-bin and corcs) rely on
-   --  the format of this string. Any change must be coordinated with
-   --  a gnatmail maintainer.
+   ----------
+   -- Hash --
+   ----------
 
-   Ver_Len_Max : constant := 32;
-   --  Longest possible length for Gnat_Version_String in this or any
-   --  other version of GNAT. This is used by the binder to establish
-   --  space to store any possible version string value for checks. This
-   --  value should never be decreased in the future, but it would be
-   --  OK to increase it if absolutely necessary.
+   function Hash (Name : Name_Id) return Header_Num is
+   begin
+      return Hash (Get_Name_String (Name));
+   end Hash;
 
-   Library_Version : constant String := "GNAT Lib v3.13 ";
-   --  Library version. This value must be updated whenever any change to the
-   --  compiler affects the library formats in such a way as to obsolete
-   --  previously compiled library modules.
-   --  Note: Makefile.in relies on the format of this string to build
-   --  the right soname.
+   function Hash (Name : String_Id) return Header_Num is
+   begin
+      String_To_Name_Buffer (Name);
+      return Hash (Name_Buffer (1 .. Name_Len));
+   end Hash;
 
-end Gnatvsn;
+end Prj.Com;

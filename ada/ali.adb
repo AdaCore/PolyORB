@@ -58,6 +58,9 @@ package body ALI is
       Withs.Init;
       Sdep.Init;
       Linker_Options.Init;
+      Xref_Section.Init;
+      Xref_Entity.Init;
+      Xref.Init;
       Version_Ref.Reset;
 
       --  Add dummy zero'th item in Linker_Options for the sort function
@@ -336,11 +339,14 @@ package body ALI is
          V : Nat;
 
       begin
+         Skip_Space;
+
          V := 0;
 
          loop
             V := V * 10 + (Character'Pos (Getc) - Character'Pos ('0'));
             exit when At_End_Of_Field;
+            exit when Nextc < '0' or Nextc > '9';
          end loop;
 
          return V;
@@ -1180,6 +1186,9 @@ package body ALI is
             XS.File_Name    := Get_Name;
             XS.First_Entity := Xref_Entity.Last + 1;
 
+            Skip_Eol;
+            C := Nextc;
+
             --  Loop through Xref entities
 
             while C /= 'X' and then C /= EOF loop
@@ -1265,6 +1274,7 @@ package body ALI is
                   --  Record last cross-reference
 
                   XE.Last_Xref := Xref.Last;
+                  C := Nextc;
                end;
             end loop;
 
@@ -1272,6 +1282,8 @@ package body ALI is
 
             XS.Last_Entity := Xref_Entity.Last;
          end;
+
+         C := Getc;
       end loop;
 
       --  Here after dealing with xref sections

@@ -258,9 +258,10 @@ package Opt is
    --  of GNAT), in which case this variable is set to D or G for
    --  D_Float or G_Float.
 
-   Force_ALI_File : Boolean := False;
+   Force_ALI_Tree_File : Boolean := False;
    --  GNAT
    --  Force generation of ali file even if errors are encountered.
+   --  Also forces generation of tree file if -gnatt is also set.
 
    Force_Compilations : Boolean := False;
    --  GNATMAKE

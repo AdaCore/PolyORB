@@ -29,6 +29,8 @@
 --  Set, Get and cache External reference, to be used as External functions
 --  in project files.
 
+with Types; use Types;
+
 package Prj.Ext is
 
    procedure Add
@@ -37,9 +39,9 @@ package Prj.Ext is
    --  Add an external reference (or modify an existing one).
 
    function Value_Of
-     (External_Name : String;
-      With_Default  : String := "")
-      return          String;
+     (External_Name : Name_Id;
+      With_Default  : String_Id := No_String)
+      return          String_Id;
    --  Get the value of an external reference, and cache it for future uses.
 
    function Check (Declaration : String) return Boolean;

@@ -586,7 +586,7 @@ package body Switch is
             Ptr := Ptr + 1;
 
             if Program = Compiler then
-               Force_ALI_File := True;
+               Force_ALI_Tree_File := True;
             else
                raise Bad_Switch;
             end if;

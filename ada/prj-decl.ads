@@ -2,13 +2,13 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                              G N A T V S N                               --
+--                              P R J . N M S C                             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--             Copyright (C) 2000 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -25,33 +25,18 @@
 -- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
 --                                                                          --
 ------------------------------------------------------------------------------
+--
+--  Parse a list of declarative items in a project file.
 
---  This package spec holds version information for GNAT, GNATBIND and
---  GNATMAKE. It is updated whenever the release number is changed.
+private package Prj.Decl is
 
-package Gnatvsn is
+   procedure Parse
+     (Project     : Project_Id;
+      Data        : in out Project_Data;
+      Pkg         : Package_Id;
+      Do_Not_Skip : Boolean;
+      Level       : Natural := 0);
+   --  Parse a list of declarative items:
+   --    {declarative_item}
 
-   Gnat_Version_String : constant String := "3.14w (20001217)";
-   --  Version output when GNAT (compiler), or its related tools, including
-   --  GNATBIND, GNATCHOP, GNATFIND, GNATLINK, GNATMAKE, GNATXREF, are run
-   --  (with appropriate verbose option switch set).
-   --
-   --  WARNING: some gnatmail scripts (at least make-bin and corcs) rely on
-   --  the format of this string. Any change must be coordinated with
-   --  a gnatmail maintainer.
-
-   Ver_Len_Max : constant := 32;
-   --  Longest possible length for Gnat_Version_String in this or any
-   --  other version of GNAT. This is used by the binder to establish
-   --  space to store any possible version string value for checks. This
-   --  value should never be decreased in the future, but it would be
-   --  OK to increase it if absolutely necessary.
-
-   Library_Version : constant String := "GNAT Lib v3.13 ";
-   --  Library version. This value must be updated whenever any change to the
-   --  compiler affects the library formats in such a way as to obsolete
-   --  previously compiled library modules.
-   --  Note: Makefile.in relies on the format of this string to build
-   --  the right soname.
-
-end Gnatvsn;
+end Prj.Decl;

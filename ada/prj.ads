@@ -2,7 +2,7 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                                 P R J                                    --
+--                                  P R J                                   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,10 +30,12 @@
 --  These data types may be used by GNAT Project-aware tools.
 
 --  Children of these package implements various services on these data types.
---  See in particular Project.Parsing and Project.Environment.
+--  See in particular Prj.Pars and Prj.Env.
 
-with Ada.Unchecked_Deallocation;
-with GNAT.OS_Lib; use GNAT.OS_Lib;
+with Casing; use Casing;
+with Scans;  use Scans;
+with Table;
+with Types;  use Types;
 
 package Prj is
 
@@ -43,90 +45,133 @@ package Prj is
    --  Medium is more verbose.
    --  High is extremely verbose.
 
-   type String_Element;
-   type String_List is access String_Element;
+   type String_List_Id is new Nat;
+   Nil_String : constant String_List_Id := 0;
    type String_Element is record
-      Value : String_Access;
-      Next  : String_List;
+      Value    : String_Id      := No_String;
+      Location : Source_Ptr     := No_Location;
+      Next     : String_List_Id := Nil_String;
    end record;
-   --  Linked list of Strings. Used for list variables
-   --  and list array elements.
+   --  To hold values for string list variables and array elements.
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (String_Element, String_List);
+   package String_Elements is new Table.Table
+     (Table_Component_Type => String_Element,
+      Table_Index_Type     => String_List_Id,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 200,
+      Table_Increment      => 100,
+      Table_Name           => "Prj.String_Elements");
+   --  The table for string elements in string lists.
 
    type Variable_Kind is (Undefined, List, Single);
    --  Different kinds of variables
 
    type Variable_Value (Kind : Variable_Kind := Undefined) is record
+      Location : Source_Ptr := No_Location;
       case Kind is
          when Undefined =>
             null;
          when List =>
-            Values : String_List;
+            Values : String_List_Id;
          when Single =>
-            Value : String_Access;
+            Value : String_Id;
       end case;
    end record;
    --  Values for variables and array elements
 
-   Nil_Variable_Value : constant Variable_Value := (Kind => Undefined);
+   Nil_Variable_Value : constant Variable_Value :=
+                          (Kind => Undefined, Location => No_Location);
    --  Value of a non existing variable or array element.
 
-   type Variable_Element;
-   type Variable_List is access Variable_Element;
-   type Variable_Element is record
-      Next  : Variable_List;
-      Name  : String_Access;
-      Value : Variable_Value;
+   type Variable_Id is new Nat;
+   No_Variable : constant Variable_Id := 0;
+   type Variable is record
+      Next     : Variable_Id := No_Variable;
+      Name     : Name_Id;
+      Value    : Variable_Value;
    end record;
-   --  A list of variable. Used in declarations.
+   --  To hold the list of variables in a project file and in packages.
 
-   type Array_Component;
-   type Array_Component_Reference is access Array_Component;
-   type Array_Component is record
-      Index : String_Access;
-      Value : Variable_Value;
-      Next  : Array_Component_Reference;
-   end record;
-   --  An array. Each Array_Component represents an array element.
+   package Variable_Elements is new Table.Table
+     (Table_Component_Type => Variable,
+      Table_Index_Type     => Variable_Id,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 200,
+      Table_Increment      => 100,
+      Table_Name           => "Prj.Variable_Elements");
+   --  The table of variable in list of variables.
 
-   type Array_Element;
-   type Array_List is access Array_Element;
+   type Array_Element_Id is new Nat;
+   No_Array_Element : constant Array_Element_Id := 0;
    type Array_Element is record
-      Name  : String_Access;
-      Value : Array_Component_Reference;
-      Next  : Array_List;
+      Index    : Name_Id;
+      Value    : Variable_Value;
+      Next     : Array_Element_Id := No_Array_Element;
    end record;
-   --  A list of arrays. Each Array_Element represents an array.
-   --  Used in declarations.
+   --  Each Array_Element represents an array element.
+   --  Each Array_Element is linked (Next) to the next array element,
+   --  if any, in the array.
 
-   type Package_Element;
-   type Package_List is access Package_Element;
-   type Declarations is record
-      Variables : Variable_List;
-      Arrays    : Array_List;
-      Packages  : Package_List;
+   package Array_Elements is new Table.Table
+     (Table_Component_Type => Array_Element,
+      Table_Index_Type     => Array_Element_Id,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 200,
+      Table_Increment      => 100,
+      Table_Name           => "Prj.Array_Elements");
+   --  The table that contains all array elements
+
+   type Array_Id is new Nat;
+   No_Array : constant Array_Id := 0;
+   type Array_Data is record
+      Name  : Name_Id          := No_Name;
+      Value : Array_Element_Id := No_Array_Element;
+      Next  : Array_Id         := No_Array;
    end record;
+   --  Each Array_Data represents an array.
+   --  Value is the id of the first element.
+   --  Next is the id of the next array in the project file or package.
+
+   package Arrays is new Table.Table
+     (Table_Component_Type => Array_Data,
+      Table_Index_Type     => Array_Id,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 200,
+      Table_Increment      => 100,
+      Table_Name           => "Prj.Arrays");
+   --  The table that contains all arrays
+
+   type Package_Id is new Nat;
+   No_Package : constant Package_Id := 0;
+   type Declarations is record
+      Variables : Variable_Id := No_Variable;
+      Arrays    : Array_Id    := No_Array;
+      Packages  : Package_Id  := No_Package;
+   end record;
+
+   No_Declarations : constant Declarations :=
+                      (Variables => No_Variable,
+                       Arrays    => No_Array,
+                       Packages  => No_Package);
    --  Declarations. Used in project structures and packages.
 
    type Package_Element is record
-      Name   : String_Access;
-      Decl   : Declarations;
-      Parent : Package_List;
-      Next   : Package_List;
+      Name   : Name_Id      := No_Name;
+      Decl   : Declarations := No_Declarations;
+      Parent : Package_Id   := No_Package;
+      Next   : Package_Id   := No_Package;
    end record;
    --  A package. Includes declarations that may include
    --  other packages.
 
-   Standard_Dot_Replacement      : constant String_Access :=
-                                     new String'("-");
-   Standard_Specification_Append : constant String_Access :=
-                                     new String'(".ads");
-   Standard_Body_Append          : constant String_Access :=
-                                     new String'(".adb");
-
-   type Casing_Type is (Lowercase, Uppercase, Mixedcase);
+   package Packages is new Table.Table
+     (Table_Component_Type => Package_Element,
+      Table_Index_Type     => Package_Id,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 100,
+      Table_Increment      => 100,
+      Table_Name           => "Prj.Packages");
+   --  The table that contains all arays.
 
    function Image (Casing : Casing_Type) return String;
    --  Similar to 'Image
@@ -137,15 +182,23 @@ package Prj is
    --  Raises Constraint_Error if not a Casing_Type image.
 
    type Naming_Data is record
-     Dot_Replacement      : String_Access := Standard_Dot_Replacement;
-     Casing               : Casing_Type   := Lowercase;
-     Specification_Append : String_Access := Standard_Specification_Append;
-     Body_Append          : String_Access := Standard_Body_Append;
-     Separate_Append      : String_Access := Standard_Body_Append;
-     Specifications       : Array_Component_Reference := null;
-     Bodies               : Array_Component_Reference := null;
+      Dot_Replacement      : Name_Id          := No_Name;
+      Dot_Repl_Loc         : Source_Ptr       := No_Location;
+      Casing               : Casing_Type      := All_Lower_Case;
+      Specification_Append : Name_Id          := No_Name;
+      Spec_Append_Loc      : Source_Ptr       := No_Location;
+      Body_Append          : Name_Id          := No_Name;
+      Body_Append_Loc      : Source_Ptr       := No_Location;
+      Separate_Append      : Name_Id          := No_Name;
+      Sep_Append_Loc       : Source_Ptr       := No_Location;
+      Specifications       : Array_Element_Id := No_Array_Element;
+      Bodies               : Array_Element_Id := No_Array_Element;
    end record;
    --  A naming scheme.
+
+   function Standard_Naming_Data return Naming_Data;
+   pragma Inline (Standard_Naming_Data);
+   --  The standard GNAT naming scheme.
 
    function Same_Naming_Scheme
      (Left, Right : Naming_Data)
@@ -153,46 +206,67 @@ package Prj is
    --  Returns True if Left and Right are the same naming scheme
    --  not considering Specifications and Bodies.
 
-   Standard_Naming_Data : constant Naming_Data :=
-     (Dot_Replacement      => Standard_Dot_Replacement,
-      Casing               => Lowercase,
-      Specification_Append => Standard_Specification_Append,
-      Body_Append          => Standard_Body_Append,
-      Separate_Append      => Standard_Body_Append,
-      Specifications       => null,
-      Bodies               => null);
-   --  The standard GNAT naming scheme.
+   type Project_Id is new Nat;
+   No_Project : constant Project_Id := 0;
+   --  Id of a Project File
 
-   type Structure;
-   type Reference is access Structure;
-   --  GNAT Project File representation.
+   type Project_List is new Nat;
+   Empty_Project_List : constant Project_List := 0;
+   --  A list of project files.
 
-   type Reference_Data;
-   type Reference_List is access Reference_Data;
-   type Reference_Data is record
-      Ref  : Reference;
-      Next : Reference_List;
+   type Project_Element is record
+      Project : Project_Id   := No_Project;
+      Next    : Project_List := Empty_Project_List;
    end record;
-   --  A list of GNAT Project Files. Used for imported projects.
+   --  Element in a list of project file.
+   --  Next is the id of the next project file in the list.
 
-   type Structure is record
-      First_Referred_By  : Reference;
-      Name               : String_Access;
-      Path_Name          : String_Access;
-      Directory          : String_Access;
-      File_Name          : String_Access;
-      Sources            : String_List;
-      Source_Dirs        : String_List;
-      Object_Directory   : String_Access;
-      Modifies           : Reference;
-      Modified_By        : Reference;
-      Naming             : Naming_Data := Standard_Naming_Data;
-      Decl               : Declarations;
-      Imported_Projects  : Reference_List;
-      Include_Path       : String_Access;
-      Objects_Path       : String_Access;
-      Gnat_Adc_Generated : Boolean := False;
+   package Project_Lists is new Table.Table
+     (Table_Component_Type => Project_Element,
+      Table_Index_Type     => Project_List,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 100,
+      Table_Increment      => 100,
+      Table_Name           => "Prj.Project_Lists");
+   --  The table that contains the lists of project files.
+
+   type Project_Data is record
+      First_Referred_By  : Project_Id     := No_Project;
+      Name               : Name_Id        := No_Name;
+      Path_Name          : Name_Id        := No_Name;
+      Directory          : Name_Id        := No_Name;
+      File_Name          : Name_Id        := No_Name;
+      Sources            : String_List_Id := Nil_String;
+      Source_Dirs        : String_List_Id := Nil_String;
+      Object_Directory   : Name_Id        := No_Name;
+      Modifies           : Project_Id     := No_Project;
+      Modified_By        : Project_Id     := No_Project;
+      Naming             : Naming_Data    := Standard_Naming_Data;
+      Decl               : Declarations   := No_Declarations;
+      Imported_Projects  : Project_List   := Empty_Project_List;
+      Include_Path       : String_Id      := No_String;
+      Objects_Path       : String_Id      := No_String;
+      Gnat_Adc_Generated : Boolean        := False;
    end record;
-   --  GNAT Project File representation.
+   --  Project File representation.
+
+   function Empty_Project return Project_Data;
+
+   package Projects is new Table.Table (
+     Table_Component_Type => Project_Data,
+     Table_Index_Type     => Project_Id,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 100,
+     Table_Increment      => 100,
+     Table_Name           => "Prj.Projects");
+
+   procedure Expect (The_Token : Token_Type; Token_Image : String);
+   --  Check that the current token is The_Token.
+   --  If it is not, output an error message.
+
+   procedure Initialize;
+   --  This procedure must be called before using any services
+   --  from the Prj hierarchy.
+   --  Assumption: Namet.Initialize have already been called.
 
 end Prj;

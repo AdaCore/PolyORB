@@ -34,7 +34,7 @@ package Prj.Pars is
    --  Set the verbosity when parsing the project files.
 
    procedure Parse
-     (Ref               : in out Reference;
+     (Project           : out Project_Id;
       Project_File_Name : String;
       Package_Name      : String := "");
    --  Parse a project files and all its imported project files.

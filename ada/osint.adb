@@ -783,9 +783,15 @@ package body Osint is
 
       begin
          --  If we are looking for gnat.adc, look only in the current
-         --  directory, i.e. return input argument unchanged.
+         --  directory, i.e. return input argument unchanged. Also look
+         --  only in the current directory if we are looking for a .dg
+         --  file (happens in -gnatD mode)
 
-         if File_Name = "gnat.adc" then
+         if File_Name = "gnat.adc"
+           or else (Debug_Generated_Code
+                      and then Name_Len > 3
+                      and then Name_Buffer (Name_Len - 2 .. Name_Len) = ".dg")
+         then
             return N;
 
          --  If we are trying to find the current main file just look in the

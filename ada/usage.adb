@@ -238,7 +238,7 @@ begin
    --  Line for -gnatQ switch
 
    Write_Switch_Char ("Q");
-   Write_Line ("Don't quit, write ali file even if compile errors");
+   Write_Line ("Don't quit, write ali/tree file even if compile errors");
 
    --  Line for -gnatR switch
 

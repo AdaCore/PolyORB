@@ -2,13 +2,13 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                              G N A T V S N                               --
+--                              P R J . S T R                               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--             Copyright (C) 2000 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -25,33 +25,44 @@
 -- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
 --                                                                          --
 ------------------------------------------------------------------------------
+--
+--  This package implements parsing of string expressions in project files.
 
---  This package spec holds version information for GNAT, GNATBIND and
---  GNATMAKE. It is updated whenever the release number is changed.
+with Types;  use Types;
 
-package Gnatvsn is
+private package Prj.Str is
 
-   Gnat_Version_String : constant String := "3.14w (20001217)";
-   --  Version output when GNAT (compiler), or its related tools, including
-   --  GNATBIND, GNATCHOP, GNATFIND, GNATLINK, GNATMAKE, GNATXREF, are run
-   --  (with appropriate verbose option switch set).
+   function Value
+     (Project    : Project_Data;
+      Pkg        : Package_Id)
+      return       Name_Id;
+
+   function Value
+     (Project    : Project_Data;
+      Pkg        : Package_Id)
+      return       String;
+
+   function Value
+     (Project    : Project_Data;
+      Pkg        : Package_Id)
+      return       String_Id;
+   --  Parse a String Expression:
    --
-   --  WARNING: some gnatmail scripts (at least make-bin and corcs) rely on
-   --  the format of this string. Any change must be coordinated with
-   --  a gnatmail maintainer.
+   --   string_expression ::=
+   --     string_term {& string_term}
+   --
+   --   string_term ::=
+   --     literal_string |
+   --     <single_variable_>name |
+   --     external_value
+   --
+   --   external_value ::=
+   --     _external_ (string_expression [,string_expression])
+   --
+   --  Before: the current token is the first of the expression.
+   --  After:  the current token is the first one after the expression.
+   --
+   --  The three functions Value do the same job, but return the result
+   --  as different types.
 
-   Ver_Len_Max : constant := 32;
-   --  Longest possible length for Gnat_Version_String in this or any
-   --  other version of GNAT. This is used by the binder to establish
-   --  space to store any possible version string value for checks. This
-   --  value should never be decreased in the future, but it would be
-   --  OK to increase it if absolutely necessary.
-
-   Library_Version : constant String := "GNAT Lib v3.13 ";
-   --  Library version. This value must be updated whenever any change to the
-   --  compiler affects the library formats in such a way as to obsolete
-   --  previously compiled library modules.
-   --  Note: Makefile.in relies on the format of this string to build
-   --  the right soname.
-
-end Gnatvsn;
+end Prj.Str;

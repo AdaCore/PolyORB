@@ -2,13 +2,13 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                              G N A T V S N                               --
+--                             S I N P U T . P                              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,32 +26,40 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package spec holds version information for GNAT, GNATBIND and
---  GNATMAKE. It is updated whenever the release number is changed.
+--  This child package contains the routines used to actually load a project
+--  file and create entries in the source file table. It also contains two
+--  routines to save and restore a project scan context.
 
-package Gnatvsn is
+with Scans; use Scans;
+with Types; use Types;
 
-   Gnat_Version_String : constant String := "3.14w (20001217)";
-   --  Version output when GNAT (compiler), or its related tools, including
-   --  GNATBIND, GNATCHOP, GNATFIND, GNATLINK, GNATMAKE, GNATXREF, are run
-   --  (with appropriate verbose option switch set).
-   --
-   --  WARNING: some gnatmail scripts (at least make-bin and corcs) rely on
-   --  the format of this string. Any change must be coordinated with
-   --  a gnatmail maintainer.
+package Sinput.P is
 
-   Ver_Len_Max : constant := 32;
-   --  Longest possible length for Gnat_Version_String in this or any
-   --  other version of GNAT. This is used by the binder to establish
-   --  space to store any possible version string value for checks. This
-   --  value should never be decreased in the future, but it would be
-   --  OK to increase it if absolutely necessary.
+   function Load_Project_File (Path : String) return Source_File_Index;
+   --  Load into memory the source of a project source file.
+   --  Initialize the Scans state.
 
-   Library_Version : constant String := "GNAT Lib v3.13 ";
-   --  Library version. This value must be updated whenever any change to the
-   --  compiler affects the library formats in such a way as to obsolete
-   --  previously compiled library modules.
-   --  Note: Makefile.in relies on the format of this string to build
-   --  the right soname.
+   type Saved_Project_Scan_State is limited private;
+   --  Used to save project scan state in following two routines
 
-end Gnatvsn;
+   procedure Save_Project_Scan_State
+     (Saved_State : out Saved_Project_Scan_State);
+   pragma Inline (Save_Project_Scan_State);
+   --  Save the Scans state, as well as the values of
+   --  Source and Current_Source_File.
+
+   procedure Restore_Project_Scan_State
+     (Saved_State : in Saved_Project_Scan_State);
+   pragma Inline (Restore_Project_Scan_State);
+   --  Restore the Scans state and the values of
+   --  Source and Current_Source_File.
+
+private
+
+   type Saved_Project_Scan_State is record
+      Scan_State          : Saved_Scan_State;
+      Source              : Source_Buffer_Ptr;
+      Current_Source_File : Source_File_Index;
+   end record;
+
+end Sinput.P;

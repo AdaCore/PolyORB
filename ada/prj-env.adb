@@ -26,29 +26,31 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.Unbounded;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
+with Namet;       use Namet;
 with Osint;       use Osint;
 with Output;      use Output;
 with Prj.Com;     use Prj.Com;
+with Stringt;     use Stringt;
+with Table;
 
 package body Prj.Env is
 
-   use Ada;
-   use Ada.Strings;
+   type Naming_Id is new Nat;
+   No_Naming : constant Naming_Id := 0;
 
-   type Naming_Record;
-   type Naming_Ref is access Naming_Record;
-   type Naming_Record is record
-      Naming : Naming_Data;
-      Next : Naming_Ref;
-   end record;
+   Ada_Path_Buffer : String_Access := new String (1 .. 1_000);
+   Ada_Path_Length : Natural := 0;
 
-   Default_Naming : constant Naming_Ref :=
-                      new Naming_Record'(Naming => Standard_Naming_Data,
-                                         Next => null);
+   package Namings is new Table.Table (
+     Table_Component_Type => Naming_Data,
+     Table_Index_Type     => Naming_Id,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 5,
+     Table_Increment      => 100,
+     Table_Name           => "Prj.Env.Namings");
 
-   Current_Verbosity : Verbosity := Default;
+   Default_Naming : constant Naming_Id := Namings.First;
 
    Gnat_Adc_Created : Boolean := False;
    Gnat_Adc_Saved   : Boolean := False;
@@ -61,194 +63,264 @@ package body Prj.Env is
    -- Local Subprograms --
    -----------------------
 
-   function Body_Path_Name_Of (Unit : Unit_List) return String;
+   function Body_Path_Name_Of (Unit : Unit_Id) return String;
    --  ??? comment needed
 
-   function Spec_Path_Name_Of (Unit : Unit_List) return String;
+   function Spec_Path_Name_Of (Unit : Unit_Id) return String;
    --  ??? comment needed
+
+   procedure Add_To_Path (Path : String);
 
    ----------------------
    -- Ada_Include_Path --
    ----------------------
 
-   function Ada_Include_Path (Ref : Reference) return String is
-      Result : Unbounded.Unbounded_String;
-      Seen   : Reference_List := null;
+   function Ada_Include_Path (Project : Project_Id) return String is
+      Seen   : Project_List := Empty_Project_List;
 
-      procedure Add (Ref : in Reference);
+      procedure Add (Project : Project_Id);
 
-      procedure Add (Ref : in Reference) is
-         List : Reference_List := Ref.Imported_Projects;
-
+      procedure Add (Project : Project_Id) is
       begin
-         if Seen = null then
-            Seen := new Reference_Data' (Ref, null);
+         if Seen = Empty_Project_List then
+            Project_Lists.Increment_Last;
+            Seen := Project_Lists.Last;
+            Project_Lists.Table (Seen) :=
+              (Project => Project, Next => Empty_Project_List);
          else
             declare
-               Current : Reference_List := Seen;
+               Current : Project_Element := Project_Lists.Table (Seen);
+
             begin
                loop
-                  if Current.Ref = Ref then
+                  if Current.Project = Project then
                      return;
                   end if;
 
-                  exit when Current.Next = null;
-                  Current := Current.Next;
+                  exit when Current.Next = Empty_Project_List;
+                  Current := Project_Lists.Table (Current.Next);
                end loop;
 
-               Current.Next := new Reference_Data' (Ref, null);
+               Project_Lists.Increment_Last;
+               Current.Next := Project_Lists.Last;
+               Project_Lists.Table (Project_Lists.Last) :=
+                 (Project => Project, Next => Empty_Project_List);
             end;
          end if;
 
          declare
-            Current : String_List := Ref.Source_Dirs;
+            Data : Project_Data := Projects.Table (Project);
+            List : Project_List := Data.Imported_Projects;
+
+            Current : String_List_Id := Data.Source_Dirs;
+            Source_Dir : String_Element;
 
          begin
-            while Current /= null loop
-               if Unbounded.Length (Result) > 0 then
-                  Unbounded.Append (Result, Path_Separator);
+            while Current /= Nil_String loop
+               if Ada_Path_Length > 0 then
+                  Add_To_Path (Path => (1 => Path_Separator));
                end if;
 
-               Unbounded.Append (Result, Current.Value.all);
-               Current := Current.Next;
+               Source_Dir := String_Elements.Table (Current);
+               String_To_Name_Buffer (Source_Dir.Value);
+               Add_To_Path (Name_Buffer (1 .. Name_Len));
+               Current := Source_Dir.Next;
+            end loop;
+
+            if Data.Modifies /= No_Project then
+               Add (Data.Modifies);
+            end if;
+
+            while List /= Empty_Project_List loop
+               Add (Project_Lists.Table (List).Project);
+               List := Project_Lists.Table (List).Next;
             end loop;
          end;
-
-         if Ref.Modifies /= null then
-            Add (Ref.Modifies);
-         end if;
-
-         while List /= null loop
-            Add (List.Ref);
-            List := List.Next;
-         end loop;
       end Add;
 
    --  Start of processing for Ada_Include_Path
 
    begin
-      if Ref.Include_Path = null then
-         Add (Ref);
-         Ref.Include_Path := new String'(Unbounded.To_String (Result));
+      if Projects.Table (Project).Include_Path = No_String then
+         Ada_Path_Length := 0;
+         Add (Project);
+         Start_String;
+         Store_String_Chars (Ada_Path_Buffer (1 .. Ada_Path_Length));
+         Projects.Table (Project).Include_Path := End_String;
       end if;
 
-      return Ref.Include_Path.all;
+      String_To_Name_Buffer (Projects.Table (Project).Include_Path);
+      return Name_Buffer (1 .. Name_Len);
    end Ada_Include_Path;
 
    ----------------------
    -- Ada_Objects_Path --
    ----------------------
 
-   function Ada_Objects_Path (Ref : Reference)return String is
-      Result : Unbounded.Unbounded_String;
-      Seen   : Reference_List := null;
+   function Ada_Objects_Path (Project : Project_Id) return String is
+      Seen   : Project_List := Empty_Project_List;
 
-      procedure Add (Ref : in Reference);
+      procedure Add (Project : Project_Id);
 
-      procedure Add (Ref : in Reference) is
-         List : Reference_List := Ref.Imported_Projects;
-
+      procedure Add (Project : Project_Id) is
       begin
-         if Seen = null then
-            Seen := new Reference_Data' (Ref, null);
+         if Seen = Empty_Project_List then
+            Project_Lists.Increment_Last;
+            Seen := Project_Lists.Last;
+            Project_Lists.Table (Seen) :=
+              (Project => Project, Next => Empty_Project_List);
+
          else
             declare
-               Current : Reference_List := Seen;
+               Current : Project_Element := Project_Lists.Table (Seen);
+
             begin
                loop
-                  if Current.Ref = Ref then
+                  if Current.Project = Project then
                      return;
                   end if;
 
-                  exit when Current.Next = null;
-                  Current := Current.Next;
+                  exit when Current.Next = Empty_Project_List;
+                  Current := Project_Lists.Table (Current.Next);
                end loop;
 
-               Current.Next := new Reference_Data' (Ref, null);
+               Project_Lists.Increment_Last;
+               Current.Next := Project_Lists.Last;
+               Project_Lists.Table (Project_Lists.Last) :=
+                 (Project => Project, Next => Empty_Project_List);
             end;
          end if;
 
-         if Ref.Object_Directory /= null then
-            if Unbounded.Length (Result) > 0 then
-               Unbounded.Append (Result, Path_Separator);
+         declare
+            Data : Project_Data := Projects.Table (Project);
+            List : Project_List := Data.Imported_Projects;
+
+         begin
+            if Data.Object_Directory /= No_Name then
+               if Ada_Path_Length > 0 then
+                  Add_To_Path (Path => (1 => Path_Separator));
+               end if;
+
+               Add_To_Path (Get_Name_String (Data.Object_Directory));
             end if;
 
-            Unbounded.Append (Result, Ref.Object_Directory.all);
-         end if;
+            if Data.Modifies /= No_Project then
+               Add (Data.Modifies);
+            end if;
 
-         if Ref.Modifies /= null then
-            Add (Ref.Modifies);
-         end if;
-
-         while List /= null loop
-            Add (List.Ref);
-            List := List.Next;
-         end loop;
+            while List /= Empty_Project_List loop
+               Add (Project_Lists.Table (List).Project);
+               List := Project_Lists.Table (List).Next;
+            end loop;
+         end;
       end Add;
 
    --  Start of processing for Ada_Objects_Path
 
    begin
-      if Ref.Objects_Path = null then
-         Add (Ref);
-         Ref.Objects_Path := new String'(Unbounded.To_String (Result));
+      if Projects.Table (Project).Objects_Path = No_String then
+         Ada_Path_Length := 0;
+         Add (Project);
+         Start_String;
+         Store_String_Chars (Ada_Path_Buffer (1 .. Ada_Path_Length));
+         Projects.Table (Project).Objects_Path := End_String;
       end if;
-      return Ref.Objects_Path.all;
+
+      String_To_Name_Buffer (Projects.Table (Project).Objects_Path);
+      return Name_Buffer (1 .. Name_Len);
    end Ada_Objects_Path;
+
+   -----------------
+   -- Add_To_Path --
+   -----------------
+
+   procedure Add_To_Path (Path : String) is
+   begin
+      if Ada_Path_Length + Path'Length > Ada_Path_Buffer'Last then
+         declare
+            New_Ada_Path_Buffer : constant String_Access :=
+                                    new String
+                                      (1 .. Ada_Path_Buffer'Last +
+                                                 Ada_Path_Buffer'Last);
+
+         begin
+            New_Ada_Path_Buffer (1 .. Ada_Path_Length) :=
+              Ada_Path_Buffer (1 .. Ada_Path_Length);
+            Ada_Path_Buffer := New_Ada_Path_Buffer;
+         end;
+      end if;
+
+      Ada_Path_Buffer
+        (Ada_Path_Length + 1 .. Ada_Path_Length + Path'Length) := Path;
+      Ada_Path_Length := Ada_Path_Length + Path'Length;
+   end Add_To_Path;
 
    -----------------------
    -- Body_Path_Name_Of --
    -----------------------
 
-   function Body_Path_Name_Of (Unit : Unit_List) return String is
+   function Body_Path_Name_Of (Unit : Unit_Id) return String is
+      Data : Unit_Data := Units.Table (Unit);
+
    begin
-      if Unit.File_Names (Body_Part).Path = null then
+      if Data.File_Names (Body_Part).Path = No_Name then
          declare
-            Current_Source : String_List := Unit.Ref.Sources;
+            Current_Source : String_List_Id :=
+              Projects.Table (Data.File_Names (Body_Part).Project).Sources;
             Path : GNAT.OS_Lib.String_Access;
 
          begin
-            Unit.File_Names (Body_Part).Path :=
-              Unit.File_Names (Body_Part).Name;
+            Data.File_Names (Body_Part).Path :=
+              Data.File_Names (Body_Part).Name;
 
-            while Current_Source /= null loop
+            while Current_Source /= Nil_String loop
+               String_To_Name_Buffer
+                 (String_Elements.Table (Current_Source).Value);
                Path :=
-                 Locate_Regular_File (Unit.File_Names (Body_Part).Name.all,
-                                      Current_Source.Value.all);
+                 Locate_Regular_File
+                 (Namet.Get_Name_String
+                  (Data.File_Names (Body_Part).Name),
+                  Name_Buffer (1 .. Name_Len));
+
                if Path /= null then
-                  Unit.File_Names (Body_Part).Path := Path;
+                  Name_Len := Path'Length;
+                  Name_Buffer (1 .. Name_Len) := Path.all;
+                  Data.File_Names (Body_Part).Path := Name_Enter;
                   exit;
+
                else
-                  Current_Source := Current_Source.Next;
+                  Current_Source :=
+                    String_Elements.Table (Current_Source).Next;
                end if;
             end loop;
+
+            Units.Table (Unit) := Data;
          end;
       end if;
 
-      return Unit.File_Names (Body_Part).Path.all;
+      return Namet.Get_Name_String (Data.File_Names (Body_Part).Path);
    end Body_Path_Name_Of;
 
    ---------------------
    -- Create_Gnat_Adc --
    ---------------------
 
-   procedure Create_Gnat_Adc (Ref : in Reference) is
+   procedure Create_Gnat_Adc (Project : Project_Id) is
       File         : File_Descriptor;
-      Current_Unit : Unit_List := First_Unit;
+      Current_Unit : Unit_Id := Units.First;
 
-      First_Ref    : Reference_List;
-      First_Naming : Naming_Ref := Default_Naming;
+      First_Project : Project_List := Empty_Project_List;
 
-      Current_Ref    : Reference_List;
-      Current_Naming : Naming_Ref;
+      Current_Project : Project_List;
+      Current_Naming  : Naming_Id;
 
-      procedure Check_Ref (Refer : in Reference);
+      procedure Check (Project : Project_Id);
 
       procedure Check_Gnat_Adc;
 
       procedure Put
-        (Unit_Name : in String_Access;
-         File_Name : in String_Access;
+        (Unit_Name : in Name_Id;
+         File_Name : in Name_Id;
          Unit_Kind : in Spec_Or_Body);
 
       procedure Put
@@ -348,121 +420,120 @@ package body Prj.Env is
          end if;
       end Check_Gnat_Adc;
 
-      ---------------
-      -- Check_Ref --
-      ---------------
+      -----------
+      -- Check --
+      -----------
 
-      procedure Check_Ref (Refer : in Reference) is
+      procedure Check (Project : Project_Id) is
+         Data : constant Project_Data := Projects.Table (Project);
       begin
          if Current_Verbosity = High then
             Write_Str ("Checking project file """);
-            Write_Str (Refer.Name.all);
+            Write_Str (Namet.Get_Name_String (Data.Name));
             Write_Str (""".");
             Write_Eol;
          end if;
 
-         Current_Ref := First_Ref;
-         while Current_Ref /= null
-           and then Current_Ref.Ref /= Refer
+         Current_Project := First_Project;
+         while Current_Project /= Empty_Project_List
+           and then Project_Lists.Table (Current_Project).Project /= Project
          loop
-            Current_Ref := Current_Ref.Next;
+            Current_Project := Project_Lists.Table (Current_Project).Next;
          end loop;
 
-         if Current_Ref = null then
-            First_Ref :=
-              new Reference_Data' (Ref => Refer, Next => First_Ref);
+         if Current_Project = Empty_Project_List then
+            Project_Lists.Increment_Last;
+            Project_Lists.Table (Project_Lists.Last) :=
+              (Project => Project, Next => First_Project);
+            First_Project := Project_Lists.Last;
 
-            Current_Naming := First_Naming;
-            while Current_Naming /= null and then
+            Current_Naming := Default_Naming;
+            while Current_Naming <= Namings.Last and then
               not Same_Naming_Scheme
-              (Left => Current_Naming.Naming,
-               Right => Refer.Naming) loop
-               Current_Naming := Current_Naming.Next;
+              (Left => Namings.Table (Current_Naming),
+               Right => Data.Naming) loop
+               Current_Naming := Current_Naming + 1;
             end loop;
 
-            if Current_Naming = null then
-               First_Naming :=
-                 new Naming_Record'
-                       (Naming => Refer.Naming,
-                        Next   => First_Naming);
+            if Current_Naming > Namings.Last then
+               Namings.Increment_Last;
+               Namings.Table (Namings.Last) := Data.Naming;
 
                Check_Gnat_Adc;
                Put_Line
                  (File, "pragma Source_File_Name");
                Put_Line
                  (File, "  (Spec_File_Name  => ""*" &
-                  Refer.Naming.Specification_Append.all &
+                  Namet.Get_Name_String (Data.Naming.Specification_Append) &
                   """,");
                Put_Line
                  (File, "   Casing          => " &
-                  Image (Refer.Naming.Casing) & ",");
+                  Image (Data.Naming.Casing) & ",");
                Put_Line
                  (File, "   Dot_Replacement => """ &
-                  Refer.Naming.Dot_Replacement.all &
+                 Namet.Get_Name_String (Data.Naming.Dot_Replacement) &
                   """);");
                Put_Line
                  (File, "pragma Source_File_Name");
                Put_Line
                  (File, "  (Body_File_Name  => ""*" &
-                  Refer.Naming.Body_Append.all &
+                  Namet.Get_Name_String (Data.Naming.Body_Append) &
                   """,");
                Put_Line
                  (File, "   Casing          => " &
-                  Image (Refer.Naming.Casing) & ",");
+                  Image (Data.Naming.Casing) & ",");
                Put_Line
                  (File, "   Dot_Replacement => """ &
-                  Refer.Naming.Dot_Replacement.all &
+                  Namet.Get_Name_String (Data.Naming.Dot_Replacement) &
                   """);");
 
-               if Refer.Naming.Body_Append.all /=
-                    Refer.Naming.Separate_Append.all
-               then
+               if Data.Naming.Body_Append /= Data.Naming.Separate_Append then
                   Put_Line
                     (File, "pragma Source_File_Name");
                   Put_Line
                     (File, "  (Subunit_File_Name  => ""*" &
-                     Refer.Naming.Separate_Append.all &
+                     Namet.Get_Name_String (Data.Naming.Separate_Append) &
                      """,");
                   Put_Line
                     (File, "   Casing          => " &
-                     Image (Refer.Naming.Casing) &
+                     Image (Data.Naming.Casing) &
                      ",");
                   Put_Line
                     (File, "   Dot_Replacement => """ &
-                     Refer.Naming.Dot_Replacement.all &
+                     Namet.Get_Name_String (Data.Naming.Dot_Replacement) &
                      """);");
                end if;
             end if;
 
-            if Refer.Modifies /= null then
-               Check_Ref (Refer.Modifies);
+            if Data.Modifies /= No_Project then
+               Check (Data.Modifies);
             end if;
 
             declare
-               Current : Reference_List := Refer.Imported_Projects;
+               Current : Project_List := Data.Imported_Projects;
 
             begin
-               while Current /= null loop
-                  Check_Ref (Current.Ref);
-                  Current := Current.Next;
+               while Current /= Empty_Project_List loop
+                  Check (Project_Lists.Table (Current).Project);
+                  Current := Project_Lists.Table (Current).Next;
                end loop;
             end;
          end if;
-      end Check_Ref;
+      end Check;
 
       ---------
       -- Put --
       ---------
 
       procedure Put
-        (Unit_Name : in String_Access;
-         File_Name : in String_Access;
+        (Unit_Name : in Name_Id;
+         File_Name : in Name_Id;
          Unit_Kind : in Spec_Or_Body)
       is
       begin
          Check_Gnat_Adc;
          Put (File, "pragma Source_File_Name (");
-         Put (File, Unit_Name.all);
+         Put (File, Namet.Get_Name_String (Unit_Name));
 
          if Unit_Kind = Specification then
             Put (File, ", Spec_File_Name => """);
@@ -470,7 +541,7 @@ package body Prj.Env is
             Put (File, ", Body_File_Name => """);
          end if;
 
-         Put (File, File_Name.all);
+         Put (File, Namet.Get_Name_String (File_Name));
          Put_Line (File, """);");
       end Put;
 
@@ -527,22 +598,31 @@ package body Prj.Env is
          Write_Eol;
       end if;
 
-      Check_Ref (Ref);
+      Namings.Set_Last (Default_Naming);
 
-      while Current_Unit /= null loop
-         if Current_Unit.File_Names (Specification).Needs_Pragma then
-            Put (Current_Unit.Name,
-                 Current_Unit.File_Names (Specification).Name,
-                 Specification);
-         end if;
+      Check (Project);
 
-         if Current_Unit.File_Names (Body_Part).Needs_Pragma then
-            Put (Current_Unit.Name,
-                 Current_Unit.File_Names (Body_Part).Name,
-                 Body_Part);
-         end if;
+      while Current_Unit <= Units.Last loop
+         declare
+            Unit : constant Unit_Data :=
+                     Units.Table (Current_Unit);
 
-         Current_Unit := Current_Unit.Next;
+         begin
+            if Unit.File_Names (Specification).Needs_Pragma then
+               Put (Unit.Name,
+                    Unit.File_Names (Specification).Name,
+                    Specification);
+            end if;
+
+            if Unit.File_Names (Body_Part).Needs_Pragma then
+               Put (Unit.Name,
+                    Unit.File_Names (Body_Part).Name,
+                    Body_Part);
+            end if;
+
+            Current_Unit := Current_Unit + 1;
+         end;
+
       end loop;
 
       if Gnat_Adc_Created then
@@ -560,23 +640,39 @@ package body Prj.Env is
    ------------------------------------
 
    function File_Name_Of_Library_Unit_Body
-     (Name : String;
-      Ref  : Reference)
+     (Name    : String;
+      Project : Project_Id)
       return String
    is
+      Data : constant Project_Data := Projects.Table (Project);
       Original_Name      : String := Name;
-      Extended_Spec_Name : String :=
-                             Name & Ref.Naming.Specification_Append.all;
-      Extended_Body_Name : String :=
-                             Name & Ref.Naming.Body_Append.all;
 
-      First   : Unit_List := First_Unit;
-      Current : Unit_List;
+      Extended_Spec_Name : String :=
+        Name & Namet.Get_Name_String (Data.Naming.Specification_Append);
+      Extended_Body_Name : String :=
+        Name & Namet.Get_Name_String (Data.Naming.Body_Append);
+
+      Unit    : Unit_Data;
+
+      The_Original_Name : Name_Id;
+      The_Spec_Name : Name_Id;
+      The_Body_Name : Name_Id;
 
    begin
       Canonical_Case_File_Name (Original_Name);
+      Name_Len := Original_Name'Length;
+      Name_Buffer (1 .. Name_Len) := Original_Name;
+      The_Original_Name := Name_Find;
+
       Canonical_Case_File_Name (Extended_Spec_Name);
-      Canonical_Case_File_Name (Extended_Spec_Name);
+      Name_Len := Extended_Spec_Name'Length;
+      Name_Buffer (1 .. Name_Len) := Extended_Spec_Name;
+      The_Spec_Name := Name_Find;
+
+      Canonical_Case_File_Name (Extended_Body_Name);
+      Name_Len := Extended_Body_Name'Length;
+      Name_Buffer (1 .. Name_Len) := Extended_Body_Name;
+      The_Body_Name := Name_Find;
 
       if Current_Verbosity = High then
          Write_Str  ("Looking for file name of """);
@@ -593,78 +689,85 @@ package body Prj.Env is
          Write_Eol;
       end if;
 
-      while First /= null
-        and then First.Ref /= Ref
-      loop
-         First := First.Next;
-      end loop;
+      for Current in reverse Units.First .. Units.Last loop
+         Unit := Units.Table (Current);
 
-      Current := First;
-      while Current /= null and then Current.Ref = Ref loop
-         if Current.File_Names (Body_Part).Name /= null then
-            if Current_Verbosity = High then
-               Write_Str  ("   Comparing with """);
-               Write_Str  (Current.File_Names (Body_Part).Name.all);
-               Write_Char ('"');
-               Write_Eol;
-            end if;
+         if Unit.File_Names (Body_Part).Project = Project then
+            declare
+               Current_Name : constant Name_Id :=
+                                Unit.File_Names (Body_Part).Name;
 
-            if Current.File_Names (Body_Part).Name.all = Original_Name then
-               if Current_Verbosity = High then
-                  Write_Line ("   OK");
+            begin
+               if Current_Name /= No_Name then
+                  if Current_Verbosity = High then
+                     Write_Str  ("   Comparing with """);
+                     Write_Str  (Get_Name_String (Current_Name));
+                     Write_Char ('"');
+                     Write_Eol;
+                  end if;
+
+                  if Current_Name = The_Original_Name then
+                     if Current_Verbosity = High then
+                        Write_Line ("   OK");
+                     end if;
+
+                     return Original_Name;
+
+                  elsif Current_Name = The_Body_Name then
+                     if Current_Verbosity = High then
+                        Write_Line ("   OK");
+                     end if;
+
+                     return Extended_Body_Name;
+
+                  else
+                     if Current_Verbosity = High then
+                        Write_Line ("   not good");
+                     end if;
+                  end if;
                end if;
-
-               return Original_Name;
-
-            elsif Current.File_Names (Body_Part).Name.all =
-                    Extended_Body_Name
-            then
-               if Current_Verbosity = High then
-                  Write_Line ("   OK");
-               end if;
-
-               return Extended_Body_Name;
-
-            else
-               if Current_Verbosity = High then
-                  Write_Line ("   not good");
-               end if;
-            end if;
-
-         elsif Current.File_Names (Specification).Name /= null then
-            if Current_Verbosity = High then
-               Write_Str  ("   Comparing with """);
-               Write_Str  (Current.File_Names (Specification).Name.all);
-               Write_Char ('"');
-               Write_Eol;
-            end if;
-
-            if Current.File_Names (Specification).Name.all =
-                 Original_Name
-            then
-               if Current_Verbosity = High then
-                  Write_Line ("   OK");
-               end if;
-
-               return Original_Name;
-
-            elsif Current.File_Names (Specification).Name.all =
-                    Extended_Spec_Name
-            then
-               if Current_Verbosity = High then
-                  Write_Line ("   OK");
-               end if;
-
-               return Extended_Spec_Name;
-
-            else
-               if Current_Verbosity = High then
-                  Write_Line ("   not good");
-               end if;
-            end if;
+            end;
          end if;
 
-         Current := Current.Next;
+         if Units.Table (Current).File_Names (Specification).Project =
+                                                                 Project
+         then
+            declare
+               Current_Name : constant Name_Id :=
+                                Unit.File_Names (Specification).Name;
+
+            begin
+               if Current_Name /= No_Name then
+                  if Current_Verbosity = High then
+                     Write_Str  ("   Comparing with """);
+                     Write_Str  (Get_Name_String (Current_Name));
+                     Write_Char ('"');
+                     Write_Eol;
+                  end if;
+
+                  if Current_Name = The_Original_Name then
+                     if Current_Verbosity = High then
+                        Write_Line ("   OK");
+                     end if;
+
+                     return Original_Name;
+
+                  elsif Current_Name = The_Spec_Name then
+                     if Current_Verbosity = High then
+                        Write_Line ("   OK");
+                     end if;
+
+                     return Extended_Spec_Name;
+
+                  else
+                     if Current_Verbosity = High then
+                        Write_Line ("   not good");
+                     end if;
+                  end if;
+               end if;
+            end;
+         end if;
+
       end loop;
 
       return "";
@@ -674,120 +777,140 @@ package body Prj.Env is
    -- For_All_Object_Dirs --
    -------------------------
 
-   procedure For_All_Object_Dirs (Ref : in Reference) is
-      Seen : Reference_List := null;
+   procedure For_All_Object_Dirs (Project : Project_Id) is
+      Seen : Project_List := Empty_Project_List;
 
-      procedure Add (Ref : Reference);
+      procedure Add (Project : Project_Id);
 
       ---------
       -- Add --
       ---------
 
-      procedure Add (Ref : Reference) is
-         List : Reference_List := Ref.Imported_Projects;
+      procedure Add (Project : Project_Id) is
+         Data : constant Project_Data := Projects.Table (Project);
+         List : Project_List := Data.Imported_Projects;
 
       begin
-         if Seen = null then
-            Seen := new Reference_Data' (Ref, null);
+         if Seen = Empty_Project_List then
+            Project_Lists.Increment_Last;
+            Seen := Project_Lists.Last;
+            Project_Lists.Table (Seen) :=
+              (Project => Project, Next => Empty_Project_List);
+
          else
             declare
-               Current : Reference_List := Seen;
+               Current : Project_List := Seen;
 
             begin
                loop
-                  if Current.Ref = Ref then
+                  if Project_Lists.Table (Current).Project = Project then
                      return;
                   end if;
 
-                  exit when Current.Next = null;
-                  Current := Current.Next;
+                  exit when Project_Lists.Table (Current).Next =
+                    Empty_Project_List;
+                  Current := Project_Lists.Table (Current).Next;
                end loop;
 
-               Current.Next := new Reference_Data' (Ref, null);
+               Project_Lists.Increment_Last;
+               Project_Lists.Table (Current).Next := Project_Lists.Last;
+               Project_Lists.Table (Project_Lists.Last) :=
+                 (Project => Project, Next => Empty_Project_List);
             end;
          end if;
 
-         if Ref.Object_Directory /= null then
-            Action (Ref.Object_Directory.all);
+         if Data.Object_Directory /= No_Name then
+            Get_Name_String (Data.Object_Directory);
+            Action (Name_Buffer (1 .. Name_Len));
          end if;
 
-         if Ref.Modifies /= null then
-            Add (Ref.Modifies);
+         if Data.Modifies /= No_Project then
+            Add (Data.Modifies);
          end if;
 
-         while List /= null loop
-            Add (List.Ref);
-            List := List.Next;
+         while List /= Empty_Project_List loop
+            Add (Project_Lists.Table (List).Project);
+            List := Project_Lists.Table (List).Next;
          end loop;
       end Add;
 
    --  Start of processing for For_All_Object_Dirs
 
    begin
-      Add (Ref);
+      Add (Project);
    end For_All_Object_Dirs;
 
    -------------------------
    -- For_All_Source_Dirs --
    -------------------------
 
-   procedure For_All_Source_Dirs (Ref : in Reference) is
-      Seen : Reference_List := null;
+   procedure For_All_Source_Dirs (Project : Project_Id) is
+      Seen : Project_List := Empty_Project_List;
 
-      procedure Add (Ref : Reference);
+      procedure Add (Project : Project_Id);
 
       ---------
       -- Add --
       ---------
 
-      procedure Add (Ref : Reference) is
-         List : Reference_List := Ref.Imported_Projects;
+      procedure Add (Project : Project_Id) is
+         Data : constant Project_Data := Projects.Table (Project);
+         List : Project_List := Data.Imported_Projects;
 
       begin
-         if Seen = null then
-            Seen := new Reference_Data' (Ref, null);
+         if Seen = Empty_Project_List then
+            Project_Lists.Increment_Last;
+            Seen := Project_Lists.Last;
+            Project_Lists.Table (Seen) :=
+              (Project => Project, Next => Empty_Project_List);
          else
             declare
-               Current : Reference_List := Seen;
+               Current : Project_List := Seen;
 
             begin
                loop
-                  if Current.Ref = Ref then
+                  if Project_Lists.Table (Current).Project = Project then
                      return;
                   end if;
 
-                  exit when Current.Next = null;
-                  Current := Current.Next;
+                  exit when Project_Lists.Table (Current).Next =
+                    Empty_Project_List;
+                  Current := Project_Lists.Table (Current).Next;
                end loop;
 
-               Current.Next := new Reference_Data' (Ref, null);
+               Project_Lists.Increment_Last;
+               Project_Lists.Table (Current).Next := Project_Lists.Last;
+               Project_Lists.Table (Project_Lists.Last) :=
+                 (Project => Project, Next => Empty_Project_List);
             end;
          end if;
 
          declare
-            Current : String_List := Ref.Source_Dirs;
-
+            Current : String_List_Id := Data.Source_Dirs;
+            The_String : String_Element;
          begin
-            while Current /= null loop
-               Action (Current.Value.all);
-               Current := Current.Next;
+            while Current /= Nil_String loop
+               The_String := String_Elements.Table (Current);
+               String_To_Name_Buffer (The_String.Value);
+               Action (Name_Buffer (1 .. Name_Len));
+               Current := The_String.Next;
             end loop;
          end;
 
-         if Ref.Modifies /= null then
-            Add (Ref.Modifies);
+         if Data.Modifies /= No_Project then
+            Add (Data.Modifies);
          end if;
 
-         while List /= null loop
-            Add (List.Ref);
-            List := List.Next;
+         while List /= Empty_Project_List loop
+            Add (Project_Lists.Table (List).Project);
+            List := Project_Lists.Table (List).Next;
          end loop;
       end Add;
 
    --  Start of processing for For_All_Source_Dirs
 
    begin
-      Add (Ref);
+      Add (Project);
    end For_All_Source_Dirs;
 
    -------------------
@@ -796,8 +919,8 @@ package body Prj.Env is
 
    procedure Get_Reference
      (Source_File_Name : String;
-      Ref              : in out Reference;
-      Path             : in out String_Access)
+      Project          : out Project_Id;
+      Path             : out Name_Id)
    is
    begin
       if Current_Verbosity > Default then
@@ -807,21 +930,26 @@ package body Prj.Env is
       end if;
 
       declare
-         Original_Name : String    := Source_File_Name;
-         Unit          : Unit_List := First_Unit;
+         Original_Name : String := Source_File_Name;
+         Unit          : Unit_Data;
 
       begin
          Canonical_Case_File_Name (Original_Name);
 
-         while Unit /= null loop
-            if (Unit.File_Names (Specification).Name /= null
-                  and then Unit.File_Names (Specification).Name.all =
-                             Original_Name)
-              or else (Unit.File_Names (Specification).Path /= null
-                         and then Unit.File_Names (Specification).Path.all =
-                                    Original_Name)
+         for Id in Units.First .. Units.Last loop
+            Unit := Units.Table (Id);
+
+            if (Unit.File_Names (Specification).Name /= No_Name
+                 and then
+                   Namet.Get_Name_String
+                     (Unit.File_Names (Specification).Name) = Original_Name)
+              or else (Unit.File_Names (Specification).Path /= No_Name
+                         and then
+                           Namet.Get_Name_String
+                           (Unit.File_Names (Specification).Path) =
+                                                              Original_Name)
             then
-               Ref := Unit.Ref;
+               Project := Unit.File_Names (Specification).Project;
                Path := Unit.File_Names (Specification).Path;
 
                if Current_Verbosity > Default then
@@ -831,14 +959,16 @@ package body Prj.Env is
 
                return;
 
-            elsif (Unit.File_Names (Body_Part).Name /= null
-                     and then Unit.File_Names (Body_Part).Name.all =
-                                Original_Name)
-              or else (Unit.File_Names (Body_Part).Path /= null
-                         and then Unit.File_Names (Body_Part).Path.all =
-                                    Original_Name)
+            elsif (Unit.File_Names (Body_Part).Name /= No_Name
+                    and then
+                      Namet.Get_Name_String
+                        (Unit.File_Names (Body_Part).Name) = Original_Name)
+              or else (Unit.File_Names (Body_Part).Path /= No_Name
+                         and then Namet.Get_Name_String
+                                    (Unit.File_Names (Body_Part).Path) =
+                                                             Original_Name)
             then
-               Ref := Unit.Ref;
+               Project := Unit.File_Names (Body_Part).Project;
                Path := Unit.File_Names (Body_Part).Path;
 
                if Current_Verbosity > Default then
@@ -849,11 +979,11 @@ package body Prj.Env is
                return;
             end if;
 
-            Unit := Unit.Next;
          end loop;
       end;
 
-      Ref := null;
+      Project := No_Project;
+      Path    := No_Name;
 
       if Current_Verbosity > Default then
          Write_Str ("Cannot be found.");
@@ -861,24 +991,36 @@ package body Prj.Env is
       end if;
    end Get_Reference;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Namings.Increment_Last;
+      Namings.Table (Namings.Last) := Standard_Naming_Data;
+   end Initialize;
+
    ------------------------------------
    -- Path_Name_Of_Library_Unit_Body --
    ------------------------------------
 
    function Path_Name_Of_Library_Unit_Body
-     (Name : String;
-      Ref  : Reference)
+     (Name    : String;
+      Project : Project_Id)
       return String
    is
+      Data : constant Project_Data := Projects.Table (Project);
       Original_Name : String := Name;
 
       Extended_Spec_Name : String :=
-                             Name & Ref.Naming.Specification_Append.all;
+        Name & Namet.Get_Name_String (Data.Naming.Specification_Append);
       Extended_Body_Name : String :=
-                             Name & Ref.Naming.Body_Append.all;
+        Name & Namet.Get_Name_String (Data.Naming.Body_Append);
 
-      First   : Unit_List := First_Unit;
-      Current : Unit_List;
+      First   : Unit_Id := Units.First;
+      Current : Unit_Id;
+      Unit    : Unit_Data;
 
    begin
       Canonical_Case_File_Name (Original_Name);
@@ -900,76 +1042,88 @@ package body Prj.Env is
          Write_Eol;
       end if;
 
-      while First /= null
-        and then First.Ref /= Ref
+      while First <= Units.Last
+        and then Units.Table (First).File_Names (Body_Part).Project /= Project
       loop
-         First := First.Next;
+         First := First + 1;
       end loop;
 
       Current := First;
-      while Current /= null and then Current.Ref = Ref loop
-         if Current.File_Names (Body_Part).Name /= null then
-            if Current_Verbosity = High then
-               Write_Str  ("   Comparing with """);
-               Write_Str  (Current.File_Names (Body_Part).Name.all);
-               Write_Char ('"');
-               Write_Eol;
-            end if;
+      while Current <= Units.Last loop
+         Unit := Units.Table (Current);
 
-            if Current.File_Names (Body_Part).Name.all = Original_Name then
+         if Unit.File_Names (Body_Part).Project = Project
+           and then Unit.File_Names (Body_Part).Name /= No_Name
+         then
+            declare
+               Current_Name : constant String :=
+                 Namet.Get_Name_String (Unit.File_Names (Body_Part).Name);
+            begin
                if Current_Verbosity = High then
-                  Write_Line ("   OK");
+                  Write_Str  ("   Comparing with """);
+                  Write_Str  (Current_Name);
+                  Write_Char ('"');
+                  Write_Eol;
                end if;
 
-               return Body_Path_Name_Of (Current);
+               if Current_Name = Original_Name then
+                  if Current_Verbosity = High then
+                     Write_Line ("   OK");
+                  end if;
 
-            elsif Current.File_Names (Body_Part).Name.all =
-                    Extended_Body_Name
-            then
+                  return Body_Path_Name_Of (Current);
+
+               elsif Current_Name = Extended_Body_Name then
+                  if Current_Verbosity = High then
+                     Write_Line ("   OK");
+                  end if;
+
+                  return Body_Path_Name_Of (Current);
+
+               else
+                  if Current_Verbosity = High then
+                     Write_Line ("   not good");
+                  end if;
+               end if;
+            end;
+
+         elsif Unit.File_Names (Specification).Name /= No_Name then
+            declare
+               Current_Name : constant String :=
+                                Namet.Get_Name_String
+                                  (Unit.File_Names (Specification).Name);
+
+            begin
                if Current_Verbosity = High then
-                  Write_Line ("   OK");
+                  Write_Str  ("   Comparing with """);
+                  Write_Str  (Current_Name);
+                  Write_Char ('"');
+                  Write_Eol;
                end if;
 
-               return Body_Path_Name_Of (Current);
+               if Current_Name = Original_Name then
+                  if Current_Verbosity = High then
+                     Write_Line ("   OK");
+                  end if;
 
-            else
-               if Current_Verbosity = High then
-                  Write_Line ("   not good");
+                  return Spec_Path_Name_Of (Current);
+
+               elsif Current_Name = Extended_Spec_Name then
+
+                  if Current_Verbosity = High then
+                     Write_Line ("   OK");
+                  end if;
+
+                  return Spec_Path_Name_Of (Current);
+
+               else
+                  if Current_Verbosity = High then
+                     Write_Line ("   not good");
+                  end if;
                end if;
-            end if;
-
-         elsif Current.File_Names (Specification).Name /= null then
-            if Current_Verbosity = High then
-               Write_Str  ("   Comparing with """);
-               Write_Str  (Current.File_Names (Specification).Name.all);
-               Write_Char ('"');
-               Write_Eol;
-            end if;
-
-            if Current.File_Names (Specification).Name.all = Original_Name then
-               if Current_Verbosity = High then
-                  Write_Line ("   OK");
-               end if;
-
-               return Spec_Path_Name_Of (Current);
-
-            elsif Current.File_Names (Specification).Name.all =
-                    Extended_Spec_Name
-            then
-               if Current_Verbosity = High then
-                  Write_Line ("   OK");
-               end if;
-
-               return Spec_Path_Name_Of (Current);
-
-            else
-               if Current_Verbosity = High then
-                  Write_Line ("   not good");
-               end if;
-            end if;
+            end;
          end if;
 
-         Current := Current.Next;
       end loop;
 
       return "";
@@ -980,34 +1134,52 @@ package body Prj.Env is
    -------------------
 
    procedure Print_Sources is
-      Current : Unit_List;
+      Unit : Unit_Data;
 
    begin
       Write_Line ("List of Sources:");
 
-      Current := First_Unit;
-      while Current /= null loop
+      for Id in Units.First .. Units.Last loop
+         Unit := Units.Table (Id);
          Write_Str  ("   ");
-         Write_Line (Current.Name.all);
+         Write_Line (Namet.Get_Name_String (Unit.Name));
 
-         if Current.Ref = null then
-            Write_Line ("   No project");
-         else
-            Write_Str  ("   Project: ");
-            Write_Line (Current.Ref.Path_Name.all);
-         end if;
+         if Unit.File_Names (Specification).Name /= No_Name then
+            if Unit.File_Names (Specification).Project = No_Project then
+               Write_Line ("   No project");
 
-         if Current.File_Names (Specification).Name /= null then
+            else
+               Write_Str  ("   Project: ");
+               Get_Name_String
+                 (Projects.Table
+                   (Unit.File_Names (Specification).Project).Path_Name);
+               Write_Line (Name_Buffer (1 .. Name_Len));
+            end if;
+
             Write_Str  ("      spec: ");
-            Write_Line (Current.File_Names (Specification).Name.all);
+            Write_Line
+              (Namet.Get_Name_String
+               (Unit.File_Names (Specification).Name));
          end if;
 
-         if Current.File_Names (Body_Part).Name /= null then
+         if Unit.File_Names (Body_Part).Name /= No_Name then
+            if Unit.File_Names (Body_Part).Project = No_Project then
+               Write_Line ("   No project");
+
+            else
+               Write_Str  ("   Project: ");
+               Get_Name_String
+                 (Projects.Table
+                   (Unit.File_Names (Body_Part).Project).Path_Name);
+               Write_Line (Name_Buffer (1 .. Name_Len));
+            end if;
+
             Write_Str  ("      body: ");
-            Write_Line (Current.File_Names (Body_Part).Name.all);
+            Write_Line
+              (Namet.Get_Name_String
+               (Unit.File_Names (Body_Part).Name));
          end if;
 
-         Current := Current.Next;
       end loop;
 
       Write_Line ("end of List of Sources.");
@@ -1054,45 +1226,48 @@ package body Prj.Env is
       end if;
    end Restore_Gnat_Adc;
 
-   -------------------
-   -- Set_Verbosity --
-   -------------------
-
-   procedure Set_Verbosity (To : Verbosity) is
-   begin
-      Current_Verbosity := To;
-   end Set_Verbosity;
-
    -----------------------
    -- Spec_Path_Name_Of --
    -----------------------
 
-   function Spec_Path_Name_Of (Unit : Unit_List) return String is
+   function Spec_Path_Name_Of (Unit : Unit_Id) return String is
+      Data : Unit_Data := Units.Table (Unit);
+
    begin
-      if Unit.File_Names (Specification).Path = null then
+      if Data.File_Names (Specification).Path = No_Name then
          declare
-            Current_Source : String_List := Unit.Ref.Sources;
+            Current_Source : String_List_Id :=
+              Projects.Table (Data.File_Names (Specification).Project).Sources;
             Path : GNAT.OS_Lib.String_Access;
 
          begin
-            Unit.File_Names (Specification).Path :=
-              Unit.File_Names (Specification).Name;
+            Data.File_Names (Specification).Path :=
+              Data.File_Names (Specification).Name;
 
-            while Current_Source /= null loop
-               Path :=
-                 Locate_Regular_File (Unit.File_Names (Body_Part).Name.all,
-                                      Current_Source.Value.all);
+            while Current_Source /= Nil_String loop
+               String_To_Name_Buffer
+                 (String_Elements.Table (Current_Source).Value);
+               Path := Locate_Regular_File
+                 (Namet.Get_Name_String
+                  (Data.File_Names (Specification).Name),
+                  Name_Buffer (1 .. Name_Len));
+
                if Path /= null then
-                  Unit.File_Names (Specification).Path := Path;
+                  Name_Len := Path'Length;
+                  Name_Buffer (1 .. Name_Len) := Path.all;
+                  Data.File_Names (Specification).Path := Name_Enter;
                   exit;
                else
-                  Current_Source := Current_Source.Next;
+                  Current_Source :=
+                    String_Elements.Table (Current_Source).Next;
                end if;
             end loop;
+
+            Units.Table (Unit) := Data;
          end;
       end if;
 
-      return Unit.File_Names (Specification).Path.all;
+      return Namet.Get_Name_String (Data.File_Names (Specification).Path);
    end Spec_Path_Name_Of;
 
 end Prj.Env;

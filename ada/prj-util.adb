@@ -27,7 +27,10 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+
+with Namet;    use Namet;
 with Osint;
+with Stringt;  use Stringt;
 
 package body Prj.Util is
 
@@ -190,38 +193,46 @@ package body Prj.Util is
    --------------
 
    function Value_Of
-     (Index    : String;
-      In_Array : Array_Component_Reference)
-      return     String_Access
+     (Index    : Name_Id;
+      In_Array : Array_Element_Id)
+      return     Name_Id
    is
-      Current : Array_Component_Reference := In_Array;
+      Current : Array_Element_Id := In_Array;
+      Element : Array_Element;
 
    begin
-      while Current /= null loop
-         if Index = Current.Index.all then
-            exit when Current.Value.Kind /= Single;
-            return Current.Value.Value;
+      while Current /= No_Array_Element loop
+         Element := Array_Elements.Table (Current);
+
+         if Index = Element.Index then
+            exit when Element.Value.Kind /= Single;
+            exit when String_Length (Element.Value.Value) = 0;
+            String_To_Name_Buffer (Element.Value.Value);
+            return Name_Find;
          else
-            Current := Current.Next;
+            Current := Element.Next;
          end if;
       end loop;
 
-      return null;
+      return No_Name;
    end Value_Of;
 
    function Value_Of
-     (Index    : String;
-      In_Array : Array_Component_Reference)
+     (Index    : Name_Id;
+      In_Array : Array_Element_Id)
       return     Variable_Value
    is
-      Current : Array_Component_Reference := In_Array;
+      Current : Array_Element_Id := In_Array;
+      Element : Array_Element;
 
    begin
-      while Current /= null loop
-         if Index = Current.Index.all then
-            return Current.Value;
+      while Current /= No_Array_Element loop
+         Element := Array_Elements.Table (Current);
+
+         if Index = Element.Index then
+            return Element.Value;
          else
-            Current := Current.Next;
+            Current := Element.Next;
          end if;
       end loop;
 
@@ -229,30 +240,35 @@ package body Prj.Util is
    end Value_Of;
 
    function Value_Of
-     (Name                   : String;
-      Variable_Or_Array_Name : String;
-      In_Package             : Package_List)
+     (Name                   : Name_Id;
+      Variable_Or_Array_Name : Name_Id;
+      In_Package             : Package_Id)
       return                   Variable_Value
    is
-      The_Array    : Array_Component_Reference;
+      The_Array    : Array_Element_Id;
       The_Variable : Variable_Value := Nil_Variable_Value;
 
    begin
-      if In_Package /= null then
+      if In_Package /= No_Package then
+
+         --  First, look if there is an array element that fits
+
          The_Array :=
            Value_Of
              (Name      => Variable_Or_Array_Name,
-              In_Arrays => In_Package.Decl.Arrays);
+              In_Arrays => Packages.Table (In_Package).Decl.Arrays);
          The_Variable :=
            Value_Of
              (Index    => Name,
               In_Array => The_Array);
 
+         --  If there is no array element, look for a variable
+
          if The_Variable = Nil_Variable_Value then
             The_Variable :=
               Value_Of
                 (Variable_Name => Variable_Or_Array_Name,
-                 In_Variables  => In_Package.Decl.Variables);
+                 In_Variables  => Packages.Table (In_Package).Decl.Variables);
          end if;
       end if;
 
@@ -260,74 +276,83 @@ package body Prj.Util is
    end Value_Of;
 
    function Value_Of
-     (Index     : String;
-      In_Array  : String;
-      In_Arrays : Array_List)
-      return      String_Access
+     (Index     : Name_Id;
+      In_Array  : Name_Id;
+      In_Arrays : Array_Id)
+      return      Name_Id
    is
-      Current : Array_List := In_Arrays;
+      Current : Array_Id := In_Arrays;
+      The_Array : Array_Data;
 
    begin
-      while Current /= null loop
-         if Current.Name.all = In_Array then
-            return Value_Of (Index, In_Array => Current.Value);
+      while Current /= No_Array loop
+         The_Array := Arrays.Table (Current);
+         if The_Array.Name = In_Array then
+            return Value_Of (Index, In_Array => The_Array.Value);
          else
-            Current := Current.Next;
+            Current := The_Array.Next;
          end if;
       end loop;
 
-      return null;
+      return No_Name;
    end Value_Of;
 
    function Value_Of
-     (Name      : String;
-      In_Arrays : Array_List)
-      return      Array_Component_Reference
+     (Name      : Name_Id;
+      In_Arrays : Array_Id)
+      return      Array_Element_Id
    is
-      Current : Array_List := In_Arrays;
+      Current : Array_Id := In_Arrays;
+      The_Array : Array_Data;
 
    begin
-      while Current /= null loop
-         if Current.Name.all = Name then
-            return Current.Value;
+      while Current /= No_Array loop
+         The_Array := Arrays.Table (Current);
+         if The_Array.Name = Name then
+            return The_Array.Value;
          else
-            Current := Current.Next;
+            Current := The_Array.Next;
          end if;
       end loop;
 
-      return null;
+      return No_Array_Element;
    end Value_Of;
 
    function Value_Of
-     (Name        : String;
-      In_Packages : Package_List)
-      return        Package_List
+     (Name        : Name_Id;
+      In_Packages : Package_Id)
+      return        Package_Id
    is
-      Current : Package_List := In_Packages;
+      Current : Package_Id := In_Packages;
+      The_Package : Package_Element;
 
    begin
-      while Current /= null loop
-         exit when Current.Name /= null and then
-           Current.Name.all = Name;
-         Current := Current.Next;
+      while Current /= No_Package loop
+         The_Package := Packages.Table (Current);
+         exit when The_Package.Name /= No_Name and then
+           The_Package.Name = Name;
+         Current := The_Package.Next;
       end loop;
 
       return Current;
    end Value_Of;
 
    function Value_Of
-     (Variable_Name : String;
-      In_Variables  : Variable_List)
+     (Variable_Name : Name_Id;
+      In_Variables  : Variable_Id)
       return          Variable_Value
    is
-      Current : Variable_List := In_Variables;
+      Current : Variable_Id := In_Variables;
+      The_Variable : Variable;
 
    begin
-      while Current /= null loop
-         if Variable_Name = Current.Name.all then
-            return Current.Value;
+      while Current /= No_Variable loop
+         The_Variable := Variable_Elements.Table (Current);
+
+         if Variable_Name = The_Variable.Name then
+            return The_Variable.Value;
          else
-            Current := Current.Next;
+            Current := The_Variable.Next;
          end if;
       end loop;
 

@@ -179,6 +179,7 @@ package body Opt is
       Tree_Read_Data (Wide_Character_Encoding_Method'Address,
                       WC_Encoding_Method'Object_Size / Storage_Unit);
       Tree_Read_Bool (Upper_Half_Encoding);
+      Tree_Read_Bool (Force_ALI_Tree_File);
    end Tree_Read;
 
    ----------------
@@ -217,6 +218,7 @@ package body Opt is
       Tree_Write_Data (Wide_Character_Encoding_Method'Address,
                        WC_Encoding_Method'Object_Size / Storage_Unit);
       Tree_Write_Bool (Upper_Half_Encoding);
+      Tree_Write_Bool (Force_ALI_Tree_File);
    end Tree_Write;
 
 end Opt;

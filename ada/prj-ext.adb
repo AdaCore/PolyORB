@@ -26,21 +26,22 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Strings.Fixed; use Ada.Strings.Fixed;
-with GNAT.OS_Lib;       use GNAT.OS_Lib;
+with GNAT.HTable;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
+with Namet;       use Namet;
+with Prj.Com;     use Prj.Com;
+with Stringt;     use Stringt;
+with Types;       use Types;
 
 package body Prj.Ext is
 
-   type Node;
-   type Link is access Node;
-   type Node is record
-     Name  : String_Access;
-     Value : String_Access;
-     Next  : Link;
-   end record;
-
-   First : Link;
-   --  The external reference cache.
+   package Htable is new GNAT.HTable.Simple_HTable
+     (Header_Num => Header_Num,
+      Element    => String_Id,
+      No_Element => No_String,
+      Key        => Name_Id,
+      Hash       => Hash,
+      Equal      => "=");
 
    ---------
    -- Add --
@@ -50,29 +51,17 @@ package body Prj.Ext is
      (External_Name : String;
       Value         : String)
    is
-      Current : Link;
+      The_Key   : Name_Id;
+      The_Value : String_Id;
 
    begin
-      --  First, check the cache.
-      --  If there is already an entry, replace the value.
-
-      Current := First;
-      while Current /= null loop
-         if Current.Name.all = External_Name then
-            Free (Current.Value);
-            Current.Value := new String'(Value);
-            return;
-
-         else
-            Current := Current.Next;
-         end if;
-      end loop;
-
-      --  It is not in the cache, add a new entry.
-
-      First := new Node'(Name => new String'(External_Name),
-                         Value => new String'(Value),
-                         Next => First);
+      Start_String;
+      Store_String_Chars (Value);
+      The_Value := End_String;
+      Name_Len := External_Name'Length;
+      Name_Buffer (1 .. Name_Len) := External_Name;
+      The_Key := Name_Find;
+      Htable.Set (The_Key, The_Value);
    end Add;
 
    -----------
@@ -80,19 +69,23 @@ package body Prj.Ext is
    -----------
 
    function Check (Declaration : String) return Boolean is
-      Equal_Pos : constant Natural :=
-                    Index (Source => Declaration, Pattern => "=");
-
    begin
-      if Equal_Pos /= 0 and then Equal_Pos /= Declaration'First then
-         Add
-           (External_Name => Declaration (Declaration'First .. Equal_Pos - 1),
-            Value         => Declaration (Equal_Pos + 1 .. Declaration'Last));
-         return True;
+      for Equal_Pos in Declaration'Range loop
 
-      else
-         return False;
-      end if;
+         if Declaration (Equal_Pos) = '=' then
+            exit when Equal_Pos = Declaration'First;
+            exit when Equal_Pos = Declaration'Last;
+            Add
+              (External_Name =>
+                 Declaration (Declaration'First .. Equal_Pos - 1),
+               Value =>
+                 Declaration (Equal_Pos + 1 .. Declaration'Last));
+            return True;
+         end if;
+
+      end loop;
+
+      return False;
    end Check;
 
    --------------
@@ -100,46 +93,33 @@ package body Prj.Ext is
    --------------
 
    function Value_Of
-     (External_Name : String;
-      With_Default  : String := "")
-      return          String
+     (External_Name : Name_Id;
+      With_Default  : String_Id := No_String)
+      return          String_Id
    is
-      Current : Link;
+      The_Value : String_Id;
 
    begin
-      --  First look in the cache
+      The_Value := Htable.Get (External_Name);
 
-      Current := First;
-      while Current /= null loop
-         if Current.Name.all = External_Name then
-            if Current.Value = null then
-               return With_Default;
-            else
-               return Current.Value.all;
-            end if;
-
-         else
-            Current := Current.Next;
-         end if;
-      end loop;
-
-      --  It is not in the cache, add an entry
-
-      First := new Node'(Name => new String'(External_Name),
-                         Value => null,
-                         Next => First);
+      if The_Value /= No_String then
+         return The_Value;
+      end if;
 
       --  Find if it is an environment.
-      --  If it is, put the value in the new cache entry.
+      --  If it is, put the value in the hash table.
 
       declare
-         Env_Value : constant String_Access := Getenv (External_Name);
+         Env_Value : constant String_Access :=
+           Getenv (Get_Name_String (External_Name));
 
       begin
-         if Env_Value /= null and then
-            Env_Value'Length > 0 then
-            First.Value := new String'(Env_Value.all);
-            return Env_Value.all;
+         if Env_Value /= null and then Env_Value'Length > 0 then
+            Start_String;
+            Store_String_Chars (Env_Value.all);
+            The_Value := End_String;
+            Htable.Set (External_Name, The_Value);
+            return The_Value;
 
          else
             return With_Default;

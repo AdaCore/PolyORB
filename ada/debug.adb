@@ -74,7 +74,7 @@ package body Debug is
    --  dD
    --  dE   Apply elaboration checks to predefined units
    --  dF   Front end data layout enabled.
-   --  dG
+   --  dG   Generate input showing file creating info for debug file
    --  dH
    --  dI   Inhibit internal name numbering in gnatG listing
    --  dJ   Output debugging trace info for JGNAT (Java VM version of GNAT)
@@ -222,6 +222,9 @@ package body Debug is
    --       This flag differs from -gnatG in that the output also includes
    --       non-source generated null statements, and freeze nodes, which
    --       are normally omitted in -gnatG mode.
+
+   --  dG   Print trace information showing calls to Create_Debug_Source and
+   --       Write_Debug_Line. Used for debugging -gnatD operation problems.
 
    --  dh   Generates a table at the end of a compilation showing how the hash
    --       table chains built by the Namet package are loaded. This is useful

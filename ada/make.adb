@@ -50,6 +50,8 @@ with Prj.Ext;
 with Prj.Pars;
 with Prj.Util;
 with SFN_Scan;
+with Snames;           use Snames;
+with Stringt;          use Stringt;
 with Table;
 with Types;            use Types;
 with Switch;           use Switch;
@@ -171,19 +173,21 @@ package body Make is
 
    Project_File_Name : String_Access := null;
    Current_Verbosity : Prj.Verbosity := Prj.Default;
-   Main_Project : Prj.Reference;
+   Main_Project      : Prj.Project_Id;
 
    procedure Add_Source_Dir (N : String);
+   --  Call Add_Src_Search_Dir.
+   --  Output one line when in verbose mode.
 
    procedure Add_Source_Directories is
-      new Prj.Env.For_All_Source_Dirs
-     (Action => Add_Source_Dir);
+     new Prj.Env.For_All_Source_Dirs (Action => Add_Source_Dir);
 
    procedure Add_Object_Dir (N : String);
+   --  Call Add_Lib_Search_Dir.
+   --  Output one line when in verbose mode.
 
    procedure Add_Object_Directories is
-      new Prj.Env.For_All_Object_Dirs
-     (Action => Add_Object_Dir);
+     new Prj.Env.For_All_Object_Dirs (Action => Add_Object_Dir);
 
    type Bad_Compilation_Info is record
       File  : File_Name_Type;
@@ -223,9 +227,9 @@ package body Make is
    --  been found in the project file.
 
    Original_Ada_Include_Path : constant String_Access :=
-     Getenv ("ADA_INCLUDE_PATH");
+                                 Getenv ("ADA_INCLUDE_PATH");
    Original_Ada_Objects_Path : constant String_Access :=
-     Getenv ("ADA_OBJECTS_PATH");
+                                 Getenv ("ADA_OBJECTS_PATH");
 
    ----------------------
    -- Marking Routines --
@@ -373,7 +377,7 @@ package body Make is
    --  Used in Scan_Make_Arg only, but must be a global variable.
 
    procedure Add_Switches
-     (The_Package : Package_List;
+     (The_Package : Package_Id;
       File_Name   : String;
       Program     : Make_Program_Type);
    procedure Add_Switch
@@ -553,48 +557,64 @@ package body Make is
    ------------------
 
    procedure Add_Switches
-     (The_Package : Package_List;
+     (The_Package : Package_Id;
       File_Name   : String;
       Program     : Make_Program_Type)
    is
-      Switches    : Variable_Value;
-      Switch_List : String_List;
+      Switches      : Variable_Value;
+      Switch_List   : String_List_Id;
+      Element       : String_Element;
 
    begin
-      Switches :=
-        Prj.Util.Value_Of
-          (Name                   => File_Name,
-           Variable_Or_Array_Name => "switches",
-           In_Package             => The_Package);
+      if File_Name'Length > 0 then
+         Name_Len := File_Name'Length;
+         Name_Buffer (1 .. Name_Len) := File_Name;
+         Switches :=
+           Prj.Util.Value_Of
+             (Name                   => Name_Find,
+              Variable_Or_Array_Name => Name_Switches,
+              In_Package             => The_Package);
 
-      case Switches.Kind is
-         when Undefined =>
-            null;
+         case Switches.Kind is
+            when Undefined =>
+               null;
 
-         when List =>
-            Program_Args := Program;
+            when List =>
+               Program_Args := Program;
 
-            Switch_List := Switches.Values;
-            while Switch_List /= null loop
-               if Opt.Verbose_Mode then
-                  Write_Str ("   Adding ");
-                  Write_Line (Switch_List.Value.all);
+               Switch_List := Switches.Values;
+               while Switch_List /= Nil_String loop
+                  Element := String_Elements.Table (Switch_List);
+                  String_To_Name_Buffer (Element.Value);
+                  if Name_Len > 0 then
+                     if Opt.Verbose_Mode then
+                        Write_Str ("   Adding ");
+                        Write_Line (Name_Buffer (1 .. Name_Len));
+                     end if;
+
+                     Scan_Make_Arg
+                       (Name_Buffer (1 .. Name_Len),
+                        And_Save => False);
+                  end if;
+
+                  Switch_List := Element.Next;
+               end loop;
+
+            when Single =>
+               Program_Args := Program;
+
+               String_To_Name_Buffer (Switches.Value);
+               if Name_Len > 0 then
+                  if Opt.Verbose_Mode then
+                     Write_Str ("   Adding ");
+                     Write_Line (Name_Buffer (1 .. Name_Len));
+                  end if;
+
+                  Scan_Make_Arg
+                    (Name_Buffer (1 .. Name_Len), And_Save => False);
                end if;
-
-               Scan_Make_Arg (Switch_List.Value.all, And_Save => False);
-               Switch_List := Switch_List.Next;
-            end loop;
-
-         when Single =>
-            Program_Args := Program;
-
-            if Opt.Verbose_Mode then
-               Write_Str ("   Adding ");
-               Write_Line (Switches.Value.all);
-            end if;
-
-            Scan_Make_Arg (Switches.Value.all, And_Save => False);
-      end case;
+         end case;
+      end if;
    end Add_Switches;
 
    ----------
@@ -880,7 +900,7 @@ package body Make is
                end if;
             end loop;
 
-            if Main_Project /= null then
+            if Main_Project /= No_Project then
                null;
             end if;
 
@@ -1585,8 +1605,222 @@ package body Make is
       Pid  : Process_Id;
       Text : Text_Buffer_Ptr;
 
+      Data : Prj.Project_Data;
+      Gnatmake_Element : Package_Element;
+
       Arg_Index : Natural;
       --  Index in Special_Args.Table of a given compilation file
+
+      procedure Collect_Arguments_And_Compile;
+
+      procedure Collect_Arguments_And_Compile is
+      begin
+
+         --  If no project file is used, then just call Compile with
+         --  the specified Args.
+
+         if Main_Project = No_Project then
+            Pid := Compile (Full_Source_File, Lib_File, Args);
+
+         --  A project file was used.
+
+         else
+            --  First check if the current source is an immediate
+            --  source of a project file.
+
+            if Opt.Verbose_Mode then
+               Write_Eol;
+               Write_Line ("Establishing Project context.");
+            end if;
+
+            declare
+               Source_File_Name : constant String :=
+                 Name_Buffer (1 .. Name_Len);
+               Current_Project : Prj.Project_Id;
+               Path_Name : File_Name_Type := Source_File;
+               Gnatmake : Prj.Package_Id;
+               Compiler_Package : Prj.Package_Id;
+               Switches : Prj.Variable_Value;
+               Object_File : String_Access;
+
+            begin
+               if Opt.Verbose_Mode then
+                  Write_Str ("Checking if the Project File exists for """);
+                  Write_Str (Source_File_Name);
+                  Write_Line (""".");
+               end if;
+
+               Prj.Env.
+                 Get_Reference
+                 (Source_File_Name => Source_File_Name,
+                  Project          => Current_Project,
+                  Path             => Path_Name);
+
+               if Current_Project = No_Project then
+
+                  --  The current source is not an immediate source of
+                  --  any project file.
+                  --  Call Compile with the specified Args plus the saved
+                  --  gcc switches.
+
+                  if Opt.Verbose_Mode then
+                     Write_Str ("No Project File.");
+                     Write_Eol;
+                  end if;
+
+                  Pid := Compile
+                    (Full_Source_File,
+                     Lib_File,
+                     Args & The_Saved_Gcc_Switches.all);
+
+               --  We now know the project of the current source.
+
+               else
+                  Data := Projects.Table (Current_Project);
+                  Object_File :=
+                    new String'
+                    (Get_Name_String (Data.Object_Directory) &
+                     Directory_Separator &
+                     Object_File_Name (Source_File_Name));
+
+                  if Opt.Verbose_Mode then
+                     Write_Str ("Project file is """);
+                     Write_Str (Get_Name_String (Data.Name));
+                     Write_Str (""".");
+                     Write_Eol;
+                  end if;
+
+                  if Opt.Verbose_Mode then
+                     Write_Str ("Checking package gnatmake.");
+                     Write_Eol;
+                  end if;
+
+                  --  We know look for package Gnatmake.Compiler
+                  --  and get the switches from this package.
+
+                  Gnatmake :=
+                    Prj.Util.Value_Of
+                    (Name        => Name_Gnatmake,
+                     In_Packages => Data.Decl.Packages);
+
+                  --  Package Gnatmake exists
+
+                  if Gnatmake /= No_Package then
+
+                     --  We now look for package Gnatmake.Compiler.
+
+                     if Opt.Verbose_Mode then
+                        Write_Str ("Checking package Compiler.");
+                        Write_Eol;
+                     end if;
+
+                     Gnatmake_Element :=
+                       Packages.Table (Gnatmake);
+
+                     Compiler_Package :=
+                       Prj.Util.Value_Of
+                       (Name        => Name_Compiler,
+                        In_Packages => Gnatmake_Element.Decl.Packages);
+
+                     if Opt.Verbose_Mode then
+                        Write_Str ("Getting the switches.");
+                        Write_Eol;
+                     end if;
+
+                     --  If package Gnatmake.Compiler exists, we get
+                     --  the specific switches for the current source,
+                     --  or the global switches, if any.
+
+                     Switches :=
+                       Prj.Util.Value_Of
+                       (Name                   => Source_File,
+                        Variable_Or_Array_Name => Name_Switches,
+                        In_Package             => Compiler_Package);
+                  end if;
+
+                  case Switches.Kind is
+
+                     --  We have a list of switches. We add to Args
+                     --  these switches, plus the saved gcc switches.
+
+                     when List =>
+
+                        declare
+                           Current : String_List_Id := Switches.Values;
+                           Element : String_Element;
+                           Number  : Natural := 0;
+
+                        begin
+                           while Current /= Nil_String loop
+                              Element := String_Elements.Table (Current);
+                              Number  := Number + 1;
+                              Current := Element.Next;
+                           end loop;
+
+                           declare
+                              New_Args : Argument_List (1 .. Number);
+
+                           begin
+                              Current := Switches.Values;
+
+                              for Index in New_Args'Range loop
+                                 Element := String_Elements.Table (Current);
+                                 String_To_Name_Buffer (Element.Value);
+                                 New_Args (Index) :=
+                                   new String' (Name_Buffer (1 .. Name_Len));
+                                 Current := Element.Next;
+                              end loop;
+
+                              Pid := Compile
+                                (Path_Name,
+                                 Lib_File,
+                                 Args & Output_Flag & Object_File &
+                                 New_Args & The_Saved_Gcc_Switches.all);
+                           end;
+                        end;
+
+                     --  We have a single switch. We add to Args
+                     --  this switch, plus the saved gcc switches.
+
+                     when Single =>
+
+                        String_To_Name_Buffer (Switches.Value);
+                        declare
+                           New_Args : constant Argument_List :=
+                             (1 => new String' (Name_Buffer (1 .. Name_Len)));
+
+                        begin
+                           Pid := Compile
+                             (Path_Name,
+                              Lib_File,
+                              Args &
+                              Output_Flag &
+                              Object_File &
+                              New_Args &
+                              The_Saved_Gcc_Switches.all);
+                        end;
+
+                     --  We have no switches from Gnatmake.Compiler.
+                     --  We add to Args the saved gcc switches.
+
+                     when Undefined =>
+
+                        if Opt.Verbose_Mode then
+                           Write_Str ("There are no switches.");
+                           Write_Eol;
+                        end if;
+
+                        Pid := Compile
+                          (Path_Name,
+                           Lib_File,
+                           Args & Output_Flag & Object_File &
+                           The_Saved_Gcc_Switches.all);
+
+                  end case;
+               end if;
+            end;
+         end if;
+      end Collect_Arguments_And_Compile;
 
    --  Start of processing for Compile_Sources
 
@@ -1760,170 +1994,7 @@ package body Make is
                   --  Start the compilation and record it. We can do this
                   --  because there is at least one free process.
 
-                  if Main_Project = null then
-                     Pid := Compile (Full_Source_File, Lib_File, Args);
-
-                  else
-                     if Opt.Verbose_Mode then
-                        Write_Eol;
-                        Write_Str ("Establishing Project context.");
-                        Write_Eol;
-                     end if;
-
-                     declare
-                        Source_File_Name : constant String :=
-                          Name_Buffer (1 .. Name_Len);
-                        Current_Project : Prj.Reference;
-                        Path : String_Access;
-                        Path_Name : File_Name_Type := Source_File;
-                        Gnatmake : Prj.Package_List;
-                        Compiler_Package : Prj.Package_List;
-                        Switches : Prj.Variable_Value;
-                        Object_File : String_Access;
-
-                     begin
-                        if Opt.Verbose_Mode then
-                           Write_Str
-                             ("Checking if the Project File exists for """);
-                           Write_Str (Source_File_Name);
-                           Write_Str (""".");
-                           Write_Eol;
-                        end if;
-
-                        Prj.Env.
-                          Get_Reference
-                          (Source_File_Name => Source_File_Name,
-                           Ref => Current_Project,
-                           Path => Path);
-
-                        if Current_Project = null then
-                           if Opt.Verbose_Mode then
-                              Write_Str ("No Project File.");
-                              Write_Eol;
-                           end if;
-
-                           Pid := Compile (Full_Source_File, Lib_File, Args);
-
-                        else
-                           Object_File :=
-                             new String'
-                               (Current_Project.Object_Directory.all &
-                                Directory_Separator &
-                                Object_File_Name (Source_File_Name));
-                           Name_Len := Path'Length;
-                           Name_Buffer (1 .. Name_Len) := Path.all;
-                           Path_Name := Name_Find;
-
-                           if Opt.Verbose_Mode then
-                              Write_Str ("Project file is """);
-                              Write_Str (Current_Project.Name.all);
-                              Write_Str (""".");
-                              Write_Eol;
-                           end if;
-
-                           if Opt.Verbose_Mode then
-                              Write_Str ("Checking package gnatmake.");
-                              Write_Eol;
-                           end if;
-
-                           Gnatmake :=
-                             Prj.Util.Value_Of
-                               (Name        => "gnatmake",
-                                In_Packages => Current_Project.Decl.Packages);
-
-                           if Gnatmake /= null then
-                              if Opt.Verbose_Mode then
-                                 Write_Str ("Checking package Compiler.");
-                                 Write_Eol;
-                              end if;
-
-                              Compiler_Package :=
-                                Prj.Util.Value_Of
-                                  (Name        => "compiler",
-                                   In_Packages => Gnatmake.Decl.Packages);
-
-                              if Opt.Verbose_Mode then
-                                 Write_Str ("Getting the switches.");
-                                 Write_Eol;
-                              end if;
-
-                              Switches :=
-                                Prj.Util.Value_Of
-                                  (Name                   => Source_File_Name,
-                                   Variable_Or_Array_Name => "switches",
-                                   In_Package => Compiler_Package);
-                           end if;
-
-                           case Switches.Kind is
-                              when List =>
-                                 declare
-                                    Current : String_List := Switches.Values;
-                                    Number  : Natural := 0;
-
-                                 begin
-                                    while Current /= null loop
-                                       Number := Number + 1;
-                                       Current := Current.Next;
-                                    end loop;
-
-                                    declare
-                                       New_Args : Argument_List (1 .. Number);
-
-                                    begin
-                                       Current := Switches.Values;
-
-                                       for Index in New_Args'Range loop
-                                          New_Args (Index) := Current.Value;
-                                          Current := Current.Next;
-                                       end loop;
-
-                                       Pid :=
-                                         Compile
-                                           (Path_Name,
-                                            Lib_File,
-                                            Args &
-                                            Output_Flag &
-                                            Object_File &
-                                            New_Args &
-                                            The_Saved_Gcc_Switches.all);
-                                    end;
-                                 end;
-
-                              when Single =>
-                                 declare
-                                    New_Args : constant Argument_List :=
-                                      (1 => Switches.Value);
-
-                                 begin
-                                    Pid :=
-                                      Compile
-                                        (Path_Name,
-                                         Lib_File,
-                                         Args &
-                                         Output_Flag &
-                                         Object_File &
-                                         New_Args &
-                                         The_Saved_Gcc_Switches.all);
-                                 end;
-
-                              when Undefined =>
-                                 if Opt.Verbose_Mode then
-                                    Write_Str ("There are no switches.");
-                                    Write_Eol;
-                                 end if;
-
-                                 Pid :=
-                                   Compile
-                                     (Path_Name,
-                                      Lib_File,
-                                      Args &
-                                      Output_Flag &
-                                      Object_File &
-                                      The_Saved_Gcc_Switches.all);
-                           end case;
-                        end if;
-                     end;
-                  end if;
+                  Collect_Arguments_And_Compile;
 
                   --  Make sure we could successfully start the compilation
 
@@ -2046,7 +2117,10 @@ package body Make is
 
       Compilation_Failures := Bad_Compilation_Count;
 
-      if Main_Project /= null then
+      --  Compilation is finisshed. Restore the gnat.adc,
+      --  if it had been modified.
+
+      if Main_Project /= No_Project then
          Prj.Env.Restore_Gnat_Adc;
       end if;
 
@@ -2233,6 +2307,8 @@ package body Make is
 
       if Project_File_Name /= null then
 
+         --  A project file was specified by a -P switch
+
          if Opt.Verbose_Mode then
             Write_Eol;
             Write_Str ("Parsing Project File """);
@@ -2241,17 +2317,20 @@ package body Make is
             Write_Eol;
          end if;
 
+         --  Set the project parsing verbosity to whatever was specified
+         --  by a possible -vP switch.
+
          Prj.Pars.Set_Verbosity (To => Current_Verbosity);
-         Prj.Env.Set_Verbosity (To => Current_Verbosity);
 
          --  Parse the project file.
+         --  If there is an error, Main_Project will still be No_Project.
 
          Prj.Pars.Parse
-           (Ref               => Main_Project,
+           (Project           => Main_Project,
             Project_File_Name => Project_File_Name.all,
             Package_Name      => "gnatmake");
 
-         if Main_Project = null then
+         if Main_Project = No_Project then
             Fail ("could not parse project file """ &
                   Project_File_Name.all &
                   """.");
@@ -2272,20 +2351,29 @@ package body Make is
                                       Get_Name_String (Main_Source_File);
             Main_Unit_File_Name   : constant String :=
                                       Prj.Env.File_Name_Of_Library_Unit_Body
-                                        (Name => Main_Source_File_Name,
-                                         Ref  => Main_Project);
+                                        (Name    => Main_Source_File_Name,
+                                         Project => Main_Project);
 
-            Gnatmake : constant Prj.Package_List :=
+            Gnatmake : constant Prj.Package_Id :=
                          Prj.Util.Value_Of
-                           (Name        => "gnatmake",
-                            In_Packages => Main_Project.Decl.Packages);
+                           (Name        => Name_Gnatmake,
+                            In_Packages =>
+                              Projects.Table (Main_Project).Decl.Packages);
 
          begin
+
+            --  We fail if we cannot find the main source file
+            --  as an immediate source of the main project file.
+
             if Main_Unit_File_Name = "" then
                Fail ('"' & Main_Source_File_Name  &
                      """ is not a unit of project " &
                      Project_File_Name.all & ".");
             else
+
+               --  Remove any directory information from the main
+               --  source file name.
+
                declare
                   Pos : Natural := Main_Unit_File_Name'Last;
 
@@ -2314,17 +2402,24 @@ package body Make is
                end;
             end if;
 
-            if Gnatmake /= null then
-               declare
-                  Binder_Package : constant Prj.Package_List :=
-                                     Prj.Util.Value_Of
-                                       (Name        => "binder",
-                                        In_Packages => Gnatmake.Decl.Packages);
+            --  If there is a package gnatmake in the main project
+            --  file, add the switches from it.
+            --  We also add the switches from packages
+            --  Gnatmake.Binder and Gnatmake.Linker, if any.
 
-                  Linker_Package : constant Prj.Package_List :=
-                                     Prj.Util.Value_Of
-                                       (Name => "linker",
-                                        In_Packages => Gnatmake.Decl.Packages);
+            if Gnatmake /= No_Package then
+               declare
+                  The_Packages : Package_Id :=
+                    Packages.Table (Gnatmake).Decl.Packages;
+                  Binder_Package : constant Prj.Package_Id :=
+                    Prj.Util.Value_Of
+                      (Name        => Name_Binder,
+                       In_Packages => The_Packages);
+
+                  Linker_Package : constant Prj.Package_Id :=
+                    Prj.Util.Value_Of
+                      (Name => Name_Linker,
+                       In_Packages => The_Packages);
 
                begin
                   if Opt.Verbose_Mode then
@@ -2370,7 +2465,12 @@ package body Make is
 
          Prj.Env.Create_Gnat_Adc (Main_Project);
 
-         --  Set ADA_INCLUDE_PATH and ADA_OBJECTS_PATH
+         --  Set ADA_INCLUDE_PATH and ADA_OBJECTS_PATH.
+         --  Note: this will modify these environment variables only
+         --  for the current gnatmake process and all of its children
+         --  (invocations of the compiler, the binder and the linker).
+         --  The caller's ADA_INCLUDE_PATH and ADA_OBJECTS_PATH are
+         --  not affected.
 
          if Opt.Verbose_Mode then
             Write_Str ("Setting ADA_INCLUDE_PATH.");
@@ -2449,6 +2549,12 @@ package body Make is
 
       Display_Commands (not Opt.Quiet_Output);
 
+      --  We now put in the Binder_Switches and Linker_Switches tables,
+      --  the binder and linker switches of the command line,
+      --  that have been put in the Saved_ tables.
+      --  If a project file was used, then the command line switches
+      --  will follow the project file switches.
+
       for J in 1 .. Saved_Binder_Switches.Last loop
          Add_Switch
            (Saved_Binder_Switches.Table (J),
@@ -2463,7 +2569,10 @@ package body Make is
             And_Save => False);
       end loop;
 
-      if Main_Project = null then
+      --  If no project file is used, we just put the gcc switches
+      --  from the command line in the Gcc_Switches table.
+
+      if Main_Project = No_Project then
          for J in 1 .. Saved_Gcc_Switches.Last loop
             Add_Switch
               (Saved_Gcc_Switches.Table (J),
@@ -2472,8 +2581,18 @@ package body Make is
          end loop;
 
       else
+
+         --  A project file is used.
+         --  We add the source directories and the object directories
+         --  to the search paths.
+
          Add_Source_Directories (Main_Project);
          Add_Object_Directories (Main_Project);
+
+         --  And we put the command line gcc switches in the variable
+         --  The_Saved_Gcc_Switches. They are going to be used later
+         --  in procedure Compile_Sources.
+
          The_Saved_Gcc_Switches :=
            new Argument_List (1 .. Saved_Gcc_Switches.Last);
 
@@ -2482,7 +2601,9 @@ package body Make is
          end loop;
       end if;
 
-      --  Here is where the make process is started
+      --  If there was a --GCC, --GNATBIND or --GNATLINK switch on
+      --  the command line, then we have to use it, even if there was
+      --  another switch in the project file.
 
       if Saved_Gcc /= null then
          Gcc := Saved_Gcc;
@@ -2499,6 +2620,8 @@ package body Make is
       Gcc_Path       := GNAT.OS_Lib.Locate_Exec_On_Path (Gcc.all);
       Gnatbind_Path  := GNAT.OS_Lib.Locate_Exec_On_Path (Gnatbind.all);
       Gnatlink_Path  := GNAT.OS_Lib.Locate_Exec_On_Path (Gnatlink.all);
+
+      --  Here is where the make process is started
 
       Recursive_Compilation_Step : declare
          Args : Argument_List (1 .. Gcc_Switches.Last);
@@ -2577,10 +2700,6 @@ package body Make is
             Write_Str ("End of compilation");
             Write_Eol;
          end if;
-
-         --  if Main_Project /= null then
-         --     Prj.Env.Restore_Gnat_Adc;
-         --  end if;
 
          if Compilation_Failures /= 0 then
             List_Bad_Compilations;
@@ -2822,6 +2941,10 @@ package body Make is
       Csets.Initialize;
       Namet.Initialize;
 
+      Snames.Initialize;
+
+      Prj.Initialize;
+
       Next_Arg := 1;
       Scan_Args : while Next_Arg <= Argument_Count loop
          Scan_Make_Arg (Argument (Next_Arg), And_Save => True);
@@ -2830,6 +2953,14 @@ package body Make is
 
       if Usage_Requested then
          Makeusg;
+      end if;
+
+      --  Test for trailing -o switch
+
+      if Opt.Output_Filename_Present
+        and then not Output_Filename_Seen
+      then
+         Fail ("Output filename missing after -o");
       end if;
 
       Osint.Add_Default_Search_Dirs;
@@ -3204,8 +3335,10 @@ package body Make is
                   Add_Src_Search_Dir (Argv (3 .. Argv'Last));
 
                end if;
+
             elsif Program_Args = Binder then
                Add_Lib_Search_Dir (Argv (3 .. Argv'Last));
+
             end if;
          end if;
 
@@ -3356,11 +3489,15 @@ package body Make is
          elsif Argv (2) = 'L' then
             Add_Switch (Argv, Linker, And_Save => And_Save);
 
-         --  -g
+         --  -g -pg (give the switch to both the compiler and the linker)
 
-         elsif Argv (2) = 'g'
-           and then (Argv'Last = 2
-                     or else Argv (3) in '0' .. '3')
+         elsif
+           (Argv (2) = 'g'
+            and then
+            (Argv'Last = 2
+             or else Argv (3) in '0' .. '3'))
+           or else
+           Argv (2 .. Argv'Last) = "pg"
          then
             Add_Switch (Argv, Compiler, And_Save => And_Save);
             Add_Switch (Argv, Linker, And_Save => And_Save);
