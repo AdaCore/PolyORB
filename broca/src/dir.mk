@@ -55,12 +55,18 @@ lib = $(patsubst %,$(LibPattern),broca)
 
 all:: $(lib)
 
+$(BROCA_ADASOCKET)/socket.ads:
+	-mkdir -p $(BROCA_ADASOCKET)
+	cd $(BROCA_ADASOCKET)/../.. && \
+	./configure --prefix=`pwd` && \
+	make install
+
 $(lib): $(ADA_OBJS)
 	ar rvs $@ $^
 
 $(ADA_OBJS): allsrc
 
-allsrc: $(ADA_SPECS) $(ADA_IMPLS)
+allsrc: $(ADA_SPECS) $(ADA_IMPLS) $(BROCA_ADASOCKET)/socket.ads
 	$(GNATMAKE) $(BROCA_FLAGS) allsrc; \
 
 clean::

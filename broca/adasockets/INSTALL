@@ -1,0 +1,11 @@
+INSTALL file for adasockets version 0.1.3 (beta)
+
+To install this software, just do:
+
+  % ./configure --prefix=<any directory>
+  % make install
+
+This will build and install this software under <any directory>/lib/adasockets.
+
+In the examples subdirectory, you will find an example called "tcprelay" which
+illustrates how this package can be used.
