@@ -428,6 +428,19 @@ package body Ada_Be.Idl2Ada.Helper is
       Gen_To_Any_Profile (CU, Node);
       PL (CU, ";");
 
+      --  if the interface was forward declared
+      if Forward (Node) /= No_Node then
+         --  From_Any
+         NL (CU);
+         Gen_From_Any_Profile (CU, Forward (Node));
+         PL (CU, ";");
+
+         --  To_Any
+         NL (CU);
+         Gen_To_Any_Profile (CU, Forward (Node));
+         PL (CU, ";");
+      end if;
+
       --  Fill in typecode TC_<name of the type>
       Add_Elaborate_Body (CU);
    end Gen_Interface_Spec;
@@ -611,6 +624,35 @@ package body Ada_Be.Idl2Ada.Helper is
           & "(CORBA.Object.Ref (Item));");
       DI (CU);
       PL (CU, "end To_Any;");
+
+      --  if the interface was forward declared
+      if Forward (Node) /= No_Node then
+         --  From_Any
+         Add_With (CU, "CORBA.Object.Helper");
+         NL (CU);
+         Gen_From_Any_Profile (CU, Forward (Node));
+         PL (CU, " is");
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, "return Convert_Forward.To_Forward (To_"
+             & Ada_Type_Defining_Name (Forward (Node))
+             & " (CORBA.Object.Helper."
+             & "From_Any (Item)));");
+         DI (CU);
+         PL (CU, "end From_Any;");
+
+         --  To_Any
+         Add_With (CU, "CORBA.Object.Helper");
+         NL (CU);
+         Gen_To_Any_Profile (CU, Forward (Node));
+         PL (CU, " is");
+         PL (CU, "begin");
+         II (CU);
+         PL (CU, "return CORBA.Object.Helper.To_Any "
+          & "(CORBA.Object.Ref (Convert_Forward.To_Ref (Item)));");
+         DI (CU);
+         PL (CU, "end To_Any;");
+      end if;
 
       --  Fill in the typecode TC_<name of the type>
 
@@ -1958,7 +2000,6 @@ package body Ada_Be.Idl2Ada.Helper is
       case NK is
          when
            K_Interface         |
-           K_Forward_Interface |
             --          K_ValueType         |
             --          K_Forward_ValueType |
            K_Sequence_Instance |
@@ -1968,6 +2009,10 @@ package body Ada_Be.Idl2Ada.Helper is
            K_Exception         |
            K_Declarator        =>
             return Prefix & Ada_Name (Node);
+
+         when
+           K_Forward_Interface =>
+            return Prefix & Ada_Name (Forward (Node));
 
 --          when K_String_Instance =>
 --             return Ada_Full_Name (Node) & ".Bounded_String";
@@ -2050,9 +2095,12 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       case NK is
          when
-           K_Interface         |
-           K_Forward_Interface =>
+           K_Interface         =>
             return Ada_Full_Name (Node) & ".Helper";
+
+         when
+           K_Forward_Interface =>
+            return Ada_Full_Name (Forward (Node)) & ".Helper";
 
             --          K_ValueType         |
             --          K_Forward_ValueType |
