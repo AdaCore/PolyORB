@@ -1,3 +1,10 @@
+2003-09-02  Samuel Tardieu  <sam@gnat.com>
+
+	* config.sdefault: Use pragma Style_Checks (Off) to prevent long-line
+	problems.
+
+	* Makefile.am: Do not compile sdefault.adb with special options.
+
 2003-03-03  Pascal Obry  <obry@gnat.com>
 
 	* xe_utils.adb:
