@@ -164,6 +164,11 @@ package body SFN_Scan is
       while not At_EOF loop
          exit when S (P) not in '0' .. '9'
            and then S (P) /= '.'
+           and then S (P) /= '_'
+           and then not (S (P) = '[' and then S (P + 1) = '"')
+           and then not (S (P) = '"' and then S (P - 1) = '[')
+           and then not (S (P) = '"' and then S (P + 1) = ']')
+           and then not (S (P) = ']' and then S (P - 1) = '"')
            and then S (P) < 'A';
          P := P + 1;
       end loop;
@@ -552,6 +557,7 @@ package body SFN_Scan is
          Q := '%';
       else
          Error ("bad string");
+         Q := '"';
       end if;
 
       --  Scan out the string, B points to first char
@@ -607,6 +613,7 @@ package body SFN_Scan is
                while not At_EOF
                  and then (S (P) = CR or else S (P) = LF)
                loop
+                  Line_Num := Line_Num + 1;
                   P := P + 1;
                end loop;
 

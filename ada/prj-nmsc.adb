@@ -44,6 +44,10 @@ with Types;                   use Types;
 
 package body Prj.Nmsc is
 
+   Dir_Sep      : Character renames GNAT.OS_Lib.Directory_Separator;
+
+   Error_Report : Put_Line_Access := null;
+
    procedure Check_Naming_Scheme (Naming : Naming_Data);
    --  Check that the package Naming is correct.
 
@@ -51,6 +55,11 @@ package body Prj.Nmsc is
      (Name : Name_Id;
       Unit : out Name_Id);
    --  Check that a name is a valid unit name.
+
+   procedure Error_Msg (Msg : String; Flag_Location : Source_Ptr);
+   --  Output an error message.
+   --  If Error_Report is null, simply call Errout.Error_Msg.
+   --  Otherwise, disregard Flag_Location and use Error_Report.
 
    function Get_Name_String (S : String_Id) return String;
    --  Get the string from a String_Id
@@ -316,7 +325,10 @@ package body Prj.Nmsc is
       end if;
    end Check_Naming_Scheme;
 
-   procedure Check_Naming_Scheme (Project : Project_Id) is
+   procedure Check_Naming_Scheme
+     (Project      : Project_Id;
+      Report_Error : Put_Line_Access)
+   is
       Last_Source_Dir   : String_List_Id  := Nil_String;
       Data              : Project_Data    := Projects.Table (Project);
 
@@ -407,14 +419,14 @@ package body Prj.Nmsc is
             Dir      : Dir_Type;
             Name     : String (1 .. 250);
             Last     : Natural;
-            The_Path : String := Get_Name_String (Path) & Directory_Separator;
+            The_Path : String := Get_Name_String (Path) & Dir_Sep;
 
             The_Path_Last : Positive := The_Path'Last;
 
          begin
             if The_Path'Length > 1
               and then
-                (The_Path (The_Path_Last - 1) = Directory_Separator
+                (The_Path (The_Path_Last - 1) = Dir_Sep
                    or else The_Path (The_Path_Last - 1) = '/')
             then
                The_Path_Last := The_Path_Last - 1;
@@ -517,7 +529,7 @@ package body Prj.Nmsc is
            and then Directory (Directory'Last - 1 .. Directory'Last) = "**"
            and then (Directory (Directory'Last - 2) = '/'
                        or else
-                     Directory (Directory'Last - 2) = Directory_Separator)
+                     Directory (Directory'Last - 2) = Dir_Sep)
          then
             Name_Len := Directory'Length - 3;
 
@@ -877,6 +889,9 @@ package body Prj.Nmsc is
       --  Start of processing for Check_Naming_Scheme
 
    begin
+
+      Error_Report := Report_Error;
+
       if Current_Verbosity = High then
          Write_Line ("Starting to look for directories");
       end if;
@@ -1394,6 +1409,90 @@ package body Prj.Nmsc is
       Projects.Table (Project) := Data;
    end Check_Naming_Scheme;
 
+   ---------------
+   -- Error_Msg --
+   ---------------
+
+   procedure Error_Msg (Msg : String; Flag_Location : Source_Ptr) is
+   begin
+      if Error_Report = null then
+         Errout.Error_Msg (Msg, Flag_Location);
+
+      else
+         declare
+            Error_Buffer : String (1 .. 5_000);
+            Error_Last   : Natural := 0;
+            Msg_Name     : Natural := 0;
+            First        : Positive := Msg'First;
+
+            procedure Add (C : Character);
+            --  Add a character to the buffer
+
+            procedure Add (S : String);
+            --  Add a string to the buffer
+
+            procedure Add (Id : Name_Id);
+            --  Add a name to the buffer
+
+            procedure Add (C : Character) is
+            begin
+               Error_Last := Error_Last + 1;
+               Error_Buffer (Error_Last) := C;
+            end Add;
+
+            procedure Add (S : String) is
+            begin
+               Error_Buffer (Error_Last + 1 .. Error_Last + S'Length) := S;
+               Error_Last := Error_Last + S'Length;
+            end Add;
+
+            procedure Add (Id : Name_Id) is
+            begin
+               Get_Name_String (Id);
+               Add (Name_Buffer (1 .. Name_Len));
+            end Add;
+
+         begin
+            if Msg (First) = '\' then
+               --  Continuation character, ignore.
+               First := First + 1;
+
+            elsif Msg (First) = '?' then
+               --  Warning character. It is always the first one,
+               --  in this package.
+               First := First + 1;
+               Add ("Warning: ");
+            end if;
+
+            for Index in First .. Msg'Last loop
+               if Msg (Index) = '{' or else Msg (Index) = '%' then
+                  --  Include a name between double quotes.
+                  Msg_Name := Msg_Name + 1;
+                  Add ('"');
+
+                  case Msg_Name is
+                     when 1 => Add (Error_Msg_Name_1);
+
+                     when 2 => Add (Error_Msg_Name_2);
+
+                     when 3 => Add (Error_Msg_Name_3);
+
+                     when others => null;
+                  end case;
+
+                  Add ('"');
+
+               else
+                  Add (Msg (Index));
+               end if;
+
+            end loop;
+
+            Error_Report (Error_Buffer (1 .. Error_Last));
+         end;
+      end if;
+   end Error_Msg;
+
    ---------------------
    -- Get_Name_String --
    ---------------------
@@ -1705,13 +1804,13 @@ package body Prj.Nmsc is
    is
       The_Name   : constant String := Get_Name_String (Name);
       The_Parent : constant String :=
-                     Get_Name_String (Parent) & Directory_Separator;
+                     Get_Name_String (Parent) & Dir_Sep;
 
       The_Parent_Last : Positive := The_Parent'Last;
 
    begin
       if The_Parent'Length > 1
-        and then (The_Parent (The_Parent_Last - 1) = Directory_Separator
+        and then (The_Parent (The_Parent_Last - 1) = Dir_Sep
                     or else The_Parent (The_Parent_Last - 1) = '/')
       then
          The_Parent_Last := The_Parent_Last - 1;
@@ -1819,6 +1918,7 @@ package body Prj.Nmsc is
       Unit_Name    : Name_Id;
       Unit_Kind    : Spec_Or_Body;
       Needs_Pragma : Boolean;
+      The_Location : Source_Ptr := Location;
 
    begin
       --  Find out the unit name, the unit kind and if it needs
@@ -1908,21 +2008,24 @@ package body Prj.Nmsc is
                   --  It is an error to have two units with the same name
                   --  and the same kind (spec or body).
 
+                  if The_Location = No_Location then
+                     The_Location := Projects.Table (Project).Location;
+                  end if;
+
                   Error_Msg_Name_1 := Unit_Name;
-                  Error_Msg_Name_2 :=
+                  Error_Msg ("duplicate source {", The_Location);
+
+                  Error_Msg_Name_1 :=
                     Projects.Table
                       (The_Unit_Data.File_Names (Unit_Kind).Project).Name;
+                  Error_Msg_Name_2 :=
+                    The_Unit_Data.File_Names (Unit_Kind).Path;
+                  Error_Msg ("\   project file {, {", The_Location);
 
-                  if Location /= No_Location then
-                     Error_Msg
-                       ("duplicate source {, first found in {",
-                        Location);
-                  else
+                  Error_Msg_Name_1 := Projects.Table (Project).Name;
+                  Error_Msg_Name_2 := Path_Name;
+                  Error_Msg ("\   project file {, {", The_Location);
 
-                     Error_Msg
-                       ("duplicate source {, first found in {",
-                        Projects.Table (Project).Location);
-                  end if;
                end if;
 
             --  It is a new unit, create a new record

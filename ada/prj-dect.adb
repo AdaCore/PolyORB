@@ -350,6 +350,8 @@ package body Prj.Dect is
          end if;
       end loop When_Loop;
 
+      Prj.Strt.End_Case_Construction;
+
       Expect (Tok_End, "end case");
 
       if Token = Tok_End then

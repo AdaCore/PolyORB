@@ -426,22 +426,22 @@ package body Osint is
          end loop;
       end loop;
 
-      --  For WIN32 systems, look for any system libraries defined in
-      --  the registry. These are added to both source and object
-      --  directories.
-
-      Search_Path := String_Access (Get_Libraries_From_Registry);
-      Get_Next_Dir_In_Path_Init (Search_Path);
-      loop
-         Search_Dir := Get_Next_Dir_In_Path (Search_Path);
-         exit when Search_Dir = null;
-         Add_Search_Dir (Search_Dir, False);
-         Add_Search_Dir (Search_Dir, True);
-      end loop;
-
-      --  The last place to look are the defaults
-
       if not Opt.No_Stdinc then
+         --  For WIN32 systems, look for any system libraries defined in
+         --  the registry. These are added to both source and object
+         --  directories.
+
+         Search_Path := String_Access (Get_Libraries_From_Registry);
+         Get_Next_Dir_In_Path_Init (Search_Path);
+         loop
+            Search_Dir := Get_Next_Dir_In_Path (Search_Path);
+            exit when Search_Dir = null;
+            Add_Search_Dir (Search_Dir, False);
+            Add_Search_Dir (Search_Dir, True);
+         end loop;
+
+         --  The last place to look are the defaults
+
          Search_Path := Read_Default_Search_Dirs
            (String_Access (Update_Path (Search_Dir_Prefix)),
             Include_Search_File,
@@ -2586,6 +2586,11 @@ package body Osint is
    begin
       pragma Assert (In_Compiler);
       Get_Name_String (Current_Main);
+
+      if Output_Object_File_Name /= null then
+         Name_Len := Output_Object_File_Name'Length;
+         Name_Buffer (1 .. Name_Len) := Output_Object_File_Name.all;
+      end if;
 
       Dot_Index := 0;
       for J in reverse 1 .. Name_Len loop

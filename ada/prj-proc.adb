@@ -40,6 +40,8 @@ with GNAT.HTable;
 
 package body Prj.Proc is
 
+   Error_Report : Put_Line_Access := null;
+
    package Processed_Projects is new GNAT.HTable.Simple_HTable
      (Header_Num => Header_Num,
       Element    => Project_Id,
@@ -84,7 +86,6 @@ package body Prj.Proc is
    procedure Process_Declarative_Items
      (Project           : Project_Id;
       From_Project_Node : Project_Node_Id;
-      Decl              : in out Declarations;
       Pkg               : Package_Id;
       Item              : Project_Node_Id);
    --  Process declarative items starting with From_Project_Node, and put them
@@ -705,9 +706,12 @@ package body Prj.Proc is
 
    procedure Process
      (Project           : out Project_Id;
-      From_Project_Node : Project_Node_Id)
+      From_Project_Node : Project_Node_Id;
+      Report_Error      : Put_Line_Access)
    is
    begin
+
+      Error_Report := Report_Error;
 
       --  Make sure there is no projects in the data structure
 
@@ -720,7 +724,7 @@ package body Prj.Proc is
       Recursive_Process
         (Project           => Project,
          From_Project_Node => From_Project_Node,
-         Modified_By         => No_Project);
+         Modified_By       => No_Project);
 
       if Errout.Errors_Detected > 0 then
          Project := No_Project;
@@ -739,7 +743,6 @@ package body Prj.Proc is
    procedure Process_Declarative_Items
      (Project           : Project_Id;
       From_Project_Node : Project_Node_Id;
-      Decl              : in out Declarations;
       Pkg               : Package_Id;
       Item              : Project_Node_Id) is
 
@@ -775,8 +778,17 @@ package body Prj.Proc is
                     Project_Of_Renamed_Package_Of (Current_Item);
                begin
                   The_New_Package.Name     := Name_Of (Current_Item);
-                  The_New_Package.Next     := Decl.Packages;
-                  Decl.Packages            := New_Pkg;
+
+                  if Pkg /= No_Package then
+                     The_New_Package.Next :=
+                       Packages.Table (Pkg).Decl.Packages;
+                     Packages.Table (Pkg).Decl.Packages := New_Pkg;
+                  else
+                     The_New_Package.Next :=
+                       Projects.Table (Project).Decl.Packages;
+                     Projects.Table (Project).Decl.Packages := New_Pkg;
+                  end if;
+
                   Packages.Table (New_Pkg) := The_New_Package;
 
                   if Project_Of_Renamed_Package /= Empty_Node then
@@ -812,7 +824,6 @@ package body Prj.Proc is
                      Process_Declarative_Items
                        (Project           => Project,
                         From_Project_Node => From_Project_Node,
-                        Decl              => Packages.Table (New_Pkg).Decl,
                         Pkg               => New_Pkg,
                         Item              => First_Declarative_Item_Of
                                                              (Current_Item));
@@ -872,8 +883,20 @@ package body Prj.Proc is
                            String_To_Name_Buffer (New_Value.Value);
                            Error_Msg_Name_1 := Name_Find;
                            Error_Msg_Name_2 := Name_Of (Current_Item);
-                           Error_Msg ("value { is illegal for typed string %",
-                                      Location_Of (Current_Item));
+
+                           if Error_Report = null then
+                              Error_Msg
+                                ("value { is illegal for typed string %",
+                                 Location_Of (Current_Item));
+
+                           else
+                              Error_Report
+                                ("value """ &
+                                 Get_Name_String (Error_Msg_Name_1) &
+                                 """ is illegal for typed string """ &
+                                 Get_Name_String (Error_Msg_Name_2) &
+                                 """");
+                           end if;
                         end if;
                      end;
                   end if;
@@ -886,9 +909,25 @@ package body Prj.Proc is
                      --  Usual case
 
                      if Kind_Of (Current_Item) = N_Attribute_Declaration then
-                        The_Variable := Decl.Attributes;
+                        if Pkg /= No_Package then
+                           The_Variable :=
+                             Packages.Table (Pkg).Decl.Attributes;
+
+                        else
+                           The_Variable :=
+                             Projects.Table (Project).Decl.Attributes;
+                        end if;
+
                      else
-                        The_Variable := Decl.Variables;
+                        if Pkg /= No_Package then
+                           The_Variable :=
+                             Packages.Table (Pkg).Decl.Variables;
+
+                        else
+                           The_Variable :=
+                             Projects.Table (Project).Decl.Variables;
+                        end if;
+
                      end if;
 
                      while
@@ -908,11 +947,24 @@ package body Prj.Proc is
 
                         Variable_Elements.Increment_Last;
                         The_Variable := Variable_Elements.Last;
-                        Variable_Elements.Table (The_Variable) :=
-                          (Next    => Decl.Variables,
-                           Name    => Current_Item_Name,
-                           Value   => New_Value);
-                        Decl.Variables := The_Variable;
+
+                        if Pkg /= No_Package then
+                           Variable_Elements.Table (The_Variable) :=
+                             (Next    =>
+                                Packages.Table (Pkg).Decl.Variables,
+                              Name    => Current_Item_Name,
+                              Value   => New_Value);
+                           Packages.Table (Pkg).Decl.Variables := The_Variable;
+
+                        else
+                           Variable_Elements.Table (The_Variable) :=
+                             (Next    =>
+                                Projects.Table (Project).Decl.Variables,
+                              Name    => Current_Item_Name,
+                              Value   => New_Value);
+                           Projects.Table (Project).Decl.Variables :=
+                             The_Variable;
+                        end if;
 
                      else
                         Variable_Elements.Table (The_Variable).Value :=
@@ -927,7 +979,7 @@ package body Prj.Proc is
                        (Associative_Array_Index_Of (Current_Item));
 
                      declare
-                        The_Array : Array_Id := Decl.Arrays;
+                        The_Array : Array_Id;
 
                         The_Array_Element : Array_Element_Id :=
                                               No_Array_Element;
@@ -935,6 +987,14 @@ package body Prj.Proc is
                         Index_Name : constant Name_Id := Name_Find;
 
                      begin
+
+                        if Pkg /= No_Package then
+                           The_Array := Packages.Table (Pkg).Decl.Arrays;
+
+                        else
+                           The_Array := Projects.Table (Project).Decl.Arrays;
+                        end if;
+
                         while
                           The_Array /= No_Array
                             and then Arrays.Table (The_Array).Name /=
@@ -947,11 +1007,22 @@ package body Prj.Proc is
                            Arrays.Increment_Last;
                            The_Array := Arrays.Last;
 
-                           Arrays.Table (The_Array) :=
-                             (Name  => Current_Item_Name,
-                              Value => No_Array_Element,
-                              Next  => Decl.Arrays);
-                           Decl.Arrays := The_Array;
+                           if Pkg /= No_Package then
+                              Arrays.Table (The_Array) :=
+                                (Name  => Current_Item_Name,
+                                 Value => No_Array_Element,
+                                 Next  => Packages.Table (Pkg).Decl.Arrays);
+                              Packages.Table (Pkg).Decl.Arrays := The_Array;
+
+                           else
+                              Arrays.Table (The_Array) :=
+                                (Name  => Current_Item_Name,
+                                 Value => No_Array_Element,
+                                 Next  =>
+                                   Projects.Table (Project).Decl.Arrays);
+                              Projects.Table (Project).Decl.Arrays :=
+                                The_Array;
+                           end if;
 
                         else
                            The_Array_Element := Arrays.Table (The_Array).Value;
@@ -1095,7 +1166,6 @@ package body Prj.Proc is
                      Process_Declarative_Items
                        (Project           => Project,
                         From_Project_Node => From_Project_Node,
-                        Decl              => Decl,
                         Pkg               => Pkg,
                         Item              => Decl_Item);
                   end if;
@@ -1122,7 +1192,6 @@ package body Prj.Proc is
    begin
       --  Do nothing if Project is No_Project, or Project has already
       --  been marked as checked.
-
       if Project /= No_Project
         and then not Projects.Table (Project).Checked
       then
@@ -1153,7 +1222,7 @@ package body Prj.Proc is
             Write_Line ("""");
          end if;
 
-         Prj.Nmsc.Check_Naming_Scheme (Project);
+         Prj.Nmsc.Check_Naming_Scheme (Project, Error_Report);
       end if;
 
    end Recursive_Check;
@@ -1253,7 +1322,6 @@ package body Prj.Proc is
             Process_Declarative_Items
               (Project           => Project,
                From_Project_Node => From_Project_Node,
-               Decl              => Projects.Table (Project).Decl,
                Pkg               => No_Package,
                Item              => First_Declarative_Item_Of
                                                       (Declaration_Node));

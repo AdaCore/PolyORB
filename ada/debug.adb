@@ -124,7 +124,7 @@ package body Debug is
    --  do
    --  dp
    --  dq
-   --  dr
+   --  dr  List additional restrictions that may be specified
    --  ds
    --  dt
    --  du  List units as they are acquired
@@ -442,6 +442,9 @@ package body Debug is
    --  dn  List details of manipulation of Num_Pred values during execution of
    --      the algorithm used to determine a correct order of elaboration. This
    --      is useful in diagnosing any problems in its behavior.
+
+   --  dr  List restrictions which have not been specified, but could have
+   --      been without causing bind errors.
 
    --  du  List unit name and file name for each unit as it is read in
 

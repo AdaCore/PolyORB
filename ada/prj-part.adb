@@ -42,11 +42,14 @@ with Sinfo;                      use Sinfo;
 with Sinput;                     use Sinput;
 with Sinput.P;                   use Sinput.P;
 with Stringt;                    use Stringt;
+with Table;
 with Types;                      use Types;
 
 pragma Elaborate_All (GNAT.OS_Lib);
 
 package body Prj.Part is
+
+   Dir_Sep  : Character renames GNAT.OS_Lib.Directory_Separator;
 
    Project_File_Extension : String := ".gpr";
 
@@ -59,6 +62,16 @@ package body Prj.Part is
    ------------------------------------
    -- Local Packages and Subprograms --
    ------------------------------------
+
+   package Project_Stack is new Table.Table
+     (Table_Component_Type => Name_Id,
+      Table_Index_Type     => Nat,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 10,
+      Table_Increment      => 10,
+      Table_Name           => "Prj.Part.Project_Stack");
+   --  This table is used to detect circular dependencies
+   --  for imported and modified projects.
 
    procedure Parse_Context_Clause
      (Context_Clause    : out Project_Node_Id;
@@ -113,7 +126,7 @@ package body Prj.Part is
 
       for Index in reverse 1 .. Name_Len loop
          if Name_Buffer (Index) = '/'
-           or else Name_Buffer (Index) = Directory_Separator
+           or else Name_Buffer (Index) = Dir_Sep
          then
             --  Remove from name all characters after the last
             --  directory separator.
@@ -126,7 +139,7 @@ package body Prj.Part is
       --  There is no directory separator in name. Return "./" or ".\".
       Name_Len := 2;
       Name_Buffer (1) := '.';
-      Name_Buffer (2) := Directory_Separator;
+      Name_Buffer (2) := Dir_Sep;
       return Name_Find;
    end Immediate_Directory_Of;
 
@@ -181,13 +194,13 @@ package body Prj.Part is
          if Project = Empty_Node or else Always_Errout_Finalize then
             Errout.Finalize;
          end if;
-
       end;
 
    exception
       when X : others =>
 
          --  Internal error
+
          Write_Line (Exception_Information (X));
          Write_Str  ("Exception ");
          Write_Str  (Exception_Name (X));
@@ -342,6 +355,35 @@ package body Prj.Part is
       Canonical_Case_File_Name (Name_Buffer (1 .. Name_Len));
       Canonical_Path_Name := Name_Find;
 
+      --  Check for a circular dependency
+
+      for Index in 1 .. Project_Stack.Last loop
+         if Canonical_Path_Name = Project_Stack.Table (Index) then
+            Error_Msg ("circular dependency detected", Token_Ptr);
+            Error_Msg_Name_1 := Canonical_Path_Name;
+            Error_Msg ("\  { is imported by", Token_Ptr);
+
+            for Current in reverse 1 .. Project_Stack.Last loop
+               Error_Msg_Name_1 := Project_Stack.Table (Current);
+
+               if Error_Msg_Name_1 /= Canonical_Path_Name then
+                  Error_Msg
+                    ("\  { which itself is imported by", Token_Ptr);
+
+               else
+                  Error_Msg ("\  {", Token_Ptr);
+                  exit;
+               end if;
+            end loop;
+
+            Project := Empty_Node;
+            return;
+         end if;
+      end loop;
+
+      Project_Stack.Increment_Last;
+      Project_Stack.Table (Project_Stack.Last) := Canonical_Path_Name;
+
       --  Check if the project file has already been parsed.
 
       while
@@ -370,6 +412,7 @@ package body Prj.Part is
             end if;
 
             Project := A_Project_Name_And_Node.Node;
+            Project_Stack.Decrement_Last;
             return;
          end if;
 
@@ -386,6 +429,7 @@ package body Prj.Part is
 
       if Source_Index = No_Source_File then
          Project := Empty_Node;
+         Project_Stack.Decrement_Last;
          return;
       end if;
 
@@ -458,7 +502,6 @@ package body Prj.Part is
                           "should be `{" & Project_File_Extension & "`",
                           Token_Ptr);
             end if;
-
          end;
 
          declare
@@ -589,6 +632,7 @@ package body Prj.Part is
 
       Restore_Project_Scan_State (Project_Scan_State);
 
+      Project_Stack.Decrement_Last;
    end Parse_Single_Project;
 
    ------------------
@@ -613,7 +657,6 @@ package body Prj.Part is
          Canonical_Case_File_Name (Result.all);
          return Result.all;
       end if;
-
    end Path_Name_Of;
 
    -----------------------
@@ -648,7 +691,7 @@ package body Prj.Part is
 
             while First > 0
               and then Canonical (First) /= '/'
-              and then Canonical (First) /= Directory_Separator
+              and then Canonical (First) /= Dir_Sep
             loop
                First := First - 1;
             end loop;
@@ -662,7 +705,7 @@ package body Prj.Part is
       end if;
 
       if Canonical (First) = '/'
-        or else Canonical (First) = Directory_Separator
+        or else Canonical (First) = Dir_Sep
       then
          First := First + 1;
       end if;
@@ -778,8 +821,15 @@ package body Prj.Part is
          return "";
 
       else
-         Canonical_Case_File_Name (Result.all);
-         return Result.all;
+         declare
+            Final_Result : String
+              := GNAT.OS_Lib.Normalize_Pathname (Result.all);
+         begin
+            Free (Result);
+            Canonical_Case_File_Name (Final_Result);
+            return Final_Result;
+         end;
+
       end if;
 
    end Project_Path_Name_Of;
@@ -794,7 +844,7 @@ package body Prj.Part is
 
       for Index in reverse 1 .. Name_Len loop
          if Name_Buffer (Index) = '/'
-           or else Name_Buffer (Index) = Directory_Separator
+           or else Name_Buffer (Index) = Dir_Sep
          then
             exit when Index = Name_Len;
             Name_Buffer (1 .. Name_Len - Index) :=

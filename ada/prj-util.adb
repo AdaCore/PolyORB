@@ -84,23 +84,17 @@ package body Prj.Util is
       procedure Advance is
       begin
          if File.Cursor = File.Buffer_Len then
-            if File.Buffer_Len < File.Buffer'Length then
+            File.Buffer_Len :=
+              Read
+               (FD => File.FD,
+                A  => File.Buffer'Address,
+                N  => File.Buffer'Length);
+
+            if File.Buffer_Len = 0 then
                File.End_Of_File_Reached := True;
                return;
-
             else
-               File.Buffer_Len :=
-                 Read
-                  (FD => File.FD,
-                   A  => File.Buffer'Address,
-                   N  => File.Buffer'Length);
-
-               if File.Buffer_Len = 0 then
-                  File.End_Of_File_Reached := True;
-                  return;
-               else
-                  File.Cursor := 1;
-               end if;
+               File.Cursor := 1;
             end if;
 
          else

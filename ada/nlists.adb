@@ -108,6 +108,14 @@ package body Nlists is
    -- Local Subprograms --
    -----------------------
 
+   procedure Prepend_Debug (Node : Node_Id; To : List_Id);
+   pragma Inline (Prepend_Debug);
+   --  Output debug information if Debug_Flag_N set
+
+   procedure Remove_Next_Debug (Node : Node_Id);
+   pragma Inline (Remove_Next_Debug);
+   --  Output debug information if Debug_Flag_N set
+
    procedure Set_First (List : List_Id; To : Node_Id);
    pragma Inline (Set_First);
    --  Sets First field of list header List to reference To
@@ -1035,23 +1043,6 @@ package body Nlists is
    procedure Prepend (Node : Node_Id; To : List_Id) is
       F : constant Node_Id := First (To);
 
-      procedure Prepend_Debug;
-      pragma Inline (Prepend_Debug);
-      --  Output debug information if Debug_Flag_N set
-
-      procedure Prepend_Debug is
-      begin
-         if Debug_Flag_N then
-            Write_Str ("Prepend node ");
-            Write_Int (Int (Node));
-            Write_Str (" to list ");
-            Write_Int (Int (To));
-            Write_Eol;
-         end if;
-      end Prepend_Debug;
-
-   --  Start of processing for Prepend
-
    begin
       pragma Assert (not Is_List_Member (Node));
 
@@ -1059,7 +1050,7 @@ package body Nlists is
          return;
       end if;
 
-      pragma Debug (Prepend_Debug);
+      pragma Debug (Prepend_Debug (Node, To));
 
       if No (F) then
          Set_Last (To, Node);
@@ -1075,6 +1066,21 @@ package body Nlists is
       Set_Prev      (Node, Empty);
       Set_List_Link (Node, To);
    end Prepend;
+
+   -------------------
+   -- Prepend_Debug --
+   -------------------
+
+   procedure Prepend_Debug (Node : Node_Id; To : List_Id) is
+   begin
+      if Debug_Flag_N then
+         Write_Str ("Prepend node ");
+         Write_Int (Int (Node));
+         Write_Str (" to list ");
+         Write_Int (Int (To));
+         Write_Eol;
+      end if;
+   end Prepend_Debug;
 
    ----------------
    -- Prepend_To --
@@ -1241,21 +1247,6 @@ package body Nlists is
    function Remove_Next (Node : Node_Id) return Node_Id is
       Nxt : constant Node_Id := Next (Node);
 
-      procedure Remove_Next_Debug;
-      pragma Inline (Remove_Next_Debug);
-      --  Output debug information if Debug_Flag_N set
-
-      procedure Remove_Next_Debug is
-      begin
-         if Debug_Flag_N then
-            Write_Str ("Remove next node after ");
-            Write_Int (Int (Node));
-            Write_Eol;
-         end if;
-      end Remove_Next_Debug;
-
-   --  Start of processing for Remove_Next
-
    begin
       if Present (Nxt) then
          declare
@@ -1263,7 +1254,7 @@ package body Nlists is
             LC   : constant List_Id := List_Containing (Node);
 
          begin
-            pragma Debug (Remove_Next_Debug);
+            pragma Debug (Remove_Next_Debug (Node));
             Set_Next (Node, Nxt2);
 
             if No (Nxt2) then
@@ -1279,6 +1270,19 @@ package body Nlists is
 
       return Nxt;
    end Remove_Next;
+
+   -----------------------
+   -- Remove_Next_Debug --
+   -----------------------
+
+   procedure Remove_Next_Debug (Node : Node_Id) is
+   begin
+      if Debug_Flag_N then
+         Write_Str ("Remove next node after ");
+         Write_Int (Int (Node));
+         Write_Eol;
+      end if;
+   end Remove_Next_Debug;
 
    ---------------
    -- Set_First --

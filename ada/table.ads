@@ -38,6 +38,10 @@
 --  arrays as closely as possible with the one additional capability of
 --  dynamically modifying the value of the Last attribute.
 
+--  Note that this interface should remain synchronized with those in
+--  GNAT.Table and GNAT.Dynamic_Tables to keep coherency between these
+--  three related units.
+
 with Types; use Types;
 
 package Table is
@@ -66,8 +70,9 @@ pragma Elaborate_Body (Table);
       --    to cover this range, e.g. if the lower bound is 1, then the
       --    Table_Index_Type should be Natural rather than Positive.
 
-      --  Table_Component_Type may be any Ada type, but note that default
-      --  initialization will NOT occur for the array components.
+      --  Table_Component_Type may be any Ada type, except that controlled
+      --  types are not supported. Note however that default initialization
+      --  will NOT occur for array components.
 
       --  The Table_Initial values controls the allocation of the table when
       --  it is first allocated, either by default, or by an explicit Init
@@ -140,6 +145,10 @@ pragma Elaborate_Body (Table);
       --  storage that is allocated, but is not logically part of the current
       --  array value. Current array values are not affected by this call.
 
+      procedure Free;
+      --  Free all allocated memory for the table. A call to init is required
+      --  before any use of this table after calling Free.
+
       First : constant Table_Index_Type := Table_Low_Bound;
       --  Export First as synonym for Low_Bound (parallel with use of Last)
 
@@ -161,11 +170,21 @@ pragma Elaborate_Body (Table);
       --  Subtracts 1 from Last (same as Set_Last (Last - 1).
 
       procedure Append (New_Val : Table_Component_Type);
+      pragma Inline (Append);
       --  Equivalent to:
       --    x.Increment_Last;
       --    x.Table (x.Last) := New_Val;
       --  i.e. the table size is increased by one, and the given new item
       --  stored in the newly created table element.
+
+      procedure Set_Item
+        (Index : Table_Index_Type;
+         Item  : Table_Component_Type);
+      pragma Inline (Set_Item);
+      --  Put Item in the table at position Index. The table is expanded if
+      --  current table length is less than Index and in that case Last is set
+      --  to Index. Item will replace any value already present in the table
+      --  at this position.
 
       type Saved_Table is private;
       --  Type used for Save/Restore subprograms

@@ -63,11 +63,13 @@ package body Prj.Attr is
 
      "Pcompiler#" &
      "LBswitches#" &
+     "SVlocal_configuration_pragmas#" &
 
    --  package gnatmake
 
      "Pgnatmake#" &
      "LBswitches#" &
+     "SVglobal_configuration_pragmas#" &
 
    --  package gnatls
 

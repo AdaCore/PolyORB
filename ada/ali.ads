@@ -306,6 +306,10 @@ package ALI is
       --  placed in the elaboration order. The value represents the
       --  ordinal position in the elaboration order.
 
+      Init_Scalars : Boolean;
+      --  Set True if IS qualifier appears in ALI file, indicating that
+      --  an Initialize_Scalars pragma applies to the unit.
+
    end record;
 
    package Units is new Table.Table (
@@ -331,6 +335,9 @@ package ALI is
    --  Set to blank by Initialize_ALI. Set to appropriate float format
    --  character (V or I, see Opt.Float_Format) if an an ali file that
    --  is read contains an F line setting the floating point format.
+
+   Initialize_Scalars_Used : Boolean := False;
+   --  Set True if an ali file contains the Initialize_Scalars flag
 
    Locking_Policy_Specified : Character := ' ';
    --  Set to blank by Initialize_ALI. Set to the appropriate locking policy

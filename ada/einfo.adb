@@ -89,6 +89,7 @@ package body Einfo is
 
    --    Discriminal_Link                Node10
    --    Handler_Records                 List10
+   --    Normalized_Position_Max         Uint10
    --    Referenced_Object               Node10
 
    --    Component_Bit_Offset            Uint11
@@ -180,7 +181,6 @@ package body Einfo is
    --    Discriminant_Constraint         Elist21
    --    Small_Value                     Ureal21
    --    Interface_Name                  Node21
-   --    Normalized_Position_Max         Uint21
 
    --    Associated_Storage_Pool         Node22
    --    Component_Size                  Uint22
@@ -391,8 +391,8 @@ package body Einfo is
    --    Has_Forward_Instantiation      Flag175
    --    Is_Discrim_SO_Function         Flag176
    --    Size_Depends_On_Discriminant   Flag177
-   --
-   --    (unused)                       Flag178
+   --    Is_Null_Init_Proc              Flag178
+
    --    (unused)                       Flag179
    --    (unused)                       Flag180
    --    (unused)                       Flag181
@@ -1447,6 +1447,12 @@ package body Einfo is
       return Flag109 (Id);
    end Is_Non_Static_Subtype;
 
+   function Is_Null_Init_Proc (Id : E) return B is
+   begin
+      pragma Assert (Ekind (Id) = E_Procedure);
+      return Flag178 (Id);
+   end Is_Null_Init_Proc;
+
    function Is_Optional_Parameter (Id : E) return B is
    begin
       pragma Assert (Is_Formal (Id));
@@ -1688,7 +1694,7 @@ package body Einfo is
    begin
       pragma Assert
         (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
-      return Uint21 (Id);
+      return Uint10 (Id);
    end Normalized_Position_Max;
 
    function Not_Source_Assigned (Id : E) return B is
@@ -3291,6 +3297,12 @@ package body Einfo is
       Set_Flag109 (Id, V);
    end Set_Is_Non_Static_Subtype;
 
+   procedure Set_Is_Null_Init_Proc (Id : E; V : B := True) is
+   begin
+      pragma Assert (Ekind (Id) = E_Procedure);
+      Set_Flag178 (Id, V);
+   end Set_Is_Null_Init_Proc;
+
    procedure Set_Is_Optional_Parameter (Id : E; V : B := True) is
    begin
       pragma Assert (Is_Formal (Id));
@@ -3543,7 +3555,7 @@ package body Einfo is
    begin
       pragma Assert
         (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
-      Set_Uint21 (Id, V);
+      Set_Uint10 (Id, V);
    end Set_Normalized_Position_Max;
 
    procedure Set_Not_Source_Assigned (Id : E; V : B := True) is
@@ -3825,7 +3837,6 @@ package body Einfo is
 
    procedure Set_Suppress_Init_Proc (Id : E; V : B := True) is
    begin
-      pragma Assert (Is_Type (Id) and then Id = Base_Type (Id));
       Set_Flag105 (Id, V);
    end Set_Suppress_Init_Proc;
 
@@ -3962,12 +3973,12 @@ package body Einfo is
 
    procedure Init_Normalized_Position_Max (Id : E) is
    begin
-      Set_Uint21 (Id, No_Uint);
+      Set_Uint10 (Id, No_Uint);
    end Init_Normalized_Position_Max;
 
    procedure Init_Normalized_Position_Max (Id : E; V : Int) is
    begin
-      Set_Uint21 (Id, UI_From_Int (V));
+      Set_Uint10 (Id, UI_From_Int (V));
    end Init_Normalized_Position_Max;
 
    procedure Init_RM_Size (Id : E) is
@@ -3990,7 +4001,7 @@ package body Einfo is
       Set_Uint9  (Id, No_Uint);  -- Normalized_Position
       Set_Uint11 (Id, No_Uint);  -- Component_First_Bit
       Set_Uint12 (Id, Uint_0);   -- Esize
-      Set_Uint21 (Id, No_Uint);  -- Normalized_Position_Max
+      Set_Uint10 (Id, No_Uint);  -- Normalized_Position_Max
    end Init_Component_Location;
 
    ---------------
@@ -4050,7 +4061,7 @@ package body Einfo is
 
    function Known_Normalized_Position_Max         (E : Entity_Id) return B is
    begin
-      return Uint21 (E) /= No_Uint;
+      return Uint10 (E) /= No_Uint;
    end Known_Normalized_Position_Max;
 
    function Known_RM_Size                         (E : Entity_Id) return B is
@@ -4083,8 +4094,8 @@ package body Einfo is
 
    function Known_Static_Normalized_Position_Max  (E : Entity_Id) return B is
    begin
-      return Uint21 (E) /= No_Uint
-        and then Uint21 (E) >= Uint_0;
+      return Uint10 (E) /= No_Uint
+        and then Uint10 (E) >= Uint_0;
    end Known_Static_Normalized_Position_Max;
 
    function Known_Static_RM_Size                  (E : Entity_Id) return B is
@@ -4125,7 +4136,7 @@ package body Einfo is
 
    function Unknown_Normalized_Position_Max       (E : Entity_Id) return B is
    begin
-      return Uint21 (E) = No_Uint;
+      return Uint10 (E) = No_Uint;
    end Unknown_Normalized_Position_Max;
 
    function Unknown_RM_Size                       (E : Entity_Id) return B is
@@ -4782,6 +4793,29 @@ package body Einfo is
          return Bastyp;
       end if;
    end Implementation_Base_Type;
+
+   -----------------------
+   -- Is_Always_Inlined --
+   -----------------------
+
+   function Is_Always_Inlined (Id : E) return B is
+      Item : Node_Id;
+
+   begin
+      Item := First_Rep_Item (Id);
+
+      while Present (Item) loop
+         if Nkind (Item) = N_Pragma
+           and then Get_Pragma_Id (Chars (Item)) = Pragma_Inline_Always
+         then
+            return True;
+         end if;
+
+         Next_Rep_Item (Item);
+      end loop;
+
+      return False;
+   end Is_Always_Inlined;
 
    ---------------------
    -- Is_Boolean_Type --
@@ -5850,6 +5884,7 @@ package body Einfo is
       W ("Is_Limited_Composite",          Flag106 (Id));
       W ("Is_Limited_Record",             Flag25  (Id));
       W ("Is_Non_Static_Subtype",         Flag109 (Id));
+      W ("Is_Null_Init_Proc",             Flag178 (Id));
       W ("Is_Optional_Parameter",         Flag134 (Id));
       W ("Is_Package_Body_Entity",        Flag160 (Id));
       W ("Is_Packed",                     Flag51  (Id));
@@ -6130,6 +6165,10 @@ package body Einfo is
               E_Package_Body                             |
               E_Procedure                                =>
             Write_Str ("Handler_Records");
+
+         when E_Component                                |
+              E_Discriminant                             =>
+            Write_Str ("Normalized_Position_Max");
 
          when others                                     =>
             Write_Str ("Field10??");
@@ -6620,10 +6659,6 @@ package body Einfo is
 
          when E_In_Parameter                             =>
             Write_Str ("Default_Expr_Function");
-
-         when E_Component                                |
-              E_Discriminant                             =>
-            Write_Str ("Normalized_Position_Max");
 
          when others                                     =>
             Write_Str ("Field21??");

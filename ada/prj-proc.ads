@@ -36,7 +36,10 @@ package Prj.Proc is
 
    procedure Process
      (Project           : out Project_Id;
-      From_Project_Node : Project_Node_Id);
+      From_Project_Node : Project_Node_Id;
+      Report_Error      : Put_Line_Access);
    --  Process a project file tree into project file data structures.
+   --  If Report_Error is null, use the standard error reporting mechanism
+   --  (Errout). Otherwise, report errors using Report_Error.
 
 end Prj.Proc;

@@ -973,6 +973,9 @@ package Atree is
       function Uint9 (N : Node_Id) return Uint;
       pragma Inline (Uint9);
 
+      function Uint10 (N : Node_Id) return Uint;
+      pragma Inline (Uint10);
+
       function Uint11 (N : Node_Id) return Uint;
       pragma Inline (Uint11);
 
@@ -993,9 +996,6 @@ package Atree is
 
       function Uint17 (N : Node_Id) return Uint;
       pragma Inline (Uint17);
-
-      function Uint21 (N : Node_Id) return Uint;
-      pragma Inline (Uint21);
 
       function Uint22 (N : Node_Id) return Uint;
       pragma Inline (Uint22);
@@ -1770,6 +1770,9 @@ package Atree is
       procedure Set_Uint9 (N : Node_Id; Val : Uint);
       pragma Inline (Set_Uint9);
 
+      procedure Set_Uint10 (N : Node_Id; Val : Uint);
+      pragma Inline (Set_Uint10);
+
       procedure Set_Uint11 (N : Node_Id; Val : Uint);
       pragma Inline (Set_Uint11);
 
@@ -1790,9 +1793,6 @@ package Atree is
 
       procedure Set_Uint17 (N : Node_Id; Val : Uint);
       pragma Inline (Set_Uint17);
-
-      procedure Set_Uint21 (N : Node_Id; Val : Uint);
-      pragma Inline (Set_Uint21);
 
       procedure Set_Uint22 (N : Node_Id; Val : Uint);
       pragma Inline (Set_Uint22);
@@ -2559,6 +2559,7 @@ package Atree is
 
       pragma Pack (Node_Record);
       for Node_Record'Size use 8*32;
+      for Node_Record'Alignment use 4;
 
       --  The following defines the extendible array used for the nodes table
       --  Nodes with extensions use two consecutive entries in the array

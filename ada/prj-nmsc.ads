@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2000 Free Software Foundation, Inc.            --
+--             Copyright (C) 2000-2001 Free Software Foundation, Inc.       --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -31,9 +31,13 @@
 
 private package Prj.Nmsc is
 
-   procedure Check_Naming_Scheme (Project : Project_Id);
+   procedure Check_Naming_Scheme
+     (Project      : Project_Id;
+      Report_Error : Put_Line_Access);
    --  Check that the Naming Scheme of a project is legal. Find the
    --  object directory, the source directories, and the source files.
    --  Check the source files against the Naming Scheme.
+   --  If Report_Error is null , use the standard error reporting mechanism
+   --  (Errout). Otherwise, report errors using Report_Error.
 
 end Prj.Nmsc;

@@ -38,6 +38,7 @@ with Table;
 package Prj.Tree is
 
    Project_Nodes_Initial   : constant := 1_000;
+   --  Initial number of nodes in table Tree_Private_Part.Project_Nodes
    Project_Nodes_Increment : constant := 100;
 
    Project_Node_Low_Bound  : constant := 0;
@@ -45,12 +46,19 @@ package Prj.Tree is
 
    type Project_Node_Id is range
      Project_Node_Low_Bound .. Project_Node_High_Bound;
+   --  The index of table Tree_Private_Part.Project_Nodes
 
    Empty_Node    : constant Project_Node_Id := Project_Node_Low_Bound;
+   --  Designates no node in table Project_Nodes
    First_Node_Id : constant Project_Node_Id := Project_Node_Low_Bound;
 
    subtype Variable_Node_Id       is Project_Node_Id;
+   --  Used to designate a node whose expected kind is
+   --  N_Typed_Variable_Declaration, N_Variable_Declaration or
+   --  N_Variable_Reference.
    subtype Package_Declaration_Id is Project_Node_Id;
+   --  Used to designate a node whose expected kind is
+   --  N_Project_Declaration.
 
    type Project_Node_Kind is
      (N_Project,
@@ -72,6 +80,8 @@ package Prj.Tree is
       N_Case_Construction,
       N_Case_Item);
    --  Each node in the tree is of a Project_Node_Kind
+   --  For the signification of the fields in each node of a
+   --  Project_Node_Kind, look at package Tree_Private_Part.
 
    procedure Initialize;
    --  Initialize the Project File tree: empty the Project_Nodes table
@@ -146,7 +156,7 @@ package Prj.Tree is
    function Modified_Project_Path_Of
      (Node  : Project_Node_Id)
       return  String_Id;
-   --  Only valid for ???
+   --  Only valid for N_With_Clause nodes
 
    function Project_Node_Of
      (Node  : Project_Node_Id)
@@ -156,7 +166,7 @@ package Prj.Tree is
    function Next_With_Clause_Of
      (Node  : Project_Node_Id)
       return  Project_Node_Id;
-   --  Only valid for ???
+   --  Only valid for N_With_Clause nodes
 
    function First_Declarative_Item_Of
      (Node  : Project_Node_Id)
@@ -171,7 +181,7 @@ package Prj.Tree is
    function Current_Item_Node
      (Node  : Project_Node_Id)
       return  Project_Node_Id;
-   --  Only valid for ???
+   --  Only valid for N_Declarative_Item nodes
 
    function Next_Declarative_Item
      (Node  : Project_Node_Id)
@@ -192,7 +202,7 @@ package Prj.Tree is
    function First_Literal_String
      (Node  : Project_Node_Id)
       return  Project_Node_Id;
-   --  Only valid for ???
+   --  Only valid for N_String_Type_Declaration nodes
 
    function Next_String_Type
      (Node  : Project_Node_Id)
@@ -209,6 +219,13 @@ package Prj.Tree is
       return  Project_Node_Id;
    --  Only valid for N_Attribute_Declaration, N_Typed_Variable_Declaration
    --  or N_Variable_Declaration nodes
+
+   function Value_Is_Valid
+     (For_Typed_Variable : Project_Node_Id;
+      Value              : String_Id)
+      return               Boolean;
+   --  Only valid for N_Typed_Variable_Declaration. Returns True if Value is
+   --  in the list of allowed strings for For_Typed_Variable. False otherwise.
 
    function Associative_Array_Index_Of
      (Node  : Project_Node_Id)
@@ -513,8 +530,6 @@ package Prj.Tree is
 
       end record;
 
-      --  Header comment needed here ???
-
       --  type Project_Node_Kind is
 
       --   (N_Project,
@@ -699,8 +714,11 @@ package Prj.Tree is
 
       type Project_Name_And_Node is record
          Name     : Name_Id;
+         --  Name of the project
          Node     : Project_Node_Id;
+         --  Node of the project in table Project_Nodes
          Modified : Boolean;
+         --  True when the project is being modified by another project
       end record;
 
       No_Project_Name_And_Node : constant Project_Name_And_Node :=
@@ -718,12 +736,6 @@ package Prj.Tree is
       --  N_Project. It is used to find the node of a project from its
       --  name, and to verify if a project has already been parsed, knowing
       --  its name.
-
-      function Default_Project_Node
-        (Of_Kind       : Project_Node_Kind;
-         And_Expr_Kind : Variable_Kind := Undefined)
-         return          Project_Node_Record;
-      --  Obsolete function. Here only to ease the transition ???
 
    end Tree_Private_Part;
 

@@ -26,6 +26,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Stringt; use Stringt;
+
 package body Prj.Tree is
 
    use Tree_Private_Part;
@@ -106,7 +108,19 @@ package body Prj.Tree is
    begin
       Project_Nodes.Increment_Last;
       Project_Nodes.Table (Project_Nodes.Last) :=
-        Default_Project_Node (Of_Kind, And_Expr_Kind);
+           (Kind       => Of_Kind,
+            Location   => No_Location,
+            Directory  => No_Name,
+            Expr_Kind  => And_Expr_Kind,
+            Variables  => Empty_Node,
+            Packages   => Empty_Node,
+            Pkg_Id     => Empty_Package,
+            Name       => No_Name,
+            Path_Name  => No_Name,
+            Value      => No_String,
+            Field1     => Empty_Node,
+            Field2     => Empty_Node,
+            Field3     => Empty_Node);
       return Project_Nodes.Last;
    end Default_Project_Node;
 
@@ -1361,7 +1375,9 @@ package body Prj.Tree is
           and then
             (Project_Nodes.Table (Node).Kind = N_Variable_Reference
                or else
-             Project_Nodes.Table (Node).Kind = N_Typed_Variable_Declaration));
+             Project_Nodes.Table (Node).Kind = N_Typed_Variable_Declaration)
+           and then
+            Project_Nodes.Table (To).Kind    = N_String_Type_Declaration);
 
       if Project_Nodes.Table (Node).Kind = N_Variable_Reference then
          Project_Nodes.Table (Node).Field3 := To;
@@ -1424,34 +1440,39 @@ package body Prj.Tree is
       return Project_Nodes.Table (Node).Value;
    end String_Value_Of;
 
-   package body Tree_Private_Part is
+   --------------------
+   -- Value_Is_Valid --
+   --------------------
 
-      --------------------------
-      -- Default_Project_Node --
-      --------------------------
+   function Value_Is_Valid
+     (For_Typed_Variable : Project_Node_Id;
+      Value              : String_Id)
+      return               Boolean
+   is
+   begin
+      pragma Assert
+        (For_Typed_Variable /= Empty_Node
+          and then
+           (Project_Nodes.Table (For_Typed_Variable).Kind =
+                                     N_Typed_Variable_Declaration));
 
-      function Default_Project_Node
-        (Of_Kind       : Project_Node_Kind;
-         And_Expr_Kind : Variable_Kind := Undefined)
-         return          Project_Node_Record
-      is
+      declare
+         Current_String : Project_Node_Id :=
+                            First_Literal_String
+                              (String_Type_Of (For_Typed_Variable));
+
       begin
-         return
-           (Kind       => Of_Kind,
-            Location   => No_Location,
-            Directory  => No_Name,
-            Expr_Kind  => And_Expr_Kind,
-            Variables  => Empty_Node,
-            Packages   => Empty_Node,
-            Pkg_Id     => Empty_Package,
-            Name       => No_Name,
-            Path_Name  => No_Name,
-            Value      => No_String,
-            Field1     => Empty_Node,
-            Field2     => Empty_Node,
-            Field3     => Empty_Node);
-      end Default_Project_Node;
+         while Current_String /= Empty_Node
+           and then
+             not String_Equal (String_Value_Of (Current_String), Value)
+         loop
+            Current_String :=
+              Next_Literal_String (Current_String);
+         end loop;
 
-   end Tree_Private_Part;
+         return Current_String /= Empty_Node;
+      end;
+
+   end Value_Is_Valid;
 
 end Prj.Tree;

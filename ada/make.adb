@@ -368,6 +368,7 @@ package body Make is
    Output_Flag       : constant String_Access := new String'("-o");
    Ada_Flag_1        : constant String_Access := new String'("-x");
    Ada_Flag_2        : constant String_Access := new String'("ada");
+   No_gnat_adc       : constant String_Access := new String'("-gnatA");
    GNAT_Flag         : constant String_Access := new String'("-gnatpg");
    Do_Not_Check_Flag : constant String_Access := new String'("-x");
 
@@ -830,8 +831,8 @@ package body Make is
       Prev_Switch : Character;
       --  First character of previous switch processed
 
-      Arg : Arg_Id;
-      --  Current index in Args.Table for a given unit
+      Arg : Arg_Id := Arg_Id'First;
+      --  Current index in Args.Table for a given unit (init to stop warning)
 
       Switch_Found : Boolean;
       --  True if a given switch has been found
@@ -939,11 +940,10 @@ package body Make is
                      --  Comparing switches is delicate because gcc reorders
                      --  a number of switches, according to lang-specs.h, but
                      --  gnatmake doesn't have the sufficient knowledge to
-                     --  perform the same reordering.
-                     --  Instead, ignore orders between different
-                     --  "first letter" switches, but keep orders between same
-                     --  switches, e.g -O -O2 is different than -O2 -O, but
-                     --  -g -O is equivalent to -O -g.
+                     --  perform the same reordering. Instead, we ignore orders
+                     --  between different "first letter" switches, but keep
+                     --  orders between same switches, e.g -O -O2 is different
+                     --  than -O2 -O, but -g -O is equivalent to -O -g.
 
                      if Gcc_Switches.Table (J) (2) /= Prev_Switch then
                         Prev_Switch := Gcc_Switches.Table (J) (2);
@@ -1317,6 +1317,8 @@ package body Make is
       Arg_Index : Natural;
       --  Index in Special_Args.Table of a given compilation file
 
+      Need_To_Check_Standard_Library : Boolean := Check_Readonly_Files;
+
       procedure Add_Process
         (Pid   : Process_Id;
          Sfile : File_Name_Type;
@@ -1375,6 +1377,13 @@ package body Make is
 
       procedure Debug_Msg (S : String; N : Name_Id);
       --  If Debug.Debug_Flag_W is set outputs string S followed by name N.
+
+      function Configuration_Pragmas_Switch
+        (For_Project : Project_Id)
+         return        Argument_List;
+      --  Return an argument list of one element, if there is a configuration
+      --  pragmas file to be specified for For_Project,
+      --  otherwise return an empty argument list.
 
       -----------------
       -- Add_Process --
@@ -1564,11 +1573,6 @@ package body Make is
                      Write_Eol;
                   end if;
 
-                  if Opt.Verbose_Mode then
-                     Write_Str ("Checking package gnatmake.");
-                     Write_Eol;
-                  end if;
-
                   --  We know look for package Compiler
                   --  and get the switches from this package.
 
@@ -1637,6 +1641,8 @@ package body Make is
                                 (Path_Name,
                                  Lib_File,
                                  Args & Output_Flag & Object_File &
+                                 Configuration_Pragmas_Switch
+                                                    (Current_Project) &
                                  New_Args & The_Saved_Gcc_Switches.all);
                            end;
                         end;
@@ -1659,6 +1665,7 @@ package body Make is
                               Output_Flag &
                               Object_File &
                               New_Args &
+                              Configuration_Pragmas_Switch (Current_Project) &
                               The_Saved_Gcc_Switches.all);
                         end;
 
@@ -1676,8 +1683,8 @@ package body Make is
                           (Path_Name,
                            Lib_File,
                            Args & Output_Flag & Object_File &
+                           Configuration_Pragmas_Switch (Current_Project) &
                            The_Saved_Gcc_Switches.all);
-
                   end case;
                end if;
             end;
@@ -1737,10 +1744,23 @@ package body Make is
          --  the directory name from the source file name becase the call to
          --  Fname.Is_Predefined_File_Name cannot deal with directory prefixes.
 
-         if Is_Predefined_File_Name (Strip_Directory (S), False) then
-            Comp_Last := Comp_Last + 1;
-            Comp_Args (Comp_Last) := GNAT_Flag;
-         end if;
+         declare
+            Fname : constant File_Name_Type := Strip_Directory (S);
+
+         begin
+            if Is_Predefined_File_Name (Fname, False) then
+               if Check_Readonly_Files then
+                  Comp_Last := Comp_Last + 1;
+                  Comp_Args (Comp_Last) := GNAT_Flag;
+
+               else
+                  Fail
+                    ("not allowed to compile """ &
+                     Get_Name_String (Fname) &
+                     """; use -a switch.");
+               end if;
+            end if;
+         end;
 
          --  Now check if the file name has one of the suffixes familiar to
          --  the gcc driver. If this is not the case then add the ada flag
@@ -1789,6 +1809,29 @@ package body Make is
            GNAT.OS_Lib.Non_Blocking_Spawn
              (Gcc_Path.all, Comp_Args (Args'First .. Comp_Last));
       end Compile;
+
+      ----------------------------------
+      -- Configuration_Pragmas_Switch --
+      ----------------------------------
+
+      function Configuration_Pragmas_Switch
+        (For_Project : Project_Id)
+         return        Argument_List
+      is
+      begin
+         Prj.Env.Create_Config_Pragmas_File (For_Project, Main_Project);
+
+         if Projects.Table (For_Project).Config_File_Name /= No_Name then
+            return
+              (1 => new String'("-gnatec" &
+                    Get_Name_String
+                      (Projects.Table (For_Project).Config_File_Name)));
+
+         else
+            return (1 .. 0 => null);
+         end if;
+
+      end Configuration_Pragmas_Switch;
 
       ---------------
       -- Debug_Msg --
@@ -1882,28 +1925,6 @@ package body Make is
       Insert_Q (Main_Source);
       Mark (Main_Source);
 
-      --  The following adds the standard library (s-stalib) to the
-      --  list of files to be handled by gnatmake: this file and any
-      --  files it depends on are always included in every bind, even
-      --  if they are not in the explicit dependency list).
-
-      --  However, to avoid annoying output about s-stalib.ali being
-      --  read only, when "-v" is used, we add the standard library
-      --  only when "-a" is used.
-
-      if Check_Readonly_Files then
-         declare
-            Sfile : Name_Id;
-
-         begin
-            Name_Len := Standard_Library_Package_Body_Name'Length;
-            Name_Buffer (1 .. Name_Len) := Standard_Library_Package_Body_Name;
-            Sfile := Name_Enter;
-            Insert_Q (Sfile);
-            Mark (Sfile);
-         end;
-      end if;
-
       First_Compiled_File  := No_File;
       Most_Recent_Obj_File := No_File;
       Main_Unit            := False;
@@ -1967,6 +1988,13 @@ package body Make is
               and then Full_Lib_File /= No_File
               and then Is_Internal_File_Name (Source_File)
             then
+               if Force_Compilations then
+                  Fail
+                    ("not allowed to compile """ &
+                     Get_Name_String (Source_File) &
+                     """; use -a switch.");
+               end if;
+
                Verbose_Msg
                  (Lib_File, "is an internal library", Prefix => "  ");
 
@@ -2134,6 +2162,37 @@ package body Make is
                Main_Unit := ALIs.Table (ALI).Main_Program /= None;
             end if;
 
+            --  The following adds the standard library (s-stalib) to the
+            --  list of files to be handled by gnatmake: this file and any
+            --  files it depends on are always included in every bind,
+            --  except in No_Run_Time mode, even if they are not
+            --  in the explicit dependency list.
+
+            --  However, to avoid annoying output about s-stalib.ali being
+            --  read only, when "-v" is used, we add the standard library
+            --  only when "-a" is used.
+
+            if Need_To_Check_Standard_Library then
+               Need_To_Check_Standard_Library := False;
+
+               if not ALIs.Table (ALI).No_Run_Time then
+                  declare
+                     Sfile : Name_Id;
+
+                  begin
+                     Name_Len := Standard_Library_Package_Body_Name'Length;
+                     Name_Buffer (1 .. Name_Len) :=
+                       Standard_Library_Package_Body_Name;
+                     Sfile := Name_Enter;
+
+                     if not Is_Marked (Sfile) then
+                        Insert_Q (Sfile);
+                        Mark (Sfile);
+                     end if;
+                  end;
+               end if;
+            end if;
+
             --  Now insert in the Q the unmarked source files (i.e. those
             --  which have neever been inserted in the Q and hence never
             --  considered).
@@ -2173,7 +2232,26 @@ package body Make is
       --  if it had been modified.
 
       if Main_Project /= No_Project then
-         Prj.Env.Restore_Gnat_Adc;
+         declare
+            Success : Boolean;
+
+         begin
+            for Project in 1 .. Projects.Last loop
+               if Projects.Table (Project).Config_File_Temp then
+                  if Opt.Verbose_Mode then
+                     Write_Str ("Deleting temp configuration file """);
+                     Write_Str (Get_Name_String
+                                (Projects.Table (Project).Config_File_Name));
+                     Write_Line ("""");
+                  end if;
+
+                  Delete_File
+                    (Name    => Get_Name_String
+                                  (Projects.Table (Project).Config_File_Name),
+                     Success => Success);
+               end if;
+            end loop;
+         end;
       end if;
 
    end Compile_Sources;
@@ -2476,11 +2554,6 @@ package body Make is
             end if;
 
          end;
-
-         --  Generate (if necessary) gnat.adc
-
-         Prj.Env.Create_Gnat_Adc (Main_Project);
-
       end if;
 
       Display_Commands (not Opt.Quiet_Output);
@@ -2523,11 +2596,16 @@ package body Make is
          --  in procedure Compile_Sources.
 
          The_Saved_Gcc_Switches :=
-           new Argument_List (1 .. Saved_Gcc_Switches.Last);
+           new Argument_List (1 .. Saved_Gcc_Switches.Last + 1);
 
          for J in 1 .. Saved_Gcc_Switches.Last loop
             The_Saved_Gcc_Switches (J) := Saved_Gcc_Switches.Table (J);
          end loop;
+
+         --  We never use gnat.adc when a project file is used.
+
+         The_Saved_Gcc_Switches (The_Saved_Gcc_Switches'Last) :=
+           No_gnat_adc;
       end if;
 
       --  If there was a --GCC, --GNATBIND or --GNATLINK switch on
@@ -2897,7 +2975,7 @@ package body Make is
       if Opt.Output_File_Name_Present
         and then not Output_File_Name_Seen
       then
-         Fail ("Output file name missing after -o");
+         Fail ("output file name missing after -o");
       end if;
 
       if Project_File_Name /= null then
@@ -2911,6 +2989,10 @@ package body Make is
             Write_Str (""".");
             Write_Eol;
          end if;
+
+         --  Avoid looking in the current directory for ALI files
+
+         Opt.Look_In_Primary_Dir := False;
 
          --  Set the project parsing verbosity to whatever was specified
          --  by a possible -vP switch.
@@ -3250,7 +3332,7 @@ package body Make is
          Output_File_Name_Seen := True;
 
          if Argv (1) = Switch_Character or else Argv (1) = '-' then
-            Fail ("Output file name missing after -o");
+            Fail ("output file name missing after -o");
          else
             Add_Switch ("-o", Linker, And_Save => And_Save);
 
@@ -3299,7 +3381,7 @@ package body Make is
         and then (Argv (1) = Switch_Character or else Argv (1) = '-')
         and then Argv (2 .. Argv'Last) = "o"
       then
-         Fail ("Switch -o not allowed within a -largs. Use -o directly.");
+         Fail ("switch -o not allowed within a -largs. Use -o directly.");
 
       --  Check to see if we are reading switches after a -cargs,
       --  -bargs or -largs switch. If yes save it.
@@ -3394,7 +3476,7 @@ package body Make is
             end;
 
          else
-            Fail ("Unknown switch: ", Argv);
+            Fail ("unknown switch: ", Argv);
 
          end if;
 
@@ -3415,7 +3497,7 @@ package body Make is
          elsif (Argv'Length = 3 and then Argv (3) = '-')
            or else (Argv'Length = 4 and then Argv (4) = '-')
          then
-            Fail ("Trailing ""-"" at the end of ", Argv, " forbidden.");
+            Fail ("trailing ""-"" at the end of ", Argv, " forbidden.");
 
          --  -Idir
 
@@ -3472,11 +3554,12 @@ package body Make is
          elsif Argv (2) = 'L' then
             Add_Switch (Argv, Linker, And_Save => And_Save);
 
-         --  -g -pg (give the switch to both the compiler and the linker)
+         --  For -gxxxxx,-pg : give the switch to both the compiler and the
+         --  linker (except for -gnatxxx which is only for the compiler)
 
          elsif
-           (Argv (2) = 'g' and then (Argv'Last = 2
-                                       or else Argv (3) in '0' .. '3'))
+           (Argv (2) = 'g' and then (Argv'Last < 5
+                                       or else Argv (2 .. 5) /= "gnat"))
              or else Argv (2 .. Argv'Last) = "pg"
          then
             Add_Switch (Argv, Compiler, And_Save => And_Save);

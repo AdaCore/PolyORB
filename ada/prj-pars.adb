@@ -61,7 +61,8 @@ package body Prj.Pars is
       if Project_Tree /= Empty_Node then
          Prj.Proc.Process
            (Project           => The_Project,
-            From_Project_Node => Project_Tree);
+            From_Project_Node => Project_Tree,
+            Report_Error      => null);
          Errout.Finalize;
       end if;
 

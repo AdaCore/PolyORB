@@ -40,23 +40,26 @@ package Prj.Env is
    procedure Print_Sources;
    --  Output the list of sources, after Project files have been scanned.
 
-   procedure Create_Gnat_Adc (Project : Project_Id);
+   procedure Create_Config_Pragmas_File
+     (For_Project  : Project_Id;
+      Main_Project : Project_Id);
    --  If there needs to have SFN pragmas, either for non standard
    --  naming schemes or for individual units,
-   --  create a new gnat.adc file in the current directory,
-   --  while saving a possibly existing gnat.adc under another name.
-
-   procedure Restore_Gnat_Adc;
-   --  Delete the dynamically created gnat.adc (created by
-   --  Create_Gnat_Adc), and restore the one that existed before, if any.
+   --  or if Global_Configuration_Pragmas has been specified
+   --  in package gnatmake of the main project,
+   --  or if Local_Configuration_Pragmas has been specified in
+   --  package Compiler of the main project,
+   --  build (if needed) a temporary file that contains all
+   --  configuration pragmas, and specify the configuration
+   --  pragmas file in the project data.
 
    function Ada_Include_Path (Project : Project_Id) return String_Access;
    --  Get the ADA_INCLUDE_PATH of a Project file.
-   --  For the first call, compute it and chache it.
+   --  For the first call, compute it and cache it.
 
    function Ada_Objects_Path (Project : Project_Id) return String_Access;
    --  Get the ADA_OBJECTS_PATH of a Project file.
-   --  For the first call, compute it and chache it.
+   --  For the first call, compute it and cache it.
 
    function Path_Name_Of_Library_Unit_Body
      (Name    : String;

@@ -28,9 +28,12 @@
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with Namet;       use Namet;
+with Opt;
 with Osint;       use Osint;
 with Output;      use Output;
 with Prj.Com;     use Prj.Com;
+with Prj.Util;
+with Snames;      use Snames;
 with Stringt;     use Stringt;
 with Table;
 
@@ -56,12 +59,8 @@ package body Prj.Env is
 
    Default_Naming : constant Naming_Id := Namings.First;
 
-   Gnat_Adc_Created : Boolean := False;
-   Gnat_Adc_Saved   : Boolean := False;
-
-   Gnat_Adc_File_Name : constant String := "gnat.adc" & ASCII.NUL;
-   Saved_Gnat_Adc_File_Name : String (1 .. 10) := "gnat0.adc" & ASCII.NUL;
-   Digit_Pos : constant := 5;
+   Global_Configuration_Pragmas : Name_Id;
+   Local_Configuration_Pragmas  : Name_Id;
 
    -----------------------
    -- Local Subprograms --
@@ -387,12 +386,21 @@ package body Prj.Env is
       return Namet.Get_Name_String (Data.File_Names (Body_Part).Path);
    end Body_Path_Name_Of;
 
-   ---------------------
-   -- Create_Gnat_Adc --
-   ---------------------
+   --------------------------------
+   -- Create_Config_Pragmas_File --
+   --------------------------------
 
-   procedure Create_Gnat_Adc (Project : Project_Id) is
-      File         : File_Descriptor;
+   procedure Create_Config_Pragmas_File
+     (For_Project  : Project_Id;
+      Main_Project : Project_Id)
+   is
+      File_Name : Temp_File_Name;
+      File      : File_Descriptor := Invalid_FD;
+
+      The_Packages : Package_Id;
+      Gnatmake     : Prj.Package_Id;
+      Compiler     : Prj.Package_Id;
+
       Current_Unit : Unit_Id := Units.First;
 
       First_Project : Project_List := Empty_Project_List;
@@ -400,28 +408,31 @@ package body Prj.Env is
       Current_Project : Project_List;
       Current_Naming  : Naming_Id;
 
-      procedure Check (Project : Project_Id);
-      --  Check the naming scheme and add pattern SFN pragmas if it is
-      --  a new naming scheme. Recursively check an eventual modified
-      --  project and imported projects. Remember what projects have
-      --  been visited, and do not revisit them.
+      Global_Attribute : Variable_Value := Nil_Variable_Value;
+      Local_Attribute  : Variable_Value := Nil_Variable_Value;
 
-      procedure Check_Gnat_Adc;
-      --  Check that a new gnat.adc has been created.
-      --  If not, then save an eventual existing gnat.adc to another file,
-      --  create a new gnat.adc, and copy the previously saved one, if any.
+      Global_Attribute_Present : Boolean := False;
+      Local_Attribute_Present  : Boolean := False;
+
+      procedure Check (Project : Project_Id);
+
+      procedure Check_Temp_File;
+      --  Check that a temporary file has been opened.
+      --  If not, create one, and put its name in the project data,
+      --  with the indication that it is a temporary file.
+
+      procedure Copy_File (Name : String_Id);
+      --  Copy a configuration pragmas file into the temp file.
 
       procedure Put
         (Unit_Name : Name_Id;
          File_Name : Name_Id;
          Unit_Kind : Spec_Or_Body);
-      --  Put a single pragma Source_File_Name in gnat.adc
+      --  Put an SFN pragma in the temporary file.
 
       procedure Put (File : File_Descriptor; S : String);
-      --  Put a string to a file
 
-      procedure Put_Line (File : in File_Descriptor; S : in String);
-      --  Put a string followed by end of line to a file
+      procedure Put_Line (File : File_Descriptor; S : String);
 
       -----------
       -- Check --
@@ -471,9 +482,9 @@ package body Prj.Env is
                Namings.Increment_Last;
                Namings.Table (Namings.Last) := Data.Naming;
 
-               --  We need gnat.adc to be created
+               --  We need a temporary file to be created
 
-               Check_Gnat_Adc;
+               Check_Temp_File;
 
                --  Put the SFN pragmas for the naming scheme
 
@@ -545,119 +556,72 @@ package body Prj.Env is
          end if;
       end Check;
 
-      --------------------
-      -- Check_Gnat_Adc --
-      --------------------
+      ---------------------
+      -- Check_Temp_File --
+      ---------------------
 
-      procedure Check_Gnat_Adc is
+      procedure Check_Temp_File is
       begin
-         --  Nothing to do if gnat.adc has been created
-
-         if not Gnat_Adc_Created then
-            declare
-               Saved_File : File_Descriptor;
-               Buffer     : String (1 .. 1000);
-               Last_In    : Natural;
-               Last_Out   : Natural;
-               Dummy      : Boolean;
-
-            begin
-               --  Try to read an already existing gnat.adc
-
-               File := Open_Read (Gnat_Adc_File_Name'Address,
-                                  GNAT.OS_Lib.Text);
-
-               --  If there is an existing gnat.adc
-
-               if File /= Invalid_FD then
-
-                  --  Create a new file to save it
-
-                  loop
-                     Saved_File := Create_New_File
-                       (Saved_Gnat_Adc_File_Name'Address,
-                        GNAT.OS_Lib.Text);
-                     exit when Saved_File /= Invalid_FD;
-                     Saved_Gnat_Adc_File_Name (Digit_Pos) :=
-                       Character'Succ
-                       (Saved_Gnat_Adc_File_Name (Digit_Pos));
-                  end loop;
-
-                  if Current_Verbosity = High then
-                     Write_Str ("Saving existing gnat.adc in gnat");
-                     Write_Char (Saved_Gnat_Adc_File_Name (Digit_Pos));
-                     Write_Line (".adc");
-                  end if;
-
-                  --  And copy gnat.adc into this new file
-
-                  loop
-                     Last_In := Read (File, Buffer'Address, Buffer'Length);
-                     Last_Out := Write (Saved_File, Buffer'Address, Last_In);
-
-                     if Last_In /= Last_Out then
-                        Osint.Fail ("Disk full");
-                     end if;
-
-                     exit when Last_In /= Buffer'Length;
-                  end loop;
-
-                  --  Close the open files, and delete the existing gnat.adc
-
-                  Close (File);
-                  Close (Saved_File);
-                  Delete_File (Gnat_Adc_File_Name'Address, Dummy);
-                  Gnat_Adc_Saved := True;
-               end if;
-
-               --  Now, create a new gnat.adc
-
-               File := Create_New_File
-                 (Gnat_Adc_File_Name'Address,
-                  GNAT.OS_Lib.Text);
-
-               --  If we just saved an existing one
-
-               if Gnat_Adc_Saved then
-                  declare
-                     Saved_File : File_Descriptor;
-                     Buffer     : String (1 .. 1000);
-                     Last_In    : Natural;
-                     Last_Out   : Natural;
-
-                  begin
-                     --  Copy it in the new gnat.adc
-
-                     Saved_File :=
-                       Open_Read (Saved_Gnat_Adc_File_Name'Address,
-                                  GNAT.OS_Lib.Text);
-                     loop
-                        Last_In := Read
-                          (Saved_File, Buffer'Address, Buffer'Length);
-                        Last_Out := Write
-                          (File, Buffer'Address, Last_In);
-
-                        if Last_Out /= Last_In then
-                           Osint.Fail ("Disk full");
-                        end if;
-
-                        exit when Last_In /= Buffer'Length;
-                     end loop;
-
-                     --  Close the saved gnat.adc, but keep the new one
-                     --  open, of course.
-
-                     Close (Saved_File);
-                  end;
-               end if;
-
-               --  Indicate that gnat.adc has been create,
-               --  so that we don't do it again
-
-               Gnat_Adc_Created := True;
-            end;
+         if File = Invalid_FD then
+            GNAT.OS_Lib.Create_Temp_File (File, Name => File_Name);
+            if File = Invalid_FD then
+               Osint.Fail
+                 ("unable to create temporary configuration pragmas file");
+            elsif Opt.Verbose_Mode then
+               Write_Str ("Creating temp file """);
+               Write_Str (File_Name);
+               Write_Line ("""");
+            end if;
          end if;
-      end Check_Gnat_Adc;
+      end Check_Temp_File;
+
+      ---------------
+      -- Copy_File --
+      ---------------
+
+      procedure Copy_File (Name : in String_Id) is
+         Input         : File_Descriptor;
+         Buffer        : String (1 .. 1_000);
+         Input_Length  : Integer;
+         Output_Length : Integer;
+
+      begin
+         Check_Temp_File;
+         String_To_Name_Buffer (Name);
+
+         if Opt.Verbose_Mode then
+            Write_Str ("Copying config pragmas file """);
+            Write_Str (Name_Buffer (1 .. Name_Len));
+            Write_Line (""" into temp file");
+         end if;
+
+         declare
+            Name : constant String :=
+              Name_Buffer (1 .. Name_Len)  & ASCII.NUL;
+         begin
+            Input := Open_Read (Name'Address, Binary);
+         end;
+
+         if Input = Invalid_FD then
+            Osint.Fail
+              ("cannot open configuration pragmas file " &
+               Name_Buffer (1 .. Name_Len));
+         end if;
+
+         loop
+            Input_Length := Read (Input, Buffer'Address, Buffer'Length);
+            Output_Length := Write (File, Buffer'Address, Input_Length);
+
+            if Output_Length /= Input_Length then
+               Osint.Fail ("disk full");
+            end if;
+
+            exit when Input_Length < Buffer'Length;
+         end loop;
+
+         Close (Input);
+
+      end Copy_File;
 
       ---------
       -- Put --
@@ -669,9 +633,9 @@ package body Prj.Env is
          Unit_Kind : Spec_Or_Body)
       is
       begin
-         --  gnat.adc needs to be open
+         --  A temporary file needs to be open
 
-         Check_Gnat_Adc;
+         Check_Temp_File;
 
          --  Put the pragma SFN for the unit kind (spec or body)
 
@@ -733,58 +697,118 @@ package body Prj.Env is
          end if;
       end Put_Line;
 
-   --  Start of processing for Create_Gnat_Adc
+   --  Start of processing for Create_Config_Pragmas_File
 
    begin
-      if Current_Verbosity > Default then
-         Write_Str ("Creating (if necessary) gnat.adc.");
-         Write_Eol;
-         Write_Str ("Checking Naming Schemes.");
-         Write_Eol;
-      end if;
 
-      --  Remove any memory of processed naming schemes, if any
+      if not Projects.Table (For_Project).Config_Checked then
 
-      Namings.Set_Last (Default_Naming);
+         --  Remove any memory of processed naming schemes, if any
 
-      --  Check the naming schemes
+         Namings.Set_Last (Default_Naming);
 
-      Check (Project);
+         --  Check the naming schemes
 
-      --  Visit all the units and process those that need an SFN pragma
+         Check (For_Project);
 
-      while Current_Unit <= Units.Last loop
-         declare
-            Unit : constant Unit_Data :=
-                     Units.Table (Current_Unit);
+         --  Visit all the units and process those that need an SFN pragma
 
-         begin
-            if Unit.File_Names (Specification).Needs_Pragma then
-               Put (Unit.Name,
-                    Unit.File_Names (Specification).Name,
-                    Specification);
+         while Current_Unit <= Units.Last loop
+            declare
+               Unit : constant Unit_Data :=
+                 Units.Table (Current_Unit);
+
+            begin
+               if Unit.File_Names (Specification).Needs_Pragma then
+                  Put (Unit.Name,
+                       Unit.File_Names (Specification).Name,
+                       Specification);
+               end if;
+
+               if Unit.File_Names (Body_Part).Needs_Pragma then
+                  Put (Unit.Name,
+                       Unit.File_Names (Body_Part).Name,
+                       Body_Part);
+               end if;
+
+               Current_Unit := Current_Unit + 1;
+            end;
+         end loop;
+
+         The_Packages := Projects.Table (Main_Project).Decl.Packages;
+         Gnatmake :=
+           Prj.Util.Value_Of
+           (Name        => Name_Gnatmake,
+            In_Packages => The_Packages);
+
+         if Gnatmake /= No_Package then
+            Global_Attribute := Prj.Util.Value_Of
+              (Variable_Name => Global_Configuration_Pragmas,
+               In_Variables => Packages.Table (Gnatmake).Decl.Attributes);
+            Global_Attribute_Present :=
+              Global_Attribute /= Nil_Variable_Value
+              and then String_Length (Global_Attribute.Value) > 0;
+         end if;
+
+         The_Packages := Projects.Table (For_Project).Decl.Packages;
+         Compiler :=
+           Prj.Util.Value_Of
+           (Name        => Name_Compiler,
+            In_Packages => The_Packages);
+
+         if Compiler /= No_Package then
+            Local_Attribute := Prj.Util.Value_Of
+              (Variable_Name => Local_Configuration_Pragmas,
+               In_Variables => Packages.Table (Compiler).Decl.Attributes);
+            Local_Attribute_Present :=
+              Local_Attribute /= Nil_Variable_Value
+              and then String_Length (Local_Attribute.Value) > 0;
+         end if;
+
+         if Global_Attribute_Present then
+
+            if File /= Invalid_FD
+              or else Local_Attribute_Present
+            then
+               Copy_File (Global_Attribute.Value);
+            else
+               String_To_Name_Buffer (Global_Attribute.Value);
+               Projects.Table (For_Project).Config_File_Name := Name_Find;
+            end if;
+         end if;
+
+         if Local_Attribute_Present then
+
+            if File /= Invalid_FD then
+               Copy_File (Local_Attribute.Value);
+
+            else
+               String_To_Name_Buffer (Local_Attribute.Value);
+               Projects.Table (For_Project).Config_File_Name := Name_Find;
             end if;
 
-            if Unit.File_Names (Body_Part).Needs_Pragma then
-               Put (Unit.Name,
-                    Unit.File_Names (Body_Part).Name,
-                    Body_Part);
+         end if;
+
+         if File /= Invalid_FD then
+            GNAT.OS_Lib.Close (File);
+
+            if Opt.Verbose_Mode then
+               Write_Str ("Closing configuration file """);
+               Write_Str (File_Name);
+               Write_Line ("""");
             end if;
 
-            Current_Unit := Current_Unit + 1;
-         end;
-      end loop;
+            Name_Len := File_Name'Length;
+            Name_Buffer (1 .. Name_Len) := File_Name;
+            Projects.Table (For_Project).Config_File_Name := Name_Find;
+            Projects.Table (For_Project).Config_File_Temp := True;
+         end if;
 
-      --  If we have created a gnat.adc, close it
+         Projects.Table (For_Project).Config_Checked := True;
 
-      if Gnat_Adc_Created then
-         Close (File);
       end if;
 
-      if Current_Verbosity > Default then
-         Write_Line ("End of creation of gnat.adc.");
-      end if;
-   end Create_Gnat_Adc;
+   end Create_Config_Pragmas_File;
 
    ------------------------------------
    -- File_Name_Of_Library_Unit_Body --
@@ -1223,11 +1247,19 @@ package body Prj.Env is
    ----------------
 
    procedure Initialize is
+      Global : constant String := "global_configuration_pragmas";
+      Local  : constant String :=  "local_configuration_pragmas";
    begin
       --  Put the standard GNAT naming scheme in the Namings table
 
       Namings.Increment_Last;
       Namings.Table (Namings.Last) := Standard_Naming_Data;
+      Name_Len := Global'Length;
+      Name_Buffer (1 .. Name_Len) := Global;
+      Global_Configuration_Pragmas := Name_Find;
+      Name_Len := Local'Length;
+      Name_Buffer (1 .. Name_Len) := Local;
+      Local_Configuration_Pragmas := Name_Find;
    end Initialize;
 
    ------------------------------------
@@ -1415,47 +1447,6 @@ package body Prj.Env is
 
       Write_Line ("end of List of Sources.");
    end Print_Sources;
-
-   ----------------------
-   -- Restore_Gnat_Adc --
-   ----------------------
-
-   procedure Restore_Gnat_Adc is
-      File       : File_Descriptor;
-      Saved_File : File_Descriptor;
-      Buffer     : String (1 .. 1000);
-      Last_In    : Natural;
-      Last_Out   : Natural;
-      Dummy      : Boolean;
-
-   begin
-      if Gnat_Adc_Created then
-         Delete_File (Gnat_Adc_File_Name'Address, Dummy);
-         Gnat_Adc_Created := False;
-
-         if Gnat_Adc_Saved then
-            Saved_File := Open_Read (Saved_Gnat_Adc_File_Name'Address,
-                                     GNAT.OS_Lib.Text);
-            File := Create_New_File (Gnat_Adc_File_Name'Address,
-                                     GNAT.OS_Lib.Text);
-            loop
-               Last_In := Read (Saved_File, Buffer'Address, Buffer'Length);
-               Last_Out := Write (File, Buffer'Address, Last_In);
-
-               if Last_Out /= Last_In then
-                  Osint.Fail ("Disk full");
-               end if;
-
-               exit when Last_In /= Buffer'Length;
-            end loop;
-
-            Close (File);
-            Close (Saved_File);
-            Delete_File (Saved_Gnat_Adc_File_Name'Address, Dummy);
-            Gnat_Adc_Saved := False;
-         end if;
-      end if;
-   end Restore_Gnat_Adc;
 
    -----------------------
    -- Spec_Path_Name_Of --

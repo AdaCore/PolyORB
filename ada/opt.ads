@@ -367,17 +367,19 @@ package Opt is
    --  able to actually inline a particular call (or all calls). Can be
    --  controlled by use of -gnatwp/-gnatwP.
 
+   Init_Or_Norm_Scalars : Boolean := False;
+   --  GNAT
+   --  Set True if a pragma Initialize_Scalars applies to the current unit.
+   --  Also set True if a pragma Normalize_Scalars applies.
+
    Initialize_Scalars : Boolean := False;
    --  GNAT
    --  Set True if a pragma Initialize_Scalars applies to the current unit.
-   --  Also set True if a pragma Normalize_Scalars applies (i.e. for the
-   --  case of Initialize_Scalars, Normalize_Scalars is False, for the case
-   --  of Normalize_Scalars, Normalize_Scalars is True, but this flag is
-   --  True in either case).
+   --  Note that Init_Or_Norm_Scalars is also set to True if this is True.
 
-   Initialize_Scalars_Mode : Character := ' ';
+   Initialize_Scalars_Mode : Character := 'I';
    --  GNATBIND
-   --  Set to 'I' for -Sin, 'L' for -Slo, 'H' for -Shi, 'X' for -Sxx
+   --  Set to 'I' for -Sin (default), 'L' for -Slo, 'H' for -Shi, 'X' for -Sxx
 
    Initialize_Scalars_Val : String (1 .. 2);
    --  GNATBIND
@@ -477,7 +479,7 @@ package Opt is
    Normalize_Scalars : Boolean := False;
    --  GNAT
    --  Set True if a pragma Normalize_Scalars applies to the current unit.
-   --  Note that Initialize_Scalars is also set to True if this is True.
+   --  Note that Init_Or_Norm_Scalars is also set to True if this is True.
 
    No_Run_Time : Boolean := False;
    --  GNAT
@@ -610,7 +612,7 @@ package Opt is
 
    Tasking_Used : Boolean := False;
    --  Set True if any tasking construct is encountered. Used to activate the
-   --  output of the Q line in ali files.
+   --  output of the Q, L and T lines in ali files.
 
    Time_Slice_Set : Boolean := False;
    --  Set True if a pragma Time_Slice is processed in the main unit, or
@@ -666,12 +668,12 @@ package Opt is
    --  GNAT
    --  Set to True if a valid pragma Use_VADS_Size is processed
 
-   type Validity_Checking_Type is (None, Default, Full);
+   type Validity_Checking_Type is (None, Default, Copies, Tests, Exprs);
    Validity_Checking : Validity_Checking_Type := Default;
    --  GNAT
-   --  Indicates level of checking for invalid values (i.e. values outside
-   --  the range of a subtype caused by uninitialized variables, as discussed
-   --  in (RM 13.9.1(9-11)).
+   --  Indicates level of checking of scalars for invalid values (i.e. values
+   --  outside the range of a subtype caused by uninitialized variables, as
+   --  discussed in (RM 13.9.1(9-11)).
    --
    --    None = No validity checking
    --
@@ -690,14 +692,36 @@ package Opt is
    --      with the above RM reference. Notably extra checks may be needed
    --      for case statements and subscripted array assignments.
    --
-   --    Full = Full validity checking
+   --    Copies = check copies and array subscripts
    --
-   --      In this mode, every assignment is checked for validity, so that
+   --      In this mode, in addition to the checks made in default mode, the
+   --      right side of every assignment is checked for validity, so that
    --      it is impossible to assign invalid values. The RM specifically
    --      allows such assignments, but in this mode, invalid values can
    --      never be assigned, and an attempt to perform such an assignment
    --      immediately raises Constraint_Error. This behavior is allowed
-   --      (but not required) by the RM.
+   --      (but not required) by the RM. In addition to actual assignment
+   --      statements, initializing expressions in object declarations are
+   --      checked, as well as scalar parameters. Finally all subscripts in
+   --      indexed components are checked.
+   --
+   --    Tests = check conditional tests
+   --
+   --      In addition to all checks made in Full mode, expressions used
+   --      for conditional tests in IF, WHILE, and EXIT statements are also
+   --      checked for validity.
+   --
+   --    Exprs = check expressions
+   --
+   --      In this mode, the value yielded by any evaluated expression is
+   --      checked for validity (this includes all previous cases described
+   --      above since these are all cases of expressions).
+
+   subtype Copy_And_Subscript_Checks is
+     Validity_Checking_Type range Copies .. Tests;
+   --  This is used to see if specific checks are required for copies and
+   --  subscript checks. Note that Expr is not included, because if Expr
+   --  is set, we get full checks in any case.
 
    Verbose_Mode : Boolean := False;
    --  GNAT, GNATBIND
@@ -750,7 +774,7 @@ package Opt is
    --  handling mode set by argument switches (-gnatZ/-gnatL). If the
    --  value is set by one of these switches, then Zero_Cost_Exceptions_Set
    --  is set to True, and Zero_Cost_Exceptions_Val indicates the setting.
-   --  This value is used to reset Zero_Cost_Exceptions_On_Target.
+   --  This value is used to reset ZCX_By_Default_On_Target.
 
    ----------------------------
    -- Configuration Settings --

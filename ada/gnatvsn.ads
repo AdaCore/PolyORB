@@ -38,7 +38,7 @@
 
 package Gnatvsn is
 
-   Gnat_Version_String : constant String := "3.15w (20010625)";
+   Gnat_Version_String : constant String := "3.15w (20010819)";
    --  Version output when GNAT (compiler), or its related tools, including
    --  GNATBIND, GNATCHOP, GNATFIND, GNATLINK, GNATMAKE, GNATXREF, are run
    --  (with appropriate verbose option switch set).
@@ -54,11 +54,12 @@ package Gnatvsn is
    --  value should never be decreased in the future, but it would be
    --  OK to increase it if absolutely necessary.
 
-   Library_Version : constant String := "GNAT Lib v3.14 ";
+   Library_Version : constant String := "GNAT Lib v3.15 ";
    --  Library version. This value must be updated whenever any change to the
    --  compiler affects the library formats in such a way as to obsolete
    --  previously compiled library modules.
-   --  Note: Makefile.in relies on the format of this string to build
-   --  the right soname.
+   --
+   --  Note: Makefile.in relies on the precise format of the library version
+   --  string in order to correctly construct the soname value.
 
 end Gnatvsn;

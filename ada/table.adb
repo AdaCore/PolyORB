@@ -84,6 +84,17 @@ package body Table is
          Last_Val := Last_Val - 1;
       end Decrement_Last;
 
+      ----------
+      -- Free --
+      ----------
+
+      procedure Free is
+      begin
+         free (Table);
+         Table := null;
+         Length := 0;
+      end Free;
+
       --------------------
       -- Increment_Last --
       --------------------
@@ -246,17 +257,30 @@ package body Table is
       end Save;
 
       --------------
+      -- Set_Item --
+      --------------
+
+      procedure Set_Item
+         (Index : Table_Index_Type;
+          Item  : Table_Component_Type)
+      is
+      begin
+         if Int (Index) > Max then
+            Set_Last (Index);
+         end if;
+
+         Table (Index) := Item;
+      end Set_Item;
+
+      --------------
       -- Set_Last --
       --------------
 
       procedure Set_Last (New_Val : Table_Index_Type) is
-         Old_Last : Int;
-
       begin
          if Int (New_Val) < Last_Val then
             Last_Val := Int (New_Val);
          else
-            Old_Last := Last_Val;
             Last_Val := Int (New_Val);
 
             if Last_Val > Max then

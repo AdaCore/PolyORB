@@ -869,8 +869,21 @@ package body Switch is
                   when 'd' | '1' =>
                      Validity_Checking := Default;
 
-                  when 'f' | '2' =>
-                     Validity_Checking := Full;
+                  when 'c' | '2' =>
+                     Validity_Checking := Copies;
+
+                  when 't' | '3' =>
+                     Validity_Checking := Tests;
+
+                  when 'e' | '4' =>
+                     Validity_Checking := Exprs;
+
+                  --  For now allow 'f' as synonym for 'c' to be compatible
+                  --  with GNAT version 3.14a which used f for full (when
+                  --  this was the highest level)
+
+                  when 'f' =>
+                     Validity_Checking := Copies;
 
                   when others =>
                      raise Bad_Switch;

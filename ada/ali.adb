@@ -675,6 +675,7 @@ package body ALI is
          Units.Table (Units.Last).RCI             := False;
          Units.Table (Units.Last).Remote_Types    := False;
          Units.Table (Units.Last).Has_RACW        := False;
+         Units.Table (Units.Last).Init_Scalars    := False;
          Units.Table (Units.Last).Is_Generic      := False;
          Units.Table (Units.Last).Icasing         := Mixed_Case;
          Units.Table (Units.Last).Kcasing         := All_Lower_Case;
@@ -790,13 +791,17 @@ package body ALI is
                Check_At_End_Of_Field;
                Units.Table (Units.Last).Is_Generic := True;
 
-            --  IL/IU parameters
+            --  IL/IS/IU parameters
 
             elsif C = 'I' then
                C := Getc;
 
                if C = 'L' then
                   Units.Table (Units.Last).Icasing := All_Lower_Case;
+
+               elsif C = 'S' then
+                  Units.Table (Units.Last).Init_Scalars := True;
+                  Initialize_Scalars_Used := True;
 
                elsif C = 'U' then
                   Units.Table (Units.Last).Icasing := All_Upper_Case;

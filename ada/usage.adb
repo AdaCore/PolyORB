@@ -152,9 +152,8 @@ begin
 
    --  Line for -gnatec switch
 
-   Write_Switch_Char ("ecfl");
-   Write_Line ("Specify configuration pragmas file <fl>");
-   Write_Line ("            example: -gnatec/configurations/conf1.adc");
+   Write_Switch_Char ("ec?");
+   Write_Line ("Specify configuration pragmas file, e.g. -gnatec/x/f.adc");
 
    --  Line for -gnatE switch
 
@@ -289,7 +288,8 @@ begin
    --  Line for -gnatV switch
 
    Write_Switch_Char ("V?");
-   Write_Line ("Validity checking (?=n/d/f or 0/1/2 for None/Default/Full)");
+   Write_Line
+     ("Validity checking (?=ndcte or 0-4 None/Default/Copy/Test/Exprs)");
 
    --  Lines for -gnatw switch
 

@@ -43,9 +43,11 @@ package body Prj.Strt is
       Name     : Name_Id := No_Name;
       Location : Source_Ptr := No_Location;
    end record;
+   --  Store the identifier and the location of a simple name
 
    type Name_Range is range 0 .. 3;
    subtype Name_Index is Name_Range range 1 .. Name_Range'Last;
+   --  A Name may contain up to 3 simple names
 
    type Names is array (Name_Index) of Name_Location;
    --  Used to store 1 to 3 simple_names. 2 simple names are for
@@ -56,12 +58,14 @@ package body Prj.Strt is
       The_String : String_Id;
       Already_Used : Boolean := False;
    end record;
+   --  The string of a case label, and an indication that it has already
+   --  been used (to avoid duplicate case labels).
 
    Choices_Initial   : constant := 10;
    Choices_Increment : constant := 10;
 
    Choice_Node_Low_Bound  : constant := 0;
-   Choice_Node_High_Bound : constant := 099_999_999;
+   Choice_Node_High_Bound : constant := 099_999_999; --  In practice, infinite
 
    type Choice_Node_Id is
      range Choice_Node_Low_Bound .. Choice_Node_High_Bound;
@@ -72,7 +76,7 @@ package body Prj.Strt is
    Empty_Choice : constant Choice_Node_Id :=
      Choice_Node_Low_Bound;
 
-   Choice_First : constant Choice_Node_Id := First_Choice_Node_Id + 1;
+   First_Choice_Id : constant Choice_Node_Id := First_Choice_Node_Id + 1;
 
    package Choices is
       new Table.Table (Table_Component_Type => Choice_String,
@@ -82,6 +86,21 @@ package body Prj.Strt is
                        Table_Increment      => Choices_Increment,
                        Table_Name           => "Prj.Strt.Choices");
    --  Used to store the case labels and check that there is no duplicate.
+
+   package Choice_Lasts is
+      new Table.Table (Table_Component_Type => Choice_Node_Id,
+                       Table_Index_Type     => Nat,
+                       Table_Low_Bound      => 1,
+                       Table_Initial        => 3,
+                       Table_Increment      => 3,
+                       Table_Name           => "Prj.Strt.Choice_Lasts");
+   --  Used to store the indices of the choices in table Choices,
+   --  to distinguish nested case constructions.
+
+   Choice_First : Choice_Node_Id := 0;
+   --  Index in table Choices of the first case label of the current
+   --  case construction.
+   --  0 means no current case construction.
 
    procedure Add (This_String : String_Id);
    --  Add a string to the case label list, indicating that it has not
@@ -169,6 +188,29 @@ package body Prj.Strt is
          end if;
       end if;
    end Attribute_Reference;
+
+   ---------------------------
+   -- End_Case_Construction --
+   ---------------------------
+
+   procedure End_Case_Construction is
+   begin
+      if Choice_Lasts.Last = 1 then
+         Choice_Lasts.Set_Last (0);
+         Choices.Set_Last (First_Choice_Node_Id);
+         Choice_First := 0;
+
+      elsif Choice_Lasts.Last = 2 then
+         Choice_Lasts.Set_Last (1);
+         Choices.Set_Last (Choice_Lasts.Table (1));
+         Choice_First := 1;
+
+      else
+         Choice_Lasts.Decrement_Last;
+         Choices.Set_Last (Choice_Lasts.Table (Choice_Lasts.Last));
+         Choice_First := Choice_Lasts.Table (Choice_Lasts.Last - 1) + 1;
+      end if;
+   end End_Case_Construction;
 
    ------------------------
    -- External_Reference --
@@ -272,7 +314,7 @@ package body Prj.Strt is
          Choice_String := Strval (Token_Node);
          Set_String_Value_Of (Current_Choice, To => Choice_String);
          Found := False;
-         for Choice in Choice_First .. Choices.Last loop
+         for Choice in First_Choice_Id .. Choices.Last loop
             if String_Equal (Choices.Table (Choice).The_String,
                              Choice_String)
             then
@@ -396,9 +438,9 @@ package body Prj.Strt is
       The_Package : Project_Node_Id := Current_Package;
       The_Project : Project_Node_Id := Current_Project;
 
-      Specified_Project : Project_Node_Id := Empty_Node;
-      Specified_Package : Project_Node_Id := Empty_Node;
-      Look_For_Variable : Boolean := True;
+      Specified_Project : Project_Node_Id   := Empty_Node;
+      Specified_Package : Project_Node_Id   := Empty_Node;
+      Look_For_Variable : Boolean           := True;
       First_Attribute   : Attribute_Node_Id := Empty_Attribute;
       Variable_Name     : Name_Id;
 
@@ -528,6 +570,7 @@ package body Prj.Strt is
                     ("too many single names for an attribute reference",
                      The_Names (1).Location);
                   Scan;
+                  Variable := Empty_Node;
                   return;
             end case;
 
@@ -709,7 +752,12 @@ package body Prj.Strt is
       Current_String : Project_Node_Id;
 
    begin
-      Choices.Set_Last (First_Choice_Node_Id);
+      if Choice_First = 0 then
+         Choice_First := 1;
+         Choices.Set_Last (First_Choice_Node_Id);
+      else
+         Choice_First := Choices.Last + 1;
+      end if;
 
       if String_Type /= Empty_Node then
          Current_String := First_Literal_String (String_Type);
@@ -719,6 +767,9 @@ package body Prj.Strt is
             Current_String := Next_Literal_String (Current_String);
          end loop;
       end if;
+
+      Choice_Lasts.Increment_Last;
+      Choice_Lasts.Table (Choice_Lasts.Last) := Choices.Last;
 
    end Start_New_Case_Construction;
 

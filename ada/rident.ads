@@ -54,6 +54,7 @@ package Rident is
       No_Dynamic_Priorities,                   -- (RM D.9(9))
       No_Enumeration_Maps,                     -- GNAT
       No_Entry_Calls_In_Elaboration_Code,      -- GNAT
+      No_Entry_Queue,                          -- GNAT
       No_Exception_Handlers,                   -- GNAT
       No_Exceptions,                           -- (RM H.4(12))
       No_Fixed_Point,                          -- (RM H.4(15))
@@ -94,7 +95,6 @@ package Rident is
       No_Implementation_Pragmas,               -- GNAT
       No_Implementation_Restrictions,          -- GNAT
       No_Elaboration_Code,                     -- GNAT
-      No_Entry_Queue,                          -- GNAT
 
       Not_A_Restriction_Id);
 
@@ -114,7 +114,7 @@ package Rident is
    --  not carry any indications with respect to such restrictions.
 
    subtype Compilation_Unit_Restrictions is
-     Restriction_Id range Immediate_Reclamation .. No_Entry_Queue;
+     Restriction_Id range Immediate_Reclamation .. No_Elaboration_Code;
 
    --  The following enumeration type defines the set of restriction
    --  parameter identifiers taking a parameter that are implemented in

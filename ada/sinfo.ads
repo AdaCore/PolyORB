@@ -768,13 +768,14 @@ package Sinfo is
    --      target type is determined from the type of the array, which is
    --      referenced by the Prefix of the N_Indexed_Component node.
 
-   --      Parameter expression for an IN parameter, appearing either
-   --      directly in the Parameter_Associations list of a call or as
-   --      the Expression of an N_Parameter_Association node that appears
-   --      in this list. In either case, the check is against the type of
-   --      the formal. Note that OUT and IN OUT parameters are handled by
-   --      expanding assignments and explicit type conversions where a
-   --      range check is required.
+   --      Argument expression for a parameter, appearing either directly
+   --      in the Parameter_Associations list of a call or as the Expression
+   --      of an N_Parameter_Association node that appears in this list. In
+   --      either case, the check is against the type of the formal. Note
+   --      that the flag is relevant only in IN and IN OUT parameters, and
+   --      will be ignored for OUT parameters, where no check is required
+   --      in the call, and if a check is required on the return, it is
+   --      generated explicitly with a type conversion.
 
    --      Initialization expression for the initial value in an object
    --      declaration. In this case the Do_Range_Check flag is set on

@@ -40,6 +40,9 @@ with Types;       use Types;
 
 package Prj is
 
+   type Put_Line_Access is access procedure (Line : String);
+   --  Use to customize error reporting in Prj.Proc and Prj.Nmsc.
+
    type Verbosity is (Default, Medium, High);
    --  Verbosity when parsing GNAT Project Files.
    --  Default is default (very quiet, if no errors).

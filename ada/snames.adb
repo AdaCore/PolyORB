@@ -221,6 +221,7 @@ package body Snames is
      "interrupt_priority#" &
      "java_constructor#" &
      "java_interface#" &
+     "link_with#" &
      "linker_alias#" &
      "linker_options#" &
      "linker_section#" &
