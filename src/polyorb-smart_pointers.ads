@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.ads#11 $
+--  $Id$
 
 with Ada.Finalization;
 
@@ -70,7 +70,7 @@ package PolyORB.Smart_Pointers is
 
    type Ref is new Ada.Finalization.Controlled with private;
    --  The base type of all references. This type is often derived
-   --  but never extended. It contains one field, which designate
+   --  but never extended. It contains one field, which designates
    --  the referenced object.
 
    procedure Initialize (The_Ref : in out Ref);
