@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#20 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#21 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -577,8 +577,10 @@ including run-time library. You may override this setting using
 variables. See GNAT User's Guide for more details.
 
 NOTE: Developers building PolyORB from the version control repository
-who need to rebuild the configure and Makefile.in files should
-use the script support/reconfig for this purpose.
+who need to rebuild the configure and Makefile.in files should use the
+script support/reconfig for this purpose.  In addition to the
+requirements above, they will need autoconf 2.57 or newer, and
+automake 1.6.3 or newer.
 
 @c -------------------------------------------------------------------
 @node Platform notes
