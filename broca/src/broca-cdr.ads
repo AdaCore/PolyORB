@@ -239,6 +239,19 @@ package Broca.CDR is
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Any;
 
+   --  The next three marshall or unmarshall the value of the any
+   --  and not the any type itself
+   procedure Marshall_From_Any
+     (Buffer : access Buffer_Type;
+      Data   : access CORBA.Any);
+   procedure Marshall_From_Any
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Any);
+
+   function Unmarshall_To_Any (Buffer : access Buffer_Type;
+                               Any_Type : CORBA.TypeCode.Object)
+     return CORBA.Any;
+
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : access CORBA.TypeCode.Object);

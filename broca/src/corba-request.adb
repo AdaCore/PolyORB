@@ -85,8 +85,10 @@ package body CORBA.Request is
                CORBA.NVList.Unmarshall (Handler.Buffer'Access,
                                         Self.Args_List);
                --  Unmarshall return value
-               Broca.CDR.Unmarshall (Handler.Buffer'Access,
-                                     Self.Result);
+               Self.Result := Broca.CDR.Unmarshall
+                 (Handler.Buffer'Access,
+                  Self.Result.Name,
+                  Self.Result.Arg_Modes);
                Broca.GIOP.Release (Handler);
             when Broca.GIOP.Sr_No_Reply =>
                Broca.GIOP.Release (Handler);

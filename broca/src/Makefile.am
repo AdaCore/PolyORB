@@ -31,6 +31,8 @@ ADA_FULL = \
 	   corba-forward.ads \
 	   corba-object.ads \
 	   corba-orb.ads \
+	   corba-nvlist.ads \
+	   corba-request.ads \
 	   corba.ads \
 	   corba-abstractbase.ads \
 	   corba-impl.ads \
@@ -152,8 +154,11 @@ corba-abstractbase.lo: broca.ads broca-buffers.ads broca-opaque.ads broca-opaque
 corba-current.lo: broca.ads broca-buffers.ads broca-opaque.ads broca-opaque-chunk_pools.ads broca-refs.ads corba.ads corba-abstractbase.ads corba-current.ads corba-impl.ads corba-object.ads sequences.ads sequences-unbounded.ads
 corba-forward.lo: broca.ads broca-buffers.ads broca-opaque.ads broca-opaque-chunk_pools.ads broca-refs.ads corba.ads corba-abstractbase.ads corba-forward.ads corba-forward.adb corba-impl.ads corba-object.ads sequences.ads sequences-unbounded.ads
 corba-impl.lo: broca.ads broca-buffers.ads broca-opaque.ads broca-opaque-chunk_pools.ads broca-refs.ads corba.ads corba-impl.ads corba-impl.adb sequences.ads sequences-unbounded.ads
+corba-nvlist.lo: broca.ads broca-buffers.ads broca-cdr.ads broca-opaque.ads broca-opaque-chunk_pools.ads broca-refs.ads corba.ads corba-abstractbase.ads corba-impl.ads corba-nvlist.ads corba-nvlist.adb corba-object.ads sequences.ads sequences-unbounded.ads
 corba-object.lo: broca.ads broca-buffers.ads broca-cdr.ads broca-cdr-refs.ads broca-ior.ads broca-opaque.ads broca-opaque-chunk_pools.ads broca-refs.ads corba.ads corba-abstractbase.ads corba-impl.ads corba-object.ads corba-object.adb sequences.ads sequences-unbounded.ads
+corba-orb-typecode_creation.lo: broca.ads broca-buffers.ads broca-opaque.ads broca-opaque-chunk_pools.ads broca-refs.ads corba.ads corba-object.ads corba-orb.ads corba-orb-typecode_creation.ads corba-orb-typecode_creation.adb corba-sequences.ads corba-sequences-unbounded.ads sequences.ads sequences-unbounded.ads
 corba-orb.lo: broca.ads broca-buffers.ads broca-debug.ads broca-debug.adb broca-ior.ads broca-locks.ads broca-opaque.ads broca-opaque-chunk_pools.ads broca-orb.ads broca-poa.ads broca-refs.ads broca-sequences.ads corba.ads corba-abstractbase.ads corba-forward.ads corba-impl.ads corba-object.ads corba-orb.ads corba-orb.adb corba-sequences.ads corba-sequences-unbounded.ads portableserver.ads portableserver-adapteractivator.ads portableserver-servantmanager.ads sequences.ads sequences-unbounded.ads sequences-unbounded.adb
+corba-request.lo: broca.ads broca-buffers.ads broca-cdr.ads broca-giop.ads broca-iop.ads broca-object.ads broca-opaque.ads broca-opaque-chunk_pools.ads broca-refs.ads broca-sequences.ads corba.ads corba-abstractbase.ads corba-impl.ads corba-nvlist.ads corba-object.ads corba-request.ads corba-request.adb corba-sequences.ads corba-sequences-unbounded.ads sequences.ads sequences-unbounded.ads
 corba-sequences-bounded.lo: corba.ads corba-sequences.ads corba-sequences-bounded.ads sequences.ads sequences-bounded.ads sequences-bounded.adb sequences-unbounded.ads
 corba-sequences-unbounded.lo: corba.ads corba-sequences.ads corba-sequences-unbounded.ads sequences.ads sequences-unbounded.ads sequences-unbounded.adb
 corba-sequences.lo: corba.ads corba-sequences.ads sequences.ads sequences-unbounded.ads

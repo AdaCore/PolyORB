@@ -525,10 +525,10 @@ package CORBA is
       function TC_Octet              return TypeCode.Object;
       function TC_Any                return TypeCode.Object;
       function TC_TypeCode           return TypeCode.Object;
-      --  TC_Object defined in CORBA.Object
       function TC_String             return TypeCode.Object;
       function TC_Wide_String        return TypeCode.Object;
 
+      function TC_Principal          return TypeCode.Object;
       function TC_Struct             return TypeCode.Object;
       function TC_Union              return TypeCode.Object;
       function TC_Enum               return TypeCode.Object;
@@ -626,6 +626,7 @@ package CORBA is
       PTC_String             : constant Object := (Tk_String, null);
       PTC_Wide_String        : constant Object := (Tk_Wstring, null);
 
+      PTC_Principal          : constant Object := (Tk_Principal, null);
       PTC_Struct             : constant Object := (Tk_Struct, null);
       PTC_Union              : constant Object := (Tk_Union, null);
       PTC_Enum               : constant Object := (Tk_Enum, null);
@@ -678,7 +679,8 @@ package CORBA is
      renames TypeCode.TC_Any;
    function TC_TypeCode           return TypeCode.Object
      renames TypeCode.TC_TypeCode;
-   --  TC_Object defined in CORBA.Object
+   function TC_ObjRef             return TypeCode.Object
+     renames TypeCode.TC_ObjRef;
    function TC_String             return TypeCode.Object
      renames TypeCode.TC_String;
    function TC_Wide_String        return TypeCode.Object

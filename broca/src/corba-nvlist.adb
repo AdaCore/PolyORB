@@ -125,7 +125,10 @@ package body CORBA.NVList is
       while List /= Null_NVList loop
          if List.NV.Arg_Modes = CORBA.ARG_OUT or
            List.NV.Arg_Modes = CORBA.ARG_INOUT then
-            Broca.CDR.Unmarshall (Buffer, List.NV);
+            --  FIXME : memory leak when INOUT ?
+            List.NV := Broca.CDR.Unmarshall (Buffer,
+                                             List.NV.Name,
+                                             List.NV.Arg_Modes);
          end if;
          List := List.Next;
       end loop;

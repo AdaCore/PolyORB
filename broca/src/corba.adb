@@ -992,6 +992,14 @@ package body CORBA is
          return PTC_Wide_String;
       end TC_Wide_String;
 
+      --------------------
+      --  TC_Principal  --
+      --------------------
+      function TC_Principal return TypeCode.Object is
+      begin
+         return PTC_Principal;
+      end TC_Principal;
+
       -----------------
       --  TC_Struct  --
       -----------------

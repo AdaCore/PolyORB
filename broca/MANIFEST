@@ -229,6 +229,15 @@ src/corba-sequences-bounded.ads
 src/corba-sequences-unbounded.adb
 src/corba-sequences-unbounded.ads
 src/corba-sequences.ads
+src/sequences-bounded.adb
+src/sequences-bounded.ads
+src/sequences-unbounded.adb
+src/sequences-unbounded.ads
+src/sequences.ads
+src/corba-nvlist.adb
+src/corba-nvlist.ads
+src/corba-request.adb
+src/corba-request.ads
 src/corba.adb
 src/corba.ads
 src/header.txt
