@@ -1,3 +1,10 @@
+2002-05-09  Pascal Obry  <obry@gnat.com>
+
+	* configure.in: Fix AM_INIT_AUTOMAKE to be compatible with
+	recent autoconf version.
+
+	* configure: Update using new configure.in
+	
 2002-04-22  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* MANIFEST: Add inffixed.h in zlib directory because of an update
