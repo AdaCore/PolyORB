@@ -1576,9 +1576,10 @@ package body CORBA is
    --  Add_Aggregate_Element  --
    -----------------------------
    procedure Add_Aggregate_Element (Value : in out Any;
-                                   Element : in Any) is
+                                    Element : in Any) is
       Cl : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
    begin
+      pragma Debug (O ("Add_Aggregate_Element : enter"));
       if Cl = Null_Content_List then
          Content_Aggregate_Ptr (Value.The_Value).Value
            := new Content_Cell' (Element.The_Value,
@@ -1590,6 +1591,7 @@ package body CORBA is
          Cl.Next := new Content_Cell' (Value.The_Value,
                                        Null_Content_List);
       end if;
+      pragma Debug (O ("Add_Aggregate_Element : end"));
    end Add_Aggregate_Element;
 
    -----------------------------
@@ -1601,10 +1603,14 @@ package body CORBA is
                                    return Any is
       Ptr : Content_List := Content_Aggregate_Ptr (Value.The_Value).Value;
    begin
+      pragma Debug (O ("Get_Aggregate_Element : end"));
       pragma Assert (Get_Aggregate_Count (Value) > Index);
-      for I in 0 .. Index - 1 loop
-         Ptr := Ptr.Next;
-      end loop;
+      if Index > 0 then
+         for I in 0 .. Index - 1 loop
+            Ptr := Ptr.Next;
+         end loop;
+      end if;
+      pragma Debug (O ("Get_Aggregate_Element : end"));
       return (The_Value => Ptr.The_Value, The_Type => Tc);
    end Get_Aggregate_Element;
 

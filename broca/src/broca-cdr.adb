@@ -503,10 +503,13 @@ package body Broca.CDR is
             declare
                Value : CORBA.Any;
             begin
+               pragma Debug (O ("Marshall_From_Any : dealing with an enum"));
                Value := CORBA.Get_Aggregate_Element
                  (Data,
                   CORBA.TypeCode.TC_Unsigned_Long,
                   CORBA.Unsigned_Long (0));
+               pragma Debug (O ("Marshall_From_Any : got the first param "
+                                & "of the aggregate"));
                Marshall_From_Any (Buffer, Value);
             end;
          when Tk_String =>

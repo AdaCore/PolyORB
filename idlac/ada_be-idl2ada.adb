@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
@@ -344,8 +344,8 @@ package body Ada_Be.Idl2Ada is
         := Stubs_Name & Stream_Suffix;
       Value_Impl_Name : constant String
         := Stubs_Name & Value_Impl_Suffix;
-      --  Helper_Name : constant String
-      --  := Stubs_Name & Helper_Suffix;
+      Helper_Name : constant String
+        := Stubs_Name & Helper_Suffix;
 
       Stubs_Spec : Compilation_Unit
         := New_Package (Stubs_Name, Unit_Spec);
@@ -362,10 +362,10 @@ package body Ada_Be.Idl2Ada is
       Value_Impl_Body : Compilation_Unit
         := New_Package (Value_Impl_Name, Unit_Body);
 
-      --  Helper_Spec : Compilation_Unit
-      --  := New_Package (Helper_Name, Unit_Spec);
-      --  Helper_Body : Compilation_Unit
-      --  := New_Package (Helper_Name, Unit_Body);
+      Helper_Spec : Compilation_Unit
+        := New_Package (Helper_Name, Unit_Spec);
+      Helper_Body : Compilation_Unit
+        := New_Package (Helper_Name, Unit_Body);
 
    begin
       --  the valuetype type
@@ -404,6 +404,8 @@ package body Ada_Be.Idl2Ada is
                Gen_Node_Stream_Body (Stream_Body, Export_Node);
 
                Gen_Node_Impl_Spec (Value_Impl_Spec, Export_Node);
+
+               Gen_Helper (Export_Node, Helper_Spec, Helper_Body);
             end if;
 
             --  Methods inherited from parents other that
@@ -668,6 +670,8 @@ package body Ada_Be.Idl2Ada is
                        (Stream_Spec, Decl_Node);
                      Gen_Node_Stream_Body
                        (Stream_Body, Decl_Node);
+
+                     Gen_Helper (Decl_Node, Helper_Spec, Helper_Body);
                   end if;
 
                end loop;
@@ -784,6 +788,8 @@ package body Ada_Be.Idl2Ada is
                         Gen_Node_Impl_Body
                           (Impl_Body, Export_Node);
                      end if;
+
+                     Gen_Helper (Export_Node, Helper_Spec, Helper_Body);
                   end if;
 
                   --  Methods inherited from parents other that
@@ -3021,11 +3027,12 @@ package body Ada_Be.Idl2Ada is
       Type_Node : in Node_Id) is
    begin
       Add_With (CU, "CORBA", Use_It => False);
-      PL (CU, "function To_Any");
-      PL (CU, "  (Item : in "
+      PL (CU, "function To_Any (Item : in "
           & Ada_Type_Name (Type_Node)
           & ")");
-      Put (CU, "  return Any");
+      II (CU);
+      Put (CU, "return CORBA.Any");
+      DI (CU);
    end Gen_To_Any_Profile;
 
    -----------------------------
@@ -3353,80 +3360,78 @@ package body Ada_Be.Idl2Ada is
      (Node : in Node_Id;
       Helper_Spec : in out Compilation_Unit;
       Helper_Body : in out Compilation_Unit) is
-      Short_Type_Name : constant String
-        := Ada_Type_Defining_Name (Node);
-      Type_Name : constant String
-        := Ada_Type_Name (Node);
       NK : constant Node_Kind
         := Kind (Node);
    begin
-
-      --  Unchecked_To_<reference>
-
-      Add_With (Helper_Spec, "CORBA.Object");
-      NL (Helper_Spec);
-      PL (Helper_Spec, "function Unchecked_To_" & Short_Type_Name);
-      PL (Helper_Spec, "  (The_Ref : in CORBA.Object.Ref'Class)");
-      PL (Helper_Spec, "  return " & Type_Name & ";");
-      PL (Helper_Spec, "function To_" & Short_Type_Name);
-      PL (Helper_Spec, "  (The_Ref : in CORBA.Object.Ref'Class)");
-      PL (Helper_Spec, "  return " & Type_Name & ";");
-
-      Add_With (Helper_Body, "Broca.Refs");
-      Add_With (Helper_Body, "Broca.Exceptions");
-
-      NL (Helper_Body);
-      PL (Helper_Body, "function Unchecked_To_" & Short_Type_Name);
-      PL (Helper_Body, "  (The_Ref : in CORBA.Object.Ref'Class)");
-      PL (Helper_Body, "  return " & Type_Name);
-      PL (Helper_Body, "is");
-      II (Helper_Body);
-      PL (Helper_Body, "Result : " & Type_Name & ";");
-      DI (Helper_Body);
-      PL (Helper_Body, "begin");
-      II (Helper_Body);
-      PL (Helper_Body, "Set (Result,");
-      PL (Helper_Body,
-          "     CORBA.Object.Get (The_Ref));");
-      PL (Helper_Body, "return Result;");
-      DI (Helper_Body);
-      PL (Helper_Body, "end Unchecked_To_" & Short_Type_Name & ";");
-
-      --  To_<reference>
-
-      NL (Helper_Body);
-      PL (Helper_Body, "function To_" & Short_Type_Name);
-      PL (Helper_Body, "  (The_Ref : in CORBA.Object.Ref'Class)");
-      PL (Helper_Body, "  return " & Type_Name);
-      PL (Helper_Body, "is");
-      II (Helper_Body);
-      PL (Helper_Body, "Result : " & Type_Name & ";");
-      DI (Helper_Body);
-      PL (Helper_Body, "begin");
-      II (Helper_Body);
-      PL (Helper_Body,
-          "Result := Unchecked_To_"
-          & Short_Type_Name
-          & " (The_Ref);");
-      PL (Helper_Body, "if Is_A (Result, "
-          & T_Repository_Id & ") then");
-      II (Helper_Body);
-      PL (Helper_Body, "return Result;");
-      DI (Helper_Body);
-      PL (Helper_Body, "else");
-      II (Helper_Body);
-      PL (Helper_Body, "Broca.Exceptions.Raise_Bad_Param;");
-      DI (Helper_Body);
-      PL (Helper_Body, "end if;");
-      DI (Helper_Body);
-      PL (Helper_Body, "end To_" & Short_Type_Name & ";");
-
-      --  From_Any
-
       case NK is
-         when
-           K_Interface |
-           K_ValueType =>
+         when K_Interface =>
+            declare
+               Short_Type_Name : constant String
+                 := Ada_Type_Defining_Name (Node);
+               Type_Name : constant String
+                 := Ada_Type_Name (Node);
+            begin
+	    
+               --  Unchecked_To_<reference>
+
+               Add_With (Helper_Spec, "CORBA.Object");
+               NL (Helper_Spec);
+               PL (Helper_Spec, "function Unchecked_To_" & Short_Type_Name);
+               PL (Helper_Spec, "  (The_Ref : in CORBA.Object.Ref'Class)");
+               PL (Helper_Spec, "  return " & Type_Name & ";");
+               PL (Helper_Spec, "function To_" & Short_Type_Name);
+               PL (Helper_Spec, "  (The_Ref : in CORBA.Object.Ref'Class)");
+               PL (Helper_Spec, "  return " & Type_Name & ";");
+
+               Add_With (Helper_Body, "Broca.Refs");
+               Add_With (Helper_Body, "Broca.Exceptions");
+
+               NL (Helper_Body);
+               PL (Helper_Body, "function Unchecked_To_" & Short_Type_Name);
+               PL (Helper_Body, "  (The_Ref : in CORBA.Object.Ref'Class)");
+               PL (Helper_Body, "  return " & Type_Name);
+               PL (Helper_Body, "is");
+               II (Helper_Body);
+               PL (Helper_Body, "Result : " & Type_Name & ";");
+               DI (Helper_Body);
+               PL (Helper_Body, "begin");
+               II (Helper_Body);
+               PL (Helper_Body, "Set (Result,");
+               PL (Helper_Body,
+                   "     CORBA.Object.Get (The_Ref));");
+               PL (Helper_Body, "return Result;");
+               DI (Helper_Body);
+               PL (Helper_Body, "end Unchecked_To_" & Short_Type_Name & ";");
+
+               --  To_<reference>
+
+               NL (Helper_Body);
+               PL (Helper_Body, "function To_" & Short_Type_Name);
+               PL (Helper_Body, "  (The_Ref : in CORBA.Object.Ref'Class)");
+               PL (Helper_Body, "  return " & Type_Name);
+               PL (Helper_Body, "is");
+               II (Helper_Body);
+               PL (Helper_Body, "Result : " & Type_Name & ";");
+               DI (Helper_Body);
+               PL (Helper_Body, "begin");
+               II (Helper_Body);
+               PL (Helper_Body,
+                   "Result := Unchecked_To_"
+                   & Short_Type_Name
+                   & " (The_Ref);");
+               PL (Helper_Body, "if Is_A (Result, "
+                   & T_Repository_Id & ") then");
+               II (Helper_Body);
+               PL (Helper_Body, "return Result;");
+               DI (Helper_Body);
+               PL (Helper_Body, "else");
+               II (Helper_Body);
+               PL (Helper_Body, "Broca.Exceptions.Raise_Bad_Param;");
+               DI (Helper_Body);
+               PL (Helper_Body, "end if;");
+               DI (Helper_Body);
+               PL (Helper_Body, "end To_" & Short_Type_Name & ";");
+            end;
 
             NL (Helper_Spec);
             Gen_From_Any_Profile (Helper_Spec, Node);
@@ -3438,21 +3443,100 @@ package body Ada_Be.Idl2Ada is
             DI (Helper_Spec);
 
          when K_Enum =>
---             --  typecode
---             NL (Helper_Spec);
---             PL (Helper_Spec, "TC_"
+            --  typecode generation
+            NL (Helper_Spec);
+            PL (Helper_Spec, "TC_"
+                & Ada_Name (Node)
+                & " : constant CORBA.TypeCode.Object := ");
+            II (Helper_Spec);
+            PL (Helper_Spec, "CORBA.TypeCode.TC_Enum;");
+            DI (Helper_Spec);
+
+            --  to and from_any functions
+            NL (Helper_Spec);
+            Gen_From_Any_Profile (Helper_Spec, Node);
+            PL (Helper_Spec, ";");
+
+            NL (Helper_Spec);
+            Gen_To_Any_Profile (Helper_Spec, Node);
+            PL (Helper_Spec, ";");
+
+            NL (Helper_Body);
+            Gen_From_Any_Profile (Helper_Body, Node);
+            PL (Helper_Body, " is");
+            II (Helper_Body);
+            PL (Helper_Body, "Index : CORBA.Any :=");
+            II (Helper_Body);
+            PL (Helper_Body, "CORBA.Get_Aggregate_Element (Item,");
+            PL (Helper_Body, "                             "
+                & "CORBA.TC_Unsigned_Long,");
+            PL (Helper_Body, "                             "
+                & "CORBA.Unsigned_Long (0));");
+            DI (Helper_Body);
+            PL (Helper_Body, "Position : CORBA.Unsigned_Long "
+                & ":= CORBA.From_Any (Index);");
+            DI (Helper_Body);
+            PL (Helper_Body, "begin");
+            II (Helper_Body);
+            PL (Helper_Body, "return "
+                & Ada_Name (Node)
+                & "'Val (Position);");
+            DI (Helper_Body);
+            PL (Helper_Body, "end From_Any;");
+
+            NL (Helper_Body);
+            Gen_To_Any_Profile (Helper_Body, Node);
+            PL (Helper_Body, " is");
+            II (Helper_Body);
+            PL (Helper_Body, "Result : CORBA.Any := ");
+            II (Helper_Body);
+            PL (Helper_Body, "CORBA.Get_Empty_Any_Aggregate (TC_"
+                & Ada_Name (Node)
+                & ");");
+            DI (Helper_Body);
+            DI (Helper_Body);
+            PL (Helper_Body, "begin");
+            II (Helper_Body);
+            PL (Helper_Body, "CORBA.Add_Aggregate_Element");
+            II (Helper_Body);
+            PL (Helper_Body, "(Result,");
+            PL (Helper_Body, " CORBA.To_Any (CORBA.Unsigned_Long ("
+                & Ada_Name (Node)
+                & "'Pos (Item))));");
+            DI (Helper_Body);
+            PL (Helper_Body, "return Result;");
+            DI (Helper_Body);
+            PL (Helper_Body, "end To_Any;");
+
+
+
+
+
+            --  to fill in the typecode TC_<name of the type>
+--             PL (CU, "Add_Parameter (TC_"
 --                 & Ada_Name (Node)
---                 & " : constant CORBA.TypeCode.Object := ");
---             II (CU);
---             PL (CU, "CORBA.TypeCode.TC_Enum;");
---             DI (CU);
---             --  to and from_any functions
---             NL (Helper_Spec);
---             Gen_From_Any_Profile (Helper_Spec, Node);
---             PL (CU, ";");
---             Gen_To_Any_Profile (Helper_Spec, Node);
---             PL (CU, ";");
-            null;
+--                 & ", To_Any ("
+--                 & Ada_Name (Node)
+--                 & "));");
+--             PL (CU, "Add_Parameter (TC_"
+--                 & Ada_Name (Node)
+--                 & ", To_Any ("
+--                 & Idl_Repository_Id (Node)
+--                 & "));");
+--             declare
+--                It   : Node_Iterator;
+--                E_Node : Node_Id;
+--             begin
+--                Init (It, Enumerators (Node));
+--                while not Is_End (It) loop
+--                   Get_Next_Node (It, E_Node);
+--                   PL (CU, "Add_Parameter (TC_"
+--                       & Ada_Name (Node)
+--                       & ", To_Any ("
+--                       & Ada_Name (E_Node)
+--                       & "));");
+--                end loop;
+--             end;
 
          when others =>
             null;
