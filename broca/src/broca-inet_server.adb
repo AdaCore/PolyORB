@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
 with Broca.Buffers; use Broca.Buffers;
 with CORBA; use CORBA;
 with Broca.CDR;
@@ -256,8 +258,11 @@ package body Broca.Inet_Server is
          Current_Fd_Pos : Integer := Fd_Pos;
       begin
          Locked := True;
+         pragma Debug (O ("Get_Job_And_Lock: enter"));
 
          loop
+            pragma Debug (O ("Current_Fd_Pos = " & Current_Fd_Pos'Img));
+
             --  Exit if there is work to perform
             exit when Polls (Current_Fd_Pos).Revents >= Pollin;
 
@@ -273,6 +278,7 @@ package body Broca.Inet_Server is
                A_Job := (Kind => No_Event,
                          Pollfd_Array_Size => Nbr_Fd,
                          Poll_Set => Polls (1 .. Nbr_Fd));
+               pragma Debug (O ("Get_Job_And_Lock: leave (no event)"));
                return;
             end if;
          end loop;
@@ -296,14 +302,19 @@ package body Broca.Inet_Server is
             Fd_Pos := 1;
          end if;
 
-         return;
+         pragma Debug (O ("Get_Job_And_Lock: leave"));
       end Get_Job_And_Lock;
 
       procedure Set_Pending_Jobs
         (Returned_Poll_Set : Pollfd_Array) is
       begin
          for I in Returned_Poll_Set'Range loop
-            Polls (I).Revents := Returned_Poll_Set (I).Revents;
+            if Returned_Poll_Set (I).Events = 0 then
+               --  Ignoring events on this fd.
+               Polls (I).Revents := 0;
+            else
+               Polls (I).Revents := Returned_Poll_Set (I).Revents;
+            end if;
          end loop;
          Fd_Pos := 1;
       end Set_Pending_Jobs;
@@ -363,6 +374,7 @@ package body Broca.Inet_Server is
       begin
          for I in Polls'Range loop
             if Polls (I).Fd = Fd then
+               pragma Debug (O ("In Delete_Descriptor: I = " & I'Img));
                pragma Assert (Polls (I).Events = 0);
                --  A descriptor can be deleted only when
                --  masked.
@@ -523,25 +535,44 @@ package body Broca.Inet_Server is
 
       --  Try to obtain some work to be done.
       Broca.Server.Log ("Waiting for something to do");
-      Lock.Get_Job_And_Lock (A_Job);
-      Broca.Server.Log ("Got something to do");
+      begin
+         Lock.Get_Job_And_Lock (A_Job);
+      exception
+         when E : others =>
+            pragma Debug (O ("Got " & Ada.Exceptions.Exception_Name (E)
+                             & " in Get_Job_And_Lock."));
+            pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
+               raise;
+      end;
+
+      Broca.Server.Log ("Got something to do.");
 
       --  The pending work repository is now locked.
 
       if A_Job.Kind = No_Event then
          --  There was no work available. Wait for some.
 
-         Broca.Server.Log ("polling"
-                           & A_Job.Poll_Set'Length'Img & " fds:");
+         pragma Debug
+           (O ("polling" & A_Job.Poll_Set'Length'Img & " fds:"));
          for I in 1 .. A_Job.Poll_Set'Length loop
-            if A_Job.Poll_Set (I).Events >= Pollin then
-               Broca.Server.Log
-                 (" waiting on " & A_Job.Poll_Set (I).Fd'Img);
+            if A_Job.Poll_Set (I).Events > 0 then
+               pragma Debug
+                 (O (" waiting for" & A_Job.Poll_Set (I).Events'Img
+                     & " on" & A_Job.Poll_Set (I).Fd'Img));
+               null;
             end if;
          end loop;
 
          Res := C_Poll (A_Job.Poll_Set'Address, A_Job.Poll_Set'Length, -1);
-         Broca.Server.Log ("poll returned " & Res'Img);
+         pragma Debug (O ("poll returned " & Res'Img));
+         for I in 1 .. A_Job.Poll_Set'Length loop
+            if A_Job.Poll_Set (I).Revents > 0 then
+               pragma Debug
+                 (O (" got" & A_Job.Poll_Set (I).Revents'Img
+                     & " on" & A_Job.Poll_Set (I).Fd'Img));
+               null;
+            end if;
+         end loop;
          if Res = 0 then
             --  This should never happen.
             pragma Assert (False);
