@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.20 $
+--                            $Revision: 1.21 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -33,38 +33,41 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Exceptions;
+with AdaBroker.Exceptions; use AdaBroker.Exceptions;
+
 with System;
+
 with Ada.Unchecked_Conversion;
 
+with AdaBroker.Debug;
+pragma Elaborate_All (AdaBroker.Debug);
 
 package body CORBA is
 
-   ----------------
-   -- GetMembers --
-   ----------------
+   Flag : constant Natural
+     := AdaBroker.Debug.Is_Active ("corba");
+   procedure O is new AdaBroker.Debug.Output (Flag);
+
+   -----------------
+   -- Get_Members --
+   -----------------
 
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
-      To   : out Ex_Body)
+      To   : out System_Exception_Members)
    is
+      Result : IDL_Exception_Members'Class
+        := AdaBroker.Exceptions.Get_Members (From);
    begin
-      --  Calls the correponding procedure in CORBA.Exception
-      CORBA.Exceptions.Get_Members (From, To);
+      if Result in System_Exception_Members'Class then
+         To := System_Exception_Members (Result);
+      else
+         pragma Debug
+           (O ("cannot cast IDL_Exception_Members" &
+               " into System_Exception_Members"));
+         null;
+      end if;
    end Get_Members;
-
-   ---------------------------
-   -- Raise_CORBA_Exception --
-   ---------------------------
-
-   procedure Raise_CORBA_Exception
-     (Excp      : in Ada.Exceptions.Exception_Id;
-      Excp_Memb : in IDL_Exception_Members'Class)
-   is
-   begin
-      --  Calls the correponding procedure in CORBA.Exception
-      CORBA.Exceptions.Raise_CORBA_Exception (Excp, Excp_Memb);
-   end Raise_CORBA_Exception;
 
    ---------------------
    -- To_CORBA_String --
@@ -90,33 +93,6 @@ package body CORBA is
         (Ada.Strings.Unbounded.Unbounded_String (S));
    end To_Standard_String;
 
---    ---------------------
---    -- To_CORBA_String --
---    ---------------------
-
---    function To_CORBA_String
---      (S : in Constants.Exception_Id)
---       return CORBA.String
---    is
---    begin
---       return CORBA.String
---         (Ada.Strings.Unbounded.To_Unbounded_String
---          (Standard.String (S)));
---    end To_CORBA_String;
-
---    ---------------------
---    -- To_Exception_Id --
---    ---------------------
-
---    function To_Exception_Id
---      (S : in CORBA.String)
---       return Constants.Exception_Id
---    is
---    begin
---       return Constants.Exception_Id (To_Standard_String (S));
---    end To_Exception_Id;
-
-
    procedure SetAny (A : out Any;
                      V : in System.Address;
                      T : in CORBA.TypeCode.Object) is
@@ -135,19 +111,27 @@ package body CORBA is
          O.Parameters := null;
       end Set;
 
-      procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
-                             To   : out Bounds_Members) is
+      procedure Get_Members
+        (From : in Ada.Exceptions.Exception_Occurrence;
+         To   : out Bounds_Members) is
       begin
-         CORBA.Exceptions.Get_Members (From, To);
+         To := Get_Members (From);
       end Get_Members;
 
-      function Get_Members (X : Ada.Exceptions.Exception_Occurrence)
-                            return Bounds_Members is
-         Bm : Bounds_Members;
-         begin
-            CORBA.Exceptions.Get_Members (X, Bm);
-            return Bm;
-         end Get_Members;
+      function Get_Members
+        (X : Ada.Exceptions.Exception_Occurrence)
+        return Bounds_Members
+      is
+         Result : IDL_Exception_Members'Class
+           := AdaBroker.Exceptions.Get_Members (X);
+      begin
+         if Result not in Bounds_Members'Class then
+            pragma Debug
+              (O ("cannot cast IDL_Exception_Members into Bounds_Members"));
+            raise Constraint_Error;
+         end if;
+         return Bounds_Members (Result);
+      end Get_Members;
 
       function Equal (Self : in Object;
                       TC   : in Object)
