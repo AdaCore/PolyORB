@@ -41,16 +41,15 @@ private
    type String_Access is access all String;
 
    type Element is record
-      Key         : String_Access;
-      Used        : Boolean;
-      Table_Id    : Natural;
-      Subtable_Id : Natural;
+      Key       : String_Access;
+      Used      : Boolean;
+      ST_Index  : Natural;
+      ST_Offset : Natural;
    end record;
    --  Key is the element key in the hash algorithm terminology. When
    --  an element in an array has a Used attribute set to true, this
-   --  denotes a non-empty slot. Table_Id and Subtable_Id are indices
-   --  to internal tables used by the perfect dynamic hash table
-   --  algorithm.
+   --  denotes a non-empty slot. ST_Index corresponds to the subtable
+   --  index and ST_Offset to the offset in this subtable.
 
    type Subtable is record
       First  : Natural;
@@ -66,19 +65,24 @@ private
    --  subtable. Max is the maximum size of the subtable. When Count
    --  is greater than High, the algorithm reorganizes the subtable
    --  for algorithm purposes. K is a subtable attribute that ensures
-   --  h (Key) = ((K * Key) mod Prime) mod Size.
+   --  h (Key) = ((K * Key) mod Prime) mod (Last - First + 1).
 
    type Table_Info is record
-      Prime : Natural;
-      Count : Natural;
-      High  : Natural;
-      K     : Natural;
+      Prime        : Natural;
+      N_Operations : Natural;
+      High         : Natural;
+      N_Subtables  : Natural;
+      K            : Natural;
    end record;
    --  Prime is a prime number used by the algorithm. It can be
-   --  specified by the user. Count is the actual number of used
-   --  elements in the table (see above). When Count > High, the
-   --  algorithm reorganizes all the subtables. K is a table attribute
-   --  that ensures h (Key) = ((K * Key) mod Prime) mod Size.
+   --  specified by the user. N_Operations is the approximative number
+   --  of operations done on the table. Once a table reorganization is
+   --  performed, it is initialized to the number of elements
+   --  (corresponding to the number of insertions that would have been
+   --  done) and increments each time a deletion/insertion is
+   --  executed. When N_Operations > High, the algorithm reorganizes
+   --  the table and all the subtables. K is a table attribute that
+   --  ensures : h (Key) = ((K * Key) mod Prime) mod N_Subtables.
 
    type Element_Array is array (Natural range <>) of Element;
    type Element_Array_Ptr is access all Element_Array;
@@ -94,39 +98,39 @@ private
    --  Info      contained the variable of the table
    --  Elements  contained all the elements
    --  SubTables contained the variable for all the sub-tables
+   --  XXXXX
 
    procedure Initialize
      (T      : out Hash_Table;
       Prime  : Natural;
       Max    : Natural);
-   --  Prime is a prime number used by hash functions. Max is the max
-   --  number of elements to store.
+   --  Initialize the hash table and allocate some internal
+   --  structures. Prime is a prime number used by hash functions. Max
+   --  is the max number of elements to store.
 
    procedure Finalize
      (T : in out Hash_Table);
+   --  Deallocate all the internal structures.
 
    procedure Lookup
-     (T      : Hash_Table;
-      Key    : String;
-      Index1 : out Natural;
-      Index2 : out Natural);
-   --  Key is the string to hash.
-
-   --  Index1 indicates in which sub_table the key is stored
-   --  Index2 indicates the position of the key in the sub_table
+     (T         : Hash_Table;
+      Key       : String;
+      ST_Index  : out Natural;
+      ST_Offset : out Natural);
+   --  Find key in hash table. Key is the string to hash. ST_Index
+   --  corresponds to the subtable index and ST_Offset to the offset
+   --  in this subtable. When Key does not exist, ST_Index is set to ...
 
    procedure Insert
      (T   : Hash_Table;
       Key : String);
-   --  Key is the string to hash.
-   --  Value is the Item associated with Key
-
-   --  XXXXX where is Value now ???. Why don't we get the hash code back :
-   --  Value type is Item which is generic (so not in this package)
+   --  Insert key in hash table. In case of an already existing Key,
+   --  Insert ignores insertion. Key is the string to hash.
 
    procedure Delete
      (T   : Hash_Table;
       Key : String);
-   --  Key is the string to hash.
+   --  Delete key in hash table. In case of a non-existing Key, Delete
+   --  ignores deletion. Key is the string to hash.
 
 end PolyORB.Utils.HTables;
