@@ -1,3 +1,16 @@
+2000-09-02  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-gartas.adb, s-gartas.ads: Remove usage of requeue statements
+ 	and replace them with uses of watchers. Export Mutex_PO because an
+ 	ATC construct needs a entry call as statement for the first
+ 	alternative. Needed to remove requeue statement in
+ 	System.RPC.Server. Reorganize code in alphabetic order. This fix
+ 	will help for 7830-007 and improve the code anyway.
+
+	* s-rpcser.adb: Remove usage of requeue statements and clean up
+ 	the original implementation. Simplify implementation of RPC
+ 	abortions and anonymous tasks pool management. 
+
 2000-08-16  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gaprtc.adb: Remove Interfaces.C.Strings dependency. Fix 7807-007.
