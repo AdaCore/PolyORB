@@ -1,14 +1,33 @@
 configuration Master51 is
+
+   -- Declare a bunch of partitions.
    part1, part2, part3, part4 : partition := (text_io);
-   for part1'host use function "./localhost";
-   for part1'storage_dir use "XXXXX/bin";
-   for part2'host use function "./localhost";
-   for part2'storage_dir use "XXXXX/bin";
-   for part3'host use function "./localhost";
+
+   --  Declare a function that returns a hostname.
+   function Localhost (Partition_Name : String) return String;
+
+   --  Declare this function as an external function.
+   pragma Import (Shell, Localhost, "./localhost");
+
+   --  Each partition executable is stored in the following directory.
+   for Partition'Storage_Dir use
+      "XXXXX/bin"; 
+
+   --  Part2 is launched on the result of Localhost ("part2") that means
+   --  on the result of ./localhost part2
+   for part2'host use Localhost;
+   for part3'host use Localhost;
+   for part4'host use Localhost;
+
+   --  Part3 executable is stored into directory sub/bin
    for part3'storage_dir use "sub/bin";
-   for part4'host use function "./localhost";
-   for part4'storage_dir use "XXXXX/bin";
+
+   --  The main procedure is Main and is mapped onto partition Part1.
    procedure Master is in part1;
+
+   --  Generate a shell script as a starter.
+   pragma Starter (Shell);
+
 begin
    part1:=();
    part2:=(prime_1);
