@@ -606,6 +606,8 @@ package body PolyORB.ORB is
    begin
       Enter (ORB.ORB_Lock);
       if not Try_Perform_Work (ORB, ORB.Job_Queue) then
+         --  Try_Perform_Work did not release ORB_Lock, release it.
+
          Leave (ORB.ORB_Lock);
       end if;
    end Perform_Work;
