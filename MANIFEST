@@ -56,6 +56,7 @@ Examples/DSMStorage/dsm.cfg
 Examples/DSMStorage/scheduler.adb
 Examples/DSMStorage/scheduler.ads
 Examples/DSMStorage/server.adb
+Examples/DSMStorage/vector.adb
 Examples/DSMStorage/vector.ads
 Examples/Eratho/Makefile.am
 Examples/Eratho/Makefile.in
