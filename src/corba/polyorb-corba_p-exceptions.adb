@@ -30,13 +30,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#2 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#3 $
 
 with Ada.Strings.Unbounded;
 with Ada.Exceptions; use Ada.Exceptions;
 with CORBA; use CORBA;
 with PolyORB.CORBA_P.Exceptions.Stack;
 with PolyORB.CORBA_P.Names; use PolyORB.CORBA_P.Names;
+with PolyORB.Types;
 
 package body PolyORB.CORBA_P.Exceptions is
 
@@ -479,5 +480,98 @@ package body PolyORB.CORBA_P.Exceptions is
       end loop;
       raise Program_Error;
    end Occurrence_To_Name;
+
+   -----------------------------
+   -- System_Exception_To_Any --
+   -----------------------------
+
+   function TC_Completion_Status return TypeCode.Object;
+   --  The typecode for standard enumeration type
+   --  CORBA::completion_status.
+
+   TC_Completion_Status_Cache : TypeCode.Object;
+
+   function TC_Completion_Status return TypeCode.Object is
+      use type PolyORB.Types.Unsigned_Long;
+      TC : TypeCode.Object renames TC_Completion_Status_Cache;
+   begin
+      if TypeCode.Parameter_Count (TC) /= 0 then
+         return TC_Completion_Status_Cache;
+      end if;
+
+      TypeCode.Add_Parameter
+        (TC, To_Any (To_CORBA_String ("completion_status")));
+      TypeCode.Add_Parameter
+        (TC, To_Any (To_CORBA_String ("IDL:CORBA/completion_status:1.0")));
+
+      for C in Completion_Status'Range loop
+         TypeCode.Add_Parameter
+           (TC, To_Any (To_CORBA_String (Completion_Status'Image (C))));
+      end loop;
+      return TC;
+   end TC_Completion_Status;
+
+   function To_Any (CS : Completion_Status) return Any.Any is
+      Result : Any.Any := Get_Empty_Any_Aggregate (TC_Completion_Status);
+   begin
+      Add_Aggregate_Element
+        (Result, To_Any (Unsigned_Long (Completion_Status'Pos (CS))));
+      return Result;
+   end To_Any;
+
+   function From_Any (Item : Any.Any) return Completion_Status is
+   begin
+      return Completion_Status'Val
+        (Unsigned_Long'
+         (From_Any (PolyORB.Any.Get_Aggregate_Element
+                    (Item, TC_Unsigned_Long, 0))));
+   end From_Any;
+
+   function System_Exception_To_Any
+     (E : Ada.Exceptions.Exception_Occurrence)
+     return Any.Any
+   is
+      Name : RepositoryId;
+      Members : System_Exception_Members;
+      TC : TypeCode.Object := TypeCode.TC_Except;
+      Result : Any.Any;
+   begin
+      begin
+         Name := Occurrence_To_Name (E);
+         Get_Members (E, Members);
+      exception
+         when others =>
+            Name := To_CORBA_String ("CORBA/UNKNOWN");
+            Members := (1, Completed_Maybe);
+      end;
+
+      --  Construct exception typecode
+
+      TypeCode.Add_Parameter (TC, To_Any (CORBA.String (Name)));
+      --  Name
+
+      TypeCode.Add_Parameter
+        (TC, To_Any
+         (To_CORBA_String ("IDL:") & CORBA.String (Name)
+          & To_CORBA_String (":1.0")));
+      --  RepositoryId
+
+      TypeCode.Add_Parameter
+        (TC, To_Any (TC_Unsigned_Long));
+      TypeCode.Add_Parameter
+        (TC, To_Any (To_CORBA_String ("minor")));
+      --  Component 'minor'
+
+      TypeCode.Add_Parameter
+        (TC, To_Any (TC_Completion_Status));
+      TypeCode.Add_Parameter
+        (TC, To_Any (To_CORBA_String ("completed")));
+      --  Component 'completed'
+
+      Result := Get_Empty_Any_Aggregate (TC);
+      Add_Aggregate_Element (Result, To_Any (Members.Minor));
+      Add_Aggregate_Element (Result, To_Any (Members.Completed));
+      return Result;
+   end System_Exception_To_Any;
 
 end PolyORB.CORBA_P.Exceptions;

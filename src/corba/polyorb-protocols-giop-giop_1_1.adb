@@ -33,10 +33,6 @@
 --  $Id$
 
 with Ada.Streams; use Ada.Streams;
-with Ada.Strings;
-with Ada.Strings.Unbounded;
-
-with CORBA;
 
 with PolyORB.Buffers;             use PolyORB.Buffers;
 with PolyORB.Binding_Data;        use PolyORB.Binding_Data;
@@ -58,9 +54,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String
-      := Ada.Strings.Unbounded.To_Unbounded_String ("nobody");
+   ---------------
+   -- Constants --
+   ---------------
 
+   Major_Version : constant Types.Octet
+     := 1;
+   Minor_Version : constant Types.Octet
+     := 1;
 
    --------------------------
    -- Marshall_GIOP_Header --
@@ -152,10 +153,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       --  Operation
       Marshall (Buffer, Operation);
 
-
       --  Principal
-      Marshall (Buffer,
-               Types.String (Nobody_Principal));
+      Marshall (Buffer, Nobody_Principal);
 
    end Marshall_Request_Message;
 
@@ -197,7 +196,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
     (Buffer           : access Buffer_Type;
      Request_Id       : in Types.Unsigned_Long;
      Exception_Type   : in Reply_Status_Type;
-     Occurence        : in CORBA.Exception_Occurrence)
+     Occurence        : in Any.Any)
    is
       use Representations.CDR;
    begin
@@ -217,9 +216,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_1 is
       Marshall (Buffer, Exception_Type);
 
       --  Occurrence
-      Marshall (Buffer, Occurence);
-      --  XXX WRONG! This procedure can only marshall
-      --  SYSTEM exceptions, not USER exceptions!
+      Marshall_From_Any (Buffer, Occurence);
    end Marshall_Exception;
 
    -------------------------------------

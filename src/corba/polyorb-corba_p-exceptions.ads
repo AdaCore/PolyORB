@@ -40,10 +40,12 @@
 --   object from a derivation od IDL_Exception_Members
 
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#2 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#3 $
 
 with Ada.Exceptions;
+
 with CORBA; use CORBA;
+with PolyORB.Any;
 
 package PolyORB.CORBA_P.Exceptions is
 
@@ -213,10 +215,18 @@ package PolyORB.CORBA_P.Exceptions is
       Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Bad_TypeCode);
 
+   function System_Exception_To_Any
+     (E : Ada.Exceptions.Exception_Occurrence)
+     return Any.Any;
+   --  Convert an exception occurrence to an Any. If the exception
+   --  occurrence is a CORBA system exception, it is converted
+   --  to an Any that represents that system exception, else
+   --  it is converted to an any that represents system exception
+   --  CORBA::Unknown.
+
+private
+
+   function To_Any (CS : Completion_Status) return Any.Any;
+   function From_Any (Item : Any.Any) return Completion_Status;
+
 end PolyORB.CORBA_P.Exceptions;
-
-
-
-
-
-

@@ -70,6 +70,8 @@ with PolyORB.Transport;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
+with PolyORB.CORBA_P.Exceptions;
+
 package body PolyORB.Protocols.GIOP is
 
    use PolyORB.Any.NVList;
@@ -714,7 +716,7 @@ package body PolyORB.Protocols.GIOP is
      (Ses             : access GIOP_Session;
       Request         : Requests.Request_Access;
       Exception_Type  : in Reply_Status_Type;
-      Occurence       : in CORBA.Exception_Occurrence;
+      Occurence       : in Any.Any;
       Fragment_Next   : out Boolean)
    is
       Header_Buffer :  Buffer_Access := new Buffer_Type;
@@ -866,7 +868,7 @@ package body PolyORB.Protocols.GIOP is
    --  Need_Addressing_Mode_Message
    --------------------------------------------------------
 
-   procedure Need_Addressing_Mode_Message
+   procedure Needs_Addressing_Mode_Message
      (Ses             : access GIOP_Session;
       Request          : Requests.Request_Access;
       Address_Type    : in Addressing_Disposition)
@@ -896,7 +898,7 @@ package body PolyORB.Protocols.GIOP is
 
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
-   end Need_Addressing_Mode_Message;
+   end Needs_Addressing_Mode_Message;
 
    ----------------------------
    -- Cancel_Request_Message --
@@ -1510,11 +1512,30 @@ package body PolyORB.Protocols.GIOP is
                Objects.Interface.Executed_Request'
                (Req => Current_Req.Req));
 
-         when User_Exception =>
+         when
+           User_Exception |
+           Needs_Addressing_Mode =>
+--             Current_Req.Req.Exception_Info
+--               := To_Any (Not_Implemented);
+
+--             Emit_No_Reply
+--               (Component_Access (ORB),
+--                Objects.Interface.Executed_Request'
+--                (Req => Current_Req.Req));
             raise Not_Implemented;
 
          when System_Exception =>
-            Unmarshall_And_Raise (Ses.Buffer_In);
+            begin
+               Unmarshall_And_Raise (Ses.Buffer_In);
+            exception
+               when E : others =>
+                  Current_Req.Req.Exception_Info
+                    := CORBA_P.Exceptions.System_Exception_To_Any (E);
+                  Emit_No_Reply
+                    (Component_Access (ORB),
+                     Objects.Interface.Executed_Request'
+                     (Req => Current_Req.Req));
+            end;
 
          when Location_Forward | Location_Forward_Perm =>
 
@@ -1541,9 +1562,6 @@ package body PolyORB.Protocols.GIOP is
                   Current_Req.Req,
                   Prof);
             end;
-
-         when Needs_Addressing_Mode =>
-            raise Not_Implemented;
 
       end case;
    end Reply_Received;
@@ -1736,17 +1754,28 @@ package body PolyORB.Protocols.GIOP is
       if PolyORB.Any.Is_Empty (R.Exception_Info) then
          No_Exception_Reply (S, R, Fragment_Next);
       else
-         raise Not_Implemented;
---          declare
---             EType : CORBA.Exception_Type;
---             pragma Warnings (Off, EType);
---             --  XXX should initialize EType according
---             --  to whether R.Exception_Info denotes a user
---             --  or system exception.
---          begin
---             Exception_Reply
---               (S, R, EType, R.Exception_Info, Fragment_Next);
---          end;
+         declare
+            use PolyORB.Any;
+
+            TC : constant TypeCode.Object
+              := Get_Type (R.Exception_Info);
+            EId : constant String
+              := To_Standard_String (TypeCode.Id (TC));
+            CORBA_Prefix : constant String := "IDL:CORBA/";
+            EType : Reply_Status_Type;
+         begin
+            if EId'Length > CORBA_Prefix'Length
+              and then EId
+              (EId'First .. EId'First + CORBA_Prefix'Length - 1)
+              = CORBA_Prefix
+            then
+               EType := System_Exception;
+            else
+               EType := User_Exception;
+            end if;
+            Exception_Reply
+              (S, R, EType, R.Exception_Info, Fragment_Next);
+         end;
       end if;
 
       pragma Debug (O ("Sending reply"));

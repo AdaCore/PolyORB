@@ -55,6 +55,27 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ---------------
+   -- Constants --
+   ---------------
+
+   Major_Version : constant Types.Octet
+     := 1;
+   Minor_Version : constant Types.Octet
+     := 2;
+
+   -------------------------
+   -- Marshalling helpers --
+   -------------------------
+
+   procedure Marshall
+     (Buffer  : access Buffers.Buffer_Type;
+      Addr    : Addressing_Disposition);
+
+   function Unmarshall
+     (Buffer  : access Buffers.Buffer_Type)
+     return Addressing_Disposition;
+
    --------------------------
    -- Marshall_GIOP_Header --
    --------------------------
@@ -91,17 +112,18 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       --  Message size
       Marshall
-        (Buffer,
-         Types.Unsigned_Long (Message_Size - Message_Header_Size));
+        (Buffer, Types.Unsigned_Long
+         (Message_Size - Message_Header_Size));
    end Marshall_GIOP_Header;
 
 
-   ------------------------------------------------
-   --  Marshaling of the  GIOP 1.2 messages
-   ------------------------------------------------
-   -- Marshalling of the request Message ----------
-   ------------------------------------------------
+   -------------------------------------
+   -- Marshaling of GIOP 1.2 messages --
+   -------------------------------------
 
+   ----------------------------------------
+   -- Marshalling of the Request message --
+   ----------------------------------------
 
    procedure Marshall_Request_Message
      (Buffer            : access Buffers.Buffer_Type;
@@ -206,7 +228,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
     (Buffer      : access Buffers.Buffer_Type;
      Request_Id  : Types.Unsigned_Long;
      Reply_Type  : in Reply_Status_Type;
-     Occurence   : in CORBA.Exception_Occurrence)
+     Occurence   : in Any.Any)
 
    is
       use  Representations.CDR;
@@ -229,9 +251,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       end loop;
 
       --  Occurrence
-      Marshall (Buffer, Occurence);
-      --  XXX WRONG! This procedure can only marshall
-      --  SYSTEM exceptions, not USER exceptions!
+      Marshall_From_Any (Buffer, Occurence);
    end  Marshall_Exception;
 
 
