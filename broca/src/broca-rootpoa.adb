@@ -1342,7 +1342,6 @@ package body Broca.RootPOA is
             when E : others =>
                pragma Debug (O ("GIOP_Invoke: system exception " &
                                 Ada.Exceptions.Exception_Name (E)));
-
                if Response_Expected then
                   Broca.CDR.Marshall
                     (Reply, CORBA.Unsigned_Long (Broca.GIOP.No_Context));

@@ -2376,8 +2376,6 @@ package body Ada_Be.Idl2Ada is
       case NK is
          when K_Interface
            | K_ValueType   =>
-            pragma Debug (O ("Add_With_Stream 1: "
-                             & Ada_Full_Name (Node)));
             Add_With (CU, "Broca.CDR", Use_It => True);
             Add_With (CU, Ada_Full_Name (Node) & Stream.Suffix,
                       Use_It => True);
@@ -2395,7 +2393,9 @@ package body Ada_Be.Idl2Ada is
                       Use_It => True);
 
          when K_Boxed_ValueType   =>
-            null;
+            Add_With (CU, "Broca.CDR", Use_It => True);
+            Add_With (CU, Parent_Scope_Name (Node) & Stream.Suffix,
+                      Use_It => True);
 
          when
            K_Enum              |

@@ -228,15 +228,6 @@ package body Broca.Exceptions is
    -- Raise standard CORBA exceptions --
    -------------------------------------
 
-   procedure Raise_Unknown
-     (Minor  : CORBA.Unsigned_Long := 0;
-      Status : Completion_Status := Completed_No) is
-   begin
-      Raise_Exception
-        (Unknown'Identity,
-         System_Exception_Members'(Minor => Minor, Completed => Status));
-   end Raise_Unknown;
-
    procedure Raise_Bad_Param
      (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
@@ -335,6 +326,17 @@ package body Broca.Exceptions is
         (Imp_Limit'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Imp_Limit;
+
+   ----------------------
+   --  Raise_Unknown   --
+   ----------------------
+   procedure Raise_Unknown (Minor : Unsigned_Long := 0;
+                            Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception (Unknown'Identity,
+                       System_Exception_Members'(Minor => Minor,
+                                                 Completed => Status));
+   end Raise_Unknown;
 
    procedure Raise_Bad_Inv_Order
      (Minor  : CORBA.Unsigned_Long := 0;

@@ -323,6 +323,7 @@ package body Ada_Be.Idl2Ada.Skel is
                DI (CU);
 
                PL (CU, "exception");
+               II (CU);
 
                declare
                   It : Node_Iterator;
@@ -340,7 +341,6 @@ package body Ada_Be.Idl2Ada.Skel is
 
                      Add_With_Entity (CU, E_Node);
                      NL (CU);
-                     II (CU);
                      PL (CU, "when E : " & Ada_Full_Name (E_Node)
                          & " =>");
                      II (CU);
@@ -386,7 +386,6 @@ package body Ada_Be.Idl2Ada.Skel is
                      PL (CU, "end;");
 
                      DI (CU);
-                     DI (CU);
                   end loop;
 
                   PL (CU, "when E : others =>");
@@ -399,9 +398,10 @@ package body Ada_Be.Idl2Ada.Skel is
                   PL (CU, "Broca.Exceptions.Raise_Unknown");
                   PL (CU, "  (Status => CORBA.Completed_Maybe);");
                   DI (CU);
+                  DI (CU);
+                  PL (CU, "end;");
                end;
 
-               PL (CU, "end;");
 
                --  FIXME: This code is duplicated (above for each
                --    exception that can be raised by this operation,
