@@ -70,5 +70,5 @@ $(GEN_2): $(IDL_2) $(IDLAC)
 test_naming: force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2)
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
 
-ab_names: force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2) ab_names.ads ab_names.adb
-	$(GNATMAKE) -z $@ $(GNATMAKE_FLAGS)
+ab_names: force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2) ab_names.adb
+	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)

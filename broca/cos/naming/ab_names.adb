@@ -1,14 +1,15 @@
+with CORBA.Object;
+with PortableServer;
+
 with Broca.Environment;            use Broca.Environment;
 with Broca.ORB;                    use Broca.ORB;
 with Broca.Inet_Server;
 with Broca.Server_Tools;
-with CORBA.Object;
 with CosNaming.NamingContext.Impl; use CosNaming.NamingContext.Impl;
-with PortableServer;
 
-package body AB_Names is
+procedure AB_Names is
 
-   type NamingContext_Ptr is access CosNaming.NamingContext.Impl.Object;
+   subtype NamingContext_Ptr is CosNaming.NamingContext.Impl.Object_Ptr;
 
    Root_NC  : constant NamingContext_Ptr := new Object;
 
