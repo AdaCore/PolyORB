@@ -73,6 +73,7 @@ package body Idl_Fe.Parser is
    -----------------
    --  Get_Token  --
    -----------------
+
    function Get_Token return Idl_Token is
    begin
       pragma Debug (O ("Get_Token : token is " & Idl_Token'Image
@@ -83,6 +84,7 @@ package body Idl_Fe.Parser is
    ----------------------------
    --  Get_Token_From_Lexer  --
    ----------------------------
+
    procedure Get_Token_From_Lexer is
    begin
       pragma Debug (O ("Get_Token_From_Lexer : enter"));
@@ -127,6 +129,7 @@ package body Idl_Fe.Parser is
    ------------------
    --  Next_Token  --
    ------------------
+
    procedure Next_Token is
    begin
       if Current_Index = Newest_Index then
@@ -136,17 +139,19 @@ package body Idl_Fe.Parser is
    end Next_Token;
 
 
-   -----------------------
+   ---------------------------
    --  View_Previous_Token  --
-   -----------------------
+   ---------------------------
+
    function View_Previous_Token return Idl_Token is
    begin
       return Token_Buffer (Current_Index - 1);
    end View_Previous_Token;
 
-   ----------------------------
+   ------------------------------------
    --  View_Previous_Previous_Token  --
-   ----------------------------
+   ------------------------------------
+
    function View_Previous_Previous_Token return Idl_Token is
    begin
       return Token_Buffer (Current_Index - 2);
@@ -155,6 +160,7 @@ package body Idl_Fe.Parser is
    -----------------------
    --  View_Next_Token  --
    -----------------------
+
    function View_Next_Token return Idl_Token is
    begin
       if Current_Index = Newest_Index then
@@ -166,6 +172,7 @@ package body Idl_Fe.Parser is
    ----------------------------
    --  View_Next_Next_Token  --
    ----------------------------
+
    function View_Next_Next_Token return Idl_Token is
    begin
       if Current_Index = Newest_Index then
@@ -180,6 +187,7 @@ package body Idl_Fe.Parser is
    --------------------------
    --  Get_Token_Location  --
    --------------------------
+
    function Get_Token_Location return Idl_Fe.Errors.Location is
    begin
       pragma Debug (O ("Get_Token_Location : enter"));
@@ -189,6 +197,7 @@ package body Idl_Fe.Parser is
    -----------------------------------
    --  Get_Previous_Token_Location  --
    -----------------------------------
+
    function Get_Previous_Token_Location return Idl_Fe.Errors.Location is
    begin
       pragma Debug (O ("Get_Previous_Token_Location : enter," &
@@ -200,6 +209,7 @@ package body Idl_Fe.Parser is
    -----------------------------------
    --  Get_Previous_Token_Location  --
    -----------------------------------
+
    function Get_Previous_Previous_Token_Location
      return Idl_Fe.Errors.Location is
    begin
@@ -209,6 +219,7 @@ package body Idl_Fe.Parser is
    -------------------------------
    --  Get_Next_Token_Location  --
    -------------------------------
+
    function Get_Next_Token_Location return Idl_Fe.Errors.Location is
    begin
       return Location_Buffer (Current_Index + 1);
@@ -217,6 +228,7 @@ package body Idl_Fe.Parser is
    ------------------------
    --  Get_Token_String  --
    ------------------------
+
    function Get_Token_String return String is
    begin
       return String_Buffer (Current_Index).all;
@@ -225,6 +237,7 @@ package body Idl_Fe.Parser is
    ---------------------------------
    --  Get_Previous_Token_String  --
    ---------------------------------
+
    function Get_Previous_Token_String return String is
    begin
       return String_Buffer (Current_Index - 1).all;
@@ -233,6 +246,7 @@ package body Idl_Fe.Parser is
    -----------------------------
    --  Get_Next_Token_String  --
    -----------------------------
+
    function Get_Next_Token_String return String is
    begin
       return String_Buffer (Current_Index + 1).all;
@@ -242,6 +256,7 @@ package body Idl_Fe.Parser is
    -------------------------------
    --  Divide_T_Greater_Greater --
    -------------------------------
+
    procedure Divide_T_Greater_Greater is
       Loc : Idl_Fe.Errors.Location := Get_Token_Location;
    begin
