@@ -132,6 +132,7 @@
 ./InterfaceORB/corba-object.ads
 ./InterfaceORB/corba-orb.adb
 ./InterfaceORB/corba-orb.ads
+./InterfaceORB/corba-orb-omniorb.ads
 ./InterfaceORB/corba-principal.ads
 ./InterfaceORB/corba-request.ads
 ./InterfaceORB/corba-sequences-bounded.adb
