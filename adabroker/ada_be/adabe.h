@@ -80,6 +80,7 @@ public:
 
   void produce_ads (dep_list with,string &String, string &previousdefinition);
 
+  string get_ada_predefined_type(void);
 };
 
 

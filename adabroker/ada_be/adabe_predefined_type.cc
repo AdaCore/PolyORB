@@ -7,10 +7,16 @@ adabe_predefined_type::adabe_predefined_type(AST_PredefinedType::PredefinedType 
 string  
 adabe_predefined_type::produce_ads(dep_list with,string &String, string &previousdefinition);
 /*
-  String += nom_type // issu d'un case of sur pt(), on n'a pas besoin d'un ada_predefined_type() pour eviter un deuxieme case of
+  String += get_ada_predefined_type();
 */
-  
+
+string
+ada_predefined_type::get_ada_predefined_type();
+
+/*
+   case of sur pt(), afin de determiner le type ada
+*/
+
 IMPL_NARROW_METHODS1(adabe_predefined_type, AST_PredefinedType);
 IMPL_NARROW_FROM_DECL(adabe_predefined_type);
-
-
+ 

@@ -10,10 +10,11 @@ adabe_structure::produce_ads(dep_list with,string &String, string &previousdefin
     for each node in the structure:
        {
          cast of the item to the real adabe type
+	 if it is a field
          field.produce_ads (with, temp, previousdefinition)
        }
     temp += "end record"
-    previousdefinition +=temp;
+    previousdefinition += temp;
   */
 }
 string
