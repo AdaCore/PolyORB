@@ -56,7 +56,7 @@ package PolyORB.Utils is
      (S : String)
      return Ada.Streams.Stream_Element_Array;
    --  Return the Stream_Element_Array represented by the
-   --  string of hexadecimal digits contaned in S.
+   --  string of hexadecimal digits contained in S.
 
    function URI_Encode (S : String) return String;
    --  Return S with special characters replaced by

@@ -37,7 +37,13 @@
 
 package body PolyORB.Utils.Strings is
 
-   function "+" (S : Standard.String) return String_Ptr is
+   ---------
+   -- "+" --
+   ---------
+
+   function "+"
+     (S : Standard.String)
+     return String_Ptr is
    begin
       return new Standard.String'(S);
    end "+";

@@ -43,8 +43,11 @@ package PolyORB.Utils.Strings is
 
    type String_Ptr is access all Standard.String;
 
-   function "+" (S : Standard.String) return String_Ptr;
+   function "+"
+     (S : Standard.String)
+     return String_Ptr;
    pragma Inline ("+");
+
    procedure Free is new Ada.Unchecked_Deallocation
      (Standard.String, String_Ptr);
 
