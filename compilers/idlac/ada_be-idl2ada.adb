@@ -31,7 +31,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Id$
+--  $Perforce: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#43 $
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
@@ -2920,8 +2920,8 @@ package body Ada_Be.Idl2Ada is
          when
            K_Interface         |
            K_Forward_Interface |
-            --          K_ValueType         |
-            --          K_Forward_ValueType |
+           K_ValueType         |
+           K_Forward_ValueType |
            K_Sequence_Instance |
            K_String_Instance   |
            K_Enum              |
