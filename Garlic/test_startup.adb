@@ -37,7 +37,6 @@ with Ada.Text_IO; use Ada.Text_IO;
 with System.Garlic.Heart; use System.Garlic.Heart;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Startup; use System.Garlic.Startup;
-with System.Garlic.Termination; use System.Garlic.Termination;
 
 procedure Test_Startup is
 
