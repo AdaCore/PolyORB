@@ -136,8 +136,10 @@ package body Parse is
    --  lexer without consuming it. It places it in the buffer
    function View_Next_Token return Idl_Token is
    begin
-      Get_Token_From_Lexer;
-      return Token_Buffer (Newest_Index);
+      if Current_Index = Newest_Index then
+         Get_Token_From_Lexer;
+      end if;
+      return Token_Buffer (Current_Index + 1);
    end View_Next_Token;
 
    --  Returns the location of the current_token
