@@ -1001,15 +1001,15 @@ package body Ada_Be.Idl2Ada is
       PL (CU, "  or else Is_Equivalent");
       PL (CU, "    (Logical_Type_Id, ");
 
-      --  ... and for CORBA : :Object (if it is an interface) or
-      --  CORBA : :ValueBase (if it is a valuetype), either
+      --  ... and for CORBA::Object (if it is an interface) or
+      --  CORBA::ValueBase (if it is a valuetype), either
       --  of which is at the root of the instance type's inheritance
       --  hierarchy
 
       if Kind (Node) = K_Interface then
-         PL (CU, "     ""IDL : omg.org/CORBA/Object:1.0"")");
+         PL (CU, "     ""IDL:omg.org/CORBA/Object:1.0"")");
       else
-         PL (CU, "     ""IDL : omg.org/CORBA/ValueBase:1.0"")");
+         PL (CU, "     ""IDL:omg.org/CORBA/ValueBase:1.0"")");
       end if;
 
       --  ... and for all of its ancestor types.
@@ -1220,7 +1220,7 @@ package body Ada_Be.Idl2Ada is
 
          if Multiple_Labels then
             pragma Assert (Label_Node /= No_Node);
-            --  The null label is the "default : "
+            --  The null label is the "default:"
             --  one, and must have its own case.
 
             if not First_Label then
