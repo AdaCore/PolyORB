@@ -176,7 +176,7 @@ private
    --               |   <module> ";"
    --               |   <value> ";"
    --               |   <type_id_dcl> ";"      -- not implemented
-   --               |   <type_prefix_dcl> ";"  -- not implemented
+   --               |   <type_prefix_dcl> ";"
    --               |   <event> ";"            -- not implemented
    --               |   <component> ";"        -- not implemented
    --               |   <home_dcl> ";"         -- not implemented
@@ -912,7 +912,7 @@ private
 
    --  Rule 103
    --  <type_prefix_dcl> ::= "typeprefix" <scoped_name> <string_literal>
-   --  Not implemented
+   procedure Parse_Type_Prefix_Dcl (Success : out Boolean);
 
    --  Rule 104
    --  <readonly_attr_spec> ::= "readonly" "attribute" <param_type_spec>

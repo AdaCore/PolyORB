@@ -767,6 +767,12 @@ package body Idl_Fe.Parser is
             pragma Debug (O2 ("Parse_Definition: end"));
             return;
 
+         when T_TypePrefix =>
+            Parse_Type_Prefix_Dcl (Success);
+            Result  := No_Node;
+            Success := False;
+            return;
+
          when T_Eof
            | T_Right_Cbracket =>
             Result := No_Node;
@@ -7252,6 +7258,61 @@ package body Idl_Fe.Parser is
       end if;
       Next_Token;
    end Parse_Import;
+
+   ---------------------------
+   -- Parse_Type_Prefix_Dcl --
+   ---------------------------
+
+   procedure Parse_Type_Prefix_Dcl (Success : out Boolean) is
+      Scoped_Name_Node     : Node_Id;
+      String_Literal_Node  : Node_Id;
+      String_Constant_Type : Constant_Value_Ptr;
+   begin
+      Next_Token;
+      Parse_Scoped_Name (Scoped_Name_Node, Success);
+      if not Success then
+         return;
+      end if;
+
+      declare
+         NK : constant Node_Kind := Kind (Value (Scoped_Name_Node));
+      begin
+         if NK /= K_Module
+           and then NK /= K_Interface
+           and then NK /= K_Forward_Interface
+           and then NK /= K_ValueType
+           and then NK /= K_Forward_ValueType
+           and then NK /= K_Boxed_ValueType
+         then
+            Errors.Error
+              ("Inappropriate scope kind", Errors.Error, Get_Token_Location);
+            Success := False;
+            return;
+         end if;
+      end;
+
+      String_Constant_Type := new Constant_Value (Kind => C_String);
+      String_Constant_Type.String_Length := -1;
+      Parse_String_Literal
+        (String_Literal_Node, Success, String_Constant_Type);
+      Free (String_Constant_Type);
+      if not Success then
+         Errors.Error
+           ("Repository ID prefix expected", Errors.Error, Get_Token_Location);
+         return;
+      end if;
+
+      Set_Current_Prefix (Value (Scoped_Name_Node), String_Literal_Node);
+
+      --  Overwrite repository id of named scope if it don't have explicitly
+      --  defined repository id
+
+      if not Is_Explicit_Repository_Id (Value (Scoped_Name_Node)) then
+         Set_Default_Repository_Id (Value (Scoped_Name_Node));
+      end if;
+
+      Success := False;
+   end Parse_Type_Prefix_Dcl;
 
    --------------------------
    -- Parse_Exception_List --
