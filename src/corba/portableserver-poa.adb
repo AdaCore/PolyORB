@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#50 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#51 $
 
 with Ada.Exceptions;
 
@@ -901,10 +901,6 @@ package body PortableServer.POA is
       Reference : CORBA.Object.Ref'Class)
      return Servant
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
       The_Servant : PolyORB.Components.Component_Access;
       The_Profile : PolyORB.Binding_Data.Profile_Access;
 
@@ -919,12 +915,34 @@ package body PortableServer.POA is
          True,
          Error);
 
+      --  Using 'Local_Only' should guarantee that The_Servant
+      --  is castable to PolyORB.Servants.Servant_Access.
+
       if Found (Error) then
          PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      --  Using 'Local_Only' should guarantee that The_Servant
-      --  is castable to PolyORB.Servants.Servant_Access.
+      --  Ensure Reference was actually built by Self
+
+      declare
+         use type PolyORB.Types.String;
+
+         U_Oid : PolyORB.POA_Types.Unmarshalled_Oid
+           := PolyORB.POA_Types.Oid_To_U_Oid
+           (PolyORB.Binding_Data.Get_Object_Key (The_Profile.all));
+      begin
+         if U_Oid.Creator /= To_POA (Self).Absolute_Address then
+            pragma Debug
+              (O (PolyORB.Types.To_Standard_String (U_Oid.Creator)));
+            pragma Debug
+              (O (PolyORB.Types.To_Standard_String
+                  (To_POA (Self).Absolute_Address)));
+
+            Raise_WrongAdapter
+              (WrongAdapter_Members'
+               (CORBA.IDL_Exception_Members with null record));
+         end if;
+      end;
 
       return Servant (CORBA.Impl.To_CORBA_Servant
                       (PolyORB.Servants.Servant_Access (The_Servant)));
