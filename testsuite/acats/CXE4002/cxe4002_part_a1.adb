@@ -1,4 +1,5 @@
-
+pragma Style_Checks (Off);
+pragma Warnings (Off);
 -----------------------------------------------------------------------------
 
 with Report;
@@ -23,7 +24,7 @@ package body CXE4002_Part_A1 is
       Report.Failed ("incorrect value in mode IN integer and float test");
     else
       null;
-      -- Report.Comment ("mode in integer and float test");
+      Report.Comment ("mode in integer and float test");
     end if;
   end Check_In;
 
@@ -32,6 +33,7 @@ package body CXE4002_Part_A1 is
                       Real   : out Float;
                       Int    : out Integer) is
   begin
+    Report.Comment ("mode out little, integer and float test");
     Little := 4;
     Real := -123.0;
     Int := -789;

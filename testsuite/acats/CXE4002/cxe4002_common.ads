@@ -1,3 +1,4 @@
+pragma Style_Checks (Off);
 
 package CXE4002_Common is
   pragma Pure;

@@ -15,7 +15,6 @@ begin
                           " partitions");
 
   -- make sure partitioning is performed correctly
-  Report.Comment ("@@0");
   if CXE2001_A'Partition_ID = CXE2001_Part_B'Partition_ID then
     Report.Failed ("Partitioning Error - CXE2001_A and CXE2001_Part_B" &
                    " are in the same partition.");
@@ -25,13 +24,10 @@ begin
   -- so we don't check that it is in a particular partition.
 
   -- check the shared data access
-  Report.Comment ("@@1");
   CXE2001_Shared.Shared_Data := Report.Ident_Int(42);
-  Report.Comment ("@@2");
   if CXE2001_Shared.Shared_Data /= 42 then
     Report.Failed ("direct assignment to shared data failed");
   end if;
-  Report.Comment ("@@3");
 
   CXE2001_Part_B.Set_Shared_Data (Report.Ident_Int(45));
   case CXE2001_Shared.Shared_Data is
