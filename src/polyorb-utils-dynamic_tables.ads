@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---          Copyright (C) 2002-2004 Free Software Foundation, Inc.          --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -39,7 +39,8 @@
 --  dynamically modifying the value of the Last attribute.
 
 --  This package is notionnaly equivalent to GNAT.Dynamic_Table's, yet
---   * it is Preelaborate (GNAT.Dynamic_Table can't because it System.Memory).
+--   * it is Preelaborate (GNAT.Dynamic_Table can't because it depends
+--     on System.Memory).
 --   * declares a type that can be used to define dynamic instances of
 --  the table, while an instantiation of GNAT.Table creates a single
 --  instance of the table type.
@@ -96,7 +97,7 @@ package PolyORB.Utils.Dynamic_Tables is
    --  reallocation.
 
    type Table_Private is private;
-   --  Table private data that is not exported in Instance.
+   --  Table private data that is not exported in Instance
 
    type Instance is record
       Table : aliased Table_Ptr := null;
@@ -141,11 +142,11 @@ package PolyORB.Utils.Dynamic_Tables is
 
    procedure Increment_Last (T : in out Instance);
    pragma Inline (Increment_Last);
-   --  Adds 1 to Last (same as Set_Last (T, Last (T) + 1)).
+   --  Adds 1 to Last (same as Set_Last (T, Last (T) + 1)
 
    procedure Decrement_Last (T : in out Instance);
    pragma Inline (Decrement_Last);
-   --  Subtracts 1 from Last (same as Set_Last (T, Last (T) - 1)).
+   --  Subtracts 1 from Last (same as Set_Last (T, Last (T) - 1))
 
    procedure Release (T : in out Instance);
    --  Storage is allocated in chunks according to the values given in the
@@ -159,7 +160,7 @@ package PolyORB.Utils.Dynamic_Tables is
    --  eventually reallocate T.
 
    procedure Deallocate (T : in out Instance);
-   --  Deallocate T instance.
+   --  Deallocate T instance
 
 private
 
@@ -172,7 +173,7 @@ private
       --  ensures that we initially allocate the table.
 
       Last_Val : Integer;
-      --  Current value of Last.
+      --  Current value of Last
    end record;
 
 end PolyORB.Utils.Dynamic_Tables;
