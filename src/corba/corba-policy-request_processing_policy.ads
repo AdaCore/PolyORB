@@ -23,6 +23,10 @@ package CORBA.Policy.Request_Processing_Policy is
    --  The real creation function that has to be implemented for each
    --  possible Request Processing Policy
 
+   procedure Free (P   : in     RequestProcessingPolicy;
+                   Ptr : in out Policy_Access)
+      is abstract;
+
 --    function Servant_To_Id
 --      (Self             : access RequestProcessingPolicy;
 --       OA               : access CORBA.POA_Types.Obj_Adapter;

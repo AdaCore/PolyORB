@@ -7,7 +7,7 @@ package CORBA.Policy.Thread_Policy is
    type ThreadPolicy is abstract new Policy with
      record
          Value       : ThreadPolicyValue;
-      end record;
+     end record;
    subtype Thread_Policy is ThreadPolicy;
    type ThreadPolicy_Access is access all ThreadPolicy'Class;
    subtype Thread_Policy_Access is ThreadPolicy_Access;
@@ -25,6 +25,10 @@ package CORBA.Policy.Thread_Policy is
 
    procedure Check_Compatibility (Self : ThreadPolicy;
                                   OA   : CORBA.POA_Types.Obj_Adapter_Access)
+      is abstract;
+
+   procedure Free (P   : in     ThreadPolicy;
+                   Ptr : in out Policy_Access)
       is abstract;
 
 end CORBA.Policy.Thread_Policy;

@@ -41,4 +41,16 @@ package body CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
       null;
    end Check_Compatibility;
 
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (P   : in     Active_Map_Only_Policy;
+                   Ptr : in out Policy_Access)
+   is
+   begin
+      Free (Active_Map_Only_Policy_Access (Ptr));
+   end Free;
+
+
 end CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only;

@@ -28,4 +28,15 @@ package body CORBA.Policy.Lifespan_Policy.Transient is
       null;
    end Check_Compatibility;
 
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (P   : in     Transient_Policy;
+                   Ptr : in out Policy_Access)
+   is
+   begin
+      Free (Transient_Policy_Access (Ptr));
+   end Free;
+
 end CORBA.Policy.Lifespan_Policy.Transient;

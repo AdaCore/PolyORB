@@ -28,4 +28,15 @@ package body CORBA.Policy.Id_Uniqueness_Policy.Unique is
       null;
    end Check_Compatibility;
 
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (P   : in     Unique_Id_Policy;
+                   Ptr : in out Policy_Access)
+   is
+   begin
+      Free (Unique_Id_Policy_Access (Ptr));
+   end Free;
+
 end CORBA.Policy.Id_Uniqueness_Policy.Unique;

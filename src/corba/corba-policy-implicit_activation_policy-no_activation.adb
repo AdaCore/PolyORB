@@ -30,4 +30,15 @@ package body CORBA.Policy.Implicit_Activation_Policy.No_Activation is
       null;
    end Check_Compatibility;
 
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (P   : in     No_Activation_Policy;
+                   Ptr : in out Policy_Access)
+   is
+   begin
+      Free (No_Activation_Policy_Access (Ptr));
+   end Free;
+
 end CORBA.Policy.Implicit_Activation_Policy.No_Activation;

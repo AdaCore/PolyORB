@@ -28,5 +28,16 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
       null;
    end Check_Compatibility;
 
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (P   : in     Retain_Policy;
+                   Ptr : in out Policy_Access)
+   is
+   begin
+      Free (Retain_Policy_Access (Ptr));
+   end Free;
+
 end CORBA.Policy.Servant_Retention_Policy.Retain;
 

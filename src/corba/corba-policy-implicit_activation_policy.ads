@@ -24,6 +24,10 @@ package CORBA.Policy.Implicit_Activation_Policy is
    --  The real creation function that has to be implemented for each
    --  possible Policy
 
+   procedure Free (P   : in     ImplicitActivationPolicy;
+                   Ptr : in out Policy_Access)
+      is abstract;
+
 --    function Activate_Servant
 --      (Self             : access ImplicitActivationPolicy;
 --       OA               : access CORBA.POA_Types.Obj_Adapter;

@@ -1,3 +1,5 @@
+with Ada.Unchecked_Deallocation;
+
 with Droopi.Objects;
 with Droopi.Obj_Adapters;
 
@@ -59,6 +61,9 @@ package CORBA.POA.Basic_POA is
      (Value : ImplicitActivationPolicyValue)
      return ImplicitActivationPolicy_Access;
 
+--    function Activate_Object (P_Servant : in Servant_Access)
+--      return Object_Id;
+
    --------------------------------------------------------
    --  Functions and procedures to interface with Droopi --
    --------------------------------------------------------
@@ -114,5 +119,12 @@ package CORBA.POA.Basic_POA is
    --  Find_Servant won't be used by the client anymore. This
    --  may cause the servant to be destroyed if so is OA's
    --  policy.
+
+   -------------------------------------------------
+   --  Utilities, neither in CORBA nor in Droopi  --
+   -------------------------------------------------
+
+   procedure Free is new Ada.Unchecked_Deallocation (Obj_Adapter,
+                                                     Obj_Adapter_Access);
 
 end CORBA.POA.Basic_POA;

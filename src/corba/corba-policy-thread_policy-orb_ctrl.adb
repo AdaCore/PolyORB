@@ -28,4 +28,15 @@ package body CORBA.Policy.Thread_Policy.Orb_Ctrl is
       null;
    end Check_Compatibility;
 
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (P   : in     Orb_Ctrl_Policy;
+                   Ptr : in out Policy_Access)
+   is
+   begin
+      Free (Orb_Ctrl_Policy_Access (Ptr));
+   end Free;
+
 end CORBA.Policy.Thread_Policy.Orb_Ctrl;

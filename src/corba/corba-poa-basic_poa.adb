@@ -229,7 +229,6 @@ package body CORBA.POA.Basic_POA is
                              Child : Obj_Adapter_Access)
    is
       use CORBA.POA_Types.POA_Sequences;
-      A : Natural;
    begin
       if Self /= null then
          if (Self.Children = null) then
@@ -237,10 +236,6 @@ package body CORBA.POA.Basic_POA is
          end if;
          Append (Sequence (Self.Children.all),
                  CORBA.POA_Types.Obj_Adapter_Access (Child));
-         A := Length (Sequence (Self.Children.all));
-         A := A + 1;
-         null;
-         null;
       end if;
    end Register_Child;
 
@@ -308,6 +303,30 @@ package body CORBA.POA.Basic_POA is
       end if;
 
       return New_Obj_Adapter;
+
+   exception
+      when CORBA.Adapter_Already_Exists =>
+         --  Reraise exception
+         Droopi.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
+         return null;
+      when CORBA.Invalid_Policy =>
+         --  ??? Free POA Manager, if a new one has been created
+         Free (New_Obj_Adapter.Thread_Policy.all,
+               Policy_Access (New_Obj_Adapter.Thread_Policy));
+         Free (New_Obj_Adapter.Thread_Policy.all,
+               Policy_Access (New_Obj_Adapter.Id_Uniqueness_Policy));
+         Free (New_Obj_Adapter.Thread_Policy.all,
+               Policy_Access (New_Obj_Adapter.Id_Assignement_Policy));
+         Free (New_Obj_Adapter.Thread_Policy.all,
+               Policy_Access (New_Obj_Adapter.Implicit_Activation_Policy));
+         Free (New_Obj_Adapter.Thread_Policy.all,
+               Policy_Access (New_Obj_Adapter.Lifespan_Policy));
+         Free (New_Obj_Adapter.Thread_Policy.all,
+               Policy_Access (New_Obj_Adapter.Request_Processing_Policy));
+         Free (New_Obj_Adapter.Thread_Policy.all,
+               Policy_Access (New_Obj_Adapter.Servant_Retention_Policy));
+         Droopi.CORBA_P.Exceptions.Raise_Invalid_Policy;
+         return null;
    end Create_POA;
 
 

@@ -23,6 +23,10 @@ package CORBA.Policy.Lifespan_Policy is
    --  The real creation function that has to be implemented for each
    --  possible Policy
 
+   procedure Free (P   : in     LifespanPolicy;
+                   Ptr : in out Policy_Access)
+      is abstract;
+
 --    procedure Ensure_Oid_Lifespan
 --      (Self             : access LifespanPolicy;
 --       OA               : access CORBA.POA_Types.Obj_Adapter;

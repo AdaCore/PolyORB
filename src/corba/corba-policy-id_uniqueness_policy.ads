@@ -22,6 +22,10 @@ package CORBA.Policy.Id_Uniqueness_Policy is
    --  The real creation function that has to be implemented for each
    --  possible Policy
 
+   procedure Free (P   : in     IdUniquenessPolicy;
+                   Ptr : in out Policy_Access)
+      is abstract;
+
 --    procedure Ensure_Servant_Uniqueness
 --      (Self          : in out IdUniquenessPolicy_Access;
 --       Map           : in out CORBA.Object_Map.Object_Map;

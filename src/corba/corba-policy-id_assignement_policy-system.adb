@@ -28,4 +28,15 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
       null;
    end Check_Compatibility;
 
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (P   : in     System_Id_Policy;
+                   Ptr : in out Policy_Access)
+   is
+   begin
+      Free (System_Id_Policy_Access (Ptr));
+   end Free;
+
 end CORBA.Policy.Id_Assignement_Policy.System;

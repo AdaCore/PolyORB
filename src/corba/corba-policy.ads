@@ -32,4 +32,8 @@ package CORBA.Policy is
    function Create return Policy_Access is abstract;
    --  The creation function, implemented for each type of policy
 
+   procedure Free (P   : in     Policy;
+                   Ptr : in out Policy_Access)
+     is abstract;
+
 end CORBA.Policy;

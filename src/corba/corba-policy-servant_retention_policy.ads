@@ -23,6 +23,10 @@ package CORBA.Policy.Servant_Retention_Policy is
    --  The real creation function that has to be implemented for each
    --  possible Policy
 
+   procedure Free (P   : in     ServantRetentionPolicy;
+                   Ptr : in out Policy_Access)
+     is abstract;
+
 --    function Activate_Object
 --      (Self             : ServantRetentionPolicy_Access;
 --       OA               : CORBA.POA_Types.Obj_Adapter;

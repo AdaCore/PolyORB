@@ -23,6 +23,10 @@ package CORBA.Policy.Id_Assignement_Policy is
    --  The real creation function that has to be implemented for each
    --  possible Policy
 
+   procedure Free (P   : in     IdAssignementPolicy;
+                   Ptr : in out Policy_Access)
+      is abstract;
+
 --    procedure Ensure_Id_Creation_Capability is abstract;
 --    --  Case SYSTEM_ID:
 --    --  Does nothing;
