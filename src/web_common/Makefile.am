@@ -37,11 +37,11 @@ install-data-local:
 	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
+aws-mime.lo:aws-mime.adb aws-mime.ads aws.ads 
+aws-url-raise_url_error.lo:aws-url-raise_url_error.adb aws-url-raise_url_error.ads aws-url.ads aws.ads 
+aws-url.lo:../polyorb-utils.adb ../polyorb-utils.ads ../polyorb.ads ./../polyorb-utils.adb ./../polyorb-utils.ads ./../polyorb.ads aws-url-raise_url_error.ads aws-url.adb aws-url.ads aws-utils.ads aws.ads md5.ads 
+aws-utils.lo:aws-utils.adb aws-utils.ads aws.ads md5.ads 
 aws.lo:aws.ads 
-aws-mime.lo:aws.ads aws-mime.adb aws-mime.ads 
-aws-url.lo:aws.ads aws-url.adb aws-url.ads aws-url-raise_url_error.ads aws-utils.ads md5.ads ./../polyorb.ads ../polyorb.ads ./../polyorb-utils.adb ../polyorb-utils.adb ./../polyorb-utils.ads ../polyorb-utils.ads 
-aws-url-raise_url_error.lo:aws.ads aws-url.ads aws-url-raise_url_error.adb aws-url-raise_url_error.ads 
-aws-utils.lo:aws.ads aws-utils.adb aws-utils.ads md5.ads 
 md5.lo:md5.adb md5.ads 
+soap-utils.lo:soap-utils.adb soap-utils.ads soap.ads 
 soap.lo:soap.ads 
-soap-utils.lo:soap.ads soap-utils.adb soap-utils.ads 
