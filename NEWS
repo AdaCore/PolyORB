@@ -23,7 +23,8 @@ New Ports
     GLADE now works correctly on Digital Unix. Heterogeneous
     distribution involving Digital Unix platforms is not yet
     supported. Compilation must use -O0 instead of -O2 to prevent a
-    bug at runtime.
+    bug at runtime. The zlib library seems to be broken on Digital
+    Unix. Therefore, the zip filter is not available.
 
 Changes since GLADE 1.02
 ========================

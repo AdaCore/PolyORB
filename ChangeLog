@@ -1,5 +1,7 @@
 Tue Sep 30 15:52:59 1997  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
+	* NEWS: Add a note on zlib which is broken on alpha.
+
 	* configure.in, configure: Add alpha-dec-osf and fix confusion
 	between a/l codes.
 
