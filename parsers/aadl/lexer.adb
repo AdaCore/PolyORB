@@ -15,7 +15,7 @@ package body Lexer is
    --  Once preprocessed, the idl file is loaded in Buffer and
    --  Token_Location.Scan is used to scan the source file.
 
-   Display_Error : Boolean := True;
+   Display_Error : constant Boolean := True;
    pragma Unreferenced (Display_Error);
 
    Token_Image   : array (Token_Type) of Name_Id;
