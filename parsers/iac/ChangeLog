@@ -1,5 +1,10 @@
 2004-08-03  Saber Souli  <souli@neraka.enst.fr>
 
+	* backend-be_ada-runtime.adb: Moved Convert to
+	backend-be_ada-nutils.  
+
+2004-08-03  Saber Souli  <souli@neraka.enst.fr>
+
 	* backend-be_ada-runtime.ads: Added values to RU_Id and RE_Id to
 	handle new runtime entities used in stub's body generation.  
 

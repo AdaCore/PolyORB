@@ -1,7 +1,5 @@
 with Types; use Types;
 
-with Frontend.Nodes;
-
 package Backend.BE_Ada.Runtime is
 
    --  Runtime Units
@@ -176,13 +174,12 @@ package Backend.BE_Ada.Runtime is
          RE_String_2              => RU_Standard,
          RE_Servant_Base          => RU_PortableServer);
 
-
-   function Convert (K : Frontend.Nodes.Node_Kind) return RE_Id;
-
    procedure Initialize;
 
    function RE (Id : RE_Id; Witheded : Boolean := True) return Node_Id;
    --  Return a designator for entity Id
+
    function RU (Id : RU_Id) return Node_Id;
    --  Return a node for Unit id.
+
 end Backend.BE_Ada.Runtime;

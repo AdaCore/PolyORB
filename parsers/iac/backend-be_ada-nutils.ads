@@ -1,6 +1,8 @@
 with Types;     use Types;
 
-with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
+with Frontend.Nodes;
+with Backend.BE_Ada.Runtime;  use Backend.BE_Ada.Runtime;
+with Backend.BE_Ada.Nodes;    use Backend.BE_Ada.Nodes;
 
 package Backend.BE_Ada.Nutils is
 
@@ -232,6 +234,8 @@ package Backend.BE_Ada.Nutils is
      (P : Node_Id);
 
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
+
+   function Convert (K : Frontend.Nodes.Node_Kind) return RE_Id;
 
    procedure Push_Entity (E : Node_Id);
    procedure Pop_Entity;
