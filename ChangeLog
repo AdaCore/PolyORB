@@ -1,3 +1,8 @@
+2001-01-24  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* MANIFEST, Makefile.am, Makefile.in, configure.in, configure:
+	Remove socket packages configuration and use GNAT.Sockets instead.
+
 2001-01-16  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Look for sys/param.h in addition to sys/conf.h.
