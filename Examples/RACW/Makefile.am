@@ -13,10 +13,11 @@ EXTRA_PROGS = main
 CLEANFILES = -r dsa *.o *.ali
 DISTCLEANFILES = main part1 part2 part3
 
-all-local: check-config ${EXTRA_PROGS}
+all-local: ../check-stamp ${EXTRA_PROGS}
 
-check-config: 
+../check-stamp:
 	IN_MAKE=yes ${SHELL} ../check-config
+	echo "It worked on `date`" > ../check-stamp
 
 main: 
 	${GNATDIST} -I${srcdir} ${srcdir}/racw.cfg

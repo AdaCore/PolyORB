@@ -135,10 +135,11 @@ distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
 
-all-local: check-config ${EXTRA_PROGS}
+all-local: ../check-stamp ${EXTRA_PROGS}
 
-check-config: 
+../check-stamp:
 	IN_MAKE=yes ${SHELL} ../check-config
+	echo "It worked on `date`" > ../check-stamp
 
 bin/part1 bin/part2 sub/bin/part3 bin/part4:
 

@@ -13,10 +13,11 @@ EXTRA_PROGS = master
 CLEANFILES = -r dsa *.o *.ali
 DISTCLEANFILES = master51.cfg master part1 part2 part3 part4
 
-all-local: check-config ${EXTRA_PROGS}
+all-local: ../check-stamp ${EXTRA_PROGS}
 
-check-config: 
+../check-stamp:
 	IN_MAKE=yes ${SHELL} ../check-config
+	echo "It worked on `date`" > ../check-stamp
 
 bin/part1 bin/part2 sub/bin/part3 bin/part4:
 
