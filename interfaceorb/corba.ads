@@ -189,7 +189,7 @@ package Corba is
 
     procedure C_Raise_Ada_Exception (Msg : in Interfaces.C.Strings.Chars_Ptr) ;
     pragma Export (CPP,C_Raise_Ada_Exception,"raise_ada_exception__FPCc") ;
-    -- This function allows C code to raise Ada exception
+    -- This function allows C code to raise AdaBroker specific exceptions
     -- (see Ada_Giop_c.hh, Ada_Giop_s.hh, Ada_OmniObject.hh,
     --  Ada_OmniRopeAndKey.hh, Ada_netBufferedStream.hh)
 

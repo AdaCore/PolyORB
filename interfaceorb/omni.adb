@@ -2,7 +2,12 @@
 ----                                                               ----
 ----                  AdaBroker                                    ----
 ----                                                               ----
-----                  package body omni                            ----
+----     This package is wrapped around the C class omni_C2Ada     ----
+----   declared in omni_C2Ada.hh;                                  ----
+----     It provides the 2 functions of omni_C2Ada and their       ----
+----   equivalent in ADA.                                          ----
+----                                                               ----
+----                  package omni                                 ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
 ----   date    : 02/08/99                                          ----

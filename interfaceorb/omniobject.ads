@@ -35,8 +35,6 @@ with OmniRopeAndKey ;
 
 package OmniObject is
 
-
-
    -----------------------------------------------
    --         Implemented_Object                --
    --       this is the type of local           --
@@ -63,6 +61,7 @@ package OmniObject is
       Implobj : Implemented_Object_Ptr := null ;
    end record ;
    -- the pointer implobj is null for proxy object
+
    pragma CPP_Class (Object);
    pragma CPP_Vtable (Object,Table,2);
    -- This object is wrapped around Ada_OmniObject (see Ada_OmniObject.hh)
