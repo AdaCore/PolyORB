@@ -93,8 +93,6 @@ procedure Client_Call_Back is
    MOMA_Handler_Acc   : MOMA.Message_Handlers.Message_Handler_Acc;
    Ok : Boolean;
 
-   MByte_Message_Sent : MOMA.Messages.MBytes.MByte := Create_Byte_Message;
-   MByte_Message_Rcvd : MOMA.Messages.MBytes.MByte;
    Message_Id         : MOMA.Types.Byte;
 
    -----------------------
@@ -103,7 +101,11 @@ procedure Client_Call_Back is
 
    procedure Send_MByte (Id : MOMA.Types.Byte);
 
-   procedure Send_MByte (Id : MOMA.Types.Byte) is
+   procedure Send_MByte (Id : MOMA.Types.Byte)
+   is
+
+      MByte_Message_Sent : MOMA.Messages.MBytes.MByte := Create_Byte_Message;
+
    begin
       Set_Byte (MByte_Message_Sent, Id);
       Send (MOMA_Producer, MByte_Message_Sent);
@@ -114,7 +116,10 @@ procedure Client_Call_Back is
       return MOMA.Types.Byte;
 
    function Get_Byte_Value (Message : MOMA.Messages.Message'Class)
-      return MOMA.Types.Byte is
+                           return MOMA.Types.Byte
+   is
+      MByte_Message_Rcvd : MOMA.Messages.MBytes.MByte;
+
    begin
       if Message in MOMA.Messages.MBytes.MByte then
          MByte_Message_Rcvd :=
