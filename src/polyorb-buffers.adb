@@ -35,6 +35,8 @@
 with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
 
+with System.Address_To_Access_Conversions;
+
 with PolyORB.Log;
 
 package body PolyORB.Buffers is
@@ -428,7 +430,8 @@ package body PolyORB.Buffers is
       Socket : Sockets.Socket_Type)
    is
    begin
-      Iovec_Pools.Write_To_Socket (Socket, Buffer.Contents'Access);
+      Iovec_Pools.Write_To_Socket
+        (Socket, Buffer.Contents'Access, Buffer.Length);
    end Send_Buffer;
 
    procedure Receive_Buffer
@@ -806,57 +809,92 @@ package body PolyORB.Buffers is
          Iovec_Pool.Length := Iovec_Pool.Prealloc_Array'Length;
       end Release;
 
+      package SE_Access_Address_Conversions is
+        new System.Address_To_Access_Conversions
+        (Ada.Streams.Stream_Element);
+
       procedure Write_To_Socket
         (S          : PolyORB.Sockets.Socket_Type;
-         Iovec_Pool : access Iovec_Pool_Type)
+         Iovec_Pool : access Iovec_Pool_Type;
+         Length     : Stream_Element_Count)
       is
          use PolyORB.Sockets;
 
-         Vecs : Iovec_Array := Iovecs (Iovec_Pool.all);
+         Vecs : constant Iovec_Array := Iovecs (Iovec_Pool.all);
+
+         --  WAG:3.16
+
+         --  The code is organised around GNAT.Sockets' view of iovecs
+         --  as Vector_Type below. These declarations are not present
+         --  in GNAT.Sockets as of GNAT 3.16 so for now we declare them
+         --  here. When 3.17 is released these declarations can be
+         --  removed, and Send_Vector can be used below instead of
+         --  Send_Socket.
+
+         type Stream_Element_Access is access all Ada.Streams.Stream_Element;
+
+         type Vector_Element is record
+            Base   : Stream_Element_Access;
+            Length : Ada.Streams.Stream_Element_Count;
+         end record;
+
+         type Vector_Type is array (Integer range <>) of Vector_Element;
+
+         --  WAG:3.16
+
+         S_Vecs : Vector_Type (Vecs'Range);
+         for S_Vecs'Address use Vecs (Vecs'First)'Address;
+         pragma Import (Ada, S_Vecs);
 
          Index : Natural := Vecs'First;
 
-         Last  : Stream_Element_Offset;
-
-         Remainder : Storage_Offset := 0;
+         Count : Stream_Element_Count;
+         Remainder : Stream_Element_Count := Length;
          --  Number of Stream_Elements yet to be written.
 
-      begin
-         for I in Vecs'Range loop
-            Remainder := Remainder + Vecs (I).Iov_Len;
-         end loop;
+         use SE_Access_Address_Conversions;
 
+      begin
          while Remainder > 0 loop
-            declare
+
+            --  WAG:3.16
+            --  For now we do scatter-gather ourselves for lack of
+            --  a writev operation in GNAT.Sockets. Subsequent
+            --  releases of GNAT will have Send_Vector: the whole
+            --  block below can then be replaced with:
+
+            --  Send_Vector (S, S_Vecs (Index .. Vecs'Last), Count);
+
+            declare --  WAG:3.16
                Z_Addr : constant Opaque_Pointer := Vecs (Index).Iov_Base;
                Z : Stream_Element_Array
                  (0 .. Stream_Element_Offset (Vecs (Index).Iov_Len - 1));
                for Z'Address use Z_Addr;
                pragma Import (Ada, Z);
-
-               Count : Storage_Offset;
+               Last : Stream_Element_Offset;
             begin
-
-               --  FIXME:
-               --  For now we do scatter-gather ourselves for lack of a writev
-               --  operation in GNAT.Sockets.
 
                Send_Socket (S, Z, Last);
                --  May raise Socket_Error.
-               Count := Storage_Offset (Last) + 1;
+               Count := Stream_Element_Count (Last) + 1;
+            end;    --  WAG:3.16
 
-               while Index <= Vecs'Last and then Count >= Vecs (Index).Iov_Len
-               loop
-                  Remainder := Remainder - Vecs (Index).Iov_Len;
-                  Count := Count - Vecs (Index).Iov_Len;
-                  Index := Index + 1;
-               end loop;
+            while Index <= S_Vecs'Last
+              and then Count >= S_Vecs (Index).Length
+            loop
+               Remainder := Remainder - S_Vecs (Index).Length;
+               Count := Count - S_Vecs (Index).Length;
+               Index := Index + 1;
+            end loop;
 
-               if Count > 0 then
-                  Vecs (Index).Iov_Base := Vecs (Index).Iov_Base + Count;
-                  Vecs (Index).Iov_Len := Vecs (Index).Iov_Len - Count;
-               end if;
-            end;
+            if Count > 0 then
+               S_Vecs (Index).Base   := Stream_Element_Access
+                 (To_Pointer
+                  (S_Vecs (Index).Base.all'Address
+                   + Storage_Offset (Count)));
+               S_Vecs (Index).Length := S_Vecs (Index).Length - Count;
+            end if;
+
          end loop;
       end Write_To_Socket;
 

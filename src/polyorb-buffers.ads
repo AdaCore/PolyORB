@@ -32,7 +32,7 @@
 
 --  Buffer management
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#14 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#15 $
 
 with System;
 --  For bit-order information.
@@ -390,8 +390,9 @@ private
 
       procedure Write_To_Socket
         (S          : PolyORB.Sockets.Socket_Type;
-         Iovec_Pool : access Iovec_Pool_Type);
-      --  Write the contents of Iovec_Pool onto S.
+         Iovec_Pool : access Iovec_Pool_Type;
+         Length     : Ada.Streams.Stream_Element_Count);
+      --  Write Length elements of the contents of Iovec_Pool onto S.
 
       ---------------------------------------
       -- Low-level interfaces to the octet --
