@@ -6,7 +6,7 @@ AUTOMAKE_OPTIONS = no-dependencies foreign
 
 GNATSRC = @GNAT_SOURCE@
 GARLIC = ${libdir}/garlic
-GNATFLAGS = -gnatpg @GNATFLAGS@
+GNATFLAGS = -a -gnatpg @GNATFLAGS@
 EXTRA_LIBS = @EXTRA_LIBS@
 
 bin_SCRIPTS = gnatdist
