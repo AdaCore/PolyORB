@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#32 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#33 $
 
 @include version.texi
 
@@ -121,6 +121,7 @@ entitled ``GNU Free Documentation License''.
 * SOAP::
 * Tools::
 * References::
+* Conformance to standards::
 * GNU Free Documentation License::
 * Index::
 
@@ -201,6 +202,13 @@ Tools
 
 * po_catref::
 * po_names::
+
+Conformance to standards
+
+* CORBA standards conformance::
+* RT-CORBA standards conformance::
+* CORBA-GIOP standards conformance::
+* SOAP standards conformance::
 
 @end detailmenu
 @end menu
@@ -2106,6 +2114,319 @@ similar to CORBA COS Naming, without dragging any dependences on CORBA
 mechanisms. This name server is to be used when the CORBA application
 personality is not required, e.g. with the DSA or MOMA application
 personalities.
+
+@c -------------------------------------------------------------------
+@node Conformance to standards
+@appendix Conformance to standards
+@c -------------------------------------------------------------------
+
+@menu
+* CORBA standards conformance::
+* RT-CORBA standards conformance::
+* CORBA-GIOP standards conformance::
+* SOAP standards conformance::
+@end menu
+
+@c -------------------------------------------------------------------
+@node CORBA standards conformance
+@section CORBA standards conformance
+@c -------------------------------------------------------------------
+
+@noindent 
+The OMG defines CORBA-compliant ORB as implementations of the CORBA
+specifications that supports CORBA Core and one mapping of CORBA's IDL.
+
+Here is a summary of PolyORB's conformance issues with the latest CORBA
+specifications (revision 3.0, formal/02-06-01)
+
+@menu
+* CORBA IDL-to-Ada mapping::
+* CORBA Core::
+* CORBA Interoperability::
+* CORBA Interworking::
+* CORBA Quality Of Service::
+* CORBA COS Services::
+* CORBA Specialized services::
+@end menu
+
+@c -------------------------------------------------------------------
+@node CORBA IDL-to-Ada mapping
+@subsection CORBA IDL-to-Ada mapping
+@cindex CORBA IDL-to-Ada mapping
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB supports the IDL-to-Ada specification @cite{[OMG01]}, with the
+following limitations in both CORBA API and the IDL-to-Ada compiler
+@code{idlac}:
+
+@itemize @bullet
+@item no support for abstract interfaces, local interfaces;
+object-by-value, context data;
+@item no support for bounded strings, fixed-points numbers;
+@item no support for CORBA Components;
+@item implemented API may present some divergences with current mapping.
+@end itemize
+
+
+@c -------------------------------------------------------------------
+@node CORBA Core
+@subsection CORBA Core
+@c -------------------------------------------------------------------
+
+@noindent
+This set encompasses chapters 1-11. Chapters 3 to 11 are normative.
+
+@itemize @bullet
+@item Chapter 3 describes OMG IDL syntax and semantics. See @ref{CORBA
+IDL-to-Ada mapping} for a description of non-implemented features;
+
+@item Chapter 4 describes the ORB Interface. 
+
+@b{XXX TO BE WRITTEN, note there are some differences betwwen ORB Core and
+IDL-to-Ada mapping !}
+
+@item Chapter 5 describes Value Type Semantics. 
+
+@noindent 
+PolyORB does not support this chapter.
+
+@item Chapter 6 describes Abstract Interface Semantics. 
+
+@noindent 
+PolyORB does not support this chapter.
+
+@item Chapter 7 describes Dynamic Invocation Interface (DII)
+
+@noindent
+PolyORB supports only the following methods: @code{Create_Request},
+@code{Invoke} and @code{Delete}.
+
+@item Chapter 8 describes Dynamic Skeleton Interface (DSI)
+
+@noindent 
+PolyORB partially supports this chapter: this interface is fully
+implemented except for context data.
+
+@item Chapter 9 describes Dynamic Management of Any Values
+
+@noindent 
+PolyORB does not support this chapter.
+
+@item Chapter 10 describes The Interface Repository
+
+@noindent 
+PolyORB supports this chapter. 
+
+@b{XXX Should discuss with T. Quinot conformance issue with this spec.}
+
+@item Chapter 11 describes The Portable Object Adapter
+
+@noindent 
+PolyORB supports this chapter with the following limitations:
+@itemize @bullet
+@item @code{PERSISTENT} policy is not supported;
+@item @code{USE_SERVANT_MANAGER} policy is not supported;
+@item support for @code{SINGLE_THREAD} policy is incomplete, reentrant
+calls may not work;
+@item @code{Wait_For_Completion} and @code{Etherealize_Objects} are
+not taken into account in @code{PortableServer.POAManager};
+@item @code{PortableServer.Current} API is not implemented;
+@item @code{PortableServer.POAManagerFactory} API is not implemented.
+@end itemize
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@node CORBA Interoperability
+@subsection CORBA Interoperability
+@c -------------------------------------------------------------------
+
+@noindent
+This set encompasses chapters 12-16.
+
+@itemize @bullet
+
+@item See @ref{CORBA-GIOP standards conformance} for more information 
+on this point.
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@node CORBA Interworking
+@subsection CORBA Interworking
+@c -------------------------------------------------------------------
+
+@noindent
+This set encompasses chapters 17-21.
+
+@itemize @bullet
+
+@item Chapters 17 to 20 describe interoperability with Microsoft's
+COM/DCOM.
+
+@noindent
+PolyORB provides no support for this chapter.
+
+
+@item Chapter 21 describes @code{PortableInterceptor}.
+
+@noindent
+PolyORB provides partial support for this chapter.
+
+
+@end itemize
+
+
+@c -------------------------------------------------------------------
+@node CORBA Quality Of Service
+@subsection CORBA Quality Of Service
+@c -------------------------------------------------------------------
+
+@noindent
+This set encompasses chapters 22-24.
+
+
+@itemize @bullet
+
+@item Chapter 22 describes CORBA Messaging
+
+@item Chapter 23 describes Fault Tolerant CORBA
+
+@item Chapter 24 describes Secure Interoperability. 
+
+@end itemize
+
+@noindent
+PolyORB provides no support for these chapters.
+
+@c -------------------------------------------------------------------
+@node CORBA COS Services
+@subsection CORBA COS Services
+@cindex CORBA, COS Services
+@c -------------------------------------------------------------------
+
+@noindent
+COS Services are specifications of high level services that are
+optional extensions to the CORBA specification. They provide helper
+packages to build distributed applications.  PolyORB implement the
+following COS Services:
+
+@itemize @bullet
+@item COS Event and TypedEvent @b{XXX version ?}
+@item COS Naming @b{XXX version ?}
+@item COS Time @b{XXX version ?}
+@end itemize
+
+@c -------------------------------------------------------------------
+@node CORBA Specialized services
+@subsection CORBA Specialized services
+@cindex CORBA, Specialized services
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB supports the following specialized services:
+
+@itemize @bullet
+@item Unreliable Multicast (MIOP), proposed 1.0 specification @cite{[OMG02b]}.
+
+@item RT-CORBA extensions, see @ref{RT-CORBA} for more information 
+on this point.
+@cindex MIOP
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@node RT-CORBA standards conformance
+@section RT-CORBA standards conformance
+@c -------------------------------------------------------------------
+
+@noindent 
+RT-CORBA specifications relies on the CORBA application
+personality. It inherits all its issues, and implementations notes.
+
+In addition, here is a list of issues with the implementation of
+RT-CORBA static @cite{[OMG02a]} and dynamic scheduling @cite{[OMG03]}
+specifications.
+
+@itemize @bullet
+@item RT-CORBA static and dynamic scheduling (Chapter 2)
+
+Chapter 2 is common to these two specifications. It describes 
+key mechanisms of RT-CORBA that are common to both specifications.
+
+PolyORB partially implements this chapter from section 2.1 up to
+section 2.10. PolyORB does not provide support for all
+connection-related policies.
+
+See implementation notes in the different package specificiations for
+more details.
+
+@item RT-CORBA static scheduling (Chapter 3)
+
+PolyORB does not support this chapter.
+
+@item RT-CORBA dynamic scheduling (Chapter 3)
+
+PolyORB does not support this chapter.
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@node CORBA-GIOP standards conformance
+@section CORBA/GIOP standards conformance
+@c -------------------------------------------------------------------
+
+@noindent
+GIOP supports part of the CORBA Interoperability specification, from
+chapters 12 to 16 of CORBA specifications.
+
+Chapter 12 defines general concepts about ORB interoperability. It
+defines @emph{interoperbility-compliant ORB} as ORB that supports:
+
+@itemize @bullet
+@item API that supports the construction of request-level inter-ORB
+bridges, Dynamic Invocation Interface, Dynamic Skeleton Interface and
+the object identity operations described in the Interface
+Repository. See @ref{CORBA standards conformance} for more details.
+
+@item IIOP protocol as defined in chapter 15.
+@end itemize
+
+@noindent 
+Support for other components is optionnal.
+
+@itemize @bullet
+
+@item Chapter 13 describes the ORB Interoperability Architecture.
+
+PolyORB fully supports this chapter.
+
+@item Chapter 14 describes how to build Inter-ORB Bridges.
+
+PolyORB fully supports this chapter.
+
+@item Chapter 15 describes the General Inter-ORB Protocol (GIOP).
+
+PolyORB supports GIOP version 1.0 to 1.2, the CDR representation scheme.
+Support for IOR and @code{corbaloc} addressing mechanisms is supported
+in CORBA personality, see @ref{CORBA} for more details.
+
+PolyORB does not support the optional IIOP IOR Profile Components,
+Bi-directionnal GIOP, IIOP/SSL.
+
+@item Chapter 16 describes the DCE ESIOP protocol.
+
+PolyORB does not support this optional chapter.
+
+@end itemize
+
+@c -------------------------------------------------------------------
+@node SOAP standards conformance
+@section SOAP standards conformance
+@c -------------------------------------------------------------------
+
+@b{XXX TO BE WRITTEN}
 
 @c -------------------------------------------------------------------
 @node References
