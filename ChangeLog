@@ -1,3 +1,8 @@
+1998-09-24  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* support/ada.m4: Detect gnatgcc as a suitable Ada driver since
+	that is what the Debian distribution use.
+
 1998-09-12  Laurent Pautet  <pautet@scapin.enst.fr>
 
         * configure.in, configure: Fix 5712-G01. Specific naming
