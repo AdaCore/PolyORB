@@ -137,6 +137,6 @@ membufferedstream.ali: membufferedstream.ads membufferedstream.adb
 
 ##############################################################
 clean :
-	rm *.ali *.o 
+	rm *.ali *.o *~
 
 
