@@ -3,6 +3,7 @@ with GNAT.Command_Line; use GNAT.Command_Line;
 with Namet;     use Namet;
 with Output;    use Output;
 with Types;     use Types;
+with Values;    use Values;
 
 with Frontend.Nodes;           use Frontend.Nodes;
 
@@ -120,6 +121,8 @@ package body Backend.BE_Ada is
       Self_Parameter_Name := Name_Find;
       Set_Str_To_Name_Buffer ("To");
       To_Parameter_Name := Name_Find;
+
+      Int0_Val := New_Integer_Value (0, 1, 10);
 
       Set_Space_Increment (3);
       Visit_Specification (E);
@@ -474,55 +477,73 @@ package body Backend.BE_Ada is
    ---------------------------------
 
    procedure Visit_Operation_Declaration (E : Node_Id) is
-      O : Node_Id;
-      L : List_Id;
-      P : Node_Id;
-      N : Node_Id;
-      M : Mode_Id := Mode_In;
-      R : Node_Id := No_Node;
+      Subp_Body : Node_Id;
+      Subp_Spec : Node_Id;
+      Profile   : List_Id;
+      IDL_Param : Node_Id;
+      Ada_Param : Node_Id;
+      Mode      : Mode_Id := Mode_In;
+      Returns   : Node_Id := No_Node;
 
    begin
-      L := New_List (K_Parameter_Profile);
-      P := Make_Parameter_Specification
+      Profile := New_List (K_Parameter_Profile);
+
+      --  Create a dispatching parameter
+
+      Ada_Param := Make_Parameter_Specification
         (Make_Defining_Identifier (Self_Parameter_Name),
          Copy_Node (Interface_Ref_Designator));
-      Append_Node_To_List (P, L);
+      Append_Node_To_List (Ada_Param, Profile);
 
-      N := First_Entity (Parameters (E));
-      while Present (N) loop
-         P := Make_Parameter_Specification
-           (Make_Defining_Identifier (Declarator (N)),
-            Make_Designator (Type_Spec (N)),
-            FEN.Parameter_Mode (N));
-         if (FEN.Parameter_Mode (N) = Mode_Out)
-           or
-           (FEN.Parameter_Mode (N) = Mode_Inout)
-         then
-            M := Mode_Out;
+      --  Create an Ada subprogram parameter for each IDL subprogram
+      --  parameter. Check whether there is one inout or out parameter.
+
+      IDL_Param := First_Entity (Parameters (E));
+      while Present (IDL_Param) loop
+         Ada_Param := Make_Parameter_Specification
+           (Make_Defining_Identifier (Declarator (IDL_Param)),
+            Make_Designator (Type_Spec (IDL_Param)),
+            FEN.Parameter_Mode (IDL_Param));
+         if FEN.Parameter_Mode (IDL_Param) /= Mode_In then
+            Mode := Mode_Out;
          end if;
-         Append_Node_To_List (P, L);
-         N := Next_Entity (N);
+         Append_Node_To_List (Ada_Param, Profile);
+         IDL_Param := Next_Entity (IDL_Param);
       end loop;
-      if not (FEN.Kind (Type_Spec (E)) = K_Void) then
-         if M = Mode_In then
-            R := Make_Designator (Type_Spec (E));
+
+      --  If the IDL subprogram is a function, then check whether it
+      --  has inout and out parameters. In this case, map the IDL
+      --  function as an Ada procedure and not an Ada function.
+
+      if FEN.Kind (Type_Spec (E)) /= K_Void then
+         if Mode = Mode_In then
+            Returns := Make_Designator (Type_Spec (E));
+
+         --  If the IDL function is mapped as an Ada procedure, add a
+         --  new parameter Returns to pass the returned value.
+
          else
-            P := Make_Parameter_Specification
+            Ada_Param := Make_Parameter_Specification
               (Make_Defining_Identifier (Returns_Parameter_Name),
                Make_Designator (Type_Spec (E)),
                Mode_Out);
-            Append_Node_To_List (P, L);
+            Append_Node_To_List (Ada_Param, Profile);
          end if;
       end if;
+
+      --  Add subprogram to main specification
+
       Set_Main_Spec;
-      O := Make_Subprogram_Specification
-        (Make_Defining_Identifier (E), L, R);
-      Append_Node_To_List (O, Visible_Part (Current_Package));
+      Subp_Spec := Make_Subprogram_Specification
+        (Make_Defining_Identifier (E), Profile, Returns);
+      Append_Node_To_List (Specification, Visible_Part (Current_Package));
+
+      --  Add subprogram to main implementation
 
       Set_Main_Body;
-      P := Make_Subprogram_Implementation
-        (O, No_List, No_List);
-      Append_Node_To_List (P, Statements (Current_Package));
+      Subp_Body := Make_Subprogram_Implementation
+        (Subp_Spec, No_List, No_List);
+      Append_Node_To_List (Subp_Body, Statements (Current_Package));
    end Visit_Operation_Declaration;
 
    -------------------------
@@ -553,6 +574,7 @@ package body Backend.BE_Ada is
       M : Node_Id;
       L : List_Id;
       D : Node_Id;
+      T : Node_Id;
 
    begin
       Set_Main_Spec;
@@ -561,9 +583,23 @@ package body Backend.BE_Ada is
       while Present (M) loop
          D := First_Entity (Declarators (M));
          while Present (D) loop
+            T := Make_Designator (Type_Spec (M));
+            if Kind (D) = K_Complex_Declarator then
+               Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (D))));
+               Add_Str_To_Name_Buffer ("_Array");
+               T := Make_Full_Type_Declaration
+                 (Defining_Identifier => Make_Defining_Identifier (Name_Find),
+                  Type_Definition     => Make_Array_Type_Definition
+                    (Make_Range_Constraints (FEN.Array_Sizes (D)), T));
+               Append_Node_To_List (T, Visible_Part (Current_Package));
+               Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (D))));
+               Add_Str_To_Name_Buffer ("_Array");
+               T := New_Node (K_Designator);
+               Set_Defining_Identifier
+                 (T, Make_Defining_Identifier (Name_Find));
+            end if;
             N := Make_Component_Declaration
-              (Make_Defining_Identifier (D),
-               Make_Designator (Type_Spec (M)));
+              (Make_Defining_Identifier (D), T);
             Append_Node_To_List (N, L);
             D := Next_Entity (D);
          end loop;
@@ -591,11 +627,18 @@ package body Backend.BE_Ada is
       T := Make_Designator (Type_Spec (E));
       D := First_Entity (Declarators (E));
       while Present (D) loop
-         N := Make_Full_Type_Declaration
-           (Defining_Identifier => Make_Defining_Identifier (D),
-            Type_Definition     => Make_Derived_Type_Definition
-              (Subtype_Indication    => T,
-               Record_Extension_Part => No_Node));
+         if Kind (D) = K_Complex_Declarator then
+            N := Make_Full_Type_Declaration
+              (Defining_Identifier => Make_Defining_Identifier (D),
+               Type_Definition     => Make_Array_Type_Definition
+                 (Make_Range_Constraints (FEN.Array_Sizes (D)), T));
+         else
+            N := Make_Full_Type_Declaration
+              (Defining_Identifier => Make_Defining_Identifier (D),
+               Type_Definition     => Make_Derived_Type_Definition
+                 (Subtype_Indication    => T,
+                  Record_Extension_Part => No_Node));
+         end if;
          Append_Node_To_List (N, Visible_Part (Current_Package));
          D := Next_Entity (D);
       end loop;

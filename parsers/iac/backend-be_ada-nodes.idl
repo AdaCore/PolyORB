@@ -6,6 +6,7 @@ module Backend::BE_Ada::Nodes {
 
   typedef octet   Mode_Id;
   typedef long    Name_Id;
+  typedef long    Value_Id;
 
 
   /******************/
@@ -160,6 +161,17 @@ module Backend::BE_Ada::Nodes {
   interface Component_List : List_Id {};
   interface Record_Definition : Node_Id {
     List_Id      Component_List;
+  };
+
+  interface Range_Constraints : List_Id {};
+  interface Array_Type_Definition : Node_Id {
+    List_Id      Range_Constraints;
+    Node_Id      Component_Definition;
+  };
+
+  interface Range_Constraint : Node_Id {
+    Value_Id     First;
+    Value_Id     Last;
   };
 
 

@@ -2,17 +2,19 @@ Frontend
 
 * Fix empty module
 
-* Complete unions
-
 * Implement abstract and local interfaces
-
-* Implement complex declarators
 
 * Implement exceptions
 
 
 Backend Ada
 
-* Implement complex declarators
+* Implement exceptions
 
-* Fix designators and defining identifiers
+* Implement unions
+
+* Implement interfaces (inherited interfaces)
+
+* Implement sequences
+
+* Implement Repository_Id

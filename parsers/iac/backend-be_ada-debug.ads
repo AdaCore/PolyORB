@@ -31,6 +31,7 @@ package Backend.BE_Ada.Debug is
    function Image (N : Node_Id) return String;
    function Image (N : List_Id) return String;
    function Image (N : Mode_Id) return String;
+   function Image (N : Value_Id) return String;
    function Image (N : Boolean) return String;
    function Image (N : Byte) return String;
    function Image (N : Int) return String;

@@ -6,6 +6,7 @@ with Output;      use Output;
 with Scopes;
 with Types;       use Types;
 with Utils;       use Utils;
+with Values;      use Values;
 
 with Backend.BE_Ada.Nodes;     use Backend.BE_Ada.Nodes;
 with Frontend.Nodes;
@@ -37,6 +38,11 @@ package body Backend.BE_Ada.Debug is
       else
          return Get_Name_String (N);
       end if;
+   end Image;
+
+   function Image (N : Value_Id) return String is
+   begin
+      return Values.Image (N);
    end Image;
 
    function Image (N : Node_Id) return String is

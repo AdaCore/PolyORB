@@ -7,6 +7,8 @@ package Backend.BE_Ada.Nutils is
 
    package FEN renames Frontend.Nodes;
 
+   Int0_Val : Value_Id;
+
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
 
    procedure Push_Entity (E : Node_Id);
@@ -44,6 +46,11 @@ package Backend.BE_Ada.Nutils is
    procedure Set_Main_Spec (N : Node_Id := No_Node);
 
    function To_Ada_Name (N : Name_Id) return Name_Id;
+
+   function Make_Array_Type_Definition
+     (Range_Constraints    : List_Id;
+      Component_Definition : Node_Id)
+     return Node_Id;
 
    function Make_Component_Declaration
      (Defining_Identifier : Node_Id;
@@ -86,6 +93,10 @@ package Backend.BE_Ada.Nutils is
       Subtype_Mark        : Node_Id;
       Parameter_Mode      : Mode_Id := Mode_In)
       return                Node_Id;
+
+   function Make_Range_Constraints
+     (Array_Sizes : List_Id)
+     return List_Id;
 
    function Make_Record_Definition
      (Component_List : List_Id)

@@ -3,6 +3,7 @@ with GNAT.Table;
 with Locations; use Locations;
 with Namet;     use Namet;
 with Utils;     use Utils;
+with Values;    use Values;
 
 with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
 with Frontend.Nodes;
@@ -122,6 +123,24 @@ package body Backend.BE_Ada.Nutils is
    begin
       return L = No_List or else No (First_Node (L));
    end Is_Empty;
+
+   --------------------------------
+   -- Make_Array_Type_Definition --
+   --------------------------------
+
+   function Make_Array_Type_Definition
+     (Range_Constraints    : List_Id;
+      Component_Definition : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+
+   begin
+      N := New_Node (BEN.K_Array_Type_Definition);
+      Set_Range_Constraints (N, Range_Constraints);
+      Set_Component_Definition (N, Component_Definition);
+      return N;
+   end Make_Array_Type_Definition;
 
    --------------------------------
    -- Make_Component_Declaration --
@@ -320,6 +339,34 @@ package body Backend.BE_Ada.Nutils is
       Set_Parameter_Mode (P, Parameter_Mode);
       return P;
    end Make_Parameter_Specification;
+
+   ----------------------------
+   -- Make_Range_Constraints --
+   ----------------------------
+
+   function Make_Range_Constraints
+     (Array_Sizes : List_Id)
+     return List_Id
+   is
+      L : List_Id;
+      S : Node_Id;
+      R : Node_Id;
+      V : Value_Type;
+
+   begin
+      L := New_List (K_Range_Constraints);
+      S := FEN.First_Entity (Array_Sizes);
+      while Present (S) loop
+         R := New_Node (K_Range_Constraint);
+         Set_First (R, Int0_Val);
+         V := Value (FEN.Value (S));
+         V.IVal := V.IVal - 1;
+         Set_Last (R, New_Value (V));
+         Append_Node_To_List (R, L);
+         S := FEN.Next_Entity (S);
+      end loop;
+      return L;
+   end Make_Range_Constraints;
 
    ----------------------------
    -- Make_Record_Definition --

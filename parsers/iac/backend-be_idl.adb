@@ -32,6 +32,7 @@ package body Backend.BE_IDL is
    procedure Generate_Identifier (E : Node_Id);
    procedure Generate_Initializer_Declaration (E : Node_Id);
    procedure Generate_Interface_Declaration (E : Node_Id);
+   procedure Generate_Literal (E : Node_Id);
    procedure Generate_Member (E : Node_Id);
    procedure Generate_Module (E : Node_Id);
    procedure Generate_Operation_Declaration (E : Node_Id);
@@ -41,7 +42,7 @@ package body Backend.BE_IDL is
    procedure Generate_Simple_Declarator (E : Node_Id);
    procedure Generate_Sequence_Type (E : Node_Id);
    procedure Generate_State_Member (E : Node_Id);
-   procedure Generate_String (E : Node_Id);
+   procedure Generate_String_Type (E : Node_Id);
    procedure Generate_Structure_Type (E : Node_Id);
    procedure Generate_Switch_Alternative (E : Node_Id);
    procedure Generate_Type_Declaration (E : Node_Id);
@@ -152,6 +153,9 @@ package body Backend.BE_IDL is
          when K_Interface_Declaration =>
             Generate_Interface_Declaration (E);
 
+         when K_Integer_Literal .. K_Boolean_Literal =>
+            Generate_Literal (E);
+
          when K_Member =>
             Generate_Member (E);
 
@@ -183,7 +187,7 @@ package body Backend.BE_IDL is
             Generate_State_Member (E);
 
          when K_String_Type | K_Wide_String_Type =>
-            Generate_String (E);
+            Generate_String_Type (E);
 
          when K_Structure_Type =>
             Generate_Structure_Type (E);
@@ -380,20 +384,18 @@ package body Backend.BE_IDL is
       Write_Space;
       Generate (Identifier (E));
       L := Members (E);
-      if not Is_Empty (L) then
-         Write_Space;
-         Write_Line (T_Left_Brace);
-         Increment_Indentation;
-         C := First_Entity (L);
-         while Present (C) loop
-            Generate (C);
-            Write_Line (T_Semi_Colon);
-            C := Next_Entity (C);
-         end loop;
-         Decrement_Indentation;
-         Write_Indentation;
-         Write (T_Right_Brace);
-      end if;
+      Write_Space;
+      Write_Line (T_Left_Brace);
+      Increment_Indentation;
+      C := First_Entity (L);
+      while Present (C) loop
+         Generate (C);
+         Write_Line (T_Semi_Colon);
+         C := Next_Entity (C);
+      end loop;
+      Decrement_Indentation;
+      Write_Indentation;
+      Write (T_Right_Brace);
    end Generate_Exception_Declaration;
 
    ------------------------
@@ -541,6 +543,15 @@ package body Backend.BE_IDL is
       end if;
       Write      (T_Right_Brace);
    end Generate_Interface_Declaration;
+
+   ----------------------
+   -- Generate_Literal --
+   ----------------------
+
+   procedure Generate_Literal (E : Node_Id) is
+   begin
+      Generate (Value (E));
+   end Generate_Literal;
 
    ---------------------
    -- Generate_Member --
@@ -771,14 +782,21 @@ package body Backend.BE_IDL is
       Dummy (E);
    end Generate_State_Member;
 
-   --------------------
-   -- Generate_String --
-   --------------------
+   --------------------------
+   -- Generate_String_Type --
+   --------------------------
 
-   procedure Generate_String (E : Node_Id) is
+   procedure Generate_String_Type (E : Node_Id) is
    begin
-      Dummy (E);
-   end Generate_String;
+      if Kind (E) = K_String_Type then
+         Write (T_String);
+      else
+         Write (T_Wstring);
+      end if;
+      Write (T_Less);
+      Generate (Value (Max_Size (E)));
+      Write (T_Greater);
+   end Generate_String_Type;
 
    ----------------------------
    -- Generate_Structure_Type --

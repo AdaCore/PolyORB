@@ -1,14 +1,29 @@
-2004-06-25  Laurent Pautet  <pautet@dorine.enst.fr>
+2004-06-26  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-nutils.adb: Add Make_Array_Type_Definition and
+	Make_Range_Constraints in order to map complex declarators.
+
+	* backend-be_ada-generator.adb: Replace Write_Token with Write.
+	Generate array type definition. Fix several missing end of line.
+
+	* backend-be_ada-nodes.idl: Add Range_Constraints and
+	Range_Constraint to handle complex declarators.
+
+	* backend-be_ada-debug.adb, backend-be_ada-debug.ads: Output
+	values.
 
 	* scopes.adb: When re-entering a module, re-introduce all
 	the scoped identifiers in the new scope, in their homonyms chain
 	and make them visible.
 
 	* backend-be_ada.adb: When visiting a scoped name which designates
-	a constant, output its value instead of the scoped name.
+	a constant, output its value instead of the scoped name. Map
+	complex declarators for type definition and structure
+	members. Comment Visit_Operation_Declaration.
 
 	* backend-be_idl.adb: Remove space between array sizes and
-	declarator in a complex declarator to match omniorb output.
+	declarator in a complex declarator to match omniorb output. Output
+	properly empty exception. Output literals and string types.
 
 2004-06-24  Laurent Pautet  <pautet@dorine.enst.fr>
 

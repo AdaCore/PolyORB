@@ -7,6 +7,7 @@ with Errors;  use Errors;
 with Namet;   use Namet;
 with Output;  use Output;
 with Types;   use Types;
+with Values;  use Values;
 
 package body Backend.BE_Ada.Generator is
 
@@ -120,9 +121,9 @@ package body Backend.BE_Ada.Generator is
    subtype Keyword_Type is Token_Type
      range Tok_Mod .. Tok_Separate;
 
-
+   procedure Generate_Array_Type_Definition (N : Node_Id);
    procedure Generate_Component_Declaration (N : Node_Id);
-   procedure Generate_Defining_Identifier (E : Node_Id);
+   procedure Generate_Defining_Identifier (N : Node_Id);
    procedure Generate_Derived_Type_Definition (N : Node_Id);
    procedure Generate_Designator (N : Node_Id);
    procedure Generate_Enumeration_Type (E : Node_Id);
@@ -142,10 +143,10 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Withed_Package (N : Node_Id);
 
    function Image (T : Token_Type) return String;
-   procedure New_Token
-     (Token : Token_Type;
-      I : String := "");
-   procedure Write_Token (T : Token_Type);
+
+   procedure New_Token (T : Token_Type; I : String := "");
+
+   procedure Write (T : Token_Type);
 
    --------------
    -- Generate --
@@ -154,6 +155,9 @@ package body Backend.BE_Ada.Generator is
    procedure Generate (N : Node_Id) is
    begin
       case Kind (N) is
+         when K_Array_Type_Definition =>
+            Generate_Array_Type_Definition (N);
+
          when K_Component_Declaration =>
             Generate_Component_Declaration (N);
 
@@ -208,6 +212,38 @@ package body Backend.BE_Ada.Generator is
    end Generate;
 
    ------------------------------------
+   -- Generate_Array_Type_Definition --
+   ------------------------------------
+
+   procedure Generate_Array_Type_Definition (N : Node_Id) is
+      R : Node_Id;
+
+   begin
+      Write_Space;
+      Write (Tok_Array);
+      Write_Space;
+      Write (Tok_Left_Paren);
+      R := First_Node (Range_Constraints (N));
+      loop
+         Write_Str (Values.Image (First (R)));
+         Write_Space;
+         Write (Tok_Dot);
+         Write (Tok_Dot);
+         Write_Space;
+         Write_Str (Values.Image (Last (R)));
+         R := Next_Node (R);
+         exit when No (R);
+         Write (Tok_Comma);
+         Write_Space;
+      end loop;
+      Write (Tok_Right_Paren);
+      Write_Space;
+      Write (Tok_Of);
+      Write_Space;
+      Generate (Component_Definition (N));
+   end Generate_Array_Type_Definition;
+
+   ------------------------------------
    -- Generate_Component_Declaration --
    ------------------------------------
 
@@ -216,26 +252,27 @@ package body Backend.BE_Ada.Generator is
       Write_Indentation;
       Generate (Defining_Identifier (N));
       Write_Space;
-      Write_Token (Tok_Colon);
+      Write (Tok_Colon);
       Write_Space;
       Generate (Subtype_Indication (N));
-      Write_Token (Tok_Semicolon);
+      Write (Tok_Semicolon);
+      Write_Eol;
    end Generate_Component_Declaration;
 
    ----------------------------------
    -- Generate_Defining_Identifier --
    ----------------------------------
 
-   procedure Generate_Defining_Identifier (E : Node_Id) is
+   procedure Generate_Defining_Identifier (N : Node_Id) is
       P : Node_Id;
 
    begin
-      P := Parent_Unit_Name (E);
+      P := Parent_Unit_Name (N);
       if Present (P) then
          Generate (P);
-         Write_Token (Tok_Dot);
+         Write (Tok_Dot);
       end if;
-      Write_Name (Name (E));
+      Write_Name (Name (N));
    end Generate_Defining_Identifier;
 
    -------------------------
@@ -249,7 +286,7 @@ package body Backend.BE_Ada.Generator is
       P := Parent_Unit_Name (N);
       if Present (P) then
          Generate (P);
-         Write_Token (Tok_Dot);
+         Write (Tok_Dot);
       end if;
       Write_Name (Name (Defining_Identifier (N)));
    end Generate_Designator;
@@ -264,16 +301,16 @@ package body Backend.BE_Ada.Generator is
    begin
       if Is_Abstract_Type (N) then
          Write_Space;
-         Write_Token (Tok_Abstract);
+         Write (Tok_Abstract);
       end if;
       Write_Space;
-      Write_Token (Tok_New);
+      Write (Tok_New);
       Write_Space;
       Generate (Subtype_Indication (N));
       R := Record_Extension_Part (N);
       if Present (R) then
          Write_Space;
-         Write_Token (Tok_With);
+         Write (Tok_With);
          Write_Space;
          Generate (Record_Extension_Part (N));
       end if;
@@ -288,17 +325,17 @@ package body Backend.BE_Ada.Generator is
 
    begin
       Write_Indentation;
-      Write_Token (Tok_Left_Paren);
+      Write (Tok_Left_Paren);
       N := First_Node (Enumeration_Literals (E));
       while Present (N) loop
          Generate_Defining_Identifier (N);
          N := Next_Node (N);
          if Present (N) then
-            Write_Token (Tok_Comma);
+            Write (Tok_Comma);
             Write_Indentation;
          end if;
       end loop;
-      Write_Token (Tok_Right_Paren);
+      Write (Tok_Right_Paren);
    end Generate_Enumeration_Type;
 
    ------------------------------------------
@@ -309,16 +346,16 @@ package body Backend.BE_Ada.Generator is
       E : Node_Id;
 
    begin
-      Write_Token (Tok_Left_Paren);
+      Write (Tok_Left_Paren);
       E := First_Node (Enumeration_Literals (N));
       loop
          Generate (E);
          E := Next_Node (E);
          exit when No (E);
-         Write_Token (Tok_Comma);
+         Write (Tok_Comma);
          Write_Space;
       end loop;
-      Write_Token (Tok_Right_Paren);
+      Write (Tok_Right_Paren);
    end Generate_Enumeration_Type_Definition;
 
    ------------------------------------
@@ -328,11 +365,11 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Full_Type_Declaration (N : Node_Id) is
    begin
       Write_Indentation;
-      Write_Token (Tok_Type);
+      Write (Tok_Type);
       Write_Space;
       Write_Name (Name (Defining_Identifier (N)));
       Write_Space;
-      Write_Token (Tok_Is);
+      Write (Tok_Is);
       Generate  (Type_Definition (N));
    end Generate_Full_Type_Declaration;
 
@@ -373,28 +410,28 @@ package body Backend.BE_Ada.Generator is
          P := Next_Node (P);
       end loop;
       Write_Indentation;
-      Write_Token  (Tok_Package);
+      Write  (Tok_Package);
       Write_Space;
-      Write_Token (Tok_Body);
+      Write (Tok_Body);
       Write_Space;
       Generate (Defining_Identifier (Package_Declaration (N)));
       Write_Space;
-      Write_Token (Tok_Is);
+      Write (Tok_Is);
       Write_Eol;
       Increment_Indentation;
       P := First_Node (Statements (N));
       while Present (P) loop
          Generate (P);
-         Write_Token (Tok_Semicolon);
+         Write (Tok_Semicolon);
          Write_Eol;
          P := Next_Node (P);
       end loop;
       Decrement_Indentation;
       Write_Indentation;
-      Write_Token  (Tok_End);
+      Write  (Tok_End);
       Write_Space;
       Generate (Defining_Identifier (Package_Declaration (N)));
-      Write_Token (Tok_Semicolon);
+      Write (Tok_Semicolon);
       Write_Eol;
    end Generate_Package_Implementation;
 
@@ -411,37 +448,38 @@ package body Backend.BE_Ada.Generator is
          P := Next_Node (P);
       end loop;
       Write_Indentation;
-      Write_Token  (Tok_Package);
+      Write  (Tok_Package);
       Write_Space;
       Generate (Defining_Identifier (Package_Declaration (N)));
       Write_Space;
-      Write_Token (Tok_Is);
+      Write (Tok_Is);
       Write_Eol;
       Increment_Indentation;
       P := First_Node (Visible_Part (N));
       while Present (P) loop
          Generate (P);
-         Write_Token (Tok_Semicolon);
+         Write (Tok_Semicolon);
          Write_Eol;
          P := Next_Node (P);
       end loop;
       if not Is_Empty (Private_Part (N)) then
          Write_Indentation;
-         Write_Token (Tok_Private);
+         Write (Tok_Private);
          Write_Space;
          P := First_Node (Private_Part (N));
          while Present (P) loop
             Generate (P);
-            Write_Token (Tok_Semicolon);
+            Write (Tok_Semicolon);
+            Write_Eol;
             P := Next_Node (P);
          end loop;
       end if;
       Decrement_Indentation;
       Write_Indentation;
-      Write_Token  (Tok_End);
+      Write  (Tok_End);
       Write_Space;
       Generate (Defining_Identifier (Package_Declaration (N)));
-      Write_Token (Tok_Semicolon);
+      Write (Tok_Semicolon);
       Write_Eol;
    end Generate_Package_Specification;
 
@@ -453,17 +491,17 @@ package body Backend.BE_Ada.Generator is
    begin
       Write_Name (Name (Defining_Identifier (N)));
       Write_Space;
-      Write_Token  (Tok_Colon);
+      Write  (Tok_Colon);
       Write_Space;
       case Parameter_Mode (N) is
          when Mode_In =>
-            Write_Token (Tok_In);
+            Write (Tok_In);
          when Mode_Out =>
-            Write_Token (Tok_Out);
+            Write (Tok_Out);
          when Mode_Inout =>
-            Write_Token (Tok_In);
+            Write (Tok_In);
             Write_Space;
-            Write_Token (Tok_Out);
+            Write (Tok_Out);
       end case;
       Write_Space;
       Generate_Type_Spec (Parameter_Type (N));
@@ -481,17 +519,17 @@ package body Backend.BE_Ada.Generator is
       Write_Indentation;
       N_Space := N_Space + 1;
       N := First_Node (L);
-      Write_Token (Tok_Left_Paren);
+      Write (Tok_Left_Paren);
       while Present (N) loop
          Generate_Parameter (N);
          N := Next_Node (N);
          if Present (N) then
-            Write_Token (Tok_Semicolon);
+            Write (Tok_Semicolon);
             Write_Eol;
             Write_Indentation;
          end if;
       end loop;
-      Write_Token (Tok_Right_Paren);
+      Write (Tok_Right_Paren);
    end Generate_Parameter_List;
 
    --------------------------------
@@ -504,12 +542,12 @@ package body Backend.BE_Ada.Generator is
 
    begin
       if Is_Empty (L) then
-         Write_Token (Tok_Null);
+         Write (Tok_Null);
          Write_Space;
-         Write_Token (Tok_Record);
+         Write (Tok_Record);
       else
          Write_Space;
-         Write_Token (Tok_Record);
+         Write (Tok_Record);
          Write_Eol;
          Increment_Indentation;
          C := First_Node (L);
@@ -519,9 +557,9 @@ package body Backend.BE_Ada.Generator is
          end loop;
          Decrement_Indentation;
          Write_Indentation;
-         Write_Token (Tok_End);
+         Write (Tok_End);
          Write_Space;
-         Write_Token (Tok_Record);
+         Write (Tok_Record);
       end if;
    end Generate_Record_Definition;
 
@@ -534,15 +572,15 @@ package body Backend.BE_Ada.Generator is
 
    begin
       if Is_Abstract_Type (N) then
-         Write_Token (Tok_Abstract);
+         Write (Tok_Abstract);
          Write_Space;
       end if;
       if Is_Tagged_Type (N) then
-         Write_Token (Tok_Tagged);
+         Write (Tok_Tagged);
          Write_Space;
       end if;
       if Is_Limited_Type (N) then
-         Write_Token (Tok_Limited);
+         Write (Tok_Limited);
          Write_Space;
       end if;
       R := Record_Definition (N);
@@ -562,20 +600,20 @@ package body Backend.BE_Ada.Generator is
       D := Declarations (N);
       S := Statements (N);
       Generate_Subprogram_Specification (Specification (N));
-      Write_Token (Tok_Is);
+      Write (Tok_Is);
       Write_Eol;
       if not Is_Empty (D)  then
          null; -- Generate Declarations
       end if;
       Write_Indentation;
-      Write_Token (Tok_Begin);
+      Write (Tok_Begin);
       Write_Eol;
 
       if not Is_Empty (S) then
          null; -- Generate statements
       end if;
       Write_Indentation;
-      Write_Token (Tok_End);
+      Write (Tok_End);
       Write_Space;
    end Generate_Subprogram_Implementation;
 
@@ -591,9 +629,9 @@ package body Backend.BE_Ada.Generator is
       T := Return_Type (N);
       Write_Indentation;
       if Present (T) then
-         Write_Token (Tok_Function);
+         Write (Tok_Function);
       else
-         Write_Token (Tok_Procedure);
+         Write (Tok_Procedure);
       end if;
       Write_Space;
       Write_Name (Name (Defining_Identifier (N)));
@@ -607,7 +645,7 @@ package body Backend.BE_Ada.Generator is
       if Present (T) then
          Write_Eol;
          Write_Indentation;
-         Write_Token (Tok_Return);
+         Write (Tok_Return);
          Write_Space;
          Generate_Type_Spec (T);
       end if;
@@ -647,10 +685,11 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Withed_Package (N : Node_Id) is
    begin
-      Write_Token (Tok_With);
+      Write (Tok_With);
       Write_Space;
       Generate (Defining_Identifier (N));
-      Write_Token (Tok_Semicolon);
+      Write (Tok_Semicolon);
+      Write_Eol;
    end Generate_Withed_Package;
 
    -----------
@@ -700,31 +739,32 @@ package body Backend.BE_Ada.Generator is
       New_Token (Tok_Vertical_Bar, "|");
       New_Token (Tok_Dot_Dot, "..");
    end Initialize;
+
    ---------------
    -- New_Token --
    ---------------
 
    procedure New_Token
-     (Token : Token_Type;
+     (T : Token_Type;
       I : String := "") is
    begin
-      if Token in Keyword_Type then
-         Set_Str_To_Name_Buffer (Image (Token));
-         Set_Name_Table_Byte (Name_Find, Byte (Token_Type'Pos (Token)));
+      if T in Keyword_Type then
+         Set_Str_To_Name_Buffer (Image (T));
+         Set_Name_Table_Byte (Name_Find, Byte (Token_Type'Pos (T)));
       else
          Set_Str_To_Name_Buffer (I);
       end if;
-      Token_Image (Token) := Name_Find;
+      Token_Image (T) := Name_Find;
    end New_Token;
 
-   -----------------
-   -- Write_Token --
-   -----------------
+   -----------
+   -- Write --
+   -----------
 
-   procedure Write_Token (T : Token_Type) is
-      pragma Inline (Write_Token);
+   procedure Write (T : Token_Type) is
+      pragma Inline (Write);
    begin
       Write_Name (Token_Image (T));
-   end Write_Token;
+   end Write;
 
 end Backend.BE_Ada.Generator;
