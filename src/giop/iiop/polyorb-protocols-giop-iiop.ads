@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    P O L Y O R B . S E T U P . I I O P                   --
+--          P O L Y O R B . P R O T O C O L S . G I O P . I I O P           --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,45 +31,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
---  No entities referenced.
+package PolyORB.Protocols.GIOP.IIOP is
 
-with PolyORB.Protocols.GIOP.GIOP_1_0;
-with PolyORB.Protocols.GIOP.GIOP_1_1;
-with PolyORB.Protocols.GIOP.GIOP_1_2;
-pragma Warnings (On);
+   type IIOP_Protocol is new GIOP_Protocol with private;
 
-with PolyORB.Initialization;
-pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+   procedure Create
+     (Proto   : access IIOP_Protocol;
+      Session :    out Filter_Access);
 
-with PolyORB.Utils.Strings;
+private
+   type IIOP_Protocol is new GIOP_Protocol with null record;
 
-package body PolyORB.Setup.IIOP is
+   IIOP_Conf : aliased GIOP_Conf;
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize;
-
-   procedure Initialize is
-   begin
-      null;
-   end Initialize;
-
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"setup.iiop",
-       Conflicts => Empty,
-       Depends   => +"protocols.giop.giop_1_2"
-       &"protocols.giop.giop_1_1"
-       &"protocols.giop.giop_1_0",
-       Provides  => Empty,
-       Init      => Initialize'Access));
-
-end PolyORB.Setup.IIOP;
+end PolyORB.Protocols.GIOP.IIOP;

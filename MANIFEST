@@ -527,6 +527,8 @@ src/corba/portableserver.ads
 src/giop/iiop/Makefile.am
 src/giop/iiop/Makefile.in
 src/giop/iiop/gnat.adc
+src/giop/iiop/polyorb-protocols-giop-iiop.adb
+src/giop/iiop/polyorb-protocols-giop-iiop.ads
 src/giop/iiop/polyorb-binding_data-iiop.adb
 src/giop/iiop/polyorb-binding_data-iiop.ads
 src/giop/iiop/polyorb-setup-iiop.adb

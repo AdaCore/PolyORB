@@ -53,7 +53,7 @@ package PolyORB.Protocols.GIOP is
    GIOP_Unknown_Version : exception;
 
    type GIOP_Session is new Session with private;
-   type GIOP_Protocol is new Protocol with private;
+   type GIOP_Protocol is abstract new Protocol with private;
 
    ------------------------
    -- Session primitives --
@@ -111,7 +111,7 @@ package PolyORB.Protocols.GIOP is
 
 private
 
-   type GIOP_Protocol is new Protocol with null record;
+   type GIOP_Protocol is abstract new Protocol with null record;
 
    package Octet_Flags is
       new PolyORB.Utils.Simple_Flags (Types.Octet, Types.Shift_Left);
@@ -312,6 +312,29 @@ private
 
    ---------------------------------------------------
 
+   type GIOP_Conf is record
+      --  Default GIOP Version
+      GIOP_Def_Ver          : GIOP_Version;
+      --  List of activated GIOP Implem
+      GIOP_Implem_List      : GIOP_Implem_Array := (others => null);
+      --  Nb of activated GIOP Implem
+      Nb_Implem             : Natural range  0 .. Max_GIOP_Implem := 0;
+      --  Allowed Req Flags
+      Permitted_Sync_Scopes : PolyORB.Requests.Flags;
+   end record;
+   type GIOP_Conf_Access is access all GIOP_Conf;
+
+   --  Initialize a GIOP Configuration, reading PolyORB configuration
+   procedure Initialize
+     (Conf                  : access GIOP_Conf;
+      Version               : in     GIOP_Version;
+      Permitted_Sync_Scopes : in     PolyORB.Requests.Flags;
+      Locate_Then_Request   : in     Boolean;
+      Section               : in     String;
+      Prefix                : in     String);
+
+   ---------------------------------------------------
+
    ------------------
    -- GIOP_Session --
    ------------------
@@ -331,17 +354,8 @@ private
       Pending_Reqs : Pend_Req_Seq.Sequence;
       --  Counter to have new Request Index
       Req_Index    : Types.Unsigned_Long := 1;
-
-      --  GIOP configuration
-
-      --  Default GIOP Version
-      GIOP_Def_Ver           : GIOP_Version;
-      --  List of activated GIOP Implem
-      GIOP_Implem_List       : GIOP_Implem_Array := (others => null);
-      --  Nb of activated GIOP Implem
-      Nb_Implem              : Natural range  0 .. Max_GIOP_Implem := 0;
-      --  Allowed Req Flags
-       Permitted_Sync_Scopes : PolyORB.Requests.Flags;
+      --  Access to GIOP_Protocol, which contain GIOP_Implems
+      Conf         : GIOP_Conf_Access;
    end record;
 
    type GIOP_Session_Access is access all GIOP_Session;
@@ -410,15 +424,6 @@ private
    function Select_Profile
      (Buffer  : access PolyORB.Buffers.Buffer_Type)
      return PolyORB.Binding_Data.Profile_Access;
-
-   --  Initialize a GIOP Session, reading PolyORB configuration
-   procedure Initialize
-     (Sess                  : in out GIOP_Session;
-      Version               : in     GIOP_Version;
-      Permitted_Sync_Scopes : in     PolyORB.Requests.Flags;
-      Locate_Then_Request   : in     Boolean;
-      Section               : in     String;
-      Prefix                : in     String);
 
    --------------------------------
    -- Pending Request management --

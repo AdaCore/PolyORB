@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    P O L Y O R B . S E T U P . I I O P                   --
+--          P O L Y O R B . P R O T O C O L S . G I O P . I I O P           --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,20 +31,25 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-pragma Warnings (Off);
---  No entities referenced.
-
-with PolyORB.Protocols.GIOP.GIOP_1_0;
-with PolyORB.Protocols.GIOP.GIOP_1_1;
-with PolyORB.Protocols.GIOP.GIOP_1_2;
-pragma Warnings (On);
-
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Utils.Strings;
 
-package body PolyORB.Setup.IIOP is
+package body PolyORB.Protocols.GIOP.IIOP is
+
+   ------------
+   -- Create --
+   ------------
+
+   procedure Create
+     (Proto   : access IIOP_Protocol;
+      Session :    out Filter_Access) is
+   begin
+      PolyORB.Protocols.GIOP.Create (GIOP_Protocol (Proto.all)'Access,
+                                     Session);
+      GIOP_Session (Session.all).Conf := IIOP_Conf'Access;
+   end Create;
 
    ----------------
    -- Initialize --
@@ -52,9 +57,23 @@ package body PolyORB.Setup.IIOP is
 
    procedure Initialize;
 
-   procedure Initialize is
+   procedure Initialize
+   is
+      use PolyORB.Requests;
+
+      F : constant Flags :=
+        Sync_None or
+        Sync_With_Transport or
+        Sync_With_Server or
+        Sync_With_Target;
    begin
-      null;
+      PolyORB.Protocols.GIOP.Initialize
+        (IIOP_Conf'Access,
+         GIOP_Default_Version,
+         F,
+         Default_Locate_Then_Request,
+         "giop",
+         "polyorb.protocols.giop");
    end Initialize;
 
    use PolyORB.Initialization;
@@ -64,12 +83,10 @@ package body PolyORB.Setup.IIOP is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"setup.iiop",
+      (Name      => +"protocols.giop.iiop",
        Conflicts => Empty,
-       Depends   => +"protocols.giop.giop_1_2"
-       &"protocols.giop.giop_1_1"
-       &"protocols.giop.giop_1_0",
+       Depends   => +"setup.iiop",
        Provides  => Empty,
        Init      => Initialize'Access));
 
-end PolyORB.Setup.IIOP;
+end PolyORB.Protocols.GIOP.IIOP;

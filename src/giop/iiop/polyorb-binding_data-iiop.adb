@@ -45,6 +45,7 @@ with PolyORB.Log;
 with PolyORB.ORB;
 with PolyORB.Protocols;
 with PolyORB.Protocols.GIOP;
+with PolyORB.Protocols.GIOP.IIOP;
 with PolyORB.Representations.CDR;
 with PolyORB.References.IOR;
 with PolyORB.Transport.Connected.Sockets;
@@ -117,6 +118,7 @@ package body PolyORB.Binding_Data.IIOP is
       use PolyORB.Components;
       use PolyORB.Protocols;
       use PolyORB.Protocols.GIOP;
+      use PolyORB.Protocols.GIOP.IIOP;
       use PolyORB.Sockets;
       use PolyORB.Filters;
       use PolyORB.Filters.Slicers;
@@ -125,7 +127,7 @@ package body PolyORB.Binding_Data.IIOP is
       Remote_Addr : Sock_Addr_Type := Profile.Address;
       TE          : constant Transport.Transport_Endpoint_Access :=
         new Socket_Endpoint;
-      Pro         : aliased GIOP_Protocol;
+      Pro         : aliased IIOP_Protocol;
       Sli         : aliased Slicer_Factory;
       Prof        : constant Profile_Access := new IIOP_Profile_Type;
       --  This Profile_Access is stored in the created

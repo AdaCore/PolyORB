@@ -82,28 +82,94 @@ package body PolyORB.Protocols.GIOP is
      (Proto   : access GIOP_Protocol;
       Session :    out Filter_Access)
    is
-      use PolyORB.Requests;
-
       pragma Warnings (Off);
       pragma Unreferenced (Proto);
       pragma Warnings (On);
-
-      F : constant Flags
-        := Sync_None
-        or Sync_With_Transport
-        or Sync_With_Server
-        or Sync_With_Target;
-
    begin
       Session := new GIOP_Session;
-      Initialize (GIOP_Session (Session.all),
-                  GIOP_Default_Version,
-                  F,
-                  Default_Locate_Then_Request,
-                  "giop",
-                  "polyorb.protocols.giop");
+      PolyORB.Protocols.Initialize
+        (PolyORB.Protocols.Session (Session.all));
       Set_Allocation_Class (Session.all, Dynamic);
    end Create;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize
+     (Conf                  : access GIOP_Conf;
+      Version               : in     GIOP_Version;
+      Permitted_Sync_Scopes : in     PolyORB.Requests.Flags;
+      Locate_Then_Request   : in     Boolean;
+      Section               : in     String;
+      Prefix                : in     String)
+   is
+      use PolyORB.Configuration;
+      use PolyORB.Utils;
+
+   begin
+      pragma Debug (O ("Initialize parameters for GIOP Protocol"));
+      pragma Debug (O ("Conf Section : " & Section));
+      pragma Debug (O ("Conf Prefix : " & Prefix));
+
+
+      pragma Debug (O ("Permitted sync scope" & Permitted_Sync_Scopes'Img));
+      Conf.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
+
+      Conf.GIOP_Def_Ver.Minor :=
+        Types.Octet
+        (Get_Conf
+         (Section,
+          Prefix & ".default_version.minor",
+          Integer (Version.Minor)));
+
+      Conf.GIOP_Def_Ver.Major :=
+        Types.Octet
+        (Get_Conf
+         (Section,
+          Prefix & ".default_version.major",
+          Integer (Version.Major)));
+
+      for J in 1 .. Nb_Implem loop
+         if Get_Conf (Section,
+                      Prefix
+                      & "."
+                      & Trimmed_Image
+                      (Integer (GIOP_Implem_List (J).Version.Major))
+                      & "."
+                      & Trimmed_Image
+                      (Integer (GIOP_Implem_List (J).Version.Minor))
+                      & ".enable", True) then
+
+            pragma Debug (O ("Enable GIOP Version : "
+                             & GIOP_Implem_List (J).Version.Major'Img
+                             & "."
+                             & GIOP_Implem_List (J).Version.Minor'Img));
+
+            Conf.Nb_Implem := Conf.Nb_Implem + 1;
+
+            declare
+               Impl : constant GIOP_Implem_Access
+                 := GIOP_Implem_List (J).Func.all;
+            begin
+               Conf.GIOP_Implem_List (Conf.Nb_Implem) := Impl;
+
+               Impl.Version := GIOP_Implem_List (J).Version;
+
+               Impl.Section := To_PolyORB_String (Section);
+               Impl.Prefix := To_PolyORB_String (Prefix);
+
+               Initialize_Implem (Impl);
+
+               Impl.Locate_Then_Request :=
+                 Get_Conf (Section,
+                           Get_Conf_Chain (Impl)
+                           & ".locate_then_request",
+                           Locate_Then_Request);
+            end;
+         end if;
+      end loop;
+   end Initialize;
 
    ----------------
    -- Initialize --
@@ -243,7 +309,7 @@ package body PolyORB.Protocols.GIOP is
       if Sess.Implem = null then
          --  Initialize session with default GIOP version
 
-         Get_GIOP_Implem (Sess, Sess.GIOP_Def_Ver);
+         Get_GIOP_Implem (Sess, Sess.Conf.GIOP_Def_Ver);
       end if;
 
       Expect_GIOP_Header (Sess);
@@ -286,9 +352,8 @@ package body PolyORB.Protocols.GIOP is
       Binding_Object : Components.Component_Access;
       Profile        : Binding_Data.Profile_Access;
    begin
-      if (Sess.Permitted_Sync_Scopes and R.Req_Flags) = 0
-        or else (Sess.Implem.Permitted_Sync_Scopes and R.Req_Flags) = 0
-      then
+      if (Sess.Conf.Permitted_Sync_Scopes and R.Req_Flags) = 0
+        or else (Sess.Implem.Permitted_Sync_Scopes and R.Req_Flags) = 0 then
          pragma Debug (O ("Requested sync scope not supported"));
          raise GIOP_Error;
       end if;
@@ -670,84 +735,6 @@ package body PolyORB.Protocols.GIOP is
 
    --  Version managing
 
-   ----------------
-   -- Initialize --
-   ----------------
-
-   procedure Initialize
-     (Sess                  : in out GIOP_Session;
-      Version               : in     GIOP_Version;
-      Permitted_Sync_Scopes : in     PolyORB.Requests.Flags;
-      Locate_Then_Request   : in     Boolean;
-      Section               : in     String;
-      Prefix                : in     String)
-   is
-      use PolyORB.Configuration;
-      use PolyORB.Utils;
-
-   begin
-      pragma Debug (O ("Initialize parameters for GIOP session"));
-      pragma Debug (O ("Conf Section : " & Section));
-      pragma Debug (O ("Conf Prefix : " & Prefix));
-
-      Protocols.Initialize (Protocols.Session (Sess));
-
-      pragma Debug (O ("Permitted sync scope" & Permitted_Sync_Scopes'Img));
-      Sess.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
-
-      Sess.GIOP_Def_Ver.Minor
-        := Types.Octet
-        (Get_Conf
-         (Section,
-          Prefix & ".default_version.minor",
-          Integer (Version.Minor)));
-
-      Sess.GIOP_Def_Ver.Major
-        := Types.Octet
-        (Get_Conf
-         (Section,
-          Prefix & ".default_version.major",
-          Integer (Version.Major)));
-
-      for J in 1 .. Nb_Implem loop
-         if Get_Conf (Section,
-                      Prefix
-                      & "."
-                      & Trimmed_Image
-                      (Integer (GIOP_Implem_List (J).Version.Major))
-                      & "."
-                      & Trimmed_Image
-                      (Integer (GIOP_Implem_List (J).Version.Minor))
-                      & ".enable", True) then
-
-            pragma Debug (O ("Enable GIOP Version : "
-                             & GIOP_Implem_List (J).Version.Major'Img
-                             & "."
-                             & GIOP_Implem_List (J).Version.Minor'Img));
-
-            Sess.Nb_Implem := Sess.Nb_Implem + 1;
-
-            Sess.GIOP_Implem_List (Sess.Nb_Implem)
-              := GIOP_Implem_List (J).Func.all;
-            Sess.GIOP_Implem_List (Sess.Nb_Implem).Version
-              := GIOP_Implem_List (J).Version;
-            Sess.GIOP_Implem_List (Sess.Nb_Implem).Section
-              := To_PolyORB_String (Section);
-            Sess.GIOP_Implem_List (Sess.Nb_Implem).Prefix
-              := To_PolyORB_String (Prefix);
-
-            Initialize_Implem (Sess.GIOP_Implem_List (Sess.Nb_Implem));
-
-            Sess.GIOP_Implem_List (Sess.Nb_Implem).Locate_Then_Request
-              := Get_Conf (Section,
-                           Get_Conf_Chain
-                           (Sess.GIOP_Implem_List (Sess.Nb_Implem))
-                           & ".locate_then_request",
-                           Locate_Then_Request);
-         end if;
-      end loop;
-   end Initialize;
-
    ----------------------------------
    -- Global_Register_GIOP_Version --
    ----------------------------------
@@ -771,14 +758,14 @@ package body PolyORB.Protocols.GIOP is
      (Sess    : access GIOP_Session;
       Version :        GIOP_Version) is
    begin
-      for J in 1 .. Sess.Nb_Implem loop
-         if Sess.GIOP_Implem_List (J).Version = Version then
+      for J in 1 .. Sess.Conf.Nb_Implem loop
+         if Sess.Conf.GIOP_Implem_List (J).Version = Version then
             pragma Debug (O ("Binding session to version:"
                              & Version.Major'Img
                              & "."
                              & Version.Minor'Img));
 
-            Sess.Implem := Sess.GIOP_Implem_List (J);
+            Sess.Implem := Sess.Conf.GIOP_Implem_List (J);
             Initialize_Session (Sess.Implem, Sess);
             return;
          end if;

@@ -35,6 +35,7 @@
 
 with PolyORB.Binding_Data.IIOP;
 with PolyORB.Protocols.GIOP;
+with PolyORB.Protocols.GIOP.IIOP;
 
 with PolyORB.Configuration;
 with PolyORB.Filters;
@@ -62,7 +63,7 @@ package body PolyORB.Setup.TCP_Access_Points.IIOP is
          SAP     => new Socket_Access_Point,
          PF      => new Binding_Data.IIOP.IIOP_Profile_Factory);
 
-   GIOP_Pro : aliased Protocols.GIOP.GIOP_Protocol;
+   IIOP_Pro : aliased Protocols.GIOP.IIOP.IIOP_Protocol;
    Sli      : aliased Slicer_Factory;
 
    ------------------------------
@@ -80,7 +81,7 @@ package body PolyORB.Setup.TCP_Access_Points.IIOP is
          Initialize_Socket (GIOP_Access_Point, Any_Port);
 
          Chain_Factories ((0 => Sli'Unchecked_Access,
-                           1 => GIOP_Pro'Unchecked_Access));
+                           1 => IIOP_Pro'Unchecked_Access));
 
          Register_Access_Point
            (ORB    => The_ORB,
