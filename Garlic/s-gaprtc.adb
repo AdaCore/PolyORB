@@ -119,6 +119,15 @@ package body System.Garlic.Protocols.Tcp is
    subtype Banner_Stream is Stream_Element_Array (1 .. Banner_Size);
    --  Constrained subtype for headers
 
+   procedure Read_Stamp
+     (Peer   : in Socket_Type;
+      Error  : in out Error_Type);
+   procedure Write_Stamp
+     (Data   : access Stream_Element_Array;
+      First  : in out Stream_Element_Count);
+   --  In debug mode, a stamp is associated to a RPC in order to make
+   --  performance tests. These primitives aloow to transmit the stamp.
+
    procedure Read_Banner
      (Peer   : in Socket_Type;
       Banner : out Banner_Kind);
@@ -228,7 +237,10 @@ package body System.Garlic.Protocols.Tcp is
                   --  Get a new task to handle this new connection
 
                   pragma Debug (D ("Accept Handler: receive data banner"));
-                  Set_Socket_Option (Peer, Option => (Keep_Alive, True));
+                  Set_Socket_Option
+                    (Peer, Socket_Level, (Keep_Alive, True));
+                  Set_Socket_Option
+                    (Peer, IP_Protocol_For_TCP_Level, (No_Delay, True));
                   Allocate_Connector_Task (Peer, Null_PID);
 
                when Quit_Banner =>
@@ -355,7 +367,7 @@ package body System.Garlic.Protocols.Tcp is
          return;
       end;
 
-      Set_Socket_Option (Self.Socket, Option => (Reuse_Address, True));
+      Set_Socket_Option (Self.Socket, Socket_Level, (Reuse_Address, True));
 
       begin
          Bind_Socket (Self.Socket, Self.Sock_Addr);
@@ -606,6 +618,23 @@ package body System.Garlic.Protocols.Tcp is
       end if;
    end Read_SEC;
 
+   ----------------
+   -- Read_Stamp --
+   ----------------
+
+   procedure Read_Stamp
+     (Peer   : in Socket_Type;
+      Error  : in out Error_Type)
+   is
+      Data : aliased Stream_Element_Array := (1 .. Stamp_Size => 0);
+   begin
+      Receive (Peer, Data'Access, Error);
+      if not Found (Error) then
+         Soft_Links.Set_Stamp (From_SEA (Data));
+         D (Soft_Links.Stamp_Image ("read stamp from message"));
+      end if;
+   end Read_Stamp;
+
    -------------
    -- Receive --
    -------------
@@ -758,11 +787,15 @@ package body System.Garlic.Protocols.Tcp is
          return;
       end if;
 
+      pragma Debug (Read_Stamp (Peer, Error));
+
       pragma Debug (D ("Recv" & Length'Img & " bytes from peer " &
                        Image (Peer) & " (pid =" & PID'Img & ")"));
 
       Filtered := new Stream_Element_Array (1 .. Length);
+
       Receive (Peer, Filtered, Error);
+
       if Found (Error) then
          return;
       end if;
@@ -907,7 +940,6 @@ package body System.Garlic.Protocols.Tcp is
       Info     : Socket_Info;
       Hits     : Natural := 1;
       First    : Stream_Element_Count := Data'First + Unused_Space;
-      Count    : Stream_Element_Count;
       Location : Location_Type;
    begin
       Outgoings.Enter;
@@ -951,7 +983,10 @@ package body System.Garlic.Protocols.Tcp is
             return;
          end if;
 
-         Set_Socket_Option (Info.Socket, Option => (Keep_Alive, True));
+         Set_Socket_Option
+           (Info.Socket, Socket_Level, (Keep_Alive, True));
+         Set_Socket_Option
+           (Info.Socket, IP_Protocol_For_TCP_Level, (No_Delay, True));
 
          Outgoings.Set_Component (Partition, Info);
          Set_Online (Partition, True);
@@ -966,14 +1001,14 @@ package body System.Garlic.Protocols.Tcp is
 
       --  Write length at the beginning of the data, then the header.
 
-      Count := SEC_Size;
-      First := First - Count;
-      Data (First .. First + Count - 1)
+      pragma Debug (Write_Stamp (Data, First));
+
+      First := First - SEC_Size;
+      Data (First .. First + SEC_Size - 1)
         := To_Stream_Element_Array (Data'Length - Unused_Space);
 
-      Count := Banner_Size;
-      First := First - Count;
-      Data (First .. First + Count - 1) := Data_Stream;
+      First := First - Banner_Size;
+      Data (First .. First + Banner_Size - 1) := Data_Stream;
 
       pragma Debug
         (D ("Send bytes" & Stream_Element_Count'Image (Data'Last - First + 1) &
@@ -1227,5 +1262,18 @@ package body System.Garlic.Protocols.Tcp is
          return (Addr.Family, Addr, Any_Port);
       end;
    end Value;
+
+   -----------------
+   -- Write_Stamp --
+   -----------------
+
+   procedure Write_Stamp
+     (Data  : access Stream_Element_Array;
+      First : in out Stream_Element_Count) is
+   begin
+      First := First - Stamp_Size;
+      Data (First .. First + Stamp_Size - 1) := To_SEA (Soft_Links.Get_Stamp);
+      D (Soft_Links.Stamp_Image ("write stamp into message"));
+   end Write_Stamp;
 
 end System.Garlic.Protocols.Tcp;
