@@ -50,7 +50,7 @@ package body PolyORB.Obj_Adapters.Simple is
    use PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;
    use PolyORB.POA_Policies.Thread_Policy;
 
-   use Object_Map_Entry_Seqs;
+   use Object_Map_Entry_Arrays;
 
    subtype Simple_OA_Oid is Stream_Element_Array
      (1 .. Integer'Size / Stream_Element'Size);
@@ -86,20 +86,20 @@ package body PolyORB.Obj_Adapters.Simple is
    begin
       Enter (OA.Lock);
 
-      if Index > Length (OA.Object_Map) then
+      if Index > Last (OA.Object_Map)
+        or else OA.Object_Map.Table = null
+      then
 
          --  Going outside limits of the Object Map implies the
          --  Object_Id we are looking for is not valid.
 
-         Leave (OA.Lock);
-
-         Throw (Error,
-                Invalid_Object_Id_E,
-                Null_Members'(Null_Member));
          OME := (Servant => null, If_Desc => (null, null));
+
+      else
+         OME := OA.Object_Map.Table (Index);
+
       end if;
 
-      OME := Element_Of (OA.Object_Map, Index);
       Leave (OA.Lock);
 
       if OME.Servant = null then
@@ -115,20 +115,20 @@ package body PolyORB.Obj_Adapters.Simple is
    -- Create --
    ------------
 
-   procedure Create
-     (OA : access Simple_Obj_Adapter) is
+   procedure Create (OA : access Simple_Obj_Adapter) is
    begin
       Create (OA.Lock);
+      Initialize (OA.Object_Map);
    end Create;
 
    -------------
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (OA : access Simple_Obj_Adapter) is
+   procedure Destroy (OA : access Simple_Obj_Adapter) is
    begin
       Destroy (OA.Lock);
+      Deallocate (OA.Object_Map);
    end Destroy;
 
    ------------
@@ -142,45 +142,44 @@ package body PolyORB.Obj_Adapters.Simple is
       Oid   :    out Objects.Object_Id_Access;
       Error : in out PolyORB.Exceptions.Error_Container)
    is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Error);
-      pragma Warnings (On); --  WAG:3.15
-
       use type Servants.Servant_Access;
       use type Objects.Object_Id_Access;
 
    begin
-      if Key /= null then
-         raise Invalid_Object_Id;
-         --  The Simple Object Adapter does not support
-         --  user-defined object identifiers.
+      if Key /= null
+        or else OA.Object_Map.Table = null
+      then
+         Throw (Error,
+                Invalid_Object_Id_E,
+                Null_Members'(Null_Member));
+         return;
       end if;
 
       Enter (OA.Lock);
       declare
-         M : constant Element_Array := To_Element_Array (OA.Object_Map);
-         New_Id : Integer := M'Last + 1;
+         New_Id : Integer := Last (OA.Object_Map) + 1;
       begin
          Map :
-         for J in M'Range loop
-            if M (J).Servant = null then
-               Replace_Element
-                 (OA.Object_Map, 1 + J - M'First,
-                  Object_Map_Entry'
-                    (Servant => Obj, If_Desc => (null, null)));
+         for J in First (OA.Object_Map) .. Last (OA.Object_Map) loop
+            if OA.Object_Map.Table (J).Servant = null then
+               OA.Object_Map.Table (J)
+                 := Object_Map_Entry'(Servant => Obj, If_Desc => (null, null));
                New_Id := J;
+
                exit Map;
             end if;
          end loop Map;
 
-         if New_Id > M'Last then
-            Append (OA.Object_Map, Object_Map_Entry'
-                    (Servant => Obj, If_Desc => (null, null)));
+         if New_Id > Last (OA.Object_Map) then
+            Increment_Last (OA.Object_Map);
+            OA.Object_Map.Table (Last (OA.Object_Map))
+              := Object_Map_Entry'(Servant => Obj, If_Desc => (null, null));
          end if;
          Leave (OA.Lock);
 
-         Oid := new Objects.Object_Id'(Objects.Object_Id
-                                       (Index_To_Oid (New_Id - M'First + 1)));
+         Oid := new Objects.Object_Id'
+           (Objects.Object_Id
+            (Index_To_Oid (New_Id - First (OA.Object_Map) + 1)));
       end;
    end Export;
 
@@ -218,7 +217,7 @@ package body PolyORB.Obj_Adapters.Simple is
       OME := (Servant => null, If_Desc => (null, null));
 
       Enter (OA.Lock);
-      Replace_Element (OA.Object_Map, Index, OME);
+      OA.Object_Map.Table (Index) := OME;
       Leave (OA.Lock);
 
    end Unexport;
@@ -244,8 +243,8 @@ package body PolyORB.Obj_Adapters.Simple is
              Invalid_Object_Id_E,
              Null_Members'(Null_Member));
 
-      --  An SOA object identifier cannot contain a user-defined
-      --  object key.
+      --  The Simple Object Adapter does not support
+      --  user-defined object identifiers.
 
       User_Id := null;
    end Object_Key;
@@ -278,7 +277,7 @@ package body PolyORB.Obj_Adapters.Simple is
       OME.If_Desc := If_Desc;
 
       Enter (OA.Lock);
-      Replace_Element (OA.Object_Map, Index, OME);
+      OA.Object_Map.Table (Index) := OME;
       Leave (OA.Lock);
    end Set_Interface_Description;
 

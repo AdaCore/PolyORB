@@ -35,8 +35,8 @@
 
 --  $Id$
 
-with PolyORB.Sequences.Unbounded;
 with PolyORB.Tasking.Mutexes;
+with PolyORB.Utils.Dynamic_Tables;
 
 package PolyORB.Obj_Adapters.Simple is
 
@@ -121,12 +121,12 @@ private
       If_Desc : Interface_Description;
    end record;
 
-   package Object_Map_Entry_Seqs is new PolyORB.Sequences.Unbounded
-     (Object_Map_Entry);
-   subtype Object_Map_Entry_Seq is Object_Map_Entry_Seqs.Sequence;
+   package Object_Map_Entry_Arrays is new PolyORB.Utils.Dynamic_Tables
+     (Object_Map_Entry, Natural, 1, 10, 1);
+   subtype Object_Map_Entry_Array is Object_Map_Entry_Arrays.Instance;
 
    type Simple_Obj_Adapter is new Obj_Adapter with record
-      Object_Map : Object_Map_Entry_Seq;
+      Object_Map : Object_Map_Entry_Array;
       --  Object_Ids are simply the indices of the objects
       --  within the object map.
 
