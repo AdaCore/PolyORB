@@ -1222,6 +1222,8 @@ src/polyorb-services-naming-tools.ads
 src/polyorb-services-naming.ads
 src/polyorb-services.ads
 src/polyorb-setup-access_points.ads
+src/polyorb-setup-base.adb
+src/polyorb-setup-base.ads
 src/polyorb-setup-client.adb.in
 src/polyorb-setup-client.ads
 src/polyorb-setup-no_tasking_server.adb

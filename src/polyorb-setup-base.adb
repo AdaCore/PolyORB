@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . S E T U P . C L I E N T                  --
+--                   P O L Y O R B . S E T U P . B A S E                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
+--            Copyright (C) 2005 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,26 +31,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up a simple ORB to act as a client
+with PolyORB.Log.Stderr;
+pragma Warnings (Off, PolyORB.Log.Stderr);
+pragma Elaborate_All (PolyORB.Log.Stderr);
 
-with PolyORB.Setup.Base;
-pragma Warnings (Off, PolyORB.Setup.Base);
-pragma Elaborate_All (PolyORB.Setup.Base);
+with PolyORB.Parameters.File;
+pragma Warnings (Off, PolyORB.Parameters.File);
+pragma Elaborate_All (PolyORB.Parameters.File);
 
-with PolyORB.Setup.Tasking.No_Tasking;
-pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
+with PolyORB.Parameters.Environment;
+pragma Warnings (Off, PolyORB.Parameters.Environment);
+pragma Elaborate_All (PolyORB.Parameters.Environment);
 
-with PolyORB.ORB.No_Tasking;
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+package body PolyORB.Setup.Base is
 
-with PolyORB.ORB_Controller.Basic;
-pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
-pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
-
-@PROTO_CLIENT_WITHS@
-
-package body PolyORB.Setup.Client is
-
-end PolyORB.Setup.Client;
+end PolyORB.Setup.Base;
