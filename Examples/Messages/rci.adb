@@ -6,15 +6,15 @@ with Pure;                 use Pure;
 package body RCI is
 
    task type Robot_Type is
-      entry Start (I : Partition_ID);
+      entry Start (I : Natural);
    end Robot_Type;
 
    task body Robot_Type is
       M : Message_Type;
-      P : Partition_Id;
+      P : Natural;
       S : aliased Partition_Stream_Type;
    begin
-      accept Start (I : Partition_ID) do
+      accept Start (I : Natural) do
          P := I;
       end Start;
       Ada.Text_IO.Put_Line ("Listen to" & P'Img);
@@ -25,7 +25,7 @@ package body RCI is
                                " with count" & M.Count'Img);
          Close (S);
          M.Count := M.Count + 1;
-         Open (S, P, Out_Mode);
+         Open (S, Partition_ID (P), Out_Mode);
          Message_Type'Write (S'Access, M);
          Close (S);
       end loop;
@@ -33,7 +33,7 @@ package body RCI is
 
    Robots : array (1 .. N_Robots) of Robot_Type;
 
-   procedure Start (P : Partition_ID) is
+   procedure Start (P : Natural) is
    begin
       for N in Robots'Range loop
          Robots (N).Start (P);
