@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -51,6 +51,9 @@ package System.Garlic.Name_Table is
    procedure Set_Info (N : Name_Id; I : Integer);
    --  To each entry in the name table corresponds a field Info.
    --  The previous procedures allow to get and set this field.
+
+   Empty_Info : constant Integer := 0;
+   --  Empty info slot
 
 private
 

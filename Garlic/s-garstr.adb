@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -39,8 +39,10 @@ with System.RPC;          use System.RPC;
 
 package body System.Garlic.Streams is
 
-   Hex : constant String (1 .. 16) := "0123456789ABCDEF";
-   Nil : constant String (1 .. 48) := (others => ' ');
+   subtype Output_Line is String (1 .. 48);
+
+   Hex : constant String      := "0123456789ABCDEF";
+   Nil : constant Output_Line := (others => ' ');
 
    Node_Size : constant Stream_Element_Count := 4096;
 
@@ -63,10 +65,10 @@ package body System.Garlic.Streams is
    procedure Dump
      (Level  : in System.Garlic.Debug.Debug_Level;
       Stream : in Ada.Streams.Stream_Element_Array;
-      Key    : in System.Garlic.Debug.Debug_Key) is
+      Key    : in System.Garlic.Debug.Debug_Key)
+   is
       Index   : Natural := 1;
-      Output  : String (1 .. 48);
-
+      Output  : Output_Line;
    begin
       if Debug_Mode (Level, Key) then
          for I in Stream'Range loop

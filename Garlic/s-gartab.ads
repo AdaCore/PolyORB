@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -49,7 +49,7 @@ package System.Garlic.Table is
       Null_Component : Component_Type;
 
       type Parameter_Type is private;
-      --  This parameter at least needs documentation ???
+      --  See procedure Apply for the use of this type
 
    package Complex is
 
@@ -60,7 +60,7 @@ package System.Garlic.Table is
 
       Table : Component_Table_Access;
 
-      --  These procedures are atomic. They cannot be aborted
+      --  These procedures are atomic and cannot be aborted
 
       function  Get_Component (N : Index_Type) return Component_Type;
       --  Check whether component of index N corresponds to an allocated
@@ -85,14 +85,6 @@ package System.Garlic.Table is
       --  Set component name of index N to S. When N is not allocated, allocate
       --  it. Raise Constraint_Error when N is not in range of current table.
 
-      --  Apply provides a critical section in which Process is executed.
-      --  This Process procedure applies to a Component and takes a
-      --  Parameter. If Status is Modified or Postponed, update the
-      --  component of Index with Component. If Status is Postponed,
-      --  this means that the process has been postponed and should be
-      --  re-executed when Component value has been modified. If component
-      --  of index N is not allocated, then allocate it.
-
       type Process_Type is access procedure
         (N         : in Index_Type;
          Parameter : in Parameter_Type;
@@ -103,7 +95,14 @@ package System.Garlic.Table is
         (N         : in Index_Type;
          Parameter : in Parameter_Type;
          Process   : in Process_Type);
-      --  Needs documentation ???
+
+      --  Apply provides a critical section in which Process is executed.
+      --  This Process procedure applies to a Component and takes a
+      --  Parameter. If Status is Modified or Postponed, update the
+      --  component of Index with Component. If Status is Postponed,
+      --  this means that the process has been postponed and should be
+      --  re-executed when Component value has been modified. If component
+      --  of index N is not allocated, then allocate it.
 
    end Complex;
 
@@ -130,6 +129,5 @@ package System.Garlic.Table is
       function  Allocate return Index_Type;
 
    end Simple;
-   --  This generic package needs documentation ???
 
 end System.Garlic.Table;
