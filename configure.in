@@ -241,7 +241,6 @@ AC_SUBST(TCP_INCLUDED)
 #
 case ${PLATFORM_SPECIFIC} in
   w) TCP_PLATFORM_SOURCE=s-gtplsp.adb;;
-  p) TCP_PLATFORM_SOURCE=s-gtplsp.adb;;
   *) TCP_PLATFORM_SOURCE=s-gtplsp.ads;;
 esac
 AC_SUBST(TCP_PLATFORM_SOURCE)

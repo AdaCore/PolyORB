@@ -1,7 +1,3 @@
-1998-04-21  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* MANIFEST: Add Garlic/5pgtplsp.adb to distribution.
-
 1998-04-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure, configure.in, Makefile.in: Add platform Open NT.
