@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.22 $
+--                            $Revision: 1.23 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -34,8 +34,6 @@
 ------------------------------------------------------------------------------
 
 with AdaBroker.Exceptions; use AdaBroker.Exceptions;
-
-with System;
 
 with AdaBroker.Debug;
 pragma Elaborate_All (AdaBroker.Debug);

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.16 $
+--                            $Revision: 1.17 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -44,6 +44,7 @@ with Interfaces.C;
 with Interfaces.C.Strings;
 with CORBA.ORB.OmniORB;
 with CORBA.Command_Line;
+with System;
 
 package body CORBA.BOA is
 

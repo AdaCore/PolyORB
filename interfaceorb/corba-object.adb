@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.64 $
+--                            $Revision: 1.65 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -38,7 +38,6 @@
 --  proxy objects
 
 with Ada.Exceptions;
-with Ada.Strings.Unbounded;
 
 with AdaBroker.OmniORB;        use AdaBroker.OmniORB;
 with AdaBroker.OmniRopeAndKey; use AdaBroker.OmniRopeAndKey;

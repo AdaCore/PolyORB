@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.49 $
+--                            $Revision: 1.50 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -37,8 +37,6 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 
 with Interfaces;
-
-with System;
 
 package CORBA is
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.8 $
+--                            $Revision: 1.9 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -125,7 +125,6 @@ package body CORBA.Object.OmniORB is
       To   : out CORBA.Object.Ref'Class)
    is
       Source_Ref : Ref_Ptr;
-      Source_Rep : CORBA.String;
       Target_Rep : CORBA.String;
    begin
       To.OmniObj := AdaBroker.OmniORB.String_To_Object (From);

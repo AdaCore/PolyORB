@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.23 $
+--                            $Revision: 1.24 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -45,6 +45,8 @@ with CORBA.Command_Line;
 with CORBA.Object;
 with CORBA.ORB.OmniORB;
 with CORBA.Object.OmniORB;
+
+with System;
 
 package body CORBA.ORB is
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.8 $
+--                            $Revision: 1.9 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -194,7 +194,6 @@ package body AdaBroker.OmniORB is
      (Self : in ImplObject'Class)
       return CORBA.String
    is
-      Result : CORBA.String;
    begin
       if Self.OmniObj = null then
          return Object_To_String (null);
@@ -967,11 +966,11 @@ package body AdaBroker.OmniORB is
          when E : CORBA.No_Permission =>
             declare
                Exbd : CORBA.No_Permission_Members;
-               begin
-                  CORBA.Get_Members (E, Exbd);
-                  Marshall_System_Exception
-                    (Constants.No_Permission_Repoid, Exbd, Orls);
-               end;
+            begin
+               CORBA.Get_Members (E, Exbd);
+               Marshall_System_Exception
+                 (Constants.No_Permission_Repoid, Exbd, Orls);
+            end;
 
          when E : CORBA.Internal =>
             declare
