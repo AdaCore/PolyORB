@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1537,10 +1537,18 @@ package body PolyORB.POA.Basic_POA is
          declare
             Activator : aliased ServantActivator'Class :=
               ServantActivator (Basic_OA.Servant_Manager.all);
+
+            Oid       : Objects.Object_Id_Access;
+
          begin
+            Object_Identifier
+              (Basic_OA.Id_Assignment_Policy.all,
+               Objects.Object_Id_Access (Id),
+               Oid);
+
             Servant := Incarnate
               (Activator'Access,
-               Id.all,
+               Oid.all,
                Basic_OA);
          end;
       end if;
