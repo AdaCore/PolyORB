@@ -91,16 +91,10 @@ package body PolyORB.Initialization is
    --  initialize each module.
 
    function Lookup_Module (Name : String) return Module_Access;
-   --  Look up module 'Name' in module table
 
    procedure Register_Module (Name : String; Module : Module_Access);
-   --  Register module 'Name' in module table
 
-   procedure Visit
-     (M                            :     Module_Access;
-      Circular_Dependency_Detected : out Boolean);
-   --  Visit 'M' dependencies and run the corresponding initializers;
-   --  Circular_Dependency_Detected reports circularity between modules.
+   procedure Visit (M : Module_Access);
 
    -------------------
    -- Lookup_Module --
@@ -140,7 +134,7 @@ package body PolyORB.Initialization is
    end Register_Module;
 
    procedure Register_Module
-     (Name   : String;
+     (Name : String;
       Module : Module_Access)
    is
       Duplicate : constant Module_Access
@@ -262,21 +256,15 @@ package body PolyORB.Initialization is
    -- Visit --
    -----------
 
-   procedure Visit
-     (M                            :     Module_Access;
-      Circular_Dependency_Detected : out Boolean)
+   procedure Visit (M : Module_Access)
    is
-      MI  : Dep_Lists.Iterator;
+      MI : Dep_Lists.Iterator;
       Dep : Module_Access;
-
    begin
       if M.In_Progress then
          O (M.Info.Name.all & " is part of a cycle:", Critical);
-         Circular_Dependency_Detected := True;
-         return;
+         raise Circular_Dependency;
       end if;
-
-      Circular_Dependency_Detected := False;
 
       M.In_Progress := True;
       MI := First (M.Deps);
@@ -286,12 +274,11 @@ package body PolyORB.Initialization is
 
          if not Dep.Visited then
             begin
-               Visit (Dep, Circular_Dependency_Detected);
-
-               if Circular_Dependency_Detected then
+               Visit (Dep);
+            exception
+               when Circular_Dependency =>
                   O ("... depended upon by " & Dep.Info.Name.all, Critical);
-                  return;
-               end if;
+                  raise;
             end;
          end if;
 
@@ -313,18 +300,12 @@ package body PolyORB.Initialization is
    is
       MI : Dep_Lists.Iterator := First (World);
       M  : Module_Access;
-
-      Circular_Dependency_Detected : Boolean;
    begin
       while not Last (MI) loop
          M := Value (MI).all;
 
          if not M.Visited then
-            Visit (M, Circular_Dependency_Detected);
-
-            if Circular_Dependency_Detected then
-               raise Circular_Dependency;
-            end if;
+            Visit (M);
          end if;
 
          Next (MI);

@@ -31,10 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  XXX to be up to date, we should complete implementation of
+--   - CORBA.ORB.Shutdown
+
 --  XXX should test find_poa, POA self destruction
 
 with Ada.Exceptions;
 with Ada.Text_IO;
+
+with GNAT.OS_Lib;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Log;
@@ -398,7 +403,8 @@ procedure Test000 is
                       & Exception_Name (E)
                       & " : "
                       & Exception_Message (E));
-            raise;
+            Output ("END TESTS", False);
+            GNAT.OS_Lib.OS_Exit (1);
 
       end;
 
@@ -437,7 +443,8 @@ procedure Test000 is
                       & Exception_Name (E)
                       & " : "
                       & Exception_Message (E));
-            raise;
+            Output ("END TESTS", False);
+            GNAT.OS_Lib.OS_Exit (1);
       end;
 
       Destroy (Child_POA, True, True);
@@ -1684,7 +1691,9 @@ begin
    Test_POA_Hierarchy;
    End_Report;
 
-   CORBA.ORB.Shutdown (False);
+   GNAT.OS_Lib.OS_Exit (1);
+   --  XXX Work around to dirty exit, to be removed when
+   --  CORBA.ORB.Shutdown is implemented ...
 
 exception
    when E : others =>
@@ -1693,7 +1702,6 @@ exception
                 & " : "
                 & Exception_Message (E));
       Output ("END TESTS", False);
-
-      CORBA.ORB.Shutdown (False);
+      GNAT.OS_Lib.OS_Exit (1);
 
 end Test000;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              T E S T 0 0 0                               --
+--           P O L Y O R B . T A S K I N G . S O F T _ L I N K S            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,42 +33,57 @@
 
 --  $Id$
 
-with PolyORB.Any;
+--  with Ada.Unchecked_Deallocation;
+
 with PolyORB.Initialization;
-with PolyORB.Types;
-with PolyORB.Utils.Report;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-with PolyORB.Setup.Client;
-pragma Warnings (Off, PolyORB.Setup.Client);
+with PolyORB.Tasking.Advanced_Mutexes;
+with PolyORB.Utils.Strings;
 
-procedure Test000 is
+package body PolyORB.Tasking.Soft_Links is
 
-   use PolyORB.Any;
-   use PolyORB.Utils.Report;
-   use PolyORB.Types;
+   use PolyORB.Tasking.Advanced_Mutexes;
 
-   procedure Simple_Test;
+   -------------------------------------------
+   -- Critical Section for ORB with Tasking --
+   -------------------------------------------
 
-   -----------------
-   -- Simple_Test --
-   -----------------
+   Critical_Section : Adv_Mutex_Access;
 
-   procedure Simple_Test
-   is
-      A : Any;
-
-      Initial_Value : constant PolyORB.Types.Short
-        := PolyORB.Types.Short (2);
-
-      Value : PolyORB.Types.Short;
+   procedure Enter_Critical_Section is
    begin
-      A := To_Any (PolyORB.Types.Short (2));
-      Value := From_Any (A);
-      Output ("Any: Short", Value = Initial_Value);
-   end Simple_Test;
+      Enter (Critical_Section);
+   end Enter_Critical_Section;
+
+   procedure Leave_Critical_Section is
+   begin
+      Leave (Critical_Section);
+   end Leave_Critical_Section;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Create (Critical_Section);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
 
 begin
-   PolyORB.Initialization.Initialize_World;
-   Simple_Test;
-   End_Report;
-end Test000;
+   Register_Module
+     (Module_Info'
+      (Name => +"tasking.soft_links",
+       Conflicts => Empty,
+       Depends => +"tasking.threads"
+         & "tasking.condition_variables"
+         & "tasking.mutexes",
+       Provides => +"soft_links",
+       Init => Initialize'Access));
+end PolyORB.Tasking.Soft_Links;

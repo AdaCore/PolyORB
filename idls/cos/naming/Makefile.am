@@ -32,5 +32,5 @@ CLEANFILES+=	stamp-gen
 $(CosNaming_GEN): stamp-gen
 
 stamp-gen: $(CosNaming_IDL) $(IDLAC)
+	touch stamp-gen
 	$(IDLAC) $(CosNaming_IDL) -I$(srcdir)
-	touch $@

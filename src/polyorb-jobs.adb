@@ -37,13 +37,23 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Jobs is
 
+   --  Internal subprograms
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Queue_Element, Queue_Element_Access);
+
    ------------------
    -- Create_Queue --
    ------------------
 
-   function Create_Queue return Job_Queue_Access is
+   function Create_Queue return Job_Queue_Access
+   is
+      Q : constant Job_Queue_Access := new Job_Queue;
    begin
-      return new Job_Queue;
+      Q.First := null;
+      Q.Last  := null;
+
+      return Q;
    end Create_Queue;
 
    ---------------
@@ -55,39 +65,29 @@ package body PolyORB.Jobs is
       Selector :        Job_Selector := Any_Job)
       return Job_Access
    is
-      use Job_Queues;
-
-      Result : Job_Access;
+      This : Queue_Element_Access := Q.First;
+      Prev : Queue_Element_Access := null;
+      Result : Job_Access := null;
    begin
-      if Is_Empty (Q) then
-         return null;
-      end if;
-
-      --  If no selector is provided, extract the first element
-
-      if Selector = null then
-         Extract_First (Q.Contents, Result);
-         return Result;
-      end if;
-
-      --  else return the first selected element
-
-      declare
-         It     : Iterator := First (Q.Contents);
-
-      begin
-         while not Last (It) loop
-            if Selector (Job_Access (Value (It).all)) then
-               Result := Job_Access (Value (It).all);
-               Remove (Q.Contents, It);
-               return Result;
+      while This /= null loop
+         if Selector = null or else Selector (This.Job) then
+            if Prev /= null then
+               Prev.Next := This.Next;
+            else
+               Q.First := This.Next;
             end if;
 
-            Next (It);
-         end loop;
-
-         return null;
-      end;
+            if This = Q.Last then
+               Q.Last := Prev;
+            end if;
+            Result := This.Job;
+            Free (This);
+            exit;
+         end if;
+         Prev := This;
+         This := This.Next;
+      end loop;
+      return Result;
    end Fetch_Job;
 
    ----------
@@ -107,11 +107,9 @@ package body PolyORB.Jobs is
 
    function Is_Empty
      (Q : access Job_Queue)
-     return Boolean
-   is
-      use type Job_Queues.List;
+     return Boolean is
    begin
-      return Q.Contents = Job_Queues.Empty;
+      return Q.First = null;
    end Is_Empty;
 
    ---------------
@@ -120,9 +118,19 @@ package body PolyORB.Jobs is
 
    procedure Queue_Job
      (Q : access Job_Queue;
-      J :        Job_Access) is
+      J : Job_Access)
+   is
+      E : constant Queue_Element_Access
+        := new Queue_Element'(Next => null, Job  => J);
    begin
-      Job_Queues.Append (Q.Contents, J);
+      if Q.Last = null then
+         pragma Assert (Q.First = null);
+         Q.First := E;
+         Q.Last  := E;
+      else
+         Q.Last.Next := E;
+         Q.Last := E;
+      end if;
    end Queue_Job;
 
 end PolyORB.Jobs;

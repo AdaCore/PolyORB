@@ -1272,6 +1272,7 @@ package body Lexer is
          elsif Token in T_Right_Brace .. T_Right_Paren then
             exit when Braces <= 0
               and then Delimiter in T_Right_Brace .. T_Right_Paren;
+
             Braces := Braces - 1;
 
          elsif Token in T_Colon .. T_Semi_Colon then
@@ -1280,13 +1281,8 @@ package body Lexer is
          end if;
       end loop;
 
-      --  When we reach the end of the file without finding a proper
-      --  delimiter, we cannot rescue the lexer.
-
-      if Token /= T_EOF then
-         Restore_Lexer (State);
-         Scan_Token (Delimiter);
-      end if;
+      Restore_Lexer (State);
+      Scan_Token (Delimiter);
    end Skip_Declaration;
 
    ---------------

@@ -161,17 +161,28 @@ pragma Preelaborate (Types);
    --  Subscript of first entry in names table
 
    type Node_Id is new Int;
-   No_Node : constant Node_Id := 0;
+   No_Node    : constant Node_Id := 0;
 
-   function Present (E : Node_Id) return Boolean;
+   type Entity_Id is new Node_Id;
+   No_Entity  : constant Entity_Id := 0;
+
+   function Present (E : Entity_Id) return Boolean;
    pragma Inline (Present);
-   --  Return true when E is not No_Node
+   --  Return true when E is not No_Entity
 
-   function No (E : Node_Id) return Boolean;
+   function No (E : Entity_Id) return Boolean;
    pragma Inline (No);
-   --  Return true when E is No_Node
+   --  Return true when E is No_Entity
 
-   procedure Dummy (E : Node_Id);
+   function Present (N : Node_Id) return Boolean;
+   pragma Inline (Present);
+   --  Return true when N is not No_Node
+
+   function No (N : Node_Id) return Boolean;
+   pragma Inline (No);
+   --  Return true when N is No_Node
+
+   procedure Dummy (E : Entity_Id);
 
    type List_Id is new Node_Id;
    No_List : constant List_Id := 0;

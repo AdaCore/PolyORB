@@ -33,7 +33,7 @@
 
 --  Storage of opaque data.
 
---  $Id: //droopi/main/src/polyorb-opaque.ads#8 $
+--  $Id: //droopi/main/src/polyorb-opaque.ads#7 $
 
 with Ada.Streams;
 with Ada.Unchecked_Deallocation;
@@ -50,7 +50,6 @@ package PolyORB.Opaque is
      (Ada.Streams.Stream_Element_Array, Zone_Access);
 
    subtype Opaque_Pointer is System.Address;
-
    function Is_Null (P : Opaque_Pointer) return Boolean;
    pragma Inline (Is_Null);
 

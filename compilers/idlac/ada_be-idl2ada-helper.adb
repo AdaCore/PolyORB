@@ -514,7 +514,7 @@ package body Ada_Be.Idl2Ada.Helper is
 
       Divert (CU, Initialization_Dependencies);
       II (CU); II (CU); II (CU);
-      PL (CU, "Empty");
+      PL (CU, "+""soft_links""");
 
       Divert (CU, Visible_Declarations);
    end Gen_Body_Prelude;

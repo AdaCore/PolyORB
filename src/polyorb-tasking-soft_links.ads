@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                              T E S T 0 0 3                               --
+--           P O L Y O R B . T A S K I N G . S O F T _ L I N K S            --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,64 +31,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Almost empty package, left for legacy reasons ...
+
 --  $Id$
 
-with Ada.Text_IO;
+package PolyORB.Tasking.Soft_Links is
 
-with PolyORB.Initialization;
-with PolyORB.Utils.Report;
-with PolyORB.Utils.Strings;
+   pragma Elaborate_Body;
 
-procedure Test003 is
+   -------------------------------------------
+   -- Critical Section for ORB with Tasking --
+   -------------------------------------------
 
-   use Ada.Text_IO;
+   procedure Enter_Critical_Section;
 
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Report;
-   use PolyORB.Utils.Strings;
+   procedure Leave_Critical_Section;
 
-   generic
-      Name : String;
-   procedure Init;
-
-   procedure Init is
-   begin
-      Put_Line ("Initializing module " & Name);
-   end Init;
-
-   procedure Init_Foo is new Init ("foo");
-   procedure Init_Bar is new Init ("bar");
-
-   Empty_List : String_Lists.List;
-
-begin
-   Register_Module
-     (Module_Info'
-      (Name => +"bar",
-       Depends => Empty_List & "foo",
-       Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Bar'Unrestricted_Access));
-
-   Register_Module
-     (Module_Info'
-      (Name => +"foo",
-       Depends => Empty_List & "bar",
-       Conflicts => Empty_List,
-       Provides => Empty_List,
-       Init => Init_Foo'Unrestricted_Access));
-
-   Initialize_World;
-
-   Output ("Test initialization #3", False);
-
-exception
-   when PolyORB.Initialization.Circular_Dependency =>
-      Output ("Test initialization #3", True);
-      End_Report;
-
-   when others =>
-      Output ("Test initialization #3", False);
-
-end Test003;
+end PolyORB.Tasking.Soft_Links;

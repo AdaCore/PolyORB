@@ -432,16 +432,21 @@ package body  PolyORB.Services.Naming.Helper is
 
    end Initialize;
 
-   use PolyORB.Initialization;
-   use PolyORB.Initialization.String_Lists;
-   use PolyORB.Utils.Strings;
-
 begin
-   Register_Module
-     (Module_Info'
-      (Name      => +"naming.Helper",
-       Conflicts => Empty,
-       Depends   => Empty,
-       Provides  => Empty,
-       Init      => Initialize'Access));
+   declare
+      use PolyORB.Initialization;
+      use PolyORB.Initialization.String_Lists;
+      use PolyORB.Utils.Strings;
+   begin
+      Register_Module
+        (Module_Info'
+         (Name      => +"Naming.Helper",
+          Conflicts => Empty,
+          Depends   =>
+            +"soft_links"
+          ,
+          Provides  => Empty,
+          Init      => Initialize'Access));
+   end;
+
 end PolyORB.Services.Naming.Helper;

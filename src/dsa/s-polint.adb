@@ -65,7 +65,7 @@ with PolyORB.Servants;
 with PolyORB.Services.Naming;
 with PolyORB.Services.Naming.Helper;
 with PolyORB.Services.Naming.NamingContext.Client;
-with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Soft_Links;
 with PolyORB.Utils.Strings.Lists;
 
 --  XXX the following are dependant on configuration options
@@ -91,7 +91,6 @@ package body System.PolyORB_Interface is
      renames L.Output;
 
    package PSNNC renames PolyORB.Services.Naming.NamingContext;
-   package PTM renames PolyORB.Tasking.Mutexes;
 
    --------------------------------------------------------------
    -- Special operation names for remote call interface objets --
@@ -106,9 +105,6 @@ package body System.PolyORB_Interface is
    ------------------------
    -- Local declarations --
    ------------------------
-
-   Critical_Section : PTM.Mutex_Access;
-   --  Protects shared data structures at the DSA personality level.
 
    procedure Initialize;
    --  Initialization procedure to be called during the
@@ -140,8 +136,6 @@ package body System.PolyORB_Interface is
    --  To limit the amount of memory leaked by the use of
    --  distributed object stub types, these are referenced
    --  in a hash table and reused whenever possible.
-   --  Access to this hash table is protected by the DSA
-   --  critical section.
 
    type Hash_Index is range 0 .. 100;
    function Hash (K : RACW_Stub_Type_Access) return Hash_Index;
@@ -716,8 +710,6 @@ package body System.PolyORB_Interface is
       Error : Error_Container;
 
    begin
-      PTM.Create (Critical_Section);
-
       pragma Assert (Root_POA_Object = null);
       pragma Debug (O ("Initializing default POA configuration..."));
       POA_Config.Set_Configuration
@@ -1079,7 +1071,7 @@ package body System.PolyORB_Interface is
    is
       Answer : RACW_Stub_Type_Access;
    begin
-      PTM.Enter (Critical_Section);
+      PolyORB.Tasking.Soft_Links.Enter_Critical_Section;
       Answer := Objects_HTable.Get (Handler);
       if Answer = null then
          Answer := new RACW_Stub_Type;
@@ -1099,7 +1091,7 @@ package body System.PolyORB_Interface is
          PolyORB.Smart_Pointers.Dec_Usage (Handler.Target);
       end if;
       Handler := Answer;
-      PTM.Leave (Critical_Section);
+      PolyORB.Tasking.Soft_Links.Leave_Critical_Section;
    end Get_Unique_Remote_Pointer;
 
    ------------------------------
@@ -1418,7 +1410,6 @@ begin
        & "poa_config.racws?"
        & "Naming.Helper"
        & "Naming.NamingContext.Helper"
-       & "tasking.mutexes"
        & "tcp_access_points.soap?"
        & "tcp_access_points.corba?"
        & "tcp_access_points.srp?",
