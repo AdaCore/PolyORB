@@ -1,3 +1,13 @@
+2003-02-11  Samuel Tardieu <sam@gnat.com>
+
+	* s-gartab.ads: Remove unused generic formal Null_Index in all
+	table declarations.
+	* s-ganata.adb s-gaprtc.adb s-garfil.adb s-garpad.adb s-garuni.adb 
+	s-rpstio.adb: Remove Null_Index generic actual parameter in all
+	table instantiations.
+	* s-gasoli.adb: Remove unused generic formal Name in generic
+	declaration and instantiations.
+
 2003-01-20  Pascal Obry <obry@gnat.com>
 
 	* Makefile.am, Makefile.in:

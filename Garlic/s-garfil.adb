@@ -77,7 +77,6 @@ package body System.Garlic.Filters is
    Filter_ID_Increment : constant := 10;
 
    type Filter_Id is new Natural;
-   Null_Filter    : constant Filter_Id := 0;
    First_Filter   : constant Filter_Id := 1_000;
 
    --  In an half channel is stored local params to use locally to filter
@@ -139,7 +138,6 @@ package body System.Garlic.Filters is
 
    package Filters is new System.Garlic.Table.Complex
      (Index_Type     => Filter_Id,
-      Null_Index     => Null_Filter,
       First_Index    => First_Filter,
       Initial_Size   => Filter_ID_Increment,
       Increment_Size => Filter_ID_Increment,
@@ -148,7 +146,6 @@ package body System.Garlic.Filters is
 
    package Channels is new System.Garlic.Table.Complex
      (Index_Type     => Partition_ID,
-      Null_Index     => Types.Null_PID,
       First_Index    => Types.First_PID,
       Initial_Size   => Natural (Partition_ID_Increment),
       Increment_Size => Natural (Partition_ID_Increment),

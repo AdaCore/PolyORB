@@ -78,7 +78,6 @@ package body System.RPC.Stream_IO is
       new System.Garlic.Table.Medium
         (Partition_ID,
          Any_Partition,
-         Any_Partition,
          Types.Partition_ID_Increment,
          Types.Partition_ID_Increment,
          Partition_Stream_Access,

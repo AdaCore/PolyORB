@@ -53,9 +53,7 @@ package body System.Garlic.Soft_Links is
    procedure Free is
      new Ada.Unchecked_Deallocation (Adv_Mutex_Type'Class, Adv_Mutex_Access);
 
-   generic
-      Name : String;
-   package Proc is
+   generic package Proc is
       procedure Register (P : in Parameterless_Procedure);
       procedure Call;
       pragma Inline (Call);
@@ -87,56 +85,56 @@ package body System.Garlic.Soft_Links is
 
    end Proc;
 
-   package P_Add_Non_Terminating_Task is new Proc ("Add_Non_Terminating_Task");
+   package P_Add_Non_Terminating_Task is new Proc;
    procedure Register_Add_Non_Terminating_Task
      (P : in Parameterless_Procedure)
      renames P_Add_Non_Terminating_Task.Register;
    procedure Add_Non_Terminating_Task
      renames P_Add_Non_Terminating_Task.Call;
 
-   package P_Sub_Non_Terminating_Task is new Proc ("Sub_Non_Terminating_Task");
+   package P_Sub_Non_Terminating_Task is new Proc;
    procedure Register_Sub_Non_Terminating_Task
      (P : in Parameterless_Procedure)
      renames P_Sub_Non_Terminating_Task.Register;
    procedure Sub_Non_Terminating_Task
      renames P_Sub_Non_Terminating_Task.Call;
 
-   package P_Activity_Detected is new Proc ("Activity_Detected");
+   package P_Activity_Detected is new Proc;
    procedure Register_Activity_Detected
      (P : in Parameterless_Procedure)
      renames P_Activity_Detected.Register;
    procedure Activity_Detected
      renames P_Activity_Detected.Call;
 
-   package P_Local_Termination is new Proc ("Local_Termination");
+   package P_Local_Termination is new Proc;
    procedure Register_Local_Termination
      (P : in Parameterless_Procedure)
      renames P_Local_Termination.Register;
    procedure Local_Termination
      renames P_Local_Termination.Call;
 
-   package P_Global_Termination is new Proc ("Global_Termination");
+   package P_Global_Termination is new Proc;
    procedure Register_Global_Termination
      (P : in Parameterless_Procedure)
      renames P_Global_Termination.Register;
    procedure Global_Termination
      renames P_Global_Termination.Call;
 
-   package P_Enter_Critical_Section is new Proc ("Enter_Critical_Section");
+   package P_Enter_Critical_Section is new Proc;
    procedure Register_Enter_Critical_Section
      (P : in Parameterless_Procedure)
      renames P_Enter_Critical_Section.Register;
    procedure Enter_Critical_Section
      renames P_Enter_Critical_Section.Call;
 
-   package P_Leave_Critical_Section is new Proc ("Leave_Critical_Section");
+   package P_Leave_Critical_Section is new Proc;
    procedure Register_Leave_Critical_Section
      (P : in Parameterless_Procedure)
      renames P_Leave_Critical_Section.Register;
    procedure Leave_Critical_Section
      renames P_Leave_Critical_Section.Call;
 
-   package P_RPC_Shutdown is new Proc ("RPC_Shutdown");
+   package P_RPC_Shutdown is new Proc;
    procedure Register_RPC_Shutdown
      (P : in Parameterless_Procedure)
      renames P_RPC_Shutdown.Register;
@@ -149,7 +147,7 @@ package body System.Garlic.Soft_Links is
 
    Ind_Task_Count : Return_Natural_Function;
 
-   package P_List_Tasks is new Proc ("List_Tasks");
+   package P_List_Tasks is new Proc;
    procedure Register_List_Tasks
      (P : in Parameterless_Procedure)
      renames P_List_Tasks.Register;

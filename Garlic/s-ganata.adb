@@ -100,7 +100,6 @@ package body System.Garlic.Name_Table is
 
    package Nodes is new System.Garlic.Table.Simple
      (Index_Type     => Name_Id,
-      Null_Index     => Null_Name,
       First_Index    => First_Name,
       Initial_Size   => Natural (Hash_Max),
       Increment_Size => Natural (Hash_Max),

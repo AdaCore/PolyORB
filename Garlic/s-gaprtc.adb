@@ -89,7 +89,6 @@ package body System.Garlic.Protocols.Tcp is
    package Outgoings is
      new System.Garlic.Table.Medium
         (Partition_ID,
-         Null_PID,
          First_PID,
          Partition_ID_Increment,
          Partition_ID_Increment,

@@ -136,7 +136,6 @@ package body System.Garlic.Units is
 
    package Units is new System.Garlic.Table.Complex
      (Index_Type     => Types.Unit_Id,
-      Null_Index     => Types.Null_Unit_Id,
       First_Index    => Types.First_Unit_Id,
       Initial_Size   => Types.Unit_Id_Increment,
       Increment_Size => Types.Unit_Id_Increment,
@@ -151,7 +150,6 @@ package body System.Garlic.Units is
 
    package Requests is new System.Garlic.Table.Complex
        (Request_Id,
-        Null_Request_Id,
         First_Request_Id,
         Request_Id_Increment,
         Request_Id_Increment,
