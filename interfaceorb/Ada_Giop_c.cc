@@ -138,7 +138,6 @@ Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
 {
 ADABROKER_TRY
     if (Init_Ok) {
-      throw CORBA::MARSHAL(0,CORBA::COMPLETED_NO);
       // if Initialisation was made then call the corresponding
       // function on C_Object
       result = ((GIOP_C *) C_Object)->ReceiveReply();

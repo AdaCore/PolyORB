@@ -751,6 +751,7 @@ package body NetBufferedStream is
    end ;
 
 
+
    -- C_Is_Reusing_Existing_Connection
    -----------------------------------
    function C_Is_Reusing_Existing_Connection (Self : in Object'Class)
