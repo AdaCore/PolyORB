@@ -14,7 +14,7 @@ with Corba, Omni, OmniORB, Giop, Rope, Netbufferedstream ;
 
 package Giop_C is
 
-   type Object is new NetBufferedStream.Object with null record;
+   type Object is new NetBufferedStream.Object with private ;
 
    procedure Init (Self : in out Object ;
                    R : in Rope.Object) ;
@@ -55,6 +55,9 @@ package Giop_C is
 
 private
 
+   type Object is new NetBufferedStream.Object with record
+      CPP_Object : System.Address ;
+   end ;
 
 
 end Giop_C ;

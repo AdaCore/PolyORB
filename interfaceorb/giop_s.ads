@@ -14,7 +14,7 @@ with Corba, Giop, Omni ;
 
 package Giop_S is
 
-   type Object is tagged limited private ;
+   type Object is new Netbufferedstream.Object ;
 
    procedure Request_Received (Self : in Object);
    -- wrapper around void GIOP_S::RequestReceived(CORBA::Boolean skip_msg)
@@ -33,21 +33,6 @@ package Giop_S is
    -- in giopServer.cc L 219
 
 
-   procedure Put_Char_Array (Self : in out Object'Class ;
-                             B : Corba.Char ;
-                             Size : Integer ;
-                             Align : Omni.Alignment_T ;
-                             StartMTU : Corba.Boolean ;
-                             At_Most_Once : Corba.boolean
-                            );
-   -- wrapper around NetBufferedStream::put_char_array(const CORBA::Char* b,
-   --                             int size,
-   --                             omni::alignment_t align,
-   --                             CORBA::Boolean startMTU,
-   --                             CORBA::Boolean at_most_once)
-   -- in nbufferedStream.cc L 154
-
-
    procedure Reply_Completed (Self : in Object'Class);
    -- wrapper around void GIOP_S::ReplyCompleted()
    -- In giopServer.cc L 264
@@ -55,7 +40,10 @@ package Giop_S is
 
 private
 
-   type Object is tagged limited null record ;
+   type Object is new NetBufferedStream.Object with record
+      CPP_Object : System.Address ;
+   end ;
+
 
 end Giop_S ;
 

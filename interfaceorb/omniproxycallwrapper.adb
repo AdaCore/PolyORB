@@ -32,14 +32,8 @@ package body omniProxyCallWrapper is
    --   - omniORB's tracelevel
    --
    -- Remember to implement the exception handlers
-   -- hand the infinite loop
+   -- and the infinite loop
    --
-   -- Remember to put the use clauses and suppress the dotted notation
-   -- for the inheritance to be taken into account
-   -- (Fabien)
-   --
-   -- pb with Giop_C.Request_Completed
-   -- 0 or 1 parameter
    ----------------
    procedure Invoke (The_Obj : in Corba.Object.Ref'Class ;
                      Call_Desc : in out OmniProxyCallDesc.Object'Class ) is

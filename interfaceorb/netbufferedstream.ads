@@ -14,10 +14,10 @@ with Corba, BufferedStream ;
 
 package NetBufferedStream is
 
-   type Object is new BufferedStream.Object with null record;
+   type Object is abstract new BufferedStream.Object with null record;
 
    function Is_Reusing_Existing_Connection (Self : in Object'Class)
-                                         return CORBA.Boolean;
+                                            return CORBA.Boolean;
    -- wrapper around     _CORBA_Boolean isReUsingExistingConnection() const;
    -- de la classe Sync
    -- in rope.h L 395
@@ -32,9 +32,6 @@ package NetBufferedStream is
    --                                      _CORBA_Boolean startMTU=0,
    --                                      _CORBA_Boolean at_most_once=0)
    -- in bufferedStream.h L 406
-
-private
-
 
 
 end NetBufferedStream ;
