@@ -1,3 +1,7 @@
+2003-11-23  Samuel Tardieu  <sam@rfc1149.net>
+
+	* Makefile.am: Remove duplicate definition of COMPILE macro.
+
 2003-11-18  Laurent Pautet  <pautet@enst.fr>
 
 	* 5wgarrem.adb, s-gartab.ads, s-gartab.adb, s-ganata.adb,

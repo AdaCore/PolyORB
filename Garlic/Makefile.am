@@ -6,7 +6,6 @@ GNAT_FOR_TARGET = @GNAT_FOR_TARGET@
 CONSTANTS_SH  = $(srcdir)/constants.sh
 CP            = cp
 GARLIC        = $(prefix)/lib/garlic
-COMPILE       = 
 GNAT_RTS_FLAG = @GNAT_RTS_FLAG@
 GNATFLAGS     = -gnatg @GNATFLAGS@ $(GNAT_RTS_FLAG)
 INCFLAGS      = -I. -I$(srcdir)
