@@ -124,6 +124,10 @@ package PolyORB.RT_POA.Basic_RT_POA is
       Manager :        ServantManager_Access;
       Error   : in out PolyORB.Exceptions.Error_Container);
 
+   procedure Get_The_Children
+     (Self     : access Basic_RT_Obj_Adapter;
+      Children :    out POAList);
+
    ------------------------------------------------
    -- CORBA-like RT POA interface implementation --
    ------------------------------------------------

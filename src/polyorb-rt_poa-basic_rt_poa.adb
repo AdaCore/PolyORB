@@ -35,6 +35,7 @@
 
 with PolyORB.Log;
 with PolyORB.POA.Basic_POA;
+with PolyORB.POA_Manager;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Chained_Lists;
@@ -265,8 +266,6 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       POA         :    out PolyORB.POA.Obj_Adapter_Access;
       Error       : in out PolyORB.Exceptions.Error_Container)
    is
-      use PolyORB.Exceptions;
-
    begin
       Find_POA (To_Non_RT_POA (Self), Name, Activate_It, POA, Error);
    end Find_POA;
@@ -322,6 +321,18 @@ package body PolyORB.RT_POA.Basic_RT_POA is
    begin
       Set_Servant_Manager (To_Non_RT_POA (Self), Manager, Error);
    end Set_Servant_Manager;
+
+   ----------------------
+   -- Get_The_Children --
+   ----------------------
+
+   procedure Get_The_Children
+     (Self     : access Basic_RT_Obj_Adapter;
+      Children :    out POAList)
+   is
+   begin
+      Get_The_Children (To_Non_RT_POA (Self), Children);
+   end Get_The_Children;
 
    ----------------------
    -- Copy_Obj_Adapter --

@@ -47,6 +47,7 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 with PolyORB.Utils.HFunctions.Hyper;
 with PolyORB.Utils.HTables.Perfect;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.POA_Types is
 
@@ -116,6 +117,14 @@ package PolyORB.POA_Types is
 
    procedure Free is new Ada.Unchecked_Deallocation
      (POATable, POATable_Access);
+
+   -------------
+   -- POAList --
+   -------------
+
+   package POA_Lists is
+      new PolyORB.Utils.Chained_Lists (Obj_Adapter_Ref, "=", True);
+   subtype POAList is POA_Lists.List;
 
    ----------------
    -- Object Ids --

@@ -1200,6 +1200,42 @@ package body PolyORB.POA.Basic_POA is
    end Set_Servant_Manager;
 
    ----------------------
+   -- Get_The_Children --
+   ----------------------
+
+   procedure Get_The_Children
+     (Self     : access Basic_Obj_Adapter;
+      Children :    out POAList)
+   is
+      use type PolyORB.POA_Types.POATable_Access;
+      use PolyORB.POA_Types.POA_HTables;
+      use PolyORB.POA_Types;
+
+   begin
+      pragma Debug (O ("Get_The_Children: enter"));
+
+      if Self.Children /= null
+        and then not Is_Empty (Self.Children.all)
+      then
+         PolyORB.Tasking.Mutexes.Enter (Self.Children_Lock);
+
+         pragma Debug (O ("Iterate over existing children"));
+         declare
+            It : Iterator := First (Self.Children.all);
+         begin
+            while not Last (It) loop
+               POA_Lists.Append (Children, Value (It));
+               Next (It);
+            end loop;
+         end;
+
+         PolyORB.Tasking.Mutexes.Leave (Self.Children_Lock);
+      end if;
+
+      pragma Debug (O ("Get_The_Children: end"));
+   end Get_The_Children;
+
+   ----------------------
    -- Copy_Obj_Adapter --
    ----------------------
 

@@ -254,6 +254,11 @@ package PolyORB.POA is
       Error   : in out PolyORB.Exceptions.Error_Container)
       is abstract;
 
+   procedure Get_The_Children
+     (Self     : access Obj_Adapter;
+      Children :    out POAList)
+      is abstract;
+
    -----------------------
    -- Utility functions --
    -----------------------

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#54 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#55 $
 
 with Ada.Exceptions;
 
@@ -56,7 +56,6 @@ with PolyORB.References.Binding;
 with PolyORB.Servants;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
-with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
@@ -383,37 +382,36 @@ package body PortableServer.POA is
      (Self : in Ref)
      return POAList
    is
-      use type PolyORB.POA_Types.POATable_Access;
-      use PolyORB.POA_Types.POA_HTables;
-      use PolyORB.POA_Types;
+      use PolyORB.POA_Types.POA_Lists;
       use PolyORB.Smart_Pointers;
       use IDL_Sequence_POA_Forward;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
 
       Result : POAList;
+
+      POA_List : PolyORB.POA_Types.POA_Lists.List;
+
    begin
       pragma Debug (O ("Get_The_Children: enter"));
 
-      if POA.Children /= null
-        and then not Is_Empty (POA.Children.all) then
-         PolyORB.Tasking.Mutexes.Enter (POA.Children_Lock);
+      PolyORB.POA.Get_The_Children (POA, POA_List);
 
-         pragma Debug (O ("Iterate over existing children"));
-         declare
-            It : Iterator := First (POA.Children.all);
-         begin
-            while not Last (It) loop
-               pragma Debug (O ("++"));
-               Append (Result,
-                       Convert.To_Forward
-                       (Create_Ref (Entity_Of (Value (It)))));
-               Next (It);
-            end loop;
-         end;
+      declare
+         It : Iterator := First (POA_List);
 
-         PolyORB.Tasking.Mutexes.Leave (POA.Children_Lock);
-      end if;
+      begin
+         while not Last (It) loop
+            pragma Debug (O ("++"));
+            Append (Result,
+                    Convert.To_Forward
+                    (Create_Ref
+                     (PolyORB.POA_Types.Entity_Of (Value (It).all))));
+            Next (It);
+         end loop;
+      end;
+
+      Deallocate (POA_List);
 
       pragma Debug (O ("Get_The_Children: end"));
       return Result;

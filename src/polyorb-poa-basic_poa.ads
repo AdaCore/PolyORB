@@ -129,6 +129,10 @@ package PolyORB.POA.Basic_POA is
       Manager :        ServantManager_Access;
       Error   : in out PolyORB.Exceptions.Error_Container);
 
+   procedure Get_The_Children
+     (Self     : access Basic_Obj_Adapter;
+      Children :    out POAList);
+
    --------------------------------------------------
    -- PolyORB Obj_Adapter interface implementation --
    --------------------------------------------------
