@@ -195,17 +195,25 @@ package body PolyORB.Smart_Pointers is
    -- Finalize --
    --------------
 
-   procedure Finalize
-     (The_Ref : in out Ref) is
+   procedure Finalize (The_Ref : in out Ref) is
+
+      function Return_Ref_External_Tag return String;
+      --  Encapsulate the call to Ref_External_Tag. This function
+      --  avoids run-time overhead if debug is turned off.
+
+      function Return_Ref_External_Tag return String is
+      begin
+         if Ref_External_Tag /= null then
+            return "Finalize: enter, The_Ref is a "
+              & Ref_External_Tag (The_Ref);
+
+         else
+            return "Finalize: enter, The_Ref is a <UNAVAILABLE>";
+         end if;
+      end Return_Ref_External_Tag;
+
    begin
-      if Ref_External_Tag /= null then
-         pragma Debug (O ("Finalize: enter, The_Ref is a "
-                          & Ref_External_Tag (The_Ref)));
-         null;
-      else
-         pragma Debug (O ("Finalize: enter, The_Ref is a <UNAVAILABLE>"));
-         null;
-      end if;
+      pragma Debug (O (Return_Ref_External_Tag));
 
       if The_Ref.A_Ref /= null then
          Dec_Usage (The_Ref.A_Ref);
