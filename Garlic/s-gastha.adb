@@ -45,10 +45,10 @@ package body System.Garlic.Storage_Handling is
    use type IC.int;
 
    function malloc (Size : IC.int) return Address;
-   pragma Import (C, malloc, "malloc");
+   pragma Import (C, malloc, "__gnat_malloc");
 
    procedure free (P : in Address);
-   pragma Import (C, free, "free");
+   pragma Import (C, free, "__gnat_free");
 
    Initialized : Boolean := False;
 
