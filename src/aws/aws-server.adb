@@ -118,7 +118,6 @@ package body AWS.Server is
       use PolyORB.Log.Internals;
    begin
       pragma Debug (O ("AWS.initialization: initializing PolyORB"));
-      O ("AWS.initialization: initializing PolyORB");
 
       if not Is_Initialized then
          Initialize_World;
