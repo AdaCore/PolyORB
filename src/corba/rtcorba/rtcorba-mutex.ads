@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -42,10 +42,12 @@ with CORBA.Object;
 
 package RTCORBA.Mutex is
 
-   type Ref is new CORBA.Object.Ref with null record;
+   type Local_Ref is new CORBA.Object.Ref with null record;
 
-   procedure Lock (Self : in Ref);
+   procedure Lock (Self : in Local_Ref);
 
-   procedure Unlock (Self : in Ref);
+   procedure Unlock (Self : in Local_Ref);
+
+   Repository_Id : constant Standard.String := "IDL:RTCORBA/Mutex:1.0";
 
 end RTCORBA.Mutex;

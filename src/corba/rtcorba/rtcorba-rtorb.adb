@@ -100,12 +100,12 @@ package body RTCORBA.RTORB is
    -- Create_Mutex --
    ------------------
 
-   function Create_Mutex (Self : in Ref) return RTCORBA.Mutex.Ref is
+   function Create_Mutex (Self : in Ref) return RTCORBA.Mutex.Local_Ref is
       pragma Unreferenced (Self);
 
       use PolyORB.Smart_Pointers;
 
-      Result : RTCORBA.Mutex.Ref;
+      Result : RTCORBA.Mutex.Local_Ref;
       Mutex_E : constant Entity_Ptr
         := new PolyORB.RTCORBA_P.Mutex.Mutex_Entity;
 
@@ -121,7 +121,10 @@ package body RTCORBA.RTORB is
    -- Destroy_Mutex --
    -------------------
 
-   procedure Destroy_Mutex (Self : in Ref; The_Mutex : in RTCORBA.Mutex.Ref) is
+   procedure Destroy_Mutex
+     (Self      : in Ref;
+      The_Mutex : in RTCORBA.Mutex.Local_Ref)
+   is
       pragma Unreferenced (Self);
 
       Mutex : PolyORB.Tasking.Mutexes.Mutex_Access

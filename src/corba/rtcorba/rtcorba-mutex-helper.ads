@@ -2,11 +2,16 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                        R T C O R B A . M U T E X                         --
+--                 R T C O R B A . M U T E X . H E L P E R                  --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
+--                                                                          --
+-- This specification is derived from the CORBA Specification, and adapted  --
+-- for use with PolyORB. The copyright notice above, and the license        --
+-- provisions that follow apply solely to the contents neither explicitely  --
+-- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,29 +38,18 @@
 
 --  $Id$
 
-with PolyORB.Tasking.Mutexes;
-with PolyORB.RTCORBA_P.Mutex;
+with CORBA.Object;
 
-package body RTCORBA.Mutex is
+package RTCORBA.Mutex.Helper is
 
-   ----------
-   -- Lock --
-   ----------
+   pragma Elaborate_Body;
 
-   procedure Lock (Self : in Local_Ref) is
-   begin
-      PolyORB.Tasking.Mutexes.Enter
-        (PolyORB.RTCORBA_P.Mutex.Mutex_Entity (Entity_Of (Self).all).Mutex);
-   end Lock;
+   function Unchecked_To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTCORBA.Mutex.Local_Ref;
 
-   ------------
-   -- Unlock --
-   ------------
+   function To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTCORBA.Mutex.Local_Ref;
 
-   procedure Unlock (Self : in Local_Ref) is
-   begin
-      PolyORB.Tasking.Mutexes.Leave
-        (PolyORB.RTCORBA_P.Mutex.Mutex_Entity (Entity_Of (Self).all).Mutex);
-   end Unlock;
-
-end RTCORBA.Mutex;
+end RTCORBA.Mutex.Helper;

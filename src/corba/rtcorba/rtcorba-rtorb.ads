@@ -52,10 +52,12 @@ package RTCORBA.RTORB is
 
    function To_Ref (Self : CORBA.Object.Ref'Class) return Ref;
 
-   function Create_Mutex (Self : in Ref) return RTCORBA.Mutex.Ref;
+   function Create_Mutex (Self : in Ref) return RTCORBA.Mutex.Local_Ref;
    --  XXX for now, there is no priority inheritance mechanism in use.
 
-   procedure Destroy_Mutex (Self : in Ref; The_Mutex : in RTCORBA.Mutex.Ref);
+   procedure Destroy_Mutex
+     (Self      : in Ref;
+      The_Mutex : in RTCORBA.Mutex.Local_Ref);
 
    InvalidThreadpool : exception;
 

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                        R T C O R B A . M U T E X                         --
+--                 R T C O R B A . M U T E X . H E L P E R                  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -33,29 +33,40 @@
 
 --  $Id$
 
-with PolyORB.Tasking.Mutexes;
-with PolyORB.RTCORBA_P.Mutex;
+package body RTCORBA.Mutex.Helper is
 
-package body RTCORBA.Mutex is
+   ----------------------------
+   -- Unchecked_To_Local_Ref --
+   ----------------------------
 
-   ----------
-   -- Lock --
-   ----------
+   function Unchecked_To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTCORBA.Mutex.Local_Ref
+   is
+      Result : RTCORBA.Mutex.Local_Ref;
 
-   procedure Lock (Self : in Local_Ref) is
    begin
-      PolyORB.Tasking.Mutexes.Enter
-        (PolyORB.RTCORBA_P.Mutex.Mutex_Entity (Entity_Of (Self).all).Mutex);
-   end Lock;
+      Set (Result, CORBA.Object.Object_Of (The_Ref));
 
-   ------------
-   -- Unlock --
-   ------------
+      return Result;
+   end Unchecked_To_Local_Ref;
 
-   procedure Unlock (Self : in Local_Ref) is
+   ------------------
+   -- To_Local_Ref --
+   ------------------
+
+   function To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTCORBA.Mutex.Local_Ref
+   is
    begin
-      PolyORB.Tasking.Mutexes.Leave
-        (PolyORB.RTCORBA_P.Mutex.Mutex_Entity (Entity_Of (Self).all).Mutex);
-   end Unlock;
+      if CORBA.Object.Is_Nil (The_Ref)
+        or else CORBA.Object.Is_A (The_Ref, Repository_Id)
+      then
+         return Unchecked_To_Local_Ref (The_Ref);
+      end if;
 
-end RTCORBA.Mutex;
+      CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+   end To_Local_Ref;
+
+end RTCORBA.Mutex.Helper;

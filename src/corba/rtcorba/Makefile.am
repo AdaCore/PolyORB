@@ -13,6 +13,7 @@ ADA_SPECS_WITH_BODY = \
 		rtcorba.ads \
 		rtcorba-current.ads \
 		rtcorba-mutex.ads \
+		rtcorba-mutex-helper.ads \
 		rtcorba-rtorb.ads \
 		rtcorba-prioritymapping.ads \
 		rtcorba-prioritymapping-direct.ads \
