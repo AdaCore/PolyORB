@@ -4,6 +4,7 @@ giop_dir=	giop
 moma_dir=	moma
 soap_dir=	soap
 srp_dir=	srp
+aws_dir=        aws
 web_common_dir= web_common
 
 SUBDIRS = . @PROTO_DIRS@ @APPLI_DIRS@ @LIBS_DIRS@
