@@ -111,6 +111,17 @@ package body Nutils is
       end case;
    end Is_A_Forward_Of;
 
+   ---------------------
+   -- Is_A_Non_Module --
+   ---------------------
+
+   function Is_A_Non_Module (E : Node_Id) return Boolean
+   is
+      K : constant Node_Kind := Kind (E);
+   begin
+      return K /= K_Module and then K /= K_Specification;
+   end Is_A_Non_Module;
+
    ----------------
    -- Is_A_Scope --
    ----------------
@@ -226,7 +237,8 @@ package body Nutils is
    function Make_Scoped_Name
      (Loc        : Location;
       Identifier : Node_Id;
-      Parent     : Node_Id)
+      Parent     : Node_Id;
+      Reference  : Node_Id)
      return Node_Id
    is
       N : constant Node_Id := New_Node (K_Scoped_Name, Loc);
@@ -235,6 +247,7 @@ package body Nutils is
       Set_Identifier (N, Identifier);
       pragma Assert (Kind (Identifier) = K_Identifier);
       Set_Parent     (N, Parent);
+      Set_Reference (N, Reference);
 
       return N;
    end Make_Scoped_Name;
@@ -244,17 +257,19 @@ package body Nutils is
    ---------------------
 
    function Make_Identifier
-     (Loc        : Location;
-      IDL_Name   : Name_Id;
-      Scope      : Node_Id)
+     (Loc      : Location;
+      IDL_Name : Name_Id;
+      Node     : Node_Id;
+      Scope    : Node_Id)
      return Node_Id
    is
       N : constant Node_Id := New_Node (K_Identifier, Loc);
    begin
-      Set_Name     (N, To_Lower (IDL_Name));
-      Set_IDL_Name (N, IDL_Name);
-      Set_Scope    (N, Scope);
-
+      Set_Name            (N, To_Lower (IDL_Name));
+      Set_IDL_Name        (N, IDL_Name);
+      Set_Node            (N, Node);
+      Set_Scope           (N, Scope);
+      Set_Potential_Scope (N, Scope);
       return N;
    end Make_Identifier;
 
