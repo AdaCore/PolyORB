@@ -316,6 +316,20 @@ procedure Test_Naming is
    Cmmd    : Command;
    Register_Service : Boolean := False;
 
+   procedure Bind_Self
+      (Self : CosNaming.NamingContext.Ref;
+       As   : String)
+   is
+      As_Name : Name := To_Name (new String'(As));
+   begin
+      Bind_Context (Self, As_Name, Self);
+   exception
+      when E : others =>
+         Ada.Text_IO.Put ("Warning: could not bind " & As & ": ");
+         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
+   end Bind_Self;
+
 begin
    Broca.Server_Tools.Initiate_Server;
    begin
@@ -418,19 +432,8 @@ begin
       end if;
    end if;
 
-   begin
-      Bind_Context (WDR, Here, WDR);
-   exception
-      when others =>
-         Ada.Text_IO.Put_Line ("Warning: could not bind .");
-   end;
-
-   begin
-      Bind_Context (WDR, Back, WDR);
-   exception
-      when others =>
-         Ada.Text_IO.Put_Line ("Warning: could not bind ..");
-   end;
+   Bind_Self (WDR, ".");
+   Bind_Self (WDR, "..");
 
    loop
       Argc := Count;
