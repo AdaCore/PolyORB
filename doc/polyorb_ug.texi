@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#12 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#13 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -1289,6 +1289,7 @@ transport stacks. PolyORB proposes three different instances.
 @c -------------------------------------------------------------------
 @node IIOP
 @subsection IIOP
+@cindex IIOP
 @c -------------------------------------------------------------------
 
 @noindent
@@ -1299,6 +1300,7 @@ supports the full semantics of CORBA requests.
 @c -------------------------------------------------------------------
 @node DIOP
 @subsection DIOP
+@cindex DIOP
 @c -------------------------------------------------------------------
 
 @noindent
@@ -1310,6 +1312,7 @@ requests.
 @c -------------------------------------------------------------------
 @node MIOP
 @subsection MIOP
+@cindex MIOP
 @c -------------------------------------------------------------------
 
 @noindent
@@ -1334,8 +1337,6 @@ Here is a summary of available parameters for each instance of GIOP.
 * DIOP Configuration Parameters::
 * MIOP Configuration Parameters::
 @end menu
-
-@i{parameter to set up endianess to be used for CDR ?}
 
 @c -------------------------------------------------------------------
 @node IIOP Configuration Parameters
