@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.11 $
---                                                                          --
---         Copyright (C) 1999, 2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,7 +43,7 @@ package body Broca.IOR is
 
    use Broca.Opaque;
 
-   --  FIXME: to do: null IOR
+   --  FIXME: TODO: null IOR
 
    type Char_Array is array (Broca.Opaque.Octet range <>)
      of Character;
@@ -116,15 +114,15 @@ package body Broca.IOR is
       Bytes : constant Broca.Opaque.Octet_Array
         := Marshalled_IOR (Marshalled_IOR'First + 4 ..
                            Marshalled_IOR'Last);
-      --  XXX FIXME: This is kludgey and inelegant.
-      --  Buffer containts a marshalled IOR,
-      --  i. e. a four-octet length indication
-      --  followed by an encapsulation. We only want
-      --  the encapsulation, so we strip the first
-      --  four bytes. Alternatively we could write:
-      --  IOR_Buffer_For_Reading : Buffer_Type;
-      --  Decapsulate (Marshalled_IOR, IOR_Buffer_For_Reading)
-      --  Bytes : Encapsulation := Unmarshall (IOR_Buffer...).
+      --  FIXME: This is kludgey and inelegant.
+      --    Buffer containts a marshalled IOR,
+      --    i. e. a four-octet length indication
+      --    followed by an encapsulation. We only want
+      --    the encapsulation, so we strip the first
+      --    four bytes. Alternatively we could write:
+      --    IOR_Buffer_For_Reading : Buffer_Type;
+      --    Decapsulate (Marshalled_IOR, IOR_Buffer_For_Reading)
+      --    Bytes : Encapsulation := Unmarshall (IOR_Buffer...).
 
       Length : constant Index_Type := Bytes'Length;
       IOR    : String (1 .. 4 + Natural (Length) * 2);

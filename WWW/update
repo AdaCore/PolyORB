@@ -2,4 +2,4 @@
 #
 
 umask 022
-cvs update
+p4 sync

@@ -25,7 +25,6 @@ interface all_types {
 
   void testException (in long arg) raises (my_exception);
 
-
   // Unions
   //-------
   union myUnion switch (long) {
@@ -48,12 +47,10 @@ interface all_types {
   // Structs
   //--------
   struct simple_struct {
-      long a[10];
+      long a;
       string s;
   };
-
   simple_struct echoStruct (in simple_struct arg);
-
 
   // Sequences
   //----------
@@ -61,8 +58,16 @@ interface all_types {
 
   U_sequence echoUsequence (in U_sequence arg);
 
+#if 0
+  struct array_struct {
+      long a[10];
+      string s;
+  };
+  array_struct echoArrayStruct (in array_struct arg);
+
   // Attributes
   //-----------
   readonly attribute long Counter;
   attribute Color myColor;
+#endif
 };

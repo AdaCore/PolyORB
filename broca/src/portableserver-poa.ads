@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
---                                                                          --
---         Copyright (C) 1999, 2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 with CORBA.Object;
 with PortableServer.POAManager;
 with PortableServer.AdapterActivator;

@@ -82,20 +82,20 @@ package all_types is
       arg : in Color)
       return Color;
 
-   my_exception : exception;
-
    type my_exception_Members is new CORBA.IDL_Exception_Members with
    record
       info : CORBA.Long;
    end record;
 
+   my_exception : exception;
+
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out my_exception_Members);
 
-   --  procedure testException
-   --    (Self : in Ref;
-   --     arg : in CORBA.Long);
+   procedure testException
+      (Self : in Ref;
+       arg : in CORBA.Long);
 
    type myUnion (Switch : CORBA.Long := CORBA.Long'First) is
    record

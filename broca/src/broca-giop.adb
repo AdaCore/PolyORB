@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.22 $
---                                                                          --
---         Copyright (C) 1999, 2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +36,6 @@ with Broca.CDR; use Broca.CDR;
 with Broca.Exceptions;
 --  with Broca.Flags;
 with Broca.Sequences;
-with Broca.ORB;
 with Broca.Opaque; use Broca.Opaque;
 with Broca.Buffers;      use Broca.Buffers;
 
@@ -439,21 +436,22 @@ package body Broca.GIOP is
 
             when Broca.GIOP.Location_Forward =>
                declare
-                  IOR_Octets : aliased Encapsulation
-                    := Unmarshall (Message_Body_Buffer'Access);
-                  IOR_Buffer : aliased Buffer_Type;
                   New_Ref : CORBA.Object.Ref;
                begin
-                  --  XXX Check that we have an IOR
-                  --      marshalled with LENGTH at
-                  --      this position in Buffer
-                  Decapsulate (IOR_Octets'Access, IOR_Buffer'Access);
-                  Broca.ORB.IOR_To_Object (IOR_Buffer'Access, New_Ref);
+                  pragma Debug
+                    (O ("Send_Request_Send : Received Location_Forward"));
+                  CORBA.Object.Unmarshall_Reference
+                    (Message_Body_Buffer'Access,
+                     New_Ref);
                   --  FIXME: check type, use a lock ?
                   Target.Profiles :=
                     Object.Object_Ptr (CORBA.Object.Get (New_Ref)).Profiles;
                end;
                Result := Sr_Forward;
+               Release (Handler.Buffer);
+               --  The caller is going to retry the call
+               --  with the new location, so we have to
+               --  supply him with a virgin buffer.
                return;
 
             when Broca.GIOP.User_Exception =>

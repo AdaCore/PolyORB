@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.8 $
---                                                                          --
---         Copyright (C) 1999, 2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -52,21 +50,41 @@ package PortableServer is
    --  operations on Servant_Base that meet the required semantics.
    type Servant_Base is new Ada.Finalization.Controlled with private;
 
+   type Servant is access all Servant_Base'Class;
+
    --  Get the type_id.
-   function Get_Type_Id (Obj : Servant_Base) return CORBA.RepositoryId;
+   function Get_Type_Id (Obj : Servant) return CORBA.RepositoryId;
 
    --  Call an operation.
    --  Only standard exceptions (defined in module CORBA) can be caught
    --  outside of GIOP_DISPATCH, ie user defined exception must be marshalled.
    procedure GIOP_Dispatch
-     (Obj : access Servant_Base;
+     (Obj : Servant;
+      Operation : String;
+      Request_Id : CORBA.Unsigned_Long;
+      Response_Expected : CORBA.Boolean;
+      Request_Buffer : access Broca.Buffers.Buffer_Type;
+      Reply_Buffer   : access Broca.Buffers.Buffer_Type);
+
+   --  The data to be provided by the skeleton of an interface.
+
+   type GIOP_Dispatcher is access procedure
+     (Obj : Servant;
       Operation : String;
       Request_Id : CORBA.Unsigned_Long;
       Reponse_Expected : CORBA.Boolean;
       Request_Buffer : access Broca.Buffers.Buffer_Type;
       Reply_Buffer   : access Broca.Buffers.Buffer_Type);
+   type Servant_Class_Predicate is access function
+     (Obj : Servant)
+     return Boolean;
 
-   type Servant is access all Servant_Base'Class;
+   procedure Register_Skeleton
+     (Id : CORBA.RepositoryId;
+      Is_A : Servant_Class_Predicate;
+      Dispatcher : GIOP_Dispatcher);
+   procedure Unregister_Skeleton
+     (Id : CORBA.RepositoryId);
 
    --  FIXME: how to implement this ?
    --  function "=" (Left, Right : Servant) return Boolean;
@@ -128,4 +146,5 @@ package PortableServer is
 private
    type Servant_Base is new Ada.Finalization.Controlled with
      null record;
+
 end PortableServer;

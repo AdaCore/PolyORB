@@ -1,0 +1,13 @@
+To install AdaBroker, execute:
+
+  % ./configure
+  % make              (or gmake if your make is not GNU make)
+  % make install      (ditto)
+
+This will install files under /usr/local/bin, /usr/local/lib and
+/usr/local/lib/adabroker.
+
+If you want to choose another prefix than /usr/local, give configure a
+--prefix=whateveryouwant argument.
+
+Note: at this time, you MUST use GNU make to compile this software.

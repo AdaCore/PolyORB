@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
---                                                                          --
---         Copyright (C) 1999, 2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -1290,7 +1288,10 @@ package body CORBA.Sequences.Unbounded is
       Temp : Element_Array_Access;
    begin
       Temp := new Element_Array (1 .. Object.Length);
-      Temp (1 .. Object.Length) := Object.Content (1 .. Object.Length);
+      if Object.Length /= 0 then
+         pragma Assert (Object.Content /= null);
+         Temp (1 .. Object.Length) := Object.Content (1 .. Object.Length);
+      end if;
       Object.Content := Temp;
    end Adjust;
 

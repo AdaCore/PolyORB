@@ -1,3 +1,2 @@
-const string "#include OK"
-
-const char '\8';
+"#include OK"
+'\8'

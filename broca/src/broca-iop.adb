@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.10 $
---                                                                          --
---         Copyright (C) 1999, 2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -72,7 +70,7 @@ package body Broca.IOP is
                        & To_Standard_String (Type_Id)
                        & " (" & N_Profiles'Img & " profiles)."));
 
-      Profiles := new Profile_Ptr_Array (1 .. N_Profiles);
+      Profiles := new Profile_Ptr_Array'(1 .. N_Profiles => null);
 
       for N in Profiles'Range loop
          declare

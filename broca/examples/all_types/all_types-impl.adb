@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.16 $
+--                            $Revision: 1.17 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -26,9 +26,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with all_types.Skel;
 with Broca.Exceptions; use Broca.Exceptions;
+pragma Elaborate (all_types.Skel);
+pragma Warnings (Off, all_types.Skel);
 
 package body all_types.Impl is
+
+   type IDL_Exception_Members_Ptr is
+     access all CORBA.IDL_Exception_Members'Class;
 
    function echoBoolean
      (Self : access Object;
@@ -122,8 +128,8 @@ package body all_types.Impl is
 
    function echoRef
      (Self : access Object;
-      arg : in All_Types.Ref)
-      return All_Types.Ref
+      arg : in all_types.Ref)
+      return all_types.Ref
    is
    begin
       return arg;
@@ -139,12 +145,12 @@ package body all_types.Impl is
 
    function echoArray
      (Self : access Object;
-      Arg : in Simple_Array)
-      return Simple_Array
+      Arg : in simple_array)
+      return simple_array
    is
    begin
       return Arg;
-   end EchoArray;
+   end echoArray;
 
    function echoMatrix
      (Self : access Object;
@@ -160,17 +166,17 @@ package body all_types.Impl is
       arg : in CORBA.Long)
    is
       Members : IDL_Exception_Members_Ptr
-         := new My_Exception_Members'(Info => arg);
+         := new My_Exception_Members'(info => arg);
       --  FIXME: introducing potential memory leak in server.
    begin
       Broca.Exceptions.User_Raise_Exception
-        (My_Exception'Identity, Members);
+        (My_Exception'Identity, Members.all);
    end testException;
 
    function echoStruct
      (Self : access Object;
-      arg  : in Simple_Struct)
-      return Simple_Struct is
+      arg  : in simple_struct)
+      return simple_struct is
    begin
       return arg;
    end echoStruct;
@@ -178,10 +184,10 @@ package body all_types.Impl is
    function echoUnion
      (Self : access Object;
       arg : in myUnion)
-     return MyUnion is
+     return myUnion is
    begin
-      return Arg;
-   end EchoUnion;
+      return arg;
+   end echoUnion;
 
    function echoUsequence
      (Self : access Object;
@@ -189,15 +195,15 @@ package body all_types.Impl is
      return U_Sequence
    is
    begin
-      return Arg;
-   end EchoUsequence;
+      return arg;
+   end echoUsequence;
 
    procedure Set_MyColor
      (Self : access Object;
       arg : in Color)
    is
    begin
-      Self.Attr_My_Color := Arg;
+      Self.Attr_My_Color := arg;
    end Set_MyColor;
 
    function Get_MyColor
@@ -255,13 +261,13 @@ package body all_types.Impl is
 --
 --   function InverseStruct
 --     (Self : access Object;
---      Arg : in Manu_Struct)
+--      arg : in Manu_Struct)
 --      return Manu_Struct
 --   is
 --      Res : Manu_Struct;
 --   begin
---      Res.A := not Arg.A;
---      Res.B := - Arg.B;
+--      Res.A := not arg.A;
+--      Res.B := - arg.B;
 --      return Res;
 --   end InverseStruct;
 --
@@ -381,5 +387,4 @@ package body all_types.Impl is
 --      return Result;
 --   end get_myself;
 --
-
 end all_types.Impl;

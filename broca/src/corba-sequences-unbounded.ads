@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.3 $
---                                                                          --
---         Copyright (C) 1999, 2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -232,7 +230,7 @@ private
    type Sequence is new Ada.Finalization.Controlled with
       record
          Length  : Natural := 0;
-         Content : Element_Array_Access;
+         Content : Element_Array_Access := null;
       end record;
 
    procedure Initialize (Object : in out Sequence);

@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.22 $
---                                                                          --
---         Copyright (C) 1999, 2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -82,8 +80,6 @@ package body Broca.IIOP is
      (Buffer   : access Buffer_Type;
       Profile  : out Profile_Ptr)
    is
-      --  Old_Endian   : Boolean := Get_Endianess (Buffer);
-      --  New_Endian   : Boolean;
       Minor        : CORBA.Octet;
       Major        : CORBA.Octet;
       IIOP_Profile : Profile_IIOP_Ptr := new Profile_IIOP_Type;
@@ -92,8 +88,6 @@ package body Broca.IIOP is
         := Unmarshall (Buffer);
       Profile_Body_Buffer : aliased Buffer_Type;
    begin
-      --  Unmarshall (Buffer, New_Endian);
-      --  Set_Endianess (Buffer, New_Endian);
       Decapsulate (Profile_Body'Access, Profile_Body_Buffer'Access);
 
       Major := Unmarshall (Profile_Body_Buffer'Access);
@@ -102,16 +96,14 @@ package body Broca.IIOP is
       IIOP_Profile.Host := Unmarshall (Profile_Body_Buffer'Access);
       IIOP_Profile.Port := Unmarshall (Profile_Body_Buffer'Access);
       IIOP_Profile.Network_Port := Port_To_Network_Port (IIOP_Profile.Port);
-      --  Align_Size (Profile_Body_Buffer'Access, UL_Size);
       IIOP_Profile.Object_Key := Unmarshall (Profile_Body_Buffer'Access);
-      --  Set_Endianess (Profile_Body_Buffer'Access, Old_Endian);
 
       Profile :=  Profile_Ptr (IIOP_Profile);
    end Unmarshall_IIOP_Profile_Body;
 
-   -------------------------
+   --------------------------------
    -- Marshall_IIOP_Profile_Body --
-   -------------------------
+   --------------------------------
 
    procedure Marshall_IIOP_Profile_Body
      (IOR     : access Buffer_Type;
@@ -179,10 +171,10 @@ package body Broca.IIOP is
    -- Create_Profile --
    --------------------
 
-   --  XXX This contains duplicate functionality
-   --  XXX WRT Unmarshall_IIOP_Profile_Body.
-   --  ==> This must be rewritten in terms of
-   --  Unmarshall_IIOP_Profile_Body.
+   --  FIXME: This contains duplicate functionality
+   --    w.r.t. Unmarshall_IIOP_Profile_Body.
+   --    ==> This must be rewritten in terms of
+   --        Unmarshall_IIOP_Profile_Body.
 
    procedure Create_Profile
      (Buffer : access Buffer_Type;
@@ -225,8 +217,7 @@ package body Broca.IIOP is
       if Res.IIOP_Version.Minor = 1 then
          Nbr_Seq := Unmarshall (Profile_Body_Buffer'Access);
          if Nbr_Seq /= 0 then
-            --  FIXME:
-            --  Components are not yet handled.
+            --  FIXME: Multiple components are not yet handled.
             Broca.Exceptions.Raise_Bad_Param;
          end if;
       end if;
@@ -317,13 +308,6 @@ package body Broca.IIOP is
       --  Read (Buffer, Bytes);
       pragma Debug (O ("Dump outgoing buffer"));
       Broca.Buffers.Show (Buffer.all);
-      --  Result := C_Send
-      --    (Connection.Strand.Fd,
-      --     Bytes'Address,
-      --     Interfaces.C.int (Length), 0);
-      --  if Result /= Interfaces.C.int (Length) then
-      --   Broca.Exceptions.Raise_Comm_Failure;
-      --  end if;
       begin
          Broca.Buffers.IO_Operations.Write_To_FD
            (Connection.Strand.Fd, Buffer);
@@ -337,40 +321,6 @@ package body Broca.IIOP is
    -------------
    -- Receive --
    -------------
-
---     procedure Receive
---       (Connection : access Strand_Connection_Type;
---        Buffer     : access Buffer_Type)
---     is
---        Length : constant Buffer_Index_Type := Size_Left (Buffer);
---     begin
---        if Length = 0 then
---           pragma Debug (O ("Null length in Receive"));
---
---           return;
---        end if;
---
---        declare
---           use Sockets.Thin;
---           use Interfaces.C;
---
---           Bytes  : Buffer_Type (0 .. Length - 1);
---           Result : Interfaces.C.int;
---        begin
---           Result := C_Recv
---             (Connection.Strand.Fd,
---              Bytes'Address,
---              Interfaces.C.int (Length), 0);
---
---           if Result /=  Interfaces.C.int (Length) then
---              Broca.Exceptions.Raise_Comm_Failure;
---           end if;
---           Write (Buffer, Bytes);
---
---           pragma Debug (O ("Dump incoming buffer of length" & Length'Img));
---           Broca.Buffers.Dump (Bytes);
---        end;
---     end Receive;
 
    function Receive
      (Connection : access Strand_Connection_Type;
@@ -404,9 +354,6 @@ package body Broca.IIOP is
             return Result;
          end if;
 
-         --  XXX
-         --  pragma Debug (O ("Dump incoming buffer of length" & Length'Img));
-         --  Broca.Buffers.Show (Bytes);
       end;
    end Receive;
 
@@ -417,8 +364,9 @@ package body Broca.IIOP is
 
    --  Find a free connection (or create a new one) for a message to an
    --  OBJECT via PROFILE.
-   function Find_Connection (Profile : access Profile_IIOP_Type)
-                             return Connection_Ptr
+   function Find_Connection
+     (Profile : access Profile_IIOP_Type)
+     return Connection_Ptr
    is
       use Interfaces.C;
       Strand : Strand_Ptr;

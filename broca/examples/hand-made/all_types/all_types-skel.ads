@@ -66,9 +66,9 @@ package all_types.Skel is
       arg : in Color)
       return Color is abstract;
 
-   --  procedure testException
-   --    (Self : access Object;
-   --     arg : in CORBA.Long) is abstract;
+   procedure testException
+     (Self : access Object;
+      arg : in CORBA.Long) is abstract;
 
    function echoUnion
      (Self : access Object;

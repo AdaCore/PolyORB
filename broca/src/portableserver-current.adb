@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
---                                                                          --
---         Copyright (C) 1999, 2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,14 +45,16 @@ package body PortableServer.Current is
    function get_POA (Self : Ref)
      return PortableServer.POA_Forward.Ref is
    begin
-      --  XXX should check validity and possibly raise NoContext;
+      --  FIXME: Should check validity and possibly
+      --    raise NoContext;
       return Broca.Task_Attributes.Current_POA;
    end get_POA;
 
    function get_object_id (Self : Ref)
      return ObjectId is
    begin
-      --  XXX should check validity and possibly raise NoContext;
+      --  FIXME: Should check validity and possibly
+      --    raise NoContext;
       return Broca.Task_Attributes.Current_Object;
    end get_object_id;
 

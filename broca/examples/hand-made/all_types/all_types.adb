@@ -500,56 +500,56 @@ package body all_types is
       Broca.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
---     testException_Operation : constant CORBA.Identifier :=
---       CORBA.To_CORBA_String ("testException");
---
---     procedure testException
---       (Self : in Ref;
---        arg : in CORBA.Long)
---     is
---        use Broca.CDR;
---        use Broca.Refs;
---        Handler : Broca.GIOP.Request_Handler;
---        Sr_Res : Broca.GIOP.Send_Request_Result_Type;
---     begin
---        loop
---           Broca.GIOP.Send_Request_Marshall
---             (Handler, Broca.Object.Object_Ptr (Get (Self)),
---              True, testException_Operation);
---           Marshall (Handler.Buffer'Access, arg);
---           Broca.GIOP.Send_Request_Send
---             (Handler, Broca.Object.Object_Ptr (Get (Self)), True, Sr_Res);
---           case Sr_Res is
---              when Broca.GIOP.Sr_Reply =>
---                 --  Inout and out parameters.
---                 return;
---              when Broca.GIOP.Sr_No_Reply =>
---                 raise Program_Error;
---              when Broca.GIOP.Sr_User_Exception =>
---                 declare
---                    Exception_Repository_Id : CORBA.String;
---                 begin
---                    Exception_Repository_Id
---                      := Unmarshall (Handler.Buffer'Access);
---                    if Exception_Repository_Id
---                      = "IDL:all_types/my_exception:1.0" then
---                       declare
---                          use all_types.Stream;
---                          Members : all_types.my_exception_Members;
---                       begin
---                          Members := Unmarshall (Handler.Buffer'Access);
---                          User_Raise_Exception
---                            (all_types.my_exception'Identity,
---                             new all_types.my_exception_Members'(Members));
---                       end;
---                    end if;
---                 end;
---                 raise Program_Error;
---              when Broca.GIOP.Sr_Forward =>
---                 null;
---           end case;
---        end loop;
---     end testException;
+   testException_Operation : constant CORBA.Identifier :=
+     CORBA.To_CORBA_String ("testException");
+
+   procedure testException
+     (Self : in Ref;
+      arg : in CORBA.Long)
+   is
+      use Broca.CDR;
+      use Broca.Refs;
+      Handler : Broca.GIOP.Request_Handler;
+      Sr_Res : Broca.GIOP.Send_Request_Result_Type;
+   begin
+      loop
+         Broca.GIOP.Send_Request_Marshall
+           (Handler, Broca.Object.Object_Ptr (Get (Self)),
+            True, testException_Operation);
+         Marshall (Handler.Buffer'Access, arg);
+         Broca.GIOP.Send_Request_Send
+           (Handler, Broca.Object.Object_Ptr (Get (Self)), True, Sr_Res);
+         case Sr_Res is
+            when Broca.GIOP.Sr_Reply =>
+               --  Inout and out parameters.
+               return;
+            when Broca.GIOP.Sr_No_Reply =>
+               raise Program_Error;
+            when Broca.GIOP.Sr_User_Exception =>
+               declare
+                  Exception_Repository_Id : CORBA.String;
+               begin
+                  Exception_Repository_Id
+                    := Unmarshall (Handler.Buffer'Access);
+                  if Exception_Repository_Id
+                    = "IDL:all_types/my_exception:1.0" then
+                     declare
+                        use all_types.Stream;
+                        Members : all_types.my_exception_Members;
+                     begin
+                        Members := Unmarshall (Handler.Buffer'Access);
+                        User_Raise_Exception
+                          (all_types.my_exception'Identity,
+                           Members);
+                     end;
+                  end if;
+               end;
+               raise Program_Error;
+            when Broca.GIOP.Sr_Forward =>
+               null;
+         end case;
+      end loop;
+   end testException;
 
    echoUnion_Operation : constant CORBA.Identifier :=
      CORBA.To_CORBA_String ("echoUnion");

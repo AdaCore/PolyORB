@@ -1,12 +1,11 @@
 AC_INIT(src/sockets.ads)
 AM_CONFIG_HEADER(src/config.h)
-AC_CONFIG_AUX_DIR(support)
+AC_CONFIG_AUX_DIR(../support)
 #
 # Package description
 #
 AC_CANONICAL_SYSTEM
-# $Format: "AM_INIT_AUTOMAKE([$ReleaseName$],[$ReleaseVersion$])"$
-AM_INIT_AUTOMAKE([adasockets],[0.1.6])
+AM_INIT_AUTOMAKE([adasockets],[0.1.7-pre])
 #
 AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
 AC_PROG_CC
@@ -19,8 +18,8 @@ AC_PROG_INSTALL
 #
 AC_ARG_ENABLE(debug,
 [  --enable-debug          Turn on debugging options],
-[ADAFLAGS="-g -O2 -Wall -gnatag"],
-[ADAFLAGS="-O2 -gnatpng"])
+[ADAFLAGS="-g -O2 -Wall -gnaty3bcefhikmt -gnatfaog -gnatwu -gnatwe"],
+[ADAFLAGS="-g -O2"])
 AC_SUBST(ADAFLAGS)
 #
 # Check that GNAT is recent enough
@@ -56,6 +55,4 @@ AC_CHECK_HEADERS([sys/conf.h])
 AC_OUTPUT([Makefile
            src/Makefile
            src/sockets-link.ads
-           src/adasockets-config
-           man/Makefile
-           examples/Makefile])
+           src/adasockets-config])

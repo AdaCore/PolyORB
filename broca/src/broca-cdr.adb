@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.7 $
---                                                                          --
---         Copyright (C) 1999, 2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,6 +38,7 @@ with Broca.Debug;
 with Broca.Opaque; use Broca.Opaque;
 
 package body Broca.CDR is
+
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.cdr");
    procedure O is new Broca.Debug.Output (Flag);
 
@@ -239,7 +238,7 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data : in CORBA.String)
    is
-      Equiv : constant String := CORBA.To_String (Data) & Ascii.Nul;
+      Equiv : constant String := CORBA.To_String (Data) & ASCII.Nul;
    begin
       Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop

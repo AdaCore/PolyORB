@@ -1,7 +1,13 @@
 AdaBroker news
 --------------
 
-$Revision: 1.2 $
+New features in version 1.0pre1
+===============================
+
+A new IDL to Ada compiler, idlac, written entirely
+in Ada 95. No more C++ code, and no need for the
+Sun IDL front-end. The build process is now
+automated using GNU Automake/Autoconf.
 
 New features in version 0.9
 ===========================
@@ -10,9 +16,5 @@ The omniORB library has been completely replaced by
 an ORB written in Ada, Broca. The only remaining
 omniORB part in AdaBroker is the IDL compiler
 front-end (from Sun) and the target-independent
-layer of the back-end (from omniORB). We intend
+layer of the back-end (from omniORB).
 
-Bugs fixed in version 0.9
-=========================
-
-Lots. (Quite some introduced, too).

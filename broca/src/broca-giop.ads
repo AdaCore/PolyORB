@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.12 $
---                                                                          --
---         Copyright (C) 1999, 2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
+pragma Elaborate_All (CORBA);
 with CORBA.Object;
 with Broca.Object;
 with Broca.Opaque;
@@ -132,10 +131,6 @@ package Broca.GIOP is
       end record;
 
    --  Send a request.
-   --  procedure Send_Request_Size
-   --    (Handler   : in out Request_Handler;
-   --     Target    : in Object.Object_Ptr;
-   --     Operation : in CORBA.Identifier);
 
    procedure Send_Request_Marshall
      (Handler           : in out Request_Handler;

@@ -80,27 +80,13 @@ SED = @SED@
 SOCKETNEEDED = @SOCKETNEEDED@
 VERSION = @VERSION@
 
-privatelibdir = $(libdir)/adasockets
-
-bin_SCRIPTS = adasockets-config
-
-SOURCES =  	sockets-constants.ads 	sockets-link.ads 	sockets-multicast.ads 	sockets-multicast.adb 	sockets-naming.ads 	sockets-naming.adb 	sockets-thin.ads 	sockets-utils.ads 	sockets-utils.adb 	sockets.ads 	sockets.adb
-
-
-OBJECTS =  	sockets-constants.o 	sockets-link.o 	sockets-multicast.o 	sockets-naming.o 	sockets-thin.o 	sockets-utils.o 	sockets.o
-
-
-ALIS = $(OBJECTS:.o=.ali)
-
-CLEANFILES = *.o *.ali
-DISTCLEANFILES = b_split.c split constants_nodef
-mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
+CLEANFILES = *.o *.ali sockets-constants.ads
+DISTCLEANFILES = b_split.c b~split.ad? split constants_nodef
+mkinstalldirs = $(SHELL) $(top_srcdir)/../support/mkinstalldirs
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =  sockets-link.ads adasockets-config
-SCRIPTS =  $(bin_SCRIPTS)
-
-DIST_COMMON =  ./stamp-h.in ChangeLog Makefile.am Makefile.in \
-adasockets-config.in config.h.in sockets-link.ads.in
+DIST_COMMON =  ./stamp-h.in Makefile.am Makefile.in adasockets-config.in \
+config.h.in sockets-link.ads.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -148,25 +134,6 @@ sockets-link.ads: $(top_builddir)/config.status sockets-link.ads.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 adasockets-config: $(top_builddir)/config.status adasockets-config.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
-
-install-binSCRIPTS: $(bin_SCRIPTS)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(bindir)
-	@list='$(bin_SCRIPTS)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(INSTALL_SCRIPT) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
-	    $(INSTALL_SCRIPT) $$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
-	  else if test -f $(srcdir)/$$p; then \
-	    echo " $(INSTALL_SCRIPT) $(srcdir)/$$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`"; \
-	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
-	  else :; fi; fi; \
-	done
-
-uninstall-binSCRIPTS:
-	@$(NORMAL_UNINSTALL)
-	list='$(bin_SCRIPTS)'; for p in $$list; do \
-	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed '$(transform)'`; \
-	done
 tags: TAGS
 TAGS:
 
@@ -184,7 +151,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    cp -pr $$/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
@@ -202,23 +169,22 @@ installcheck: installcheck-am
 all-recursive-am: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
-install-exec-am: install-binSCRIPTS
+install-exec-am:
 install-exec: install-exec-am
 
-install-data-am: install-data-local
+install-data-am:
 install-data: install-data-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-am
-uninstall-am: uninstall-binSCRIPTS uninstall-local
+uninstall-am:
 uninstall: uninstall-am
-all-am: Makefile $(SCRIPTS) config.h
+all-am: Makefile config.h
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
 installdirs:
-	$(mkinstalldirs)  $(DESTDIR)$(bindir)
 
 
 mostlyclean-generic:
@@ -252,10 +218,9 @@ maintainer-clean-am:  maintainer-clean-hdr maintainer-clean-generic \
 maintainer-clean: maintainer-clean-am
 
 .PHONY: mostlyclean-hdr distclean-hdr clean-hdr maintainer-clean-hdr \
-uninstall-binSCRIPTS install-binSCRIPTS tags distdir info-am info \
-dvi-am dvi check check-am installcheck-am installcheck all-recursive-am \
-install-exec-am install-exec install-data-local install-data-am \
-install-data install-am install uninstall-local uninstall-am uninstall \
+tags distdir info-am info dvi-am dvi check check-am installcheck-am \
+installcheck all-recursive-am install-exec-am install-exec \
+install-data-am install-data install-am install uninstall-am uninstall \
 all-redirect all-am all installdirs mostlyclean-generic \
 distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
@@ -269,46 +234,6 @@ sockets-constants.ads: $(srcdir)/constants.sh split constants_nodef
 
 split: $(srcdir)/split.adb
 	$(GNATMAKE) -g -O2 $(srcdir)/split.adb
-
-%.o %.ali: %.adb %.ads
-	$(ADA) -c $(ADAFLAGS) $<
-
-%.o %.ali: %.adb
-	$(ADA) -c $(ADAFLAGS) $<
-
-%.o %.ali: %.ads
-	$(ADA) -c $(ADAFLAGS) $<
-
-all: $(OBJECTS) $(ALI)
-
-install-data-local: all
-	rm -rf $(DESTDIR)$(privatelibdir)
-	$(mkinstalldirs) $(DESTDIR)$(privatelibdir)
-	cp -p $(OBJECTS) $(ALIS) $(DESTDIR)$(privatelibdir)
-	for i in $(SOURCES); do \
-	  if test -f $$i; then \
-	    cp -p $$i $(DESTDIR)$(privatelibdir); \
-	  else \
-	    cp -p $(srcdir)/$$i $(DESTDIR)$(privatelibdir); \
-	  fi \
-	done
-
-uninstall-local:
-	rm -rf $(DESTDIR)$(privatelibdir)
-
-depend:
-	$(top_srcdir)/utils/mkdep
-	$(MAKE) Makefile
-
-### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
-sockets-constants.o: sockets.ads sockets-constants.ads
-sockets-link.o: sockets.ads sockets-link.ads
-sockets-multicast.o: sockets.ads sockets.adb sockets-constants.ads sockets-link.ads sockets-multicast.ads sockets-multicast.adb sockets-naming.ads sockets-thin.ads sockets-utils.ads
-sockets-naming.o: sockets.ads sockets-constants.ads sockets-naming.ads sockets-naming.adb sockets-thin.ads
-sockets-thin.o: sockets.ads sockets-thin.ads
-sockets-utils.o: sockets.ads sockets-utils.ads sockets-utils.adb
-sockets.o: sockets.ads sockets.adb sockets-constants.ads sockets-link.ads sockets-naming.ads sockets-thin.ads sockets-utils.ads
-split.o: split.adb
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.14 $
---                                                                          --
---         Copyright (C) 1999, 2000 ENST Paris University, France.          --
+--          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
 -- AdaBroker is free software; you  can  redistribute  it and/or modify it  --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -88,6 +86,8 @@ package body Broca.Buffers is
       Release (Buffer.Contents);
       Release (Buffer.Storage'Access);
       Buffer.CDR_Position := 0;
+      Buffer.Initial_CDR_Position := 0;
+      Buffer.Endianness := Host_Order;
    end Release;
 
    procedure Initialize_Buffer
@@ -267,7 +267,7 @@ package body Broca.Buffers is
       --  Advance the CDR position to the new alignment.
 
       pragma Assert (Buffer.CDR_Position mod Alignment = 0);
-      --  XXX The buffer should then be aligned.
+      --  Post-condition: the buffer is aligned as requested.
    end Align;
 
    --  Inserting data into a buffer
@@ -738,8 +738,9 @@ package body Broca.Buffers is
                Vecs (Index)'Address,
                C_int (Vecs'Last - Index + 1));
 
-            --  XXX Should improve error reporting.
+            --  FIXME: Should improve error reporting.
             --  This is initially from sockets.adb.
+            --  Thomas.
             if Count < 0 then
                --  Raise_With_Message ("Send failed");
                raise Write_Error;
