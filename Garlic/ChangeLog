@@ -1,3 +1,9 @@
+1998-10-06  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gartcp.adb: Open the listening socket in the initialization
+	routine to fix a race condition that causes intermittent failures
+	with the Ada starter.
+
 1998-10-05  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-gardeb.adb: Fix bogus assertion that caused programs to raise

@@ -64,14 +64,14 @@ package System.Garlic.Units is
          Requests  : Request_List;
       end record;
 
-   Null_Unit : constant Unit_Info
-     := (Next_Unit => Null_Unit_Id,
-         Partition => Types.Null_PID,
-         Receiver  => 0,
-         Version   => null,
-         Status    => Unknown,
-         Pending   => False,
-         Requests  => (others => False));
+   Null_Unit : constant Unit_Info :=
+     (Next_Unit => Null_Unit_Id,
+      Partition => Types.Null_PID,
+      Receiver  => 0,
+      Version   => null,
+      Status    => Unknown,
+      Pending   => False,
+      Requests  => (others => False));
 
    --  Next_Unit   : units on the same partition are linked together
    --  Partition   : unit partition id

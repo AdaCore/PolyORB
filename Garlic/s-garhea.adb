@@ -389,7 +389,7 @@ package body System.Garlic.Heart is
               To_Location (Boot_Partition.Protocol,
                            Get_Info (Boot_Partition.Protocol));
 
-            --  This is step 1.
+            --  This is step 1
 
             declare
                Query : aliased Params_Stream_Type (0);
@@ -399,7 +399,7 @@ package body System.Garlic.Heart is
                Send (Boot_PID, Partition_Operation, Query'Access);
             end;
 
-            --  This is step 5.
+            --  This is step 5
 
             Self_PID_Barrier.Wait;
 

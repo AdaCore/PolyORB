@@ -184,8 +184,6 @@ package body System.Garlic.TCP is
    begin
       pragma Debug (D (D_Debug, "Task Accept Handler is running"));
 
-      Do_Listen;
-
       --  Infinite loop on C_Accept
 
       Accept_Loop :
@@ -559,6 +557,7 @@ package body System.Garlic.TCP is
       if Acceptor = null  then
          if not Can_Have_A_Light_Runtime then
             pragma Debug (D (D_Warning, "Start acceptor task"));
+            Do_Listen;
             Acceptor := new Accept_Handler;
          else
             pragma Debug (D (D_Warning, "No acceptor task, light runtime"));
