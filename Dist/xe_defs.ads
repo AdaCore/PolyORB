@@ -26,24 +26,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.OS_Lib; use GNAT.OS_Lib;
-
 package XE_Defs is
 
-   --  This package contains constant that returns the default values for
-   --  the distributed library directories.
+   --  This package contains the default values for the GLADE library.
 
-   function Get_GARLIC_Dir return String_Access;
-
+   procedure Initialize;
    function Get_Rsh_Command return String;
    function Get_Rsh_Options return String;
    function Get_Def_Storage_Data return String;
    function Get_Def_Storage_Name return String;
    function Get_Def_Protocol_Data return String;
    function Get_Def_Protocol_Name return String;
-
-   function Get_Default_Optimization return String;
-
-   function Get_RTS_Flag return String;
 
 end XE_Defs;
