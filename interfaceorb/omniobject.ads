@@ -71,7 +71,7 @@ pragma Elaborate(Adabroker_Debug) ;
 
 package OmniObject is
 
-
+   Omniobject : constant Boolean := Adabroker_Debug.Is_Active("omniobject") ;
 
    -----------------------------------------------
    --         Implemented_Object                --
@@ -82,7 +82,7 @@ package OmniObject is
    --            TYPE DEFINITION                --
    -----------------------------------------------
 
-   type Implemented_Object is tagged private ;
+   type Implemented_Object is abstract tagged private ;
 
    type Implemented_Object_Ptr is access all Implemented_Object'Class ;
 
@@ -154,7 +154,7 @@ package OmniObject is
                        Orls : in out Giop_S.Object ;
                        Orl_Op : in Standard.String ;
                        Orl_Response_Expected : in Corba.Boolean ;
-                       Success : out Corba.Boolean) ;
+                       Success : out Corba.Boolean) is abstract ;
    -- this function is called by the C one
    -- It is implemented in the sub-classes of omniObject
    -- this function on this object should never be called
@@ -350,7 +350,7 @@ private
    -----------------------------------------------
 
 
-  type Implemented_Object is new Ada.Finalization.Controlled with record
+  type Implemented_Object is abstract new Ada.Finalization.Controlled with record
       Omniobj : Object_Ptr ;
    end record ;
 

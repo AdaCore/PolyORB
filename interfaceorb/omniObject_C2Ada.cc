@@ -49,11 +49,16 @@
 
 #include "omniObject_C2Ada.hh"
 
+// DEBUG is defined at the beginning of each file
+// and undefined at the end of each file
+#define DEBUG
+
+
+
 // Constructor
 //------------
 omniObject_C2Ada::omniObject_C2Ada (Ada_OmniObject *Ada_Ptr) : omniObject ()
 {
-  cerr << "coucou" << endl ;
   // calls the omniObject constructor and initialise the pointer
   // on the Ada_OmniObject Ada_OmniObject_Pointer ;
   Ada_OmniObject_Pointer = Ada_Ptr;
@@ -90,6 +95,10 @@ omniObject_C2Ada::dispatch(GIOP_S &giop,
 			   const char *operation,
 			   _CORBA_Boolean response_expected)
 {
+#ifdef DEBUG
+  cerr << "omniObject_C2Ada::dispatch" << endl ;
+#endif
+  
   _CORBA_Boolean success ;
   Ada_OmniObject_Pointer->dispatch(giop,
 				   operation,
@@ -106,6 +115,10 @@ omniObject_C2Ada::dispatch(GIOP_S &giop,
 void*
 omniObject_C2Ada::_widenFromTheMostDerivedIntf(const char* repoId,
 					       _CORBA_Boolean is_cxx_type_id=0) {
+#ifdef DEBUG
+  cerr << "omniObject_C2Ada::_widenFromTheMostDerivedIntf" << endl ;
+#endif
+  
   if (Ada_OmniObject_Pointer->Ada_Is_A(repoId) ) {
     return (void*) this ;
   } else {
@@ -123,7 +136,5 @@ omniObject_C2Ada::get_Ada_OmniObject ()
 }
 
 
-
-
-
+#undef DEBUG
 

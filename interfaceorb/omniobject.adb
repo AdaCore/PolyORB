@@ -61,6 +61,8 @@ use type Corba.String ;
 use type Corba.Unsigned_Long ;
 with Omni ;
 
+with Adabroker_Debug ; use Adabroker_Debug ;
+
 package body OmniObject is
 
 
@@ -132,18 +134,19 @@ package body OmniObject is
 
    -- Dispatch
    -----------
-   procedure Dispatch (Self : in out Implemented_Object ;
-                       Orls : in out Giop_S.Object ;
-                       Orl_Op : in Standard.String ;
-                       Orl_Response_Expected : in Corba.Boolean ;
-                       Success : out Corba.Boolean) is
-   begin
-      Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
-                                     "Omniobject.Dispatch(Implemented_Object)"
-                                     & Corba.CRLF
-                                     & "should never be called on an Implemented_Object") ;
-      Success := False ;
-   end ;
+--   procedure Dispatch (Self : in out Implemented_Object ;
+--                       Orls : in out Giop_S.Object ;
+--                       Orl_Op : in Standard.String ;
+--                       Orl_Response_Expected : in Corba.Boolean ;
+--                       Success : out Corba.Boolean) is
+--   begin
+--      pragma Debug(Output(Omniobject, "Dispatch in Implemented_Object")) ;
+--      Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
+--                                     "Omniobject.Dispatch(Implemented_Object)"
+--                                     & Corba.CRLF
+--                                     & "should never be called on an Implemented_Object") ;
+--      Success := False ;
+--   end ;
 
 
    -- Is_A
@@ -225,7 +228,7 @@ package body OmniObject is
                                      "Null pointer argument in function Align_Size in corba-object.") ;
       else
          -- calls the corresponding function on the underlying omniobject
-         return Omniobject.Align_Size (Obj.all.Omniobj,Initial_Offset) ;
+         return Align_Size (Obj.all.Omniobj,Initial_Offset) ;
       end if ;
    end ;
 
