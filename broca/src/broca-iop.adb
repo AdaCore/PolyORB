@@ -59,7 +59,6 @@ package body Broca.IOP is
       Buffers  : array (Profiles'Range) of Buffer_Descriptor;
       Offsets  : array (Profiles'Range) of Buffer_Index_Type;
    begin
-
       Skip_Bytes          (Buffer, From);
       Compute_New_Size    (Buffer, O_Size, O_Size);
       Compute_New_Size    (Buffer, Type_Id);

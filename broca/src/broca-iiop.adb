@@ -105,6 +105,8 @@ package body Broca.IIOP is
 
       Allocate_Buffer_And_Clear_Pos (Buffer, Full_Size (Buffer));
 
+      Skip_Bytes (Buffer, From);
+
       Marshall (Buffer, Is_Little_Endian);
       Marshall (Buffer, CORBA.Octet'(1));
       Marshall (Buffer, CORBA.Octet'(0));
