@@ -91,7 +91,7 @@ package body Debug is
    --  dU   Enable garbage collection of unreachable entities
    --  dV
    --  dW
-   --  dX
+   --  dX   Enable Frontend ZCX even when it is not supported
    --  dY
    --  dZ
 
@@ -391,6 +391,13 @@ package body Debug is
    --  dU   Enable garbage collection of unreachable entities. This enables
    --       both the reachability analysis and changing the Is_Public and
    --       Is_Eliminated flags.
+
+   --  dX   Enable frontend ZCX even when it is not supported. Equivalent to
+   --       -gnatZ but without verifying that System.Front_End_ZCX_Support
+   --       is set. This causes the front end to generate suitable tables
+   --       for ZCX handling even when the runtime cannot handle ZCX. This
+   --       is used for testing the front end for correct ZCX operation, and
+   --       in particular is useful for multi-target testing.
 
    --  d1   Error msgs have node numbers where possible. Normally error
    --       messages have only source locations. This option is useful when

@@ -3673,6 +3673,7 @@ package body Sinfo is
         or else NT (N).Nkind = N_Defining_Character_Literal
         or else NT (N).Nkind = N_Defining_Identifier
         or else NT (N).Nkind = N_Defining_Operator_Symbol);
+      pragma Assert (N /= Val);
       Set_Node4 (N, Val); -- semantic field, no parent set
    end Set_Homonym;
 

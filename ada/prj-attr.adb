@@ -47,6 +47,12 @@ package body Prj.Attr is
      "LVsource_dirs#" &
      "LVsource_files#" &
      "SVsource_list_file#" &
+     "SVlibrary_dir#" &
+     "SVlibrary_name#" &
+     "SVlibrary_kind#" &
+     "SVlibrary_elaboration#" &
+     "SVlibrary_version#" &
+     "LVmain#" &
 
    --  package Naming
 

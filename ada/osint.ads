@@ -49,7 +49,7 @@ package Osint is
    --  this will return an empty string. Otherwise it will insure a trailing
    --  slash and make other normalizations.
 
-   type File_Type is (Source, Library);
+   type File_Type is (Source, Library, Config);
 
    function Find_File
      (N :    File_Name_Type;
@@ -68,15 +68,14 @@ package Osint is
    --  directory, since that is where it is always built.
 
    function Get_Switch_Character return Character;
-   pragma Import (C, Get_Switch_Character,
-                    "Get_Switch_Character");
+   pragma Import (C, Get_Switch_Character, "__gnat_get_switch_character");
    Switch_Character : constant Character := Get_Switch_Character;
    --  Set to the default switch character (note that minus is always an
    --  acceptable alternative switch character)
 
    function Get_File_Names_Case_Sensitive return Int;
    pragma Import (C, Get_File_Names_Case_Sensitive,
-                    "Get_File_Names_Case_Sensitive");
+                    "__gnat_get_file_names_case_sensitive");
    File_Names_Case_Sensitive : constant Boolean :=
                                Get_File_Names_Case_Sensitive /= 0;
    --  Set to indicate whether the operating system convention is for file
@@ -321,7 +320,8 @@ package Osint is
      (N   : File_Name_Type;
       Lo  : Source_Ptr;
       Hi  : out Source_Ptr;
-      Src : out Source_Buffer_Ptr);
+      Src : out Source_Buffer_Ptr;
+      T   : File_Type := Source);
    --  Allocates a Source_Buffer of appropriate length and then reads the
    --  entire contents of the source file N into the buffer. The address of
    --  the allocated buffer is returned in Src.
@@ -657,15 +657,15 @@ package Osint is
    --  returning string)
 
    function Arg_Count return Natural;
-   pragma Import (C, Arg_Count, "arg_count");
+   pragma Import (C, Arg_Count, "__gnat_arg_count");
    --  Get number of arguments (note: optional globbing may be enabled)
 
    procedure Fill_Arg (A : System.Address; Arg_Num : Integer);
-   pragma Import (C, Fill_Arg, "fill_arg");
+   pragma Import (C, Fill_Arg, "__gnat_fill_arg");
    --  Store one argument
 
    function Len_Arg (Arg_Num : Integer) return Integer;
-   pragma Import (C, Len_Arg, "len_arg");
+   pragma Import (C, Len_Arg, "__gnat_len_arg");
    --  Get length of argument
 
 end Osint;

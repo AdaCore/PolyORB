@@ -221,6 +221,12 @@ package Opt is
    --  of the original source code. Causes debugging information to be
    --  written with respect to the generated code file that is written.
 
+   Display_Compilation_Progress : Boolean := False;
+   --  GNATMAKE
+   --  Set True (-d switch) to display information on progress while compiling
+   --  files. Internal switch to be used in conjunction with an IDE such as
+   --  Glide.
+
    type Distribution_Stub_Mode_Type is
    --  GNAT
      (No_Stubs,
@@ -259,6 +265,13 @@ package Opt is
    Elab_Warnings : Boolean := False;
    --  GNAT
    --  Set to True to generate full elaboration warnings (-gnatwl)
+
+   type Exception_Mechanism_Type is (Setjmp_Longjmp, Front_End_ZCX, GCC_ZCX);
+   Exception_Mechanism : Exception_Mechanism_Type := Setjmp_Longjmp;
+   --  GNAT
+   --  Set to the appropriate value depending on the default as given in
+   --  system.ads (ZCX_By_Default, GCC_ZCX_Support, Front_End_ZCX_Support)
+   --  and the use of -gnatL -gnatZ (and -gnatdX)
 
    Exception_Tracebacks : Boolean := False;
    --  GNATBIND

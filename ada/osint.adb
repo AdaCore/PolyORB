@@ -136,9 +136,14 @@ package body Osint is
    Argument_Count : constant Integer := Arg_Count - 1;
    --  Number of arguments (excluding program name)
 
-   File_Names : array (Int range 1 .. Int (Argument_Count)) of String_Ptr;
+   type File_Name_Array is array (Int range <>) of String_Ptr;
+   type File_Name_Array_Ptr is access File_Name_Array;
+   File_Names : File_Name_Array_Ptr :=
+     new File_Name_Array (1 .. Int (Argument_Count) + 2);
    --  As arguments are scanned in Initialize, file names are stored
    --  in this array. The string does not contain a terminating NUL.
+   --  The array is "extensible" because when using project files,
+   --  there may be more file names than argument on the command line.
 
    Number_File_Names : Int := 0;
    --  The total number of file names found on command line and placed in
@@ -332,7 +337,7 @@ package body Osint is
       function Get_Libraries_From_Registry return String_Ptr is
          function C_Get_Libraries_From_Registry return Address;
          pragma Import (C, C_Get_Libraries_From_Registry,
-                        "Get_Libraries_From_Registry");
+                        "__gnat_get_libraries_from_registry");
          function Strlen (Str : Address) return Integer;
          pragma Import (C, Strlen, "strlen");
          procedure Strncpy (X : Address; Y : Address; Length : Integer);
@@ -478,6 +483,15 @@ package body Osint is
    procedure Add_File (File_Name : String) is
    begin
       Number_File_Names := Number_File_Names + 1;
+
+      --  As Add_File may be called for mains specified inside
+      --  a project file, File_Names may be too short and needs
+      --  to be extended.
+
+      if Number_File_Names > File_Names'Last then
+         File_Names := new File_Name_Array'(File_Names.all & File_Names.all);
+      end if;
+
       File_Names (Number_File_Names) := new String'(File_Name);
    end Add_File;
 
@@ -935,12 +949,12 @@ package body Osint is
          Last_Dir  : Natural;
 
       begin
-         --  If we are looking for gnat.adc, look only in the current
+         --  If we are looking for a config file, look only in the current
          --  directory, i.e. return input argument unchanged. Also look
          --  only in the current directory if we are looking for a .dg
          --  file (happens in -gnatD mode)
 
-         if File_Name = "gnat.adc"
+         if T = Config
            or else (Debug_Generated_Code
                       and then Name_Len > 3
                       and then
@@ -1156,19 +1170,19 @@ package body Osint is
    procedure Initialize (P : Program_Type) is
       function Get_Default_Identifier_Character_Set return Character;
       pragma Import (C, Get_Default_Identifier_Character_Set,
-                       "Get_Default_Identifier_Character_Set");
+                       "__gnat_get_default_identifier_character_set");
       --  Function to determine the default identifier character set,
       --  which is system dependent. See Opt package spec for a list of
       --  the possible character codes and their interpretations.
 
       function Get_Maximum_File_Name_Length return Int;
       pragma Import (C, Get_Maximum_File_Name_Length,
-                    "Get_Maximum_File_Name_Length");
+                    "__gnat_get_maximum_file_name_length");
       --  Function to get maximum file name length for system
 
       procedure Adjust_OS_Resource_Limits;
       pragma Import (C, Adjust_OS_Resource_Limits,
-                        "adjust_os_resource_limits");
+                        "__gnat_adjust_os_resource_limits");
       --  Procedure to make system specific adjustments to make GNAT
       --  run better.
 
@@ -1913,7 +1927,8 @@ package body Osint is
      (N   : File_Name_Type;
       Lo  : Source_Ptr;
       Hi  : out Source_Ptr;
-      Src : out Source_Buffer_Ptr)
+      Src : out Source_Buffer_Ptr;
+      T   : File_Type := Source)
    is
       Source_File_FD : File_Descriptor;
       --  The file descriptor for the current source file. A negative value
@@ -1925,7 +1940,7 @@ package body Osint is
       Actual_Len : Integer;
 
    begin
-      Current_Full_Source_Name  := Find_File (N, Source);
+      Current_Full_Source_Name  := Find_File (N, T);
       Current_Full_Source_Stamp := File_Stamp (Current_Full_Source_Name);
 
       if Current_Full_Source_Name = No_File then
@@ -2311,7 +2326,7 @@ package body Osint is
         (Host_Dir    : Address;
          Prefix_Flag : Integer)
          return        Address;
-      pragma Import (C, To_Canonical_Dir_Spec, "to_canonical_dir_spec");
+      pragma Import (C, To_Canonical_Dir_Spec, "__gnat_to_canonical_dir_spec");
 
       C_Host_Dir      : String (1 .. Host_Dir'Length + 1);
       Canonical_Dir_Addr : Address;
@@ -2354,15 +2369,15 @@ package body Osint is
          Only_Dirs : Integer)
       return Integer;
       pragma Import (C, To_Canonical_File_List_Init,
-                     "to_canonical_file_list_init");
+                     "__gnat_to_canonical_file_list_init");
 
       function To_Canonical_File_List_Next return Address;
       pragma Import (C, To_Canonical_File_List_Next,
-                     "to_canonical_file_list_next");
+                     "__gnat_to_canonical_file_list_next");
 
       procedure To_Canonical_File_List_Free;
       pragma Import (C, To_Canonical_File_List_Free,
-                     "to_canonical_file_list_free");
+                     "__gnat_to_canonical_file_list_free");
 
       Num_Files            : Integer;
       C_Wildcard_Host_File : String (1 .. Wildcard_Host_File'Length + 1);
@@ -2409,7 +2424,8 @@ package body Osint is
       return      String_Access
    is
       function To_Canonical_File_Spec (Host_File : Address) return Address;
-      pragma Import (C, To_Canonical_File_Spec, "to_canonical_file_spec");
+      pragma Import
+        (C, To_Canonical_File_Spec, "__gnat_to_canonical_file_spec");
 
       C_Host_File      : String (1 .. Host_File'Length + 1);
       Canonical_File_Addr : Address;
@@ -2444,7 +2460,8 @@ package body Osint is
       return      String_Access
    is
       function To_Canonical_Path_Spec (Host_Path : Address) return Address;
-      pragma Import (C, To_Canonical_Path_Spec, "to_canonical_path_spec");
+      pragma Import
+        (C, To_Canonical_Path_Spec, "__gnat_to_canonical_path_spec");
 
       C_Host_Path         : String (1 .. Host_Path'Length + 1);
       Canonical_Path_Addr : Address;
@@ -2481,7 +2498,7 @@ package body Osint is
         (Canonical_Dir : Address;
          Prefix_Flag   : Integer)
          return          Address;
-      pragma Import (C, To_Host_Dir_Spec, "to_host_dir_spec");
+      pragma Import (C, To_Host_Dir_Spec, "__gnat_to_host_dir_spec");
 
       C_Canonical_Dir : String (1 .. Canonical_Dir'Length + 1);
       Host_Dir_Addr   : Address;
@@ -2514,7 +2531,7 @@ package body Osint is
       return           String_Access
    is
       function To_Host_File_Spec (Canonical_File : Address) return Address;
-      pragma Import (C, To_Host_File_Spec, "to_host_file_spec");
+      pragma Import (C, To_Host_File_Spec, "__gnat_to_host_file_spec");
 
       C_Canonical_File      : String (1 .. Canonical_File'Length + 1);
       Host_File_Addr : Address;
@@ -2586,6 +2603,11 @@ package body Osint is
    begin
       pragma Assert (In_Compiler);
       Get_Name_String (Current_Main);
+
+      --  If an object file has been specified, then the ALI file
+      --  will be in the same directory as the object file;
+      --  so, we put the tree file in this same directory,
+      --  even though no object file needs to be generated.
 
       if Output_Object_File_Name /= null then
          Name_Len := Output_Object_File_Name'Length;
