@@ -53,7 +53,7 @@ package System.Garlic.Heart is
 
    procedure Initialize;
    --  Initialize the package.
-   
+
    procedure Is_Boot_Partition (Yes : in Boolean);
    --  Called when we are on the boot partition.
 
@@ -186,6 +186,7 @@ package System.Garlic.Heart is
                    Remote_Call,              -- First Public Opcode
                    Shutdown_Synchronization,
                    Name_Service,
+                   User_Message,
                    Filtering);               -- Last Public Opcode
    subtype Internal_Opcode is Opcode
      range No_Operation .. Shutdown;

@@ -1,5 +1,7 @@
 Wed Mar  5 14:53:58 1997  Laurent Pautet  <pautet@inf.enst.fr>
 
+	* s-garhea.ads: Add a new opcode User_Message.
+
 	* s-parint.adb: Changed Public_RPC_Receiver into
  	Public_Message_Receiver.
 
