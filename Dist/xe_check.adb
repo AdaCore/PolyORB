@@ -500,6 +500,21 @@ package body XE_Check is
          end loop;
       end;
 
+      declare
+         Loc : Name_Id;
+      begin
+         for L in Locations.First .. Locations.Last loop
+            Get_Name_String (Locations.Table (L).Major);
+            if Name_Len = 0 then
+               Add_Str_To_Name_Buffer ("://");
+               Get_Name_String_And_Append (Locations.Table (L).Minor);
+               Loc := Name_Find;
+               Message ("missing location name in", Quote (Loc));
+               Error := True;
+            end if;
+         end loop;
+      end;
+
       if Error then
          raise Partitioning_Error;
       end if;

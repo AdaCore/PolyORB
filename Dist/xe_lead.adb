@@ -52,12 +52,16 @@ procedure XE_Lead is
       LID : LID_Type;
 
    begin
-      if Def_Boot_Location_First = Null_LID then
+      LID := Get_Protocol (Partition);
+      if LID = Null_LID then
+         LID := Def_Boot_Location_First;
+      end if;
+
+      if LID = Null_LID then
          Write_Str  (FD, "BOOT_LOCATION=tcp://`hostname`:");
          Write_Str  (FD, "`echo 000$$ | sed 's,^.*\(...\),5\1,'`");
          Write_Eol  (FD);
       else
-         LID := Partitions.Table (Partition).F_Net_Location;
          Write_Str  (FD, "BOOT_LOCATION='");
          loop
             Write_Name (FD, Locations.Table (LID).Major);
