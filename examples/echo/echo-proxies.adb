@@ -34,9 +34,9 @@ package body Echo.Proxies is
                              return Echo.Ref is
       Result : Echo.Ref ;
    begin
-      Omniobject.Init (Result, Echo.Interface_Repository_Id, R,
-            Key, Key_Size, Profiles, Release) ;
-      Omniobject.Object_Is_Ready(Result) ;
+      -- Omniobject.Init (Result, Echo.Interface_Repository_Id, R,
+      --      Key, Key_Size, Profiles, Release) ;
+      -- Omniobject.Object_Is_Ready(Result) ;
       return Result ;
    end ;
 

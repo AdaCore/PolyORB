@@ -20,3 +20,7 @@ echo-impl.o : echo-impl.ads echo-impl.adb echo.o
 echo-proxies.o: echo-proxies.ads echo-proxies.adb echo.o
 
 echo-skeleton.o: echo-skeleton.ads echo-skeleton.adb echo.o
+
+server.o: echo.ads echo-impl.ads
+
+client.o: echo.ads
