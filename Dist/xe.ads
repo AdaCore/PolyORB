@@ -153,9 +153,9 @@ package XE is
    type Reconnection_Type is new Types.Int range 700 .. 703;
 
    Unknown_Reconnection  : constant Reconnection_Type := 700;
-   Rejected_On_Restart   : constant Reconnection_Type := 701;
-   Blocked_Until_Restart : constant Reconnection_Type := 702;
-   Failed_Until_Restart  : constant Reconnection_Type := 703;
+   Reject_On_Restart   : constant Reconnection_Type := 701;
+   Block_Until_Restart : constant Reconnection_Type := 702;
+   Fail_Until_Restart  : constant Reconnection_Type := 703;
 
 
    -- Node_Id --

@@ -726,9 +726,9 @@ package body XE is
 
       Reconnection_Img
         := (Unknown_Reconnection  => Str_To_Id ("Unknown Reconnection"),
-            Rejected_On_Restart   => Str_To_Id ("Rejected_On_Restart"),
-            Blocked_Until_Restart => Str_To_Id ("Blocked_Until_Restart"),
-            Failed_Until_Restart  => Str_To_Id ("Failed_Until_Restart"));
+            Reject_On_Restart   => Str_To_Id ("Reject_On_Restart"),
+            Block_Until_Restart => Str_To_Id ("Block_Until_Restart"),
+            Fail_Until_Restart  => Str_To_Id ("Fail_Until_Restart"));
 
       Boolean_Img
         := (Bunknown  => Str_To_Id ("Unknown Boolean"),

@@ -1,7 +1,6 @@
 1999-09-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* xe_stubs.adb: Change Fail_until_Restart into
- 	Failed_Until_Restart.
+	* xe.adb, xe.ads: Change reconnection terminology.
 
 1999-08-14  Pascal Obry <obry@gnat.com>
 
