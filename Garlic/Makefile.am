@@ -17,24 +17,28 @@ PLATFORM     = @PLATFORM_SPECIFIC@
 
 TCP_PLATFORM = 2${PLATFORM}gtplsp.ads
 
-OBJECTS = \
+NON_EMBEDDED_OBJECTS = \
+s-garnam.o\
+s-garrem.o
+
+TCP_OBJECTS = \
+s-ganobl.o\
+s-gartcp.o\
+s-garthi.o
+
+COMMON_OBJECTS = \
 s-gaphlo.o\
 s-garcon.o\
 s-gardeb.o\
 s-garhea.o\
 s-garlic.o\
-s-garnam.o\
-s-ganobl.o\
 s-garopt.o\
 s-garpri.o\
 s-garpro.o\
-s-garrem.o\
 s-garsta.o\
-s-gartcp.o\
 s-garloo.o\
 s-gaprco.o\
 s-garter.o\
-s-garthi.o\
 s-garuti.o\
 s-gtplsp.o\
 s-parint.o\
@@ -42,7 +46,18 @@ s-partyp.o\
 s-rpc.o\
 s-stratt.o
 
-SOURCES = \
+OBJECTS = $(COMMON_OBJECTS) @PROTOCOLS_OBJECTS@ @NON_EMBEDDED_OBJECTS@
+
+NON_EMBEDDED_SOURCES = \
+${srcdir}/s-garnam.ads ${srcdir}/s-garnam.adb \
+${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb
+
+TCP_SOURCES = \
+${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb \
+${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb \
+${srcdir}/s-garthi.ads
+
+COMMON_SOURCES = \
 ${srcdir}/rci_info.ads ${srcdir}/rci_info.adb \
 ${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
 ${srcdir}/s-garcac.ads ${srcdir}/s-garcac.adb \
@@ -50,25 +65,22 @@ ${srcdir}/s-garcac.ads ${srcdir}/s-garcac.adb \
 ${srcdir}/s-gardeb.ads ${srcdir}/s-gardeb.adb \
 ${srcdir}/s-garhea.ads ${srcdir}/s-garhea.adb \
 ${srcdir}/s-garlic.ads                        \
-${srcdir}/s-garnam.ads ${srcdir}/s-garnam.adb \
-${srcdir}/s-ganobl.ads ${srcdir}/s-ganobl.adb \
 ${srcdir}/s-garopt.ads ${srcdir}/s-garopt.adb \
 ${srcdir}/s-garpro.ads                        \
 ${srcdir}/s-garpoi.ads ${srcdir}/s-garpoi.adb \
 ${srcdir}/s-garpro.ads ${srcdir}/s-garpro.adb \
-${srcdir}/s-garrem.ads ${srcdir}/s-garrem.adb \
 ${srcdir}/s-garsta.ads ${srcdir}/s-garsta.adb \
-${srcdir}/s-gartcp.ads ${srcdir}/s-gartcp.adb \
 ${srcdir}/s-garloo.ads ${srcdir}/s-garloo.adb \
 ${srcdir}/s-gaprco.ads ${srcdir}/s-gaprco.adb \
 ${srcdir}/s-garter.ads ${srcdir}/s-garter.adb \
-${srcdir}/s-garthi.ads                        \
 ${srcdir}/s-garuti.ads ${srcdir}/s-garuti.adb \
         ./s-gtplsp.ads                        \
 ${srcdir}/s-parint.ads ${srcdir}/s-parint.adb \
 ${srcdir}/s-partyp.ads                        \
 ${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
 ${srcdir}/s-stratt.adb
+
+SOURCES = $(COMMON_SOURCES) @PROTOCOLS_SOURCES@ @NON_EMBEDDED_SOURCES@
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads
 

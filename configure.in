@@ -31,6 +31,30 @@ AC_ARG_ENABLE(debug,
 [GNATFLAGS="-g -gnata"],
 [GNATFLAGS="-O2 -gnatn"])
 AC_SUBST(GNATFLAGS)
+AC_ARG_WITH(embedded,
+[  --with-embedded         Don't include launching facilities],
+[NON_EMBEDDED_SOURCES="\$(NON_EMBEDDED_SOURCES)";
+ NON_EMBEDDED_OBJECTS="\$(NON_EMBEDDED_OBJECTS)"]
+,
+[NON_EMBEDDED_SOURCES="";
+ NON_EMBEDDED_OBJECTS=""])
+AC_SUBST(NON_EMBEDDED_SOURCES)
+AC_SUBST(NON_EMBEDDED_OBJECTS)
+AC_ARG_WITH(protocols,
+[  --with-protocols        Enumerate protocol list],
+[for P in "${withal}"; do
+    case ${P} in
+    TCP|tcp) 
+             PROTOCOLS_SOURCES="${PROTOCOLS_SOURCES} \$(TCP_SOURCES)";
+             PROTOCOLS_OBJECTS="${PROTOCOLS_OBJECTS} \$(TCP_OBJECTS)";;
+    no)     
+             PROTOCOLS_SOURCES=""; PROTOCOLS_OBJECTS="";;
+    *)       echo "Unknown ${P} protocol";;
+    esac;
+done],
+[PROTOCOLS_SOURCES="\$(TCP_SOURCES)"; PROTOCOLS_OBJECTS="\$(TCP_OBJECTS)"])
+AC_SUBST(PROTOCOLS_SOURCES)
+AC_SUBST(PROTOCOLS_OBJECTS)
 #
 # Find GNAT sources
 #
