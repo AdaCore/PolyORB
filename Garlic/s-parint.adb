@@ -54,12 +54,12 @@ pragma Warnings (Off, System.Garlic.Startup);
 
 with System.Garlic.Storages;  use System.Garlic.Storages;
 with System.Garlic.Types;     use System.Garlic.Types;
-with System.Garlic.Units;     use System.Garlic.Units;
 with System.Garlic.Utils;     use System.Garlic.Utils;
 
 package body System.Partition_Interface is
 
    use Ada.Exceptions, Interfaces;
+   use System.Garlic.Units;
 
    package SG  renames System.Garlic;
 
@@ -74,6 +74,12 @@ package body System.Partition_Interface is
    function Convert is
       new Ada.Unchecked_Conversion
      (RPC.RPC_Receiver, System.Address);
+
+   procedure Setup_RAS_Proxies
+     (Subprograms : in RCI_Subp_Info_Array;
+      Receiver    : in System.Address);
+   --  Initialize the Receiver and Subp_Id information stored in local
+   --  RCI subprogram proxy objects.
 
    procedure Complete_Termination (Termination : Termination_Type);
    --  Select the correct soft link
@@ -98,9 +104,6 @@ package body System.Partition_Interface is
                          Key        => RACW_Stub_Type_Access,
                          Hash       => Hash,
                          Equal      => Compare_Content);
-
-   procedure Free is
-      new Ada.Unchecked_Deallocation (RACW_Stub_Type, RACW_Stub_Type_Access);
 
    --  This is a list of caller units whose Version_ID needs to check.
 
@@ -304,6 +307,65 @@ package body System.Partition_Interface is
       return Get_Active_Version (Name);
    end Get_Passive_Version;
 
+   ------------------
+   -- Get_RAS_Info --
+   ------------------
+
+   procedure Get_RAS_Info
+     (Name          : in  Unit_Name;
+      Subp_Id       : in  Subprogram_Id;
+      Proxy_Address : out Interfaces.Unsigned_64)
+   is
+      use System.Garlic.Units;
+
+      subtype U64 is Interfaces.Unsigned_64;
+
+      Subp_Info : RCI_Subp_Info_Access;
+      Unit      : constant Unit_Id := Get_Unit_Id (Name);
+      Origin    : Partition_ID;
+      Error     : Error_Type;
+   begin
+      Proxy_Address := U64 (System.Null_Address);
+
+      Get_Partition (Unit, Origin, Error);
+      if Found (Error) then
+         raise Constraint_Error;
+      end if;
+      if Origin = Self_PID then
+         Subp_Info := Get_Subprogram_Info (Unit, Subp_Id);
+         if Subp_Info /= null then
+            Proxy_Address := U64 (Subp_Info.Addr);
+         end if;
+      else
+         declare
+            use System.RPC;
+
+            Receiver : U64;
+            Error : Error_Type;
+
+            Params  : aliased Params_Stream_Type (0);
+            Returns : aliased Params_Stream_Type (0);
+            Except  : Ada.Exceptions.Exception_Occurrence;
+         begin
+            Get_Receiver (Unit, Receiver, Error);
+            if Found (Error) then
+               raise Constraint_Error;
+            end if;
+
+            U64'Write (Params'Access, Receiver);
+            Subprogram_Id'Write (Params'Access, 1);
+            --  Special subprogram id: Lookup RAS information
+
+            Subprogram_Id'Write (Params'Access, Subp_Id);
+
+            Do_RPC (RPC.Partition_ID (Origin), Params'Access, Returns'Access);
+            Ada.Exceptions.Exception_Occurrence'Read (Returns'Access, Except);
+            Ada.Exceptions.Reraise_Occurrence (Except);
+            U64'Read (Returns'Access, Proxy_Address);
+         end;
+      end if;
+   end Get_RAS_Info;
+
    ------------------------------
    -- Get_RCI_Package_Receiver --
    ------------------------------
@@ -339,11 +401,10 @@ package body System.Partition_Interface is
       System.Garlic.Soft_Links.Enter_Critical_Section;
       Answer := Objects_HTable.Get (Handler);
       if Answer = null then
-         Objects_HTable.Set (Handler, Handler);
-      else
-         Free (Handler);
-         Handler := Answer;
+         Answer := new RACW_Stub_Type'(Handler.all);
+         Objects_HTable.Set (Answer, Answer);
       end if;
+      Handler := Answer;
       System.Garlic.Soft_Links.Leave_Critical_Section;
    end Get_Unique_Remote_Pointer;
 
@@ -426,7 +487,7 @@ package body System.Partition_Interface is
 
       pragma Debug (D ("Register local shared passive unit " & N));
 
-      Register_Unit (Self_PID, N, 0, V);
+      Register_Unit (Self_PID, N, 0, V, System.Null_Address, 0);
       Register_Package (N, Self_PID, E);
       if Found (E) then
          Raise_Communication_Error (E'Access);
@@ -451,7 +512,7 @@ package body System.Partition_Interface is
 
       pragma Debug (D ("Register " & N & " on passive partition" & P'Img));
 
-      Register_Unit (P, N, 0, V);
+      Register_Unit (P, N, 0, V, System.Null_Address, 0);
    end Register_Passive_Package_On_Passive_Partition;
 
    --------------------------------
@@ -483,20 +544,30 @@ package body System.Partition_Interface is
    -----------------------------
 
    procedure Register_Receiving_Stub
-     (Name     : in Unit_Name;
-      Receiver : in RPC.RPC_Receiver;
-      Version  : in String := "")
+     (Name          : in Unit_Name;
+      Receiver      : in System.RPC.RPC_Receiver;
+      Version       : in String := "";
+      Subp_Info     : in System.Address;
+      Subp_Info_Len : in Integer)
    is
+      Receiver_Address : constant System.Address :=
+        Convert (Receiver);
       N : String       := Name;
       V : constant Version_Type := Version_Type (Version);
-      R : constant Unsigned_64  :=
-            Unsigned_64 (System.Address'(Convert (Receiver)));
+      R : constant Unsigned_64  := Unsigned_64 (Receiver_Address);
 
+      subtype Subprogram_Array is RCI_Subp_Info_Array
+        (System.Garlic.Units.First_RCI_Subprogram_Id ..
+         System.Garlic.Units.First_RCI_Subprogram_Id + Subp_Info_Len - 1);
+      Subprograms : Subprogram_Array;
+      for Subprograms'Address use Subp_Info;
+      pragma Import (Ada, Subprograms);
    begin
       pragma Debug (D ("Register receiving stub"));
 
       To_Lower (N);
-      Register_Unit (Self_PID, N, R, V);
+      Register_Unit (Self_PID, N, R, V, Subp_Info, Subp_Info_Len);
+      Setup_RAS_Proxies (Subprograms, Receiver_Address);
    end Register_Receiving_Stub;
 
    --------------
@@ -619,5 +690,23 @@ package body System.Partition_Interface is
       Complete_Termination (SG.Options.Termination);
       raise;
    end Run;
+
+   -----------------------
+   -- Setup_RAS_Proxies --
+   -----------------------
+
+   procedure Setup_RAS_Proxies
+     (Subprograms : in RCI_Subp_Info_Array;
+      Receiver    : in System.Address)
+   is
+      function To_Proxy is new Ada.Unchecked_Conversion
+      (System.Address, RAS_Proxy_Type_Access);
+   begin
+      for Subp_Id in Subprograms'Range loop
+         To_Proxy (Subprograms (Subp_Id).Addr).Receiver := Receiver;
+         To_Proxy (Subprograms (Subp_Id).Addr).Subp_Id  :=
+           Subprogram_Id (Subp_Id);
+      end loop;
+   end Setup_RAS_Proxies;
 
 end System.Partition_Interface;

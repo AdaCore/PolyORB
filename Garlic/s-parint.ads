@@ -36,6 +36,7 @@
 with Ada.Exceptions;
 with Interfaces;
 with System.RPC;
+with System.Garlic.Units;
 
 package System.Partition_Interface is
 
@@ -44,8 +45,7 @@ package System.Partition_Interface is
    type DSA_Implementation_Name is (No_DSA, GLADE_DSA, PolyORB_DSA);
    DSA_Implementation : constant DSA_Implementation_Name := GLADE_DSA;
 
-   type Subprogram_Id is new Natural;
-   --  This type is used exclusively by stubs
+   subtype Subprogram_Id is System.Garlic.Units.Subprogram_Id;
 
    subtype Unit_Name is String;
    --  Name of Ada units
@@ -59,9 +59,21 @@ package System.Partition_Interface is
       Asynchronous : Boolean;
    end record;
    type RACW_Stub_Type_Access is access RACW_Stub_Type;
+   pragma No_Strict_Aliasing (RACW_Stub_Type_Access);
    --  This type is used by the expansion to implement distributed objects.
    --  Do not change its definition or its layout without updating
    --  exp_dist.adb.
+
+   type RAS_Proxy_Type is tagged limited record
+      All_Calls_Remote : Boolean;
+      Receiver         : System.Address;
+      Subp_Id          : Subprogram_Id;
+   end record;
+   type RAS_Proxy_Type_Access is access RAS_Proxy_Type;
+   pragma No_Strict_Aliasing (RAS_Proxy_Type_Access);
+   --  This type is used by the expansion to implement distributed objects.
+   --  Do not change its definition or its layout without updating
+   --  Exp_Dist.Build_Remote_Supbrogram_Proxy_Type.
 
    procedure Check
      (Name    : in Unit_Name;
@@ -131,11 +143,21 @@ package System.Partition_Interface is
    --  Similar in some respects to RCI_Info.Get_RCI_Package_Receiver
 
    procedure Register_Receiving_Stub
-     (Name     : in Unit_Name;
-      Receiver : in System.RPC.RPC_Receiver;
-      Version  : in String := "");
+     (Name          : in Unit_Name;
+      Receiver      : in System.RPC.RPC_Receiver;
+      Version       : in String := "";
+      Subp_Info     : in System.Address;
+      Subp_Info_Len : in Integer);
    --  Register the fact that the Name receiving stub is now elaborated.
    --  Register the access value to the package RPC_Receiver procedure.
+
+   procedure Get_RAS_Info
+     (Name          : in  Unit_Name;
+      Subp_Id       : in  Subprogram_Id;
+      Proxy_Address : out Interfaces.Unsigned_64);
+   --  Look up the address of the proxy object for the given subprogram
+   --  in the named unit, or Null_Address if not present on the local
+   --  partition.
 
    procedure Register_Passive_Package
      (Name    : in Unit_Name;
@@ -165,6 +187,9 @@ package System.Partition_Interface is
       --  XXXXX: Rename it in Get_RCI_Partition_ID
    end RCI_Info;
    --  RCI package information caching
+
+   subtype RCI_Subp_Info is System.Garlic.Units.RCI_Subp_Info;
+   subtype RCI_Subp_Info_Array is System.Garlic.Units.RCI_Subp_Info_Array;
 
    procedure Run (Main : in Main_Subprogram_Type := null);
    --  Run the main subprogram
