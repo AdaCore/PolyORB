@@ -249,10 +249,6 @@ package body System.Garlic.Termination is
 
       Main_Loop : loop
 
-         --  Wait for a given time
-
-         pragma Debug (D ("Waiting for some time"));
-
          --  The following block may cause an additionnal delay of
          --  Time_Between_Checks before the shutdown, but it will only
          --  occur whenever an error has been signaled causing the regular
@@ -260,7 +256,9 @@ package body System.Garlic.Termination is
 
          exit Main_Loop when Shutdown_In_Progress;
 
-         if Flip_Flop and then Current_Stamp /= 0 then
+         if Flip_Flop then
+            pragma Debug (D ("Waiting for some time"));
+
             delay Time_Between_Checks;
             exit Main_Loop when Shutdown_In_Progress;
          end if;

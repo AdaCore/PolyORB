@@ -1,3 +1,10 @@
+1999-09-09  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garter.adb: Remove livelock. We must delay when the algorithm
+ 	has not been activated (Current_Stamp = 0). Otherwise, the main
+ 	task executing the global termination algorithm can prevent the
+ 	other tasks from running.
+	
 1999-09-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garopt.adb, s-garpar.adb, s-gartyp.ads, s-garuni.adb,
