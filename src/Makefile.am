@@ -28,6 +28,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-filters.ads \
 		polyorb-filters-interface.ads \
 		polyorb-filters-slicers.ads \
+		polyorb-if_descriptors.ads \
 		polyorb-jobs.ads \
 		polyorb-initialization.ads \
 		polyorb-locked_queue.ads \

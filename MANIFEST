@@ -432,6 +432,7 @@ src/polyorb-filters.adb
 src/polyorb-filters.ads
 src/polyorb-initialization.adb
 src/polyorb-initialization.ads
+src/polyorb-if_descriptors.ads
 src/polyorb-jobs.adb
 src/polyorb-jobs.ads
 src/polyorb-locked_queue.adb
