@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -55,7 +55,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    --  Etherealize the objects of the associated POAs
    --  (in case a Servant Manager is used with a RETAIN policy)
 
-   procedure Destroy_If_Unused (Self : access Basic_POA_Manager);
+   procedure Destroy_If_Unused (Self : in out Basic_POA_Manager);
    --  Destroy the POAManager if it is no longer used by any POA,
    --  and the POAManager has been created only for
 
@@ -123,7 +123,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    is
    begin
       pragma Debug (O ("Hold requests, Wait_For_Completion is "
-                       & Wait_For_Completion'Img));
+                       & Boolean'Image (Wait_For_Completion)));
       Lock_W (Self.State_Lock);
       if Self.Current_State = INACTIVE then
          Unlock_W (Self.State_Lock);
@@ -149,7 +149,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    is
    begin
       pragma Debug (O ("Discard requests, Wait_For_Completion is "
-                       & Wait_For_Completion'Img));
+                       & Boolean'Image (Wait_For_Completion)));
       Lock_W (Self.State_Lock);
       if Self.Current_State = INACTIVE then
          Unlock_W (Self.State_Lock);
@@ -176,9 +176,9 @@ package body PolyORB.POA_Manager.Basic_Manager is
    is
    begin
       pragma Debug (O ("Hold requests, Wait_For_Completion is "
-                       & Wait_For_Completion'Img
+                       & Boolean'Image (Wait_For_Completion)
                        & ", Etherealize_Objects is "
-                       & Etherealize_Objects'Img));
+                       & Boolean'Image (Etherealize_Objects)));
       Lock_W (Self.State_Lock);
       if Self.Current_State = INACTIVE then
          Unlock_W (Self.State_Lock);
@@ -205,7 +205,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    is
    begin
       pragma Debug (O ("POAManager state is "
-                       & Self.Current_State'Img));
+                       & State'Image (Self.Current_State)));
       return Self.Current_State;
    end Get_State;
 
@@ -269,7 +269,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       use PolyORB.POA_Types.POA_Sequences;
       A_Child : Obj_Adapter_Access;
    begin
-      pragma Debug (O ("Remove a POA"));
+      pragma Debug (O ("Remove a POA: enter"));
       Lock_W (Self.POAs_Lock);
       for I in 1 .. Length (Sequence (Self.Managed_POAs.all)) loop
          A_Child := Element_Of (Sequence (Self.Managed_POAs.all), I);
@@ -277,7 +277,8 @@ package body PolyORB.POA_Manager.Basic_Manager is
             Replace_Element (Sequence (Self.Managed_POAs.all), I, null);
             Unlock_W (Self.POAs_Lock);
             Dec_Usage_Counter (Self);
-            Destroy_If_Unused (Self);
+            Destroy_If_Unused (Self.all);
+            pragma Debug (O ("Remove a POA: end"));
             return;
          end if;
       end loop;
@@ -322,7 +323,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Self.Usage_Count := Self.Usage_Count + 1;
       Unlock_W (Self.Count_Lock);
       pragma Debug (O ("Increase usage to "
-                       & Self.Usage_Count'Img));
+                       & Integer'Image (Self.Usage_Count)));
    end Inc_Usage_Counter;
 
    -----------------------
@@ -337,7 +338,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       Self.Usage_Count := Self.Usage_Count - 1;
       Unlock_W (Self.Count_Lock);
       pragma Debug (O ("Decrease usage to "
-                       & Self.Usage_Count'Img));
+                       & Integer'Image (Self.Usage_Count)));
    end Dec_Usage_Counter;
 
    ----------------------------
@@ -376,10 +377,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
    -----------------------
 
    procedure Destroy_If_Unused
-     (Self : access Basic_POA_Manager)
-   is
-      BPM : Basic_POA_Manager_Access
-        := Basic_POA_Manager_Access (Self);
+     (Self : in out Basic_POA_Manager) is
    begin
       Lock_R (Self.Count_Lock);
       if Self.Usage_Count = 0 then
@@ -389,10 +387,15 @@ package body PolyORB.POA_Manager.Basic_Manager is
          Destroy (Self.Count_Lock);
          Destroy (Self.POAs_Lock);
          Destroy (Self.Queue_Lock);
-         Free (BPM);
+         Finalize (Self);
+         pragma Debug (O ("POAManager destroyed."));
       else
          Unlock_R (Self.Count_Lock);
       end if;
+   exception
+      when others =>
+         pragma Debug (O ("Destroy_If_Unused: got exception"));
+         raise;
    end Destroy_If_Unused;
 
    --------------------

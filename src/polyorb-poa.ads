@@ -125,7 +125,7 @@ package PolyORB.POA is
    --  Policies are optionnal : defaults values are provided
 
    procedure Destroy
-     (Self                : access Obj_Adapter;
+     (Self                : in out Obj_Adapter_Access;
       Etherealize_Objects : in     Boolean;
       Wait_For_Completion : in     Boolean)
       is abstract;

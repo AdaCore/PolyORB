@@ -34,8 +34,6 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
-
 with PolyORB.Any;
 with PolyORB.Any.NVList;
 with PolyORB.Objects;
@@ -66,7 +64,7 @@ package PolyORB.POA.Basic_POA is
    --  Policies are optionnal : defaults values are provided
 
    procedure Destroy
-     (Self                : access Basic_Obj_Adapter;
+     (Self                : in out Obj_Adapter_Access;
       Etherealize_Objects : in     Boolean;
       Wait_For_Completion : in     Boolean);
 
@@ -186,9 +184,6 @@ private
       --  The child POA used for management of the proxy objects
       --  namespace (used only in the Root POA instance.)
    end record;
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Basic_Obj_Adapter, Basic_Obj_Adapter_Access);
 
    type Check_State is (CHECK, NO_CHECK);
 
