@@ -76,6 +76,10 @@ package body Broca.ORB is
    References  : IDL_SEQUENCE_Ref.Sequence;
 
    References_POA         : Broca.POA.POA_Object_Ptr;
+   Root_POA               : Broca.POA.POA_Object_Ptr;
+   --  Kludge for an easy access to those POAs. They are not really
+   --  registered with the other references, as they may be queried
+   --  often.
 
    type Profile_IIOP_Ptr is access Broca.IIOP.Profile_IIOP_Type;
 
@@ -202,36 +206,26 @@ package body Broca.ORB is
       pragma Debug (O ("Ensuring that references POA is started"));
       if References_POA = null then
 
-         pragma Debug (O ("It has not been started"));
-
-         declare
-            RootPOA_Obj : constant CORBA.Object.Ref'Class :=
-              Resolve_Initial_References (Root_POA_ObjectId);
-            RootPOA_Ptr : constant Broca.POA.POA_Object_Ptr :=
-              Broca.POA.POA_Object_Ptr
-              (CORBA.Object.Object_Of (RootPOA_Obj));
-         begin
-            pragma Debug (O ("Starting references POA"));
-            References_POA :=
-              Broca.POA.Create_POA
-              (Self         => RootPOA_Ptr,
-               Adapter_Name => Initial_References_POA_Name,
-               A_POAManager => null,
-               Tp           => ORB_CTRL_MODEL,
-               Lp           => PERSISTENT,
-               Up           => UNIQUE_ID,
-               Ip           => USER_ID,
-               Ap           => NO_IMPLICIT_ACTIVATION,
-               Sp           => NON_RETAIN,
-               Rp           => USE_SERVANT_MANAGER);
-            pragma Debug (O ("Setting default servant"));
-            PortableServer.ServantManager.Set
-              (References_POA.Servant_Manager,
-               CORBA.Impl.Object_Ptr'(Locator'Access));
-            pragma Debug (O ("Activating the references POA"));
-            Activate (Get_The_POAManager (References_POA) .all);
-            pragma Debug (O ("References POA ready"));
-         end;
+         pragma Debug (O ("Starting references POA"));
+         References_POA :=
+           Broca.POA.Create_POA
+           (Self         => Root_POA,
+            Adapter_Name => Initial_References_POA_Name,
+            A_POAManager => null,
+            Tp           => ORB_CTRL_MODEL,
+            Lp           => PERSISTENT,
+            Up           => UNIQUE_ID,
+            Ip           => USER_ID,
+            Ap           => NO_IMPLICIT_ACTIVATION,
+            Sp           => NON_RETAIN,
+            Rp           => USE_SERVANT_MANAGER);
+         pragma Debug (O ("Setting default servant"));
+         PortableServer.ServantManager.Set
+           (References_POA.Servant_Manager,
+            CORBA.Impl.Object_Ptr'(Locator'Access));
+         pragma Debug (O ("Activating the references POA"));
+         Activate (Get_The_POAManager (References_POA) .all);
+         pragma Debug (O ("References POA ready"));
       end if;
    exception
       when E : others =>
@@ -372,6 +366,15 @@ package body Broca.ORB is
       use CORBA.ORB.IDL_SEQUENCE_ObjectId;
       use IDL_SEQUENCE_Ref;
    begin
+      if Identifier = Root_POA_ObjectId then
+         declare
+            R : PortableServer.POA.Ref;
+         begin
+            PortableServer.POA.Set (R, CORBA.Impl.Object_Ptr (Root_POA));
+            return R;
+         end;
+      end if;
+
       for I in 1 .. Length (Identifiers) loop
          if Element_Of (Identifiers, I) = Identifier then
             pragma Debug (O ("Resolved initial reference " &
@@ -379,6 +382,7 @@ package body Broca.ORB is
             return Element_Of (References, I);
          end if;
       end loop;
+
       if To_Standard_String (Identifier) = "NamingService" then
          pragma Debug (O ("Returning remote reference of NamingService"));
          declare
@@ -407,16 +411,19 @@ package body Broca.ORB is
    is
       use CORBA.ORB.IDL_SEQUENCE_ObjectId;
       use IDL_SEQUENCE_Ref;
+      use Broca.POA;
    begin
-      --  If we register initial references other than the RootPOA,
-      --  then it is likely that we are willing to export those services.
+      if Identifier = Root_POA_ObjectId then
+         Root_POA :=
+           Broca.POA.POA_Object_Ptr (CORBA.Object.Object_Of (Reference));
+      else
+         if Root_POA /= null then
+            Ensure_References_POA_Is_Started;
+         end if;
 
-      if Identifier /= Root_POA_ObjectId then
-         Ensure_References_POA_Is_Started;
+         Append (Identifiers, Identifier);
+         Append (References, CORBA.Object.Ref (Reference));
       end if;
-
-      Append (Identifiers, Identifier);
-      Append (References, CORBA.Object.Ref (Reference));
    end Register_Initial_Reference;
 
    ------------------
