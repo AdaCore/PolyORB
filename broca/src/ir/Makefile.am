@@ -56,7 +56,9 @@ GNATMAKE_FLAGS=	-I${srcdir} -I.. -I${srcdir}/.. ${ADASOCKETS_INCLUDE} \
 
 IDLAC= ../../idlac/idlac
 
+if ENABLE_IR
 all-local: server client print
+endif
 
 ${DEP}: ir.idl ${IDLAC}
 	${IDLAC} ${srcdir}/ir.idl
