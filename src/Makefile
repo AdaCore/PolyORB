@@ -4,7 +4,7 @@
 # $Id$
 #
 
-GNATMAKE=gnatmake
+GNATMAKE=gnatmake --GCC=./compile
 
 CFLAGS=		-O2 -gnatfy -gnatwae -Icorba $(COPTS)
 
