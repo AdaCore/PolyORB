@@ -831,8 +831,16 @@ package body PolyORB.Filters.HTTP is
                raise Protocol_Error;
             end if;
             pragma Debug (O ("SOAP action is " & S (Pos .. Tok_Last)));
-            F.SOAP_Action := PolyORB.Types.To_PolyORB_String
-              (S (Pos .. Tok_Last));
+
+            if S (Pos) = '"' and then S (Tok_Last) = '"' then
+               pragma Debug (O ("SOAP action is now "
+                                & S (Pos + 1 .. Tok_Last - 1)));
+               F.SOAP_Action := PolyORB.Types.To_PolyORB_String
+                 (S (Pos + 1 .. Tok_Last - 1));
+            else
+               F.SOAP_Action := PolyORB.Types.To_PolyORB_String
+                 (S (Pos .. Tok_Last));
+            end if;
 
          when others =>
             pragma Debug

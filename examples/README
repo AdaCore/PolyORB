@@ -3,6 +3,8 @@ README for the PolyORB examples directory
 
 $Id$
 
+* Directories :
+
 This directory contains a few demonstration of PolyORB's capabilities.
 It is organized around PolyORB application personnalities
 
@@ -12,6 +14,28 @@ It is organized around PolyORB application personnalities
  moma/    : MOMA demo,
  polyorb/ : simple demo using PolyORB's neutral core layer.
 
-Interoperability demo :
+* Interoperability demo :
 
 XXX To be written.
+
+* SOAP demo :
+
+To specificaly test SOAP protocol personality, you can use the
+"Generic SOAP client" at http://soapclient.com/soapmsg.html
+(c) SQLData System Inc.
+
+And provide the following inputs :
+
+Server address : the full path to your object, e.g.
+
+	137.194.162.29:8080/1;sys;pf=1032965896
+
+SOAPAction    : the method to execute, e.g.
+
+	echoString
+
+SOAPMessage   : the complete SOAP message, see examples/corba/echo/soap_message
+
+	
+
+We provide SOAP Messages for some tests.
