@@ -1,3 +1,5 @@
+with Ada.Text_IO; use Ada.Text_IO;
+
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree;  use Idl_Fe.Tree;
 with Idl_Fe.Tree.Accessors; use Idl_Fe.Tree.Accessors;
@@ -8,24 +10,45 @@ with Ada_Be.Source_Streams; use Ada_Be.Source_Streams;
 
 package body Ada_Be.Idl2Ada is
 
+   ---------------
+   -- Constants --
+   ---------------
+
+   Stream_Suffix : constant String
+     := ".Stream";
+   --  The name of the CDR packages for a scope.
+
    -------------------------------------------------
    -- General purpose code generation subprograms --
    -------------------------------------------------
 
-   procedure Generate_Scope_Stubs
+   procedure Generate_Scope
      (Node : N_Root_Acc);
-   --  procedure Generate_Scope_Stream
-   --    (Node : N_Root_Acc);
-   --  procedure Generate_Scope_Skel
-   --    (Node : N_Root_Acc);
-   --  procedure Generate_Scope_Impl
-   --    (Node : N_Root_Acc);
+   --  Generate all the files for scope Node.
 
    procedure Generate_Node_Stubs_Spec
      (CU   : in out Compilation_Unit;
       Node : N_Root_Acc);
    --  Generate the package declaration for the
    --  stubs of a node.
+
+   --  procedure Generate_Node_Stubs_Body
+   --    (CU   : in out Compilation_Unit;
+   --     Node : N_Root_Acc);
+   --  Generate the package declaration for the
+   --  stubs of a node.
+
+   procedure Generate_Node_Stream_Spec
+     (CU   : in out Compilation_Unit;
+      Node : N_Root_Acc);
+   --  Generate the package declaration for the
+   --  marchalling function of a node.
+
+   procedure Generate_Node_Stream_Body
+     (CU   : in out Compilation_Unit;
+      Node : N_Root_Acc);
+   --  Generate the package declaration for the
+   --  marchalling function of a node.
 
    procedure Generate_Node_Default
      (CU   : in out Compilation_Unit;
@@ -44,48 +67,60 @@ package body Ada_Be.Idl2Ada is
    --  Generate the declaration of an object reference
    --  type.
 
+   procedure Generate_Marshall_Profile
+     (CU        : in out Compilation_Unit;
+      Type_Name : in String);
+   --  Generate the profile for the Marshall procedure
+   --  of a type.
+   --  FIXME: This is marshall-by-value.
+   --         Marshall-by-reference should be produced
+   --         as well.
+
+   procedure Generate_Unmarshall_Profile
+     (CU        : in out Compilation_Unit;
+      Type_Name : in String);
+   --  Generate the profile for the Unmarshall function
+   --  of a type.
+   --  FIXME: This is unmarshall-by-value (see aboce).
+
+   ------------------------
+   -- Helper subprograms --
+   ------------------------
+
+   function Ada_Type_Name
+     (Node : N_Root_Acc)
+     return String;
+   --  The name of the Ada type that maps Node.
+
+   ----------------------------------------------
+   -- End of internal subprograms declarations --
+   ----------------------------------------------
+
    procedure Generate
      (Node : in N_Root_Acc) is
    begin
       pragma Assert (Is_Scope (Node));
 
-      case Get_Kind (Node.all) is
-         when
-           K_Repository |
-           K_Module     =>
-
-            Generate_Scope_Stubs (Node);
-            --  Generate_Scope_Stream (Node);
-
-         when
-           K_Interface |
-           K_ValueType =>
-
-            Generate_Scope_Stubs (Node);
-            --  Generate_Scope_Stream (Node);
-
-            --  Generate_Scope_Skel (Node);
-
-            --  if Falgs.Generate_Impl then
-            --     Generate_Scope_Impl (Node);
-            --  end if;
-
-         when others =>
-            --  This never happens.
-            raise Program_Error;
-      end case;
+      Generate_Scope (Node);
    end Generate;
 
-   procedure Generate_Scope_Stubs
+   procedure Generate_Scope
      (Node : N_Root_Acc)
    is
       Stubs_Name : constant String
         := Ada_Full_Name (Node);
+      Stream_Name : constant String
+        := Stubs_Name & Stream_Suffix;
 
       Stubs_Spec : Compilation_Unit
         := New_Package (Stubs_Name, Unit_Spec);
       Stubs_Body : Compilation_Unit
         := New_Package (Stubs_Name, Unit_Body);
+
+      Stream_Spec : Compilation_Unit
+        := New_Package (Stream_Name, Unit_Spec);
+      Stream_Body : Compilation_Unit
+        := New_Package (Stream_Name, Unit_Body);
 
    begin
       case Get_Kind (Node.all) is
@@ -104,16 +139,23 @@ package body Ada_Be.Idl2Ada is
                Init (It, Contents (Node));
                while not Is_End (It) loop
                   Decl_Node := Get_Node (It);
+                  Next (It);
 
                   if Is_Scope (Decl_Node) then
-                     Generate_Scope_Stubs (Decl_Node);
+                     Generate_Scope (Decl_Node);
                   else
-                     Generate_Node_Stubs_Spec (Stubs_Spec, Decl_Node);
+                     Generate_Node_Stubs_Spec
+                       (Stubs_Spec, Decl_Node);
+
+                     --  No stubs body for a module or
+                     --  repository.
+
+                     Generate_Node_Stream_Spec
+                       (Stream_Spec, Decl_Node);
+                     Generate_Node_Stream_Body
+                       (Stream_Body, Decl_Node);
                   end if;
 
-                  --  No stubs body for a module or repository.
-
-                  Next (It);
                end loop;
             end;
 
@@ -121,6 +163,14 @@ package body Ada_Be.Idl2Ada is
 
             Generate_Object_Reference_Declaration
               (Stubs_Spec, Node, Full_View => False);
+            --  The object reference type.
+
+            Generate_Node_Stream_Spec
+              (Stream_Spec, Node);
+            Generate_Node_Stream_Body
+              (Stream_Body, Node);
+            --  Marshalling subprograms for the object
+            --  reference type.
 
             declare
                Forward_Node : constant N_Root_Acc
@@ -137,25 +187,32 @@ package body Ada_Be.Idl2Ada is
             end;
 
             declare
-               IT   : Node_Iterator;
+               It   : Node_Iterator;
                Export_Node : N_Root_Acc;
             begin
-               Init (IT, Contents (Node));
-               while not Is_End (IT) loop
-                  Export_Node := Get_Node (IT);
-                  Generate_Node_Stubs_Spec (Stubs_Spec, Export_Node);
-                  --  Generate_Node_Stubs_Body (Stubs_Body, Export_Node);
-
+               Init (It, Contents (Node));
+               while not Is_End (It) loop
+                  Export_Node := Get_Node (It);
+                  Next (It);
                   if Is_Scope (Export_Node) then
-                     Generate_Scope_Stubs (Export_Node);
+                     Generate_Scope (Export_Node);
+                  else
+                     Generate_Node_Stubs_Spec
+                       (Stubs_Spec, Export_Node);
+                     --  Generate_Node_Stubs_Body
+                     --    (Stubs_Body, Export_Node);
+
+                     Generate_Node_Stream_Spec
+                       (Stream_Spec, Export_Node);
+                     --  Generate_Node_Stream_Body
+                     --    (Stream_Body, Export_Node);
                   end if;
 
-                  Next (IT);
                end loop;
             end;
 
             --  XXX Declare also inherited subprograms
-            --  (for multiple inheritance.)
+            --  (for multiple inheritance.) -> Expansion ?
 
             New_Line (Stubs_Spec);
             Put_Line
@@ -182,7 +239,10 @@ package body Ada_Be.Idl2Ada is
 
       Generate (Stubs_Spec);
       Generate (Stubs_Body);
-   end Generate_Scope_Stubs;
+      Generate (Stream_Spec);
+      Generate (Stream_Body);
+
+   end Generate_Scope;
 
    procedure Generate_Object_Reference_Declaration
      (CU   : in out Compilation_Unit;
@@ -299,10 +359,10 @@ package body Ada_Be.Idl2Ada is
                   end if;
 
                   P_Node := Get_Node (It);
+                  Next (It);
 
                   Generate_Node_Stubs_Spec (CU, P_Node);
 
-                  Next (It);
                   if Is_End (It) then
                      Put (CU, ")");
                      Dec_Indent (CU);
@@ -336,10 +396,9 @@ package body Ada_Be.Idl2Ada is
                when Mode_Inout =>
                   Put (CU, " : in out ");
             end case;
-            Generate_Node_Stubs_Spec (CU, N_Root_Acc (Param_Type (Node)));
+            Generate_Node_Stubs_Spec (CU, Param_Type (Node));
 
          when K_Exception =>
-
             Put_Line (CU, Ada_Name (Node) & " : exception;");
 
          when K_Member =>
@@ -351,13 +410,13 @@ package body Ada_Be.Idl2Ada is
                Init (It, Decl (Node));
                while not Is_End (It) loop
                   Decl_Node := Get_Node (It);
+                  Next (It);
 
                   Generate_Node_Stubs_Spec (CU, Decl_Node);
                   Put (CU, " : ");
                   Generate_Node_Stubs_Spec (CU, M_Type (Node));
                   Put_Line (CU, ";");
 
-                  Next (It);
                end loop;
             end;
 
@@ -379,10 +438,10 @@ package body Ada_Be.Idl2Ada is
                   end if;
 
                   E_Node := Get_Node (It);
+                  Next (It);
 
                   Generate_Node_Stubs_Spec (CU, E_Node);
 
-                  Next (It);
                   if Is_End (It) then
                      Put_Line (CU, ");");
                      Dec_Indent (CU);
@@ -404,6 +463,7 @@ package body Ada_Be.Idl2Ada is
                   Init (It, Declarators (Node));
                   while not Is_End (It) loop
                      Decl_Node := Get_Node (It);
+                     Next (It);
 
                      declare
                         Bounds_It : Node_Iterator;
@@ -412,7 +472,6 @@ package body Ada_Be.Idl2Ada is
                         Is_Array : constant Boolean
                           := not Is_Empty (Array_Bounds (Decl_Node));
                      begin
-                        Init (Bounds_It, Array_Bounds (Decl_Node));
 
                         if Is_Interface
                           and then not Is_Array then
@@ -429,8 +488,11 @@ package body Ada_Be.Idl2Ada is
                         Put (CU, " is ");
 
                         if Is_Array then
+                           Init (Bounds_It, Array_Bounds (Decl_Node));
                            while not Is_End (Bounds_It) loop
                               Bound_Node := Get_Node (Bounds_It);
+                              Next (Bounds_It);
+
                               if First_Bound then
                                  Put (CU, "array (");
                                  First_Bound := False;
@@ -450,9 +512,7 @@ package body Ada_Be.Idl2Ada is
                         end if;
 
                         Generate_Node_Stubs_Spec (CU, T_Type (Node));
-
                         Put_Line (CU, ";");
-                        Next (It);
                      end;
                   end loop;
                end;
@@ -479,9 +539,8 @@ package body Ada_Be.Idl2Ada is
                Init (It, Cases (Node));
                while not Is_End (It) loop
                   Case_Node := Get_Node (It);
-                  Generate_Node_Stubs_Spec (CU, Case_Node);
-
                   Next (It);
+                  Generate_Node_Stubs_Spec (CU, Case_Node);
                end loop;
             end;
 
@@ -532,9 +591,10 @@ package body Ada_Be.Idl2Ada is
             Put_Line (CU, " =>");
             Inc_Indent (CU);
 
-            Generate_Node_Stubs_Spec (CU, N_Root_Acc (Case_Decl (Node)));
+            Generate_Node_Stubs_Spec
+              (CU, N_Root_Acc (Case_Decl (Node)));
             Put (CU, " : ");
-            Generate_Node_Stubs_Spec (CU, N_Root_Acc (Case_Type (Node)));
+            Generate_Node_Stubs_Spec (CU, Case_Type (Node));
             Put_Line (CU, ";");
 
             Dec_Indent (CU);
@@ -554,9 +614,9 @@ package body Ada_Be.Idl2Ada is
                Init (It, Members (Node));
                while not Is_End (It) loop
                   Decl_Node := Get_Node (It);
+                  Next (It);
                   Generate_Node_Stubs_Spec (CU, Decl_Node);
 
-                  Next (It);
                end loop;
             end;
 
@@ -594,6 +654,246 @@ package body Ada_Be.Idl2Ada is
 
    end Generate_Node_Stubs_Spec;
 
+   procedure Generate_Node_Stream_Spec
+     (CU   : in out Compilation_Unit;
+      Node : N_Root_Acc) is
+   begin
+      case Get_Kind (Node.all) is
+
+         when K_Exception =>
+            --  ???
+            null;
+
+         when
+           K_Interface |
+           K_Enum      |
+           K_Union     |
+           K_Struct    =>
+            declare
+               Type_Name : constant String
+                 := Ada_Type_Name (Node);
+            begin
+               New_Line (CU);
+               Generate_Marshall_Profile (CU, Type_Name);
+               Put_Line (CU, ";");
+               Generate_Unmarshall_Profile (CU, Type_Name);
+               Put_Line (CU, ";");
+            end;
+
+         when K_Type_Declarator =>
+
+            declare
+               Is_Interface : constant Boolean
+                 := Is_Interface_Type (T_Type (Node));
+            begin
+               if not Is_Interface then
+
+                  declare
+                     It   : Node_Iterator;
+                     Decl_Node : N_Root_Acc;
+                  begin
+                     Init (It, Declarators (Node));
+                     while not Is_End (It) loop
+                        Decl_Node := Get_Node (It);
+                        Next (It);
+
+                        New_Line (CU);
+                        Generate_Marshall_Profile
+                          (CU, Ada_Name (Decl_Node));
+                        Put_Line (CU, ";");
+                        Generate_Unmarshall_Profile
+                          (CU, Ada_Name (Decl_Node));
+                        Put_Line (CU, ";");
+                     end loop;
+                  end;
+               end if;
+            end;
+
+         when others =>
+            null;
+      end case;
+
+   end Generate_Node_Stream_Spec;
+
+   procedure Generate_Node_Stream_Body
+     (CU   : in out Compilation_Unit;
+      Node : N_Root_Acc) is
+   begin
+      case Get_Kind (Node.all) is
+
+         when K_Exception =>
+            --  ???
+            null;
+
+         when K_Member =>
+            null;
+
+         when K_Enum =>
+
+            declare
+               E_Name : constant String
+                 := Ada_Name (Node);
+            begin
+               Add_With (CU, "CORBA");
+               Add_With (CU, "Broca.CDR", Use_It => True);
+
+               New_Line (CU);
+               Generate_Marshall_Profile (CU, E_Name);
+               Put_Line (CU, " is");
+               Put_Line (CU, "begin");
+               Inc_Indent (CU);
+               Put_Line (CU, "Marshall");
+               Put_Line (CU, "  (Stream,");
+               Put_Line (CU, "   CORBA.Unsigned_Long ("
+                         & E_Name & "'Pos (Val)));");
+               Dec_Indent (CU);
+               Put_Line (CU, "end Marshall;");
+
+               New_Line (CU);
+               Generate_Unmarshall_Profile (CU, E_Name);
+               Put_Line (CU, " is");
+               Put_Line (CU, "begin");
+               Inc_Indent (CU);
+               Put_Line (CU, "return " & E_Name
+                         &"'Val");
+               Put_Line
+                 (CU,
+                  "  (CORBA.Unsigned_Long'(Unmarshall (Stream));");
+               Dec_Indent (CU);
+               Put_Line (CU, "end Unmarshall;");
+            end;
+
+
+         when K_Type_Declarator =>
+
+            declare
+               Is_Interface : constant Boolean
+                 := Is_Interface_Type (T_Type (Node));
+            begin
+               if not Is_Interface then
+
+                  declare
+                     Base_Type_Name : String
+                       := Ada_Name (T_Type (Node));
+
+                     It   : Node_Iterator;
+                     Decl_Node : N_Root_Acc;
+                  begin
+                     --  XXX Add_With for
+                     --  <Scope (Base_Type_Node)>.Stream;
+
+                     Init (It, Declarators (Node));
+                     while not Is_End (It) loop
+                        Decl_Node := Get_Node (It);
+                        Next (It);
+
+                        declare
+                           Type_Name : constant String
+                             := Ada_Name (Decl_Node);
+                           Array_Dimensions : constant Natural
+                             := Length (Array_Bounds (Decl_Node));
+                        begin
+                           New_Line (CU);
+                           Generate_Marshall_Profile
+                             (CU, Type_Name);
+                           Put_Line (CU, " is");
+                           Put_Line (CU, "begin");
+                           Inc_Indent (CU);
+                           if Array_Dimensions = 0 then
+                              Put_Line (CU, "Marshall");
+                              Put_Line (CU, "  (Stream,");
+                              Put_Line (CU, "   "
+                                        & Base_Type_Name
+                                        & " (Val));");
+                           else
+                              for Dimen in 1 .. Array_Dimensions loop
+                                 declare
+                                    DImg : constant String
+                                      := Dimen'Img;
+                                    D : constant String
+                                      := DImg (DImg'First + 1 .. DImg'Last);
+                                 begin
+                                    Put_Line
+                                      (CU, "for I_" & D
+                                       & " in Val'Range ("
+                                       & D & ") loop");
+                                    Inc_Indent (CU);
+                                 end;
+                              end loop;
+
+                              Put_Line (CU, "Marshall");
+                              Put_Line (CU, "  (Stream,");
+                              Put (CU, "   Val (");
+                              for Dimen in 1 .. Array_Dimensions loop
+                                 declare
+                                    DImg : constant String
+                                      := Dimen'Img;
+                                    D : constant String
+                                      := DImg (DImg'First + 1 .. DImg'Last);
+                                 begin
+                                    if Dimen /= 1 then
+                                       Put (CU, ", ");
+                                    end if;
+                                    Put (CU, "I_" & D);
+                                 end;
+                              end loop;
+                              Put_Line (CU, ");");
+                              for Dimen in 1 .. Array_Dimensions loop
+                                 Dec_Indent (CU);
+                                 Put_Line (CU, "end loop;");
+                              end loop;
+                           end if;
+                           Dec_Indent (CU);
+                           Put_Line (CU, "end Marshall;");
+
+                           New_Line (CU);
+                           Generate_Unmarshall_Profile
+                             (CU, Type_Name);
+                           if Array_Dimensions = 0 then
+                              Put_Line (CU, " is");
+                              Put_Line (CU, "begin");
+                              Inc_Indent (CU);
+                              Put_Line (CU, "return " & Type_Name);
+                              Put_Line (CU, "  (" & Base_Type_Name & "'");
+                              Put_Line (CU, "   (Unmarshall (Stream)));");
+                           else
+                              New_Line (CU);
+                              Put_Line (CU, "is");
+                              Inc_Indent (CU);
+                              Put_Line (CU, "Returns : " & Type_Name & ";");
+                              Dec_Indent (CU);
+                              Put_Line (CU, "begin");
+                              Inc_Indent (CU);
+
+                              --  XXX FIXME: multi-dimensional.
+                              Put_Line (CU, "for I in Returns'Range loop");
+                              Inc_Indent (CU);
+                              Put_Line
+                                (CU, "Returns (I) := Unmarshall (Stream);");
+                              Dec_Indent (CU);
+                              Put_Line (CU, "end loop;");
+                              --  XXX END FIXME.
+
+                              Put_Line (CU, "return Returns;");
+                           end if;
+                           Dec_Indent (CU);
+                           Put_Line (CU, "end Unmarshall;");
+                        end;
+                     end loop;
+                  end;
+               end if;
+            end;
+
+
+         when K_Interface =>
+            null;
+
+         when others =>
+            null;
+      end case;
+
+   end Generate_Node_Stream_Body;
+
    procedure Generate_Node_Default
      (CU   : in out Compilation_Unit;
       Node : N_Root_Acc) is
@@ -601,24 +901,26 @@ package body Ada_Be.Idl2Ada is
       case Get_Kind (Node.all) is
 
          when K_Scoped_Name =>
-            declare
-               FN : constant String
-                 :=  Ada_Full_Name
-                 (N_Root_Acc (N_Named_Acc'(Value (Node))));
-               VK : constant Node_Kind
-                 := Get_Kind (Value (Node).all);
-            begin
-               Put (CU, FN);
-               if VK = K_Interface
-                 or else VK = K_Forward_Interface then
-                  --  A usage occurence of an interface
-                  --  denotes an object reference.
-                  Put (CU, ".Ref");
 
-                  --  The object reference type is declared in
-                  --  the package that maps the interface.
-                  Add_With (CU, FN);
-               end if;
+            declare
+               Denoted_Entity : constant N_Named_Acc
+                 := Value (Node);
+            begin
+               case Get_Kind (Denoted_Entity.all) is
+                  when
+                    K_Forward_Interface |
+                    K_Interface         =>
+                     Add_With
+                       (CU, Ada_Name (N_Root_Acc (Denoted_Entity)));
+                  when others =>
+                     --  XXX FIXME Add with for scope containing
+                     --  Denoted_Entity.
+                     null;
+               end case;
+
+               Put (CU, Ada_Type_Name (Node));
+               --  In this context, a usage occurence of a
+               --  scoped name is always denoting a type.
             end;
 
          when K_Declarator =>
@@ -626,66 +928,9 @@ package body Ada_Be.Idl2Ada is
             --  A simple or complex (array) declarator.
 
          --  Base types
-         when K_Short =>
+         when K_Simple_Type'Range =>
             Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Short");
-
-         when K_Long =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Long");
-
-         when K_Long_Long =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Long_Long");
-
-         when K_Unsigned_Short =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Unsigned_Short");
-
-         when K_Unsigned_Long =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Unsigned_Long");
-
-         when K_Unsigned_Long_Long =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Unsigned_Long_Long");
-
-         when K_Char =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Char");
-
-         when K_Wide_Char =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Wide_Char");
-
-         when K_Boolean =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Boolean");
-
-         when K_Float =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Float");
-
-         when K_Double =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Double");
-
-         when K_Long_Double =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Long_Double");
-
-         when K_String =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.String");
-
-         when K_Wide_String =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Wide_String");
-
-         when K_Octet =>
-            Add_With (CU, "CORBA");
-            Put (CU, "CORBA.Octet");
-
+            Put (CU, Ada_Type_Name (Node));
 
          when K_Enumerator =>
             Put (CU, Ada_Name (Node));
@@ -716,13 +961,102 @@ package body Ada_Be.Idl2Ada is
             --        when K_Lit_True =>
             --        when K_Lit_False =>
 
-
-
-
-
          when others =>
             null;
       end case;
    end Generate_Node_Default;
+
+   procedure Generate_Marshall_Profile
+     (CU        : in out Compilation_Unit;
+      Type_Name : in String) is
+   begin
+      Add_With (CU, "Broca.Buffers", Use_It => True);
+      Put_Line (CU, "procedure Marshall");
+      Put_Line (CU, "  (Buffer : access Buffer_Type;");
+      Put      (CU, "  (Val    : in " & Type_Name & ")");
+   end Generate_Marshall_Profile;
+
+   procedure Generate_Unmarshall_Profile
+     (CU        : in out Compilation_Unit;
+      Type_Name : in String) is
+   begin
+      Add_With (CU, "Broca.Buffers", Use_It => True);
+      Put_Line (CU, "function Unmarshall");
+      Put_Line (CU, "  (Buffer : access Buffer_Type)");
+      Put      (CU, "  return " & Type_Name);
+   end Generate_Unmarshall_Profile;
+
+   function Ada_Type_Name
+     (Node : N_Root_Acc)
+     return String
+   is
+      NK : constant Node_Kind
+        := Get_Kind (Node.all);
+   begin
+      case NK is
+         when K_Interface =>
+            return Ada_Name (Node) & ".Ref";
+         when
+           K_Enum   |
+           K_Union  |
+           K_Struct =>
+            return Ada_Name (Node);
+         when K_Scoped_Name =>
+            return Ada_Type_Name
+              (N_Root_Acc (N_Named_Acc'(Value (Node))));
+
+         when K_Short =>
+            return "CORBA.Short";
+
+         when K_Long =>
+            return "CORBA.Long";
+
+         when K_Long_Long =>
+            return "CORBA.Long_Long";
+
+         when K_Unsigned_Short =>
+            return "CORBA.Unsigned_Short";
+
+         when K_Unsigned_Long =>
+            return "CORBA.Unsigned_Long";
+
+         when K_Unsigned_Long_Long =>
+            return "CORBA.Unsigned_Long_Long";
+
+         when K_Char =>
+            return "CORBA.Char";
+
+         when K_Wide_Char =>
+            return "CORBA.Wide_Char";
+
+         when K_Boolean =>
+            return "CORBA.Boolean";
+
+         when K_Float =>
+            return "CORBA.Float";
+
+         when K_Double =>
+            return "CORBA.Double";
+
+         when K_Long_Double =>
+            return "CORBA.Long_Double";
+
+         when K_String =>
+            return "CORBA.String";
+
+         when K_Wide_String =>
+            return "CORBA.Wide_String";
+
+         when K_Octet =>
+            return "CORBA.Octet";
+
+         when others =>
+            --  Improper use: node N is not
+            --  mapped to an Ada type.
+
+            Put_Line ("ATN: " & NK'Img);
+            raise Program_Error;
+      end case;
+   end Ada_Type_Name;
 
 end Ada_Be.Idl2Ada;

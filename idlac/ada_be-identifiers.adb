@@ -1,11 +1,23 @@
-package body Ada_Be.Identifiers is
+with Idl_Fe.Tree; use Idl_Fe.Tree;
+with Idl_Fe.Tree.Accessors; use Idl_Fe.Tree.Accessors;
 
+package body Ada_Be.Identifiers is
 
    function Ada_Full_Name
      (Node : N_Root_Acc)
      return String is
    begin
-      return Get_Name (N_Named_Acc (Node).all);
+      case Get_Kind (Node.all) is
+         when K_Scoped_Name =>
+            declare
+               Denoted_Entity : constant
+                 N_Named_Acc := Value (Node);
+            begin
+               return Get_Name (Denoted_Entity.all);
+            end;
+         when others =>
+            return Get_Name (N_Named_Acc (Node).all);
+      end case;
    end Ada_Full_Name;
 
    function Ada_Name

@@ -37,6 +37,7 @@ package Idl_Fe.Types is
        K_Sequence,
        K_Struct,
        K_ValueBase,
+       K_Enum,
        K_Enumerator,
        K_Native,
        K_Scoped_Name,
@@ -44,7 +45,8 @@ package Idl_Fe.Types is
        K_Any,
        K_Void,
        K_Fixed,
-       K_Short,                     --  type nodes
+
+       K_Short,                     --  Simple type nodes
        K_Long,
        K_Long_Long,
        K_Unsigned_Short,
@@ -59,7 +61,7 @@ package Idl_Fe.Types is
        K_String,
        K_Wide_String,
        K_Octet,
-       K_Enum,
+
        K_Or,                   --  Binary operators.
        K_Xor,
        K_And,
@@ -84,10 +86,11 @@ package Idl_Fe.Types is
 --        K_Lit_Wstring,
 --        K_Lit_True,
 --        K_Lit_False
-
---  used for BE nodes, to extend the tree
-       K_Unknown
+       K_Unknown       --  used for BE nodes, to extend the tree
        );
+
+   subtype K_Simple_Type is
+     Node_Kind range K_Short .. K_Octet;
 
    --  all the possible kind of constants
    --  These types are used in the evaluation of constants to check

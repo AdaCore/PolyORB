@@ -1,5 +1,5 @@
 --  A stream type suitable for generation of Ada source code.
---  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#2 $
+--  $Id: //depot/adabroker/main/idlac/ada_be-source_streams.adb#3 $
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
@@ -53,9 +53,11 @@ package body Ada_Be.Source_Streams is
       Unit.Indent_Level := Unit.Indent_Level - 1;
    end Dec_Indent;
 
-   procedure Add_With (Unit   : in out Compilation_Unit;
-                       Dep    : String;
-                       Use_It : Boolean := False) is
+   procedure Add_With
+     (Unit   : in out Compilation_Unit;
+      Dep    : String;
+      Use_It : Boolean := False)
+   is
       Dep_Node : Dependency := Unit.Context_Clause;
    begin
       while Dep_Node /= null and then Dep_Node.Library_Unit.all /= Dep loop
@@ -68,7 +70,10 @@ package body Ada_Be.Source_Streams is
             Use_It => Use_It,
             Next => Unit.Context_Clause);
          Unit.Context_Clause := Dep_Node;
+      else
+         Dep_Node.Use_It := Dep_Node.Use_It or else Use_It;
       end if;
+
    end Add_With;
 
    function New_Package

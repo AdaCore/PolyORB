@@ -23,6 +23,24 @@ package body Idl_Fe.Tree.Synthetic is
       return Is_End (It);
    end Is_Empty;
 
+   function Length
+     (NL : Node_List)
+     return Natural
+   is
+      It : Node_Iterator;
+      Count : Natural
+        := 0;
+   begin
+      Init (It, NL);
+      while not Is_End (It) loop
+         Count := Count + 1;
+         --  Dummy := Get_Node (It);
+         Next (It);
+      end loop;
+
+      return Count;
+   end Length;
+
    function Is_Interface_Type
      (Node : N_Root_Acc)
      return Boolean is
