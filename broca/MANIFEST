@@ -240,6 +240,7 @@ idlac/utils.ads
 src/ChangeLog
 src/Makefile.am
 src/Makefile.in
+src/ab_gnome
 src/adabroker-config.in
 src/allsrc.adb
 src/broca-buffers-io_operations.adb
