@@ -69,9 +69,9 @@ package body PolyORB.Annotations is
       Append (NP, new Note'Class'(N));
    end Set_Note;
 
-   --------------
-   -- Get_Note --
-   --------------
+   -------------------------
+   -- Get_Note_If_Present --
+   -------------------------
 
    procedure Get_Note_If_Present
      (NP : Notepad;
@@ -96,6 +96,10 @@ package body PolyORB.Annotations is
       Present := False;
    end Get_Note_If_Present;
 
+   --------------
+   -- Get_Note --
+   --------------
+
    procedure Get_Note
      (NP : Notepad;
       N : out Note'Class)
@@ -103,6 +107,7 @@ package body PolyORB.Annotations is
       Present : Boolean;
    begin
       Get_Note_If_Present (NP, N, Present);
+      pragma Assert (Present);
    end Get_Note;
 
    procedure Get_Note
