@@ -465,7 +465,7 @@ package body XE_Stubs is
       --  Do we want to control the number of anonymous tasks
       Task_Pool := Get_Task_Pool (PID);
       if Task_Pool /= No_Task_Pool then
-         Dwrite_Call (FD, 2, "Set_Task_Pool_Bound",
+         Dwrite_Call (FD, 2, "Set_Task_Pool_Bounds",
                       Task_Pool (1), No_Str,
                       Task_Pool (2), No_Str,
                       Task_Pool (3));

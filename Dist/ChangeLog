@@ -1,3 +1,8 @@
+1999-01-14  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_stubs.adb: Fix spelling mistake in generated file, which
+	prevented the Task_Pool attribute from working.
+
 1999-01-07  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_check.adb: Final fix for 6023-G01. Set filename info back to
