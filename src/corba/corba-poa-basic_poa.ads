@@ -94,7 +94,7 @@ package CORBA.POA.Basic_POA is
       P_Servant : in     Servant_Access;
       Oid       : in     Object_Id);
 
-   procedure Deactivate
+   procedure Deactivate_Object
      (Self      : access Basic_Obj_Adapter;
       Oid       : in Object_Id);
 
@@ -160,6 +160,8 @@ package CORBA.POA.Basic_POA is
    procedure Remove_POA_By_Name
      (Self       : access Basic_Obj_Adapter;
       Child_Name :        String);
+   --  Remove a child POA from Self's list of children
+   --  Doesn't lock the list of children
 
    function Create_Root_POA
      return Obj_Adapter_Access;

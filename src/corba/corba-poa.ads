@@ -132,7 +132,7 @@ package CORBA.POA is
       is abstract;
    --  Activates an object with a specified Id
 
-   procedure Deactivate
+   procedure Deactivate_Object
      (Self : access Obj_Adapter;
       Oid  : in     Object_Id)
       is abstract;

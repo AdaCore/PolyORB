@@ -62,6 +62,7 @@ package body CORBA.POA.Basic_POA is
    --  Destroys OA's locks
 
    procedure Destroy_OA (OA : access Basic_Obj_Adapter);
+   --  Destroy OA's components, and frees OA
 
    function Find_Servant
      (OA       : access Basic_Obj_Adapter;
@@ -294,7 +295,8 @@ package body CORBA.POA.Basic_POA is
    is
       use CORBA.POA_Types.POA_Sequences;
    begin
-      pragma Debug (O ("Register child "
+      pragma Debug (O (To_Standard_String (Self.Name)
+                       & "registers child "
                        & To_Standard_String (Child.Name)));
       if (Self.Children = null) then
          Self.Children := new POAList;
@@ -381,6 +383,12 @@ package body CORBA.POA.Basic_POA is
       end if;
       Destroy_Policies (OA.all);
       Destroy_Locks    (OA.all);
+      declare
+         OA_Access : Basic_Obj_Adapter_Access
+           := Basic_Obj_Adapter_Access (OA);
+      begin
+         Free (OA_Access);
+      end;
    end Destroy_OA;
 
    ---------------------
@@ -518,7 +526,6 @@ package body CORBA.POA.Basic_POA is
          return null;
       when others =>
          Destroy_OA (New_Obj_Adapter);
-         Free (New_Obj_Adapter);
          raise;
    end Create_POA;
 
@@ -538,7 +545,7 @@ package body CORBA.POA.Basic_POA is
       pragma Debug (O ("Start destroying POA "
                        & To_Standard_String (Name)));
 
-      --  First, destroy all children
+      --  Destroy all children
       Lock_W (Self.Children_Lock);
       if Self.Children /= null then
          for I in 1 .. Length (Sequence (Self.Children.all)) loop
@@ -553,25 +560,22 @@ package body CORBA.POA.Basic_POA is
       Unlock_W (Self.Children_Lock);
 
       --  Tell father to remove current POA from its list of children
-      Remove_POA_By_Name
-        (CORBA.POA.Obj_Adapter_Access (Self.Father).all'Access,
-         Self.Name);
+      if Self.Father /= null then
+         Remove_POA_By_Name
+           (CORBA.POA.Obj_Adapter_Access (Self.Father).all'Access,
+            Self.Name);
+      end if;
 
-      --  Destroy self
+      --  Destroy self (also unregister from the POAManager)
       --  ??? Add code for Etherealize_Objects and Wait_For_Completion
       Destroy_OA (Self);
-      declare
-         OA : Basic_Obj_Adapter_Access
-           := Basic_Obj_Adapter_Access (Self);
-      begin
-         Free (OA);
-      end;
       pragma Debug (O ("POA "
                        & To_Standard_String (Name)
                        & " destroyed"));
    exception
       when others =>
          Unlock_W (Self.Children_Lock);
+         raise;
    end Destroy;
 
    --------------------------
@@ -706,11 +710,11 @@ package body CORBA.POA.Basic_POA is
                                Oid);
    end Activate_Object_With_Id;
 
-   ----------------
-   -- Deactivate --
-   ----------------
+   -----------------------
+   -- Deactivate_Object --
+   -----------------------
 
-   procedure Deactivate
+   procedure Deactivate_Object
      (Self      : access Basic_Obj_Adapter;
       Oid       : in Object_Id)
    is
@@ -719,7 +723,7 @@ package body CORBA.POA.Basic_POA is
                   CORBA.POA_Types.Obj_Adapter_Access (Self),
                   Oid);
       --  ??? Wait for completion?
-   end Deactivate;
+   end Deactivate_Object;
 
    -------------------
    -- Servant_To_Id --
@@ -845,20 +849,15 @@ package body CORBA.POA.Basic_POA is
                        & ": removing POA with name "
                        & To_Standard_String (Child_Name)
                        & " from my children."));
-      Lock_W (Self.Children_Lock);
       for I in 1 .. Length (Self.Children.all) loop
          A_Child := Element_Of (Self.Children.all, I);
-         if CORBA.POA.Obj_Adapter_Access (A_Child).Name =  Child_Name then
+         if A_Child /= null
+           and then CORBA.POA.Obj_Adapter_Access (A_Child).Name = Child_Name
+         then
             Replace_Element (Sequence (Self.Children.all), I, null);
-            Unlock_W (Self.Children_Lock);
             return;
          end if;
       end loop;
-      Unlock_W (Self.Children_Lock);
-   exception
-      when others =>
-         Unlock_W (Self.Children_Lock);
-         raise;
    end Remove_POA_By_Name;
 
    ---------------------------------------------------
@@ -885,7 +884,8 @@ package body CORBA.POA.Basic_POA is
      (OA : access Basic_Obj_Adapter)
    is
    begin
-      Destroy_OA (OA);
+      Destroy (OA, False, False);
+      --  ??? False or True
    end Destroy;
 
    ------------
@@ -915,7 +915,7 @@ package body CORBA.POA.Basic_POA is
       Id :        Droopi.Objects.Object_Id)
    is
    begin
-      Deactivate (OA, Object_Id (Id));
+      Deactivate_Object (OA, Object_Id (Id));
    end Unexport;
 
    ------------------------

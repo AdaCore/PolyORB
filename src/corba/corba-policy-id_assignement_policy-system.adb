@@ -150,7 +150,7 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
       An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
       Unlock_R (P_OA.Map_Lock);
       if An_Entry /= null then
-         Raise_Bad_Param;
+         Raise_Object_Already_Active;
       end if;
    end Ensure_Oid_Uniqueness;
 
@@ -172,6 +172,10 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
         := CORBA.POA.Obj_Adapter_Access (OA);
    begin
       Lock_W (P_OA.Map_Lock);
+      An_Entry := Get_By_Index (P_OA.Active_Object_Map.all, Index);
+      if An_Entry = null then
+         Raise_Object_Not_Active;
+      end if;
       An_Entry := Remove_By_Index (P_OA.Active_Object_Map.all'Access, Index);
       Unlock_W (P_OA.Map_Lock);
       --  Frees only the Unmarshalled_Oid_Access and the entry.

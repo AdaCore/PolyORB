@@ -13,9 +13,7 @@ with Droopi.Filters.Slicers;
 with Droopi.Log;
 with Droopi.No_Tasking;
 with Droopi.Obj_Adapters;
---  with Droopi.Obj_Adapters.Simple;
 with Droopi.Objects;
---  with Droopi.ORB.Task_Policies;
 with Droopi.ORB.Thread_Pool;
 with Droopi.ORB.Interface;
 
@@ -24,7 +22,6 @@ with Droopi.Binding_Data.IIOP;
 with Droopi.Binding_Data.SRP;
 
 with Droopi.Components;
-
 with Droopi.Protocols;
 with Droopi.Protocols.Echo;
 with Droopi.Protocols.GIOP;
@@ -32,16 +29,14 @@ with Droopi.Protocols.SRP;
 
 with Droopi.References;
 with Droopi.References.IOR;
-
 with Droopi.Requests;
 
 with Droopi.Smart_Pointers;
 with Droopi.Sockets;
---  with Droopi.Test_Object;
-with CORBA.Test_Object;
 with Droopi.Transport.Sockets;
 with Droopi.Types;
 
+with CORBA.Test_Object;
 with CORBA;
 with CORBA.POA;
 with CORBA.POA.Basic_POA;
@@ -51,14 +46,12 @@ procedure Droopi.Setup.Test_Corba
 is
    use Droopi.Binding_Data;
    use Droopi.Filters;
-   --   use Droopi.Objects;
    use Droopi.ORB;
    use Droopi.Sockets;
    use Droopi.Transport;
    use Droopi.Transport.Sockets;
    use CORBA.POA.Basic_POA;
    use CORBA.Test_Object;
-   --  package My_Thread_Pool is new Thread_Pool (4);
 
    Obj_Adapter : CORBA.POA_Types.Obj_Adapter_Access;
 
