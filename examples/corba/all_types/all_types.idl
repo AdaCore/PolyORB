@@ -31,6 +31,7 @@ interface all_types {
 
   void testException (in long arg) raises (my_exception);
   void testUnknownException (in long arg);
+  void testSystemException (in long arg);
 
   // Unions
   // ------

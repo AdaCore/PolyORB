@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_types/all_types-impl.adb#5 $
+--  $Id: //droopi/main/examples/corba/all_types/all_types-impl.adb#6 $
 
 with Ada.Text_IO;
 
@@ -234,6 +234,13 @@ package body all_types.Impl is
    begin
       raise Constraint_Error;
    end testUnknownException;
+
+   procedure testSystemException
+     (Self : access Object;
+      arg : in CORBA.Long) is
+   begin
+      CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+   end testSystemException;
 
    function echoStruct
      (Self : access Object;

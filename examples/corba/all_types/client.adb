@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,7 +33,7 @@
 
 --  All_Types client.
 
---  $Id: //droopi/main/examples/corba/all_types/client.adb#11 $
+--  $Id: //droopi/main/examples/corba/all_types/client.adb#12 $
 
 with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
@@ -336,6 +336,18 @@ begin
       exception
          when CORBA.Unknown =>
             Ok := True;
+         when E : others =>
+            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
+      end;
+      Output ("test unknown exception", Ok);
+
+      Ok := False;
+      begin
+         testSystemException (Myall_types, 2485);
+      exception
+         when CORBA.Bad_Param =>
+            Ok := True;
+
          when E : others =>
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,14 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/examples/corba/all_types/all_types-impl.ads#3 $
+--  $Id: //droopi/main/examples/corba/all_types/all_types-impl.ads#4 $
 
 with CORBA;
 with CORBA.Object;
 with PortableServer;
 
 package all_types.Impl is
-   --  My own implementation of echo object.
+
    --  This is simply used to define the operations.
 
    type Object is new PortableServer.Servant_Base with record
@@ -141,6 +141,10 @@ package all_types.Impl is
       arg : in CORBA.Long);
 
    procedure testUnknownException
+     (Self : access Object;
+      arg : in CORBA.Long);
+
+   procedure testSystemException
      (Self : access Object;
       arg : in CORBA.Long);
 
