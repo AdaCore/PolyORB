@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -350,7 +350,7 @@ package body PolyORB.Representations.CDR is
       pragma Debug (O ("Marshall (String) : end"));
    end Marshall;
 
-   --  Marshalling of a Corba String
+   --  Marshalling of a PolyORB.Types.String
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   :        PolyORB.Types.String) is
@@ -1687,14 +1687,15 @@ package body PolyORB.Representations.CDR is
                  (Get_Type (Result));
                Val : PolyORB.Any.Any;
             begin
-               pragma Debug (O ("unmarshall_to_any : dealing with a struct"));
+               pragma Debug (O ("Unmarshall_To_Any : dealing with a struct"
+                                 & " or exception"));
 
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     pragma Debug (O ("unmarshall_to_any : get the element"));
+                     pragma Debug (O ("Unmarshall_To_Any : get the element"));
                      Val := Get_Empty_Any (TypeCode.Member_Type (Tc, I));
 
-                     pragma Debug (O ("unmarshall_to_any : about to "
+                     pragma Debug (O ("Unmarshall_To_Any : about to "
                                       & "unmarshall a parameter"));
                      Unmarshall_To_Any (Buffer, Val);
                      Add_Aggregate_Element (Arg, Val);
@@ -1755,7 +1756,6 @@ package body PolyORB.Representations.CDR is
                S : constant PolyORB.Types.String := Unmarshall (Buffer);
             begin
                Set_Any_Value (Result, S);
-               --  Result := To_Any (S);
             end;
 
          when Tk_Sequence =>

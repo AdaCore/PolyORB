@@ -34,7 +34,7 @@
 with CORBA;
 
 with PolyORB.CORBA_P.Server_Tools;
-with PolyORB.CORBA_P.Exceptions;
+with PolyORB.Exceptions;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 with PolyORB.Soft_Links; use PolyORB.Soft_Links;
@@ -488,7 +488,7 @@ package body CosNaming.NamingContext.Impl is
             Member.why          := not_context;
             Member.rest_of_name := To_Sequence
               (NCA (Current_Idx + 1 .. NCA'Last));
-            PolyORB.CORBA_P.Exceptions.User_Raise_Exception
+            PolyORB.Exceptions.User_Raise_Exception
               (NotFound'Identity, Member);
          end;
       end;
@@ -647,7 +647,7 @@ package body CosNaming.NamingContext.Impl is
                begin
                   Member.why          := missing_node;
                   Member.rest_of_name := Null_Name;
-                  PolyORB.CORBA_P.Exceptions.User_Raise_Exception
+                  PolyORB.Exceptions.User_Raise_Exception
                     (NotFound'Identity, Member);
                end;
             end if;
@@ -659,7 +659,7 @@ package body CosNaming.NamingContext.Impl is
                begin
                   Member.why          := not_object;
                   Member.rest_of_name := Null_Name;
-                  PolyORB.CORBA_P.Exceptions.User_Raise_Exception
+                  PolyORB.Exceptions.User_Raise_Exception
                     (NotFound'Identity, Member);
                end;
             end if;
@@ -706,7 +706,7 @@ package body CosNaming.NamingContext.Impl is
                begin
                   Member.why          := missing_node;
                   Member.rest_of_name := Null_Name;
-                  PolyORB.CORBA_P.Exceptions.User_Raise_Exception
+                  PolyORB.Exceptions.User_Raise_Exception
                     (NotFound'Identity, Member);
                end;
             end if;
@@ -718,7 +718,7 @@ package body CosNaming.NamingContext.Impl is
                begin
                   Member.why          := not_context;
                   Member.rest_of_name := Null_Name;
-                  PolyORB.CORBA_P.Exceptions.User_Raise_Exception
+                  PolyORB.Exceptions.User_Raise_Exception
                     (NotFound'Identity, Member);
                end;
             end if;
@@ -803,7 +803,7 @@ package body CosNaming.NamingContext.Impl is
                begin
                   Member.why          := missing_node;
                   Member.rest_of_name := Null_Name;
-                  PolyORB.CORBA_P.Exceptions.User_Raise_Exception
+                  PolyORB.Exceptions.User_Raise_Exception
                     (NotFound'Identity, Member);
                end;
             end if;
@@ -859,7 +859,7 @@ package body CosNaming.NamingContext.Impl is
                begin
                   Member.why          := missing_node;
                   Member.rest_of_name := Null_Name;
-                  PolyORB.CORBA_P.Exceptions.User_Raise_Exception
+                  PolyORB.Exceptions.User_Raise_Exception
                     (NotFound'Identity, Member);
                end;
             end if;

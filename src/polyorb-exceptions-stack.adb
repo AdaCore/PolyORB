@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B . C O R B A _ P . E X C E P T I O N S . S T A C K      --
+--             P O L Y O R B . E X C E P T I O N S . S T A C K              --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,21 +30,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions-stack.adb#5 $
+--  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#1 $
 
 with Ada.Unchecked_Deallocation;
 
 with PolyORB.Log;
-
 with PolyORB.Soft_Links;
 
-package body PolyORB.CORBA_P.Exceptions.Stack is
+package body PolyORB.Exceptions.Stack is
 
    use PolyORB.Log;
    use PolyORB.Soft_Links;
 
    package L is new PolyORB.Log.Facility_Log
-     ("polyorb.corba_p.exceptions.stack");
+     ("polyorb.exceptions.stack");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -61,10 +60,10 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
    --  members will never be deallocated. This limit forces some kind
    --  of garbage collection.
 
-   Magic : constant String := "AB_Exc_Occ";
+   Magic : constant String := "PO_Exc_Occ";
 
-   type IDL_Exception_Members_Ptr is
-      access all IDL_Exception_Members'Class;
+   type Exception_Members_Ptr is
+      access all PolyORB.Exceptions.Exception_Members'Class;
 
    type Exc_Occ_Id_Type is new Natural;
 
@@ -76,7 +75,7 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
    type Exc_Occ_Node is
       record
          Id   : Exc_Occ_Id_Type;
-         Mbr  : IDL_Exception_Members_Ptr;
+         Mbr  : Exception_Members_Ptr;
          Next : Exc_Occ_List;
       end record;
 
@@ -92,8 +91,7 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
 
    procedure Free is
       new Ada.Unchecked_Deallocation
-        (IDL_Exception_Members'Class,
-         IDL_Exception_Members_Ptr);
+        (Exception_Members'Class, Exception_Members_Ptr);
 
    function Image (V : Exc_Occ_Id_Type) return String;
    --  Store the magic string and the exception occurrence id.
@@ -129,13 +127,13 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
       end loop;
    end Dump_All_Occurrences;
 
-   -----------------
-   -- Get_Members --
-   -----------------
+   --------------------------
+   -- Get_Or_Purge_Members --
+   --------------------------
 
    procedure Get_Or_Purge_Members
-     (Exc_Occ     : CORBA.Exception_Occurrence;
-      Exc_Mbr     : out IDL_Exception_Members'Class;
+     (Exc_Occ     : PolyORB.Exceptions.Exception_Occurrence;
+      Exc_Mbr     : out PolyORB.Exceptions.Exception_Members'Class;
       Get_Members : Boolean);
    --  Internal implementation of Get_Members and Purge_Members.
    --  If Get_Members is true, the retrieved members object is
@@ -143,8 +141,8 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
    --  assignment is made.
 
    procedure Get_Or_Purge_Members
-     (Exc_Occ     : CORBA.Exception_Occurrence;
-      Exc_Mbr     : out IDL_Exception_Members'Class;
+     (Exc_Occ     : PolyORB.Exceptions.Exception_Occurrence;
+      Exc_Mbr     : out PolyORB.Exceptions.Exception_Members'Class;
       Get_Members : Boolean)
    is
       Exc_Occ_Id : Exc_Occ_Id_Type;
@@ -183,7 +181,7 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
          --  Too many exceptions were raised and this member is no
          --  longer available.
 
-         PolyORB.CORBA_P.Exceptions.Raise_Imp_Limit;
+         PolyORB.Exceptions.Raise_Imp_Limit;
       end if;
 
       --  Remove member from list.
@@ -224,15 +222,23 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
          raise;
    end Get_Or_Purge_Members;
 
+   -----------------
+   -- Get_Members --
+   -----------------
+
    procedure Get_Members
-     (Exc_Occ : in CORBA.Exception_Occurrence;
-      Exc_Mbr : out IDL_Exception_Members'Class) is
+     (Exc_Occ : in PolyORB.Exceptions.Exception_Occurrence;
+      Exc_Mbr : out PolyORB.Exceptions.Exception_Members'Class) is
    begin
       Get_Or_Purge_Members (Exc_Occ, Exc_Mbr, Get_Members => True);
    end Get_Members;
 
+   -------------------
+   -- Purge_Members --
+   -------------------
+
    procedure Purge_Members
-     (Exc_Occ : in CORBA.Exception_Occurrence) is
+     (Exc_Occ : in PolyORB.Exceptions.Exception_Occurrence) is
    begin
       declare
          Dummy : System_Exception_Members;
@@ -259,7 +265,7 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
 
    procedure Raise_Exception
      (Exc_Id  : in Ada.Exceptions.Exception_Id;
-      Exc_Mbr : in IDL_Exception_Members'Class)
+      Exc_Mbr : in PolyORB.Exceptions.Exception_Members'Class)
    is
       Current    : Exc_Occ_List;
       Exc_Occ_Id : Exc_Occ_Id_Type;
@@ -289,7 +295,7 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
 
       Exc_Occ_Id   := Seed_Id;
       Current.Id   := Seed_Id;
-      Current.Mbr  := new IDL_Exception_Members'Class'(Exc_Mbr);
+      Current.Mbr  := new PolyORB.Exceptions.Exception_Members'Class'(Exc_Mbr);
       Current.Next := null;
 
       if Seed_Id = Exc_Occ_Id_Type'Last then
@@ -358,4 +364,4 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
       return V;
    end Value;
 
-end PolyORB.CORBA_P.Exceptions.Stack;
+end PolyORB.Exceptions.Stack;

@@ -282,8 +282,6 @@ examples/moma/Makefile.am
 examples/moma/Makefile.in
 examples/moma/client.adb
 examples/moma/server.adb
-examples/moma/server_poa.adb
-examples/moma/server_soa.adb
 examples/polyorb-setup-test.adb
 examples/polyorb-setup-test.ads
 examples/polyorb-setup-test_corba.adb
@@ -426,8 +424,6 @@ src/corba/corba.adb
 src/corba/corba.ads
 src/corba/polyorb-binding_data-iiop.adb
 src/corba/polyorb-binding_data-iiop.ads
-src/corba/polyorb-corba_p-exceptions-stack.adb
-src/corba/polyorb-corba_p-exceptions-stack.ads
 src/corba/polyorb-corba_p-exceptions.adb
 src/corba/polyorb-corba_p-exceptions.ads
 src/corba/polyorb-corba_p-names.adb
@@ -568,6 +564,10 @@ src/polyorb-configuration.ads
 src/polyorb-constants.ads
 src/polyorb-dynamic_dict.adb
 src/polyorb-dynamic_dict.ads
+src/polyorb-exceptions.ads
+src/polyorb-exceptions.adb
+src/polyorb-exceptions-stack.ads
+src/polyorb-exceptions-stack.adb
 src/polyorb-filters-interface.adb
 src/polyorb-filters-interface.ads
 src/polyorb-filters-slicers.adb

@@ -219,8 +219,8 @@ begin
          --      echoBigMatrix (Myall_types, B) = B);
       end;
       Output ("test big multi-dimensional array", False);
-
-      --  Test bigmatrix produces a server stack overflow.
+      --  XXX idlac generates wrong code for this example, index goes beyond
+      --  arrays limits, raising an exception on the server side.
 
       --  Attributes
       set_myColor (Myall_types, Green);
@@ -251,19 +251,15 @@ begin
       Output ("test user exception", Ok);
 
       Ok := False;
-      --  declare
-      --    Member : my_exception_Members;
       begin
          testUnknownException (Myall_types, 2485);
       exception
          when CORBA.Unknown =>
             Ok := True;
-         when others =>
-            null;
+         when E : others =>
+            Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
       Output ("test unknown exception", Ok);
-
-      --  XXX not implemented.
 
       exit when One_Shot;
    end loop;

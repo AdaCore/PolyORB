@@ -66,7 +66,7 @@ with PolyORB.Soft_Links;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
-with PolyORB.CORBA_P.Exceptions;
+with PolyORB.Exceptions;
 --  SOLELY for System_Exception_TypeCode and Completion_Status
 --  From_Any/To_Any.
 
@@ -1475,8 +1475,7 @@ package body PolyORB.Protocols.GIOP is
    is
    begin
       Info := Any.Get_Empty_Any
-        (CORBA_P.Exceptions.System_Exception_TypeCode
-         (Unmarshall (Buffer)));
+        (Exceptions.System_Exception_TypeCode (Unmarshall (Buffer)));
       Unmarshall_To_Any
         (Buffer, Info);
    end Unmarshall_System_Exception_To_Any;

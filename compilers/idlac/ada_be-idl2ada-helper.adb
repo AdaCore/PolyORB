@@ -314,8 +314,8 @@ package body Ada_Be.Idl2Ada.Helper is
             DI (CU);
             PL (CU, "begin");
             II (CU);
-            Add_With (CU, "PolyORB.CORBA_P.Exceptions");
-            PL (CU, "PolyORB.CORBA_P.Exceptions.User_Raise_Exception");
+            Add_With (CU, "PolyORB.Exceptions");
+            PL (CU, "PolyORB.Exceptions.User_Raise_Exception");
             PL (CU, "  (" & Ada_Name (Node) & "'Identity,");
             II (CU);
             PL (CU, "Members);");
@@ -326,7 +326,7 @@ package body Ada_Be.Idl2Ada.Helper is
             Divert (CU, Deferred_Initialization);
             --  This has to be done in deferred initialization,
             --  after the TypeCode has been constructed.
-            PL (CU, "PolyORB.CORBA_P.Exceptions.Register_Exception");
+            PL (CU, "PolyORB.Exceptions.Register_Exception");
             PL (CU, "  (" & Ada_TC_Name (Node) & ",");
             II (CU);
             PL (CU, Raise_From_Any_Name (Node) & "'Access);");
@@ -673,7 +673,7 @@ package body Ada_Be.Idl2Ada.Helper is
    begin
       pragma Assert (Kind (Node) = K_ValueType);
 
-      Add_With (CU, "PolyORB.CORBA_P.Exceptions");
+      Add_With (CU, "PolyORB.Exceptions");
       Add_With (CU, "CORBA.Value");
       Add_With (CU, "PolyORB.Log");
       Add_With (CU, "Ada.Strings.Unbounded");
@@ -714,7 +714,7 @@ package body Ada_Be.Idl2Ada.Helper is
       DI (CU);
       PL (CU, "else");
       II (CU);
-      PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;");
+      PL (CU, "PolyORB.Exceptions.Raise_Bad_Param;");
       DI (CU);
       PL (CU, "end if;");
       DI (CU);
@@ -1190,7 +1190,7 @@ package body Ada_Be.Idl2Ada.Helper is
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
-         Add_With (CU, "PolyORB.CORBA_P.Exceptions");
+         Add_With (CU, "PolyORB.Exceptions");
 
          NL (CU);
          PL (CU, "function Unchecked_To_" & Type_Defining_Name);
@@ -1254,7 +1254,7 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "end if;");
 
-         PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;");
+         PL (CU, "PolyORB.Exceptions.Raise_Bad_Param;");
          DI (CU);
          PL (CU, "end To_" & Type_Defining_Name & ";");
       end;
@@ -1337,7 +1337,7 @@ package body Ada_Be.Idl2Ada.Helper is
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
-         Add_With (CU, "PolyORB.CORBA_P.Exceptions");
+         Add_With (CU, "PolyORB.Exceptions");
 
          NL (CU);
          PL (CU, "function Unchecked_To_" & Short_Type_Name);
@@ -1381,7 +1381,7 @@ package body Ada_Be.Idl2Ada.Helper is
          DI (CU);
          PL (CU, "end if;");
 
-         PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;");
+         PL (CU, "PolyORB.Exceptions.Raise_Bad_Param;");
          DI (CU);
          PL (CU, "end To_" & Short_Type_Name & ";");
       end;
@@ -2731,8 +2731,8 @@ package body Ada_Be.Idl2Ada.Helper is
             Gen_Constant_Value (CU, Bound (Sequence (Node)));
             PL (CU, " then");
             II (CU);
-            Add_With (CU, "PolyORB.CORBA_P.Exceptions");
-            PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_Bad_TypeCode;");
+            Add_With (CU, "PolyORB.Exceptions");
+            PL (CU, "PolyORB.Exceptions.Raise_Bad_TypeCode;");
             DI (CU);
             PL (CU, "end if;");
          end if;

@@ -44,7 +44,7 @@
 with Ada.Exceptions;
 
 with PolyORB.Configuration;
-with PolyORB.CORBA_P.Exceptions;
+with PolyORB.Exceptions;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Initialization;
 with PolyORB.Log;
@@ -409,7 +409,7 @@ package body CORBA.ORB is
       end;
    exception
       when Constraint_Error =>
-         PolyORB.CORBA_P.Exceptions.Raise_Bad_Param;
+         PolyORB.Exceptions.Raise_Bad_Param;
    end String_To_Object;
 
    ------------------

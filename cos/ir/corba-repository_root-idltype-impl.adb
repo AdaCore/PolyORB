@@ -25,7 +25,7 @@ with CORBA.Repository_Root.TypedefDef.Impl;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
-with PolyORB.CORBA_P.Exceptions;
+with PolyORB.Exceptions;
 with PolyORB.CORBA_P.Server_Tools;
 with PortableServer;
 
@@ -67,7 +67,7 @@ package body CORBA.Repository_Root.IDLType.Impl is
            Dk_Module     |
            Dk_All        |
            Dk_None       =>
-            PolyORB.CORBA_P.Exceptions.Raise_Internal;
+            PolyORB.Exceptions.Raise_Internal;
             return null;
          when
            --  inherited types
@@ -202,7 +202,7 @@ package body CORBA.Repository_Root.IDLType.Impl is
                return ValueBoxdef.Impl.Get_Type (Interm);
             end;
          when others =>
-            PolyORB.CORBA_P.Exceptions.Raise_Internal;
+            PolyORB.Exceptions.Raise_Internal;
             return CORBA.TC_Void;
       end case;
 

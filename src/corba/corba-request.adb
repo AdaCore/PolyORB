@@ -34,7 +34,7 @@
 
 --  $Id$
 
-with PolyORB.CORBA_P.Exceptions;
+with PolyORB.Exceptions;
 with PolyORB.Requests;
 
 with CORBA.Context;
@@ -111,7 +111,7 @@ package body CORBA.Request is
         (Self.The_Request, PolyORB.Requests.Flags (Invoke_Flags));
 
       if not Is_Empty (Self.The_Request.Exception_Info) then
-         PolyORB.CORBA_P.Exceptions.Raise_From_Any
+         PolyORB.Exceptions.Raise_From_Any
            (Self.The_Request.Exception_Info);
       end if;
    end Invoke;

@@ -30,11 +30,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.adb#17 $
+--  $Id: //droopi/main/src/corba/corba.adb#18 $
 
 with Ada.Characters.Handling;
 
-with PolyORB.CORBA_P.Exceptions;
+with PolyORB.Exceptions;
 with PolyORB.Types;
 
 package body CORBA is
@@ -84,7 +84,30 @@ package body CORBA is
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members)
-     renames PolyORB.CORBA_P.Exceptions.Get_Members;
+   is
+      Str : constant Standard.String :=
+        Ada.Exceptions.Exception_Message (From);
+      Val : Unsigned_Long;
+   begin
+      --  Check length.
+      if Str'Length /= 5 then
+         PolyORB.Exceptions.Raise_Bad_Param;
+      end if;
+
+      --  Unmarshall completion status.
+      --  This can raise constraint_error.
+      To.Completed := Completion_Status'Val (Character'Pos (Str (Str'Last)));
+
+      --  Unmarshall minor.
+      Val := 0;
+      for I in Str'First .. Str'Last - 1 loop
+         Val := Val * 256 + Character'Pos (Str (I));
+      end loop;
+      To.Minor := Val;
+   exception
+      when Constraint_Error =>
+         PolyORB.Exceptions.Raise_Bad_Param;
+   end Get_Members;
 
    --------------------------------------
    -- Get_Members for other exceptions --
@@ -131,7 +154,7 @@ package body CORBA is
       To : out PolicyError_Members)
    is
    begin
-      PolyORB.CORBA_P.Exceptions.User_Get_Members (From, To);
+      PolyORB.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
    -----------------
@@ -142,11 +165,19 @@ package body CORBA is
      (From : Ada.Exceptions.Exception_Occurrence;
       To   : out UnknownUserException_Members) is
    begin
-      PolyORB.CORBA_P.Exceptions.User_Get_Members (From, To);
+      PolyORB.Exceptions.User_Get_Members (From, To);
    end Get_Members;
+
+   ---------
+   -- "=" --
+   ---------
 
    function "=" (Left, Right : in Any) return Boolean
      renames PolyORB.Any."=";
+
+   ------------
+   -- To_Any --
+   ------------
 
    function To_Any (Item : in Short) return Any is
    begin
@@ -219,9 +250,9 @@ package body CORBA is
    function To_Any (Item : in TypeCode.Object) return Any
      renames PolyORB.Any.To_Any;
 
---    begin
---       return PolyORB.Any.To_Any (Item);
---    end To_Any;
+   --    begin
+   --       return PolyORB.Any.To_Any (Item);
+   --    end To_Any;
 
    function To_Any (Item : in CORBA.String) return Any is
    begin
@@ -233,6 +264,9 @@ package body CORBA is
       return PolyORB.Any.To_Any (PolyORB.Types.Wide_String (Item));
    end To_Any;
 
+   --------------
+   -- From_Any --
+   --------------
 
    function From_Any (Item : in Any) return Short is
    begin
@@ -333,18 +367,21 @@ package body CORBA is
    ----------------
    --  Get_Type  --
    ----------------
+
    function Get_Type (The_Any : in Any) return  TypeCode.Object
      renames PolyORB.Any.Get_Type;
 
    ------------------------
    --  Get_Unwound_Type  --
    ------------------------
+
    function Get_Unwound_Type (The_Any : in Any) return  TypeCode.Object
      renames PolyORB.Any.Get_Unwound_Type;
 
    ----------------
    --  Set_Type  --
    ----------------
+
    procedure Set_Type
      (The_Any  : in out Any;
       The_Type : in     TypeCode.Object)
@@ -507,7 +544,6 @@ package body CORBA is
         (Any_Value, PolyORB.Types.Wide_String (Value));
    end Set_Any_Value;
 
-
    -------------------------------
    --  Set_Any_Aggregate_Value  --
    -------------------------------
@@ -557,14 +593,18 @@ package body CORBA is
      return Any
      renames PolyORB.Any.Get_Empty_Any_Aggregate;
 
+   -----------
+   -- Image --
+   -----------
+
    function Image (NV : NamedValue) return Standard.String is
    begin
       return Image (To_PolyORB_NV (NV));
    end Image;
 
-   ------------------
-   -- RepositoryId --
-   ------------------
+   -------------------
+   -- Is_Equivalent --
+   -------------------
 
    function Is_Equivalent (RI1, RI2 : RepositoryId)
      return Boolean is

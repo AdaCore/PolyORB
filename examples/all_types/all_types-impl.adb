@@ -30,7 +30,7 @@ with all_types.Skel;
 pragma Elaborate (all_types.Skel);
 pragma Warnings (Off, all_types.Skel);
 
-with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
+with PolyORB.Exceptions; use PolyORB.Exceptions;
 
 package body all_types.Impl is
 
@@ -216,7 +216,7 @@ package body all_types.Impl is
          := new My_Exception_Members'(info => arg);
       --  FIXME: introducing potential memory leak in server.
    begin
-      PolyORB.CORBA_P.Exceptions.User_Raise_Exception
+      PolyORB.Exceptions.User_Raise_Exception
         (My_Exception'Identity, Members.all);
    end testException;
 

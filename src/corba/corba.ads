@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#22 $
+--  $Id: //droopi/main/src/corba/corba.ads#23 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -42,6 +42,7 @@ with Interfaces;
 
 with PolyORB.Any;
 with PolyORB.Types;
+with PolyORB.Exceptions;
 
 package CORBA is
 
@@ -148,7 +149,6 @@ package CORBA is
    Null_Wide_String : constant CORBA.Wide_String := CORBA.Wide_String
      (Ada.Strings.Wide_Unbounded.To_Unbounded_Wide_String (""));
 
-
    -------------
    --  Types  --
    -------------
@@ -196,16 +196,11 @@ package CORBA is
    -- Exceptions --
    ----------------
 
-   type IDL_Exception_Members is abstract tagged null record;
-   --  Base type for all corba exception members. A member is a record
+   subtype IDL_Exception_Members is PolyORB.Exceptions.Exception_Members;
+   --  Base type for all CORBA exception members. A member is a record
    --  attached to an exception that allows the programmer to pass
    --  arguments when an exception is raised. The default Member record is
    --  abstract and empty but all other records will inherit from it.
-
-   --  inconsistent spec, this line is not defined in package CORBA
-   --  but it is used in other packages.
-   subtype Exception_Occurrence is Ada.Exceptions.Exception_Occurrence;
-
 
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
@@ -216,7 +211,7 @@ package CORBA is
 
    --  Free method associated to the type Idl_Exception_Members_Ptr
 
-   type Completion_Status is (Completed_Yes, Completed_No, Completed_Maybe);
+   subtype Completion_Status is PolyORB.Exceptions.Completion_Status;
    --  Type used for characterize the state of an exception It is defined
    --  by the CORBA specification.
 
@@ -224,13 +219,14 @@ package CORBA is
    --  Type used for characterize exceptions.  It is defined by the CORBA
    --  specification.
 
-   type System_Exception_Members is new CORBA.IDL_Exception_Members with
-      record
-         Minor     : CORBA.Unsigned_Long;
+   type System_Exception_Members is new PolyORB.Exceptions.Exception_Members
+     with record
+         Minor     : Unsigned_Long;
          Completed : Completion_Status;
-      end record;
-   --  Member type for System exceptions.  It is defined by the CORBA
-   --  specification
+     end record;
+
+   subtype Exception_Occurrence is PolyORB.Exceptions.Exception_Occurrence;
+   --  Not in CORBA spec !
 
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
