@@ -50,24 +50,23 @@ package System.Garlic.Options is
    Task_Pool_Max_Bound  : Natural;
    --  This one must match the definition of Max_Tasks from s-rpcpoo.adb
 
-   Has_RCI_Pkg_Or_RACW_Var : Boolean := True;
-
-   Has_Light_PCS   : Boolean;
-   Mirror_Expected : Boolean;
-   Self_Location   : Utils.String_Array_Access;
-   Boot_Location   : Utils.String_Array_Access;
-   Data_Location   : Utils.String_Array_Access;
-   Is_Boot_Mirror  : Boolean;
-   Is_Boot_Server  : Boolean;
-   Connection_Hits : Natural;
-   Detach          : Boolean;
-   Nolaunch        : Boolean;
-   Reconnection    : Types.Reconnection_Type;
-   Termination     : Types.Termination_Type;
-   Partition_Name  : Utils.String_Access;
-   Execution_Mode  : Types.Execution_Mode_Type;
-   Trace_File_Name : Utils.String_Access;
-   Checksum        : Types.Word;
+   Has_A_Light_PCS  : Boolean;
+   Mirror_Expected  : Boolean;
+   Self_Location    : Utils.String_Array_Access;
+   Boot_Location    : Utils.String_Array_Access;
+   Data_Location    : Utils.String_Array_Access;
+   Is_Boot_Mirror   : Boolean;
+   Is_Boot_Server   : Boolean;
+   Is_Pure_Client   : Boolean;
+   Connection_Hits  : Natural;
+   Detach           : Boolean;
+   Nolaunch         : Boolean;
+   Reconnection     : Types.Reconnection_Type;
+   Termination      : Types.Termination_Type;
+   Partition_Name   : Utils.String_Access;
+   Execution_Mode   : Types.Execution_Mode_Type;
+   Trace_File_Name  : Utils.String_Access;
+   Checksum         : Types.Word;
 
    procedure Initialize_Default_Options;
 
@@ -90,6 +89,8 @@ package System.Garlic.Options is
    procedure Set_Nolaunch (Default : in Boolean);
 
    procedure Set_Partition_Name (Name : in String);
+
+   procedure Set_Pure_Client (Default : in Boolean);
 
    procedure Set_Reconnection (Default : in Types.Reconnection_Type);
 

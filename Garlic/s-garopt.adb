@@ -35,7 +35,6 @@
 
 with Ada.Command_Line;                use Ada.Command_Line;
 with Ada.Exceptions;                  use Ada.Exceptions;
-with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
 with System.Garlic.Types;             use System.Garlic.Types;
 with System.Garlic.Utils;             use System.Garlic.Utils;
@@ -45,12 +44,6 @@ package body System.Garlic.Options is
 
    use System.Garlic.Types;
 
-   Private_Debug_Key : constant Debug_Key :=
-     Debug_Initialize ("S_GAROPT", "(s-garopt): ");
-   procedure D
-     (Message : in String;
-      Key     : in Debug_Key := Private_Debug_Key)
-     renames Print_Debug_Info;
    --  Debugging stuff
 
    procedure Next_Argument (Index : in out Natural);
@@ -72,7 +65,8 @@ package body System.Garlic.Options is
       Connection_Hits := Def_Connection_Hits;
       Detach          := False;
       Mirror_Expected := False;
-      Has_Light_PCS   := not Has_RCI_Pkg_Or_RACW_Var;
+      Has_A_Light_PCS := False;
+      Is_Pure_Client  := False;
       Is_Boot_Mirror  := False;
       Is_Boot_Server  := False;
       Nolaunch        := False;
@@ -164,88 +158,65 @@ package body System.Garlic.Options is
 
          if Argument (Index) = "--boot_server" then
 
-            pragma Debug (D ("boot_server available on command line"));
-
             Next_Argument (Index);
             Set_Boot_Location (Unquote (Argument (Index)));
 
          elsif Argument (Index) = "--boot_location" then
-
-            pragma Debug (D ("--boot_location available on command line"));
 
             Next_Argument (Index);
             Set_Boot_Location (Unquote (Argument (Index)));
 
          elsif Argument (Index) = "--data_location" then
 
-            pragma Debug (D ("--data_location available on command line"));
-
             Next_Argument (Index);
             Set_Data_Location (Unquote (Argument (Index)));
 
          elsif Argument (Index) = "--boot_mirror" then
 
-            pragma Debug (D ("boot_mirror available on command line"));
-
             Set_Boot_Mirror (True);
 
          elsif Argument (Index) = "--mirror_expected" then
 
-            pragma Debug (D ("--mirror_expected-- available on command line"));
-
             Set_Mirror_Expected (True);
 
          elsif Argument (Index) = "--self_location" then
-
-            pragma Debug (D ("--self_location available on command line"));
 
             Next_Argument (Index);
             Set_Self_Location (Unquote (Argument (Index)));
 
          elsif Argument (Index) = "--connection_hits" then
 
-            pragma Debug (D ("--connection_hits available on command line"));
-
             Next_Argument (Index);
             Set_Connection_Hits (Natural'Value (Argument (Index)));
 
          elsif Argument (Index) = "--detach" then
 
-            pragma Debug (D ("--detach available on command line"));
             Set_Detach (True);
 
          elsif Argument (Index) = "--slave" then
 
-            pragma Debug (D ("--slave available on command line"));
             Set_Slave (True);
 
          elsif Argument (Index) = "--reconnection" then
-
-            pragma Debug (D ("--reconnection available on command line"));
 
             Next_Argument (Index);
             Set_Reconnection (Value (Argument (Index)));
 
          elsif Argument (Index) = "--termination" then
 
-            pragma Debug (D ("--termination available on command line"));
-
             Next_Argument (Index);
             Set_Termination (Value (Argument (Index)));
 
          elsif Argument (Index) = "--nolaunch" then
 
-            pragma Debug (D ("--nolaunch available on command line"));
             Set_Nolaunch (True);
 
          elsif Argument (Index) = "--trace" then
 
-            pragma Debug (D ("--trace available on command line"));
             Set_Execution_Mode (Trace_Mode);
 
          elsif Argument (Index) = "--replay" then
 
-            pragma Debug (D ("--replay available on command line"));
             Set_Execution_Mode (Replay_Mode);
 
          end if;
@@ -342,10 +313,19 @@ package body System.Garlic.Options is
 
    procedure Set_Boot_Mirror (Default : in Boolean) is
    begin
-      if Is_Boot_Mirror then
+      if Is_Boot_Mirror
+        and then not Default
+      then
          Ada.Exceptions.Raise_Exception
            (Program_Error'Identity,
             "Partition is already a boot mirror partition");
+      end if;
+      if Default
+        and then Has_A_Light_PCS
+      then
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Partition with light PCS cannot be a boot mirror");
       end if;
       Is_Boot_Mirror := True;
    end Set_Boot_Mirror;
@@ -393,12 +373,26 @@ package body System.Garlic.Options is
 
    procedure Set_Light_PCS (Default : in Boolean) is
    begin
-      if Has_Light_PCS and then not Default then
+      if Has_A_Light_PCS
+        and then not Default
+      then
          Ada.Exceptions.Raise_Exception
            (Program_Error'Identity,
             "Partition is configured for a light PCS");
       end if;
-      Has_Light_PCS := True;
+      if Default then
+         if Termination /= Local_Termination then
+            Ada.Exceptions.Raise_Exception
+              (Program_Error'Identity,
+               "Partition with light PCS must have a local termination");
+         elsif Is_Boot_Mirror then
+            Ada.Exceptions.Raise_Exception
+              (Program_Error'Identity,
+               "Partition with light PCS cannot be a boot mirror partition");
+         end if;
+         Set_Pure_Client (True);
+      end if;
+      Has_A_Light_PCS := Default;
    end Set_Light_PCS;
 
    -------------------------
@@ -431,6 +425,29 @@ package body System.Garlic.Options is
       Partition_Name := new String'(Name);
       Set_Trace_File_Name (Name & ".ptf");
    end Set_Partition_Name;
+
+   ---------------------
+   -- Set_Pure_Client --
+   ---------------------
+
+   procedure Set_Pure_Client (Default : in Boolean) is
+   begin
+      if Is_Pure_Client
+        and then not Default
+      then
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Partition is configured as a pure client");
+      end if;
+      if Has_A_Light_PCS
+        and then not Default
+      then
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Partition is configured with a light PCS");
+      end if;
+      Is_Pure_Client := Default;
+   end Set_Pure_Client;
 
    ----------------------
    -- Set_Reconnection --
@@ -477,6 +494,13 @@ package body System.Garlic.Options is
 
    procedure Set_Termination (Default : in Termination_Type) is
    begin
+      if Has_A_Light_PCS
+        and then Default /= Local_Termination
+      then
+         Ada.Exceptions.Raise_Exception
+           (Program_Error'Identity,
+            "Partition with light PCS must have a local termination");
+      end if;
       Termination := Default;
    end Set_Termination;
 
