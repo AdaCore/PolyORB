@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # Build AdaBroker from a distribution tarball.
-# $Id: //depot/adabroker/main/broca/utils/build#1 $
+# $Id: //depot/adabroker/main/broca/utils/build#2 $
 
 set -e
 
@@ -12,7 +12,7 @@ then
 fi
 
 : ${GTAR:=gtar}
-: ${BUILD_DIR:=adabroker-build.$$}
+: ${BUILD_DIR:=`pwd`/adabroker-build.$$}
 : ${GMAKE:=gmake}
 
 mkdir $BUILD_DIR || true
