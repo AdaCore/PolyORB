@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#22 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#23 $
 
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
@@ -119,8 +119,8 @@ package body PolyORB.Smart_Pointers is
    ---------
 
    procedure Set
-     (The_Ref : in out Ref;
-      The_Entity : Entity_Ptr) is
+     (The_Ref    : in out Ref;
+      The_Entity :        Entity_Ptr) is
    begin
       pragma Debug (O ("Set: enter."));
 
@@ -138,6 +138,7 @@ package body PolyORB.Smart_Pointers is
    procedure Initialize
      (X : in out Entity_Controller) is
    begin
+      pragma Debug (O ("Initializing Entity"));
       Initialize (X.E.all);
    end Initialize;
 
@@ -147,6 +148,7 @@ package body PolyORB.Smart_Pointers is
       pragma Warnings (Off);
       pragma Unreferenced (X);
       pragma Warnings (On);
+
    begin
       pragma Assert (Counter_Lock /= null);
       null;
@@ -168,6 +170,7 @@ package body PolyORB.Smart_Pointers is
       pragma Warnings (Off);
       pragma Unreferenced (X);
       pragma Warnings (On);
+
    begin
       null;
    end Finalize;
@@ -199,6 +202,7 @@ package body PolyORB.Smart_Pointers is
          pragma Debug (O ("Adjust: null ref"));
          null;
       end if;
+
       pragma Debug (O ("Adjust: leave"));
    end Adjust;
 
@@ -250,8 +254,10 @@ package body PolyORB.Smart_Pointers is
    ---------------
 
    function Entity_Of
-     (The_Ref : Ref) return Entity_Ptr is
+     (The_Ref : Ref)
+     return Entity_Ptr is
    begin
+      pragma Debug (O ("Entity_Of"));
       return The_Ref.A_Ref;
    end Entity_Of;
 
