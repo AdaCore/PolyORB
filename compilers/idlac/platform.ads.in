@@ -26,20 +26,25 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
+--                  PolyORB is maintained by AdaCore                        --
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
 
 --  $Id$
 
+pragma (Style_Checks, Off);
+--  This file contains automatic configure substitutions which may yield
+--  long lines.
+
 package Platform is
 
    pragma Pure;
 
-   CXX_Preprocessor : constant String
-     := "@CXXCPP@ @CXXCPPFLAGS@";
+   CXX_Preprocessor : constant String :=
+                        "@CXXCPP@ @CXXCPPFLAGS@";
 
-   CXX_Preprocessor_Suffix : constant String := "@CXXCPP_OUTPUT_SUFFIX@";
+   CXX_Preprocessor_Suffix : constant String :=
+                               "@CXXCPP_OUTPUT_SUFFIX@";
 
 end Platform;
