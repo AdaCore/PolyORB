@@ -33,7 +33,7 @@
 
 --  All_Types client.
 
---  $Id: //droopi/main/examples/corba/all_types/client.adb#12 $
+--  $Id: //droopi/main/examples/corba/all_types/client.adb#13 $
 
 with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
@@ -351,7 +351,7 @@ begin
          when E : others =>
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
-      Output ("test unknown exception", Ok);
+      Output ("test system exception", Ok);
 
       <<End_Of_Loop>>
       Howmany := Howmany - 1;
