@@ -67,9 +67,14 @@ copyright years must remain consistent with package content.
   references to specifications (e.g. CORBA related packages) or other
   projects (e.g. AWS)
 
+Always update the MANIFEST file and any makefile.am when the source
+tree is modified.
+
+Rebuild dependences every time package dependences are modified.
+
 To rebuild dependences, run 'make depend' from PolyORB's root directory.
 Note that you must ensure that:
 
-- Build is not _without_ debug
+- Build is made _without_ debug
 
 - Source tree and build tree are equal
