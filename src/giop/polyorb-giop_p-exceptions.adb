@@ -178,7 +178,8 @@ package body PolyORB.GIOP_P.Exceptions is
    -- To_CORBA_Exception --
    ------------------------
 
-   function To_CORBA_Exception (Exc : PolyORB.Any.Any)
+   function To_CORBA_Exception
+     (Exc : PolyORB.Any.Any)
       return PolyORB.Any.Any
    is
       use PolyORB.Any.TypeCode;
