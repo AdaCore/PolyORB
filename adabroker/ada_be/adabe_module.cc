@@ -22,6 +22,8 @@ adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinitio
   while (!module_activator.is_done())
     {
       AST_Decl *d = module_activator.item();
+      module_activator.next();
+      adabe_global::set_adabe_current_file(this);
       switch(d->node_type())
 	{
 	case AST_Decl::NT_array:
@@ -100,6 +102,8 @@ adabe_module::produce_adb(dep_list& with,string &body, string &previousdefinitio
   while (!module_activator.is_done())
     {
       AST_Decl *d = module_activator.item();
+      module_activator.next();
+      adabe_global::set_adabe_current_file(this);
       switch(d->node_type())
 	{
 	case AST_Decl::NT_array:
@@ -158,6 +162,8 @@ adabe_module::produce_impl_ads(dep_list& with,string &body, string &previousdefi
   while (!module_activator.is_done())
     {
       AST_Decl *d = module_activator.item();
+      module_activator.next();
+      adabe_global::set_adabe_current_file(this);
       switch(d->node_type())
 	{
 	case AST_Decl::NT_array:
@@ -214,6 +220,8 @@ adabe_module::produce_impl_adb(dep_list& with,string &body, string &previousdefi
   while (!module_activator.is_done())
     {
       AST_Decl *d = module_activator.item();
+      module_activator.next();
+      adabe_global::set_adabe_current_file(this);
       switch(d->node_type())
 	{
 	case AST_Decl::NT_array:
@@ -225,6 +233,7 @@ adabe_module::produce_impl_adb(dep_list& with,string &body, string &previousdefi
 	case AST_Decl::NT_struct:
 	case AST_Decl::NT_enum:
 	case AST_Decl::NT_typedef:
+	  break;
 	case AST_Decl::NT_module:
 	  {
 	    adabe_module *module = adabe_module::narrow_from_decl(d);
@@ -272,6 +281,8 @@ adabe_module::produce_proxies_ads(dep_list& with,string &body, string &previousd
   while (!module_activator.is_done())
     {
       AST_Decl *d = module_activator.item();
+      adabe_global::set_adabe_current_file(this);
+      module_activator.next();
       switch(d->node_type())
 	{
 	case AST_Decl::NT_array:
@@ -329,6 +340,8 @@ adabe_module::produce_proxies_adb(dep_list& with,string &body, string &previousd
   while (!module_activator.is_done())
     {
       AST_Decl *d = module_activator.item();
+      adabe_global::set_adabe_current_file(this);
+      module_activator.next();
       switch(d->node_type())
 	{
 	case AST_Decl::NT_array:
@@ -340,6 +353,7 @@ adabe_module::produce_proxies_adb(dep_list& with,string &body, string &previousd
 	case AST_Decl::NT_struct:
 	case AST_Decl::NT_enum:
 	case AST_Decl::NT_typedef:
+	  break;
 	case AST_Decl::NT_module:
 	  {
 	    adabe_module *module = adabe_module::narrow_from_decl(d);
@@ -385,6 +399,8 @@ adabe_module::produce_skel_ads(dep_list& with,string &body, string &previousdefi
   while (!module_activator.is_done())
     {
       AST_Decl *d = module_activator.item();
+      adabe_global::set_adabe_current_file(this);
+      module_activator.next();
       switch(d->node_type())
 	{
 	case AST_Decl::NT_array:
@@ -445,6 +461,8 @@ adabe_module::produce_skel_adb(dep_list& with,string &body, string &previousdefi
   while (!module_activator.is_done())
     {
       AST_Decl *d = module_activator.item();
+      adabe_global::set_adabe_current_file(this);
+      module_activator.next();
       switch(d->node_type())
 	{
 	case AST_Decl::NT_array:
@@ -456,6 +474,7 @@ adabe_module::produce_skel_adb(dep_list& with,string &body, string &previousdefi
 	case AST_Decl::NT_struct:
 	case AST_Decl::NT_enum:
 	case AST_Decl::NT_typedef:
+	  break;
 	case AST_Decl::NT_module:
 	  {
 	    adabe_module *module = adabe_module::narrow_from_decl(d);
@@ -508,6 +527,8 @@ adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousd
   while (!module_activator.is_done())
     {
       AST_Decl *d = module_activator.item();
+      module_activator.next();
+      adabe_global::set_adabe_current_file(this);
       switch(d->node_type())
 	{
 	case AST_Decl::NT_array:
@@ -584,6 +605,8 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
   while (!module_activator.is_done())
     {
       AST_Decl *d = module_activator.item();
+      adabe_global::set_adabe_current_file(this);
+      module_activator.next();
       switch(d->node_type())
 	{
 	case AST_Decl::NT_array:

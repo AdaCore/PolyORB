@@ -104,137 +104,100 @@ adabe_name::dump_name(dep_list&, string&, string&)
 void
 adabe_name::compute_ada_name()
 {
-  int already_used;
-  int loop = 0;
-  string temp_name = local_name()->get_string();
+  if (get_ada_local_name() == "") {
+    int already_used;
+    int loop = 0;
+    string temp_name = local_name()->get_string();
 #ifdef DEBUG_NAME
-  cout << "in adabe_name, befor convert" << endl;
+    cout << "in adabe_name, befor convert" << endl;
 #endif
-  convert(temp_name);
-  // which must be the ada_name ?
+    convert(temp_name);
+    // which must be the ada_name ?
 #ifdef DEBUG_NAME
-  cout << "in adabe_name, after convert" << endl;
-  cout << temp_name << endl;
+    cout << "in adabe_name, after convert" << endl;
+    cout << temp_name << endl;
 #endif
-  
-  pd_ada_local_name = temp_name;
-  UTL_Scope *parent_scope = defined_in();
-  if (parent_scope != NULL) do {
-    // is this name already used ?
+    
+    pd_ada_local_name = temp_name;
+    UTL_Scope *parent_scope = defined_in();
+    if (parent_scope != NULL) 
+      do {
+	// is this name already used ?
 #ifdef DEBUG_NAME
-    cout << "in adabe_name, node type of the parent in compute :" <<  parent_scope->scope_node_type() << endl;
+	cout << "in adabe_name, node type of the parent in compute :" <<  parent_scope->scope_node_type() << endl;
 #endif
-    switch (parent_scope->scope_node_type())
-      {
-      case AST_Decl::NT_op:
-      case AST_Decl::NT_interface:
-      case AST_Decl::NT_module:
-      case AST_Decl::NT_root:
-      case AST_Decl::NT_except:
-      case AST_Decl::NT_struct:
-      case AST_Decl::NT_union:
-	already_used = (dynamic_cast<adabe_name *>(parent_scope))->is_name_already_used(pd_ada_local_name, parent_scope);
-	pd_ada_full_name =  (dynamic_cast<adabe_name *>(parent_scope))->get_ada_full_name();
-	break;
-      default:
-	throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
+	switch (parent_scope->scope_node_type())
+	  {
+	  case AST_Decl::NT_op:
+	  case AST_Decl::NT_interface:
+	  case AST_Decl::NT_module:
+	  case AST_Decl::NT_root:
+	  case AST_Decl::NT_except:
+	  case AST_Decl::NT_struct:
+	  case AST_Decl::NT_union:
+	    already_used = is_name_already_used(pd_ada_local_name, parent_scope);
+	    pd_ada_full_name =  (dynamic_cast<adabe_name *>(parent_scope))->get_ada_full_name();
+	    break;
+	  default:
+	    throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
+	  }
+	
+#ifdef DEBUG_NAME
+	cout << "In adabe_name, in compute_ada_name after the switch\n";
+#endif
+	if (already_used == 1)
+	  {
+	    if (loop>999)
+	      throw adabe_internal_error(__FILE__,__LINE__,"too many name conflicts");
+	    cout << "Je suis passe ici\n";
+	    char extension[4];
+	    sprintf (extension, "_%d",loop++);
+	    pd_ada_local_name = temp_name + extension;
+	    pd_ada_full_name = pd_ada_full_name + "." + pd_ada_local_name;
+	  }
+	/*  try to go the to the root of teh tree, and, each step, try to find 
+	    a node with the same name. If such a node if found
+	    try with another name */
       }
-
+      while (already_used == 1);
 #ifdef DEBUG_NAME
-  cout << "In adabe_name, in compute_ada_name after the switch\n";
+    cout << "End of compute_ada_name from "<< pd_ada_local_name <<endl;
 #endif
-    if (already_used == 1)
-      {
-	if (loop>999)
-	  throw adabe_internal_error(__FILE__,__LINE__,"too many name conflicts");
-	cout << "Je suis passe ici\n";
-	char extension[4];
-	sprintf (extension, "_%d",loop++);
-	//      delete pd_ada_local_name;
-	//      pd_ada_local_name = new string();
-	pd_ada_local_name = temp_name + extension;
-	pd_ada_full_name = pd_ada_full_name + "." + pd_ada_local_name;
-      }
-    /*  try to go the to the root of teh tree, and, each step, try to find 
-	a node with the same name. If such a node if found
-	try with another name */
   }
-  while (already_used == 1);
-#ifdef DEBUG_NAME
-  cout << "End of compute_ada_name\n";
-#endif
 }
-
-
+  
 int
 adabe_name::is_name_already_used(string name, UTL_Scope *in_scope)
 {
 #ifdef DEBUG_NAME
-  cout << "in adabe_name, called on an "  << endl;
+  cout << "in adabe_name, called on an "  << node_type() <<endl;
 #endif
   UTL_ScopeActiveIterator i(in_scope ,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
       string temp;
       AST_Decl *d = i.item();
-#ifdef DEBUG_NAME
-      if (d->in_main_file())
-	cout << "in adabe_name, in is_name_already_used before the first scope :" << d->node_type() <<endl;
-#endif
       i.next();
       if (d->in_main_file())
 	{
-	   adabe_name *ada = dynamic_cast<adabe_name *>(d);;
-
-	   // adabe_name *ada = adabe_interface::narrow_from_decl(d);
+	  adabe_name *ada = dynamic_cast<adabe_name *>(d);;
+	  temp = (ada->get_ada_local_name());
+	      
 #ifdef DEBUG_NAME
-	   cout << "in adabe_name, in is_name_already_used, after the narrow_from_decl"  << endl;
-#endif
-	   temp = (ada->get_ada_local_name());
-#ifdef DEBUG_NAME
-	   cout << "in adabe_name, in is_name_already_used, after get_ada_local_name"  << endl;
-	   cout << "this vaut " << (int) this << "et ada vaut " << (int) ada << endl;
+	  cout << "in adabe_name, in is_name_already_used, after get_ada_local_name"  << endl;
+	  cout << "this vaut " << (int) this << "et ada vaut " << (int) ada << endl;
 #endif
 	  
-	   //	  if ((this != ada) && (temp  != "") && (temp == name)) return 1;
+	  	  if ((this != ada) && (temp  != "") && (temp == name)) return 1;
 	}
     }
 #ifdef DEBUG_NAME
   cout << "in adabe_name, in is_name_already_used, after the first scope" << endl;
 #endif
-
-  /*
-  bool already_used = false;
-  UTL_Scope *parent_scope = defined_in();
-  if (parent_scope != NULL)
-    switch (parent_scope->scope_node_type())
-      {
-      case AST_Decl::NT_interface:
-	already_used = (adabe_interface::narrow_from_scope(parent_scope))->is_name_already_used(name);
-	break;
-      case AST_Decl::NT_module:
-	already_used = (adabe_module::narrow_from_scope(parent_scope))->is_name_already_used(name);
-	break;
-      case AST_Decl::NT_root:
-	already_used = (adabe_root::narrow_from_scope(parent_scope))->is_name_already_used(name);
-	break;
-      case AST_Decl::NT_except:
-	already_used = (adabe_exception::narrow_from_scope(parent_scope))->is_name_already_used(name);
-	break;
-      case AST_Decl::NT_struct:
-	already_used = (adabe_structure::narrow_from_scope(parent_scope))->is_name_already_used(name);      
-	break;
-      case AST_Decl::NT_union:
-	already_used = (adabe_union::narrow_from_scope(parent_scope))->is_name_already_used(name);
-	break;
-      default:
-	throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
-      }    
-  */
   
-  return 0;
+      return 0;
 } 
- 
+
 bool
 adabe_name::is_already_defined()
 {
@@ -250,6 +213,17 @@ adabe_name::set_already_defined()
 void
 adabe_name::convert(string &name)
 {
+
+  while (name[0]=='_')
+    {
+      string temp = name.substr(1,name.length());
+      name = temp;
+    }
+  if (name[name.length()-1]=='_')
+      name += 'U';
+
+  // All the '_' at the end or at the beginning of the names are removed
+
   if ((name == "abort") || (name == "abs") ||
       (name == "abstract") || (name == "accept") ||
       (name == "access") || (name == "aliased") ||
@@ -288,11 +262,6 @@ adabe_name::convert(string &name)
     name +="_IDL";
   // changes the name if the name is an ADA95 Keyword
   
-  while (name[0]=='_')
-    {
-      string temp = name.substr(1,name.length());
-      name = temp;
-    }
   int c;
   while ((c = name.find("__")) != -1) 
     name[c+1]='U';
@@ -400,11 +369,13 @@ adabe_name::set_undefined()
 bool
 adabe_name::is_imported (dep_list& with)
 {
+  if (this == adabe_global::adabe_current_file()) 
+    return 0;
   AST_Decl::NodeType NT = node_type();
   if (NT == AST_Decl::NT_interface)
     {
       bool temp;
-      temp = with.check (get_ada_full_name());
+      temp = with.check (get_ada_full_name()); 
       if (!temp) with.add (get_ada_full_name());
       return temp;
     }
@@ -415,14 +386,12 @@ adabe_name::is_imported (dep_list& with)
       if (!temp) with.add (get_ada_full_name());
       return temp;
     }
-  if  ((NT == AST_Decl::NT_root)
-       || (NT ==  AST_Decl::NT_except)
-       || (NT ==  AST_Decl::NT_struct)
-       || (NT ==  AST_Decl::NT_union))
-					  
-    {
-      (dynamic_cast<adabe_name *>(defined_in()))->is_imported (with); 
-    }
+  //  if  ((NT == AST_Decl::NT_root)
+  //       || (NT ==  AST_Decl::NT_except)
+  //       || (NT ==  AST_Decl::NT_struct)
+  //       || (NT ==  AST_Decl::NT_union))	
+  return (dynamic_cast<adabe_name *>(defined_in()))->is_imported (with); 
+      //    }
 }
 
 

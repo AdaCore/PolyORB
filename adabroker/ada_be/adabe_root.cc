@@ -46,6 +46,7 @@ adabe_root::produce() {
 	{
 	  AST_Decl *d = header_activator.item();
 	  header_activator.next(); 
+	  adabe_global::set_adabe_current_file(this);
 	  if (d->in_main_file())     // only to take the node issue from the idl file
 	    {
 #ifdef DEBUG_ROOT
@@ -83,7 +84,7 @@ adabe_root::produce() {
 		  module_file << module_body;
 		  module_file.close();
 		}
-		
+		break;
 	      case AST_Decl::NT_interface:	    
 		{
 		  adabe_interface *interface = adabe_interface::narrow_from_decl(d);
@@ -142,6 +143,7 @@ adabe_root::produce() {
 	{
 	  AST_Decl *d = body_activator.item();
 	   body_activator.next();
+	  adabe_global::set_adabe_current_file(this);
 	  if (d->in_main_file())     // only to take the node issue from the idl file
 	    {
 	      switch(d->node_type())
@@ -158,7 +160,7 @@ adabe_root::produce() {
 		    string body_module_file_name = module->get_ada_full_name()+".adb";
 		    
 		  }
-		  
+		  break;
 		case AST_Decl::NT_interface:
 		  {
 		    adabe_interface *interface = adabe_interface::narrow_from_decl(d);
@@ -200,6 +202,7 @@ adabe_root::produce() {
 	{
 	  AST_Decl *d = impl_head_activator.item();
 	  impl_head_activator.next();
+	  adabe_global::set_adabe_current_file(this);
 	  if (d->in_main_file())     // only to take the node issue from the idl file
 	    {
 	      switch(d->node_type())
@@ -215,6 +218,7 @@ adabe_root::produce() {
 		    adabe_module *module = adabe_module::narrow_from_decl(d);
 		    module->produce_impl_ads(impl_header_module_with,impl_header_module_body,impl_header_module_previous);
 		  }
+		break;
 		case AST_Decl::NT_interface:
 		  {
 		    adabe_interface *interface = adabe_interface::narrow_from_decl(d);
@@ -250,6 +254,7 @@ adabe_root::produce() {
 	{
 	  AST_Decl *d = impl_body_activator.item();
 	  impl_body_activator.next();
+	  adabe_global::set_adabe_current_file(this);
 	  if (d->in_main_file())     // only to take the node issue from the idl file
 	    {
 	      switch(d->node_type())
@@ -264,7 +269,8 @@ adabe_root::produce() {
 		    
 		    module->produce_impl_adb(impl_body_module_with,impl_body_module_body,impl_body_module_previous);
 		  }
-		  
+		  break;
+
 		case AST_Decl::NT_interface:
 		  {
 		    adabe_interface *interface = adabe_interface::narrow_from_decl(d);
@@ -302,6 +308,7 @@ adabe_root::produce() {
 	{
 	  AST_Decl *d = proxy_head_activator.item();
 	  proxy_head_activator.next();
+	  adabe_global::set_adabe_current_file(this);
 	  if (d->in_main_file())     // only to take the node issue from the idl file
 	    {
 	      switch(d->node_type())
@@ -317,6 +324,8 @@ adabe_root::produce() {
 		    adabe_module *module = adabe_module::narrow_from_decl(d);
 		    module->produce_ads(proxy_header_module_with,proxy_header_module_body,proxy_header_module_previous);
 		  }
+		  break;
+
 		case AST_Decl::NT_interface:
 		  {
 		    adabe_interface *interface = adabe_interface::narrow_from_decl(d);
@@ -352,6 +361,7 @@ adabe_root::produce() {
 	{
 	  AST_Decl *d = proxy_body_activator.item();
 	  proxy_body_activator.next();
+	  adabe_global::set_adabe_current_file(this);
 	  if (d->in_main_file())     // only to take the node issue from the idl file
 	    {
 	      switch(d->node_type())
@@ -366,6 +376,7 @@ adabe_root::produce() {
 		    
 		    module->produce_proxies_adb(proxy_body_module_with,proxy_body_module_body,proxy_body_module_previous);
 		  }
+		  break;
 		  
 		case AST_Decl::NT_interface:
 		  {
@@ -403,6 +414,7 @@ adabe_root::produce() {
       while (!skel_head_activator.is_done())
 	{
 	  AST_Decl *d = skel_head_activator.item();
+	  adabe_global::set_adabe_current_file(this);
 	  skel_head_activator.next();
 	  if (d->in_main_file())     // only to take the node issue from the idl file
 	    {
@@ -419,6 +431,8 @@ adabe_root::produce() {
 		    adabe_module *module = adabe_module::narrow_from_decl(d);
 		    module->produce_ads(skel_header_module_with,skel_header_module_body,skel_header_module_previous);
 		  }
+		  break;
+
 		case AST_Decl::NT_interface:
 		  {
 		    adabe_interface *interface = adabe_interface::narrow_from_decl(d);
@@ -454,6 +468,7 @@ adabe_root::produce() {
 	{
 	  AST_Decl *d = skel_body_activator.item();
 	  skel_body_activator.next();
+	  adabe_global::set_adabe_current_file(this);
 	  if (d->in_main_file())     // only to take the node issue from the idl file
 	    {
 	      switch(d->node_type())
@@ -468,6 +483,7 @@ adabe_root::produce() {
 		    
 		    module->produce_proxies_adb(skel_body_module_with,skel_body_module_body,skel_body_module_previous);
 		  }
+		  break;
 		  
 		case AST_Decl::NT_interface:
 		  {
@@ -509,6 +525,7 @@ adabe_root::produce() {
 	{
 	  AST_Decl *d = marshal_header_activator.item();
 	  marshal_header_activator.next();
+	  adabe_global::set_adabe_current_file(this);
 	  if (d->in_main_file())     // only to take the node issue from the idl file
 	    {
 	      switch(d->node_type()) 
@@ -544,7 +561,7 @@ adabe_root::produce() {
 		    marshal_module_file << marshal_module_body;
 		    marshal_module_file.close();
 		  }
-		  
+		  break;		  
 		  
 		case AST_Decl::NT_interface:	    
 		  {
@@ -597,6 +614,7 @@ adabe_root::produce() {
 	{
 	  AST_Decl *d = marshal_body_activator.item();
 	  marshal_body_activator.next();
+	  adabe_global::set_adabe_current_file(this);
 	  if (d->in_main_file())     // only to take the node issue from the idl file
 	    {
 	      switch(d->node_type())
@@ -627,6 +645,7 @@ adabe_root::produce() {
 		    string marshal_body_module_file_name = module->get_ada_full_name()+"-marshal.adb";
 		    
 		  }
+		  break;
 		  
 		case AST_Decl::NT_interface:
 		  {

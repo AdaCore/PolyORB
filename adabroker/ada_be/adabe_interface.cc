@@ -14,6 +14,7 @@ adabe_interface::adabe_interface(UTL_ScopedName *n, AST_Interface **ih, long nih
 void
 adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 {
+  adabe_global::set_adabe_current_file(this);
 #ifdef DEBUG_INTERFACE
   cout << "beginning of produce_ads of the interface" << endl;
 #endif
@@ -185,6 +186,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 void
 adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
 {
+  adabe_global::set_adabe_current_file(this);
   string tmp = "";
   adabe_interface *inher;
 
@@ -307,6 +309,7 @@ adabe_interface::produce_adb(dep_list& with, string &body, string &previous)
 void
 adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous)
 {
+  adabe_global::set_adabe_current_file(this);
   string prev = "";
   string tmp = "";
   adabe_interface * inher;
@@ -404,6 +407,7 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
 void
 adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous)
 {
+  adabe_global::set_adabe_current_file(this);
   /*
     with.add("Ada.Tags");
     with.add("Ada.exceptions");
@@ -437,6 +441,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
 void
 adabe_interface::produce_skel_ads(dep_list& with, string &body, string &previous)
 {
+  adabe_global::set_adabe_current_file(this);
   with.add("Omniorb");
   with.add("Giop_S");
   with.add(get_ada_full_name() + ".impl");
@@ -452,6 +457,7 @@ adabe_interface::produce_skel_ads(dep_list& with, string &body, string &previous
 void
 adabe_interface::produce_proxies_ads(dep_list& with, string &body, string &previous)
 {
+  adabe_global::set_adabe_current_file(this);
   with.add("Giop_C");
   with.add("Omniproxycalldesc");
   with.add("Proxyobject factory");
@@ -490,11 +496,13 @@ adabe_interface::produce_proxies_ads(dep_list& with, string &body, string &previ
 void
 adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous)
 {
+
 }
 
 void
 adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previous)
 {
+  adabe_global::set_adabe_current_file(this);
   body += "package body " + get_ada_full_name() + ".Proxies is \n";
  
   ////////////////////////////// Mapping the object factory ////////////////////////
@@ -526,6 +534,7 @@ adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previ
 void
 adabe_interface::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
+  adabe_global::set_adabe_current_file(this);
   body += "package ";
   body += get_ada_full_name();
   body += ".Marshal is\n\n";
@@ -560,6 +569,7 @@ adabe_interface::produce_marshal_ads(dep_list& with, string &body, string &previ
 void
 adabe_interface::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
+  adabe_global::set_adabe_current_file(this);
   body += "package body ";
   body += get_ada_full_name();
   body += ".Marshal is\n\n";

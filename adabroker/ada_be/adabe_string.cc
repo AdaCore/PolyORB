@@ -20,8 +20,12 @@ adabe_string::adabe_string(AST_Expression *v, long wide):
 }
 
 void adabe_string::produce_ads (dep_list &with,string &body, string &previous) {
+  cout << "PRODUCE ADS OF THE STRING \n";
     compute_ada_name();
-
+#ifdef DEBUG_STRING
+    cout << "The name of the string type is : " << get_ada_local_name() <<" in ada" <<endl;
+    cout << "and " << local_name()->get_string()  << "in IDL"<< endl;
+#endif 
     //look if the string is bounded or not;
     
     if (max_size()->ev()==0)
@@ -105,6 +109,7 @@ adabe_string::produce_marshal_adb(dep_list& with, string &body, string &previous
 
 string adabe_string::dump_name (dep_list &with,string &body, string &previous)
 {
+  cout <<"Valeur de is_imported " <<is_imported(with)<<endl;
   if (!is_imported(with))
     {
       if (!is_already_defined())
