@@ -47,7 +47,7 @@ begin
    Put_Line("");
    Put_Line("Test the attribute value with simpl inheritance");
    Put_Line("The value of Mark is set to : AdaBroker");
-   Tank.Set_Mark(T, Corba.To_Corba_String("AdaBroker"));
+   Tank.Set_Mark(T, Corba.To_Corba_String(Standard.String'("AdaBroker")));
 
    Put_Line("");
    Put_Line("Check of the attribute:");

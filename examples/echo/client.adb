@@ -47,7 +47,7 @@ begin
    end if ;
 
    -- sending message
-   Sent_Msg := Corba.To_Corba_String("Hello Ada !") ;
+   Sent_Msg := Corba.To_Corba_String(Standard.String'("Hello Ada !")) ;
    Rcvd_Msg := Echo.EchoString(myecho, Sent_Msg) ;
 
    -- printing result

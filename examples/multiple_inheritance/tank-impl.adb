@@ -28,7 +28,7 @@ package body tank.Impl is
 
    function move(Self : access Object; fast : in Weapon.dist) return Corba.String is
    begin
-      return (Corba.To_Corba_String("I turn left !"));
+      return (Corba.To_Corba_String(Standard.String'("I turn left !")));
    end ;
 
 

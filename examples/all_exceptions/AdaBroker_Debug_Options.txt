@@ -7,7 +7,7 @@
 #corba.orb
 #corba.object
 #corba.object:finalization
-#omniproxycallwrapper
+omniproxycallwrapper
 #giop_c
 #omniobject
 #corba.forward

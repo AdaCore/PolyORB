@@ -19,7 +19,7 @@ private
 
    -- You may add fields to this record
    type Object is new Omniobject.Implemented_Object with record
-      null ;
+      Null ;
    end record ;
 
    --------------------------------------------------
