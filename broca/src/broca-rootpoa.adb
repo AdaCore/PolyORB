@@ -523,7 +523,8 @@ package body Broca.Rootpoa is
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
-            if Self.Object_Map (I).Skeleton /= null
+            if Self.Object_Map (I) /= null
+              and then Self.Object_Map (I).Skeleton /= null
               and then Self.Object_Map (I).Skeleton.P_Servant = P_Servant
             then
                Res := Res + 1;
@@ -533,12 +534,19 @@ package body Broca.Rootpoa is
       return Res;
    end Nbr_Slots_For_Servant;
 
-   function Slot_By_Servant (Self : access Object; P_Servant : Servant)
+   ---------------------
+   -- Slot_By_Servant --
+   ---------------------
+
+   function Slot_By_Servant
+     (Self      : access Object;
+      P_Servant : Servant)
      return Slot_Index_Type is
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
-            if Self.Object_Map (I).Skeleton /= null
+            if Self.Object_Map (I) /= null
+              and then Self.Object_Map (I).Skeleton /= null
               and then Self.Object_Map (I).Skeleton.P_Servant = P_Servant
             then
                return I;
@@ -554,7 +562,9 @@ package body Broca.Rootpoa is
    begin
       if Self.Object_Map /= null then
          for I in Self.Object_Map.all'Range loop
-            if Self.Object_Map (I).Skeleton = Skeleton then
+            if Self.Object_Map (I) /= null
+              and then Self.Object_Map (I).Skeleton = Skeleton
+            then
                return I;
             end if;
          end loop;
