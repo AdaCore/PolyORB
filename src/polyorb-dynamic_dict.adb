@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -81,16 +81,6 @@ package body PolyORB.Dynamic_Dict is
    ------------
 
    function Lookup
-     (K : String)
-      return Value is
-   begin
-      Ensure_Initialization;
-      return Lookup (T, K);
-      exception
-         when No_Key => raise Key_Not_Found;
-   end Lookup;
-
-   function Lookup
      (K       : String;
       Default : Value)
      return Value is
@@ -130,8 +120,6 @@ package body PolyORB.Dynamic_Dict is
    begin
       Ensure_Initialization;
       Delete (T, K);
-   exception
-      when No_Key => raise Key_Not_Found;
    end Unregister;
 
 end PolyORB.Dynamic_Dict;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -932,26 +932,6 @@ package body PolyORB.Utils.HTables.Perfect is
          return Items (Index).all;
       else
          return Error_Value;
-      end if;
-   end Lookup;
-
-   function Lookup
-     (T   : Table_Instance;
-      Key : String)
-     return Item
-   is
-      Items : Dynamic_Item_Array.Table_Ptr renames T.T.Items.Table;
-
-      Index : Natural;
-      Found : Boolean;
-
-   begin
-      Lookup (T.T.HTable, Key, Index, Found);
-
-      if Found then
-         return Items (Index).all;
-      else
-         raise No_Key;
       end if;
    end Lookup;
 

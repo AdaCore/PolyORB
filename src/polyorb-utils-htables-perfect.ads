@@ -70,8 +70,6 @@ package PolyORB.Utils.HTables.Perfect is
 
    pragma Preelaborate;
 
-   No_Key : exception renames PolyORB.Utils.HTables.No_Key;
-
    type Item_Access is access all Item;
 
    type Table is private;
@@ -102,13 +100,6 @@ package PolyORB.Utils.HTables.Perfect is
       return Item;
    --  Find Key in hash table and return its associated Item.
    --  When Key does not exist, the function returns Error_Value.
-
-   function Lookup
-     (T     : Table_Instance;
-      Key   : String)
-      return Item;
-   --  Find Key in hash table and return its associated Item.
-   --  When Key does not exist, the function raises No_Key exception.
 
    procedure Insert
      (T     : Table_Instance;

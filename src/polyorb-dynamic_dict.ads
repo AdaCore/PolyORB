@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,8 +43,6 @@ package PolyORB.Dynamic_Dict is
 
    pragma Preelaborate;
 
-   Key_Not_Found : exception;
-
    procedure Register
      (K : String;
       V : Value);
@@ -52,22 +50,14 @@ package PolyORB.Dynamic_Dict is
 
    procedure Unregister
      (K : String);
-   --  Remove any association for K. Key_Not_Found is raised
-   --  if no value was registered for this key.
-
-   function Lookup
-      (K : String)
-     return Value;
-   --  Lookup K in the dictionary, and return the associated value.
-   --  Key_Not_Found is raised if no value was registered for this
-   --  key.
+   --  Remove any association for K.
 
    function Lookup
      (K       : String;
       Default : Value)
      return Value;
-   --  As above, but Default is returned for non-registered keys,
-   --  insted of raising an exception.
+   --  Lookup K in the dictionary, and return the associated value.
+   --  Default is returned for non-registered keys.
 
    procedure Reset;
    --  Remove all key associations.
