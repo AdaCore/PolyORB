@@ -1,3 +1,6 @@
+* We really need to inform the user that the boot server on the command line
+is wrong. Especially if --detach is not provided.
+
 * Provide a generic package to distributly manage data caching.
 
 * Check pragma Storage_Size in tasks.

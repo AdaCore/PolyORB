@@ -43,10 +43,6 @@ with System.Garlic.Heart;
 
 package System.Garlic.Filters is
 
-   --  General note: this interface uses Stream_Element_Arrays instead of
-   --  streams in order to de-couple it as far as possible from the rest of
-   --  Garlic.
-
    function Filter_Outgoing
       (To_Partition : in System.RPC.Partition_ID;
        Operation    : in System.Garlic.Heart.Opcode;
@@ -61,14 +57,8 @@ package System.Garlic.Filters is
    --  The two functions above are called by Garlic.Heart for all
    --  communications.
 
-   Filter_Already_Registered,          --  see below, 'Register_Filter'
-   Too_Many_Filters,                   --  see below, 'Register_Filter'
-   Not_A_Public_Params_Algorithm : exception;
-   --  Raised if we try to use a filter that needs to exchange its parameters,
-   --  but whose parameters haven't yet arrived.
-
-   --  The following subprograms are called by System.Garlic.Elaboration to
-   --  set up the filter configuration.
+   procedure Initialize;
+   --  Elaboration code.
 
    procedure Set_Channel_Filter (Partition, Filter : in String);
    --  Tells this package which filter to use for communicating with a
@@ -80,13 +70,19 @@ package System.Garlic.Filters is
    procedure Set_Partition_Name (Name : in String);
    --  Tells this package the name of this partition.
 
+   Filter_Already_Registered,
+   Too_Many_Filters,
+   Not_A_Public_Params_Algorithm : exception;
+   --  Raised if we try to use a filter that needs to exchange its
+   --  parameters, but whose parameters haven't yet arrived.
+
 private
 
    type Filter_Type   is abstract tagged limited null record;
    --  New filter algorithm packages must derivate from this tagged
-   --  type. They must implement versions of all following procedures
-   --  that are marked as abstract. (Since this type is private,
-   --  implement new filters in child packages of this package.)
+   --  type. They must implement versions of all following procedures that
+   --  are marked as abstract. (Since this type is private, implement new
+   --  filters in child packages of this package.)
 
    type Filter_Access is access all Filter_Type'Class;
    --  Access to Filter_Type or derivative
@@ -95,25 +91,26 @@ private
    --  With each filter, some parameters may be associated on a per-channel
    --  basis by derivating from this type. It is therefore possible to use
    --  the same filter with diffferent parameters on different channels. If
-   --  necessary, this package will transmit those parameters to the partition
-   --  at the other end of the channel (see 'Generate_Params' below).
+   --  necessary, this package will transmit those parameters to the
+   --  partition at the other end of the channel (see 'Generate_Params'
+   --  below).
 
    type Filter_Params_Access is access all Filter_Params'Class;
    --  Access to Filter_Params or derivative
 
    function Filter_Outgoing
-      (Filter : in Filter_Type;
-       Params : in Filter_Params_Access;
-       Stream : in Ada.Streams.Stream_Element_Array)
+      (Filter : Filter_Type;
+       Params : Filter_Params_Access;
+       Stream : Ada.Streams.Stream_Element_Array)
       return Ada.Streams.Stream_Element_Array
       is abstract;
    --  Run the unfiltered data in 'Stream' through the filter and return
    --  the result.
 
    function Filter_Incoming
-      (Filter : in Filter_Type;
-       Params : in Filter_Params_Access;
-       Stream : in Ada.Streams.Stream_Element_Array)
+      (Filter : Filter_Type;
+       Params : Filter_Params_Access;
+       Stream : Ada.Streams.Stream_Element_Array)
       return Ada.Streams.Stream_Element_Array
       is abstract;
    --  Run the filtered data in 'Stream' through the inverse filter and
@@ -124,14 +121,12 @@ private
        Stream : Ada.Streams.Stream_Element_Array)
       return Filter_Params_Access
       is abstract;
-   --  Read the parameters associated with the filter from 'Stream'.
 
    function Filter_Params_Write
       (Filter : Filter_Type;
        Params : Filter_Params_Access)
       return Ada.Streams.Stream_Element_Array
       is abstract;
-   --  Guess what?
 
    procedure Generate_Params
       (Filter                : in  Filter_Type;
@@ -156,7 +151,7 @@ private
    --  Has to return the filter package's name (e.g. "LZH")
 
    procedure Print_Params (Params : Filter_Params) is abstract;
-   --  For debugging only!
+   --  For debugging only.
 
    procedure Register_Filter
       (Filter : in Filter_Access);
@@ -170,7 +165,6 @@ private
    --    Too_Many_Filters =>
    --                   there's no more space left in the internal table of
    --                   installed filters.
-   --
 
 end System.Garlic.Filters;
 

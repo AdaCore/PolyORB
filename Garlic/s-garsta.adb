@@ -61,6 +61,9 @@ pragma Elaborate_All (System.Garlic.Termination);
 with System.Garlic.Services;
 pragma Elaborate_All (System.Garlic.Services);
 
+with System.Garlic.Filters;
+pragma Elaborate_All (System.Garlic.Filters);
+
 with System.RPC;
 
 with System.Garlic.Elaboration;
@@ -128,6 +131,10 @@ begin
          end if;
       end loop;
 
+      --  Phase (4.1)
+
+      Filters.Initialize;
+
       --  Phase (5) (see s-garlic.ads)
 
       Termination.Initialize;
@@ -145,3 +152,4 @@ begin
    pragma Debug (D (D_Elaborate, "Startup phase terminated"));
 
 end System.Garlic.Startup;
+

@@ -34,10 +34,12 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Protocols;
 with System.Garlic.Termination;
 with System.Garlic.Utils;
+
+with System.Garlic.Debug;    use System.Garlic.Debug;
+with System.Garlic.Filters;  use System.Garlic.Filters;
 
 package body System.Garlic.Heart is
 
@@ -79,7 +81,7 @@ package body System.Garlic.Heart is
    --  by more than one task (in fact, they should not be modified after
    --  the elaboration is terminated).
 
-   Elaboration_Barrier : Utils.Barrier_Type;
+   Elaboration_Barrier : Barrier_Type;
    --  This barrier will be no longer blocking when the elaboration is
    --  terminated.
 
@@ -347,7 +349,6 @@ package body System.Garlic.Heart is
 
             Location'Write (Params'Access,
                             My_Location);
-            pragma Debug (D (D_Debug, "Sending a Set_Location"));
             Send (Server_Partition_ID, Set_Location, Params'Access);
             Local_Partition_ID.Get (Partition);
          end;
@@ -448,6 +449,7 @@ package body System.Garlic.Heart is
          when No_Operation => null;
 
          when Set_Location =>
+            --  Received only on the server partition!
             declare
                Loc  : Physical_Location.Location;
                Data : Partition_Data;
@@ -463,14 +465,16 @@ package body System.Garlic.Heart is
                Data := (Location => Loc,
                         Known    => True,
                         Queried  => False);
+               pragma Debug (D (D_Debug, "Setting location"));
                Partition_Map.Set_Data (Partition, Data);
+               pragma Debug (D (D_Debug, "Location set"));
             end;
 
          when Query_Location =>
             declare
-               Asked : Partition_ID;
-               Loc   : Physical_Location.Location;
-               Ans   : aliased Params_Stream_Type (0);
+               Asked    : Partition_ID;
+               Loc      : Physical_Location.Location;
+               Ans      : aliased Params_Stream_Type (0);
             begin
                Partition_ID'Read (Params, Asked);
                if not Asked'Valid then
@@ -555,8 +559,9 @@ package body System.Garlic.Heart is
      (Partition : in Partition_ID;
       Data      : in Ada.Streams.Stream_Element_Array)
    is
-      Params    : aliased Params_Stream_Type (Data'Length);
-      Operation : Opcode;
+      Params       : aliased Params_Stream_Type (Data'Length);
+      Operation    : Opcode;
+
    begin
       To_Params_Stream_Type (Data, Params'Access);
       Opcode'Read (Params'Access, Operation);
@@ -567,15 +572,26 @@ package body System.Garlic.Heart is
       end if;
       pragma Debug
         (D (D_Debug,
-            "Received request with opcode " & Operation'Img));
-      if Operation in Internal_Opcode then
-         Handle_Internal (Partition, Operation, Params'Access);
-      elsif Operation in Public_Opcode then
-         Handle_Public (Partition, Operation, Params'Access);
-      else
-         pragma Debug (D (D_Debug, "Aborting due to invalid opcode"));
-         raise Constraint_Error;
-      end if;
+            "Received request with opcode " & Operation'Img &
+            " from partition" & Partition_ID'Image (Partition)));
+
+      declare
+         Filtered_Data : Ada.Streams.Stream_Element_Array
+           := Filter_Incoming (Partition,
+                               Operation,
+                               To_Stream_Element_Array (Params'Access));
+         Filtered_Params : aliased Params_Stream_Type (Filtered_Data'Length);
+      begin
+         To_Params_Stream_Type (Filtered_Data, Filtered_Params'Access);
+         if Operation in Internal_Opcode then
+            Handle_Internal (Partition, Operation, Filtered_Params'Access);
+         elsif Operation in Public_Opcode then
+            Handle_Public (Partition, Operation, Filtered_Params'Access);
+         else
+            pragma Debug (D (D_Debug, "Aborting due to invalid opcode"));
+            raise Constraint_Error;
+         end if;
+      end;
    end Has_Arrived;
 
    -----------------------
@@ -849,31 +865,47 @@ package body System.Garlic.Heart is
    procedure Send
      (Partition : in Partition_ID;
       Operation : in Opcode;
-      Params    : access System.RPC.Params_Stream_Type)
-   is
+      Params    : access System.RPC.Params_Stream_Type) is
       Protocol  : constant Protocols.Protocol_Access :=
         Get_Protocol (Partition);
       Op_Params : aliased Params_Stream_Type (0);
       use type Ada.Streams.Stream_Element_Array;
+      use type Ada.Streams.Stream_Element_Offset;
+
    begin
-      --  if Partition = Get_My_Partition_ID_Immediately then
-      --     pragma Debug (D (D_Garlic, "Cannot send to myself, huh ?"));
-      --     raise Communication_Error;
-      --  end if;
       Opcode'Write (Op_Params'Access, Operation);
+
       declare
-         use type Ada.Streams.Stream_Element_Offset;
-         Header : constant Ada.Streams.Stream_Element_Array :=
-           To_Stream_Element_Array (Op_Params'Access);
-         Packet : aliased Ada.Streams.Stream_Element_Array :=
-           To_Stream_Element_Array (Params,
-                                    Protocols.Unused_Space + Header'Length);
+         Filtered_Data : Ada.Streams.Stream_Element_Array
+           := Filter_Outgoing (Partition,
+                               Operation,
+                               To_Stream_Element_Array (Params));
+         Header : constant Ada.Streams.Stream_Element_Array
+           := To_Stream_Element_Array (Op_Params'Access);
+         Length : constant Ada.Streams.Stream_Element_Offset
+           := Protocols.Unused_Space + Header'Length + Filtered_Data'Length;
+         Packet : aliased Ada.Streams.Stream_Element_Array
+           := (1 .. Length => 0);
+
+         --  We can't just declare 'Packet' with the correct size here: this
+         --  would make Packet's type a constrained subtype, while the 'Send'
+         --  below expects an access to an unconstrained subtype. Result:
+         --  since the two types do not "statically match" (RM 4.9.1), the
+         --  parameter types are different, and the compiler will issue an
+         --  error message in the call to 'Protocols.Send' below.
+
       begin
-         Packet (Packet'First + Protocols.Unused_Space ..
-                 Packet'First + Protocols.Unused_Space + Header'Length - 1) :=
-           Header;
-         pragma Debug (D (D_Debug, "Sending an operation with opcode " &
-                          Operation'Img));
+         --  Stuff the opcode in front of it is unfiltered.
+         Packet
+           (Packet'First + Protocols.Unused_Space ..
+            Packet'First + Protocols.Unused_Space + Header'Length - 1)
+           := Header;
+         Packet
+           (Packet'First + Protocols.Unused_Space + Header'Length ..
+            Packet'Last)
+           := Filtered_Data;
+         pragma Debug
+           (D (D_Debug, "Sending an operation with opcode " & Operation'Img));
          Protocols.Send (Protocol, Partition, Packet'Access);
       end;
    end Send;

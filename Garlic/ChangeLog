@@ -1,3 +1,14 @@
+Thu Feb 20 14:45:29 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* s-garfil.ads, s-garfil.adb, s-gafino.ads, s-gafino.adb: Add
+ 	filtering. Only filter None has been included.
+	
+	* s-garsta.adb: Add filtering packages elaboration and call
+ 	System.Garlic.Filters.Initialize.
+
+	* s-garhea.adb: Set filtering hooks in Send and Data_Arrived.
+	This is a draft. Need to avoid copy optimization.
+	
 Thu Feb 13 19:35:41 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* s-garter.adb: Add a new procedure Local_Termination to provide

@@ -40,17 +40,10 @@
 with Ada.Streams;
 
 with System.Garlic;
-with System.Garlic.Debug;
-with System.Garlic.Heart;
-with System.Garlic.Utils;
-with System.RPC;
-
-use System.Garlic.Debug;
-use System.Garlic.Heart;
-use System.Garlic.Utils;
-use System.RPC;
-
-pragma Elaborate (System.Garlic.Heart);
+with System.Garlic.Debug;  use System.Garlic.Debug;
+with System.Garlic.Utils;  use System.Garlic.Utils;
+with System.Garlic.Heart;  use System.Garlic.Heart;
+with System.RPC;           use System.RPC;
 
 package body System.Garlic.Filters is
 
@@ -65,11 +58,19 @@ package body System.Garlic.Filters is
    type String_Access is access all String;
    --  Partition names are stored in dynamically allocated memory!
 
+   No_Filter_Name : aliased String := "";
+   --  Initially, all channels are initialized to use the filter with
+   --  this name. There *must* be a filter with that name, and all
+   --  calls to 'Set_Channel_Filter' must be made on both ends before
+   --  the first message is ever sent through that channel. (Note:
+   --  this implementation doesn't yet incorporate protocols for
+   --  negociating a change of the filter algorithm or even the filter
+   --  parameters at run-time.)
+   
    type Filter_Code is (Query_Name,          --  <empty>
                         Tell_Name,           --  Name, Public Params
                         Set_Session_Params,  --  Public (Name, Private)
                         Invalidate);         --  Private (Partition_ID)
-
 
    --  Declarations of locally used subroutines.
 
@@ -256,23 +257,25 @@ package body System.Garlic.Filters is
 
    protected Partition_Filter_Table is
 
-      procedure  Enter (Partition_Name, Filter_Name : in String);
-      entry      Get   (Partition_Name : in  String;
-                        Filter_Name    : out String_Access);
-
-      procedure Set_Default (Default_Name : in  String);
-      entry     Get_Default (Default_Name : out String_Access);
+      procedure Enter
+        (Partition_Name, Filter_Name : in String);
+        
+      function Get
+        (Partition_Name : String)
+        return String_Access;
+      --  If no entry for a partition with the given name is found,
+      --  we just return the default filter name defined above by
+      --  'No_Filter_Name'.
+      
+      procedure Set_Default
+        (Default_Name : in String);
+        
+      function Get_Default return String_Access;
+      --  Returns No_Filter_Name'Access if not set.
 
    private
       Channels            : Partition_Filter_Array;
-      New_Entry           : Boolean       := False;  --  Local barrier
-      Default_Filter_Name : String_Access := null;
-
-      entry Get_Queue (Partition_Name : in  String;
-                       Filter_Name    : out String_Access);
-      --  This entry is used by 'Get' to wait until 'Partition_Name' has
-      --  been entered.
-
+      Default_Filter_Name : String_Access := No_Filter_Name'Access;
    end Partition_Filter_Table;
 
    ----------------------------
@@ -307,11 +310,6 @@ package body System.Garlic.Filters is
                --  Empty entry found, fill it.
                Channels (I).Dest   := new String'(Partition_Name);
                Channels (I).Method := new String'(Filter_Name);
-               if Get_Queue'Count > 0 then
-                  --  We entered a new entry, so if somebody is waiting,
-                  --  open the barrier
-                  New_Entry := True;
-               end if;
                return;
             end if;
          end loop;
@@ -322,23 +320,22 @@ package body System.Garlic.Filters is
       -- Partition_Filter_Table.Get --
       --------------------------------
 
-      entry Get   (Partition_Name : in  String;
-                   Filter_Name    : out String_Access)
-         when not New_Entry is
+      function Get
+        (Partition_Name : String)
+        return String_Access is
       begin
          for I in Channels'Range loop
             if Channels (I).Dest /= null and then
                Channels (I).Dest.all = Partition_Name
             then
-               Filter_Name := Channels (I).Method;
-               return;
+               return Channels (I).Method;
             end if;
          end loop;
-         pragma Debug (D (D_Debug, "Waiting for filter for partition '" &
-            Partition_Name & "' to be entered."));
+         pragma Debug (D (D_Debug, "No filter for partition '" &
+            Partition_Name & "' found, using default"));
          --  If no entry for this partition name was found, we requeue and
          --  wait until it is entered.
-         requeue Get_Queue with abort;
+         return No_Filter_Name'Access;
       end Get;
 
       ----------------------------------------
@@ -354,25 +351,10 @@ package body System.Garlic.Filters is
       -- Partition_Filter_Table.Get_Default --
       ----------------------------------------
 
-      entry Get_Default (Default_Name : out String_Access)
-         when Default_Filter_Name /= null is
+      function Get_Default return String_Access is
       begin
-         Default_Name := Default_Filter_Name;
+         return Default_Filter_Name;
       end Get_Default;
-
-      ---------------------------------------------------
-      --  Private entries implementing wait queues below.
-
-      entry Get_Queue (Partition_Name : in  String;
-                       Filter_Name    : out String_Access)
-          when New_Entry is
-      begin
-         if Get_Queue'Count = 0 then
-            --  Close the barrier upon the last pending call
-            New_Entry := False;
-         end if;
-         requeue Get with abort;
-      end Get_Queue;
 
    end Partition_Filter_Table;
 
@@ -582,7 +564,7 @@ package body System.Garlic.Filters is
          end;
          Partition_Name_Table.To_Static (Dynamic_ID, Name);
       end if;
-      Partition_Filter_Table.Get (Name.all, Name);
+      Name := Partition_Filter_Table.Get (Name.all);
       Filter_Methods_Table.Wait_For_Filter (Name.all, Filter);
       return Filter;
    end Partition_To_Filter;
@@ -973,22 +955,38 @@ package body System.Garlic.Filters is
             --  Filter all internal messages using the default filter.
             --  Note: It should even be possible to use the channel-
             --  specific filter for this! (TW)
+            pragma Debug (D (D_Debug, "Internal opcode " &
+               Opcode'Image (Operation) & " Dir: " &
+               Direction'Image (Which_Way) & " Part:" &
+               Partition_ID'Image (Partition)));
             Check_Name (Partition, Which_Way, Operation);
             return Default_Filtering (Which_Way) (Partition, Params);
          else
             --  No filtering for 'Set_Location': we cannot have made known
             --  our name and parameters before having told the lead partition
             --  where we are, therefore filtering is impossible.
+            pragma Debug (D (D_Debug, "Internal opcode " &
+               Opcode'Image (Operation) & " Dir: " &
+               Direction'Image (Which_Way) & " Part:" &
+               Partition_ID'Image (Partition) & " NO FILTERING"));
             null;
          end if;
       elsif Operation in Public_Opcode then
          if Operation /= Filtering then
             --  Filter all messages.
+            pragma Debug (D (D_Debug, "Public opcode " &
+               Opcode'Image (Operation) & " Dir: " &
+               Direction'Image (Which_Way) & " Part:" &
+               Partition_ID'Image (Partition)));
             Check_Name (Partition, Which_Way, Operation);
             return Std_Filtering (Which_Way) (Partition, Params);
          else
             --  No filtering for 'Filtering' messages: we handle all filtering
             --  ourselves!
+            pragma Debug (D (D_Debug, "Public opcode " &
+               Opcode'Image (Operation) & " Dir: " &
+               Direction'Image (Which_Way) & " Part:" &
+               Partition_ID'Image (Partition) & " NO FILTERING"));
             null;
          end if;
       else
@@ -1009,6 +1007,7 @@ package body System.Garlic.Filters is
        Params       : in Ada.Streams.Stream_Element_Array)
       return Ada.Streams.Stream_Element_Array is
    begin
+      pragma Debug (D (D_Debug, "Generic filter outgoing"));
       return Filter_It (To_Partition, Outgoing, Operation, Params);
    end Filter_Outgoing;
 
@@ -1022,6 +1021,7 @@ package body System.Garlic.Filters is
        Params         : in Ada.Streams.Stream_Element_Array)
       return Ada.Streams.Stream_Element_Array is
    begin
+      pragma Debug (D (D_Debug, "Generic filter incoming"));
       return Filter_It (From_Partition, Incoming, Operation, Params);
    end Filter_Incoming;
 
@@ -1219,7 +1219,7 @@ package body System.Garlic.Filters is
       if Default_Filter = null then
          --  Get the default filter's name (if it's still unknown, wait until
          --  we know it).
-         Partition_Filter_Table.Get_Default (Default_Name);
+         Default_Name := Partition_Filter_Table.Get_Default;
          --  Get the default filter object, waiting until it is registered.
          Filter_Methods_Table.Wait_For_Filter
            (Default_Name.all, Default_Filter);
@@ -1461,6 +1461,7 @@ package body System.Garlic.Filters is
 
    procedure Set_Default_Filter (Filter : in String) is
    begin
+      pragma Debug (D (D_Debug, "Entering default filter name"));
       Partition_Filter_Table.Set_Default (Filter);
    end Set_Default_Filter;
 
@@ -1470,6 +1471,8 @@ package body System.Garlic.Filters is
 
    procedure Set_Channel_Filter (Partition, Filter : in String) is
    begin
+      pragma Debug (D (D_Debug, "Entering channel (" &
+         Partition & ", " & Filter & ")"));
       Partition_Filter_Table.Enter (Partition, Filter);
    end Set_Channel_Filter;
 
@@ -1479,15 +1482,23 @@ package body System.Garlic.Filters is
 
    procedure Set_Partition_Name (Name : in String) is
    begin
+      pragma Debug (D (D_Debug, "Entering my own name"));
       Partition_Name_Table.Set_My_Name (Name);
    end Set_Partition_Name;
 
-begin
+   ----------------
+   -- Initialize --
+   ----------------
 
-   --  Register our message handler with Garlic.Heart to receive all messages
-   --  of kind 'Filtering'.
-   Receive (Filtering, Message_Handler'Access);
-   pragma Debug (D (D_Debug, "Finished elaboration..."));
+   procedure Initialize is
+   begin
+
+      --  Register our message handler with Garlic.Heart to receive all
+      --  messages of kind 'Filtering'.
+      Receive (Filtering, Message_Handler'Access);
+      pragma Debug (D (D_Debug, "Finished elaboration..."));
+
+   end Initialize;
 
 end System.Garlic.Filters;
 
