@@ -93,13 +93,13 @@ package body CORBA.Request is
          case Send_Request_Result is
             when Broca.GIOP.Sr_Reply =>
 
+               pragma Debug (O ("Invoke: unmarshalling return value"));
+               Broca.CDR.Unmarshall (Handler.Buffer'Access, Self.Result);
+
                pragma Debug
                  (O ("Invoke: unmarshalling inout and out arguments"));
                CORBA.NVList.Unmarshall (Handler.Buffer'Access,
                                         Self.Args_List);
-
-               pragma Debug (O ("Invoke: unmarshalling return value"));
-               Broca.CDR.Unmarshall (Handler.Buffer'Access, Self.Result);
 
                Broca.GIOP.Release (Handler);
                pragma Debug (O ("Invoke: end"));
