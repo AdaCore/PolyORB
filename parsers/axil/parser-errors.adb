@@ -6,23 +6,30 @@ with Types;        use Types;
 
 package body Parser.Errors is
 
-   Parsing_Str : constant array (Parsing_Code) of String_Ptr :=
+   Parsing_Str : constant array (PC_AADL_Declaration .. PC_System_Instance)
+     of String_Ptr :=
      (
       PC_AADL_Declaration         => new String'("AADL_Delcaration"),
       PC_AADL_Specification       => new String'("AADL_Specification"),
       PC_Annex_Specification      => new String'("Annex_Specification"),
+      PC_Annex_Subclause          => new String'("Annex_Subclause"),
       PC_Component                => new String'("Component"),
       PC_Component_Category       => new String'("Component_Category"),
       PC_Component_Implementation => new String'("Component_Implementation"),
       PC_Component_Type           => new String'("Component_Type"),
+      PC_Component_Type_Extension => new String'("Component_Type_Extension"),
       PC_Defining_Identifier      => new String'("Defining_Identifier"),
       PC_Defining_Name            => new String'("Defining_Name"),
+      PC_Feature                  => new String'("Feature"),
       PC_Identifiers              => new String'("Identifiers"),
       PC_None_Statement           => new String'("None_Statement"),
       PC_Package_Items            => new String'("Package_Items"),
       PC_Package_Specification    => new String'("Package_Specification"),
       PC_Parameters               => new String'("Parameters"),
       PC_Port_Group               => new String'("Port_Group"),
+      PC_Port_Refinement          => new String'("Port_Refinement"),
+      PC_Port_Spec                => new String'("Port_Spec"),
+      PC_Port_Type                => new String'("Port_Type"),
       PC_Properties               => new String'("Properties"),
       PC_Property_Association     => new String'("Property_Association"),
       PC_Property_Set             => new String'("Property_Set"),

@@ -114,7 +114,9 @@ package body Debug is
             W_Indents;
             Write_Line ("Node_Id = " & Image (N));
 
-         when K_List_Id | K_AADL_Declaration_List =>
+         when K_List_Id
+           | K_AADL_Declaration_List
+           | K_Identifiers_List =>
             Node := First_Node (List_Id (N));
             if Present (Node) then
                while Present (Node) loop
@@ -214,6 +216,38 @@ package body Debug is
                W_Indents;
                Write_Line ("Annexes");
                Print_Node (Node);
+            end if;
+
+         when K_Port_Spec =>
+            W_Indents;
+            if Is_Refinement (N) then
+               Write_Str ("Port_Refinement: ");
+            else
+               Write_Str ("Port: ");
+            end if;
+            Print_Node (Node_Id (Identifiers_List (N)));
+            W_Indents;
+            if Is_In (N) then
+               Write_Str ("in ");
+            end if;
+            if Is_Out (N) then
+               Write_Str ("out ");
+            end if;
+            Print_Node (Port_Type (N));
+            Node := Node_Id (Properties (N));
+            if Present (Node) then
+               Write_Eol;
+               Write_Str ("Properties:");
+               Print_Node (Node);
+            end if;
+            Write_Eol;
+
+         when K_Port_Type =>
+            if Is_Event (N) then
+               Write_Str ("event ");
+            end if;
+            if Present (Data_Ref (N)) then
+               Write_Str ("data ");
             end if;
 
          when others =>

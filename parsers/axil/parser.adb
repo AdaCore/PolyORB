@@ -38,6 +38,8 @@ package body Parser is
    function P_Annex_Specification return Node_Id;
    function P_Annex_Subclause return Node_Id;
 
+   function P_Classifier_Reference return Node_Id;
+
    function P_Component return Node_Id;
    --  Parse Component_Type, Component_Type_Extension
    --        Component_Implementation, Component_Implementation_Extension
@@ -70,7 +72,7 @@ package body Parser is
    --  Return TRUE if parsed identifier name equals to Expected_Name
 
    function P_Expected_Identifiers (Identifiers : List_Id;
-                                    Delimiter : Token_Type) return Boolean;
+                                    Delimiter   : Token_Type) return Boolean;
    --  Parse { Identifier Delimiter } * Identifier
    --  These parsed identifiers must be the same as in list L
    --  These parsed identifiers will NOT be added in list L
@@ -91,6 +93,10 @@ package body Parser is
    --  Func is a pointer which is used to parse (Item)
    --  Code indicates the object that we are parsing
 
+   function P_Items_List (Func      : P_Item_Function_Ptr;
+                          Delimiter : Token_Type) return List_Id;
+   --  Parse list items of syntax: ( { Item } + Delimiter )
+
    function P_None_Statement return Boolean;
    --  Parse " none ; ", this function does NOT return a Node_Id because
    --  no useful data will be retrieved
@@ -99,7 +105,18 @@ package body Parser is
    function P_Package_Items return Node_Id;
    function P_Package_Specification return Node_Id;
    function P_Parameter return Node_Id;
+
    function P_Port_Group (Start_Loc : Location) return Node_Id;
+
+   function P_Port_Spec (Start_Loc        : Location;
+                         Identifiers_List : List_Id;
+                         Is_Refinement    : Boolean) return Node_Id;
+   --  Current token must be reserved words 'in' or 'out'
+   --  If Is_Refinement = TRUE, parse a Port_Refinement
+
+   function P_Port_Type return Node_Id;
+   --  Parse Port_Type, the current token is the first token of Port_Type
+
    function P_Property_Association return Node_Id;
    function P_Property_Set (Start_Loc : Location) return Node_Id;
    function P_Subcomponent_Access return Node_Id;
@@ -230,6 +247,20 @@ package body Parser is
       return Annex;
    end P_Annex_Subclause;
 
+   ----------------------------
+   -- P_Classifier_Reference --
+   ----------------------------
+
+   function P_Classifier_Reference return Node_Id is
+      Class_Ref : Node_Id;
+
+   begin
+      --  TODO
+      Scan_Token;
+      Class_Ref := New_Node (K_Classifier_Ref, Token_Location);
+      return Class_Ref;
+   end P_Classifier_Reference;
+
    -----------------
    -- P_Component --
    -----------------
@@ -256,11 +287,11 @@ package body Parser is
    -- P_Component_Category --
    --------------------------
 
-   --  component_category ::=  software_category | platform_category
+   --  component_category ::= software_category | platform_category
    --                                    | composite_category
-   --  software_category ::= data | subprogram | thread | thread group
+   --  software_category  ::= data | subprogram | thread | thread group
    --                                    | process
-   --  platform_category ::= memory | processor | bus | device
+   --  platform_category  ::= memory | processor | bus | device
    --  composite_category ::= system
 
    function P_Component_Category return Component_Category is
@@ -589,8 +620,39 @@ package body Parser is
    ---------------
 
    function P_Feature return Node_Id is
+      Identifiers_List : List_Id;
+      Start_Loc        : Location;
+
    begin
-      return No_Node;
+      Save_Lexer (Start_Loc);
+      Identifiers_List := New_List (K_Identifiers_List, Token_Location);
+
+      if P_Identifiers (Identifiers_List, T_Comma) then
+         Scan_Token;
+
+         if Token = T_Colon then
+            Scan_Token;
+
+            case Token is
+               when T_In | T_Out =>
+                  return P_Port_Spec (Start_Loc, Identifiers_List, False);
+
+               when others =>
+                  DPE (PC_Feature);
+                  Skip_Tokens (T_Semicolon);
+                  return No_Node;
+            end case;
+
+         else
+            DPE (PC_Feature, T_Colon);
+            Skip_Tokens (T_Semicolon);
+            return No_Node;
+         end if;
+      else
+         --  Error when parsing identifiers list, quit
+         Skip_Tokens (T_Semicolon);
+         return No_Node;
+      end if;
    end P_Feature;
 
    -------------------
@@ -629,6 +691,8 @@ package body Parser is
    -- P_Items_List --
    ------------------
 
+   --  ( { Item } + | none_statement )
+
    function P_Items_List (Func : P_Item_Function_Ptr;
                           Code : Parsing_Code) return List_Id is
       Loc   : Location;
@@ -664,6 +728,40 @@ package body Parser is
       end if;
 
       return Items;
+   end P_Items_List;
+
+   ------------------
+   -- P_Items_List --
+   ------------------
+
+   --  ( { Item } + Delimiter )
+
+   function P_Items_List (Func      : P_Item_Function_Ptr;
+                          Delimiter : Token_Type) return List_Id is
+      Loc   : Location;
+      Items : List_Id;
+      Item  : Node_Id;
+
+   begin
+      Items := New_List (K_List_Id, Token_Location);
+      loop
+         Item := Func.all;
+         if Present (Item) then
+            Append_Node_To_List (Item, Items);
+         else
+            --  Error when parsing item, ignores tokens ---> Delimiter; quit
+            Skip_Tokens (Delimiter);
+            return No_List;
+         end if;
+
+         Save_Lexer (Loc);
+         Scan_Token;
+         if Token = Delimiter then
+            return Items;
+         else
+            Restore_Lexer (Loc);
+         end if;
+      end loop;
    end P_Items_List;
 
    ----------------------
@@ -885,6 +983,136 @@ package body Parser is
       Port_Group := New_Node (K_Node_Id, Start_Loc);
       return Port_Group;
    end P_Port_Group;
+
+   -----------------
+   -- P_Port_Spec --
+   -----------------
+
+   --  port_spec ::=
+   --     defining_port_identifier_list : ( in | out | in out ) port_type
+   --        [ { { port_property_association } + } ] ;
+
+   --  port_refinement ::=
+   --     defining_port_identifier_list : refined to
+   --        ( in | out | in out ) port_type
+   --        [ { { port_property_association } + } ] ;
+
+   function P_Port_Spec (Start_Loc        : Location;
+                         Identifiers_List : List_Id;
+                         Is_Refinement    : Boolean) return Node_Id is
+      Is_In     : Boolean := False;
+      Is_Out    : Boolean := False;
+      Port_Spec : Node_Id;
+      Port_Type : Node_Id;
+      Port_Prop : List_Id := No_List;  --  list of Port_Property_Association
+
+   begin
+      if Token = T_In then
+         Is_In := True;
+         Scan_Token;
+         if Token = T_Out then
+            Is_Out := True;
+            Scan_Token;
+         end if;
+      else
+         Is_Out := True;
+         Scan_Token;
+         if Token = T_In then
+            Is_In := True;
+            Scan_Token;
+         end if;
+      end if;
+
+      Port_Type := P_Port_Type;
+
+      if Present (Port_Type) then
+         Scan_Token;
+         if Token = T_Left_Curly_Bracket then
+            Port_Prop := P_Items_List (P_Property_Association'Access,
+                                       T_Right_Curly_Bracket);
+            if not Present (Port_Prop) then
+               --  Error when parsing list of Port_Property_Association, quit
+               Skip_Tokens (T_Semicolon);
+               return No_Node;
+            else
+               Scan_Token;  --  Parse expected ';'
+            end if;
+         end if;
+
+         if Token = T_Semicolon then
+            Port_Spec := New_Node (K_Port_Spec, Start_Loc);
+            Set_Is_Refinement (Port_Spec, Is_Refinement);
+            Set_Identifiers_List (Port_Spec, Identifiers_List);
+            Set_Is_In (Port_Spec, Is_In);
+            Set_Is_Out (Port_Spec, Is_Out);
+            Set_Port_Type (Port_Spec, Port_Type);
+            Set_Properties (Port_Spec, Port_Prop);
+
+            return Port_Spec;
+         else
+            DPE (PC_Port_Spec, T_Semicolon);
+            return No_Node;
+         end if;
+      else
+         --  Error when parsing Port_Type, quit
+         Skip_Tokens (T_Semicolon);
+         return No_Node;
+      end if;
+   end P_Port_Spec;
+
+   -----------------
+   -- P_Port_Type --
+   -----------------
+
+   --  port_type ::= ( data port data_classifier_reference  )
+   --              | ( event data port data_classifier_reference )
+   --              | ( event port )
+
+   function P_Port_Type return Node_Id is
+      Port_Type : Node_Id;
+      Is_Data   : Boolean := False;
+      Is_Event  : Boolean := False;
+      Class_Ref : Node_Id;
+
+   begin
+      Port_Type := New_Node (K_Port_Type, Token_Location);
+
+      if Token = T_Event then
+         Is_Event := True;
+         Scan_Token;
+         if Token = T_Data then
+            Is_Data := True;
+            Scan_Token;
+         end if;
+      elsif Token = T_Data then
+         Is_Data := True;
+         Scan_Token;
+      else
+         DPE (PC_Port_Type);
+         return No_Node;
+      end if;
+
+      if Token /= T_Port then
+         DPE (PC_Port_Type, T_Port);
+         return No_Node;
+      end if;
+
+      if Is_Data then
+         Class_Ref := P_Classifier_Reference;
+         if Present (Class_Ref) then
+            Set_Is_Event (Port_Type, Is_Event);
+            Set_Data_Ref (Port_Type, Class_Ref);
+         else
+            --  Error when parsing Classifier_Reference, quit
+            return No_Node;
+         end if;
+      else
+         Set_Is_Event (Port_Type, Is_Event);
+         Set_Data_Ref (Port_Type, No_Node);
+      end if;
+
+      return Port_Type;
+   end P_Port_Type;
 
    ----------------------------
    -- P_Property_Association --

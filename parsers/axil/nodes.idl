@@ -173,7 +173,7 @@ module Nodes {
     boolean  Is_In;
     boolean  Is_Out;
     Node_Id  Port_Type;
-    List_Id  Associations;
+    List_Id  Properties;
   };
 
     // component_implementation ::= 
