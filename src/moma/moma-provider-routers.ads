@@ -34,8 +34,8 @@
 
 --  $Id$
 
+with MOMA.Destinations;
 with MOMA.Provider.Topic_Datas;
-with MOMA.Types;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
@@ -82,9 +82,11 @@ private
    --  XXX Code from Moma.Provider.Message_Producer is duplicated.
 
    procedure Subscribe (Self     : access Router;
-                        Topic_Id : MOMA.Types.String;
-                        Pool     : PolyORB.References.Ref);
-   --  Subscribe a Pool to the topic designed by Topic_Id.
+                        Topic    : MOMA.Destinations.Destination;
+                        Pool     : MOMA.Destinations.Destination);
+   --  Subscribe a Pool to a Topic.
+   --  Topic's kind must be set to "Topic".
+   --  Pool's kind must be set to "Pool".
 
    function Get_Parameter_Profile (Method : String)
      return PolyORB.Any.NVList.Ref;

@@ -438,8 +438,9 @@ begin
    MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Dest_Pool);
 
    --  Subscribe to the "Test" topic.
---   MOMA.Sessions.Subscribe (MOMA_Dest_Router, MOMA_Dest_Pool);
---  To uncomment when it works.
+   if Kind = Topic and then Scenario in Full .. Stor then
+      MOMA.Sessions.Subscribe (MOMA_Dest_Router, MOMA_Dest_Pool);
+   end if;
 
    --  Initialization is completed.
    Output ("Initialization", True);

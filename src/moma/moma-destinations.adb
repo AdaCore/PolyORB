@@ -205,12 +205,12 @@ package body MOMA.Destinations is
       end if;
       PolyORB.Any.NVList.Create (Arg_List);
       PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("Topic_Id"),
-                                   To_Any (Get_Name (Topic)),
+                                   To_PolyORB_String ("Topic"),
+                                   To_Any (Topic),
                                    PolyORB.Any.ARG_IN);
       PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("Pool_Ref"),
-                                   To_Any (Get_Ref (Pool)),
+                                   To_PolyORB_String ("Pool"),
+                                   To_Any (Pool),
                                    PolyORB.Any.ARG_IN);
       Result := (Name      => To_PolyORB_String ("Result"),
                  Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
