@@ -218,7 +218,6 @@ cos/naming/file-impl.adb
 cos/naming/file-impl.ads
 cos/naming/header.txt
 cos/naming/ir_ab_names.adb
-cos/naming/ir_ab_names_setup.adb
 cos/naming/menu.adb
 cos/naming/menu.ads
 cos/naming/polyorb-corba_p-naming_tools.adb
@@ -265,8 +264,8 @@ examples/corba/all_types/all_types.idl
 examples/corba/all_types/client.adb
 examples/corba/all_types/client_moma.adb
 examples/corba/all_types/dynclient.adb
-examples/corba/all_types/interop/client.cc
-examples/corba/all_types/interop/server.cc
+examples/corba/all_types/interop/cpp/client.cc
+examples/corba/all_types/interop/cpp/server.cc
 examples/corba/all_types/ir_server.adb
 examples/corba/all_types/server.adb
 examples/corba/echo/Makefile.am
@@ -878,8 +877,8 @@ support/missing
 support/mkdep
 support/mkinstalldirs
 support/reconfig
-testsuite/common/report.adb
-testsuite/common/report.ads
+testsuite/common/polyorb-report.adb
+testsuite/common/polyorb-report.ads
 testsuite/core/initialization/test000.adb
 testsuite/core/initialization/test001.adb
 testsuite/core/initialization/test002.adb
