@@ -78,7 +78,7 @@ else
 fi
 if [ -f ${prev}/Utils/normalize.pl ]; then
     echo Recentering keywords
-    xargs ${prev}/Utils/normalize.pl `cat MANIFEST`
+    ${prev}/Utils/normalize.pl `cat MANIFEST`
 fi
 echo Doing the necessary date modifications
 find . -name configure.in -exec touch {} \;
