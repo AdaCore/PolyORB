@@ -32,178 +32,201 @@
 ------------------------------------------------------------------------------
 
 with Broca.Debug;
+with Broca.Soft_Links; use Broca.Soft_Links;
+with Ada.Unchecked_Deallocation;
 
 package body Broca.Exceptions.Stack is
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.exceptions.stack");
    procedure O is new Broca.Debug.Output (Flag);
 
-   ---------------------
-   -- Raise_Exception --
-   ---------------------
-   procedure Raise_Exception (Excp : in Ada.Exceptions.Exception_Id;
-                              Excp_Memb : in IDL_Exception_Members'Class) is
-      ID : Exception_Occurrence_ID;
-      Ex_Mb : IDL_Exception_Members_Ptr
-        := new IDL_Exception_Members'Class' (Excp_Memb);
-   begin
-      The_Pool.Get_Next_Id (ID);
-      The_Pool.Put (Ex_Mb, ID);
-      Ada.Exceptions.Raise_Exception (Excp,
-                                      Exception_Occurrence_ID'Image (ID));
-      --  should never reach this point
-      raise Program_Error;
-   end Raise_Exception;
+   Magic : constant String := "AB_Exc_Occ";
+
+   type IDL_Exception_Members_Ptr is
+      access all IDL_Exception_Members'Class;
+
+   type Exc_Occ_Id_Type is new Natural;
+
+   Seed_Id : Exc_Occ_Id_Type := 1;
+   Null_Id : constant Exc_Occ_Id_Type := 0;
+
+   type Exc_Occ_Node;
+   type Exc_Occ_List is access Exc_Occ_Node;
+   type Exc_Occ_Node is
+      record
+         Id   : Exc_Occ_Id_Type;
+         Mbr  : IDL_Exception_Members_Ptr;
+         Next : Exc_Occ_List;
+      end record;
+
+   Exc_Occ_Head : Exc_Occ_List;
+   Exc_Occ_Tail : Exc_Occ_List;
+
+   Exc_Occ_List_Size     : Natural := 0;
+   Max_Exc_Occ_List_Size : constant Natural := 1000;
+
+   procedure Free is
+      new Ada.Unchecked_Deallocation
+        (Exc_Occ_Node, Exc_Occ_List);
+
+   procedure Free is
+      new Ada.Unchecked_Deallocation
+        (IDL_Exception_Members'Class,
+         IDL_Exception_Members_Ptr);
+
+   function Image (V : Exc_Occ_Id_Type) return String;
+   function Value (M : String) return Exc_Occ_Id_Type;
 
    -----------------
    -- Get_Members --
    -----------------
-   procedure Get_Members (From : in CORBA.Exception_Occurrence;
-                          To : out IDL_Exception_Members'Class) is
+
+   procedure Get_Members
+     (Exc_Occ : in CORBA.Exception_Occurrence;
+      Exc_Mbr : out IDL_Exception_Members'Class)
+   is
+      Exc_Occ_Id : Exc_Occ_Id_Type;
+      Current    : Exc_Occ_List;
+      Previous   : Exc_Occ_List;
+
    begin
-      The_Pool.Get (From, To);
+      Enter_Critical_Section;
+      Exc_Occ_Id := Value (Ada.Exceptions.Exception_Message (Exc_Occ));
+      if Exc_Occ_Id = Null_Id then
+         Leave_Critical_Section;
+         return;
+      end if;
+
+      Current := Exc_Occ_Head;
+      while Current /= null loop
+         exit when Current.Id = Exc_Occ_Id;
+
+         Previous := Current;
+         Current  := Current.Next;
+      end loop;
+
+      if Current = null then
+         Leave_Critical_Section;
+         Broca.Exceptions.Raise_Imp_Limit;
+      end if;
+
+      if Previous /= null then
+         Previous.Next := Current.Next;
+
+      else
+         Exc_Occ_Head := Current.Next;
+      end if;
+
+      Exc_Mbr := Current.Mbr.all;
+
+      Free (Current.Mbr);
+      Free (Current);
+      Exc_Occ_List_Size := Exc_Occ_List_Size - 1;
+      Leave_Critical_Section;
+
+   exception
+      when others =>
+         if Current /= null then
+            if Current.Mbr /= null then
+               Free (Current.Mbr);
+            end if;
+            Free (Current);
+         end if;
+         Exc_Occ_List_Size := Exc_Occ_List_Size - 1;
+         Leave_Critical_Section;
+         raise;
    end Get_Members;
 
+   -----------
+   -- Image --
+   -----------
 
+   function Image (V : Exc_Occ_Id_Type) return String is
+   begin
+      return Magic & V'Img;
+   end Image;
 
-   --------------------
-   -- The_Pool body --
-   --------------------
+   ---------------------
+   -- Raise_Exception --
+   ---------------------
 
-   protected body The_Pool is
+   procedure Raise_Exception
+     (Exc_Id  : in Ada.Exceptions.Exception_Id;
+      Exc_Mbr : in IDL_Exception_Members'Class)
+   is
+      Current    : Exc_Occ_List;
+      Exc_Occ_Id : Exc_Occ_Id_Type;
 
-      --------------
-      --  Is_Full --
-      --------------
-      function Is_Full return Boolean is
-      begin
-         return (Current_Size = Pool_Size);
-      end Is_Full;
-
-
-      ----------
-      --  Put --
-      ----------
-      procedure Put (Excp_Mb : in IDL_Exception_Members_Ptr;
-                     Excp_Id : in Exception_Occurrence_ID) is
-         Head : Cell_Ptr;
-      begin
-         pragma Debug (O ("Put starts Excp_ID="
-                          & Exception_Occurrence_ID'Image (Excp_Id)
-                          & " ,Current_Size="
-                          & Integer'Image (Current_Size)));
-         if Is_Full then
-            Remove_Last_Element;
+   begin
+      Enter_Critical_Section;
+      if Exc_Occ_List_Size = Max_Exc_Occ_List_Size then
+         Current := Exc_Occ_Head;
+         Exc_Occ_Head := Exc_Occ_Head.Next;
+         if Current.Mbr /= null then
+            Free (Current.Mbr);
          end if;
 
-         Head := new Cell' (ID => Excp_Id,
-                            Member_Ptr => Excp_Mb,
-                            Next => Pool,
-                            Previous => null);
-         if Pool /= null then
-            Pool.all.Previous := Head;
+      else
+         Exc_Occ_List_Size := Exc_Occ_List_Size + 1;
+         Current := new Exc_Occ_Node;
+      end if;
+
+      Exc_Occ_Id   := Seed_Id;
+      Current.Id   := Seed_Id;
+      Current.Mbr  := new IDL_Exception_Members'Class'(Exc_Mbr);
+      Current.Next := null;
+
+      if Seed_Id = Exc_Occ_Id_Type'Last then
+         Seed_Id := Null_Id;
+      end if;
+      Seed_Id := Seed_Id + 1;
+
+      if Exc_Occ_Head = null then
+         Exc_Occ_Head := Current;
+      end if;
+      Current.Next := Exc_Occ_Tail;
+      Exc_Occ_Tail := Current;
+      Leave_Critical_Section;
+
+      Ada.Exceptions.Raise_Exception (Exc_Id, Image (Exc_Occ_Id));
+      raise Program_Error;
+   end Raise_Exception;
+
+   -----------
+   -- Value --
+   -----------
+
+   function Value (M : String) return Exc_Occ_Id_Type is
+      V : Exc_Occ_Id_Type := 0;
+      N : Natural := M'First;
+
+   begin
+      if M'Length <= Magic'Length + 1 then
+         return Null_Id;
+      end if;
+
+      for I in Magic'Range loop
+         if Magic (I) /= M (N) then
+            return Null_Id;
+         end if;
+         N := N + 1;
+      end loop;
+
+      if M (N) /= ' ' then
+         return Null_Id;
+      end if;
+      N := N + 1;
+
+      while N <= M'Last loop
+         if M (N) not in '0' .. '9' then
+            return Null_Id;
          end if;
 
-         Pool := Head;
+         V := V * 10 + Character'Pos (M (N)) - Character'Pos ('0');
+         N := N + 1;
+      end loop;
 
-         Current_Size := Current_Size + 1;
-
-         pragma Debug (O ("Put ends Excp_ID="
-                          & Exception_Occurrence_ID'Image (Excp_Id)
-                          & " ,Current_Size="
-                          & Integer'Image (Current_Size)));
-      end Put;
-
-
-      -----------
-      --  Get  --
-      -----------
-      procedure Get (From : in CORBA.Exception_Occurrence;
-                     Result : out IDL_Exception_Members'Class) is
-         Index : Cell_Ptr := Pool;
-         Excp_Id : Exception_Occurrence_ID
-           := Exception_Occurrence_ID'Value
-           (Ada.Exceptions.Exception_Message (From));
-      begin
-
-         pragma Debug (O ("Get starts Excp_ID="
-                          & Exception_Occurrence_ID'Image (Excp_Id)
-                          & " ,Current_Size="
-                          & Integer'Image (Current_Size)));
-
-         if Index = null then
-            Broca.Exceptions.Raise_Internal;
-         end if;
-
-         --  if it is the first
-         if Pool.all.ID = Excp_Id then
-            Pool := Pool.all.Next;
-
-         else
-            --  else find it
-            while (Index /= null)
-              and then Index.all.ID /= Excp_Id loop
-               Index := Index.all.Next;
-            end loop;
-
-            --  if not found :
-            --  either it is a bug
-            --  or the pool size has been reached
-            if Index = null then
-               Broca.Exceptions.Raise_Imp_Limit;
-
-            else
-               Index.Previous.all.Next := Index.all.Next;
-               if Index.Next /= null then
-                  Index.Next.all.Previous := Index.Previous;
-               end if;
-            end if;
-         end if;
-
-         Result := Index.all.Member_Ptr.all;
-
-         --  free the resources
-         Free (Index.all.Member_Ptr);
-         Free (Index);
-         Current_Size := Current_Size - 1;
-
-         pragma Debug (O ("Get ends Excp_ID="
-                          & Exception_Occurrence_ID'Image (Excp_Id)
-                          & " ,Current_Size="
-                          & Integer'Image (Current_Size)));
-      end Get;
-
-
-      ------------------
-      --  Get_Next_Id --
-      ------------------
-      procedure Get_Next_Id (Result : out Exception_Occurrence_ID) is
-      begin
-         Next_Id := Next_Id + 1;
-         Result := Next_Id;
-      end Get_Next_Id;
-
-      --------------------------
-      --  Remove_Last_Element --
-      --------------------------
-      procedure Remove_Last_Element is
-         Index : Cell_Ptr := Pool;
-      begin
-         if Index = null then
-            Broca.Exceptions.Raise_Internal;
-         end if;
-
-         while Index.all.Next /= null loop
-            Index := Index.all.Next;
-         end loop;
-
-         Index.Previous.all.Next := null;
-         Free (Index.all.Member_Ptr);
-         Free (Index);
-         Current_Size := Current_Size - 1;
-      end Remove_Last_Element;
-
-
-   end The_Pool;
+      return V;
+   end Value;
 
 end Broca.Exceptions.Stack;
