@@ -2,16 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 R T P O R T A B L E S E R V E R . P O A                  --
+--  P O L Y O R B . R T C O R B A _ P . T H R E A D P O O L M A N A G E R   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
---                                                                          --
--- This specification is derived from the CORBA Specification, and adapted  --
--- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,43 +33,24 @@
 
 --  $Id$
 
-with CORBA.Object;
-with PortableServer.POA;
+with PolyORB.Lanes;
+
 with RTCORBA;
 
-package RTPortableServer.POA is
+package PolyORB.RTCORBA_P.ThreadPoolManager is
 
-   type Ref is new PortableServer.POA.Ref with private;
+   function Lane
+     (Index : in RTCORBA.ThreadpoolId)
+     return PolyORB.Lanes.Lane_Root_Access;
 
-   function To_Ref (Self : CORBA.Object.Ref'Class) return Ref;
+   function Lane_Registered
+     (Index : in RTCORBA.ThreadpoolId)
+     return Boolean;
 
-   function Create_Reference_With_Priority
-     (Self      : in Ref;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref;
+   procedure Register_Lane
+     (Lane  :     PolyORB.Lanes.Lane_Root_Access;
+      Index : out RTCORBA.ThreadpoolId);
 
-   function Create_Reference_With_Id_And_Priority
-     (Self      : in Ref;
-      Oid       : in PortableServer.ObjectId;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref;
+   procedure Unregister_Lane (Index : RTCORBA.ThreadpoolId);
 
-   function Activate_Object_With_Priority
-     (Self       : in Ref;
-      P_Servant  : in PortableServer.Servant;
-      Priority   : in RTCORBA.Priority)
-     return PortableServer.ObjectId;
-
-   procedure Activate_Object_With_Id_And_Priority
-     (Self      : in Ref;
-      Oid       : in PortableServer.ObjectId;
-      P_Servant : in PortableServer.Servant;
-      Priority  : in RTCORBA.Priority);
-
-private
-
-   type Ref is new PortableServer.POA.Ref with null record;
-
-end RTPortableServer.POA;
+end PolyORB.RTCORBA_P.ThreadPoolManager;

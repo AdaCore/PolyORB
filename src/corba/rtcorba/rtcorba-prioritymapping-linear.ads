@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 R T P O R T A B L E S E R V E R . P O A                  --
+--       R T C O R B A . P R I O R I T Y M A P P I N G . L I N E A R        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -36,45 +36,28 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Linear priority mapping between CORBA and Native priority
+
 --  $Id$
 
-with CORBA.Object;
-with PortableServer.POA;
-with RTCORBA;
+package RTCORBA.PriorityMapping.Linear is
 
-package RTPortableServer.POA is
+   type Object is new RTCORBA.PriorityMapping.Object with private;
 
-   type Ref is new PortableServer.POA.Ref with private;
+   procedure To_Native
+     (Self            : in     Object;
+      CORBA_Priority  : in     RTCORBA.Priority;
+      Native_Priority :    out RTCORBA.NativePriority;
+      Returns         :    out CORBA.Boolean);
 
-   function To_Ref (Self : CORBA.Object.Ref'Class) return Ref;
-
-   function Create_Reference_With_Priority
-     (Self      : in Ref;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref;
-
-   function Create_Reference_With_Id_And_Priority
-     (Self      : in Ref;
-      Oid       : in PortableServer.ObjectId;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref;
-
-   function Activate_Object_With_Priority
-     (Self       : in Ref;
-      P_Servant  : in PortableServer.Servant;
-      Priority   : in RTCORBA.Priority)
-     return PortableServer.ObjectId;
-
-   procedure Activate_Object_With_Id_And_Priority
-     (Self      : in Ref;
-      Oid       : in PortableServer.ObjectId;
-      P_Servant : in PortableServer.Servant;
-      Priority  : in RTCORBA.Priority);
+   procedure To_CORBA
+     (Self            : in     Object;
+      Native_Priority : in     RTCORBA.NativePriority;
+      CORBA_Priority  :    out RTCORBA.Priority;
+      Returns         :    out CORBA.Boolean);
 
 private
 
-   type Ref is new PortableServer.POA.Ref with null record;
+   type Object is new RTCORBA.PriorityMapping.Object with null record;
 
-end RTPortableServer.POA;
+end RTCORBA.PriorityMapping.Linear;

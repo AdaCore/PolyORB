@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -35,20 +35,30 @@
 
 package body PolyORB.RTCORBA_P.Setup is
 
+   Current_Priority_Mapping : PriorityMapping_Access;
+   Current_Priority_Transform : PriorityTransform_Access;
+
    --------------------------
    -- Set_Priority_Mapping --
    --------------------------
 
-   procedure Set_Priority_Mapping (Mapping : RTCORBA.PriorityMapping.Object) is
+   procedure Set_Priority_Mapping
+     (Mapping : RTCORBA.PriorityMapping.Object'Class)
+   is
    begin
-      Current_Priority_Mapping := Mapping;
+      if Current_Priority_Mapping = null then
+         Current_Priority_Mapping
+           := new RTCORBA.PriorityMapping.Object'Class'(Mapping);
+      else
+         Current_Priority_Mapping.all := Mapping;
+      end if;
    end Set_Priority_Mapping;
 
    --------------------------
    -- Get_Priority_Mapping --
    --------------------------
 
-   function Get_Priority_Mapping return RTCORBA.PriorityMapping.Object is
+   function Get_Priority_Mapping return PriorityMapping_Access is
    begin
       return Current_Priority_Mapping;
    end Get_Priority_Mapping;
@@ -58,16 +68,22 @@ package body PolyORB.RTCORBA_P.Setup is
    ----------------------------
 
    procedure Set_Priority_Transform
-     (Transform : RTCORBA.PriorityTransform.Object) is
+     (Transform : RTCORBA.PriorityTransform.Object'Class)
+   is
    begin
-      Current_Priority_Transform := Transform;
+      if Current_Priority_Transform = null then
+         Current_Priority_Transform
+           := new RTCORBA.PriorityTransform.Object'Class'(Transform);
+      else
+         Current_Priority_Transform.all := Transform;
+      end if;
    end Set_Priority_Transform;
 
    ----------------------------
    -- Get_Priority_Transform --
    ----------------------------
 
-   function Get_Priority_Transform return RTCORBA.PriorityTransform.Object is
+   function Get_Priority_Transform return PriorityTransform_Access is
    begin
       return Current_Priority_Transform;
    end Get_Priority_Transform;

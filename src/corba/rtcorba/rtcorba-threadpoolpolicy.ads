@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -45,13 +45,9 @@ package RTCORBA.ThreadpoolPolicy is
 
    type Ref is new CORBA.Policy.Ref with private;
 
-   function To_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
-     return Ref;
+   function To_Ref (The_Ref : in CORBA.Object.Ref'Class) return Ref;
 
-   function Get_Threadpool
-     (Self : in Ref)
-     return RTCORBA.ThreadpoolId;
+   function Get_Threadpool (Self : in Ref) return RTCORBA.ThreadpoolId;
 
 private
 

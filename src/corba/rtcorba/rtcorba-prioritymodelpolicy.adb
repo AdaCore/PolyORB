@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,34 +31,141 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.Policy;
+
+with PolyORB.CORBA_P.POA_Config;
+
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
+with PolyORB.POA_Policies;
 with PolyORB.RTCORBA_P.PriorityModelPolicy;
+with PolyORB.RTCORBA_P.Setup;
+with PolyORB.Tasking.Priorities;
+with PolyORB.Utils.Strings;
+
+with RTCORBA.PriorityMapping;
 
 package body RTCORBA.PriorityModelPolicy is
 
    use PolyORB.RTCORBA_P.PriorityModelPolicy;
 
+   function Priority_Model_Policy_Allocator
+     (Self : in CORBA.Policy.Ref)
+     return PolyORB.POA_Policies.Policy_Access;
+
+   ------------
+   -- To_Ref --
+   ------------
+
+   function To_Ref (The_Ref : in CORBA.Object.Ref'Class) return Ref is
+      use type CORBA.PolicyType;
+
+   begin
+      if The_Ref not in CORBA.Policy.Ref'Class
+        or else CORBA.Policy.Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
+        /= PRIORITY_MODEL_POLICY_TYPE
+      then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      declare
+         Result : Ref;
+
+      begin
+         CORBA.Policy.Set (CORBA.Policy.Ref (Result),
+                           CORBA.Object.Entity_Of (The_Ref));
+
+         return Result;
+      end;
+   end To_Ref;
+
+   -------------------------------------
+   -- Priority_Model_Policy_Allocator --
+   -------------------------------------
+
+   function Priority_Model_Policy_Allocator
+     (Self : in CORBA.Policy.Ref)
+     return PolyORB.POA_Policies.Policy_Access
+   is
+      use type PolyORB.RTCORBA_P.Setup.PriorityMapping_Access;
+      use PolyORB.Tasking.Priorities;
+
+      Priority_Mapping : constant
+        PolyORB.RTCORBA_P.Setup.PriorityMapping_Access
+        := PolyORB.RTCORBA_P.Setup.Get_Priority_Mapping;
+
+      Success : CORBA.Boolean;
+      New_Priority : RTCORBA.NativePriority;
+
+   begin
+      --  Compute new priority
+
+      if Priority_Mapping = null then
+         CORBA.Raise_Internal (CORBA.Default_Sys_Member);
+      end if;
+
+      RTCORBA.PriorityMapping.To_Native
+        (Priority_Mapping.all,
+         Get_Server_Priority (To_Ref (Self)),
+         New_Priority,
+         Success);
+
+      if not Success then
+         CORBA.Raise_Data_Conversion
+           (CORBA.System_Exception_Members'(Minor     => 2,
+                                            Completed => CORBA.Completed_No));
+      end if;
+
+      return Create (Get_Priority_Model (To_Ref (Self)),
+                     ORB_Priority (New_Priority),
+                     External_Priority (Get_Server_Priority (To_Ref (Self))));
+   end Priority_Model_Policy_Allocator;
+
    ------------------------
    -- Get_Priority_Model --
    ------------------------
 
-   function Get_Priority_Model
-     (Self : in Ref)
-     return RTCORBA.PriorityModel is
+   function Get_Priority_Model (Self : in Ref) return RTCORBA.PriorityModel is
    begin
-      return Get_Priority_Model (PriorityModelPolicy_Type
-                                 (Entity_Of (Self).all));
+      return Get_Priority_Model
+        (PriorityModelPolicy_Type (Entity_Of (Self).all));
    end Get_Priority_Model;
 
    -------------------------
    -- Get_Server_Priority --
    -------------------------
 
-   function Get_Server_Priority
-     (Self : in Ref)
-     return RTCORBA.Priority is
+   function Get_Server_Priority (Self : in Ref) return RTCORBA.Priority is
    begin
-      return Get_Server_Priority (PriorityModelPolicy_Type
-                                  (Entity_Of (Self).all));
+      return Get_Server_Priority
+        (PriorityModelPolicy_Type (Entity_Of (Self).all));
    end Get_Server_Priority;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.CORBA_P.POA_Config.Register
+        (PRIORITY_MODEL_POLICY_TYPE,
+         Priority_Model_Policy_Allocator'Access);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"rtcorba-prioritymodelpolicy",
+       Conflicts => Empty,
+       Depends   => +"rt_poa",
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end RTCORBA.PriorityModelPolicy;

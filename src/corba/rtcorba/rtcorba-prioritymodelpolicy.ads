@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,28 +36,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA.Object;
 with CORBA.Policy;
 
 package RTCORBA.PriorityModelPolicy is
 
    type Ref is new CORBA.Policy.Ref with private;
 
-   --  Implementation note: OMG Issue #5613 indicates:
+   function To_Ref (The_Ref : in CORBA.Object.Ref'Class) return Ref;
 
+   --  Implementation note: OMG Issue #5613 indicates:
+   --
    --  "RTCORBA::PriorityModelPolicy cannot be created via
    --  ORB::create_policy() method because this policy has two
    --  attributes and and the Any that is passed to the
    --  ORB::create_policy() method can only hold one parameter."
-
+   --
    --  Thus, no Any helpers are provided for this policy.
 
-   function Get_Priority_Model
-     (Self : in Ref)
-     return RTCORBA.PriorityModel;
+   function Get_Priority_Model (Self : in Ref) return RTCORBA.PriorityModel;
 
-   function Get_Server_Priority
-     (Self : in Ref)
-     return RTCORBA.Priority;
+   function Get_Server_Priority (Self : in Ref) return RTCORBA.Priority;
 
 private
 

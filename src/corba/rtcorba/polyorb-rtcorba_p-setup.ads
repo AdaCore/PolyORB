@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,31 +51,33 @@ package PolyORB.RTCORBA_P.Setup is
 
    --  PriorityMapping
 
-   procedure Set_Priority_Mapping (Mapping : RTCORBA.PriorityMapping.Object);
+   type PriorityMapping_Access is
+     access all RTCORBA.PriorityMapping.Object'Class;
+
+   procedure Set_Priority_Mapping
+     (Mapping : RTCORBA.PriorityMapping.Object'Class);
+   pragma Inline (Set_Priority_Mapping);
    --  Set RT-ORB PriorityMapping object,
    --  overrides previous settings, if any.
 
-   function Get_Priority_Mapping return RTCORBA.PriorityMapping.Object;
+   function Get_Priority_Mapping return PriorityMapping_Access;
+   pragma Inline (Get_Priority_Mapping);
    --  Return RT-ORB PriorityMapping object.
 
    --  PriorityTransform
 
+   type PriorityTransform_Access is
+     access all RTCORBA.PriorityTransform.Object'Class;
+
    procedure Set_Priority_Transform
-     (Transform : RTCORBA.PriorityTransform.Object);
+     (Transform : RTCORBA.PriorityTransform.Object'Class);
+   pragma Inline (Set_Priority_Transform);
    --  Set RT-ORB global Priority Mapping object,
    --  overrides previous settings, if any.
 
-   function Get_Priority_Transform return RTCORBA.PriorityTransform.Object;
+   function Get_Priority_Transform return PriorityTransform_Access;
+   pragma Inline (Get_Priority_Transform);
    --  Return RT-ORB global Priority Mapping object.
 
-private
-
-   Current_Priority_Mapping : RTCORBA.PriorityMapping.Object;
-   Current_Priority_Transform : RTCORBA.PriorityTransform.Object;
-
-   pragma Inline (Set_Priority_Mapping);
-   pragma Inline (Get_Priority_Mapping);
-   pragma Inline (Set_Priority_Transform);
-   pragma Inline (Get_Priority_Transform);
-
 end PolyORB.RTCORBA_P.Setup;
+

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -34,8 +34,16 @@
 --  $Id$
 
 with PolyORB.CORBA_P.Policy;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
+with PolyORB.Lanes;
+with PolyORB.POA_Policies;
+with PolyORB.RTCORBA_P.ThreadPoolManager;
+with PolyORB.RT_POA_Policies.Thread_Pool_Policy;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Strings;
+with PolyORB.CORBA_P.POA_Config;
 
 package body RTCORBA.ThreadpoolPolicy is
 
@@ -47,16 +55,13 @@ package body RTCORBA.ThreadpoolPolicy is
    -- To_Ref --
    ------------
 
-   function To_Ref
-     (The_Ref : in CORBA.Object.Ref'Class)
-     return Ref
-   is
+   function To_Ref (The_Ref : in CORBA.Object.Ref'Class) return Ref is
       use type CORBA.PolicyType;
 
    begin
       if The_Ref not in CORBA.Policy.Ref'Class
-        or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref)) /=
-        THREADPOOL_POLICY_TYPE
+        or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
+        /= THREADPOOL_POLICY_TYPE
       then
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
@@ -87,9 +92,7 @@ package body RTCORBA.ThreadpoolPolicy is
    -- Get_Threadpool --
    --------------------
 
-   function Get_Threadpool
-     (Self : in Ref)
-     return RTCORBA.ThreadpoolId is
+   function Get_Threadpool (Self : in Ref) return RTCORBA.ThreadpoolId is
    begin
       return From_Any (Get_Policy_Value
                        (Policy_Object_Type
@@ -97,4 +100,52 @@ package body RTCORBA.ThreadpoolPolicy is
                          (CORBA.Policy.Ref (Self)).all)));
    end Get_Threadpool;
 
+   ----------------------------------
+   -- Thread_Pool_Policy_Allocator --
+   ----------------------------------
+
+   function Thread_Pool_Policy_Allocator
+     (Self : in CORBA.Policy.Ref)
+     return PolyORB.POA_Policies.Policy_Access;
+
+   function Thread_Pool_Policy_Allocator
+     (Self : in CORBA.Policy.Ref)
+     return PolyORB.POA_Policies.Policy_Access
+   is
+      use PolyORB.RT_POA_Policies.Thread_Pool_Policy;
+      use PolyORB.RTCORBA_P.ThreadPoolManager;
+
+      Lanes : constant PolyORB.Lanes.Lane_Root_Access
+        := Lane (Get_Threadpool (To_Ref (Self)));
+
+   begin
+      return Create (Lanes);
+   end Thread_Pool_Policy_Allocator;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.CORBA_P.POA_Config.Register
+        (THREADPOOL_POLICY_TYPE,
+         Thread_Pool_Policy_Allocator'Access);
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"rtcorba-threadpoolpolicy",
+       Conflicts => Empty,
+       Depends   => +"rt_poa",
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end RTCORBA.ThreadpoolPolicy;

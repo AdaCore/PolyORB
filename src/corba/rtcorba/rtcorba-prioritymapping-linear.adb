@@ -2,16 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 R T P O R T A B L E S E R V E R . P O A                  --
+--              R T C O R B A . P R I O R I T Y M A P P I N G               --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2004 Free Software Foundation, Inc.             --
---                                                                          --
--- This specification is derived from the CORBA Specification, and adapted  --
--- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,43 +33,60 @@
 
 --  $Id$
 
-with CORBA.Object;
-with PortableServer.POA;
-with RTCORBA;
+with PolyORB.Tasking.Priorities;
 
-package RTPortableServer.POA is
+package body RTCORBA.PriorityMapping.Linear is
 
-   type Ref is new PortableServer.POA.Ref with private;
+   use PolyORB.Tasking.Priorities;
 
-   function To_Ref (Self : CORBA.Object.Ref'Class) return Ref;
+   --------------
+   -- To_CORBA --
+   --------------
 
-   function Create_Reference_With_Priority
-     (Self      : in Ref;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref;
+   procedure To_CORBA
+     (Self            : in     Object;
+      Native_Priority : in     RTCORBA.NativePriority;
+      CORBA_Priority  :    out RTCORBA.Priority;
+      Returns         :    out CORBA.Boolean)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Warnings (On); --  WAG:3.15
 
-   function Create_Reference_With_Id_And_Priority
-     (Self      : in Ref;
-      Oid       : in PortableServer.ObjectId;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref;
+      Temp : constant Long_Integer
+        := (Long_Integer (Native_Priority) * Long_Integer (MaxPriority))
+        / Long_Integer (ORB_Component_Priority'Last);
+      --  XXX to be checked ...
 
-   function Activate_Object_With_Priority
-     (Self       : in Ref;
-      P_Servant  : in PortableServer.Servant;
-      Priority   : in RTCORBA.Priority)
-     return PortableServer.ObjectId;
+   begin
+      CORBA_Priority := Priority (Temp);
+      Returns := True;
+   end To_CORBA;
 
-   procedure Activate_Object_With_Id_And_Priority
-     (Self      : in Ref;
-      Oid       : in PortableServer.ObjectId;
-      P_Servant : in PortableServer.Servant;
-      Priority  : in RTCORBA.Priority);
+   ---------------
+   -- To_Native --
+   ---------------
 
-private
+   procedure To_Native
+     (Self            : in     Object;
+      CORBA_Priority  : in     RTCORBA.Priority;
+      Native_Priority :    out RTCORBA.NativePriority;
+      Returns         :    out CORBA.Boolean)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Warnings (On); --  WAG:3.15
 
-   type Ref is new PortableServer.POA.Ref with null record;
+      Temp : constant Long_Integer
+        := (Long_Integer (CORBA_Priority)
+            * Long_Integer (ORB_Component_Priority'Last))
+        / Long_Integer (MaxPriority);
+      --  XXX to be checked ...
 
-end RTPortableServer.POA;
+   begin
+      Native_Priority := NativePriority (Temp);
+      Returns := True;
+   end To_Native;
+
+end RTCORBA.PriorityMapping.Linear;
+

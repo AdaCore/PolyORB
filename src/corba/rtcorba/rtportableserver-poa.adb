@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,28 +33,76 @@
 
 --  $Id$
 
-with PolyORB.POA;
+with PolyORB.Exceptions;
+with PolyORB.ORB;
+with PolyORB.POA_Manager;
+with PolyORB.POA_Types;
+with PolyORB.References;
+with PolyORB.RT_POA;
+with PolyORB.Servants;
+with PolyORB.Setup;
+with PolyORB.Smart_Pointers;
+with PolyORB.Tasking.Priorities;
+
+with PolyORB.CORBA_P.Exceptions;
+with PolyORB.RTCORBA_P.To_ORB_Priority;
 
 package body RTPortableServer.POA is
+
+   use PolyORB.Tasking.Priorities;
+
+   function To_RT_POA (Self : Ref) return PolyORB.RT_POA.RT_Obj_Adapter_Access;
+   --  Convert a Ref to a CORBA RTPOA to a PolyORB RTPOA
 
    ------------
    -- To_Ref --
    ------------
 
-   function To_Ref
-     (Self : CORBA.Object.Ref'Class)
-     return Ref
-   is
+   function To_Ref (Self : CORBA.Object.Ref'Class) return Ref is
       Result : Ref;
+
    begin
       if CORBA.Object.Entity_Of (Self).all
-        not in PolyORB.POA.Obj_Adapter'Class then
+        not in PolyORB.RT_POA.RT_Obj_Adapter'Class then
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       Set (Result, CORBA.Object.Entity_Of (Self));
       return Result;
    end To_Ref;
+
+   ---------------
+   -- To_RT_POA --
+   ---------------
+
+   function To_RT_POA
+     (Self : Ref)
+     return PolyORB.RT_POA.RT_Obj_Adapter_Access
+   is
+      use PolyORB.Smart_Pointers;
+
+      Res : constant PolyORB.Smart_Pointers.Entity_Ptr := Entity_Of (Self);
+
+   begin
+      if Res = null
+        or else Res.all not in PolyORB.RT_POA.RT_Obj_Adapter'Class
+      then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      declare
+         use PolyORB.POA_Manager;
+
+         The_POA : constant PolyORB.RT_POA.RT_Obj_Adapter_Access
+           := PolyORB.RT_POA.RT_Obj_Adapter_Access (Res);
+      begin
+         if Is_Nil (The_POA.POA_Manager) then
+            CORBA.Raise_Object_Not_Exist (CORBA.Default_Sys_Member);
+         end if;
+
+         return The_POA;
+      end;
+   end To_RT_POA;
 
    ------------------------------------
    -- Create_Reference_With_Priority --
@@ -64,11 +112,48 @@ package body RTPortableServer.POA is
      (Self      : in Ref;
       Intf      : in CORBA.RepositoryId;
       Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref is
+     return CORBA.Object.Ref
+   is
+      use PolyORB.Exceptions;
+      use PolyORB.RT_POA;
+
+      Error : PolyORB.Exceptions.Error_Container;
+
+      RT_POA : constant PolyORB.RT_POA.RT_Obj_Adapter_Access
+        := To_RT_POA (Self);
+
+      U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
+
    begin
-      pragma Warnings (Off);
-      return Create_Reference_With_Priority (Self, Intf, Priority);
-      pragma Warnings (On);
+      PolyORB.RT_POA.Create_Object_Identification_With_Priority
+        (RT_POA,
+         null,
+         PolyORB.RTCORBA_P.To_ORB_Priority (Priority),
+         External_Priority (Priority),
+         U_Oid,
+         Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      declare
+         Oid : aliased PolyORB.POA_Types.Object_Id
+           := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+
+         P_Result : PolyORB.References.Ref;
+         C_Result : CORBA.Object.Ref;
+      begin
+         PolyORB.ORB.Create_Reference
+           (PolyORB.Setup.The_ORB,
+            Oid'Access,
+            CORBA.To_Standard_String (Intf),
+            P_Result);
+         --  Obtain object reference
+
+         CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+         return C_Result;
+      end;
    end Create_Reference_With_Priority;
 
    -------------------------------------------
@@ -80,11 +165,53 @@ package body RTPortableServer.POA is
       Oid       : in PortableServer.ObjectId;
       Intf      : in CORBA.RepositoryId;
       Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref is
+     return CORBA.Object.Ref
+   is
+      use PolyORB.Exceptions;
+      use PolyORB.POA_Types;
+
+      Error : PolyORB.Exceptions.Error_Container;
+
+      RT_POA : constant PolyORB.RT_POA.RT_Obj_Adapter_Access
+        := To_RT_POA (Self);
+
+      U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
+
+      OOid : Object_Id_Access := new Object_Id'(Object_Id (Oid));
+
    begin
-      pragma Warnings (Off);
-      return Create_Reference_With_Id_And_Priority (Self, Oid, Intf, Priority);
-      pragma Warnings (On);
+      PolyORB.RT_POA.Create_Object_Identification_With_Priority
+        (RT_POA,
+         OOid,
+         PolyORB.RTCORBA_P.To_ORB_Priority (Priority),
+         External_Priority (Priority),
+         U_Oid,
+         Error);
+
+      Free (OOid);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      declare
+         A_Oid : aliased PolyORB.POA_Types.Object_Id
+           := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+
+
+         P_Result : PolyORB.References.Ref;
+         C_Result : CORBA.Object.Ref;
+      begin
+         PolyORB.ORB.Create_Reference
+           (PolyORB.Setup.The_ORB,
+            A_Oid'Access,
+            CORBA.To_Standard_String (Intf),
+            P_Result);
+         --  Obtain object reference
+
+         CORBA.Object.Convert_To_CORBA_Ref (P_Result, C_Result);
+         return C_Result;
+      end;
    end Create_Reference_With_Id_And_Priority;
 
    -----------------------------------
@@ -95,11 +222,39 @@ package body RTPortableServer.POA is
      (Self       : in Ref;
       P_Servant  : in PortableServer.Servant;
       Priority   : in RTCORBA.Priority)
-     return PortableServer.ObjectId is
+     return PortableServer.ObjectId
+   is
+      use PortableServer;
+      use PolyORB.Exceptions;
+
+      Error : PolyORB.Exceptions.Error_Container;
+
+      RT_POA : constant PolyORB.RT_POA.RT_Obj_Adapter_Access
+        := To_RT_POA (Self);
+
+      U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
+
    begin
-      pragma Warnings (Off);
-      return Activate_Object_With_Priority (Self, P_Servant, Priority);
-      pragma Warnings (On);
+      PolyORB.RT_POA.Activate_Object_With_Id_And_Priority
+        (RT_POA,
+         PolyORB.Servants.Servant_Access (To_PolyORB_Servant (P_Servant)),
+         null,
+         PolyORB.RTCORBA_P.To_ORB_Priority (Priority),
+         External_Priority (Priority),
+         U_Oid,
+         Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      declare
+         Oid : constant PolyORB.POA_Types.Object_Id
+           := PolyORB.POA_Types.U_Oid_To_Oid (U_Oid);
+
+      begin
+         return PortableServer.ObjectId (Oid);
+      end;
    end Activate_Object_With_Priority;
 
    ------------------------------------------
@@ -112,11 +267,32 @@ package body RTPortableServer.POA is
       P_Servant : in PortableServer.Servant;
       Priority  : in RTCORBA.Priority)
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self, Oid, P_Servant, Priority);
-      pragma Warnings (On);
+      use PortableServer;
+      use PolyORB.Exceptions;
+
+      Error : PolyORB.Exceptions.Error_Container;
+
+      RT_POA : constant PolyORB.RT_POA.RT_Obj_Adapter_Access
+        := To_RT_POA (Self);
+
+      U_Oid : PolyORB.POA_Types.Unmarshalled_Oid;
+
+      A_Oid : aliased PolyORB.POA_Types.Object_Id
+        := PolyORB.POA_Types.Object_Id (Oid);
+
    begin
-      null;
+      PolyORB.RT_POA.Activate_Object_With_Id_And_Priority
+        (RT_POA,
+         PolyORB.Servants.Servant_Access (To_PolyORB_Servant (P_Servant)),
+         A_Oid'Unchecked_Access,
+         PolyORB.RTCORBA_P.To_ORB_Priority (Priority),
+         External_Priority (Priority),
+         U_Oid,
+         Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
    end Activate_Object_With_Id_And_Priority;
 
 end RTPortableServer.POA;

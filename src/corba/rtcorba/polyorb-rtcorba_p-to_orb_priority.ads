@@ -2,16 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 R T P O R T A B L E S E R V E R . P O A                  --
+--                      T O _ O R B _ P R I O R I T Y                       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
---                                                                          --
--- This specification is derived from the CORBA Specification, and adapted  --
--- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,43 +33,11 @@
 
 --  $Id$
 
-with CORBA.Object;
-with PortableServer.POA;
 with RTCORBA;
 
-package RTPortableServer.POA is
+with PolyORB.Tasking.Priorities;
 
-   type Ref is new PortableServer.POA.Ref with private;
-
-   function To_Ref (Self : CORBA.Object.Ref'Class) return Ref;
-
-   function Create_Reference_With_Priority
-     (Self      : in Ref;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref;
-
-   function Create_Reference_With_Id_And_Priority
-     (Self      : in Ref;
-      Oid       : in PortableServer.ObjectId;
-      Intf      : in CORBA.RepositoryId;
-      Priority  : in RTCORBA.Priority)
-     return CORBA.Object.Ref;
-
-   function Activate_Object_With_Priority
-     (Self       : in Ref;
-      P_Servant  : in PortableServer.Servant;
-      Priority   : in RTCORBA.Priority)
-     return PortableServer.ObjectId;
-
-   procedure Activate_Object_With_Id_And_Priority
-     (Self      : in Ref;
-      Oid       : in PortableServer.ObjectId;
-      P_Servant : in PortableServer.Servant;
-      Priority  : in RTCORBA.Priority);
-
-private
-
-   type Ref is new PortableServer.POA.Ref with null record;
-
-end RTPortableServer.POA;
+function PolyORB.RTCORBA_P.To_ORB_Priority
+  (From : RTCORBA.Priority)
+  return PolyORB.Tasking.Priorities.ORB_Priority;
+--  Convert a RTCORBA.Priority into an ORB_priority

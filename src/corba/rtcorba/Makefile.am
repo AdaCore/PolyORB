@@ -6,12 +6,15 @@ alidir = $(includedir)/polyorb/corba/rtcorba
 
 ADA_SPECS_WITH_BODY = \
 		polyorb-rtcorba_p-prioritymodelpolicy.ads \
+		polyorb-rtcorba_p-threadpoolmanager.ads \
+		polyorb-rtcorba_p-to_orb_priority.ads \
 		polyorb-rtcorba_p-setup.ads \
 		rtcorba.ads \
 		rtcorba-current.ads \
 		rtcorba-mutex.ads \
 		rtcorba-rtorb.ads \
 		rtcorba-prioritymapping.ads \
+		rtcorba-prioritymapping-linear.ads \
 		rtcorba-prioritymodelpolicy.ads \
 		rtcorba-prioritytransform.ads \
 		rtcorba-threadpoolpolicy.ads \
