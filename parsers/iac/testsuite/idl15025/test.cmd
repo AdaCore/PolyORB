@@ -1,1 +1,1 @@
-iac -x idl tin.idl | pp-idl
+iac-idl tin.idl
