@@ -26,7 +26,7 @@ interface all_exceptions {
 
   void Bad_Operation_exception_test ();
 
-  void No_Ressources_exception_test ();
+  void No_Resources_exception_test ();
 
   void No_Response_exception_test ();
 
@@ -34,11 +34,11 @@ interface all_exceptions {
 
   void Bad_Inv_Order_exception_test ();
 
-  void Transient_simple_exception_test ();
+  void Transient_exception_test ();
 
   void Free_Mem_exception_test ();
 
-  void Inv_Indent_exception_test ();
+  void Inv_Ident_exception_test ();
 
   void Inv_Flag_exception_test ();
 
@@ -48,7 +48,7 @@ interface all_exceptions {
 
   void Obj_Adapter_exception_test ();
 
-  void Data_Concersion_exception_test ();
+  void Data_Conversion_exception_test ();
 
   void AdaBroker_Fatal_Error_exception_test ();
 
@@ -71,11 +71,3 @@ interface all_exceptions {
   void Wrong_Transaction_exception_test ();
 
 };
-
-
-
-
-
-
-
-

@@ -1,705 +1,406 @@
-----------------------------------------------------------------------------
-----                                                                    ----
-----     This in a hand-written client for All_Exceptions example             ----
-----                                                                    ----
-----     It provides a declaration of each simple type with the         ----
-----     echo function associated.                                      ----
-----                                                                    ----
-----                                                                    ----
-----                server                                              ----
-----                                                                    ----
-----                authors : Fabien Azavant, Sebastien Ponce           ----
-----                                                                    ----
-----------------------------------------------------------------------------
-
-
-
-with Ada.Command_Line ;
-with Text_Io ; use Text_Io ;
-with CORBA, CORBA.Orb, CORBA.Boa, CORBA.Object ;
-with All_Exceptions ; use All_Exceptions ;
-use CORBA.Object ;
-use CORBA;
+with Ada.Command_Line;
+with Ada.Text_Io;    use Ada.Text_Io;
+with CORBA;          use CORBA;
+with CORBA.ORB;
+with CORBA.BOA;
+with CORBA.Object;   use CORBA.Object;
+with All_Exceptions; use All_Exceptions;
+with Report;         use Report;
 
 procedure Client is
 
-   Orb : CORBA.Orb.Object := CORBA.Orb.Orb_Init("omniORB2");
-   Boa : CORBA.Boa.Object := CORBA.Orb.Boa_Init(Orb, "omniORB2_BOA") ;
+   ORB : CORBA.ORB.Object := CORBA.ORB.ORB_Init ("omniORB2");
+   BOA : CORBA.BOA.Object := CORBA.ORB.BOA_Init (ORB, "omniORB2_BOA");
 
-   IOR : CORBA.String ;
-   IOR_Arg : Standard.String := Ada.Command_Line.Argument(1) ;
-   MyAll_Exceptions : All_Exceptions.Ref ;
+   IOR : CORBA.String;
+   IOR_Arg : Standard.String := Ada.Command_Line.Argument (1);
+   MyAll_Exceptions : All_Exceptions.Ref;
+   Ok : Boolean;
 
 begin
 
-   Put_Line("main : Starting client") ;
-
    if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>") ;
-      return ;
-   end if ;
+      Put_Line ("usage : client <IOR_string_from_server>");
+      return;
+   end if;
 
-   -- transforms the Ada string into CORBA.String
-   IOR := CORBA.To_Corba_String(IOR_Arg) ;
+   IOR := CORBA.To_Corba_String (IOR_Arg);
+   CORBA.ORB.String_To_Object (IOR, MyAll_Exceptions);
 
-   -- getting the CORBA.Object
-   CORBA.Orb.String_To_Object(IOR, MyAll_Exceptions) ;
-   Put_Line("main : Got the CORBA.Object") ;
+   Output ("test not nil reference", not Is_Nil (MyAll_Exceptions));
 
-   -- checking if it worked
-   if All_Exceptions.Is_Nil(MyAll_Exceptions) then
-      Put_Line("main : cannot invoke on a nil reference") ;
-      return ;
-   end if ;
-   Put_Line("main : Ok : CORBA.Object is not nil") ;
-
-   -------------------
-   -- Exceptions tests --
-   -------------------
-
-   -- Unknown exception
    declare
-      Member : Unknown_members ;
+      Member : Unknown_members;
    begin
-      Put_Line ("####### Test of Unknown #######") ;
-      Put_Line ("I call unknown_exception_test") ;
-      Unknown_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Unknown_Exception_Test (MyAll_Exceptions);
    exception
       when E : Unknown =>
-         Put_Line ("A Unknown exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Bad_Param exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 100);
+      when others =>
+         null;
+   end;
+   Output ("test Unknown exception", Ok);
    declare
-      Member : Bad_Param_members ;
+      Member : Bad_Param_members;
    begin
-      Put_Line ("####### Test of Bad_param #######") ;
-      Put_Line ("I call bad_param_exception_test") ;
-      Bad_Param_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Bad_Param_Exception_Test (MyAll_Exceptions);
    exception
-      when E : Bad_param =>
-         Put_Line ("A bad_param exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- No_memory exception
+      when E : Bad_Param =>
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 101);
+      when others =>
+         null;
+   end;
+   Output ("test Bad_Param exception", Ok);
    declare
-      Member : No_memory_members ;
-      Member2 : Unknown_Members ;
+      Member : No_Memory_members;
    begin
-      Put_Line ("####### Test of No_memory #######") ;
-      Put_Line ("I call no_memory_exception_test") ;
-      No_memory_Exception_Test(MyAll_Exceptions);
-
+      Ok := False;
+      No_Memory_Exception_Test (MyAll_Exceptions);
    exception
-      when E : No_memory =>
-         Put_Line ("A No_Memory exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-      when E : Unknown =>
-         Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
-         CORBA.Get_Members (E ,Member2) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member2.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Imp_Limit exception
+      when E : No_Memory =>
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 102);
+      when others =>
+         null;
+   end;
+   Output ("test No_Memory exception", Ok);
    declare
-      Member : Imp_Limit_members ;
+      Member : Imp_Limit_members;
    begin
-      Put_Line ("####### Test of Imp_Limit #######") ;
-      Put_Line ("I call Imp_Limit_exception_test") ;
-      Imp_Limit_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Imp_Limit_Exception_Test (MyAll_Exceptions);
    exception
       when E : Imp_Limit =>
-         Put_Line ("A Imp_Limit exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Comm_Failure exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 103);
+      when others =>
+         null;
+   end;
+   Output ("test Imp_Limit exception", Ok);
    declare
-      Member : Comm_Failure_members ;
+      Member : Inv_Objref_members;
    begin
-      Put_Line ("####### Test of Comm_Failure #######") ;
-      Put_Line ("I call Comm_Failure_exception_test") ;
---      Comm_Failure_Exception_Test(MyAll_Exceptions);
-      Put_Line ("I do not call it because it makes the program loop. It seems to be normal for omniORB_2.7.0");
-   exception
-      when E : Comm_Failure =>
-         Put_Line ("A Comm_Failure exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Inv_Objref exception
-   declare
-      Member : Inv_Objref_members ;
-   begin
-      Put_Line ("####### Test of Inv_Objref #######") ;
-      Put_Line ("I call Inv_Objref_exception_test") ;
-      Inv_Objref_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Inv_Objref_Exception_Test (MyAll_Exceptions);
    exception
       when E : Inv_Objref =>
-         Put_Line ("A Inv_Objref exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- No_Permission exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 105);
+      when others =>
+         null;
+   end;
+   Output ("test Inv_Objref exception", Ok);
    declare
-      Member : No_Permission_members ;
+      Member : No_Permission_members;
    begin
-      Put_Line ("####### Test of No_Permission #######") ;
-      Put_Line ("I call No_Permission_exception_test") ;
-      No_Permission_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      No_Permission_Exception_Test (MyAll_Exceptions);
    exception
       when E : No_Permission =>
-         Put_Line ("A No_Permission exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Internal exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 106);
+      when others =>
+         null;
+   end;
+   Output ("test No_Permission exception", Ok);
    declare
-      Member : Internal_members ;
+      Member : Internal_members;
    begin
-      Put_Line ("####### Test of Internal #######") ;
-      Put_Line ("I call Internal_exception_test") ;
-      Internal_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Internal_Exception_Test (MyAll_Exceptions);
    exception
       when E : Internal =>
-         Put_Line ("A Internal exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Marshal exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 107);
+      when others =>
+         null;
+   end;
+   Output ("test Internal exception", Ok);
    declare
-      Member : Marshal_members ;
-      Member2 : Unknown_Members ;
+      Member  : Marshal_members;
    begin
-      Put_Line ("####### Test of Marshal #######") ;
-      Put_Line ("I call Marshal_exception_test") ;
-      Marshal_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Marshal_Exception_Test (MyAll_Exceptions);
    exception
-      when E : Marshal =>
-         Put_Line ("A Marshal exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
       when E : Unknown =>
-         Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
-         CORBA.Get_Members (E ,Member2) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member2.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Initialization_Failure exception
+         Ok := True;
+      when E : Marshal =>
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 108);
+      when others =>
+         null;
+   end;
+   Output ("test Marshal (or Unknown) exception", Ok);
    declare
-      Member : Initialization_Failure_members ;
+      Member : Initialization_Failure_members;
    begin
-      Put_Line ("####### Test of Initialization_Failure #######") ;
-      Put_Line ("I call Initialization_Failure_exception_test") ;
-      Initialization_Failure_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Initialization_Failure_Exception_Test (MyAll_Exceptions);
    exception
       when E : Initialization_Failure =>
-         Put_Line ("A Initialization_Failure exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- No_Implement exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 109);
+      when others =>
+         null;
+   end;
+   Output ("test Initialization_Failure exception", Ok);
    declare
-      Member : No_Implement_members ;
+      Member : No_Implement_members;
    begin
-      Put_Line ("####### Test of No_Implement #######") ;
-      Put_Line ("I call No_Implement_exception_test") ;
-      No_Implement_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      No_Implement_Exception_Test (MyAll_Exceptions);
    exception
       when E : No_Implement =>
-         Put_Line ("A No_Implement exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Bad_Typecode exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 110);
+      when others =>
+         null;
+   end;
+   Output ("test No_Implement exception", Ok);
    declare
-      Member : Bad_Typecode_members ;
+      Member : Bad_Typecode_members;
    begin
-      Put_Line ("####### Test of Bad_Typecode #######") ;
-      Put_Line ("I call Bad_Typecode_exception_test") ;
-      Bad_Typecode_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Bad_Typecode_Exception_Test (MyAll_Exceptions);
    exception
       when E : Bad_Typecode =>
-         Put_Line ("A Bad_Typecode exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Bad_Operation exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 111);
+      when others =>
+         null;
+   end;
+   Output ("test Bad_Typecode exception", Ok);
    declare
-      Member : Bad_Operation_members ;
+      Member : Bad_Operation_members;
    begin
-      Put_Line ("####### Test of Bad_Operation #######") ;
-      Put_Line ("I call Bad_Operation_exception_test") ;
-      Bad_Operation_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Bad_Operation_Exception_Test (MyAll_Exceptions);
    exception
       when E : Bad_Operation =>
-         Put_Line ("A Bad_Operation exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- No_Resources exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 112);
+      when others =>
+         null;
+   end;
+   Output ("test Bad_Operation exception", Ok);
    declare
-      Member : No_Resources_members ;
-      Member2 : Unknown_Members ;
+      Member  : No_Resources_members;
    begin
-      Put_Line ("####### Test of No_Resources #######") ;
-      Put_Line ("I call No_Resources_exception_test") ;
-      No_Ressources_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      No_Resources_Exception_Test (MyAll_Exceptions);
    exception
+      when E : Unknown =>
+         Ok := True;
       when E : No_Resources =>
-         Put_Line ("A No_Resources exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-      when E : Unknown =>
-         Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
-         CORBA.Get_Members (E ,Member2) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member2.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- No_Response exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 113);
+      when others =>
+         null;
+   end;
+   Output ("test No_Resources (or Unknown) exception", Ok);
    declare
-      Member : No_Response_members ;
-      Member2 : Unknown_Members ;
+      Member  : No_Response_members;
    begin
-      Put_Line ("####### Test of No_Response #######") ;
-      Put_Line ("I call No_Response_exception_test") ;
-      No_Response_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      No_Response_Exception_Test (MyAll_Exceptions);
    exception
-      when E : No_Response =>
-         Put_Line ("A No_Response exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
       when E : Unknown =>
-         Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
-         CORBA.Get_Members (E ,Member2) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member2.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Persist_Store exception
+         Ok := True;
+      when E : No_Response =>
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 114);
+      when others =>
+         null;
+   end;
+   Output ("test No_Response (or Unknown) exception", Ok);
    declare
-      Member : Persist_Store_members ;
+      Member : Persist_Store_members;
    begin
-      Put_Line ("####### Test of Persist_Store #######") ;
-      Put_Line ("I call Persist_Store_exception_test") ;
-      Persist_Store_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Persist_Store_Exception_Test (MyAll_Exceptions);
    exception
       when E : Persist_Store =>
-         Put_Line ("A Persist_Store exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Bad_Inv_Order exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 115);
+      when others =>
+         null;
+   end;
+   Output ("test Persist_Store exception", Ok);
    declare
-      Member : Bad_Inv_Order_members ;
+      Member : Bad_Inv_Order_members;
    begin
-      Put_Line ("####### Test of Bad_Inv_Order #######") ;
-      Put_Line ("I call Bad_Inv_Order_exception_test") ;
-      Bad_Inv_Order_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Bad_Inv_Order_Exception_Test (MyAll_Exceptions);
    exception
       when E : Bad_Inv_Order =>
-         Put_Line ("A Bad_Inv_Order exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Transient exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 116);
+      when others =>
+         null;
+   end;
+   Output ("test Bad_Inv_Order exception", Ok);
    declare
-      Member : Transient_members ;
+      Member : Free_Mem_members;
    begin
-      Put_Line ("####### Test of Transient #######") ;
-      Put_Line ("I call Transient_exception_test") ;
---      Transient_Simple_Exception_Test(MyAll_Exceptions);
-      Put_Line ("I do not call it because it makes the program loop. It seems to be normal for omniORB_2.7.0");
-   exception
-      when E : Transient =>
-         Put_Line ("A Transient exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Free_Mem exception
-   declare
-      Member : Free_Mem_members ;
-   begin
-      Put_Line ("####### Test of Free_Mem #######") ;
-      Put_Line ("I call Free_Mem_exception_test") ;
-      Free_Mem_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Free_Mem_Exception_Test (MyAll_Exceptions);
    exception
       when E : Free_Mem =>
-         Put_Line ("A Free_Mem exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Inv_Ident exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 118);
+      when others =>
+         null;
+   end;
+   Output ("test Free_Mem exception", Ok);
    declare
-      Member : Inv_Ident_members ;
+      Member : Inv_Ident_members;
    begin
-      Put_Line ("####### Test of Inv_Ident #######") ;
-      Put_Line ("I call Inv_Ident_exception_test") ;
-      Inv_Indent_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Inv_Ident_Exception_Test (MyAll_Exceptions);
    exception
       when E : Inv_Ident =>
-         Put_Line ("A Inv_Ident exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-
-   -- Inv_Flag exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 119);
+      when others =>
+         null;
+   end;
+   Output ("test Inv_Ident exception", Ok);
    declare
-      Member : Inv_Flag_members ;
+      Member : Inv_Flag_members;
    begin
-      Put_Line ("####### Test of Inv_Flag #######") ;
-      Put_Line ("I call Inv_Flag_exception_test") ;
-      Inv_Flag_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Inv_Flag_Exception_Test (MyAll_Exceptions);
    exception
       when E : Inv_Flag =>
-         Put_Line ("A Inv_Flag exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Intf_Repos exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 120);
+      when others =>
+         null;
+   end;
+   Output ("test Inv_Flag exception", Ok);
    declare
-      Member : Intf_Repos_members ;
+      Member : Intf_Repos_members;
    begin
-      Put_Line ("####### Test of Intf_Repos #######") ;
-      Put_Line ("I call Intf_Repos_exception_test") ;
-      Intf_Repos_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Intf_Repos_Exception_Test (MyAll_Exceptions);
    exception
       when E : Intf_Repos =>
-         Put_Line ("A Intf_Repos exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Bad_Context exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 121);
+      when others =>
+         null;
+   end;
+   Output ("test Intf_Repos exception", Ok);
    declare
-      Member : Bad_Context_members ;
+      Member : Bad_Context_members;
    begin
-      Put_Line ("####### Test of Bad_Context #######") ;
-      Put_Line ("I call Bad_Context_exception_test") ;
-      Bad_Context_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Bad_Context_Exception_Test (MyAll_Exceptions);
    exception
       when E : Bad_Context =>
-         Put_Line ("A Bad_Context exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Obj_Adapter exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 122);
+      when others =>
+         null;
+   end;
+   Output ("test Bad_Context exception", Ok);
    declare
-      Member : Obj_Adapter_members ;
+      Member : Obj_Adapter_members;
    begin
-      Put_Line ("####### Test of Obj_Adapter #######") ;
-      Put_Line ("I call Obj_Adapter_exception_test") ;
-      Obj_Adapter_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Obj_Adapter_Exception_Test (MyAll_Exceptions);
    exception
       when E : Obj_Adapter =>
-         Put_Line ("A Obj_Adapter exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Data_Conversion exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 123);
+      when others =>
+         null;
+   end;
+   Output ("test Obj_Adapter exception", Ok);
    declare
-      Member : Data_Conversion_members ;
+      Member : Data_Conversion_members;
    begin
-      Put_Line ("####### Test of Data_Conversion #######") ;
-      Put_Line ("I call Data_Conversion_exception_test") ;
-      Data_Concersion_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Data_Conversion_Exception_Test (MyAll_Exceptions);
    exception
       when E : Data_Conversion =>
-         Put_Line ("A Data_Conversion exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   --  AdaBroker_Fatal_Error_exception_test : shut down the server : normal
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 124);
+      when others =>
+         null;
+   end;
+   Output ("test Data_Conversion exception", Ok);
    declare
+      Member : Object_Not_Exist_members;
    begin
-      Put_Line ("####### Test of AdaBroker_Fatal_Error #######") ;
-      Put_Line ("I call AdaBroker_Fatal_Error_exception_test") ;
---      AdaBroker_Fatal_Error_Exception_Test(MyAll_Exceptions);
-      Put_Line ("I do not call it because it makes the server crash. It is normal.");
-   exception
-      when E : AdaBroker_Fatal_Error =>
-         Put_Line ("A AdaBroker_Fatal_Error exception has just been catched !!!") ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   --  AdaBroker_Not_Implemented_Yet_exception_test : shut down the server : normal
-   declare
-   begin
-      Put_Line ("####### Test of AdaBroker_Not_Implemented_Yet #######") ;
-      Put_Line ("I call AdaBroker_Not_Implemented_Yet_exception_test") ;
---      AdaBroker_Not_Implemented_Yet_Exception_Test(MyAll_Exceptions);
-      Put_Line ("I do not call it because it makes the server crash. It is normal.");
-   exception
-      when E : AdaBroker_Not_Implemented_Yet =>
-         Put_Line ("A AdaBroker_Not_Implemented_Yet exception has just been catched !!!") ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   --  No_Initialisation_Error_exception_test : shut down the server : normal
-   declare
-   begin
-      Put_Line ("####### Test of No_Initialisation_Error #######") ;
-      Put_Line ("I call No_Initialisation_Error_exception_test") ;
---      No_Initialisation_Error_Exception_Test(MyAll_Exceptions);
-      Put_Line ("I do not call it because it makes the server crash. It is normal.");
-   exception
-      when E : No_Initialisation_Error =>
-         Put_Line ("A No_Initialisation_Error exception has just been catched !!!") ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   --  C_Out_Of_Range_exception_test : shut down the server : normal
-   declare
-   begin
-      Put_Line ("####### Test of C_Out_Of_Range #######") ;
-      Put_Line ("I call C_Out_Of_Range_exception_test") ;
---      C_Out_Of_Range_Exception_Test(MyAll_Exceptions);
-      Put_Line ("I do not call it because it makes the server crash. It is normal.");
-   exception
-      when E : C_Out_Of_Range =>
-         Put_Line ("A C_Out_Of_Range  exception has just been catched !!!") ;
-   end ;
-
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   --  Dummy_User_exception_test : shut down the server : normal
-   declare
-   begin
-      Put_Line ("####### Test of Dummy_User #######") ;
-      Put_Line ("I call Dummy_User_exception_test") ;
---      Dummy_User_Exception_Test(MyAll_Exceptions);
-      Put_Line ("I do not call it because it makes the server crash. It is normal.");
-   exception
-      when E : Dummy_User =>
-         Put_Line ("A Dummy_User  exception has just been catched !!!") ;
-   end ;
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Object_Not_Exist
-   declare
-      Member : Object_Not_Exist_members ;
-   begin
-      Put_Line ("####### Test of Object_Not_Exist #######") ;
-      Put_Line ("I call Object_Not_Exist_exception_test") ;
-      Object_Not_Exist_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Object_Not_Exist_Exception_Test (MyAll_Exceptions);
    exception
       when E : Object_Not_Exist =>
-         Put_Line ("A Object_Not_Exist exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   --  Transaction_Required exception
+         Put_Line ("caught Object_Not_Exist" & Member.Minor'Img);
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 125);
+      when others =>
+         Put_Line ("caught others");
+         null;
+   end;
+   Output ("test Object_Not_Exist exception", Ok);
    declare
-      Member : Transaction_Required_members ;
+      Member : Transaction_Required_members;
    begin
-      Put_Line ("####### Test of Transaction_Required #######") ;
-      Put_Line ("I call Transaction_Required_exception_test") ;
-      Transaction_Required_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Transaction_Required_Exception_Test (MyAll_Exceptions);
    exception
       when E : Transaction_Required =>
-         Put_Line ("A Transaction_Required exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Transaction_Rolledback exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 126);
+      when others =>
+         null;
+   end;
+   Output ("test Transaction_Required exception", Ok);
    declare
-      Member : Transaction_Rolledback_members ;
+      Member : Transaction_Rolledback_members;
    begin
-      Put_Line ("####### Test of Transaction_Rolledback #######") ;
-      Put_Line ("I call Transaction_Rolledback_exception_test") ;
-      Transaction_Rolledback_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Transaction_Rolledback_Exception_Test (MyAll_Exceptions);
    exception
       when E : Transaction_Rolledback =>
-         Put_Line ("A Transaction_Rolledback exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Invalid_Transaction exception
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 127);
+      when others =>
+         null;
+   end;
+   Output ("test Transaction_Rolledback exception", Ok);
    declare
-      Member : Invalid_Transaction_members ;
-      Member2 : Unknown_Members ;
+      Member  : Invalid_Transaction_members;
    begin
-      Put_Line ("####### Test of Invalid_Transaction #######") ;
-      Put_Line ("I call Invalid_Transaction_exception_test") ;
-      Invalid_Transaction_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Invalid_Transaction_Exception_Test (MyAll_Exceptions);
    exception
-      when E : Invalid_Transaction =>
-         Put_Line ("A Invalid_Transaction exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
       when E : Unknown =>
-         Put_Line ("A Unknown exception has just been catched !!! It seems to be normal for omniORB_2.7.0") ;
-         CORBA.Get_Members (E ,Member2) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member2.Minor)) ;
-   end ;
-   Put_Line ("") ;
-   Put_Line ("") ;
-
-   -- Wrong_Transaction exception
+         Ok := True;
+      when E : Invalid_Transaction =>
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 128);
+      when others =>
+         null;
+   end;
+   Output ("test Invalid_Transaction (or Unknown) exception", Ok);
    declare
-      Member : Wrong_Transaction_members ;
+      Member : Wrong_Transaction_members;
    begin
-      Put_Line ("####### Test of Wrong_Transaction #######") ;
-      Put_Line ("I call Wrong_Transaction_exception_test") ;
-      Wrong_Transaction_Exception_Test(MyAll_Exceptions);
+      Ok := False;
+      Wrong_Transaction_Exception_Test (MyAll_Exceptions);
    exception
       when E : Wrong_Transaction =>
-         Put_Line ("A Wrong_Transaction exception has just been catched !!!") ;
-         CORBA.Get_Members (E ,Member) ;
-         Put_Line ("It has a member whose value is : " &
-                   CORBA.Unsigned_Long'Image(Member.Minor)) ;
-   end ;
-
-
-end Client ;
-
-
-
+         CORBA.Get_Members (E, Member);
+         Ok := (Member.Minor = 129);
+      when others =>
+         null;
+   end;
+   Output ("test Wrong_Transaction exception", Ok);
+end Client;
