@@ -1,4 +1,0 @@
-tin.idl:2:20: expected token <identifier>
-tin.idl:6:05: bad casing of "mylong" declared at line 5
-tin.idl:7:28: "thething" conflicts with scoped name at line 7
-iac: 3 error(s)
