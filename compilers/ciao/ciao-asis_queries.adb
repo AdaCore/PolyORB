@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  Various ASIS queries for CIAO.
---  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.adb#5 $
+--  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.adb#6 $
 
 with Ada.Characters.Handling;
 with Ada.Unchecked_Deallocation;
@@ -108,29 +108,20 @@ package body CIAO.ASIS_Queries is
       end case;
    end Discrete_Subtype_Name;
 
-   function Corresponding_Base_Type
+   function First_Subtype_Of_Denoted_Subtype
      (Subtype_Mark : Asis.Expression)
      return Asis.Declaration;
-   --  Return (the first subtype of) the base type of the subtype
-   --  denoted by Subtype_Mark.
+   --  This function recursively unwinds subtyping to return a
+   --  type_declaration that defines the first subtype of the
+   --  subtype denoted by the given Subtype_Mark.
 
-   function Corresponding_Base_Type
+   function First_Subtype_Of_Denoted_Subtype
      (Subtype_Mark : Asis.Expression)
      return Asis.Declaration is
-      Identifier : Asis.Expression;
    begin
-      case Expression_Kind (Subtype_Mark) is
-         when An_Identifier =>
-            Identifier := Subtype_Mark;
-         when A_Selected_Component =>
-            Identifier := Selector (Subtype_Mark);
-         --  XXX An_Attribute_Reference??
-         when others =>
-            raise ASIS_Failed;
-      end case;
       return Corresponding_First_Subtype
-        (Corresponding_Entity_Name_Declaration (Identifier));
-   end Corresponding_Base_Type;
+        (Corresponding_Entity_Name_Declaration (Subtype_Mark));
+   end First_Subtype_Of_Denoted_Subtype;
 
    function Is_Type_Conformant
      (Declaration_1, Declaration_2 : Asis.Declaration)
@@ -150,8 +141,8 @@ package body CIAO.ASIS_Queries is
       --  XXX Warning! Toto'Class == Toto'Class ??
       if DK_1 = A_Function_Declaration
         and then not Is_Identical
-          (Corresponding_Base_Type (Result_Profile (Declaration_1)),
-           Corresponding_Base_Type (Result_Profile (Declaration_2)))
+          (First_Subtype_Of_Denoted_Subtype (Result_Profile (Declaration_1)),
+           First_Subtype_Of_Denoted_Subtype (Result_Profile (Declaration_2)))
       then
          return False;
       end if;
@@ -164,9 +155,9 @@ package body CIAO.ASIS_Queries is
       begin
          for I in Params_1'Range loop
             if not Is_Identical
-              (Corresponding_Base_Type
+              (First_Subtype_Of_Denoted_Subtype
                (Declaration_Subtype_Mark (Params_1 (I))),
-               Corresponding_Base_Type
+               First_Subtype_Of_Denoted_Subtype
                (Declaration_Subtype_Mark (Params_2 (I))))
             then
                return False;
@@ -227,8 +218,10 @@ package body CIAO.ASIS_Queries is
       --  XXX Warning! Toto'Class == Toto'Class ??
       if DK_1 = A_Function_Declaration
         and then not Is_Same_Type
-          (Corresponding_Base_Type (Result_Profile (Ancestor_Subprogram)),
-           Corresponding_Base_Type (Result_Profile (Child_Subprogram)))
+          (First_Subtype_Of_Denoted_Subtype
+           (Result_Profile (Ancestor_Subprogram)),
+           First_Subtype_Of_Denoted_Subtype
+           (Result_Profile (Child_Subprogram)))
       then
          return False;
       end if;
@@ -245,9 +238,9 @@ package body CIAO.ASIS_Queries is
 
          for I in Params_1'Range loop
             if not Is_Same_Type
-              (Corresponding_Base_Type
+              (First_Subtype_Of_Denoted_Subtype
                (Declaration_Subtype_Mark (Params_1 (I))),
-               Corresponding_Base_Type
+               First_Subtype_Of_Denoted_Subtype
                (Declaration_Subtype_Mark
                 (Params_2 (I + Params_2'First - Params_1'First))))
             then
@@ -327,21 +320,30 @@ package body CIAO.ASIS_Queries is
                      return True;
                   end if;
                end;
-            when A_Definition => --  A_Variant_Part
+            when A_Definition =>
+               case Definition_Kind (Components (I)) is
 
-               declare
-                  Variants : constant Asis.Variant_List
-                    := Asis.Definitions.Variants (Components (I));
-               begin
-                  for I in Variants'Range loop
-                     if Has_Limited_Component
-                       (Record_Components (Variants (I)))
-                     then
-                        return True;
-                     end if;
-                  end loop;
-               end;
+                  when A_Variant_Part =>
+                     declare
+                        Variants : constant Asis.Variant_List
+                          := Asis.Definitions.Variants (Components (I));
+                     begin
+                        for I in Variants'Range loop
+                           if Has_Limited_Component
+                             (Record_Components (Variants (I)))
+                           then
+                              return True;
+                           end if;
+                        end loop;
+                     end;
 
+                  when A_Null_Component =>
+                     null;
+
+                  when others =>
+                     raise ASIS_Failed;
+
+               end case;
             when others =>
                --  Cannot happen!
                raise ASIS_Failed;
@@ -606,7 +608,8 @@ package body CIAO.ASIS_Queries is
               or else Item_DK = A_Function_Declaration
             then
                if Item_DK = A_Function_Declaration then
-                  Type_Decl := Corresponding_Base_Type (Result_Profile (Item));
+                  Type_Decl := First_Subtype_Of_Denoted_Subtype
+                    (Result_Profile (Item));
                   if Is_Identical (Type_Decl, Parent_Type_Declaration)
                     or else Is_Identical
                     (Type_Decl,
@@ -622,7 +625,7 @@ package body CIAO.ASIS_Queries is
                   Profile :
                   for I in Params'Range loop
                      exit Profile when Is_Primitive;
-                     Type_Decl := Corresponding_Base_Type
+                     Type_Decl := First_Subtype_Of_Denoted_Subtype
                        (Declaration_Subtype_Mark (Params (I)));
                      if Is_Identical (Type_Decl, Parent_Type_Declaration)
                        or else Is_Identical
