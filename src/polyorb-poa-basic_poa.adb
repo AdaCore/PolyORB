@@ -528,21 +528,13 @@ package body PolyORB.POA.Basic_POA is
       --  Note that New_Obj_Adapter.Children is initialized iff we
       --  need it, see the procedure Register_Child for more details.
 
-      --  First initialize POA with default policies.
-      Init_With_Default_Policies (New_Obj_Adapter);
-
-      --  then override POA policies with those given by the user.
-      Init_With_User_Policies (New_Obj_Adapter, Policies);
-
-      --  Check compatibilities between policies.
-      Check_Policies_Compatibility (New_Obj_Adapter);
-
       --  Register new obj_adapter as a sibling of the current POA.
       if not Is_Set_W (Self.Children_Lock) then
          Lock_W (Self.Children_Lock);
       end if;
 
       Register_Child (Self, New_Obj_Adapter);
+      Unlock_W (Self.Children_Lock);
 
       --  Construct POA Absolute name.
       if Length (Self.Absolute_Address) > 0 then
@@ -557,8 +549,16 @@ package body PolyORB.POA.Basic_POA is
         (O ("Absolute name of new POA is "
             & To_Standard_String (New_Obj_Adapter.Absolute_Address)));
 
+      --  First initialize POA with default policies.
+      Init_With_Default_Policies (New_Obj_Adapter);
+
+      --  then override POA policies with those given by the user.
+      Init_With_User_Policies (New_Obj_Adapter, Policies);
+
+      --  Check compatibilities between policies.
+      Check_Policies_Compatibility (New_Obj_Adapter);
+
       --  Return the created POA.
-      Unlock_W (Self.Children_Lock);
       pragma Debug (O ("POA " & To_String (Adapter_Name) & " created."));
 
       return Obj_Adapter_Access (New_Obj_Adapter);
@@ -570,7 +570,7 @@ package body PolyORB.POA.Basic_POA is
       when others =>
          pragma Debug (O ("Exception raised in Create_POA"));
          if New_Obj_Adapter /= null then
-            Destroy_OA (New_Obj_Adapter);
+            Destroy (New_Obj_Adapter, False, False);
          end if;
          raise;
    end Create_POA;
