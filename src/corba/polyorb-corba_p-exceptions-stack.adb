@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions-stack.adb#4 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions-stack.adb#5 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -43,7 +43,8 @@ package body PolyORB.CORBA_P.Exceptions.Stack is
    use PolyORB.Log;
    use PolyORB.Soft_Links;
 
-   package L is new PolyORB.Log.Facility_Log ("broca.exceptions.stack");
+   package L is new PolyORB.Log.Facility_Log
+     ("polyorb.corba_p.exceptions.stack");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 

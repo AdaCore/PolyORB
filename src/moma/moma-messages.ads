@@ -34,14 +34,18 @@
 
 --  $Id$
 
-with Ada.Calendar;
+with Ada.Real_Time;
 with MOMA.Destinations;
 with MOMA.Types;
 with PolyORB.Any;
 
 package MOMA.Messages is
 
+   use PolyORB.Any;
+
    type Message is tagged private;
+
+   TC_MOMA_Message : TypeCode.Object := TypeCode.TC_Struct;
 
    procedure Acknowledge;
 
@@ -64,7 +68,7 @@ package MOMA.Messages is
    pragma Inline (Get_Destination);
 
    function Get_Expiration (Self : Message)
-                            return Ada.Calendar.Time;
+                            return Ada.Real_Time.Time;
    pragma Inline (Get_Expiration);
 
    function Get_Message_Id (Self : Message)
@@ -88,7 +92,7 @@ package MOMA.Messages is
    pragma Inline (Get_Reply_To);
 
    function Get_Timestamp (Self : Message)
-                           return Ada.Calendar.Time;
+                           return Ada.Real_Time.Time;
    pragma Inline (Get_Timestamp);
 
    function Get_Type (Self : Message)
@@ -108,7 +112,7 @@ package MOMA.Messages is
    pragma Inline (Set_Destination);
 
    procedure Set_Expiration (Self : in out Message;
-                             Expiration : Ada.Calendar.Time);
+                             Expiration : Ada.Real_Time.Time);
    pragma Inline (Set_Expiration);
 
    procedure Set_Message_Id (Self : in out Message;
@@ -132,7 +136,7 @@ package MOMA.Messages is
    pragma Inline (Set_Reply_To);
 
    procedure Set_Timestamp (Self : in out Message;
-                            Timestamp : Ada.Calendar.Time);
+                            Timestamp : Ada.Real_Time.Time);
    pragma Inline (Set_Timestamp);
 
    procedure Set_Type (Self : in out Message;
@@ -155,14 +159,15 @@ package MOMA.Messages is
    pragma Inline (Get_Property);
 
    --
-   --  Various functions
+   --  Message Marshalling/Unmarshalling functions
    --
 
    function To_Any (Self : Message) return PolyORB.Any.Any;
 
-   function From_Any (Self : PolyORB.Any.Any) return PolyORB.Any.Any;
+   function From_Any (Self : PolyORB.Any.Any) return Message'Class;
 
 private
+
    type Message is tagged record
       Type_Of_Message : MOMA.Types.Message_Type;
       Message_Id      : MOMA.Types.String;
@@ -170,8 +175,8 @@ private
       Destination     : MOMA.Destinations.Destination;
       Reply_To        : MOMA.Destinations.Destination;
       Priority        : MOMA.Types.Priority;
-      Timestamp       : Ada.Calendar.Time;
-      Expiration      : Ada.Calendar.Time;
+      Timestamp       : Ada.Real_Time.Time;
+      Expiration      : Ada.Real_Time.Time;
       Is_Persistent   : MOMA.Types.Boolean;
       Is_Redelivered  : MOMA.Types.Boolean;
       Payload         : PolyORB.Any.Any;

@@ -30,13 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#10 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#11 $
 
 with Ada.Unchecked_Conversion;
 
 with System.Exception_Table;
 with System.Standard_Library;
 --  Mapping between exception names and exception ids.
+--  GNAT internal exception table is used to maintain a list of
+--  all exceptions.
 
 with CORBA; use CORBA;
 
@@ -95,6 +97,10 @@ package body PolyORB.CORBA_P.Exceptions is
    -- System exception handling --
    -------------------------------
 
+   ---------------------------------
+   -- Get_ExcepId_By_RepositoryId --
+   ---------------------------------
+
    procedure Get_ExcepId_By_RepositoryId
      (RepoId              : in     Standard.String;
       ExcpId              :    out Ada.Exceptions.Exception_Id;
@@ -148,9 +154,9 @@ package body PolyORB.CORBA_P.Exceptions is
       end if;
    end Get_ExcepId_By_RepositoryId;
 
-   ---------------------
-   -- Raise_Exception --
-   ---------------------
+   ----------------------------
+   -- Raise_System_Exception --
+   ----------------------------
 
    procedure Raise_System_Exception
      (Excp      : in Exception_Id;
@@ -419,6 +425,10 @@ package body PolyORB.CORBA_P.Exceptions is
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Adapter_Inactive;
 
+   ------------------------
+   -- Occurrence_To_Name --
+   ------------------------
+
    function Occurrence_To_Name
      (Occurrence : Ada.Exceptions.Exception_Occurrence)
      return CORBA.RepositoryId
@@ -455,9 +465,9 @@ package body PolyORB.CORBA_P.Exceptions is
 
    All_Exceptions : Exception_Lists.List;
 
-   ---------------
-   -- Find_Info --
-   ---------------
+   -------------------------
+   -- Find_Exception_Info --
+   -------------------------
 
    function Find_Exception_Info
      (For_Exception : CORBA.RepositoryId)
@@ -576,9 +586,9 @@ package body PolyORB.CORBA_P.Exceptions is
       Leave_Critical_Section;
    end Register_Exception;
 
-   -------------------------------
-   -- System_Exception_TypeCode --
-   -------------------------------
+   --------------------------
+   -- TC_Completion_Status --
+   --------------------------
 
    TC_Completion_Status_Cache : TypeCode.Object;
 
@@ -602,6 +612,10 @@ package body PolyORB.CORBA_P.Exceptions is
       return TC;
    end TC_Completion_Status;
 
+   --------------
+   -- From_Any --
+   --------------
+
    function From_Any (Item : Any.Any) return Completion_Status is
    begin
       return Completion_Status'Val
@@ -609,6 +623,10 @@ package body PolyORB.CORBA_P.Exceptions is
          (From_Any (PolyORB.Any.Get_Aggregate_Element
                     (Item, TC_Unsigned_Long, 0))));
    end From_Any;
+
+   -------------------------------
+   -- System_Exception_TypeCode --
+   -------------------------------
 
    function System_Exception_TypeCode
      (Name : PolyORB.Types.RepositoryId)

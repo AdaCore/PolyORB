@@ -64,8 +64,6 @@ package body System.PolyORB_Interface is
    --  object type registers a Receiving_Stub entry.
 
    type Receiving_Stub_Kind is (Obj_Stub, Pkg_Stub);
-   type RCI_Subp_Info_Array_Access is
-     access all RCI_Subp_Info_Array;
 
    type Receiving_Stub is new Private_Info with record
       Kind                : Receiving_Stub_Kind;
@@ -85,9 +83,11 @@ package body System.PolyORB_Interface is
       --  For RCIs only: true iff a pragma All_Calls_Remote
       --  applies to this unit.
 
-      Subp_Info           : RCI_Subp_Info_Array_Access;
+      Subp_Info           : System.Address;
+      Subp_Info_Len       : Integer;
       --  For RCIs only: mapping of RCI subprogram names to
-      --  addresses.
+      --  addresses. For the definition of these values, cf.
+      --  the specification of Register_Pkg_Receiving_Stubs.
 
    end record;
 
@@ -629,14 +629,21 @@ package body System.PolyORB_Interface is
             while not Last (It) loop
                declare
                   S : Receiving_Stub renames Value (It).all;
+                  pragma Assert (S.Subp_Info /= Null_Address);
+                  subtype Subp_Info_T is RCI_Subp_Info_Array
+                    (0 .. S.Subp_Info_Len - 1);
+                  package Cvt is
+                     new System.Address_To_Access_Conversions
+                    (Subp_Info_T);
+                  Subp_Info : constant Cvt.Object_Pointer
+                    := Cvt.To_Pointer (S.Subp_Info);
                begin
                   if S.Kind = Pkg_Stub and then S.Name.all = Pkg_Name then
                      pragma Debug (O ("Found package!"));
-                     pragma Assert (S.Subp_Info /= null);
-                     for J in S.Subp_Info'Range loop
+                     for J in Subp_Info'Range loop
                         declare
                            Info : RCI_Subp_Info
-                             renames S.Subp_Info (J);
+                             renames Subp_Info (J);
 
                            subtype Fixed_Str is
                              String (1 .. Info.Name_Length);
@@ -797,7 +804,8 @@ package body System.PolyORB_Interface is
               +Name (Name'First .. Name'Last - 1),
             Receiver            => Receiver,
             Version             => null,
-            Subp_Info           => null,
+            Subp_Info           => Null_Address,
+            Subp_Info_Len       => 0,
             Is_All_Calls_Remote => False));
       Receiver.Impl_Info := Private_Info_Access
         (Value (First (All_Receiving_Stubs)));
@@ -812,7 +820,8 @@ package body System.PolyORB_Interface is
       Version             : String;
       Handler             : Request_Handler_Access;
       Receiver            : Servant_Access;
-      Subp_Info           : access RCI_Subp_Info_Array;
+      Subp_Info           : System.Address;
+      Subp_Info_Len       : Integer;
       Is_All_Calls_Remote : Boolean)
    is
       use Receiving_Stub_Lists;
@@ -825,8 +834,8 @@ package body System.PolyORB_Interface is
             Name                => +Name,
             Receiver            => Receiver,
             Version             => +Version,
-            Subp_Info           => RCI_Subp_Info_Array_Access
-              (Subp_Info),
+            Subp_Info           => Subp_Info,
+            Subp_Info_Len       => Subp_Info_Len,
             Is_All_Calls_Remote => Is_All_Calls_Remote));
       Receiver.Impl_Info := Private_Info_Access
         (Value (First (All_Receiving_Stubs)));

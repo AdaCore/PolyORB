@@ -38,6 +38,8 @@ package PolyORB.ORB.Thread_Per_Request is
    -----------------------------------------------------------
    -- Implementation of a thread-per-request tasking policy --
    -----------------------------------------------------------
+   --  In this policy, a task is created for each request and the request
+   --  is executed by this task
 
    type Thread_Per_Request_Policy is new Tasking_Policy_Type with private;
 
@@ -45,6 +47,10 @@ package PolyORB.ORB.Thread_Per_Request is
      (P   : access Thread_Per_Request_Policy;
       ORB : ORB_Access;
       C   : Active_Connection);
+
+   procedure Handle_Close_Server_Connection
+     (P   : access Thread_Per_Request_Policy;
+      TE  :        Transport_Endpoint_Access);
 
    procedure Handle_New_Client_Connection
      (P   : access Thread_Per_Request_Policy;
@@ -54,7 +60,7 @@ package PolyORB.ORB.Thread_Per_Request is
    procedure Handle_Request_Execution
      (P   : access Thread_Per_Request_Policy;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class);
+      RJ  : access Request_Job'Class);
 
    procedure Idle
      (P : access Thread_Per_Request_Policy;

@@ -40,7 +40,7 @@ package body PolyORB.Tasking.Soft_Links is
 
    Critical_Section : Tasking_Adv_Mutex_Type;
 
-   My_Monitor_Factory : Monitor_Factory_Access;
+   My_Mutex_Factory : Mutex_Factory_Access;
 
    My_Thread_Factory  : Thread_Factory_Access;
 
@@ -59,7 +59,7 @@ package body PolyORB.Tasking.Soft_Links is
    function Create return PS.Mutex_Access is
       M : Tasking_Mutex_Type;
    begin
-      M.M := Create (My_Monitor_Factory);
+      M.M := Create (My_Mutex_Factory);
       return new Tasking_Mutex_Type'(M);
    end Create;
 
@@ -85,16 +85,11 @@ package body PolyORB.Tasking.Soft_Links is
 
    procedure Create_Task
      (Main : PS.Parameterless_Procedure) is
-      RA : aliased Generic_Run;
+      T  : Thread_Access;
    begin
-      RA.P := Main;
-      declare
-         T  : constant Thread_Access := Create_Thread
-           (TF => My_Thread_Factory,
-            R  => RA'Access);
-      begin
-         Create_Task (My_Thread_Factory.all, T);
-      end;
+      T := Run_In_Task
+        (TF => My_Thread_Factory,
+         P  => Tasking.Threads.Parameterless_Procedure (Main));
    end Create_Task;
 
    -------------
@@ -103,7 +98,7 @@ package body PolyORB.Tasking.Soft_Links is
 
    procedure Destroy (M : in out Tasking_Mutex_Type) is
    begin
-      Destroy (My_Monitor_Factory.all, M.M);
+      Destroy (My_Mutex_Factory.all, M.M);
    end Destroy;
 
    procedure Destroy (W : in out Tasking_Watcher_Type) is
@@ -188,11 +183,9 @@ package body PolyORB.Tasking.Soft_Links is
 
    function Image (T : Tasking_Task_Id) return String is
       pragma Warnings (Off);
-      pragma Unreferenced (T);
       pragma Warnings (On);
    begin
-      --  Not implementable with PolyORB.Tasking.
-      return "";
+      return Threads.Image (T.X.all);
    end Image;
 
    ----------------
@@ -202,9 +195,9 @@ package body PolyORB.Tasking.Soft_Links is
    procedure Initialize is
       use PolyORB.Soft_Links;
    begin
-      My_Monitor_Factory := Get_Monitor_Factory;
+      My_Mutex_Factory := Get_Mutex_Factory;
       My_Thread_Factory := Get_Thread_Factory;
-      Critical_Section.X         := new Mutexes.Adv_Mutex_Type;
+      Critical_Section.X         := new Advanced_Mutexes.Adv_Mutex_Type;
       Create (Critical_Section.X.all);
       Register_Enter_Critical_Section (Enter_Critical_Section'Access);
       Register_Leave_Critical_Section (Leave_Critical_Section'Access);
@@ -281,9 +274,11 @@ package body PolyORB.Tasking.Soft_Links is
 begin
       Register_Module
      (Module_Info'
-      (Name => +"tasking-soft_links",
+      (Name => +"tasking.soft_links",
        Conflicts => Empty,
-       Depends => (+"tasking-monitors") & "tasking-threads",
+       Depends => +"tasking.condition_variables"
+         & "tasking.threads"
+         & "tasking.mutexes",
        Provides => +"soft_links",
        Init => Initialize'Access));
 end PolyORB.Tasking.Soft_Links;

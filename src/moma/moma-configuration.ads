@@ -32,8 +32,27 @@
 
 --  $Id$
 
+with MOMA.Types;
+with PolyORB.Configuration;
+
 package MOMA.Configuration is
 
-   pragma Pure (MOMA.Configuration);
+   procedure Load_Configuration_File (Conf_File_Name : String)
+    renames PolyORB.Configuration.Load_Configuration_File;
+
+   function Get_Message_Pool (Number : Natural)
+                              return MOMA.Types.Message_Pool;
+
+   function Get_Name (Pool : MOMA.Types.Message_Pool)
+                      return MOMA.Types.String;
+   pragma Inline (Get_Name);
+
+   function Get_Type (Pool : MOMA.Types.Message_Pool)
+                      return MOMA.Types.Pool_Type;
+   pragma Inline (Get_Type);
+
+   function Get_Persistence (Pool : MOMA.Types.Message_Pool)
+                           return MOMA.Types.Persistence_Mode;
+   pragma Inline (Get_Persistence);
 
 end MOMA.Configuration;

@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---              P O L Y O R B . T A S K I N G . M U T E X E S               --
+--              P O L Y O R B - T A S K I N G - M U T E X E S               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -30,127 +30,43 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides an implementation of advanced mutexes.
+--  A complete implementation of this package is provided for all
+--  tasking profiles.
 
 --  $Id$
 
-with Unchecked_Deallocation;
-
 package body PolyORB.Tasking.Mutexes is
 
-   package PTM renames PolyORB.Tasking.Monitors;
+   My_Factory : Mutex_Factory_Access;
+   --  Real factory, corresponding to the chosen tasking profile.
 
-   package PTT renames PolyORB.Tasking.Threads;
+   Initialized : Boolean := False;
+   --  Set to True when this package is initialized.
 
+   -------------------------
+   -- Get_Mutex_Factory --
+   -------------------------
 
-   --  Initial value of the condition :
-
-   Passing               : constant Boolean := True;
-
-
-   procedure Free is
-      new Unchecked_Deallocation (PTT.Thread_Id'Class,
-                                  PTT.Thread_Id_Access);
-
-   ------------
-   -- Create --
-   ------------
-
-   procedure Create (M : in out Adv_Mutex_Type) is
-      use PolyORB.Tasking.Threads;
-
-      My_Monitor_Factory : constant PTM.Monitor_Factory_Access
-         := PTM.Get_Monitor_Factory;
-      My_Thread_Factory : constant PTT.Thread_Factory_Access
-        := PTT.Get_Thread_Factory;
-      Self              : constant PTT.Thread_Id'Class
-        := PTT.Get_Current_Thread_Id (My_Thread_Factory);
+   function Get_Mutex_Factory
+     return Mutex_Factory_Access is
    begin
-      M.Current := new PTT.Thread_Id'Class'(Self);
-      M.Empty := True;
-      M.M     := PTM.Create (My_Monitor_Factory);
-      M.Level := 0;
-      M.Passing_Condition.Passing := Passing;
-   end Create;
+      pragma Assert (Initialized);
+      return My_Factory;
+   end Get_Mutex_Factory;
 
-   -------------
-   -- Destroy --
-   -------------
+   ------------------------------
+   -- Register_Mutex_Factory --
+   ------------------------------
 
-   procedure Destroy (M : in out Adv_Mutex_Type) is
-      use PolyORB.Tasking.Threads;
-      My_Monitor_Factory : constant PTM.Monitor_Factory_Access
-        := PTM.Get_Monitor_Factory;
+   procedure Register_Mutex_Factory
+     (MF : Mutex_Factory_Access) is
    begin
-      Free (M.Current);
-      PTM.Destroy (My_Monitor_Factory.all, M.M);
-   end Destroy;
+      pragma Assert (not Initialized);
 
-   -----------
-   -- Enter --
-   -----------
-
-   procedure Enter (M : in out Adv_Mutex_Type) is
-      use PolyORB.Tasking.Threads;
-
-      My_Thread_Factory : constant PTT.Thread_Factory_Access
-        := PTT.Get_Thread_Factory;
-      Self              : constant PTT.Thread_Id'Class
-        := PTT.Get_Current_Thread_Id (My_Thread_Factory);
-   begin
-      PTM.Enter (M.M.all);
-      while not M.Empty
-        and then M.Current.all /= Self loop
-         PTM.Wait
-           (M.M.all,
-            M.Passing_Condition'Access);
-         M.Passing_Condition.Passing := False;
-      end loop;
-
-      M.Empty := False;
-      M.Level := M.Level + 1;
-      Copy_Thread_Id (My_Thread_Factory, Self, M.Current);
-      PTM.Leave (M.M.all);
-   end Enter;
-
-   --------------
-   -- Evaluate --
-   --------------
-
-   procedure Evaluate
-     (C : in out Adv_Mutex_Condition_Type;
-      B : out Boolean) is
-      pragma Warnings (Off);
-      pragma Unreferenced (C);
-      pragma Warning (On);
-   begin
-      B := C.Passing;
-   end Evaluate;
-
-   -----------
-   -- Leave --
-   -----------
-
-   procedure Leave (M : in out Adv_Mutex_Type) is
-      use PolyORB.Tasking.Threads;
-      My_Thread_Factory  : constant PTT.Thread_Factory_Access
-        := PTT.Get_Thread_Factory;
-      Self               : constant PTT.Thread_Id'Class
-        := PTT.Get_Current_Thread_Id (My_Thread_Factory);
-   begin
-      Enter (M.M.all);
-      pragma Assert (M.Current.all = Self);
-      pragma Assert (M.Level > 0);
-      M.Level := M.Level - 1;
-
-      if M.Level = 0 then
-         M.Empty := True;
-         M.Passing_Condition.Passing := True;
-         Signal (M.M.all);
+      if not Initialized then
+         My_Factory := MF;
+         Initialized := True;
       end if;
-
-      Leave (M.M.all);
-
-   end Leave;
+   end Register_Mutex_Factory;
 
 end PolyORB.Tasking.Mutexes;

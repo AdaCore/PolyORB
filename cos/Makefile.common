@@ -1,25 +1,42 @@
 COS_ROOT=	..
 IDLAC_DIR=	$(COS_ROOT)/../compilers/idlac
 IDLAC=		$(IDLAC_DIR)/idlac
-LINKER=		 $(COS_ROOT)/../support/linker
+LINKER=		$(COS_ROOT)/../support/linker
+
+if ENABLE_CORBA
+CORBA_LIB="$(COS_ROOT)/../src/corba/libpolyorb-corba.la"
+endif
+
+if ENABLE_MOMA
+MOMA_LIB="$(COS_ROOT)/../src/moma/libpolyorb-moma.la"
+endif
+
+if ENABLE_SOAP
+SOAP_LIB="$(COS_ROOT)/../src/soap/libpolyorb-soap.la"
+endif
+
+POLYORB_LIBS = \
+$(COS_ROOT)/../src/libpolyorb.la \
+$(CORBA_LIB) \
+$(MOMA_LIB) \
+$(SOAP_LIB)
 
 GNATMAKE_FLAGS = \
 	-I$(srcdir) \
 	-I$(srcdir)/$(COS_ROOT)/../src \
 	-I$(srcdir)/$(COS_ROOT)/../src/corba \
 	-I$(srcdir)/$(COS_ROOT)/../src/soap \
+	-I$(srcdir)/$(COS_ROOT)/../src/srp \
 	-I$(COS_ROOT)/../src \
 	-I$(COS_ROOT)/../src/corba \
 	-I$(COS_ROOT)/../src/soap \
+	-I$(COS_ROOT)/../src/srp \
 	$(XMLADA_INCLUDE) \
 	-m \
 	$(COS_GNATMAKE_FLAGS) \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \
 	-largs $(LDFLAGS) --LINK=$(LINKER) \
-	../../src/libpolyorb.la \
-	../../src/corba/libpolyorb-corba.la \
-	../../src/soap/libpolyorb-soap.la \
-	$(XMLADA_LIBS) 
+	$(POLYORB_LIBS) $(XMLADA_LIBS) 
 
 CLEANFILES = b~*.* *.o *.ali
 

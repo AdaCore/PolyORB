@@ -59,6 +59,7 @@ package PolyORB.Requests is
    Sync_With_Transport : constant Flags;
    Sync_With_Server    : constant Flags;
    Sync_With_Target    : constant Flags;
+   Sync_Call_Back      : constant Flags;
    --  Flags to be used for member Req_Flags of request.
 
    --  When a request is not synchronised, the middleware returns
@@ -227,5 +228,6 @@ private
    Sync_With_Transport : constant Flags := 2;
    Sync_With_Server    : constant Flags := 4;
    Sync_With_Target    : constant Flags := 8;
+   Sync_Call_Back      : constant Flags := 16;
    Default_Flags       : constant Flags := Sync_With_Target;
 end PolyORB.Requests;

@@ -784,6 +784,9 @@ package body Ada_Be.Idl2Ada is
             Gen_Client_Stub_Type_Declaration
               (S.Stubs (Unit_Spec), Node);
 
+            Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Node);
+            Helper.Gen_Node_Body (S.Helper (Unit_Body), Node);
+
             if not Abst (Node) then
 
                Skel.Gen_Node_Spec
@@ -930,10 +933,6 @@ package body Ada_Be.Idl2Ada is
             Gen_Repository_Id (Node, S.Stubs (Unit_Spec));
             Gen_Is_A (Node, S.Stubs (Unit_Spec), S.Stubs (Unit_Body));
             Gen_Local_Is_A (S.Stubs (Unit_Body), Node);
-
-            --  CORBA 2.3
-            Helper.Gen_Node_Spec (S.Helper (Unit_Spec), Node);
-            Helper.Gen_Node_Body (S.Helper (Unit_Body), Node);
 
             if Intf_Repo then
                IR_Info.Gen_Node_Spec (S.IR_Info (Unit_Spec), Node);

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#21 $
+--  $Id: //droopi/main/src/corba/corba.ads#22 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -211,7 +211,7 @@ package CORBA is
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out IDL_Exception_Members) is abstract;
    --  This method return the member corresponding to an exception
-   --  occurence This methos must be redefined for each new member
+   --  occurence This method must be redefined for each new member
    --  type. That's why it is declared abstract.
 
    --  Free method associated to the type Idl_Exception_Members_Ptr
@@ -279,7 +279,6 @@ package CORBA is
 
    type Unknown_Members         is new System_Exception_Members
      with null record;
-
    type Bad_Param_Members       is new System_Exception_Members
      with null record;
    type No_Memory_Members       is new System_Exception_Members
@@ -336,7 +335,6 @@ package CORBA is
      with null record;
    type Invalid_Transaction_Members    is new System_Exception_Members
      with null record;
-
    type Adapter_Already_Exists_Members is new System_Exception_Members
      with null record;
    type Invalid_Policy_Members         is new System_Exception_Members
@@ -349,7 +347,7 @@ package CORBA is
    --  Defined in 4.7
    type PolicyType is new CORBA.Unsigned_Long;
 
-   --  excpetion PolicyError
+   --  exception PolicyError
    PolicyError : exception;
 
    type PolicyErrorCode is new Short;
@@ -381,7 +379,7 @@ package CORBA is
 
 
    -------------------------
-   -- types and constants --
+   -- Types and constants --
    -------------------------
    type ServiceType is new Unsigned_Short;
    type ServiceOption is new Unsigned_Long;

@@ -36,7 +36,8 @@
 
 --  $Id$
 
-with PolyORB.Tasking.Monitors;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Condition_Variables;
 
 package PolyORB.Tasking.Watchers is
 
@@ -53,12 +54,15 @@ package PolyORB.Tasking.Watchers is
    type Version_Id is mod 2 ** 8;
    --  Type of the version stored in the Watcher.
    --  XXX This type is not private for the moment, but it
-   --  will as soon as PolyORB.Soft_Links will not be used anymore
+   --      will as soon as PolyORB.Soft_Links will not be used anymore.
+   --      No computation is allowed on Version_Ids outside of implementations
+   --      of the Watcher interface.
 
    procedure Differ
      (W : in out Watcher_Type;
       V : in Version_Id);
-   --  Await until W's version differs from V.
+   --  Await until W's version differs from V. V must be a Version
+   --  value obtained from a previous call to Lookup on the same watcher.
 
    procedure Lookup
      (W : in Watcher_Type;
@@ -82,36 +86,26 @@ package PolyORB.Tasking.Watchers is
 
 private
 
-   use PolyORB.Tasking.Monitors;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Condition_Variables;
 
    No_Version : constant Version_Id := 0;
 
-   type Watcher_Condition_Type is new Condition_Type with record
-      Passing : Boolean := False;
-   end record;
-   --  Type of the Conditions used by the algorithm of Differ.
-   --  Simple boolean condition.
-
-   procedure Evaluate (C : in out Watcher_Condition_Type;
-                       B : out Boolean);
-   --  Return the value of the internal boolean.
-
    type Watcher_Type is record
-      Version  : Version_Id := No_Version;
+      Version     : Version_Id := No_Version;
       --  The current version of the Watcher.
 
-      Monitor  : Monitor_Access;
-      --  The monitors used for the synchronisation in the watcher.
+      WMutex     : Mutex_Access;
+      --  The mutex used for the synchronisation in the watcher.
 
-      Await_Count           : Integer := 0;
+      Await_Count : Integer;
       --  Number of tasks waiting on Differ.
 
 
       --  Several conditions used by the algorithm :
 
-      Passing_Condition     : aliased Watcher_Condition_Type;
-
-      Not_Passing_Condition : aliased Watcher_Condition_Type;
+      Passing     : Boolean;
+      WCondition  : Condition_Access;
 
    end record;
 

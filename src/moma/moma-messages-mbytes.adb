@@ -40,12 +40,38 @@ package body MOMA.Messages.MBytes is
 
    use MOMA.Types;
 
+   -------------------------
+   -- Create_Byte_Message --
+   -------------------------
+
+   function Create_Byte_Message
+            return MByte
+   is
+      Result : MByte;
+   begin
+      Set_Type (Result, Byte_M);
+      --  XXX should initialize other fields as well ???
+      return Result;
+   end Create_Byte_Message;
+
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Self : MByte) return String is
+   begin
+      raise PolyORB.Not_Implemented;
+      pragma Warnings (Off);
+      return Image (Self);
+      pragma Warnings (On);
+   end Image;
+
    -----------------
    -- Get_Boolean --
    -----------------
 
    function Get_Boolean (Self : MByte)
-                       return MOMA.Types.Boolean is
+                         return MOMA.Types.Boolean is
    begin
       return PolyORB.Any.From_Any (Get_Payload (Self));
    end Get_Boolean;
@@ -55,7 +81,7 @@ package body MOMA.Messages.MBytes is
    -----------------
 
    procedure Set_Boolean (Self : in out MByte;
-                        Value : MOMA.Types.Boolean) is
+                          Value : MOMA.Types.Boolean) is
    begin
       Set_Payload (Self,
                    PolyORB.Any.To_Any (PolyORB.Types.Boolean (Value)));
@@ -66,7 +92,7 @@ package body MOMA.Messages.MBytes is
    --------------
 
    function Get_Byte (Self : MByte)
-                       return MOMA.Types.Byte is
+                      return MOMA.Types.Byte is
    begin
       return PolyORB.Any.From_Any (Get_Payload (Self));
    end Get_Byte;
@@ -76,7 +102,7 @@ package body MOMA.Messages.MBytes is
    --------------
 
    procedure Set_Byte (Self : in out MByte;
-                        Value : MOMA.Types.Byte) is
+                       Value : MOMA.Types.Byte) is
    begin
       Set_Payload (Self, PolyORB.Any.To_Any (PolyORB.Types.Octet (Value)));
    end Set_Byte;
@@ -86,7 +112,7 @@ package body MOMA.Messages.MBytes is
    --------------
 
    function Get_Char (Self : MByte)
-                       return MOMA.Types.Char is
+                      return MOMA.Types.Char is
    begin
       return PolyORB.Any.From_Any (Get_Payload (Self));
    end Get_Char;
@@ -96,7 +122,7 @@ package body MOMA.Messages.MBytes is
    --------------
 
    procedure Set_Char (Self : in out MByte;
-                        Value : MOMA.Types.Char) is
+                       Value : MOMA.Types.Char) is
    begin
       Set_Payload (Self, PolyORB.Any.To_Any (PolyORB.Types.Char (Value)));
    end Set_Char;
@@ -106,7 +132,7 @@ package body MOMA.Messages.MBytes is
    ----------------
 
    function Get_Double (Self : MByte)
-                       return MOMA.Types.Double is
+                        return MOMA.Types.Double is
    begin
       return PolyORB.Any.From_Any (Get_Payload (Self));
    end Get_Double;
@@ -116,7 +142,7 @@ package body MOMA.Messages.MBytes is
    ----------------
 
    procedure Set_Double (Self : in out MByte;
-                        Value : MOMA.Types.Double) is
+                         Value : MOMA.Types.Double) is
    begin
       Set_Payload (Self, PolyORB.Any.To_Any (PolyORB.Types.Double (Value)));
    end Set_Double;
@@ -146,7 +172,7 @@ package body MOMA.Messages.MBytes is
    --------------
 
    function Get_Long (Self : MByte)
-                       return MOMA.Types.Long is
+                      return MOMA.Types.Long is
    begin
       return PolyORB.Any.From_Any (Get_Payload (Self));
    end Get_Long;
@@ -156,7 +182,7 @@ package body MOMA.Messages.MBytes is
    --------------
 
    procedure Set_Long (Self : in out MByte;
-                        Value : MOMA.Types.Long) is
+                       Value : MOMA.Types.Long) is
    begin
       Set_Payload (Self, PolyORB.Any.To_Any (PolyORB.Types.Long (Value)));
    end Set_Long;
@@ -186,7 +212,7 @@ package body MOMA.Messages.MBytes is
    -----------------------
 
    function Get_Unsigned_Long (Self : MByte)
-                       return MOMA.Types.Unsigned_Long is
+                               return MOMA.Types.Unsigned_Long is
    begin
       return PolyORB.Any.From_Any (Get_Payload (Self));
    end Get_Unsigned_Long;
@@ -196,7 +222,7 @@ package body MOMA.Messages.MBytes is
    -----------------------
 
    procedure Set_Unsigned_Long (Self : in out MByte;
-                        Value : MOMA.Types.Unsigned_Long) is
+                                Value : MOMA.Types.Unsigned_Long) is
    begin
       Set_Payload (Self,
                    PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long (Value)));
@@ -207,7 +233,7 @@ package body MOMA.Messages.MBytes is
    ------------------------
 
    function Get_Unsigned_Short (Self : MByte)
-                       return MOMA.Types.Unsigned_Short is
+                                return MOMA.Types.Unsigned_Short is
    begin
       return PolyORB.Any.From_Any (Get_Payload (Self));
    end Get_Unsigned_Short;
@@ -217,36 +243,10 @@ package body MOMA.Messages.MBytes is
    ------------------------
 
    procedure Set_Unsigned_Short (Self : in out MByte;
-                        Value : MOMA.Types.Unsigned_Short) is
+                                 Value : MOMA.Types.Unsigned_Short) is
    begin
       Set_Payload (Self,
                    PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Short (Value)));
    end Set_Unsigned_Short;
-
-   -------------------------
-   -- Create_Byte_Message --
-   -------------------------
-
-   function Create_Byte_Message
-            return MByte
-   is
-      Result : MByte;
-   begin
-      Set_Type (Result, Byte_M);
-      --  XXX should initialize other fields as well ???
-      return Result;
-   end Create_Byte_Message;
-
-   -----------
-   -- Image --
-   -----------
-
-   function Image (Self : MByte) return String is
-   begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Image (Self);
-      pragma Warnings (On);
-   end Image;
 
 end MOMA.Messages.MBytes;

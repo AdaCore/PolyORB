@@ -193,7 +193,8 @@ package body PolyORB.References.Binding is
                end;
             exception
                when E : others =>
-                  pragma Debug (O ("Argh! Got exception:"));
+                  pragma Debug (O ("Got exception while recursively "
+                                   & "binding proxy ref:"));
                   pragma Debug
                     (O (Ada.Exceptions.Exception_Information (E)));
                   null;

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Dummy MOMA server.
+--  Testing MOMA server.
 
 --  $Id$
 
@@ -45,23 +45,28 @@ pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 
 with MOMA.Configuration.Server;
+with MOMA.Types;
 with PolyORB.MOMA_P.Tools;
 
 procedure Server is
 
+   use MOMA.Configuration;
    use MOMA.Configuration.Server;
+   use MOMA.Types;
    use PolyORB.MOMA_P.Tools;
 
    MOMA_Ref : PolyORB.References.Ref;
-   Info : Message_Pool_Info;
+   Pool_1   : Message_Pool;
+
 begin
-   --  Load Configuration File
+   --  Load Configuration File.
    Load_Configuration_File ("destinations.conf");
 
-   Info := Get_Message_Pool_Info (1);
+   --  Get information about destination #1.
+   Pool_1 := Get_Message_Pool (1);
 
    --  Create one message pool.
-   Create_Message_Pool ("queue1", MOMA_Ref);
+   Create_Message_Pool (Pool_1, MOMA_Ref);
 
    --  Outputs its reference.
    Put_Line (PolyORB.Types.To_Standard_String

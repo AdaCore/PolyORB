@@ -61,6 +61,12 @@ package MOMA.Sessions.Queues is
    function Create_Sender (Self : Queue;
                            Dest : MOMA.Destinations.Destination)
                            return MOMA.Message_Producers.Queues.Queue;
+   --  Create a 'sender', a message producer, its destination is a MOM object.
+
+   function Create_Sender (ORB_Object : MOMA.Types.String;
+                           Mesg_Pool  : MOMA.Types.String)
+                           return MOMA.Message_Producers.Queues.Queue;
+   --  Create a 'sender', a message producer, its destination is an ORB object.
 
    function Create_Temporary return MOMA.Destinations.Destination;
 

@@ -32,10 +32,6 @@
 
 --  $Id$
 
-with MOMA.Messages.MArrays;
-with MOMA.Messages.MBytes;
-with MOMA.Messages.MRecords;
-with MOMA.Messages.MStreams;
 with MOMA.Types;
 
 package MOMA.Sessions is
@@ -54,17 +50,6 @@ package MOMA.Sessions is
    procedure Close;
 
    procedure Commit;
-
-   function Create_Byte_Message return MOMA.Messages.MBytes.MByte;
-
-   function Create_Array_Message
-     return MOMA.Messages.MArrays.MArray;
-
-   function Create_Record_Message
-     return MOMA.Messages.MRecords.MRecord;
-
-   function Create_Stream_Message
-     return MOMA.Messages.MStreams.MStream;
 
    function Get_Transacted return Boolean;
 

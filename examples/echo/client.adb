@@ -32,8 +32,8 @@ with CORBA.ORB;
 
 with Echo;
 
-with PolyORB.Setup.CORBA_Client;
-pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
+with PolyORB.Setup.Client;
+pragma Warnings (Off, PolyORB.Setup.Client);
 
 procedure Client is
    Sent_Msg, Rcvd_Msg : CORBA.String;

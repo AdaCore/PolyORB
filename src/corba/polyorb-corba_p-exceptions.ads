@@ -37,13 +37,12 @@
 --  Exceptions_Members are handled differently according to the type
 --  of the exception:
 --   - for System exceptions, it is marshalled in the message
---   - for user exceptions, it is stored in a global stack
+--   - for User exceptions, it is stored in a global stack
 --   unless the members is an empty struct, in which case nothing
 --   is stored and the Get_Members function created a new
---   object from a derivation od IDL_Exception_Members
+--   object from a derivation of IDL_Exception_Members
 
-
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#6 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#7 $
 
 with Ada.Exceptions;
 
@@ -86,7 +85,7 @@ package PolyORB.CORBA_P.Exceptions is
       return CORBA.RepositoryId;
 
    ------------------------------------------------------------
-   -- conversion between Unsigned_Long and Completion_Status --
+   -- Conversion between Unsigned_Long and Completion_Status --
    ------------------------------------------------------------
 
    To_Completion_Status :

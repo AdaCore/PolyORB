@@ -44,6 +44,8 @@ with PolyORB.Servants;
 with PolyORB.ORB;
 with PolyORB.Setup;
 
+with MOMA.Types;
+
 package body PolyORB.MOMA_P.Tools is
 
    use PolyORB.Log;
@@ -97,6 +99,9 @@ package body PolyORB.MOMA_P.Tools is
         := To_PolyORB_Servant (Obj);
 
       Obj_Adapter : PolyORB.Obj_Adapters.Obj_Adapter_Access;
+
+      Type_Id_S : constant String :=
+        MOMA.Types.To_Standard_String (MOMA.Types.MOMA_Type_Id);
    begin
       Initialize_OA;
       Obj_Adapter := PolyORB.ORB.Object_Adapter (The_ORB);
@@ -113,7 +118,7 @@ package body PolyORB.MOMA_P.Tools is
             (Obj_Adapter.all), Servant_Id, If_Desc);
          --  Set object description.
 
-         Create_Reference (The_ORB, Servant_Id, "MOMA", Ref);
+         Create_Reference (The_ORB, Servant_Id, Type_Id_S, Ref);
       end;
    end Initiate_Servant;
 

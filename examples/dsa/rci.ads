@@ -29,6 +29,8 @@ package RCI is
    function echoString (S : String) return String;
    type echo_RAS is access function (S : String) return String;
 
+   function echoString_Delayed (S : String; Seconds : Integer) return String;
+
    type Complex is record
       Re, Im : Float;
    end record;

@@ -32,15 +32,16 @@
 
 --  $Id$
 
-with MOMA.Destinations.Queues;
 with MOMA.Messages;
 with MOMA.Types;
+
+with PolyORB.Requests;
 
 package MOMA.Message_Producers.Queues is
 
    type Queue is new Message_Producer with null record;
 
-   function Get_Queue return MOMA.Destinations.Queues.Queue;
+   --  function Get_Queue return MOMA.Destinations.Queues.Queue;
 
    procedure Send (Self    : Queue;
                    Message : MOMA.Messages.Message'Class);
@@ -50,5 +51,10 @@ package MOMA.Message_Producers.Queues is
                    Persistent     : Boolean;
                    Priority_Value : MOMA.Types.Priority;
                    TTL            : Time);
+
+   procedure Response_Handler (Req : PolyORB.Requests.Request;
+                               Ref : PolyORB.References.Ref);
+   --  Call back handler attached to a MOM producer interacting with
+   --  a ORB node.
 
 end MOMA.Message_Producers.Queues;

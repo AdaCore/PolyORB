@@ -86,20 +86,10 @@ package body PolyORB.ORB is
    ----------------------
 
    procedure Run_And_Free_Job
-     (P : access Tasking_Policy_Type;
-      J : in out Jobs.Job_Access) is
+     (J : in out Jobs.Job_Access) is
    begin
-      if J.all in Request_Job then
-         Handle_Request_Execution
-           (P   => Tasking_Policy_Access (P),
-            ORB => Request_Job (J.all).ORB,
-            RJ  => J);
-      else
-         Run (J);
-      end if;
-
+      Run (J);
       Free (J);
-
    exception
       when others =>
          if J /= null then
@@ -191,10 +181,10 @@ package body PolyORB.ORB is
       Enter (ORB.ORB_Lock.all);
 
       Create (ORB.Idle_Tasks);
-
       ORB.Job_Queue := PolyORB.Jobs.Create_Queue;
       ORB.Shutdown := False;
       ORB.Polling  := False;
+      Create (ORB.Polling_Watcher);
       Leave (ORB.ORB_Lock.all);
    end Create;
 
@@ -226,7 +216,7 @@ package body PolyORB.ORB is
             Leave (ORB.ORB_Lock.all);
 
             pragma Assert (Job /= null);
-            Run_And_Free_Job (ORB.Tasking_Policy, Job);
+            Run_And_Free_Job (Job);
             return True;
          end;
       else
@@ -292,6 +282,8 @@ package body PolyORB.ORB is
                   --  Close has been called on the transport endpoint.
                   --  Both the Endpoint and the associated AES must
                   --  now be destroyed.
+                  Handle_Close_Server_Connection
+                    (ORB.Tasking_Policy, Note.D.TE);
 
                   Destroy (Note.D.TE);
                   --  Destroy the transport endpoint and the associated
@@ -318,8 +310,9 @@ package body PolyORB.ORB is
    -----------------------
 
    --  This is the main loop for all general-purpose
-   --  ORB tasks. This function MUST NOT be called
-   --  recursively.
+   --  ORB tasks. This function MUST NOT be called recursively.
+   --  Exceptions may not be propagated from within a critical
+   --  section (i.e. with ORB_Lock held).
 
    procedure Run
      (ORB            : access ORB_Type;
@@ -396,23 +389,41 @@ package body PolyORB.ORB is
                   ORB.Selector := Monitors (I);
                   Set_Status_Blocked (This_Task, Monitors (I));
 
+                  <<Retry>>
+                  ORB.Source_Deleted := False;
+                  Lookup (ORB.Polling_Watcher, ORB.Polling_Version);
                   Leave (ORB.ORB_Lock.all);
 
                   pragma Debug (O ("Run: task " & Image (Current_Task)
-                                   & " about to Check_Sources."));
+                                        & " about to Check_Sources."));
                   declare
                      Events : AES_Array
                        := Check_Sources (Monitors (I), Timeout);
                   begin
                      pragma Debug (O ("Run: task " & Image (Current_Task)
-                                      & " returned from Check_Sources."));
+                                        & " returned from Check_Sources."));
                      Enter (ORB.ORB_Lock.all);
+                     Update (ORB.Polling_Watcher);
+                     if ORB.Source_Deleted then
+                        --  An asynchronous event source was unregistered while
+                        --  we were blocking, and may now have been destroyed.
+                        goto Retry;
+                     end if;
+
+                     for J in Events'Range loop
+                        Unregister_Source (Monitors (I).all, Events (J));
+                     end loop;
+
                      ORB.Polling := False;
                      ORB.Selector := null;
                      Set_Status_Running (This_Task);
 
-                     for I in Events'Range loop
-                        Handle_Event (ORB, Events (I));
+                     for J in Events'Range loop
+                        Handle_Event (ORB, Events (J));
+                        --  XXX here one task will do *all*
+                        --  the I/O on events, this is not
+                        --  optimal. Rather, I/O jobs should
+                        --  be scheduled.
                      end loop;
                   end;
                end loop;
@@ -479,14 +490,15 @@ package body PolyORB.ORB is
 
    exception
       when E : others =>
-         pragma Debug (O ("ORB main loop got exception:"));
-         pragma Debug (O (Ada.Exceptions.Exception_Information (E)));
+         --  XXX at this point it is assumed that ORB_Lock is
+         --  not being held by this task.
+
+         O ("ORB main loop got exception:", Error);
+         O (Ada.Exceptions.Exception_Information (E), Error);
 
          if Exit_Condition.Task_Info /= null then
             Exit_Condition.Task_Info.all := null;
          end if;
-         Leave (ORB.ORB_Lock.all);
-
          raise;
    end Run;
 
@@ -754,17 +766,47 @@ package body PolyORB.ORB is
 
    procedure Delete_Source
      (ORB : access ORB_Type;
-      AES : Asynch_Ev_Source_Access) is
+      AES : in out Asynch_Ev_Source_Access)
+   is
+      Polling : Boolean;
+      Polling_Version : Soft_Links.Version_Id;
    begin
       Enter (ORB.ORB_Lock.all);
 
       Unregister_Source (AES);
 
+      --  After this point we know that this source won't be
+      --  considered in a call for Check_Sources, unless Polling
+      --  is true already.
+
+      Polling := ORB.Polling;
       if ORB.Polling then
          pragma Assert (ORB.Selector /= null);
+
+         --  The current Check_Sources might consider
+         --  this event source, so we need to cause it
+         --  to be restarted:
+
          Abort_Check_Sources (ORB.Selector.all);
+         --  1. abort it
+
+         ORB.Source_Deleted := True;
+         --  2. invalidate its result (this value will
+         --  be tested with ORB_Lock held).
+
+         Polling_Version := ORB.Polling_Version;
+         --  3. prepare for notification by the Check_Sources
+         --  task that we can safely destroy the AES.
+
       end if;
+
       Leave (ORB.ORB_Lock.all);
+      if Polling then
+         Differ (ORB.Polling_Watcher.all, ORB.Polling_Version);
+         --  Need to wait for the blocked task to complete its
+         --  call to Check_Sources before destroying the AES.
+      end if;
+      Destroy (AES);
    end Delete_Source;
 
    ----------------------------------
@@ -776,6 +818,16 @@ package body PolyORB.ORB is
    ---------
 
    procedure Run (J : access Request_Job) is
+   begin
+      Handle_Request_Execution
+        (P => J.ORB.Tasking_Policy, ORB => J.ORB, RJ => J);
+   end Run;
+
+   -----------------
+   -- Run_Request --
+   -----------------
+
+   procedure Run_Request (J : access Request_Job) is
    begin
       pragma Debug (O ("Run Request_Job: enter"));
       pragma Assert (J.Request /= null);
@@ -842,10 +894,11 @@ package body PolyORB.ORB is
                --  servant: send it back to the requesting party
                --  iff it is required.
 
-               if Is_Set (Sync_With_Target, J.Request.Req_Flags) then
+               if Is_Set (Sync_With_Target, J.Request.Req_Flags)
+                 or else Is_Set (Sync_Call_Back, J.Request.Req_Flags)
+               then
                   Emit_No_Reply (J.Requestor, Result);
                end if;
-
             end if;
 
             --  XXX Should that be Emit? Should there be a reply
@@ -862,7 +915,7 @@ package body PolyORB.ORB is
                           & Ada.Exceptions.Exception_Information (E)));
          raise;
 
-   end Run;
+   end Run_Request;
 
    ----------------------
    -- Create_Reference --
@@ -1031,7 +1084,6 @@ package body PolyORB.ORB is
 
             if AES /= null then
                Delete_Source (ORB, AES);
-               Destroy (AES);
             end if;
             Destroy (TE);
          end;

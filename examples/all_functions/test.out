@@ -1,0 +1,19 @@
+test not nil reference......................................: PASSED
+test void procedure.........................................: PASSED
+test in param procedure.....................................: PASSED
+test out param procedure....................................: PASSED
+test in out param procedure.................................: PASSED
+test in and out param procedure.............................: PASSED
+test in and inout param procedure...........................: PASSED
+test inout and out param procedure..........................: PASSED
+test in and out and inout param procedure...................: PASSED
+test void function..........................................: PASSED
+test in param function......................................: PASSED
+test out param function.....................................: PASSED
+test inout param function...................................: PASSED
+test in and out param function..............................: PASSED
+test in and inout param function............................: PASSED
+test out and inout param function...........................: PASSED
+test in and out and inout param function....................: PASSED
+test void one way procedure.................................: FAILED
+test in param one way procedure.............................: FAILED

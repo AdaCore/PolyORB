@@ -1232,7 +1232,11 @@ package body PolyORB.Protocols.GIOP is
          Arg := NV_Sequence.Element_Of (List.all, Positive (I));
          if False
            or else Arg.Arg_Modes = Direction
-           or else Arg.Arg_Modes = ARG_INOUT then
+           or else Arg.Arg_Modes = ARG_INOUT
+         then
+            pragma Debug (O ("Marshalling argument "
+              & Types.To_Standard_String (Arg.Name)
+              & " = " & Image (Arg.Argument)));
             Marshall (Ses.Buffer_Out, Arg);
          end if;
       end loop;
@@ -1772,7 +1776,8 @@ package body PolyORB.Protocols.GIOP is
             Request_Message (S, Current_Req'Access,
                              False, Fragment_Next, WITH_SERVER);
 
-         elsif Is_Set (Sync_With_Target, R.Req_Flags) then
+         elsif Is_Set (Sync_With_Target, R.Req_Flags) or
+           Is_Set (Sync_Call_Back, R.Req_Flags) then
             Request_Message (S, Current_Req'Access,
                              True, Fragment_Next, WITH_TARGET);
          end if;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . O B J _ A D A P T E R S                  --
+--               P O L Y O R B . I F _ D E S C R I P T O R S                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --

@@ -59,4 +59,9 @@ package PolyORB.Tasking is
    --  functionalities are used by tasks that have not been created
    --  through it, a Tasking_Error is raised.
 
+   Tasking_Profile_Error : exception;
+   --  Some functionnalities may have no sense for some profile.
+   --  In that case, any call to this functionnalities raise
+   --  a Tasking_Profile_Error.
+
 end PolyORB.Tasking;

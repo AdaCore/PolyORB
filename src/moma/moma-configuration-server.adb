@@ -33,17 +33,16 @@
 --  $Id$
 
 with MOMA.Provider.Message_Pool;
-with MOMA.Types;
-with PolyORB.Configuration;
 with PolyORB.Log;
 with PolyORB.MOMA_P.Tools;
 
 package body MOMA.Configuration.Server is
 
-   use MOMA.Types;
    use PolyORB.Configuration;
    use PolyORB.MOMA_P.Tools;
    use PolyORB.Log;
+
+   use MOMA.Types;
 
    package L is new PolyORB.Log.Facility_Log ("moma.configuration.server");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
@@ -53,49 +52,19 @@ package body MOMA.Configuration.Server is
    -- Create_Message_Pool --
    -------------------------
 
-   procedure Create_Message_Pool (Name : in String;
+   procedure Create_Message_Pool (Pool : MOMA.Types.Message_Pool;
                                   Ref  : out PolyORB.References.Ref)
    is
       MOMA_Obj : constant MOMA.Provider.Message_Pool.Object_Acc
        := new MOMA.Provider.Message_Pool.Object;
 
    begin
-      pragma Debug (O ("Creating Message Pool " & Name));
+      pragma Debug (O ("Creating Message Pool "
+                       & To_Standard_String (Get_Name (Pool))));
       Initiate_Servant (MOMA_Obj,
                         MOMA.Provider.Message_Pool.If_Desc,
                         Ref);
+      MOMA.Provider.Message_Pool.Initialize (MOMA_Obj, Pool);
    end Create_Message_Pool;
-
-   ---------------------------
-   -- Get_Message_Pool_Info --
-   ---------------------------
-
-   function Get_Message_Pool_Info (Number : Natural)
-                                   return Message_Pool_Info
-   is
-      Section : constant String
-        := "destination" & Natural'Image (Number);
-
-      Pool_Type : constant String := Get_Conf (Section, "type");
-
-      Result : Message_Pool_Info;
-   begin
-      Result.Name := To_MOMA_String (Get_Conf (Section, "name"));
-
-      pragma Debug (O ("Pool #" & Natural'Image (Number) & " : "
-                       & "Name : " & To_Standard_String (Result.Name)
-                       & ", Type : " & Pool_Type));
-
-      if Pool_Type = "queue" then
-         Result.Pool_Type := Queue;
-      elsif Pool_Type = "topic" then
-         Result.Pool_Type := Topic;
-      else
-         raise Program_Error;
-         --  XXX should raise something else ...
-      end if;
-
-      return Result;
-   end Get_Message_Pool_Info;
 
 end MOMA.Configuration.Server;

@@ -30,6 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
 
 with PolyORB.Components;
 with PolyORB.Initialization;
@@ -61,59 +62,37 @@ package body PolyORB.ORB.Thread_Per_Request is
      renames L.Output;
 
    A_Job : Jobs.Job_Access := null;
-   A_N   : Natural         := 0;
    --  This variables are used to initialized the threads local variables.
    --  They are used to replaced the accept statement
+   --  XXX There is nothing to prevent inconsistent interleaving
+   --      of writes and reads to this variable!!!
+   --  In this policy we can assert that there is only one task which executes
+   --  ORB.Run so the assertion XXX is wrong
 
    Thread_Init_Watcher    : Watcher_Access := null;
    Thread_Init_Version_Id : Version_Id;
    --  This Watcher and his associated Version Id are used during
    --  the initialisation of a thread.
 
-   -------------------------
-   -- Main_Request_Thread --
-   -------------------------
+   procedure Request_Thread;
    --  This procedure is a parameterless procedure used as
    --  the body of the threads
-   procedure Main_Request_Thread;
 
-   procedure Main_Request_Thread
-   is
-      Id  : Natural;
-      Job : Jobs.Job_Access;
-   begin
-      Id := A_N;
-      Job := A_Job;
-      Update (Thread_Init_Watcher);
-      pragma Debug (O ("Thread number"
-                          & Integer'Image (Id)
-                       & " is executing Job"));
-      Jobs.Run (Job);
-      Jobs.Free (Job);
-      pragma Debug (O ("Thread number"
-                       & Integer'Image (Id)
-                       & " has executed Job"));
-   end Main_Request_Thread;
+   ------------------------------------
+   -- Handle_Close_Server_Connection --
+   ------------------------------------
 
-   ----------------------------------
-   -- Handle_New_Server_Connection --
-   ----------------------------------
-
-   procedure Handle_New_Server_Connection
+   procedure Handle_Close_Server_Connection
      (P   : access Thread_Per_Request_Policy;
-      ORB : ORB_Access;
-      C   : Active_Connection)
+      TE  :        Transport_Endpoint_Access)
    is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
+      pragma Unreferenced (TE);
       pragma Warnings (On);
-      pragma Debug (O (" new server connection. "));
-      Insert_Source (ORB, C.AES);
-      Components.Emit_No_Reply
-        (Component_Access (C.TE),
-         Connect_Indication'(null record));
-   end Handle_New_Server_Connection;
+      null;
+   end Handle_Close_Server_Connection;
 
    ----------------------------------
    -- Handle_New_Client_Connection --
@@ -135,8 +114,25 @@ package body PolyORB.ORB.Thread_Per_Request is
          Connect_Confirmation'(null record));
    end Handle_New_Client_Connection;
 
-   N : Natural := 0;
-   --  for debugging purposes
+   ----------------------------------
+   -- Handle_New_Server_Connection --
+   ----------------------------------
+
+   procedure Handle_New_Server_Connection
+     (P   : access Thread_Per_Request_Policy;
+      ORB : ORB_Access;
+      C   : Active_Connection)
+   is
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (P);
+      pragma Warnings (On);
+      pragma Debug (O (" new server connection. "));
+      Insert_Source (ORB, C.AES);
+      Components.Emit_No_Reply
+        (Component_Access (C.TE),
+         Connect_Indication'(null record));
+   end Handle_New_Server_Connection;
 
    ------------------------------
    -- Handle_Request_Execution --
@@ -145,7 +141,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    procedure Handle_Request_Execution
      (P   : access Thread_Per_Request_Policy;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class)
+      RJ  : access Request_Job'Class)
    is
    begin
       pragma Warnings (Off);
@@ -153,16 +149,11 @@ package body PolyORB.ORB.Thread_Per_Request is
       pragma Unreferenced (ORB);
       pragma Warnings (On);
       pragma Debug (O ("Handle_Request_Execution : Run Job"));
-      if RJ.all in Request_Job then
-         N := N + 1;
-         A_N := N;
-         A_Job := PolyORB.ORB.Duplicate_Request_Job (RJ);
-         Create_Task (Main_Request_Thread'Access);
-         Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
-         Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
-      else
-         Jobs.Run (RJ);
-      end if;
+
+      A_Job := PolyORB.ORB.Duplicate_Request_Job (RJ);
+      Create_Task (Request_Thread'Access);
+      Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
+      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
    end Handle_Request_Execution;
 
    ----------
@@ -178,11 +169,25 @@ package body PolyORB.ORB.Thread_Per_Request is
       pragma Unreferenced (P);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
-      null;
-      --  XXX This is probably wrong!
+      pragma Debug (O ("No_Tasking: Idle -> Program error is raised"));
       raise Program_Error;
-      --  (XXX just in case).
+      --  In thread_per_request policy, only one task is executing ORB.Run
+      --  So this task shouldn't go idle, since this would block the system
+      --  forever
    end Idle;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      Setup.The_Tasking_Policy := new Thread_Per_Request_Policy;
+      Create (Thread_Init_Watcher);
+      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
+   end Initialize;
 
    ------------------------------
    -- Queue_Request_To_Handler --
@@ -200,16 +205,27 @@ package body PolyORB.ORB.Thread_Per_Request is
       Emit_No_Reply (Component_Access (ORB), Msg);
    end Queue_Request_To_Handler;
 
-   ----------------
-   -- Initialize --
-   ----------------
-   procedure Initialize;
-   procedure Initialize is
+   --------------------
+   -- Request_Thread --
+   --------------------
+
+   procedure Request_Thread
+   is
+      Job : Jobs.Job_Access;
    begin
-      Setup.The_Tasking_Policy := new Thread_Per_Request_Policy;
-      Create (Thread_Init_Watcher);
-      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
-   end Initialize;
+      --  Initialisation
+      Job := A_Job;
+      Update (Thread_Init_Watcher);
+      pragma Debug (O ("Thread "
+        & Soft_Links.Image (Soft_Links.Current_Task)
+        & " is executing a job"));
+      --  Job is executed
+      Run_Request (Request_Job (Job.all)'Access);
+      Jobs.Free (Job);
+      pragma Debug (O ("Thread "
+        & Soft_Links.Image (Soft_Links.Current_Task)
+        & " has executed and destroyed a job"));
+   end Request_Thread;
 
    use PolyORB.Initialization;
    use PolyORB.Initialization.String_Lists;

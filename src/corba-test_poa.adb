@@ -41,7 +41,8 @@ with PolyORB.POA_Types;
 with PolyORB.POA_Manager;
 
 with PolyORB.Log;
-with PolyORB.No_Tasking;
+with PolyORB.No_Tasking.Threads;
+with PolyORB.No_Tasking.Monitors;
 with PolyORB.Smart_Pointers;
 with PolyORB.Objects;
 
@@ -92,9 +93,10 @@ package body CORBA.Test_POA is
       --  Logging subsystem. Start this one first so we can debug
       --  problems in others.
 
-      PolyORB.No_Tasking.Initialize;
+      PolyORB.No_Tasking.Monitors.Initialize;
+      PolyORB.No_Tasking.Threads.Initialize;
       Put_Line ("Use No-tasking");
-      --  Setup soft links.
+      --  Setup No_Tasking profile.
 
       PolyORB.Smart_Pointers.Initialize;
       Put_Line ("Initialize smart-pointers");

@@ -143,7 +143,6 @@ package body PolyORB.Asynch_Ev.Sockets is
                        & Image (Socket_Event_Source
                                   (Monitored_Set (I).all).Socket)));
 
-               Unregister_Source (AEM.all, Monitored_Set (I));
                Last := Last + 1;
                   Result (Last) := Monitored_Set (I);
             end if;

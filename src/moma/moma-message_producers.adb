@@ -93,6 +93,16 @@ package body MOMA.Message_Producers is
       return Self.TTL;
    end Get_Time_To_Live;
 
+   --------------------
+   -- Get_Type_Id_Of --
+   --------------------
+
+   function Get_Type_Id_Of (Self : Message_Producer)
+                            return MOMA.Types.String is
+   begin
+      return Self.Type_Id_Of;
+   end Get_Type_Id_Of;
+
    ---------------------
    -- Set_Destination --
    ---------------------
@@ -142,5 +152,15 @@ package body MOMA.Message_Producers is
    begin
       Self.TTL := TTL;
    end Set_Time_To_Live;
+
+   --------------------
+   -- Set_Type_Id_Of --
+   --------------------
+
+   procedure Set_Type_Id_Of (Self        : in out Message_Producer;
+                             Type_Id_Of  : MOMA.Types.String) is
+   begin
+      Self.Type_Id_Of := Type_Id_Of;
+   end Set_Type_Id_Of;
 
 end MOMA.Message_Producers;

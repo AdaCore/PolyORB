@@ -108,7 +108,8 @@ package body PolyORB.Requests is
         (The_ORB.Tasking_Policy, The_ORB,
          Queue_Request'
          (Request   => Self,
-          Requestor => null));
+          Requestor => Self.Requesting_Component));
+      --   Requestor => null));
 
       --  Execute the ORB until the request is completed.
       ORB.Run
@@ -291,7 +292,13 @@ package body PolyORB.Requests is
       end;
    exception
       when others =>
-         --  Could not render arguments.
+         --  For some kinds of Any's, bugs in the respective
+         --  Image procedures may trigger exceptions. In such
+         --  cases, we do not want to fail here because we are
+         --  only computing an informational, debugging-oriented
+         --  message. Consequently, we return a placeholder
+         --  value rather than propagating the exception.
+
          return S1 & " with non-representable arguments";
    end Image;
 
