@@ -165,8 +165,15 @@ begin
 
    Set_MyColor (MyAll_Types, Green);
    Output ("test attribute", Get_MyColor (MyAll_Types) = Green);
-   Output ("test read-only attribute", Get_Counter (MyAll_Types) = 1
-           and then Get_Counter (MyAll_Types) = 2);
+   declare
+      Counter_First_Value : CORBA.Long
+        := Get_Counter (MyAll_Types);
+      Counter_Second_Value : CORBA.Long
+        := Get_Counter (MyAll_Types);
+   begin
+      Output ("test read-only attribute",
+              Counter_Second_Value = Counter_First_Value + 1);
+   end;
 
    declare
       X : All_Types.Ref;

@@ -1,14 +1,14 @@
 with Broca.Buffers; use Broca.Buffers;
 with CORBA; use CORBA;
 with CORBA.IOP;
-with Sockets.Thin;
-with Sockets.Constants;
+with Sockets.Thin; use Sockets.Thin;
+with Sockets.Constants; use Sockets.Constants;
 with Interfaces.C; use Interfaces.C;
 with Interfaces.C.Strings;
 with Broca.Exceptions;
 with Broca.Marshalling;
 with Broca.GIOP;
-with Broca.Stream;
+with Broca.Stream; use Broca.Stream;
 with Broca.Flags;
 with Broca.Server;
 with Ada.Text_IO;
@@ -23,6 +23,9 @@ package body Broca.Inet_Server is
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.inet_server");
    procedure O is new Broca.Debug.Output (Flag);
+
+   --  The number of simultaneously open streams.
+   Simultaneous_Streams : Positive := 10;
 
    My_Addr : Sockets.Thin.In_Addr;
    IIOP_Host : CORBA.String;
@@ -121,18 +124,204 @@ package body Broca.Inet_Server is
       end if;
    end Ntohs;
 
-   use Sockets.Thin;
-   use Broca.Stream;
+   -------------------------------------------
+   --
+   -------------------------------------------
 
-   Polls : Pollfd_Array (1 .. 10);
+   subtype Pollfd_Array_Index is Integer range 0 .. Simultaneous_Streams;
+
+   type Job_Kind is (No_Event, Fd_Event);
+   type Job (Kind : Job_Kind := No_Event;
+             Pollfd_Array_Size : Pollfd_Array_Index := 0)
+   is record
+      case Kind is
+         when No_Event =>
+            Poll_Set : aliased Pollfd_Array (1 .. Pollfd_Array_Size);
+         when Fd_Event =>
+            Pos : Integer := -1;
+            Fd : Interfaces.C.int := -1;
+            Stream : Stream_Ptr := null;
+      end case;
+   end record;
+
+   protected Lock is
+
+      --  Initialize the work scheduler.
+      procedure Initialize (Listening_Socket : Interfaces.C.int;
+                            Signal_Fd_Read   : Interfaces.C.int);
+
+      --  Obtain a pending job to perform. The scheduler is
+      --  then locked until a call to a _Unlock subprogram is
+      --  made.
+      entry Get_Job_And_Lock (A_Job : out Job);
+
+      --  Set new pending jobs array, and unlock the scheduler.
+      procedure Set_Pending_Jobs_And_Unlock
+        (Returned_Poll_Set : Pollfd_Array);
+
+      --  Insert a descriptor for a newly-opened connection.
+      --  Clear events on listening socket.
+      procedure Insert_Descriptor_And_Unlock (Sock : Interfaces.C.int);
+
+      --  Mask descriptor and clear events. The descriptor
+      --  is now managed by a server task, until it calls
+      --  Delete_Descriptor or Unmask_Descriptor.
+      procedure Mask_Descriptor_And_Unlock (Pos : Integer);
+
+      --  Destroy a descriptor associated with a closed connection.
+      procedure Delete_Descriptor (Pos : Integer);
+
+      --  Resume waitiong for events on descriptor.
+      procedure Unmask_Descriptor (Pos : Integer);
+
+   private
+
+      Locked : Boolean;
+      Polls : Pollfd_Array (1 .. Simultaneous_Streams);
+      Streams : Stream_Ptr_Array (3 .. Simultaneous_Streams)
+        := (others => null);
+
+      Nbr_Fd : Integer;
+      Fd_Pos : Integer;
+      --  These variables must be accessed under mutual exclusion
+      --  Polls represents current tasks-to-perform.
+      --  Fd_Pos is used to implement a round-robin scheme
+      --  between all open connections.
+
+
+   end Lock;
+
+   protected body Lock is
+
+      procedure Initialize (Listening_Socket : Interfaces.C.int;
+                            Signal_Fd_Read   : Interfaces.C.int)
+      is
+      begin
+         Polls (1).Fd := Listening_Socket;
+         Polls (1).Events := Pollin;
+         Polls (2).Fd := Signal_Fd_Read;
+         Polls (2).Events := Pollin;
+         Nbr_Fd := 2;
+         Fd_Pos := 1;
+      end Initialize;
+
+      entry Get_Job_And_Lock (A_Job : out Job) when not Locked is
+         Current_Fd_Pos : Integer := Fd_Pos;
+      begin
+         Locked := True;
+
+         loop
+            --  Exit if there is work to perform
+            exit when Polls (Current_Fd_Pos).Revents >= Pollin;
+
+            --  Go to the next descriptor
+            Current_Fd_Pos := Current_Fd_Pos + 1;
+            if Current_Fd_Pos > Nbr_Fd then
+               Current_Fd_Pos := 1;
+            end if;
+
+            --  If there was no work at all, ask the
+            --  caller to wait for an external event.
+            if Current_Fd_Pos = Fd_Pos then
+               A_Job := (Kind => No_Event,
+                         Pollfd_Array_Size => Nbr_Fd,
+                         Poll_Set => Polls (1 .. Nbr_Fd));
+               return;
+            end if;
+         end loop;
+
+         A_Job := (Kind => Fd_Event,
+                   Pollfd_Array_Size => 0,
+                   Pos => Current_Fd_Pos,
+                   Fd => Polls (Current_Fd_Pos).Fd,
+                   Stream => null);
+
+         if Current_Fd_Pos in Streams'First .. Nbr_Fd then
+            A_Job.Stream := Streams (Current_Fd_Pos);
+         end if;
+
+         --  Go to the next descriptor
+         Fd_Pos := Current_Fd_Pos + 1;
+         if Fd_Pos > Nbr_Fd then
+            Fd_Pos := 1;
+         end if;
+
+         return;
+      end Get_Job_And_Lock;
+
+      procedure Set_Pending_Jobs_And_Unlock
+        (Returned_Poll_Set : Pollfd_Array) is
+      begin
+         for I in Returned_Poll_Set'Range loop
+            Polls (I).Revents := Returned_Poll_Set (I).Revents;
+         end loop;
+         Fd_Pos := 1;
+         Locked := False;
+      end Set_Pending_Jobs_And_Unlock;
+
+
+      procedure Insert_Descriptor_And_Unlock (Sock : Interfaces.C.int) is
+      begin
+         pragma Assert (Nbr_Fd < Polls'Last);
+
+         Nbr_Fd := Nbr_Fd + 1;
+         Polls (Nbr_Fd).Fd := Sock;
+         Polls (Nbr_Fd).Events := Pollin;
+         Polls (Nbr_Fd).Revents := 0;
+         Streams (Nbr_Fd) := Broca.Stream.Create_Fd_Stream (Sock);
+         Fd_Pos := 2;
+
+         Polls (1).Revents := 0;
+         if Nbr_Fd = Polls'Last then
+            Polls (1).Events := 0;
+         end if;
+
+         Locked := False;
+      end Insert_Descriptor_And_Unlock;
+
+      procedure Mask_Descriptor_And_Unlock (Pos : Integer) is
+      begin
+         Polls (Pos).Events := 0;
+         Polls (Pos).Revents := 0;
+
+         Locked := False;
+      end Mask_Descriptor_And_Unlock;
+
+      procedure Unmask_Descriptor (Pos : Integer) is
+      begin
+         Polls (Pos).Events := Pollin;
+      end Unmask_Descriptor;
+
+      procedure Delete_Descriptor (Pos : Integer) is
+      begin
+         pragma Assert (Pos in 1 .. Nbr_Fd);
+
+         --  FIXME: remove suspended requests.
+         Broca.Stream.Unchecked_Deallocation (Streams (Pos));
+         Streams (Pos) := Streams (Nbr_Fd);
+         Streams (Nbr_Fd) := null;
+         Polls (Pos) := Polls (Nbr_Fd);
+
+         Nbr_Fd := Nbr_Fd - 1;
+         if Fd_Pos > Nbr_Fd then
+            Fd_Pos := 1;
+         end if;
+
+         if Nbr_Fd < Polls'Last then
+            Polls (1).Events := Pollin;
+         end if;
+      end Delete_Descriptor;
+   end Lock;
+
+   -------------------------------------------
+   -- The core of the Broca Internet server --
+   -------------------------------------------
+
    Signal_Fds : aliased Two_Int;
    Signal_Fd_Read : Interfaces.C.int renames Signal_Fds (0);
    Signal_Fd_Write : Interfaces.C.int renames Signal_Fds (1);
 
-   Streams : Stream_Ptr_Array (2 .. 10) := (others => null);
-   Nbr_Fd : Integer := 0;
    Fd_Server_Id : Broca.Server.Server_Id_Type;
-   Fd_Pos : Integer;
 
    procedure Signal_Poll_Set_Change
    is
@@ -158,9 +347,6 @@ package body Broca.Inet_Server is
 
    --  Create a listening socket.
    procedure Initialize is
-      use Sockets.Thin;
-      use Sockets.Constants;
-      use Interfaces.C;
       Sock : Interfaces.C.int;
       Sock_Name : Sockaddr_In;
       Sock_Name_Size : aliased Interfaces.C.int;
@@ -231,12 +417,7 @@ package body Broca.Inet_Server is
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
 
-      Polls (1).Fd := Listening_Socket;
-      Polls (1).Events := Pollin;
-      Polls (2).Fd := Signal_Fd_Read;
-      Polls (2).Events := Pollin;
-      Nbr_Fd := 2;
-      Fd_Pos := 1;
+      Lock.Initialize (Listening_Socket, Signal_Fd_Read);
    end Initialize;
 
    --  Calling this function will cause the BOA to start accepting requests
@@ -251,26 +432,45 @@ package body Broca.Inet_Server is
       Sock : Interfaces.C.int;
       Sock_Name : Sockaddr_In;
       Size : aliased C.int;
-      The_Fd_Pos : Integer;
       Bytes : Buffer_Type (0 .. Message_Header_Size - 1);
+      A_Job : Job;
 
    begin
-      Broca.Server.Log ("polling");
-      << Again >> null;
+      Broca.Server.Log ("Enter Wait_Fd_Request");
 
-      if Fd_Pos > Nbr_Fd then
-         Res := C_Poll (Polls'Address, C.unsigned_long (Nbr_Fd), -1);
+      --  Try to obtain some work to be done.
+      Lock.Get_Job_And_Lock (A_Job);
+      Broca.Server.New_Request (Fd_Server_Id);
+      --  The pending work repository is now locked.
+
+      if A_Job.Kind = No_Event then
+         --  There was no work available. Wait for some.
+
+         Broca.Server.Log ("polling"
+                           & A_Job.Poll_Set'Length'Img & " fds:");
+         for I in 1 .. A_Job.Poll_Set'Length loop
+            if A_Job.Poll_Set (I).Events >= Pollin then
+               Broca.Server.Log (" waiting on " & I'Img);
+            end if;
+         end loop;
+
+         Res := C_Poll (A_Job.Poll_Set'Address, A_Job.Poll_Set'Length, -1);
          if Res = 0 then
-            --  Timeout
-            return;
+            --  This should never happen.
+            pragma Assert (False);
+            null;
+
          elsif Res < 0 then
             Broca.Exceptions.Raise_Comm_Failure;
          end if;
-         Fd_Pos := 1;
-      end if;
 
-      if Fd_Pos = 1 and then Polls (1).Revents >= Pollin then
+         Lock.Set_Pending_Jobs_And_Unlock (A_Job.Poll_Set);
+
+      elsif A_Job.Pos = 1 then
+
          --  Accepting a connection.
+         Broca.Server.Log ("accepting");
+
          Size := 0;
          Size := Sock_Name'Size / 8;
          Sock :=
@@ -284,76 +484,70 @@ package body Broca.Inet_Server is
             & " from " & In_Addr_To_Str (Sock_Name.Sin_Addr)
             & " port" & Natural'Image (Ntohs (Sock_Name.Sin_Port)));
 
-         Nbr_Fd := Nbr_Fd + 1;
-         Polls (Nbr_Fd).Fd := Sock;
-         Polls (Nbr_Fd).Events := Pollin;
-         Polls (Nbr_Fd).Revents := 0;
-         Streams (Nbr_Fd) := Broca.Stream.Create_Fd_Stream (Sock);
-         Fd_Pos := 2;
-      end if;
+         Lock.Insert_Descriptor_And_Unlock (Sock);
 
-      loop
-         exit when Polls (Fd_Pos).Revents >= Pollin;
-         Fd_Pos := Fd_Pos + 1;
-         if Fd_Pos > Nbr_Fd then
-            goto Again;
-         end if;
-      end loop;
+      elsif A_Job.Pos = 2 then
+         Broca.Server.Log ("poll set change");
 
-      Sock := Polls (Fd_Pos).Fd;
-      if Sock = Signal_Fd_Read then
+         Lock.Mask_Descriptor_And_Unlock (A_Job.Pos);
          Accept_Poll_Set_Change;
-         Fd_Pos := Nbr_Fd + 1;
-         goto Again;
-      end if;
+         Lock.Unmask_Descriptor (A_Job.Pos);
 
-      --  Receive a message header
-      Res := C_Recv (Sock, Bytes'Address, Message_Header_Size, 0);
-      if Res <= 0 then
-         if Broca.Flags.Log then
-            if Res < 0 then
-               Broca.Server.Log
-                 ("error " & C.int'Image (Res)
-                  & " on fd" & C.int'Image (Sock));
-            else
-               Broca.Server.Log
-                 ("connection closed on fd" & C.int'Image (Sock));
+      else
+         Broca.Server.Log ("data at position " & A_Job.Pos'Img);
+
+         --  There is work to be done at position A_Job.Pos
+         --  Prevent poll from accepting messages from this file
+         --  descriptor, because the server is now in charge
+         --  of conducting the dialog, until the incoming
+         --  request is handled.
+
+         Lock.Mask_Descriptor_And_Unlock (A_Job.Pos);
+
+         Sock := A_Job.Fd;
+
+         --  Receive a message header
+         Res := C_Recv (Sock, Bytes'Address, Message_Header_Size, 0);
+         if Res <= 0 then
+            if Broca.Flags.Log then
+               if Res < 0 then
+                  Broca.Server.Log
+                    ("error " & C.int'Image (Res)
+                     & " on fd" & C.int'Image (Sock));
+               else
+                  Broca.Server.Log
+                    ("connection closed on fd" & C.int'Image (Sock));
+               end if;
             end if;
+
+            --  The fd was closed
+            C_Close (Sock);
+
+            Broca.Server.Log ("Deleting fd" & A_Job.Fd'Img
+                              & " at" & A_Job.Pos'Img);
+            Lock.Delete_Descriptor (A_Job.Pos);
+            Signal_Poll_Set_Change;
+
+         elsif Res /= Broca.GIOP.Message_Header_Size then
+            Broca.Exceptions.Raise_Comm_Failure;
+         else
+            --  A message header was correctly received.
+            Allocate_Buffer_And_Clear_Pos
+              (Buffer, Broca.GIOP.Message_Header_Size);
+            Write (Buffer, Bytes);
+
+            Broca.Server.Log
+              ("message received from fd" & Interfaces.C.int'Image (Sock)
+               & " at" & A_Job.Pos'Img);
+            Broca.Stream.Lock_Receive (A_Job.Stream);
+            Broca.Server.Handle_Message (A_Job.Stream, Buffer);
+
+            Broca.Server.Log ("Request done for" & A_Job.Pos'Img);
+            Lock.Unmask_Descriptor (A_Job.Pos);
+            Broca.Server.Log ("Unmasked descriptor for" & A_Job.Pos'Img);
+            Signal_Poll_Set_Change;
          end if;
-
-         --  The fd was closed
-         C_Close (Sock);
-         --  FIXME: remove suspended requests.
-         Broca.Stream.Unchecked_Deallocation (Streams (Fd_Pos));
-         Streams (Fd_Pos) := Streams (Nbr_Fd);
-         Streams (Nbr_Fd) := null;
-         Polls (Fd_Pos) := Polls (Nbr_Fd);
-         Nbr_Fd := Nbr_Fd - 1;
-         goto Again;
-      elsif Res /= Broca.GIOP.Message_Header_Size then
-         Broca.Exceptions.Raise_Comm_Failure;
       end if;
-
-      Allocate_Buffer_And_Clear_Pos
-        (Buffer, Broca.GIOP.Message_Header_Size);
-      Write (Buffer, Bytes);
-
-      --  The message was accepted.
-      The_Fd_Pos := Fd_Pos;
-      Fd_Pos := Fd_Pos + 1;
-      --  Prevent poll from accepting messages from this fd, since it is
-      --  locked.
-      --  It is locked because data was not yet read.
-      Polls (The_Fd_Pos).Events := 0;
-
-      Broca.Server.New_Request (Fd_Server_Id);
-      Broca.Server.Log
-        ("message received from fd" & Interfaces.C.int'Image (Sock));
-      Broca.Stream.Lock_Receive (Streams (The_Fd_Pos));
-      Broca.Server.Handle_Message (Streams (The_Fd_Pos), Buffer);
-      Polls (The_Fd_Pos).Events := Pollin;
-      Signal_Poll_Set_Change;
-      return;
    end Wait_Fd_Request;
 
    type Fd_Server_Type is new Broca.Server.Server_Type with null record;
@@ -372,6 +566,10 @@ package body Broca.Inet_Server is
    begin
       Wait_Fd_Request (Buffer);
    end Perform_Work;
+
+   --------------------------------
+   -- Server profile marshalling --
+   --------------------------------
 
    procedure Marshall_Size_Profile
      (Server     : access Fd_Server_Type;
@@ -437,6 +635,10 @@ package body Broca.Inet_Server is
       --  Object key
       Append_Buffer (IOR, Object_Key);
    end Marshall_Profile;
+
+   ----------------------
+   -- Elaboration code --
+   ----------------------
 
    type Fd_Server_Ptr is access Fd_Server_Type;
    The_Fd_Server : Fd_Server_Ptr;

@@ -1053,6 +1053,7 @@ package body Broca.Server is
       Buffer : Buffer_Descriptor;
       Server : Server_Ptr;
    begin
+      Ada.Text_IO.Put_Line ("Starting server loop");
       loop
          Server_Table.Get_Server (Server);
          Perform_Work (Server, Buffer);
