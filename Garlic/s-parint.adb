@@ -129,7 +129,7 @@ package body System.Partition_Interface is
 
    procedure Public_RPC_Receiver
      (Partition : in Partition_ID;
-      Operation : in Opcode;
+      Operation : in Public_Opcode;
       Params    : access Params_Stream_Type);
    --  Receive data.
 
@@ -419,7 +419,7 @@ package body System.Partition_Interface is
 
    procedure Public_RPC_Receiver
      (Partition : in Partition_ID;
-      Operation : in Opcode;
+      Operation : in Public_Opcode;
       Params    : access Params_Stream_Type)
    is
       Code : Name_Opcode;

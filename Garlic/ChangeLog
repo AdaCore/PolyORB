@@ -1,3 +1,10 @@
+Mon Jan 13 13:41:33 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-rpc.adb: Changed prototype of Public_RPC_Receiver to match the
+	access type whenever taking the 'Access at registration time.
+
+	* s-parint.adb: Idem.
+
 Thu Jan  9 14:24:40 1997  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-parint.adb: Implementation of partition restarting. Add a new

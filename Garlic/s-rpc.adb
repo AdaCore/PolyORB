@@ -183,7 +183,7 @@ package body System.RPC is
 
    procedure Public_RPC_Receiver
      (Partition : in Partition_ID;
-      Operation : in Opcode;
+      Operation : in Public_Opcode;
       Params    : access System.RPC.Params_Stream_Type);
    --  Receive data.
 
@@ -540,7 +540,7 @@ package body System.RPC is
 
    procedure Public_RPC_Receiver
      (Partition : in Partition_ID;
-      Operation : in Opcode;
+      Operation : in Public_Opcode;
       Params    : access System.RPC.Params_Stream_Type) is
       Header : constant Request_Header := Request_Header'Input (Params);
    begin
