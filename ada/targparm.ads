@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1999-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1999-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -166,13 +166,17 @@ package Targparm is
 
    --  For most ports of GNAT, command line arguments are supported. The
    --  following flag is set to False for targets that do not support
-   --  command line arguments (notably VxWorks).
+   --  command line arguments (VxWorks and AAMP). Note that support of
+   --  command line arguments is not required on such targets (RM A.15(13)).
 
    Command_Line_Args_On_Target : Boolean;
    --  Set False if no command line arguments on target
 
-   --  Note: this is prepared for future use, but not yet used, since we
-   --  do not yet have a way of propagating Targparm params to the binder
+   --  Similarly, most ports support the use of an exit status, but AAMP
+   --  is an exception (as allowed by RM A.15(18-20))
+
+   Exit_Status_Supported_On_Target : Boolean;
+   --  Set False if returning of an exit status is not supported on target
 
    -----------------------
    -- Main Program Name --
@@ -187,9 +191,6 @@ package Targparm is
 
    Use_Ada_Main_Program_Name_On_Target : Boolean;
    --  Set True to use the Ada main program name as the main name
-
-   --  Note: this is prepared for future use, but not yet used, since we
-   --  do not yet have a way of propagating Targparm params to the binder
 
    ----------------------------
    -- Support of Long Shifts --

@@ -47,6 +47,7 @@ package Rident is
       No_Access_Subprograms,                   -- (RM H.4(17))
       No_Allocators,                           -- (RM H.4(7))
       No_Asynchronous_Control,                 -- (RM D.7(10))
+      No_Asynchronous_Select,                  -- GNAT
       No_Calendar,                             -- GNAT
       No_Delay,                                -- (RM H.4(21))
       No_Dispatch,                             -- (RM H.4(19))

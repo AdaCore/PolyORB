@@ -368,6 +368,13 @@ package Opt is
    --  GNAT
    --  True if compiling in GNAT system mode (-gnatg switch)
 
+   function get_gcc_version return Int;
+   pragma Import (C, get_gcc_version, "get_gcc_version");
+
+   GCC_Version : constant Int := get_gcc_version;
+   --  GNAT, GNATBIND, GNATMAKE
+   --  Indicates which version of gcc is in use (2 = 2.8.1, 3 = 3.x)
+
    HLO_Active : Boolean := False;
    --  GNAT
    --  True if High Level Optimizer is activated (-gnatH switch)
@@ -574,6 +581,10 @@ package Opt is
    --  detected then this flag is reset from Generate_Code to Check_Semantics
    --  after generating an error message.
 
+   Optimization_Level : Int;
+   pragma Import (C, Optimization_Level, "optimize");
+   --  This constant reflects the optimization level (0,1,2 for -O0,-O1,-O2)
+
    Output_File_Name_Present : Boolean := False;
    --  GNATBIND, GNAT, GNATMAKE
    --  Set to True when the output C file name is given with option -o
@@ -764,6 +775,11 @@ package Opt is
    --  Set to True to generate warnings for static constants that are rounded
    --  in a manner inconsistent with unbiased rounding (round to even). Can
    --  be modified by use of -gnatwb/B.
+
+   Warn_On_Constant : Boolean := False;
+   --  GNAT
+   --  Set to True to generate warnings for variables that could be declared
+   --  as constants. Modified by use of -gnatwk/K.
 
    Warn_On_Dereference : Boolean := False;
    --  GNAT

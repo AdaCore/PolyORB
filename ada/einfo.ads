@@ -337,11 +337,15 @@ package Einfo is
 --       Always empty for entries.
 
 --    Alignment (Uint14)
---       Present in all entities for types and objects. This indicates the
---       desired alignment for a type, or the actual alignment for an object.
---       A value of zero (Uint_0) indicates that the alignment is not yet set.
+--       Present in entities for types and also in constants, variables,
+--       loop parameters, and formal parameters. This indicates the desired
+--       alignment for a type, or the actual alignment for an object. A value
+--       of zero (Uint_0) indicates that the alignment has not been set yet.
 --       The alignment can be set by an explicit alignment clause, or set by
---       the front-end in package Layout, or set by the back-end.
+--       the front-end in package Layout, or set by the back-end as part of
+--       the back end back-annotation process. The alignment field is also
+--       present in E_Exception entities, but there it is used only by the
+--       back-end for back annotation.
 
 --    Alignment_Clause (synthesized)
 --       Appllies to all entities for types and objects. If an alignment
@@ -518,11 +522,12 @@ package Einfo is
 --       Present in array types and string types. References component type.
 
 --    Constant_Value (synthesized)
---       Applies to constants, named integers, and named reals. Obtains
---       the initialization expression for the entity. Will return Empty for
---       for a deferred constant whose full view is not available or in some
---       other cases of internal entities, which cannot be treated as
---       constants from the point of view of constant folding.
+--       Applies to variables, constants, named integers, and named reals.
+--       Obtains the initialization expression for the entity. Will return
+--       Empty for for a deferred constant whose full view is not available
+--       or in some other cases of internal entities, which cannot be treated
+--       as constants from the point of view of constant folding. Empty is
+--       also returned for variables with no initialization expression.
 
 --    Corresponding_Concurrent_Type (Node18)
 --       Present in record types that are constructed by the expander to
@@ -556,6 +561,17 @@ package Einfo is
 --      discriminant of the corresponding record type. The CR_Discriminant is
 --      created at the same time as the discriminal, and used to replace
 --      occurrences of the discriminant within the type declaration.
+
+--    Current_Value (Node9)
+--       Present in E_Variable, E_Out_Parameter and E_In_Out_Parameter
+--       entities. Set non-Empty if the (constant) current value of the
+--       variable is known. This value is valid only for references from
+--       the same sequential scope as the entity. The sequential scope
+--       of an entity includes the immediate scope and any contained
+--       scopes that are package specs, package bodies, or blocks (at
+--       any nesting level). For convenience in coding, this field is
+--       also present in other object entities (E_Loop_Parameter and
+--       E_In_Parameter and E_Constant), but is always empty.
 
 --    Debug_Info_Off (Flag166)
 --       Present in all entities. Set if a pragma Suppress_Debug_Info applies
@@ -899,7 +915,8 @@ package Einfo is
 --       Present in all entities. Represents the type of the entity, which
 --       is itself another entity. For a type entity, points to the parent
 --       type for a derived type, or if the type is not derived, points to
---       itself. For a subtype entity, Etype points to the base type.
+--       itself. For a subtype entity, Etype points to the base type. For
+--       a class wide type, points to the parent type.
 
 --    Exception_Code (Uint22)
 --       Present in exception entitites. Set to zero unless either an
@@ -1032,6 +1049,8 @@ package Einfo is
 --       the enumeration type definition node. A special case occurs with
 --       standard character and wide character types, where this field is
 --       Empty, since there are no enumeration literal lists in these cases.
+--       Note that this field is set in enumeration subtypes, but it still
+--       points to the first literal of the base type in this case.
 
 --    First_Optional_Parameter (Node14)
 --       Present in (non-generic) function and procedure entities. Set to a
@@ -1115,6 +1134,12 @@ package Einfo is
 --       True if Targparm.Functions_Return_By_DSP_On_Target is True and
 --       the function returns a value of a type whose size is not known
 --       at compile time.
+
+--    Generic_Homonym (Node11)
+--       Present in generic packages. The generic homonym is the entity of
+--       a renaming declaration inserted in every generic unit. It is used
+--       to resolve the name of a local entity that is given by a qualified
+--       name, when the generic entity itself is hidden by a local name.
 
 --    Generic_Renamings (Elist23)
 --       Present in package and subprogram instances. Holds mapping that
@@ -1201,6 +1226,10 @@ package Einfo is
 --       Present in all type entities. Set if a component size clause is
 --       present for the given type. Note that this flag can be False even
 --       if Component_Size is non-zero (happens in the case of derived types).
+
+--    Has_Contiguous_Rep (Flag181)
+--       Present in enumeration types. True if the type as a representation
+--       clause whose entries are successive integers.
 
 --    Has_Controlling_Result (Flag98)
 --       Present in E_Function entities. True if The function is a primitive
@@ -1481,7 +1510,7 @@ package Einfo is
 --       Present in variables. Set only if a variable of a discrete type is
 --       hidden by a loop variable in the same local scope, in which case
 --       the Hiding_Loop_Variable field of the hidden variable points to
---       the E_Loop_Variable entity doing the hiding. Used in processing
+--       the E_Loop_Parameter entity doing the hiding. Used in processing
 --       warning messages if the hidden variable turns out to be unused
 --       or is referenced without being set.
 
@@ -2298,7 +2327,7 @@ package Einfo is
 --       be used by the code generator to indicate that the variable is in
 --       fact a constant, since some assignments in generated code do not
 --       count (for example, the call to an init_proc to assign some but
---       not all of the fields in a patially initialized record). The code
+--       not all of the fields in a partially initialized record). The code
 --       generator should instead use the flag Is_True_Constant.
 --
 --       In variables and out parameters, if this flag is set after full
@@ -2407,7 +2436,7 @@ package Einfo is
 --       value of First_Bit for the component, i.e. the offset within the
 --       lowest addressed storage unit containing part or all of the field.
 
---    Normalized_Position (Uint9)
+--    Normalized_Position (Uint14)
 --       Present in components and discriminants. Indicates the normalized
 --       value of Position for the component, i.e. the offset in storage
 --       units from the start of the record to the lowest addressed storage
@@ -2731,9 +2760,9 @@ package Einfo is
 --       set, in which case this is the entity for the shared memory read
 --       routine. See Exp_Smem for full details.
 
---    Size_Check_Code (Node9)
+--    Size_Check_Code (Node19)
 --       Present in constants and variables. Normally Empty. Set if code is
---       generated to check the size of the variable. This field is used to
+--       generated to check the size of the object. This field is used to
 --       suppress this code if a subsequent address clause is encountered.
 
 --    Size_Clause (synthesized)
@@ -3902,11 +3931,12 @@ package Einfo is
 
    --  E_Component
    --    Normalized_First_Bit          (Uint8)
-   --    Normalized_Position           (Uint9)
+   --    Current_Value                 (Node9)    (always Empty)
    --    Normalized_Position_Max       (Uint10)
    --    Component_Bit_Offset          (Uint11)
    --    Esize                         (Uint12)
    --    Component_Clause              (Node13)
+   --    Normalized_Position           (Uint14)
    --    DT_Entry_Count                (Uint15)
    --    Entry_Formal                  (Node16)
    --    Prival                        (Node17)
@@ -3925,13 +3955,14 @@ package Einfo is
 
    --  E_Constant
    --  E_Loop_Parameter
-   --    Size_Check_Code               (Node9)
+   --    Current_Value                 (Node9)    (always Empty)
    --    Discriminal_Link              (Node10)   (discriminals only)
    --    Full_View                     (Node11)
    --    Esize                         (Uint12)
    --    Alignment                     (Uint14)
    --    Actual_Subtype                (Node17)
    --    Renamed_Object                (Node18)
+   --    Size_Check_Code               (Node19)   (constants only)
    --    Interface_Name                (Node21)
    --    Has_Alignment_Clause          (Flag46)
    --    Has_Atomic_Components         (Flag86)
@@ -3964,11 +3995,12 @@ package Einfo is
 
    --  E_Discriminant
    --    Normalized_First_Bit          (Uint8)
-   --    Normalized_Position           (Uint9)
+   --    Current_Value                 (Node9)    (always Empty)
    --    Normalized_Position_Max       (Uint10)
    --    Component_Bit_Offset          (Uint11)
    --    Esize                         (Uint12)
    --    Component_Clause              (Node13)
+   --    Normalized_Position           (Uint14)
    --    Discriminant_Number           (Uint15)
    --    Discriminal                   (Node17)
    --    Renamed_Object                (Node18)   (always Empty)
@@ -4023,6 +4055,7 @@ package Einfo is
    --    Scalar_Range                  (Node20)
    --    Enum_Pos_To_Rep               (Node23)   (type only, not subtype)
    --    Has_Biased_Representation     (Flag139)
+   --    Has_Contiguous_Rep            (Flag181)
    --    Has_Enumeration_Rep_Clause    (Flag66)
    --    Nonzero_Is_True               (Flag162)  (base type only)
    --    Type_Low_Bound                (synth)
@@ -4030,6 +4063,7 @@ package Einfo is
    --    (plus type attributes)
 
    --  E_Exception
+   --    Alignment                     (Uint14)
    --    Renamed_Entity                (Node18)
    --    Register_Exception_Call       (Node20)
    --    Interface_Name                (Node21)
@@ -4118,6 +4152,7 @@ package Einfo is
 
    --  E_Generic_In_Parameter
    --  E_Generic_In_Out_Parameter
+   --    Current_Value                 (Node9)    (always Empty)
    --    Entry_Component               (Node11)
    --    Actual_Subtype                (Node17)
    --    Renamed_Object                (Node18)   (always Empty)
@@ -4139,6 +4174,7 @@ package Einfo is
    --  E_In_Out_Parameter
    --  E_Out_Parameter
    --    Mechanism                     (Uint8)    (returns Mechanism_Type)
+   --    Current_Value                 (Node9)    (always Empty for IN case)
    --    Discriminal_Link              (Node10)   (discriminals only)
    --    Entry_Component               (Node11)
    --    Esize                         (Uint12)
@@ -4225,6 +4261,7 @@ package Einfo is
    --    Dependent_Instances           (Elist8)   (for an instance)
    --    Renaming_Map                  (Uint9)
    --    Handler_Records               (List10)   (non-generic case only)
+   --    Generic_Homonym               (Node11)   (generic case only)
    --    Associated_Formal_Package     (Node12)
    --    Elaboration_Entity            (Node13)
    --    Shadow_Entities               (List14)
@@ -4483,7 +4520,7 @@ package Einfo is
 
    --  E_Variable
    --    Hiding_Loop_Variable          (Node8)
-   --    Size_Check_Code               (Node9)
+   --    Current_Value                 (Node9)
    --    Esize                         (Uint12)
    --    Extra_Accessibility           (Node13)
    --    Alignment                     (Uint14)
@@ -4491,6 +4528,7 @@ package Einfo is
    --    Unset_Reference               (Node16)
    --    Actual_Subtype                (Node17)
    --    Renamed_Object                (Node18)
+   --    Size_Check_Code               (Node19)
    --    Interface_Name                (Node21)
    --    Shared_Var_Assign_Proc        (Node22)
    --    Extra_Constrained             (Node23)
@@ -4508,6 +4546,7 @@ package Einfo is
    --    Not_Source_Assigned           (Flag115)
    --    Address_Clause                (synth)
    --    Alignment_Clause              (synth)
+   --    Constant_Value                (synth)
    --    Size_Clause                   (synth)
 
    --  E_Void
@@ -4776,6 +4815,7 @@ package Einfo is
    function Corresponding_Equality             (Id : E) return E;
    function Corresponding_Record_Type          (Id : E) return E;
    function Corresponding_Remote_Type          (Id : E) return E;
+   function Current_Value                      (Id : E) return N;
    function Debug_Info_Off                     (Id : E) return B;
    function Debug_Renaming_Link                (Id : E) return E;
    function DTC_Entity                         (Id : E) return E;
@@ -4832,6 +4872,7 @@ package Einfo is
    function From_With_Type                     (Id : E) return B;
    function Full_View                          (Id : E) return E;
    function Function_Returns_With_DSP          (Id : E) return B;
+   function Generic_Homonym                    (Id : E) return E;
    function Generic_Renamings                  (Id : E) return L;
    function Girder_Constraint                  (Id : E) return L;
    function Handler_Records                    (Id : E) return S;
@@ -4844,6 +4885,7 @@ package Einfo is
    function Has_Completion_In_Body             (Id : E) return B;
    function Has_Complex_Representation         (Id : E) return B;
    function Has_Component_Size_Clause          (Id : E) return B;
+   function Has_Contiguous_Rep                 (Id : E) return B;
    function Has_Controlled_Component           (Id : E) return B;
    function Has_Controlling_Result             (Id : E) return B;
    function Has_Convention_Pragma              (Id : E) return B;
@@ -5237,6 +5279,7 @@ package Einfo is
    procedure Set_Corresponding_Equality        (Id : E; V : E);
    procedure Set_Corresponding_Record_Type     (Id : E; V : E);
    procedure Set_Corresponding_Remote_Type     (Id : E; V : E);
+   procedure Set_Current_Value                 (Id : E; V : N);
    procedure Set_Debug_Info_Off                (Id : E; V : B := True);
    procedure Set_Debug_Renaming_Link           (Id : E; V : E);
    procedure Set_DTC_Entity                    (Id : E; V : E);
@@ -5292,6 +5335,7 @@ package Einfo is
    procedure Set_From_With_Type                (Id : E; V : B := True);
    procedure Set_Full_View                     (Id : E; V : E);
    procedure Set_Function_Returns_With_DSP     (Id : E; V : B := True);
+   procedure Set_Generic_Homonym               (Id : E; V : E);
    procedure Set_Generic_Renamings             (Id : E; V : L);
    procedure Set_Girder_Constraint             (Id : E; V : L);
    procedure Set_Handler_Records               (Id : E; V : S);
@@ -5304,6 +5348,7 @@ package Einfo is
    procedure Set_Has_Completion_In_Body        (Id : E; V : B := True);
    procedure Set_Has_Complex_Representation    (Id : E; V : B := True);
    procedure Set_Has_Component_Size_Clause     (Id : E; V : B := True);
+   procedure Set_Has_Contiguous_Rep            (Id : E; V : B := True);
    procedure Set_Has_Controlled_Component      (Id : E; V : B := True);
    procedure Set_Has_Controlling_Result        (Id : E; V : B := True);
    procedure Set_Has_Convention_Pragma         (Id : E; V : B := True);
@@ -5721,6 +5766,7 @@ package Einfo is
    pragma Inline (Corresponding_Equality);
    pragma Inline (Corresponding_Record_Type);
    pragma Inline (Corresponding_Remote_Type);
+   pragma Inline (Current_Value);
    pragma Inline (Debug_Info_Off);
    pragma Inline (Debug_Renaming_Link);
    pragma Inline (DTC_Entity);
@@ -5776,6 +5822,7 @@ package Einfo is
    pragma Inline (From_With_Type);
    pragma Inline (Full_View);
    pragma Inline (Function_Returns_With_DSP);
+   pragma Inline (Generic_Homonym);
    pragma Inline (Generic_Renamings);
    pragma Inline (Girder_Constraint);
    pragma Inline (Handler_Records);
@@ -5788,6 +5835,7 @@ package Einfo is
    pragma Inline (Has_Completion_In_Body);
    pragma Inline (Has_Complex_Representation);
    pragma Inline (Has_Component_Size_Clause);
+   pragma Inline (Has_Contiguous_Rep);
    pragma Inline (Has_Controlled_Component);
    pragma Inline (Has_Controlling_Result);
    pragma Inline (Has_Convention_Pragma);
@@ -6059,6 +6107,7 @@ package Einfo is
    pragma Inline (Set_Corresponding_Equality);
    pragma Inline (Set_Corresponding_Record_Type);
    pragma Inline (Set_Corresponding_Remote_Type);
+   pragma Inline (Set_Current_Value);
    pragma Inline (Set_Debug_Info_Off);
    pragma Inline (Set_Debug_Renaming_Link);
    pragma Inline (Set_DTC_Entity);
@@ -6111,6 +6160,7 @@ package Einfo is
    pragma Inline (Set_From_With_Type);
    pragma Inline (Set_Full_View);
    pragma Inline (Set_Function_Returns_With_DSP);
+   pragma Inline (Set_Generic_Homonym);
    pragma Inline (Set_Generic_Renamings);
    pragma Inline (Set_Girder_Constraint);
    pragma Inline (Set_Handler_Records);
@@ -6123,6 +6173,7 @@ package Einfo is
    pragma Inline (Set_Has_Completion_In_Body);
    pragma Inline (Set_Has_Complex_Representation);
    pragma Inline (Set_Has_Component_Size_Clause);
+   pragma Inline (Set_Has_Contiguous_Rep);
    pragma Inline (Set_Has_Controlled_Component);
    pragma Inline (Set_Has_Controlling_Result);
    pragma Inline (Set_Has_Convention_Pragma);

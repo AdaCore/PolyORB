@@ -84,8 +84,7 @@ package body Einfo is
    --    Normalized_First_Bit            Uint8
 
    --    Class_Wide_Type                 Node9
-   --    Normalized_Position             Uint9
-   --    Size_Check_Code                 Node9
+   --    Current_Value                   Node9
    --    Renaming_Map                    Uint9
 
    --    Discriminal_Link                Node10
@@ -97,6 +96,7 @@ package body Einfo is
    --    Full_View                       Node11
    --    Entry_Component                 Node11
    --    Enumeration_Pos                 Uint11
+   --    Generic_Homonym                 Node11
    --    Protected_Body_Subprogram       Node11
    --    Block_Node                      Node11
 
@@ -114,6 +114,7 @@ package body Einfo is
 
    --    Alignment                       Uint14
    --    First_Optional_Parameter        Node14
+   --    Normalized_Position             Uint14
    --    Shadow_Entities                 List14
 
    --    Discriminant_Number             Uint15
@@ -165,6 +166,7 @@ package body Einfo is
    --    Finalization_Chain_Entity       Node19
    --    Parent_Subtype                  Node19
    --    Related_Array_Object            Node19
+   --    Size_Check_Code                 Node19
    --    Spec_Entity                     Node19
    --    Underlying_Full_View            Node19
 
@@ -396,8 +398,8 @@ package body Einfo is
    --    Is_Null_Init_Proc              Flag178
    --    Has_Pragma_Pure_Function       Flag179
    --    Has_Pragma_Unreferenced        Flag180
+   --    Has_Contiguous_Rep             Flag181
 
-   --    (unused)                       Flag181
    --    (unused)                       Flag182
    --    (unused)                       Flag183
 
@@ -440,6 +442,12 @@ package body Einfo is
 
    function Alignment (Id : E) return U is
    begin
+      pragma Assert (Is_Type (Id)
+                       or else Is_Formal (Id)
+                       or else Ekind (Id) = E_Loop_Parameter
+                       or else Ekind (Id) = E_Constant
+                       or else Ekind (Id) = E_Exception
+                       or else Ekind (Id) = E_Variable);
       return Uint14 (Id);
    end Alignment;
 
@@ -561,6 +569,12 @@ package body Einfo is
    begin
       return Node22 (Id);
    end Corresponding_Remote_Type;
+
+   function Current_Value (Id : E) return N is
+   begin
+      pragma Assert (Ekind (Id) in Object_Kind);
+      return Node9 (Id);
+   end Current_Value;
 
    function CR_Discriminant (Id : E) return E is
    begin
@@ -894,6 +908,12 @@ package body Einfo is
       return Flag169 (Id);
    end Function_Returns_With_DSP;
 
+   function Generic_Homonym (Id : E) return E is
+   begin
+      pragma Assert (Ekind (Id) = E_Generic_Package);
+      return Node11 (Id);
+   end Generic_Homonym;
+
    function Generic_Renamings (Id : E) return L is
    begin
       return Elist23 (Id);
@@ -963,6 +983,11 @@ package body Einfo is
    begin
       return Flag43 (Base_Type (Id));
    end Has_Controlled_Component;
+
+   function Has_Contiguous_Rep (Id : E) return B is
+   begin
+      return Flag181 (Id);
+   end Has_Contiguous_Rep;
 
    function Has_Controlling_Result (Id : E) return B is
    begin
@@ -1705,7 +1730,7 @@ package body Einfo is
    begin
       pragma Assert
         (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
-      return Uint9 (Id);
+      return Uint14 (Id);
    end Normalized_Position;
 
    function Normalized_Position_Max (Id : E) return U is
@@ -1911,7 +1936,7 @@ package body Einfo is
    function Size_Check_Code (Id : E) return N is
    begin
       pragma Assert (Ekind (Id) = E_Constant or else Ekind (Id) = E_Variable);
-      return Node9 (Id);
+      return Node19 (Id);
    end Size_Check_Code;
 
    function Size_Depends_On_Discriminant (Id : E) return B is
@@ -2302,6 +2327,12 @@ package body Einfo is
 
    procedure Set_Alignment (Id : E; V : U) is
    begin
+      pragma Assert (Is_Type (Id)
+                       or else Is_Formal (Id)
+                       or else Ekind (Id) = E_Loop_Parameter
+                       or else Ekind (Id) = E_Constant
+                       or else Ekind (Id) = E_Exception
+                       or else Ekind (Id) = E_Variable);
       Set_Uint14 (Id, V);
    end Set_Alignment;
 
@@ -2402,6 +2433,12 @@ package body Einfo is
    begin
       Set_Node22 (Id, V);
    end Set_Corresponding_Remote_Type;
+
+   procedure Set_Current_Value (Id : E; V : E) is
+   begin
+      pragma Assert (Ekind (Id) in Object_Kind or else Ekind (Id) = E_Void);
+      Set_Node9 (Id, V);
+   end Set_Current_Value;
 
    procedure Set_CR_Discriminant (Id : E; V : E) is
    begin
@@ -2744,6 +2781,11 @@ package body Einfo is
       Set_Flag169 (Id, V);
    end Set_Function_Returns_With_DSP;
 
+   procedure Set_Generic_Homonym (Id : E; V : E) is
+   begin
+      Set_Node11 (Id, V);
+   end Set_Generic_Homonym;
+
    procedure Set_Generic_Renamings (Id : E; V : L) is
    begin
       Set_Elist23 (Id, V);
@@ -2811,6 +2853,11 @@ package body Einfo is
       pragma Assert (Ekind (Id) = E_Array_Type);
       Set_Flag68 (Id, V);
    end Set_Has_Component_Size_Clause;
+
+   procedure Set_Has_Contiguous_Rep (Id : E; V : B := True) is
+   begin
+      Set_Flag181 (Id, V);
+   end Set_Has_Contiguous_Rep;
 
    procedure Set_Has_Controlled_Component (Id : E; V : B := True) is
    begin
@@ -3593,7 +3640,7 @@ package body Einfo is
    begin
       pragma Assert
         (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
-      Set_Uint9 (Id, V);
+      Set_Uint14 (Id, V);
    end Set_Normalized_Position;
 
    procedure Set_Normalized_Position_Max (Id : E; V : U) is
@@ -3801,7 +3848,7 @@ package body Einfo is
    procedure Set_Size_Check_Code (Id : E; V : N) is
    begin
       pragma Assert (Ekind (Id) = E_Constant or else Ekind (Id) = E_Variable);
-      Set_Node9 (Id, V);
+      Set_Node19 (Id, V);
    end Set_Size_Check_Code;
 
    procedure Set_Size_Depends_On_Discriminant (Id : E; V : B := True) is
@@ -4015,12 +4062,12 @@ package body Einfo is
 
    procedure Init_Normalized_Position (Id : E) is
    begin
-      Set_Uint9 (Id, No_Uint);
+      Set_Uint14 (Id, No_Uint);
    end Init_Normalized_Position;
 
    procedure Init_Normalized_Position (Id : E; V : Int) is
    begin
-      Set_Uint9 (Id, UI_From_Int (V));
+      Set_Uint14 (Id, UI_From_Int (V));
    end Init_Normalized_Position;
 
    procedure Init_Normalized_Position_Max (Id : E) is
@@ -4050,10 +4097,10 @@ package body Einfo is
    procedure Init_Component_Location (Id : E) is
    begin
       Set_Uint8  (Id, No_Uint);  -- Normalized_First_Bit
-      Set_Uint9  (Id, No_Uint);  -- Normalized_Position
+      Set_Uint10 (Id, No_Uint);  -- Normalized_Position_Max
       Set_Uint11 (Id, No_Uint);  -- Component_First_Bit
       Set_Uint12 (Id, Uint_0);   -- Esize
-      Set_Uint10 (Id, No_Uint);  -- Normalized_Position_Max
+      Set_Uint14 (Id, No_Uint);  -- Normalized_Position
    end Init_Component_Location;
 
    ---------------
@@ -4111,7 +4158,7 @@ package body Einfo is
 
    function Known_Normalized_Position             (E : Entity_Id) return B is
    begin
-      return Uint9 (E) /= No_Uint;
+      return Uint14 (E) /= No_Uint;
    end Known_Normalized_Position;
 
    function Known_Normalized_Position_Max         (E : Entity_Id) return B is
@@ -4150,8 +4197,8 @@ package body Einfo is
 
    function Known_Static_Normalized_Position      (E : Entity_Id) return B is
    begin
-      return Uint9 (E) /= No_Uint
-        and then Uint9 (E) >= Uint_0;
+      return Uint14 (E) /= No_Uint
+        and then Uint14 (E) >= Uint_0;
    end Known_Static_Normalized_Position;
 
    function Known_Static_Normalized_Position_Max  (E : Entity_Id) return B is
@@ -4198,7 +4245,7 @@ package body Einfo is
 
    function Unknown_Normalized_Position           (E : Entity_Id) return B is
    begin
-      return Uint9 (E) = No_Uint;
+      return Uint14 (E) = No_Uint;
    end Unknown_Normalized_Position;
 
    function Unknown_Normalized_Position_Max       (E : Entity_Id) return B is
@@ -4365,7 +4412,7 @@ package body Einfo is
    --      True         True        Calign_Storage_Unit
 
    function Component_Alignment (Id : E) return C is
-      BT : Node_Id := Base_Type (Id);
+      BT : constant Node_Id := Base_Type (Id);
 
    begin
       pragma Assert (Is_Array_Type (Id) or else Is_Record_Type (Id));
@@ -4414,23 +4461,30 @@ package body Einfo is
       elsif Nkind (D) = N_Component_Declaration then
          return Empty;
 
-      else
-         if Present (Expression (D)) then
-            return (Expression (D));
+      --  If there is an expression, return it
 
-         elsif Present (Full_View (Id)) then
-            Full_D := Parent (Full_View (Id));
+      elsif Present (Expression (D)) then
+         return (Expression (D));
 
-            --  The full view may have been rewritten as an object renaming.
+      --  For a constant, see if we have a full view
 
-            if Nkind (Full_D) = N_Object_Renaming_Declaration then
-               return Name (Full_D);
-            else
-               return Expression (Full_D);
-            end if;
+      elsif Ekind (Id) = E_Constant
+        and then Present (Full_View (Id))
+      then
+         Full_D := Parent (Full_View (Id));
+
+         --  The full view may have been rewritten as an object renaming.
+
+         if Nkind (Full_D) = N_Object_Renaming_Declaration then
+            return Name (Full_D);
          else
-            return Empty;
+            return Expression (Full_D);
          end if;
+
+      --  Otherwise we have no expression to return
+
+      else
+         return Empty;
       end if;
    end Constant_Value;
 
@@ -5935,6 +5989,7 @@ package body Einfo is
       W ("Has_Completion_In_Body",        Flag71  (Id));
       W ("Has_Complex_Representation",    Flag140 (Id));
       W ("Has_Component_Size_Clause",     Flag68  (Id));
+      W ("Has_Contiguous_Rep",            Flag181 (Id));
       W ("Has_Controlled_Component",      Flag43  (Id));
       W ("Has_Controlling_Result",        Flag98  (Id));
       W ("Has_Convention_Pragma",         Flag119 (Id));
@@ -6271,9 +6326,6 @@ package body Einfo is
          when Type_Kind                                  =>
             Write_Str ("Class_Wide_Type");
 
-         when E_Constant | E_Variable                    =>
-            Write_Str ("Size_Check_Code");
-
          when E_Function                                 |
               E_Generic_Function                         |
               E_Generic_Package                          |
@@ -6282,9 +6334,8 @@ package body Einfo is
               E_Procedure                                =>
             Write_Str ("Renaming_Map");
 
-         when E_Component                                |
-              E_Discriminant                             =>
-            Write_Str ("Normalized_Position");
+         when Object_Kind                                =>
+            Write_Str ("Current_Value");
 
          when others                                     =>
             Write_Str ("Field9??");
@@ -6348,6 +6399,9 @@ package body Einfo is
               E_Entry                                    |
               E_Entry_Family                             =>
             Write_Str ("Protected_Body_Subprogram");
+
+         when E_Generic_Package                          =>
+            Write_Str ("Generic_Homonym");
 
          when Type_Kind                                  =>
             Write_Str ("Full_View");
@@ -6446,8 +6500,15 @@ package body Einfo is
    begin
       case Ekind (Id) is
          when Type_Kind                                  |
-              Object_Kind                                =>
+              Formal_Kind                                |
+              E_Constant                                 |
+              E_Variable                                 |
+              E_Loop_Parameter                           =>
             Write_Str ("Alignment");
+
+         when E_Component                                |
+              E_Discriminant                             =>
+            Write_Str ("Normalized_Position");
 
          when E_Function                                 |
               E_Procedure                                =>
@@ -6695,6 +6756,9 @@ package body Einfo is
               E_Procedure                                |
               Entry_Kind                                 =>
             Write_Str ("Finalization_Chain_Entity");
+
+         when E_Constant | E_Variable                    =>
+            Write_Str ("Size_Check_Code");
 
          when E_Discriminant                             =>
             Write_Str ("Corresponding_Discriminant");

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001-2002 Free Software Foundation, Inc.       --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -48,7 +48,7 @@ package body Prj is
 
    subtype Known_Casing is Casing_Type range All_Upper_Case .. Mixed_Case;
 
-   The_Casing_Images : array (Known_Casing) of String_Access :=
+   The_Casing_Images : constant array (Known_Casing) of String_Access :=
      (All_Lower_Case => new String'("lowercase"),
       All_Upper_Case => new String'("UPPERCASE"),
       Mixed_Case     => new String'("MixedCase"));
@@ -77,37 +77,42 @@ package body Prj is
       Implementation_Exceptions => No_Array_Element);
 
    Project_Empty : constant Project_Data :=
-     (First_Referred_By            => No_Project,
-      Name                         => No_Name,
-      Path_Name                    => No_Name,
-      Location                     => No_Location,
-      Directory                    => No_Name,
-      Library                      => False,
-      Library_Dir                  => No_Name,
-      Library_Name                 => No_Name,
-      Library_Kind                 => Static,
-      Lib_Internal_Name            => No_Name,
-      Lib_Elaboration              => False,
-      Sources_Present              => True,
-      Sources                      => Nil_String,
-      Source_Dirs                  => Nil_String,
-      Object_Directory             => No_Name,
-      Exec_Directory               => No_Name,
-      Modifies                     => No_Project,
-      Modified_By                  => No_Project,
-      Naming                       => Std_Naming_Data,
-      Decl                         => No_Declarations,
-      Imported_Projects            => Empty_Project_List,
-      Include_Path                 => null,
-      Objects_Path                 => null,
-      Config_File_Name             => No_Name,
-      Config_File_Temp             => False,
-      Config_Checked               => False,
-      Language_Independent_Checked => False,
-      Checked                      => False,
-      Seen                         => False,
-      Flag1                        => False,
-      Flag2                        => False);
+     (First_Referred_By              => No_Project,
+      Name                           => No_Name,
+      Path_Name                      => No_Name,
+      Location                       => No_Location,
+      Mains                          => Nil_String,
+      Directory                      => No_Name,
+      Dir_Path                       => null,
+      Library                        => False,
+      Library_Dir                    => No_Name,
+      Library_Name                   => No_Name,
+      Library_Kind                   => Static,
+      Lib_Internal_Name              => No_Name,
+      Lib_Elaboration                => False,
+      Sources_Present                => True,
+      Sources                        => Nil_String,
+      Source_Dirs                    => Nil_String,
+      Object_Directory               => No_Name,
+      Exec_Directory                 => No_Name,
+      Extends                        => No_Project,
+      Extended_By                    => No_Project,
+      Naming                         => Std_Naming_Data,
+      Decl                           => No_Declarations,
+      Imported_Projects              => Empty_Project_List,
+      Ada_Include_Path               => null,
+      Ada_Objects_Path               => null,
+      Include_Path_File              => null,
+      Objects_Path_File_With_Libs    => null,
+      Objects_Path_File_Without_Libs => null,
+      Config_File_Name               => No_Name,
+      Config_File_Temp               => False,
+      Config_Checked                 => False,
+      Language_Independent_Checked   => False,
+      Checked                        => False,
+      Seen                           => False,
+      Flag1                          => False,
+      Flag2                          => False);
 
    -------------------
    -- Empty_Project --
@@ -271,6 +276,7 @@ package body Prj is
       if not Found then
          Element :=
            (Index => Lang,
+            Index_Case_Sensitive => False,
             Value => (Kind     => Single,
                       Location => No_Location,
                       Default  => False,
@@ -300,6 +306,7 @@ package body Prj is
       if not Found then
          Element :=
            (Index => Lang,
+            Index_Case_Sensitive => False,
             Value => (Kind     => Single,
                       Location => No_Location,
                       Default  => False,

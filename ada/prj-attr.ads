@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001-2002 Free Software Foundation, Inc.       --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -47,7 +47,7 @@ package Prj.Attr is
      range Attribute_Node_Low_Bound .. Attribute_Node_High_Bound;
 
    First_Attribute_Node_Id : constant Attribute_Node_Id :=
-                               Attribute_Node_Low_Bound;
+                               Attribute_Node_Low_Bound + 1;
 
    Empty_Attribute : constant Attribute_Node_Id :=
                        Attribute_Node_Low_Bound;
@@ -72,7 +72,7 @@ package Prj.Attr is
                        Table_Increment      => Attributes_Increment,
                        Table_Name           => "Prj.Attr.Attributes");
 
-   Attribute_First : constant Attribute_Node_Id := First_Attribute_Node_Id + 1;
+   Attribute_First : constant Attribute_Node_Id := First_Attribute_Node_Id;
 
    --  Define the allowed packages
 
@@ -86,7 +86,7 @@ package Prj.Attr is
      range Package_Node_Low_Bound .. Package_Node_High_Bound;
 
    First_Package_Node_Id : constant Package_Node_Id :=
-                             Package_Node_Low_Bound;
+                             Package_Node_Low_Bound + 1;
 
    Empty_Package : constant Package_Node_Id := Package_Node_Low_Bound;
 
@@ -103,7 +103,7 @@ package Prj.Attr is
                        Table_Increment      => Packages_Increment,
                        Table_Name           => "Prj.Attr.Packages");
 
-   Package_First : constant Package_Node_Id := Package_Node_Low_Bound + 1;
+   Package_First : constant Package_Node_Id := First_Package_Node_Id;
 
    procedure Initialize;
    --  Initialize the two tables above (Attributes and Package_Attributes).

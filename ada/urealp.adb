@@ -8,7 +8,7 @@
 --                                                                          --
 --                             $Revision$
 --                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -609,7 +609,7 @@ package body Urealp is
    ----------------
 
    function UR_Ceiling (Real : Ureal) return Uint is
-      Val : Ureal_Entry := Normalize (Ureals.Table (Real));
+      Val : constant Ureal_Entry := Normalize (Ureals.Table (Real));
 
    begin
       if Val.Negative then
@@ -772,9 +772,9 @@ package body Urealp is
    ---------------------
 
    function UR_Exponentiate (Real : Ureal; N : Uint) return Ureal is
+      X    : constant Uint := abs N;
       Bas  : Ureal;
       Val  : Ureal_Entry;
-      X    : Uint := abs N;
       Neg  : Boolean;
       IBas : Uint;
 
@@ -852,7 +852,7 @@ package body Urealp is
    --------------
 
    function UR_Floor (Real : Ureal) return Uint is
-      Val : Ureal_Entry := Normalize (Ureals.Table (Real));
+      Val : constant Ureal_Entry := Normalize (Ureals.Table (Real));
 
    begin
       if Val.Negative then
@@ -862,9 +862,9 @@ package body Urealp is
       end if;
    end UR_Floor;
 
-   -------------------------
-   --  UR_From_Components --
-   -------------------------
+   ------------------------
+   -- UR_From_Components --
+   ------------------------
 
    function UR_From_Components
      (Num      : Uint;
@@ -1262,7 +1262,7 @@ package body Urealp is
    ----------------
 
    function UR_To_Uint (Real : Ureal) return Uint is
-      Val : Ureal_Entry := Normalize (Ureals.Table (Real));
+      Val : constant Ureal_Entry := Normalize (Ureals.Table (Real));
       Res : Uint;
 
    begin

@@ -65,7 +65,7 @@ package body Snames is
      "space#" &
      "time#" &
      "_init_proc#" &
-     "_size#" &
+     "_alignment#" &
      "_abort_signal#" &
      "_address_resolver#" &
      "_assign#" &
@@ -82,6 +82,7 @@ package body Snames is
      "_object#" &
      "_priority#" &
      "_service#" &
+     "_size#" &
      "_tags#" &
      "_task#" &
      "_task_id#" &
@@ -220,6 +221,7 @@ package body Snames is
      "export_function#" &
      "export_object#" &
      "export_procedure#" &
+     "export_value#" &
      "export_valued_procedure#" &
      "external#" &
      "finalize_storage_only#" &
@@ -437,6 +439,7 @@ package body Snames is
      "small#" &
      "storage_size#" &
      "storage_unit#" &
+     "subtype_alignment#" &
      "tag#" &
      "terminated#" &
      "to_address#" &
@@ -593,7 +596,7 @@ package body Snames is
      "extends#" &
      "finder#" &
      "gnatls#" &
-     "gnatstub#" &
+     "pretty_printer#" &
      "implementation#" &
      "implementation_exceptions#" &
      "implementation_suffix#" &

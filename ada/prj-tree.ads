@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001-2002 Free Software Foundation, Inc.       --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -97,6 +97,9 @@ package Prj.Tree is
    --  Returns a Project_Node_Record with the specified Kind and
    --  Expr_Kind; all the other components have default nil values.
 
+   function Hash (N : Project_Node_Id) return Header_Num;
+   --  Used for hash tables where the key is a Project_Node_Id
+
    ----------------------
    -- Access Functions --
    ----------------------
@@ -151,12 +154,17 @@ package Prj.Tree is
       return  Project_Node_Id;
    --  Only valid for N_Project nodes
 
+   function Extending_Project_Of
+     (Node  : Project_Node_Id)
+      return  Project_Node_Id;
+   --  Only valid for N_Project_Declaration nodes
+
    function First_String_Type_Of
      (Node  : Project_Node_Id)
       return  Project_Node_Id;
    --  Only valid for N_Project nodes
 
-   function Modified_Project_Path_Of
+   function Extended_Project_Path_Of
      (Node  : Project_Node_Id)
       return  String_Id;
    --  Only valid for N_With_Clause nodes
@@ -176,7 +184,7 @@ package Prj.Tree is
       return  Project_Node_Id;
    --  Only valid for N_With_Clause nodes
 
-   function Modified_Project_Of
+   function Extended_Project_Of
      (Node  : Project_Node_Id)
       return Project_Node_Id;
    --  Only valid for N_With_Clause nodes
@@ -371,11 +379,15 @@ package Prj.Tree is
      (Node : Project_Node_Id;
       To   : Project_Node_Id);
 
+   procedure Set_Extending_Project_Of
+     (Node : Project_Node_Id;
+      To   : Project_Node_Id);
+
    procedure Set_First_String_Type_Of
      (Node : Project_Node_Id;
       To   : Project_Node_Id);
 
-   procedure Set_Modified_Project_Path_Of
+   procedure Set_Extended_Project_Path_Of
      (Node : Project_Node_Id;
       To   : String_Id);
 
@@ -391,7 +403,7 @@ package Prj.Tree is
      (Node : Project_Node_Id;
       To   : Project_Node_Id);
 
-   procedure Set_Modified_Project_Of
+   procedure Set_Extended_Project_Of
      (Node : Project_Node_Id;
       To   : Project_Node_Id);
 
@@ -562,7 +574,7 @@ package Prj.Tree is
       --    --  Field1:    first with clause
       --    --  Field2:    project declaration
       --    --  Field3:    first string type
-      --    --  Value:     modified project path name (if any)
+      --    --  Value:     extended project path name (if any)
 
       --    N_With_Clause,
       --    --  Name:      imported project name
@@ -578,8 +590,8 @@ package Prj.Tree is
       --    --  Path_Name: not used
       --    --  Expr_Kind: Undefined
       --    --  Field1:    first declarative item
-      --    --  Field2:    modified project
-      --    --  Field3:    not used
+      --    --  Field2:    extended project
+      --    --  Field3:    extending project
       --    --  Value:     not used
 
       --    N_Declarative_Item,
@@ -744,12 +756,12 @@ package Prj.Tree is
          Node : Project_Node_Id;
          --  Node of the project in table Project_Nodes
 
-         Modified : Boolean;
-         --  True when the project is being modified by another project
+         Extended : Boolean;
+         --  True when the project is being extended by another project
       end record;
 
       No_Project_Name_And_Node : constant Project_Name_And_Node :=
-        (Name => No_Name, Node => Empty_Node, Modified => True);
+        (Name => No_Name, Node => Empty_Node, Extended => True);
 
       package Projects_Htable is new GNAT.HTable.Simple_HTable
         (Header_Num => Header_Num,

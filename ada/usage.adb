@@ -151,13 +151,13 @@ begin
 
    --  Line for -gnatec switch
 
-   Write_Switch_Char ("ec?");
-   Write_Line ("Specify configuration pragmas file, e.g. -gnatec/x/f.adc");
+   Write_Switch_Char ("ec=?");
+   Write_Line ("Specify configuration pragmas file, e.g. -gnatec=/x/f.adc");
 
    --  Line for -gnatem switch
 
-   Write_Switch_Char ("em?");
-   Write_Line ("Specify mapping file, e.g. -gnatemmapping");
+   Write_Switch_Char ("em=?");
+   Write_Line ("Specify mapping file, e.g. -gnatem=mapping");
 
    --  Line for -gnatE switch
 
@@ -319,10 +319,10 @@ begin
 
    Write_Switch_Char ("wxx");
    Write_Line ("Enable selected warning modes, xx = list of parameters:");
-   Write_Line ("        a    turn on all optional warnings (except b,d,h)");
+   Write_Line ("        a    turn on all optional warnings (except b,d,h,l)");
    Write_Line ("        A    turn off all optional warnings");
    Write_Line ("        b    turn on biased rounding warnings");
-   Write_Line ("        B    turn off biased rounding warnings");
+   Write_Line ("        B*   turn off biased rounding warnings");
    Write_Line ("        c    turn on constant conditional warnings");
    Write_Line ("        C*   turn off constant conditional warnings");
    Write_Line ("        d    turn on implicit dereference warnings");
@@ -334,6 +334,8 @@ begin
    Write_Line ("        H*   turn off warnings for hiding variables");
    Write_Line ("        i*   turn on warnings for implementation units");
    Write_Line ("        I    turn off warnings for implementation units");
+   Write_Line ("        k    turn on warnings on constant variables");
+   Write_Line ("        K*   turn off warnings on constant variables");
    Write_Line ("        l    turn on elaboration warnings");
    Write_Line ("        L*   turn off elaboration warnings");
    Write_Line ("        o*   turn on address clause overlay warnings");

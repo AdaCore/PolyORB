@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001-2002 Free Software Foundation, Inc.       --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,9 +28,11 @@
 
 with Ada.Unchecked_Deallocation;
 
+with GNAT.Case_Util; use GNAT.Case_Util;
+
 with Namet;    use Namet;
-with Osint;
 with Output;   use Output;
+with Prj.Com;
 with Stringt;  use Stringt;
 
 package body Prj.Util is
@@ -45,7 +47,7 @@ package body Prj.Util is
    procedure Close (File : in out Text_File) is
    begin
       if File = null then
-         Osint.Fail ("Close attempted on an invalid Text_File");
+         Prj.Com.Fail ("Close attempted on an invalid Text_File");
       end if;
 
       Close (File.FD);
@@ -59,7 +61,7 @@ package body Prj.Util is
    function End_Of_File (File : Text_File) return Boolean is
    begin
       if File = null then
-         Osint.Fail ("End_Of_File attempted on an invalid Text_File");
+         Prj.Com.Fail ("End_Of_File attempted on an invalid Text_File");
       end if;
 
       return File.End_Of_File_Reached;
@@ -107,7 +109,7 @@ package body Prj.Util is
 
    begin
       if File = null then
-         Osint.Fail ("Get_Line attempted on an invalid Text_File");
+         Prj.Com.Fail ("Get_Line attempted on an invalid Text_File");
       end if;
 
       Last := Line'First - 1;
@@ -209,14 +211,27 @@ package body Prj.Util is
       In_Array : Array_Element_Id)
       return     Name_Id
    is
-      Current : Array_Element_Id := In_Array;
-      Element : Array_Element;
+      Current    : Array_Element_Id := In_Array;
+      Element    : Array_Element;
+      Real_Index : Name_Id := Index;
 
    begin
+      if Current = No_Array_Element then
+         return No_Name;
+      end if;
+
+      Element := Array_Elements.Table (Current);
+
+      if not Element.Index_Case_Sensitive then
+         Get_Name_String (Index);
+         To_Lower (Name_Buffer (1 .. Name_Len));
+         Real_Index := Name_Find;
+      end if;
+
       while Current /= No_Array_Element loop
          Element := Array_Elements.Table (Current);
 
-         if Index = Element.Index then
+         if Real_Index = Element.Index then
             exit when Element.Value.Kind /= Single;
             exit when String_Length (Element.Value.Value) = 0;
             String_To_Name_Buffer (Element.Value.Value);
@@ -236,12 +251,25 @@ package body Prj.Util is
    is
       Current : Array_Element_Id := In_Array;
       Element : Array_Element;
+      Real_Index : Name_Id := Index;
 
    begin
+      if Current = No_Array_Element then
+         return Nil_Variable_Value;
+      end if;
+
+      Element := Array_Elements.Table (Current);
+
+      if not Element.Index_Case_Sensitive then
+         Get_Name_String (Index);
+         To_Lower (Name_Buffer (1 .. Name_Len));
+         Real_Index := Name_Find;
+      end if;
+
       while Current /= No_Array_Element loop
          Element := Array_Elements.Table (Current);
 
-         if Index = Element.Index then
+         if Real_Index = Element.Index then
             return Element.Value;
          else
             Current := Element.Next;
@@ -314,8 +342,8 @@ package body Prj.Util is
       In_Arrays : Array_Id)
       return      Array_Element_Id
    is
-      Current : Array_Id := In_Arrays;
-      The_Array          : Array_Data;
+      Current    : Array_Id := In_Arrays;
+      The_Array  : Array_Data;
 
    begin
       while Current /= No_Array loop
@@ -355,7 +383,7 @@ package body Prj.Util is
       In_Variables  : Variable_Id)
       return          Variable_Value
    is
-      Current : Variable_Id := In_Variables;
+      Current      : Variable_Id := In_Variables;
       The_Variable : Variable;
 
    begin
@@ -430,5 +458,4 @@ package body Prj.Util is
          Write_Str (S (First .. S'Last));
       end if;
    end Write_Str;
-
 end Prj.Util;

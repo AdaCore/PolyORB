@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1999-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1999-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -41,6 +41,7 @@ package body Targparm is
       CLA,  --   Command_Line_Args;
       DEN,  --   Denorm;
       DSP,  --   Functions_Return_By_DSP;
+      EXS,  --   Exit_Status_Supported;
       FEL,  --   Frontend_Layout;
       FFO,  --   Fractional_Fixed_Ops
       HIM,  --   High_Integrity_Mode;
@@ -65,6 +66,7 @@ package body Targparm is
    CLA_Str : aliased constant Source_Buffer := "Command_Line_Args";
    DEN_Str : aliased constant Source_Buffer := "Denorm";
    DSP_Str : aliased constant Source_Buffer := "Functions_Return_By_DSP";
+   EXS_Str : aliased constant Source_Buffer := "Exit_Status_Supported";
    FEL_Str : aliased constant Source_Buffer := "Frontend_Layout";
    FFO_Str : aliased constant Source_Buffer := "Fractional_Fixed_Ops";
    HIM_Str : aliased constant Source_Buffer := "High_Integrity_Mode";
@@ -81,13 +83,14 @@ package body Targparm is
    ZCF_Str : aliased constant Source_Buffer := "Front_End_ZCX_Support";
 
    type Buffer_Ptr is access constant Source_Buffer;
-   Targparm_Str : array (Targparm_Tags) of Buffer_Ptr :=
+   Targparm_Str : constant array (Targparm_Tags) of Buffer_Ptr :=
      (AAM_Str'Access,
       BDC_Str'Access,
       BOC_Str'Access,
       CLA_Str'Access,
       DEN_Str'Access,
       DSP_Str'Access,
+      EXS_Str'Access,
       FEL_Str'Access,
       FFO_Str'Access,
       HIM_Str'Access,
@@ -134,12 +137,10 @@ package body Targparm is
          Write_Line (Name_Buffer (1 .. Name_Len));
          raise Unrecoverable_Error;
 
-      --  This must always be the first source file read, and we have defined
-      --  a constant Types.System_Source_File_Index as 1 to reflect this.
+      --  Here if system.ads successfully read. Remember its source index.
 
       else
-         pragma Assert (S = System_Source_File_Index);
-         null;
+         System_Source_File_Index := S;
       end if;
 
       P := Source_First (S);
@@ -191,6 +192,7 @@ package body Targparm is
                   when CLA => Command_Line_Args_On_Target         := Result;
                   when DEN => Denorm_On_Target                    := Result;
                   when DSP => Functions_Return_By_DSP_On_Target   := Result;
+                  when EXS => Exit_Status_Supported_On_Target     := Result;
                   when FEL => Frontend_Layout_On_Target           := Result;
                   when FFO => Fractional_Fixed_Ops_On_Target      := Result;
                   when HIM => High_Integrity_Mode_On_Target       := Result;

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001-2002 Free Software Foundation, Inc.       --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -45,8 +45,12 @@ package Prj.Util is
       In_Array : Array_Element_Id)
       return     Name_Id;
    --  Get a single string array component.
-   --  Returns No_Name if there is no component Index (case sensitive),
+   --  Returns No_Name if there is no component Index,
    --  if In_Array is null, or if the component is a String list.
+   --  Depending on the attribute (only attributes may be associative arrays)
+   --  the index may or may not be case sensitive. If the index is not
+   --  case sensitive, it is first set to lower case before the search
+   --  in the associative array.
 
    function Value_Of
      (Index    : Name_Id;
@@ -54,7 +58,11 @@ package Prj.Util is
       return     Variable_Value;
    --  Get a string array component (single String or String list).
    --  Returns Nil_Variable_Value if there is no component Index
-   --  (case sensitive), or if In_Array is null.
+   --  or if In_Array is null.
+   --  Depending on the attribute (only attributes may be associative arrays)
+   --  the index may or may not be case sensitive. If the index is not
+   --  case sensitive, it is first set to lower case before the search
+   --  in the associative array.
 
    function Value_Of
      (Name                    : Name_Id;
@@ -62,9 +70,11 @@ package Prj.Util is
       In_Package              : Package_Id)
       return                    Variable_Value;
    --  In a specific package,
-   --   - if there exists an array Variable_Or_Array_Name with an index
-   --     Name, returns the corresponding component,
-   --   - otherwise if there is a attribute Attribute_Or_Array_Name,
+   --   - if there exists an array Attribute_Or_Array_Name with an index
+   --     Name, returns the corresponding component (depending on the
+   --     attribute, the index may or may not be case sensitive, see previous
+   --     function),
+   --   - otherwise if there is a single attribute Attribute_Or_Array_Name,
    --     returns this attribute,
    --   - otherwise, returns Nil_Variable_Value.
    --  If In_Package is null, returns Nil_Variable_Value.
@@ -75,9 +85,8 @@ package Prj.Util is
       In_Arrays : Array_Id)
       return      Name_Id;
    --  Get a string array component in an array of an array list.
-   --  Returns No_Name if there is no component Index (case sensitive),
-   --  if In_Arrays is null, if In_Array is not found in In_Arrays,
-   --  or if the component is a String list.
+   --  Returns No_Name if there is no component Index, if In_Arrays is null, if
+   --  In_Array is not found in In_Arrays or if the component is a String list.
 
    function Value_Of
      (Name      : Name_Id;

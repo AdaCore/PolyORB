@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2001 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001-2002 Free Software Foundation, Inc.       --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -203,6 +203,53 @@ package body Prj.Tree is
 
       return Project_Nodes.Table (Node).Field1;
    end Expression_Of;
+
+   -------------------------
+   -- Extended_Project_Of --
+   -------------------------
+
+   function Extended_Project_Of
+     (Node : Project_Node_Id)
+      return Project_Node_Id
+   is
+   begin
+      pragma Assert
+        (Node /= Empty_Node
+          and then
+            Project_Nodes.Table (Node).Kind = N_Project_Declaration);
+      return Project_Nodes.Table (Node).Field2;
+   end Extended_Project_Of;
+
+   ------------------------------
+   -- Extended_Project_Path_Of --
+   ------------------------------
+
+   function Extended_Project_Path_Of
+     (Node : Project_Node_Id)
+      return String_Id
+   is
+   begin
+      pragma Assert
+        (Node /= Empty_Node
+          and then
+            Project_Nodes.Table (Node).Kind = N_Project);
+      return Project_Nodes.Table (Node).Value;
+   end Extended_Project_Path_Of;
+
+   --------------------------
+   -- Extending_Project_Of --
+   --------------------------
+   function Extending_Project_Of
+     (Node  : Project_Node_Id)
+      return  Project_Node_Id
+   is
+   begin
+      pragma Assert
+        (Node /= Empty_Node
+          and then
+            Project_Nodes.Table (Node).Kind = N_Project_Declaration);
+      return Project_Nodes.Table (Node).Field3;
+   end Extending_Project_Of;
 
    ---------------------------
    -- External_Reference_Of --
@@ -408,6 +455,15 @@ package body Prj.Tree is
       return Project_Nodes.Table (Node).Field1;
    end First_With_Clause_Of;
 
+   ----------
+   -- Hash --
+   ----------
+
+   function Hash (N : Project_Node_Id) return Header_Num is
+   begin
+      return Header_Num (N mod Project_Node_Id (Header_Num'Last));
+   end Hash;
+
    ----------------
    -- Initialize --
    ----------------
@@ -437,38 +493,6 @@ package body Prj.Tree is
       pragma Assert (Node /= Empty_Node);
       return Project_Nodes.Table (Node).Location;
    end Location_Of;
-
-   -------------------------
-   -- Modified_Project_Of --
-   -------------------------
-
-   function Modified_Project_Of
-     (Node : Project_Node_Id)
-      return Project_Node_Id
-   is
-   begin
-      pragma Assert
-        (Node /= Empty_Node
-          and then
-            Project_Nodes.Table (Node).Kind = N_Project_Declaration);
-      return Project_Nodes.Table (Node).Field2;
-   end Modified_Project_Of;
-
-   ------------------------------
-   -- Modified_Project_Path_Of --
-   ------------------------------
-
-   function Modified_Project_Path_Of
-     (Node : Project_Node_Id)
-      return String_Id
-   is
-   begin
-      pragma Assert
-        (Node /= Empty_Node
-          and then
-            Project_Nodes.Table (Node).Kind = N_Project);
-      return Project_Nodes.Table (Node).Value;
-   end Modified_Project_Path_Of;
 
    -------------
    -- Name_Of --
@@ -1121,10 +1145,10 @@ package body Prj.Tree is
    end Set_Location_Of;
 
    -----------------------------
-   -- Set_Modified_Project_Of --
+   -- Set_Extended_Project_Of --
    -----------------------------
 
-   procedure Set_Modified_Project_Of
+   procedure Set_Extended_Project_Of
      (Node : Project_Node_Id;
       To   : Project_Node_Id)
    is
@@ -1134,13 +1158,13 @@ package body Prj.Tree is
           and then
             Project_Nodes.Table (Node).Kind = N_Project_Declaration);
       Project_Nodes.Table (Node).Field2 := To;
-   end Set_Modified_Project_Of;
+   end Set_Extended_Project_Of;
 
    ----------------------------------
-   -- Set_Modified_Project_Path_Of --
+   -- Set_Extended_Project_Path_Of --
    ----------------------------------
 
-   procedure Set_Modified_Project_Path_Of
+   procedure Set_Extended_Project_Path_Of
      (Node : Project_Node_Id;
       To   : String_Id)
    is
@@ -1150,7 +1174,23 @@ package body Prj.Tree is
           and then
             Project_Nodes.Table (Node).Kind = N_Project);
       Project_Nodes.Table (Node).Value := To;
-   end Set_Modified_Project_Path_Of;
+   end Set_Extended_Project_Path_Of;
+
+   ------------------------------
+   -- Set_Extending_Project_Of --
+   ------------------------------
+
+   procedure Set_Extending_Project_Of
+     (Node : Project_Node_Id;
+      To   : Project_Node_Id)
+   is
+   begin
+      pragma Assert
+        (Node /= Empty_Node
+          and then
+            Project_Nodes.Table (Node).Kind = N_Project_Declaration);
+      Project_Nodes.Table (Node).Field3 := To;
+   end Set_Extending_Project_Of;
 
    -----------------
    -- Set_Name_Of --

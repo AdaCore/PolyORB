@@ -617,6 +617,15 @@ package Sinfo is
    --    and thus the result is passed by reference rather than copied
    --    another time.
 
+   --  Check_Address_Alignment (Flag11-Sem)
+   --    A flag present in N_Attribute_Definition clause for a 'Address
+   --    attribute definition. This flag is set if a dynamic check should
+   --    be generated at the freeze point for the entity to which this
+   --    address clause applies. The reason that we need this flag is that
+   --    we want to check for range checks being suppressed at the point
+   --    where the attribute definition clause is given, rather than
+   --    testing this at the freeze point.
+
    --  Compile_Time_Known_Aggregate (Flag18-Sem)
    --    Present in N_Aggregate nodes. Set for aggregates which can be
    --    fully evaluated at compile time without raising constraint error.
@@ -1082,6 +1091,12 @@ package Sinfo is
    --    This flag is set in an N_Real_Literal node to indicate that the
    --    value is a machine number. This avoids some unnecessary cases
    --    of converting real literals to machine numbers.
+
+   --  Is_Null_Loop (Flag16-Sem)
+   --    This flag is set in an N_Loop_Statement node if the corresponding
+   --    loop can be determined to be null at compile time. This is used to
+   --    suppress any warnings that would otherwise be issued inside the
+   --    loop since they are probably not useful.
 
    --  Is_Power_Of_2_For_Shift (Flag13-Sem)
    --    A flag present only in N_Op_Expon nodes. It is set when the
@@ -3610,6 +3625,7 @@ package Sinfo is
       --  Statements (List3)
       --  End_Label (Node4)
       --  Has_Created_Identifier (Flag15)
+      --  Is_Null_Loop (Flag16)
 
       --------------------------
       -- 5.5 Iteration Scheme --
@@ -5638,6 +5654,7 @@ package Sinfo is
       --  Expression (Node3) the expression or name
       --  Next_Rep_Item (Node4-Sem)
       --  From_At_Mod (Flag4-Sem)
+      --  Check_Address_Alignment (Flag11-Sem)
 
       ---------------------------------------------
       -- 13.4  Enumeration representation clause --
@@ -6831,6 +6848,9 @@ package Sinfo is
    function Chars
      (N : Node_Id) return Name_Id;    -- Name1
 
+   function Check_Address_Alignment
+     (N : Node_Id) return Boolean;    -- Flag11
+
    function Choice_Parameter
      (N : Node_Id) return Node_Id;    -- Node2
 
@@ -7172,6 +7192,9 @@ package Sinfo is
 
    function Is_Machine_Number
      (N : Node_Id) return Boolean;    -- Flag11
+
+   function Is_Null_Loop
+     (N : Node_Id) return Boolean;    -- Flag16
 
    function Is_Overloaded
      (N : Node_Id) return Boolean;    -- Flag5
@@ -7587,6 +7610,9 @@ package Sinfo is
    procedure Set_Chars
      (N : Node_Id; Val : Name_Id);            -- Name1
 
+   procedure Set_Check_Address_Alignment
+     (N : Node_Id; Val : Boolean := True);    -- Flag11
+
    procedure Set_Choice_Parameter
      (N : Node_Id; Val : Node_Id);            -- Node2
 
@@ -7928,6 +7954,9 @@ package Sinfo is
 
    procedure Set_Is_Machine_Number
      (N : Node_Id; Val : Boolean := True);    -- Flag11
+
+   procedure Set_Is_Null_Loop
+     (N : Node_Id; Val : Boolean := True);    -- Flag16
 
    procedure Set_Is_Overloaded
      (N : Node_Id; Val : Boolean := True);    -- Flag5
@@ -8301,6 +8330,7 @@ package Sinfo is
    pragma Inline (Box_Present);
    pragma Inline (Char_Literal_Value);
    pragma Inline (Chars);
+   pragma Inline (Check_Address_Alignment);
    pragma Inline (Choice_Parameter);
    pragma Inline (Choices);
    pragma Inline (Compile_Time_Known_Aggregate);
@@ -8415,6 +8445,7 @@ package Sinfo is
    pragma Inline (Is_Component_Right_Opnd);
    pragma Inline (Is_Controlling_Actual);
    pragma Inline (Is_Machine_Number);
+   pragma Inline (Is_Null_Loop);
    pragma Inline (Is_Overloaded);
    pragma Inline (Is_Power_Of_2_For_Shift);
    pragma Inline (Is_Protected_Subprogram_Body);
@@ -8550,6 +8581,7 @@ package Sinfo is
    pragma Inline (Set_Box_Present);
    pragma Inline (Set_Char_Literal_Value);
    pragma Inline (Set_Chars);
+   pragma Inline (Set_Check_Address_Alignment);
    pragma Inline (Set_Choice_Parameter);
    pragma Inline (Set_Choices);
    pragma Inline (Set_Compile_Time_Known_Aggregate);
@@ -8664,6 +8696,7 @@ package Sinfo is
    pragma Inline (Set_Is_Component_Right_Opnd);
    pragma Inline (Set_Is_Controlling_Actual);
    pragma Inline (Set_Is_Machine_Number);
+   pragma Inline (Set_Is_Null_Loop);
    pragma Inline (Set_Is_Overloaded);
    pragma Inline (Set_Is_Power_Of_2_For_Shift);
    pragma Inline (Set_Is_Protected_Subprogram_Body);

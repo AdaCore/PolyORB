@@ -126,9 +126,10 @@ package Prj is
    type Array_Element_Id is new Nat;
    No_Array_Element : constant Array_Element_Id := 0;
    type Array_Element is record
-      Index    : Name_Id;
-      Value    : Variable_Value;
-      Next     : Array_Element_Id := No_Array_Element;
+      Index                : Name_Id;
+      Index_Case_Sensitive : Boolean := True;
+      Value                : Variable_Value;
+      Next                 : Array_Element_Id := No_Array_Element;
    end record;
    --  Each Array_Element represents an array element and is linked (Next)
    --  to the next array element, if any, in the array.
@@ -320,9 +321,17 @@ package Prj is
       --  reserved word project.
       --  Set by Prj.Proc.Process.
 
+      Mains : String_List_Id := Nil_String;
+      --  The list of mains as specified by attribute Main.
+      --  Set by Prj.Nmsc.Ada_Check.
+
       Directory : Name_Id := No_Name;
       --  The directory where the project file resides.
       --  Set by Prj.Proc.Process.
+
+      Dir_Path : String_Access;
+      --  Same as Directory, but as an access to String.
+      --  Set by Make.Compile_Sources.Collect_Arguments_And_Compile.
 
       Library : Boolean := False;
       --  True if this is a library project.
@@ -373,14 +382,14 @@ package Prj is
       --  Default is equal to Object_Directory.
       --  Set by Prj.Nmsc.Check_Naming_Scheme.
 
-      Modifies : Project_Id := No_Project;
+      Extends : Project_Id := No_Project;
       --  The reference of the project file, if any, that this
-      --  project file modifies.
+      --  project file extends.
       --  Set by Prj.Proc.Process.
 
-      Modified_By : Project_Id := No_Project;
+      Extended_By : Project_Id := No_Project;
       --  The reference of the project file, if any, that
-      --  modifies this project file.
+      --  extends this project file.
       --  Set by Prj.Proc.Process.
 
       Naming : Naming_Data := Standard_Naming_Data;
@@ -396,17 +405,31 @@ package Prj is
       --  The list of all directly imported projects, if any.
       --  Set by Prj.Proc.Process.
 
-      Include_Path : String_Access := null;
+      Ada_Include_Path  : String_Access := null;
       --  The cached value of ADA_INCLUDE_PATH for this project file.
-      --  Set by gnatmake (Prj.Env.Set_Ada_Paths).
       --  Do not use this field directly outside of the compiler, use
-      --  Prj.Env.Ada_Source_Path instead.
+      --  Prj.Env.Ada_Include_Path instead.
+      --  Set by Prj.Env.Ada_Include_Path.
 
-      Objects_Path : String_Access := null;
+      Ada_Objects_Path  : String_Access := null;
       --  The cached value of ADA_OBJECTS_PATH for this project file.
-      --  Set by gnatmake (Prj.Env.Set_Ada_Paths).
       --  Do not use this field directly outside of the compiler, use
       --  Prj.Env.Ada_Objects_Path instead.
+      --  Set by Prj.Env.Ada_Objects_Path
+
+      Include_Path_File : String_Access := null;
+      --  The cached value of the source path temp file for this project file.
+      --  Set by gnatmake (Prj.Env.Set_Ada_Paths).
+
+      Objects_Path_File_With_Libs : String_Access := null;
+      --  The cached value of the object path temp file (including library
+      --  dirs) for this project file.
+      --  Set by gnatmake (Prj.Env.Set_Ada_Paths).
+
+      Objects_Path_File_Without_Libs : String_Access := null;
+      --  The cached value of the object path temp file (excluding library
+      --  dirs) for this project file.
+      --  Set by gnatmake (Prj.Env.Set_Ada_Paths).
 
       Config_File_Name : Name_Id := No_Name;
       --  The name of the configuration pragmas file, if any.

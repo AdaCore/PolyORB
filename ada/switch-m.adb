@@ -153,9 +153,13 @@ package body Switch.M is
          case Switch_Starts_With_Gnat is
 
             when False =>
-               --  All switches that don't start with -gnat stay as is
+               --  All switches that don't start with -gnat stay as is,
+               --  except -v
 
-               Add_Switch_Component (Switch_Chars);
+               if C /= 'v' then
+                  Add_Switch_Component (Switch_Chars);
+               end if;
+
                return;
 
             when True =>
@@ -381,9 +385,9 @@ package body Switch.M is
    ------------------------
 
    procedure Scan_Make_Switches (Switch_Chars : String) is
-      Ptr : Integer := Switch_Chars'First;
-      Max : Integer := Switch_Chars'Last;
-      C   : Character := ' ';
+      Ptr : Integer          := Switch_Chars'First;
+      Max : constant Integer := Switch_Chars'Last;
+      C   : Character        := ' ';
 
    begin
       --  Skip past the initial character (must be the switch character)

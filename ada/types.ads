@@ -570,10 +570,6 @@ pragma Preelaborate (Types);
    No_Source_File : constant Source_File_Index := 0;
    --  Value used to indicate no source file present
 
-   System_Source_File_Index : constant Source_File_Index := 1;
-   --  Value used for source file table entry for system.ads, which is
-   --  always the first source file read (see unit Targparm for details).
-
    subtype File_Name_Type is Name_Id;
    --  File names are stored in the names table and this synonym is used to
    --  indicate that a Name_Id value is being used to hold a simple file
@@ -775,7 +771,6 @@ pragma Preelaborate (Types);
      PE_Duplicated_Entry_Address,
      PE_Explicit_Raise,
      PE_Finalize_Raised_Exception,
-     PE_Invalid_Data,
      PE_Misaligned_Address_Value,
      PE_Missing_Return,
      PE_Potentially_Blocking_Operation,

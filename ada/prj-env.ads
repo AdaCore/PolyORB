@@ -39,7 +39,7 @@ package Prj.Env is
    procedure Print_Sources;
    --  Output the list of sources, after Project files have been scanned
 
-   procedure Create_Mapping_File (Name : in out Temp_File_Name);
+   procedure Create_Mapping_File (Name : in out String_Access);
    --  Create a temporary mapping file. For each unit, put the mapping of
    --  its spec and or body to its file name and path name in this file.
 
@@ -80,6 +80,16 @@ package Prj.Env is
    --  it and cache it. When Including_Libraries is False, do not include the
    --  object directories of the library projects, and do not cache the result.
 
+   procedure Set_Ada_Paths
+     (Project             : Project_Id;
+      Including_Libraries : Boolean);
+   --  Set the env vars for additional project path files, after
+   --  creating if necessary the path files.
+
+   procedure Delete_All_Path_Files;
+   --  Delete all temporary path files that have been created by
+   --  calls to Set_Ada_Paths.
+
    function Path_Name_Of_Library_Unit_Body
      (Name    : String;
       Project : Project_Id)
@@ -87,14 +97,18 @@ package Prj.Env is
    --  Returns the Path of a library unit.
 
    function File_Name_Of_Library_Unit_Body
-     (Name    : String;
-      Project : Project_Id)
-      return    String;
+     (Name              : String;
+      Project           : Project_Id;
+      Main_Project_Only : Boolean := True)
+      return              String;
    --  Returns the file name of a library unit, in canonical case. Name may or
    --  may not have an extension (corresponding to the naming scheme of the
    --  project). If there is no body with this name, but there is a spec, the
    --  name of the spec is returned. If neither a body or a spec can be found,
    --  return an empty string.
+   --  If Main_Project_Only is True, the unit must be an immediate source of
+   --  Project. If it is False, it may be a source of one of its imported
+   --  projects.
 
    procedure Get_Reference
      (Source_File_Name : String;

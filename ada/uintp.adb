@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -326,7 +326,8 @@ package body Uintp is
       ----------------
 
       procedure Image_Uint (U : Uint) is
-         H : array (Int range 0 .. 15) of Character := "0123456789ABCDEF";
+         H : constant array (Int range 0 .. 15) of Character :=
+               "0123456789ABCDEF";
 
       begin
          if U >= Base then
@@ -616,10 +617,10 @@ package body Uintp is
 
       else
          declare
-            UE_Len : Pos := Uints.Table (UI).Length;
-            UE_Loc : Int := Uints.Table (UI).Loc;
+            UE_Len : constant Pos := Uints.Table (UI).Length;
+            UE_Loc : constant Int := Uints.Table (UI).Loc;
 
-            UD : Udigits.Table_Type (1 .. UE_Len) :=
+            UD : constant Udigits.Table_Type (1 .. UE_Len) :=
                    Udigits.Table (UE_Loc .. UE_Loc + UE_Len - 1);
 
          begin
@@ -648,16 +649,16 @@ package body Uintp is
 
       else
          declare
-            UE1_Len : Pos := Uints.Table (UI1).Length;
-            UE1_Loc : Int := Uints.Table (UI1).Loc;
+            UE1_Len : constant Pos := Uints.Table (UI1).Length;
+            UE1_Loc : constant Int := Uints.Table (UI1).Loc;
 
-            UD1 : Udigits.Table_Type (1 .. UE1_Len) :=
+            UD1 : constant Udigits.Table_Type (1 .. UE1_Len) :=
                     Udigits.Table (UE1_Loc .. UE1_Loc + UE1_Len - 1);
 
-            UE2_Len : Pos := Uints.Table (UI2).Length;
-            UE2_Loc : Int := Uints.Table (UI2).Loc;
+            UE2_Len : constant Pos := Uints.Table (UI2).Length;
+            UE2_Loc : constant Int := Uints.Table (UI2).Loc;
 
-            UD2 : Udigits.Table_Type (1 .. UE2_Len) :=
+            UD2 : constant Udigits.Table_Type (1 .. UE2_Len) :=
                     Udigits.Table (UE2_Loc .. UE2_Loc + UE2_Len - 1);
 
          begin
@@ -746,7 +747,7 @@ package body Uintp is
 
       else
          declare
-            L_Length : Int := N_Digits (Left);
+            L_Length : constant Int := N_Digits (Left);
             L_Vec    : UI_Vector (1 .. L_Length);
             Tmp_Int  : Int;
             Carry    : Int;
@@ -820,7 +821,7 @@ package body Uintp is
 
       else
          declare
-            L_Length      : Int := N_Digits (Left);
+            L_Length      : constant Int := N_Digits (Left);
             L_Vec         : UI_Vector (1 .. L_Length);
             Most_Sig_Int  : Int;
             Least_Sig_Int : Int;
@@ -1013,8 +1014,8 @@ package body Uintp is
       --  Otherwise full circuit is needed
 
       declare
-         L_Length   : Int := N_Digits (Left);
-         R_Length   : Int := N_Digits (Right);
+         L_Length   : constant Int := N_Digits (Left);
+         R_Length   : constant Int := N_Digits (Right);
          L_Vec      : UI_Vector (1 .. L_Length);
          R_Vec      : UI_Vector (1 .. R_Length);
          Sum_Length : Int;

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---           Copyright (C) 1999-2001, Ada Core Technologies, Inc.           --
+--           Copyright (C) 1999-2002, Ada Core Technologies, Inc.           --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -28,8 +28,10 @@
 
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 with Opt;
-with Osint;    use Osint;
-with Output;   use Output;
+with Osint;                     use Osint;
+with Output;                    use Output;
+with Namet;                     use Namet;
+with GNAT.Directory_Operations; use GNAT.Directory_Operations;
 with MLib.Utl;
 
 package body MLib is
@@ -91,5 +93,49 @@ package body MLib is
          end if;
       end loop;
    end Check_Library_Name;
+
+   --------------------
+   -- Copy_ALI_Files --
+   --------------------
+
+   procedure Copy_ALI_Files
+     (From : Name_Id;
+      To   : Name_Id)
+   is
+      Dir      : Dir_Type;
+      Name     : String (1 .. 1_024);
+      Last     : Natural;
+      Success  : Boolean;
+      From_Dir : constant String := Get_Name_String (From);
+      To_Dir   : constant String := Get_Name_String (To);
+
+   begin
+      Open (Dir, From_Dir);
+
+      loop
+         Read (Dir, Name, Last);
+         exit when Last = 0;
+
+         if Last > 4 and then To_Lower (Name (Last - 3 .. Last)) = ".ali" then
+
+            if Opt.Verbose_Mode then
+               Write_Str ("copy ");
+               Write_Str (From_Dir & Directory_Separator & Name (1 .. Last));
+               Write_Char (' ');
+               Write_Line (To_Dir);
+            end if;
+
+            Copy_File
+              (From_Dir & Directory_Separator & Name (1 .. Last),
+               To_Dir,
+               Success,
+               Mode => Overwrite);
+
+            if not Success then
+               Fail ("could not copy ALI files to library dir");
+            end if;
+         end if;
+      end loop;
+   end Copy_ALI_Files;
 
 end MLib;

@@ -122,10 +122,6 @@ package Sinput is
    --  The entries in the table are accessed using a Source_File_Index that
    --  ranges from 1 to Last_Source_File. Each entry has the following fields
 
-   --  Note that entry 1 is always for system.ads (see Targparm for details
-   --  of why we always read this source file first), and we have defined a
-   --  constant Types.System_Source_File_Index as 1 to reflect this fact.
-
    --  File_Name : File_Name_Type
    --    Name of the source file (simple name with no directory information).
    --    Set by Sinput.L.Load_Source_File and cannot be subequently changed.
@@ -226,6 +222,12 @@ package Sinput is
    --  subprogram interface:
 
    subtype SFI is Source_File_Index;
+
+   System_Source_File_Index : SFI;
+   --  The file system.ads is always read by the compiler to determine the
+   --  settings of the target parameters in the private part of System. This
+   --  variable records the source file index of system.ads. Typically this
+   --  will be 1 since system.ads is read first.
 
    function Debug_Source_Name (S : SFI) return File_Name_Type;
    function File_Name         (S : SFI) return File_Name_Type;

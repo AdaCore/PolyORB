@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---           Copyright (C) 1999-2001, Ada Core Technologies, Inc.           --
+--           Copyright (C) 1999-2002, Ada Core Technologies, Inc.           --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -30,6 +30,7 @@
 --  and GNATMAKE to build libraries
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
+with Types;       use Types;
 
 package MLib is
 
@@ -51,5 +52,10 @@ package MLib is
       Output_File : String;
       Output_Dir  : String);
    --  Build a static library from a set of object files
+
+   procedure Copy_ALI_Files
+     (From : Name_Id;
+      To   : Name_Id);
+   --  Copy all ALI files from directory From to directory To
 
 end MLib;

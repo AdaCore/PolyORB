@@ -553,6 +553,19 @@ package body Prj.Strt is
                      end loop;
 
                      if With_Clause = Empty_Node then
+                        The_Project :=
+                          Extended_Project_Of
+                                 (Project_Declaration_Of (Current_Project));
+
+                        if The_Project /= Empty_Node
+                          and then
+                            Name_Of (The_Project) /= The_Names (1).Name
+                        then
+                           The_Project := Empty_Node;
+                        end if;
+                     end if;
+
+                     if The_Project = Empty_Node then
                         Error_Msg_Name_1 := The_Names (1).Name;
                         Error_Msg ("unknown project %",
                                    The_Names (1).Location);
@@ -646,7 +659,7 @@ package body Prj.Strt is
 
                      if With_Clause = Empty_Node then
                         The_Project :=
-                          Modified_Project_Of
+                          Extended_Project_Of
                                  (Project_Declaration_Of (Current_Project));
 
                         if The_Project /= Empty_Node
@@ -686,7 +699,7 @@ package body Prj.Strt is
 
                   if With_Clause = Empty_Node then
                      The_Project :=
-                       Modified_Project_Of
+                       Extended_Project_Of
                           (Project_Declaration_Of (Current_Project));
 
                      if The_Project /= Empty_Node
@@ -698,7 +711,7 @@ package body Prj.Strt is
 
                   if The_Project = Empty_Node then
                      Error_Msg_Name_1 := The_Names (1).Name;
-                     Error_Msg ("unknown package or project %",
+                     Error_Msg ("unknown project %",
                                 The_Names (1).Location);
                      Look_For_Variable := False;
 

@@ -9,7 +9,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---              Copyright (C) 2001, Ada Core Technologies, Inc.             --
+--              Copyright (C) 2001-2002, Ada Core Technologies, Inc.        --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -39,19 +39,10 @@ package body MLib.Tgt is
    -- Archive_Ext --
    -----------------
 
-   function Archive_Ext return  String is
-   begin
-      return  "";
-   end Archive_Ext;
-
-   -----------------
-   -- Base_Option --
-   -----------------
-
-   function Base_Option return String is
+   function Archive_Ext return String is
    begin
       return "";
-   end Base_Option;
+   end Archive_Ext;
 
    ---------------------------
    -- Build_Dynamic_Library --
@@ -72,18 +63,6 @@ package body MLib.Tgt is
       null;
    end Build_Dynamic_Library;
 
-   --------------------
-   -- Copy_ALI_Files --
-   --------------------
-
-   procedure Copy_ALI_Files
-     (From : Name_Id;
-      To   : Name_Id)
-   is
-   begin
-      null;
-   end Copy_ALI_Files;
-
    -------------------------
    -- Default_DLL_Address --
    -------------------------
@@ -99,7 +78,7 @@ package body MLib.Tgt is
 
    function DLL_Ext return String is
    begin
-      return  "";
+      return "";
    end DLL_Ext;
 
    --------------------
@@ -108,7 +87,7 @@ package body MLib.Tgt is
 
    function Dynamic_Option return String is
    begin
-      return  "";
+      return "";
    end Dynamic_Option;
 
    -------------------
@@ -174,7 +153,7 @@ package body MLib.Tgt is
 
    function Object_Ext return String is
    begin
-      return  "";
+      return "";
    end Object_Ext;
 
    ----------------
@@ -183,7 +162,7 @@ package body MLib.Tgt is
 
    function PIC_Option return String is
    begin
-      return  "";
+      return "";
    end PIC_Option;
 
 end MLib.Tgt;

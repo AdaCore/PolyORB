@@ -95,7 +95,7 @@ package body Prj.Dect is
    begin
       Declarations := Default_Project_Node (Of_Kind => N_Project_Declaration);
       Set_Location_Of (Declarations, To => Token_Ptr);
-      Set_Modified_Project_Of (Declarations, To => Extends);
+      Set_Extended_Project_Of (Declarations, To => Extends);
       Set_Project_Declaration_Of (Current_Project, Declarations);
       Parse_Declarative_Items
         (Declarations    => First_Declarative_Item,
@@ -600,11 +600,13 @@ package body Prj.Dect is
 
          if Token = Tok_Identifier then
             declare
-               Project_Name : Name_Id := Token_Name;
+               Project_Name : constant Name_Id := Token_Name;
                Clause       : Project_Node_Id :=
                                 First_With_Clause_Of (Current_Project);
                The_Project  : Project_Node_Id := Empty_Node;
-
+               Extended     : constant Project_Node_Id :=
+                                Extended_Project_Of
+                                  (Project_Declaration_Of (Current_Project));
             begin
                while Clause /= Empty_Node loop
                   The_Project := Project_Node_Of (Clause);
@@ -613,9 +615,18 @@ package body Prj.Dect is
                end loop;
 
                if Clause = Empty_Node then
-                  Error_Msg ("""" &
-                             Get_Name_String (Project_Name) &
-                             """ is not an imported project", Token_Ptr);
+                  --  As we have not found the project in the imports, we check
+                  --  if it's the name of an eventual extended project.
+
+                  if Extended /= Empty_Node
+                    and then Name_Of (Extended) = Project_Name then
+                     Set_Project_Of_Renamed_Package_Of
+                       (Package_Declaration, To => Extended);
+                  else
+                     Error_Msg_Name_1 := Project_Name;
+                     Error_Msg
+                       ("% is not an imported or extended project", Token_Ptr);
+                  end if;
                else
                   Set_Project_Of_Renamed_Package_Of
                     (Package_Declaration, To => The_Project);

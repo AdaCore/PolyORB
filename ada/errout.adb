@@ -71,7 +71,7 @@ package body Errout is
    --  Source file index for source file where error is being posted
 
    Is_Warning_Msg : Boolean;
-   --  Set by Set_Msg_Text to indicate if current message is warning message
+   --  Set true to indicate if current message is warning message
 
    Is_Serious_Error : Boolean;
    --  Set by Set_Msg_Text to indicate if current message is serious error
@@ -1271,13 +1271,36 @@ package body Errout is
          return;
       end if;
 
-      if No_Warnings (N) or else No_Warnings (E) then
-         Test_Warning_Msg (Msg);
+      Test_Warning_Msg (Msg);
 
-         if Is_Warning_Msg then
+      --  Special handling for warning messages
+
+      if Is_Warning_Msg then
+
+         --  Suppress if no warnings set for either entity or node
+
+         if No_Warnings (N) or else No_Warnings (E) then
             return;
          end if;
+
+         --  Suppress if inside loop that is known to be null
+
+         declare
+            P : Node_Id;
+
+         begin
+            P := Parent (N);
+            while Present (P) loop
+               if Nkind (P) = N_Loop_Statement and then Is_Null_Loop (P) then
+                  return;
+               end if;
+
+               P := Parent (P);
+            end loop;
+         end;
       end if;
+
+      --  Test for immediate output of message
 
       if All_Errors_Mode
         or else Msg (Msg'Last) = '!'
@@ -2741,14 +2764,19 @@ package body Errout is
          Ref_Ptr := 1;
          Src_Ptr := Src_Loc;
 
-         --  Determine if the reference we are dealing with corresponds
-         --  to text at the point of the error reference. This will often
-         --  be the case for simple identifier references, and is the case
-         --  where we can copy the spelling from the source.
+         --  For standard locations, always use mixed case
 
-         if Src_Loc /= No_Location
-           and then Src_Loc > Standard_Location
+         if Src_Loc <= No_Location
+           or else Sloc (Node) <= No_Location
          then
+            Set_Casing (Mixed_Case);
+
+         else
+            --  Determine if the reference we are dealing with corresponds
+            --  to text at the point of the error reference. This will often
+            --  be the case for simple identifier references, and is the case
+            --  where we can copy the spelling from the source.
+
             Sbuffer := Source_Text (Get_Source_File_Index (Src_Loc));
 
             while Ref_Ptr <= Name_Len loop
@@ -2758,37 +2786,28 @@ package body Errout is
                Ref_Ptr := Ref_Ptr + 1;
                Src_Ptr := Src_Ptr + 1;
             end loop;
-         end if;
 
-         --  If we get through the loop without a mismatch, then output
-         --  the name the way it is spelled in the source program
+            --  If we get through the loop without a mismatch, then output
+            --  the name the way it is spelled in the source program
 
-         if Ref_Ptr > Name_Len then
-            Src_Ptr := Src_Loc;
+            if Ref_Ptr > Name_Len then
+               Src_Ptr := Src_Loc;
 
-            for J in 1 .. Name_Len loop
-               Name_Buffer (J) := Sbuffer (Src_Ptr);
-               Src_Ptr := Src_Ptr + 1;
-            end loop;
+               for J in 1 .. Name_Len loop
+                  Name_Buffer (J) := Sbuffer (Src_Ptr);
+                  Src_Ptr := Src_Ptr + 1;
+               end loop;
 
-         --  Otherwise set the casing using the default identifier casing
+            --  Otherwise set the casing using the default identifier casing
 
-         else
-            Set_Casing (Identifier_Casing (Flag_Source), Mixed_Case);
+            else
+               Set_Casing (Identifier_Casing (Flag_Source), Mixed_Case);
+            end if;
          end if;
       end;
 
       Set_Msg_Name_Buffer;
       Add_Class;
-
-      --  Add 'Class if class wide type
-
-      if Class_Flag then
-         Set_Msg_Char (''');
-         Get_Name_String (Name_Class);
-         Set_Casing (Identifier_Casing (Flag_Source), Mixed_Case);
-         Set_Msg_Name_Buffer;
-      end if;
    end Set_Msg_Node;
 
    -------------------

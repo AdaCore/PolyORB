@@ -59,7 +59,7 @@ package body MLib.Utl is
    --------
 
    procedure Ar (Output_File : String; Objects : Argument_List) is
-      Create_Add_Opt : OS_Lib.String_Access := new String' ("cr");
+      Create_Add_Opt : constant OS_Lib.String_Access := new String' ("cr");
 
       Full_Output_File : constant String :=
                              Files.Ext_To (Output_File, Target.Archive_Ext);
@@ -145,12 +145,17 @@ package body MLib.Utl is
       Arguments : OS_Lib.Argument_List
                     (1 .. 7 + Objects'Length + Options'Length);
 
-      A         : Natural := 0;
-      Success   : Boolean;
-      Out_Opt   : OS_Lib.String_Access := new String' ("-o");
-      Out_V     : OS_Lib.String_Access := new String' (Output_File);
-      Lib_Dir   : OS_Lib.String_Access := new String' ("-L" & Lib_Directory);
-      Lib_Opt   : OS_Lib.String_Access := new String' (Target.Dynamic_Option);
+      A       : Natural := 0;
+      Success : Boolean;
+
+      Out_Opt : constant OS_Lib.String_Access :=
+                  new String' ("-o");
+      Out_V   : constant OS_Lib.String_Access :=
+                  new String' (Output_File);
+      Lib_Dir : constant OS_Lib.String_Access :=
+                  new String' ("-L" & Lib_Directory);
+      Lib_Opt : constant OS_Lib.String_Access :=
+                  new String' (Target.Dynamic_Option);
 
    begin
       Initialize;

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -229,14 +229,21 @@ package body Osint is
    -----------------------------
 
    procedure Add_Default_Search_Dirs is
-      Search_Dir  : String_Access;
-      Search_Path : String_Access;
+      Search_Dir     : String_Access;
+      Search_Path    : String_Access;
+      Path_File_Name : String_Access;
 
+      procedure Add_Search_Dir
+        (Search_Dir            : String;
+         Additional_Source_Dir : Boolean);
       procedure Add_Search_Dir
         (Search_Dir            : String_Access;
          Additional_Source_Dir : Boolean);
       --  Add a source search dir or a library search dir, depending on the
       --  value of Additional_Source_Dir.
+
+      procedure Get_Dirs_From_File (Additional_Source_Dir : Boolean);
+      --  Open a path file and read the directory to search, one per line
 
       function Get_Libraries_From_Registry return String_Ptr;
       --  On Windows systems, get the list of installed standard libraries
@@ -250,6 +257,18 @@ package body Osint is
       --------------------
 
       procedure Add_Search_Dir
+        (Search_Dir            : String;
+         Additional_Source_Dir : Boolean)
+      is
+      begin
+         if Additional_Source_Dir then
+            Add_Src_Search_Dir (Search_Dir);
+         else
+            Add_Lib_Search_Dir (Search_Dir);
+         end if;
+      end Add_Search_Dir;
+
+      procedure Add_Search_Dir
         (Search_Dir            : String_Access;
          Additional_Source_Dir : Boolean)
       is
@@ -260,6 +279,80 @@ package body Osint is
             Add_Lib_Search_Dir (Search_Dir.all);
          end if;
       end Add_Search_Dir;
+
+      ------------------------
+      -- Get_Dirs_From_File --
+      ------------------------
+
+      procedure Get_Dirs_From_File (Additional_Source_Dir : Boolean) is
+         File_FD    : File_Descriptor;
+         Buffer     : String (1 .. Path_File_Name'Length + 1);
+         Len        : Natural;
+         Actual_Len : Natural;
+         S          : String_Access;
+         Curr       : Natural;
+         First      : Natural;
+         Ch         : Character;
+      begin
+         --  Construct a C compatible character string buffer.
+
+         Buffer (1 .. Buffer'Last - 1) := Path_File_Name.all;
+         Buffer (Buffer'Last) := ASCII.NUL;
+
+         File_FD := Open_Read (Buffer'Address, Binary);
+
+         --  If we cannot open the file, we ignore it, we don't fail
+
+         if File_FD = Invalid_FD then
+            return;
+         end if;
+
+         Len := Integer (File_Length (File_FD));
+
+         S := new String (1 .. Len);
+
+         --  Read the file. Note that the loop is not necessary since the
+         --  whole file is read at once except on VMS.
+
+         Curr := 1;
+         Actual_Len := Len;
+         while Actual_Len /= 0 loop
+            Actual_Len := Read (File_FD, S (Curr)'Address, Len);
+            Curr := Curr + Actual_Len;
+         end loop;
+
+         --  We are done with the file, so we close it
+
+         Close (File_FD);
+
+         --  Now, we read line by line
+
+         First := 1;
+         Curr := 0;
+
+         while Curr < Len loop
+            Ch := S (Curr + 1);
+
+            if Ch = ASCII.CR or else Ch = ASCII.LF
+              or else Ch = ASCII.FF or else Ch = ASCII.VT
+            then
+               if First <= Curr then
+                  Add_Search_Dir (S (First .. Curr), Additional_Source_Dir);
+               end if;
+
+               First := Curr + 2;
+            end if;
+
+            Curr := Curr + 1;
+         end loop;
+
+         --  Last line is a special case, if the file does not end with
+         --  an end of line mark.
+
+         if First <= S'Last then
+            Add_Search_Dir (S (First .. S'Last), Additional_Source_Dir);
+         end if;
+      end Get_Dirs_From_File;
 
       ---------------------------------
       -- Get_Libraries_From_Registry --
@@ -301,7 +394,7 @@ package body Osint is
       for Additional_Source_Dir in False .. True loop
 
          if Additional_Source_Dir then
-            Search_Path := Getenv ("ADA_INCLUDE_PATH");
+            Search_Path := Getenv (Ada_Include_Path);
             if Search_Path'Length > 0 then
                if Hostparm.OpenVMS then
                   Search_Path := To_Canonical_Path_Spec ("ADA_INCLUDE_PATH:");
@@ -310,7 +403,7 @@ package body Osint is
                end if;
             end if;
          else
-            Search_Path := Getenv ("ADA_OBJECTS_PATH");
+            Search_Path := Getenv (Ada_Objects_Path);
             if Search_Path'Length > 0 then
                if Hostparm.OpenVMS then
                   Search_Path := To_Canonical_Path_Spec ("ADA_OBJECTS_PATH:");
@@ -328,12 +421,28 @@ package body Osint is
          end loop;
       end loop;
 
+      --  Check for eventual project path file env vars
+
+      Path_File_Name := Getenv (Project_Include_Path_File);
+
+      if Path_File_Name'Length > 0 then
+         Get_Dirs_From_File (Additional_Source_Dir => True);
+      end if;
+
+      Path_File_Name := Getenv (Project_Objects_Path_File);
+
+      if Path_File_Name'Length > 0 then
+         Get_Dirs_From_File (Additional_Source_Dir => False);
+      end if;
+
       if not Opt.No_Stdinc then
+
          --  For WIN32 systems, look for any system libraries defined in
          --  the registry. These are added to both source and object
          --  directories.
 
          Search_Path := String_Access (Get_Libraries_From_Registry);
+
          Get_Next_Dir_In_Path_Init (Search_Path);
          loop
             Search_Dir := Get_Next_Dir_In_Path (Search_Path);
@@ -1017,14 +1126,10 @@ package body Osint is
          end;
 
          Norm_Search_Dir :=
-           new String'
-             (Concat (Current_Dir.all, Local_Search_Dir.all));
+           new String' (Concat (Current_Dir.all, Local_Search_Dir.all));
 
          Result_Search_Dir :=
-           Read_Default_Search_Dirs
-             (String_Access (Update_Path (String_Ptr (Norm_Search_Dir))),
-              Search_File,
-              null);
+           Read_Default_Search_Dirs (Norm_Search_Dir, Search_File, null);
 
          Default_Search_Dir :=
            new String'
@@ -1043,13 +1148,11 @@ package body Osint is
 
             Norm_Search_Dir :=
               new String'
-                (Concat (Search_Dir_Prefix.all, Local_Search_Dir.all));
+              (Concat (Update_Path (Search_Dir_Prefix).all,
+                       Local_Search_Dir.all));
 
             Result_Search_Dir :=
-              Read_Default_Search_Dirs
-                (String_Access (Update_Path (String_Ptr (Norm_Search_Dir))),
-                 Search_File,
-                 null);
+              Read_Default_Search_Dirs (Norm_Search_Dir, Search_File, null);
 
             Default_Search_Dir :=
               new String'
@@ -1067,16 +1170,14 @@ package body Osint is
                --  We finally search in Search_Dir_Prefix/rts-Search_Dir
 
                Temp_String :=
-                 new String'(Concat (Search_Dir_Prefix.all, "rts-"));
+                 new String'
+                 (Concat (Update_Path (Search_Dir_Prefix).all, "rts-"));
 
                Norm_Search_Dir :=
                  new String' (Concat (Temp_String.all, Local_Search_Dir.all));
 
                Result_Search_Dir :=
-                 Read_Default_Search_Dirs
-                   (String_Access (Update_Path (String_Ptr (Norm_Search_Dir))),
-                    Search_File,
-                    null);
+                 Read_Default_Search_Dirs (Norm_Search_Dir, Search_File, null);
 
                Default_Search_Dir :=
                  new String'
@@ -1354,7 +1455,7 @@ package body Osint is
 
       if Running_Program = Make then
          declare
-            Orig_Main : File_Name_Type := Current_Main;
+            Orig_Main : constant File_Name_Type := Current_Main;
 
          begin
             if Strip_Suffix (Orig_Main) = Orig_Main then
@@ -1700,13 +1801,13 @@ package body Osint is
       --  Read data from the file
 
       declare
-         Len : Integer := Integer (File_Length (Lib_FD));
+         Len : constant Integer := Integer (File_Length (Lib_FD));
          --  Length of source file text. If it doesn't fit in an integer
          --  we're probably stuck anyway (>2 gigs of source seems a lot!)
 
          Actual_Len : Integer := 0;
 
-         Lo : Text_Ptr := 0;
+         Lo : constant Text_Ptr := 0;
          --  Low bound for allocated text buffer
 
          Hi : Text_Ptr := Text_Ptr (Len);
@@ -2239,7 +2340,8 @@ package body Osint is
         Unchecked_Conversion (Source => Address,
                               Target => Path_String_Access);
 
-      Path_Access : Path_String_Access := Address_To_Access (Path_Addr);
+      Path_Access : constant Path_String_Access :=
+                      Address_To_Access (Path_Addr);
 
       Return_Val  : String_Access;
 
@@ -2302,7 +2404,8 @@ package body Osint is
    ------------------------
 
    procedure Write_Program_Name is
-      Save_Buffer : String (1 .. Name_Len) := Name_Buffer (1 .. Name_Len);
+      Save_Buffer : constant String (1 .. Name_Len) :=
+                      Name_Buffer (1 .. Name_Len);
 
    begin
 

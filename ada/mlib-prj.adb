@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---              Copyright (C) 2001, Ada Core Technologies, Inc.             --
+--              Copyright (C) 2001-2002, Ada Core Technologies, Inc.        --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -29,13 +29,15 @@
 with Ada.Characters.Handling;
 
 with GNAT.Directory_Operations; use GNAT.Directory_Operations;
+with GNAT.HTable;
 with GNAT.OS_Lib;   use GNAT.OS_Lib;
 with MLib.Fil;
 with MLib.Tgt;
+with Namet;         use Namet;
 with Opt;
 with Output;        use Output;
-with Osint;         use Osint;
-with Namet;         use Namet;
+with Osint;
+with Prj.Com;
 with Table;
 with Types;         use Types;
 
@@ -54,6 +56,14 @@ package body MLib.Prj is
       Table_Low_Bound      => 1,
       Table_Initial        => 50,
       Table_Increment      => 50);
+
+   package Objects_Htable is new GNAT.HTable.Simple_HTable
+     (Header_Num => Com.Header_Num,
+      Element    => Boolean,
+      No_Element => False,
+      Key        => Name_Id,
+      Hash       => Com.Hash,
+      Equal      => "=");
 
    --  List of non-Ada object files
 
@@ -107,14 +117,16 @@ package body MLib.Prj is
    -------------------
 
    procedure Build_Library (For_Project : Project_Id) is
-      Data : constant Project_Data := Projects.Table (For_Project);
+      Data : Project_Data := Projects.Table (For_Project);
 
       Project_Name : constant String :=
                        Get_Name_String (Data.Name);
 
+      DLL_Address  : constant String_Access :=
+                       new String'(Target.Default_DLL_Address);
+
       Lib_Filename : String_Access;
       Lib_Dirpath  : String_Access := new String'(".");
-      DLL_Address  : String_Access := new String'(Target.Default_DLL_Address);
       Lib_Version  : String_Access := new String'("");
 
       The_Build_Mode : Build_Mode_State := None;
@@ -125,7 +137,7 @@ package body MLib.Prj is
       --  Fail if project is not a library project
 
       if not Data.Library then
-         Fail ("project """, Project_Name, """ has no library");
+         Com.Fail ("project """, Project_Name, """ has no library");
       end if;
 
       Lib_Dirpath := new String'(Get_Name_String (Data.Library_Dir));
@@ -153,67 +165,86 @@ package body MLib.Prj is
          Lib_Version := new String'(Get_Name_String (Data.Lib_Internal_Name));
       end if;
 
-      --  Add the objects found in the object directory
+      --  Add the objects found in the object directory and the object
+      --  directories of the extended files, if any.
+      --  When there are one or more extended files, only add an object file
+      --  if no object file with the same name have already been added.
 
-      declare
-         Object_Dir : Dir_Type;
-         Filename : String (1 .. 255);
-         Last : Natural;
-         Object_Dir_Path : constant String :=
-           Get_Name_String (Data.Object_Directory);
-      begin
-         Open (Dir => Object_Dir, Dir_Name => Object_Dir_Path);
+      loop
+         declare
+            Object_Dir : Dir_Type;
+            Filename : String (1 .. 255);
+            Last : Natural;
+            Id : Name_Id;
+            Object_Dir_Path : constant String :=
+              Get_Name_String (Data.Object_Directory);
+         begin
+            Open (Dir => Object_Dir, Dir_Name => Object_Dir_Path);
 
-         --  For all entries in the object directory
+            --  For all entries in the object directory
 
-         loop
-            Read (Object_Dir, Filename, Last);
+            loop
+               Read (Object_Dir, Filename, Last);
 
-            exit when Last = 0;
+               exit when Last = 0;
 
-            --  Check if it is an object file
+               --  Check if it is an object file
 
-            if Files.Is_Obj (Filename (1 .. Last)) then
-               --  record this object file
+               if Files.Is_Obj (Filename (1 .. Last)) then
 
-               Objects.Increment_Last;
-               Objects.Table (Objects.Last) :=
-                 new String' (Object_Dir_Path & Directory_Separator &
-                              Filename (1 .. Last));
+                  Name_Len := Last;
+                  Name_Buffer (1 .. Name_Len) := Filename (1 .. Last);
+                  Osint.Canonical_Case_File_Name (Name_Buffer (1 .. Name_Len));
+                  Id := Name_Find;
 
-               if Is_Regular_File
-                 (Object_Dir_Path &
-                  Files.Ext_To (Object_Dir_Path &
-                                Filename (1 .. Last), "ali"))
-               then
-                  --  Record the corresponding ali file
+                  if not Objects_Htable.Get (Id) then
 
-                  Alis.Increment_Last;
-                  Alis.Table (Alis.Last) :=
-                    new String' (Object_Dir_Path &
-                                 Files.Ext_To
-                                 (Filename (1 .. Last), "ali"));
+                     --  record this object file
 
-               else
-                  --  The object file is a foreign object file
+                     Objects_Htable.Set (Id, True);
+                     Objects.Increment_Last;
+                     Objects.Table (Objects.Last) :=
+                       new String' (Object_Dir_Path & Directory_Separator &
+                                      Filename (1 .. Last));
 
-                  Foreigns.Increment_Last;
-                  Foreigns.Table (Foreigns.Last) :=
-                    new String'(Object_Dir_Path &
-                                Filename (1 .. Last));
+                     if Is_Regular_File
+                       (Object_Dir_Path &
+                        Files.Ext_To (Filename (1 .. Last), "ali"))
+                     then
+                        --  Record the corresponding ali file
 
+                        Alis.Increment_Last;
+                        Alis.Table (Alis.Last) :=
+                          new String' (Object_Dir_Path &
+                                       Files.Ext_To
+                                       (Filename (1 .. Last), "ali"));
+
+                     else
+                        --  The object file is a foreign object file
+
+                        Foreigns.Increment_Last;
+                        Foreigns.Table (Foreigns.Last) :=
+                          new String'(Object_Dir_Path &
+                                        Filename (1 .. Last));
+
+                     end if;
+                  end if;
                end if;
-            end if;
-         end loop;
+            end loop;
 
-         Close (Dir => Object_Dir);
+            Close (Dir => Object_Dir);
 
-      exception
-         when Directory_Error =>
-            Fail ("cannot find object directory """,
-                  Get_Name_String (Data.Object_Directory),
-                  """");
-      end;
+         exception
+            when Directory_Error =>
+               Com.Fail ("cannot find object directory """,
+                         Get_Name_String (Data.Object_Directory),
+                         """");
+         end;
+
+         exit when Data.Extends = No_Project;
+
+         Data := Projects.Table (Data.Extends);
+      end loop;
 
       --  We want to link some Ada files, so we need to link with
       --  the GNAT runtime (libgnat & libgnarl)
@@ -242,7 +273,7 @@ package body MLib.Prj is
       --  (Ada or foreign objects)
 
       if Object_Files'Length = 0 then
-         Fail ("no object files");
+         Com.Fail ("no object files");
 
       end if;
 
@@ -293,7 +324,7 @@ package body MLib.Prj is
       --  where it would also find the object files; and we don't want
       --  that: we want the linker to use the library.
 
-      Target.Copy_ALI_Files
+      Copy_ALI_Files
         (From => Projects.Table (For_Project).Object_Directory,
          To   => Projects.Table (For_Project).Library_Dir);
 
@@ -306,7 +337,7 @@ package body MLib.Prj is
    procedure Check (Filename : String) is
    begin
       if not Is_Regular_File (Filename) then
-         Fail (Filename, " not found.");
+         Com.Fail (Filename, " not found.");
 
       end if;
    end Check;
@@ -331,6 +362,7 @@ package body MLib.Prj is
    procedure Reset_Tables is
    begin
       Objects.Init;
+      Objects_Htable.Reset;
       Foreigns.Init;
       Alis.Init;
       Opts.Init;

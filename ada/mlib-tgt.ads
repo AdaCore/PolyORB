@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---              Copyright (C) 2001, Ada Core Technologies, Inc.             --
+--              Copyright (C) 2001-2002, Ada Core Technologies, Inc.        --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -35,7 +35,6 @@
 --  Libraries_Are_Supported returns False.
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
-with Types;       use Types;
 
 package MLib.Tgt is
 
@@ -44,24 +43,28 @@ package MLib.Tgt is
    --  are supported by the GNAT implementation for the OS.
 
    function Default_DLL_Address return String;
-   --  default address for non relocatable DLL
+   --  Default address for non relocatable DLL.
+   --  For OSes where a dynamic library is always relocatable,
+   --  this function returns an empty string.
 
    function Dynamic_Option return String;
-   --  gcc option to create a dynamic library
-
-   function Base_Option return String;
+   --  gcc option to create a dynamic library.
+   --  For Unix, returns "-shared", for Windows returns "-mdll".
 
    function Libgnat return String;
    --  System dependent static GNAT library
 
    function Archive_Ext return  String;
-   --  System dependent static library extension
+   --  System dependent static library extension, without leading dot.
+   --  For Unix and Windows, return "a".
 
    function Object_Ext return String;
-   --  System dependent object extension
+   --  System dependent object extension, without leadien dot.
+   --  On Unix, returns "o".
 
    function DLL_Ext return String;
-   --  System dependent dynamic library extension
+   --  System dependent dynamic library extension, without leading dot.
+   --  On Unix, returns "so", on Windows, returns "dll".
 
    function PIC_Option return String;
    --  Position independent code option
@@ -75,15 +78,11 @@ package MLib.Tgt is
    function Is_Archive_Ext (Ext : String) return Boolean;
    --  Returns True iff Ext is an extension for a library
 
-   procedure Copy_ALI_Files
-     (From : Name_Id;
-      To   : Name_Id);
-   --  Copy all ALI files from directory From to directory To
-
    function Linker_Library_Path_Option
      (Directory : String)
       return      String_Access;
-   --  Linker option to specify the library directory path
+   --  Linker option to specify to the linker the library directory path
+   --  for Directory.
 
    procedure Build_Dynamic_Library
      (Ofiles       : Argument_List;
@@ -95,6 +94,28 @@ package MLib.Tgt is
       Lib_Address  : String  := "";
       Lib_Version  : String  := "";
       Relocatable  : Boolean := False);
-   --  Build a dynamic/relocatable library
+   --  Build a dynamic/relocatable library.
+   --
+   --  Ofiles is the list of all object files in the library.
+   --  Foreign is the list of non Ada object files (also included in Ofiles).
+   --  Afiles is the list of ALI files for the Ada object files.
+   --  Options is a list of options to be passed to the tool (gcc or other)
+   --  that effectively builds the dynamic library.
+   --  Lib_Filename is the name of the library, without any prefix or
+   --  extension. For example, on Unix, if Lib_Filename is "toto", the name of
+   --  the library file will be "libtoto.so".
+   --  Lib_Dir is the directory path where the library will be located.
+   --  Lib_Address is the base address of the library for a non relocatable
+   --  library, given as an hexadecimal string.
+   --  For OSes that support symbolic links, Lib_Version, if non null, is
+   --  the actual file name of the library. For example on Unix,
+   --  if Lib_Filename is "toto" and Lib_Version is "libtoto.so.2.1",
+   --  "libtoto.so" will be a symbolic link to "libtoto.so.2.1" which will
+   --  be the actual library file.
+   --  Relocatable indicates if the library should be relocatable or not,
+   --  for those OSes that actually support non relocatable dynamic libraries.
+   --  Note: Depending on the OS, some of the parameters may not be taken
+   --  into account. For example, on Linux, Foreign, Afiles Lib_Address and
+   --  relocatable are ignored.
 
 end MLib.Tgt;

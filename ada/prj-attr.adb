@@ -65,6 +65,7 @@ package body Prj.Attr is
      "SVlibrary_version#" &
      "LVmain#" &
      "LVlanguages#" &
+     "SVmain_language#" &
 
    --  package Naming
 
@@ -122,10 +123,11 @@ package body Prj.Attr is
      "Ladefault_switches#" &
      "LAswitches#" &
 
-   --  package Gnatstub
+   --  package Pretty_Printer
 
-     "Pgnatstub#" &
-     "LVswitches#" &
+     "Ppretty_printer#" &
+     "Ladefault_switches#" &
+     "LAswitches#" &
 
    --  package Ide
 
@@ -159,8 +161,8 @@ package body Prj.Attr is
    begin
       --  Make sure the two tables are empty
 
-      Attributes.Set_Last (Attributes.First);
-      Package_Attributes.Set_Last (Package_Attributes.First);
+      Attributes.Init;
+      Package_Attributes.Init;
 
       while Initialization_Data (Start) /= '#' loop
          Is_An_Attribute := True;

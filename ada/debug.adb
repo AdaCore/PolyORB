@@ -70,7 +70,7 @@ package body Debug is
 
    --  dA   All entities included in representation information output
    --  dB   Output debug encoding of type names and variants
-   --  dC
+   --  dC   Output debugging information on check suppression
    --  dD   Delete elaboration checks in inner level routines
    --  dE   Apply elaboration checks to predefined units
    --  dF   Front end data layout enabled.
@@ -80,7 +80,7 @@ package body Debug is
    --  dJ   Output debugging trace info for JGNAT (Java VM version of GNAT)
    --  dK   Kill all error messages
    --  dL   Output trace information on elaboration checking
-   --  dM
+   --  dM   Asssume all variables are modified (no current values)
    --  dN   Do not generate file/line exception messages
    --  dO   Output immediate error messages
    --  dP   Do not check for controlled objects in preelaborable packages
@@ -204,6 +204,9 @@ package body Debug is
    --       be generated at the start of compiling each unit (package or
    --       subprogram).
 
+   --  dC   Output trace information showing the decisions made during
+   --       check suppression activity in unit Checks.
+
    --  dd   Dynamic allocation of tables messages generated. Each time a
    --       table is reallocated, a line is output indicating the expansion.
 
@@ -284,6 +287,10 @@ package body Debug is
    --       Of course they may not have any useful effect, and in particular
    --       attempting to generate code with this flag set may blow up.
    --       The flag also forces the use of 64-bits for Long_Integer.
+
+   --  dM   Assume all variables have been modified, and ignore current value
+   --       indications. This debug flag disconnects the tracking of constant
+   --       values (see Exp_Ch2.Expand_Current_Value).
 
    --  dn   Generate messages for node/list allocation. Each time a node or
    --       list header is allocated, a line of output is generated. Certain
@@ -405,7 +412,9 @@ package body Debug is
    --       be enabled without generating modified source files. Note that the
    --       use of -gnatdV ensures in the dwarf/elf case that all symbols that
    --       are present in the elf tables are also in the dwarf tables (which
-   --       seems to be required by some tools).
+   --       seems to be required by some tools). Another effect of dV is to
+   --       generate full qualified names, including internal names generated
+   --       for blocks and loops.
 
    --  dX   Enable frontend ZCX even when it is not supported. Equivalent to
    --       -gnatZ but without verifying that System.Front_End_ZCX_Support

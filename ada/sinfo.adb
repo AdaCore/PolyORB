@@ -328,6 +328,14 @@ package body Sinfo is
       return Name1 (N);
    end Chars;
 
+   function Check_Address_Alignment
+      (N : Node_Id) return Boolean is
+   begin
+      pragma Assert (False
+          or else NT (N).Nkind = N_Attribute_Definition_Clause);
+      return Flag11 (N);
+   end Check_Address_Alignment;
+
    function Choice_Parameter
       (N : Node_Id) return Node_Id is
    begin
@@ -1422,6 +1430,14 @@ package body Sinfo is
         or else NT (N).Nkind = N_Real_Literal);
       return Flag11 (N);
    end Is_Machine_Number;
+
+   function Is_Null_Loop
+      (N : Node_Id) return Boolean is
+   begin
+      pragma Assert (False
+        or else NT (N).Nkind = N_Loop_Statement);
+      return Flag16 (N);
+   end Is_Null_Loop;
 
    function Is_Overloaded
       (N : Node_Id) return Boolean is
@@ -2703,6 +2719,14 @@ package body Sinfo is
       Set_Name1 (N, Val);
    end Set_Chars;
 
+   procedure Set_Check_Address_Alignment
+      (N : Node_Id; Val : Boolean := True) is
+   begin
+      pragma Assert (False
+          or else NT (N).Nkind = N_Attribute_Definition_Clause);
+      Set_Flag11 (N, Val);
+   end Set_Check_Address_Alignment;
+
    procedure Set_Choice_Parameter
       (N : Node_Id; Val : Node_Id) is
    begin
@@ -3796,6 +3820,14 @@ package body Sinfo is
         or else NT (N).Nkind = N_Real_Literal);
       Set_Flag11 (N, Val);
    end Set_Is_Machine_Number;
+
+   procedure Set_Is_Null_Loop
+      (N : Node_Id; Val : Boolean := True) is
+   begin
+      pragma Assert (False
+        or else NT (N).Nkind = N_Loop_Statement);
+      Set_Flag16 (N, Val);
+   end Set_Is_Null_Loop;
 
    procedure Set_Is_Overloaded
       (N : Node_Id; Val : Boolean := True) is

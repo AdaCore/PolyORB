@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2002 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -154,7 +154,7 @@ procedure Slit is
    ----------------
 
    procedure Set_String is
-      Slen : Int := Int (Scan_Ptr - Token_Ptr - 2);
+      Slen : constant Int := Int (Scan_Ptr - Token_Ptr - 2);
       C1   : Character;
       C2   : Character;
       C3   : Character;

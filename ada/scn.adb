@@ -917,6 +917,7 @@ package body Scn is
             --  Here is where we make the test to distinguish the cases. Treat
             --  as apostrophe if previous token is an identifier, right paren
             --  or the reserved word "all" (latter case as in A.all'Address)
+            --  (or the reserved word "project" in project files).
             --  Also treat it as apostrophe after a literal (this catches
             --  some legitimate cases, like A."abs"'Address, and also gives
             --  better error behavior for impossible cases like 123'xxx).
@@ -924,6 +925,7 @@ package body Scn is
             if Prev_Token = Tok_Identifier
                or else Prev_Token = Tok_Right_Paren
                or else Prev_Token = Tok_All
+               or else Prev_Token = Tok_Project
                or else Prev_Token in Token_Class_Literal
             then
                Token := Tok_Apostrophe;

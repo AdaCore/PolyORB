@@ -55,6 +55,7 @@ package body Prj.Part is
    --  The project path; initialized during package elaboration.
 
    Ada_Project_Path : constant String := "ADA_PROJECT_PATH";
+
    Prj_Path : constant String_Access := Getenv (Ada_Project_Path);
 
    ------------------------------------
@@ -69,29 +70,34 @@ package body Prj.Part is
       Table_Increment      => 10,
       Table_Name           => "Prj.Part.Project_Stack");
    --  This table is used to detect circular dependencies
-   --  for imported and modified projects.
+   --  for imported and extended projects.
 
    procedure Parse_Context_Clause
      (Context_Clause    : out Project_Node_Id;
-      Project_Directory : Name_Id);
+      Project_Directory : Name_Id;
+      From_Extended     : Boolean);
    --  Parse the context clause of a project
-   --  Does nothing if there is b\no context clause (if the current
-   --  token is not "with").
+   --  Does nothing if there is no context clause (if the current
+   --  token is not "with"). From_Extended is used when calling
+   --  Parse_Single_Project below.
 
    procedure Parse_Single_Project
-     (Project         : out Project_Node_Id;
-      Path_Name       : String;
-      Modified        : Boolean);
+     (Project       : out Project_Node_Id;
+      Path_Name     : String;
+      Extended      : Boolean;
+      From_Extended : Boolean);
    --  Parse a project file.
-   --  Recursive procedure: it calls itself for imported and
-   --  modified projects.
+   --  Recursive procedure: it calls itself for imported and extended
+   --  projects. When From_Extended is True, if the project has already
+   --  been parsed and is an extended project A, return the ultimate
+   --  (not extended) project that extends A.
 
    function Project_Path_Name_Of
      (Project_File_Name : String;
       Directory         : String)
       return              String;
-   --  Returns the path name of a project file.
-   --  Returns an empty string if project file cannot be found.
+   --  Returns the path name of a project file. Returns an empty string
+   --  if project file cannot be found.
 
    function Immediate_Directory_Of (Path_Name : Name_Id) return Name_Id;
    --  Get the directory of the file with the specified path name.
@@ -119,8 +125,7 @@ package body Prj.Part is
          if Name_Buffer (Index) = '/'
            or else Name_Buffer (Index) = Dir_Sep
          then
-            --  Remove from name all characters after the last
-            --  directory separator.
+            --  Remove all chars after last directory separator from name
 
             Name_Len := Index;
             return Name_Find;
@@ -166,13 +171,17 @@ package body Prj.Part is
          --  Parse the main project file
 
          if Path_Name = "" then
-            Fail ("project file """ & Project_File_Name & """ not found");
+            Prj.Com.Fail
+              ("project file """, Project_File_Name, """ not found");
+            Project := Empty_Node;
+            return;
          end if;
 
          Parse_Single_Project
-           (Project         => Project,
-            Path_Name       => Path_Name,
-            Modified        => False);
+           (Project       => Project,
+            Path_Name     => Path_Name,
+            Extended      => False,
+            From_Extended => False);
 
          --  If there were any kind of error during the parsing, serious
          --  or not, then the parsing fails.
@@ -204,12 +213,14 @@ package body Prj.Part is
 
    procedure Parse_Context_Clause
      (Context_Clause    : out Project_Node_Id;
-      Project_Directory : Name_Id)
+      Project_Directory : Name_Id;
+      From_Extended     : Boolean)
    is
       Project_Directory_Path : constant String :=
                                  Get_Name_String (Project_Directory);
       Current_With_Clause    : Project_Node_Id := Empty_Node;
       Next_With_Clause       : Project_Node_Id := Empty_Node;
+      Previous_With_Clause   : Project_Node_Id := Empty_Node;
 
    begin
       --  Assume no context clause
@@ -268,6 +279,8 @@ package body Prj.Part is
                else
                   --  New with clause
 
+                  Previous_With_Clause := Current_With_Clause;
+
                   if Current_With_Clause = Empty_Node then
 
                      --  First with clause of the context clause
@@ -293,12 +306,25 @@ package body Prj.Part is
                   --  Parse the imported project
 
                   Parse_Single_Project
-                    (Project   => Withed_Project,
-                     Path_Name => Imported_Path_Name,
-                     Modified  => False);
+                    (Project       => Withed_Project,
+                     Path_Name     => Imported_Path_Name,
+                     Extended      => False,
+                     From_Extended => From_Extended);
 
-                  if Withed_Project /= Empty_Node then
+                  if Withed_Project = Empty_Node then
+                     --  If parsing was not successful, remove the
+                     --  context clause.
 
+                     Current_With_Clause := Previous_With_Clause;
+
+                     if Current_With_Clause = Empty_Node then
+                        Context_Clause := Empty_Node;
+
+                     else
+                        Set_Next_With_Clause_Of
+                          (Current_With_Clause, Empty_Node);
+                     end if;
+                  else
                      --  If parsing was successful, record project name
                      --  and path name in with clause
 
@@ -313,6 +339,7 @@ package body Prj.Part is
             end;
 
             Scan;
+
             if Token = Tok_Semicolon then
 
                --  End of (possibly multiple) with clause;
@@ -326,7 +353,6 @@ package body Prj.Part is
             end if;
          end loop Comma_Loop;
       end loop With_Loop;
-
    end Parse_Context_Clause;
 
    --------------------------
@@ -334,16 +360,17 @@ package body Prj.Part is
    --------------------------
 
    procedure Parse_Single_Project
-     (Project         : out Project_Node_Id;
-      Path_Name       : String;
-      Modified        : Boolean)
+     (Project       : out Project_Node_Id;
+      Path_Name     : String;
+      Extended      : Boolean;
+      From_Extended : Boolean)
    is
       Canonical_Path_Name : Name_Id;
       Project_Directory   : Name_Id;
       Project_Scan_State  : Saved_Project_Scan_State;
       Source_Index        : Source_File_Index;
 
-      Modified_Project    : Project_Node_Id := Empty_Node;
+      Extended_Project    : Project_Node_Id := Empty_Node;
 
       A_Project_Name_And_Node : Tree_Private_Part.Project_Name_And_Node :=
         Tree_Private_Part.Projects_Htable.Get_First;
@@ -395,23 +422,45 @@ package body Prj.Part is
          if
            Path_Name_Of (A_Project_Name_And_Node.Node) = Canonical_Path_Name
          then
-            if Modified then
+            if Extended then
 
-               if A_Project_Name_And_Node.Modified then
+               if A_Project_Name_And_Node.Extended then
                   Error_Msg
-                    ("cannot modify the same project file several times",
+                    ("cannot extend the same project file several times",
                      Token_Ptr);
 
                else
                   Error_Msg
-                    ("cannot modify an imported project file",
+                    ("cannot extend an already imported project file",
                      Token_Ptr);
                end if;
 
-            elsif A_Project_Name_And_Node.Modified then
-               Error_Msg
-                 ("cannot imported a modified project file",
-                  Token_Ptr);
+            elsif A_Project_Name_And_Node.Extended then
+               --  If the imported project is an extended project A, and we are
+               --  in an extended project, replace A with the ultimate project
+               --  extending A.
+
+               if From_Extended then
+                  declare
+                     Decl : Project_Node_Id :=
+                       Project_Declaration_Of
+                         (A_Project_Name_And_Node.Node);
+                     Prj : Project_Node_Id :=
+                       Extending_Project_Of (Decl);
+                  begin
+                     loop
+                        Decl := Project_Declaration_Of (Prj);
+                        exit when Extending_Project_Of (Decl) = Empty_Node;
+                        Prj := Extending_Project_Of (Decl);
+                     end loop;
+
+                     A_Project_Name_And_Node.Node := Prj;
+                  end;
+               else
+                  Error_Msg
+                    ("cannot import an already extended project file",
+                     Token_Ptr);
+               end if;
             end if;
 
             Project := A_Project_Name_And_Node.Node;
@@ -468,8 +517,10 @@ package body Prj.Part is
          First_With_Clause : Project_Node_Id := Empty_Node;
 
       begin
-         Parse_Context_Clause (Context_Clause    => First_With_Clause,
-                               Project_Directory => Project_Directory);
+         Parse_Context_Clause
+           (Context_Clause    => First_With_Clause,
+            Project_Directory => Project_Directory,
+            From_Extended     => Extended);
          Set_First_With_Clause_Of (Project, First_With_Clause);
       end;
 
@@ -528,7 +579,7 @@ package body Prj.Part is
                  (K => Token_Name,
                   E => (Name     => Token_Name,
                         Node     => Project,
-                        Modified => Modified));
+                        Extended => Extended));
             end if;
          end;
 
@@ -543,23 +594,23 @@ package body Prj.Part is
          Expect (Tok_String_Literal, "literal string");
 
          if Token = Tok_String_Literal then
-            Set_Modified_Project_Path_Of (Project, Strval (Token_Node));
-            String_To_Name_Buffer (Modified_Project_Path_Of (Project));
+            Set_Extended_Project_Path_Of (Project, Strval (Token_Node));
+            String_To_Name_Buffer (Extended_Project_Path_Of (Project));
 
             declare
                Original_Path_Name : constant String :=
                                       Name_Buffer (1 .. Name_Len);
 
-               Modified_Project_Path_Name : constant String :=
+               Extended_Project_Path_Name : constant String :=
                                               Project_Path_Name_Of
                                                 (Original_Path_Name,
                                                    Get_Name_String
                                                      (Project_Directory));
 
             begin
-               if Modified_Project_Path_Name = "" then
+               if Extended_Project_Path_Name = "" then
 
-                  --  We could not find the project file to modify
+                  --  We could not find the project file to extend
 
                   Name_Len := Original_Path_Name'Length;
                   Name_Buffer (1 .. Name_Len) := Original_Path_Name;
@@ -583,13 +634,14 @@ package body Prj.Part is
 
                else
                   Parse_Single_Project
-                    (Project   => Modified_Project,
-                     Path_Name => Modified_Project_Path_Name,
-                     Modified  => True);
+                    (Project       => Extended_Project,
+                     Path_Name     => Extended_Project_Path_Name,
+                     Extended      => True,
+                     From_Extended => False);
                end if;
             end;
 
-            Scan; -- scan past the modified project path
+            Scan; -- scan past the extended project path
          end if;
       end if;
 
@@ -604,8 +656,13 @@ package body Prj.Part is
          Prj.Dect.Parse
            (Declarations    => Project_Declaration,
             Current_Project => Project,
-            Extends         => Modified_Project);
+            Extends         => Extended_Project);
          Set_Project_Declaration_Of (Project, Project_Declaration);
+
+         if Extended_Project /= Empty_Node then
+            Set_Extending_Project_Of
+              (Project_Declaration_Of (Extended_Project), To => Project);
+         end if;
       end;
 
       Expect (Tok_End, "end");
