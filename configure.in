@@ -48,7 +48,7 @@ AC_ARG_ENABLE(debug,
  BARGS=-E
  debug=true],
 [GNATFLAGS="-g -O2"
- BARGS
+ BARGS=
  debug=false])
 AC_SUBST(GNATFLAGS)
 AC_SUBST(BARGS)
