@@ -161,6 +161,8 @@ src/corba/polyorb-references-ior.adb
 src/corba/polyorb-references-ior.ads
 src/corba/polyorb-representations-cdr.adb
 src/corba/polyorb-representations-cdr.ads
+src/corba/polyorb-setup-test.adb
+src/corba/polyorb-setup-test.ads
 src/corba/portableserver-adapteractivator.adb
 src/corba/portableserver-adapteractivator.ads
 src/corba/portableserver.adb
@@ -306,8 +308,6 @@ src/polyorb-requests.ads
 src/polyorb-setup.ads
 src/polyorb-setup-corba_client.adb
 src/polyorb-setup-corba_client.ads
-src/polyorb-setup-test.adb
-src/polyorb-setup-test.ads
 src/polyorb-smart_pointers.adb
 src/polyorb-smart_pointers.ads
 src/polyorb-sockets.ads
