@@ -39,10 +39,12 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Lanes;
 with PolyORB.References.Binding;
+with PolyORB.RT_POA_Policies.Priority_Model_Policy;
 with PolyORB.RT_POA_Policies.Thread_Pool_Policy;
 with PolyORB.Servants;
 with PolyORB.Setup;
 with PolyORB.Task_Info;
+with PolyORB.Tasking.Priorities;
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Request_Scheduler.Servant_Lane is
@@ -81,6 +83,7 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
 
       if Surrogate.all in Servant'Class then
          declare
+            use PolyORB.RT_POA_Policies.Priority_Model_Policy;
             use PolyORB.RT_POA_Policies.Thread_Pool_Policy;
             use PolyORB.Lanes;
 
@@ -89,12 +92,40 @@ package body PolyORB.Request_Scheduler.Servant_Lane is
               (PolyORB.Servants.Servant_Access (Surrogate));
 
          begin
+
             if To_Lane /= null then
                --  Queue request to the lane attached to servant
 
-               Queue_Job (To_Lane, Job);
+               declare
+                  use PolyORB.Exceptions;
+                  use PolyORB.Tasking.Priorities;
 
-               return True;
+                  Model : Priority_Model;
+                  Server_ORB_Priority : ORB_Priority;
+                  Server_External_Priority : External_Priority;
+                  Error : PolyORB.Exceptions.Error_Container;
+
+               begin
+                  Get_Servant_Priority_Information
+                    (PolyORB.Servants.Servant_Access (Surrogate),
+                     Model,
+                     Server_ORB_Priority,
+                     Server_External_Priority,
+                     Error);
+
+                  if Found (Error) then
+                     Catch (Error);
+                     return False;
+                  end if;
+
+                  if Model = CLIENT_PROPAGATED then
+                     Queue_Job (To_Lane, Job, Server_External_Priority);
+                  else
+                     Queue_Job (To_Lane, Job);
+                  end if;
+
+                  return True;
+               end;
             end if;
          end;
       end if;

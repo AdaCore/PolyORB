@@ -108,7 +108,6 @@ package body PolyORB.Lanes is
 
       Leave (R.L.Lock);
       pragma Debug (O ("Exiting from lane's main loop"));
-
    end Run;
 
    --------------
@@ -235,9 +234,12 @@ package body PolyORB.Lanes is
    ---------------
 
    procedure Queue_Job
-     (L : access Lane;
-      J :        Job_Access)
+     (L             : access Lane;
+      J             :        Job_Access;
+      Hint_Priority :        External_Priority := Invalid_Priority)
    is
+      pragma Unreferenced (Hint_Priority);
+
    begin
       pragma Debug (O ("Queue job in lane at priority ("
                        & L.ORB_Priority'Img & ","
@@ -321,8 +323,9 @@ package body PolyORB.Lanes is
    end Queue_Job;
 
    procedure Queue_Job
-     (L : access Lanes_Set;
-      J :        Job_Access)
+     (L             : access Lanes_Set;
+      J             :        Job_Access;
+      Hint_Priority :        External_Priority := Invalid_Priority)
    is
       use PolyORB.Request_QoS;
       use PolyORB.Request_QoS.QoS_Parameter_Lists;
@@ -350,11 +353,26 @@ package body PolyORB.Lanes is
                   return;
                end if;
             end loop;
-         else
-            pragma Debug
-              (O ("Cannot queue job, no lane matches request priority"));
-            raise Program_Error;
+
+         elsif Hint_Priority /= Invalid_Priority then
+            pragma Debug (O ("About to queue a job at priority"
+                             & Hint_Priority'Img));
+
+            for K in L.Set'Range loop
+               pragma Debug (O ("Testing lane, priority"
+                                & L.Set (K).all.ORB_Priority'Img));
+
+               if L.Set (K).all.Ext_Priority = Hint_Priority then
+                  Queue_Job (L.Set (K), J);
+                  return;
+               end if;
+            end loop;
          end if;
+
+         pragma Debug
+              (O ("Cannot queue job, no lane matches request priority"));
+         raise Program_Error;
+
       end;
    end Queue_Job;
 

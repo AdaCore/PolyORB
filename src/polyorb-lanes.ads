@@ -63,7 +63,13 @@ package PolyORB.Lanes is
    type Lane_Root is abstract tagged limited private;
    type Lane_Root_Access is access all Lane_Root'Class;
 
-   procedure Queue_Job (L : access Lane_Root; J : Job_Access) is abstract;
+   procedure Queue_Job
+     (L             : access Lane_Root;
+      J             :        Job_Access;
+      Hint_Priority :        External_Priority := Invalid_Priority)
+      is abstract;
+   --  Queue job J in lane L, Hint_Priority defines a base priority to
+   --  be used by the lane to queue J.
 
    procedure Destroy (L : access Lane_Root) is abstract;
 
@@ -100,7 +106,10 @@ package PolyORB.Lanes is
       Max_Buffer_Size           : PolyORB.Types.Unsigned_Long)
      return Lane_Access;
 
-   procedure Queue_Job (L : access Lane; J : Job_Access);
+   procedure Queue_Job
+     (L             : access Lane;
+      J             :        Job_Access;
+      Hint_Priority :        External_Priority := Invalid_Priority);
 
    procedure Destroy (L : access Lane);
 
@@ -130,7 +139,10 @@ package PolyORB.Lanes is
       Index :        Positive);
    --  Add lane L at position Index in Set
 
-   procedure Queue_Job (L : access Lanes_Set; J : Job_Access);
+   procedure Queue_Job
+     (L             : access Lanes_Set;
+      J             :        Job_Access;
+      Hint_Priority :        External_Priority := Invalid_Priority);
 
    procedure Destroy (L : access Lanes_Set);
 
@@ -181,16 +193,16 @@ private
       Max_Buffered_Requests     : PolyORB.Types.Unsigned_Long;
       Max_Buffer_Size           : PolyORB.Types.Unsigned_Long)
    is new Lane_Root with record
-      Lock      : PTM.Mutex_Access;
-      Job_Queue : Job_Queue_Access;
-      Dynamic_Threads_Created : Natural := 0;
+      Lock                      : PTM.Mutex_Access;
+      Job_Queue                 : Job_Queue_Access;
+      Dynamic_Threads_Created   : Natural := 0;
 
-      Idle_Task_List : Idle_Task_Lists.List;
+      Idle_Task_List            : Idle_Task_Lists.List;
       --  List of idle tasks
 
-      Free_CV : CV_Lists.List;
+      Free_CV                   : CV_Lists.List;
 
-      Clean_Up_In_Progress : Boolean := False;
+      Clean_Up_In_Progress      : Boolean := False;
    end record;
 
    --  Extensible_Lane
