@@ -109,4 +109,20 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
          Null_Member);
    end Implicit_Activate_Servant;
 
+   -----------------------------------
+   -- Ensure_No_Implicit_Activation --
+   -----------------------------------
+
+   procedure Ensure_No_Implicit_Activation
+     (Self      :        No_Activation_Policy;
+      Error     : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Error);
+      pragma Warnings (On); --  WAG:3.15
+
+   begin
+      null;
+   end Ensure_No_Implicit_Activation;
 end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;

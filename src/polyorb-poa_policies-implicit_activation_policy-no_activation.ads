@@ -57,4 +57,8 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
       Oid       :    out Object_Id_Access;
       Error     : in out PolyORB.Exceptions.Error_Container);
 
+   procedure Ensure_No_Implicit_Activation
+     (Self      :        No_Activation_Policy;
+      Error     : in out PolyORB.Exceptions.Error_Container);
+
 end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;

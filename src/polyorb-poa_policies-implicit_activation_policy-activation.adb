@@ -136,4 +136,22 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
       Oid := U_Oid_To_Oid (U_Oid);
    end Implicit_Activate_Servant;
 
+   -----------------------------------
+   -- Ensure_No_Implicit_Activation --
+   -----------------------------------
+
+   procedure Ensure_No_Implicit_Activation
+     (Self      :        Activation_Policy;
+      Error     : in out PolyORB.Exceptions.Error_Container)
+   is
+      use PolyORB.Exceptions;
+
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Warnings (On); --  WAG:3.15
+
+   begin
+      Throw (Error, WrongPolicy_E, Null_Members'(Null_Member));
+   end Ensure_No_Implicit_Activation;
+
 end PolyORB.POA_Policies.Implicit_Activation_Policy.Activation;
