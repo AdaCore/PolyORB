@@ -656,6 +656,8 @@ src/corba/rtcorba/polyorb-rtcorba_p-to_orb_priority.ads
 src/corba/rtcorba/polyorb-rtcorba_p.ads
 src/corba/rtcorba/rtcorba-current.adb
 src/corba/rtcorba/rtcorba-current.ads
+src/corba/rtcorba/rtcorba-helper.adb
+src/corba/rtcorba/rtcorba-helper.ads
 src/corba/rtcorba/rtcorba-mutex-helper.adb
 src/corba/rtcorba/rtcorba-mutex-helper.ads
 src/corba/rtcorba/rtcorba-mutex.adb
