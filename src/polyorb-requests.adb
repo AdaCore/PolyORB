@@ -271,16 +271,10 @@ package body PolyORB.Requests is
 
    procedure Arguments
      (Self : Request_Access;
-      Args : in out Any.NVList.Ref)
-   is
+      Args : in out Any.NVList.Ref) is
    begin
       Arguments (Self, Args, False);
    end Arguments;
-
-
-   ---------------
-   -- Arguments --
-   ---------------
 
    procedure Arguments
      (Self :              Request_Access;

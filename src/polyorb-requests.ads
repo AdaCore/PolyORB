@@ -243,7 +243,6 @@ package PolyORB.Requests is
    --  Can_Extend is set to True and Src_Args contains extra arguments
    --  that are not required by Dst_Args, then they are appended.
 
-
    function Image
      (Req : Request)
      return String;
