@@ -57,22 +57,6 @@ package body PolyORB.Protocols is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize
-     (S : in out Session)
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (S);
-      pragma Warnings (On);
-
-   begin
-      pragma Debug (O ("Finalizing Session."));
-      null;
-   end Finalize;
-
    ---------------------------------
    -- Handle_Unmarshall_Arguments --
    ---------------------------------

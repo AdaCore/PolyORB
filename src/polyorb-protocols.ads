@@ -69,8 +69,6 @@ package PolyORB.Protocols is
    --  Request_Watcher should not be created here, it will
    --  be positioned by the thread policy, if necessary.
 
-   procedure Finalize (S : in out Session);
-
    --------------------------------------------------
    -- Primitives needed with some tasking policies --
    --------------------------------------------------
