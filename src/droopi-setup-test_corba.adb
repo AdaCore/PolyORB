@@ -20,6 +20,7 @@ with Droopi.Setup.Test; use Droopi.Setup.Test;
 
 with Droopi.POA_Config;
 with Droopi.POA_Config.Minimum;
+with Droopi.POA_Manager;
 
 package body Droopi.Setup.Test_CORBA is
 
@@ -43,6 +44,9 @@ package body Droopi.Setup.Test_CORBA is
       My_Servant := new CORBA.Test_Object.My_Object;
       --  Create application server object.
       CORBA.Test_Object.Create (My_Object (My_Servant.all));
+
+      POA_Manager.Activate
+        (POA.Obj_Adapter (Obj_Adapter.all).POA_Manager);
 
       declare
          My_Id : constant Objects.Object_Id_Access
