@@ -11,7 +11,7 @@ with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;     use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime;    use Backend.BE_Ada.Runtime;
-with Backend.BE_Ada.Debug;    use Backend.BE_Ada.Debug;
+--  with Backend.BE_Ada.Debug;    use Backend.BE_Ada.Debug;
 
 package body Backend.BE_Ada.Stubs is
 
@@ -747,7 +747,7 @@ package body Backend.BE_Ada.Stubs is
         (Selector_Name => Make_Defining_Identifier (PN (P_Name)),
          Expression    => C);
       P := Make_List_Id (N);
-      W_Node_Id (Return_T);
+
       if No (Return_T) then
          Param := RE (RE_TC_Void);
       elsif Is_Base_Type
