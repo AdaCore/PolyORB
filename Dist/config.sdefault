@@ -1,5 +1,5 @@
 #!/bin/sh
-S1=`which gcc | sed 's%/bin/gcc%%'`
+S1=`type gcc | sed 's/gcc is //' | sed 's%/bin/gcc%%'`
 S2=`gcc -c -dumpversion`
 S3=`gcc -c -dumpmachine`
 cat >sdefault.adb <<EOF

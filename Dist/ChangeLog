@@ -1,0 +1,4 @@
+Wed Sep 11 14:39:58 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* config.sdefault: Replaced which by type.
+
