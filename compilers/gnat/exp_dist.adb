@@ -416,8 +416,6 @@ package body Exp_Dist is
    procedure Add_RACW_TypeCode
      (Designated_Type  : in Entity_Id;
       RACW_Type        : in Entity_Id;
-      Stub_Type        : in Entity_Id;
-      Stub_Type_Access : in Entity_Id;
       Declarations     : in List_Id);
    --  Add the TypeCode TSS for this RACW type.
 
@@ -753,8 +751,6 @@ package body Exp_Dist is
       Add_RACW_TypeCode
         (Designated_Type     => Desig,
          RACW_Type           => RACW_Type,
-         Stub_Type           => Stub_Type,
-         Stub_Type_Access    => Stub_Type_Access,
          Declarations        => Decls);
 
       if not Same_Scope and then not Existing then
@@ -1748,8 +1744,6 @@ package body Exp_Dist is
    procedure Add_RACW_TypeCode
      (Designated_Type  : in Entity_Id;
       RACW_Type        : in Entity_Id;
-      Stub_Type        : in Entity_Id;
-      Stub_Type_Access : in Entity_Id;
       Declarations     : in List_Id)
    is
       Loc : constant Source_Ptr := Sloc (RACW_Type);
