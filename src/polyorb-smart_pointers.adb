@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#21 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#22 $
 
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
@@ -273,9 +273,9 @@ package body PolyORB.Smart_Pointers is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"smart_pointers",
+      (Name      => +"smart_pointers",
        Conflicts => Empty,
-       Depends => +"soft_links",
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => +"soft_links",
+       Provides  => Empty,
+       Init      => Initialize'Access));
 end PolyORB.Smart_Pointers;

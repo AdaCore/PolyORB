@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#6 $
+--  $Id: //droopi/main/src/polyorb-exceptions-stack.adb#7 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -389,10 +389,10 @@ package body PolyORB.Exceptions.Stack is
 begin
       Register_Module
      (Module_Info'
-      (Name => +"exceptions.stack",
+      (Name      => +"exceptions.stack",
        Conflicts => Empty,
-       Depends => +"tasking.soft_links",
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => +"soft_links",
+       Provides  => Empty,
+       Init      => Initialize'Access));
 
 end PolyORB.Exceptions.Stack;

@@ -383,9 +383,9 @@ package body PolyORB.ORB.Thread_Per_Session is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"orb.thread_per_session",
+      (Name      => +"orb.thread_per_session",
        Conflicts => +"no_tasking",
-       Depends => +"soft_links",
-       Provides => +"orb.tasking_policy",
-       Init => Initialize'Access));
+       Depends   => +"soft_links",
+       Provides  => +"orb.tasking_policy",
+       Init      => Initialize'Access));
 end PolyORB.ORB.Thread_Per_Session;

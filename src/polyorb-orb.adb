@@ -1265,7 +1265,8 @@ begin
      (Module_Info'
       (Name => +"orb",
        Conflicts => Empty,
-       Depends => +"soft_links" & "orb.tasking_policy"
+       Depends => +"orb.tasking_policy"
+         & "soft_links"
          & "binding_data.soap?"
          & "binding_data.srp?"
          & "binding_data.iiop?"

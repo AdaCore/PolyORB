@@ -590,10 +590,10 @@ package body PolyORB.Exceptions is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"exceptions",
+      (Name      => +"exceptions",
        Conflicts => Empty,
-       Depends => +"tasking.soft_links",
-       Provides => Empty,
-       Init => Initialize'Access));
+       Depends   => +"soft_links",
+       Provides  => Empty,
+       Init      => Initialize'Access));
 
 end PolyORB.Exceptions;
