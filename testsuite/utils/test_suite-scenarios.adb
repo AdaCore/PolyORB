@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,14 +57,15 @@ package body Test_Suite.Scenarios is
       Load_Configuration_File (Scenario_File);
 
       declare
-         Scenario_Name : constant String :=
-           Get_Conf ("scenario", "name");
+         Scenario_Name : constant String
+           := Get_Conf ("scenario", "name");
 
-         Scenario_Id : constant String :=
-           Get_Conf ("scenario", "id");
+         Scenario_Id : constant String
+           := Get_Conf ("scenario", "id");
 
       begin
          Open_Scenario_Output_Context (Output, Scenario_Name);
+
          Log (Output, "Opening scenario #"
               & Positive'Image (Index)
               & ": "
@@ -89,15 +90,17 @@ package body Test_Suite.Scenarios is
 
       Count : Natural := 0;
 
-      Scenario_Name : constant String :=
-        Open_Scenario (Scenario_File, Index, Output);
+      Scenario_Name : constant String
+        := Open_Scenario (Scenario_File, Index, Output);
 
       Result : Boolean := True;
+
    begin
       loop
          declare
-            Extracted_Test : Test'Class :=
-              Extract_Test (Scenario_Name, Count, Output);
+            Extracted_Test : Test'Class
+              := Extract_Test (Scenario_Name, Count, Output);
+
          begin
             exit when Extracted_Test in Null_Test;
 

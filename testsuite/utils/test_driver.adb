@@ -55,13 +55,13 @@ procedure Test_Driver is
    use Test_Suite.Output.Text;
 
    procedure Run;
-   --  Run test driver.
+   --  Run test driver
 
    procedure Scan_Command_Line;
-   --  Scan the command line.
+   --  Scan the command line
 
    procedure Usage;
-   --  Print usage information.
+   --  Print usage information
 
    type String_Access is access all String;
 
@@ -69,9 +69,9 @@ procedure Test_Driver is
                    Run_All_Scenarios);
 
    Scan_Succesful : Boolean := False;
-   To_Do       : Action;
-   Output      : TSO_Access;
-   Item        : String_Access;
+   To_Do          : Action;
+   Output         : TSO_Access;
+   Item           : String_Access;
 
    ---------
    -- Run --
@@ -178,6 +178,7 @@ procedure Test_Driver is
       Filename : constant String := GNAT.Source_Info.File;
       Executable_Name : constant String
         := Filename (Filename'First .. Filename'Last - 4);
+
    begin
       New_Line;
       Put_Line (Standard_Error, "Usage: " & Executable_Name
@@ -193,7 +194,7 @@ procedure Test_Driver is
       New_Line;
    end Usage;
 
-   --  Main procedure begins here.
+   --  Main procedure begins here
 
 begin
 

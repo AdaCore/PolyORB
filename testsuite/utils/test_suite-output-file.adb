@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -94,6 +94,7 @@ package body Test_Suite.Output.File is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       Close (Error_File);
       Close (Log_File);
@@ -104,12 +105,11 @@ package body Test_Suite.Output.File is
    -- Error --
    -----------
 
-   procedure Error (Output    : File_Output;
-                    Error_Msg : String)
-   is
+   procedure Error (Output : File_Output; Error_Msg : String) is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       Put_Line (Error_File, Error_Msg);
    end Error;
@@ -118,12 +118,11 @@ package body Test_Suite.Output.File is
    -- Log --
    ---------
 
-   procedure Log (Output : File_Output;
-                  Log_Msg : String)
-   is
+   procedure Log (Output : File_Output; Log_Msg : String) is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       if In_Test then
          Put_Line (Test_File, Log_Msg);
@@ -136,11 +135,11 @@ package body Test_Suite.Output.File is
    -- Separator --
    ---------------
 
-   procedure Separator (Output : File_Output)
-   is
+   procedure Separator (Output : File_Output) is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       if In_Test then
          New_Line (Test_File);
@@ -153,13 +152,11 @@ package body Test_Suite.Output.File is
    -- Open_Test_Output_Context --
    ------------------------------
 
-   procedure Open_Test_Output_Context
-     (Output : File_Output;
-      Name   : String)
-   is
+   procedure Open_Test_Output_Context (Output : File_Output; Name : String) is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       Test_Name := To_Unbounded_String (Name);
       In_Test := True;
@@ -184,6 +181,7 @@ package body Test_Suite.Output.File is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       New_Line (Test_File);
       Put_Line (Test_File, "-----------------------------");
@@ -235,6 +233,7 @@ package body Test_Suite.Output.File is
       pragma Unreferenced (Output);
       pragma Unreferenced (Result);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       null;
    end Close_Scenario_Output_Context;
@@ -250,6 +249,7 @@ package body Test_Suite.Output.File is
       pragma Warnings (Off); --  WAG:3.14
       pragma Unreferenced (Output);
       pragma Warnings (On); --  WAG:3.14
+
    begin
       Put (Test_File, Msg);
    end Test_Execution;

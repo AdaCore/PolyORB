@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -46,58 +46,58 @@ package Test_Suite.Output is
    type TSO_Access is access all Test_Suite_Output'Class;
 
    procedure Open (Output : Test_Suite_Output) is abstract;
-   --  Initialize Output.
+   --  Initialize Output
 
    procedure Close (Output : Test_Suite_Output) is abstract;
-   --  Finalize Output.
+   --  Finalize Output
 
    procedure Error
      (Output    : Test_Suite_Output;
       Error_Msg : String)
       is abstract;
-   --  Output an error message.
+   --  Output an error message
 
    procedure Log
      (Output : Test_Suite_Output;
       Log_Msg : String)
       is abstract;
-   --  Output a log message.
+   --  Output a log message
 
    procedure Test_Execution
      (Output : Test_Suite_Output;
       Msg    : String)
       is abstract;
-   --  Output test execution output.
+   --  Output test execution output
 
    procedure Separator (Output : Test_Suite_Output) is abstract;
-   --  Output a 'Separator'.
+   --  Output a Separator
 
    procedure Open_Test_Output_Context
      (Output : Test_Suite_Output;
       Name   : String)
       is abstract;
-   --  Open a new Context in which Test execution messages will be output.
+   --  Open a new Context in which Test execution messages will be output
 
    procedure Close_Test_Output_Context
      (Output : Test_Suite_Output;
       Result : Boolean)
       is abstract;
-   --  Close output Context.
+   --  Close output Context
 
    procedure Open_Scenario_Output_Context
      (Output : Test_Suite_Output;
       Name   : String)
       is abstract;
-   --  Open a new higher level Context in which Log messages will be output.
+   --  Open a new higher level Context in which Log messages will be output
 
    procedure Close_Scenario_Output_Context
      (Output : Test_Suite_Output;
       Result : Boolean)
       is abstract;
-   --  Close output Context.
+   --  Close output Context
 
    procedure Initialize_Filter (Output : Test_Suite_Output'Class);
-   --  Initialize Output Filter.
+   --  Initialize Output Filter
 
    procedure Output_Filter
      (Descriptor : GNAT.Expect.Process_Descriptor'Class;
