@@ -40,6 +40,7 @@ with Ada.Unchecked_Deallocation;
 with PolyORB.Filters.Interface;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
+with PolyORB.ORB.Interface;
 
 package body PolyORB.Transport is
 
@@ -75,6 +76,12 @@ package body PolyORB.Transport is
    begin
       Components.Connect (TE.Upper, Upper);
    end Connect_Upper;
+
+   function Notepad_Of (TE : Transport_Endpoint_Access)
+     return Annotations.Notepad_Access is
+   begin
+      return TE.Notepad'Access;
+   end Notepad_Of;
 
    procedure Destroy (TE : in out Transport_Endpoint_Access)
    is
@@ -139,8 +146,16 @@ package body PolyORB.Transport is
          end;
       elsif Msg in Data_Out then
          Write (Transport_Endpoint'Class (TE.all), Data_Out (Msg).Out_Buf);
+      elsif Msg in Set_Server then
+         TE.Server := Set_Server (Msg).Server;
+         return Emit (TE.Upper, Msg);
       elsif Msg in Connect_Confirmation then
          return Emit (TE.Upper, Msg);
+      elsif Msg in Disconnect_Request then
+         Close (Transport_Endpoint'Class (TE.all));
+         return Emit
+           (TE.Server, ORB.Interface.Unregister_Endpoint'
+            (TE => Transport_Endpoint_Access (TE)));
       else
          --  Must not happen.
          raise Components.Unhandled_Message;

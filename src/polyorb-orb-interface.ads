@@ -37,6 +37,7 @@
 with PolyORB.Components;
 with PolyORB.Jobs;
 with PolyORB.Requests;
+with PolyORB.Transport;
 with PolyORB.Types;
 
 package PolyORB.ORB.Interface is
@@ -61,6 +62,12 @@ package PolyORB.ORB.Interface is
    --  Requestor must be set to null.
    --  The client the responsible of the destruction of
    --  the Request after its execution is completed.
+
+   type Unregister_Endpoint is new Components.Message with record
+      TE : Transport.Transport_Endpoint_Access;
+   end record;
+   --  Request that TE be removed from the set of endpoints
+   --  managed by the ORB.
 
    type Oid_Translate is new Components.Message with record
       Oid : Objects.Object_Id_Access;

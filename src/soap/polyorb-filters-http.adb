@@ -218,7 +218,9 @@ package body PolyORB.Filters.HTTP is
          Emit_No_Reply (Lower (F), Data_Out'(Out_Buf => F.Out_Buf));
 
       elsif S in Set_Server then
-         PolyORB.Components.Emit_No_Reply (F.Upper, S);
+         Emit_No_Reply (F.Upper, S);
+      elsif S in Disconnect_Request then
+         return Emit (F.Lower, S);
       else
          raise PolyORB.Components.Unhandled_Message;
       end if;

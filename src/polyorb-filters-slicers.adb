@@ -154,7 +154,10 @@ package body PolyORB.Filters.Slicers is
         or else S in Set_Server
       then
          return Emit (F.Upper, S);
-      elsif S in Data_Out then
+      elsif False
+        or else S in Data_Out
+        or else S in Disconnect_Request
+      then
          return Emit (F.Lower, S);
       else
          raise Unhandled_Message;

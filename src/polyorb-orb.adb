@@ -105,6 +105,55 @@ package body PolyORB.ORB is
       return NJ;
    end Duplicate_Request_Job;
 
+   -----------------------------------------
+   -- Private annotations used by the ORB --
+   -----------------------------------------
+
+   type AES_Note_Kind is
+     (A_TAP_AES,
+      --  Annotation for an asynchronous event source
+      --  associated with a transport access point.
+
+      A_TE_AES
+      --  Annotation for an asynchronous event source
+      --  associated with a transport endpoint.
+      );
+
+   type AES_Note_Data (Kind : AES_Note_Kind := AES_Note_Kind'First)
+   is record
+      case Kind is
+         when A_TAP_AES =>
+            TAP : Transport_Access_Point_Access;
+            --  Factory of Transport_Endpoint components.
+
+            Filter_Factory_Chain : Filters.Factory_Access;
+            --  Factory of Filter (protocol stack) components.
+
+            Profile_Factory : Binding_Data.Profile_Factory_Access;
+            --  Factory of profiles capable of associating the
+            --  address of TAP and the specification of the
+            --  protocol implemented by Filter_Factory_Chain
+            --  with an object id.
+
+         when A_TE_AES =>
+            TE : Transport_Endpoint_Access;
+            --  Transport_Endpoint component (connected to a
+            --  protocol stack).
+      end case;
+   end record;
+
+   type AES_Note is new Note with record
+      D : AES_Note_Data;
+   end record;
+
+   type TAP_Note is new Note with record
+      Profile_Factory : Binding_Data.Profile_Factory_Access;
+   end record;
+
+   type TE_Note is new Note with record
+      AES : Asynch_Ev.Asynch_Ev_Source_Access;
+   end record;
+
    ---------------------------
    -- ORB object operations --
    ---------------------------
@@ -528,7 +577,7 @@ package body PolyORB.ORB is
       --  Connect filter to transport.
 
       Emit_No_Reply
-        (Component_Access (Filter_Stack),
+        (Component_Access (TE),
          Filters.Interface.Set_Server'
          (Server => Component_Access (ORB)));
 
@@ -538,6 +587,11 @@ package body PolyORB.ORB is
                      (Kind => A_TE_AES,
                       TE   => TE)));
       --  Register link from AES to TE.
+
+      Set_Note
+        (Notepad_Of (TE).all,
+         TE_Note'(Annotations.Note with AES => New_AES));
+      --  Register link from TE to AES.
 
       --  Assign execution resources to the newly-created connection.
 
@@ -801,6 +855,22 @@ package body PolyORB.ORB is
          return Interface.Oid_Translate'
            (Oid => Obj_Adapters.Rel_URI_To_Oid
             (ORB.Obj_Adapter, Interface.URI_Translate (Msg).Path));
+
+      elsif Msg in Interface.Unregister_Endpoint then
+         declare
+            TE : Transport_Endpoint_Access
+              := Interface.Unregister_Endpoint (Msg).TE;
+            AES : Asynch_Ev_Source_Access;
+            Note : TE_Note;
+         begin
+            Get_Note (Notepad_Of (TE).all, Note);
+
+            if AES /= null then
+               Delete_Source (ORB, AES);
+               Destroy (AES);
+            end if;
+            Destroy (TE);
+         end;
 
       else
          pragma Debug (O ("ORB received unhandled message of type "

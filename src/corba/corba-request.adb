@@ -95,12 +95,10 @@ package body CORBA.Request is
       return Request.The_Request;
    end To_PolyORB_Request;
 
-   function To_CORBA_Request
-     (Request : PolyORB.Requests.Request_Access)
-     return Object is
+   procedure Finalize (X : in out Object) is
    begin
-      return Object'(The_Request => Request);
-   end To_CORBA_Request;
+      PolyORB.Requests.Destroy_Request (X.The_Request);
+   end Finalize;
 
 end CORBA.Request;
 

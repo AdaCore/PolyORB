@@ -97,6 +97,11 @@ package PolyORB.Filters.Interface is
    --  Semantics: a transport endpoint has been closed.
    --    upper layers must release all associated resources.
 
+   type Disconnect_Request is new Root_Data_Unit with null record;
+   --  Direction: from upper to lower.
+   --  Semantics: the upper layer requests that the whole
+   --    protocol stack be disconnected.
+
    type Data_Indication is new Root_Data_Unit with record
       Data_Amount : Stream_Element_Count := 0;
       --  The amount of data received, 0 if unknown.

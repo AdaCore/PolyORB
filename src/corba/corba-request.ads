@@ -34,6 +34,8 @@
 
 --  $Id$
 
+with Ada.Finalization;
+
 with CORBA.AbstractBase;
 with CORBA.Context;
 with CORBA.ContextList;
@@ -82,21 +84,18 @@ package CORBA.Request is
      (Request : Object)
      return PolyORB.Requests.Request_Access;
 
-   function To_CORBA_Request
-     (Request : PolyORB.Requests.Request_Access)
-     return Object;
-
 private
 
-   type Object is record
+   type Object is new Ada.Finalization.Limited_Controlled with record
       The_Request : PolyORB.Requests.Request_Access;
    end record;
    --  XXX Would it not be simpler to declare
    --  type Object is new PolyORB.Requests.Request_Access; ?
    --  (as is presently done in CORBA.ServerRequest!)
 
+   procedure Finalize (X : in out Object);
+
    pragma Inline (To_PolyORB_Request);
-   pragma Inline (To_CORBA_Request);
 
 end CORBA.Request;
 

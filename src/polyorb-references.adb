@@ -37,6 +37,7 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Tags;
 
+with PolyORB.Filters.Interface;
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
 
@@ -138,10 +139,15 @@ package body PolyORB.References is
 
    procedure Finalize (X : in out Binding_Object);
 
-   procedure Finalize (X : in out Binding_Object) is
+   procedure Finalize (X : in out Binding_Object)
+   is
+      pragma Warnings (Off);
+      M : Filters.Interface.Disconnect_Request;
+      pragma Warnings (On);
    begin
       pragma Debug (O ("Finalizing binding object"));
-      Components.Destroy (X.BO_Component);
+      Components.Emit_No_Reply
+        (X.BO_Component, M);
    end Finalize;
 
    use type Components.Component_Access;

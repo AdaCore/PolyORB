@@ -121,6 +121,8 @@ package body PolyORB.Protocols is
             Destroy_Request (Var_Req);
             pragma Debug (O ("... done."));
          end;
+      elsif S in Disconnect_Request then
+         return Emit (Lower (Sess), S);
       elsif S in Queue_Request then
          --  XXX
          --  This is very wrong:

@@ -61,7 +61,6 @@ package body PolyORB.ORB.Thread_Per_Session is
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.Soft_Links;
-   use PolyORB.Annotations;
    use PolyORB.Components;
    use PolyORB.Transport;
    use PolyORB.Protocols;

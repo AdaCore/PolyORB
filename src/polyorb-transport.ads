@@ -44,7 +44,8 @@ with PolyORB.Components;
 
 package PolyORB.Transport is
 
-   pragma Elaborate_Body;
+   --  Package body needs PolyORB.ORB.Interface, which has an
+   --  indirect dependency on Transport: no pramga Elaborate_Body.
 
    use PolyORB.Asynch_Ev;
 
@@ -97,6 +98,10 @@ package PolyORB.Transport is
 
    type Transport_Endpoint_Access is access all Transport_Endpoint'Class;
    --  An opened transport endpoint.
+
+   function Notepad_Of (TE : Transport_Endpoint_Access)
+     return Annotations.Notepad_Access;
+   pragma Inline (Notepad_Of);
 
    procedure Destroy (TE : in out Transport_Endpoint_Access);
    --  Destroy a transport endpoint and the associated protocol stack.
@@ -154,11 +159,16 @@ private
 
    type Transport_Access_Point
       is abstract new Components.Component with record
-         Notepad : aliased PolyORB.Annotations.Notepad;
+         Notepad : aliased Annotations.Notepad;
       end record;
 
    type Transport_Endpoint
       is abstract new Components.Component with record
+         Notepad : aliased Annotations.Notepad;
+
+         Server : Components.Component_Access;
+         --  Communication signal to ORB core.
+
          Upper  : Components.Component_Access;
          --  Communication signal to upper layer.
 

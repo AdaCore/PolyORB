@@ -89,8 +89,11 @@ private
    package NV_Sequence renames Internals.NV_Sequence;
 
    type Object is new PolyORB.Smart_Pointers.Entity with record
-      List : aliased NV_Sequence.Sequence := NV_Sequence.Null_Sequence;
+      List : aliased NV_Sequence.Sequence;
    end record;
+
+   procedure Initialize (X : in out Object);
+   procedure Finalize (X : in out Object);
 
    type Object_Ptr is access all Object;
 
