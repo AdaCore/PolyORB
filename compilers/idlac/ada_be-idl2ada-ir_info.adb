@@ -1203,9 +1203,6 @@ package body Ada_Be.Idl2Ada.IR_Info is
             Get_Next_Node (It, M_Node);
             T_Node := Case_Type (M_Node);
 
-            Add_With (CU, Ada_Helper_Name (T_Node));
-            Add_With (CU, Ada_IR_Info_Name (T_Node));
-
             Init (It2, Labels (M_Node));
             while not Is_End (It2) loop
                declare
@@ -1224,11 +1221,13 @@ package body Ada_Be.Idl2Ada.IR_Info is
                      PL (CU, "CORBA.To_Any (CORBA.Octet'(0)),");
                   else
                      PL (CU, ST_Helper & ".To_Any");
-                     Put (CU, " (");
+                     II (CU);
+                     Put (CU, "(");
                      Gen_Node_Stubs_Spec (CU, ST_Node);
                      Put (CU, "'(");
                      Gen_Constant_Value (CU, L_Node);
                      PL (CU, ")),");
+                     DI (CU);
                   end if;
 
                   PL (CU, " IDL_type =>");
@@ -1239,7 +1238,13 @@ package body Ada_Be.Idl2Ada.IR_Info is
                   II (CU);
                   PL (CU, "IDLType.Convert_Forward.To_Forward");
                   PL (CU, "  (IDLType.Helper.To_Ref");
-                  PL (CU, "   (" & Ada_Full_IR_Name (T_Node) & "))));");
+                  II (CU);
+                  Put (CU, "(");
+                  II (CU);
+                  Gen_IDLType (CU, T_Node, Case_Decl (M_Node));
+                  PL (CU, "))));");
+                  DI (CU);
+                  DI (CU);
                   DI (CU);
                   DI (CU);
                end;
@@ -1578,6 +1583,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
       PL (CU, "end Register_IR_Info;");
 
       Divert (CU, Visible_Declarations);
+      DI (CU);
       Undivert (CU, Registration);
    end Gen_Body_Postlude;
 
