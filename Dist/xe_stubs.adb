@@ -49,10 +49,27 @@ package body XE_Stubs is
       Table_Increment      => 100,
       Table_Name           => "Callers");
 
+   procedure Add_Protocol
+     (First : in out LID_Type;
+      Last  : in out LID_Type;
+      Name  : in Name_Id);
+
+   function Build_Location_String (Location : in LID_Type) return Name_Id;
+   --  Explore linked list of locations to build a string
+
+   procedure Close_File
+     (File : in File_Descriptor);
+   --  Close file and in case of BS output __EOF__ header
+
    procedure Copy_Stub
      (Source_Dir, Target_Dir : in File_Name_Type; A : in ALI_Id);
    --  Copy stub files (ali, object) from a source directory to a
    --  target directory. Preserve time stamps.
+
+   procedure Create_File
+     (File : out File_Descriptor;
+      Name : in Name_Id);
+   --  Create file and in case of BS output cat command with __EOF__ header
 
    procedure Create_Elaboration_File (PID : in PID_Type);
    --  Create the elaboration unit for the given partition. This unit
@@ -94,8 +111,34 @@ package body XE_Stubs is
    function SG_Initialize (N : Name_Id) return String;
    --  Return System.Garlic.<N>.Initialize
 
+   function SGP_Initialize (N : Name_Id) return String;
+   --  Return System.Garlic.Protocols.<N>.Initialize
+
    Strip_Flag : constant String_Access := new String'("-s");
    --  Option to strip an executable at link time
+
+   ------------------
+   -- Add_Protocol --
+   ------------------
+
+   procedure Add_Protocol
+     (First : in out LID_Type;
+      Last  : in out LID_Type;
+      Name  : in Name_Id)
+   is
+      LID : LID_Type;
+   begin
+      if First /= Null_LID then
+         LID := First;
+         while LID /= Null_LID loop
+            if Locations.Table (LID).Major = Name then
+               return;
+            end if;
+            LID := Locations.Table (LID).Next;
+         end loop;
+      end if;
+      Add_Location (First, Last, Name, No_Name);
+   end Add_Protocol;
 
    -----------
    -- Build --
@@ -190,7 +233,15 @@ package body XE_Stubs is
 
                   --  Update stubs
                   if not Is_RCI_Or_SP_Unit (U) then
-                     null;
+                     if Get_Tasking (ALI) = 'Y' then
+                        if Debug_Mode then
+                           Message ("unit", Name (U),
+                                    "on", Partitions.Table (P).Name,
+                                    "needs tasking");
+                        end if;
+                        Set_Tasking (P, True);
+                     end if;
+
 
                   elsif Get_PID (Name (U)) = P then
 
@@ -204,7 +255,12 @@ package body XE_Stubs is
                      --  We have RCI or SP units in this partition. So, we
                      --  need all the PCS features in this partition.
 
-                     Set_Light_PCS (P, False);
+                     if Debug_Mode then
+                        Message ("unit", Name (U),
+                                 "on", Partitions.Table (P).Name,
+                                 "has remote entities");
+                     end if;
+                     Set_RCI_Or_RACW (P, True);
 
                   else
 
@@ -218,11 +274,11 @@ package body XE_Stubs is
 
                   if Units.Table (U).Has_RACW then
                      if Debug_Mode then
-                        Message ("configured unit ", Name (U),
-                                 " implies no light PCS for partition ",
-                                 Partitions.Table (P).Name);
+                        Message ("unit", Name (U),
+                                 "on", Partitions.Table (P).Name,
+                                 "has remote entities");
                      end if;
-                     Set_Light_PCS (P, False);
+                     Set_RCI_Or_RACW (P, True);
                   end if;
 
                   --  Update more recent stamp to decide later on whether
@@ -239,7 +295,7 @@ package body XE_Stubs is
 
             --  Check whether the partition should have a local termination
             if Get_Termination (P) = Unknown_Termination
-              and then Get_Light_PCS (P)
+              and then not Get_RCI_Or_RACW (P)
               and then Main_Partition /= P
             then
                if Verbose_Mode then
@@ -268,6 +324,45 @@ package body XE_Stubs is
       end loop;
 
    end Build;
+
+   ---------------------------
+   -- Build_Location_String --
+   ---------------------------
+
+   function Build_Location_String
+     (Location : LID_Type)
+     return Name_Id
+   is
+      LID : LID_Type := Location;
+   begin
+      Name_Len := 0;
+      loop
+         Get_Name_String_And_Append (Locations.Table (LID).Major);
+         if Locations.Table (LID).Minor /= No_Name then
+            Add_Str_To_Name_Buffer ("://");
+            Get_Name_String_And_Append (Locations.Table (LID).Minor);
+         end if;
+         LID := Locations.Table (LID).Next;
+         exit when LID = Null_LID;
+         Add_Char_To_Name_Buffer (' ');
+      end loop;
+      return Quote (Name_Find);
+   end Build_Location_String;
+
+   ----------------
+   -- Close_File --
+   ----------------
+
+   procedure Close_File
+     (File : in File_Descriptor) is
+   begin
+      if BS then
+         Write_Str (Standout, "__EOF__");
+         Write_Eol (Standout);
+      end if;
+
+      Close (File);
+   end Close_File;
 
    ---------------
    -- Copy_Stub --
@@ -312,6 +407,8 @@ package body XE_Stubs is
       Termination  : Termination_Type;
       Reconnection : Reconnection_Type;
       Location     : LID_Type;
+      Light_PCS    : Boolean;
+      Pure_Client  : Boolean;
 
       CID : CID_Type;
       File  : File_Descriptor;
@@ -321,14 +418,13 @@ package body XE_Stubs is
       Elaboration := Dir (Partitions.Table (PID).Partition_Dir,
                           Elaboration_File & ADB_Suffix);
 
-      if BS then
-         Write_Str  (Standout, "cat >");
-         Write_Name (Standout, Elaboration);
-         Write_Str  (Standout, " <<__EOF__");
-         Write_Eol  (Standout);
-      end if;
+      Create_File (File, Elaboration);
 
-      Create (File, Elaboration);
+      Pure_Client := not Get_RCI_Or_RACW (PID)
+        and then Main_Partition /= PID;
+
+      Light_PCS := Pure_Client
+        and then not Get_Tasking (PID);
 
       --  Header
 
@@ -338,15 +434,14 @@ package body XE_Stubs is
       Dwrite_With_Clause (File, True, SG ("Options"));
       Dwrite_With_Clause (File, True, SG ("Types"));
 
-      --  Add termination package if needed
-
-      if Get_Termination (PID) /= Local_Termination
-        or else Main_Partition = PID
-        or else True      --  ??? SHOULD BE SOMETHING LIKE "USE_TASKING(PID)"
-      then
-         Dwrite_With_Clause (File, False, SG ("Termination"));
+      if Light_PCS then
+         Dwrite_With_Clause (File, False, SG ("No_Tasking"));
+         Dwrite_Call
+           (File, 0, "pragma Elaborate_All", SG ("No_Tasking"));
       else
-         Dwrite_With_Clause (File, False, SG ("Light_Termination"));
+         Dwrite_With_Clause (File, False, SG ("Tasking"));
+         Dwrite_Call
+           (File, 0, "pragma Elaborate_All", SG ("Tasking"));
       end if;
 
       --  Add filtering package if needed
@@ -409,74 +504,27 @@ package body XE_Stubs is
       --  if present).
 
       if Def_Boot_Location_First /= Null_LID then
-         Location := Def_Boot_Location_First;
-         Name_Len := 0;
-         loop
-            Get_Name_String_And_Append
-              (Locations.Table (Location).Major);
-            Add_Str_To_Name_Buffer ("://");
-            Get_Name_String_And_Append
-              (Locations.Table (Location).Minor);
-            Location := Locations.Table (Location).Next;
-            exit when Location = Null_LID;
-            Add_Char_To_Name_Buffer (' ');
-         end loop;
-         Dwrite_Call (File, 2, "Set_Boot_Location", Quote (Name_Find));
+         Dwrite_Call (File, 2, "Set_Boot_Location",
+                      Build_Location_String (Def_Boot_Location_First));
       end if;
 
 
       --  Compute the self location string (eventually composed of
       --  several locations separated by commas).
 
-      Name_Len := 0;
       Location := Get_Protocol (PID);
-      while Location /= Null_LID loop
-         if Name_Len = 0 then
-            Get_Name_String
-              (Locations.Table (Location).Major);
-         else
-            Get_Name_String_And_Append
-              (Locations.Table (Location).Major);
-         end if;
-         if Locations.Table (Location).Minor /= No_Name then
-            Add_Str_To_Name_Buffer ("://");
-            Get_Name_String_And_Append
-              (Locations.Table (Location).Minor);
-         end if;
-         Location := Locations.Table (Location).Next;
-         if Location /= Null_LID then
-            Add_Char_To_Name_Buffer (' ');
-         end if;
-      end loop;
-      if Name_Len /= 0 then
-         Dwrite_Call (File, 2, "Set_Self_Location", Quote (Name_Find));
+      if Location /= Null_LID then
+         Dwrite_Call (File, 2, "Set_Self_Location",
+                      Build_Location_String (Location));
       end if;
 
       --  Compute the data location string (eventually composed of
       --  several locations separated by commas).
 
-      Name_Len := 0;
       Location := Get_Storage (PID);
-      while Location /= Null_LID loop
-         if Name_Len = 0 then
-            Get_Name_String
-              (Locations.Table (Location).Major);
-         else
-            Get_Name_String_And_Append
-              (Locations.Table (Location).Major);
-         end if;
-         if Locations.Table (Location).Minor /= No_Name then
-            Add_Str_To_Name_Buffer ("://");
-            Get_Name_String_And_Append
-              (Locations.Table (Location).Minor);
-         end if;
-         Location := Locations.Table (Location).Next;
-         if Location /= Null_LID then
-            Add_Char_To_Name_Buffer (' ');
-         end if;
-      end loop;
-      if Name_Len /= 0 then
-         Dwrite_Call (File, 2, "Set_Data_Location", Quote (Name_Find));
+      if Location /= Null_LID then
+         Dwrite_Call (File, 2, "Set_Data_Location",
+                      Build_Location_String (Location));
       end if;
 
       --  If we have no Ada starter (None or Shell), then it is equivalent
@@ -533,8 +581,21 @@ package body XE_Stubs is
          end;
       end if;
 
-      if Get_Light_PCS (PID) then
-         Dwrite_Line (File, 2, "Has_RCI_Pkg_Or_RACW_Var := False;");
+      if Light_PCS then
+         Dwrite_Call
+           (File, 2, SG_Initialize (Str_To_Id ("No_Tasking")));
+         Dwrite_Call
+           (File, 2, "Set_Light_PCS", Str_To_Id ("True"));
+
+      elsif Pure_Client then
+         Dwrite_Call
+           (File, 2, SG_Initialize (Str_To_Id ("Tasking")));
+         Dwrite_Call
+           (File, 2, "Set_Pure_Client", Str_To_Id ("True"));
+
+      else
+         Dwrite_Call
+           (File, 2, SG_Initialize (Str_To_Id ("Tasking")));
       end if;
 
       --  Footer.
@@ -542,13 +603,7 @@ package body XE_Stubs is
       Dwrite_Line (File, 1, "end Initialize;");
       Dwrite_Line (File, 0, "end ", Elaboration_Name, ";");
 
-      if BS then
-         Write_Str (Standout, "__EOF__");
-         Write_Eol (Standout);
-      end if;
-
-      Close (File);
-
+      Close_File (File);
    end Create_Elaboration_File;
 
    ----------------------------
@@ -632,8 +687,25 @@ package body XE_Stubs is
 
       XE_Utils.Free (Include);
       XE_Utils.Free (Library);
-
    end Create_Executable_File;
+
+   -----------------
+   -- Create_File --
+   -----------------
+
+   procedure Create_File
+     (File : out File_Descriptor;
+      Name : in Name_Id) is
+   begin
+      if BS then
+         Write_Str  (Standout, "cat >");
+         Write_Name (Standout, Name);
+         Write_Str  (Standout, " <<__EOF__");
+         Write_Eol  (Standout);
+      end if;
+
+      Create (File, Name);
+   end Create_File;
 
    --------------------------------
    -- Create_Partition_Main_File --
@@ -641,36 +713,28 @@ package body XE_Stubs is
 
    procedure Create_Partition_Main_File (PID : in PID_Type) is
 
-      Main_File   : File_Name_Type;
-
+      Filename    : File_Name_Type;
       CU          : CUID_Type;
       Host        : Name_Id;
       Main        : Name_Id;
-
-      File : File_Descriptor;
-
+      File        : File_Descriptor;
       V_Partition : Name_Id := Str_To_Id ("Partition");
+      Directory   : File_Name_Type
+        renames Partitions.Table (PID).Partition_Dir;
 
    begin
+      Filename := Dir (Directory, Partition_Main_File & ADB_Suffix);
+      Create_File (File, Filename);
 
-      Main_File := Dir (Partitions.Table (PID).Partition_Dir,
-                        Partition_Main_File & ADB_Suffix);
-
-      if BS then
-         Write_Str  (Standout, "cat >");
-         Write_Name (Standout, Main_File);
-         Write_Str  (Standout, " <<__EOF__");
-         Write_Eol  (Standout);
-      end if;
-
-      Create (File, Main_File);
-
-      Dwrite_With_Clause (File, False, S ("RPC"));
-      Dwrite_With_Clause (File, False, SG ("Heart"));
       Dwrite_With_Clause (File, False, SG ("Startup"));
       Dwrite_Call (File, 0, "pragma Elaborate_All", SG ("Startup"));
-      Dwrite_With_Clause (File, False, SG ("Soft_Links"));
       Dwrite_With_Clause (File, True, S ("Partition_Interface"));
+      Dwrite_With_Clause (File, False, S ("RPC"));
+      if Get_Tasking (PID)
+        or else Get_RCI_Or_RACW (PID)
+      then
+         Dwrite_With_Clause (File, False, S ("RPC.Server"));
+      end if;
 
       --  First pass to map RCI or SP receivers on the partition.
       CU := Partitions.Table (PID).First_Unit;
@@ -688,18 +752,6 @@ package body XE_Stubs is
 
       --  Add termination package and locking mechanisms if needed
 
-      if Get_Termination (PID) /= Local_Termination
-        or else Main_Partition = PID
-        or else True      --  ??? SHOULD BE SOMETHING LIKE "USE_TASKING(PID)"
-      then
-         Dwrite_With_Clause (File, False, SG ("Termination"));
-         Dwrite_With_Clause (File, False, SG ("Protected_Objects"));
-         Dwrite_Call
-           (File, 0, "pragma Elaborate_All", SG ("Protected_Objects"));
-      else
-         Dwrite_With_Clause (File, False, SG ("Light_Termination"));
-      end if;
-
       Dwrite_Line (File, 0, "procedure ", Partition_Main_Name, " is");
       Dwrite_Line (File, 1, "Partition : System.RPC.Partition_ID;");
       Dwrite_Call (File, 1, "pragma Warnings", No_Name, "Off", V_Partition);
@@ -716,16 +768,12 @@ package body XE_Stubs is
                if L = Null_LID then
                   L := Def_Data_Location;
                end if;
-               S := Locations.Table (L).Major &
-                 Str_To_Id ("://") &
-                 Locations.Table (L).Minor;
+               S := Build_Location_String (L);
 
                if Get_Passive (P) = Btrue then
                   Dwrite_Call
-                    (File, 1, "Register_Passive_Partition",
-                     V_Partition, No_Str,
-                     Quote (Partitions.Table (P).Name), No_Str,
-                     Quote (S));
+                    (File, 1, "Register_Passive_Partition", V_Partition,
+                     No_Str, Quote (Partitions.Table (P).Name), No_Str, S);
 
                   CU := Partitions.Table (P).First_Unit;
                   while CU /= Null_CUID loop
@@ -807,125 +855,104 @@ package body XE_Stubs is
       Dwrite_Call (File, 1, "Run", Main);
       Dwrite_Line (File, 0, "end ", Partition_Main_Name, ";");
 
-      if BS then
-         Write_Str (Standout, "__EOF__");
-         Write_Eol (Standout);
-      end if;
-
-      Close (File);
-
+      Close_File (File);
    end Create_Partition_Main_File;
 
    ---------------------------------
    -- Create_Protocol_Config_File --
    ---------------------------------
 
-   procedure Create_Protocol_Config_File (PID : in PID_Type) is
-
-      Config_File : File_Name_Type;
-      Major       : Name_Id;
-      Location    : LID_Type;
-
+   procedure Create_Protocol_Config_File
+     (PID : in PID_Type)
+   is
+      Filename  : File_Name_Type;
+      Major     : Name_Id;
+      Location  : LID_Type;
+      First_LID : LID_Type := Null_LID;
+      Last_LID  : LID_Type := Null_LID;
+      Light_PCS : Boolean;
       File      : File_Descriptor;
+      Directory : File_Name_Type
+        renames Partitions.Table (PID).Partition_Dir;
 
    begin
-
-      Config_File := Dir (Partitions.Table (PID).Partition_Dir,
-                          Protocol_Config_File);
-
+      Filename := Dir (Directory, Protocol_Config_File);
       Location := Get_Protocol (PID);
+
+      Light_PCS := Main_Partition /= PID
+        and then not Get_RCI_Or_RACW (PID)
+        and then not Get_Tasking (PID);
 
       --  If we want to load the protocols needed to communicate with
       --  the boot partition, we need to add this condition.
       --  and then Def_Boot_Location_First = Null_LID
 
-      if Location = Null_LID then
-         Delete (Config_File & ADB_Suffix);
-         Delete (Config_File & ALI_Suffix);
-         Delete (Config_File & Obj_Suffix);
+      if Location = Null_LID
+        and then not Light_PCS
+      then
+         Delete (Filename & ADB_Suffix);
+         Delete (Filename & ALI_Suffix);
+         Delete (Filename & Obj_Suffix);
          return;
       end if;
 
-      Config_File := Config_File & ADB_Suffix;
-
-      if BS then
-         Write_Str  (Standout, "cat >");
-         Write_Name (Standout, Config_File);
-         Write_Str  (Standout, " <<__EOF__");
-         Write_Eol  (Standout);
-      end if;
-
-      Create (File, Config_File);
+      Filename := Filename & ADB_Suffix;
+      Create_File (File, Filename);
 
       Dwrite_Line (File, 0, "pragma Warnings (Off);");
-      Dwrite_Eol (File);
-      Dwrite_With_Clause (File, False, SG ("Replay"));
-      Dwrite_Call (File, 0, "pragma Elaborate_All", SG ("Replay"));
+      Dwrite_Eol  (File);
 
-      --  Withed protocols
-      Location := Get_Protocol (PID);
+      --  Withed location protocols
+
       while Location /= Null_LID loop
-         Major := C (Locations.Table (Location).Major);
-         Dwrite_With_Clause (File, False, SG (Major));
-         Dwrite_Call (File, 0, "pragma Elaborate_All", SG (Major));
+         Add_Protocol (First_LID, Last_LID, Locations.Table (Location).Major);
          Location := Locations.Table (Location).Next;
       end loop;
 
-      if Def_Boot_Location_First /= Null_LID then
+      if First_LID = Null_LID then
          Location := Def_Boot_Location_First;
          while Location /= Null_LID loop
-            Dwrite_With_Clause
-              (File, False,
-               SG (C (Locations.Table (Location).Major)));
-            Dwrite_Call
-              (File, 0, "pragma Elaborate_All",
-               SG (C (Locations.Table (Location).Major)));
-            Dwrite_Eol (File);
+            Add_Protocol
+              (First_LID, Last_LID, Locations.Table (Location).Major);
             Location := Locations.Table (Location).Next;
          end loop;
       end if;
+
+      if First_LID = Null_LID then
+         Add_Protocol (First_LID, Last_LID, Str_To_Id (Get_Def_Protocol_Name));
+      end if;
+
+      Location := First_LID;
+      while Location /= Null_LID loop
+         Major := SGP (C (Locations.Table (Location).Major));
+         Dwrite_With_Clause (File, False, Major);
+         Dwrite_Call (File, 0, "pragma Elaborate_All", Major);
+         if not Light_PCS then
+            Major := Major & ".Server";
+            Dwrite_With_Clause (File, False, Major);
+            Dwrite_Call (File, 0, "pragma Elaborate_All", Major);
+         end if;
+         Location := Locations.Table (Location).Next;
+      end loop;
 
       Dwrite_Line (File, 0, "package body ", Protocol_Config_Name, " is");
       Dwrite_Line (File, 1, "procedure Initialize is");
       Dwrite_Line (File, 1, "begin");
 
-      --  Register only self location protocols + replay
+      --  Register location protocols
 
-      Dwrite_Call (File, 2, "Register", SG ("Replay.Create"));
-      Location := Get_Protocol (PID);
+      Location := First_LID;
       while Location /= Null_LID loop
-         Dwrite_Call
-           (File, 2, "Register",
-            SG (C (Locations.Table (Location).Major)) & ".Create");
+         Major := SGP (C (Locations.Table (Location).Major));
+         Dwrite_Call (File, 2, "Register", Major & ".Create");
          Location := Locations.Table (Location).Next;
       end loop;
 
-      --  We do not include protocols that would be needed to contact
-      --  boot partitions.
-      --
-      --        if Def_Boot_Location_First /= Null_LID then
-      --           Location := Def_Boot_Location_First;
-      --           while Location /= Null_LID loop
-      --              Dwrite_Line
-      --                (File, 2, "Register (System.Garlic.",
-      --                 C (Locations.Table (Location).Major),
-      --                 ".Create);");
-      --              Location := Locations.Table (Location).Next;
-      --           end loop;
-      --        end if;
-
       Dwrite_Line (File, 1, "end Initialize;");
-      Dwrite_Eol (File);
-
+      Dwrite_Eol  (File);
       Dwrite_Line (File, 0, "end ", Protocol_Config_Name, ";");
 
-      if BS then
-         Write_Str (Standout, "__EOF__");
-         Write_Eol (Standout);
-      end if;
-
-      Close (File);
-
+      Close_File (File);
    end Create_Protocol_Config_File;
 
    -----------------------
@@ -933,11 +960,11 @@ package body XE_Stubs is
    -----------------------
 
    procedure Create_Stamp_File (PID : in PID_Type) is
-      File  : File_Descriptor;
+      File      : File_Descriptor;
+      Directory : File_Name_Type renames Partitions.Table (PID).Partition_Dir;
 
    begin
-      Create
-        (File, Dir (Partitions.Table (PID).Partition_Dir, Build_Stamp_File));
+      Create (File, Dir (Directory, Build_Stamp_File));
       Write_Str (File, Stamp (Configuration_File));
       Write_Eol (File);
       Write_Str (File, Stamp (Partitions.Table (PID).Executable_File));
@@ -959,38 +986,34 @@ package body XE_Stubs is
    -- Create_Storage_Config_File --
    --------------------------------
 
-   procedure Create_Storage_Config_File (PID : in PID_Type) is
-      Fname : File_Name_Type;
-      File  : File_Descriptor;
-      Empty : Boolean := True;
-      CUID  : CUID_Type;
+   procedure Create_Storage_Config_File
+     (PID : in PID_Type)
+   is
+      Filename  : File_Name_Type;
+      File      : File_Descriptor;
+      Empty     : Boolean := True;
+      CUID      : CUID_Type;
+      Directory : File_Name_Type
+        renames Partitions.Table (PID).Partition_Dir;
 
    begin
+      Filename := Dir (Directory, Storage_Config_File);
 
-      Fname := Dir (Partitions.Table (PID).Partition_Dir, Storage_Config_File);
+      Delete (Filename & ADB_Suffix);
+      Delete (Filename & ALI_Suffix);
+      Delete (Filename & Obj_Suffix);
 
-      Delete (Fname & ADB_Suffix);
-      Delete (Fname & ALI_Suffix);
-      Delete (Fname & Obj_Suffix);
+      Filename := Filename & ADB_Suffix;
 
-      Fname := Fname & ADB_Suffix;
-
-      for C in Callers.First .. Callers.Last loop
-         if Units.Table (Callers.Table (C)).Shared_Passive then
+      for Caller in Callers.First .. Callers.Last loop
+         if Units.Table (Callers.Table (Caller)).Shared_Passive then
             if Empty then
                Empty := False;
-               if BS then
-                  Write_Str  (Standout, "cat >");
-                  Write_Name (Standout, Fname);
-                  Write_Str  (Standout, " <<__EOF__");
-                  Write_Eol  (Standout);
-               end if;
-
-               Create (File, Fname);
+               Create_File (File, Filename);
             end if;
 
             declare
-               P : PID_Type := Get_PID (Name (Callers.Table (C)));
+               P : PID_Type := Get_PID (Name (Callers.Table (Caller)));
                L : LID_Type;
                M : Name_Id;
             begin
@@ -998,9 +1021,9 @@ package body XE_Stubs is
                if L = Null_LID then
                   L := Def_Data_Location;
                end if;
-               M := Locations.Table (L).Major;
-               Dwrite_With_Clause (File, False, SG (M));
-               Dwrite_Call (File, 0, "pragma Elaborate_All", SG (M));
+               M := SG (C (Locations.Table (L).Major));
+               Dwrite_With_Clause (File, False, M);
+               Dwrite_Call (File, 0, "pragma Elaborate_All", M);
             end;
          end if;
       end loop;
@@ -1010,21 +1033,14 @@ package body XE_Stubs is
          if Units.Table (CUnits.Table (CUID).My_Unit).Shared_Passive then
             if Empty then
                Empty := False;
-               if BS then
-                  Write_Str  (Standout, "cat >");
-                  Write_Name (Standout, Fname);
-                  Write_Str  (Standout, " <<__EOF__");
-                  Write_Eol  (Standout);
-               end if;
-
-               Create (File, Fname);
+               Create_File (File, Filename);
 
                declare
                   M : Name_Id;
                begin
-                  M := Locations.Table (Def_Data_Location).Major;
-                  Dwrite_With_Clause (File, False, SG (M));
-                  Dwrite_Call (File, 0, "pragma Elaborate_All", SG (M));
+                  M := SG (C (Locations.Table (Def_Data_Location).Major));
+                  Dwrite_With_Clause (File, False, M);
+                  Dwrite_Call (File, 0, "pragma Elaborate_All", M);
                end;
             end if;
          end if;
@@ -1044,10 +1060,10 @@ package body XE_Stubs is
       Dwrite_Line (File, 0, "package body ", Storage_Config_Name, " is");
       Dwrite_Line (File, 1, "procedure Initialize is");
       Dwrite_Line (File, 1, "begin");
-      for C in Callers.First .. Callers.Last loop
-         if Units.Table (Callers.Table (C)).Shared_Passive then
+      for Caller in Callers.First .. Callers.Last loop
+         if Units.Table (Callers.Table (Caller)).Shared_Passive then
             declare
-               Partition : PID_Type := Get_PID (Name (Callers.Table (C)));
+               Partition : PID_Type := Get_PID (Name (Callers.Table (Caller)));
                Location  : LID_Type;
                Major     : Name_Id;
             begin
@@ -1056,7 +1072,7 @@ package body XE_Stubs is
                if Location = Null_LID then
                   Location := Def_Data_Location;
                end if;
-               Major := Locations.Table (Location).Major;
+               Major := C (Locations.Table (Location).Major);
                Dwrite_Call (File, 2, SG_Initialize (Major));
             end;
          end if;
@@ -1066,7 +1082,7 @@ package body XE_Stubs is
          declare
             Major : Name_Id;
          begin
-            Major := Locations.Table (Def_Data_Location).Major;
+            Major := C (Locations.Table (Def_Data_Location).Major);
             Dwrite_Call (File, 2, SG_Initialize (Major));
          end;
       end if;
@@ -1076,12 +1092,7 @@ package body XE_Stubs is
 
       Dwrite_Line (File, 0, "end ", Storage_Config_Name, ";");
 
-      if BS then
-         Write_Str (Standout, "__EOF__");
-         Write_Eol (Standout);
-      end if;
-
-      Close (File);
+      Close_File (File);
    end Create_Storage_Config_File;
 
    -----------------
@@ -1255,7 +1266,6 @@ package body XE_Stubs is
       elsif not Quiet_Mode then
          Message ("  ", Unit_Name, "receiver stubs is up to date");
       end if;
-
    end Create_Stub;
 
    -----------------
@@ -1309,12 +1319,12 @@ package body XE_Stubs is
             if Debug_Mode then
                Message ("insert caller", Name (U));
             end if;
+            exit;
          end if;
       end loop;
 
       --  Mark this unit to avoid infinite recursive search.
-      for U in ALIs.Table (Lib).First_Unit ..
-               ALIs.Table (Lib).Last_Unit loop
+      for U in First_Unit .. Last_Unit loop
          Set_PID (Units.Table (U).Uname, PID);
       end loop;
 
@@ -1336,11 +1346,9 @@ package body XE_Stubs is
                if Current_ALI = No_ALI_Id then
                   Continue := False;
                end if;
-
             end if;
 
             if Continue then
-
                for K in ALIs.Table (Current_ALI).First_Unit ..
                         ALIs.Table (Current_ALI).Last_Unit loop
 
@@ -1349,18 +1357,15 @@ package body XE_Stubs is
                      Continue := False;
                      exit;
                   end if;
-
                end loop;
-
-               --  This unit has not been scanned
-               if Continue then
-                  Mark_Units_On_Partition (PID, Current_ALI);
-               end if;
             end if;
 
+            --  This unit has not been scanned
+            if Continue then
+               Mark_Units_On_Partition (PID, Current_ALI);
+            end if;
          end loop;
       end loop;
-
    end Mark_Units_On_Partition;
 
    ----------
@@ -1525,5 +1530,16 @@ package body XE_Stubs is
       Add_Str_To_Name_Buffer (".Initialize");
       return Name_Buffer (1 .. Name_Len);
    end SG_Initialize;
+
+   --------------------
+   -- SGP_Initialize --
+   --------------------
+
+   function SGP_Initialize (N : Name_Id) return String is
+   begin
+      Get_Name_String (SGP (N));
+      Add_Str_To_Name_Buffer (".Initialize");
+      return Name_Buffer (1 .. Name_Len);
+   end SGP_Initialize;
 
 end XE_Stubs;
