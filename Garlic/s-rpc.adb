@@ -141,7 +141,7 @@ package body System.RPC is
          for I in Callers'Range loop
             if Callers (I).Status = Unknown then
                Callers (I).Status := Running;
-               Callers (I).PID := PID;
+               Callers (I).PID    := PID;
                RPC := I;
                Leave (Callers_Mutex);
                return;
@@ -162,6 +162,7 @@ package body System.RPC is
    begin
       Enter (Callers_Mutex);
       Callers (RPC).Status := Unknown;
+      Callers (RPC).PID    := Types.Null_PID;
       Update (Callers_Watcher);
       Leave (Callers_Mutex);
    end Deallocate;
@@ -264,7 +265,10 @@ package body System.RPC is
    is
    begin
       if Keeper.Sent then
-         pragma Debug (D (D_Debug, "Will invalidate object" & Keeper.RPC'Img));
+         pragma Debug
+           (D (D_Debug,
+               "Will invalidate RPC (rpc =" & Keeper.RPC'Img &
+               ") with PID" & Keeper.PID'Img));
          Enter (Callers_Mutex);
          Send_Abort_Message (Keeper.PID, Keeper.RPC);
          if Callers (Keeper.RPC).Status = Running then
@@ -358,6 +362,7 @@ package body System.RPC is
             Enter (Callers_Mutex);
             if Callers (Header.RPC).Status = Aborted then
                Callers (Header.RPC).Status := Unknown;
+               Callers (Header.RPC).PID    := Types.Null_PID;
             else
                Callers (Header.RPC).Status := Completed;
                Callers (Header.RPC).Result
@@ -380,6 +385,7 @@ package body System.RPC is
                   Partition'Img & " (rpc" & Header.RPC'Img & ")"));
             Enter (Callers_Mutex);
             Callers (Header.RPC).Status := Unknown;
+            Callers (Header.RPC).PID    := Types.Null_PID;
             Update (Callers_Watcher);
             Leave (Callers_Mutex);
 
@@ -396,7 +402,9 @@ package body System.RPC is
    begin
       Enter (Callers_Mutex);
       for I in Callers'Range loop
-         if Callers (I).Status = Running then
+         if Callers (I).PID = PID
+           and then Callers (I).Status = Running
+         then
             Callers (I).Status := Aborted;
             Modified := True;
          end if;
@@ -473,6 +481,7 @@ package body System.RPC is
             when Completed =>
                Result := Callers (RPC).Result;
                Callers (RPC).Status := Unknown;
+               Callers (RPC).PID    := Types.Null_PID;
                Callers (RPC).Result := null;
                Update (Callers_Watcher);
                Leave (Callers_Mutex);
@@ -480,6 +489,7 @@ package body System.RPC is
 
             when Aborted =>
                Callers (RPC).Status := Unknown;
+               Callers (RPC).PID    := Types.Null_PID;
                Callers (RPC).Result := null;
                Update (Callers_Watcher);
                Leave (Callers_Mutex);

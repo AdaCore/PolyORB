@@ -1,3 +1,9 @@
+1998-12-11  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garpar.adb: Fix a problem of boot on main partition.
+
+	* s-rpc.adb: Fix a bug in RPC abortion.
+
 1998-12-09  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.in, Makefile.am: Fix a filemode problem.

@@ -65,8 +65,6 @@ package body System.Garlic.Partitions is
 
    Allocator_Value : Partition_ID;
 
-   Boot_Is_Over    : Boolean := False;
-
    function Allocate (From : Partition_ID) return Partition_ID;
    --  Internal allocation. From indicates the partition that initiated
    --  the allocation process.
@@ -470,8 +468,6 @@ package body System.Garlic.Partitions is
             --  partition.
 
             if Self_PID = Null_PID then
-               Self_PID := Request.Partition;
-
                if Boot_PID /= Partition then
                   Info := Partitions.Get_Component (Boot_PID);
                   Info.Allocated := False;
@@ -485,19 +481,14 @@ package body System.Garlic.Partitions is
                Write_Partitions    (To_All'Access);
             end if;
 
-            if Self_PID = Null_PID then
-               Booted       := True;
-               Boot_Is_Over := True;
-            end if;
-
             --  This is step 4.
 
-            if not Boot_Is_Over then
+            if Self_PID = Null_PID then
                if not Options.Mirror_Excepted
                  or else N_Boot_Mirrors > 1
                then
-                  Booted       := True;
-                  Boot_Is_Over := True;
+                  Self_PID := Request.Partition;
+                  Booted   := True;
 
                   Info := Partitions.Get_Component (Self_PID);
                   Info.Is_Boot_Mirror  := Options.Is_Boot_Mirror;
@@ -524,6 +515,8 @@ package body System.Garlic.Partitions is
             end if;
 
       end case;
+
+      Dump_Partition_Table;
 
       Partitions.Leave;
 
