@@ -1939,12 +1939,11 @@ package body Ada_Be.Idl2Ada is
                          Elab_Control => Elaborate_All);
 
                Add_With (CU, "PolyORB.CORBA_P.Exceptions");
+               Add_With (CU, "PolyORB.Any.NVList");
+               Add_With (CU, "PolyORB.Requests");
+               Add_With (CU, "PolyORB.Types");
 
                Add_With (CU, "CORBA.Object");
-               Add_With (CU, "CORBA.Context");
-               Add_With (CU, "CORBA.Request");
-               Add_With (CU, "CORBA.NVList");
-               Add_With (CU, "CORBA.ORB");
 
                Gen_Operation_Profile
                  (CU, Node,
@@ -1973,10 +1972,8 @@ package body Ada_Be.Idl2Ada is
 
                NL (CU);
                PL (CU, Justify (T_Operation_Name, Max_Len)
-                 & " : constant CORBA.Identifier");
-               PL (CU, "  := CORBA.To_CORBA_String ("""
-                       & Idl_Operation_Id (Node) & """);");
-
+                   & " : constant String");
+               PL (CU, "  := """ & Idl_Operation_Id (Node) & """;");
                PL (CU, Justify (T_Self_Ref, Max_Len) & " : CORBA.Object.Ref");
                PL (CU, "  := CORBA.Object.Ref ("
                    & Self_For_Operation (Mapping, Node) & ");");
@@ -1996,8 +1993,8 @@ package body Ada_Be.Idl2Ada is
                              := Ada_Name (Declarator (P_Node));
                         begin
                            PL (CU, Justify (T_Arg_Name & Arg_Name, Max_Len)
-                               & " : CORBA.Identifier");
-                           PL (CU, "  := To_CORBA_String ("""
+                               & " : PolyORB.Types.Identifier");
+                           PL (CU, "  := PolyORB.Types.To_PolyORB_String ("""
                                & Arg_Name & """);");
                         end;
                      end if;
@@ -2006,9 +2003,9 @@ package body Ada_Be.Idl2Ada is
                end;
 
                PL (CU, Justify (T_Request, Max_Len)
-                 & " : CORBA.Request.Object;");
-               PL (CU, Justify (T_Ctx, Max_Len)
-                 & " : CORBA.Context.Ref := CORBA.Context.Nil_Ref;");
+                 & " : PolyORB.Requests.Request_Access;");
+--                PL (CU, Justify (T_Ctx, Max_Len)
+--                  & " : CORBA.Context.Ref := CORBA.Context.Nil_Ref;");
 
                declare
                   It   : Node_Iterator;
@@ -2039,14 +2036,17 @@ package body Ada_Be.Idl2Ada is
                   end loop;
                end;
 
-               PL (CU, Justify (T_Arg_List, Max_Len) & " : CORBA.NVList.Ref;");
+               PL (CU, Justify (T_Arg_List, Max_Len)
+                   & " : PolyORB.Any.NVList.Ref;");
+
                if Raise_Something then
                   Add_With (CU, "CORBA.ExceptionList");
                   PL (CU, Justify (T_Excp_List, Max_Len)
                     & " : CORBA.ExceptionList.Ref;");
                end if;
 
-               PL (CU, Justify (T_Result, Max_Len) & " : CORBA.NamedValue;");
+               PL (CU, Justify (T_Result, Max_Len)
+                   & " : PolyORB.Any.NamedValue;");
                PL (CU, Justify (T_Result_Name, Max_Len)
                    & " : CORBA.String := To_CORBA_String (""Result"");");
 
@@ -2063,7 +2063,8 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
 
                PL (CU, "--  Create argument list");
-               PL (CU, "CORBA.ORB.Create_List (0, " & T_Arg_List & ");");
+               PL (CU, "PolyORB.Any.NVList.Create");
+               PL (CU, "  (" & T_Arg_List & ");");
 
                declare
                   It   : Node_Iterator;
@@ -2079,7 +2080,7 @@ package body Ada_Be.Idl2Ada is
                            Arg_Name : constant String
                              := Ada_Name (Declarator (P_Node));
                         begin
-                           PL (CU, "CORBA.NVList.Add_Item");
+                           PL (CU, "PolyORB.Any.NVList.Add_Item");
                            PL (CU, "  (" & T_Arg_List & ",");
                            II (CU);
                            PL (CU, T_Arg_Name & Arg_Name & ",");
@@ -2088,11 +2089,11 @@ package body Ada_Be.Idl2Ada is
 
                         case Mode (P_Node) is
                            when Mode_In =>
-                              PL (CU, "CORBA.ARG_IN);");
+                              PL (CU, "PolyORB.Any.ARG_IN);");
                            when Mode_Inout =>
-                              PL (CU, "CORBA.ARG_INOUT);");
+                              PL (CU, "PolyORB.Any.ARG_INOUT);");
                            when Mode_Out =>
-                              PL (CU, "CORBA.ARG_OUT);");
+                              PL (CU, "PolyORB.Any.ARG_OUT);");
                         end case;
                         DI (CU);
                      end if;
@@ -2132,7 +2133,7 @@ package body Ada_Be.Idl2Ada is
 
                PL (CU, "--  Set result type (maybe void)");
                PL (CU, T_Result);
-               PL (CU, "  := (Name => CORBA.Identifier ("
+               PL (CU, "  := (Name => PolyORB.Types.Identifier ("
                  & T_Result_Name & "),");
                PL (CU, "      Argument => Get_Empty_Any");
                PL (CU, "  ("
@@ -2141,25 +2142,37 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "Arg_Modes => 0);");
                DI (CU);
                NL (CU);
-               PL (CU, "CORBA.Object.Create_Request");
-               PL (CU, "  (" & T_Self_Ref & ",");
+
+               PL (CU, "PolyORB.Requests.Create_Request");
+               PL (CU, "  (Target    => CORBA.Object.To_PolyORB_Ref");
                II (CU);
-               PL (CU, T_Ctx & ",");
-               PL (CU, T_Operation_Name & ",");
-               PL (CU, T_Arg_List & ",");
-               PL (CU, T_Result & ",");
+               PL (CU, "(CORBA.Object.Ref ("
+                   & Self_For_Operation (Mapping, Node) & ")),");
+               PL (CU, "Operation => " & T_Operation_Name & ",");
+               PL (CU, "Arg_List  => " & T_Arg_List & ",");
+               PL (CU, "Result    => " & T_Result & ",");
 
                if Raise_Something then
-                  Add_With (CU, "CORBA.ContextList");
-                  PL (CU, T_Excp_List & ",");
-                  PL (CU, "CORBA.ContextList.Nil_Ref" & ",");
+                  PL (CU, "Exc_List  => CORBA.ExceptionList.To_PolyORB_Ref ("
+                      & T_Excp_List & "),");
                end if;
-
-               PL (CU, T_Request & ",");
-               PL (CU, "0);");
+               PL (CU, "Req       => " & T_Request & ");");
                DI (CU);
+
                NL (CU);
-               PL (CU, "CORBA.Request.Invoke (" & T_Request & ", 0);");
+               PL (CU, "PolyORB.Requests.Invoke ("
+                   & T_Request & ");");
+
+               PL (CU, "if not Is_Empty (" & T_Request
+                   & ".Exception_Info) then");
+               II (CU);
+               PL (CU, "PolyORB.CORBA_P.Exceptions.Raise_From_Any");
+               PL (CU, "  (" & T_Request & ".Exception_Info);");
+               DI (CU);
+               PL (CU, "end if;");
+
+               PL (CU, "PolyORB.Requests.Destroy_Request");
+               PL (CU, "  (" & T_Request & ");");
 
                if Response_Expected then
 
