@@ -164,7 +164,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
         Trimmed_Image (Integer (GIOP_Profile.Version_Minor)) & "@" &
         Image (Address.Addr) & ":" &
         Trimmed_Image (Integer (Address.Port)) & "/" &
-        URI_Encode (Oid_Str);
+        URI_Encode (Oid_Str, Also_Escape => No_Escape);
    end Common_IIOP_DIOP_Profile_To_Corbaloc;
 
    ----------------------------------

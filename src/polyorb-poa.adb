@@ -176,8 +176,6 @@ package body PolyORB.POA is
       return U_Oid_To_Oid (U_Oid);
    end Rel_URI_To_Oid;
 
-   POA_Path_Separator : constant Character := '/';
-
    --------------------------------------------------------
    -- Declaration of additional procedures and functions --
    --------------------------------------------------------
@@ -579,13 +577,17 @@ package body PolyORB.POA is
    begin
       pragma Debug (O ("Creating POA: " & Adapter_Name));
 
-      --  Validity checks on Adapter_Name
+      --  Validity checks on Adapter_Name:
+      --    name must be non-empty and may not contain POA_Path_Separator
+      --    or ASCII.NUL
 
       if Adapter_Name = ""
-        or else PolyORB.Utils.Find_Skip
-        (Adapter_Name,
-         Adapter_Name'First,
-         POA_Path_Separator, False) <= Adapter_Name'Last
+        or else PolyORB.Utils.Find (Adapter_Name,
+                  Adapter_Name'First,
+                  POA_Path_Separator) <= Adapter_Name'Last
+        or else PolyORB.Utils.Find (Adapter_Name,
+                  Adapter_Name'First,
+                  ASCII.NUL) <= Adapter_Name'Last
       then
          Throw (Error,
                 WrongAdapter_E,
@@ -757,7 +759,7 @@ package body PolyORB.POA is
                         Etherealize_Objects,
                         Wait_For_Completion);
 
-               --  NOTE: The child is detach automatically from the children
+               --  NOTE: The child is detached automatically from the children
                --  map upon destruction.
 
                Next (It);

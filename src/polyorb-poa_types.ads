@@ -128,6 +128,8 @@ package PolyORB.POA_Types is
    -- Object Ids --
    ----------------
 
+   POA_Path_Separator : constant Character := '/';
+
    subtype Object_Id is PolyORB.Objects.Object_Id;
    subtype Object_Id_Access is PolyORB.Objects.Object_Id_Access;
 
@@ -135,15 +137,17 @@ package PolyORB.POA_Types is
      renames PolyORB.Objects."=";
 
    type Unmarshalled_Oid is record
-      Id               : Types.String;     --  Id
-      Creator          : Types.String;     --  Creator
-      System_Generated : Boolean;          --  System or User managed ?
-      Persistency_Flag : Lifespan_Cookie;  --  Object's Lifespan
+      Id               : Types.String;
+      --  Object id within POA
 
-      --  NOTE:
-      --   * the Creator is typically the POA to which the object is
-      --     attached,
+      Creator          : Types.String;
+      --  Creator (POA path delimited with POA_Path_Separator)
 
+      System_Generated : Boolean;
+      --  System or User managed ?
+
+      Persistency_Flag : Lifespan_Cookie;
+      --  Object's Lifespan
    end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
 

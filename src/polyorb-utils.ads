@@ -56,11 +56,15 @@ package PolyORB.Utils is
    --  Return the Stream_Element_Array represented by the
    --  string of hexadecimal digits contained in S.
 
-   function URI_Encode (S : String) return String;
-   --  Return S with special characters replaced by
-   --  "%" "hexdigit" "hexdigit" if these characters
-   --  need to be escaped in URIs, except for spaces
-   --  which are replaced by '+'.
+   No_Escape : constant String := "";
+
+   function URI_Encode
+     (S           : String;
+      Also_Escape : String := "/") return String;
+   --  Return S with special characters replaced by "%" "hexdigit" "hexdigit"
+   --  if these characters need to be escaped in URIs, except for spaces
+   --  which are replaced by '+'. Any character in Also_Escape is considered
+   --  as special.
 
    function URI_Decode (S : String) return String;
    --  Return S with any %xy sequence replaced with

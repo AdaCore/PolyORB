@@ -81,7 +81,8 @@ package PolyORB.Representations.SRP is
    procedure Encode_URL (SRP_Info : in out Split_SRP);
 
    --  Encodes the entire string
-   function Encode_String (Str : in String) return String;
+   function Encode_String
+     (Str : in String; Also_Escape : String := "/") return String;
 
    -------------------
    -- UNMARSHALLING --

@@ -44,7 +44,10 @@ with PolyORB.Initialization;
 with PolyORB.Servants;
 with PolyORB.Types;
 with PolyORB.Utils.Report;
-
+with PolyORB.Parameters.File;
+pragma Warnings (Off, PolyORB.Parameters.File);
+with PolyORB.Log.Stderr;
+pragma Warnings (Off, PolyORB.Log.Stderr);
 with PolyORB.ORB.No_Tasking;
 pragma Warnings (Off, PolyORB.ORB.No_Tasking);
 pragma Elaborate_All (PolyORB.ORB.No_Tasking);

@@ -315,7 +315,8 @@ package body PolyORB.Representations.SRP is
    -- Encode_String --
    -------------------
 
-   function Encode_String (Str : String) return String
+   function Encode_String
+     (Str : String; Also_Escape : String := "/") return String
      renames Utils.URI_Encode;
 
    -------------------------------------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper functions for CORBA servers.
+--  Helper functions for CORBA servers. Note that using this unit implies
+--  using the Portable Object Adapter.
 
 with CORBA.Object;
 with CORBA.ORB;
@@ -112,6 +113,20 @@ package body PolyORB.CORBA_P.Server_Tools is
 
       pragma Debug (O ("Initiate_Servant : end"));
    end Initiate_Servant;
+
+   ---------------------------------
+   -- Initiate_Well_Known_Service --
+   ---------------------------------
+
+   procedure Initiate_Well_Known_Service
+     (S    : PortableServer.Servant;
+      Name : String;
+      R    : out CORBA.Object.Ref'Class)
+   is
+      pragma Unreferenced (S, Name, R);
+   begin
+      null;
+   end Initiate_Well_Known_Service;
 
    --------------------------
    -- Reference_To_Servant --

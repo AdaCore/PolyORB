@@ -67,9 +67,11 @@ package body PolyORB.Utils is
          'f' => 15,
          others => -1);
 
-   Need_Escape : constant array (Character) of Boolean
+   type Escape_Map is array (Character) of Boolean;
+
+   Default_Escape_Map : constant Escape_Map
      := (Character'Val (0) .. Character'Val (16#1f#) |
-         ';' | '/' | '?' | ':' | '@' | '&' | '=' | '+' | '$' | ',' |
+         ';' | '?' | ':' | '@' | '&' | '=' | '+' | '$' | ',' |
          '<' | '>' | '#' | '%' | '"' |
          '{' | '}' | '|' | '\' | '^' | '[' | ']' | '`' => True,
          others => False);
@@ -132,12 +134,17 @@ package body PolyORB.Utils is
    ----------------
 
    function URI_Encode
-     (S : String)
+     (S : String; Also_Escape : String := "/")
      return String
    is
+      Need_Escape : Escape_Map := Default_Escape_Map;
       Result : String (1 .. 3 * S'Length);
       DI : Integer := Result'First;
    begin
+      for J in Also_Escape'Range loop
+         Need_Escape (Also_Escape (J)) := True;
+      end loop;
+
       for SI in S'Range loop
          if Need_Escape (S (SI)) then
             Result (DI .. DI + 2)
