@@ -31,7 +31,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.POA_Types;     use PolyORB.POA_Types;
-
+with PolyORB.Servants;
 package PolyORB.POA_Policies.Request_Processing_Policy is
 
    type RequestProcessingPolicy is abstract new Policy with null record;
@@ -52,7 +52,7 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
      (Self  : RequestProcessingPolicy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
-     return Objects.Servant_Access
+     return Servants.Servant_Access
       is abstract;
    --  Case USE_OBJECT_MAP_ONLY:
    --    Asks the Servant Retention Policy to look for the given Oid.

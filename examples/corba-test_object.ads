@@ -36,6 +36,7 @@
 
 with PolyORB.Components;
 with PolyORB.Objects;
+with PolyORB.Servants;
 with CORBA;
 
 package CORBA.Test_Object is
@@ -44,7 +45,7 @@ package CORBA.Test_Object is
 
    use CORBA;
 
-   type My_Object is new PolyORB.Objects.Servant with null record;
+   type My_Object is new PolyORB.Servants.Servant with null record;
 
    function echoString
      (O : My_Object;

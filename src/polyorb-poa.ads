@@ -37,6 +37,7 @@
 with PolyORB.Locks;
 with PolyORB.Object_Maps;
 with PolyORB.Objects;
+with PolyORB.Servants;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies;
 with PolyORB.POA_Policies.Thread_Policy;
@@ -78,7 +79,7 @@ package PolyORB.POA is
          --  The active object map (NULL if the policies used for this POA
          --  do not require one).
 
-         Default_Servant            : Objects.Servant_Access;
+         Default_Servant            : Servants.Servant_Access;
          --  The default servant (NULL if the policies used for this POA
          --  do not require one).
 
@@ -141,7 +142,7 @@ package PolyORB.POA is
 
    function Activate_Object
      (Self      : access Obj_Adapter;
-      P_Servant :        Objects.Servant_Access := null;
+      P_Servant :        Servants.Servant_Access := null;
       Hint      :        Object_Id_Access := null)
      return Object_Id
       is abstract;
@@ -162,7 +163,7 @@ package PolyORB.POA is
 
    function Servant_To_Id
      (Self      : access Obj_Adapter;
-      P_Servant : in     Objects.Servant_Access)
+      P_Servant : in     Servants.Servant_Access)
      return Object_Id is abstract;
    --  Requires USE_DEFAULT_SERVANT or RETAIN and either UNIQUE_ID
    --  or IMPLICIT_ACTIVATION
@@ -180,7 +181,7 @@ package PolyORB.POA is
    function Id_To_Servant
      (Self : access Obj_Adapter;
       Oid  :        Object_Id)
-     return Objects.Servant_Access is abstract;
+     return Servants.Servant_Access is abstract;
    --  Requires RETAIN or USE_DEFAULT_SERVANT
    --  Case RETAIN:
    --    Look for the given Object_Id in the Active Object Map.

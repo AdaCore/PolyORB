@@ -348,7 +348,7 @@ package body CORBA.Test_POA is
             pragma Warnings (Off);
             Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  PolyORB.Objects.Servant_Access (S1));
+                                  PolyORB.Servants.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Destroy (OA1, True, True);
@@ -359,10 +359,10 @@ package body CORBA.Test_POA is
             pragma Warnings (Off);
             Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  PolyORB.Objects.Servant_Access (S1));
+                                  PolyORB.Servants.Servant_Access (S1));
             Id2 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  PolyORB.Objects.Servant_Access (S1));
+                                  PolyORB.Servants.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Destroy (OA1, True, True);
@@ -405,11 +405,11 @@ package body CORBA.Test_POA is
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  PolyORB.Objects.Servant_Access (S1));
+                                  PolyORB.Servants.Servant_Access (S1));
          begin
             Deactivate_Object (OA1.all'Access, Id1);
             Activate_Object_With_Id (OA1.all'Access,
-                                     PolyORB.Objects.Servant_Access (S1),
+                                     PolyORB.Servants.Servant_Access (S1),
                                      Id1);
             Destroy (OA1, True, True);
          end;
@@ -419,10 +419,10 @@ package body CORBA.Test_POA is
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  PolyORB.Objects.Servant_Access (S1));
+                                  PolyORB.Servants.Servant_Access (S1));
          begin
             Activate_Object_With_Id (OA1.all'Access,
-                                     PolyORB.Objects.Servant_Access (S2),
+                                     PolyORB.Servants.Servant_Access (S2),
                                      Id1);
             Destroy (OA1, True, True);
          exception
@@ -436,15 +436,15 @@ package body CORBA.Test_POA is
             pragma Warnings (Off);
             Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  PolyORB.Objects.Servant_Access (S1));
+                                  PolyORB.Servants.Servant_Access (S1));
             pragma Warnings (On);
             Id2 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  PolyORB.Objects.Servant_Access (S2));
+                                  PolyORB.Servants.Servant_Access (S2));
          begin
             Deactivate_Object (OA1.all'Access, Id2);
             Activate_Object_With_Id (OA1.all'Access,
-                                     PolyORB.Objects.Servant_Access (S1),
+                                     PolyORB.Servants.Servant_Access (S1),
                                      Id2);
             Destroy (OA1, True, True);
       exception
@@ -483,7 +483,7 @@ package body CORBA.Test_POA is
             pragma Warnings (Off);
             Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  PolyORB.Objects.Servant_Access (S1));
+                                  PolyORB.Servants.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Deactivate_Object (OA1.all'Access, Id1);
@@ -495,7 +495,7 @@ package body CORBA.Test_POA is
             pragma Warnings (Off);
             Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  PolyORB.Objects.Servant_Access (S1));
+                                  PolyORB.Servants.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Deactivate_Object (OA1.all'Access, Id1);
@@ -536,10 +536,10 @@ package body CORBA.Test_POA is
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  PolyORB.Objects.Servant_Access (S1));
+                                  PolyORB.Servants.Servant_Access (S1));
             Id2 : PolyORB.POA_Types.Object_Id
               := Servant_To_Id (OA1.all'Access,
-                                PolyORB.Objects.Servant_Access (S1));
+                                PolyORB.Servants.Servant_Access (S1));
          begin
             if Id1 /= Id2 then
                raise Incorrect_Execution;
@@ -552,7 +552,7 @@ package body CORBA.Test_POA is
             pragma Warnings (Off);
             Id2 : PolyORB.POA_Types.Object_Id
               := Servant_To_Id (OA1.all'Access,
-                                PolyORB.Objects.Servant_Access (S1));
+                                PolyORB.Servants.Servant_Access (S1));
             pragma Warnings (On);
          begin
             Destroy (OA1, True, True);
@@ -589,7 +589,7 @@ package body CORBA.Test_POA is
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  PolyORB.Objects.Servant_Access (S1));
+                                  PolyORB.Servants.Servant_Access (S1));
             S2 : My_Servant_Access
               := My_Servant_Access
               (Id_To_Servant (OA1.all'Access, Id1));
@@ -604,7 +604,7 @@ package body CORBA.Test_POA is
             OA1 : Obj_Adapter_Access := Create_Root_POA;
             Id1 : PolyORB.POA_Types.Object_Id
               := Activate_Object (OA1.all'Access,
-                                  PolyORB.Objects.Servant_Access (S1));
+                                  PolyORB.Servants.Servant_Access (S1));
             S2 : My_Servant_Access;
          begin
             Deactivate_Object (OA1.all'Access, Id1);

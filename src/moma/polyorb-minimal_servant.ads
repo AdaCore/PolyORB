@@ -1,5 +1,5 @@
 with PolyORB.Components;
-with PolyORB.Objects;
+with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 with PolyORB.Requests;
 
@@ -18,7 +18,7 @@ package PolyORB.Minimal_Servant is
       return PolyORB.Components.Message'Class;
 
    function To_PolyORB_Servant (S : access Servant)
-     return PolyORB.Objects.Servant_Access;
+     return PolyORB.Servants.Servant_Access;
 
    procedure Invoke
      (Self    : access Servant;
@@ -28,7 +28,7 @@ package PolyORB.Minimal_Servant is
 private
 
    type Implementation (As_Servant : access Servant'Class)
-   is new PolyORB.Objects.Servant with null record;
+   is new PolyORB.Servants.Servant with null record;
    --  The MOMA personality is based on the Portable Object Adapter.
 
    function "=" (X, Y : Implementation) return Boolean;

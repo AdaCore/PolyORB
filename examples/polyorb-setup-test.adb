@@ -48,6 +48,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.Obj_Adapters.Simple;
 with PolyORB.Objects;
+with PolyORB.Servants;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
 with PolyORB.Requests;
@@ -65,7 +66,7 @@ package body PolyORB.Setup.Test is
    use PolyORB.ORB;
 
    Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
-   My_Servant : Servant_Access;
+   My_Servant : Servants.Servant_Access;
 
    procedure Initialize_Test_Object is
    begin

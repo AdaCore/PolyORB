@@ -34,7 +34,7 @@
 
 --  $Id$
 
-with PolyORB.Objects;
+with PolyORB.Servants;
 with PolyORB.POA_Types; use PolyORB.POA_Types;
 with PolyORB.Smart_Pointers;
 
@@ -104,7 +104,7 @@ package PolyORB.POA_Manager is
    function Get_Hold_Servant
      (Self : access POAManager;
       OA   :        Obj_Adapter_Access)
-     return PolyORB.Objects.Servant_Access
+     return PolyORB.Servants.Servant_Access
       is abstract;
 
 private

@@ -65,7 +65,7 @@ package body PolyORB.Obj_Adapters.Simple is
       Index : Integer)
       return Object_Map_Entry
    is
-      use type Objects.Servant_Access;
+      use type Servants.Servant_Access;
    begin
       declare
          OME : constant Object_Map_Entry
@@ -98,11 +98,11 @@ package body PolyORB.Obj_Adapters.Simple is
 
    function Export
      (OA  : access Simple_Obj_Adapter;
-      Obj :        Objects.Servant_Access;
+      Obj :        Servants.Servant_Access;
       Key :        Objects.Object_Id_Access := null)
       return Objects.Object_Id
    is
-      use type Objects.Servant_Access;
+      use type Servants.Servant_Access;
       use type Objects.Object_Id_Access;
    begin
       if Key /= null then
@@ -144,7 +144,7 @@ package body PolyORB.Obj_Adapters.Simple is
      (OA : access Simple_Obj_Adapter;
       Id : Objects.Object_Id_Access)
    is
-      use type Objects.Servant_Access;
+      use type Servants.Servant_Access;
 
       Index : constant Integer
         := Oid_To_Index (Simple_OA_Oid (Id.all));
@@ -187,7 +187,7 @@ package body PolyORB.Obj_Adapters.Simple is
       Id      : access Objects.Object_Id;
       If_Desc : Interface_Description)
    is
-      use type Objects.Servant_Access;
+      use type Servants.Servant_Access;
 
       Index : constant Integer
         := Oid_To_Index (Simple_OA_Oid (Id.all));
@@ -278,9 +278,9 @@ package body PolyORB.Obj_Adapters.Simple is
    function Find_Servant
      (OA : access Simple_Obj_Adapter;
       Id : access Objects.Object_Id)
-     return Objects.Servant_Access
+     return Servants.Servant_Access
    is
-      Result : Objects.Servant_Access;
+      Result : Servants.Servant_Access;
    begin
       Enter (OA.Lock);
       Result := Element_Of (OA.Object_Map, Oid_To_Index
@@ -292,7 +292,7 @@ package body PolyORB.Obj_Adapters.Simple is
    procedure Release_Servant
      (OA : access Simple_Obj_Adapter;
       Id : access Objects.Object_Id;
-      Servant : in out Objects.Servant_Access) is
+      Servant : in out Servants.Servant_Access) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (OA);

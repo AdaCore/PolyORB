@@ -44,6 +44,7 @@ with CORBA.ORB;
 
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
+with PolyORB.Servants;
 with PolyORB.ORB; use PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA.Basic_POA; use PolyORB.POA.Basic_POA;
@@ -57,7 +58,7 @@ with PolyORB.POA_Manager;
 
 package body PolyORB.Setup.Test_CORBA is
 
-   My_Servant : PolyORB.Objects.Servant_Access;
+   My_Servant : PolyORB.Servants.Servant_Access;
    Obj_Adapter : PolyORB.POA_Types.Obj_Adapter_Access;
 
    procedure Initialize_CORBA_Test_Object is

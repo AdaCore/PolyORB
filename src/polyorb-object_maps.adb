@@ -94,7 +94,7 @@ package body PolyORB.Object_Maps is
 
    function Is_Servant_In
      (O_Map : in Object_Map;
-      Item  : in PolyORB.Objects.Servant_Access)
+      Item  : in PolyORB.Servants.Servant_Access)
      return Boolean
    is
    begin
@@ -141,10 +141,10 @@ package body PolyORB.Object_Maps is
 
    function Get_By_Servant
      (O_Map  : in Object_Map;
-      Item   : in PolyORB.Objects.Servant_Access)
+      Item   : in PolyORB.Servants.Servant_Access)
      return Object_Map_Entry_Access
    is
-      use type PolyORB.Objects.Servant_Access;
+      use type PolyORB.Servants.Servant_Access;
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
    begin
       for I in Elts'Range loop

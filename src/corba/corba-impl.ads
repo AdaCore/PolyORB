@@ -33,7 +33,7 @@
 --  $Id$
 
 with PolyORB.Components;
-with PolyORB.Objects;
+with PolyORB.Servants;
 with PolyORB.Smart_Pointers;
 
 package CORBA.Impl is
@@ -54,15 +54,15 @@ package CORBA.Impl is
      return PolyORB.Components.Message'Class;
 
    function To_PolyORB_Servant (S : access Object)
-     return PolyORB.Objects.Servant_Access;
+     return PolyORB.Servants.Servant_Access;
 
-   function To_CORBA_Servant (S : PolyORB.Objects.Servant_Access)
+   function To_CORBA_Servant (S : PolyORB.Servants.Servant_Access)
      return Object_Ptr;
 
 private
 
    type Implementation (As_Object : access Object'Class)
-   is new PolyORB.Objects.Servant with null record;
+   is new PolyORB.Servants.Servant with null record;
    --  The CORBA personality is based on the Portable Object Adapter.
 
    function "=" (X, Y : Implementation) return Boolean;

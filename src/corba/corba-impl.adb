@@ -56,12 +56,12 @@ package body CORBA.Impl is
    end Handle_Message;
 
    function To_PolyORB_Servant (S : access Object)
-     return PolyORB.Objects.Servant_Access is
+     return PolyORB.Servants.Servant_Access is
    begin
       return S.Neutral_View'Access;
    end To_PolyORB_Servant;
 
-   function To_CORBA_Servant (S : PolyORB.Objects.Servant_Access)
+   function To_CORBA_Servant (S : PolyORB.Servants.Servant_Access)
      return Object_Ptr is
    begin
       return Object_Ptr (Implementation (S.all).As_Object);

@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#22 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#23 $
 
 with Ada.Exceptions;
 
@@ -45,6 +45,7 @@ with PolyORB.References;
 with PolyORB.References.Binding;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
+with PolyORB.Servants;
 
 with PolyORB.CORBA_P.Exceptions;
 
@@ -442,7 +443,7 @@ package body PortableServer.POA is
 --       end if;
 
       return ObjectId (PolyORB.POA.Activate_Object
-        (POA, PolyORB.Objects.Servant_Access
+        (POA, PolyORB.Servants.Servant_Access
          (To_PolyORB_Servant (P_Servant))));
 --       raise PolyORB.Not_Implemented;
 --       pragma Warnings (Off);
@@ -467,7 +468,7 @@ package body PortableServer.POA is
       pragma Warnings (Off);
       R_Oid : constant PolyORB.POA_Types.Object_Id
         := PolyORB.POA.Activate_Object
-        (POA, PolyORB.Objects.Servant_Access
+        (POA, PolyORB.Servants.Servant_Access
          (To_PolyORB_Servant (P_Servant)), A_Oid'Unchecked_Access);
       pragma Unreferenced (R_Oid);
       pragma Warnings (On);
@@ -662,10 +663,10 @@ package body PortableServer.POA is
          The_Servant, The_Profile, Local_Only => True);
 
       --  Using 'Local_Only' should guarantee that The_Servant
-      --  is castable to PolyORB.Objects.Servant_Access.
+      --  is castable to PolyORB.Servants.Servant_Access.
 
       return Servant (CORBA.Impl.To_CORBA_Servant
-        (PolyORB.Objects.Servant_Access (The_Servant)));
+        (PolyORB.Servants.Servant_Access (The_Servant)));
 
 --       Skel := PolyORB.POA.Ref_To_Skeleton (Reference);
 --       if POA_Object_Of (Skel.POA) /= POA_Object_Ptr (POA) then

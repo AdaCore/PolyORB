@@ -48,7 +48,7 @@ package PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
    procedure Retain_Servant_Association
      (Self      : Retain_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Objects.Servant_Access;
+      P_Servant : Servants.Servant_Access;
       U_Oid     : Unmarshalled_Oid);
 
    procedure Forget_Servant_Association
@@ -59,13 +59,13 @@ package PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
    function Retained_Servant_To_Id
      (Self      : Retain_Policy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Objects.Servant_Access)
+      P_Servant : Servants.Servant_Access)
      return Object_Id_Access;
 
    function Retained_Id_To_Servant
      (Self  : Retain_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
-     return Objects.Servant_Access;
+     return Servants.Servant_Access;
 
 end PolyORB.POA_Policies.Servant_Retention_Policy.Retain;

@@ -50,7 +50,7 @@ package PolyORB.Obj_Adapters.Simple is
 
    function Export
      (OA  : access Simple_Obj_Adapter;
-      Obj :        Objects.Servant_Access;
+      Obj :        Servants.Servant_Access;
       Key :        Objects.Object_Id_Access := null)
       return Objects.Object_Id;
 
@@ -101,17 +101,17 @@ package PolyORB.Obj_Adapters.Simple is
    function Find_Servant
      (OA : access Simple_Obj_Adapter;
       Id : access Objects.Object_Id)
-     return Objects.Servant_Access;
+     return Servants.Servant_Access;
 
    procedure Release_Servant
      (OA      : access Simple_Obj_Adapter;
       Id      : access Objects.Object_Id;
-      Servant : in out Objects.Servant_Access);
+      Servant : in out Servants.Servant_Access);
 
 private
 
    type Object_Map_Entry is record
-      Servant : Objects.Servant_Access;
+      Servant : Servants.Servant_Access;
       --  May be null (for empty entries).
 
       If_Desc : Interface_Description;

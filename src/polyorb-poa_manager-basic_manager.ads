@@ -40,6 +40,7 @@ with PolyORB.POA_Types;
 with PolyORB.Locks;
 with PolyORB.Components;
 with PolyORB.Locked_Queue;
+with PolyORB.Servants;
 
 package PolyORB.POA_Manager.Basic_Manager is
 
@@ -94,7 +95,7 @@ package PolyORB.POA_Manager.Basic_Manager is
    function Get_Hold_Servant
      (Self : access Basic_POA_Manager;
       OA   :        Obj_Adapter_Access)
-     return PolyORB.Objects.Servant_Access;
+     return PolyORB.Servants.Servant_Access;
 
    ---------------------------------------------------
    --  Servant used to implement the holding state  --
@@ -113,7 +114,7 @@ package PolyORB.POA_Manager.Basic_Manager is
    --    first.
 
    type Queue_Element_Access is private;
-   type Hold_Servant is new PolyORB.Objects.Servant with private;
+   type Hold_Servant is new PolyORB.Servants.Servant with private;
    type Hold_Servant_Access is access all Hold_Servant;
 
    function "="
@@ -159,7 +160,7 @@ private
 
    procedure Dec_Usage_Counter (Self : access Basic_POA_Manager);
 
-   type Hold_Servant is new PolyORB.Objects.Servant with
+   type Hold_Servant is new PolyORB.Servants.Servant with
       record
          Queue_Entry : Queue_Element_Access;
       end record;

@@ -57,7 +57,7 @@ package body PolyORB.Minimal_Servant is
    ------------------------
 
    function To_PolyORB_Servant (S : access Servant)
-     return PolyORB.Objects.Servant_Access is
+     return PolyORB.Servants.Servant_Access is
    begin
       return S.Neutral_View'Access;
    end To_PolyORB_Servant;
