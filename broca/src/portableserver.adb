@@ -32,10 +32,12 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+with Ada.Unchecked_Conversion;
 
 with CORBA; use CORBA;
 
 with Broca.Exceptions;
+with Broca.Sequences;
 with Broca.ORB;
 with Broca.Soft_Links; use Broca.Soft_Links;
 with Broca.Configuration;
@@ -260,5 +262,37 @@ package body PortableServer is
    begin
       Broca.Exceptions.User_Get_Members (From, To);
    end Get_Members;
+
+   function ObjectId_To_Octet_Sequence is
+      new Ada.Unchecked_Conversion
+       (ObjectId, Broca.Sequences.Octet_Sequence);
+
+   function Octet_Sequence_To_ObjectId is
+      new Ada.Unchecked_Conversion
+       (Broca.Sequences.Octet_Sequence, ObjectId);
+
+   --------------
+   -- Marshall --
+   --------------
+
+   procedure Marshall
+     (Buffer : access Broca.Buffers.Buffer_Type;
+      Data   : in ObjectId) is
+   begin
+      Broca.Sequences.Marshall
+        (Buffer, ObjectId_To_Octet_Sequence (Data));
+   end Marshall;
+
+   ----------------
+   -- Unmarshall --
+   ----------------
+
+   function Unmarshall
+     (Buffer : access Broca.Buffers.Buffer_Type)
+     return ObjectId is
+   begin
+      return Octet_Sequence_To_ObjectId
+        (Broca.Sequences.Unmarshall (Buffer));
+   end Unmarshall;
 
 end PortableServer;

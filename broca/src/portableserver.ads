@@ -35,12 +35,11 @@ with Ada.Finalization;
 
 with CORBA;
 with CORBA.Object;
+with CORBA.Sequences.Unbounded;
 with CORBA.Forward;
 pragma Elaborate_All (CORBA.Forward);
 
-with Broca.Sequences;
 with Broca.Buffers;
-
 
 package PortableServer is
 
@@ -75,7 +74,9 @@ package PortableServer is
    --       (For_Servant : Servant_Base)
    --       return Boolean;
 
-   type ObjectId is new Broca.Sequences.Octet_Sequence;
+   package IDL_SEQUENCE_Octet is
+      new CORBA.Sequences.Unbounded (CORBA.Octet);
+   type ObjectId is new IDL_SEQUENCE_Octet.Sequence;
 
    -------------------------------
    --  exception forwardRequest --
@@ -138,6 +139,14 @@ package PortableServer is
    -----------------------
    -- Specific to Broca --
    -----------------------
+
+   procedure Marshall
+     (Buffer : access Broca.Buffers.Buffer_Type;
+      Data   : in ObjectId);
+
+   function Unmarshall
+     (Buffer : access Broca.Buffers.Buffer_Type)
+     return ObjectId;
 
    function Get_Type_Id
      (For_Servant : Servant) return CORBA.RepositoryId;

@@ -148,24 +148,21 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Boolean)
-   is
+      Data   : in CORBA.Boolean) is
    begin
       Marshall (Buffer, CORBA.Octet'(CORBA.Boolean'Pos (Data)));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Char)
-   is
+      Data   : in CORBA.Char) is
    begin
       Marshall (Buffer, CORBA.Octet'(CORBA.Char'Pos (Data)));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : in CORBA.Wchar)
-   is
+      Data   : in CORBA.Wchar) is
    begin
       Align_Marshall_Big_Endian_Copy
         (Buffer,
@@ -176,16 +173,14 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Octet)
-   is
+      Data   : in CORBA.Octet) is
    begin
       Align_Marshall_Copy (Buffer, (1 => BO_Octet (Data)), 1);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Unsigned_Short)
-   is
+      Data   : in CORBA.Unsigned_Short) is
    begin
       Align_Marshall_Big_Endian_Copy
         (Buffer,
@@ -196,8 +191,7 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Unsigned_Long)
-   is
+      Data   : in CORBA.Unsigned_Long) is
    begin
       Align_Marshall_Big_Endian_Copy
         (Buffer,
@@ -210,8 +204,7 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Unsigned_Long_Long)
-   is
+      Data   : in CORBA.Unsigned_Long_Long) is
    begin
       Align_Marshall_Big_Endian_Copy
         (Buffer,
@@ -228,63 +221,58 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Long_Long)
-   is
+      Data   : in CORBA.Long_Long) is
    begin
       Marshall (Buffer, To_Unsigned_Long_Long (Data));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Long)
-   is
+      Data   : in CORBA.Long) is
    begin
       Marshall (Buffer, To_Unsigned_Long (Data));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Short)
-   is
+      Data   : in CORBA.Short) is
    begin
       Marshall (Buffer, To_Unsigned_Short (Data));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Float)
-   is
+      Data   : in CORBA.Float) is
    begin
       Marshall (Buffer, To_Unsigned_Long (Data));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Double)
+      Data   : in CORBA.Double)
    is
-      Buf : Double_Buf
-        := To_Double_Buf (Data);
+      Buf : Double_Buf := To_Double_Buf (Data);
+
    begin
-      Align_Marshall_Host_Endian_Copy
-        (Buffer, Buf, 8);
+      Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Long_Double)
+      Data   : in CORBA.Long_Double)
    is
-      Buf : Long_Double_Buf
-        := To_Long_Double_Buf (Data);
+      Buf : Long_Double_Buf := To_Long_Double_Buf (Data);
+
    begin
-      Align_Marshall_Host_Endian_Copy
-        (Buffer, Buf, 8);
+      Align_Marshall_Host_Endian_Copy (Buffer, Buf, 8);
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.String)
+      Data   : in CORBA.String)
    is
       Equiv : constant String := CORBA.To_String (Data) & ASCII.Nul;
+
    begin
       Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop
@@ -294,10 +282,11 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Wide_String)
+      Data   : in CORBA.Wide_String)
    is
       Equiv : constant Wide_String :=
         CORBA.To_Wide_String (Data) & Standard.Wide_Character'Val (0);
+
    begin
       Marshall (Buffer, CORBA.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop
@@ -307,49 +296,49 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Identifier) is
+      Data   : in CORBA.Identifier) is
    begin
       Marshall (Buffer, CORBA.String (Data));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.RepositoryId) is
+      Data   : in CORBA.RepositoryId) is
    begin
       Marshall (Buffer, CORBA.String (Data));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.ValueModifier) is
+      Data   : in CORBA.ValueModifier) is
    begin
       Marshall (Buffer, CORBA.Short (Data));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Visibility) is
+      Data   : in CORBA.Visibility) is
    begin
       Marshall (Buffer, CORBA.Short (Data));
    end Marshall;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Any) is
+      Data   : in CORBA.Any) is
    begin
       null;
    end Marshall;
 
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
-      Data : in CORBA.Any) is
+      Data   : in CORBA.Any) is
    begin
       null;
    end Marshall_From_Any;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.TypeCode.Object) is
+      Data   : in CORBA.TypeCode.Object) is
       Complex_Buffer : aliased Buffer_Type;
    begin
       case CORBA.TypeCode.Kind (Data) is
@@ -581,7 +570,7 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data : in CORBA.NamedValue) is
+      Data   : in CORBA.NamedValue) is
    begin
       Marshall (Buffer, Data.Argument);
    end Marshall;

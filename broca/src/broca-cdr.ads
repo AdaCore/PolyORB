@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
+
 with Broca.Opaque; use Broca.Opaque;
 with Broca.Buffers; use Broca.Buffers;
 
@@ -239,8 +240,9 @@ package Broca.CDR is
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Any;
 
-   --  The next three marshall or unmarshall the value of the any
-   --  and not the any type itself
+   --  The next three marshall or unmarshall the value of the any and
+   --  not the any type itself.
+
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
       Data   : access CORBA.Any);
@@ -248,8 +250,9 @@ package Broca.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Any);
 
-   function Unmarshall_To_Any (Buffer : access Buffer_Type;
-                               Any_Type : CORBA.TypeCode.Object)
+   function Unmarshall_To_Any
+     (Buffer   : access Buffer_Type;
+      Any_Type : CORBA.TypeCode.Object)
      return CORBA.Any;
 
    procedure Marshall

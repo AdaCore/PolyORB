@@ -68,6 +68,7 @@ with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
 package body Broca.Rootpoa is
+
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.rootpoa");
    procedure O is new Broca.Debug.Output (Flag);
 
@@ -76,13 +77,13 @@ package body Broca.Rootpoa is
    ---------------------------------------
 
    package Poa_Vararray is new Broca.Vararray
-     (Element => Broca.POA.POA_Object_Ptr,
+     (Element      => Broca.POA.POA_Object_Ptr,
       Null_Element => null,
-      Index_Type => Natural);
+      Index_Type   => Natural);
 
    protected type State_Type is
       function Get_State return Processing_State_Type;
-      procedure Set_State (State : Processing_State_Type);
+      procedure Set_State (State : in Processing_State_Type);
       entry Wait_For_Completion;
       procedure Inc_Usage_If_Active (State : out Processing_State_Type);
       procedure Dec_Usage;
@@ -136,30 +137,52 @@ package body Broca.Rootpoa is
 
          Poas : Poa_Vararray.Var_Array_Type := Poa_Vararray.Null_Var_Array;
       end record;
-   procedure Activate (Self : in out Poa_Manager_Type);
-   procedure Hold_Requests (Self : in out Poa_Manager_Type;
-                            Wait_For_Completion : CORBA.Boolean);
-   procedure Discard_Requests (Self : in out Poa_Manager_Type;
-                               Wait_For_Completion : CORBA.Boolean);
+
+   procedure Activate
+     (Self : in out Poa_Manager_Type);
+
+   procedure Hold_Requests
+     (Self                : in out Poa_Manager_Type;
+      Wait_For_Completion : in CORBA.Boolean);
+
+   procedure Discard_Requests
+     (Self                : in out Poa_Manager_Type;
+      Wait_For_Completion : in CORBA.Boolean);
+
    procedure Deactivate
-     (Self : in out Poa_Manager_Type;
+     (Self                : in out Poa_Manager_Type;
       Etherealize_Objects : in CORBA.Boolean;
       Wait_For_Completion : in CORBA.Boolean);
 
-   procedure Register (Self : in out Poa_Manager_Type;
-                       A_Poa : POA_Object_Ptr);
-   procedure Unregister (Self : in out Poa_Manager_Type;
-                         A_Poa : POA_Object_Ptr);
-   procedure Inc_Usage_If_Active (Self : in out Poa_Manager_Type;
-                                  State : out Processing_State_Type);
-   procedure Dec_Usage (Self : in out Poa_Manager_Type);
-   procedure Inc_Usage (Self : in out Poa_Manager_Type);
-   function Is_Inactive (Self : in Poa_Manager_Type) return Boolean;
+   procedure Register
+     (Self  : in out Poa_Manager_Type;
+      A_Poa : in POA_Object_Ptr);
+
+   procedure Unregister
+     (Self  : in out Poa_Manager_Type;
+      A_Poa : in POA_Object_Ptr);
+
+   procedure Inc_Usage_If_Active
+     (Self  : in out Poa_Manager_Type;
+      State : out Processing_State_Type);
+
+   procedure Dec_Usage
+     (Self : in out Poa_Manager_Type);
+
+   procedure Inc_Usage
+     (Self : in out Poa_Manager_Type);
+
+   function Is_Inactive
+     (Self : in Poa_Manager_Type)
+     return Boolean;
 
    procedure State_Changed_Iterator
-     (El : Broca.POA.POA_Object_Ptr; Arg : Boolean);
+     (El  : in Broca.POA.POA_Object_Ptr;
+      Arg : in Boolean);
+
    procedure Etherealize_Iterator
-     (El : Broca.POA.POA_Object_Ptr; Arg : Boolean);
+     (El  : in Broca.POA.POA_Object_Ptr;
+      Arg : in Boolean);
 
    procedure State_Changed_Iterator
      (El : Broca.POA.POA_Object_Ptr; Arg : Boolean) is
@@ -435,10 +458,11 @@ package body Broca.Rootpoa is
      return Skeleton_Ptr;
 
    subtype Objectid_Type is
-     Broca.Sequences.Octet_Sequences.Element_Array (0 .. 3);
+     IDL_SEQUENCE_Octet.Element_Array (0 .. 3);
 
-   function Slot_Index_Type_To_Objectid_Type is new Ada.Unchecked_Conversion
-     (Source => Slot_Index_Type, Target => Objectid_Type);
+   function Slot_Index_Type_To_Objectid_Type is
+      new Ada.Unchecked_Conversion
+        (Slot_Index_Type, Objectid_Type);
 
    function Objectid_Type_To_Slot_Index_Type is new Ada.Unchecked_Conversion
      (Source => Objectid_Type, Target => Slot_Index_Type);
@@ -594,12 +618,6 @@ package body Broca.Rootpoa is
       return Slot;
    end Reserve_A_Slot;
 
-   procedure Marshall_Objectid (Buf : access Buffer_Type;
-                                Oid : ObjectId);
-
-   procedure Unmarshall_Objectid (Buf : access Buffer_Type;
-                                  Oid : out ObjectId);
-
    procedure Build_Key_For_Slot
      (Buffer : access Buffer_Type;
       Self : access Object; Slot : Slot_Index_Type);
@@ -608,24 +626,10 @@ package body Broca.Rootpoa is
      (Self : access Object;
       Key : access Buffer_Type;
       Slot : out Slot_Index_Type);
-   procedure Key_To_ObjectId (Key : access Buffer_Type;
-                              Oid : out ObjectId);
 
-   procedure Marshall_Objectid (Buf : access Buffer_Type;
-                                Oid : ObjectId)
-   is
-   begin
-      Broca.Sequences.Marshall (Buf, Broca.Sequences.Octet_Sequence (Oid));
-   end Marshall_Objectid;
-
-   procedure Unmarshall_Objectid (Buf : access Buffer_Type;
-                                  Oid : out ObjectId)
-   is
-      Seq_Oct : Broca.Sequences.Octet_Sequence;
-   begin
-      Seq_Oct := Broca.Sequences.Unmarshall (Buf);
-      Oid := ObjectId (Seq_Oct);
-   end Unmarshall_Objectid;
+   procedure Key_To_ObjectId
+     (Key : access Buffer_Type;
+      Oid : out ObjectId);
 
    --  Possible only if RETAIN policy.
    procedure Build_Key_For_Slot
@@ -644,7 +648,7 @@ package body Broca.Rootpoa is
                 (Self.Object_Map (Slot).Date));
 
       if Self.Lifespan_Policy = PERSISTENT then
-         Marshall_Objectid
+         PortableServer.Marshall
            (Buffer, Self.Object_Map (Slot).Skeleton.Object_Id);
       end if;
 
@@ -656,12 +660,13 @@ package body Broca.Rootpoa is
       Slot : out Slot_Index_Type)
    is
       use Broca.CDR;
-      Res : Slot_Index_Type;
+
+      Res  : Slot_Index_Type;
       Date : CORBA.Unsigned_Long;
-      Oid : ObjectId;
+      Oid  : ObjectId;
    begin
       if Self.Lifespan_Policy = PERSISTENT then
-         Unmarshall_Objectid (Key, Oid);
+         Oid  := Unmarshall (Key);
          Slot := Slot_By_Object_Id (Self, Oid);
          return;
       end if;
@@ -685,18 +690,15 @@ package body Broca.Rootpoa is
    --  Possible only if NON_RETAIN policy.
    procedure Build_Key_For_ObjectId
      (Buffer : access Buffer_Type;
-      Oid : ObjectId)
-   is
-      use Broca.CDR;
-
+      Oid : ObjectId) is
    begin
-      Marshall_Objectid (Buffer, Oid);
+      Marshall (Buffer, Oid);
    end Build_Key_For_ObjectId;
 
    procedure Key_To_ObjectId (Key : access Buffer_Type;
                               Oid : out ObjectId) is
    begin
-      Unmarshall_Objectid (Key, Oid);
+      Oid := Unmarshall (Key);
    end Key_To_ObjectId;
 
    --  if SELF has NON_RETAIN policy, SLOT is not used.
@@ -775,10 +777,13 @@ package body Broca.Rootpoa is
    end Activate_Object;
 
    procedure Activate_Object_With_Id
-     (Self : access Object; Oid : ObjectId; P_Servant : PortableServer.Servant)
+     (Self      : access Object;
+      Oid       : in ObjectId;
+      P_Servant : in PortableServer.Servant)
    is
       Slot : Slot_Index_Type;
       Obj : Broca.POA.Skeleton_Ptr;
+
    begin
       Slot := Slot_By_Object_Id (Self, Oid);
       if Slot = Bad_Slot_Index then

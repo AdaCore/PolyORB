@@ -143,8 +143,9 @@ package Broca.POA is
          POA : Broca.POA.POA_Object_Ptr;
 
          --  ObjectId.
-         Object_Id : PortableServer.ObjectId :=
-           PortableServer.ObjectId (Broca.Sequences.Null_Sequence);
+         Object_Id : PortableServer.ObjectId
+           := PortableServer.ObjectId
+             (PortableServer.IDL_SEQUENCE_Octet.Null_Sequence);
       end record;
 
    procedure Marshall

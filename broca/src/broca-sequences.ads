@@ -62,5 +62,4 @@ package Broca.Sequences is
    function Unmarshall (Buffer : access Buffer_Type)
      return Octet_Sequences.Sequence;
 
-
 end Broca.Sequences;
