@@ -156,6 +156,7 @@ package body OmniObject is
                  return Corba.Boolean is
    begin
       return (Repository_Id = Logical_Type_Id) ;
+      -- never called, never used
    end ;
 
 
@@ -409,6 +410,8 @@ package body OmniObject is
    procedure Omniobject_Destructor(Self : in Object_Ptr) is
    begin
       pragma Debug(Output(Omniobject,"Omniobject.Omniobject_Destructor : start")) ;
+      pragma Debug(Output(Omniobject,"Omniobject.Omniobject_Destructor : Self = null ? "
+                          & Boolean'Image(Self=null))) ;
       C_Omniobject_Destructor(Address_To_Object.To_Address(From_Object_Ptr(Self))) ;
       pragma Debug(Output(Omniobject,"Omniobject.Omniobject_Destructor : done")) ;
    end ;
@@ -652,6 +655,7 @@ package body OmniObject is
          Omniobject_Dispose(Self.Omniobj) ;
          Omniobject_Destructor(Self.Omniobj) ;
          Self.Omniobj := null ;
+         Self.Dispatch := null ;
       end if ;
    end ;
 
@@ -786,6 +790,7 @@ package body OmniObject is
                    return  Sys_Dep.C_Boolean is
       Rep : Corba.String ;
    begin
+      -- never called, never used
       Rep := Corba.To_Corba_String(Interfaces.C.Strings.Value(RepoId)) ;
       return Sys_Dep.Boolean_Ada_To_C(Is_A(Self.Implobj.all, Rep)) ;
    end ;

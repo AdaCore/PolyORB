@@ -72,6 +72,7 @@ public:
   // static constructor.
   // this is a workaround for gnat 3.11p where we cannot
   // write "new Object"
+  // it is only called to create local objects
   
   static void Destructor(Ada_OmniObject* o) ;
   // static destructor that will be called from the Ada code
@@ -92,9 +93,6 @@ public:
   // Initialisation of a proxy object via call to the
   // omniObject_C2Ada constructor on C_Object
   
-  //void Init (omniObject_C2Ada *omniobj);
-  //Initialisation by giving the underlying omniObject_C2Ada pointer
-  // who uses it ??
   
   static Ada_OmniObject* objectDuplicate(Ada_OmniObject* omniobj) ;
   // Creation of an Ada_OmniObject referencing the same

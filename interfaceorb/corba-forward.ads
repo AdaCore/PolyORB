@@ -44,9 +44,14 @@
 
 
 with Corba.Object ;
+with Adabroker_Debug ;
+pragma Elaborate(Adabroker_Debug) ;
 
 generic
 package Corba.Forward is
+
+
+   Forward : constant Boolean := Adabroker_Debug.Is_Active("corba.forward") ;
 
    type Ref is new Corba.Object.Ref with null record;
 

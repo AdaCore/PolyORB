@@ -61,7 +61,7 @@ package body Corba.Object is
 
    -- Is_Nil
    ---------
-   function Is_Nil(Self: in Ref'Class) return Boolean is
+   function Is_Nil(Self: in Ref) return Boolean is
    begin
       return  Self.Omniobj = null ;
    end ;
@@ -518,6 +518,15 @@ package body Corba.Object is
    --------------------------------------------------
    ---          controlling functions             ---
    --------------------------------------------------
+
+   -- Initialize
+   -------------
+   procedure Initialize(Self : in out Ref) is
+   begin
+      pragma Debug(Output(Debug_Fin,"Corba.Object.Initialize")) ;
+      Self.Omniobj := null ;
+      Self.Dynamic_Type := null ;
+   end ;
 
    -- Adjust
    ---------

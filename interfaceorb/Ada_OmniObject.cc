@@ -75,6 +75,7 @@ Ada_OmniObject::~Ada_OmniObject()
     // we must not delete C_Object because there might be other
     // refernces to this object. omniORB's objectRelease is
     // here to handle memory
+    Init_Ok = false ;
   } else {
     throw omniORB::fatalException(__FILE__,
 				  __LINE__,
@@ -98,16 +99,18 @@ ADABROKER_CATCH
 void
 Ada_OmniObject::Destructor(Ada_OmniObject* o) {
 ADABROKER_TRY
+
+#ifdef DEBUG
+  cerr << "Ada_OmniObject::Destructor : entering...." << endl ;
+#endif
+  
   if (o->Init_Ok) {
 
 #ifdef DEBUG
     cerr << "Ada_OmniObject::Destructor Init_Ok = true -> DESTROYING OBJECT !!" << endl ;
 #endif
-    try {
       delete o ;
-    } catch (...) {
-      cerr << "JE T'AI EUE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl ;
-    }
+
 #ifdef DEBUG
     cerr << "Ada_OmniObject::Destructor OBJECT DESTROYED !!!" << endl ;
 #endif
@@ -214,6 +217,7 @@ Ada_OmniObject::disposeObject() {
 ADABROKER_TRY
   if (Init_Ok) {
   omni::disposeObject(C_Object) ;
+  Init_Ok = false ;
   } else {
     throw omniORB::fatalException(__FILE__,
 				  __LINE__,

@@ -6,15 +6,12 @@
 # comment this line to remove debugging code in the executable
 ADA_DEBUG = -gnata
 
-# Ada compiler
-# as for now, it only works with gnat
-ADA_COMP = gnatgcc -gnatf $(ADA_DEBUG) 
 
 # Ada preprocessor
 ADA_PREP = gnatprep
 
 # Ada make
-GNATMAKE = gnatmake -gnatf -gnata
+GNATMAKE = gnatmake -gnatf $(ADA_DEBUG)
 
 # C++ compiler
 CPP_COMP = g++ -g

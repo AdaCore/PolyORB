@@ -71,8 +71,8 @@ package Corba.Object is
    Nil_Ref : aliased constant Ref ;
 
 
-   function Is_Nil(Self: in Ref'Class) return Corba.Boolean;
-   function Is_Null(Self: in Ref'Class) return Corba.Boolean renames Is_Nil;
+   function Is_Nil(Self: in Ref) return Corba.Boolean;
+   function Is_Null(Self: in Ref) return Corba.Boolean renames Is_Nil;
    -- returns nil if the ORB is sure that this is a nil object
    -- ie, it points nowhere
 
@@ -280,6 +280,9 @@ private
    --------------------------------------------------
    ---          controlling functions             ---
    --------------------------------------------------
+
+   procedure Initialize(Self : in out Ref) ;
+   -- sets Omniobj and Dynamic_Type to null ;
 
    procedure Adjust (Self: in out Ref);
    -- duplicate the underlying omniobject
