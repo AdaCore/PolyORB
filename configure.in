@@ -44,36 +44,6 @@ AC_ARG_WITH(optimization,
 [GNATDISTOPT="O0"])
 AC_SUBST(GNATDISTOPT)
 #
-# Launching facilities
-#
-AC_ARG_WITH(launching,
-[  --without-launching     Don't include launching facilities],
-[
-  AC_MSG_CHECKING([launching facilities])
-  case ${withval} in
-  yes)
-     LAUNCHINGSOURCES="\$(LAUNCHINGSOURCES)";
-     LAUNCHINGOBJECTS="\$(LAUNCHINGOBJECTS)";
-     LAUNCHING_INCLUDED="";
-     AC_MSG_RESULT([yes]);;
-  *)
-     LAUNCHINGSOURCES="";
-     LAUNCHINGOBJECTS="";
-     LAUNCHING_INCLUDED="--  ";
-     AC_MSG_RESULT([no]);;
-  esac;
-],
-[
-AC_MSG_CHECKING([launching facilities])
-LAUNCHINGSOURCES="\$(LAUNCHINGSOURCES)";
-LAUNCHINGOBJECTS="\$(LAUNCHINGOBJECTS)";
-LAUNCHING_INCLUDED="";
-AC_MSG_RESULT([yes])
-])
-AC_SUBST(LAUNCHINGSOURCES)
-AC_SUBST(LAUNCHINGOBJECTS)
-AC_SUBST(LAUNCHING_INCLUDED)
-#
 # Find GNAT sources
 #
 AC_GNAT_SOURCE
@@ -86,49 +56,48 @@ AM_ADA_PREREQ(980803, 3.11b-beta)
 #
 AC_MSG_CHECKING(which platform-specific variant to use)
 AC_ARG_WITH(platform,
- [  --with-platform=letter  Select another platform's specific files (debug)],
- [PLATFORM_SPECIFIC="${withval}"],
-[case "${target}" in
-  sparc-sun-solaris2*) PLATFORM_SPECIFIC=s;;
-  sparc-sun-sunos4*)   PLATFORM_SPECIFIC=u;;
-  i?86-*-solaris2*)    PLATFORM_SPECIFIC=s;;  
-  *-linux*)            PLATFORM_SPECIFIC=l;;
-  *-freebsd*)          PLATFORM_SPECIFIC=f;;
-  *-opennt*)           PLATFORM_SPECIFIC=p;;
-  alpha*-*-osf*)       PLATFORM_SPECIFIC=a;;
-  i?86-*-cygwin32*)    PLATFORM_SPECIFIC=w;;
-  i?86-*-mingw32*)     PLATFORM_SPECIFIC=w;;
-  mips*-sgi-irix*)     PLATFORM_SPECIFIC=g;;
-  mips*-sni-sysv4*)    PLATFORM_SPECIFIC=x;;
-  hppa*-hp-hpux*)      PLATFORM_SPECIFIC=h;;
-  powerpc-*-aix4*)     PLATFORM_SPECIFIC=b;;
-  *-*-rtems*)          PLATFORM_SPECIFIC=r;;
-  *)                   ]AC_MSG_ERROR([Unsupported platform "${target}"])[;;
-esac])
+[  --with-platform=letter  Select another platform's specific files (debug)],
+[
+  PLATFORM_SPECIFIC="${withval}"
+],
+[
+  case "${target}" in
+    i?86-*-cygwin32*)    PLATFORM_SPECIFIC=w;;
+    i?86-*-mingw32*)     PLATFORM_SPECIFIC=w;;
+    alpha*-*-osf*)     PLATFORM_SPECIFIC=a;;
+    powerpc-*-aix4*)   PLATFORM_SPECIFIC=b;;
+    mips*-sgi-irix*)   PLATFORM_SPECIFIC=g;;
+    hppa*-hp-hpux*)    PLATFORM_SPECIFIC=h;;
+    *-linux*)          PLATFORM_SPECIFIC=l;;
+    *-*-solaris2*)     PLATFORM_SPECIFIC=s;;
+    sparc-sun-sunos4*) PLATFORM_SPECIFIC=u;;
+    *)                 ;;
+  esac
+])
 AC_SUBST(PLATFORM_SPECIFIC)
-[case "${PLATFORM_SPECIFIC}" in
-   s) PSNAME="Solaris";;
-   u) PSNAME="SunOS";;
-   a) PSNAME="OSF";;
-   l) PSNAME="Linux";;
-   f) PSNAME="FreeBSD";;
-   p) PSNAME="Open NT";;
-   w) PSNAME="Windows NT";;
-   g) PSNAME="SGI";;
-   x) PSNAME="SNI";;
-   h) PSNAME="HP";;
-   b) PSNAME="AIX";;
-   e) PSNAME="Empty";;
-   r) PSNAME="RTEMS";;
-   *) PSNAME="Unknown (${PLATFORM_SPECIFIC})";;
-esac]
+[
+  case "${PLATFORM_SPECIFIC}" in
+    s) PSNAME="Solaris";;
+    u) PSNAME="SunOS";;
+    a) PSNAME="OSF";;
+    l) PSNAME="Linux";;
+    w) PSNAME="Windows NT";;
+    g) PSNAME="SGI";;
+    h) PSNAME="HP";;
+    b) PSNAME="AIX";;
+    e) PSNAME="Empty";;
+    *) PSNAME="Unknown target (${target})";;
+  esac
+]
 AC_SUBST(PSNAME)
 AC_MSG_RESULT($PSNAME)
 AC_MSG_CHECKING(preserve the original file properties with)
-[case "${PLATFORM_SPECIFIC}" in
-   w) CP_PRESERVE="-lf";;
-   *) CP_PRESERVE="-p";;
-esac]
+[
+  case "${PLATFORM_SPECIFIC}" in
+    w) CP_PRESERVE="-lf";;
+    *) CP_PRESERVE="-p";;
+  esac
+]
 AC_SUBST(CP_PRESERVE)
 AC_MSG_RESULT($CP_PRESERVE)
 #
@@ -146,25 +115,33 @@ AC_SUBST(SUPPORTS_LOCAL_LAUNCH)
 #
 AC_MSG_CHECKING(which remote shell command to use)
 AC_ARG_WITH(rshcmd,
- [  --with-rshcmd=command   Set alternate remote shell command],
- [RSH_CMD="${withval}"],
- [case "${target}" in
-   hppa*-hp-hpux*)      RSH_CMD="remsh";;
-   *)                   RSH_CMD="rsh -n";;
-  esac])
+[  --with-rshcmd=command   Set alternate remote shell command],
+[
+  RSH_CMD="${withval}"
+],
+[
+  case "${PLATFORM_SPECIFIC}" in
+    h) RSH_CMD="remsh";;
+    h) RSH_CMD="rsh";;
+    *) RSH_CMD="rsh -n";;
+  esac
+])
 AC_SUBST(RSH_CMD)
-AC_MSG_RESULT($RSH_CMD)
+AC_MSG_RESULT(${RSH_CMD})
 #
 # Remote shell flags
 #
 AC_MSG_CHECKING(which remote shell options to use)
 AC_ARG_WITH(rshopt,
- [  --with-rshopt=command   Set remote shell options],
- [RSH_OPT="${withval}"],
- [case "${target}" in
-   hppa*-hp-hpux*)      RSH_OPT="-n";;
-   *)                   RSH_OPT="";;
-  esac])
+[  --with-rshopt=command   Set remote shell options],
+[RSH_OPT="${withval}"],
+[
+  case "${PLATFORM_SPECIFIC}" in
+    h) RSH_OPT="-n";;
+    b) RSH_OPT="-n";;
+    *) RSH_OPT="";;
+  esac
+])
 AC_SUBST(RSH_OPT)
 AC_MSG_RESULT($RSH_OPT)
 #
@@ -179,107 +156,47 @@ AC_ARG_WITH(protocols,
   PROTOCOLSOBJECTS="";
   DEFPROTOCOLNAME="";
   DEFPROTOCOLDATA="";
-  TCP_INCLUDED="--  ";
   for P in ${withval}; do
-     if test -z "${DEFPROTOCOLNAME}"; then
-       DEFPROTOCOLNAME=${P};
-     fi
-     case ${P} in
-     TCP|tcp) 
-        LIST="${LIST} tcp";
-        PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(TCPSOURCES)";
-        PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(TCPOBJECTS)";
-        TCP_INCLUDED="";;
-     none)
-        LIST="none";
-        ;;
-      *) 
-        AC_MSG_ERROR([unknown protocol ${P}])
-        ;;
-      esac;
+    if test -z "${DEFPROTOCOLNAME}"; then
+      DEFPROTOCOLNAME=${P};
+    fi
+    case ${P} in
+    TCP|tcp) 
+      LIST="${LIST} tcp";
+      PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(TCPSOURCES)";
+      PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(TCPOBJECTS)";;
+    none)
+      LIST="none";
+      ;;
+    *) 
+      AC_MSG_ERROR([unknown protocol ${P}])
+      ;;
+    esac;
   done
   AC_MSG_RESULT([${LIST}])
 ],
 [
-AC_MSG_CHECKING([default protocols])
-PROTOCOLSSOURCES="\$(TCPSOURCES)";
-PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
-TCP_INCLUDED=""
-DEFPROTOCOLNAME="tcp";
-DEFPROTOCOLDATA="";
-AC_MSG_RESULT([tcp])
+  AC_MSG_CHECKING([default protocols])
+  PROTOCOLSSOURCES="\$(TCPSOURCES)";
+  PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
+  DEFPROTOCOLNAME="tcp";
+  DEFPROTOCOLDATA="";
+  AC_MSG_RESULT([tcp])
 ])
-if test -z "$TCP_INCLUDED"; then
-  if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.ads; then
-    S_GTPLSP_ADS="5${PLATFORM_SPECIFIC}gtplsp.ads";
-  else
-    S_GTPLSP_ADS="5egtplsp.ads"
-  fi
-  if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.adb; then
-    S_GTPLSP_ADB="5${PLATFORM_SPECIFIC}gtplsp.adb"
-    # It is important that the body be first
-    TCP_PLATFORM_SOURCES="s-gtplsp.adb s-gtplsp.ads"
-  else
-    S_GTPLSP_ADB=""
-    TCP_PLATFORM_SOURCES="s-gtplsp.ads"
-  fi;
-  if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}garthi.ads; then
-    S_GARTHI_ADS="5${PLATFORM_SPECIFIC}garthi.ads";
-  else
-    S_GARTHI_ADS=""
-  fi
-  if test -f $srcdir/Garlic/5${PLATFORM_SPECIFIC}garthi.adb; then
-    S_GARTHI_ADB="5${PLATFORM_SPECIFIC}garthi.adb";
-  else
-    S_GARTHI_ADB=""
-  fi
-  AC_SUBST(S_GTPLSP_ADS)
-  AC_SUBST(S_GTPLSP_ADB)
-  AC_SUBST(S_GARTHI_ADS)
-  AC_SUBST(S_GARTHI_ADB)
-  AC_SUBST(TCP_PLATFORM_SOURCES)
-  AC_ARG_WITH(thread-blocking-io,
-  [  --with-thread-blocking-io
-                          Pretend that system has thread blocking I/Os],
-  [
-   if test "$withval" = "yes"; then
-     ISTHRBIO="yes"
-   elif test "$withval" = "no"; then
-     ISTHRBIO="no"
-   else
-     AC_MSG_ERROR([unknown value ${withval}])
-   fi
-  ],
-  [
-    if test "${PLATFORM_SPECIFIC}" = "w"; then
-      ISTHRBIO="yes"
-    else
-      ISTHRBIO="test"
-    fi
-  ])
- if test "$ISTHRBIO" = "yes"; then
-   :
- else
-   PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
-   PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
- fi
-fi
 AC_SUBST(PROTOCOLSSOURCES)
 AC_SUBST(PROTOCOLSOBJECTS)
-AC_SUBST(TCP_INCLUDED)
-AC_SUBST(ISTHRBIO)
 #
 # Default storage location
 #
 AC_ARG_WITH(data-location,
 [  --with-data-location=x  Default data location (x=<name>://<data>)],
 [
-DEFSTORAGENAME=`echo ${withval} | ${SED} 's,^\(.*\)://.*$,\1,'`
-DEFSTORAGEDATA=`echo ${withval} | ${SED} 's,^.*://\(.*\)$,\1,'`
+  DEFSTORAGENAME=`echo ${withval} | ${SED} 's,^\(.*\)://.*$,\1,'`
+  DEFSTORAGEDATA=`echo ${withval} | ${SED} 's,^.*://\(.*\)$,\1,'`
 ],
 [
-DEFSTORAGENAME="dfs"
-DEFSTORAGEDATA=""
+  DEFSTORAGENAME="dfs"
+  DEFSTORAGEDATA=""
 ])
 AC_MSG_CHECKING([for default data location])
 AC_MSG_RESULT([${DEFSTORAGENAME}://${DEFSTORAGEDATA}])
@@ -291,15 +208,11 @@ AC_SUBST(DEFSTORAGEDATA)
 AC_ARG_WITH(boot-location,
 [  --with-boot-location=x  Default boot location (x=<name>://<data>)],
 [
-DEFPROTOCOLNAME=`echo ${withval} | ${SED} 's,^\(.*\)://.*$,\1,'`
-DEFPROTOCOLDATA=`echo ${withval} | ${SED} 's,^.*://\(.*\)$,\1,'`
+  DEFPROTOCOLNAME=`echo ${withval} | ${SED} 's,^\(.*\)://.*$,\1,'`
+  DEFPROTOCOLDATA=`echo ${withval} | ${SED} 's,^.*://\(.*\)$,\1,'`
 ],
 [
-if test -z "${TCP_INCLUDED}"; then
   DEFPROTOCOLDATA=`echo 000$$ | ${SED} 's,^.*\(...\)$,localhost:5\1,'`
-else
-  BOOT_SERVER=""
-fi
 ])
 AC_MSG_CHECKING([for default boot location])
 AC_MSG_RESULT([${DEFPROTOCOLNAME}://${DEFPROTOCOLDATA}])
@@ -396,7 +309,6 @@ AC_OUTPUT([Makefile
            Dist/Makefile
            Garlic/Makefile
            Garlic/s-gaplsp.ads
-           Garlic/s-garser.adb
            Examples/check-config
            Examples/Makefile
            Examples/Bank/Makefile
