@@ -1,3 +1,11 @@
+2002-10-16  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* 5egarrem.adb: Use GNAT.Strings instead of System.Garlic.Utils.
+
+	* Makefile.am, Makefile.in: Fix DISTCLEANFILES variable that was
+	not including s-garrem.adb that was the reason why the
+	installation process didn't fail for GLADE developpers.
+
 2002-10-15  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* s-gastds.adb, s-gastds.ads: Fix the previous check-in in which
