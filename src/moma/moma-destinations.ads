@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -89,17 +89,11 @@ package MOMA.Destinations is
    TC_MOMA_Destination : PolyORB.Any.TypeCode.Object
          := PolyORB.Any.TypeCode.TC_Struct;
 
-   function "=" (Dest1 : Destination; Dest2 : Destination) return Boolean;
-   --  Compare two destinations.
-   --  XXX Comparison is made only on the name.
-
    function To_Any (Self : Destination)
       return PolyORB.Any.Any;
 
    function From_Any (Self : PolyORB.Any.Any)
       return Destination;
-
-   --  XXX check the conformance and pertinence of the above spec.
 
    procedure Delete;
    --  XXX really useful in this context ?

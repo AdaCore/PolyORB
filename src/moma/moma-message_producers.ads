@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -50,7 +50,6 @@ with MOMA.Types;
 with PolyORB.Annotations;
 with PolyORB.Call_Back;
 with PolyORB.References;
-with PolyORB.Requests;
 
 package MOMA.Message_Producers is
 
@@ -94,12 +93,6 @@ package MOMA.Message_Producers is
                    TTL            : Time);
    --  Same as above, overriding default producer's values.
    --  XXX not implemented.
-
-   procedure Response_Handler
-     (Req : PolyORB.Requests.Request;
-      CBH : access PolyORB.Call_Back.Call_Back_Handler);
-   --  Call back handler attached to a MOM producer interacting with
-   --  an ORB node.
 
    --  Accessors to Message_Producer internal data.
 

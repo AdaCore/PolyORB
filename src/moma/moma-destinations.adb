@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -47,16 +47,6 @@ package body MOMA.Destinations is
    use PolyORB.Any.ObjRef;
    use PolyORB.Types;
 
-   ---------
-   -- "=" --
-   ---------
-
-   function "=" (Dest1 : Destination; Dest2 : Destination) return Boolean
-   is
-   begin
-      return Get_Name (Dest1) = Get_Name (Dest2);
-   end "=";
-
    ------------------------
    -- Create_Destination --
    ------------------------
@@ -65,25 +55,23 @@ package body MOMA.Destinations is
      (Name    : MOMA.Types.String;
       Ref     : PolyORB.References.Ref;
       Kind    : MOMA.Types.Destination_Type := MOMA.Types.Unknown)
-      return Destination
+     return Destination
    is
       Dest : MOMA.Destinations.Destination;
    begin
       Set_Name (Dest, Name);
       Set_Ref  (Dest, Ref);
       Set_Kind (Dest, Kind);
+
       return Dest;
    end Create_Destination;
 
    function Create_Destination
-      return Destination
-   is
-      Dest : MOMA.Destinations.Destination;
+     return Destination is
    begin
-      Set_Name (Dest, To_MOMA_String ("null"));
-      Set_Ref  (Dest, PolyORB.References.Nil_Ref);
-      Set_Kind (Dest, MOMA.Types.Unknown);
-      return Dest;
+      return Create_Destination (To_MOMA_String ("null"),
+                                 PolyORB.References.Nil_Ref,
+                                 MOMA.Types.Unknown);
    end Create_Destination;
 
    ----------------------
@@ -113,7 +101,7 @@ package body MOMA.Destinations is
    --------------
 
    function From_Any (Self : PolyORB.Any.Any)
-                      return MOMA.Destinations.Destination
+                     return MOMA.Destinations.Destination
    is
       Kind     : MOMA.Types.Destination_Type := MOMA.Types.Unknown;
       Name     : MOMA.Types.String;
@@ -130,9 +118,9 @@ package body MOMA.Destinations is
                                 PolyORB.Types.Unsigned_Long (1)));
 
       Kind := MOMA.Types.From_Any
-         (Get_Aggregate_Element (Self,
-                                 MOMA.Types.TC_Destination_Type,
-                                 PolyORB.Types.Unsigned_Long (2)));
+        (Get_Aggregate_Element (Self,
+                                MOMA.Types.TC_Destination_Type,
+                                PolyORB.Types.Unsigned_Long (2)));
 
       return Create_Destination (Name, Ref, Kind);
    end From_Any;
@@ -142,7 +130,7 @@ package body MOMA.Destinations is
    --------------
 
    function Get_Kind (Self : Destination)
-                      return MOMA.Types.Destination_Type is
+                     return MOMA.Types.Destination_Type is
    begin
       return Self.Kind;
    end Get_Kind;
@@ -152,7 +140,7 @@ package body MOMA.Destinations is
    --------------
 
    function Get_Name (Self : Destination)
-                      return MOMA.Types.String is
+                     return MOMA.Types.String is
    begin
       return Self.Name;
    end Get_Name;
@@ -162,7 +150,7 @@ package body MOMA.Destinations is
    -------------
 
    function Get_Ref (Self : Destination)
-            return PolyORB.References.Ref is
+                    return PolyORB.References.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -172,12 +160,12 @@ package body MOMA.Destinations is
    -----------
 
    function Image (Self : Destination)
-                   return String is
+                  return String is
    begin
       return "<name: " & MOMA.Types.To_Standard_String (Self.Name)
-             & ",kind: " & MOMA.Types.Destination_Type'Image (Self.Kind)
-             & ",ref: " & PolyORB.References.Image (Self.Ref)
-             & ">";
+        & ",kind: " & MOMA.Types.Destination_Type'Image (Self.Kind)
+        & ",ref: " & PolyORB.References.Image (Self.Ref)
+        & ">";
    end Image;
 
    --------------
@@ -205,8 +193,7 @@ package body MOMA.Destinations is
    --------------
 
    procedure Set_Kind (Self  : in out Destination;
-                       Kind  : MOMA.Types.Destination_Type)
-   is
+                       Kind  : MOMA.Types.Destination_Type) is
    begin
       Self.Kind := Kind;
    end Set_Kind;
@@ -216,7 +203,7 @@ package body MOMA.Destinations is
    ------------
 
    function To_Any (Self : Destination)
-                    return PolyORB.Any.Any
+                   return PolyORB.Any.Any
    is
       Result : Any := Get_Empty_Any_Aggregate (TC_MOMA_Destination);
    begin

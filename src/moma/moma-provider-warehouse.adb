@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -100,9 +100,14 @@ package body MOMA.Provider.Warehouse is
 
       if W.T_Persistence = None then
          Lock_R (W.T_Lock);
-         Result := Lookup (W.T, K);
-         Unlock_R (W.T_Lock);
-
+         begin
+            Result := Lookup (W.T, K);
+            Unlock_R (W.T_Lock);
+         exception
+            when No_Key =>
+               Unlock_R (W.T_Lock);
+               raise Key_Not_Found;
+         end;
       else
          Ada.Streams.Stream_IO.Open (Stream_File, In_File, "message_" & K);
          Allocate_And_Insert_Cooked_Data (Buffer, 1024, Data);
@@ -124,8 +129,6 @@ package body MOMA.Provider.Warehouse is
       end if;
 
       return Result;
-   exception
-         when No_Key => raise Key_Not_Found;
    end Lookup;
 
    function Lookup
@@ -198,8 +201,6 @@ package body MOMA.Provider.Warehouse is
          Ada.Streams.Stream_IO.Delete (Stream_File);
       end if;
 
-   exception
-      when No_Key => raise Key_Not_Found;
    end Unregister;
 
    ---------------------

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,17 +57,26 @@ package body MOMA.Provider.Message_Producer is
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   --  Actual function implemented by the servant.
+
    procedure Publish (Self    : in PolyORB.References.Ref;
                       Message : in PolyORB.Any.Any);
-   --  Actual function implemented by the servant.
+   --  Publish a message.
+
+   --  Accessors to servant interface.
+
+   function Get_Parameter_Profile (Method : String)
+     return PolyORB.Any.NVList.Ref;
+   --  Parameters part of the interface description.
+
+   function Get_Result_Profile
+     (Method : String)
+     return PolyORB.Any.Any;
+   --  Result part of the interface description.
 
    ---------------------------
    -- Get_Parameter_Profile --
    ---------------------------
-
-   function Get_Parameter_Profile
-     (Method : String)
-     return PolyORB.Any.NVList.Ref;
 
    function Get_Parameter_Profile
      (Method : String)
@@ -109,10 +118,6 @@ package body MOMA.Provider.Message_Producer is
    ------------------------
    -- Get_Result_Profile --
    ------------------------
-
-   function Get_Result_Profile
-     (Method : String)
-     return PolyORB.Any.Any;
 
    function Get_Result_Profile
      (Method : String)

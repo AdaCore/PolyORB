@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,6 +43,7 @@ with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
 with PolyORB.References.IOR;
+with PolyORB.Requests;
 with PolyORB.Types;
 
 package body MOMA.Message_Producers is
@@ -61,6 +62,12 @@ package body MOMA.Message_Producers is
      new PolyORB.Log.Facility_Log ("moma.message_producers");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   procedure Response_Handler
+     (Req : PolyORB.Requests.Request;
+      CBH : access PolyORB.Call_Back.Call_Back_Handler);
+   --  Call back handler attached to a MOM producer interacting with
+   --  an ORB node.
 
    procedure Send_To_MOM (Servant : PolyORB.References.Ref;
                           Message : MOMA.Messages.Message'Class);
@@ -88,6 +95,12 @@ package body MOMA.Message_Producers is
                              Dest     : MOMA.Destinations.Destination)
                              return Message_Producer
    is
+      pragma Warnings (Off);
+      pragma Unreferenced (Session);
+      pragma Warnings (On);
+      --  XXX Session is to be used to 'place' the receiver
+      --  using session position in the POA
+
       use PolyORB.References;
       use MOMA.Types;
 
@@ -99,12 +112,6 @@ package body MOMA.Message_Producers is
       Type_Id_S : MOMA.Types.String
         := To_MOMA_String (Type_Id_Of (MOMA.Destinations.Get_Ref (Dest)));
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Session);
-      pragma Warnings (On);
-      --  XXX Session is to be used to 'place' the receiver
-      --  using session position in the POA
-
       Set_Remote_Ref (MOMA_Obj.all, MOMA.Destinations.Get_Ref (Dest));
       Initiate_Servant (MOMA_Obj,
                         MOMA.Provider.Message_Producer.If_Desc,
@@ -124,7 +131,6 @@ package body MOMA.Message_Producers is
                              Mesg_Pool  : MOMA.Types.String)
                              return Message_Producer
    is
-
       use MOMA.Types;
 
       use PolyORB.Annotations;

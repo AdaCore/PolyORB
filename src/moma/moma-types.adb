@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -68,7 +68,7 @@ package body MOMA.Types is
    end From_Any;
 
    function From_Any (Item : in PolyORB.Any.Any)
-                      return IDL_SEQUENCE_Map_Element.Sequence
+                     return IDL_SEQUENCE_Map_Element.Sequence
    is
       use IDL_SEQUENCE_Map_Element;
       Nb_Any : Any := Get_Aggregate_Element
@@ -126,7 +126,7 @@ package body MOMA.Types is
    end To_Any;
 
    function To_Any (Item : in IDL_SEQUENCE_Map_Element.Sequence)
-                    return PolyORB.Any.Any
+                   return PolyORB.Any.Any
    is
       use IDL_SEQUENCE_Map_Element;
       Array_Item : Element_Array := To_Element_Array (Item);
@@ -160,30 +160,17 @@ package body MOMA.Types is
       Result : Any := Get_Empty_Any_Aggregate (TC_Destination_Type);
    begin
       Add_Aggregate_Element
-         (Result,
-          To_Any (Unsigned_Long (Destination_Type'Pos (Item))));
+        (Result,
+         To_Any (Unsigned_Long (Destination_Type'Pos (Item))));
       return Result;
    end To_Any;
-
-   ---------
-   -- "=" --
-   ---------
-
-   --  function "=" (L, R : Map_Element) return Boolean is
-   --  begin
-   --     pragma Debug (O ("L: " & Image (L.Value)));
-   --     pragma Debug (O ("R: " & Image (R.Value)));
-
-   --     return L.Name = R.Name and
-   --       L.Value = R.Value;
-   --  end "=";
 
    -----------------
    -- Get_Boolean --
    -----------------
 
    function Get_Boolean (Self : Map_Element)
-                         return MOMA.Types.Boolean is
+                        return MOMA.Types.Boolean is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Boolean;
@@ -203,7 +190,7 @@ package body MOMA.Types is
    --------------
 
    function Get_Byte (Self : Map_Element)
-                      return MOMA.Types.Byte is
+                     return MOMA.Types.Byte is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Byte;
@@ -223,7 +210,7 @@ package body MOMA.Types is
    --------------
 
    function Get_Char (Self : Map_Element)
-                      return MOMA.Types.Char is
+                     return MOMA.Types.Char is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Char;
@@ -243,7 +230,7 @@ package body MOMA.Types is
    ----------------
 
    function Get_Double (Self : Map_Element)
-                        return MOMA.Types.Double is
+                       return MOMA.Types.Double is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Double;
@@ -263,7 +250,7 @@ package body MOMA.Types is
    ---------------
 
    function Get_Float (Self : Map_Element)
-                       return MOMA.Types.Float is
+                      return MOMA.Types.Float is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Float;
@@ -283,7 +270,7 @@ package body MOMA.Types is
    --------------
 
    function Get_Long (Self : Map_Element)
-                      return MOMA.Types.Long is
+                     return MOMA.Types.Long is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Long;
@@ -303,7 +290,7 @@ package body MOMA.Types is
    --------------
 
    function Get_Name (Self : Map_Element)
-                      return MOMA.Types.String is
+                     return MOMA.Types.String is
    begin
       return Self.Name;
    end Get_Name;
@@ -323,7 +310,7 @@ package body MOMA.Types is
    ---------------
 
    function Get_Short (Self : Map_Element)
-                       return MOMA.Types.Short is
+                      return MOMA.Types.Short is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Short;
@@ -343,7 +330,7 @@ package body MOMA.Types is
    ----------------
 
    function Get_String (Self : Map_Element)
-                      return MOMA.Types.String is
+                       return MOMA.Types.String is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_String;
@@ -353,7 +340,7 @@ package body MOMA.Types is
    ----------------
 
    procedure Set_String (Self : in out Map_Element;
-                       Value : MOMA.Types.String) is
+                         Value : MOMA.Types.String) is
    begin
       Self.Value := PolyORB.Any.To_Any (PolyORB.Types.String (Value));
    end Set_String;
@@ -363,7 +350,7 @@ package body MOMA.Types is
    -----------------------
 
    function Get_Unsigned_Long (Self : Map_Element)
-                               return MOMA.Types.Unsigned_Long is
+                              return MOMA.Types.Unsigned_Long is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Unsigned_Long;
@@ -383,7 +370,7 @@ package body MOMA.Types is
    ------------------------
 
    function Get_Unsigned_Short (Self : Map_Element)
-                                return MOMA.Types.Unsigned_Short is
+                               return MOMA.Types.Unsigned_Short is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Unsigned_Short;
@@ -403,7 +390,7 @@ package body MOMA.Types is
    --------------
 
    function Get_Name (Pool : MOMA.Types.Message_Pool)
-                      return MOMA.Types.String is
+                     return MOMA.Types.String is
    begin
       return Pool.Name;
    end Get_Name;
@@ -423,7 +410,7 @@ package body MOMA.Types is
    --------------
 
    function Get_Type (Pool : MOMA.Types.Message_Pool)
-                      return Pool_Type is
+                     return Pool_Type is
    begin
       return Pool.Pool;
    end Get_Type;
@@ -495,7 +482,7 @@ package body MOMA.Types is
 
       TypeCode.Add_Parameter (TC_Map, To_Any (To_PolyORB_String ("map")));
       TypeCode.Add_Parameter (TC_Map, To_Any (To_PolyORB_String
-                                                     ("MOMA:types/map:1.0")));
+                                              ("MOMA:types/map:1.0")));
       TypeCode.Add_Parameter (TC_Map, To_Any (TC_IDL_SEQUENCE_Map_Element));
 
       --  Destination_Type.
@@ -503,7 +490,7 @@ package body MOMA.Types is
       declare
          Name           : String := To_PolyORB_String ("Destination_Type");
          Id             : String := To_PolyORB_String
-                                       ("MOMA:types/destination_type:1.0");
+           ("MOMA:types/destination_type:1.0");
          Unknown_Name   : String := To_PolyORB_String ("Unknown");
          Pool_Name      : String := To_PolyORB_String ("Pool");
          Topic_Name     : String := To_PolyORB_String ("Topic");

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 M O M A . M E S S A G E S . M T E X T S                  --
+--                  M O M A . M E S S A G E S . M A N Y S                   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,11 +33,8 @@
 --  $Id$
 
 with MOMA.Types;
-with PolyORB.Any;
 
 package body MOMA.Messages.MAnys is
-
-   use MOMA.Types;
 
    --------------
    -- Get_Any --
@@ -67,8 +64,9 @@ package body MOMA.Messages.MAnys is
             return MAny
    is
       Result : MAny;
+
    begin
-      Set_Type (Result, Any_M);
+      Set_Type (Result, MOMA.Types.Any_M);
       Set_Default_Message_Header (Result);
 
       return Result;
@@ -78,9 +76,8 @@ package body MOMA.Messages.MAnys is
    -- Image --
    -----------
 
-   function Image (Self : MAny) return String
-   is
-      use PolyORB.Any;
+   function Image (Self : MAny)
+                  return String is
    begin
       return Image (Get_Any (Self));
    end Image;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -56,6 +56,66 @@ package body MOMA.Provider.Routers is
    package L is new PolyORB.Log.Facility_Log ("moma.provider.routers");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   --  Actual functions implemented by the servant.
+
+   procedure Add_Router (Self    : in out Router;
+                         Router  : MOMA.Destinations.Destination);
+   --  Add a Router to the list of known routers.
+
+   procedure Publish (Self             : access Router;
+                      Message          : PolyORB.Any.Any;
+                      From_Router_Id   : MOMA.Types.String :=
+                                            To_MOMA_String (""));
+   --  Publish a Message on the topic given by the Message destination.
+   --  From_Router_Id is the Id of the router the message is coming from, if
+   --  it's received from a router and not from a client.
+
+   procedure Register (Self         : access Router;
+                       Router_Ref   : PolyORB.References.Ref);
+   --  Register a router with another one : this means they will exchange
+   --  messages one with each other.
+
+   procedure Route (Self      : access Router;
+                    Message   : PolyORB.Any.Any;
+                    To_Router : MOMA.Destinations.Destination);
+   --  Route a Message to another router.
+
+   procedure Store (Pool      : Ref;
+                    Message   : PolyORB.Any.Any);
+   --  Store a Message in a Pool.
+   --  XXX Code from Moma.Provider.Message_Producer is duplicated.
+
+   procedure Subscribe (Self     : access Router;
+                        Topic    : MOMA.Destinations.Destination;
+                        Pool     : MOMA.Destinations.Destination);
+   --  Subscribe a Pool to a Topic.
+   --  Topic's kind must be set to "Topic".
+   --  Pool's kind must be set to "Pool".
+
+   procedure Unsubscribe (Self   : access Router;
+                          Topic  : MOMA.Destinations.Destination;
+                          Pool   : MOMA.Destinations.Destination);
+   --  Unsubscribe a Pool to a Topic (same parameters as Subscribe).
+   --  NB : the current implementation needs a client to send the
+   --  Unsubscription and Subscription requests for a same pool to the same
+   --  router.
+
+   --  Accessors to servant interface.
+
+   function Get_Parameter_Profile (Method : String)
+     return PolyORB.Any.NVList.Ref;
+   --  Parameters part of the interface description.
+
+   function Get_Result_Profile (Method : String)
+     return PolyORB.Any.Any;
+   --  Result part of the interface description.
+
+   --  Private accessors to some internal data.
+
+   function Get_Routers (Self : Router)
+      return MOMA.Provider.Topic_Datas.Destination_List.List;
+   --  Return a copy of the list Self.Routers.List.
 
    ----------------
    -- Add_Router --

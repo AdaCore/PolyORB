@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,9 +38,6 @@
 
 --  $Id$
 
-with MOMA.Types;
-
-with PolyORB.Any.NVList;
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
 with PolyORB.Obj_Adapters.Simple;
@@ -76,12 +73,5 @@ private
    type Object is new PolyORB.Minimal_Servant.Servant with record
       Remote_Ref : PolyORB.References.Ref;
    end record;
-
-   function Get_Parameter_Profile (Method : String)
-     return PolyORB.Any.NVList.Ref;
-
-   procedure Register_Handler (Self : access Object;
-                               Handler_Ref : PolyORB.References.Ref;
-                               Behavior : MOMA.Types.Call_Back_Behavior);
 
 end MOMA.Provider.Message_Consumer;

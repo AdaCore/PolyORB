@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,8 +39,7 @@ package body MOMA.Connection_Factories is
    ------------
 
    procedure Create (Self     : out Connection_Factory;
-                     Remote   : PolyORB.References.Ref)
-   is
+                     Remote   : PolyORB.References.Ref) is
    begin
       Set_Ref (Self, Remote);
    end Create;
@@ -50,8 +49,7 @@ package body MOMA.Connection_Factories is
    -------------
 
    function Get_Ref (Self    : Connection_Factory)
-                     return PolyORB.References.Ref
-   is
+                     return PolyORB.References.Ref is
    begin
       return Self.Remote;
    end Get_Ref;
@@ -61,8 +59,7 @@ package body MOMA.Connection_Factories is
    -------------
 
    procedure Set_Ref (Self    : in out Connection_Factory;
-                      Remote  : PolyORB.References.Ref)
-   is
+                      Remote  : PolyORB.References.Ref) is
    begin
       Self.Remote := Remote;
    end Set_Ref;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,7 +64,7 @@ package body MOMA.Message_Consumers is
 
    function Create_Consumer (Session : MOMA.Sessions.Session;
                              Dest    : MOMA.Destinations.Destination)
-      return Message_Consumer_Acc
+                            return Message_Consumer_Acc
    is
       MOMA_Obj : constant MOMA.Provider.Message_Consumer.Object_Acc
         := new MOMA.Provider.Message_Consumer.Object;
@@ -72,7 +72,7 @@ package body MOMA.Message_Consumers is
       MOMA_Ref : PolyORB.References.Ref;
 
       Consumer : constant MOMA.Message_Consumers.Message_Consumer_Acc :=
-         new MOMA.Message_Consumers.Message_Consumer;
+        new MOMA.Message_Consumers.Message_Consumer;
 
    begin
       pragma Warnings (Off);
@@ -98,7 +98,7 @@ package body MOMA.Message_Consumers is
    function Create_Consumer (Session          : MOMA.Sessions.Session;
                              Dest             : MOMA.Destinations.Destination;
                              Message_Selector : MOMA.Types.String)
-      return Message_Consumer_Acc
+                            return Message_Consumer_Acc
    is
    begin
       raise PolyORB.Not_Implemented;
@@ -124,7 +124,7 @@ package body MOMA.Message_Consumers is
    ---------------------
 
    function Get_Destination (Self : Message_Consumer)
-                             return MOMA.Destinations.Destination is
+                            return MOMA.Destinations.Destination is
    begin
       return Self.Destination;
    end Get_Destination;
@@ -133,7 +133,8 @@ package body MOMA.Message_Consumers is
    -- Get_Ref --
    -------------
 
-   function Get_Ref (Self : Message_Consumer) return PolyORB.References.Ref is
+   function Get_Ref (Self : Message_Consumer)
+                    return PolyORB.References.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -143,7 +144,7 @@ package body MOMA.Message_Consumers is
    -------------
 
    function Receive (Self : Message_Consumer)
-      return MOMA.Messages.Message'Class
+                    return MOMA.Messages.Message'Class
    is
       Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any
         (To_PolyORB_String (""));
@@ -180,7 +181,7 @@ package body MOMA.Message_Consumers is
    end Receive;
 
    function Receive (Timeout : Ada.Real_Time.Time)
-      return MOMA.Messages.Message
+                    return MOMA.Messages.Message
    is
    begin
       raise PolyORB.Not_Implemented;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  M O M A . M E S S A G E S . M M A P S                   --
+--              M O M A . M E S S A G E S . M E X E C U T E S               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,18 +33,15 @@
 --  $Id$
 
 with MOMA.Types;
-with PolyORB.Any;
 
 package body MOMA.Messages.MExecutes is
-
-   use MOMA.Types;
 
    -------------------
    -- Get_Parameter --
    -------------------
 
    function Get_Parameter (Self : MExecute)
-                     return MOMA.Types.Map is
+                          return MOMA.Types.Map is
    begin
       return MOMA.Types.From_Any (Get_Payload (Self));
    end Get_Parameter;
@@ -54,7 +51,7 @@ package body MOMA.Messages.MExecutes is
    -------------------
 
    procedure Set_Parameter (Self : in out MExecute;
-                      Value : MOMA.Types.Map) is
+                            Value : MOMA.Types.Map) is
    begin
       Set_Payload (Self, MOMA.Types.To_Any (Value));
    end Set_Parameter;
@@ -64,11 +61,12 @@ package body MOMA.Messages.MExecutes is
    ----------------------------
 
    function Create_Execute_Message
-            return MExecute
+     return MExecute
    is
       Result : MExecute;
+
    begin
-      Set_Type (Result, Execute_M);
+      Set_Type (Result, MOMA.Types.Execute_M);
       Set_Default_Message_Header (Result);
 
       return Result;
@@ -78,12 +76,10 @@ package body MOMA.Messages.MExecutes is
    -- Image --
    -----------
 
-   function Image (Self : MExecute) return String
-   is
-      use PolyORB.Any;
+   function Image (Self : MExecute)
+                  return String is
    begin
       return Image (Get_Payload (Self));
    end Image;
 
 end MOMA.Messages.MExecutes;
-

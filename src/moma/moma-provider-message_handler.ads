@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -45,8 +45,6 @@ with MOMA.Message_Handlers;
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
 with PolyORB.Obj_Adapters.Simple;
-with PolyORB.Any;
-with PolyORB.Any.NVList;
 
 package MOMA.Provider.Message_Handler is
 
@@ -75,22 +73,5 @@ private
    type Object is new PolyORB.Minimal_Servant.Servant with record
       MOMA_Message_Handler : MOMA.Message_Handlers.Message_Handler_Acc := null;
    end record;
-
-   function Get_Parameter_Profile (Method : String)
-     return PolyORB.Any.NVList.Ref;
-   --  Parameters part of the interface description.
-
-   function Get_Result_Profile (Method : String)
-     return PolyORB.Any.Any;
-   --  Result part of the interface description.
-
-   procedure Handle (Self    : access Object;
-                     Message : PolyORB.Any.Any);
-   --  Execute the Handler procedure.
-   --  Called when receiving a Handle request.
-
-   procedure Notify (Self : access Object);
-   --  Execute the Notifier procedure.
-   --  Called when receiving a Notify request.
 
 end MOMA.Provider.Message_Handler;

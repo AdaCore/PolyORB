@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -57,6 +57,8 @@ package MOMA.Provider.Topic_Datas is
    --                  pools subscribed to this topic.
    --  XXX Maybe not necessary to store a name...
 
+   Null_Topic : constant Topic;
+
    Key_Not_Found : exception;
 
    type Topic_Data is private;
@@ -85,6 +87,9 @@ private
       Name        : MOMA.Types.String;
       Subscribers : Destination_List.List;
    end record;
+
+   Null_Topic : constant Topic := (Name => MOMA.Types.To_MOMA_String (""),
+                                   Subscribers => Destination_List.Empty);
 
    package Perfect_Htable is
       new PolyORB.Utils.HTables.Perfect (Topic);

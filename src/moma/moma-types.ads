@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -76,7 +76,7 @@ package MOMA.Types is
    --  MOMA specific types.
    --
 
-   --  'Map' type, see JMS spec. for more details.
+   --  The 'Map' type, see JMS spec. for more details.
    --  As implemented, a 'Map' is an unbounded sequence of
    --  'Map_Elements'.
    --
@@ -202,8 +202,9 @@ package MOMA.Types is
 
    TC_Destination_Type : TypeCode.Object := TypeCode.TC_Enum;
 
-   --  Conversion Any <-> Destination_Type.
+   --  Marshalling functions for Destination_Type.
    function From_Any (Item : in PolyORB.Any.Any) return Destination_Type;
+
    function To_Any (Item : in Destination_Type) return PolyORB.Any.Any;
 
    type Pool_Type is (Queue,
@@ -253,7 +254,7 @@ package MOMA.Types is
    type Acknowledge_Type is new    Integer;
    type Property_Type    is new    Integer;
    type Priority         is new    Integer range 1 .. 10;
-   --  XXX to be completed
+   --  XXX to be corrected.
 
 private
    MOMA_Type_Id : constant MOMA.Types.String := PolyORB.Types.String

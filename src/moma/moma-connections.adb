@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,8 +54,10 @@ package body MOMA.Connections is
       return Connection
    is
       New_Connection : Connection;
+
    begin
       Set_Ref (New_Connection, MOMA.Connection_Factories.Get_Ref (Factory));
+
       return New_Connection;
    end Create_Connection;
 
@@ -137,6 +139,5 @@ package body MOMA.Connections is
    begin
       return 0;
    end Get_Meta_Data;
-
 
 end MOMA.Connections;

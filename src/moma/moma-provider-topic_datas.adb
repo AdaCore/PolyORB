@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -54,69 +54,77 @@ package body MOMA.Provider.Topic_Datas is
    -- Add_Subscriber --
    --------------------
 
-   procedure Add_Subscriber (Data      : Topic_Data;
-                             Topic_Id  : MOMA.Types.String;
-                             Pool      : MOMA.Destinations.Destination)
+   procedure Add_Subscriber
+     (Data      : Topic_Data;
+      Topic_Id  : MOMA.Types.String;
+      Pool      : MOMA.Destinations.Destination)
    is
       V : Topic;
       T : constant String := To_Standard_String (Topic_Id);
    begin
       pragma Debug (O ("Adding to topic " & T & " the Pool "
-                        & MOMA.Destinations.Image (Pool)));
+                       & MOMA.Destinations.Image (Pool)));
+
       Lock_W (Data.T_Lock);
-      V := Lookup (Data.T, T);
-      Destination_List.Append (V.Subscribers, Pool);
-      Unlock_W (Data.T_Lock);
-   exception
-      when No_Key =>
+      V := Lookup (Data.T, T, Null_Topic);
+
+      if V /= Null_Topic then
+         Destination_List.Append (V.Subscribers, Pool);
+      else
          Insert (Data.T, T, New_Topic (Destination_List."+" (Pool)));
-         Unlock_W (Data.T_Lock);
+      end if;
+
+      Unlock_W (Data.T_Lock);
    end Add_Subscriber;
 
    ---------------------------
    -- Ensure_Initialization --
    ---------------------------
 
-   procedure Ensure_Initialization (W : in out Topic_Data)
-   is
+   procedure Ensure_Initialization
+     (W : in out Topic_Data) is
    begin
       if W.T_Initialized then
          return;
       end if;
+
       Initialize (W.T);
       PolyORB.Tasking.Rw_Locks.Create (W.T_Lock);
       W.T_Initialized := True;
+
    end Ensure_Initialization;
 
    ---------------------
    -- Get_Subscribers --
    ---------------------
 
-   function Get_Subscribers (Data      : Topic_Data;
-                             Topic_Id  : MOMA.Types.String)
-      return Destination_List.List
+   function Get_Subscribers
+     (Data      : Topic_Data;
+      Topic_Id  : MOMA.Types.String)
+     return Destination_List.List
    is
       V           : Topic;
       Subscribers : Destination_List.List;
       K           : constant String := To_Standard_String (Topic_Id);
+
    begin
       Lock_R (Data.T_Lock);
-      V := Lookup (Data.T, K);
-      Subscribers := Destination_List.Duplicate (V.Subscribers);
+
+      V := Lookup (Data.T, K, Null_Topic);
+      if V /= Null_Topic then
+         Subscribers := Destination_List.Duplicate (V.Subscribers);
+      end if;
+
       Unlock_R (Data.T_Lock);
       return Subscribers;
-   exception
-      when No_Key =>
-         Unlock_R (Data.T_Lock);
-         return Subscribers;
    end Get_Subscribers;
 
    ---------------
    -- New_Topic --
    ---------------
 
-   function New_Topic (S : Destination_List.List) return Topic
-   is
+   function New_Topic (S : Destination_List.List)
+                      return Topic is
    begin
       return Topic'(To_MOMA_String ("Unknown"), S);
    end New_Topic;
@@ -125,26 +133,33 @@ package body MOMA.Provider.Topic_Datas is
    -- Remove_Subscriber --
    -----------------------
 
-   procedure Remove_Subscriber (Data      : Topic_Data;
-                                Topic_Id  : MOMA.Types.String;
-                                Pool      : MOMA.Destinations.Destination)
+   procedure Remove_Subscriber
+     (Data      : Topic_Data;
+      Topic_Id  : MOMA.Types.String;
+      Pool      : MOMA.Destinations.Destination)
    is
       use Destination_List;
+
       V     : Topic;
       T     : constant String := To_Standard_String (Topic_Id);
    begin
       pragma Debug (O ("Removing from topic " & T & " the Pool "
-                        & MOMA.Destinations.Image (Pool)));
+                       & MOMA.Destinations.Image (Pool)));
+
       Lock_W (Data.T_Lock);
-      V := Lookup (Data.T, T);
+      V := Lookup (Data.T, T, Null_Topic);
+
+      if V = Null_Topic then
+         raise Key_Not_Found;
+         --  XXX do we really need to raise an exception ?
+      end if;
+
       Destination_List.Remove (V.Subscribers, Pool);
       if V.Subscribers = Destination_List.Empty then
          Delete (Data.T, T);
       end if;
+
       Unlock_W (Data.T_Lock);
-   exception
-      when No_Key =>
-         raise Key_Not_Found;
    end Remove_Subscriber;
 
 end MOMA.Provider.Topic_Datas;

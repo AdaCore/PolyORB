@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -211,6 +211,7 @@ package body MOMA.Messages is
          end;
 
       end if;
+
       raise Program_Error;
       --  Should not come to this point.
 
@@ -221,7 +222,7 @@ package body MOMA.Messages is
    ------------------
 
    function Get_Property (Name : MOMA.Types.String)
-                          return MOMA.Types.Property_Type is
+                         return MOMA.Types.Property_Type is
    begin
       raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
@@ -234,7 +235,7 @@ package body MOMA.Messages is
    ------------------------
 
    function Get_Correlation_Id (Self : Message)
-                                return MOMA.Types.String is
+                               return MOMA.Types.String is
    begin
       return Self.Correlation_Id;
    end Get_Correlation_Id;
@@ -244,7 +245,7 @@ package body MOMA.Messages is
    --------------------
 
    function Get_Persistent (Self : Message)
-                            return MOMA.Types.Boolean is
+                           return MOMA.Types.Boolean is
    begin
       return Self.Is_Persistent;
    end Get_Persistent;
@@ -254,7 +255,7 @@ package body MOMA.Messages is
    ---------------------
 
    function Get_Destination (Self : Message)
-                             return MOMA.Destinations.Destination is
+                            return MOMA.Destinations.Destination is
    begin
       return Self.Destination;
    end Get_Destination;
@@ -264,7 +265,7 @@ package body MOMA.Messages is
    --------------------
 
    function Get_Expiration (Self : Message)
-                            return Ada.Real_Time.Time is
+                           return Ada.Real_Time.Time is
    begin
       return Self.Expiration;
    end Get_Expiration;
@@ -274,7 +275,7 @@ package body MOMA.Messages is
    --------------------
 
    function Get_Message_Id (Self : Message)
-                            return MOMA.Types.String is
+                           return MOMA.Types.String is
    begin
       return Self.Message_Id;
    end Get_Message_Id;
@@ -284,7 +285,7 @@ package body MOMA.Messages is
    -----------------
 
    function Get_Payload (Self : Message)
-                         return PolyORB.Any.Any is
+                        return PolyORB.Any.Any is
    begin
       return Self.Payload;
    end Get_Payload;
@@ -294,7 +295,7 @@ package body MOMA.Messages is
    -------------------
 
    function Get_Priority (Self : Message)
-                          return MOMA.Types.Priority is
+                         return MOMA.Types.Priority is
    begin
       return Self.Priority;
    end Get_Priority;
@@ -304,7 +305,7 @@ package body MOMA.Messages is
    ---------------------
 
    function Get_Redelivered (Self : Message)
-                             return MOMA.Types.Boolean is
+                            return MOMA.Types.Boolean is
    begin
       return Self.Is_Redelivered;
    end Get_Redelivered;
@@ -314,7 +315,7 @@ package body MOMA.Messages is
    ------------------
 
    function Get_Reply_To (Self : Message)
-                          return MOMA.Destinations.Destination is
+                         return MOMA.Destinations.Destination is
    begin
       return Self.Reply_To;
    end Get_Reply_To;
@@ -324,7 +325,7 @@ package body MOMA.Messages is
    -------------------
 
    function Get_Timestamp (Self : Message)
-                           return Ada.Real_Time.Time is
+                          return Ada.Real_Time.Time is
    begin
       return Self.Timestamp;
    end Get_Timestamp;
@@ -334,7 +335,7 @@ package body MOMA.Messages is
    --------------
 
    function Get_Type (Self : Message)
-                      return MOMA.Types.Message_Type is
+                     return MOMA.Types.Message_Type is
    begin
       return Self.Type_Of_Message;
    end Get_Type;
@@ -353,7 +354,7 @@ package body MOMA.Messages is
    ---------------------
 
    function Property_Exists (Name : MOMA.Types.String)
-                             return MOMA.Types.Boolean is
+                            return MOMA.Types.Boolean is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Name);
@@ -432,22 +433,22 @@ package body MOMA.Messages is
    -----------
 
    function Image (Self : Message)
-                   return String is
+                  return String is
    begin
       return "<Message_Id: "
-             & To_Standard_String (Self.Message_Id)
-             & ",Correlation_Id: "
-             & To_Standard_String (Self.Correlation_Id)
-             & ",Destination: "
-             & Image (Self.Destination)
-             & ",Reply_To: "
-             & Image (Self.Reply_To)
-             & ",Is_Persistent: "
-             & Boolean'Image (Self.Is_Persistent)
-             & ",Is_Redelivered: "
-             & Boolean'Image (Self.Is_Redelivered)
-             & ",Content : "
-             & Image (Self.Payload) & ">";
+        & To_Standard_String (Self.Message_Id)
+        & ",Correlation_Id: "
+        & To_Standard_String (Self.Correlation_Id)
+        & ",Destination: "
+        & Image (Self.Destination)
+        & ",Reply_To: "
+        & Image (Self.Reply_To)
+        & ",Is_Persistent: "
+        & Boolean'Image (Self.Is_Persistent)
+        & ",Is_Redelivered: "
+        & Boolean'Image (Self.Is_Redelivered)
+        & ",Content : "
+        & Image (Self.Payload) & ">";
    end Image;
 
    --------------------------------
@@ -560,7 +561,7 @@ package body MOMA.Messages is
    ------------
 
    function To_Any (Self : Message)
-                    return PolyORB.Any.Any
+                   return PolyORB.Any.Any
    is
       Result : Any := Get_Empty_Any_Aggregate (TC_MOMA_Message);
 

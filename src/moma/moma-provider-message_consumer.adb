@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---       M O M A . P R O V I D E R . M E S S A G E _ P R O D U C E R        --
+--       M O M A . P R O V I D E R . M E S S A G E _ C O N S U M E R        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -51,20 +51,38 @@ package body MOMA.Provider.Message_Consumer is
    use MOMA.Types;
 
    use PolyORB.Any;
-   use PolyORB.Any.NVList;
    use PolyORB.Log;
    use PolyORB.Types;
    use PolyORB.Requests;
 
    package L is
-     new PolyORB.Log.Facility_Log ("moma.provider.message_consumer");
+      new PolyORB.Log.Facility_Log ("moma.provider.message_consumer");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
+   --  Actual function implemented by the servant.
+
    function Get (Self       : in PolyORB.References.Ref;
                  Message_Id : in MOMA.Types.String)
-                 return PolyORB.Any.Any;
-   --  Actual function implemented by the servant.
+                return PolyORB.Any.Any;
+   --  Return Message_Id message.
+
+   procedure Register_Handler (Self : access Object;
+                               Handler_Ref : PolyORB.References.Ref;
+                               Behavior : MOMA.Types.Call_Back_Behavior);
+   --  Register a message handler.
+
+
+   --  Accessors to servant interface.
+
+   function Get_Parameter_Profile (Method : String)
+     return PolyORB.Any.NVList.Ref;
+   --  Parameters part of the interface description.
+
+   function Get_Result_Profile
+     (Method : String)
+     return PolyORB.Any.Any;
+   --  Result part of the interface description.
 
    ---------
    -- Get --
@@ -72,10 +90,10 @@ package body MOMA.Provider.Message_Consumer is
 
    function Get (Self       : in PolyORB.References.Ref;
                  Message_Id : in PolyORB.Types.String)
-                 return PolyORB.Any.Any
+                return PolyORB.Any.Any
    is
       Arg_Name_Mesg : PolyORB.Types.Identifier
-       := PolyORB.Types.To_PolyORB_String ("Message");
+        := PolyORB.Types.To_PolyORB_String ("Message");
 
       Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any (Message_Id);
 
@@ -119,7 +137,7 @@ package body MOMA.Provider.Message_Consumer is
    ---------------------------
 
    function Get_Parameter_Profile (Method : String)
-     return PolyORB.Any.NVList.Ref
+                                  return PolyORB.Any.NVList.Ref
    is
       use PolyORB.Any;
       use PolyORB.Any.NVList;
@@ -129,24 +147,30 @@ package body MOMA.Provider.Message_Consumer is
    begin
       PolyORB.Any.NVList.Create (Result);
       pragma Debug (O ("Parameter profile for " & Method & " requested."));
+
       if Method = "Get" then
          Add_Item (Result,
                    (Name => To_PolyORB_String ("Message_Id"),
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
+
       elsif Method = "Register_Handler" then
-         Add_Item (Result,
-                   (Name => To_PolyORB_String ("Message_Handler"),
-                    Argument => Get_Empty_Any (
-                      MOMA.Destinations.TC_MOMA_Destination),
-                    Arg_Modes => ARG_IN));
+         Add_Item
+           (Result,
+            (Name => To_PolyORB_String ("Message_Handler"),
+             Argument => Get_Empty_Any (MOMA.Destinations.TC_MOMA_Destination),
+             Arg_Modes => ARG_IN));
+
          Add_Item (Result,
                    (Name => To_PolyORB_String ("Behavior"),
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
+         --  XXX should use an enum type !
       else
          raise Program_Error;
+
       end if;
+
       return Result;
    end Get_Parameter_Profile;
 
@@ -155,8 +179,7 @@ package body MOMA.Provider.Message_Consumer is
    --------------------
 
    function Get_Remote_Ref (Self : Object)
-      return PolyORB.References.Ref
-   is
+                           return PolyORB.References.Ref is
    begin
       return Self.Remote_Ref;
    end Get_Remote_Ref;
@@ -167,23 +190,22 @@ package body MOMA.Provider.Message_Consumer is
 
    function Get_Result_Profile
      (Method : String)
-     return PolyORB.Any.Any;
-
-   function Get_Result_Profile
-     (Method : String)
      return PolyORB.Any.Any
    is
       use PolyORB.Any;
 
    begin
       pragma Debug (O ("Result profile for " & Method & " requested."));
+
       if Method = "Get" then
-         --  return Get_Empty_Any (TypeCode.TC_Any);
          return Get_Empty_Any (TC_MOMA_Message);
+
       elsif Method = "Register_Handler" then
          return Get_Empty_Any (TypeCode.TC_Void);
+
       else
          raise Program_Error;
+
       end if;
    end Get_Result_Profile;
 
@@ -210,16 +232,17 @@ package body MOMA.Provider.Message_Consumer is
       Args : PolyORB.Any.NVList.Ref;
    begin
       pragma Debug (O ("The server is executing the request:"
-                    & PolyORB.Requests.Image (Req.all)));
+                       & PolyORB.Requests.Image (Req.all)));
 
-      Create (Args);
+      PolyORB.Any.NVList.Create (Args);
 
-      if Req.all.Operation = To_PolyORB_String ("Get") then
+      if Req.Operation = To_PolyORB_String ("Get") then
 
-         Add_Item (Args,
-                   (Name => To_PolyORB_String ("Message_Id"),
-                    Argument => Get_Empty_Any (TypeCode.TC_String),
-                    Arg_Modes => PolyORB.Any.ARG_IN));
+         PolyORB.Any.NVList.Add_Item
+           (Args,
+            (Name => To_PolyORB_String ("Message_Id"),
+             Argument => Get_Empty_Any (TypeCode.TC_String),
+             Arg_Modes => PolyORB.Any.ARG_IN));
          Arguments (Req, Args);
 
          declare
@@ -235,36 +258,41 @@ package body MOMA.Provider.Message_Consumer is
             pragma Debug (O ("Result: " & Image (Req.Result)));
          end;
 
-      elsif Req.all.Operation = To_PolyORB_String ("Register_Handler") then
+      elsif Req.Operation = To_PolyORB_String ("Register_Handler") then
 
          --  Register Message call_back handler
 
          pragma Debug (O ("Register_Handler request"));
-         Args := Get_Parameter_Profile (To_Standard_String (
-           Req.all.Operation));
+         Args := Get_Parameter_Profile (To_Standard_String (Req.Operation));
+
          PolyORB.Requests.Arguments (Req, Args);
 
          declare
             use PolyORB.Any.NVList.Internals;
             Args_Sequence  : constant NV_Sequence_Access := List_Of (Args);
+
             Handler_Dest   : constant MOMA.Destinations.Destination :=
-              MOMA.Destinations.From_Any (
-                NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument);
+              MOMA.Destinations.From_Any
+              (NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument);
+
             Handler_Ref    : constant PolyORB.References.Ref :=
               MOMA.Destinations.Get_Ref (Handler_Dest);
+
             Behavior_Image : constant PolyORB.Types.String :=
               From_Any (NV_Sequence.Element_Of
                         (Args_Sequence.all, 2).Argument);
+
             Behavior       : constant MOMA.Types.Call_Back_Behavior :=
               MOMA.Types.Call_Back_Behavior'Value
-                (MOMA.Types.To_Standard_String (Behavior_Image));
+              (MOMA.Types.To_Standard_String (Behavior_Image));
          begin
             Register_Handler (Self, Handler_Ref, Behavior);
             pragma Debug (O ("Handler registered"));
          end;
+
       else
          pragma Debug (O ("Unrecognized request "
-                       & To_Standard_String (Req.all.Operation)));
+                          & To_Standard_String (Req.Operation)));
          null;
       end if;
    end Invoke;
@@ -281,35 +309,41 @@ package body MOMA.Provider.Message_Consumer is
       Arg_List     : PolyORB.Any.NVList.Ref;
       Result       : PolyORB.Any.NamedValue;
       Handler_Dest : constant MOMA.Destinations.Destination :=
-         MOMA.Destinations.Create_Destination
-            (To_PolyORB_String (""), Handler_Ref);
+        MOMA.Destinations.Create_Destination
+        (To_PolyORB_String (""), Handler_Ref);
    begin
       pragma Debug (O ("Registering Message_Handler with " &
-         Call_Back_Behavior'Image (Behavior) & " behavior"));
+                       Call_Back_Behavior'Image (Behavior) & " behavior"));
 
       PolyORB.Any.NVList.Create (Arg_List);
-      PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("Message_Handler"),
-                                   To_Any (Handler_Dest),
-                                   PolyORB.Any.ARG_IN);
-      PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   To_PolyORB_String ("Behavior"),
-                                   To_Any (To_PolyORB_String (
-                                      Call_Back_Behavior'Image (
-                                         Behavior))),
-                                   PolyORB.Any.ARG_IN);
+
+      PolyORB.Any.NVList.Add_Item
+        (Arg_List,
+         To_PolyORB_String ("Message_Handler"),
+         To_Any (Handler_Dest),
+         PolyORB.Any.ARG_IN);
+
+      PolyORB.Any.NVList.Add_Item
+        (Arg_List,
+         To_PolyORB_String ("Behavior"),
+         To_Any (To_PolyORB_String (Call_Back_Behavior'Image (Behavior))),
+         PolyORB.Any.ARG_IN);
+
       Result := (Name      => To_PolyORB_String ("Result"),
                  Argument  => PolyORB.Any.Get_Empty_Any
                  (TypeCode.TC_Void),
                  Arg_Modes => 0);
+
       PolyORB.Requests.Create_Request
         (Target    => Self.Remote_Ref,
          Operation => "Register_Handler",
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
+
       PolyORB.Requests.Invoke (Request);
       pragma Debug (O ("Register_Handler request complete"));
+
       PolyORB.Requests.Destroy_Request (Request);
       pragma Debug (O ("Register_Handler request destroyed"));
    end Register_Handler;
@@ -319,8 +353,7 @@ package body MOMA.Provider.Message_Consumer is
    --------------------
 
    procedure Set_Remote_Ref (Self : in out Object;
-                             Ref  : PolyORB.References.Ref)
-   is
+                             Ref  : PolyORB.References.Ref) is
    begin
       Self.Remote_Ref := Ref;
    end Set_Remote_Ref;

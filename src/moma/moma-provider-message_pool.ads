@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -39,7 +39,6 @@
 with MOMA.Types;
 with MOMA.Provider.Warehouse;
 
-with PolyORB.Any.NVList;
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
 with PolyORB.Obj_Adapters.Simple;
@@ -94,9 +93,5 @@ private
          --  of a message, or none.
 
    end record;
-
-   function Get_Parameter_Profile
-     (Method : String)
-     return PolyORB.Any.NVList.Ref;
 
 end MOMA.Provider.Message_Pool;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -40,8 +40,6 @@ with PolyORB.Types;
 
 package body MOMA.Sessions is
 
-   use MOMA.Types;
-
    use PolyORB.Types;
 
    ------------
@@ -68,12 +66,14 @@ package body MOMA.Sessions is
    -- Create_Session --
    --------------------
 
-   function Create_Session (Connection       : MOMA.Connections.Connection;
-                            Transacted       : Boolean;
-                            Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
-                            return Session
+   function Create_Session
+     (Connection       : MOMA.Connections.Connection;
+      Transacted       : Boolean;
+      Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
+     return Session
    is
       New_Session : Session;
+
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Connection);
@@ -88,7 +88,8 @@ package body MOMA.Sessions is
    --  Get_Transacted --
    ---------------------
 
-   function Get_Transacted return Boolean is
+   function Get_Transacted
+     return Boolean is
    begin
       raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
@@ -125,37 +126,47 @@ package body MOMA.Sessions is
                         Sub   : Boolean := True)
    is
       use MOMA.Destinations;
+      use type MOMA.Types.Destination_Type;
+
       Arg_List  : PolyORB.Any.NVList.Ref;
       Request   : PolyORB.Requests.Request_Access;
       Result    : PolyORB.Any.NamedValue;
-      Operation : MOMA.Types.String := To_MOMA_String ("Subscribe");
+      Operation : PolyORB.Types.String := To_PolyORB_String ("Subscribe");
    begin
       if Get_Kind (Topic) /= MOMA.Types.Topic
-      or else Get_Kind (Pool) /= MOMA.Types.Pool then
+        or else Get_Kind (Pool) /= MOMA.Types.Pool then
          raise Program_Error;
       end if;
-      if not (Sub) then
-         Operation := To_MOMA_String ("Unsubscribe");
+
+      if not Sub then
+         Operation := To_PolyORB_String ("Unsubscribe");
       end if;
+
       PolyORB.Any.NVList.Create (Arg_List);
+
       PolyORB.Any.NVList.Add_Item (Arg_List,
                                    To_PolyORB_String ("Topic"),
                                    To_Any (Topic),
                                    PolyORB.Any.ARG_IN);
+
       PolyORB.Any.NVList.Add_Item (Arg_List,
                                    To_PolyORB_String ("Pool"),
                                    To_Any (Pool),
                                    PolyORB.Any.ARG_IN);
+
       Result := (Name      => To_PolyORB_String ("Result"),
                  Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
                  Arg_Modes => 0);
+
       PolyORB.Requests.Create_Request
         (Target    => Get_Ref (Topic),
-         Operation => MOMA.Types.To_Standard_String (Operation),
+         Operation => PolyORB.Types.To_Standard_String (Operation),
          Arg_List  => Arg_List,
          Result    => Result,
          Req       => Request);
+
       PolyORB.Requests.Invoke (Request);
+
       PolyORB.Requests.Destroy_Request (Request);
    end Subscribe;
 
@@ -163,12 +174,11 @@ package body MOMA.Sessions is
    -- Unsubscribe --
    -----------------
 
-   procedure Unsubscribe (Topic : MOMA.Destinations.Destination;
-                          Pool  : MOMA.Destinations.Destination)
-   is
+   procedure Unsubscribe
+     (Topic : MOMA.Destinations.Destination;
+      Pool  : MOMA.Destinations.Destination) is
    begin
       Subscribe (Topic, Pool, False);
    end Unsubscribe;
 
 end MOMA.Sessions;
-

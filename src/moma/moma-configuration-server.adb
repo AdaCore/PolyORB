@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---             Copyright (C) 1999-2002 Free Software Fundation              --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -64,10 +64,12 @@ package body MOMA.Configuration.Server is
    begin
       pragma Debug (O ("Creating Message Pool "
                        & To_Standard_String (Get_Name (Pool))));
+
       Initiate_Servant (MOMA_Obj,
                         MOMA.Provider.Message_Pool.If_Desc,
                         MOMA_Type_Id,
                         Ref);
+
       MOMA.Provider.Message_Pool.Initialize (MOMA_Obj, Pool);
    end Create_Message_Pool;
 
@@ -82,8 +84,10 @@ package body MOMA.Configuration.Server is
    is
       Router : constant MOMA.Provider.Routers.Router_Acc
        := new MOMA.Provider.Routers.Router;
+
    begin
       pragma Debug (O ("Creating Router"));
+
       MOMA.Provider.Routers.Set_Id (Router.all, Id);
       Initiate_Servant (Router,
                         MOMA.Provider.Routers.If_Desc,
