@@ -579,6 +579,7 @@ package body Ada_Be.Expansion is
             Set_Mode (Param_Node, Mode_Out);
             Set_Param_Type (Param_Node, Operation_Type (Node));
             Set_Declarator (Param_Node, Decl_Node);
+            Set_Parent (Decl_Node, Param_Node);
             --  Create a new parameter node.
 
             Set_Parameters (Node, Append_Node
@@ -892,7 +893,8 @@ package body Ada_Be.Expansion is
          Parent_Node : constant Node_Id
            := Parent (Node);
 
-         Array_Node : constant Node_Id := Make_Declarator;
+         Array_Node : constant Node_Id
+           := Make_Declarator;
          Array_Type_Node : constant Node_Id
            := Make_Type_Declarator;
 
@@ -931,6 +933,7 @@ package body Ada_Be.Expansion is
          Set_Declarators
            (Array_Type_Node,
             Append_Node (Nil_List, Array_Node));
+         Set_Parent (Array_Node, Array_Type_Node);
          Success := Add_Identifier
            (Array_Node, Name (Node) & "_Array");
          pragma Assert (Success);

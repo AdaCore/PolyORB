@@ -562,7 +562,7 @@ package body Ada_Be.Idl2Ada is
             if Parents (Node) = Nil_List then
                Add_With (CU, "PortableServer");
                Put (CU, "  ");
-               if Is_Abstract (Node) then
+               if Abst (Node) then
                   Put (CU, "abstract ");
                end if;
                Put (CU, "new PortableServer.Servant_Base");
@@ -587,7 +587,7 @@ package body Ada_Be.Idl2Ada is
 
                      if First then
                         Put (CU, "  ");
-                        if Is_Abstract (Node) then
+                        if Abst (Node) then
                            Put (CU, "abstract ");
                         end if;
                         Put (CU, "new "
@@ -2548,14 +2548,17 @@ package body Ada_Be.Idl2Ada is
 
          when K_Declarator =>
             declare
-               Type_Declarator_Type : constant Node_Id
-                 := T_Type (Parent (Node));
+               P_Node : constant Node_Id
+                 := Parent (Node);
             begin
-               if Is_Interface_Type (Type_Declarator_Type) then
+               if True
+                 and then Kind (P_Node) = K_Type_Declarator
+                 and then Is_Empty (Array_Bounds (Node))
+                 and then Is_Interface_Type (T_Type (P_Node)) then
                   --  For a typedef of an interface type, the
                   --  dependance must be on the stream unit for
                   --  the scope that contains the actual definition.
-                  Add_With_Stream (CU, Type_Declarator_Type);
+                  Add_With_Stream (CU, T_Type (P_Node));
                else
                   Add_With
                     (CU, Ada_Full_Name (Parent_Scope (Node))
