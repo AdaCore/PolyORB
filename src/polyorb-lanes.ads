@@ -168,7 +168,6 @@ private
 
    type Lane_Runnable is new PolyORB.Tasking.Threads.Runnable with record
       L : Lane_Access;
-      J : Job_Access;
       Dynamically_Allocated : Boolean;
    end record;
 
@@ -182,16 +181,6 @@ private
 
    package PTM  renames PolyORB.Tasking.Mutexes;
    package PTCV renames PolyORB.Tasking.Condition_Variables;
-
-   type Idle_Task is record
-      CV : PTCV.Condition_Access;
-      R  : Lane_Runnable_Access;
-   end record;
-
-   package Idle_Task_Lists is new PolyORB.Utils.Chained_Lists (Idle_Task);
-
-   package CV_Lists is
-      new PolyORB.Utils.Chained_Lists (PTCV.Condition_Access, PTCV."=");
 
    --  Lane_Root
 
@@ -215,10 +204,8 @@ private
       Job_Queue                 : Job_Queue_Access;
       Dynamic_Threads_Created   : Natural := 0;
 
-      Idle_Task_List            : Idle_Task_Lists.List;
-      --  List of idle tasks
-
-      Free_CV                   : CV_Lists.List;
+      CV                        : PTCV.Condition_Access;
+      Idle_Tasks                : Natural := 0;
 
       Clean_Up_In_Progress      : Boolean := False;
    end record;

@@ -47,10 +47,6 @@ package body PolyORB.Lanes is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   procedure Idle (R : access Lane_Runnable);
-   pragma Inline (Idle);
-   --  Do anything required to put R in an idle state
-
    ---------
    -- Run --
    ---------
@@ -63,36 +59,22 @@ package body PolyORB.Lanes is
       loop
          pragma Debug (O ("Inside lane's main loop"));
 
-         --  If R has a job to process, go for it
+         --  Process queued jobs
 
-         if R.J /= null then
-            pragma Debug (O ("Process locally queued job"));
+         while not Is_Empty (R.L.Job_Queue) loop
+            pragma Debug (O ("Thread from lane at priority ("
+                             & R.L.ORB_Priority'Img & ","
+                             & R.L.Ext_Priority'Img & ")"
+                             & " will execute a job"));
+            declare
+               Job : constant Job_Access := Fetch_Job (R.L.Job_Queue);
 
-            Leave (R.L.Lock);
-            PolyORB.ORB.Run (PolyORB.ORB.Request_Job (R.J.all)'Access);
-            Enter (R.L.Lock);
-
-            R.J := null;
-         end if;
-
-         --  Then process queued jobs
-
-         if R.L.Job_Queue /= null then
-            while not Is_Empty (R.L.Job_Queue) loop
-               pragma Debug (O ("Thread from lane at priority ("
-                                & R.L.ORB_Priority'Img & ","
-                                & R.L.Ext_Priority'Img & ")"
-                                & " will execute a job"));
-               declare
-                  Job : constant Job_Access := Fetch_Job (R.L.Job_Queue);
-
-               begin
-                  Leave (R.L.Lock);
-                  PolyORB.ORB.Run (PolyORB.ORB.Request_Job (Job.all)'Access);
-                  Enter (R.L.Lock);
-               end;
-            end loop;
-         end if;
+            begin
+               Leave (R.L.Lock);
+               PolyORB.ORB.Run (PolyORB.ORB.Request_Job (Job.all)'Access);
+               Enter (R.L.Lock);
+            end;
+         end loop;
 
          --  Test wether the task shall exit
 
@@ -102,7 +84,9 @@ package body PolyORB.Lanes is
 
          pragma Debug (O ("No job to process, go idle"));
 
-         Idle (R);
+         R.L.Idle_Tasks := R.L.Idle_Tasks + 1;
+         PTCV.Wait (R.L.CV, R.L.Lock);
+         R.L.Idle_Tasks := R.L.Idle_Tasks - 1;
 
       end loop;
 
@@ -168,10 +152,9 @@ package body PolyORB.Lanes is
                        & Ext_Priority'Img & ")"));
 
       Create (Result.Lock);
+      Create (Result.CV);
 
-      if Buffer_Request then
-         Result.Job_Queue := Create_Queue;
-      end if;
+      Result.Job_Queue := Create_Queue;
 
       for J in 1 .. Base_Number_Of_Threads loop
          declare
@@ -205,21 +188,10 @@ package body PolyORB.Lanes is
    -------------
 
    procedure Destroy (L : access Lane) is
-      use type Idle_Task_Lists.List;
-
-      Task_To_Awake : Idle_Task;
-
    begin
       L.Clean_Up_In_Progress := True;
 
-      while L.Idle_Task_List /= Idle_Task_Lists.Empty loop
-         pragma Debug (O ("Awake one idle task"));
-
-         Idle_Task_Lists.Extract_First (L.Idle_Task_List, Task_To_Awake);
-         Signal (Task_To_Awake.CV);
-         Destroy (Task_To_Awake.CV);
-      end loop;
-
+      Broadcast (L.CV);
    end Destroy;
 
    procedure Destroy (L : access Lanes_Set) is
@@ -247,44 +219,30 @@ package body PolyORB.Lanes is
 
       Enter (L.Lock);
 
-      --  First, try to directly queue job on one task
+      --  Queue job in common job queue
 
-      declare
-         use type Idle_Task_Lists.List;
-
-         Task_To_Awake : Idle_Task;
-
-      begin
-         if L.Idle_Task_List /= Idle_Task_Lists.Empty then
-            pragma Debug (O ("Queue job on one idle task"));
-
-            --  Signal one idle task, and puts its CV in Free_CV list
-
-            Idle_Task_Lists.Extract_First (L.Idle_Task_List, Task_To_Awake);
-            Signal (Task_To_Awake.CV);
-            CV_Lists.Append (L.Free_CV, Task_To_Awake.CV);
-
-            Task_To_Awake.R.J := J;
-
-            Leave (L.Lock);
-
-            return;
-         end if;
-      end;
-
-      --  else, queue job in common job queue
-
-      if L.Buffer_Request
-        and then Length (L.Job_Queue) < Natural (L.Max_Buffered_Requests)
+      if (not L.Buffer_Request
+          and then Length (L.Job_Queue) < L.Base_Number_Of_Threads)
+        or else
+        (L.Buffer_Request
+         and then Length (L.Job_Queue) < Natural (L.Max_Buffered_Requests))
       then
          pragma Debug (O ("Queue job on job queue"));
 
          Queue_Job (L.Job_Queue, J);
-         Leave (L.Lock);
 
-         --  Eventually, create a new task
+         if L.Idle_Tasks > 0 then
 
-         if L.Dynamic_Threads_Created < L.Dynamic_Number_Of_Threads then
+            --  If there are idle tasks, awake one
+
+            Signal (L.CV);
+            Leave (L.Lock);
+            return;
+
+         elsif L.Dynamic_Threads_Created < L.Dynamic_Number_Of_Threads then
+
+            --  Eventually, create a new task
+
             declare
                New_Runnable : constant Lane_Runnable_Access
                  := new Lane_Runnable;
@@ -311,15 +269,16 @@ package body PolyORB.Lanes is
             L.Dynamic_Threads_Created := L.Dynamic_Threads_Created + 1;
          end if;
 
+         Leave (L.Lock);
          return;
+
+      else
+         --  Cannot queue job
+
+         Leave (L.Lock);
+         pragma Debug (O ("Cannot queue job"));
+         raise Program_Error;
       end if;
-
-      --  Cannot queue job
-
-      Leave (L.Lock);
-      pragma Debug (O ("Cannot queue job"));
-      raise Program_Error;
-
    end Queue_Job;
 
    procedure Queue_Job
@@ -403,40 +362,5 @@ package body PolyORB.Lanes is
 
       return False;
    end Is_Valid_Priority;
-
-   ----------
-   -- Idle --
-   ----------
-
-   procedure Idle (R : access Lane_Runnable) is
-      use type CV_Lists.List;
-
-      CV : Condition_Access;
-
-   begin
-      --  Allocate a CV to wait on
-
-      if R.L.Free_CV /= CV_Lists.Empty then
-         --  Use an existing CV, from Free_CV list
-
-         CV_Lists.Extract_First (R.L.Free_CV, CV);
-      else
-         --  else allocate a new one
-
-         Create (CV);
-      end if;
-
-      --  Append R to the list of idle tasks
-
-      Idle_Task_Lists.Append
-        (R.L.Idle_Task_List,
-         Idle_Task'(CV => CV,
-                    R  => Lane_Runnable (R.all)'Access));
-
-      --  Go idle
-
-      pragma Debug (O ("Task is now idle"));
-      PTCV.Wait (CV, R.L.Lock);
-   end Idle;
 
 end PolyORB.Lanes;
