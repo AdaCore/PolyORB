@@ -36,6 +36,8 @@
 
 with MOMA.Message_Consumers.Queues;
 with MOMA.Messages;
+with MOMA.Destinations;
+with MOMA.Types;
 
 with PolyORB.Any;
 with PolyORB.Any.NVList;
@@ -44,6 +46,9 @@ with PolyORB.Types;
 with PolyORB.Requests;
 
 package body MOMA.Provider.Message_Handler is
+
+   use MOMA.Destinations;
+   use MOMA.Types;
 
    use PolyORB.Any;
    use PolyORB.Any.NVList;
@@ -67,10 +72,10 @@ package body MOMA.Provider.Message_Handler is
      return PolyORB.References.Ref
    is
       Self      : Object_Acc;
-      --  Self_Ref : PolyORB.References.Ref;
    begin
       Self := null;
       --  XXX TODO : Initialize the servant
+      --  XXX TODO : Initialize Self.Self_Ref and Self.Message_Queue
       pragma Warnings (Off);
       if New_Handler_Procedure /= null then
          Set_Handler(Self, New_Handler_Procedure);
@@ -157,7 +162,7 @@ package body MOMA.Provider.Message_Handler is
    begin
       pragma Debug (O ("Result profile for " & Method & " requested."));
       if Method = "Handle" or Method = "Notify" then
-         return Get_Empty_Any (TypeCode.TC_Any);
+         return Get_Empty_Any (TypeCode.TC_Void);
       else
          raise Program_Error;
       end if;
@@ -213,7 +218,9 @@ package body MOMA.Provider.Message_Handler is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
       Result      : PolyORB.Any.NamedValue;
-      Queue_Ref : PolyORB.References.Ref;
+      Queue_Ref   : PolyORB.References.Ref;
+      Self_Dest   : constant MOMA.Destinations.Destination :=
+         MOMA.Destinations.Create (To_PolyORB_String (""), Self.Self_Ref);
    begin
       pragma Debug (O ("Registering Message_Handler with " &
          Call_Back_Behavior'Image (Self.Behavior) & "behavior"));
@@ -221,6 +228,10 @@ package body MOMA.Provider.Message_Handler is
          Queue_Ref := MOMA.Message_Consumers.Get_Ref (
             MOMA.Message_Consumers.Message_Consumer (Self.Message_Queue.all));
          PolyORB.Any.NVList.Create (Arg_List);
+         PolyORB.Any.NVList.Add_Item (Arg_List,
+                                      To_PolyORB_String ("Message_Haldler"),
+                                      To_Any (Self_Dest),
+                                      PolyORB.Any.ARG_IN);
          PolyORB.Any.NVList.Add_Item (Arg_List,
                                       To_PolyORB_String ("Behavior"),
                                       To_Any (To_PolyORB_String (
@@ -240,8 +251,6 @@ package body MOMA.Provider.Message_Handler is
          PolyORB.Requests.Invoke (Request);
          PolyORB.Requests.Destroy_Request (Request);
       end if;
-      raise PolyORB.Not_Implemented;
-      --  XXX TODO : Implement Request in Message_Pool's Invoke
    end Register_To_Queue;
 
    -----------------
@@ -250,7 +259,8 @@ package body MOMA.Provider.Message_Handler is
 
    procedure Set_Handler (Self : access Object;
                           New_Handler_Procedure : in Handler) is
-      Previous_Behavior : constant Call_Back_Behavior := Self.Behavior;
+      Previous_Behavior :
+         constant MOMA.Types.Call_Back_Behavior := Self.Behavior;
    begin
       Self.Notifier_Procedure := null;
       Self.Handler_Procedure := New_Handler_Procedure;
@@ -270,7 +280,8 @@ package body MOMA.Provider.Message_Handler is
 
    procedure Set_Notifier (Self : access Object;
                            New_Notifier_Procedure : in Notifier) is
-      Previous_Behavior : constant Call_Back_Behavior := Self.Behavior;
+      Previous_Behavior :
+         constant MOMA.Types.Call_Back_Behavior := Self.Behavior;
    begin
       Self.Handler_Procedure := null;
       Self.Notifier_Procedure := New_Notifier_Procedure;

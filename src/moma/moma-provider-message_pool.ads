@@ -42,6 +42,7 @@ with MOMA.Provider.Warehouse;
 with PolyORB.Minimal_Servant;
 with PolyORB.Requests;
 with PolyORB.Obj_Adapters.Simple;
+with PolyORB.References;
 
 package MOMA.Provider.Message_Pool is
 
@@ -65,6 +66,9 @@ package MOMA.Provider.Message_Pool is
 
 private
 
+   use MOMA.Types;
+   use PolyORB.References;
+
    type Object is new PolyORB.Minimal_Servant.Servant with record
      Pool : MOMA.Types.Message_Pool;
          --  Pool information.
@@ -79,6 +83,14 @@ private
 
      Last_Read_Id : Natural := 0;
          --  XXX Dummy counter for message_id, to be trashed ...
+
+     Message_Handler : PolyORB.References.Ref := Nil_Ref;
+         --  Reference of the Message_Handler to which Notify or Handle
+         --  Requests must be sent;
+
+     Behavior : MOMA.Types.Call_Back_Behavior := None;
+         --  Specifies if a Notify or Handle request must be sent on reception
+         --  of a message, or none.
 
    end record;
 

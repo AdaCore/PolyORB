@@ -218,6 +218,12 @@ package MOMA.Types is
                          Map_M,
                          Text_M);
 
+   type Call_Back_Behavior is (Notify, Handle, None);
+   --  Behaviors for call-back :
+   --  Only notify messages, send the message when received for Handle,
+   --  or None.
+
+
    --  Message_Pool type and accessors.
 
    type Message_Pool is private;

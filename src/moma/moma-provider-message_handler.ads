@@ -49,6 +49,7 @@ with PolyORB.References;
 
 with MOMA.Messages;
 with MOMA.Message_Consumers.Queues;
+with MOMA.Types;
 use MOMA.Message_Consumers.Queues;
 
 package MOMA.Provider.Message_Handler is
@@ -102,14 +103,14 @@ package MOMA.Provider.Message_Handler is
    --  Interface description for SOA object adapter.
 
 private
-
-   type Call_Back_Behavior is (Notify, Handle, None);
+   use MOMA.Types;
 
    type Object is new PolyORB.Minimal_Servant.Servant with record
+      Self_Ref : PolyORB.References.Ref;
       Message_Queue : Queue_Acc;
       Handler_Procedure : Handler := null;
       Notifier_Procedure : Notifier := null;
-      Behavior : Call_Back_Behavior := None;
+      Behavior : MOMA.Types.Call_Back_Behavior := None;
    end record;
 
    function Get_Parameter_Profile (Method : String)
