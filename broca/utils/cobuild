@@ -2,7 +2,7 @@
 
 # cobuild: Build AdaBroker from a checked-out wavefront.
 
-# $Id: //depot/adabroker/main/broca/utils/cobuild#4 $
+# $Id: //depot/adabroker/main/broca/utils/cobuild#5 $
 
 usage () {
   echo "Usage: $0 -m EMAIL_ADDRESS -C CLIENT_WORKSPACE_TOP -o OUTPUT_DIR [ -c CHANGELIST ]"
@@ -49,9 +49,8 @@ TMPDIR=/var/tmp
 
 export P4CONFIG MAILTO OUTDIR CLIENT_TOP TMPDIR
 
-set -eT
-# halt on errors
-# asynchronous traps (BSD-specific)
+set -e
+umask 022
 
 # Kill any previous build.
 
