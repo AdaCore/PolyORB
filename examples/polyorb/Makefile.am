@@ -5,10 +5,6 @@ TESTS=  polyorb-test-no_tasking \
 
 poly_exe=$(TESTS)
 
-CLEANFILES= *.o *.ali
-
-DISTCLEANFILES = $(TESTS)
-
 all: $(TESTS)
 
 all-local: $(TESTS)
@@ -40,3 +36,5 @@ $(TESTS): force
 force:
 	(cd ../../src && $(MAKE) all)
 clean:
+
+include $(srcdir)/../Makefile.common

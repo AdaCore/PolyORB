@@ -1,4 +1,3 @@
-EXAMPLES_ROOT=	..
 EXAMPLE= moma_dummy
 
 corba_exe=

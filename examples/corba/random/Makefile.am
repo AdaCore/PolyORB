@@ -1,4 +1,3 @@
-EXAMPLES_ROOT=../..
 EXAMPLE = random
 
 corba_exe=client server

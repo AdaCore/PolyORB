@@ -1,4 +1,3 @@
-EXAMPLES_ROOT=..
 EXAMPLE = dsa-dummy
 
 DSA_SRC=$(srcdir)/../../src/dsa

@@ -1,4 +1,3 @@
-EXAMPLES_ROOT=../..
 EXAMPLE = all_functions
 
 corba_exe=client server dynclient
