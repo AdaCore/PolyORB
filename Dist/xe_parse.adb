@@ -667,8 +667,9 @@ package body XE_Parse is
 
       if Para_Type_Node /= String_Type_Node then
          Write_Location (Get_Token_Location);
+         Write_Str  ("""");
          Write_Name (Para_Type_Name);
-         Write_Str  (" is not an expected type");
+         Write_Str  (""" is not the expected type");
          Write_Eol;
          Exit_On_Parsing_Error;
       end if;
@@ -695,8 +696,9 @@ package body XE_Parse is
 
       if Para_Type_Node /= String_Type_Node then
          Write_Location (Get_Token_Location);
+         Write_Str  ("""");
          Write_Name (Para_Type_Name);
-         Write_Str  (" is not an expected type");
+         Write_Str  (""" is not the expected type");
          Write_Eol;
          Exit_On_Parsing_Error;
       end if;
@@ -812,8 +814,9 @@ package body XE_Parse is
 
          if Get_Variable_Type (Unit_Node) /= Ada_Unit_Type_Node then
             Write_Location (Unit_Sloc);
+            Write_Str  ("""");
             Write_Name (Unit_Name);
-            Write_Str  (" conflicts with a previous declaration");
+            Write_Str  (""" conflicts with a previous declaration");
             Write_Eol;
             Exit_On_Parsing_Error;
          end if;
@@ -854,7 +857,9 @@ package body XE_Parse is
             if Partition_Node = Null_Variable or else
               Get_Variable_Type (Partition_Node) /= Partition_Type_Node then
                Write_Location (Partition_Sloc);
-               Write_Str  ("variable has not been declared as a partition");
+               Write_Str  ("variable """);
+               Write_Name (Partition_Name);
+               Write_Str  (""" has not been declared as a partition");
                Write_Eol;
                Exit_On_Parsing_Error;
             end if;
@@ -945,7 +950,7 @@ package body XE_Parse is
          Write_Location (Get_Token_Location);
          Write_Str ("identifier ");
          Write_Name (Direct_Name);
-         Write_Str (" is undefined");
+         Write_Str (" is undefined here");
          Write_Eol;
          Exit_On_Parsing_Error;
       end if;
@@ -969,7 +974,9 @@ package body XE_Parse is
       if Comp_Node = Null_Component or else
          not Is_Component_An_Attribute (Comp_Node) then
          Write_Location (Get_Token_Location);
-         Write_Str  ("no such attribute");
+         Write_Str  ("no such attribute """);
+         Write_Name (Attr_Name);
+         Write_Str  ("""");
          Write_Eol;
          Exit_On_Parsing_Error;
       end if;
@@ -1007,8 +1014,9 @@ package body XE_Parse is
          Search_Declaration (Expr_Name, Expr_Node);
          if Expr_Node = Null_Node then
             Write_Location (Expr_Sloc);
+            Write_Str ("""");
             Write_Name (Expr_Name);
-            Write_Str (" has not been declared");
+            Write_Str (""" has not been declared");
             Write_Eol;
             Exit_On_Parsing_Error;
          end if;
@@ -1020,8 +1028,9 @@ package body XE_Parse is
 
       if not Is_Expression_Of_Type (Expr_Node, Attr_Type) then
          Write_Location (Get_Token_Location);
+         Write_Str ("""");
          Write_Name (Get_Node_Name (Node_Id (Expr_Node)));
-         Write_Str (" is an invalid expression here");
+         Write_Str (""" is an invalid expression here");
          Write_Eol;
          Exit_On_Parsing_Error;
       end if;
@@ -1189,8 +1198,9 @@ package body XE_Parse is
 
          if Var_Type_Node = Null_Type then
             Write_Location (Var_Type_Sloc);
-            Write_Str  ("unexpected type ");
+            Write_Str  ("unexpected type """);
             Write_Name (Var_Type_Name);
+            Write_Str  ("""");
             Write_Eol;
             Exit_On_Parsing_Error;
          end if;
@@ -1242,8 +1252,9 @@ package body XE_Parse is
                   Search_Variable (Name, Variable_Node);
                   if Variable_Node = Null_Variable then
                      Write_Location (Get_Token_Location);
+                     Write_Str ("""");
                      Write_Name (Name);
-                     Write_Str (" has not been declared");
+                     Write_Str (""" has not been declared");
                      Write_Eol;
                      Exit_On_Parsing_Error;
                   end if;
@@ -2274,8 +2285,9 @@ package body XE_Parse is
          return;
       end if;
       Write_Location (Declaration_Sloc);
+      Write_Str  ("""");
       Write_Name (Declaration_Name);
-      Write_Str (" conflicts with a previous declaration");
+      Write_Str  (""" conflicts with a previous declaration");
       Write_Eol;
       Exit_On_Parsing_Error;
    end Has_Not_Been_Already_Declared;

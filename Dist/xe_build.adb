@@ -154,11 +154,10 @@ begin
       if Configuration /= Name_Find then
          if not Quiet_Output then
             Write_Program_Name;
-            Write_Str (": Filename is ");
-            Write_Name (Configuration_File);
-            Write_Str (", but should be ");
+            Write_Str (": file name does not match configuration name,");
+            Write_Str (" should be """);
             Write_Name (Configuration);
-            Write_Str (".cfg");
+            Write_Str (".cfg""");
             Write_Eol;
          end if;
          raise Fatal_Error;

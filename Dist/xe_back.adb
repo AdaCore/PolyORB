@@ -542,7 +542,7 @@ package body XE_Back is
 
       if Main_Subprogram = Null_Name then
          Write_Program_Name;
-         Write_Str (": missing main program declaration");
+         Write_Str (": main program has not been declared");
          Write_Eol;
          raise Parsing_Error;
       end if;
