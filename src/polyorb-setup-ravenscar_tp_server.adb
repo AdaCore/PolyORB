@@ -58,7 +58,6 @@ package body PolyORB.Setup.Ravenscar_TP_Server is
      (Number_Of_Threads    => 20,
       Number_Of_Conditions => 1_000,
       Number_Of_Mutexes    => 1_000,
-      Task_Priority        => System.Default_Priority,
-      Storage_Size         => 262144);
+      Task_Priority        => System.Default_Priority);
 
 end PolyORB.Setup.Ravenscar_TP_Server;

@@ -46,7 +46,6 @@ with PolyORB.Tasking.Profiles.Ravenscar.Index_Manager;
 generic
    Number_Of_Threads : Integer;
    Task_Priority     : System.Priority;
-   Storage_Size      : Integer;
 package PolyORB.Tasking.Profiles.Ravenscar.Threads is
 
    pragma Elaborate_Body;

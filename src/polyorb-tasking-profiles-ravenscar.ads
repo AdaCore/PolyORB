@@ -42,4 +42,7 @@ package PolyORB.Tasking.Profiles.Ravenscar is
 
    pragma Preelaborate;
 
+   Storage_Size : constant := 262_144;
+   --  Stack size of the tasks of the pool.
+
 end PolyORB.Tasking.Profiles.Ravenscar;
