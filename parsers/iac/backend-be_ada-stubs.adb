@@ -192,8 +192,10 @@ package body Backend.BE_Ada.Stubs is
 
       begin
          Set_Main_Spec;
+         Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
+         Identifier := Make_Defining_Identifier (Name_Find);
          Append_Node_To_List
-           (Make_Exception_Declaration (E),
+           (Make_Exception_Declaration (Identifier),
             Visible_Part (Current_Package));
 
          Get_Name_String (To_Ada_Name (IDL_Name (FEN.Identifier (E))));
@@ -203,8 +205,10 @@ package body Backend.BE_Ada.Stubs is
          Append_Node_To_List
            (Make_Full_Type_Declaration
             (Defining_Identifier => Identifier,
-             Type_Definition     => Make_Record_Definition
-             (Map_Members_Definition (Members (E)))),
+             Type_Definition     => Make_Derived_Type_Definition
+             (RE (RE_IDL_Exception_Members),
+              Make_Record_Definition
+             (Map_Members_Definition (Members (E))))),
             Visible_Part (Current_Package));
 
          Profile  := New_List (K_Parameter_Profile);
