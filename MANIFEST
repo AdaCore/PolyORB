@@ -13,7 +13,6 @@ adasockets/Makefile.am
 adasockets/Makefile.in
 adasockets/NEWS
 adasockets/README
-adasockets/README.import
 adasockets/aclocal.m4
 adasockets/configure
 adasockets/configure.in
@@ -24,14 +23,9 @@ adasockets/src/config.h.in
 adasockets/src/constants.c
 adasockets/src/constants.sh
 adasockets/src/sockets-link.ads.in
-adasockets/src/sockets-multicast.adb
-adasockets/src/sockets-multicast.ads
 adasockets/src/sockets-naming.adb
 adasockets/src/sockets-naming.ads
 adasockets/src/sockets-thin.ads
-adasockets/src/sockets-utils.adb
-adasockets/src/sockets-utils.ads
-adasockets/src/sockets.adb
 adasockets/src/sockets.ads
 adasockets/src/split.adb
 adasockets/src/stamp-h.in
@@ -104,12 +98,12 @@ idlac/ada_be-source_streams.adb
 idlac/ada_be-source_streams.ads
 idlac/ada_be-temporaries.ads
 idlac/ada_be.ads
+idlac/errors.adb
+idlac/errors.ads
 idlac/idl_fe-debug.adb
 idlac/idl_fe-debug.ads
 idlac/idl_fe-display_tree.adb
 idlac/idl_fe-display_tree.ads
-idlac/idl_fe-errors.adb
-idlac/idl_fe-errors.ads
 idlac/idl_fe-lexer.adb
 idlac/idl_fe-lexer.ads
 idlac/idl_fe-parser.adb
