@@ -253,6 +253,12 @@ X.ref: ${SOURCES}
 
 # Special dependencies
 
+s-garnam.o: s-garcon.ads
+s-garrem.o: s-garcon.ads
+s-garsta.o: s-garcon.ads s-gtplsp.ads
+s-gartcp.o: s-garcon.ads s-gtplsp.ads
+s-garthi.o: s-garcon.ads
+
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 .SUFFIXES:
 

@@ -1067,6 +1067,7 @@ case "${PLATFORM_SPECIFIC}" in
    u) PSNAME="SunOS";;
    a) PSNAME="Linux";;
    g) PSNAME="SGI";;
+   e) PSNAME="Empty";;
    *) PSNAME="Unknown (${PLATFORM_SPECIFIC})";;
 esac
 echo "$ac_t""$PSNAME" 1>&6
