@@ -90,10 +90,8 @@ begin
          X : all_types.Ref;
       begin
          X := echoRef (Myall_types, Myall_types);
-         for I in 1 .. 5 loop
-            Ada.Text_IO.Put_Line ("@@1");
+         for I in 1 .. 15 loop
             X := echoRef (X, X);
-            Ada.Text_IO.Put_Line ("@@2");
          end loop;
          Output ("test self reference", echoLong (X, 31337) = 31337);
 
