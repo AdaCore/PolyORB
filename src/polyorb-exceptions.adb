@@ -471,7 +471,8 @@ package body PolyORB.Exceptions is
    procedure Throw
      (Error  : in out Error_Container;
       Kind   : in     Error_Id;
-      Member : in     Exception_Members'Class) is
+      Member : in     Exception_Members'Class;
+      Where  : in     String := GNAT.Source_Info.Source_Location) is
    begin
       if Error.Kind /= No_Error then
          pragma Debug (O ("*** Abort *** "
@@ -504,7 +505,9 @@ package body PolyORB.Exceptions is
       Error.Member := new Exception_Members'Class'(Member);
 
       pragma Debug (O ("*** Throw *** "
-                       & Error_Id'Image (Error.Kind)));
+                       & Error_Id'Image (Error.Kind)
+                       & " at "
+                       & Where));
    end Throw;
 
    -----------
@@ -561,6 +564,7 @@ package body PolyORB.Exceptions is
          raise Program_Error;
       end if;
 
+      pragma Debug (O ("Error_To_Any: leave."));
       return Result;
    end Error_To_Any;
 
