@@ -7,6 +7,7 @@ export S_GARFIL=
 export S_GARHEA=
 export S_GARNAM=
 export S_GARGRO=
+export S_GARLOC=
 export S_GAROPT=
 export S_GARPAR=
 export S_GARREM=

@@ -6,6 +6,7 @@ export S_GAPHLO=true
 export S_GARFIL=true
 export S_GARGRO=true
 export S_GARHEA=true
+export S_GARLOC=true
 export S_GARNAM=true
 export S_GAROPT=true
 export S_GARPAR=true
