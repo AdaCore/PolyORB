@@ -89,6 +89,11 @@ private
    record
       Neutral_View : aliased Implementation (Servant'Access);
       --  The PolyORB (personality-neutral) view of this servant.
+      --  This instance of the multiple views idiom allows the
+      --  implementation of a multiple inheritance relationship:
+      --  here, Servant inherits from both Entity (a reference-counted
+      --  thing) and Servant (a Component that implements the
+      --  Objects interface).
    end record;
 
 end PolyORB.Minimal_Servant;

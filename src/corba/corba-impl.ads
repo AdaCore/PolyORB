@@ -77,6 +77,7 @@ private
    record
       Neutral_View : aliased Implementation (Object'Access);
       --  The PolyORB (personality-neutral) view of this servant.
+      --  See also PolyORB.Minimal_Servant.
    end record;
 
 end CORBA.Impl;
