@@ -34,7 +34,6 @@
 
 --  $Id$
 
-with Ada.Real_Time;
 with Ada.Streams;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
@@ -189,18 +188,12 @@ package body PolyORB.POA.Basic_POA is
    -- Get_Boot_Time --
    -------------------
 
-   function Get_Boot_Time
-     return Time_Stamp
-   is
-      use Ada.Real_Time;
-      T  : Time;
-      SC : Seconds_Count;
-      TS : Time_Span;
+   function Get_Boot_Time return Time_Stamp is
    begin
-      T := Clock;
-      Split (T, SC, TS);
-
-      return Time_Stamp (Unsigned_Long (SC));
+      return Time_Stamp (16#deadbeef#);
+      --  XXX should compute a real time stamp! But:
+      --  Cannot depend on Ada.Real_Time (which pulls the tasking runtime)
+      --  Cannot depend on Ada.Calendar (not permitter by Ravenscar).
    end Get_Boot_Time;
 
    ------------------
