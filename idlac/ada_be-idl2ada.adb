@@ -561,7 +561,11 @@ package body Ada_Be.Idl2Ada is
             PL (CU, "type Object is");
             if Parents (Node) = Nil_List then
                Add_With (CU, "PortableServer");
-               Put (CU, "  abstract new PortableServer.Servant_Base");
+               Put (CU, "  ");
+               if Is_Abstract (Node) then
+                  Put (CU, "abstract ");
+               end if;
+               Put (CU, "new PortableServer.Servant_Base");
             else
                declare
                   It : Node_Iterator;
@@ -582,7 +586,11 @@ package body Ada_Be.Idl2Ada is
                      --  of all its parents.
 
                      if First then
-                        Put (CU, "  abstract new "
+                        Put (CU, "  ");
+                        if Is_Abstract (Node) then
+                           Put (CU, "abstract ");
+                        end if;
+                        Put (CU, "new "
                              & Ada_Full_Name (P_Node)
                              & Impl_Suffix & ".Object");
                         First := False;
@@ -2531,13 +2539,30 @@ package body Ada_Be.Idl2Ada is
            K_Enum              |
            K_Union             |
            K_Struct            |
-           K_Declarator        |
            K_Forward_Interface |
            K_Sequence_Instance |
            K_String_Instance   =>
             Add_With (CU, Ada_Full_Name (Parent_Scope (Node))
                       & Stream_Suffix,
                       Use_It => True);
+
+         when K_Declarator =>
+            declare
+               Type_Declarator_Type : constant Node_Id
+                 := T_Type (Parent (Node));
+            begin
+               if Is_Interface_Type (Type_Declarator_Type) then
+                  --  For a typedef of an interface type, the
+                  --  dependance must be on the stream unit for
+                  --  the scope that contains the actual definition.
+                  Add_With_Stream (CU, Type_Declarator_Type);
+               else
+                  Add_With
+                    (CU, Ada_Full_Name (Parent_Scope (Node))
+                     & Stream_Suffix,
+                     Use_It => True);
+               end if;
+            end;
 
          when K_Scoped_Name =>
             Add_With_Stream (CU, Value (Node));
