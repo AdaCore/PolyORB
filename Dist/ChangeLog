@@ -7,6 +7,12 @@
 	* xe_check.adb: We reload ali files after a first step of
 	compilation. Unfortunatly, this reload was also done on Ada lib.
 
+1998-06-08  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_utils.adb: (Has_Standard_Extension): new function.
+	Do not issue "-x ada" when the file dealt with has a standard (ads 
+	or adb) extension.
+
 1998-05-12  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* make-ada-dir: Updated.

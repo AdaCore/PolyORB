@@ -86,6 +86,11 @@ package body XE_Utils is
       Show_Error : Boolean := True)
      return String_Access;
 
+   function Has_Standard_Extension (File : File_Name_Type) return Boolean;
+   --  Check whether File has a standard extension for GCC and hence does
+   --  not need the "-x ada" command line argument (typically ".ads" or
+   --  ".adb" terminated file).
+
    ---------
    -- "&" --
    ---------
@@ -424,23 +429,24 @@ package body XE_Utils is
       Object : in File_Name_Type;
       Args   : in Argument_List) is
 
-      Length      : constant Natural
+      Max_Length  : constant Natural
         := Gcc_Switches.Last - Gcc_Switches.First + 6 + Args'Length + 2;
 
       File_Name   : String_Access;
       Object_Name : String_Access;
 
-      Gcc_Flags   : Argument_List (1 .. Length);
+      Gcc_Flags   : Argument_List (1 .. Max_Length);
 
-      N_Gcc_Flags : Natural range 0 .. Length := 0;
+      N_Gcc_Flags : Natural range 0 .. Max_Length := 0;
 
    begin
+      if not Has_Standard_Extension (File) then
+         N_Gcc_Flags := N_Gcc_Flags + 1;
+         Gcc_Flags (N_Gcc_Flags) := Special_File_Flag;
 
-      N_Gcc_Flags := N_Gcc_Flags + 1;
-      Gcc_Flags (N_Gcc_Flags) := Special_File_Flag;
-
-      N_Gcc_Flags := N_Gcc_Flags + 1;
-      Gcc_Flags (N_Gcc_Flags) := Ada_File_Flag;
+         N_Gcc_Flags := N_Gcc_Flags + 1;
+         Gcc_Flags (N_Gcc_Flags) := Ada_File_Flag;
+      end if;
 
       N_Gcc_Flags := N_Gcc_Flags + 1;
       Gcc_Flags (N_Gcc_Flags) := Compile_Flag;
@@ -471,7 +477,7 @@ package body XE_Utils is
       N_Gcc_Flags := N_Gcc_Flags + 1;
       Gcc_Flags (N_Gcc_Flags) := I_Current_Dir;
 
-      Execute (Gcc, Gcc_Flags);
+      Execute (Gcc, Gcc_Flags (1 .. N_Gcc_Flags));
 
       Free (File_Name);
       Free (Object_Name);
@@ -558,6 +564,21 @@ package body XE_Utils is
       end loop;
       return Name_Find;
    end GNAT_Style;
+
+   ----------------------------
+   -- Has_Standard_Extension --
+   ----------------------------
+
+   function Has_Standard_Extension (File : File_Name_Type) return Boolean is
+   begin
+      Get_Name_String (File);
+      return
+        Name_Len > 3
+          and then
+        Name_Buffer (Name_Len - 3 .. Name_Len - 1) = ".ad"
+          and then
+        (Name_Buffer (Name_Len) = 's' or else Name_Buffer (Name_Len) = 'b');
+   end Has_Standard_Extension;
 
    ----------------
    -- Initialize --
