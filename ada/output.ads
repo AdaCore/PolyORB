@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -37,8 +37,7 @@
 --  for writing error messages and informational output. It is also used
 --  by the debug source file output routines (see Sprintf.Print_Eol).
 
-with GNAT.OS_Lib; use GNAT.OS_Lib;
-with Types;       use Types;
+with Types; use Types;
 
 package Output is
 pragma Elaborate_Body (Output);

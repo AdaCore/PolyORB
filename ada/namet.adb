@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -37,58 +37,12 @@
 --  source file must be properly reflected in the C header file a-namet.h
 --  which is created manually from namet.ads and namet.adb.
 
-with Alloc;
 with Debug;    use Debug;
 with Output;   use Output;
-with Table;
 with Tree_IO;  use Tree_IO;
 with Widechar; use Widechar;
 
 package body Namet is
-
-   --  This table stores the actual string names. Although logically there
-   --  is no need for a terminating character (since the length is stored
-   --  in the name entry table), we still store a NUL character at the end
-   --  of every name (for convenience in interfacing to the C world).
-
-   package Name_Chars is new Table.Table (
-     Table_Component_Type => Character,
-     Table_Index_Type     => Int,
-     Table_Low_Bound      => 0,
-     Table_Initial        => Alloc.Name_Chars_Initial,
-     Table_Increment      => Alloc.Name_Chars_Increment,
-     Table_Name           => "Name_Chars");
-
-   type Name_Entry is record
-      Name_Chars_Index : Int;
-      --  Starting location of characters in the Name_Chars table minus
-      --  one (i.e. pointer to character just before first character). The
-      --  reason for the bias of one is that indexes in Name_Buffer are
-      --  one's origin, so this avoids unnecessary adds and subtracts of 1.
-
-      Name_Len : Short;
-      --  Length of this name in characters
-
-      Byte_Info : Byte;
-      --  Byte value associated with this name
-
-      Hash_Link : Name_Id;
-      --  Link to next entry in names table for same hash code
-
-      Int_Info : Int;
-      --  Int Value associated with this name
-   end record;
-
-   --  This is the table that is referenced by Name_Id entries.
-   --  It contains one entry for each unique name in the table.
-
-   package Name_Entries is new Table.Table (
-     Table_Component_Type => Name_Entry,
-     Table_Index_Type     => Name_Id,
-     Table_Low_Bound      => First_Name_Id,
-     Table_Initial        => Alloc.Names_Initial,
-     Table_Increment      => Alloc.Names_Increment,
-     Table_Name           => "Name_Entries");
 
    Name_Chars_Reserve   : constant := 5000;
    Name_Entries_Reserve : constant := 100;
@@ -477,101 +431,33 @@ package body Namet is
    -----------------------------
 
    procedure Get_Decoded_Name_String (Id : Name_Id) is
+      C : Character;
       P : Natural;
 
    begin
       Get_Name_String (Id);
 
-      --  Case of operator name
-
-      if Name_Buffer (1) = 'O' then
-         Name_Buffer (1) := '"';
-
-         declare
-            --  This table maps the 2nd and 3rd characters of the name into
-            --  the required output. Two blanks means leave the name alone
-
-            Map : constant String :=
-               "ab  " &                   --  Oabs         => "abs"
-               "ad+ " &                   --  Oadd         => "+"
-               "an  " &                   --  Oand         => "and"
-               "co& " &                   --  Oconcat      => "&"
-               "di/ " &                   --  Odivide      => "/"
-               "eq= " &                   --  Oeq          => "="
-               "ex**" &                   --  Oexpon       => "**"
-               "gt> " &                   --  Ogt          => ">"
-               "ge>=" &                   --  Oge          => ">="
-               "le<=" &                   --  Ole          => "<="
-               "lt< " &                   --  Olt          => "<"
-               "mo  " &                   --  Omod         => "mod"
-               "mu* " &                   --  Omutliply    => "*"
-               "ne/=" &                   --  One          => "/="
-               "no  " &                   --  Onot         => "not"
-               "or  " &                   --  Oor          => "or"
-               "re  " &                   --  Orem         => "rem"
-               "su- " &                   --  Osubtract    => "-"
-               "xo  ";                    --  Oxor         => "xor"
-
-            J : Integer;
-
-         begin
-            J := Map'First;
-
-            --  Note that this loop must terminate, if not we have some kind
-            --  of internal error, and a constraint error will be raised.
-
-            loop
-               exit when Name_Buffer (2) = Map (J)
-                 and then Name_Buffer (3) = Map (J + 1);
-               J := J + 4;
-            end loop;
-
-            --  Special operator name
-
-            if Map (J + 2) /= ' ' then
-               Name_Buffer (2) := Map (J + 2);
-               Name_Len := 3;
-
-               if Map (J + 3) /= ' ' then
-                  Name_Buffer (3) := Map (J + 3);
-                  Name_Len := 4;
-               end if;
-
-               Name_Buffer (Name_Len) := '"';
-               return;
-
-            --  For other operator names, leave them in lower case,
-            --  surrounded by apostrophes
-
-            else
-               Name_Len := Name_Len + 1;
-               Name_Buffer (Name_Len) := '"';
-               return;
-            end if;
-         end;
-      end if;
-
-      --  For character literals, put apostrophes around, and then fall into
-      --  the remaining circuit for possible decoding of Uhh/Whhhh sequence.
-
-      if Name_Buffer (1) = 'Q' then
-         Name_Buffer (1) := ''';
-         Name_Len := Name_Len + 1;
-         Name_Buffer (Name_Len) := ''';
-      end if;
-
-      --  Only remaining task is to decode Uhh and Whhhh sequences. First
-      --  a quick check to see if there are any such sequences in the name
+      --  Quick loop to see if there is anything special to do
 
       P := 1;
       loop
          if P = Name_Len then
             return;
-         end if;
 
-         exit when Name_Buffer (P) = 'U' or else Name_Buffer (P) = 'W';
-         P := P + 1;
+         else
+            C := Name_Buffer (P);
+
+            exit when
+              C = 'U' or else
+              C = 'W' or else
+              C = 'Q' or else
+              C = 'O';
+
+            P := P + 1;
+         end if;
       end loop;
+
+      --  Here we have at least some encoding that we must decode
 
       --  Here we have to decode one or more Uhh or Whhhh sequences
 
@@ -580,8 +466,35 @@ package body Namet is
          Old     : Positive;
          New_Buf : String (1 .. Hostparm.Max_Name_Length);
 
+         procedure Insert_Character (C : Character);
+         --  Insert a new character into output decoded name
+
+         procedure Copy_One_Character;
+         --  Copy a character from Name_Buffer to New_Buf. Includes case
+         --  of copying a Uhh or Whhhh sequence and decoding it.
+
          function Hex (N : Natural) return Natural;
          --  Scans past N digits using Old pointer and returns hex value
+
+         procedure Copy_One_Character is
+            C : Character;
+
+         begin
+            C := Name_Buffer (Old);
+
+            if C = 'U' then
+               Old := Old + 1;
+               Insert_Character (Character'Val (Hex (2)));
+
+            elsif C = 'W' then
+               Old := Old + 1;
+               Widechar.Set_Wide (Char_Code (Hex (4)), New_Buf, New_Len);
+
+            else
+               Insert_Character (Name_Buffer (Old));
+               Old := Old + 1;
+            end if;
+         end Copy_One_Character;
 
          function Hex (N : Natural) return Natural is
             T : Natural := 0;
@@ -604,30 +517,125 @@ package body Namet is
             return T;
          end Hex;
 
+         procedure Insert_Character (C : Character) is
+         begin
+            New_Len := New_Len + 1;
+            New_Buf (New_Len) := C;
+         end Insert_Character;
+
+      --  Actual decoding processing
+
       begin
          New_Len := 0;
          Old := 1;
 
-         while Old <= Name_Len loop
-            if Name_Buffer (Old) = 'U' then
-               Old := Old + 1;
-               New_Len := New_Len + 1;
-               New_Buf (New_Len) := Character'Val (Hex (2));
+         --  Loop through characters of name
 
-            elsif Name_Buffer (Old) = 'W' then
+         while Old <= Name_Len loop
+
+            --  Case of character literal, put apostrophes around character
+
+            if Name_Buffer (Old) = 'Q' then
                Old := Old + 1;
-               Widechar.Set_Wide (Char_Code (Hex (4)), New_Buf, New_Len);
+               Insert_Character (''');
+               Copy_One_Character;
+               Insert_Character (''');
+
+            --  Case of operator name
+
+            elsif Name_Buffer (Old) = 'O' then
+               Old := Old + 1;
+
+               declare
+                  --  This table maps the 2nd and 3rd characters of the name
+                  --  into the required output. Two blanks means leave the
+                  --  name alone
+
+                  Map : constant String :=
+                     "ab  " &               --  Oabs         => "abs"
+                     "ad+ " &               --  Oadd         => "+"
+                     "an  " &               --  Oand         => "and"
+                     "co& " &               --  Oconcat      => "&"
+                     "di/ " &               --  Odivide      => "/"
+                     "eq= " &               --  Oeq          => "="
+                     "ex**" &               --  Oexpon       => "**"
+                     "gt> " &               --  Ogt          => ">"
+                     "ge>=" &               --  Oge          => ">="
+                     "le<=" &               --  Ole          => "<="
+                     "lt< " &               --  Olt          => "<"
+                     "mo  " &               --  Omod         => "mod"
+                     "mu* " &               --  Omutliply    => "*"
+                     "ne/=" &               --  One          => "/="
+                     "no  " &               --  Onot         => "not"
+                     "or  " &               --  Oor          => "or"
+                     "re  " &               --  Orem         => "rem"
+                     "su- " &               --  Osubtract    => "-"
+                     "xo  ";                --  Oxor         => "xor"
+
+                  J : Integer;
+
+               begin
+                  Insert_Character ('"');
+
+                  --  Search the map. Note that this loop must terminate, if
+                  --  not we have some kind of internal error, and a constraint
+                  --  constraint error may be raised.
+
+                  J := Map'First;
+                  loop
+                     exit when Name_Buffer (Old) = Map (J)
+                       and then Name_Buffer (Old + 1) = Map (J + 1);
+                     J := J + 4;
+                  end loop;
+
+                  --  Special operator name
+
+                  if Map (J + 2) /= ' ' then
+                     Insert_Character (Map (J + 2));
+
+                     if Map (J + 3) /= ' ' then
+                        Insert_Character (Map (J + 3));
+                     end if;
+
+                     Insert_Character ('"');
+
+                     --  Skip past original operator name in input
+
+                     while Old <= Name_Len
+                       and then Name_Buffer (Old) in 'a' .. 'z'
+                     loop
+                        Old := Old + 1;
+                     end loop;
+
+                  --  For other operator names, leave them in lower case,
+                  --  surrounded by apostrophes
+
+                  else
+                     --  Copy original operator name from input to output
+
+                     while Old <= Name_Len
+                        and then Name_Buffer (Old) in 'a' .. 'z'
+                     loop
+                        Copy_One_Character;
+                     end loop;
+
+                     Insert_Character ('"');
+                  end if;
+               end;
+
+            --  Else copy one character and keep going
 
             else
-               New_Len := New_Len + 1;
-               New_Buf (New_Len) := Name_Buffer (Old);
-               Old := Old + 1;
+               Copy_One_Character;
             end if;
          end loop;
+
+         --  Copy new buffer as result
 
          Name_Len := New_Len;
          Name_Buffer (1 .. New_Len) := New_Buf (1 .. New_Len);
       end;
+
    end Get_Decoded_Name_String;
 
    -------------------------------------------
@@ -755,18 +763,18 @@ package body Namet is
 
    function Is_Internal_Name return Boolean is
    begin
-      for J in 1 .. Name_Len loop
-         if Is_OK_Internal_Letter (Name_Buffer (J)) then
-            return True;
+      if Name_Buffer (1) = '_'
+        or else Name_Buffer (Name_Len) = '_'
+      then
+         return True;
 
-         elsif Name_Buffer (J) = '_'
-           and then (J = 1
-                      or else J = Name_Len
-                      or else Name_Buffer (J + 1) = '_')
-         then
-            return True;
-         end if;
-      end loop;
+      else
+         for J in 1 .. Name_Len loop
+            if Is_OK_Internal_Letter (Name_Buffer (J)) then
+               return True;
+            end if;
+         end loop;
+      end if;
 
       return False;
    end Is_Internal_Name;

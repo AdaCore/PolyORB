@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -33,10 +33,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Alloc;
 with Hostparm; use Hostparm;
+with Table;
+with System;   use System;
 with Types;    use Types;
-
-with System;  use System;
 
 package Namet is
 
@@ -231,8 +232,8 @@ package Namet is
 
    function Is_Internal_Name (Id : Name_Id) return Boolean;
    --  Returns True if the name is an internal name (i.e. contains a character
-   --  for which Is_OK_Internal_Letter is true, or starts or has an invalid
-   --  underscore character). This call destroys the value of Name_Len and
+   --  for which Is_OK_Internal_Letter is true, or if the name starts or ends
+   --  with an underscore. This call destroys the value of Name_Len and
    --  Name_Buffer (it loads these as for Get_Name_String).
 
    function Is_Internal_Name return Boolean;
@@ -306,7 +307,61 @@ package Namet is
 
    procedure Write_Name_Decoded (Id : Name_Id);
    --  Like Write_Name, except that the name written is the decoded name, as
-   --  described for Name_Decode, and the resulting value stored in Name_Len
-   --  and Name_Buffer is the decoded name.
+   --  described for Get_Name_Decoded, and the resulting value stored in
+   --  Name_Len and Name_Buffer is the decoded name.
+
+   ---------------------------
+   -- Table Data Structures --
+   ---------------------------
+
+   --  The following declarations define the data structures used to store
+   --  names. The definitions are in the private part of the package spec,
+   --  rather than the body, since they are referenced directly by gigi.
+
+private
+
+   --  This table stores the actual string names. Although logically there
+   --  is no need for a terminating character (since the length is stored
+   --  in the name entry table), we still store a NUL character at the end
+   --  of every name (for convenience in interfacing to the C world).
+
+   package Name_Chars is new Table.Table (
+     Table_Component_Type => Character,
+     Table_Index_Type     => Int,
+     Table_Low_Bound      => 0,
+     Table_Initial        => Alloc.Name_Chars_Initial,
+     Table_Increment      => Alloc.Name_Chars_Increment,
+     Table_Name           => "Name_Chars");
+
+   type Name_Entry is record
+      Name_Chars_Index : Int;
+      --  Starting location of characters in the Name_Chars table minus
+      --  one (i.e. pointer to character just before first character). The
+      --  reason for the bias of one is that indexes in Name_Buffer are
+      --  one's origin, so this avoids unnecessary adds and subtracts of 1.
+
+      Name_Len : Short;
+      --  Length of this name in characters
+
+      Byte_Info : Byte;
+      --  Byte value associated with this name
+
+      Hash_Link : Name_Id;
+      --  Link to next entry in names table for same hash code
+
+      Int_Info : Int;
+      --  Int Value associated with this name
+   end record;
+
+   --  This is the table that is referenced by Name_Id entries.
+   --  It contains one entry for each unique name in the table.
+
+   package Name_Entries is new Table.Table (
+     Table_Component_Type => Name_Entry,
+     Table_Index_Type     => Name_Id,
+     Table_Low_Bound      => First_Name_Id,
+     Table_Initial        => Alloc.Names_Initial,
+     Table_Increment      => Alloc.Names_Increment,
+     Table_Name           => "Name_Entries");
 
 end Namet;

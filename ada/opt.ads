@@ -422,10 +422,24 @@ package Opt is
    --  double length arithmetic followed by a range check). Set to False
    --  if the target implements hardware overflow checking.
 
-   Stack_Check_Probes_Val : Boolean;
+   Stack_Checking_Enabled : Boolean;
    --  GNAT
-   --  Set to the return value of Sem_Util.Stack_Check_Probes
-   --  in Frontend, before Gigi is called.
+   --  Set to indicate if -fstack-check switch is set for the compilation.
+   --  True means that the switch is set, so that stack checking is enabled.
+   --  False means that the switch is not set (no stack checking). This
+   --  value is obtained from the external imported value flag_stack_check
+   --  in the gcc backend using Sem_Util.Set_Stack_Check_Flags. This value
+   --  is set at the start of compilation, and may be referenced throughout
+   --  the compilation phases.
+
+   Stack_Check_Probes_Val : Boolean;
+   --  GNAT (gigi)
+   --  This flag is set from the entity Stack_Check_Probes in the *target*
+   --  version of System. It indicates whether or not the target system
+   --  uses stack probes (True) or the alternative comparison scheme (False).
+   --  This value is obtained using Rtsfind by Sem_Util.Set_Stack_Check_Flags.
+   --  Note that this value is NOT set until after semantic analysis of the
+   --  main unit is complete, so it cannot be referenced during this analysis.
 
    Strict_Math : aliased Boolean := False;
    --  GNAT

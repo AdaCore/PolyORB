@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -79,7 +79,7 @@ package Fname is
 
    --  Examples of these rules are:
 
-   --    Unit                           Unit name           File name
+   --    Unit                           Unit name          Default file name
 
    --    Packge_Scan (spec)             packge_scan%s      packge_scan.ads
    --    Packge_Scan (body)             packge_scan%b      packge_scan.adb
@@ -87,7 +87,7 @@ package Fname is
    --    Child.Pkg (child unit spec)    child.pkg%s        child-pkg.ads
    --    Child.Pkg (child unit body)    child.pkg%b        child-pkg.adb
    --    Xyz.Arg.Lms (child subunit)    xyz.arg.lms%b      xyz-arg-lms.adb
-   --    Accent?d (spec)                accentUc1d         accent?d.ads
+   --    Accent?d (spec)                accentUc1d%s       accent?d.ads
 
    --  In the last example, ? stands for the graphic character that is
    --  displayed for the character UC_A_Acute (i.e. an upper case accented A).
@@ -114,11 +114,11 @@ package Fname is
    --  naming convention. It is a configuration pragma, and so has the usual
    --  applicability of configuration pragmas (i.e. it applies to either an
    --  entire partition, or to all units in a compilation, or to a single
-   --  unit, depending on how it is used. The form of the pragma is:
+   --  unit, depending on how it is used. The usual form of the pragma is:
 
    --    pragma Source_File_Name (
    --      [UNIT_NAME =>] unit_NAME,
-   --      [BODY_FILE_NAME | SPEC_FILE_NAME] => STRING_LITERAL)
+   --      [BODY_FILE_NAME | SPEC_FILE_NAME] => STRING_LITERAL);
 
    --  The given unit name is mapped to the given file name. The identifier
    --  for the second argument is required, and indicates whether this is
@@ -126,6 +126,56 @@ package Fname is
 
    --  If the given unit name is given to Get_File_Name, then the file name
    --  returned will be that established by the Source_File_Name pragma.
+
+   -------------------------------------------------
+   --  Confusion Between Subunits and Child Units --
+   -------------------------------------------------
+
+   --  The above described scheme is the one used for all versions of
+   --  GNAT up through 3.12. During the developement of subsequent versions
+   --  it was noticed that there is an odd anomoly, as indicated by the
+   --  following units:
+
+   --     package P is
+   --        pragma Elaborate_Body;
+   --     end;
+
+   --     package body P is
+   --        procedure P is separate;
+   --     end P;
+
+   --     with P;
+   --     procedure P.P (I : Integer);
+
+   --  In this somewhat contrived example, both the subunit and child unit
+   --  have the expanded name P.P, and according to the above rules, then
+   --  both of these units would have the name p-p.adb by default, and the
+   --  use of Soure_File_Name cannot help to resolve the ambiguity.
+
+   --  If this had been realized earlier, the cleanest fix would be to
+   --  have chosen a different file naming convention for subunits, but
+   --  that is too disruptive to tools and existing applications.
+
+   --  One approach would be to change the unit name conventions, but that
+   --  too is a fairly drastic change for a very obscure situation.
+
+   --  Consequently the approach we take is to introduce the Subunit argument
+   --  in the Get_File_Name call to indicate if a subunit is involved, so
+   --  that Fname has at least the information to deal with the situation.
+
+   --  Second, we add a new possibility to the Source_File_Name pragma:
+
+   --    pragma Source_File_Name (
+   --      [UNIT_NAME =>] unit_NAME,
+   --      BODY_FILE_NAME    => STRING_LITERAL,
+   --      SUBUNIT_FILE_NAME => STRING_LITERAL);
+
+   --  This form must be used for a program which contains both a child unit
+   --  and a subunit with identical unit names. The pragma specifies the
+   --  actual file names to be used for the body and for the subunit.
+
+   --  This was the minimally disruptive change needed to accomodate this
+   --  strange case, which still has not shown up in any actual customer use.
 
    -----------------
    -- Subprograms --
@@ -142,10 +192,15 @@ package Fname is
    --  be determined with the file naming conventions in use, then the returned
    --  value is set to Unknown.
 
-   function Get_File_Name (Uname : Unit_Name_Type) return File_Name_Type;
+   function Get_File_Name
+     (Uname   : Unit_Name_Type;
+      Subunit : Boolean)
+      return    File_Name_Type;
    --  This function returns the file name that corresponds to a given unit
-   --  name. The caller is responsible for ensuring that the unit name meets
-   --  the requirements given in package Uname and described above.
+   --  name, Uname. The Subunit parameter is set True for subunits, and
+   --  false for all other kinds of units. The caller is responsible for
+   --  ensuring that the unit name meets the requirements given in package
+   --  Uname and described above.
 
    procedure Initialize;
    --  Initialize internal tables
@@ -183,9 +238,15 @@ package Fname is
    --  name. The unit name here is not encoded as a Unit_Name_Type, but is
    --  rather just a normal form name in lower case, e.g. "xyz.def".
 
-   procedure Set_File_Name (U : Unit_Name_Type; F : File_Name_Type);
-   --  Make association between given unit name and given file name. This
-   --  is the routine called to process a Source_File_Name pragma.
+   procedure Set_File_Name
+     (U : Unit_Name_Type;
+      F : File_Name_Type;
+      S : File_Name_Type := No_Name);
+   --  Make association between given unit name, U, and the given file name,
+   --  F. This is the routine called to process a Source_File_Name pragma.
+   --  S need be set only for the case where a SUBUNIT_FILE_NAME third
+   --  argument is present for the pragma, and records the file name from
+   --  this third argument.
 
    procedure Tree_Read;
    --  Initializes internal tables from current tree file using Tree_Read.

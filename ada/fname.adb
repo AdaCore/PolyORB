@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1997, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-1999, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -53,7 +53,9 @@ package body Fname is
    type SFN_Entry is record
       U : Unit_Name_Type;
       F : File_Name_Type;
+      S : File_Name_Type;
    end record;
+   --  Record single call to Set_File_Name
 
    package SFN_Table is new Table.Table (
      Table_Component_Type => SFN_Entry,
@@ -62,6 +64,7 @@ package body Fname is
      Table_Initial        => Alloc.SFN_Table_Initial,
      Table_Increment      => Alloc.SFN_Table_Increment,
      Table_Name           => "SFN_Table");
+   --  Table recording all calls to Set_File_Name
 
    type SFN_Header_Num is range 0 .. 100;
 
@@ -70,11 +73,13 @@ package body Fname is
 
    package SFN_HTable is new GNAT.HTable.Simple_HTable (
      Header_Num => SFN_Header_Num,
-     Element    => File_Name_Type,
-     No_Element => No_File,
+     Element    => Int,
+     No_Element => -1,
      Key        => Unit_Name_Type,
      Hash       => SFN_Hash,
      Equal      => "=");
+   --  Hash table allowing rapid access to SFN_Table, the element value
+   --  is an index into this table.
 
    -----------------------
    -- File_Name_Of_Body --
@@ -85,7 +90,7 @@ package body Fname is
       Get_Name_String (Name);
       Name_Buffer (Name_Len + 1 .. Name_Len + 2) := "%b";
       Name_Len := Name_Len + 2;
-      return Get_File_Name (Name_Enter);
+      return Get_File_Name (Name_Enter, Subunit => False);
    end File_Name_Of_Body;
 
    -----------------------
@@ -97,7 +102,7 @@ package body Fname is
       Get_Name_String (Name);
       Name_Buffer (Name_Len + 1 .. Name_Len + 2) := "%s";
       Name_Len := Name_Len + 2;
-      return Get_File_Name (Name_Enter);
+      return Get_File_Name (Name_Enter, Subunit => False);
    end File_Name_Of_Spec;
 
    ----------------------------
@@ -130,19 +135,30 @@ package body Fname is
    -- Get_File_Name --
    -------------------
 
-   function Get_File_Name (Uname : Unit_Name_Type) return File_Name_Type is
+   function Get_File_Name
+     (Uname   : Unit_Name_Type;
+      Subunit : Boolean)
+      return    File_Name_Type
+   is
       Unit_Char : Character;
       --  Set to 's' or 'b' for spec or body
 
       J : Integer;
-      N : File_Name_Type;
+      N : Int;
 
    begin
       N := SFN_HTable.Get (Uname);
 
-      if N /= No_File then
-         return N;
+      if N /= -1 then
+         if Subunit and then SFN_Table.Table (N).S /= No_Name then
+            return SFN_Table.Table (N).S;
+         else
+            return SFN_Table.Table (N).F;
+         end if;
       end if;
+
+      --  Here for case where name was not found in the table, in this
+      --  case we return the default file name (see rules in spec).
 
       Get_Decoded_Name_String (Uname);
 
@@ -157,11 +173,13 @@ package body Fname is
 
       --  and build a file name that looks like:
 
-      --    _and_%s
+      --    _and_.ads
 
-      --  which is bit peculiar, but we keep it that way
+      --  which is bit peculiar, but we keep it that way. This means that
+      --  we avoid bombs due to writing a bad file name, and w get expected
+      --  error processing downstream, e.g. a compilation following gnatchop.
 
-      if Name_Buffer (Name_Len) = '"' then
+      if Name_Buffer (1) = '"' then
          Get_Name_String (Uname);
          Name_Len := Name_Len + 1;
          Name_Buffer (Name_Len)     := Name_Buffer (Name_Len - 1);
@@ -364,11 +382,15 @@ package body Fname is
    -- Set_File_Name --
    -------------------
 
-   procedure Set_File_Name (U : Unit_Name_Type; F : File_Name_Type) is
+   procedure Set_File_Name
+     (U : Unit_Name_Type;
+      F : File_Name_Type;
+      S : File_Name_Type := No_Name)
+   is
    begin
       SFN_Table.Increment_Last;
-      SFN_Table.Table (SFN_Table.Last) := (U, F);
-      SFN_HTable.Set (U, F);
+      SFN_Table.Table (SFN_Table.Last) := (U, F, S);
+      SFN_HTable.Set (U, SFN_Table.Last);
    end Set_File_Name;
 
    --------------
@@ -391,7 +413,7 @@ package body Fname is
       --  Reestablish the hash table
 
       for J in SFN_Table.First .. SFN_Table.Last loop
-         SFN_HTable.Set (SFN_Table.Table (J).U, SFN_Table.Table (J).F);
+         SFN_HTable.Set (SFN_Table.Table (J).U, J);
       end loop;
    end Tree_Read;
 

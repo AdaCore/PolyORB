@@ -545,13 +545,16 @@ package body Make is
             end if;
 
             --  Convert unit name into spec name
+
             --  ??? this code seems dubious in presence of pragma
             --  Source_File_Name since there is no more direct relationship
             --  between unit name and file name.
 
+            --  ??? Further, what about alternative subunit naming
+
             Name_Buffer (Name_Len) := 's';
             Spec_Name := Name_Find;
-            File_Name := Get_File_Name (Spec_Name);
+            File_Name := Get_File_Name (Spec_Name, Subunit => False);
 
             --  Look if File_Name is mentioned in A's sdep list.
             --  If not look if the file exists. If it does return True.

@@ -59,14 +59,11 @@ package Alloc is
    Entity_Suppress_Initial          : constant := 100;     -- Sem
    Entity_Suppress_Increment        : constant := 200;
 
-   Feature_List_Initial             : constant := 5;       -- Features
-   Feature_List_Increment           : constant := 300;
+   Inlined_Bodies_Initial           : constant := 50;      -- Inline
+   Inlined_Bodies_Increment         : constant := 200;
 
    Inlined_Initial                  : constant := 100;     -- Inline
    Inlined_Increment                : constant := 100;
-
-   Inlined_Bodies_Initial           : constant := 50;      -- Inline
-   Inlined_Bodies_Increment         : constant := 200;
 
    Interp_Map_Initial               : constant := 200;     -- Sem_Type
    Interp_Map_Increment             : constant := 100;
@@ -85,6 +82,9 @@ package Alloc is
 
    Name_Chars_Initial               : constant := 50_000;  -- Namet
    Name_Chars_Increment             : constant := 100;
+
+   Name_Qualify_Units_Initial       : constant := 200;     -- Exp_Dbug
+   Name_Qualify_Units_Increment     : constant := 300;
 
    Names_Initial                    : constant := 6_000;   -- Namet
    Names_Increment                  : constant := 100;

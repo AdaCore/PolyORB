@@ -82,6 +82,16 @@ package body Table is
          return Table_Index_Type (Old_Last + 1);
       end Allocate;
 
+      ------------
+      -- Append --
+      ------------
+
+      procedure Append (New_Val : Table_Component_Type) is
+      begin
+         Increment_Last;
+         Table (Table_Index_Type (Last_Val)) := New_Val;
+      end Append;
+
       --------------------
       -- Decrement_Last --
       --------------------

@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -161,6 +161,13 @@ pragma Elaborate_Body (Table);
       function Allocate (Num : Int := 1) return Table_Index_Type;
       pragma Inline (Allocate);
       --  Adds Num to Last, and returns the old value of Last + 1.
+
+      procedure Append (New_Val : Table_Component_Type);
+      --  Equivalent to:
+      --    x.Increment_Last;
+      --    x.Table (x.Last) := New_Val;
+      --  i.e. the table size is increased by one, and the given new item
+      --  stored in the newly created table element.
 
       type Saved_Table is private;
       --  Type used for Save/Restore subprograms
