@@ -140,7 +140,7 @@ package PolyORB.Protocols.GIOP.Common is
       Request_Id   : in     Types.Unsigned_Long;
       Reply_Status : in     Reply_Status_Type);
 
-   -- Helper routines to replace Error Kind
+   --  Helper routines to replace Error Kind
 
    procedure Replace_Marshal_5_To_Bad_Param_23
      (Error  : in out Exceptions.Error_Container;
