@@ -367,7 +367,8 @@ package body PolyORB.Protocols.GIOP is
       Success         : Boolean;
    begin
       if (Sess.Conf.Permitted_Sync_Scopes and R.Req_Flags) = 0
-        or else (Sess.Implem.Permitted_Sync_Scopes and R.Req_Flags) = 0 then
+        or else (Sess.Implem.Permitted_Sync_Scopes and R.Req_Flags) = 0
+      then
          pragma Debug (O ("Requested sync scope not supported"));
          raise GIOP_Error;
       end if;
@@ -376,7 +377,9 @@ package body PolyORB.Protocols.GIOP is
       New_Pending_Req.Req := R;
       New_Pending_Req.Target_Profile := Profile_Access (Pro);
 
-      if Is_Set (Sync_With_Transport, R.Req_Flags) then
+      if Is_Set (Sync_None, R.Req_Flags)
+        or else Is_Set (Sync_With_Transport, R.Req_Flags)
+      then
 
          --  Oneway call: we won't see any reply for this request,
          --  therefore we need to destroy the pending request
@@ -402,10 +405,14 @@ package body PolyORB.Protocols.GIOP is
          return;
       end if;
 
+      --  Two-way call: a reply is expected, we store the pending
+      --  request.
+
       if Sess.Implem.Locate_Then_Request then
          New_Pending_Req.Locate_Req_Id := Get_Request_Id (Sess);
          Add_Pending_Request (Sess, New_Pending_Req);
          Locate_Object (Sess.Implem, Sess, New_Pending_Req);
+
       else
          Add_Pending_Request (Sess, New_Pending_Req);
          Send_Request (Sess.Implem, Sess, New_Pending_Req, Error);
@@ -672,9 +679,20 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Any.NVList.Internals.NV_Lists;
       use PolyORB.Exceptions;
 
-      It  : Iterator := First (List_Of (Args).all);
+      It  : Iterator;
       Arg : Element_Access;
+
    begin
+      if List_Of (Args) = null then
+         --  Do not fail if there is no argument to marshall, for
+         --  instance if we build an acknowledge response (in
+         --  Sync_With_Server mode) prior to reading arguments.
+
+         return;
+      end if;
+
+      It := First (List_Of (Args).all);
+
       pragma Assert (Direction = ARG_IN or Direction = ARG_OUT);
 
       if not Last (It) then
