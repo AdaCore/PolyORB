@@ -136,21 +136,15 @@ package body Exp_Hlpr is
    --  The generated statements are appended to Stmts.
 
    generic
-      --  XXX
-      --  TBDeleted
-      Subprogram : Entity_Id;
-      pragma Unreferenced (Subprogram);
-      --  Reference location for constructed nodes.
-
       Rec : Entity_Id;
       --  The record entity being dealt with.
 
       with procedure Add_Process_Element
-        (Stmts   : List_Id;
-         Any     : Entity_Id;
-         Counter : in out Int;
-         Rec     : Entity_Id;
-         Field   : Node_Id);
+        (Stmts     :        List_Id;
+         Container :        Node_Or_Entity_Id;
+         Counter   : in out Int;
+         Rec       :        Entity_Id;
+         Field     :        Node_Id);
       --  Rec is the instance of the record type, or Empty.
       --  Field is either the N_Defining_Identifier for a component,
       --  or an N_Variant_Part.
@@ -158,12 +152,12 @@ package body Exp_Hlpr is
    procedure Append_Record_Traversal
      (Stmts     :        List_Id;
       Clist     :        Node_Id;
-      Container :        Entity_Id;
+      Container :        Node_Or_Entity_Id;
       Counter   : in out Int);
    --  Process component list Clist. Individual fields are passed
    --  to Field_Processing. Each variant part is also processed.
-   --  Container is the outer Any (for From_Any and To_Any) or
-   --  TypeCode (for TC) to which the operation applies.
+   --  Container is the outer Any (for From_Any/To_Any),
+   --  the outer typecode (for TC) to which the operation applies.
 
    -----------------------------
    -- Append_Record_Traversal --
@@ -172,7 +166,7 @@ package body Exp_Hlpr is
    procedure Append_Record_Traversal
      (Stmts     :        List_Id;
       Clist     :        Node_Id;
-      Container :        Entity_Id;
+      Container :        Node_Or_Entity_Id;
       Counter   : in out Int)
    is
       CI : constant List_Id := Component_Items (Clist);
@@ -414,8 +408,7 @@ package body Exp_Hlpr is
 
                procedure FA_Append_Record_Traversal is
                   new Append_Record_Traversal
-                 (Subprogram          => Fnam,
-                  Rec                 => Res,
+                 (Rec                 => Res,
                   Add_Process_Element => FA_Rec_Add_Process_Element);
 
                procedure FA_Rec_Add_Process_Element
@@ -449,7 +442,6 @@ package body Exp_Hlpr is
 
                      declare
                         Variant : Node_Id;
-                        Choice  : Node_Id;
                         Struct_Counter : Int := 0;
 
                         Block_Decls : constant List_Id := New_List;
@@ -511,7 +503,8 @@ package body Exp_Hlpr is
                         Variant := First_Non_Pragma (Variants (Field));
 
                         while Present (Variant) loop
-                           Choice_List := New_Copy_List_Tree (Discrete_Choices (Variant));
+                           Choice_List := New_Copy_List_Tree
+                             (Discrete_Choices (Variant));
 
                            VP_Stmts := New_List;
                            FA_Append_Record_Traversal (
@@ -1154,21 +1147,25 @@ package body Exp_Hlpr is
                Elements : List_Id := New_List;
 
                procedure TA_Rec_Add_Process_Element
-                 (Stmts   : List_Id;
-                  Any     : Entity_Id;
-                  Counter : in out Int;
-                  Rec     : Entity_Id;
-                  Field   : Node_Id);
+                 (Stmts     :        List_Id;
+                  Container :        Node_Or_Entity_Id;
+                  Counter   : in out Int;
+                  Rec       :        Entity_Id;
+                  Field     :        Node_Id);
+
+               procedure TA_Append_Record_Traversal is
+                  new Append_Record_Traversal
+                    (Rec                 => Expr_Parameter,
+                     Add_Process_Element => TA_Rec_Add_Process_Element);
 
                procedure TA_Rec_Add_Process_Element
-                 (Stmts   : List_Id;
-                  Any     : Entity_Id;
-                  Counter : in out Int;
-                  Rec     : Entity_Id;
-                  Field   : Node_Id)
+                 (Stmts     :        List_Id;
+                  Container :        Node_Or_Entity_Id;
+                  Counter   : in out Int;
+                  Rec       :        Entity_Id;
+                  Field     :        Node_Id)
                is
                   Field_Ref : Node_Id;
-                  pragma Unreferenced (Counter);
                begin
                   if Nkind (Field) = N_Defining_Identifier then
 
@@ -1178,6 +1175,7 @@ package body Exp_Hlpr is
                        Prefix => New_Occurrence_Of (Rec, Loc),
                        Selector_Name => New_Occurrence_Of (Field, Loc));
                      Set_Etype (Field_Ref, Etype (Field));
+
                      Append_To (Stmts,
                        Make_Procedure_Call_Statement (Loc,
                          Name =>
@@ -1186,51 +1184,47 @@ package body Exp_Hlpr is
                          Parameter_Associations => New_List (
                            New_Occurrence_Of (Any, Loc),
                            Build_To_Any_Call (Field_Ref, Decls))));
+
                   else
 
                      --  A variant part
 
                      declare
                         Variant : Node_Id;
---                      Choice  : Node_Id;
---                      Struct_Counter : Int := 0;
+                        Struct_Counter : Int := 0;
 
                         Block_Decls : constant List_Id := New_List;
                         Block_Stmts : constant List_Id := New_List;
---                      VP_Stmts : List_Id;
+                        VP_Stmts    : List_Id;
 
                         Alt_List : constant List_Id := New_List;
                         Choice_List : List_Id;
 
+                        Union_Any : constant Entity_Id
+                          := Make_Defining_Identifier (Loc,
+                               New_Internal_Name ('U'));
                         Struct_Any : constant Entity_Id
                           := Make_Defining_Identifier (Loc,
                                New_Internal_Name ('S'));
+
+                        function Make_Discriminant_Reference return Node_Id;
+                        --  Build a selected component for the discriminant
+                        --  of this variant part.
+
+                        function Make_Discriminant_Reference return Node_Id is
+                           Nod : constant Node_Id
+                             := Make_Selected_Component (Loc,
+                                  Prefix =>
+                                    New_Occurrence_Of (Rec, Loc),
+                                  Selector_Name =>
+                                    New_Occurrence_Of (
+                                      Entity (Name (Field)), Loc));
+                        begin
+                           Set_Etype (Nod, Name (Field));
+                           return Nod;
+                        end Make_Discriminant_Reference;
+
                      begin
-
-                        Append_To (Decls,
-                          Make_Object_Declaration (Loc,
-                            Defining_Identifier =>
-                              Struct_Any,
-                            Constant_Present =>
-                               True,
-                            Object_Definition =>
-                               New_Occurrence_Of (RTE (RE_Any), Loc),
-                            Expression =>
-                              Make_Function_Call (Loc,
-                                Name => New_Occurrence_Of (
-                                  RTE (RE_Extract_Union_Value), Loc),
-                                Parameter_Associations => New_List (
-                                  Build_Get_Aggregate_Element (Loc,
-                                    Any => Any,
-                                    Tc  => Make_Function_Call (Loc,
-                                      Name => New_Occurrence_Of (
-                                        RTE (RE_Any_Member_Type), Loc),
-                                      Parameter_Associations => New_List (
-                                        New_Occurrence_Of (Any, Loc),
-                                        Make_Integer_Literal (Loc, Counter))),
-                                    Idx => Make_Integer_Literal (Loc,
-                                      Counter))))));
-
                         Append_To (Stmts,
                           Make_Block_Statement (Loc,
                             Declarations =>
@@ -1239,48 +1233,111 @@ package body Exp_Hlpr is
                               Make_Handled_Sequence_Of_Statements (Loc,
                                 Statements => Block_Stmts)));
 
+                        Append_To (Block_Decls,
+                          Make_Object_Declaration (Loc,
+                            Defining_Identifier => Union_Any,
+                            Object_Definition   =>
+                              New_Occurrence_Of (RTE (RE_Any), Loc),
+                            Expression =>
+                              Make_Function_Call (Loc,
+                                Name =>
+                                  New_Occurrence_Of (RTE (RE_Create_Any), Loc),
+                                Parameter_Associations => New_List (
+                                  Make_Function_Call (Loc,
+                                    Name =>
+                                      New_Occurrence_Of (
+                                        RTE (RE_Any_Member_Type), Loc),
+                                    Parameter_Associations => New_List (
+                                      New_Occurrence_Of (Container, Loc),
+                                      Make_Integer_Literal (Loc,
+                                        Counter)))))));
+
+                        Append_To (Block_Decls,
+                          Make_Object_Declaration (Loc,
+                            Defining_Identifier => Struct_Any,
+                            Object_Definition   =>
+                              New_Occurrence_Of (RTE (RE_Any), Loc),
+                            Expression =>
+                              Make_Function_Call (Loc,
+                                Name =>
+                                  New_Occurrence_Of (RTE (RE_Create_Any), Loc),
+                                Parameter_Associations => New_List (
+                                  Make_Function_Call (Loc,
+                                    Name =>
+                                      New_Occurrence_Of (
+                                        RTE (RE_Any_Member_Type), Loc),
+                                    Parameter_Associations => New_List (
+                                      New_Occurrence_Of (Union_Any, Loc),
+                                      Make_Integer_Literal (Loc, Uint_0)))))));
+
                         Append_To (Block_Stmts,
                           Make_Case_Statement (Loc,
                               Expression =>
-                                Make_Selected_Component (Loc,
-                                  Prefix =>
-                                    New_Occurrence_Of (Rec, Loc),
-                                  Selector_Name =>
-                                    New_Occurrence_Of (
-                                      Entity (Name (Field)), Loc)),
+                                Make_Discriminant_Reference,
                               Alternatives =>
                                 Alt_List));
 
-                      Variant := First_Non_Pragma (Variants (Field));
+                        Variant := First_Non_Pragma (Variants (Field));
 
-                      while Present (Variant) loop
-                         Choice_List := New_Copy_List_Tree (Discrete_Choices (Variant));
+                        while Present (Variant) loop
+                           Choice_List := New_Copy_List_Tree
+                             (Discrete_Choices (Variant));
 
-                         VP_Stmts := New_List;
-                         TA_Append_Record_Traversal (
-                           Stmts     => VP_Stmts,
-                           Clist     => Component_List (Variant),
-                           Container => XXX Struct_Any,
-                           Counter   => XXX Struct_Counter);
+                           VP_Stmts := New_List;
+                           TA_Append_Record_Traversal (
+                             Stmts     => VP_Stmts,
+                             Clist     => Component_List (Variant),
+                             Container => Struct_Any,
+                             Counter   => Struct_Counter);
 
-                         Append_To (Alt_List,
-                           Make_Case_Statement_Alternative (Loc,
-                             Discrete_Choices => Choice_List,
-                             Statements =>
-                               VP_Stmts));
-                         Next_Non_Pragma (Variant);
-                      end loop;
+                           --  Append discriminant value and inner struct
+                           --  to union aggregate.
+
+                           Append_To (VP_Stmts,
+                              Make_Procedure_Call_Statement (Loc,
+                                Name =>
+                                  New_Occurrence_Of (
+                                    RTE (RE_Add_Aggregate_Element), Loc),
+                                Parameter_Associations => New_List (
+                                  New_Occurrence_Of (Union_Any, Loc),
+                                    Build_To_Any_Call (
+                                      Make_Discriminant_Reference,
+                                      Block_Decls))));
+
+                           Append_To (VP_Stmts,
+                             Make_Procedure_Call_Statement (Loc,
+                               Name =>
+                                 New_Occurrence_Of (
+                                   RTE (RE_Add_Aggregate_Element), Loc),
+                               Parameter_Associations => New_List (
+                                 New_Occurrence_Of (Union_Any, Loc),
+                                 New_Occurrence_Of (Struct_Any, Loc))));
+
+                           --  Append union to outer aggregate.
+
+                           Append_To (VP_Stmts,
+                             Make_Procedure_Call_Statement (Loc,
+                               Name =>
+                                 New_Occurrence_Of (
+                                   RTE (RE_Add_Aggregate_Element), Loc),
+                               Parameter_Associations => New_List (
+                                 New_Occurrence_Of (Container, Loc),
+                                 Make_Function_Call (Loc,
+                                   Name => New_Occurrence_Of (
+                                     RTE (RE_Any_Aggregate_Build), Loc),
+                                   Parameter_Associations => New_List (
+                                     New_Occurrence_Of (Union_Any, Loc))))));
+
+                           Append_To (Alt_List,
+                             Make_Case_Statement_Alternative (Loc,
+                               Discrete_Choices => Choice_List,
+                               Statements =>
+                                 VP_Stmts));
+                           Next_Non_Pragma (Variant);
+                        end loop;
                      end;
-
-
                   end if;
                end TA_Rec_Add_Process_Element;
-
-               procedure TA_Append_Record_Traversal is
-                  new Append_Record_Traversal
-                    (Subprogram          => Fnam,
-                     Rec                 => Expr_Parameter,
-                     Add_Process_Element => TA_Rec_Add_Process_Element);
 
             begin
 
@@ -1864,7 +1921,6 @@ package body Exp_Hlpr is
          Field   : Node_Id);
 
       procedure TC_Append_Record_Traversal is new Append_Record_Traversal (
-        Subprogram          => TCNam,
         Rec                 => Empty,
         Add_Process_Element => TC_Rec_Add_Process_Element);
 

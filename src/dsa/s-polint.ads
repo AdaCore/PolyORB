@@ -289,7 +289,8 @@ package System.PolyORB_Interface is
      (A     : Any;
       Index : PolyORB.Types.Unsigned_Long)
       return PolyORB.Any.TypeCode.Object;
-   --  Return the type of the Index'th component in Tk_Struct Any.
+   --  Return the type of the Index'th component in Tk_Struct
+   --  or Tk_Union Any A.
 
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
    procedure NVList_Create (NVList : out PolyORB.Any.NVList.Ref)
