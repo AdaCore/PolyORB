@@ -1620,7 +1620,7 @@ ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
 trap 'rm -fr `echo "Makefile
-           Dist/Makefile Dist/gnatdist Dist/xe-gcc
+           Dist/Makefile Dist/gnatdist
            Garlic/Makefile Garlic/s-gaosli.ads Garlic/s-gaplsp.ads
            Garlic/s-gaprco.adb Garlic/s-garser.adb
            Examples/check-config
@@ -1752,7 +1752,7 @@ EOF
 cat >> $CONFIG_STATUS <<EOF
 
 CONFIG_FILES=\${CONFIG_FILES-"Makefile
-           Dist/Makefile Dist/gnatdist Dist/xe-gcc
+           Dist/Makefile Dist/gnatdist
            Garlic/Makefile Garlic/s-gaosli.ads Garlic/s-gaplsp.ads
            Garlic/s-gaprco.adb Garlic/s-garser.adb
            Examples/check-config

@@ -1,3 +1,7 @@
+Wed Oct 29 19:29:05 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Remove xe-gcc.in.
+
 Thu Oct  9 15:58:35 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Deactivate local launching on Linux.
