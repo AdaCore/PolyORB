@@ -791,6 +791,7 @@ package body XE_Utils is
       S5 : in String  := "") is
    begin
       Write_Program_Name;
+      Write_Str (": ");
       if S1 /= "" then
          Write_Str (S1);
       end if;

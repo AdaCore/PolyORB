@@ -1050,15 +1050,22 @@ package body XE_Stubs is
          for J in Unit.Table (I).First_With ..
                   Unit.Table (I).Last_With loop
 
-            --  An Afile name key is its ALI id.
-            Current_ALI := Get_ALI_Id (Withs.Table (J).Afile);
+            --  Avoid generic units.
+            Continue := not (Withs.Table (J).Afile = No_File);
 
-            --  If this ALI file has not been loaded, then we do not
-            --  need to check it (this means that we encountered an
-            --  internal unit that was not specified in the configuration
-            --  file and thus not recursively checked for consistency).
-            if Current_ALI /= No_ALI_Id then
-               Continue := False;
+            if Continue then
+
+               --  An Afile name key is its ALI id.
+               Current_ALI := Get_ALI_Id (Withs.Table (J).Afile);
+
+               --  If this ALI file has not been loaded, then we do not
+               --  need to check it (this means that we encountered an
+               --  internal unit that was not specified in the configuration
+               --  file and thus not recursively checked for consistency).
+               if Current_ALI = No_ALI_Id then
+                  Continue := False;
+               end if;
+
             end if;
 
             if Continue then

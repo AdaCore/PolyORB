@@ -1,12 +1,16 @@
 CLADS : Configuration Language for Ada Distributed System
 
+* Script version (check and add test)
+
+* Use -o and -i from make.
+
+* Use tk script from Turner
+
+* Add a regession est when -I on command line
+
 * Problem configuration file is not local.
 
-* Change the way a configuration node is set.
-
 * There are still '/' characters to suppress (non-Unix stuff).
-
-* When marking ali, do not print multiple messages.
 
 * Pragma Import should not accept None_Import (comes from Starter move into
   Import).
