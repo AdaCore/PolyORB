@@ -72,7 +72,7 @@ package body System.Garlic.Heart is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use System.Garlic.Types, System.Garlic.Utils;
+   use Ada.Streams, System.Garlic.Types, System.Garlic.Utils;
    use type Ada.Exceptions.Exception_Id;
 
    subtype Valid_Partition_ID is Partition_ID
@@ -137,6 +137,12 @@ package body System.Garlic.Heart is
    pragma Inline (Get_Protocol);
    --  Return the protocol of a partition using a cache whenever possible
 
+   function Opcode_Read (Operation : Stream_Element) return Opcode;
+   pragma Inline (Opcode_Read);
+   function Opcode_Write (Operation : Opcode) return Stream_Element;
+   pragma Inline (Opcode_Write);
+   --  Read and write opcode on one byte
+
    protected type Local_Partition_ID_Type is
       entry Get (Partition : out Partition_ID);
       procedure Set (Partition : in Partition_ID);
@@ -161,9 +167,6 @@ package body System.Garlic.Heart is
 
    Is_Boot : Boolean;
    --  Set to True if we are on the boot partition
-
-   Opcode_Size : Ada.Streams.Stream_Element_Count;
-   --  Set in 'Initialize': length of result of an Opcode'Write
 
    type Partition_Data_Array is array (Valid_Partition_ID) of Partition_Data;
 
@@ -664,33 +667,35 @@ package body System.Garlic.Heart is
    -----------------
 
    procedure Has_Arrived
-     (Partition : in Partition_ID;
-      Data      : in Ada.Streams.Stream_Element_Array)
+     (Partition     : in Partition_ID;
+      Filtered_Data : in Stream_Element_Array)
    is
-      use type Ada.Streams.Stream_Element_Count;
-
-      Operation : Opcode;
-
+      Operation         : Opcode;
+      Real_Data         : Stream_Element_Array
+        renames Filtered_Data (Filtered_Data'First + 1 .. Filtered_Data'Last);
+      Unfiltered_Data   : Stream_Element_Access;
+      Unfiltered_Stream : aliased Params_Stream_Type (Real_Data'Length);
    begin
-      if Options.Execution_Mode = Trace_Mode then
-         Trace_Data (Partition, Data);
-      end if;
+      --  Dump the stream for debugging purpose
 
       pragma Debug (D (D_Dump, "Dumping incoming stream"));
-      pragma Debug (Dump (D_Dump, Data, Private_Debug_Key));
+      pragma Debug (Dump (D_Dump, Filtered_Data, Private_Debug_Key));
 
-      declare
-         Params : aliased Params_Stream_Type (Opcode_Size);
-      begin
-         To_Params_Stream_Type
-            (Data (Data'First .. Data'First + Opcode_Size - 1),
-             Params'Access);
-         Opcode'Read (Params'Access, Operation);
-      end;
+      --  Record the current packet content in the trace file if needed
 
+      if Options.Execution_Mode = Trace_Mode then
+         Trace_Data (Partition, Filtered_Data);
+      end if;
+
+      --  Read the opcode from the stream and check that it is valid
+
+      Operation := Opcode_Read (Filtered_Data (Filtered_Data'First));
       if not Operation'Valid then
          pragma Debug
            (D (D_Debug, "Received unknown opcode"));
+         raise Constraint_Error;
+      elsif Operation = No_Operation then
+         pragma Debug (D (D_Debug, "Received No_Operation opcode"));
          raise Constraint_Error;
       end if;
       pragma Debug
@@ -698,27 +703,30 @@ package body System.Garlic.Heart is
             "Received request with opcode " & Operation'Img &
             " from partition" & Partition_ID'Image (Partition)));
 
-      declare
-         Filtered_Data   : Stream_Element_Access :=
-           Filter_Incoming
-             (Partition, Operation,
-              Data (Data'First + Opcode_Size .. Data'Last));
-         Filtered_Params : aliased Params_Stream_Type (Filtered_Data'Length);
-      begin
-         To_Params_Stream_Type (Filtered_Data.all, Filtered_Params'Access);
-         Free (Filtered_Data);
-         if Operation in Internal_Opcode then
-            Handle_Internal (Partition, Operation, Filtered_Params'Access);
-         elsif Operation in Public_Opcode then
-            Handle_Public (Partition, Operation, Filtered_Params'Access);
-         else
-            pragma Debug (D (D_Debug, "Aborting due to invalid opcode"));
-            raise Constraint_Error;
-         end if;
-      exception when others =>
-         pragma Debug (D (D_Debug, "Exception in block Has_Arrived"));
-         raise;
-      end;
+      --  Unfilter the data and put it in a stream. Note that the size of
+      --  the stream has been set to Real_Data'Length, which is usually a
+      --  good hint as most filteres will not change the size of the data.
+
+      Unfiltered_Data :=
+        Filter_Incoming (Partition, Operation, Real_Data);
+      To_Params_Stream_Type (Unfiltered_Data.all, Unfiltered_Stream'Access);
+      Free (Unfiltered_Data);
+
+      --  Depending on the opcode, send the stream to the public or internal
+      --  routines.
+
+      case Operation is
+         when Internal_Opcode =>
+            Handle_Internal (Partition, Operation, Unfiltered_Stream'Access);
+         when Public_Opcode   =>
+            Handle_Public (Partition, Operation, Unfiltered_Stream'Access);
+         when Invalid_Operation =>
+            raise Program_Error;       -- We cannot land here, see test above
+      end case;
+
+   exception when others =>
+      pragma Debug (D (D_Debug, "Exception in block Has_Arrived"));
+      raise;
    end Has_Arrived;
 
    ----------------
@@ -739,14 +747,6 @@ package body System.Garlic.Heart is
         (D (D_Debug,
             "My termination policy is " &
             Termination_Type'Image (Options.Termination)));
-
-      Opcode'Write (Stream'Access, Opcode'Last);
-      declare
-         Buffer : Ada.Streams.Stream_Element_Array
-           := To_Stream_Element_Array (Stream'Access);
-      begin
-         Opcode_Size := Buffer'Length;
-      end;
    end Initialize;
 
    -----------------------
@@ -842,6 +842,24 @@ package body System.Garlic.Heart is
    begin
       return Get (Name (Partition));
    end Name;
+
+   -----------------
+   -- Opcode_Read --
+   -----------------
+
+   function Opcode_Read (Operation : Stream_Element) return Opcode is
+   begin
+      return Opcode'Val (Operation);
+   end Opcode_Read;
+
+   ------------------
+   -- Opcode_Write --
+   ------------------
+
+   function Opcode_Write (Operation : Opcode) return Stream_Element is
+   begin
+      return Opcode'Pos (Operation);
+   end Opcode_Write;
 
    ----------------------------------
    -- Partition_ID_Allocation_Type --
@@ -1066,59 +1084,55 @@ package body System.Garlic.Heart is
    -- Send --
    ----------
 
-   procedure Send
-     (Partition : in Partition_ID;
-      Operation : in Opcode;
-      Params    : access Streams.Params_Stream_Type)
+   procedure Send (Partition : in Partition_ID;
+                   Operation : in Opcode;
+                   Params    : access Params_Stream_Type)
    is
-      Protocol  : constant Protocols.Protocol_Access :=
-        Get_Protocol (Partition);
-      Op_Params : aliased Params_Stream_Type (Opcode_Size);
-      use type Ada.Streams.Stream_Element_Array;
-      use type Ada.Streams.Stream_Element_Offset;
-
+      Filtered_Data : Stream_Element_Access;
+      Length        : Stream_Element_Offset;
+      Packet        : Stream_Element_Access;
    begin
-      Opcode'Write (Op_Params'Access, Operation);
+      --  Filter the data according to the remote partition and the opcode
 
-      declare
-         Filtered_Data : Stream_Element_Access :=
-           Filter_Outgoing (Partition, Operation, Params);
-         Header : constant Ada.Streams.Stream_Element_Array :=
-           To_Stream_Element_Array (Op_Params'Access);
-         Length : constant Ada.Streams.Stream_Element_Offset :=
-           Protocols.Unused_Space + Header'Length + Filtered_Data'Length;
-         Packet : Stream_Element_Access :=
-           new Ada.Streams.Stream_Element_Array (1 .. Length);
-      begin
-         --  Stuff the opcode (unfiltered) in front of the data
+      Filtered_Data := Filter_Outgoing (Partition, Operation, Params);
 
-         Packet
-           (Packet'First + Protocols.Unused_Space ..
-            Packet'First + Protocols.Unused_Space + Header'Length - 1) :=
-           Header;
-         Packet
-           (Packet'First + Protocols.Unused_Space + Header'Length ..
-            Packet'Last) :=
-           Filtered_Data.all;
-         Free (Filtered_Data);
-         pragma Debug
-           (D (D_Debug, "Sending an operation with opcode " & Operation'Img));
-         pragma Debug (D (D_Dump, "Dumping outgoing stream"));
-         pragma Debug (Dump (D_Dump, Packet.all, Private_Debug_Key));
-         if Partition /= Get_My_Partition_ID_Immediately then
-            Protocols.Send (Protocol, Partition, Packet);
-         else
-            pragma Debug (D (D_Debug, "Handling All_Calls_Remote case"));
-            Has_Arrived (Partition,
-                         Packet (Packet'First + Protocols.Unused_Space ..
-                                 Packet'Last));
-         end if;
+      --  Compute the length of the packet: this is the length of the
+      --  unused space that will be used by the protocol to stick its own
+      --  data at the beginning + 1 for the opcode + the length of the
+      --  unfiltered data. Allocate a packet of the right length.
+
+      Length := Protocols.Unused_Space + 1 + Filtered_Data'Length;
+      Packet := new Stream_Element_Array (1 .. Length);
+
+      --  Put the opcode at the beginning of the reserved section,
+      --  then the filtered data, which can then be deallocated.
+
+      Packet (Protocols.Unused_Space + 1) := Opcode_Write (Operation);
+      Packet (Protocols.Unused_Space + 2 .. Packet'Last) := Filtered_Data.all;
+      Free (Filtered_Data);
+
+      --  If the data is for a remote partition, send it using the right
+      --  protocol. Otherwise, make a local call to Has_Arrived (this can
+      --  happen for a call on which pragma All_Calls_Remote applies) without
+      --  the extra space.
+
+      if Partition = Get_My_Partition_ID_Immediately then
+         pragma Debug (D (D_Debug, "Handling a All_Calls_Remote case"));
+         Has_Arrived (Partition,
+                      Packet (Protocols.Unused_Space + 1 .. Packet'Last));
+      else
+         pragma Debug (D (D_Debug, "Calling the right protocol"));
+         Protocols.Send (Get_Protocol (Partition), Partition, Packet);
+      end if;
+
+      --  Free the data, even if an exception occurs
+
+      Free (Packet);
+
+   exception
+      when others =>
          Free (Packet);
-      exception
-         when others =>
-            Free (Packet);
-            raise;
-      end;
+         raise;
    end Send;
 
    -----------------------
