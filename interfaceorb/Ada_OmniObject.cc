@@ -69,7 +69,14 @@ Ada_OmniObject::Ada_OmniObject()
 //----------------
 Ada_OmniObject::~Ada_OmniObject()
 {
-  delete C_Object ;
+  if (Init_Ok) {
+    omni::objectRelease(C_Object) ;
+    // we must not delete C_Object because there might be other
+    // refernces to this object. omniORB's objectRelease is
+    // here to handle memory
+  } else {
+    raise_ada_exception("Ada_OmniObject::~Ada_OmniObject cannot be called on a non-initialized object") ;
+  }
 } ;
 
 
@@ -77,32 +84,39 @@ Ada_OmniObject::~Ada_OmniObject()
 //------------
 void
 Ada_OmniObject::Destructor(Ada_OmniObject* o) {
-  delete o ;
+  if (o->Init_Ok) {
+    delete o ;
+  } else {
+    raise_ada_exception("Ada_OmniObject::Destructor cannot be called on a non-initialized object") ;
+  }
 }
 
 
-// Init
-//-----
+// InitLocalObject
+//----------------
 void
-Ada_OmniObject::Init ()
+Ada_OmniObject::initLocalObject (const char* repoid)
 {
   // Creation of the underlying omniobject_C2Ada object
   C_Object = new omniObject_C2Ada (this);
+  // setting its repository ID
+  C_Object->PR_IRRepositoryId(repoid) ;
   // updating of Init_OK flag
   Init_Ok = true;
   return;
 }
 
 
-// Init
-//-----
+ 
+// InitProxyObject
+//----------------
 void
-Ada_OmniObject::Init (const char *repoId,
-		      Rope *r,
-		      _CORBA_Octet *key,
-		      size_t keysize,
-		      IOP::TaggedProfileList *profiles,
-		      _CORBA_Boolean release)
+Ada_OmniObject::initProxyObject (const char *repoId,
+				   Rope *r,
+				   _CORBA_Octet *key,
+				   size_t keysize,
+				   IOP::TaggedProfileList *profiles,
+				   _CORBA_Boolean release)
 {
   // Creation of the underlying omniobject_C2Ada object
   C_Object = new omniObject_C2Ada (repoId,
@@ -120,15 +134,56 @@ Ada_OmniObject::Init (const char *repoId,
 
 // Init
 //-----
-void
-Ada_OmniObject::Init (omniObject_C2Ada *omniobj)
-{
+/*void
+  Ada_OmniObject::Init (omniObject_C2Ada *omniobj)
+  {
   C_Object = omniobj;
   Init_Ok = true;
   return;
-}
+  }*/
 
  
+// objectDuplicate
+//-----------------
+Ada_OmniObject*
+Ada_OmniObject::objectDuplicate(Ada_OmniObject* same) {
+  if (same->Init_Ok) {
+    omni::objectDuplicate(same->C_Object) ;
+    // register a new pointer to this object
+    
+    Ada_OmniObject *result = new Ada_OmniObject() ;
+    result->C_Object = same->C_Object ;
+    result->Init_Ok = true ;
+  } else {
+    raise_ada_exception("Ada_OmniObject::objectDuplicate cannot be called on a non-initialized object") ;
+  }
+}
+
+
+// objectIsReady
+//--------------
+void
+Ada_OmniObject::objectIsReady() {
+  if (Init_Ok) {
+    omni::objectIsReady(C_Object) ;
+  } else {
+    raise_ada_exception("Ada_OmniObject::objectIsReady cannot be called on a non-initialized object") ;
+  }
+}
+
+
+// disposeObject
+//--------------
+void
+Ada_OmniObject::disposeObject() {
+  if (Init_Ok) {
+  omni::disposeObject(C_Object) ;
+  } else {
+    raise_ada_exception("Ada_OmniObject::disposeObject cannot be called on a non-initialized object") ;
+  }
+}
+
+
 // setRopeAndKey
 //--------------
 void
@@ -248,7 +303,7 @@ Ada_OmniObject::getRepositoryID() {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    char *result = C_Object->NP_IRRepositoryId();
+    const char *result = C_Object->NP_IRRepositoryId();
 
 #ifdef DEBUG
     cerr << "Ada_OmniObject::getRepositoryID : " << result << endl ;
@@ -284,7 +339,11 @@ Ada_OmniObject::ada_object_to_string(Ada_OmniObject* objptr) {
   if ( objptr == 0 ) {
     return omni::objectToString(0) ;
   } else {
-    return omni::objectToString(objptr->C_Object) ;
+    if (objptr->Init_Ok) {
+      return omni::objectToString(objptr->C_Object) ;
+    } else {
+      raise_ada_exception("Ada_OmniObject::ada_object_to_string cannot be called on a non-initialized object") ;
+    }
   }
 }
 
@@ -303,6 +362,17 @@ Ada_OmniObject::iopProfiles() {
   }
 }
 
+
+// getOmniObject
+//--------------
+omniObject_C2Ada*
+Ada_OmniObject::getOmniObject() {
+  if (Init_Ok) {
+    return C_Object ;
+  } else {
+    raise_ada_exception("Ada_OmniObject::getOmniObject cannot be called on a non-initialized object") ;
+  }
+}
 
 // ada_create_objref
 //---------------------

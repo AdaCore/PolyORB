@@ -74,7 +74,7 @@ public:
 		   Ada_OmniObject *Ada_Ptr);
   // constructor for proxy objects
 
-  ~omniObject_C2Ada() {}
+  ~omniObject_C2Ada() {} ;
   // destructor of class
   
   virtual _CORBA_Boolean dispatch(GIOP_S &,const char *operation,

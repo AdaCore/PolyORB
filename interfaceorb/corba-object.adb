@@ -71,9 +71,7 @@ package body Corba.Object is
    ----------
    procedure Release (Self : in out Ref'class) is
    begin
-      Omniobject.Release(Self.Omniobj.all) ;
-      Self.Omniobj := null ;
-      Self.Dynamic_Type := null ;
+      Finalize(Self) ;
    end ;
 
 
@@ -229,7 +227,7 @@ package body Corba.Object is
    procedure Object_Is_Ready(Self : in Ref'Class) is
    begin
       if not Is_Nil(Self) then
-         Omniobject.Omniobject_Is_Ready(Self.Omniobj.all) ;
+         Omniobject.Omniobject_Is_Ready(Self.Omniobj) ;
       else
          Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
                                         "Corba.Object.Object_Is_Ready(Corba.Object.Ref)"
@@ -491,16 +489,18 @@ package body Corba.Object is
    procedure Adjust (Self: in out Ref) is
    begin
       if not Is_Nil(Self) then
-         Omniobject.Duplicate(Self.Omniobj.all) ;
+         Self.Omniobj := Omniobject.Omniobject_Duplicate(Self.Omniobj) ;
       end if ;
    end ;
+
 
    -- Finalize
    -----------
    procedure Finalize (Self: in out Ref) is
    begin
       if not Is_Nil(Self) then
-         Omniobject.Release(Self.Omniobj.all) ;
+         Omniobject.Omniobject_Destructor(Self.Omniobj) ;
+         Self.Omniobj := null ;
       end if ;
    end ;
 

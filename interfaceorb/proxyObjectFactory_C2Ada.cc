@@ -75,19 +75,29 @@ proxyObjectFactory_C2Ada::newProxyObject(Rope *r,
 #endif
 
   Ada_OmniObject* p = new Ada_OmniObject() ;
-  p->Init(pd_repoID, r,key, keysize, profiles, release) ;
+  p->initProxyObject(pd_repoID, r,key, keysize, profiles, release) ;
 
   omniObject *omniobj = p->getOmniObject() ;
   
   omni::objectIsReady(omniobj) ;
+  // telling the ORB that this object is ready to use
+  // connexions
   
   CORBA::Object_ptr result = new CORBA::Object() ;
   result->PR_setobj(omniobj) ;
+
   return result ;
     ////////////////////////////////
     // WARNING  WARNING  WARNING  //
     //       MEMORY LEAK          //
     ////////////////////////////////
+    // As a matter of fact, this function must return a
+    // CORBA::Object_Ptr, whereas the calling function (createObjRef)
+    // calls PR_getobj as soon as it gets the result.
+    // therefore, we have to create this CORBA::Object_ptr
+    // that will never be referenced again, and we do not
+    // not when it can be released.
+    
 }
 
 

@@ -151,9 +151,13 @@ package Corba.Object is
    -- typing (see below)
 
 
-   function Get_OmniObject_Ptr (Self : in Ref) return Omniobject.Object_Ptr ;
+   -- function Get_OmniObject_Ptr (Self : in Ref) return Omniobject.Object_Ptr ;
    -- return the underlying omniobject
 
+
+   -----------------------------------------------
+   --             object <-> IOR                --
+   -----------------------------------------------
 
    function Object_To_String (Self : in CORBA.Object.Ref'class)
                               return CORBA.String ;
@@ -166,14 +170,6 @@ package Corba.Object is
    -- returns a Ref'Class out of an IOR
    -- it is called by Corba.Orb.String_To_Object
    -- see CORBA specification for details
-
-
-   procedure Object_Is_Ready(Self : in Ref'Class) ;
-   -- calls the C++ function omni::objectIsReady
-   -- has to be done when an object has been created
-   -- to register it into the ORB
-   -- (as a proxy object)
-   -- BEWARE : MUST BE CALLED ONLY ONCE FOR EACH OBJECT
 
 
    --------------------------------------------------

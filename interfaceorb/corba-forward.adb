@@ -42,8 +42,34 @@
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
+with Ada.Exceptions ;
 
 package body Corba.Forward is
+
+
+   -- To_Ref
+   ---------
+   function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref is
+      Dummy_Result : Ref ;
+   begin
+      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
+                                     "Corba.Forward.To_Ref is illegal on a forwarded type"
+                                     & "use From_Forward first to convert it into a non forwarded type") ;
+      return Dummy_Result ;
+   end ;
+
+
+   -- Get_Nil_Ref
+   --------------
+   function Get_Nil_Ref(Self : in Ref) return Ref is
+      Dummy_Result : Ref ;
+   begin
+      Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
+                                     "Corba.Forward.Get_Nil_Ref is illegal on a forwarded type"
+                                     & "use From_Forward first to convert it into a non forwarded type") ;
+      return Dummy_Result ;
+   end ;
+
 
 
    --------------------------------------------------------
@@ -55,7 +81,6 @@ package body Corba.Forward is
       ---------------
       function From_Forward(The_Forward : in Ref)
                             return Ref_Type is
-         Intermediate_Result : Corba.Object.Ref ;
          Result : Ref_Type ;
       begin
          Intermediate_Result :=  Corba.Object.Ref(The_Forward) ;

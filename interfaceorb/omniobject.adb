@@ -76,25 +76,30 @@ package body OmniObject is
    -----------------------------------------------
    -----------------------------------------------
 
+
+
    -----------------------------------------------
    ---            miscellaneous                ---
    -----------------------------------------------
 
    -- C_Init
    ---------
-   procedure C_Init (Self : in out Object'Class) ;
-   pragma Import (C,C_Init,"Init__14Ada_OmniObject") ;
-   -- wrapper around Ada_OmniObject function Init
+   procedure C_Init_Local_Object (Self : in out Object'Class ;
+                                  Repoid : in Interfaces.C.Strings.Chars_Ptr ) ;
+   pragma Import (C,C_Init_Local_Object,"initLocalObject__14Ada_OmniObjectPCc") ;
+   -- wrapper around Ada_OmniObject::initLocalObject
    -- (see Ada_OmniObject.hh)
 
-   -- Init
-   -------
-   procedure Init (Self : in out Implemented_Object ;
-                   Repo_Id : in Corba.String) is
+   -- Init_Local_Object
+   --------------------
+   procedure Init_Local_Object (Self : in out Implemented_Object ;
+                                Repo_Id : in Corba.String) is
+      C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
    begin
       if not Is_Nil(Self) then
-         C_Init (Self.Omniobj.all) ;
-         Set_Repository_Id(Self.Omniobj.all,Repo_Id) ;
+         C_Repoid := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Repo_Id)) ;
+         C_Init_Local_Object (Self.Omniobj.all, C_repoid) ;
+         Interfaces.C.Strings.Free(C_Repoid) ;
       else
          Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
                                         "Omniobject.Init(Implemented_Object, Corba.String"
@@ -121,55 +126,9 @@ package body OmniObject is
    end ;
 
 
-   -- Is_A
-   -------
-   function Is_A(Self: in Implemented_Object ;
-                 Logical_Type_Id : in Corba.String)
-                 return Corba.Boolean is
-   begin
-      return (Repository_Id = Logical_Type_Id) ;
-   end ;
-
-
-  -- Object_Is_Ready
-   ------------------
-   procedure Object_Is_Ready(Self : in Implemented_Object'Class) is
-   begin
-      if not Is_Nil(Self) then
-         Omniobject_Is_Ready(Self.Omniobj.all) ;
-      else
-         Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
-                                        "Omniobject.Object_Is_Ready(Implemented_Object)"
-                                        & Corba.CRLF
-                                        & "Cannot be called on nil object") ;
-      end if ;
-   end ;
-
-
-   -- C_Object_To_String
-   ---------------------
-   function C_Object_To_String(Obj : in System.Address)
-                               return Interfaces.C.Strings.Chars_Ptr ;
-   pragma Import(CPP, C_Object_To_String, "ada_object_to_string__14Ada_OmniObjectP14Ada_OmniObject") ;
-   -- corresponds to ada_object_to_string
-
-
-   -- Object_To_String
-   -------------------
-   function Object_To_String(Obj_ptr : in Object_Ptr) return Corba.String is
-      package A2a is
-        new System.Address_To_Access_Conversions (Object) ;
-      function Uc is
-        new Ada.Unchecked_Conversion (Object_ptr,
-                                      A2a.Object_Pointer) ;
-      C_Obj_ptr : System.Address ;
-      C_Result : Interfaces.C.Strings.Chars_Ptr ;
-   begin
-      C_Obj_ptr := A2a.To_Address(Uc(Obj_Ptr)) ;
-      C_Result := C_Object_To_String(C_Obj_ptr) ;
-      return Corba.To_Corba_String(Interfaces.C.Strings.Value(C_Result)) ;
-   end ;
-
+   -----------------------------------------------
+   --        dispatching operators              --
+   -----------------------------------------------
 
    -- Dispatch
    -----------
@@ -185,6 +144,69 @@ package body OmniObject is
                                      & "should never be called on an Implemented_Object") ;
       return False ;
       -- to please the compiler !!
+   end ;
+
+
+   -- Is_A
+   -------
+   function Is_A(Self: in Implemented_Object ;
+                 Logical_Type_Id : in Corba.String)
+                 return Corba.Boolean is
+   begin
+      return (Repository_Id = Logical_Type_Id) ;
+   end ;
+
+
+   -----------------------------------------------
+   --      registering into the ORB             --
+   -----------------------------------------------
+
+   -- Object_Is_Ready
+   ------------------
+   procedure Object_Is_Ready(Self : in Implemented_Object'Class) is
+   begin
+      if not Is_Nil(Self) then
+         Omniobject_Is_Ready(Self.Omniobj) ;
+      else
+         Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
+                                        "Omniobject.Object_Is_Ready(Implemented_Object)"
+                                        & Corba.CRLF
+                                        & "Cannot be called on nil object") ;
+      end if ;
+   end ;
+
+
+   -- Dispose_Object
+   -----------------
+   procedure Dispose_Object(Self : in Implemented_Object'Class) is
+   begin
+      if not Is_Nil(Self) then
+         Omniobject_Dispose(Self.Omniobj) ;
+      else
+         Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
+                                        "Omniobject.Dispose_Object(Implemented_Object)"
+                                        & Corba.CRLF
+                                        & "Cannot be called on nil object") ;
+      end if ;
+   end ;
+
+
+
+   -----------------------------------------------
+   --             object <-> IOR                --
+   -----------------------------------------------
+
+
+   -- Object_To_String
+   -------------------
+   function Object_To_String (Self : in Implemented_Object'class)
+                              return CORBA.String is
+   begin
+      if Is_Nil(Self) then
+         return Object_To_String(null) ;
+      else
+         return Object_To_String(Self.Omniobj) ;
+      end if ;
    end ;
 
 
@@ -242,51 +264,6 @@ package body OmniObject is
 
 
    -----------------------------------------------
-   ---     finalization operators              ---
-   -----------------------------------------------
-
-   -- Initialize
-   -------------
-   procedure Initialize (Self: in out Implemented_Object) is
-      type Ptr is access all Implemented_Object ;
-      function To_Implemented_Object_Object_Ptr is
-        new Ada.Unchecked_Conversion (Ptr, Implemented_Object_Ptr);
-      Tmp : Object_Ptr := Object_Ptr_Constructor ;
-   begin
-      Tmp.all.Implobj := To_Implemented_Object_Object_Ptr(Self'Access) ;
-      Self.Omniobj := Tmp ;
-   end ;
-
-
-
-   -- Adjust
-   -----------
-   procedure Adjust (Self: in out Implemented_Object) is
-   begin
-      if not Is_Nil(Self) then
-         declare
-            RepoId : Corba.String := Get_Repository_Id(Self.Omniobj.all) ;
-         begin
-            Initialize(Self) ;
-            Set_Repository_Id(Self.Omniobj.all, RepoID) ;
-         end ;
-      end if ;
-   end ;
-
-   -- Finalize
-   -----------
-   procedure Finalize (Self: in out Implemented_Object) is
-   begin
-      if not Is_Nil(Self) then
-         Self.Omniobj.all.Implobj := null ;
-         Release(Self.Omniobj.all) ;
-         Object_Destructor(Self.Omniobj.all) ;
-         Self.Omniobj := null ;
-      end if ;
-   end ;
-
-
-   -----------------------------------------------
    -----------------------------------------------
    -----------------------------------------------
    --             Omniobject                    --
@@ -326,6 +303,7 @@ package body OmniObject is
       end if ;
    end ;
 
+
    -- Marshall
    -----------
    procedure Marshall (Obj : in Object_Ptr ;
@@ -342,6 +320,7 @@ package body OmniObject is
          Iop.Marshall (Get_Profile_List (Obj.all), S) ;
       end if ;
    end ;
+
 
    -- Marshall
    -----------
@@ -361,6 +340,10 @@ package body OmniObject is
    end ;
 
 
+   -----------------------------------------------
+   --        constructors and destrucotrs       --
+   -----------------------------------------------
+
    -- C_Create_Omniobject
    ----------------------
    function C_Create_Omniobject(Most_Derived_Repoid : in Interfaces.C.Strings.Chars_ptr ;
@@ -377,17 +360,10 @@ package body OmniObject is
                               Profiles : in Iop.Tagged_Profile_List ;
                               Release : in Corba.Boolean)
                               return Object_Ptr is
-      package Address_To_Object_ptr is
-        new System.Address_To_Access_Conversions (Object) ;
-      -- to convert access to object to Object_Ptr
-      function To_Object_Ptr is
-        new Ada.Unchecked_Conversion (Address_To_Object_ptr.Object_Pointer,
-                                      Object_Ptr);
       C_Mdr : Interfaces.C.Strings.Chars_Ptr ;
       C_R : Sys_Dep.C_Boolean ;
       C_Profiles : System.Address ;
       C_Result : System.Address ;
-      Result : Address_To_Object_Ptr.Object_Pointer ;
    begin
       C_Mdr := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Most_Derived_Repoid)) ;
       -- never deallocatd, it will be stored in the object
@@ -395,8 +371,274 @@ package body OmniObject is
       C_Profiles := System.Address(Profiles) ;
 
       C_Result := C_Create_Omniobject(C_Mdr, C_Profiles, C_R) ;
-      Result := Address_To_Object_Ptr.To_Pointer(C_Result) ;
-      return To_Object_Ptr(Result) ;
+      return To_Object_Ptr(A2a.To_Pointer(C_Result)) ;
+   end ;
+
+
+   -- C_Omniobject_Duplicate
+   -------------------------
+   function C_Omniobject_Duplicate(Self : in System.Address) return System.Address ;
+   pragma Import(CPP, C_Omniobject_Duplicate, "objectDuplicate__14Ada_OmniObjectP14Ada_OmniObject") ;
+   -- calls Ada_OmniObject::objectDuplicate
+
+
+   -- Omniobject_Duplicate
+   -----------------------
+   function Omniobject_Duplicate(Self : in Object_Ptr) return Object_Ptr is
+      C_Result : System.Address ;
+      C_Arg : System.Address ;
+   begin
+      C_Arg := A2a.To_Address(From_Object_Ptr(Self)) ;
+      C_Result := C_Omniobject_Duplicate(C_Arg) ;
+      return To_Object_Ptr(A2a.To_Pointer(C_Result)) ;
+   end ;
+
+
+   -- C_Omniobject_Destructor
+   --------------------------
+   procedure C_Omniobject_Destructor(Self : in System.Address) ;
+   pragma Import (CPP,C_Omniobject_Destructor,
+                  "Destructor__14Ada_OmniObjectP14Ada_OmniObject") ;
+   -- calls Ada_OmniObject::Destructor
+
+
+   -- Omniobject_Destructor
+   ------------------------
+   procedure Omniobject_Destructor(Self : in Object_Ptr) is
+   begin
+      C_Omniobject_Destructor(A2a.To_Address(From_Object_Ptr(Self))) ;
+   end ;
+
+
+   -----------------------------------------------
+   --      registering into the ORB             --
+   -----------------------------------------------
+
+   -- C_Omniobject_Is_Ready
+   ------------------------
+   procedure C_Omniobject_Is_Ready(Self : in System.Address) ;
+   pragma Import (C,C_Omniobject_Is_Ready,"objectIsReady__14Ada_OmniObject") ;
+   -- calls Ada_OmniObject::objectIsReady
+
+
+   -- Omniobject_Is_Ready
+   ----------------------
+   procedure Omniobject_Is_Ready(Self : in Object_Ptr) is
+   begin
+      C_Omniobject_Is_Ready(A2a.To_Address(From_Object_Ptr(Self))) ;
+   end ;
+
+   -- C_Omniobject_Dispose
+   -----------------------
+   procedure C_Omniobject_Dispose(Self : in System.Address) ;
+   pragma Import(CPP, C_Omniobject_Dispose, "disposeObject__14Ada_OmniObject") ;
+   -- calls Ada_OmniObject::disposeObject
+
+
+   -- Omniobject_Dispose
+   ---------------------
+   procedure Omniobject_Dispose(Self : in Object_Ptr) is
+   begin
+      C_Omniobject_Is_Ready(A2a.To_Address(From_Object_Ptr(Self))) ;
+   end ;
+
+
+   -----------------------------------------------
+   --             object <-> IOR                --
+   -----------------------------------------------
+
+   -- C_String_To_Object
+   ---------------------
+   function C_String_To_Object(RepoId : in Interfaces.C.Strings.Chars_Ptr)
+                               return System.Address ;
+   pragma Import (CPP, C_String_To_Object, "string_to_ada_object__14Ada_OmniObjectPCc") ;
+   -- corresponds to Ada_OmniObject::string_to_ada_object
+
+
+   -- String_To_Object
+   -------------------
+   function String_To_Object(RepoId : in Corba.String)
+                             return Object_Ptr is
+      C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
+      C_Result : System.Address ;
+   begin
+      -- transform arguments into C types ...
+      C_Repoid := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Repoid)) ;
+      -- call C function
+      C_Result := C_String_To_Object(C_Repoid) ;
+      -- free arguments
+      Interfaces.C.Strings.Free(C_Repoid) ;
+      -- transform result
+      if  C_Result = System.Null_Address then
+         return null ;
+      else
+         return To_Object_Ptr(A2a.To_Pointer(C_Result)) ;
+      end if ;
+   end ;
+
+
+   -- C_Object_To_String
+   ---------------------
+   function C_Object_To_String(Obj : in System.Address)
+                               return Interfaces.C.Strings.Chars_Ptr ;
+   pragma Import(CPP, C_Object_To_String, "ada_object_to_string__14Ada_OmniObjectP14Ada_OmniObject") ;
+   -- corresponds to ada_object_to_string
+
+
+   -- Object_To_String
+   -------------------
+   function Object_To_String(Obj_ptr : in Object_Ptr) return Corba.String is
+      C_Obj_ptr : System.Address ;
+      C_Result : Interfaces.C.Strings.Chars_Ptr ;
+   begin
+      C_Obj_ptr := A2a.To_Address(From_Object_Ptr(Obj_Ptr)) ;
+      C_Result := C_Object_To_String(C_Obj_ptr) ;
+      return Corba.To_Corba_String(Interfaces.C.Strings.Value(C_Result)) ;
+   end ;
+
+
+   -----------------------------------------------
+   --          miscellaneous                    --
+   -----------------------------------------------
+
+
+   -- C_Get_Rope_And_Key
+   ---------------------
+   procedure C_Get_Rope_And_Key (Self : in Object'Class ;
+                                L : out System.Address ;
+                                Success : out Sys_Dep.C_Boolean) ;
+   pragma Import (CPP,
+                  C_Get_Rope_And_Key,
+                  "getRopeAndKey__C10omniObjectR14omniRopeAndKey") ;
+   -- wrapper around  Ada_OmniObject function getRopeAndKey
+   -- (see Ada_OmniObject.hh)
+
+
+   -- Get_Rope_And_Key
+   -------------------
+   procedure Get_Rope_And_Key (Self : in Object'Class ;
+                               L : out Omniropeandkey.Object ;
+                               Success : out Corba.Boolean ) is
+      C_L : System.Address;
+      C_Success : Sys_Dep.C_Boolean ;
+   begin
+      if Is_Proxy(Self) then
+         Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
+                                        "Omniobject.Get_Rope_And_Key cannot be called on a local object") ;
+      end if ;
+      -- transforms the arguments in a C type ...
+      C_L := L'Address ;
+      -- ... calls the C function ...
+      C_Get_Rope_And_Key(Self, C_L, C_Success) ;
+      -- ... and transforms the result into an Ada type
+      Success := Sys_Dep.Boolean_C_To_Ada (C_Success) ;
+   end ;
+
+
+   -- C_Get_Repository_Id
+   ----------------------
+   function C_Get_Repository_Id(Self : in Object'class)
+                                return Interfaces.C.Strings.Chars_Ptr ;
+   pragma Import (C, C_Get_Repository_Id, "getRepositoryID__14Ada_OmniObject") ;
+   -- corresponds to Ada_OmniObject::getRepositoryID
+
+   -- Get_Repository_Id
+   --------------------
+   function Get_Repository_Id(Self : in Object'class)
+                              return Corba.String is
+      C_Result : Interfaces.C.Strings.Chars_Ptr ;
+   begin
+      C_Result := C_Get_Repository_Id(Self) ;
+      return Corba.To_Corba_String(Interfaces.C.Strings.Value(C_Result)) ;
+   end ;
+
+
+   -- C_Get_Profile_List
+   ---------------------
+   function C_Get_Profile_List (Self : in Object'Class)
+                                return System.Address ;
+   pragma Import (CPP,C_Get_Profile_List,"iopProfiles__14Ada_OmniObject") ;
+   -- returns the Profile list of an object
+   -- wrapper around C function Ada_OmniObject::iopProfiles()
+   -- (see Ada_OmniObject.hh)
+
+   -- Get_Profile_List
+   -------------------
+   function Get_Profile_List (Self : in Object'Class)
+                              return Iop.Tagged_Profile_List is
+      result : System.Address ;
+   begin
+      -- calls the C function ...
+      Result := C_Get_Profile_List (Self) ;
+      -- ... and transforms the result in an Ada type
+      return Iop.Tagged_Profile_List (Result) ;
+   end ;
+
+
+   -----------------------------------------------
+   --         Implemented_Object                --
+   --       this is the type of local           --
+   --      implementations of objects           --
+   -- it is the root of all XXX.Impl.Object     --
+   -----------------------------------------------
+   --           PRIVATE PART                    --
+   -----------------------------------------------
+
+
+   -----------------------------------------------
+   ---     finalization operators              ---
+   -----------------------------------------------
+
+   -- Initialize
+   -------------
+   procedure Initialize (Self: in out Implemented_Object) is
+      type Ptr is access all Implemented_Object ;
+      function To_Implemented_Object_Ptr is
+        new Ada.Unchecked_Conversion (Ptr, Implemented_Object_Ptr);
+      Tmp : Object_Ptr := Object_Ptr_Constructor ;
+   begin
+      Tmp.all.Implobj := To_Implemented_Object_Ptr(Self'Access) ;
+      Self.Omniobj := Tmp ;
+   end ;
+
+
+
+   -- Adjust
+   -----------
+   procedure Adjust (Self: in out Implemented_Object) is
+   begin
+      if not Is_Nil(Self) then
+         Self.Omniobj := Omniobject_Duplicate(Self.omniobj) ;
+      end if ;
+   end ;
+
+   -- Finalize
+   -----------
+   procedure Finalize (Self: in out Implemented_Object) is
+   begin
+      if not Is_Nil(Self) then
+         Omniobject_Dispose(Self.Omniobj) ;
+         Omniobject_Destructor(Self.Omniobj) ;
+         Self.Omniobj := null ;
+      end if ;
+   end ;
+
+
+   -----------------------------------------------
+   --             Omniobject                    --
+   --     this type is imported from C++        --
+   --   it is the equivalent of omniObject      --
+   -----------------------------------------------
+   --           PRIVATE PART                    --
+   -----------------------------------------------
+
+
+   -- Is_Proxy
+   -----------
+   function Is_Proxy (Self : in Object'Class)
+                      return Boolean is
+   begin
+      return Self.Implobj = null ;
    end ;
 
 
@@ -427,111 +669,6 @@ package body OmniObject is
    end ;
 
 
-
-   -- C_Get_Repository_Id
-   ----------------------
-   function C_Get_Repository_Id(Self : in Object'class)
-                                return Interfaces.C.Strings.Chars_Ptr ;
-   pragma Import (C, C_Get_Repository_Id, "getRepositoryID__14Ada_OmniObject") ;
-   -- corresponds to Ada_OmniObject::getRepositoryID
-
-   -- Get_Repository_Id
-   --------------------
-   function Get_Repository_Id(Self : in Object'class)
-                              return Corba.String is
-      C_Result : Interfaces.C.Strings.Chars_Ptr ;
-   begin
-      C_Result := C_Get_Repository_Id(Self) ;
-      return Corba.To_Corba_String(Interfaces.C.Strings.Value(C_Result)) ;
-   end ;
-
-
-
-
-
-
-   -- C_String_To_Object
-   ---------------------
-   function C_String_To_Object(RepoId : in Interfaces.C.Strings.Chars_Ptr)
-                               return System.Address ;
-   pragma Import (CPP, C_String_To_Object, "string_to_ada_object__14Ada_OmniObjectPCc") ;
-   -- corresponds to Ada_OmniObject::string_to_ada_object
-
-   -- String_To_Object
-   -------------------
-   function String_To_Object(RepoId : in Corba.String)
-                             return Object_Ptr is
-      package Address_To_Object_ptr is
-        new System.Address_To_Access_Conversions (Object) ;
-      -- to convert access to object to Object_Ptr
-      function To_Object_Ptr is
-        new Ada.Unchecked_Conversion (Address_To_Object_ptr.Object_Pointer,
-                                      Object_Ptr);
-      C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
-      C_Result : System.Address ;
-      Result : Address_To_Object_ptr.Object_Pointer ;
-   begin
-      -- transform arguments into C types ...
-      C_Repoid := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Repoid)) ;
-      -- call C function
-      C_Result := C_String_To_Object(C_Repoid) ;
-      -- free arguments
-      Interfaces.C.Strings.Free(C_Repoid) ;
-      -- transform result
-      if  C_Result = System.Null_Address then
-         return null ;
-      else
-         Result := Address_To_Object_Ptr.To_Pointer(C_Result) ;
-         return To_Object_Ptr(Result) ;
-      end if ;
-   end ;
-
-
-
-   -- Ada_To_C_Unsigned_Long
-   -------------------------
-   function Ada_To_C_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Corba.Unsigned_Long,
-                                   Interfaces.C.Unsigned_Long) ;
-   -- needed to change ada type Corba.Unsigned_Long
-   -- into C type Interfaces.C.Unsigned_Long
-
-
-   -- Object_To_String
-   -------------------
-   function Object_To_String (Self : in Implemented_Object'class)
-                              return CORBA.String is
-   begin
-      if Is_Nil(Self) then
-         return Object_To_String(null) ;
-      else
-         return Object_To_String(Self.Omniobj) ;
-      end if ;
-   end ;
-
-
-   -- C_Get_Profile_List
-   ---------------------
-   function C_Get_Profile_List (Self : in Object'Class)
-                                return System.Address ;
-   pragma Import (CPP,C_Get_Profile_List,"iopProfiles__14Ada_OmniObject") ;
-   -- returns the Profile list of an object
-   -- wrapper around C function Ada_OmniObject::iopProfiles()
-   -- (see Ada_OmniObject.hh)
-
-   -- Get_Profile_List
-   -------------------
-   function Get_Profile_List (Self : in Object'Class)
-                              return Iop.Tagged_Profile_List is
-      result : System.Address ;
-   begin
-      -- calls the C function ...
-      Result := C_Get_Profile_List (Self) ;
-      -- ... and transforms the result in an Ada type
-      return Iop.Tagged_Profile_List (Result) ;
-   end ;
-
-
    -- C_Set_Rope_And_Key
    ----------------------
    procedure C_Set_Rope_And_Key (Self : in out Object'Class ;
@@ -559,54 +696,6 @@ package body OmniObject is
    end ;
 
 
-   -- C_Get_Rope_And_Key
-   ---------------------
-   procedure C_Get_Rope_And_Key (Self : in Object'Class ;
-                                L : in out System.Address ;
-                                Success : out Sys_Dep.C_Boolean) ;
-   pragma Import (CPP,
-                  C_Get_Rope_And_Key,
-                  "getRopeAndKey__14Ada_OmniObjectR14omniRopeAndKeyRb") ;
-   -- wrapper around  Ada_OmniObject function getRopeAndKey
-   -- (see Ada_OmniObject.hh)
-
-   -- Get_Rope_And_Key
-   -------------------
-   procedure Get_Rope_And_Key (Self : in Object'Class ;
-                               L : in out Omniropeandkey.Object ;
-                               Success : out Corba.Boolean ) is
-      C_L : System.Address;
-      C_Success : Sys_Dep.C_Boolean ;
-   begin
-      if Is_Proxy(Self) then
-         Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
-                                        "Omniobject.Get_Rope_And_Key cannot be called on a local object") ;
-      end if ;
-      -- transforms the arguments in a C type ...
-      C_L := L'Address ;
-      -- ... calls the C function ...
-      C_Get_Rope_And_Key(Self, C_L, C_Success) ;
-      -- ... and transforms the result into an Ada type
-      Success := Sys_Dep.Boolean_C_To_Ada (C_Success) ;
-   end ;
-
-
-   -- Is_Proxy
-   -----------
-   function Is_Proxy (Self : in Object'Class)
-                      return Boolean is
-   begin
-      return Self.Implobj = null ;
-   end ;
-
-
-   -- Address_To_Giop_S
-   --------------------
-   package Address_To_Giop_S is
-     new System.Address_To_Access_Conversions (Giop_S.Object) ;
-   -- needed to convert System.Address into Giop_S.Object
-
-
    -- Dispatch
    -----------
    function Dispatch(Self: in Object'Class ;
@@ -627,6 +716,7 @@ package body OmniObject is
       end if ;
    end ;
 
+
    -- C_Dispatch
    -------------
    function C_Dispatch (Self : in Object'Class ;
@@ -634,6 +724,8 @@ package body OmniObject is
                         Orl_Op : in Interfaces.C.Strings.Chars_Ptr ;
                         Orl_Response_Expected : in Sys_Dep.C_Boolean)
                         return Sys_Dep.C_Boolean is
+      package Address_To_Giop_S is
+        new System.Address_To_Access_Conversions (Giop_S.Object) ;
       Ada_Orls_Ptr : Address_To_Giop_S.Object_Pointer ;
       Ada_Orl_Op : Standard.String := Interfaces.C.Strings.Value(Orl_OP) ;
       Ada_Orl_Response_Expected : Corba.Boolean ;
@@ -652,28 +744,8 @@ package body OmniObject is
    end ;
 
 
-
-
-   -- Duplicate
-   ------------
-   procedure Duplicate(Self : in Object'class) is
-   begin
-      null ;
-      -- to be implemented
-   end ;
-
-   -- Release
-   ------------
-   procedure Release(Self : in Object'class) is
-   begin
-      null ;
-      -- to be implemented
-   end ;
-
-
-
     -- C_Is_A
-   ---------
+   ----------
    function C_Is_A(Self : in Object'Class ;
                    RepoId : in Interfaces.C.Strings.Chars_Ptr)
                    return  Sys_Dep.C_Boolean is
@@ -682,6 +754,12 @@ package body OmniObject is
       Rep := Corba.To_Corba_String(Interfaces.C.Strings.Value(RepoId)) ;
       return Sys_Dep.Boolean_Ada_To_C(Is_A(Self.Implobj.all, Rep)) ;
    end ;
+
+
+   -----------------------------------------------
+   ---         memory handling                 ---
+   -----------------------------------------------
+
 
    -- C_Object_Ptr_Constructor
    ----------------------------
@@ -695,23 +773,11 @@ package body OmniObject is
    -- Object_Ptr_Constructor
    -------------------------
    function Object_Ptr_Constructor return Object_Ptr is
-      -- to convert the system.Address to access to Object
-      package Address_To_Object_ptr is
-        new System.Address_To_Access_Conversions (Object) ;
-      -- to convert access to object to Object_Ptr
-      function To_Object_Ptr is
-        new Ada.Unchecked_Conversion (Address_To_Object_ptr.Object_Pointer,
-                                      Object_Ptr);
       C_Result : System.Address ;
-      Result : Address_To_Object_ptr.Object_Pointer ;
    begin
       C_Result := C_Object_Ptr_Constructor ;
-      Result := Address_To_Object_Ptr.To_Pointer(C_Result) ;
-      return To_Object_Ptr(Result) ;
+      return To_Object_Ptr(A2a.To_Pointer(C_Result)) ;
    end ;
 
 
-
 end OmniObject ;
-
-

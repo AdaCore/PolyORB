@@ -47,25 +47,53 @@
 
 
 with System.Address_To_Access_Conversions ;
+with Sys_Dep ;
 
 package body Corba.Boa is
+
+
+   -- C_Implementation_Is_Ready
+   ----------------------------
+   procedure C_Implementation_Is_Ready(Self : in Object ;
+                                       ImplementationDef_ptr : in System.Address ;
+                                       Non_Blocking : in Sys_Dep.C_Boolean );
+   pragma Import(CPP, C_Implementation_Is_Ready, "impl_is_ready__Q25CORBA3BOAPQ25CORBA17ImplementationDefb") ;
+   -- corresponds to CORBA::BOA::impl_is_ready
+   -- see CORBA.h L1967
+
+
+   -- Implementation_Is_Ready
+   --------------------------
+   procedure Implementation_Is_Ready(Self : in Object ;
+                                     Non_Blocking : in Boolean := False )  is
+      Tmp : System.Address := System.Null_Address ;
+      NB : Sys_Dep.C_Boolean := Sys_Dep.Boolean_Ada_To_C(Non_Blocking) ;
+   begin
+      C_Implementation_Is_Ready(Self, Tmp, NB) ;
+   end ;
+
 
    -- Object_Is_Ready
    -------------------
    procedure Object_Is_Ready(Self: in Object ;
                              Obj: in Omniobject.Implemented_Object'Class ) is
    begin
+      -- it does not take the BOA into account because thereis only
+      -- one BOA in omniORB2. ( See corbaBoa.cc )
       Omniobject.Object_Is_Ready(Obj) ;
    end ;
 
-
    -- Object_Is_Ready
    -------------------
-   procedure Object_Is_Ready(Self: in Object ;
-                             Obj: in Corba.Object.Ref'Class ) is
+   procedure Dispose_Object(Self: in Object ;
+                            Obj: in Omniobject.Implemented_Object'Class ) is
    begin
-      Corba.Object.Object_Is_Ready(Obj) ;
+      -- it does not take the BOA into account because thereis only
+      -- one BOA in omniORB2. ( See corbaBoa.cc )
+      Omniobject.Dispose_Object(Obj) ;
    end ;
+
+
 
 
 end Corba.Boa ;

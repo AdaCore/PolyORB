@@ -50,6 +50,20 @@ package Corba.Forward is
 
    type Ref is new Corba.Object.Ref with null record;
 
+   function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
+
+   -- added in AdaBroker, because To_Ref has to be
+   -- overriden for all the descendants of Corba.Object.Ref
+   -- We just raise an exceptipon here
+   -- The spec does not specify any function To_Ref in
+   -- Corba.Object.Ref, but it must be a mistake,
+   -- since they say later taht To_Ref has to be defined
+   -- for all IDL interfaces (Corba.Object.Ref is indeed
+   -- an IDL interface)
+
+   function Get_Nil_Ref(Self : in Ref) return Ref ;
+   -- see comment for To_Ref
+
    generic
       type Ref_Type is new Corba.Object.Ref with private ;
 

@@ -71,22 +71,39 @@ public:
   // static destructor that will be called from the Ada code
   // because the virtual destructor cannot be called from tha Ada code
 
-  void Init ();
+  void initLocalObject (const char* repoID);
   // Initialisation of a local object via call to the
-  // omniObject_C2Ada constructor on C_Object
+  // omniObject_C2Ada constructor on C_OmniObject
+  // For a local object, we have to set the repository_id
+
   
-  void Init (const char *repoId,
-	     Rope *r,
-	     _CORBA_Octet *key,
-	     size_t keysize,
-	     IOP::TaggedProfileList *profiles,
-	     _CORBA_Boolean release); 
+  void initProxyObject (const char *repoId,
+			  Rope *r,
+			  _CORBA_Octet *key,
+			  size_t keysize,
+			  IOP::TaggedProfileList *profiles,
+			  _CORBA_Boolean release); 
   // Initialisation of a proxy object via call to the
   // omniObject_C2Ada constructor on C_Object
   
-  void Init (omniObject_C2Ada *omniobj);
+  //void Init (omniObject_C2Ada *omniobj);
   //Initialisation by giving the underlying omniObject_C2Ada pointer
+  // who uses it ??
   
+  static Ada_OmniObject* objectDuplicate(Ada_OmniObject* omniobj) ;
+  // Creation of an Ada_OmniObject referencing the same
+  // omniObject ( used for Omniobject.Duplicate )
+  
+  void objectIsReady() ;
+  // calls omni::objectIsReady on C_Object
+  // to tell the ORB that this local object is
+  // ready to accpet connexions
+  
+  void disposeObject() ;
+  // calls omni::disposeObject on C_OmniObject
+  // it has to be done only for local object
+  // to tell the ORB they cannot receive connexions any longer
+
   void setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1);
   // calls the setRopeAndKey function of C_Object
 
@@ -111,9 +128,6 @@ public:
 
   virtual _CORBA_Boolean Ada_Is_A(const char* repoId) ;
   // calls is_a on this omniobject
-  
-  void setRepositoryID(const char* repoId) ;
-  // call the PR_IRRepositoryId of omniObject
   
   const char* getRepositoryID() ;
   // calls th NP_repositoryId of omniObject
@@ -140,8 +154,15 @@ public:
   // this function calls omniobject::iopProfiles()
   // on the underlying object
 
+
+  omniObject_C2Ada *getOmniObject() ;
+  // returns the unserlying C_Object
+  // used in proxyObjectFactory_C2Ada
   
 private:
+
+  void setRepositoryID(const char *repoId) ;
+  // sets the repository id for a local object
   
   void* Implobj ;
   // This pointer is only used by the Ada side of this object

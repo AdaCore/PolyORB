@@ -50,10 +50,12 @@
 -----------------------------------------------------------------------
 
 
+with Ada.Unchecked_Conversion ;
 with Ada.Finalization ;
 with Interfaces.CPP ;
 with Interfaces.C.Strings ;
 with System ;
+with System.Address_To_Access_Conversions ;
 
 with Corba ;
 with Giop_S ;
@@ -116,8 +118,12 @@ package OmniObject is
    --        SUBPROGRAMS DECLARATION            --
    -----------------------------------------------
 
-   procedure Init (Self : in out Implemented_Object ;
-                   Repo_Id : in Corba.String) ;
+   -----------------------------------------------
+   ---            miscellaneous                ---
+   -----------------------------------------------
+
+   procedure Init_Local_Object (Self : in out Implemented_Object ;
+                                Repo_Id : in Corba.String) ;
    -- calls the C++ Init to set the init_ok boolean to true
    -- and sets the repoID of this object
 
@@ -131,30 +137,13 @@ package OmniObject is
                               return Corba.String ;
 
 
-    Repository_Id : Corba.String
+   Repository_Id : Corba.String
      := Corba.To_Corba_String("IDL:omg.org/CORBA/Object:1.0") ;
 
 
-    function Is_A(Self: in Implemented_Object ;
-                 Logical_Type_Id : in Corba.String)
-                 return Corba.Boolean ;
-   -- returns true if this object is of this Logical_Type_Id
-   -- ( where Logical_Type_Id is a Repository_Id )
-   -- or one of its descendants
-
-
-   procedure Object_Is_Ready(Self : in Implemented_Object'Class) ;
-   -- calls the C++ function omni::objectIsReady
-   -- has to be done when an object has been created
-   -- to register it into the ORB
-   -- (as a local object)
-   -- BEWARE : MUST BE CALLED ONLY ONCE FOR EACH OBJECT
-
-
-   function Object_To_String(Self : in Implemented_Object'Class)
-                             return Corba.String ;
-   -- return the IOR corresponding to this object
-
+   -----------------------------------------------
+   --        dispatching operators              --
+   -----------------------------------------------
 
    function Dispatch (Self : in Implemented_Object ;
                       Orls : in Giop_S.Object ;
@@ -165,6 +154,49 @@ package OmniObject is
    -- It is implemented in the sub-classes of omniObject
    -- this function on this object should never be called
 
+
+   function Is_A(Self: in Implemented_Object ;
+                 Logical_Type_Id : in Corba.String)
+                 return Corba.Boolean ;
+   -- returns true if this object is of this Logical_Type_Id
+   -- ( where Logical_Type_Id is a Repository_Id )
+   -- or one of its descendants
+
+
+   -----------------------------------------------
+   --      registering into the ORB             --
+   -----------------------------------------------
+
+   procedure Object_Is_Ready(Self : in Implemented_Object'Class) ;
+   -- tells the ORB that this object is ready to accept connections
+   -- it has to be done once (and only once) for each local object
+   -- this function *must not* be called directly by an implmentation.
+   -- Call the Boa.Object_Is_Ready instead. There is no difference in
+   -- this version of AdaBroker since there is only one BOA, but
+   -- there may be in the future.
+
+
+   procedure Dispose_Object(Self : in Implemented_Object'Class) ;
+   -- Releases all the ressources associated to a local object
+   -- it is done automatically at the end of the scope, but can
+   -- be done prematuraly by the invokation of this procedure.
+   -- Once this procedure has been called, the Implemented_Object
+   -- becomes a null object.
+
+
+   -----------------------------------------------
+   --             object <-> IOR                --
+   -----------------------------------------------
+
+   function Object_To_String(Self : in Implemented_Object'Class)
+                             return Corba.String ;
+   -- return the IOR corresponding to this object
+
+
+
+   -----------------------------------------------
+   --           marshalling operators           --
+   -----------------------------------------------
 
    function Align_Size (Obj : in Implemented_Object_Ptr ;
                         Initial_Offset : in Corba.Unsigned_Long)
@@ -190,6 +222,9 @@ package OmniObject is
    --        SUBPROGRAMS DECLARATION            --
    -----------------------------------------------
 
+   -----------------------------------------------
+   --           marshalling operators           --
+   -----------------------------------------------
 
    function Align_Size (Obj : in Object_Ptr ;
                         Initial_Offset : in Corba.Unsigned_Long)
@@ -207,6 +242,10 @@ package OmniObject is
    -- This procedure marshalls the object Obj into the stream S
 
 
+   -----------------------------------------------
+   --        constructors and destrucotrs       --
+   -----------------------------------------------
+
    function Create_Omniobject(Most_Derived_Repoid : in Corba.String ;
                               Profiles : in Iop.Tagged_Profile_List ;
                               Release : in Corba.Boolean)
@@ -217,60 +256,36 @@ package OmniObject is
    -- a bufferedstream, and to create a Corba.object.ref'class.
 
 
-   procedure Duplicate(Self : in Object'Class) ;
-   -- calls the C++ equivalent :
-   -- omni::objectDuplicate(omniObject*)
-   -- it increments the reference count by one
+   function Omniobject_Duplicate(Self : in Object_Ptr) return Object_Ptr ;
+   -- creates a new Object referencing the same
+   -- omniObject_C2Ada
+   -- see Ada_OmniObject.hh
 
 
-   procedure Release(Self : in Object'Class) ;
-   -- calls the C++ equivalent :
-   -- omni::objectRelease(omniObject*)
-   -- it decrements the reference count by one
-   -- and releases the resources if it comes to 0
+   procedure Omniobject_Destructor(Self : in Object_Ptr) ;
+   -- C++ destructor of Ada_omniObject
+   -- calls omni::objectRelease on the omniObject_C2Ada
+   -- and destroys the Ada_omniObject
 
 
-   procedure Omniobject_Is_Ready(Self : in Object'Class) ;
-   pragma Import (C,Omniobject_Is_Ready,"objectIsReady__4omniP10omniObject") ;
-   -- corresponds to omni::objectIsReady
-   -- objectRef.cc L 230
+   -----------------------------------------------
+   --      registering into the ORB             --
+   -----------------------------------------------
+
+   procedure Omniobject_Is_Ready(Self : in Object_Ptr) ;
+   -- registers a local object into the ORB
    -- only called by Object_Is_Ready(Implemented_Object)
-   -- or Object_Is_Ready(Corba.Object.Ref)
 
 
-   procedure Assert_Object_Existent (Self : in Object'Class) ;
-   pragma Import (CPP,Assert_Object_Existent,
-                  "assertObjectExistent__10omniObject");
-   -- wrapper around  Ada_OmniObject function assertObjectExistent
-   -- (see Ada_OmniObject.hh)
-   -- no Ada equivalent since there is no arguments
+   procedure Omniobject_Dispose(Self : in Object_Ptr) ;
+   -- tells the BOA this local object does not accept
+   -- connexions any longer
+   -- only called by Dispose_Object(Implemented_Object)
 
 
-   procedure Get_Rope_And_Key (Self : in Object'Class ;
-                               L : in out Omniropeandkey.Object ;
-                               Success : out Boolean ) ;
-   -- returns the rope and key for this omniobject
-   -- if it is a proxy object
-
-
-   procedure Set_Rope_And_Key (Self : in out Object'Class ;
-                               L : in Omniropeandkey.Object ;
-                               KeepIOP : in Boolean := True) ;
-   -- sets the rope and key for this object
-
-
-   procedure Reset_Rope_And_Key (Self : in out Object'Class) ;
-   -- resets the rope and key for this object according to the IOP profile
-   pragma Import (CPP,Reset_Rope_And_Key,
-                  "resetRopeAndKey__14Ada_OmniObject") ;
-   -- wrapper around  Ada_OmniObject function resetRopeAndKey
-   -- (see Ada_OmniObject.hh)
-
-
-   function Get_Repository_Id(Self : in Object'class)
-                              return Corba.String ;
-   -- returns the repository_id for this object
-
+   -----------------------------------------------
+   --             object <-> IOR                --
+   -----------------------------------------------
 
    function String_To_Object(RepoId : in Corba.String)
                              return Object_Ptr ;
@@ -283,10 +298,26 @@ package OmniObject is
    -- returns the IOR for this object
    -- Obj can be null
 
+   -----------------------------------------------
+   --          miscellaneous                    --
+   -----------------------------------------------
+
+   procedure Get_Rope_And_Key (Self : in Object'Class ;
+                               L : out Omniropeandkey.Object ;
+                               Success : out Boolean ) ;
+   -- returns the rope and key for this omniobject
+   -- if it is a proxy object
+
+
+   function Get_Repository_Id(Self : in Object'class)
+                              return Corba.String ;
+   -- returns the repository_id for this object
+
 
    function Get_Profile_List (Self : in Object'Class)
                               return Iop.Tagged_Profile_List ;
    -- returns the Profile list of an object
+
 
 private
 
@@ -304,6 +335,10 @@ private
       Omniobj : Object_Ptr ;
    end record ;
 
+
+   -----------------------------------------------
+   ---     finalization operators              ---
+   -----------------------------------------------
 
    procedure Initialize (Self: in out Implemented_Object);
    -- create the underlying Omniobject
@@ -326,6 +361,13 @@ private
    -----------------------------------------------
    --           PRIVATE PART                    --
    -----------------------------------------------
+
+   package A2a is new System.Address_To_Access_Conversions (Object) ;
+   function To_Object_Ptr is new Ada.Unchecked_Conversion(A2a.Object_Pointer,
+                                                          Object_Ptr) ;
+   function From_Object_Ptr is new Ada.Unchecked_Conversion(Object_Ptr,
+                                                            A2a.Object_Pointer) ;
+   -- useful routines to convert to/from C types.
 
 
    function Is_Proxy (Self : in Object'Class)
@@ -378,11 +420,6 @@ private
    -- toto : Object_Ptr := new Object
    -- we have to call the C++ constructor to create objects
 
-
-   procedure Object_Destructor(Self : in out Object'Class) ;
-   pragma Import (CPP,Object_Destructor,
-                  "Destructor__14Ada_OmniObjectP14Ada_OmniObject") ;
-   -- C++ destructor of Ada_omniObject
 
 
 end OmniObject ;

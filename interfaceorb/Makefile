@@ -88,7 +88,7 @@ Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc
 omniObject_C2Ada.o : omniObject_C2Ada.hh omniObject_C2Ada.cc
 
 proxyObjectFactory_C2Ada.o: proxyObjectFactory_C2Ada.hh \
-proxyObjectFactory_C2Ada.cc omniObject_C2Ada.o
+proxyObjectFactory_C2Ada.cc omniObject_C2Ada.o Ada_OmniObject.o
 
 
 
@@ -105,7 +105,9 @@ corba-exceptions.ali corba-object.ali corba-orb.ali  \
 corba-sequences-bounded.ali corba-sequences-unbounded.ali exceptions.ali \
 giop.ali giop_c.ali giop_s.ali iop.ali membufferedstream.ali \
 netbufferedstream.ali omni.ali omniobject.ali \
-omniproxycalldesc.ali omniproxycallwrapper.ali omniropeandkey.ali \
+omniproxycalldesc.ali \
+#omniproxycallwrapper.ali \
+omniropeandkey.ali \
 rope.ali sys_dep.ali
 
 .SUFFIXES: .adb .ali
