@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#24 $
+--  $Id: //droopi/main/src/polyorb-any.ads#25 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -762,8 +762,8 @@ private
 
    --  The control procedures to the Any type
    procedure Initialize (Object : in out Any);
-   procedure Adjust (Object : in out Any);
-   procedure Finalize (Object : in out Any);
+   procedure Adjust     (Object : in out Any);
+   procedure Finalize   (Object : in out Any);
 
    --  And the management of the counter
    procedure Inc_Usage (Obj : in Any);

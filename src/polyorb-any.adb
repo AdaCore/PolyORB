@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#43 $
+--  $Id: //droopi/main/src/polyorb-any.adb#44 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -1772,6 +1772,10 @@ package body PolyORB.Any is
       end case;
    end "=";
 
+   --------------------------
+   -- Compare_Any_Contents --
+   --------------------------
+
    function Compare_Any_Contents (Left : in Any; Right : in Any)
      return Boolean
    is
@@ -1785,9 +1789,9 @@ package body PolyORB.Any is
       return C_Left = C_Right;
    end Compare_Any_Contents;
 
-   -----------------------------------
-   --  To_Any conversion functions  --
-   -----------------------------------
+   ------------
+   -- To_Any --
+   ------------
 
    function To_Any (Item : in Short) return Any is
       Result : Any;
@@ -1952,9 +1956,9 @@ package body PolyORB.Any is
       return Result;
    end To_Any;
 
-   -------------------------------------
-   --  From_Any conversion functions  --
-   -------------------------------------
+   --------------
+   -- From_Any --
+   --------------
 
    function From_Any (Item : in Any) return Short is
    begin
@@ -2157,7 +2161,9 @@ package body PolyORB.Any is
    procedure Set_Type (The_Any : in out Any;
                        The_Type : in TypeCode.Object) is
    begin
+      pragma Debug (O ("Set_Type: enter"));
       The_Any.The_Type := The_Type;
+      pragma Debug (O ("Set_Type: leave"));
    end Set_Type;
 
    -------------------------------
@@ -2181,10 +2187,6 @@ package body PolyORB.Any is
       pragma Debug (O ("Get_Empty_Any : type set"));
       return Result;
    end Get_Empty_Any;
-
-   -----------
-   --  Any  --
-   -----------
 
    --------------
    -- Is_Empty --
@@ -3034,6 +3036,7 @@ package body PolyORB.Any is
         (O2 ("  Lck = "
              & System.Address_Image (Object.Any_Lock.all'Address)));
       Object.The_Value := new Any_Content_Ptr'(null);
+      pragma Debug (O2 ("Initialize: end"));
    end Initialize;
 
    ------------
@@ -3165,14 +3168,16 @@ package body PolyORB.Any is
          pragma Debug (O2 ("Dec_Usage: content released"));
          Deallocate_Any_Content_Ptr (Obj.The_Value);
          pragma Debug (O2 ("Dec_Usage: content_ptr released"));
+
          Deallocate (Obj.Ref_Counter);
          pragma Debug (O2 ("Dec_Usage: counter deallocated"));
+
          Unlock_W (Obj.Any_Lock);
          pragma Debug (O2 ("Dec_Usage: lock released, DESTROYING Lck = "
                            & System.Address_Image (Obj.Any_Lock.all'Address)));
          Destroy (Obj.Any_Lock);
       end if;
-      pragma Debug (O2 ("Dec_Usage : end"));
+      pragma Debug (O2 ("Dec_Usage: end"));
    end Dec_Usage;
 
    -----------
