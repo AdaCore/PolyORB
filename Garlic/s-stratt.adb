@@ -563,7 +563,7 @@ package body System.Stream_Attributes is
       --  Denormalized float.
       if E = 0 then
 
-         X := Scaling (X, 1 - E_Bias); --  Float
+         X := Scaling (X, 1 - E_Bias); --  Flaot
 
       --  Normalized float.
       else
@@ -1089,6 +1089,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_AD;
 
    ----------
@@ -1106,6 +1110,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_AS;
 
    ---------
@@ -1132,6 +1140,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_B;
 
    ---------
@@ -1170,6 +1182,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_WC;
 
    ----------
@@ -1275,6 +1291,10 @@ package body System.Stream_Attributes is
       end if;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_SF;
 
    ---------
@@ -1380,6 +1400,10 @@ package body System.Stream_Attributes is
       end if;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_F;
 
    ----------
@@ -1485,6 +1509,10 @@ package body System.Stream_Attributes is
       end if;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_LF;
 
    -----------
@@ -1590,6 +1618,10 @@ package body System.Stream_Attributes is
       end if;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_LLF;
 
    -----------
@@ -1615,6 +1647,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_SSI;
 
    ----------
@@ -1640,6 +1676,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_SI;
 
    ---------
@@ -1665,6 +1705,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_I;
 
    ----------
@@ -1701,6 +1745,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_LI;
 
    -----------
@@ -1737,6 +1785,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_LLI;
 
    -----------
@@ -1754,6 +1806,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_SSU;
 
    ----------
@@ -1771,6 +1827,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_SU;
 
    ---------
@@ -1788,6 +1848,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_U;
 
    ----------
@@ -1816,6 +1880,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_LU;
 
    -----------
@@ -1845,6 +1913,10 @@ package body System.Stream_Attributes is
       end loop;
 
       Ada.Streams.Write (Stream.all, S);
+
+      if U /= 0 then
+         raise Err;
+      end if;
    end W_LLU;
 
 end System.Stream_Attributes;
