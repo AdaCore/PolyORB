@@ -1,3 +1,7 @@
+1998-07-16  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Insert pragma Warnings (On) a little bit later.
+
 1998-07-15  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Add pragma Warnings (Off) to compile s-garela.adb

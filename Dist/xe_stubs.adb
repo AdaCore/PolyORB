@@ -294,7 +294,6 @@ package body XE_Stubs is
       Dwrite_With_Clause (FD, "System.Garlic.Heart");
       Dwrite_With_Clause (FD, "System.Garlic.Options");
       Dwrite_With_Clause (FD, "System.Garlic.Types");
-      Dwrite_Line (FD, 0, "pragma Warnings (On);");
 
       if Default_Registration_Filter /= No_Filter_Name then
          Dwrite_With_Clause
@@ -324,6 +323,7 @@ package body XE_Stubs is
          end loop;
       end if;
 
+      Dwrite_Line (FD, 0, "pragma Warnings (On);");
       Dwrite_Line (FD, 0, "package body ", Elaboration_Name, " is");
       Dwrite_Line (FD, 1, "procedure Initialize is");
       Dwrite_Line (FD, 1, "begin");
