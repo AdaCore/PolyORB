@@ -254,11 +254,13 @@ package body PolyORB.Buffers is
    ----------
 
    function Peek
-     (Buffer : access Buffer_Type;
-      Offset :        Ada.Streams.Stream_Element_Offset)
+     (Buffer   : access Buffer_Type;
+      Position :        Ada.Streams.Stream_Element_Offset)
      return Ada.Streams.Stream_Element is
    begin
-      return Iovec_Pools.Peek (Buffer.Contents, Offset);
+      return Iovec_Pools.Peek
+        (Iovec_Pool => Buffer.Contents,
+         Offset     => Position - Buffer.Initial_CDR_Position);
    end Peek;
 
    ------------------------------
@@ -1004,7 +1006,7 @@ package body PolyORB.Buffers is
                if Offset < L + Current_Offset then
                   declare
                      S_Addr : constant System.Address
-                    := Iovecs (J).Iov_Base;
+                       := Iovecs (J).Iov_Base;
                      S : Stream_Element_Array (0 .. L - 1);
                      for S'Address use S_Addr;
                      pragma Import (Ada, S);

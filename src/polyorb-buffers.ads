@@ -40,7 +40,7 @@
 
 --  Note: Buffers should only be read/written sequentially.
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#19 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#20 $
 
 with Ada.Streams;
 
@@ -162,11 +162,12 @@ package PolyORB.Buffers is
    --  deallocating the pointer after use.
 
    function Peek
-     (Buffer : access Buffer_Type;
-      Offset :        Ada.Streams.Stream_Element_Offset)
-   return Ada.Streams.Stream_Element;
-   --  Return the octet at 'offset' from the buffer.
-   --  Raise a 'Read_Error' exception if not found.
+     (Buffer   : access Buffer_Type;
+      Position :        Ada.Streams.Stream_Element_Offset)
+     return Ada.Streams.Stream_Element;
+   --  Return the octet at the given Position from the buffer.
+   --  Read_Error is raised if that position is beyond the buffer's
+   --  end.
 
    -------------------------------------
    -- Representation view of a buffer --
@@ -429,8 +430,9 @@ private
         (Iovec_Pool : Iovec_Pool_Type;
          Offset     : Ada.Streams.Stream_Element_Offset)
         return Ada.Streams.Stream_Element;
-      --  return the octet at offset from the buffer
-      --  raise a Read_Error Exception if not found
+      --  Return the octet at the specified Offset from the start of
+      --  Iovec_Pool. Read_Error is raised if that offset is beyond
+      --  the pool's end.
 
    private
 
