@@ -1,3 +1,24 @@
+2003-11-06  Laurent Pautet  <pautet@enst.fr>
+
+	* xe_utils.ads, xe_utils.adb: Move functions specific to GARLIC
+	communication subsystem from XE_Utils to XE_Stubs in order
+	to have only one such specific package.
+	Add To_Lower function for characters.
+	Part of work for CA22-003.
+
+	* xe_stubs.ads, xe_stubs.adb: Get PCS name from XE_Defs and do not
+	assume GARLIC anymore.
+	Add Initialize procedure to setup GNATDIST for a given PCS.
+	Part of work for CA22-003.
+
+	* xe_defs.ads, b_xe_defs.adb: Add Get_PCS_Name and generate
+	Get_PCS_Name function body for xe_defs.adb.
+	Part of work for CA22-003.
+
+	* Makefile.am, Makefile.in: Define PCS_NAME to designate the
+	partition communication subsystem.
+	Part of work for CA22-003.
+
 2003-11-04  Laurent Pautet  <pautet@enst.fr>
 
 	* b_xe_defs.adb: Build xe_defs.adb and in particular procedure
