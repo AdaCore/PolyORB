@@ -19,7 +19,7 @@
 #
 # $Name:  $
 #
-# $Id: //depot/adabroker/main/WWW/bugs/RT-submit-pr.cgi#2 $
+# $Id: //depot/adabroker/main/WWW/bugs/RT-submit-pr.cgi#3 $
 #
 ####################################################################
  
@@ -231,13 +231,13 @@ sub show_form {
 ##   $s_system .= $oh_cgi->textfield({name=>'system'});
  
   # Requester's identity.
-  $s_rtreporter = "<B>Your e-mail address:</BR><BR>";
+  $s_rtreporter = "<B>Your e-mail address:</B><BR>";
   $s_rtreporter .= $oh_cgi->textfield({name=>'reporter',
                                     size=>'72',
                                     maxlength=>'72'});
-  $s_reporter .= "<P><B>Warning!</B> It is critical that you provide\n" \
-     . "us with a correct address, since this is the only way for us to\n" \
-     . "keep you informed of the problem status.\n"
+  $s_rtreporter .= "<P><B>Warning!</B> It is critical that you provide\n"
+     . "us with a correct address, since this is the only way for us to\n"
+     . "keep you informed of the problem status.\n";
 
   # The summary, description, resolution, and comments boxes.
   $s_summary = "<B>One-line summary:</B><BR>";
