@@ -54,6 +54,7 @@ package body Egg.Proxies is
       Corba.Object.Unmarshall(Result, Giop_Client) ;
       Output(True,"Egg.Proxies.Unmarshal_Returned_Values : chicken unmarshalled") ;
       Self.Private_Result := new Chicken.Ref'(Result) ;
+      Chicken.Adjust(Self.Private_Result.all) ;
       Output(True,"Egg.Proxies.Unmarshal_Returned_Values : Exiting procedure : OK") ;
    end ;
 

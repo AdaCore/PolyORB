@@ -52,6 +52,7 @@ package body Chicken.Proxies is
    begin
       Corba.Object.Unmarshall(Result, Giop_Client) ;
       Self.Private_Result := new Egg.Ref'(Result) ;
+      Egg.Adjust(Self.Private_Result.all) ;
    end ;
 
 
