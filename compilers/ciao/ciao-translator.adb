@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#19 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#20 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -966,19 +966,11 @@ package body CIAO.Translator is
                   State.Current_Node := Old_Current_Node;
 
                   if Trait_Kind (Element) = An_Access_Definition_Trait then
-                     if Is_Interface
-                       (Get_Translation
-                        (Corresponding_Entity_Name_Declaration
-                         (Declaration_Subtype_Mark (Element))))
-                     then
-                        Mode := Mode_In;
-                        --  An anonymous access type definition
-                        --  that designates a distributed object.
-                     else
-                        Mode := Mode_Inout;
-                        --  Any other case of anonymous access type
-                        --  definition.
-                     end if;
+                     Mode := Mode_In;
+                     --  An access formal parameter of a remote
+                     --  subprogram is always a controlling formal,
+                     --  and therefore it is a remote object reference
+                     --  that is passed by value.
                   else
                      case Mode_Kind (Element) is
                         when Not_A_Mode     =>   --  An unexpected element
