@@ -2,54 +2,26 @@
 
 --  $Id$
 
-with Ada.Command_Line;
-with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 
-with Droopi.Any;
-with Droopi.Any.NVList;
-with Droopi.Filters;
-with Droopi.Filters.Slicers;
 with Droopi.Log;
-with Droopi.Obj_Adapters.Simple;
-with Droopi.Objects;
-with Droopi.ORB.Interface;
+pragma Elaborate_All (Droopi.Log);
 
-with Droopi.Binding_Data.Test;
 with Droopi.Binding_Data.IIOP;
-with Droopi.Binding_Data.SRP;
-
-with Droopi.Components;
-
-with Droopi.Protocols;
-with Droopi.Protocols.Echo;
-with Droopi.Protocols.GIOP;
-with Droopi.Protocols.SRP;
-
-with Droopi.References;
-with Droopi.References.IOR;
-
-with Droopi.Requests;
+pragma Elaborate_All (Droopi.Binding_Data.IIOP);
 
 with Droopi.Smart_Pointers;
-with Droopi.Sockets;
-with Droopi.Test_Object;
-with Droopi.Transport.Sockets;
-with Droopi.Types;
+pragma Elaborate_All (Droopi.Smart_Pointers);
 
 with Droopi.No_Tasking;
 with Droopi.ORB.Task_Policies;
 
+with Droopi.ORB;
+pragma Elaborate_All (Droopi.ORB);
+
 package body Droopi.Setup.CORBA_Client is
 
-   use Droopi.Binding_Data;
-   use Droopi.Filters;
-   use Droopi.Objects;
    use Droopi.ORB;
-   use Droopi.Sockets;
-   use Droopi.Transport;
-   use Droopi.Transport.Sockets;
-
 
    procedure Initialize_CORBA_Client
      (SL_Init : Parameterless_Procedure;

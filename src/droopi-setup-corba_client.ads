@@ -3,7 +3,6 @@
 --  $Id$
 
 with Droopi.ORB;
-with Droopi.References;
 
 package Droopi.Setup.CORBA_Client is
 
