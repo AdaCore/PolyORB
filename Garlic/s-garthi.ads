@@ -260,6 +260,8 @@ package System.Garlic.Thin is
 
    function C_Inet_Ntoa (I : In_Addr) return Strings.chars_ptr;
 
+   function C_Ioctl (D : C.int; Request : C.int; Arg : C.int) return C.int;
+
    function C_Kill (Pid : pid_t; Sig : C.int) return C.int;
 
    function C_Listen (S, Backlog : C.int) return C.int;
@@ -403,6 +405,7 @@ private
    pragma Import (C, C_Inet_Lnaof, "inet_lnaof");
    pragma Import (C, C_Inet_Netof, "inet_netof");
    pragma Import (C, C_Inet_Ntoa, "inet_ntoa");
+   pragma Import (C, C_Ioctl, "ioctl");
    pragma Import (C, C_Kill, "kill");
    pragma Import (C, C_Listen, "listen");
    pragma Import (C, C_Msgget, "msgget");
