@@ -25,7 +25,7 @@ POLYORB_INCS = -I$(srcdir) -I$(top_srcdir)/src -I$(top_builddir)/src \
 	     -I$(top_builddir)/testsuite/common \
 	     $(naming_inc) @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@
 
-# GNATFLAGS=-pipe -g -O2 -gnatfa -fstack-check -gnatoy -Wall
+GNATFLAGS=-pipe -g -O2 -gnatfa -fstack-check -gnatoy -Wall
 # suppress -gnatwae because of a bug in GNAT.Expect in 3.14p
 
 GNATMAKE_FLAGS = \
