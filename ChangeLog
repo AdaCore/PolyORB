@@ -1,3 +1,12 @@
+1998-08-04  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Use $(ADA) and $(GNATMAKE) instead of "gcc" and
+	"gnatmake" since the user can have selected different programs.
+	Use -O when compiling isthrbio.
+	Build s-gatcop.ads in the current Garlic subdirectory instead of
+	$(srcdir)/Garlic to make it work when using VPATH and multiple
+	architectures sharing the same source directory.
+
 1998-08-04  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure.in, configure: Compile each garlic unit separatly to

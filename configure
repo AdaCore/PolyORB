@@ -1770,11 +1770,11 @@ else
   
     echo $ac_n "checking for thread-blocking I/O (long)""... $ac_c" 1>&6
 echo "configure:1773: checking for thread-blocking I/O (long)" >&5
-    gcc -c -gnatg $srcdir/Garlic/${TCP_PLATFORM_SOURCE} -I$srcdir/Garlic;
-    gcc -c -gnatg $srcdir/Garlic/s-garlic.ads -I$srcdir/Garlic;
-    gcc -c -gnatg $srcdir/Garlic/s-garthi.ads -I$srcdir/Garlic;
-    gnatmake -q isthrbio.adb -I$srcdir/Garlic;
-    if ./isthrbio${EXEEXT} $srcdir/Garlic/s-gatcop.ads; then
+    ${ADA} -c -O -gnatg $srcdir/Garlic/${TCP_PLATFORM_SOURCE} -I$srcdir/Garlic;
+    ${ADA} -c -O -gnatg $srcdir/Garlic/s-garlic.ads -I$srcdir/Garlic;
+    ${ADA} -c -O -gnatg $srcdir/Garlic/s-garthi.ads -I$srcdir/Garlic;
+    ${GNATMAKE} -q -m isthrbio.adb -I$srcdir/Garlic;
+    if ./isthrbio${EXEEXT} Garlic/s-gatcop.ads; then
 	echo "$ac_t""no" 1>&6
 	PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
 	PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"

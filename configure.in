@@ -212,11 +212,11 @@ if test "$TCP_INCLUDED" = ""; then
   ],
   [
     AC_MSG_CHECKING([for thread-blocking I/O (long)])
-    gcc -c -gnatg $srcdir/Garlic/${TCP_PLATFORM_SOURCE} -I$srcdir/Garlic;
-    gcc -c -gnatg $srcdir/Garlic/s-garlic.ads -I$srcdir/Garlic;
-    gcc -c -gnatg $srcdir/Garlic/s-garthi.ads -I$srcdir/Garlic;
-    gnatmake -q -m isthrbio.adb -I$srcdir/Garlic;
-    if ./isthrbio${EXEEXT} $srcdir/Garlic/s-gatcop.ads; then
+    ${ADA} -c -O -gnatg $srcdir/Garlic/${TCP_PLATFORM_SOURCE} -I$srcdir/Garlic;
+    ${ADA} -c -O -gnatg $srcdir/Garlic/s-garlic.ads -I$srcdir/Garlic;
+    ${ADA} -c -O -gnatg $srcdir/Garlic/s-garthi.ads -I$srcdir/Garlic;
+    ${GNATMAKE} -q -m isthrbio.adb -I$srcdir/Garlic;
+    if ./isthrbio${EXEEXT} Garlic/s-gatcop.ads; then
 	AC_MSG_RESULT([no])
 	PROTOCOLSSOURCES="${PROTOCOLSSOURCES} \$(NOBLTCPSOURCES)"
 	PROTOCOLSOBJECTS="${PROTOCOLSOBJECTS} \$(NOBLTCPOBJECTS)"
