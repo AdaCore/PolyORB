@@ -69,7 +69,7 @@ package PolyORB.References.IOR is
 
    --  An object reference (whose supported interface is not
    --  reflected by its Ada type) and the associated type information
-   --  (within the IDL typing model).
+   --  (within the PolyORB typing model).
 
    type IOR_Type is new PolyORB.References.Ref with null record;
 

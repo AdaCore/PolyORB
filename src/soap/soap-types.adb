@@ -670,22 +670,42 @@ package body SOAP.Types is
    function XML_ObjRef_Image (O : in NamedValue) return String is
       Tag_Name : constant Standard.String
         := To_Standard_String (O.Name);
+
       Ref : constant PolyORB.References.Ref
         := PolyORB.Any.ObjRef.From_Any (O.Argument);
-      SOAP_Profile : constant PolyORB.Binding_Data.Profile_Access
-        := PolyORB.References.Binding.Get_Tagged_Profile
-        (Ref, PolyORB.Binding_Data.Tag_SOAP);
+
+      SOAP_Profile : PolyORB.Binding_Data.Profile_Access;
+
+      Result : PolyORB.Types.String;
 
       use PolyORB.Any;
+      use type PolyORB.Binding_Data.Profile_Access;
       use PolyORB.Binding_Data.SOAP;
 
    begin
-      return "<" & Tag_Name
+      Result := To_PolyORB_String ("<" & Tag_Name
         & " xsi:type="""
         & PolyORB.References.Type_Id_Of (Ref)
-        & """>"
-        & To_URI (SOAP_Profile_Type (SOAP_Profile.all))
-        & "</" & Tag_Name & ">";
+                                   & """>");
+      PolyORB.References.Binding.Get_Tagged_Profile
+        (Ref, PolyORB.Binding_Data.Tag_SOAP, SOAP_Profile);
+      --  If the real reference (Ref) does not contain a SOAP
+      --  profile, then Get_Tagged_Profile tries to create
+      --  a proxy profile instead. Only if it is not possible
+      --  to create such a proxy profile do we get a null pointer
+      --  in SOAP_Profile.
+
+      if SOAP_Profile /= null then
+         Append
+           (Result, To_URI (SOAP_Profile_Type (SOAP_Profile.all)));
+      else
+         Append (Result, "#IOR:");
+
+         --  XXX Is there a possibility to include a stringified IOR
+         --  here anyway?
+      end if;
+      Append (Result, "</" & Tag_Name & ">");
+      return To_Standard_String (Result);
    end XML_ObjRef_Image;
 
    function XML_Sequence_Image (O : in NamedValue) return String

@@ -183,24 +183,88 @@ package body PolyORB.References.Binding is
       end;
    end Bind;
 
-   function Get_Tagged_Profile
-     (R   : Ref;
-      Tag : Binding_Data.Profile_Tag)
+   function Find_Tagged_Profile
+     (R      : Ref;
+      Tag    : Binding_Data.Profile_Tag;
+      Delete : Boolean)
+     return Binding_Data.Profile_Access;
+   --  Find a profile in R with the specified Tag.
+   --  If Delete is true and a matching profile is found,
+   --  then the profile is removed from R.
+
+   function Find_Tagged_Profile
+     (R      : Ref;
+      Tag    : Binding_Data.Profile_Tag;
+      Delete : Boolean)
      return Binding_Data.Profile_Access
    is
       use type PolyORB.Types.Unsigned_Long;
 
-      Profiles : constant Profile_Array := Profiles_Of (R);
    begin
-      for I in Profiles'Range loop
-         if Tag = Get_Profile_Tag (Profiles (I).all) then
-            return Profiles (I);
-         end if;
-      end loop;
+      if Is_Nil (R) then
+         return null;
+      end if;
 
-      --  XXX here: no matching profile, create a proxy profile.
+      declare
+         Profiles : constant Profile_Array := Profiles_Of (R);
+      begin
+         for I in Profiles'Range loop
+            if Tag = Get_Profile_Tag (Profiles (I).all) then
+               if Delete then
+                  Profile_Seqs.Delete
+                    (Reference_Info (Entity_Of (R).all).Profiles,
+                     I, I);
+               end if;
+               return Profiles (I);
+            end if;
+         end loop;
 
-      return null;
+         --  No match.
+         return null;
+
+      end;
+   end Find_Tagged_Profile;
+
+   procedure Get_Tagged_Profile
+     (R         :     Ref;
+      Tag       :     Binding_Data.Profile_Tag;
+      Pro       : out Binding_Data.Profile_Access)
+   is
+      use type PolyORB.Types.Unsigned_Long;
+
+      Result : Binding_Data.Profile_Access
+        := Find_Tagged_Profile (R, Tag, Delete => False);
+   begin
+      if Result = null then
+         --  This ref has no profile with that tag:
+         --  try to create one.
+
+         pragma Debug (O ("Get_Tagged_Profile: need proxy"));
+
+         declare
+            --  Proxy_Ref : constant PolyORB.References.Ref
+            --     := Create_Proxy_Ref (Local_ORB, Ref);
+            --  XXX Create_Proxy_Ref is not implemented yet.
+            Proxy_Ref : PolyORB.References.Ref;
+
+         begin
+
+            --  If Create_Proxy_Ref has returned a ref containing
+            --  a profile with the desired tag, move that profile
+            --  into R so it won't be destroyed while R is in use.
+
+            Result := Find_Tagged_Profile
+              (Proxy_Ref, Tag, Delete => True);
+
+            if Result /= null then
+               Profile_Seqs.Append
+                 (Reference_Info (Entity_Of (R).all).Profiles,
+                  Result);
+            end if;
+         end;
+      end if;
+
+      Pro := Result;
    end Get_Tagged_Profile;
 
 end PolyORB.References.Binding;

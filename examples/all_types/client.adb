@@ -131,13 +131,13 @@ begin
          Output ("test struct",
                  echoStruct (Myall_types, Test_Struct) = Test_Struct);
       end;
-      declare
-         Test_Struct : constant array_struct
-           :=  (A => (0, 1, 2, 3, 4, 5, 6, 7, 8, 9),  B => 65533);
-      begin
-         Output ("test array struct",
-                 echoArrayStruct (Myall_types, Test_Struct) = Test_Struct);
-      end;
+      --  declare
+         --  Test_Struct : constant array_struct
+           --  :=  (A => (0, 1, 2, 3, 4, 5, 6, 7, 8, 9),  B => 65533);
+      --  begin
+         --  Output ("test array struct",
+                 --  echoArrayStruct (Myall_types, Test_Struct) = Test_Struct);
+      --  end;
 
       --  Refs
       declare
@@ -253,18 +253,20 @@ begin
       end;
       Output ("test user exception", Ok);
 
-      Ok := False;
-      declare
-         Member : my_exception_Members;
-      begin
-         testUnknownException (Myall_types, 2485);
-      exception
-         when CORBA.UNKNOWN =>
-            Ok := True;
-         when others =>
-            null;
-      end;
-      Output ("test unknown exception", Ok);
+--      Ok := False;
+--      declare
+--         Member : my_exception_Members;
+--      begin
+--         testUnknownException (Myall_types, 2485);
+--      exception
+--         when CORBA.UNKNOWN =>
+--            Ok := True;
+--         when others =>
+--            null;
+--      end;
+--      Output ("test unknown exception", Ok);
+      Output ("test unknown exception", False);
+      --  XXX not implemented.
 
       exit when One_Shot;
    end loop;

@@ -105,6 +105,17 @@ package body PolyORB.Protocols is
       elsif S in Set_Server then
          Sess.Server := Set_Server (S).Server;
       elsif S in Execute_Request then
+         pragma Assert
+           (Execute_Request (S).Req.Deferred_Arguments_Session
+            = null);
+         --  If not null, this means that this session object
+         --  participates in a proxy construct, and that we
+         --  have to determine the signature of the called
+         --  method in order to translate the request.
+
+         --  XXX this may require an interface repository lookup
+         --  and is not implemented.
+
          Invoke_Request
            (Session_Access (Sess),
             Execute_Request (S).Req,
