@@ -27,8 +27,14 @@ ads = args [0]
 prefix = os.path.basename (ads)[:-4]
 adb=prefix + ".adb"
 perf=prefix + ".perf"
-os.unlink (perf)
-os.unlink (adb)
+try:
+  os.unlink (perf)
+except:
+  pass
+try:
+  os.unlink (adb)
+except:
+  pass
 hperf = open (perf, "w")
 hadb = open (adb, "w")
 cfile=prefix + "_GPERF.c"
