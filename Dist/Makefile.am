@@ -10,6 +10,7 @@ GNATDISTFLAGS = \
 	  -bargs $(GNAT_RTS_FLAG) -I. -I$(prefix)/lib/garlic \
           -largs -lgarlic
 GNATFLAGS     = -gnatpg @GNATFLAGS@ $(GNAT_RTS_FLAG)
+PCS_NAME      = System.Garlic
 RSH_CMD       = @RSH_CMD@
 RSH_OPT       = @RSH_OPT@
 srcdir        = @srcdir@
@@ -46,6 +47,7 @@ xe_defs.adb: Makefile b_xe_defs$(EXEEXT)
 	@./b_xe_defs$(EXEEXT) $(GNATDISTFLAGS) \
 	   RSH_CMD="$(RSH_CMD)" \
 	   RSH_OPT="$(RSH_OPT)" \
+	   PCS_NAME="$(PCS_NAME)" \
 	   DEFSTORAGEDATA="$(DEFSTORAGEDATA)" \
 	   DEFSTORAGENAME="$(DEFSTORAGENAME)" \
 	   DEFPROTOCOLDATA="$(DEFPROTOCOLDATA)" \
