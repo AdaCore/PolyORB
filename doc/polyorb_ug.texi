@@ -24,7 +24,7 @@
 @c        context.  These can interfere with the readability of the texi
 @c        source file.  Instead, use one of the following annotated
 @c        @smallexample commands, and preprocess the texi file with the
-@c        ada2texi tool (which generates appropriate highlighting):
+@c        gentexifile tool (which generates appropriate highlighting):
 @c        @smallexample @c ada
 @c        @smallexample @c adanocomment
 @c        @smallexample @c projectfile
@@ -56,12 +56,10 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#4 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#5 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
-
-@include version.texi
 
 @setchapternewpage odd
 @syncodeindex fn cp
@@ -71,8 +69,6 @@
 @titlepage
 
 @title PolyORB User's Guide
-@subtitle Version @value{VERSION}
-@subtitle @value{UPDATED}
 @author XXXX
 
 @page
@@ -91,10 +87,6 @@ unmodified in any copy.
 @top PolyORB User's Guide
 
 PolyORB User's Guide
-
-Version @value{VERSION}
-
-Date: @value{UPDATED}
 
 Copyright @copyright{} 2003, XXX
 This document may be copied, in whole or in part, in any form or by any
@@ -211,6 +203,10 @@ created in a streamlined process, from early stage prototyping to
 full-featured implementation. The PolyORB architecture also allows
 the automatic, just-in-time creation of proxies between incompatible
 environments.
+
+You may find more information on PolyORB, including technical and
+scientific papers on PolyORB, on the project website:
+@url{http://libre.act-europe.fr/polyorb}
 
 @i{Note: PolyORB is the project formerly known as DROOPI, a Distributed
 Reusable Object-Oriented Polymorphic Infrastructure}
@@ -450,7 +446,11 @@ communication protocol for Web Services.
 
 @subsection Using configuration file
 
-@subsection Activating/Deactivating protocol personalities
+@subsection Setting up protocol personalities
+
+@subsubsection Activating/Deactivating protocol personalities
+
+@subsubsection Setting up default listenning ports
 
 @section Activating debug information
 
@@ -612,12 +612,48 @@ listens on the standard port @code{2809/tcp}.
 
 
 @noindent
-PolyORB defines two packages to help the quick and easy developpment
-of simple CORBA programs.
+PolyORB defines packages to help in the developpment of CORBA programs.
+
+@itemize @bullet
+
+@item @code{PolyORB.CORBA_P.Naming_Tools}: this package defines helper 
+functions to ease interaction with CORBA COS Naming.
+
+@item  @code{PolyORB.CORBA_P.Server_Tools}: this package defines
+helper functions to ease set up of a simple CORBA Server.
+
+@end itemize
 
 @subsection @code{PolyORB.CORBA_P.Naming_Tools}
 
+@include polyorb-corba_p-naming_tools.texi
+
 @subsection @code{PolyORB.CORBA_P.Server_Tools}
+
+@include polyorb-corba_p-server_tools.texi
+
+
+@section Configuring GIOP protocol stack for PolyORB
+
+
+@section Compatiblity notes
+
+@noindent
+When using the CORBA application personality, please note that
+
+@itemize @bullet
+
+@item CORBA personality can be used with most PolyORB
+components, including all tasking runtimes (no tasking, full tasking,
+Ravenscar)
+
+@item PolyORB cannot be used with a Simple Object Adapter (SOA).
+
+@item SOAP personality does not implement all types defined
+in CORBA IDL specification.
+
+
+@end itemize
 
 @c -------------------------------------------------------------------
 @node References

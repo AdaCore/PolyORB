@@ -1,0 +1,30 @@
+#!/bin/sh
+if [ $# = 0 ]; then
+  echo "Usage: $0 <file to translate> <suffix>"
+  exit 0
+fi
+
+SOURCE=$1
+SUFFIX=$2
+
+TARGET=`basename ${SOURCE} ${SUFFIX}`.texi
+TMPTAR=${TARGET}.tmp
+
+gawk 'BEGIN{out=1}$1=="end"&&substr($0,1,1)=="e"{out=1}out==1{print}$1=="private"&&out==1{out=0; print "   --  implementation removed"}' ${SOURCE} > genout
+
+echo "@smallexample"      >${TMPTAR}
+if [ $# = 1 ]; then
+echo "@cartouche"        >>${TMPTAR}
+echo "@group"            >>${TMPTAR}
+fi
+echo ""                  >>${TMPTAR}
+sed -f ada.sed genout    >>${TMPTAR}
+echo ""                  >>${TMPTAR}
+if [ $# = 1 ]; then
+echo "@end group"        >>${TMPTAR}
+echo "@end cartouche"    >>${TMPTAR}
+fi
+echo "@end smallexample" >>${TMPTAR}
+
+cat ${TMPTAR} | tr -d '\r' > ${TARGET}
+rm ${TMPTAR}

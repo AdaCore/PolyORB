@@ -1046,6 +1046,7 @@ support/ada.m4
 support/adacompiler.in
 support/config.guess
 support/config.sub
+support/gentexifile
 support/gnatsrc.m4
 support/install-sh
 support/linker.in
