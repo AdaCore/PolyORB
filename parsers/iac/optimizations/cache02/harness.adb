@@ -26,16 +26,17 @@ package body Harness is
    procedure echoULong_Free_Request (Index : Natural);
    pragma Inline (echoULong_Free_Request);
 
-   procedure EchoULong_Update_Argument_List (Argument_U_Arg : in CORBA.Any);
+   procedure EchoULong_Update_Argument_List
+     (Request        :    PolyORB.Requests.Request_Access;
+      Argument_U_Arg : in CORBA.Any);
    pragma Inline (EchoULong_Update_Argument_List);
 
    echoULong_Operation_Name_ü : constant Standard.String :=
      "echoULong";
 
-   echoULong_Result_Name_ü : CORBA.String :=
+   echoULong_Result_Name_ü : constant CORBA.String :=
      CORBA.To_CORBA_String
      ("Result");
-   echoULong_Argument_List : PolyORB.Any.NVList.Ref;
 
    Cache_Size : constant := 10;
 
@@ -94,10 +95,6 @@ package body Harness is
            (CORBA.Default_Sys_Member);
       end if;
 
-      --  Make Arg List
-
-      EchoULong_Update_Argument_List (Argument_U_arg);
-
       --  Get the request from the cache
 
       EchoULong_Get_Request
@@ -107,6 +104,10 @@ package body Harness is
          Result_Ü,
          Request_Ü,
          Index);
+
+      --  Make Arg List
+
+      EchoULong_Update_Argument_List (Request_Ü, Argument_U_Arg);
 
       --  Invoke the operation on the server
 
@@ -164,7 +165,7 @@ package body Harness is
       --  cf par ex PolyORB.Smart_Pointers pour plus de details
 
       Request_Cache_Tab (Index).all.Target := Ref;
-      Request_Cache_Tab (Index).all.Args := EchoULong_Argument_List;
+--      Request_Cache_Tab (Index).all.Args := EchoULong_Argument_List;
       Request_Cache_Tab (Index).all.Result := Result;
       Request_Cache_Tab_Free (Index) := False;
 
@@ -204,6 +205,9 @@ package body Harness is
         := echoULong_Result_U_V;
       Arg_List_Nil : PolyORB.Any.NVList.Ref;
       Argument_U_Arg : CORBA.Any;
+
+      echoULong_Argument_List : PolyORB.Any.NVList.Ref;
+
    begin
 
       PolyORB.Any.NVList.Create
@@ -232,12 +236,14 @@ package body Harness is
    ------------------------------------
 
    procedure EchoULong_Update_Argument_List
-     (Argument_U_Arg : in CORBA.Any)
+     (Request        :    PolyORB.Requests.Request_Access;
+      Argument_U_Arg : in CORBA.Any)
    is
       List_Ptr : PolyORB.Any.NVList.Internals.NV_List_Access
         := PolyORB.Any.NVList.Internals.List_Of
-        (echoULong_Argument_List);
+        (Request.Args);
       Element : PolyORB.Any.NVList.Internals.NV_Lists.Element_Access;
+
    begin
       Element :=
         PolyORB.Any.NVList.Internals.NV_Lists.Element
