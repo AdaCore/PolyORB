@@ -89,10 +89,10 @@ aif_p01/tin.idl
 #avt_p01/tin.idl
 va_f01/tin.idl
 va_f02/tin.idl
-#va_t01/tin.idl
-#va_t02/tin.idl
-#va_t03/tin.idl
-#va_t04/tin.idl
+va_t01/tin.idl
+va_t02/tin.idl
+va_t03/tin.idl
+va_t04/tin.idl
 #vb_b01/tin.idl
 #vb_d01/tin.idl
 #vb_d02/tin.idl
