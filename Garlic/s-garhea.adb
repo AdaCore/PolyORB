@@ -34,14 +34,15 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+
+with System.Garlic.Options;
 with System.Garlic.Protocols;
 with System.Garlic.Termination;
 with System.Garlic.Utils;
 
-with System.Garlic.Trace;    use System.Garlic.Trace;
-with System.Garlic.Replay;
 with System.Garlic.Debug;    use System.Garlic.Debug;
 with System.Garlic.Filters;  use System.Garlic.Filters;
+with System.Garlic.Trace;    use System.Garlic.Trace;
 
 package body System.Garlic.Heart is
 
@@ -401,7 +402,7 @@ package body System.Garlic.Heart is
         (D (D_Table,
             "Looking in my tables for location of partition" & Partition'Img));
 
-      if Get_Current_Execution_Mode = Replay_Mode then
+      if Options.Execution_Mode = Replay_Mode then
          --  Hack warning!
          Partition_Map.Set_Data (Partition, (Location => Replay_Location,
                                              Known    => True,
@@ -706,8 +707,8 @@ package body System.Garlic.Heart is
       Operation : Opcode;
 
    begin
-      if Get_Current_Execution_Mode = Trace_Mode then
-         Record_Trace (Partition, Data);
+      if Options.Execution_Mode = Trace_Mode then
+         Trace_Data (Partition, Data);
       end if;
 
       declare
@@ -738,7 +739,7 @@ package body System.Garlic.Heart is
       begin
          To_Params_Stream_Type (Filtered_Data, Filtered_Params'Access);
          if Operation in Internal_Opcode then
-            if Get_Current_Execution_Mode = Replay_Mode then
+            if Options.Execution_Mode = Replay_Mode then
                Replay_Handle_Internal
                  (Partition, Operation, Filtered_Params'Access);
             else
@@ -1137,8 +1138,8 @@ package body System.Garlic.Heart is
    begin
       Local_Partition_ID.Set (Partition);
 
-      if Get_Current_Execution_Mode = Trace_Mode then
-         Save_Partition_ID (Partition);
+      if Options.Execution_Mode = Trace_Mode then
+         Trace_Partition_ID (Partition);
       end if;
    end Set_My_Partition_ID;
 
@@ -1161,6 +1162,7 @@ package body System.Garlic.Heart is
 
    procedure Shutdown is
    begin
+      Trace.Shutdown;
       Termination.Shutdown;
       Physical_Location.Shutdown;
       Shutdown_Keeper.Signal;

@@ -80,9 +80,6 @@ package System.Garlic.Filters is
    --  specific filter-internal data to the partition on the other end of
    --  the channel the first time a filter is used on the channel.
 
-   procedure Set_Partition_Name (Name : in String);
-   --  Tells this package the name of this partition.
-
    Filter_Already_Registered : exception;
    --  Raised when there are several filters trying to register with the
    --  same name.

@@ -61,12 +61,6 @@ package System.Garlic.Replay is
 
    procedure Shutdown (Protocol : access Replay_Protocol);
 
-   task Recorded_Data_Reader is
-      pragma Storage_Size (300_000);
-      entry Start;
-   end Recorded_Data_Reader;
-   --  Reads and delivers the messages from the trace file.
-
 private
 
    type Replay_Protocol is new System.Garlic.Protocols.Protocol_Type

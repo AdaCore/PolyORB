@@ -1,3 +1,30 @@
+Sat Oct 11 12:31:05 1997  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* s-gartra.adb, s-gartra.ads: Change some procedure names.  Open
+ 	trace file in trace mode in Initialize. Close trace file in
+ 	Shutdown (this file was never closed). Trace file name is always
+ 	partition name . ptf (Partition Trace File). To be fixed later.
+
+	* s-garrep.adb, s-garrep.ads: Open trace file and start protocol
+ 	engin in Set_Boot_Data. Close trace file in Shutdown. Move task
+ 	into body. Move some procedures from System.Garlic.Trace into
+ 	System.Garlic.Replay. WARNING: Termination has to be tested (pb on
+ 	laptop).
+
+	* s-garopt.adb, s-garopt.ads: Add procedure Initialize which sets
+ 	all the run-time options. Move all run-time options into spec.
+  	Remove all Get_* functions. Keep all Set_* procedures as modifying
+ 	one of these variables could imply a modification of another
+ 	variable. Add new procedure Set_Partition_Name and variable
+ 	Partition_Name (taken from System.Garlic.Filters).
+
+	* s-garuti.ads: Define for once string_access and its free
+ 	procedure for general purpose.
+	
+	* s-garfil.adb, s-garfil.ads, s-garhea.adb, s-garlic.ads,
+ 	s-garsta.adb, s-gartcp.adb, s-garter.adb: Modify code according to
+ 	the previous changes.
+ 
 Thu Oct  9 15:58:13 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-gaplsp.ads.in: Platform specific file to avoid local launching on

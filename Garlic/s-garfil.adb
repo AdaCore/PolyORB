@@ -40,10 +40,11 @@
 with Ada.Streams;
 
 with System.Garlic;
-with System.Garlic.Debug;  use System.Garlic.Debug;
-with System.Garlic.Utils;  use System.Garlic.Utils;
-with System.Garlic.Heart;  use System.Garlic.Heart;
-with System.RPC;           use System.RPC;
+with System.Garlic.Debug;   use System.Garlic.Debug;
+with System.Garlic.Heart;   use System.Garlic.Heart;
+with System.Garlic.Options; use System.Garlic.Options;
+with System.Garlic.Utils;   use System.Garlic.Utils;
+with System.RPC;            use System.RPC;
 
 package body System.Garlic.Filters is
 
@@ -1438,22 +1439,13 @@ package body System.Garlic.Filters is
       Partition_Filter_Table.Enter (Partition, Filter);
    end Set_Channel_Filter;
 
-   ------------------------
-   -- Set_Partition_Name --
-   ------------------------
-
-   procedure Set_Partition_Name (Name : in String) is
-   begin
-      pragma Debug (D (D_Debug, "Entering my own name"));
-      Partition_Name_Table.Set_My_Name (Name);
-   end Set_Partition_Name;
-
    ----------------
    -- Initialize --
    ----------------
 
    procedure Initialize is
    begin
+      Partition_Name_Table.Set_My_Name (Options.Partition_Name.all);
       --  Register our message handler with Garlic.Heart to receive all
       --  messages of kind 'Filtering'.
       Receive (Filtering, Message_Handler'Access);
@@ -1461,4 +1453,5 @@ package body System.Garlic.Filters is
    end Initialize;
 
 end System.Garlic.Filters;
+
 

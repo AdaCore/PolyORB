@@ -89,6 +89,10 @@ begin
 
    pragma Debug (D (D_Elaborate, "Entering partition startup phase"));
 
+   --  Phase (0) (see s-garlic.ads)
+
+   System.Garlic.Options.Initialize;
+
    --  Phase (1) (see s-garlic.ads)
 
    System.Garlic.Services.Initialize;
@@ -99,11 +103,11 @@ begin
    System.Garlic.Protocols.Config.Initialize;
 
    declare
-      Boot_Location : constant Location :=
-        To_Location (Options.Get_Boot_Server);
+      Boot_Location : constant Location
+        := To_Location (Options.Boot_Server.all);
       Boot_Protocol : constant Protocol_Access := Get_Protocol (Boot_Location);
       Boot_Data     : constant String := Get_Data (Boot_Location);
-      Is_Master     : constant Boolean := not Get_Is_Slave;
+      Is_Master     : constant Boolean := not Options.Is_Slave;
       New_Location  : Location;
    begin
 

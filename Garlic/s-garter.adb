@@ -233,7 +233,7 @@ package body System.Garlic.Termination is
       Dummy : Termination_Service_Access;
    begin
       if Is_Boot_Partition and then
-        Options.Get_Termination /= Deferred_Termination then
+        Options.Termination /= Deferred_Termination then
          Dummy := new Termination_Service;
       end if;
       Receive (Shutdown_Synchronization, Receive_Message'Access);
@@ -303,7 +303,7 @@ package body System.Garlic.Termination is
                                 "Active task count is" &
                                 Natural'Image (Get_Active_Task_Count)));
                if OK and then Get_Active_Task_Count = 1 and then
-                 Options.Get_Termination /= Deferred_Termination then
+                 Options.Termination /= Deferred_Termination then
                   Termination_Code'Write (Answer'Access, Positive_Ack);
                else
                   Termination_Code'Write (Answer'Access, Negative_Ack);

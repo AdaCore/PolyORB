@@ -39,27 +39,22 @@ with System.Garlic.Heart;
 
 package System.Garlic.Trace is
 
-   procedure Record_Trace
+   procedure Initialize;
+   --  Initialize trace / replay stuff. In trace mode, create the trace
+   --  file. Read partition id and force it.
+
+   procedure Trace_Data
      (Partition : in System.RPC.Partition_ID;
       Data      : in Ada.Streams.Stream_Element_Array);
    --  Trace the message Data (and the time that has passed since the
-   --  previous recording) and record it in the partition's trace file.
+   --  previous recording) and record it in the partition trace file.
 
-   procedure Deliver_Next_Trace (Last : out Boolean);
-   --  Read the next trace from the partition's trace file, sleep for the
-   --  recorded amount of time and deliver the message to Heart.Has_Arrived.
+   procedure Trace_Partition_ID (Partition : in System.RPC.Partition_ID);
+   --  Save the partition ID to the trace file.
 
-   procedure Initialize;
-   --  Initialize trace/replay stuff.
-
-   procedure Save_Partition_ID (Partition : in System.RPC.Partition_ID);
-   --  Save our partition ID to the trace file.
-
-   function Load_Partition_ID return System.RPC.Partition_ID;
-   --  Load and return the partition ID from the trace file.
-
-   function Get_Current_Execution_Mode return Heart.Execution_Mode_Type;
-   --  So we won't have to rescan the argument list every time we need
-   --  the execution mode.
+   procedure Shutdown;
+   --  Close trace file in trace mode.
 
 end System.Garlic.Trace;
+
+

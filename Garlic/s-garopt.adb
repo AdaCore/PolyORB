@@ -35,9 +35,9 @@
 
 with Ada.Command_Line;         use Ada.Command_Line;
 with System.Garlic.Debug;      use System.Garlic.Debug;
-with System.Garlic.OS_Lib;     use System.Garlic.OS_Lib;
-with System.Garlic.Thin;       use System.Garlic.Thin;
 with System.Garlic.Heart;      use System.Garlic.Heart;
+with System.Garlic.OS_Lib;     use System.Garlic.OS_Lib;
+with System.Garlic.Utils;      use System.Garlic.Utils;
 
 package body System.Garlic.Options is
 
@@ -50,202 +50,169 @@ package body System.Garlic.Options is
      renames Print_Debug_Info;
    --  Debugging stuff.
 
-   type String_Access is access String;
+   function Value (S : String) return Termination_Type;
 
-   Boot_Server_Default     : String_Access := new String'("tcp");
-   Connection_Hits_Default : Natural := 128;
-   Detach_Default          : Boolean := False;
-   Is_Slave_Default        : Boolean := False;
-   Nolaunch_Default        : Boolean := False;
-   Termination_Default     : Termination_Type := Global_Termination;
-   Execution_Mode_Default  : Execution_Mode_Type := Normal_Mode;
+   -----------
+   -- Value --
+   -----------
 
-   ---------------------
-   -- Get_Boot_Server --
-   ---------------------
-
-   function Get_Boot_Server return String is
+   function Value (S : String) return Termination_Type is
    begin
-      for Index in 1 .. Argument_Count - 1 loop
-         if Argument (Index) = "--boot_server" then
-            return Argument (Index + 1);
-         end if;
-      end loop;
+      if S = "local" then
+         pragma Debug (D (D_Debug,
+                          "local termination is selected"));
+         return Local_Termination;
+      elsif S = "global" then
+         pragma Debug (D (D_Debug,
+                          "global termination is selected"));
+         return Global_Termination;
+      elsif S = "deferred" then
+         pragma Debug (D (D_Debug,
+                          "deferred termination is selected"));
+         return Deferred_Termination;
+      else
+         return Unknown_Termination;
+      end if;
+   end Value;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+
+      Index : Natural := 1;
+
+   begin
+
+      Execution_Mode := Normal_Mode;
+
       declare
          EV : constant String := Getenv ("BOOT_SERVER");
       begin
-         if EV = "" then
-            return Boot_Server_Default.all;
+         if EV /= "" then
+            Set_Boot_Server (EV);
+         else
+            Set_Boot_Server ("tcp");
          end if;
-         return EV;
       end;
-   end Get_Boot_Server;
 
-   -------------------------
-   -- Get_Connection_Hits --
-   -------------------------
-
-   function Get_Connection_Hits return Natural is
-   begin
-      for Index in 1 .. Argument_Count - 1 loop
-         if Argument (Index) = "--connection_hits" then
-            pragma Debug
-              (D (D_Debug, "--connection_hits available on command line"));
-            return Natural'Value (Argument (Index + 1));
-         end if;
-      end loop;
       declare
          EV : constant String := Getenv ("CONNECTION_HITS");
       begin
-         if EV = "" then
-            return Connection_Hits_Default;
-         end if;
-         pragma Debug (D (D_Debug, "CONNECTION_HITS env. variable available"));
-         return Natural'Value (EV);
-      end;
-   end Get_Connection_Hits;
-
-   ----------------
-   -- Get_Detach --
-   ----------------
-
-   function Get_Detach return Boolean is
-   begin
-      for Index in 1 .. Argument_Count loop
-         if Argument (Index) = "--detach" then
-            pragma Debug (D (D_Debug, "--detach available on command line"));
-            return True;
-         end if;
-      end loop;
-      if Getenv ("DETACH") /= "" then
-         return True;
-      end if;
-      return Detach_Default;
-   end Get_Detach;
-
-   ------------------
-   -- Get_Is_Slave --
-   ------------------
-
-   function Get_Is_Slave return Boolean is
-   begin
-      for Index in 1 .. Argument_Count loop
-         if Argument (Index) = "--slave" then
-            pragma Debug (D (D_Debug, "--slave available on command line"));
-            return True;
-         end if;
-      end loop;
-      if Getenv ("SLAVE") /= "" then
-         return True;
-      end if;
-      return Is_Slave_Default;
-   end Get_Is_Slave;
-
-   ---------------------
-   -- Get_Termination --
-   ---------------------
-
-   function Get_Termination return Termination_Type is
-
-      Termination : Termination_Type;
-
-      function Value (S : String) return Termination_Type;
-      function Value (S : String) return Termination_Type is
-      begin
-         if S = "local" then
-            pragma Debug (D (D_Debug,
-                             "local termination is selected"));
-            return Local_Termination;
-         elsif S = "global" then
-            pragma Debug (D (D_Debug,
-                             "global termination is selected"));
-            return Global_Termination;
-         elsif S = "deferred" then
-            pragma Debug (D (D_Debug,
-                             "deferred termination is selected"));
-            return Deferred_Termination;
+         if EV /= "" then
+            Set_Connection_Hits (Natural'Value (EV));
          else
-            return Unknown_Termination;
+            Set_Connection_Hits (128);
          end if;
-      end Value;
+      end;
 
-   begin
-      for Index in 1 .. Argument_Count - 1 loop
-         if Argument (Index) = "--terminate" then
-            pragma Debug (D (D_Debug,
-                             "--terminate available on command line"));
-            Termination := Value (Argument (Index + 1));
-            if Termination /= Unknown_Termination then
-               return Termination;
-            end if;
-         end if;
-      end loop;
-      Termination := Value (Getenv ("TERMINATE"));
-      if Termination /= Unknown_Termination then
-         return Termination;
+      if Getenv ("DETACH") /= "" then
+         Set_Detach (True);
+      else
+         Set_Detach (False);
       end if;
-      return Termination_Default;
-   end Get_Termination;
 
-   ------------------
-   -- Get_Nolaunch --
-   ------------------
-
-   function Get_Nolaunch return Boolean is
-   begin
-      for Index in 1 .. Argument_Count loop
-         if Argument (Index) = "--nolaunch" then
-            pragma Debug (D (D_Debug, "--nolaunch available on command line"));
-            return True;
-         end if;
-      end loop;
-      if Getenv ("NOLAUNCH") /= "" then
-         return True;
+      if Getenv ("SLAVE") /= "" then
+         Set_Is_Slave (True);
+      else
+         Set_Is_Slave (False);
       end if;
-      return Nolaunch_Default;
-   end Get_Nolaunch;
 
-   -------------------------
-   -- Get_Trace_File_Name --
-   -------------------------
-
-   function Get_Trace_File_Name return String is
-   begin
-      for Index in 1 .. Argument_Count - 1 loop
-         if Argument (Index) = "--trace_file" then
-            return Argument (Index + 1);
-         end if;
-      end loop;
       declare
-         EV : constant String := Getenv ("TRACE_FILE");
+         EV : constant String := Getenv ("TERMINATE");
       begin
          if EV /= "" then
-            return EV;
+            Set_Termination (Value (EV));
+         else
+            Set_Termination (Global_Termination);
          end if;
       end;
-      return Command_Name & ".trace";
-   end Get_Trace_File_Name;
 
-   ------------------------
-   -- Get_Execution_Mode --
-   ------------------------
+      if Getenv ("NOLAUNCH") /= "" then
+         Set_Nolaunch (True);
+      else
+         Set_Nolaunch (False);
+      end if;
 
-   function Get_Execution_Mode return Execution_Mode_Type is
-   begin
-      for Index in 1 .. Argument_Count loop
-         if Argument (Index) = "--trace" then
+      while Index <= Argument_Count loop
+
+         if Argument (Index) = "--boot_server" then
+
+            pragma Debug
+              (D (D_Debug, "--boot_server available on command line"));
+
+            --  Need a second argument.
+            if Index = Argument_Count then
+               raise Program_Error;
+            end if;
+
+            Index := Index + 1;
+            Set_Boot_Server (Argument (Index));
+
+         elsif Argument (Index) = "--connection_hits" then
+
+            pragma Debug
+              (D (D_Debug, "--connection_hits available on command line"));
+
+
+            --  Need a second argument.
+            if Index = Argument_Count then
+               raise Program_Error;
+            end if;
+
+            Index := Index + 1;
+            Set_Connection_Hits (Natural'Value (Argument (Index)));
+
+         elsif Argument (Index) = "--detach" then
+
+            pragma Debug (D (D_Debug, "--detach available on command line"));
+
+            Set_Detach (True);
+
+         elsif Argument (Index) = "--slave" then
+
+            pragma Debug (D (D_Debug, "--slave available on command line"));
+
+            Set_Is_Slave (True);
+
+         elsif Argument (Index) = "--terminate" then
+
+            pragma Debug (D (D_Debug,
+                             "--terminate available on command line"));
+
+            if Index = Argument_Count then
+               raise Program_Error;
+            end if;
+
+            Index := Index + 1;
+            Set_Termination (Value (Argument (Index)));
+
+         elsif Argument (Index) = "--nolaunch" then
+
+            pragma Debug (D (D_Debug, "--nolaunch available on command line"));
+
+            Set_Nolaunch (True);
+
+         elsif Argument (Index) = "--trace" then
+
             pragma Debug (D (D_Debug, "--trace available on command line"));
-            return Trace_Mode;
+
+            Set_Execution_Mode (Trace_Mode);
+
          elsif Argument (Index) = "--replay" then
+
             pragma Debug (D (D_Debug, "--replay available on command line"));
-            return Replay_Mode;
+
+            Set_Execution_Mode (Replay_Mode);
+
          end if;
+
+         Index := Index + 1;
+
       end loop;
-      pragma Debug
-        (D (D_Debug,
-            "Neither --trace nor --replay available on command line"));
-      return Execution_Mode_Default;
-   end Get_Execution_Mode;
+
+   end Initialize;
 
    ---------------------
    -- Set_Boot_Server --
@@ -253,7 +220,10 @@ package body System.Garlic.Options is
 
    procedure Set_Boot_Server (Default : in String) is
    begin
-      Boot_Server_Default := new String'(Default);
+      if Boot_Server /= null then
+         Free (Boot_Server);
+      end if;
+      Boot_Server := new String'(Default);
    end Set_Boot_Server;
 
    -------------------------
@@ -262,7 +232,7 @@ package body System.Garlic.Options is
 
    procedure Set_Connection_Hits (Default : in Natural) is
    begin
-      Connection_Hits_Default := Default;
+      Connection_Hits := Default;
    end Set_Connection_Hits;
 
    ----------------
@@ -271,8 +241,21 @@ package body System.Garlic.Options is
 
    procedure Set_Detach (Default : in Boolean) is
    begin
-      Detach_Default := Default;
+      Detach := Default;
    end Set_Detach;
+
+   ------------------------
+   -- Set_Execution_Mode --
+   ------------------------
+
+   procedure Set_Execution_Mode (Default : in Execution_Mode_Type) is
+   begin
+      if Execution_Mode /= Normal_Mode then
+         pragma Debug (D (D_Debug, "Execution mode has already been set"));
+         raise Program_Error;
+      end if;
+      Execution_Mode := Default;
+   end Set_Execution_Mode;
 
    ------------------
    -- Set_Is_Slave --
@@ -280,7 +263,7 @@ package body System.Garlic.Options is
 
    procedure Set_Is_Slave (Default : in Boolean) is
    begin
-      Is_Slave_Default := Default;
+      Is_Slave := Default;
    end Set_Is_Slave;
 
    ------------------
@@ -289,16 +272,41 @@ package body System.Garlic.Options is
 
    procedure Set_Nolaunch (Default : in Boolean) is
    begin
-      Nolaunch_Default := Default;
+      Nolaunch := Default;
    end Set_Nolaunch;
 
-   -------------------
+   ------------------------
+   -- Set_Partition_Name --
+   ------------------------
+
+   procedure Set_Partition_Name (Name : in String) is
+   begin
+      if Partition_Name /= null then
+         Free (Partition_Name);
+      end if;
+      Partition_Name := new String'(Name);
+      Set_Trace_File_Name (Name & ".ptf");
+   end Set_Partition_Name;
+
+   ---------------------
    -- Set_Termination --
-   -------------------
+   ---------------------
 
    procedure Set_Termination (Default : in Termination_Type) is
    begin
-      Termination_Default := Default;
+      Termination := Default;
    end Set_Termination;
+
+   -------------------------
+   -- Set_Trace_File_Name --
+   -------------------------
+
+   procedure Set_Trace_File_Name (Name : in String) is
+   begin
+      if Trace_File_Name /= null then
+         Free (Trace_File_Name);
+      end if;
+      Trace_File_Name := new String'(Name);
+   end Set_Trace_File_Name;
 
 end System.Garlic.Options;

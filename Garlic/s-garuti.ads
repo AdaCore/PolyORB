@@ -40,6 +40,10 @@ with System.RPC;
 
 package System.Garlic.Utils is
 
+   type String_Access is access String;
+
+   procedure Free is new Ada.Unchecked_Deallocation (String, String_Access);
+
    protected type Barrier_Type is
       entry Wait;
       procedure Signal (How_Many : Positive := 1);
@@ -97,3 +101,8 @@ package System.Garlic.Utils is
    --  If an alternate message is given, it will be used instead.
 
 end System.Garlic.Utils;
+
+
+
+
+

@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Heart;
+with System.Garlic.Utils;
 
 package System.Garlic.Options is
 
@@ -44,35 +45,17 @@ package System.Garlic.Options is
 
    Has_RCI_Pkg_Or_RACW_Var : Boolean := True;
 
-   function Get_Boot_Server return String;
-   --  Return value specified by --boot_server command line arg or else
-   --         value specified by "BOOT_SERVER" environment var or else
-   --         Default if no such environment variable.
+   Boot_Server     : Utils.String_Access;
+   Connection_Hits : Natural;
+   Detach          : Boolean;
+   Is_Slave        : Boolean;
+   Nolaunch        : Boolean;
+   Termination     : Heart.Termination_Type;
+   Partition_Name  : Utils.String_Access;
+   Execution_Mode  : Heart.Execution_Mode_Type;
+   Trace_File_Name : Utils.String_Access;
 
-   function Get_Connection_Hits return Natural;
-   --  Return value specified by --connection_hits command line arg or else
-   --         value specified by "CONNECTION_HITS" environment var or else
-   --         Default if no such environment variable.
-
-   function Get_Detach return Boolean;
-   --  Return True if --detach is present on the command line arg or if
-   --  a DETACH environment variable with a non empty value is present.
-
-   function Get_Nolaunch return Boolean;
-   --  Return True if --nolaunch is present on the command line arg or if
-   --  a NOLAUNCH environment variable with a non empty value is present.
-
-   function Get_Is_Slave return Boolean;
-   --  Return True if --slave is present on the command line arg or if
-   --  a SLAVE environment variable with a non empty value is present.
-
-   function Get_Termination return Heart.Termination_Type;
-   --  Return value next to --termination on the command line or if a
-   --  TERMINATION environment variable is present.
-
-   function Get_Trace_File_Name return String;
-
-   function Get_Execution_Mode return Heart.Execution_Mode_Type;
+   procedure Initialize;
 
    procedure Set_Boot_Server (Default : in String);
 
@@ -80,11 +63,17 @@ package System.Garlic.Options is
 
    procedure Set_Detach   (Default : in Boolean);
 
-   procedure Set_Nolaunch (Default : in Boolean);
+   procedure Set_Execution_Mode (Default : in Heart.Execution_Mode_Type);
 
    procedure Set_Is_Slave (Default : in Boolean);
 
+   procedure Set_Nolaunch (Default : in Boolean);
+
+   procedure Set_Partition_Name (Name : in String);
+
    procedure Set_Termination (Default : in Heart.Termination_Type);
+
+   procedure Set_Trace_File_Name (Name : in String);
 
 end System.Garlic.Options;
 

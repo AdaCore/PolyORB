@@ -33,12 +33,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;
-with System.Garlic.Heart;
+with Ada.Real_Time;                   use Ada.Real_Time;
+with Ada.Streams.Stream_IO;           use Ada.Streams.Stream_IO;
+
+with System.Garlic.Debug;             use System.Garlic.Debug;
+with System.Garlic.Heart;             use System.Garlic.Heart;
+with System.Garlic.Options;           use System.Garlic.Options;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
-with System.Garlic.Protocols; use System.Garlic.Protocols;
-with System.Garlic.Debug; use System.Garlic.Debug;
-with System.Garlic.Trace; use System.Garlic.Trace;
+with System.Garlic.Protocols;         use System.Garlic.Protocols;
 
 package body System.Garlic.Replay is
 
@@ -46,18 +48,37 @@ package body System.Garlic.Replay is
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("GARREP", "(s-garrep): ");
+
    procedure D
      (Level   : in Debug_Level;
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
+   type Trace_Type
+     (Length : Ada.Streams.Stream_Element_Count) is
+      record
+         Time : Ada.Real_Time.Time_Span;
+         Data : Ada.Streams.Stream_Element_Array (1 .. Length);
+         PID  : System.RPC.Partition_ID := Null_Partition_ID;
+      end record;
+
+   Trace_File : File_Type;
+   --  Where to read the traces.
+
+   task Engine is
+      pragma Storage_Size (300_000);
+      entry Start;
+   end Engine;
+   --  Reads and delivers the messages from the trace file.
+
    ------------
    -- Create --
    ------------
 
-   function Create return System.Garlic.Protocols.Protocol_Access is
+   function Create return Protocols.Protocol_Access is
       Self : Protocol_Access := new Replay_Protocol;
+
    begin
       Register_Protocol (Self);
       return Self;
@@ -95,6 +116,7 @@ package body System.Garlic.Replay is
 
       --  Send is a no-op since every partition gets its messages from
       --  the trace file.
+
       null;
    end Send;
 
@@ -106,11 +128,40 @@ package body System.Garlic.Replay is
      (Protocol         : access Replay_Protocol;
       Is_Boot_Protocol : in Boolean := False;
       Boot_Data        : in String  := "";
-      Is_Master        : in Boolean := False)
-   is
+      Is_Master        : in Boolean := False) is
+      Partition : System.RPC.Partition_ID;
+
    begin
-      pragma Assert (Boot_Data = "");
-      null;
+      --  Replay protocol is always loaded because its activation
+      --  is determined at run-time. It should be activated here when
+      --  we are sure that the boot server is replay.
+
+      if Options.Execution_Mode = Replay_Mode then
+
+         --  Boot data provides a way to give an alternate trace file name.
+
+         if Boot_Data /= ""  then
+            Set_Trace_File_Name (Boot_Data);
+         end if;
+
+         Open (Trace_File, In_File, Trace_File_Name.all);
+
+         --  A non boot server partition won't be able to find its
+         --  partition id. Moreover, if this was possible, it can very
+         --  well end up with a partition id different from the one obtained
+         --  during the traced execution.
+
+         if not Is_Master then
+            pragma Debug
+              (D (D_Debug, "Force partition ID read from trace file"));
+            System.RPC.Partition_Id'Read (Stream (Trace_File), Partition);
+            Set_My_Partition_ID (Partition);
+         end if;
+
+         Engine.Start;
+
+      end if;
+
    end Set_Boot_Data;
 
    --------------
@@ -119,42 +170,66 @@ package body System.Garlic.Replay is
 
    procedure Shutdown (Protocol : access Replay_Protocol) is
    begin
-      null;
+      if Execution_Mode = Replay_Mode then
+         pragma Debug (D (D_Debug, "Closing trace file"));
+         Close (Trace_File);
+      end if;
    end Shutdown;
 
-   task body Recorded_Data_Reader is
-   begin
+   ------------
+   -- Engine --
+   ------------
 
+   task body Engine is
+   begin
       select
          accept Start;
       or
          terminate;
       end select;
 
-      pragma Debug (D (D_Debug, "Task Recorded_Data_Reader started"));
+      pragma Debug (D (D_Debug, "Replay engine started"));
 
       select
          Heart.Shutdown_Keeper.Wait;
          pragma Debug
-           (D (D_Debug, "Recorded_Data_Reader exiting because of " &
-               "Shutdown_Keeper"));
-         --  Is this an error?
+           (D (D_Debug, "Replay engine shutdown"));
+
       then abort
-         declare
-            Is_Last : Boolean;
-         begin
-            Reader : loop
-               --  Read next trace from trace file, sleep
-               --  until it's time to deliver and then call
-               --  Heart.Has_Arrived with the data read.
-               Deliver_Next_Trace (Is_Last);
-               exit Reader when Is_Last;
-            end loop Reader;
-         end;
+         while not End_Of_File (Trace_File) loop
+
+            --  Read a new trace from file (new incoming message).
+
+            declare
+               Trace : constant Trace_Type :=
+                  Trace_Type'Input (Stream (Trace_File));
+
+            begin
+               pragma Debug
+                  (D (D_Debug,
+                      "Read trace from partition" & Trace.PID'Img &
+                      " of length" & Trace.Data'Length'Img));
+
+               --  The message should arrive at about the same time as
+               --  during the recorded execution.
+
+               declare
+                  Latency : Duration := To_Duration (Trace.Time);
+               begin
+                  pragma Debug
+                    (D (D_Debug, "Replay network latency" & Latency'Img));
+                  delay Latency;
+               end;
+
+               --  Deliver message.
+
+               Has_Arrived (Trace.PID, Trace.Data);
+            end;
+         end loop;
       end select;
 
-      pragma Debug (D (D_Debug, "End of task Recorded_Data_Reader"));
-
-   end Recorded_Data_Reader;
+      Soft_Shutdown;
+   end Engine;
 
 end System.Garlic.Replay;
+

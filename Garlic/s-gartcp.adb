@@ -823,7 +823,7 @@ package body System.Garlic.TCP is
                   Retries : Natural := 1;
                begin
                   if Partition = Get_Boot_Server then
-                     Retries := Options.Get_Connection_Hits;
+                     Retries := Options.Connection_Hits;
                   end if;
                   for I in 1 .. Retries loop
                      begin

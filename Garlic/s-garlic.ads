@@ -73,6 +73,10 @@ package System.Garlic is
    --
    --  At system startup, the operations occur in this order:
    --
+   --  (0) The elaboration code of System.Garlic.Startup initializes
+   --      all the run-time options (command line and environment
+   --      variables).
+   --
    --  (1) The elaboration code of System.Garlic.Startup detaches the
    --      processus if needed.
    --
