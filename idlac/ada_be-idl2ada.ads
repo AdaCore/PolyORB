@@ -104,6 +104,12 @@ private
    --  Generate the profile for an K_Initializer node,
    --  with the specified Return_Type
 
+   procedure Gen_Effective_Is_A
+     (Node       : in Node_Id;
+      Bod : in out Compilation_Unit);
+   --  generates the function that effectively compares
+   --  RepositoryIds. Its signature is
+   --  function (type_id : in CORBA.RepositoryId) return CORBA.Boolean;
 
    procedure Gen_Node_Stubs_Spec
      (CU   : in out Compilation_Unit;

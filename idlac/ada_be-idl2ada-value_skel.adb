@@ -106,6 +106,27 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                        & Node_Kind'Image (Kind (Node))
                        & ")"));
       case Kind (Node) is
+
+         when K_ValueType =>
+            --  we have to generate code for the is_a operation
+            Ada_Be.Idl2Ada.Gen_Effective_Is_A (Node,
+                                               CU);
+            --  and then register this operation
+            Divert (CU, Elaboration);
+            PL (CU,
+                "Broca.Value.Value_Skel.Is_A_Store.Register_Operation");
+            PL (CU,
+                "  ("
+                & Parent_Scope_Name (Node)
+                & "Value_Impl.Object'Tag,");
+            PL (CU,
+                "   "
+                & Parent_Scope_Name (Node)
+                & ".Value_Skel.Is_A'Access);");
+            NL (CU);
+            Divert (CU, Visible_Declarations);
+
+
          when K_Operation =>
             declare
                Opname : constant String := Ada_Operation_Name (Node);
