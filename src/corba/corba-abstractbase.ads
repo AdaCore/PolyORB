@@ -1,6 +1,8 @@
 --  $Id$
 
 with Droopi.Smart_Pointers;
+pragma Elaborate_All (Droopi.Smart_Pointers);
+
 with CORBA.Impl;
 
 package CORBA.AbstractBase is

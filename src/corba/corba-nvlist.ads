@@ -1,6 +1,7 @@
 --  $Id$
 
 with CORBA.AbstractBase;
+pragma Elaborate_All (CORBA.AbstractBase);
 with CORBA.Impl;
 
 with Sequences.Unbounded;
