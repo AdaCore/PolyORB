@@ -159,14 +159,10 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
 
    procedure Release_Contents (C : access TC_Policies) is
       procedure Free is
-         new Ada.Unchecked_Deallocation (TC_Policies, TC_Policies_Access);
-
-      procedure Free is
          new Ada.Unchecked_Deallocation (Encapsulation, Encapsulation_Access);
 
       use Policy_Value_Seq;
 
-      CC : TC_Policies_Access := TC_Policies_Access (C);
       It : Policy_Value_Seq.Iterator := First (C.Policies);
 
    begin
@@ -176,7 +172,6 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
       end loop;
 
       Deallocate (C.Policies);
-      Free (CC);
    end Release_Contents;
 
    --------------
