@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/testsuite/corba/portableserver/echo-impl.adb#3 $
+--  $Id: //droopi/main/testsuite/corba/portableserver/echo-impl.adb#4 $
 
 with CORBA.ORB;
 
@@ -84,6 +84,7 @@ package body Echo.Impl is
       Mesg : in CORBA.String)
      return CORBA.String
    is
+      pragma Unreferenced (Self);
       Ref : Echo.Ref;
    begin
       CORBA.ORB.String_To_Object (Mesg, Ref);

@@ -55,7 +55,7 @@ package body Test_Job is
         ("Invocation on servant finished",
          "Hello Ada World !" =
          CORBA.To_Standard_String
-         (Echo.EchoString_Wait
+         (Echo.echoString_wait
           (Global_Obj_Ref,
            CORBA.To_CORBA_String ("Hello Ada World !"))));
    end Run_Job_Wait;

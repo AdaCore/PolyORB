@@ -126,8 +126,10 @@ package body Test_Common is
       Output ("Unregistered object", True);
 
       --  Destroy object adapter
+
       PolyORB.Obj_Adapters.Destroy (Obj_Adapter);
       Output ("Destroyed Object Adapter", True);
-end Test_Simple_OA;
+
+   end Test_Simple_OA;
 
 end Test_Common;

@@ -48,7 +48,6 @@ with PolyORB.Setup.No_Tasking_Server;
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 
-with PolyORB.Objects;
 with PolyORB.Servants;
 with PolyORB.Types;
 
@@ -63,9 +62,6 @@ procedure Test000 is
    use PolyORB.Exceptions;
    use PolyORB.Types;
    use PolyORB.Utils.Report;
-
-   Incorrect_Execution : exception;
-   Correct_Execution   : exception;
 
    -------------------
    -- Test_Root_POA --
@@ -391,7 +387,6 @@ procedure Test000 is
    is
       use type PolyORB.POA_Types.Unmarshalled_Oid;
 
-      use PolyORB.Objects;
       use PolyORB.POA;
 
       use Test_Servant;
@@ -457,7 +452,6 @@ procedure Test000 is
       S1 : My_Servant_Access;
       S2 : My_Servant_Access;
 
-      Ok : Boolean := False;
       Error : Error_Container;
 
    begin

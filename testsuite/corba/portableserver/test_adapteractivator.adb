@@ -52,7 +52,9 @@ package body Test_AdapterActivator is
      (Self   : NullAdapter_Ref;
       Parent : PortableServer.POA_Forward.Ref;
       Name   : CORBA.String)
-     return Boolean is
+     return Boolean
+   is
+      pragma Unreferenced (Self, Parent, Name);
    begin
       Null_Activator_Called := True;
 
@@ -69,6 +71,8 @@ package body Test_AdapterActivator is
       Name   : CORBA.String)
      return Boolean
    is
+      pragma Unreferenced (Self);
+
       package Convert is new
         PortableServer.POA_Forward.Convert (PortableServer.POA.Ref);
 
@@ -95,9 +99,9 @@ package body Test_AdapterActivator is
 
    procedure Run_Test_AdapterActivator
    is
-      NullAdapter : NullAdapter_Access := new NullAdapter_Ref;
+      NullAdapter : constant NullAdapter_Access := new NullAdapter_Ref;
 
-      SimpleAdapter : SimpleAdapter_Access := new SimpleAdapter_Ref;
+      SimpleAdapter : constant SimpleAdapter_Access := new SimpleAdapter_Ref;
 
       Policies : CORBA.Policy.PolicyList;
 

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package Test_Suite.Test_Case.Client_Server is
 
    type Client_Server_Test is new Test with record

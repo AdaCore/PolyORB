@@ -1291,25 +1291,24 @@ package body Test000_Common is
 
       Synchro.Signal (1);
 
-begin
-   Synchro_Joiner.Join;
-   Tempo;
-   Tempo;
-   PTW.Update (My_Watcher.all);
-   Synchro_Joiner.Join;
-exception
-   when Exc : others =>
-      Ok := False;
-      O ("main task "
-         & " EXCEPTION RAISED ! "
-         & Exception_Name (Exc)
-         & " : "
-         & Exception_Message (Exc));
-end;
-Ok := Ok and Counter.Get = 1;
-PolyORB.Utils.Report.Output ("test watchers", Ok);
-Ok := True;
-
+      begin
+         Synchro_Joiner.Join;
+         Tempo;
+         Tempo;
+         PTW.Update (My_Watcher.all);
+         Synchro_Joiner.Join;
+      exception
+         when Exc : others =>
+            Ok := False;
+            O ("main task "
+               & " EXCEPTION RAISED ! "
+               & Exception_Name (Exc)
+               & " : "
+               & Exception_Message (Exc));
+      end;
+      Ok := Ok and Counter.Get = 1;
+      PolyORB.Utils.Report.Output ("test watchers", Ok);
+      Ok := True;
    end Test_Watchers;
 
 end Test000_Common;

@@ -33,9 +33,6 @@
 
 --  $Id$
 
-with Ada.Exceptions;
-with Ada.Text_IO; use Ada.Text_IO;
-
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Report;
 
@@ -64,16 +61,6 @@ procedure Test000 is
       end if;
       return Result;
    end To_Array;
-
-   procedure Show (LL : List);
-   procedure Show (LL : List) is
-      AA : constant A := To_Array (LL);
-   begin
-      for J in AA'Range loop
-         Put (AA (J)'Img);
-      end loop;
-      New_Line;
-   end Show;
 
    L1, L2, L3 : List;
    It : Iterator;

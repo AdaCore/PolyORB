@@ -58,18 +58,8 @@ with CORBA.Object;
 with CORBA.ORB;
 with CORBA.Policy;
 
-with PortableServer.AdapterActivator;
-
 with PortableServer.POA;
 with PortableServer.POAManager;
-
-with PortableServer.IdAssignmentPolicy;
-with PortableServer.IdUniquenessPolicy;
-with PortableServer.ImplicitActivationPolicy;
-with PortableServer.LifespanPolicy;
-with PortableServer.RequestProcessingPolicy;
-with PortableServer.ServantRetentionPolicy;
-with PortableServer.ThreadPolicy;
 
 with Echo.Helper;
 with Echo.Impl;
@@ -86,14 +76,6 @@ procedure Test000 is
    use PortableServer;
    use PortableServer.POA;
    use PortableServer.POAManager;
-
-   use PortableServer.IdAssignmentPolicy;
-   use PortableServer.IdUniquenessPolicy;
-   use PortableServer.ImplicitActivationPolicy;
-   use PortableServer.LifespanPolicy;
-   use PortableServer.RequestProcessingPolicy;
-   use PortableServer.ServantRetentionPolicy;
-   use PortableServer.ThreadPolicy;
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Log;
@@ -629,7 +611,8 @@ procedure Test000 is
          Output ("Servant_To_Reference", True);
 
          declare
-            OID : constant ObjectId := Reference_To_Id (POA, Obj_Ref);
+            Oid : constant ObjectId := Reference_To_Id (POA, Obj_Ref);
+            pragma Unreferenced (Oid);
          begin
             Output ("Reference_To_Id", True);
          end;
@@ -637,26 +620,29 @@ procedure Test000 is
          declare
             Servant : constant PortableServer.Servant
               := Reference_To_Servant (POA, Obj_Ref);
+            pragma Unreferenced (Servant);
          begin
             Output ("Reference_To_Servant", True);
          end;
       end;
 
       declare
-         OID : constant ObjectId := Servant_To_Id (POA, Servant);
+         Oid : constant ObjectId := Servant_To_Id (POA, Servant);
       begin
          Output ("Servant_To_Id", True);
 
          declare
             Servant : constant PortableServer.Servant
-              := Id_To_Servant (POA, OID);
+              := Id_To_Servant (POA, Oid);
+            pragma Unreferenced (Servant);
          begin
             Output ("Id_To_Servant", True);
          end;
 
          declare
             Obj_Ref : constant CORBA.Object.Ref
-              := Id_To_Reference (POA, OID);
+              := Id_To_Reference (POA, Oid);
+            pragma Unreferenced (Obj_Ref);
          begin
             Output ("Id_To_Reference", True);
          end;
@@ -766,7 +752,9 @@ procedure Test000 is
       Ip : ImplicitActivationPolicyValue;
       Sp : ServantRetentionPolicyValue;
       Rp : RequestProcessingPolicyValue)
-     return Boolean is
+     return Boolean
+   is
+      pragma Unreferenced (Tp, Lp);
    begin
       if (Up = UNIQUE_ID and then Sp = NON_RETAIN)
         or else (Sp = NON_RETAIN
@@ -979,7 +967,7 @@ procedure Test000 is
 
             --  Explicit Object Activation with no supplied Id
 
-            OID : ObjectId
+            Oid : constant ObjectId
               := PortableServer.POA.Activate_Object (POA, Servant);
 
          begin
@@ -1012,16 +1000,16 @@ procedure Test000 is
 
             begin
                declare
-                  OID2 : ObjectId
+                  Oid2 : constant ObjectId
                     := PortableServer.POA.Activate_Object (POA, Servant);
                begin
                   Result.Unique_Activation_No_Id := False;
 
-                  --  Try to invoke on the Servant with new OID
+                  --  Try to invoke on the Servant with new Oid
 
                   declare
                      Obj_Ref2 : constant Echo.Ref
-                       := Echo.Helper.To_Ref (Id_To_Reference (POA, OID2));
+                       := Echo.Helper.To_Ref (Id_To_Reference (POA, Oid2));
                   begin
                      Temp := Invoke_On_Servant (Obj_Ref2);
 
@@ -1040,7 +1028,7 @@ procedure Test000 is
             --  Deactivate Object
 
             begin
-               PortableServer.POA.Deactivate_Object (POA, OID);
+               PortableServer.POA.Deactivate_Object (POA, Oid);
             exception
                when E : others =>
                   pragma Debug (O ("Got exception "
@@ -1065,7 +1053,7 @@ procedure Test000 is
             --  Activate Object With Id we get from the POA
 
             begin
-               PortableServer.POA.Activate_Object_With_Id (POA, OID, Servant);
+               PortableServer.POA.Activate_Object_With_Id (POA, Oid, Servant);
             exception
                when others =>
                   pragma Debug (O ("FATAL: Reactivation with Id failed"));
@@ -1089,7 +1077,7 @@ procedure Test000 is
             --  Deactivate Object
 
             begin
-               PortableServer.POA.Deactivate_Object (POA, OID);
+               PortableServer.POA.Deactivate_Object (POA, Oid);
             exception
                when E : others =>
                   pragma Debug (O ("Got exception "
@@ -1141,14 +1129,15 @@ procedure Test000 is
          Servant : constant PortableServer.Servant := new Echo.Impl.Object;
          Obj_Ref : Echo.Ref;
 
-         OID : ObjectId := PortableServer.String_To_ObjectId ("MyServant");
+         Oid : constant ObjectId
+           := PortableServer.String_To_ObjectId ("MyServant");
 
       begin
 
          --  Explicit Object Activation with user supplied Id.
 
          PortableServer.POA.Activate_Object_With_Id
-           (POA, OID, Servant);
+           (POA, Oid, Servant);
 
          --  Call Servant_To_Reference.
 
@@ -1164,14 +1153,14 @@ procedure Test000 is
             Result.Fatal := True;
          end if;
 
-         --  Try to invoke on a Ref created from the User's OID
+         --  Try to invoke on a Ref created from the User's Oid
 
          declare
             Obj_Ref2 : constant Echo.Ref
               := Echo.Helper.To_Ref
               (Create_Reference_With_Id
                (POA,
-                OID,
+                Oid,
                 To_CORBA_String (Echo.Repository_Id)));
          begin
             --  Repository Id sanity check
@@ -1216,7 +1205,7 @@ procedure Test000 is
          --  Activate twice the same Object with the same Id.
 
          begin
-            PortableServer.POA.Activate_Object_With_Id (POA, OID, Servant);
+            PortableServer.POA.Activate_Object_With_Id (POA, Oid, Servant);
             Result.Unique_Activation_Id := False;
          exception
             when PortableServer.POA.ServantAlreadyActive =>
@@ -1225,8 +1214,8 @@ procedure Test000 is
 
          --  Deactivate Object
 
-         --  Note: OID is not a valid Object ID, it is incomplete, we use
-         --  Reference_To_Id to construct a valid POA OID.
+         --  Note: Oid is not a valid Object ID, it is incomplete, we use
+         --  Reference_To_Id to construct a valid POA Oid.
 
          begin
             PortableServer.POA.Deactivate_Object
@@ -1248,7 +1237,7 @@ procedure Test000 is
             pragma Debug (O ("FATAL: Invoke_On_Servant raised no exception"));
             Result.Fatal := True;
          exception
-            when E : others =>
+            when others =>
                null;
          end;
 
@@ -1276,8 +1265,6 @@ procedure Test000 is
 
       declare
          Servant : constant PortableServer.Servant := new Echo.Impl.Object;
-         Obj_Ref : Echo.Ref;
-
          Temp : Boolean;
       begin
 
@@ -1285,7 +1272,8 @@ procedure Test000 is
 
          begin
             declare
-               Servant2 : PortableServer.Servant := Get_Servant (POA);
+               Servant2 : constant PortableServer.Servant := Get_Servant (POA);
+               pragma Unreferenced (Servant2);
             begin
                pragma Debug (O ("FATAL: Get Servant raised no exception"));
                Result.Fatal := True;
@@ -1421,7 +1409,9 @@ procedure Test000 is
       Ip     : ImplicitActivationPolicyValue;
       Sp     : ServantRetentionPolicyValue;
       Rp     : RequestProcessingPolicyValue)
-     return Boolean is
+     return Boolean
+   is
+      pragma Unreferenced (Tp, Lp);
    begin
       if Result.Fatal then
          Output ("Result.Fatal", True);
