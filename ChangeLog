@@ -1,6 +1,6 @@
 1999-04-12  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* MANIFEST: Add 5lgarcon.ads.
+	* MANIFEST: Add 5lgarcon.ads and 5sgarcon.ads.
 
 	* configure.in: If the ZIP filter has been selected, check for the 
 	presence of the zlib to determine whether it needs to be built or
