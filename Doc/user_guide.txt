@@ -33,6 +33,7 @@ Contents.
    Gnatdist Command Line Options.
    Gnatdist Behind the Scenes.
    The Configuration Language.
+   Tracing Facilites.
    Remote Shell Notes.
    Warnings.
    Filtering.
@@ -296,6 +297,19 @@ begin
   --  Partition 3 contains one RCI package RCI_B3
 
 end My_Config;
+
+Tracing Facilities.
+-------------------
+
+To trace your application, you can set two environment variables to
+true. The variable S_RPC will provide info on what is going on the
+execution of remote procedure calls (resolved in System.RPC -
+s-rpc.adb). The variable S_PARINT will provide info on partitions and
+units status (resolved in System.Partition_Interface -
+s-parint.adb). For instance, using sh, bash or zsh, type:
+
+  S_RPC=true;    export S_RPC
+  S_PARINT=true; export S_PARINT
 
 
 Remote Shell Notes.

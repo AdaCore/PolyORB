@@ -1,3 +1,8 @@
+1998-12-20  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* user_guide.txt: A section on how to trace what is going on
+	inside GLADE. How to set S_RPC and S_PARINT.
+
 1998-08-31  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* user_guide.txt (Note): Add short documentation on reconnection
