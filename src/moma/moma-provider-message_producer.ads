@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               M O M A . M E S S A G E _ C O N S U M E R S                --
+--       M O M A . P R O V I D E R . M E S S A G E _ P R O D U C E R        --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -32,31 +32,27 @@
 
 --  $Id$
 
-with MOMA.Destinations;
+with PolyORB.Minimal_Servant;
+with PolyORB.Requests;
+with PolyORB.Obj_Adapters.Simple;
 with PolyORB.References;
 
-package MOMA.Message_Consumers is
+package MOMA.Provider.Message_Producer is
 
-   type Message_Consumer is abstract tagged private;
+   type Object is new PolyORB.Minimal_Servant.Servant with record
+      Remote_Ref : PolyORB.References.Ref;
+      --  Reference to the remote object to which send messages
 
-   procedure Close;
-
-   function Get_Message_Selector return String;
-
-   function Get_Ref (Self : Message_Consumer) return PolyORB.References.Ref;
-
-   procedure Set_Ref (Self : in out Message_Consumer;
-                      Ref  : PolyORB.References.Ref);
-
-   function Get_Destination (Self : Message_Consumer)
-                             return MOMA.Destinations.Destination;
-
-   procedure Set_Destination (Self : in out Message_Consumer'Class;
-                              Dest : MOMA.Destinations.Destination);
-
-private
-   type Message_Consumer is abstract tagged record
-      Destination    : MOMA.Destinations.Destination;
-      Ref            : PolyORB.References.Ref;
    end record;
-end MOMA.Message_Consumers;
+
+   type Object_Acc is access Object;
+
+   procedure Invoke
+     (Self : access Object;
+      Req  : in     PolyORB.Requests.Request_Access);
+
+   function If_Desc
+     return PolyORB.Obj_Adapters.Simple.Interface_Description;
+   pragma Inline (If_Desc);
+
+end MOMA.Provider.Message_Producer;

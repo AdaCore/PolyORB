@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               M O M A . M E S S A G E _ C O N S U M E R S                --
+--  M O M A . P R O V I D E R . M E S S A G E _ P R O D U C E R . I M P L   --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -32,31 +32,66 @@
 
 --  $Id$
 
-with MOMA.Destinations;
+with PolyORB.Types;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
 with PolyORB.References;
 
-package MOMA.Message_Consumers is
+package body MOMA.Provider.Message_Producer.Impl is
 
-   type Message_Consumer is abstract tagged private;
+   use PolyORB.Types;
 
-   procedure Close;
+   -------------
+   -- Publish --
+   -------------
 
-   function Get_Message_Selector return String;
+   function Publish (Self    : in PolyORB.References.Ref;
+                     Message : in PolyORB.Types.String)
+                     return PolyORB.Types.String
+   is
+      Arg_Name_Mesg : PolyORB.Types.Identifier
+       := PolyORB.Types.To_PolyORB_String ("Mesg");
 
-   function Get_Ref (Self : Message_Consumer) return PolyORB.References.Ref;
+      Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any (Message);
 
-   procedure Set_Ref (Self : in out Message_Consumer;
-                      Ref  : PolyORB.References.Ref);
+      Operation_Name : constant Standard.String := "Publish";
 
-   function Get_Destination (Self : Message_Consumer)
-                             return MOMA.Destinations.Destination;
+      Request : PolyORB.Requests.Request_Access;
+      Arg_List : PolyORB.Any.NVList.Ref;
+      Result : PolyORB.Any.NamedValue;
+      Result_Name : PolyORB.Types.String := To_PolyORB_String ("Result");
 
-   procedure Set_Destination (Self : in out Message_Consumer'Class;
-                              Dest : MOMA.Destinations.Destination);
+   begin
+      PolyORB.Any.NVList.Create (Arg_List);
 
-private
-   type Message_Consumer is abstract tagged record
-      Destination    : MOMA.Destinations.Destination;
-      Ref            : PolyORB.References.Ref;
-   end record;
-end MOMA.Message_Consumers;
+      PolyORB.Any.NVList.Add_Item (Arg_List,
+                                   Arg_Name_Mesg,
+                                   Argument_Mesg,
+                                   PolyORB.Any.ARG_IN);
+
+      Result := (Name => PolyORB.Types.Identifier (Result_Name),
+                 Argument => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_String),
+                 Arg_Modes => 0);
+
+      PolyORB.Requests.Create_Request
+        (Target    => Self,
+         Operation => Operation_Name,
+         Arg_List  => Arg_List,
+         Result    => Result,
+         Req       => Request);
+
+      PolyORB.Requests.Invoke (Request);
+
+      --    if not PolyORB.Any.Is_Empty (Request.Exception_Info) then
+      --          PolyORB.CORBA_P.Exceptions.Raise_From_Any
+      --            (Request.Exception_Info);
+      --       end if;
+
+      PolyORB.Requests.Destroy_Request (Request);
+
+      --  Retrieve return value.
+      return PolyORB.Any.From_Any (Result.Argument);
+
+   end Publish;
+
+end MOMA.Provider.Message_Producer.Impl;

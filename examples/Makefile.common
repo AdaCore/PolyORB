@@ -14,6 +14,7 @@ GNATMAKE_FLAGS = \
 	-I$(EXAMPLES_ROOT)/generic \
 	-I$(EXAMPLES_ROOT)/../src \
 	-I$(EXAMPLES_ROOT)/../src/corba \
+	-I$(EXAMPLES_ROOT)/../src/moma \
 	-I$(EXAMPLES_ROOT)/../src/soap \
 	-I$(EXAMPLES_ROOT)/../cos/naming \
 	-I$(EXAMPLES_ROOT)/../idls/cos/naming \
@@ -24,6 +25,7 @@ GNATMAKE_FLAGS = \
 	-largs $(LDFLAGS) --LINK=$(LINKER) \
 	$(EXAMPLES_ROOT)/../src/libpolyorb.la \
 	$(EXAMPLES_ROOT)/../src/corba/libpolyorb-corba.la \
+	$(EXAMPLES_ROOT)/../src/moma/libpolyorb-moma.la \
 	$(EXAMPLES_ROOT)/../src/soap/libpolyorb-soap.la \
 	$(XMLADA_LIBS) 
 

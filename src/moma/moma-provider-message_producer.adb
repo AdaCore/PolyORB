@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                    M O M A . M E S S A G E _ P O O L                     --
+--       M O M A . P R O V I D E R . M E S S A G E _ P R O D U C E R        --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -38,13 +38,14 @@ with PolyORB.Log;
 with PolyORB.Types; use PolyORB.Types;
 with PolyORB.Requests; use PolyORB.Requests;
 
-with MOMA.Message_Pool.Impl;
+with MOMA.Provider.Message_Producer.Impl;
 
-package body MOMA.Message_Pool is
+package body MOMA.Provider.Message_Producer is
 
    use PolyORB.Log;
 
-   package L is new PolyORB.Log.Facility_Log ("moma.message_pool");
+   package L is
+     new PolyORB.Log.Facility_Log ("moma.provider.message_producer");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -58,10 +59,6 @@ package body MOMA.Message_Pool is
    is
       Args : PolyORB.Any.NVList.Ref;
    begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
       pragma Debug (O ("The server is executing the request:"
                     & PolyORB.Requests.Image (Req.all)));
 
@@ -86,30 +83,8 @@ package body MOMA.Message_Pool is
                         (Args_Sequence.all, 1).Argument);
          begin
             Req.Result.Argument := To_Any
-              (MOMA.Message_Pool.Impl.Publish (Publish_Arg));
-            pragma Debug (O ("Result: " & Image (Req.Result)));
-         end;
-
-      elsif Req.all.Operation = To_PolyORB_String ("Get") then
-
-         --  Get
-
-         Add_Item (Args,
-                   (Name => To_PolyORB_String ("Message_Id"),
-                    Argument => Get_Empty_Any (TypeCode.TC_String),
-                    Arg_Modes => PolyORB.Any.ARG_IN));
-         Arguments (Req, Args);
-
-         declare
-            use PolyORB.Any.NVList.Internals;
-            Args_Sequence : constant NV_Sequence_Access
-              := List_Of (Args);
-            Get_Arg : PolyORB.Types.String :=
-              From_Any (NV_Sequence.Element_Of
-                        (Args_Sequence.all, 1).Argument);
-         begin
-            Req.Result.Argument := To_Any
-              (MOMA.Message_Pool.Impl.Get (Get_Arg));
+              (MOMA.Provider.Message_Producer.Impl.Publish (Self.Remote_Ref,
+                                                            Publish_Arg));
             pragma Debug (O ("Result: " & Image (Req.Result)));
          end;
 
@@ -141,11 +116,6 @@ package body MOMA.Message_Pool is
                    (Name => To_PolyORB_String ("Message"),
                     Argument => Get_Empty_Any (TypeCode.TC_String),
                     Arg_Modes => ARG_IN));
-      elsif Method = "Get" then
-         Add_Item (Result,
-                   (Name => To_PolyORB_String ("Message_Id"),
-                    Argument => Get_Empty_Any (TypeCode.TC_String),
-                    Arg_Modes => ARG_IN));
       else
          raise Program_Error;
       end if;
@@ -170,8 +140,6 @@ package body MOMA.Message_Pool is
       pragma Debug (O ("Result profile for " & Method & " requested."));
       if Method = "Publish" then
          return Get_Empty_Any (TypeCode.TC_String);
-      elsif Method = "Get" then
-         return Get_Empty_Any (TypeCode.TC_String);
       else
          raise Program_Error;
       end if;
@@ -189,4 +157,4 @@ package body MOMA.Message_Pool is
          RP_Desc => Get_Result_Profile'Access);
    end If_Desc;
 
-end MOMA.Message_Pool;
+end MOMA.Provider.Message_Producer;

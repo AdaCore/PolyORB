@@ -1,143 +1,98 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                           POLYORB COMPONENTS                             --
+--                                                                          --
+--                        M O M A . M E S S A G E S                         --
+--                                                                          --
+--                                 S p e c                                  --
+--                                                                          --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
+--                                                                          --
+-- PolyORB is free software; you  can  redistribute  it and/or modify it    --
+-- under terms of the  GNU General Public License as published by the  Free --
+-- Software Foundation;  either version 2,  or (at your option)  any  later --
+-- version. PolyORB is distributed  in the hope that it will be  useful,    --
+-- but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN- --
+-- TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public --
+-- License  for more details.  You should have received  a copy of the GNU  --
+-- General Public License distributed with PolyORB; see file COPYING. If    --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+--              PolyORB is maintained by ENST Paris University.             --
+--                                                                          --
+------------------------------------------------------------------------------
+
+--  $Id$
+
 with MOMA.Destinations;
 with Ada.Calendar; use Ada.Calendar;
 with Temp; use Temp;
 
 package MOMA.Messages is
 
-   ------------------------------
-   --  Abstract Message Object --
-   ------------------------------
-   type Message is abstract tagged private;
+   type Message is tagged private;
 
-   ----------------------------
-   --  Acknowledge Procedure --
-   ----------------------------
    procedure Acknowledge;
 
-   ---------------------------
-   --  Clear_Body Procedure --
-   ---------------------------
    procedure Clear_Body;
 
-   ----------------------------
-   --  Get_Property Function --
-   ----------------------------
    function Get_Property (Name : String) return Property_Type;
 
-   ----------------------------------
-   --  Get_Correlation_Id Function --
-   ----------------------------------
    function Get_Correlation_Id return String;
 
-   ------------------------------
-   --  Get_Persistent Function --
-   ------------------------------
    function Get_Persistent return Boolean;
 
-   -------------------------------
-   --  Get_Destination Function --
-   -------------------------------
    function Get_Destination
      return MOMA.Destinations.Destination is abstract;
 
-   ------------------------------
-   --  Get_Expiration Function --
-   ------------------------------
    function Get_Expiration return Time;
 
-   ------------------------------
-   --  Get_Message_Id Function --
-   ------------------------------
    function Get_Message_Id return String;
 
-   ----------------------------
-   --  Get_Priority Function --
-   ----------------------------
    function Get_Priority return Priority;
 
-   -------------------------------
-   --  Get_Redelivered Function --
-   -------------------------------
    function Get_Redelivered return Boolean;
 
-   ----------------------------
-   --  Get_Reply_To Function --
-   ----------------------------
    function Get_Reply_To
      return MOMA.Destinations.Destination is abstract;
 
-   -----------------------------
-   --  Get_Timestamp Function --
-   -----------------------------
    function Get_Timestamp return Time;
 
-   ------------------------
-   --  Get_Type Function --
-   ------------------------
    function Get_Type return String;
 
-   ----------------------------------
-   --  Get_Property_Names Function --
-   ----------------------------------
    --  ??? return
    function Get_Property_Names
      return Integer;
 
-   -------------------------------
-   --  Property_Exists Function --
-   -------------------------------
    function Property_Exists (Name : String) return Boolean;
 
-   -----------------------------
-   --  Set_Property Procedure --
-   -----------------------------
    procedure Set_Property (Name : String; Value : Property_Type);
 
-   -----------------------------------
-   --  Set_Correlation_Id Procedure --
-   -----------------------------------
    procedure Set_Correlation_Id (Correlation_Id : String);
 
-   -------------------------------
-   --  Set_Persistent Procedure --
-   -------------------------------
    procedure Set_Persistent (Is_Persistent : Boolean);
 
-   --------------------------------
-   --  Set_Destination Procedure --
-   --------------------------------
    procedure Set_Destination (Destination : MOMA.Destinations.Destination);
 
-   -------------------------------
-   --  Set_Expiration Procedure --
-   -------------------------------
    procedure Set_Expiration (Expiration : Time);
 
-   -------------------------------
-   --  Set_Message_Id Procedure --
-   -------------------------------
    procedure Set_Message_Id (Id : String);
 
-   -----------------------------
-   --  Set_Priority Procedure --
-   -----------------------------
    procedure Set_Priority (Value : Priority);
 
-   ---------------------------------
-   --  Set_Redellivered Procedure --
-   ---------------------------------
    procedure Set_Redelivered (Redelivered : Boolean);
 
-   -----------------------------
-   --  Set_Reply_To Procedure --
-   -----------------------------
    procedure Set_Reply_To (Reply_To : MOMA.Destinations.Destination);
 
-   ------------------------------
-   --  Set_Timestamp Procedure --
-   ------------------------------
    procedure Set_Timestamp (Timestamp : Time);
-
 
    -- Abstract Functions and Procedures --
 
@@ -147,6 +102,6 @@ package MOMA.Messages is
    procedure Set_Type (Message_Type : String) is abstract;
 
 private
-   type Message is abstract tagged null record;
+   type Message is tagged null record;
 
 end MOMA.Messages;

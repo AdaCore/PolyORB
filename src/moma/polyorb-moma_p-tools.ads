@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               M O M A . M E S S A G E _ C O N S U M E R S                --
+--                 P O L Y O R B . M O M A _ P . T O O L S                  --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -32,31 +32,15 @@
 
 --  $Id$
 
-with MOMA.Destinations;
+with PolyORB.Minimal_Servant;
 with PolyORB.References;
+with PolyORB.Obj_Adapters.Simple;
 
-package MOMA.Message_Consumers is
+package PolyORB.MOMA_P.Tools is
 
-   type Message_Consumer is abstract tagged private;
+   procedure Initiate_Servant
+     (Obj     : access PolyORB.Minimal_Servant.Servant'Class;
+      If_Desc : in  PolyORB.Obj_Adapters.Simple.Interface_Description;
+      Ref     : out PolyORB.References.Ref);
 
-   procedure Close;
-
-   function Get_Message_Selector return String;
-
-   function Get_Ref (Self : Message_Consumer) return PolyORB.References.Ref;
-
-   procedure Set_Ref (Self : in out Message_Consumer;
-                      Ref  : PolyORB.References.Ref);
-
-   function Get_Destination (Self : Message_Consumer)
-                             return MOMA.Destinations.Destination;
-
-   procedure Set_Destination (Self : in out Message_Consumer'Class;
-                              Dest : MOMA.Destinations.Destination);
-
-private
-   type Message_Consumer is abstract tagged record
-      Destination    : MOMA.Destinations.Destination;
-      Ref            : PolyORB.References.Ref;
-   end record;
-end MOMA.Message_Consumers;
+end PolyORB.MOMA_P.Tools;

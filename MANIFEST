@@ -279,6 +279,7 @@ examples/generic/report.adb
 examples/generic/report.ads
 examples/moma/Makefile.am
 examples/moma/Makefile.in
+examples/moma/client.adb
 examples/moma/moma_test.ads
 examples/moma/server.adb
 examples/moma/server_poa.adb
@@ -509,6 +510,18 @@ src/moma/moma-messages-mtexts.adb
 src/moma/moma-messages-mtexts.ads
 src/moma/moma-messages.adb
 src/moma/moma-messages.ads
+src/moma/moma-provider-message_consumer-impl.adb
+src/moma/moma-provider-message_consumer-impl.ads
+src/moma/moma-provider-message_consumer.adb
+src/moma/moma-provider-message_consumer.ads
+src/moma/moma-provider-message_producer-impl.adb
+src/moma/moma-provider-message_producer-impl.ads
+src/moma/moma-provider-message_producer.adb
+src/moma/moma-provider-message_producer.ads
+src/moma/moma-provider.ads
+src/moma/polyorb-moma_p-tools.adb
+src/moma/polyorb-moma_p-tools.ads
+src/moma/polyorb-moma_p.ads
 src/moma/moma-sessions-queues.adb
 src/moma/moma-sessions-queues.ads
 src/moma/moma-sessions-topics.adb

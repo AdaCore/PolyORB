@@ -8,34 +8,42 @@ alidir = $(libdir)/polyorb-moma
 ADA_SPECS_WITH_BODY = \
 	moma-connection_factories-queues.ads \
 	moma-connection_factories-topics.ads \
-	moma-connections.ads \
 	moma-connections-queues.ads \
 	moma-connections-topics.ads \
+	moma-connections.ads \
 	moma-destinations-queues.ads \
 	moma-destinations-topics.ads \
-	moma-message_consumers.ads \
+	moma-destinations.ads \
 	moma-message_consumers-queues.ads \
 	moma-message_consumers-topics.ads \
-	moma-message_pool.ads \
+	moma-message_consumers.ads \
 	moma-message_pool-impl.ads \
 	moma-message_pool-warehouse.ads \
 	moma-message_producers.ads \
 	moma-message_producers-queues.ads \
 	moma-message_producers-topics.ads \
-	moma-messages.ads \
+	moma-message_pool.ads \
 	moma-messages-marrays.ads \
 	moma-messages-mrecords.ads \
 	moma-messages-mstreams.ads \
 	moma-messages-mtexts.ads \
-	moma-sessions.ads \
+	moma-messages.ads \
+	moma-provider-message_consumer-impl.ads \
+	moma-provider-message_consumer.ads \
+	moma-provider-message_producer-impl.ads \
+	moma-provider-message_producer.ads \
 	moma-sessions-queues.ads \
 	moma-sessions-topics.ads \
-	polyorb-minimal_servant.ads
+	moma-sessions.ads \
+	polyorb-minimal_servant.ads \
+	polyorb-moma_p-tools.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
+	moma-connection_factories.ads \
+	moma-messages-mbytes.ads \
 	moma.ads \
-	moma-destinations.ads \
-	moma-messages-mbytes.ads
+	polyorb-moma_p.ads \
+	temp.ads
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 

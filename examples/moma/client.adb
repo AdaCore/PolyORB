@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                               S E R V E R                                --
+--                               C L I E N T                                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -30,55 +30,86 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Dummy MOMA server.
+--  Dummy MOMA client.
 
 --  $Id$
 
-with Ada.Text_IO; use Ada.Text_IO;
-with Ada.Exceptions;
+with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Text_IO;      use Ada.Text_IO;
 
-with PolyORB.ORB;
-pragma Elaborate_All (PolyORB.ORB);
-
-with PolyORB.References;
-with PolyORB.References.IOR;
-with PolyORB.Setup;
 with PolyORB.Types;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
+--  XXX this package should be renamed to PolyORB.Setup.No_Tasking_Node ...
 
-with PolyORB.MOMA_P.Tools;
+--  XXX do not change Tasking model for now, otherwise there is a risk
+--  of a race condition between producer and consumer ...
 
-with MOMA.Message_Pool;
+with MOMA.Connection_Factories.Queues;
+with MOMA.Connections.Queues;
+with MOMA.Connections;
+with MOMA.Sessions.Queues;
+with MOMA.Destinations;
+with MOMA.Message_Producers.Queues;
+with MOMA.Message_Consumers.Queues;
 
-procedure Server is
+procedure Client is
 
-   use PolyORB.MOMA_P.Tools;
+   use MOMA.Connection_Factories.Queues;
+   use MOMA.Sessions.Queues;
+   use MOMA.Connections;
+   use MOMA.Message_Producers.Queues;
+   use MOMA.Message_Consumers.Queues;
+   use PolyORB.Types;
 
-   MOMA_Obj : constant MOMA.Message_Pool.Object_Acc
-     := new MOMA.Message_Pool.Object;
+   MOMA_Queue       : MOMA.Connections.Queues.Queue;
+   MOMA_Session     : MOMA.Sessions.Queues.Queue;
+   MOMA_Destination : MOMA.Destinations.Destination;
+   MOMA_Producer    : MOMA.Message_Producers.Queues.Queue;
+   MOMA_Consumer    : MOMA.Message_Consumers.Queues.Queue;
 
-   MOMA_Ref : PolyORB.References.Ref;
+   Mesg_To_Send : PolyORB.Types.String := To_PolyORB_String ("Hi MOM !");
+   Rcvd_Msg : PolyORB.Types.String;
 
 begin
+   --  Argument check
+   if Argument_Count < 1 then
+      Put_Line ("usage : client <IOR_string_from_server>");
+      return;
+   end if;
 
-   --  Register the Object to the ORB
+   --  Create Queue using Queue Connection Factory
+   MOMA_Queue := Create (To_PolyORB_String (Ada.Command_Line.Argument (1)));
 
-   Initiate_Servant (MOMA_Obj,
-                     MOMA.Message_Pool.If_Desc,
-                     MOMA_Ref);
+   --  Create Destination Queue associated to the connection
+   MOMA_Destination := Create_Queue (MOMA_Queue,
+                                     To_PolyORB_String ("queue1"));
 
-   Put_Line (PolyORB.Types.To_Standard_String
-             (PolyORB.References.IOR.Object_To_String (MOMA_Ref)));
+   --  Create Session,
+   MOMA_Session := Create_Session (False, 1);
 
-   --  Run the ORB
+   --  Create Message Producer associated to the Session
+   MOMA_Producer := Create_Sender (MOMA_Session, MOMA_Destination);
 
-   PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Poll => True);
+   --  Create Message Consumer associated to the Session
+   MOMA_Consumer := Create_Receiver (MOMA_Session, MOMA_Destination);
 
-exception
-   when E : others =>
-      Put_Line (Ada.Exceptions.Exception_Information (E));
+   --  Send message
+   Send (MOMA_Producer, Mesg_To_Send);
 
-end Server;
+   --  Get Message
+   Rcvd_Msg := Receive (MOMA_Consumer);
+
+   --  Print results
+   Put_Line ("I sent     : " & To_String (Mesg_To_Send));
+   Put_Line ("I received : " & To_String (Rcvd_Msg));
+
+   --  End of File
+   --  Put_Line ("waiting");
+   --  delay 10.0;
+
+   --  XXX should destroy all structures here !
+
+end Client;

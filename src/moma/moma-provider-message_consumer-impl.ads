@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               M O M A . M E S S A G E _ C O N S U M E R S                --
+--  M O M A . P R O V I D E R . M E S S A G E _ C O N S U M E R . I M P L   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -32,31 +32,13 @@
 
 --  $Id$
 
-with MOMA.Destinations;
 with PolyORB.References;
+with PolyORB.Types;
 
-package MOMA.Message_Consumers is
+package MOMA.Provider.Message_Consumer.Impl is
 
-   type Message_Consumer is abstract tagged private;
+   function Get (Self       : in PolyORB.References.Ref;
+                 Message_Id : in PolyORB.Types.String)
+                 return PolyORB.Types.String;
 
-   procedure Close;
-
-   function Get_Message_Selector return String;
-
-   function Get_Ref (Self : Message_Consumer) return PolyORB.References.Ref;
-
-   procedure Set_Ref (Self : in out Message_Consumer;
-                      Ref  : PolyORB.References.Ref);
-
-   function Get_Destination (Self : Message_Consumer)
-                             return MOMA.Destinations.Destination;
-
-   procedure Set_Destination (Self : in out Message_Consumer'Class;
-                              Dest : MOMA.Destinations.Destination);
-
-private
-   type Message_Consumer is abstract tagged record
-      Destination    : MOMA.Destinations.Destination;
-      Ref            : PolyORB.References.Ref;
-   end record;
-end MOMA.Message_Consumers;
+end MOMA.Provider.Message_Consumer.Impl;
