@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.CORBA_P.Interceptors;
+with PolyORB.CORBA_P.Interceptors_Policies;
 with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.CORBA_P.Initial_References;
 
@@ -279,11 +280,11 @@ package body PortableInterceptor.ORBInitInfo.Impl is
       Policy_Factory : in     PortableInterceptor.PolicyFactory.Local_Ref)
    is
       pragma Unreferenced (Self);
-      pragma Unreferenced (IDL_Type);
-      pragma Unreferenced (Policy_Factory);
 
    begin
-      raise PolyORB.Not_Implemented;
+      PolyORB.CORBA_P.Interceptors_Policies.Register_Policy_Factory
+        (IDL_Type,
+         Policy_Factory);
    end Register_Policy_Factory;
 
    --------------------------------

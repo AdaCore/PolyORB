@@ -12,6 +12,7 @@ ADA_SPECS_WITH_BODY = \
 	iop-codecfactory-impl.ads \
 	polyorb-corba_p-codec_utils.ads \
 	polyorb-corba_p-interceptors.ads \
+	polyorb-corba_p-interceptors_policies.ads \
 	polyorb-corba_p-interceptors_slots.ads \
 	portableinterceptor.ads \
 	portableinterceptor-clientrequestinfo.ads \
