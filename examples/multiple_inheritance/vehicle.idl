@@ -1,27 +1,4 @@
 interface Vehicle {
   attribute string mark;
+  boolean can_drive(in unsigned short age) ;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
