@@ -476,7 +476,7 @@ begin
      (Module_Info'
       (Name      => +"naming.NamingContext.Helper",
        Conflicts => Empty,
-       Depends   => +"exceptions" & "any",
+       Depends   => +"exceptions" & "any" & "naming.Helper",
        Provides  => Empty,
        Implicit  => False,
        Init      => Initialize'Access));
