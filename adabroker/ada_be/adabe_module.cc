@@ -537,7 +537,9 @@ adabe_module::produce_skel_adb(dep_list& with,string &body, string &previousdefi
 void
 adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousdefinition)
 {
-  
+  body += "with NetbufferedStream ; use NetbufferedStream ;\n";
+  body += "with MembufferedStream ; use MembufferedStream ;\n";
+  with.add ("Giop_C");
   bool first = true;
   
   // For each declaration in the node produce the code

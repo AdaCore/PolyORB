@@ -131,7 +131,7 @@ adabe_exception::produce_marshal_ads (dep_list& with,string &body, string &previ
       body += "_Members ;\n";
       body += "                         S : in out Giop_C.Object) ;\n\n";
       
-      body += "   function Align_Size (A : in";
+      body += "   function Align_Size (A : in ";
       body += get_ada_local_name();
       body += "_Members ;\n";
       body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";

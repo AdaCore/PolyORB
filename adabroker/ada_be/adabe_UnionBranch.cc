@@ -60,17 +60,17 @@ adabe_union_branch::produce_marshal_adb (dep_list& with,
       tmp += "=> ";
     }
   marshall += tmp;
-  marshall += "Marshall (";
+  marshall += "Marshall (A.";
   marshall += get_ada_local_name ();
   marshall += ",S) ;\n";
   
   unmarshall += tmp;
-  unmarshall += "      UnMarshall (";
+  unmarshall += "UnMarshall (Tmp.";
   unmarshall += get_ada_local_name ();
-  unmarshall += ",S) ;\n";
+  unmarshall += ",S) ;   \n";
   
   align_size += tmp;
-  align_size += "Tmp = Align_Size (";
+  align_size += "Tmp := Align_Size (A.";
   align_size += get_ada_local_name ();
   align_size += ",Tmp) ;\n";
 }

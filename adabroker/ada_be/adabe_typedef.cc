@@ -100,11 +100,11 @@ adabe_typedef::produce_marshal_ads(dep_list& with, string &body, string &previou
 	}
     }
   
-  body += "   function Marshall (A : in ";
+  body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                      S : in out Giop_C.Object) ;\n\n";
-  body += "   function UnMarshall (A : out ";
+  body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                        S : in out Giop_C.Object) ;\n\n";
@@ -143,7 +143,7 @@ adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previou
   
   string name = (dynamic_cast<adabe_name *> (base_type()))->marshal_name(with, arg2); 
   body += arg2;
-  body += "   function Marshall(A : in ";
+  body += "   procedure Marshall(A : in ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                     S : in out Giop_C.Object) is\n";
@@ -153,7 +153,7 @@ adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previou
   body += "(A), S) ;\n";
   body += "   end ;\n\n\n";
 	    
-  body += "   function UnMarshall(A : out ";
+  body += "   procedure UnMarshall(A : out ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                      S : in out Giop_C.Object) is\n";

@@ -569,7 +569,10 @@ adabe_root::produce() {
 		case AST_Decl::NT_typedef:
 		  {
 		    if (first) {
-		      marshal_header_previous = "Package " + get_ada_full_name() + "-marshal";
+		      marshal_header_previous = "with NetbufferedStream ; use NetbufferedStream ;\n";
+		      marshal_header_previous += "with MembufferedStream ; use MembufferedStream ;\n";
+		      marshal_header_previous += "with Giop_C ;\n";
+		      marshal_header_previous += "Package " + get_ada_full_name() + "-marshal";
 		      first = false;    
 		    }
 		    marshal_header_previous += marshal_header_body ="";

@@ -77,7 +77,7 @@ adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
   body += " ;\n";
   body += "                         S : in out Giop_C.Object) ;\n\n";
 
-  body += "   function Align_Size (A : in";
+  body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "                        Initial_Offset : in Corba.Unsigned_Long)\n";
@@ -99,8 +99,8 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   marshall += " ;\n";
   marshall += "                      S : in out Giop_C.Object) is\n";
   marshall += "   begin\n";
-  marshall += "      Marshall (Switch,S) ;\n";
-  marshall += "      case Switch is\n";
+  marshall += "      Marshall (A.Switch,S) ;\n";
+  marshall += "      case A.Switch is\n";
   
   unmarshall += "   procedure UnMarshall(A : out ";
   unmarshall += get_ada_local_name();
@@ -113,10 +113,10 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   unmarshall += "      UnMarshall (Switch,S) ;\n";
   unmarshall += "      declare\n";
   unmarshall += "         Tmp : ";
-  unmarshall += "         begin\n";
   unmarshall += get_ada_local_name ();
   unmarshall += "(Switch) ;\n";
-  unmarshall += "      case Switch is\n";
+  unmarshall += "      begin\n";
+  unmarshall += "         case Switch is\n";
   
   align_size += "   function Align_Size (A : in ";
   align_size += get_ada_local_name();
@@ -125,8 +125,8 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   align_size += "                        return Corba.Unsigned_Long is\n";
   align_size += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
   align_size += "   begin\n";
-  align_size += "      Tmp := Align_Size (Switch,Initial_Offset) ;\n";
-  align_size += "      case Switch is\n";
+  align_size += "      Tmp := Align_Size (A.Switch,Initial_Offset) ;\n";
+  align_size += "      case A.Switch is\n";
 
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
@@ -141,9 +141,12 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
 
   marshall += "      end case ;\n";
   marshall += "   end Marshall ;\n\n";
-  unmarshall += "            end case ;\n";
-  unmarshall += "        end\n";
+
+  unmarshall += "         end case ;\n";
+  unmarshall += "      A := Tmp ;\n";
+  unmarshall += "      end ;\n";
   unmarshall += "   end Unmarshall ;\n\n";
+  
   align_size += "      end case ;\n";
   align_size += "      return Tmp ;\n";
   align_size += "   end Align_Size ;\n\n\n";

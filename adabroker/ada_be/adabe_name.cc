@@ -372,7 +372,7 @@ adabe_name::set_undefined()
       // if it's a complexe type does the same to each type in the node ...
     case AST_Decl::NT_op:
       {
-	UTL_ScopeActiveIterator i(adabe_operation::narrow_from_decl(this), UTL_Scope::IK_decls);
+	UTL_ScopeActiveIterator i(adabe_operation::narrow_from_decl(this), UTL_Scope::IK_both);
 	while (!i.is_done())
 	  {
 	    AST_Decl *d = i.item();
@@ -383,7 +383,7 @@ adabe_name::set_undefined()
       break;
     case AST_Decl::NT_interface:
       {
-	UTL_ScopeActiveIterator i(adabe_interface::narrow_from_decl(this), UTL_Scope::IK_decls);
+	UTL_ScopeActiveIterator i(adabe_interface::narrow_from_decl(this), UTL_Scope::IK_both);
 	while (!i.is_done())
 	  {
 	    AST_Decl *d = i.item();
@@ -394,7 +394,7 @@ adabe_name::set_undefined()
       break;
     case AST_Decl::NT_module:
       {
-	UTL_ScopeActiveIterator i(adabe_module::narrow_from_decl(this), UTL_Scope::IK_decls);
+	UTL_ScopeActiveIterator i(adabe_module::narrow_from_decl(this), UTL_Scope::IK_both);
 	while (!i.is_done())
 	  {
 	    AST_Decl *d = i.item();
@@ -406,7 +406,7 @@ adabe_name::set_undefined()
       
     case AST_Decl::NT_root:
       {
-	UTL_ScopeActiveIterator i(adabe_root::narrow_from_decl(this), UTL_Scope::IK_decls);
+	UTL_ScopeActiveIterator i(adabe_root::narrow_from_decl(this), UTL_Scope::IK_both);
 	while (!i.is_done())
 	  {
 	    AST_Decl *d = i.item();
@@ -420,7 +420,7 @@ adabe_name::set_undefined()
       break;
     case AST_Decl::NT_except:
       {
-	UTL_ScopeActiveIterator i(adabe_exception::narrow_from_decl(this), UTL_Scope::IK_decls);
+	UTL_ScopeActiveIterator i(adabe_exception::narrow_from_decl(this), UTL_Scope::IK_both);
 	while (!i.is_done())
 	  {
 	    AST_Decl *d = i.item();
@@ -431,7 +431,7 @@ adabe_name::set_undefined()
       break;
     case AST_Decl::NT_struct:
       {
-	UTL_ScopeActiveIterator i(adabe_structure::narrow_from_decl(this),UTL_Scope::IK_decls);
+	UTL_ScopeActiveIterator i(adabe_structure::narrow_from_decl(this),UTL_Scope::IK_both);
 	while (!i.is_done())
 	  {
 	    AST_Decl *d = i.item();
@@ -442,7 +442,7 @@ adabe_name::set_undefined()
       break;
     case AST_Decl::NT_union:
       {
-	UTL_ScopeActiveIterator i(adabe_union::narrow_from_decl(this), UTL_Scope::IK_decls);
+	UTL_ScopeActiveIterator i(adabe_union::narrow_from_decl(this), UTL_Scope::IK_both);
 	while (!i.is_done())
 	  {
 	    AST_Decl *d = i.item();

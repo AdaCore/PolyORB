@@ -114,7 +114,7 @@ adabe_structure::produce_marshal_adb(dep_list &with, string &body, string &previ
   align_size += "                        return Corba.Unsigned_Long is\n";
   align_size += "      Tmp : Corba.Unsigned_Long := Initial_Offset ;\n";
   align_size += "   begin\n";
-  align_size += "      for I in (1..N) loop\n";
+  align_size += "      for I in 1..N loop\n";
   
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())

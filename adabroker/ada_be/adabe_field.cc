@@ -49,8 +49,9 @@ void
 adabe_field::produce_marshal_adb(dep_list& with, string &body, string &marshall, string &unmarshall, string &align_size)
 {
   string previous = "";
-  string name = (dynamic_cast<adabe_name *>(field_type()))->marshal_name(with, previous); 
-
+  adabe_name *e = dynamic_cast<adabe_name *>(field_type());
+  string name = e->marshal_name(with, previous);
+  
   body += previous;
   
   marshall += "      Marshall(A.";
@@ -70,15 +71,3 @@ adabe_field::produce_marshal_adb(dep_list& with, string &body, string &marshall,
   
 IMPL_NARROW_METHODS1(adabe_field, AST_Field)
 IMPL_NARROW_FROM_DECL(adabe_field)
-
-
-
-
-
-
-
-
-
-
-
-

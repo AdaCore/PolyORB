@@ -648,6 +648,11 @@ adabe_interface::produce_proxies_adb(dep_list& with, string &body, string &previ
 void
 adabe_interface::produce_marshal_ads(dep_list& with, string &body, string &previous)
 {
+  body += "use type Corba.Unsigned_Long; \n";
+  body += "with NetbufferedStream ; use NetbufferedStream ;\n";
+  body += "with MembufferedStream ; use MembufferedStream ;\n";
+  with.add ("Giop_C");
+  with.add ("Corba");
   adabe_global::set_adabe_current_file(this);
   body += "package ";
   body += get_ada_full_name();
@@ -737,16 +742,3 @@ IMPL_NARROW_METHODS1(adabe_interface, AST_Interface)
 IMPL_NARROW_FROM_DECL(adabe_interface)
 IMPL_NARROW_FROM_SCOPE(adabe_interface)
   
-  
-
-
-
-
-
-
-
-
-
-
-
-
