@@ -1016,10 +1016,6 @@ package body PolyORB.Buffers is
            <= Vecs (Index).Iov_Len);
 
          Data := Vecs (Index).Iov_Base + Offset_Remainder;
-
-      exception
-         when others =>
-            raise Read_Error;
       end Extract_Data;
 
       ----------
@@ -1057,7 +1053,8 @@ package body PolyORB.Buffers is
                Current_Offset := Current_Offset + L;
             end;
          end loop;
-         raise Read_Error;
+
+         raise Constraint_Error;
       end Peek;
 
       -------------

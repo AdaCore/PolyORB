@@ -40,7 +40,7 @@
 
 --  Note: Buffers should only be read/written sequentially.
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#27 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#28 $
 
 with Ada.Streams;
 
@@ -158,8 +158,8 @@ package PolyORB.Buffers is
       Position :        Ada.Streams.Stream_Element_Offset)
      return Ada.Streams.Stream_Element;
    --  Return the octet at the given Position from the buffer.
-   --  Read_Error is raised if that position is beyond the buffer's
-   --  end.
+   --  Constraint_Error is raised if that position is beyond the
+   --  buffer's end.
 
    -------------------------------------
    -- Representation view of a buffer --
@@ -358,8 +358,6 @@ private
       --  Prealloc_Size items, else a dynamically-allocated
       --  array is used.
 
-      Read_Error  : exception;
-
       type Iovec_Pool_Type is private;
 
       procedure Grow_Shrink
@@ -397,7 +395,7 @@ private
       --  The data must be stored contiguously.
       --  If there are not Size octets of data
       --  contiguously stored in Iovec_Pool at Offset,
-      --  then exception Read_Error is raised.
+      --  then exception Constraint_Error is raised.
 
       procedure Release
         (Iovec_Pool : in out Iovec_Pool_Type);
@@ -428,8 +426,8 @@ private
          Offset     : Ada.Streams.Stream_Element_Offset)
         return Ada.Streams.Stream_Element;
       --  Return the octet at the specified Offset from the start of
-      --  Iovec_Pool. Read_Error is raised if that offset is beyond
-      --  the pool's end.
+      --  Iovec_Pool. Constraint_Error is raised if that offset is
+      --  beyond the pool's end.
 
    private
 
