@@ -219,7 +219,8 @@ begin
      (Module_Info'
       (Name      => +"parameters.file",
        Conflicts => Empty,
-       Depends   => +"parameters.environment?",
+       Depends   => +"parameters.environment?"
+       & "log?",
        Provides  => +"parameters",
        Implicit  => True,
        Init      => Initialize'Access));

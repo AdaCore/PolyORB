@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . S E T U P . C L I E N T                  --
+--                   P O L Y O R B . L O G . S T D E R R                    --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,34 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up a simple ORB to act as a client.
+--  Logging facility on Standard error output
 
-with PolyORB.Setup.Tasking.No_Tasking;
-pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
+package PolyORB.Log.Stderr is
 
-with PolyORB.ORB.No_Tasking;
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+   pragma Elaborate_Body;
 
-with PolyORB.ORB_Controller.Basic;
-pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
-pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
-
-with PolyORB.Log.Stderr;
-pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
-
-with PolyORB.Parameters.File;
-pragma Warnings (Off, PolyORB.Parameters.File);
-pragma Elaborate_All (PolyORB.Parameters.File);
-
-with PolyORB.Parameters.Environment;
-pragma Warnings (Off, PolyORB.Parameters.Environment);
-pragma Elaborate_All (PolyORB.Parameters.Environment);
-
-@PROTO_CLIENT_WITHS@
-
-package body PolyORB.Setup.Client is
-
-end PolyORB.Setup.Client;
+end PolyORB.Log.Stderr;

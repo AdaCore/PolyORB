@@ -39,6 +39,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-initialization.ads \
 		polyorb-lanes.ads \
 		polyorb-log.ads \
+		polyorb-log-stderr.ads \
 		polyorb-minimal_servant.ads \
 		polyorb-minimal_servant-tools.ads \
 		polyorb-obj_adapters.ads \

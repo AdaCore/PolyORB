@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . S E T U P . C L I E N T                  --
+--                   P O L Y O R B . L O G . S T D E R R                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,34 +31,56 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up a simple ORB to act as a client.
+with Interfaces.C;
+with System;
 
-with PolyORB.Setup.Tasking.No_Tasking;
-pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
-pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
 
-with PolyORB.ORB.No_Tasking;
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+package body PolyORB.Log.Stderr is
 
-with PolyORB.ORB_Controller.Basic;
-pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
-pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
+   --------------
+   -- Put_Line --
+   --------------
 
-with PolyORB.Log.Stderr;
-pragma Warnings (Off, PolyORB.Log.Stderr);
-pragma Elaborate_All (PolyORB.Log.Stderr);
+   procedure Put_Line (S : String);
 
-with PolyORB.Parameters.File;
-pragma Warnings (Off, PolyORB.Parameters.File);
-pragma Elaborate_All (PolyORB.Parameters.File);
+   procedure Put_Line (S : String) is
+      SS : aliased String := S & ASCII.LF;
 
-with PolyORB.Parameters.Environment;
-pragma Warnings (Off, PolyORB.Parameters.Environment);
-pragma Elaborate_All (PolyORB.Parameters.Environment);
+      procedure C_Write
+        (Fd  : Interfaces.C.int;
+         P   : System.Address;
+         Len : Interfaces.C.int);
+      pragma Import (C, C_Write, "write");
 
-@PROTO_CLIENT_WITHS@
+   begin
+      C_Write (2, SS (SS'First)'Address, SS'Length);
+      --  2 is standard error
+   end Put_Line;
 
-package body PolyORB.Setup.Client is
+   ----------------
+   -- Initialize --
+   ----------------
 
-end PolyORB.Setup.Client;
+   procedure Initialize;
+
+   procedure Initialize is
+   begin
+      PolyORB.Log.Internals.Log_Hook := Put_Line'Access;
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"log.stderr",
+       Conflicts => Empty,
+       Depends   => Empty,
+       Provides  => +"log",
+       Implicit  => True,
+       Init      => Initialize'Access));
+end PolyORB.Log.Stderr;
