@@ -7,6 +7,22 @@ package body CORBA.POA_Types is
 
    use Ada.Streams;
 
+   ----------
+   -- Left --
+   ----------
+
+   function "=" (Left, Right : in Unmarshalled_Oid) return Standard.Boolean
+   is
+   begin
+      if Left.Id = Right.Id
+        and then Left.System_Generated = Right.System_Generated
+        and then Left.Persistency_Flag = Right.Persistency_Flag
+      then
+         return True;
+      end if;
+      return False;
+   end "=";
+
    ---------------
    -- Create_Id --
    ---------------
@@ -71,6 +87,24 @@ package body CORBA.POA_Types is
    end Oid_To_U_Oid;
 
    ------------------
+   -- Oid_To_U_Oid --
+   ------------------
+
+   function Oid_To_U_Oid (Oid : Object_Id)
+                         return Unmarshalled_Oid_Access
+   is
+      Oid_Access : Object_Id_Access;
+      U_Oid      : Unmarshalled_Oid_Access;
+   begin
+      Oid_Access := new Object_Id'(Oid);
+      Oid_Access.all := Oid;
+      U_Oid := Oid_To_U_Oid (Oid_Access);
+      Free (Oid_Access);
+      return U_Oid;
+      --  ??? Does this work? Not tested yet.
+   end Oid_To_U_Oid;
+
+   ------------------
    -- U_Oid_To_Oid --
    ------------------
 
@@ -90,4 +124,17 @@ package body CORBA.POA_Types is
       Release (Buffer);
       return Oid;
    end U_Oid_To_Oid;
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free (X : in out CORBA.POA_Types.Object_Id_Access)
+   is
+      Y : Droopi.Objects.Object_Id_Access
+        := Droopi.Objects.Object_Id_Access (X);
+   begin
+      Droopi.Objects.Free (Y);
+   end Free;
+
 end CORBA.POA_Types;

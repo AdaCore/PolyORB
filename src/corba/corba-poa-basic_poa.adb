@@ -1,5 +1,4 @@
 with Ada.Text_IO; use Ada.Text_IO;
-
 with Ada.Real_Time;
 
 with Sequences.Unbounded;
@@ -7,7 +6,7 @@ with Sequences.Unbounded.Search;
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
 
-with Droopi.CORBA_P.Exceptions;
+with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
 with CORBA.Policy_Types;
 with CORBA.Policy_Values;
 
@@ -16,6 +15,7 @@ package body CORBA.POA.Basic_POA is
 
    use POA_Types;
    use Droopi.Log;
+   use Droopi.Locks;
    use CORBA.POA_Manager;
    use CORBA.Policy;
    use CORBA.Policy_Types;
@@ -28,23 +28,26 @@ package body CORBA.POA.Basic_POA is
 
    function Get_Boot_Time return Time_Stamp;
 
-   function Get_Child (Adapter :    Obj_Adapter_Access;
-                       Name    : in String)
+   function Get_Child (Adapter : access Basic_Obj_Adapter;
+                       Name    : in     String)
                       return POA_Types.Obj_Adapter_Access;
+   --  Look in the list of children of the Adapter if an OA with
+   --  the given name already exists.
+   --  The function doesn't take care of the Lock on the children!
 
-   procedure Init_With_User_Policies (OA       : Obj_Adapter_Access;
+   procedure Init_With_User_Policies (OA       : Basic_Obj_Adapter_Access;
                                       Policies : Policy.PolicyList_Access);
-   procedure Init_With_Default_Policies (OA : Obj_Adapter_Access);
-   procedure Check_Policies_Compatibility (OA : Obj_Adapter_Access);
-   procedure Register_Child (Self  : Obj_Adapter_Access;
-                             Child : Obj_Adapter_Access);
+   procedure Init_With_Default_Policies (OA : Basic_Obj_Adapter_Access);
+   procedure Check_Policies_Compatibility (OA : Basic_Obj_Adapter_Access);
+   procedure Register_Child (Self  : access Basic_Obj_Adapter;
+                             Child :        Basic_Obj_Adapter_Access);
 
    ---------------
    -- Get_Child --
    ---------------
 
-   function Get_Child (Adapter :    Obj_Adapter_Access;
-                       Name    : in String)
+   function Get_Child (Adapter : access Basic_Obj_Adapter;
+                       Name    : in     String)
                       return POA_Types.Obj_Adapter_Access
    is
       use POA_Sequences;
@@ -55,6 +58,7 @@ package body CORBA.POA.Basic_POA is
          for I in 1 .. Length (Adapter.Children.all) loop
             A_Child := Element_Of (Adapter.Children.all, I);
             if CORBA.POA.Obj_Adapter_Access (A_Child).Name = Name then
+               Unlock_R (Adapter.Children_Lock);
                return A_Child;
             end if;
          end loop;
@@ -84,7 +88,7 @@ package body CORBA.POA.Basic_POA is
    -- Init_With_User_Policies --
    -----------------------------
 
-   procedure Init_With_User_Policies (OA       : Obj_Adapter_Access;
+   procedure Init_With_User_Policies (OA       : Basic_Obj_Adapter_Access;
                                       Policies : Policy.PolicyList_Access)
    is
       A_Policy : Policy_Access;
@@ -152,7 +156,7 @@ package body CORBA.POA.Basic_POA is
    -- Init_With_Default_Policies --
    --------------------------------
 
-   procedure Init_With_Default_Policies (OA : Obj_Adapter_Access)
+   procedure Init_With_Default_Policies (OA : Basic_Obj_Adapter_Access)
    is
       use CORBA.Policy_Values;
    begin
@@ -195,7 +199,7 @@ package body CORBA.POA.Basic_POA is
    -- Check_Policies_Compatibility --
    ----------------------------------
 
-   procedure Check_Policies_Compatibility (OA : Obj_Adapter_Access)
+   procedure Check_Policies_Compatibility (OA : Basic_Obj_Adapter_Access)
    is
    begin
       Check_Compatibility
@@ -225,18 +229,18 @@ package body CORBA.POA.Basic_POA is
    -- Register_Child --
    --------------------
 
-   procedure Register_Child (Self  : Obj_Adapter_Access;
-                             Child : Obj_Adapter_Access)
+   procedure Register_Child (Self  : access Basic_Obj_Adapter;
+                             Child :        Basic_Obj_Adapter_Access)
    is
       use CORBA.POA_Types.POA_Sequences;
    begin
-      if Self /= null then
-         if (Self.Children = null) then
-            Self.Children := new POAList;
-         end if;
+      Lock_W (Self.Children_Lock);
+      if (Self.Children = null) then
+         Self.Children := new POAList;
          Append (Sequence (Self.Children.all),
                  CORBA.POA_Types.Obj_Adapter_Access (Child));
       end if;
+      Unlock_W (Self.Children_Lock);
    end Register_Child;
 
    ----------------
@@ -244,13 +248,14 @@ package body CORBA.POA.Basic_POA is
    ----------------
 
    function Create_POA
-     (Self         : Obj_Adapter_Access;
-      Adapter_Name : String;
-      A_POAManager : POA_Manager.POAManager_Access;
-      Policies     : Policy.PolicyList_Access)
+     (Self         : access Basic_Obj_Adapter;
+      Adapter_Name :        String;
+      A_POAManager :        POA_Manager.POAManager_Access;
+      Policies     :        Policy.PolicyList_Access)
      return Obj_Adapter_Access
    is
-      New_Obj_Adapter : Obj_Adapter_Access;
+      New_Obj_Adapter : Basic_Obj_Adapter_Access;
+      Children_Locked : Boolean := False;
    begin
       O ("Enter Basic_POA.Create_POA");
       --  ??? Add check code here
@@ -258,22 +263,24 @@ package body CORBA.POA.Basic_POA is
       --  If self is null, that means that the poa to create is the RootPOA
 
       --  Look if there is already a child with this name
-      if Self /= null
-        and then Self.Children /= null
-        and then  Get_Child (Self, Adapter_Name) /= null
-      then
-         Droopi.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
+
+      if Self.Children /= null then
+         Lock_W (Self.Children_Lock);
+         --  Write Lock here: content of children has to be the same when
+         --  we add the new child.
+         Children_Locked := True;
+         if Get_Child (Self, Adapter_Name) /= null then
+            Droopi.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
+         end if;
       end if;
 
       --  Create new object adapter
-      New_Obj_Adapter           := new Obj_Adapter;
+      New_Obj_Adapter           := new Basic_Obj_Adapter;
+      Create (New_Obj_Adapter.Children_Lock);
+      Create (New_Obj_Adapter.Map_Lock);
       New_Obj_Adapter.Boot_Time := Get_Boot_Time;
-      if Self /= null then
-         New_Obj_Adapter.Father := POA_Types.Obj_Adapter_Access (Self);
-         New_Obj_Adapter.Name   := Adapter_Name;
-      else
-         New_Obj_Adapter.Name   := To_CORBA_String ("RootPOA");
-      end if;
+      New_Obj_Adapter.Father := POA_Types.Obj_Adapter_Access (Self);
+      New_Obj_Adapter.Name   := Adapter_Name;
 
       if A_POAManager = null then
          --  ??? Use POAManager factory
@@ -283,8 +290,7 @@ package body CORBA.POA.Basic_POA is
       end if;
 
       --  Init policies with those given by the user
-      if Self /= null
-        and then Policies /= null then
+      if Policies /= null then
          Init_With_User_Policies (New_Obj_Adapter, Policies);
       end if;
 
@@ -298,19 +304,23 @@ package body CORBA.POA.Basic_POA is
       --  --> An exception is raised: catch it, free the memoy, raise exception
 
       --  Register new obj_adapter as a sibling of the current POA
-      if Self /= null then
-         Register_Child (Self, New_Obj_Adapter);
+      if not Children_Locked then
+         Lock_W (Self.Children_Lock);
       end if;
+      Register_Child (Self, New_Obj_Adapter);
+      Unlock_W (Self.Children_Lock);
 
-      return New_Obj_Adapter;
+      return Obj_Adapter_Access (New_Obj_Adapter);
 
    exception
       when CORBA.Adapter_Already_Exists =>
          --  Reraise exception
          Droopi.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
+         Unlock_W (Self.Children_Lock);
          return null;
       when CORBA.Invalid_Policy =>
          --  ??? Free POA Manager, if a new one has been created
+         Unlock_W (Self.Children_Lock);
          Free (New_Obj_Adapter.Thread_Policy.all,
                Policy_Access (New_Obj_Adapter.Thread_Policy));
          Free (New_Obj_Adapter.Thread_Policy.all,
@@ -329,12 +339,37 @@ package body CORBA.POA.Basic_POA is
          return null;
    end Create_POA;
 
+   ---------------------
+   -- Create_Root_POA --
+   ---------------------
+
+   function Create_Root_POA
+     return Obj_Adapter_Access
+   is
+      New_Obj_Adapter : Basic_Obj_Adapter_Access;
+   begin
+      O ("Enter Basic_POA.Create_Root_POA");
+
+      --  Create new object adapter
+      New_Obj_Adapter           := new Basic_Obj_Adapter;
+      Create (New_Obj_Adapter.Children_Lock);
+      Create (New_Obj_Adapter.Map_Lock);
+      New_Obj_Adapter.Boot_Time := Get_Boot_Time;
+      New_Obj_Adapter.Name   := To_CORBA_String ("RootPOA");
+
+      --  ??? Use POAManager factory
+
+      --  Use default policies
+      Init_With_Default_Policies (New_Obj_Adapter);
+
+      return Obj_Adapter_Access (New_Obj_Adapter);
+   end Create_Root_POA;
 
    ------------
    -- Create --
    ------------
 
-   procedure Create (OA : out Obj_Adapter)
+   procedure Create (OA : out Basic_Obj_Adapter)
    is
    begin
       null;
@@ -429,11 +464,103 @@ package body CORBA.POA.Basic_POA is
       return Create (Value);
    end Create_Implicit_Activation_Policy;
 
+   ---------------------
+   -- Activate_Object --
+   ---------------------
+
+   function Activate_Object
+     (Self      : access Basic_Obj_Adapter;
+      P_Servant : in     Servant_Access)
+     return Object_Id
+   is
+      Oid : Object_Id_Access
+        := Activate_Object (Self.Servant_Retention_Policy.all,
+                            POA_Types.Obj_Adapter_Access (Self),
+                            P_Servant);
+   begin
+      return Oid.all;
+   end Activate_Object;
+
+   -----------------------------
+   -- Activate_Object_With_Id --
+   -----------------------------
+
+   procedure Activate_Object_With_Id
+     (Self      : access Basic_Obj_Adapter;
+      P_Servant : in     Servant_Access;
+      Oid       : in     Object_Id)
+   is
+   begin
+      --      CORBA.Policy.Servant_Retention_Policy.Activate_Object_With_Id
+      Activate_Object_With_Id (Self.Servant_Retention_Policy.all,
+                               POA_Types.Obj_Adapter_Access (Self),
+                               P_Servant,
+                               Oid);
+   end Activate_Object_With_Id;
+
+   ----------------
+   -- Deactivate --
+   ----------------
+
+   procedure Deactivate
+     (Self      : access Basic_Obj_Adapter;
+      Oid       : in Object_Id)
+   is
+   begin
+      Deactivate (Self.Servant_Retention_Policy.all,
+                  CORBA.POA_Types.Obj_Adapter_Access (Self),
+                  Oid);
+      --  ??? Wait for completion?
+   end Deactivate;
+
+   -------------------
+   -- Servant_To_Id --
+   -------------------
+
+   function Servant_To_Id
+     (Self      : access Basic_Obj_Adapter;
+      P_Servant : in     Servant_Access)
+     return Object_Id
+   is
+      Oid : Object_Id_Access
+        := Servant_To_Id (Self.Request_Processing_Policy.all,
+                          POA_Types.Obj_Adapter_Access (Self),
+                          P_Servant);
+   begin
+      if Oid = null then
+         Raise_Servant_Not_Active;
+      end if;
+      return Oid.all;
+   end Servant_To_Id;
+
+   -------------------
+   -- Id_To_Servant --
+   -------------------
+
+   function Id_To_Servant
+     (Self : access Basic_Obj_Adapter;
+      Oid  :        Object_Id)
+     return Servant_Access
+   is
+      Servant : Servant_Access;
+   begin
+      Servant := Id_To_Servant (Self.Request_Processing_Policy.all,
+                                POA_Types.Obj_Adapter_Access (Self),
+                                Oid);
+      return Servant;
+   end Id_To_Servant;
+
+   ----------------------------------------------------
+   --  Procedures and functions not yet implemented  --
+   ----------------------------------------------------
+   pragma Warnings (OFF);
+   --  Avoid useless warnings
+
    -------------
    -- Destroy --
    -------------
 
-   procedure Destroy (OA : in out Obj_Adapter)
+   procedure Destroy (OA : in out Basic_Obj_Adapter)
    is
    begin
       null;
@@ -444,7 +571,7 @@ package body CORBA.POA.Basic_POA is
    ------------
 
    function Export
-     (OA  : access Obj_Adapter;
+     (OA  : access Basic_Obj_Adapter;
       Obj :        Droopi.Objects.Servant_Access)
      return Droopi.Objects.Object_Id
    is
@@ -457,7 +584,7 @@ package body CORBA.POA.Basic_POA is
    --------------
 
    procedure Unexport
-     (OA : access Obj_Adapter;
+     (OA : access Basic_Obj_Adapter;
       Id :        Droopi.Objects.Object_Id)
    is
    begin
@@ -469,7 +596,7 @@ package body CORBA.POA.Basic_POA is
    ------------------------
 
    function Get_Empty_Arg_List
-     (OA     : Obj_Adapter;
+     (OA     : Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
      return CORBA.NVList.Ref
@@ -483,7 +610,7 @@ package body CORBA.POA.Basic_POA is
    ----------------------
 
    function Get_Empty_Result
-     (OA     : Obj_Adapter;
+     (OA     : Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
      return CORBA.Any
@@ -497,7 +624,7 @@ package body CORBA.POA.Basic_POA is
    ------------------
 
    function Find_Servant
-     (OA : access Obj_Adapter;
+     (OA : access Basic_Obj_Adapter;
       Id :        Droopi.Objects.Object_Id)
      return Droopi.Objects.Servant_Access
    is
@@ -510,12 +637,14 @@ package body CORBA.POA.Basic_POA is
    ---------------------
 
    procedure Release_Servant
-     (OA      : access Obj_Adapter;
+     (OA      : access Basic_Obj_Adapter;
       Id      :        Droopi.Objects.Object_Id;
       Servant : in out Droopi.Objects.Servant_Access)
    is
    begin
       null;
    end Release_Servant;
+
+   pragma Warnings (ON);
 
 end CORBA.POA.Basic_POA;

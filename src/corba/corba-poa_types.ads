@@ -41,7 +41,7 @@ package CORBA.POA_Types is
    subtype POAList is POA_Sequences.Sequence;
    type POAList_Access is access all POAList;
 
-   type Object_Id is new Droopi.Objects.Object_Id;
+   subtype Object_Id is Droopi.Objects.Object_Id;
    type Object_Id_Access is access all Object_Id;
 
    type Unmarshalled_Oid is
@@ -51,6 +51,11 @@ package CORBA.POA_Types is
          Persistency_Flag : Time_Stamp;
      end record;
    type Unmarshalled_Oid_Access is access Unmarshalled_Oid;
+
+   function "=" (Left, Right : in Servant) return Standard.Boolean
+      is abstract;
+
+   function "=" (Left, Right : in Unmarshalled_Oid) return Standard.Boolean;
 
    function Create_Id
      (Name             : in CORBA.String;
@@ -68,13 +73,17 @@ package CORBA.POA_Types is
 
    function Oid_To_U_Oid (Oid : Object_Id_Access)
                          return Unmarshalled_Oid_Access;
+   function Oid_To_U_Oid (Oid : Object_Id)
+                         return Unmarshalled_Oid_Access;
    --  Unmarshall an Object_Id into a Unmarshalled_Oid
 
    function U_Oid_To_Oid (U_Oid : Unmarshalled_Oid_Access)
                          return Object_Id_Access;
    --  Marshall an Unmarshalled_Oid into an Object_Id
 
-   procedure Deallocate is new Ada.Unchecked_Deallocation
+   procedure Free (X : in out CORBA.POA_Types.Object_Id_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
      (Unmarshalled_Oid, Unmarshalled_Oid_Access);
 
 end CORBA.POA_Types;

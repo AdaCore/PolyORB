@@ -24,15 +24,15 @@ use CORBA.Policy.Implicit_Activation_Policy;
 
 package CORBA.POA.Basic_POA is
 
-   type Obj_Adapter is new CORBA.POA.Obj_Adapter with null record;
-   type Obj_Adapter_Access is access all Obj_Adapter;
-   --  Obj for this implementation of the POA
+   type Basic_Obj_Adapter is new CORBA.POA.Obj_Adapter with null record;
+   type Basic_Obj_Adapter_Access is access all Basic_Obj_Adapter;
+   --  The POA object
 
    function Create_POA
-     (Self         : Obj_Adapter_Access;
-      Adapter_Name : String;
-      A_POAManager : POA_Manager.POAManager_Access;
-      Policies     : Policy.PolicyList_Access)
+     (Self         : access Basic_Obj_Adapter;
+      Adapter_Name :        String;
+      A_POAManager :        POA_Manager.POAManager_Access;
+      Policies     :        Policy.PolicyList_Access)
      return Obj_Adapter_Access;
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided
@@ -61,26 +61,47 @@ package CORBA.POA.Basic_POA is
      (Value : ImplicitActivationPolicyValue)
      return ImplicitActivationPolicy_Access;
 
---    function Activate_Object (P_Servant : in Servant_Access)
---      return Object_Id;
+   function Activate_Object
+     (Self      : access Basic_Obj_Adapter;
+      P_Servant : in     Servant_Access)
+     return Object_Id;
+
+   procedure Activate_Object_With_Id
+     (Self      : access Basic_Obj_Adapter;
+      P_Servant : in     Servant_Access;
+      Oid       : in     Object_Id);
+
+   procedure Deactivate
+     (Self      : access Basic_Obj_Adapter;
+      Oid       : in Object_Id);
+
+   function Servant_To_Id
+     (Self      : access Basic_Obj_Adapter;
+      P_Servant : in     Servant_Access)
+     return Object_Id;
+
+   function Id_To_Servant
+     (Self : access Basic_Obj_Adapter;
+      Oid  :        Object_Id)
+     return Servant_Access;
 
    --------------------------------------------------------
    --  Functions and procedures to interface with Droopi --
    --------------------------------------------------------
-   procedure Create (OA : out Obj_Adapter);
+   procedure Create (OA : out Basic_Obj_Adapter);
    --  Initialize.
 
-   procedure Destroy (OA : in out Obj_Adapter);
+   procedure Destroy (OA : in out Basic_Obj_Adapter);
    --  Finalize.
 
    function Export
-     (OA  : access Obj_Adapter;
+     (OA  : access Basic_Obj_Adapter;
       Obj : Droopi.Objects.Servant_Access)
      return Droopi.Objects.Object_Id;
    --  Create an identifier for Obj within OA.
 
    procedure Unexport
-     (OA : access Obj_Adapter;
+     (OA : access Basic_Obj_Adapter;
       Id :        Droopi.Objects.Object_Id);
    --  Id is an object identifier attributed by OA.
    --  The corresponding association is suppressed.
@@ -90,7 +111,7 @@ package CORBA.POA.Basic_POA is
    ----------------------------------------------------
 
    function Get_Empty_Arg_List
-     (OA     : Obj_Adapter;
+     (OA     : Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
      return CORBA.NVList.Ref;
@@ -98,21 +119,21 @@ package CORBA.POA.Basic_POA is
    --  protocol layer can unmarshall the message into a Request object.
 
    function Get_Empty_Result
-     (OA     : Obj_Adapter;
+     (OA     : Basic_Obj_Adapter;
       Oid    : Droopi.Objects.Object_Id;
       Method : Droopi.Requests.Operation_Id)
      return CORBA.Any;
    --  Return the result profile of the given method.
 
    function Find_Servant
-     (OA : access Obj_Adapter;
+     (OA : access Basic_Obj_Adapter;
       Id :        Droopi.Objects.Object_Id)
      return Droopi.Objects.Servant_Access;
    --  Retrieve the servant managed by OA for logical object Id.
    --  The servant that incarnates the object is return.
 
    procedure Release_Servant
-     (OA      : access Obj_Adapter;
+     (OA      : access Basic_Obj_Adapter;
       Id      :        Droopi.Objects.Object_Id;
       Servant : in out Droopi.Objects.Servant_Access);
    --  Signal to OA that a Servant previously obtained using
@@ -124,7 +145,10 @@ package CORBA.POA.Basic_POA is
    --  Utilities, neither in CORBA nor in Droopi  --
    -------------------------------------------------
 
-   procedure Free is new Ada.Unchecked_Deallocation (Obj_Adapter,
-                                                     Obj_Adapter_Access);
+   function Create_Root_POA
+     return Obj_Adapter_Access;
+
+   procedure Free is new Ada.Unchecked_Deallocation (Basic_Obj_Adapter,
+                                                     Basic_Obj_Adapter_Access);
 
 end CORBA.POA.Basic_POA;
