@@ -102,16 +102,6 @@ package Droopi.Protocols.GIOP is
 
    type Pending_Request is private;
 
-   --  type Response_Sync(Version :  range 0 .. 1) is
-   --  record
-   --    case Version is
-   --      when 0 =>
-   --         Response_Expected : Types.Boolean;
-   --      when 1 | 2 =>
-   --         Sync_Type         : SyncScope;
-   --    end case;
-   --   end record;
-
    type Send_Request_Result_Type is
      (Sr_No_Reply,
       Sr_Reply,
@@ -141,19 +131,6 @@ package Droopi.Protocols.GIOP is
       Invocation_Policies,
       Forwarded_Identity,
       Unknown_Exception_Info);
-
-   AddressingDisposition_To_Unsigned_Long :
-     constant array (Addressing_Disposition'Range) of Types.Unsigned_Long
-     := (Key_Addr => 0,
-         Profile_Addr => 1,
-         Reference_Addr => 2);
-
-   Unsigned_Long_To_AddressingDisposition :
-     constant array (Types.Unsigned_Long range 0 .. 2)
-     of Addressing_Disposition
-     := (0 => Key_Addr,
-         1 => Profile_Addr,
-         2 => Reference_Addr);
 
    procedure Initialize;
    procedure Finalize;

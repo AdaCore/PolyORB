@@ -100,6 +100,18 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
       Request_Id    : out Types.Unsigned_Long;
       Target_Ref    : out Target_Address);
 
+   ---------------------------------
+   --    Utilities Marshalling procedures
+   ---------------------------------
+
+   procedure Marshall
+     (Buffer  : access Buffers.Buffer_Type;
+      Addr    : Addressing_Disposition);
+
+   function Unmarshall
+     (Buffer  : access Buffers.Buffer_Type)
+     return Addressing_Disposition;
+
 private
 
    --  Explicit bounds are required in the nominal subtype

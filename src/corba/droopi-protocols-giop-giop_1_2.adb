@@ -111,19 +111,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       end loop;
 
 
-
-      --  Target Address Not yet implemented
-      Marshall (Buffer,
-               AddressingDisposition_To_Unsigned_Long
-               (Target_Ref.Address_Type));
-
-
+      --  Marshalling Target Reference
+      Marshall (Buffer, Target_Ref.Address_Type);
 
       case Target_Ref.Address_Type is
          when Key_Addr  =>
-            ---  Marshall (Buffer, Stream_Element_Array
-            ---       (Binding_Data.Get_Object_Key
-            ---   (Target_Ref.Profile.all)));
             Marshall (Buffer, Stream_Element_Array
                     (Target_Ref.Object_Key.all));
             Put_Line ("1.2 : 1");
@@ -279,8 +271,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       end loop;
 
       --  Address Disposition
-      Marshall (Buffer,
-               AddressingDisposition_To_Unsigned_Long (Address_Type));
+      Marshall (Buffer, Address_Type);
 
    end  Marshall_Needs_Addressing_Mode;
 
@@ -306,8 +297,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
       --  Marshalling the Target Address
 
-      Marshall (Buffer, AddressingDisposition_To_Unsigned_Long
-               (Target_Ref.Address_Type));
+      Marshall (Buffer, Target_Ref.Address_Type);
 
       case Target_Ref.Address_Type is
          when Key_Addr =>
@@ -358,7 +348,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Service_Context      : array (0 .. 9) of Types.Unsigned_Long;
       Reserved             : Types.Octet;
       Received_Flags       : Types.Octet;
-      Temp_Octet           : Types.Octet;
+      Temp_Octet           : Addressing_Disposition;
 
    begin
 
@@ -383,7 +373,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Temp_Octet := Unmarshall (Buffer);
 
       case  Temp_Octet  is
-         when 0  =>
+         when Key_Addr  =>
             --  XXX Where do these hard-coded values come from??
             --  what is Temp_Octet?????
             declare
@@ -393,13 +383,13 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
                  (Address_Type => Key_Addr,
                   Object_Key => new Object_Id'(Object_Id (Obj)));
             end;
-         when 1  =>
+         when Profile_Addr  =>
             Target_Ref := new Target_Address'
               (Address_Type => Profile_Addr,
                Profile  =>  Binding_Data.IIOP.
                Unmarshall_IIOP_Profile_Body (Buffer));
 
-         when 2  =>
+         when Reference_Addr  =>
             declare
                Temp_Ref : constant IOR_Addressing_Info_Access
                  := new IOR_Addressing_Info;
@@ -479,7 +469,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Target_Ref    : out Target_Address)
 
    is
-      Temp_Octet           : Types.Octet;
+      Temp_Octet : Addressing_Disposition;
    begin
 
       --  Request Id
@@ -490,7 +480,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Temp_Octet := Unmarshall (Buffer);
 
       case  Temp_Octet  is
-         when 0  =>
+         when Key_Addr  =>
             declare
                   Obj : Stream_Element_Array :=  Unmarshall (Buffer);
             begin
@@ -498,11 +488,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
                   Object_Key => new Object_Id'(Object_Id (Obj)));
             end;
 
-         when 1  =>
+         when Profile_Addr =>
             Target_Ref := Target_Address'(Address_Type => Profile_Addr,
                    Profile  => Binding_Data.IIOP.Unmarshall_IIOP_Profile_Body
                               (Buffer));
-         when 2  =>
+         when Reference_Addr  =>
             declare
                   Temp_Ref :  IOR_Addressing_Info_Access :=
                               new IOR_Addressing_Info;
@@ -519,5 +509,26 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       end case;
 
    end Unmarshall_Locate_Request;
+
+   procedure Marshall
+     (Buffer  : access Buffers.Buffer_Type;
+      Addr    : Addressing_Disposition)
+   is
+   begin
+      Marshall (Buffer, Types.Short (Addressing_Disposition'Pos (Addr)));
+   end Marshall;
+
+   function Unmarshall
+     (Buffer  : access Buffers.Buffer_Type)
+     return Addressing_Disposition is
+      Value : Types.Short := Unmarshall (Buffer);
+   begin
+      return Addressing_Disposition'Val (Value);
+   end Unmarshall;
+
+
+
+
+
 
 end Droopi.Protocols.GIOP.GIOP_1_2;
