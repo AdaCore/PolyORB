@@ -1,3 +1,8 @@
+1999-02-08  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garloc.adb: Use locking capabilities from GNAT.Task_Lock
+	rather than using our own.
+
 1999-02-08  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am, Makefile.in: Check that system.garlic.debug is
@@ -19,7 +24,7 @@
 	* s-garuti.adb: Avoid recursion in "<" operator by converting
 	arguments into Integers.
 
-1999-01-31  unknown  <pautet@scapin.enst.fr>
+1999-01-31  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-garuti.adb: Define No_Version which is the initialized value
  	of a watcher and which can no longer be reached once this watcher

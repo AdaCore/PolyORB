@@ -224,7 +224,6 @@ package System.Garlic.Partitions is
    --  request to the boot partition. This is step 7. Then an all partition
    --  info request will be broadcast. This is step 8.
 
-
    procedure Validate_PID
      (PID  : in out Types.Partition_ID;
       From : in Types.Partition_ID);
