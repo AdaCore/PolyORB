@@ -223,6 +223,7 @@ package body Ada_Be.Idl2Ada.Skel is
       NL (CU);
       PL (CU, "Type_Id :=");
       PL (CU, "  CORBA.From_Any (Argument_Ü_Type_Id);");
+      NL (CU);
       PL (CU, "--  Call implementation");
       Put (CU, "Result_Ü := ");
 
@@ -602,6 +603,7 @@ package body Ada_Be.Idl2Ada.Skel is
                   end loop;
                end;
 
+               NL (CU);
                PL (CU, "--  Call implementation");
 
                if Is_Function then
@@ -619,6 +621,7 @@ package body Ada_Be.Idl2Ada.Skel is
                        & ".Object'Class (Self.all)'Access");
                end;
 
+               II (CU);
                declare
                   It   : Node_Iterator;
                   P_Node : Node_Id;
@@ -626,10 +629,11 @@ package body Ada_Be.Idl2Ada.Skel is
                   Init (It, Parameters (Node));
                   while not Is_End (It) loop
                      Get_Next_Node (It, P_Node);
-                     Put (CU, ", " & Ada_Name (Declarator (P_Node)));
+                     Put (CU, "," & ASCII.LF & Ada_Name (Declarator (P_Node)));
                   end loop;
                end;
                PL (CU, ");");
+               DI (CU);
 
                if Raise_Something then
 

@@ -57,13 +57,26 @@ package CORBA.ServerRequest is
 --     };
 
    subtype Object is PolyORB.Requests.Request;
+
    subtype Object_Ptr is PolyORB.Requests.Request_Access;
 
-   function Operation (O : Object) return Identifier;
-   procedure Arguments (O : access Object; NV : in out NVList.Ref);
+   function Operation
+     (O : Object)
+     return Identifier;
+
+   procedure Arguments
+     (O  : access Object;
+      NV : in out NVList.Ref);
+
    --  function Ctx return Context;
-   procedure Set_Result (O : access Object; Val : Any);
-   procedure Set_Exception (Obj : access Object; Val : Any);
+
+   procedure Set_Result
+     (O   : access Object;
+      Val : in     Any);
+
+   procedure Set_Exception
+     (Obj : access Object;
+      Val : in     Any);
 
    --------------------------------------
    -- The following is PolyORB-specific --

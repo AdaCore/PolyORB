@@ -34,12 +34,11 @@
 --  This package provides glue codee between PolyORB's
 --  ServantActivator and CORBA specific ServantActivator.
 
---  $Id$
-
 with PortableServer.ServantActivator;
 
 with PolyORB.POA_Types;
 with PolyORB.Servants;
+with PolyORB.Smart_Pointers;
 
 package PolyORB.CORBA_P.ServantActivator is
 
@@ -71,10 +70,14 @@ package PolyORB.CORBA_P.ServantActivator is
 
 private
 
+   type CORBA_ServantActivator is new PPT.ServantActivator with null record;
+
    type SA_Ptr is access all PortableServer.ServantActivator.Ref'Class;
 
-   type CORBA_ServantActivator is new PPT.ServantActivator with record
+   type Object is new PolyORB.Smart_Pointers.Non_Controlled_Entity with record
       SA : SA_Ptr;
    end record;
+
+   type Object_Ptr is access all Object;
 
 end PolyORB.CORBA_P.ServantActivator;

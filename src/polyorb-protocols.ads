@@ -153,8 +153,6 @@ private
    type Session is abstract new Filters.Filter with record
       Server : Components.Component_Access;
       N      : PolyORB.Annotations.Notepad_Access := null;
-      --  Is_Open         : Boolean := True;
-      --  Finalize_Watcher : PolyORB.Soft_Links.Watcher_Access := null;
    end record;
 
 end PolyORB.Protocols;

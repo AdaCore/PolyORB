@@ -34,12 +34,11 @@
 --  This package provides glue codee between PolyORB's
 --  ServantLocator and CORBA specific ServantLocator.
 
---  $Id$
-
 with PortableServer.ServantLocator;
 
 with PolyORB.POA_Types;
 with PolyORB.Servants;
+with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
 package PolyORB.CORBA_P.ServantLocator is
@@ -74,10 +73,14 @@ package PolyORB.CORBA_P.ServantLocator is
 
 private
 
+   type CORBA_ServantLocator is new PPT.ServantLocator with null record;
+
    type SL_Ptr is access all PortableServer.ServantLocator.Ref'Class;
 
-   type CORBA_ServantLocator is new PPT.ServantLocator with record
+   type Object is new PolyORB.Smart_Pointers.Non_Controlled_Entity with record
       SL : SL_Ptr;
    end record;
+
+   type Object_Ptr is access all Object;
 
 end PolyORB.CORBA_P.ServantLocator;

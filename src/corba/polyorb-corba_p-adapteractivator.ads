@@ -34,12 +34,11 @@
 --  This package provides glue codee between PolyORB's
 --  AdapterActivator and CORBA specific AdapterActivator.
 
---  $Id$
-
 with PortableServer.AdapterActivator;
 
 with PolyORB.Exceptions;
 with PolyORB.POA_Types;
+with PolyORB.Smart_Pointers;
 
 package PolyORB.CORBA_P.AdapterActivator is
 
@@ -64,10 +63,14 @@ package PolyORB.CORBA_P.AdapterActivator is
 
 private
 
+   type CORBA_AdapterActivator is new PPT.AdapterActivator with null record;
+
    type AA_Ptr is access all PortableServer.AdapterActivator.Ref'Class;
 
-   type CORBA_AdapterActivator is new PPT.AdapterActivator with record
+   type Object is new PolyORB.Smart_Pointers.Non_Controlled_Entity with record
       AA : AA_Ptr;
    end record;
+
+   type Object_Ptr is access all Object;
 
 end PolyORB.CORBA_P.AdapterActivator;

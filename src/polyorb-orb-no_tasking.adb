@@ -180,9 +180,9 @@ package body PolyORB.ORB.No_Tasking is
 begin
    Register_Module
      (Module_Info'
-      (Name => +"orb.no_tasking",
+      (Name      => +"orb.no_tasking",
        Conflicts => Empty,
-       Depends => +"soft_links",
-       Provides => +"orb.tasking_policy",
-       Init => Initialize'Access));
+       Depends   => +"soft_links",
+       Provides  => +"orb.tasking_policy",
+       Init      => Initialize'Access));
 end PolyORB.ORB.No_Tasking;

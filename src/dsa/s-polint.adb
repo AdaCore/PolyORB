@@ -1410,6 +1410,7 @@ begin
        & "poa_config.racws?"
        & "Naming.Helper"
        & "Naming.NamingContext.Helper"
+       & "soft_links"
        & "tcp_access_points.soap?"
        & "tcp_access_points.corba?"
        & "tcp_access_points.srp?",
