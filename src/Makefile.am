@@ -239,7 +239,7 @@ SUFFIXES = .adb .ads .lo .ali
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
-	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
+	for f in $(srcdir)/*.ad[bs] *.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
 depend:
 	for d in $(SUBDIRS);do \
