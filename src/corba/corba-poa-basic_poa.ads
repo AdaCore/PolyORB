@@ -1,5 +1,7 @@
 with Ada.Unchecked_Deallocation;
 
+with Generic_Factory;
+
 with Droopi.Objects;
 with Droopi.Obj_Adapters;
 with Droopi.Any;
@@ -26,7 +28,10 @@ use CORBA.Policy.Implicit_Activation_Policy;
 
 package CORBA.POA.Basic_POA is
 
-   type Basic_Obj_Adapter is new CORBA.POA.Obj_Adapter with null record;
+   type Basic_Obj_Adapter is new CORBA.POA.Obj_Adapter with
+      record
+         P_Factory : CORBA.Policy.Policies_Factory;
+      end record;
    type Basic_Obj_Adapter_Access is access all Basic_Obj_Adapter;
    --  The POA object
 
@@ -39,28 +44,39 @@ package CORBA.POA.Basic_POA is
    --  Create a POA given its name and a list of policies
    --  Policies are optionnal : defaults values are provided
 
-   function Create_Thread_Policy (Value : ThreadPolicyValue)
-                                 return ThreadPolicy_Access;
+   function Create_Thread_Policy
+     (Self  : access Basic_Obj_Adapter;
+      Value :        ThreadPolicyValue)
+     return ThreadPolicy_Access;
 
-   function Create_Lifespan_Policy (Value : LifespanPolicyValue)
-                                 return LifespanPolicy_Access;
+   function Create_Lifespan_Policy
+     (Self  : access Basic_Obj_Adapter;
+      Value :        LifespanPolicyValue)
+     return LifespanPolicy_Access;
 
-   function Create_Id_Uniqueness_Policy (Value : IdUniquenessPolicyValue)
-                                        return IdUniquenessPolicy_Access;
+   function Create_Id_Uniqueness_Policy
+     (Self  : access Basic_Obj_Adapter;
+      Value :        IdUniquenessPolicyValue)
+     return IdUniquenessPolicy_Access;
 
-   function Create_Id_Assignement_Policy (Value : IdAssignementPolicyValue)
-                                         return IdAssignementPolicy_Access;
+   function Create_Id_Assignement_Policy
+     (Self  : access Basic_Obj_Adapter;
+      Value :        IdAssignementPolicyValue)
+     return IdAssignementPolicy_Access;
 
    function Create_Servant_Retention_Policy
-     (Value : ServantRetentionPolicyValue)
+     (Self  : access Basic_Obj_Adapter;
+      Value :        ServantRetentionPolicyValue)
      return ServantRetentionPolicy_Access;
 
    function Create_Request_Processing_Policy
-     (Value : RequestProcessingPolicyValue)
+     (Self  : access Basic_Obj_Adapter;
+      Value :        RequestProcessingPolicyValue)
      return RequestProcessingPolicy_Access;
 
    function Create_Implicit_Activation_Policy
-     (Value : ImplicitActivationPolicyValue)
+     (Self  : access Basic_Obj_Adapter;
+      Value :        ImplicitActivationPolicyValue)
      return ImplicitActivationPolicy_Access;
 
    function Activate_Object

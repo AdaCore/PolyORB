@@ -3,21 +3,11 @@ with CORBA.POA_Types;     use CORBA.POA_Types;
 
 package CORBA.Policy.Request_Processing_Policy is
 
-   type RequestProcessingPolicy is abstract new Policy with
-     record
-         Value : RequestProcessingPolicyValue;
-     end record;
+   type RequestProcessingPolicy is abstract new Policy with null record;
    subtype Request_Processing_Policy is RequestProcessingPolicy;
    type RequestProcessingPolicy_Access is
      access all RequestProcessingPolicy'Class;
    subtype Request_Processing_Policy_Access is RequestProcessingPolicy_Access;
-
-   function Create (Value : RequestProcessingPolicyValue)
-                   return RequestProcessingPolicy_Access;
-   function Create (P : RequestProcessingPolicy)
-                   return RequestProcessingPolicy_Access;
-   --  The factory to create the different policies according to
-   --  the value of Value
 
    function Create return RequestProcessingPolicy_Access is abstract;
    --  The real creation function that has to be implemented for each

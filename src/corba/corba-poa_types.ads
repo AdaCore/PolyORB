@@ -57,6 +57,9 @@ package CORBA.POA_Types is
 
    function "=" (Left, Right : in Unmarshalled_Oid) return Standard.Boolean;
 
+   function Image (Oid : Object_Id) return String;
+   --  For debugging purposes.
+
    function Create_Id
      (Name             : in CORBA.String;
       System_Generated : in CORBA.Boolean;

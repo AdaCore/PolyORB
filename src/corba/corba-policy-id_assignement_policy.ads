@@ -3,20 +3,10 @@ with CORBA.POA_Types;     use CORBA.POA_Types;
 
 package CORBA.Policy.Id_Assignement_Policy is
 
-   type IdAssignementPolicy is abstract new Policy with
-     record
-         Value : IdAssignementPolicyValue;
-     end record;
+   type IdAssignementPolicy is abstract new Policy with null record;
    subtype Id_Assignement_Policy is IdAssignementPolicy;
    type IdAssignementPolicy_Access is access all IdAssignementPolicy'Class;
    subtype Id_Assignement_Policy_Access is IdAssignementPolicy_Access;
-
-   function Create (Value : IdAssignementPolicyValue)
-                   return IdAssignementPolicy_Access;
-   function Create (P : IdAssignementPolicy)
-                   return IdAssignementPolicy_Access;
-   --  The factory to create the different policies according to
-   --  the value of Value
 
    function Create return IdAssignementPolicy_Access is abstract;
    --  The real creation function that has to be implemented for each
@@ -77,7 +67,7 @@ package CORBA.Policy.Id_Assignement_Policy is
    function Id_To_Servant (Self  : IdAssignementPolicy;
                            OA    : CORBA.POA_Types.Obj_Adapter_Access;
                            U_Oid : Unmarshalled_Oid_Access)
-                          return Servant_access
+                          return Servant_Access
       is abstract;
    --  Look in the Active Object Map for the given U_Oid. If found,
    --  returns the associated Servant. Otherwise, returns null.

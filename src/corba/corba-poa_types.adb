@@ -24,6 +24,17 @@ package body CORBA.POA_Types is
       return False;
    end "=";
 
+   -----------
+   -- Image --
+   -----------
+
+   function Image (Oid : Object_Id) return String
+   is
+   begin
+      return To_Corba_String (Droopi.Objects.To_String
+                              (Droopi.Objects.Object_Id (Oid)));
+   end Image;
+
    ---------------
    -- Create_Id --
    ---------------

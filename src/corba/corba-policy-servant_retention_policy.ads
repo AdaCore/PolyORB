@@ -3,21 +3,11 @@ with CORBA.POA_Types;     use CORBA.POA_Types;
 
 package CORBA.Policy.Servant_Retention_Policy is
 
-   type ServantRetentionPolicy is abstract new Policy with
-     record
-         Value : ServantRetentionPolicyValue;
-     end record;
+   type ServantRetentionPolicy is abstract new Policy with null record;
    subtype Servant_Retention_Policy is ServantRetentionPolicy;
    type ServantRetentionPolicy_Access is
      access all ServantRetentionPolicy'Class;
    subtype Servant_Retention_Policy_Access is ServantRetentionPolicy_Access;
-
-   function Create (Value : ServantRetentionPolicyValue)
-                   return ServantRetentionPolicy_Access;
-   function Create (P : ServantRetentionPolicy)
-     return ServantRetentionPolicy_Access;
-   --  The factory to create the different policies according to
-   --  the value of Value
 
    function Create return ServantRetentionPolicy_Access is abstract;
    --  The real creation function that has to be implemented for each

@@ -4,20 +4,10 @@ with CORBA.POA_Types;               use CORBA.POA_Types;
 
 package CORBA.Policy.Id_Uniqueness_Policy is
 
-   type IdUniquenessPolicy is abstract new Policy with
-     record
-         Value : IdUniquenessPolicyValue;
-     end record;
+   type IdUniquenessPolicy is abstract new Policy with null record;
    subtype Id_Uniqueness_Policy is IdUniquenessPolicy;
    type IdUniquenessPolicy_Access is access all IdUniquenessPolicy'Class;
    subtype Id_Uniqueness_Policy_Access is IdUniquenessPolicy_Access;
-
-   function Create (Value : IdUniquenessPolicyValue)
-                   return IdUniquenessPolicy_Access;
-   function Create (P : IdUniquenessPolicy)
-                   return IdUniquenessPolicy_Access;
-   --  The factory to create the different policies according to
-   --  the value of Value
 
    function Create return IdUniquenessPolicy_Access is abstract;
    --  The real creation function that has to be implemented for each

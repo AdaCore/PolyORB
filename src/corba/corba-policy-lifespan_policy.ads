@@ -4,20 +4,10 @@ with CORBA.POA_Types;     use CORBA.POA_Types;
 
 package CORBA.Policy.Lifespan_Policy is
 
-   type LifespanPolicy is abstract new Policy with
-      record
-         Value : LifespanPolicyValue;
-      end record;
+   type LifespanPolicy is abstract new Policy with null record;
    subtype Lifespan_Policy is LifespanPolicy;
    type LifespanPolicy_Access is access all LifespanPolicy'Class;
    subtype Lifespan_Policy_Access is LifespanPolicy_Access;
-
-   function Create (Value : LifespanPolicyValue)
-                   return LifespanPolicy_Access;
-   function Create (P : LifespanPolicy)
-                   return LifespanPolicy_Access;
-   --  The factory to create the different policies according to
-   --  the value of Value
 
    function Create return LifespanPolicy_Access is abstract;
    --  The real creation function that has to be implemented for each

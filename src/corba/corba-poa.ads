@@ -134,17 +134,4 @@ package CORBA.POA is
    --  Otherwise:
    --    Raises ObjectNotActive
 
---    function Id_To_Servant
---      (Self        : access CORBA.POA_Types.Obj_Adapter;
---       Oid         : Object_Id)
---      return Servant is abstract;
---    --  Requires either RETAIN or USE_DEFAULT_SERVANT
---    --  Case RETAIN:
---    --  Looks in the object map for the given Id, and returns the associated
---    --  servant
---    --  Case USE_DEFAULT_SERVANT:
---    --  If the Id is not found in the object map, returns the default servant
---    --  Otherwise:
---    --  Raises a WrongPolicy exception
-
 end CORBA.POA;
