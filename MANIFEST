@@ -369,9 +369,9 @@ idls/CORBA_IDL/Makefile.in
 idls/CORBA_IDL/orb.idl
 idls/CORBA_PIDL/CORBA_Context.idl
 idls/CORBA_PIDL/CORBA_NVList.idl
-idls/CORBA_PIDL/CORBA_Object.idl
 idls/CORBA_PIDL/CORBA_ORB.idl
 idls/CORBA_PIDL/CORBA_ORB_init.idl
+idls/CORBA_PIDL/CORBA_Object.idl
 idls/CORBA_PIDL/CORBA_Request.idl
 idls/CORBA_PIDL/CORBA_ServerRequest.idl
 idls/CORBA_PIDL/CORBA_ValueBase.idl
@@ -402,6 +402,11 @@ idls/Misc/MessageRouting.idl
 idls/Misc/Messaging.idl
 idls/Misc/PortableInterceptor.idl
 idls/Misc/PortableServer.idl
+idls/RTCORBA/Makefile.am
+idls/RTCORBA/Makefile.in
+idls/RTCORBA/RTCORBA.idl
+idls/RTCORBA/RTCosScheduling.idl
+idls/RTCORBA/RTPortableServer.idl
 idls/cos/Makefile.am
 idls/cos/Makefile.in
 idls/cos/collection/coscollection.idl
