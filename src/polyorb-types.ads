@@ -136,6 +136,38 @@ package PolyORB.Types is
    type RepositoryId is new PolyORB.Types.String;
    type ScopedName is new PolyORB.Types.String;
 
+   ------------------------------------------
+   -- Synchronisation of request execution --
+   ------------------------------------------
+
+   --  This type is declared here because it must be visible
+   --  in the specs of Requests and References.
+
+   type Synchronisation_Scope is
+     (None,
+      With_Transport,
+      With_Server,
+      With_Target);
+   --  A 'synchronistaion scope' value is associated with
+   --  each request object.
+
+   --  When a request is not synchronised, the middleware returns
+   --  to the caller before passing the request to the transport
+   --  layer. The middleware MUST guarantee that the call is
+   --  non-blocking.
+
+   --  When a request is synchronised With_Transport, the middleware
+   --  must not return to the caller before the corresponding
+   --  message has been accepted by the transport layer.
+
+   --  When a request is synchronised With_Server, the middleware
+   --  does not return before receiving a confirmation that the
+   --  request message has been received by the server middleware.
+
+   --  When a request is synchronised With_Target, the middlware
+   --  does not return to the caller before receinving a confirmation
+   --  that the request has been executed by the target object.
+
 private
 
    pragma Inline (To_PolyORB_String);
