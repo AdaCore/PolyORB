@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -40,6 +40,9 @@ with System.RPC;
 package System.Partition_Interface is
 
    pragma Elaborate_Body;
+
+   type DSA_Implementation_Name is (No_DSA, GLADE_DSA, PolyORB_DSA);
+   DSA_Implementation : constant DSA_Implementation_Name := GLADE_DSA;
 
    type Subprogram_Id is new Natural;
    --  This type is used exclusively by stubs
