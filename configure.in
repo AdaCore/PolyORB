@@ -475,7 +475,6 @@ AC_OUTPUT([
 	support/Makefile
 	compilers/Makefile
 	compilers/gnatprfh/Makefile
-	compilers/gnatprfh/g-oslicl.adb
 	compilers/gnatprfh/gnatprfh.adb
 	compilers/iac/Makefile
 	compilers/iac/testsuite/Makefile
