@@ -55,12 +55,12 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : Unique_Id_Policy;
-      Other_Policies   : AllPolicies) is
+     (Self           : Unique_Id_Policy;
+      Other_Policies : AllPolicies)
+   is
    begin
       pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (Self, Other_Policies);
       pragma Warnings (On);
       null;
    end Check_Compatibility;
