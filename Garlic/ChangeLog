@@ -1,5 +1,8 @@
 Wed Apr 30 15:32:43 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-rpc.adb: Enclose two potentially blocking operations with
+	  pragma Warnings to avoid warning.
+
 	* s-rpcpoo.ads: New routine Allocate_Task to enforce the pool
 	  abstraction.
 

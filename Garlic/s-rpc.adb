@@ -478,7 +478,9 @@ package body System.RPC is
       begin
          for Id in Request_Id'First .. Latest loop
             if Destination (Id) = Partition then
+               pragma Warnings (Off);  --  XXXXX
                Result_Watcher.Raise_Error (Id);
+               pragma Warnings (On);
                Free (Id);
             end if;
          end loop;
@@ -541,7 +543,9 @@ package body System.RPC is
       begin
          Get (Id, Res);
          Deep_Free (Res.Result);
+         pragma Warnings (Off);  --  XXXXX
          Request_Id_Server.Free (Id);
+         pragma Warnings (On);
       end Free;
 
       ---------
