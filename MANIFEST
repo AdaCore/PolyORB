@@ -437,8 +437,8 @@ ada/prj.ads
 ada/rident.ads
 ada/scans.adb
 ada/scans.ads
-ada/scang.adb
-ada/scang.adb
+ada/scng.adb
+ada/scng.adb
 ada/sdefault.ads
 ada/sfn_scan.adb
 ada/sfn_scan.ads
