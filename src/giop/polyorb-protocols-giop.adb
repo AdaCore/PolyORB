@@ -43,6 +43,8 @@ with PolyORB.GIOP_P.Exceptions;
 
 with PolyORB.Log;
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Configuration;
 with PolyORB.Utils.Strings;
 with PolyORB.ORB;

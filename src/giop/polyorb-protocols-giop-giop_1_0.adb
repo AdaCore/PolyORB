@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
+
 with PolyORB.Any;
 with PolyORB.Log;
 with PolyORB.Buffers;
@@ -43,6 +44,8 @@ with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
 with PolyORB.ORB.Interface;
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.GIOP.GIOP_1_0 is

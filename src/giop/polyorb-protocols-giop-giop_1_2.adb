@@ -47,6 +47,8 @@ with PolyORB.ORB.Interface;
 with PolyORB.Filters;
 with PolyORB.Filters.Interface;
 with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
 with PolyORB.Utils.Strings;
 
 package body PolyORB.Protocols.GIOP.GIOP_1_2 is
@@ -507,11 +509,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          declare
             Out_Buf        : Buffer_Access := new Buffer_Type;
             Flags          : Types.Octet;
-
-            pragma Warnings (Off); --  WAG:3.15
-            pragma Unreferenced (Flags);
-            pragma Warnings (On); --  WAG:3.15
-
             Message_Type   : Msg_Type;
             Message_Size2  : Types.Unsigned_Long;
             Emit_Size      : Types.Unsigned_Long;
@@ -527,6 +524,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             Rewind (Buffer);
             Unmarshall_Global_GIOP_Header (Buffer, Version);
             Flags := Unmarshall (Buffer);
+            pragma Warnings (Off); --  WAG:3.15
+            pragma Unreferenced (Flags);
+            pragma Warnings (On); --  WAG:3.15
 
             Message_Type := Unmarshall (Buffer);
 

@@ -30,7 +30,9 @@
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
 ------------------------------------------------------------------------------
+
 with PolyORB.Protocols.GIOP.Common;
+pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
 
 package PolyORB.Protocols.GIOP.GIOP_1_0 is
    use PolyORB.Protocols.GIOP.Common;

@@ -35,6 +35,7 @@ with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Protocols.GIOP.Common;
+pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
 
 package PolyORB.Protocols.GIOP.GIOP_1_2 is
    use PolyORB.Protocols.GIOP.Common;
