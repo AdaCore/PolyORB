@@ -60,9 +60,10 @@ package body PortableServer is
    ---------------------------------------
 
    type Skeleton_Info is record
-      Type_Id    : CORBA.RepositoryId;
-      Is_A       : Servant_Class_Predicate;
-      Dispatcher : Request_Dispatcher;
+      Type_Id     : CORBA.RepositoryId;
+      Is_A        : Servant_Class_Predicate;
+      Target_Is_A : Servant_Class_Is_A_Operation;
+      Dispatcher  : Request_Dispatcher;
    end record;
 
    function Find_Info
@@ -203,6 +204,21 @@ package body PortableServer is
 
    package body Internals is
 
+      -----------------
+      -- Target_Is_A --
+      -----------------
+
+      function Target_Is_A
+        (For_Servant     : in Servant;
+         Logical_Type_Id : in CORBA.RepositoryId)
+        return CORBA.Boolean
+      is
+      begin
+         return
+           Find_Info (For_Servant).Target_Is_A
+            (CORBA.To_Standard_String (Logical_Type_Id));
+      end Target_Is_A;
+
       -----------------------------------
       -- Target_Most_Derived_Interface --
       -----------------------------------
@@ -253,9 +269,10 @@ package body PortableServer is
    -----------------------
 
    procedure Register_Skeleton
-     (Type_Id    : in CORBA.RepositoryId;
-      Is_A       : in Servant_Class_Predicate;
-      Dispatcher : in Request_Dispatcher := null)
+     (Type_Id     : in CORBA.RepositoryId;
+      Is_A        : in Servant_Class_Predicate;
+      Target_Is_A : in Servant_Class_Is_A_Operation;
+      Dispatcher  : in Request_Dispatcher := null)
    is
       use Skeleton_Lists;
 
@@ -263,9 +280,10 @@ package body PortableServer is
       pragma Debug (O ("Register_Skeleton: Enter."));
 
       Prepend (All_Skeletons,
-               (Type_Id    => Type_Id,
-                Is_A       => Is_A,
-                Dispatcher => Dispatcher));
+               (Type_Id     => Type_Id,
+                Is_A        => Is_A,
+                Target_Is_A => Target_Is_A,
+                Dispatcher  => Dispatcher));
 
       pragma Debug (O ("Registered : type_id = " &
                        CORBA.To_Standard_String (Type_Id)));

@@ -338,10 +338,15 @@ package PortableServer is
      (For_Servant : Servant)
      return Boolean;
 
+   type Servant_Class_Is_A_Operation is access function
+     (Logical_Type_Id : in Standard.String)
+     return CORBA.Boolean;
+
    procedure Register_Skeleton
-     (Type_Id    : in CORBA.RepositoryId;
-      Is_A       : in Servant_Class_Predicate;
-      Dispatcher : in Request_Dispatcher := null);
+     (Type_Id     : in CORBA.RepositoryId;
+      Is_A        : in Servant_Class_Predicate;
+      Target_Is_A : in Servant_Class_Is_A_Operation;
+      Dispatcher  : in Request_Dispatcher := null);
    --  Associate a type id with a class predicate.
    --  A Dispatcher function can also be specified if the
    --  class predicate corresponds to a class derived from
@@ -361,6 +366,11 @@ package PortableServer is
         return CORBA.RepositoryId;
       --  Return RepositoryId of most derived servant interface.
       --  Used in PortableInterceptor implementation.
+
+      function Target_Is_A
+        (For_Servant     : in Servant;
+         Logical_Type_Id : in CORBA.RepositoryId)
+        return CORBA.Boolean;
 
    end Internals;
 

@@ -548,9 +548,6 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
       Id   : in     CORBA.RepositoryId)
       return CORBA.Boolean
    is
-      pragma Unreferenced (Id);
-
-      Result : constant CORBA.Boolean := False;
    begin
       if Self.Point /= Receive_Request then
          CORBA.Raise_Bad_Inv_Order
@@ -558,8 +555,7 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
                                         Completed => CORBA.Completed_No));
       end if;
 
-      raise Program_Error;
-      return Result;
+      return PortableServer.Internals.Target_Is_A (Self.Servant, Id);
    end Target_Is_A;
 
 end PortableInterceptor.ServerRequestInfo.Impl;
