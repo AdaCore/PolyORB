@@ -75,7 +75,7 @@ package body Test_Suite.Test_Case.Client_Server is
         (Output,
          Test_To_Run.Server,
          "",
-         Regexp_Array'(1 => +"IOR:([a-z0-9]*)"),
+         Regexp_Array'(1 => +"IOR:([a-z0-9]*)['|\n]"),
          Analyze_CB_Array'(1 => Launch_Client'Unrestricted_Access),
          Test_To_Run.Timeout);
 
