@@ -1,5 +1,8 @@
 1998-09-01  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* MANIFEST: Remove Examples/Filters/localhost as it will not work
+	under Windows.
+
 	* configure.in: isthrbio may need s-stratt.{o,ali} in some
 	configurations (GNAT compiled without inlining and GLADE compiled
 	with inlining).

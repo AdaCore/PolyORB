@@ -114,7 +114,6 @@ Examples/Filters/Makefile.in
 Examples/Filters/README
 Examples/Filters/common.ads
 Examples/Filters/filters.cfg
-Examples/Filters/localhost
 Examples/Filters/mainloop.adb
 Examples/Filters/prime_1.adb
 Examples/Filters/prime_1.ads
