@@ -40,8 +40,8 @@ with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
 with PolyORB.Representations.CDR;
-with PolyORB.Sequences.Unbounded;
 with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.References.IOR is
 
@@ -64,12 +64,11 @@ package body PolyORB.References.IOR is
       Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
    end record;
 
-   package Profile_Record_Seq is
-      new PolyORB.Sequences.Unbounded (Profile_Record);
+   package Profile_Record_List is
+      new PolyORB.Utils.Chained_Lists (Profile_Record);
+   use Profile_Record_List;
 
-   use Profile_Record_Seq;
-
-   Callbacks : Profile_Record_Seq.Sequence;
+   Callbacks : Profile_Record_List.List;
 
    ----------------------
    -- Marshall Profile --
@@ -83,6 +82,8 @@ package body PolyORB.References.IOR is
       use PolyORB.Types;
 
       T : Profile_Tag;
+
+      Iter : Iterator := First (Callbacks);
    begin
       pragma Assert (P /= null);
       pragma Debug (O ("Marshall profile with tag :"
@@ -91,23 +92,23 @@ package body PolyORB.References.IOR is
       Success := False;
       T := Get_Profile_Tag (P.all);
 
-      for J in 1 .. Length (Callbacks) loop
+      while not Last (Iter) loop
          declare
-            Info : constant Profile_Record := Element_Of (Callbacks, J);
+            Info : constant Profile_Record := Value (Iter).all;
          begin
             pragma Debug
-              (O ("... with callback" & Integer'Image (J)
-                  & " whose tag is "
+              (O ("... with callback whose tag is "
                   & Profile_Tag'Image (Info.Tag)));
 
             if T = Info.Tag then
                Marshall (Buffer, Types.Unsigned_Long (T));
-               Element_Of (Callbacks, J).Marshall_Profile_Body (Buffer, P);
+               Value (Iter).Marshall_Profile_Body (Buffer, P);
                Success := True;
 
                return;
             end if;
          end;
+         Next (Iter);
       end loop;
    end Marshall_Profile;
 
@@ -125,24 +126,25 @@ package body PolyORB.References.IOR is
       Tag      : constant Profile_Tag := Profile_Tag (Temp_Tag);
       Known    : Boolean := False;
       Prof     : Profile_Access;
+
+      Iter : Iterator := First (Callbacks);
    begin
       pragma Debug (O ("Considering profile with tag"
                        & Profile_Tag'Image (Tag)));
 
-      for J in 1 .. Length (Callbacks) loop
+      while not Last (Iter) loop
          pragma Debug
-           (O ("... with callback"
-               & Integer'Image (J)
-               & " whose tag is "
-               & Profile_Tag'Image (Element_Of (Callbacks, J).Tag)));
+           (O ("... with callback whose tag is "
+               & Profile_Tag'Image (Value (Iter).Tag)));
 
-         if Element_Of (Callbacks, J).Tag = Tag then
-            Prof := Element_Of (Callbacks, J).Unmarshall_Profile_Body (Buffer);
+         if Value (Iter).Tag = Tag then
+            Prof := Value (Iter).Unmarshall_Profile_Body (Buffer);
             Known := True;
             --  Profiles dynamically allocated here
             --  will be freed when the returned
             --  reference is finalised.
          end if;
+         Next (Iter);
       end loop;
 
       if not Known then
@@ -382,8 +384,8 @@ begin
    Register_Module
      (Module_Info'
       (Name      => +"references.ior",
-       Conflicts => Empty,
-       Depends   => Empty,
+       Conflicts => PolyORB.Initialization.String_Lists.Empty,
+       Depends   => PolyORB.Initialization.String_Lists.Empty,
        Provides  => +"references",
        Implicit  => False,
        Init      => Initialize'Access));
