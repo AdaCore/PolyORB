@@ -1,3 +1,10 @@
+Tue Oct 29 12:58:51 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garthi.ads: Added interface to system's getenv() function.
+
+	* s-garopt.adb: Added and use private Getenv function which uses
+	  underlying getenv() call.
+
 Fri Oct 18 14:12:03 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* Makefile.*: Include s-gaprco.*, s-garloo.*

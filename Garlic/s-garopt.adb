@@ -33,9 +33,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Debug;      use System.Garlic.Debug;
 with Ada.Command_Line;         use Ada.Command_Line;
-with GNAT.OS_Lib;              use GNAT.OS_Lib;
+with Interfaces.C.Strings;
+with System.Garlic.Debug;      use System.Garlic.Debug;
+with System.Garlic.Thin;       use System.Garlic.Thin;
 
 package body System.Garlic.Options is
 
@@ -48,23 +49,28 @@ package body System.Garlic.Options is
      renames Print_Debug_Info;
    --  Debugging stuff.
 
+   function Getenv (Name : String) return String;
+   --  getenv()
+
    ------------------------
    -- Get_Boot_Server --
    ------------------------
 
    function Get_Boot_Server (Default : String := "tcp") return String is
-      EV : String_Access;
    begin
       for Index in 1 .. Argument_Count - 1 loop
          if Argument (Index) = "--boot_server" then
             return Argument (Index + 1);
          end if;
       end loop;
-      EV := Getenv ("BOOT_SERVER");
-      if EV = null or else EV.all = "" then
-         return Default;
-      end if;
-      return EV.all;
+      declare
+         EV : constant String := Getenv ("BOOT_SERVER");
+      begin
+         if EV = "" then
+            return Default;
+         end if;
+         return EV;
+      end;
    end Get_Boot_Server;
 
    -------------------------
@@ -72,7 +78,6 @@ package body System.Garlic.Options is
    -------------------------
 
    function Get_Connection_Hits (Default : Natural := 128) return Natural is
-      EV : String_Access;
    begin
       for Index in 1 .. Argument_Count - 1 loop
          if Argument (Index) = "--connection_hits" then
@@ -81,12 +86,15 @@ package body System.Garlic.Options is
             return Natural'Value (Argument (Index + 1));
          end if;
       end loop;
-      EV := Getenv ("CONNECTION_HITS");
-      if EV = null  or else EV.all = "" then
-         return Default;
-      end if;
-      pragma Debug (D (D_Debug, "CONNECTION_HITS env. variable available"));
-      return Natural'Value (EV.all);
+      declare
+         EV : constant String := Getenv ("CONNECTION_HITS");
+      begin
+         if EV = "" then
+            return Default;
+         end if;
+         pragma Debug (D (D_Debug, "CONNECTION_HITS env. variable available"));
+         return Natural'Value (EV);
+      end;
    exception when others =>
       pragma Debug (D (D_Exception, "(get_connection_hits) Get lost ..."));
       raise;
@@ -104,11 +112,7 @@ package body System.Garlic.Options is
             return True;
          end if;
       end loop;
-      declare
-         EV : constant String_Access := Getenv ("DETACH");
-      begin
-         return EV /= null and then EV.all /= "";
-      end;
+      return Getenv ("DETACH") /= "";
    exception
       when others =>
          pragma Debug (D (D_Exception, "(get_detach) Get lost ..."));
@@ -127,11 +131,7 @@ package body System.Garlic.Options is
             return True;
          end if;
       end loop;
-      declare
-         EV : constant String_Access := Getenv ("SLAVE");
-      begin
-         return EV /= null and then EV.all /= "";
-      end;
+      return Getenv ("SLAVE") /= "";
    exception
       when others =>
          pragma Debug (D (D_Exception, "(get_is_slave) Get lost ..."));
@@ -150,15 +150,30 @@ package body System.Garlic.Options is
             return True;
          end if;
       end loop;
-      declare
-         EV : constant String_Access := Getenv ("NOLAUNCH");
-      begin
-         return EV /= null and then EV.all /= "";
-      end;
+      return Getenv ("NOLAUNCH") /= "";
    exception
       when others =>
          pragma Debug (D (D_Exception, "(get_nolaunch) Get lost ..."));
          raise;
    end Get_Nolaunch;
+
+   ------------
+   -- Getenv --
+   ------------
+
+   function Getenv (Name : String)
+      return String
+   is
+      use Interfaces.C.Strings;
+      C_Name   :          chars_ptr := New_String (Name);
+      C_Result : constant chars_ptr := C_Getenv (C_Name);
+   begin
+      Free (C_Name);
+      if C_Result = Null_Ptr then
+         return "";
+      else
+         return Value (C_Result);
+      end if;
+   end Getenv;
 
 end System.Garlic.Options;
