@@ -1,0 +1,226 @@
+\chapter{New features of CORBA 2.3}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% A new object hierarchy
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{A new object hierarchy}
+
+
+%%% A new Architecture
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{A new architecture}
+The ada object hierarhy in CORBA 2.3 is represented in
+figure~\ref{fig::simple_hierarchy}.
+
+
+\vspace{2mm}
+\begin{figure}[!htbp]
+    \includegraphics[width=1.1\textwidth,clip=]{simple_hierarchy.ps}
+  \caption{The standardized object hierarchy.}
+  \label{fig::simple_hierarchy}
+\end{figure}
+
+\begin{description}
+\item[CORBA.AbstractBase] is the root of all references to interfaces or
+valuetypes. It is responsible for reference counting and automatic
+memory deallocation. It basically refers to an instance of CORBA.Impl.Object.
+
+\item[CORBA.Impl.Object] is the root of all interface and valuetype implementations.
+\end{description}
+
+\subsection{Local interfaces}
+\paragraph{}Local interfaces are special interfaces. There is no way
+to get a remote reference to a local interface. Thus, when you call a
+subprogram on such an interface, you are guaranteed that no remote
+call will be performed. They are currently not supported in AdaBroker.
+
+\subsection{Valuetypes}
+\paragraph{}Here is the OMG definition of a valuetype : ``The basic notion is
+relatively simple. A valuetype is half way between a regular interface
+and a struct''.
+
+\paragraph{}Like structs, valuetypes contains members, called state
+members. These state members can be public or private.
+Thet are always local. There is no way of
+performing a remote call on a valuetype. Thus, to handle a valuetype,
+a program has to contain the correspondind object code. Since, they
+are always local, valuetypes are always passed by value to
+subprograms. Each time a client makes a remote invocation on a server,
+for a subprogram that takes a valuetype as parameter, a copy of the
+valuetype is made, and both the server and the client have to contain
+the code for the valuetype used in order for the call to succeed.
+
+\paragraph{} However, valuetypes are more expressive than structs
+since they can represent any arbitrary complex structure, like graphs
+or cycles. They also support null value semantics.
+
+\paragraph{}On the other hand, valuetypes are object oriented. There
+are abstract valuetypes. They cannot have any state member, and are
+therefore a bunch of subprograms for which you are guaranteed that no
+remote call will be performed. Concrete valuetypes
+(as opposed to abstract valuetypes) may inherit from at most one
+concrete valuetype. Abstract valuetypes however, support multiple inheritance.
+
+\paragraph{}An advanced feature of valuetypes is that they can
+``support'' interfaces. A valuetype that supports an interface
+corresponds to an implemetation of this interface. Consider the following
+example:
+
+\begin{verbatim}
+interface Item {
+	real getPrice();
+};
+
+valuetype ItemValue supports Item {
+	private full_price;
+	private disount_rate;
+};
+\end{verbatim}
+\paragraph{}The Item interface only specifies that all items have a price. The
+ItemValue valuetypes is more precise, and specifies a way of
+implementation, with a full price and a discount rate.
+
+\paragraph{}CORBA 2.3 also introduces the ``valuebox'' type. It is a
+degenerated case of valuetype with only one state member and no
+method. Its semantic is similar to that of typedef, but also includes
+null value semantics.
+
+
+\subsection{Abstract interfaces}
+\paragraph{}The semantics of abstract interfaces have changed a bit since CORBA
+2.0. As a matter of fact, abstract interfaces can refer arbitrarily to
+``regular'' interfaces or to valuetypes. This is very useful if one
+wants to determin at runtime if a subprogram parameter will be passed
+by value or by reference. Consider what happens if the formal
+parameter of function foo is an abstract interface. If the actual
+parameter is a regular interface, then it will be passed by
+reference. However, if it is a valuetype, then it will be passed by
+value.
+
+\paragraph{}
+Abstract interfaces are not present on the diagram.
+They inherit
+directly from \\
+CORBA.AbstractBase.Ref.
+
+
+%%% Revised mapping for interfaces
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{A revised ada mapping for interfaces}
+
+\subsection{Helper packages}
+\paragraph{}For each IDL interface, the OMG specifies that 3 ada packages have to
+be generated. One package for the reference type, one for the
+implementation type, and a third one, new in CORBA 2.3, the helper
+package.
+
+\paragraph{}The Helper package contains widening and narrowing
+functions, called ``To\_Ref'', to cast object references in more
+general or more specific reference types.
+
+\subsection{abstract interfaces}
+\paragraph{}The mapping for abstract interfaces has changed since they
+now can refer to valuetypes, that did not exist in CORBA 2.0. No
+package is generated for their implementation, since they cannot be
+instanciated. Moreover, they inherit directly from CORBA.AbstractBase.Ref.
+
+\subsection{delegating servants}
+\paragraph{}CORBA 2.0 specifies that an ada Foo.Impl package has to be generated
+for every IDL interface Foo. This Foo.Impl package is the place where
+the CORBA programmer has to implement the subprogram bodies. This may
+be a heavy constraint when somedy has some code that he wants to make
+available within CORBA. With this model, he would have to rewrite, or
+at least copy, all his code in the automatically generated Foo.Impl
+package.
+
+\paragraph{}CORBA 2.3 introduces the Foo.Delegate package. This is
+just a proxy object whose role is to receive calls made from clients,
+to redirect them to the actual implementation, to get the response,
+and to send it back to the client.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Advanced features of valuetypes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Advanced features of valuetypes}
+
+\subsection{Initializers}
+\paragraph{} Since they have specified fields, valuetypes must have
+specific functions to be initialised. These functions are called
+initialisers and are specified in IDL with the keyword
+``factory''. These initialisers are mapped to ada functions that
+return a reference to a newly created object.
+
+\subsection{Forward valuetypes}
+\paragraph{}In IDL, valuetypes can be forward declared, and therefore
+2 different valuetypes can point to each other. Since two ada packages
+cannot ``with'' each other, an intermediate type has to be used to
+allow such structures. These are called forward valuetypes. They are
+similar to forward interfaces.
+
+\subsection{Truncatable valuetypes}
+\paragraph{} We said earlier that valuetype implementations are always
+local, and that valuetypes are always passed by value. Therefore, when
+a client or a server receives an instance of a valuetype from the
+wire, it needs the corresponding object code for this
+valuetype. What happens if the server does not have the corresponding
+object code ?
+
+\paragraph{}
+Consider the Folowing example:
+
+\begin{verbatim}
+valuetype Drink {
+	public long quantity;
+};
+valuetype FruitJuice : Drink{
+	public string fruit;
+};
+interface Foo {
+	void killThirst(in Drink d);
+};
+\end{verbatim}
+\paragraph{}
+Consider a server that has the code for Drink and Foo. Consider a
+client, that has the code for Foo, Drink and SoftDrink. If the client
+gets a reference to an instance on the server of interface foo, and
+calls its killThirst method with a parameter SoftDrink.
+
+\paragraph{}The client will send on the wire a parameter of type
+FruitJuice, with the quantity and fruit. The server will not be able
+to create a new instance of FruitJuice, since it does not know what a
+FruitJuice is. Therefore, the call will fail.
+
+\paragraph{}However, there is a way to make the call succeed, if
+FruitJuice had been declared like this.
+
+\begin{verbatim}
+valuetype FruitJuice : truncatable Drink {
+	public string fruit;
+};
+\end{verbatim}
+
+The truncatable keyword means that if a program does not have the
+implementation code od a FruitJuice, it is allowed to cast it into a
+Drink, and to perform the call. The keyword ``truncatable'' must be
+used carefully, since it is not always safe from a semantics point of
+view to drop some fields of a valuetype.
+
+\subsection{Custom valuetypes}
+\paragraph{}
+As we said earlier, valuetypes are passed by value and a new instance
+is created each time a subprogram is called. Therefore, CORBA 2.3
+defines a standard way to send valuetypes on the wire (using the GIOP
+protocol). It simply sends the valuetype's fields one by one. To
+handle recursive constructs like graphs, CORBA specifies that
+valuetypes are sent only once on the wire. If the same value is
+encountered twice when traversing the graph, only a pointer to the
+position in the stream where it had been marshalled earlier is sent.
+
+\paragraph{} This protocol is guaranteed to work all the times, but it
+may be very heavy for valuetypes that have specific
+characteristics. In such a case, the CORBA programmer can define the
+valuetype as Custom. It means that he will provide the necessary
+functions to send and receive a valuetype to/from the wire. This has
+to be used very carefully however, because in this case the programmer
+is responsible for consistency when he writes the code.

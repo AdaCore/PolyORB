@@ -1,0 +1,79 @@
+\begin{abstract}
+\begin{center}
+\begin{em}
+Implementing value types in adabroker
+\end{em}
+\end{center}
+
+\paragraph{}CORBA is an object-oriented, client-server model to allow
+programs written in different languages and running on different
+distant machines to interoperate. The specification consists of the
+Interface Definition Language, used to define CORBA objects, and a
+mapping of IDL to all the different programming languages. CORBA also
+specifies how programs should interact with each other in a network
+environment.
+
+\paragraph{}Adabroker is an implementation of CORBA in Ada. It
+consists of an IDL to Ada compiler, to translate the IDL definitions
+into Ada types, and of a runtime, ``broca''. The runtime is in charge
+of making all the low-level network interactions invisible to the
+programmer. CORBA version 0pre1 supports CORBA 2.0.
+
+\paragraph{}CORBA 2.3 was released by the OMG at the beginning of the
+year 2000. Its main addition is the creation of a new object type,
+called a ``value type''. Whereas CORBA interfaces were always passed
+by reference, CORBA value types are always passed by value. This is a
+new powerful feature of CORBA 2.3.
+
+\paragraph{} The subject of the work presented here is to implement
+support for valuetypes in adabroker. There are several issues. The
+three main issues are the implementation of the new CORBA object
+hierarchy, operation dispatching, and valuetype marshalling on the wire.
+
+\paragraph{} This paper presents how the first two issues were
+implemented, and how a prototype was made for the thirs one.
+
+\end{abstract}
+
+
+\begin{abstract}
+\begin{center}
+\begin{em}
+Implémentation des types par valeur dans Adabroker
+\end{em}
+\end{center}
+
+\paragraph{}CORBA est un modèle client-serveur orienté objet, qui
+permet à différents programmes écrits dans différents langages de
+programmation et tournant sur différentes machines d'interopérer. La
+spécification de CORBA contient deux choses. Tout d'abord la
+définition de l'IDL (Interface Definition Language), qui permet de
+définir des objets CORBA, ainsi que la traduction des définitions IDL
+en objets des différents langages. Ensuite, la norme précise également
+les protocoles utilisés pour interopérer sur le réseau.
+
+\paragraph{}Adabroker est une implémentation de la norme CORBA en
+Ada. Il comprend un programme, idlac, et une librairie, broca. Idlac
+est un compilateur qui permet de traduire les définitions d'objets IDL
+en objets Ada. Broca est la librarie qui rend invisible à
+l'utilisateur tous les appels réseau. La version 0pre1 d'adabroker,
+sortie en avril 2000, supporte la norme CORBA 2.0.
+
+\paragraph{}La nouvelle version de la norme, CORBA 2.3, introduit
+principalement un nouveau type d'objets : les types par valeur. Alors
+que les interfaces sont toujours passées en paramètre par référence,
+les types par valeurs sont passés, comme leur nom l'indique, par
+valeur. A part cela, ils possèdent quasiment toutes les
+caractéristiques des interfaces.
+
+\paragraph{}Le sujet de ce mémoire est l'implémentation des types par
+valeur dans Adabroker. Les trois principales tâches sont :
+l'implémentation de la nouvelle hiérarchie d'objets définie dans CORBA
+2.3, l'appel de fonctions sur les types par valeur, et l'encodage des
+types par valeur sur le réseau.
+
+\paragraph{}Ce mémoire présente la façon dont les deux premières
+tâches ont été implémentées, et propose un prototype d'implémentation
+de l'encodage des types par valeur.
+
+\end{abstract}

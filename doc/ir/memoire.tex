@@ -1,0 +1,1899 @@
+\documentclass[french,a4paper,12pt]{report}
+
+\usepackage{babel}
+\usepackage{graphicx}
+\usepackage[latin1]{inputenc}
+
+\author{{\it Auteur :}\\ V. Niebel\\(Option IDL)\\ \\{\it Encadrant :}\\Laurent
+Pautet,\\Thomas Quinot,\\Samuel Tardieu}
+\title{Implémentation de l'Interface Repository \\ dans Adabroker}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\paragraph{}
+Ce rapport présente une tentative d'implémentation d'un service CORBA
+en ADA : l'Interface Repository (IR). Ce service aura pour but d'être intégré
+à une prochaine release du projet AdaBroker, contenant déjà un ORB en
+ADA : Broca, et un compilateur IDL vers ADA : Idlac.
+
+
+J'aborderai donc dans ce rapport le
+thème de CORBA, afin de présenter
+un peu cette architecture et d'introduire l'utilité de l'IR. Ensuite je
+détaillerai plus particulièrement le travail 
+réalisé et l'implémentation.
+\paragraph{}
+This report presents an attempt to implement a service 
+CORBA in ADA: the Interface Repository (IR). The 
+purpose of this project will be to integrate this IR into the next release
+ of AdaBroker, project already containing an ORB in ADA called  Broca,
+and a compiler IDL to ADA called Idlac.
+
+
+I will thus talk in this report about the 
+topic of CORBA in order to present this architecture and to
+introduce the utility of the IR. 
+Then I will more particularly detail the work carried out and the implementation. 
+\end{abstract}
+
+\newpage
+
+\tableofcontents
+
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+Ce mémoire se place dans la continuité de projets ayant
+commencés au début de l'année dernière. En effet, dans
+l'optique d'apporter une solution GNU au problème de l'utilisation
+de CORBA en ADA, un compilateur IDL vers ADA a été écrit en C++, ainsi
+qu'une interface avec OMNIORB2 en ada. Puis l'equipe de recherche
+travaillant sur CORBA à l'ENST, a décidé d'écrire un ORB
+et un compilateur IDL vers ADA complètement 
+en ADA afin de se libérer des problèmes d'interfaçage avec le
+C++. L'ORB a été écrit par un élève en troisième année l'an
+passé (Tristan Gingold), et le compilateur a été presque
+entièrement réécrit cette année par toute l'équipe CORBA.
+
+
+Ce compilateur et cet ORB étant écrit, il a donc été décidé de
+poursuivre ce projet en ajoutant certaines fonctionnalités et services
+indispensables au bon fonctionnement et à l'utilisation d'un ORB
+aujourd'hui. C'est dans ce cadre que s'inscrit le projet
+d'implémentation d'un interface repository (IR). Le fonctionnement et
+l'utilité de ce service va être décrit plus précisemment dans le
+prochain chapitre.
+
+
+\chapter{Fonctionnement d'un ORB et intérêt d'un Interface
+Repository}
+
+\section{Généralités sur CORBA}
+CORBA (Common Object Request Broker Architecture) est une architecture
+spécifiée par un consortium industriel : l'OMG (Object Managaement
+Group), permettant une interopérabilité tant au niveau matériel
+(PC, Sparc, ...) qu'au niveau logiciel (language de programmation,
+système d'exploitation, ...). Ce consortium est composé de
+constructeurs informatiques, de développeurs de logiciels et
+d'utilisateurs.
+
+
+CORBA permet donc à un utilisateur donné, de lancer une requète sur un
+objet distant, situé sur une autre plate-forme et implémenté dans un
+autre language, et d'en récupérer le résultat si nécessaire.
+
+\subsection{Principe de fonctionnement}
+Le fonctionnement de CORBA repose sur deux briques de base : l'ORB
+(Object Request Broker), encore appelé ``bus logiciel'', et le
+language IDL (Interface Definition Language).
+\subsection{Le Bus Logiciel et son fonctionnement}
+Ce bus n'est rien d'autre qu'un logiciel permettant de communiquer avec
+un objet distant.  Le principe de fonctionnement est le suivant
+(cf page \pageref{fig:CSModel}).
+\begin{figure}
+\begin{center}
+\includegraphics[angle=270,scale=0.4]{client-server_model.ps}
+\caption{Modèle Client-Server}
+\end{center}
+\label{fig:CSModel}
+\end{figure}
+
+
+Un utilisateur acquiert une référence sur un objet via une chaine
+identifiante (IOR) et dispose d'une interface dans un language bien
+précis afin de pouvoir invoquer statiquement une méthode sur cet
+objet.
+
+
+Le serveur dispose lui d'un squelette de l'objet (dans son language à
+lui) afin de pouvoir effectivement implémenter les méthodes mises à
+disposition.
+
+
+Le bus CORBA fait le lien entre ces deux entités en 
+récupérerant l'invocation de méthode du côté
+client et en la transmettant du côté serveur, puis en renvoyant le
+résultat (si nécessaire) vers le côté client. Il n'est pas nécessaire
+de décrire plus en détail les mécanismes d'invocations de l'ORB dans ce
+rapport, car ils ne sont pas indispensables à la compréhension du
+fonctionnement et de l'utilité de l'Interface Repository.
+
+\subsection{Les contrats IDL}
+Le language IDL permet de définir des contrats, c'est à dire de décrire
+l'interface des objets mis à disposition par un serveur. Ce language
+est très proche du C++  et ses principales caractéristiques sont les
+suivantes :
+\begin{itemize}
+\item il est orienté objet,
+\item il dispose de l'héritage multiple.
+\end{itemize}
+Un exemple de contrat IDL est le suivant :
+\begin{verbatim}
+         interface Chicken {
+              attribute string Color;
+              long Lay ();
+         };
+\end{verbatim}
+Ce contrat définit simplement un objet ``Chicken'' possédant :
+\begin{itemize}
+\item un attribut ``color'',
+\item une méthode ``lay'' renvoyant un long.
+\end{itemize}
+
+\subsection{Les fichiers générés et l'invocation statique}
+\label{static}
+\subsubsection {Coté Client}
+Pour pouvoir utiliser les objets spécifiés en IDL de manière statique,
+il faut générer les fichiers Ada correspondants. Pour ce faire, on
+utilise le compilateur IDL vers Ada (idlac). Celui-ci génère les
+fichiers utiles suivant :
+\begin{verbatim}
+chicken-helper.adb  chicken-skel.adb  chicken-stream.adb  chicken.adb 
+chicken-helper.ads  chicken-skel.ads  chicken-stream.ads  chicken.ads  
+\end{verbatim}
+
+
+En ce qui concerne l'utilisateur, le seul fichier intéressant est
+``chicken.ads'' car celui-ci contient la définition des méthodes qui
+peuvent être invoquées. 
+Les autres fichiers ne sont utilisés que de manière interne afin
+d'invoquer l'ORB et de recevoir les réponses. Les fichers ``-skel'' ne
+sont pas utilisés du coté client.
+
+
+Jetons rapidement un coup d'oeil sur ``chicken.ads'' :
+\begin{verbatim}
+    with CORBA;	
+    pragma Elaborate_All (CORBA);
+    with CORBA.Object;
+    
+    package Chicken is
+    
+       type Ref is new CORBA.Object.Ref with null record;
+    
+       function get_Color
+         (Self : in Ref)
+         return CORBA.String;
+    
+       procedure set_Color
+         (Self : in Ref;
+          To : in CORBA.String);
+    
+       function Lay
+         (Self : in Ref)
+         return CORBA.Long;
+    
+	[...]    
+    end Chicken;
+\end{verbatim}
+Pour écrire un client il suffit donc d'écrire le code suivant dans
+``client.adb'' pour	
+changer la couleur d'un ``chicken'':
+\begin{verbatim}
+    [...]
+    with Chicken;
+    procedure Client is
+       Color : CORBA.String;
+       mychicken : Chicken.Ref;
+    begin
+       --  transforms the Ada string into CORBA.String
+       IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
+
+       --  getting the CORBA.Object
+       CORBA.ORB.String_To_Object (IOR, mychicken);
+
+       Chicken.Set_Color (mychicken, Color);
+    end Client;
+\end{verbatim}
+Les deux premières opérations de cette procédure permettent de
+récupérer une référence sur l'objet chicken à partir d'une chaine
+identifiante passée en paramètre (IOR). La dernière procédure ({\it
+Set\_Color}) permet d'invoquer une
+méthode de l'objet récupéré.
+
+\subsubsection {Coté Serveur}
+En ce qui concerne le serveur, il faut générer des fichier nécessaires
+à l'implémentation. Pour ce faire, on utilise toujours le compilateur
+IDL vers Ada mais en rajoutant l'option -i. Les fichiers générés sont
+alors les suivants:
+\begin{verbatim}
+chicken-helper.adb  chicken-skel.adb  chicken-stream.adb  chicken.adb 
+chicken-helper.ads  chicken-skel.ads  chicken-stream.ads  chicken.ads  
+chicken-impl.ads 
+chicken-impl.adb
+\end{verbatim}
+
+
+Dans le cas du serveur, les seuls fichiers vraiment intéressants sont
+les fichiers ``chicken-impl.adb'' et ``chicken-impl.ads''. Ils sont
+déstinés à contenir l'implémentation des méthodes.
+
+
+Le fichier ``chicken-impl.ads'' est le suivant :
+\begin{verbatim}
+package Chicken.Impl is
+
+   type Object is
+     new PortableServer.Servant_Base with private;
+
+   type Object_Ptr is access all Object'Class;
+
+   function get_Color
+     (Self : access Object)
+     return CORBA.String;
+
+   procedure set_Color
+     (Self : access Object;
+      To : in CORBA.String);
+
+   function Lay
+     (Self : access Object)
+     return CORBA.Long;
+[...]
+end Chicken.Impl;
+\end{verbatim}
+Le fichier adb correspondant contient ces procédures avec un corps vide.
+Il suffit donc de remplir le corps de ces
+fonctions pour disposer d'un objet implémenté.
+
+
+La dernière étape côté serveur est d'activer l'objet et de créer sa
+chaine identifiante (IOR). Cela est fait par le serveur suivant :
+\begin{verbatim}
+with Chicken.Impl;
+[...]
+procedure Server is
+   Ref : CORBA.Object.Ref;
+begin
+   Initiate_Servant (new Chicken.Impl.Object, Ref);
+   Ada.Text_IO.Put_Line
+     ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
+      "'");
+   Initiate_Server;
+end Server;
+\end{verbatim}
+La ligne qui s'affichera sera l'identifiant de l'objet, qu'il faudra
+fournir au client afin de permettre une invocation.
+
+\subsubsection{Résumé}
+En résumé, afin d'utiliser un objet CORBA il faut (cf figure page
+\pageref{fig:ResModel}) :
+\begin{itemize}
+\item Définir un contrat IDL puis le compiler vers le language désiré.
+\item Implémenter les fichiers ``-impl'' et activer l'objet.
+\item Récupérer la chaine identifiante de l'objet activé, et écrire un client.
+\end{itemize}
+\begin{figure}	
+\begin{center}
+\includegraphics[scale=0.4]{CORBA.ps}
+\caption{fonctionnement de CORBA}
+\label{fig:ResModel}
+\end{center}
+\end{figure}
+
+\section{L'invocation dynamique}
+En fait, deux possibilités s'offrent à un utilisateur CORBA
+désirant programmer
+un client. L'objet à utiliser peut être accédé de manière
+statique (\ref{static})  ou dynamique.
+Je viens de décrire la façon d'accéder un objet de manière statique,
+je vais à présent décrire plus rapidement une requète dynamique, car la	
+compréhension du principe de fonctionnement est indispensable afin de bien saisir
+la nécessité d'un Interface Repository.	
+
+\subsubsection{Invocation Dynamique}
+
+Cette méthode d'invocation n'affecte que le côté client.
+
+
+Lors d'une invocation dynamique, le client n'a pas forcément accès au
+contrat IDL détaillé de l'objet qu'il désire utiliser. Ainsi les fichiers
+automatiquement générés lors de la compilation du contrat, permettant
+une invocation transparente de l'ORB, ne sont plus à disposition du
+client.	
+
+
+Il est alors nécessaire de construire entièrement à la main les
+requètes à l'ORB afin qu'il puisse les transmettre à l'objet
+voulu. Ces requètes faisant toutes appel à une même procédure de l'ORB, il
+est nécessaires de construire des appels à l'aide d'objets pouvant
+contenir n'importe quelle valeur. Ces objets sont appelés des {\it any}
+et les objets permettant de les décrire sont appelés des {\it typecode}.
+
+
+Un client dynamique peut donc procéder de la façon suivante :
+\begin{itemize}
+\item Récupération d'une référence sur l'objet à utiliser, soit par le service
+de nommage, soit par IOR.
+\item Récupération de la description de cet objet (méthodes, types défini...) :
+Ceci se fait à l'aide d'une méthode {\it get\_interface}, permettant de récupérer
+une description complète de l'objet, stockée dans un Interface
+Repository (IR). En cas 
+d'absence de l'IR, la connaissance au préalable des signatures et noms de méthodes 
+sont indispensables à une invocation de méthode.
+\item Fabrication d'une requète en instanciant un objet générique ({\it Request)}
+et en y ajoutant les paramètres à l'aide des valeurs génériques
+autodescriptives ({\it any})
+créer auparavant.
+\end{itemize}
+
+
+Pour plus de détails sur l'invocation dynamique, vous pouvez consulter
+la documentation sur ce sujet fourni avec AdaBroker et écrite par
+Sébastien Ponce.
+
+\section{L'interface repository}
+
+\subsection{Intérêt}
+
+L'IR se place donc principalement dans le contexte d'une invocation dynamique,
+durant laquelle le client ne connait pas a priori les méthodes, les types,
+les exceptions ou les attributs dont ils
+disposent concernant un certain objet.
+
+
+Le serveur, au moment d'enregistrer cet objet auprès de l'ORB, l'enregistre 
+également auprès de l'IR de l'ORB. Cet IR étant accessible par tous,
+les clients dynamiques peuvent parfaitement connaitre la composition d'un
+objet et donc l'utiliser de manière dynamique sans problème en accèdant
+dynamiquement  l'IR et en créant les requètes en fonction du résultat.
+
+
+Cette méthode de procéder permet ainsi d'utiliser des objets dynamiquement
+sans rien en connaitre a priori. L'IR peut être vu comme une base de données
+des spécifications des objets disponibles dynamiquements. En fait, ce service
+permet de créer un arbre dont les noeuds représentent un type IDL : interface, type,
+module, exceptions, operation... Cet arbre est organisé sémantiquement  
+comme l'IDL avec des noeuds {\it container} (repository, module, interface, struct,
+union, exception, operation...) pouvant contenir des noeuds du type {\it contained}. 
+On observe le même type de restrictions qu'en IDL :
+ "une opération doit se situer dans une interface" ...
+Pour plus de détails, vous pouvez vous référer à la description du language IDL
+et au chapitre sur les Interface Repository écrits par l'OMG
+(\cite[chapitre 10]{OMG}). 
+
+\subsection{Caractéristiques}
+
+L'IR est donc un service se l'ORB permettant de stocker des données au sujet d'objets
+accessibles à partir de cet ORB. Sa description en IDL, ainsi que son fonctionnement 
+seront plus amplement détaillés dans la partie Implémentation. 
+
+
+On peut cependant déjà préciser que l'IR est un package fils du package Corba, et 
+de ce fait est un service extrèmement lié à l'ORB. Il contient toutes les fonctions
+nécessaires à la création de nouveau noeuds dans son arbre de stockage d'objets,
+ainsi que toutes les fonctions nécessaires à son parcours et à une recherche
+précise. 
+
+
+Chaque IR doit possèder un mécanisme de stockage persistant. En effet, lors  de l'arrêt
+de ce service, l'arbre doit être stocké de manière persistante
+en utilisant le moyen de son choix, sachant qu'au redémarrage, il devra être
+possible de tout reconstituer. 
+
+
+Cet IR possède un autre avantage. Chaque objet ayant son propre identifiant, 
+dépendant de son numéro de version, on peut accèder à différentes versions
+d'un même objet et donc ne pas perdre de fonctionnalités en cas de sortie
+d'une nouvelle version (peut-être incompatible avec d'anciens clients).   
+      
+
+La norme prévoit également un mécanisme de droit sur les IR. En effet, 
+un ORB peut possèder plusieurs IR, et ainsi on peut imaginer un système
+de droit en permettant à certains clients d'accèder à certains IR 
+possèdant la desritpion de certaines méthodes critiques, et en refusant
+l'accès à cet IR à d'autres clients.
+
+
+\chapter{Caractéristiques des IR existants}
+
+Très peu d'ORBs offrent aujourd'hui la possibilité d'utiliser le
+language Ada. En fait il n'existe qu'un seul logiciel mais il est
+payant. De ce fait, je n'ai pas eu accès à une implémentation Ada d'un
+IR. 
+
+
+Je n'ai pu tirer que très peu d'information des autres
+implémentations. Ceci s'expiquant par le fait que le mapping Ada est
+très spécifique et pose de nombreux problèmes afin de se conformer aux
+normes. Nous en parlerons plus longuement dans le prochain chapître,
+dans lequel je parlerai plus spécifiquement de l'implémentation et des
+problèmes rencontrés.
+
+
+\section{Implémentation}
+
+Les IR existants ont globalement été implémentés de la manière suivante.
+Les programmeurs ont récupéré la spécification en pseudo-IDL de l'IR,
+faite par l'OMG, puis l'ont adapté en rajoutant certaines fonctionnalités.
+
+
+Après cette phase de spécification, ils ont passé le résultat au compilateur
+IDL adéquat, celui-ci générant les skelettes et les fichiers à implémenter. En
+effet, l'IR fonctionne comme un serveur classique dans tous les cas que j'ai examiné.
+
+\section{Choix du stockage et de la population}
+J'ai pu installer deux ORBs  (ORBit, Mico) possèdant un IR sur mon PC. 
+Les deux avaient opté
+pour un stockage persistant sous forme d'un fichier IDL lors de
+l'arrêt du service.
+Ce format est en effet bien adapté car c'est un format lisible et permettant
+un stockage complet notamment à l'aide des mécanismes de pragmas.
+De plus les règles de nommage et de gestion des scopes sont pratiquement
+les mêmes pour l'IR que pour l'IDL.
+
+
+Afin de peupler l'IR, ces deux ORBs avaient écrit un petit programme de population
+prenant en paramètre un fichier IDL (et éventuellement l'IOR de l'IR à peupler). 
+Ils proposaient également une population directe par client, en utilisant les méthodes
+définies par la norme. 
+
+\section{Accession à l'IR}
+
+Pour qu'un client accède à l'IR, il doit récupérer l'objet repository
+par l'ORB. 
+Pour ce faire, deux méthodes ont été prévues:
+\begin{itemize}
+\item Mico et ORBacus proposaient d'accèder à une référence sur l'IR grâce à
+la méthode {\it Resolve\_Initial\_Reference(Interface\_Repository)}. A partir de
+cette référence, on pouvait ensuite y faire des recherches.
+\item ORBit décrivait également cette méthode dans son manuel théorique, mais précisait
+que pour son ORB, il fallait préciser l'IOR de l'IR en paramètre du client
+qui voulait l'utiliser. Cette méthode était également disponible chez Mico
+pour accèder à un IR autre que celui par "défaut".
+\end{itemize}
+
+
+\chapter{Architecture et Implémentation de l'IR}
+
+\section{Architecture}
+Bien que l'implémentation de ce service n'a été qu'entamée, et que
+la plupart des fonctionnalités sont encore absentes (accession par \linebreak
+{\it Resolve\_Initial\_Reference}, peuplement, stockage persistant),
+des choix semblent cependant s'imposer pour les futurs programmeurs.
+
+\subsection{Choix de l'accession à la l'IR}
+
+Ce qui me semble à priori le plus logique est de faire coexister les deux méthodes 
+d'accession:
+\begin{itemize}
+\item La méthode {\it Resolve\_Initial\_Reference} permettra de récupérer la 
+référence de l'IR par défaut.
+\item L'accession d'un IR par IOR passé en paramètre permettra à un client
+de pouvoir disposer de plusieurs IR. Ce choix semble logique car l'IR
+n'est en fait qu'un objet quelconque (serveur) enregistré auprès d'un ORB.
+\end{itemize}
+
+\subsection{Choix du peuplement}
+\label{population}
+Le peuplement sera le suivant : en modifiant le compilateur existant, il sera 
+possible de lui spécifier par une option que le fichier IDL passé en paramètre
+est déstiné à peupler l'IR. En fait, le compilateur génèrera un client dont la simple
+éxecution peuplera l'IR spécifier lors de la compilation.
+
+\subsection{Choix du stockage persistent}
+\label{pers}
+Le stockage le plus intéressant, lors d'un arrêt du service, serait un fichier IDL. En effet ce
+fichier permettrait une lecture facile de l'IR en cas d'arrêt du
+service ou de ``dump'' intermédiaire.
+
+
+De plus il permettrait une repopulation facile en utilisant la
+population classique par l'intermédiaire du compilateur modifié.
+
+
+\section{Compilation du contrat}
+Le contrat IDL de l'IR est en fait du pseudo-IDL. Cela signifie qu'il
+n'est pas voué à être directement utilisé par un compilateur
+IDL. Cependant, moyennant quelques petites modifications, {\it idlac}
+devait pouvoir compiler ce contrat. De plus, l'idée qui
+consiste à vouloir tout écrire à la main est un peu absurde car le
+compilateur a tout de même généré près de 50000 lignes de codes pour
+ce service, un gain de temps considérable, surtout que le code généré
+compilait!
+
+
+L'implémentation de l'IR a donc consistée dans 
+un premier temps à compiler la spécification de l'OMG, puis dans un second temps
+à implémenter les fichiers {\it impl} associés.
+
+
+\subsection{Problèmes de compilation de la spécification}
+Un problème assez important fut cependant de  définir la spécification
+exacte de l'IR
+que nous allions retenir pour l'implémentation. En effet, l'IR étant
+défini comme service par l'OMG, son interface complète était fournie.
+
+
+De gros problèmes se posaient cependant quand il s'agissait
+d'appliquer le mapping Ada (\cite{Mapping}) à ce contrat. Il a donc fallu assez
+largement la modifier. Les problèmes étaient les suivants :
+
+\subsubsection{Problème de dépendance sur fils}
+Supposons le contrat suivant:
+\begin{verbatim}
+module test {
+   interface Chicken{};
+   struct soupe {
+      Chicken Ingredient;
+   };
+};
+\end{verbatim}
+
+
+En appliquant le mapping Ada, la structure {\it soupe} est définie dans le
+fichier test.ads et le type {\it Chicken.Ref} est défini dans le
+fichier test-chicken.ads. Hors ce dernier type est utilisé dans la
+structure {\it soupe} ainsi il faudrait inclure ({\it with})
+test-chicken dans test, ce qui est totalement interdit en Ada.
+
+
+Conclusion, il a fallu déclarer des ``forward interface'' dans ces cas,
+afin de ne plus avoir de dépendance sur fils :
+\begin{verbatim}
+module test {
+   interface Chicken;
+   struct soupe {
+       Chicken Ingredient;
+   };
+   interface Chicken{};
+};
+\end{verbatim}
+
+\subsubsection{Problème de Forward dans CORBA}
+Supposons le contrat suivant :
+\begin{verbatim}
+module CORBA {
+   interface Chicken;
+   struct soupe {
+       Chicken Ingredient;
+   };
+   interface Chicken{};
+};
+\end{verbatim}
+Le problème précédent nous a donc amené à celui-ci. La création d'un
+forward se traduit dans CORBA par l'instanciation d'un package générique
+nommé {\it CORBA.Forward}. Hors comme le forward se situait dans le
+package CORBA, cela créait à nouveau une dépendance sur fils.
+
+
+Une façon hâtive de règler ce problème était de définir, pour le module CORBA, cette
+instanciation de Forward dans un fils de CORBA. Mais l'utilisation du
+forward dans la stucture {\it soupe} situé dans CORBA rétablissait la dépendance
+sur fils.
+
+
+Ce problème semble être insoluble sans modification de la norme. C'est
+pourquoi nous avons soumis une modification à l'OMG, préconisant de
+créer l'Interface Repository dans un fils de CORBA appelé {\it
+Repository\_Root}, tout en laissant certains types nécessaires à
+d'autres services, et non problèmatiques, dans le module CORBA.
+
+
+Aucune décision n'a semble-t-il été prise à l'heure où j'écris ce
+rapport. 
+
+\subsection{Les Typecodes}
+Après avoir modifier la spécification de l'IR comme indiquer
+ci-dessus, j'ai encore dû la modifier un peu car elle incluait les
+TypeCode, qui étaient alors implémentés par Sebastien Ponce (cf sa
+documentation). 
+
+
+Cette modification a juste consistée à créer une interface
+fictive dans CORBA :
+\begin{verbatim}
+module CORBA {
+   interface TypeCode{};
+};
+\end{verbatim}
+Ensuite, un scripte shell basé sur des ``sed'', était lancé pour
+modifier les fichiers générés par idlac et pour rétablir les bonnes
+dépendances. Ce script se chargeait également d'effacer les fichiers
+générés devenu superflus.\\
+
+
+Ce script est disponible en annexe (annexe \ref{script} page \pageref{script}).
+La version définitive de ma spécification de l'Interface Repository est en annexe
+(annexe \ref{specIR} page \pageref{specIR}).
+
+
+\subsection{Les modifications du compilateur ({\it pragma})}
+Une dernière tâche avant de pouvoir compiler et générer du code correct
+était donc de rajouter la gestion des {\it pragma}  spécifiques
+à l'Interface Repository. Les {\it pragma} sont en fait des commandes 
+de l'IDL permettant de fixer certains paramètres des objets.
+
+
+Il existe trois sortent de {\it pragma} :
+\begin{itemize}
+\item le {\it Pragma Id} : il permet de fixer le RepositoryId
+(identifiant unique au sein de l'IR) d'un objet donné. Un exemple
+d'utilisation
+\begin{verbatim}
+       interface A {};
+       #pragma ID A ``IDL:A:1.1''  	 
+\end{verbatim}
+\item le {\it Pragma Prefix} : il permet de fixer le prefix des
+RepositoryId  des objets suivant le {\it pragma} et
+situés dans ce scope. Un exemple
+d'utilisation
+\begin{verbatim}
+       #pragma prefix TOTO  	 
+       interface A {};
+\end{verbatim}
+Cela donnerait le RepositoryId pour A suivant : ``IDL:TOTO/A:1.0''
+\item le {\it Pragma Version} : il permet de fixer la version du
+RepositoryId  d'un objet spécifié. Un exemple
+d'utilisation
+\begin{verbatim}
+       interface A {};
+       #pragma version A ``9.9''  	 
+\end{verbatim}
+Cela donnerait le RepositoryId pour A suivant : ``IDL:A:9.9''
+\end{itemize}
+Il est à noter qu'on ne peut pas fixer un {\it pragma} Id et un {\it pragma}
+Version pour un même objet. 
+
+
+\section{Implémentation de l'IR}
+La compilation de l'interface de l'IR étant réalisée, j'ai pu
+m'attaquer à l'implémentation du service proprement dit.
+\subsection{Hiérarchie des Classes}
+L'Interface Repository est composé de 26 classes différentes, dont 21
+instanciables, représentant tous les types d'objets IDL. Le nom d'une
+classe est en fait le nom de son objet IDL suivi de ``Def''
+(InterfaceDef, ConstantDef, ValueDef ...). Ces objets
+permettent donc de stocker toutes les définitions IDL, avec des règles
+de structure et de navigations très proche de l'IDL (cf figure page
+\pageref{nav}).
+
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[angle=270,scale=1.05]{struct.ps}
+\caption{Graphe de structure et de navigation de l'IR}
+\label{nav}
+\end{center}
+\end{figure}
+
+Toutes les classes de l'interface repository descendent de la classe
+IRObject, celle-ci possèdant un attribut {\it def\_kind} (type du
+noeud), et une méthode {\it destroy} afin de détruire le noeud.\\
+
+
+Ensuite, au deuxième niveau, viennent les classes :
+\begin{itemize}
+\item {\it \bf Contained} : parent des noeuds pouvant être contenus
+(contient le nom, l'ID, la version ...).
+\item {\it \bf Container} : parent des noeuds pouvant contenir (contient
+les méthodes de création de noeuds ...).
+\item {\it \bf IDLType} : parent des noeuds pouvant être considéré comme
+un type en IDL.
+\end{itemize}
+
+
+Il y a encore une classe ``parent'' : la classe {\it
+TypedefDef}. Celle-ci contient tous les noeuds pouvant être définis
+par une déclaration de type en IDL (cf figure page
+\pageref{nav})
+
+
+Finalement les noeuds ``feuilles'' représentent les objets instanciés
+dans l'IR, et traduisent l'objet IDL correspondant. Le graphe
+d'héritage complet de l'IR est
+représenté page \pageref{heritage}.
+
+\begin{figure}
+\label{heritage}
+\begin{center}
+\includegraphics[angle=0,scale=0.9]{heritage.ps}
+\caption{Graphe d'héritage de l'IR}
+\end{center}
+\end{figure}
+
+\subsection{Gestion de l'héritage multiple}
+Comme vous pouvez le constater sur la figure page \pageref{heritage},
+l'héritage n'est malheureusement pas simple, alors que le language
+ADA95 ne supporte que de l'héritage simple. Il a donc fallu imaginer
+un mécanisme permettant la simulation de cet héritage multiple.
+
+\subsubsection{Les champs supplémentaires}
+Afin de bien comprendre le mécanisme utilisé, nous allons prendre
+l'exemple de l'objet {\it InterfaceDef} dont la spécification en IDL
+s'écrit :
+\begin{verbatim}
+    interface InterfaceDef : Container, Contained, IDLType {
+    [...]  };    
+\end{verbatim}
+Elle hérite donc des trois classes de base, et le mapping Ada de cet
+IDL veut
+qu'elle hérite directement de {\it Container}. Ainsi les méthodes et
+attributs de {\it Container} sont hérités de manière classique dans {\it
+InterfaceDef}.\\
+Le mapping veut que les autres attributs et méthodes de {\it Contained} et de {\it
+IDLType} soient tout simplement recopiés. Mais pour une question de
+factorisation de code, et surtout de ``cast'', la solution afin
+d'émuler l'héritage multiple fut de rajouter des champs privés {\it
+Contained\_View} et {\it IDLType\_View} à
+l'objet {\it InterfaceDef}, permettant de décrire une Interface en
+tant que {\it Contained} ou {\it IDLType} :
+\begin{verbatim}
+package CORBA.Repository_Root.InterfaceDef.Impl is
+   type Object is
+     new CORBA.Repository_Root.Container.Impl.Object with private;
+   [...]
+   function Get_Contained_View (Self : access Object)
+     return CORBA.Repository_Root.Contained.Impl.Object_Ptr;
+
+   function Get_IDLType_View (Self : access Object)
+     return CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
+   [...]
+private
+   type Object is
+     new CORBA.Repository_Root.Container.Impl.Object with record
+        Contained_View : CORBA.Repository_Root.Contained.Impl.Object_Ptr;
+        IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
+        [...]
+   end record;
+end CORBA.Repository_Root.InterfaceDef.Impl;
+\end{verbatim}
+Ces champs sont uniquement accessible en lecture grâce aux méthodes
+{\it get\_...} ci\_dessus.
+
+A partir de cette architecture, une méthode de {\it Contained},
+recopiée dans {\it InterfaceDef} sera un simple appel de la véritable
+procédure sur le champ {\it Contained\_View} :
+\begin{verbatim}
+   function get_name
+     (Self : access Object)
+     return CORBA.Identifier
+   is
+   begin
+      return Contained.Impl.Get_Name (Self.Contained_View);
+   end get_name;
+\end{verbatim}
+
+Cette solution n'était cependant pas complète, car on pouvait
+maintenant ``caster'' un objet vers un parent, mais le sens inverse
+n'était pas encore supporté. C'est pourquoi, chaque objet devait
+contenir un pointeur vers son type le plus précis. Ceci a été réalisé
+en ajoutant un champ privé {\it Real\_Object} à la classe de base de
+l'IR : {\it IRObject}.
+\begin{verbatim}
+package CORBA.Repository_Root.IRObject.Impl is
+   type Object is new PortableServer.Servant_Base with private;
+   type Object_Ptr is access all Object'Class;
+   [...]
+   function Get_Real_Object (Self : access Object)
+     return Object_Ptr;
+   [...]
+private
+   type Object is
+     new PortableServer.Servant_Base with record
+        Real_Object : Object_Ptr;
+        [...]
+     end record;
+end CORBA.Repository_Root.IRObject.Impl;
+\end{verbatim}
+Ce champ était accessible uniquement en lecture par la fonction {\it
+Get\_Real\_Object}.
+\subsubsection{Les fonctions To\_$<$parent$>$}
+Cette structure mise en place, il restait à écrire quelques fonctions
+de ``cast'' utiles lors de l'écriture de certaines fonctions. Ces
+fonctions prennent toutes un pointeur vers un {\it IROBject'Class},
+qui doit {\bf obligatoirement} être l'objet le plus précis (le {\it
+Real\_Object}).
+
+
+Trois procédures ont donc été écrites :
+\begin{itemize}
+\item {\it To\_Contained} : définie dans  le package Contained.Impl.
+\item {\it To\_Container} : définie dans  le package Container.Impl.
+\item {\it To\_IDLType} : définie dans  le package IDLType.Impl.
+\end{itemize}
+Seuls ces classes participent à l'héritage multiple.
+
+
+Leur implémentation était relativement simple. On parcourait le type
+réél de l'objet (contenu dans IRObject), puis on récupérait les Views
+correspondantes.
+
+
+Il existe deux types de To\_$<$parent$>$ :
+\begin{verbatim}
+   procedure To_Contained
+     (Self : CORBA.Repository_Root.IRObject.Impl.Object_Ptr;
+      Success : out Boolean;
+      Result : out Object_Ptr);
+
+   function To_Contained
+     (Self : CORBA.Repository_Root.IRObject.Impl.Object_Ptr)
+     return Object_Ptr;
+\end{verbatim}
+La première procédure permet de prendre n'importe quel type de classes
+feuilles et renvoie un booléen si le cast a réussi (true). La fonction
+lance elle une exception si le type passé n'est pas un descendant de
+{\it Contained}. 
+
+\subsection{Les fonctions To\_Object, To\_Forward}
+Un autre détail important de l'implémentation fut la transformation des objets
+en {\it forward\_ref} et vice-versa (Rq: j'utilise directement les
+forward, car les classes sur lesquelles j'utilisaient ces fonctions, étaient
+presque toujours renvoyées sous forme de forward\_ref, et non de
+ref).
+
+
+Il existe donc deux fonctions, inverse l'une de l'autre, qui
+transforment des {\it Object\_ptr} en {\it Forward.Ref} et inversement :
+\begin{verbatim}
+package CORBA.Repository_Root.Contained.Impl is
+   [...]
+   function To_Object (Fw_Ref : Contained_Forward.Ref)
+                       return Object_Ptr;
+   function To_Forward (Obj : Object_Ptr)
+                        return Contained_Forward.Ref;
+   [...]
+end CORBA.Repository_Root.Contained.Impl;
+\end{verbatim}
+
+
+Dans le cas des classes ``feuilles'' de notre graphe, ces fonctions
+étaient relativement simple à écrire. Elles se résumaient à
+l'utilisation de méthodes contenues dans {\it Broca.Server\_Tools} :
+{\it Reference\_To\_Servant} et {\it Initiate\_Servant} (équivalent à
+{\it Servant\_To\_Reference}).
+\begin{verbatim}
+   function To_Object (Fw_Ref : InterfaceDef_Forward.Ref)
+                       return Object_Ptr is
+      Result : Portableserver.Servant;
+   begin
+      Broca.Server_Tools.Reference_To_Servant
+        (InterfaceDef.Convert_Forward.To_Ref (Fw_Ref),
+         Result);
+      return Object_Ptr (Result);
+   end To_Object;
+
+   function To_Forward (Obj : Object_Ptr)
+                        return InterfaceDef_Forward.Ref is
+      Ref : InterfaceDef.Ref;
+   begin
+      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
+                                           Ref);
+      return InterfaceDef.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
+\end{verbatim}
+
+
+Malheureusement dans le cas d'un  {\it Container}, d'un {\it
+Contained} ou d'un {\it IDLType}, il fallait prendre plus de
+précaution car {\bf l'objet lié à une référence doit être l'objet le
+plus précis}, et non une vue de l'objet dans un de ses ancêtres. Ainsi
+pour {\it Contained} les procédures s'écrivaient :
+\begin{verbatim}
+   function To_Object (Fw_Ref : Contained_Forward.Ref)
+                       return Object_Ptr is
+      Result : Portableserver.Servant;
+      The_Ref : Contained.Ref;
+   begin
+      The_Ref := Contained.Convert_Forward.To_Ref (Fw_Ref);
+      Broca.Server_Tools.Reference_To_Servant (The_Ref,
+                                               Result);
+      return To_Contained (IROBject.Impl.Object_Ptr (Result));
+   end To_Object;
+
+   function To_Forward (Obj : Object_Ptr)
+                        return Contained_Forward.Ref is
+      Result : Contained_Forward.Ref;
+   begin
+      case Get_Def_Kind (Obj) is
+      [...]
+         when
+           Dk_Interface  =>
+            declare
+               The_Ref : InterfaceDef.Ref;
+            begin
+               Broca.Server_Tools.Initiate_Servant (PortableServer.Servant
+                                                    (Get_Real_Object (Obj)),
+                                                    The_Ref);
+               return Contained.Convert_Forward.To_Forward
+                 (Contained.Helper.To_Ref (The_Ref));
+            end;
+      [...]
+      end case;
+   end To_Forward;
+\end{verbatim}
+
+
+La transformation d'objet en ref (non forward) et vice-versa se posait très rarement
+et était très simple (une ligne). Elle a donc résulté en une implémentation au cas
+par cas.
+
+\subsection{Implémentation des attributs}
+\subsubsection{Implémentation classique}
+Les attributs IDL furent dans la plupart des cas implémentés sous
+forme de champ privés, accessible par méthode {\it get} et {\it
+set}.
+\begin{verbatim}
+package CORBA.Repository_Root.Contained.Impl is
+   [...]
+   function get_id (Self : access Object) return CORBA.RepositoryId;
+
+   procedure set_id (Self : access Object; To : in CORBA.RepositoryId);
+   [...]
+private
+   type Object is
+     new CORBA.Repository_Root.IRObject.Impl.Object with record
+        Id : CORBA.RepositoryId;
+        Name : CORBA.Identifier;
+        Version : CORBA.Repository_Root.VersionSpec;
+        Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
+     end record;
+end CORBA.Repository_Root.Contained.Impl;
+\end{verbatim}
+
+\subsubsection{Cas des redondances}
+Cependant, certaines informations étaient redondantes, et donc
+les champs étaient calculés dynamiquement.
+
+
+Par exemple l'attribut {\it Type} de l'objet {\it IDLType} n'est en
+fait qu'un {\it TypeCode} décrivant le type associé. Cependant, ce
+{\it TypeCode} étant spécifique à chaque type d'objet, et pouvant être
+modifié à tout instant (il est cependant ``readonly''!), il n'a pas
+été implémenté sous forme de champ privé. Les méthodes {\it
+Get\_Type} ont été simplement surchargées dans toutes les classes héritant de
+{\it IDLType}. L'information sur le nom, la version ... de l'objet n'a
+donc pas été dupliquée.
+
+
+De même la norme indique par exemple que l'attribut {\it type} de
+l'objet {\it ConstantDef} doit être identique au champ {\it type} de
+son attribut {\it type\_def}. Ce type de redondance est assez fréquente
+et a été implémentée afin d'éviter la duplication des informations.
+
+
+\subsubsection{Problème des TC\_VOID dans les structs, unions et exceptions}
+Dans cette  logique de programmation, une partie de la spec n'a pu
+être implémentée.
+
+
+En effet, dans la spécification de l'IR pour les
+{\it StructDef} (p10-24, pargraphe 1), il est précisé que lorsque le
+champ {\it members} est
+affecté, tous les membres de cette liste doivent avoir leur champ
+{\it type} placé à TC\_VOID (le typecode vide). De plus cette même
+norme spécifie (p 10-55, 1er paragraphe) que le champ {\it type\_def}
+de ces membres doit également être nul! En conséquence, il n'y
+aurait plus de moyen de récupérer le type d'un membre, si ce n'est en
+parcourant le TypeCode de la {\it StructDef} (obtenu avec {\it
+get\_type}) qui est en théorie 
+``ReadOnly'',et qui en
+pratique peut être modifié en changeant par exemple le nom de
+l'objet.
+
+
+L'implémentation s'est donc résumé à garder le champ {\it type} des
+membres (les fonctions initialize\_members ne font donc rien), et à
+calculer dynamiquement le {\it TypeCode} de la {\it
+StructDef} à partir de ces champs.
+
+\subsection{La liste de stockage}
+\subsubsection{Définition}
+Il a fallu choisir une méthode de stockage pour les objets contenu
+dans un {\it Container}. Après de nombreuses hésitations, nous avons
+finalement décidé que les {\it sequence} défini dans {\it
+CORBA.Sequence.Unbounded} correspondaient assez à mes attentes, et
+qu'elles avaient l'avantage d'être clairement spécifiées, contrôlées et déjà
+largement utilisées.\\
+La définition du package {\it Contained\_Seq} est donc le suivant :
+\begin{verbatim}
+package CORBA.Repository_Root.Contained.Impl is
+   type Object is
+     new CORBA.Repository_Root.IRObject.Impl.Object with private;
+   type Object_Ptr is access all Object'Class;
+   [...]	
+   package Contained_Seq is new Sequences.Unbounded (Object_Ptr);
+   [...]
+end CORBA.Repository_Root.Contained.Impl;
+\end{verbatim}
+Le champ decrivant le corps d'un {\it Container} était donc le champ
+{\it contents} défini ci-dessous :
+\begin{verbatim}
+package CORBA.Repository_Root.Container.Impl is
+   [...]
+private
+   type Object is
+     new CORBA.Repository_Root.IRObject.Impl.Object with record
+        Contents : CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
+   end record;
+end CORBA.Repository_Root.Container.Impl;
+\end{verbatim}
+
+\subsubsection{Fonctions de Recherche}
+Les fonctions de recherche devaient initialement être dérivées d'un
+nouveau package ajouté à {\it sequence}. Cependant, la complexité des
+recherches m'a fait opter pour une implémentation complète.
+
+
+En fait chaque méthode de recherche d'un objet {\it Container} ou d'un
+objet {\it Repository} avait son pendant dans le package {\it
+Contained} où le contenu de la séquence était réellement parcouru. Cette
+décomposition a permis de faire des recherches bien découpées et
+récursives.
+
+
+Par exemple, la fonction {\it Contents} contenu dans {\it Container}
+appelle d'abord celle de {\it Contained} sur le contenu actuel, puis
+se rappelle récursivement si nécessaire :
+\begin{verbatim}
+   function contents
+     (Self : access Object;
+      limit_type : in CORBA.Repository_Root.DefinitionKind;
+      exclude_inherited : in CORBA.Boolean)
+      return CORBA.Repository_Root.ContainedSeq
+   is
+   [...]
+   begin
+      --  Get the direct contained
+      Result := Contained.Impl.Contents (Self.Contents,
+                                         Limit_Type);
+      [...]
+   end;
+\end{verbatim}
+
+\subsection{La création d'un nouveau noeud}
+\subsubsection{Les fonctions {\it create} et {\it init}}
+Un nouveau noeud est créé simplement en invoquant les méthodes de
+création d'objet dans {\it Container}, {\it InterfaceDef} ou encore
+{\it ValueDef}. Ces méthodes sont toujours
+implémentées de la même façon:
+\begin{itemize}
+\item Vérifications de la structure de l'IR, de la gestion de nom et de
+l'unicité de l'Id en cas d'insertion de ce noeud (intégrité du
+Repository)
+\item Création et initialisation des champs de l'objet en invoquant
+les méthodes {\it init} définies dans chaques classes. Ces méthodes
+s'invoquent hiérarchiquement afin d'initialiser tous les champs privés
+ainsi que les Views dans le cas d'un héritage multiple.
+\item Ajout de ce noeud (ou de sa view en tant que {\it Contained})
+au contenu du {\it Container} 
+\item Enregistrement de ce nouvel objet auprès d'un POA (par
+l'intermédiaire du {\it To\_Forward}).
+\end{itemize}
+
+
+Voici un exemple de ces quatres opérations dans la création d'un {\it StructDef}:
+\begin{verbatim}
+   function create_struct
+     ([...])
+      return CORBA.Repository_Root.StructDef_Forward.Ref
+   is begin
+     if not Check_Structure (Self, Dk_Module) or      -- ETAPE 1 --
+       not Check_Id (Self, Id) or
+       not Check_Name (Self, Name) then
+        return (CORBA.Object.Nil_Ref with null record);
+     end if;
+     [...]
+         StructDef.Impl.Init ([...]);                 -- ETAPE 2 --
+
+         Append_To_Contents                           -- ETAPE 3 --
+           (Self,
+            Contained.Impl.To_Contained
+             (IRObject.Impl.Object_Ptr (Obj)));
+
+         return StructDef.Impl.To_Forward (Obj);      -- ETAPE 4 --
+     [...]
+   end create_struct;
+\end{verbatim}
+
+\subsubsection{Les exceptions levées}
+Certaines exceptions peuvent être levées par un utilisteur
+lors de la création d'un objet (ou du changement de nom, ou d'Id). En
+effet les fonctions appelées {\it Check\_Structure}, {\it Check\_Name} et {\it
+Check\_Id}, contenu dans {\it Container}, ont pour rôle la vérification
+l'intégrité du Repository dans le cas d'une modification ou d'une
+création d'objet.  Elles peuvent lever des exceptions dans le cas
+contraire. Le ``minor code'' des exceptions suit les règles suivantes:
+
+\begin{center}
+\begin{tabular}{|c|c|l|}
+\hline
+{\bf Exception} & {\bf Minor Code} & {\bf Explanation} \\
+\hline
+BAD\_PARAM & 2 & L'Id est déjà dans l'IR \\
+\cline{2-3}
+& 3 & Le nom est déjà utilisé dans le contexte \\
+\cline{2-3}
+& 4 & La cible n'est pas un container valide \\
+\cline{2-3}
+& 5 & Le nom est déjà utilisé dans le contexte \\
+&& hérité \\
+\hline
+BAD\_INV\_ORDER & 1 & Des dépendances existent dans l'IR\\
+&& empèchant toute destruction \\
+\cline{2-3}
+& 2 & Tentative de destruction d'un objet \\
+&& indestructible de l'IR \\
+\hline
+\end{tabular}
+\end{center}
+
+La destruction des objets n'étant pas encore implémentée, les deux
+dernières exceptions ne sont pas levées. 
+
+\section{Un exemple de création de nodes}
+Un client simple, créant un module dans le repository, puis une
+interface dans ce repository, s'écrit donc de la façon suivante:
+\begin{verbatim}
+procedure Client is
+   Myrep : Repository.Ref;
+begin
+   --  transforms the Ada string into CORBA.String
+   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
+
+   --  getting the CORBA.Object
+   CORBA.ORB.String_To_Object (IOR, Myrep);
+
+   --  creating a module
+   declare
+      Mod1 : ModuleDef_Forward.Ref;
+      Int1 : InterfaceDef_Forward.Ref;
+      Id : RepositoryId;
+      Name : Identifier;
+      Version : VersionSpec;
+      package IDS
+         renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
+
+   begin
+      --  create a module
+      Id := To_CORBA_String ("idl:toto:1.1");
+      Name := To_CORBA_String ("toto");
+      Version := To_CORBA_String ("1.1");
+      Mod1 := Repository.Create_Module (Myrep,
+                                        Id,
+                                        Name,
+                                        Version);
+      -- create the interface
+      Id := To_CORBA_String ("idl:titi:1.0");
+      Name := To_CORBA_String ("titi");
+      Version := To_CORBA_String ("1.0");
+      Int1 := ModuleDef.Create_Interface (ModuleDef.Convert_Forward
+                                          .To_Ref (Mod1),
+                                          Id,
+                                          Name,
+                                          Version,
+                                          InterfaceDefSeq (IDS.Null_Sequence),
+                                          False);
+   end;
+end Client;
+\end{verbatim}
+
+\section{Bilan de l'implémentation, TODO}
+\subsection{Implémentation réalisée}
+L'Interface Repository est très loin d'être terminée. Cependant, un bon
+nombre de points délicats ont été traités et les bases pour développer
+un service correct semble stable :
+\begin{itemize}
+\item la gestion d'héritage multiple fonctionne bien.
+\item les fonctions de créations d'objets sont implémentées
+correctement et de manière modulaire.
+\item les fonctions de recherche marchent sur des exemples simples.
+\item la gestion des descriptions et des typecodes décrivant les types
+est a priori correcte.
+\end{itemize}
+
+
+De plus, grâce aux multiples séances de debuggage afin de faire passer
+des exemples simples, on peut affirmer que le compilateur et l'ORB
+sont assez robustes aujourd'hui pour supporter l'IR, ce qui n'était
+encore pas le cas
+à la fin-juin!
+
+\subsection{Le travail restant}
+Malgré le travail effectué, il reste un bon nombre de problèmes à
+règler et de code à écrire.
+
+
+Voici les points qu'il reste à traiter concernant l'Interface
+Repository même :
+\begin{itemize}
+\item La méthode {\it Destroy}, contenue dans {\it IRObject}, héritée
+par toutes les classes (devant
+être surchargée dans toutes les classes), n'est pas implémentée.
+\item Les fonctions {\it is\_a} et {\it describe\_interface} de {\it
+InterfaceDef} ne sont pas implémentées.
+\item Les fonctions {\it is\_a} et {\it describe\_value} de {\it
+ValueDef} ne sont pas implémentées.
+\item L'opération {\it move} de {\it Contained} n'est pas
+atomique. Elle devrait l'être.
+\item De manière générale, l'IR n'est pas threadsafe... 
+\item La gestion des conflits de nom n'est faite qu'au niveau du
+contexte direct, et non du contexte hérité. Hors il est interdit de
+redéfinir une opération ou un attribut hérité, tout comme en IDL.
+\item De manière générale, la structure n'est pas toujours
+vérifiée (attention lors de la suppression d'un noeud).
+\item La méthode {\it get\_type} d'une {\it ValueDef} n'est pas correcte. Il
+faut calculer correctement la {\it ValueMemberSeq}.
+\item Il faudrait gèrer le problème des TC\_VOID pour les structs,
+unions et exceptions. La norme devrait vraisemblablement être
+changée. Cependant on ne peut passer des Nil\_Ref sur Broca, ainsi les
+champs {\it Type\_Def} ne seront pas nusl, comme le préconise la norme.
+\item Il faudrait pouvoir gérer plusieurs versions d'un même objet dans
+un IR. Ce n'est pas une obligation de la norme, mais ce serait très
+intéressant.
+\item Il faut écrire le mécanisme de dump du repository en cas d'arrêt
+du serveur. En effet un mécanisme de stockage persistant doit être
+implémenté (cf \ref{pers}).
+\end{itemize}
+\vspace*{0.5cm}
+
+
+Outre l'IR, il reste encore à modifier le compilateur {\it idlac} afin
+de pouvoir générer un client peuplant automatiquement l'IR à partir
+d'un fichier IDL. Cette modification permettrait de disposer d'un
+moyen efficace de population de l'IR (cf \ref{population}). De plus elle ne devrait pas
+poser trop de problèmes pour une personne connaissant déjà le
+compilateur (et plus particulièrement la structure de l'arbre sémantique).
+
+
+\chapter*{Conclusion}
+\addcontentsline{toc}{chapter}{Conclusion}
+En conclusion, ce projet fut assez difficile à mener. Nous avons tous
+participé (Fabien Azavant, Vincent Niebel, Sebastien Ponce et Thomas
+Quinot) à l'implémentation du compilateur jusqu'à la fin du mois
+d'avril.
+
+
+Ceci étant réalisé, le compilateur a été utilisé pour générer le code
+nécessaire. Malheureusement de nombreux bugs ont  ralenti la
+compilation. De plus, de nombreuses fonctionnalités du projet
+concernant l'invocation dynamique furent nécessaires (génération des
+To\_Any, From\_Any, create\_typecode, ...). De ce fait, l'IR était un
+parfait exemple pour debugger l'ORB et tous les projets en cours.
+
+
+Ainsi, en combinant ces problèmes avec l'héritage multiple et les
+problèmes de spécification de l'Interface Repository, on arrive vite
+à la fin du mois du juin.
+
+
+Je suis cependant satisfait de ce projet car j'ai pu participer à un
+gros projet, dans le domaine du logiciel libre, et qui a
+certainement un bel avenir. L'IR n'est pas complètement implémenté,
+mais une base solide est présente, et avec cette documentation, sa
+reprise devrait être possible.
+
+
+J'ai également approfondi mes connaissances sur CORBA (côté serveur),
+car l'année dernière, je n'avais pratiquement pas touché à ce domaine
+(implémentation du compilateur IDL vers ADA écrit en C++).
+
+
+Je tiens finalement à remercier mes encadrants : Laurent Pautet,
+Samuel Tardieu et Thomas Quinot, dont l'aide m'a été
+extrêmement précieuse. Je tiens également à remercier Sebastien Ponce
+et Fabien Azavant pour leur soutien lors de sombres nuits de debuggage
+et de plantage.
+
+\begin{thebibliography}{99}
+\bibitem[OMG]{OMG} The Common Object Request Broker : Architecture and
+Specification Revised Edition: June 1999 - OMG
+\bibitem[Mapping]{Mapping} Ada Language Mapping Specification, version
+1.2 : May 2000 - OMG
+\bibitem[Ada]{Ada} Programming in Ada 95 - John Barnes
+\end{thebibliography}
+
+
+\appendix
+\chapter{Utilisation du repertoire ``adabroker/src/ir'' du Repository d'Adabroker}
+Dans le repertoire ``adabroker/src/ir'' du repository d'adabroker, se
+trouve tous les fichiers ``-impl'' implémentés. Il y a également un
+Makefile, un client, un serveur et un script cgi permettant de
+modifier les fichiers généré.\\
+
+
+Pour compiler l'exemple et l'IR, il suffit a priori de :
+\begin{itemize}
+\item Modifier dans le Makefile la valeur de la variable ``\$LIB''
+afin qu'elle pointe sur vos repertoires sources d'Adabroker.
+\item taper ``make''.
+\end{itemize}
+\vspace*{0.5cm}
+
+
+Si cela ne fonctionne pas vous pouvez générer vous même les fichiers
+manquant en tapant :
+\begin{itemize}
+\item $>$ idlac ir.idl
+\item $>$ typecode.sh
+\end{itemize}
+\chapter{Spécification de l'IR}
+\label{specIR}
+\begin{verbatim}
+// File: CORBA_InterfaceRepository.idl
+// CORBA 2.3, Chapter 10
+
+#pragma prefix "omg.org"
+module CORBA {
+  typedef string Identifier;
+  typedef string ScopedName;
+  typedef string RepositoryId;
+  interface TypeCode {};
+
+  module Repository_Root {
+    enum DefinitionKind {
+#       pragma version DefinitionKind 2.3
+        dk_none,        dk_all,
+        dk_Attribute,   dk_Constant,    dk_Exception,   dk_Interface,
+        dk_Module,      dk_Operation,   dk_Typedef,
+        dk_Alias,       dk_Struct,      dk_Union,       dk_Enum,
+        dk_Primitive,   dk_String,      dk_Sequence,    dk_Array,
+        dk_Repository,
+        dk_Wstring,     dk_Fixed,
+        dk_Value,       dk_ValueBox,    dk_ValueMember,
+        dk_Native
+    };
+
+    interface IRObject {
+#       pragma version IRObject 2.3
+        // read interface
+        readonly attribute  DefinitionKind  def_kind;
+        // write interface
+        void                destroy ();
+    };
+    
+    typedef string VersionSpec;
+
+    interface Repository;
+    interface Container;
+    interface Contained;
+    
+    typedef sequence <Contained> ContainedSeq;
+    
+    interface Contained : IRObject {
+#       pragma version Contained 2.3
+
+        // read/write interface
+        attribute           RepositoryId    id;
+        attribute           Identifier      name;
+        attribute           VersionSpec     version;
+        // read interface
+        readonly attribute  Container       defined_in;
+        readonly attribute  ScopedName      absolute_name;
+        readonly attribute  Repository      containing_repository;
+        struct Description {
+            DefinitionKind  kind;
+            any            value; 
+        }; 
+        Description         describe ();
+        // write interface
+        void                move (  in Container    new_container,
+                                    in Identifier   new_name,
+                                    in VersionSpec  new_version
+        );
+    };
+    interface ModuleDef;
+    interface ConstantDef;
+    interface IDLType;
+    interface StructDef;
+    interface UnionDef;
+    interface EnumDef;
+    interface AliasDef;
+    interface InterfaceDef;
+    interface ExceptionDef;
+    interface NativeDef;
+    typedef sequence <InterfaceDef> InterfaceDefSeq;
+    interface  ValueDef;
+    typedef sequence <ValueDef> ValueDefSeq;
+    interface ValueBoxDef;
+
+    
+    enum OperationMode {OP_NORMAL, OP_ONEWAY};
+    enum ParameterMode {PARAM_IN, PARAM_OUT, PARAM_INOUT};
+    struct ParameterDescription {
+        Identifier                      name; 
+        TypeCode                        type; 
+        IDLType                       type_def;
+        ParameterMode                   mode;
+    };
+
+    typedef short Visibility;
+    const Visibility PRIVATE_MEMBER = 0;
+    const Visibility PUBLIC_MEMBER  = 1;
+    
+    struct ValueMember {
+#       pragma version ValueMember 2.3
+        Identifier                      name;
+        RepositoryId                    id;
+        RepositoryId                    defined_in;
+        VersionSpec                     version;
+        TypeCode                        type;
+        IDLType                       type_def;
+        Visibility                      access; 
+    };
+
+    typedef sequence <ExceptionDef>         ExceptionDefSeq;
+
+	
+    struct StructMember {
+        Identifier          name;
+        TypeCode            type;
+        IDLType             type_def;
+    };
+    typedef sequence <StructMember> StructMemberSeq;
+    struct Initializer {
+#       pragma version Initializer 2.3
+        StructMemberSeq     members;
+        Identifier          name;
+    };
+    typedef sequence <Initializer> InitializerSeq;
+     struct UnionMember {
+        Identifier          name;
+        any                label;
+        TypeCode            type;
+        IDLType             type_def;
+    };
+    typedef sequence <UnionMember> UnionMemberSeq;
+    typedef sequence <Identifier> EnumMemberSeq;
+    interface Container : IRObject {
+#       pragma version Container 2.3
+        // read interface
+        Contained lookup (
+            in ScopedName                   search_name);
+        ContainedSeq contents (
+            in DefinitionKind               limit_type,
+            in boolean                      exclude_inherited
+        );
+        ContainedSeq lookup_name (
+            in Identifier                   search_name, 
+            in long                         levels_to_search, 
+            in DefinitionKind               limit_type,
+            in boolean                      exclude_inherited
+        );
+        struct Description {
+            Contained                       contained_object; 
+            DefinitionKind                  kind;
+            any                            value; 
+        };
+        typedef sequence<Description> DescriptionSeq;
+        DescriptionSeq describe_contents (
+            in DefinitionKind               limit_type,
+            in boolean                      exclude_inherited,
+            in long                         max_returned_objs
+        );
+        // write interface
+        ModuleDef create_module (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version
+        );
+        ConstantDef create_constant (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in IDLType                      type,
+            in any                         value
+        );
+        StructDef create_struct (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in StructMemberSeq              members
+        );
+        UnionDef create_union (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in IDLType                      discriminator_type,
+            in UnionMemberSeq               members
+        );
+        EnumDef create_enum (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in EnumMemberSeq                members
+        );
+        AliasDef create_alias (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in IDLType                      original_type
+        );
+        InterfaceDef create_interface (
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in InterfaceDefSeq              base_interfaces,
+            in boolean                      is_abstract
+        );
+        ValueDef create_value(
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in boolean                      is_custom,
+            in boolean                      is_abstract,
+            in ValueDef                    base_value,
+            in boolean                      is_truncatable,
+            in ValueDefSeq                  abstract_base_values,
+            in InterfaceDefSeq              supported_interfaces,
+            in InitializerSeq               initializers
+        );
+        ValueBoxDef create_value_box(
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in IDLType                      original_type_def
+        );
+        ExceptionDef create_exception(
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version,
+            in StructMemberSeq              members
+        );
+        NativeDef create_native(
+            in RepositoryId                 id,
+            in Identifier                   name,
+            in VersionSpec                  version
+        );
+    };
+    interface IDLType : IRObject {
+#       pragma version IDLType 2.3
+        readonly attribute TypeCode     type;
+    };
+
+    enum PrimitiveKind {
+#       pragma version PrimitiveKind 2.3
+        pk_null,    pk_void,      pk_short,     pk_long,   pk_ushort,
+        pk_ulong,
+        pk_float,   pk_double,    pk_boolean,   pk_char,   pk_octet,
+        pk_any,     pk_TypeCode,  pk_Principal, pk_string, pk_objref,
+        pk_longlong,pk_ulonglong, pk_longdouble, 
+        pk_wchar,   pk_wstring,   pk_value_base
+    };
+    
+    interface ModuleDef : Container, Contained {
+#       pragma version ModuleDef 2.3
+    };
+    
+    struct ModuleDescription {
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in;
+        VersionSpec                     version;
+    };
+
+    interface ConstantDef : Contained {
+#       pragma version ConstantDef 2.3
+        readonly attribute TypeCode     type;
+        attribute IDLType               type_def;
+        attribute any                  value;
+    };
+    struct ConstantDescription {
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in; 
+        VersionSpec                     version;
+        TypeCode                        type; 
+        any                             value; 
+    };
+    
+    interface TypedefDef : Contained, IDLType {
+#       pragma version TypedefDef 2.3
+    };
+    
+    struct TypeDescription {
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in; 
+        VersionSpec                     version;
+        TypeCode                        type; 
+    };
+    
+    interface StructDef : TypedefDef, Container {
+#       pragma version StructDef 2.3
+        attribute StructMemberSeq       members;
+    };
+    
+    interface UnionDef : TypedefDef, Container {
+#       pragma version UnionDef 2.3
+        readonly attribute TypeCode     discriminator_type;
+        attribute IDLType               discriminator_type_def;
+        attribute UnionMemberSeq        members;
+    };
+
+    interface EnumDef : TypedefDef {
+#       pragma version EnumDef 2.3
+        attribute EnumMemberSeq         members;
+    };
+    interface AliasDef : TypedefDef {
+#       pragma version AliasDef 2.3
+        attribute IDLType               original_type_def;
+    };
+    interface NativeDef : TypedefDef {
+#       pragma version NativeDef 2.3
+    };
+    interface PrimitiveDef: IDLType {
+#       pragma version PrimitiveDef 2.3
+        readonly attribute PrimitiveKind kind;
+    };
+    interface StringDef : IDLType {
+#       pragma version StringDef 2.3
+        attribute unsigned long         bound;
+    };
+    interface WstringDef : IDLType {
+#       pragma version WstringDef 2.3
+        attribute unsigned long         bound;
+    };
+    interface FixedDef : IDLType {
+#       pragma version FixedDef 2.3
+        attribute unsigned short        digits;
+        attribute short                 scale;
+    };
+    interface SequenceDef : IDLType {
+#       pragma version SequenceDef 2.3
+        attribute unsigned long         bound;
+        readonly attribute TypeCode     element_type;
+        attribute IDLType               element_type_def;
+    };
+    interface ArrayDef : IDLType {
+#       pragma version ArrayDef 2.3
+        attribute unsigned long         length;
+        readonly attribute TypeCode     element_type;
+        attribute IDLType               element_type_def;
+    };
+    interface ExceptionDef : Container, Contained {
+#       pragma version ExceptionDef 2.3
+        readonly attribute TypeCode     type;
+        attribute StructMemberSeq       members;
+    };
+    struct ExceptionDescription {
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in; 
+        VersionSpec                     version;
+        TypeCode                        type; 
+    };
+    enum AttributeMode {ATTR_NORMAL, ATTR_READONLY};
+    interface AttributeDef : Contained {
+#       pragma version AttributeDef 2.3
+        readonly attribute TypeCode     type;
+        attribute IDLType               type_def;
+        attribute AttributeMode         mode;
+        };
+    struct AttributeDescription {
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in; 
+        VersionSpec                     version;
+        TypeCode                        type;
+        AttributeMode                   mode; 
+    };
+
+    typedef sequence <ParameterDescription> ParDescriptionSeq;
+    typedef Identifier                      ContextIdentifier;
+    typedef sequence <ContextIdentifier>    ContextIdSeq;
+    typedef sequence <ExceptionDescription> ExcDescriptionSeq;
+    
+    interface OperationDef : Contained {
+#       pragma version OperationDef 2.3
+        readonly attribute TypeCode     result;
+        attribute IDLType               result_def;
+        attribute ParDescriptionSeq     params;
+        attribute OperationMode         mode; 
+        attribute ContextIdSeq          contexts;
+        attribute ExceptionDefSeq       exceptions;
+    };
+    
+    struct OperationDescription {
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in; 
+        VersionSpec                     version;
+        TypeCode                        result; 
+        OperationMode                   mode; 
+        ContextIdSeq                    contexts; 
+        ParDescriptionSeq               parameters;
+        ExcDescriptionSeq               exceptions;
+    };
+    typedef sequence <RepositoryId>         RepositoryIdSeq;
+    typedef sequence <OperationDescription> OpDescriptionSeq;
+    typedef sequence <AttributeDescription> AttrDescriptionSeq;
+    
+    interface InterfaceDef : Container, Contained, IDLType {
+#       pragma version InterfaceDef 2.3
+        // read/write interface
+        attribute InterfaceDefSeq       base_interfaces;
+        attribute boolean               is_abstract;
+        // read interface
+        boolean is_a (in RepositoryId   interface_id
+        );
+        struct FullInterfaceDescription {
+#           pragma version FullInterfaceDescription 2.3
+            Identifier                  name;
+            RepositoryId                id;
+            RepositoryId                defined_in;
+            VersionSpec                 version;
+            OpDescriptionSeq            operations;
+            AttrDescriptionSeq          attributes;
+            RepositoryIdSeq             base_interfaces;
+            TypeCode                    type;
+            boolean                     is_abstract;
+        };
+        FullInterfaceDescription describe_interface();
+        // write interface
+        AttributeDef create_attribute (
+            in RepositoryId             id,
+            in Identifier               name,
+            in VersionSpec              version,
+            in IDLType                  type,
+            in AttributeMode            mode
+        );
+        OperationDef create_operation ( 
+            in RepositoryId             id,
+            in Identifier               name,
+            in VersionSpec              version,
+            in IDLType                  IDL_result,
+            in OperationMode            mode, 
+            in ParDescriptionSeq        params,
+            in ExceptionDefSeq          exceptions,
+            in ContextIdSeq             contexts
+        );
+    };
+    struct InterfaceDescription {
+#       pragma version InterfaceDescription 2.3
+        Identifier                      name; 
+        RepositoryId                    id; 
+        RepositoryId                    defined_in; 
+        VersionSpec                     version;
+        RepositoryIdSeq                 base_interfaces;
+        boolean                         is_abstract;
+    };
+    typedef sequence <ValueMember> ValueMemberSeq;
+    interface ValueMemberDef : Contained {
+#       pragma version ValueMemberDef 2.3
+        readonly attribute              TypeCode type;
+        attribute IDLType               type_def;
+        attribute Visibility            access;
+    };
+    interface ValueDef : Container, Contained, IDLType {
+#       pragma version ValueDef 2.3
+        // read/write interface
+        attribute InterfaceDefSeq       supported_interfaces;
+        attribute InitializerSeq        initializers;
+        attribute ValueDef              base_value;
+        attribute ValueDefSeq           abstract_base_values;
+        attribute boolean               is_abstract;
+        attribute boolean               is_custom;
+        attribute boolean               is_truncatable;
+        // read interface
+        boolean is_a(in RepositoryId    id);
+        struct FullValueDescription {
+#           pragma version FullValueDescription 2.3
+            Identifier                  name;
+            RepositoryId                id;
+            boolean                     is_abstract;
+            boolean                     is_custom;
+            RepositoryId                defined_in;
+            VersionSpec                 version;
+            OpDescriptionSeq            operations;
+            AttrDescriptionSeq          attributes;
+            ValueMemberSeq              members;
+            InitializerSeq              initializers;
+            RepositoryIdSeq             supported_interfaces;
+            RepositoryIdSeq             abstract_base_values;
+            boolean                     is_truncatable;
+            RepositoryId                base_value;
+            TypeCode                    type;
+        };
+        FullValueDescription describe_value();
+        ValueMemberDef create_value_member(
+            in RepositoryId             id,
+            in Identifier               name,
+            in VersionSpec              version,
+            in IDLType                  type,
+            in Visibility               access
+        );
+        AttributeDef create_attribute(
+            in RepositoryId             id,
+            in Identifier               name,
+            in VersionSpec              version,
+            in IDLType                  type,
+            in AttributeMode            mode
+        );
+        OperationDef create_operation (
+            in RepositoryId             id,
+            in Identifier               name,
+            in VersionSpec              version,
+            in IDLType                  IDL_result,
+            in OperationMode            mode,
+            in ParDescriptionSeq        params,
+            in ExceptionDefSeq          exceptions,
+            in ContextIdSeq             contexts
+        );
+    };
+    struct ValueDescription {
+#       pragma version ValueDescription 2.3
+        Identifier                      name;
+        RepositoryId                    id;
+        boolean                         is_abstract;
+        boolean                         is_custom;
+        RepositoryId                    defined_in;
+        VersionSpec                     version;
+        RepositoryIdSeq                 supported_interfaces;
+        RepositoryIdSeq                 abstract_base_values;
+        boolean                         is_truncatable;
+        RepositoryId                    base_value; 
+    };
+    interface ValueBoxDef : TypedefDef {
+#       pragma version ValueBoxDef 2.3
+        attribute IDLType original_type_def;
+    };
+    interface Repository : Container {
+#       pragma version Repository 2.3
+        // read interface
+        Contained   lookup_id               (in RepositoryId    search_id);
+        TypeCode    get_canonical_typecode  (in TypeCode        tc); 
+        PrimitiveDef get_primitive          (in PrimitiveKind   kind);
+        // write interface
+        StringDef   create_string           (in unsigned long   bound);
+        WstringDef  create_wstring          (in unsigned long   bound);
+        SequenceDef create_sequence         (in unsigned long   bound,
+                                             in IDLType         element_type
+        );
+        ArrayDef create_array               (in unsigned long   length,
+                                             in IDLType         element_type
+        );
+        FixedDef create_fixed               (in unsigned short  digits,
+                                             in short           scale
+        );
+    };
+  };
+};
+\end{verbatim}
+
+\chapter{Script de Modification des fichiers générés}
+\label{script}
+\begin{verbatim}
+#!/bin/sh
+
+for file in `ls *.ad?`; do
+sed '/with CORBA.TypeCode;/ D' $file > ${file}.old
+sed '/use CORBA.TypeCode;/ D' ${file}.old > $file
+sed 's/with CORBA.TypeCode.Stream; use CORBA.TypeCode.Stream;/    \
+     with Broca.CDR; use Broca.CDR;/g'  $file > ${file}.old
+sed 's/CORBA.TypeCode.Ref/CORBA.TypeCode.Object/g'  ${file}.old > $file
+sed '/with CORBA.Stream; use CORBA.Stream;/ D' $file > ${file}.old
+sed '/with CORBA.TypeCode.Helper;/ D' ${file}.old > $file
+sed 's/TypeCode.Helper.//g'  $file > ${file}.old
+mv  ${file}.old $file 
+done
+rm corba.ads corba-typecode*
+rm corba-stream.ad?
+\end{verbatim}
+
+\end{document}

@@ -1,0 +1,271 @@
+\chapter{Marshalling valuetypes}
+
+\paragraph{}Since valuetypes are transmitted by value over the wire, a
+precise marshalling into a GIOP stream is defined in chapter 15 of the
+CORBA specification v 2.3. Here are the several steps to implement to
+fully support marshalling of valuetypes.
+
+\paragraph{}Marshalling valuetypes is rather complex, since it
+contains both the problems of interface marshalling and those of
+struct marshalling.
+
+\section{Encoding}
+
+\paragraph{}Here are the main issues to address when marshalling value types.
+
+\paragraph{In a word}Basically, valuetype marshalling consists in some octet
+flags and the marshalling of the valuetype's state members.
+
+\paragraph{Indirection}Since valuetypes can represent cycles or
+graphs, a standard sequential encoding cannot be used. Therefore, the
+notion of ``indirection'' is introduced. When an object has already
+marshalled in the stream, its following occurrence is marshalled as an
+indirection: this is a pointer to the place in the stream where the
+object was marshalled earlier.
+
+\paragraph{Truncation}If the type of the actual parameter is the same as that of
+the formal parameter, no type information is encoded. However, when
+the type of the formal parameter is a base type of the actual
+parameter, type information is encoded, using a RepositoryId or a list
+of RepositoryIds. When unmarshalling a valuetype, if the program does
+not have the valuetype object code, then it may truncate it only if
+the valuetype has been defined ``truncatable''.
+
+\paragraph{Fragmentation}Since valuetypes can be very large objects,
+they can be encoded in multiple buffers, sent one at a time. For that
+purpose, chunking is used. A chunk starts with its length, followed by
+the state members encoding.
+
+\paragraph{Custom Marshalling}A CORBA programmer can define his own
+marshalling functions for the valuetypes he defines. This is possible
+when the valuetype is defined as ``custom''. It requires some
+special processing from the ORB, including the support for chunking.
+
+\paragraph{Valuetypes and abstract interfaces}An object of formal type
+``abstract interface'' can represent either a regular interface
+instance, or a valuetype. The marshalling choice must therefore be
+made at runtime.
+
+\section{Marshalling}
+
+\subsection{Proposed mechanism}
+
+\paragraph{}The simplest way is to implement a generic marshalling
+function for all Valuetypes, which is in charge of callin the right
+specific marshalling function. Here is its signature:
+
+\begin{verbatim}
+package Broca.Value.Stream is
+
+   ...
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : in CORBA.Value.Base'Class;
+      Already_Marshalled : in out ISeq.Sequence);
+   ...
+
+end Broca.Value.Stream;
+\end{verbatim}
+
+\paragraph{}This function is in charge of marshalling nil references and
+indirections, which are marshalled in the same way whatever the formal
+or actual type of the parameter. The parameter Already\_Marshalled
+is a list of all the objects that were previously marshalled, with their
+corresponding offset in the stream. The default value of this
+parameter is an empty sequence.
+
+\paragraph{}Then, this function calls the specific marshalling
+function for the actual parameter. Specific marshalling functions are
+registered with their RepositoryId in an instance of generic package
+Broca.Operation\_Store, called Broca.Stream.Marshalling\_Store.
+Here is the signature of a specific
+marshalling function:
+
+\begin{verbatim}
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Val    : in CORBA.Impl.Object_Ptr;
+      Already_Marshalled : in out ISeq.Sequence;
+      Formal : CORBA.RepositoryId;
+      Only_Members : Boolean;
+      Nesting\_Depth : in CORBA.Long);
+\end{verbatim}
+
+\paragraph{}Here is the detail of what this function should do.
+\begin{enumerate}
+\item Decide whether chunking has to be used, depending on truncation
+     and size of the valuetype. If Only\_Members is true, then chunking has to
+     be used , it means we are in a parent of a truncatable valuetype.
+\item If Only\_Members is false, then marshall the value header. It
+     consists in some flags and some type information. If the type of
+     the formal parameter matches that of the actual, then no type
+     information is encoded. This is why this function needs the
+     formal parameter.
+\item If there is a concrete parent (there cannot be more than one),
+     then start a chunk, and call the marshall function for the
+     parent. Make this
+     function call with Only\_Members set to true, so that the header
+     is encoded only once. Then close the parent chunk.
+\item If chunking has to be used, start a new chunk and marshall the
+     state members of Valuetype ``Val''. Use as many chunks as needed
+     to do that. Either if the current buffer is too big, or if a
+     nested valuetype has to be encoded. Marshall nested valuetypes
+     with Nesting\_Depth set to Nesting\_Depth + 1.
+\item If chunking is used, marshall an end tag for the current valuetype.
+\end{enumerate}
+
+\subsection{Valuetypes as abstract interfaces}
+\paragraph{}The marshalling function for abstract interfaces
+     (Broca.CDR.Marshall) first checks if the actual parameter is a
+     valuetype of an interface. Abstract interfaces are encoded with a
+     boolean discriminator to specify whether it is an interface or a
+     valuetype.
+
+\subsection{Implementation}
+\paragraph{}The mechanism presented here has not been fully
+     implemented.
+
+\section{Unmarshalling}
+
+
+\subsection{Proposed mechanism}
+
+\subsubsection{A generic unmarshalling procedure}
+
+\paragraph{}As for marshalling, it seems better to have a generic unmarshalling
+function for valuetypes. Its signature would be :
+
+\begin{verbatim}
+function Unmarshall (Buffer : access Buffer_Type)
+   return CORBA.Value.Base'Class;
+\end{verbatim}
+
+\paragraph{}However, such a simple solution is not possible. As a matter of fact,
+valuetypes may be encoded in GIOP streams with no type
+information. This is the case when the type of the actual parameter
+matches that of the formal one. Therefore, this unmarshalling function
+must know the type of the formal parameter. The best way is to add a
+parameter which is the RepositoryId of the formal. As a matter of
+fact, if type information is encoded in the GIOP stream, it will be
+encoded as the repositoryId of the object. So both cases will be
+similar. Moreover, as for marshalling function, we need to know what
+objects have already been unmarshalled from the GIOP stream, in case
+we encounter an indirection. So, here is the signature of the generic
+unmarshalling subprogram:
+
+
+\begin{verbatim}
+procedure Unmarshall
+  (Buffer : access Buffer_Type;
+   Formal : in CORBA.RepositoryId;
+   Already_Unmarshalled : in out ISeq.Sequence;
+   Result : out CORBA.Value.Base'Class);
+\end{verbatim}
+
+\paragraph{}Here is the detail of what this procedure should do
+\begin{enumerate}
+\item Read a CORBA.Long from the buffer, it is the value tag
+\item if it is null, then set Result to Nil\_Ref and return
+\item if it is an indirection, call the Unmarshall\_Indirection
+  function
+\item If the tag shows that a codebase URL is present, skip it
+\item if the tag shows that there is no type information, retrieve the
+correct Unmarshall function for the formal repository Id, and execute
+it.
+\item Otherwise, if the tag shows that there is one repositoryId
+encoded, unmarshall it and call the corresponding unmarshall function.
+\item Otherwise, if the tag shows that there is a list of
+repositoryIds encoded, unmarshall it. Retrieve the first available
+unmarshalling function for the given RepositoryIds, and call it/
+\item At last, add the freshly unmarshalled object to the
+``Already\_Unmarshalled'' list.
+\end {enumerate}
+
+\subsubsection{One unmarshalling function per valuetype}
+
+\paragraph{}If we want to keep consistency with all other types, we
+have to provide an Unmashalling {\em function} that takes onyl a
+buffer as parameter. This one should be overloaded for all valuetypes
+in the ``.Stream'' package. It just calls the generic procedure with
+the right paramters. Here is its signature:
+
+\begin{verbatim}
+function Unmarshall (Buffer : access Buffer_Type)
+   return Value_Ref;
+\end{verbatim}
+
+\subsubsection{Unmarshalling the state members}
+
+\paragraph{}We said earlier that the generic unmarshalling function
+   calls a specific procedure to unmarshall the fields of a
+   valuetype. This function, called Unmarshalled\_Fields, has to be
+   written for all concrete valuetypes, and must be registered with
+   the repositoryID of the corresponding valuetype. Here is its
+   signature.
+
+\begin{verbatim}
+procedure Unmarshall_Fields
+  (Buffer : access Buffer_Type;
+   Data   : in out CORBA.Value.Base'Class;
+   Already_Unmarshalled : in out ISeq.Sequence;
+   With_Chunking : Boolean;
+   Nesting_Depth : in CORBA.Long;
+   Closing_Tag_Read : out CORBA.Long);
+\end{verbatim}
+
+\paragraph{}Here is the detail of what this procedure should do
+\begin{enumerate}
+\item If Data is Nil\_Ref, then create an instance of the correponding
+  Value\_Impl.Object and set it in Data.
+\item Call the same function for the father if there is one (there
+cannot be more than one).
+\item If With\_Chunking is true, then unmarshall the chunk's length.
+\item Unmarshall the fields corresponding to the current valuetype,
+taking care of new chunks when the previous one is over.
+\item If With\_Chunking is true and the last umnarshalled state member
+is a valuetype, and if the Closing\_Tag\_Read returned by the
+unmarshalling procedure for this valutype is equal to/smaller than
+Nesting\_Depth then exit, set Closing\_Tag\_Read to this value.
+\item If With\_Chunking is true, then read the next CORBA.Long from
+the buffer. If it is a valuetype closing tag whose value corresponds
+to Nesting\_Depth or smaller, then return this value in parameter
+Closing\_Tag\_Read and exit the function. If it is a chunk start tag,
+then skip this chunk and restart this step.
+\end{enumerate}
+
+\subsection{Needed Subprograms}
+
+\paragraph{} A few subprograms have to be written to implement this solution:
+
+\paragraph{Unmarshall\_RepositoryId} A subprogram to unmarshall a
+repositoryId from a buffer, taking into account that it can be an
+indirection to a previous location in the buffer. To decide whether
+there is an indirection or not, a CORBA.Long has to be
+unmarshalled. If it is 0xFFFFFFFF (the unmarshalling tag), then there
+is an indirection. Otherwise, it is just the RepositoryId length
+encoded as a CORBA.Unsigned\_Long, and the RepositoryId can be unmarshalled.
+
+\paragraph{Unmarshall\_RepositoryId\_List}Similar to Unmarshall\_RepositoryId.
+
+\subsection{Unmarshalling abstract interfaces}
+\paragraph{}When a formal abstract interface has to be unmarshalled,
+then the first CORBA.Long encountered on the buffer will allow the
+program to decide whether a valuetype or an interface arrives. As a
+matter of fact, an interface starts with its IOR, which is a String,
+and therefore the first 4 bytes are the string length encoded as a
+CORBA::Unsigned\_Long. If it is a valuetype, then the first 4 bytes
+are the value tag, which is an especially large CORBA::Long and that
+cannot be mistaken for a string length.
+
+\paragraph{}This has not been implemented.
+
+\subsection{Work done}
+\paragraph{}Only a prototype has been implemented.
+
+
+\section{Implementation}
+\paragraph{}The prototype I implemented works when an adabroker server
+interacts with an adabroker client. I tried to interoperate with a
+java orbacus server or client, but it does not work since adabroker
+uses IIOP 1.0 whereas orbacus uses IIOP 1.2.
