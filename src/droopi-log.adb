@@ -1,57 +1,16 @@
 --  $Id$
 
 with Ada.Text_IO; use Ada.Text_IO;
-with Ada.Unchecked_Deallocation;
 with Ada.Characters.Handling;
 
-with GNAT.HTable;
+with Droopi.Dynamic_Dict;
+pragma Elaborate_All (Droopi.Dynamic_Dict);
 
 package body Droopi.Log is
 
-   ------------------------------------------------
-   -- A hash table that stores the logging level --
-   -- associated with each facility.             --
-   ------------------------------------------------
-
-   type String_Ptr is access all String;
-   procedure Free is new Ada.Unchecked_Deallocation (String, String_Ptr);
-
-   type Hash_Val is new Integer range 0 .. 32;
-
-   function Hash (S : String_Ptr) return Hash_Val;
-   function Equal (S1, S2 : String_Ptr) return Boolean;
-   --  Simple {hash,equality} functions operating on a string access.
-   --  Used in instanciation of GNAT.HTable.
-
-   function Hash (S : String_Ptr) return Hash_Val
-   is
-      function Hash_String is new GNAT.HTable.Hash (Hash_Val);
-   begin
-      pragma Assert (S /= null);
-      return Hash_String (S.all);
-   end Hash;
-
-   function Equal (S1, S2 : String_Ptr) return Boolean is
-   begin
-      pragma Assert (S1 /= null and then S2 /= null);
-      return S1.all = S2.all;
-   end Equal;
-
-   type Log_Level_Info is record
-      Key_Ptr : String_Ptr;
-      Level   : Log_Level;
-   end record;
-
-   Null_Log_Level_Info : constant Log_Level_Info
-     := (Key_Ptr => null, Level => Info);
-
-   package HT is new GNAT.HTable.Simple_HTable
-     (Header_Num => Hash_Val,
-      Element    => Log_Level_Info,
-      No_Element => Null_Log_Level_Info,
-      Key        => String_Ptr,
-      Hash       => Hash,
-      Equal      => Equal);
+   package Log_Level_Dict is new Droopi.Dynamic_Dict (Log_Level);
+   --  A hash table that stores the logging level associated
+   --  with each facility.
 
    -------------------
    -- Get_Log_Level --
@@ -59,13 +18,8 @@ package body Droopi.Log is
 
    function Get_Log_Level
      (Facility : in String)
-      return Log_Level
-   is
-      F   : aliased String := Facility;
-      LLI : constant Log_Level_Info := HT.Get (F'Unchecked_Access);
-   begin
-      return LLI.Level;
-   end Get_Log_Level;
+     return Log_Level
+     renames Log_Level_Dict.Lookup;
 
    -------------------
    -- Set_Log_Level --
@@ -74,20 +28,7 @@ package body Droopi.Log is
    procedure Set_Log_Level
      (Facility : in String;
       Level    : Log_Level)
-   is
-      F   : String_Ptr := new String'(Facility);
-      LLI : Log_Level_Info := HT.Get (F);
-   begin
-      LLI.Level := Level;
-
-      if LLI.Key_Ptr = null then
-         LLI.Key_Ptr := F;
-      else
-         Free (F);
-      end if;
-
-      HT.Set (LLI.Key_Ptr, LLI);
-   end Set_Log_Level;
+     renames Log_Level_Dict.Register;
 
    -------------------------------
    -- Generic body Facility_Log --
