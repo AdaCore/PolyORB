@@ -7,6 +7,9 @@ New Functionnalities
 *   Partition_ID is now unlimited (it was bounded to 64 in the previous
     versions). Partition ids of pure client partitions are now recycled.
 
+*   Now gnatdist under NT requires only standard Windows tool. It does not 
+    requires anymore to have around some UNIX like tools (cp, mkdir...).
+
 Bug Fixes
 ---------
 
