@@ -1,0 +1,75 @@
+//
+// Copyright (c) 1997 X/Open Company Ltd., A member of The Open Group.
+//
+// All rights reserved. No part of this source code may be reproduced,
+// stored in a retrieval system, or transmitted, in any form or by any
+// means, electronic, mechanical, photocopying, recording or otherwise,
+// except as stated in the end-user licence agreement, without the prior
+// permission of the copyright owners.
+//
+// Developed for X/Open by ApTest Ireland Limited.
+//
+// Project: CORVAL2
+//
+
+
+module LoganBerry{
+  
+  module BlackCherry{
+    typedef octet Starfruit;
+
+  };
+
+  
+  module Parsnip{
+    typedef char Ginger;
+
+    
+    module Celery{
+      struct Lychees{
+        Parsnip::Ginger Apricots;
+      };
+
+      struct WhiteCabbage{
+        ::LoganBerry::Parsnip::Ginger Apricots;
+      };
+
+    };
+
+  };
+
+  interface Apple{
+
+    typedef long Orange;
+
+    exception Mint{
+      long GardenPeas;
+    };
+  };
+
+  interface Banana : Apple{
+
+    typedef Orange GaliaMelon;
+
+    void  Sultana();
+  };
+
+};
+
+interface Carrots : LoganBerry::Apple{
+
+  typedef float Turnip;
+};
+
+interface idlServer : LoganBerry::Banana, Carrots{
+
+  typedef char Orange;
+
+  attribute ::LoganBerry::Parsnip::Celery::WhiteCabbage Aniseed;
+
+  void  Bayleaf(
+    in    ::idlServer::GaliaMelon p1,
+    out   long Aniseed
+  );
+};
+

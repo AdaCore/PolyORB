@@ -1,0 +1,25 @@
+//testsubgroup typedef_inheritance
+//tsgdescr "Testing scope of typedef declarations with the valuetype inheritance"
+
+
+module M {
+	typedef long TestType1;
+	typedef TestType1 TestType2;
+	valuetype ValA {
+		typedef string TestType1;
+		TestType1 op1(in TestType2 i);
+	};
+	valuetype ValB {
+		TestType1 op1(in TestType2 i);
+	};
+};
+
+module N {
+	typedef char TestType1;
+	valuetype ValC : M::ValA {
+		void op2(in TestType1 i);
+	};
+	valuetype ValD : M::ValB {
+		void op2(in TestType1 i);
+	};
+};
