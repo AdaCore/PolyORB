@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-helper.adb#6 $
+--  $Id: //droopi/main/src/corba/corba-helper.adb#7 $
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
@@ -180,6 +180,38 @@ package body CORBA.Helper is
       return Result;
    end To_Any;
 
+   -------------------
+   -- TC_PolicyType --
+   -------------------
+
+   TC_PolicyType_Cache : CORBA.TypeCode.Object;
+
+   function TC_PolicyType return CORBA.TypeCode.Object is
+   begin
+      return TC_PolicyType_Cache;
+   end TC_PolicyType;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function From_Any (Item : in CORBA.Any) return CORBA.PolicyType is
+      Result : constant CORBA.Unsigned_Long := CORBA.From_Any (Item);
+   begin
+      return CORBA.PolicyType (Result);
+   end From_Any;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function To_Any (Item : in CORBA.PolicyType) return CORBA.Any is
+      Result : CORBA.Any := CORBA.To_Any (CORBA.Unsigned_Long (Item));
+   begin
+      CORBA.Set_Type (Result, TC_PolicyType);
+      return Result;
+   end To_Any;
+
    ----------------
    -- Initialize --
    ----------------
@@ -232,6 +264,22 @@ package body CORBA.Helper is
            (TC_Visibility_Cache, CORBA.To_Any (Id));
          TypeCode.Internals.Add_Parameter
            (TC_Visibility_Cache, CORBA.To_Any (CORBA.TC_Short));
+      end;
+
+      declare
+         Name : CORBA.String := CORBA.To_CORBA_String ("PolicyType");
+         Id   : CORBA.String
+           := CORBA.To_CORBA_String ("IDL:CORBA/PolicyType:1.0");
+      begin
+         TC_PolicyType_Cache :=
+           TypeCode.Internals.To_CORBA_Object (PolyORB.Any.TypeCode.TC_Alias);
+
+         TypeCode.Internals.Add_Parameter
+           (TC_PolicyType_Cache, CORBA.To_Any (Name));
+         TypeCode.Internals.Add_Parameter
+           (TC_PolicyType_Cache, CORBA.To_Any (Id));
+         TypeCode.Internals.Add_Parameter
+           (TC_PolicyType_Cache, CORBA.To_Any (CORBA.TC_Unsigned_Long));
       end;
    end Initialize;
 

@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-helper.ads#3 $
+--  $Id: //droopi/main/src/corba/corba-helper.ads#4 $
 
 package CORBA.Helper is
 
@@ -55,5 +55,9 @@ package CORBA.Helper is
    function TC_Visibility return CORBA.TypeCode.Object;
    function From_Any (Item : in CORBA.Any) return CORBA.Visibility;
    function To_Any (Item : in CORBA.Visibility) return CORBA.Any;
+
+   function TC_PolicyType return CORBA.TypeCode.Object;
+   function From_Any (Item : in CORBA.Any) return CORBA.PolicyType;
+   function To_Any (Item : in CORBA.PolicyType) return CORBA.Any;
 
 end CORBA.Helper;
