@@ -125,7 +125,8 @@ package body PolyORB.ORB is
    begin
       Handle_Event
         (AES_Event_Handler'Class (AEH.all)'Access,
-         AEH.ORB, AEH.AES);
+         AEH.ORB,
+         AEH.AES);
       --  Redispatch.
 
       if AEH.AES = null then
@@ -226,10 +227,11 @@ package body PolyORB.ORB is
    --  Perform one item of work from Q, if available.
    --  Precondition: This function must be called from within a
    --    critical section.
-   --  Postcondition: if a job has been executed, then the critical
-   --    section has been left, and True is returned.
-   --    If no job was available, the critical section is not left,
-   --    and False is returned.
+   --  Postcondition:
+   --    * if a job has been executed, then the critical section has
+   --      been left, and True is returned.
+   --    * if no job was available, the critical section is not left,
+   --      and False is returned.
 
    function Try_Perform_Work
      (ORB : access ORB_Type;
@@ -270,14 +272,16 @@ package body PolyORB.ORB is
       AES : in out Asynch_Ev_Source_Access);
    pragma Inline (Queue_Event);
    --  Queue an event that occurred on AES for processing.
+   --  Precondition: This procedure must be called from within a
+   --    critical section.
 
    procedure Queue_Event
      (ORB : access ORB_Type;
       AES : in out Asynch_Ev_Source_Access)
    is
       Note : AES_Note;
-   begin
 
+   begin
       pragma Debug (O ("Queue_Event: enter"));
 
       Get_Note (Notepad_Of (AES).all, Note);
@@ -519,6 +523,7 @@ package body PolyORB.ORB is
                            --  unregistered while we were blocking,
                            --  and may now have been destroyed.
                            goto Retry;
+
                         end if;
 
                         for J in Events'Range loop
@@ -526,10 +531,11 @@ package body PolyORB.ORB is
                         end loop;
 
                         Set_Status_Running (This_Task);
-
+                        --  Reset the monitor on which 'This_Task' is blocked.
                      end;
                   end;
                   Next (It);
+
                end loop;
 
                --  ORB.ORB_Lock is held.
@@ -791,7 +797,8 @@ package body PolyORB.ORB is
      (ORB : access ORB_Type;
       OA  :        Obj_Adapters.Obj_Adapter_Access)
    is
-      use Obj_Adapters;
+      use type Obj_Adapters.Obj_Adapter_Access;
+
    begin
       pragma Assert (ORB.Obj_Adapter = null);
       ORB.Obj_Adapter := OA;
@@ -1025,12 +1032,6 @@ package body PolyORB.ORB is
          pragma Debug (O ("Run_Request: executed request"));
       end;
 
-   exception
-      when E : others =>
-         pragma Debug (O ("Run_Request: Got exception "
-                          & Ada.Exceptions.Exception_Information (E)));
-         raise;
-
    end Run_Request;
 
    ----------------------
@@ -1144,8 +1145,8 @@ package body PolyORB.ORB is
                Request_Job (J.all).Requestor := QR.Requestor;
             end if;
             Req.Requesting_Component := Request_Job (J.all).Requestor;
-            return Handle_Message (ORB, QJ);
             pragma Debug (O ("Queue_Request: leave"));
+            return Handle_Message (ORB, QJ);
          end;
 
       elsif Msg in Executed_Request then
