@@ -78,9 +78,8 @@ package body PolyORB.Scheduler is
    function Allocate_CV return Condition_Access;
    --  Return one CV.
 
-   procedure Try_Awake_One_Idle_Task;
-   --  Awake one idle task, if any.
-   --  Else do nothing.
+   procedure Awake_One_Idle_Task;
+   --  Awake one idle task, if any. Else raise Program_Error.
 
    ---------------------------------
    -- Management of Blocked Tasks --
@@ -102,15 +101,11 @@ package body PolyORB.Scheduler is
    Blocked_Tasks     : Natural := 0;
 
    Number_Of_Pending_Jobs : Natural := 0;
+   Number_Of_AES          : Natural := 0;
 
-   Number_Of_AES : Natural := 0;
-
-   Shutdown          : Boolean := False;
+   Shutdown : Boolean := False;
 
    Polling_Scheduled     : Boolean := False;
-
-   Polling_Enabled       : Boolean := True;
-   --  Signals whether tasks may poll.
 
    Polling_Abort_Counter : Natural := 0;
    --  Indicates number of tasks that requested abortion of polling.
@@ -194,25 +189,25 @@ package body PolyORB.Scheduler is
 
       --  Prevent all tasks to poll.
 
-      Polling_Enabled := False;
       Polling_Abort_Counter := Polling_Abort_Counter + 1;
 
-      --  Force all tasks currently executing Check_Sources to abort
+      --  Force all tasks currently waiting on event sources to abort
 
       if Blocked_Tasks > 0 then
-         pragma Debug (O ("Disable_Polling: Aborting polling task"));
 
+         --  In this implementation, only one task may be blocked on
+         --  event sources. We abort it.
+
+         pragma Debug (O ("Disable_Polling: Aborting polling task"));
          PTI.Request_Abort_Polling (Blocked_Task_Info.all);
          PolyORB.Asynch_Ev.Abort_Check_Sources
            (Selector (Blocked_Task_Info.all).all);
 
          pragma Debug (O ("Disable_Polling: waiting abort is complete"));
-
          Wait (Polling_Completed, Scheduler_Mutex);
 
          pragma Debug (O ("Disable_Polling: aborting done"));
       end if;
-
    end Disable_Polling;
 
    --------------------
@@ -224,16 +219,17 @@ package body PolyORB.Scheduler is
       pragma Warnings (Off);
       pragma Unreferenced (S);
       pragma Warnigns (On);
+
    begin
 
       Polling_Abort_Counter := Polling_Abort_Counter - 1;
 
       if Polling_Abort_Counter = 0 then
 
-         Polling_Enabled := True;
+         --  Allocate one task to poll on AES
+
          Try_Allocate_One_Task;
       end if;
-
    end Enable_Polling;
 
    ------------------
@@ -247,6 +243,7 @@ package body PolyORB.Scheduler is
       pragma Warnings (Off);
       pragma Unreferenced (S);
       pragma Warnings (On);
+
    begin
       pragma Debug (O ("Notify_Event: " & Event_Kind'Image (E.Kind)));
 
@@ -254,13 +251,14 @@ package body PolyORB.Scheduler is
 
          when End_Of_Check_Sources =>
 
-            --  A task completed Check_Sources on a monitor
+            --  A task completed polling on a monitor
 
             Blocked_Tasks := Blocked_Tasks - 1;
             Blocked_Task_Info := null;
             Unscheduled_Tasks := Unscheduled_Tasks + 1;
 
             if Polling_Abort_Counter > 0 then
+
                --  This task has been aborted by one or more tasks, we
                --  broadcast them.
 
@@ -276,6 +274,8 @@ package body PolyORB.Scheduler is
             if Blocked_Tasks = 0
               and then not Polling_Scheduled then
 
+               --  No task is currently polling, allocate one.
+
                Polling_Scheduled := True;
                Try_Allocate_One_Task;
 
@@ -283,13 +283,19 @@ package body PolyORB.Scheduler is
 
          when Event_Sources_Deleted =>
 
+            --  An AES has been removed from monitored AES list
+
             Number_Of_AES := Number_Of_AES - 1;
 
          when Executing_Job =>
 
+            --  A task is executing a job
+
             Number_Of_Pending_Jobs := Number_Of_Pending_Jobs - 1;
 
          when Job_Completed =>
+
+            --  A task has completed the execution of a job
 
             Running_Tasks := Running_Tasks - 1;
             Unscheduled_Tasks := Unscheduled_Tasks + 1;
@@ -310,7 +316,7 @@ package body PolyORB.Scheduler is
             --  Awake all idle tasks
 
             for J in 1 .. Idle_Tasks loop
-               Try_Awake_One_Idle_Task;
+               Awake_One_Idle_Task;
             end loop;
 
             --  Unblock blocked tasks
@@ -325,13 +331,24 @@ package body PolyORB.Scheduler is
 
          when Request_Result_Ready =>
 
-            --  A Request has been completed
+            --  A Request has been completed and a resonse is
+            --  available. We must forward it to requesting task. We
+            --  ensure this task will stop its current action and ask
+            --  for rescheduling.
 
             case State (E.TI.all) is
                when Running =>
+
+                  --  We cannot abort a running task. We let it
+                  --  complete its job and ask for rescheduling.
+
                   null;
 
                when Blocked =>
+
+                  --  We abort this task. It will then leave Blocked
+                  --  state and ask for rescheduling.
+
                   declare
                      use PolyORB.Asynch_Ev;
 
@@ -349,6 +366,10 @@ package body PolyORB.Scheduler is
                   end;
 
                when Idle =>
+
+                  --  We awake this task. It will then leave Idle
+                  --  state and ask for rescheduling.
+
                   pragma Debug (O ("Signal requesting task"));
 
                   Idle_Tasks := Idle_Tasks - 1;
@@ -356,6 +377,9 @@ package body PolyORB.Scheduler is
                   Signal (Condition (E.TI.all));
 
                when Terminated | Unscheduled =>
+
+                  --  Nothing to do.
+
                   null;
 
             end case;
@@ -377,6 +401,7 @@ package body PolyORB.Scheduler is
       pragma Warnings (Off);
       pragma Unreferenced (S);
       pragma Warnings (On);
+
    begin
       pragma Debug (O ("Schedule_Task: enter"));
 
@@ -407,7 +432,7 @@ package body PolyORB.Scheduler is
 
       elsif (May_Poll (TI.all)
              and then Number_Of_AES > 0
-             and then Polling_Enabled
+             and then Polling_Abort_Counter = 0
              and then Blocked_Tasks = 0)
       then
 
@@ -432,7 +457,6 @@ package body PolyORB.Scheduler is
          return PTI.Idle;
 
       end if;
-
    end Schedule_Task;
 
    ---------------------
@@ -447,6 +471,7 @@ package body PolyORB.Scheduler is
       pragma Unreferenced (S);
       pragma Unreferenced (TI);
       pragma Warnings (On);
+
    begin
       pragma Debug (O ("Unregister_Task: enter"));
 
@@ -454,7 +479,6 @@ package body PolyORB.Scheduler is
 
       pragma Debug (O2 (Status));
       pragma Debug (O ("Unregister_Task: leave"));
-
    end Unregister_Task;
 
    -----------------
@@ -464,10 +488,11 @@ package body PolyORB.Scheduler is
    function Allocate_CV return Condition_Access
    is
       Result : Condition_Access;
+
    begin
       if CV_Lists.Length (Free_CV) > 0 then
 
-         --  Use an existing CV
+         --  Use an existing CV, from Free_CV list
 
          CV_Lists.Extract_First (Free_CV, Result);
       else
@@ -481,13 +506,14 @@ package body PolyORB.Scheduler is
       return Result;
    end Allocate_CV;
 
-   -----------------------------
-   -- Try_Awake_One_Idle_Task --
-   -----------------------------
+   -------------------------
+   -- Awake_One_Idle_Task --
+   -------------------------
 
-   procedure Try_Awake_One_Idle_Task
+   procedure Awake_One_Idle_Task
    is
       Idle_Task_CV : Condition_Access;
+
    begin
       if Idle_Tasks > 0 then
          pragma Debug (O ("Awake one idle task"));
@@ -504,11 +530,11 @@ package body PolyORB.Scheduler is
          CV_Lists.Append (Free_CV, Idle_Task_CV);
 
       else
-         pragma Debug (O ("No idle task"));
-         null;
-      end if;
+         pragma Debug (O ("No idle task !"));
+         raise Program_Error;
 
-   end Try_Awake_One_Idle_Task;
+      end if;
+   end Awake_One_Idle_Task;
 
    ---------------------------
    -- Try_Allocate_One_Task --
@@ -516,18 +542,30 @@ package body PolyORB.Scheduler is
 
    procedure Try_Allocate_One_Task is
    begin
+
+      pragma Debug (O ("Try_Allocate_One_Task: enter"));
+
       if Unscheduled_Tasks > 0 then
-         pragma Debug (O ("Assume one unaffected task will handle"));
+
+         --  Some tasks are not scheduled. We assume one of them will
+         --  be allocated to handle current event.
+
+         pragma Debug (O ("Assume one unaffected task will handle event"));
          null;
 
       else
 
-         --  Awwake one idle task, if any. Next call to
-         --  Schedule_Task will set its status to 'Blocked'
+         if Idle_Tasks > 0 then
+            Awake_One_Idle_Task;
 
-         pragma Debug (O ("Will awake one task"));
-         Try_Awake_One_Idle_Task;
+         else
+            pragma Debug (O ("No idle tasks"));
+            null;
+
+         end if;
       end if;
+
+      pragma Debug (O ("Try_Allocate_One_Task: end"));
    end Try_Allocate_One_Task;
 
    ----------------
