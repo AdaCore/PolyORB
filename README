@@ -7,6 +7,9 @@
 Installation :
 --------------
 
+- check that egcs and gnat are intalled on your system. Set your
+  environnement variables so that g++ refers to egcs and gcc to gnat.
+
 - create a symbolic link in AdaBroker, pointing to omniORB_2.7.1 (if
   you use another version of omniORB, update the config.mk file in
   AdaBroker/config). In any case, the link must be called `omniORB_2.7.1'.
