@@ -1,7 +1,9 @@
 2004-06-01  Laurent Pautet  <pautet@dorine.enst.fr>
 
-	* usage.adb, backend.adb, backend.ads, backend-config.adb: Adapt to new
-	organization that is a usage per backend.
+	* mknodes.adb: Debug is now a sibling from Nodes.
+
+	* usage.adb, backend.adb, backend.ads, backend-config.adb: Adapt
+	to new organization that is a usage per backend.
 
 	* backend-be_idl.adb, backend-be_idl.ads: Provide flag -b to set
 	base to output integer literal. Provide a usage procedure.
