@@ -126,4 +126,18 @@ package body System.Garlic.Soft_Links is
    procedure Local_Termination
      renames P_Local_Termination.Call;
 
+   package P_Global_Termination is new Proc ("Global_Termination");
+   procedure Register_Global_Termination
+     (P : in Parameterless_Procedure)
+     renames P_Global_Termination.Register;
+   procedure Global_Termination
+     renames P_Global_Termination.Call;
+
+   package P_RPC_Shutdown is new Proc ("RPC_Shutdown");
+   procedure Register_RPC_Shutdown
+     (P : in Parameterless_Procedure)
+     renames P_RPC_Shutdown.Register;
+   procedure RPC_Shutdown
+     renames P_RPC_Shutdown.Call;
+
 end System.Garlic.Soft_Links;

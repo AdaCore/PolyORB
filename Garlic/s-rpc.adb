@@ -41,6 +41,8 @@ with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Heart;        use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
+with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
+pragma Elaborate_All (System.Garlic.Soft_Links);
 with System.Garlic.Startup;
 pragma Elaborate_All (System.Garlic.Startup);
 pragma Warnings (Off, System.Garlic.Startup);

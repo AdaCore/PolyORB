@@ -78,4 +78,12 @@ package System.Garlic.Soft_Links is
      (P : in Parameterless_Procedure);
    procedure Local_Termination;
 
+   procedure Register_Global_Termination
+     (P : in Parameterless_Procedure);
+   procedure Global_Termination;
+
+   procedure Register_RPC_Shutdown
+     (P : in Parameterless_Procedure);
+   procedure RPC_Shutdown;
+
 end System.Garlic.Soft_Links;

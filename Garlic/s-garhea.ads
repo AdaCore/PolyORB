@@ -261,11 +261,6 @@ package System.Garlic.Heart is
    --  This function is used by the Termination mechanism which needs
    --  to address all the partitions.
 
-   procedure Register_RPC_Shutdown (S : System.Garlic.Types.Shutdown_Access);
-   --  Register a shutdown procedure which applies to system.RPC hierarchy.
-   --  This allows us not to with System.RPC which would produce
-   --  circular dependency.
-
 private
 
    Null_Partition_ID : constant Types.Partition_ID := Types.Partition_ID'First;

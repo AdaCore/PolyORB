@@ -1,5 +1,26 @@
 1998-07-22  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* s-rpc.adb: Use new soft link RPC_Shutdown.
+
+	* s-gasoli.adb,s-gasoli.ads: Add two new soft links
+	(Global_Termination and RPC_Shutdown).
+
+	* s-garter.adb: Remove termination task and add a new soft link
+ 	Global_Termination. This procedure is executed at the end of the
+	main subprogram by the main partition. This fixes a latent error
+	(difficult to detect). Update the no activity test (because we
+	have one less active task).
+	
+	* s-garhea.adb, s-garhea.ads: Remove Register_RPC_Shutdown and use
+ 	a new soft link from s-gasoli. Fix a problem that occurs in the
+ 	ACVC tests when a specific s-rpc is used. System_RPC_Shutdown was
+ 	not registered. An exception was raised transparently because it
+	was raised in the termination task (which does not exist anymore).
+
+	* s-ganobl.adb: Handle send with len = 0 with a special mechanism
+ 	(select) because send does not behave the same way on different
+	platforms (especially sgi).
+
 	* s-garter.adb: Solve termination problem caused by a
 	misunderstanding of gnat termination and a bug in gnat awake_count 
 	computation.

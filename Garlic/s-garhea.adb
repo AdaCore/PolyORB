@@ -44,7 +44,7 @@ with System.Garlic.Options;
 pragma Elaborate (System.Garlic.Options);
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Protocols;
-with System.Garlic.Soft_Links;
+with System.Garlic.Soft_Links;        use System.Garlic.Soft_Links;
 with System.Garlic.Streams;           use System.Garlic.Streams;
 with System.Garlic.Trace;             use System.Garlic.Trace;
 with System.Garlic.Types;             use System.Garlic.Types;
@@ -93,8 +93,6 @@ package body System.Garlic.Heart is
    Elaboration_Barrier : Barrier_Type;
    --  This barrier will be no longer blocking when the elaboration is
    --  terminated.
-
-   System_RPC_Shutdown : Shutdown_Access;
 
    type Public_Data is record
       Location           : Location_Type;
@@ -1056,15 +1054,6 @@ package body System.Garlic.Heart is
       Partition_Error_Notification := Callback;
    end Register_Partition_Error_Notification;
 
-   ---------------------------
-   -- Register_RPC_Shutdown --
-   ---------------------------
-
-   procedure Register_RPC_Shutdown (S : Shutdown_Access) is
-   begin
-      System_RPC_Shutdown := S;
-   end Register_RPC_Shutdown;
-
    ----------------------------
    -- Remote_Partition_Error --
    ----------------------------
@@ -1235,7 +1224,7 @@ package body System.Garlic.Heart is
       Trace.Shutdown;
       Soft_Links.Termination_Shutdown;
       Physical_Location.Shutdown;
-      System_RPC_Shutdown.all;
+      RPC_Shutdown;
       Free (Local_Partition_ID);
       Free (Partition_Map);
       Free (Partition_ID_Allocation);

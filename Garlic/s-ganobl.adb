@@ -180,6 +180,10 @@ package body System.Garlic.Non_Blocking is
          Dummy : int;
          Empty : Boolean;
       begin
+
+         --  We have to handle len = 0 separatly because recv does
+         --  not behave the same way on different platforms.
+
          if Len = 0 then
             Timeout.all  := Immediat;
             Rfds.all := 2 ** Integer (RRFD);
@@ -187,7 +191,7 @@ package body System.Garlic.Non_Blocking is
             Empty := Rfds.all = 0;
          else
             Dummy := Thin.C_Recv (RRFD, Buf, Len, Flags);
-            Empty := Dummy = Thin.Failure and then Errno = Eagain;
+            Empty := Dummy = Thin.Failure and then Errno = Ewouldblock;
          end if;
          if Empty then
             Recv_Mask (RRFD) := True;
@@ -259,9 +263,23 @@ package body System.Garlic.Non_Blocking is
          Result : out int)
       when True is
          Dummy : int;
+         Empty : Boolean;
       begin
-         Dummy := Thin.C_Send (RSFD, Buf, Len, Flags);
-         if Dummy = Thin.Failure and then Errno = Eagain then
+
+         --  We have to handle len = 0 separatly because send does
+         --  not behave the same way on different platforms.
+
+         if Len = 0 then
+            Timeout.all  := Immediat;
+            Sfds.all := 2 ** Integer (RSFD);
+            Dummy := C_Select (RSFD + 1, null, Sfds, null, Timeout);
+            Empty := Sfds.all = 0;
+         else
+            Dummy := Thin.C_Send (RSFD, Buf, Len, Flags);
+            pragma Debug (D (D_Debug, Dump (Dummy, Errno)));
+            Empty := Dummy = Thin.Failure and then Errno = Ewouldblock;
+         end if;
+         if Empty then
             Send_Mask (RSFD) := True;
             if RSFD > Max_FD then
                Max_FD := RSFD;
