@@ -34,14 +34,16 @@
 ------------------------------------------------------------------------------
 
 with Ada.Command_Line;         use Ada.Command_Line;
+with Ada.Exceptions;           use Ada.Exceptions;
 with System.Garlic.Debug;      use System.Garlic.Debug;
-with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Utils;      use System.Garlic.Utils;
 with GNAT.OS_Lib;
 with Unchecked_Deallocation;
 
 package body System.Garlic.Options is
+
+   use System.Garlic.Types;
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("GAROPT", "(s-garopt): ");
@@ -299,21 +301,17 @@ package body System.Garlic.Options is
 
    function Value (S : String) return Termination_Type is
    begin
-      if S = "local" then
+      pragma Debug (D (D_Debug,
+                       "Termination selected: " &
+                       Termination_Type'Image (Termination_Type'Value
+                                               (S & "_termination"))));
+      return Termination_Type'Value (S & "_termination");
+   exception
+      when others =>
          pragma Debug (D (D_Debug,
-                          "local termination has been selected"));
-         return Local_Termination;
-      elsif S = "global" then
-         pragma Debug (D (D_Debug,
-                          "global termination has been selected"));
-         return Global_Termination;
-      elsif S = "deferred" then
-         pragma Debug (D (D_Debug,
-                          "deferred termination has been selected"));
-         return Deferred_Termination;
-      else
-         return Unknown_Termination;
-      end if;
+                          "Unknown termination policy """ & S & """"));
+         Raise_Exception (Program_Error'Identity,
+                          "Unknown termination policy """ & S & """");
    end Value;
 
 end System.Garlic.Options;

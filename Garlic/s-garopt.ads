@@ -33,11 +33,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Heart;
 with System.Garlic.Types;
 with System.Garlic.Utils;
 
 package System.Garlic.Options is
+
+   pragma Elaborate_Body;
 
    --  This package needs comments ???
 
@@ -53,9 +54,9 @@ package System.Garlic.Options is
    Detach          : Boolean;
    Is_Slave        : Boolean;
    Nolaunch        : Boolean;
-   Termination     : Heart.Termination_Type;
+   Termination     : Types.Termination_Type;
    Partition_Name  : Utils.String_Access;
-   Execution_Mode  : Heart.Execution_Mode_Type;
+   Execution_Mode  : Types.Execution_Mode_Type;
    Trace_File_Name : Utils.String_Access;
    Checksum        : Types.Word;
 
@@ -67,7 +68,7 @@ package System.Garlic.Options is
 
    procedure Set_Detach   (Default : in Boolean);
 
-   procedure Set_Execution_Mode (Default : in Heart.Execution_Mode_Type);
+   procedure Set_Execution_Mode (Default : in Types.Execution_Mode_Type);
 
    procedure Set_Is_Slave (Default : in Boolean);
 
@@ -77,7 +78,7 @@ package System.Garlic.Options is
 
    procedure Set_Task_Pool_Bounds (Low, High, Max : in Positive);
 
-   procedure Set_Termination (Default : in Heart.Termination_Type);
+   procedure Set_Termination (Default : in Types.Termination_Type);
 
    procedure Set_Trace_File_Name (Name : in String);
 
