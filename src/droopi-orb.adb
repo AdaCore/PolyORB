@@ -13,7 +13,7 @@ pragma Elaborate_All (Droopi.Log);
 
 with Droopi.Objects.Interface;
 with Droopi.ORB.Interface;
-with Droopi.ORB.Task_Info;
+with Droopi.Task_Info;
 with Droopi.References.Binding;
 with Droopi.Requests;
 with Droopi.Soft_Links;
@@ -215,6 +215,14 @@ package body Droopi.ORB is
       end case;
    end Handle_Event;
 
+   -----------------------
+   -- The ORB main loop --
+   -----------------------
+
+   --  This is the main loop for all general-purpose
+   --  ORB tasks. This function MUST NOT be called
+   --  recursively.
+
    procedure Run
      (ORB            : access ORB_Type;
       Exit_Condition : Exit_Condition_Access := null;
@@ -232,7 +240,8 @@ package body Droopi.ORB is
 
    begin
       loop
-         pragma Debug (O ("Run: enter loop."));
+         pragma Debug (O ("Run: task " & Image (Current_Task)
+                          & " entering main loop."));
          Enter (ORB.ORB_Lock.all);
 
          if (Exit_Condition /= null and then Exit_Condition.all)
@@ -641,6 +650,10 @@ package body Droopi.ORB is
       end;
    end Create_Reference;
 
+   type Request_Note is new Annotations.Note with record
+      Requesting_Task : Task_Info.Task_Info_Access;
+   end record;
+
    function Handle_Message
      (ORB : access ORB_Type;
       Msg : Droopi.Components.Message'Class)
@@ -671,10 +684,10 @@ package body Droopi.ORB is
                --  object.
                Request_Job (J.all).Requestor
                  := Component_Access (ORB);
-               --  XXX Annotate Req with a pointer to the requesting
-               --  task's Task_Info.
-               --  Set_Note (Req.Notepad, Request_Note'
-               --        (Requesting_ORB_Task => This_Task));
+               Set_Note
+                 (Req.Notepad, Request_Note'
+                  (Note with
+                   Requesting_Task => QR.Requesting_Task));
             else
                Request_Job (J.all).Requestor := QR.Requestor;
             end if;

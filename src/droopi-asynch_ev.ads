@@ -8,6 +8,8 @@ with Droopi.Annotations;
 
 package Droopi.Asynch_Ev is
 
+   pragma Elaborate_Body;
+
    --  Some environment components can produce events in an asynchronous
    --  asynchronous fashion, i.e. independently of middleware actions
    --  currently in progress. A typical example of such components is a
