@@ -2,24 +2,25 @@
 #define _ADABE_CLASSES_H_
 
 #include <string.h>
-
-class dep_list
+class string_list
 {
  public:
-  dep_list();
-  ~dep_list();
+  string_list();
+  ~string_list();
   // constructor and destructor
-  add (string);
+  add (string str);
   // add a string to the list
-  check (string);
+  bool check (string str);
   // check for the presence of the string in the list, and add it 
   string produce();
   // dump the content of the list in a string
  private:
   string *list;
-  item nb_item_in_list;
-  item max_item_in_list;
+  int nb_item_in_list;
+  int max_item_in_list;
 }
+
+typedef string_list dep_list;
 
 class adabe_name : public virtual AST_Decl
 {
