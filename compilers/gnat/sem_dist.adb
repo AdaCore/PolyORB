@@ -384,14 +384,15 @@ package body Sem_Dist is
       RS_Pkg_Specif := Parent (Remote_Subp_Decl);
       RS_Pkg_E := Defining_Entity (RS_Pkg_Specif);
 
+      if Ekind (Remote_Subp) = E_Procedure
+        and then Is_Asynchronous (Remote_Subp)
+      then
+         Async_E := Standard_True;
+      else
+         Async_E := Standard_False;
+      end if;
       All_Calls_Remote_E :=
         Boolean_Literals (Has_All_Calls_Remote (RS_Pkg_E));
-
-      if Has_All_Calls_Remote (RS_Pkg_E) then
-         All_Calls_Remote_E := Standard_True;
-      else
-         All_Calls_Remote_E := Standard_False;
-      end if;
 
       Tick_Access_Conv_Call :=
         Make_Function_Call (Loc,
