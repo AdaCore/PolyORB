@@ -33,8 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Options; use System.Garlic.Options;
-
 package body System.Garlic.Elaboration is
 
    --  This package body is provided for linking purpose. It will be
