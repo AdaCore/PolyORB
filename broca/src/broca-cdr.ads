@@ -257,4 +257,21 @@ package Broca.CDR is
    --  Prepare Buffer to receive marshalled data
    --  that will be turned into an Encapsulation.
 
+private
+
+   procedure Align_Marshall_Copy
+     (Buffer    : access Buffer_Type;
+      Octets    : in Octet_Array;
+      Alignment : Alignment_Type := 1);
+   --  Align Buffer on Alignment, then marshall a copy
+   --  of Octets into Buffer, as is.
+
+   function Align_Unmarshall_Copy
+     (Buffer    : access Buffer_Type;
+      Size      : Index_Type;
+      Alignment : Alignment_Type := 1)
+     return Octet_Array;
+   --  Align Buffer on Alignment, then unmarshall a copy
+   --  of Size octets from Buffer's data, as is.
+
 end Broca.CDR;
