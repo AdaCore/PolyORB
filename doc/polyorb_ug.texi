@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#37 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#38 $
 
 @include version.texi
 
@@ -613,7 +613,7 @@ guess at what compilers to use:
 @itemize
 
 @item @code{CC}:  the C compiler
-@item @code{ADA}: the Ada 95 compiler
+@item @code{ADA}: the Ada 95 compiler (e.g. gcc, gnatgcc or adagcc)
 @item @code{CXXCPP}, @code{CXXCPPFLAGS}: the preprocessor used by
 idlac (only when setting up the CORBA application personality). CORBA
 specifications require this preprocessor to be compatible with the

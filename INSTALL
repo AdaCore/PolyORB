@@ -100,7 +100,7 @@ Services are built.
 The following environment variables can be used to override configure's
 guess at what compilers to use:
   CC:  the C compiler
-  ADA: the Ada 95 compiler
+  ADA: the Ada 95 compiler (e.g. gcc, gnatgcc or adagcc)
 
 For example, if you have two versions of GNAT installed and available
 in your PATH, and configure picks the wrong one, you can indicate
