@@ -29,7 +29,7 @@
 with GNAT.Table;
 
 with XE;               use XE;
-with XE_Front;          use XE_Front;
+with XE_Front;         use XE_Front;
 with XE_Flags;         use XE_Flags;
 with XE_IO;            use XE_IO;
 with XE_List;          use XE_List;
@@ -40,7 +40,7 @@ with XE_Utils;         use XE_Utils;
 
 package body XE_Sem is
 
-   package Sources is new GNAT.Table
+   package Files is new GNAT.Table
      (Table_Component_Type => File_Name_Type,
       Table_Index_Type     => Natural,
       Table_Low_Bound      => 1,
@@ -132,12 +132,12 @@ package body XE_Sem is
 
    procedure Analyze is
       A  : ALI_Id;
+      F  : File_Name_Type;
       CU : Conf_Unit_Id;
       OK : Boolean := True;
       T  : Character;
 
    begin
-      --  XXX Resolve defaults ...
       --  Add units configured on the partition type to each
       --  partition (for instance, main subprogram).
 
@@ -170,11 +170,10 @@ package body XE_Sem is
       --  follows:
       --
       --    Unit name           Info field has Unit_Id
-      --                        Byte fiels has Partition_Id (*)
       --    Conf. unit name     Info field has ALI_Id
       --                        Byte fiels has Partition_Id (*)
       --    ALI file name       Info field has ALI_Id
-      --    Source file name    Info field has ALI_Id
+      --    Source file name    Info field has Unit_Id
       --
       --  (*) A (normal, RT) unit may be assigned to several partitions.
 
@@ -194,7 +193,7 @@ package body XE_Sem is
       --  ALI id. Set use of tasking to unknown.
 
       for J in ALIs.First .. ALIs.Last loop
-         Set_ALI_Id (Units.Table (ALIs.Table (J).Last_Unit).Uname, J);
+         Set_ALI_Id (ALIs.Table (J).Uname, J);
          Set_Tasking (J, '?');
       end loop;
 
@@ -310,16 +309,17 @@ package body XE_Sem is
             if Debug_Mode then
                Message ("[tasking] append", Conf_Units.Table (J).Name);
             end if;
-            Sources.Append (ALIs.Table (Conf_Units.Table (J).My_ALI).Sfile);
+            A := Conf_Units.Table (J).My_ALI;
+            Files.Append (ALIs.Table (A).Afile);
          end if;
       end loop;
 
-      while Sources.First <= Sources.Last loop
-         A := Get_ALI_Id (Sources.Table (Sources.Last));
-
+      while Files.First <= Files.Last loop
+         F := Files.Table (Files.Last);
          if Debug_Mode then
-            Message ("[tasking] analyze", ALIs.Table (A).Afile);
+            Message ("[tasking] analyze", F);
          end if;
+         A := Get_ALI_Id (F);
 
          Assign_Tasking_From_Unit_Categorization (A);
 
@@ -330,7 +330,7 @@ package body XE_Sem is
             T := 'N';
 
             if Debug_Mode then
-               Message ("[tasking] analyze", ALIs.Table (A).Afile, "deps");
+               Message ("[tasking] analyze", F, "deps");
             end if;
 
             Assign_Tasking_From_Unit_Dependencies (A, T);
@@ -343,11 +343,11 @@ package body XE_Sem is
                end if;
 
                Set_Tasking (A, T);
-               Sources.Decrement_Last;
+               Files.Decrement_Last;
             end if;
 
          else
-            Sources.Decrement_Last;
+            Files.Decrement_Last;
          end if;
       end loop;
 
@@ -412,13 +412,15 @@ package body XE_Sem is
          Current.Main_Subprogram := Default.Main_Subprogram;
       end if;
 
-
       if Current.Host = No_Host_Id then
          Current.Host := Default.Host;
       end if;
 
       if Current.Light_PCS = BMaybe then
          Current.Light_PCS := Default.Light_PCS;
+      end if;
+      if Current.Light_PCS = BFalse then
+         Current.Tasking := 'P';
       end if;
 
       if Current.Passive = BMaybe then
@@ -544,81 +546,78 @@ package body XE_Sem is
       Tasking : in out Character)
    is
       N : constant Unit_Name_Type := ALIs.Table (ALI).Uname;
-      D : ALI_Id;
+      A : ALI_Id;
       U : Unit_Id;
 
    begin
-      for J in ALIs.Table (ALI).First_Sdep .. ALIs.Table (ALI).Last_Sdep loop
+      for J in ALIs.Table (ALI).First_Unit .. ALIs.Table (ALI).Last_Unit loop
+         for K in Units.Table (J).First_With .. Units.Table (J).Last_With loop
+            if Present (Withs.Table (K).Afile) then
+               A := Get_ALI_Id (Withs.Table (K).Afile);
 
-         --  Get corresponding ali and then unit spec if possible. But
-         --  first discard predefined units since they do not bring
-         --  tasking with them.
+               --  First discard predefined units since they do not bring
+               --  tasking with them.
 
-         D := Get_ALI_Id (Sdep.Table (J).Sfile);
-         if Is_Predefined_File (Sdep.Table (J).Sfile) then
-            null;
+               if Is_Predefined_File (Withs.Table (K).Afile) then
+                  null;
 
-         elsif D /= No_ALI_Id then
-            U := ALIs.Table (D).Last_Unit;
+               elsif A /= No_ALI_Id then
+                  U := ALIs.Table (A).Last_Unit;
 
-            --  This is a dependency on the unit itself
+                  --  This unit may not be collocated with the current
+                  --  unit or it cannot drag any tasking.
 
-            if Units.Table (U).My_ALI = ALI then
-               null;
+                  if Units.Table (U).RCI
+                    or else Units.Table (U).Preelaborated
+                    or else Units.Table (U).Pure
+                  then
+                     null;
 
-            --  This unit may not be collocated with the last unit
-            --  in the sources table or they cannot drag any tasking.
+                  --  This unit has not been yet analyzed. Keep the current
+                  --  unit in the stack and push this new one.
 
-            elsif Units.Table (U).RCI
-              or else Units.Table (U).Preelaborated
-              or else Units.Table (U).Pure
-            then
-               null;
+                  elsif Get_Tasking (Units.Table (U).My_ALI) = '?' then
+                     if Debug_Mode then
+                        Message ("[tasking]", N, "postponed");
+                     end if;
 
-            --  This unit has not been yet analyzed. Keep the last
-            --  unit from the sources table in the stack and push
-            --  this new one.
+                     Tasking := '?';
+                     Files.Append (Withs.Table (K).Afile);
 
-            elsif Get_Tasking (Units.Table (U).My_ALI) = '?' then
-               if Debug_Mode then
-                  Message ("[tasking]", N, "postponed");
-               end if;
+                     if Debug_Mode then
+                        Message ("[tasking] append", Withs.Table (K).Uname);
+                     end if;
 
-               Tasking := '?';
-               Sources.Append (Sdep.Table (J).Sfile);
+                  --  There are other units to analyze before making any
+                  --  conclusion.
 
-               if Debug_Mode then
-                  Message ("[tasking] append", N);
-               end if;
+                  elsif Tasking = '?' then
+                     null;
 
-            --  There are other units to analyze before making any
-            --  conclusion.
+                  --  Declare the use of tasking if the withed unit uses
+                  --  tasking.
 
-            elsif Tasking = '?' then
-               null;
+                  elsif Get_Tasking (Units.Table (U).My_ALI) = 'U'
+                    or else Get_Tasking (Units.Table (U).My_ALI) = 'P'
+                  then
+                     if Tasking /= 'P' then
+                        Tasking := Get_Tasking (Units.Table (U).My_ALI);
+                        if Debug_Mode then
+                           if Tasking = 'U' then
+                              Message ("[tasking]", N, "requires tasking U");
 
-            --  Declare the use of tasking if the dependency use
-            --  tasking.
+                           else
+                              Message ("[tasking]", N, "requires tasking P");
+                           end if;
+                        end if;
 
-            elsif Get_Tasking (Units.Table (U).My_ALI) = 'U'
-              or else Get_Tasking (Units.Table (U).My_ALI) = 'P'
-            then
-               if Tasking /= 'P' then
-                  Tasking := Get_Tasking (Units.Table (U).My_ALI);
-                  if Debug_Mode then
-                     if Tasking = 'U' then
-                        Message ("[tasking]", N, "requires tasking U");
-
-                     else
-                        Message ("[tasking]", N, "requires tasking P");
+                     elsif Debug_Mode then
+                        Message ("[tasking]", N, "still requires tasking P");
                      end if;
                   end if;
-
-               elsif Debug_Mode then
-                  Message ("[tasking]", N, "still requires tasking P");
                end if;
             end if;
-         end if;
+         end loop;
       end loop;
    end Assign_Tasking_From_Unit_Dependencies;
 
@@ -694,7 +693,9 @@ package body XE_Sem is
       end if;
 
       A := Get_ALI_Id (N);
-      if A /= No_ALI_Id and then ALIs.Table (A).Main_Program = None then
+      if A = No_ALI_Id
+        or else ALIs.Table (A).Main_Program = None
+      then
          Message ("", Quote (N), "is not a main program");
          Success := False;
       end if;
@@ -777,12 +778,13 @@ package body XE_Sem is
       Success   : in out Boolean)
    is
       N : constant Unit_Name_Type := Conf_Units.Table (Conf_Unit).Name;
+      A : constant ALI_Id         := Get_ALI_Id (N);
 
    begin
       --  There is no ali file associated to this configured
       --  unit. The configured unit is not an Ada unit.
 
-      if Get_ALI_Id (N) = No_ALI_Id then
+      if A = No_ALI_Id then
          Message ("configured unit", Quote (N), "is not an Ada unit");
          Success := False;
       end if;
@@ -858,8 +860,8 @@ package body XE_Sem is
      (ALI     : ALI_Id;
       Success : in out Boolean)
    is
-      U : constant Unit_Id := ALIs.Table (ALI).Last_Unit;
-      N : constant Unit_Name_Type := Units.Table (U).Uname;
+      U : constant Unit_Id        := ALIs.Table (ALI).Last_Unit;
+      N : constant Unit_Name_Type := ALIs.Table (ALI).Uname;
 
    begin
       if (Units.Table (U).RCI or else Units.Table (U).Shared_Passive)
@@ -867,10 +869,10 @@ package body XE_Sem is
         and then Get_Partition_Id (N) = No_Partition_Id
       then
          if Units.Table (U).RCI then
-            Message ("RCI Ada unit", Quote (Name (N)),
+            Message ("RCI Ada unit", Quote (N),
                      "has not been assigned to a partition");
          else
-            Message ("Shared passive Ada unit", Quote (Name (N)),
+            Message ("Shared passive Ada unit", Quote (N),
                      "has not been assigned to a partition");
          end if;
          Success := False;
@@ -885,19 +887,19 @@ package body XE_Sem is
       CU : Conf_Unit_Id;
       U  : Unit_Id;
       A  : ALI_Id;
-      S  : File_Name_Type;
+      F  : File_Name_Type;
       L  : Stub_Id;
 
    begin
       Partitions.Table (Partition).First_Stub := Stubs.Last + 1;
       Partitions.Table (Partition).Last_Stub  := Stubs.Last;
 
-      --  Append all the source dependencies of units which are
-      --  assigned to partition.
+      --  Append all the dependencies on units which are assigned to
+      --  this partition.
 
       CU := Partitions.Table (Partition).First_Unit;
       while CU /= No_Conf_Unit_Id loop
-         A := Get_ALI_Id (Conf_Units.Table (CU).Name);
+         A := Conf_Units.Table (CU).My_ALI;
 
          if Debug_Mode then
             Message ("update stamp from", ALIs.Table (A).Afile);
@@ -907,44 +909,49 @@ package body XE_Sem is
 
          Update_Most_Recent_Stamp (Partition, ALIs.Table (A).Afile);
 
-         for K in ALIs.Table (A).First_Sdep .. ALIs.Table (A).Last_Sdep loop
-
-            --  Append Sfile only when it does not designate the
-            --  source file associated to ALI A.
-
-            if Get_ALI_Id (Sdep.Table (K).Sfile) /= A then
-               Sources.Append (Sdep.Table (K).Sfile);
-            end if;
+         for J in
+           ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit
+         loop
+            for K in
+              Units.Table (J).First_With .. Units.Table (J).Last_With
+            loop
+               if Present (Withs.Table (K).Afile) then
+                  Files.Append (Withs.Table (K).Afile);
+               end if;
+            end loop;
          end loop;
+
          CU := Conf_Units.Table (CU).Next_Unit;
       end loop;
 
-      --  Explore the dependencies
+      --  Explore the withed units
 
-      <<Next_Dependency>>
-      while Sources.First <= Sources.Last loop
-         S := Sources.Table (Sources.Last);
-         Sources.Decrement_Last;
-         A := Get_ALI_Id (S);
+      <<Next_With>>
+      while Files.First <= Files.Last loop
+         F := Files.Table (Files.Last);
+         Files.Decrement_Last;
+         A := Get_ALI_Id (F);
+
+         --  Some units may not have ALI files like generic units
 
          if A = No_ALI_Id then
-            goto Next_Dependency;
+            goto Next_With;
          end if;
 
          U := ALIs.Table (A).Last_Unit;
 
          if Debug_Mode then
-            Message ("check stamp", ALIs.Table (A).Afile);
+            Message ("check stamp", F);
          end if;
 
          --  Update most recent stamp of this partition
 
-         Update_Most_Recent_Stamp (Partition, ALIs.Table (A).Afile);
+         Update_Most_Recent_Stamp (Partition, F);
 
          --  This unit has already been assigned to this
          --  partition. No need to explore any further.
 
-         if Get_Partition_Id (S) = Partition then
+         if Get_Partition_Id (ALIs.Table (A).Uname) = Partition then
             null;
 
          elsif Units.Table (U).RCI
@@ -956,29 +963,37 @@ package body XE_Sem is
 
             Stubs.Increment_Last;
             L := Stubs.Last;
-            Stubs.Table (L) := Name (Units.Table (U).Uname);
+            Stubs.Table (L) := ALIs.Table (A).Uname;
 
-            if Partitions.Table (Partition).Last_Stub <
-              Partitions.Table (Partition).First_Stub
-            then
+            if Partitions.Table (Partition).Last_Stub = No_Stub_Id then
                Partitions.Table (Partition).First_Stub := L;
             end if;
             Partitions.Table (Partition).Last_Stub := L;
 
+            if Verbose_Mode then
+               Message ("append stub", ALIs.Table (A).Uname);
+            end if;
+
          else
             --  Mark this unit as explored and append its dependencies
 
-            Set_Partition_Id (S, Partition);
-            for K in ALIs.Table (A).First_Sdep .. ALIs.Table (A).Last_Sdep loop
-
-               --  Append Sfile only when it does not designate the
-               --  source file associated to ALI A.
-
-               if Get_ALI_Id (Sdep.Table (K).Sfile) /= A
-                 and then Get_Partition_Id (Sdep.Table (K).Sfile) /= Partition
-               then
-                  Sources.Append (Sdep.Table (K).Sfile);
-               end if;
+            Set_Partition_Id (ALIs.Table (A).Uname, Partition);
+            for J in
+              ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit
+            loop
+               for K in
+                 Units.Table (J).First_With .. Units.Table (J).Last_With
+               loop
+                  if Present (Withs.Table (K).Afile) then
+                     A := Get_ALI_Id (Withs.Table (K).Afile);
+                     if A /= No_ALI_Id
+                        and then
+                       Get_Partition_Id (ALIs.Table (A).Uname) /= Partition
+                     then
+                        Files.Append (Withs.Table (K).Afile);
+                     end if;
+                  end if;
+               end loop;
             end loop;
          end if;
       end loop;
