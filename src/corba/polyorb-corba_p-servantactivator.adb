@@ -33,8 +33,6 @@
 
 with CORBA.Impl;
 
-with PolyORB.Smart_Pointers;
-
 package body PolyORB.CORBA_P.ServantActivator is
 
    ------------
@@ -43,11 +41,16 @@ package body PolyORB.CORBA_P.ServantActivator is
 
    procedure Create
      (Self :    out PPT.ServantActivator_Access;
-      SA   : access PortableServer.ServantActivator.Ref'Class) is
+      SA   : access PortableServer.ServantActivator.Ref'Class)
+   is
+      Activator : Object_Ptr := new Object;
+
    begin
       Self := new CORBA_ServantActivator;
+      Activator.SA := SA_Ptr (SA);
 
-      CORBA_ServantActivator (Self.all).SA := SA_Ptr (SA);
+      Set (CORBA_ServantActivator (Self.all),
+           PolyORB.Smart_Pointers.Entity_Ptr (Activator));
    end Create;
 
    -------------------------
@@ -56,9 +59,12 @@ package body PolyORB.CORBA_P.ServantActivator is
 
    function Get_Servant_Manager
      (Self : CORBA_ServantActivator)
-     return PortableServer.ServantActivator.Ref'Class is
+     return PortableServer.ServantActivator.Ref'Class
+   is
+      Activator : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
+
    begin
-      return Self.SA.all;
+      return Activator.SA.all;
    end Get_Servant_Manager;
 
    ---------------
@@ -75,13 +81,17 @@ package body PolyORB.CORBA_P.ServantActivator is
 
       CORBA_Servant : PortableServer.Servant;
 
+      Activator : PortableServer.ServantActivator.Ref'Class
+        := PortableServer.ServantActivator.Ref'Class
+        (Get_Servant_Manager (Self.all));
+
    begin
       PortableServer.POA_Forward.Set
         (CORBA_POA,
          PolyORB.Smart_Pointers.Entity_Ptr (Adapter));
 
       CORBA_Servant := PortableServer.ServantActivator.Incarnate
-        (PortableServer.ServantActivator.Ref'Class (Self.SA.all),
+        (Activator,
          PortableServer.ObjectId (Oid),
          CORBA_POA);
 
@@ -106,13 +116,17 @@ package body PolyORB.CORBA_P.ServantActivator is
       POA_Servant : constant PortableServer.Servant :=
         PortableServer.Servant (CORBA.Impl.To_CORBA_Servant (Serv));
 
+      Activator : PortableServer.ServantActivator.Ref'Class
+        := PortableServer.ServantActivator.Ref'Class
+        (Get_Servant_Manager (Self.all));
+
    begin
       PortableServer.POA_Forward.Set
         (CORBA_POA,
          PolyORB.Smart_Pointers.Entity_Ptr (Adapter));
 
       PortableServer.ServantActivator.Etherealize
-        (PortableServer.ServantActivator.Ref'Class (Self.SA.all),
+        (Activator,
          PortableServer.ObjectId (Oid),
          CORBA_POA,
          POA_Servant,

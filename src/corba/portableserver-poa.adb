@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#41 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#42 $
 
 with Ada.Exceptions;
 
@@ -74,11 +74,14 @@ package body PortableServer.POA is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   function Create_Ref (Referenced : PolyORB.Smart_Pointers.Entity_Ptr)
-                       return Ref;
+   function Create_Ref
+     (Referenced : PolyORB.Smart_Pointers.Entity_Ptr)
+     return Ref;
    --  Convert a PolyORB.Smart_Pointers.Entity_Ptr into a CORBA.Object.Ref.
 
-   function To_POA (Self : Ref) return PolyORB.POA.Obj_Adapter_Access;
+   function To_POA
+     (Self : Ref)
+     return PolyORB.POA.Obj_Adapter_Access;
    --  Convert a Ref to a CORBA POA to a PolyORB POA.
 
    ----------------
@@ -92,6 +95,7 @@ package body PortableServer.POA is
       Res : Ref;
    begin
       Set (Res, Referenced);
+
       return Res;
    end Create_Ref;
 

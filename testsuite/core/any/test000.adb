@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . S E T U P . N O _ T A S K I N G _ S E R V E R       --
+--                              T E S T 0 0 0                               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,29 +31,44 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Elaborate a complete server with no tasking.
-
 --  $Id$
 
+with PolyORB.Any;
 with PolyORB.Initialization;
-pragma Warnings (Off, PolyORB.Initialization);
+with PolyORB.Types;
+with PolyORB.Utils.Report;
 
-with PolyORB.ORB;
-pragma Elaborate_All (PolyORB.ORB);
-pragma Warnings (Off, PolyORB.ORB);
+with PolyORB.Setup.Client;
+pragma Warnings (Off, PolyORB.Setup.Client);
 
-with PolyORB.Profiles.No_Tasking;
-pragma Warnings (Off, PolyORB.Profiles.No_Tasking);
-pragma Elaborate_All (PolyORB.Profiles.No_Tasking);
+procedure Test000 is
 
-with PolyORB.ORB.No_Tasking;
-pragma Warnings (Off, PolyORB.ORB.No_Tasking);
-pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+   use PolyORB.Any;
+   use PolyORB.Utils.Report;
+   use PolyORB.Types;
 
-with PolyORB.Setup.Server;
-pragma Elaborate_All (PolyORB.Setup.Server);
-pragma Warnings (Off, PolyORB.Setup.Server);
+   procedure Simple_Test;
 
-package body PolyORB.Setup.No_Tasking_Server is
+   -----------------
+   -- Simple_Test --
+   -----------------
 
-end PolyORB.Setup.No_Tasking_Server;
+   procedure Simple_Test
+   is
+      A : Any;
+
+      Initial_Value : constant PolyORB.Types.Short
+        := PolyORB.Types.Short (2);
+
+      Value : PolyORB.Types.Short;
+   begin
+      A := To_Any (PolyORB.Types.Short (2));
+      Value := From_Any (A);
+      Output ("Any: Short", Value = Initial_Value);
+   end Simple_Test;
+
+begin
+   PolyORB.Initialization.Initialize_World;
+   Simple_Test;
+   End_Report;
+end Test000;

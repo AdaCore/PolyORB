@@ -33,7 +33,7 @@
 
 --  All_Types client.
 
---  $Id: //droopi/main/examples/corba/all_types/client.adb#8 $
+--  $Id: //droopi/main/examples/corba/all_types/client.adb#9 $
 
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
@@ -305,5 +305,7 @@ begin
       <<End_Of_Loop>>
       Howmany := Howmany - 1;
    end loop;
+
+   End_Report;
 
 end Client;

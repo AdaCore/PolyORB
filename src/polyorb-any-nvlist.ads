@@ -50,25 +50,34 @@ package PolyORB.Any.NVList is
    --  Create a NamedValue and add it to this NVList.
 
    procedure Add_Item
-     (Self : Ref;
+     (Self :    Ref;
       Item : in NamedValue);
    --  Add a NamedValue to this NVList.
 
-   function Get_Count (Self : Ref) return PolyORB.Types.Long;
+   function Get_Count
+     (Self : Ref)
+     return PolyORB.Types.Long;
    --  Return the number of items in this NVList.
 
-   procedure Free (Self : Ref);
-   procedure Free_Memory (Self : Ref) renames Free;
+   procedure Free
+     (Self : Ref);
+
+   procedure Free_Memory
+     (Self : Ref)
+     renames Free;
    --  Free and Free_Memory are no-ops in Ada.
 
    ------------------------------------------
    -- The following is specific to PolyORB --
    ------------------------------------------
 
-   procedure Create (NVList : out Ref);
+   procedure Create
+     (NVList : out Ref);
    --  Create a new NVList object and return a reference to it.
 
-   function Image (NVList : Ref) return Standard.String;
+   function Image
+     (NVList : Ref)
+     return Standard.String;
    --  For debugging purposes.
 
    package Internals is
@@ -77,20 +86,25 @@ package PolyORB.Any.NVList is
       --  NamedValues.
 
       package NV_Lists is new PolyORB.Utils.Chained_Lists (NamedValue);
+
       type NV_List_Access is access all NV_Lists.List;
-      function List_Of (NVList : Ref) return NV_List_Access;
+
+      function List_Of
+        (NVList : Ref)
+        return NV_List_Access;
 
    end Internals;
 
 private
 
-   type Object is
-     new PolyORB.Smart_Pointers.Non_Controlled_Entity
+   type Object is new PolyORB.Smart_Pointers.Non_Controlled_Entity
      with record
-         List : aliased Internals.NV_Lists.List;
+        List : aliased Internals.NV_Lists.List;
      end record;
-   procedure Finalize (X : in out Object);
 
    type Object_Ptr is access all Object;
+
+   procedure Finalize
+     (X : in out Object);
 
 end PolyORB.Any.NVList;

@@ -6,7 +6,7 @@ AC_CONFIG_AUX_DIR(support)
 ##########################################
 
 AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE(polyorb,1.0a)
+AM_INIT_AUTOMAKE(polyorb,0.1)
 LIBVERSIONINFO=0:0:0
 AC_SUBST(LIBVERSIONINFO)
 
@@ -384,11 +384,12 @@ AC_OUTPUT([
 	testsuite/corba/Makefile
 	testsuite/corba/portableserver/Makefile
 	testsuite/core/Makefile
+	testsuite/core/any/Makefile
 	testsuite/core/chained_lists/Makefile
 	testsuite/core/dynamic_dict/Makefile
 	testsuite/core/fixed_point/Makefile
 	testsuite/core/initialization/Makefile
-	testsuite/core/obj_adapters-simple/Makefile
+	testsuite/core/obj_adapters/Makefile
 	testsuite/core/poa/Makefile
 	testsuite/core/tasking/Makefile
 	testsuite/acats/Makefile

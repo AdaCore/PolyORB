@@ -31,40 +31,33 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#30 $
+--  Definition of the container type 'Any'
 
-with Ada.Finalization;
+--  $Id: //droopi/main/src/polyorb-any.ads#32 $
+
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.Tasking.Mutexes;
+with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
 package PolyORB.Any is
 
    pragma Elaborate_Body;
 
-   -----------
-   --  Any  --
-   -----------
+   ---------
+   -- Any --
+   ---------
 
-   type Any is private;
+   type Any is new PolyORB.Smart_Pointers.Ref with private;
+
+   procedure Initialize (Self : in out Any);
+
    type Any_Ptr is access all Any;
    --  The end of this part is after the typecode part;
 
-   type Content is abstract tagged null record;
-   type Any_Content_Ptr is access all Content'Class;
-
-   function Duplicate
-     (Object : access Content)
-     return Any_Content_Ptr is abstract;
-   --  Duplicate the data pointed by Object, making a deep copy.
-
-   procedure Deallocate (Object : access Content);
-   --  Deallocate an Any_Content_Ptr.
-   --  Overridden for aggregates, since those have to
-   --  deallocate all the list of their elements.
-
-   function Image (A : Any) return Standard.String;
+   function Image
+     (A : Any)
+     return Standard.String;
    --  For debugging purposes.
 
    ---------------
@@ -109,12 +102,14 @@ package PolyORB.Any is
        Tk_Abstract_Interface);
 
    type ValueModifier is new Types.Short;
+
    VTM_NONE        : constant ValueModifier;
    VTM_CUSTOM      : constant ValueModifier;
    VTM_ABSTRACT    : constant ValueModifier;
    VTM_TRUNCATABLE : constant ValueModifier;
 
    type Visibility is new Types.Short;
+
    PRIVATE_MEMBER : constant Visibility;
    PUBLIC_MEMBER  : constant Visibility;
 
@@ -125,6 +120,7 @@ package PolyORB.Any is
       ----------
 
       type Object is private;
+
       type Object_Ptr is access all Object;
 
       Bounds       : exception;
@@ -134,45 +130,57 @@ package PolyORB.Any is
       --  protocol personality built upon these subprograms must wrap them
       --  to raise proper exceptions or messages.
 
-      function "=" (Left, Right : in Object) return Boolean;
+      function "="
+        (Left, Right : in Object)
+        return Boolean;
       --  TypeCode equality.
 
-      function Equal (Left, Right : in Object) return Boolean
+      function Equal
+        (Left, Right : in Object)
+        return Boolean
         renames "=";
 
-      function Equivalent (Left, Right : in Object)
-                           return Boolean;
+      function Equivalent
+        (Left, Right : in Object)
+        return Boolean;
       --  Equivalence between two typecodes as defined in
       --  section 10.7.1 of the CORBA V2.3.
 
-      function Get_Compact_TypeCode (Self : in Object)
-                                     return Object;
+      function Get_Compact_TypeCode
+        (Self : in Object)
+        return Object;
       --  XXX not implemented, to be defined.
 
-      function Kind (Self : in Object) return TCKind;
+      function Kind
+        (Self : in Object)
+        return TCKind;
       --  Return the kind of a typecode.
 
-      function Id (Self : in Object)
+      function Id
+        (Self : in Object)
         return Types.RepositoryId;
       --  Return the Id associated with a typecode in case its kind is
       --  objref, struct, union, enum, alias, value, valueBox, native,
       --  abstract_interface or except. Raise 'BadKind' else.
 
-      function Name (Self : in Object)
+      function Name
+        (Self : in Object)
         return Types.Identifier;
       --  Return the name associated with a typecode in case its kind is
       --  objref, struct, union, enum, alias, value, valueBox, native,
       --  abstract_interface or except. Raise 'BadKind' else.
 
-      function Member_Count (Self : in Object)
-                             return Types.Unsigned_Long;
+      function Member_Count
+        (Self : in Object)
+        return Types.Unsigned_Long;
       --  Return the number of members associated with a typecode in
       --  case its kind is struct, union, enum, value or except.
       --  Raise 'BadKind' else.
 
-      function Member_Name (Self  : in Object;
-                            Index : in Types.Unsigned_Long)
-                            return Types.Identifier;
+      function Member_Name
+        (Self  : in Object;
+         Index : in Types.Unsigned_Long)
+        return Types.Identifier;
       --  Return the name of a given member associated with a typecode
       --  in case its kind is struct, union, enum, value or except.
       --  Raise 'BadKind' else.
@@ -180,72 +188,84 @@ package PolyORB.Any is
 
       function Member_Type
         (Self  : in Object;
-         Index : in Types.Unsigned_Long) return Object;
+         Index : in Types.Unsigned_Long)
+        return Object;
       --  Return the type of a given member associated with a typecode
       --  in case its kind is struct, union, value or except.
       --  Raise 'BadKind' else.
       --  If there is not enough members, Raise 'Bounds'.
 
       function Member_Label
-          (Self  : in Object;
-           Index : in Types.Unsigned_Long) return Any;
+        (Self  : in Object;
+         Index : in Types.Unsigned_Long)
+        return Any;
       --  Return the label of a given member associated with a typecode
       --  in case its kind is union.
       --  Raise 'BadKind' else.
       --  If there is not enough members, Raise 'Bounds'.
 
-      function Discriminator_Type (Self : in Object)
-                                   return Object;
+      function Discriminator_Type
+        (Self : in Object)
+        return Object;
       --  Return the discriminator type associated with a typecode
       --  in case its kind is union.
       --  Raise 'BadKind' else.
 
-      function Default_Index (Self : in Object)
-                              return Types.Long;
+      function Default_Index
+        (Self : in Object)
+        return Types.Long;
       --  Return the position of the default index in the parameters
       --  of a typecode in case its kind is union.
       --  Raise 'BadKind' else.
       --  If there is no default index, return -1
 
-      function Length (Self : in Object)
-                       return Types.Unsigned_Long;
+      function Length
+        (Self : in Object)
+        return Types.Unsigned_Long;
       --  Return the length associated with a typecode
       --  in case its kind is string, wide_string, sequence or array.
       --  Raise 'BadKind' else.
 
-      function Content_Type (Self : in Object) return Object;
+      function Content_Type
+        (Self : in Object)
+        return Object;
       --  Return the content type associated with a typecode
       --  in case its kind is sequence, array, valueBox or alias.
       --  Raise 'BadKind' else.
 
-      function Fixed_Digits (Self : in Object)
-                             return Types.Unsigned_Short;
+      function Fixed_Digits
+        (Self : in Object)
+        return Types.Unsigned_Short;
       --  Return the number of digits associated with a typecode
       --  in case its kind is fixed.
       --  Raise 'BadKind' else.
 
-      function Fixed_Scale (Self : in Object)
-                            return Types.Short;
+      function Fixed_Scale
+        (Self : in Object)
+        return Types.Short;
       --  Return the scale associated with a typecode
       --  in case its kind is fixed.
       --  Raise 'BadKind' else.
 
       function Member_Visibility
         (Self  : in Object;
-         Index : in Types.Unsigned_Long) return Visibility;
+         Index : in Types.Unsigned_Long)
+        return Visibility;
       --  Return the visibility associated with a member of a typecode
       --  in case its kind is value.
       --  Raise 'BadKind' else.
       --  If there is not enough members, Raise 'Bounds'.
 
-      function Type_Modifier (Self : in Object)
-                              return ValueModifier;
+      function Type_Modifier
+        (Self : in Object)
+        return ValueModifier;
       --  Return the type modifier associated with a typecode
       --  in case its kind is value.
       --  Raise 'BadKind' else.
 
-      function Concrete_Base_Type (Self : in Object)
-                                   return Object;
+      function Concrete_Base_Type
+        (Self : in Object)
+        return Object;
       --  Return the concrete base type associated with a typecode
       --  in case its kind is value.
       --  Raise 'BadKind' else.
@@ -257,7 +277,8 @@ package PolyORB.Any is
       function Member_Type_With_Label
         (Self  : in Object;
          Label : in Any;
-         Index : in Types.Unsigned_Long) return Object;
+         Index : in Types.Unsigned_Long)
+        return Object;
       --  Return the type of a given member associated with an
       --  union typecode for a given label. The index is the index
       --  of the member among the members associated with Label. The
@@ -266,36 +287,41 @@ package PolyORB.Any is
       --  If there is not enough members, Raise 'Bounds'.
 
       function Member_Count_With_Label
-        (Self : in Object;
+        (Self  : in Object;
          Label : in Any)
          return Types.Unsigned_Long;
       --  Return the number of members associated with a typecode of
       --  kind union for a given label.
       --  Raise 'BadKind' if Self is not an union typecode.
 
-      function Get_Parameter (Self : in Object;
-                              Index : in Types.Unsigned_Long)
-                              return Any;
+      function Get_Parameter
+        (Self  : in Object;
+         Index : in Types.Unsigned_Long)
+        return Any;
       --  Return the parameter nb index in the list of Self's
       --  parameters. Raise Out_Of_Bounds_Index exception if
       --  this parameter does not exist
 
-      procedure Add_Parameter (Self  : in out Object;
-                               Param : in Any);
+      procedure Add_Parameter
+        (Self  : in out Object;
+         Param : in     Any);
       --  Add the parameter Param in the list of Self's
       --  parameters.
 
-      procedure Set_Volatile (Self        : in out Object;
-                              Is_Volatile : in Boolean);
+      procedure Set_Volatile
+        (Self        : in out Object;
+         Is_Volatile : in     Boolean);
       --  Set to 'True' if TypeCode is volatile, i.e. can be destroyed.
       --  'False' otherwise.
 
-      procedure Destroy_TypeCode (Self : in out Object);
+      procedure Destroy_TypeCode
+        (Self : in out Object);
       --  Free all elements contained in 'Self' iff 'Self' has been marked
       --  volatile.
 
-      procedure Set_Kind (Self : out Object;
-                          Kind : in TCKind);
+      procedure Set_Kind
+        (Self : out Object;
+         Kind : in  TCKind);
       --  Return a typecode of kind 'Kind', with an empty parameter list.
 
       --  Simple typecodes
@@ -341,7 +367,8 @@ package PolyORB.Any is
       function TC_Abstract_Interface return TypeCode.Object;
 
       function Parameter_Count
-        (Self : in Object) return Types.Unsigned_Long;
+        (Self : in Object)
+        return Types.Unsigned_Long;
       --  Return the number of parameters in typecode Self.
 
    private
@@ -539,16 +566,22 @@ package PolyORB.Any is
    function TC_Object             return TypeCode.Object
      renames TypeCode.TC_Object;
 
-   -----------
-   --  Any  --
-   -----------
+   ---------
+   -- Any --
+   ---------
 
-   function "=" (Left, Right : in Any) return Boolean;
+   function "="
+     (Left, Right : in Any)
+     return Boolean;
 
-   function Equal (Left, Right : in Any) return Boolean
+   function Equal
+     (Left, Right : in Any)
+     return Boolean
      renames "=";
 
-   function Compare_Any_Contents (Left : in Any; Right : in Any)
+   function Compare_Any_Contents
+     (Left  : in Any;
+      Right : in Any)
      return Boolean;
    --  Check if two Anys are pointing to the same content object.
 
@@ -588,82 +621,130 @@ package PolyORB.Any is
    function From_Any (Item : in Any) return Types.String;
    function From_Any (Item : in Any) return Types.Wide_String;
 
-   function Get_Type (The_Any : in Any) return TypeCode.Object;
+   function Get_Type
+     (The_Any : in Any)
+     return TypeCode.Object;
 
    function Unwind_Typedefs
      (TC : in TypeCode.Object)
      return TypeCode.Object;
    --  Unwind any typedef (alias) from TC.
 
-   function Get_Unwound_Type (The_Any : in Any) return TypeCode.Object;
+   function Get_Unwound_Type
+     (The_Any : in Any)
+     return TypeCode.Object;
    --  Return the actual type of The_Any, after resolution of
    --  all typedef levels.
 
    procedure Set_Type
-     (The_Any : in out Any;
-      The_Type : in TypeCode.Object);
+     (The_Any  : in out Any;
+      The_Type : in     TypeCode.Object);
    --  Not in spec : change the type of an any without changing its
    --  value : to be used carefully
 
-   procedure Set_Volatile (Obj : in out Any; Is_Volatile : in Boolean);
-   --  Not in spec : mark the 'Obj' 's TypeCode as 'volatile', see Set_Volatile
-   --  in package PolyORB.Any.TypeCode for more details.
+   procedure Set_Volatile
+     (Obj         : in out Any;
+      Is_Volatile : in    Boolean);
+   --  Not in spec : mark the 'Obj' 's TypeCode as 'volatile', see
+   --  Set_Volatile in package PolyORB.Any.TypeCode for more details.
 
    generic
-      with procedure Process (The_Any : in Any;
-                              Continue : out Boolean);
+      with procedure Process
+        (The_Any  : in  Any;
+         Continue : out Boolean);
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
    --  XXX Not implemented.
 
-   function Get_Empty_Any (Tc : TypeCode.Object) return Any;
-   --  Return  an empty Any (with no value but a type).
+   function Get_Empty_Any
+     (Tc : TypeCode.Object)
+     return Any;
+   --  Return an empty Any (with no value but a type).
 
-   function Is_Empty (Any_Value : in Any) return Boolean;
+   function Is_Empty
+     (Any_Value : in Any)
+     return Boolean;
    --  Not in spec : return true if the Any is empty, false
    --  if it has a value.
 
    --  These functions allows the user to set the value of an any
-   --  directly if he knows its kind. It a function is called on a
-   --  bad kind of any, a BAD_TYPECODE exception will be raised
-   --  Note that the Any can be empty. In this case, the value
-   --  will be created
-   --  Should never be called outside the broca.cdr package
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Octet);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Short);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Long);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Long_Long);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Unsigned_Short);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Unsigned_Long);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Unsigned_Long_Long);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Boolean);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Char);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Wchar);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.String);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Wide_String);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Float);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Double);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Types.Long_Double);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in TypeCode.Object);
-   procedure Set_Any_Value (Any_Value : in out Any;
-                            Value : in Any);
+   --  directly if he knows its kind. If a function is called on a bad
+   --  kind of any, a BAD_TYPECODE exception will be raised Note that
+   --  the Any can be empty. In this case, the value will be
+   --  created.
 
-   procedure Set_Any_Aggregate_Value (Any_Value : in out Any);
+   --  These functions should never be called outside a package
+   --  achieving the PolyORB's 'Representation' service.
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Octet);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Short);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in    Types.Long);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Long_Long);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Unsigned_Short);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Unsigned_Long);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Unsigned_Long_Long);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Boolean);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Char);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Wchar);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.String);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Wide_String);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Float);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Double);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Types.Long_Double);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     TypeCode.Object);
+
+   procedure Set_Any_Value
+     (Any_Value : in out Any;
+      Value     : in     Any);
+
+   procedure Set_Any_Aggregate_Value
+     (Any_Value : in out Any);
    --  This one is a bit special : it doesn't put any value but
    --  create the aggregate value if it does not exist.
 
@@ -672,7 +753,9 @@ package PolyORB.Any is
    --  of values, instead of one unique. It is used for structs,
    --  unions, enums, arrays, sequences, objref, values...
 
-   function Get_Aggregate_Count (Value : Any) return Types.Unsigned_Long;
+   function Get_Aggregate_Count
+     (Value : Any)
+     return Types.Unsigned_Long;
    --  Return the number of elements in an any aggregate
 
    procedure Add_Aggregate_Element
@@ -686,7 +769,7 @@ package PolyORB.Any is
      (Value : Any;
       Tc    : TypeCode.Object;
       Index : Types.Unsigned_Long)
-      return Any;
+     return Any;
    --  Gets an element in an any agregate
    --  Return an any made of the typecode Tc and the value read in
    --  the aggregate.
@@ -697,7 +780,9 @@ package PolyORB.Any is
    --  Return an empty any aggregate
    --  puts its type to Tc
 
-   procedure Copy_Any_Value (Dest : Any; Src : Any);
+   procedure Copy_Any_Value
+     (Dest : in out Any;
+      Src  :        Any);
    --  Set the value of Dest from the value of Src (as
    --  Set_Any_Value would do, but without the need to
    --  know the precise type of Src). Dest and Src must be Any's
@@ -706,9 +791,9 @@ package PolyORB.Any is
    --  sets the value of Dest (an Any which a Tk_Any type code)
    --  to be Src (not the /value/ of Src).
 
-   -----------------
-   --  NamedValue --
-   -----------------
+   ----------------
+   -- NamedValue --
+   ----------------
 
    type Flags is new Types.Unsigned_Long;
 
@@ -723,14 +808,16 @@ package PolyORB.Any is
       Arg_Modes : Flags;
    end record;
 
-   function Image (TC : TypeCode.Object) return Standard.String;
-   function Image (NV : NamedValue) return Standard.String;
+   function Image
+     (TC : TypeCode.Object)
+     return Standard.String;
+
+   function Image
+     (NV : NamedValue)
+     return Standard.String;
    --  For debugging purposes.
 
 private
-
-   --  Null_String : constant CORBA.String :=
-   --  CORBA.String (Ada.Strings.Unbounded.Null_Unbounded_String);
 
    VTM_NONE        : constant ValueModifier := 0;
    VTM_CUSTOM      : constant ValueModifier := 1;
@@ -740,9 +827,9 @@ private
    PRIVATE_MEMBER : constant Visibility := 0;
    PUBLIC_MEMBER  : constant Visibility := 1;
 
-   -----------
-   --  Any  --
-   -----------
+   ---------
+   -- Any --
+   ---------
 
    --  Any is implemented this way :
    --   - one field for the typecode (TypeCode.Object)
@@ -758,13 +845,28 @@ private
    --  pointing on a list of childs of Content; various methods are provided
    --  to manipulate this list.
 
+   type Content is abstract tagged null record;
 
-   type Any_Content_Ptr_Ptr is access all Any_Content_Ptr;
-   Null_Content_Ptr_Ptr : constant Any_Content_Ptr_Ptr := null;
+   type Any_Content_Ptr is access all Content'Class;
+
+   procedure Deallocate
+     (Object : access Content);
+   --  Deallocate an Any_Content_Ptr.
+   --  Overridden for aggregates, since those have to
+   --  deallocate all the list of their elements.
+
+   function Duplicate
+     (Object : access Content)
+     return Any_Content_Ptr
+      is abstract;
+   --  Duplicate the data pointed by Object, making a deep copy
 
    --  Frees an Any_Content_Ptr
    procedure Deallocate_Any_Content is new Ada.Unchecked_Deallocation
      (Content'Class, Any_Content_Ptr);
+
+   type Any_Content_Ptr_Ptr is access all Any_Content_Ptr;
+
    --  Free an Any_Content_Ptr_Ptr
    procedure Deallocate_Any_Content_Ptr is new Ada.Unchecked_Deallocation
      (Any_Content_Ptr, Any_Content_Ptr_Ptr);
@@ -777,60 +879,52 @@ private
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (TypeCode.Object, TypeCode.Object_Ptr);
 
-   type Natural_Ptr is access Natural;
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Natural, Natural_Ptr);
-
    ------------------
    -- The Any type --
    ------------------
 
-   type Any is new Ada.Finalization.Controlled with record
-      The_Type     : TypeCode.Object;
-      --  TypeCode describing the data.
+   type Any is new PolyORB.Smart_Pointers.Ref with null record;
 
-      The_Value    : Any_Content_Ptr_Ptr;
-      --  Pointer to the actual value contained.
+   type Any_Container is new PolyORB.Smart_Pointers.Non_Controlled_Entity with
+      record
+         The_Type     : TypeCode.Object;
+         --  TypeCode describing the data
 
-      Ref_Counter  : Natural_Ptr;
-      --  Reference counter associated with the
-      --  designated container.
+         The_Value    : Any_Content_Ptr_Ptr;
+         --  Pointer to the actual value contained
 
-      Any_Lock     : Tasking.Mutexes.Mutex_Access;
-      --  Lock to guarantee consistent concurrent access
-      --  to Ref_Counter.
+         Is_Finalized : Boolean := False;
+         --  Set to True in Finalize, used to detect double
+         --  finalization.
 
-      Is_Finalized : Boolean := False;
-      --  Set to True in Finalize, used to detect double
-      --  finalization.
-   end record;
+      end record;
+
+   type Any_Container_Ptr is access all Any_Container;
+
+   procedure Finalize   (Self : in out Any_Container);
 
    --  Some methods to deal with the Any fields.
 
-   --  These are the only way to deal with the fields if you want to
-   --  stay thread safe
-   --  Apart from the management of locks, these methods do not
-   --  make any test. So use them carefully
+   procedure Set_Value
+     (Obj       : in out Any;
+      The_Value : in     Any_Content_Ptr);
+   pragma Inline (Set_Value);
 
-   procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr);
-   function Get_Value (Obj : Any) return Any_Content_Ptr;
-   function Get_Value_Ptr (Obj : Any) return Any_Content_Ptr_Ptr;
-   function Get_Counter (Obj : Any) return Natural;
+   function Get_Value
+     (Obj : Any)
+     return Any_Content_Ptr;
+   pragma Inline (Get_Value);
 
-   --  The control procedures to the Any type.
-   procedure Initialize (Object : in out Any);
-   procedure Adjust     (Object : in out Any);
-   procedure Finalize   (Object : in out Any);
-
-   --  Management of the counter associated to an Any.
-   procedure Inc_Usage (Obj : in Any);
-   procedure Dec_Usage (Obj : in out Any);
+   function Get_Value_Ptr
+     (Obj : Any)
+     return Any_Content_Ptr_Ptr;
+   pragma Inline (Get_Value_Ptr);
 
    --  Deallocation of Any pointers.
    procedure Deallocate is new Ada.Unchecked_Deallocation (Any, Any_Ptr);
 
    ------------------
-   --  Named_Value --
+   -- Named_Value --
    ------------------
 
    ARG_IN        : constant Flags := 0;

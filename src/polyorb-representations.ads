@@ -31,7 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Data representation methods
+--  Data representation methods.
+
+--  A Representation is a method for transforming an arbitrary piece
+--  of data (in the form of an 'Any' object) into a sequence of
+--  Stream_Elements, and back.
 
 --  $Id$
 
@@ -41,20 +45,17 @@ with PolyORB.Buffers;
 package PolyORB.Representations is
 
    type Representation is abstract tagged limited private;
+
    type Representation_Access is access all Representation;
-   --  A Representation is a method for transforming an
-   --  arbitrary piece of data (in the form of an 'Any'
-   --  object) into a sequence of Stream_Elements, and
-   --  back.
 
    procedure Marshall_From_Any
-     (R      : Representation;
+     (R      :        Representation;
       Buffer : access Buffers.Buffer_Type;
-      Data   : Any.Any)
+      Data   : in     Any.Any)
      is abstract;
 
    procedure Unmarshall_To_Any
-     (R      : Representation;
+     (R      :        Representation;
       Buffer : access Buffers.Buffer_Type;
       Data   : in out Any.Any)
      is abstract;
