@@ -673,9 +673,9 @@ package body PolyORB.POA.Basic_POA is
    is
       use PolyORB.POA_Types.POA_HTables;
 
-      Name : constant String := To_Standard_String (Self.Name);
    begin
-      pragma Debug (O ("Start destroying POA: " & Name));
+      pragma Debug (O ("Start destroying POA: "
+                       & To_Standard_String (Self.Name)));
 
       --  Remove Self from Global POA Table
 
@@ -742,7 +742,9 @@ package body PolyORB.POA.Basic_POA is
          Destroy_OA (OA);
       end;
 
-      pragma Debug (O ("POA '" & Name & "' destroyed"));
+      pragma Debug (O ("POA '"
+                       & To_Standard_String (Self.Name)
+                       & "' destroyed"));
 
       --  XXX Add code for Etherealize_Objects and Wait_For_Completion ???
 
