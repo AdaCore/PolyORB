@@ -1,0 +1,6 @@
+
+interface Test_Interface {
+
+    string Name ();
+
+};
