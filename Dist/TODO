@@ -1,0 +1,39 @@
+CLADS : Configuration Language for Ada Distributed System
+
+* Directory hierarchy should take into account the configuration name.
+  
+* Env. variable like GCC_PREFIX for GNATDIST.
+
+* Handle or not rule E.5 (21) (pragma ...).
+
+* Get -j parameter from command line and use it
+
+* Improve generation, compilation and link steps
+
+* Define "plateforms" or groupe of partitions in the configuration language
+     PLATEFORM_NAME:
+     begin
+        ...
+     end PLATEFORM_NAME;
+  and
+     enable the generation of a list of partitions
+
+* New attributes : binary, input, output, error, flags, arguments
+
+* Variable : P1 := P1 & (.., ..);
+
+* Don't start partition when they are permanent and allow this feature
+
+* Enable security features
+
+* Enable a list of protocols to be loaded in a partitionand provide the
+  code to make the protocol choice
+
+* Enable an invocation mechanism that is not centralized
+
+* Replication features
+
+Bugs to fix :
+
+* Bug in SGI version : the time stamps seems to be wrongly interpreted
+  so stubs are generated too many times.

@@ -1,0 +1,7 @@
+*.o
+*.ali
+b_*.c
+Makefile
+config.cache
+config.log
+config.status

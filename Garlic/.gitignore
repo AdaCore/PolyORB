@@ -1,0 +1,6 @@
+*.ali
+*.o
+Makefile
+b_*.c
+s-garcon.ads
+test_startup

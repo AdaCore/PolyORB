@@ -1,0 +1,10 @@
+* Check pragma Storage_Size in tasks.
+* Do FD 1 and 2 redirection.
+* Handle pragma All_Calls_Remote (through protocol loopback) (need to
+  implement this in GNAT first).
+* Fix abortion problem.
+* Handle concurrent connections.
+* Check termination on Prime.
+* Check that the Partition_RPC_Receiver of s-parint.adb cannot be installed
+  more than once.
+* Fix termination on SunOS.

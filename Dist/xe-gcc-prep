@@ -1,0 +1,9 @@
+#! /bin/sh
+PROG=`basename $0`
+NAME=/tmp/${PROG}.$$
+echo "" >>$1
+mv -f $1 ${NAME}
+cat >$1 <<EOF
+EOF
+cat ${NAME} >> $1
+rm ${NAME}

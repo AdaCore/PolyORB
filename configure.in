@@ -1,0 +1,100 @@
+#
+# $Id$
+#
+AC_INIT([Dist/xe.ads])
+#
+# Package description
+#
+PACKAGE=pcs
+AC_SUBST(PACKAGE)
+VERSION=1.0
+AC_SUBST(VERSION)
+#
+# Various programs
+#
+AC_PROG_CC
+AC_CHECK_PROGS(SED, [gnused gsed sed])
+AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
+AC_DEFUN(fp_PROG_INSTALL,
+[AC_PROG_INSTALL
+test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL} -m 755'
+AC_SUBST(INSTALL_SCRIPT)dnl
+])
+fp_PROG_INSTALL
+AC_CANONICAL_SYSTEM
+AC_ARG_PROGRAM
+#
+# Check for maintainer mode
+#
+AC_ARG_ENABLE(debug,
+[  --enable-debug          Turn on debugging options],
+[GNATFLAGS="-g -gnata"],
+[GNATFLAGS="-O2 -gnatn"])
+AC_SUBST(GNATFLAGS)
+#
+# Find GNAT sources
+#
+AC_DEFUN([AC_GNAT_SOURCE],
+[
+  AC_MSG_CHECKING([for GNAT sources])
+  if test -f gnat/osint.ads; then
+    GNAT_SOURCE=../gnat
+    AC_MSG_RESULT(gnat)
+  elif test -f ada/osint.ads; then
+    GNAT_SOURCE=../ada
+    AC_MSG_RESULT(ada)
+  elif test -f $srcdir/gnat/osint.ads; then
+    GNAT_SOURCE=$srcdir/gnat
+    AC_MSG_RESULT($srcdir/gnat)
+  elif test -f $srcdir/ada/osint.ads; then
+    GNAT_SOURCE=$srcdir/ada
+    AC_MSG_RESULT($srcdir/ada)
+  else
+    AC_MSG_ERROR([no sources found])
+  fi
+  AC_SUBST(GNAT_SOURCE)
+])
+AC_GNAT_SOURCE
+#
+# Make
+#
+AC_PROG_MAKE_SET
+#
+# Platform specific
+#
+AC_MSG_CHECKING(which platform-specific variant to use)
+AC_ARG_WITH(platform,
+ [  --with-platform=letter  Select another platform's specific files (debug)],
+ [PLATFORM_SPECIFIC="${withval}"],
+[case "${target}" in
+  sparc-sun-solaris2*) PLATFORM_SPECIFIC=s;;
+  sparc-sun-sunos4*)   PLATFORM_SPECIFIC=u;;
+  linux-*)             PLATFORM_SPECIFIC=a;;
+  mips-sgi-irix*)      PLATFORM_SPECIFIC=g;;
+  *)                   ]AC_MSG_ERROR([Unsupported platform "${target}"])[;;
+esac])
+AC_SUBST(PLATFORM_SPECIFIC)
+[case "${PLATFORM_SPECIFIC}" in
+   s) PSNAME="Solaris";;
+   u) PSNAME="SunOS";;
+   a) PSNAME="Linux";;
+   g) PSNAME="SGI";;
+   *) PSNAME="Unknown (${PLATFORM_SPECIFIC})";;
+esac]
+AC_MSG_RESULT($PSNAME)
+#
+# Extra libraries
+#
+AC_ARG_WITH(extra-libs,
+ [  --with-extra-libs=libs  Add extra libraries when building a program],
+ [EXTRA_LIBS="${withval}"])
+AC_SUBST(EXTRA_LIBS)
+#
+# Output
+#
+AC_OUTPUT([Makefile
+           Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
+           Garlic/Makefile
+           Examples/Makefile
+           Examples/Prime/Makefile
+           Examples/RACW/Makefile])

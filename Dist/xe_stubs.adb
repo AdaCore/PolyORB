@@ -1,0 +1,723 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                          GNATDIST COMPONENTS                             --
+--                                                                          --
+--                             X E _ S T U B S                              --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--                            1.34                              --
+--                                                                          --
+--           Copyright (C) 1996 Free Software Foundation, Inc.              --
+--                                                                          --
+-- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
+-- under terms of the  GNU General Public License  as published by the Free --
+-- Software  Foundation;  either version 2,  or  (at your option) any later --
+-- version. GNATDIST is distributed in the hope that it will be useful, but --
+-- WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHANTABI- --
+-- LITY or FITNESS  FOR A PARTICULAR PURPOSE.  See the  GNU General  Public --
+-- License  for more details.  You should  have received a copy of the  GNU --
+-- General Public License distributed with  GNATDIST; see file COPYING.  If --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+--              GNATDIST is maintained by ACT Europe.                       --
+--            (email:distribution@act-europe.gnat.com).                     --
+--                                                                          --
+------------------------------------------------------------------------------
+with Fname;            use Fname;
+with Osint;            use Osint;
+with Namet;            use Namet;
+with Output;           use Output;
+with ALI;              use ALI;
+with Types;            use Types;
+with XE_Defs;          use XE_Defs;
+with XE_Utils;         use XE_Utils;
+with XE;               use XE;
+with GNAT.Os_Lib;      use GNAT.Os_Lib;
+
+procedure XE_Stubs is
+
+   Separator : Character renames GNAT.Os_Lib.Directory_Separator;
+
+   --  Local subprograms
+
+   procedure Mark_RCI_Callers
+     (PID : PID_Type;
+      ALI : ALI_Id);
+   --  Starting from an ali file, search though all the dependency
+   --  chain to mark RCI callers. This is specially useful to
+   --  know the version checks to perform.
+
+   procedure Create_Main_Unit (PID : in PID_Type);
+   --  Create a procedure which "withes" all the RCI receivers
+   --  of the partition and insert the main procedure if needed.
+
+   procedure Copy_Stub (Source_Dir, Target_Dir, Base_Name : in File_Name_Type);
+   --  Copy all the stub files (base_name.*) from a source directory to
+   --  a target directory. The suffixes used are .adb .o .ali.
+
+   procedure Delete_Stub (Source_Dir, Base_Name : in File_Name_Type);
+   --  Delete all the stub files (base_name.*) from a source directory. The
+   --  suffixes used are .adb .o .ali.
+
+   procedure Build_Stub (UID : in CUID_Type);
+   --  Create the caller stub and the receiver stub for a RCI unit.
+
+   ------------------------
+   -- Write_Caller_Withs --
+   ------------------------
+
+   procedure Mark_RCI_Callers
+     (PID : PID_Type;
+      ALI : ALI_Id) is
+
+      Current_ALI : ALI_Id;
+      Continue    : Boolean;
+
+   begin
+
+      --  Mark this unit to avoid infinite recursive search.
+      for I in ALIs.Table (ALI).First_Unit ..
+               ALIs.Table (ALI).Last_Unit loop
+         Set_PID (Unit.Table (I).Uname, PID);
+      end loop;
+
+      for I in ALIs.Table (ALI).First_Unit ..
+               ALIs.Table (ALI).Last_Unit loop
+         for J in Unit.Table (I).First_With ..
+                  Unit.Table (I).Last_With loop
+
+            --  Avoid generic units.
+            Continue := not (Withs.Table (J).Afile = No_File);
+
+            if Continue then
+               --  An Afile name key is its ALI id.
+               Current_ALI := Get_ALI_Id (Withs.Table (J).Afile);
+
+               --  If this ALI file has not been loaded, then we do not
+               --  need to check it (this means that we encountered an
+               --  internal unit that was not specified in the configuration
+               --  file and thus not recursively checked for consistency).
+
+               if Current_ALI = No_ALI_Id then
+                  Continue := False;
+               end if;
+            end if;
+
+            if Continue then
+
+               for K in ALIs.Table (Current_ALI).First_Unit ..
+                        ALIs.Table (Current_ALI).Last_Unit loop
+
+                  --  Look for a RCI units
+                  if Unit.Table (K).RCI then
+
+                     --  This one is a caller (mapped on a different
+                     --  partition. Note that an unit name key is
+                     --  a partition id if unit is RCI.
+                     if Get_PID (Unit.Table (K).Uname) /= PID then
+                        Get_Name_String (Unit.Table (K).Uname);
+                        Set_PID (Unit.Table (K).Uname, PID);
+                     end if;
+
+                     --  No need to search deeper. This unit is not
+                     --  on this partition.
+                     Continue := False;
+                     exit;
+
+                  elsif Get_PID (Unit.Table (K).Uname) = PID then
+
+                     --  No need to search deeper. Already done.
+                     Continue := False;
+                     exit;
+
+                  end if;
+               end loop;
+
+               --  This unit is not a RCI unit or has not been scanned.
+               if Continue then
+                  Mark_RCI_Callers (PID, Current_ALI);
+               end if;
+            end if;
+
+         end loop;
+      end loop;
+
+   end Mark_RCI_Callers;
+
+   ----------------------
+   -- Create_Main_Unit --
+   ----------------------
+
+   procedure Create_Main_Unit (PID : in PID_Type) is
+
+      PName : constant Partition_Name_Type := Partitions.Table (PID).Name;
+      UID   : CUID_Type;
+      FD    : File_Descriptor;
+      Fname : File_Name_Type := DSA_Dir & Dir_Sep_Id &
+                                PName & Dir_Sep_Id &
+                                PName & ADB_Suffix;
+
+   begin
+
+      if Is_Regular_File (Fname) and then
+         Later (Fname, Configuration_File) then
+         return;
+      end if;
+
+      if not Is_Directory (DSA_Dir & Dir_Sep_Id & PName) then
+         Create_Dir (DSA_Dir & Dir_Sep_Id & PName);
+      end if;
+
+      Create (FD, Fname);
+
+
+      --  Force the RCI receivers to be present on the partition.
+      Write_Eol (FD);
+      Write_Str (FD, "--  RCI receiver and non-RCI units");
+      Write_Eol (FD);
+      UID := Partitions.Table (PID).First_Unit;
+      while UID /= Null_CUID loop
+         Set_PID (Unit.Table (CUnit.Table (UID).My_Unit).Uname,
+                  CUnit.Table (UID).Partition);
+         Write_Str  (FD, "with ");
+         Write_Name (FD, CUnit.Table (UID).CUname);
+         Write_Str  (FD, ";");
+         Write_Eol  (FD);
+         UID := CUnit.Table (UID).Next;
+      end loop;
+
+      --  Need the RCI callers to compare their version with the
+      --  receiver version stored on the RNS.
+      Write_Eol (FD);
+      Write_Str (FD, "--  RCI caller units");
+      Write_Eol (FD);
+
+      UID := Partitions.Table (PID).First_Unit;
+      while UID /= Null_CUID loop
+         Mark_RCI_Callers (PID, CUnit.Table (UID).My_ALI);
+         UID := CUnit.Table (UID).Next;
+      end loop;
+
+      --  First pass to 'with' the RCI callers.
+      for U in CUnit.First .. CUnit.Last loop
+         if Unit.Table (CUnit.Table (U).My_Unit).RCI then
+            if CUnit.Table (U).Partition /= PID and then
+              Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID then
+               Write_Str  (FD, "with ");
+               Write_Name (FD, CUnit.Table (U).CUname);
+               Write_Str  (FD, "; ");
+               Write_Eol  (FD);
+            end if;
+         else
+            Set_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname, Null_PID);
+         end if;
+      end loop;
+
+      Write_Eol (FD);
+      Write_Str (FD, "--  System");
+      Write_Eol (FD);
+      Write_Str (FD, "with system.garlic.heart;");
+      Write_Eol (FD);
+      Write_Str (FD, "with system.partition_interface;");
+      Write_Eol (FD);
+      Write_Str (FD, "with ada.exceptions;");
+      Write_Eol (FD);
+
+      --  XXXXX: debug.
+      Write_Str (FD, "with system.io;");
+      Write_Eol (FD);
+
+      if PID = Main_Partition and then Starter_Method = Ada_Starter then
+         Write_Str (FD, "with system.garlic.remote;");
+         Write_Eol (FD);
+         Write_Str (FD, "with system.garlic.options;");
+         Write_Eol (FD);
+      end if;
+
+      Write_Str  (FD, "procedure ");
+      Write_Name (FD, PName);
+      Write_Str  (FD, " is");
+      Write_Eol  (FD);
+
+      if PID = Main_Partition then
+         Write_Str (FD, "   what    : ada.exceptions.exception_id;");
+         Write_Eol (FD);
+         Write_Str (FD, "   message : system.garlic.heart.string_ptr;");
+         Write_Eol (FD);
+      end if;
+
+      Write_Str  (FD, "begin");
+      Write_Eol  (FD);
+
+      if PID = Main_Partition then
+
+         if Starter_Method = Ada_Starter and
+           Partitions.First /= Partitions.Last then
+            Write_Str (FD, "   if not system.garlic.options");
+            Write_Str (FD, ".get_nolaunch then");
+            Write_Eol (FD);
+            for Partition in Partitions.First .. Partitions.Last loop
+               if Partition /= Main_Partition then
+                  Write_Str (FD, "      system.garlic.remote.full_launch");
+                  Write_Eol (FD);
+                  if Partitions.Table (Partition).Host.Name = No_Host_Name then
+                     Write_Str  (FD, "         (host            => ");
+                     Write_Str  (FD, "system.garlic.remote.get_host (""");
+                     Write_Name (FD, Partitions.Table (Partition) .Name);
+                     Write_Str  (FD, """),");
+                  else
+                     Write_Str  (FD, "         (host            => """);
+                     if Partitions.Table (Partition).Host.Func then
+                        Write_Str (FD, "`");
+                        Write_Name (FD,
+                                    Partitions.Table (Partition).Host.Name);
+                        Write_Str (FD, "`");
+                     else
+                        Write_Name (FD,
+                                    Partitions.Table (Partition).Host.Name);
+                     end if;
+                     Write_Str  (FD, """,");
+                  end if;
+                  Write_Eol (FD);
+                  Write_Str (FD, "          executable_name => """);
+
+                  Write_Executable_Name : declare
+                     Dir : constant Name_Id :=
+                       Partitions.Table (Partition).Storage_Dir;
+                  begin
+                     if Dir = No_Storage_Dir then
+
+                        --  No storage dir means current directory
+
+                        Write_Str (FD, "`pwd`/");
+
+                     else
+                        Get_Name_String (Dir);
+                        if Name_Buffer (1) /= Separator then
+
+                           --  The storage dir is relative
+
+                           Write_Str (FD, "`pwd`/");
+
+                        end if;
+
+                        --  Write the dir as it has been written
+
+                        Write_Str (FD, Name_Buffer (1 .. Name_Len));
+                        Write_Str (FD, "/");
+
+                     end if;
+
+                     --  Write the program name
+
+                     Write_Name (FD, Partitions.Table (Partition) .Name);
+                  end Write_Executable_Name;
+
+                  Write_Str (FD, """,");
+                  Write_Eol (FD);
+                  Write_Str (FD, "          boot_server  => ");
+                  Write_Str (FD, "system.garlic.heart.get_boot_server);");
+                  Write_Eol (FD);
+               end if;
+            end loop;
+            Write_Str (FD, "   end if;");
+            Write_Eol (FD);
+         end if;
+
+      end if;
+
+      Write_Str (FD, "   system.garlic.heart.elaboration_is_terminated;");
+      Write_Eol (FD);
+
+      --  Version consistency between receiver and caller.
+      --  Checks perform on all the rci caller stubs.
+      for U in CUnit.First .. CUnit.Last loop
+         if Unit.Table (CUnit.Table (U).My_Unit).RCI and then
+           CUnit.Table (U).Partition /= PID and then
+           Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID then
+            Write_Str  (FD, "   if ");
+            Write_Name (FD, CUnit.Table (U).CUname);
+            Write_Str  (FD, "'version /= ");
+            Write_Str  (FD, "system.partition_interface.");
+            Write_Eol  (FD);
+            Write_Str  (FD, "      ");
+            Write_Str  (FD, "get_active_version (""");
+            Write_Name (FD, CUnit.Table (U).CUname);
+            Write_Str  (FD, """) then");
+            Write_Eol  (FD);
+            Write_Str  (FD, "      system.garlic.heart.soft_shutdown;");
+            Write_Eol  (FD);
+            Write_Str  (FD, "      ada.exceptions.raise_exception");
+            Write_Eol  (FD);
+            Write_Str  (FD, "         (program_error'identity,");
+            Write_Eol  (FD);
+            Write_Str  (FD, "          ""Versions differ for partition """"");
+            Write_Name (FD, CUnit.Table (U).CUname);
+            Write_Str  (FD, """"""");");
+            Write_Eol  (FD);
+            Write_Str  (FD, "   end if;");
+            Write_Eol  (FD);
+            Set_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname, Null_PID);
+         end if;
+      end loop;
+
+      if PID = Main_Partition then
+         Write_Str  (FD, "   select");
+         Write_Eol  (FD);
+         Write_Str  (FD, "      system.garlic.heart.fatal_error.occurred(");
+         Write_Str  (FD, "what, message);");
+         Write_Eol  (FD);
+         Write_Str  (FD, "      system.garlic.heart.soft_shutdown;");
+         Write_Eol  (FD);
+         Write_Str  (FD, "      ada.exceptions.raise_exception");
+         Write_Eol  (FD);
+         Write_Str  (FD, "         (what, message.all);");
+         Write_Eol  (FD);
+         Write_Str  (FD, "   then abort");
+         Write_Eol  (FD);
+         Write_Str  (FD, "      ");
+         Write_Name (FD, Main_Subprogram);
+         Write_Str  (FD, ";");
+         Write_Eol  (FD);
+         Write_Str  (FD, "   end select;");
+         Write_Eol  (FD);
+      end if;
+
+      Write_Str  (FD, "end ");
+      Write_Name (FD, PName);
+      Write_Str  (FD, ";");
+      Write_Eol  (FD);
+      Close (FD);
+
+      if not Quiet_Output then
+         Write_Program_Name;
+         Write_Str  (": building ");
+         Write_Name (PName);
+         Write_Str  (" main procedure");
+         Write_Eol;
+      end if;
+
+   end Create_Main_Unit;
+
+   ---------------
+   -- Copy_Stub --
+   ---------------
+
+   procedure Copy_Stub (Source_Dir, Target_Dir, Base_Name  : in Name_Id) is
+      ALI_Src : File_Name_Type
+        := Source_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
+      ALI_Tgt : File_Name_Type
+        := Target_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
+      Obj_Src : File_Name_Type
+        :=  Source_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
+      Obj_Tgt : File_Name_Type
+        := Target_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
+      ADB_Src : File_Name_Type
+        := Source_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
+      ADB_Tgt : File_Name_Type
+        := Target_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
+   begin
+
+      --  Copy the stubs from source directory to the target directory.
+
+      if not Is_Regular_File (ALI_Src) then
+         Write_Program_Name;
+         Write_Str  (": ");
+         Write_Name (ALI_Src);
+         Write_Str  (" not found");
+         Write_Eol;
+         raise Fatal_Error;
+      else
+         Copy_With_File_Stamp (ALI_Src, ALI_Tgt);
+      end if;
+
+      if not Is_Regular_File (Obj_Src) then
+         Write_Program_Name;
+         Write_Str  (": ");
+         Write_Name (Obj_Src);
+         Write_Str  (" not found");
+         Write_Eol;
+         raise Fatal_Error;
+      else
+         Copy_With_File_Stamp (Obj_Src, Obj_Tgt);
+      end if;
+
+      if not Is_Regular_File (ADB_Src) then
+         Write_Program_Name;
+         Write_Str  (": ");
+         Write_Name (ADB_Src);
+         Write_Str  (" not found");
+         Write_Eol;
+         raise Fatal_Error;
+      else
+         Copy_With_File_Stamp (ADB_Src, ADB_Tgt);
+      end if;
+
+   end Copy_Stub;
+
+   -----------------
+   -- Delete_Stub --
+   -----------------
+
+   procedure Delete_Stub (Source_Dir, Base_Name  : in Name_Id) is
+      ALI_Src : File_Name_Type
+        := Source_Dir & Dir_Sep_Id & Base_Name & ALI_Suffix;
+      Obj_Src : File_Name_Type
+        :=  Source_Dir & Dir_Sep_Id & Base_Name & Obj_Suffix;
+      ADB_Src : File_Name_Type
+        := Source_Dir & Dir_Sep_Id & Base_Name & ADB_Suffix;
+   begin
+
+      if Is_Regular_File (ALI_Src) then
+         Delete (ALI_Src);
+      end if;
+
+      if Is_Regular_File (Obj_Src) then
+         Delete (Obj_Src);
+      end if;
+
+      if Is_Regular_File (ADB_Src) then
+         Delete (ADB_Src);
+      end if;
+
+   end Delete_Stub;
+
+   ----------------
+   -- Build_Stub --
+   ----------------
+
+   procedure Build_Stub (UID : in CUID_Type) is
+
+      Obsolete        : Boolean := False;
+      Name            : Name_Id := CUnit.Table (UID).CUname;
+      Full_RCI_Spec   : Name_Id;
+      Full_RCI_Body   : Name_Id;
+      RCI_Spec        : Name_Id;
+      RCI_Body        : Name_Id;
+      Caller_Body     : Name_Id;
+      Caller_Object   : Name_Id;
+      Caller_ALI      : Name_Id;
+      Receiver_Body   : Name_Id;
+      Receiver_Object : Name_Id;
+      Receiver_ALI    : Name_Id;
+
+   begin
+
+      RCI_Spec        := Name & ADS_Suffix;
+      RCI_Body        := Name & ADB_Suffix;
+      Full_RCI_Spec   := Full_Source_Name (RCI_Spec);
+      Full_RCI_Body   := Full_Source_Name (RCI_Body);
+      Caller_Body     := Caller_Dir & Dir_Sep_Id & Name & ADB_Suffix;
+      Receiver_Body   := Receiver_Dir & Dir_Sep_Id & Name & ADB_Suffix;
+      Caller_Object   := Caller_Dir & Dir_Sep_Id & Name & Obj_Suffix;
+      Receiver_Object := Receiver_Dir & Dir_Sep_Id & Name & Obj_Suffix;
+      Caller_ALI      := Caller_Dir & Dir_Sep_Id & Name & ALI_Suffix;
+      Receiver_ALI    := Receiver_Dir & Dir_Sep_Id & Name & ALI_Suffix;
+
+      --  Do we need to regenerate the caller stub and its ali.
+      if not Is_Regular_File (Caller_Body) or else
+         Later (Full_RCI_Spec, Caller_Body) then
+         Obsolete := True;
+      end if;
+      if not Is_Regular_File (Caller_Object) or else
+         Later (Caller_Body, Caller_Object) then
+         Obsolete := True;
+      end if;
+      if not Is_Regular_File (Caller_ALI) or else
+         Later (Caller_Body, Caller_ALI) then
+         Obsolete := True;
+      end if;
+
+      if Obsolete then
+
+         if not Quiet_Output then
+            Write_Program_Name;
+            Write_Str  (": building ");
+            Write_Name (Caller_Body);
+            Write_Str  (" from ");
+            Write_Name (Full_RCI_Spec);
+            Write_Eol;
+         end if;
+
+         Build_RCI_Caller (Caller_Body, Full_RCI_Spec);
+         Change_Dir (Caller_Dir);
+         Compile_RCI_Caller (RCI_Body);
+         Change_Dir (G_Parent_Dir);
+
+      elsif not Quiet_Output then
+         Write_Program_Name;
+         Write_Str  (":    ");
+         Write_Name (Name);
+         Write_Str  (" caller stub is up to date");
+         Write_Eol;
+      end if;
+
+      --  If no RCI body is available, use RCI spec.
+      if Unit.Table (CUnit.Table (UID).My_Unit).Utype = Is_Spec_Only then
+         Full_RCI_Body := Full_RCI_Spec;
+      end if;
+
+      --  Do we need to generate the receiver stub and its ali.
+      Obsolete := False;
+
+      if not Is_Regular_File (Receiver_Body) or else
+         Later (Full_RCI_Body, Receiver_Body) then
+         Obsolete := True;
+      end if;
+      if not Is_Regular_File (Receiver_Object) or else
+         Later (Receiver_Body, Receiver_Object) then
+         Obsolete := True;
+      end if;
+      if not Is_Regular_File (Receiver_ALI) or else
+         Later (Receiver_Body, Receiver_ALI) then
+         Obsolete := True;
+      end if;
+
+      if Obsolete then
+
+         if not Quiet_Output then
+            Write_Program_Name;
+            Write_Str  (": building ");
+            Write_Name (Receiver_Body);
+            Write_Str  (" from ");
+            Write_Name (Full_RCI_Body);
+            Write_Eol;
+         end if;
+
+         Build_RCI_Receiver (Receiver_Body, Full_RCI_Body);
+         Change_Dir (Receiver_Dir);
+         Compile_RCI_Receiver (RCI_Body);
+         Change_Dir (G_Parent_Dir);
+
+      elsif not Quiet_Output then
+         Write_Program_Name;
+         Write_Str  (":    ");
+         Write_Name (Name);
+         Write_Str  (" receiver stub is up to date");
+         Write_Eol;
+      end if;
+
+   end Build_Stub;
+
+begin
+
+   if not Is_Directory (Caller_Dir) then
+      Create_Dir (Caller_Dir);
+   end if;
+
+   if not Is_Directory (Receiver_Dir) then
+      Create_Dir (Receiver_Dir);
+   end if;
+
+   --  Generate all the stubs (bodies, objects and alis). At this level,
+   --  we ensure that all conf. units are ada units.
+   for CUID in CUnit.First .. CUnit.Last loop
+      if Unit.Table (CUnit.Table (CUID).My_Unit).RCI then
+         if Verbose_Mode then
+            Write_Program_Name;
+            Write_Str (": building ");
+            Write_Name (CUnit.Table (CUID).CUname);
+            Write_Str (" stubs");
+            Write_Eol;
+         end if;
+         Build_Stub (CUID);
+      end if;
+   end loop;
+
+   --  Create and fill partition directories.
+   for PID in Partitions.First .. Partitions.Last loop
+
+      if Partitions.Table (PID).To_Build then
+
+         if not Is_Directory
+           (DSA_Dir & Dir_Sep_Id & Partitions.Table (PID).Name) then
+            Create_Dir (DSA_Dir & Dir_Sep_Id & Partitions.Table (PID).Name);
+         end if;
+
+         Create_Main_Unit (PID);
+
+         --  Copy RCI receiver stubs when this unit has been assigned on
+         --  PID partition. RCI caller stubs are not needed because GNATDIST
+         --  add the caller directory in its include path.
+         for UID in CUnit.First .. CUnit.Last loop
+            if Unit.Table (CUnit.Table (UID).My_Unit).RCI then
+               if CUnit.Table (UID).Partition = PID then
+                  Copy_Stub
+                    (Receiver_Dir,
+                     DSA_Dir & Dir_Sep_Id & Partitions.Table (PID).Name,
+                     CUnit.Table (UID).CUname);
+               else
+                  Delete_Stub
+                    (DSA_Dir & Dir_Sep_Id & Partitions.Table (PID).Name,
+                     CUnit.Table (UID).CUname);
+               end if;
+            end if;
+         end loop;
+
+         --  Bind and link each partition.
+         declare
+
+            Exec_Name : Name_Id := Partitions.Table (PID).Name;
+
+         begin
+
+            --  Bind and link are performed in the partition directory
+            --  dsa/<partition_name>. We compute relative output.
+            if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
+
+               Exec_Name := G_Parent_Dir & Dir_Sep_Id & Exec_Name;
+
+            else
+
+               declare
+
+                  Dir : Name_Id := Partitions.Table (PID).Storage_Dir;
+                  Str : String (1 .. Strlen (Dir));
+
+               begin
+
+                  Get_Name_String (Dir);
+                  Str := Name_Buffer (1 .. Name_Len);
+
+                  --  Is it a relative storage directory ?
+                  if Str (1) /= Separator then
+
+                     --  Create dir before changing directory,
+                     if not Is_Directory (Dir) then
+                        Create_Dir (Dir);
+                     end if;
+                     Dir := G_Parent_Dir & Dir_Sep_Id & Dir;
+
+                  elsif not Is_Directory (Dir) then
+
+                     Create_Dir (Dir);
+
+                  end if;
+
+                  Exec_Name := Dir & Dir_Sep_Id & Exec_Name;
+
+               end;
+
+            end if;
+
+            if not Quiet_Output then
+               Write_Program_Name;
+               Write_Str  (": building partition ");
+               Write_Name (Partitions.Table (PID).Name);
+               Write_Eol;
+            end if;
+
+            Build_Partition (Partitions.Table (PID).Name, Exec_Name);
+
+         end;
+      end if;
+
+   end loop;
+
+end XE_Stubs;
+
+
+
+

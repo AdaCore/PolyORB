@@ -1,0 +1,171 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                         GNAT COMPILER COMPONENTS                         --
+--                                                                          --
+--                                T A B L E                                 --
+--                                                                          --
+--                                 S p e c                                  --
+--                                                                          --
+--                            $Revision$                             --
+--                                                                          --
+--   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--                                                                          --
+-- GNAT is free software;  you can  redistribute it  and/or modify it under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 2,  or (at your option) any later ver- --
+-- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
+-- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
+-- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
+-- for  more details.  You should have  received  a copy of the GNU General --
+-- Public License  distributed with GNAT;  see file COPYING.  If not, write --
+-- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
+-- MA 02111-1307, USA.                                                      --
+--                                                                          --
+-- As a special exception,  if other files  instantiate  generics from this --
+-- unit, or you link  this unit with other files  to produce an executable, --
+-- this  unit  does not  by itself cause  the resulting  executable  to  be --
+-- covered  by the  GNU  General  Public  License.  This exception does not --
+-- however invalidate  any other reasons why  the executable file  might be --
+-- covered by the  GNU Public License.                                      --
+--                                                                          --
+-- GNAT was originally developed  by the GNAT team at  New York University. --
+-- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
+--                                                                          --
+------------------------------------------------------------------------------
+
+with Types; use Types;
+
+generic
+   type Table_Component_Type is private;
+   type Table_Index_Type     is range <>;
+
+   Table_Low_Bound  : Table_Index_Type;
+   Table_Initial    : Pos;
+   Table_Increment  : Nat;
+   Table_Name       : String;
+
+package Table is
+
+--  This package provides an implementation of dynamically resizable one
+--  dimensional arrays. The idea is to mimic the normal Ada semantics for
+--  arrays as closely as possible with the one additional capability of
+--  dynamically modifying the value of the Last attribute.
+
+   --  Table_Component_Type and Table_Index_Type specify the type of the array,
+   --  Table_Low_Bound is the lower bound. Index_type must be an integer type.
+   --  The effect is roughly to declare:
+
+   --    Table : array (Table_Low_Bound .. <>) of Table_Component_Type;
+
+   --  The Table_Initial and Table_Increment values control the allocation of
+   --  the table. When the table is first allocated, the Table_Initial value
+   --  controls the actual size of the allocated table. The Table_Increment
+   --  value is a percentage value used to determine the increase in the table
+   --  size (e.g. 100 = increase table size by 100%, i.e. double it). The
+   --  Table_Name parameter is simply use in debug output messages it has no
+   --  other usage, and is not referenced in non-debugging mode. A value of
+   --  zero for Table_Increment means that no table expansion is allowed.
+
+   --  The Last and Set_Last subprograms provide control over the current
+   --  logical allocation. They are quite efficient, so they can be used
+   --  freely (expensive reallocation occurs only at major granularity
+   --  chunks controlled by the allocation parameters).
+
+   --  Note: we do not make the table components aliased, since this would
+   --  restict the use of table for discriminated types. If it is necessary
+   --  to take the access of a table element, use Unrestricted_Access.
+
+   type Table_Type is
+     array (Table_Index_Type range <>) of Table_Component_Type;
+
+   subtype Big_Table_Type is
+     Table_Type (Table_Low_Bound .. Table_Index_Type'Last);
+   --  We work with pointers to a bogus array type that is constrained
+   --  with the maximum possible range bound. This means that the pointer
+   --  is a thin pointer, which is more efficient. Since subscript checks
+   --  in any case must be on the logical, rather than physical bounds,
+   --  safety is not compromised by this approach.
+
+   type Table_Ptr is access all Big_Table_Type;
+   --  The table is actually represented as a pointer to allow reallocation
+
+   Table : aliased Table_Ptr := null;
+   --  The table itself. The lower bound is the value of Low_Bound. Logically
+   --  the upper bound is the current value of Last (although the actual size
+   --  of the allocated table may be larger than this). The program may only
+   --  access and modify Table entries in the range First .. Last.
+
+   procedure Init;
+   --  This procedure allocates a new table of size Initial (freeing any
+   --  previously allocated larger table). It is not necessary to call
+   --  Init when a table is first instantiated (since the instantiation does
+   --  the same initialization steps). However, it is harmless to do so, and
+   --  Init is convenient in reestablishing a table for new use.
+
+   function Last return Table_Index_Type;
+   pragma Inline (Last);
+   --  Returns the current value of the last used entry in the table, which
+   --  can then be used as a subscript for Table. Note that the only way to
+   --  modify Last is to call the Set_Last procedure. Last must always be
+   --  used to determine the logically last entry.
+
+   First : constant Table_Index_Type := Table_Low_Bound;
+   --  Export First as synonym for Low_Bound (to be parallel with use of Last)
+
+   procedure Set_Last (New_Val : Table_Index_Type);
+   pragma Inline (Set_Last);
+   --  This procedure sets Last to the indicated value. If necessary the
+   --  table is reallocated to accomodate the new value (i.e. on return
+   --  the allocated table has an upper bound of at least Last). If Set_Last
+   --  reduces the size of the table, then logically entries are removed from
+   --  the table. If Set_Last increases the size of the table, then new entries
+   --  are logically added to the table.
+
+   procedure Increment_Last;
+   pragma Inline (Increment_Last);
+   --  Adds 1 to Last (same as Set_Last (Last + 1).
+
+   procedure Decrement_Last;
+   pragma Inline (Decrement_Last);
+   --  Subtracts 1 from Last (same as Set_Last (Last - 1).
+
+   function Allocate (Num : Int := 1) return Table_Index_Type;
+   pragma Inline (Allocate);
+   --  Adds Num to Last, and returns the old value of Last + 1.
+
+   type Saved_Table is private;
+   --  Type used for Save/Restore subprograms
+
+   function Save return Saved_Table;
+   --  Resets table to empty, but saves old contents of table in returned
+   --  value, for possible later restoration by a call to Restore.
+
+   procedure Restore (T : Saved_Table);
+   --  Given a Saved_Table value returned by a prior call to Save, restores
+   --  the table to the state it was in at the time of the Save call.
+
+   procedure Tree_Write;
+   --  Writes out contents of table using Tree_IO
+
+   procedure Tree_Read;
+   --  Initializes table by reading contents previously written
+   --  with the Tree_Write call (also using Tree_IO)
+
+private
+
+   Last_Val : Int;
+   --  Current value of Last. Note that we declare this in the private part
+   --  because we don't want the client to modify Last except through one of
+   --  the official interfaces (since a modification to Last may require a
+   --  reallocation of the table).
+
+   Max : Int;
+   --  Subscript of the maximum entry in the currently allocated table
+
+   type Saved_Table is record
+      Last_Val : Int;
+      Max      : Int;
+      Table    : Table_Ptr;
+   end record;
+
+end Table;

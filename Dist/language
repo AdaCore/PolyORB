@@ -1,0 +1,146 @@
+-----------------------------------------------------
+-- Language used for the distribution of Ada programs
+-----------------------------------------------------
+
+PREDEFINED_TYPES : Partition
+
+CONFIGURATION_UNIT ::= 
+   configuration IDENTIFIER is
+      DECLARATIVE_PART
+   [begin
+      SEQUENCE_OF_STATEMENTS]
+   end [IDENTIFIER];
+
+DECLARATIVE_PART ::= {DECLARATIVE_ITEM}
+
+DECLARATIVE_ITEM ::= 
+   PARTITION_DECLARATION
+ | REPRESENTATION_CLAUSE
+ | FUNCTION_DECLARATION
+ | MAIN_PROCEDURE_DECLARATION
+ | PRAGMA
+
+PARTITION_DECLARATION ::= 
+   DEFINING_IDENTIFIER_LIST : Partition
+      [:= ENUMERATION_OF_ADA_UNITS];
+
+ENUMERATION_OF_ADA_UNITS ::= ({ADA_UNIT {, ADA_UNIT}});
+
+DEFINING_IDENTIFIER_LIST ::=
+   DEFINING_IDENTIFIER {, DEFINING_IDENTIFIER}
+
+STATEMENT ::=
+   IDENTIFIER := ENUMERATION_OF_ADA_UNITS;
+
+SEQUENCE_OF_STATEMENTS ::=
+   STATEMENT {STATEMENT}
+
+REPRESENTATION_CLAUSE ::=
+   for IDENTIFIER'Host use STRING_LITERAL;
+ | for IDENTIFIER'Host use SUBPROGRAM;
+ | for IDENTIFIER'Storage_Dir use STRING_LITERAL;
+ | for IDENTIFIER'Main use MAIN_PROCEDURE;
+ | for Partition'Host use STRING_LITERAL;
+ | for Partition'Host use SUBPROGRAM;
+ | for Partition'Storage_Dir use STRING_LITERAL;
+ | for Partition'Main use MAIN_PROCEDURE;
+
+MAIN_PROCEDURE_DECLARATION ::=
+   procedure MAIN_UNIT is in IDENTIFIER;
+
+FUNCTION_DECLARATION ::=
+   function DEFINING_DESIGNATOR PARAMETER_AND_RESULT_PROFILE
+
+PARAMETER_AND_RESULT_PROFILE ::=
+   (DEFINING_IDENTIFIER : [in] String) return String;
+
+type Method_Type is (Ada, Shell, None);
+type Entity_Type is (Ada, Shell, None);
+
+PRAGMA ::=
+   STARTER_PRAGMA
+ | CROSSED_ELABORATION_PRAGMA
+ | IMPORT_PRAGMA
+
+STARTER_PRAGMA ::=
+   pragma Starter (Method => Method_Type);
+
+CROSSED_ELABORATION_PRAGMA
+   pragma Crossed_Elaboration (Allowed => Boolean);
+
+IMPORT_PRAGMA ::=
+   pragma Import (Convention => Method_Type;
+                  Entity     => Entity_Type;
+                  Link_Name  => String);
+
+---------------------------
+--  File `my_config.cfg' --
+---------------------------
+
+--  The name of the file prefix must be the same as the name of
+--  the configuration unit, in this example `my_config'. The file
+--  suffix must be `cfg'. For a given distributed application
+--  you can have as many configuration files as you wish.
+
+configuration My_Config is
+
+  Partition_1 : Partition := ();
+  procedure Master_Procedure is in Partition_1;
+  --  Partition 1 contains no RCI package at this point.
+  --  However, it will contain the main procedure of the distributed
+  --  application, called `Master_Procedure' in this example. If the
+  --  line `procedure Master_Procedure is in Partition_1;' was missing
+  --  Partition 1 would be completely empty. This is forbidden, a
+  --  partition has to contain at least one library unit.
+  --  
+  --  gnatdist produces an executable shell script with the name of
+  --  Master_Procedure which will start the various partitions on
+  --  their host machines in the background.  The main partition is
+  --  launched in the foreground. 
+
+  Partition_2, Partition_3 : Partition := (Normal);
+  --  Partition_2 and Partition_3 contain package Normal whatever mapped
+  --  RCI units are.
+
+  for Partition_2'Host use "foo.bar.com";
+  --  Specify the host on which to run partition 2.
+
+  function Choose_Best_Node (P : String) return String;
+  pragma Import (Shell, Choose_Best_Node, "./best-node");
+  for Partition_3'Host use function Choose_Best_Node;
+  --  Use the value returned by an a function to figure out at execution time
+  --  the name of the host on which partition 3 should execute.
+  --  For instance, execute the shell script `best-node' which returns a
+  --  string giving the name of the partition.
+
+  Partition_4 : Partition := (RCI_B5);
+  --  Partition 4 contains one RCI package RCI_B5
+  --  No host is specified for this partition. The startup script
+  --  will ask for it interactively when it is executed.
+
+  for Partition_1'Storage_Dir use "/usr/ada/sunos-5.4/bin";
+  for Partition_2'Storage_Dir use "/usr/ada/sunos-4.1.3/bin";
+  --  Specify the directory in which the executables in each partition
+  --  will be stored. Default is the current directory.
+
+  pragma Starter (Method => Ada);
+  --  Specify the kind of launch procedure you would like. Three
+  --  methods are available. Shell method builds a shell script that
+  --  means that all the partitions will be launched from a shell
+  --  script. If Ada method is chosen, then the launch procedure is
+  --  the main Ada procedure itself. If None method is chosen, then
+  --  no launch procedure is build and you have to start the partition
+  --  manually. In the following example, Partition_2, Partitions_3
+  --  and Partition_4 will be started from Partition_1 - Master_Procedure.
+
+  --  The configuration body is optional. You may have fully described your
+  --  configuration in the declaration part.
+
+begin
+  Partition_2 := (RCI_B2, RCI_B4);
+  --  Partition 2 contains two RCI packages RCI_B2 and RCI_B4
+  --  and a normal package. A normal package is not categorized.
+
+  Partition_3 := (RCI_B3);
+  --  Partition 3 contains one RCI package RCI_B3 and a Normal package.
+end My_Config;

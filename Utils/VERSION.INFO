@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# VERSION.INFO,v 1.11 1996/05/24 14:05:48 tardieu Exp
+#
+# This file will perform version substitution when building a release. It
+# has to be tagged "to_be_released" and to be kept in synch as new releases
+# appear.
+#
+# DO NOT CALLED THIS FILE EXPLICITLY. IT WILL BE CALLED BY THE make_distrib
+# program.
+
+#
+# Current version
+#
+dsa_version='0.17'
+gnat_version='3.04'
+
+#
+# files hold the list of files in which substitutions will occur
+#
+files="README INSTALL Doc/gnatdist.txt"
+
+#
+# Do the job
+#
+for i in ${files}; do
+  cp $i $i.orig.$$
+  cat $i.orig.$$ | \
+   sed -e "s/@dsa_version@/${dsa_version}/g" | \
+   sed -e "s/@gnat_version@/${gnat_version}/g" | \
+   cat > $i
+  rm $i.orig.$$
+done

@@ -1,0 +1,8 @@
+*.o *.ali b_*.c Makefile gnatdist
+dist1
+distmake
+gnatmake
+sdefault.adb
+xe-gcc
+xe-gcc-filter
+xe_defs.adb

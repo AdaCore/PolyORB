@@ -1,0 +1,17 @@
+configuration Master51 is
+   part1, part2, part3, part4 : partition := (text_io);
+   for part1'host use function "./localhost";
+   for part1'storage_dir use "XXXXX/bin";
+   for part2'host use function "./localhost";
+   for part2'storage_dir use "XXXXX/bin";
+   for part3'host use function "./localhost";
+   for part3'storage_dir use "sub/bin";
+   for part4'host use function "./localhost";
+   for part4'storage_dir use "XXXXX/bin";
+   procedure Master is in part1;
+begin
+   part1:=();
+   part2:=(prime_1);
+   part3:=(prime_2);
+   part4:=(prime_3,prime_4);
+end Master51;

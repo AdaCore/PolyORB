@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# make_distrib,v 1.10 1996/05/14 07:26:34 tardieu Exp
+#
+# This script builds a distribution. The only parameter is the name
+# of the distribution (.tar.gz will be appened). Only files tagged with
+# the 'to_be_released' will be included into the release.
+#
+# A special case is the VERSION.INFO file, which has to be tagged
+# to_be_released, but will NOT be released. In contains shell functions
+# which will be sourced in order to perform the real distribution.
+#
+
+case $1 in
+  -k*) kk=$1; shift;;
+  *)   kk=;;
+esac
+tag=$1
+dir=$2
+root=`cat CVS/Root`
+name=`sed -e "s,${root}/,," < CVS/Repository`
+echo Extracting module ${name} from ${root} using tag ${tag}
+prev=`pwd`
+tmp=/tmp/t$$
+mkdir ${tmp}
+cd ${tmp}
+cvs -d ${root} co ${kk} -r to_be_released -d ${dir} ${name}
+cd ${dir}
+find . \( -name CVS -prune \) -o -type f -print | xargs cvs update ${kk} -r ${tag}
+if [ -f Utils/VERSION.INFO ]; then
+  echo "Sourcing version file, then deleting it"
+  . Utils/VERSION.INFO
+  rm -f Utils/VERSION.INFO
+fi
+find . -name CVS -type d -exec rm -rf {} \;
+find . -type d -print | xargs rmdir 2>/dev/null
+find . -name Makefile.in -exec touch {} \;
+find . -name configure -exec touch {} \;
+cd ..
+tar cvf ${dir}.tar ${dir}
+gzip --best ${dir}.tar
+mv ${dir}.tar.gz ${prev}
+cd ${prev}
+rm -rf ${tmp}
+pgp -sb ${dir}.tar.gz

@@ -1,0 +1,23 @@
+#!/bin/sh
+S1=`which gcc | sed 's%/bin/gcc%%'`
+S2=`gcc -c -dumpversion`
+S3=`gcc -c -dumpmachine`
+cat >sdefault.adb <<EOF
+package body Sdefault is
+   S1 : aliased constant String := "${S1}/adainclude/";
+   S2 : aliased constant String := "${S1}/lib/gcc-lib/${S3}/${S2}/adalib/";
+   S3 : aliased constant String := "${S3}/";
+   function Include_Dir_Default_Name return String_Ptr is
+   begin
+      return new String'(S1);
+   end Include_Dir_Default_Name;
+   function Object_Dir_Default_Name return String_Ptr is
+   begin
+      return new String'(S2);
+   end Object_Dir_Default_Name;
+   function Target_Name return String_Ptr is
+   begin
+      return new String'(S3);
+   end Target_Name;
+end Sdefault;
+EOF

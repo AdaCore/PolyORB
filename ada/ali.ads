@@ -1,0 +1,386 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                         GNAT COMPILER COMPONENTS                         --
+--                                                                          --
+--                                  A L I                                   --
+--                                                                          --
+--                                 S p e c                                  --
+--                                                                          --
+--                            $Revision$                             --
+--                                                                          --
+--   Copyright (C) 1992,1993,1994,1995,1996 Free Software Foundation, Inc.  --
+--                                                                          --
+-- GNAT is free software;  you can  redistribute it  and/or modify it under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 2,  or (at your option) any later ver- --
+-- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
+-- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
+-- or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License --
+-- for  more details.  You should have  received  a copy of the GNU General --
+-- Public License  distributed with GNAT;  see file COPYING.  If not, write --
+-- to  the Free Software Foundation,  59 Temple Place - Suite 330,  Boston, --
+-- MA 02111-1307, USA.                                                      --
+--                                                                          --
+-- GNAT was originally developed  by the GNAT team at  New York University. --
+-- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
+--                                                                          --
+------------------------------------------------------------------------------
+
+--  This package defines the internal data structures used for representation
+--  of Ada Library Information (ALI) acquired from the ALI files generated
+--  by the front end.
+
+with Table;
+with Types; use Types;
+
+package ALI is
+
+   --------------
+   -- Id Types --
+   --------------
+
+   --  The various entries are stored in tables with distinct subscript
+   --  ranges. The following type definitions indicate the ranges used
+   --  for the subscripts (Id values) for the various tables.
+
+   type ALI_Id is range 0 .. 999_999;
+   --  Id values used for ALIs table entries
+
+   type Unit_Id is range 1_000_000 .. 1_999_999;
+   --  Id values used for Unit table entries
+
+   type With_Id is range 2_000_000 .. 2_999_999;
+   --  Id values used for Withs table entries
+
+   type Sdep_Id is range 3_000_000 .. 3_999_999;
+   --  Id values used for Sdep table entries
+
+   type Source_Id is range 4_000_000 .. 4_999_999;
+   --  Id values used for Source table entries
+
+   --------------------
+   -- ALI File Table --
+   --------------------
+
+   --  Each ALI file read generates an entry in the ALIs table
+
+   No_ALI_Id : constant ALI_Id := ALI_Id'First;
+   --  Special value indicating no ALI entry
+
+   First_ALI_Entry : constant ALI_Id := No_ALI_Id + 1;
+   --  Id of first actual entry in table
+
+   type Main_Program_Type is (None, Proc, Func);
+   --  Indicator of whether unit can be used as main program
+
+   type ALIs_Record is record
+      Afile : File_Name_Type;
+      --  Name of ALI file
+
+      Ofile_Full_Name : Name_Id;
+      --  Full name of object file corresponding to the ALI file
+
+      Sfile : File_Name_Type;
+      --  Name of source file that generates this ALI file (which is equal
+      --  to the name of the source file in the first unit table entry for
+      --  this ALI file, since the body if present is always first).
+
+      Ver : String (1 .. 16);
+      --  Value of library version (V line in ALI file)
+
+      Std : String (1 .. 16);
+      --  Value of standard version (S line in ALI file)
+
+      First_Unit : Unit_Id;
+      --  Id of first Unit table entry for this file
+
+      Last_Unit : Unit_Id;
+      --  Id of last Unit table entry for this file
+
+      First_Sdep : Sdep_Id;
+      --  Id of first Sdep table entry for this file
+
+      Last_Sdep : Sdep_Id;
+      --  Id of last Sdep table entry for this file
+
+      Main_Program : Main_Program_Type;
+      --  Indicator of whether first unit can be used as main program
+
+      Main_Priority : Int;
+      --  Indicates priority value if Main_Program field indicates that
+      --  this can be a main program. A value of -1 (No_Main_Priority)
+      --  indicates that no parameter was found, or no M line was present.
+
+      Time_Slice_Value : Int;
+      --  Indicates value of time slice parameter from T=xxx on main program
+      --  line. A value of -1 indicates that no T=xxx parameter was found,
+      --  or no M line was present.
+
+      Queuing_Policy : Character;
+      --  Indicates queueuing policy for units in this file. Space means
+      --  tasking was not used, so policy is irrelevant, otherwise set to
+      --  'F' for FIFO, and 'P' for priority queueing.
+
+   end record;
+
+   No_Main_Priority : constant Int := -1;
+   --  Code for no main priority set
+
+   package ALIs is new Table (
+     Table_Component_Type => ALIs_Record,
+     Table_Index_Type     => ALI_Id,
+     Table_Low_Bound      => First_ALI_Entry,
+     Table_Initial        => 500,
+     Table_Increment      => 200,
+     Table_Name           => "ALIs");
+
+   ----------------
+   -- Unit Table --
+   ----------------
+
+   --  Each unit within an ALI file generates an entry in the unit table
+
+   No_Unit_Id : constant Unit_Id := Unit_Id'First;
+   --  Special value indicating no unit table entry
+
+   First_Unit_Entry : constant Unit_Id := No_Unit_Id + 1;
+   --  Id of first actual entry in table
+
+   type Unit_Type is (Is_Spec, Is_Body, Is_Spec_Only, Is_Body_Only);
+   --  Indicates type of entry, if both body and spec appear in the ALI file,
+   --  then the first unit is marked Is_Body, and the second is marked Is_Spec.
+   --  If only a spec appears, then it is marked as Is_Spec_Only, and if only
+   --  a body appears, then it is marked Is_Body_Only).
+
+   subtype Version_String is String (1 .. 8);
+   --  Version string, taken from unit record
+
+   type Unit_Record is record
+      My_ALI : ALI_Id;
+      --  Corresponding ALI entry
+
+      Uname : Unit_Name_Type;
+      --  Name of Unit
+
+      Sfile : File_Name_Type;
+      --  Name of source file
+
+      Preelab : Boolean;
+      --  Indicates presence of PR parameter for a preelaborated package
+
+      No_Elab : Boolean;
+      --  Indicates presence of NE parameter for a unit that has does not
+      --  have an elaboration routine (since it has no elaboration code).
+
+      Pure : Boolean;
+      --  Indicates presence of PU parameter for a pure package
+
+      Elaborate_Body : Boolean;
+      --  Indicates presence of EB parameter for a package which has a
+      --  pragma Preelaborate_Body.
+
+      Remote_Types : Boolean;
+      --  Indicates presence of RT parameter for a package which has a
+      --  pragma Remote_Types.
+
+      Shared_Passive : Boolean;
+      --  Indicates presence of SP parameter for a package which has a
+      --  pragma Shared_Passive.
+
+      RCI : Boolean;
+      --  Indicates presence of RC parameter for a package which has a
+      --  pragma Remote_Call_Interface.
+
+      Predefined : Boolean;
+      --  Indicates if unit is language predefined (or a child of such a unit)
+
+      First_With : With_Id;
+      --  Id of first with table entry for this file
+
+      Last_With : With_Id;
+      --  Id of last with table entry for this file
+
+      Utype : Unit_Type;
+      --  Type of entry
+
+      Version : Version_String;
+      --  Version of unit
+
+   end record;
+
+   package Unit is new Table (
+     Table_Component_Type => Unit_Record,
+     Table_Index_Type     => Unit_Id,
+     Table_Low_Bound      => First_Unit_Entry,
+     Table_Initial        => 100,
+     Table_Increment      => 200,
+     Table_Name           => "Unit");
+
+   -----------------
+   -- Withs Table --
+   -----------------
+
+   --  Each With line (W line) in an ALI file generates a Withs table entry
+
+   No_With_Id : constant With_Id := With_Id'First;
+   --  Special value indicating no unit table entry
+
+   First_With_Entry : constant With_Id := No_With_Id + 1;
+   --  Id of first actual entry in table
+
+   type With_Record is record
+      Uname : Unit_Name_Type;
+      --  Name of Unit
+
+      Sfile : File_Name_Type;
+      --  Name of source file, set to No_File in generic case
+
+      Afile : File_Name_Type;
+      --  Name of ALI file, set to No_File in generic case
+
+      Elaborate : Boolean;
+      --  Indicates presence of E parameter
+
+      Elaborate_All : Boolean;
+      --  Indicates presence of EA parameter
+   end record;
+
+   package Withs is new Table (
+     Table_Component_Type => With_Record,
+     Table_Index_Type     => With_Id,
+     Table_Low_Bound      => First_With_Entry,
+     Table_Initial        => 5000,
+     Table_Increment      => 200,
+     Table_Name           => "With");
+
+   --------------------------
+   -- Linker_Options Table --
+   --------------------------
+
+   --  Each unique linker option (L line) in an ALI file generates
+   --  an entry in the Linker_Options table. Note that only unique
+   --  entries are stored, i.e. if the same entry appears twice, the
+   --  second entry is suppressed. Each entry is a character sequence
+   --  terminated by a NUL character.
+
+   package Linker_Options is new Table (
+     Table_Component_Type => Character,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 200,
+     Table_Increment      => 400,
+     Table_Name           => "Linker_Options");
+
+   ------------------------------------
+   -- Sdep (Source Dependency) Table --
+   ------------------------------------
+
+   --  Each source dependency (D line) in an ALI file generates an
+   --  entry in the Sdep table.
+
+   No_Sdep_Id : constant Sdep_Id := Sdep_Id'First;
+   --  Special value indicating no Sdep table entry
+
+   First_Sdep_Entry : constant Sdep_Id := No_Sdep_Id + 1;
+   --  Id of first actual entry in table
+
+   type Sdep_Record is record
+      Sfile : File_Name_Type;
+      --  Name of source file
+
+      Stamp : Time_Stamp_Type;
+      --  Time stamp value
+   end record;
+
+   package Sdep is new Table (
+     Table_Component_Type => Sdep_Record,
+     Table_Index_Type     => Sdep_Id,
+     Table_Low_Bound      => First_Sdep_Entry,
+     Table_Initial        => 5000,
+     Table_Increment      => 200,
+     Table_Name           => "Sdep");
+
+   -----------------------------
+   -- Source File Table Table --
+   -----------------------------
+
+   --  A source file table entry is built for every source file that is
+   --  in the source dependency table of any of the ALI files that make
+   --  up the current program.
+
+   No_Source_Id : constant Source_Id := Source_Id'First;
+   --  Special value indicating no Source table entry
+
+   First_Source_Entry : constant Source_Id := No_Source_Id + 1;
+   --  Id of first actual entry in table
+
+   type Source_Record is record
+      Sfile : File_Name_Type;
+      --  Name of source file
+
+      Stamp : Time_Stamp_Type;
+      --  Time stamp value. If Check_Source_Files is set and the source
+      --  file is located, then Stamp is set from the source file. Otherwise
+      --  Stamp is set from the latest stamp value found in any of the
+      --  ALI files for the current program.
+
+      Source_Found : Boolean;
+      --  This flag is set to True if the corresponding source file was
+      --  located and the Stamp value was set from the actual source file.
+      --  It is always false if Check_Source_Files is not set.
+   end record;
+
+   package Source is new Table (
+     Table_Component_Type => Source_Record,
+     Table_Index_Type     => Source_Id,
+     Table_Low_Bound      => First_Source_Entry,
+     Table_Initial        => 1000,
+     Table_Increment      => 200,
+     Table_Name           => "Source");
+
+   ----------------------------
+   -- Use of Name Table Info --
+   ----------------------------
+
+   --  All unit names and file names are entered into the Names table. The
+   --  Info fields of these entries are used as follows:
+
+   --    Unit name           Info field has Unit_Id of unit table entry
+   --    ALI file name       Info field has ALI_Id of ALI table entry
+   --    Source file name    Info field has Source_Id of source table entry
+
+   --------------------------------------------------
+   -- Subprograms for Manipulating ALI Information --
+   --------------------------------------------------
+
+   procedure Initialize_ALI;
+   --  Initialize the ALI tables for a new bind
+
+   procedure Read_ALI (Id : ALI_Id);
+   --  Process an ALI file which has been read and scanned by looping
+   --  through all withed units in the ALI file; checking if they have
+   --  been processed; and for each that hasn't, reading, scanning, and
+   --  recursively processing.
+
+   function Scan_ALI (F : File_Name_Type; T : Text_Buffer_Ptr) return ALI_Id;
+   --  Given the text of an ALI file, scan and store the information from
+   --  the file, and return the Id of the resulting entry in the ALI table.
+   --  If the file is found to be incorrectly formatted, an error message
+   --  is generated, and the program is terminated.
+
+   procedure Set_Source_Table (A : ALI_Id);
+   --  Build source table corresponding to the ALI file whose id is A.
+
+   procedure Set_Source_Table;
+   --  Build the entire source table.
+
+   function Time_Stamp_Mismatch (A : ALI_Id) return File_Name_Type;
+   --  Looks in the Source_Table and checks time stamp mismatches between
+   --  the sources there and the sources in the Sdep section of ali file whose
+   --  id is A. If no time stamp mismatches are found No_File is returned.
+   --  Otherwise return the first file for which there is a mismatch.
+   --  Note that in check source files mode (Check_Source_Files = True), the
+   --  time stamp in the Source_Table should be the actual time stamp of the
+   --  source files.
+
+end ALI;

@@ -1,0 +1,5 @@
+AUTOMAKE_OPTIONS = foreign
+
+SUBDIRS = Prime RACW
+
+DISTCLEANFILES = check-config

@@ -1,0 +1,76 @@
+#!/bin/sh
+#
+# check-config.in,v 1.2 1996/04/10 15:41:40 tardieu Exp
+#
+# This script tries to ensure that the user has set up a correct
+# environnement to run the example.
+#
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+
+#
+# Utilities
+#
+
+error_make_install() {
+  echo 'Are you sure you have typed "make install" ?' >&2
+  echo 'If not, cd into ../.. and type "make install"' >&2
+  exit 1
+}
+
+#
+# Check that gnatdist is installed at the right place
+#
+
+if test ! -f $exec_prefix/bin/gnatdist; then
+  echo "Error: I cannot find gnatdist in $exec_prefix/bin" >&2
+  error_make_install
+fi
+
+#
+# Check that GARLIC is installed at the right place
+#
+
+if test ! -f $prefix/lib/garlic/s-garlic.ali; then
+  echo "Error: I cannot find GARLIC files in $prefix/lib/garlic" >&2
+  error_make_install
+fi
+
+#
+# Check that gnatdist is in the user's path
+#
+
+where=`type gnatdist 2>&1`
+case $where in
+  *gnatdist) ;;
+  *)
+     echo 'Warning: the program gnatdist seems not to be in your path' >&2
+     echo 'Maybe you should type:' >&2
+     case $IN_MAKE in
+       yes) echo '   *csh users: set path=('$exec_prefix'/bin $path)' >&2
+            echo '   *sh  users: PATH='$exec_prefix'/bin:$PATH' >&2;;
+       *)
+	  case $SHELL in
+	    *csh) echo '   set path=('$exec_prefix'/bin $path)' >&2;;
+	    *sh)  echo '   PATH='$exec_prefix'/bin:$PATH' >&2;;
+	  esac
+     esac
+     echo 'and try again' >&2
+     exit 1
+     ;;
+esac
+
+#
+# Issue a simple check to make sure that the user is allowed to execute
+# remote commands on the same machine
+#
+
+machine=`uname -n`
+res=`rsh -n $machine echo Works < /dev/null 2>&1 | grep Works | head -1`
+if test x$res != xWorks; then
+  echo "You should make sure you are authorized to use the rsh command" >&2
+  echo "You may want to check the rsh manual by typing: man rsh" >&2
+  echo 'Look for the section concerning ".rhosts" files' >&2
+  exit 1
+fi

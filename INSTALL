@@ -1,0 +1,102 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                   GNAT DISTRIBUTED SYSTEMS ANNEX DOCUMENTS               --
+--                                                                          --
+--                             I N S T A L L                                --
+--                                                                          --
+--                            $Revision$                              --
+--                                                                          --
+-- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
+-- under terms of the  GNU General Public License  as published by the Free --
+-- Software  Foundation;  either version 2,  or  (at your option) any later --
+-- version. GNATDIST is distributed in the hope that it will be useful, but --
+-- WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHANTABI- --
+-- LITY or FITNESS  FOR A PARTICULAR PURPOSE.  See the  GNU General  Public --
+-- License  for more details.  You should  have received a copy of the  GNU --
+-- General Public License distributed with  GNATDIST; see file COPYING.  If --
+-- not, write to the Free Software Foundation, 59 Temple Place - Suite 330, --
+-- Boston, MA 02111-1307, USA.                                              --
+--                                                                          --
+--              GNATDIST is maintained by ACT Europe.                       --
+--            (email:distribution@act-europe.gnat.com).                     --
+--                                                                          --
+------------------------------------------------------------------------------
+
+INSTALL for Garlic/Gnatdist @dsa_version@.
+--------------------------------
+
+Please read the README file first.
+
+The source files that you received include:
+
+  1. A PCS (partition communication subsystem), called Garlic, which
+     is a high level communication layer that provides several classical
+     services available in a distributed system (partition id management,
+     name services, distributed termination, ...) and that accomodates
+     several network protocols and communication sub-systems.
+     [The relevant sources are in directory Garlic.]
+
+  2. A partitioning tool called "gnatdist" and its configuration
+     language which allow you to divide your program into a number of
+     independent partitions and specify the machines where the individual
+     partitions are to execute on.
+     [The relevant sources are in directory Dist.]
+
+To install Garlic/gnatdist, you may choose a local target directory
+(default is /usr/local). If we call this directory ${TARGET}, files
+will go into:
+
+  ${TARGET}/bin               : the executables, gnatdist and xe-gcc
+  ${TARGET}/lib/garlic        : Garlic object files
+  ${TARGET}/libexec           : Gnatdist secondary executables
+
+The directory ${TARGET} has to exist before you install the package.
+
+The directory "ada" contains a subset of GNAT @gnat_version@ sources necessary
+to build Garlic/Gnatdist.
+
+[Note: We do not guarantee that this release will work with anything
+less than GNAT @gnat_version@. However, if you are using another version of GNAT
+and want to try, you must have GNAT's sources around. Assuming that
+you do, you must directly link (using "ln -s" for instance) the
+directory "ada" that you received in this distribution to the
+directory containing the sources of your current GNAT compiler. The
+files that are currently stored under "ada" in this distribution
+become irrelevant.  If a file called "sdefault.adb" is found in the
+"ada" subdirectory, it will be used during the build process. If not,
+one will be generated automatically.]
+
+Run the 'configure' script in the Garlic/Gnatdist directory, by
+typing:
+
+  ./configure (if you want the stuff to be installed under /usr/local)
+  ./configure --prefix=$HOME/local (if you want it to be installed in
+                                    the ~/local directory of your
+                                    account. You can use any directory
+                                    you want instead of $HOME/local.)
+
+then "make install".
+
+If something goes wrong, you may clean your directory using
+"make clean" and make it look very empty using "make distclean".
+
+You may then try the "Examples" directory. At the moment it only
+contains a few examples (for instance 'Prime' is a distributed prime
+numbers generator, and 'RACW' briefly demonstrate how to use
+Remote-Access-to-Class-Wide-types) but we hope it will be soon
+populated with *YOUR* submissions :)
+
+Here is a simple example of how install this distribution and run the
+Prime example (assuming csh syntax):
+
+% cd                             <--- go into your HOME directory
+% gunzip dsa-@dsa_version@.tar.gz         <--- uncompress the distribution
+% tar xf dsa-@dsa_version@.tar            <--- explode the distribution
+% cd dsa-@dsa_version@                    <--- go into the distribution dir.
+% ./configure --prefix=`pwd`     <--- configure the Makefiles using the current
+                                      directory to install the binaries
+% make install                   <--- compile files and install them
+% set path=(`pwd`/bin $path)     <--- add this directory in your PATH
+% cd Examples/Prime              <--- go into the Prime example directory
+% make                           <--- build the distributed example
+% ./master                       <--- launch the example

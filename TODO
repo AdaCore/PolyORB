@@ -1,0 +1,2 @@
+* Investigate to find why stubs cannot be compiled with -gnatn, under
+  which conditions, and report the bug (Sam, 16 Apr 96)

@@ -1,0 +1,62 @@
+#! /bin/sh
+# @configure_input@
+
+PROG=`basename $0`
+NAME=/tmp/${PROG}.$$
+mv -f $1 ${NAME}
+SED=@SED@
+AWK=@AWK@
+
+${SED} "
+s/system\.rpc\.general/system.garlic.startup/g
+s/register_server_elaboration/register_receiving_stub/g
+s/'write;/'write/g
+s/'read;/'read/g
+s/'output;/'output/g
+s/'input;/'input/g
+" ${NAME}  | ${AWK} '
+BEGIN {wait = 0; skipline = 0}
+/^package body/{
+  print "with rci_info;"
+  print $0;
+  print "   package RCI_Cache is new RCI_Info ("
+  print "      new system.partition_interface.unit_name__quote__";
+  print "         (\""$3"\")";
+  print "      );";
+  next}
+/protected body when_elaborated is/{skipline = 1; next}
+/protected when_elaborated is/{skipline = 1; next}
+/end when_elaborated;/{skipline = 0; next}
+/function get_rci_package_receiver.*;/{next}
+/function get_active_partition_id.*;/{next}
+/function get_rci_package_receiver.*is/{skipline = 1; next}
+/function get_active_partition_id.*is/{skipline = 1; next}
+/end get_active_partition_id;/{skipline = 0; next}
+/end get_rci_package_receiver;/{skipline = 0; next}
+/system.rpc.do_[ar]pc.*;/{
+   print "      begin"
+   print "   " $0
+   print "      exception when system.rpc.communication_error =>";
+   print "         raise;"
+   print "      end;"
+   next}
+/system.rpc.do_[ar]pc/{
+   print "      begin"
+   print "   " $0
+   wait = 1;
+   next}
+wait == 1 && /^.*;$/{
+   wait = 0;
+   print "   " $0;
+   print "      exception when system.rpc.communication_error =>";
+   print "         raise;"
+   print "      end;"
+   next}
+skipline == 0 {print $0}
+' |\
+${SED} -e "
+s/get_active_partition_id/RCI_Cache.get_active_partition_id/g
+s/get_rci_package_receiver/RCI_Cache.get_rci_package_receiver/g
+s/__quote__/\\'/g
+" >$1
+rm -f ${NAME}

@@ -1,0 +1,8 @@
+configuration Test_Exceptions is
+   pragma Starter (Method => Ada);
+   part1 : partition := ();
+   part2 : partition := (Exceptions_Remote);
+   for part2'host use YYYYY;
+   procedure Test_Exceptions is in part1;
+begin
+end Test_Exceptions;
