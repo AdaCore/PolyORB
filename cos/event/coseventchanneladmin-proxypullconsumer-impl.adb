@@ -57,74 +57,166 @@ with PortableServer; use PortableServer;
 with CORBA.Object;
 pragma Warnings (Off, CORBA.Object);
 
+
 with PolyORB.Log;
 
+with PolyORB.Tasking.Threads;
+with PolyORB.Tasking.Mutexes;
+with PolyORB.Tasking.Condition_Variables;
+
+
 package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
+
+   use PolyORB.Tasking.Condition_Variables;
+   use PolyORB.Tasking.Mutexes;
+   use PolyORB.Tasking.Threads;
+
 
    use  PolyORB.Log;
    package L is new PolyORB.Log.Facility_Log ("proxypullconsumer");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
-   task type Proxy_Pull_Consumer_Engin is
-      entry Connect (Consumer : in Object_Ptr);
-   end Proxy_Pull_Consumer_Engin;
+   A_S   : Object_Ptr := null;
+   --  This variable is used to initialize the threads local variable.
+   --  it is used to replace the 'accept' statement.
 
-   type Proxy_Pull_Consumer_Engin_Access is access Proxy_Pull_Consumer_Engin;
+   Session_Mutex : Mutex_Access;
+   Session_Taken : Condition_Access;
+   --  Synchornisation of task initialization.
+
+   T_Initialized : Boolean := False;
+
+   procedure Ensure_Initialization;
+   pragma Inline (Ensure_Initialization);
+   --  Ensure that the Mutexes are initialized
+
+   ---------------------------
+   -- Ensure_Initialization --
+   ---------------------------
+
+   procedure Ensure_Initialization is
+   begin
+      if T_Initialized then
+         return;
+      end if;
+      Create (Session_Mutex);
+      Create (Session_Taken);
+      T_Initialized := True;
+   end Ensure_Initialization;
+
+   --   task type Proxy_Pull_Consumer_Engin is
+   --      entry Connect (Consumer : in Object_Ptr);
+   --   end Proxy_Pull_Consumer_Engin;
+
+--  type Proxy_Pull_Consumer_Engin_Access is access Proxy_Pull_Consumer_Engin;
+
 
    type Proxy_Pull_Consumer_Record is
       record
-         This   : Object_Ptr;
-         Peer   : PullSupplier.Ref;
-         Admin  : SupplierAdmin.Impl.Object_Ptr;
-         Engin  : Proxy_Pull_Consumer_Engin_Access;
+         This          : Object_Ptr;
+         Peer          : PullSupplier.Ref;
+         Admin         : SupplierAdmin.Impl.Object_Ptr;
+         Engin_Launch  : Boolean := False;
+         --  is there a thread launch for the engine
       end record;
 
    -------------------------------
    -- Proxy_Pull_Consumer_Engin --
    -------------------------------
+   procedure Proxy_Pull_Consumer_Engin;
 
-   task body Proxy_Pull_Consumer_Engin
+   procedure Proxy_Pull_Consumer_Engin
    is
       This  : Object_Ptr;
       Peer  : PullSupplier.Ref;
       Event : CORBA.Any;
-
    begin
+      pragma Debug (O ("Session Thread number "
+                       & Image (Current_Task)
+                       & " is starting"));
+      --  Signal end of thread initialization.
+
+      Ensure_Initialization;
+
+      --  Thread initialization.
+      --  A_S is a global variable used to pass an argument to this task
+      This := A_S;
+      --  This is initialized
+      --  we can let Connect_Pull_Supplier go
+      Enter (Session_Mutex);
+      Signal (Session_Taken);
+      Leave (Session_Mutex);
+
       loop
-         select
-            accept Connect
-              (Consumer : Object_Ptr)
-            do
-               This := Consumer;
-            end Connect;
-         or
-            terminate;
-         end select;
+         --  Session thread main loop.
+         Enter_Critical_Section;
+         Peer := This.X.Peer;
+         Leave_Critical_Section;
 
-         loop
-            Enter_Critical_Section;
-            Peer := This.X.Peer;
-            Leave_Critical_Section;
+         exit when PullSupplier.Is_Nil (Peer);
 
-            exit when PullSupplier.Is_Nil (Peer);
-
-            pragma Debug
+         pragma Debug
               (O ("pull new data from proxy pull consumer engin"));
 
-            begin
-               Event := PullSupplier.pull (Peer);
-            exception when others =>
-               exit;
-            end;
+         begin
+            Event := PullSupplier.pull (Peer);
+         exception when others =>
+            exit;
+         end;
 
-            pragma Debug
-              (O ("post new data from proxy pull consumer to admin"));
+         pragma Debug
+           (O ("post new data from proxy pull consumer to admin"));
 
-            SupplierAdmin.Impl.Post (This.X.Admin, Event);
-         end loop;
+         SupplierAdmin.Impl.Post (This.X.Admin, Event);
       end loop;
+      This.X.Engin_Launch := False;
    end Proxy_Pull_Consumer_Engin;
+
+
+--   task body Proxy_Pull_Consumer_Engin
+--   is
+--      This  : Object_Ptr;
+--      Peer  : PullSupplier.Ref;
+--      Event : CORBA.Any;
+
+--   begin
+--      loop
+--         select
+--            accept Connect
+--              (Consumer : Object_Ptr)
+--            do
+--               This := Consumer;
+--            end Connect;
+--         or
+--            terminate;
+--         end select;
+--
+--         loop
+--            Enter_Critical_Section;
+--            Peer := This.X.Peer;
+--            Leave_Critical_Section;
+--
+--            exit when PullSupplier.Is_Nil (Peer);
+--
+--            pragma Debug
+--              (O ("pull new data from proxy pull consumer engin"));
+--
+--            begin
+--               Event := PullSupplier.pull (Peer);
+--            exception when others =>
+--               exit;
+--            end;
+--
+--            pragma Debug
+--              (O ("post new data from proxy pull consumer to admin"));
+--
+--            SupplierAdmin.Impl.Post (This.X.Admin, Event);
+--         end loop;
+--      end loop;
+--   end Proxy_Pull_Consumer_Engin;
+
+
 
    ---------------------------
    -- Connect_Pull_Supplier --
@@ -135,22 +227,54 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
       Pull_Supplier : in CosEventComm.PullSupplier.Ref) is
    begin
       pragma Debug (O ("connect pull supplier to proxy pull consumer"));
-
-      Enter_Critical_Section;
+      Ensure_Initialization;
+      Enter (Session_Mutex);
       if not PullSupplier.Is_Nil (Self.X.Peer) then
-         Leave_Critical_Section;
+         Leave (Session_Mutex);
          raise AlreadyConnected;
       end if;
 
       Self.X.Peer := Pull_Supplier;
+      A_S := Self.X.This;
 
       --  Start engin
-      if Self.X.Engin = null then
-         Self.X.Engin := new Proxy_Pull_Consumer_Engin;
+      if Self.X.Engin_Launch = False then
+         Create_Task (Proxy_Pull_Consumer_Engin'Access);
+         Self.X.Engin_Launch := True;
+         --  thread created
       end if;
-      Self.X.Engin.Connect (Self.X.This);
-      Leave_Critical_Section;
+
+      --  wait  A_S initialization in Proxy_Pull_Consumer_Engin
+      Wait (Session_Taken, Session_Mutex);
+      Leave (Session_Mutex);
+
+
    end Connect_Pull_Supplier;
+
+
+
+   --  procedure Connect_Pull_Supplier
+   --  (Self          : access Object;
+   --  Pull_Supplier : in CosEventComm.PullSupplier.Ref) is
+   --  begin
+   --   pragma Debug (O ("connect pull supplier to proxy pull consumer"));
+
+   --   Enter_Critical_Section;
+   --   if not PullSupplier.Is_Nil (Self.X.Peer) then
+   --      Leave_Critical_Senction;
+   --      raise AlreadyConnected;
+   --   end if;
+
+   --   Self.X.Peer := Pull_Supplier;
+
+      --  Start engin
+   --   if Self.X.Engin = null then
+   --      Self.X.Engin := new Proxy_Pull_Consumer_Engin;
+   --   end if;
+
+   --   Self.X.Engin.Connect (Self.X.This);
+   --   Leave_Critical_Section;
+   --   end Connect_Pull_Supplier;
 
    ------------
    -- Create --
@@ -193,6 +317,7 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
       if not PullSupplier.Is_Nil (Peer) then
          PullSupplier.disconnect_pull_supplier (Peer);
       end if;
+
    end Disconnect_Pull_Consumer;
 
 end CosEventChannelAdmin.ProxyPullConsumer.Impl;
