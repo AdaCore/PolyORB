@@ -3,7 +3,7 @@ with Broca.Sequences;
 package Broca.Profiles.Unknown is
 
    pragma Elaborate_Body;
-   
+
    type Encapsulation_Ptr is access Broca.Buffers.Encapsulation;
 
    type Unknown_Profile_Type is new Profile_Type with record

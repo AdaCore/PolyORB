@@ -6,7 +6,7 @@ package Broca.Profiles.TC is
    pragma Elaborate_Body;
 
    use Broca.Opaque;
-   
+
    type Component_Id is new CORBA.Unsigned_Long;
 
    type Tagged_Component_Type (Encapsulation_Size : Positive_Index_Type) is

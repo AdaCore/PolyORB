@@ -9,7 +9,7 @@ endif
 all-local: $(TESTPROGS) idlac
 
 testparser testlexer testgen idlac: force $(TREE_FILES)
-	$(GNATMAKE) -m -I. -I$(srcdir) $(GNATFLAGS) $@
+	$(GNATMAKE) -m -I. -I$(srcdir) $@ -cargs $(GNATFLAGS)
 
 TREE_FILES=$(srcdir)/idl_fe-tree.ads $(srcdir)/idl_fe-tree.adb
 
