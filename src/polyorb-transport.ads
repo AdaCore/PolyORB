@@ -30,8 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract transport service access points and
---  communication endpoints.
+--  Abstract transport service access points and transport endpoints.
 
 --  $Id$
 
@@ -49,9 +48,8 @@ package PolyORB.Transport is
 
    -------------------------------------------------------------
    -- A transport service access point:                       --
-   --                                                         --
-   -- an object that has an address within a communcation     --
-   -- domain, on which connections can be established by      --
+   -- An object that has an address within a communication    --
+   -- domain, to which connections can be established by      --
    -- remote entities that wish to communicate with this ORB. --
    -------------------------------------------------------------
 
@@ -81,8 +79,7 @@ package PolyORB.Transport is
 
    ----------------------------------------------------------------
    -- A transport service endpoint:                              --
-   --                                                            --
-   -- an object that represent a connection that was established --
+   -- An object that represent a connection that was established --
    -- when a transport access point was contacted.               --
    ----------------------------------------------------------------
 
