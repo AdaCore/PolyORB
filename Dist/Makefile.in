@@ -315,7 +315,7 @@ link.o: $(GNATSRC)/link.c
 gnatdist$(EXEEXT): $(gnatdist_DEPENDENCIES) force
 	$(GNAT_FOR_HOST) -m $(GNATFLAGS) -I. -I$(srcdir) -I$(GNATSRC) \
 	   $(srcdir)/xe_build.adb -o gnatdist$(EXEEXT) \
-	   -bargs -static -largs -lgccprefix $(LIBS)
+	   -bargs -static -largs link.o -lgccprefix $(LIBS)
 
 xe_sysdep.adb: xe_sysdep-std.adb xe_sysdep-nt.adb
 	@echo Selecting xe_sysdep.adb
