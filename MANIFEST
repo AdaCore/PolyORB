@@ -630,6 +630,7 @@ src/corba/rtcorba/rtportableserver-poa.ads
 src/corba/rtcorba/rtportableserver.ads
 src/giop/Makefile.am
 src/giop/Makefile.in
+src/giop/cs_registry1.2h
 src/giop/diop/Makefile.am
 src/giop/diop/Makefile.in
 src/giop/diop/polyorb-binding_data-giop-diop.adb
@@ -640,6 +641,7 @@ src/giop/diop/polyorb-setup-access_points-diop.adb
 src/giop/diop/polyorb-setup-access_points-diop.ads
 src/giop/diop/polyorb-setup-diop.adb
 src/giop/diop/polyorb-setup-diop.ads
+src/giop/gen_codeset.adb
 src/giop/iiop/Makefile.am
 src/giop/iiop/Makefile.in
 src/giop/iiop/polyorb-binding_data-giop-iiop.adb
@@ -671,8 +673,6 @@ src/giop/miop/polyorb-setup-access_points-uipmc.adb
 src/giop/miop/polyorb-setup-access_points-uipmc.ads
 src/giop/miop/polyorb-setup-uipmc.adb
 src/giop/miop/polyorb-setup-uipmc.ads
-src/giop/cs_registry1.2h
-src/giop/gen_codeset.adb
 src/giop/polyorb-binding_data-giop-inet.adb
 src/giop/polyorb-binding_data-giop-inet.ads
 src/giop/polyorb-binding_data-giop.adb
@@ -1215,6 +1215,7 @@ support/ltmain.sh
 support/missing
 support/mkdep
 support/mkinstalldirs
+support/move-if-change
 support/reconfig
 support/run_script.adb
 tools/Makefile.am
