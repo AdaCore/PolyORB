@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#19 $
+# $Id: //droopi/main/utils/cobuild#20 $
 
 PROJECT=DROOPI
 GNUMAKE=gmake
@@ -73,6 +73,7 @@ if [ "x$CHANGELIST" = x ]
 then
   CHANGELIST=`p4 changes -m 1 ... | awk '{print \$2}'`
 fi
+export CHANGELIST
 
 # Kill any previous build.
 
@@ -162,9 +163,9 @@ fi
 
 if $SUCCESS
 then
-  echo -e "$MSG" | Mail -s "${PROJECT} build $CHANGE $STATUS" $MAILTO
+  echo -e "$MSG" | Mail -s "${PROJECT} build $CHANGELIST $STATUS" $MAILTO
 else
-  cat $OUTDIR/build.log | Mail -s "${PROJECT} BUILD $CHANGE FAILED" $MAILTO
+  cat $OUTDIR/build.log | Mail -s "${PROJECT} BUILD $CHANGELIST FAILED" $MAILTO
 fi
 
 lockfile $PIDFILE.lock
