@@ -248,8 +248,8 @@ package XE is
    procedure Add_Configuration_Declaration
      (Configuration_Node : in Configuration_Id;
       Declaration_Node   : in Node_Id);
-   pragma Inline (Add_Configuration_Declaration);
-   --  Add a configuration node to the list of configuration.
+   --  Add a configuration node to the list of configuration. Cannot
+   --  be inlined.
 
    procedure Add_Subprogram_Parameter
      (Subprogram_Node : in Subprogram_Id;
@@ -349,8 +349,8 @@ package XE is
    procedure First_Configuration_Declaration
      (Configuration_Node : in  Configuration_Id;
       Declaration_Node   : out Node_Id);
-   pragma Inline (First_Configuration_Declaration);
-   --  Set to the first declaration in the configuration list.
+   --  Set to the first declaration in the configuration list. Cannot
+   --  be inlined.
 
    procedure First_Subprogram_Parameter
      (Subprogram_Node : in Subprogram_Id;
