@@ -61,8 +61,8 @@ package PolyORB.CORBA_P.ServantLocator is
       Oid        : in     PPT.Object_Id;
       Adapter    : access PPT.Obj_Adapter'Class;
       Operation  : in     PolyORB.Types.Identifier;
-      The_Cookie : out    PPT.Cookie;
-      Returns    : out    PolyORB.Servants.Servant_Access);
+      The_Cookie :    out PPT.Cookie;
+      Returns    :    out PolyORB.Servants.Servant_Access);
 
    procedure Postinvoke
      (Self        : access CORBA_ServantLocator;
@@ -74,8 +74,10 @@ package PolyORB.CORBA_P.ServantLocator is
 
 private
 
+   type SL_Ptr is access all PortableServer.ServantLocator.Ref'Class;
+
    type CORBA_ServantLocator is new PPT.ServantLocator with record
-      SL : PortableServer.ServantLocator.SL_Ptr;
+      SL : SL_Ptr;
    end record;
 
 end PolyORB.CORBA_P.ServantLocator;

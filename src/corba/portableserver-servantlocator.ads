@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-servantlocator.ads#4 $
+--  $Id: //droopi/main/src/corba/portableserver-servantlocator.ads#5 $
 
 with CORBA;
 
@@ -47,8 +47,6 @@ with PolyORB.POA_Types;
 package PortableServer.ServantLocator is
 
    type Ref is new PortableServer.ServantManager.Ref with private;
-
-   type SL_Ptr is access all PortableServer.ServantLocator.Ref'Class;
 
    type Root_Cookie is new PolyORB.POA_Types.Cookie_Base with private;
 

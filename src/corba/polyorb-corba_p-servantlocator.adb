@@ -49,8 +49,7 @@ package body PolyORB.CORBA_P.ServantLocator is
    begin
       Self := new CORBA_ServantLocator;
 
-      CORBA_ServantLocator (Self.all).SL
-        := PortableServer.ServantLocator.SL_Ptr (SL);
+      CORBA_ServantLocator (Self.all).SL := SL_Ptr (SL);
    end Create;
 
    -------------------------
@@ -73,10 +72,11 @@ package body PolyORB.CORBA_P.ServantLocator is
       Oid        : in     PPT.Object_Id;
       Adapter    : access PPT.Obj_Adapter'Class;
       Operation  : in     PolyORB.Types.Identifier;
-      The_Cookie : out    PPT.Cookie;
-      Returns    : out    PolyORB.Servants.Servant_Access)
+      The_Cookie :    out PPT.Cookie;
+      Returns    :    out PolyORB.Servants.Servant_Access)
    is
       CORBA_POA     : PortableServer.POA_Forward.Ref;
+
       CORBA_Servant : PortableServer.Servant;
 
    begin
@@ -94,7 +94,6 @@ package body PolyORB.CORBA_P.ServantLocator is
 
       Returns := PolyORB.Servants.Servant_Access
         (PortableServer.To_PolyORB_Servant (CORBA_Servant));
-
    end Preinvoke;
 
    ----------------
