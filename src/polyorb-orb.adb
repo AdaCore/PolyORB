@@ -112,13 +112,14 @@ package body PolyORB.ORB is
      (ORB : access ORB_Type;
       AES :        Asynch_Ev_Source_Access);
    --  Insert AES in the set of asynchronous event sources
-   --  monitored by ORB. The caller must hold the ORB lock.
+   --  monitored by ORB. The caller must not hold the ORB lock.
 
    procedure Delete_Source
      (ORB : access ORB_Type;
       AES : in out Asynch_Ev_Source_Access);
    --  Delete AES from the set of asynchronous event sources
    --  monitored by ORB. AES is destroyed.
+   --  The caller must not hold the ORB lock.
 
    procedure Run
      (AEH : access AES_Event_Handler) is
@@ -318,11 +319,8 @@ package body PolyORB.ORB is
             pragma Debug (O ("Inserting new source: Endpoint"));
             Register_Endpoint (ORB, New_TE, New_Filter, Server);
 
-            Enter (ORB.ORB_Lock);
             Insert_Source (ORB, AES);
             --  Continue monitoring the TAP's AES.
-
-            Leave (ORB.ORB_Lock);
          end;
       end Handle_Event;
 
@@ -722,8 +720,9 @@ package body PolyORB.ORB is
       Enter (ORB.ORB_Lock);
       pragma Debug (O ("Inserting new source: Access Point"));
       TAP_Lists.Append (ORB.Transport_Access_Points, TAP);
-      Insert_Source (ORB, New_AES);
       Leave (ORB.ORB_Lock);
+
+      Insert_Source (ORB, New_AES);
 
       pragma Debug (O ("Register_Acces_Point: leave"));
    end Register_Access_Point;
@@ -857,6 +856,8 @@ package body PolyORB.ORB is
       pragma Assert (AES /= null);
       pragma Debug (O ("Insert source: enter"));
 
+      Enter (ORB.ORB_Lock);
+
       declare
          use Monitor_Lists;
          It : Iterator := First (ORB.Monitors);
@@ -892,6 +893,7 @@ package body PolyORB.ORB is
          pragma Debug (O ("Insert source: Signaling Idle Tasks"));
          Signal (ORB.Idle_Tasks);
       end if;
+      Leave (ORB.ORB_Lock);
 
       pragma Debug (O ("Insert source: leave"));
    end Insert_Source;
@@ -1281,10 +1283,8 @@ package body PolyORB.ORB is
             --  of a request job, i.e. outside of ORB_Lock, so
             --  for now we re-enter ORB_Lock.
 
-            Enter (ORB.ORB_Lock);
             pragma Debug (O ("Inserting source: Monitored Endpoint"));
             Insert_Source (ORB, Note.AES);
-            Leave (ORB.ORB_Lock);
 
          end;
 
