@@ -297,8 +297,6 @@ examples/module/client.adb
 examples/module/dir.mk
 examples/module/m1-echo-impl.adb
 examples/module/m1-echo-impl.ads
-examples/module/m1-stream.adb
-examples/module/m1.ads
 examples/module/module.idl
 examples/module/server.adb
 mk/beforedir.mk
