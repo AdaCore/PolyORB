@@ -104,23 +104,39 @@ procedure XE_Lead is
    ------------------
 
    procedure Set_Launcher (Partition  : in PID_Type) is
+      Ext_Quote : Character := '"';  -- "
+      Int_Quote : Character := ''';  -- '
    begin
+
+      --  For the main partition, the command should be
+      --    "<pn>" --boot_location "<bs>" <cline>
+      --  For other partitions, it should be
+      --    <rshcmd> <host> <rshopts> "'<pn>' --detach ...
+      --         ... --boot_location '<bs>' <cline> &" ...
+      --         ... < /dev/null > /dev/null 2>&1
+
+      if Partition = Main_Partition then
+         Int_Quote := '"';  -- "
+      end if;
 
       if Partition /= Main_Partition then
          Write_Str  (FD, Get_Rsh_Command);
          Write_Str  (FD, " $");
          Write_Name (FD, Partitions.Table (Partition).Name);
          Write_Str  (FD, "_HOST ");
-         Write_Str  (FD, Get_Rsh_Options);
-         Write_Str  (FD, " ");
+         Write_Str  (FD, Get_Rsh_Options & ' ' & Ext_Quote);
       end if;
 
+      Write_Str  (FD, (1 => Int_Quote));
       Write_Name (FD, Get_Absolute_Exec (Partition));
+      Write_Str  (FD, (1 => Int_Quote));
 
-      Write_Str  (FD, " --boot_location ${BOOT_SERVER}");
+      Write_Str  (FD, " --boot_location " &
+                  Int_Quote & "$BOOT_SERVER" & Int_Quote);
       Write_Name (FD, Get_Command_Line (Partition));
       if Partition /= Main_Partition then
-         Write_Str (FD, " --detach --slave >/dev/null 2>&1");
+         Write_Str  (FD, " --detach" & Ext_Quote);
+         Write_Str  (FD, " < /dev/null > /dev/null 2>&1");
       end if;
 
       Write_Eol (FD);
