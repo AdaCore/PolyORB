@@ -127,9 +127,19 @@ package body Broca.Exceptions.Stack is
    -- Get_Members --
    -----------------
 
-   procedure Get_Members
-     (Exc_Occ : in CORBA.Exception_Occurrence;
-      Exc_Mbr : out IDL_Exception_Members'Class)
+   procedure Get_Or_Purge_Members
+     (Exc_Occ     : CORBA.Exception_Occurrence;
+      Exc_Mbr     : out IDL_Exception_Members'Class;
+      Get_Members : Boolean);
+   --  Internal implementation of Get_Members and Purge_Members.
+   --  If Get_Members is true, the retrieved members object is
+   --  assigned to Exc_Mbr, else the object is discarded and no
+   --  assignment is made.
+
+   procedure Get_Or_Purge_Members
+     (Exc_Occ     : CORBA.Exception_Occurrence;
+      Exc_Mbr     : out IDL_Exception_Members'Class;
+      Get_Members : Boolean)
    is
       Exc_Occ_Id : Exc_Occ_Id_Type;
       Current    : Exc_Occ_List;
@@ -184,7 +194,11 @@ package body Broca.Exceptions.Stack is
 
       --  Update out parameter. An exception can be raised here.
 
-      Exc_Mbr := Current.Mbr.all;
+
+      if Get_Members then
+         Exc_Mbr := Current.Mbr.all;
+         --  May raise Constraint_Error if the tags do not match.
+      end if;
 
       Free (Current.Mbr);
       Free (Current);
@@ -202,7 +216,27 @@ package body Broca.Exceptions.Stack is
          Exc_Occ_List_Size := Exc_Occ_List_Size - 1;
          Leave_Critical_Section;
          raise;
+   end Get_Or_Purge_Members;
+
+   procedure Get_Members
+     (Exc_Occ : in CORBA.Exception_Occurrence;
+      Exc_Mbr : out IDL_Exception_Members'Class) is
+   begin
+      Get_Or_Purge_Members (Exc_Occ, Exc_Mbr, Get_Members => True);
    end Get_Members;
+
+   procedure Purge_Members
+     (Exc_Occ : in CORBA.Exception_Occurrence) is
+   begin
+      declare
+         Dummy : System_Exception_Members;
+      begin
+         Get_Or_Purge_Members (Exc_Occ, Dummy, Get_Members => False);
+      exception
+         when others =>
+            null;
+      end;
+   end Purge_Members;
 
    -----------
    -- Image --

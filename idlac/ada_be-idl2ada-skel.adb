@@ -322,19 +322,16 @@ package body Ada_Be.Idl2Ada.Skel is
 
                DI (CU);
 
+               PL (CU, "exception");
+
                declare
                   It : Node_Iterator;
                   R_Node : Node_Id;
                   E_Node : Node_Id;
-                  First : Boolean := True;
                begin
                   Init (It, Raises (Node));
 
                   while not Is_End (It) loop
-                     if First then
-                        PL (CU, "exception");
-                        First := False;
-                     end if;
 
                      Get_Next_Node (It, R_Node);
                      E_Node := Value (R_Node);
@@ -391,6 +388,17 @@ package body Ada_Be.Idl2Ada.Skel is
                      DI (CU);
                      DI (CU);
                   end loop;
+
+                  PL (CU, "when E : others =>");
+                  II (CU);
+                  NL (CU);
+                  PL (CU, "--  An exception was raised which is not listed");
+                  PL (CU, "--  in this operation's ""raises"" clause.");
+                  NL (CU);
+                  PL (CU, "Broca.Exceptions.User_Purge_Members (E);");
+                  PL (CU, "Broca.Exceptions.Raise_Unknown");
+                  PL (CU, "  (Status => CORBA.Completed_Maybe);");
+                  DI (CU);
                end;
 
                PL (CU, "end;");

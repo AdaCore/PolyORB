@@ -1334,20 +1334,39 @@ package body Broca.RootPOA is
                Response_Expected, Message, Reply);
             pragma Debug (O ("GIOP_Invoke: giop_dispatch returned"));
          exception
+
+            --  CORBA user exceptions are caught in GIOP_Dispatch:
+            --  only system and unknown exceptions are propagated
+            --  up to this point.
+
             when E : others =>
                pragma Debug (O ("GIOP_Invoke: system exception " &
                                 Ada.Exceptions.Exception_Name (E)));
-               --  FIXME : if non CORBA excpetion is caught, then
-               --  it cannot be marshalled
-               --  It will lead to broca.exceptions.get_member
-               --  raising Bad_Param and the server crashes
+
                if Response_Expected then
                   Broca.CDR.Marshall
                     (Reply, CORBA.Unsigned_Long (Broca.GIOP.No_Context));
                   Broca.CDR.Marshall (Reply, Request_Id);
                   Broca.GIOP.Marshall
                     (Reply, Broca.GIOP.System_Exception);
-                  Broca.CDR.Marshall (Reply, E);
+
+                  begin
+                     Broca.CDR.Marshall (Reply, E);
+                  exception
+                     when others =>
+
+                        --  An exception was raised will trying to marshall
+                        --  an exception: marshall UNKNOWN instead.
+
+                        begin
+                           Broca.Exceptions.Raise_Unknown
+                             (Status => CORBA.Completed_Maybe);
+                        exception
+                           when E : others =>
+                              Broca.CDR.Marshall (Reply, E);
+                        end;
+
+                  end;
                end if;
          end;
 

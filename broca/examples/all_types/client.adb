@@ -126,8 +126,23 @@ begin
          when E : my_exception =>
             Get_Members (E, Member);
             Ok := (Member.info = 2485);
+         when others =>
+            null;
       end;
-      Output ("test exception", Ok);
+      Output ("test user exception", Ok);
+
+      Ok := False;
+      declare
+         Member : my_exception_Members;
+      begin
+         testUnknownException (Myall_types, 2485);
+      exception
+         when CORBA.UNKNOWN =>
+            Ok := True;
+         when others =>
+            null;
+      end;
+      Output ("test unknown exception", Ok);
 
       --  Arrays
       declare

@@ -190,7 +190,7 @@ package body Ada_Be.Idl2Ada is
 
          when others =>
             raise Program_Error;
-            --  should never happen
+            --  Should never happen
       end case;
    end Gen_Scope;
 
@@ -1555,9 +1555,10 @@ package body Ada_Be.Idl2Ada is
    end Gen_Node_Stubs_Spec;
 
 
-   ---------------------------
-   --  Gen_Node_Stubs_Body  --
-   ---------------------------
+   --------------------------
+   -- Gen_Node_Stubs_Body  --
+   --------------------------
+
    procedure Gen_Node_Stubs_Body
      (CU   : in out Compilation_Unit;
       Node : Node_Id) is
@@ -1740,6 +1741,8 @@ package body Ada_Be.Idl2Ada is
 
                else
                   PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
+                  --  FIXME: Got a reply when none is expected.
+                  --    What to do?
                   PL (CU, "raise Program_Error;");
                end if;
 
@@ -1807,8 +1810,14 @@ package body Ada_Be.Idl2Ada is
                      PL (CU, "end if;");
                   end loop;
                end;
+
                PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
-               PL (CU, "raise Program_Error;");
+               NL (CU);
+               PL (CU, "--  A user exception was raise, but it is not");
+               PL (CU, "--  listed in this operation's ""raises"" clause.");
+               NL (CU);
+               PL (CU, "Broca.Exceptions.Raise_Unknown");
+               PL (CU, "  (Status => CORBA.Completed_Maybe);");
 
                if not Is_Empty (Raises (Node)) then
                   DI (CU);
@@ -2570,6 +2579,11 @@ package body Ada_Be.Idl2Ada is
 
       if Response_Expected then
          PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
+         --  FIXME: Got no reply when one is expected.
+         --    What to do? (see also similar comment in
+         --    Gen_Node_Stubs_Body / K_Operation for
+         --    the opposed problem: got a reply when
+         --    none is expected.)
          PL (CU, "raise Program_Error;");
       else
          PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");

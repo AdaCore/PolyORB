@@ -24,6 +24,9 @@ Bugs fixed include:
   Unknown profiles in IORs are now processed correctly.
   (Problem noted while interoperating with ORBit).
 
+  Unknown exceptions are now correctly map to the UNKNOWN
+  system exception.
+
 Incompatible changes in version 1.0pre3
 =======================================
 

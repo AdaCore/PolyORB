@@ -110,62 +110,74 @@ package body Broca.Exceptions is
       (Exc  => CORBA.Invalid_Transaction'Identity,
        Name => new String'("CORBA/INVALID_TRANSACTION")));
 
-   -----------------------
-   --  User_Get_Members --
-   -----------------------
-   --  Extract members from an exception occurence.
+   ----------------------
+   -- User_Get_Members --
+   ----------------------
+
    procedure User_Get_Members
      (Occurrence : CORBA.Exception_Occurrence;
       Members : out CORBA.IDL_Exception_Members'Class)
      renames Broca.Exceptions.Stack.Get_Members;
+   --  Extract members from a user exception occurence
 
+   ------------------------
+   -- User_Purge_Members --
+   ------------------------
 
+   procedure User_Purge_Members
+     (Occurrence : CORBA.Exception_Occurrence)
+     renames Broca.Exceptions.Stack.Purge_Members;
 
-   ---------------------------
-   --  User_Raise_Exception --
-   ---------------------------
+   --------------------------
+   -- User_Raise_Exception --
+   --------------------------
+
    procedure User_Raise_Exception
      (Id : Ada.Exceptions.Exception_Id;
       Members : IDL_Exception_Members'Class)
      renames Broca.Exceptions.Stack.Raise_Exception;
+   --  Raise a user exception with the specified members.
 
-   --------------------------------
-   -- System exception handling  --
-   --------------------------------
+   -------------------------------
+   -- System exception handling --
+   -------------------------------
 
    function Get_ExcepId_By_RepositoryId
      (RepoId : in Standard.String)
      return Ada.Exceptions.Exception_Id is
-      Result : Ada.Exceptions.Exception_Id := Ada.Exceptions.Null_Id;
    begin
       for I in Mapping'Range loop
          if RepoId = OMG_RepositoryId (Mapping (I) .Name.all) then
-            Result := Mapping (I) .Exc;
-            exit;
+            return Mapping (I).Exc;
          end if;
       end loop;
-      return Result;
+
+      return Ada.Exceptions.Null_Id;
    end Get_ExcepId_By_RepositoryId;
 
-   ----------------------
-   --  Raise_Exception --
-   ----------------------
-   --  Raises the corresponding exception CORBA exception and stores its
-   --  member so that it can be retrieved with Get_Members
+   ---------------------
+   -- Raise_Exception --
+   ---------------------
+
    procedure Raise_Exception
      (Excp : in Exception_Id; Excp_Memb : in System_Exception_Members);
    pragma No_Return (Raise_Exception);
+   --  Raise the corresponding CORBA exception, and store its
+   --  members for later retrieval by Get_Members.
 
    procedure Raise_Exception
-     (Excp : in Exception_Id; Excp_Memb : in System_Exception_Members)
+     (Excp : in Exception_Id;
+      Excp_Memb : in System_Exception_Members)
    is
       Str : String (1 .. 5);
       Val : CORBA.Unsigned_Long;
    begin
       --  Marshall Minor and Completed fields of EXCP_MEMB into a string.
       --  A trivial marshalling is used:
-      --  str(1 .. 4) contains the minor, in big endian byte order.
-      --  str(5) contains the completed.
+
+      --  Str (1 .. 4)   Minor (MSB first)
+      --  Str (5)        Completed
+
       Str (5) := Character'Val (Completion_Status'Pos (Excp_Memb.Completed));
       Val := Excp_Memb.Minor;
       for I in 1 .. 4 loop
@@ -176,14 +188,15 @@ package body Broca.Exceptions is
       --  Raise the exception.
       Ada.Exceptions.Raise_Exception (Excp, Str);
 
-      --  Huh, excp can't be null_id.
+      --  Huh, excp can't be null_id
       raise Program_Error;
    end Raise_Exception;
 
 
-   ------------------
-   --  Get_Members --
-   ------------------
+   -----------------
+   -- Get_Members --
+   -----------------
+
    procedure Get_Members
      (From : in CORBA.Exception_Occurrence;
       To   : out System_Exception_Members)
@@ -211,42 +224,49 @@ package body Broca.Exceptions is
          Raise_Bad_Param;
    end Get_Members;
 
+   -------------------------------------
+   -- Raise standard CORBA exceptions --
+   -------------------------------------
 
+   procedure Raise_Unknown
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception
+        (Unknown'Identity,
+         System_Exception_Members'(Minor => Minor, Completed => Status));
+   end Raise_Unknown;
 
-   -------------------------------------------------------
-   -- Useful methods to raise standard CORBA exceptions --
-   -------------------------------------------------------
-
-   --  Raise CORBA.bad_param with minor = 0 and completed = Completed_No.
-   procedure Raise_Bad_Param (Minor : CORBA.Unsigned_Long := 0;
-                              Status : Completion_Status := Completed_No) is
+   procedure Raise_Bad_Param
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Bad_Param'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Bad_Param;
 
-   --  Raise CORBA.marshal with minor = 0 and completed = Completed_No.
-   procedure Raise_Marshal (Minor : CORBA.Unsigned_Long := 0;
-                            Status : Completion_Status := Completed_No) is
+   procedure Raise_Marshal
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Marshal'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Marshal;
 
-   --  Raise CORBA.comm_failure with minor = 0 and completed = Completed_No.
-   procedure Raise_Comm_Failure (Minor : CORBA.Unsigned_Long := 0;
-                                 Status : Completion_Status := Completed_No) is
+   procedure Raise_Comm_Failure
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Comm_Failure'Identity,
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Comm_Failure;
 
-   --  Raise CORBA.inv_objref with minor = 0 and completed = Completed_No.
-   procedure Raise_Inv_Objref (Minor : CORBA.Unsigned_Long := 0;
-                               Status : Completion_Status := Completed_No) is
+   procedure Raise_Inv_Objref
+     (Minor  : CORBA.Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Inv_Objref'Identity,
@@ -254,7 +274,7 @@ package body Broca.Exceptions is
    end Raise_Inv_Objref;
 
    procedure Raise_Object_Not_Exist
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
@@ -263,7 +283,7 @@ package body Broca.Exceptions is
    end Raise_Object_Not_Exist;
 
    procedure Raise_Bad_Operation
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
@@ -272,7 +292,7 @@ package body Broca.Exceptions is
    end Raise_Bad_Operation;
 
    procedure Raise_Transient
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
@@ -281,7 +301,7 @@ package body Broca.Exceptions is
    end Raise_Transient;
 
    procedure Raise_Internal
-     (Minor : Unsigned_Long := 0;
+     (Minor  : Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
@@ -290,7 +310,7 @@ package body Broca.Exceptions is
    end Raise_Internal;
 
    procedure Raise_Obj_Adapter
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
@@ -299,7 +319,7 @@ package body Broca.Exceptions is
    end Raise_Obj_Adapter;
 
    procedure Raise_No_Implement
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
@@ -307,19 +327,17 @@ package body Broca.Exceptions is
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_No_Implement;
 
-   ----------------------
-   --  Raise_Imp_Limit --
-   ----------------------
-   procedure Raise_Imp_Limit (Minor : Unsigned_Long := 0;
-                              Status : Completion_Status := Completed_No) is
+   procedure Raise_Imp_Limit
+     (Minor  : Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
    begin
-      Raise_Exception (Imp_Limit'Identity,
-                       System_Exception_Members'(Minor => Minor,
-                                                 Completed => Status));
+      Raise_Exception
+        (Imp_Limit'Identity,
+         System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Imp_Limit;
 
    procedure Raise_Bad_Inv_Order
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
@@ -328,7 +346,7 @@ package body Broca.Exceptions is
    end Raise_Bad_Inv_Order;
 
    procedure Raise_Bad_TypeCode
-     (Minor : CORBA.Unsigned_Long := 0;
+     (Minor  : CORBA.Unsigned_Long := 0;
       Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
@@ -336,21 +354,21 @@ package body Broca.Exceptions is
          System_Exception_Members'(Minor => Minor, Completed => Status));
    end Raise_Bad_TypeCode;
 
+   -----------------------------------------------------
+   -- System exceptions                               --
+   -- Same as CORBA.To_CORBA_String, but redefined to --
+   -- avoid a circular elaboration dependency.        --
+   -----------------------------------------------------
 
+   function To_RepositoryId
+     (S : in Standard.String) return CORBA.RepositoryId;
 
-
-   -----------------------------------------------------------------------
-
-   --  System exceptions.
-   --  Same as CORBA.To_CORBA_String, but redefined to avoid circular
-   --  elaboration.
-   function To_RepositoryId (S : in Standard.String) return CORBA.RepositoryId;
-
-   function To_RepositoryId (S : in Standard.String)
-                             return CORBA.RepositoryId is
+   function To_RepositoryId
+     (S : in Standard.String)
+     return CORBA.RepositoryId is
    begin
-      return
-        CORBA.RepositoryId (Ada.Strings.Unbounded.To_Unbounded_String (S));
+      return CORBA.RepositoryId
+        (Ada.Strings.Unbounded.To_Unbounded_String (S));
    end To_RepositoryId;
 
    function Occurrence_To_Name
@@ -367,6 +385,5 @@ package body Broca.Exceptions is
       end loop;
       raise Program_Error;
    end Occurrence_To_Name;
-
 
 end Broca.Exceptions;
