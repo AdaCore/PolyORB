@@ -62,8 +62,8 @@ Header box should be up to date whenever necessary:
   references to specifications (e.g. CORBA related packages) or other
   projects (e.g. AWS)
 
-To rebuild dependences, rune 'make depend' from PolyORB's root.
-Note that you must ensure that
+To rebuild dependences, run 'make depend' from PolyORB's root directory.
+Note that you must ensure that:
 
 - Build is not _without_ debug
 
