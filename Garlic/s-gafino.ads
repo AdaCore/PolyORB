@@ -1,14 +1,14 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           GARLIC COMPONENTS                              --
+--                            GLADE COMPONENTS                              --
 --                                                                          --
---            S Y S T E M . G A R L I C . F I L T E R S . N O N E           --
+--           S Y S T E M . G A R L I C . F I L T E R S . N O N E            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                          --
+--                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -32,10 +32,6 @@
 --               (email: glade-report@act-europe.fr)                        --
 --                                                                          --
 ------------------------------------------------------------------------------
-
--- This  package  is part of  the  transparent data filtering  extension to --
--- GARLIC  developed at  the  Software Engineering Laboratory of the  Swiss --
--- Federal Institute of Technology in Lausanne (EPFL).                      --
 
 with Ada.Streams;
 
@@ -69,18 +65,10 @@ private
       Params : Filter_Params_Access)
       return Streams.Stream_Element_Access;
 
-   procedure Free
-     (Params  : None_Filter_Params_Type;
-      Pointer : in out Filter_Params_Access);
-
    procedure Generate_Params
      (Filter          : in None_Filter_Type;
       Public_Params   : out Filter_Params_Access;
       Private_Params  : out Filter_Params_Access;
       Exchange_Params : out Boolean);
-
-   function Get_Name
-     (Filter : None_Filter_Type)
-     return String;
 
 end System.Garlic.Filters.None;

@@ -1,14 +1,14 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                           GARLIC COMPONENTS                              --
+--                            GLADE COMPONENTS                              --
 --                                                                          --
---            S Y S T E M . G A R L I C . F I L T E R S . N O N E           --
+--           S Y S T E M . G A R L I C . F I L T E R S . N O N E            --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -94,17 +94,6 @@ package body System.Garlic.Filters.None is
       return null;
    end Filter_Params_Write;
 
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free
-     (Params  : in     None_Filter_Params_Type;
-      Pointer : in out Filter_Params_Access) is
-   begin
-      null;
-   end Free;
-
    ---------------------
    -- Generate_Params --
    ---------------------
@@ -120,17 +109,6 @@ package body System.Garlic.Filters.None is
       Exchange_Params := False;
    end Generate_Params;
 
-   --------------
-   -- Get_Name --
-   --------------
-
-   function Get_Name
-     (Filter : None_Filter_Type)
-      return String is
-   begin
-      return "none";
-   end Get_Name;
-
 begin
-   Register_Filter (None_Filter'Access);
+   Register_Filter (null, "none");
 end System.Garlic.Filters.None;

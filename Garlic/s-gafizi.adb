@@ -2,13 +2,13 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---          S Y S T E M . G A R L I C . F I L T E R S . Z I P               --
+--            S Y S T E M . G A R L I C . F I L T E R S . Z I P             --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                          --
+--                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -172,19 +172,6 @@ package body System.Garlic.Filters.Zip is
       return null;
    end Filter_Params_Write;
 
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free
-     (Params  : in     Compress_Filter_Params_Type;
-      Pointer : in out Filter_Params_Access) is
-   begin
-      --  Nothing allocated, so nothing to deallocate.
-      null;
-   end Free;
-
-
    ---------------------
    -- Generate_Params --
    ---------------------
@@ -200,17 +187,6 @@ package body System.Garlic.Filters.Zip is
       Exchange_Params := False;
    end Generate_Params;
 
-   --------------
-   -- Get_Name --
-   --------------
-
-   function Get_Name
-     (Filter : Compress_Filter_Type)
-     return String is
-   begin
-      return "zip";
-   end Get_Name;
-
 begin
-   Register_Filter (Compressor'Access);
+   Register_Filter (Compressor'Access, "zip");
 end System.Garlic.Filters.Zip;
