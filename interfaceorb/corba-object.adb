@@ -14,9 +14,38 @@
 package body Corba.Object is
 
 
+
+   --------------------------------------------------
+   ---        CORBA 2.2 specifications            ---
+   --------------------------------------------------
+
+   -- Is_Nil
+   ---------
+   function Is_Nil(Self: in Ref'Class) return Boolean is
+   begin
+      return Self.Is_Nil ;
+   end ;
+
+
    --------------------------------------------------
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
+
+    -- Assert_Ref_Not_Nil
+   ---------------------
+   procedure Assert_Ref_Not_Nil(Self : in Ref) is
+   begin
+      if Corba.Object.Is_Nil(Self) then
+         declare
+            Excp_Members : Corba.Bad_Param_Members ;
+         begin
+            Excp_Members := (0, Corba.Completed_No) ;
+            Corba.Raise_Corba_Exception(Corba.Bad_Operation'Identity, Excp_Members) ;
+         end ;
+      end if ;
+   end ;
+
+
 
    --  Get_Dynamic_Object
    ----------------------

@@ -10,8 +10,7 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
--- with Omniobject ;
--- removed because circular dependency
+with Omniobject ;
 
 with Omniobjectmanager, Omniropeandkey ;
 
@@ -21,13 +20,13 @@ with Ada.Finalization ;
 package Corba.Object is
 
    -- proxy objects are references to implementations
-   type Ref is tagged private ;
-   type Ref_Ptr is access Ref ;
+   type Ref is new  Omniobject.Object with private ;
+   type Ref_Ptr is access all Ref ;
    Nil_Ref : constant Ref ;
 
    -- objects are real implementations of the object
    type Object is tagged private ;
-   type Object_Ptr is access Object ;
+   type Object_Ptr is access all Object ;
 
    --I boolean is_nil();
    function Is_Nil(Self: in Ref'Class) return Boolean;
@@ -64,6 +63,8 @@ package Corba.Object is
    function Get_Dynamic_Object(Self: in Ref'Class) return Ref'Class ;
 
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
+
+   procedure Assert_Ref_Not_Nil(Self : in Ref) ;
 
 
    procedure Marshal_Obj_Ref(The_Object: Ref'Class ;
@@ -125,64 +126,40 @@ package Corba.Object is
    --                size_t initialoffset)
    -- in objectRef.cc L744
 
-   -----------------------------------------------------
-   ----      all the following methods are wrappers ----
-   ----          around omniobject.adb              ----
-   ----  to simulate C++ multiple inheritance       ----
-   -----------------------------------------------------
-
-   function Is_Proxy return Boolean ;
-
-   procedure PR_IRRepositoryId(RepositoryId : in String ) ;
-
-   procedure Init (Self : in out Corba.Object.Ref'Class ;
-                   Manager : in OmniObjectManager.Object);
-
-   procedure Set_Rope_And_Key (Self : in out Corba.Object.Ref'Class ;
-                            L : in out Omniropeandkey.Object ;
-                            KeepIOP : Corba.Boolean := True
-                           ) ;
-
-   procedure Get_Rope_And_Key (Self : in Corba.Object.Ref'Class ;
-                               L : in out Omniropeandkey.Object ;
-                               Result : out Corba.Boolean) ;
-
-   procedure Assert_Object_Existent (Self : in Corba.Object.Ref'Class) ;
-
-   procedure Reset_Rope_And_Key (Self : in Corba.Object.Ref'Class);
-
 
 private
 
-   type Dynamic_Type is access Ref'Class ;
-   type Ref is new Ada.Finalization.Controlled with record
-      Dynamic_Object : Dynamic_Type := null ;
-      -- Wrapped_Omniobject : Omniobject.Object ;
-      -- removed because circular dependency
+
+   type Ref is new Omniobject.Object with record
+      Dynamic_Object : Ref_Ptr := null ;
+      Is_Nil : Boolean := False ;
    end record ;
 
+   Nil_Ref : constant Ref := (Omniobject.Object with Dynamic_Object => null,
+                              Is_Nil => True ) ;
 
-   Nil_Ref : constant Ref := (Ada.Finalization.Controlled with Dynamic_Object => null) ;
 
-   type Object is tagged null record ;
-   -- this is not definitive,
-   -- Ref and object will probably inherit
-   -- omniobject
+   type Object is new Omniobject.object with null record ;
 
-   procedure Initialize (Self: in out Ref'Class);
+
+   procedure Initialize (Self: in out Object);
    -- called each time a Ref object is created
    -- initializes the Dynamic_Object pointer
    -- creates the underlying C object
 
-   procedure Adjust (Self: in out Ref'Class);
+   procedure Adjust (Self: in out Object);
    -- called each time you duplicate a Ref object using :=
    -- update the value of the Dynamic_Object pointer
 
-   procedure Finalize (Self: in out Ref'Class);
+   procedure Finalize (Self: in out Object);
    -- called each time a Ref object must be trashed
    -- releases the underlying C pointer
 
 end Corba.Object ;
+
+
+
+
 
 
 

@@ -20,20 +20,25 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-with OmniRopeAndKey ;
+with Ada.Finalization ;
+
 with Interfaces.CPP ;
 with Interfaces.C.Strings ;
-with Corba ;
+
 with System ;
 with System.Address_To_Access_Conversions ;
+
+with Corba ;
 with Sys_Dep ;
 with OmniObjectManager ;
 with Iop ;
 with Rope ;
+with OmniRopeAndKey ;
+
 
 package OmniObject is
 
-   type Object is tagged record
+   type Object is new Ada.Finalization.Controlled with record
       Corba_Object_Ptr : System.Address ;
       Table : Interfaces.CPP.Vtable_Ptr ;
    end record ;
@@ -161,6 +166,23 @@ package OmniObject is
    -- in omniInternal.h L377
    pragma Export (CPP,C_Dispatch,
                   "dispatch__10omniObjectR6GIOP_SPCcb");
+
+
+   procedure Object_Is_Ready(Self : in Object'Class) ;
+   -- calls omniORB's omni::objectIsReady in objectRef.CC L 230
+
+
+private
+
+   procedure Initialize (Self: in out Object);
+   -- called each time a Ref object is created
+
+   procedure Adjust (Self: in out Object);
+   -- called each time you duplicate a Ref object using :=
+
+   procedure Finalize (Self: in out Object);
+   -- called each time a Ref object must be trashed
+
 
 end OmniObject ;
 

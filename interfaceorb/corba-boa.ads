@@ -40,8 +40,10 @@ package Corba.Boa is
    -- omni::objectIsReady(omniObject* obj)
    -- in objectRef.CC L 230
    --
-   -- this function must also create the underlying C++ object
-   -- since it has not been done yet
+   -- NONONONONONO
+   -- keep the same strcture as in omniORB
+   -- this procedure really maps  omniORB's boa::objectIsReady
+
 
    procedure Impl_Is_Ready(The_Object : in Corba.Object.Object'Class) ;
    -- wrapper around impl_is_ready() ;
