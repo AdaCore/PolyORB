@@ -11,11 +11,12 @@ with Droopi.Binding_Data;
 
 package Droopi.References.IOR is
 
-   type IOR_Type is new Droopi.References.Ref with record
+   type IOR_Type is record
+      Ref : Droopi.References.Ref;
       Type_Id  : CORBA.String;
    end record;
 
-   type IOR_Ptr is access all IOR_Type'Class;
+   type IOR_Ptr is access all IOR_Type;
 
    procedure Marshall
      (Buffer : access Buffer_Type;
@@ -31,7 +32,7 @@ package Droopi.References.IOR is
 
    type Unmarshall_Profile_Body_Type is access procedure
      (Buffer  : access Buffers.Buffer_Type;
-      Profile : out Profile_Ptr);
+      Profile : out Droopi.Binding_Data.Profile_Access);
 
    type Profile_Record is record
       Marshall_Profile_Body   : Marshall_Profile_Body_Type;

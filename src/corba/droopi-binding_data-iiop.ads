@@ -2,6 +2,9 @@
 
 --  $Id$
 
+with CORBA;
+
+with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Sockets;
 
 package Droopi.Binding_Data.IIOP is
@@ -9,8 +12,8 @@ package Droopi.Binding_Data.IIOP is
    type IIOP_Profile_Type is new Profile_Type with private;
 
    procedure Initialize (P : in out IIOP_Profile_Type);
-   procedure Adjust (P : in out IIOP_Profile_Type);
-   procedure Finalize (P : in out IIOP_Profile_Type);
+   procedure Adjust     (P : in out IIOP_Profile_Type);
+   procedure Finalize   (P : in out IIOP_Profile_Type);
 
    function Get_Object_Key
      (Profile : IIOP_Profile_Type)
@@ -33,11 +36,19 @@ package Droopi.Binding_Data.IIOP is
 
    type IIOP_Profile_Factory is new Profile_Factory with private;
 
+   procedure Create_Factory
+     (PF : out IIOP_Profile_Factory;
+      TAP : Transport.Transport_Access_Point_Access);
+
    function Create_Profile
      (PF  : access IIOP_Profile_Factory;
       TAP : Transport.Transport_Access_Point_Access;
       Oid : Objects.Object_Id)
      return Profile_Access;
+
+   function Is_Local_Profile
+     (PF : access IIOP_Profile_Factory;
+      P : Profile_Access) return Boolean;
 
    procedure Marshall_IIOP_Profile_Body
      (IOR     : access Buffer_Type;
@@ -45,7 +56,7 @@ package Droopi.Binding_Data.IIOP is
 
    procedure Unmarshall_IIOP_Profile_Body
      (Buffer   : access Buffer_Type;
-      Profile  : out Profile_Ptr);
+      Profile  : out Profile_Access);
 
 private
 
@@ -54,7 +65,9 @@ private
       Object_Id : Objects.Object_Id_Access;
    end record;
 
-   type IIOP_Profile_Factory is new Profile_Factory with null record;
+   type IIOP_Profile_Factory is new Profile_Factory with record
+      Address : Sockets.Sock_Addr_Type;
+   end record;
 
    IIOP_Major_Version : constant CORBA.Unsigned_Long := 1;
 

@@ -12,18 +12,24 @@ with Ada.Streams;   use Ada.Streams;
 
 with CORBA;
 
-with Droopi.Opaque;
 with Droopi.Buffers;
 with Droopi.Binding_Data;
 with Droopi.Binding_Data.IIOP;
+with Droopi.Objects;
+with Droopi.Opaque;
+with Droopi.ORB;
+with Droopi.Protocols;
 with Droopi.References;
 with Droopi.References.IOR;
-with Droopi.Protocols;
 with Droopi.Requests;
+
+with Sequences.Unbounded;
 
 package Droopi.Protocols.GIOP is
 
-   Message_Maximum_Size  : constant Integer;
+   use Droopi.Buffers;
+
+   Max_Data_Received     : constant Integer;
    Endianess_Bit         : constant Integer;
    Fragment_Bit          : constant Integer;
    Byte_Order_Offset     : constant Integer;
@@ -32,7 +38,7 @@ package Droopi.Protocols.GIOP is
 
    type GIOP_Protocol is new Protocol with private;
 
-   type GIOP_Request is new Requests.Request  with private;
+   subtype GIOP_Request is Requests.Request;
 
    type Sync_Scope is (NONE, WITH_TRANSPORT, WITH_SERVER, WITH_TARGET);
 
@@ -43,12 +49,14 @@ package Droopi.Protocols.GIOP is
       IOR                    : References.IOR.IOR_Type;
    end record;
 
-   subtype Addressing_Disposition is Natural range 0 .. 2;
+   type Addressing_Disposition is new Natural range 0 .. 2;
 
-   type Target_Address (Address_Type : Addressing_Diposition) is record
+   type Target_Address
+     (Address_Type : Addressing_Disposition)
+   is record
       case Address_Type is
          when 0 =>
-            Object_Key : Objects.Object_Id;
+            Object_Key : Objects.Object_Id_Access;
          when 1 =>
             Profile : Binding_Data.IIOP.IIOP_Profile_Type;
          when 2 =>
@@ -120,8 +128,8 @@ package Droopi.Protocols.GIOP is
 
    --  type GIOP_Version is private;
 
-   package Octet_Sequences is new CORBA.Sequences.Unbounded (CORBA.Octet);
-   subtype CORBA_Octet_Array is Octet_Sequences.Sequence.Element_Array;
+   package Octet_Sequences is new Sequences.Unbounded (CORBA.Octet);
+   subtype CORBA_Octet_Array is Octet_Sequences.Element_Array;
 
    --  Define Types of Target Addresses used with Request Message
 
@@ -146,14 +154,14 @@ package Droopi.Protocols.GIOP is
    procedure Exception_Marshall
      (Buffer           : access Buffer_Type;
       Request_Id       : in CORBA.Unsigned_Long;
-      Exception_Type   : in ReplyStatusType;
+      Exception_Type   : in Reply_Status_Type;
       Occurence        : in CORBA.Exception_Occurrence);
 
 
    procedure Location_Forward_Marshall
      (Buffer           : access Buffer_Type;
       Request_Id       : in  CORBA.Unsigned_Long;
-      Forward_Ref      : in  Droopi.References.Ref);
+      Forward_Ref      : in  References.Ref);
 
 
    procedure Cancel_Request_Marshall
@@ -169,7 +177,7 @@ package Droopi.Protocols.GIOP is
    procedure Locate_Reply_Marshall
      (Buffer         : access Buffer_Type;
       Request_Id     : in CORBA.Unsigned_Long;
-      Locate_Status  : in LocateReplyStatus);
+      Locate_Status  : in Locate_Status_Type);
 
    -----------------------------------
    --  Unmarshall
@@ -177,7 +185,7 @@ package Droopi.Protocols.GIOP is
 
    procedure Unmarshall_GIOP_Header
      (Ses                   : access GIOP_Session;
-      Message_Type          : out MsgType;
+      Message_Type          : out Msg_Type;
       Message_Size          : out CORBA.Unsigned_Long;
       Fragment_Next         : out CORBA.Boolean;
       Success               : out Boolean);
@@ -202,7 +210,7 @@ package Droopi.Protocols.GIOP is
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
       Request_Id    : in CORBA.Unsigned_Long;
-      Message_Size  : in CORBA.Unsignd_Long;
+      Message_Size  : in CORBA.Unsigned_Long;
       Fragment_Next : out boolean);
 
 
@@ -217,7 +225,7 @@ package Droopi.Protocols.GIOP is
      (Ses             : access GIOP_Session;
       Message_Size    : in Stream_Element_Offset;
       Exception_Type  : in Reply_Status_Type;
-      Forward_Ref     : in Droopi.References.Ref;
+      Forward_Ref     : in References.Ref;
       Fragment_Next   : out Boolean);
 
    procedure Need_Addressing_Mode_Message
@@ -232,7 +240,7 @@ package Droopi.Protocols.GIOP is
    procedure Locate_Request_Message
      (Ses             : access GIOP_Session;
       Message_Size    : in Stream_Element_Offset;
-      Address_Type    : in Address_Disposition;
+      Address_Type    : in Addressing_Disposition;
       Target_Ref      : in Target_Address;
       Fragment_Next   : out Boolean);
 
@@ -253,11 +261,17 @@ package Droopi.Protocols.GIOP is
 
    procedure Connect (S : access GIOP_Session);
 
-   procedure Invoke_Request (S : access GIOP_Session; R : Request);
+   procedure Invoke_Request
+     (S : access GIOP_Session;
+      R : Requests.Request);
 
-   procedure Abort_Request (S : access GIOP_Session; R : Request);
+   procedure Abort_Request
+     (S : access GIOP_Session;
+      R : Requests.Request);
 
-   procedure Send_Reply (S : access GIOP_Session; R : Request);
+   procedure Send_Reply
+     (S : access GIOP_Session;
+      R : Requests.Request);
 
    procedure Handle_Connect_Indication (S : access GIOP_Session);
 
@@ -274,9 +288,8 @@ package Droopi.Protocols.GIOP is
    ---------------------------------------
 
    procedure Store_Request
-     (Req     : access Request;
-      Profile : in IIOP_Profile_type);
-
+     (Req     : Requests.Request;
+      Profile : in Binding_Data.IIOP.IIOP_Profile_Type);
 
 private
 
@@ -284,8 +297,8 @@ private
       Major_Version        : CORBA.Octet;
       Minor_Version        : CORBA.Octet;
       Buffer_Out           : Buffers.Buffer_Access;
-      Buffer_In            : Stream_Element_array;
-      Role                 : Endpoint_Role;
+      Buffer_In            : Buffers.Buffer_Access;
+      Role                 : ORB.Endpoint_Role;
       Object_Found         : Boolean := False;
       Nbr_Tries            : Natural := 0;
       Expect_Header        : Boolean := True;
@@ -295,9 +308,9 @@ private
    type GIOP_Protocol is new Protocol with null record;
 
    type Pending_Request is record
-      Req             : Requests.Request_Access := null;
+      Req             : Requests.Request_Access;
       Request_Id      : Corba.Unsigned_Long := 0;
-      Target_Profile  : Binding_Data.IIOP.IIOP_Profile_Type := null;
+      Target_Profile  : Binding_Data.Profile_Access;
    end record;
 
    procedure Expect_Data
@@ -309,7 +322,7 @@ private
 
    Message_Body_Size : constant := 1000;
 
-   Max_Data_Received : constant := 1024;
+   Max_Data_Received : constant Integer := 1024;
 
    Endianess_Bit : constant Integer := 1;
 
