@@ -39,12 +39,15 @@ with PolyORB.Utils;
 
 package body PolyORB.GIOP_P.Tagged_Components.Print is
 
+   ------------------------------
+   -- Output_Tagged_Components --
+   ------------------------------
+
    procedure Output_Tagged_Components
      (TCs : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_List)
    is
       use Output;
 
-      use PolyORB.GIOP_P.Tagged_Components.Component_Seq;
       use PolyORB.GIOP_P.Tagged_Components.Policies.Print;
       use PolyORB.GIOP_P.Tagged_Components.Policies;
 
@@ -52,15 +55,18 @@ package body PolyORB.GIOP_P.Tagged_Components.Print is
 
       TC : Tagged_Component_Access;
 
+      It : Iterator := First (TCs);
+      J : Natural := 1;
    begin
       Put_Line ("Tagged components",
-                Length (Sequence (TCs))'Img);
+                Integer'Image (Length (TCs)));
 
-      for J in 1 .. Length (Sequence (TCs)) loop
-         TC := Element_Of (Sequence (TCs), J);
+      while not Last (It) loop
+         TC := Value (It).all;
          Inc_Indent;
 
          Put_Line ("Component #" & Trimmed_Image (J), "");
+         J := J + 1;
 
          Inc_Indent;
 
@@ -78,6 +84,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Print is
          Dec_Indent;
 
          Dec_Indent;
+         Next (It);
       end loop;
    end Output_Tagged_Components;
 

@@ -76,7 +76,8 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
       use Sub_Component_Allocator_Lists;
       use type PolyORB.Types.Unsigned_Long;
 
-      It : Iterator := First (Sub_Component_Allocators);
+      It : Sub_Component_Allocator_Lists.Iterator
+        := First (Sub_Component_Allocators);
 
       Result : Tagged_Component_Access;
       Policy : Policy_Value;
@@ -107,7 +108,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
    procedure Marshall (C : access TC_Policies; Buffer : access Buffer_Type) is
       use Policy_Value_Seq;
 
-      It : Iterator := First (C.Policies);
+      It : Policy_Value_Seq.Iterator := First (C.Policies);
 
    begin
 
@@ -166,7 +167,7 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies is
       use Policy_Value_Seq;
 
       CC : TC_Policies_Access := TC_Policies_Access (C);
-      It : Iterator := First (C.Policies);
+      It : Policy_Value_Seq.Iterator := First (C.Policies);
 
    begin
       while not Last (It) loop

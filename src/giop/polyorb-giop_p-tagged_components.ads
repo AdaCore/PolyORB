@@ -37,8 +37,8 @@ with Ada.Streams;
 
 with PolyORB.Buffers;
 with PolyORB.Objects;
-with PolyORB.Sequences.Unbounded;
 with PolyORB.Types;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.GIOP_P.Tagged_Components is
 
@@ -80,8 +80,8 @@ package PolyORB.GIOP_P.Tagged_Components is
    Null_Tagged_Component_List : constant Tagged_Component_List;
    --  Empty list
 
-   procedure Release_Contents (List : Tagged_Component_List);
-   --  Free memory for all tags in list
+   procedure Release_Contents (List : in out Tagged_Component_List);
+   --  Free memory for all tags in List
 
    procedure Marshall_Tagged_Component
      (Buffer     : access Buffer_Type;
@@ -198,15 +198,16 @@ private
         Data : Octet_Access;
      end record;
 
-   package Component_Seq is new
-     PolyORB.Sequences.Unbounded (Tagged_Component_Access);
+   package Component_Lists is new
+     PolyORB.Utils.Chained_Lists (Tagged_Component_Access);
+   use Component_Lists;
 
    --  Tagged component list
 
-   type Tagged_Component_List is new Component_Seq.Sequence;
+   type Tagged_Component_List is new Component_Lists.List;
 
    Null_Tagged_Component_List : constant Tagged_Component_List
-     := Tagged_Component_List (Component_Seq.Null_Sequence);
+     := Tagged_Component_List (Component_Lists.Empty);
 
    --------------
    -- Tag List --

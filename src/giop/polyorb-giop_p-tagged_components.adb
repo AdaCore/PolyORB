@@ -71,16 +71,13 @@ package body PolyORB.GIOP_P.Tagged_Components is
    -- Release_Contents --
    ----------------------
 
-   procedure Release_Contents
-     (List : Tagged_Component_List) is
-   begin
-      for J in 1 .. Length (List) loop
-         declare
-            C : constant Tagged_Component_Access := Element_Of (List, J);
+   procedure Release_Contents (List : in out Tagged_Component_List) is
+      Component : Tagged_Component_Access;
 
-         begin
-            Release_Contents (C);
-         end;
+   begin
+      while List /=  Null_Tagged_Component_List loop
+         Extract_First (List, Component);
+         Release_Contents (Component);
       end loop;
    end Release_Contents;
 
@@ -125,9 +122,9 @@ package body PolyORB.GIOP_P.Tagged_Components is
      (Buffer     : access Buffer_Type;
       Components :        Tagged_Component_List)
    is
-      use Component_Seq;
-
       C : Tagged_Component_Access;
+
+      It : Iterator := First (Components);
 
    begin
       pragma Debug (O ("Marshall"
@@ -136,8 +133,9 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
       Marshall (Buffer, Types.Unsigned_Long (Length (Components)));
 
-      for J in 1 .. Length (Components) loop
-         C := Element_Of (Components, J);
+      while not Last (It) loop
+
+         C := Value (It).all;
 
          if C.all in TC_Unknown_Component then
             Marshall (C, Buffer);
@@ -154,6 +152,8 @@ package body PolyORB.GIOP_P.Tagged_Components is
                Release (Temp_Buf);
             end;
          end if;
+
+         Next (It);
       end loop;
    end Marshall_Tagged_Component;
 
@@ -190,15 +190,15 @@ package body PolyORB.GIOP_P.Tagged_Components is
      return Tagged_Component_List
    is
       use type PolyORB.Types.Unsigned_Long;
-      use Component_Seq;
 
-      Components : Component_Seq.Sequence := Null_Sequence;
+      Components : Tagged_Component_List := Null_Tagged_Component_List;
       Len        : Types.Unsigned_Long;
       Tag        : Tag_Value;
       Temp_Tag   : Types.Unsigned_Long;
 
       Temp_Buf : Buffer_Access := new Buffer_Type;
       C        : Tagged_Component_Access;
+
    begin
       Len := Unmarshall (Buffer);
       pragma Debug (O ("Unmarshall"
@@ -209,6 +209,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
          Temp_Tag  := Unmarshall (Buffer);
          Tag := Tag_Value (Temp_Tag);
          C := Get_New_Empty_Component (Tag);
+
          if C.all in TC_Unknown_Component then
             TC_Unknown_Component (C.all).Unknown_Tag := Tag;
             Unmarshall (C, Buffer);
@@ -222,12 +223,13 @@ package body PolyORB.GIOP_P.Tagged_Components is
                Release_Contents (Temp_Buf.all);
             end;
          end if;
+
          Append (Components, C);
       end loop;
 
       Release (Temp_Buf);
 
-      return Tagged_Component_List (Components);
+      return Components;
    end Unmarshall_Tagged_Component;
 
    -------------------
@@ -240,17 +242,21 @@ package body PolyORB.GIOP_P.Tagged_Components is
      return Tagged_Component_Access
    is
       use type PolyORB.Types.Unsigned_Long;
-      use Component_Seq;
+
+      It : Iterator := First (List);
 
    begin
       if Tag = Tag_Value'Last then
          return null;
       end if;
 
-      for J in 1 .. Length (List) loop
-         if Element_Of (List, J).Tag = Tag then
-            return Element_Of (List, J);
+      while not Last (It) loop
+
+         if Value (It).all.Tag = Tag then
+            return Value (It).all;
          end if;
+
+         Next (It);
       end loop;
 
       return null;

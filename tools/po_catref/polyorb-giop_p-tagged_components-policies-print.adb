@@ -56,10 +56,11 @@ package body PolyORB.GIOP_P.Tagged_Components.Policies.Print is
 
    begin
       Inc_Indent;
-      Put_Line ("Length", Length (List (TC.Policies))'Img);
+      Put_Line ("Length", Length (TC.Policies)'Img);
 
       declare
-         It : Iterator  := First (List (TC.Policies));
+         It : Policy_Value_Seq.Iterator
+           := First (TC.Policies);
          P_Type : PolyORB.Types.Unsigned_Long;
          Counter : Natural := 1;
 
