@@ -1554,15 +1554,20 @@ package body Exp_Hlpr is
 
       Parameters : List_Id;
 
-      procedure Add_String_Parameter (S : String_Id);
+      procedure Add_String_Parameter
+        (S              : String_Id;
+         Parameter_List : List_Id   := Parameters);
       --  Add a literal for S to Parameters.
 
-      procedure Add_TypeCode_Parameter (TC_Node : Node_Id);
+      procedure Add_TypeCode_Parameter
+        (TC_Node        : Node_Id;
+         Parameter_List : List_Id := Parameters);
       --  Add the typecode for Typ to Parameters.
 
       procedure Initialize_Parameter_List
         (Name_String    : String_Id;
-         Repo_Id_String : String_Id);
+         Repo_Id_String : String_Id;
+         Parameter_List : out List_Id);
       --  Return a list that contains the first two parameters
       --  for a parameterized typecode: name and repository id.
 
@@ -1582,10 +1587,12 @@ package body Exp_Hlpr is
       --  Return a typecode that is a TC_Alias for the given
       --  typecode.
 
-      procedure Add_String_Parameter (S : String_Id)
+      procedure Add_String_Parameter
+        (S              : String_Id;
+         Parameter_List : List_Id   := Parameters)
       is
       begin
-         Append_To (Parameters,
+         Append_To (Parameter_List,
            Make_Function_Call (Loc,
              Name =>
                New_Occurrence_Of (RTE (RE_TA_String), Loc),
@@ -1593,10 +1600,12 @@ package body Exp_Hlpr is
                Make_String_Literal (Loc, S))));
       end Add_String_Parameter;
 
-      procedure Add_TypeCode_Parameter (TC_Node : Node_Id)
+      procedure Add_TypeCode_Parameter
+        (TC_Node : Node_Id;
+         Parameter_List : List_Id   := Parameters)
       is
       begin
-         Append_To (Parameters,
+         Append_To (Parameter_List,
            Make_Function_Call (Loc,
              Name =>
                New_Occurrence_Of (RTE (RE_TA_TC), Loc),
@@ -1606,12 +1615,13 @@ package body Exp_Hlpr is
 
       procedure Initialize_Parameter_List
         (Name_String    : String_Id;
-         Repo_Id_String : String_Id)
+         Repo_Id_String : String_Id;
+         Parameter_List : out List_Id)
       is
       begin
-         Parameters := New_List;
-         Add_String_Parameter (Name_String);
-         Add_String_Parameter (Repo_Id_String);
+         Parameter_List := New_List;
+         Add_String_Parameter (Name_String, Parameter_List);
+         Add_String_Parameter (Repo_Id_String, Parameter_List);
       end Initialize_Parameter_List;
 
       procedure Return_Alias_TypeCode
@@ -1653,23 +1663,23 @@ package body Exp_Hlpr is
       ------------------
 
       procedure TypeCode_Add_Process_Element
-        (Stmts   : List_Id;
+        (Params  : List_Id;
          Any     : Entity_Id;
          Counter : in out Int;
          Field   : Node_Id);
 
       procedure TypeCode_Add_Process_Element
-        (Stmts   : List_Id;
+        (Params  : List_Id;
          Any     : Entity_Id;
          Counter : in out Int;
          Field   : Node_Id)
       is
-         pragma Unreferenced (Stmts, Any, Counter);
+         pragma Unreferenced (Any, Counter);
       begin
          Add_TypeCode_Parameter (
-           Build_TypeCode_Call (Loc, Etype (Field), Decls));
+           Build_TypeCode_Call (Loc, Etype (Field), Decls), Params);
          Get_Name_String (Chars (Field));
-         Add_String_Parameter (String_From_Name_Buffer);
+         Add_String_Parameter (String_From_Name_Buffer, Params);
       end TypeCode_Add_Process_Element;
 
       procedure TC_Add_Component_List is
@@ -1689,7 +1699,7 @@ package body Exp_Hlpr is
       Get_Name_String (Chars
         (Defining_Identifier (Declaration_Node (Typ))));
       Type_Name_Str := String_From_Name_Buffer;
-      Initialize_Parameter_List (Type_Name_Str, Type_Name_Str);
+      Initialize_Parameter_List (Type_Name_Str, Type_Name_Str, Parameters);
       --  XXX should compute a proper repository id!
 
       if Is_Derived_Type (Typ)
@@ -1751,7 +1761,7 @@ package body Exp_Hlpr is
                --  ... then all components
 
                TC_Add_Component_List
-                 (No_List, Component_List (Rdef), Empty, Dummy_Counter);
+                 (Parameters, Component_List (Rdef), Empty, Dummy_Counter);
                Return_Constructed_TypeCode (RTE (RE_TC_Struct));
             end;
          end if;
