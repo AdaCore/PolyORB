@@ -220,7 +220,6 @@ adabroker/util/utl_stack.cc
 adabroker/util/utl_string.cc
 adabroker/util/utl_strlist.cc
 README
-VERSION
 dir.mk
 adasockets/Makefile.am
 adasockets/AUTHORS
