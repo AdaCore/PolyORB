@@ -20,7 +20,7 @@
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
 -- GNAT was originally developed  by the GNAT team at  New York University. --
--- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
+-- Extensive contributions were provided by Ada Core Technologies Inc.      --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -4117,11 +4117,23 @@ package body Sem_Prag is
             Check_Arg_Count (2);
 
             if No_Run_Time_Mode then
-               Error_Msg_HIE ("Attach_Handler pragma", N);
+               Error_Msg_CRT ("Attach_Handler pragma", N);
             else
                Check_Interrupt_Or_Attach_Handler;
-               Analyze_And_Resolve
-                 (Expression (Arg2), RTE (RE_Interrupt_ID));
+
+               --  The expression that designates the attribute may
+               --  depend on a discriminant, and is therefore a per-
+               --  object expression, to be expanded in the init_proc.
+               --  Perform semantic checks on a copy only.
+
+               declare
+                  Temp : Node_Id := New_Copy_Tree (Expression (Arg2));
+
+               begin
+                  Set_Parent (Temp, N);
+                  Pre_Analyze_And_Resolve (Temp, RTE (RE_Interrupt_ID));
+               end;
+
                Process_Interrupt_Or_Attach_Handler;
             end if;
 
@@ -5226,6 +5238,15 @@ package body Sem_Prag is
                Homonym_Number);
          end Eliminate;
 
+         --------------------------
+         --  Explicit_Overriding --
+         --------------------------
+
+         when Pragma_Explicit_Overriding =>
+            Check_Valid_Configuration_Pragma;
+            Check_Arg_Count (0);
+            Explicit_Overriding := True;
+
          ------------
          -- Export --
          ------------
@@ -6215,9 +6236,9 @@ package body Sem_Prag is
             if Inline_Active then
                Process_Inline (True);
 
-            --  Pragma is active in a predefined file in no run time mode
+            --  Pragma is active in a predefined file in config run time mode
 
-            elsif High_Integrity_Mode
+            elsif Configurable_Run_Time_Mode
               and then
                 Is_Predefined_File_Name (Unit_File_Name (Current_Sem_Unit))
             then
@@ -6404,7 +6425,7 @@ package body Sem_Prag is
             Check_No_Identifiers;
 
             if No_Run_Time_Mode then
-               Error_Msg_HIE ("Interrupt_Handler pragma", N);
+               Error_Msg_CRT ("Interrupt_Handler pragma", N);
             else
                Check_Interrupt_Or_Attach_Handler;
                Process_Interrupt_Or_Attach_Handler;
@@ -7248,8 +7269,17 @@ package body Sem_Prag is
             GNAT_Pragma;
             Check_Valid_Configuration_Pragma;
             Check_Arg_Count (0);
-            No_Run_Time_Mode := True;
-            Set_High_Integrity_Mode;
+
+            No_Run_Time_Mode           := True;
+            Configurable_Run_Time_Mode := True;
+
+            if Ttypes.System_Word_Size = 32 then
+               Duration_32_Bits_On_Target := True;
+            end if;
+
+            Restrictions (No_Finalization)       := True;
+            Restrictions (No_Exception_Handlers) := True;
+            Restrictions (No_Tasking)            := True;
 
          -----------------------
          -- Normalize_Scalars --
@@ -7278,6 +7308,25 @@ package body Sem_Prag is
             Check_No_Identifiers;
             Check_Arg_Count (1);
             Check_Arg_Is_One_Of (Arg1, Name_Time, Name_Space, Name_Off);
+
+         -------------------------
+         -- Optional_Overriding --
+         -------------------------
+
+         --  These pragmas are treated as part of the previous subprogram
+         --  declaration, and analyzed immediately after it (see sem_ch6,
+         --  Check_Overriding_Operation). If the pragma has not been analyzed
+         --  yet, it appears in the wrong place.
+
+         when Pragma_Optional_Overriding =>
+            Error_Msg_N ("pragma must appear immediately after subprogram", N);
+
+         ----------------
+         -- Overriding --
+         ----------------
+
+         when Pragma_Overriding =>
+            Error_Msg_N ("pragma must appear immediately after subprogram", N);
 
          ----------
          -- Pack --
@@ -7396,6 +7445,104 @@ package body Sem_Prag is
             Check_No_Identifiers;
             Check_Arg_Is_One_Of (Arg1, Name_On, Name_Off);
             Polling_Required := (Chars (Expression (Arg1)) = Name_On);
+
+         ---------------------
+         -- Persistent_Data --
+         ---------------------
+
+         when Pragma_Persistent_Data => declare
+            Ent : Entity_Id;
+
+         begin
+            --  Register the pragma as applying to the compilation unit.
+            --  Individual Persistent_Object pragmas for relevant objects
+            --  are generated the end of the compilation.
+
+            GNAT_Pragma;
+            Check_Valid_Configuration_Pragma;
+            Check_Arg_Count (0);
+            Ent := Find_Lib_Unit_Name;
+            Set_Is_Preelaborated (Ent);
+         end;
+
+         ------------------------
+         --  Persistent_Object --
+         ------------------------
+
+         when Pragma_Persistent_Object => declare
+            Decl : Node_Id;
+            Ent  : Entity_Id;
+            MA   : Node_Id;
+            Str  : String_Id;
+
+         begin
+            GNAT_Pragma;
+            Check_Arg_Count (1);
+            Check_Arg_Is_Library_Level_Local_Name (Arg1);
+            if not Is_Entity_Name (Expression (Arg1))
+              or else
+               (Ekind (Entity (Expression (Arg1))) /= E_Variable
+                 and then Ekind (Entity (Expression (Arg1))) /= E_Constant)
+            then
+               Error_Pragma_Arg ("pragma only applies to objects", Arg1);
+            end if;
+
+            Ent := Entity (Expression (Arg1));
+            Decl := Parent (Ent);
+
+            if Nkind (Decl) /= N_Object_Declaration then
+               return;
+            end if;
+
+            --  Placement of the object depends on whether there is
+            --  an initial value or none. If the No_Initialization flag
+            --  is set, the initialization has been transformed into
+            --  assignments, which is disallowed elaboration code.
+
+            if No_Initialization (Decl) then
+               Error_Msg_N
+                 ("initialization for persistent object"
+                   &  "must be static expression", Decl);
+               return;
+            end if;
+
+            if No (Expression (Decl)) then
+               Start_String;
+               Store_String_Chars ("section ("".persistent.bss"")");
+               Str := End_String;
+
+            else
+               if not Is_OK_Static_Expression (Expression (Decl)) then
+                  Error_Msg_N
+                    ("initialization for persistent object"
+                      &  "must be static expression", Decl);
+                  return;
+               end if;
+
+               Start_String;
+               Store_String_Chars ("section ("".persistent.data"")");
+               Str := End_String;
+            end if;
+
+            MA :=
+               Make_Pragma
+                 (Sloc (N),
+                  Name_Machine_Attribute,
+                  New_List
+                    (Make_Pragma_Argument_Association
+                       (Sloc => Sloc (Arg1),
+                        Expression => New_Occurrence_Of (Ent, Sloc (Ent))),
+                     Make_Pragma_Argument_Association
+                       (Sloc => Sloc (Arg1),
+                        Expression =>
+                          Make_String_Literal
+                            (Sloc => Sloc (Arg1),
+                             Strval => Str))));
+
+            Insert_After (N, MA);
+            Analyze (MA);
+            Set_Has_Gigi_Rep_Item (Ent);
+         end;
 
          ------------------
          -- Preelaborate --
@@ -7839,20 +7986,26 @@ package body Sem_Prag is
             --  Loop through homonyms (overloadings) of referenced entity
 
             E := Entity (E_Id);
-            while Present (E) loop
-               Def_Id := Get_Base_Subprogram (E);
 
-               if Ekind (Def_Id) /= E_Function
-                 and then Ekind (Def_Id) /= E_Generic_Function
-                 and then Ekind (Def_Id) /= E_Operator
-               then
-                  Error_Pragma_Arg ("pragma% requires a function name", Arg1);
-               end if;
+            if Present (E) then
+               loop
+                  Def_Id := Get_Base_Subprogram (E);
 
-               Set_Is_Pure (Def_Id);
-               Set_Has_Pragma_Pure_Function (Def_Id);
-               E := Homonym (E);
-            end loop;
+                  if Ekind (Def_Id) /= E_Function
+                    and then Ekind (Def_Id) /= E_Generic_Function
+                    and then Ekind (Def_Id) /= E_Operator
+                  then
+                     Error_Pragma_Arg
+                       ("pragma% requires a function name", Arg1);
+                  end if;
+
+                  Set_Is_Pure (Def_Id);
+                  Set_Has_Pragma_Pure_Function (Def_Id);
+
+                  E := Homonym (E);
+                  exit when No (E) or else Scope (E) /= Current_Scope;
+               end loop;
+            end if;
          end Pure_Function;
 
          --------------------
@@ -9312,6 +9465,16 @@ package body Sem_Prag is
             end if;
          end Weak_External;
 
+         --------------------
+         -- Unknown_Pragma --
+         --------------------
+
+         --  Should be impossible, since the case of an unknown pragma is
+         --  separately processed before the case statement is entered.
+
+         when Unknown_Pragma =>
+            raise Program_Error;
+
       end case;
 
    exception
@@ -9394,6 +9557,7 @@ package body Sem_Prag is
       Pragma_Elaborate_Body              => -1,
       Pragma_Elaboration_Checks          => -1,
       Pragma_Eliminate                   => -1,
+      Pragma_Explicit_Overriding         => -1,
       Pragma_Export                      => -1,
       Pragma_Export_Exception            => -1,
       Pragma_Export_Function             => -1,
@@ -9444,10 +9608,14 @@ package body Sem_Prag is
       Pragma_Normalize_Scalars           => -1,
       Pragma_Obsolescent                 =>  0,
       Pragma_Optimize                    => -1,
+      Pragma_Optional_Overriding         => -1,
+      Pragma_Overriding                  => -1,
       Pragma_Pack                        =>  0,
       Pragma_Page                        => -1,
       Pragma_Passive                     => -1,
       Pragma_Polling                     => -1,
+      Pragma_Persistent_Data             => -1,
+      Pragma_Persistent_Object           => -1,
       Pragma_Preelaborate                => -1,
       Pragma_Priority                    => -1,
       Pragma_Propagate_Exceptions        => -1,
@@ -9495,7 +9663,8 @@ package body Sem_Prag is
       Pragma_Volatile                    =>  0,
       Pragma_Volatile_Components         =>  0,
       Pragma_Warnings                    => -1,
-      Pragma_Weak_External               =>  0);
+      Pragma_Weak_External               =>  0,
+      Unknown_Pragma                     =>  0);
 
    function Is_Non_Significant_Pragma_Reference (N : Node_Id) return Boolean is
       P : Node_Id;

@@ -20,7 +20,7 @@
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
 -- GNAT was originally developed  by the GNAT team at  New York University. --
--- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
+-- Extensive contributions were provided by Ada Core Technologies Inc.      --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -67,29 +67,28 @@ package body Sem_Ch7 is
    --  with the presence of two separate definitions for private types: the
    --  first is the private type declaration, and the second is the full type
    --  declaration. It is important that all references to the type point to
-   --  the same defining occurence, namely the first one. To enforce the two
+   --  the same defining occurrence, namely the first one. To enforce the two
    --  separate views of the entity, the corresponding information is swapped
    --  between the two declarations. Outside of the package, the defining
-   --  occurence only contains the private declaration information, while in
+   --  occurrence only contains the private declaration information, while in
    --  the private part and the body of the package the defining occurrence
    --  contains the full declaration. To simplify the swap, the defining
    --  occurrence that currently holds the private declaration points to the
-   --  full declaration. During semantic processing the defining occurence also
-   --  points to a list of private dependents, that is to say access types or
-   --  composite types whose designated types or component types are subtypes
-   --  or derived types of the private type in question. After the full decla-
-   --  ration has been seen, the private dependents are updated to indicate
-   --  that they have full definitions.
+   --  full declaration. During semantic processing the defining occurrence
+   --  also points to a list of private dependents, that is to say access types
+   --  or composite types whose designated types or component types are
+   --  subtypes or derived types of the private type in question. After the
+   --  full declaration has been seen, the private dependents are updated to
+   --  indicate that they have full definitions.
 
    -----------------------
    -- Local Subprograms --
    -----------------------
 
-   procedure Install_Composite_Operations (P : Entity_Id);
-   --  Composite types declared in the current scope may depend on
-   --  types that were private at the point of declaration, and whose
-   --  full view is now in  scope. Indicate that the corresponding
-   --  operations on the composite type are available.
+   procedure Install_Package_Entity (Id : Entity_Id);
+   --  Basic procedure for the previous two. Places one entity on its
+   --  visibility chain, and recurses on the visible part if the entity
+   --  is an inner package.
 
    function Is_Private_Base_Type (E : Entity_Id) return Boolean;
    --  True for a private type that is not a subtype.
@@ -100,10 +99,6 @@ package body Sem_Ch7 is
    --  only if we are in the immediate scope of the private dependent.
    --  Should this predicate be tightened further???
 
-   procedure Preserve_Full_Attributes (Priv, Full : Entity_Id);
-   --  Copy to the private declaration the attributes of the full view
-   --  that need to be available for the partial view also.
-
    procedure Declare_Inherited_Private_Subprograms (Id : Entity_Id);
    --  Called upon entering the private part of a public child package
    --  and the body of a nested package, to potentially declare certain
@@ -111,7 +106,7 @@ package body Sem_Ch7 is
    --  part, but whose declaration was deferred because the parent
    --  operation was private and not visible at that point. These
    --  subprograms are located by traversing the visible part declarations
-   --  looking for nonprivate type extensions and then examining each of
+   --  looking for non-private type extensions and then examining each of
    --  the primitive operations of such types to find those that were
    --  inherited but declared with a special internal name. Each such
    --  operation is now declared as an operation with a normal name (using
@@ -133,6 +128,39 @@ package body Sem_Ch7 is
       New_N            : Node_Id;
       Pack_Decl        : Node_Id;
 
+      procedure Install_Composite_Operations (P : Entity_Id);
+      --  Composite types declared in the current scope may depend on
+      --  types that were private at the point of declaration, and whose
+      --  full view is now in  scope. Indicate that the corresponding
+      --  operations on the composite type are available.
+
+      ----------------------------------
+      -- Install_Composite_Operations --
+      ----------------------------------
+
+      procedure Install_Composite_Operations (P : Entity_Id) is
+         Id : Entity_Id;
+
+      begin
+         Id := First_Entity (P);
+
+         while Present (Id) loop
+
+            if Is_Type (Id)
+              and then (Is_Limited_Composite (Id)
+                         or else Is_Private_Composite (Id))
+              and then No (Private_Component (Id))
+            then
+               Set_Is_Limited_Composite (Id, False);
+               Set_Is_Private_Composite (Id, False);
+            end if;
+
+            Next_Entity (Id);
+         end loop;
+      end Install_Composite_Operations;
+
+   --  Start of processing for Analyze_Package_Body
+
    begin
       --  Find corresponding package specification, and establish the
       --  current scope. The visible defining entity for the package is the
@@ -149,7 +177,7 @@ package body Sem_Ch7 is
          Write_Eol;
       end if;
 
-      --  Set Body_Id. Note that this wil be reset to point to the
+      --  Set Body_Id. Note that this Will be reset to point to the
       --  generic copy later on in the generic case.
 
       Body_Id := Defining_Entity (N);
@@ -827,7 +855,6 @@ package body Sem_Ch7 is
 
       Priv_Decls := Private_Declarations (N);
       if Present (Priv_Decls) then
-         L := Last_Entity (Id);
          Set_In_Private_Part (Id);
 
          --  Upon entering a public child's private part, it may be
@@ -940,7 +967,6 @@ package body Sem_Ch7 is
 
       New_Private_Type (N, Id, N);
       Set_Depends_On_Private (Id);
-      Set_Has_Delayed_Freeze (Id);
    end Analyze_Private_Type_Declaration;
 
    -------------------------------------------
@@ -948,7 +974,7 @@ package body Sem_Ch7 is
    -------------------------------------------
 
    procedure Declare_Inherited_Private_Subprograms (Id : Entity_Id) is
-      E : Entity_Id;
+      E              : Entity_Id;
       Op_List        : Elist_Id;
       Op_Elmt        : Elmt_Id;
       Op_Elmt_2      : Elmt_Id;
@@ -958,9 +984,47 @@ package body Sem_Ch7 is
       Found_Explicit : Boolean;
       Decl_Privates  : Boolean;
 
+      function Has_Overriding_Pragma (Subp : Entity_Id) return Boolean;
+      --  Check whether a pragma Overriding has been provided for a primitive
+      --  operation that is found to be overriding in the private part.
+
       function Is_Primitive_Of (T : Entity_Id; S : Entity_Id) return Boolean;
       --  Check whether an inherited subprogram is an operation of an
       --  untagged derived type.
+
+      ---------------------------
+      -- Has_Overriding_Pragma --
+      ---------------------------
+
+      function Has_Overriding_Pragma (Subp : Entity_Id) return Boolean is
+         Decl : constant Node_Id := Unit_Declaration_Node (Subp);
+         Prag : Node_Id;
+
+      begin
+         if No (Decl)
+           or else Nkind (Decl) /= N_Subprogram_Declaration
+           or else No (Next (Decl))
+         then
+            return False;
+
+         else
+            Prag := Next (Decl);
+
+            while Present (Prag)
+              and then Nkind (Prag) = N_Pragma
+            loop
+               if Chars (Prag) = Name_Overriding
+                 or else Chars (Prag) = Name_Optional_Overriding
+               then
+                  return True;
+               else
+                  Next (Prag);
+               end if;
+            end loop;
+         end if;
+
+         return False;
+      end Has_Overriding_Pragma;
 
       ---------------------
       -- Is_Primitive_Of --
@@ -992,7 +1056,6 @@ package body Sem_Ch7 is
 
    begin
       E := First_Entity (Id);
-
       while Present (E) loop
 
          --  If the entity is a nonprivate type extension whose parent
@@ -1046,6 +1109,19 @@ package body Sem_Ch7 is
                            Remove_Elmt (Op_List, Op_Elmt_2);
                            Found_Explicit := True;
                            Decl_Privates  := True;
+
+                           --  If explicit_overriding is in effect, check that
+                           --  the overriding operation is properly labelled.
+
+                           if Explicit_Overriding
+                             and then Comes_From_Source (New_Op)
+                              and then not Has_Overriding_Pragma (New_Op)
+                           then
+                              Error_Msg_NE
+                                ("Missing overriding pragma for&",
+                                  New_Op, New_Op);
+                           end if;
+
                            exit;
                         end if;
 
@@ -1167,31 +1243,6 @@ package body Sem_Ch7 is
       Set_Homonym     (Full_Id, H2);
    end Exchange_Declarations;
 
-   ----------------------------------
-   -- Install_Composite_Operations --
-   ----------------------------------
-
-   procedure Install_Composite_Operations (P : Entity_Id) is
-      Id : Entity_Id;
-
-   begin
-      Id := First_Entity (P);
-
-      while Present (Id) loop
-
-         if Is_Type (Id)
-           and then (Is_Limited_Composite (Id)
-                      or else Is_Private_Composite (Id))
-           and then No (Private_Component (Id))
-         then
-            Set_Is_Limited_Composite (Id, False);
-            Set_Is_Private_Composite (Id, False);
-         end if;
-
-         Next_Entity (Id);
-      end loop;
-   end Install_Composite_Operations;
-
    ----------------------------
    -- Install_Package_Entity --
    ----------------------------
@@ -1240,8 +1291,6 @@ package body Sem_Ch7 is
            and then Scope (Full_View (Id)) = Scope (Id)
            and then Ekind (Full_View (Id)) /= E_Incomplete_Type
          then
-            Priv_Elmt := First_Elmt (Private_Dependents (Id));
-
             --  If there is a use-type clause on the private type, set the
             --  full view accordingly.
 
@@ -1271,6 +1320,8 @@ package body Sem_Ch7 is
                end if;
             end if;
 
+            Priv_Elmt := First_Elmt (Private_Dependents (Id));
+
             Exchange_Declarations (Id);
             Set_Is_Immediately_Visible (Id);
 
@@ -1299,8 +1350,6 @@ package body Sem_Ch7 is
 
                Next_Elmt (Priv_Elmt);
             end loop;
-
-            null;
          end if;
 
          Next_Entity (Id);
@@ -1337,29 +1386,6 @@ package body Sem_Ch7 is
       end loop;
    end Install_Visible_Declarations;
 
-   ----------------------
-   -- Is_Fully_Visible --
-   ----------------------
-
-   --  The full declaration of a private type is visible in the private
-   --  part of the package declaration, and in the package body, at which
-   --  point the full declaration must have been given.
-
-   function Is_Fully_Visible (Type_Id : Entity_Id) return Boolean is
-      S : constant Entity_Id := Scope (Type_Id);
-
-   begin
-      if Is_Generic_Type (Type_Id) then
-         return False;
-
-      elsif In_Private_Part (S) then
-         return Present (Full_View (Type_Id));
-
-      else
-         return In_Package_Body (S);
-      end if;
-   end Is_Fully_Visible;
-
    --------------------------
    -- Is_Private_Base_Type --
    --------------------------
@@ -1393,7 +1419,6 @@ package body Sem_Ch7 is
       elsif not (Is_Derived_Type (Dep))
         and then Is_Derived_Type (Full_View (Dep))
       then
-
          --  When instantiating a package body, the scope stack is empty,
          --  so check instead whether the dependent type is defined in
          --  the same scope as the instance itself.
@@ -1497,45 +1522,6 @@ package body Sem_Ch7 is
       end if;
    end New_Private_Type;
 
-   ------------------------------
-   -- Preserve_Full_Attributes --
-   ------------------------------
-
-   procedure Preserve_Full_Attributes (Priv, Full : Entity_Id) is
-      Priv_Is_Base_Type : constant Boolean := Priv = Base_Type (Priv);
-
-   begin
-      Set_Size_Info                   (Priv,                          (Full));
-      Set_RM_Size                     (Priv, RM_Size                  (Full));
-      Set_Size_Known_At_Compile_Time  (Priv, Size_Known_At_Compile_Time
-                                                                      (Full));
-      Set_Is_Volatile                 (Priv, Is_Volatile              (Full));
-
-      if Priv_Is_Base_Type then
-         Set_Is_Controlled            (Priv, Is_Controlled (Base_Type (Full)));
-         Set_Finalize_Storage_Only    (Priv, Finalize_Storage_Only
-                                                           (Base_Type (Full)));
-         Set_Has_Task                 (Priv, Has_Task      (Base_Type (Full)));
-         Set_Has_Controlled_Component (Priv, Has_Controlled_Component
-                                                           (Base_Type (Full)));
-      end if;
-
-      Set_Freeze_Node                 (Priv, Freeze_Node              (Full));
-
-      if Is_Tagged_Type (Priv)
-        and then Is_Tagged_Type (Full)
-        and then not Error_Posted (Full)
-      then
-         if Priv_Is_Base_Type then
-            Set_Access_Disp_Table     (Priv, Access_Disp_Table
-                                                           (Base_Type (Full)));
-         end if;
-
-         Set_First_Entity             (Priv, First_Entity             (Full));
-         Set_Last_Entity              (Priv, Last_Entity              (Full));
-      end if;
-   end Preserve_Full_Attributes;
-
    ----------------------------
    -- Uninstall_Declarations --
    ----------------------------
@@ -1547,8 +1533,55 @@ package body Sem_Ch7 is
       Priv_Elmt : Elmt_Id;
       Priv_Sub  : Entity_Id;
 
+      procedure Preserve_Full_Attributes (Priv, Full : Entity_Id);
+      --  Copy to the private declaration the attributes of the full view
+      --  that need to be available for the partial view also.
+
       function Type_In_Use (T : Entity_Id) return Boolean;
       --  Check whether type or base type appear in an active use_type clause.
+
+      ------------------------------
+      -- Preserve_Full_Attributes --
+      ------------------------------
+
+      procedure Preserve_Full_Attributes (Priv, Full : Entity_Id) is
+         Priv_Is_Base_Type : constant Boolean := Priv = Base_Type (Priv);
+
+      begin
+         Set_Size_Info (Priv, (Full));
+         Set_RM_Size (Priv, RM_Size (Full));
+         Set_Size_Known_At_Compile_Time (Priv, Size_Known_At_Compile_Time
+                                                                      (Full));
+         Set_Is_Volatile (Priv, Is_Volatile (Full));
+
+         if Priv_Is_Base_Type then
+            Set_Is_Controlled (Priv, Is_Controlled (Base_Type (Full)));
+            Set_Finalize_Storage_Only (Priv, Finalize_Storage_Only
+                                                           (Base_Type (Full)));
+            Set_Has_Task (Priv, Has_Task (Base_Type (Full)));
+            Set_Has_Controlled_Component (Priv, Has_Controlled_Component
+                                                           (Base_Type (Full)));
+         end if;
+
+         Set_Freeze_Node (Priv, Freeze_Node (Full));
+
+         if Is_Tagged_Type (Priv)
+           and then Is_Tagged_Type (Full)
+           and then not Error_Posted (Full)
+         then
+            if Priv_Is_Base_Type then
+               Set_Access_Disp_Table (Priv, Access_Disp_Table
+                                                           (Base_Type (Full)));
+            end if;
+
+            Set_First_Entity (Priv, First_Entity (Full));
+            Set_Last_Entity (Priv, Last_Entity (Full));
+         end if;
+      end Preserve_Full_Attributes;
+
+      -----------------
+      -- Type_In_Use --
+      -----------------
 
       function Type_In_Use (T : Entity_Id) return Boolean is
       begin
@@ -1582,6 +1615,7 @@ package body Sem_Ch7 is
          if Ekind (Id) = E_Function
            and then  Is_Operator_Symbol_Name (Chars (Id))
            and then not Is_Hidden (Id)
+           and then not Error_Posted (Id)
          then
             Set_Is_Potentially_Use_Visible (Id,
               In_Use (P)
@@ -1694,7 +1728,7 @@ package body Sem_Ch7 is
 
             --  If the partial view is not declared in the visible part
             --  of the package (as is the case when it is a type derived
-            --  from some other private type in the private part if the
+            --  from some other private type in the private part of the
             --  current package), no exchange takes place.
 
             if No (Parent (Id))
@@ -1773,7 +1807,6 @@ package body Sem_Ch7 is
          <<Next_Id>>
             Next_Entity (Id);
       end loop;
-
    end Uninstall_Declarations;
 
    ------------------------

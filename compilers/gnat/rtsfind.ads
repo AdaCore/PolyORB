@@ -20,7 +20,7 @@
 -- MA 02111-1307, USA.                                                      --
 --                                                                          --
 -- GNAT was originally developed  by the GNAT team at  New York University. --
--- It is now maintained by Ada Core Technologies Inc (http://www.gnat.com). --
+-- Extensive contributions were provided by Ada Core Technologies Inc.      --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -204,7 +204,6 @@ package Rtsfind is
       System_Finalization_Implementation,
       System_Finalization_Root,
       System_Fore,
-      System_HIE_Back_End,
       System_Img_Bool,
       System_Img_Char,
       System_Img_Dec,
@@ -667,11 +666,6 @@ package Rtsfind is
 
      RE_Fore,                            -- System.Fore
 
-     RE_HIE_64_Bit_Divides,              -- System.HIE_Back_End
-     RE_HIE_Aggregates,                  -- System.HIE_Back_End
-     RE_HIE_Composite_Assignments,       -- System.HIE_Back_End
-     RE_HIE_Long_Shifts,                 -- System.HIE_Long_Shifts
-
      RE_Image_Boolean,                   -- System.Img_Bool
 
      RE_Image_Character,                 -- System.Img_Char
@@ -703,6 +697,7 @@ package Rtsfind is
      RE_Install_Handlers,                -- System.Interrupts
      RE_Register_Interrupt_Handler,      -- System.Interrupts
      RE_Static_Interrupt_Protection,     -- System.Interrupts
+     RE_System_Interrupt_Id,             -- System.Interrupts
 
      RE_Asm_Insn,                        -- System.Machine_Code
      RE_Asm_Input_Operand,               -- System.Machine_Code
@@ -1716,11 +1711,6 @@ package Rtsfind is
 
      RE_Fore                             => System_Fore,
 
-     RE_HIE_64_Bit_Divides               => System_HIE_Back_End,
-     RE_HIE_Aggregates                   => System_HIE_Back_End,
-     RE_HIE_Composite_Assignments        => System_HIE_Back_End,
-     RE_HIE_Long_Shifts                  => System_HIE_Back_End,
-
      RE_Image_Boolean                    => System_Img_Bool,
 
      RE_Image_Character                  => System_Img_Char,
@@ -1752,6 +1742,7 @@ package Rtsfind is
      RE_Install_Handlers                 => System_Interrupts,
      RE_Register_Interrupt_Handler       => System_Interrupts,
      RE_Static_Interrupt_Protection      => System_Interrupts,
+     RE_System_Interrupt_Id              => System_Interrupts,
 
      RE_Asm_Insn                         => System_Machine_Code,
      RE_Asm_Input_Operand                => System_Machine_Code,
@@ -2604,7 +2595,6 @@ package Rtsfind is
       System_Fat_LFlt         => True,
       System_Fat_LLF          => True,
       System_Fat_SFlt         => True,
-      System_HIE_Back_End     => True,
       System_Machine_Code     => True,
       System_Secondary_Stack  => True,
       System_Storage_Elements => True,
@@ -2626,10 +2616,6 @@ package Rtsfind is
    --  Raised by RTE if the requested entity is not available. This can
    --  occur either because the file in which the entity should be found
    --  does not exist, or because the entity is not present in the file.
-   --  Note that this exception is not raised if the problem is that the
-   --  entity is present but not marked High_Integrity in HI_E mode. That
-   --  is an error, and generates an error message but the entity is
-   --  returned as usual from RTE in this case.
 
    function RTE (E : RE_Id) return Entity_Id;
    --  Given the entity defined in the above tables, as identified by the
@@ -2642,21 +2628,17 @@ package Rtsfind is
    --  itself. If an entity within the package has the same simple name as
    --  the package, then the entity within the package is returned rather
    --
-   --  If RTE returns, the returned value is the required entity. Note that
-   --  an error message may have been issued if the entity is available, but
-   --  we are operating in HI-E and neither the entity, nor the package in
-   --  which it is defined has the High_Integrity flag set. The error in this
-   --  case is a non-fatal error which allows expansion to continue, though
-   --  no object file can be generated, since HI-E restrictions are violated.
+   --  If RTE returns, the returned value is the required entity
    --
-   --  If the entity is not available, then a fatal message is given The
-   --  form of the message depends on whether we are in HI-E mode or not.
-   --  In HI-E mode, a missing entity is not that surprising and merely
-   --  says that the particular construct cannot be used in HI-E mode. If
-   --  we are not in HI-E mode, a missing entity is some kind of run-time
-   --  configuration error. In either case, the result of the call is to
-   --  raise the exception RE_Not_Available, which should terminate the
-   --  expansion of the current construct.
+   --  If the entity is not available, then an error message is given The
+   --  form of the message depends on whether we are in configurable run time
+   --  mode or not. In configurable run time mode, a missing entity is not
+   --  that surprising and merely says that the particular construct is not
+   --  supported by the run-time in use. If we are not in configurable run
+   --  time mode, a missing entity is some kind of run-time configuration
+   --  error. In either case, the result of the call is to raise the exception
+   --  RE_Not_Available, which should terminate the expansion of the current
+   --  construct.
 
    function Is_RTE (Ent : Entity_Id; E : RE_Id) return Boolean;
    --  This function determines if the given entity corresponds to the entity
