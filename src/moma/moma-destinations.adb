@@ -47,6 +47,16 @@ package body MOMA.Destinations is
    use PolyORB.Any.ObjRef;
    use PolyORB.Types;
 
+   ---------
+   -- "=" --
+   ---------
+
+   function "=" (Dest1 : Destination; Dest2 : Destination)
+                return Boolean is
+   begin
+      return Get_Name (Dest1) = Get_Name (Dest2);
+   end "=";
+
    ------------------------
    -- Create_Destination --
    ------------------------

@@ -55,6 +55,10 @@ package MOMA.Destinations is
       return Destination;
    --  Create a destination structure.
 
+   function "=" (Dest1 : Destination; Dest2 : Destination) return Boolean;
+   --  Compare two destinations.
+   --  XXX Comparison is made only on the name.
+
    function Create_Destination return Destination;
    --  Create an empty destination structure.
 
