@@ -54,7 +54,7 @@ netbufferedstream.o corba-object.o corba-boa.o
 sys_dep.o : sys_dep.ads sys_dep.adb
 	$(ADA_COMP) $(DO_NOT_LINK) sys_dep.adb
 
-sys_dep.adb : sys_dep_before_preprocessor.ads sys_dep_before_preprocessor.adb
+sys_dep.adb : sys_dep_before_preprocessor.adb
 	$(ADA_PREP) sys_dep_before_preprocessor.adb sys_dep.adb def_file -u
 
 Ada_Rope.o : Ada_Rope.cc Ada_Rope.hh
