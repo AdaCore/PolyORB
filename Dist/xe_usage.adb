@@ -34,7 +34,7 @@ procedure XE_Usage is
 begin
    if Verbose_Mode then
       Write_Str ("GNATDIST __glade_version__ / GNAT __gnat_version__");
-      Write_Str (" Copyright 1996-2001 Free Software Foundation, Inc.");
+      Write_Str (" Copyright 1996-2003 Free Software Foundation, Inc.");
       Write_Eol;
    end if;
 
