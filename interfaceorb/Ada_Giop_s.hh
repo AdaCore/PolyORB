@@ -76,7 +76,7 @@ public:
   void ReplyCompleted();
   // wrapper around void ReplyCompleted();
 
-  size_t ReplyHeaderSize();
+  static size_t ReplyHeaderSize();
   // wrapper around size_t GIOP_S::ReplyHeaderSize();
     
 private:

@@ -76,8 +76,7 @@ package Giop_S is
    -- type pointer on type Object
 
 
-   function Reply_Header_Size (Self : in Object'Class)
-                               return Corba.Unsigned_Long ;
+   function Reply_Header_Size return Corba.Unsigned_Long ;
    -- compute the size of the header for a reply
 
 

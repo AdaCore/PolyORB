@@ -57,18 +57,16 @@ package body Giop_S is
 
    -- C_Reply_Header_Size
    ----------------------
-   function C_Reply_Header_Size (Self : in Object'Class)
-                                 return Interfaces.C.Unsigned_Long ;
+   function C_Reply_Header_Size return Interfaces.C.Unsigned_Long ;
    pragma Import (CPP,C_Reply_Header_Size,"ReplyHeaderSize__10Ada_Giop_s") ;
 
    -- Reply_Header_Size
    --------------------
-   function Reply_Header_Size (Self : in Object'Class)
-                               return Corba.Unsigned_Long is
+   function Reply_Header_Size return Corba.Unsigned_Long is
       C_Result : Interfaces.C.Unsigned_Long ;
    begin
       -- calls the C function ...
-      C_Result := C_Reply_Header_Size (Self) ;
+      C_Result := C_Reply_Header_Size ;
       -- ... and transforms the result into an Ada type
       return Corba.Unsigned_Long (C_Result) ;
    end ;
