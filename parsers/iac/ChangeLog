@@ -1,3 +1,17 @@
+2004-07-03  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_idl.adb: Generate value declaration and adopt the
+	same organization for IDL backend than the one for Ada backend.
+
+	* frontend-nutils.adb: Fix function Is_A_Forward_Of for value
+	declaration.
+
+	* scopes.adb: Deal with value forward declaration.
+
+	* analyzer.adb: Analyze partially value declarations. Some parts
+	are just cut and pasted from interface analyzis. This will be
+	reorganized later on.
+
 2004-07-02  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* frontend-nodes.idl: Remove Base_Interface since it always

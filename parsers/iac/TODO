@@ -4,6 +4,9 @@ Frontend
 
 * Implement value types
 
+* Check forward interface and interface are consistent
+  in terms of local and abstract
+
 
 Backend Ada
 
