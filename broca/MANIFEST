@@ -128,7 +128,7 @@ examples/calculator/client.adb
 examples/calculator/handler.adb
 examples/calculator/handler.ads
 examples/calculator/longseq.ads
-examples/calculator/server_plus.adb
+examples/calculator/server.adb
 examples/calculator/simple_server.adb
 examples/calculator/stringseq.ads
 examples/generic/genericserver.adb
@@ -145,7 +145,7 @@ examples/random/random-impl.adb
 examples/random/random-impl.ads
 examples/random/random.idl
 examples/random/server.adb
-examples/valuetypes/ExampleA.idl
+examples/valuetypes/BinaryTree.idl
 examples/valuetypes/Makefile.am
 examples/valuetypes/cycle/Makefile.am
 examples/valuetypes/cycle/client.adb
