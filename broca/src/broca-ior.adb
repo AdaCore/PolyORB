@@ -127,6 +127,7 @@ package body Broca.IOR is
       Length : constant Index_Type := Bytes'Length;
       IOR    : String (1 .. 4 + Natural (Length) * 2);
    begin
+      pragma Debug (Broca.Buffers.Show (Buffer.all));
       IOR (1 .. 4) := "IOR:";
 
       for I in Bytes'Range loop

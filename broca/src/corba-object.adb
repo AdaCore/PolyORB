@@ -33,7 +33,7 @@
 
 with Broca.IOR;
 with Broca.Buffers; use Broca.Buffers;
-with Broca.CDR;
+with Broca.CDR;     use Broca.CDR;
 
 package body CORBA.Object is
 
@@ -55,17 +55,22 @@ package body CORBA.Object is
      (Obj : CORBA.Object.Ref)
      return CORBA.String
    is
-      Buffer : aliased Buffer_Type;
+      Ref_Buffer : aliased Buffer_Type;
+      IOR_Buffer : aliased Buffer_Type;
    begin
+      Start_Encapsulation (Ref_Buffer'Access);
+
       Broca.CDR.Marshall
-        (Buffer'Access, Obj);
+        (Ref_Buffer'Access, Obj);
+      Marshall (IOR_Buffer'Access, Encapsulate (Ref_Buffer'Access));
       --  Marshall_Reference (Buffer'Access, Obj);
       declare
          Result : constant CORBA.String
            := Broca.IOR.Buffer_To_IOR_String
-           (Buffer'Access);
+           (IOR_Buffer'Access);
       begin
-         Release (Buffer);
+         Release (IOR_Buffer);
+         Release (Ref_Buffer);
          return Result;
       end;
    end Object_To_String;

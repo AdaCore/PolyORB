@@ -49,7 +49,7 @@ package CORBA.Context is
    procedure Get_Values
      (Self        : in     Ref;
       Start_Scope : in     Identifier;
-      This_Object : in     Boolean := TRUE;
+      This_Object : in     Boolean := True;
       Prop_Name   : in     Identifier;
       Values      :    out CORBA.NVList.Ref);
 
