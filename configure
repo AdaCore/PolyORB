@@ -545,7 +545,7 @@ else
 fi
 
 
-#AM_CONFIG_HEADER(Garlic/config.h)
+# AM_CONFIG_HEADER(Garlic/config.h)
 ac_aux_dir=
 for ac_dir in support $srcdir/support; do
   if test -f $ac_dir/install-sh; then
@@ -1835,7 +1835,7 @@ else
   
   case "${PLATFORM_SPECIFIC}" in
     h) RSH_CMD="remsh";;
-    h) RSH_CMD="rsh";;
+    b) RSH_CMD="rsh";;
     *) RSH_CMD="rsh -n";;
   esac
 
@@ -1851,7 +1851,9 @@ echo "configure:1851: checking which remote shell options to use" >&5
 # Check whether --with-rshopt or --without-rshopt was given.
 if test "${with_rshopt+set}" = set; then
   withval="$with_rshopt"
+  
   RSH_OPT="${withval}"
+
 else
   
   case "${PLATFORM_SPECIFIC}" in
@@ -1863,7 +1865,7 @@ else
 fi
 
 
-echo "$ac_t""$RSH_OPT" 1>&6
+echo "$ac_t""${RSH_OPT}" 1>&6
 #
 # Protocol list
 #
@@ -1872,7 +1874,7 @@ if test "${with_protocols+set}" = set; then
   withval="$with_protocols"
   
   echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1876: checking default protocols" >&5
+echo "configure:1878: checking default protocols" >&5
   LIST="";
   PROTOCOLSSOURCES="";
   PROTOCOLSOBJECTS="";
@@ -1900,7 +1902,7 @@ echo "configure:1876: checking default protocols" >&5
 else
   
   echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1904: checking default protocols" >&5
+echo "configure:1906: checking default protocols" >&5
   PROTOCOLSSOURCES="\$(TCPSOURCES)";
   PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
   DEFPROTOCOLNAME="tcp";
@@ -1929,7 +1931,7 @@ else
 fi
 
 echo $ac_n "checking for default data location""... $ac_c" 1>&6
-echo "configure:1933: checking for default data location" >&5
+echo "configure:1935: checking for default data location" >&5
 echo "$ac_t""${DEFSTORAGENAME}://${DEFSTORAGEDATA}" 1>&6
 
 
@@ -1950,7 +1952,7 @@ else
 fi
 
 echo $ac_n "checking for default boot location""... $ac_c" 1>&6
-echo "configure:1954: checking for default boot location" >&5
+echo "configure:1956: checking for default boot location" >&5
 echo "$ac_t""${DEFPROTOCOLNAME}://${DEFPROTOCOLDATA}" 1>&6
 
 
@@ -1970,7 +1972,7 @@ else
 fi
 
 echo $ac_n "checking default filters""... $ac_c" 1>&6
-echo "configure:1974: checking default filters" >&5
+echo "configure:1976: checking default filters" >&5
 
 if test -d Garlic; then
   :
@@ -2015,7 +2017,7 @@ case ${FILTERSLIST} in
   *zip*)
     if test $INSTALLZIPLIB = no; then
       echo $ac_n "checking for zlibVersion in -lz""... $ac_c" 1>&6
-echo "configure:2019: checking for zlibVersion in -lz" >&5
+echo "configure:2021: checking for zlibVersion in -lz" >&5
 ac_lib_var=`echo z'_'zlibVersion | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -2023,7 +2025,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lz  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 2027 "configure"
+#line 2029 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -2034,7 +2036,7 @@ int main() {
 zlibVersion()
 ; return 0; }
 EOF
-if { (eval echo configure:2038: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:2040: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -2066,7 +2068,7 @@ fi
       fi
     fi
     echo $ac_n "checking whether zip lib installation is needed""... $ac_c" 1>&6
-echo "configure:2070: checking whether zip lib installation is needed" >&5
+echo "configure:2072: checking whether zip lib installation is needed" >&5
     if test ${INSTALLZIPLIB} = yes; then
       FILTERSINSTALL="${FILTERSINSTALL} install-zlib";
     fi

@@ -2,7 +2,7 @@
 # $Id$
 #
 AC_INIT(Dist/xe.ads)
-#AM_CONFIG_HEADER(Garlic/config.h)
+# AM_CONFIG_HEADER(Garlic/config.h)
 AC_CONFIG_AUX_DIR(support)
 #
 # Package description
@@ -154,19 +154,21 @@ AC_ARG_WITH(rshcmd,
 [
   case "${PLATFORM_SPECIFIC}" in
     h) RSH_CMD="remsh";;
-    h) RSH_CMD="rsh";;
+    b) RSH_CMD="rsh";;
     *) RSH_CMD="rsh -n";;
   esac
 ])
 AC_SUBST(RSH_CMD)
-AC_MSG_RESULT(${RSH_CMD})
+AC_MSG_RESULT([${RSH_CMD}])
 #
 # Remote shell flags
 #
 AC_MSG_CHECKING(which remote shell options to use)
 AC_ARG_WITH(rshopt,
 [  --with-rshopt=command   Set remote shell options],
-[RSH_OPT="${withval}"],
+[
+  RSH_OPT="${withval}"
+],
 [
   case "${PLATFORM_SPECIFIC}" in
     h) RSH_OPT="-n";;
@@ -175,7 +177,7 @@ AC_ARG_WITH(rshopt,
   esac
 ])
 AC_SUBST(RSH_OPT)
-AC_MSG_RESULT($RSH_OPT)
+AC_MSG_RESULT([${RSH_OPT}])
 #
 # Protocol list
 #
