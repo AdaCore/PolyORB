@@ -14,7 +14,6 @@ ltconfig
 ltmain.sh
 missing
 mkinstalldirs
-Dist/
 Dist/Makefile.am
 Dist/Makefile.in
 Dist/config.sdefault
@@ -43,14 +42,11 @@ Dist/xe_usage.adb
 Dist/xe_usage.ads
 Dist/xe_utils.adb
 Dist/xe_utils.ads
-Doc/
 Doc/install_guide.txt
 Doc/user_guide.txt
-Examples/
 Examples/Makefile.am
 Examples/Makefile.in
 Examples/check-config.in
-Examples/Bank/
 Examples/Bank/Makefile.am
 Examples/Bank/Makefile.in
 Examples/Bank/README
@@ -67,11 +63,9 @@ Examples/Bank/server.adb
 Examples/Bank/server.ads
 Examples/Bank/simcity.cfg
 Examples/Bank/types.ads
-Examples/Eratho/
 Examples/Eratho/Makefile.am
 Examples/Eratho/Makefile.in
 Examples/Eratho/README
-Examples/Eratho/absolute/
 Examples/Eratho/absolute/Makefile.am
 Examples/Eratho/absolute/Makefile.in
 Examples/Eratho/absolute/absolute.cfg
@@ -83,7 +77,6 @@ Examples/Eratho/absolute/prime.adb
 Examples/Eratho/absolute/prime.ads
 Examples/Eratho/absolute/results.adb
 Examples/Eratho/absolute/results.ads
-Examples/Eratho/cycle/
 Examples/Eratho/cycle/Makefile.am
 Examples/Eratho/cycle/Makefile.in
 Examples/Eratho/cycle/common.ads
@@ -97,7 +90,6 @@ Examples/Eratho/cycle/prime_3.adb
 Examples/Eratho/cycle/prime_3.ads
 Examples/Eratho/cycle/results.adb
 Examples/Eratho/cycle/results.ads
-Examples/Eratho/dynamic/
 Examples/Eratho/dynamic/Makefile.am
 Examples/Eratho/dynamic/Makefile.in
 Examples/Eratho/dynamic/common.ads
@@ -107,7 +99,6 @@ Examples/Eratho/dynamic/dynamic.cfg
 Examples/Eratho/dynamic/mainloop.adb
 Examples/Eratho/dynamic/prime.adb
 Examples/Eratho/dynamic/prime.ads
-Examples/Eratho/spiral/
 Examples/Eratho/spiral/Makefile.am
 Examples/Eratho/spiral/Makefile.in
 Examples/Eratho/spiral/common.ads
@@ -119,7 +110,6 @@ Examples/Eratho/spiral/prime_2.ads
 Examples/Eratho/spiral/prime_3.adb
 Examples/Eratho/spiral/prime_3.ads
 Examples/Eratho/spiral/spiral.cfg
-Examples/LightBank/
 Examples/LightBank/Makefile.am
 Examples/LightBank/Makefile.in
 Examples/LightBank/README
@@ -130,7 +120,6 @@ Examples/LightBank/example
 Examples/LightBank/manager.adb
 Examples/LightBank/simcity.cfg
 Examples/LightBank/types.ads
-Examples/Messages/
 Examples/Messages/Makefile.am
 Examples/Messages/Makefile.in
 Examples/Messages/localhost
@@ -138,7 +127,6 @@ Examples/Messages/main.adb
 Examples/Messages/pingpong.cfg
 Examples/Messages/rci.adb
 Examples/Messages/rci.ads
-Examples/RACW/
 Examples/RACW/Makefile.am
 Examples/RACW/Makefile.in
 Examples/RACW/common.ads
@@ -148,7 +136,6 @@ Examples/RACW/main.adb
 Examples/RACW/racw.cfg
 Examples/RACW/worker_pkg.adb
 Examples/RACW/worker_pkg.ads
-Garlic/
 Garlic/2agtplsp.ads
 Garlic/2egtplsp.ads
 Garlic/2ggtplsp.ads
@@ -227,7 +214,6 @@ Garlic/s-stratt.adb
 Garlic/split.adb
 Garlic/s-rpstio.adb
 Garlic/s-rpstio.ads
-Garlic/zlib/
 Garlic/zlib/ChangeLog
 Garlic/zlib/INDEX
 Garlic/zlib/Make_vms.com
@@ -272,5 +258,4 @@ Garlic/zlib/zlib.h
 Garlic/zlib/zlib.rc
 Garlic/zlib/zutil.c
 Garlic/zlib/zutil.h
-ada/
 ada/*
