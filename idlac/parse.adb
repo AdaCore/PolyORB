@@ -1295,15 +1295,15 @@ package body Parse is
    --
    --  Rule 10:
    --  <inheritance_spec> ::= ":" <scoped_name> { "," <scoped_name> }*
-   function Parse_Interface_Dcl_End (Res : N_Interface_Acc)
-                                     return N_Interface_Acc is
+   procedure Parse_Interface_Dcl_End (Result : in out N_Interface_Acc;
+                                     Success : out Boolean) is
    begin
       --  interface header.
       if Get_Token = T_Colon then
          --  inheritance_spec
          loop
             Next_Token;
-            Append_Node (Res.Parents, N_Root_Acc (Parse_Scoped_Name));
+            Append_Node (Result.Parents, N_Root_Acc (Parse_Scoped_Name));
             exit when Get_Token /= T_Comma;
          end loop;
       end if;
@@ -1312,19 +1312,23 @@ package body Parse is
          Next_Token;
       else
          Errors.Parser_Error
-           ("you should have a bracket on the beginning of an interface",
+           ("you probably should have a bracket on the beginning"
+            & " of an interface",
             Errors.Error,
             Get_Token_Location);
+         Success := False;
+         return;
       end if;
       --  Create a scope for the interface.
-      Push_Scope (Res);
-      Parse_Interface_Body (Res.Contents);
+      Push_Scope (Result);
+      Parse_Interface_Body (Result.Contents);
       --  consume the right bracket at the end of the interface body
       --  verification of the presence of this bracket was done
       --  in Parse_Interface_Body
       Next_Token;
       Pop_Scope;
-      return Res;
+      Success := True;
+      return;
    end Parse_Interface_Dcl_End;
 
    --  Rule 4:
@@ -1343,18 +1347,23 @@ package body Parse is
    --
    --  These rules are equivalent to
    --
+   --  Interface 1:
    --  <interface> ::= ["abstract"] "interface" <identifier>
    --                  <interface_end>
    --
+   --  Interface 2:
    --  <interface_end> ::= <forward_dcl_end>
    --                  |   <interface_dcl_end>
    --
+   --  Interface 3:
    --  <forward_dcl_end> ::=
    --
+   --  Interface 4:
    --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
    --                          <interface_body> "}"
    --  this last will be used in Parse_Interface_Dcl_End
-   function Parse_Interface return N_Root_Acc is
+   procedure Parse_Interface (Result : out  N_Root_Acc;
+                              Success : out Boolean) is
       Res : N_Interface_Acc;
       Fd_Res : N_Forward_Interface_Acc;
       Definition : Identifier_Definition_Acc;
@@ -1390,7 +1399,10 @@ package body Parse is
                   & "defined in the same scope",
                   Errors.Error,
                   Get_Token_Location);
+               Success := False;
+               Result := null;
                Fd_Res := null;
+               return;
             end if;
          else
             Fd_Res := null;
@@ -1405,6 +1417,9 @@ package body Parse is
            ("you should have an identifier after 'interface'",
             Errors.Error,
             Get_Token_Location);
+         Success := False;
+         Result := null;
+         return;
       end if;
       Next_Token;
       --  Hups, this was just a forward declaration.
@@ -1414,19 +1429,25 @@ package body Parse is
               ("forward declaration after another one",
                Errors.Error,
                Get_Token_Location);
-            return null;
+            Success := True;
+            Result := null;
+            return;
          else
             Fd_Res := new N_Forward_Interface;
             Set_Location (Fd_Res.all, Get_Location (Res.all));
             Fd_Res.Forward := null;
             Redefine_Identifier (Definition, Fd_Res);
             --  Free (Res); ???????????????????
-            return N_Root_Acc (Fd_Res);
+            Result := N_Root_Acc (Fd_Res);
+            Success := True;
+            return;
          end if;
       else
-         return N_Root_Acc (Parse_Interface_Dcl_End (Res));
+         Parse_Interface_Dcl_End (Res, Success);
+         Result := N_Root_Acc (Res);
+         return;
       end if;
-      return null;
+      return;
    end Parse_Interface;
 
 --    --  Rule 13:
@@ -1604,8 +1625,18 @@ package body Parse is
 --          when T_Exception =>
 --             Res := N_Root_Acc (Parse_Except_Dcl);
          when T_Interface =>
-            Result := N_Root_Acc (Parse_Interface);
-            Success := True;
+            declare
+               Interface_Result : Boolean;
+            begin
+               Parse_Interface (Result, Interface_Result);
+               if Interface_Result then
+                  Success := True;
+               else
+                  Result := null;
+                  Success := False;
+                  return;
+               end if;
+            end;
          when T_Module =>
             declare
                Module : N_Module_Acc;

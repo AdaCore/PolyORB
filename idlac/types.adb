@@ -16,12 +16,14 @@
 --  MA 02111-1307, USA.
 --
 
+
 with Ada.Unchecked_Deallocation;
 with GNAT.Case_Util;
 with Tokens;
 with Errors;
 
 package body Types is
+
 
    --------------------------------------------
    --  Root of the tree parsed from the idl  --
@@ -244,10 +246,36 @@ package body Types is
    --  identifiers handling methods  --
    ------------------------------------
 
-   ----------------------
-   --  Get_Identifier  --
-   ----------------------
-   function Get_Identifier (Identifier : String) return Uniq_Id is
+   -----------------------------------
+   --  Check_identifier_Identifier  --
+   -----------------------------------
+   function Check_Identifier_Index (Identifier : String) return Uniq_Id is
+      use Tokens;
+      Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
+      Index : Uniq_Id := Hash_Table (Hash_Index);
+   begin
+      if Index /= Nil_Uniq_Id then
+         while Id_Table.Table (Index).Definition.Name /= null loop
+            if Idl_Identifier_Equal
+              (Id_Table.Table (Index).Definition.Name.all,
+               Identifier) /= Differ
+            then
+               return Index;
+            end if;
+            if Id_Table.Table (Index).Next = Nil_Uniq_Id then
+               exit;
+            end if;
+            Index := Id_Table.Table (Index).Next;
+         end loop;
+      end if;
+      --  return  Nil_Uniq_Id
+      return Index;
+   end Check_Identifier_Index;
+
+   ----------------------------------
+   --  Create_Indentifier_Index    --
+   ----------------------------------
+   function Create_Identifier_Index (Identifier : String) return Uniq_Id is
       use Tokens;
       Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id := Hash_Table (Hash_Index);
@@ -277,7 +305,7 @@ package body Types is
       Id_Table.Table (Index) := (Definition => null,
                                  Next => Nil_Uniq_Id);
       return Index;
-   end Get_Identifier;
+   end Create_Identifier_Index;
 
    ----------------------------------
    --  Find_Identifier_Definition  --
@@ -285,8 +313,12 @@ package body Types is
    function Find_Identifier_Definition return Identifier_Definition_Acc is
       Index : Uniq_Id;
    begin
-      Index := Get_Identifier (Tokens.Get_Lexer_String);
-      return Id_Table.Table (Index).Definition;
+      Index := Check_Identifier_Index (Tokens.Get_Lexer_String);
+      if Index /= Nil_Uniq_Id then
+         return Id_Table.Table (Index).Definition;
+      else
+         return null;
+      end if;
    end Find_Identifier_Definition;
 
    ----------------------------
@@ -326,7 +358,7 @@ package body Types is
       Definition : Identifier_Definition_Acc;
       Index : Uniq_Id;
    begin
-      Index := Get_Identifier (Tokens.Get_Lexer_String);
+      Index := Create_Identifier_Index (Tokens.Get_Lexer_String);
       Definition := Id_Table.Table (Index).Definition;
       --  Checks if the identifier is not being redefined in the same
       --  scope.

@@ -202,8 +202,13 @@ package Types is
    --  identifiers handling  --
    ----------------------------
 
-   --  Get the uniq_id from an identifier
-   function Get_Identifier (Identifier : String) return Uniq_Id;
+   --  Check if the  uniq_id from an identifier is already defined
+   --  return it or Nil_Uniq_Id
+   function Check_Identifier_Index (Identifier : String) return Uniq_Id;
+
+   --  Create the uniq_id entry for an identifier if it doesn't exist
+   --  return it
+   function Create_Identifier_Index (Identifier : String) return Uniq_Id;
 
    --  Find the current identifier definition.
    --  The current identifier is the one just scanned by the lexer

@@ -464,8 +464,8 @@ private
    --
    --  Rule 10:
    --  <inheritance_spec> ::= ":" <scoped_name> { "," <scoped_name> }*
-   function Parse_Interface_Dcl_End (Res : N_Interface_Acc)
-                                     return N_Interface_Acc;
+   procedure Parse_Interface_Dcl_End (Result : in out  N_Interface_Acc;
+                                     Success : out Boolean);
 
    --  Rule 4:
    --  <interface> ::= <interface_dcl> | <forward_dcl>
@@ -494,7 +494,8 @@ private
    --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
    --                          <interface_body> "}"
    --  this last will be used in Parse_Interface_Dcl_End
-   function Parse_Interface return N_Root_Acc;
+   procedure Parse_Interface (Result : out N_Root_Acc;
+                              Success : out Boolean);
 
 --    --  Rule 13:
 --    --  <const_type> ::= <integer_type>
