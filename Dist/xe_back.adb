@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---         Copyright (C) 1996,1997 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-1998 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -959,6 +959,7 @@ package body XE_Back is
                Channels.Table (Default_Channel).Filter = No_Filter_Name then
                Channels.Table (Default_Channel).Filter
                  := Get_Node_Name (Attr_Item);
+               To_Lower (Channels.Table (Default_Channel).Filter);
 
             --  Apply to one channel. Check that it has not already
             --  been done.
@@ -967,6 +968,7 @@ package body XE_Back is
               Channels.Table (Channel).Filter = No_Filter_Name then
                Channels.Table (Channel).Filter
                  := Get_Node_Name (Attr_Item);
+               To_Lower (Channels.Table (Channel).Filter);
 
             --  This operation has already been done !
 
@@ -1114,6 +1116,7 @@ package body XE_Back is
                Partitions.Table (PID).Filter = No_Filter_Name
             then
                Partitions.Table (PID).Filter := Get_Node_Name (Attr_Item);
+               To_Lower (Partitions.Table (PID).Filter);
 
             --  Apply to one partition. Check that it has not already
             --  been done.
