@@ -1,5 +1,11 @@
 2000-06-02  Laurent Pautet  <pautet@inf.enst.fr>
 
+	* s-rpcpoo.adb: Deallocate unwanted anonymous tasks instead of
+ 	just terminating them. The problem is that the number of active
+	tasks can fluctuate around High_Mark. Each time, this number is
+	above High_Mark, the task is forced to terminate but its stack is
+	not deallocated and we run out of memory. Fix 7731-010.
+
 	* s-stratt.adb: Protect all float marshalling procedures against
 	unitialized values.
 
