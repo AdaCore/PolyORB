@@ -313,6 +313,12 @@ package body Idl_Fe.Parser is
       --  The repository is the root scope.
       Push_Scope (Result);
       Next_Token;
+      if Get_Token = T_Eof then
+         Idl_Fe.Errors.Parser_Error
+           ("Definition expected : a specification may not be empty.",
+            Idl_Fe.Errors.Error,
+            Get_Token_Location);
+      end if;
       declare
          Definition : N_Root_Acc;
          Definition_Result : Boolean;
@@ -512,6 +518,12 @@ package body Idl_Fe.Parser is
                      pragma Debug (O ("parse_module : after push_scope, " &
                                       "current scope is : " &
                                       Get_Name (Get_Current_Scope.all)));
+                     if Get_Token = T_Right_Cbracket then
+                        Idl_Fe.Errors.Parser_Error
+                          ("definition expected : a module may not be empty.",
+                           Idl_Fe.Errors.Error,
+                           Get_Token_Location);
+                     end if;
                      while Get_Token /= T_Right_Cbracket loop
                         --  try to parse a definition
                         Parse_Definition (Definition, Definition_Result);
@@ -673,7 +685,7 @@ package body Idl_Fe.Parser is
             begin
                Loc := Types.Get_Location (Fd_Res.all);
                Idl_Fe.Errors.Parser_Error
-                 ("forward declaration already defined in" &
+                 ("interface already forward declared in" &
                   " this scope : " &
                   Idl_Fe.Errors.Display_Location (Loc),
                   Idl_Fe.Errors.Warning,
@@ -746,28 +758,18 @@ package body Idl_Fe.Parser is
                Parse_Except_Dcl (Result_Except, Success);
                Result := N_Root_Acc (Result_Except);
             end;
-         when T_Union =>
+         when T_Const =>
             declare
-               Result_Union : N_Union_Acc;
+               Result_Const : N_Const_Dcl_Acc;
             begin
-               Parse_Union_Type (Result_Union, Success);
-               Result := N_Root_Acc (Result_Union);
+               Parse_Const_Dcl (Result_Const, Success);
+               Result := N_Root_Acc (Result_Const);
             end;
-         when T_Struct =>
-            declare
-               Result_Struct : N_Struct_Acc;
-            begin
-               Parse_Struct_Type (Result_Struct, Success);
-               Result := N_Root_Acc (Result_Struct);
-            end;
-         when T_Enum =>
-            declare
-               Result_Enum : N_Enum_Acc;
-            begin
-               Parse_Enum_Type (Result_Enum, Success);
-               Result := N_Root_Acc (Result_Enum);
-            end;
-         when T_Typedef =>
+         when T_Union
+           | T_Struct
+           | T_Enum
+           | T_Native
+           | T_Typedef =>
             Parse_Type_Dcl (Result, Success);
          when others =>
             Idl_Fe.Errors.Parser_Error
@@ -2098,6 +2100,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Const_Dcl (Result : out N_Const_Dcl_Acc;
                               Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Const_Dcl : enter"));
       Next_Token;
       Result := new N_Const_Dcl;
       Set_Location (Result.all, Get_Previous_Token_Location);
@@ -2182,6 +2185,7 @@ package body Idl_Fe.Parser is
                        Result.Constant_Type,
                        Success);
       return;
+      pragma Debug (O ("Parse_Const_Dcl : end"));
    end Parse_Const_Dcl;
 
    ------------------------
@@ -2190,6 +2194,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Const_Type (Result : out N_Root_Acc;
                                Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Const_Type : end"));
       case Get_Token is
          when T_Long =>
             if View_Next_Token = T_Double then
@@ -2202,23 +2207,23 @@ package body Idl_Fe.Parser is
             Parse_Integer_Type (Result, Success);
          when T_Char =>
             declare
-               Res : N_Type_Declarator_Acc;
+               Res : N_Char_Acc;
             begin
-               Parse_Type_Declarator (Res, Success);
+               Parse_Char_Type (Res, Success);
                Result := N_Root_Acc (Res);
             end;
-         when T_Struct =>
+         when T_Wchar =>
             declare
-               Res : N_Struct_Acc;
+               Res : N_Wide_Char_Acc;
             begin
-               Parse_Struct_Type (Res, Success);
+               Parse_Wide_Char_Type (Res, Success);
                Result := N_Root_Acc (Res);
             end;
-         when T_Union =>
+         when T_Boolean =>
             declare
-               Res : N_Union_Acc;
+               Res : N_Boolean_Acc;
             begin
-               Parse_Union_Type (Res, Success);
+               Parse_Boolean_Type (Res, Success);
                Result := N_Root_Acc (Res);
             end;
          when T_Float
@@ -2300,6 +2305,7 @@ package body Idl_Fe.Parser is
             Success := False;
             Result := null;
       end case;
+      pragma Debug (O ("Parse_Const_Type : end"));
       return;
    end Parse_Const_Type;
 
@@ -2393,6 +2399,9 @@ package body Idl_Fe.Parser is
             raise Idl_Fe.Errors.Internal_Error;
       end case;
       Parse_Or_Expr (Result, Success, C_Type);
+      if not Success then
+         return;
+      end if;
       --  check compatibility between the constant expression
       --  and its supposed type in the case of short and long
       if (Get_Kind (Constant_Type.all) = K_Short and

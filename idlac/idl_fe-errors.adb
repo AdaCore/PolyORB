@@ -20,18 +20,16 @@ package body Idl_Fe.Errors is
    ------------------------
    function Display_Location (Loc : in Location) return String is
    begin
---       Ada.Text_IO.Put ("line ");
---       Ada.Text_IO.Put (Nat_To_String (Loc.Line));
---       Ada.Text_IO.Put (", column ");
---       Ada.Text_IO.Put (Nat_To_String (Loc.Col));
---       Ada.Text_IO.Put (" of file ");
---       Ada.Text_IO.Put (Loc.Filename.all);
-      return "line " &
-        Nat_To_String (Loc.Line) &
-        ", column " &
-        Nat_To_String (Loc.Col) &
-        " of file " &
-        Loc.Filename.all;
+      if Loc.Filename /= null then
+         return "line " &
+           Nat_To_String (Loc.Line) &
+           ", column " &
+           Nat_To_String (Loc.Col) &
+           " of file " &
+           Loc.Filename.all;
+      else
+         return "line 0, column 0";
+      end if;
    end Display_Location;
 
 
@@ -131,7 +129,7 @@ package body Idl_Fe.Errors is
    --------------------
    function Error_Number return Natural is
    begin
-      return Warning_Count;
+      return Error_Count;
    end Error_Number;
 
    ----------------------
@@ -139,7 +137,7 @@ package body Idl_Fe.Errors is
    ----------------------
    function Warning_Number return Natural is
    begin
-      return Error_Count;
+      return Warning_Count;
    end Warning_Number;
 
 end Idl_Fe.Errors;

@@ -10,6 +10,11 @@ module module1 {
   interface interface1;
 };
 
+
+/***  Test of rule 1 ***/
+
+// An empty specification may be tested since it is not permitted
+
 /***  Test of rule 2 ***/
 
 Error

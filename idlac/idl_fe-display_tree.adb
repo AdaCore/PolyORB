@@ -97,7 +97,9 @@ package body Idl_Fe.Display_Tree is
                if N_Interface (N).Parents /= Nil_List then
                   Disp_Indent (N_Indent);
                   Put_Line ("base:");
-                  Disp_List (N_Interface (N).Parents, N_Indent, False);
+                  Disp_List (N_Interface (N).Parents,
+                             N_Indent + Offset,
+                             False);
                end if;
             end if;
             Disp_List (N_Interface (N).Contents, N_Indent, Full);
@@ -272,7 +274,7 @@ package body Idl_Fe.Display_Tree is
                when Mode_Inout =>
                   Put_Line ("inout");
             end case;
-            Disp_Tree (N_Param (N).Declarator.all, N_Indent + Offset, False);
+            Disp_Tree (N_Param (N).Declarator.all, N_Indent, False);
             Disp_Indent (N_Indent, "type:");
             Disp_Tree (N_Param (N).Param_Type.all, N_Indent + Offset, False);
 
@@ -313,11 +315,11 @@ package body Idl_Fe.Display_Tree is
          when K_Case =>
             Put_Line ("case");
             Disp_Indent (N_Indent, "labels:");
-            Disp_List (N_Case (N).Labels, N_Indent, Full);
+            Disp_List (N_Case (N).Labels, N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Case (N).Case_Type.all, N_Indent, Full);
+            Disp_Tree (N_Case (N).Case_Type.all, N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "declarator:");
-            Disp_Tree (N_Case (N).Case_Decl.all, N_Indent, Full);
+            Disp_Tree (N_Case (N).Case_Decl.all, N_Indent + Offset, Full);
 
          when K_Or =>
             Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "or");

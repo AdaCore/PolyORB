@@ -368,24 +368,25 @@ package body Idl_Fe.Lexer is
    --  Scan_Char  --
    -----------------
    function Scan_Char return Idl_Token is
+      Result : Idl_Token;
    begin
+      Set_Mark;
       if Next_Char = '\' then
-         Set_Mark;
          case View_Next_Char is
             when 'n' | 't' | 'v' | 'b' | 'r' | 'f'
               | 'a' | '\' | '?' | Quotation =>
                Skip_Char;
-               return T_Lit_Escape_Char;
+               Result := T_Lit_Escape_Char;
             when ''' =>
                if View_Next_Next_Char /= ''' then
                   Idl_Fe.Errors.Lexer_Error ("Invalid character : '\', "
                                              & "it should probably be '\\'",
                                              Idl_Fe.Errors.Error,
                                              Get_Real_Location);
-                  return T_Error;
+                  Result := T_Error;
                else
                   Skip_Char;
-                  return T_Lit_Escape_Char;
+                  Result := T_Lit_Escape_Char;
                end if;
             when '0' .. '7' =>
                Skip_Char;
@@ -404,11 +405,9 @@ package body Idl_Fe.Lexer is
                                              & "definition",
                                              Idl_Fe.Errors.Error,
                                              Get_Real_Location);
-                  --  skip the '
-                  Skip_Char;
-                  return T_Error;
+                  Result := T_Error;
                else
-                  return T_Lit_Octal_Char;
+                  Result := T_Lit_Octal_Char;
                end if;
             when 'x' =>
                Skip_Char;
@@ -425,11 +424,9 @@ package body Idl_Fe.Lexer is
                                                 & "definition",
                                                 Idl_Fe.Errors.Error,
                                                 Get_Real_Location);
-                     --  skip the '
-                     Skip_Char;
-                     return T_Error;
+                     Result := T_Error;
                   else
-                     return T_Lit_Hexa_Char;
+                     Result := T_Lit_Hexa_Char;
                   end if;
                else
                   Go_To_End_Of_Char;
@@ -438,9 +435,7 @@ package body Idl_Fe.Lexer is
                                              & Get_Marked_Text,
                                              Idl_Fe.Errors.Error,
                                              Get_Real_Location);
-                  --  skip the '
-                  Skip_Char;
-                  return T_Error;
+                  Result := T_Error;
                end if;
             when 'u' =>
                Skip_Char;
@@ -463,11 +458,9 @@ package body Idl_Fe.Lexer is
                                                 & "unicode char definition",
                                                 Idl_Fe.Errors.Error,
                                                 Get_Real_Location);
-                     --  skip the '
-                     Skip_Char;
-                     return T_Error;
+                     Result := T_Error;
                   else
-                     return T_Lit_Unicode_Char;
+                     Result := T_Lit_Unicode_Char;
                   end if;
                else
                   Go_To_End_Of_Char;
@@ -476,9 +469,7 @@ package body Idl_Fe.Lexer is
                                              & Get_Marked_Text,
                                              Idl_Fe.Errors.Error,
                                              Get_Real_Location);
-                  --  skip the '
-                  Skip_Char;
-                  return T_Error;
+                  Result := T_Error;
                end if;
             when '8' | '9' | 'A' .. 'F' | LC_C .. LC_E =>
                Go_To_End_Of_Char;
@@ -488,33 +479,27 @@ package body Idl_Fe.Lexer is
                                           "use \xhh",
                                           Idl_Fe.Errors.Error,
                                           Get_Real_Location);
-               --  skip the '
-               Skip_Char;
-               return T_Error;
+               Result := T_Error;
             when others =>
                Go_To_End_Of_Char;
                Idl_Fe.Errors.Lexer_Error ("Invalid definition of character : "
                                           & Get_Marked_Text,
                                           Idl_Fe.Errors.Error,
                                           Get_Real_Location);
-               --  skip the '
-               Skip_Char;
-               return T_Error;
+               Result := T_Error;
          end case;
       elsif Get_Current_Char = ''' then
-         Set_Mark;
          if View_Next_Char = ''' then
             Idl_Fe.Errors.Lexer_Error ("Invalid character : ''', "
                                        & "it should probably be '\''",
                                        Idl_Fe.Errors.Error,
                                        Get_Real_Location);
-            return T_Error;
+            Result := T_Error;
          else
-            return T_Lit_Simple_Char;
+            Result := T_Lit_Simple_Char;
          end if;
       else
-         Set_Mark;
-         return T_Lit_Simple_Char;
+         Result := T_Lit_Simple_Char;
       end if;
       if Next_Char /= ''' then
          Go_To_End_Of_Char;
@@ -522,11 +507,11 @@ package body Idl_Fe.Lexer is
                                     & Get_Marked_Text,
                                     Idl_Fe.Errors.Error,
                                     Get_Real_Location);
-         --  skip the '
-         Skip_Char;
-         return T_Error;
+         Result := T_Error;
       end if;
-      raise Idl_Fe.Errors.Internal_Error;
+      --  skip the '
+--      Skip_Char;
+      return Result;
    end Scan_Char;
 
 

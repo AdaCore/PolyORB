@@ -1,0 +1,264 @@
+/********************************************************
+       This file is meant to try every definition
+    of the idl langage in order to test the idl parser
+*********************************************************/
+
+/************************/
+/* First, try each rule */
+/************************/
+
+// Rule 1
+const short const1 = 4;
+
+// Rule 2
+typedef long long1;
+const short const2 = 2;
+exception exception1 {};
+interface interface1 {};
+module module3 {const short const1 = 3;};
+valuetype valuetype1 {};
+
+// Rule 3
+module module4 {const short const1 = 3;};
+module module5 {const short const1 = 3;
+		const short const2 = 3;};
+
+// Rule 4
+interface interface2;
+interface interface2 {};
+
+// Rule 5
+interface interface3 {long echo_long (in long l);};
+
+// Rule 6
+interface interface4;
+abstract interface interface5;
+interface interface4 {};
+abstract interface interface5 {};
+
+// Rule 7
+interface interface6 {};
+abstract interface interface7 {};
+interface interface8 : interface6 {};
+abstract interface interface9 : interface7 {};
+
+// Rule 8
+interface interface10 {};
+interface interface11 {long echo_long (in long l);};
+
+// Rule 9
+interface interface12 {
+   typedef long long1;
+   const short const2 = 2;
+   exception exception1 {};
+   attribute long attr1;
+   long echo_long (in long l);
+};
+
+// Rule 10
+interface interface13 : interface6 {};
+interface interface14 : interface6, interface12 {};
+interface interface15 : interface6, interface12, interface13 {};
+
+// Rule 11
+module module6 {
+  interface inter {};
+};
+//interface interface16 : ::module6::inter {};
+
+// Rule 12
+module module7 {
+   typedef long type1;
+};
+typedef long type1;
+typedef type1 type2;
+//typedef module7::type1 type4;
+//typedef ::module7::type1 type3;
+
+// Rule 13
+valuetype value1{};
+abstract valuetype value2{};
+valuetype value3 long;
+valuetype value4;
+valuetype value4{};
+
+// Rule 14
+valuetype value5;
+valuetype value5{};
+abstract valuetype value6;
+abstract valuetype value6{};
+
+// Rule 15
+valuetype value7 long;
+
+// Rule 16
+abstract valuetype value8  {};
+abstract valuetype value9  {const short a = 2;};
+abstract valuetype value10  {const short a = 2;const short b = 2;};
+abstract valuetype value11 : value6 {};
+abstract valuetype value12 : value6 {const short a = 2;};
+abstract valuetype value13 : value6 {const short a = 2;const short b = 2;};
+
+// Rule 17
+valuetype value14 {};
+valuetype value15 {const short a = 2;};
+valuetype value16 {const short a = 2;const short b = 2;};
+
+// Rule 18
+valuetype value17 {};
+custom valuetype value18 {};
+valuetype value19 : value17 {};
+custom valuetype value20 : value19 {};
+
+// Rule 19
+valuetype value21 : value17 {};
+valuetype value22 : value17, value8 {};
+valuetype value23 : value17, value8, value9 {};
+valuetype value24 : truncatable value17 {};
+valuetype value25 : truncatable value17, value8 {};
+valuetype value26 : truncatable value17, value8, value9 {};
+valuetype value27 supports interface6 {};
+valuetype value28 supports interface6, interface5 {};
+valuetype value29 supports interface6, interface5, interface7 {};
+valuetype value30 : value17 supports interface6 {};
+valuetype value31 : value17 supports interface6, interface5 {};
+valuetype value32 : value17 supports interface6, interface5, interface7 {};
+valuetype value33 : truncatable value17 supports interface6 {};
+valuetype value34 : truncatable value17 supports interface6, interface5 {};
+valuetype value35 : truncatable value17 supports interface6, interface5, interface7 {};
+
+// Rule 20
+module module8 {
+   valuetype value {};
+};
+//valuetype value36 : ::module8::value {};
+
+// Rule 21
+valuetype value37 {
+   const short a = 2;
+   public long l;
+   factory f();
+};
+
+// Rule 22
+valuetype value38 {
+   public long l;
+   private short s;
+};
+
+// Rule 23
+valuetype value39 {
+   factory f();
+   factory g(in short s);
+};
+
+// Rule 24
+valuetype value40 {
+   factory f(in short s);
+   factory g(in short s, in long l);
+};
+
+// Rule 25
+valuetype value41 {
+   factory f(in short s);
+};
+
+// Rule 26
+valuetype value42 {
+   factory f(in short s);
+};
+
+// Rule 27
+const short const3 = 3;
+
+// Rule 28
+const short const4 = 3;
+const char const5 = 'd';
+const wchar const6 = L'd';
+const boolean const7 = TRUE;
+const float const8 = 3.14;
+const string const9 = "string";
+const wstring const10 = L"wstring";
+const fixed<5,3> const11 = 3.141d;
+typedef long type4;
+const type4 const12 5;
+const octet const13 2;
+
+// Rule 29
+// Rule 30
+// Rule 31
+// Rule 32
+// Rule 33
+// Rule 34
+// Rule 35
+// Rule 36
+// Rule 37
+// Rule 38
+// Rule 39
+// Rule 40
+// Rule 41
+// Rule 42
+// Rule 43
+// Rule 44
+// Rule 45
+// Rule 46
+// Rule 47
+// Rule 48
+// Rule 49
+// Rule 50
+// Rule 51
+// Rule 52
+// Rule 53
+// Rule 54
+// Rule 55
+// Rule 56
+// Rule 57
+// Rule 58
+// Rule 59
+// Rule 60
+// Rule 61
+// Rule 62
+// Rule 63
+// Rule 64
+// Rule 65
+// Rule 66
+// Rule 67
+// Rule 68
+// Rule 69
+// Rule 70
+// Rule 71
+// Rule 72
+// Rule 73
+// Rule 74
+// Rule 75
+// Rule 76
+// Rule 77
+// Rule 78
+// Rule 79
+// Rule 80
+// Rule 81
+// Rule 82
+// Rule 83
+// Rule 84
+// Rule 85
+// Rule 86
+// Rule 87
+// Rule 88
+// Rule 89
+// Rule 90
+// Rule 91
+// Rule 92
+// Rule 93
+// Rule 94
+// Rule 95
+// Rule 96
+// Rule 97
+// Rule 98
+
+
+/*******************************/
+/* Now, try each miscellaneous */
+/*  point of the Idl langage   */
+/*******************************/
+
+
