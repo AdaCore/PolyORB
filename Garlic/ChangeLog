@@ -1,3 +1,9 @@
+Fri Sep  5 19:03:51 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garnam.adb: (Is_Ip_Address): fixed bug reported by
+	  Roy T. Fielding concerning possible incorrect address resolution 
+	  in presence of hostnames beginning by a digit.
+
 Tue Sep  2 21:51:34 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garrem.ads: Added an Exchange_Launcher procedure as well as a

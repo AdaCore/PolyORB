@@ -291,10 +291,19 @@ package body System.Garlic.Naming is
    function Is_IP_Address (Something : String)
      return Boolean
    is
-      First : constant Natural := Character'Pos (Something (Something'First));
    begin
-      return First >= Character'Pos ('0') and then
-        First <= Character'Pos ('9');
+      for Index in Something'Range loop
+         declare
+            Current : Character renames Something (Index);
+         begin
+            if (Current < '0'
+                or else Current > '9')
+              and then Current /= '.' then
+               return False;
+            end if;
+         end;
+      end loop;
+      return True;
    end Is_IP_Address;
 
    -------------
