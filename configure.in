@@ -386,7 +386,7 @@ EOF
 EOF
 
 for F in `${FIND} ${srcdir}/src/${P} -type f \
-        | ${GREP} 'polyorb-setup-[a-z]*\.ads'`
+        | ${GREP} 'polyorb-setup-[[a-z]]*\.ads'`
 do
    U=`${AWK} '/^package/{print $2}' ${F}`
    cat >>${PROTO_SERVER_WITHS} <<EOF
