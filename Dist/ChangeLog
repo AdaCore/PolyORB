@@ -1,3 +1,10 @@
+Thu Feb 27 11:07:05 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
+
+	* xe_stubs.adb: Predefined type partition filer was incorrectly
+ 	generated. The peer partition name was also incorrect.
+
+	xe.ads, xe.adb: Add Get_Filter for a partition.
+
 Wed Feb 26 22:03:43 1997  Laurent Pautet  <pautet@lglsun11.epfl.ch>
 
 	* xe.ads: Change attribute filter into CFilter (Channel) and add a

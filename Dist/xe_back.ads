@@ -256,6 +256,9 @@ package XE_Back is
    function Get_Filter          (C : CID_Type) return Name_Id;
    --  Look for filter in channels. If null, return default.
 
+   function Get_Filter          (P : PID_Type) return Name_Id;
+   --  Look for filter in partitions. If null, return default.
+
    function Get_HID             (N : Name_Id) return HID_Type;
 
    function Get_Host            (P : PID_Type) return Name_Id;

@@ -578,6 +578,21 @@ package body XE_Back is
 
    end Get_Filter;
 
+   ----------------
+   -- Get_Filter --
+   ----------------
+
+   function Get_Filter          (P : PID_Type) return Name_Id is
+      F : Name_Id := Partitions.Table (P).Filter;
+   begin
+
+      if F = No_Filter_Name then
+         F := Default_Partition_Filter;
+      end if;
+      return F;
+
+   end Get_Filter;
+
    -------------
    -- Get_HID --
    -------------

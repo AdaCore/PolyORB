@@ -543,11 +543,20 @@ package body XE_Stubs is
       Dwrite_Str  (FD, "with System.Garlic.Filters.None;");
       Dwrite_Eol  (FD);
 
-      if Partitions.Table (PID).Filter /= No_Filter_Name then
+      if Default_Registration_Filter /= No_Filter_Name then
+         Dwrite_Str  (FD, "--  Specific registration filters");
+         Dwrite_Eol  (FD);
+         Dwrite_Str  (FD, "with System.Garlic.Filters.");
+         Dwrite_Name (FD, Default_Registration_Filter);
+         Dwrite_Str  (FD, ";");
+         Dwrite_Eol  (FD);
+      end if;
+
+      if Get_Filter (PID) /= No_Filter_Name then
          Dwrite_Str  (FD, "--  Specific partition filters");
          Dwrite_Eol  (FD);
          Dwrite_Str  (FD, "with System.Garlic.Filters.");
-         Dwrite_Name (FD, Partitions.Table (PID).Filter);
+         Dwrite_Name (FD, Get_Filter (PID));
          Dwrite_Str  (FD, ";");
          Dwrite_Eol  (FD);
       end if;
@@ -555,17 +564,8 @@ package body XE_Stubs is
       if Partitions.Table (PID).First_Channel /= Null_CID then
          Dwrite_Str  (FD, "--  Specific channel filters");
          Dwrite_Eol  (FD);
-         if Default_Channel_Filter /= No_Filter_Name then
-            Dwrite_Str  (FD, "with System.Garlic.Filters.");
-            Dwrite_Name (FD, Default_Channel_Filter);
-            Dwrite_Str  (FD, ";");
-            Dwrite_Eol  (FD);
-         end if;
          CID := Partitions.Table (PID).First_Channel;
          while CID /= Null_CID loop
-            Write_Str ("Channel = ");
-            Write_Int (Int (CID));
-            Write_Eol;
             Dwrite_Str  (FD, "with System.Garlic.Filters.");
             Dwrite_Name (FD, Get_Filter (CID));
             Dwrite_Str  (FD, ";");
@@ -658,10 +658,10 @@ package body XE_Stubs is
             while CID /= Null_CID loop
                Filter := Get_Filter (CID);
                if Channels.Table (CID).Lower.My_Partition = PID then
-                  Peer := Channels.Table (CID).Lower.My_Partition;
+                  Peer := Channels.Table (CID).Upper.My_Partition;
                   CID  := Channels.Table (CID).Lower.Next_Channel;
                else
-                  Peer := Channels.Table (CID).Upper.My_Partition;
+                  Peer := Channels.Table (CID).Lower.My_Partition;
                   CID  := Channels.Table (CID).Upper.Next_Channel;
                end if;
                Dwrite_Str  (FD, "   Set_Channel_Filter (""");
