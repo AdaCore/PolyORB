@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba.ads#31 $
+--  $Id: //droopi/main/src/corba/corba.ads#32 $
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
@@ -155,9 +155,9 @@ package CORBA is
    Null_Wide_String : constant CORBA.Wide_String := CORBA.Wide_String
      (Ada.Strings.Wide_Unbounded.To_Unbounded_Wide_String (""));
 
-   -------------
-   --  Types  --
-   -------------
+   -----------
+   -- Types --
+   -----------
 
    --  type Identifier is new CORBA.String;
    type Identifier is new PolyORB.Types.Identifier;
@@ -756,15 +756,17 @@ package CORBA is
 
    --  not in spec : change the type of an any without changing its
    --  value : to be used carefully
-   procedure Set_Type (The_Any : in out Any;
-                       The_Type : in TypeCode.Object);
+   procedure Set_Type
+     (The_Any  : in out Any;
+      The_Type : in     TypeCode.Object);
 
    generic
-      with procedure Process (The_Any : in Any;
-                              Continue : out Boolean);
+      with procedure Process
+        (The_Any  : in  Any;
+         Continue : out Boolean);
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
 
-   --  returns  an empty Any (with no value but a type)
+   --  returns an empty Any (with no value but a type)
    function Get_Empty_Any (Tc : TypeCode.Object) return Any;
 
    --  Not in spec : return true if the Any has a value, false
