@@ -1,0 +1,1860 @@
+[ This is the chapter 9 (POA) of CORBA specification 2.2.
+  The purpose of this file is to comment the specification and to explain
+  what and how specifications are implemented. ]
+[ Comments are inside brackets. ]
+[ Points to be fixed are marked with FIXME.  ]
+[ Points that are questionnable are marked with TODO.  ]
+[ Only section 3 was kept, section 1 is an overview, section 2 describe the
+  model ].
+
+                                 CORBA V2.2                 February 1998 9-1
+
+ The Portable Object Adaptor 9 This chapter describes the Portable
+Object Adapter, or POA. It presents the design goals, a description of
+the abstract model of the POA and its interfaces, followed by a
+detailed description of the interfaces themselves.
+
+Contents This chapter contains the following sections.
+
+9.1 Overview
+[...]
+
+9.2 Abstract Model Description
+[...]
+
+
+9.3 Interfaces
+
+The POA-related interfaces are defined in a module separate from the CORBA module,  the PortableServer module. It consists of several interfaces: 
+
+* POA
+
+* POAManager
+
+* ServantManager
+
+* ServantActivator
+
+* ServantLocator
+
+* AdapterActivator
+
+* ThreadPolicy
+
+9-14                                  CORBA V2.2                 February 1998
+
+* LifespanPolicy
+
+* IdUniquenessPolicy
+
+* IdAssignmentPolicy
+
+* ImplicitActivationPolicy
+
+* ServantRetentionPolicy
+
+* RequestProcessingPolicy
+
+* Current
+
+In addition, the POA defines the Servant native type.
+
+9.3.1 The Servant IDL Type
+
+This specification defines a native type
+PortableServer::Servant. Values of the type Servant are
+programming-language-specific implementations of CORBA interfaces.
+Each language mapping must specify how Servant is mapped to the
+programming language data type that corresponds to an object
+implementation.  The Servant type has the following characteristics
+and constraints.
+[ This is defined by Ada mapping.  ]
+
+* Values of type Servant are opaque from the perspective of CORBA
+ application programmers.  There are no operations that can be
+ performed directly on them by user programs.  They can be passed as
+ parameters to certain POA operations.  Some language mappings may
+ allow Servant values to be implicitly converted to object references
+ under appropriate conditions.
+[ See portableserver.ads.  Some primitives are added in the package
+  specification that must be redefined by the skeleton.  The point is mainly
+  for the user.  ]
+
+* Values of type Servant support a language-specific programming
+ interface that can be used by the ORB to obtain a default POA for
+ that servant. This interface is used only to support implicit
+ activation. A language mapping may provide a default implementation
+ of this interface that returns the root POA of a default ORB.
+[ Done.  Get_Default_POA returns the RootPOA.  ]
+
+* Values of type Servant must be testable for identity.
+[ The function "=" is not defined, the implicit function is used.
+  FIXME: this is a deviation of the Ada mapping.  ]
+ 
+* Values of type Servant have no meaning outside of the process
+ context or address space in which they are generated.
+[ They can't be exported, since they are not of class Broca.Refs.Ref_Type  ]
+
+9.3.2 POAManager Interface
+
+Each POA object has an associated POAManager object. A POA manager may
+be associated with one or more POA objects. A POA manager encapsulates
+the processing state of the POAs it is associated with. Using
+operations on the POA manager, an application can cause requests for
+those POAs to be queued or discarded, and can cause the POAs to be
+deactivated.
+[  A POA doesn't contain its own state.  Only a POA manager has a state.  ]
+
+POA managers are created and destroyed implicitly. Unless an explicit
+POA manager object is provided at POA creation time, a POA manager is
+created when a POA is created and is automatically associated with
+that POA. A POA manager object is implicitly destroyed when all of its
+associated POAs have been destroyed.
+[  Done by Create_POA and Destroy.  A POA contains an access to its manager,
+   and use Broca.Refs.Inc_usage/Dec_Usage to destroyed it when it is not
+   referenced anymore.  ]
+
+CORBA V2.2       Interfaces         February 1998 9-15
+
+Processing States 
+
+A POA manager has four possible processing states; active, inactive,
+holding, and discarding.
+[  Defined with type broca.poa.processing_state_type.  ]
+The processing state determines the
+capabilities of the associated POAs and the disposition of requests
+received by those POAs. Figure 9-3 illustrates the processing states
+and the transitions between them. For simplicity of presentation, this
+specification sometimes describes these states as POA states,
+referring to the POA or POAs that have been associated with a
+particular POA manager. A POA manager is created in the holding
+state. The root POA is therefore initially in the holding state.
+[  Followed during the creation of the root POA in broca-rootpoa.adb  ]
+
+Figure 9-3 Processing States
+
+Active State
+
+When a POA manager is in the active state, the associated POAs will
+receive and start processing requests (assuming that appropriate
+thread resources are available).
+[  Followed by the server.  See broca.server.handle_request.  ]
+Note that even in the active state, a
+POA may need to queue requests depending upon the ORB implementation
+and resource limits. The number of requests that can be received
+and/or queued is an implementation limit.  If this limit is reached,
+the POA should return a TRANSIENT system exception to indicate that
+the client should re-issue the request.
+[  There is no such limit.  TODO.  ]
+
+A user program can legally transition a POA manager from the active
+state to either the discarding, holding, or inactive state by calling
+the discard_requests, hold_requests, or deactivate operations,
+respectively.  The POA enters the active state through the use of the
+activate operation when in the discarding or holding state.
+[  Allowed transitions are checked by the primitives of portableserver.  ]
+
+9-16                                  CORBA V2.2                 February 1998
+
+Discarding State
+
+When a POA manager is in the discarding state, the associated POAs
+will discard all incoming requests (whose processing has not yet
+begun). When a request is discarded, the TRANSIENT system exception
+must be returned to the client-side to indicate that the request
+should be re-issued. (Of course, an ORB may always reject a request
+for other reasons and raise some other system exception.)
+[  Followed by the server.  See broca.server.handle_request.  ]
+
+In addition, when a POA manager is in the discarding state, the
+adapter activators registered with the associated POAs will not get
+called. Instead, requests that require the invocation of an adapter
+activator will be discarded, as described in the previous paragraph.
+[  Followed by the server.  See broca.server.unmarshal_object_key.  ]
+
+The primary purpose of the discarding state is to provide an
+application with flowcontrol capabilities when it determines that an
+object's implementation or POA is being flooded with requests. It is
+expected that the application will restore the POA manager to the
+active state after correcting the problem that caused flow-control to
+be needed.
+[  So be it.  ]
+
+A POA manager can legally transition from the discarding state to
+either the active, holding, or inactive state by calling the activate,
+hold_requests, or deactivate operations, respectively.  The POA enters
+the discarding state through the use of the discard_requests operation
+when in the active or holding state.
+[  Allowed transitions are checked by the primitives of portableserver.  ]
+
+Holding State
+
+When a POA manager is in the holding state, the associated POAs will
+queue incoming requests. The number of requests that can be queued is
+an implementation limit. If this limit is reached, the POAs may
+discard requests and return the TRANSIENT system exception to the
+client to indicate that the client should reissue the request. (Of
+course, an ORB may always reject a request for other reasons and raise
+some other system exception.)
+[  Followed by the server.  See broca.server.handle_request.  ]
+
+In addition, when a POA manager is in the holding state, the adapter
+activators registered with the associated POAs will not get
+called. Instead, requests that require the invocation of an adapter
+activator will be queued, as described in the previous paragraph.
+[  Followed by the server.  See broca.server.unmarshal_object_key.  ]
+
+A POA manager can legally transition from the holding state to either
+the active, discarding, or inactive state by calling the activate,
+discard_requests, or deactivate operations, respectively.  The POA
+enters the holding state through the use of the hold_requests
+operation when in the active or discarding state. A POA manager is
+created in the holding state.
+[  Allowed transitions are checked by the primitives of portableserver.  ]
+
+Inactive State
+
+The inactive state is entered when the associated POAs are to be shut
+down. Unlike the discarding state, the inactive state is not a
+temporary state. When a POA manager is in the inactive state, the
+associated POAs will reject new requests. The rejection mechanism used
+is specific to the vendor.  The GIOP location forwarding mechanism and
+CloseConnection message are examples of mechanisms that could be used
+to indicate the rejection. If the client is co-resident in the same
+process, the ORB could raise the OBJ_ADAPTER exception to indicate
+that the object implementation is unavailable.
+[  Followed by the server.  See broca.server.handle_request. OBJ_ADAPTER is
+always raised.  ]
+
+
+CORBA V2.2       Interfaces         February 1998 9-17
+
+In addition, when a POA manager is in the inactive state, the adapter
+activators registered with the associated POAs will not get
+called. Instead, requests that require the invocation of an adapter
+activator will be rejected, as described in the previous paragraph.
+[  Followed by the server.  See broca.server.unmarshal_object_key.  ]
+
+The inactive state is entered using the deactivate operation. It is
+legal to enter the inactive state from either the active, holding, or
+discarding states.
+[  Allowed transitions are checked by the primitives of portableserver.  ]
+
+If the transition into the inactive state is a result of calling
+deactivate with an etherealize_objects parameter of
+
+* TRUE - the associated POAs will call etherealize for each active
+ object associated with the POA once all currently executing requests
+ have completed processing (if the POAs have the RETAIN and
+ USE_SERVANT_MANAGER policies).
+ [ Followed via broca.rootpoa.destroy_POA.  ]
+ If a servant manager has been
+ registered for the POA, the POA will get rid of the object.  If
+ there are any queued requests that have not yet started executing,
+ they will be treated as if they were new requests and rejected.
+ [ Followed, through broca.server.handle_message.  ]
+
+* FALSE - No deactivations or etherealizations will be attempted.
+ [ Followed via broca.rootpoa.destroy_POA.  ]
+
+Locality Constraints
+
+A POAManager object must not be exported to other processes, or
+externalized with ORB::object_to_string. If any attempt is made to do
+so, the offending operation will raise a MARSHAL system exception.
+[ Followed.  object_to_string is not redefined and basic behavior is to raise
+  MARSHAL exception.  ]
+An attempt to use a POAManager object with the DII may raise the
+NO_IMPLEMENT exception.
+[ Not followed, DII not yet implemented.  FIXME.  ]
+
+activate void activate()
+
+raises (AdapterInactive);
+
+This operation changes the state of the POA manager to active. If
+issued while the POA manager is in the inactive state, the
+AdapterInactive exception is raised.
+[  Followed via portableserver.poamanager.activate.  ]
+Entering the active state enables the associated POAs to process requests.
+[  Followed by call to Broca.Orb.Poa_State_Changed.  ]
+
+
+hold_requests void hold_requests( in boolean wait_for_completion )
+
+raises( AdapterInactive );
+
+This operation changes the state of the POA manager to holding. If
+issued while the POA manager is in the inactive state, the
+AdapterInactive exception is raised.
+[  Followed via portableserver.poamanager.hold_requests.  ]
+Entering the holding state causes the associated POAs to queue
+incoming requests.
+[  Followed by broca.server.handle_request.  ]
+Any requests that have been queued but have not started executing will
+continue to be queued while in the holding state.
+[  Followed by call to Broca.Orb.Poa_State_Changed.  ]
+
+9-18                                  CORBA V2.2                 February 1998
+
+If the wait_for_completion parameter is FALSE, this operation returns
+immediately after changing the state.
+[ Followed.  ]
+If the parameter is TRUE, this operation does not return until either
+there are no actively executing requests in any of the POAs associated
+with this POA manager (that is, all requests that were started prior
+to the state change have completed) or the state of the POA manager is
+changed to a state other than holding.
+[ Followed by wait_for_completion procedure of Poa_manager_type.state in
+  broca-root_poa.  ]
+
+discard_requests void discard_requests( in boolean wait_for_completion )
+raises (AdapterInactive);
+
+This operation changes the state of the POA manager to discarding. If
+issued while the POA manager is in the inactive state, the
+AdapterInactive exception is raised. Entering the discarding state
+causes the associated POAs to discard incoming requests. In addition,
+any requests that have been queued but have not started executing are
+discarded. When a request is discarded, a TRANSIENT system exception
+is returned to the client.
+[  Followed.  See hold_requests.  ]
+
+If the wait_for_completion parameter is FALSE, this operation returns
+immediately after changing the state. If the parameter is TRUE, this
+operation does not return until either there are no actively executing
+requests in any of the POAs associated with this POA manager (that is,
+all requests that were started prior to the state change have
+completed) or the state of the POA manager is changed to a state other
+than discarding.
+[  Followed.  See hold_requests.  ]
+
+deactivate void deactivate (in boolean etherealize_objects, 
+                            in boolean wait_for_completion);
+			    raises (AdapterInactive);
+
+This operation changes the state of the POA manager to inactive. If
+issued while the POA manager is in the inactive state, the
+AdapterInactive exception is raised. Entering the inactive state
+causes the associated POAs to reject requests that have not begun to
+be executed as well as any new requests.
+[  Followed.  See hold_requests.  ]
+
+After changing the state, if the etherealize_objects parameter is
+
+* TRUE - the POA manager will cause all associated POAs that have the
+   RETAIN and USE_SERVANT_MANAGER policies to perform the etherealize
+   operation on the associated servant manager for all active objects.
+[ Followed.  deactivate calls etherealize_iterator which call deactivate
+  for each poa.  ]
+
+* FALSE - the etherealize operation is not called. The purpose is to
+   provide developers with a means to shut down POAs in a crisis (for
+   example, unrecoverable error) situation.
+[ Followed.  ]
+
+If the wait_for_completion parameter is FALSE, this operation will
+return immediately after changing the state.  If the parameter is
+TRUE, this operation does not return until there are no actively
+executing requests in any of the POAs associated with this POA manager
+(that is, all requests that were started prior to the state change
+have
+
+CORBA V2.2       Interfaces         February 1998 9-19
+
+completed) and, in the case of a TRUE etherealize_objects, all
+invocations of etherealize have completed for POAs having the RETAIN
+and USE_SERVANT_MANAGER policies.
+[  Followed.  The usage counter of a POA manager is increased when a call-back
+  for calling etherealized is called.  ]
+
+If the ORB::shutdown operation is called, it makes a call on
+deactivate with a TRUE etherealize_objects parameter for each POA
+manager known in the process; the wait_for_completion parameter to
+deactivate will be the same as the similarly named parameter of
+ORB::shutdown.
+[ FIXME: shutdown not yet implemented.  ]
+
+9.3.3 AdapterActivator Interface
+
+Adapter activators are associated with POAs. An adapter activator
+supplies a POA with the ability to create child POAs on demand, as a
+side-effect of receiving a request that names the child POA (or one of
+its children), or when find_POA is called with an activate parameter
+value of TRUE.
+[  Followed.  ]
+An application server that creates all its needed POAs
+at the beginning of execution does not need to use or provide an
+adapter activator; it is necessary only for the case in which POAs
+need to be created during request processing.
+[ So be it.  ]
+
+While a request from the POA to an adapter activator is in progress,
+all requests to objects managed by the new POA (or any descendant
+POAs) will be queued. This serialization allows the adapter activator
+to complete any initialization of the new POA before requests are
+delivered to that POA.
+[  Followed.  This is achieved by a two step creation, as documented in
+  find_POA  ]
+
+Locality Constraints
+
+An AdapterActivator object must be local to the process containing the
+POA objects it is registered with.
+[  Followed.  ]
+
+unknown_adapter boolean unknown_adapter(in POA parent, in string name);
+
+This operation is invoked when the ORB receives a request for an
+object reference that identifies a target POA that does not exist.
+[  Followed by find_POA.  ]
+The ORB invokes this operation once for each POA that must be created in
+order for the target POA to exist (starting with the ancestor POA
+closest to the root POA). The operation is invoked on the adapter
+activator associated with POA that is the parent of the POA that needs
+to be created. That parent POA is passed as the parent parameter. The
+name of the POA to be created (relative to the parent) is passed as
+the name parameter.
+[ Followed.  ]
+
+The implementation of this operation should either create the
+specified POA and return TRUE, or it should return FALSE. If the
+operation returns TRUE, the ORB will proceed with processing the
+request. If the operation returns FALSE, the ORB will return
+OBJECT_NOT_EXIST to the client. If multiple POAs need to be created,
+the ORB will invoke unknown_adapter once for each POA that needs to be
+created. If the parent of a nonexistent POA does not have an
+associated adapter activator, the ORB will return the OBJECT_NOT_EXIST
+exception.
+[ Followed, by find_POA of rootserver and portableserver.  ]
+[ TODO: if unknown_adapter returns true without creating the POA, false
+	is assumed.  ]
+
+9-20                                  CORBA V2.2               February 1998
+
+
+If unknown_adapter raises a system exception, the ORB will report an
+OBJ_ADAPTER exception.
+[ TODO: this is done for any exceptions.  ]
+
+For example, if the target object reference was created by a POA whose
+full name is "A", "B", "C", "D" and only POAs "A" and "B" currently
+exist, the unknown_adapter operation will be invoked on the adapter
+activator associated with POA "B" passing POA "B" as the parent
+parameter and "C" as the name of the missing POA. Assuming that the
+adapter activator creates POA "C" and returns TRUE, the ORB will then
+invoke unknown_adapter on the adapter activator associated with POA
+"C", passing POA "C" as the parent parameter and "D" as the name.
+[ So be it.  ]
+
+The unknown_adapter operation is also invoked when find_POA is called
+on the POA with which the AdapterActivator is associated, the
+specified child does not exist, and the activate_it parameter to
+find_POA is TRUE.  If unknown_adapter creates the specified POA and
+returns TRUE, that POA is returned from find_POA.
+[  Followed.  ]
+
+Note - This allows the same code, the unknown_adapter implementation,
+to be used to initialize a POA whether that POA is created explicitly
+by the application or as a sideeffect of processing a
+request. Furthermore, it makes this initialization atomic with respect
+to delivery of requests to the POA.
+
+9.3.4 ServantManager Interface
+
+Servant managers are associated with POAs.  A servant manager supplies
+a POA with the ability to activate objects on demand when the POA
+receives a request targeted at an inactive object.  A servant manager
+is registered with a POA as a callback object, to be invoked by the
+POA when necessary. An application server that activates all its
+needed objects at the beginning of execution does not need to use a
+servant manager; it is used only for the case in which an object must
+be activated during request processing.
+[ - ]
+
+The ServantManager interface is itself empty. It is inherited by two
+other interfaces, ServantActivator and ServantLocator.
+[ - ]
+
+The two types of servant managers correspond to the POA's RETAIN
+policy (ServantActivator) and to the NON_RETAIN policy
+(ServantLocator). The meaning of the policies and the operations that
+are available for POAs using each policy are listed under the two
+types of derived interfaces.
+[ - ]
+
+Each servant manager type contains two operations, the first called to
+find and return a servant and the second to deactivate a servant. The
+operations differ according to the amount of information usable for
+their situation.
+[ - ]
+
+Common information for servant manager types.
+The two types of servant
+managers have certain semantics that are identical.  The incarnate and
+preinvoke operation may raise any system exception deemed appropriate
+(for example, OBJECT_NOT_EXIST if the object corresponding to the
+Object Id value has been destroyed).
+
+CORBA V2.2       Interfaces         February 1998 9-21
+
+Note - If a user-written routine (servant manager or method code)
+raises the OBJECT_NOT_EXIST exception, the POA does nothing but pass
+on that exception.  It is the user's responsibility to deactivate the
+object if it had been previously activated.
+
+The incarnate and preinvoke operation may also raise a ForwardRequest
+exception.  If this occurs, the ORB is responsible for delivering the
+current request and subsequent requests to the object denoted in the
+forward_reference member of the exception. The behavior of this
+mechanism must be the functional equivalent of the GIOP location
+forwarding mechanism.  If the current request was delivered via an
+implementation of the GIOP protocol (such as IIOP), the reference in
+the exception should be returned to the client in a reply message with
+LOCATION_FORWARD reply status.  If some other protocol or delivery
+mechanism was used, the ORB is responsible for providing equivalent
+behavior, from the perspectives of the client and the object denoted
+by the new reference.
+[ Followed.  ]
+
+Locality Constraints
+
+A ServantManager object must be local to the process containing the
+POA objects it is registered with.
+[ Followed.  ]
+
+9.3.5 ServantActivator Interface
+
+When the POA has the RETAIN policy it uses servant managers that are
+ServantActivators. When using such servant managers, the following
+statements apply for a given ObjectId used in the incarnate and
+etherealize operations:
+
+* Servants incarnated by the servant manager will be placed in the
+Active Object Map with objects they have activated.
+[  Followed.  See giop_dispatch.  ]
+
+* Invocations of incarnate on the servant manager are serialized.
+
+* Invocations of etherealize on the servant manager are serialized.
+
+* Invocations of incarnate and etherealize on the servant manager are
+  mutually exclusive.
+[ Followed through use of servant_lock mutex.  ]
+
+* Incarnations of a particular servant may not overlap; that is, if a
+  servant is incarnated by a servant manager, incarnate shall not be
+ invoked using that same Object Id until that servant is etherealized.
+[ Followed: to a slot corresponds a servant and an object id.  ]
+
+It should be noted that there may be a period of time between an
+object's deactivation and the etherealization (during which
+outstanding requests are being processed)
+[  Followed by requests_lock by slot.  ]
+in which arriving requests on that object should not be passed to its
+servant.
+[  Followed, the slot is not marked as active.  ]
+During this period, requests targeted for such an object act
+as if the POA were in holding state until etherealize completes.
+[  FIXME: not followed.  ]
+If etherealize is called as a consequence of a deactivate call with a
+etherealize_objects parameter of TRUE, incoming requests are rejected.
+[  Followed.  ]
+
+It should also be noted that a similar situation occurs with
+incarnate. There may be a period of time after the POA invokes
+incarnate and before that method returns in which arriving requests
+bound for that object should not be passed to the servant.
+[  FIXME : not followed.  ]
+
+9-22                                  CORBA V2.2                 February 1998
+
+
+A single servant manager object may be concurrently registered with
+multiple POAs.  Invocations of incarnate and etherealize on a servant
+manager in the context of different POAs are not necessarily
+serialized or mutually exclusive. There are no assumptions made about
+the thread in which etherealize is invoked.
+[ Fully followed.  Not serialized.  ]
+
+incarnate
+Servant incarnate (in ObjectId oid, in POA adapter) raises (ForwardRequest);
+
+This operation is invoked by the POA whenever the POA receives a
+request for an object that is not currently active, assuming the POA
+has the USE_SERVANT_MANAGER and RETAIN policies.
+[ Followed.  ]
+
+The oid parameter contains the ObjectId value associated with the
+incoming request.  The adapter is an object reference for the POA in
+which the object is being activated.
+[ Followed.  ]
+
+The user-supplied servant manager implementation is responsible for
+locating or creating an appropriate servant that corresponds to the
+ObjectId value if possible. incarnate returns a value of type Servant,
+which is the servant that will be used to process the incoming request
+(and potentially subsequent requests, since the POA has the RETAIN
+policy).
+[ Followed.  ]
+
+The POA enters the returned Servant value into the Active Object Map
+so that subsequent requests with the same ObjectId value will be
+delivered directly to that servant without invoking the servant
+manager.
+[ Followed.  ]
+
+If the incarnate operation returns a servant that is already active
+for a different Object Id and if the POA also has the UNIQUE_ID
+policy, the incarnate has violated the POA policy and is considered to
+be in error. The POA will raise an OBJ_ADAPTER system exception for
+the request.
+[  Followed.  ]
+
+Note - If the same servant is used in two different POAs, it is legal
+for the POAs to use that servant even if the POAs have different
+Object Id uniqueness policies. The POAs do not interact with each
+other in this regard.
+[ Followed.  ]
+
+etherealize
+void etherealize (in ObjectId oid,
+		  in POA adapter,
+		  in Servant serv,
+		  in boolean cleanup_in_progress,
+		  in boolean remaining_activations );
+
+CORBA V2.2       Interfaces         February 1998 9-23
+
+This operation is invoked whenever a servant for an object is
+deactivated, assuming the POA has the USE_SERVANT_MANAGER and RETAIN
+policies. Note that an active servant may be deactivated by the
+servant manager via etherealize even if it was not incarnated by the
+servant manager.
+[  Followed.  ]
+
+The oid parameter contains the Object Id value of the object being
+deactivated.  The adapter parameter is an object reference for the POA
+in whose scope the object was active.  The serv parameter contains a
+reference to the servant that is associated with the object being
+deactivated. If the servant denoted by the serv parameter is
+associated with other objects in the POA denoted by the adapter
+parameter (that is, in the POA's Active Object Map) at the time that
+etherealize is called, the remaining_activations parameter has the
+value TRUE.  Otherwise, it has the value FALSE.
+[  Followed.  ]
+
+If the cleanup_in_progress parameter is TRUE, the reason for the
+etherealize operation is that either the deactivate or destroy
+operation was called with an etherealize_objects parameter of TRUE. If
+the parameter is FALSE, the etherealize operation is called for other
+reasons.
+[  Followed for deactivate.  FIXME for destroy.  ]
+
+Deactivation occurs in the following circumstances:
+
+* When an object is deactivated explicitly by an invocation of
+  POA::deactivate_object.
+[  Followed.  ]
+
+* When the ORB or POA determines internally that an object must be
+  deactivated.  For example, an ORB implementation may provide policies
+  that allow objects to be deactivated after some period of quiescence,
+  or when the number of active objects reaches some limit.
+[  No such policy.  ]
+
+* If POAManager::deactivate is invoked on a POA manager associated with
+  a POA that has currently active objects.
+[ Followed.  ]
+
+Destroying a servant that is in the Active Object Map or is otherwise
+known to the POA can lead to undefined results.
+
+In a multi-threaded environment, the POA makes certain guarantees that
+allow servant managers to safely destroy servants.  Specifically, the
+servant's entry in the Active Object Map corresponding to the target
+object is removed before etherealize() is called.
+[  Followed by marking the slot reserved.  ]
+Because calls to incarnate() and etherealize() are serialized, this
+prevents new requests for the target object from being invoked on the
+servant during etherealization.
+[  Followed by servant_lock.  ]
+After removing the entry from the Active Object Map, if the POA
+determines before invoking etherealize() that other requests for the
+same target object are already in progress on the servant, it delays
+the call to etherealize() until all active methods for the target
+object have completed.  Therefore, when etherealize() is called, the
+servant manager can safely destroy the servant if it wants to, unless
+the remaining_activations argument is TRUE.
+[  Followed via requests_lock.  ]
+
+9-24                                  CORBA V2.2                February 1998
+
+9.3.6 ServantLocator Interface
+
+When the POA has the NON_RETAIN policy it uses servant managers that
+are ServantLocators. Because the POA knows that the servant returned
+by this servant manager will be used only for a single request, it can
+supply extra information to the servant manager's operations and the
+servant manager's pair of operations may be able to cooperate to do
+something different than a ServantActivator.
+[  So be it.  ]
+
+When the POA uses the ServantLocator interface, immediately after
+performing the operation invocation on the servant returned by
+preinvoke, the POA will invoke postinvoke on the servant manager,
+passing the ObjectId value and the Servant value as parameters (among
+others).  The next request with this ObjectId value will then cause
+preinvoke to be invoked again.  This feature may be used to force
+every request for objects associated with a POA to be mediated by the
+servant manager.
+[  Followed.  ]
+
+When using such a ServantLocator, the following statements apply for a
+given ObjectId used in the preinvoke and postinvoke operations:
+
+* The servant returned by preinvoke is used only to process the single
+  request that caused preinvoke to be invoked.
+
+* No servant incarnated by the servant manager will be placed in the
+  Active Object Map.
+
+* When the invocation of the request on the servant is complete,
+  postinvoke will be invoked for the object.
+
+* No serialization of invocations of preinvoke or postinvoke may be
+  assumed; there may be multiple concurrent invocations of preinvoke for
+  the same ObjectId.
+
+* The same thread will be used to preinvoke the object, process the
+  request, and postinvoke the object.
+[  all are followed in giop_invoke.  ]
+
+preinvoke
+
+Servant preinvoke (in ObjectId oid,
+		   in POA adapter,
+		   in CORBA::Identifier operation,
+		   out Cookie the_cookie ) raises (ForwardRequest);
+
+This operation is invoked by the POA whenever the POA receives a
+request for an object that is not currently active, assuming the POA
+has the USE_SERVANT_MANAGER and NON_RETAIN policies.
+[  Followed.  ]
+
+The oid parameter contains the ObjectId value associated with the
+incoming request.  The adapter is an object reference for the POA in
+which the object is being activated.
+[  Followed.  ]
+
+The user-supplied servant manager implementation is responsible for
+locating or creating an appropriate servant that corresponds to the
+ObjectId value if possible. preinvoke returns a value of type Servant,
+which is the servant that will be used to process the incoming
+request.
+[  Followed.  ]
+
+CORBA V2.2       Interfaces         February 1998 9-25
+
+The Cookie is a type opaque to the POA that can be set by the servant
+manager for use later by postinvoke. The operation is the name of the
+operation that will be called by the POA when the servant is returned.
+[  Followed.  ]
+
+postinvoke
+
+void postinvoke (in ObjectId oid,
+		 in POA adapter,
+		 in CORBA::Identifier operation,
+		 in Cookie the_cookie,
+		 in Servant the_servant);
+
+This operation is invoked whenever a servant completes a request,
+assuming the POA has the USE_SERVANT_MANAGER and NON_RETAIN policies.
+[  Followed.  ]
+
+The oid parameter contains the Object Id value of the object on which
+the request was made.  The adapter parameter is an object reference
+for the POA in whose scope the object was active.  The serv parameter
+contains a reference to the servant that is associated with the
+object.
+[  Followed.  ]
+
+The Cookie is a type opaque to the POA; it contains any value that was
+set by the preinvoke operation. The operation is the name of the
+operation that was called by the POA for the request.
+[  Followed.  ]
+
+Destroying a servant that is known to the POA can lead to undefined results.
+[  Yes.  ]
+
+9.3.7 POA Policy Objects
+
+Interfaces derived from CORBA::Policy are used with the
+POA::create_POA operation to specify policies that apply to a
+POA. Policy objects are created using factory operations on any
+pre-existing POA, such as the root POA. Policy objects are specified
+when a POA is created. Policies may not be changed on an existing
+POA. Policies are not inherited from the parent POA.
+[  FIXME: not followed due to gnat bug.  ]
+
+Thread Policy
+
+Objects with the ThreadPolicy interface are obtained using the
+POA::create_thread_policy operation and passed to the POA::create_POA
+operation to specify the threading model used with the created POA.
+[  FIXME: not followed due to gnat bug.  ]
+The value attribute of ThreadPolicy contains the value supplied to the
+POA::create_thread_policy operation from which it was obtained. The
+following values can be supplied.
+
+* ORB_CTRL_MODEL - The ORB is responsible for assigning requests for
+  an ORB controlled POA to threads. In a multi-threaded environment,
+  concurrent requests may be delivered using multiple threads.
+
+* SINGLE_THREAD_MODEL - Requests for a single-threaded POA are
+  processed sequentially.  In a multi-threaded environment, all upcalls
+  made by this POA to implementation code (servants and servant
+  managers) are made in a manner that is safe for code that
+  multi-thread-unaware.
+[  Followed via giop_invoke. ]
+
+9-26                                  CORBA V2.2                 February 1998
+
+
+If no ThreadPolicy object is passed to create_POA, the thread policy
+defaults to ORB_CTRL_MODEL.
+[  FIXME.  ]
+
+Note - In some environments, calling multi-thread-unaware code safely
+(that is, using the SINGLE_THREAD_MODEL) may mean that the POA will
+use only the main thread, in which case the application programmer is
+responsible to ensure that the main thread is given to the ORB, using
+ORB::perform_work or ORB::run.
+[  Not in this environment.  ]
+
+POAs using the SINGLE_THREAD_MODEL may need to cooperate to ensure
+that calls are safe even when implementation code (such as a servant
+manager) is shared by multiple single-threaded POAs.
+[  FIXME: Not followed; use a global lock for single_thread.  ]
+
+These models presume that the ORB and the application are using
+compatible threading primitives in a multi-threaded environment.
+[  Followed, use Ada tasking.  ]
+
+Lifespan Policy
+
+Objects with the LifespanPolicy interface are obtained using the
+POA::create_lifespan_policy operation and passed to the
+POA::create_POA operation to specify the lifespan of the objects
+implemented in the created POA.  The following values can be supplied.
+
+* TRANSIENT - The objects implemented in the POA cannot outlive the
+  process in which they are first created.  Once the POA is
+  deactivated, use of any object references generated from it will
+  result in an OBJECT_NOT_EXIST exception.
+[  Followed, by using date associed with indexes.  ]
+
+* PERSISTENT - The objects implemented in the POA can outlive the
+  process in which they are first created.
+[  Followed.  ]
+
+* Persistent objects have a POA associated with them (the POA which
+  created them).
+
+When the ORB receives a request on a persistent object, it first
+searches for the matching POA, based on the names of the POA and all
+of its ancestors.
+[ Followed.  ]
+
+* Administrative action beyond the scope of this specification may be
+  necessary to inform the ORB's location service of the creation and
+  eventual termination of existence of this POA, and optionally to
+  arrange for on-demand activation of a process implementing this POA.
+[  Followed, the admin must restart the server on the same port and host.  ]
+
+* POA names must be unique within their enclosing scope (the parent
+  POA). A portable program can assume that POA names used in other
+  processes will not conflict with its own POA names. A conforming
+  CORBA implementation will provide a method for ensuring this
+  property.
+[  Followed, conflict is avoided by port/host.  ]
+
+If no LifespanPolicy object is passed to create_POA, the lifespan
+policy defaults to TRANSIENT.
+
+CORBA V2.2       Interfaces         February 1998 9-27
+
+Object Id Uniqueness
+
+Policy Objects with the IdUniquenessPolicy interface are obtained
+using the POA::create_id_uniqueness_policy operation and passed to the
+POA::create_POA operation to specify whether the servants activated in
+the created POA must have unique object identities. The following
+values can be supplied.
+[  FIXME.  ]
+
+* UNIQUE_ID - Servants activated with that POA support exactly one Object Id.
+[  Followed.  ]
+
+* MULTIPLE_ID - a servant activated with that POA may support one or
+  more Object Ids.
+[  Followed.  ]
+
+If no IdUniquenessPolicy is specified at POA creation, the default is
+UNIQUE_ID.
+
+Id Assignment Policy
+
+Objects with the IdAssignmentPolicy interface are obtained using the
+POA::create_id_assignment_policy operation and passed to the
+POA::create_POA operation to specify whether Object Ids in the created
+POA are generated by the application or by the ORB.  The following
+values can be supplied.
+[  FIXME.  ]
+
+* USER_ID - Objects created with that POA are assigned Object Ids only
+  by the application.
+[  Followed.  ]
+
+* SYSTEM_ID - Objects created with that POA are assigned Object Ids only
+  by the POA. If the POA also has the PERSISTENT policy, assigned Object
+  Ids must be unique across all instantiations of the same POA.
+[  Followed, via a date stamp.  ]
+
+If no IdAssignmentPolicy is specified at POA creation, the default is
+SYSTEM_ID.
+
+Servant Retention
+
+Policy Objects with the ServantRetentionPolicy interface are obtained
+using the POA::create_servant_retention_policy operation and passed to
+the POA::create_POA operation to specify whether the created POA
+retains active servants in an Active Object Map. The following values
+can be supplied.
+[ FIXME.  ]
+
+* RETAIN - The POA will retain active servants in its Active Object Map.
+[ Followed.  ]
+
+* NON_RETAIN - Servants are not retained by the  POA. 
+[ Followed.  ]
+
+If no ServantRetentionPolicy is specified at POA creation, the default
+is RETAIN.
+
+Note - The NON_RETAIN policy requires either the USE_DEFAULT_SERVANT
+or USE_SERVANT_MANAGER policies.
+[  Followed in portableserver-poa.adb  ]
+
+9-28                                  CORBA V2.2                February 1998
+
+
+Request Processing Policy
+
+Objects with the RequestProcessingPolicy interface are obtained using
+the POA::create_request_processing_policy operation and passed to the
+POA::create_POA operation to specify how requests are processed by the
+created POA.  The following values can be supplied.
+[  FIXME.  ]
+
+* USE_ACTIVE_OBJECT_MAP_ONLY - If the Object Id is not found in the
+  Active Object Map, an OBJECT_NOT_EXIST exception is returned to the
+  client. The RETAIN policy is also required.
+[  Followed.  ]
+
+* USE_DEFAULT_SERVANT - If the Object Id is not found in the Active
+  Object Map or the NON_RETAIN policy is present, and a default
+  servant has been registered with the POA using the set_servant
+  operation, the request is dispatched to the default servant. If no
+  default servant has been registered, an OBJ_ADAPTER exception is
+  returned to the client.  The MULTIPLE_ID policy is also required.
+[  Followed, but for persistent.  FIXME.  ]
+
+* USE_SERVANT_MANAGER - If the Object Id is not found in the Active
+  Object Map or the NON_RETAIN policy is present, and a servant
+  manager has been registered with the POA using the
+  set_servant_manager operation, the servant manager is given the
+  opportunity to locate a servant or raise an exception.  If no
+  servant manager has been registered, an OBJECT_ADAPTER exception is
+  returned to the client.
+[  Followed, but for persistent.  FIXME.  ]
+
+If no RequestProcessingPolicy is specified at POA creation, the
+default is USE_ACTIVE_OBJECT_MAP_ONLY.
+
+By means of combining the USE_ACTIVE_OBJECT_MAP_ONLY / USE_DEFAULT_SERVANT
+ / USE_SERVANT_MANAGER policies and the RETAIN / NON_RETAIN policies,
+the programmer is able to define a rich number of possible behaviors.
+
+RETAIN  and USE_ACTIVE_OBJECT_MAP_ONLY
+
+This combination represents the situation where the POA does no
+automatic object activation (that is, the POA searches only the Active
+Object Map). The server must activate all objects served by the POA
+explicitly, using either the activate_object or
+activate_object_with_id operation.
+
+RETAIN  and USE_SERVANT_MANAGER
+
+This combination represents a very common situation, where there is
+an Active Object Map and a ServantManager.
+
+Because RETAIN is in effect, the application can call activate_object
+or activate_object_with_id to establish known servants in the Active
+Object Map for use in later requests.
+
+If the POA doesn't find a servant in the Active Object Map for a given
+object, it tries to determine the servant by means of invoking
+incarnate in the ServantManager (specifically a ServantActivator)
+registered with the POA.  If no ServantManager is available, the POA
+raises the OBJECT_ADAPTER system exception.
+
+CORBA V2.2       Interfaces         February 1998 9-29
+
+RETAIN and USE_DEFAULT_SERVANT
+
+This combination represents the situation where there is a default
+servant defined for all requests involving unknown objects.
+
+Because RETAIN is in effect, the application can call activate_object
+or activate_object_with_id to establish known servants in the Active
+Object Map for use in later requests.
+
+The POA first tries to find a servant in the Active Object Map for a
+given object. If it does not find such a servant, it uses the default
+servant.  If no default servant is available, the POA raises the
+OBJECT_ADAPTER system exception.
+
+NON-RETAIN and USE_SERVANT_MANAGER
+
+This combination represents the situation where one servant is used
+per method call.
+
+The POA doesn't try to find a servant in the Active Object Map because
+the ActiveObjectMap does not exist. In every request, it will call
+preinvoke on the ServantManager
+
+(specifically a ServantLocator) registered with the POA.  If no
+ServantManager is available, the POA will raise the OBJECT_ADAPTER
+system exception.
+
+NON-RETAIN and USE_DEFAULT_SERVANT
+
+This combination represents the situation where there is one single
+servant defined for all CORBA objects.
+
+The POA does not try to find a servant in the Active Object Map
+because the ActiveObjectMap doesn't exist. In every request, the POA
+will invoke the appropriate operation on the default servant
+registered with the POA. If no default servant is available, the POA
+will raise the OBJECT_ADAPTER system exception.
+
+Implicit Activation Policy
+
+Objects with the ImplicitActivationPolicy interface are obtained using
+the POA::create_implicit_activation_policy operation and passed to the
+POA::create_POA operation to specify whether implicit activation of
+servants is supported in the created POA.  The following values can be
+supplied.
+
+* IMPLICIT_ACTIVATION - the POA will support implicit activation of
+  servants.  IMPLICIT_ACTIVATION also requires the SYSTEM_ID and
+  RETAIN policies.
+[  Followed.  ]
+
+* NO_IMPLICIT_ACTIVATION - the POA will not support implicit activation
+  of servants.
+[  Followed.  ]
+
+If no ImplicitActivationPolicy is specified at POA creation, the
+default is NO_IMPLICIT_ACTIVATION.
+
+9-30                                  CORBA V2.2               February 1998
+
+9.3.8 POA Interface
+
+A POA object manages the implementation of a collection of
+objects. The POA supports a name space for the objects, which are
+identified by Object Ids.
+[  Followed.  ]
+
+A POA also provides a name space for POAs. A POA is created as a child
+of an existing POA, which forms a hierarchy starting with the root
+POA.
+[  Followed.  ]
+
+Locality Constraints
+
+A POA object must not be exported to other processes, or externalized
+with ORB::object_to_string. If any attempt is made to do so, the
+offending operation will raise a MARSHAL system exception.
+[  Followed.  ]
+An attempt to use a POA object with the DII may raise the
+NO_IMPLEMENT exception.
+[  Not followed, DII not implemented.  ]
+
+create_POA
+
+POA create_POA (in string adapter_name,
+		in POAManager a_POAManager,
+		in CORBA::PolicyList policies)
+		raises (AdapterAlreadyExists, InvalidPolicy);
+
+This operation creates a new POA as a child of the target POA. The
+specified name identifies the new POA with respect to other POAs with
+the same parent POA. If the target POA already has a child POA with
+the specified name, the AdapterAlreadyExists exception is raised. 
+[  Followed. ]
+
+If the a_POAManager parameter is null, a new POAManager object is
+created and associated with the new POA. Otherwise, the specified
+POAManager object is associated with the new POA. The POAManager
+object can be obtained using the attribute name the_POAManager.
+[  Followed.  ]
+
+The specified policy objects are associated with the POA and used to
+control its behavior. The policy objects are effectively copied before
+this operation returns, so the application is free to destroy them
+while the POA is in use.
+[  FIXME.  ]
+Policies are not inherited from the parent POA.
+[  Followed.  ]
+
+If any of the policy objects specified are not valid for the ORB
+implementation, if conflicting policy objects are specified, or if any
+of the specified policy objects require prior administrative action
+that has not been performed, an InvalidPolicy exception is raised
+containing the index in the policies parameter value of the first
+offending policy object.
+[  FIXME: not followed,  badparam is raised if conflicting policy.  ]
+
+Note - Creating a POA using a POA manager that is in the active state
+can lead to race conditions if the POA supports preexisting objects,
+because the new POA may receive a request before its adapter
+activator, servant manager, or default servant have been
+initialized. These problems do not occur if the POA is created by an
+adapter activator registered with a parent of the new POA, because
+requests are queued until the adapter
+
+CORBA V2.2       Interfaces         February 1998 9-31
+
+activator returns.  To avoid these problems when a POA must be
+explicitly initialized, the application can initialize the POA by
+invoking find_POA with a TRUE activate parameter.
+
+find_POA
+
+POA find_POA (in string adapter_name, in boolean activate_it)
+	     raises (AdapterNonExistent);
+
+If the target POA is the parent of a child POA with the specified name
+(relative to the target POA), that child POA is returned.  If a child
+POA with the specified name does not exist and the value of the
+activate_it parameter is TRUE, the target POA's AdapterActivator, if
+one exists, is invoked, and, if it successfully activates the child
+POA, that child POA is returned.  Otherwise, the AdapterNonExistent
+exception is raised.
+[  Followed.  ]
+
+destroy 
+
+void destroy(in boolean etherealize_objects, in boolean wait_for_completion);
+
+This operation destroys the POA and all descendant POAs. The POA so
+destroyed (that is, the POA with its name) may be re-created later in
+the same process. (This differs from the POAManager::deactivate
+operation that does not allow a re-creation of its associated POA in
+the same process.)
+[  Followed.  ]
+
+When a POA is destroyed, any requests that have started execution
+continue to completion. Any requests that have not started execution
+are processed as if they were newly arrived, that is, the POA will
+attempt to cause recreation of the POA by invoking one or more adapter
+activators.
+[  Followed.  ]
+
+If the etherealize_objects parameter is TRUE, the POA has the RETAIN
+policy, and a servant manager is registered with the POA, the
+etherealize operation on the servant manager will be called for each
+active object in the Active Object Map.  The apparent destruction of
+the POA occurs before any calls to etherealize are made.
+[  Followed.  ]
+Thus, for example, an etherealize method that attempts to invoke
+operations on the POA will receive the OBJECT_NOT_EXIST exception.
+[  Followed, name if OBJ_NOT_EXIST  ]
+
+If the wait_for_completion parameter is TRUE, the destroy operation
+will return only after all requests in process have completed and all
+invocations of etherealize have completed.  Otherwise, the destroy
+operation returns after destroying the POAs.
+[  FIXME:  not followed.  ]
+
+9-32                                  CORBA V2.2                 February 1998
+
+Policy Creation Operations
+
+ThreadPolicy create_thread_policy(in ThreadPolicyValue value);
+LifespanPolicy create_lifespan_policy(in LifespanPolicyValue value);
+IdUniquenessPolicy create_id_uniqueness_policy
+		 (in IdUniquenessPolicyValue value);
+IdAssignmentPolicy create_id_assignment_policy
+		 (in IdAssignmentPolicyValue value);
+ImplicitActivationPolicy create_implicit_activation_policy
+		 (in ImplicitActivationPolicyValue value);
+ServantRetentionPolicy create_servant_retention_policy
+		 (in ServantRetentionPolicyValue value);
+RequestProcessingPolicy create_request_processing_policy
+		 (in RequestProcessingPolicyValue value);
+
+These operations each return a reference to a policy object with the
+specified value.  The application is responsible for calling the
+inherited destroy operation on the returned reference when it is no
+longer needed.
+
+the_name
+readonly attribute string the_name;
+
+This attribute identifies the POA relative to its parent.  This name
+is assigned when the POA is created. The name of the root POA is
+system-dependent and should not be relied upon by the application.
+
+the_parent
+readonly attribute POA the_parent;
+
+This attribute identifies the parent of the POA. The parent of the
+root POA is null.
+
+the_POAManager
+readonly attribute POAManager the_POAManager;
+
+This attribute identifies the POA manager associated with the POA.
+
+CORBA V2.2       Interfaces         February 1998 9-33
+
+the_activator
+attribute AdapterActivator the_activator;
+
+This attribute identifies the adapter activator associated with the
+POA. A newly created POA has no adapter activator (the attribute is
+null). It is system-dependent whether the root POA initially has an
+adapter activator; the application is free to assign its own adapter
+activator to the root POA.
+
+get_servant_manager
+ServantManager get_servant_manager() raises(WrongPolicy);
+
+This operation requires the USE_SERVANT_MANAGER policy; if not
+present, the WrongPolicy exception is raised.
+
+This operation returns the servant manager associated with the POA. If
+no servant manager has been associated with the POA, it returns a null
+reference. It is systemdependent whether the root POA initially has a
+servant manager; the application is free to assign its own servant
+manager to the root POA.
+
+set_servant_manager
+void set_servant_manager(in ServantManager imgr) raises(WrongPolicy);
+
+This operation requires the USE_SERVANT_MANAGER policy; if not
+present, the WrongPolicy exception is raised.
+
+This operation sets the default servant manager associated with the POA.
+
+get_servant
+Servant get_servant() raises(NoServant, WrongPolicy);
+
+This operation requires the USE_DEFAULT_SERVANT policy; if not
+present, the WrongPolicy exception is raised.
+
+This operation returns the default servant associated with the POA. If
+no servant has been associated with the POA, the NoServant exception
+is raised.
+
+9-34                                  CORBA V2.2                 February 1998
+
+set_servant
+void set_servant(in Servant p_servant) raises(WrongPolicy);
+
+This operation requires the USE_DEFAULT_SERVANT policy; if not
+present, the WrongPolicy exception is raised.
+
+This operation registers the specified servant with the POA as the
+default servant. This servant will be used for all requests for which
+no servant is found in the Active Object Map.
+
+activate_object
+ObjectId activate_object (in Servant p_servant) 
+			raises (ServantAlreadyActive, WrongPolicy);
+
+This operation requires the SYSTEM_ID and RETAIN policy; if not
+present, the WrongPolicy exception is raised.
+
+If the POA has the UNIQUE_ID policy and the specified servant is
+already in the Active Object Map, the ServantAlreadyActive exception
+is raised. Otherwise, the activate_object operation generates an
+Object Id and enters the Object Id and the specified servant in the
+Active Object Map. The Object Id is returned.
+
+activate_object_with_id
+void activate_object_with_id( in ObjectId oid, in Servant p_servant)
+	 raises (ObjectAlreadyActive, ServantAlreadyActive, WrongPolicy);
+
+This operation requires the RETAIN policy; if not present, the
+WrongPolicy exception is raised.
+
+If the CORBA object denoted by the Object Id value is already active
+in this POA (there is a servant bound to it in the Active Object Map),
+the ObjectAlreadyActive exception is raised.  If the POA has the
+UNIQUE_ID policy and the servant is already in the Active Object Map,
+the ServantAlreadyActive exception is raised.  Otherwise, the
+activate_object_with_id operation enters an association between the
+specified Object Id and the specified servant in the Active Object
+Map.
+
+If the POA has the SYSTEM_ID policy and it detects that the Object Id
+value was not generated by the system or for this POA, the
+activate_object_with_id operation may raise the BAD_PARAM system
+exception.  An ORB is not required to detect all such invalid Object
+Id values, but a portable application must not invoke
+activate_object_with_id on a POA that has the SYSTEM_ID policy with an
+Object Id value that was not previously generated by the system for
+that POA, or, if the POA also has the PERSISTENT policy, for a
+previous instantiation of the same POA.
+
+CORBA V2.2       Interfaces         February 1998 9-35
+
+deactivate_object
+void deactivate_object(in ObjectId oid) raises (ObjectNotActive, WrongPolicy);
+
+This operation requires the RETAIN policy; if not present, the
+WrongPolicy exception is raised.
+
+This operation causes the association of the Object Id specified by
+the oid parameter and its servant to be removed from the Active Object
+Map. If a servant manager is associated with the POA,
+ServantLocator::etherealize will be invoked with the oid and the
+servant. (The deactivate_object operation does not wait for the
+etherealize operation to complete before deactivate_object returns.) 
+If there is no active object associated with the specified Object Id,
+the operation raises an ObjectNotActive exception.
+
+Note - If the servant associated with the oid is serving multiple
+Object Ids, ServantLocator::etherealize may be invoked multiple times
+with the same servant when the other objects are deactivated. It is
+the responsibility of the object implementation to refrain from
+destroying the servant while it is active with any Id.
+
+create_reference
+Object create_reference (in CORBA::RepositoryId intf) raises (WrongPolicy);
+
+This operation requires the SYSTEM_ID policy; if not present, the
+WrongPolicy exception is raised.
+
+This operation creates an object reference that encapsulates a
+POA-generated Object Id value and the specified interface repository
+id. This operation does not cause an activation to take place. The
+resulting reference may be passed to clients, so that subsequent
+requests on those references will cause the appropriate servant
+manager to be invoked, if one is available. The generated Object Id
+value may be obtained by invoking POA::reference_to_id with the
+created reference.
+
+create_reference_with_id
+Object create_reference_with_id (in ObjectId oid, in CORBA::RepositoryId intf);
+
+This operation creates an object reference that encapsulates the
+specified Object Id and interface repository Id values.  This
+operation does not cause an activation to take place.  The resulting
+reference may be passed to clients, so that subsequent requests on
+those references will cause the object to be activated if necessary,
+or the default servant used, depending on the applicable policies.
+
+If the POA has the SYSTEM_ID policy and it detects that the Object Id
+value was not generated by the system or for this POA, the
+create_reference_with_id operation may raise the BAD_PARAM system
+exception.  An ORB is not required to detect all
+
+9-36                                  CORBA V2.2                 February 1998
+
+such invalid Object Id values, but a portable application must not
+invoke this operation on a POA that has the SYSTEM_ID policy with an
+Object Id value that was not previously generated by the system for
+that POA, or, if the POA also has the PERSISTENT policy, for a
+previous instantiation of the same POA.
+
+servant_to_id
+ObjectId servant_to_id (in Servant p_servant)
+			raises (ServantNotActive, WrongPolicy);
+
+This operation requires the RETAIN and either the UNIQUE_ID or
+IMPLICIT_ACTIVATION policies; if not present, the WrongPolicy
+exception is raised.
+
+This operation has three possible behaviors.
+
+* If the POA has the UNIQUE_ID policy and the specified servant is
+  active, the Object Id associated with that servant is returned.
+
+* If the POA has the IMPLICIT_ACTIVATION policy and either the POA has
+  the MULTIPLE_ID policy or the specified servant is not active, the
+  servant is activated using a POA-generated Object Id and the
+  Interface Id associated with the servant, and that Object Id is
+  returned.
+
+* Otherwise, the ServantNotActive exception is raised.
+
+servant_to_reference
+Object servant_to_reference (in Servant p_servant)
+			raises (ServantNotActive, WrongPolicy);
+
+This operation requires the RETAIN and either the UNIQUE_ID or
+IMPLICIT_ACTIVATION policies; if not present, the WrongPolicy
+exception is raised.
+
+This operation has three possible behaviors.
+
+* If the POA has the UNIQUE_ID policy and the specified servant is
+  active, an object reference encapsulating the information used to
+  activate the servant is returned.
+
+* If the POA has the IMPLICIT_ACTIVATION policy and either the POA has
+  the MULTIPLE_ID policy or the specified servant is not active, the
+  servant is activated using a POA-generated Object Id and the
+  Interface Id associated with the servant, and a corresponding object
+  reference is returned.
+
+* Otherwise, the ServantNotActive exception is raised.
+
+Note - The allocation of an Object Id value and installation in the
+Active Object Map caused by implicit activation may actually be
+deferred until an attempt is made to externalize the reference.  The
+real requirement here is that a reference is produced that will behave
+appropriately (that is, yield a consistent Object Id value when asked
+politely).
+
+CORBA V2.2       Interfaces         February 1998 9-37
+
+ reference_to_servant
+Servant reference_to_servant (Object reference) 
+		raises (ObjectNotActive, WrongAdapter, WrongPolicy);
+
+This operation requires the RETAIN policy or the USE_DEFAULT_SERVANT
+policy.  If neither policy is present, the WrongPolicy exception is
+raised.
+
+If the POA has the RETAIN policy and the specified object is present
+in the Active Object Map, this operation returns the servant
+associated with that object in the Active Object Map. Otherwise, if
+the POA has the USE_DEFAULT_SERVANT policy and a default servant has
+been registered with the POA, this operation returns the default
+servant. Otherwise, the ObjectNotActive exception is raised.
+
+If the object reference was not created by this POA, the WrongAdapter
+exception is raised.
+
+reference_to_id
+ObjectId reference_to_id (in Object reference)
+			raises (WrongAdapter, WrongPolicy);
+
+The WrongPolicy exception is declared to allow future extensions. This
+operation returns the Object Id value encapsulated by the specified
+reference. This operation is valid only if the reference was created
+by the POA on which the operation is being performed. If the reference
+was not created by that POA, a WrongAdapter exception is raised. The
+object denoted by the reference does not have to be active for this
+operation to succeed.
+
+id_to_servant
+Servant id_to_servant(in ObjectId oid) raises (ObjectNotActive, WrongPolicy);
+
+This operation requires the RETAIN policy; if not present, the
+WrongPolicy exception is raised.
+
+This operation returns the active servant associated with the
+specified Object Id value. If the Object Id value is not active in the
+POA, an ObjectNotActive exception is raised.
+
+id_to_reference
+Object id_to_reference(in ObjectId oid) raises (ObjectNotActive, WrongPolicy);
+
+This operation requires the RETAIN policy; if not present, the
+WrongPolicy exception is raised.
+
+9-38                                  CORBA V2.2               February 1998
+
+If an object with the specified Object Id value is currently active, a
+reference encapsulating the information used to activate the object is
+returned. If the Object Id value is not active in the POA, an
+ObjectNotActive exception is raised.
+
+9.3.9 Current operations
+
+The PortableServer::Current interface, derived from CORBA::Current,
+provides method implementations with access to the identity of the
+object on which the method was invoked.  The Current interface is
+provided to support servants that implement multiple objects, but can
+be used within the context of POA-dispatched method invocations on any
+servant.  To provide location transparency, ORBs are required to
+support use of Current in the context of both locally-invoked and
+remotely-invoked operations.
+
+An instance of Current can be obtained by the application by issuing
+the CORBA::ORB::resolve_initial_references("POACurrent") operation.
+Thereafter, it can be used within the context of a method dispatched
+by the POA to obtain the POA and ObjectId that identify the object on
+which that operation was invoked.
+
+get_POA
+POA get_POA() raises (NoContext);
+
+This operation returns a reference to the POA implementing the object
+in whose context it is called.  If called outside the context of a
+POA-dispatched operation, a NoContext exception is raised.
+
+get_object_id
+ObjectId get_object_id() raises (NoContext);
+
+This operation returns the ObjectId identifying the object in whose
+context it is called.  If called outside the context of a
+POA-dispatched operation, a NoContext exception is raised.
+
+9.4 IDL for PortableServer module
+
+#pragma prefix "omg.org"
+
+module PortableServer  {
+
+// forward reference interface POA;  
+
+native Servant;
+
+typedef sequence<octet> ObjectId;
+
+CORBA V2.2       IDL for PortableServer module         February 1998 9-39
+
+exception ForwardRequest { Object forward_reference; };
+
+// ********************************************** 
+// 
+// Policy interfaces 
+//
+// **********************************************
+
+enum ThreadPolicyValue {ORB_CTRL_MODEL, SINGLE_THREAD_MODEL };
+
+interface ThreadPolicy : CORBA::Policy {
+
+readonly attribute ThreadPolicyValue value; };
+
+enum LifespanPolicyValue {TRANSIENT, PERSISTENT };
+
+interface LifespanPolicy : CORBA::Policy {
+
+readonly attribute LifespanPolicyValue value; };
+
+enum IdUniquenessPolicyValue {UNIQUE_ID, MULTIPLE_ID };
+
+interface IdUniquenessPolicy : CORBA::Policy {
+
+readonly attribute IdUniquenessPolicyValue value; };
+
+enum IdAssignmentPolicyValue {USER_ID, SYSTEM_ID };
+
+ interface IdAssignmentPolicy : CORBA::Policy {
+
+readonly attribute IdAssignmentPolicyValue value; };
+
+enum ImplicitActivationPolicyValue {IMPLICIT_ACTIVATION,
+				    NO_IMPLICIT_ACTIVATION };
+
+interface ImplicitActivationPolicy : CORBA::Policy
+
+9-40                                  CORBA V2.2                 February 1998
+
+{
+
+readonly attribute ImplicitActivationPolicyValue value; };
+
+enum ServantRetentionPolicyValue {RETAIN, NON_RETAIN };
+
+interface ServantRetentionPolicy : CORBA::Policy {
+
+readonly attribute ServantRetentionPolicyValue value; };
+
+enum RequestProcessingPolicyValue {USE_ACTIVE_OBJECT_MAP_ONLY,
+				   USE_DEFAULT_SERVANT,
+				   USE_SERVANT_MANAGER };
+
+interface RequestProcessingPolicy : CORBA::Policy {
+
+readonly attribute RequestProcessingPolicyValue value; };
+
+// **************************************************
+//
+// POAManager interface
+//
+// **************************************************
+
+interface POAManager {
+
+exception AdapterInactive{};
+
+void activate() raises(AdapterInactive);
+
+void hold_requests(in boolean wait_for_completion) raises(AdapterInactive);
+
+void discard_requests(in boolean wait_for_completion) raises(AdapterInactive);
+
+void deactivate (in boolean etherealize_objects, 
+		 in boolean wait_for_completion) raises(AdapterInactive);
+};
+
+// **************************************************
+//
+// AdapterActivator interface
+//
+// **************************************************
+
+interface AdapterActivator
+
+CORBA V2.2       IDL for PortableServer module         February 1998 9-41
+
+{
+
+boolean unknown_adapter(in POA parent, in string name); };
+
+// **************************************************
+//
+// ServantManager interface
+//
+// **************************************************
+
+interface ServantManager { };
+
+interface ServantActivator : ServantManager {
+
+ Servant incarnate (
+
+in ObjectId   oid, in POA  adapter ) raises (ForwardRequest);
+
+void etherealize (
+
+in ObjectId  oid,  in POA  adapter, in Servant  serv, in boolean cleanup_in_progress, in boolean  remaining_activations ); };
+
+interface ServantLocator : ServantManager {
+
+native Cookie; Servant preinvoke(
+
+in ObjectId oid, in POA adapter, in CORBA::Identifier operation, out Cookie the_cookie ) raises (ForwardRequest);
+
+void postinvoke(
+
+in ObjectId  oid, in POA  adapter, in CORBA::Identifier  operation, in Cookie  the_cookie, in Servant the_servant); };
+
+// **************************************************
+//
+// POA interface
+//
+// **************************************************
+
+9-42                                  CORBA V2.2                  February 1998
+
+interface POA  {
+
+exception AdapterAlreadyExists {};
+exception AdapterInactive {};
+exception AdapterNonExistent {};
+exception InvalidPolicy { unsigned short index; };
+exception NoServant {};
+exception ObjectAlreadyActive {};
+exception ObjectNotActive {};
+exception ServantAlreadyActive {};
+exception ServantNotActive {};
+exception WrongAdapter {};
+exception WrongPolicy {};
+
+//--------------------------------------------------
+//
+// POA creation and destruction
+//
+//--------------------------------------------------
+
+POA create_POA(in string adapter_name,
+in POAManager a_POAManager, in CORBA::PolicyList policies)
+raises (AdapterAlreadyExists, InvalidPolicy);
+
+POA find_POA(in string adapter_name,  in boolean activate_it)
+
+raises (AdapterNonExistent);
+
+void destroy( in boolean etherealize_objects, 
+
+in boolean wait_for_completion);
+
+// **************************************************
+//
+// Factories for Policy objects
+//
+// **************************************************
+
+ThreadPolicy create_thread_policy(in ThreadPolicyValue value);
+
+LifespanPolicy create_lifespan_policy(in LifespanPolicyValue value);
+
+IdUniquenessPolicy create_id_uniqueness_policy
+
+(in IdUniquenessPolicyValue value); IdAssignmentPolicy
+
+create_id_assignment_policy
+
+(in IdAssignmentPolicyValue value); ImplicitActivationPolicy
+
+create_implicit_activation_policy
+
+CORBA V2.2       IDL for PortableServer module         February 1998 9-43
+
+9 (in ImplicitActivationPolicyValue value); ServantRetentionPolicy
+
+create_servant_retention_policy
+
+(in ServantRetentionPolicyValue value); RequestProcessingPolicy  
+
+create_request_processing_policy
+
+(in RequestProcessingPolicyValue value);
+
+//--------------------------------------------------
+//
+// POA attributes
+//
+//--------------------------------------------------
+
+readonly attribute string the_name;
+readonly attribute POA the_parent;
+readonly attribute POAManager the_POAManager;
+attribute AdapterActivator the_activator;
+
+//--------------------------------------------------
+//
+// Servant Manager registration:
+//
+//--------------------------------------------------
+
+ServantManager get_servant_manager()
+
+raises (WrongPolicy);
+
+void set_servant_manager( in ServantManager imgr)
+
+raises (WrongPolicy);
+
+//--------------------------------------------------
+//
+// operations for the USE_DEFAULT_SERVANT policy
+//
+//--------------------------------------------------
+
+Servant get_servant()
+
+raises (NoServant, WrongPolicy);
+
+void set_servant(in Servant p_servant) 
+
+raises (WrongPolicy);
+
+// **************************************************
+//
+// object activation and deactivation
+//
+// **************************************************
+
+9-44                                  CORBA V2.2                 February 1998
+
+
+ObjectId activate_object( in Servant p_servant )
+
+raises (ServantAlreadyActive, WrongPolicy);
+
+void activate_object_with_id(
+
+in ObjectId id, in Servant p_servant) raises ( ServantAlreadyActive, ObjectAlreadyActive,
+
+WrongPolicy);
+
+void deactivate_object(in ObjectId oid) 
+
+raises (ObjectNotActive, WrongPolicy);
+
+// **************************************************
+//
+// reference creation operations
+//
+// **************************************************
+
+Object create_reference (
+
+in CORBA::RepositoryId intf ) raises (WrongPolicy);
+
+Object create_reference_with_id (
+
+in ObjectId oid, in CORBA::RepositoryId intf ) raises (WrongPolicy);
+
+ 
+//--------------------------------------------------
+//
+// Identity mapping operations:
+//
+//--------------------------------------------------
+
+ObjectId servant_to_id(in Servant p_servant) 
+
+raises (ServantNotActive, WrongPolicy);
+
+Object servant_to_reference(in Servant p_servant) 
+
+raises (ServantNotActive, WrongPolicy);
+
+Servant reference_to_servant(in Object reference)
+
+raises (ObjectNotActive, WrongAdapter, WrongPolicy);
+
+ObjectId reference_to_id(in Object reference)
+
+raises (WrongAdapter, WrongPolicy);
+
+Servant id_to_servant(in ObjectId oid)
+
+raises (ObjectNotActive, WrongPolicy);
+
+CORBA V2.2       IDL for PortableServer module         February 1998 9-45
+
+9 Object id_to_reference(in ObjectId oid)
+
+raises (ObjectNotActive, WrongPolicy);
+
+};
+
+// **************************************************
+//
+// Current interface
+//
+// **************************************************
+
+interface Current : CORBA::Current {
+
+exception NoContext { };
+
+POA get_POA() raises (NoContext);
+ObjectId get_object_id() raises (NoContext); };
+
+};
+
+9-46                                  CORBA V2.2              February 1998
+
+9.5 UML Description of PortableServer
+[ ... ]
+
+9.6 Usage Scenarios
+[ ... ]

@@ -1,0 +1,32 @@
+#! /bin/sh
+#
+# $Id$
+#
+
+#! /bin/sh
+#
+# This script will return the option to add to `gnatmake' for using
+# AdaSockets.
+#
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+VERSION=@VERSION@
+
+case $1 in
+    --version)
+	echo AdaBroker $VERSION
+	;;
+    --cflags)
+	echo -I$libdir/adabroker -L$libdir/adabroker \
+	    `adasockets-config --cflags`
+	;;
+    --libs)
+	echo -L$prefix/lib -lbroca `adasockets-config --libs`
+	;;
+    *)
+	echo 'Usage: adabroker-config [--version | --cflags | --libs]' >&2
+	exit 1
+	;;
+esac
