@@ -34,6 +34,7 @@
 
 with PolyORB.References;
 with MOMA.Connections;
+with MOMA.Connections.Queues;
 
 package body MOMA.Connection_Factories.Queues is
 
@@ -44,22 +45,35 @@ package body MOMA.Connection_Factories.Queues is
    -- Create --
    ------------
 
-   function Create (Remote : PolyORB.References.Ref)
-                    return MOMA.Connections.Queues.Queue
+   procedure Create (Self     : out Connection_Factory_Queue;
+                     Remote   : PolyORB.References.Ref)
+   is
+   begin
+      Set_Ref (Self, Remote);
+   end Create;
+
+   -----------------------
+   -- Create_Connection --
+   -----------------------
+
+   function Create_Connection (Self   : Connection_Factory_Queue)
+                               return MOMA.Connections.Connection'Class
    is
       Queue : MOMA.Connections.Queues.Queue;
    begin
-      Set_Ref (Connection (Queue), Remote);
+      Set_Ref (Connection (Queue), Get_Ref (Self));
       return Queue;
-   end Create;
+   end Create_Connection;
 
-   function Create (Username : String; Password : String)
-                   return Connections.Queues.Queue is
+   function Create_Connection (Self      : Connection_Factory_Queue;
+                               Username  : String;
+                               Password  : String)
+                               return MOMA.Connections.Connection'Class is
    begin
       raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
-      return Create (Username, Password);
+      return Create_Connection (Self, Username, Password);
       pragma Warnings (On);
-   end Create;
+   end Create_Connection;
 
 end MOMA.Connection_Factories.Queues;

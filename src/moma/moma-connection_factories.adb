@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     M O M A . C O N N E C T I O N _ F A C T O R I E S . Q U E U E S      --
+--            M O M A . C O N N E C T I O N _ F A C T O R I E S             --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -32,20 +32,28 @@
 
 --  $Id$
 
-package MOMA.Connection_Factories.Queues is
+package body MOMA.Connection_Factories is
 
-   type Connection_Factory_Queue is new Connection_Factory with null record;
+   -------------
+   -- Get_Ref --
+   -------------
 
+   function Get_Ref (Self    : Connection_Factory)
+                     return PolyORB.References.Ref
+   is
+   begin
+      return Self.Remote;
+   end Get_Ref;
 
-   procedure Create (Self     : out Connection_Factory_Queue;
-                     Remote   : PolyORB.References.Ref);
+   -------------
+   -- Set_Ref --
+   -------------
 
-   function Create_Connection (Self   : Connection_Factory_Queue)
-                               return MOMA.Connections.Connection'Class;
+   procedure Set_Ref (Self    : in out Connection_Factory;
+                      Remote  : PolyORB.References.Ref)
+   is
+   begin
+      Self.Remote := Remote;
+   end Set_Ref;
 
-   function Create_Connection (Self      : Connection_Factory_Queue;
-                               Username  : String;
-                               Password  : String)
-                               return MOMA.Connections.Connection'Class;
-
-end MOMA.Connection_Factories.Queues;
+end MOMA.Connection_Factories;

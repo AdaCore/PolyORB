@@ -38,27 +38,38 @@ with PolyORB.References;
 
 package MOMA.Connection_Factories is
 
-   -----------------------------------------
-   --  Abstract Object Connection_Factory --
-   -----------------------------------------
-
    type Connection_Factory is abstract tagged private;
 
-   --------------------------------
-   --  Abstract Create Functions --
-   --------------------------------
 
-   function Create (Remote : PolyORB.References.Ref)
-                    return Connections.Connection is abstract;
-
-   function Create (Username : String; Password : String)
-                   return Connections.Connection
+   procedure Create (Self     : out Connection_Factory;
+                     Remote   : PolyORB.References.Ref)
       is abstract;
+   --  create a new connection factory, with the provider Remote
+
+   function Create_Connection (Self   : Connection_Factory)
+                               return MOMA.Connections.Connection'Class
+      is abstract;
+   --  create a new connection using this connection factory
+
+   function Create_Connection (Self      : Connection_Factory;
+                               Username  : String;
+                               Password  : String)
+                               return MOMA.Connections.Connection'Class
+      is abstract;
+   --  create a new connection using this connection factory
+   --  and providing a username/password
 
 private
 
-   type Connection_Factory is abstract tagged null record;
+   type Connection_Factory is abstract tagged record
+      Remote : PolyORB.References.Ref;
+      --  the reference to the provider
+   end record;
 
+   procedure Set_Ref (Self    : in out Connection_Factory;
+                      Remote  : PolyORB.References.Ref);
 
+   function Get_Ref (Self    : Connection_Factory)
+                     return PolyORB.References.Ref;
 
 end MOMA.Connection_Factories;

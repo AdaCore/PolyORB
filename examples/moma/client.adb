@@ -89,7 +89,8 @@ procedure Client is
    use Report;
 
    Pool_Ref           : PolyORB.References.Ref;
-   MOMA_Queue         : MOMA.Connections.Queues.Queue;
+   MOMA_Factory       : Connection_Factory_Queue;
+   MOMA_Connection    : MOMA.Connections.Queues.Queue;
    MOMA_Session       : MOMA.Sessions.Queues.Queue;
    MOMA_Destination   : MOMA.Destinations.Destination;
    MOMA_Producer      : MOMA.Message_Producers.Queues.Queue;
@@ -383,15 +384,23 @@ begin
       Pool_Ref := Locate ("Pool_1");
    end if;
 
-   --  Create Queue using Queue Connection Factory
-   MOMA_Queue := Create (Pool_Ref);
+   --  Initialize the connection factory
+   --  (should be done by the administrator)
+   MOMA.Connection_Factories.Queues.Create (MOMA_Factory, Pool_Ref);
 
-   --  Create Destination Queue associated to the connection
-   MOMA_Destination := Create_Queue (MOMA_Queue,
-                                     To_MOMA_String ("queue1"));
+   --  Create connection using Queue Connection Factory
+   MOMA_Connection := MOMA.Connections.Queues.Queue
+      (MOMA.Connection_Factories.Queues.Create_Connection (MOMA_Factory));
+
+   --  Initialize the destination
+   --  (should be usually done by the administrator)
+   --  NB : in this example the destination and the provider are references
+   --       to the same thing (Pool_Ref). This will probably change later
+   MOMA_Destination := MOMA.Sessions.Queues.Create_Destination
+      (To_MOMA_String ("queue1"), Pool_Ref);
 
    --  Create Session,
-   MOMA_Session := Create_Session (False, 1);
+   MOMA_Session := Create_Session (MOMA_Connection, False, 1);
 
    --  Create Message Producer associated to the Session
    MOMA_Producer := Create_Sender (MOMA_Session, MOMA_Destination);

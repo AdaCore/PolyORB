@@ -32,7 +32,6 @@
 
 --  $Id$
 
-with MOMA.Connections.Queues;
 with MOMA.Destinations;
 with MOMA.Message_Consumers;
 with MOMA.Message_Producers;
@@ -53,31 +52,29 @@ package body MOMA.Sessions.Queues is
    use MOMA.Message_Producers;
    use MOMA.Message_Consumers;
    use MOMA.Destinations;
-   use MOMA.Connections.Queues;
 
    use PolyORB.Minimal_Servant.Tools;
 
-   ------------------
-   -- Create_Queue --
-   ------------------
+   ------------------------
+   -- Create_Destination --
+   ------------------------
 
-   function Create_Queue
-     (Connection : MOMA.Connections.Queues.Queue;
-      Queue_Name : MOMA.Types.String)
-      return MOMA.Destinations.Destination
+   function Create_Destination (Name   : MOMA.Types.String;
+                                Remote : PolyORB.References.Ref)
+                                return MOMA.Destinations.Destination
    is
    begin
-      return Create (Queue_Name, Get_Ref (Connection));
-   end Create_Queue;
+      return Create (Name, Remote);
+   end Create_Destination;
 
    --------------------
    -- Create_Session --
    --------------------
 
-   function Create_Session
-     (Transacted : Boolean;
-      Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
-      return MOMA.Sessions.Queues.Queue
+   function Create_Session (Connection       : MOMA.Connections.Queues.Queue;
+                            Transacted       : Boolean;
+                            Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
+                            return MOMA.Sessions.Queues.Queue
    is
       Queue : MOMA.Sessions.Queues.Queue;
    begin

@@ -1,20 +1,17 @@
-with MOMA.Connections.Topics;
-
 package MOMA.Connection_Factories.Topics is
 
-   -------------------
-   --  Object Topic --
-   -------------------
+   type Connection_Factory_Topic is new Connection_Factory with null record;
 
-   type Topic is new Connection_Factory with null record;
 
-   -----------------------
-   --  Functions Create --
-   -----------------------
+   procedure Create (Self     : out Connection_Factory_Topic;
+                     Remote   : PolyORB.References.Ref);
 
-   function Create return Connections.Topics.Topic;
+   function Create_Connection (Self   : Connection_Factory_Topic)
+                               return MOMA.Connections.Connection'Class;
 
-   function Create (Username : String; Password : String)
-                   return Connections.Topics.Topic;
+   function Create_Connection (Self      : Connection_Factory_Topic;
+                               Username  : String;
+                               Password  : String)
+                               return MOMA.Connections.Connection'Class;
 
 end MOMA.Connection_Factories.Topics;
