@@ -52,9 +52,12 @@ with Broca.Buffers; use Broca.Buffers;
 with Broca.Server;
 with Broca.Inet_Server;
 with Broca.Locks;
+with Broca.GIOP;
+
 with Broca.CDR;
 with Broca.Flags;
 with Ada.Task_Attributes;
+
 pragma Elaborate_All (Broca.Vararray);
 pragma Elaborate_All (Broca.ORB);
 pragma Elaborate_All (Broca.Refs);
@@ -1080,13 +1083,16 @@ package body Broca.Rootpoa is
       Reply      : access Buffer_Type)
    is
       use PortableServer;
-      Slot : Slot_Index_Type;
-      A_Servant : Servant;
-      Skel : Internal_Skeleton_Ptr;
-      A_Poa : PortableServer.POA.Ref;
-      Oid : ObjectId;
-      The_Cookie : PortableServer.ServantLocator.Cookie;
-      Key_Buffer : aliased Buffer_Type;
+
+      Slot            : Slot_Index_Type;
+      A_Servant       : Servant := null;
+      Skel            : Internal_Skeleton_Ptr;
+      A_POA           : PortableServer.POA.Ref;
+      Oid             : ObjectId;
+      The_Cookie      : PortableServer.ServantLocator.Cookie;
+      Key_Buffer      : aliased Buffer_Type;
+      Need_Postinvoke : Boolean := False;
+
    begin
       pragma Debug (O ("GIOP_Invoke: enter"));
       --  See 9.3.7
@@ -1184,20 +1190,7 @@ package body Broca.Rootpoa is
                      (Skel.P_Servant.all),
                      Oid, A_Poa, Operation, The_Cookie, A_Servant);
 
-                  Set_Attributes_Value
-                    (Oid, PortableServer.POA.Convert.To_Forward (A_Poa));
-                  --  Attributes.Set_Value
-                  --    (POA_Task_Attribute'
-                  --     (Oid, PortableServer.POA.Convert.To_Forward (A_Poa)));
-                  GIOP_Dispatch
-                    (A_Servant, CORBA.To_Standard_String (Operation),
-                     Request_Id, Response_Expected, Message, Reply);
-                  PortableServer.ServantLocator.Impl.Postinvoke
-                    (PortableServer.ServantLocator.Impl.Object'Class
-                     (Skel.P_Servant.all),
-                     Oid, A_Poa, Operation, The_Cookie, A_Servant);
-                  Self.Requests_Lock.Unlock_R;
-                  return;
+                  Need_Postinvoke := True;
                end if;
          end case;
       else
@@ -1225,18 +1218,39 @@ package body Broca.Rootpoa is
          Set_Attributes_Value
            (Oid, PortableServer.POA.Convert.To_Forward (A_Poa));
 
-
-         pragma Debug
-           (O ("GIOP_Invoke: call giop_dispatch for " &
-               CORBA.To_Standard_String (Operation)));
-         GIOP_Dispatch
-           (A_Servant, CORBA.To_Standard_String (Operation), Request_Id,
-            Response_Expected, Message, Reply);
-         pragma Debug (O ("GIOP_Invoke: giop_dispatch returned"));
+         begin
+            pragma Debug
+              (O ("GIOP_Invoke: call giop_dispatch for " &
+                  CORBA.To_Standard_String (Operation)));
+            GIOP_Dispatch
+              (A_Servant, CORBA.To_Standard_String (Operation), Request_Id,
+               Response_Expected, Message, Reply);
+            pragma Debug (O ("GIOP_Invoke: giop_dispatch returned"));
+         exception
+            when E : others =>
+               pragma Debug (O ("GIOP_Invoke: system exception " &
+                                Ada.Exceptions.Exception_Name (E)));
+               if Response_Expected then
+                  Broca.CDR.Marshall
+                    (Reply, CORBA.Unsigned_Long (Broca.GIOP.No_Context));
+                  Broca.CDR.Marshall (Reply, Request_Id);
+                  Broca.GIOP.Marshall
+                    (Reply, Broca.GIOP.System_Exception);
+                  Broca.Exceptions.Marshall (Reply, E);
+               end if;
+         end;
 
          if Self.Servant_Policy = RETAIN then
             Self.Object_Map (Slot).Requests_Lock.Unlock_R;
          end if;
+
+         if Need_Postinvoke then
+            PortableServer.ServantLocator.Impl.Postinvoke
+              (PortableServer.ServantLocator.Impl.Object'Class
+               (Skel.P_Servant.all),
+               Oid, A_POA, Operation, The_Cookie, A_Servant);
+         end if;
+
          Self.Requests_Lock.Unlock_R;
          POA_Manager_Ptr (Self.POA_Manager).State.Dec_Usage;
          return;
