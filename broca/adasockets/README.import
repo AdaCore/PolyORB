@@ -1,0 +1,20 @@
+This directory is a stripped down version of the AdaSockets distribution,
+that can be found at:
+
+   http://www.infres.enst.fr/ANC/
+
+Please use the full version for your projects, this directory lacks several
+important stuff such as examples.
+
+If you wish to use a newer version of AdaSockets with AdaBroker, here is the
+way to proceed:
+
+  o Unpack the new adasockets distribution into adasockets-M.N
+  o Move adasockets-M.N as broca/adasockets, and change your current directory
+    to get there
+  o Remove the examples, man and support subdirectories
+  o Edit Makefile.am and configure.in to replace all occurrences of "support"
+    by "../support"
+  o Run "aclocal -I ../support", "automake" and "autoconf" in turn.
+  o Run "./configure && make distclean" to regenerate other files
+  o Your next build of AdaBroker will then use the latest AdaSockets version
