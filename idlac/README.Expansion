@@ -84,3 +84,5 @@ that designates the newly-inserted N_Forward_Interface node.).
 -> 
   interface I{RepositoryID="IDL:/.../I:1.0"} { exports ... };
 (where {RepositoryID} is a new attribute of N_Interface).
+
+- Bounded string types -> typedefs.

@@ -1,5 +1,5 @@
 with Idl_Fe.Types;
-with Idl_Fe.Tree.Accessors; use Idl_Fe.Tree.Accessors;
+with Idl_Fe.Tree; use Idl_Fe.Tree;
 
 package body Idl_Fe.Tree.Synthetic is
 
@@ -50,24 +50,31 @@ package body Idl_Fe.Tree.Synthetic is
            K_Interface         |
            K_Forward_Interface =>
             return True;
+
          when K_Scoped_Name =>
             return Is_Interface_Type
               (Node_Id (Value (Node)));
+
          when K_Declarator =>
-            if Is_Empty (Array_Bounds (Node)) then
-               --  return Is_Interface_Type (Parent (Node));
-               raise Program_Error;
-            else
-               return False;
-            end if;
-         when K_Type_Declarator =>
-            return Is_Interface_Type (Node_Id (T_Type (Node)));
+            declare
+               P_Node : constant Node_Id
+                 := Parent (Node);
+            begin
+               pragma Assert (Is_Type_Declarator (P_Node));
+
+               if Is_Empty (Array_Bounds (Node)) then
+                  return Is_Interface_Type (T_Type (P_Node));
+               else
+                  return False;
+               end if;
+            end;
+
          when others =>
             return False;
       end case;
    end Is_Interface_Type;
 
-   function Is_Scope
+   function Is_Gen_Scope
      (Node : Node_Id)
      return Boolean
    is
@@ -79,6 +86,6 @@ package body Idl_Fe.Tree.Synthetic is
         or else K = K_Module
         or else K = K_Interface
         or else K = K_ValueType);
-   end Is_Scope;
+   end Is_Gen_Scope;
 
 end Idl_Fe.Tree.Synthetic;
