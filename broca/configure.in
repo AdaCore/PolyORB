@@ -29,4 +29,3 @@ AM_ADA_PREREQ(19990629, 3.12p)
 #
 AC_OUTPUT([Makefile idlac/Makefile idlac/platform.ads src/Makefile
            support/adacompiler idlac/testsuite/Makefile src/adabroker-config])
-[chmod a+x support/adacompiler src/adabroker-config]

@@ -78,15 +78,19 @@ ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao \
 ADACOMPILER = ../support/adacompiler
 
 %.lo: %.adb
+	@chmod a+x $(ADACOMPILER)
 	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
 
 %.lo: %.ads
+	@chmod a+x $(ADACOMPILER)
 	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
 
 %.lo: ../adasockets/src/%.adb
+	@chmod a+x $(ADACOMPILER)
 	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
 
 %.lo: ../adasockets/src/%.ads
+	@chmod a+x $(ADACOMPILER)
 	$(LIBTOOL) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
 
 $(ADA_LIBADD): ../adasockets/src/sockets-constants.ads

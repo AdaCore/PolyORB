@@ -2367,4 +2367,3 @@ if test "$no_recursion" != yes; then
   done
 fi
 
-chmod a+x support/adacompiler src/adabroker-config
