@@ -363,6 +363,8 @@ package body XE_Utils is
       if Present (Output) then
          Dup2 (Saved_Standout, Standout);
          Dup2 (Saved_Standerr, Standerr);
+         Close (Saved_Standout);
+         Close (Saved_Standerr);
          Remove_Temp_File (Output);
       end if;
 
@@ -593,6 +595,8 @@ package body XE_Utils is
 
       Dup2 (Saved_Standout, Standout);
       Dup2 (Saved_Standerr, Standerr);
+      Close (Saved_Standout);
+      Close (Saved_Standerr);
 
       if not Success then
          if Fatal then

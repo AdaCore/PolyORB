@@ -1,3 +1,8 @@
+2004-08-13  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_utils.adb: Close Dup'ed files.
+	Part of the work needed for CA22-003.
+
 2004-08-11  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* b_xe_defs.adb, Makefile.am, Makefile.in: do not depend on gnat
