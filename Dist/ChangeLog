@@ -6,7 +6,8 @@
 	* xe.adb, xe.ads, xe_back.adb, xe_back.ads, xe_stdcnf.adb: Define
  	new attributes Passive and Storage. Replace attribute Storage_Dir
  	with Directory to avoid confusion with data storage for passive
- 	partition. Minor reformatting.
+ 	partition. Keep Storage_Dir working for backward
+ 	compatibility. Minor reformatting.
 
 	* xe_build.adb, xe_check.adb, xe_usage.adb: Minor reformating.
 
