@@ -517,6 +517,8 @@ package body System.PolyORB_Interface is
       use PolyORB.POA_Manager;
 
       POA : Obj_Adapter_Access;
+      PName : constant PolyORB.Types.String
+        := To_PolyORB_String (Name);
    begin
       if RACW_POA_Config = null then
          return;
@@ -524,7 +526,7 @@ package body System.PolyORB_Interface is
 
       POA := Create_POA
         (Self         => Root_POA_Object,
-         Adapter_Name => PolyORB.Types.To_PolyORB_String (Name),
+         Adapter_Name => PName,
          A_POAManager => null,
          Policies     => Default_Policies (RACW_POA_Config.all));
 
@@ -533,6 +535,12 @@ package body System.PolyORB_Interface is
 
       Default_Servant.Object_Adapter :=
         PolyORB.Obj_Adapters.Obj_Adapter_Access (POA);
+
+      Default_Servant.TypeCode := PolyORB.Any.TypeCode.TC_ObjRef;
+      PolyORB.Any.TypeCode.Add_Parameter
+        (Default_Servant.TypeCode, To_Any (PName))
+      PolyORB.Any.TypeCode.Add_Parameter
+        (Default_Servant.TypeCode, TA_String ("DSA:" & Name & ":1.0"));
 
       Activate (POAManager_Access (Entity_Of (POA.POA_Manager)));
    end Setup_Object_RPC_Receiver;

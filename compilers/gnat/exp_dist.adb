@@ -1446,6 +1446,9 @@ package body Exp_Dist is
       Reference         : constant Entity_Id :=
                             Make_Defining_Identifier
                               (Loc, New_Internal_Name ('R'));
+      Any               : constant Entity_Id :=
+                            Make_Defining_Identifier
+                              (Loc, New_Internal_Name ('A'));
    begin
 
       --  Object declarations
@@ -1455,10 +1458,16 @@ package body Exp_Dist is
           Defining_Identifier =>
             Reference,
           Object_Definition =>
-            New_Occurrence_Of (RTE (RE_Object_Ref), Loc)));
+            New_Occurrence_Of (RTE (RE_Object_Ref), Loc)),
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Any,
+          Object_Definition =>
+            New_Occurrence_Of (RTE (RE_Any), Loc)));
+
       --  We first convert the RACW into an object reference,
-      --  then we call To_Any on that reference.
-      --  XXX and last we possibly fix the TypeCode on that Any?
+      --  then we call To_Any on that reference and fix the
+      --  Any's TypeCode.
 
       --  If the reference denotes an object created on
       --  the current partition, then Local_Statements
@@ -1526,12 +1535,28 @@ package body Exp_Dist is
                       Attribute_Name => Name_Tag)),
               Then_Statements => Remote_Statements)),
           Else_Statements => Local_Statements),
-        Make_Return_Statement (Loc,
+        Make_Assignment_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (Any, Loc),
           Expression =>
             Make_Function_Call (Loc,
               Name => New_Occurrence_Of (RTE (RE_TA_ObjRef), Loc),
               Parameter_Associations => New_List (
-                New_Occurrence_Of (Reference, Loc)))));
+                New_Occurrence_Of (Reference, Loc)))),
+        Make_Procedure_Call_Statement (Loc,
+          Name =>
+            New_Occurrence_Of (RTE (RE_Set_TC), Loc),
+          Parameter_Associations => New_List (
+            New_Occurrence_Of (Any, Loc),
+            Make_Selected_Component (Loc,
+              Prefix =>
+                New_Occurrence_Of (
+                  Stub_Elements.Object_RPC_Receiver, Loc),
+              Selector_Name =>
+                Make_Identifier (Loc, Name_Obj_TypeCode)))),
+        Make_Return_Statement (Loc,
+          Expression =>
+            New_Occurrence_Of (Any, Loc)));
 
       Fnam := Make_Defining_Identifier (
         Loc, New_Internal_Name ('T'));

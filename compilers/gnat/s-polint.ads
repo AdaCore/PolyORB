@@ -55,6 +55,10 @@ package System.PolyORB_Interface is
       Object_Adapter : PolyORB.Obj_Adapters.Obj_Adapter_Access;
       --  Null for RCI servants (the root POA will be used in
       --  this case.)
+
+      Obj_TypeCode   : PolyORB.Any.TypeCode.Object;
+      --  The TypeCode to be used for references to objects
+      --  of this type.
    end record;
    type Servant_Access is access all Servant'Class;
 
