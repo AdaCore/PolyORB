@@ -229,10 +229,10 @@ package body Exp_Dist is
    --  Add receiving stubs to the declarative part
 
    procedure Add_RAS_Dereference_TSS (N : in Node_Id);
-   --  Add a subprogram body for RAS dereference
+   --  Add a subprogram body for RAS Dereference TSS
 
    procedure Add_RAS_Access_TSS (N : in Node_Id);
-   --  Add a subprogram body for RAS Access attribute
+   --  Add a subprogram body for RAS Access TSS
 
    function Could_Be_Asynchronous (Spec : Node_Id) return Boolean;
    --  Return True if nothing prevents the program whose specification is
@@ -288,6 +288,12 @@ package body Exp_Dist is
       return Boolean;
    --  Return True if the current parameter is a controlling formal argument
    --  of type Stub_Type or access to Stub_Type.
+
+   function Underlying_RACW_Type
+     (RAS_Typ : Entity_Id)
+      return Entity_Id;
+   --  Given a remote access-to-subprogram type or its equivalent
+   --  record type, return the RACW type generated to implement it.
 
    procedure Set_Renaming_TSS
      (Typ     : Entity_Id;
@@ -2337,24 +2343,25 @@ package body Exp_Dist is
 
       RAS_Type : constant Entity_Id := Defining_Identifier (N);
       Fat_Type : constant Entity_Id := Equivalent_Type (RAS_Type);
-
       RACW_Type : constant Entity_Id := Underlying_RACW_Type (RAS_Type);
       Desig : constant Entity_Id :=
         Etype (Designated_Type (RACW_Type));
+
       Stub_Elements : constant Stub_Structure := Stubs_Table.Get (Desig);
       pragma Assert (Stub_Elements /= Empty_Stub_Structure);
 
       RACW_Primitive_Name : Node_Id;
 
-      Proc : Entity_Id;
+      Proc : constant Entity_Id :=
+        Make_Defining_Identifier (Loc,
+          Chars => Make_TSS_Name (RAS_Type, TSS_RAS_Dereference));
       Proc_Spec : Node_Id;
 
       Param_Specs : List_Id;
       Param_Assoc : List_Id;
 
-      RAS_Parameter : Node_Id;
-
-      RACW_Parameter   : Entity_Id;
+      RAS_Parameter  : constant Entity_Id :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
 
       Is_Function : constant Boolean :=
         Nkind (Type_Def) = N_Access_Function_Definition;
@@ -2366,21 +2373,15 @@ package body Exp_Dist is
       Current_Parameter : Node_Id;
 
    begin
-      RAS_Parameter :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
-
-      RACW_Parameter :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
-
-      Param_Assoc := New_List (Unchecked_Convert_To (RACW_Type,
-        New_Occurrence_Of (RAS_Parameter, Loc)));
-
       Param_Specs := New_List (
         Make_Parameter_Specification (Loc,
           Defining_Identifier => RAS_Parameter,
           In_Present          => True,
           Parameter_Type      =>
             New_Occurrence_Of (Fat_Type, Loc)));
+
+      Param_Assoc := New_List (Unchecked_Convert_To (RACW_Type,
+        New_Occurrence_Of (RAS_Parameter, Loc)));
 
       Current_Parameter := First (Parameter_Specifications (Type_Def));
       while Current_Parameter /= Empty loop
@@ -2429,10 +2430,6 @@ package body Exp_Dist is
       end if;
 
       --  Build the complete subprogram.
-
-      Proc :=
-        Make_Defining_Identifier (Loc,
-          Chars => Make_TSS_Name (RAS_Type, TSS_RAS_Dereference));
 
       if Is_Function then
          Proc_Spec :=
