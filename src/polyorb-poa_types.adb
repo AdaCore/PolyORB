@@ -392,7 +392,7 @@ package body PolyORB.POA_Types is
       begin
          --  Determine last character of Creator by looking for last
          --  occurrence of POA_Path_Separator. If there is no occurrence,
-         --  the while string is the Creator.
+         --  the whole string is the Creator.
 
          Sep := Utils.Find
            (Oid_Str, Oid_Str'Last, POA_Path_Separator,
