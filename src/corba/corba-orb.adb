@@ -140,8 +140,7 @@ package body CORBA.ORB is
 
       ORB_Prefix : constant Standard.String := "-ORB";
 
-      Found_ORB_Prefix : Boolean := False;
-      Initialized_One : Boolean := False;
+      Not_Initialized_One : Boolean := False;
 
    begin
 
@@ -161,21 +160,37 @@ package body CORBA.ORB is
               := To_Standard_String (Element_Of (Argv, Pos));
 
             Initialized : Boolean := False;
+            Space_Index : Positive;
 
          begin
             pragma Debug (O ("Processing " & Suffix));
 
             if PolyORB.Utils.Has_Prefix (Suffix, ORB_Prefix) then
-               Found_ORB_Prefix := True;
 
                pragma Debug
                  (O ("Possible suffix is "
                      & Suffix (Suffix'First + ORB_Prefix'Length
                                .. Suffix'Last)));
 
+               Space_Index :=
+                 PolyORB.Utils.Find_Whitespace (Suffix, Suffix'First);
+
                --  Test if parameter is -ORB<suffix><whitespace><value>
 
-               if Pos < Length (Argv) then
+               if Space_Index <= Suffix'Last then
+                  Initialized
+                    := PolyORB.CORBA_P.ORB_Init.Initialize
+                    (Suffix (Suffix'First + ORB_Prefix'Length
+                             .. Suffix'Last));
+
+                  if Initialized then
+                     Delete (Argv, Pos, Pos);
+                  end if;
+
+               --  Test if parameter is -ORB<suffix> and next argument is
+               --  a <value>.
+
+               elsif Pos < Length (Argv) then
                   declare
                      Value : constant Standard.String
                        := To_Standard_String (Element_Of (Argv, Pos + 1));
@@ -194,7 +209,6 @@ package body CORBA.ORB is
                         Value);
 
                      if Initialized then
-                        Initialized_One := True;
                         Delete (Argv, Pos, Pos + 1);
                      end if;
                   end;
@@ -209,20 +223,22 @@ package body CORBA.ORB is
                              .. Suffix'Last));
 
                   if Initialized then
-                     Initialized_One := True;
-
                      Delete (Argv, Pos, Pos);
                   end if;
                end if;
-            end if;
 
-            Pos := Pos + 1;
+               if not Initialized then
+                  Not_Initialized_One := True;
+                  Delete (Argv, Pos, Pos);
+               end if;
+
+            else
+               Pos := Pos + 1;
+            end if;
          end;
       end loop;
 
-      if Found_ORB_Prefix
-        and then not Initialized_One
-      then
+      if Not_Initialized_One then
          Raise_Bad_Param (Default_Sys_Member);
       end if;
 
