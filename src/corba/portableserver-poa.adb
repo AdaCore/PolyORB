@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#35 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#36 $
 
 with Ada.Exceptions;
 
@@ -1074,6 +1074,8 @@ package body PortableServer.POA is
    procedure Raise_From_Error
      (Error : in out PolyORB.Exceptions.Error_Container) is
    begin
+      pragma Debug (O ("Raise_From_Error: enter."));
+
       pragma Assert (Is_Error (Error));
 
       --  One to one mapping of PolyORB Error_Id to CORBA POA exceptions.
@@ -1082,7 +1084,8 @@ package body PortableServer.POA is
          when AdapterAlreadyExists_E =>
             declare
                Member : constant AdapterAlreadyExists_Members
-                 := AdapterAlreadyExists_Members (Error.Member.all);
+                 := AdapterAlreadyExists_Members'
+                 (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_AdapterAlreadyExists (Member);
@@ -1091,7 +1094,8 @@ package body PortableServer.POA is
          when AdapterNonExistent_E =>
             declare
                Member : constant AdapterNonExistent_Members
-                 := AdapterNonExistent_Members (Error.Member.all);
+                 := AdapterNonExistent_Members'
+                 (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_AdapterNonExistent (Member);
@@ -1100,7 +1104,9 @@ package body PortableServer.POA is
          when InvalidPolicy_E =>
             declare
                Member : constant InvalidPolicy_Members
-                 := InvalidPolicy_Members (Error.Member.all);
+                 := InvalidPolicy_Members'
+                 (CORBA.IDL_Exception_Members with Index => 0);
+               --  XXX Should handle this case.
             begin
                Free (Error.Member);
                Raise_InvalidPolicy (Member);
@@ -1109,7 +1115,8 @@ package body PortableServer.POA is
          when NoServant_E =>
             declare
                Member : constant NoServant_Members
-                 := NoServant_Members (Error.Member.all);
+                 := NoServant_Members'
+                 (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_NoServant (Member);
@@ -1118,7 +1125,8 @@ package body PortableServer.POA is
          when ObjectAlreadyActive_E =>
             declare
                Member : constant ObjectAlreadyActive_Members
-                 := ObjectAlreadyActive_Members (Error.Member.all);
+                 := ObjectAlreadyActive_Members'
+                 (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_ObjectAlreadyActive (Member);
@@ -1127,7 +1135,8 @@ package body PortableServer.POA is
          when ObjectNotActive_E =>
             declare
                Member : constant ObjectNotActive_Members
-                 := ObjectNotActive_Members (Error.Member.all);
+                 := ObjectNotActive_Members'
+                 (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_ObjectNotActive (Member);
@@ -1136,7 +1145,8 @@ package body PortableServer.POA is
          when ServantAlreadyActive_E =>
             declare
                Member : constant ServantAlreadyActive_Members
-                 := ServantAlreadyActive_Members (Error.Member.all);
+                 := ServantAlreadyActive_Members'
+                 (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_ServantAlreadyActive (Member);
@@ -1145,7 +1155,8 @@ package body PortableServer.POA is
          when ServantNotActive_E =>
             declare
                Member : constant ServantNotActive_Members
-                 := ServantNotActive_Members (Error.Member.all);
+                 := ServantNotActive_Members'
+                 (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_ServantNotActive (Member);
@@ -1154,7 +1165,8 @@ package body PortableServer.POA is
          when WrongAdapter_E =>
             declare
                Member : constant WrongAdapter_Members
-                 := WrongAdapter_Members (Error.Member.all);
+                 := WrongAdapter_Members'
+                 (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_WrongAdapter (Member);
@@ -1163,7 +1175,8 @@ package body PortableServer.POA is
          when WrongPolicy_E =>
             declare
                Member : constant WrongPolicy_Members
-                 := WrongPolicy_Members (Error.Member.all);
+                 := WrongPolicy_Members'
+                 (CORBA.IDL_Exception_Members with null record);
             begin
                Free (Error.Member);
                Raise_WrongPolicy (Member);
