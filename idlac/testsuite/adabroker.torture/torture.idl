@@ -1,7 +1,7 @@
 // AdaBroker torture test.
 // This IDL file tests a lot of parser, expander and
 // code generator features.
-// $Id: //depot/adabroker/main/idlac/testsuite/adabroker.torture/torture.idl#6 $
+// $Id: //depot/adabroker/main/idlac/testsuite/adabroker.torture/torture.idl#7 $
 
 exception rootScopeException {};
 
@@ -25,7 +25,7 @@ module MyModule {
   typedef Color foo;
 
   // Constants
-  const string aConstantString = "$Id: //depot/adabroker/main/idlac/testsuite/adabroker.torture/torture.idl#6 $" ;
+  const string aConstantString = "$Id: //depot/adabroker/main/idlac/testsuite/adabroker.torture/torture.idl#7 $" ;
   const long aConstantLong = 0;
   const long aComputedLong = 1 + 2 * 4 - 5;
   const double Pi = 3.14159265358;
@@ -79,6 +79,10 @@ module MyModule {
 
   typedef sequence<unsigned long> longSeq;
 
+  struct forwardUsageOccurence1 {
+    MyInterface aForwardRef;
+  };
+
   interface MyInterface {
     string echoString (in string arg) raises (rootScopeException);
     Color echoColor (in Color arg);
@@ -87,6 +91,13 @@ module MyModule {
   };
   #pragma ID MyInterface "IDL:toto/titi/tata/tutu:1.0"
   
+#if 0
+  struct forwardUsageOccurence2 {
+    // This should still refer to the /forward/ declaration.
+    MyInterface anotherForwardRef;
+  };
+#endif
+
   exception MyException {
     unsigned long Einfo;
   };
