@@ -33,6 +33,7 @@
 --  MOMA Types definitions.
 
 --  $Id$
+with Ada.Strings.Unbounded;
 
 with PolyORB.Any;
 with PolyORB.Types;
@@ -95,9 +96,6 @@ package MOMA.Types is
 
    function From_Any (Item : in PolyORB.Any.Any)
      return Map_Element;
-
-   --  function "=" (L, R : Map_Element)
-   --    return Boolean;
 
    function Get_Boolean (Self : Map_Element)
                          return MOMA.Types.Boolean;
@@ -194,6 +192,8 @@ package MOMA.Types is
    --  MOMA administrative types.
    --
 
+   MOMA_Type_Id : constant MOMA.Types.String;
+
    type Pool_Type is (Queue,
                       Topic);
 
@@ -202,6 +202,7 @@ package MOMA.Types is
 
    type Message_Type is (Any_M,
                          Byte_M,
+                         Execute_M,
                          Map_M,
                          Text_M);
 
@@ -218,5 +219,9 @@ package MOMA.Types is
    type Priority         is new    Integer range 1 .. 10;
    --  XXX to be completed
 
+private
+
+   MOMA_Type_Id : constant MOMA.Types.String := PolyORB.Types.String
+     (Ada.Strings.Unbounded.To_Unbounded_String ("MOMA"));
 end MOMA.Types;
 

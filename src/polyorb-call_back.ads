@@ -36,11 +36,12 @@
 
 with PolyORB.Components;
 with PolyORB.Requests;
-with PolyORB.Soft_Links;
 
 package PolyORB.Call_Back is
 
    use PolyORB.Components;
+
+   type Handler is access procedure (Self : PolyORB.Requests.Request);
 
    type Call_Back_Handler is new PolyORB.Components.Component with private;
 
@@ -52,17 +53,17 @@ package PolyORB.Call_Back is
    procedure Attach_Request_To_CB
      (Req        : access PolyORB.Requests.Request;
       CB_Handler :        PolyORB.Components.Component_Access);
-   --  Register a specific request to call back handler
+   --  Attach a specific request to call back handler.
 
-   procedure Attache_Handler_To_CB
+   procedure Attach_Handler_To_CB
      (CB_Handler  : in out PolyORB.Call_Back.Call_Back_Handler;
-      CB_Function : PolyORB.Soft_Links.Parameterless_Procedure);
-   --  Register a specific request to call back handler
+      CB_Function : Handler);
+   --  Attach a specific request to call back handler.
 
 private
 
    type Call_Back_Handler is new PolyORB.Components.Component with record
-      CB_Function : PolyORB.Soft_Links.Parameterless_Procedure;
+      CB_Function : Handler;
    end record;
 
 end PolyORB.Call_Back;

@@ -256,6 +256,7 @@ examples/all_types/all_types-impl.adb
 examples/all_types/all_types-impl.ads
 examples/all_types/all_types.idl
 examples/all_types/client.adb
+examples/all_types/client_moma.adb
 examples/all_types/dynclient.adb
 examples/all_types/interop/client.cc
 examples/all_types/interop/server.cc
@@ -280,7 +281,6 @@ examples/generic/report.ads
 examples/moma/Makefile.am
 examples/moma/Makefile.in
 examples/moma/client.adb
-examples/moma/moma_test.ads
 examples/moma/server.adb
 examples/moma/server_poa.adb
 examples/moma/server_soa.adb
@@ -502,6 +502,8 @@ src/moma/moma-messages-manys.adb
 src/moma/moma-messages-manys.ads
 src/moma/moma-messages-mbytes.adb
 src/moma/moma-messages-mbytes.ads
+src/moma/moma-messages-mexecutes.ads
+src/moma/moma-messages-mexecutes.adb
 src/moma/moma-messages-mmaps.adb
 src/moma/moma-messages-mmaps.ads
 src/moma/moma-messages-mstreams.adb
@@ -555,6 +557,8 @@ src/polyorb-binding_data.adb
 src/polyorb-binding_data.ads
 src/polyorb-buffers.adb
 src/polyorb-buffers.ads
+src/polyorb-call_back.adb
+src/polyorb-call_back.ads
 src/polyorb-components.adb
 src/polyorb-components.ads
 src/polyorb-configuration.adb

@@ -39,9 +39,15 @@ with MOMA.Message_Producers;
 with MOMA.Provider.Message_Consumer;
 with MOMA.Provider.Message_Producer;
 with MOMA.Types;
+
+with PolyORB.Call_Back;
 with PolyORB.MOMA_P.Tools;
 with PolyORB.References;
-
+with PolyORB.References.IOR;
+with PolyORB.Requests;
+with PolyORB.Types;
+with Ada.Text_IO; use Ada.Text_IO;
+with PolyORB.Any;
 package body MOMA.Sessions.Queues is
 
    use PolyORB.MOMA_P.Tools;
@@ -49,6 +55,17 @@ package body MOMA.Sessions.Queues is
    use MOMA.Message_Consumers;
    use MOMA.Destinations;
    use MOMA.Connections.Queues;
+   use PolyORB.Any;
+
+   procedure Plop (Self : PolyORB.Requests.Request);
+
+   procedure Plop (Self : PolyORB.Requests.Request) is
+   begin
+      Put_Line ("Got : " & PolyORB.Requests.Image (Self));
+      Put_Line ("return value : " & PolyORB.Any.Image (Self.Result.Argument));
+
+   end Plop;
+
 
    ------------------
    -- Create_Queue --
@@ -142,13 +159,16 @@ package body MOMA.Sessions.Queues is
       Dest : MOMA.Destinations.Destination)
       return MOMA.Message_Producers.Queues.Queue
    is
+      use PolyORB.References;
+      use MOMA.Types;
+
       MOMA_Obj : constant MOMA.Provider.Message_Producer.Object_Acc
         := new MOMA.Provider.Message_Producer.Object;
 
       MOMA_Ref : PolyORB.References.Ref;
-
       Queue : MOMA.Message_Producers.Queues.Queue;
-
+      Type_Id_S : MOMA.Types.String
+        := To_MOMA_String (Type_Id_Of (Get_Ref (Dest)));
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
@@ -163,9 +183,42 @@ package body MOMA.Sessions.Queues is
 
       Set_Destination (Queue, Dest);
       Set_Ref (Message_Producer (Queue), MOMA_Ref);
+      Set_Type_Id_Of (Message_Producer (Queue), Type_Id_S);
       --  XXX Is it really useful to have the Ref to the remote queue in the
       --  Message_Producer itself ? By construction, this ref is encapsulated
       --  in the MOMA.Provider.Message_Producer.Object ....
+      return Queue;
+   end Create_Sender;
+
+   function Create_Sender (ORB_Object : MOMA.Types.String;
+                           Mesg_Pool  : MOMA.Types.String)
+                           return MOMA.Message_Producers.Queues.Queue
+   is
+      use PolyORB.References;
+      use PolyORB.References.IOR;
+      use MOMA.Types;
+      use PolyORB.Types;
+
+      Queue : MOMA.Message_Producers.Queues.Queue;
+      ORB_Object_IOR : constant IOR_Type := String_To_Object (ORB_Object);
+      Type_Id_S : MOMA.Types.String
+        := To_MOMA_String (Type_Id_Of (ORB_Object_IOR));
+
+   begin
+      if Type_Id_S = MOMA_Type_Id then
+         raise  Program_Error;
+      end if;
+
+      pragma Warnings (Off);
+      pragma Unreferenced (Mesg_Pool);
+      pragma Warnings (On);
+      Set_Ref (Message_Producer (Queue), ORB_Object_IOR);
+      Set_Type_Id_Of (Message_Producer (Queue), Type_Id_S);
+      Queue.CBH := new PolyORB.Call_Back.Call_Back_Handler;
+      --  XXX should free this memory sometime, somwhere ...
+
+      PolyORB.Call_Back.Attach_Handler_To_CB
+        (PolyORB.Call_Back.Call_Back_Handler (Queue.CBH.all), Plop'Access);
       return Queue;
    end Create_Sender;
 

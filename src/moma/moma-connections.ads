@@ -42,12 +42,14 @@ package MOMA.Connections is
 
    procedure Close;
 
-   function Get_Client_Id (Self : Connection) return MOMA.Types.String;
+   function Get_Client_Id (Self : Connection)
+                           return MOMA.Types.String;
 
    procedure Set_Client_Id (Self : in out Connection;
                             Client_Id : MOMA.Types.String);
 
-   function Get_Ref (Self : Connection) return PolyORB.References.Ref;
+   function Get_Ref (Self : Connection)
+                     return PolyORB.References.Ref;
 
    procedure Set_Ref (Self : in out Connection;
                       Ref  : in PolyORB.References.Ref);
@@ -76,8 +78,8 @@ package MOMA.Connections is
 
 private
    type Connection is abstract tagged record
-      Client_Id : MOMA.Types.String;
-      Ref : PolyORB.References.Ref;
+      Client_Id  : MOMA.Types.String;
+      Ref        : PolyORB.References.Ref;
    end record;
 
 end MOMA.Connections;

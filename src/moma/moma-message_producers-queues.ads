@@ -32,8 +32,6 @@
 
 --  $Id$
 
-with MOMA.Connections.Queues;
-with MOMA.Destinations.Queues;
 with MOMA.Messages;
 with MOMA.Types;
 
@@ -41,20 +39,11 @@ package MOMA.Message_Producers.Queues is
 
    type Queue is new Message_Producer with null record;
 
-   function Get_Queue return MOMA.Destinations.Queues.Queue;
+   --  function Get_Queue return MOMA.Destinations.Queues.Queue;
 
    procedure Send (Self    : Queue;
                    Message : MOMA.Messages.Message'Class);
    --  XXX should send asynchronous message !!!
-
-   function Send_Receive (Self : MOMA.Connections.Queues.Queue;
-                          Operation_Name : String;
-                          Message : MOMA.Messages.Message'Class)
-                          return MOMA.Messages.Message'Class;
-
-   --  Send 'Message' to remote queue 'Self', should run
-   --  'Operation_Name' on data in Message.
-   --  XXX Warning, use carefully.
 
    procedure Send (Message        : MOMA.Messages.Message'Class;
                    Persistent     : Boolean;

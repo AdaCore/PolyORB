@@ -65,9 +65,9 @@ package body PolyORB.Call_Back is
    is
       Nothing : Components.Null_Message;
    begin
-      pragma Debug
-        (O ("Handling message of type "
-            & Ada.Tags.External_Tag (S'Tag)));
+      pragma Debug (O ("Handling message of type "
+                       & Ada.Tags.External_Tag (S'Tag)));
+
       if S in Executed_Request then
          declare
             Req : Request_Access
@@ -77,15 +77,17 @@ package body PolyORB.Call_Back is
 
             --  Execute Call Back function
 
-            CB_Handler.CB_Function.all;
+            CB_Handler.CB_Function.all (Req.all);
 
             --  Complete Request execution
 
             Req.Completed := True;
 
-            case Status (Req.Requesting_Task.all) is
+            case Status (Req.Requesting_Task.all)
+            is
                when Running =>
                   null;
+
                when Blocked =>
 
                   declare
@@ -99,9 +101,10 @@ package body PolyORB.Call_Back is
                      Abort_Check_Sources (Sel.all);
                      pragma Debug (O ("Aborted."));
                   end;
+
                when Idle =>
-                  Update
-                    (Watcher (Req.Requesting_Task.all));
+                  Update (Watcher (Req.Requesting_Task.all));
+
             end case;
 
          end;
@@ -122,16 +125,16 @@ package body PolyORB.Call_Back is
       Req.Requesting_Component := CB_Handler;
    end Attach_Request_To_CB;
 
-   ---------------------------
-   -- Attache_Handler_To_CB --
-   ---------------------------
+   --------------------------
+   -- Attach_Handler_To_CB --
+   --------------------------
 
-   procedure Attache_Handler_To_CB
+   procedure Attach_Handler_To_CB
      (CB_Handler  : in out PolyORB.Call_Back.Call_Back_Handler;
-      CB_Function : PolyORB.Soft_Links.Parameterless_Procedure)
+      CB_Function : Handler)
    is
    begin
       CB_Handler.CB_Function := CB_Function;
-   end Attache_Handler_To_CB;
+   end Attach_Handler_To_CB;
 
 end PolyORB.Call_Back;

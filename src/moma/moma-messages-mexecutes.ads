@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 M O M A . S E S S I O N S . Q U E U E S                  --
+--              M O M A . M E S S A G E S . M E X E C U T E S               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,44 +30,49 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  MExecute message type. HIGHLY EXPERIMENTAL.
+--
+--  A MExecute message derives directly from MMap message.
+--  Its payload contains a 'map' type.
+--
+--  It should be filled the following way :
+--
+--   element             : (name => "method",
+--                          value => any(<method_name>))
+--   element             : (name => "return" ,
+--                          value => any(<return_value>))
+--   element i in 1 .. n : (name => "arg_i" ,
+--                          value => any(<ith_argument>))
+--
+--  Warning : for this mapping to work, the method _must_ only accept in
+--  parameters.
+--
+--  Given the destination of this messages, the payload can be interpreted
+--  either as
+--
+--  - a normal payload, if the destination is a message pool.
+--  - request parameters if the destination is an ORB object.
+--    ORB objects are objects created using a PolyORB ORB application
+--    personality (e.g. CORBA, DSA ..)
+
 --  $Id$
 
-with MOMA.Connections.Queues;
-with MOMA.Destinations;
-with MOMA.Message_Consumers.Queues;
-with MOMA.Message_Producers.Queues;
-with MOMA.Types;
+package MOMA.Messages.MExecutes is
 
-package MOMA.Sessions.Queues is
+   type MExecute is new Message with private;
 
-   type Queue is new Session with null record;
+   function Get_Parameter (Self : MExecute)
+                           return MOMA.Types.Map;
 
-   function Create_Queue (Connection : MOMA.Connections.Queues.Queue;
-                          Queue_Name : MOMA.Types.String)
-                          return MOMA.Destinations.Destination;
+   procedure Set_Parameter (Self : in out MExecute;
+                            Value : MOMA.Types.Map);
 
-   function Create_Session (Transacted       : Boolean;
-                            Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
-                            return MOMA.Sessions.Queues.Queue;
+   function Create_Execute_Message return Messages.MExecutes.MExecute;
 
-   function Create_Receiver (Self : Queue;
-                             Dest : MOMA.Destinations.Destination)
-                             return MOMA.Message_Consumers.Queues.Queue;
+   function Image (Self : MExecute) return String;
 
-   function Create_Receiver (Queue            : MOMA.Destinations.Destination;
-                             Message_Selector : MOMA.Types.String)
-                             return MOMA.Message_Consumers.Queues.Queue;
+private
+   type MExecute is new Message with null record;
 
-   function Create_Sender (Self : Queue;
-                           Dest : MOMA.Destinations.Destination)
-                           return MOMA.Message_Producers.Queues.Queue;
-   --  Create a 'sender', a message producer, its destination is a MOM object.
 
-   function Create_Sender (ORB_Object : MOMA.Types.String;
-                           Mesg_Pool  : MOMA.Types.String)
-                           return MOMA.Message_Producers.Queues.Queue;
-   --  Create a 'sender', a message producer, its destination is an ORB object.
-
-   function Create_Temporary return MOMA.Destinations.Destination;
-
-end MOMA.Sessions.Queues;
+end MOMA.Messages.MExecutes;

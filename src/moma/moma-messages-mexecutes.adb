@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 M O M A . S E S S I O N S . Q U E U E S                  --
+--                  M O M A . M E S S A G E S . M M A P S                   --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -32,42 +32,57 @@
 
 --  $Id$
 
-with MOMA.Connections.Queues;
-with MOMA.Destinations;
-with MOMA.Message_Consumers.Queues;
-with MOMA.Message_Producers.Queues;
 with MOMA.Types;
+with PolyORB.Any;
 
-package MOMA.Sessions.Queues is
+package body MOMA.Messages.MExecutes is
 
-   type Queue is new Session with null record;
+   use MOMA.Types;
 
-   function Create_Queue (Connection : MOMA.Connections.Queues.Queue;
-                          Queue_Name : MOMA.Types.String)
-                          return MOMA.Destinations.Destination;
+   -------------------
+   -- Get_Parameter --
+   -------------------
 
-   function Create_Session (Transacted       : Boolean;
-                            Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
-                            return MOMA.Sessions.Queues.Queue;
+   function Get_Parameter (Self : MExecute)
+                     return MOMA.Types.Map is
+   begin
+      return MOMA.Types.From_Any (Get_Payload (Self));
+   end Get_Parameter;
 
-   function Create_Receiver (Self : Queue;
-                             Dest : MOMA.Destinations.Destination)
-                             return MOMA.Message_Consumers.Queues.Queue;
+   -------------------
+   -- Set_Parameter --
+   -------------------
 
-   function Create_Receiver (Queue            : MOMA.Destinations.Destination;
-                             Message_Selector : MOMA.Types.String)
-                             return MOMA.Message_Consumers.Queues.Queue;
+   procedure Set_Parameter (Self : in out MExecute;
+                      Value : MOMA.Types.Map) is
+   begin
+      Set_Payload (Self, MOMA.Types.To_Any (Value));
+   end Set_Parameter;
 
-   function Create_Sender (Self : Queue;
-                           Dest : MOMA.Destinations.Destination)
-                           return MOMA.Message_Producers.Queues.Queue;
-   --  Create a 'sender', a message producer, its destination is a MOM object.
+   ----------------------------
+   -- Create_Execute_Message --
+   ----------------------------
 
-   function Create_Sender (ORB_Object : MOMA.Types.String;
-                           Mesg_Pool  : MOMA.Types.String)
-                           return MOMA.Message_Producers.Queues.Queue;
-   --  Create a 'sender', a message producer, its destination is an ORB object.
+   function Create_Execute_Message
+            return MExecute
+   is
+      Result : MExecute;
+   begin
+      Set_Type (Result, Execute_M);
+      --  XXX should initialize other fields as well ???
+      return Result;
+   end Create_Execute_Message;
 
-   function Create_Temporary return MOMA.Destinations.Destination;
+   -----------
+   -- Image --
+   -----------
 
-end MOMA.Sessions.Queues;
+   function Image (Self : MExecute) return String
+   is
+      use PolyORB.Any;
+   begin
+      return Image (Get_Payload (Self));
+   end Image;
+
+end MOMA.Messages.MExecutes;
+

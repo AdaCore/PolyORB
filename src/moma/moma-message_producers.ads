@@ -36,10 +36,22 @@ with Ada.Calendar; use Ada.Calendar;
 with MOMA.Types;
 with MOMA.Destinations;
 with PolyORB.References;
+with PolyORB.Components;
 
 package MOMA.Message_Producers is
 
-   type Message_Producer is abstract tagged private;
+   --  type Message_Producer is abstract tagged private;
+
+   type Message_Producer is abstract tagged record
+      Priority_Level : MOMA.Types.Priority;
+      Persistent     : Boolean;
+      TTL            : Time;
+      Destination    : MOMA.Destinations.Destination;
+      Type_Id_Of     : MOMA.Types.String;
+      Ref            : PolyORB.References.Ref;
+      CBH            : PolyORB.Components.Component_Access;
+   end record;
+
 
    procedure Close;
 
@@ -69,13 +81,14 @@ package MOMA.Message_Producers is
    procedure Set_Destination (Self : in out Message_Producer'Class;
                               Dest : MOMA.Destinations.Destination);
 
-private
-   type Message_Producer is abstract tagged record
-      Priority_Level : MOMA.Types.Priority;
-      Persistent     : Boolean;
-      TTL            : Time;
-      Destination    : MOMA.Destinations.Destination;
-      Ref            : PolyORB.References.Ref;
-   end record;
+   --  XXX These two functions should not be called from the client
+   --  Need to hide them ...
+
+   function Get_Type_Id_Of (Self : Message_Producer)
+                            return MOMA.Types.String;
+
+   procedure Set_Type_Id_Of (Self : in out Message_Producer;
+                             Type_Id_Of : MOMA.Types.String);
+
 
 end MOMA.Message_Producers;

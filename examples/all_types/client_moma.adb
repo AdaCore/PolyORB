@@ -48,12 +48,16 @@ pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
 with MOMA.Connection_Factories.Queues;
 with MOMA.Connections.Queues;
 with MOMA.Connections;
+with MOMA.Sessions.Queues;
+with MOMA.Destinations;
+
 with MOMA.Message_Producers.Queues;
+
 with MOMA.Messages;
-with MOMA.Messages.MTexts;
-with MOMA.Messages.MBytes;
+with MOMA.Messages.MExecutes;
 with MOMA.Types;
-with PolyORB.Types;
+
+with PolyORB.Any;
 
 with Report;
 
@@ -64,180 +68,93 @@ pragma Warnings (Off);
    use Ada.Text_IO;
 
    use MOMA.Connection_Factories.Queues;
+   use MOMA.Sessions.Queues;
    use MOMA.Connections;
    use MOMA.Message_Producers.Queues;
    use MOMA.Messages;
-   use MOMA.Messages.MTexts;
-   use MOMA.Messages.MBytes;
+   use MOMA.Messages.MExecutes;
    use MOMA.Types;
-   use PolyORB.Types;
+
    use Report;
 
    MOMA_Queue         : MOMA.Connections.Queues.Queue;
+   MOMA_Session       : MOMA.Sessions.Queues.Queue;
+   MOMA_Destination   : MOMA.Destinations.Destination;
+   MOMA_Producer      : MOMA.Message_Producers.Queues.Queue;
 
    Ok : Boolean;
 
-   type Scenario_T is (Full, Stor, Retr);
-   Scenario : Scenario_T := Full;
+   --------------------------
+   -- Execute Message Test --
+   --------------------------
 
-   -----------------------
-   -- Text message test --
-   -----------------------
+   procedure Test_MExecute;
 
-   procedure Test_MText;
-
-   procedure Test_MText
+   procedure Test_MExecute
    is
-      MText_Message_Sent : MOMA.Messages.MTexts.MText;
-      MText_Message_Rcvd : MOMA.Messages.MTexts.MText;
+      use PolyORB.Any;
+
+      MExecute_Message_Sent : MOMA.Messages.MExecutes.MExecute;
+      MExecute_Message_Rcvd : MOMA.Messages.MExecutes.MExecute;
+
+      Method_Name   : Map_Element;
+      Return_1      : Map_Element;
+      Arg_1         : Map_Element;
+      Parameter_Map : Map;
+
    begin
       --  Create new Text Message
-      MText_Message_Sent := Create_Text_Message;
-      Set_Text (MText_Message_Sent, To_MOMA_String ("Hi MOM !"));
+      MExecute_Message_Sent := Create_Execute_Message;
+      Method_Name := (Name  => To_MOMA_String ("method"),
+                      Value => To_Any (To_MOMA_String ("echoString")));
 
-      --  Get Text Message
-      declare
-         MOMA_Message_Temp : MOMA.Messages.Message'Class
-           := Send_Receive (MOMA_Queue, "echoString", MText_Message_Sent);
-      begin
-         if MOMA_Message_Temp in MOMA.Messages.MTexts.MText then
-            MText_Message_Rcvd :=
-              MOMA.Messages.MTexts.MText (MOMA_Message_Temp);
-         else
-            raise Program_Error;
-         end if;
-      end;
+      Return_1 := (Name  => To_MOMA_String ("return_1"),
+                   Value => To_Any (To_MOMA_String ("")));
 
-      --  Print results
-      Ok := Get_Text (MText_Message_Sent) = Get_Text (MText_Message_Rcvd);
-      Output ("Testing Text Message ", Ok);
+      Arg_1 := (Name  => To_MOMA_String ("arg_1"),
+                Value => To_Any (To_MOMA_String ("Hi Mom !")));
 
-   end Test_MText;
+      Append (Parameter_Map, Method_Name);
+      Append (Parameter_Map, Return_1);
+      Append (Parameter_Map, Arg_1);
 
-   -----------------------
-   -- Byte Message Test --
-   -----------------------
+      Set_Parameter (MExecute_Message_Sent, Parameter_Map);
 
-   procedure Test_MByte;
+      Send (MOMA_Producer, MExecute_Message_Sent);
 
-   procedure Test_MByte
-   is
-      MByte_Message_Sent : MOMA.Messages.MBytes.MByte;
-      MByte_Message_Rcvd : MOMA.Messages.MBytes.MByte;
-
-      procedure Send_Receive_MByte (Operation_Name : String);
-
-      procedure Send_Receive_MByte (Operation_Name : String) is
-      begin
-
-         --  Get byte Message
-         declare
-            MOMA_Message_Temp : MOMA.Messages.Message'Class
-              := Send_Receive (MOMA_Queue, Operation_Name, MByte_Message_Sent);
-         begin
-            if MOMA_Message_Temp in MOMA.Messages.MBytes.MByte then
-               MByte_Message_Rcvd :=
-                 MOMA.Messages.MBytes.MByte (MOMA_Message_Temp);
-            else
-               raise Program_Error;
-            end if;
-         end;
-      end Send_Receive_MByte;
-
-   begin
-
-      --  Create new Byte Message
-      MByte_Message_Sent := Create_Byte_Message;
-
-      --  Byte/Boolean Test
-      Set_Boolean (MByte_Message_Sent, MOMA.Types.Boolean (True));
-      Send_Receive_MByte ("echoBoolean");
-      Ok := Get_Boolean (MByte_Message_Sent)
-        = Get_Boolean (MByte_Message_Rcvd);
-      Output ("Testing Byte/Boolean Message ", Ok);
-
-      --  Byte/Byte Test
-      Set_Byte (MByte_Message_Sent, MOMA.Types.Byte (42));
-      Send_Receive_MByte ("echoOctet");
-      Ok := Get_Byte (MByte_Message_Sent) = Get_Byte (MByte_Message_Rcvd);
-      Output ("Testing Byte/Byte Message ", Ok);
-
-      --  Byte/Char Test
-      Set_Char (MByte_Message_Sent,
-                MOMA.Types.Char (Character'('A')));
-      Send_Receive_MByte ("echoChar");
-      Ok := Get_Char (MByte_Message_Sent) = Get_Char (MByte_Message_Rcvd);
-      Output ("Testing Byte/Char Message ", Ok);
-
-      --  Byte/Double Test
-      Set_Double (MByte_Message_Sent, MOMA.Types.Double (42.0));
-      Send_Receive_MByte ("echoDouble");
-      Ok := Get_Double (MByte_Message_Sent)
-        = Get_Double (MByte_Message_Rcvd);
-      Output ("Testing Byte/Double Message ", Ok);
-
-      --  Byte/Float Test
-      Set_Float (MByte_Message_Sent, MOMA.Types.Float (42.0));
-      Send_Receive_MByte ("echoFloat");
-      Ok := Get_Float (MByte_Message_Sent) = Get_Float (MByte_Message_Rcvd);
-      Output ("Testing Byte/Float Message ", Ok);
-
-      --  Byte/Short Test
-      Set_Short (MByte_Message_Sent, MOMA.Types.Short (3));
-      Send_Receive_MByte ("echoShort");
-      Ok := Get_Short (MByte_Message_Sent) = Get_Short (MByte_Message_Rcvd);
-      Output ("Testing Byte/Short Message ", Ok);
-
-      --  Byte/Long Test
-      Set_Long (MByte_Message_Sent, MOMA.Types.Long (21));
-      Send_Receive_MByte ("echoLong");
-      Ok := Get_Long (MByte_Message_Sent) = Get_Long (MByte_Message_Rcvd);
-      Output ("Testing Byte/Long Message ", Ok);
-
-      --  Byte/Unsigned_Long Test
-      Set_Unsigned_Long (MByte_Message_Sent, MOMA.Types.Unsigned_Long (12345));
-      Send_Receive_MByte ("echoULong");
-      Ok := Get_Unsigned_Long (MByte_Message_Sent)
-        = Get_Unsigned_Long (MByte_Message_Rcvd);
-      Output ("Testing Byte/Unsigned_Long Message ", Ok);
-
-      --  Byte/Unsigned_Short Test
-      Set_Unsigned_Short (MByte_Message_Sent, MOMA.Types.Unsigned_Short (123));
-      Send_Receive_MByte ("echoUShort");
-      Ok := Get_Unsigned_Short (MByte_Message_Sent)
-        = Get_Unsigned_Short (MByte_Message_Rcvd);
-      Output ("Testing Byte/Unsigned_Short Message ", Ok);
-
-   end Test_MByte;
+   end Test_MExecute;
 
    --------------------
    -- Main procedure --
    --------------------
 
 begin
-   --  Argument check
+   --  Argument check.
    if Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>");
+      Put_Line ("usage : client_moma <IOR_string_from_server>");
       return;
    end if;
 
-   --  Create Queue using Queue Connection Factory
+   --  Create Queue using Queue Connection Factory.
    MOMA_Queue := Create (To_MOMA_String (Ada.Command_Line.Argument (1)));
 
-   Put_Line ("Ready to send messages !");
+   --  Create Destination Queue associated to the connection.
+   MOMA_Destination := Create_Queue (MOMA_Queue,
+                                     To_MOMA_String ("orb_object_1"));
 
-   --  Testing MText.
+   --  Create Session.
+   MOMA_Session := Create_Session (False, 1);
 
-   Test_MText;
+   --  Create Message Producer associated to the Session.
+   MOMA_Producer := Create_Sender (To_MOMA_String (Argument (1)),
+                                   To_MOMA_String (""));
 
-   --  Testing MByte.
+   Output ("Initilisation", True);
 
-   Test_MByte;
+   --  Testing MExecute.
 
-   --  End of File
-   --  Put_Line ("waiting");
-   --  delay 10.0;
+   Test_MExecute;
 
-   --  XXX should destroy all structures here !
+
 pragma Warnings (On);
 end Client_MOMA;

@@ -108,7 +108,8 @@ package body PolyORB.Requests is
         (The_ORB.Tasking_Policy, The_ORB,
          Queue_Request'
          (Request   => Self,
-          Requestor => null));
+          Requestor => Self.Requesting_Component));
+      --   Requestor => null));
 
       --  Execute the ORB until the request is completed.
       ORB.Run
