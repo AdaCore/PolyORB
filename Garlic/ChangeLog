@@ -1,3 +1,8 @@
+1998-04-24  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-ganobl.adb: (Asynchronous.Read) When Nbytes = 0, use C_Select
+	to check whether there is something to read.
+
 1998-04-24  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* 5pgtplsp.ads: Use the same file as SunOS but do not use Poll.

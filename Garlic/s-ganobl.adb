@@ -114,7 +114,10 @@ package body System.Garlic.Non_Blocking is
       Write_Mask       : Desc_Set := (others => False);
       Ready_Read_Mask  : Desc_Set := (others => False);
       Ready_Write_Mask : Desc_Set := (others => False);
-      Max_FD     : int := -1;
+      Rfds             : Fd_Set_Access := new Fd_Set;
+      Wfds             : Fd_Set_Access := new Fd_Set;
+      Timeout          : Timeval_Access := new Timeval;
+      Max_FD           : int := -1;
 
    end Asynchronous_Type;
 
@@ -175,10 +178,19 @@ package body System.Garlic.Non_Blocking is
          Result : out int)
       when True is
          Dummy : int;
+         Empty : Boolean;
       begin
          Set_Asynchronous (RFD);
-         Dummy := Thin.C_Read (RFD, Buf, Nbyte);
-         if Dummy = Thin.Failure and then Errno = Eagain then
+         if Nbyte = 0 then
+            Timeout.all  := Immediat;
+            Rfds.all := 2 ** Integer (RFD);
+            Dummy := C_Select (RFD + 1, Rfds, null, null, Timeout);
+            Empty := Rfds.all = 0;
+         else
+            Dummy := Thin.C_Read (RFD, Buf, Nbyte);
+            Empty := Dummy = Thin.Failure and then Errno = Eagain;
+         end if;
+         if Empty then
             Read_Mask (RFD) := True;
             if RFD > Max_FD then
                Max_FD := RFD;
