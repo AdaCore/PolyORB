@@ -176,7 +176,7 @@ annexes ou futurs.
 
 \begin{figure}
 \begin{center}
-\psfig{file=droopi-design.eps,width=15cm}
+\mbox{\psfig{file=droopi-design.eps,width=15cm}}
 \end{center}
 \caption{Conception DROOPI}
 \label{fig:droopi-uml}
@@ -236,15 +236,38 @@ alors être émis sur le port, et reçues par le composant destinataire.
 Lorsqu'un composant doit recevoir un message, sa méthode \emph{Handle\_Message}
 est exécutée.
 
-%%  XXX schéma UML ?
+\begin{figure}
+\begin{center}
+\mbox{\psfig{file=components.eps,width=12cm}}
+\end{center}
+\caption{Pattern «~Component~»}
+\label{fig:components}
+\end{figure}
 
 \subsubsection{Annotations}
 
 \textbf{Contexte~:}
+  Les clients d'un objet désirent associer à cet objet des informations
+  sur lesquelles l'objet lui-même n'a pas visibilité (par exemple le
+  client agrège l'objet avec un autre objet).
 \textbf{Problème~:}
+  Permettre cette association, et permettre la récupération
+  efficace de l'information (en temps constant par rapport au nombre
+  d'objets possédés par le client).
 \textbf{Solution~:}
+  L'objet expose un attribut qui est une collection d'instances d'une
+  classe-conteneur abstraite «~Annotation~», étiquetées par l'identité
+  des clients de l'objet. Les clients dérivent la classe «~Annotation~»
+  et peuvent ajouter ou retirer une instance du type concret dans la
+  collection.
 
-%%  XXX schéma UML
+\begin{figure}
+\begin{center}
+\mbox{\psfig{file=annotations.eps,width=12cm}}
+\end{center}
+\caption{Pattern «~Annotation~»}
+\label{fig:components}
+\end{figure}
 
 %  Il peut être nécessaire pour un client d'un objet d'associer des
 %  informations à cet objet. De plus, on souhaite pouvoir retrouver ces
@@ -324,19 +347,12 @@ $\leftrightarrow$ une socket de comm, un identificateur d'IPC.
 
 Primitives~: open/read/write/close
 
-\textbf{Comment ça se goupille pour produire des Data\_Units ?} Read et Write
-pourraient accepter comme arguments des Data\_Units particulières. Un TE pourrait
-être un «~pseudo-filtre~» (une protocol entity au sens de l'OSI...)
-
 Doit pourvoir participer à un poll (e/s asynchrones, liées au mécanisme
-de gestion des événements dans l'ORB) en s'intégrant dans une source d'événements
-asynchrones.
-
+de gestion des événements dans l'ORB)~: un TE est capable de donner
+une vue de lui-même qui est une source d'événements asynchrones.
 Un point de terminaison connecté est associé à un seul protocole~\ref{sec:protocoles}.
-
-Statut~: pas implémenté (utilisation directe des sockets). Il faut cacher les
-sockets sous une abstraction qui puisse également accueillir un autre mécanisme
-de communication (par ex. IPC SysV~: mémoire partagée, file de messages...)
+Le TE est un composant, il est capable de recevoir des messages envoyés
+par la pile de protocole associée ou par l'ORB.
 
 \subsubsection{Transport service access point (TSAP)}
 
@@ -349,6 +365,9 @@ Primitives~: bind/accept.
 Un TSAP est associé à un seul protocole. Le TSAP agit comme une factory de TE.
 Lorsqu'un TE est créé à partir d'un TSAP, le TE hérite du protocole de son TSAP
 (une session de ce protocole est créée et liée au TE).
+
+Comme un TE, un TSAP a une vue comme source d'événements asynchrone,
+pour pouvoir participer à un poll.
 
 \subsubsection{Filtres}
 
@@ -379,15 +398,26 @@ De même, les sessions sont des pseudo-filtres qui acceptent les Data\_Units issu
 inférieures, et agissent en fonction des messages reçues (au lieu de les transmettre
 comme Data\_Units aux couches supérieures).
 
-Pour être honnête~: si on considère que le scheduler de l'ORB est la couche supérieure par
-rapport aux sessions, et que l'objet Request est une Data\_Unit, alors la Session est juste un
-filtre qui convertit des messages en requests et des replys en messages. À explorer.
+Les filtres sont implémentés comme des composants particuliers,
+caractérisés par le fait que chacun d'eux est lié à exactement
+deux autres composants~: un \emph{Upper} (voisin du dessus dans
+la pile de protocole) et un \emph{Lower} (voisin du dessous).
+Les Data\_Units sont un type particulier de messages, ayant
+comme propriété particulière une direction de propagation
+à travers la pile~: une Data\_Unit est définie pour être propagée
+soit de bas en haut (du transport vers la session), soit de
+haut en bas (de la session vers le transport), jamais les deux.
 
-Statut~: Droopi.Filters fournit l'abstraction des filtres et aussi les types concrets
-de Data\_Units. Il faudrait séparer les deux et ne définir qu'un type Data\_Unit abstrait. Ensuite,
-les Data\_Units concrètes seraient définies dans d'autres unités, qui ne seraient visibles que
-là où c'est nécessaire (une Data\_Unit échangée entre les couches A et B ne serait visible que
-par les unités implémentant A et B.)
+\textbf{Critique de l'implémentation actuelle~:}
+  Droopi.Filters fournit l'abstraction des filtres et aussi les types concrets
+  de Data\_Units. Il faudrait séparer les deux et ne définir qu'un type Data\_Unit abstrait. Ensuite,
+  les Data\_Units concrètes seraient définies dans d'autres unités, qui ne seraient visibles que
+  là où c'est nécessaire (une Data\_Unit échangée entre les couches A et B ne serait visible que
+  par les unités implémentant A et B.)
+
+\textbf{Piste pour approfondir~:} si on considère que le scheduler de l'ORB est la couche supérieure par
+  rapport aux sessions, et que l'objet Request est une Data\_Unit, alors la Session est juste un
+  filtre qui convertit des messages en requests et des replys en messages. À explorer.
 
 \subsection{Objets communs}
 

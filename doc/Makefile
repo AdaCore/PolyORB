@@ -1,6 +1,8 @@
 EPSFILES=\
 droopi-arch.eps\
-droopi-design.eps
+droopi-design.eps\
+components.eps\
+annotations.eps
 
 SOURCES=
 
