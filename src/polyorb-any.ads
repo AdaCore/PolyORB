@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -630,6 +630,7 @@ package PolyORB.Any is
    function To_Any (Item : in Types.Octet)              return Any;
    function To_Any (Item : in Any)                      return Any;
    function To_Any (Item : in TypeCode.Object)          return Any;
+   function To_Any (Item : in Standard.String)          return Any;
    function To_Any (Item : in Types.String)             return Any;
    function To_Any (Item : in Types.Wide_String)        return Any;
 
@@ -648,6 +649,7 @@ package PolyORB.Any is
    function From_Any (Item : in Any) return Types.Octet;
    function From_Any (Item : in Any) return Any;
    function From_Any (Item : in Any) return TypeCode.Object;
+   function From_Any (Item : in Any) return Standard.String;
    function From_Any (Item : in Any) return Types.String;
    function From_Any (Item : in Any) return Types.Wide_String;
 

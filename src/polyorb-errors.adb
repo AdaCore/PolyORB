@@ -179,15 +179,13 @@ package body PolyORB.Errors is
       end if;
 
       TC := TypeCode.TC_Enum;
+      TypeCode.Add_Parameter (TC, To_Any ("completion_status"));
       TypeCode.Add_Parameter
-        (TC, To_Any (To_PolyORB_String ("completion_status")));
-      TypeCode.Add_Parameter
-        (TC, To_Any (To_PolyORB_String
-                     ("IDL:omg.org/CORBA/completion_status:1.0")));
+        (TC, To_Any ("IDL:omg.org/CORBA/completion_status:1.0"));
 
       for C in Completion_Status'Range loop
          TypeCode.Add_Parameter
-           (TC, To_Any (To_PolyORB_String (Completion_Status'Image (C))));
+           (TC, To_Any (Completion_Status'Image (C)));
       end loop;
 
       return TC;
@@ -210,7 +208,8 @@ package body PolyORB.Errors is
       Shift : Natural         := 0;
    begin
       --  Name
-      TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
+
+      TypeCode.Add_Parameter (TC, To_Any (Name));
 
       if Name (Name'First .. Name'First + PolyORB_Exc_Root'Length - 1)
         = PolyORB_Exc_Root
@@ -226,8 +225,7 @@ package body PolyORB.Errors is
            & Name (Name'First + Shift .. Name'Last)
            & PolyORB_Exc_Version;
       begin
-         TypeCode.Add_Parameter (TC,
-           To_Any (To_PolyORB_String (Repository_Id)));
+         TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
       end;
 
       return Get_Empty_Any_Aggregate (TC);
@@ -254,13 +252,13 @@ package body PolyORB.Errors is
 
       TC := TypeCode.TC_Except;
 
-      TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
-      TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Repository_Id)));
+      TypeCode.Add_Parameter (TC, To_Any (Name));
+      TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
 
       TypeCode.Add_Parameter
         (TC, To_Any (TC_Object));
       TypeCode.Add_Parameter
-        (TC, To_Any (To_PolyORB_String ("forward_reference")));
+        (TC, To_Any ("forward_reference"));
 
       return TC;
    end TC_ForwardRequest;
@@ -308,7 +306,8 @@ package body PolyORB.Errors is
       Shift : Natural := 0;
    begin
       --  Name
-      TypeCode.Add_Parameter (TC, To_Any (To_PolyORB_String (Name)));
+
+      TypeCode.Add_Parameter (TC, To_Any (Name));
 
       if Name (Name'First .. Name'First + PolyORB_Exc_Root'Length - 1)
         = PolyORB_Exc_Root then
@@ -323,20 +322,18 @@ package body PolyORB.Errors is
              & Name (Name'First + Shift .. Name'Last)
              & PolyORB_Exc_Version;
       begin
-         TypeCode.Add_Parameter (TC,
-           To_Any (To_PolyORB_String (Repository_Id)));
+         TypeCode.Add_Parameter (TC, To_Any (Repository_Id));
 
          --  Component 'minor'
          TypeCode.Add_Parameter
            (TC, To_Any (TC_Unsigned_Long));
-         TypeCode.Add_Parameter
-           (TC, To_Any (To_PolyORB_String ("minor")));
+         TypeCode.Add_Parameter (TC, To_Any ("minor"));
 
          --  Component 'completed'
          TypeCode.Add_Parameter
            (TC, To_Any (TC_Completion_Status));
          TypeCode.Add_Parameter
-           (TC, To_Any (To_PolyORB_String ("completed")));
+           (TC, To_Any ("completed"));
 
          pragma Debug (O ("Built Exception TypeCode for: "
                           & Repository_Id));

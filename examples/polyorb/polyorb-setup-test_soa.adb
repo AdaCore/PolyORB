@@ -155,7 +155,7 @@ package body PolyORB.Setup.Test_SOA is
             Add_Item
               (Args,
                To_PolyORB_String ("echoString"),
-               To_Any (To_PolyORB_String (Arg1)),
+               To_Any (Arg1),
                ARG_IN);
 
             Create_Request
