@@ -184,6 +184,22 @@ Ada_OmniObject::disposeObject() {
 }
 
 
+// hash
+//-----
+_CORBA_ULong
+Ada_OmniObject::hash(_CORBA_ULong maximum) {
+  if (Init_Ok) {
+    CORBA::Object_ptr tmp = new CORBA::Object ;
+    tmp->PR_setobj(C_Object) ;
+    _CORBA_ULong result = tmp->_hash(maximum) ;
+    delete tmp ;
+    return result ;
+  } else {
+    raise_ada_exception("Ada_OmniObject::hash cannot be called on a non-initialized object") ;
+  }
+}
+
+
 // non_existent
 //-------------
 bool

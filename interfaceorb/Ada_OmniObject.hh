@@ -115,6 +115,9 @@ public:
   // implementation referenced by this proxy object
   // does not exist
   
+  _CORBA_ULong hash(_CORBA_ULong maximum) ;
+  // returns a hash value for this object
+
   void setRopeAndKey(const Ada_OmniRopeAndKey& l,_CORBA_Boolean keepIOP=1);
   // calls the setRopeAndKey function of C_Object
 

@@ -146,6 +146,10 @@ package OmniObject is
      := Corba.To_Corba_String("IDL:omg.org/CORBA/Object:1.0") ;
 
 
+   function Hash(Self : in Implemented_Object ;
+                 Maximum : in Corba.Unsigned_Long) return Corba.Unsigned_Long ;
+   -- returns a hash value for this object
+
    -----------------------------------------------
    --        dispatching operators              --
    -----------------------------------------------
@@ -328,6 +332,10 @@ package OmniObject is
    function Non_Existent(Self : in Object'Class) return Corba.Boolean ;
    -- returns true if the ORB is sure that this object
    -- does not exist
+
+   function Hash(Self : in Object'Class ;
+                 Maximum : in Corba.Unsigned_Long) return Corba.Unsigned_Long ;
+   -- returns a hash value for this object
 
    procedure Assert_Object_Existent(Self : in Object'Class) ;
    pragma Import (CPP, Assert_Object_Existent, "assertObjectExistent__14Ada_OmniObject") ;

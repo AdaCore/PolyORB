@@ -128,6 +128,20 @@ package body OmniObject is
    end ;
 
 
+   -- Hash
+   -------
+   function Hash(Self : in Implemented_Object ;
+                 Maximum : in Corba.Unsigned_Long)
+                 return Corba.Unsigned_Long is
+   begin
+
+      if Is_Nil(Self) then
+         Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
+                                        "Cannot call hash on a nil object") ;
+      end if ;
+      return Hash(Self.Omniobj.all, Maximum) ;
+   end ;
+
    -----------------------------------------------
    --        dispatching operators              --
    -----------------------------------------------
@@ -487,6 +501,22 @@ package body OmniObject is
    --          miscellaneous                    --
    -----------------------------------------------
 
+   -- C_Hash
+   ---------
+   function C_Hash(Self : in Object'Class ;
+                   Maximum : in Interfaces.C.Unsigned_Long)
+                   return Interfaces.C.Unsigned_Long ;
+   pragma Import (CPP, C_Hash, "hash__14Ada_OmniObjectUl") ;
+   -- calls Ada_OmniObject::hash
+
+   -- Hash
+   -------
+   function Hash(Self : in Object'Class ;
+                 Maximum : in Corba.Unsigned_Long)
+                 return Corba.Unsigned_Long is
+   begin
+      return Corba.Unsigned_Long(C_Hash(Self, Interfaces.C.Unsigned_Long(Maximum))) ;
+   end ;
 
    -- C_Non_Existent
    -----------------

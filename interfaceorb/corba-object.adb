@@ -128,9 +128,11 @@ package body Corba.Object is
                  Maximum : in Corba.Unsigned_long)
                  return Corba.Unsigned_Long is
    begin
-      -- Copy Paste The C++ code
-      -- return Real_Hash(Self, Maximum) ;
-      return Corba.Unsigned_Long(0) ;
+      if Is_Nil(Self) then
+         Ada.Exceptions.Raise_Exception(Constraint_Error'Identity,
+                                        "Cannot call function hash on a nil reference") ;
+      end if ;
+      return Omniobject.Hash(Self.Omniobj.all, Maximum) ;
    end ;
 
 
