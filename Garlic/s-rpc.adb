@@ -78,30 +78,26 @@ package body System.RPC is
    Initialize_Task_Pool : Parameterless_Procedure;
    Shutdown_Task_Pool   : Parameterless_Procedure;
 
-   type RPC_Status is (Unknown, Running, Aborted, Completed);
+   type Session_Status is (Unknown, Running, Aborted, Completed);
 
-   type RPC_Info is
+   type Session_Info is
       record
          PID    : Types.Partition_ID;
          Result : Streams.Stream_Element_Access;
-         Status : RPC_Status;
+         Status : Session_Status;
+         Stamp  : System.Garlic.Types.Stamp_Type;
       end record;
 
-   subtype Valid_RPC_Id is RPC_Id range APC + 1 .. RPC_Id'Last;
+   subtype Valid_Session_Type is
+     Session_Type range No_Session + 1 .. Session_Type'Last;
 
-   Callers : array (Valid_RPC_Id) of RPC_Info;
+   Callers : array (Valid_Session_Type) of Session_Info;
    Callers_Watcher : System.Garlic.Soft_Links.Watcher_Access;
 
    type Dummy_Abort_Handler_Type is
      new Garlic.Soft_Links.Abort_Handler_Type with null record;
 
-   procedure Allocate (RPC : out RPC_Id; PID : Types.Partition_ID);
-   procedure Deallocate (RPC : in RPC_Id);
    procedure Raise_Partition_Error (PID : in Types.Partition_ID);
-
-   procedure Wait_For
-     (RPC    : in  RPC_Id;
-      Stream : out Streams.Stream_Element_Access);
 
    procedure Handle_Request
      (Partition : in Types.Partition_ID;
@@ -114,6 +110,10 @@ package body System.RPC is
    procedure Shutdown;
    --  Shutdown System.RPC and its private child packages
 
+   procedure Wait_For
+     (Session : in  Session_Type;
+      Stream  : out System.Garlic.Streams.Stream_Element_Access);
+
    procedure Notify_Partition_Error
      (Partition : in Types.Partition_ID);
    --  Call this procedure to unblock tasks waiting for RPC results from
@@ -123,7 +123,9 @@ package body System.RPC is
    -- Allocate --
    --------------
 
-   procedure Allocate (RPC : out RPC_Id; PID : in Types.Partition_ID)
+   procedure Allocate
+     (Session   : out Session_Type;
+      Partition : in Partition_ID)
    is
       Version : Types.Version_Id;
    begin
@@ -132,8 +134,8 @@ package body System.RPC is
          for I in Callers'Range loop
             if Callers (I).Status = Unknown then
                Callers (I).Status := Running;
-               Callers (I).PID    := PID;
-               RPC := I;
+               Callers (I).PID    := Types.Partition_ID (Partition);
+               Session := I;
                System.Garlic.Soft_Links.Leave_Critical_Section;
                return;
             end if;
@@ -148,12 +150,12 @@ package body System.RPC is
    -- Deallocate --
    ----------------
 
-   procedure Deallocate (RPC : in RPC_Id)
+   procedure Deallocate (Session : in Session_Type)
    is
    begin
       System.Garlic.Soft_Links.Enter_Critical_Section;
-      Callers (RPC).Status := Unknown;
-      Callers (RPC).PID    := Types.Null_PID;
+      Callers (Session).Status := Unknown;
+      Callers (Session).PID    := Types.Null_PID;
       System.Garlic.Soft_Links.Update (Callers_Watcher);
       System.Garlic.Soft_Links.Leave_Critical_Section;
    end Deallocate;
@@ -197,17 +199,24 @@ package body System.RPC is
    is
       use System.Garlic.Soft_Links;
 
-      RPC     : RPC_Id;
+      Session : Session_Type;
       Header  : RPC_Header (RPC_Query);
       Stream  : Streams.Stream_Element_Access;
       Handler : System.Garlic.Soft_Links.Abort_Handler_Type'Class
         := System.Garlic.Soft_Links.Abort_Handler;
       Error   : aliased Error_Type;
+
    begin
+      pragma Debug (System.Garlic.Soft_Links.Set_Stamp (Types.No_Stamp));
+      pragma Debug (D (Stamp_Image ("rpc initiate")));
+      --  Initialize stamp. As a convention, when set_stamp parameter
+      --  is no stamp and when task stamp is no stamp, we initialize
+      --  task stamp to clock.
+
       begin
          pragma Abort_Defer;
-         Allocate (RPC, Types.Partition_ID (Partition));
-         Header.RPC := RPC;
+         Allocate (Session, Partition);
+         Header.Session := Session;
          Insert_RPC_Header (Params.X'Access, Header);
          Types.Partition_ID'Write (Params, Types.Partition_ID (Partition));
          Global_Priority'Write (Params, To_Global_Priority (Get_Priority));
@@ -215,29 +224,33 @@ package body System.RPC is
                Remote_Call,
                Params.X'Access,
                Error);
+
          if Found (Error) then
             Raise_Exception (Communication_Error'Identity,
                              Content (Error'Access));
          end if;
-         Handler.Key  := Natural (RPC);
-         Handler.PID  := Types.Partition_ID (Partition);
-         Handler.Wait := True;
+         Handler.Session   := Natural (Session);
+         Handler.Partition := Types.Partition_ID (Partition);
+         Handler.Waiting   := True;
          System.Garlic.Soft_Links.Adjust (Handler);
       end;
 
-      D ("Execute RPC number" & RPC'Img & " on partition" & Partition'Img);
+      D ("Execute session" & Session'Img & " on partition" & Partition'Img);
 
-      Wait_For (RPC, Stream);
+      Wait_For (Session, Stream);
 
       begin
          pragma Abort_Defer;
-         Handler.Wait := False;
-         System.Garlic.Soft_Links.Adjust (Handler);
          Streams.Write (Result.X, Stream.all);
          Streams.Free (Stream);
+         Handler.Waiting := False;
+         System.Garlic.Soft_Links.Adjust (Handler);
       end;
 
-      D ("Complete RPC number " & RPC'Img & " on partition" & Partition'Img);
+      pragma Debug (D (Stamp_Image ("rpc complete")));
+      pragma Debug (Soft_Links.Set_Stamp (Types.No_Stamp));
+      --  Reset task stamp to no stamp as the request has been
+      --  processed. By convention, task stamp differs from no stamp.
    end Do_RPC;
 
    ----------------------------
@@ -264,34 +277,32 @@ package body System.RPC is
    --------------
 
    procedure Finalize
-     (PID  : in Garlic.Types.Partition_ID;
-      Wait : in Boolean;
-      Key  : in Natural)
-   is
-      RPC : RPC_Id := RPC_Id (Key);
+     (Partition : in Garlic.Types.Partition_ID;
+      Waiting   : in Boolean;
+      Session   : in Session_Type) is
    begin
-      if Wait then
+      if Waiting then
          System.Garlic.Soft_Links.Enter_Critical_Section;
-         if Callers (RPC).Status = Running then
+         if Callers (Session).Status = Running then
             declare
                Params : aliased Streams.Params_Stream_Type (0);
-               Header : constant RPC_Header := (Abortion_Query, RPC);
+               Header : constant RPC_Header := (Abortion_Query, Session);
                Error  : Error_Type;
             begin
                pragma Debug
-                 (D ("Forward local abortion of RPC number" & RPC'Img &
-                     " to partition" & PID'Img));
+                 (D ("Forward local abortion of session" & Session'Img &
+                     " to partition" & Partition'Img));
                Insert_RPC_Header (Params'Access, Header);
-               Callers (RPC).Status := Aborted;
+               Callers (Session).Status := Aborted;
                System.Garlic.Soft_Links.Update (Callers_Watcher);
                System.Garlic.Soft_Links.Leave_Critical_Section;
 
-               Send (PID, Remote_Call, Params'Access, Error);
+               Send (Partition, Remote_Call, Params'Access, Error);
                Catch (Error);
             end;
          else
-            if Callers (RPC).Status = Aborted then
-               Callers (RPC).Status := Unknown;
+            if Callers (Session).Status = Aborted then
+               Callers (Session).Status := Unknown;
             end if;
             System.Garlic.Soft_Links.Update (Callers_Watcher);
             System.Garlic.Soft_Links.Leave_Critical_Section;
@@ -318,39 +329,46 @@ package body System.RPC is
             declare
                Params_Copy  : Streams.Params_Stream_Access :=
                  new Streams.Params_Stream_Type (Query.Initial_Size);
-               RPC          : RPC_Id := RPC_Id'First;
+               Session      : Session_Type := Session_Type'First;
                Asynchronous : constant Boolean := Header.Kind = APC_Query;
             begin
                Streams.Move (Query.all, Params_Copy.all);
                if not Asynchronous then
-                  RPC := Header.RPC;
-                  D ("Execute RPC number" & RPC'Img &
+                  Session := Header.Session;
+                  D ("Execute session" & Session'Img &
                      " from partition" & Partition'Img);
                else
                   D ("Execute APC from partition" & Partition'Img);
                end if;
-               Allocate_Pool_Task (Partition, RPC, Params_Copy, Asynchronous);
+               Allocate_Pool_Task
+                 (Partition,
+                  Session,
+                  Soft_Links.Get_Stamp,
+                  Params_Copy,
+                  Asynchronous);
             end;
 
          when RPC_Reply =>
             System.Garlic.Soft_Links.Enter_Critical_Section;
-            if Callers (Header.RPC).Status = Aborted then
-               Callers (Header.RPC).Status := Unknown;
+            if Callers (Header.Session).Status = Aborted then
+               Callers (Header.Session).Status := Unknown;
             else
-               Callers (Header.RPC).Status := Completed;
-               Callers (Header.RPC).Result :=
+               Callers (Header.Session).Status := Completed;
+               Callers (Header.Session).Result :=
                  Streams.To_Stream_Element_Access (Query);
+               Callers (Header.Session).Stamp  :=
+                 System.Garlic.Soft_Links.Get_Stamp;
             end if;
             System.Garlic.Soft_Links.Update (Callers_Watcher);
             System.Garlic.Soft_Links.Leave_Critical_Section;
 
          when Abortion_Query =>
-            Abort_Pool_Task (Partition, Header.RPC);
+            Abort_Pool_Task (Partition, Header.Session);
 
          when Abortion_Reply =>
             System.Garlic.Soft_Links.Enter_Critical_Section;
-            Callers (Header.RPC).Status := Unknown;
-            Callers (Header.RPC).PID    := Types.Null_PID;
+            Callers (Header.Session).Status := Unknown;
+            Callers (Header.Session).PID    := Types.Null_PID;
             System.Garlic.Soft_Links.Update (Callers_Watcher);
             System.Garlic.Soft_Links.Leave_Critical_Section;
 
@@ -459,27 +477,28 @@ package body System.RPC is
    --------------
 
    procedure Wait_For
-     (RPC    : in  RPC_Id;
-      Stream : out Streams.Stream_Element_Access)
+     (Session : in  Session_Type;
+      Stream  : out Streams.Stream_Element_Access)
    is
       Version : Types.Version_Id;
    begin
       loop
+         D ("check for session" & Session'Img);
          System.Garlic.Soft_Links.Enter_Critical_Section;
-         case Callers (RPC).Status is
+         case Callers (Session).Status is
             when Completed =>
-               Stream := Callers (RPC).Result;
-               Callers (RPC).Status := Unknown;
-               Callers (RPC).PID    := Types.Null_PID;
-               Callers (RPC).Result := null;
+               Stream := Callers (Session).Result;
+               Callers (Session).Status := Unknown;
+               Callers (Session).PID    := Types.Null_PID;
+               Callers (Session).Result := null;
                System.Garlic.Soft_Links.Update (Callers_Watcher);
                System.Garlic.Soft_Links.Leave_Critical_Section;
                return;
 
             when Aborted =>
-               Callers (RPC).Status := Unknown;
-               Callers (RPC).PID    := Types.Null_PID;
-               Callers (RPC).Result := null;
+               Callers (Session).Status := Unknown;
+               Callers (Session).PID    := Types.Null_PID;
+               Callers (Session).Result := null;
                System.Garlic.Soft_Links.Update (Callers_Watcher);
                System.Garlic.Soft_Links.Leave_Critical_Section;
                Raise_Exception (Communication_Error'Identity,

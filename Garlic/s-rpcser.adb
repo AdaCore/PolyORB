@@ -95,15 +95,16 @@ package body System.RPC.Server is
    --  by System.RPC to handle incoming calls.
 
    procedure Allocate_Task
-     (PID    : in System.Garlic.Types.Partition_ID;
-      RPC    : in System.RPC.RPC_Id;
-      Params : in System.Garlic.Streams.Params_Stream_Access;
-      Async  : in Boolean);
+     (Partition : in System.Garlic.Types.Partition_ID;
+      Session   : in System.RPC.Session_Type;
+      Stamp     : in System.Garlic.Types.Stamp_Type;
+      Params    : in System.Garlic.Streams.Params_Stream_Access;
+      Async     : in Boolean);
    --  Start a new anonymous task to handle the request
 
    procedure Abort_Task
-     (PID : in System.Garlic.Types.Partition_ID;
-      RPC : in System.RPC.RPC_Id);
+     (Partition : in System.Garlic.Types.Partition_ID;
+      Session   : in System.RPC.Session_Type);
    --  Abort a running task
 
    procedure Initialize;
@@ -133,14 +134,15 @@ package body System.RPC.Server is
    --  still needed there ???
 
    type Task_Identifier is record
-      Self   : RPC_Handler_Access;
-      RPC    : RPC_Id;
-      PID    : Types.Partition_ID;
-      Stop   : System.Garlic.Tasking.Mutex_PO_Access;
-      Params : Streams.Params_Stream_Access;
-      Async  : Boolean;
-      Next   : Task_Identifier_Access;
-      Prev   : Task_Identifier_Access;
+      Handler   : RPC_Handler_Access;
+      Session   : Session_Type;
+      Partition : Types.Partition_ID;
+      Stop      : System.Garlic.Tasking.Mutex_PO_Access;
+      Params    : Streams.Params_Stream_Access;
+      Stamp     : System.Garlic.Types.Stamp_Type;
+      Async     : Boolean;
+      Next      : Task_Identifier_Access;
+      Prev      : Task_Identifier_Access;
    end record;
    --  Since it is impossible for a task to get a pointer on itself, it
    --  is transmitted through this structure. Moreover, this allows to
@@ -175,15 +177,16 @@ package body System.RPC.Server is
    ----------------
 
    procedure Abort_Task
-     (PID : in Types.Partition_ID;
-      RPC : in RPC_Id)
+     (Partition : in Types.Partition_ID;
+      Session   : in Session_Type)
    is
       Identifier : Task_Identifier_Access;
    begin
       System.Garlic.Soft_Links.Enter (Tasks_Pool_Mutex);
       Identifier := Used_Tasks_Queue;
       while Identifier /= null
-        and then (Identifier.PID /= PID or else Identifier.RPC /= RPC)
+        and then (Identifier.Partition /= Partition
+                  or else Identifier.Session /= Session)
       loop
          Identifier := Identifier.Next;
       end loop;
@@ -200,9 +203,9 @@ package body System.RPC.Server is
    procedure Adjust
      (Self : in out Outer_Abort_Handler_Type) is
    begin
-      Self.Inner.Outer.PID  := Self.PID;
-      Self.Inner.Outer.Wait := Self.Wait;
-      Self.Inner.Outer.Key  := Self.Key;
+      Self.Inner.Outer.Partition     := Self.Partition;
+      Self.Inner.Outer.Waiting    := Self.Waiting;
+      Self.Inner.Outer.Session := Self.Session;
    end Adjust;
 
    -------------------
@@ -210,10 +213,11 @@ package body System.RPC.Server is
    -------------------
 
    procedure Allocate_Task
-     (PID    : in Types.Partition_ID;
-      RPC    : in RPC_Id;
-      Params : in Streams.Params_Stream_Access;
-      Async  : in Boolean)
+     (Partition : in Types.Partition_ID;
+      Session   : in Session_Type;
+      Stamp     : in System.Garlic.Types.Stamp_Type;
+      Params    : in Streams.Params_Stream_Access;
+      Async     : in Boolean)
    is
       Identifier : Task_Identifier_Access;
       Version    : System.Garlic.Types.Version_Id;
@@ -242,15 +246,16 @@ package body System.RPC.Server is
             if Identifier.Next /= null then
                Identifier.Next.Prev  := Identifier;
             end if;
-            Identifier.Prev       := null;
-            Used_Tasks_Queue      := Identifier;
+            Identifier.Prev      := null;
+            Used_Tasks_Queue     := Identifier;
 
-            Identifier.RPC    := RPC;
-            Identifier.PID    := PID;
-            Identifier.Params := Params;
-            Identifier.Async  := Async;
+            Identifier.Session   := Session;
+            Identifier.Partition := Partition;
+            Identifier.Params    := Params;
+            Identifier.Stamp     := Stamp;
+            Identifier.Async     := Async;
 
-            Identifier.Self.Execute;
+            Identifier.Handler.Execute;
          end if;
          System.Garlic.Soft_Links.Leave (Tasks_Pool_Mutex);
 
@@ -306,6 +311,8 @@ package body System.RPC.Server is
             terminate;
          end select;
 
+         Soft_Links.Set_Stamp (Self.Stamp);
+
          exit when Aborted;
 
          --  Before executing anything, make sure that our elaboration is
@@ -317,7 +324,7 @@ package body System.RPC.Server is
          Cancelled := False;
          Types.Partition_ID'Read (Self.Params, Callee);
          if not Callee'Valid then
-            pragma Debug (D ("Invalid PID received"));
+            pragma Debug (D ("Invalid Partition received"));
             raise Constraint_Error;
          end if;
          Global_Priority'Read (Self.Params, Priority);
@@ -334,16 +341,16 @@ package body System.RPC.Server is
             Self.Stop.Enter;
 
             --  This RPC is aborted. Send an abortion reply to recycle
-            --  properly RPC_Id.
+            --  properly Session_Type.
 
             declare
                Empty  : aliased Streams.Params_Stream_Type (0);
-               Header : constant RPC_Header := (Abortion_Reply, Self.RPC);
+               Header : constant RPC_Header := (Abortion_Reply, Self.Session);
                Error  : aliased Error_Type;
             begin
                pragma Debug (D ("Abortion queried by caller"));
                Insert_RPC_Header (Empty'Access, Header);
-               Send (Self.PID, Remote_Call, Empty'Access, Error);
+               Send (Self.Partition, Remote_Call, Empty'Access, Error);
                if Found (Error) then
                   Raise_Exception (Communication_Error'Identity,
                                    Content (Error'Access));
@@ -358,8 +365,9 @@ package body System.RPC.Server is
             --  of the package and then dereference it.
 
             Receiver := Convert
-               (System.Address (Interfaces.Unsigned_64'Input (Self.Params)));
+              (System.Address (Interfaces.Unsigned_64'Input (Self.Params)));
             Receiver (Self.Params, Result);
+
             pragma Debug (D ("Job achieved without abortion"));
          end select;
 
@@ -377,12 +385,12 @@ package body System.RPC.Server is
             Streams.Deallocate (Result);
          else
             declare
-               Header : constant RPC_Header := (RPC_Reply, Self.RPC);
+               Header : constant RPC_Header := (RPC_Reply, Self.Session);
                Error  : aliased Error_Type;
             begin
                pragma Debug (D ("Result will be sent"));
                Insert_RPC_Header (Result, Header);
-               Send (Self.PID, Remote_Call, Result, Error);
+               Send (Self.Partition, Remote_Call, Result, Error);
                if Found (Error) then
                   Raise_Exception (Communication_Error'Identity,
                                    Content (Error'Access));
@@ -390,7 +398,10 @@ package body System.RPC.Server is
                Streams.Free (Result);
             end;
          end if;
+
          pragma Debug (D ("Job finished, queuing"));
+
+         pragma Debug (Soft_Links.Set_Stamp (Types.No_Stamp));
 
          --  Set RPC handler back to its initial priority.
 
@@ -437,12 +448,12 @@ package body System.RPC.Server is
    function Create_RPC_Handler return Task_Identifier_Access is
       Identifier : constant Task_Identifier_Access := new Task_Identifier;
    begin
-      Allocated_Tasks  := Allocated_Tasks + 1;
-      Tasks_Pool_Count := Tasks_Pool_Count + 1;
-      Identifier.Self  := new RPC_Handler;
-      Identifier.Stop  := new System.Garlic.Tasking.Mutex_PO;
+      Allocated_Tasks    := Allocated_Tasks + 1;
+      Tasks_Pool_Count   := Tasks_Pool_Count + 1;
+      Identifier.Handler := new RPC_Handler;
+      Identifier.Stop    := new System.Garlic.Tasking.Mutex_PO;
       Identifier.Stop.Enter;
-      Identifier.Self.Initialize (Identifier);
+      Identifier.Handler.Initialize (Identifier);
       return Identifier;
    end Create_RPC_Handler;
 
@@ -466,7 +477,10 @@ package body System.RPC.Server is
    procedure Finalize
      (Handler : in out Inner_Abort_Handler_Type) is
    begin
-      Finalize (Handler.Outer.PID, Handler.Outer.Wait, Handler.Outer.Key);
+      Finalize
+        (Handler.Outer.Partition,
+         Handler.Outer.Waiting,
+         Session_Type (Handler.Outer.Session));
    end Finalize;
 
    ----------------
@@ -494,9 +508,9 @@ package body System.RPC.Server is
       --  This handler will be finalized. We must initialize its
       --  internal values correctly.
 
-      Handler.PID  := 0;
-      Handler.Wait := False;
-      Handler.Key  := 0;
+      Handler.Partition := System.Garlic.Types.Null_Partition_ID;
+      Handler.Waiting   := False;
+      Handler.Session   := Natural (No_Session);
 
       System.Garlic.Soft_Links.Adjust (Handler.all);
       System.Garlic.Soft_Links.Register_Abort_Handler (Handler);
@@ -526,7 +540,7 @@ package body System.RPC.Server is
       Terminated := True;
       System.Garlic.Soft_Links.Enter (Tasks_Pool_Mutex);
       while Idle_Tasks_Queue /= null loop
-         Idle_Tasks_Queue.Self.Shutdown;
+         Idle_Tasks_Queue.Handler.Shutdown;
          Idle_Tasks_Queue := Idle_Tasks_Queue.Next;
       end loop;
       System.Garlic.Soft_Links.Update (Tasks_Pool_Watcher);

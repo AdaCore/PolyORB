@@ -370,6 +370,18 @@ package body System.Garlic.Heart is
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type)
    is
+      procedure Reset_Stamp;
+      --  Set stamp to no stamp when current stamp differs from no
+      --  stamp.
+
+      procedure Reset_Stamp is
+         Stamp : Stamp_Type := Soft_Links.Get_Stamp;
+      begin
+         if Stamp /= No_Stamp then
+            Soft_Links.Set_Stamp (No_Stamp);
+         end if;
+      end Reset_Stamp;
+
    begin
 
       --  Depending on the opcode, dispatch to the public or internal
@@ -383,6 +395,8 @@ package body System.Garlic.Heart is
          when Invalid_Operation =>
             Throw (Error, "Handle_Any_Request: invalid operation");
       end case;
+
+      pragma Debug (Reset_Stamp);
    end Handle_Any_Request;
 
    ---------------------
@@ -401,7 +415,7 @@ package body System.Garlic.Heart is
    begin
       pragma Assert (Self_PID /= Null_PID);
 
-      if Handlers (Opcode) /= null then
+      if Handlers (Opcode) = null then
          loop
             Soft_Links.Lookup (Handlers_Watcher, Version);
             exit when Handlers (Opcode) /= null;
@@ -532,6 +546,7 @@ package body System.Garlic.Heart is
       Query : aliased Params_Stream_Type (Unfiltered.all'Length);
       Reply : aliased Params_Stream_Type (0);
    begin
+
       --  Dump the stream for debugging purpose
 
       pragma Debug (D ("Dumping stream to process"));
@@ -595,6 +610,7 @@ package body System.Garlic.Heart is
       Index    : Stream_Element_Offset;
 
    begin
+
       pragma Debug
         (D ("Send " & Opcode'Img & " request to partition" & Partition'Img));
 
