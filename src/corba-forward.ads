@@ -47,6 +47,3 @@ package CORBA.Forward is
       function To_Forward   (The_Ref : in Ref_Type) return Ref;
    end Convert;
 end CORBA.Forward;
-
-
-

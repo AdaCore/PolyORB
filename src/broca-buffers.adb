@@ -40,10 +40,6 @@ with Ada.Unchecked_Deallocation;
 with Interfaces.C;
 --  For Interfaces.C.int.
 
-with Ada.Unchecked_Conversion;
---  For conversions between Opaque_Pointer and Caddr_T.
---  For conversions between System.Address and Interfaces.C.int.
-
 with System.Storage_Elements; use System.Storage_Elements;
 
 with CORBA;
@@ -104,7 +100,7 @@ package body Broca.Buffers is
    is
       Data_Iovec : constant Iovec
         := (Iov_Base => Data,
-            Iov_Len  => C_int (Size));
+            Iov_Len  => Storage_Offset (Size));
 
    begin
       pragma Assert (True
@@ -259,7 +255,7 @@ package body Broca.Buffers is
          declare
             Padding_Iovec : constant Iovec
               := (Iov_Base => Null_Data_Address,
-                  Iov_Len  => C_int (Padding));
+                  Iov_Len  => Storage_Offset (Padding));
          begin
             Append
               (Iovec_Pool => Buffer.Contents,
@@ -285,7 +281,7 @@ package body Broca.Buffers is
    is
       Data_Iovec : constant Iovec
         := (Iov_Base => Data,
-            Iov_Len  => C_int (Size));
+            Iov_Len  => Storage_Offset (Size));
    begin
       pragma Assert (Buffer.Endianness = Host_Order);
 
@@ -313,7 +309,7 @@ package body Broca.Buffers is
          begin
             Allocate (Buffer.Storage'Access, A_Chunk);
             Data_Iovec := (Iov_Base => Chunk_Storage (A_Chunk),
-                           Iov_Len  => C_int (Size));
+                           Iov_Len  => Storage_Offset (Size));
 
             A_Data := Chunk_Storage (A_Chunk);
             Metadata (A_Chunk).all :=
@@ -403,15 +399,6 @@ package body Broca.Buffers is
       procedure Free is new Ada.Unchecked_Deallocation
         (Iovec_Array, Iovec_Array_Access);
 
-      --  Address <-> Integer conversions
-
-      function To_C_int is
-         new Ada.Unchecked_Conversion
-        (System.Address, C_int);
-      function To_Address is
-         new Ada.Unchecked_Conversion
-        (C_int, System.Address);
-
       procedure Grow
         (Iovec_Pool   : access Iovec_Pool_Type;
          Size         : Index_Type;
@@ -431,8 +418,7 @@ package body Broca.Buffers is
            (An_Iovec : Iovec)
            return System.Address is
          begin
-            return To_Address
-              (To_C_int (An_Iovec.Iov_Base) + An_Iovec.Iov_Len);
+            return An_Iovec.Iov_Base + An_Iovec.Iov_Len;
          end First_Address_After;
 
          procedure Do_Grow
@@ -456,7 +442,7 @@ package body Broca.Buffers is
                        := Chunk_Metadata.Last_Used + Size;
                      Data := First_Address_After (Last_Iovec);
                      Last_Iovec.Iov_Len := Last_Iovec.Iov_Len
-                       + C_int (Size);
+                       + Storage_Offset (Size);
                   end if;
                end;
             end if;
@@ -660,12 +646,9 @@ package body Broca.Buffers is
       is
          use Interfaces.C;
 
-         Vecs : constant Iovec_Array
-           := Iovecs (Iovec_Pool);
-         Offset_Remainder : C_int
-           := C_int (Offset);
-         Index : Index_Type
-           := Vecs'First;
+         Vecs             : constant Iovec_Array := Iovecs (Iovec_Pool);
+         Offset_Remainder : Storage_Offset       := Storage_Offset (Offset);
+         Index            : Index_Type           := Vecs'First;
       begin
          while Offset_Remainder >= Vecs (Index).Iov_Len loop
             Offset_Remainder := Offset_Remainder
@@ -673,11 +656,10 @@ package body Broca.Buffers is
             Index := Index + 1;
          end loop;
 
-         pragma Assert (Offset_Remainder + C_int (Size)
+         pragma Assert (Offset_Remainder + Storage_Offset (Size)
                           <= Vecs (Index).Iov_Len);
 
-         Data := To_Address (To_C_int (Vecs (Index).Iov_Base)
-                             + Offset_Remainder);
+         Data := Vecs (Index).Iov_Base + Offset_Remainder;
       exception
          when others =>
             raise Read_Error;
@@ -727,8 +709,8 @@ package body Broca.Buffers is
 
          Index : Index_Type := Vecs'First;
 
-         Count : int;
-         Rest  : int := 0;
+         Count : Storage_Offset;
+         Rest  : Storage_Offset := 0;
 
       begin
          for I in Vecs'Range loop
@@ -736,10 +718,11 @@ package body Broca.Buffers is
          end loop;
 
          while Rest > 0 loop
-            Count := C_Writev
-              (FD,
-               Vecs (Index)'Address,
-               C_int (Vecs'Last - Index + 1));
+            Count :=
+              Storage_Offset (C_Writev
+                              (FD,
+                               Vecs (Index)'Address,
+                               C_int (Vecs'Last - Index + 1)));
 
             --  FIXME: Should improve error reporting.
             --  This is initially from sockets.adb.
@@ -759,8 +742,8 @@ package body Broca.Buffers is
             end loop;
 
             if Count > 0 then
-               Vecs (Index).Iov_Base := To_Address
-                 (To_C_int (Vecs (Index).Iov_Base) + Count);
+               Vecs (Index).Iov_Base :=
+                 Vecs (Index).Iov_Base + Count;
                Vecs (Index).Iov_Len
                  := Vecs (Index).Iov_Len - Count;
             end if;

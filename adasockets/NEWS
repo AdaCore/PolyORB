@@ -1,5 +1,12 @@
 -*- outline -*-
 
+* New in AdaSockets 0.1.8
+
+** Fix bugs on 64 bit platforms
+
+The iovec_len field in sockets-thin.ads was incorrectly marked as being
+an Integer instead of a Storage_Offset.
+
 * New in AdaSockets 0.1.7
 
 ** Add support for FreeBSD
