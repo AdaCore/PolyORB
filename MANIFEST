@@ -364,6 +364,8 @@ ada/elists.ads
 ada/err_vars.ads
 ada/erroutc.adb
 ada/erroutc.ads
+ada/errutil.adb
+ada/errutil.ads
 ada/fmap.adb
 ada/fmap.ads
 ada/fname-sf.adb
@@ -446,6 +448,8 @@ ada/sinfo.adb
 ada/sinfo.ads
 ada/sinfo-cn.adb
 ada/sinfo-cn.ads
+ada/sinput-c.adb
+ada/sinput-c.ads
 ada/sinput-l.adb
 ada/sinput-l.ads
 ada/sinput-p.adb
