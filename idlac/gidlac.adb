@@ -21,7 +21,6 @@ with Ada.Command_Line; use Ada.Command_Line;
 with GNAT.Command_Line; use GNAT.Command_Line;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with Tree;
-with Tokens;
 with Parse;
 with Disp;
 with Types;
@@ -128,8 +127,6 @@ begin
       Open (Idl_File, In_File, File_Name.all);
       Set_Input (Idl_File);
    end if;
-
-   Tokens.Initialize;
 
    Rep := Parse.Parse_Specification;
 

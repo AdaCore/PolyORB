@@ -26,8 +26,6 @@ begin
    Open (Idl_File, In_File, File_Name.all);
    Set_Input (Idl_File);
 
-   Tokens.Initialize;
-
    Rep := Parse.Parse_Specification;
 
    -- Tree.Disp_Tree (Rep.all, P);

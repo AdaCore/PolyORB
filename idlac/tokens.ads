@@ -164,11 +164,25 @@ package Tokens is
        T_Greater_Greater,       -- >>
        T_Less_Less,             -- <<
    --  Literals
-       T_Lit_Integer,
-       T_Lit_Char,
-       T_Lit_Floating_Point,
+       T_Lit_Decimal_Integer,
+       T_Lit_Octal_Integer,
+       T_Lit_Hexa_Integer,
+       T_Lit_Simple_Char,
+       T_Lit_Escape_Char,
+       T_Lit_Octal_Char,
+       T_Lit_Hexa_Char,
+       T_Lit_Unicode_Char,
+       T_Lit_Wide_Simple_Char,
+       T_Lit_Wide_Escape_Char,
+       T_Lit_Wide_Octal_Char,
+       T_Lit_Wide_Hexa_Char,
+       T_Lit_Wide_Unicode_Char,
+       T_Lit_Simple_Floating_Point,
+       T_Lit_Exponent_Floating_Point,
+       T_Lit_Pure_Exponent_Floating_Point,
        T_Lit_String,
-       T_Lit_Fixed_Point,
+       T_Lit_Simple_Fixed_Point,
+       T_Lit_Floating_Fixed_Point,
    --  Identifier
        T_Identifier,
    --  Misc
@@ -176,11 +190,17 @@ package Tokens is
        );
 
 
-   --  Initialize the lexical analyser.
-   --  The lexical analyser use the standard input file.
-   --  After this call, no token is available.  Therefore, next_token should
-   --  be call.
-   procedure Initialize;
+   --  definition of the alphabetic characters in idl
+   --  CORBA V2.3 table 3-2, 3-3
+   function Is_Alphabetic_Character (C : Standard.Character) return Boolean;
+   function Is_Digit_Character (C : Standard.Character) return Boolean;
+   function Is_Octal_Digit_Character (C : Standard.Character) return Boolean;
+   function Is_Hexa_Digit_Character (C : Standard.Character) return Boolean;
+   function Is_Identifier_Character (C : Standard.Character) return Boolean;
+   --  Identifier characters ar either alphabetic characters
+   --  or digits or '_'
+
+
 
    --  Advance the lexical analyse until a new token is found.
    --  An invalid token will make function TOKEN returns t_error.

@@ -33,18 +33,19 @@ package body Tokens is
       Line_Len : Natural;
    end record;
 
-   Current_State : State_Type;
+   Current_State : State_Type := (Line_Number => 0,
+                                  Line_Len => 0);
    Line : String (1 .. 2047);
-   Col : Natural;
+   Col : Natural := 2048;
    Col_Offset : Natural;
    Token_Col : Natural;
    Mark_Pos : Natural;
 
    --  The current token, set by next_token.
-   Current_Token : Idl_Token;
+   Current_Token : Idl_Token := T_Error;
 
    --  If not t_error, the replacement token.
-   Replacement_Token : Idl_Token;
+   Replacement_Token : Idl_Token := T_Error;
 
 
    --  reads the next line
@@ -57,6 +58,7 @@ package body Tokens is
       Current_State.Line_Number := Current_State.Line_Number + 1;
       Col := Line'First;
       Col_Offset := 0;
+      Token_Col := Col;
       Mark_Pos := Col;
    end Read_Line;
 
@@ -150,21 +152,83 @@ package body Tokens is
 
 
    ---------------------------------
-   --  more high level functions  --
+   --  low level char processing  --
    ---------------------------------
 
-   procedure Initialize is
+   function Is_Alphabetic_Character (C : Standard.Character) return Boolean is
    begin
-      --  Initialize current state.
-      Current_State := (Line_Number => 0,
-                        Line_Len => 0);
-      Token_Col := Line'First;
-      Current_Token := T_Error;
-      Replacement_Token := T_Error;
-      Mark_Pos := Line'First;
-      Read_Line;
-      Col := Col - 1;
-   end Initialize;
+      case C is
+         when 'A' .. 'Z'
+           | LC_A .. LC_Z
+           | UC_A_Grave .. UC_I_Diaeresis
+           | LC_A_Grave .. LC_I_Diaeresis
+           | UC_N_Tilde .. UC_O_Diaeresis
+           | LC_N_Tilde .. LC_O_Diaeresis
+           | UC_O_Oblique_Stroke .. UC_U_Diaeresis
+           | LC_O_Oblique_Stroke .. LC_U_Diaeresis
+           | LC_German_Sharp_S
+           | LC_Y_Diaeresis =>
+            return True;
+         when others =>
+            return False;
+      end case;
+   end Is_Alphabetic_Character;
+
+   function Is_Digit_Character (C : Standard.Character) return Boolean is
+   begin
+      case C is
+         when '0' .. '9' =>
+            return True;
+         when others =>
+            return False;
+      end case;
+   end Is_Digit_Character;
+
+   function Is_Octal_Digit_Character (C : Standard.Character) return Boolean is
+   begin
+      case C is
+         when '0' .. '7' =>
+            return True;
+         when others =>
+            return False;
+      end case;
+   end Is_Octal_Digit_Character;
+
+   function Is_Hexa_Digit_Character (C : Standard.Character) return Boolean is
+   begin
+      case C is
+         when '0' .. '9' | 'A' .. 'F' | LC_A .. LC_F =>
+            return True;
+         when others =>
+            return False;
+      end case;
+   end Is_Hexa_Digit_Character;
+
+   function Is_Identifier_Character (C : Standard.Character) return Boolean is
+   begin
+      case C is
+         when 'A' .. 'Z'
+           | LC_A .. LC_Z
+           | UC_A_Grave .. UC_I_Diaeresis
+           | LC_A_Grave .. LC_I_Diaeresis
+           | UC_N_Tilde .. UC_O_Diaeresis
+           | LC_N_Tilde .. LC_O_Diaeresis
+           | UC_O_Oblique_Stroke .. UC_U_Diaeresis
+           | LC_O_Oblique_Stroke .. LC_U_Diaeresis
+           | LC_German_Sharp_S
+           | LC_Y_Diaeresis
+           | '0' .. '9'
+           | ''' =>
+            return True;
+         when others =>
+            return False;
+      end case;
+   end Is_Identifier_Character;
+
+
+   ---------------------------------
+   --  more high level functions  --
+   ---------------------------------
 
    procedure Set_Replacement_Token (Tok : Idl_Token) is
    begin
@@ -204,6 +268,168 @@ package body Tokens is
    end Is_Idl_Keyword;
 
 
+   --  Called when the current character is a '.
+   --  This procedure sets Cureent_Token and returns.
+   --  The get_marked_text function returns then the
+   --  character
+   --
+   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.5
+   --
+   --  Char Literals : (3.2.5.2)
+   --  A character literal is one or more characters enclosed in single
+   --  quotes, as in 'x'.
+   --  Nongraphic characters must be represented using escape sequences as
+   --  defined in Table 3-9. (escape sequences are \n, \t, \v, \b, \r, \f,
+   --  \a, \\, \?, \', \", \ooo, \xhh and \uhhhh)
+   --
+   --  The escape \ooo consists of the backslash followed by one, two or
+   --  three octal digits that are taken to specify the value of the desired
+   --  character. The escape \xhh consists of the backslash followed by x
+   --  followed by one or two hexadecimal digits that are taken to specify
+   --  the value of the desired character.
+   --
+   --  The escape \uhhhh consist of a backslash followed by the character
+   --  'u', followed by one, two, three or four hexadecimal digits.
+   procedure Scan_Char is
+   begin
+      Set_Mark;
+      if Next_Char = '\' then
+         case Next_Char is
+            when 'n' | 't' | 'v' | 'b' | 'r' | 'f'
+              | 'a' | '\' | '?' | Quotation =>
+               Current_Token := T_Lit_Escape_Char;
+            when ''' =>
+               if View_Next_Char /= ''' then
+                  Errors.Display_Error ("Invalid character : '\', "
+                                        & "it should probably be '\\'",
+                                        Current_State.Line_Number,
+                                        Col - 1,
+                                        Errors.Error);
+                  raise Fatal_Error;
+               else
+                  Current_Token := T_Lit_Escape_Char;
+               end if;
+            when '0' .. '7' =>
+               if Is_Octal_Digit_Character (View_Next_Char) then
+                  Skip_Char;
+               end if;
+               if Is_Octal_Digit_Character (View_Next_Char) then
+                  Skip_Char;
+               end if;
+               if Is_Octal_Digit_Character (View_Next_Char) then
+                  Errors.Display_Error ("Too much octal digits in "
+                                        & "character "
+                                        & Get_Marked_Text
+                                        & "...', maximum is 3 in a char "
+                                        & "definition",
+                                        Current_State.Line_Number,
+                                        Col - 1,
+                                        Errors.Error);
+                  raise Fatal_Error;
+               end if;
+               Current_Token := T_Lit_Octal_Char;
+            when 'x' =>
+               if Is_Hexa_Digit_Character (Next_Char) then
+                  if Is_Hexa_Digit_Character (View_Next_Char) then
+                     Skip_Char;
+                  end if;
+                  if Is_Hexa_Digit_Character (View_Next_Char) then
+                     Errors.Display_Error ("Too much hexadecimal digits in "
+                                           & "character "
+                                           & Get_Marked_Text
+                                           & "...', maximum is 2 in a char "
+                                           & "definition",
+                                           Current_State.Line_Number,
+                                           Col - 1,
+                                           Errors.Error);
+                     raise Fatal_Error;
+                  end if;
+                  Current_Token := T_Lit_Hexa_Char;
+               else
+                  Errors.Display_Error ("Invalid hexadecimal character code : "
+                                        & Get_Marked_Text
+                                        & "...'",
+                                        Current_State.Line_Number,
+                                        Col - 1,
+                                        Errors.Error);
+                  raise Fatal_Error;
+               end if;
+            when 'u' =>
+               if Is_Hexa_Digit_Character (Next_Char) then
+                  if Is_Hexa_Digit_Character (View_Next_Char) then
+                     Skip_Char;
+                  end if;
+                  if Is_Hexa_Digit_Character (View_Next_Char) then
+                     Skip_Char;
+                  end if;
+                  if Is_Hexa_Digit_Character (View_Next_Char) then
+                     Skip_Char;
+                  end if;
+                  if Is_Hexa_Digit_Character (View_Next_Char) then
+                     Errors.Display_Error ("Too much hexadecimal digits in "
+                                           & "character "
+                                           & Get_Marked_Text
+                                           & "...', maximum is 4 in a unicode "
+                                           & "char definition",
+                                           Current_State.Line_Number,
+                                           Col - 1,
+                                           Errors.Error);
+                     raise Fatal_Error;
+                  end if;
+                  Current_Token := T_Lit_Unicode_Char;
+               else
+                  Errors.Display_Error ("Invalid unicode character code : "
+                                        & Get_Marked_Text
+                                        & "...'",
+                                        Current_State.Line_Number,
+                                        Col - 1,
+                                        Errors.Error);
+                  raise Fatal_Error;
+               end if;
+            when '8' | '9' | 'A' .. 'F' | LC_C .. LC_e =>
+               Errors.Display_Error ("Invalid octal character code, "
+                                     & Get_Marked_Text
+                                     & "' for hexadecimal codes, use \xhh",
+                                     Current_State.Line_Number,
+                                     Col - 1,
+                                     Errors.Error);
+               raise Fatal_Error;
+            when others =>
+               Errors.Display_Error ("Invalid definition of character : "
+                                     & Get_Marked_Text
+                                     & "'",
+                                     Current_State.Line_Number,
+                                     Col - 1,
+                                     Errors.Error);
+               raise Fatal_Error;
+         end case;
+      elsif Get_Current_Char = ''' then
+         if View_Next_Char = ''' then
+            Errors.Display_Error ("Invalid character : ''', "
+                                  & "it should probably be '\''",
+                                  Current_State.Line_Number,
+                                  Col - 1,
+                                  Errors.Error);
+            raise Fatal_Error;
+         else
+            Current_Token := T_Lit_Simple_Char;
+            return;
+         end if;
+      else
+         Current_Token := T_Lit_Simple_Char;
+      end if;
+      if Next_Char /= ''' then
+         Errors.Display_Error ("Invalid character : '"
+                               & Get_Current_Char
+                               & "' should be '''",
+                               Current_State.Line_Number,
+                               Col - 1,
+                               Errors.Error);
+         raise Fatal_Error;
+      end if;
+   end Scan_Char;
+
+
    --  Called when the current character is a letter.
    --  This procedure sets TOKEN and returns.
    --  The get_marked_text function returns then the
@@ -213,40 +439,64 @@ package body Tokens is
       Tok : Idl_Token;
    begin
       Set_Mark;
-      --  CORBA V2.3, 3.2.3:
-      --  An identifier is an arbritrarily long sequence of ASCII alphabetic,
-      --  digit and underscore characters.  The first character must be an
-      --  ASCII alphabetic character.  All characters are significant.
-      while View_Next_Char in 'A' .. 'Z' or else View_Next_Char in 'a' .. 'z'
-        or else View_Next_Char in '0' .. '9' or else View_Next_Char = '_'
-      loop
+      --  CORBA V2.3, 3.2.5.2
+      --  Wide characters litterals have an L prefix, for example :
+      --      const wchar C1 = L'X';
+      if Get_Current_Char = 'L' and View_Next_Char = ''' then
          Skip_Char;
-      end loop;
-      --  check if it is a reserved keyword or not :
-      --  CORBA V2.3, 3.2.4 :
-      --  keywords must be written exactly as in the above list. Identifiers
-      --  that collide with keywords (...) are illegal. For example,
-      --  "boolean" is a valid keyword, "Boolean" and "BOOLEAN" are
-      --  illegal identifiers.
-      Is_Idl_Keyword (Get_Marked_Text,
-                      Is_A_Keyword,
-                      tok);
-      case Is_A_Keyword is
-         when Idl_Keyword_State (Is_Keyword) =>
-            return Tok;
-         when Idl_Keyword_State (Is_Identifier) =>
-            return T_Identifier;
-         when Idl_Keyword_State (Bad_Case) =>
-            Errors.Display_Error ("Bad identifier or bad case for idl keyword",
-                                  Current_State.Line_Number,
-                                  Col,
-                                  Errors.Error);
-            raise Fatal_Error;
-      end case;
+         Scan_Char;
+         case Current_Token is
+            when T_Lit_Simple_Char =>
+               return T_Lit_Wide_Simple_Char;
+            when T_Lit_Escape_Char =>
+               return T_Lit_Wide_Escape_Char;
+            when T_Lit_Octal_Char =>
+               return T_Lit_Wide_Octal_Char;
+            when T_Lit_Hexa_Char =>
+               return T_Lit_Wide_Hexa_Char;
+            when T_Lit_Unicode_Char =>
+               return T_Lit_Wide_Unicode_Char;
+            when others =>
+               raise Internal_Error;
+         end case;
+      else
+         --  CORBA V2.3, 3.2.3:
+         --  An identifier is an arbritrarily long sequence of ASCII
+         --  alphabetic, digit and underscore characters.  The first
+         --  character must be an ASCII alphabetic character. All
+         --  characters are significant.
+         while Is_Identifier_Character (View_Next_Char)
+         loop
+            Skip_Char;
+         end loop;
+         --  check if it is a reserved keyword or not :
+         --  CORBA V2.3, 3.2.4 :
+         --  keywords must be written exactly as in the above list. Identifiers
+         --  that collide with keywords (...) are illegal. For example,
+         --  "boolean" is a valid keyword, "Boolean" and "BOOLEAN" are
+         --  illegal identifiers.
+         Is_Idl_Keyword (Get_Marked_Text,
+                         Is_A_Keyword,
+                         tok);
+         case Is_A_Keyword is
+            when Idl_Keyword_State (Is_Keyword) =>
+               return Tok;
+            when Idl_Keyword_State (Is_Identifier) =>
+               return T_Identifier;
+            when Idl_Keyword_State (Bad_Case) =>
+               Errors.Display_Error ("Bad identifier or bad case"
+                                     & "for idl keyword",
+                                     Current_State.Line_Number,
+                                     Col,
+                                     Errors.Error);
+               raise Fatal_Error;
+         end case;
+      end if;
    end Scan_Identifier;
 
 
-   --  IDL Syntax and semantics, § 3.2.5
+   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.5
+   --
    --  Integers Literals : (3.2.5.1)
    --  An integer literal consisting of a sequence of digits is taken to be
    --  decimal (base ten), unless it begins with 0 (digit zero).  A sequence
@@ -277,24 +527,22 @@ package body Tokens is
       if Get_Current_Char = '0' and then View_Next_Char /= '.' then
          if View_Next_Char = 'x' or View_Next_Char = 'X' then
             Skip_Char;
-            while View_Next_Char in '0' .. '9'
-              or else View_Next_Char in 'A' .. 'F'
-              or else View_Next_Char in 'a' .. 'f' loop
+            while Is_Hexa_Digit_Character (View_Next_Char) loop
                Skip_Char;
             end loop;
-            Current_Token := T_Lit_Integer;
-         elsif View_Next_Char in '0' .. '7' then
-            while View_Next_Char in '0' .. '7' loop
+            Current_Token := T_Lit_Hexa_Integer;
+         elsif Is_Octal_Digit_Character (View_Next_Char) then
+            while Is_Octal_Digit_Character (View_Next_Char) loop
                Skip_Char;
             end loop;
-            Current_Token := T_Lit_Integer;
+            Current_Token := T_Lit_Octal_Integer;
          else
             --  This is only a digit.
-            Current_Token := T_Lit_Integer;
+            Current_Token := T_Lit_Decimal_Integer;
          end if;
       else
          if Get_Current_Char /= '.' then
-            while View_Next_Char in '0' .. '9' loop
+            while Is_Digit_Character (View_Next_Char) loop
                Skip_Char;
             end loop;
          end if;
@@ -302,41 +550,42 @@ package body Tokens is
             Skip_Char;
          end if;
          if Get_Current_Char = '.' then
-            while View_Next_Char in '0' .. '9' loop
+            while Is_Digit_Character (View_Next_Char) loop
                Skip_Char;
             end loop;
             if View_Next_Char = 'D' or else View_Next_Char = 'd' then
                Skip_Char;
-               Current_Token := T_Lit_Fixed_Point;
+               Current_Token := T_Lit_Floating_Fixed_Point;
             elsif View_Next_Char = 'E' or else View_Next_Char = 'e' then
                Skip_Char;
                if View_Next_Char = '+' or else View_Next_Char = '-' then
                   Skip_Char;
                end if;
-               while View_Next_Char in '0' .. '9' loop
+               while Is_Digit_Character (View_Next_Char) loop
                   Skip_Char;
                end loop;
-               Current_Token := T_Lit_Floating_Point;
+               Current_Token := T_Lit_Exponent_Floating_Point;
             else
-               Current_Token := T_Lit_Floating_Point;
+               Current_Token := T_Lit_Simple_Floating_Point;
             end if;
          elsif View_Next_Char = 'E' or else View_Next_Char = 'e' then
             Skip_Char;
             if View_Next_Char = '+' or else View_Next_Char = '-' then
                Skip_Char;
             end if;
-            while View_Next_Char in '0' .. '9' loop
+            while Is_Digit_Character (View_Next_Char) loop
                Skip_Char;
             end loop;
-            Current_Token := T_Lit_Floating_Point;
+            Current_Token := T_Lit_Pure_Exponent_Floating_Point;
          elsif View_Next_Char = 'D' or else View_Next_Char = 'd' then
             Skip_Char;
-            Current_Token := T_Lit_Fixed_Point;
+            Current_Token := T_Lit_Simple_Fixed_Point;
          else
-            Current_Token := T_Lit_Integer;
+            Current_Token := T_Lit_Decimal_Integer;
          end if;
       end if;
    end Scan_Numeric;
+
 
    procedure Scan_Preprocessor is
    begin
@@ -481,7 +730,16 @@ package body Tokens is
             when '.' =>
                Scan_Numeric;
                return;
-            when 'A' .. 'Z' | 'a' .. 'z' =>
+            when 'A' .. 'Z'
+              | LC_A .. LC_Z
+              | UC_A_Grave .. UC_I_Diaeresis
+              | LC_A_Grave .. LC_I_Diaeresis
+              | UC_N_Tilde .. UC_O_Diaeresis
+              | LC_N_Tilde .. LC_O_Diaeresis
+              | UC_O_Oblique_Stroke .. UC_U_Diaeresis
+              | LC_O_Oblique_Stroke .. LC_U_Diaeresis
+              | LC_German_Sharp_S
+              | LC_Y_Diaeresis =>
                --  Keyword or identifier.
                Current_Token := Scan_Identifier;
                return;
@@ -502,8 +760,7 @@ package body Tokens is
                --  "users may lexically "escape" identifiers by prepending an
                --  underscore (_) to an identifier.
             when '_' =>
-               if View_Next_Char in 'A' .. 'Z'
-                 or else View_Next_Char in 'a' .. 'z' then
+               if Is_Alphabetic_Character (View_Next_Char) then
                   Skip_Char;
                   Current_Token := Scan_Identifier;
                   if Current_Token = T_Identifier then
@@ -525,9 +782,12 @@ package body Tokens is
                                         Errors.Error);
                   raise Fatal_Error;
                end if;
+            when ''' =>
+               Scan_Char;
+               return;
             when others =>
                if Get_Current_Char >= ' ' then
-                  Errors.Display_Error ("bad characater `" & Line (Col) & "'",
+                  Errors.Display_Error ("bad character `" & Line (Col) & "'",
                                         Current_State.Line_Number,
                                         Col,
                                         Errors.Error);
@@ -573,7 +833,14 @@ package body Tokens is
    function Get_Literal return String is
    begin
       case Current_Token is
-         when T_Lit_Integer | T_Lit_Floating_Point | T_Lit_Fixed_Point =>
+         when T_Lit_Decimal_Integer |
+           T_Lit_Octal_Integer |
+           T_Lit_Hexa_Integer |
+           T_Lit_Simple_Floating_Point |
+           T_Lit_Exponent_Floating_Point |
+           T_Lit_Pure_Exponent_Floating_Point |
+           T_Lit_Simple_Fixed_Point |
+           T_Lit_Floating_Fixed_Point =>
             return Get_Marked_Text;
          when others =>
             raise Internal_Error;
