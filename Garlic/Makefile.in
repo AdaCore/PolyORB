@@ -406,10 +406,10 @@ $(TCP_PLATFORM_SOURCES): $(S_GTPLSP_ADS) $(S_GTPLSP_ADB)
 force:
 
 s-garthi.ads s-garthi.adb: $(S_GARTHI_ADS) $(S_GARTHI_ADB) force
-	@if test -e "$(S_GARTHI_ADB)"; then \
+	@if test -n "$(S_GARTHI_ADB)"; then \
 	  cp $(srcdir)/$(S_GARTHI_ADB) s-garthi.adb; \
 	fi
-	@if test -e "$(S_GARTHI_ADS)"; then \
+	@if test -n "$(S_GARTHI_ADS)"; then \
 	  cp $(srcdir)/$(S_GARTHI_ADS) s-garthi.ads; \
 	fi
 
