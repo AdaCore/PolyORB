@@ -1,9 +1,22 @@
 1998-08-14  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garhea.adb (Send): Use a Stream_Element_Access rather than a
-	Stream_Element_Array to prevent a stack blowup for large data.
-	Do not initialize the packet to zero since this is of no use and
-	can only cause stack because of a huge aggregate.
+	* s-garexc.ads: Add pragma No_Return to Raise_Communication_Error.
+
+	* s-garexc.adb: Add dummy raise to make GNAT happy in
+	Raise_Communication_Error.
+
+	* s-garhea.adb: Add use clause for Ada.Streams to ease reading.
+	(Opcode_Read, Opcode_Write): new functions much lighter than
+	Opcode'Read and Opcode'Write that encode an opcode on one byte
+	only.
+	(Send): rewritten to ease reading, fix a stack blowup and use new
+	Opcode functions.
+	(Has_Arrived): rewritten to ease reading and use new Opcode
+	functions.
+
+	* s-gartcp.adb: Major cleanup and rewrite of all the code using
+	streams to send partition ids and buffer counts. Similar to what
+	has been done for opcodes in s-garhea.adb.
 
 1998-08-10  Samuel Tardieu  <sam@inf.enst.fr>
 
