@@ -347,7 +347,8 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   with.add("Omniobject");
   body += "\npackage " + get_ada_full_name() + ".Impl is\n\n";
   if (n_inherits() == 0)
-    body += "   type Object is new Omniobject.Implemented_Object with private ;\n\n\n";
+    body += "   type Object is new Omniobject.Implemented_Object with private ;\n";
+  body += "   type Object_Ptr is access all Object ;\n\n\n";
 
  // forward declarated
 
@@ -360,10 +361,7 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
     {
       inher = adabe_interface::narrow_from_decl(inherits()[0]);      
       body += "   type Object is new " + inher->get_ada_full_name() +
-	".Object with private ;\n\n";
-      body += "   type " + get_ada_local_name() + "_Ptr is access " + get_ada_local_name() + ";\n";
-      body += "   procedure Free is new Ada.Unchecked_Deallocation(";
-      body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr);\n";  
+	".Object with private ;\n\n\n";
     } 
   body += tmp;
   
@@ -388,7 +386,8 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
 	}
        i.next();
     }
-  body += "\nprivate\n\n" ;
+  
+  body += "private\n\n" ;
   body += "   -- You may add fields to this record\n" ;
   if (n_inherits() == 0) {
     body += "   type Object is new Omniobject.Implemented_Object with record\n";

@@ -195,7 +195,7 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 	}
       body += ") return ";
       AST_Decl *b = return_type();
-      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + " ;n\n";
+      body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) + " ;\n\n";
     }
   else
     {
@@ -472,6 +472,7 @@ void
 adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_definition)
 {
   string full_name = get_ada_full_name();
+  string pack_name = full_name.substr(0,full_name.find_last_of('.')) ;
   string result_name = "";
   string full_result_name = "";
   string in_decls = "";
@@ -522,7 +523,9 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   body += "            -- call the implementation\n";
   body += "            ";
   if (is_function()) body += "Result := ";
-  body += full_name;
+  body += pack_name;
+  body += ".Impl.";
+  body += get_ada_local_name ();
   body += "(Self";
   body += call_args;
   body += ") ;\n";
@@ -533,7 +536,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
     body += "            Mesg_Size := Align_Size (Result, Mesg_Size) ;\n";
 
     body += "            -- Initialisation of the reply\n";
-    body += "            Giop_S.Initialize_Reply (Orls, Corba.No_Exception, Mesg_Size) ;\n";
+    body += "            Giop_S.Initialize_Reply (Orls, Giop.NO_EXCEPTION, Mesg_Size) ;\n";
 
     body += "            -- Marshall the arguments\n";
 
@@ -560,9 +563,9 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
 
   if (user_exceptions) {
     body += "\n         exception\n";
-    string tmp = "";
     while (!except_iterator.is_done())
       {
+	string tmp = "";
 	AST_Decl *d = except_iterator.item();
 	dynamic_cast<adabe_exception *>(d)->produce_skel_adb(with, tmp);
 	body += tmp;

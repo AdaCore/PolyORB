@@ -17,7 +17,7 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
 
   body+=  "   " + get_ada_local_name() + " : exception ;\n";
   
-  body +=  "   type " +get_ada_local_name() +"_Members is new Corba.IDL_Exception_Members with ";
+  body += "   type " + get_ada_local_name() +"_Members is new Corba.IDL_Exception_Members with ";
   
   // ...
   
@@ -56,6 +56,11 @@ adabe_exception::produce_ads (dep_list& with,string &body, string &previous)
       body += "   end record ;\n";
     }
   
+  body += "   ";
+  body += get_ada_local_name();
+  body += "_Repository_Id : Corba.String := Corba.To_Corba_String(\"";
+  body += repositoryID();
+  body += "\") ;\n";
   body += "   procedure Get_Members(From : in Ada.Exceptions.Exception_Occurrence ;\n";
   body += "                         To : out " + get_ada_local_name() + "_Members ) ;\n";
 }
@@ -75,7 +80,11 @@ adabe_exception::produce_skel_adb (dep_list &with, string &body)
 {
   UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
   bool has_member = !activator.is_done();
-  
+
+  string full_name = get_ada_full_name ();
+  string pack = full_name.substr (0,full_name.find_last_of('.'));
+
+  with.add (pack);
   body += "            when except : ";
   body += get_ada_local_name ();
   body += " =>\n";
@@ -91,7 +100,9 @@ adabe_exception::produce_skel_adb (dep_list &with, string &body)
   }
   body += "               begin\n";
   if (has_member) {
-    body += "                  Member := Get_Member(except) ;\n";
+    body += "                  ";
+    body += pack;
+    body += ".Get_Members(except,Member) ;\n";
   }
   body += "                  -- compute the size of the replied message\n";
   body += "                  Mesg_Size := Giop_S.Reply_Header_Size ;\n";
@@ -100,7 +111,7 @@ adabe_exception::produce_skel_adb (dep_list &with, string &body)
     body += "                  Mesg_Size := Align_Size (Member, Mesg_Size) ;\n";
   }  
   body += "                  -- Initialisation of the reply\n";
-  body += "                  Giop_S.Initialize_Reply (Orls, Corba.User_Exception, Mesg_Size) ;\n";
+  body += "                  Giop_S.Initialize_Reply (Orls, Giop.USER_EXCEPTION, Mesg_Size) ;\n";
 
   body += "                  -- Marshall the exception\n";
 
@@ -124,12 +135,12 @@ adabe_exception::produce_marshal_ads (dep_list& with,string &body, string &previ
       body += "   procedure Marshall (A : in ";
       body += get_ada_local_name();
       body += "_Members ;\n";
-      body += "                       S : in out Giop_C.Object) ;\n\n";
+      body += "                       S : in out Netbufferedstream.Object'Class) ;\n\n";
       
       body += "   procedure UnMarshall (A : out ";
       body += get_ada_local_name();
       body += "_Members ;\n";
-      body += "                         S : in out Giop_C.Object) ;\n\n";
+      body += "                         S : in out Netbufferedstream.Object'Class) ;\n\n";
       
       body += "   function Align_Size (A : in ";
       body += get_ada_local_name();
@@ -154,13 +165,13 @@ adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previ
       marshall += "   procedure Marshall(A : in ";
       marshall += get_ada_local_name();
       marshall += "_Members ;\n";
-      marshall += "                      S : in out Giop_C.Object) is\n";
+      marshall += "                      S : in out Netbufferedstream.Object'Class) is\n";
       marshall += "   begin\n";
       
       unmarshall += "   procedure UnMarshall(A : out ";
       unmarshall += get_ada_local_name();
       unmarshall += "_Members ;\n";
-      unmarshall += "                        S : in out Giop_C.Object) is\n";
+      unmarshall += "                        S : in out Netbufferedstream.Object'Class) is\n";
       unmarshall += "   begin\n";
       
       align_size += "   function Align_Size (A : in ";

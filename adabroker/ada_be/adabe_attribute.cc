@@ -285,9 +285,9 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
   body += "            Mesg_Size := Align_Size (Result, Mesg_Size) ;\n";
 
   body += "            -- Initialisation of the reply\n";
-  body += "            Giop_S.Initialize_Reply (Orls, Giop_NO_EXCEPTION, Mesg_Size) ;\n";
+  body += "            Giop_S.Initialize_Reply (Orls, Giop.NO_EXCEPTION, Mesg_Size) ;\n";
 
-  body += "            -- Marshall the raguments\n";
+  body += "            -- Marshall the arguments\n";
   body += "            Marshall (Result, Orls) ;\n";
 
   body += "            -- inform the orb\n";

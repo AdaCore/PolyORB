@@ -107,12 +107,12 @@ adabe_sequence::produce_marshal_ads(dep_list& with, string &body,string &previou
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Giop_C.Object) ;\n\n";
+  body += "                       S : in out Netbufferedstream.Object'Class) ;\n\n";
 
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                         S : in out Giop_C.Object) ;\n\n";
+  body += "                         S : in out Netbufferedstream.Object'Class) ;\n\n";
 
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
@@ -133,7 +133,7 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   body += "   procedure Marshall (A : in ";
   body += type_name;
   body += " ;\n"; 
-  body += "                       S : in out Giop_c.Object) is\n";
+  body += "                       S : in out Netbufferedstream.Object'Class) is\n";
   body += "      Len : Corba.Unsigned_Long := Corba.Unsigned_Long (";
   body += inter_name;
   body += ".Length(A)) ;\n";
@@ -149,7 +149,7 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   body += "   procedure UnMarshall (A : out ";
   body += type_name;
   body += " ;\n"; 
-  body += "                         S : in out Giop_c.Object) is\n";
+  body += "                         S : in out Netbufferedstream.Object'Class) is\n";
   body += "      Len : Corba.Unsigned_Long ;\n";
   body += "   begin\n";
   body += "      UnMarshall (Len,S);\n";

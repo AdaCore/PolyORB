@@ -73,12 +73,12 @@ adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Giop_C.Object) ;\n\n";
+  body += "                       S : in out Netbufferedstream.Object'Class) ;\n\n";
 
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                         S : in out Giop_C.Object) ;\n\n";
+  body += "                         S : in out Netbufferedstream.Object'Class) ;\n\n";
 
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
@@ -100,7 +100,7 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   marshall += "   procedure Marshall(A : in ";
   marshall += get_ada_local_name();
   marshall += " ;\n";
-  marshall += "                      S : in out Giop_C.Object) is\n";
+  marshall += "                      S : in out Netbufferedstream.Object'Class) is\n";
   marshall += "   begin\n";
   marshall += "      Marshall (A.Switch,S) ;\n";
   marshall += "      case A.Switch is\n";
@@ -108,7 +108,7 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   unmarshall += "   procedure UnMarshall(A : out ";
   unmarshall += get_ada_local_name();
   unmarshall += " ;\n";
-  unmarshall += "                        S : in out Giop_C.Object) is\n";
+  unmarshall += "                        S : in out Netbufferedstream.Object'Class) is\n";
   unmarshall += "      Switch : ";
   unmarshall += disc_name;
   unmarshall += " ;\n";

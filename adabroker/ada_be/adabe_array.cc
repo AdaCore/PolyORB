@@ -93,12 +93,12 @@ adabe_array::produce_marshal_ads(dep_list& with,string &body, string &previous)
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "      S : in out Giop_C.Object) ;\n\n";
+  body += "      S : in out Netbufferedstream.Object'Class) ;\n\n";
 
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "      S : in out Giop_C.Object) ;\n\n";
+  body += "      S : in out Netbufferedstream.Object'Class) ;\n\n";
 
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
@@ -119,7 +119,7 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                       S : in out Giop_C.Object) is\n";
+  body += "                       S : in out Netbufferedstream.Object'Class) is\n";
   body += "   begin\n";
   body += "      for I in A'range loop \n";
   body += "         Marshall (A(i), S) ; \n";
@@ -129,7 +129,7 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                         S : in out Giop_C.Object) is\n";
+  body += "                         S : in out Netbufferedstream.Object'Class) is\n";
   body += "   begin\n";
   body += "      for I in A'range loop \n";
   body += "         UnMarshall (A(I), S) ;\n";

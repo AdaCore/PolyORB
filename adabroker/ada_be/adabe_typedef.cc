@@ -105,11 +105,11 @@ adabe_typedef::produce_marshal_ads(dep_list& with, string &body, string &previou
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                      S : in out Giop_C.Object) ;\n\n";
+  body += "                      S : in out Netbufferedstream.Object'Class) ;\n\n";
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                        S : in out Giop_C.Object) ;\n\n";
+  body += "                        S : in out Netbufferedstream.Object'Class) ;\n\n";
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
@@ -150,7 +150,7 @@ adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previou
   body += "   procedure Marshall(A : in ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                     S : in out Giop_C.Object) is\n";
+  body += "                      S : in out Netbufferedstream.Object'Class) is\n";
   body += "   begin\n";
   body += "      Marshall(";
   body += name;
@@ -160,7 +160,7 @@ adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previou
   body += "   procedure UnMarshall(A : out ";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "                      S : in out Giop_C.Object) is\n";
+  body += "                        S : in out Netbufferedstream.Object'Class) is\n";
   body += "   begin\n";
   body += "      UnMarshall(";
   body += name;
