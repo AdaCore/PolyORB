@@ -44,6 +44,7 @@ package System.Garlic.Exceptions is
    --  Raise an exception with a message corresponding to errno
 
    procedure Raise_Communication_Error (Msg : in String := "");
+   pragma No_Return (Raise_Communication_Error);
    pragma Inline (Raise_Communication_Error);
    --  Idem, but with the specific exception System.RPC.Communication_Error.
    --  If an alternate message is given, it will be used instead.
