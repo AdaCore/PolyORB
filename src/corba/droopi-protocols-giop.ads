@@ -460,6 +460,7 @@ private
    Endianness_Bit : constant Bit_Order_Type := 0;
    Fragment_Bit   : constant Bit_Order_Type := 1;
 
-   Current_Request_Id   : Types.Unsigned_Long := 1;
+   function Get_Request_Id return Types.Unsigned_Long;
+   --  Obtain a new, unique request identifier.
 
 end Droopi.Protocols.GIOP;

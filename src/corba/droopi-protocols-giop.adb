@@ -64,14 +64,47 @@ package body Droopi.Protocols.GIOP is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   --  Each request has a unique Request_Id, allocated through
+   --  the use of a global counter.
 
-   --   Current_Request_Id : Types.Unsigned_Long := 1;
+   Current_Request_Id : Types.Unsigned_Long := 1;
    Counter_Lock : Mutex_Access;
+   --  Global variable Current_Request_Id must be accessed
+   --  only with Counter_Lock locked.
+
+   --  A note can be attached to a DROOPI request to augment
+   --  it with personality-specific information. The GIOP
+   --  uses such a note to associate the Request with its
+   --  Request_Id.
 
    type Request_Note is new Note with record
      Id : Types.Unsigned_Long;
    end record;
 
+   --  Subprograms related to the global Request_Id counter.
+
+   procedure Initialize is
+   begin
+      Create (Counter_Lock);
+   end Initialize;
+
+   procedure Finalize is
+   begin
+      Destroy (Counter_Lock);
+   end Finalize;
+
+   function Get_Request_Id return Types.Unsigned_Long
+   is
+      R : Types.Unsigned_Long;
+   begin
+      Enter (Counter_Lock);
+      R := Current_Request_Id;
+      Current_Request_Id := Current_Request_Id + 1;
+      Leave (Counter_Lock);
+      return R;
+   end Get_Request_Id;
+
+   --  Conversion tables for various fields of GIOP messages.
 
    MsgType_To_Octet :
      constant array (Msg_Type'Range) of Types.Octet
@@ -131,35 +164,24 @@ package body Droopi.Protocols.GIOP is
          4 => Loc_System_Exception,
          5 => Loc_Needs_Addressing_Mode);
 
-   ---------------
-   ---------------
-   procedure Initialize is
-   begin
-      Create (Counter_Lock);
-   end Initialize;
 
-   procedure Finalize is
-   begin
-      Destroy (Counter_Lock);
-   end Finalize;
+   --  Utility function for testing.
 
-
-   ------------------------------
-   --   Utility function for testing
-   ------------------------------
-
-   procedure To_Buffer (S   : access GIOP_Session;
-                     Octets : access Encapsulation)
+   procedure To_Buffer
+     (S      : access GIOP_Session;
+      Octets : access Encapsulation)
    is
       use Droopi.Representations.CDR;
       use Droopi.Opaque;
+
       Endianness1 : Endianness_Type;
       Z : constant Zone_Access
         := Zone_Access'(Octets.all'Unchecked_Access);
    begin
 
       if Droopi.Types.Boolean'Val
-        (Droopi.Types.Octet (Octets (Octets'First))) then
+        (Droopi.Types.Octet (Octets (Octets'First)))
+      then
          Endianness1 := Little_Endian;
       else
          Endianness1 := Big_Endian;
@@ -178,20 +200,6 @@ package body Droopi.Protocols.GIOP is
       Show (S.Buffer_In.all);
 
    end To_Buffer;
-
-   ---------------------------------------------------------
-   --  Incrementing the Actual Session's current Request Id
-   --------------------------------------------------------
-
-   procedure Inc_Request_Id;
-
-   procedure Inc_Request_Id
-   is
-   begin
-      Enter (Counter_Lock);
-      Current_Request_Id := Current_Request_Id + 1;
-      Leave (Counter_Lock);
-   end Inc_Request_Id;
 
    --------------------------------
    -- Marshalling Messages Types --
@@ -1062,12 +1070,12 @@ package body Droopi.Protocols.GIOP is
    is
       use Pend_Req_Seq;
    begin
-      Set_Note (R.Notepad, Request_Note'(Annotations.Note with
-                                          Id => Current_Request_Id));
-      Pending  := Pending_Request'(Req => R,
-                      Target_Profile => Profile);
+      Set_Note
+        (R.Notepad, Request_Note'
+         (Annotations.Note with Id => Get_Request_Id));
+      Pending  := Pending_Request'
+        (Req => R, Target_Profile => Profile);
       Append (Ses.Pending_Rq, Pending);
-      Inc_Request_Id;
    end Store_Request;
 
    ----------------------
