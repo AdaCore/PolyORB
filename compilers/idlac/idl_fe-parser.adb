@@ -26,12 +26,12 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#19 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#20 $
 
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
@@ -84,7 +84,7 @@ package body Idl_Fe.Parser is
    --  to look a bit further than the current_token.
    --  A second buffer is used to keep the location of each token,
    --  and a third one for their string value (usefull in case of
-   --  an identifier ou a literal)
+   --  an identifier or a literal)
 
    --  buffer length
    Buffer_Length : constant Natural := 6;
@@ -1557,7 +1557,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Value (Result : out Node_Id;
                           Success : out Boolean) is
    begin
-      pragma Debug (O2 ("Initialize_Local_Object: enter"));
+      pragma Debug (O2 ("Parse_Value: enter"));
       case Get_Token is
          when T_Custom =>
             Next_Token;
@@ -1575,7 +1575,7 @@ package body Idl_Fe.Parser is
          when others =>
             raise Errors.Internal_Error;
       end case;
-      pragma Debug (O2 ("Initialize_Local_Object: end"));
+      pragma Debug (O2 ("Parse_Value: end"));
       return;
    end Parse_Value;
 
