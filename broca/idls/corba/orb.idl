@@ -66,6 +66,8 @@ module CORBA {
     interface ValueMemberDef;
     interface WstringDef;
 
+    native AbstractBase;
+
     typedef string Identifier;
 
 // Chapter 3: IDL Syntax and Semantics
