@@ -26,6 +26,7 @@
 
 with Errors;
 with Ada.Unchecked_Deallocation;
+with Interfaces;
 
 package Idl_Fe.Types is
 
@@ -51,6 +52,13 @@ package Idl_Fe.Types is
    procedure Set_Location (N : Node_Id;
                            Loc : Location);
    function Get_Location (N : Node_Id) return Location;
+
+   --  Version types for repository_ids
+   type Version_Type is
+      record
+         Major : Interfaces.Unsigned_16;
+         Minor : Interfaces.Unsigned_16;
+      end record;
 
 
    ----------------------------------

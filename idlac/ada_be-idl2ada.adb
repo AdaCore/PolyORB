@@ -874,7 +874,6 @@ package body Ada_Be.Idl2Ada is
             end loop;
          end;
       end if;
-
       if Full_View then
          PL (CU, " with record");
          II (CU);
@@ -885,8 +884,9 @@ package body Ada_Be.Idl2Ada is
          PL (CU, "end record;");
       else
          PL (CU, " with private;");
+         NL (CU);
+         PL (CU, "type Object_Ptr is access all Object;");
       end if;
-
    end Gen_Object_Servant_Declaration;
 
    procedure Gen_When_Clause
