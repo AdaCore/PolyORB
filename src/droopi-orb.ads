@@ -31,9 +31,9 @@ package Droopi.ORB is
    -- A server object --
    ---------------------
 
-   type ORB (Tasking_Policy : access Tasking_Policy_Type'Class)
+   type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
       is limited private;
-   type ORB_Access is access all ORB;
+   type ORB_Access is access all ORB_Type;
 
    ------------------------
    -- A decorated socket --
@@ -56,9 +56,9 @@ package Droopi.ORB is
       end case;
    end record;
 
-   procedure Handle_Event (O : access ORB; AS : Active_Socket);
+   procedure Handle_Event (ORB : access ORB_Type; AS : Active_Socket);
    --  Process events that have occurred on active socket AS, managed
-   --  by server O.
+   --  by server ORB.
 
    package Sock_Seqs is new Sequences.Unbounded (Active_Socket);
    subtype Sock_Seq is Sock_Seqs.Sequence;
@@ -90,7 +90,7 @@ package Droopi.ORB is
    type Exit_Condition_Access is access all Boolean;
 
    procedure Run
-     (O              : access ORB;
+     (ORB            : access ORB_Type;
       Exit_Condition : Exit_Condition_Access := null;
       May_Poll       : Boolean := False);
    --  Execute the ORB until:
@@ -106,34 +106,34 @@ package Droopi.ORB is
    --  If May_Poll, then this task may suspend itself to wait
    --  for external events.
 
-   function Work_Pending (O : access ORB) return Boolean;
+   function Work_Pending (ORB : access ORB_Type) return Boolean;
    --  Return True if, and only if, some ORB processing is
    --  pending.
 
-   procedure Perform_Work (O : access ORB);
+   procedure Perform_Work (ORB : access ORB_Type);
    --  Perform one elementary ORB action and return.
 
    procedure Shutdown
-     (O                   : access ORB;
+     (ORB                 : access ORB_Type;
       Wait_For_Completion : Boolean := True);
-   --  Shut down ORB O. If Wait_For_Completion is True, do
+   --  Shut down ORB. If Wait_For_Completion is True, do
    --  not return before the shutdown is completed.
 
    procedure Insert_Socket
-     (O  : access ORB;
-      AS : Active_Socket);
+     (ORB : access ORB_Type;
+      AS  : Active_Socket);
    --  Insert socket S with kind K in the set of sockets monitored by O.
 
    procedure Delete_Socket
-     (O : access ORB;
-      S : Sockets.Socket_Type);
-   --  Delete socket S from the set of sockets monitored by O.
+     (ORB : access ORB_Type;
+      S   : Sockets.Socket_Type);
+   --  Delete socket S from the set of sockets monitored by ORB.
 
 private
 
    type Tasking_Policy_Type is abstract tagged limited null record;
 
-   type ORB (Tasking_Policy : access Tasking_Policy_Type'Class)
+   type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
    is limited record
 
       ------------------

@@ -1,0 +1,8 @@
+TODO for Droopi
+---------------
+
+$Id$
+
+* Support logging to syslog (also for Java ?)
+* Unified configuration file (modifications to
+  Droopi.Log).

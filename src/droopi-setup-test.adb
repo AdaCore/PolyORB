@@ -2,6 +2,7 @@
 
 --  $Id$
 
+with Droopi.Log;
 with Droopi.ORB.Task_Policies;
 with Droopi.No_Tasking;
 with Droopi.Sockets;
@@ -15,6 +16,13 @@ is
    Addr : Sock_Addr_Type;
 
 begin
+   -------------------------------
+   -- Initialize sll aubsystems --
+   -------------------------------
+
+   Droopi.Log.Initialize;
+   --  Logging subsystem.
+
    Droopi.No_Tasking.Initialize;
    --  Setup soft links.
 
@@ -22,7 +30,9 @@ begin
      (Tasking_Policy_Access'(new Task_Policies.No_Tasking));
    --  Create ORB singleton.
 
-   --  Create server (listening) socket.
+   --------------------------------------
+   -- Create server (listening) socket --
+   --------------------------------------
 
    Create_Socket (Server);
 

@@ -1,21 +1,5 @@
 --  Logging support for DROOPI
 
---  Usage is as follows:
---
---  with Broca.Debug;
---
---  package Broca.Foo is
---
---     Flag : constant Natural := Broca.Debug.Is_Active ("specific_name");
---     procedure O is new Broca.Debug.Output (Flag);
---
---     [...]
---
---     pragma Debug (O ("debugging info"));
---
---  The output will be done if "adabroker.deb" file contains
---  a line with "specific_name"
-
 --  $Id$
 
 package Droopi.Log is
