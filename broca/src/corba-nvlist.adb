@@ -34,6 +34,8 @@
 with Broca.CDR;
 with Broca.Debug;
 
+with Ada.Tags;
+
 package body CORBA.NVList is
 
    Flag : constant Natural
@@ -139,7 +141,21 @@ package body CORBA.NVList is
       while List /= Null_NVList loop
          if List.NV.Arg_Modes = CORBA.ARG_OUT or
            List.NV.Arg_Modes = CORBA.ARG_INOUT then
+            pragma Debug (O ("Unmarshall : about to unmarshall a NamedValue"));
+            pragma Debug (O ("Unmarshall : is_empty := "
+                             & Boolean'Image (CORBA.Is_Empty
+                                              (List.NV.Argument))));
             Broca.CDR.Unmarshall (Buffer, List.NV);
+            pragma Debug (O ("Unmarshall : is_empty := "
+                             & Boolean'Image (CORBA.Is_Empty
+                                              (List.NV.Argument))));
+            pragma Debug (O ("Unmarshall : kind is "
+                             & CORBA.TCKind'Image
+                             (CORBA.TypeCode.Kind
+                              (CORBA.Get_Type (List.NV.Argument)))));
+            pragma Debug (O ("Unmarshall : value kind is "
+                             & Ada.Tags.External_Tag
+                              (List.NV.Argument.The_Value'Tag)));
          end if;
          List := List.Next;
       end loop;
@@ -282,13 +298,16 @@ package body CORBA.NVList is
    function Get_NVList (Obj : Ref) return NV_List is
       Current_NVList_List : NVList_List := NVList_Repository;
    begin
+      pragma Debug (O ("Get_NV_List : enter"));
       while Current_NVList_List /= Null_NVList_List and then
         Current_NVList_List.Obj /= Obj loop
          Current_NVList_List := Current_NVList_List.Next;
       end loop;
       if Current_NVList_List = Null_NVList_List then
+         pragma Debug (O ("Get_NV_List : end with null list"));
          return Null_NVList;
       else
+         pragma Debug (O ("Get_NV_List : end with non null list"));
          return Current_NVList_List.List;
       end if;
    end Get_NVList;

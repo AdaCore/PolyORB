@@ -1302,10 +1302,13 @@ package body Broca.CDR is
             declare
                S : Short := Unmarshall (Buffer);
             begin
+               pragma Debug (O ("Unmarshall_To_Any : dealing with a short"));
                if Is_Empty then
+                  pragma Debug (O ("Unmarshall_To_Any : creating a node"));
                   Result := To_Any (S);
                   Set_Type (Result, Any_Type);
                else
+                  pragma Debug (O ("Unmarshall_To_Any : using existing node"));
                   Set_Any_Value (Result, S);
                end if;
             end;
@@ -2050,7 +2053,13 @@ package body Broca.CDR is
                          NV : in out CORBA.NamedValue) is
    begin
       pragma Debug (O ("Unmarshall (NamedValue) : enter"));
+      pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
+                       & Boolean'Image (CORBA.Is_Empty
+                                        (NV.Argument))));
       Unmarshall_To_Any (Buffer, NV.Argument);
+      pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
+                       & Boolean'Image (CORBA.Is_Empty
+                                        (NV.Argument))));
       pragma Debug (O ("Unmarshall (NamedValue) : end"));
    end Unmarshall;
 

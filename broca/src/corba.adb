@@ -1496,6 +1496,8 @@ package body CORBA is
       if (TypeCode.Kind (Item.The_Type) /= Tk_Short) then
          raise Bad_TypeCode;
       end if;
+      pragma Debug (O ("From_Any (Short) : is_empty = "
+                       & Boolean'Image (CORBA.Is_Empty (Item))));
       return Content_Short_Ptr (Item.The_Value).Value;
    end From_Any;
 
