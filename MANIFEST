@@ -465,6 +465,8 @@ ada/switch-m.adb
 ada/switch-m.ads
 ada/table.adb
 ada/table.ads
+ada/targparm.adb
+ada/targparm.ads
 ada/tree_io.adb
 ada/tree_io.ads
 ada/types.adb
