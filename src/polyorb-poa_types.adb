@@ -162,6 +162,32 @@ package body PolyORB.POA_Types is
    -- Get_ULong --
    ---------------
 
+
+   Hex_Val : constant array (Stream_Element) of Types.Unsigned_Long :=
+     (Character'Pos ('0') => 0,
+      Character'Pos ('1') => 1,
+      Character'Pos ('2') => 2,
+      Character'Pos ('3') => 3,
+      Character'Pos ('4') => 4,
+      Character'Pos ('5') => 5,
+      Character'Pos ('6') => 6,
+      Character'Pos ('7') => 7,
+      Character'Pos ('8') => 8,
+      Character'Pos ('9') => 9,
+      Character'Pos ('A') => 10,
+      Character'Pos ('a') => 10,
+      Character'Pos ('B') => 11,
+      Character'Pos ('b') => 11,
+      Character'Pos ('C') => 12,
+      Character'Pos ('c') => 12,
+      Character'Pos ('D') => 13,
+      Character'Pos ('d') => 13,
+      Character'Pos ('E') => 14,
+      Character'Pos ('e') => 14,
+      Character'Pos ('F') => 15,
+      Character'Pos ('f') => 15,
+      others => 0);
+
    procedure Get_ULong
      (SEA   : in     Object_Id;
       SEI   : in out Stream_Element_Offset;
@@ -170,7 +196,7 @@ package body PolyORB.POA_Types is
    is
       R : Types.Unsigned_Long := 0;
    begin
-      if SEI + 4 > SEA'Last + 1 then
+      if SEI + 7 > SEA'Last then
          PolyORB.Exceptions.Throw
            (Error,
             PolyORB.Exceptions.Invalid_Object_Id_E,
@@ -180,29 +206,46 @@ package body PolyORB.POA_Types is
          return;
       end if;
 
-      for J in 0 .. 3 loop
-         R := R * 256 + Types.Unsigned_Long
-           (SEA (SEI + Stream_Element_Offset (J)));
+      for J in 0 .. 7 loop
+         R := R * 16 + Hex_Val (SEA (SEI + Stream_Element_Offset (J)));
       end loop;
 
       ULo := R;
-      SEI := SEI + 4;
+      SEI := SEI + 8;
    end Get_ULong;
 
    ---------------
    -- Put_ULong --
    ---------------
 
+   Hex : constant array (Types.Unsigned_Long range 0 .. 15) of Stream_Element
+     := (Character'Pos ('0'),
+         Character'Pos ('1'),
+         Character'Pos ('2'),
+         Character'Pos ('3'),
+         Character'Pos ('4'),
+         Character'Pos ('5'),
+         Character'Pos ('6'),
+         Character'Pos ('7'),
+         Character'Pos ('8'),
+         Character'Pos ('9'),
+         Character'Pos ('a'),
+         Character'Pos ('b'),
+         Character'Pos ('c'),
+         Character'Pos ('d'),
+         Character'Pos ('e'),
+         Character'Pos ('f'));
+
    function Put_ULong
      (ULo : Types.Unsigned_Long)
      return Object_Id
    is
-      R : Object_Id (0 .. 3);
+      R : Object_Id (0 .. 7);
       U : Types.Unsigned_Long := ULo;
    begin
       for J in reverse R'Range loop
-         R (J) := Stream_Element (U mod 256);
-         U := U / 256;
+         R (J) := Hex (U mod 16);
+         U := U / 16;
       end loop;
 
       return R;
@@ -219,10 +262,10 @@ package body PolyORB.POA_Types is
       Error : in out PolyORB.Exceptions.Error_Container) is
    begin
       case SEA (SEI) is
-         when 0 =>
+         when Character'Pos ('F') =>
             Boo := False;
 
-         when 1 =>
+         when Character'Pos ('T') =>
             Boo := True;
 
          when others =>
@@ -241,12 +284,14 @@ package body PolyORB.POA_Types is
    -- Put_Boolean --
    -----------------
 
+   Bool_To_SE : constant array (Boolean) of Stream_Element :=
+     (False => Character'Pos ('F'), True => Character'Pos ('T'));
    function Put_Boolean
      (Boo : Types.Boolean)
      return Object_Id
    is
    begin
-      return Object_Id'(0 .. 0 => Boolean'Pos (Boo));
+      return Object_Id'(0 .. 0 => Bool_To_SE (Boo));
    end Put_Boolean;
 
    ----------------------------
@@ -343,14 +388,28 @@ package body PolyORB.POA_Types is
       Index := Oid'First;
 
       declare
-         Creator_Last : constant Integer := Utils.Find
-                          (Oid_Str, Oid_Str'First, POA_Path_Separator) - 1;
+         Sep : Integer;
       begin
-         Creator :=
-           To_PolyORB_String (Oid_Str (Oid_Str'First .. Creator_Last));
-         Index := Oid'First
-           + Stream_Element_Offset (Creator_Last - Oid_Str'First)
-           + 2; --  Skip POA_Path_Separator
+         --  Determine last character of Creator by looking for last
+         --  occurrence of POA_Path_Separator. If there is no occurrence,
+         --  the while string is the Creator.
+
+         Sep := Utils.Find
+           (Oid_Str, Oid_Str'Last, POA_Path_Separator,
+            Skip => False, Direction => Utils.Backward);
+         if Sep < Oid_Str'First then
+            --  No POA_Path_Separator: the whole string is the Creator
+            Sep := Oid_Str'Last + 1;
+         end if;
+
+         if Sep = Oid_Str'First then
+            --  Empty creator, we may not index Oid_Str with Sep - 1 as it is
+            --  out of range.
+            Creator := To_PolyORB_String ("");
+         else
+            Creator := To_PolyORB_String (Oid_Str (Oid_Str'First .. Sep - 1));
+         end if;
+         Index := Oid'First + Stream_Element_Offset (Sep - Oid_Str'First) + 1;
       end;
 
       if Index <= Oid'Last then

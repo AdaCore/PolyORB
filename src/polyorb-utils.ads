@@ -78,14 +78,21 @@ package PolyORB.Utils is
    function Trimmed_Image (I : Integer) return String;
    --  Return Integer'Image (I) without a leading space
 
+   type Direction_Type is private;
+
+   Forward  : constant Direction_Type;
+   Backward : constant Direction_Type;
+
    function Find_Skip
-     (S     : String;
-      Start : Integer;
-      What  : Character;
-      Skip  : Boolean)
+     (S         : String;
+      Start     : Integer;
+      What      : Character;
+      Skip      : Boolean;
+      Direction : Direction_Type)
      return Integer;
    --  If Skip is False, return the index of the
-   --  first occurrence of What in S.
+   --  first occurrence of What in S starting at Start and going
+   --  in the indicated direction (which can be Forward or Backward).
    --  If Skip is True, return the index of the
    --  first occurrence of any character OTHER THAN What.
    --  If no such character exists, S'Last + 1 is returned.
@@ -93,26 +100,29 @@ package PolyORB.Utils is
    --  Shorthands for commonly-used forms of Find_Skip
 
    function Find
-     (S     : String;
-      Start : Integer;
-      What  : Character;
-      Skip  : Boolean := False)
+     (S         : String;
+      Start     : Integer;
+      What      : Character;
+      Skip      : Boolean        := False;
+      Direction : Direction_Type := Forward)
      return Integer
      renames Find_Skip;
 
    function Find_Whitespace
-     (S     : String;
-      Start : Integer;
-      What  : Character := ' ';
-      Skip  : Boolean := False)
+     (S         : String;
+      Start     : Integer;
+      What      : Character      := ' ';
+      Skip      : Boolean        := False;
+      Direction : Direction_Type := Forward)
      return Integer
      renames Find_Skip;
 
    function Skip_Whitespace
-     (S     : String;
-      Start : Integer;
-      What  : Character := ' ';
-      Skip  : Boolean := True)
+     (S         : String;
+      Start     : Integer;
+      What      : Character      := ' ';
+      Skip      : Boolean        := True;
+      Direction : Direction_Type := Forward)
      return Integer
      renames Find_Skip;
 
@@ -126,6 +136,10 @@ package PolyORB.Utils is
    --  Folds all characters of string S to lower case
 
 private
+   type Direction_Type is new Integer range -1 .. +1;
+   Forward  : constant Direction_Type := +1;
+   Backward : constant Direction_Type := -1;
+   --  Direction_Type value 0 does not make sense
 
    pragma Inline (Hex_Value, SEA_To_Hex_String, Hex_String_To_SEA,
                   URI_Encode, URI_Decode, Trimmed_Image, Find_Skip);

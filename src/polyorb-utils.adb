@@ -221,17 +221,18 @@ package body PolyORB.Utils is
    ---------------
 
    function Find_Skip
-     (S     : String;
-      Start : Integer;
-      What  : Character;
-      Skip  : Boolean)
+     (S         : String;
+      Start     : Integer;
+      What      : Character;
+      Skip      : Boolean;
+      Direction : Direction_Type)
      return Integer
    is
       I : Integer := Start;
    begin
       loop
-         exit when I > S'Last or else (S (I) = What xor Skip);
-         I := I + 1;
+         exit when I not in S'Range or else (S (I) = What xor Skip);
+         I := I + Integer (Direction);
       end loop;
 
       return I;
