@@ -401,7 +401,7 @@ package body Broca.Rootpoa is
       Key        : access Encapsulation;
       Operation  : CORBA.Identifier;
       Request_Id : CORBA.Unsigned_Long;
-      Reponse_Expected : CORBA.Boolean;
+      Response_Expected : CORBA.Boolean;
       Message    : access Buffer_Type;
       Reply      : access Buffer_Type);
 
@@ -1075,7 +1075,7 @@ package body Broca.Rootpoa is
       Key        : access Encapsulation;
       Operation  : CORBA.Identifier;
       Request_Id : CORBA.Unsigned_Long;
-      Reponse_Expected : CORBA.Boolean;
+      Response_Expected : CORBA.Boolean;
       Message    : access Buffer_Type;
       Reply      : access Buffer_Type)
    is
@@ -1095,7 +1095,7 @@ package body Broca.Rootpoa is
 
       Decapsulate (Key, Key_Buffer'Access);
 
-      --  Find the ObjectId in the Activa Map if RETAIN Policy.
+      --  Find the ObjectId in the Active Map if RETAIN Policy.
       if Self.Servant_Policy = RETAIN then
          Key_To_Slot (Self, Key_Buffer'Access, Slot);
          if Slot /= Bad_Slot_Index then
@@ -1191,7 +1191,7 @@ package body Broca.Rootpoa is
                   --     (Oid, PortableServer.POA.Convert.To_Forward (A_Poa)));
                   GIOP_Dispatch
                     (A_Servant, CORBA.To_Standard_String (Operation),
-                     Request_Id, Reponse_Expected, Message, Reply);
+                     Request_Id, Response_Expected, Message, Reply);
                   PortableServer.ServantLocator.Impl.Postinvoke
                     (PortableServer.ServantLocator.Impl.Object'Class
                      (Skel.P_Servant.all),
@@ -1231,7 +1231,7 @@ package body Broca.Rootpoa is
                CORBA.To_Standard_String (Operation)));
          GIOP_Dispatch
            (A_Servant, CORBA.To_Standard_String (Operation), Request_Id,
-            Reponse_Expected, Message, Reply);
+            Response_Expected, Message, Reply);
          pragma Debug (O ("GIOP_Invoke: giop_dispatch returned"));
 
          if Self.Servant_Policy = RETAIN then
