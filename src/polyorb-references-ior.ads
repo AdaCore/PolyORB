@@ -50,7 +50,6 @@ with PolyORB.Sequences.Unbounded;
 
 package PolyORB.References.IOR is
 
-
    type Marshall_Profile_Body_Type is access procedure
      (Buffer  : access Buffers.Buffer_Type;
       Profile : Binding_Data.Profile_Access);
