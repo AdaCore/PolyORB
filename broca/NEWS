@@ -4,10 +4,12 @@ AdaBroker news
 New features in version 1.0pre3
 ===============================
 
+Partial support of the Dynamic Invocation Interface.
+
+A stand-alone COS Naming server is now provided, ab_names.
+
 A package Broca.Parameters allows the person installing AdaBroker to
 change the default stack size in server tasks.
-
-A stand-alone COS Naming server is now provided.
 
 Bugs fixed include:
   Usage of a constant as the length of an array is now
@@ -18,6 +20,9 @@ Bugs fixed include:
 
   The handling of escaped keywords as identifiers was fixed.
   (Problem reported by Mehtap Kologlu of Eurocontrol).
+
+  Unknown profiles in IORs are now processed correctly.
+  (Problem noted while interoperating with ORBit).
 
 Incompatible changes in version 1.0pre3
 =======================================
