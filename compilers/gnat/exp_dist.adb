@@ -531,7 +531,7 @@ package body Exp_Dist is
    --  defining unit name. On return:
    --    - Subp_Id is the subprogram identifier from the PCS.
    --    - Subp_Index is the index in the list of subprograms
-   --      used for dispatching (a variable of an integer type).
+   --      used for dispatching (a variable of type Subprogram_Id).
    --    - Stmts is the place where the request dispatching
    --      statements can occur,
    --    - Decl is the subprogram body declaration.
@@ -1111,11 +1111,7 @@ package body Exp_Dist is
       RPC_Receiver_Elsif_Parts       : constant List_Id := New_List;
       RPC_Receiver_Request           : Entity_Id;
       RPC_Receiver_Subp_Id           : Entity_Id;
-      --  Subprogram identifier from RPC receiver body
-
       RPC_Receiver_Subp_Index        : Entity_Id;
-      --  Subprogram number (index within the list of all remotely callable
-      --  primitives).
 
       Subp_Str : String_Id;
 
@@ -2035,13 +2031,22 @@ package body Exp_Dist is
                 Make_Component_Declaration (Loc,
                   Defining_Identifier =>
                     Make_Defining_Identifier (Loc,
-                      Name_Target),
+                      Name_Receiver),
                   Component_Definition =>
                     Make_Component_Definition (Loc,
                       Subtype_Indication =>
                         New_Occurrence_Of (RTE (RE_Address), Loc)),
                   Expression =>
-                    New_Occurrence_Of (RTE (RE_Null_Address), Loc)))));
+                    New_Occurrence_Of (RTE (RE_Null_Address), Loc)),
+
+                Make_Component_Declaration (Loc,
+                  Defining_Identifier =>
+                    Make_Defining_Identifier (Loc,
+                      Name_Subp_Id),
+                  Component_Definition =>
+                    Make_Component_Definition (Loc,
+                      Subtype_Indication =>
+                        New_Occurrence_Of (RTE (RE_Subprogram_Id), Loc))))));
    end Build_Remote_Subprogram_Proxy_Type;
 
    ------------------------------------
@@ -2294,10 +2299,11 @@ package body Exp_Dist is
 
             if Is_Entity_Name (Current_Type) then
                Set_Etype (New_Identifier, Entity (Current_Type));
-            else
-               --  Current_Type is an access definition, special processing
-               --  (not requiring etype) will occur for marshalling.
 
+            --  Current_Type is an access definition, special processing
+            --  (not requiring etype) will occur for marshalling.
+
+            else
                null;
             end if;
 
@@ -7482,10 +7488,12 @@ package body Exp_Dist is
 
            Make_Object_Declaration (Loc,
              Defining_Identifier => Subp_Index,
-             Object_Definition   => New_Occurrence_Of (Standard_Integer, Loc),
+             Object_Definition   =>
+               New_Occurrence_Of (RTE (RE_Subprogram_Id), Loc),
              Expression          =>
                Make_Attribute_Reference (Loc,
-                 Prefix         => New_Occurrence_Of (Standard_Integer, Loc),
+                 Prefix         =>
+                   New_Occurrence_Of (RTE (RE_Subprogram_Id), Loc),
                  Attribute_Name => Name_Last)));
 
          Stmts := New_List;
