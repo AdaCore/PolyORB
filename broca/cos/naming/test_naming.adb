@@ -420,10 +420,16 @@ begin
 
    begin
       Bind_Context (WDR, Here, WDR);
+   exception
+      when others =>
+         Ada.Text_IO.Put_Line ("Warning: could not bind .");
+   end;
+
+   begin
       Bind_Context (WDR, Back, WDR);
    exception
       when others =>
-         null;
+         Ada.Text_IO.Put_Line ("Warning: could not bind ..");
    end;
 
    loop

@@ -191,6 +191,7 @@ package body Broca.GIOP is
       end loop;
 
       if Message_Magic /= Magic then
+         pragma Debug (O ("Unmarshall_GIOP_Header: Bad magic!"));
          return;
       end if;
 
@@ -313,6 +314,9 @@ package body Broca.GIOP is
         := Broca.Object.Object_Ptr
         (CORBA.AbstractBase.Object_Of (Target_Ref));
    begin
+      pragma Debug (O ("Send_Request_Marshall: invoking "
+        & CORBA.To_Standard_String (Operation)));
+
       Handler.Profile := Object.Find_Profile (Target);
       Handler.Connection := IOP.Find_Connection (Handler.Profile);
 
@@ -364,7 +368,7 @@ package body Broca.GIOP is
       Request_Id         : CORBA.Unsigned_Long;
       Header_Correct     : Boolean;
    begin
-      pragma Debug (O ("Send_Request_Send : Enter"));
+      pragma Debug (O ("Send_Request_Send: enter"));
       --  Add GIOP header.
       Marshall_GIOP_Header
         (Header_Buffer'Access,
@@ -372,12 +376,12 @@ package body Broca.GIOP is
          Length (Handler.Buffer'Access));
       Prepend (Header_Buffer, Handler.Buffer'Access);
 
-      pragma Debug (O ("Send_Request_Send : about to send request"));
+      pragma Debug (O ("Send_Request_Send: about to send request"));
       --  1.3 Send request.
       IOP.Send (Handler.Connection, Handler.Buffer'Access);
       Release (Handler.Buffer);
 
-      pragma Debug (O ("Send_Request_Send : request sent"));
+      pragma Debug (O ("Send_Request_Send: request sent"));
       if not Reponse_Expected then
          IOP.Release (Handler.Connection);
          Result := Sr_No_Reply;
@@ -387,7 +391,7 @@ package body Broca.GIOP is
       --  1.4 Receive reply
       --  1.4.1 the message header
 
-      pragma Debug (O ("Send_Request_Send : Receive answer ..."));
+      pragma Debug (O ("Send_Request_Send: Receive answer ..."));
       declare
          Message_Header : Broca.Opaque.Octet_Array_Ptr
            := IOP.Receive (Handler.Connection,
@@ -395,7 +399,7 @@ package body Broca.GIOP is
          Message_Header_Buffer : aliased Buffer_Type;
          Endianness : Endianness_Type;
       begin
-         pragma Debug (O ("Send_Request_Send : Receive answer done"));
+         pragma Debug (O ("Send_Request_Send: Receive answer done"));
 
          if CORBA.Boolean'Val
            (CORBA.Octet (Message_Header
@@ -428,7 +432,7 @@ package body Broca.GIOP is
          Broca.Exceptions.Raise_Comm_Failure;
       end if;
 
-      pragma Debug (O ("Send_Request_Send : about to receive reply"));
+      pragma Debug (O ("Send_Request_Send: about to receive reply"));
       --  1.4.5 Receive the reply header and body.
       Handler.Data.Message_Body :=
         IOP.Receive (Handler.Connection,
@@ -451,7 +455,7 @@ package body Broca.GIOP is
          --  Service context
          Service_Context := Unmarshall (Message_Body_Buffer'Access);
          if Service_Context /= No_Context then
-            pragma Debug (O ("Send_Request_Send : incorrect context"
+            pragma Debug (O ("Send_Request_Send: incorrect context"
                              & Service_Context'Img));
             raise Program_Error;
          end if;
@@ -460,30 +464,30 @@ package body Broca.GIOP is
          Request_Id := Unmarshall (Message_Body_Buffer'Access);
          if Request_Id /= Handler.Request_Id then
             pragma Debug
-              (O ("Send_Request_Send : incorrect request id"
+              (O ("Send_Request_Send: incorrect request id"
                   & Request_Id'Img));
             Broca.Exceptions.Raise_Comm_Failure;
          end if;
 
-         pragma Debug (O ("Send_Request_Send : checking reply status"));
+         pragma Debug (O ("Send_Request_Send: checking reply status"));
          --  Reply status
          Reply_Status := Unmarshall (Message_Body_Buffer'Access);
          case Reply_Status is
             when Broca.GIOP.No_Exception =>
-               pragma Debug (O ("Send_Request_Send : reply "
+               pragma Debug (O ("Send_Request_Send: reply "
                                 & "status is No_Exception"));
                Result := Sr_Reply;
                return;
 
             when Broca.GIOP.System_Exception =>
-               pragma Debug (O ("Send_Request_Send : reply "
-                                & "status is System_Exception"));
+               pragma Debug
+                 (O ("Send_Request_Send: Received System_Exception"));
                Broca.CDR.Unmarshall_And_Raise
                  (Message_Body_Buffer'Access);
 
             when Broca.GIOP.Location_Forward =>
                pragma Debug
-                 (O ("Send_Request_Send : Received Location_Forward"));
+                 (O ("Send_Request_Send: Received Location_Forward"));
 
                declare
                   New_Ref : CORBA.AbstractBase.Ref;
@@ -502,8 +506,8 @@ package body Broca.GIOP is
                return;
 
             when Broca.GIOP.User_Exception =>
-               pragma Debug (O ("Send_Request_Send : reply "
-                                & "status is User_Exception"));
+               pragma Debug
+                 (O ("Send_Request_Send: Received User_Exception"));
                Result := Sr_User_Exception;
                return;
 
