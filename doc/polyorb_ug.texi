@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#16 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#17 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -114,6 +114,7 @@ entitled ``GNU Free Documentation License''.
 * CORBA::
 * GIOP::
 * SOAP::
+* Tools::
 * References::
 * GNU Free Documentation License::
 * Index::
@@ -180,6 +181,11 @@ SOAP
 
 * Installing SOAP protocol personality::
 * Configuring the SOAP personality::
+
+Tools
+
+* po_catref::
+* po_names::
 
 @end detailmenu
 @end menu
@@ -1766,6 +1772,44 @@ Here is a summary of available parameters for each instance of SOAP.
 # SOAP's default port
 #polyorb.protocols.soap.default_port=8080
 @end smallexample
+
+@c -------------------------------------------------------------------
+@node Tools
+@chapter Tools
+@c -------------------------------------------------------------------
+
+@menu
+* po_catref::
+* po_names::
+@end menu
+
+@c -------------------------------------------------------------------
+@node po_catref
+@section @command{po_catref}
+@cindex @command{po_catref}
+@c -------------------------------------------------------------------
+
+@noindent
+@command{po_catref} is a utility for viewing components of a
+stringified reference (CORBA IOR, corbaloc or URI).
+
+@smallexample
+Usage:
+       po_catref <stringified reference>
+@end smallexample
+
+@c -------------------------------------------------------------------
+@node po_names
+@section @command{po_names}
+@cindex @command{po_names}
+@c -------------------------------------------------------------------
+
+@noindent
+@command{po_names} is a stand-alone name server. It has an interface
+similar to CORBA COS Naming, without dragging any dependences on CORBA
+mechanisms. This name server is to be used when the CORBA application
+personality is not required, e.g. with the DSA or MOMA application
+personalities.
 
 @c -------------------------------------------------------------------
 @node References
