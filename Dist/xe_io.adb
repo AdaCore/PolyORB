@@ -160,7 +160,7 @@ package body XE_IO is
       Fname : File_Name_Type;
       Exec  : Boolean := False) is
    begin
-      if Verbose_Mode then
+      if Debug_Mode then
          Message ("creating file", Fname);
       end if;
 
@@ -195,7 +195,7 @@ package body XE_IO is
       Success : Boolean;
 
    begin
-      if Verbose_Mode then
+      if Debug_Mode then
          Message ("deleting", Fname);
       end if;
 
@@ -675,7 +675,10 @@ package body XE_IO is
 
    function To_Afile (Fname : File_Name_Type) return File_Name_Type is
    begin
-      return Strip_Suffix (Fname) & ALI_Suffix_Id;
+      --  The ALI file is not necessarily in the directory of the
+      --  source file.
+
+      return Strip_Suffix (Strip_Directory (Fname)) & ALI_Suffix_Id;
    end To_Afile;
 
    --------------
