@@ -1,3 +1,8 @@
+2000-11-09  Pascal Obry  <obry@gnat.com>
+
+	* config.sdefault: change to use files instead of pipe to work
+	around a bug under NT (using the MKS toolkit).
+
 2000-09-21  Laurent Pautet  <pautet@arlequin>
 
 	* xe_stubs.adb: register shared passive units even when they are
