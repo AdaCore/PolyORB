@@ -1,7 +1,83 @@
-#! /bin/sh -ex
+#! /bin/sh
+
+EDIT_CONFIGURE_IN=false
+
+set -e
+
+usage() {
+  echo "$0 [-w]"
+  echo "  -w  edit configure.in to remove files not available according to MANIFEST"
+  exit 1
+}
+
+while getopts w opt
+do
+  case "$opt" in
+    w)
+      EDIT_CONFIGURE_IN=true
+      ;;
+    *)
+      usage
+      ,,
+  esac
+done
+
+if ${EDIT_CONFIGURE_IN}
+then
+  echo "Editing configure.in"
+  mv configure.in configure.in.orig
+  awk '
+    BEGIN { st = 0; nf = 0; }
+    FILENAME == "MANIFEST" {
+      manifest[nf++] = $0;
+      next;
+    }
+    /^AC_OUTPUT\(/ {
+      st = 1; print; next;
+    }
+    st == 1 && /^\]/ {
+      st = 0;
+    }
+    st == 1 {
+      fn = $0;
+      gsub (/[ 	]/,"", fn);
+      for (j = 0; j < nf; j++) {
+        if (manifest[j] == fn ".in") {
+          print;
+          break;
+        }
+      }
+      next;
+    }
+    { print; }' MANIFEST configure.in.orig > configure.in
+  rm -f configure.in.orig
+fi
+
+echo "Libtoolizing"
 libtoolize --copy --force
+
+echo "Running aclocal"
 aclocal -I support
+
+echo "Running autoconf"
 autoconf
+
+echo "Running automake"
 automake --add-missing
+
+echo "Generating IDL tree accessors"
 (cd compilers/idlac && python make_nodes.py nodes.txt > xxx \
  && gnatchop -w xxx && rm -f xxx)
+
+echo "Doing the necessary date modifications"
+find . -name configure.in -exec touch {} \;
+sleep 1
+find . -name aclocal.m4 -exec touch {} \;
+sleep 1
+find . -name Makefile.in -exec touch {} \;
+sleep 1
+find . -name configure -exec touch {} \;
+sleep 1
+find . -name stamp-h.in -exec touch {} \;
+sleep 1
+find . -name config.h.in -exec touch {} \;

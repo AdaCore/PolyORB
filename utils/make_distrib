@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#10 $
+# $Id: //droopi/main/utils/make_distrib#11 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -149,65 +149,21 @@ else
 fi
 
 ###################################################
-#  Generate 'foo/Makefile' iff 'foo/Makefile.in'
-#  is in MANIFEST
-###################################################
-
-echo Editing configure.in
-mv configure.in configure.in.orig
-awk '
-  BEGIN { st = 0; nf = 0; }
-  FILENAME == "MANIFEST" {
-    manifest[nf++] = $0;
-    next;
-  }
-  /^AC_OUTPUT\(/ {
-    st = 1; print; next;
-  }
-  st == 1 && /^\]/ {
-    st = 0;
-  }
-  st == 1 {
-    fn = $0;
-    gsub (/[ 	]/,"", fn);
-    for (j = 0; j < nf; j++) {
-      if (manifest[j] == fn ".in") {
-        print;
-        break;
-      }
-    }
-    next;
-  }
-  { print; }' MANIFEST configure.in.orig > configure.in
-rm -f configure.in.orig
-
-###################################################
 # Generating *.in files
 ###################################################
 
 echo Generating auto-generated files
-if [ -f support/reconfig ];then sh -e -x support/reconfig;fi
-
-echo Doing the necessary date modifications
-find . -name configure.in -exec touch {} \;
-sleep 1
-find . -name aclocal.m4 -exec touch {} \;
-sleep 1
-find . -name Makefile.in -exec touch {} \;
-sleep 1
-find . -name configure -exec touch {} \;
-sleep 1
-find . -name stamp-h.in -exec touch {} \;
-sleep 1
-find . -name config.h.in -exec touch {} \;
-
-echo Adapting modes
-chmod -R og=u-w .
-flist=""
+if [ -f support/reconfig ]
+then
+  sh support/reconfig -w
+fi
 
 ###################################################
 # Packaging
 ###################################################
+
+echo "Adapting modes"
+chmod -R og=u-w .
 
 echo Packaging
 cd ..
