@@ -38,7 +38,7 @@ with all_types.Skel;
 pragma Elaborate (all_types.Skel);
 pragma Warnings (Off, all_types.Skel);
 
-with PolyORB.Exceptions; use PolyORB.Exceptions;
+with all_types.Helper;
 
 package body all_types.Impl is
 
@@ -247,11 +247,9 @@ package body all_types.Impl is
      (Self : access Object;
       arg : in CORBA.Long)
    is
-      Members : CORBA.IDL_Exception_Members'Class
-         := my_exception_Members'(info => arg);
    begin
-      PolyORB.Exceptions.User_Raise_Exception
-        (my_exception'Identity, Members);
+      all_types.Helper.Raise_my_exception
+        (my_exception_Members'(Info => arg));
    end testException;
 
    procedure testUnknownException
