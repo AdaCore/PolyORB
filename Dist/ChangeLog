@@ -1,3 +1,9 @@
+1998-03-24  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_stubs.adb: Call Establish_RPC_Receiver from partition.adb
+	in order to prevent GARLIC from having to do it itself and to
+	introduce a dependency from System.RPC.
+
 1998-03-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_check.adb: Improve recompilation mode (Ada lib).

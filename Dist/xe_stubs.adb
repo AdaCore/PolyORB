@@ -526,6 +526,7 @@ package body XE_Stubs is
          end if;
       end loop;
 
+      Dwrite_With_Clause (FD, "System.RPC", No_Name, False);
       Dwrite_With_Clause (FD, "System.Garlic.Heart", No_Name, False);
       Dwrite_With_Clause (FD, "System.Garlic.Startup", No_Name, False);
       Dwrite_Line (FD, 0, "pragma Elaborate_All (System.Garlic.Startup);");
@@ -565,6 +566,8 @@ package body XE_Stubs is
       end if;
 
       Dwrite_Line (FD, 1, "System.Garlic.Heart.Elaboration_Is_Terminated;");
+      Dwrite_Line (FD, 1, "System.RPC.Establish_RPC_Receiver");
+      Dwrite_Line (FD, 2, "(Partition'Partition_ID, null);");
 
       if Default_Version_Check then
 
@@ -651,6 +654,7 @@ package body XE_Stubs is
       Receiver_Object : File_Name_Type;
       Receiver_ALI    : File_Name_Type;
       Unit_Name       : Unit_Name_Type;
+      Rename_Objects  : Boolean := False;
 
    begin
 
@@ -679,11 +683,11 @@ package body XE_Stubs is
       Full_ALI_File   := ALIs.Table (A).Ofile_Full_Name;
       ALI_File        := ALIs.Table (A).Afile;
 
-      Caller_ALI   := Dir (Caller_Dir, ALI_File);
-      Receiver_ALI := Dir (Receiver_Dir, ALI_File);
-
-      Caller_Object   := Strip_Suffix (Caller_ALI) & Obj_Suffix;
+      Receiver_ALI    := Dir (Receiver_Dir, ALI_File);
       Receiver_Object := Strip_Suffix (Receiver_ALI) & Obj_Suffix;
+
+      Caller_ALI      := Dir (Caller_Dir, ALI_File);
+      Caller_Object   := Strip_Suffix (Caller_ALI) & Obj_Suffix;
 
       --  Do we need to regenerate the caller stub and its ali.
       Obsolete := False;
