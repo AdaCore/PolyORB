@@ -68,7 +68,7 @@ package body PolyORB.Setup.Test_CORBA is
          --  Register it with the SOA.
 
       begin
-         Create_Reference (The_ORB, My_Id, My_Ref);
+         Create_Reference (The_ORB, My_Id, "IDL:Echo:1.0", My_Ref);
          --  Obtain object reference.
 
          Put_Line ("Registered object: " & PolyORB.Objects.Image (My_Id.all));
@@ -77,9 +77,7 @@ package body PolyORB.Setup.Test_CORBA is
             Put_Line ("IOR is           : "
                       & CORBA.To_Standard_String
                       (References.IOR.Object_To_String
-                       ((Ref => My_Ref,
-                         Type_Id => CORBA.To_CORBA_String
-                         ("IDL:Echo:1.0")))));
+                       ((Ref => My_Ref))));
          exception
             when E : others =>
                Put_Line ("Warning: Object_To_String raised:");

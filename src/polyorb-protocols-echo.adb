@@ -202,7 +202,11 @@ package body PolyORB.Protocols.Echo is
 
             Create_Local_Profile
               (Oid, Local_Profile_Type (Target_Profile.all));
-            Create_Reference ((1 => Target_Profile), Target);
+            Create_Reference
+              (Profiles => (1 => Target_Profile),
+               Type_Id  => "",
+               --  Unknown (not carried by this protocol)
+               R        => Target);
 
             Create_Request
               (Target    => Target,
