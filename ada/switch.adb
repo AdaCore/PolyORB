@@ -123,7 +123,7 @@ package body Switch is
             if Program = Compiler then
                Assertions_Enabled := True;
             elsif Program = Make then
-               Check_Readonly_Files := True;
+               Check_Internal_Files := True;
             else
                raise Bad_Switch;
             end if;
@@ -189,17 +189,6 @@ package body Switch is
                Immediate_Errors := True;
             elsif Program = Binder then
                Elab_Dependency_Output := True;
-            else
-               raise Bad_Switch;
-            end if;
-
-         --  Processing for -E switch
-
-         elsif C = 'E' then
-            Ptr := Ptr + 1;
-
-            if Program = Compiler then
-               Dynamic_Elaboration_Checks := True;
             else
                raise Bad_Switch;
             end if;
@@ -289,8 +278,7 @@ package body Switch is
                end if;
 
             else
-               Ptr := Ptr + 1;
-               In_Place_Mode := True;
+               raise Bad_Switch;
             end if;
 
          --  Processing for -j switch
@@ -385,23 +373,13 @@ package body Switch is
 
             if Program = Compiler then
                Suppress_Options.Overflow_Checks    := False;
+               Suppress_Options.Elaboration_Checks := False;
             elsif Program = Binder or else Program = Make then
                if Output_Filename_Present then
                   raise Too_Many_Output_Files;
                else
                   Output_Filename_Present := True;
                end if;
-            else
-               raise Bad_Switch;
-            end if;
-
-         --  Processing for -O switch
-
-         elsif C = 'O' then
-            Ptr := Ptr + 1;
-
-            if Program = Compiler then
-               Output_Filename_Present := True;
             else
                raise Bad_Switch;
             end if;

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--        Copyright (C) 1992,1993,1994 Free Software Foundation, Inc.       --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -119,9 +119,7 @@ package body Binderr is
       if Msg (Msg'First) = '?' then
          Write_Str ("warning: ");
       elsif Info then
-         if not Info_Prefix_Suppress then
-            Write_Str ("info:  ");
-         end if;
+         Write_Str ("info:  ");
       else
          Write_Str ("error: ");
       end if;

@@ -228,6 +228,16 @@ package body Fname is
       SFN_Table.Init;
    end Initialize;
 
+   ----------
+   -- Lock --
+   ----------
+
+   procedure Lock is
+   begin
+      SFN_Table.Locked := True;
+      SFN_Table.Release;
+   end Lock;
+
    ---------------------------
    -- Is_Internal_File_Name --
    ---------------------------
@@ -245,8 +255,7 @@ package body Fname is
       --  Name_Buffer contains Fname and Name_Len is set to 8.
 
       elsif Name_Buffer (1 .. 2) = "g-"
-        or else Name_Buffer (1 .. 8) = "gnat    "
-      then
+        or else Name_Buffer (1 .. 8) = "gnat    " then
          return True;
 
       else
@@ -279,7 +288,7 @@ package body Fname is
 
          --  Remaining entries are only considered if Renamings_Included true
 
-         "directio",       -- Direct_IO
+         "direc_io",       -- Direct_IO
          "ioexcept",       -- IO_Exceptions
          "sequenio",       -- Sequential_IO
          "text_io ");      -- Text_IO
@@ -330,22 +339,8 @@ package body Fname is
          end if;
       end loop;
 
-      --  Note: when we return False here, the Name_Buffer contains the
-      --  padded file name. This is not defined for clients of the package,
-      --  but is used by Is_Internal_File_Name.
-
       return False;
    end Is_Predefined_File_Name;
-
-   ----------
-   -- Lock --
-   ----------
-
-   procedure Lock is
-   begin
-      SFN_Table.Locked := True;
-      SFN_Table.Release;
-   end Lock;
 
    -------------------
    -- Set_File_Name --

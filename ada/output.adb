@@ -115,10 +115,7 @@ package body Output is
 
    procedure Write_Buffer is
    begin
-      if Buffer_Count = 0 then
-         return;
-
-      elsif (not Hostparm.OpenVMS)
+      if (not Hostparm.OpenVMS)
         or else (Buffer_Count in Buffer'Range
                   and then Buffer (Buffer_Count) = Ascii.LF)
       then
@@ -190,19 +187,17 @@ package body Output is
 
    procedure Write_Str (S : String) is
    begin
-      if S'Length /= 0 then
-         if Buffer_Count + S'Length >= Buffer_Max then
-            raise Constraint_Error;
-         end if;
-
-         for I in S'Range loop
-            Buffer_Count := Buffer_Count + 1;
-            Buffer (Buffer_Count) := S (I);
-         end loop;
-
-         Write_Buffer;
-         Current_Column := Current_Column + S'Length;
+      if Buffer_Count + S'Length >= Buffer_Max then
+         raise Constraint_Error;
       end if;
+
+      for I in S'Range loop
+         Buffer_Count := Buffer_Count + 1;
+         Buffer (Buffer_Count) := S (I);
+      end loop;
+
+      Write_Buffer;
+      Current_Column := Current_Column + S'Length;
    end Write_Str;
 
    --------------------------

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--        Copyright (C) 1992,1993,1994 Free Software Foundation, Inc.       --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -38,10 +38,6 @@ package Binderr is
 
    Warnings_Detected : Int;
    --  Number of warnings detected
-
-   Info_Prefix_Suppress : Boolean := False;
-   --  If set to True, the normal "info: " header before messages generated
-   --  by Error_Msg_Info will be omitted.
 
    ---------------------------------------------------------
    -- Error Message Text and Message Insertion Characters --
@@ -97,8 +93,7 @@ package Binderr is
    procedure Error_Msg_Info (Msg : String);
    --  Output information line. Indentical in effect to Error_Msg, except
    --  that the prefix is info: instead of error: and the error count is
-   --  not incremented. The prefix may be suppressed by setting the global
-   --  variable Info_Prefix_Suppress to True.
+   --  not incremented.
 
    procedure Finalize_Binderr;
    --  Finalize error output for one file

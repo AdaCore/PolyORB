@@ -161,17 +161,8 @@ pragma Pure (Interfaces);
    --  types in interfaces, so it is not wrong to have IEEE_Extended_Float
    --  defined even if the extended format is not available.
 
-   --  Note: pragmas are killed for now, should be put back on next
-   --  bootstrap cycle (otherwise they cause a bootstrap path problem???)
-
    type IEEE_Float_32       is new Short_Float;
-   --  pragma Float_Representation (IEEE_Float, IEEE_Float_32);
-
    type IEEE_Float_64       is new Long_Float;
-   --  pragma Float_Representation (IEEE_Float, IEEE_Float_64);
-
    type IEEE_Extended_Float is new Long_Long_Float;
-   --  pragma Float_Representation (IEEE_Float, IEEE_Extended_Float);
-
 
 end Interfaces;

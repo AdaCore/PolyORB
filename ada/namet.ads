@@ -226,11 +226,6 @@ package Namet is
    --  underscore character). This call destroys the value of Name_Len and
    --  Name_Buffer (it loads these as for Get_Name_String).
 
-   function Is_Internal_Name return Boolean;
-   --  Like the form with an Id argument, except that the name to be tested is
-   --  passed in Name_Buffer and Name_Len (which are not affected by the call).
-   --  Name_Buffer (it loads these as for Get_Name_String).
-
    procedure Reset_Name_Table;
    --  This procedure is used when there are multiple source files to reset
    --  the name table info entries associated with current entries in the

@@ -708,22 +708,6 @@ package body ALI is
          C := Getc;
       end loop Arg_Loop;
 
-      --  Acquire float format line if present
-
-      if C = 'F' then
-         Checkc (' ');
-         Skip_Space;
-         Float_Format := 'V';
-         ALIs.Table (Id).Float_Format := Getc;
-         Skip_Eol;
-         C := Getc;
-
-      --  Else set default IEEE format
-
-      else
-         ALIs.Table (Id).Float_Format := 'I';
-      end if;
-
       --  Acquire tasking policy line if present
 
       ALIs.Table (Id).Queuing_Policy          := ' ';
@@ -910,7 +894,7 @@ package body ALI is
             Withs.Table (Withs.Last).Elaborate_All      := False;
             Withs.Table (Withs.Last).Elab_All_Desirable := False;
 
-            --  Generic case with no object file available
+            --  Generic case
 
             if At_Eol then
                Withs.Table (Withs.Last).Sfile := No_File;
@@ -960,7 +944,7 @@ package body ALI is
 
          end loop With_Loop;
 
-         Unit.Table (Unit.Last).Last_With := Withs.Last;
+         Unit.Table (Unit.Last).Last_With  := Withs.Last;
 
       end loop Unit_Loop;
 
