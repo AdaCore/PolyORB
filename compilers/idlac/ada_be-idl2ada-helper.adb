@@ -2461,6 +2461,7 @@ package body Ada_Be.Idl2Ada.Helper is
             PL (CU, "Result : "
                 & Ada_Type_Name (Node)
                 & ";");
+            PL (CU, "J : CORBA.Unsigned_Long := 0;");
             DI (CU);
             PL (CU, "begin");
             II (CU);
@@ -2502,38 +2503,12 @@ package body Ada_Be.Idl2Ada.Helper is
                    & ".From_Any");
                II (CU);
                Add_With (CU, "CORBA");
-               PL (CU, "(CORBA.Get_Aggregate_Element (Item,");
-               PL (CU, "                              "
+               PL (CU, "(CORBA.Get_Aggregate_Element");
+               PL (CU, " (Item, "
                    & Ada_Full_TC_Name (Type_Node)
-                   & ",");
-               Put (CU, "                             "
-                    & " CORBA.Unsigned_Long (");
-
-               declare
-                  Index : Natural := 0;
-                  First_Bound : Boolean := True;
-               begin
-                  Init (Bounds_It, Array_Bounds (Node));
-
-                  while not Is_End (Bounds_It) loop
-                     Get_Next_Node (Bounds_It, Bound_Node);
-
-                     if First_Bound then
-                        First_Bound := False;
-                     else
-                        Put (CU, " + ");
-                     end if;
-                     Put (CU, "I" & Img (Index));
-                     for J in Index + 1 .. Number - 1 loop
-                        Put (CU, " * ");
-                        Gen_Node_Stubs_Spec (CU, Bound_Node);
-                     end loop;
-                     Index := Index + 1;
-                  end loop;
-               end;
-
-               PL (CU, ")));");
+                   & ", J));");
                DI (CU);
+               PL (CU, "J := J + 1;");
                for I in 1 .. Number loop
                   DI (CU);
                   PL (CU, "end loop;");
