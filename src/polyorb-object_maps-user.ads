@@ -40,7 +40,7 @@
 
 --  $Id$
 
-with PolyORB.Utils.HFunctions.Mul;
+with PolyORB.Utils.HFunctions.Hyper;
 with PolyORB.Utils.HTables.Perfect;
 
 package PolyORB.Object_Maps.User is
@@ -83,10 +83,10 @@ private
 
    package Map_Entry_HTables is new PolyORB.Utils.HTables.Perfect
      (Object_Map_Entry_Access,
-      PolyORB.Utils.HFunctions.Mul.Hash_Mul_Parameters,
-      PolyORB.Utils.HFunctions.Mul.Default_Hash_Parameters,
-      PolyORB.Utils.HFunctions.Mul.Hash,
-      PolyORB.Utils.HFunctions.Mul.Next_Hash_Parameters);
+      PolyORB.Utils.HFunctions.Hyper.Hash_Hyper_Parameters,
+      PolyORB.Utils.HFunctions.Hyper.Default_Hash_Parameters,
+      PolyORB.Utils.HFunctions.Hyper.Hash,
+      PolyORB.Utils.HFunctions.Hyper.Next_Hash_Parameters);
 
    subtype Map_EntryTable is Map_Entry_HTables.Table_Instance;
 
