@@ -1,7 +1,0 @@
-This program tests the management of unions id DII.
-The server modifies the union that it receives and send it back.
-The correct output for the dii_client as it is should be:
-<< sw = 1, counter =  2706
-You can modify the argument of the 'modify' request in the dii_client to
-check the different possibilities (see also the actual implementation of
-'modify' in modifier-impl.adb.
