@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                            --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -336,6 +336,27 @@ package body Osint is
       Name_Len := Name_Len + Suffix'Length;
       return Name_Find;
    end Append_Suffix_To_File_Name;
+
+   ------------------------------
+   -- Canonical_Case_File_Name --
+   ------------------------------
+
+   --  For now, we only deal with the case of a-z. Eventually we should
+   --  worry about other Latin-1 letters on systems that support this ???
+
+   procedure Canonical_Case_File_Name (S : in out String) is
+   begin
+      if not File_Names_Case_Sensitive then
+         for J in S'Range loop
+            if S (J) in 'A' .. 'Z' then
+               S (J) := Character'Val (
+                          Character'Pos (S (J)) +
+                          Character'Pos ('a')   -
+                          Character'Pos ('A'));
+            end if;
+         end loop;
+      end if;
+   end Canonical_Case_File_Name;
 
    -------------------------
    -- Close_Binder_Output --
@@ -1553,7 +1574,7 @@ package body Osint is
 
       Name_Len := File_Name'Last - Fptr + 1;
       Name_Buffer (1 .. Name_Len) := File_Name (Fptr .. File_Name'Last);
-
+      Canonical_Case_File_Name (Name_Buffer (1 .. Name_Len));
       Current_Main := File_Name_Type (Name_Find);
 
       --  In the gnatmake case, the main file may have not have the

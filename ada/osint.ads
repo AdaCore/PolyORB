@@ -120,6 +120,14 @@ package Osint is
    --  names to be case sensitive (e.g., in Unix, set True), or non case
    --  sensitive (e.g., in OS/2, set False).
 
+   procedure Canonical_Case_File_Name (S : in out String);
+   --  Given a file name, converts it to canonical case form. For systems
+   --  where file names are case sensitive, this procedure has no effect.
+   --  If file names are not case sensitive (i.e. for example if you have
+   --  the file "xyz.adb", you can refer to it as XYZ.adb or XyZ.AdB), then
+   --  this call converts the given string to canonical all lower case form,
+   --  so that two file names compare equal if they refer to the same file.
+
    function Number_Of_Files return Int;
    --  gives the total number of filenames found on the command line.
 

@@ -75,9 +75,17 @@ package Opt is
    --  Set to True to require all source files to be present. This flag is
    --  directly modified by gnatmake to affect the shared binder routines.
 
+   Alternate_Main_Name : String_Ptr;
+   --  Set to non null when Bind_Alternate_Main_Name is True
+
    Assertions_Enabled : Boolean := False;
    --  GNAT
    --  Enable assertions made using pragma Assert.
+
+   Back_Annotate_Rep_Info : Boolean := False;
+   --  GNAT
+   --  If set True (by use of -gnatB), enables back annotation of
+   --  representation information by gigi, even in -gnatc mode.
 
    Bind_Main_Program : Boolean := True;
    --  GNATBIND
@@ -86,9 +94,6 @@ package Opt is
    Bind_Alternate_Main_Name : Boolean := False;
    --  GNATBIND
    --  Set to True if main should be called Alternate_Main_Name.all
-
-   Alternate_Main_Name : String_Ptr;
-   --  Set to non null when Bind_Alternate_Main_Name is True
 
    Brief_Output : Boolean := False;
    --  GNAT, GNATBIND

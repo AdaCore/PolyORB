@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -114,11 +114,15 @@ package body ALI is
       function Getc return Character;
       --  Get next character, bumping P past the character obtained
 
-      function Get_Name return Name_Id;
+      function Get_Name (Lower : Boolean := False) return Name_Id;
       --  Skip blanks, then scan out a name (name is left in Name_Buffer with
       --  length in Name_Len, as well as being returned in Name_Id form). The
       --  name is adjusted appropriately if it refers to a file that is to be
       --  substituted by another name as a result of a configuration pragma.
+      --  If Lower is set to true then the Name_Buffer will be converted to
+      --  all lower case. This only happends for systems where file names are
+      --  not case sensitive, and ensures that gnatbind works correctly on
+      --  such systems, regardless of the case of the file name.
 
       function Get_Nat return Nat;
       --  Skip blanks, then scan out an unsigned integer value in Nat range
@@ -291,7 +295,7 @@ package body ALI is
       -- Get_Name --
       --------------
 
-      function Get_Name return Name_Id is
+      function Get_Name (Lower : Boolean := False) return Name_Id is
       begin
          Name_Len := 0;
          Skip_Space;
@@ -305,6 +309,14 @@ package body ALI is
             Name_Buffer (Name_Len) := Getc;
             exit when At_End_Of_Field;
          end loop;
+
+         --  Convert file name to all lower case if file names are not case
+         --  sensitive. This ensures that we handle names in the canonical
+         --  lower case format, regardless of the actual case.
+
+         if Lower and not File_Names_Case_Sensitive then
+            Canonical_Case_File_Name (Name_Buffer (1 .. Name_Len));
+         end if;
 
          return Name_Find;
       end Get_Name;
@@ -633,7 +645,7 @@ package body ALI is
          Units.Table (Units.Last).Uname          := Get_Name;
          Units.Table (Units.Last).Predefined     := Is_Predefined_Unit;
          Units.Table (Units.Last).My_ALI         := Id;
-         Units.Table (Units.Last).Sfile          := Get_Name;
+         Units.Table (Units.Last).Sfile          := Get_Name (Lower => True);
          Units.Table (Units.Last).Pure           := False;
          Units.Table (Units.Last).Preelab        := False;
          Units.Table (Units.Last).No_Elab        := False;
@@ -888,7 +900,7 @@ package body ALI is
             --  Normal case
 
             else
-               Withs.Table (Withs.Last).Sfile := Get_Name;
+               Withs.Table (Withs.Last).Sfile := Get_Name (Lower => True);
                Withs.Table (Withs.Last).Afile := Get_Name;
 
                --  Scan out possible E, EA, and NE parameters
@@ -1005,7 +1017,7 @@ package body ALI is
          Checkc (' ');
          Skip_Space;
          Sdep.Increment_Last;
-         Sdep.Table (Sdep.Last).Sfile := Get_Name;
+         Sdep.Table (Sdep.Last).Sfile := Get_Name (Lower => True);
          Sdep.Table (Sdep.Last).Stamp := Get_Stamp;
 
          --  Check for version number present, and if so store it

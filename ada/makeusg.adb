@@ -79,12 +79,6 @@ begin
    Write_Str ("f       Force recompilations of non predefined units");
    Write_Eol;
 
-   --  Line for -h
-
-   Write_Switch_Char;
-   Write_Str ("h       Output this usage (help) information");
-   Write_Eol;
-
    --  Line for -i
 
    Write_Switch_Char;

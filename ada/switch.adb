@@ -587,6 +587,7 @@ package body Switch is
 
             if Program = Compiler then
                List_Representation_Info := True;
+               Back_Annotate_Rep_Info := True;
             else
                raise Bad_Switch;
             end if;
@@ -621,6 +622,7 @@ package body Switch is
                Tolerate_Consistency_Errors := True;
             elsif Program = Compiler then
                Tree_Output := True;
+               Back_Annotate_Rep_Info := True;
             else
                raise Bad_Switch;
             end if;

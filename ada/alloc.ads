@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -97,6 +97,9 @@ package Alloc is
 
    Pending_Instantiations_Initial   : constant := 10;      -- Inline
    Pending_Instantiations_Increment : constant := 100;
+
+   Rep_Table_Initial                : constant := 1000;    -- Repinfo
+   Rep_Table_Increment              : constant := 200;
 
    Scope_Stack_Initial              : constant := 10;      -- Sem
    Scope_Stack_Increment            : constant := 200;

@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -164,6 +164,13 @@ package body Table is
       begin
          if Max < Last_Val then
             pragma Assert (not Locked);
+
+            --  Make sure that we have at least the initial allocation. This
+            --  is needed in cases where a zero length table is written out.
+
+            Length := Int'Max (Length, Table_Initial);
+
+            --  Now increment table length until it is sufficiently large
 
             while Max < Last_Val loop
                Length := Length * (100 + Table_Increment) / 100;
