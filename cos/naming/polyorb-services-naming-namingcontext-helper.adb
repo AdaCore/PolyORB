@@ -476,7 +476,7 @@ begin
      (Module_Info'
       (Name      => +"naming.NamingContext.Helper",
        Conflicts => Empty,
-       Depends   => +"exceptions",
+       Depends   => +"exceptions" & "any",
        Provides  => Empty,
        Init      => Initialize'Access));
 end PolyORB.Services.Naming.NamingContext.Helper;

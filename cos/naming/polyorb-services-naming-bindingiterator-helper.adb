@@ -115,7 +115,7 @@ begin
      (Module_Info'
       (Name      => +"naming.BindingIterator.Helper",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"any",
        Provides  => Empty,
        Init      => Deferred_Initialization'Access));
 end PolyORB.Services.Naming.BindingIterator.Helper;

@@ -441,7 +441,7 @@ begin
      (Module_Info'
       (Name      => +"naming.Helper",
        Conflicts => Empty,
-       Depends   => Empty,
+       Depends   => +"any",
        Provides  => Empty,
        Init      => Initialize'Access));
 end PolyORB.Services.Naming.Helper;
