@@ -86,10 +86,10 @@ all: $(GUIDE).ps $(GUIDE).info $(GUIDE).html $(GUIDE).txt
 $(GUIDE).texi:  $(TEXIFILES)
 
 $(GUIDE).html: $(GUIDE).texi $(JPGFILES) $(SEDFILES)
-	makeinfo --html --no-split $(GUIDE).texi
+	makeinfo --force --html --no-split $(GUIDE).texi
 
 $(GUIDE).info: $(GUIDE).texi $(SEDFILES)
-	makeinfo $(GUIDE).texi
+	makeinfo --force $(GUIDE).texi
 
 $(GUIDE).ps: $(GUIDE).dvi $(SEDFILES)
 	dvips -o $(GUIDE).ps $(GUIDE).dvi

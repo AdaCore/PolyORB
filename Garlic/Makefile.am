@@ -1,17 +1,17 @@
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
-ADA_FOR_TARGET = @ADA_FOR_TARGET@
+GNAT_FOR_HOST   = @GNAT_FOR_HOST@
+GNAT_FOR_TARGET = @GNAT_FOR_TARGET@
 
-CONSTANTS_SH = $(srcdir)/constants.sh
-CP           = cp
-GARLIC       = $(prefix)/lib/garlic
-GNATFLAGS    = -gnatg -f -u -a @GNATFLAGS@
-INCFLAGS     = -I. -I$(srcdir)
-
-GNATMAKE     = gnatmake
-GNATBIND     = gnatbind
-
-PLATFORM     = @PLATFORM_SPECIFIC@
+CONSTANTS_SH  = $(srcdir)/constants.sh
+CP            = cp
+GARLIC        = $(prefix)/lib/garlic
+COMPILE       = 
+GNAT_RTS_FLAG = @GNAT_RTS_FLAG@
+GNATFLAGS     = -gnatg @GNATFLAGS@ $(GNAT_RTS_FLAG)
+INCFLAGS      = -I. -I$(srcdir)
+COMPILE       = -f -u -a
+PLATFORM      = @PLATFORM_SPECIFIC@
 
 TCPOBJECTS = \
 s-gptcse.o\
@@ -124,7 +124,7 @@ $(PROTOCOLSSOURCES) \
 $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
-CLEANFILES = lib*.a *.ali *.o split b_*.c b~*.ad[bs]\
+CLEANFILES = lib*.a *.ali *.o b_*.c b~*.ad[bs]\
 	s-gaprco.adb s-galiop.ads\
 	inlining gnatlib/* constants_nodef\
 	b_gaprco$(EXEECT) isthrbio$(EXEEXT)\
@@ -135,19 +135,19 @@ DISTCLEANFILES = Makefile.fil s-garrem.adb
 SUFFIXES = .adb .ads .ali .o .xrb
 
 .adb.o:
-	@$(ADA_FOR_TARGET) $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+	@$(GNAT_FOR_TARGET) $(COMPILE) $(INCFLAGS) $(GNATFLAGS) $<
 
 .ads.o:
-	@$(ADA_FOR_TARGET) $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+	@$(GNAT_FOR_TARGET) $(COMPILE) $(INCFLAGS) $(GNATFLAGS) $<
 
 .adb.ali:
-	@$(ADA_FOR_TARGET) $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+	@$(GNAT_FOR_TARGET) $(COMPILE) $(INCFLAGS) $(GNATFLAGS) $<
 
 .ads.ali:
-	@$(ADA_FOR_TARGET) $(CFLAGS) $(INCFLAGS) $(GNATFLAGS) $<
+	@$(GNAT_FOR_TARGET) $(COMPILE) $(INCFLAGS) $(GNATFLAGS) $<
 
 b_gaprco$(EXEEXT): $(srcdir)/b_gaprco.adb
-	@${GNATMAKE} $(srcdir)/b_gaprco -o b_gaprco$(EXEEXT)
+	@$(GNAT_FOR_HOST) $(GNATFLAGS) $(srcdir)/b_gaprco -o b_gaprco$(EXEEXT)
 
 s-gaprco.adb: b_gaprco$(EXEEXT)
 	@./b_gaprco$(EXEEXT) $(DEFPROTOCOLNAME) >s-gaprco.adb
@@ -181,9 +181,6 @@ used:
 		$(AWK) -f unitused.awk | sort -n >withs
 
 
-split: $(srcdir)/split.adb
-	$(GNATMAKE) -m -o split $(srcdir)/split.adb
-
 all-local: $(SOURCES) $(OBJECTS) $(LINKTEST) $(FILTERSINSTALL)
 
 install-dirs-local:
@@ -208,13 +205,14 @@ inlining: all-local
 	   else\
 	      echo no > inlining;\
 	   fi;\
-	fi
+	fi;
 	@-if test `cat inlining` = "go"; then\
 	   for o in `cat gnatlib/tocheck`; do\
 	      if [ ! -f gnatlib/$$o ]; then\
 	          s=`gnatls -a -s $$o | sed 's/\013//g'`;\
 	          (cd gnatlib;\
-	           $(ADA_FOR_TARGET) $(CFLAGS) $(GNATFLAGS) -I. -I.. -I- $$s;\
+	           $(GNAT_FOR_TARGET) $(COMPILE) $(GNATFLAGS) -I. -I.. -I- \
+	             $$s;\
 	           if test $$? = 0; then\
 	              echo $$o >>rebuild;\
 	           else\
@@ -228,13 +226,15 @@ inlining: all-local
 	fi
 
 linktest: $(srcdir)/linktest.adb $(OBJECTS)
-	$(GNATMAKE) -c -a -m -I$(srcdir) -I. $(srcdir)/linktest.adb
-	$(GNATBIND) $(srcdir)/linktest.ali -I. -I$(srcdir)
+	$(GNAT_FOR_HOST) -c -a -m $(GNATFLAGS) -I$(srcdir) -I. \
+	  $(srcdir)/linktest.adb
+	$(GNAT_FOR_HOST) -b -a -m $(GNATFLAGS) -I$(srcdir) -I. \
+	  $(srcdir)/linktest.adb
 
 install-extra-libs: $(FILTERSEXTRALIBS) inlining install-dirs-local
 
 install-data-local: all-local install-dirs-local install-extra-libs 
-	@if test ! -f inlining; then\
+	if test ! -f inlining; then\
 	   exit 1;\
 	fi
 	@-for lib in libgnat.a libgnarl.a libAtasking.a libPtasking.a; do \
@@ -263,7 +263,7 @@ install-data-local: all-local install-dirs-local install-extra-libs
 	  (cd gnatlib;\
 	   $(CP) $(CP_PRESERVE) `$(SED) 's/\.o/.ali/g' rebuild` $(GARLIC));\
 	fi
-	for i in $(SOURCES)\
+	@for i in $(SOURCES)\
 		`echo $(OBJECTS) | $(SED) -e 's/\.o/.ali/g'`; do\
 		if test -f $$i; then\
 			$(CP) $(CP_PRESERVE) $$i $(GARLIC)/;\

@@ -11,7 +11,7 @@
 
 @title GLADE User's Guide
 @subtitle GLADE, GNAT Library for Ada Distributed Environment
-@subtitle GLADE Version glade-3.16a
+@subtitle GLADE Version glade-3.16a1
 @subtitle @today
 @author Laurent Pautet, Samuel Tardieu
 

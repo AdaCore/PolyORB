@@ -1,28 +1,23 @@
 ## Ada compiler handling
-## Contributed by Samuel Tardieu <sam@inf.enst.fr>
 
-dnl Usage: AM_PROG_ADA
-dnl Look for an Ada compiler (ADA environment variable, then gcc, then $CC)
+dnl Usage: AM_PROG_GNAT
+dnl Look for an Ada compiler (gnatmake)
 
-AC_DEFUN(AM_PROG_ADA,
-[AC_BEFORE([$0], [AM_TRY_ADA])
-AC_REQUIRE([AC_PROG_CC])
-AC_CHECK_PROGS(ADA, adagcc gnatgcc gcc)
-if test -z "$ADA"; then
-  AC_MSG_RESULT([  Tentatively using $CC as an Ada compiler])
-  ADA="$CC"
-fi])
+AC_DEFUN(AM_PROG_GNAT,
+[AC_BEFORE([$0], [AM_TRY_GNAT])
+AC_CHECK_PROGS(GNAT, gnatmake)
+])
 
-dnl Usage: AM_TRY_ADA(filename, content, success, failure)
+dnl Usage: AM_TRY_GNAT(filename, content, success, failure)
 dnl Compile an Ada program and report its success or failure
 
-AC_DEFUN(AM_TRY_ADA,
-[AC_REQUIRE([AM_PROG_ADA])
+AC_DEFUN(AM_TRY_GNAT,
+[AC_REQUIRE([AM_PROG_GNAT])
 mkdir conftest
 cat > conftest/[$1] <<EOF
 [$2]
 EOF
-ac_try="cd conftest && $ADA -c $1 > /dev/null 2>../conftest.out"
+ac_try="cd conftest && $GNAT -c $1 > /dev/null 2>../conftest.out"
 if AC_TRY_EVAL(ac_try); then
   ifelse([$3], , :, [rm -rf conftest*
   $3])
@@ -32,28 +27,32 @@ else
 fi
 rm -f conftest*])
 
-dnl Usage: AM_PROG_WORKING_ADA
+dnl Usage: AM_PROG_GNAT_FOR_HOST
 dnl Try to compile a simple Ada program to test the compiler installation
 dnl (especially the standard libraries such as Ada.Text_IO)
 
-AC_DEFUN(AM_PROG_WORKING_ADA,
-[AC_REQUIRE([AM_PROG_ADA])
-AC_MSG_CHECKING([if the$crossflagmsg Ada compiler works])
-AM_TRY_ADA([check.adb],
+AC_DEFUN(AM_PROG_GNAT_FOR_HOST,
+[AC_REQUIRE([AM_PROG_GNAT])
+AC_MSG_CHECKING([if the Ada compiler works])
+AM_TRY_GNAT([check.adb],
 [with Ada.Text_IO;
 procedure Check is
 begin
    null;
 end Check;
-], [AC_MSG_RESULT(yes)],
-[AC_MSG_RESULT(no)
+], [
+ AC_MSG_RESULT(yes)
+ GNAT_FOR_HOST=gnatmake
+],
+[
+  AC_MSG_RESULT(no)
 AC_MSG_ERROR([Ada compiler is not working])])])
 
-dnl Usage: AM_ADA_PREREQ(date, version)
+dnl Usage: AM_GNAT_PREREQ(date, version)
 dnl Check that GNAT is at least as recent as date (YYMMDD)
 
-AC_DEFUN(AM_ADA_PREREQ,
-[AC_REQUIRE([AM_PROG_WORKING_ADA])
+AC_DEFUN(AM_GNAT_PREREQ,
+[AC_REQUIRE([AM_PROG_GNAT_FOR_HOST])
 AC_CHECK_PROG(GNATLS, gnatls, gnatls)
 AC_CHECK_PROG(SED, sed, sed)
 AC_MSG_CHECKING([if the Ada compiler is recent enough])
@@ -67,31 +66,58 @@ else
 (it looks like you only have GNAT [$am_gnatls_version ($am_gnatls_date)])])
 fi])
 
-dnl Usage: AM_CROSS_PROG_ADA
+dnl Usage: AM_PROG_GNAT_FOR_TARGET
 dnl Look for an Ada compiler for the target (same as the host one if host and
 dnl target are equal)
 
-AC_DEFUN(AM_CROSS_PROG_ADA,
-[AC_REQUIRE([AM_PROG_WORKING_ADA])
+AC_DEFUN(AM_PROG_GNAT_FOR_TARGET,
+[AC_REQUIRE([AM_PROG_GNAT_FOR_HOST])
  if test $host = $target; then
-   ADA_FOR_TARGET=$ADA
-   AC_SUBST(ADA_FOR_TARGET)
+   GNAT_FOR_TARGET=$GNAT_FOR_HOST
+   AC_SUBST(GNAT_FOR_TARGET)
  else
-   AC_CHECK_PROGS(ADA_FOR_TARGET, [$target_alias-$ADA $target-$ADA])
+   AC_CHECK_PROGS(GNAT_FOR_TARGET,
+     [$target_alias-$GNAT_FOR_HOST $target-$GNAT_FOR_HOST])
  fi
 ])
 
-dnl Usage: AM_CROSS_PROG_WORKING_ADA
-dnl Try to use Ada compiler for the target if it is different from the host
+dnl Usage: AM_SUPPORT_RPC_ABORTION
+dnl For GNAT5 with ZCX, we cannot support RPC abortion. In this case,
+dnl RPC execution may fail even when not aborted. Remove this feature
+dnl except when user really wants it to be enabled. When we can provide
+dnl this feature with SJLJ exception model and when the user really wants
+dnl it, then build GLADE with SJLJ model being the default.
 
-AC_DEFUN(AM_CROSS_PROG_WORKING_ADA,
-[AC_REQUIRE([AM_CROSS_PROG_ADA])
- if test $host != $target; then
-   OLDADA=$ADA
-   ADA=$ADA_FOR_TARGET
-   crossflagmsg=" cross"
-   AM_PROG_WORKING_ADA
-   crossflagmsg=""
-   ADA=$OLDADA
- fi
+AC_DEFUN(AM_SUPPORT_RPC_ABORTION,
+[AC_REQUIRE([AM_PROG_GNAT_FOR_HOST])
+AC_CHECK_PROG(GNATLS, gnatls, gnatls)
+GNAT_RTS_FLAG="";
+am_gnat_major_version=`$GNATLS -v | \
+  $SED -ne 's/^GNATLS \(.\).*$/\1/p'`
+am_gnatlib_dir=`$GNATLS -a -s system.ads |\
+  $SED 's,/adainclude/system.ads,,'`
+am_gnat_zcx_by_default=`$SED -ne 's/ZCX_By_Default.*:= *\(.*\);$/\1/p' \
+  $am_gnatlib_dir/adainclude/system.ads`
+if test $am_gnat_major_version = "5"; then
+  if test $am_gnat_zcx_by_default = "True"; then
+    if test $SUPPORT_RPC_ABORTION = "True"; then
+      if test -f $am_gnatlib_dir/rts-sjlj/adainclude/system.ads; then
+        GNAT_RTS_FLAG="--RTS=rts-sjlj"
+        am_gnat_zcx_by_default="False"
+      fi
+    else
+      SUPPORT_RPC_ABORTION="False"
+    fi
+  else
+    SUPPORT_RPC_ABORTION="True"
+  fi
+else
+  SUPPORT_RPC_ABORTION="True"
+fi
+if test $am_gnat_zcx_by_default = "True"; then
+  EXCEPTION_MODEL="zcx"
+else
+  EXCEPTION_MODEL="sjlj"
+fi
 ])
+

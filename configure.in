@@ -14,8 +14,8 @@ AM_INIT_AUTOMAKE(GLADE,dev)
 #
 AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
 AC_PROG_CC
-AM_PROG_WORKING_ADA
-AM_CROSS_PROG_WORKING_ADA
+AM_PROG_GNAT_FOR_HOST
+AM_PROG_GNAT_FOR_TARGET
 AC_EXEEXT
 AC_PROG_RANLIB
 AC_CHECK_PROGS(SED, [gnused gsed sed])
@@ -24,16 +24,21 @@ AC_CHECK_PROG(AR, ar, ar)
 AC_CHECK_PROG(RM, rm, rm)
 AC_CHECK_PROG(UNZIP, gunzip, gunzip)
 AC_CHECK_PROG(GNATMAKE, gnatmake, gnatmake)
+AC_SUBST(GNAT_FOR_HOST)
+AC_SUBST(GNAT_FOR_TARGET)
 #
 # Check for maintainer mode
 #
 AC_ARG_ENABLE(debug,
 [  --enable-debug          Turn on debugging options],
-[GNATFLAGS="-g -O2 -gnata -gnatwu -gnatwe"
+[CFLAGS="-g -O2"
+ GNATFLAGS="${CFLAGS} -gnata  -gnatwu -gnatwe"
  LINKTEST="linktest"],
-[GNATFLAGS="-O2 -gnatpn -gnatwu -gnatwe"
+[CFLAGS="-O2"
+ GNATFLAGS="${CFLAGS} -gnatpn -gnatwu -gnatwe"
  LINKTEST=""])
 AC_SUBST(GNATFLAGS)
+AC_SUBST(CFLAGS)
 AC_SUBST(LINKTEST)
 #
 # Check for optimization flags
@@ -50,11 +55,11 @@ AC_GNAT_SOURCE
 #
 # Check that the GNAT version is recent enough for this version of GLADE
 #
-AM_ADA_PREREQ(20010122, 3.14)
+AM_GNAT_PREREQ(20010122, 3.14)
 #
 # Platform specific
 #
-AC_MSG_CHECKING(which platform-specific variant to use)
+AC_MSG_CHECKING([which platform-specific variant to use])
 AC_ARG_WITH(platform,
 [  --with-platform=letter  Select another platform's specific files (debug)],
 [
@@ -93,6 +98,7 @@ AC_SUBST(PSNAME)
 AC_MSG_RESULT($PSNAME)
 #
 # Select blocking IO policy (process or thread blocking IO)
+# WARNING : This does not work for cross environment
 #
 AC_MSG_CHECKING([need to emulate thread blocking I/O])
 AC_ARG_ENABLE(non-blocking-io,
@@ -324,9 +330,27 @@ AC_SUBST(FILTERSINSTALL)
 # Extra libraries
 #
 AC_ARG_WITH(extra-libs,
- [  --with-extra-libs=libs  Add extra libraries when building a program],
+[  --with-extra-libs=libs  Add extra libraries when building a program],
  [EXTRA_LIBS="${withval}"])
 AC_SUBST(EXTRA_LIBS)
+#
+# Check whether we remove support for RPC abortion
+#
+AC_ARG_ENABLE(rpc-abortion,
+[  --enable-rpc-abortion   Enable RPC abortion even when not supported],
+[SUPPORT_RPC_ABORTION="True"],
+[SUPPORT_RPC_ABORTION="Default"])
+AM_SUPPORT_RPC_ABORTION
+AC_MSG_CHECKING(whether we support RPC abortion)
+if test $SUPPORT_RPC_ABORTION = "True"; then
+  AC_MSG_RESULT([true])
+else
+  AC_MSG_RESULT([false])
+fi
+AC_MSG_CHECKING(which exception model to use)
+AC_MSG_RESULT($EXCEPTION_MODEL)
+AC_SUBST(GNAT_RTS_FLAG)
+AC_SUBST(SUPPORT_RPC_ABORTION)
 #
 # Header files, only when not cross-compiling
 #

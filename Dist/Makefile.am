@@ -1,13 +1,14 @@
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
-ADA = @ADA@
-GNATMAKE = @GNATMAKE@
-GNATSRC = @GNAT_SOURCE@
-GARLIC = $(libdir)/garlic
-GNATFLAGS = -gnatpg @GNATFLAGS@
-RSH_CMD = @RSH_CMD@
-RSH_OPT = @RSH_OPT@
-srcdir = @srcdir@
+GNAT_FOR_HOST = @GNAT_FOR_HOST@
+GNATSRC       = @GNAT_SOURCE@
+GARLIC        = $(libdir)/garlic
+COMPILE       = -f -u -a
+GNAT_RTS_FLAG = @GNAT_RTS_FLAG@
+GNATFLAGS     = -gnatpg @GNATFLAGS@ $(GNAT_RTS_FLAG)
+RSH_CMD       = @RSH_CMD@
+RSH_OPT       = @RSH_OPT@
+srcdir        = @srcdir@
 
 bin_PROGRAMS = gnatdist
 gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.adb sdefault.adb
@@ -20,7 +21,7 @@ CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT)\
 force: 
 
 gnatdist$(EXEEXT): $(gnatdist_DEPENDENCIES) force
-	$(GNATMAKE) -m $(GNATFLAGS) -I. -I$(srcdir) -I$(GNATSRC) \
+	$(GNAT_FOR_HOST) -m $(GNATFLAGS) -I. -I$(srcdir) -I$(GNATSRC) \
 	   $(srcdir)/xe_build.adb -o gnatdist$(EXEEXT) \
 	   -bargs -static -largs -lgccprefix $(LIBS)
 
@@ -81,17 +82,24 @@ xe_defs.adb: Makefile
 	@echo "   begin" >> xe_defs.adb
 	@echo "      return \"$(GNATDISTOPT)\";" >> xe_defs.adb
 	@echo "   end Get_Default_Optimization;" >> xe_defs.adb
+	@echo "   function Get_RTS_Flag return String is" >> xe_defs.adb
+	@echo "   begin" >> xe_defs.adb
+	@echo "      return \"$(GNAT_RTS_FLAG)\";" >> xe_defs.adb
+	@echo "   end Get_RTS_Flag;" >> xe_defs.adb
 	@echo "end XE_Defs;" >>xe_defs.adb
 
 xe_defs.o: xe_defs.ads xe_defs.adb
-	$(ADA) -c -g -O2 -gnatp -I$(srcdir) -I$(GNATSRC) xe_defs.adb
+	$(GNAT_FOR_HOST) $(COMPILE) $(GNATFLAGS) -I$(srcdir) -I$(GNATSRC) \
+	   xe_defs.adb
 
 xe_sysdep.o: xe_sysdep.ads xe_sysdep.adb
-	$(ADA) -c -g -O2 -gnatp -I$(srcdir) -I$(GNATSRC) xe_sysdep.adb
+	$(GNAT_FOR_HOST) $(COMPILE) -$(GNATFLAGS) -I$(srcdir) -I$(GNATSRC) \
+	   xe_sysdep.adb
 
 sdefault.adb: $(srcdir)/config.sdefault
 	@if [ -f $(GNATSRC)/sdefault.adb ]; then \
 	  echo Copying sdefault.adb; \
 	  cp $(GNATSRC)/sdefault.adb .; else \
 	  echo Generating sdefault.adb; \
-	  $(SHELL) $(srcdir)/config.sdefault; fi
+	  $(SHELL) $(srcdir)/config.sdefault; \
+	fi

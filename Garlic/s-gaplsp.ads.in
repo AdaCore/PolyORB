@@ -43,6 +43,9 @@ package System.Garlic.Platform_Specific is
    Process_Blocking_IO    : constant Boolean :=
      @PROCESS_BLOCKING_IO@;
 
+   Support_RPC_Abortion   : constant Boolean :=
+     @SUPPORT_RPC_ABORTION@;
+
    Supports_Local_Launch  : constant Boolean :=
      @SUPPORTS_LOCAL_LAUNCH@;
 

@@ -46,6 +46,7 @@ with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Exceptions;   use System.Garlic.Exceptions;
 with System.Garlic.Heart;        use System.Garlic.Heart;
 with System.Garlic.Options;
+with System.Garlic.Platform_Specific;
 with System.Garlic.Priorities;
 with System.Garlic.Priorities.Mapping;
 with System.Garlic.Soft_Links;
@@ -106,6 +107,13 @@ package body System.RPC.Server is
      (Partition : in System.Garlic.Types.Partition_ID;
       Session   : in System.RPC.Session_Type);
    --  Abort a running task
+
+   procedure Execute_Remote_Subprogram
+     (Params   : Streams.Params_Stream_Access;
+      Result   : Streams.Params_Stream_Access);
+   --  Extract access to subprogram from Params and execute it
+   --  locally. Parameters for this subprogram are also marshalled in
+   --  Params. The returned parameters are marshalled in Result.
 
    procedure Initialize;
    --  Initialize this package
@@ -274,7 +282,6 @@ package body System.RPC.Server is
 
    task body RPC_Handler is
       Callee    : Types.Partition_ID;
-      Receiver  : Streams.RPC_Receiver;
       Result    : Streams.Params_Stream_Access;
       Cancelled : Boolean;
       Priority  : Priorities.Global_Priority;
@@ -334,39 +341,38 @@ package body System.RPC.Server is
          end if;
          When_Established;
 
-         select
-            Self.Stop.Enter;
+         if Self.Async
+           or else not System.Garlic.Platform_Specific.Support_RPC_Abortion
+         then
+            Execute_Remote_Subprogram (Self.Params, Result);
 
-            --  This RPC is aborted. Send an abortion reply to recycle
-            --  properly Session_Type.
+         else
+            select
+               Self.Stop.Enter;
 
-            declare
-               Empty  : aliased Streams.Params_Stream_Type (0);
-               Header : constant RPC_Header := (Abortion_Reply, Self.Session);
-               Error  : aliased Error_Type;
-            begin
-               pragma Debug (D ("Abortion queried by caller"));
-               Insert_RPC_Header (Empty'Access, Header);
-               Send (Self.Partition, Remote_Call, Empty'Access, Error);
-               if Found (Error) then
-                  Raise_Exception (Communication_Error'Identity,
-                                   Content (Error'Access));
-               end if;
-               Cancelled := True;
-            end;
+               --  This RPC is aborted. Send an abortion reply to recycle
+               --  properly Session_Type.
 
-         then abort
-            pragma Debug (D ("Job to achieve"));
+               declare
+                  Empty  : aliased Streams.Params_Stream_Type (0);
+                  Header : constant RPC_Header
+                         := (Abortion_Reply, Self.Session);
+                  Error  : aliased Error_Type;
+               begin
+                  pragma Debug (D ("Abortion queried by caller"));
+                  Insert_RPC_Header (Empty'Access, Header);
+                  Send (Self.Partition, Remote_Call, Empty'Access, Error);
+                  if Found (Error) then
+                     Raise_Exception (Communication_Error'Identity,
+                                      Content (Error'Access));
+                  end if;
+                  Cancelled := True;
+               end;
 
-            --  Execute locally remote procedure call. Extract RPC_Receiver
-            --  of the package and then dereference it.
-
-            Receiver := Convert
-              (System.Address (Interfaces.Unsigned_64'Input (Self.Params)));
-            Receiver (Self.Params, Result);
-
-            pragma Debug (D ("Job achieved without abortion"));
-         end select;
+            then abort
+               Execute_Remote_Subprogram (Self.Params, Result);
+            end select;
+         end if;
 
          declare
             Copy : Streams.Params_Stream_Access := Self.Params;
@@ -466,6 +472,28 @@ package body System.RPC.Server is
       System.Garlic.Tasking.Free (Identifier.Stop);
       Free (Identifier);
    end Destroy_RPC_Handler;
+
+   -------------------------------
+   -- Execute_Remote_Subprogram --
+   -------------------------------
+
+   procedure Execute_Remote_Subprogram
+     (Params   : Streams.Params_Stream_Access;
+      Result   : Streams.Params_Stream_Access)
+   is
+      Receiver : Streams.RPC_Receiver;
+   begin
+      pragma Debug (D ("Job to achieve"));
+
+      --  Execute locally remote procedure call. Extract RPC_Receiver
+      --  of the package and then dereference it.
+
+      Receiver := Convert
+        (System.Address (Interfaces.Unsigned_64'Input (Params)));
+      Receiver (Params, Result);
+
+      pragma Debug (D ("Job achieved without abortion"));
+   end Execute_Remote_Subprogram;
 
    --------------
    -- Finalize --

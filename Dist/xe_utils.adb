@@ -959,6 +959,14 @@ package body XE_Utils is
       Add_Default_Optimization;
 
       declare
+         RTS_Flag : constant String := Get_RTS_Flag;
+      begin
+         if RTS_Flag'Length /= 0 then
+            Scan_Make_Arg (RTS_Flag, And_Save => False);
+         end if;
+      end;
+
+      declare
          Primary_Dir : String_Ptr;
       begin
 

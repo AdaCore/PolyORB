@@ -1,7 +1,6 @@
-# Makefile.in generated automatically by automake 1.5 from Makefile.am.
+# Makefile.in generated automatically by automake 1.4-p6 from Makefile.am
 
-# Copyright 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001
-# Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -11,7 +10,6 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
-@SET_MAKE@
 
 SHELL = @SHELL@
 top_srcdir = @top_srcdir@
@@ -31,9 +29,13 @@ infodir = @infodir@
 mandir = @mandir@
 includedir = @includedir@
 oldincludedir = /usr/include
+
+DESTDIR =
+
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
+
 top_builddir = ..
 
 ACLOCAL = @ACLOCAL@
@@ -42,11 +44,11 @@ AUTOMAKE = @AUTOMAKE@
 AUTOHEADER = @AUTOHEADER@
 
 INSTALL = @INSTALL@
-INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
-INSTALL_HEADER = $(INSTALL_DATA)
 transform = @program_transform_name@
+
 NORMAL_INSTALL = :
 PRE_INSTALL = :
 POST_INSTALL = :
@@ -59,24 +61,29 @@ host_alias = @host_alias@
 host_triplet = @host@
 target_alias = @target_alias@
 target_triplet = @target@
-ADA_FOR_TARGET = @ADA_FOR_TARGET@
 AR = @AR@
 AWK = @AWK@
 CC = @CC@
+CFLAGS = @CFLAGS@
 CP_PRESERVE = @CP_PRESERVE@
 DEFPROTOCOLDATA = @DEFPROTOCOLDATA@
 DEFPROTOCOLNAME = @DEFPROTOCOLNAME@
 DEFSTORAGEDATA = @DEFSTORAGEDATA@
 DEFSTORAGENAME = @DEFSTORAGENAME@
+EXEEXT = @EXEEXT@
 EXTRA_LIBS = @EXTRA_LIBS@
 FILTERSEXTRALIBS = @FILTERSEXTRALIBS@
 FILTERSINSTALL = @FILTERSINSTALL@
 FILTERSOBJECTS = @FILTERSOBJECTS@
 FILTERSSOURCES = @FILTERSSOURCES@
+GNAT = @GNAT@
 GNATDISTOPT = @GNATDISTOPT@
 GNATLS = @GNATLS@
+GNATMAKE = @GNATMAKE@
+GNAT_FOR_TARGET = @GNAT_FOR_TARGET@
 GNAT_SOURCE = @GNAT_SOURCE@
 LINKTEST = @LINKTEST@
+MAKEINFO = @MAKEINFO@
 PACKAGE = @PACKAGE@
 PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
 PROCESS_BLOCKING_IO = @PROCESS_BLOCKING_IO@
@@ -87,202 +94,198 @@ RANLIB = @RANLIB@
 RM = @RM@
 SED = @SED@
 SUPPORTS_LOCAL_LAUNCH = @SUPPORTS_LOCAL_LAUNCH@
+SUPPORT_RPC_ABORTION = @SUPPORT_RPC_ABORTION@
 TAR = @TAR@
 UNZIP = @UNZIP@
 VERSION = @VERSION@
 
-srcdir = @srcdir@
-
-ADA = @ADA@
-GNATFLAGS = -gnatpg @GNATFLAGS@
-GNATMAKE = @GNATMAKE@
-RSH_CMD = @RSH_CMD@
-RSH_OPT = @RSH_OPT@
-
 AUTOMAKE_OPTIONS = no-dependencies foreign
+
+GNAT_FOR_HOST = @GNAT_FOR_HOST@
 GNATSRC = @GNAT_SOURCE@
 GARLIC = $(libdir)/garlic
+COMPILE = -f -u -a
+GNAT_RTS_FLAG = @GNAT_RTS_FLAG@
+GNATFLAGS = -gnatpg @GNATFLAGS@ $(GNAT_RTS_FLAG)
+RSH_CMD = @RSH_CMD@
+RSH_OPT = @RSH_OPT@
+srcdir = @srcdir@
 
 bin_PROGRAMS = gnatdist
 gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.adb sdefault.adb
 gnatdist_SOURCES = 
 gnatdist_LDADD = 
 
-CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT)\
-             xe_defs.adb xe_sysdep.adb sdefault.adb
+CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT)              xe_defs.adb xe_sysdep.adb sdefault.adb
 
-subdir = Dist
 mkinstalldirs = $(SHELL) $(top_srcdir)/support/mkinstalldirs
-CONFIG_CLEAN_FILES =
-bin_PROGRAMS = gnatdist$(EXEEXT)
-PROGRAMS = $(bin_PROGRAMS)
+CONFIG_CLEAN_FILES = 
+bin_PROGRAMS =  gnatdist$(EXEEXT)
+PROGRAMS =  $(bin_PROGRAMS)
 
-am_gnatdist_OBJECTS =
-gnatdist_OBJECTS = $(am_gnatdist_OBJECTS)
-gnatdist_LDFLAGS =
 
-DEFS = @DEFS@
-DEFAULT_INCLUDES =  -I. -I$(srcdir)
+DEFS = @DEFS@ -I. -I$(srcdir) 
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-depcomp =
-CFLAGS = @CFLAGS@
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(gnatdist_SOURCES)
-DIST_COMMON = ChangeLog Makefile.am Makefile.in TODO
+gnatdist_OBJECTS = 
+gnatdist_LDFLAGS = 
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO
+
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+GZIP_ENV = --best
 SOURCES = $(gnatdist_SOURCES)
+OBJECTS = $(gnatdist_OBJECTS)
 
-all: all-am
-
+all: all-redirect
 .SUFFIXES:
-$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
-	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  Dist/Makefile
-Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
-	cd $(top_builddir) && \
-	  CONFIG_HEADERS= CONFIG_LINKS= \
-	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
+.SUFFIXES: .S .c .o .s
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign Dist/Makefile
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+
+mostlyclean-binPROGRAMS:
+
+clean-binPROGRAMS:
+	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+
+distclean-binPROGRAMS:
+
+maintainer-clean-binPROGRAMS:
+
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(DESTDIR)$(bindir)
 	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
-	  if test -f $$p \
-	  ; then \
-	    f=`echo $$p1|sed '$(transform);s/$$/$(EXEEXT)/'`; \
-	   echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$f"; \
-	   $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$f; \
+	  if test -f $$p; then \
+	    echo "  $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`"; \
+	     $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
 	  else :; fi; \
 	done
 
 uninstall-binPROGRAMS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  f=`echo $$p|sed 's/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
-	  echo " rm -f $(DESTDIR)$(bindir)/$$f"; \
-	  rm -f $(DESTDIR)$(bindir)/$$f; \
+	list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
 	done
 
-clean-binPROGRAMS:
-	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+.c.o:
+	$(COMPILE) -c $<
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
 
 mostlyclean-compile:
-	-rm -f *.$(OBJEXT) core *.core
+	-rm -f *.o core *.core
+
+clean-compile:
 
 distclean-compile:
 	-rm -f *.tab.c
-uninstall-info-am:
+
+maintainer-clean-compile:
 tags: TAGS
 TAGS:
 
 
-DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-top_distdir = ..
-distdir = $(top_distdir)/$(PACKAGE)-$(VERSION)
+subdir = Dist
 
 distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
-	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
-	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
-	  if test "$$dir" != "$$file" && test "$$dir" != "."; then \
-	    $(mkinstalldirs) "$(distdir)/$$dir"; \
-	  fi; \
+	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pR $$d/$$file $(distdir) \
-	    || exit 1; \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
-	    || cp -p $$d/$$file $(distdir)/$$file \
-	    || exit 1; \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
 	  fi; \
 	done
+info-am:
+info: info-am
+dvi-am:
+dvi: dvi-am
 check-am: all-am
 check: check-am
-all-am: Makefile $(PROGRAMS)
-
-installdirs:
-	$(mkinstalldirs) $(DESTDIR)$(bindir)
-
-install: install-am
+installcheck-am:
+installcheck: installcheck-am
+install-exec-am: install-binPROGRAMS
 install-exec: install-exec-am
+
+install-data-am:
 install-data: install-data-am
-uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
-
-installcheck: installcheck-am
+install: install-am
+uninstall-am: uninstall-binPROGRAMS
+uninstall: uninstall-am
+all-am: Makefile $(PROGRAMS)
+all-redirect: all-am
 install-strip:
-	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
-	  `test -z '$(STRIP)' || \
-	    echo "INSTALL_PROGRAM_ENV=STRIPPROG='$(STRIP)'"` install
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+installdirs:
+	$(mkinstalldirs)  $(DESTDIR)$(bindir)
+
+
 mostlyclean-generic:
 
 clean-generic:
 	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
-	-rm -f Makefile $(CONFIG_CLEAN_FILES) stamp-h stamp-h[0-9]*
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
 
 maintainer-clean-generic:
-	@echo "This command is intended for maintainers to use"
-	@echo "it deletes files that may require special tools to rebuild."
-clean: clean-am
-
-clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
-
-distclean: distclean-am
-
-distclean-am: clean-am distclean-compile distclean-generic
-
-dvi: dvi-am
-
-dvi-am:
-
-info: info-am
-
-info-am:
-
-install-data-am:
-
-install-exec-am: install-binPROGRAMS
-
-install-info: install-info-am
-
-install-man:
-
-installcheck-am:
-
-maintainer-clean: maintainer-clean-am
-
-maintainer-clean-am: distclean-am maintainer-clean-generic
+mostlyclean-am:  mostlyclean-binPROGRAMS mostlyclean-compile \
+		mostlyclean-generic
 
 mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic
+clean-am:  clean-binPROGRAMS clean-compile clean-generic mostlyclean-am
 
-uninstall-am: uninstall-binPROGRAMS uninstall-info-am
+clean: clean-am
 
-.PHONY: all all-am check check-am clean clean-binPROGRAMS clean-generic \
-	distclean distclean-compile distclean-generic distdir dvi \
-	dvi-am info info-am install install-am install-binPROGRAMS \
-	install-data install-data-am install-exec install-exec-am \
-	install-info install-info-am install-man install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic uninstall uninstall-am \
-	uninstall-binPROGRAMS uninstall-info-am
+distclean-am:  distclean-binPROGRAMS distclean-compile distclean-generic \
+		clean-am
+
+distclean: distclean-am
+
+maintainer-clean-am:  maintainer-clean-binPROGRAMS \
+		maintainer-clean-compile maintainer-clean-generic \
+		distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-am
+
+.PHONY: mostlyclean-binPROGRAMS distclean-binPROGRAMS clean-binPROGRAMS \
+maintainer-clean-binPROGRAMS uninstall-binPROGRAMS install-binPROGRAMS \
+mostlyclean-compile distclean-compile clean-compile \
+maintainer-clean-compile tags distdir info-am info dvi-am dvi check \
+check-am installcheck-am installcheck install-exec-am install-exec \
+install-data-am install-data install-am install uninstall-am uninstall \
+all-redirect all-am all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
 
 force: 
 
 gnatdist$(EXEEXT): $(gnatdist_DEPENDENCIES) force
-	$(GNATMAKE) -m $(GNATFLAGS) -I. -I$(srcdir) -I$(GNATSRC) \
+	$(GNAT_FOR_HOST) -m $(GNATFLAGS) -I. -I$(srcdir) -I$(GNATSRC) \
 	   $(srcdir)/xe_build.adb -o gnatdist$(EXEEXT) \
 	   -bargs -static -largs -lgccprefix $(LIBS)
 
@@ -343,20 +346,28 @@ xe_defs.adb: Makefile
 	@echo "   begin" >> xe_defs.adb
 	@echo "      return \"$(GNATDISTOPT)\";" >> xe_defs.adb
 	@echo "   end Get_Default_Optimization;" >> xe_defs.adb
+	@echo "   function Get_RTS_Flag return String is" >> xe_defs.adb
+	@echo "   begin" >> xe_defs.adb
+	@echo "      return \"$(GNAT_RTS_FLAG)\";" >> xe_defs.adb
+	@echo "   end Get_RTS_Flag;" >> xe_defs.adb
 	@echo "end XE_Defs;" >>xe_defs.adb
 
 xe_defs.o: xe_defs.ads xe_defs.adb
-	$(ADA) -c -g -O2 -gnatp -I$(srcdir) -I$(GNATSRC) xe_defs.adb
+	$(GNAT_FOR_HOST) $(COMPILE) $(GNATFLAGS) -I$(srcdir) -I$(GNATSRC) \
+	   xe_defs.adb
 
 xe_sysdep.o: xe_sysdep.ads xe_sysdep.adb
-	$(ADA) -c -g -O2 -gnatp -I$(srcdir) -I$(GNATSRC) xe_sysdep.adb
+	$(GNAT_FOR_HOST) $(COMPILE) -$(GNATFLAGS) -I$(srcdir) -I$(GNATSRC) \
+	   xe_sysdep.adb
 
 sdefault.adb: $(srcdir)/config.sdefault
 	@if [ -f $(GNATSRC)/sdefault.adb ]; then \
 	  echo Copying sdefault.adb; \
 	  cp $(GNATSRC)/sdefault.adb .; else \
 	  echo Generating sdefault.adb; \
-	  $(SHELL) $(srcdir)/config.sdefault; fi
+	  $(SHELL) $(srcdir)/config.sdefault; \
+	fi
+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

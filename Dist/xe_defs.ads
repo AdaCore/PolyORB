@@ -44,4 +44,6 @@ package XE_Defs is
 
    function Get_Default_Optimization return String;
 
+   function Get_RTS_Flag return String;
+
 end XE_Defs;
