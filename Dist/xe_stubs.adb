@@ -200,7 +200,7 @@ package body XE_Stubs is
 
             --  Bind and link each partition.
 
-            Executable := Partitions.Table (PID).Name;
+            Executable := Partitions.Table (PID).Name & Exe_Suffix;
 
             if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
                Directory := Partitions.Table (Default_Partition).Storage_Dir;

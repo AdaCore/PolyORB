@@ -81,6 +81,8 @@ package XE_Utils is
    --  This package is intended to provide all the OS facilities
 
    Obj_Suffix   : File_Name_Type;
+   Exe_Suffix   : File_Name_Type;
+
    ALI_Suffix   : File_Name_Type;
    ADS_Suffix   : File_Name_Type;
    ADB_Suffix   : File_Name_Type;

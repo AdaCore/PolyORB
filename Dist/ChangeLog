@@ -1,3 +1,9 @@
+1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Use Exe_Suffix to build executable.
+
+	* xe_utils.adb, xe_utils.ads: Add Obj_Suffix and Exe_Suffix.
+
 1998-02-17  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_check.adb: Add units already configured on partition type

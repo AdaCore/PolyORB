@@ -68,6 +68,9 @@ package body XE_Utils is
    Special_File_Flag     : constant String_Access := new String' ("-x");
    Ada_File_Flag         : constant String_Access := new String' ("ada");
 
+   Object_Suffix         : constant String_Access := Get_Object_Suffix;
+   Executable_Suffix     : constant String_Access := Get_Executable_Suffix;
+
    I_GARLIC_Dir          : String_Access;
    L_GARLIC_Dir          : String_Access;
 
@@ -562,7 +565,9 @@ package body XE_Utils is
       Receiver_Id    := Str_To_Id ("receiver");
       Parent_Dir     := Str_To_Id ("..");
 
-      Obj_Suffix     := Str_To_Id (".o");
+      Obj_Suffix     := Str_To_Id (Object_Suffix.all);
+      Exe_Suffix     := Str_To_Id (Executable_Suffix.all);
+
       ALI_Suffix     := Str_To_Id (".ali");
       ADS_Suffix     := Str_To_Id (".ads");
       ADB_Suffix     := Str_To_Id (".adb");
