@@ -111,6 +111,7 @@ package body System.Garlic.Tasking is
             pragma Debug (D ("Contention in lock, locker is " &
                              Image (Owner) & ", waiting is " &
                              Image (Lock'Caller) & ", count is" & Count'Img));
+            pragma Assert (not Is_Terminated (Owner));
             requeue Contention with abort;
          end if;
       end Lock;
