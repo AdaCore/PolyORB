@@ -93,7 +93,7 @@ EOF
 echo "--  `uname -a`" >> ${fname}
 echo "--  Generation date: `date`" >> ${fname}
 cat >> ${fname} << EOF
---  Any change you make here will be lost !
+--  Any change you make here is likely to be lost !
 package ${name} is
 EOF
 ${tmpe} >> ${fname}
