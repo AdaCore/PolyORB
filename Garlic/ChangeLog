@@ -1,3 +1,27 @@
+Thu Dec 19 12:54:45 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-parint.ads: Added dummy functions for Shared_Passive (needed
+	  for the stub expansion).
+
+	* s-parint.adb: Idem.
+
+	* s-gartcp.adb: Removed a conversion between Interfaces.C.int and
+	  pointer types because of a possible clash on 64 bits machines.
+
+Mon Dec 16 15:26:02 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-partyp.ads: Removed.
+
+	* rci_info.ads: Removed (included in s-parint.ads).
+	
+	* rci_info.adb: Removed (included in s-parint.adb).
+
+	* s-parint.ads: Inclusion of RCI_Info generic package.
+
+	* s-parint.adb: Ditto.
+
+	* Makefile.am: Removed rci_info.ad[bs] from file list.
+
 Sat Nov 30 21:01:19 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
 	* s-garopt.adb: For sure, serial is not the default protocol.

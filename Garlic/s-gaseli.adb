@@ -232,8 +232,11 @@ package body System.Garlic.Serial_Line is
       Length_V : aliased System.RPC.Params_Stream_Type (0);
    begin
       if Get_My_Partition_ID_Immediately = Null_Partition_ID then
-         --  Ugly !!!
+
+         --  XXXXX Ugly but useful hack in our case.
+
          Set_My_Partition_ID (2);
+
       end if;
       Ada.Streams.Stream_Element_Offset'Write (Length_V'Access, Length);
       Length_P := To_Stream_Element_Array (Length_V'Access);
@@ -331,6 +334,12 @@ package body System.Garlic.Serial_Line is
             end;
          end;
       end loop;
+
+      --  The next instruction will never be called (since the loop
+      --  above is an infinite one), but it will ease our job when looking
+      --  for potentially non-balanced instructions.
+
+      Sub_Non_Terminating_Task;
 
    end Serial_Waiter;
 

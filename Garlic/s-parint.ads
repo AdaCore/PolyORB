@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Partition_Types;
 with System.RPC;
 
 package System.Partition_Interface is
@@ -41,8 +40,9 @@ package System.Partition_Interface is
    type Subprogram_Id is new Natural;
    --  This type is used exclusively by stubs.
 
-   subtype Unit_Name is System.Partition_Types.Unit_Name;
+   subtype Unit_Name is String;
    type Unit_Name_Access is access Unit_Name;
+   --  Name of RCI unit.
 
    function Get_Local_Partition_ID return RPC.Partition_ID;
    --  Return the Partition_ID of the current partition.
@@ -51,6 +51,11 @@ package System.Partition_Interface is
      (RCI_Unit : Unit_Name)
       return RPC.Partition_ID;
    --  Similar in some respects to RCI_Info.Get_Active_Partition_ID.
+
+   function Get_Passive_Partition_ID
+     (RCI_Unit : Unit_Name)
+     return RPC.Partition_ID;
+   --  Return the Partition_ID of the given shared passive partition.
 
    function Get_RCI_Package_Receiver
      (RCI_Unit : in Unit_Name)
@@ -63,32 +68,27 @@ package System.Partition_Interface is
    --  Similar in some respects to Get_Active_Partition_ID.
 
    protected type Elaboration_Type is
-
       entry Get_RCI_Data
         (Receiver  : out System.RPC.RPC_Receiver;
          Partition : out System.RPC.Partition_ID;
          Done      : out Boolean);
-
       procedure Set_RCI_Data
         (RCI_Name  : Unit_Name_Access;
          Receiver  : System.RPC.RPC_Receiver;
          Partition : System.RPC.Partition_ID);
-
       procedure Initiate_Invalidation;
       procedure Complete_Invalidation;
       function  Get_RCI_Unit return Unit_Name_Access;
-
    private
-
       Elaborated       : Boolean := False;
       In_Progress      : Boolean := False;
       Active_Partition : System.Rpc.Partition_ID;
       Package_Receiver : System.Rpc.Rpc_Receiver;
       RCI_Unit         : Unit_Name_Access;
-
    end Elaboration_Type;
-
    type Elaboration_Access is access Elaboration_Type;
+   --  Protected type provided for future implementation of restartable
+   --  partitions.
 
    procedure Register_Receiving_Stub
      (RCI_Unit : in Unit_Name;
@@ -124,7 +124,12 @@ package System.Partition_Interface is
    --  Declare this receiving stub as corrupted on this partition to
    --  the RCI Name Server.
 
+   generic
+      RCI_Name : String;
+   package RCI_Info is
+      function Get_RCI_Package_Receiver return System.RPC.RPC_Receiver;
+      function Get_Active_Partition_ID  return System.RPC.Partition_ID;
+   end RCI_Info;
+   --  RCI package information caching.
+
 end System.Partition_Interface;
-
-
-
