@@ -2,9 +2,10 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#14 $
+# $Id: //droopi/main/utils/cobuild#15 $
 
 PROJECT=DROOPI
+GNUMAKE=gmake
 
 usage () {
   echo "Usage: $0 -m EMAIL_ADDRESS -C CLIENT_WORKSPACE_TOP -o OUTPUT_DIR [ -c CHANGELIST ]"
@@ -123,7 +124,7 @@ export CHANGE
     $CLIENT_TOP/configure --disable-shared --enable-debug \
        --with-proto-perso="giop soap srp" --with-appli-perso="corba moma" \
        --with-services="naming ir" --prefix=$OUTDIR/install
-  fi && make && make install
+  fi && ${GNUMAKE} && ${GNUMAKE} install
   RC=$?
   exit $RC
 )' &
