@@ -35,7 +35,7 @@
 
 --  $Id$
 
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded;
 with Ada.Tags;
 
 with PolyORB.Binding_Objects;
@@ -119,7 +119,6 @@ package body PolyORB.References is
       end if;
 
       pragma Debug (O ("New " & Image (R)));
-
    end Create_Reference;
 
    --------------
@@ -176,6 +175,8 @@ package body PolyORB.References is
      (R : Ref)
      return String
    is
+      use Ada.Strings.Unbounded;
+
       P : constant Profile_Array := Profiles_Of (R);
       Res : Unbounded_String
         := To_Unbounded_String ("Object reference: ");
@@ -285,6 +286,9 @@ package body PolyORB.References is
          else
             pragma Debug (O ("Ref_Info_Of: entity is a "
                              & Ada.Tags.External_Tag (E'Tag)));
+            --  XXX does it make sense to have a non-child of
+            --  Reference_Info stored into a PolyORB.ReferenceS.Ref ?
+
             null;
          end if;
       else
