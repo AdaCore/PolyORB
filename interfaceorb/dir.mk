@@ -87,11 +87,10 @@ Ada_Sys_Dep: Ada_Sys_Dep.cc
 $(ADAOBJS): all_adabroker.o
 
 all_adabroker.o: long_size_check adabroker-sysdep.ads
-	gnatmake -c -g -gnata -i all_adabroker.ads -gnatg
+	gnatmake -c -g -O2 -gnata -i all_adabroker.ads -gnatg
 
 adabroker-sysdep.ads : adabroker-sysdep.ads.in
-	sed -f $(ADABROKER_PLATFORM)/$(platform) \
-	  adabroker-sysdep.ads.in > adabroker-sysdep.ads
+	cd ../support && ./linker_options
 
 export:: $(lib)
 	@$(ExportLibrary)
