@@ -26,13 +26,33 @@ Build requirements
 
 Ada 95 compiler: GNAT 3.14a1 or later.
 
+Optional: XmlAda (http://libre.act-europe.fr/xmlada/) if you want to
+build the SOAP protocol personality.
+
 Build instructions
 ------------------
 
 See file INSTALL.
 
-Usage
------
+Available options for the 'configure' script include:
+  --enable-xmlada: set if you have XmlAda and you want to build the
+                   SOAP protocol personality.
+  --enable-shared: build shared libraries.
+  --enable-debug:  enable debugging information generation and supplementary
+                   runtime checks.
+
+Documentation overview
+----------------------
+
+README: This file, first instructions.
+src/ROADMAP: Overview of PolyORB source code.
+doc/*: Miscellaneous documents describing PolyORB internals.
+
+Usage of idlac
+--------------
+
+idlac is the IDL-to-Ada 95 compiler of PolyORB. It is an evolution
+of the compiler that was present in AdaBroker.
 
   idlac [-i] [-k] idl_file [-cppargs ...]
 
@@ -60,13 +80,16 @@ This creates several files :
 - myinterface-stream.ads, myinterface-stream.adb : these files
   contain subprograms to marshall data according to the CDR protocol.
 
+Usage of PolyORB
+----------------
+
+See examples of simple CORBA clients and servers in subdirectory 'examples/'.
 
 Features
 --------
 
 Bug reports
 -----------
-
 
 Mailing-lists
 -------------
@@ -91,4 +114,3 @@ contributors:
 * Nicolas Setton
 * Frank Singhoff (singhoff@enst.fr)
 * Samuel Tardieu (sam@enst.fr)
-

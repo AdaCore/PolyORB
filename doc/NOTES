@@ -1,4 +1,4 @@
-Diverses notes de développement sur DROOPI.
+Diverses notes de développement sur PolyORB
 -------------------------------------------
 
 $Id$
@@ -38,7 +38,7 @@ la sémantique (pattern Decorator) de façon générique car le
 décorateur doit à son tour offrir la même interface que celle
 de la classe décorée.
 
-Autre implémentation, qui résout ce pb : Droopi.Components.
+Autre implémentation, qui résout ce pb : PolyORB.Components.
 Une interface est définie par un ensemble de messages, un composant
 implémente l'interface en traitant ces messages. Un décorateur
 générique peut intercepter/manipuler des messages sans nécessairement
