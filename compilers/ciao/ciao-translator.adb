@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#13 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#14 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -342,12 +342,13 @@ package body CIAO.Translator is
       --  distributed object (the declaration of any
       --  tagged limited private type).
 
-      procedure Process_Operation_Declaration
+      procedure Translate_Operation_Declaration
         (State                   : in out Translator_State;
          Name                    : String;
          Parameter_Profile       : Asis.Parameter_Specification_List;
          Result_Profile          : Asis.Element := Nil_Element;
-         Implicit_Self_Parameter : Asis.Element := Nil_Element);
+         Implicit_Self_Parameter : Asis.Element := Nil_Element;
+         Op_Node                 : out Node_Id);
       --  Core processing for the declaration of a method of a
       --  remote entity, i. e. either a subprogram_declaration,
       --  or a full_type_declaration that declares a RAS.
@@ -364,8 +365,8 @@ package body CIAO.Translator is
       --                       otherwise.
       --
       --  Pre-condition:  State.Current_Node is the <interface_dcl>.
-      --  Post-condition: State.Current_Node is the <op_dcl> node
-      --  and its name has been set to Name.
+      --  Post-condition: The <op_dcl> node is returned. It has already
+      --                  been added to the contents of State.Current_Node.
 
       procedure Process_Distributed_Object_Declaration
         (Element : in Asis.Element;
@@ -424,24 +425,28 @@ package body CIAO.Translator is
          --  Children were processed explicitly.
       end Process_Distributed_Object_Declaration;
 
-      procedure Process_Operation_Declaration
+      procedure Translate_Operation_Declaration
         (State                   : in out Translator_State;
          Name                    : String;
          Parameter_Profile       : Asis.Parameter_Specification_List;
          Result_Profile          : Asis.Element := Nil_Element;
-         Implicit_Self_Parameter : Asis.Element := Nil_Element) is
+         Implicit_Self_Parameter : Asis.Element := Nil_Element;
+         Op_Node                 : out Node_Id)
+      is
 
-         Op_Node         : Node_Id;
+         Result          : Node_Id;
          --  The <op_dcl>
+
          Value_Type_Node : Node_Id;
          --  <param_type_spec> or "void", for use in <op_type_spec>.
 
          Success : Boolean;
+         Old_Current_Node : constant Node_Id := State.Current_Node;
       begin
-         Op_Node := Make_Operation (No_Location);
-         Set_Is_Oneway (Op_Node, False);
-         Append_Node_To_Contents (State.Current_Node, Op_Node);
-         Success := Add_Identifier (Op_Node, Name);
+         Result := Make_Operation (No_Location);
+         Set_Is_Oneway (Result, False);
+         Append_Node_To_Contents (State.Current_Node, Result);
+         Success := Add_Identifier (Result, Name);
          pragma Assert (Success);
 
          if  Is_Nil (Result_Profile) then
@@ -451,9 +456,9 @@ package body CIAO.Translator is
               (Result_Profile);
          end if;
 
-         Set_Operation_Type (Op_Node, Value_Type_Node);
+         Set_Operation_Type (Result, Value_Type_Node);
 
-         State.Current_Node := Op_Node;
+         State.Current_Node := Result;
 
          Push_Scope (State.Current_Node);
          for I in Parameter_Profile'Range loop
@@ -471,7 +476,9 @@ package body CIAO.Translator is
             end if;
          end loop;
          Pop_Scope;
-      end Process_Operation_Declaration;
+         State.Current_Node := Old_Current_Node;
+         Op_Node := Result;
+      end Translate_Operation_Declaration;
 
    begin
 
@@ -511,36 +518,42 @@ package body CIAO.Translator is
                   State.Current_Node := Node;
                   Push_Scope (State.Current_Node);
 
-                  case Access_Type_Kind (Type_Definition) is
-                     when
-                       An_Access_To_Procedure           |
-                       An_Access_To_Protected_Procedure =>
-                        Process_Operation_Declaration
-                          (State,
-                           "Call",
-                           Access_To_Subprogram_Parameter_Profile
-                           (Type_Definition));
-                     when
-                       An_Access_To_Function           |
-                       An_Access_To_Protected_Function =>
-                        Process_Operation_Declaration
-                          (State,
-                           "Call",
-                           Access_To_Subprogram_Parameter_Profile
-                           (Type_Definition),
-                           Result_Profile =>
-                             Access_To_Function_Result_Profile
-                           (Type_Definition));
-                     when others =>
-                        --  This cannot happen because we checked that
-                        --  Access_Kind in Access_To_Subprogram_Definition
-                        raise ASIS_Failed;
-                  end case;
+                  declare
+                     Op_Node : Node_Id;
+                  begin
+                     case Access_Type_Kind (Type_Definition) is
+                        when
+                          An_Access_To_Procedure           |
+                          An_Access_To_Protected_Procedure =>
+                           Translate_Operation_Declaration
+                             (State,
+                              "Call",
+                              Access_To_Subprogram_Parameter_Profile
+                              (Type_Definition),
+                              Result_Profile => Nil_Element,
+                              Op_Node => Op_Node);
+                        when
+                          An_Access_To_Function           |
+                          An_Access_To_Protected_Function =>
+                           Translate_Operation_Declaration
+                             (State,
+                              "Call",
+                              Access_To_Subprogram_Parameter_Profile
+                              (Type_Definition),
+                              Result_Profile =>
+                                Access_To_Function_Result_Profile
+                              (Type_Definition),
+                              Op_Node => Op_Node);
+                        when others =>
+                           --  This cannot happen because we checked that
+                           --  Access_Kind in Access_To_Subprogram_Definition
+                           raise ASIS_Failed;
+                     end case;
 
-                  Set_Translation (Element, State.Current_Node);
-                  --  The translation of a RAS declaration is
-                  --  an <op_dcl>.
-
+                     Set_Translation (Element, Op_Node);
+                     --  The translation of a RAS declaration is
+                     --  an <op_dcl>.
+                  end;
                   Pop_Scope;
 
                else
@@ -849,6 +862,7 @@ package body CIAO.Translator is
                Interface_Dcl_Node      : Node_Id := No_Node;
                Old_Current_Node        : constant Node_Id
                  := State.Current_Node;
+               Op_Node                 : Node_Id;
                Need_To_Pop_Scope       : Boolean;
             begin
                pragma Assert (Defining_Names'Length = 1);
@@ -929,22 +943,28 @@ package body CIAO.Translator is
                   end if;
 
                   if Is_Function then
-                     Process_Operation_Declaration
+                     Translate_Operation_Declaration
                        (State,
                         Map_Defining_Name (Defining_Name),
                         Profile,
                         Result_Profile => Result_Profile (Element),
-                        Implicit_Self_Parameter => Implicit_Self_Parameter);
+                        Implicit_Self_Parameter => Implicit_Self_Parameter,
+                        Op_Node => Op_Node);
                   else
-                     Process_Operation_Declaration
+                     Translate_Operation_Declaration
                        (State,
                         Map_Defining_Name (Defining_Name),
                         Profile,
                         Result_Profile => Nil_Element,
-                        Implicit_Self_Parameter => Implicit_Self_Parameter);
+                        Implicit_Self_Parameter => Implicit_Self_Parameter,
+                        Op_Node => Op_Node);
                   end if;
 
-                  Set_Translation (Element, State.Current_Node);
+                  if State.Unit_Category = Remote_Call_Interface then
+                     Set_Is_Implicit_Self (Op_Node, True);
+                  end if;
+
+                  Set_Translation (Element, Op_Node);
                   --  The translation of a subprogram declaration is
                   --  an <op_dcl>.
 
@@ -1243,16 +1263,6 @@ package body CIAO.Translator is
 
                Success : Boolean;
             begin
-               if True
-                 and then Variant_Components'Length = 1
-                 and then Definition_Kind (Variant_Component)
-                   = A_Null_Component
-               then
-                  --  A 'null' variant: just ignore it.
-                  Control := Abandon_Children;
-                  return;
-               end if;
-
                Case_Node := Make_Case (No_Location);
                Decl_Node := Make_Declarator (No_Location);
 
@@ -1273,6 +1283,7 @@ package body CIAO.Translator is
 
                if Variant_Components'Length = 1
                  and then Element_Kind (Variant_Component) = A_Declaration
+                 --  Only one component, and not a null_component.
                then
                   declare
                      Component_Defining_Names :
@@ -1563,7 +1574,7 @@ package body CIAO.Translator is
             if EI_Valid then
                if Has_Enumeration_Type (Element) then
                   declare
-                     Scoped_Name_Node : Node_Id := No_Node;
+                     Lit_Enum_Node : Node_Id := No_Node;
                      Enum_Type : constant Asis.Definition
                        := Type_Declaration_View
                        (Corresponding_First_Subtype
@@ -1584,18 +1595,27 @@ package body CIAO.Translator is
                         begin
                            pragma Assert (Literal_Names'Length = 1);
                            if Pos_Image = EI then
-                              Scoped_Name_Node := Make_Scoped_Name
+
+                              Lit_Enum_Node := Make_Lit_Enum
                                 (No_Location);
-                              Set_Value
-                                (Scoped_Name_Node,
-                                 Get_Translation (Literals (I)));
+
+                              Set_Expr_Value
+                                (Lit_Enum_Node,
+                                 new Constant_Value
+                                 (Kind => C_Enum));
+                              Expr_Value (Lit_Enum_Node).Enum_Value
+                                := Get_Translation (Literals (I));
+                              pragma Assert
+                                (Is_Named
+                                 (Expr_Value (Lit_Enum_Node).Enum_Value));
                               Append_Node_To_Labels
-                                (State.Current_Node, Scoped_Name_Node);
+                                (State.Current_Node, Lit_Enum_Node);
+
                               exit Scan_Enumerators;
                            end if;
                         end;
                      end loop Scan_Enumerators;
-                     if Scoped_Name_Node = No_Node then
+                     if Lit_Enum_Node = No_Node then
                         Raise_Translation_Error
                           (Element,
                            "Could not resolve enumerator name: " & EI);

@@ -113,6 +113,12 @@ Operation <-- Scope
   Parameters : Node_List
   Raises : Node_List
   Contexts : Node_List
+  Is_Implicit_Self : Boolean := False
+  --  Should the 'self' formal parameter be explicitly
+  --  generated or kept implicit and managed transparently
+  --  by the calling stubs? Always False for the standard
+  --  IDL -> Ada mapping. Intended for implementation of
+  --  Remote Call Interface units in DSA personality.
   Is_Implicit_Inherited : Boolean := False
   --  Expansion attribute: this operation
   --  is inherited from the first parent.

@@ -2454,6 +2454,7 @@ package body Ada_Be.Idl2Ada is
       With_Name   : in Boolean := True;
       Delegate    : in Boolean := False)
    is
+      First : Boolean := True;
    begin
       case Kind (Node) is
 
@@ -2481,25 +2482,36 @@ package body Ada_Be.Idl2Ada is
             --  Formals
 
             NL (CU);
-            Put (CU, "  (Self : " & Object_Type);
-            II (CU);
+            if not Is_Implicit_Self (Node) then
+               Put (CU, "  (Self : " & Object_Type);
+               II (CU);
+               First := False;
+            end if;
 
             declare
                It   : Node_Iterator;
                P_Node : Node_Id;
             begin
-
                Init (It, Parameters (Node));
                while not Is_End (It) loop
                   Get_Next_Node (It, P_Node);
 
-                  PL (CU, ";");
+                  if First then
+                     Put (CU, "  (");
+                     II (CU);
+                     First := False;
+                  else
+                     PL (CU, ";");
+                  end if;
                   Gen_Operation_Profile
                     (CU, Object_Type, P_Node);
                end loop;
 
-               Put (CU, ")");
-               DI (CU);
+               if not First then
+                  --  Non-empty profile
+                  Put (CU, ")");
+                  DI (CU);
+               end if;
             end;
 
             --  Return type
