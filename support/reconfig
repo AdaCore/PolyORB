@@ -61,7 +61,7 @@ then
   rm -f configure.in.orig
 fi
 
-rm -f aclocal.m4 support/libtool.m4
+rm -f aclocal.m4 support/libtool.m4 configure
 
 echo "Libtoolizing"
 # If libtoolize advises us to get a particular version of libtool.m4,
