@@ -56,7 +56,7 @@ Ada_Sys_Dep: Ada_Sys_Dep.cc
 
 
 adaobjs: adabroker-sysdep.ads
-	gnatmake -gnata -m -i main.ads -gnatg
+	gnatmake -gnata -m -i all_adabroker.ads -gnatg
 
 adabroker-sysdep.ads : sysdep.tpl
 	sed -f $(ADABROKER_BOOL_DIR)/$(platform) sysdep.tpl >adabroker-sysdep.ads
