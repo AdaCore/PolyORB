@@ -17,14 +17,14 @@ polyorb_ug_TEXINFOS = polyorb_ug_ref.texi \
 # Rules to build specific files for PolyORB User's Guide
 # 
 
-polyorb-corba_p-corbaloc.ads: ../src/corba/polyorb-corba_p-corbaloc.ads
-	cp ../src/corba/polyorb-corba_p-corbaloc.ads .
+polyorb-corba_p-corbaloc.ads: $(top_srcdir)/src/corba/polyorb-corba_p-corbaloc.ads
+	cp -f $(top_srcdir)/src/corba/polyorb-corba_p-corbaloc.ads .
 
-polyorb-corba_p-naming_tools.ads: ../cos/naming/polyorb-corba_p-naming_tools.ads
-	cp ../cos/naming/polyorb-corba_p-naming_tools.ads .
+polyorb-corba_p-naming_tools.ads: $(top_srcdir)/cos/naming/polyorb-corba_p-naming_tools.ads
+	cp -f $(top_srcdir)/cos/naming/polyorb-corba_p-naming_tools.ads .
 
-polyorb-corba_p-server_tools.ads: ../src/corba/polyorb-corba_p-server_tools.ads
-	cp ../src/corba/polyorb-corba_p-server_tools.ads .
+polyorb-corba_p-server_tools.ads: $(top_srcdir)/src/corba/polyorb-corba_p-server_tools.ads
+	cp -f $(top_srcdir)/src/corba/polyorb-corba_p-server_tools.ads .
 
 polyorb_ug_ref.texi: polyorb_ug_ref.bbl
 	@${SED} -e 's/~/ /g' \
@@ -60,7 +60,7 @@ polyorb_ug_ref.aux: polyorb_ug.bib
 	-${MAKEINFO} -o $@ --ifinfo --html --number-sections $<
 
 %.txt: ${srcdir}/%.texi
-	-${MAKEINFO} -o $@ --number-sections $<
+	-${MAKEINFO} -o $@ --ifinfo --number-sections $<
 
 %.pdf: ${srcdir}/%.texi
 	-${TEXI2DVI} -o $@ --pdf $<
@@ -73,12 +73,12 @@ ADA_KW    = use package is in out exception function with type constant \
 		private of return range procedure begin end array record \
 		subtype generic limited access all
 
-%.texi: %.ads ada.sed ../support/gentexifile
-	../support/gentexifile $< .ads
+%.texi: %.ads ada.sed $(top_srcdir)/support/gentexifile
+	$(top_srcdir)/support/gentexifile $< .ads
 	-@${RM} genout
 
-%.texi: %.adb ada.sed ../support/gentexifile
-	../support/gentexifile $< .adb
+%.texi: %.adb ada.sed $(top_srcdir)/support/gentexifile
+	$(top_srcdir)/support/gentexifile $< .adb
 	-@${RM} genout
 
 ada.sed:
@@ -99,8 +99,8 @@ ada.sed:
 
 IDL_KW = module typedef struct sequence enum interface exception void in out raises
 
-%.texi: %.idl idl.sed ../support/gentexifile
-	../support/gentexifile $< .idl
+%.texi: %.idl idl.sed $(top_srcdir)/support/gentexifile
+	$(top_srcdir)/support/gentexifile $< .idl
 	-@${RM} genout
 
 idl.sed:
