@@ -135,7 +135,7 @@ procedure XE_Lead is
                   Int_Quote & "$BOOT_SERVER" & Int_Quote);
       Write_Name (FD, Get_Command_Line (Partition));
       if Partition /= Main_Partition then
-         Write_Str  (FD, " --detach" & Ext_Quote);
+         Write_Str  (FD, " --detach &" & Ext_Quote);
          Write_Str  (FD, " < /dev/null > /dev/null 2>&1");
       end if;
 
