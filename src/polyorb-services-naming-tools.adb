@@ -64,19 +64,6 @@ package body PolyORB.Services.Naming.Tools is
       RNS := To_Ref (Ref);
    end Init;
 
-   --------------
-   -- Finalize --
-   --------------
-
-   procedure Finalize (Guard : in out Server_Guard) is
-      Name : constant String
-        := PolyORB.Types.To_Standard_String (Guard.Name);
-   begin
-      if Name /= "" then
-         Unregister (Name);
-      end if;
-   end Finalize;
-
    ------------
    -- Locate --
    ------------
@@ -202,22 +189,6 @@ package body PolyORB.Services.Naming.Tools is
          else
             raise;
          end if;
-   end Register;
-
-   --------------
-   -- Register --
-   --------------
-
-   procedure Register
-     (Guard  : in out Server_Guard;
-      Name   : in Standard.String;
-      Ref    : in PolyORB.References.Ref;
-      Rebind : in Boolean := False;
-      Sep    : in Character := '/')
-   is
-   begin
-      Register (Name, Ref, Rebind, Sep);
-      Guard.Name := PolyORB.Types.To_PolyORB_String (Name);
    end Register;
 
    ----------------

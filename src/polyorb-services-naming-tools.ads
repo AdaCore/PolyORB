@@ -33,7 +33,7 @@
 
 --  $Id$
 
-with Ada.Finalization;
+--  with Ada.Finalization;
 
 with PolyORB.References;
 
@@ -85,20 +85,6 @@ package PolyORB.Services.Naming.Tools is
    procedure Unregister (Name : in String);
    --  Unregister an object by its name by unbinding it.
 
-   type Server_Guard is limited private;
-
-   procedure Register
-     (Guard  : in out Server_Guard;
-      Name   : in Standard.String;
-      Ref    : in PolyORB.References.Ref;
-      Rebind : in Boolean := False;
-      Sep    : in Character := '/');
-   --  A Server_Guard object is an object which is able to register a
-   --  server reference in a naming service (see Register above), and
-   --  destroy this name using Unregister when the object disappears
-   --  (the program terminates or the Server_Guard object lifetime has
-   --  expired).
-
    function Parse_Name
      (Name : String;
       Sep : Character := '/')
@@ -106,13 +92,5 @@ package PolyORB.Services.Naming.Tools is
    --  Split a sequence of name component specifications separated
    --  with Sep characters into a name component array. Any leading
    --  Sep is ignored.
-
-private
-
-   type Server_Guard is new Ada.Finalization.Limited_Controlled with record
-      Name : PolyORB.Types.String := PolyORB.Types.To_PolyORB_String ("");
-   end record;
-
-   procedure Finalize (Guard : in out Server_Guard);
 
 end PolyORB.Services.Naming.Tools;
