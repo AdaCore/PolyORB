@@ -92,7 +92,7 @@ package body Errors is
          elsif S (J) = '$' then
             Add_Nat_To_Name_Buffer (Error_Int (I));
             I := I + 1;
-            M := True;
+            M := False;
 
          else
             if M then

@@ -99,9 +99,8 @@ module Nodes {
 
   interface Expression : Node_Id {
     Operator_Id Operator;
-    Value_Id    Left_Value;
+    Value_Id    Value;
     Node_Id     Left_Expr;
-    Value_Id    Right_Value;
     Node_Id     Right_Expr;
   };
 

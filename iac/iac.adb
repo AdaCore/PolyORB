@@ -65,15 +65,15 @@ begin
       Error_Int (1) := N_Errors;
       Error_Int (2) := N_Warnings;
       if N_Warnings > 0 then
-         DE ("$error(s) and $warning(s)");
+         DE ("$ error(s) and $ warning(s)");
       else
-         DE ("$error(s)");
+         DE ("$ error(s)");
       end if;
       return;
 
    elsif N_Warnings > 0 then
       Error_Int (1) := N_Warnings;
-      DE ("$warning(s)");
+      DE ("$ warning(s)");
    end if;
 
    Generate (Root);

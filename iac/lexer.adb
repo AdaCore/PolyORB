@@ -652,7 +652,8 @@ package body Lexer is
                      end if;
                      Integer_Literal_Value := 0;
                   end if;
-                  Character_Literal_Value := Long (Integer_Literal_Value);
+                  Character_Literal_Value :=
+                    Unsigned_Short (Integer_Literal_Value);
 
                --  Read 1 or 2 hexadecimal digits
 
@@ -667,7 +668,8 @@ package body Lexer is
                      end if;
                      Integer_Literal_Value := 0;
                   end if;
-                  Character_Literal_Value := Long (Integer_Literal_Value);
+                  Character_Literal_Value :=
+                    Unsigned_Short (Integer_Literal_Value);
 
                --  Read 1, 2, 3 or 4 hexadecimal digits
 
@@ -691,7 +693,8 @@ package body Lexer is
                      end if;
                      Integer_Literal_Value := 0;
                   end if;
-                  Character_Literal_Value := Long (Integer_Literal_Value);
+                  Character_Literal_Value :=
+                    Unsigned_Short (Integer_Literal_Value);
 
                when others =>
                   if Fatal then
@@ -712,7 +715,7 @@ package body Lexer is
                  (Character'Val (Character_Literal_Value / 256));
             end if;
             Add_Char_To_Name_Buffer
-              (Character'Val (Character_Literal_Value mod 256));
+              (Character'Val (Character_Literal_Value and 255));
          end if;
       end loop;
 
@@ -1056,7 +1059,7 @@ package body Lexer is
 
       if Token = T_Floating_Point_Literal then
          Float_Literal_Value :=
-           Long_Long_Float'Value (Name_Buffer (1 .. Name_Len));
+           Long_Double'Value (Name_Buffer (1 .. Name_Len));
 
       else
          if Token = T_Fixed_Point_Literal then

@@ -31,4 +31,6 @@ usage.adb
 usage.ads
 utils.adb
 utils.ads
+values.adb
+values.ads
 nodes.idl

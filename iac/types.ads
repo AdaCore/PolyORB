@@ -178,34 +178,63 @@ pragma Preelaborate (Types);
 
    type Base_Type is new Node_Id;
 
-   subtype Short_Short       is Short_Short_Integer;
-   subtype Short             is Short_Integer;
-   subtype Long              is Long_Integer;
-   subtype Long_Long         is Long_Long_Integer;
-   type Octet                is mod 2 ** 8;
-   type Unsigned_Short_Short is mod 2 ** Short_Short'Size;
-   type Unsigned_Short       is mod 2 ** Short_Integer'Size;
-   type Unsigned             is mod 2 ** Integer'Size;
-   type Unsigned_Long        is mod 2 ** Long_Integer'Size;
-   type Unsigned_Long_Long   is mod 2 ** Long_Long_Integer'Size;
-   FSS                       : constant := Short_Short'First;
-   LSS                       : constant := Short_Short'Last;
-   FS                        : constant := Short'First;
-   LS                        : constant := Short'Last;
-   FL                        : constant := Long'First;
-   LL                        : constant := Long'Last;
-   FLL                       : constant := Long_Long'First;
-   LLL                       : constant := Long_Long'Last;
-   FO                        : constant := Octet'First;
-   LO                        : constant := Octet'Last;
-   FUSS                      : constant := Unsigned_Short_Short'First;
-   LUSS                      : constant := Unsigned_Short_Short'Last;
-   FUS                       : constant := Unsigned_Short'First;
-   LUS                       : constant := Unsigned_Short'Last;
-   FUL                       : constant := Unsigned_Long'First;
-   LUL                       : constant := Unsigned_Long'Last;
-   FULL                      : constant := Unsigned_Long_Long'First;
-   LULL                      : constant := Unsigned_Long_Long'Last;
+   type Short_Short  is range -2 **  7 .. 2 **  7 - 1;
+   for Short_Short'Size use  8;
+
+   type Short is range -2 ** 15 .. 2 ** 15 - 1;
+   for Short'Size use 16;
+
+   type Long is range -2 ** 31 .. 2 ** 31 - 1;
+   for Long'Size use 32;
+
+   type Long_Long is range -2 ** 63 .. 2 ** 63 - 1;
+   for Long_Long'Size use 64;
+
+   type Octet  is mod 2 **  8;
+   for Octet'Size use  8;
+
+   type Unsigned_Short_Short is mod 2 **  8;
+   for Unsigned_Short_Short'Size use 8;
+
+   type Unsigned_Short is mod 2 ** 16;
+   for Unsigned_Short'Size use 16;
+
+   type Unsigned_Long is mod 2 ** 32;
+   for Unsigned_Long'Size use 32;
+
+   type Unsigned_Long_Long is mod 2 ** 64;
+   for Unsigned_Long_Long'Size use 64;
+
+   --  Floating point types. We assume that we are on an IEEE machine, and
+   --  that the types Short_Float and Long_Float in Standard refer to the
+   --  32-bit short and 64-bit long IEEE forms. Furthermore, if there is
+   --  an extended float, we assume that it is available as Long_Long_Float.
+   --  Note: it is harmless, and explicitly permitted, to include additional
+   --  types in interfaces, so it is not wrong to have IEEE_Extended_Float
+   --  defined even if the extended format is not available.
+
+   type Float       is new Short_Float;
+   type Double      is new Long_Float;
+   type Long_Double is new Long_Long_Float;
+
+   FSS  : constant := Short_Short'First;
+   LSS  : constant := Short_Short'Last;
+   FS   : constant := Short'First;
+   LS   : constant := Short'Last;
+   FL   : constant := Long'First;
+   LL   : constant := Long'Last;
+   FLL  : constant := Long_Long'First;
+   LLL  : constant := Long_Long'Last;
+   FO   : constant := Octet'First;
+   LO   : constant := Octet'Last;
+   FUSS : constant := Unsigned_Short_Short'First;
+   LUSS : constant := Unsigned_Short_Short'Last;
+   FUS  : constant := Unsigned_Short'First;
+   LUS  : constant := Unsigned_Short'Last;
+   FUL  : constant := Unsigned_Long'First;
+   LUL  : constant := Unsigned_Long'Last;
+   FULL : constant := Unsigned_Long_Long'First;
+   LULL : constant := Unsigned_Long_Long'Last;
 
    function Shift_Left
      (Value  : Unsigned_Long_Long;

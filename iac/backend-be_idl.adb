@@ -352,7 +352,12 @@ package body Backend.BE_IDL is
 
    procedure Generate_Fixed_Point_Type (E : Node_Id) is
    begin
-      Dummy (E);
+      Write (T_Fixed);
+      Write (T_Less);
+      Write_Int (Int (N_Total (E)));
+      Write (T_Comma);
+      Write_Int (Int (N_Scale (E)));
+      Write (T_Greater);
    end Generate_Fixed_Point_Type;
 
    -------------------------------------------

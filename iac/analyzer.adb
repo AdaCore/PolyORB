@@ -46,11 +46,12 @@ package body Analyzer is
    procedure Analyze_Value_Box_Declaration (E : Node_Id);
    procedure Analyze_Value_Forward_Declaration (E : Node_Id);
 
-   procedure Cannot_Interpret (T1, T2 : String; L : Location);
-   procedure Check_Range (E : Node_Id; K : Node_Kind);
-   procedure Check_Range (V : Value_Id; K : Node_Kind; L : Location);
+   procedure Resolve (E : Node_Id; T : Node_Id);
 
-   function Evaluate (N : Node_Id) return Value_Id;
+   procedure Display_Incorrect_Value
+     (L  : Location;
+      K1 : Node_Kind;
+      K2 : Node_Kind := K_Void);
 
    -------------
    -- Analyze --
@@ -209,284 +210,37 @@ package body Analyzer is
 
    procedure Analyze_Constant_Declaration (E : Node_Id)
    is
-      procedure Resolve_Constant_Type
-        (T : in out Node_Id);
-      procedure Check_Expr_Value_Type
-        (E : Node_Id; V : Value_Id; K : Node_Kind);
-      procedure Display_Incorrect_Value
-        (L : Location; K1 : Node_Kind; K2 : Node_Kind := K_Void);
-      function Is_Value_Of_Type
-        (X : Value_Id; K : Node_Kind)
-        return Boolean;
-      procedure Check_Subexpr_Value_Type
-        (E : Node_Id; V : Value_Id; K : Node_Kind);
-      function In_Range
-        (I : Unsigned_Long_Long;
-         S : Short_Short_Integer;
-         F : Long_Long;
-         L : Unsigned_Long_Long)
-        return Boolean;
-
-      ---------------------------
-      -- Resolve_Constant_Type --
-      ---------------------------
-
-      procedure Resolve_Constant_Type (T : in out Node_Id)
-      is
-         K : Node_Kind;
-      begin
-         while Present (T) loop
-            K := Kind (T);
-            case K is
-               when K_String
-                 | K_Wide_String
-                 | K_Fixed_Point_Type
-                 | K_Float
-                 | K_Double
-                 | K_Long_Double
-                 | K_Short
-                 | K_Long
-                 | K_Long_Long
-                 | K_Unsigned_Short
-                 | K_Unsigned_Long
-                 | K_Unsigned_Long_Long
-                 | K_Char
-                 | K_Wide_Char
-                 | K_Boolean
-                 | K_Octet =>
-                  exit;
-
-               when K_Simple_Declarator =>
-                  T := Type_Spec (Declaration (T));
-
-               when K_Scoped_Name =>
-                  T := Reference (T);
-
-               when others =>
-                  DE ("invalid type for constant");
-                  T := No_Node;
-            end case;
-         end loop;
-      end Resolve_Constant_Type;
-
-      -----------------------------
-      -- Display_Incorrect_Value --
-      -----------------------------
-
-      procedure Display_Incorrect_Value
-        (L : Location; K1 : Node_Kind; K2 : Node_Kind := K_Void)
-      is
-      begin
-         Error_Loc  (1) := L;
-         Error_Name (1) := Quoted (Image (K1));
-         if K2 = K_Void then
-            DE ("value not in range of type of%");
-         else
-            Error_Name (2) := Quoted (Image (K2));
-            DE ("value not in range of type of%or%");
-         end if;
-      end Display_Incorrect_Value;
-
-      --------------
-      -- In_Range --
-      --------------
-
-      function In_Range
-        (I : Unsigned_Long_Long;
-         S : Short_Short_Integer;
-         F : Long_Long;
-         L : Unsigned_Long_Long)
-        return Boolean is
-      begin
-         if S < 0 then
-            if F < 0
-              and then I <= Unsigned_Long_Long (-F)
-            then
-               return True;
-            end if;
-            return False;
-         end if;
-         return I <= L;
-      end In_Range;
-
-      ----------------------
-      -- Is_Value_Of_Type --
-      ----------------------
-
-      function Is_Value_Of_Type
-        (X : Value_Id; K : Node_Kind)
-        return Boolean
-      is
-         V : Value_Type;
-         I : Unsigned_Long_Long;
-         S : Short_Short_Integer;
-      begin
-         if X = No_Value then
-            return True;
-         end if;
-         V := Value (X);
-         case V.T is
-            when T_Integer_Literal =>
-               I := V.IVal;
-               S := V.Sign;
-               if (K = K_Octet
-                   and then In_Range (I, S, FO, LO))
-                 or else (K = K_Short
-                          and then In_Range (I, S, FS, LS))
-                 or else (K = K_Long
-                          and then In_Range (I, S, FL, LL))
-                 or else (K = K_Long_Long
-                          and then In_Range (I, S, FLL, LLL))
-                 or else (K = K_Unsigned_Short
-                          and then In_Range (I, S, FUS, LUS))
-                 or else (K = K_Unsigned_Long
-                          and then In_Range (I, S, FUL, LUL))
-                 or else (K = K_Unsigned_Long_Long
-                          and then In_Range (I, S, FULL, LULL))
-               then
-                  return True;
-               end if;
-               return False;
-
-            when T_String_Literal =>
-               if (V.Wide
-                   and then (K = K_Wide_String
-                             or else K = K_Wide_String_Type))
-                 or else K = K_String
-                 or else K = K_String_Type
-               then
-                  return True;
-               end if;
-               return False;
-
-            when T_Character_Literal =>
-               if (V.Wide and then K = K_Wide_Char)
-                 or else K = K_Char
-               then
-                  return True;
-               end if;
-               return False;
-
-            when T_Fixed_Point_Literal =>
-               if K = K_Fixed_Point_Type then
-                  return True;
-               end if;
-               return False;
-
-            when T_Floating_Point_Literal =>
-               if K = K_Float
-                 or else K = K_Double
-                 or else K = K_Long_Double
-               then
-                  return True;
-               end if;
-               return False;
-
-            when T_Boolean_Literal =>
-               if K = K_Boolean then
-                  return True;
-               end if;
-               return False;
-
-            when others =>
-               return False;
-
-         end case;
-      end Is_Value_Of_Type;
-
-      ------------------------------
-      -- Check_Subexpr_Value_Type --
-      ------------------------------
-
-      procedure Check_Subexpr_Value_Type
-        (E : Node_Id; V : Value_Id; K : Node_Kind)
-      is
-         SE : Node_Id;
-         SV : Value_Id;
-      begin
-         if V = No_Value then
-            return;
-         end if;
-
-         if not Is_Value_Of_Type (V, K) then
-            if K = K_Unsigned_Long
-              and then not Is_Value_Of_Type (V, K_Long)
-            then
-               Display_Incorrect_Value
-                 (Loc (E), K_Long, K_Unsigned_Long);
-               return;
-
-            elsif K = K_Unsigned_Long_Long
-              and then not Is_Value_Of_Type (V, K_Long_Long)
-            then
-               Display_Incorrect_Value
-                 (Loc (E), K_Long_Long, K_Unsigned_Long_Long);
-               return;
-            end if;
-         end if;
-
-         if Kind (E) = K_Expression then
-            SE := Left_Expr (E);
-            if Present (SE) then
-               SV := Left_Value (E);
-               Check_Subexpr_Value_Type (SE, SV, K);
-            end if;
-
-            SE := Right_Expr (E);
-            if Present (SE) then
-               SV := Right_Value (E);
-               Check_Subexpr_Value_Type (SE, SV, K);
-            end if;
-         end if;
-      end Check_Subexpr_Value_Type;
-
-      ---------------------------
-      -- Check_Expr_Value_Type --
-      ---------------------------
-
-      procedure Check_Expr_Value_Type
-        (E : Node_Id; V : Value_Id; K : Node_Kind)
-      is
-         X : Node_Id;
-         T : Node_Kind := K;
-      begin
-         if V = No_Value then
-            return;
-         end if;
-
-         if not Is_Value_Of_Type (V, K) then
-            Display_Incorrect_Value (Loc (E), K);
-            return;
-         end if;
-         X := Expression (E);
-
-         if T = K_Octet
-           or else K = K_Short
-           or else K = K_Long
-           or else K = K_Unsigned_Short
-         then
-            T := K_Unsigned_Long;
-         elsif K = K_Long_Long then
-            T := K_Unsigned_Long_Long;
-         end if;
-
-         Check_Subexpr_Value_Type (X, No_Value, T);
-      end Check_Expr_Value_Type;
-
       T : Node_Id;
+      K : Node_Kind;
 
    begin
       T := Type_Spec (E);
       Analyze (T);
+
+      --  Resolve base type of T. Types of constant declaration are
+      --  limited to integer types, character types, string types,
+      --  floating point types, fixed point types.
+
+      while Present (T) loop
+         K := Kind (T);
+         exit when K = K_Fixed_Point_Type or else K in K_Float .. K_Octet;
+         if K = K_Simple_Declarator then
+            T := Type_Spec (Declaration (T));
+
+         elsif K = K_Scoped_Name then
+            T := Reference (T);
+
+         else
+            DE ("invalid type for constant");
+            T := No_Node;
+         end if;
+      end loop;
+
+      --  Analyze expression, evaluate it and then convert result
+
       Enter_Name_In_Scope (Identifier (E));
       Analyze (Expression (E));
-      Set_Value (E, Evaluate (Expression (E)));
-      Resolve_Constant_Type (T);
-      if Present (T) then
-         Check_Expr_Value_Type (E, Value (E), Kind (T));
-      else
-         Set_Type_Spec (E, No_Node);
-      end if;
+      Resolve (E, T);
    end Analyze_Constant_Declaration;
 
    ------------------------------
@@ -710,7 +464,7 @@ package body Analyzer is
 
       --  Prepare to inherit operations and attributes from parent
       --  interfaces. Preserve entities from current interface in F.
-      --  Empty body of current interface in order to enter attributes
+      --  Bad_Value body of current interface in order to enter attributes
       --  and operations of parent interfaces.
 
       B := Interface_Body (E);
@@ -1051,228 +805,456 @@ package body Analyzer is
       Dummy (E);
    end Analyze_Value_Forward_Declaration;
 
-   ----------------------
-   -- Cannot_Interpret --
-   ----------------------
+   -----------------------------
+   -- Display_Incorrect_Value --
+   -----------------------------
 
-   procedure Cannot_Interpret (T1, T2 : String; L : Location) is
+   procedure Display_Incorrect_Value
+     (L  : Location;
+      K1 : Node_Kind;
+      K2 : Node_Kind := K_Void)
+   is
    begin
       Error_Loc  (1) := L;
-      DE ("cannot interpret " & T1 & " as " & T2);
-   end Cannot_Interpret;
+      Error_Name (1) := Quoted (Image (K1));
+      if K2 = K_Void then
+         DE ("value not in range of type of%");
+      else
+            Error_Name (2) := Quoted (Image (K2));
+            DE ("value not in range of type of%or%");
+      end if;
+   end Display_Incorrect_Value;
 
-   -----------------
-   -- Check_Range --
-   -----------------
+   -------------
+   -- Resolve --
+   -------------
 
-   procedure Check_Range (V : Value_Id; K : Node_Kind; L : Location)
-   is
-      C : Value_Type;
+   procedure Resolve (E : Node_Id; T : Node_Id) is
+
+      procedure Cannot_Interpret
+        (E : Node_Id;
+         S : String;
+         T : Node_Kind);
+      --  Output an error message to indicate that a value cannot be
+      --  cast in a given type. E denotes the entity in which the cast
+      --  occurs, V the source type and K the target type.
+
+      function Convert
+        (E    : Node_Id;
+         T    : Node_Id;
+         K    : Node_Kind)
+        return Value_Type;
+      --  Convert the value from E into type T in the context K. The
+      --  conversion depends on the context since for instance, an
+      --  integer value is not converted the same way whether it is
+      --  performed in a constant declaration or in an expression.
+
+      function In_Range
+        (I : Unsigned_Long_Long;
+         S : Short_Short;
+         F : Long_Long;
+         L : Unsigned_Long_Long)
+        return Boolean;
+      --  Check whether S * I (Sign * Val) is in range F .. L.
+
+      ----------------------
+      -- Cannot_Interpret --
+      ----------------------
+
+      procedure Cannot_Interpret (E : Node_Id; S : String; T : Node_Kind) is
+      begin
+         Error_Loc (1)  := Loc (E);
+         Error_Name (1) := Quoted (Image (T));
+         DE ("cannot interpret " & S & " as%");
+      end Cannot_Interpret;
+
+      -------------
+      -- Convert --
+      -------------
+
+      function Convert
+        (E    : Node_Id;
+         T    : Node_Id;
+         K    : Node_Kind)
+         return Value_Type
+      is
+         KT : Node_Kind;
+         RE : Node_Id := E;
+         RV : Value_Type;
+         R  : Value_Id;
+         KE : constant Node_Kind := Kind (E);
+         I  : Unsigned_Long_Long;
+         S  : Short_Short;
+
+      begin
+
+         --  First resolve a scoped name
+
+         if KE = K_Scoped_Name then
+            RE := Reference (E);
+            if No (RE) then
+               return Bad_Value;
+            end if;
+         end if;
+
+         --  Resolve the Result Value RV and the Kind of Type KT
+
+         R := Value (RE);
+         if R = No_Value then
+            return Bad_Value;
+         end if;
+         RV := Value (R);
+         KT := Kind (T);
+
+         case RV.K is
+            when K_Short .. K_Unsigned_Long_Long | K_Octet =>
+
+               --  When integer value, cast into integer type
+
+               if KT not in K_Short .. K_Unsigned_Long_Long
+                 and then KT /= K_Octet
+               then
+                  Cannot_Interpret (E, "integer", KT);
+                  return Bad_Value;
+               end if;
+               I := RV.IVal;
+               S := RV.Sign;
+
+               --  In a constant declaration, subtyping is
+               --  restrictive. In an expression, a literal or a
+               --  scoped name, signed or unsigned integers of 8, 16
+               --  and 32 bits are handled as signed or unsigned
+               --  integers of 32 bits. Therefore, the cast is
+               --  performed first to signed integers. Then to
+               --  unsigned integers.
+
+               if K /= K_Constant_Declaration then
+                  if KT = K_Unsigned_Long_Long or else KT = K_Long_Long then
+                     KT := K_Long_Long;
+                  else
+                     KT := K_Long;
+                  end if;
+               end if;
+
+               --  When E is not a declaration, cast to signed
+               --  integers and then to unsigned integers. When E is a
+               --  declaration, cast to the exact type.
+
+               for B in False .. True loop
+                  case RV.K is
+                     when K_Octet =>
+                        if In_Range (I, S, FO, LO) then
+                           RV := Convert (RV, KT);
+                        end if;
+
+                     when K_Short =>
+                        if In_Range (I, S, FS, LS) then
+                           RV := Convert (RV, KT);
+                        end if;
+
+                     when K_Long =>
+                        if In_Range (I, S, FL, LL) then
+                           RV := Convert (RV, KT);
+                        end if;
+
+                     when K_Long_Long =>
+                        if In_Range (I, S, FLL, LLL) then
+                           RV := Convert (RV, KT);
+                        end if;
+
+                     when K_Unsigned_Short =>
+                        if In_Range (I, S, FUS, LUS) then
+                           RV := Convert (RV, KT);
+                        end if;
+
+                     when K_Unsigned_Long =>
+                        if In_Range (I, S, FUL, LUL) then
+                           RV := Convert (RV, KT);
+                        end if;
+
+                     when K_Unsigned_Long_Long =>
+                        if In_Range (I, S, FULL, LULL) then
+                           RV := Convert (RV, KT);
+                        end if;
+
+                     when others =>
+                        null;
+                  end case;
+
+                  exit when K = K_Constant_Declaration;
+
+                  --  Switch to unsigned integers
+
+                  if KT = K_Long_Long then
+                     KT := K_Unsigned_Long_Long;
+                  else
+                     KT := K_Unsigned_Long;
+                  end if;
+               end loop;
+
+               --  Cast cannot be performed. Output an error message
+               --  according to the performed operation: exact cast,
+               --  32-bits integer cast, 64-bits integer cast.
+
+               if RV.K /= KT then
+                  if K = K_Constant_Declaration then
+                     Display_Incorrect_Value
+                       (Loc (E), KT);
+
+                  elsif KT = K_Unsigned_Long then
+                     Display_Incorrect_Value
+                       (Loc (E), K_Long, K_Unsigned_Long);
+
+                  else
+                     Display_Incorrect_Value
+                       (Loc (E), K_Long_Long, K_Unsigned_Long_Long);
+                  end if;
+                  return Bad_Value;
+               end if;
+
+            when K_String | K_String_Type =>
+               if RV.K /= K_String
+                 and then RV.K /= K_String_Type
+               then
+                  Cannot_Interpret (E, "string", KT);
+                  return Bad_Value;
+               end if;
+               RV := Convert (RV, KT);
+
+            when K_Wide_String | K_Wide_String_Type =>
+               if RV.K /= K_Wide_String
+                 and then RV.K /= K_Wide_String_Type
+               then
+                  Cannot_Interpret (E, "wide string", KT);
+                  return Bad_Value;
+               end if;
+               RV := Convert (RV, KT);
+
+            when K_Char =>
+               if RV.K /= KT then
+                  Cannot_Interpret (E, "character", KT);
+                  return Bad_Value;
+               end if;
+               RV := Convert (RV, KT);
+
+            when K_Wide_Char =>
+               if RV.K /= KT then
+                  Cannot_Interpret (E, "wide character", KT);
+                  return Bad_Value;
+               end if;
+               RV := Convert (RV, KT);
+
+            when K_Fixed_Point_Type =>
+               if RV.K /= KT then
+                  Cannot_Interpret (E, "fixed point", KT);
+                  return Bad_Value;
+               end if;
+
+               --  For constant declaration, subtyping is restrictive.
+               --  The fixed point value must be truncated to the
+               --  appropriate scale. It cannot exceed the appropriate
+               --  total number of digits.
+
+               declare
+                  Total : Unsigned_Short_Short;
+                  Scale : Unsigned_Short_Short;
+               begin
+                  if K = K_Constant_Declaration then
+                     Total := Unsigned_Short_Short (N_Total (T));
+                     Scale := Unsigned_Short_Short (N_Scale (T));
+                  else
+                     Total := Max_Digits;
+                     Scale := Max_Digits;
+                  end if;
+                  Normalize_Fixed_Point_Value (RV, Total, Scale);
+                  if RV = Bad_Value then
+                     Error_Loc (1) := Loc (E);
+                     Error_Int (1) := Int (Total);
+                     Error_Int (2) := Int (Scale);
+                     DE ("too many digits to fit fixed<$,$>");
+                     return RV;
+                  end if;
+                  RV := Convert (RV, KT);
+               end;
+
+            when K_Float .. K_Long_Double =>
+               if RV.K not in K_Float .. K_Long_Double then
+                  Cannot_Interpret (E, "float", KT);
+                  return Bad_Value;
+               end if;
+               RV := Convert (RV, KT);
+
+            when K_Boolean =>
+               if RV.K /= KT then
+                  Cannot_Interpret (E, "boolean", KT);
+                  return Bad_Value;
+               end if;
+               RV := Convert (RV, KT);
+
+            when others =>
+               return Bad_Value;
+         end case;
+
+         return RV;
+      end Convert;
+
+      --------------
+      -- In_Range --
+      --------------
+
+      function In_Range
+        (I : Unsigned_Long_Long;
+         S : Short_Short;
+         F : Long_Long;
+         L : Unsigned_Long_Long)
+        return Boolean is
+      begin
+         if S < 0 then
+            if F < 0
+              and then I <= Unsigned_Long_Long (-F)
+            then
+               return True;
+            end if;
+            return False;
+         end if;
+         return I <= L;
+      end In_Range;
+
+      KE     : Node_Kind;
+      RE, LE : Node_Id;
+      RV, LV : Value_Type;
+      O      : Token_Type;
+
    begin
-      if V = No_Value then
+      if No (T) then
          return;
       end if;
-
-      C := Value (V);
-      case C.T is
-         when T_Integer_Literal =>
-            if K not in K_Short .. K_Unsigned_Long_Long
-              and then K /= K_Octet
-            then
-               Cannot_Interpret ("integer", Image (K), L);
-               return;
-            end if;
-
-         when T_String_Literal =>
-            if K /= K_String
-              and then K /= K_String_Type
-            then
-               Cannot_Interpret ("string", Image (K), L);
-               return;
-            end if;
-
-         when T_Wide_String_Literal =>
-            if K /= K_Wide_String
-              and then K /= K_Wide_String_Type
-            then
-               Cannot_Interpret ("wide string", Image (K), L);
-               return;
-            end if;
-
-         when T_Character_Literal =>
-            if K /= K_Char then
-               Cannot_Interpret ("character", Image (K), L);
-               return;
-            end if;
-
-         when T_Wide_Character_Literal =>
-            if K /= K_Wide_Char then
-               Cannot_Interpret ("character", Image (K), L);
-               return;
-            end if;
-
-         when T_Fixed_Point_Literal =>
-            if K /= K_Fixed_Point_Type then
-               Cannot_Interpret ("fixed point", Image (K), L);
-               return;
-            end if;
-
-         when T_Floating_Point_Literal =>
-            if K /= K_Fixed_Point_Type then
-               Cannot_Interpret ("fixed point", Image (K), L);
-               return;
-            end if;
-
-         when T_Boolean_Literal =>
-            if K /= K_Boolean then
-               Cannot_Interpret ("boolean", Image (K), L);
-               return;
-            end if;
-
-         when others =>
-            raise Program_Error;
-      end case;
-   end Check_Range;
-
-   -----------------
-   -- Check_Range --
-   -----------------
-
-   procedure Check_Range (E : Node_Id; K : Node_Kind) is
-   begin
       if No (E) then
          return;
       end if;
+      KE := Kind (E);
 
-      case Kind (E) is
-         when K_Integer_Literal .. K_Boolean_Literal
-           | K_Scoped_Name =>
-            Check_Range (Value (E), K, Loc (E));
+      --  For constant declaration, first resolve expression attached
+      --  to declaration. The expression is evaluated as described in
+      --  the next block. Second convert the value into the exact type
+      --  and if the evaluation has been successful, set the constant
+      --  value to it.
 
-         when K_Expression =>
-            Check_Range (Value (E), K, Loc (E));
-            Check_Range (Left_Expr (E), K);
-            Check_Range (Right_Expr (E), K);
-
-         when others =>
-            raise Program_Error;
-      end case;
-   end Check_Range;
-
-   --------------
-   -- Evaluate --
-   --------------
-
-   function Evaluate (N : Node_Id) return Value_Id
-   is
-      LN, RN : Node_Id;
-      LV, RV : Value_Type;
-      L, R   : Value_Id := No_Value;
-      O      : Token_Type;
-   begin
-      if No (N) then
-         return No_Value;
-      end if;
-
-      case Kind (N) is
-         when K_Expression =>
-            Set_Left_Value  (N, No_Value);
-            Set_Right_Value (N, No_Value);
-
-            LN := Left_Expr (N);
-            if Present (LN) then
-               L := Evaluate (LN);
-               Set_Left_Value (N, L);
-               if L = No_Value then
-                  return No_Value;
-               end if;
-               LV := Value (L);
+      if KE = K_Constant_Declaration then
+         RE := Expression (E);
+         if Present (RE) then
+            Resolve (RE, T);
+            RV := Convert (RE, T, KE);
+            if RV = Bad_Value then
+               Set_Value (RE, No_Value);
+               return;
             end if;
+            Set_Value (E, New_Value (RV));
+         end if;
 
-            RN := Right_Expr (N);
-            if Present (RN) then
-               R := Evaluate (RN);
-               Set_Right_Value (N, R);
-               if R = No_Value then
-                  return No_Value;
-               end if;
-               RV := Value (R);
+      --  For expression, evaluate left part when possible and then
+      --  right part of the expression. Each result is converted into
+      --  type T following the specific rules fo subexpression (see
+      --  function Convert). Then execute operation and check that the
+      --  operation was successful. Do not convert to T at this point.
+
+      elsif KE = K_Expression then
+         LE := Left_Expr (E);
+         if Present (LE) then
+
+            --  Resolve and convert a possible left subexpression
+
+            Resolve (LE, T);
+            LV := Convert (LE, T, KE);
+            if LV = Bad_Value then
+               Set_Value (E, No_Value);
+               return;
             end if;
+         end if;
 
-            O := Token_Type'Val (Operator (N));
+         RE := Right_Expr (E);
+         if No (RE) then
+            Set_Value (E, No_Value);
+            return;
+         end if;
 
-            if L /= No_Value
-              and then LV.T /= RV.T
-            then
-               Error_Loc (1)  := Loc (N);
-               Error_Name (1) := Quoted (Image (O));
-               DE ("invalid operand types for operator%");
-               return No_Value;
-            end if;
+         --  Resolve and convert a right subexpression
 
-            case O is
-               when T_Tilde           =>
-                  RV := not RV;
+         Resolve (RE, T);
+         RV := Convert (RE, T, KE);
+         if RV = Bad_Value then
+            Set_Value (E, No_Value);
+            return;
+         end if;
 
-               when T_Minus           =>
-                  if L = No_Value then
-                     RV := -RV;
-                  else
-                     RV := LV - RV;
-                  end if;
+         --  For binary operator, check that the two operands have the
+         --  same type.
 
-               when T_Plus            =>
-                  if L /= No_Value then
-                     RV := LV + RV;
-                  end if;
-
-               when T_Percent         =>
-                  RV := LV mod RV;
-
-               when T_Slash           =>
-                  RV := LV / RV;
-
-               when T_Star            =>
-                  RV := LV * RV;
-
-               when T_Ampersand       =>
-                  RV := LV and RV;
-
-               when T_Bar             =>
-                  RV := LV or RV;
-
-               when T_Circumflex      =>
-                  RV := LV xor RV;
-
-               when T_Greater_Greater =>
-                  RV := Shift_Right  (LV, RV);
-
-               when T_Less_Less       =>
-                  RV := Shift_Left (LV, RV);
-
-               when others            =>
-                  return No_Value;
-            end case;
-
-            if RV /= Void then
-               return New_Value (RV);
-            end if;
-
-            Error_Loc (1)  := Loc (N);
+         O := Token_Type'Val (Operator (E));
+         if Present (LE)
+           and then LV.K /= RV.K
+         then
+            Error_Loc (1)  := Loc (E);
             Error_Name (1) := Quoted (Image (O));
-            DE ("there is no applicable operator%");
+            DE ("invalid operand types for operator%");
+            Set_Value (E, No_Value);
+            return;
+         end if;
 
-         when K_Scoped_Name =>
-            return Value (Reference (N));
+         case O is
+            when T_Tilde           =>
+               RV := not RV;
 
-         when K_Integer_Literal .. K_Boolean_Literal =>
-            return Value (N);
+            when T_Minus           =>
+               if No (LE) then
+                  RV := -RV;
+               else
+                  RV := LV - RV;
+               end if;
 
-         when others =>
-            null;
-      end case;
+            when T_Plus            =>
+               if Present (LE) then
+                  RV := LV + RV;
+               end if;
 
-      return No_Value;
-   end Evaluate;
+            when T_Percent         =>
+               RV := LV mod RV;
+
+            when T_Slash           =>
+               RV := LV / RV;
+
+            when T_Star            =>
+               RV := LV * RV;
+
+            when T_Ampersand       =>
+               RV := LV and RV;
+
+            when T_Bar             =>
+               RV := LV or RV;
+
+            when T_Circumflex      =>
+               RV := LV xor RV;
+
+            when T_Greater_Greater =>
+               RV := Shift_Right  (LV, RV);
+
+            when T_Less_Less       =>
+               RV := Shift_Left (LV, RV);
+
+            when others            =>
+               return;
+         end case;
+
+         --  XXXXX: Check whether anything goes wrong. We should
+         --  probably take of overflows here.
+
+         if RV = Bad_Value then
+            Set_Value (E, No_Value);
+            return;
+         end if;
+
+         Set_Value (E, New_Value (RV));
+      end if;
+   end Resolve;
 
 end Analyzer;

@@ -1,3 +1,27 @@
+2004-05-17  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* nodes.idl: Remove left and right values in an expression
+	node. Instead define an expression value in order to store
+	the evaluation of the expression in the node.
+
+	* parser.adb: Remove an useless conversion.
+
+	* values.adb, values.ads: Use node kind as a discriminant for
+	values (and not token kind anymore). Subtyping is different for
+	constant declaration and expression and operation precision is
+	different for (signed and unsigned) long long and other integer
+	types for instance. Same for floating and fixed point values.
+
+	* types.ads, lexer.ads: Define CORBA types and use them.
+
+	* errors.adb, iac.adb: Remove blank after digit in order to
+	output notations and formats like "fixed<$,$>".
+
+	* analyzer.adb, backend-be_idl.adb: Handle constant declarations,
+	expressions and literals. Handle fixed point types in particular.
+
+	* MANIFEST: Add values.ads and values.adb.
+  
 2004-05-14  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* parser.adb: Avoid to output twice an error message in

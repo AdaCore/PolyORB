@@ -1,5 +1,5 @@
 with Namet;  use Namet;
-with Output; use Output;
+--  with Output; use Output;
 with Types;  use Types;
 
 with GNAT.Table;
@@ -15,7 +15,7 @@ package body Values is
 
    procedure Add_ULL_To_Name_Buffer (U : ULL; B : ULL);
 
-   Max : constant Unsigned_Long_Long := LULL / 10;
+   LULL_Div_10 : constant Unsigned_Long_Long := LULL / 10;
 
    ----------------------------
    -- Add_ULL_To_Name_Buffer --
@@ -45,15 +45,15 @@ package body Values is
       end if;
       V := VT.Table (Value);
       Name_Len := 0;
-      case V.T is
-         when T_Boolean_Literal =>
+      case V.K is
+         when K_Boolean =>
             if V.IVal = 1 then
                return "TRUE";
             else
                return "FALSE";
             end if;
 
-         when T_Integer_Literal =>
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
             if V.Sign < 0 then
                Add_Char_To_Name_Buffer ('-');
             elsif V.Base = 16 then
@@ -63,14 +63,7 @@ package body Values is
             end if;
             Add_ULL_To_Name_Buffer (V.IVal, ULL (V.Base));
 
-         when T_Fixed_Point_Literal =>
-            Add_Char_To_Name_Buffer ('[');
-            Add_Dnat_To_Name_Buffer (Dint (V.IVal));
-            Add_Char_To_Name_Buffer (',');
-            Add_Dnat_To_Name_Buffer (Dint (V.Total));
-            Add_Char_To_Name_Buffer (',');
-            Add_Dnat_To_Name_Buffer (Dint (V.Scale));
-            Add_Char_To_Name_Buffer (']');
+         when K_Fixed_Point_Type =>
             if V.Sign < 0 then
                Add_Char_To_Name_Buffer ('-');
             end if;
@@ -81,11 +74,11 @@ package body Values is
             end if;
             Add_Char_To_Name_Buffer ('D');
 
-         when T_Floating_Point_Literal =>
-            Add_Str_To_Name_Buffer (Long_Long_Float'Image (V.FVal));
+         when K_Float .. K_Long_Double =>
+            Add_Str_To_Name_Buffer (Long_Double'Image (V.FVal));
 
-         when T_Character_Literal =>
-            if V.Wide then
+         when K_Char | K_Wide_Char =>
+            if V.K = K_Wide_Char then
                Add_Char_To_Name_Buffer ('L');
             end if;
             Add_Char_To_Name_Buffer (''');
@@ -97,11 +90,11 @@ package body Values is
             end if;
             Add_Char_To_Name_Buffer (''');
 
-         when T_String_Literal =>
+         when K_String | K_Wide_String | K_String_Type | K_Wide_String_Type =>
             if V.SVal = No_Name then
                return "<>";
             end if;
-            if V.Wide then
+            if V.K = K_Wide_String or else V.K = K_Wide_String_Type then
                Add_Char_To_Name_Buffer ('L');
                Add_Char_To_Name_Buffer ('"'); -- "
                declare
@@ -150,7 +143,7 @@ package body Values is
      (Value : Boolean)
      return Value_Id is
    begin
-      return New_Value (Value_Type'(T_Boolean_Literal, Value));
+      return New_Value (Value_Type'(K_Boolean, Value));
    end New_Boolean_Value;
 
    -------------------------
@@ -162,7 +155,11 @@ package body Values is
       Wide  : Boolean)
      return Value_Id is
    begin
-      return New_Value (Value_Type'(T_Character_Literal, Wide, Value));
+      if Wide then
+         return New_Value (Value_Type'(K_Wide_Char, Value));
+      else
+         return New_Value (Value_Type'(K_Char, Value));
+      end if;
    end New_Character_Value;
 
    ---------------------------
@@ -179,9 +176,8 @@ package body Values is
       V : Value_Id;
    begin
       V := New_Value
-        (Value_Type'(T_Fixed_Point_Literal, Value, Sign, Total, Scale));
-      Normalize_Fixed_Point_Value (V);
-      Write_Str (Image (V)); Write_Eol;
+        (Value_Type'(K_Fixed_Point_Type, Value, Sign, Total, Scale));
+      Normalize_Fixed_Point_Value (V, Total, Scale);
       return V;
    end New_Fixed_Point_Value;
 
@@ -190,10 +186,10 @@ package body Values is
    ------------------------------
 
    function New_Floating_Point_Value
-     (Value : Long_Long_Float)
+     (Value : Long_Double)
      return Value_Id is
    begin
-      return New_Value (Value_Type'(T_Floating_Point_Literal, Value));
+      return New_Value (Value_Type'(K_Long_Double, Value));
    end New_Floating_Point_Value;
 
    -----------------------
@@ -206,7 +202,7 @@ package body Values is
       Base  : Unsigned_Short_Short)
      return Value_Id is
    begin
-      return New_Value (Value_Type'(T_Integer_Literal, Value, Sign, Base));
+      return New_Value (Value_Type'(K_Unsigned_Long_Long, Value, Sign, Base));
    end New_Integer_Value;
 
    ----------------------
@@ -218,7 +214,11 @@ package body Values is
       Wide  : Boolean)
      return Value_Id is
    begin
-      return New_Value (Value_Type'(T_String_Literal, Wide, Value));
+      if Wide then
+         return New_Value (Value_Type'(K_Wide_String, Value));
+      else
+         return New_Value (Value_Type'(K_String, Value));
+      end if;
    end New_String_Value;
 
    ---------------
@@ -239,24 +239,51 @@ package body Values is
    -- Normalize_Fixed_Point_Value --
    ---------------------------------
 
-   procedure Normalize_Fixed_Point_Value (V : Value_Id) is
-      Val : Value_Type := Value (V);
+   procedure Normalize_Fixed_Point_Value
+     (Value : in out Value_Id;
+      Total : Unsigned_Short_Short := Max_Digits;
+      Scale : Unsigned_Short_Short := Max_Digits)
+   is
+      V : Value_Type := Values.Value (Value);
    begin
-      Normalize_Fixed_Point_Value (Val);
-      Set_Value (V, Val);
+      Normalize_Fixed_Point_Value (V, Total, Scale);
+      if V = Bad_Value then
+         Value := No_Value;
+      else
+         Set_Value (Value, V);
+      end if;
    end Normalize_Fixed_Point_Value;
 
    ---------------------------------
    -- Normalize_Fixed_Point_Value --
    ---------------------------------
 
-   procedure Normalize_Fixed_Point_Value (V : in out Value_Type) is
+   procedure Normalize_Fixed_Point_Value
+     (Value : in out Value_Type;
+      Total : Unsigned_Short_Short := Max_Digits;
+      Scale : Unsigned_Short_Short := Max_Digits)
+   is
+      Quotient : Unsigned_Long_Long;
    begin
-      while V.Scale > 0 and then V.IVal mod 10 = 0 loop
-         V.IVal  := V.IVal / 10;
-         V.Scale := V.Scale - 1;
-         V.Total := V.Total - 1;
+      while Value.Scale > 0 and then Value.IVal mod 10 = 0 loop
+         Value.IVal  := Value.IVal / 10;
+         Value.Scale := Value.Scale - 1;
+         Value.Total := Value.Total - 1;
       end loop;
+      while Value.Scale > Scale loop
+         Value.IVal  := Value.IVal / 10;
+         Value.Scale := Value.Scale - 1;
+         Value.Total := Value.Total - 1;
+      end loop;
+      Quotient    := Value.IVal / 10;
+      Value.Total := 1;
+      while Quotient /= 0 loop
+         Quotient := Quotient / 10;
+         Value.Total := Value.Total + 1;
+      end loop;
+      if Value.Total > Total then
+         Value := Bad_Value;
+      end if;
    end Normalize_Fixed_Point_Value;
 
    -----------
@@ -267,15 +294,16 @@ package body Values is
    is
       V : Value_Type := R;
    begin
-      case V.T is
-         when T_Integer_Literal =>
+      case V.K is
+         when K_Short .. K_Unsigned_Long_Long
+           | K_Octet =>
             V.IVal := not V.IVal;
 
-         when T_Boolean_Literal =>
+         when K_Boolean =>
             V.BVal := not V.BVal;
 
          when others =>
-            return Void;
+            return Bad_Value;
       end case;
       return V;
    end "not";
@@ -288,16 +316,17 @@ package body Values is
    is
       V : Value_Type := R;
    begin
-      case R.T is
-         when T_Integer_Literal
-           | T_Fixed_Point_Literal =>
+      case R.K is
+         when K_Short .. K_Unsigned_Long_Long
+           | K_Octet
+           | K_Fixed_Point_Type =>
             V.Sign := -V.Sign;
 
-         when T_Floating_Point_Literal =>
+         when K_Float .. K_Long_Double =>
             V.FVal := -V.FVal;
 
          when others =>
-            return Void;
+            return Bad_Value;
 
       end case;
       return V;
@@ -311,16 +340,17 @@ package body Values is
    is
       V : Value_Type := R;
    begin
-      case R.T is
-         when T_Integer_Literal
-           | T_Fixed_Point_Literal =>
+      case R.K is
+         when K_Short .. K_Unsigned_Long_Long
+           | K_Octet
+           | K_Fixed_Point_Type =>
             V.Sign := -V.Sign;
 
-         when T_Floating_Point_Literal =>
+         when K_Float .. K_Long_Double =>
             V.FVal := -V.FVal;
 
          when others =>
-            return Void;
+            return Bad_Value;
 
       end case;
       return L + V;
@@ -336,8 +366,8 @@ package body Values is
       NL : Value_Type := L;
       NR : Value_Type := R;
    begin
-      case R.T is
-         when T_Integer_Literal =>
+      case R.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
             if L.Base /= R.Base then
                V.Base := 10;
             end if;
@@ -351,7 +381,7 @@ package body Values is
                V.IVal := R.IVal - L.IVal;
             end if;
 
-         when T_Fixed_Point_Literal =>
+         when K_Fixed_Point_Type =>
             if NL.Scale > NR.Scale then
                NR.IVal := NR.IVal * 10 ** Integer (L.Scale - R.Scale);
                V.Scale := NL.Scale;
@@ -370,11 +400,11 @@ package body Values is
             end if;
             Normalize_Fixed_Point_Value (V);
 
-         when T_Floating_Point_Literal =>
+         when K_Float .. K_Long_Double =>
             V.FVal := L.FVal + R.FVal;
 
          when others =>
-            return Void;
+            return Bad_Value;
 
       end case;
       return V;
@@ -388,8 +418,8 @@ package body Values is
    is
       V : Value_Type := L;
    begin
-      case L.T is
-         when T_Integer_Literal =>
+      case L.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
             if L.Base /= R.Base then
                V.Base := 10;
             end if;
@@ -397,7 +427,7 @@ package body Values is
             V.IVal := L.IVal mod R.IVal;
 
          when others =>
-            return Void;
+            return Bad_Value;
       end case;
       return V;
    end "mod";
@@ -411,39 +441,30 @@ package body Values is
       V  : Value_Type := L;
       NL : Value_Type := L;
    begin
-      case V.T is
-         when T_Integer_Literal =>
+      case V.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
             if L.Base = R.Base then
                V.Base := 10;
             end if;
             V.Sign := L.Sign * R.Sign;
             V.IVal := L.IVal / R.IVal;
 
-         when T_Floating_Point_Literal =>
+         when K_Float .. K_Long_Double =>
             V.FVal := L.FVal / R.FVal;
 
-         when T_Fixed_Point_Literal =>
-            while NL.IVal < Max loop
+         when K_Fixed_Point_Type =>
+            while NL.IVal < LULL_Div_10 loop
                NL.IVal  := NL.IVal * 10;
                NL.Total := NL.Total + 1;
                NL.Scale := NL.Scale + 1;
             end loop;
-            V.Sign   := L.Sign * R.Sign;
-            V.IVal   := NL.IVal / R.IVal;
-            declare
-               Q : Unsigned_Long_Long := V.IVal / 10;
-            begin
-               V.Total := 1;
-               while Q /= 0 loop
-                  Q := Q / 10;
-                  V.Total := V.Total + 1;
-               end loop;
-            end;
+            V.Sign  := L.Sign * R.Sign;
+            V.IVal  := NL.IVal / R.IVal;
             V.Scale := NL.Scale - R.Scale;
             Normalize_Fixed_Point_Value (V);
 
          when others =>
-            return Void;
+            return Bad_Value;
       end case;
       return V;
    end "/";
@@ -456,26 +477,26 @@ package body Values is
    is
       V : Value_Type := L;
    begin
-      case V.T is
-         when T_Integer_Literal =>
+      case V.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
             if L.Base = R.Base then
                V.Base := 10;
             end if;
             V.Sign := L.Sign * R.Sign;
             V.IVal := L.IVal * R.IVal;
 
-         when T_Fixed_Point_Literal =>
+         when K_Fixed_Point_Type =>
             V.Sign  := L.Sign * R.Sign;
             V.IVal  := L.IVal * R.IVal;
             V.Total := L.Total + R.Total;
             V.Scale := L.Scale + R.Scale;
             Normalize_Fixed_Point_Value (V);
 
-         when T_Floating_Point_Literal =>
+         when K_Float .. K_Long_Double =>
             V.FVal := L.FVal * R.FVal;
 
          when others =>
-            return Void;
+            return Bad_Value;
       end case;
       return V;
    end "*";
@@ -489,8 +510,8 @@ package body Values is
       LV : Value_Type := L;
       RV : Value_Type := R;
    begin
-      case L.T is
-         when T_Integer_Literal =>
+      case L.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
             if LV.Base /= RV.Base then
                LV.Base := 10;
             end if;
@@ -503,11 +524,11 @@ package body Values is
             LV.IVal := LV.IVal and RV.IVal;
             LV.Sign := 1;
 
-         when T_Boolean_Literal =>
+         when K_Boolean =>
             LV.BVal := LV.BVal and RV.BVal;
 
          when others =>
-            return Void;
+            return Bad_Value;
       end case;
       return LV;
    end "and";
@@ -521,8 +542,8 @@ package body Values is
       LV : Value_Type := L;
       RV : Value_Type := R;
    begin
-      case L.T is
-         when T_Integer_Literal =>
+      case L.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
             if LV.Base /= RV.Base then
                LV.Base := 10;
             end if;
@@ -535,11 +556,11 @@ package body Values is
             LV.IVal := LV.IVal or RV.IVal;
             LV.Sign := 1;
 
-         when T_Boolean_Literal =>
+         when K_Boolean =>
             LV.BVal := LV.BVal or RV.BVal;
 
          when others =>
-            return Void;
+            return Bad_Value;
       end case;
       return LV;
    end "or";
@@ -553,8 +574,8 @@ package body Values is
       LV : Value_Type := L;
       RV : Value_Type := R;
    begin
-      case LV.T is
-         when T_Integer_Literal =>
+      case LV.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
             if LV.Base /= RV.Base then
                LV.Base := 10;
             end if;
@@ -567,14 +588,52 @@ package body Values is
             LV.IVal := LV.IVal xor RV.IVal;
             LV.Sign := 1;
 
-         when T_Boolean_Literal =>
+         when K_Boolean =>
             LV.BVal := LV.BVal xor RV.BVal;
 
          when others =>
-            return Void;
+            return Bad_Value;
       end case;
       return LV;
    end "xor";
+
+   -------------
+   -- Convert --
+   -------------
+
+   function Convert (V : Value_Type; K : Node_Kind) return Value_Type
+   is
+      R : Value_Type (K);
+   begin
+      case K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
+            R.IVal := V.IVal;
+            R.Sign := V.Sign;
+            R.Base := V.Base;
+
+         when K_Fixed_Point_Type =>
+            R.IVal  := V.IVal;
+            R.Sign  := V.Sign;
+            R.Total := V.Total;
+            R.Scale := V.Scale;
+
+         when K_Float .. K_Long_Double =>
+            R.FVal := V.FVal;
+
+         when K_Char .. K_Wide_Char =>
+            R.CVal := V.CVal;
+
+         when K_String .. K_Wide_String =>
+            R.SVal := V.SVal;
+
+         when K_Boolean =>
+            R.BVal := V.BVal;
+
+         when others =>
+            return V;
+      end case;
+      return R;
+   end Convert;
 
    ---------------
    -- Set_Value --
@@ -594,8 +653,8 @@ package body Values is
       LV : Value_Type := L;
       RV : Value_Type := R;
    begin
-      case RV.T is
-         when T_Integer_Literal =>
+      case RV.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
             if RV.Sign < 0 then
                RV.Sign := 1;
                return Shift_Right (LV, RV);
@@ -607,7 +666,7 @@ package body Values is
             return LV;
 
          when others =>
-            return Void;
+            return Bad_Value;
       end case;
    end Shift_Left;
 
@@ -620,8 +679,8 @@ package body Values is
       LV : Value_Type := L;
       RV : Value_Type := R;
    begin
-      case RV.T is
-         when T_Integer_Literal =>
+      case RV.K is
+         when K_Short .. K_Unsigned_Long_Long | K_Octet =>
             if RV.Sign < 0 then
                RV.Sign := 1;
                return Shift_Left (LV, RV);
@@ -633,7 +692,7 @@ package body Values is
             return LV;
 
          when others =>
-            return Void;
+            return Bad_Value;
       end case;
    end Shift_Right;
 

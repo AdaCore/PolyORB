@@ -480,8 +480,8 @@ package body Parser is
                   Set_Value
                     (Expression,
                      New_Character_Value
-                       (Unsigned_Short (Character_Literal_Value),
-                        (Token /= T_Character_Literal)));
+                     (Character_Literal_Value,
+                      (Token /= T_Character_Literal)));
                end if;
 
             when T_String_Literal
