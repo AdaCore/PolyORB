@@ -229,6 +229,7 @@ package body System.Garlic.Heart is
 
          --  Send a NOP to establish the connection.
 
+         pragma Debug (D (D_Debug, "Sending a No_Operation"));
          Send (Partition, No_Operation, Empty'Access);
       end if;
    end Add_New_Partition_ID;
@@ -343,6 +344,7 @@ package body System.Garlic.Heart is
 
             Location'Write (Params'Access,
                             My_Location);
+            pragma Debug (D (D_Debug, "Sending a Set_Location"));
             Send (Server_Partition_ID, Set_Location, Params'Access);
             Local_Partition_ID.Get (Partition);
          end;
@@ -856,6 +858,8 @@ package body System.Garlic.Heart is
          Packet (Packet'First + Protocols.Unused_Space ..
                  Packet'First + Protocols.Unused_Space + Header'Length - 1) :=
            Header;
+         pragma Debug (D (D_Debug, "Sending an operation with opcode " &
+                          Operation'Img));
          Protocols.Send (Protocol, Partition, Packet'Access);
       end;
    end Send;

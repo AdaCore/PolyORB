@@ -1,5 +1,7 @@
 Thu Nov 28 22:33:30 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-garhea.adb: Added debug entries.
+
 	* s-garela.adb: Removed useless faulty lines (do not work with
 	  serial protocol).
 
