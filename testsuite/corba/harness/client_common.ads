@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                               C L I E N T                                --
+--                        C L I E N T _ C O M M O N                         --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -31,15 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+package Client_Common is
 
-with PolyORB.Setup.Client;
-pragma Warnings (Off, PolyORB.Setup.Client);
+   procedure Launch_Client;
 
-with Client_Common;
-
-procedure Client is
-begin
-   Client_Common.Launch_Client;
-
-end Client;
+end Client_Common;
