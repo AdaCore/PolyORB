@@ -44,29 +44,12 @@
 
 with Ada.Streams;
 
-with PolyORB.Buffers;      use PolyORB.Buffers;
+with PolyORB.Buffers;
 with PolyORB.Types;
-
-with PolyORB.Sequences.Unbounded;
 
 package PolyORB.References.IOR is
 
-   type Marshall_Profile_Body_Type is access procedure
-     (Buffer  : access Buffers.Buffer_Type;
-      Profile : Binding_Data.Profile_Access);
-
-   type Unmarshall_Profile_Body_Type is access function
-     (Buffer  : access Buffers.Buffer_Type)
-     return Binding_Data.Profile_Access;
-
-   type Profile_Record is record
-      Tag                     : Binding_Data.Profile_Tag;
-      Marshall_Profile_Body   : Marshall_Profile_Body_Type;
-      Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
-   end record;
-
-   package Profile_Record_Seq is
-      new PolyORB.Sequences.Unbounded (Profile_Record);
+   use PolyORB.Buffers;
 
    --  An object reference (whose supported interface is not
    --  reflected by its Ada type) and the associated type information
@@ -76,11 +59,11 @@ package PolyORB.References.IOR is
 
    procedure Marshall_IOR
      (Buffer : access Buffer_Type;
-      Value  : in IOR_Type);
+      Value  : in     IOR_Type);
 
    function  Unmarshall_IOR
      (Buffer : access Buffer_Type)
-   return  IOR_Type;
+     return  IOR_Type;
 
    --------------------------------------
    -- Object reference <-> opaque data --
@@ -97,19 +80,29 @@ package PolyORB.References.IOR is
    -- Object reference <-> stringified IOR --
    ------------------------------------------
 
-   function Object_To_String (IOR : IOR_Type)
-      return Types.String;
+   function Object_To_String
+     (IOR : IOR_Type)
+     return Types.String;
 
-   function  String_To_Object (Str : Types.String)
+   function String_To_Object
+     (Str : Types.String)
      return IOR_Type;
+
+   ---------------------
+   -- Profile Factory --
+   ---------------------
+
+   type Marshall_Profile_Body_Type is access procedure
+     (Buffer  : access Buffers.Buffer_Type;
+      Profile :        Binding_Data.Profile_Access);
+
+   type Unmarshall_Profile_Body_Type is access function
+     (Buffer  : access Buffers.Buffer_Type)
+     return Binding_Data.Profile_Access;
 
    procedure Register
      (Profile                 : in Binding_Data.Profile_Tag;
       Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
-
-private
-
-   Callbacks : Profile_Record_Seq.Sequence;
 
 end PolyORB.References.IOR;

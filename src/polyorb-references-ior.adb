@@ -36,9 +36,9 @@
 with Ada.Streams;
 
 with PolyORB.Binding_Data;
-with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.Log;
 with PolyORB.Representations.CDR;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.Types;
 with PolyORB.Utils;
 
@@ -51,11 +51,22 @@ package body PolyORB.References.IOR is
    use PolyORB.Representations.CDR;
    use PolyORB.Binding_Data;
 
-   use Profile_Record_Seq;
-
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.ior");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   type Profile_Record is record
+      Tag                     : Binding_Data.Profile_Tag;
+      Marshall_Profile_Body   : Marshall_Profile_Body_Type;
+      Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
+   end record;
+
+   package Profile_Record_Seq is
+      new PolyORB.Sequences.Unbounded (Profile_Record);
+
+   use Profile_Record_Seq;
+
+   Callbacks : Profile_Record_Seq.Sequence;
 
    ------------------
    -- Marshall_IOR --
@@ -149,7 +160,7 @@ package body PolyORB.References.IOR is
 
    function Unmarshall_IOR
      (Buffer : access Buffer_Type)
-   return  IOR_Type
+     return  IOR_Type
    is
       use PolyORB.Types;
       use Profile_Seqs;
