@@ -95,8 +95,7 @@ package body PolyORB.Initialization is
    is
       M : Module;
    begin
-      if not Configuration.Get_Conf ("modules", Info.Name.all, True)
-      then
+      if not Configuration.Get_Conf ("modules", Info.Name.all, True) then
          pragma Debug (O (Info.Name.all & " is disabled."));
          return;
       end if;
