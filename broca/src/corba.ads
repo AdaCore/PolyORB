@@ -33,6 +33,7 @@
 
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
+with Ada.Strings.Wide_Unbounded;
 with Interfaces;
 
 package CORBA is
@@ -46,16 +47,59 @@ package CORBA is
    --  appropriate language mapping. The following definitions may
    --  differ. See the mapping specification for more information.
 
-   subtype Boolean        is Standard.Boolean;
-   type    Short          is new Interfaces.Integer_16;
-   type    Long           is new Interfaces.Integer_32;
-   type    Unsigned_Short is new Interfaces.Unsigned_16;
-   type    Unsigned_Long  is new Interfaces.Unsigned_32;
-   type    Float          is new Interfaces.IEEE_Float_32;
-   type    Double         is new Interfaces.IEEE_Float_64;
-   subtype Char           is Standard.Character;
-   type    Octet          is new Interfaces.Unsigned_8;
-   type    String         is new Ada.Strings.Unbounded.Unbounded_String;
+   type    Short              is new Interfaces.Integer_16;
+   type    Long               is new Interfaces.Integer_32;
+   type    Long_Long          is new Interfaces.Integer_64;
+   type    Unsigned_Short     is new Interfaces.Unsigned_16;
+   type    Unsigned_Long      is new Interfaces.Unsigned_32;
+   type    Unsigned_Long_Long is new Interfaces.Unsigned_64;
+   type    Float              is new Interfaces.IEEE_Float_32;
+   type    Double             is new Interfaces.IEEE_Float_64;
+   type    Long_Double        is new Interfaces.IEEE_Extended_Float;
+   subtype Char               is Standard.Character;
+   subtype Wchar              is Standard.Wide_Character;
+   type    Octet              is new Interfaces.Unsigned_8;
+   subtype Boolean            is Standard.Boolean;
+   type    String             is new Ada.Strings.Unbounded.Unbounded_String;
+   type    Wide_String        is
+     new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
+
+   ---------------------------------
+   -- String conversion functions --
+   ---------------------------------
+
+   function To_CORBA_String (Source : Standard.String)
+                             return CORBA.String;
+
+   function To_Standard_String (Source : CORBA.String)
+                                return Standard.String;
+
+   Null_String : constant CORBA.String := CORBA.String
+     (Ada.Strings.Unbounded.To_Unbounded_String (""));
+
+   function To_CORBA_Wide_String (Source : Standard.Wide_String)
+                                  return CORBA.Wide_String;
+
+   function To_Standard_Wide_String (Source : CORBA.Wide_String)
+                                     return Standard.Wide_String;
+
+   Null_Wide_String : constant CORBA.Wide_String := CORBA.Wide_String
+     (Ada.Strings.Wide_Unbounded.To_Unbounded_Wide_String (""));
+
+
+   -------------
+   --  Types  --
+   -------------
+
+   type Identifier is new CORBA.String;
+   Null_Identifier : constant Identifier := Identifier (Null_String);
+
+   type RepositoryId is new CORBA.String;
+   Null_RepositoryId : constant RepositoryId := RepositoryId (Null_String);
+
+   type ScopedName is new CORBA.String;
+   Null_ScopedName : constant ScopedName := ScopedName (Null_String);
+
 
 
    ----------------
@@ -195,21 +239,6 @@ package CORBA is
      with null record;
 
 
-   ---------------------------------
-   -- String conversion functions --
-   ---------------------------------
-
-   function To_CORBA_String
-     (S : in Standard.String)
-      return CORBA.String;
-   --  Transforms a standard string into the correponding corba string
-
-   function To_Standard_String
-     (S : in CORBA.String)
-      return Standard.String;
-   --  Transforms a corba string into the correponding standard string
-
-
    -----------------------------
    -- exceptions for the ORB  --
    -----------------------------
@@ -251,8 +280,6 @@ package CORBA is
    -------------------------
    -- types and constants --
    -------------------------
-   type RepositoryId is new CORBA.String;
-   type Identifier is new CORBA.String;
    type ServiceType is new Unsigned_Short;
    type ServiceOption is new Unsigned_Long;
    type ServiceDetailType is new Unsigned_Long;
@@ -260,9 +287,441 @@ package CORBA is
    Security : constant ServiceType := 1;
 
 
+   -----------
+   --  Any  --
+   -----------
+
+   type Any is private;
+   --  The end of this part is after the typecode part;
+
+
+   ---------------
+   -- TypeCodes --
+   ---------------
+
+   --  See spec CORBA V2.3, Ada Langage Mapping 1.33
+
+   type TCKind is
+      (Tk_Null,
+       Tk_Void,
+       Tk_Short,
+       Tk_Long,
+       Tk_Ushort,
+       Tk_Ulong,
+       Tk_Float,
+       Tk_Double,
+       Tk_Boolean,
+       Tk_Char,
+       Tk_Octet,
+       Tk_Any,
+       Tk_TypeCode,
+       Tk_Principal,
+       Tk_Objref,
+       Tk_Struct,
+       Tk_Union,
+       Tk_Enum,
+       Tk_String,
+       Tk_Sequence,
+       Tk_Array,
+       Tk_Alias,
+       Tk_Except,
+       Tk_Longlong,
+       Tk_Ulonglong,
+       Tk_Longdouble,
+       Tk_Widechar,
+       Tk_Wstring,
+       Tk_Fixed,
+       Tk_Value,
+       Tk_Valuebox,
+       Tk_Native,
+       Tk_Abstract_Interface);
+
+   type ValueModifier is new Short;
+   VTM_NONE : constant ValueModifier := 0;
+   VTM_CUSTOM : constant ValueModifier := 1;
+   VTM_ABSTRACT : constant ValueModifier := 2;
+   VTM_TRUNCATABLE : constant ValueModifier := 3;
+
+   type Visibility is new Short;
+   PRIVATE_MEMBER : constant Visibility := 0;
+   PUBLIC_MEMBER : constant Visibility := 1;
+
+
+   package TypeCode is
+
+      --  Spec  --
+      ------------
+      type Object is private;
+
+      Bounds : exception;
+      type Bounds_Members is new CORBA.IDL_Exception_Members with null record;
+
+      procedure Get_Members
+        (From : in Ada.Exceptions.Exception_Occurrence;
+         To    : out Bounds_Members);
+
+      BadKind : exception;
+      type BadKind_Members is new CORBA.IDL_Exception_Members with null record;
+
+      procedure Get_Members
+        (From : in Ada.Exceptions.Exception_Occurrence;
+         To    : out BadKind_Members);
+
+      function "=" (Left, Right : in Object) return Boolean;
+
+      function Equal (Left, Right : in Object) return Boolean
+        renames "=";
+
+      function Equivalent (Left, Right : in Object)
+                           return Boolean;
+
+      function Get_Compact_TypeCode (Self : in Object)
+                                     return Object;
+
+      function Kind (Self : in Object) return TCKind;
+
+      function Id (Self : in Object)
+                   return CORBA.RepositoryId;
+
+      function Name (Self : in Object)
+                     return CORBA.Identifier;
+
+      function Member_Count (Self : in Object)
+                             return Unsigned_Long;
+
+      function Member_Name (Self  : in Object;
+                            Index : in CORBA.Unsigned_Long)
+                            return CORBA.Identifier;
+
+      function Member_Type
+        (Self  : in Object;
+         Index : in CORBA.Unsigned_Long) return Object;
+
+      function Member_Label
+          (Self  : in Object;
+           Index : in CORBA.Unsigned_Long) return CORBA.Any;
+
+      function Discriminator_Type (Self : in Object)
+                                   return Object;
+
+      function Default_Index (Self : in Object)
+                              return CORBA.Long;
+
+      function Length (Self : in Object)
+                       return CORBA.Unsigned_Long;
+
+      function Content_Type (Self : in Object) return Object;
+
+      function Fixed_Digits (Self : in Object)
+                             return CORBA.Unsigned_Short;
+
+      function Fixed_Scale (Self : in Object)
+                            return CORBA.Short;
+
+      function Member_Visibility
+        (Self  : in Object;
+         Index : in CORBA.Unsigned_Long) return Visibility;
+
+      function Type_Modifier (Self : in Object)
+                              return CORBA.ValueModifier;
+
+      function Concrete_Base_Type (Self : in Object)
+                                   return Object;
+
+      --  Not in spec  --
+      -------------------
+      --  returns the parameter nb index in the list of Self's
+      --  parameters. Raises Out_Of_Bounds_Index exception if
+      --  this parameter does not exist
+      function Get_Parameter (Self : in Object;
+                              Index : in CORBA.Unsigned_Long)
+                              return Any;
+
+      --  adds the parameter Param in the list of Self's
+      --  parameters.
+      procedure Add_Parameter (Self  : in out Object;
+                               Param : in CORBA.Any);
+
+      --  Sets the kind of a typecode
+      --  By the way, erases all parameters
+      procedure Set_Kind (Self : out Object;
+                          Kind : in CORBA.TCKind);
+
+      --  Simple typecodes
+      function TC_Null               return TypeCode.Object;
+      function TC_Void               return TypeCode.Object;
+      function TC_Short              return TypeCode.Object;
+      function TC_Long               return TypeCode.Object;
+      function TC_Long_Long          return TypeCode.Object;
+      function TC_Unsigned_Short     return TypeCode.Object;
+      function TC_Unsigned_Long      return TypeCode.Object;
+      function TC_Unsigned_Long_Long return TypeCode.Object;
+      function TC_Float              return TypeCode.Object;
+      function TC_Double             return TypeCode.Object;
+      function TC_Long_Double        return TypeCode.Object;
+      function TC_Boolean            return TypeCode.Object;
+      function TC_Char               return TypeCode.Object;
+      function TC_Wchar              return TypeCode.Object;
+      function TC_Octet              return TypeCode.Object;
+      function TC_Any                return TypeCode.Object;
+      function TC_TypeCode           return TypeCode.Object;
+
+      function TC_String             return TypeCode.Object;
+      function TC_Wide_String        return TypeCode.Object;
+
+   private
+      --       --  implementation defined
+      --       Out_Of_Bounds_Index : exception;
+
+      --  list of parameters (which are some any)
+      type Cell;
+      type Cell_Ptr is access all Cell;
+      type Cell is record
+         Parameter : CORBA.Any;
+         Next : Cell_Ptr;
+      end record;
+
+      --  type code implementation
+      type Object is
+         record
+            Kind : CORBA.TCKind := Tk_Void;
+            Parameters : Cell_Ptr := null;
+         end record;
+
+      --  The most current typecodes
+      PTC_Null               : constant Object := (Tk_Null, null);
+      PTC_Void               : constant Object := (Tk_Void, null);
+      PTC_Short              : constant Object := (Tk_Short, null);
+      PTC_Long               : constant Object := (Tk_Long, null);
+      PTC_Long_Long          : constant Object := (Tk_Longlong, null);
+      PTC_Unsigned_Short     : constant Object := (Tk_Ushort, null);
+      PTC_Unsigned_Long      : constant Object := (Tk_Ulong, null);
+      PTC_Unsigned_Long_Long : constant Object := (Tk_Ulonglong, null);
+      PTC_Float              : constant Object := (Tk_Float, null);
+      PTC_Double             : constant Object := (Tk_Double, null);
+      PTC_Long_Double        : constant Object := (Tk_Longdouble, null);
+      PTC_Boolean            : constant Object := (Tk_Boolean, null);
+      PTC_Char               : constant Object := (Tk_Char, null);
+      PTC_Wchar              : constant Object := (Tk_Widechar, null);
+      PTC_Octet              : constant Object := (Tk_Octet, null);
+      PTC_Any                : constant Object := (Tk_Any, null);
+      PTC_TypeCode           : constant Object := (Tk_TypeCode, null);
+
+      PTC_String             : constant Object := (Tk_String, null);
+      PTC_Wide_String        : constant Object := (Tk_Wstring, null);
+
+   end TypeCode;
+
+
+   -----------
+   --  Any  --
+   -----------
+
+   function "=" (Left, Right : in Any) return Boolean;
+
+   function Equal (Left, Right : in Any) return Boolean
+     renames "=";
+
+   function To_Any (Item : in Short)              return Any;
+   function To_Any (Item : in Long)               return Any;
+   function To_Any (Item : in Long_Long)          return Any;
+   function To_Any (Item : in Unsigned_Short)     return Any;
+   function To_Any (Item : in Unsigned_Long)      return Any;
+   function To_Any (Item : in Unsigned_Long_Long) return Any;
+   function To_Any (Item : in Float)              return Any;
+   function To_Any (Item : in Double)             return Any;
+   function To_Any (Item : in Long_Double)        return Any;
+   function To_Any (Item : in Boolean)            return Any;
+   function To_Any (Item : in Char)               return Any;
+   function To_Any (Item : in Wchar)              return Any;
+   function To_Any (Item : in Octet)              return Any;
+   function To_Any (Item : in Any)                return Any;
+   function To_Any (Item : in TypeCode.Object)    return Any;
+   function To_Any (Item : in CORBA.String)       return Any;
+   function To_Any (Item : in CORBA.Wide_String)  return Any;
+
+   function From_Any (Item : in Any) return Short;
+   function From_Any (Item : in Any) return Long;
+   function From_Any (Item : in Any) return Long_Long;
+   function From_Any (Item : in Any) return Unsigned_Short;
+   function From_Any (Item : in Any) return Unsigned_Long;
+   function From_Any (Item : in Any) return Unsigned_Long_Long;
+   function From_Any (Item : in Any) return Float;
+   function From_Any (Item : in Any) return Double;
+   function From_Any (Item : in Any) return Long_Double;
+   function From_Any (Item : in Any) return Boolean;
+   function From_Any (Item : in Any) return Char;
+   function From_Any (Item : in Any) return Wchar;
+   function From_Any (Item : in Any) return Octet;
+   function From_Any (Item : in Any) return Any;
+   function From_Any (Item : in Any) return TypeCode.Object;
+   function From_Any (Item : in Any) return CORBA.String;
+   function From_Any (Item : in Any) return CORBA.Wide_String;
+
+
+   function Get_Type (The_Any : in Any) return TypeCode.Object;
+
+   generic
+      with procedure Process (The_Any : in Any;
+                              Continue : out Boolean);
+   procedure Iterate_Over_Any_Elements (In_Any : in Any);
+
+
+
+
 private
 
    --  Null_String : constant CORBA.String :=
    --  CORBA.String (Ada.Strings.Unbounded.Null_Unbounded_String);
+
+
+   -----------
+   --  Any  --
+   -----------
+
+   --  any is implemented this way :
+   --   one field for the typecode (TypeCode.Object)
+   --   one field for the value
+   --
+   --  To be able to carry values of different types, the second
+   --  field is an Any_Content_Ptr which is an access to any type
+   --  deriving from Content. Every basic types XXX that can be carried
+   --  into an Any should be associated to a child of Content (Content_XXX)
+   --  which contains a field of the XXX type.
+   --  For complex types (with several values, like structures, arrays...),
+   --  we use a special child of Content, Content_Agregat, which has a field
+   --  pointing on a list of childs of Content; various methods are provided
+   --  to manipulate this list.
+
+
+   type Content is abstract tagged null record;
+   type Any_Content_Ptr is access Content'Class;
+
+   type Content_Octet is new Content with
+      record
+         Value : CORBA.Octet;
+      end record;
+   type Content_Octet_Ptr is access all Content_Octet;
+
+   type Content_Short is new Content with
+      record
+         Value : CORBA.Short;
+      end record;
+   type Content_Short_Ptr is access all Content_Short;
+
+   type Content_Long is new Content with
+      record
+         Value : CORBA.Long;
+      end record;
+   type Content_Long_Ptr is access all Content_Long;
+
+   type Content_Long_Long is new Content with
+      record
+         Value : CORBA.Long_Long;
+      end record;
+   type Content_Long_Long_Ptr is access all Content_Long_Long;
+
+   type Content_UShort is new Content with
+      record
+         Value : CORBA.Unsigned_Short;
+      end record;
+   type Content_UShort_Ptr is access all Content_UShort;
+
+   type Content_ULong is new Content with
+      record
+         Value : CORBA.Unsigned_Long;
+      end record;
+   type Content_ULong_Ptr is access all Content_ULong;
+
+   type Content_ULong_Long is new Content with
+      record
+         Value : CORBA.Unsigned_Long_Long;
+      end record;
+   type Content_ULong_Long_Ptr is access all Content_ULong_Long;
+
+   type Content_Boolean is new Content with
+      record
+         Value : CORBA.Boolean;
+      end record;
+   type Content_Boolean_Ptr is access all Content_Boolean;
+
+   type Content_Char is new Content with
+      record
+         Value : CORBA.Char;
+      end record;
+   type Content_Char_Ptr is access all Content_Char;
+
+   type Content_Wchar is new Content with
+      record
+         Value : CORBA.Wchar;
+      end record;
+   type Content_Wchar_Ptr is access all Content_Wchar;
+
+   type Content_String is new Content with
+      record
+         Value : CORBA.String;
+      end record;
+   type Content_String_Ptr is access all Content_String;
+
+   type Content_Wide_String is new Content with
+      record
+         Value : CORBA.Wide_String;
+      end record;
+   type Content_Wide_String_Ptr is access all Content_Wide_String;
+
+   type Content_Float is new Content with
+      record
+         Value : CORBA.Float;
+      end record;
+   type Content_Float_Ptr is access all Content_Float;
+
+   type Content_Double is new Content with
+      record
+         Value : CORBA.Double;
+      end record;
+   type Content_Double_Ptr is access all Content_Double;
+
+   type Content_Long_Double is new Content with
+      record
+         Value : CORBA.Long_Double;
+      end record;
+   type Content_Long_Double_Ptr is access all Content_Long_Double;
+
+   type Content_TypeCode is new Content with
+      record
+         Value : CORBA.TypeCode.Object;
+      end record;
+   type Content_TypeCode_Ptr is access all Content_TypeCode;
+
+   type Content_Any is new Content with
+      record
+         Value : CORBA.Any;
+      end record;
+   type Content_Any_Ptr is access all Content_Any;
+
+   --  for complex types that could be defined in Idl
+   type Content_Cell;
+   type Content_List is access all Content_Cell;
+   type Content_Cell is record
+      The_Value : Any_Content_Ptr := null;
+      Next : Content_List := null;
+   end record;
+
+   type Content_Agregat is new Content with
+      record
+         Value : Content_List := null;
+      end record;
+   type Content_Agregat_Ptr is access all Content_Agregat;
+
+   function Agregate_Count
+     (Cl : in Content_List)
+      return CORBA.Long;
+   --  returns the number of elements of the Content_List list
+
+   type Any is
+     record
+        The_Value : Any_Content_Ptr;
+        The_Type  : CORBA.TypeCode.Object;
+     end record;
 
 end CORBA;
