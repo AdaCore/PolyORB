@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#11 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#12 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -1215,18 +1215,32 @@ package body CIAO.Translator is
             --  Variant_Part.
 
             declare
-               Case_Node : constant Node_Id := Make_Case (No_Location);
-               Decl_Node : constant Node_Id := Make_Declarator (No_Location);
                Union_Node : constant Node_Id := State.Current_Node;
+
+               Case_Node : Node_Id;
+               Decl_Node : Node_Id;
+               Struct_Node : Node_Id;
 
                Variant_Components : constant Asis.Record_Component_List
                  := Record_Components (Element);
-               Variant_Component : Asis.Declaration
+               Variant_Component : Asis.Record_Component
                  renames Variant_Components (Variant_Components'First);
 
-               Struct_Node : Node_Id;
                Success : Boolean;
             begin
+               if True
+                 and then Variant_Components'Length = 1
+                 and then Definition_Kind (Variant_Component)
+                   = A_Null_Component
+               then
+                  --  A 'null' variant: just ignore it.
+                  Control := Abandon_Children;
+                  return;
+               end if;
+
+               Case_Node := Make_Case (No_Location);
+               Decl_Node := Make_Declarator (No_Location);
+
                Append_Node_To_Cases (State.Current_Node, Case_Node);
                State.Current_Node := Case_Node;
                Translate_List (Variant_Choices (Element), State);
