@@ -188,7 +188,7 @@ package body PolyORB.Binding_Data.GIOP.INET is
    begin
       pragma Debug (O ("Common_IIOP_DIOP_Profile_To_Corbaloc"));
 
-      return Prefix &
+      return Prefix & ":" &
         Trimmed_Image (Integer (GIOP_Profile.Version_Major)) & "." &
         Trimmed_Image (Integer (GIOP_Profile.Version_Minor)) & "@" &
         Image (Address.Addr) & ":" &
