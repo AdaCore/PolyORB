@@ -3155,7 +3155,7 @@ package body Exp_Dist is
       Append_To (Decls, Dummy_Register_Decl);
       Analyze (Dummy_Register_Decl);
 
-      if Has_All_Calls_Remote (Defining_Unit_Name (Pkg_Spec)) then
+      if Has_All_Calls_Remote (Defining_Entity (Pkg_Spec)) then
          All_Calls_Remote_E := Standard_True;
       else
          All_Calls_Remote_E := Standard_False;
