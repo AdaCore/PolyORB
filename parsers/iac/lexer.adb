@@ -6,6 +6,7 @@ with Errors;    use Errors;
 with Flags;     use Flags;
 with Locations; use Locations;
 with Namet;     use Namet;
+with Output;    use Output;
 with Types;     use Types;
 with Utils;     use Utils;
 
@@ -1596,6 +1597,15 @@ package body Lexer is
       Error_Loc (1) := Token_Location;
       DE ("unexpected " & Quoted_Image (T) & Where (1 .. Length));
    end Unexpected_Token;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write (T : Token_Type) is
+   begin
+      Write_Str (Image (T));
+   end Write;
 
 end Lexer;
 

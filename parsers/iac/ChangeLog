@@ -1,3 +1,32 @@
+2004-06-12  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-debug.adb, backend-be_ada-debug.ads: Duplicate
+	debugs.adb and debugs.ads and then adapt them. Rename wni into wbi
+	(write ada backend info).
+	
+	* backend-be_ada-generator.adb, backend-be_ada-generator.ads,
+	backend-be_ada-nodes.idl: Rename
+	backend-be_ada-files_generation.adb,
+	backend-be_ada-files_generation.ads. Huge clean up.
+
+	* backend-be_ada-nutils.adb, backend-be_ada-nutils.adb: Rename
+	Mk_<X> into Make_<X>. Add subprograms to deal with parameter
+	mode. Huge clean up.
+	
+	* debug.adb, debug.ads: Change wni into wfi (write frontend info).
+
+	* lexer.ads, lexer.adb: Move Write for token from BE_IDL.
+
+	* backend-be_idl.adb: Move Write for token to Lexer.
+
+	* backend-be_ada.ads: Remove blank line.
+
+	* analyzer.adb: Minor reformating.
+
+2004-06-11  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* analyzer.adb: Check oneway operation rules.
+
 2004-06-10  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_idl.adb: Generate idl code for union type. Fix bug in

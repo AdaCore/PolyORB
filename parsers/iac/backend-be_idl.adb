@@ -10,21 +10,9 @@ with Values;    use Values;
 
 package body Backend.BE_IDL is
 
-   Space_Increment : constant := 2;
-   N_Space         : Natural  := 0;
-
    Default_Base : Natural := 0;
 
-   procedure Decrement_Indentation;
-   procedure Increment_Indentation;
-
-   procedure Write      (T : Token_Type);
-   procedure Write_Indentation;
-   procedure Write_Line (T : Token_Type);
-   procedure Write_Space;
-
    procedure Generate (V : Value_Id);
-
    procedure Generate_Abstract_Value_Declaration (E : Node_Id);
    procedure Generate_Attribute_Declaration (E : Node_Id);
    procedure Generate_Base_Type (E : Node_Id);
@@ -61,6 +49,8 @@ package body Backend.BE_IDL is
    procedure Generate_Value_Box_Declaration (E : Node_Id);
    procedure Generate_Value_Forward_Declaration (E : Node_Id);
 
+   procedure Write_Line (T : Token_Type);
+
    ---------------
    -- Configure --
    ---------------
@@ -80,24 +70,6 @@ package body Backend.BE_IDL is
          end case;
       end loop;
    end Configure;
-
-   ---------------------------
-   -- Decrement_Indentation --
-   ---------------------------
-
-   procedure Decrement_Indentation is
-   begin
-      N_Space := N_Space - Space_Increment;
-   end Decrement_Indentation;
-
-   ---------------------------
-   -- Increment_Indentation --
-   ---------------------------
-
-   procedure Increment_Indentation is
-   begin
-      N_Space := N_Space + Space_Increment;
-   end Increment_Indentation;
 
    --------------
    -- Generate --
@@ -950,42 +922,14 @@ package body Backend.BE_IDL is
       Write_Eol;
    end Usage;
 
-   -----------
-   -- Write --
-   -----------
-
-   procedure Write (T : Token_Type) is
-   begin
-      Write_Str (Image (T));
-   end Write;
-
-   -----------------------
-   -- Write_Indentation --
-   -----------------------
-
-   procedure Write_Indentation is
-   begin
-      for I in 1 .. N_Space loop
-         Write_Char (' ');
-      end loop;
-   end Write_Indentation;
-
    ----------------
    -- Write_Line --
    ----------------
 
    procedure Write_Line (T : Token_Type) is
    begin
-      Write_Line (Image (T));
+      Write (T);
+      Write_Eol;
    end Write_Line;
-
-   -----------------
-   -- Write_Space --
-   -----------------
-
-   procedure Write_Space is
-   begin
-      Write_Char (' ');
-   end Write_Space;
 
 end Backend.BE_IDL;

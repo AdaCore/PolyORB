@@ -1,13 +1,13 @@
 with Charset;     use Charset;
 with Locations;   use Locations;
+with Lexer;       use Lexer;
 with Namet;       use Namet;
-with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
 with Output;      use Output;
---   with Scopes;      use Scopes;
 with Types;       use Types;
 with Utils;       use Utils;
-with Values;      use Values;
-with Lexer;       use Lexer;
+
+with Backend.BE_Ada.Generator; use Backend.BE_Ada.Generator;
+with Backend.BE_Ada.Nodes;     use Backend.BE_Ada.Nodes;
 
 package body Backend.BE_Ada.Debug is
 
@@ -51,16 +51,6 @@ package body Backend.BE_Ada.Debug is
       return Quoted (Image (Token_Type'Val (N)));
    end Image;
 
-   function Image (N : Value_Id) return String is
-   begin
-      return Values.Image (N);
-   end Image;
-
-   function Image (N : Operator_Id) return String is
-   begin
-      return Quoted (Image (Token_Type'Val (N)));
-   end Image;
-
    function Image (N : Boolean) return String is
    begin
       return Boolean'Image (N);
@@ -100,14 +90,13 @@ package body Backend.BE_Ada.Debug is
    -----------------
 
    procedure W_Full_Tree is
-      --  D : Node_Id := First_Node (Definitions (Root));
+      D : Node_Id := First_Node (Packages);
    begin
-      --   N_Indents := 0;
-      --   while Present (D) loop
-      --   W_Node_Id (D);
-      --   D := Next_Node (D);
-      --   end loop;
-      null;
+      N_Indents := 0;
+      while Present (D) loop
+         W_Node_Id (D);
+         D := Next_Node (D);
+      end loop;
    end W_Full_Tree;
 
    ---------------
@@ -151,14 +140,7 @@ package body Backend.BE_Ada.Debug is
    is
       C : Node_Id;
    begin
-      if A = "Next_Node"
-        or else A = "Homonym"
-        or else A = "Scoped_Identifiers"
---          or else A = "Explicitely_Visible"
---          or else A = "Implicitely_Visible"
-        or else A = "Next_Identifier"
-
-      then
+      if A = "Next_Node" then
          return;
       end if;
       N_Indents := N_Indents + 1;
@@ -175,7 +157,7 @@ package body Backend.BE_Ada.Debug is
         and then Present (C)
       then
          case Kind (C) is
-            when K_Float .. K_String =>
+            when K_Float .. K_Value_Base =>
                Write_Line ('(' & Image (Kind (Node_Id (N))) & ')');
             when others =>
                Write_Line (V);
@@ -185,13 +167,7 @@ package body Backend.BE_Ada.Debug is
          Write_Line (V);
       end if;
 
-      if A /= "Node"
-        and then A /= "Scope"
-        and then A /= "Reference"
-        and then A /= "Base_Interface"
-        and then A /= "Declaration"
-        and then A /= "Parent"
-      then
+      if A /= "Node" then
          if K = "Node_Id" then
             W_Node_Id (Node_Id (N));
          elsif K = "List_Id" then
@@ -228,29 +204,16 @@ package body Backend.BE_Ada.Debug is
       W_Node (N);
    end W_Node_Id;
 
+   ----------
+   -- wabi --
+   ----------
 
-   procedure W_Small_Indents is
-   begin
-      Write_Eol;
-      W_Indents;
-      if N_Small_Indents >= 1 then
-         Write_Str ("  ");
-      end if;
-      for I in 2 .. N_Small_Indents loop
-         Write_Str (" ");
-      end loop;
-   end W_Small_Indents;
-
-   ---------
-   -- wni --
-   ---------
-
-   procedure wnibackend (N : Node_Id) is
+   procedure wabi (N : Node_Id) is
       I : constant Natural := N_Indents;
    begin
       N_Indents := 1;
       W_Node_Id (N);
       N_Indents := I;
-   end wnibackend;
+   end wabi;
 
 end Backend.BE_Ada.Debug;

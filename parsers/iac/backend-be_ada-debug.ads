@@ -1,18 +1,17 @@
-with Backend.BE_Ada.Nodes;  use Backend.BE_Ada.Nodes;
 with Output; use Output;
 with Types;  use Types;
 
+with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
 
 package Backend.BE_Ada.Debug is
 
    N_Indents : Natural := 0;
-   N_Small_Indents : Natural := 0;
+
    procedure W_Eol                       renames Output.Write_Eol;
    procedure W_Int         (N : Int)     renames Output.Write_Int;
    procedure W_Line        (N : String)  renames Output.Write_Line;
    procedure W_Str         (N : String)  renames Output.Write_Str;
    procedure W_Indents;
-   procedure W_Small_Indents;
 
    procedure W_Boolean     (N : Boolean);
    procedure W_Byte        (N : Byte);
@@ -32,13 +31,11 @@ package Backend.BE_Ada.Debug is
    function Image (N : Node_Id) return String;
    function Image (N : List_Id) return String;
    function Image (N : Mode_Id) return String;
-   function Image (N : Value_Id) return String;
-   function Image (N : Operator_Id) return String;
    function Image (N : Boolean) return String;
    function Image (N : Byte) return String;
    function Image (N : Int) return String;
 
-   procedure wnibackend (N : Node_Id);
-   pragma Export (C, wnibackend, "wnibackend");
+   procedure wabi (N : Node_Id);
+   pragma Export (C, wbi, "wabi");
 
 end Backend.BE_Ada.Debug;

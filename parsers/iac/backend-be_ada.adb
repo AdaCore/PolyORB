@@ -1,172 +1,200 @@
 with GNAT.Command_Line; use GNAT.Command_Line;
-with Types; use Types;
-with Nodes; use Nodes;
-with Backend.BE_Ada.Nodes;
-with Output; use Output;
-with Errors; use Errors;
-with Locations; use Locations;
-with Namet; use Namet;
-with Backend.BE_Ada.Nutils; use Backend.BE_Ada.Nutils;
-with Backend.BE_Ada.Debug; use Backend.BE_Ada.Debug;
-with Backend.BE_Ada.FILES_Generation; use Backend.BE_Ada.FILES_Generation;
-with Lexer;
-with Charset; use Charset;
 
+with Charset;   use Charset;
+with Errors;    use Errors;
+with Lexer;     use Lexer;
+with Locations; use Locations;
+with Namet;     use Namet;
+with Nodes;     use Nodes;
+with Output;    use Output;
+with Types;     use Types;
+
+with Backend.BE_Ada.Debug;     use Backend.BE_Ada.Debug;
+with Backend.BE_Ada.Generator; use Backend.BE_Ada.Generator;
+with Backend.BE_Ada.Nodes;
+with Backend.BE_Ada.Nutils;    use Backend.BE_Ada.Nutils;
 
 package body Backend.BE_Ada is
 
    Ada_Packages : List_Id;
-   D_Tree   : Boolean := False;
+   D_Tree       : Boolean := False;
 
    package BE renames Backend.BE_Ada.Nodes;
 
-   function All_Inheritance_Interface_Abstract (L : List_Id) return Boolean;
+   function All_Interfaces_Abstract (L : List_Id) return Boolean;
+   --  Return False when L is empty or when one interface is concrete
+
    procedure Attribute_Getter_Function_Spec (N : Node_Id; L : in out List_Id);
+   --  XXX comments
+
    procedure Attribute_Setter_Procedure_Spec (N : Node_Id; L : in out List_Id);
+   --  XXX comments
+
    procedure Declare_Base_Type (Type_Str : String; K : BE.Node_Kind);
-   function G_Package (E : Node_Id) return Node_Id;
+   --  XXX comments
+
+   function Generate_Package (E : Node_Id) return Node_Id;
+   --  XXX comments
+
    function Get_Mapped_Type (E : Node_Id) return Node_Id;
+   --  XXX comments
+
    procedure Insert_Base_Type;
+   --  XXX comments
+
    procedure Insert_Type_Ref (L : in out List_Id; Inheritance_List : List_Id;
                                            Interface_Is_Abstract : Boolean);
+   --  XXX comments
+
    function Make_Ada_Typedef_Node
      (Identifier_Name : String;
       Type_Spec : Node_Id) return Node_Id;
-   --   function Map_Enumeration_Type (E : Node_Id) return Node_Id;
+   --  XXX comments
+
    function Visit_Constant_Declaration (E : Node_Id) return Node_Id;
+   --  XXX comments
+
    function Visit_Enumeration_Type (E : Node_Id) return Node_Id;
+   --  XXX comments
+
    procedure Visit_Specification (E : Node_Id);
+   --  XXX comments
 
    function Visit_Interface (E : Node_Id)return Node_Id;
+   --  XXX comments
+
    function Visit_Module (E : Node_Id) return Node_Id;
+   --  XXX comments
+
    function Visit_Operation_Declaration (E : Node_Id) return Node_Id;
+   --  XXX comments
+
    function Visit_Type_Declaration (E : Node_Id) return List_Id;
+   --  XXX comments
 
    function Image (N : Node_Kind) return String;
 
+   -----------------------------
+   -- All_Interfaces_Abstract --
+   -----------------------------
 
-   function All_Inheritance_Interface_Abstract (L : List_Id) return Boolean is
+   function All_Interfaces_Abstract
+     (L : List_Id)
+      return Boolean
+   is
       N : Node_Id;
-      All_Abstract : Boolean := True;
    begin
-      if L /= No_List then
-         N := First_Node (L);
-         while Present (N)  loop
-            if Is_Abstract (N) then
-               All_Abstract := False;
-               exit;
-            end if;
-            N := Next_Node (N);
-         end loop;
+      if Is_Empty (L) then
+         return False;
       end if;
-      return All_Abstract;
+      N := First_Node (L);
+      while Present (N)  loop
+         if Is_Abstract (N) then
+            return False;
+         end if;
+         N := Next_Node (N);
+      end loop;
+      return True;
+   end All_Interfaces_Abstract;
 
-   end All_Inheritance_Interface_Abstract;
+   ------------------------------------
+   -- Attribute_Getter_Function_Spec --
+   ------------------------------------
 
-   ----------------------------------
-   --   Attribute Getter Function : --
-   ----------------------------------
-   --   N : (in)  Interface Attribute
-   --   Return : ADA Getter Function Specification Node
-   ----------------------------------------
    procedure Attribute_Getter_Function_Spec
-     (N : Node_Id; L : in out List_Id) is
-      --   Need Assert to controle N kind
-      --   N must be of K_Ada_Attribute kind;
-      Argument_Node : Node_Id;
-      Argument_List : List_Id := No_List;
-      Arg_Id : Node_Id;
-      --   Id_Name : Name_Id;
-      Arg_Type : Node_Id;
-      Arg_Mode : Mode_Id;
-      Function_Id : Node_Id;
-      Return_Type : Node_Id;
-      Declarator : Node_Id;
-      Declarators_List : List_Id;
+     (N : in     Node_Id;
+      L : in out List_Id)
+   is
+      Param_Node  : Node_Id;
+      Param_List  : List_Id := No_List;
+      Param_Name  : Node_Id;
+      Param_Type  : Node_Id;
+      Subprogram  : Node_Id;
+      Attr_Type   : Node_Id;
+      Attribute   : Node_Id;
+      Attr_Name   : Name_Id;
 
    begin
+      pragma Assert (Kind (N) = K_Attribute_Declaration);
 
-      --   Argument Identifier
-      Arg_Id := Mk_Node_Ada_Identifier ("Self");
-      --   Argument Type
-      Arg_Type := Mk_Node_Ada_Identifier ("Ref");
-      --   Argument Mode
-      Arg_Mode := Mode_Id (Lexer.Token_Type'Pos (Lexer.T_In));
-      Argument_Node := Mk_Node_Ada_Argument (Arg_Id, Arg_Type, Arg_Mode);
-      --   Argument List
-      Append_Node_To_List (Argument_Node, Argument_List);
+      --  Expected result :
+      --  function Get_<A> (Self : Ref) return <T>;
 
-      --   Return Type
-      Return_Type := Get_Mapped_Type (Type_Spec (N));
-      --   Generate getter function for each declarator
-      Declarators_List := Declarators (N);
-      Declarator := First_Node (Declarators_List);
-      while Present (Declarator) loop
+      Param_Name := Make_Ada_Identifier ("Self");
+      Param_Type := Make_Ada_Identifier ("Ref");
+      Param_Node := Make_Ada_Parameter (Param_Name, Param_Type);
+      Append_Node_To_List (Param_Node, Param_List);
 
-         Function_Id :=
-           Mk_Node_Ada_Identifier
-           ("get_" & Get_Name_String (IDL_Name (Identifier (Declarator))));
+      --  Define <T>
+      --
+      --  XXX Note that this incorrect as soon as declarators are complex
+
+      Attr_Type := Get_Mapped_Type (Type_Spec (N));
+
+      --  For all <A> create a getter
+
+      Attribute := First_Node (Declarators (N));
+      while Present (Attribute) loop
+         Attr_Name  := IDL_Name (Identifier (Attribute));
+         Subprogram :=
+           Make_Ada_Identifier ("Get_" & Get_Name_String (Attr_Name));
          Append_Node_To_List
-           (Mk_Node_Ada_Function_Spec
-            (Function_Id, Argument_List, Return_Type), L);
-         Declarator := Next_Node (Declarator);
+           (Make_Subprogram_Spec (Subprogram, Param_List, Attr_Type), L);
+         Attribute := Next_Node (Attribute);
       end loop;
    end Attribute_Getter_Function_Spec;
 
-   -----------------------------------------
-   --   Attribute Setter Function Spec: --
-   ----------------------------------
-   --   N : (in)  Interface Attribute
-   --   Return : ADA Setter Procedure Specification Node
-   ----------------------------------------
+   -------------------------------------
+   -- Attribute_Setter_Procedure_Spec --
+   -------------------------------------
+
    procedure Attribute_Setter_Procedure_Spec
-     (N : Node_Id; L : in out List_Id)  is
-      --   Need Assert to controle N kind
-      --   N must be of K_Ada_Attribute kind;
-      Argument_Node : Node_Id;
-      Argument_List : List_Id := No_List;
-      Arg_Id : Node_Id;
-      --   Id_Name : Name_Id;
-      Arg_Type : Node_Id;
-      Arg_Mode : Mode_Id;
-      Procedure_Id : Node_Id;
-      Declarator : Node_Id;
-      Declarators_List : List_Id;
+     (N : in     Node_Id;
+      L : in out List_Id)
+   is
+      Param_Node : Node_Id;
+      Param_List : List_Id := No_List;
+      Param_Name : Node_Id;
+      Param_Type : Node_Id;
+      Subprogram : Node_Id;
+      Attribute  : Node_Id;
+      Attr_Name   : Name_Id;
+
    begin
-      --   Argument Identifier
-      Arg_Id := Mk_Node_Ada_Identifier ("Self");
-      --   Argument Type
-      Arg_Type := Mk_Node_Ada_Identifier ("Ref");
-      --   Argument Mode
-      Arg_Mode := Mode_Id (Lexer.Token_Type'Pos (Lexer.T_In));
-      Argument_Node := Mk_Node_Ada_Argument (Arg_Id, Arg_Type, Arg_Mode);
-      --   Argument List
-      Append_Node_To_List (Argument_Node, Argument_List);
-      --   Argument Identifier
-      Arg_Id := Mk_Node_Ada_Identifier ("To");
-      --   Argument Type
-      Arg_Type := Get_Mapped_Type (Type_Spec (N));
-      --   Argument Mode
-      Arg_Mode := Mode_Id (Lexer.Token_Type'Pos (Lexer.T_In));
-      Argument_Node := Mk_Node_Ada_Argument (Arg_Id, Arg_Type, Arg_Mode);
-      --   Argument List
-      Append_Node_To_List (Argument_Node, Argument_List);
+      pragma Assert (Kind (N) = K_Attribute_Declaration);
 
-      --   Procedure Identifier
-      Declarators_List := Declarators (N);
-      Declarator := First_Node (Declarators_List);
-      while Present (Declarator) loop
+      --  Expected result :
+      --  procedure Set_<A> (Self : in Ref, To : <T>);
 
-         Procedure_Id :=
-           Mk_Node_Ada_Identifier
-           ("set_" & Get_Name_String (IDL_Name (Identifier (Declarator))));
+      Param_Name := Make_Ada_Identifier ("Self");
+      Param_Type := Make_Ada_Identifier ("Ref");
+      Param_Node := Make_Ada_Parameter  (Param_Name, Param_Type);
+      Append_Node_To_List (Param_Node, Param_List);
+
+      Param_Name := Make_Ada_Identifier ("To");
+
+      --  Define <T>
+      --
+      --  XXX Note that this incorrect as soon as declarators are complex
+
+      Param_Type := Get_Mapped_Type    (Type_Spec (N));
+      Param_Node := Make_Ada_Parameter (Param_Name, Param_Type);
+      Append_Node_To_List (Param_Node, Param_List);
+
+      Attribute := First_Node (Declarators (N));
+      while Present (Attribute) loop
+         Attr_Name  := IDL_Name (Identifier (Attribute));
+         Subprogram :=
+           Make_Ada_Identifier ("Set_" & Get_Name_String (Attr_Name));
          Append_Node_To_List
-           (Mk_Node_Ada_Procedure_Spec
-            (Procedure_Id, Argument_List), L);
-         Declarator := Next_Node (Declarator);
+           (Make_Subprogram_Spec (Subprogram, Param_List), L);
+         Attribute := Next_Node (Attribute);
       end loop;
    end Attribute_Setter_Procedure_Spec;
 
+   -----------------------
+   -- Declare_Base_Type --
+   -----------------------
 
    procedure Declare_Base_Type (Type_Str : String; K : BE.Node_Kind) is
       E : Node_Id;
@@ -185,8 +213,6 @@ package body Backend.BE_Ada is
       Set_Name_Table_Info (N, Int (E));
       BE.Set_Image (Base_Type (E), N);
    end Declare_Base_Type;
-
-
 
    ---------------
    -- Configure --
@@ -208,12 +234,11 @@ package body Backend.BE_Ada is
       end loop;
    end Configure;
 
-   -----------------------
-   --  Gererate Package  --
-   -----------------------
+   ----------------------
+   -- Generate_Package --
+   ----------------------
 
-   function G_Package (E : Node_Id) return Node_Id is
-
+   function Generate_Package (E : Node_Id) return Node_Id is
       Node : Node_Id;
       Id : Node_Id;
       Pkg_Spec : Node_Id;
@@ -222,7 +247,7 @@ package body Backend.BE_Ada is
 
    begin
       Node := New_Node (BE.K_Ada_Packages, No_Location);
-      Id := Mk_Node_Ada_Identifier (IDL_Name (Identifier (E)));
+      Id := Make_Ada_Identifier (IDL_Name (Identifier (E)));
       BE.Set_Identifier (Node, Id);
       Parent_Node := Current_Package;
       BE.Set_Parent (Node, Parent_Node);
@@ -235,19 +260,20 @@ package body Backend.BE_Ada is
          when K_Interface_Declaration =>
             null;
          when others =>
-            Write_Line ("In progress....G_Package");
+            raise Not_Yet_Implemented;
       end case;
       return Node;
-   end G_Package;
-
+   end Generate_Package;
 
    ---------------
    --  Generate --
    ---------------
-   procedure Generate (E : Node_Id) is
 
+   procedure Generate (E : Node_Id) is
    begin
-      --    BE_Namet.Initialize;
+      Space_Increment := 3;
+      N_Space := 0;
+
       Insert_Base_Type;
       Set_Standard_Output;
       Ada_Packages := New_List (BE.K_Ada_Package_List, No_Location);
@@ -289,7 +315,9 @@ package body Backend.BE_Ada is
       return Node;
    end Get_Mapped_Type;
 
-
+   -----------
+   -- Image --
+   -----------
 
    function Image (N : Node_Kind) return String is
       S : String := Node_Kind'Image (N);
@@ -303,6 +331,9 @@ package body Backend.BE_Ada is
       return S (3 .. S'Last);
    end Image;
 
+   ----------------------
+   -- Insert_Base_Type --
+   ----------------------
 
    procedure Insert_Base_Type is
    begin
@@ -321,14 +352,12 @@ package body Backend.BE_Ada is
       Declare_Base_Type ("CORBA.Wide_String", BE.K_Wide_String);
       Declare_Base_Type ("CORBA.Boolean", BE.K_Boolean);
       Declare_Base_Type ("CORBA.Octet", BE.K_Octet);
-
-
    end Insert_Base_Type;
 
+   ---------------------
+   -- Insert_Type_Ref --
+   ---------------------
 
-   ------------------------------
-   --   Insert Type Reference ---
-   ------------------------------
    procedure Insert_Type_Ref
      (L : in out List_Id;
       Inheritance_List : List_Id;
@@ -355,7 +384,7 @@ package body Backend.BE_Ada is
 
       if (Inheritance_List = No_List)
         or
-        (All_Inheritance_Interface_Abstract (Inheritance_List))
+        (All_Interfaces_Abstract (Inheritance_List))
       then
          if Interface_Is_Abstract then
             Set_Str_To_Name_Buffer (Ancestor_Type_Abstract);
@@ -373,6 +402,9 @@ package body Backend.BE_Ada is
       end if;
    end Insert_Type_Ref;
 
+   ---------------------------
+   -- Make_Ada_Typedef_Node --
+   ---------------------------
 
    function Make_Ada_Typedef_Node
      (Identifier_Name : String;
@@ -391,10 +423,10 @@ package body Backend.BE_Ada is
       return Type_Def;
    end Make_Ada_Typedef_Node;
 
-
    -----------
    -- Usage --
    -----------
+
    procedure Usage (Indent : Natural) is
       Hdr : constant String (1 .. Indent - 1) := (others => ' ');
    begin
@@ -403,20 +435,20 @@ package body Backend.BE_Ada is
       Write_Eol;
    end Usage;
 
-
    --------------------------------
    -- Visit_Constant_Declaration --
    --------------------------------
+
    function Visit_Constant_Declaration (E : Node_Id) return Node_Id is
       pragma Unreferenced (E);
    begin
       return No_Node;
    end Visit_Constant_Declaration;
 
+   ----------------------------
+   -- Visit_Enumeration_Type --
+   ----------------------------
 
-   -----------------------------
-   --  Visit_Enumeration_Type --
-   -----------------------------
    function Visit_Enumeration_Type (E : Node_Id) return Node_Id is
       L : constant List_Id
         := Enumerators (E); --  IDL Enumerators List.
@@ -430,24 +462,25 @@ package body Backend.BE_Ada is
       D := First_Node (L);
       while Present (D) loop
          Enumerator_Node :=
-           Mk_Node_Ada_Identifier
-           (Map_Identifier_Name_2Ada (IDL_Name (Identifier (D))));
+           Make_Ada_Identifier
+           (To_Ada_Name (IDL_Name (Identifier (D))));
          Append_Node_To_List
            (Enumerator_Node, Enumerators_List);
          D := Next_Node (D);
       end loop;
-      Type_Spec_Node := Mk_Node_Enumeration_Type (Enumerators_List);
-      Type_Identifier := Mk_Node_Ada_Identifier
-        (Map_Identifier_Name_2Ada (IDL_Name (Identifier (E))));
+      Type_Spec_Node := Make_Enumeration_Type (Enumerators_List);
+      Type_Identifier := Make_Ada_Identifier
+        (To_Ada_Name (IDL_Name (Identifier (E))));
       Type_Declaration :=
-        Mk_Node_Type_Declaration (Type_Identifier, Type_Spec_Node);
+        Make_Type_Declaration (Type_Identifier, Type_Spec_Node);
       Set_Ada_Node (E, Type_Declaration);
       return Type_Declaration;
    end Visit_Enumeration_Type;
 
-   ----------------------
-   --  Visit_Interface --
-   ----------------------
+   ---------------------
+   -- Visit_Interface --
+   ---------------------
+
    function Visit_Interface (E : Node_Id) return Node_Id is
       Pkg : Node_Id;
       Pkg_Spec : Node_Id;
@@ -461,12 +494,12 @@ package body Backend.BE_Ada is
       Package_With_Node : List_Id;
       pragma Unreferenced (Pkg_Body, Package_With_Node);
    begin
-      Pkg := G_Package (E);
+      Pkg := Generate_Package (E);
       --   Package creation
       Pkg_Spec := New_Node (BE.K_Ada_Package_Spec, No_Location);
       I_Spec := Interface_Spec (E);
       Public_Decl := New_List (BE.K_List_Id, No_Location);
-      BE.Set_Ada_Public (Pkg_Spec, Public_Decl);
+      BE.Set_Public_Part (Pkg_Spec, Public_Decl);
       --   Package_With_Node := New_List (BE.K_Ada_With_List, No_Location);
       --   BE.Set_Package_With (Pkg_Spec, Package_With_Node);
       Set_Str_To_Name_Buffer ("--   None ");
@@ -487,7 +520,8 @@ package body Backend.BE_Ada is
                   Append_Node_To_List (Ada_Public_Node, Public_Decl);
                when K_Type_Declaration =>
                   Ada_Public_List := Visit_Type_Declaration (N);
-                  Append_List_To_List (Ada_Public_List, Public_Decl);
+                  Append_Node_To_List
+                    (BE.First_Node (Ada_Public_List), Public_Decl);
                when K_Enumeration_Type =>
                   Ada_Public_Node := Visit_Enumeration_Type (N);
                   Append_Node_To_List (Ada_Public_Node, Public_Decl);
@@ -506,10 +540,10 @@ package body Backend.BE_Ada is
       return Pkg;
    end Visit_Interface;
 
+   ---------------------------------
+   -- Visit_Operation_Declaration --
+   ---------------------------------
 
-   ------------------------------------
-   --   Visit_Operation_Declaration --
-   ------------------------------------
    function Visit_Operation_Declaration (E : Node_Id) return Node_Id is
       Operation_Identifier : Node_Id;
       Return_Type_Node : Node_Id;
@@ -523,16 +557,16 @@ package body Backend.BE_Ada is
       N : Node_Id;
    begin
       Operation_Identifier :=
-        Mk_Node_Ada_Identifier (IDL_Name (Identifier (E)));
+        Make_Ada_Identifier (IDL_Name (Identifier (E)));
       Return_Type_Node := Get_Mapped_Type (Type_Spec (E));
       L := Parameters (E);
       --   Argument Identifier
-      Param_Id := Mk_Node_Ada_Identifier ("Self");
+      Param_Id := Make_Ada_Identifier ("Self");
       --   Argument Type
-      Param_Type := Mk_Node_Ada_Identifier ("Ref");
+      Param_Type := Make_Ada_Identifier ("Ref");
       --   Argument Mode
       Param_Mode := Mode_Id (Lexer.Token_Type'Pos (Lexer.T_In));
-      Ada_Argument := Mk_Node_Ada_Argument (Param_Id, Param_Type, Param_Mode);
+      Ada_Argument := Make_Ada_Parameter (Param_Id, Param_Type, Param_Mode);
       --   Argument List
       Append_Node_To_List (Ada_Argument, Ada_Argument_List);
       if L /= No_List then
@@ -540,11 +574,11 @@ package body Backend.BE_Ada is
          while Present (N) loop
             Declarator_Node := Identifier (Declarator (N));
             Param_Id :=
-              Mk_Node_Ada_Identifier (IDL_Name  (Declarator_Node));
+              Make_Ada_Identifier (IDL_Name  (Declarator_Node));
             Param_Type := Get_Mapped_Type (Type_Spec (N));
             Param_Mode := Parameter_Mode (N);
             Ada_Argument :=
-              Mk_Node_Ada_Argument (Param_Id, Param_Type, Param_Mode);
+              Make_Ada_Parameter (Param_Id, Param_Type, Param_Mode);
             Append_Node_To_List (Ada_Argument, Ada_Argument_List);
             N := Next_Node (N);
             if Is_Oneway (E) and
@@ -556,33 +590,33 @@ package body Backend.BE_Ada is
       end if;
       if Return_Type_Node = No_Node then
          if Kind (Type_Spec (E)) = K_Void then
-            return Mk_Node_Ada_Procedure_Spec
+            return Make_Subprogram_Spec
               (Operation_Identifier, Ada_Argument_List);
          else
             raise Fatal_Error; -- Type mapping Error;
          end if;
       else
-         return Mk_Node_Ada_Function_Spec
+         return Make_Subprogram_Spec
            (Operation_Identifier, Ada_Argument_List, Return_Type_Node);
       end if;
 
    end Visit_Operation_Declaration;
 
+   ------------------
+   -- Visit_Module --
+   ------------------
 
-   ----------------------
-   --   Visit_Module  --
-   ----------------------
    function Visit_Module (E : Node_Id) return Node_Id is
       Package_Node : Node_Id;
    begin
-      Package_Node := G_Package (E);
+      Package_Node := Generate_Package (E);
       return Package_Node;
    end Visit_Module;
 
+   -------------------------
+   -- Visit_Specification --
+   -------------------------
 
-   -------------------------------
-   -- Visit Specification Node --
-   -------------------------------
    procedure Visit_Specification (E : Node_Id) is
       List_Def : List_Id;
       D      : Node_Id;
@@ -616,9 +650,10 @@ package body Backend.BE_Ada is
       end loop;
    end Visit_Specification;
 
-   -------------------------------
-   --   Visit_Type_Declaration --
-   -------------------------------
+   ----------------------------
+   -- Visit_Type_Declaration --
+   ----------------------------
+
    function Visit_Type_Declaration (E : Node_Id) return List_Id is
       Type_Spec_Node : Node_Id;
       Declarators_List : List_Id;  --    := Declarators (E);
@@ -632,8 +667,8 @@ package body Backend.BE_Ada is
       D := First_Node (Declarators_List);
       while Present (D) loop
          Ada_Type_Declaration :=
-           Mk_Node_Simple_Derived_Type_Def
-           (Mk_Node_Ada_Identifier
+           Make_Derived_Type_Declaration
+           (Make_Ada_Identifier
             (IDL_Name (Identifier (D))), Type_Spec_Node);
          Set_Ada_Node (D, Ada_Type_Declaration);
          --   Link Idl node  with Ada node.
@@ -645,5 +680,3 @@ package body Backend.BE_Ada is
    end Visit_Type_Declaration;
 
 end Backend.BE_Ada;
-
-

@@ -1,40 +1,24 @@
+with Lexer;     use Lexer;
 with Locations; use Locations;
---   with Output; use Output;
---   with Debug; use Debug;
+with Namet;     use Namet;
+
 with Backend.BE_Ada.Nodes; use Backend.BE_Ada.Nodes;
-with Namet; use Namet;
-with Ada.Strings.Unbounded;
---   with Backend.BE_Ada.Namet;
-
-
 
 package body Backend.BE_Ada.Nutils is
 
    use Inheritance_Stack;
 
-   --------------------------
-   --  Append_List_To_List --
-   --------------------------
-   procedure Append_List_To_List (L1 : List_Id; L2 : in out List_Id) is
-      N : Node_Id;
-   begin
-      if L1 = No_List then
-         return;
-      end if;
-      N := First_Node (L1);
-      while Present (N) loop
-         Append_Node_To_List (N, L2);
-         N := Next_Node (N);
-      end loop;
-   end Append_List_To_List;
-
    -------------------------
    -- Append_Node_To_List --
    -------------------------
+
    procedure Append_Node_To_List (E : Node_Id; L : in out List_Id) is
       Last : Node_Id;
       List_Kind : Node_Kind;
    begin
+
+      --  XXX Tres mauvais !
+
       if L = No_List then
          case Kind (E) is
             when K_Ada_Packages =>
@@ -58,6 +42,9 @@ package body Backend.BE_Ada.Nutils is
       end loop;
    end Append_Node_To_List;
 
+   ---------------------
+   -- Current_Package --
+   ---------------------
 
    function Current_Package return Node_Id is
    begin
@@ -68,11 +55,19 @@ package body Backend.BE_Ada.Nutils is
       end if;
    end Current_Package;
 
+   ------------------
+   -- Push_Package --
+   ------------------
+
    procedure Push_Package (E : Node_Id) is
    begin
       Increment_Last;
       Table (Last).Node := E;
    end Push_Package;
+
+   -----------------
+   -- Pop_Package --
+   -----------------
 
    procedure Pop_Package is
    begin
@@ -83,28 +78,36 @@ package body Backend.BE_Ada.Nutils is
       end if;
    end Pop_Package;
 
+   ------------------
+   -- Package_Name --
+   ------------------
+
    function Package_Name (E : Node_Id) return String is
    begin
       return Get_Name_String (Name (Identifier (E)));
    end Package_Name;
 
+   -----------------------
+   -- Full_Package_Name --
+   -----------------------
 
    function Full_Package_Name (E : Node_Id) return String is
-      use Ada.Strings.Unbounded;
-      Scope_Mark : constant String := ".";
-      Full_Name : Unbounded_String;
       P : Node_Id;
    begin
-      Full_Name := To_Unbounded_String (Package_Name (E));
       P := Parent (E);
-      while P /= No_Node loop
-
-         Insert (Full_Name, 1, Package_Name (P) & Scope_Mark);
-         P := Parent (P);
-      end loop;
-      return To_String (Full_Name);
+      if Present (P) then
+         Set_Str_To_Name_Buffer (Full_Package_Name (P));
+         Add_Char_To_Name_Buffer ('.');
+         Get_Name_String_And_Append (Name (Identifier (E)));
+         return Name_Buffer (1 .. Name_Len);
+      else
+         return Get_Name_String (Name (Identifier (E)));
+      end if;
    end Full_Package_Name;
 
+   --------------
+   -- New_Node --
+   --------------
 
    function New_Node
      (Kind : Node_Kind;
@@ -120,6 +123,10 @@ package body Backend.BE_Ada.Nutils is
 
       return N;
    end New_Node;
+
+   --------------
+   -- New_List --
+   --------------
 
    function New_List
      (Kind : Node_Kind;
@@ -165,165 +172,168 @@ package body Backend.BE_Ada.Nutils is
       end if;
    end Remove_Node_From_List;
 
+   -----------------
+   -- To_Ada_Name --
+   -----------------
 
-   function Map_Identifier_Name_2Ada (N : Name_Id) return Name_Id is
-      Str : constant String := Get_Name_String (N);
-
+   function To_Ada_Name (N : Name_Id) return Name_Id
+   is
+      First : Natural := 1;
    begin
-      Set_Str_To_Name_Buffer (Map_Identifier_Name_2Ada (Str));
-
-      return Name_Find;
-   end Map_Identifier_Name_2Ada;
-
-   function Map_Identifier_Name_2Ada (N : String) return String is
-      Str : String := N;
-      First : Integer := Str'First;
-   begin
-      while First <= Str'Last
-        and then Str (First) = '_' loop
+      Get_Name_String (N);
+      while First <= Name_Len
+        and then Name_Buffer (First) = '_'
+      loop
          First := First + 1;
       end loop;
 
-      for I in First .. Str'Last loop
-         if Str (I) = '_'
-           and then I < Str'Last
-           and then Str (I + 1) = '_' then
-            Str (I + 1) := 'U';
+      for I in First .. Name_Len loop
+         if Name_Buffer (I) = '_'
+           and then I < Name_Len
+           and then Name_Buffer (I + 1) = '_'
+         then
+            Name_Buffer (I + 1) := 'U';
          end if;
       end loop;
-      if Str (Str'Last) = '_' then
-         return (Str (First .. Str'Last) & 'U');
-      else
-         return (Str (First .. Str'Last));
+
+      if Name_Buffer (Name_Len) = '_' then
+         Add_Char_To_Name_Buffer ('U');
       end if;
 
-   end Map_Identifier_Name_2Ada;
+      return Name_Find;
+   end To_Ada_Name;
 
-   function Mk_Node_Ada_Argument
-     (I : Node_Id; T : Node_Id; M : Mode_Id) return Node_Id is
-
-      Ada_Argument_Node : Node_Id;
+   function To_Ada_Name (N : String) return String is
    begin
-      Ada_Argument_Node := New_Node (K_Ada_Argument, No_Location);
-      Set_Identifier (Ada_Argument_Node, I);
-      Set_Type_Spec (Ada_Argument_Node, T);
-      Set_Argument_Mode (Ada_Argument_Node, M);
+      Set_Str_To_Name_Buffer (N);
+      return Get_Name_String (To_Ada_Name (Name_Find));
+   end To_Ada_Name;
 
-      return Ada_Argument_Node;
-   end Mk_Node_Ada_Argument;
+   ------------------------
+   -- Make_Ada_Parameter --
+   ------------------------
 
-
-   function Mk_Node_Ada_Argument_List (L : List_Id) return List_Id is
-      pragma Unreferenced (L);
+   function Make_Ada_Parameter
+     (N : Node_Id; T : Node_Id; M : Mode_Id := 0) return Node_Id
+   is
+      P : Node_Id;
    begin
-      return No_List;
-   end Mk_Node_Ada_Argument_List;
+      P := New_Node (K_Ada_Parameter, No_Location);
+      Set_Identifier (P, N);
+      Set_Type_Spec  (P, T);
+      if M = 0 then
+         Set_Parameter_Mode (P, Token_Type'Pos (T_In));
+      else
+         Set_Parameter_Mode (P, M);
+      end if;
+      return P;
+   end Make_Ada_Parameter;
 
-   -------------------------------
-   --  Make Node Ada Identifier --
-   -------------------------------
-   function Mk_Node_Ada_Identifier (Name : Name_Id) return Node_Id is
-      Node : Node_Id;
+   -------------------------
+   -- Make_Ada_Identifier --
+   -------------------------
+
+   function Make_Ada_Identifier (N : Name_Id) return Node_Id is
+      I : Node_Id;
    begin
-      Node := New_Node (K_Ada_Identifier, No_Location);
-      Set_Name (Node, Map_Identifier_Name_2Ada (Name));
-      return Node;
-   end Mk_Node_Ada_Identifier;
+      I := New_Node (K_Ada_Identifier, No_Location);
+      Set_Name (I, To_Ada_Name (N));
+      return I;
+   end Make_Ada_Identifier;
 
-   -------------------------------
-   --  Make Node Ada Identifier --
-   -------------------------------
-   function Mk_Node_Ada_Identifier (Name : String) return Node_Id is
+   function Make_Ada_Identifier (S : String) return Node_Id is
    begin
+      Set_Str_To_Name_Buffer (S);
+      return Make_Ada_Identifier (Name_Find);
+   end Make_Ada_Identifier;
 
-      Set_Str_To_Name_Buffer (Map_Identifier_Name_2Ada (Name));
-      return Mk_Node_Ada_Identifier (Name_Find);
-   end Mk_Node_Ada_Identifier;
+   --------------------------
+   -- Make_Subprogram_Spec --
+   --------------------------
 
-
-   function Mk_Node_Ada_Function_Spec
-     (Function_Id : Node_Id;
-      Arg_List : List_Id; Return_Type : Node_Id) return Node_Id is
-      Ada_Function_Spec_Node : Node_Id;
+   function Make_Subprogram_Spec
+     (S : Node_Id;
+      P : List_Id;
+      T : Node_Id := No_Node)
+     return Node_Id
+   is
+      N : Node_Id;
    begin
-      Ada_Function_Spec_Node := New_Node (K_Ada_Function_Spec, No_Location);
-      Set_Identifier (Ada_Function_Spec_Node, Function_Id);
-      Set_Argument_List (Ada_Function_Spec_Node, Arg_List);
-      Set_Type_Spec (Ada_Function_Spec_Node, Return_Type);
-      return Ada_Function_Spec_Node;
-   end Mk_Node_Ada_Function_Spec;
+      N := New_Node (K_Ada_Subprogram_Spec, No_Location);
+      Set_Identifier (N, S);
+      Set_Parameters (N, P);
+      Set_Type_Spec (N, T);
+      return N;
+   end Make_Subprogram_Spec;
 
-   function Mk_Node_Ada_Function
-     (Function_Spec : Node_Id; Decl : List_Id;
-                               Funct_Body : List_Id) return Node_Id is
-      pragma Unreferenced (Function_Spec, Decl, Funct_Body);
-   begin
-      return No_Node;
-   end Mk_Node_Ada_Function;
+   ---------------------------
+   -- Make_Enumeration_Type --
+   ---------------------------
 
-
-   function Mk_Node_Ada_Procedure_Spec
-     (Procedure_Id : Node_Id;
-      Arg_List : List_Id) return Node_Id is
-
-      Ada_Procedure_Spec_Node : Node_Id;
-   begin
-      Ada_Procedure_Spec_Node := New_Node
-        (K_Ada_Procedure_Spec, No_Location);
-      Set_Identifier (Ada_Procedure_Spec_Node, Procedure_Id);
-      Set_Argument_List (Ada_Procedure_Spec_Node, Arg_List);
-
-      return Ada_Procedure_Spec_Node;
-   end Mk_Node_Ada_Procedure_Spec;
-
-   function Mk_Node_Ada_Procedure
-     (Proc_Spec : Node_Id; Decl : List_Id;
-                           Proc_Body : List_Id) return Node_Id is
-      pragma Unreferenced (Proc_Spec, Decl, Proc_Body);
-   begin
-      return No_Node;
-   end Mk_Node_Ada_Procedure;
-
-   -------------------------------
-   --  Mk_Node_Enumeration_Type --
-   -------------------------------
-   function Mk_Node_Enumeration_Type (L : List_Id) return Node_Id is
+   function Make_Enumeration_Type (L : List_Id) return Node_Id is
       Enum_Node : Node_Id;
    begin
       Enum_Node := New_Node (K_Enumeration_Type, No_Location);
       Set_Enumerators (Enum_Node, L);
       return Enum_Node;
-   end Mk_Node_Enumeration_Type;
+   end Make_Enumeration_Type;
 
+   -----------------------------------
+   -- Make_Derived_Type_Declaration --
+   -----------------------------------
 
-   --------------------------------------
-   -- Mk_Node_Simple_Derived_Type_Def  --
-   --------------------------------------
-   function Mk_Node_Simple_Derived_Type_Def
-     (Identifier_Node : Node_Id; Type_Spec_Node : Node_Id) return Node_Id is
-
+   function Make_Derived_Type_Declaration
+     (Identifier_Node : Node_Id;
+      Type_Spec_Node : Node_Id)
+     return Node_Id
+   is
       Node : Node_Id;
       Nested_Node : Node_Id;
    begin
-
       Nested_Node := New_Node (K_Derived_Type_Definition, No_Location);
       Set_Identifier (Nested_Node, Type_Spec_Node);
       Set_Is_Abstract (Nested_Node, False);
-      Node := Mk_Node_Type_Declaration
-        (Identifier_Node, Nested_Node);
+      Node := Make_Type_Declaration (Identifier_Node, Nested_Node);
       return Node;
-   end Mk_Node_Simple_Derived_Type_Def;
+   end Make_Derived_Type_Declaration;
 
-   -------------------------------
-   --  Mk_Node_Type_Declaration --
-   -------------------------------
-   function Mk_Node_Type_Declaration
-     (Type_Identifier : Node_Id; Type_Spec : Node_Id) return Node_Id is
+   ---------------------------
+   -- Make_Type_Declaration --
+   ---------------------------
+
+   function Make_Type_Declaration
+     (Type_Identifier : Node_Id;
+      Type_Spec : Node_Id)
+     return Node_Id
+   is
       Node : Node_Id;
    begin
       Node := New_Node (K_Type_Declaration, No_Location);
       Set_Identifier (Node, Type_Identifier);
       Set_Type_Spec (Node, Type_Spec);
       return Node;
-   end Mk_Node_Type_Declaration;
+   end Make_Type_Declaration;
+
+   --------------------
+   -- Parameter_Mode --
+   --------------------
+
+   function Parameter_Mode (E : Node_Id) return Mode_Type is
+      M : Mode_Id;
+   begin
+      M := Nodes.Parameter_Mode (E);
+      return Mode_Type'Val (M);
+   end Parameter_Mode;
+
+   ------------------------
+   -- Set_Parameter_Mode --
+   ------------------------
+
+   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type) is
+      B : Byte;
+   begin
+      B := Mode_Type'Pos (M);
+      Nodes.Set_Parameter_Mode (E, Mode_Id (B));
+   end Set_Parameter_Mode;
+
 end Backend.BE_Ada.Nutils;

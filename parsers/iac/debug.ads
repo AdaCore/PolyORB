@@ -36,7 +36,7 @@ package Debug is
    function Image (N : Byte) return String;
    function Image (N : Int) return String;
 
-   procedure wni (N : Node_Id);
-   pragma Export (C, wni, "wni");
+   procedure wfi (N : Node_Id);
+   pragma Export (C, wfi, "wfi");
 
 end Debug;

@@ -223,6 +223,6 @@ pragma Elaborate_Body (Lexer);
       Source_Name : Types.Name_Id);
    --  Load file Source in the lexer
 
+   procedure Write (T : Token_Type);
+
 end Lexer;
-
-

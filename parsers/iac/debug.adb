@@ -228,15 +228,15 @@ package body Debug is
    end W_Node_Id;
 
    ---------
-   -- wni --
+   -- wfi --
    ---------
 
-   procedure wni (N : Node_Id) is
+   procedure wfi (N : Node_Id) is
       I : constant Natural := N_Indents;
    begin
       N_Indents := 1;
       W_Node_Id (N);
       N_Indents := I;
-   end wni;
+   end wfi;
 
 end Debug;

@@ -585,7 +585,7 @@ package body Analyzer is
       TSpec := Resolve_Type (TSpec);
       if Oneway and then Kind (TSpec) /= K_Void then
          Oneway := False;
-         Error_Loc (1) := Loc (Type_Spec (E));
+         Error_Loc (1)  := Loc (Type_Spec (E));
          Error_Name (1) := IDL_Name (Identifier (TSpec));
          DE ("oneway operation cannot return%");
       end if;
