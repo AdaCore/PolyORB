@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#29 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#30 $
 
 @include version.texi
 
@@ -1168,6 +1168,7 @@ OPTIONS
 * Resolving names in a CORBA application::
 * Building a CORBA application with PolyORB::
 * Configuring a CORBA application::
+* Implementation Notes::
 * PolyORB specific APIs::
 @end menu
 
@@ -1494,6 +1495,103 @@ information on PolyORB's configuration.
 The GIOP protocol is separated from the CORBA application
 personality. See @ref{Configuring the GIOP personality} for more
 information on GIOP's configuration.
+
+@c -------------------------------------------------------------------
+@node Implementation Notes
+@section Implementation Notes
+@c -------------------------------------------------------------------
+
+@menu
+* Tasking::
+* Interface repository::
+* Implementation of CORBA specifications::
+* Additions to the CORBA specifications::
+* Mapping of exceptions::
+* Internals packages::
+@end menu
+
+@noindent 
+PolyORB strives to support CORBA specifications as closely as
+possible. However, in rare occasions, the implementation adapts the
+specifications to actually enable its completion. This section
+provides information on the various modification we made.
+
+@c -------------------------------------------------------------------
+@node Tasking
+@subsection Tasking
+@c -------------------------------------------------------------------
+
+@noindent 
+PolyORB provides support for tasking and no-tasking, using
+configuration parameters. Please, refer to @ref{Building an
+application with PolyORB} for more information on PolyORB's
+configuration.
+
+When selecting a tasking-capable runtime, ORB-related functions are
+thread safe, following the IDL-to-Ada mapping recommandations.
+
+@c -------------------------------------------------------------------
+@node Interface repository
+@subsection Interface repository
+@c -------------------------------------------------------------------
+
+@noindent 
+@b{XXX TO BE WRITTEN}
+
+@c -------------------------------------------------------------------
+@node Implementation of CORBA specifications
+@subsection Implementation of CORBA specifications
+@c -------------------------------------------------------------------
+
+@noindent 
+In some occasions, the CORBA specifications do not describe the
+semantics of the interface with sufficient details. We add an
+@code{Implementation Notes} tag in the package specification to
+indicate the modifications or enhancements we made to the standard.
+
+In some occasions, the IDL-to-Ada mapping specifications and the CORBA
+specifications conflict. We add an @code{Implementation Notes} tag in
+the package specification to indicate this issue. Whenever possible,
+PolyORB follows the CORBA specifications.
+
+@c -------------------------------------------------------------------
+@node Additions to the CORBA specifications
+@subsection Additions to the CORBA specifications
+@c -------------------------------------------------------------------
+
+@noindent 
+In some occasions, the specifications lack feature that may be
+useful. We add an @code{Implementation Notes} tag in the package
+specification to detail the additions we made to the standard.
+
+@c -------------------------------------------------------------------
+@node Mapping of exceptions
+@subsection Mapping of exceptions
+@c -------------------------------------------------------------------
+
+@noindent 
+For each exception defined in the CORBA specifications, PolyORB
+provides the @code{Raise_<excp_name>} function, a utility function
+that raises the exception @code{<excp_name>}, along with its exception
+member. PolyORB also defines the @code{Get_Members} function (as
+defined in the IDL-to-Ada mapping) to provide accessors to retrieve
+information on the exception.
+
+In addition, for each exception defined in a user-defined IDL
+specification, @file{idlac} will generate a @code{Raise_<excp_name>}
+function in the Helper package. It is a utility function that raises
+the exception @code{<excp_name>}, along with its exception member.
+
+@c -------------------------------------------------------------------
+@node Internals packages
+@subsection Internals packages
+@c -------------------------------------------------------------------
+
+@noindent
+PolyORB sometimes declare internals types and routines inside CORBA
+packages. In this case, these entities are gathered into an
+@code{Internals} child package. You should not use these functions:
+they are not portable, and may be changed in future releases.
 
 @c -------------------------------------------------------------------
 @node PolyORB specific APIs
