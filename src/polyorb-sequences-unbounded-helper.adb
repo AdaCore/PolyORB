@@ -58,6 +58,10 @@ package body PolyORB.Sequences.Unbounded.Helper is
 
    procedure Initialize is
    begin
+      if Initialized then
+         return;
+      end if;
+
       The_Sequence_TC := TypeCode.TC_Sequence;
 
       TypeCode.Add_Parameter
