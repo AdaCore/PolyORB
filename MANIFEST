@@ -431,6 +431,8 @@ ada/scans.adb
 ada/scans.ads
 ada/scn.adb
 ada/scn.ads
+ada/scn-nlit.adb
+ada/scn-slit.adb
 ada/sdefault.ads
 ada/sfn_scan.adb
 ada/sfn_scan.ads
