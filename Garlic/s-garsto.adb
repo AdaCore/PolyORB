@@ -206,9 +206,14 @@ package body System.Garlic.Storages is
      return Shared_Data_Access
    is
       Name : String :=  "_" & Major (Storage_Name);
+      Data : Shared_Data_Access;
 
    begin
-      return SST.Get (Name'Unrestricted_Access);
+      Enter_Critical_Section;
+      Data := SST.Get (Name'Unrestricted_Access);
+      Leave_Critical_Section;
+
+      return Data;
    end Lookup_Storage;
 
    ---------------------
@@ -275,7 +280,9 @@ package body System.Garlic.Storages is
       Pkg_Data : Shared_Data_Access;
 
    begin
-      if SST.Get (Pkg_Name'Unrestricted_Access) = null then
+      Enter_Critical_Section;
+      Pkg_Data := SST.Get (Pkg_Name'Unrestricted_Access);
+      if Pkg_Data = null then
          pragma Debug (D ("register package " & Pkg_Name));
          Storage := Lookup_Partition (Partition);
          if Storage /= null then
@@ -283,6 +290,7 @@ package body System.Garlic.Storages is
             SST.Set (new String'(Pkg_Name), Pkg_Data);
          end if;
       end if;
+      Leave_Critical_Section;
    end Register_Package;
 
    ------------------------
@@ -298,10 +306,13 @@ package body System.Garlic.Storages is
       Par_Name : String := Partition'Img;
 
    begin
-      if SST.Get (Par_Name'Unrestricted_Access) = null then
+      Enter_Critical_Section;
+      Storage := SST.Get (Par_Name'Unrestricted_Access);
+      if Storage = null then
          pragma Debug (D ("register partition " & Par_Name));
          Master := Lookup_Storage (Location);
          if Master = null then
+            Leave_Critical_Section;
             Raise_Exception
               (Program_Error'Identity,
                "cannot find data storage for partition" & Partition'Img);
@@ -309,6 +320,7 @@ package body System.Garlic.Storages is
          Create_Storage (Master.all, Minor (Location), Storage);
          SST.Set (new String'(Par_Name), Storage);
       end if;
+      Leave_Critical_Section;
    end Register_Partition;
 
    ----------------------
@@ -319,13 +331,17 @@ package body System.Garlic.Storages is
      (Storage_Name : in String;
       Storage_Data : in Shared_Data_Access)
    is
-      Major_Name : String := "_" & Major (Storage_Name);
+      Major_Name  : String := "_" & Major (Storage_Name);
+      Old_Storage : Shared_Data_Access;
 
    begin
-      if SST.Get (Major_Name'Unrestricted_Access) = null then
+      Enter_Critical_Section;
+      Old_Storage := SST.Get (Major_Name'Unrestricted_Access);
+      if Old_Storage = null then
          pragma Debug (D ("register storage major " & Major_Name));
          SST.Set (new String'(Major_Name), Storage_Data);
       end if;
+      Leave_Critical_Section;
    end Register_Storage;
 
 end System.Garlic.Storages;

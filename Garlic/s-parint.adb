@@ -50,11 +50,11 @@ with System.Garlic.Startup;
 pragma Elaborate_All (System.Garlic.Startup);
 pragma Warnings (Off, System.Garlic.Startup);
 
-with System.Garlic.Storages; use System.Garlic.Storages;
-with System.Garlic.Streams;         use System.Garlic.Streams;
-with System.Garlic.Types;           use System.Garlic.Types;
-with System.Garlic.Units;           use System.Garlic.Units;
-with System.Garlic.Utils;           use System.Garlic.Utils;
+with System.Garlic.Storages;  use System.Garlic.Storages;
+with System.Garlic.Streams;   use System.Garlic.Streams;
+with System.Garlic.Types;     use System.Garlic.Types;
+with System.Garlic.Units;     use System.Garlic.Units;
+with System.Garlic.Utils;     use System.Garlic.Utils;
 
 package body System.Partition_Interface is
 
@@ -341,14 +341,17 @@ package body System.Partition_Interface is
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access)
    is
-      Answer : constant RACW_Stub_Type_Access := Objects_HTable.Get (Handler);
+      Answer : RACW_Stub_Type_Access;
    begin
+      System.Garlic.Soft_Links.Enter_Critical_Section;
+      Answer := Objects_HTable.Get (Handler);
       if Answer = null then
          Objects_HTable.Set (Handler, Handler);
       else
          Free (Handler);
          Handler := Answer;
       end if;
+      System.Garlic.Soft_Links.Leave_Critical_Section;
    end Get_Unique_Remote_Pointer;
 
    ----------------------
