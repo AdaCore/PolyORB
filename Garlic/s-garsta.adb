@@ -124,7 +124,7 @@ begin
                Set_Boot_Location (To_Location (Boot_Protocol, Boot_Data));
             end if;
          else
-            Set_Boot_Data (Boot_Protocol);
+            Set_Boot_Data (Config.Protocol_Table (I));
          end if;
       end loop;
 
