@@ -86,10 +86,10 @@ package body Client_Call_Back_Procedures is
       Ok : Boolean := False;
    begin
       Output ("Handling message ", True);
-      Get_Note (Notepad_Of (Handler).all, Data);
+      Get_Call_Back_Data (Handler, Data);
       Ok := Id = Data.Byte_Value;
       Data.Proceed := True;
-      Set_Note (Notepad_Of (Handler).all, Data);
+      Set_Call_Back_Data (Handler, Data);
       Output ("Retrieved message " & MOMA.Types.Byte'Image (Id), Ok);
       Set_Behavior (Handler, Notify);
    end Handle_Then_Notify;
@@ -106,10 +106,10 @@ package body Client_Call_Back_Procedures is
       Ok : Boolean := False;
    begin
       Output ("Notified", True);
-      Get_Note (Notepad_Of (Handler).all, Data);
+      Get_Call_Back_Data (Handler, Data);
       Ok := Id = Data.Byte_Value;
       Data.Proceed := True;
-      Set_Note (Notepad_Of (Handler).all, Data);
+      Set_Call_Back_Data (Handler, Data);
       Output ("Retrieved message " & MOMA.Types.Byte'Image (Id), Ok);
    end Notify_And_Receive;
 
@@ -123,9 +123,9 @@ package body Client_Call_Back_Procedures is
       Data : Byte_Test_Note;
    begin
       Output ("Notified", True);
-      Get_Note (Notepad_Of (Handler).all, Data);
+      Get_Call_Back_Data (Handler, Data);
       Data.Proceed := True;
-      Set_Note (Notepad_Of (Handler).all, Data);
+      Set_Call_Back_Data (Handler, Data);
       Set_Behavior (Handler, None);
    end Notify_Then_Handle;
 
@@ -163,8 +163,8 @@ package body Client_Call_Back_Procedures is
                                  Proceed : Boolean;
                                  Byte_Value : MOMA.Types.Byte) is
    begin
-      Set_Note (
-         Notepad_Of (Handler).all,
+      Set_Call_Back_Data (
+         Handler,
          Byte_Test_Note'(Note with
             Byte_Value => Byte_Value,
             Proceed => Proceed));

@@ -52,6 +52,7 @@ package body MOMA.Message_Handlers is
    use MOMA.Destinations;
    use MOMA.Types;
 
+   use PolyORB.Annotations;
    use PolyORB.Any;
    use PolyORB.Any.NVList;
    use PolyORB.Log;
@@ -103,6 +104,17 @@ package body MOMA.Message_Handlers is
       return Self;
    end Create_Handler;
 
+   ------------------------
+   -- Get_Call_Back_Data --
+   ------------------------
+
+   procedure Get_Call_Back_Data (Self : access Message_Handler;
+                                 Data : out PolyORB.Annotations.Note'Class)
+   is
+   begin
+      Get_Note (Self.Call_Back_Data, Data);
+   end Get_Call_Back_Data;
+
    ------------------
    -- Get_Consumer --
    ------------------
@@ -135,17 +147,6 @@ package body MOMA.Message_Handlers is
    begin
       return Self.Notifier_Procedure;
    end Get_Notifier;
-
-   ------------------
-   -- Notepad_Of --
-   ------------------
-
-   function Notepad_Of (Handler : access Message_Handler)
-      return PolyORB.Annotations.Notepad_Access
-   is
-   begin
-      return Handler.Notepad'Access;
-   end Notepad_Of;
 
    -------------------------
    -- Register_To_Servant --
@@ -209,6 +210,17 @@ package body MOMA.Message_Handlers is
          Register_To_Servant (Self);
       end if;
    end Set_Behavior;
+
+   ------------------------
+   -- Set_Call_Back_Data --
+   ------------------------
+
+   procedure Set_Call_Back_Data (Self : access Message_Handler;
+                                 Data : PolyORB.Annotations.Note'Class)
+   is
+   begin
+      Set_Note (Self.Call_Back_Data, Data);
+   end Set_Call_Back_Data;
 
    -----------------
    -- Set_Handler --

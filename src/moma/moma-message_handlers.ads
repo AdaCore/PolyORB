@@ -61,6 +61,8 @@ package MOMA.Message_Handlers is
    --  the Message_Consumer actual Servant when the behavior is Handle.
    --  Notifier_Procedure is the procedure called when a message is received
    --  by the Message_Consumer actual Servant when the behavior is Notify.
+   --  Call_Back_Data contains callback data in the form of Notes than can be
+   --  set by the client. The actual type of Notes is up to the client.
 
    type Message_Handler_Acc is access Message_Handler;
 
@@ -86,10 +88,14 @@ package MOMA.Message_Handlers is
    --  If the behavior is Handle and no Handler_Procedure is provided, the
    --  incoming messages will be lost.
 
+   procedure Get_Call_Back_Data (Self : access Message_Handler;
+                                 Data : out PolyORB.Annotations.Note'Class);
+   --  Retrieve Call_Back Data for use in Handler or Notifier procedure.
+
    function Get_Consumer (Self : access Message_Handler)
       return MOMA.Message_Consumers.Message_Consumer;
 
-   function  Get_Handler (Self : access Message_Handler)
+   function Get_Handler (Self : access Message_Handler)
       return Handler;
    --  Get the Handler procedure.
 
@@ -97,15 +103,15 @@ package MOMA.Message_Handlers is
       return Notifier;
    --  Get the Notifier procedure.
 
-   function Notepad_Of
-     (Handler : access Message_Handler)
-     return PolyORB.Annotations.Notepad_Access;
-
    procedure Set_Behavior (
       Self           : access Message_Handler;
       New_Behavior   : in MOMA.Types.Call_Back_Behavior);
    --  Set the Behavior. A request is sent to the actual servant if the
    --  behavior has changed.
+
+   procedure Set_Call_Back_Data (Self : access Message_Handler;
+                                 Data : PolyORB.Annotations.Note'Class);
+   --  Set Call_Back Data for use in Handler or Notifier procedure.
 
    procedure Set_Handler (
       Self                    : access Message_Handler;
@@ -137,7 +143,7 @@ private
       Handler_Procedure    : Handler := null;
       Notifier_Procedure   : Notifier := null;
       Behavior             : MOMA.Types.Call_Back_Behavior := None;
-      Notepad              : aliased PolyORB.Annotations.Notepad;
+      Call_Back_Data       : aliased PolyORB.Annotations.Notepad;
    end record;
 
    procedure Register_To_Servant (Self : access Message_Handler);

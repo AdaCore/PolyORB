@@ -56,7 +56,6 @@ with MOMA.Message_Handlers;
 
 with MOMA.Types;
 
-with PolyORB.Annotations;
 with PolyORB.Initialization;
 with PolyORB.References;
 with PolyORB.References.IOR;
@@ -80,7 +79,6 @@ procedure Client_Call_Back is
    use MOMA.Message_Handlers;
    use MOMA.Types;
 
-   use PolyORB.Annotations;
    use PolyORB.References;
    use PolyORB.Types;
 
@@ -119,13 +117,13 @@ procedure Client_Call_Back is
    procedure Wait is
       Data : Byte_Test_Note;
    begin
-      Get_Note (Notepad_Of (MOMA_Handler_Acc).all, Data);
+      Get_Call_Back_Data (MOMA_Handler_Acc, Data);
       while not Data.Proceed loop
          delay 0.5;
-         Get_Note (Notepad_Of (MOMA_Handler_Acc).all, Data);
+         Get_Call_Back_Data (MOMA_Handler_Acc, Data);
       end loop;
       Data.Proceed := False;
-      Set_Note (Notepad_Of (MOMA_Handler_Acc).all, Data);
+      Set_Call_Back_Data (MOMA_Handler_Acc, Data);
    end Wait;
 
    --------------------
@@ -247,4 +245,6 @@ begin
       Message_Id = MOMA.Types.Byte (6));
 
    --  XXX should destroy all structures here !
+   Output ("End of tests", True);
+
 end Client_Call_Back;
