@@ -1,60 +1,40 @@
-----------------------------------------------------------------------------
-----                                                                    ----
-----     This in an example which is hand-written                       ----
-----     for the echo object                                            ----
-----                                                                    ----
-----                package echo_proxies                                ----
-----                                                                    ----
-----                authors : Fabien Azavant, Sebastien Ponce           ----
-----                                                                    ----
-----------------------------------------------------------------------------
-
-with Corba ;
 with Giop_C ;
 with Omniproxycalldesc ;
+with Rope ;
+with Iop ;
+with Corba ;
+package Echo.Proxies is 
+   -----------------------------------------------------------
+   ---               echoString
+   -----------------------------------------------------------
 
-with Adabroker_Debug ;
-pragma Elaborate(Adabroker_Debug) ;
+   type echoString_Proxy is new OmniProxyCallDesc.Object with private ;
 
-package Echo.Proxies is
+   procedure Init(Self : in out echoString_Proxy ;
+                  mesg : in Corba.String) ;
 
-   Echo_Proxies : constant Boolean := Adabroker_Debug.Is_Active("echo.proxies") ;
+   function Operation(Self : in echoString_Proxy )
+                      return Corba.String ;
 
-   --------------------------------------------------
-   ----        function EchoString               ----
-   --------------------------------------------------
+   function Align_Size(Self : in echoString_Proxy ;
+                       Size_In : in Corba.Unsigned_Long)
+                       return Corba.Unsigned_Long ;
 
-   type EchoString_Proxy is new OmniProxyCallDesc.Object with private ;
+   procedure Marshal_Arguments(Self : in echoString_Proxy ;
+                               Giop_Client : in out Giop_C.Object) ;
 
-   procedure Init(Self : in out EchoString_Proxy ;
-                  Arg : in Corba.String ) ;
+   procedure Unmarshal_Returned_Values(Self : in out echoString_Proxy ;
+                                       Giop_Client : in out Giop_C.Object) ;
 
-   function Operation (Self : in EchoString_Proxy)
-                       return CORBA.String ;
-
-   function Align_Size(Self: in EchoString_Proxy ;
-                         Size_In: in Corba.Unsigned_Long)
-                         return Corba.Unsigned_Long ;
-
-   procedure Marshal_Arguments(Self: in EchoString_Proxy ;
-                               Giop_Client: in out Giop_C.Object) ;
-
-   procedure Unmarshal_Returned_Values(Self: in out EchoString_Proxy ;
-                                       Giop_Client: in out Giop_C.Object) ;
-
-   function Get_Result (Self : in EchoString_Proxy)
-                        return CORBA.String;
+   function Get_Result (Self : in echoString_Proxy)
+                        return Corba.String; 
 
 
-private
-
-   type EchoString_Proxy is new OmniProxyCallDesc.Object with record
-      Arg_Msg : Corba.String_Ptr := null ;
-      Private_Result : Corba.String_Ptr := null ;
-   end record ;
-
-   procedure Finalize(Self : in out EchoString_Proxy) ;
+private 
+   type echoString_Proxy is new OmniProxyCallDesc.Object with record 
+      mesg : Corba.String_Ptr := null ;
+      Private_Result : Corba.String_Ptr := null;
+   end record; 
+   procedure Finalize(Self : in out echoString_Proxy) ;
 
 end Echo.Proxies ;
-
-

@@ -1,51 +1,30 @@
-----------------------------------------------------------------------------
-----                                                                    ----
-----     This in an example which is hand-written                       ----
-----     for the echo object                                            ----
-----                                                                    ----
-----                package echo_impl                                   ----
-----                                                                    ----
-----                authors : Fabien Azavant, Sebastien Ponce           ----
-----                                                                    ----
-----------------------------------------------------------------------------
-
-with Corba ; use Corba ;
 with Echo.Skeleton ;
-with Adabroker_Debug ; use Adabroker_Debug ;
-
-package body Echo.impl is
+with Corba ;
 
 
-   -- EchoString
-   -------------
-   function EchoString(Self : access Object;
-                       Message : in Corba.String) return Corba.String is
-      Result : Corba.String := Message ;
+package body Echo.Impl is
+
+
+   function echoString(Self : access Object; mesg : in Corba.String) return Corba.String is
    begin
-      Output(Echo_Impl,"*** Je suis dans echoString") ;
-      return Result ;
-   end ;
-
-
-   -- EchoLong
-   -------------
-   function EchoLong(Self : access Object;
-                     Message : in Corba.Long) return Corba.Long is
-      Result : Corba.Long := Message ;
-   begin
-      Output(Echo_Impl,"*** Je suis dans echoLong") ;
-      return Result ;
+      return Mesg ;
    end ;
 
 
    -----------------------------------------------------------
+   --  Implementations objects are controlled, you can add  --
+   --  instructions in the following functions as specified --
    -----------------------------------------------------------
+
    -- Initialize
    -------------
    procedure Initialize(Self : in out Object) is
    begin
       Omniobject.Init_Local_Object(Omniobject.Implemented_Object(Self),
-                                   Repository_Id, Echo.Skeleton.Dispatch'Access) ;
+                                 Repository_Id,
+                                 Echo.Skeleton.Dispatch'Access,
+                                 Echo.Is_A'Access) ;
+      -- You can add things *BELOW* this line
    end Initialize ;
 
 
@@ -54,19 +33,17 @@ package body Echo.impl is
    procedure Adjust(Self: in out Object) is
    begin
       Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
-   end ;
+      -- You can add things *BELOW* this line
+   end Adjust ;
 
 
    -- Finalize
    -----------
    procedure Finalize(Self : in out Object) is
    begin
+      -- You can add things *BEFORE* this line
       Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
-   end ;
+   end Finalize ;
 
 
-
-End Echo.Impl ;
-
-
-
+end Echo.Impl ;

@@ -110,33 +110,38 @@ package body omniProxyCallWrapper is
       -- result of call to reply_completed
    begin
       loop
+         pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : "
+                             & "begin, retries = "
+                             & Corba.Unsigned_Long'Image (Retries)));
+
+         -- verify that the underlying omniobject is not null
+         if OmniObj_Ptr = null then
+            Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
+                                            "Cannot call subprogram on nil reference !"
+                                            & Corba.CRLF
+                                            & "Check that your object is not nil with Is_Nil") ;
+         end if ;
+
+         -- verify that the object exists
+         Omniobject.Assert_Object_Existent(OmniObj_Ptr.all) ;
+
+         pragma Debug(Output(Debug,
+                             "Corba.omniproxycallwrapper.invoke : "
+                             & "Object existent OK")) ;
+
+         -- get the current values of the rope and the key
+         Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,
+                                     Rope_And_Key.Real,
+                                     Is_Fwd) ;
+
+         pragma Debug(Output(Debug,
+                             "Corba.omniproxycallwrapper.invoke : "
+                             & "Get_Rope_And_Key OK, Is_Fwd = "
+                             & Boolean'Image(Is_Fwd))) ;
+
+         pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : calling Giop_c.init"));
+
          begin
-            pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : "
-                                & "begin, retries = "
-                                & Corba.Unsigned_Long'Image (Retries)));
-
-            -- verify that the underlying omniobject is not null
-            if OmniObj_Ptr = null then
-               Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
-                                               "Cannot call subprogram on nil reference !"
-                                               & Corba.CRLF
-                                               & "Check that your object is not nil with Is_Nil") ;
-            end if ;
-
-            -- verify that the object exists
-            Omniobject.Assert_Object_Existent(OmniObj_Ptr.all) ;
-
-            pragma Debug(Output(Debug,
-                                "Corba.omniproxycallwrapper.invoke : "
-                                & "Object existent OK")) ;
-
-            -- get the current values of the rope and the key
-            Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,
-                                        Rope_And_Key.Real,
-                                        Is_Fwd) ;
-
-            pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : calling Giop_c.init"));
-
             -- Get a GIOP driven strand
             The_Rope := Omniropeandkey.Get_Rope(Rope_And_Key.Real) ;
 
@@ -146,6 +151,9 @@ package body omniProxyCallWrapper is
 
             -- do the giop_client reuse an existing connection ?
             Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client.Real) ;
+
+            pragma Debug(Output(Debug,"Corba.omniproxycallwrapper.invoke : reuse = "
+                                & Boolean'Image(Reuse))) ;
 
             pragma Debug(Output(Debug, "Corba.omniproxycallwrapper.invoke : key_size = "
                                 & Corba.Unsigned_Long'Image
@@ -309,12 +317,13 @@ package body omniProxyCallWrapper is
                declare
                   Member : Corba.Comm_Failure_Members ;
                begin
+                  Retries := Retries + 1 ;
                   Corba.Get_Members (E, Member) ;
                   if Reuse or Is_Fwd then
+                     pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Reuse or Is_Fwd  = True, calling Omni_Call_Transient_Exception_Handler")) ;
                      if Is_Fwd then
                         Omniobject.Reset_Rope_And_Key (OmniObj_Ptr.all) ;
                      end if ;
-                     Retries := Retries + 1 ;
                      if not Omni_Call_Transient_Exception_Handler
                        (OmniObj_Ptr.all,Retries,Member.Minor, Member.Completed) then
                         declare
@@ -326,7 +335,7 @@ package body omniProxyCallWrapper is
                         end ;
                      end if ;
                   else
-                     Retries := Retries + 1 ;
+                     pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Reuse or Is_Fwd  = False, calling Omni_Comm_Failure_Exception_Handler")) ;
                      if not Omni_Comm_Failure_Exception_Handler
                        (OmniObj_Ptr.all,Retries,Member.Minor,Member.Completed) then
                         Corba.Raise_Corba_Exception (Corba.Comm_Failure'Identity,
@@ -455,18 +464,19 @@ package body omniProxyCallWrapper is
       -- result of call to reply_completed
    begin
       loop
+         -- verify that the underlying omniobject is not null
+         if OmniObj_Ptr = null then
+            Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
+                                            "null omniobject_ptr found in method invoke (omniProxyCallWrapper L 86)") ;
+         end if ;
+
+         -- verify that the object exists
+         Omniobject.Assert_Object_Existent(OmniObj_Ptr.all) ;
+
+         -- get the current values of the rope and the key
+         Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key.Real,Is_Fwd) ;
+
          begin
-            -- verify that the underlying omniobject is not null
-            if OmniObj_Ptr = null then
-               Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
-                                               "null omniobject_ptr found in method invoke (omniProxyCallWrapper L 86)") ;
-            end if ;
-
-            -- verify that the object exists
-            Omniobject.Assert_Object_Existent(OmniObj_Ptr.all) ;
-
-            -- get the current values of the rope and the key
-            Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key.Real,Is_Fwd) ;
 
             -- Get a GIOP driven strand
             Giop_C.Init (Giop_Client.Real, Omniropeandkey.Get_Rope(Rope_And_Key.Real)) ;

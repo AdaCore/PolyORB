@@ -39,7 +39,7 @@ Ada_Sys_Dep: Ada_Sys_Dep.cc
 
 
 adaobjs: sys_dep.ads
-	gnatmake adabroker.ads
+	gnatmake -gnata -m -i adabroker.ads
 
 
 sys_dep.ads : sys_dep_before_preprocessor.ads
