@@ -62,20 +62,17 @@ package body PolyORB.Utils.Chained_Lists is
    -- Deallocate --
    ----------------
 
-   procedure Deallocate (L : in out Node_Access);
-
-   procedure Deallocate (L : in out Node_Access) is
-   begin
-      if L /= null then
-         Deallocate (L.Next);
-         Free (L);
-      end if;
-   end Deallocate;
-
    procedure Deallocate (L : in out List) is
+      Current, Next : Node_Access;
    begin
-      Deallocate (L.First);
-      L.Last := null;
+      Current := L.First;
+      while Current /= null loop
+         Next := Current.Next;
+         Free (Current);
+         Current := Next;
+      end loop;
+      L.First := null;
+      L.Last  := null;
    end Deallocate;
 
    ---------------
