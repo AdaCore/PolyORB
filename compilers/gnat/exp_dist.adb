@@ -103,6 +103,18 @@ package body Exp_Dist is
    --  clause on subprogram specs:
    --  for Subp'Distribution_Identifier use "fooBar";
 
+   procedure Add_RAS_Proxy
+     (Decls              :     List_Id;
+      Vis_Decl           :     Node_Id;
+      All_Calls_Remote_E :     Entity_Id;
+      Proxy_Object_Addr  : out Entity_Id);
+   --  Add the proxy type necessary to call the subprogram declared
+   --  by Vis_Decl through a remote access to subprogram type.
+   --  All_Calls_Remote_E must be Standard_True if a pragma All_Calls_Remote
+   --  applies, Standard_False otherwise. The new proxy type is appended
+   --  to Decls. Proxy_Object_Addr is a constant of type System.Address that
+   --  designates an instance of the proxy object.
+
    procedure Build_General_Calling_Stubs
      (Decls                     : in List_Id;
       Statements                : in List_Id;
@@ -2150,7 +2162,7 @@ package body Exp_Dist is
               Prefix        => New_Occurrence_Of (Stub_Ptr, Loc),
               Selector_Name => Make_Identifier (Loc, Name_Addr))))));
       --  At this point Addr is 0 if the reference is remote,
-      --  and the local address of the real subprogram otherwise.
+      --  and the local address of the proxy otherwise.
 
       Append_To (Proc_Statements,
         Make_Implicit_If_Statement (N,
@@ -2272,23 +2284,20 @@ package body Exp_Dist is
       Proc_Decls      : constant List_Id := New_List;
       Proc_Statements : constant List_Id := New_List;
 
-      Direct_Statements : constant List_Id := New_List;
-
-      Inner_Decls      : constant List_Id := New_List;
-      Remote_Statements : constant List_Id := New_List;
       RACW_Primitive_Name : Node_Id;
 
       Proc : Entity_Id;
       Proc_Spec : Node_Id;
 
-      Param_Specs : constant List_Id := New_List;
-      Param_Assoc_Direct : constant List_Id := New_List;
-      Param_Assoc_Remote : constant List_Id := New_List;
+      Param_Specs : List_Id;
+      Param_Assoc : List_Id;
 
       RAS_Parameter : Node_Id;
 
       RACW_Parameter   : Entity_Id;
-      Converted_Ras    : Node_Id;
+      Converted_RAS : constant Entity_Id :=
+        Make_Defining_Identifier (Loc,
+          New_Internal_Name ('C'));
 
       Is_Function : constant Boolean :=
         Nkind (Type_Def) = N_Access_Function_Definition;
@@ -2298,11 +2307,10 @@ package body Exp_Dist is
       Current_Parameter : Node_Id;
 
    begin
-      --  The way to do it is test if the Ras field is non-null and then if
-      --  the Origin field is equal to the current partition ID (which is in
-      --  fact Current_Package'Partition_ID). If this is the case, then it
-      --  is safe to dereference the Ras field directly rather than
-      --  performing a remote call.
+      --  In the local case, Converted_RAS designates the proxy object for
+      --  the subprogram (unless an All_Calls_Remote pragma applies), else
+      --  it designates a stub type.  We then make a dispatching call using
+      --  RACW_Type.
 
       RAS_Parameter :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('P'));
@@ -2322,6 +2330,60 @@ package body Exp_Dist is
               Selector_Name =>
                 Make_Identifier (Loc, Name_Ras))));
 
+      Append_To (Proc_Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Converted_RAS,
+          Object_Definition   =>
+            New_Occurrence_Of (RACW_Type, Loc)));
+
+      Append_To (Proc_Statements,
+        Make_Implicit_If_Statement (N,
+          Condition =>
+            Make_Op_Ne (Loc,
+              Left_Opnd  =>
+                Make_Selected_Component (Loc,
+                  Prefix        =>
+                    Unchecked_Convert_To (Stub_Elements.Stub_Type_Access,
+                      New_Occurrence_Of (RACW_Parameter, Loc)),
+                  Selector_Name => Make_Identifier (Loc, Name_Addr)),
+              Right_Opnd =>
+                New_Occurrence_Of (RTE (RE_Null_Address), Loc)),
+
+          Then_Statements => New_List (
+            Make_Assignment_Statement (Loc,
+              Name =>
+                New_Occurrence_Of (Converted_RAS, Loc),
+              Expression =>
+                Unchecked_Convert_To (RACW_Type,
+                  Make_Selected_Component (Loc,
+                    Prefix        =>
+                      Unchecked_Convert_To (Stub_Elements.Stub_Type_Access,
+                        New_Occurrence_Of (RACW_Parameter, Loc)),
+                    Selector_Name => Make_Identifier (Loc, Name_Addr))))),
+
+          Else_Statements => New_List (
+            Make_Block_Statement (Loc,
+              Handled_Statement_Sequence =>
+                Make_Handled_Sequence_Of_Statements (Loc,
+                  Statements => New_List (
+                    Make_Assignment_Statement (Loc,
+                      Name =>
+                        New_Occurrence_Of (Converted_RAS, Loc),
+                      Expression =>
+                        New_Occurrence_Of (RACW_Parameter, Loc))))))));
+
+      Param_Assoc := New_List (
+        New_Occurrence_Of (Converted_RAS, Loc));
+
+      Param_Specs := New_List (
+        Make_Parameter_Specification (Loc,
+          Defining_Identifier => RAS_Parameter,
+          In_Present          => True,
+          Parameter_Type      =>
+            New_Occurrence_Of (Fat_Type, Loc)));
+
+      --  XXX Why not use Copy_Specification here?
       if Present (Parameter_Specifications (Type_Def)) then
          Current_Parameter := First (Parameter_Specifications (Type_Def));
 
@@ -2339,57 +2401,13 @@ package body Exp_Dist is
                 Expression        =>
                   New_Copy_Tree (Expression (Current_Parameter))));
 
-            Append_To (Param_Assoc_Direct,
-              Make_Identifier (Loc,
-                Chars => Chars (Defining_Identifier (Current_Parameter))));
-            Append_To (Param_Assoc_Remote,
+            Append_To (Param_Assoc,
               Make_Identifier (Loc,
                 Chars => Chars (Defining_Identifier (Current_Parameter))));
 
             Next (Current_Parameter);
          end loop;
       end if;
-
-      --  In the case of a call to a local subprogram, for
-      --  a library unit to which no pragma All_Calls_Remote
-      --  applies: call the real subprogram directly.
-
-      Converted_Ras :=
-        Unchecked_Convert_To (RAS_Type,
-          Make_Selected_Component (Loc,
-            Prefix        =>
-              Unchecked_Convert_To (Stub_Elements.Stub_Type_Access,
-                New_Occurrence_Of (RACW_Parameter, Loc)),
-            Selector_Name => Make_Identifier (Loc, Name_Addr)));
-
-      if Is_Function then
-         Append_To (Direct_Statements,
-           Make_Return_Statement (Loc,
-             Expression =>
-               Make_Function_Call (Loc,
-                 Name                   =>
-                   Make_Explicit_Dereference (Loc,
-                     Prefix => Converted_Ras),
-                 Parameter_Associations => Param_Assoc_Direct)));
-
-      else
-         Append_To (Direct_Statements,
-           Make_Procedure_Call_Statement (Loc,
-             Name                   =>
-               Make_Explicit_Dereference (Loc,
-                 Prefix => Converted_Ras),
-             Parameter_Associations => Param_Assoc_Direct));
-      end if;
-
-      --  In the remote case, perform the call through the
-      --  underlying RACW.
-
-      Prepend_To (Param_Specs,
-        Make_Parameter_Specification (Loc,
-          Defining_Identifier => RAS_Parameter,
-          In_Present          => True,
-          Parameter_Type      =>
-            New_Occurrence_Of (Fat_Type, Loc)));
 
       RACW_Primitive_Name :=
         Make_Selected_Component (Loc,
@@ -2399,18 +2417,20 @@ package body Exp_Dist is
             Make_Identifier (Loc, Name_Call));
 
       if Is_Function then
-         Append_To (Remote_Statements,
+         Append_To (Proc_Statements,
            Make_Return_Statement (Loc,
              Expression =>
                Make_Function_Call (Loc,
-                 Name                   => RACW_Primitive_Name,
-                 Parameter_Associations => Param_Assoc_Remote)));
+                 Name                   =>
+                   RACW_Primitive_Name,
+                 Parameter_Associations => Param_Assoc)));
 
       else
-         Append_To (Remote_Statements,
+         Append_To (Proc_Statements,
            Make_Procedure_Call_Statement (Loc,
-             Name                   => RACW_Primitive_Name,
-             Parameter_Associations => Param_Assoc_Remote));
+             Name                   =>
+               RACW_Primitive_Name,
+             Parameter_Associations => Param_Assoc));
       end if;
 
       --  Build the complete subprogram.
@@ -2441,35 +2461,6 @@ package body Exp_Dist is
          Set_Ekind (Proc, E_Procedure);
          Set_Etype (Proc, Standard_Void_Type);
       end if;
-
-      Prepend_To (Param_Assoc_Remote,
-        Make_Selected_Component (Loc,
-          Prefix =>
-            New_Occurrence_Of (RAS_Parameter, Loc),
-          Selector_Name =>
-            Make_Identifier (Loc, Name_Ras)));
-
-      Append_To (Proc_Statements,
-        Make_Implicit_If_Statement (N,
-          Condition =>
-            Make_Op_Ne (Loc,
-              Left_Opnd  =>
-                Make_Selected_Component (Loc,
-                  Prefix        =>
-                    Unchecked_Convert_To (Stub_Elements.Stub_Type_Access,
-                      New_Occurrence_Of (RACW_Parameter, Loc)),
-                  Selector_Name => Make_Identifier (Loc, Name_Addr)),
-              Right_Opnd =>
-                New_Occurrence_Of (RTE (RE_Null_Address), Loc)),
-          Then_Statements =>
-            Direct_Statements,
-
-          Else_Statements => New_List (
-            Make_Block_Statement (Loc,
-              Declarations               => Inner_Decls,
-              Handled_Statement_Sequence =>
-                Make_Handled_Sequence_Of_Statements (Loc,
-                  Statements => Remote_Statements)))));
 
       Discard_Node (
         Make_Subprogram_Body (Loc,
@@ -2764,6 +2755,212 @@ package body Exp_Dist is
       --  be generated last.
    end Add_RAST_Features;
 
+   -------------------
+   -- Add_RAS_Proxy --
+   -------------------
+
+   procedure Add_RAS_Proxy
+     (Decls              :     List_Id;
+      Vis_Decl           :     Node_Id;
+      All_Calls_Remote_E :     Entity_Id;
+      Proxy_Object_Addr  : out Entity_Id)
+   is
+      Loc : constant Source_Ptr := Sloc (Vis_Decl);
+
+      Subp_Name : constant Entity_Id
+        := Defining_Unit_Name (Specification (Vis_Decl));
+
+      Pkg_Name : constant Entity_Id :=
+        Make_Defining_Identifier (Loc,
+          New_External_Name (Chars (Subp_Name), 'P', -1));
+
+      Proxy_Type : constant Entity_Id :=
+        Make_Defining_Identifier (Loc,
+          New_External_Name (
+            Related_Id => Chars (Subp_Name),
+            Suffix     => 'P'));
+
+      Proxy_Type_Full_View : constant Entity_Id :=
+        Make_Defining_Identifier (Loc,
+          Chars (Proxy_Type));
+
+      Subp_Decl_Spec : constant Node_Id :=
+        Build_RAS_Primitive_Specification (
+          Subp_Spec          =>
+            Specification (Vis_Decl),
+          Remote_Object_Type =>
+            Proxy_Type);
+
+      Subp_Body_Spec : constant Node_Id :=
+        Build_RAS_Primitive_Specification (
+          Subp_Spec          =>
+            Specification (Vis_Decl),
+          Remote_Object_Type =>
+            Proxy_Type);
+
+      Vis_Decls    : constant List_Id := New_List;
+      Pvt_Decls    : constant List_Id := New_List;
+      Actuals      : constant List_Id := New_List;
+      Formal       : Node_Id;
+      Perform_Call : Node_Id;
+
+   begin
+
+      --  type subpP is tagged limited private;
+
+      Append_To (Vis_Decls,
+        Make_Private_Type_Declaration (Loc,
+          Defining_Identifier => Proxy_Type,
+          Tagged_Present      => True,
+          Limited_Present     => True));
+
+      --  [subprogram] Call
+      --    (Self : access subpP;
+      --     ...other-formals...)
+      --     [return T];
+
+      Append_To (Vis_Decls,
+        Make_Subprogram_Declaration (Loc,
+          Specification => Subp_Decl_Spec));
+
+      --  A : constant System.Address;
+
+      Proxy_Object_Addr := Make_Defining_Identifier (Loc, Name_uA);
+
+      Append_To (Vis_Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Proxy_Object_Addr,
+          Constant_Present     =>
+            True,
+          Object_Definition   =>
+            New_Occurrence_Of (RTE (RE_Address), Loc)));
+
+      --  private
+
+      --  type subpP is tagged limited record
+      --     A : Boolean := [All_Calls_Remote?];
+      --  end record;
+
+      Append_To (Pvt_Decls,
+        Make_Full_Type_Declaration (Loc,
+          Defining_Identifier =>
+            Proxy_Type_Full_View,
+          Type_Definition     =>
+            Make_Record_Definition (Loc,
+              Tagged_Present  => True,
+              Limited_Present => True,
+              Component_List  =>
+                Make_Component_List (Loc,
+                  Component_Items => New_List (
+                    Make_Component_Declaration (Loc,
+                      Make_Defining_Identifier (Loc, Name_A),
+                      Make_Component_Definition (Loc,
+                        Subtype_Indication =>
+                          New_Occurrence_Of (Standard_Boolean, Loc)),
+                      New_Occurrence_Of (All_Calls_Remote_E, Loc)))))));
+
+      Set_Comes_From_Source (Proxy_Type_Full_View, True);
+      --  Trick semantic analysis into swapping the public and
+      --  full view when freezeing the public view.
+
+      --  procedure Call
+      --    (Self : access O;
+      --     ...other-formals...) is
+      --  begin
+      --    P (...other-formals...);
+      --  end Call;
+
+      --  function Call
+      --    (Self : access O;
+      --     ...other-formals...)
+      --     return T is
+      --  begin
+      --    return F (...other-formals...);
+      --  end Call;
+
+      if Nkind (Subp_Decl_Spec) = N_Procedure_Specification then
+         Perform_Call :=
+           Make_Procedure_Call_Statement (Loc,
+             Name =>
+               New_Occurrence_Of (Subp_Name, Loc),
+             Parameter_Associations =>
+               Actuals);
+      else
+         Perform_Call :=
+           Make_Return_Statement (Loc,
+             Expression =>
+           Make_Function_Call (Loc,
+             Name =>
+               New_Occurrence_Of (Subp_Name, Loc),
+             Parameter_Associations =>
+               Actuals));
+      end if;
+
+      Formal := First (Parameter_Specifications (Subp_Decl_Spec));
+      pragma Assert (Present (Formal));
+      Next (Formal);
+
+      while Present (Formal) loop
+         Append_To (Actuals, New_Occurrence_Of (
+           Defining_Identifier (Formal), Loc));
+         Next (Formal);
+      end loop;
+
+      --  O : aliased subpP;
+
+      Append_To (Pvt_Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Make_Defining_Identifier (Loc,
+              Name_uO),
+          Aliased_Present =>
+            True,
+          Object_Definition =>
+            New_Occurrence_Of (Proxy_Type, Loc)));
+
+      --  A : constant System.Address := O'Address;
+
+      Append_To (Pvt_Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            Make_Defining_Identifier (Loc,
+              Chars (Proxy_Object_Addr)),
+          Constant_Present =>
+            True,
+          Object_Definition =>
+            New_Occurrence_Of (RTE (RE_Address), Loc),
+          Expression =>
+            Make_Attribute_Reference (Loc,
+              Prefix => New_Occurrence_Of (
+                Defining_Identifier (Last (Pvt_Decls)), Loc),
+              Attribute_Name =>
+                Name_Address)));
+
+      Append_To (Decls,
+        Make_Package_Declaration (Loc,
+          Specification => Make_Package_Specification (Loc,
+            Defining_Unit_Name   => Pkg_Name,
+            Visible_Declarations => Vis_Decls,
+            Private_Declarations => Pvt_Decls,
+            End_Label            => Empty)));
+
+      Append_To (Decls,
+        Make_Package_Body (Loc,
+          Defining_Unit_Name =>
+            Make_Defining_Identifier (Loc,
+              Chars (Pkg_Name)),
+          Declarations => New_List (
+            Make_Subprogram_Body (Loc,
+              Specification  =>
+                Subp_Body_Spec,
+              Declarations   => New_List,
+              Handled_Statement_Sequence =>
+                Make_Handled_Sequence_Of_Statements (Loc,
+                  Statements => New_List (Perform_Call))))));
+
+   end Add_RAS_Proxy;
+
    -----------------------------------------
    -- Add_Receiving_Stubs_To_Declarations --
    -----------------------------------------
@@ -2930,6 +3127,12 @@ package body Exp_Dist is
       --  case statement will be made on the Subprogram_Id to dispatch
       --  to the right subprogram.
 
+      if Has_All_Calls_Remote (Defining_Entity (Pkg_Spec)) then
+         All_Calls_Remote_E := Standard_True;
+      else
+         All_Calls_Remote_E := Standard_False;
+      end if;
+
       Overload_Counter_Table.Reset;
       Reserve_NamingContext_Methods;
 
@@ -2958,10 +3161,14 @@ package body Exp_Dist is
                         Suffix       => 'D',
                         Suffix_Index => -1));
 
-               Subp_Val       : String_Id;
-               Case_Stmts     : List_Id;
+               Subp_Val          : String_Id;
+               Case_Stmts        : List_Id;
+               Proxy_Object_Addr : Entity_Id;
 
             begin
+
+               --  Build receiving stub
+
                Current_Stubs :=
                  Build_Subprogram_Receiving_Stubs
                    (Vis_Decl     => Current_Declaration,
@@ -2975,7 +3182,22 @@ package body Exp_Dist is
                Append_To (Decls, Current_Stubs);
                Analyze (Current_Stubs);
 
-               --  Add subprogram to subprograms table for this receiver
+               --  Build RAS proxy
+
+               Add_RAS_Proxy (Decls,
+                 Vis_Decl           =>
+                   Current_Declaration,
+                 All_Calls_Remote_E =>
+                   All_Calls_Remote_E,
+                 Proxy_Object_Addr  =>
+                   Proxy_Object_Addr);
+               Analyze (Next (Current_Stubs));
+               Analyze (Next (Next (Current_Stubs)));
+
+               --  Add subprogram descriptor (RCI_Subp_Info) to the
+               --  subprograms table for this receiver. The aggregate
+               --  below must be kept consistent with the declaration
+               --  of type RCI_Subp_Info in System.PolyORB_Interface.
 
                Assign_Subprogram_Identifier (Subp_Def, Subp_Val);
 
@@ -3007,10 +3229,7 @@ package body Exp_Dist is
                              New_Occurrence_Of (
                                Subp_Dist_Name, Loc),
                            Attribute_Name => Name_Length),
-                         Make_Attribute_Reference (Loc,
-                           Prefix =>
-                             New_Occurrence_Of (Subp_Def, Loc),
-                           Attribute_Name => Name_Address)))));
+                         New_Occurrence_Of (Proxy_Object_Addr, Loc)))));
 
                Case_Stmts := New_List (
                  Make_Procedure_Call_Statement (Loc,
@@ -3050,10 +3269,7 @@ package body Exp_Dist is
                        Left_Opnd  =>
                          New_Occurrence_Of (Local_Address, Loc),
                        Right_Opnd =>
-                         Make_Attribute_Reference (Loc,
-                           Prefix =>
-                             New_Occurrence_Of (Subp_Def, Loc),
-                           Attribute_Name => Name_Address)),
+                         New_Occurrence_Of (Proxy_Object_Addr, Loc)),
                    Then_Statements => New_List (
                      Make_Assignment_Statement (Loc,
                        New_Occurrence_Of (Subp_Index, Loc),
@@ -3144,7 +3360,7 @@ package body Exp_Dist is
           Object_Definition   =>
             New_Occurrence_Of (RTE (RE_Servant), Loc));
       Append_To (Decls, Pkg_RPC_Receiver_Object);
-      Analyze (Last (Decls));
+      Analyze (Pkg_RPC_Receiver_Object);
 
       --  Construction of the dummy package used to initialize the
       --  Handler field of the Pkg_Receiver_Object, and then register
@@ -3165,12 +3381,6 @@ package body Exp_Dist is
 
       Append_To (Decls, Dummy_Register_Decl);
       Analyze (Dummy_Register_Decl);
-
-      if Has_All_Calls_Remote (Defining_Entity (Pkg_Spec)) then
-         All_Calls_Remote_E := Standard_True;
-      else
-         All_Calls_Remote_E := Standard_False;
-      end if;
 
       Append_To (Register_Pkg_Actuals,
          --  Name

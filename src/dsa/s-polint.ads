@@ -96,8 +96,8 @@ package System.PolyORB_Interface is
       Name_Length : Integer;
       --  Subprogram distribution identifier
 
-      Addr : System.Address;
-      --  Local address of the actual subprogram
+      Proxy_Addr  : System.Address;
+      --  Local address of the proxy object
    end record;
 
    type RCI_Subp_Info_Array is array (Integer range <>)
@@ -202,7 +202,7 @@ package System.PolyORB_Interface is
       Addr         : System.Address := System.Null_Address;
       --  If this stub is for a remote access-to-subprogram type
       --  that designates a local subprogram, then this field
-      --  is set to that subprogram's address, else it is
+      --  is set to that subprogram proxy's address, else it is
       --  Null_Address.
 
       Asynchronous : Boolean;
