@@ -18,7 +18,7 @@
 @page
 @vskip 0pt plus 1filll
 
-@copyright{} Copyright 1997-1999, Free Soft Foundation.
+@copyright{} Copyright 1997-2000, Free Soft Foundation.
 
 GLADE is free software; you can redistribute it and/or modify it under
 terms of the GNU General Public License as published by the Free
@@ -54,7 +54,7 @@ GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
 * What This Guide Contains::    
 @end menu
 
-@node What This Guide Contains, , About This Guide, About This Guide
+@node What This Guide Contains,  , About This Guide, About This Guide
 @unnumberedsec What This Guide Contains
 
 @noindent
@@ -258,32 +258,33 @@ the DSA provides different categorization pragmas, each of which excludes some
 language constructs from the categorized package.
 
 Of course, the user can develop the non-distributed application with his
-usual software engineering environment. It is critical to note
-that the user needs no specialized tools to develop his/her distributed
-application. For instance, he can debug his application with the
-usual debugger. Note that a non-distributed program is not to be confused with a
-distributed application composed of only one program. The later is built
-with the help of the configuration tool and includes the communication
-library.
+usual software engineering environment. It is critical to note that the
+user needs no specialized tools to develop his/her distributed
+application. For instance, he can debug his application with the usual
+debugger. Note that a non-distributed program is not to be confused with
+a distributed application composed of only one program. The later is
+built with the help of the configuration tool and includes the
+communication library.
 
-Once the non-distributed version of the program is complete, it has to be
-configured into separate partitions, This step is surprisingly simple,
-compared to that of developing the application itself. The configuration
-step consists in mapping sets of compilation units into individual partitions,
-and specifying the mapping between partitions and nodes in the computer
-network. This mapping is specified and managed by means of GLADE.
+Once the non-distributed version of the program is complete, it has to
+be configured into separate partitions, This step is surprisingly
+simple, compared to that of developing the application itself. The
+configuration step consists in mapping sets of compilation units into
+individual partitions, and specifying the mapping between partitions and
+nodes in the computer network. This mapping is specified and managed by
+means of GLADE.
 
 The distributed version of the user application should work as is, but
 even when a program can be built both as a non-distributed or a
 distributed program using the same source code, there may still be
 differences in program execution between the distributed and
-non-distributed versions. These differences are  discussed in subsequent
+non-distributed versions. These differences are discussed in subsequent
 sections (see @ref{Pragma Asynchronous} and @ref{Pragma
 All_Calls_Remote}).
 
 Developping a non-distributed application in order to distribute it
-later is the natural approach for a novice. Of course, it is not
-always possible to write a distributed application as a non-distributed
+later is the natural approach for a novice. Of course, it is not always
+possible to write a distributed application as a non-distributed
 application. For instance, a client/server application does not belong
 to this category because several instances of the client can be active
 at the same time. It is very easy to develop such an application using
@@ -481,15 +482,15 @@ the body of this package.
 
 In the following example, several mirroring banks offer their services
 through the same database. Each bank registers a reference to each of
-its services with a central bank. A client of the central bank requests a service
-from one of the mirroring banks. To satisfiy requests, the RCI unit RASBank
-defines Balance_Type, a remote access to subprogram (Recall that an access
-type declared in a remote unit has to be either remote access to subprogram or
-remote access to class wide type).
+its services with a central bank. A client of the central bank requests
+a service from one of the mirroring banks. To satisfiy requests, the RCI
+unit RASBank defines Balance_Type, a remote access to subprogram (Recall
+that an access type declared in a remote unit has to be either remote
+access to subprogram or remote access to class wide type).
 
-Note that to obtain a remote access to subprogram, the subprogram that delivers
-the remote access must be
-remote itself. Therefore, MirrorBank is a RCI library unit.
+Note that to obtain a remote access to subprogram, the subprogram that
+delivers the remote access must be remote itself. Therefore, MirrorBank
+is a RCI library unit.
 
 @include rasbank.ads.texi
 
@@ -510,20 +511,20 @@ type.
 @subsection Remote Access to Class Wide Types (RACW)
 
 A bank client is now connected to a bank through a terminal. The bank
-wants to notify a connected client, bu means of a message on its terminal, when
-another client transfers a given amount of money to his account. In the following
-example, a terminal is designed as a distributed object. Each bank
-client will register its terminal object to the bank server for further
-use. In the code below, Term_Type is the root type of the distributed
-terminal hierarchy.
+wants to notify a connected client, bu means of a message on its
+terminal, when another client transfers a given amount of money to his
+account. In the following example, a terminal is designed as a
+distributed object. Each bank client will register its terminal object
+to the bank server for further use. In the code below, Term_Type is the
+root type of the distributed terminal hierarchy.
 
 @include terminal.ads.texi
 
 In the code below, the RCI unit RACWBank defines Term_Access, a remote
 access to class wide type. Term_Access becomes a reference to a
-distributed object. In the next section, we will see how to derive and extend
-Term_Type, how to create a distributed object and how to use a reference
-to it.
+distributed object. In the next section, we will see how to derive and
+extend Term_Type, how to create a distributed object and how to use a
+reference to it.
 
 @include racwbank.ads.texi
 
@@ -588,8 +589,8 @@ Types (RACW)}).
 @include newterminal.ads.texi
 
 In the code below, a client registers his name and his terminal with
-RACWBank. Therefore, when any payer transfers some
-money to him, RACWBank is able to notify the client of the transfer of funds.
+RACWBank. Therefore, when any payer transfers some money to him,
+RACWBank is able to notify the client of the transfer of funds.
 
 @include term1client.adb.texi
 
@@ -602,8 +603,8 @@ In the code below, we describe the general design of Transfer. Classical
 operations of Withdraw and Deposit are performed. Then, RACWBank
 retrieves the terminal of the payee (if present) and invokes a
 dispatching operation by dereferencing a distributed object Term. The
-reference is examined at run-time, and the execution of this operation takes
-place on the partition on  which the distributed object resides.
+reference is examined at run-time, and the execution of this operation
+takes place on the partition on which the distributed object resides.
 
 @include racwbank.adb.texi
 
@@ -612,11 +613,12 @@ place on the partition on  which the distributed object resides.
 
 @include stringarraystream.ads.texi
 
-Non-remote access types cannot be declared in the public part of a remote types
-unit. However, it is possible to define private non-remote access types as
-long as the user provides its marshalling procedures, that is to say the
-mechanism needed to place a value of the type into a communication stream.
-The code below describes how to transmit a linked structure.
+Non-remote access types cannot be declared in the public part of a
+remote types unit. However, it is possible to define private non-remote
+access types as long as the user provides its marshalling procedures,
+that is to say the mechanism needed to place a value of the type into a
+communication stream.  The code below describes how to transmit a linked
+structure.
 
 The package declaration provides a type definition of single-linked
 lists of unbounded strings. An implementation of the marshalling
@@ -658,16 +660,16 @@ Cannot have a specification that depends on normal units
 @node Overview of Pragma Shared_Passive, Summary on Pragma Shared_Passive, Pragma Shared_Passive, Pragma Shared_Passive
 @subsection Overview of Pragma Shared_Passive
 
-The entities declared in such a categorized library unit are intended to be
-mapped on a virtual shared address space (file, memory, database). When two
-partitions use such a library unit, they can communicate by reading or
-writing the same variable in the shared unit. This supports the conventional
-shared variables paradigm.
-Entryless protected objects can be declared in these units, to provide an
-atomic access to shared data, thus implementing a  simple
-transaction mechanism. When the address space is a file or a database,
-the user can take advantage of the persistency features provided by
-these storage nodes.
+The entities declared in such a categorized library unit are intended to
+be mapped on a virtual shared address space (file, memory,
+database). When two partitions use such a library unit, they can
+communicate by reading or writing the same variable in the shared
+unit. This supports the conventional shared variables paradigm.
+Entryless protected objects can be declared in these units, to provide
+an atomic access to shared data, thus implementing a simple transaction
+mechanism. When the address space is a file or a database, the user can
+take advantage of the persistency features provided by these storage
+nodes.
 
 @subsection Shared and Protected Objects
 
@@ -701,8 +703,6 @@ Prevent specification from depending on normal units
 @node More About Categorization Pragmas, Partition Communication Subsystem, Pragma Shared_Passive, The Distributed Systems Annex
 @section More About Categorization Pragmas
 
-
-
 @menu
 * Variables and Non-Remote Access Types::  
 * RPC Failures::                
@@ -716,9 +716,10 @@ Prevent specification from depending on normal units
 @node Variables and Non-Remote Access Types, RPC Failures, More About Categorization Pragmas, More About Categorization Pragmas
 @subsection Variables and Non-Remote Access Types
 
-In RT or RCI package declarations, variable declarations are forbidden, and
-non-remote access types are allowed as long as their marshaling
-subprograms are explicitly provided (see @ref{Transmitting Dynamic Structure})..
+In RT or RCI package declarations, variable declarations are forbidden,
+and non-remote access types are allowed as long as their marshaling
+subprograms are explicitly provided (see @ref{Transmitting Dynamic
+Structure})..
 
 @node RPC Failures, Exceptions, Variables and Non-Remote Access Types, More About Categorization Pragmas
 @subsection RPC Failures
@@ -730,9 +731,9 @@ fail with an exception. When a communication error occurs,
 @node Exceptions, Pragma Asynchronous, RPC Failures, More About Categorization Pragmas
 @subsection Exceptions
 
-Any exception raised in a remote
-method or subprogram call is propagated back to the caller. Exceptions
-semantics are preserved in the regular Ada way.
+Any exception raised in a remote method or subprogram call is propagated
+back to the caller. Exceptions semantics are preserved in the regular
+Ada way.
 
 @include internal.ads.texi
 @include rempkg2.ads.texi
@@ -746,12 +747,13 @@ partition Partition_1 and that RemPkg1 is on partition Partition_2.
 @include remexcmain.adb.texi
 
 When RemPkg1.Subprogram on Partition_1 raises Internal.Exc, this
-exception is propagated back to Partition_2. As Internal.Exc is not defined
-on Partition_2, it is not possible to catch this exception without an
-exception handler @b{when others}. When this exception is reraised in
-RemPkg1.Subprogram, it is propagated to Partition_1. But this time,
-Internal.Exc is visible and can be handled as we would in a single-partition Ada
-program. Of course, the exception message is also preserved.
+exception is propagated back to Partition_2. As Internal.Exc is not
+defined on Partition_2, it is not possible to catch this exception
+without an exception handler @b{when others}. When this exception is
+reraised in RemPkg1.Subprogram, it is propagated to Partition_1. But
+this time, Internal.Exc is visible and can be handled as we would in a
+single-partition Ada program. Of course, the exception message is also
+preserved.
   
 @c XXXX Schema Sam exceptions
 
@@ -759,28 +761,27 @@ program. Of course, the exception message is also preserved.
 @subsection Pragma Asynchronous
 
 By default, a remote call is blocking: the caller waits until the remote
-call is complete and the output stream is received. By contrast.
-a remote subprogram labelled with pragma Asynchronous allows statically and
-dynamically bound remote calls to it
-to be executed asynchronously. A call to an asynchronous procedure doesn't
-wait for the completion of the remote call, and lets the caller continue
-its execution. The remote procedure must have only
-@b{in} parameters, and any exception raised during the execution of the
-remote procedure is lost. 
+call is complete and the output stream is received. By contrast.  a
+remote subprogram labelled with pragma Asynchronous allows statically
+and dynamically bound remote calls to it to be executed
+asynchronously. A call to an asynchronous procedure doesn't wait for the
+completion of the remote call, and lets the caller continue its
+execution. The remote procedure must have only @b{in} parameters, and
+any exception raised during the execution of the remote procedure is
+lost.
 
 When pragma Asynchronous applies to a regular subprogram with @b{in}
 parameters, any call to this subprogram will be executed
-asynchronously. The following declaration of AsynchronousRCI.Asynchronous gives
-an example.
+asynchronously. The following declaration of
+AsynchronousRCI.Asynchronous gives an example.
 
 @include asynchronousrci.ads.texi
 @include asynchronousrt.ads.texi
 
 A pragma Asynchronous applies to a Remote Access_to_Subprogram (RAS).
-An asynchronous RAS can be both
-asynchronous and synchronous depending on the designated subprogram. For
-instance, in the code below, remote call (1) is asynchronous but remote
-call (2) is synchronous.
+An asynchronous RAS can be both asynchronous and synchronous depending
+on the designated subprogram. For instance, in the code below, remote
+call (1) is asynchronous but remote call (2) is synchronous.
 
 A pragma Asynchronous applies to a RACW as well. In this case, the
 invocation of @b{any} method with in parameters is @b{always} performed
@@ -789,9 +790,9 @@ method invocation (4) is synchronous.
 
 @include asynchronousmain.adb.texi
 
-This feature supports the conventional message passing paradigm. The user must
-be aware that this paradigm, and asynchronous remote calls
-in particular, has several drawbacks:
+This feature supports the conventional message passing paradigm. The
+user must be aware that this paradigm, and asynchronous remote calls in
+particular, has several drawbacks:
 
 @itemize @bullet
 
@@ -844,13 +845,13 @@ exercised on a single node.
 
 In some circumstances, a non-distributed application can behave
 differently than an application distributed on only one partition. This
-can happen when both All_Calls_Remote and
-Asynchronous features are used at the same time (see @ref{Pragma
-Asynchronous} for an example). Another circumstance occur when the
-marshalling operations raise an exception. In the following example,
-when unit ACRRCI is a All_@-Calls_@-Remote package, the program raises
-Program_Error. When unit ACRRCI is no longer a All_Calls_Remote package, 
-then the program completes silently.
+can happen when both All_Calls_Remote and Asynchronous features are used
+at the same time (see @ref{Pragma Asynchronous} for an example). Another
+circumstance occur when the marshalling operations raise an
+exception. In the following example, when unit ACRRCI is a
+All_@-Calls_@-Remote package, the program raises Program_Error. When
+unit ACRRCI is no longer a All_Calls_Remote package, then the program
+completes silently.
 
 @include acrrt.ads.texi
 @include acrrt.adb.texi
@@ -865,22 +866,22 @@ then the program completes silently.
 @include rciinstantiation.ads.texi
 @include normalinstantiation.ads.texi
 
-Any of these categorized units can be generic. Instances do not automatically
-inherit the categorization of their generic units, and they can be categorized
-explicitly, If they are not, instances are normal compilation units.
-Like any other categorized unit, a categorized instance
-must be at the library level,
-and regular restrictions of categorized units apply on instantiation (in
-particular on generic formal parameters).
+Any of these categorized units can be generic. Instances do not
+automatically inherit the categorization of their generic units, and
+they can be categorized explicitly, If they are not, instances are
+normal compilation units.  Like any other categorized unit, a
+categorized instance must be at the library level, and regular
+restrictions of categorized units apply on instantiation (in particular
+on generic formal parameters).
 
 @node Categorization Unit Dependencies,  , Generic Categorized Units  , More About Categorization Pragmas
 @subsection Categorization Unit Dependencies
 
 Each categorization pragma has very specific visibility rules. As a
-general rule, RCI > RT > SP > Pure, where the comparison indicates allowed
-semantic dependencies. This means that a
-Remote_Types package can make visible in its specification only
-Remote_Types, Shared_Passive and Pure units.
+general rule, RCI > RT > SP > Pure, where the comparison indicates
+allowed semantic dependencies. This means that a Remote_Types package
+can make visible in its specification only Remote_Types, Shared_Passive
+and Pure units.
 
 @node Partition Communication Subsystem, Most Features in One Example, More About Categorization Pragmas, The Distributed Systems Annex
 @section Partition Communication Subsystem
@@ -933,9 +934,8 @@ if needed
 
 An Ada compiler provides default 'Read and 'Write operations. But it is
 up to the implementation of the PCS to provide default 'Read and 'Write
-to ensure proper
-operation between heterogeneous architectures (see @ref{Heterogeneous
-System}).
+to ensure proper operation between heterogeneous architectures (see
+@ref{Heterogeneous System}).
 
 The user can overload these operations, except for predefined
 types. Overloading with a textual version provides the user with a way
@@ -945,21 +945,21 @@ Annex).
 @include new_integers.ads.texi
 @include new_integers.adb.texi
 
-The language forces the user to provide read and write opertions for non-remote
-access types. Transmitting an access value by dumping its content
-into a stream makes no sense when it is going to be transmitted to
-another partition (different memory spaces). To transmit non-remote
+The language forces the user to provide read and write opertions for
+non-remote access types. Transmitting an access value by dumping its
+content into a stream makes no sense when it is going to be transmitted
+to another partition (different memory spaces). To transmit non-remote
 access types see @ref{Transmitting Dynamic Structure}.
 
 @node Incorrect Remote Dispatching, Partition Ids, Marshalling and Unmarshalling Operations, Partition Communication Subsystem
 @subsection Incorrect Remote Dispatching
 
-When a remote subprogram takes a class wide argument, there is a risk of 
+When a remote subprogram takes a class wide argument, there is a risk of
 using an object of a derived type that will not be clean enough to be
-transmitted. For example, given a type called Root_Type, if a 
-remote procedure takes a Root_Type'Class as an argument, the user can
-call it with an instance of Derived_Type that is Root_Type enriched with 
-a field of a task type. This will lead to a non-communicable type to be
+transmitted. For example, given a type called Root_Type, if a remote
+procedure takes a Root_Type'Class as an argument, the user can call it
+with an instance of Derived_Type that is Root_Type enriched with a field
+of a task type. This will lead to a non-communicable type to be
 transmitted between partitions.
 
 To prevent this, paragraph E.4(18) of the reference manual explains that
@@ -977,11 +977,10 @@ declared. If a `bad' object is given to a remote subprogram,
 U'Partition_ID identifies the partition where the unit U has been
 elaborated. For this purpose, the PCS provides an integer type
 Partition_ID to uniquely designate a partition. Note that a Partition_ID
-is represented as a
-universal integer, and has no meaning outside of the PCS. The RM
-requires that two partitions of a distributed program have different
-Partition_ID's at a given time. A Partition_ID may or may not be
-assigned statically (at compile or link time). A Partition_ID may or
+is represented as a universal integer, and has no meaning outside of the
+PCS. The RM requires that two partitions of a distributed program have
+different Partition_ID's at a given time. A Partition_ID may or may not
+be assigned statically (at compile or link time). A Partition_ID may or
 may not be related to the physical location of the partition.
 
 Partition_ID's can be used to check whether a RCI package is configured locally.
@@ -991,30 +990,31 @@ Partition_ID's can be used to check whether a RCI package is configured locally.
 @node Concurrent Remote Calls, Consistency and Elaboration, Partition Ids, Partition Communication Subsystem
 @subsection Concurrent Remote Calls
 
-It is not defined by the PCS specification whether one or more threads of
-control should be available to process incoming messages and to wait for
-their completion. But the PCS implementation is required to be
-reentrant, thereby allowing concurrent calls on it to
-service concurrent remote subprogram calls into the server partition.
-This means that at the implementation level the PCS manages a pool of
-helper tasks. This (apart from performance) is invisible to the user.
+It is not defined by the PCS specification whether one or more threads
+of control should be available to process incoming messages and to wait
+for their completion. But the PCS implementation is required to be
+reentrant, thereby allowing concurrent calls on it to service concurrent
+remote subprogram calls into the server partition.  This means that at
+the implementation level the PCS manages a pool of helper tasks. This
+(apart from performance) is invisible to the user.
 
 @node Consistency and Elaboration, Abortion and Termination, Concurrent Remote Calls, Partition Communication Subsystem
 @subsection Consistency and Elaboration
 
 A library unit is consistent if the same version of its declaration is
 used in all units that reference it. This requirement applies as well to
-a unit that is referenced in several partitions of a distributed program.
-If a shared passive or RCI library unit U is included in some partition P,
-It is a bounded error to elaborate another partition P1 of a
-distributed program that that depends on a different version of U.
-As a result of this error, Program_Error
-can be raised in one or both partitions during elaboration.
+a unit that is referenced in several partitions of a distributed
+program.  If a shared passive or RCI library unit U is included in some
+partition P, It is a bounded error to elaborate another partition P1 of
+a distributed program that that depends on a different version of U.  As
+a result of this error, Program_Error can be raised in one or both
+partitions during elaboration.
 
 U'Version yields a string that identifies the version of the unit
 declaration and any unit declaration on which it depends. U'Version_Body
 yields a string that identifies the version of the unit body. These
-attributes are used by the PCS to verify the consistency of an application.
+attributes are used by the PCS to verify the consistency of an
+application.
 
 After elaborating the library units, but prior to invoking the main
 subprogram, the PCS checks the RCI unit versions, and then accept any
@@ -1031,7 +1031,7 @@ subprogram is immediately aborted as a result of the cancellation is
 implementation defined.
 
 An active partition terminates when its environment task terminates. In
-other terms, a partition cannot terminate before the Ada program itself 
+other terms, a partition cannot terminate before the Ada program itself
 terminates. The standard termination mechanism applies, but can be
 extended with extra rules (see @ref{Partition Attribute Termination} for
 examples).
@@ -1039,13 +1039,13 @@ examples).
 @node Most Features in One Example,  , Partition Communication Subsystem, The Distributed Systems Annex
 @section Most Features in One Example
 
-The example shown on the following figure highlights most of
-the features of DSA. The system is based on a set of factories
-and workers and a storage.  Each entity is a partition itself. A
-factory hires a worker from a pool of workers (hire - 1) and assigns a
-job (query - 2) to him. The worker performs the job and saves the
-result (reply - 3) in a storage common to all the factories.  The
-worker notifies the factory of the end of his job (notify - 4).
+The example shown on the following figure highlights most of the
+features of DSA. The system is based on a set of factories and workers
+and a storage.  Each entity is a partition itself. A factory hires a
+worker from a pool of workers (hire - 1) and assigns a job (query - 2)
+to him. The worker performs the job and saves the result (reply - 3) in
+a storage common to all the factories.  The worker notifies the factory
+of the end of his job (notify - 4).
 
 @image{full-ex.fig}
 
@@ -1065,14 +1065,14 @@ mechanism is implemented using RAS Notify.
 
 We define an abstract tagged type Worker which is intended to be the
 root type of the whole distributed objects hierarchy. Assign allows a
-factory to specify a job to a worker and a way for the worker to signal its employer
-the completion of this job. Any_Worker is a remote access to class wide type
-(RACW). In other words, it is a reference to a distributed object of any
-derived type from Worker class. Note that the two remote access types
-(Any_Worker and Notify) are declared as asynchronous. Therefore, any
-override of Assign will be executed asynchronously. To be asynchronous,
-an object of type Notify has to be a reference to an asynchronous
-procedure.
+factory to specify a job to a worker and a way for the worker to signal
+its employer the completion of this job. Any_Worker is a remote access
+to class wide type (RACW). In other words, it is a reference to a
+distributed object of any derived type from Worker class. Note that the
+two remote access types (Any_Worker and Notify) are declared as
+asynchronous. Therefore, any override of Assign will be executed
+asynchronously. To be asynchronous, an object of type Notify has to be a
+reference to an asynchronous procedure.
 
 NewWorker is derived from type Worker and Assign is overridden.
 
@@ -1088,8 +1088,8 @@ several types of workers and also several remote workers.
 In the following code, we define a unique place where workers wait for
 jobs. WorkerCity is a Remote_Call_Interface package with services to
 hire and free workers. Unlike Remote_Types packages,
-Remote_Call_Interface packages cannot be duplicated, and are assigned
-to one specific partition.
+Remote_Call_Interface packages cannot be duplicated, and are assigned to
+one specific partition.
 
 @include workercity.ads.texi
 
@@ -1145,8 +1145,8 @@ machines on which the individual partitions are to execute.
 @t{gnatdist} reads a configuration file (whose syntax is described in
 section @ref{The Configuration Language}) and builds several
 executables, one for each partition. It also takes care of launching the
-different partitions (default) with parameters that can be specific to each
-partition.
+different partitions (default) with parameters that can be specific to
+each partition.
 
 @node How to Configure a Distributed Application, Gnatdist Command Line Options, Introduction to GLADE, Getting Started With GLADE
 @section How to Configure a Distributed Application
@@ -1160,10 +1160,10 @@ can be called remotely.
 
 @item
 When this non-distributed application is working, write a configuration
-file that maps the user categorized packages onto specific partitions. This
-concerns particularly remote call interface and remote types packages.
-Specify the main procedure of the distributed application (see
-@ref{Partition Attribute Main}).
+file that maps the user categorized packages onto specific
+partitions. This concerns particularly remote call interface and remote
+types packages.  Specify the main procedure of the distributed
+application (see @ref{Partition Attribute Main}).
 
 @item
 Type `gnatdist @i{<configuration-file>}'.
@@ -1187,15 +1187,17 @@ gnatdist [switches] configuration-file [list-of-partitions]
 @c We should add some explanations of the gnatdist specific flags
 @c -n, -M and on some peticular mechanism (a spec without a body).
 
-The switches of @t{gnatdist} are, for the time being, exactly the same as those
-of gnatmake. By default @t{gnatdist} outputs a configuration report and the
-actions performed. The switch -n allows @t{gnatdist} to skip the first stage
-of recompilation of the non-distributed application.
+The switches of @t{gnatdist} are, for the time being, exactly the same
+as those of gnatmake. By default @t{gnatdist} outputs a configuration
+report and the actions performed. The switch -n allows @t{gnatdist} to
+skip the first stage of recompilation of the non-distributed
+application.
 
-The names of all configuration files must have the suffix @t{.cfg}. There may be
-several configuration files for the same distributed application, as the
-user may want to use different distributed configurations depending on load
-and other characteristics of the computing environment.
+The names of all configuration files must have the suffix
+@t{.cfg}. There may be several configuration files for the same
+distributed application, as the user may want to use different
+distributed configurations depending on load and other characteristics
+of the computing environment.
 
 If a list of partitions is provided on the command line of the gnatdist
 command, only these partitions will be built. In the following
@@ -1255,12 +1257,16 @@ environment variables.
 * Pragmas and Representation Clauses::  
 * Configuration Declaration::   
 * Partition Declaration::       
+* Location Declaration::        
 * Partition Attribute Main::    
 * Pragma Starter::              
-* Pragma Boot_Server::          
+* Pragma Boot_Location::        
+* Partition Attribute Self_Location::  
+* Partition Attribute Passive::  
+* Partition Attribute Data_Location::  
 * Partition Attribute Host::    
 * Pragma Import::               
-* Partition Attribute Storage_Dir::  
+* Partition Attribute Directory::  
 * Partition Attribute Command_Line::  
 * Partition Attribute Termination::  
 * Partition Attribute Reconnection::  
@@ -1277,9 +1283,9 @@ environment variables.
 
 All the Ada keywords are reserved keywords of the GLADE configuration
 language. @t{gnatdist} generates full Ada code in order to build the
-different executables. To avoid naming conflicts between Ada and
-GLADE configuration language, all the Ada keywords have been reserved
-even if they are not used in the configuration language.
+different executables. To avoid naming conflicts between Ada and GLADE
+configuration language, all the Ada keywords have been reserved even if
+they are not used in the configuration language.
 
 There are three new keywords:
 
@@ -1315,6 +1321,7 @@ predefined type @b{Partition} (or @b{Channel}).
 
 REPRESENTATION_CLAUSE ::=
    @b{for} Partition'ATTRIBUTE_NAME @b{use} ATTRIBUTE_ARGUMENTS;
+ | @b{for} Channel'ATTRIBUTE_NAME @b{use} ATTRIBUTE_ARGUMENTS;
 
 @end smallexample
 
@@ -1354,7 +1361,7 @@ CONFIGURATION_UNIT ::=
 
 @end smallexample
 
-@node Partition Declaration, Partition Attribute Main, Configuration Declaration, The Configuration Language
+@node Partition Declaration, Location Declaration, Configuration Declaration, The Configuration Language
 @subsection Partition Declaration
 
 In the declarative part, the user declares his partitions and can change
@@ -1397,8 +1404,8 @@ Once declared, a partition is an empty list of Ada units. The operator
 @b{":="} adds the Ada units list on the right side to the current list
 of Ada units that are already mapped to the partition. This is a
 non-destructive operation. Whether a unit is a relevant Ada unit or not
-is checked later on by the back-end of @t{gnatdist}. These assignments can
-occur in the declarative part as well as in the body part.
+is checked later on by the back-end of @t{gnatdist}. These assignments
+can occur in the declarative part as well as in the body part.
 
 @smallexample
 
@@ -1406,24 +1413,78 @@ ENUMERATION_OF_ADA_UNITS ::= (@{ADA_UNIT @{, ADA_UNIT@}@});
 
 @end smallexample
 
-@node Partition Attribute Main, Pragma Starter, Partition Declaration, The Configuration Language
+@node Location Declaration, Partition Attribute Main, Partition Declaration, The Configuration Language
+@subsection Location Declaration
+
+There are several kinds of location in the GLADE configuration
+language. We shall present them in the next subsections, but here is a
+short overview of these locations:
+
+@itemize @bullet
+
+@item Boot_Location defines the network locations to use to communicate
+with the the boot server during the boot phase
+
+@item Self_Location defines the network locations to use by others
+to communicate with the current partition
+
+@item Data_Location defines the data storage location used by the
+current partition to map its shared passive units
+
+@end itemize
+
+A location is composed of a support name and a specific data for this
+support. For instance, a network location is composed of a protocol name
+like @i{tcp} and a protocol data like @i{<machine>:<port>}. A storage
+location is composed of a storage support name like @i{dfs} (for
+Distributed File System) and a storage support data like a directory
+@i{/dfs/glade}.
+
+@smallexample
+
+LOCATION      ::= ([Support_Name =>] STRING_LITTERAL,
+                   [Support_Data =>] STRING_LITTERAL)
+
+LOCATION_LIST ::= (LOCATION [,LOCATION)])
+
+@end smallexample
+
+Note that a location may have an undefined or incomplete support
+data. In this case, the support is free to compute a support data. For
+instance, ("tcp", "") specifies that the protocol is used but that the
+protocol data @i{<machine>:<port>} is to be determined by the protocol
+itself.
+
+A location or a list of locations can be can be concatenated into a
+single string to be used as a command line option or an environment
+variable (see @ref{Partition Command Line Options}).
+
+If a partition wants to communicate with another partition once the
+location list of the latter is known, the caller will use the first
+location of the callee whose protocol is locally available. For
+instance, if a callee exports three locations ("N1", "D1"), ("N2", "D2")
+and ("N3", "D3"), a caller with protocols N2 and N3 locally available
+will try to communicate with the callee using the protocol of name N2
+and of specific data D2.
+
+@node Partition Attribute Main, Pragma Starter, Location Declaration, The Configuration Language
 @subsection Partition Attribute Main
 
 Basically, the distributed system annex (DSA) helps the user in building
 a distributed application from a non-distributed application (Of course,
-this is not the only possible model offered by DSA). The user can design,
-implement and test his application in a non-distributed environment, and
-then should be able to switch from the non-distributed case to a
-distributed case. As mentionned before, this two-phase design approach
-has several advantages.
+this is not the only possible model offered by DSA). The user can
+design, implement and test his application in a non-distributed
+environment, and then should be able to switch from the non-distributed
+case to a distributed case. As mentionned before, this two-phase design
+approach has several advantages.
 
 In a non-distributed case, the user executes only one main executable
 possibly with a name corresponding to the main unit name of his
 application. With @t{gnatdist}, in a distributed case, a main executable
 with a name corresponding to the main unit name is responsible for
-starting the entire distributed application. Therefore, the user
-can start his application the same way he used to do in the
-non-distributed case.
+starting the entire distributed application. Therefore, the user can
+start his application the same way he used to do in the non-distributed
+case.
 
 For this reason, the configuration language provides a way to declare
 the main procedure of the non-distributed application.
@@ -1455,7 +1516,7 @@ REPRESENTATION_CLAUSE :=
 
 @end smallexample
 
-@node Pragma Starter, Pragma Boot_Server, Partition Attribute Main, The Configuration Language
+@node Pragma Starter, Pragma Boot_Location, Partition Attribute Main, The Configuration Language
 @subsection Pragma Starter
 
 As a default, the main executable is a full Ada starter procedure. That
@@ -1472,7 +1533,7 @@ CONVENTION_LITERAL ::= Ada   |
                        None
 
 PRAGMA ::=
-   @b{pragma} Starter ([CONVENTION =>] CONVENTION_LITERAL);
+   @b{pragma} Starter ([Convention =>] CONVENTION_LITERAL);
 
 @end smallexample
 
@@ -1497,31 +1558,128 @@ command line the boot server location (see @ref{Architecture of GLADE PCS}).
 
 @end itemize
 
-@node Pragma Boot_Server, Partition Attribute Host, Pragma Starter, The Configuration Language
-@subsection Pragma Boot_Server
+@node Pragma Boot_Location, Partition Attribute Self_Location, Pragma Starter, The Configuration Language
+@subsection Pragma Boot_Location
 
 When a partition starts executing, one of the first steps consists in a
 connection to the boot partition where the boot server is located (see
-@ref{Architecture of GLADE PCS}).
+@ref{Architecture of GLADE PCS}). This pragma provides one or several
+locations in order to get a connection with the boot partition.
 
 @smallexample
 
 PRAGMA ::=
-   @b{pragma} Boot_Server
+   PRAGMA_WITH_NAME_AND_DATA
+ | PRAGMA_WITH_LOCATION
+ | PRAGMA_WITH_LOCATION_LIST
+           
+PRAGMA_WITH_NAME_AND_DATA ::=
+   @b{pragma} Boot_Location
      ([Protocol_Name =>] STRING_LITERAL,
       [Protocol_Data =>] STRING_LITERAL);
+
+PRAGMA_WITH_LOCATION ::=
+   @b{pragma} Boot_Location ([Location =>] LOCATION);
+
+PRAGMA_WITH_LOCATION_LIST ::=
+   @b{pragma} Boot_Location ([Locations =>] LOCATION_LIST);
 
 @end smallexample
 
 This boot server location can be concatenated into a single string to be
 used as a command line option or an environment variable (see
-@ref{Partition Option boot_server}). The formatted string must
-conform to the notation <protocol_name>://<protocol_data>. Most commonly,
-this is tcp://<machine>:<port>, that means that the protocol name
-is @i{tcp}. The protocol data which is specific to the protocol name is
-@i{<machine>:<port>}.
+@ref{Partition Command Line Options}).
 
-@node Partition Attribute Host, Pragma Import, Pragma Boot_Server, The Configuration Language
+@b{Note: pragma Boot_Server is now obsolete. It is recommended to use
+pragma Boot_Location. This wording is more consistent with the rest of
+the configuration language (see Self_Location @ref{Partition Option
+self_location} and Data_Location @ref{Partition Option data_location}).}
+
+@node Partition Attribute Self_Location, Partition Attribute Passive, Pragma Boot_Location, The Configuration Language
+@subsection Partition Attribute Self_Location
+
+Except for the boot partition on which the boot server is located, a
+partition is reachable through a dynamically computed location (for
+instance, the partition looks for a free port when the protocol is
+tcp). The user may want such a partition to be reachable from a given
+location, especially if the user wants to make this partition a boot
+mirror. To do so, he can force the partition location with self_location
+feature.
+
+@smallexample
+
+REPRESENTATION_CLAUSE ::=
+   @b{for} PARTITION_IDENTIFIER'Self_Location @b{use} LOCATION;
+ | @b{for} PARTITION_IDENTIFIER'Self_Location @b{use} LOCATION_LIST;
+
+@end smallexample
+
+If the attribute definition clause applies to the predefined type
+@b{Partition}, the locations have to be incomplete. Otherwise, all the
+partitions would be reachable through the same locations, which is
+definitively not recommended.
+
+When an attribute self_location definition clause applies to a given
+partition, the protocol units needed for this partition are linked in
+the executable. By default, when the self_location attribute is not
+redefined, the default protocol used by the partition and loaded in its
+executable is the @i{tcp} protocol.
+
+@node Partition Attribute Passive, Partition Attribute Data_Location, Partition Attribute Self_Location, The Configuration Language
+@subsection Partition Attribute Passive
+
+By default, a partition is an active partition. This attribute allows to 
+define a passive partition. In this case, @t{gnatdist} checks that only
+shared passive units are mapped on the partition. As this partition
+cannot register itself, its location is hard-coded in all the partitions 
+that depend on its shared passive units.
+
+@smallexample
+
+REPRESENTATION_CLAUSE ::=
+   @b{for} PARTITION_IDENTIFIER'Passive @b{use} BOOLEAN_LITERAL;
+
+@end smallexample
+
+@node Partition Attribute Data_Location, Partition Attribute Host, Partition Attribute Passive, The Configuration Language
+@subsection Partition Attribute Data_Location
+
+Shared passive units can be mapped on passive or active partitions. In
+both cases, it is possible to choose the data storage support and to
+configure it with the specific data of a location.
+
+@smallexample
+
+REPRESENTATION_CLAUSE ::=
+   @b{for} PARTITION_IDENTIFIER'Data_Location @b{use} LOCATION;
+ | @b{for} PARTITION_IDENTIFIER'Data_Location @b{use} LOCATION_LIST;
+
+@end smallexample
+
+When an attribute data_location definition clause applies to a given
+partition, the data storage support units needed for this partition are
+linked in the executable. By default, when the data_location attribute
+is not redefined, the default storage support used by the partition and
+loaded in its executable is the @i{dfs} support. @i{dfs}, Distributed
+File System, is a storage support available as soon as files can be
+shared between partitions.
+
+It is not possible to map the different shared passive units of a given
+partition on different data storage locations. GLADE requires all the
+shared passive units of a given partition to be mapped on the same
+storage support. When the attribute data_location applied to a partition
+is a list of locations, all the storage support units needed for this
+partition are linked in the executable. By default, only the first one
+is activated. The user can choose to change the activated support by
+another one specified in the location list. This can be done using the
+partition option data_location (see @ref{Partition Option
+data_location}).
+
+As passive partitions cannot be activated, it is not possible to provide
+a location list as a data_location attribute. It is not possible to
+change dynamically its location either.
+
+@node Partition Attribute Host, Pragma Import, Partition Attribute Data_Location, The Configuration Language
 @subsection Partition Attribute Host
 
 Logical nodes (or partitions) can be mapped onto physical nodes. The
@@ -1556,7 +1714,7 @@ This function is called on the main partition by the GLADE PCS to launch
 a given partition on a given logical node. In case of load balancing,
 the function can return the most appropriate among a set of hosts.
 
-@node Pragma Import, Partition Attribute Storage_Dir, Partition Attribute Host, The Configuration Language
+@node Pragma Import, Partition Attribute Directory, Partition Attribute Host, The Configuration Language
 @subsection Pragma Import
 
 Two kinds of subprograms are allowed in the GLADE configuration
@@ -1592,33 +1750,33 @@ In this case, the GLADE PCS invokes the shell script with the partition
 name as a command line argument. The shell script is supposed to return
 the partition host-name (see @ref{Partition Attribute Host}).
 
-@node Partition Attribute Storage_Dir, Partition Attribute Command_Line, Pragma Import, The Configuration Language
-@subsection Partition Attribute Storage_Dir
+@node Partition Attribute Directory, Partition Attribute Command_Line, Pragma Import, The Configuration Language
+@subsection Partition Attribute Directory
 
-Storage_Dir allows the user to specify in which directory the partition
+Directory allows the user to specify in which directory the partition
 executable is stored. This can be useful in heterogeneous systems when
 the user wants to store executables for the same target in a given
 directory. Specifying the directory is also useful if the partition
 executable is not directly visible from the user environment. For
 instance, when a remote command like @b{rsh} is invoked, the executable
-directory has to be present in the user path. If the Storage_Dir
+directory has to be present in the user path. If the Directory
 attribute has been specified, the executable full name is used.
 
 @smallexample
 
 REPRESENTATION_CLAUSE ::=
-   @b{for} PARTITION_IDENTIFIER'Storage_Dir @b{use} STRING_LITERAL;
+   @b{for} PARTITION_IDENTIFIER'Directory @b{use} STRING_LITERAL;
 
 @end smallexample
 
-@node Partition Attribute Command_Line, Partition Attribute Termination, Partition Attribute Storage_Dir, The Configuration Language
+@node Partition Attribute Command_Line, Partition Attribute Termination, Partition Attribute Directory, The Configuration Language
 @subsection Partition Attribute Command_Line
 
 The user may want to pass arguments on the command line of a
-partition. However, when a partition is launched automatically by the main
-partition, the partition command line includes only GLADE arguments. To
-add arguments on the command line, the user can take advantage of the
-following attribute.
+partition. However, when a partition is launched automatically by the
+main partition, the partition command line includes only GLADE
+arguments. To add arguments on the command line, the user can take
+advantage of the following attribute.
 
 @smallexample
 
@@ -1630,13 +1788,14 @@ REPRESENTATION_CLAUSE ::=
 @node Partition Attribute Termination, Partition Attribute Reconnection, Partition Attribute Command_Line, The Configuration Language
 @subsection Partition Attribute Termination
 
-The Ada95 Reference Manual does not provide any specific rule to handle global
-termination of a distributed application (see @ref{Abortion and Termination}).
+The Ada95 Reference Manual does not provide any specific rule to handle
+global termination of a distributed application (see @ref{Abortion and
+Termination}).
 
-In GLADE, by default, a set of partitions terminates when each
-partition can terminate and when no message remains to be delivered. A
-distributed algorithm that checks for this global condition
-is activated periodically by the main boot server.
+In GLADE, by default, a set of partitions terminates when each partition
+can terminate and when no message remains to be delivered. A distributed
+algorithm that checks for this global condition is activated
+periodically by the main boot server.
 
 @smallexample
 
@@ -1652,11 +1811,11 @@ REPRESENTATION_CLAUSE ::=
 @itemize @bullet
 
 @item When a partition is configured with the global termination policy,
-it terminates as soon as the main boot server sends a signal to do so. The main
-boot server checks periodically whether the application can terminate. When 
-all partitions are ready to terminate, the main boot server sends to each
-partition a termination request. The global termination policy is the
-default policy.
+it terminates as soon as the main boot server sends a signal to do
+so. The main boot server checks periodically whether the application can
+terminate. When all partitions are ready to terminate, the main boot
+server sends to each partition a termination request. The global
+termination policy is the default policy.
 
 @item The deferred termination policy is very similar to the global
 termination. The only difference is that when a partition with a
@@ -1674,10 +1833,10 @@ termination request of the main boot server.
 
 In any case, when the boot partition dies (and when no alternate boot
 partition can elected, see @ref{Architecture of GLADE PCS}), all the
-partitions die, whatever their termination policy might be. Note first, that
-a partition cannot execute without a boot partition. Second, when the user
-wants to kill his non-distributed application, he kills the main
-program. Enforcing the mechanism described above ensures that
+partitions die, whatever their termination policy might be. Note first,
+that a partition cannot execute without a boot partition. Second, when
+the user wants to kill his non-distributed application, he kills the
+main program. Enforcing the mechanism described above ensures that
 killing the main partition automatically kills all the partitions, that
 is to say the whole distributed application.
 
@@ -1687,15 +1846,15 @@ is to say the whole distributed application.
 When no RCI package is configured on a partition, such a partition can
 be launched several times without any problem. When one or more RCI
 packages are configured on a partition, such a partition cannot be
-launched more than once. If this partition were to be launched repeatedly,
-it would not be possible to decide which partition instance should execute
-a remote procedure call.
+launched more than once. If this partition were to be launched
+repeatedly, it would not be possible to decide which partition instance
+should execute a remote procedure call.
 
 When a partition crashes or is stopped, one may want to restart this
-partition and possibly restore its state - with Shared_Passive
-packages, for instance. In such a situation, the partition is already
-known to other partitions and possibly marked as a dead
-partition. Several policies can be selected:
+partition and possibly restore its state - with Shared_Passive packages,
+for instance. In such a situation, the partition is already known to
+other partitions and possibly marked as a dead partition. Several
+policies can be selected:
 
 
 @smallexample
@@ -1737,9 +1896,9 @@ remote procedure calls to this partition are resumed.
 @node Channel Declaration, Partition and Channel Attribute Filter, Partition Attribute Reconnection, The Configuration Language
 @subsection Channel Declaration
 
-The configuration language not only describes partitions, but also
-the connections between them. Such a connection is called a
-Channel and represents a bi-directional link between two partitions. 
+The configuration language not only describes partitions, but also the
+connections between them. Such a connection is called a Channel and
+represents a bi-directional link between two partitions.
 
 @smallexample
 
@@ -1751,9 +1910,9 @@ PARTITION_PEER ::= (PARTITION_IDENTIFIER, PARTITION_IDENTIFIER);
 
 @end smallexample
 
-A partition peer is a pair of distinct partition
-names. The list order is not important. Of course, the designated
-partitions have to be declared prior to the channel itself.
+A partition peer is a pair of distinct partition names. The list order
+is not important. Of course, the designated partitions have to be
+declared prior to the channel itself.
 
 @smallexample
 
@@ -1768,11 +1927,11 @@ more than one channel between the same two partitions.
 @node Partition and Channel Attribute Filter, Pragma Registration_Filter, Channel Declaration, The Configuration Language
 @subsection Partition and Channel Attribute Filter
 
-GLADE contains a transparent extensible filtering mechanism that allows the
-user to define various data transformations to be performed on the arguments
-and return values of remote calls. One possible application is to
-compress all data before sending it and to decompress it on the receiving
-partition.
+GLADE contains a transparent extensible filtering mechanism that allows
+the user to define various data transformations to be performed on the
+arguments and return values of remote calls. One possible application is
+to compress all data before sending it and to decompress it on the
+receiving partition.
 
 With GLADE, it is no longer necessary for the application to take care
 of such transformations. Instead, users can write their own data
@@ -1780,14 +1939,14 @@ transformations and hook them into GLADE so that they are automatically
 and transparently applied depending on the configuration of the
 distributed application.
 
-By default, no filtering is performed by GLADE, even though the compression
-filter is always available. The user can choose to configure his distributed
-application to use this filter.
+By default, no filtering is performed by GLADE, even though the
+compression filter is always available. The user can choose to configure
+his distributed application to use this filter.
 
 In order to define filtering, one must first declare the channels
-between the partitions of an application. Once a channel is defined,
-the data transformation that is to be applied on all data sent through
-it can be specified:
+between the partitions of an application. Once a channel is defined, the
+data transformation that is to be applied on all data sent through it
+can be specified:
 
 @smallexample
 
@@ -1803,8 +1962,8 @@ this name, implemented in the package @i{System.Garlic.Filters.Zip}.)
 
 It may also be useful to specify that a partition use a certain filter
 for all remote calls, regardless of the channel (i.e., regardless of the
-partition that will receive the remote call). This can be specified using
-the attribute 'Filter on a partition:
+partition that will receive the remote call). This can be specified
+using the attribute 'Filter on a partition:
 
 @smallexample
 
@@ -1838,10 +1997,10 @@ This makes @i{Partition_1} use @i{Some_Other_Filter} for all remote
 calls except for any communication with @i{Partition_2}, where the
 filter @i{ZIP} is applied.
 
-@t{gnatdist} takes care of consistency checking of a filter definition. For
-instance, multiple filter definitions for the same channel are not
-allowed. Filtering is only active if specified explicitly in the
-configuration file.
+@t{gnatdist} takes care of consistency checking of a filter
+definition. For instance, multiple filter definitions for the same
+channel are not allowed. Filtering is only active if specified
+explicitly in the configuration file.
  
 @smallexample
 
@@ -1854,9 +2013,9 @@ REPRESENTATION_CLAUSE ::=
 @node Pragma Registration_Filter, Pragma Version, Partition and Channel Attribute Filter, The Configuration Language
 @subsection Pragma Registration_Filter
 
-Some filtering algorithms require that some parameters be sent to
-the receiver first to enable it to correctly de-filter the data. If this
-is the case, it may be necessary to filter these parameters as well. For
+Some filtering algorithms require that some parameters be sent to the
+receiver first to enable it to correctly de-filter the data. If this is
+the case, it may be necessary to filter these parameters as well. For
 such purposes, it is possible to install a global filter for all
 partitions, which will then be used to filter the parameters of other
 filters. This filter is called the registration filter. It can be set by
@@ -2139,44 +2298,96 @@ When the partition is launched with a command line option
 @code{--}aa_bb_cc <x>, the value assigned in the configuration file or
 by the shell environment variable is replaced by <x>.
 
-For some environment variables, the value of the environment variable may
-be irrelevant. For some command line options, no extra argument is needed.
-In the following, type None means that extra information is
-not needed. The feature is activated as soon as the environment variable
+For some environment variables, the value of the environment variable
+may be irrelevant. For some command line options, no extra argument is
+needed.  In the following, type None means that extra information is not
+needed. The feature is activated as soon as the environment variable
 exists or as soon as the option is passed on the command line.
 
 The precedence order for specifying a run-time parameter is as follows:
-first the the command line option, then the environment
-variable and finally the configuration attribute or pragma.
+first the the command line option, then the environment variable and
+finally the configuration attribute or pragma.
+
+A location can be concatenated into a single string to be used as a
+command line option or an environment variable. The formatted string
+must conform to the notation <support_name>://<support_data>. Most
+commonly, a network location string is tcp://<machine>:<port>, that
+means that the protocol name is @i{tcp}, the protocol data which is
+specific to the protocol name is @i{<machine>:<port>}.
+
+A list of locations can be concatenated into a single string as
+well. Location strings are separated by spaces. To be used as a command
+line option, it is possible to quote this string. Most commonly, a
+network locations string is "tcp://<machine>:<port1>
+tcp://<machine>:<port2>".
 
 @menu
-* Partition Option boot_server::  
-* Partition Option nolaunch::  
-* Partition Option detach::    
-* Partition Option slave::     
+* Partition Option boot_location::  
 * Partition Option self_location::  
+* Partition Option data_location::  
+* Partition Option nolaunch::   
+* Partition Option detach::     
+* Partition Option slave::      
 * Partition Option boot_mirror::  
 * Partition Option mirror_expected::  
 * Partition Option connection_hits::  
 * Partition Option reconnection::  
 * Partition Option termination::  
-* Partition Option trace::     
-* Partition Option replay::    
+* Partition Option trace::      
+* Partition Option replay::     
 @end menu
 
-@node Partition Option boot_server, Partition Option nolaunch, Partition Command Line Options, Partition Command Line Options
-@subsection Partition Option boot_server
+@node Partition Option boot_location, Partition Option self_location, Partition Command Line Options, Partition Command Line Options
+@subsection Partition Option boot_location
 
-This option sets the boot server location (see @ref{Pragma Boot_Server}
+This option sets the boot server location (see @ref{Pragma Boot_Location}
 for details).
 
-@comlinopt{BOOT_SERVER, boot_server, Formatted String}
+@comlinopt{BOOT_LOCATION, boot_location, Formatted String}
 
-The formatted string must conform to the notation
-<protocol_name>://<protocol_data>. Most commonly, this would be
-tcp://<machine>:<port>.
+The formatted string must conform to the location notation (see
+@ref{Location Declaration} and @ref{Partition Command Line
+Options}. Most commonly, this would be tcp://<machine>:<port>.
 
-@node Partition Option nolaunch, Partition Option detach, Partition Option boot_server, Partition Command Line Options
+@node Partition Option self_location, Partition Option data_location, Partition Option boot_location, Partition Command Line Options
+@subsection Partition Option self_location
+
+This option sets the current partition location (see @ref{Partition
+Attribute Self_Location} for details).
+
+@comlinopt{SELF_LOCATION, self_location, Formatted String}
+
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item SELF_LOCATION @tab @code{--}self_location @tab Formatted String
+@end multitable
+
+The formatted string must conform to the location notation (see
+@ref{Location Declaration} and @ref{Partition Command Line
+Options}. Most commonly, this would be tcp://<machine>:<port>.
+
+@node Partition Option data_location, Partition Option nolaunch, Partition Option self_location, Partition Command Line Options
+@subsection Partition Option data_location
+
+This option sets the location of the data storage on which the shared
+passive units of the current partition are mapped (see @ref{Partition
+Attribute Data_Location} for details). This location has to be
+compatible with one of locations provided in the configuration file,
+that means the partition option data_location must have a support name
+of one of the storage locations specified in the configuration file.
+
+@comlinopt{DATA_LOCATION, data_location, Formatted String}
+
+@multitable @columnfractions .33 .33 .33
+@item Environment Variable @tab Command Line Option @tab Type
+@item DATA_LOCATION @tab @code{--}DATA_location @tab Formatted String
+@end multitable
+
+The formatted string must conform to the location notation (see
+@ref{Location Declaration} and @ref{Partition Command Line
+Options}. Most commonly, this would be dfs://<directory>.
+
+@node Partition Option nolaunch, Partition Option detach, Partition Option data_location, Partition Command Line Options
 @subsection Partition Option nolaunch
 
 This feature is useful when the configuration has been built with an Ada 
@@ -2191,11 +2402,11 @@ launch the other partitions anymore. The user has to launch them by hand.
 @node Partition Option detach, Partition Option slave, Partition Option nolaunch, Partition Command Line Options
 @subsection Partition Option detach
 
-This option is not intended to be specified by the user. When this feature
-is activated, the process forks itself and the child closes its standard
-input, output and error descriptors. This feature is always activated
-when a partition is launched from the main partition using a remote
-shell (with a starter Ada or Shell).
+This option is not intended to be specified by the user. When this
+feature is activated, the process forks itself and the child closes its
+standard input, output and error descriptors. This feature is always
+activated when a partition is launched from the main partition using a
+remote shell (with a starter Ada or Shell).
 
 The only case where it can be useful is for a configuration built with a
 Shell starter. In this case, the user can edit the shell script to pipe
@@ -2207,7 +2418,7 @@ to be removed.
 @item DETACH @tab @code{--}detach @tab None
 @end multitable
 
-@node Partition Option slave, Partition Option self_location, Partition Option detach, Partition Command Line Options
+@node Partition Option slave, Partition Option boot_mirror, Partition Option detach, Partition Command Line Options
 @subsection Partition Option slave
 
 This feature is not supposed to be used by the user. When
@@ -2221,26 +2432,7 @@ partition anymore.
 @item SLAVE @tab @code{--}slave @tab None
 @end multitable
 
-@node Partition Option self_location, Partition Option boot_mirror, Partition Option slave, Partition Command Line Options
-@subsection Partition Option self_location
-
-Except for the boot partition on which the boot server is located, a
-partition is reachable through a dynamically computed location (for
-instance, the partition looks for a free port when the protocol is
-tcp). The user may want such a partition to be reachable from a given
-location in order to be a boot mirror. To do so, he can force the
-partition location with self_location feature.
-
-@multitable @columnfractions .33 .33 .33
-@item Environment Variable @tab Command Line Option @tab Type
-@item SELF_LOCATION @tab @code{--}self_location @tab Formatted String
-@end multitable
-
-The formatted string must conform to the notation
-<protocol_name>://<protocol_data>. In general, this will be
-tcp://<machine>:<port>.
-
-@node Partition Option boot_mirror, Partition Option mirror_expected, Partition Option self_location, Partition Command Line Options
+@node Partition Option boot_mirror, Partition Option mirror_expected, Partition Option slave, Partition Command Line Options
 @subsection Partition Option boot_mirror
 
 By default, a partition is not a boot mirror, except for a boot partition
@@ -2336,14 +2528,14 @@ concatenated to the @code{--}trace_file argument.
 In order to replay a partition whose execution has been previously
 traced, the command line argument @code{--}replay is required. In addition,
 the special boot server location "replay://" has to be specified,
-i.e. by using the @code{--}boot_server replay:// command line argument.
+i.e. by using the @code{--}boot_location replay:// command line argument.
 
 To replay a traced execution of partition whose executable is named
 @t{part}, we start it with the command
 
 @smallexample
 
-% part [@code{--}nolaunch] [@code{--}slave] @code{--}replay @code{--}boot_server replay://
+% part [@code{--}nolaunch] [@code{--}slave] @code{--}replay @code{--}boot_location replay://
 
 @end smallexample
 
@@ -2422,11 +2614,11 @@ packages. This RCI package registration occurs once the partition has
 been allocated a partition id. The partition registers its RCI and SP
 packages with their names, their version ids and internal information.
 
-As described previously, the boot server partition can be replicated on boot
-mirrors, in order to prevent this
-partition from being a single point of failure. A partition has always to
-connect to a boot server or a boot mirror in order to get a minimal information
-set on the other existing partitions.
+As described previously, the boot server partition can be replicated on
+boot mirrors, in order to prevent this partition from being a single
+point of failure. A partition has always to connect to a boot server or
+a boot mirror in order to get a minimal information set on the other
+existing partitions.
 
 The boot server is the first boot mirror of the system. A new partition
 declared as a boot mirror joins the group of boot mirrors. The group of
@@ -2486,22 +2678,21 @@ at most one anonymous task running at a time.
 @node Priority Inheritance, Remote Call Abortion, Executing Concurrent Remote Calls, GLADE Internals
 @subsection Priority Inheritance
 
-It is compiler-dependent whether the caller priority is preserved during a remote
-procedure call. In fact, it can be unsafe to rely on priorities,
-because two partitions may
-have different priority ranges and policies. Nevertheless, GLADE
-preserves the caller priority. This priority is marshalled and
-unmarshalled during the remote procedure call and the priority of the anonymous
-task on the server is set to the caller priority. There is no way currently to
-disable this feature.
+It is compiler-dependent whether the caller priority is preserved during
+a remote procedure call. In fact, it can be unsafe to rely on
+priorities, because two partitions may have different priority ranges
+and policies. Nevertheless, GLADE preserves the caller priority. This
+priority is marshalled and unmarshalled during the remote procedure call
+and the priority of the anonymous task on the server is set to the
+caller priority. There is no way currently to disable this feature.
 
 @node Remote Call Abortion, User Filter Implementation, Priority Inheritance, GLADE Internals
 @subsection Remote Call Abortion
 
 When a remote procedure call is aborted, GLADE will abort the calling
-task on the caller side. It will also try to abort the remote
-anonymous task performing the remote call. This task will be aborted
-without being requeued in the anonymous tasks pool.
+task on the caller side. It will also try to abort the remote anonymous
+task performing the remote call. This task will be aborted without being
+requeued in the anonymous tasks pool.
 
 @node User Filter Implementation,  , Remote Call Abortion, GLADE Internals
 @subsection User Filter Implementation
@@ -2552,7 +2743,7 @@ Then for each partition PART, start manually the corresponding
 executable on the corresponding host as follows
 
 @smallexample
-% PART [--nolaunch] --boot_server tcp://MAIN_HOST:PORT_NUM
+% PART [--nolaunch] --boot_location tcp://MAIN_HOST:PORT_NUM
 @end smallexample
 
 The --nolaunch parameter must be included for the main partition, it
