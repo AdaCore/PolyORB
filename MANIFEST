@@ -28,6 +28,13 @@
 ./Examples/all_types/client.adb
 ./Examples/all_types/dir.mk
 ./Examples/all_types/server.adb
+./Examples/naming_service/GNUmakefile
+./Examples/naming_service/client.adb
+./Examples/naming_service/dir.mk
+./Examples/naming_service/echo-impl.adb
+./Examples/naming_service/echo-impl.ads
+./Examples/naming_service/echo.idl
+./Examples/naming_service/server.adb
 ./Examples/echo/GNUmakefile
 ./Examples/echo/client.adb
 ./Examples/echo/dir.mk
