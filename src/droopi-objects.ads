@@ -4,6 +4,8 @@
 
 with Ada.Streams; use Ada.Streams;
 
+with Droopi.Requests;
+
 package Droopi.Objects is
 
    type Object_Id is new Stream_Element_Array;

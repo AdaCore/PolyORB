@@ -6,8 +6,9 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 with Droopi.Filters;
 with Droopi.Log;
-with Droopi.ORB.Task_Policies;
 with Droopi.No_Tasking;
+with Droopi.Obj_Adapters.Simple;
+with Droopi.ORB.Task_Policies;
 with Droopi.Protocols;
 with Droopi.Protocols.Echo;
 with Droopi.Smart_Pointers;
@@ -22,6 +23,8 @@ is
 
    Server : Socket_Type;
    Addr : Sock_Addr_Type;
+
+   Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
 
 begin
    -------------------------------
@@ -85,7 +88,12 @@ begin
       (This => new Protocols.Echo.Echo_Protocol,
        Upper => null));
 
+   ----------------------------------
+   -- Create simple object adapter --
+   ----------------------------------
 
+   Obj_Adapter := new Obj_Adapters.Simple.Simple_Obj_Adapter;
+   Obj_Adapters.Create (Obj_Adapter.all);
 
 --  XXX remove:
 --     Insert_Socket

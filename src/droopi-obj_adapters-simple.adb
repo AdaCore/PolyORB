@@ -19,6 +19,36 @@ package body Droopi.Obj_Adapters.Simple is
    function Oid_To_Index is
       new Ada.Unchecked_Conversion (Simple_OA_Oid, Integer);
 
+   function Find_Entry
+     (OA    : Simple_Obj_Adapter;
+      Index : Integer)
+     return Object_Map_Entry;
+   --  Check that Index is a valid object Index (associated
+   --  to a non-null Servant) for object adapter OA, and
+   --  return the associated entry. If Index is out of range
+   --  or associated to a null Servant, Invalid_Oid is raised.
+
+   function Find_Entry
+     (OA    : Simple_Obj_Adapter;
+      Index : Integer)
+   return Object_Map_Entry is
+   begin
+      declare
+         OME : constant Object_Map_Entry
+           := Element_Of (OA.Object_Map, Index);
+      begin
+         if OME.Servant = null then
+            raise Invalid_Oid;
+         end if;
+
+         return OME;
+      end;
+   exception
+      when Sequences.Index_Error =>
+         raise Invalid_Oid;
+      when others =>
+         raise;
+   end Find_Entry;
 
    --  XXX Replace OA.Lock with a r/w lock???
 
@@ -48,7 +78,9 @@ package body Droopi.Obj_Adapters.Simple is
                Replace_Element
                  (OA.Object_Map,
                   1 + I - M'First,
-                  Object_Map_Entry'(Servant => Obj));
+                  Object_Map_Entry'
+                  (Servant => Obj,
+                   If_Desc => (null, null)));
                New_Id := I;
                exit Map;
             end if;
@@ -56,7 +88,7 @@ package body Droopi.Obj_Adapters.Simple is
 
          if New_Id > M'Last then
             Append (OA.Object_Map, Object_Map_Entry'
-                    (Servant => Obj));
+                    (Servant => Obj, If_Desc => (null, null)));
          end if;
          Leave (OA.Lock);
 
@@ -64,12 +96,120 @@ package body Droopi.Obj_Adapters.Simple is
       end;
    end Export;
 
+   --  XXX There is FAR TOO MUCH code duplication in here!
+
    procedure Unexport
      (OA : in out Simple_Obj_Adapter;
-      Id : Object_Id) is
+      Id : Object_Id)
+   is
+      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Id));
    begin
-      raise Not_Implemented;
+      Enter (OA.Lock);
+
+      begin
+         declare
+            OME : Object_Map_Entry
+              := Find_Entry (OA, Index);
+         begin
+            pragma Assert (OME.Servant /= null);
+            OME := (Servant => null, If_Desc => (null, null));
+            Replace_Element (OA.Object_Map, Index, OME);
+         end;
+      exception
+         when others =>
+            Leave (OA.Lock);
+            raise;
+      end;
+
+      Leave (OA.Lock);
    end Unexport;
+
+   procedure Set_Interface_Description
+     (OA      : in out Simple_Obj_Adapter;
+      Id      : Object_Id;
+      If_Desc : Interface_Description)
+   is
+      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Id));
+   begin
+      Enter (OA.Lock);
+
+      begin
+         declare
+            OME : Object_Map_Entry
+              := Find_Entry (OA, Index);
+         begin
+            pragma Assert (OME.Servant /= null);
+            OME.If_Desc := If_Desc;
+            Replace_Element (OA.Object_Map, Index, OME);
+         end;
+      exception
+         when others =>
+            Leave (OA.Lock);
+            raise;
+      end;
+
+      Leave (OA.Lock);
+   end Set_Interface_Description;
+
+   function Get_Empty_Arg_List
+     (OA     : Simple_Obj_Adapter;
+      Oid    : Object_Id;
+      Method : Requests.Operation_Id)
+     return CORBA.NVList.Ref
+   is
+      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Oid));
+      Result : CORBA.NVList.Ref;
+   begin
+      Enter (OA.Lock);
+
+      begin
+         declare
+            OME : Object_Map_Entry
+              := Find_Entry (OA, Index);
+         begin
+            pragma Assert (OME.Servant /= null and then
+              OME.If_Desc.PP_Desc /= null);
+            Result := OME.If_Desc.PP_Desc (Method);
+         end;
+      exception
+         when others =>
+            Leave (OA.Lock);
+            raise;
+      end;
+
+      Leave (OA.Lock);
+      return Result;
+   end Get_Empty_Arg_List;
+
+   function Get_Empty_Result
+     (OA     : Simple_Obj_Adapter;
+      Oid    : Object_Id;
+      Method : Requests.Operation_Id)
+     return CORBA.Any
+   is
+      Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Oid));
+      Result : CORBA.Any;
+   begin
+      Enter (OA.Lock);
+
+      begin
+         declare
+            OME : Object_Map_Entry
+              := Find_Entry (OA, Index);
+         begin
+            pragma Assert (OME.Servant /= null and then
+              OME.If_Desc.PP_Desc /= null);
+            Result := OME.If_Desc.RP_Desc (Method);
+         end;
+      exception
+         when others =>
+            Leave (OA.Lock);
+            raise;
+      end;
+
+      Leave (OA.Lock);
+      return Result;
+   end Get_Empty_Result;
 
    function Find_Servant
      (OA  : Simple_Obj_Adapter;

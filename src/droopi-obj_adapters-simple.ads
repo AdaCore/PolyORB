@@ -24,6 +24,41 @@ package Droopi.Obj_Adapters.Simple is
      (OA : in out Simple_Obj_Adapter;
       Id : Object_Id);
 
+   --  In the Simple Object Adapter, the methods of an object
+   --  are described using two factory functions (provided by
+   --  the application layer) that construct an argument list
+   --  and a result Any for a given method.
+
+   type Parameter_Profile_Description is
+     access function (Method : Requests.Operation_Id)
+     return CORBA.NVList.Ref;
+
+   type Result_Profile_Description is
+     access function (Method : Requests.Operation_Id)
+     return CORBA.Any;
+
+   type Interface_Description is record
+      PP_Desc : Parameter_Profile_Description;
+      RP_Desc : Result_Profile_Description;
+   end record;
+
+   procedure Set_Interface_Description
+     (OA      : in out Simple_Obj_Adapter;
+      Id      : Object_Id;
+      If_Desc : Interface_Description);
+
+   function Get_Empty_Arg_List
+     (OA     : Simple_Obj_Adapter;
+      Oid    : Object_Id;
+      Method : Requests.Operation_Id)
+     return CORBA.NVList.Ref;
+
+   function Get_Empty_Result
+     (OA     : Simple_Obj_Adapter;
+      Oid    : Object_Id;
+      Method : Requests.Operation_Id)
+     return CORBA.Any;
+
    function Find_Servant
      (OA  : Simple_Obj_Adapter;
       Id : Object_Id)
@@ -41,6 +76,8 @@ private
       --  object within the object map.
       Servant : Servant_Access;
       --  May be null (empty entries).
+
+      If_Desc : Interface_Description;
    end record;
 
    package Object_Map_Entry_Seqs is new Sequences.Unbounded

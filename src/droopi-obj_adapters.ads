@@ -3,17 +3,26 @@
 
 --  $Id$
 
+with CORBA;
+with CORBA.NVList;
+
 with Droopi.Objects; use Droopi.Objects;
+with Droopi.Requests;
 
 package Droopi.Obj_Adapters is
 
    type Obj_Adapter is abstract tagged limited private;
+   type Obj_Adapter_Access is access all Obj_Adapter'Class;
 
    procedure Create (OA : out Obj_Adapter) is abstract;
    --  Initialize.
 
    procedure Destroy (OA : in out Obj_Adapter) is abstract;
    --  Finalize.
+
+   Invalid_Oid : exception;
+   --  An invalid object identifier was passed to an object
+   --  adapter subprogram.
 
    --------------------------------------
    -- Interface to application objects --
@@ -35,13 +44,20 @@ package Droopi.Obj_Adapters is
    -- Interface to ORB (acting on behalf of clients) --
    ----------------------------------------------------
 
---     function Get_Method_Signature
---       (OA  : Obj_Adapter;
---        Ref : Object_Id;
---        Meth : Method_Id)
---       return Any;
-   --  Return the signature of the given method, so the protocol layer
-   --  can unmarshall the message into a Request object.
+   function Get_Empty_Arg_List
+     (OA     : Obj_Adapter;
+      Oid    : Object_Id;
+      Method : Requests.Operation_Id)
+     return CORBA.NVList.Ref is abstract;
+   --  Return the paramter profile of the given method, so the
+   --  protocol layer can unmarshall the message into a Request object.
+
+   function Get_Empty_Result
+     (OA     : Obj_Adapter;
+      Oid    : Object_Id;
+      Method : Requests.Operation_Id)
+     return CORBA.Any is abstract;
+   --  Return the result profile of the given method.
 
    function Find_Servant
      (OA : Obj_Adapter;

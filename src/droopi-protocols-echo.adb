@@ -103,6 +103,10 @@ package body Droopi.Protocols.Echo is
          Argv : String_Array
            := Split (Unmarshall_String (Rep, S.Buffer));
 
+         Method     : constant String := Argv (1).all;
+         Oid        : constant String := Argv (2).all;
+         Arg_String : constant String := Argv (3).all;
+
          Req : Request_Access := null;
          Args   : CORBA.NVList.Ref;
          Result : CORBA.NamedValue;
@@ -111,18 +115,17 @@ package body Droopi.Protocols.Echo is
          --  Clear buffer
 
          begin
-            pragma Debug (O ("Received request " & Argv (1).all
-                             & " on object " & Argv (2).all
-                             & " with args " & Argv (3).all));
---              Create_Request
---                (Req,
---                 Target    => Argv (2),
---                 Operation => Argv (1).all,
---                 Args      => Argv (3).all);
+            pragma Debug (O ("Received request " & Method
+                             & " on object " & Oid
+                             & " with args " & Arg_String));
+
+            --  Args := Get_Empty_Arg_List (OA, Oid, Method);
+            --  Result := Get_Empty_Result (OA, Oid, Method);
 
             Create_Request
-              (Target    => References.Nil_Ref,
-               Operation => Argv (1).all,
+              ( --  Target=> Make_Reference (TSAP_Of (The_TE), Oid)
+               Target    => References.Nil_Ref,
+               Operation => Method,
                Arg_List  => Args,
                Result    => Result,
                Req       => Req);
@@ -138,7 +141,7 @@ package body Droopi.Protocols.Echo is
       end;
 
       Expect_Data (S, S.Buffer, 1024);
-      --  XXX data_Exact => false
+      --  XXX Not exact amount.
 
       --  Prepare to receive next message.
 
