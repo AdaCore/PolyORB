@@ -1,3 +1,8 @@
+Wed May  7 15:00:33 1997  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-rpstio.adb, s-rpstio.ads, Makefile.am, Makefile.in, Makefile:
+ 	Add message passing interface.
+
 Wed May  7 00:58:18 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-parint.ads: Added a new function which mimics the procedure
@@ -47,7 +52,6 @@ Fri May  2 16:37:16 1997  Daniel Neri  <d92-dne@nada.kth.se>
  	now wrapped with ``fmt'' (which hopefully is present on all
  	important Unices).
 
->>>>>>> 1.102
 Wed Apr 30 15:32:43 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garpri.ads: Added background creation priority.

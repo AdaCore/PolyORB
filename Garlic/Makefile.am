@@ -69,6 +69,7 @@ s-rpc.o\
 s-rpcini.o\
 s-rpcpoo.o\
 s-rpcuti.o\
+s-rpstio.o\
 s-stratt.o
 
 COMMONSOURCES = \
@@ -101,6 +102,7 @@ ${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
 ${srcdir}/s-rpcini.ads ${srcdir}/s-rpcini.adb \
 ${srcdir}/s-rpcpoo.ads ${srcdir}/s-rpcpoo.adb \
 ${srcdir}/s-rpcuti.ads ${srcdir}/s-rpcuti.adb \
+${srcdir}/s-rpstio.ads ${srcdir}/s-rpstio.adb \
 ${srcdir}/s-stratt.adb
 
 OBJECTS = \
