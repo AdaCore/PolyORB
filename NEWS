@@ -11,7 +11,7 @@ New Functionnalities
     been given to GNATDIST.
 
   * Task pools
-    Up to GLADE 1.01, a new task was created for each incoming
+    Up to GLADE 1.02, a new task was created for each incoming
     request. Now, tasks are reused and are pre-created using a
     low-priority background allocator to allow requests to be served
     sooner. The number of awaiting tasks is configurable through
