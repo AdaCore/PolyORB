@@ -13,7 +13,7 @@
 \usepackage{amsmath}
 
 \title{Conception et mise en {\oe}uvre de \droopi{}\\
-Un middleware générique pour systèmes d'objets
+Un intergiciel générique pour systèmes d'objets
 répartis interopérables}
 \author{Thomas Quinot}
 
@@ -23,7 +23,7 @@ répartis interopérables}
 
 \section{Introduction}
 
-L'utilisation d'intergiciels (middlewares) pour la réalisation
+L'utilisation d'intergiciels (intergiciels) pour la réalisation
 de systèmes répartis permet au concepteur d'applications de
 s'affranchir de certaines contraintes, telles que la gestion de
 la communication entre n{\oe}uds, ou l'hétérogénéité des architectures
@@ -75,23 +75,23 @@ en comparaison avec des appels de méthodes distants à
 l'intérieur de chaque plate-forme.
 
 % XXX
-% les middlewares, les plates-formes à objets répartis
+% les intergiciels, les plates-formes à objets répartis
 % Préliminaires sur la question de l'interopérabilité.
 % Deux solutions possibles pour l'interopérabilité :
 %   - les passerelles ;
-%   - l'utilisation d'un middleware générique
-%     -> Pourquoi un middleware générique peut-il répondre
+%   - l'utilisation d'un intergiciel générique
+%     -> Pourquoi un intergiciel générique peut-il répondre
 %        aux problématiques de l'interopérabilité ?
 %
-% état de l'art : les middlewares génériques existants.
-% Quels sont les caractéristiques principales de ces middlewares ?
+% état de l'art : les intergiciels génériques existants.
+% Quels sont les caractéristiques principales de ces intergiciels ?
 % Quels sont nos objectifs propres ? (interopérabilité, flexibilité,
 % configurabilité, temps réel, GL) ? Quelles sont les caractéristiques
-% des middlewares existants qui nous semblent pertinentes par rapport
+% des intergiciels existants qui nous semblent pertinentes par rapport
 % à ces objectifs ?
 %
 % -> proposer notre contribution comme une synthèse d'éléments
-% dont certains existent dans des middlewares existants, et que
+% dont certains existent dans des intergiciels existants, et que
 % nous combinons d'une façon originale pour résoudre un problème
 % que nous nous posons : l'interopérabilité.
 
@@ -138,9 +138,30 @@ ordres. Les unes sont spécifiques de notre implémentation~:
 
 \subsection{Intergiciels interopérables}
 
-% XXX
-% * ad hoc (breg98: Java/RMI+Nexus RMI+HPC++
-% * basés sur les middlewares génériques : DROOPI
+Une deuxième possibilité consiste à introduire le support
+de multiples plates-formes directement à l'intérieur de l'intergiciel.
+Deux approches sont possibles pour ce faire.
+
+La première consiste à intégrer, de manière \emph{ad hoc}, le support
+d'un protocole de communication choisi comme référence commune au sein
+d'une application associant plusieurs modèles de répartition. Elle
+est décrite dans~\cite{breg98}, où une application de calcul réparti
+en HPC++ est pilotée par une interface graphique en Java, et où Java/RMI
+est utilisé pour la coordination entre n{\oe}uds de calcul et n{\oe}uds
+de contrôle.
+
+La deuxième prolonge les travaux existants sur les integiciels génériques
+tels que Quarterware~\cite{singhai99:quarterware},
+TAO~\cite{schmidt98:patterns} et ACT~\cite{francu99:act}. Ces
+projets proposent une conception modulaire des intergiciels. De
+tels systèmes peuvent se prêtent en effet aisément à une reconfiguration
+et une adaptation par addition ou échange de modules bien délimités au
+sein d'une architecture flexible.
+
+Nous avons donc proposé, et nous décrivons dans les sections suivantes,
+une architecture d'intergiciel générique ayant comme objectif de permettre
+la cohabitation de différents modèles et protocoles de répartition au sein
+d'un même n{\oe}ud d'un système réparti.
 
 \section{Position du problème}
 % Maintenant, introduire une étude de cas détaillée.
@@ -262,135 +283,199 @@ et la cohabitation de différentes personnalités au sein de la
 même instance de l'intergiciel en cours d'exécution, afin
 de le rendre «~schizophrène~».
 
-\subsection{Services offerts aux utilisateurs du middleware}
+\subsection{Services offerts aux utilisateurs de l'intergiciel}
 \label{sec:recurring-svcs}
 
-Basic services offered by distribution middlewares constitute an
-abstraction layer over Operating System communication facilities. This
-layer has to preserve the fundamental properties of the
-OO model: addressing (embodying \emph{identity of objects}),
-exchange of requests (transport, data representation, request protocol,
-embodying \emph{method calls}), and resource management (activation of objects,
-requests dispatching, embodying \emph{objects life cycle}).
+Les services de base offerts par les logiciels système pour
+la répartition (intergiciels) constituent une couche d'abstraction
+des services de communication du système d'exploitation. Dans
+les environnements de répartition orientés objets, cette couche
+doit réaliser les mécanismes fondamentaux du modèle «~objets~».
+Chaque objet doit disposer d'une adresse unique et distinctive
+(reflétant la propriété d'\emph{identité} des objets). Un moyen
+d'échanger des messages entre objets doit être offert~; à cet
+effet, des mécanismes de transport, de représentation des données
+et de signalisation entre objets doivent être mis en place. Ils
+réalisent le mécanisme abstrait de l'\emph{appel de méthodes}.
+Enfin, l'intergiciel est comptable des ressources du système qu'il
+utilise. Il doit dont effectuer l'activation des entités concrètes
+utilisées pour répondre aux appels de méthodes, orienter les
+messages au sein de l'application, et restituer au système les
+ressources qui ne sont plus utilisées~: il implémente le \emph{cycle
+de vie} des objets.
 
-We now give a more detailed description of these functional areas:
+Toutes ces fonctions doivent être accomplies par les intergiciels
+orientés objects. Nous donnons maintenant une description plus
+détaillée de ces différents services, que l'on retrouve dans
+les divers environnements de répartition existants~:
+
 \newif\ifexamples\examplestrue
 \begin{description}
 \item[Addressing]\mbox{}
 
   \begin{description}
 
-  \item[Definition] Each object needs to be assigned an address (or
-  \emph{reference}). An address is an piece of information which can
-  be passed from node to node, and denotes one particular object
-  unambiguously all over its existence.
+  \item[Définition] Il est nécessaire d'affecter une adresse
+  (ou \emph{référence}) à chaque objet. Une adresse est un élément
+  d'information communicable entre n{\oe}uds, qui dénote un object
+  particulier de façon non-ambigüe, pour toute sa durée de vie.
 
-  \item[Properties] An address must be a \emph{global} identifier for
-  an object.  Addresses need to designate an object unambiguously:
-  they must be globally \emph{unique}.
+  \item[Propriétés] Les adresses doivent être globalement uniques.
+  Elles doivent distinguer un objet particulier aussi longtemps que
+  celui-ci possède une identité propre, et sans ambiguïté.
 
-  \item[Rationale] One of the fundamental properties of objects is
-  \emph{identity}. Addresses embody that property by allowing nodes to
-  manipulate these object identities.
+  \item[Discussion] L'identité des objets est une propriété fondamentale
+  du modèle objets. Les identificateurs affectés par le service d'adressage
+  réalisent cette propriété en permettant de déterminer et de communiquer
+  l'identité de chaque objet.
+
 \ifexamples
-  \item[Example] %% Solution CORBA 
-  An open addressing scheme that
-  satisfies these properties can be established using TSAP (Transport
-  Service Access Point~\cite{iso7498-1:osi-basic}) addresses from the
-  underlying networking environment, associated with a locally unique
-  identifier attributed by the middleware. This is the solution
-  retained in CORBA.
+  \item[Exemple] %% Solution CORBA 
+  Un espace d'adressage ouvert satisfaisant ces propriétés peut être
+  établi en associant les adresses des points d'accès du service de
+  transport (TSAP, \emph{Transport
+  Service Access Points}~\cite{iso7498-1:osi-basic})
+  du réseau de communication sous-jacent. En associant ces
+  adresses avec un identifiant localement unique de chaque objet
+  attribué par son intergiciel, on obtient un identificateur globalement
+  unique qui peut être utilisé pour désigner chaque objet. Cette solution
+  est celle retenue pour CORBA.
 
-  Other addressing schemes can be established, provided they satisfy
-  those conditions.  Using TSAP addresses has the advantage that no
-  global mapping of identifiers to network addresses has to be
-  maintained.
+  D'autres systèmes peuvent être établis, du moment que les propriétés
+  définies ci-dessus sont satisfaites. Néanmoins, l'utilisation des
+  adresses de TSAP présente l'intérêt qu'il n'est pas nécessaire alors
+  de maintenir la connaissance globale d'une traduction des identificateurs
+  globaux en adresses réseau.
 \fi
   \end{description}
 
-\item[Binding]\mbox{}
+\item[Liaisons]\mbox{}
 
   \begin{description}
-  \item[Definition]
-  When a method is to be invoked on a remote object, a transport
-  connection is established using a transport access point address
-  from an object reference. The Binding service is used to associate
-  object reference data with an open transport endpoint with suitable
-  parameters. 
+  \item[Définition]
+  Lorsqu'une méthode d'un objet distant doit être appelée,
+  il est nécessaire d'établir une connexion de transport.
+  Cet établissement nécessite le choix de l'adresse d'un
+  point d'accès au sein du service de communication, et celui
+  d'un protocole à utiliser sur ce service de communication.
 
-  When an incoming request is to be processed on the local node
-  (or forwarded to another node), the binding service is also
-  used to determine which actual object (or surrogate) is to
-  be used as the target for the request delivery.
+  Le service de liaisons a pour rôle de créer un point de transport
+  ouvert et d'établir une session de protocole, à partir des informations
+  contenues dans une référence d'objet.
 
-  The Binding service thus represents the association of interacting
-  objects with message transport resources. This definition was
-  proposed by the ObjectWeb framework~\cite{dangtran97:jonathan}.
+  Lorsqu'une requête arrive sur un n{\oe}ud, elle doit soit être
+  traitée localement, soit retransmise à un autre n{\oe}ud.
+  Dans les deux cas, le service de liaisons est également utilisé
+  pour déterminer quelle structure locale doit être utilisée
+  pour la remise de la requête. Si celle-ci doit être traitée
+  localement, il s'agira de l'entité concrète implémentant l'objet~;
+  dans le cas contraire, il s'agira d'un objet subrogé de l'objet
+  réel.
 
-  \item[Properties]
-  The binding operation may be implicit (allowing methods to
-  be invoked transparently on remote object with no explicit
-  connection set up visible to the user), or explicit. Explicit
-  binding allows the user to control specific details of the
-  transport connection setup.
+  Le service de liaisons (défini notamment par le framework
+  \emph{Objectweb}~~\cite{dangtran97:jonathan}) a donc pour
+  tâche la gestion des associations entre des objets désirant
+  interagir d'une part, et les ressources nécessaires aux échanges
+  de messages entre ces objets d'autre part (ces ressources sont
+  les constituants des «~objets de liaison~», \emph{binding objects}
+  dans Objectweb).
 
-  \item[Rationale]
-  
-  Distribution requires separation of abstract references that
-  designate ``logical'' objects from the actual structures that
-  implement them (which are language and operating system
-  structures). Each particular language and operating system
-  has specific features that allow one to associate identifiers
-  with actual implementation structures~; in order to construct
-  transparent distributed systems, it is necessary to devise
-  a mechanisme that will encapsulate these features.
+  \item[Propriétés]
+  L'opération de liaison peut être implicite ou explicite.
+  La liaison implicite permet d'appeler des méthodes de façon
+  transparente sur un objet distant, sans que l'utilisateur
+  ait besoin de demander explicitement l'établissement d'une
+  connexion avec l'objet destinataire.
+
+  Dans une liaison explicite, l'utilisateur effectue explicitement
+  la mise en place des ressources de transport et de protocole
+  nécessaires à l'échange de message. Il peut ainsi en contrôler
+  précisément les paramètres.
+
+%%  XXX Cette discussion est un imbittable pipeau.
+
+%%    \item[Discussion]
+%%  
+%%    Distribution requires separation of abstract references that
+%%    designate ``logical'' objects from the actual structures that
+%%    implement them (which are language and operating system
+%%    structures). Each particular language and operating system
+%%    has specific features that allow one to associate identifiers
+%%    with actual implementation structures~; in order to construct
+%%    transparent distributed systems, it is necessary to devise
+%%    a mechanisme that will encapsulate these features.
 
   \end{description}
 
 \item[Transport]\mbox{}
 
   \begin{description}
-  \item[Definition]
-  A node must be able to establish a communication link to an object.
-  This link is used to transmit requests for the execution of object methods.
-  
-  \item[Properties]
-  Messages must be reliably delivered.
+  \item[Définition]
+  Chaque n{\oe}ud doit pouvoir établir un canal de communication avec
+  les objets sur lesquels il souhaite effectuer des appels de méthode.
+  Ce canal est utilisé pour transmettre les messages représentant les
+  requêtes d'exécution de ces méthodes.
 
-  \item[Rationale] Invoking an object method in the object-oriented
-  programming model consists in \emph{sending a message} to the
-  object~\cite{ingalls78:smalltalk}.  Distribution fits nicely in this
-  model: the corresponding message goes through a communication
-  network.
+%%  XXX On ne peut dire cela que si, dans la discussion, on
+%%     justifie que le transport non fiable est en dehos
+%%     du scope des SR OO. Ce qui n'a rien d'évident.
+%%     Est-ce qu'on doit dire qu'un appel de méthode est toujours
+%%     exécuté (ou une erreur signalée) (auquel cas la fonction
+%%     de transport de l'ORB fournit un service de transport
+%%     fiable, même si le service du sys. sous-jacent est
+%%     non fiable) ou bien... ?
+
+%%  \item[Propriétés]
+%%  Messages must be reliably delivered.
+
+  \item[Discussion]
+  Réaliser un appel de méthode dans le modèle de programmation
+  orienté objets est modélisé par un \emph{envoi de message}
+  vers cet objet~\cite{ingalls78:smalltalk}. La répartition s'intègre
+  naturellement à ce modèle théorique~: les envois de messages abstraits
+  sont incarnés par des envois de messages réels sur un réseau
+  de communication.
+
 \ifexamples
-  \item[Example] Existing message-passing libraries can be
-  reused. This method has already been successfully applied to
-  reimplement the Java/RMI platform over existing distributed
-  processing libraries. \cite{nester99} presents KaRMI, a drop-in
-  replacement for Sun's RMI, which features an abstraction for the
-  message passing layer. This abstraction can make use of TCP/IP
-  sockets as well as specialized message-passing hardware in a
-  parallel environment; KaRMI also has the ability to create bridge
-  objects between different technology domains on-the-fly.
+  \item[Exemple]
+  Des bibliothèques existantes de passage de message peuvent
+  être réutilisées pour assurer le service de transport dans
+  un intergiciel orienté objets. En particulier, plusieurs
+  mises en {\oe}uvre de Java/RMI ont été développées avec
+  succès en utilisant de telles bibliothèques, pour tirer
+  parti d'infrastructures de communication existantes
+  particulières.
+
+  \cite{nester99}~présente KaRMI, un composant susceptible de
+  remplacer purement et simplement l'implémentation de référence
+  de RMI de Sun. KaRMI offre une abstraction du mécanisme de
+  transport utilisé~: ce service peut donc bien être analysé
+  comme un module bien délimité de l'architecture.
+
+  Dans KaRMI, cette abstraction peut utiliser les protocoles
+  normalisés TCP/IP, ou bien un support de passage de messages
+  au moyen de matériel spécialisé en environnement parallèle.
+  KaRMI offre également la possibilité de créer au vol des
+  passerelles entre ces différents domaines technologiques.
 \fi
   \end{description}
 
-\item[Marshalling]\mbox{}
+\item[Représentation]\mbox{}
 
-  \begin{description} \item[Definition] Request data must be
+  \begin{description} \item[Définition] Request data must be
   translated into a representation suitable for transmission over a
   network.
 
-  \item[Properties] In order to build interoperable applications, this
+  \item[Propriétés] In order to build interoperable applications, this
   representation has to be previously standardized.  For instance, the
-  middleware at the calling and receiving ends of the communication
+  intergiciel at the calling and receiving ends of the communication
   channel have to agree on the size and endianness of integers.
 
-  \item[Rationale] System representation choices are a tradeoff
+  \item[Discussion] System representation choices are a tradeoff
   between portability and cost of data conversion from machine
   representation to network representation (and back).
 \ifexamples
-  \item[Example] It is necessary to find a balance between platform
+  \item[Exemple] It is necessary to find a balance between platform
   related representation (constraints) and application related
   representation (that can be optimized for a given environment).  For
   example, a common data representation may be specified for all data
@@ -404,13 +489,13 @@ We now give a more detailed description of these functional areas:
 \fi
   \end{description}
 
-\item[Protocol]\mbox{}
+\item[Protocole]\mbox{}
 
-  \begin{description} \item[Definition] The middleware implements a
+  \begin{description} \item[Définition] The intergiciel implements a
   protocol for the transmission of requests among instances of
   distribution runtimes.
 
-  \item[Properties] The fundamental primitives of a distributed
+  \item[Propriétés] The fundamental primitives of a distributed
   objects protocol are \emph{Request} and \emph{Reply}, which are used
   to implement remote invocation of subprograms and methods. Abortion
   of pending requests can also be provided by protocol
@@ -419,47 +504,47 @@ We now give a more detailed description of these functional areas:
   functionally understood as requests sent to objects that are part
   of the platform implementation.
 \ifexamples
-  \item[Example]
+  \item[Exemple]
   CORBA defines a Generic Inter-ORB Protocol for this purpose.
 \fi
   \end{description}
 
 \item[Activation]\mbox{}
 
-  \begin{description} \item[Definition] The middleware has to activate
+  \begin{description} \item[Définition] The intergiciel has to activate
   and deactivate the concrete entities implementing objects.  When a
   request is received, it ensures that the object reference is mapped
-  onto an actual object implementation. The middleware may have to
+  onto an actual object implementation. The intergiciel may have to
   create an object implementation on-the-fly, or to retrieve an object
   state from persistent storage.
 
-  \item[Properties] Each request must be processed within the correct
+  \item[Propriétés] Each request must be processed within the correct
   context (including object state and identity, history of preceding
   requests, etc.)
 \ifexamples
-  \item[Example] The Portable Object Adaptor of CORBA provides several
+  \item[Exemple] The Portable Object Adaptor of CORBA provides several
   policies on various issues (automatic activation, system or user id
   creation, thread creation per-request or per-object, ...)
 \fi
   \end{description}
 
-\item[Dispatching]\mbox{}
+\item[Aiguillage]\mbox{}
   
-  \begin{description} \item[Definition] When a request reaches a node,
+  \begin{description} \item[Définition] When a request reaches a node,
   it has to be assigned onto an execution resource (a thread of
   control) for processing.  The distribution runtime has to find a
   suitable thread on the node, or create one if necessary.
 
-  \item[Properties] The dispatching mechanism should not introduce
+  \item[Propriétés] The dispatching mechanism should not introduce
   dead locks. If possible, it should process requests fairly; request
   prioritization support may also be provided.
 
-  \item[Rationale] Several policies for deciding when to create a
+  \item[Discussion] Several policies for deciding when to create a
   thread, and on which thread to dispatch a given request, can be
   defined. The choice of a particular threading policy is discussed
   in~\cite{schmidt4}.
 \ifexamples
-  \item[Example] \glade{} implements a pool of dynamically created
+  \item[Exemple] \glade{} implements a pool of dynamically created
   threads. Most incoming requests can thus be served
   immediately, while keeping the memory and context switching footprint of the
   runtime within limits~\cite{glade:ug}.
@@ -468,7 +553,7 @@ We now give a more detailed description of these functional areas:
 \end{description}
 
 The previously listed services are sufficient to provide the core 
-functionalities of a distribution middleware.  They are built atop the 
+functionalities of a distribution intergiciel.  They are built atop the 
 operating system communication facilities and provide distributed 
 object-oriented abstractions.
 
@@ -476,15 +561,15 @@ However, applications often require support for more sophisticated
 functions related to distribution.  These functions include:
 \begin{description}
 
-\item[Naming]\mbox{}
+\item[Nommage]\mbox{}
 
   \begin{description}
-  \item[Definition]
+  \item[Définition]
   The Naming service allows object references to be associated with symbolic
   names, and nodes to query the service for any reference associated with
   a name.
 
-  \item[Rationale]
+  \item[Discussion]
   This service lets applications determine the references of any object they
   need at run-time.  It is essential when an application has to adapt to
   environment modifications, to changes in technology or to the evolution
@@ -492,7 +577,7 @@ functions related to distribution.  These functions include:
   object references, and thus make the entire distributed application
   reconfigurable.
 \ifexamples
-  \item[Example] \dsa{} has an implicit naming service: all nodes can
+  \item[Exemple] \dsa{} has an implicit naming service: all nodes can
   invoke operations defined by units categorized as \emph{Remote Call
   Interfaces}. The runtime takes care of locating on which node the
   named unit resides. This service is also used to prevent multiple
@@ -502,14 +587,14 @@ functions related to distribution.  These functions include:
 \fi
   \end{description}
 
-\item[Synchronization]\mbox{}
+\item[Synchronisation]\mbox{}
 
   \begin{description}
 
-  \item[Definition] A synchronization service may be provided to
+  \item[Définition] A synchronization service may be provided to
   synchronize the operation of nodes executing actions in parallel.
 
-  \item[Rationale]
+  \item[Discussion]
   The operation of the concurrent, independent processes that participate
   in a distributed application must be coordinated; most notably, care must
   be taken that concurrent access to shared resources occurs only in
@@ -518,17 +603,17 @@ functions related to distribution.  These functions include:
   as distributed mutual exclusion~\cite{naimi96:mutex}.
   \end{description}
 
-\item[Interface Repository]\mbox{}
+\item[Référentiel des interfaces]\mbox{}
 
   \begin{description}
-  \item[Definition]
+  \item[Définition]
   An application may need to invoke operations on objects whose interface
   was not known when the application was created. For this invocation to be
   performed correctly, a description of the interface must be available.
   The purpose of Interface Repository Services is to propagate such
   information: they distribute service descriptions to interested nodes.
 
-  \item[Properties]
+  \item[Propriétés]
   The abstractions manipulated by the Interface Repository service must
   reflect the platform's service model.
 
@@ -546,17 +631,17 @@ functions related to distribution.  These functions include:
 \fi
   \end{description}
  
-\item[Termination]\mbox{}
+\item[Terminaison]\mbox{}
 
   \begin{description}
-  \item[Definition]
+  \item[Définition]
   A distributed application consists of a set of computing nodes that
   cooperate to reach a goal. If, at some point in time, all nodes agree that
   this goal has been reached, they may decide to globally terminate
   processing and perform an orderly shutdown.  A Termination service can be
   implemented to establish this decision.
 
-  \item[Properties]
+  \item[Propriétés]
   Such a service must determine a consensus among participating nodes on
   whether to end the application. 
   The Termination service provides a support for applications to make this
@@ -576,18 +661,18 @@ functions related to distribution.  These functions include:
 \fi
   \end{description}
 
-\item[Shared data]\mbox{}
+\item[Données partagées]\mbox{}
 
   \begin{description}
 
-  \item[Definition] Nodes in a distributed application may want to
+  \item[Définition] Nodes in a distributed application may want to
   share part of their data.  A shared data service provides shared
   storage transparently for the application developer: distributed
   shared data appears just as normal local data; the distribution
   runtime takes care of propagating the effects of data access between
   nodes.
 
-  \item[Properties]
+  \item[Propriétés]
   A shared storage service must provide all nodes with a consistent view
   of the shared variables. Several models of consistency can be defined.
 
@@ -610,23 +695,23 @@ Let us suppose that we have a very simple object with a single method \emph{echo
 taking a string argument, and sending that string back to the caller.
 Invoking this method involves the following steps:
 \begin{description}
-\item[Addressing] The caller determines a reference to the object.
+\item[Addressage] The caller determines a reference to the object.
 
 \item[Transport] The caller-side ORB extracts a network address from
   the reference and creates a connection to the object's ORB.
 
-\item[Binding] The object reference and transport connection
+\item[Liaisons] The object reference and transport connection
   is implicitly associated with a client-side \emph{bound surrogate}
   (i.e. a surrogate which is part of a \emph{binding object})
   that will process requests by forwarding them to the actual
   remote object.
 
-\item[Marshalling] It converts the string passed
+\item[Représentation] It converts the string passed
   to the method into a representation suitable for network transport,
   for example a four-byte, little-endian integer containing the length
   of the string, followed by the string itself.
 
-\item[Protocol] It creates a \emph{Request} message containing the name
+\item[Protocole] It creates a \emph{Request} message containing the name
   of the method, the object reference, and the marshalled argument, along
   with a unique request ID.
   It sends the message across the transport link to the callee ORB.
@@ -634,10 +719,13 @@ Invoking this method involves the following steps:
   The callee ORB receives the message.
 \item[Activation] The callee ORB looks up the object reference in its
   internal tables, and associates it with an implementation object.
-\item[Dispatching] The callee ORB finds an idle thread within its available
+
+\item[Aiguillage] The callee ORB finds an idle thread within its available
   thread pool, and assigns the execution of the request onto that thread.
-\item[Marshalling] The callee ORB marshalls the echoed string as above.
-\item[Protocol] It creates a \emph{Reply} message containing the request
+
+\item[Représentation] The callee ORB marshalls the echoed string as above.
+
+\item[Protocole] It creates a \emph{Reply} message containing the request
   ID and the marshalled result string. The reply is sent back to the caller.
 
   The caller ORB unmasrshalls the result and returns it to the calling
@@ -653,13 +741,13 @@ mere fact of its creation and registration with an object adapter
 (this is the case of usual CORBA servers). An explicit binding
 mechanism can be necessary for objects that require specific
 set-up in the transport layer. An example of a situation where
-explicit binding is used can be found in~\cite{dumant98;jonathan},
+explicit binding is used can be found in~\cite{dumant98:jonathan},
 where a multimedia stream consumer object is explicitly bound to
 receive method invocation requests from a multicast stream.
 
 \subsection{Services internes}
 
-Le middleware doit assurer un certain nombre de fonctions, notemment
+L'intergiciel doit assurer un certain nombre de fonctions, notemment
 de gestion de ressources, pour offrir les services décrits dans la
 section~\ref{sec:recurring-svcs}~:
 \begin{itemize}
@@ -708,7 +796,7 @@ niveaux~:
 \item[Couche générique --- c{\oe}ur de répartition] \emph{(au centre)}
   Les éléments de l'ORB indépendants de la personnalité.
   Ces entités implémentent les abstractions et patterns
-  communs à toutes les personnalités de middleware.
+  communs à toutes les personnalités d'intergiciel.
 
 \item[Couche protocolaire] \emph{(en bas)}
   Les éléments de l'ORB permettant la communication avec
@@ -748,11 +836,11 @@ associée.
 \subsection{Processus de personnalisation}
 
 \droopi{} offre une liaison flexible entre des objets d'applications et
-une architecture de transport de messages. Deux facettes du middleware sont
+une architecture de transport de messages. Deux facettes de l'intergiciel sont
 donc personnalisables~:
 \begin{itemize}
 \item l'interface avec les objets d'application («~personnalité applicative~»)~;
-\item l'interface avec d'autres middlewares à travers l'architecture de transport
+\item l'interface avec d'autres intergiciels à travers l'architecture de transport
  («~personnalité protocolaire~»).
 \end{itemize}
 
@@ -987,7 +1075,7 @@ du scheduler à des objets de type \emph{Tasking\_Policy}.
 
 La figure \ref{fig:droopi-uml} donne une vue d'ensemble de
 l'implémentation de \droopi{}. Elle est pilotée par des événements
-échangés entre modules. En effet, le middleware ne doit pas imposer
+échangés entre modules. En effet, l'intergiciel ne doit pas imposer
 l'ajout de nouvelles tâches dans une application qui n'en comporte pas.
 Les activités de l'ORB ne doivent être déclenchées que lorsqu'elles
 sont nécessaires (lorsque l'application souhaite invoquer une méthode distante,
@@ -1286,13 +1374,13 @@ Exemples de dérivations concrètes possibles~: CDR, XDR.
 \label{sec:protocoles}
 
 Droopi.Session est l'abstraction d'une connexion ouverte avec un autre
-middleware, sur laquelle on peut émettre ou recevoir des requêtes d'invocation
+intergiciel, sur laquelle on peut émettre ou recevoir des requêtes d'invocation
 de méthodes. Une session se situe au sommet d'une pile de filtres
 liée à un TE.
 
 Étant donnée une requête d'invocation de méthode
 destinée à un objet (une instance de Request), la session
-construit un message et transmet ce message à un middleware distant
+construit un message et transmet ce message à un intergiciel distant
 afin que la requête soit exécutée.
 
 Étant donnée un message reçu, la session construit une requête et la fait
@@ -1369,13 +1457,13 @@ de mémoire~:
 \subsubsection{Réification des appels de méthodes}
 
 Les appels de méthodes et leurs paramètres doivent être représentés
-par des objects que le middleware peut manipuler.
+par des objects que l'intergiciel peut manipuler.
 
 \begin{description}
 \item[Droopi.Any] permet de manipuler toute donnée
   de l'utilisateur (argument d'un appel de méthode, valeur de
   retour ou exception) sous forme d'un type conteneur universel.
-  Le middleware peut ainsi stocker et transporter des données
+  L'intergiciel peut ainsi stocker et transporter des données
   de types arbitraires sans connaître le détail de leur structure
   et de leur sens.
 \item[Droopi.Requests] définit le type représentant un appel
@@ -1535,7 +1623,7 @@ internes de l'ORB est réalisée par la collaboration de plusieurs unités.
 \begin{description}
 \item[Droopi.Jobs] fournit un type abstrait «~Job~» représentant
   tout travail susceptible d'être affecté à un fil de traitement
-  pour être exécuté. Ce type est dérivé par chaque module du middleware
+  pour être exécuté. Ce type est dérivé par chaque module de l'intergiciel
   qui a besoin de faire exécuter une tâche dont l'étendue est délimitée
   dans le temps~;
 \item[Droopi.ORB] contient le mécanisme de base d'ordonnancement
@@ -1638,6 +1726,7 @@ Les politiques suivantes sont actuellement réalisées~:
 %%  ./corba/droopi-protocols-giop-giop_1_2.ads
 %%  ./corba/droopi-protocols-giop.ads
 %%  ./corba/droopi-references-ior.ads
+
 %%  ./corba/portableserver-adapteractivator-impl.ads
 %%  ./corba/portableserver-adapteractivator.ads
 %%  ./corba/portableserver-current.ads
@@ -1652,7 +1741,7 @@ Les politiques suivantes sont actuellement réalisées~:
 %%  ./corba/portableserver-servantretentionpolicy.ads
 %%  ./corba/portableserver-threadpolicy.ads
 %%  ./corba/portableserver.ads
-%%  
+
 %%  ./echo-impl.ads
 %%  ./echo.ads
 %%  ./locked_queue.ads
@@ -1660,7 +1749,7 @@ Les politiques suivantes sont actuellement réalisées~:
 %%  ./sequences-unbounded-search.ads
 %%  ./sequences-unbounded.ads
 %%  ./sequences.ads
-%%  
+
 \section{Perspectives}
 
 Parallèles et relations avec d'autres systèmes de répartition basés
@@ -1668,7 +1757,7 @@ sur d'autres paradigmes que les objets répartis~:
 \begin{itemize}
 \item mémoire partagée~;
 \item passage de messages (MPI, MOM~: JMS, mqSeries...)
-  Un MOM (\emph{Message Oriented Middleware}) en Ada a été prototypé
+  Un MOM (\emph{Message Oriented Intergiciel}) en Ada a été prototypé
   en utilisant \droopi{} comme sous-système de communication.
   Son API est calqué sur les classes JMS.
 \end{itemize}
@@ -1676,7 +1765,7 @@ sur d'autres paradigmes que les objets répartis~:
 Considérer ces autres systèmes de répartition selon deux angles~:
 \begin{enumerate}
 \item peut-on les utiliser comme des transports pour \droopi{}~?
-\item peut-on utiliser \droopi{} comme base d'un middleware réalisant
+\item peut-on utiliser \droopi{} comme base d'un intergiciel réalisant
   ces systèmes (i. e. compatibilité de ces systèmes avec le méta-modèle
   côté application)~?
 \end{enumerate}
