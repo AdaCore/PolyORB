@@ -274,7 +274,14 @@ begin
    Ada.Text_IO.Put_Line ("create root directory");
    NamingContext.Set
      (WDR, CORBA.Impl.Object_Ptr (NamingContext.Impl.New_Context));
-   Bind_Context (WDR, Here, WDR);
+   begin
+      Bind_Context (WDR, Here, WDR);
+   exception
+      when E : others =>
+         Ada.Text_IO.Put_Line ("Uh-oh: " & Ada.Exceptions.Exception_Information (E));
+         Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
+         raise;
+   end;
    Bind_Context (WDR, Back, WDR);
 
    loop

@@ -35,6 +35,7 @@ with CORBA;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.POA;
 with Broca.Stream;
+with Broca.IOP;
 
 package Broca.Server is
 
@@ -85,6 +86,17 @@ package Broca.Server is
       IOR        : access Broca.Buffers.Buffer_Type;
       Object_Key : Encapsulation)
       is abstract;
+
+   --  Return a profile that denotes Server's transport endpoint
+   --  and the given object key.
+   --  The returned access designates a dynamically-allocated
+   --  profile. It is up to the caller to deallocate the associated
+   --  storage after use.
+   function Make_Profile
+     (Server     : access Server_Type;
+      Object_Key : Encapsulation)
+     return Broca.IOP.Profile_Ptr
+     is abstract;
 
    type Server_Ptr is access all Server_Type'Class;
 

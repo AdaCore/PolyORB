@@ -48,6 +48,10 @@ package Broca.IIOP is
          Minor : CORBA.Octet;
       end record;
 
+   IIOP_Version : constant Version_Type
+     := (Major => 1, Minor => 0);
+   --  The version of IIOP implemented by this ORB.
+
    type Strand_Type;
    type Strand_Access is access Strand_Type;
 
@@ -70,15 +74,16 @@ package Broca.IIOP is
 
    type Profile_IIOP_Type is new IOP.Profile_Type with
       record
-         Version : Version_Type;
+         Version : Version_Type := IIOP_Version;
          Host    : CORBA.String;
          Port    : CORBA.Unsigned_Short;
          ObjKey  : Broca.Sequences.Octet_Sequence;
-         Strands : Strand_List_Access;
+         Strands : Strand_List_Access := null;
       end record;
    --  Most of the fields come from the IOR itself. Socket_Addr is
    --  built from Host and Port. Strands is the list of strands.
 
+   --  FIXME: Rename to Profile_IIOP_Ptr. Make classwide.
    type Profile_IIOP_Access is access all Profile_IIOP_Type;
 
    function Find_Connection

@@ -632,6 +632,11 @@ package body Broca.Server is
          IOR    : access Buffer_Type;
          Object_Key : Encapsulation);
 
+      function Make_Profile
+        (Server : access Wait_Server_Type;
+         Object_Key : Encapsulation)
+         return Broca.IOP.Profile_Ptr;
+
       procedure Perform_Work
         (Server : access Wait_Server_Type)
       is
@@ -672,6 +677,16 @@ package body Broca.Server is
       begin
          raise Program_Error;
       end Marshall_Profile;
+
+      function Make_Profile
+        (Server : access Wait_Server_Type;
+         Object_Key : Encapsulation)
+        return Broca.IOP.Profile_Ptr is
+      begin
+         raise Program_Error;
+
+         return null;
+      end Make_Profile;
 
       protected body Hold_Queue is
          procedure Append (Stream : Broca.Stream.Stream_Ptr;
@@ -1146,6 +1161,84 @@ package body Broca.Server is
          end;
       end;
    end Build_IOR;
+
+   --  XXX Move to package spec.
+   --  XXX Should return a ref.
+   function Build_IOR_As_Object_Type
+     (Type_Id : CORBA.RepositoryId;
+      POA : Broca.POA.Ref;
+      Key : Broca.Buffers.Encapsulation)
+     return Broca.Object.Object_Ptr;
+
+   function Build_IOR_As_Object_Type
+     (Type_Id : CORBA.RepositoryId;
+      POA : Broca.POA.Ref;
+      Key : Broca.Buffers.Encapsulation)
+     return Broca.Object.Object_Ptr
+   is
+      The_IOR : Broca.Object.Object_Ptr
+        := new Broca.Object.Object_Type;
+      Object_Key_Buffer : aliased Buffer_Type;
+      Server  : Server_Ptr;
+   begin
+      The_IOR.Type_Id := CORBA.String (Type_Id);
+
+      POA_Object_Of (POA).Link_Lock.Lock_R;
+      --  Lock the POA.  As a result, we are sure it won't be destroyed
+      --  during the marshalling of the IOR.
+
+      --  Create Object_Key.
+
+      --  In Broca, an object_key is an Encapsulation
+      --  that contains a POA reference and an object
+      --  identifier.
+      begin
+         Start_Encapsulation (Object_Key_Buffer'Access);
+         Marshall_POA (Object_Key_Buffer'Access, POA);
+         Marshall (Object_Key_Buffer'Access, Key);
+      exception
+         when others =>
+            POA_Object_Of (POA).Link_Lock.Unlock_R;
+            raise;
+      end;
+
+      declare
+         Object_Key   : constant Encapsulation
+           := Encapsulate (Object_Key_Buffer'Access);
+
+         Nbr_Profiles : CORBA.Unsigned_Long;
+
+      begin
+         Release (Object_Key_Buffer);
+         POA_Object_Of (POA).Link_Lock.Unlock_R;
+         --  The POA should not be unlocked before Encapsulate,
+         --  to allow future use of marshall-by-reference
+         --  for the construction of Object_Key.
+
+         Nbr_Profiles := 0;
+         for N in Server_Id_Type loop
+            Server := Server_Table.Get_Server_By_Id (N);
+            exit when Server = null;
+            if Can_Create_Profile (Server) then
+               Nbr_Profiles := Nbr_Profiles + 1;
+            end if;
+         end loop;
+
+         The_IOR.Profiles := new Broca.IOP.Profile_Ptr_Array'
+           (1 .. Nbr_Profiles => null);
+
+         for N in Server_Id_Type loop
+            Server := Server_Table.Get_Server_By_Id (N);
+            exit when Server = null;
+            if Can_Create_Profile (Server) then
+               The_IOR.Profiles (CORBA.Unsigned_Long (N))
+                 := Make_Profile (Server, Object_Key);
+            end if;
+         end loop;
+
+         return The_IOR;
+      end;
+   end Build_IOR_As_Object_Type;
 
    --  Create an ORB server.
    type This_ORB_Type is new Broca.ORB.ORB_Type with null record;

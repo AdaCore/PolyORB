@@ -716,6 +716,11 @@ package body Broca.Inet_Server is
       IOR        : access Buffer_Type;
       Object_Key : Encapsulation);
 
+   function Make_Profile
+     (Server     : access Fd_Server_Type;
+      Object_Key : Encapsulation)
+      return Broca.IOP.Profile_Ptr;
+
    procedure Perform_Work (Server : access Fd_Server_Type) is
    begin
       Wait_Fd_Request;
@@ -751,8 +756,9 @@ package body Broca.Inet_Server is
 
       Server_Profile : aliased Broca.IIOP.Profile_IIOP_Type;
    begin
-      Server_Profile.Host   := IIOP_Host;
-      Server_Profile.Port   := IIOP_Port;
+      Server_Profile.Version := Broca.IIOP.IIOP_Version;
+      Server_Profile.Host    := IIOP_Host;
+      Server_Profile.Port    := IIOP_Port;
       Server_Profile.ObjKey
         := Octet_Sequences.To_Sequence (To_CORBA_Octet_Array (Object_Key));
 
@@ -760,6 +766,26 @@ package body Broca.Inet_Server is
       Broca.IOP.Callbacks (Broca.IOP.Tag_Internet_IOP).Marshall_Profile_Body
         (IOR, Server_Profile'Access);
    end Marshall_Profile;
+
+   function Make_Profile
+     (Server : access Fd_Server_Type;
+      Object_Key : Encapsulation)
+      return Broca.IOP.Profile_Ptr
+   is
+      use Broca.IIOP;
+      use Broca.Sequences;
+
+      Res : Profile_IIOP_Access
+        := new Profile_IIOP_Type;
+   begin
+      Res.Version := IIOP_Version;
+      Res.Host    := IIOP_Host;
+      Res.Port    := IIOP_Port;
+      Res.ObjKey  := Octet_Sequences.To_Sequence
+        (To_CORBA_Octet_Array (Object_Key));
+
+      return Broca.IOP.Profile_Ptr (Res);
+   end Make_Profile;
 
    ----------------------
    -- Elaboration code --

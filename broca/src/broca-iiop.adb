@@ -347,9 +347,8 @@ package body Broca.IIOP is
       Start_Encapsulation (Profile_Body'Access);
 
       --  Version
-      --  FIXME: Version should not be hard-coded.
-      Marshall (Profile_Body'Access, CORBA.Octet'(1));
-      Marshall (Profile_Body'Access, CORBA.Octet'(0));
+      Marshall (Profile_Body'Access, IIOP_Version.Major);
+      Marshall (Profile_Body'Access, IIOP_Version.Minor);
 
       Marshall (Profile_Body'Access, IIOP_Profile.Host);
       Marshall (Profile_Body'Access, IIOP_Profile.Port);
@@ -492,8 +491,8 @@ package body Broca.IIOP is
       Version.Major := Unmarshall (Profile_Buffer'Access);
       Version.Minor := Unmarshall (Profile_Buffer'Access);
 
-      if Version.Major /= 1
-        or else Version.Minor > 1
+      if Version.Major /= IIOP_Version.Major
+        or else Version.Minor > IIOP_Version.Minor
       then
          Broca.Exceptions.Raise_Bad_Param;
       end if;
