@@ -28,7 +28,6 @@ procedure Client is
    IOR : Corba.String ;
    MyAll_Types : All_Types.Ref ;
 
-
 begin
 
    Put_Line("main : Starting client") ;
@@ -211,28 +210,25 @@ begin
    -- Test of Union
    declare
       Ex,Ex2 : Example := (Switch => 2, Flags => True) ;
-      Tmp,Tmp2 : String (1..100) ;
    begin
       Put_Line ("####### Test of union #######") ;
-      Tmp := "I send the union switch = " &
-                Corba.Long'Image(Ex.Switch) &
-                " and";
+      Put ("I send the union switch = " &
+           Corba.Long'Image(Ex.Switch) &
+           " and") ;
       case Ex.Switch is
-         when 1 => Tmp := Tmp & " Counter = " & Corba.Long'Image(Ex.Counter) ;
-         when 2 => Tmp := Tmp & " Flags = " & Corba.Boolean'Image(Ex.Flags) ;
-         when others => Tmp := Tmp & " Unknown = " & Corba.Long'Image(Ex.Unknown) ;
+         when 1 => Put_Line (" Counter = " & Corba.Long'Image(Ex.Counter)) ;
+         when 2 => Put_Line (" Flags = " & Corba.Boolean'Image(Ex.Flags)) ;
+         when others => Put_Line (" Unknown = " & Corba.Long'Image(Ex.Unknown)) ;
       end case ;
-      Put_Line(Tmp) ;
       Ex2 := Echo1 (MyAll_Types,Ex);
-      Tmp2 := "I received the union switch = " &
-                Corba.Long'Image(Ex2.Switch) &
-                " and";
+      Put ("I received the union switch = " &
+           Corba.Long'Image(Ex2.Switch) &
+           " and") ;
       case Ex.Switch is
-         when 1 => Tmp2 := Tmp2 & " Counter = " & Corba.Long'Image(Ex2.Counter) ;
-         when 2 => Tmp2 := Tmp2 & " Flags = " & Corba.Boolean'Image(Ex2.Flags) ;
-         when others => Tmp2 := Tmp2 & " Unknown = " & Corba.Long'Image(Ex2.Unknown) ;
+         when 1 => Put_Line (" Counter = " & Corba.Long'Image(Ex2.Counter)) ;
+         when 2 => Put_Line (" Flags = " & Corba.Boolean'Image(Ex2.Flags)) ;
+         when others => Put_Line (" Unknown = " & Corba.Long'Image(Ex2.Unknown)) ;
       end case ;
-      Put_Line(Tmp2) ;
    end ;
 
    Put_Line ("") ;
@@ -240,23 +236,20 @@ begin
 
    -- Test of struct
    declare
-      Str,Str2 : Simple_Struct := (A => (0,1,2,3,4,5,6,7,8,9,10), B => 11) ;
-      Tmp,Tmp2 : String (1..100) ;
+      Str,Str2 : Simple_Struct := (A => (0,1,2,3,4,5,6,7,8,9), B => 10) ;
    begin
       Put_Line ("####### Test of struct #######") ;
-      Tmp := "I send the simple_struct a = (" & Corba.Long'Image(Str.A(0));
-      for I in 1 .. 10 loop
-         Tmp := Tmp & "," & Corba.Long'Image(Str.A(I)) ;
+      Put ("I send the simple_struct a = (" & Corba.Long'Image(Str.A(0)));
+      for I in 1 .. 9 loop
+         Put ("," & Corba.Long'Image(Str.A(I))) ;
       end loop ;
-      Tmp := Tmp & " and b = " & Corba.Long'Image(Str.B) ;
-      Put_Line(Tmp) ;
+      Put_Line (" and b = " & Corba.Long'Image(Str.B)) ;
       str2 := echo2 (MyAll_Types,str) ;
-      Tmp2 := "I received the simple_struct a = (" & Corba.Long'Image(Str2.A(0)) ;
-      for I in 1 .. 10 loop
-         Tmp2 := Tmp2 & "," & Corba.Long'Image(Str2.A(I)) ;
+      Put ("I received the simple_struct a = (" & Corba.Long'Image(Str2.A(0))) ;
+      for I in 1 .. 9 loop
+         Put ("," & Corba.Long'Image(Str2.A(I))) ;
       end loop ;
-      Tmp2 := Tmp2 & " and b = " & Corba.Long'Image(Str2.B) ;
-      Put_Line(Tmp2) ;
+      Put_Line (" and b = " & Corba.Long'Image(Str2.B)) ;
    end ;
 
    Put_Line ("") ;
@@ -293,21 +286,20 @@ begin
    -- Test of unbounded sequences
    declare
       Seq,Seq2 : U_Sequence := U_Sequence (IDL_SEQUENCE_Short.Null_Sequence) ;
-      Tmp,Tmp2 : String (1..39) ;
    begin
       Seq := Seq & 1 & 2 & 3 & 4 & 5 ;
       Put_Line ("####### Test of the unbounded sequences #######") ;
-      Tmp := ("I send the unbounded sequence") ;
+      Put ("I send the unbounded sequence") ;
       for I in 1..Length(Seq) loop
-         Tmp := Tmp & " " & Corba.Short'Image(Element_Of(Seq,I)) ;
+         Put (" " & Corba.Short'Image(Element_Of(Seq,I))) ;
       end loop ;
-      Put_Line(Tmp) ;
+      Put_Line ("");
+      Put ("I received the unbounded sequence") ;
       Seq2 := Echo6 (MyAll_Types,Seq) ;
-      Tmp2 := ("I received the unbounded sequence") ;
       for I in 1..Length(Seq2) loop
-         Tmp2 := Tmp2 & " " & Corba.Short'Image(Element_Of(Seq2,I)) ;
+         Put (" " & Corba.Short'Image(Element_Of(Seq2,I))) ;
       end loop ;
-      Put_Line(Tmp2) ;
+      Put_Line("") ;
    end;
 
    Put_Line ("") ;
@@ -316,21 +308,20 @@ begin
    -- Test of bounded sequences
    declare
       Seq,Seq2 : B_Sequence := B_Sequence (IDL_SEQUENCE_Long_1.Null_Sequence) ;
-      Tmp,Tmp2 : String (1..39) ;
    begin
       Seq := Seq & 1 & 2 & 3 & 4 & 5 ;
       Put_Line ("####### Test of the bounded sequences #######") ;
-      Tmp := ("I send the bounded sequence") ;
+      Put ("I send the bounded sequence") ;
       for I in 1..Length(Seq) loop
-         Tmp := Tmp & " " & Corba.Long'Image(Element_Of(Seq,I)) ;
+         Put (" " & Corba.Long'Image(Element_Of(Seq,I))) ;
       end loop ;
-      Put_Line(Tmp) ;
+      Put_Line("") ;
+      Put ("I received the unbounded sequence") ;
       Seq2 := Echo7 (MyAll_Types,Seq) ;
-      Tmp2 := ("I received the unbounded sequence") ;
       for I in 1..Length(Seq2) loop
-         Tmp2 := Tmp2 & " " & Corba.Long'Image(Element_Of(Seq2,I)) ;
-      end loop ;
-      Put_Line(Tmp2) ;
+         Put (" " & Corba.Long'Image(Element_Of(Seq2,I))) ;
+      end Loop ;
+      Put_Line("") ;
    end ;
 
    Put_Line ("");
@@ -362,32 +353,120 @@ begin
    declare
       Ex,Ex2 : Example ;
       Ex3 : Example := (Switch => 2, Flags => True) ;
-      Tmp,Tmp2 : String (1..39) ;
    begin
       Put_Line ("####### Test of attribute #######") ;
       Ex := Get_N_Attribute (MyAll_Types) ;
-      Tmp := "The value of this attribute is switch = "
-        & Corba.Long'Image(Ex.Switch) & " and" ;
+      Put ("The value of this attribute is switch = "
+           & Corba.Long'Image(Ex.Switch) & " and") ;
       case Ex.Switch is
-         when 1 => Tmp := Tmp & " Counter = " & Corba.Long'Image(Ex.Counter) ;
-         when 2 => Tmp := Tmp & " Flags = " & Corba.Boolean'Image(Ex.Flags) ;
-         when others => Tmp := Tmp & " Unknown = " & Corba.Long'Image(Ex.Unknown) ;
+         when 1 => Put_Line (" Counter = " & Corba.Long'Image(Ex.Counter)) ;
+         when 2 => Put_Line (" Flags = " & Corba.Boolean'Image(Ex.Flags)) ;
+         when others => Put_Line (" Unknown = " & Corba.Long'Image(Ex.Unknown)) ;
       end case ;
-      Put_Line (Tmp) ;
       Put_Line ("I can force it to (Switch => 2, Flags => True)") ;
       Set_N_Attribute (MyAll_Types,Ex3) ;
       Ex2 := Get_N_Attribute (MyAll_Types) ;
-      Tmp := "Now, the value of this attribute is switch = "
-        & Corba.Long'Image(Ex2.Switch) & " and" ;
-      case Ex.Switch is
-         when 1 => Tmp2 := Tmp2 & " Counter = " & Corba.Long'Image(Ex2.Counter) ;
-         when 2 => Tmp2 := Tmp2 & " Flags = " & Corba.Boolean'Image(Ex2.Flags) ;
-         when others => Tmp2 := Tmp2 & " Unknown = " & Corba.Long'Image(Ex2.Unknown) ;
+      Put ("Now, the value of this attribute is switch = "
+           & Corba.Long'Image(Ex2.Switch) & " and") ;
+      case Ex2.Switch is
+         when 1 => Put_Line (" Counter = " & Corba.Long'Image(Ex2.Counter)) ;
+         when 2 => Put_Line (" Flags = " & Corba.Boolean'Image(Ex2.Flags)) ;
+         when others => Put_Line (" Unknown = " & Corba.Long'Image(Ex2.Unknown)) ;
       end case ;
-      Put_Line (Tmp2) ;
+   end ;
+
+   Put_Line ("");
+   Put_Line ("");
+
+   -- Test of arrays
+   declare
+      Ex1 : Example := (Switch => 1, Counter => 19) ;
+      Ex2 : Example := (Switch => 2, Flags => True) ;
+      Ex3 : Example := (Switch => 3, Unknown => 25) ;
+      Ar1 : All_Types.Line := (Ex1, Ex2, Ex3) ;
+      Ar2 : All_Types.Line ;
+
+      procedure Put (Ex : in Example) is
+      begin
+         Put ("switch = " &
+              Corba.Long'Image(Ex.Switch) &
+              " and") ;
+         case Ex.Switch is
+            when 1 => Put (" Counter = " & Corba.Long'Image(Ex.Counter)) ;
+            when 2 => Put (" Flags = " & Corba.Boolean'Image(Ex.Flags)) ;
+            when others => Put (" Unknown = " & Corba.Long'Image(Ex.Unknown)) ;
+         end case ;
+      end;
+
+      procedure Put (Ar : in All_Types.Line) is
+      begin
+         Put ("   ( ");
+         Put (Ar(0));
+         Put_Line (", ");
+         Put ("     ");
+         Put (Ar(1));
+         Put_Line (", ");
+         Put ("     ");
+         Put (Ar(2));
+         Put_Line (" )");
+      end ;
+
+   begin
+      Put_Line ("####### Test of arrays #######") ;
+      Put_Line ("I send the array :");
+      Put (Ar1) ;
+
+      Ar2 := Echo8 (MyAll_Types,Ar1) ;
+      Put_Line ("I received the array :");
+      Put (Ar2) ;
+   end ;
+
+   Put_Line ("");
+   Put_Line ("");
+
+   -- Test of arrays (2)
+   declare
+      S1 : Simple_struct := (A => (0,1,2,3,4,5,6,7,8,9), B=> 23) ;
+      S2 : Simple_struct := (A => (9,8,7,6,5,4,3,2,1,0), B=> 17) ;
+      S3 : Simple_struct := (A => (0,1,2,3,4,5,6,7,8,9), B=> 23) ;
+      S4 : Simple_struct := (A => (9,8,7,6,5,4,3,2,1,0), B=> 17) ;
+      Ar1 : Square := ((S1, S2), (S3, S4)) ;
+      Ar2 : Square ;
+
+      procedure Put (Str : in Simple_Struct) is
+      begin
+         Put ("a = (" & Corba.Long'Image(Str.A(0)));
+         for I in 1 .. 9 loop
+            Put ("," & Corba.Long'Image(Str.A(I))) ;
+         end loop ;
+         Put (" and b = " & Corba.Long'Image(Str.B)) ;
+      end;
+
+      procedure Put (Ar : in square) is
+      begin
+         Put ("   ( ");
+         Put ("(0,0) => ");
+         Put (Ar(0,0));
+         Put_Line (", ");
+         Put ("     (0,1) => ");
+         Put (Ar(0,1));
+         Put_Line (", ");
+         Put ("     (1,0) => ");
+         Put (Ar(1,0));
+         Put_Line (", ");
+         Put ("     (1,1) => ");
+         Put (Ar(1,1));
+         Put_Line (" )");
+      end ;
+
+   begin
+      Put_Line ("####### Test of arrays (2) #######") ;
+      Put_Line ("I send the array :");
+      Put (Ar1) ;
+
+      Ar2 := Echo9 (MyAll_Types,Ar1) ;
+      Put_Line ("I received the array :");
+      Put (Ar2) ;
    end ;
 
 end Client ;
-
-
-

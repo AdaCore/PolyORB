@@ -13,6 +13,7 @@ interface all_types {
   octet echoOctet (in octet arg) ;
   string echoString (in string arg) ;
 
+
   // Exceptions
   //-----------
   exception simple_exception {};
@@ -73,4 +74,14 @@ interface all_types {
   readonly attribute Color R_attribute;
   attribute example N_attribute;
 
+  // Arrays
+  //-------
+  typedef example line[3] ;
+  typedef simple_struct square[2][2];
+  typedef string cube[2][2][2] ;
+
+  line echo8 (in line arg);
+  square echo9 (in square arg);
+  cube echo10 (in cube arg);
+  
 };

@@ -2,13 +2,12 @@
 FLAGS = $(ADABROKER_FLAGS) $(CORBA_LIB) $(IMPORT_LIBRARY_FLAGS)
 
 all:: $(CORBA_LIB_DEPEND) $(ADABROKER_LIB_DEPEND)
-	gnatmake -gnatf -gnata -m -i client $(FLAGS)
-	gnatmake -gnatf -gnata -m -i server $(FLAGS)
+	gnatmake -gnatf -gnata -i client.adb $(FLAGS)
+	gnatmake -gnatf -gnata -i server.adb $(FLAGS)
 
 IDL_INTERFACE = all_types
 
 GENERATED_FILES = $(IDL_INTERFACE).ad*
-GENERATED_FILES += $(IDL_INTERFACE)-impl.ad*
 GENERATED_FILES += $(IDL_INTERFACE)-proxies.ad*
 GENERATED_FILES += $(IDL_INTERFACE)-marshal.ad*
 GENERATED_FILES += $(IDL_INTERFACE)-skeleton.ad*
@@ -20,8 +19,6 @@ clean::
 
 ada:
 	omniidl2 -b ada all_types.idl
-
-
 
 
 

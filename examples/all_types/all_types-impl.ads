@@ -1,9 +1,13 @@
 with Omniobject ;
-
 package all_types.Impl is
 
    type Object is new Omniobject.Implemented_Object with private ;
    type Object_Ptr is access all Object ;
+
+
+   -----------------------
+   -- IDL definitions   --
+   -----------------------
 
 
    function echoBoolean(Self : access Object; arg : in Corba.Boolean) return Corba.Boolean ;
@@ -26,6 +30,7 @@ package all_types.Impl is
 
    function echoString(Self : access Object; arg : in Corba.String) return Corba.String ;
 
+
    procedure simple_exception_test(Self : access Object ) ;
    procedure complexe_exception_test(Self : access Object ) ;
    function echo1(Self : access Object; arg : in example) return example ;
@@ -47,6 +52,15 @@ package all_types.Impl is
    procedure Set_N_attribute(Self : access Object ;
                              To : in example ) ;
 
+   function echo8(Self : access Object; arg : in line) return line ;
+
+   function echo9(Self : access Object; arg : in square) return square ;
+
+   function echo10(Self : access Object; arg : in cube) return cube ;
+
+
+
+
 private
 
    -- You may add fields to this record
@@ -63,4 +77,3 @@ private
    procedure Finalize(Self : in out Object) ;
 
 end all_types.Impl ;
-

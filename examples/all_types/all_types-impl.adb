@@ -8,6 +8,10 @@ package body all_types.Impl is
    -- IDL definitions   --
    -----------------------
 
+   -----------------------
+   -- IDL definitions   --
+   -----------------------
+
    function echoBoolean(Self : access Object; arg : in Corba.Boolean) return Corba.Boolean is
    begin
       return Arg ;
@@ -67,6 +71,7 @@ package body all_types.Impl is
       return Arg ;
    end ;
 
+
    procedure simple_exception_test(Self : access Object) is
    begin
       raise Simple_Exception ;
@@ -118,28 +123,43 @@ package body all_types.Impl is
    end ;
 
 
-   -- Get_R_attribute
-   --------------------------
    function Get_R_attribute(Self : access Object) return Color is
    begin
       return Self.all.Pd_Col ;
-   end;
+   end ;
 
 
-   -- Get_N_attribute
-   --------------------------
    function Get_N_attribute(Self : access Object) return example is
    begin
       return Self.all.Pd_Ex ;
-   end;
+   end ;
 
 
-   -- Set_N_attribute
-   --------------------------
    procedure Set_N_attribute(Self : access Object ; To : in example) is
    begin
       Self.all.Pd_Ex := To ;
-   end;
+   end ;
+
+
+   function echo8(Self : access Object; arg : in line) return line is
+   begin
+      return Arg ;
+   end ;
+
+
+   function echo9(Self : access Object; arg : in square) return square is
+   begin
+      return Arg ;
+   end ;
+
+
+   function echo10(Self : access Object; arg : in cube) return cube is
+   begin
+      return Arg ;
+   end ;
+
+
+
 
 
    -----------------------------------------------------------
@@ -154,8 +174,8 @@ package body all_types.Impl is
       Omniobject.Initialize(Omniobject.Implemented_Object(Self)) ;
       Init_Local_Object(Self,
                         Repository_Id,
-                        All_Types.Skeleton.Dispatch'Access,
-                        All_Types.Is_A'Access) ;
+                        all_types.Skeleton.Dispatch'Access,
+                        all_types.Is_A'Access) ;
       -- You can add things *BELOW* this line
 
    end Initialize ;
@@ -165,8 +185,9 @@ package body all_types.Impl is
    ---------
    procedure Adjust(Self: in out Object) is
    begin
-      Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
+   Omniobject.Adjust(Omniobject.Implemented_Object(Self)) ;
       -- You can add things *BELOW* this line
+
    end Adjust ;
 
 
@@ -174,8 +195,9 @@ package body all_types.Impl is
    -----------
    procedure Finalize(Self : in out Object) is
    begin
+
       -- You can add things *BEFORE* this line
-      Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
+   Omniobject.Finalize(Omniobject.Implemented_Object(Self)) ;
    end Finalize ;
 
 
