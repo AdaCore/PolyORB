@@ -2,9 +2,7 @@ Frontend
 
 * Fix empty module
 
-* Implement abstract and local interfaces
-
-* Fix constant declaration referencing enumerato
+* Implement value types
 
 
 Backend Ada
@@ -19,5 +17,3 @@ Backend Ada
 
 
 IDL backend
-
-* Output exceptions
