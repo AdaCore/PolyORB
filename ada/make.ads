@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -65,7 +65,7 @@ package Make is
    --  Performs default and package initialization. Therefore,
    --  Compile_Sources can be called by an external unit.
 
-   procedure Scan_Make_Arg (Argv : String);
+   procedure Scan_Make_Arg (Argv : String; And_Save : Boolean);
    --  Scan make arguments. Argv is a single argument to be processed.
 
    procedure Extract_Failure

@@ -2,11 +2,11 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                              G N A T V S N                               --
+--                              P R J . C O M                               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                              --
 --                                                                          --
 --          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -26,32 +26,53 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package spec holds version information for GNAT, GNATBIND and
---  GNATMAKE. It is updated whenever the release number is changed.
+--  The following package declares data types for GNAT project.
+--  These data types are used in the bodies of the Prj hierarchy.
 
-package Gnatvsn is
+package Prj.Com is
 
-   Gnat_Version_String : constant String := "3.14w (20001113)";
-   --  Version output when GNAT (compiler), or its related tools, including
-   --  GNATBIND, GNATCHOP, GNATFIND, GNATLINK, GNATMAKE, GNATXREF, are run
-   --  (with appropriate verbose option switch set).
-   --
-   --  WARNING: some gnatmail scripts (at least make-bin and corcs) rely on
-   --  the format of this string. Any change must be coordinated with
-   --  a gnatmail maintainer.
+   --  At one point, this package was private.
+   --  It cannot be private, because it is used outside of
+   --  the Prj hierarchy.
 
-   Ver_Len_Max : constant := 32;
-   --  Longest possible length for Gnat_Version_String in this or any
-   --  other version of GNAT. This is used by the binder to establish
-   --  space to store any possible version string value for checks. This
-   --  value should never be decreased in the future, but it would be
-   --  OK to increase it if absolutely necessary.
+   type Spec_Or_Body is
+     (Specification, Body_Part);
 
-   Library_Version : constant String := "GNAT Lib v3.13 ";
-   --  Library version. This value must be updated whenever any change to the
-   --  compiler affects the library formats in such a way as to obsolete
-   --  previously compiled library modules.
-   --  Note: Makefile.in relies on the format of this string to build
-   --  the right soname.
+   type File_Name_Data is record
+      Name : String_Access;
+      Path : String_Access;
+      Needs_Pragma : Boolean := False;
+   end record;
+   --  File and Path name of a spec or body.
 
-end Gnatvsn;
+   type File_Names_Data is array (Spec_Or_Body) of File_Name_Data;
+
+   type Unit_Data;
+   type Unit_List is access Unit_Data;
+   type Unit_Data is record
+      Name : String_Access;
+      File_Names : File_Names_Data;
+      Ref : Reference;
+      Next : Unit_List;
+   end record;
+   --  File and Path names of a unit, with a reference to its
+   --  GNAT Project File. All units are linked together in a
+   --  list.
+
+   First_Unit : Unit_List;
+   Last_Unit : Unit_List;
+   --  The list of all units of all GNAT Project Files.
+
+   type Project_Data;
+   type Project_Ref is access Project_Data;
+   type Project_Data is record
+      Project : Reference;
+      Next : Project_Ref;
+   end record;
+   --  Used to build a list of all GNAT Project Files.
+
+   First_Project : Project_Ref;
+   Last_Project : Project_Ref;
+   --  The list of all GNAT Project_Files.
+
+end Prj.Com;

@@ -59,9 +59,7 @@ package Namet is
 --                       the character code using lower case a-f). Other
 --                       internally generated names use upper case letters
 --                       (other than O,Q,U,W) to ensure that they do not clash
---                       with identifier names in the source program. The body
---                       of this package contains a catalog of the use of these
---                       upper case letters.
+--                       with identifier names in the source program.
 
 --    Operator symbols   Stored with an initial letter O, and the remainder
 --                       of the name is the lower case characters XXX where

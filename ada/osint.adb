@@ -2306,6 +2306,7 @@ package body Osint is
    begin
       if not Recording_Time_From_Last_Bind
         or else not Binder_Output_Time_Stamps_Set
+        or else Old_Binder_Output_Time_Stamp = Empty_Time_Stamp
       then
          return Nat'Last;
       end if;

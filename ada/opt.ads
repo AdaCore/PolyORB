@@ -197,7 +197,8 @@ package Opt is
 
    Dynamic_Elaboration_Checks : Boolean := False;
    --  GNAT
-   --  Set True (-gnatE switch) for dynamic inter-unit elaboration checks
+   --  Set True for dynamic elaboration checking mode, as set by the -gnatE
+   --  switch or by the use of pragma Elaboration_Checks (Dynamic).
 
    Elab_Dependency_Output : Boolean := False;
    --  GNATBIND
@@ -685,6 +686,11 @@ package Opt is
    --  is ignored for internal and predefined units (which are always compiled
    --  in Ada 95 mode).
 
+   Dynamic_Elaboration_Checks_Config : Boolean := False;
+   --  GNAT
+   --  Set True for dynamic elaboration checking mode, as set by the -gnatE
+   --  switch or by the use of pragma Elaboration_Checking (Dynamic).
+
    Extensions_Allowed_Config : Boolean;
    --  GNAT
    --  This is the switch that indicates whether extensions are allowed.
@@ -768,12 +774,13 @@ package Opt is
 private
 
    type Config_Switches_Type is record
-      Ada_83                   : Boolean;
-      Extensions_Allowed       : Boolean;
-      External_Name_Exp_Casing : External_Casing_Type;
-      External_Name_Imp_Casing : External_Casing_Type;
-      Polling_Required         : Boolean;
-      Use_VADS_Size            : Boolean;
+      Ada_83                     : Boolean;
+      Dynamic_Elaboration_Checks : Boolean;
+      Extensions_Allowed         : Boolean;
+      External_Name_Exp_Casing   : External_Casing_Type;
+      External_Name_Imp_Casing   : External_Casing_Type;
+      Polling_Required           : Boolean;
+      Use_VADS_Size              : Boolean;
    end record;
 
 end Opt;

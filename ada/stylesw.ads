@@ -214,6 +214,11 @@ package Stylesw is
    --  where horizontal tabs are permitted, a horizontal tab is acceptable
    --  for meeting the requirement for a space.
 
+   Style_Check_Subprogram_Order : Boolean := False;
+   --  This can be set True by using the -gnatg or -gnatyo switch. If it
+   --  is True, then names of subprogram bodies must be in alphabetical
+   --  order (not taking casing into account).
+
    Style_Max_Line_Length : Int := 79;
    --  Value used to check maximum line length. Can be reset by a call to
    --  Set_Max_Line_Length. The value here is the default if no such call.

@@ -120,10 +120,10 @@ package body Binderr is
          if Msg (I) = '%' then
 
             if Use_Second_Name then
-               Get_Decoded_Name_String (Error_Msg_Name_2);
+               Get_Name_String (Error_Msg_Name_2);
             else
                Use_Second_Name := True;
-               Get_Decoded_Name_String (Error_Msg_Name_1);
+               Get_Name_String (Error_Msg_Name_1);
             end if;
 
             Write_Char ('"');

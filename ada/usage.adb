@@ -282,8 +282,6 @@ begin
 
    --  Lines for -gnatw switch
 
-   Write_Switch_Char ("w?");
-
    Write_Switch_Char ("wxx");
    Write_Line ("Enable selected warning modes, xx = list of parameters:");
    Write_Line ("        a    turn on all optional warnings (except h)");
@@ -341,15 +339,20 @@ begin
    Write_Switch_Char ("yxx");
    Write_Line ("Enable selected style checks xx = list of parameters:");
    Write_Line ("        1-9  check indentation");
+   Write_Line ("        a    check attribute casing");
    Write_Line ("        b    check no blanks at end of lines");
    Write_Line ("        c    check comment format");
-   Write_Line ("        e    check end labels present");
+   Write_Line ("        e    check end/exit labels present");
    Write_Line ("        f    check no form feeds/vertical tabs in source");
    Write_Line ("        h    check no horizontal tabs in source");
    Write_Line ("        i    check if-then layout");
    Write_Line ("        k    check casing rules for keywords, identifiers");
+   Write_Line ("        l    check reference manual layout");
    Write_Line ("        m    check line length <= 79 characters");
+   Write_Line ("        n    check casing of package Standard identifiers");
    Write_Line ("        Mnnn check line length <= nnn characters");
+   Write_Line ("        o    check subprogram bodies in alphabetical order");
+   Write_Line ("        p    check pragma casing");
    Write_Line ("        r    check RM column layout");
    Write_Line ("        s    check separate subprogram specs present");
    Write_Line ("        t    check token separation rules");

@@ -59,12 +59,13 @@ package body Opt is
 
    procedure Register_Opt_Config_Switches is
    begin
-      Ada_83_Config                   := Ada_83;
-      Extensions_Allowed_Config       := Extensions_Allowed;
-      External_Name_Exp_Casing_Config := External_Name_Exp_Casing;
-      External_Name_Imp_Casing_Config := External_Name_Imp_Casing;
-      Polling_Required_Config         := Polling_Required;
-      Use_VADS_Size_Config            := Use_VADS_Size;
+      Ada_83_Config                     := Ada_83;
+      Dynamic_Elaboration_Checks_Config := Dynamic_Elaboration_Checks;
+      Extensions_Allowed_Config         := Extensions_Allowed;
+      External_Name_Exp_Casing_Config   := External_Name_Exp_Casing;
+      External_Name_Imp_Casing_Config   := External_Name_Imp_Casing;
+      Polling_Required_Config           := Polling_Required;
+      Use_VADS_Size_Config              := Use_VADS_Size;
    end Register_Opt_Config_Switches;
 
    ---------------------------------
@@ -73,13 +74,14 @@ package body Opt is
 
    procedure Restore_Opt_Config_Switches (Save : Config_Switches_Type) is
    begin
-      Ada_83                   := Save.Ada_83;
-      Ada_95                   := not Ada_83;
-      Extensions_Allowed       := Save.Extensions_Allowed;
-      External_Name_Exp_Casing := Save.External_Name_Exp_Casing;
-      External_Name_Imp_Casing := Save.External_Name_Imp_Casing;
-      Polling_Required         := Save.Polling_Required;
-      Use_VADS_Size            := Save.Use_VADS_Size;
+      Ada_83                     := Save.Ada_83;
+      Ada_95                     := not Ada_83;
+      Dynamic_Elaboration_Checks := Save.Dynamic_Elaboration_Checks;
+      Extensions_Allowed         := Save.Extensions_Allowed;
+      External_Name_Exp_Casing   := Save.External_Name_Exp_Casing;
+      External_Name_Imp_Casing   := Save.External_Name_Imp_Casing;
+      Polling_Required           := Save.Polling_Required;
+      Use_VADS_Size              := Save.Use_VADS_Size;
    end Restore_Opt_Config_Switches;
 
    ------------------------------
@@ -88,12 +90,13 @@ package body Opt is
 
    procedure Save_Opt_Config_Switches (Save : out Config_Switches_Type) is
    begin
-      Save.Ada_83                   := Ada_83;
-      Save.Extensions_Allowed       := Extensions_Allowed;
-      Save.External_Name_Exp_Casing := External_Name_Exp_Casing;
-      Save.External_Name_Imp_Casing := External_Name_Imp_Casing;
-      Save.Polling_Required         := Polling_Required;
-      Save.Use_VADS_Size            := Use_VADS_Size;
+      Save.Ada_83                     := Ada_83;
+      Save.Dynamic_Elaboration_Checks := Dynamic_Elaboration_Checks;
+      Save.Extensions_Allowed         := Extensions_Allowed;
+      Save.External_Name_Exp_Casing   := External_Name_Exp_Casing;
+      Save.External_Name_Imp_Casing   := External_Name_Imp_Casing;
+      Save.Polling_Required           := Polling_Required;
+      Save.Use_VADS_Size              := Use_VADS_Size;
    end Save_Opt_Config_Switches;
 
    -----------------------------
@@ -103,20 +106,22 @@ package body Opt is
    procedure Set_Opt_Config_Switches (Internal_Unit : Boolean) is
    begin
       if Internal_Unit then
-         Ada_83                   := False;
-         Ada_95                   := True;
-         Extensions_Allowed       := True;
-         External_Name_Exp_Casing := As_Is;
-         External_Name_Imp_Casing := Lowercase;
-         Use_VADS_Size            := False;
+         Ada_83                     := False;
+         Ada_95                     := True;
+         Dynamic_Elaboration_Checks := False;
+         Extensions_Allowed         := True;
+         External_Name_Exp_Casing   := As_Is;
+         External_Name_Imp_Casing   := Lowercase;
+         Use_VADS_Size              := False;
 
       else
-         Ada_83                   := Ada_83_Config;
-         Ada_95                   := not Ada_83_Config;
-         Extensions_Allowed       := Extensions_Allowed_Config;
-         External_Name_Exp_Casing := External_Name_Exp_Casing_Config;
-         External_Name_Imp_Casing := External_Name_Imp_Casing_Config;
-         Use_VADS_Size            := Use_VADS_Size_Config;
+         Ada_83                     := Ada_83_Config;
+         Ada_95                     := not Ada_83_Config;
+         Dynamic_Elaboration_Checks := Dynamic_Elaboration_Checks_Config;
+         Extensions_Allowed         := Extensions_Allowed_Config;
+         External_Name_Exp_Casing   := External_Name_Exp_Casing_Config;
+         External_Name_Imp_Casing   := External_Name_Imp_Casing_Config;
+         Use_VADS_Size              := Use_VADS_Size_Config;
       end if;
 
       Polling_Required := Polling_Required_Config;

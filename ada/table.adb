@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -211,7 +211,10 @@ package body Table is
          end if;
 
          if Length /= 0 and then Table = null then
-            raise Storage_Error;
+            Set_Standard_Error;
+            Write_Str ("available memory exhausted");
+            Set_Standard_Output;
+            raise Unrecoverable_Error;
          end if;
 
       end Reallocate;

@@ -69,6 +69,7 @@ package body Stylesw is
       Add ('l', Style_Check_Layout);
       Add ('m', Style_Check_Max_Line_Length);
       Add ('n', Style_Check_Standard);
+      Add ('o', Style_Check_Subprogram_Order);
       Add ('p', Style_Check_Pragma_Casing);
       Add ('r', Style_Check_References);
       Add ('s', Style_Check_Specs);
@@ -121,6 +122,7 @@ package body Stylesw is
       Style_Check_References       := False;
       Style_Check_Specs            := False;
       Style_Check_Standard         := False;
+      Style_Check_Subprogram_Order := False;
       Style_Check_Tokens           := False;
    end Reset_Style_Check_Options;
 
@@ -217,6 +219,9 @@ package body Stylesw is
                   Int'Min (Style_Max_Line_Length, Hostparm.Max_Line_Length);
 
                Style_Check_Max_Line_Length := Style_Max_Line_Length /= 0;
+
+            when 'o' =>
+               Style_Check_Subprogram_Order := True;
 
             when 'p' =>
                Style_Check_Pragma_Casing    := True;

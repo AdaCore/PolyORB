@@ -124,6 +124,12 @@ begin
    Write_Str ("o name  Choose an alternate executable name");
    Write_Eol;
 
+   --  Line for -P
+
+   Write_Switch_Char;
+   Write_Str ("Pproj   Use GNAT Project File proj");
+   Write_Eol;
+
    --  Line for -q
 
    Write_Switch_Char;
@@ -136,10 +142,28 @@ begin
    Write_Str ("s       Recompile if compiler switches have changed");
    Write_Eol;
 
+   --  Line for -u
+
+   Write_Switch_Char;
+   Write_Str ("u       Unique compilation. Only compile the given file.");
+   Write_Eol;
+
    --  Line for -v
 
    Write_Switch_Char;
    Write_Str ("v       Display reasons for all (re)compilations");
+   Write_Eol;
+
+   --  Line for -vPx
+
+   Write_Switch_Char;
+   Write_Str ("vPx     Specify verbosity when parsing GNAT Project Files");
+   Write_Eol;
+
+   --  Line for -X
+
+   Write_Switch_Char;
+   Write_Str ("Xnm=val Specify an external reference for GNAT Project Files");
    Write_Eol;
 
    --  Line for -z

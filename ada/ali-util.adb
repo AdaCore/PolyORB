@@ -304,10 +304,9 @@ package body ALI.Util is
 
                Idread :=
                  Scan_ALI
-                   (F => Afile,
-                    T => Text,
-                    Ignore_ED => Full_Elaboration_Semantics
-                                   or Pessimistic_Elab_Order,
+                   (F         => Afile,
+                    T         => Text,
+                    Ignore_ED => Full_Elaboration_Semantics,
                     Err       => False);
 
                Free (Text);

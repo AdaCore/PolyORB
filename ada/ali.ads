@@ -229,6 +229,11 @@ package ALI is
       Pure : Boolean;
       --  Indicates presence of PU parameter for a pure package
 
+      Dynamic_Elab : Boolean;
+      --  Set to True if the unit was compiled with dynamic elaboration
+      --  checks (i.e. either -gnatE or pragma Elaboration_Checks (Static)
+      --  was used to compile the unit).
+
       Elaborate_Body : Boolean;
       --  Indicates presence of EB parameter for a package which has a
       --  pragma Preelaborate_Body.
@@ -312,6 +317,10 @@ package ALI is
 
    --  These switches record status information about ali files that
    --  have been read, for quick reference without searching tables.
+
+   Dynamic_Elaboration_Checks_Specified : Boolean := False;
+   --  Set to False by Initialize_ALI. Set to True if Read_ALI reads
+   --  a unit for which dynamic elaboration checking is enabled.
 
    Float_Format_Specified : Character := ' ';
    --  Set to blank by Initialize_ALI. Set to appropriate float format
@@ -520,6 +529,125 @@ package ALI is
    --    ALI file name       Info field has ALI_Id of ALI table entry
    --    Source file name    Info field has Source_Id of source table entry
 
+   --------------------------
+   -- Cross-Reference Data --
+   --------------------------
+
+   --  The following table records cross-reference sections, there is one
+   --  entry for each X header line in the ALI file for an xref section.
+   --  Note that there will be no entries in this table if the Read_Xref
+   --  parameter to Scan_ALI was set to False.
+
+   type Xref_Section_Record is record
+      File_Num : Sdep_Id;
+      --  Dependency number for file (entry in Sdep.Table)
+
+      File_Name : Name_Id;
+      --  Name of file
+
+      First_Entity : Nat;
+      --  First entry in Xref_Entity table
+
+      Last_Entity : Nat;
+      --  Last entry in Xref_Entity table
+
+   end record;
+
+   package Xref_Section is new Table.Table (
+     Table_Component_Type => Xref_Section_Record,
+     Table_Index_Type     => Nat,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 50,
+     Table_Increment      => 300,
+     Table_Name           => "Xref_Section");
+
+   --  The following table records entities for which xrefs are recorded
+
+   type Xref_Entity_Record is record
+      Line : Pos;
+      --  Line number of definition
+
+      Etype : Character;
+      --  Set to the identification character for the entity. See section
+      --  "Cross-Reference Entity Indentifiers in lib-xref.ads for details.
+
+      Col : Pos;
+      --  Column number of definition
+
+      Lib : Boolean;
+      --  True if entity is library level entity
+
+      Entity : Name_Id;
+      --  Name of entity
+
+      Ptype_File_Num : Sdep_Id;
+      --  This field is set to No_Sdep_Id if no ptype (parent type) entry
+      --  is present, otherwise it is the file dependency reference for
+      --  the parent type declaration.
+
+      Ptype_Line : Nat;
+      --  Set to zero if no ptype (parent type) entry, otherwise this is
+      --  the line number of the declaration of the parent type.
+
+      Ptype_Type : Character;
+      --  Set to blank if no ptype (parent type) entry, otherwise this is
+      --  the identification character for the parent type. See section
+      --  "Cross-Reference Entity Indentifiers in lib-xref.ads for details.
+
+      Ptype_Col : Nat;
+      --  Set to zero if no ptype (parent type) entry, otherwise this is
+      --  the column number of the declaration of the parent type.
+
+      First_Xref : Nat;
+      --  Index into Xref table of first cross-reference
+
+      Last_Xref : Nat;
+      --  Index into Xref table of last cross-reference. The value in
+      --  Last_Xref can be less than the First_Xref value to indicate
+      --  that no entries are present in the Xref Table.
+   end record;
+
+   package Xref_Entity is new Table.Table (
+     Table_Component_Type => Xref_Entity_Record,
+     Table_Index_Type     => Nat,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 500,
+     Table_Increment      => 300,
+     Table_Name           => "Xref_Entity");
+
+   --  The following table records actual cross-references
+
+   type Xref_Record is record
+      File_Num : Sdep_Id;
+      --  Set to the file dependency number for the cross-reference. Note
+      --  that if no file entry is present explicitly, this is just a copy
+      --  of the reference for the current cross-reference section.
+
+      Line : Pos;
+      --  Line number for the reference
+
+      Rtype : Character;
+      --  Indicates type of reference, using code used in ALI file:
+      --    r = reference
+      --    m = modification
+      --    b = body entity
+      --    c = completion of private or incomplete type
+      --    x = type extension
+      --    i = implicit reference
+      --  See description in lib-xref.ads for further details
+
+      Col : Pos;
+      --  Column number for the reference
+   end record;
+
+   package Xref is new Table.Table (
+     Table_Component_Type => Xref_Record,
+     Table_Index_Type     => Nat,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 2000,
+     Table_Increment      => 300,
+     Table_Name           => "Xref");
+
    --------------------------------------
    -- Subprograms for Reading ALI File --
    --------------------------------------
@@ -531,7 +659,8 @@ package ALI is
      (F         : File_Name_Type;
       T         : Text_Buffer_Ptr;
       Ignore_ED : Boolean;
-      Err       : Boolean)
+      Err       : Boolean;
+      Read_Xref : Boolean := False)
       return      ALI_Id;
    --  Given the text, T, of an ALI file, F, scan and store the information
    --  from the file, and return the Id of the resulting entry in the ALI
@@ -546,5 +675,9 @@ package ALI is
    --    If Err is False, then an error message is output, and the program
    --    is terminated. If Err is True, then no error message is output,
    --    and No_ALI_Id is returned.
+   --
+   --    Read_XREF is set True to read and acquire the cross-reference
+   --    information, otherwise the scan is terminated when a cross-
+   --    reference line is encountered.
 
 end ALI;

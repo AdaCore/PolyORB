@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -114,6 +114,13 @@ package Rident is
 
    subtype Partition_Restrictions is
      Restriction_Id range Boolean_Entry_Barriers .. Static_Storage_Size;
+
+   --  The following set of Restriction identifiers is not checked for
+   --  consistency across a partition, and the generated ali files does
+   --  not carry any indications with respect to such restrictions.
+
+   subtype Compilation_Unit_Restrictions is
+     Restriction_Id range Immediate_Reclamation .. No_Entry_Queue;
 
    --  The following enumeration type defines the set of restriction
    --  parameter identifiers taking a parameter that are implemented in

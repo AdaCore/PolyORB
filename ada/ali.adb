@@ -64,16 +64,20 @@ package body ALI is
 
       Linker_Options.Increment_Last;
 
-      Float_Format_Specified             := ' ';
-      Locking_Policy_Specified           := ' ';
-      No_Normalize_Scalars_Specified     := False;
-      No_Object_Specified                := False;
-      Normalize_Scalars_Specified        := False;
-      No_Run_Time_Specified              := False;
-      Queuing_Policy_Specified           := ' ';
-      Task_Dispatching_Policy_Specified  := ' ';
-      Unreserve_All_Interrupts_Specified := False;
-      Zero_Cost_Exceptions_Specified     := False;
+      --  Initialize global variables recording cumulative options in all
+      --  ALI files that are read for a given processing run in gnatbind.
+
+      Dynamic_Elaboration_Checks_Specified := False;
+      Float_Format_Specified               := ' ';
+      Locking_Policy_Specified             := ' ';
+      No_Normalize_Scalars_Specified       := False;
+      No_Object_Specified                  := False;
+      Normalize_Scalars_Specified          := False;
+      No_Run_Time_Specified                := False;
+      Queuing_Policy_Specified             := ' ';
+      Task_Dispatching_Policy_Specified    := ' ';
+      Unreserve_All_Interrupts_Specified   := False;
+      Zero_Cost_Exceptions_Specified       := False;
 
    end Initialize_ALI;
 
@@ -85,7 +89,8 @@ package body ALI is
      (F         : File_Name_Type;
       T         : Text_Buffer_Ptr;
       Ignore_ED : Boolean;
-      Err       : Boolean)
+      Err       : Boolean;
+      Read_Xref : Boolean := False)
       return      ALI_Id
    is
       P         : Text_Ptr := T'First;
@@ -426,30 +431,30 @@ package body ALI is
       Set_Name_Table_Info (F, Int (Id));
 
       ALIs.Table (Id) := (
-        Afile                   => F,
-        Compile_Errors          => False,
-        First_Sdep              => No_Sdep_Id,
-        First_Unit              => No_Unit_Id,
-        Float_Format            => 'I',
-        Last_Sdep               => No_Sdep_Id,
-        Last_Unit               => No_Unit_Id,
-        Locking_Policy          => ' ',
-        Main_Priority           => -1,
-        Main_Program            => None,
-        No_Object               => False,
-        No_Run_Time             => False,
-        Normalize_Scalars       => False,
-        Ofile_Full_Name         => Full_Object_File_Name,
-        Queuing_Policy          => ' ',
-        Restrictions            => (others => ' '),
-        Sfile                   => No_Name,
-        Task_Dispatching_Policy => ' ',
-        Time_Slice_Value        => -1,
-        WC_Encoding             => '8',
-        Unit_Exception_Table    => False,
-        Ver                     => (others => ' '),
-        Ver_Len                 => 0,
-        Zero_Cost_Exceptions    => False);
+        Afile                      => F,
+        Compile_Errors             => False,
+        First_Sdep                 => No_Sdep_Id,
+        First_Unit                 => No_Unit_Id,
+        Float_Format               => 'I',
+        Last_Sdep                  => No_Sdep_Id,
+        Last_Unit                  => No_Unit_Id,
+        Locking_Policy             => ' ',
+        Main_Priority              => -1,
+        Main_Program               => None,
+        No_Object                  => False,
+        No_Run_Time                => False,
+        Normalize_Scalars          => False,
+        Ofile_Full_Name            => Full_Object_File_Name,
+        Queuing_Policy             => ' ',
+        Restrictions               => (others => ' '),
+        Sfile                      => No_Name,
+        Task_Dispatching_Policy    => ' ',
+        Time_Slice_Value           => -1,
+        WC_Encoding                => '8',
+        Unit_Exception_Table       => False,
+        Ver                        => (others => ' '),
+        Ver_Len                    => 0,
+        Zero_Cost_Exceptions       => False);
 
       --  Acquire library version
 
@@ -666,6 +671,7 @@ package body ALI is
          Units.Table (Units.Last).Is_Generic     := False;
          Units.Table (Units.Last).Icasing        := Mixed_Case;
          Units.Table (Units.Last).Kcasing        := All_Lower_Case;
+         Units.Table (Units.Last).Dynamic_Elab   := False;
          Units.Table (Units.Last).Elaborate_Body := False;
          Units.Table (Units.Last).Version        := "00000000";
          Units.Table (Units.Last).First_With     := Withs.Last + 1;
@@ -743,6 +749,14 @@ package body ALI is
                   C := Getc;
                   Units.Table (Units.Last).Version (J) := C;
                end loop;
+
+            --  DE parameter (Dynamic elaboration checks
+
+            elsif C = 'D' then
+               Checkc ('E');
+               Check_At_End_Of_Field;
+               Units.Table (Units.Last).Dynamic_Elab := True;
+               Dynamic_Elaboration_Checks_Specified := True;
 
             --  EB parameter (elaborate body)
 
@@ -1149,6 +1163,118 @@ package body ALI is
       end loop;
 
       ALIs.Table (Id).Last_Sdep := Sdep.Last;
+
+      --  Loop through Xref sections (skip loop if not reading xref stuff)
+
+      while Read_Xref and then C = 'X' loop
+
+         --  Make new entry in section table
+
+         Xref_Section.Increment_Last;
+
+         declare
+            XS : Xref_Section_Record renames
+                   Xref_Section.Table (Xref_Section.Last);
+         begin
+            XS.File_Num     := Sdep_Id (Get_Nat) + (First_Sdep_Entry - 1);
+            XS.File_Name    := Get_Name;
+            XS.First_Entity := Xref_Entity.Last + 1;
+
+            --  Loop through Xref entities
+
+            while C /= 'X' and then C /= EOF loop
+               Xref_Entity.Increment_Last;
+
+               declare
+                  XE : Xref_Entity_Record renames
+                         Xref_Entity.Table (Xref_Entity.Last);
+
+                  N : Nat;
+
+               begin
+                  XE.Line   := Get_Nat;
+                  XE.Etype  := Getc;
+                  XE.Col    := Get_Nat;
+                  XE.Lib    := (Getc = '*');
+                  XE.Entity := Get_Name;
+
+                  Skip_Space;
+
+                  if Nextc = '<' then
+                     P := P + 1;
+                     N := Get_Nat;
+
+                     if Nextc = '|' then
+                        XE.Ptype_File_Num := Sdep_Id (N) +
+                                               (First_Sdep_Entry - 1);
+                        P := P + 1;
+                        N := Get_Nat;
+
+                     else
+                        XE.Ptype_File_Num := XS.File_Num;
+                     end if;
+
+                     XE.Ptype_Line := N;
+                     XE.Ptype_Type := Getc;
+                     XE.Ptype_Col  := Get_Nat;
+
+                  else
+                     XE.Ptype_File_Num := No_Sdep_Id;
+                     XE.Ptype_Line     := 0;
+                     XE.Ptype_Type     := ' ';
+                     XE.Ptype_Col      := 0;
+                  end if;
+
+                  XE.First_Xref := Xref.Last + 1;
+
+                  --  Loop through cross-references for this entity
+
+                  loop
+                     Skip_Space;
+
+                     if At_Eol then
+                        Skip_Eol;
+                        exit when Nextc /= '.';
+                        P := P + 1;
+                     end if;
+
+                     Xref.Increment_Last;
+
+                     declare
+                        XR : Xref_Record renames Xref.Table (Xref.Last);
+
+                     begin
+                        N := Get_Nat;
+
+                        if Nextc = '|' then
+                           XR.File_Num := Sdep_Id (N) +
+                                            (First_Sdep_Entry - 1);
+                           P := P + 1;
+                           N := Get_Nat;
+
+                        else
+                           XR.File_Num := XS.File_Num;
+                        end if;
+
+                        XR.Line  := N;
+                        XR.Rtype := Getc;
+                        XR.Col   := Get_Nat;
+                     end;
+                  end loop;
+
+                  --  Record last cross-reference
+
+                  XE.Last_Xref := Xref.Last;
+               end;
+            end loop;
+
+            --  Record last entity
+
+            XS.Last_Entity := Xref_Entity.Last;
+         end;
+      end loop;
+
+      --  Here after dealing with xref sections
 
       if C /= EOF and then C /= 'X' then
          Fatal_Error;

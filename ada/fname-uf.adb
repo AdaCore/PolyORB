@@ -138,6 +138,13 @@ package body Fname.UF is
       N : Int;
 
    begin
+      --  Null or error name means that some previous error occured
+      --  This is an unrecoverable error, so signal it.
+
+      if Uname <= Error_Name then
+         raise Unrecoverable_Error;
+      end if;
+
       N := SFN_HTable.Get (Uname);
 
       if N /= No_Entry then
