@@ -37,6 +37,8 @@ with System.RPC;
 
 package System.Garlic.Termination is
 
+   pragma Elaborate_Body;
+
    --  The termination algorithm tries to determine how many tasks are
    --  active (i.e. in a non-terminating state) on the system.
    --  It works by propagating two messages. The first one sends a Stamp

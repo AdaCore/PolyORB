@@ -1,3 +1,8 @@
+Mon May  5 21:30:25 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_utils.adb: Changed "delete" into "deleting" and format output
+	correctly.
+
 Fri May  2 13:45:06 1997  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* xe.ads: Add numeric literal token.

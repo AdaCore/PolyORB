@@ -1,7 +1,11 @@
+Sun May  4 22:16:57 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Do not check for ssh anymore since it is never
+	  used automatically.
+
 Fri Apr 25 18:11:16 1997  Laurent Pautet <pautet@inf.enst.fr>
 
-	* configure.in : get rid of RACW. Mostly useless because
-     of Eratho examples (especially Eratho/dynamic and Eratho/absolute).
+	* configure.in : get rid of RACW.
 
 Thu Apr 24 16:55:02 1997  Laurent Pautet <pautet@inf.enst.fr>
 
@@ -23,7 +27,8 @@ Mon Apr 22 10:34:24 1997  Laurent Pautet <pautet@inf.enst.fr>
 
 
 	* NEWS: New file.
-	* configure.in: Fixed bug reported by Cyrille Comar.
+
+Wed Apr  9 15:35:14 1997  Samuel Tardieu  <sam@zaphod.enst.fr>
 
 	* configure.in: Use zip filter by default.
 
@@ -101,7 +106,7 @@ Tue Feb 11 10:18:20 1997  Laurent Pautet <pautet@inf.enst.fr>
 	  Suppress last 2 paragraphs.
 
 Tue Feb 11 09:26:04 1997  Samuel Tardieu  <sam@inf.enst.fr>
-Tue Feb 11 10:18:20 1997  Laurent Pautet <pautet@inf.enst.fr>
+
 	* configure.in: Changed Linux target. Damn new config.guess!
 
 Mon Feb 10 14:39:45 1997  Samuel Tardieu  <sam@inf.enst.fr>
@@ -127,11 +132,11 @@ Thu Nov 28 19:53:19 1996  Laurent Pautet <pautet@inf.enst.fr>
 
 Wed Nov 27 15:58:22 1996  Laurent Pautet <pautet@inf.enst.fr>
 Wed Nov 27 15:58:22 1996  Laurent Pautet <pautet@inf.enst.fr>
-Thu Nov 28 19:53:19 1996  Laurent Pautet <pautet@inf.enst.fr>
+	* INSTALL: Rewrite completely and move all non obvious stuff
 	  in Doc/install_guide.txt.
 
 Tue Oct 29 18:31:35 1996  Samuel Tardieu  <sam@inf.enst.fr>
-Wed Nov 27 15:58:22 1996  Laurent Pautet <pautet@inf.enst.fr>
+
 	* configure.in: Check for get_errno or __get_errno.
 
 	* configure: Bug in Linux configuration.

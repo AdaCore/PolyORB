@@ -41,8 +41,6 @@ with System.Garlic.Heart;        use System.Garlic.Heart;
 with System.Garlic.Priorities;   use System.Garlic.Priorities;
 with System.Garlic.Termination;  use System.Garlic.Termination;
 
-pragma Elaborate_All (System.Garlic.Termination);
-
 package body System.RPC.Pool is
 
    use System.RPC.Util;

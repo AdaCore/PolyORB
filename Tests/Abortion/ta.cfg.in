@@ -1,4 +1,4 @@
-configuration Test_Abort is
+configuration TA is
 
    pragma Starter (Ada);
 
@@ -11,5 +11,4 @@ configuration Test_Abort is
 
    procedure Main_Abort is in part1;
 
-begin
-end Test_Abort;
+end TA;

@@ -1,3 +1,8 @@
+Mon May  5 21:32:28 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garter.ads: Elaborate body as soon as possible because of the
+	  possible use of the protected type from outside.
+
 Sat May  3 16:14:27 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.in: Added split to CLEANFILES.
@@ -15,6 +20,10 @@ Fri May  2 16:40:02 1997  Samuel Tardieu <sam@inf.enst.fr>
 
 	* s-garpri.ads: Made a pure package.
 
+Fri May  2 16:39:23 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am (install-data-local): Changed sed into $(SED)
+
 Fri May  2 16:37:16 1997  Daniel Neri  <d92-dne@nada.kth.se>
 
 	* constants.sh: Allow for very long ``uname -a'' lines which cause
@@ -22,6 +31,7 @@ Fri May  2 16:37:16 1997  Daniel Neri  <d92-dne@nada.kth.se>
  	now wrapped with ``fmt'' (which hopefully is present on all
  	important Unices).
 
+>>>>>>> 1.102
 Wed Apr 30 15:32:43 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garpri.ads: Added background creation priority.

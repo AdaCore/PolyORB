@@ -324,7 +324,7 @@ package body XE_Utils is
    begin
       if Verbose_Mode then
          Write_Program_Name;
-         Write_Str  ("delete ");
+         Write_Str  (": deleting ");
          Write_Name (File);
          Write_Eol;
       end if;
