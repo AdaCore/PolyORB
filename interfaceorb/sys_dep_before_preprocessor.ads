@@ -50,23 +50,7 @@ with Interfaces.C ;
 
 package Sys_Dep is
 
-#if BOOLEAN_ON_1_BYTE
-  type C_Boolean is new Interfaces.C.Unsigned_Char ;
-#elsif BOOLEAN_ON_4_BYTES
-  type C_Boolean is new Interfaces.C.Unsigned_Long ;
-#else
-  ::::::::::::::::::::::::::::::::::::::
-  ::::::::::::::::::::::::::::::::::::::
-  ::::::::::::::::::::::::::::::::::::::
-  -- You cannot compile This package
-  -- Beacause you have not specified
-  -- the size of boolean types on your platform
-  -- see sys_dep_definition_file.txt
-  ::::::::::::::::::::::::::::::::::::::
-  ::::::::::::::::::::::::::::::::::::::
-  ::::::::::::::::::::::::::::::::::::::
-#end if ;
-
+   type C_Boolean is new $BOOLEAN_TYPE ;
 
    C_True : C_Boolean := C_Boolean(1) ;
    C_False : C_Boolean := C_Boolean(0) ;

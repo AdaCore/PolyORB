@@ -1,4 +1,4 @@
 
-TOP=..
-CURRENT=~/Projet/AdaBroker/omniidl2/ast
-include $(TOP)/config.mk
+ADABROKER_TOP=../..
+ADABROKER_CURRENT=omniidl2/ast
+include $(ADABROKER_TOP)/config/config.mk

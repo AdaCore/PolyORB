@@ -46,7 +46,6 @@
 ///////////////////////////////////////////////////////////////////////
 
 
-#include <omniORB2/CORBA_sysdep.h>
 #include "iostream"
 
 
@@ -59,11 +58,6 @@ int main ()
       cerr << "The size of type C++ Long is not standard.\n AdaBroker cannot be compiled.\n";
       throw new myException ;
     } ;
-
-# ifdef NO_FLOAT
-      cerr << "The C++ compiler does not supports floats.\n AdaBroker cannot be compiled.\n";
-      throw new myException ;  
-# endif
 
   return 0 ;
 };

@@ -1,4 +1,3 @@
-
 ADABROKER_TOP=..
-ADABROKER_CURRENT=omniidl2
+ADABROKER_CURRENT=InterfaceORB
 include $(ADABROKER_TOP)/config/config.mk

@@ -46,6 +46,7 @@ export::
 prog = $(patsubst %,$(BinPattern),omniidl2)
 
 all::$(prog)
+	mv omniidl2 ../bin
 
 $(prog): $(DRV_OBJS) $(OBJ_LIBS) 
 	@(libs="$(LIBS) $(LIBS)"; $(CXXExecutable))
