@@ -151,6 +151,111 @@ s-rpcuti.o\
 s-rpstio.o\
 s-stratt.o
 
+GNATLIBOBJECTS = \
+a-caldel.o\
+a-calend.o\
+a-dynpri.o\
+a-filico.o\
+a-finali.o\
+a-flteio.o\
+a-fwteio.o\
+a-inteio.o\
+a-interr.o\
+a-intnam.o\
+a-iwteio.o\
+a-lfteio.o\
+a-lfwtio.o\
+a-liteio.o\
+a-liwtio.o\
+a-llftio.o\
+a-llfwti.o\
+a-llitio.o\
+a-lliwti.o\
+a-reatim.o\
+a-retide.o\
+a-sfteio.o\
+a-sfwtio.o\
+a-siteio.o\
+a-siwtio.o\
+a-ssicst.o\
+a-ssitio.o\
+a-ssiwti.o\
+a-strunb.o\
+a-ststio.o\
+a-stunau.o\
+a-stwibo.o\
+a-stwifi.o\
+a-stwima.o\
+a-stwise.o\
+a-stwiun.o\
+a-suteio.o\
+a-swmwco.o\
+a-sytaco.o\
+a-taside.o\
+a-teioed.o\
+a-textio.o\
+a-ticoau.o\
+a-tideau.o\
+a-tienau.o\
+a-tiflau.o\
+a-tigeau.o\
+a-tiinau.o\
+a-timoau.o\
+a-tiocst.o\
+a-titest.o\
+a-witeio.o\
+a-wtcoau.o\
+a-wtcstr.o\
+a-wtdeau.o\
+a-wtedit.o\
+a-wtenau.o\
+a-wtflau.o\
+a-wtgeau.o\
+a-wtinau.o\
+a-wtmoau.o\
+a-wttest.o\
+g-io_aux.o\
+g-spipat.o\
+g-spitbo.o\
+g-sptabo.o\
+g-sptain.o\
+g-sptavs.o\
+i-cpp.o\
+s-asthan.o\
+s-chepoo.o\
+s-debpoo.o\
+s-direio.o\
+s-ficobl.o\
+s-fileio.o\
+s-finimp.o\
+s-finroo.o\
+s-finroo.o\
+s-interr.o\
+s-pooglo.o\
+s-pooloc.o\
+s-poosiz.o\
+s-sequio.o\
+s-stopoo.o\
+s-stratt.o\
+s-stratt.o\
+s-stratt.o\
+s-stratt.o\
+s-taenca.o\
+s-taprob.o\
+s-taprop.o\
+s-tasabo.o\
+s-tasdeb.o\
+s-tasini.o\
+s-taskin.o\
+s-tasque.o\
+s-tasren.o\
+s-tassta.o\
+s-tastim.o\
+s-tasuti.o\
+s-tataat.o\
+text_io.o
+
+
 COMMONSOURCES = \
 ${srcdir}/s-garthi.ads \
         ./s-gaosli.ads ${srcdir}/s-gaosli.adb \
@@ -192,7 +297,8 @@ OBJECTS = \
 @PROTOCOLSOBJECTS@ \
 @LAUNCHINGOBJECTS@ \
 $(FILTERSOBJECTS) \
-$(COMMONOBJECTS)
+$(COMMONOBJECTS) \
+$(GNATLIBOBJECTS)
 
 SOURCES = \
 @PROTOCOLSSOURCES@ \
