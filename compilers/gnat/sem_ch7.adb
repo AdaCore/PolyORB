@@ -6,9 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $LastChangedRevision$
---                                                                          --
---          Copyright (C) 1992-2002, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2003, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -206,7 +204,6 @@ package body Sem_Ch7 is
       Style.Check_Identifier (Body_Id, Spec_Id);
 
       if Is_Child_Unit (Spec_Id) then
-
          if Nkind (Parent (N)) /= N_Compilation_Unit then
             Error_Msg_NE
               ("body of child unit& cannot be an inner package", N, Spec_Id);
@@ -398,7 +395,6 @@ package body Sem_Ch7 is
         and then Present (Declarations (N))
       then
          Make_Non_Public_Where_Possible : declare
-            Discard : Boolean;
 
             function Has_Referencer
               (L     : List_Id;
@@ -554,7 +550,13 @@ package body Sem_Ch7 is
          --  Start of processing for Make_Non_Public_Where_Possible
 
          begin
-            Discard := Has_Referencer (Declarations (N), Outer => True);
+            declare
+               Discard : Boolean;
+               pragma Warnings (Off, Discard);
+
+            begin
+               Discard := Has_Referencer (Declarations (N), Outer => True);
+            end;
          end Make_Non_Public_Where_Possible;
       end if;
 
@@ -588,6 +590,44 @@ package body Sem_Ch7 is
       Enter_Name (Id);
       Set_Ekind (Id, E_Package);
       Set_Etype (Id, Standard_Void_Type);
+
+      --  Add reference to parent unit of child unit to allow tools
+      --  to recreate fully qualified name of unit.
+
+      if Is_Child_Unit (Id) then
+         if Id = Cunit_Entity (Main_Unit)
+           or else Parent (N) = Library_Unit (Cunit (Main_Unit))
+         then
+            Generate_Reference (Id, Scope (Id), 'k', False);
+
+         elsif Nkind (Unit (Cunit (Main_Unit))) not in N_Unit_Body
+           and then Nkind (Unit (Cunit (Main_Unit))) /= N_Subunit
+         then
+            --  If current unit is an ancestor of main unit, generate
+            --  a reference to its own parent.
+
+            declare
+               U : Node_Id;
+
+            begin
+               U := Parent_Spec (Unit (Cunit (Main_Unit)));
+
+               while Present (U) loop
+                  if U = Parent (N) then
+                     Generate_Reference (Id, Scope (Id), 'k',  False);
+                     exit;
+
+                  elsif Nkind (Unit (U)) = N_Package_Body then
+                     exit;
+
+                  else
+                     U := Parent_Spec (Unit (U));
+                  end if;
+               end loop;
+            end;
+         end if;
+      end if;
+
       New_Scope (Id);
 
       PF := Is_Pure (Enclosing_Lib_Unit_Entity);
@@ -638,7 +678,7 @@ package body Sem_Ch7 is
       Public_Child : Boolean;
 
       procedure Clear_Constants (Id : Entity_Id; FE : Entity_Id);
-      --  Clears constant indications (Not_Source_Assigned, Constant_Value,
+      --  Clears constant indications (Never_Set_In_Source, Constant_Value,
       --  and Is_True_Constant) on all variables that are entities of Id,
       --  and on the chain whose first element is FE. A recursive call is
       --  made for all packages and generic packages.
@@ -669,9 +709,10 @@ package body Sem_Ch7 is
          E := FE;
          while Present (E) and then E /= Id loop
             if Ekind (E) = E_Variable then
-               Set_Not_Source_Assigned (E, False);
+               Set_Never_Set_In_Source (E, False);
                Set_Is_True_Constant    (E, False);
                Set_Current_Value       (E, Empty);
+               Set_Is_Known_Non_Null   (E, False);
 
             elsif Ekind (E) = E_Package
                     or else
@@ -893,7 +934,6 @@ package body Sem_Ch7 is
       New_Private_Type (N, Id, N);
       Set_Depends_On_Private (Id);
       Set_Has_Delayed_Freeze (Id);
-
    end Analyze_Private_Type_Declaration;
 
    -------------------------------------------
@@ -1185,7 +1225,6 @@ package body Sem_Ch7 is
       --  one so we also skip the exchange.
 
       Id := First_Entity (P);
-
       while Present (Id) and then Id /= First_Private_Entity (P) loop
 
          if Is_Private_Base_Type (Id)
@@ -1347,7 +1386,14 @@ package body Sem_Ch7 is
       elsif not (Is_Derived_Type (Dep))
         and then Is_Derived_Type (Full_View (Dep))
       then
-         return In_Open_Scopes (S);
+
+         --  When instantiating a package body, the scope stack is empty,
+         --  so check instead whether the dependent type is defined in
+         --  the same scope as the instance itself.
+
+         return In_Open_Scopes (S)
+           or else (Is_Generic_Instance (Current_Scope)
+              and then Scope (Dep) = Scope (Current_Scope));
       else
          return True;
       end if;
@@ -1418,7 +1464,7 @@ package body Sem_Ch7 is
       Set_Is_Tagged_Type (Id, Tagged_Present (Def));
 
       Set_Discriminant_Constraint (Id, No_Elist);
-      Set_Girder_Constraint (Id, No_Elist);
+      Set_Stored_Constraint (Id, No_Elist);
 
       if Present (Discriminant_Specifications (N)) then
          New_Scope (Id);
@@ -1456,6 +1502,7 @@ package body Sem_Ch7 is
       Set_RM_Size                     (Priv, RM_Size                  (Full));
       Set_Size_Known_At_Compile_Time  (Priv, Size_Known_At_Compile_Time
                                                                       (Full));
+      Set_Is_Volatile                 (Priv, Is_Volatile              (Full));
 
       if Priv_Is_Base_Type then
          Set_Is_Controlled            (Priv, Is_Controlled (Base_Type (Full)));
@@ -1576,7 +1623,32 @@ package body Sem_Ch7 is
            and then (Nkind (Parent (Id)) /= N_Object_Declaration
                       or else not No_Initialization (Parent (Id)))
          then
-            Error_Msg_N ("missing full declaration for deferred constant", Id);
+            if not Has_Private_Declaration (Etype (Id)) then
+
+               --  We assume that the user did not not intend a deferred
+               --  constant declaration, and the expression is just missing.
+
+               Error_Msg_N
+                 ("constant declaration requires initialization expression",
+                   Parent (Id));
+
+               if Is_Limited_Type (Etype (Id)) then
+                  Error_Msg_N
+                    ("\else remove keyword CONSTANT from declaration",
+                    Parent (Id));
+               end if;
+
+            else
+               Error_Msg_N
+                  ("missing full declaration for deferred constant ('R'M 7.4)",
+                     Id);
+
+               if Is_Limited_Type (Etype (Id)) then
+                  Error_Msg_N
+                    ("\else remove keyword CONSTANT from declaration",
+                    Parent (Id));
+               end if;
+            end if;
          end if;
 
          Next_Entity (Id);
@@ -1719,12 +1791,7 @@ package body Sem_Ch7 is
 
       --  Body required if subprogram
 
-      elsif (Is_Subprogram (P)
-               or else
-             Ekind (P) = E_Generic_Function
-               or else
-             Ekind (P) = E_Generic_Procedure)
-      then
+      elsif Is_Subprogram (P) or else Is_Generic_Subprogram (P) then
          return True;
 
       --  Treat a block as requiring a body
@@ -1786,11 +1853,7 @@ package body Sem_Ch7 is
                and then Unit_Requires_Body (E))
 
            or else
-             (Ekind (E) = E_Generic_Function
-               and then not Has_Completion (E))
-
-           or else
-             (Ekind (E) = E_Generic_Procedure
+             (Is_Generic_Subprogram (E)
                and then not Has_Completion (E))
 
          then

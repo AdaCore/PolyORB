@@ -6,8 +6,6 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $LastChangedRevision$
---                                                                          --
 --          Copyright (C) 1992-2002, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
@@ -218,6 +216,7 @@ package Rtsfind is
       System_Finalization_Implementation,
       System_Finalization_Root,
       System_Fore,
+      System_HIE_Back_End,
       System_Img_Bool,
       System_Img_Char,
       System_Img_Dec,
@@ -233,6 +232,7 @@ package Rtsfind is
       System_Interrupts,
       System_Machine_Code,
       System_Mantissa,
+      System_Memcop,
       System_Pack_03,
       System_Pack_05,
       System_Pack_06,
@@ -412,41 +412,6 @@ package Rtsfind is
        System_Tasking_Async_Delays_Enqueue_RT;
    --  Range of values for children of System.Tasking.Async_Delays
 
-   OK_To_Use_In_No_Run_Time_Mode : array (RTU_Id) of Boolean :=
-     (Ada_Tags                => True,
-      Ada_Exceptions          => True,
-      Interfaces              => True,
-      System                  => True,
-      System_Fat_Flt          => True,
-      System_Fat_LFlt         => True,
-      System_Fat_LLF          => True,
-      System_Fat_SFlt         => True,
-      System_Machine_Code     => True,
-      System_Storage_Elements => True,
-      System_Unsigned_Types   => True,
-      System_Secondary_Stack  => True,
-      others                  => False);
-   --  This array defines the set of packages that can legitimately be
-   --  accessed by Rtsfind in No_Run_Time mode. Any attempt to load
-   --  any other package in this mode will result in a message noting
-   --  use of a feature not supported in high integrity mode.
-
-   OK_To_Use_In_Ravenscar_Mode : array (RTU_Id) of Boolean :=
-     (System_Interrupts                             => True,
-      System_Tasking                                => True,
-      System_Tasking_Protected_Objects              => True,
-      System_Tasking_Restricted_Stages              => True,
-      System_Tasking_Protected_Objects_Single_Entry => True,
-      System_Task_Info                              => True,
-      System_Parameters                             => True,
-      Ada_Interrupts                                => True,
-      Ada_Real_Time                                 => True,
-      Ada_Real_Time_Delays                          => True,
-      others                                        => False);
-   --  This array defines the set of packages that can legitimately be
-   --  accessed by Rtsfind in Ravenscar mode, in addition to the
-   --  No_Run_Time units which are also allowed.
-
    --------------------------
    -- Runtime Entity Table --
    --------------------------
@@ -475,6 +440,7 @@ package Rtsfind is
 
      RE_Null,
 
+     RE_Exceptions_Available_In_HIE,     -- Ada.Exceptions
      RE_Code_Loc,                        -- Ada.Exceptions
      RE_Current_Target_Exception,        -- Ada.Exceptions (JGNAT use only)
      RE_Exception_Id,                    -- Ada.Exceptions
@@ -739,6 +705,11 @@ package Rtsfind is
 
      RE_Fore,                            -- System.Fore
 
+     RE_HIE_64_Bit_Divides,              -- System.HIE_Back_End
+     RE_HIE_Aggregates,                  -- System.HIE_Back_End
+     RE_HIE_Composite_Assignments,       -- System.HIE_Back_End
+     RE_HIE_Long_Shifts,                 -- System.HIE_Long_Shifts
+
      RE_Image_Boolean,                   -- System.Img_Bool
 
      RE_Image_Character,                 -- System.Img_Char
@@ -776,6 +747,9 @@ package Rtsfind is
      RE_Asm_Output_Operand,              -- System.Machine_Code
 
      RE_Mantissa_Value,                  -- System_Mantissa
+
+     RE_memcpy,                          -- System_Memcop
+     RE_memmove,                         -- System_Memcop
 
      RE_Bits_03,                         -- System.Pack_03
      RE_Get_03,                          -- System.Pack_03
@@ -1238,6 +1212,8 @@ package Rtsfind is
      RE_To_Address,                      -- System.Storage_Elements
 
      RE_Root_Storage_Pool,               -- System.Storage_Pools
+     RE_Allocate_Any,                    -- System_Storage_Pools,
+     RE_Deallocate_Any,                  -- System_Storage_Pools,
 
      RE_Thin_Pointer,                    -- System.Stream_Attributes
      RE_Fat_Pointer,                     -- System.Stream_Attributes
@@ -1295,9 +1271,7 @@ package Rtsfind is
 
      RE_Str_Concat_5,                    -- System.String_Ops_Concat_5
 
-     RE_Free_Task_Image,                 -- System.Task_Info
      RE_Task_Info_Type,                  -- System.Task_Info
-     RE_Task_Image_Type,                 -- System_Task_Info
      RE_Unspecified_Task_Info,           -- System.Task_Info
 
      RE_Library_Task_Level,              -- System.Tasking
@@ -1543,6 +1517,7 @@ package Rtsfind is
 
      RE_Null                             => RTU_Null,
 
+     RE_Exceptions_Available_In_HIE      => Ada_Exceptions,
      RE_Code_Loc                         => Ada_Exceptions,
      RE_Current_Target_Exception         => Ada_Exceptions, -- of JGNAT
      RE_Exception_Id                     => Ada_Exceptions,
@@ -1805,6 +1780,11 @@ package Rtsfind is
 
      RE_Fore                             => System_Fore,
 
+     RE_HIE_64_Bit_Divides               => System_HIE_Back_End,
+     RE_HIE_Aggregates                   => System_HIE_Back_End,
+     RE_HIE_Composite_Assignments        => System_HIE_Back_End,
+     RE_HIE_Long_Shifts                  => System_HIE_Back_End,
+
      RE_Image_Boolean                    => System_Img_Bool,
 
      RE_Image_Character                  => System_Img_Char,
@@ -1842,6 +1822,9 @@ package Rtsfind is
      RE_Asm_Output_Operand               => System_Machine_Code,
 
      RE_Mantissa_Value                   => System_Mantissa,
+
+     RE_memcpy                           => System_Memcop,
+     RE_memmove                          => System_Memcop,
 
      RE_Bits_03                          => System_Pack_03,
      RE_Get_03                           => System_Pack_03,
@@ -2304,6 +2287,8 @@ package Rtsfind is
      RE_To_Address                       => System_Storage_Elements,
 
      RE_Root_Storage_Pool                => System_Storage_Pools,
+     RE_Allocate_Any                     => System_Storage_Pools,
+     RE_Deallocate_Any                   => System_Storage_Pools,
 
      RE_Thin_Pointer                     => System_Stream_Attributes,
      RE_Fat_Pointer                      => System_Stream_Attributes,
@@ -2361,9 +2346,7 @@ package Rtsfind is
 
      RE_Str_Concat_5                     => System_String_Ops_Concat_5,
 
-     RE_Free_Task_Image                  => System_Task_Info,
      RE_Task_Info_Type                   => System_Task_Info,
-     RE_Task_Image_Type                  => System_Task_Info,
      RE_Unspecified_Task_Info            => System_Task_Info,
 
      RE_Library_Task_Level               => System_Tasking,
@@ -2635,6 +2618,27 @@ package Rtsfind is
      RE_Expunge_Unactivated_Tasks        => System_Tasking_Stages,
      RE_Terminated                       => System_Tasking_Stages);
 
+   -------------------------
+   -- High Integrity Mode --
+   -------------------------
+
+   --  Part of the job of Rtsfind is to enforce high integrity restrictions
+   --  in high integrity mode. This is done by monitoring implicit access to
+   --  the run time library requested by calls to the RTE function. A call
+   --  may be invalid in high integrity mode for any one of the following
+   --  three reasons
+
+   --     1. File in which entity lives is not present in run-time library
+   --     2. File is present, but entity is not defined in the file
+   --     3. Entity is defined in the file but not marked High_Integrity
+
+   --  In any of these cases, appropriate error messages are generated,
+   --  and in cases 1 and 2, an exception is raised to notify the caller
+   --  that the run-time entity could not be obtained.
+
+   High_Integrity_Violations : Nat := 0;
+   --  Count of high integrity violations so far
+
    -----------------
    -- Subprograms --
    -----------------
@@ -2645,26 +2649,41 @@ package Rtsfind is
    --  Initialize_Snames (since names it enters into name table must come
    --  after names entered by Snames).
 
+   RE_Not_Available : exception;
+   --  Raised by RTE if the requested entity is not available. This can
+   --  occur either because the file in which the entity should be found
+   --  does not exist, or because the entity is not present in the file.
+   --  Note that this exception is not raised if the problem is that the
+   --  entity is present but not marked High_Integrity in HI_E mode. That
+   --  is an error, and generates an error message but the entity is
+   --  returned as usual from RTE in this case.
+
    function RTE (E : RE_Id) return Entity_Id;
    --  Given the entity defined in the above tables, as identified by the
    --  corresponding value in the RE_Id enumeration type, returns the Id
    --  of the corresponding entity, first loading in (parsing, analyzing and
-   --  expanding) its spec if the unit has not already been loaded. If the
-   --  unit cannot be found, or if it does not contain the specified entity,
-   --  then an appropriate error message is output ("run-time configuration
-   --  error") and an Unrecoverable_Error exception is raised. There is one
-   --  situation in which RTE can generate an error message, and that is if
-   --  an unuathorized entity is accessed in high integrity mode. If this
-   --  occurs, the result returned may be Empty, and the caller must deal
-   --  with this possibility if the call to RTE may occur in high integrity
-   --  mode (often this will have been ruled out by specific checks for
-   --  high integrity mode prior to the RTE call).
+   --  expanding) its spec if the unit has not already been loaded.
    --
    --  Note: In the case of a package, RTE can return either an entity that
    --  is declared at the top level of the package, or the package entity
    --  itself. If an entity within the package has the same simple name as
    --  the package, then the entity within the package is returned rather
-   --  than the package entity itself.
+   --
+   --  If RTE returns, the returned value is the required entity. Note that
+   --  an error message may have been issued if the entity is available, but
+   --  we are operating in HI-E and neither the entity, nor the package in
+   --  which it is defined has the High_Integrity flag set. The error in this
+   --  case is a non-fatal error which allows expansion to continue, though
+   --  no object file can be generated, since HI-E restrictions are violated.
+   --
+   --  If the entity is not available, then a fatal message is given The
+   --  form of the message depends on whether we are in HI-E mode or not.
+   --  In HI-E mode, a missing entity is not that surprising and merely
+   --  says that the particular construct cannot be used in HI-E mode. If
+   --  we are not in HI-E mode, a missing entity is some kind of run-time
+   --  configuration error. In either case, the result of the call is to
+   --  raise the exception RE_Not_Available, which should terminate the
+   --  expansion of the current construct.
 
    function Is_RTE (Ent : Entity_Id; E : RE_Id) return Boolean;
    --  This function determines if the given entity corresponds to the entity
@@ -2673,6 +2692,11 @@ package Rtsfind is
    --  this call, if the unit is not loaded, then a result of False is returned
    --  immediately, since obviously Ent cannot be the entity in question if the
    --  corresponding unit has not been loaded.
+
+   function RTE_Available (E : RE_Id) return Boolean;
+   --  Returns true if a call to RTE will succeed without raising an
+   --  exception and without generating an error message, i.e. if the
+   --  call will obtain the desired entity without any problems.
 
    procedure Text_IO_Kludge (Nam : Node_Id);
    --  In Ada 83, and hence for compatibility in Ada 9X, package Text_IO has

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $LastChangedRevision$
 --                                                                          --
---          Copyright (C) 1992-2001, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2002, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -209,7 +209,6 @@ package body Sem_Dist is
    procedure Process_Partition_Id (N : Node_Id) is
       Loc            : constant Source_Ptr := Sloc (N);
       Ety            : Entity_Id;
-      Nd             : Node_Id;
       Get_Pt_Id      : Node_Id;
       Get_Pt_Id_Call : Node_Id;
       Prefix_String  : String_Id;
@@ -227,8 +226,6 @@ package body Sem_Dist is
       loop
          Ety := Scope (Ety);
       end loop;
-
-      Nd := Enclosing_Lib_Unit_Node (N);
 
       --  Retrieve the proper function to call.
 
@@ -295,12 +292,9 @@ package body Sem_Dist is
       Remote_Subp           : Entity_Id;
       Tick_Access_Conv_Call : Node_Id;
       Remote_Subp_Decl      : Node_Id;
-      RAS_Decl              : Node_Id;
       RS_Pkg_Specif         : Node_Id;
       RS_Pkg_E              : Entity_Id;
-      RAS_Pkg_E             : Entity_Id;
       RAS_Type              : Entity_Id;
-      RAS_Name              : Name_Id;
       Async_E               : Entity_Id;
       All_Calls_Remote_E    : Entity_Id;
       Subp_Id               : String_Id;
@@ -333,11 +327,7 @@ package body Sem_Dist is
          RAS_Type := Equivalent_Type (New_Type);
       end if;
 
-      RAS_Name  := Chars (RAS_Type);
-      RAS_Decl := Parent (RAS_Type);
       Attribute_Subp := TSS (RAS_Type, Name_uRAS_Access);
-
-      RAS_Pkg_E  := Defining_Entity (Parent (RAS_Decl));
       Remote_Subp_Decl := Unit_Declaration_Node (Remote_Subp);
 
       if Nkind (Remote_Subp_Decl) = N_Subprogram_Body then
@@ -375,7 +365,6 @@ package body Sem_Dist is
               New_Occurrence_Of (All_Calls_Remote_E, Loc)));
       Rewrite (N, Tick_Access_Conv_Call);
       Analyze_And_Resolve (N, RAS_Type);
-
    end Process_Remote_AST_Attribute;
 
    ------------------------------------
