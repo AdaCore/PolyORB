@@ -237,7 +237,6 @@ cos/time/test_time.adb
 cos/time/test_time.ads
 cos/time/time_utils.adb
 cos/time/time_utils.ads
-design/droopi-uml.ps
 doc/CODING_GUIDELINES
 doc/NOTES
 examples/Makefile.am
