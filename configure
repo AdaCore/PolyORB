@@ -1209,7 +1209,7 @@ echo "configure:1209: checking default filters" >&5
   FILTERLIST="";
   FILTERFILE=Garlic/Makefile.fil;
   echo "" >${FILTERFILE}
-  for F in "${withval}"; do
+  for F in ${withval}; do
     if test -f Garlic/Makefile.${F}; then
       FILTERLIST="${FILTERLIST} ${F}";
       cat Garlic/Makefile.${F} >>${FILTERFILE}
@@ -1241,7 +1241,7 @@ echo "configure:1240: checking default protocols" >&5
   PROTOCOLSSOURCES="";
   PROTOCOLSOBJECTS="";
   TCP_INCLUDED="--  ";
-  for P in "${withval}"; do
+  for P in ${withval}; do
      case ${P} in
      TCP|tcp) 
         LIST="${LIST} tcp";

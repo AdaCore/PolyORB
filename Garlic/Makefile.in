@@ -151,13 +151,13 @@ ${srcdir}/s-stratt.adb
 OBJECTS = \
 @PROTOCOLSOBJECTS@ \
 @LAUNCHINGOBJECTS@ \
-$(FITLERSSOURCES) \
+$(FILTERSOBJECTS) \
 $(COMMONOBJECTS)
 
 SOURCES = \
 @PROTOCOLSSOURCES@ \
 @LAUNCHINGSOURCES@ \
-$(FILTERSOBJECTS) \
+$(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
