@@ -141,7 +141,12 @@ ADABROKER_TRY
   try {
      C_Object = new omniObject_C2Ada (this) ;
   } catch (...) {
-    cerr << "Ada_OmniObject::initLocalObject : you cannot initialize an object before initializing the ORB and the BOA" << endl ;
+    cerr << "Ada_OmniObject::initLocalObject : you cannot initialize an object before initializing the ORB and the BOA" << endl
+	 << "     >   Orb : Corba.Orb.Object := Corba.Orb.Orb_Init("omniORB2") ;" << endl
+	 << "     >   Boa : Corba.Boa.Object := Corba.Orb.Boa_Init(Orb, "omniORB2_BOA") ;" << endl 
+	 << "must be the FIRST lines of your program, just after"<< endl
+	 << "     >   procedure my_procedure is" << endl << endl ;
+
   }
   // setting its repository ID
   C_Object->PR_IRRepositoryId(repoid) ;
