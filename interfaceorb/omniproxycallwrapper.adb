@@ -50,6 +50,7 @@ with Ada.Exceptions ;
 with Ada.Unchecked_Conversion ;
 with Interfaces.C ;
 with System ;
+use type System.Address ;
 
 with Corba, Corba.Object, Corba.Exceptions ;
 with Giop ;
@@ -59,6 +60,8 @@ with Netbufferedstream ;
 with Omniproxycalldesc ;
 with Omniobject ; use type Omniobject.Object_Ptr ;
 with Sys_Dep ;
+
+with Adabroker_Debug ; use Adabroker_Debug ;
 
 package body omniProxyCallWrapper is
 
@@ -110,6 +113,9 @@ package body omniProxyCallWrapper is
          -- get the current values of the rope and the key
          Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key,Is_Fwd) ;
 
+         pragma Debug(Output(Debug, "Corba.omniproxycalldesc : calling Giop_c.init"));
+         pragma Debug(Output(Debug,
+                             "RopeAndKey = null := " & Boolean'Image (System.Address (Omniropeandkey.Get_Rope(Rope_And_Key.all)) = System.Null_Address) ));
          -- Get a GIOP driven strand
          Giop_C.Init (Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key.all)) ;
 
@@ -369,7 +375,7 @@ package body omniProxyCallWrapper is
       -- use the Strand. False otherwise.
 
       Giop_Client : Giop_C.Object ;
-      -- Giop_c object used forcommunications with the ORB
+      -- Giop_c object used for communications with the ORB
 
       Message_Size : Corba.Unsigned_Long ;
       -- size of the message to pass to the giop_c object

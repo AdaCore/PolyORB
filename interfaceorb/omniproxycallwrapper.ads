@@ -50,7 +50,13 @@ with Corba.Object ;
 with Omniproxycalldesc ;
 with Omniobject ;
 
+with Adabroker_Debug ;
+pragma Elaborate(Adabroker_Debug) ;
+
 package omniProxyCallWrapper is
+
+   Debug : constant Boolean := Adabroker_Debug.Is_Active("omniproxycallwrapper") ;
+   -- debugging  flag
 
    procedure Invoke (Obj : in Corba.Object.Ref'Class ;
                      Call_Desc : in out OmniProxyCallDesc.Object'Class ) ;

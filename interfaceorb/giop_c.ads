@@ -60,7 +60,13 @@ with Sys_Dep ;
 with Rope ;
 with Netbufferedstream ;
 
+with Adabroker_Debug ;
+pragma Elaborate(Adabroker_Debug) ;
+
 package Giop_C is
+
+   Debug : constant Boolean := Adabroker_Debug.Is_Active("giop_c") ;
+   -- debugging  flag
 
    type Object is new NetbufferedStream.Object with record
       Table1 : Interfaces.CPP.Vtable_Ptr ;
@@ -77,7 +83,7 @@ package Giop_C is
    -- type pointer on type Object
 
 
-   procedure Init (Self : out Object'Class ;
+   procedure Init (Self : in out Object'Class ;
                    R : in Rope.Object) ;
    -- Ada constructor of the class.
    -- This function must be called after each declaration of
@@ -115,12 +121,11 @@ package Giop_C is
 
 private
 
-   function Constructor return Object'Class;
-   pragma CPP_Constructor (Constructor);
-   pragma Import (CPP,Constructor,"__10Ada_Giop_c");
+   function Constructor1 return Object'Class;
+   pragma CPP_Constructor (Constructor1);
+   pragma Import (CPP,Constructor1,"__10Ada_Giop_c");
    -- default constructor of the C class.
    -- Actually, this constructor does nothing and you must
    -- call Init to init properly an object.
 
 end Giop_C ;
-

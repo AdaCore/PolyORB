@@ -56,12 +56,14 @@ with Ada.Strings.Unbounded ;
 with Corba ;
 use type Corba.Unsigned_Long ;
 
+with Adabroker_Debug ; use Adabroker_Debug ;
+
 package body Giop_C is
 
 
    -- C_Init
    ---------
-   procedure C_Init (Self : out Object'Class ;
+   procedure C_Init (Self : in out Object'Class ;
                      R : in System.Address) ;
    pragma Import (C,C_Init,"Init__10Ada_Giop_cP4Rope") ;
    -- wrapper around  Ada_Giop_c procedure Init
@@ -71,9 +73,11 @@ package body Giop_C is
 
    -- Init
    -------
-   procedure Init (Self : out Object'Class ;
+   procedure Init (Self : in out Object'Class ;
                    R : in Rope.Object) is
    begin
+      pragma Debug(Output(Debug, "--- giop_c.Init ---"))  ;
+      pragma Debug(Output(Debug, "init_Ok = " & Boolean'Image(Sys_Dep.Boolean_C_To_Ada(Self.Init_Ok))))  ;
       -- just calls the C procedure
       C_Init (Self, System.Address (R)) ;
    end;

@@ -52,10 +52,8 @@
 
 // Default Constructor
 //--------------------
-Ada_Giop_c::Ada_Giop_c ()
+Ada_Giop_c::Ada_Giop_c () : Ada_netBufferedStream::Ada_netBufferedStream ()
 {
-  Init_Ok = false;
-  C_Object = NULL;
 };
 
   

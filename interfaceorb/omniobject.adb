@@ -503,7 +503,7 @@ package body OmniObject is
    -- C_Get_Rope_And_Key
    ---------------------
    procedure C_Get_Rope_And_Key (Self : in Object'Class ;
-                                L : out Omniropeandkey.Object ;
+                                L : out System.address ;
                                 Success : out Sys_Dep.C_Boolean) ;
    pragma Import (CPP,
                   C_Get_Rope_And_Key,
