@@ -44,7 +44,8 @@ procedure AB_Names is
 
    subtype NamingContext_Ptr is CosNaming.NamingContext.Impl.Object_Ptr;
 
-   Root_NC  : constant NamingContext_Ptr := new Object;
+   Root_NC  : constant NamingContext_Ptr :=
+     CosNaming.NamingContext.Impl.Create;
 
    Ref      : CORBA.Object.Ref;
 

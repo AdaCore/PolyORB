@@ -198,10 +198,10 @@ package body Broca.Buffers is
       end if;
 
       Initialize_Buffer
-        (Buffer     => Buffer,
-         Size       => Octets.all'Length - 1,
-         Data       => Octets (Octets'First + 1)'Address,
-         Endianness => Endianness,
+        (Buffer               => Buffer,
+         Size                 => Octets'Length - 1,
+         Data                 => Octets (Octets'First + 1)'Address,
+         Endianness           => Endianness,
          Initial_CDR_Position => 1);
 
    end Decapsulate;

@@ -62,7 +62,7 @@ package body CORBA.Object is
       if
         Is_Equivalent
         (Logical_Type_Id,
-         Broca.Names.OMG_RepositoryId ("Object"))
+         Broca.Names.OMG_RepositoryId ("CORBA/Object"))
       --  Any object Is_A CORBA::Object.
 
         or else

@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
 with CORBA.Sequences.Unbounded;
 with CORBA.Impl;
 
@@ -103,6 +105,9 @@ package body Broca.ORB is
    function To_String (Oid : PortableServer.ObjectId)
      return String;
 
+   function To_Octet_Sequence (Str : CORBA.String)
+     return Broca.Sequences.Octet_Sequence;
+
    function Build_Remote_Naming_Reference return CORBA.Object.Ref;
 
    function Build_Object_Key
@@ -121,7 +126,8 @@ package body Broca.ORB is
      return Broca.Sequences.Octet_Sequence
    is
       use Broca.Buffers, Broca.CDR;
-      Buffer : aliased Buffer_Type;
+      Buffer     : aliased Buffer_Type;
+      Key_Buffer : aliased Buffer_Type;
    begin
       Start_Encapsulation (Buffer'Access);
 
@@ -141,7 +147,11 @@ package body Broca.ORB is
       Marshall (Buffer'Access, POA_Name);
 
       --  Object key for the POA
-      Marshall (Buffer'Access, Object_Name);
+      Start_Encapsulation (Key_Buffer'Access);
+      Broca.Sequences.Marshall
+        (Key_Buffer'Access, To_Octet_Sequence (Object_Name));
+      Broca.Buffers.Show (Key_Buffer);
+      Marshall (Buffer'Access, Encapsulate (Key_Buffer'Access));
 
       return
         Broca.Sequences.Octet_Sequences.To_Sequence
@@ -192,8 +202,6 @@ package body Broca.ORB is
          declare
             RootPOA_Obj : constant CORBA.Object.Ref'Class :=
               Resolve_Initial_References (Root_POA_ObjectId);
-            RootPOA     : constant PortableServer.POA.Ref'Class :=
-              PortableServer.POA.Ref'Class (RootPOA_Obj);
             RootPOA_Ptr : constant Broca.POA.POA_Object_Ptr :=
               Broca.POA.POA_Object_Ptr
               (CORBA.Object.Object_Of (RootPOA_Obj));
@@ -211,15 +219,20 @@ package body Broca.ORB is
                Ap           => NO_IMPLICIT_ACTIVATION,
                Sp           => NON_RETAIN,
                Rp           => USE_SERVANT_MANAGER);
+            pragma Debug (O ("Setting default servant"));
             PortableServer.ServantManager.Set
               (References_POA.Servant_Manager,
-               CORBA.Object.Object_Of
-               (PortableServer.POA.Servant_To_Reference
-                (RootPOA, Locator'Access)));
-            Activate (Get_The_POAManager (References_POA) .all);
+               CORBA.Impl.Object_Ptr'(Locator'Access));
             pragma Debug (O ("Activating the references POA"));
+            Activate (Get_The_POAManager (References_POA) .all);
+            pragma Debug (O ("References POA ready"));
          end;
       end if;
+   exception
+      when E : others =>
+         pragma Debug (O ("Got an exception: " &
+                          Ada.Exceptions.Exception_Information (E)));
+         raise;
    end Ensure_References_POA_Is_Started;
 
    -------------------
@@ -315,9 +328,13 @@ package body Broca.ORB is
       Obj  : constant CORBA.Object.Ref'Class :=
         Resolve_Initial_References (CORBA.ORB.To_CORBA_String (Name));
    begin
-      pragma Debug (O ("Calling Preinvoke for service " & Name));
+      pragma Debug (O ("In Preinvoke for service " & Name &
+                       " and operation " &
+                       CORBA.To_Standard_String (Operation)));
       The_Cookie := null;
-      Returns    := PortableServer.POA.Reference_To_Servant (Adapter, Obj);
+      Returns    :=
+        PortableServer.POA.Reference_To_Servant
+        (PortableServer.POA.Get_The_Parent (Adapter), Obj);
    end Preinvoke;
 
    ----------------
@@ -333,7 +350,9 @@ package body Broca.ORB is
       The_Servant : in PortableServer.Servant)
    is
    begin
-      pragma Debug (O ("Calling Postinvoke for service " & To_String (Oid)));
+      pragma Debug (O ("Calling Postinvoke for service " & To_String (Oid) &
+                       " and operation " &
+                       CORBA.To_Standard_String (Operation)));
       null;
    end Postinvoke;
 
@@ -350,12 +369,18 @@ package body Broca.ORB is
    begin
       for I in 1 .. Length (Identifiers) loop
          if Element_Of (Identifiers, I) = Identifier then
+            pragma Debug (O ("Resolved initial reference " &
+                             To_Standard_String (Identifier)));
             return Element_Of (References, I);
          end if;
       end loop;
       if To_Standard_String (Identifier) = "NamingService" then
+         pragma Debug (O ("Returning remote reference of NamingService"));
          return Build_Remote_Naming_Reference;
       end if;
+      pragma Debug (O ("Initial reference of " &
+                       To_Standard_String (Identifier) & " is unknown, " &
+                       "raising InvalidName"));
       raise CORBA.InvalidName;
    end Resolve_Initial_References;
 
@@ -416,6 +441,24 @@ package body Broca.ORB is
    begin
       POA_State_Changed (The_ORB.all, POA);
    end POA_State_Changed;
+
+   -----------------------
+   -- To_Octet_Sequence --
+   -----------------------
+
+   function To_Octet_Sequence (Str : CORBA.String)
+     return Broca.Sequences.Octet_Sequence
+   is
+      Ada_Str : constant String := CORBA.To_Standard_String (Str);
+      Value   : Broca.Sequences.CORBA_Octet_Array (1 .. CORBA.Length (Str));
+      Index   : Positive := 1;
+   begin
+      for I in Ada_Str'Range loop
+         Value (I) := CORBA.Octet'Val (Character'Pos (Ada_Str (I)));
+         Index := Index + 1;
+      end loop;
+      return Broca.Sequences.Octet_Sequences.To_Sequence (Value);
+   end To_Octet_Sequence;
 
    ---------------
    -- To_String --

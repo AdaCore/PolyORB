@@ -29,8 +29,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO;
+with Ada.Command_Line;            use Ada.Command_Line;
 with Ada.Exceptions;              use Ada.Exceptions;
+with Ada.Text_IO;
 with Menu;                        use Menu;
 
 with CORBA;
@@ -304,9 +305,18 @@ procedure Test_Naming is
 begin
    Broca.Server_Tools.Initiate_Server;
 
-   Ada.Text_IO.Put_Line ("create root directory");
-   Broca.Server_Tools.Servant_To_Reference
-     (PortableServer.Servant (NamingContext.Impl.Create), WDR);
+   if Argument_Count > 0 and then Argument (1) = "-i" then
+      Ada.Text_IO.Put ("retrieving root directory initial reference...");
+      Ada.Text_IO.Flush;
+      WDR := NamingContext.Helper.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("NamingService")));
+      Ada.Text_IO.Put_Line (" done");
+   else
+      Ada.Text_IO.Put_Line ("creating root directory");
+      Broca.Server_Tools.Servant_To_Reference
+        (PortableServer.Servant (NamingContext.Impl.Create), WDR);
+   end if;
 
    Bind_Context (WDR, Here, WDR);
    Bind_Context (WDR, Back, WDR);

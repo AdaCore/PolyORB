@@ -1192,7 +1192,9 @@ package body Broca.RootPOA is
       pragma Debug (O ("GIOP_Invoke: Servant Policy is "
                        & Self.Servant_Policy'Img));
 
+      pragma Debug (O ("Reading the key"));
       Decapsulate (Key, Key_Buffer'Access);
+      pragma Debug (O ("The key has been read"));
 
       --  Find the ObjectId in the Active Map if RETAIN Policy.
       if Self.Servant_Policy = RETAIN then
@@ -1221,6 +1223,7 @@ package body Broca.RootPOA is
                  (O ("GIOP_Invoke: USE_DEFAULT_SERVANT policy"));
 
                if Self.Default_Servant = null then
+                  pragma Debug (O ("No default servant, raising Obj_Adapter"));
                   Broca.Exceptions.Raise_Obj_Adapter;
                end if;
 
@@ -1234,15 +1237,22 @@ package body Broca.RootPOA is
 
             when USE_SERVANT_MANAGER =>
                pragma Debug (O ("GIOP_Invoke: USE_SERVANT_MANAGER policy"));
+
                if PSSM.Is_Nil (Self.Servant_Manager) then
+                  pragma Debug (O ("No servant manager, raising Obj_Adapter"));
                   Release (Key_Buffer);
                   Broca.Exceptions.Raise_Obj_Adapter;
                end if;
 
+               pragma Debug (O ("Converting key to object id"));
+               Broca.Buffers.Show (Key_Buffer);
                Oid := Key_To_ObjectId (Key_Buffer'Access);
+
+               pragma Debug (O ("Releasing key"));
                Release (Key_Buffer);
+
                if Self.Servant_Policy = RETAIN then
-                  Release (Key_Buffer);
+                  pragma Debug (O ("Servant policy is RETAIN"));
                   Self.Servant_Lock.Lock;
                   begin
                      PSSA.Impl.Incarnate
@@ -1271,6 +1281,8 @@ package body Broca.RootPOA is
 
                   Self.Object_Map (Slot).Skeleton.P_Servant := A_Servant;
                else
+                  pragma Debug (O ("Will call Preinvoke, NOT_RETAIN policy"));
+
                   PSSL.Impl.Preinvoke
                     (PSSL.Impl.Object'Class
                      (Servant_Manager.all),
@@ -1383,10 +1395,14 @@ package body Broca.RootPOA is
       Res : Object_Ptr;
 
    begin
+      pragma Debug (O ("Entering Create_POA"));
+
       --  Fail if there is already a POA with the same name.
       Child := Self.Children;
       while Child /= null loop
          if Child.Name = Adapter_Name then
+            pragma Debug (O ("POA name already exists"));
+
             exit when Child.POA_Manager = Ghost_POA_Manager;
             --  Failure
             raise PortableServer.POA.AdapterAlreadyExists;
@@ -1394,7 +1410,12 @@ package body Broca.RootPOA is
          Child := Child.Brother;
       end loop;
 
+      pragma Debug (O ("POA name is new"));
+
       if Child = null then
+
+         pragma Debug (O ("Creating first child of parent POA"));
+
          Res := new Object;
 
          --  Link it.
@@ -1405,6 +1426,7 @@ package body Broca.RootPOA is
          --  Internal data.
          Res.Name := Adapter_Name;
       else
+         pragma Debug (O ("Adding a child to parent POA"));
          Res := Object_Ptr (Child);
       end if;
 
@@ -1424,16 +1446,24 @@ package body Broca.RootPOA is
       --  Unless an explicit POA manager object is provided at POA creation
       --  time, a POA manager is created when a POA is created and is
       --  automatically associed with that POA.
-      if A_POAManager = null then
+      if A_POAManager /= null then
+         pragma Debug (O ("Reusing the POA manager from parent"));
          Res.POA_Manager := A_POAManager;
       else
+         pragma Debug (O ("Creating a new POA manager"));
          Res.POA_Manager := new POA_Manager_Type;
       end if;
+
+      pragma Debug (O ("Incrementing usage of POA manager"));
       Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Res.POA_Manager));
+
+      pragma Debug (O ("Registering POA manager"));
       Register (Res.POA_Manager.all, To_POA_Ref (Res));
 
+      pragma Debug (O ("Registering POA"));
       Broca.Server.Register_POA (To_POA_Ref (Res));
 
+      pragma Debug (O ("POA created"));
       return POA_Object_Ptr (Res);
    end Create_POA;
 

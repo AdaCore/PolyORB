@@ -102,6 +102,7 @@ package body Broca.Refs is
          Free (Obj);
       end if;
 
+      pragma Debug (O ("Leaving Dec_Usage"));
    end Dec_Usage;
 
    procedure Set

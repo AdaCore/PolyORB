@@ -635,6 +635,8 @@ package body Broca.Server is
                   pragma Debug (O ("Handle_Request : invoking "
                                    & To_Standard_String (Operation)));
 
+                  Broca.Buffers.Show (Key_Buffer);
+
                   declare
                      Object_Id : aliased Encapsulation
                        := Unmarshall (Key_Buffer'Access);
@@ -1169,6 +1171,9 @@ package body Broca.Server is
          --  Unmarshall number of POAs in path name.
          Path_Size := Unmarshall (Buffer);
 
+         pragma Debug (O ("Demarshalling path of size" &
+                          CORBA.Unsigned_Long'Image (Path_Size)));
+
          --  Start with the root POA
          Current_POA := All_POAs (Broca.POA.Root_POA_Index).POA;
 
@@ -1190,12 +1195,18 @@ package body Broca.Server is
             Dec_Usage (Get_The_POAManager (POA_Object_Of (Current_POA)).all);
 
             POA_Name := Unmarshall (Buffer);
+
+            pragma Debug (O ("Next POA in path is " &
+                             CORBA.To_Standard_String (POA_Name)));
+
             Old_POA  := Current_POA;
             Current_POA := Broca.POA.Ref
               (Broca.POA.Find_POA
                (POA_Object_Of (Current_POA), POA_Name, True));
 
             if Is_Nil (Current_POA) then
+               pragma Debug (O ("POA " & CORBA.To_Standard_String (POA_Name) &
+                                " could not be found"));
                POA_Object_Of (Old_POA).Link_Lock.Unlock_R;
                Broca.Exceptions.Raise_Object_Not_Exist;
             end if;
