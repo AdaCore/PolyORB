@@ -1,5 +1,12 @@
 -*- outline -*-
 
+* New in AdaSockets 0.1.12
+
+** Bug fix
+
+The split program had a forgotten incrementation, which made it fail on
+some machines. Fix sent by Thomas Quinot <thomas@cuivre.fr.eu.org>.
+
 * New in AdaSockets 0.1.11
 
 ** New constants defined
