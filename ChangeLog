@@ -1,3 +1,8 @@
+Thu May 29 18:09:03 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* configure.in: Set -O2 even when debugging, since it can detect
+	  initialized variables.
+
 Wed May  7 18:17:54 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* configure.in: Added Examples/Messages/Makefile in target list.

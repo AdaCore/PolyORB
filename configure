@@ -1277,7 +1277,7 @@ done
 # Check whether --enable-debug or --disable-debug was given.
 if test "${enable_debug+set}" = set; then
   enableval="$enable_debug"
-  GNATFLAGS="-g -gnata -gnato"
+  GNATFLAGS="-g -O2 -Wall -gnata -gnato"
 else
   GNATFLAGS="-O2 -gnatn"
 fi
