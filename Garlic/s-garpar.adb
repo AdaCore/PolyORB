@@ -57,20 +57,22 @@ package body System.Garlic.Partitions is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
+   type String_Ptr is access String;
+
    type Partition_Info is record
-      Allocated      : Boolean;
-      Partition_Name : String_Access;
-      Is_Active_Part : Boolean;
-      Net_Loc_In_Use : Location_Type;
-      Net_Locations  : String_Access;
-      Mem_Locations  : String_Access;
-      Termination    : Types.Termination_Type;
-      Reconnection   : Types.Reconnection_Type;
+      Allocated       : Boolean;
+      Partition_Name  : String_Access;
+      Is_Active_Part  : Boolean;
+      Net_Loc_In_Use  : Location_Type;
+      Net_Locations   : String_Access;
+      Mem_Locations   : String_Access;
+      Termination     : Types.Termination_Type;
+      Reconnection    : Types.Reconnection_Type;
       Is_Pure_Client  : Boolean;
-      Is_Boot_Mirror : Boolean;
-      Boot_Partition : Types.Partition_ID;
-      Online         : Boolean;
-      Status         : Types.Status_Type;
+      Is_Boot_Mirror  : Boolean;
+      Boot_Partition  : Types.Partition_ID;
+      Online          : Boolean;
+      Status          : Types.Status_Type;
    end record;
 
    --  Allocated      : true when this slot is not empty
@@ -133,7 +135,7 @@ package body System.Garlic.Partitions is
          end case;
       end record;
 
-   package Partitions is new System.Garlic.Table.Complex
+   package Partitions is new System.Garlic.Table.Medium
      (Index_Type     => Types.Partition_ID,
       Null_Index     => Types.Null_PID,
       First_Index    => Types.First_PID,
@@ -1363,12 +1365,12 @@ package body System.Garlic.Partitions is
             end if;
             Partitions.Set_Component (PID, Info);
 
-            --  If this is a passive partition, then register the
-            --  partition name in the hash table.
+--              --  If this is a passive partition, then register the
+--              --  partition name in the hash table.
 
-            if not Active then
-               Partitions.Set_Name (PID, Name);
-            end if;
+--              if not Active then
+--                 Partitions.Set_Name (PID, Name);
+--              end if;
 
             if Info.Is_Boot_Mirror then
                Mirrors := Mirrors + 1;

@@ -108,7 +108,7 @@ package body System.Garlic.Protocols.Tcp is
    --  accesses. We need a special table for this.
 
    package Outgoings is
-     new System.Garlic.Table.Complex
+     new System.Garlic.Table.Medium
         (Partition_ID,
          Null_PID,
          First_PID,

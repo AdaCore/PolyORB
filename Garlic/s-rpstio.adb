@@ -75,7 +75,7 @@ package body System.RPC.Stream_IO is
    First_Partition_Id : constant Partition_ID := Any_Partition + 1;
 
    package Streams is
-      new System.Garlic.Table.Complex
+      new System.Garlic.Table.Medium
         (Partition_ID,
          Any_Partition,
          Any_Partition,
