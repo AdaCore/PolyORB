@@ -62,12 +62,6 @@ package body XE_Check is
 
       if not No_Recompilation then
 
-         if not Quiet_Output then
-            Write_Program_Name;
-            Write_Str (": recompiling");
-            Write_Eol;
-         end if;
-
          Maybe_Most_Recent_Stamp (Source_File_Stamp (Configuration_File));
 
          declare
@@ -149,16 +143,16 @@ package body XE_Check is
 
       end if;
 
-      if not Quiet_Output then
-         Write_Program_Name;
-         Write_Str (": checking configuration consistency");
-         Write_Eol;
-      end if;
-
       --  Set configured unit name key to No_Ali_Id.       (1)
 
       for U in CUnit.First .. CUnit.Last loop
          Set_ALI_Id (CUnit.Table (U).CUname, No_ALI_Id);
+      end loop;
+
+      --  Set partition name key to Null_PID.              (4-1)
+
+      for P in Partitions.First .. Partitions.Last loop
+         Set_PID (Partitions.Table (P).Name, Null_PID);
       end loop;
 
       --  Set ada unit name key to null.                   (2)
@@ -171,6 +165,25 @@ package body XE_Check is
          Set_ALI_Id (Name_Find, Unit.Table (U).My_ALI);
       end loop;
 
+      --  Set partition name key to Null_PID.              (4)
+
+      for P in Partitions.First .. Partitions.Last loop
+         if Get_PID (Partitions.Table (P).Name) /= Null_PID then
+            Write_Program_Name;
+            Write_Str  (": """);
+            Write_Name (Partitions.Table (P).Name);
+            Write_Str  (""" conflicts with application ada unit");
+            Write_Eol;
+            raise Parsing_Error;
+         end if;
+      end loop;
+
+      if not Quiet_Output then
+         Write_Program_Name;
+         Write_Str (": checking configuration consistency");
+         Write_Eol;
+      end if;
+
       --  Check that the main program is really a main program.
 
       if ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None then
@@ -181,12 +194,6 @@ package body XE_Check is
          Write_Eol;
          raise Partitioning_Error;
       end if;
-
-      --  Set partition name key to Null_PID.              (4)
-
-      for P in Partitions.First .. Partitions.Last loop
-         Set_PID (Partitions.Table (P).Name, Null_PID);
-      end loop;
 
       --  Check mapped unit name key to detect non-Ada unit.
 

@@ -104,6 +104,11 @@ package body XE_Parse is
       Head : in String);
    --  Print a configuration node.
 
+   procedure Set_Node_Location
+     (Node     : in Node_Id;
+      Location : in Location_Type);
+   --  Set SLOC node to Location.
+
    procedure Has_Not_Been_Already_Declared
      (Declaration_Name : in Name_Id;
       Declaration_Sloc : in Location_Type);
@@ -211,6 +216,7 @@ package body XE_Parse is
       Type_Name : in  Name_Id;
       Type_Kind : in  Predefined_Type;
       Structure : in  Boolean;
+      Type_Sloc : in  Location_Type;
       Type_Node : out Type_Id);
    --  Declare a new type into the configuration context. Provide the
    --  type name and a possible predefined enumeration litteral.
@@ -219,6 +225,7 @@ package body XE_Parse is
    procedure Declare_Literal
      (Literal_Name : in  Name_Id;
       Literal_Type : in  Type_Id;
+      Literal_Sloc : in  Location_Type;
       Literal_Node : out Variable_Id);
    --  Declare a new literal.
 
@@ -237,6 +244,7 @@ package body XE_Parse is
      (Type_Node          : in Type_Id;
       Component_Name     : in Name_Id;
       Comp_Type_Node     : in Type_Id;
+      Component_Sloc     : in Location_Type;
       Component_Node     : out Component_Id);
    --  Declare a component for a given type. This procedure creates
    --  a component of type Comp_Type_Node and includes it in the type
@@ -247,6 +255,7 @@ package body XE_Parse is
       Attribute_Name     : in Name_Id;
       Attr_Type_Node     : in Type_Id;
       Attribute_Kind     : in Attribute_Type;
+      Attribute_Sloc     : in Location_Type;
       Attribute_Node     : out Attribute_Id);
    --  Declare an attribute for a given type. This procedure creates
    --  a component of type Attr_Type_Node and includes it in the type
@@ -255,6 +264,7 @@ package body XE_Parse is
    procedure Declare_Attribute
      (Variable_Node      : in Variable_Id;
       Attribute_Name     : in Name_Id;
+      Attribute_Sloc     : in Location_Type;
       Attribute_Node     : out Attribute_Id);
    --  Declare an attribute for a given variable. This procedure creates
    --  a copy of the attribute that can be found into the variable type node.
@@ -265,6 +275,7 @@ package body XE_Parse is
       Component_Type     : in Type_Id;
       Component_Value    : in Variable_Id;
       Is_An_Attribute    : in Boolean;
+      Component_Sloc     : in Location_Type;
       Component_Node     : out Component_Id);
    --  Declare a component for a given variable. This component is
    --  possibly an attribute and is initialized to Component_Value.
@@ -283,6 +294,7 @@ package body XE_Parse is
      (Parameter_Name  : in  Name_Id;
       Para_Type_Node  : in  Type_Id;
       Subprogram_Node : in  Subprogram_Id;
+      Parameter_Sloc  : in  Location_Type;
       Parameter_Node  : out Parameter_Id);
    --  Declare a parameter for a declared subprogram. The last parameter
    --  corresponds to a returned value when the subprogram is a function.
@@ -353,6 +365,20 @@ package body XE_Parse is
    procedure P_Variable_List_Declaration
      (Previous_Name   : in Name_Id;
       Previous_Sloc   : in Location_Type);
+
+
+   -----------------------
+   -- Set_Node_Location --
+   -----------------------
+
+   procedure Set_Node_Location
+     (Node     : in Node_Id;
+      Location : in Location_Type) is
+      X, Y : Int;
+   begin
+      Location_To_XY (Location, X, Y);
+      Set_Node_SLOC  (Node, X, Y);
+   end Set_Node_Location;
 
    --------------
    -- No_Match --
@@ -627,10 +653,13 @@ package body XE_Parse is
 
    procedure P_Function_Declaration is
       Function_Name  : Name_Id;
+      Function_Sloc  : Location_Type;
       Function_Node  : Subprogram_Id;
       Parameter_Name : Name_Id;
+      Parameter_Sloc : Location_Type;
       Parameter_Node : Parameter_Id;
       Para_Type_Name : Name_Id;
+      Para_Type_Sloc : Location_Type;
       Para_Type_Node : Type_Id;
       Para_Type_Kind : Predefined_Type;
    begin
@@ -643,13 +672,14 @@ package body XE_Parse is
 
       T_Identifier;
       Function_Name := Token_Name;
+      Function_Sloc := Get_Token_Location;
 
       --  Create a new subprogram node for this newly declared function.
 
       Declare_Subprogram
         (Function_Name,
          False,
-         Get_Token_Location,
+         Function_Sloc,
          Function_Node);
 
       T_Left_Paren;
@@ -658,6 +688,7 @@ package body XE_Parse is
 
       T_Identifier;
       Parameter_Name := Token_Name;
+      Parameter_Sloc := Get_Token_Location;
 
       T_Colon;
 
@@ -665,13 +696,14 @@ package body XE_Parse is
 
       T_Identifier;
       Para_Type_Name := Token_Name;
+      Para_Type_Sloc := Get_Token_Location;
 
       Search_Type (Para_Type_Name, Para_Type_Kind, Para_Type_Node);
 
       --  String is the only expected type.
 
       if Para_Type_Node /= String_Type_Node then
-         Write_Location (Get_Token_Location);
+         Write_Location (Para_Type_Sloc);
          Write_Str  ("""");
          Write_Name (Para_Type_Name);
          Write_Str  (""" is not the expected type");
@@ -685,6 +717,7 @@ package body XE_Parse is
         (Parameter_Name,
          Para_Type_Node,
          Function_Node,
+         Parameter_Sloc,
          Parameter_Node);
 
       T_Right_Paren;
@@ -694,13 +727,14 @@ package body XE_Parse is
 
       T_Identifier;
       Para_Type_Name := Token_Name;
+      Para_Type_Sloc := Get_Token_Location;
 
       Search_Type (Para_Type_Name, Para_Type_Kind, Para_Type_Node);
 
       --  String is the only type allowed at this level.
 
       if Para_Type_Node /= String_Type_Node then
-         Write_Location (Get_Token_Location);
+         Write_Location (Para_Type_Sloc);
          Write_Str  ("""");
          Write_Name (Para_Type_Name);
          Write_Str  (""" is not the expected type");
@@ -715,6 +749,7 @@ package body XE_Parse is
         (Returned_Param,
          Para_Type_Node,
          Function_Node,
+         Null_Location,
          Parameter_Node);
 
       T_Semicolon;
@@ -880,6 +915,7 @@ package body XE_Parse is
                Component_Type     => Ada_Unit_Type_Node,
                Component_Value    => Unit_Node,
                Is_An_Attribute    => False,
+               Component_Sloc     => Unit_Sloc,
                Component_Node     => Component_Node);
 
             T_Semicolon;
@@ -992,6 +1028,7 @@ package body XE_Parse is
          Declare_Attribute
            (Variable_Id (Direct_Node),
             Attr_Name,
+            Get_Token_Location,
             Attr_Node);
       else
          Attr_Node := Attribute_Id (Comp_Node);
@@ -1008,6 +1045,7 @@ package body XE_Parse is
          Declare_Literal
            (Expr_Name,
             String_Type_Node,
+            Expr_Sloc,
             Variable_Id (Expr_Node));
 
       --  Otherwise, retrieve the declaration.
@@ -1134,6 +1172,7 @@ package body XE_Parse is
             Component_Type     => Ada_Unit_Type_Node,
             Component_Value    => Expression_Node,
             Is_An_Attribute    => False,
+            Component_Sloc     => Expression_Sloc,
             Component_Node     => Component_Node);
 
          Take_Token ((Tok_Comma, Tok_Right_Paren));
@@ -1384,6 +1423,7 @@ package body XE_Parse is
                Declare_Literal
                  (Actual_Name,
                   String_Type_Node,
+                  Location,
                   Actual_Node);
 
             else
@@ -1444,6 +1484,7 @@ package body XE_Parse is
 
    procedure P_Configuration_Declaration is
       Conf_Name : Name_Id;
+      Conf_Sloc : Location_Type;
       Conf_Node : Configuration_Id;
    begin
 
@@ -1452,11 +1493,12 @@ package body XE_Parse is
       T_Configuration;
       T_Identifier;
       Conf_Name := Token_Name;
-      T_Is;
+      Conf_Sloc := Get_Token_Location;
 
       --  We have the real configuration node. Let's use this one.
 
       Create_Configuration (Conf_Node, Conf_Name);
+      Set_Node_Location    (Node_Id (Conf_Node), Conf_Sloc);
 
       --  Append the "standard" root configuration to the new one.
 
@@ -1465,6 +1507,8 @@ package body XE_Parse is
       --  Now, the new configuration is the root configuration.
 
       Configuration_Node := Conf_Node;
+
+      T_Is;
 
    end P_Configuration_Declaration;
 
@@ -1566,6 +1610,7 @@ package body XE_Parse is
          Type_Name    => Str_To_Id ("string"),
          Type_Kind    => Pre_Type_String,
          Structure    => False,
+         Type_Sloc    => Null_Location,
          Type_Node    => String_Type_Node);
 
       --  type type__host_function (standard)
@@ -1576,18 +1621,21 @@ package body XE_Parse is
          Type_Name    => Type_Prefix & Str_To_Id ("host_function"),
          Type_Kind    => Pre_Type_Function,
          Structure    => True,
+         Type_Sloc    => Null_Location,
          Type_Node    => Host_Function_Type_Node);
 
       Declare_Component
         (Type_Node        => Host_Function_Type_Node,
          Component_Name   => Sub_Prog_Param,
          Comp_Type_Node   => String_Type_Node,
+         Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
 
       Declare_Component
         (Type_Node        => Host_Function_Type_Node,
          Component_Name   => Returned_Param,
          Comp_Type_Node   => String_Type_Node,
+         Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
 
       Print_Configuration;
@@ -1600,6 +1648,7 @@ package body XE_Parse is
          Type_Name    => Type_Prefix & Str_To_Id ("main_procedure"),
          Type_Kind    => Pre_Type_Procedure,
          Structure    => False,
+         Type_Sloc    => Null_Location,
          Type_Node    => Main_Procedure_Type_Node);
 
       --  type Partition (standard)
@@ -1609,6 +1658,7 @@ package body XE_Parse is
          Type_Name    => Str_To_Id ("partition"),
          Type_Kind    => Pre_Type_Partition,
          Structure    => True,
+         Type_Sloc    => Null_Location,
          Type_Node    => Partition_Type_Node);
 
       --  Legal attribute : 'Main
@@ -1621,6 +1671,7 @@ package body XE_Parse is
          Attribute_Name => Str_To_Id ("main"),
          Attr_Type_Node => Main_Procedure_Type_Node,
          Attribute_Kind => Attribute_Main,
+         Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 
       Declare_Attribute
@@ -1628,6 +1679,7 @@ package body XE_Parse is
          Attribute_Name => Str_To_Id ("host"),
          Attr_Type_Node => String_Type_Node,
          Attribute_Kind => Attribute_Host,
+         Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 
       Declare_Attribute
@@ -1635,6 +1687,7 @@ package body XE_Parse is
          Attribute_Name => Str_To_Id ("storage_dir"),
          Attr_Type_Node => String_Type_Node,
          Attribute_Kind => Attribute_Storage_Dir,
+         Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 
       Declare_Attribute
@@ -1642,6 +1695,7 @@ package body XE_Parse is
          Attribute_Name => Str_To_Id ("command_line"),
          Attr_Type_Node => String_Type_Node,
          Attribute_Kind => Attribute_Command_Line,
+         Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 
       --  type type__ada_unit (standard)
@@ -1651,6 +1705,7 @@ package body XE_Parse is
          Type_Name    => Type_Prefix & Str_To_Id ("ada_unit"),
          Type_Kind    => Pre_Type_Ada_Unit,
          Structure    => False,
+         Type_Sloc    => Null_Location,
          Type_Node    => Ada_Unit_Type_Node);
 
       --  type Starter_Type is (Ada, Shell, None); (standard)
@@ -1659,6 +1714,7 @@ package body XE_Parse is
          Type_Name    => Type_Prefix & Str_To_Id ("starter"),
          Type_Kind    => Pre_Type_Starter,
          Structure    => False,
+         Type_Sloc    => Null_Location,
          Type_Node    => Starter_Type_Node);
 
       Declare_Variable
@@ -1701,6 +1757,7 @@ package body XE_Parse is
          Type_Name    => Str_To_Id ("boolean"),
          Type_Kind    => Pre_Type_Boolean,
          Structure    => False,
+         Type_Sloc    => Null_Location,
          Type_Node    => Boolean_Type_Node);
 
       Declare_Variable
@@ -1732,6 +1789,7 @@ package body XE_Parse is
          Type_Name    => Type_Prefix & Str_To_Id ("convention"),
          Type_Kind    => Pre_Type_Convention,
          Structure    => False,
+         Type_Sloc    => Null_Location,
          Type_Node    => Convention_Type_Node);
 
       Declare_Variable
@@ -1773,6 +1831,7 @@ package body XE_Parse is
         (Str_To_Id ("method"),
          Starter_Type_Node,
          Pragma_Starter_Node,
+         Null_Location,
          Parameter_Node);
 
       --  pragma Import ... or
@@ -1794,18 +1853,21 @@ package body XE_Parse is
         (Str_To_Id ("convention"),
          Convention_Type_Node,
          Pragma_Import_Node,
+         Null_Location,
          Parameter_Node);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("entity"),
          Ada_Unit_Type_Node,
          Pragma_Import_Node,
+         Null_Location,
          Parameter_Node);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("link_name"),
          String_Type_Node,
          Pragma_Import_Node,
+         Null_Location,
          Parameter_Node);
 
       --  pragma boot_server ... or
@@ -1827,12 +1889,14 @@ package body XE_Parse is
         (Str_To_Id ("protocol_name"),
          String_Type_Node,
          Pragma_Boot_Server_Node,
+         Null_Location,
          Parameter_Node);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("protocol_data"),
          String_Type_Node,
          Pragma_Boot_Server_Node,
+         Null_Location,
          Parameter_Node);
 
       --  pragma boot_server ... or
@@ -1854,6 +1918,7 @@ package body XE_Parse is
         (Str_To_Id ("check"),
          Boolean_Type_Node,
          Pragma_Version_Node,
+         Null_Location,
          Parameter_Node);
 
       Print_Configuration;
@@ -1896,6 +1961,7 @@ package body XE_Parse is
          Subprogram_Sloc);
 
       Create_Subprogram         (Node, Subprogram_Name);
+      Set_Node_Location         (Node_Id (Node), Subprogram_Sloc);
       Subprogram_Is_A_Procedure (Node, Is_A_Procedure);
       Append_Declaration        (Configuration_Node, Node_Id (Node));
       Subprogram_Node := Node;
@@ -1925,6 +1991,7 @@ package body XE_Parse is
      (Parameter_Name  : in  Name_Id;
       Para_Type_Node  : in  Type_Id;
       Subprogram_Node : in  Subprogram_Id;
+      Parameter_Sloc  : in  Location_Type;
       Parameter_Node  : out Parameter_Id) is
       Node : Parameter_Id;
    begin
@@ -1932,6 +1999,7 @@ package body XE_Parse is
       Create_Parameter           (Node, Parameter_Name);
       Set_Parameter_Type         (Node, Para_Type_Node);
       Add_Subprogram_Parameter   (Subprogram_Node, Node);
+      Set_Node_Location          (Node_Id (Node), Parameter_Sloc);
       Parameter_Node := Node;
 
    end Declare_Subprogram_Parameter;
@@ -1945,6 +2013,7 @@ package body XE_Parse is
       Type_Name : in  Name_Id;
       Type_Kind : in  Predefined_Type;
       Structure : in  Boolean;
+      Type_Sloc : in  Location_Type;
       Type_Node : out Type_Id) is
       T : Type_Id;
    begin
@@ -1954,6 +2023,7 @@ package body XE_Parse is
       Type_Is_A_Structure (T, Structure);
       Set_Type_Mark       (T, Convert (Type_Kind));
       Append_Declaration  (Conf_Node, Node_Id (T));
+      Set_Node_Location   (Node_Id (T), Type_Sloc);
       Type_Node := T;
 
    end Declare_Type;
@@ -1965,12 +2035,14 @@ package body XE_Parse is
    procedure Declare_Literal
      (Literal_Name : in  Name_Id;
       Literal_Type : in  Type_Id;
+      Literal_Sloc : in  Location_Type;
       Literal_Node : out Variable_Id) is
       V : Variable_Id;
    begin
 
       Create_Variable    (V, Literal_Name);
       Set_Variable_Type  (V, Literal_Type);
+      Set_Node_Location  (Node_Id (V), Literal_Sloc);
       Literal_Node := V;
 
    end Declare_Literal;
@@ -1995,6 +2067,7 @@ package body XE_Parse is
       Create_Variable    (V, Variable_Name);
       Append_Declaration (Conf_Node, Node_Id (V));
       Set_Variable_Type  (V, Variable_Type);
+      Set_Node_Location  (Node_Id (V), Variable_Sloc);
       Variable_Node := V;
 
    end Declare_Variable;
@@ -2006,6 +2079,7 @@ package body XE_Parse is
    procedure Declare_Attribute
      (Variable_Node      : in Variable_Id;
       Attribute_Name     : in Name_Id;
+      Attribute_Sloc     : in Location_Type;
       Attribute_Node     : out Attribute_Id) is
       A : Component_Id;
       T : Type_Id;
@@ -2037,6 +2111,7 @@ package body XE_Parse is
       Component_Is_An_Attribute (A, True);
       Add_Variable_Component    (Variable_Node, A);
       Set_Component_Mark        (Component_Id (A), K);
+      Set_Node_Location         (Node_Id (A), Attribute_Sloc);
       Attribute_Node            := Attribute_Id (A);
 
    end Declare_Attribute;
@@ -2049,6 +2124,7 @@ package body XE_Parse is
      (Type_Node          : in Type_Id;
       Component_Name     : in Name_Id;
       Comp_Type_Node     : in Type_Id;
+      Component_Sloc     : in Location_Type;
       Component_Node     : out Component_Id) is
       C : Component_Id;
    begin
@@ -2057,6 +2133,7 @@ package body XE_Parse is
       Set_Component_Type      (C, Comp_Type_Node);
       Component_Is_An_Attribute (C, False);
       Add_Type_Component      (Type_Node, C);
+      Set_Node_Location       (Node_Id (C), Component_Sloc);
       Component_Node          := C;
 
    end Declare_Component;
@@ -2070,6 +2147,7 @@ package body XE_Parse is
       Attribute_Name     : in Name_Id;
       Attr_Type_Node     : in Type_Id;
       Attribute_Kind     : in Attribute_Type;
+      Attribute_Sloc     : in Location_Type;
       Attribute_Node     : out Attribute_Id) is
       A : Attribute_Id;
    begin
@@ -2078,6 +2156,7 @@ package body XE_Parse is
         (Type_Node,
          Attribute_Prefix & Attribute_Name,
          Attr_Type_Node,
+         Attribute_Sloc,
          Component_Id (A));
       Component_Is_An_Attribute (Component_Id (A), True);
       Set_Component_Mark        (Component_Id (A), Convert (Attribute_Kind));
@@ -2095,6 +2174,7 @@ package body XE_Parse is
       Component_Type     : in Type_Id;
       Component_Value    : in Variable_Id;
       Is_An_Attribute    : in Boolean;
+      Component_Sloc     : in Location_Type;
       Component_Node     : out Component_Id) is
       C : Component_Id;
    begin
@@ -2104,6 +2184,7 @@ package body XE_Parse is
       Set_Component_Value     (C, Node_Id (Component_Value));
       Component_Is_An_Attribute (C, Is_An_Attribute);
       Add_Variable_Component  (Variable_Node, C);
+      Set_Node_Location       (Node_Id (C), Component_Sloc);
       Component_Node := C;
 
    end Declare_Component;
@@ -2155,6 +2236,7 @@ package body XE_Parse is
            (Get_Node_Name (Node_Id (Old_Parameter)),
             Get_Parameter_Type (Old_Parameter),
             New_Subprogram,
+            Null_Location,
             New_Parameter);
 
          --  and assign the formal parameters as they were during
@@ -2209,7 +2291,7 @@ package body XE_Parse is
             if not Is_Component_An_Attribute (C) then
                V := Variable_Id (Get_Component_Value (C));
                T := Get_Variable_Type (V);
-               Declare_Component (Target, N, T, V, False, X);
+               Declare_Component (Target, N, T, V, False, Null_Location, X);
             end if;
             Next_Variable_Component (C);
          end loop;

@@ -30,8 +30,10 @@ with Types;        use Types;
 with XE;           use XE;
 package XE_Scan is
 
+   type Location_Type is private;
+
    procedure Initialize;
-   --  Load all kind of keyworks
+   --  Load all kind of keyworks.
 
    procedure Load_File (File : in File_Name_Type);
    --  Load this file in a memory buffer.
@@ -43,12 +45,28 @@ package XE_Scan is
    procedure Set_Token_Location (Where : in Location_Type);
 
    procedure Write_Location (Where : in Location_Type);
-   --  Display line and column where the error occured
+   --  Display line and column where the error occured.
+
+   procedure Location_To_XY
+     (Where : in  Location_Type;
+      Loc_X : out Int;
+      Loc_Y : out Int);
 
    procedure Write_Token (T : Token_Type);
 
    Token_Name     : Name_Id;
    Token          : Token_Type;
+
+   Null_Location  : constant Location_Type;
+
+private
+
+   type Location_Type is
+      record
+         Line  : Int;
+         First : Source_Ptr;
+         Last  : Source_Ptr;
+      end record;
 
    Null_Location  : constant Location_Type := (0, 0, 0);
 

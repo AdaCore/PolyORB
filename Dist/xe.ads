@@ -32,12 +32,6 @@ with ALI;    use ALI;
 with Types;  use Types;
 package XE is
 
-   type Location_Type is record
-      Line  : Int;
-      First : Source_Ptr;
-      Last  : Source_Ptr;
-   end record;
-
    --  Several names are already predefined. For each of these names, a key
    --  is associated in the hash table. This allows to retrieve the nature
    --  of the name and especially its type. The key (an integer) is in
@@ -271,6 +265,18 @@ package XE is
      (Node : in Node_Id)
       return Boolean;
    pragma Inline (Is_Configuration);
+
+   procedure Set_Node_SLOC
+     (Node  : in Node_Id;
+      Loc_X : in Int;
+      Loc_Y : in Int);
+   pragma Inline (Set_Node_SLOC);
+
+   procedure Get_Node_SLOC
+     (Node  : in Node_Id;
+      Loc_X : out Int;
+      Loc_Y : out Int);
+   pragma Inline (Get_Node_SLOC);
 
    procedure Create_Type
      (Type_Node : out Type_Id;

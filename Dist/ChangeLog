@@ -1,3 +1,11 @@
+Fri Nov  8 16:35:19 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
+
+	* xe_check.adb: Check that partition name does not conflict
+	with other ada units (not present in the configuration file).
+
+	* xe_parse.adb, xe.ads, xe.adb: Add some stuff to store SLOC on a
+	GNATDIST node.
+
 Tue Oct 22 10:24:14 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am: Changed gnatmake into ${GNATMAKE} to allow gnatmake

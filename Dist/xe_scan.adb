@@ -473,4 +473,17 @@ package body XE_Scan is
       Write_Str (": ");
    end Write_Location;
 
+   --------------------
+   -- Location_To_XY --
+   --------------------
+
+   procedure Location_To_XY
+     (Where : in  Location_Type;
+      Loc_X : out Int;
+      Loc_Y : out Int) is
+   begin
+      Loc_X := Where.Line;
+      Loc_Y := Int (Where.Last - Where.First) + 1;
+   end Location_To_XY;
+
 end XE_Scan;

@@ -62,7 +62,8 @@ package body XE is
    type Node_Type is
       record
          Kind    : Node_Kind;
-         SLOC    : Location_Type;
+         Loc_X   : Int;
+         Loc_Y   : Int;
          Name    : Name_Id;
          Node_1  : Node_Id;
          Node_2  : Node_Id;
@@ -1450,6 +1451,32 @@ package body XE is
       pragma Assert (Is_Component (Node));
       return Nodes.Table (Node).Value;
    end Get_Component_Mark;
+
+   -------------------
+   -- Get_Node_SLOC --
+   -------------------
+
+   procedure Set_Node_SLOC
+     (Node  : in Node_Id;
+      Loc_X : in Int;
+      Loc_Y : in Int) is
+   begin
+      Nodes.Table (Node).Loc_X := Loc_X;
+      Nodes.Table (Node).Loc_Y := Loc_Y;
+   end Set_Node_SLOC;
+
+   -------------------
+   -- Get_Node_SLOC --
+   -------------------
+
+   procedure Get_Node_SLOC
+     (Node  : in Node_Id;
+      Loc_X : out Int;
+      Loc_Y : out Int) is
+   begin
+      Loc_X := Nodes.Table (Node).Loc_X;
+      Loc_Y := Nodes.Table (Node).Loc_Y;
+   end Get_Node_SLOC;
 
    -----------------
    -- Create_Node --
