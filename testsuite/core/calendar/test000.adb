@@ -33,9 +33,9 @@
 
 --  $Id$
 
-with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
+with PolyORB.Tasking.Profiles.No_Tasking.Calendar;
+pragma Elaborate_All (PolyORB.Tasking.Profiles.No_Tasking.Calendar);
+pragma Warnings (Off, PolyORB.Tasking.Profiles.No_Tasking.Calendar);
 
 with Test000_Common;
 
