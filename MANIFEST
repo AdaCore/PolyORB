@@ -371,10 +371,6 @@ src/corba/polyorb-protocols-giop-giop_1_2.adb
 src/corba/polyorb-protocols-giop-giop_1_2.ads
 src/corba/polyorb-protocols-giop.adb
 src/corba/polyorb-protocols-giop.ads
-src/corba/polyorb-references-ior.adb
-src/corba/polyorb-references-ior.ads
-src/corba/polyorb-representations-cdr.adb
-src/corba/polyorb-representations-cdr.ads
 src/corba/portableserver-adapteractivator-impl.ads
 src/corba/portableserver-adapteractivator.adb
 src/corba/portableserver-adapteractivator.ads
@@ -526,8 +522,12 @@ src/polyorb-protocols.adb
 src/polyorb-protocols.ads
 src/polyorb-references-binding.adb
 src/polyorb-references-binding.ads
+src/polyorb-references-ior.adb
+src/polyorb-references-ior.ads
 src/polyorb-references.adb
 src/polyorb-references.ads
+src/polyorb-representations-cdr.adb
+src/polyorb-representations-cdr.ads
 src/polyorb-representations-srp.adb
 src/polyorb-representations-srp.ads
 src/polyorb-representations-test.adb
@@ -573,10 +573,10 @@ src/polyorb-utils-chained_lists.adb
 src/polyorb-utils-chained_lists.ads
 src/polyorb-utils-srp.adb
 src/polyorb-utils-srp.ads
-src/polyorb-utils-strings.adb
-src/polyorb-utils-strings.ads
 src/polyorb-utils-strings-lists.adb
 src/polyorb-utils-strings-lists.ads
+src/polyorb-utils-strings.adb
+src/polyorb-utils-strings.ads
 src/polyorb-utils-text_buffers.adb
 src/polyorb-utils-text_buffers.ads
 src/polyorb-utils.adb

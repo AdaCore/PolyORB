@@ -35,6 +35,7 @@
 --  $Id$
 
 with Ada.Real_Time;
+with Ada.Streams;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
@@ -42,7 +43,7 @@ with PolyORB.Objects;
 with PolyORB.POA_Config;
 with PolyORB.POA_Manager.Basic_Manager;
 with PolyORB.POA_Types;
---  with PolyORB.References.IOR;
+with PolyORB.References.IOR;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 
@@ -1092,18 +1093,20 @@ package body PolyORB.POA.Basic_POA is
       return Id_OA = OA.Proxies_OA;
    end Is_Proxy_Oid;
 
+   use Ada.Streams;
+
    function To_Proxy_Oid
      (OA : access Basic_Obj_Adapter;
       R  :        References.Ref)
      return Object_Id_Access
    is
-
---       Oid_Data : Object_Id_Access
---         := To_Object_Id (IOR (R));
+      Oid_Data : aliased Object_Id
+        := Object_Id (References.IOR.Object_To_Opaque (R));
+      U_Oid : constant Unmarshalled_Oid
+        := Create_Object_Identification
+        (OA.Proxies_OA, Oid_Data'Unchecked_Access);
    begin
---       return Object_Id (Create_Reference (OA.Proxies_OA, Oid_Data));
-      raise PolyORB.Not_Implemented;
-      return null;
+      return U_Oid_To_Oid (U_Oid);
    end To_Proxy_Oid;
 
    function Proxy_To_Ref
@@ -1111,14 +1114,18 @@ package body PolyORB.POA.Basic_POA is
       Oid : access Objects.Object_Id)
      return References.Ref
    is
---       U_Oid : constant Unmarshalled_Oid
---         := Oid_To_U_Oid (Oid);
+      U_Oid : constant Unmarshalled_Oid
+        := Oid_To_U_Oid (Oid);
+      Id : constant String := To_Standard_String (U_Oid.Id);
+      IOR : Stream_Element_Array
+        (Stream_Element_Offset (Id'First)
+         .. Stream_Element_Offset (Id'Last));
    begin
-      --  return IOR_To_Ref (U_Oid.Id);
-      raise Not_Implemented;
-      pragma Warnings (Off);
-      return Proxy_To_Ref (OA, Oid);
-      pragma Warnings (On);
+      for I in IOR'Range loop
+         IOR (I) := Stream_Element
+           (Character'Pos (Id (Integer (I))));
+      end loop;
+      return References.IOR.Opaque_To_Object (IOR);
    end Proxy_To_Ref;
 
 end PolyORB.POA.Basic_POA;
