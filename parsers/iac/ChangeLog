@@ -86,6 +86,12 @@
 	* backend-be_ada-skels.adb: Generate common part of invoke
 	subprogram.
 	
+2004-08-05  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-runtime.adb, backend-be_ada-nutils.adb: Declare
+	package Standard as a subunit (even if it is a subunit) in order
+	not to automatically with it.
+
 
 2004-08-04  Saber Souli  <souli@neraka.enst.fr>
 
