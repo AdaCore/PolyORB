@@ -64,6 +64,9 @@ package body Osint is
    -- Local Subprograms --
    -----------------------
 
+   function Append (Name : Name_Id; Suffix : String) return Name_Id;
+   --  Appends Suffix to Name and returns the new name.
+
    function OS_Time_To_GNAT_Time (T : OS_Time) return Time_Stamp_Type;
    --  Convert OS format time to GNAT format time stamp
 
@@ -113,7 +116,8 @@ package body Osint is
       return File_Name_Type;
    --  Finds a source or library file depending on the value of T following
    --  the directory search order rules unless N is the name of the file
-   --  just read with Next_Main_File, in which case just look in the
+   --  just read with Next_Main_File and already contains directiory
+   --  information, in which case just look in the
    --  Primary_Directory. Returns File_Name_Type of the full file name if
    --  found, No_File if file not found. Note that for the special case of
    --  gnat.adc, only the compilation environment directory is searched,
@@ -156,11 +160,15 @@ package body Osint is
    --  or Next_Main_Lib_File. The value 0 indicates that no files have been
    --  opened yet.
 
-   Current_Main_File_Name : File_Name_Type := No_File;
+   Current_Main : File_Name_Type := No_File;
    --  Used to save a simple file name between calls to Next_Main_Source and
    --  Read_Source_File. If the file name argument to Read_Source_File is
    --  No_File, that indicates that the file whose name was returned by the
    --  last call to Next_Main_Source (and stored here) is to be read.
+
+   Current_Main_Has_Dir : Boolean := False;
+   --  Used to record that the Current_Main has directory
+   --  information in it since it affects gnatmake behavior.
 
    Current_Full_Source_Name  : File_Name_Type  := No_File;
    Current_Full_Source_Stamp : Time_Stamp_Type := Empty_Time_Stamp;
@@ -307,6 +315,18 @@ package body Osint is
       Src_Search_Directories.Table (Src_Search_Directories.Last) :=
         Normalize_Directory_Name (Dir);
    end Add_Src_Search_Dir;
+
+   ------------
+   -- Append --
+   ------------
+
+   function Append (Name : Name_Id; Suffix : String) return Name_Id is
+   begin
+      Get_Name_String (Name);
+      Name_Buffer (Name_Len + 1 .. Name_Len + Suffix'Length) := Suffix;
+      Name_Len := Name_Len + Suffix'Length;
+      return Name_Find;
+   end Append;
 
    -------------------------
    -- Close_Binder_Output --
@@ -474,7 +494,7 @@ package body Osint is
 
    begin
       pragma Assert (In_Compiler);
-      Get_Name_String (Current_Main_File_Name);
+      Get_Name_String (Current_Main);
 
       Dot_Index := 0;
       for J in reverse 1 .. Name_Len loop
@@ -556,7 +576,7 @@ package body Osint is
       pragma Assert (In_Compiler);
 
       if Typ /= Xglobal then
-         Get_Name_String (Current_Main_File_Name);
+         Get_Name_String (Current_Main);
          Ptr := Name_Len;
 
          while Ptr > 1 loop
@@ -782,8 +802,6 @@ package body Osint is
       T : File_Type)
       return File_Name_Type
    is
-      Is_Main_File : constant Boolean := (N = Current_Main_File_Name);
-
    begin
       Get_Name_String (N);
 
@@ -802,7 +820,7 @@ package body Osint is
          --  If we are trying to find the current main file just look in the
          --  directory where the user said it was.
 
-         elsif Is_Main_File then
+         elsif Current_Main_Has_Dir and then Current_Main = N then
             return Locate_File (N, T, Primary_Directory, File_Name);
 
          --  Otherwise do standard search for source file
@@ -1523,8 +1541,14 @@ package body Osint is
 
       Dir_Name := new String'(File_Name (File_Name'First .. Fptr - 1));
 
-      if In_Compiler or else In_Make then
+      if In_Compiler then
          Src_Search_Directories.Table (Primary_Directory) := Dir_Name;
+
+      elsif In_Make then
+         Src_Search_Directories.Table (Primary_Directory) := Dir_Name;
+         if Fptr > File_Name'First then
+            Current_Main_Has_Dir := True;
+         end if;
 
       elsif In_Binder then
          Dir_Name := Normalize_Directory_Name (Dir_Name.all);
@@ -1538,8 +1562,31 @@ package body Osint is
       Name_Len := File_Name'Last - Fptr + 1;
       Name_Buffer (1 .. Name_Len) := File_Name (Fptr .. File_Name'Last);
 
-      Current_Main_File_Name := File_Name_Type (Name_Find);
-      return Current_Main_File_Name;
+      Current_Main := File_Name_Type (Name_Find);
+
+      --  In the gnatmake case, the main file may have not have the
+      --  extension. Try ".adb" first then ".ads"
+
+      if In_Make then
+         declare
+            Orig_Main : File_Name_Type := Current_Main;
+
+         begin
+            if Strip_Suffix (Orig_Main) = Orig_Main then
+               Current_Main := Append (Orig_Main, ".adb");
+
+               if Full_Source_Name (Current_Main) = No_File then
+                  Current_Main := Append (Orig_Main, ".ads");
+
+                  if Full_Source_Name (Current_Main) = No_File then
+                     Current_Main := Orig_Main;
+                  end if;
+               end if;
+            end if;
+         end;
+      end if;
+
+      return Current_Main;
    end Next_Main_File;
 
    ------------------------
@@ -1799,7 +1846,7 @@ package body Osint is
          --  If we were trying to access the main file and we could not
          --  find it we have an error.
 
-         if N = Current_Main_File_Name then
+         if N = Current_Main then
             Get_Name_String (N);
             Fail ("Cannot find: ", Name_Buffer (1 .. Name_Len));
          end if;
@@ -2251,7 +2298,7 @@ package body Osint is
 
    begin
       pragma Assert (In_Compiler);
-      Get_Name_String (Current_Main_File_Name);
+      Get_Name_String (Current_Main);
 
       Dot_Index := 0;
       for J in reverse 1 .. Name_Len loop

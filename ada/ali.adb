@@ -340,10 +340,11 @@ package body ALI is
    --------------
 
    function Scan_ALI (F : File_Name_Type; T : Text_Buffer_Ptr) return ALI_Id is
-      P    : Text_Ptr := T'First;
-      Line : Logical_Line_Number := 1;
-      Id   : ALI_Id;
-      C    : Character;
+      P        : Text_Ptr := T'First;
+      Line     : Logical_Line_Number := 1;
+      Id       : ALI_Id;
+      C        : Character;
+      NS_Found : Boolean;
 
       function At_Eol return Boolean;
       --  Test if at end of line
@@ -655,15 +656,20 @@ package body ALI is
       Id := ALIs.Last;
       Set_Name_Table_Info (F, Int (Id));
 
-      ALIs.Table (Id).Afile := F;
-      ALIs.Table (Id).Ofile_Full_Name      := Full_Object_File_Name;
-      ALIs.Table (Id).First_Unit           := No_Unit_Id;
-      ALIs.Table (Id).Main_Priority        := -1;
-      ALIs.Table (Id).Time_Slice_Value     := -1;
-      ALIs.Table (Id).Main_Program         := None;
-      ALIs.Table (Id).No_Object            := False;
-      ALIs.Table (Id).Unit_Exception_Table := False;
-      ALIs.Table (Id).Zero_Cost_Exceptions := False;
+      ALIs.Table (Id).Afile                   := F;
+      ALIs.Table (Id).First_Unit              := No_Unit_Id;
+      ALIs.Table (Id).Float_Format            := 'I';
+      ALIs.Table (Id).Locking_Policy          := ' ';
+      ALIs.Table (Id).Main_Priority           := -1;
+      ALIs.Table (Id).Main_Program            := None;
+      ALIs.Table (Id).No_Object               := False;
+      ALIs.Table (Id).Normalize_Scalars       := False;
+      ALIs.Table (Id).Ofile_Full_Name         := Full_Object_File_Name;
+      ALIs.Table (Id).Queuing_Policy          := ' ';
+      ALIs.Table (Id).Task_Dispatching_Policy := ' ';
+      ALIs.Table (Id).Time_Slice_Value        := -1;
+      ALIs.Table (Id).Unit_Exception_Table    := False;
+      ALIs.Table (Id).Zero_Cost_Exceptions    := False;
 
       --  Acquire library version
 
@@ -677,18 +683,6 @@ package body ALI is
 
       Checkc ('"');
       Skip_Eol;
-
-      --  Ignore Standard version line if present (allows new binder to read
-      --  the old format gnatbind files, which used the 'S' line to identify
-      --  the version of Standard, but this feature never proved useful)
-
-      if Nextc = 'S' then
-         while not At_Eol loop
-            C := Getc;
-         end loop;
-
-         Skip_Eol;
-      end if;
 
       --  Acquire main program line if present
 
@@ -740,64 +734,96 @@ package body ALI is
          C := Getc;
       end loop Arg_Loop;
 
-      --  Check for obsolete Q line (queuing policy in 3.07 and previous)
+      --  Acquire P line, first set defaults
 
-      if C = 'Q' then
+      if C /= 'P' then
          Fatal_Error;
       end if;
 
-      --  Acquire float format line if present
+      NS_Found := False;
 
-      if C = 'F' then
+      while not At_Eol loop
          Checkc (' ');
-         Skip_Space;
-         Float_Format := 'V';
-         ALIs.Table (Id).Float_Format := Getc;
-         Skip_Eol;
          C := Getc;
 
-      --  Else set default IEEE format
+         if C = 'F' then
+            Float_Format := 'V';
+            ALIs.Table (Id).Float_Format := Getc;
 
-      else
-         ALIs.Table (Id).Float_Format := 'I';
+         elsif C = 'L' then
+            Locking_Policy := Getc;
+            ALIs.Table (Id).Locking_Policy := Locking_Policy;
+
+         elsif C = 'N' then
+            C := Getc;
+
+            if C = 'O' then
+               ALIs.Table (Id).No_Object := True;
+               No_Object := True;
+
+            elsif C = 'S' then
+               ALIs.Table (Id).Normalize_Scalars := True;
+               Normalize_Scalars := True;
+               NS_Found := True;
+
+            else
+               Fatal_Error;
+            end if;
+
+         elsif C = 'Q' then
+            Queuing_Policy := Getc;
+            ALIs.Table (Id).Queuing_Policy := Queuing_Policy;
+
+         elsif C = 'T' then
+            Task_Dispatching_Policy := Getc;
+            ALIs.Table (Id).Task_Dispatching_Policy := Task_Dispatching_Policy;
+
+
+         elsif C = 'U' then
+            Checkc ('X');
+            ALIs.Table (Id).Unit_Exception_Table := True;
+
+         elsif C = 'Z' then
+            Checkc ('X');
+               ALIs.Table (Id).Zero_Cost_Exceptions := True;
+               Zero_Cost_Exceptions := True;
+
+         else
+            Fatal_Error;
+         end if;
+      end loop;
+
+      if not NS_Found then
+         No_Normalize_Scalars := True;
       end if;
 
-      --  Acquire tasking policy line if present
+      Skip_Eol;
 
-      ALIs.Table (Id).Queuing_Policy          := ' ';
-      ALIs.Table (Id).Locking_Policy          := ' ';
-      ALIs.Table (Id).Task_Dispatching_Policy := ' ';
+      --  Acquire restrictions line
 
-      if C = 'P' then
-         while not At_Eol loop
-            Checkc (' ');
+      if Getc /= 'R' then
+         Fatal_Error;
 
-            case Getc is
+      else
+         Checkc (' ');
+         Skip_Space;
 
-               when 'L' =>
-                  Checkc ('=');
-                  Locking_Policy := Getc;
-                  ALIs.Table (Id).Locking_Policy := Locking_Policy;
+         for J in Partition_Restrictions loop
+            C := Getc;
 
-               when 'Q' =>
-                  Checkc ('=');
-                  Queuing_Policy := Getc;
-                  ALIs.Table (Id).Queuing_Policy := Queuing_Policy;
-
-               when 'T' =>
-                  Checkc ('=');
-                  Task_Dispatching_Policy := Getc;
-                  ALIs.Table (Id).Task_Dispatching_Policy :=
-                    Task_Dispatching_Policy;
-
-               when others =>
-                  Fatal_Error;
-
-            end case;
+            if C = 'v' or else C = 'r' or else C = 'n' then
+               ALIs.Table (Id).Restrictions (J) := C;
+            else
+               Fatal_Error;
+            end if;
          end loop;
 
-         Skip_Eol;
-         C := Getc;
+         if At_Eol then
+            Skip_Eol;
+            C := Getc;
+         else
+            Fatal_Error;
+         end if;
       end if;
 
       --  Loop to acquire unit entries
@@ -936,18 +962,6 @@ package body ALI is
                   Check_At_End_Of_Field;
                   Unit.Table (Unit.Last).No_Elab := True;
 
-               --  NO parameter (No object file)
-
-               --  Note: this is really a file wide option, but for
-               --  convenience it is given as a unit attribute, but in
-               --  the ALI data tables, it is the ALI file entry that
-               --  is flagged, not the unit entry.
-
-               elsif C = 'O' then
-                  Check_At_End_Of_Field;
-                  ALIs.Table (Id).No_Object := True;
-                  No_Object := True;
-
                else
                   Fatal_Error;
                end if;
@@ -1024,29 +1038,6 @@ package body ALI is
                else
                   Fatal_Error;
                end if;
-
-            --  UX parameter (unit exception table generated)
-
-            --  Note: this is really a file wide option, but for convenience
-            --  it is given as a unit attribute, but in the ALI data tables,
-            --  it is the ALI file entry that is flagged, not the unit entry.
-
-            elsif C = 'U' then
-               Checkc ('X');
-               Check_At_End_Of_Field;
-               ALIs.Table (Id).Unit_Exception_Table := True;
-
-            --  ZX parameter (zero cost exceptions)
-
-            --  Note: this is really a file wide option, but for convenience
-            --  it is given as a unit attribute, but in the ALI data tables,
-            --  it is the ALI file entry that is flagged, not the unit entry.
-
-            elsif C = 'Z' then
-               Checkc ('X');
-               Check_At_End_Of_Field;
-               ALIs.Table (Id).Zero_Cost_Exceptions := True;
-               Zero_Cost_Exceptions := True;
 
             else
                Fatal_Error;

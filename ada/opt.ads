@@ -306,8 +306,9 @@ package Opt is
    --  Set to True if minimal recompilation mode requested.
 
    Normalize_Scalars : Boolean := False;
-   --  GNAT
-   --  Set true if a pragma Normalize_Scalars applies to the current unit
+   --  GNAT, GNATBIND
+   --  For GNAT, set True if a pragma Normalize_Scalars applies to the current
+   --  unit. For GNATBIND, set True if Normalize_Scalars applies to any unit.
 
    type Operating_Mode_Type is (Check_Syntax, Check_Semantics, Generate_Code);
    Operating_Mode : Operating_Mode_Type := Generate_Code;

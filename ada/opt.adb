@@ -33,11 +33,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions; use Ada.Exceptions;
+with Gnatvsn; use Gnatvsn;
 with Fname;   use Fname;
 with System;  use System;
 with Tree_IO; use Tree_IO;
 
 package body Opt is
+
+   Tree_Version_String : String (Gnat_Version_String'Range);
+   --  Used to store the compiler version string read from a tree file to
+   --  check if it is the same as stored in the version ctring in Gnatvsn.
+   --  Therefore its length is taken directly from the version string in
+   --  Gnatvsn. If the length of the version string stored in the three is
+   --  different, then versions are for sure different.
 
    ------------------
    -- Check_Ada_95 --
@@ -72,6 +81,8 @@ package body Opt is
    ---------------
 
    procedure Tree_Read is
+      Tree_Version_String_Len : Nat;
+
    begin
       Tree_Read_Bool (Brief_Output);
       Tree_Read_Bool (GNAT_Mode);
@@ -86,6 +97,24 @@ package body Opt is
       Tree_Read_Bool (All_Errors_Mode);
       Tree_Read_Bool (Assertions_Enabled);
       Tree_Read_Bool (Full_List);
+
+      --  Read and check version string
+
+      Tree_Read_Int (Tree_Version_String_Len);
+
+      if Tree_Version_String_Len = Tree_Version_String'Length then
+         Tree_Read_Data
+           (Tree_Version_String'Address, Tree_Version_String'Length);
+      end if;
+
+      if Tree_Version_String_Len /= Tree_Version_String'Length
+        or else Tree_Version_String /= Gnat_Version_String
+      then
+         Raise_Exception
+           (Program_Error'Identity,
+            "Inconsistent versions of GNAT and ASIS, contact ACT");
+      end if;
+
       Tree_Read_Data (Distribution_Stub_Mode'Address,
                       Distribution_Stub_Mode_Type'Object_Size / Storage_Unit);
       Tree_Read_Bool (Immediate_Errors);
@@ -122,6 +151,9 @@ package body Opt is
       Tree_Write_Bool (All_Errors_Mode);
       Tree_Write_Bool (Assertions_Enabled);
       Tree_Write_Bool (Full_List);
+      Tree_Write_Int  (Int (Gnat_Version_String'Length));
+      Tree_Write_Data (Gnat_Version_String'Address,
+                       Gnat_Version_String'Length);
       Tree_Write_Data (Distribution_Stub_Mode'Address,
                        Distribution_Stub_Mode_Type'Object_Size / Storage_Unit);
       Tree_Write_Bool (Immediate_Errors);

@@ -307,6 +307,7 @@ ada/osint.adb
 ada/osint.ads
 ada/output.adb
 ada/output.ads
+ada/rident.ads
 ada/sdefault.ads
 ada/switch.adb
 ada/switch.ads

@@ -31,6 +31,7 @@
 --  by the front end.
 
 with Casing; use Casing;
+with Rident; use Rident;
 with Table;
 with Types;  use Types;
 
@@ -41,6 +42,9 @@ package ALI is
 
    No_Object : Boolean := False;
    --  Set True if No_Object flag encountered in any unit
+
+   No_Normalize_Scalars : Boolean := False;
+   --  Set True if any unit is compiled without Normalize_Scalars
 
    --------------
    -- Id Types --
@@ -79,6 +83,9 @@ package ALI is
 
    type Main_Program_Type is (None, Proc, Func);
    --  Indicator of whether unit can be used as main program
+
+   type Restrictions_String is array (Partition_Restrictions) of Character;
+   --  Type used to hold string from R line
 
    type ALIs_Record is record
 
@@ -145,11 +152,17 @@ package ALI is
       No_Object : Boolean;
       --  Set to True if unit generated no object file
 
+      Normalize_Scalars : Boolean;
+      --  Set to True if unit was compiled with Normalize_Scalars
+
       Unit_Exception_Table : Boolean;
       --  Set to True if unit exception table pointer generated
 
       Zero_Cost_Exceptions : Boolean;
       --  Set to True if unit is compiled with zero cost exceptions
+
+      Restrictions : Restrictions_String;
+      --  Copy of restrictions letters from R line
 
    end record;
 

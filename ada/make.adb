@@ -119,9 +119,6 @@ package body Make is
    -- Misc Routines --
    -------------------
 
-   function Append (Name : Name_Id; Suffix : String) return Name_Id;
-   --  Appends Suffix to Name and returns the new name.
-
    procedure List_Depend;
    --  Prints to standard output the list of object dependencies. This list
    --  can be used directly in a Makefile. For this routine to work
@@ -389,18 +386,6 @@ package body Make is
       Tmp (S1'Length + 1 .. S1'Length + S2'Length) := S2;
       Add_Switch (Tmp, T);
    end Add_Switch;
-
-   ------------
-   -- Append --
-   ------------
-
-   function Append (Name : Name_Id; Suffix : String) return Name_Id is
-   begin
-      Get_Name_String (Name);
-      Name_Buffer (Name_Len + 1 .. Name_Len + Suffix'Length) := Suffix;
-      Name_Len := Name_Len + Suffix'Length;
-      return Name_Find;
-   end Append;
 
    ----------
    -- Bind --
@@ -1498,11 +1483,8 @@ package body Make is
 
    procedure Gnatmake is
 
-      Main_Name : Name_Id;
-      --  The name of the input compilation unit or of the source containing it
-
       Main_Source_File : File_Name_Type;
-      --  The actual source file corresponding to Main_Name
+      --  The source file containing the main compilation unit
 
       Has_Missing_ALIs : Boolean;
       --  Set True if there was a missing ali file (can this ever happen???)
@@ -1763,15 +1745,10 @@ package body Make is
          Opt.Dont_Execute := True;
       end if;
 
-      --  Now check if the user input a full file name or he has omitted the
-      --  suffix. If he omitted the suffix first check the existence of the
-      --  source file for the compilation unit body. If the file for the
-      --  body of the compilation unit does not exist try the spec.
-
       --  Note that Osint.Next_Main_Source will always return the (possibly
       --  abbreviated file) without any directory information.
 
-      Main_Name := Next_Main_Source;
+      Main_Source_File := Next_Main_Source;
 
       Add_Switch ("-I-", Compiler);
       Add_Switch ("-I-", Binder);
@@ -1790,34 +1767,6 @@ package body Make is
             Normalized_CWD,
             Binder,
             Pos => Binder_Switches.First);
-      end if;
-
-      --  If the input name to gnatmake has a suffix, then use it as is
-
-      if Strip_Suffix (Main_Name) /= Main_Name then
-         Main_Source_File := Main_Name;
-
-         --  We cannot have a -I- flag present in the command line and a
-         --  full file name or else gnatmake will not be able to reproduce
-         --  the exact source search path in gcc.
-
-         if not Opt.Look_In_Primary_Dir then
-            Fail ("error, cannot use -I- if full file name is given.");
-         end if;
-
-      --  Otherwise try to attach it an .adb or .ads suffix
-
-      else
-         Main_Source_File := Append (Main_Name, ".adb");
-
-         if Full_Source_Name (Main_Source_File) = No_File then
-            Main_Source_File := Append (Main_Name, ".ads");
-
-            if Full_Source_Name (Main_Source_File) = No_File then
-               Inform (Main_Name, "no corresponding source file found");
-               Exit_Program (E_Fatal);
-            end if;
-         end if;
       end if;
 
       Display_Commands (not Opt.Quiet_Output);
