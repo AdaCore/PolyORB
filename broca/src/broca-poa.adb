@@ -170,4 +170,22 @@ package body Broca.POA is
       return The_Ref;
    end To_POA_Ref;
 
+   -----------
+   -- Start --
+   -----------
+
+   procedure Start is
+   begin
+      Broca.Locks.Create (All_POAs_Lock);
+   end Start;
+
+   ----------
+   -- Stop --
+   ----------
+
+   procedure Stop is
+   begin
+      Broca.Locks.Destroy (All_POAs_Lock);
+   end Stop;
+
 end Broca.POA;

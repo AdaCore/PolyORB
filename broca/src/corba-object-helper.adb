@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Broca.Exceptions;
+with Broca.Locks; use Broca.Locks;
 
 package body CORBA.Object.Helper is
 
@@ -68,14 +69,14 @@ package body CORBA.Object.Helper is
       if CORBA.TypeCode.Kind (Get_Precise_Type (Any_Value)) /= Tk_Objref then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
-      Any_Value.Any_Lock.Lock_W;
+      Lock_W (Any_Value.Any_Lock);
       if Any_Value.The_Value.all /= Null_Content_Ptr then
          Content_ObjRef_Ptr (Any_Value.The_Value.all).Value.all := Value;
       else
          Any_Value.The_Value.all := new Content_ObjRef'
            (Value => new Ref '(Value));
       end if;
-      Any_Value.Any_Lock.Unlock_W;
+      Unlock_W (Any_Value.Any_Lock);
    end Set_Any_Value;
 
 end CORBA.Object.Helper;

@@ -48,19 +48,20 @@ with PortableServer.ServantManager.Impl;
 with PortableServer.ServantActivator.Impl;
 with PortableServer.ServantLocator.Impl;
 
-with Broca.Flags;
-with Broca.Opaque;
-with Broca.Refs;
-with Broca.Exceptions;
-with Broca.ORB;
-with Broca.POA; use Broca.POA;
-with Broca.Vararray;
 with Broca.Buffers; use Broca.Buffers;
+with Broca.Locks;   use Broca.Locks;
+with Broca.POA;     use Broca.POA;
+
 with Broca.CDR;
-with Broca.Server;
-with Broca.Locks;
+with Broca.Exceptions;
+with Broca.Flags;
 with Broca.GIOP;
+with Broca.Opaque;
+with Broca.ORB;
+with Broca.Refs;
+with Broca.Server;
 with Broca.Task_Attributes;
+with Broca.Vararray;
 
 pragma Elaborate (Broca.Refs);
 pragma Elaborate (CORBA.Object);
@@ -317,7 +318,6 @@ package body Broca.RootPOA is
    package PSSL renames PortableServer.ServantLocator;
 
    type Object_Map_Entry_State is (Free, Reserved, Active, To_Be_Destroyed);
-   type Rw_Lock_Ptr is access Broca.Locks.Rw_Lock_Type;
 
    type Object_Map_Entry is record
       State : Object_Map_Entry_State := Free;
@@ -331,7 +331,7 @@ package body Broca.RootPOA is
       --  Changed each time the entry becomes free, so that dangling IOR
       --  are not valid.
 
-      Requests_Lock : Rw_Lock_Ptr := null;
+      Requests_Lock : Rw_Lock_Access;
       --  Number of requests to this object.  Used for etherealize.
    end record;
 
@@ -346,7 +346,7 @@ package body Broca.RootPOA is
       Servant_Lock : Broca.Locks.Mutex_Type;
       --  Lock for serialization of requests to incarnate/etherealize.
 
-      Requests_Lock : Broca.Locks.Rw_Lock_Type;
+      Requests_Lock : Rw_Lock_Access;
       --  Number of current requests.
       --  The lock is used to count the number of requests (R) or to prevent
       --  any new requests (W).
@@ -619,8 +619,7 @@ package body Broca.RootPOA is
                Self.Object_Map := new Object_Map_Type (1 .. 8);
 
                for I in Self.Object_Map.all'Range loop
-                  Self.Object_Map (I).Requests_Lock
-                    := new Broca.Locks.Rw_Lock_Type;
+                  Broca.Locks.Create (Self.Object_Map (I).Requests_Lock);
                end loop;
 
                Slot := 1;
@@ -647,8 +646,7 @@ package body Broca.RootPOA is
                        := Self.Object_Map (Self.Object_Map.all'Range);
                      for I in Self.Object_Map.all'Last + 1
                        .. New_Object_Map.all'Last loop
-                        New_Object_Map (I).Requests_Lock
-                          := new Broca.Locks.Rw_Lock_Type;
+                        Broca.Locks.Create (New_Object_Map (I).Requests_Lock);
                      end loop;
                      Free (Self.Object_Map);
                      Self.Object_Map := New_Object_Map;
@@ -1108,7 +1106,7 @@ package body Broca.RootPOA is
 
             A_Servant := Self.Object_Map (Slot).Skeleton.P_Servant;
 
-            Self.Object_Map (Slot).Requests_Lock.Lock_W;
+            Lock_W (Self.Object_Map (Slot).Requests_Lock);
             --  Wait for completions on all outstanding requests before
             --  etherealize the object.
 
@@ -1210,8 +1208,9 @@ package body Broca.RootPOA is
       Need_Postinvoke : Boolean := False;
    begin
       pragma Debug (O ("GIOP_Invoke: enter"));
+
       --  See 9.3.7
-      Self.Requests_Lock.Lock_R;
+      Lock_R (Self.Requests_Lock);
       pragma Debug (O ("GIOP_Invoke: Got Read lock on request."));
       pragma Debug (O ("GIOP_Invoke: Servant Policy is "
                        & Self.Servant_Policy'Img));
@@ -1329,7 +1328,7 @@ package body Broca.RootPOA is
          if Self.Servant_Policy = RETAIN then
             pragma Debug (O ("GIOP_Invoke: RETAIN policy, Slot = "
                              & Slot'Img));
-            Self.Object_Map (Slot).Requests_Lock.Lock_R;
+            Lock_R (Self.Object_Map (Slot).Requests_Lock);
             pragma Debug (O ("GIOP_Invoke: Got Read lock on request (2)."));
          end if;
 
@@ -1399,7 +1398,7 @@ package body Broca.RootPOA is
          Task_Attributes.Set_Has_No_Context;
 
          if Self.Servant_Policy = RETAIN then
-            Self.Object_Map (Slot).Requests_Lock.Unlock_R;
+            Unlock_R (Self.Object_Map (Slot).Requests_Lock);
          end if;
 
          if Need_Postinvoke then
@@ -1409,7 +1408,7 @@ package body Broca.RootPOA is
                Oid, A_POA, Operation, The_Cookie, A_Servant);
          end if;
 
-         Self.Requests_Lock.Unlock_R;
+         Unlock_R (Self.Requests_Lock);
          POA_Manager_Ptr (Self.POA_Manager).State.Dec_Usage;
 
       exception
@@ -1418,7 +1417,7 @@ package body Broca.RootPOA is
                           & Ada.Exceptions.Exception_Name (OtExcep)
                           &", reraising it"));
             if Self.Servant_Policy = RETAIN then
-               Self.Object_Map (Slot).Requests_Lock.Unlock_R;
+               Unlock_R (Self.Object_Map (Slot).Requests_Lock);
             end if;
             raise;
       end;
@@ -1428,7 +1427,7 @@ package body Broca.RootPOA is
          pragma Debug (O ("GIOP_Invoke : exception caught: "
                           & Ada.Exceptions.Exception_Name (OE)
                           &", reraising it"));
-         Self.Requests_Lock.Unlock_R;
+         Unlock_R (Self.Requests_Lock);
          POA_Manager_Ptr (Self.POA_Manager).State.Dec_Usage;
          raise;
    end GIOP_Invoke;
@@ -1474,6 +1473,10 @@ package body Broca.RootPOA is
 
          Res := new Object;
 
+         --  Create locks.
+         Broca.Locks.Create (Res.Link_Lock);
+         Broca.Locks.Create (Res.Requests_Lock);
+
          --  Link it.
          Res.Parent := POA_Object_Ptr (Self);
          Res.Brother := Self.Children;
@@ -1481,6 +1484,7 @@ package body Broca.RootPOA is
 
          --  Internal data.
          Res.Name := Adapter_Name;
+
       else
          pragma Debug (O ("Adding a child to parent POA"));
          Res := Object_Ptr (Child);
@@ -1495,7 +1499,7 @@ package body Broca.RootPOA is
       Res.Request_Policy := Request_Policy;
       Res.Activation_Policy := Activation_Policy;
       if Thread_Policy = SINGLE_THREAD_MODEL then
-         Res.Requests_Lock.Set_Max_Count (1);
+         Set_Max_Count (Res.Requests_Lock, 1);
       end if;
 
       --  9.3.2
@@ -1597,19 +1601,20 @@ package body Broca.RootPOA is
          --          if Wait_For_Completion then
          --             null;
          --          end if;
+         Broca.Locks.Destroy (Self.Link_Lock);
       end Destroy_All;
 
       POA : POA_Object_Ptr := POA_Object_Ptr (Self);
    begin
-      All_POAs_Lock.Lock_W;
+      Lock_W (All_POAs_Lock);
       if POA.Parent /= null then
-         POA_Object_Ptr (POA.Parent).Link_Lock.Lock_W;
+         Lock_W (POA_Object_Ptr (POA.Parent).Link_Lock);
          Unlink_POA (POA);
-         POA_Object_Ptr (POA.Parent).Link_Lock.Unlock_W;
+         Unlock_W (POA_Object_Ptr (POA.Parent).Link_Lock);
       end if;
       Unregister_All (POA_Object_Ptr (Self));
       --  Now, the POA is unknown by the server and unreachable.
-      All_POAs_Lock.Unlock_W;
+      Unlock_W (All_POAs_Lock);
       Destroy_All (POA_Object_Ptr (Self));
    end Destroy_POA;
 
@@ -1633,9 +1638,9 @@ package body Broca.RootPOA is
             if Child.POA_Manager = Ghost_POA_Manager then
                --  The poa is under creation.
                Broca.Refs.Inc_Usage (Broca.Refs.Ref_Ptr (Child));
-               All_POAs_Lock.Unlock_W;
+               Unlock_W (All_POAs_Lock);
                Child.Creation_Lock.Wait;
-               All_POAs_Lock.Lock_W;
+               Lock_W (All_POAs_Lock);
                Broca.Refs.Dec_Usage (Broca.Refs.Ref_Ptr (Child));
                goto Again;
             end if;
@@ -1666,7 +1671,7 @@ package body Broca.RootPOA is
            (POA_Ref,
             CORBA.Impl.Object_Ptr (Self));
 
-         All_POAs_Lock.Unlock_W;
+         Unlock_W (All_POAs_Lock);
 
          begin
             Created := PortableServer.AdapterActivator.Unknown_Adapter
@@ -1691,7 +1696,7 @@ package body Broca.RootPOA is
 
          if Created then
             Res.Creation_Lock.Unlock;
-            All_POAs_Lock.Lock_W;
+            Lock_W (All_POAs_Lock);
             return To_POA_Ref (Res);
          else
             declare
@@ -1699,7 +1704,7 @@ package body Broca.RootPOA is
                  := To_POA_Ref (Res);
             begin
                --  Destroy res.
-               All_POAs_Lock.Lock_W;
+               Lock_W (All_POAs_Lock);
                --  Can't call destroy_POA to avoid a dead-lock.
                Unlink_POA (Res);
                Broca.Server.Unregister_POA (Res_Ref);
@@ -1720,6 +1725,11 @@ package body Broca.RootPOA is
 
    procedure Setup (Root_POA : in out Object) is
    begin
+
+      --  Create locks.
+      Broca.Locks.Create (Root_POA.Link_Lock);
+      Broca.Locks.Create (Root_POA.Requests_Lock);
+
       Root_POA.POA_Manager :=
         Broca.POA.POAManager_Object_Ptr (Default_POA_Manager);
       --  9.3.8
@@ -1750,6 +1760,9 @@ package body Broca.RootPOA is
 
       Broca.Server.Start;
       --  Ensure the server part of the ORB is elaborated.
+
+      Broca.POA.Start;
+      --  Initialize the abstract POA unit.
 
       --  Build the default POAManager.
       pragma Debug (O ("elaboration begins here"));

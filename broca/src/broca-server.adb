@@ -41,15 +41,16 @@ with PortableServer;
 
 with Broca.Buffers;     use Broca.Buffers;
 with Broca.CDR;         use Broca.CDR;
-with Broca.Opaque;
-with Broca.Sequences;
+with Broca.Locks;       use Broca.Locks;
 with Broca.Exceptions;
-with Broca.GIOP;
-with Broca.Parameters;
-with Broca.Stream;
 with Broca.Flags;
-with Broca.ORB;
+with Broca.GIOP;
 with Broca.Object;
+with Broca.Opaque;
+with Broca.ORB;
+with Broca.Parameters;
+with Broca.Sequences;
+with Broca.Stream;
 
 with Broca.Inet_Server;
 --  The TCP/IP transport
@@ -620,7 +621,7 @@ package body Broca.Server is
                if not Response_Expected and then not Asynchronous then
                   pragma Debug
                     (O ("Handle_Request: requeuing asynchronous request"));
-                  POA_Object_Of (POA).Link_Lock.Unlock_R;
+                  Unlock_R (POA_Object_Of (POA).Link_Lock);
                   Queues.Wait_Queue.Prepend (Stream, Copy (Buffer));
                   Release (Reply_Buffer);
                   return;
@@ -707,7 +708,7 @@ package body Broca.Server is
 
             when Discarding =>
 
-               POA_Object_Of (POA).Link_Lock.Unlock_R;
+               Unlock_R (POA_Object_Of (POA).Link_Lock);
                Log ("discard request");
 
                --  Not very efficient!
@@ -728,7 +729,7 @@ package body Broca.Server is
 
             when Holding =>
 
-               POA_Object_Of (POA).Link_Lock.Unlock_R;
+               Unlock_R (POA_Object_Of (POA).Link_Lock);
                Log ("queue request");
 
                --  Queue this request
@@ -736,7 +737,7 @@ package body Broca.Server is
 
             when Inactive =>
 
-               POA_Object_Of (POA).Link_Lock.Unlock_R;
+               Unlock_R (POA_Object_Of (POA).Link_Lock);
                Log ("rejected request");
 
                --  Not very efficient!
@@ -897,7 +898,7 @@ package body Broca.Server is
       Object_Key_Buffer : aliased Buffer_Type;
       Server  : Server_Ptr;
    begin
-      POA_Object_Of (POA).Link_Lock.Lock_R;
+      Lock_R (POA_Object_Of (POA).Link_Lock);
       --  Lock the POA.  As a result, we are sure it won't be destroyed
       --  during the marshalling of the IOR.
 
@@ -912,7 +913,7 @@ package body Broca.Server is
          Marshall (Object_Key_Buffer'Access, Key);
       exception
          when others =>
-            POA_Object_Of (POA).Link_Lock.Unlock_R;
+            Unlock_R (POA_Object_Of (POA).Link_Lock);
             raise;
       end;
 
@@ -925,7 +926,7 @@ package body Broca.Server is
 
       begin
          Release (Object_Key_Buffer);
-         POA_Object_Of (POA).Link_Lock.Unlock_R;
+         Unlock_R (POA_Object_Of (POA).Link_Lock);
          --  The POA should not be unlocked before Encapsulate,
          --  to allow future use of marshall-by-reference
          --  for the construction of Object_Key.
@@ -1139,7 +1140,7 @@ package body Broca.Server is
       pragma Debug (O ("POA date =" & POA_Date'Img));
 
       --  Lock the table, so that we are sure the poa won't be destroyed.
-      Broca.POA.All_POAs_Lock.Lock_R;
+      Lock_R (All_POAs_Lock);
 
       if Boot_Time /= 0 then
 
@@ -1155,8 +1156,8 @@ package body Broca.Server is
          POA := All_POAs (POA_Index).POA;
 
          --  Neither the POA won't be destroyed, nor its children.
-         POA_Object_Of (POA).Link_Lock.Lock_R;
-         All_POAs_Lock.Unlock_R;
+         Lock_R (POA_Object_Of (POA).Link_Lock);
+         Unlock_R (All_POAs_Lock);
 
          --  Just skip the path name.
          --  Unmarshall number of POAs in path name.
@@ -1191,8 +1192,8 @@ package body Broca.Server is
          Current_POA := All_POAs (Broca.POA.Root_POA_Index).POA;
 
          --  Neither the POA nor its children won't be destroyed
-         POA_Object_Of (Current_POA).Link_Lock.Lock_R;
-         Broca.POA.All_POAs_Lock.Unlock_R;
+         Lock_R (POA_Object_Of (Current_POA).Link_Lock);
+         Unlock_R (All_POAs_Lock);
 
          for I in 1 .. Path_Size loop
             Inc_Usage_If_Active
@@ -1220,12 +1221,12 @@ package body Broca.Server is
             if Is_Nil (Current_POA) then
                pragma Debug (O ("POA " & CORBA.To_Standard_String (POA_Name) &
                                 " could not be found"));
-               POA_Object_Of (Old_POA).Link_Lock.Unlock_R;
+               Unlock_R (POA_Object_Of (Old_POA).Link_Lock);
                Broca.Exceptions.Raise_Object_Not_Exist;
             end if;
 
-            POA_Object_Of (Current_POA).Link_Lock.Lock_R;
-            POA_Object_Of (Old_POA).Link_Lock.Unlock_R;
+            Lock_R (POA_Object_Of (Current_POA).Link_Lock);
+            Lock_R (POA_Object_Of (Old_POA).Link_Lock);
          end loop;
 
          POA := Current_POA;

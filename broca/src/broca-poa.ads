@@ -157,12 +157,15 @@ package Broca.POA is
    -----------
 
    --  Lock policy.
+
+   --  Lock created by Broca.POA.Start, detroyed by Broca.POA.Stop.
    --  lock_W when modifying an entry (register_POA and unregister_POA).  Only
    --    in this case a POA can be destroyed.
    --  It is W-locked during creation or destruction of a POA.
    --  lock_R when an access to a POA is used.
    --  It is R-locked looking for the POA from an objectId.
-   All_POAs_Lock : Broca.Locks.Rw_Lock_Type;
+
+   All_POAs_Lock : Broca.Locks.Rw_Lock_Access;
 
    type POA_Index_Type is new Natural;
    Bad_POA_Index : constant POA_Index_Type := 0;
@@ -199,7 +202,8 @@ package Broca.POA is
 
          --  When link_lock is taken for read immediate children cannot be
          --  destroyed, because links field bellow can't be modified.
-         Link_Lock : Broca.Locks.Rw_Lock_Type;
+         --  Must be created/destroyed by Create_POA/Destroy_POA.
+         Link_Lock : Broca.Locks.Rw_Lock_Access;
 
          --  Links to build the tree of POA.
          --
@@ -324,6 +328,12 @@ package Broca.POA is
    procedure Cleanup (Self : access POA_Object) is abstract;
 
    function To_POA_Ref (The_POA : POA_Object_Ptr) return Ref;
+
+   procedure Start;
+   --  Initialize.
+
+   procedure Stop;
+   --  Terminate.
 
 private
 

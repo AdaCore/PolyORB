@@ -33,8 +33,14 @@
 
 with Ada.Task_Identification; use Ada.Task_Identification;
 
+with Broca.Soft_Links;
+
 package Broca.Locks is
-   --  A simple mutex.
+
+   --------------------
+   -- A simple mutex --
+   --------------------
+
    --  Only one task can own the lock, with LOCK and release it with UNLOCK.
    --  Only the task that has acquired the lock can release it.
    --  A task can try to own the lock via TRYLOCK, which must be a non blocking
@@ -56,35 +62,36 @@ package Broca.Locks is
       Owner : Task_Id := Null_Task_Id;
    end Mutex_Type;
 
-   --  A Read/Write lock.
+   ----------------------------
+   -- A readers/writers lock --
+   ----------------------------
+
    --  Several tasks can own the lock in R (read) mode.
    --  Only one task can own the lock in W (write) mode.
    --  If there is a request for writing, requests for reading are not accepted
    --  anymore.
-   --  PREVENT_R makes all requests for reading not acceptable.  This is
-   --  cleared by LOCK_W.
-   protected type Rw_Lock_Type is
-      entry Lock_W;
-      entry Lock_R;
-      procedure Unlock_W;
-      procedure Unlock_R;
-      procedure Prevent_R;
-      procedure Set_Max_Count (Max : Natural);
-   private
-      --  If COUNT > 0, it is the number of tasks owning the lock in R mode.
-      --  If COUNT = 0, no tasks own the lock.
-      --  If COUNT = -1, a task is owning the lock in W mode.
-      Count : Integer := 0;
 
-      --  Maximum number of readers.
-      Max_Count : Natural := Natural'Last;
+   type Rw_Lock_Type is limited private;
+   type Rw_Lock_Access is access all Rw_Lock_Type;
 
-      R_Prevented : Boolean := False;
-   end Rw_Lock_Type;
+   procedure Create (L : out Rw_Lock_Access);
+   procedure Destroy (L : in out Rw_Lock_Access);
 
-   --  A broad cast lock.
+   procedure Lock_W (L : access Rw_Lock_Type);
+   procedure Lock_R (L : access Rw_Lock_Type);
+   procedure Unlock_W (L : access Rw_Lock_Type);
+   procedure Unlock_R (L : access Rw_Lock_Type);
+   procedure Set_Max_Count
+     (L : access Rw_Lock_Type;
+      Max : Natural);
+
+   ----------------------
+   -- A broadcast lock --
+   ----------------------
+
    --  If the object is locked (through a call to LOCK), WAIT is blocking.
    --  UNLOCK deblocks all the pending calls.
+
    protected type Bcast_Lock_Type is
       entry Wait;
       procedure Lock;
@@ -93,4 +100,27 @@ package Broca.Locks is
       --  Current state.
       Locked : Boolean := True;
    end Bcast_Lock_Type;
+
+private
+
+   use Broca.Soft_Links;
+
+   type Rw_Lock_Type is limited record
+      Readers_Barrier : Barrier_Access;
+      Writers_Barrier : Barrier_Access;
+      Readers_Waiting : Natural := 0;
+      Writers_Waiting : Natural := 0;
+
+      Serial : Integer := 0;
+
+      Count : Integer := 0;
+      --  Current readers, or -1 if held for writing.
+      --  If COUNT > 0, it is the number of tasks owning the lock in R mode.
+      --  If COUNT = 0, no tasks own the lock.
+      --  If COUNT = -1, a task is owning the lock in W mode.
+
+      Max_Count : Natural := Natural'Last;
+         --  Maximum number of readers.
+   end record;
+
 end Broca.Locks;

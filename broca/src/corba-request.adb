@@ -35,6 +35,7 @@ with Broca.GIOP;
 with Broca.CDR;
 with Broca.Exceptions;
 with Broca.Debug;
+with Broca.Locks; use Broca.Locks;
 
 package body CORBA.Request is
 
@@ -216,11 +217,11 @@ package body CORBA.Request is
       The_Value : Any_Content_Ptr_Ptr;
       The_Counter : Natural_Ptr;
    begin
-      Result.Argument.Any_Lock.Lock_W;
+      Lock_W (Result.Argument.Any_Lock);
       The_Value := Result.Argument.The_Value;
       The_Counter := Result.Argument.Ref_Counter;
       Result.Argument.Ref_Counter.all := Result.Argument.Ref_Counter.all + 1;
-      Result.Argument.Any_Lock.Unlock_W;
+      Unlock_W (Result.Argument.Any_Lock);
       Argument := (Ada.Finalization.Controlled with
                    The_Value => The_Value,
                    The_Type => Result.Argument.The_Type,

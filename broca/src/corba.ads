@@ -1193,29 +1193,28 @@ private
    procedure Deallocate is new Ada.Unchecked_Deallocation
      (Natural, Natural_Ptr);
 
-   --  a lock for the Any
-   type Rw_Lock_Type_Ptr is access all Broca.Locks.Rw_Lock_Type;
-   procedure Deallocate is new Ada.Unchecked_Deallocation
-     (Broca.Locks.Rw_Lock_Type, Rw_Lock_Type_Ptr);
-
    --  The actual Any type
+
    --  The first two fields are clear, the third one tells whether
    --  the Any has a semantic of reference or of value, the fourth
    --  one counts the number of references on the field The_Value
    --  and the last one is a lock to manage thread safe features.
+
    type Any is new Ada.Finalization.Controlled with record
-      The_Value : Any_Content_Ptr_Ptr;
-      The_Type  : CORBA.TypeCode.Object;
+      The_Value    : Any_Content_Ptr_Ptr;
+      The_Type     : CORBA.TypeCode.Object;
       As_Reference : Boolean := False;
-      Ref_Counter : Natural_Ptr;
-      Any_Lock : Rw_Lock_Type_Ptr;
+      Ref_Counter  : Natural_Ptr;
+      Any_Lock     : Broca.Locks.Rw_Lock_Access;
    end record;
 
    --  Some methods to deal with the Any fields.
+
    --  These are the only way to deal with the fields if you want to
    --  stay thread safe
    --  Apart from the management of locks, these methods do not
    --  make any test. So use them carefully
+
    procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr);
    procedure Set_Counter (Obj : in out Any; The_Counter : in Natural_Ptr);
    function Get_Value (Obj : Any) return Any_Content_Ptr;

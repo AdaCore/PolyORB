@@ -31,7 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
+
 with Broca.Debug;
+with Broca.Soft_Links; use Broca.Soft_Links;
 
 package body Broca.Locks is
 
@@ -78,55 +81,6 @@ package body Broca.Locks is
       end Trylock;
    end Mutex_Type;
 
-   protected body Rw_Lock_Type is
-      entry Lock_W when Count = 0 is
-      begin
-         pragma Debug (O ("Lock_W"));
-         R_Prevented := False;
-         Count := -1;
-      end Lock_W;
-
-      entry Lock_R
-      when Count >= 0
-        and Count < Max_Count
-        and Lock_W'Count = 0
-        and not R_Prevented is
-      begin
-         pragma Debug (O ("Lock_R"));
-         Count := Count + 1;
-      end Lock_R;
-
-      procedure Unlock_W is
-      begin
-         pragma Debug (O ("Unlock_W"));
-         if Count /= -1 then
-            raise Program_Error;
-         else
-            Count := 0;
-         end if;
-      end Unlock_W;
-
-      procedure Unlock_R is
-      begin
-         pragma Debug (O ("Unlock_R"));
-         if Count <= 0 then
-            raise Program_Error;
-         else
-            Count := Count - 1;
-         end if;
-      end Unlock_R;
-
-      procedure Prevent_R is
-      begin
-         R_Prevented := True;
-      end Prevent_R;
-
-      procedure Set_Max_Count (Max : Natural) is
-      begin
-         Max_Count := Max;
-      end Set_Max_Count;
-   end Rw_Lock_Type;
-
    protected body Bcast_Lock_Type is
       entry Wait
       when Locked = False is
@@ -152,4 +106,113 @@ package body Broca.Locks is
          end if;
       end Unlock;
    end Bcast_Lock_Type;
+
+   Rw_Lock_Counter : Natural := 0;
+
+   procedure Create (L : out Rw_Lock_Access)
+   is
+      Result : constant Rw_Lock_Access
+        := new Rw_Lock_Type;
+   begin
+      Enter_Critical_Section;
+      Rw_Lock_Counter := Rw_Lock_Counter + 1;
+      pragma Debug (O ("Rw_Lock: init/Serial ="
+                       & Rw_Lock_Counter'Img));
+      Result.Serial := Rw_Lock_Counter;
+      Leave_Critical_Section;
+      Create (Result.Readers_Barrier);
+      Create (Result.Writers_Barrier);
+      L := Result;
+   end Create;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Rw_Lock_Type, Rw_Lock_Access);
+
+   procedure Destroy (L : in out Rw_Lock_Access) is
+   begin
+      pragma Debug
+        (O ("Rw_Lock: final/Serial =" & L.Serial'Img));
+      Destroy (L.Readers_Barrier);
+      Destroy (L.Writers_Barrier);
+      Free (L);
+   end Destroy;
+
+   procedure Lock_W (L : access Rw_Lock_Type) is
+   begin
+      pragma Debug (O ("Lock_W Serial =" & L.Serial'Img));
+
+      loop
+         Enter_Critical_Section;
+         L.Writers_Waiting := L.Writers_Waiting + 1;
+         exit when L.Count = 0;
+         Leave_Critical_Section;
+         Wait (L.Writers_Barrier.all);
+      end loop;
+
+      L.Count := -1;
+      L.Writers_Waiting := L.Writers_Waiting - 1;
+      Leave_Critical_Section;
+   end Lock_W;
+
+   procedure Lock_R (L : access Rw_Lock_Type) is
+   begin
+
+      pragma Debug (O ("Lock_R"));
+
+      loop
+         Enter_Critical_Section;
+         L.Readers_Waiting := L.Readers_Waiting + 1;
+
+         exit when L.Count >= 0
+           and then L.Count < L.Max_Count
+           and then L.Writers_Waiting = 0;
+
+         Leave_Critical_Section;
+         Wait (L.Readers_Barrier.all);
+      end loop;
+
+      L.Count := L.Count + 1;
+      L.Readers_Waiting := L.Readers_Waiting - 1;
+      Leave_Critical_Section;
+   end Lock_R;
+
+   procedure Unlock_W (L : access Rw_Lock_Type) is
+   begin
+      pragma Debug (O ("Unlock_W"));
+
+      Enter_Critical_Section;
+      if L.Count /= -1 then
+         raise Program_Error;
+      else
+         L.Count := 0;
+      end if;
+      Signal_All (L.Readers_Barrier.all, False);
+      Signal (L.Writers_Barrier.all);
+      Leave_Critical_Section;
+   end Unlock_W;
+
+   procedure Unlock_R (L : access Rw_Lock_Type) is
+   begin
+      pragma Debug (O ("Unlock_R"));
+
+      Enter_Critical_Section;
+      if L.Count <= 0 then
+         raise Program_Error;
+      else
+         L.Count := L.Count - 1;
+      end if;
+      Signal_All (L.Readers_Barrier.all, False);
+      Signal (L.Writers_Barrier.all);
+      Leave_Critical_Section;
+   end Unlock_R;
+
+   procedure Set_Max_Count
+     (L : access Rw_Lock_Type;
+      Max : Natural) is
+   begin
+      Enter_Critical_Section;
+      L.Max_Count := Max;
+      Leave_Critical_Section;
+   end Set_Max_Count;
+
 end Broca.Locks;

@@ -34,7 +34,9 @@
 with Ada.Exceptions;
 
 with Broca.Exceptions;
+with Broca.Locks;
 with Broca.POA;
+
 with PortableServer.ServantManager.Impl;
 with PortableServer.ServantActivator.Impl;
 with PortableServer.ServantLocator.Impl;
@@ -43,6 +45,7 @@ with CORBA.Impl;
 
 package body PortableServer.POA is
 
+   use Broca.Locks;
    use Broca.POA;
 
    function Create_Ref (Referenced : CORBA.Impl.Object_Ptr) return Ref;
@@ -246,18 +249,18 @@ package body PortableServer.POA is
       end if;
 
       begin
-         All_POAs_Lock.Lock_W;
+         Lock_W (All_POAs_Lock);
          Res := Broca.POA.Create_POA
            (POA,
             Adapter_Name,
             POAManager_Object_Ptr
             (PortableServer.POAManager.Object_Of (A_POAManager)),
             Tp, Lp, Up, Ip, Ap, Sp, Rp);
-         All_POAs_Lock.Unlock_W;
+         Unlock_W (All_POAs_Lock);
          return Create_Ref (CORBA.Impl.Object_Ptr (Res));
       exception
          when others =>
-            All_POAs_Lock.Unlock_W;
+            Unlock_W (All_POAs_Lock);
             raise;
       end;
    end Create_POA;
@@ -277,7 +280,7 @@ package body PortableServer.POA is
         := To_POA (Self);
 
    begin
-      All_POAs_Lock.Lock_W;
+      Lock_W (All_POAs_Lock);
       declare
          POA_Ref : constant Broca.POA.Ref'Class
            := Broca.POA.Find_POA
@@ -287,7 +290,7 @@ package body PortableServer.POA is
            := Create_Ref (CORBA.Impl.Object_Ptr
                           (POA_Object_Of (POA_Ref)));
       begin
-         All_POAs_Lock.Unlock_W;
+         Unlock_W (All_POAs_Lock);
 
          if Is_Nil (Res) then
             raise AdapterNonExistent;
