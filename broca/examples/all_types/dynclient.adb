@@ -940,7 +940,7 @@ procedure DynClient is
       --  creating the exception list
       CORBA.ORB.Create_List (Excp_List);
       CORBA.ExceptionList.Add (Excp_List,
-                               All_Types.Helper.TC_My_Exception_Members);
+                               All_Types.Helper.TC_My_Exception);
       --  setting the result type
       Result := (Name => Identifier (Result_Name),
                  Argument => Get_Empty_Any (CORBA.TC_Void),
