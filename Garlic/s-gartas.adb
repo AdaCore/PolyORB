@@ -213,7 +213,9 @@ package body System.Garlic.Tasking is
             if W.Count = 0
               and then W.Queue.Is_Busy
             then
+               W.Protect.Leave;
                W.Queue.Enter;
+               W.Protect.Enter;
             end if;
             W.Count := W.Count + 1;
          end if;

@@ -11,6 +11,8 @@
 	Remove many uses of pointers when they are not needed.
 	Test that in case of contention, the task holding the lock is not
 	terminated.
+	Release the watcher lock as we enter the queue, as this can be a
+	blocking operation.
 
 	* s-gardeb.ads, s-gardeb.adb: Add new procedure to debug the global
 	lock.
