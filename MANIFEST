@@ -671,6 +671,8 @@ src/giop/miop/polyorb-setup-access_points-uipmc.adb
 src/giop/miop/polyorb-setup-access_points-uipmc.ads
 src/giop/miop/polyorb-setup-uipmc.adb
 src/giop/miop/polyorb-setup-uipmc.ads
+src/giop/cs_registry1.2h
+src/giop/gen_codeset.adb
 src/giop/polyorb-binding_data-giop-inet.adb
 src/giop/polyorb-binding_data-giop-inet.ads
 src/giop/polyorb-binding_data-giop.adb
