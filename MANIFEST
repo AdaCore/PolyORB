@@ -121,6 +121,8 @@ src/corba/corba-contextlist.adb
 src/corba/corba-contextlist.ads
 src/corba/corba-exceptionlist.adb
 src/corba/corba-exceptionlist.ads
+src/corba/corba-fixed_point.adb
+src/corba/corba-fixed_point.ads
 src/corba/corba-forward.adb
 src/corba/corba-forward.ads
 src/corba/corba-impl.adb
