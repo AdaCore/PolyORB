@@ -5,7 +5,7 @@
 with Ada.Streams; use Ada.Streams;
 
 with CORBA;
-with CORBA.Exceptions;
+with Broca.Exceptions;
 
 with Droopi.Transport.Sockets;
 with Droopi.Protocols.GIOP;
@@ -193,7 +193,7 @@ package body Droopi.Binding_Data.IIOP is
 
    is
       use CORBA;
-      use CORBA.Exceptions;
+      use Broca.Exceptions;
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
       Profile_Buffer : Buffer_Access := new Buffers.Buffer_Type;
       Major_Version  : CORBA.Octet;
@@ -214,7 +214,7 @@ package body Droopi.Binding_Data.IIOP is
         or else Minor_Version > IIOP_Minor_Version
       then
          Release (Profile_Buffer);
-         CORBA.Exceptions.Raise_Bad_Param;
+         Broca.Exceptions.Raise_Bad_Param;
       end if;
 
       Unmarshall_Socket (Profile_Buffer, TResult.Address);
@@ -230,7 +230,7 @@ package body Droopi.Binding_Data.IIOP is
                if Length /= 0 then
                   Release (Profile_Buffer);
                   --  FIXME: Multiple components are not yet handled.
-                  CORBA.Exceptions.Raise_Bad_Param;
+                  Broca.Exceptions.Raise_Bad_Param;
                end if;
             end if;
       end;

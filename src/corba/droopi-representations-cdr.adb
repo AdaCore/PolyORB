@@ -11,21 +11,19 @@ with Ada.Unchecked_Conversion;
 with Ada.Streams;
 with Ada.Exceptions;
 
-with Interfaces;
-
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Opaque;  use Droopi.Opaque;
 with Droopi.Log;
 
 with CORBA;
-with CORBA.Exceptions;
-with CORBA.Exceptions.Stack;
+with Broca.Exceptions;
+with Broca.Exceptions.Stack;
 
 package body Droopi.Representations.CDR is
 
    use Droopi.Log;
-   use CORBA.Exceptions;
-   use CORBA.Exceptions.Stack;
+   use Broca.Exceptions;
+   use Broca.Exceptions.Stack;
 
    package L is new Droopi.Log.Facility_Log ("droopi.representations.cdr");
    procedure O (Message : in String; Level : Log_Level := Debug)
@@ -1387,7 +1385,7 @@ package body Droopi.Representations.CDR is
 
       if Character'Val (CORBA.Char'Pos (Unmarshall (Buffer)))
         /= ASCII.Nul then
-         CORBA.Exceptions.Raise_Marshal;
+         Broca.Exceptions.Raise_Marshal;
       end if;
 
       pragma Debug (O ("Unmarshall (String): -> " & Equiv));
@@ -1676,7 +1674,7 @@ package body Droopi.Representations.CDR is
                pragma Debug
                  (O ("Unmarshall_To_Any : dealing with a sequence"));
                if Max_Nb > 0 and then Nb > Max_Nb then
-                  CORBA.Exceptions.Raise_Marshal;
+                  Broca.Exceptions.Raise_Marshal;
                end if;
                Set_Any_Aggregate_Value (Result);
                pragma Debug (O ("Unmarshall_To_Any : aggregate value set"));
@@ -2257,7 +2255,7 @@ package body Droopi.Representations.CDR is
                  (Result, To_Any (Id));
             end;
          when others =>
-            CORBA.Exceptions.Raise_Marshal;
+            Broca.Exceptions.Raise_Marshal;
       end case;
       pragma Debug (O ("Unmarshall (TypeCode) : end"));
       return Result;
@@ -2563,12 +2561,12 @@ package body Droopi.Representations.CDR is
    is
       Members : CORBA.System_Exception_Members;
    begin
-      CORBA.Exceptions.Get_Members (Excpt, Members);
+      Broca.Exceptions.Get_Members (Excpt, Members);
       Marshall
-        (Buffer, CORBA.String (CORBA.Exceptions.Occurrence_To_Name (Excpt)));
+        (Buffer, CORBA.String (Broca.Exceptions.Occurrence_To_Name (Excpt)));
       Marshall (Buffer, Members.Minor);
       Marshall
-        (Buffer, CORBA.Exceptions.To_Unsigned_Long (Members.Completed));
+        (Buffer, Broca.Exceptions.To_Unsigned_Long (Members.Completed));
    end Marshall;
 
    procedure Unmarshall_And_Raise
@@ -2583,7 +2581,7 @@ package body Droopi.Representations.CDR is
 
    begin
       Repository := Unmarshall (Buffer);
-      Identity := CORBA.Exceptions.Get_ExcepId_By_RepositoryId
+      Identity := Broca.Exceptions.Get_ExcepId_By_RepositoryId
         (CORBA.To_Standard_String (Repository));
 
       if Identity = Null_Id then
@@ -2598,11 +2596,11 @@ package body Droopi.Representations.CDR is
 
       --  Raise the exception
 
-      CORBA.Exceptions.Stack.Raise_Exception
+      Broca.Exceptions.Stack.Raise_Exception
         (Identity,
          CORBA.System_Exception_Members'
          (Minor,
-          CORBA.Exceptions.To_Completion_Status (Status)));
+          Broca.Exceptions.To_Completion_Status (Status)));
    end Unmarshall_And_Raise;
 
 
@@ -2703,8 +2701,6 @@ package body Droopi.Representations.CDR is
 
    package body Fixed_Point is
 
-      use Interfaces;
-
       Fixed_Positive_Zero : constant CORBA.Octet
         := 16#C#;
       Fixed_Negative : constant CORBA.Octet
@@ -2797,7 +2793,7 @@ package body Droopi.Representations.CDR is
                and then O mod 16 /= CORBA.Octet (Fixed_Positive_Zero)
                and then O mod 16 /= CORBA.Octet (Fixed_Negative))
             then
-               CORBA.Exceptions.Raise_Marshal;
+               Broca.Exceptions.Raise_Marshal;
             end if;
 
             Result := Result * 10 + F (O / 16) * F'Delta;

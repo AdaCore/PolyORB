@@ -16,7 +16,6 @@ with Droopi.Buffers;
 with Droopi.Binding_Data;
 with Droopi.References;
 with Droopi.References.IOR;
-with Droopi.Protocols;
 with Droopi.Requests;
 with Droopi.Objects;
 with Droopi.ORB;
