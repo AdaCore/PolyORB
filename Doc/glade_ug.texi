@@ -938,7 +938,9 @@ Partition_ID at a given time. A Partition_ID may or may not be
 attributed statically (at compile or link time). A Partition_ID may or
 may not be related to the physical location of the partition.
 
-@b{Laurent, find an useful example}
+It can be useful to check whether a RCI package is configured locally.
+
+@include check_pid.adb.texi
 
 @node Concurrent Remote Calls, Consistency and Elaboration, Partition Ids, Partition Communication Subsystem
 @subsection Concurrent Remote Calls

@@ -1,3 +1,13 @@
+with RCI;
+with Ada.Text_IO;
+procedure Check_PID is
+begin
+   if RCI'Partition_ID = Check_PID'Partition_ID then
+      Ada.Text_IO.Put_Line ("package RCI is configured locally");
+   else
+      Ada.Text_IO.Put_Line ("package RCI is configured remotely");
+   end if;
+end Check_PID;
 package Types is
    pragma Pure;
 

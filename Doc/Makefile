@@ -13,6 +13,7 @@ full-ex.fig\
 corba-arch.fig
 
 ADAFILES=\
+check_pid.adb\
 acrrt.adb\
 acrrt.ads\
 acrrci.adb\
