@@ -1,3 +1,10 @@
+Wed Mar 12 13:53:10 1997  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am: s-garela.o was missing. Not detected before because
+	of a bug in gnatmake. 
+
+	* mkdep: Missing space.
+
 Sat Mar  8 16:48:38 1997  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-garrem.adb: Add -n to rsh. It won't break anything and at

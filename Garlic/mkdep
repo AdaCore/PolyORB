@@ -11,7 +11,7 @@ echo $MKDEP
 for k in *.ali; do
   i=`echo $k | sed -e 's/\.ali$//'`
   withlist=
-  for j in `sed -n -e'/^D /p' < $k | awk '{print $2}'`; do
+  for j in `sed -n -e '/^D /p' $k | awk '{print $2}'`; do
     if [ -f $j ]; then
       withlist="$withlist $j"
     fi
