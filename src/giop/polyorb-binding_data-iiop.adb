@@ -33,8 +33,6 @@
 
 --  Example binding data concrete implementation.
 
---  $Id$
-
 with Ada.Streams; use Ada.Streams;
 
 with PolyORB.Configuration;
@@ -71,11 +69,11 @@ package body PolyORB.Binding_Data.IIOP is
 
    procedure Unmarshall_Socket
      (Buffer : access Buffer_Type;
-      Sock   : out    Sockets.Sock_Addr_Type);
+      Sock   :    out Sockets.Sock_Addr_Type);
 
    procedure Marshall_Tagged_Component
      (Buffer     : access Buffer_Type;
-      Components : Component_Seq.Sequence);
+      Components :        Component_Seq.Sequence);
 
    function Unmarshall_Tagged_Component
      (Buffer : access Buffer_Type)
@@ -89,7 +87,8 @@ package body PolyORB.Binding_Data.IIOP is
    -- Initialize --
    ----------------
 
-   procedure Initialize (P : in out IIOP_Profile_Type) is
+   procedure Initialize
+     (P : in out IIOP_Profile_Type) is
    begin
       P.Object_Id := null;
    end Initialize;
@@ -98,7 +97,8 @@ package body PolyORB.Binding_Data.IIOP is
    -- Adjust --
    ------------
 
-   procedure Adjust (P : in out IIOP_Profile_Type) is
+   procedure Adjust
+     (P : in out IIOP_Profile_Type) is
    begin
       if P.Object_Id /= null then
          P.Object_Id := new Object_Id'(P.Object_Id.all);
@@ -109,7 +109,8 @@ package body PolyORB.Binding_Data.IIOP is
    -- Finalize --
    --------------
 
-   procedure Finalize (P : in out IIOP_Profile_Type) is
+   procedure Finalize
+     (P : in out IIOP_Profile_Type) is
    begin
       Free (P.Object_Id);
    end Finalize;
@@ -130,13 +131,13 @@ package body PolyORB.Binding_Data.IIOP is
       use PolyORB.Filters;
       use PolyORB.Filters.Slicers;
 
-      Sock : Socket_Type;
+      Sock        : Socket_Type;
       Remote_Addr : Sock_Addr_Type := Profile.Address;
-      TE : constant Transport.Transport_Endpoint_Access
+      TE          : constant Transport.Transport_Endpoint_Access
         := new Transport.Sockets.Socket_Endpoint;
-      Pro  : aliased GIOP_Protocol;
-      Sli  : aliased Slicer_Factory;
-      Prof : constant Profile_Access := new IIOP_Profile_Type;
+      Pro         : aliased GIOP_Protocol;
+      Sli         : aliased Slicer_Factory;
+      Prof        : constant Profile_Access := new IIOP_Profile_Type;
       --  This Profile_Access is stored in the created
       --  GIOP_Session, and free'd when the session is finalized.
 
@@ -163,8 +164,10 @@ package body PolyORB.Binding_Data.IIOP is
       --  the APEX compiler.
 
       ORB.Register_Endpoint
-        (ORB.ORB_Access (The_ORB), TE,
-         Filter, ORB.Client);
+        (ORB.ORB_Access (The_ORB),
+         TE,
+         Filter,
+         ORB.Client);
       --  Register the endpoint and lowest filter with the ORB.
 
       pragma Debug (O ("Preparing local copy of profile"));
@@ -178,10 +181,6 @@ package body PolyORB.Binding_Data.IIOP is
            renames GIOP_Session (Upper (Filter).all);
 
       begin
-         Set_Version
-           (S'Access,
-            Profile.Major_Version,
-            Profile.Minor_Version);
          pragma Debug (O ("Bind IIOP profile: leave"));
          return S'Access;
       end;
@@ -198,6 +197,7 @@ package body PolyORB.Binding_Data.IIOP is
       pragma Warnings (Off);
       pragma Unreferenced (Profile);
       pragma Warnings (On);
+
    begin
       return Tag_Internet_IOP;
    end Get_Profile_Tag;
@@ -213,6 +213,7 @@ package body PolyORB.Binding_Data.IIOP is
       pragma Warnings (Off);
       pragma Unreferenced (Profile);
       pragma Warnings (On);
+
    begin
       return Preference;
    end Get_Profile_Preference;
@@ -229,6 +230,7 @@ package body PolyORB.Binding_Data.IIOP is
       pragma Warnings (Off);
       pragma Unreferenced (ORB);
       pragma Warnings (On);
+
    begin
       PF.Address := Address_Of (Socket_Access_Point (TAP.all));
    end Create_Factory;
@@ -267,6 +269,7 @@ package body PolyORB.Binding_Data.IIOP is
       return Boolean
    is
       use type PolyORB.Sockets.Sock_Addr_Type;
+
    begin
       return P.all in IIOP_Profile_Type
         and then IIOP_Profile_Type (P.all).Address = PF.Address;
@@ -390,7 +393,7 @@ package body PolyORB.Binding_Data.IIOP is
 
    procedure Unmarshall_Socket
     (Buffer : access Buffer_Type;
-     Sock   : out    Sockets.Sock_Addr_Type)
+     Sock   :    out Sockets.Sock_Addr_Type)
    is
       use PolyORB.Sockets;
 
@@ -425,7 +428,7 @@ package body PolyORB.Binding_Data.IIOP is
 
    procedure Marshall_Tagged_Component
      (Buffer     : access Buffer_Type;
-      Components : Component_Seq.Sequence)
+      Components :        Component_Seq.Sequence)
    is
       use Component_Seq;
 
@@ -469,8 +472,9 @@ package body PolyORB.Binding_Data.IIOP is
    -- Image --
    -----------
 
-   function Image (Prof : IIOP_Profile_Type)
-                  return String
+   function Image
+     (Prof : IIOP_Profile_Type)
+     return String
    is
       use PolyORB.Sockets;
 

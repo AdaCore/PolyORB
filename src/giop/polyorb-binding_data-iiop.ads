@@ -33,8 +33,6 @@
 
 --  Binding data concrete implementation for IIOP.
 
---  $Id$
-
 with Ada.Streams;
 
 with PolyORB.Buffers;
@@ -43,8 +41,6 @@ with PolyORB.Sockets;
 with PolyORB.Types;
 
 package PolyORB.Binding_Data.IIOP is
-
-   pragma Elaborate_Body;
 
    use Ada.Streams;
    use PolyORB.Buffers;

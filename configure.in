@@ -318,9 +318,34 @@ echo "" > ${PROTO_SERVER_WITHS}
 
 for P in ${PROTO_LIST}
 do
-   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-binding_data-*.ads`
    cat >>${PROTO_CLIENT_WITHS} <<EOF
 -- ${P} --
+EOF
+
+   cat >>${PROTO_SERVER_WITHS} <<EOF
+-- ${P} --
+EOF
+
+if test -f ${srcdir}/src/${P}/polyorb-setup-${P}.ads
+then
+   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-setup-${P}.ads`
+   cat >>${PROTO_SERVER_WITHS} <<EOF
+with ${U};
+pragma Elaborate_All (${U});
+pragma Warnings (Off, ${U});
+ 
+EOF
+   cat >>${PROTO_CLIENT_WITHS} <<EOF
+with ${U};
+pragma Elaborate_All (${U});
+pragma Warnings (Off, ${U});
+
+EOF
+
+fi
+
+   U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-binding_data-*.ads`
+   cat >>${PROTO_CLIENT_WITHS} <<EOF
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
@@ -329,7 +354,6 @@ EOF
 
    U=`${AWK} '/^package/{print $2}' ${srcdir}/src/${P}/polyorb-setup-tcp_access_points-*.ads`
    cat >>${PROTO_SERVER_WITHS} <<EOF
--- ${P} --
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,107 +31,152 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with Ada.Streams; use Ada.Streams;
-
-with PolyORB.Buffers;
+with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.References.IOR;
-with PolyORB.Types;
+with PolyORB.Protocols.GIOP.Common;
 
-private package PolyORB.Protocols.GIOP.GIOP_1_2 is
+package PolyORB.Protocols.GIOP.GIOP_1_2 is
+   use PolyORB.Protocols.GIOP.Common;
 
-   pragma Elaborate_Body;
+   type GIOP_Implem_1_2 is tagged private;
+   type GIOP_Implem_1_2_Access is access all GIOP_Implem_1_2'Class;
 
-   type Service_Id_Array is array (Integer range <>) of ServiceId;
-   Service_Context_List_1_2 : constant Service_Id_Array;
-
-   procedure Marshall_GIOP_Header
-     (Buffer       : access Buffers.Buffer_Type;
-      Message_Type : in Msg_Type;
-      Message_Size : in Stream_Element_Offset;
-      --  Total message size (including GIOP header).
-      Fragment_Next : in Boolean);
-
-   procedure Marshall_Request_Message
-     (Buffer     : access Buffers.Buffer_Type;
-      Request_Id : in     Types.Unsigned_Long;
-      Target_Ref : in     Target_Address;
-      Sync_Type  : in     Sync_Scope;
-      Operation  : in     String);
-
-   procedure Marshall_No_Exception
-    (Buffer      : access Buffers.Buffer_Type;
-     Request_Id  : in Types.Unsigned_Long);
-
-   procedure Marshall_Exception
-    (Buffer      : access Buffers.Buffer_Type;
-     Request_Id  : Types.Unsigned_Long;
-     Reply_Type  : in Reply_Status_Type;
-     Occurrence  : in Any.Any);
-
-   procedure Marshall_Location_Forward
-    (Buffer        : access Buffers.Buffer_Type;
-     Request_Id    : Types.Unsigned_Long;
-     Reply_Type    : in Reply_Status_Type;
-     Target_Ref    : in  PolyORB.References.IOR.IOR_Type);
-
-   procedure Marshall_Needs_Addressing_Mode
-    (Buffer              : access Buffers.Buffer_Type;
-     Request_Id          : in Types.Unsigned_Long;
-     Address_Type        : in Addressing_Disposition);
-
-   procedure Marshall_Locate_Request
-    (Buffer            : access Buffers.Buffer_Type;
-     Request_Id        : in Types.Unsigned_Long;
-     Target_Ref        : in Target_Address);
-
-   procedure Marshall_Fragment
-    (Buffer   : access Buffers.Buffer_Type;
-     Request_Id   : in Types.Unsigned_Long);
-
-   ---------------------------
-   -- Unmarshall procedures --
-   ---------------------------
-
-   procedure Unmarshall_Request_Message
-     (Buffer            : access Buffers.Buffer_Type;
-      Request_Id        : out Types.Unsigned_Long;
-      Response_Expected : out Boolean;
-      Sync_Type         : out Sync_Scope;
-      Target_Ref        : out Target_Address_Access;
-      Operation         : out Types.String);
-   --  Storage for Target_Ref is dynamically allocated,
-   --  and must be released by the caller after use.
-
-   procedure Unmarshall_Reply_Message
-      (Buffer       : access Buffers.Buffer_Type;
-       Request_Id   : out Types.Unsigned_Long;
-       Reply_Status : out Reply_Status_Type);
-
-   procedure Unmarshall_Locate_Request
-     (Buffer        : access Buffers.Buffer_Type;
-      Request_Id    : out Types.Unsigned_Long;
-      Target_Ref    : out Target_Address);
+   type GIOP_Ctx_1_2 is tagged private;
+   type GIOP_Ctx_1_2_Access is access all GIOP_Ctx_1_2;
 
 private
 
-   --  Explicit bounds are required in the nominal subtype
-   --  in order to comply with Ravenscar restriction
-   --  No_Implicit_Heap_Allocation.
+   type GIOP_Implem_1_2 is new GIOP_Implem with record
+      Max_GIOP_Message_Size : Types.Unsigned_Long;
+      Max_Body              : Types.Unsigned_Long;
+   end record;
 
-   Service_Context_List_1_2 : constant Service_Id_Array (0 .. 9)
-     := (0 => Transaction_Service,
-         1 => Code_Sets,
-         2 => Chain_By_Pass_Check,
-         3 => Chain_By_Pass_Info,
-         4 => Logical_Thread_Id,
-         5 => Bi_Dir_IIOP,
-         6 => Sending_Context_Run_Time,
-         7 => Invocation_Policies,
-         8 => Forwarded_Identity,
-         9 => Unknown_Exception_Info);
+   --  GIOP Message Type
+   type Msg_Type is
+     (Request,
+      Reply,
+      Cancel_Request,
+      Locate_Request,
+      Locate_Reply,
+      Close_Connection,
+      Message_Error,
+      Fragment);
 
+   --  minimal size for fragmented messages
+   Default_Max_GIOP_Message_Size_1_2 : constant Integer := 1000;
+
+   --  fragmenting state
+   type Fragment_State is
+     (None,       --  no current defragmenting
+      First,      --  wait for the first body fragment
+      Req,        --  wait for the fragment header, the request_id
+      Fragment);  --  wait for the body fragment
+
+   --  GIOP 1.2 context
+   type GIOP_Ctx_1_2 is new GIOP_Ctx with record
+      Message_Type : Msg_Type;
+      Fragmented   : Types.Boolean;
+      Request_Id   : aliased Types.Unsigned_Long;
+      Reply_Status : aliased Reply_Status_Type;
+      --  For fragmenting management
+      Frag_State   : Fragment_State := None;
+      Frag_Type    : Msg_Type;
+      Frag_Req_Id  : Types.Unsigned_Long;
+      Frag_Size    : Types.Unsigned_Long;
+      Frag_Next    : Types.Unsigned_Long;
+      Frag_Buf     : PolyORB.Buffers.Buffer_Access;
+   end record;
+
+   procedure Initialize_Implem
+     (Implem : access GIOP_Implem_1_2);
+
+   procedure Initialize_Session
+     (Implem : access GIOP_Implem_1_2;
+      S      : access Session'Class);
+
+   procedure Finalize_Session
+     (Implem : access GIOP_Implem_1_2;
+      S      : access Session'Class);
+
+   procedure Unmarshall_GIOP_Header
+     (Implem  : access GIOP_Implem_1_2;
+      S       : access Session'Class);
+
+   procedure Marshall_GIOP_Header
+     (Implem  : access GIOP_Implem_1_2;
+      S       : access Session'Class;
+      Buffer  : access PolyORB.Buffers.Buffer_Type);
+
+   procedure Marshall_GIOP_Header_Reply
+     (Implem  : access GIOP_Implem_1_2;
+      S       : access Session'Class;
+      Buffer  : access PolyORB.Buffers.Buffer_Type);
+
+   procedure Process_Message
+     (Implem : access GIOP_Implem_1_2;
+      S      : access Session'Class);
+
+   procedure Process_Reply
+     (Implem  : access GIOP_Implem_1_2;
+      S       : access Session'Class;
+      Request :        Requests.Request_Access);
+
+   procedure Emit_Message
+     (Implem : access GIOP_Implem_1_2;
+      S      : access Session'Class;
+      Buffer :        PolyORB.Buffers.Buffer_Access);
+
+   procedure Locate_Object
+     (Implem : access GIOP_Implem_1_2;
+      S      : access Session'Class;
+      R      : in     Pending_Request_Access);
+
+   procedure Send_Request
+     (Implem : access GIOP_Implem_1_2;
+      S      : access Session'Class;
+      R      : in     Pending_Request_Access);
+
+   procedure Process_Abort_Request
+     (Implem : access GIOP_Implem_1_2;
+      S      : access Session'Class;
+      R      : in     Request_Access);
+
+   Bidirectionnal_GIOP_Not_Implemented : exception;
+
+   --  Synchornisation scope for 1.2
+   type Sync_Scope is (NONE, WITH_TRANSPORT, WITH_SERVER, WITH_TARGET);
+
+   --  Different kind of addressing in GIOP 1.2
+   type IOR_Addressing_Info is record
+      Selected_Profile_Index : Types.Unsigned_Long;
+      IOR                    : PolyORB.References.IOR.IOR_Type;
+   end record;
+   type IOR_Addressing_Info_Access is access all IOR_Addressing_Info;
+
+   type Addressing_Disposition is
+     (Key_Addr, Profile_Addr, Reference_Addr);
+
+   type Target_Address (Address_Type : Addressing_Disposition) is record
+      case Address_Type is
+         when Key_Addr =>
+            Object_Key : PolyORB.Objects.Object_Id_Access;
+         when Profile_Addr  =>
+            Profile : Binding_Data.Profile_Access;
+         when Reference_Addr  =>
+            Ref : IOR_Addressing_Info_Access;
+      end case;
+   end record;
+   type Target_Address_Access is access all Target_Address;
+
+   --  bits inf flags field
+   Bit_Fragment   : constant Octet_Flags.Bit_Count := 1;
+
+   --  Data alignment
+   Data_Alignment_1_2 : constant Opaque.Alignment_Type := 8;
+
+   --  Fragment header size
+   Frag_Header_Size : constant Stream_Element_Offset
+     := Types.Unsigned_Long'Size / Types.Octet'Size;
 
 end PolyORB.Protocols.GIOP.GIOP_1_2;

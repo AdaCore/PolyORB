@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B . P R O T O C O L S . G I O P . G I O P _ 1 _ 1        --
+--      P O L Y O R B . P R O T O C O L S . G I O P . G I O P _ 1 _ 1       --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2002 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,76 +31,119 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
+with PolyORB.Protocols.GIOP.Common;
 
-with Ada.Streams; use Ada.Streams;
+package PolyORB.Protocols.GIOP.GIOP_1_1 is
+   use PolyORB.Protocols.GIOP.Common;
 
-with PolyORB.Buffers;
-with PolyORB.References;
-with PolyORB.References.IOR;
-with PolyORB.Binding_Data;
-with PolyORB.Types;
+   type GIOP_Implem_1_1 is tagged private;
+   type GIOP_Implem_1_1_Access is access all GIOP_Implem_1_1'Class;
 
-private package PolyORB.Protocols.GIOP.GIOP_1_1  is
-
-   pragma Elaborate_Body;
-
-   type Service_Id_Array is array (Integer range <>) of ServiceId;
-   Service_Context_List_1_1 : constant Service_Id_Array;
-
-   procedure Marshall_GIOP_Header
-     (Buffer        : access Buffers.Buffer_Type;
-      Message_Type  : in Msg_Type;
-      Message_Size  : in Stream_Element_Offset;
-      --  Total message size (including GIOP header).
-      Fragment_Next : in Boolean);
-
-   procedure Marshall_Request_Message
-     (Buffer            : access Buffers.Buffer_Type;
-      Request_Id        : in     Types.Unsigned_Long;
-      Target_Profile    : in     Binding_Data.Profile_Access;
-      Response_Expected : in     Boolean;
-      Operation         : in     String);
-
-   procedure Marshall_Fragment
-    (Buffer      : access Buffers.Buffer_Type;
-     Request_Id  : in Types.Unsigned_Long);
-
-   procedure Marshall_No_Exception
-    (Buffer      : access Buffers.Buffer_Type;
-     Request_Id  : in Types.Unsigned_Long);
-
-   procedure Marshall_Exception
-    (Buffer           : access Buffers.Buffer_Type;
-     Request_Id       : in Types.Unsigned_Long;
-     Exception_Type   : in Reply_Status_Type;
-     Occurrence       : in Any.Any);
-
-   procedure Marshall_Location_Forward
-    (Buffer           : access Buffers.Buffer_Type;
-     Request_Id       : in  Types.Unsigned_Long;
-     Forward_Ref      : in  PolyORB.References.IOR.IOR_Type);
-
-   procedure Unmarshall_Request_Message
-     (Buffer            : access Buffers.Buffer_Type;
-      Request_Id        : out Types.Unsigned_Long;
-      Response_Expected : out Boolean;
-      Object_Key        : out Objects.Object_Id_Access;
-      Operation         : out Types.String);
-
-   procedure Unmarshall_Reply_Message
-     (Buffer       : access Buffers.Buffer_Type;
-      Request_Id   : out Types.Unsigned_Long;
-      Reply_Status : out Reply_Status_Type);
+   type GIOP_Ctx_1_1 is tagged private;
+   type GIOP_Ctx_1_1_Access is access all GIOP_Ctx_1_1;
 
 private
 
-   --  Explicit bounds are required in the nominal subtype
-   --  in order to comply with Ravenscar restriction
-   --  No_Implicit_Heap_Allocation.
+   type GIOP_Implem_1_1 is new GIOP_Implem with record
+      Max_GIOP_Message_Size : Types.Unsigned_Long;
+      Max_Body              : Types.Unsigned_Long;
+   end record;
 
-   Service_Context_List_1_1 : constant Service_Id_Array (0 .. 1)
-     := (0 => Transaction_Service,
-         1 => Code_Sets);
+   --  GIOP Message Type
+   type Msg_Type is
+     (Request,
+      Reply,
+      Cancel_Request,
+      Locate_Request,
+      Locate_Reply,
+      Close_Connection,
+      Message_Error,
+      Fragment);
+
+   --  minimal size for fragmented messages
+   Default_Max_GIOP_Message_Size_1_1 : constant Integer := 1000;
+
+   --  fragmenting state
+   type Fragment_State is (None, Fragment);
+
+   --  GIOP 1.1 context
+   type GIOP_Ctx_1_1 is new GIOP_Ctx with record
+      Message_Type : Msg_Type;
+      Fragmented   : Types.Boolean;
+      Request_Id   : aliased Types.Unsigned_Long;
+      Reply_Status : aliased Reply_Status_Type;
+            --  For fragmenting management
+      Frag_State   : Fragment_State := None;
+      Frag_Type    : Msg_Type;
+      Frag_Size    : Types.Unsigned_Long;
+      Frag_Next    : Types.Unsigned_Long;
+      Frag_Buf     : PolyORB.Buffers.Buffer_Access;
+   end record;
+
+   procedure Initialize_Implem
+     (Implem : access GIOP_Implem_1_1);
+
+   procedure Initialize_Session
+     (Implem : access GIOP_Implem_1_1;
+      S      : access Session'Class);
+
+   procedure Finalize_Session
+     (Implem : access GIOP_Implem_1_1;
+      S      : access Session'Class);
+
+   procedure Unmarshall_GIOP_Header
+     (Implem  : access GIOP_Implem_1_1;
+      S       : access Session'Class);
+
+   procedure Marshall_GIOP_Header
+     (Implem  : access GIOP_Implem_1_1;
+      S       : access Session'Class;
+      Buffer  : access PolyORB.Buffers.Buffer_Type);
+
+   procedure Marshall_GIOP_Header_Reply
+     (Implem  : access GIOP_Implem_1_1;
+      S       : access Session'Class;
+      Buffer  : access PolyORB.Buffers.Buffer_Type);
+
+   procedure Process_Message
+     (Implem : access GIOP_Implem_1_1;
+      S      : access Session'Class);
+
+   procedure Process_Reply
+     (Implem  : access GIOP_Implem_1_1;
+      S       : access Session'Class;
+      Request :        Requests.Request_Access);
+
+   procedure Locate_Object
+     (Implem : access GIOP_Implem_1_1;
+      S      : access Session'Class;
+      R      : in     Pending_Request_Access);
+
+   procedure Send_Request
+     (Implem : access GIOP_Implem_1_1;
+      S      : access Session'Class;
+      R      : in     Pending_Request_Access);
+
+   procedure Process_Abort_Request
+     (Implem : access GIOP_Implem_1_1;
+      S      : access Session'Class;
+      R      : in     Request_Access);
+
+   procedure Marshall_Argument_List
+     (Implem              : access GIOP_Implem_1_1;
+      Buffer              :        PolyORB.Buffers.Buffer_Access;
+      Args                : in out Any.NVList.Ref;
+      Direction           :        Any.Flags;
+      First_Arg_Alignment :        Opaque.Alignment_Type);
+
+   --  bits inf flags field
+   Bit_Fragment   : constant Octet_Flags.Bit_Count := 1;
+
+   --  Data alignment
+   Data_Alignment_1_1 : constant Opaque.Alignment_Type := 1;
+
+   --  Principal
+   Nobody_Principal : constant Types.String
+     := Types.To_PolyORB_String ("nobody");
 
 end PolyORB.Protocols.GIOP.GIOP_1_1;

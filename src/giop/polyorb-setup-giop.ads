@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . G I O P _ P . E X C E P T I O N S             --
+--                    P O L Y O R B . S E T U P . G I O P                   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2002 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,26 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Exceptions management for the GIOP Protocol Personality of PolyORB.
+package PolyORB.Setup.GIOP is
 
-with PolyORB.Any;
+   pragma Elaborate_Body;
 
-package PolyORB.GIOP_P.Exceptions is
-
-   function Is_System_Exception (Name : String) return Boolean;
-
-   function To_CORBA_Exception (Exc : PolyORB.Any.Any)
-                               return PolyORB.Any.Any;
-   --  Convert PolyORB exception 'any' to CORBA exception 'any'.
-
-   function Extract_System_Exception_Name (Name : Standard.String)
-                                          return Standard.String;
-   --  Extract the name of the system exception found in 'Name'.
-
-   function System_Exception_TypeCode
-     (Name : Standard.String)
-     return PolyORB.Any.TypeCode.Object;
-   --  Return the TypeCode corresponding to the indicated
-   --  system exception name.
-
-end PolyORB.GIOP_P.Exceptions;
+end PolyORB.Setup.GIOP;
