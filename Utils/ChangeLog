@@ -1,3 +1,9 @@
+Fri Oct 18 16:42:20 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* update-headers.el: The function update-headers can now be used
+	  to update all the files in the current directory matching
+	  *.ad[bs]
+
 Sun Sep 15 17:38:20 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* VERSION.INFO: Updated for dsa 1.03 (gnat 3.08).
