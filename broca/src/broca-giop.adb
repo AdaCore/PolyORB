@@ -171,14 +171,15 @@ package body Broca.GIOP is
    -------------------------
 
    procedure Prepend_GIOP_Header
-     (Buffer       : access Buffers.Buffer_Type;
-      Message_Type : in MsgType)
-   is
-      Header_Buffer : aliased Buffer_Type;
+     (Buffer        : access Buffers.Buffer_Type;
+      Header_Buffer : access Buffers.Buffer_Type;
+      Message_Type  : in MsgType) is
    begin
-      Marshall_GIOP_Header (Header_Buffer'Access, Message_Type,
-                            Length (Buffer));
-      Prepend (Header_Buffer, Buffer);
+      Marshall_GIOP_Header
+        (Header_Buffer,
+         Message_Type,
+         Length (Buffer));
+      Prepend (Header_Buffer.all, Buffer);
    end Prepend_GIOP_Header;
 
    ----------------------------

@@ -572,7 +572,8 @@ package body Broca.Server is
       POA               : Broca.POA.Ref;
       POA_State         : Broca.POA.Processing_State_Type;
 
-      Reply_Buffer : aliased Buffer_Type;
+      Reply_Buffer  : aliased Buffer_Type;
+      Header_Buffer : aliased Buffer_Type;
 
    begin
       pragma Debug (O ("Handle_Request : enter"));
@@ -623,7 +624,9 @@ package body Broca.Server is
                     (O ("Handle_Request: requeuing asynchronous request"));
                   Unlock_R (POA_Object_Of (POA).Link_Lock);
                   Queues.Wait_Queue.Prepend (Stream, Copy (Buffer));
+
                   Release (Reply_Buffer);
+                  Release (Header_Buffer);
                   return;
                end if;
 
@@ -657,6 +660,7 @@ package body Broca.Server is
 
                      Broca.GIOP.Prepend_GIOP_Header
                        (Reply_Buffer'Access,
+                        Header_Buffer'Access,
                         Broca.GIOP.Reply);
                   end;
 
@@ -669,6 +673,7 @@ package body Broca.Server is
 
                         Broca.GIOP.Prepend_GIOP_Header
                           (Reply_Buffer'Access,
+                           Header_Buffer'Access,
                            Broca.GIOP.Reply);
                      end;
 
@@ -683,6 +688,7 @@ package body Broca.Server is
 
                         Broca.GIOP.Prepend_GIOP_Header
                           (Reply_Buffer'Access,
+                           Header_Buffer'Access,
                            Broca.GIOP.Reply);
                      end;
                end;
@@ -698,12 +704,11 @@ package body Broca.Server is
                      null;
                   end if;
 
-                  Release (Reply_Buffer);
                exception
                   when Connection_Closed =>
                      --  We could not send the answer
                      pragma Debug (O ("Handle_Request: cannot send reply"));
-                     Release (Reply_Buffer);
+                     null;
                end;
 
             when Discarding =>
@@ -721,6 +726,7 @@ package body Broca.Server is
 
                      Broca.GIOP.Prepend_GIOP_Header
                        (Reply_Buffer'Access,
+                        Header_Buffer'Access,
                         Broca.GIOP.Reply);
                end;
                Lock_Send (Stream);
@@ -751,14 +757,17 @@ package body Broca.Server is
 
                      Broca.GIOP.Prepend_GIOP_Header
                        (Reply_Buffer'Access,
+                        Header_Buffer'Access,
                         Broca.GIOP.Reply);
                end;
                Lock_Send (Stream);
                Send (Stream, Buffer);
                Unlock_Send (Stream);
-
          end case;
       end;
+
+      Release (Reply_Buffer);
+      Release (Header_Buffer);
 
       pragma Debug (O ("Handle_Request : leave"));
    exception
@@ -782,10 +791,11 @@ package body Broca.Server is
       Header_Correct : Boolean;
 
    begin
-      Unmarshall_GIOP_Header (Buffer,
-                              Message_Type, Message_Size,
-                              Message_Endianness,
-                              Header_Correct);
+      Unmarshall_GIOP_Header
+        (Buffer,
+         Message_Type, Message_Size,
+         Message_Endianness,
+         Header_Correct);
 
       if not Header_Correct then
          --  The received GIOP message header is erroneous.
@@ -836,6 +846,7 @@ package body Broca.Server is
 
                declare
                   Reply_Buffer : aliased Buffer_Type;
+                  Header_Buffer : aliased Buffer_Type;
                begin
                   --  FIXME: This should be encapsulated.
                   --  Prepare the reply body buffer to hold
@@ -857,17 +868,22 @@ package body Broca.Server is
                     (Reply_Buffer'Access, Broca.GIOP.Object_Here);
 
                   Broca.GIOP.Prepend_GIOP_Header
-                    (Reply_Buffer'Access, Broca.GIOP.Locate_Reply);
+                    (Reply_Buffer'Access,
+                     Header_Buffer'Access,
+                     Broca.GIOP.Locate_Reply);
 
                   Lock_Send (Stream);
                   Send (Stream, Reply_Buffer'Access);
                   Unlock_Send (Stream);
                   Release (Reply_Buffer);
+                  Release (Header_Buffer);
                end;
+
             when others =>
                Release (Message_Body_Buffer);
                Broca.Opaque.Free (Message_Body);
                Broca.Exceptions.Raise_Comm_Failure;
+
          end case;
 
          Release (Message_Body_Buffer);
