@@ -129,7 +129,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
         (PolyORB.Utils.Trimmed_Image (Index));
       New_Entry.Oid.System_Generated := True;
       New_Entry.Oid.Persistency_Flag
-        := PolyORB.POA_Policies.Lifespan_Policy.Get_Time_Stamp
+        := PolyORB.POA_Policies.Lifespan_Policy.Get_Lifespan_Cookie
            (P_OA.Lifespan_Policy.all, OA);
       New_Entry.Oid.Creator := P_OA.Absolute_Address;
       Unlock_W (P_OA.Map_Lock);
@@ -271,19 +271,5 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       Unlock_R (P_OA.Map_Lock);
       return Servant;
    end Id_To_Servant;
-
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free (Self : in     System_Id_Policy;
-                   Ptr  : in out Policy_Access)
-   is
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Free (System_Id_Policy_Access (Ptr));
-   end Free;
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

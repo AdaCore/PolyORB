@@ -152,19 +152,4 @@ is
       return Servant;
    end Id_To_Servant;
 
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free
-     (Self : in     Active_Map_Only_Policy;
-      Ptr  : in out Policy_Access)
-   is
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Free (Active_Map_Only_Policy_Access (Ptr));
-   end Free;
-
 end PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;

@@ -108,7 +108,7 @@ package body PolyORB.POA is
         and then S (Colon + 1 .. Colon + 3) = "pf="
       then
          U_Oid.Persistency_Flag
-           := Time_Stamp'Value (S (Colon + 4 .. S'Last));
+           := Lifespan_Cookie'Value (S (Colon + 4 .. S'Last));
       end if;
       return U_Oid_To_Oid (U_Oid);
    end Rel_URI_To_Oid;

@@ -32,8 +32,6 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
-
 package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    type ORB_Ctrl_Policy is new ThreadPolicy with null record;
@@ -48,13 +46,5 @@ package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    function Policy_Id
      (Self : ORB_Ctrl_Policy)
      return String;
-
-   procedure Free
-     (Self : in     ORB_Ctrl_Policy;
-      Ptr  : in out Policy_Access);
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (ORB_Ctrl_Policy,
-      ORB_Ctrl_Policy_Access);
 
 end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            POLYORB.POA_POLICIES.ID_UNIQUENESS_POLICY.UNIQUE              --
+--             POLYORB.POA_POLICIES.LIFESPAN_POLICY.PERSISTENT              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--                Copyright (C) 2002 Free Software Fundation                --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,30 +30,29 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
+package PolyORB.POA_Policies.Lifespan_Policy.Persistent is
 
-   type Unique_Id_Policy is new IdUniquenessPolicy with null record;
-   type Unique_Id_Policy_Access is access all Unique_Id_Policy;
+   type Persistent_Policy is new LifespanPolicy with null record;
+   type Persistent_Policy_Access is access all Persistent_Policy;
 
-   function Create return Unique_Id_Policy_Access;
+   function Create return Persistent_Policy_Access;
 
    procedure Check_Compatibility
-     (Self : Unique_Id_Policy;
+     (Self : Persistent_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access);
 
    function Policy_Id
-     (Self : Unique_Id_Policy)
+     (Self : Persistent_Policy)
      return String;
 
-   procedure Ensure_Servant_Uniqueness
-     (Self      : Unique_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access);
+   function Get_Lifespan_Cookie
+     (Self : Persistent_Policy;
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+     return Time_Stamp;
 
-   function Servant_To_Id
-     (Self      : Unique_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
-     return Object_Id_Access;
+   procedure Ensure_Lifespan
+     (Self  : Persistent_Policy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid : Unmarshalled_Oid);
 
-end PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;
+end PolyORB.POA_Policies.Lifespan_Policy.Persistent;

@@ -40,14 +40,6 @@ package PolyORB.POA_Policies.Servant_Retention_Policy is
      access all ServantRetentionPolicy'Class;
    subtype Servant_Retention_Policy_Access is ServantRetentionPolicy_Access;
 
-   function Create return ServantRetentionPolicy_Access is abstract;
-   --  The real creation function that has to be implemented for each
-   --  possible Policy
-
-   procedure Free (P   : in     ServantRetentionPolicy;
-                   Ptr : in out Policy_Access)
-     is abstract;
-
    function Activate_Object
      (Self      : ServantRetentionPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;

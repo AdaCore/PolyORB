@@ -41,14 +41,6 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy is
    type IdUniquenessPolicy_Access is access all IdUniquenessPolicy'Class;
    subtype Id_Uniqueness_Policy_Access is IdUniquenessPolicy_Access;
 
-   function Create return IdUniquenessPolicy_Access is abstract;
-   --  The real creation function that has to be implemented for each
-   --  possible Policy
-
-   procedure Free (P   : in     IdUniquenessPolicy;
-                   Ptr : in out Policy_Access)
-      is abstract;
-
    procedure Ensure_Servant_Uniqueness
      (Self      : IdUniquenessPolicy;
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;

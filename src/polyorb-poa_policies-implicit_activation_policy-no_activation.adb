@@ -90,18 +90,4 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
       return null;
    end Activate_Servant;
 
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free (Self : in     No_Activation_Policy;
-                   Ptr  : in out Policy_Access)
-   is
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Free (No_Activation_Policy_Access (Ptr));
-   end Free;
-
 end PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;

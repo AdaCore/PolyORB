@@ -34,7 +34,6 @@
 
 with PolyORB.POA_Types;     use PolyORB.POA_Types;
 
-
 package PolyORB.POA_Policies.Lifespan_Policy is
 
    type LifespanPolicy is abstract new Policy with null record;
@@ -42,14 +41,10 @@ package PolyORB.POA_Policies.Lifespan_Policy is
    type LifespanPolicy_Access is access all LifespanPolicy'Class;
    subtype Lifespan_Policy_Access is LifespanPolicy_Access;
 
-   function Create return LifespanPolicy_Access is abstract;
-   --  The real creation function that has to be implemented for each
-   --  possible Policy
-
-   function Get_Time_Stamp
+   function Get_Lifespan_Cookie
      (P  : LifespanPolicy;
       OA : PolyORB.POA_Types.Obj_Adapter_Access)
-     return Time_Stamp is abstract;
+     return Lifespan_Cookie is abstract;
 
    procedure Ensure_Lifespan
      (P     : LifespanPolicy;
@@ -61,9 +56,5 @@ package PolyORB.POA_Policies.Lifespan_Policy is
    --  of the POA. If not, raises a OBJECT_NOT_EXIST exception.
    --  PERSISTENT:
    --  Does nothing.
-
-   procedure Free
-     (P   : in     LifespanPolicy;
-      Ptr : in out Policy_Access) is abstract;
 
 end PolyORB.POA_Policies.Lifespan_Policy;

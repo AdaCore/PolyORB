@@ -40,10 +40,6 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
      access all RequestProcessingPolicy'Class;
    subtype Request_Processing_Policy_Access is RequestProcessingPolicy_Access;
 
-   function Create return RequestProcessingPolicy_Access is abstract;
-   --  The real creation function that has to be implemented for each
-   --  possible Request Processing Policy
-
    procedure Etherealize_All
      (Self  : RequestProcessingPolicy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
@@ -51,11 +47,6 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
       is abstract;
    --  If a servant manager is used, etherealize the servant(s) associated
    --  with the given Object_Id.
-
-   procedure Free
-     (P   : in     RequestProcessingPolicy;
-      Ptr : in out Policy_Access)
-      is abstract;
 
    function Servant_To_Id
      (Self      : RequestProcessingPolicy;

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package
   PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only is
 
@@ -65,14 +63,5 @@ package
       OA   : PolyORB.POA_Types.Obj_Adapter_Access;
       Oid  : Object_Id)
      return Servant_Access;
-
-   procedure Free
-     (Self : in     Active_Map_Only_Policy;
-      Ptr  : in out Policy_Access);
-
-   procedure Free is
-      new Ada.Unchecked_Deallocation
-     (Active_Map_Only_Policy,
-      Active_Map_Only_Policy_Access);
 
 end PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;

@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
    type Retain_Policy is new ServantRetentionPolicy with null record;
@@ -74,13 +72,5 @@ package PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
      return Servant_Access;
-
-   procedure Free
-     (Self : in     Retain_Policy;
-      Ptr  : in out Policy_Access);
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Retain_Policy,
-      Retain_Policy_Access);
 
 end PolyORB.POA_Policies.Servant_Retention_Policy.Retain;

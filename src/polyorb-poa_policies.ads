@@ -46,7 +46,7 @@ package PolyORB.POA_Policies is
 
    --  No proper body: no elaboration control.
 
-   type Policy is abstract tagged null record;
+   type Policy is abstract tagged limited private;
    type Policy_Access is access all Policy'Class;
 
    package Policy_Sequences is new Sequences.Unbounded (Policy_Access);
@@ -65,13 +65,8 @@ package PolyORB.POA_Policies is
    --  Check the compatibility of the current policy with the
    --  other policies of the object adapter.
 
-   --  function Create return Policy_Access is abstract;
-   --  The creation function, implemented for each type of policy.
-   --  Useless because no controlling operand and no controlling result.
+private
 
-   procedure Free
-     (P   : in     Policy;
-      Ptr : in out Policy_Access)
-     is abstract;
+   type Policy is abstract tagged limited null record;
 
 end PolyORB.POA_Policies;

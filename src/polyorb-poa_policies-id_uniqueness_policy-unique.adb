@@ -129,18 +129,4 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
       return null;
    end Servant_To_Id;
 
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free (Self : in     Unique_Id_Policy;
-                   Ptr  : in out Policy_Access)
-   is
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Free (Unique_Id_Policy_Access (Ptr));
-   end Free;
-
 end PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;

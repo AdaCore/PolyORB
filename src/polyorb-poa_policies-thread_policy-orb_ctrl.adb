@@ -73,19 +73,4 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
       null;
    end Check_Compatibility;
 
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free
-     (Self : in     ORB_Ctrl_Policy;
-      Ptr  : in out Policy_Access)
-   is
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Free (ORB_Ctrl_Policy_Access (Ptr));
-   end Free;
-
 end PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl;

@@ -41,22 +41,15 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy is
    subtype Implicit_Activation_Policy_Access is
      ImplicitActivationPolicy_Access;
 
-   function Create return ImplicitActivationPolicy_Access is abstract;
-   --  The real creation function that has to be implemented for each
-   --  possible Policy
-
-   function Activate_Servant (Self      : ImplicitActivationPolicy;
-                              OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-                              P_Servant : Servant_Access)
-                             return Object_Id_Access
+   function Activate_Servant
+     (Self      : ImplicitActivationPolicy;
+      A        : PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant : Servant_Access)
+     return Object_Id_Access
       is abstract;
    --  Case NO_ACTIVATION:
    --    Returns null
    --  Case ACTIVATION:
    --    Activates the servant in the Active Object Map.
-
-   procedure Free (P   : in     ImplicitActivationPolicy;
-                   Ptr : in out Policy_Access)
-      is abstract;
 
 end PolyORB.POA_Policies.Implicit_Activation_Policy;

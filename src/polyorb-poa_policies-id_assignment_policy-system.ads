@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    type System_Id_Policy is new IdAssignmentPolicy with null record;
@@ -79,13 +77,5 @@ package PolyORB.POA_Policies.Id_Assignment_Policy.System is
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid)
      return Servant_Access;
-
-   procedure Free
-     (Self : in     System_Id_Policy;
-      Ptr  : in out Policy_Access);
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (System_Id_Policy,
-      System_Id_Policy_Access);
 
 end PolyORB.POA_Policies.Id_Assignment_Policy.System;

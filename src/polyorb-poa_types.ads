@@ -55,6 +55,11 @@ package PolyORB.POA_Types is
    Invalid_Method    : exception renames PolyORB.Obj_Adapters.Invalid_Method;
 
    subtype Time_Stamp is Unsigned_Long;
+   --  A time marker.
+
+   subtype Lifespan_Cookie is Unsigned_Long;
+   --  A piece of information embedded in an object id by the lifespan
+   --  policy for control of reference validity across ORB executions.
 
    --  Base types for the PolyORB POA
 

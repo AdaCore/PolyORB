@@ -77,7 +77,7 @@ package PolyORB.POA is
          --  Policies (one of each is required)
          Thread_Policy              : ThreadPolicy_Access             := null;
          Request_Processing_Policy  : RequestProcessingPolicy_Access  := null;
-         Id_Assignment_Policy       : IdAssignmentPolicy_Access      := null;
+         Id_Assignment_Policy       : IdAssignmentPolicy_Access       := null;
          Id_Uniqueness_Policy       : IdUniquenessPolicy_Access       := null;
          Servant_Retention_Policy   : ServantRetentionPolicy_Access   := null;
          Lifespan_Policy            : LifespanPolicy_Access           := null;

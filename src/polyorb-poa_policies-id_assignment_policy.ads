@@ -41,10 +41,6 @@ package PolyORB.POA_Policies.Id_Assignment_Policy is
    type IdAssignmentPolicy_Access is access all IdAssignmentPolicy'Class;
    subtype Id_Assignment_Policy_Access is IdAssignmentPolicy_Access;
 
-   function Create return IdAssignmentPolicy_Access is abstract;
-   --  The real creation function that has to be implemented for each
-   --  possible Policy
-
    function Is_System (P : IdAssignmentPolicy) return Boolean
       is abstract;
    --  Checks if the current policy is able to create ObjectIds
@@ -53,7 +49,8 @@ package PolyORB.POA_Policies.Id_Assignment_Policy is
    function Activate_Object
      (Self   : IdAssignmentPolicy;
       OA     : PolyORB.POA_Types.Obj_Adapter_Access;
-      Object : Servant_Access) return Object_Id_Access
+      Object : Servant_Access)
+     return Object_Id_Access
       is abstract;
    --  Add an object to the Active Object Map, and return a
    --  new Object_Id.
@@ -105,9 +102,5 @@ package PolyORB.POA_Policies.Id_Assignment_Policy is
       is abstract;
    --  Look in the Active Object Map for the given U_Oid. If found,
    --  returns the associated Servant. Otherwise, returns null.
-
-   procedure Free
-     (P   : in     IdAssignmentPolicy;
-      Ptr : in out Policy_Access) is abstract;
 
 end PolyORB.POA_Policies.Id_Assignment_Policy;

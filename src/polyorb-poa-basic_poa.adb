@@ -375,35 +375,16 @@ package body PolyORB.POA.Basic_POA is
    procedure Destroy_Policies
      (OA : in out Basic_Obj_Adapter)
    is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Policy'Class, Policy_Access);
    begin
-      if OA.Thread_Policy /= null then
-         Free (OA.Thread_Policy.all,
-               Policy_Access (OA.Thread_Policy));
-      end if;
-      if OA.Id_Uniqueness_Policy /= null then
-         Free (OA.Id_Uniqueness_Policy.all,
-               Policy_Access (OA.Id_Uniqueness_Policy));
-      end if;
-      if OA.Id_Assignment_Policy /= null then
-         Free (OA.Id_Assignment_Policy.all,
-               Policy_Access (OA.Id_Assignment_Policy));
-      end if;
-      if OA.Implicit_Activation_Policy /= null then
-         Free (OA.Implicit_Activation_Policy.all,
-               Policy_Access (OA.Implicit_Activation_Policy));
-      end if;
-      if OA.Lifespan_Policy /= null then
-         Free (OA.Lifespan_Policy.all,
-               Policy_Access (OA.Lifespan_Policy));
-      end if;
-      if OA.Request_Processing_Policy /= null then
-         Free (OA.Request_Processing_Policy.all,
-               Policy_Access (OA.Request_Processing_Policy));
-      end if;
-      if OA.Servant_Retention_Policy /= null then
-         Free (OA.Servant_Retention_Policy.all,
-               Policy_Access (OA.Servant_Retention_Policy));
-      end if;
+      Free (Policy_Access (OA.Thread_Policy));
+      Free (Policy_Access (OA.Id_Uniqueness_Policy));
+      Free (Policy_Access (OA.Id_Assignment_Policy));
+      Free (Policy_Access (OA.Implicit_Activation_Policy));
+      Free (Policy_Access (OA.Lifespan_Policy));
+      Free (Policy_Access (OA.Request_Processing_Policy));
+      Free (Policy_Access (OA.Servant_Retention_Policy));
    end Destroy_Policies;
 
    -------------------

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            POLYORB.POA_POLICIES.ID_UNIQUENESS_POLICY.UNIQUE              --
+--             POLYORB.POA_POLICIES.LIFESPAN_POLICY.PERSISTENT              --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--                Copyright (C) 2002 Free Software Fundation                --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,30 +30,83 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
+with PolyORB.POA;
+with PolyORB.Types;
 
-   type Unique_Id_Policy is new IdUniquenessPolicy with null record;
-   type Unique_Id_Policy_Access is access all Unique_Id_Policy;
+package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
 
-   function Create return Unique_Id_Policy_Access;
+   use PolyORB.Types;
+
+   ------------
+   -- Create --
+   ------------
+
+   function Create return Persistent_Policy_Access is
+   begin
+      return new Persistent_Policy;
+   end Create;
+
+   -------------------------
+   -- Check_Compatibility --
+   -------------------------
 
    procedure Check_Compatibility
-     (Self : Unique_Id_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access);
+     (Self : Persistent_Policy;
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+   is
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Unreferenced (OA);
+      pragma Warnings (On);
+      null;
+      --  XXX Is this OK for policy PERSISTENT??
+   end Check_Compatibility;
+
+   ---------------
+   -- Policy_Id --
+   ---------------
 
    function Policy_Id
-     (Self : Unique_Id_Policy)
-     return String;
+     (Self : Persistent_Policy)
+     return String is
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+      return "LIFESPAN_POLICY.PERSISTENT";
+   end Policy_Id;
 
-   procedure Ensure_Servant_Uniqueness
-     (Self      : Unique_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access);
+   --------------------
+   -- Get_Time_Stamp --
+   --------------------
 
-   function Servant_To_Id
-     (Self      : Unique_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servant_Access)
-     return Object_Id_Access;
+   function Get_Lifespan_Cookie
+     (Self : Persistent_Policy;
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
+     return Time_Stamp is
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+      return 0;
+   end Get_Lifespan_Cookie;
 
-end PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;
+   ---------------------
+   -- Ensure_Lifespan --
+   ---------------------
+
+   procedure Ensure_Lifespan
+     (Self  : Persistent_Policy;
+      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid : Unmarshalled_Oid) is
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (Self);
+      pragma Warnings (On);
+      if U_Oid.Persistency_Flag /= 0 then
+         raise PolyORB.POA.Object_Not_Exist;
+      end if;
+   end Ensure_Lifespan;
+
+end PolyORB.POA_Policies.Lifespan_Policy.Persistent;

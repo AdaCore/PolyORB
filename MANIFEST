@@ -491,6 +491,8 @@ src/polyorb-poa_policies-id_uniqueness_policy.ads
 src/polyorb-poa_policies-implicit_activation_policy-no_activation.adb
 src/polyorb-poa_policies-implicit_activation_policy-no_activation.ads
 src/polyorb-poa_policies-implicit_activation_policy.ads
+src/polyorb-poa_policies-lifespan_policy-persistent.adb
+src/polyorb-poa_policies-lifespan_policy-persistent.ads
 src/polyorb-poa_policies-lifespan_policy-transient.adb
 src/polyorb-poa_policies-lifespan_policy-transient.ads
 src/polyorb-poa_policies-lifespan_policy.ads

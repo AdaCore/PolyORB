@@ -76,20 +76,20 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
       return "LIFESPAN_POLICY.TRANSIENT";
    end Policy_Id;
 
-   --------------------
-   -- Get_Time_Stamp --
-   --------------------
+   -------------------------
+   -- Get_Lifespan_Cookie --
+   -------------------------
 
-   function Get_Time_Stamp
+   function Get_Lifespan_Cookie
      (Self : Transient_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
-     return Time_Stamp is
+     return Lifespan_Cookie is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
-      return PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time;
-   end Get_Time_Stamp;
+      return Lifespan_Cookie (PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time);
+   end Get_Lifespan_Cookie;
 
    ---------------------
    -- Ensure_Lifespan --
@@ -109,20 +109,5 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
          raise PolyORB.POA.Object_Not_Exist;
       end if;
    end Ensure_Lifespan;
-
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free
-     (Self : in     Transient_Policy;
-      Ptr  : in out Policy_Access)
-   is
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Free (Transient_Policy_Access (Ptr));
-   end Free;
 
 end PolyORB.POA_Policies.Lifespan_Policy.Transient;

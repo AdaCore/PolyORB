@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
-
 package PolyORB.POA_Policies.Lifespan_Policy.Transient is
 
    type Transient_Policy is new LifespanPolicy with null record;
@@ -47,22 +45,14 @@ package PolyORB.POA_Policies.Lifespan_Policy.Transient is
      (Self : Transient_Policy)
      return String;
 
-   function Get_Time_Stamp
+   function Get_Lifespan_Cookie
      (Self : Transient_Policy;
       OA   : PolyORB.POA_Types.Obj_Adapter_Access)
-     return Time_Stamp;
+     return Lifespan_Cookie;
 
    procedure Ensure_Lifespan
      (Self  : Transient_Policy;
       OA    : PolyORB.POA_Types.Obj_Adapter_Access;
       U_Oid : Unmarshalled_Oid);
-
-   procedure Free
-     (Self : in     Transient_Policy;
-      Ptr  : in out Policy_Access);
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Transient_Policy,
-      Transient_Policy_Access);
 
 end PolyORB.POA_Policies.Lifespan_Policy.Transient;

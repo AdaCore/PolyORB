@@ -232,20 +232,5 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
          OA, U_Oid);
    end Id_To_Servant;
 
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free
-     (Self : in     Retain_Policy;
-      Ptr  : in out Policy_Access)
-   is
-   begin
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-      Free (Retain_Policy_Access (Ptr));
-   end Free;
-
 end PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 
