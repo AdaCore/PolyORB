@@ -1,0 +1,41 @@
+--  -*- ada -*-
+--
+--  This file contains declaration such as:
+--
+--    Type  [ <-- ParentType ]
+--      Field : FieldType
+--
+--    There is a special node kind called Root, which is not a real node,
+--    and will serve as a virtual parent for everything. It has to contain
+--    a Kind node of type Node_Kind, which will be used for qualification
+--    purpose. Also, an Original_Node field of type Node_Id must be retained
+--    if one wants to use the Node_Access.Manip package.
+--
+--    Accessors will have the name Field and Set_Field.
+--
+--  START
+--
+--  Root
+--    Kind : Node_Kind
+--    Original_Node : Node_Id
+--    Parent : Node_Id
+--    Enclosing_Scope : Node_Id
+--    Loc : Location
+--
+--  Named
+--    Definition : Identifier_Definition_Acc
+--
+--  Scope <-- Named
+--    Identifier_List : Identifier_Definition_List
+--    Identifier_Table : Storage
+--
+--  Forward <-- Scope
+--    Unimplemented_Forwards : Node_List
+--
+--  Repository <-- Forward
+--    Contents : Node_List
+--
+--
+--  END
+--
+
