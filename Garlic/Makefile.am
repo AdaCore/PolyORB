@@ -78,6 +78,7 @@ s-garsto.o\
 s-gasoli.o\
 s-gastco.o\
 s-gastdf.o\
+s-gastds.o\
 s-gatcop.o\
 s-ganota.o\
 s-parint.o\
@@ -124,6 +125,7 @@ $(srcdir)/s-gasoli.ads $(srcdir)/s-gasoli.adb \
 $(srcdir)/s-gastco.ads $(srcdir)/s-gastco.adb \
 $(srcdir)/s-ganota.ads $(srcdir)/s-ganota.adb \
 $(srcdir)/s-gastdf.ads $(srcdir)/s-gastdf.adb \
+$(srcdir)/s-gastds.ads $(srcdir)/s-gastds.adb \
 $(srcdir)/s-gastha.ads $(srcdir)/s-gastha.adb \
           s-gatcop.ads                        \
 $(srcdir)/s-parint.ads $(srcdir)/s-parint.adb \

@@ -100,6 +100,7 @@ package body System.Garlic.Storages.Dfs is
    To_File_Mode : constant array (Read .. Write) of SIO.File_Mode
      := (Read => SIO.In_File, Write => SIO.Out_File);
 
+   function  File_Name (Var_Data : DFS_Data_Type) return String;
    function  Lock_Name (Var_Data : DFS_Data_Type) return String;
 
    --------------------
@@ -120,13 +121,13 @@ package body System.Garlic.Storages.Dfs is
       --  not empty.
 
       if Location'Length /= 0 then
-         Result.Name := new String'(Location & Sep);
+         Result.Dir := new String'(Location & Sep);
       else
-         Result.Name := new String'(Location);
+         Result.Dir := new String'(Location);
       end if;
 
       pragma Debug
-        (D ("create storage dfs with data """ & Result.Name.all & """"));
+        (D ("create storage dfs with """ & Result.Dir.all & """"));
 
       Storage := Shared_Data_Access (Result);
    end Create_Storage;
@@ -144,10 +145,11 @@ package body System.Garlic.Storages.Dfs is
 
    begin
       pragma Debug (D ("create package file " & Pkg_Name &
-                       " on support " & Storage.Name.all));
+                       " on support " & Storage.Dir.all));
 
       Result      := new DFS_Data_Type;
-      Result.Name := Storage.Name;
+      Result.Name := new String'(Pkg_Name);
+      Result.Dir  := Storage.Dir;
       Pkg_Data    := Shared_Data_Access (Result);
    end Create_Package;
 
@@ -163,9 +165,13 @@ package body System.Garlic.Storages.Dfs is
       Var : DFS_Data_Access := new DFS_Data_Type;
 
    begin
-      Var.Name  := new String'(Pkg_Data.Name.all & Var_Name);
+      pragma Debug (D ("create variable file " & Var_Name &
+                       " for package file " & Pkg_Data.Name.all));
+
+      Var.Name  := new String'(Var_Name);
       Var.Self  := Var;
       Var.Count := 0;
+      Var.Dir   := Pkg_Data.Dir;
       Create (Var.Mutex);
       Var.Lock  := SGL.Null_Lock;
       Var_Data  := Shared_Data_Access (Var);
@@ -193,12 +199,12 @@ package body System.Garlic.Storages.Dfs is
             Data_Dir := OS.Getenv ("DFS_DATA_DIR");
          end if;
          if Data_Dir'Length = 0 then
-            Root.Name := new String'(Data_Dir.all);
+            Root.Dir := new String'(Data_Dir.all);
          else
-            Root.Name := new String'(Data_Dir.all & Sep);
+            Root.Dir := new String'(Data_Dir.all & Sep);
          end if;
          Free (Data_Dir);
-         pragma Debug (D ("root data name is """ & Root.Name.all & """"));
+         pragma Debug (D ("root data name is """ & Root.Dir.all & """"));
          Register_Storage (Dfs_Storage_Name, Shared_Data_Access (Root));
       end if;
    end Initialize;
@@ -220,7 +226,7 @@ package body System.Garlic.Storages.Dfs is
       case Request is
          when Read | Write =>
             declare
-               Fname : constant String := Var_Data.Name.all;
+               Fname : constant String := Var_Data.Dir.all & Var_Data.Name.all;
                Fmode : SIO.File_Mode   := To_File_Mode (Request);
 
             begin
@@ -335,8 +341,17 @@ package body System.Garlic.Storages.Dfs is
 
    function Lock_Name (Var_Data : DFS_Data_Type) return String is
    begin
-      return ".entry";
+      return Var_Data.Dir.all & ".entry";
    end Lock_Name;
+
+   ---------------
+   -- File_Name --
+   ---------------
+
+   function File_Name (Var_Data : DFS_Data_Type) return String is
+   begin
+      return Var_Data.Dir.all & Var_Data.Dir.all;
+   end File_Name;
 
    ----------
    -- Read --
@@ -362,7 +377,7 @@ package body System.Garlic.Storages.Dfs is
      (Data : in out DFS_Data_Type;
       Item : in Ada.Streams.Stream_Element_Array) is
    begin
-      pragma Debug (D ("write variable " & Data.Name.all));
+      pragma Debug (D ("write variable file " & Data.Name.all));
 
       SIO.Write (Data.File, Item);
    exception when others =>

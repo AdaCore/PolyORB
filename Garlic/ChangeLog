@@ -1,3 +1,18 @@
+2000-09-21  Laurent Pautet  <pautet@arlequin>
+
+	* s-gastds.adb, s-gastds.ads: implementation of distributed shared
+	memory as storage support.
+	
+	* s-parint.adb: register a shared passive unit in storages
+	before having checked the version consistency in order to
+	avoid deadlock problem.
+	
+	* s-garsto.adb, s-garsto.ads, s-gastdf.adb, s-gastdf.ads: cleanify
+	implementation and documentation.
+
+	* Makefile.am, Makefile.in: add s-gastds.ad[bs] to the list of
+	glade sources.
+
 2000-09-12  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-gaphlo.adb: (Get_Support_Name): return the full name as being

@@ -42,6 +42,7 @@ with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Options;    use System.Garlic.Options;
 with System.Garlic.Partitions; use System.Garlic.Partitions;
 with System.Garlic.Remote;     use System.Garlic.Remote;
+with System.Garlic.Storages;   use System.Garlic.Storages;
 with System.Garlic.Types;
 with System.Garlic.Soft_Links;
 
@@ -458,6 +459,7 @@ package body System.Partition_Interface is
       pragma Debug (D ("Register local shared passive unit " & N));
 
       Register_Unit (Self_PID, N, 0, V);
+      Register_Package (N, Self_PID);
    end Register_Passive_Package;
 
    --------------------------------

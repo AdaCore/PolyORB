@@ -54,7 +54,7 @@ package System.Garlic.Storages is
       Location : in     String;
       Storage  : out    Shared_Data_Access) is abstract;
    --  Provide the Master factory with a location and return another
-   --  Storage factory initialized with the data from the
+   --  Storage factory initialized with the data from the location
    --  location. This factory is supposed to be used into the
    --  Create_Package routine.
 
@@ -92,8 +92,11 @@ package System.Garlic.Storages is
    --  Complete the request previously initiated by the routine above.
 
    --  Any storage implementation must provide an Initialize routine.
-   --     procedure Initialize (Default : in String);
-   --  where Default is the default location to use for the master storage.
+   --     procedure Initialize;
+   --  This routine is supposed to elaborate the package body of the
+   --  storage support implementation. It must include the
+   --  registration of a master factory dedicated to the storage
+   --  support. This must be done using register_storage.
 
 
    --  General services
@@ -124,9 +127,9 @@ package System.Garlic.Storages is
    procedure Register_Partition
      (Partition : in Types.Partition_ID;
       Location  : in String);
-   --  Register a passive partition and its storage location (support
-   --  and data). If the partition has already been registered,
-   --  ignored this request. If not, create the factory to produce
-   --  shared variables. Call it at elaboration time.
+   --  Register a partition and its storage location (support and
+   --  data). If the partition has already been registered, ignored
+   --  this request. If not, create the factory to produce shared
+   --  variables. Call it at elaboration time.
 
 end System.Garlic.Storages;

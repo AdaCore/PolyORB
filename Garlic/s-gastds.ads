@@ -2,7 +2,7 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---         S Y S T E M . G A R L I C . S T O R A G E S . D F S              --
+--         S Y S T E M . G A R L I C . S T O R A G E S . D S M              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -34,76 +34,111 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with Ada.Streams.Stream_IO;
 
-with GNAT.OS_Lib;
-
-with System.Global_Locks;
+with System.Garlic.Streams;
 with System.Garlic.Soft_Links;
+with System.Garlic.Utils;
 
-package System.Garlic.Storages.Dfs is
+package System.Garlic.Storages.Dsm is
 
-   package SIO renames Ada.Streams.Stream_IO;
-
-   package SGL renames System.Global_Locks;
-   package SGS renames System.Garlic.Soft_Links;
-
-   package OS renames GNAT.OS_Lib;
-
-   type DFS_Data_Type is new Shared_Data_Type with private;
+   type DSM_Data_Type is new Shared_Data_Type with private;
 
    --  Management subprograms
 
    procedure Create_Storage
-     (Master   : in out DFS_Data_Type;
-      Location : in  String;
-      Storage  : out Shared_Data_Access);
+     (Master   : in out DSM_Data_Type;
+      Location : in     String;
+      Storage  : out    Shared_Data_Access);
 
    procedure Create_Package
-     (Storage  : in out DFS_Data_Type;
+     (Storage  : in out DSM_Data_Type;
       Pkg_Name : in     String;
       Pkg_Data : out    Shared_Data_Access);
 
    procedure Create_Variable
-     (Pkg_Data : in out DFS_Data_Type;
+     (Pkg_Data : in out DSM_Data_Type;
       Var_Name : in     String;
       Var_Data : out    Shared_Data_Access);
 
    procedure Initialize;
 
    procedure Initiate_Request
-     (Var_Data : in out DFS_Data_Type;
+     (Var_Data : in out DSM_Data_Type;
       Request  : in     Request_Type;
       Success  : out    Boolean);
 
    procedure Complete_Request
-     (Var_Data : in out DFS_Data_Type);
+     (Var_Data : in out DSM_Data_Type);
 
    procedure Read
-     (Data : in out DFS_Data_Type;
-      Item : out Ada.Streams.Stream_Element_Array;
-      Last : out Ada.Streams.Stream_Element_Offset);
+     (Data : in out DSM_Data_Type;
+      Item : out    Ada.Streams.Stream_Element_Array;
+      Last : out    Ada.Streams.Stream_Element_Offset);
 
    procedure Write
-     (Data : in out DFS_Data_Type;
-      Item : in Ada.Streams.Stream_Element_Array);
+     (Data : in out DSM_Data_Type;
+      Item : in     Ada.Streams.Stream_Element_Array);
 
 private
 
-   type DFS_Data_Access is access DFS_Data_Type;
+   type Request_Kind is
+     (Write_Rqst, Read_Rqst, Cancel_Rqst, Write_Data, Read_Data);
 
-   type DFS_Data_Type is
-     new Shared_Data_Type with
+   subtype Copy_Set_Type is Types.Partition_List;
+   type Copy_Set_Access is access Copy_Set_Type;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : out Copy_Set_Access);
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : in Copy_Set_Access);
+
+   for Copy_Set_Access'Read  use Read;
+   for Copy_Set_Access'Write use Write;
+
+   type Request_Record (Kind : Request_Kind := Write_Rqst) is
       record
-         Name  : OS.String_Access;
-         File  : SIO.File_Type;
-         Lock  : SGL.Lock_Type;
-         Mutex : SGS.Adv_Mutex_Access;
-         Count : Natural;
-         Dir   : OS.String_Access;
-         Prev  : DFS_Data_Access;
-         Next  : DFS_Data_Access;
-         Self  : DFS_Data_Access;
+         case Kind is
+            when Write_Rqst | Read_Rqst =>
+               Reply_To : Types.Partition_ID;
+
+            when Write_Data | Read_Data =>
+               Stream : Streams.Stream_Element_Access;
+               Copies : Copy_Set_Access;
+
+            when Cancel_Rqst =>
+               Owner : Types.Partition_ID;
+         end case;
       end record;
 
-end System.Garlic.Storages.Dfs;
+   function Input
+     (S : access Ada.Streams.Root_Stream_Type'Class)
+     return Request_Record;
+
+   procedure Output
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : in Request_Record);
+
+   for Request_Record'Input  use Input;
+   for Request_Record'Output use Output;
+
+   type Status_Type is (Read, Write, None);
+
+   type DSM_Data_Access is access all DSM_Data_Type'Class;
+
+   type DSM_Data_Type is
+     new Shared_Data_Type with
+      record
+         Name    : Utils.String_Access;
+         Status  : Status_Type;
+         Owner   : Types.Partition_ID;
+         Copies  : Copy_Set_Access;
+         Stream  : Streams.Stream_Element_Access;
+         Offset  : Ada.Streams.Stream_Element_Offset;
+         Mutex   : Soft_Links.Mutex_Access;
+         Watcher : Soft_Links.Watcher_Access;
+      end record;
+
+end System.Garlic.Storages.Dsm;

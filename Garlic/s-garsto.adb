@@ -47,7 +47,9 @@ with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Units;      use System.Garlic.Units;
 with System.Garlic.Utils;      use System.Garlic.Utils;
 
+with System.Garlic.Physical_Location;
 with System.Garlic.Platform_Specific;
+
 use  System.Garlic.Platform_Specific;
 
 package body System.Garlic.Storages is
@@ -71,6 +73,16 @@ package body System.Garlic.Storages is
    function Extract_Pkg_Name (Var_Name : String) return String;
    --  Var_Name is a fully qualified variable string name. Remove suffix
    --  to get package string name.
+
+   function Lookup_Package
+     (Pkg_Name : in String)
+     return Shared_Data_Access;
+   --  Return package shared data. Needed to create a variable storage.
+
+   function Lookup_Partition
+     (Partition : in Partition_ID)
+     return Shared_Data_Access;
+   --  Return partition shared data. Needed to create a package storage.
 
    function Major (Location : String) return String;
    --  Return left string (separated by ://).
@@ -126,6 +138,79 @@ package body System.Garlic.Storages is
       return N;
    end Hash;
 
+   --------------------
+   -- Lookup_Package --
+   --------------------
+
+   function Lookup_Package
+     (Pkg_Name : in String)
+     return Shared_Data_Access
+   is
+      Pkg_Data  : Shared_Data_Access;
+      Storage   : Shared_Data_Access;
+      Partition : Partition_ID;
+      Error     : aliased Error_Type;
+
+   begin
+      pragma Debug (D ("lookup package " & Pkg_Name));
+
+      Enter_Critical_Section;
+      Pkg_Data := SST.Get (Pkg_Name'Unrestricted_Access);
+      if Pkg_Data = null then
+         Get_Partition (Get_Unit_Id (Pkg_Name), Partition, Error);
+         if not Found (Error) then
+            Storage := Lookup_Partition (Partition);
+            if Storage /= null then
+               Create_Package (Storage.all, Pkg_Name, Pkg_Data);
+               SST.Set (new String'(Pkg_Name), Pkg_Data);
+            end if;
+         end if;
+      end if;
+      Leave_Critical_Section;
+      return Pkg_Data;
+   end Lookup_Package;
+
+   ----------------------
+   -- Lookup_Partition --
+   ----------------------
+
+   function Lookup_Partition
+     (Partition : Partition_ID)
+     return Shared_Data_Access
+   is
+      Par_Name : String := Partition'Img;
+      Par_Data : Shared_Data_Access;
+      Location : Utils.String_Access;
+      Error    : aliased Error_Type;
+
+   begin
+      Enter_Critical_Section;
+      Par_Data := SST.Get (Par_Name'Unrestricted_Access);
+      if Par_Data = null then
+         Get_Mem_Location (Partition, Location, Error);
+         if not Found (Error) then
+            Register_Partition (Partition, Location.all);
+            Par_Data := SST.Get (Par_Name'Unrestricted_Access);
+         end if;
+      end if;
+      Leave_Critical_Section;
+      return Par_Data;
+   end Lookup_Partition;
+
+   --------------------
+   -- Lookup_Storage --
+   --------------------
+
+   function Lookup_Storage
+     (Storage_Name : in String)
+     return Shared_Data_Access
+   is
+      Name : String :=  "_" & Major (Storage_Name);
+
+   begin
+      return SST.Get (Name'Unrestricted_Access);
+   end Lookup_Storage;
+
    ---------------------
    -- Lookup_Variable --
    ---------------------
@@ -142,95 +227,17 @@ package body System.Garlic.Storages is
 
       Enter_Critical_Section;
       Var_Data := SST.Get (Var_Name'Unrestricted_Access);
-
       if Var_Data = null then
-         declare
-            Pkg_Name  : String := Extract_Pkg_Name (Var_Name);
-            Partition : Partition_ID;
-            Error     : aliased Error_Type;
-
-         begin
-            Pkg_Data := SST.Get (Pkg_Name'Unrestricted_Access);
-
-            pragma Debug (D ("register package " & Pkg_Name));
-
-            if Pkg_Data = null then
-               Get_Partition (Get_Unit_Id (Pkg_Name), Partition, Error);
-               if Found (Error) then
-                  Leave_Critical_Section;
-                  Raise_Communication_Error (Content (Error'Access));
-               end if;
-
-               declare
-                  Par_Name : String := Partition'Img;
-                  Location : String_Access;
-                  Master   : Shared_Data_Access;
-                  Storage  : Shared_Data_Access;
-
-               begin
-                  Storage := SST.Get (Par_Name'Unrestricted_Access);
-                  if Storage = null then
-                     pragma Debug (D ("register partition " & Par_Name));
-
-                     Get_Mem_Location (Partition, Location, Error);
-                     if Found (Error) then
-                        Leave_Critical_Section;
-                        Raise_Communication_Error (Content (Error'Access));
-                     end if;
-
-                     Master := Lookup_Storage (Location.all);
-                     if Master = null then
-                        Leave_Critical_Section;
-                        Raise_Exception
-                          (Program_Error'Identity,
-                           "cannot find data storage for partition " &
-                           Par_Name);
-                     end if;
-
-                     Create_Storage
-                       (Master.all, Minor (Location.all), Storage);
-                     SST.Set (new String'(Par_Name), Storage);
-                  end if;
-
-                  Create_Package (Storage.all, Pkg_Name, Pkg_Data);
-                  SST.Set (new String'(Pkg_Name), Pkg_Data);
-               end;
-            end if;
-         end;
-
-         Create_Variable (Pkg_Data.all, Var_Name, Var_Data);
-
-         pragma Assert (Var_Data /= null);
-
-         SST.Set (new String'(Var_Name), Var_Data);
+         Pkg_Data := Lookup_Package (Extract_Pkg_Name (Var_Name));
+         if Pkg_Data /= null then
+            Create_Variable (Pkg_Data.all, Var_Name, Var_Data);
+            SST.Set (new String'(Var_Name), Var_Data);
+         end if;
       end if;
       Leave_Critical_Section;
 
       return Var_Data;
    end Lookup_Variable;
-
-   --------------------
-   -- Lookup_Storage --
-   --------------------
-
-   function Lookup_Storage
-     (Storage_Name : in String)
-     return Shared_Data_Access
-   is
-      Name : String :=  Major (Storage_Name);
-
-   begin
-      return SST.Get (Name'Unrestricted_Access);
-   end Lookup_Storage;
-
-   -----------
-   -- Minor --
-   -----------
-
-   function Minor (Location : String) return String is
-   begin
-      return System.Garlic.Physical_Location.Get_Support_Data (Location);
-   end Minor;
 
    -----------
    -- Major --
@@ -247,23 +254,14 @@ package body System.Garlic.Storages is
       return Name;
    end Major;
 
-   ----------------------
-   -- Register_Storage --
-   ----------------------
+   -----------
+   -- Minor --
+   -----------
 
-   procedure Register_Storage
-     (Storage_Name : in String;
-      Storage_Data : in Shared_Data_Access)
-   is
-      Major_Name : String := Major (Storage_Name);
-
+   function Minor (Location : String) return String is
    begin
-      pragma Debug (D ("register storage major " & Major_Name));
-
-      if SST.Get (Major_Name'Unrestricted_Access) = null then
-         SST.Set (new String'(Major_Name), Storage_Data);
-      end if;
-   end Register_Storage;
+      return System.Garlic.Physical_Location.Get_Support_Data (Location);
+   end Minor;
 
    ----------------------
    -- Register_Package --
@@ -273,24 +271,17 @@ package body System.Garlic.Storages is
      (Pkg_Name  : in String;
       Partition : in Types.Partition_ID)
    is
-      Pkg_Data : Shared_Data_Access;
       Storage  : Shared_Data_Access;
-      Par_Name : String := Partition'Img;
+      Pkg_Data : Shared_Data_Access;
 
    begin
-      Pkg_Data := SST.Get (Pkg_Name'Unrestricted_Access);
-      if Pkg_Data = null then
+      if SST.Get (Pkg_Name'Unrestricted_Access) = null then
          pragma Debug (D ("register package " & Pkg_Name));
-
-         Storage := SST.Get (Par_Name'Unrestricted_Access);
-         if Storage = null then
-            Raise_Exception
-              (Program_Error'Identity,
-               "cannot find data storage for partition" & Par_Name);
+         Storage := Lookup_Partition (Partition);
+         if Storage /= null then
+            Create_Package (Storage.all, Pkg_Name, Pkg_Data);
+            SST.Set (new String'(Pkg_Name), Pkg_Data);
          end if;
-
-         Create_Package (Storage.all, Pkg_Name, Pkg_Data);
-         SST.Set (new String'(Pkg_Name), Pkg_Data);
       end if;
    end Register_Package;
 
@@ -307,9 +298,8 @@ package body System.Garlic.Storages is
       Par_Name : String := Partition'Img;
 
    begin
-      pragma Debug (D ("register passive partition " & Par_Name));
-
       if SST.Get (Par_Name'Unrestricted_Access) = null then
+         pragma Debug (D ("register partition " & Par_Name));
          Master := Lookup_Storage (Location);
          if Master = null then
             Raise_Exception
@@ -320,5 +310,22 @@ package body System.Garlic.Storages is
          SST.Set (new String'(Par_Name), Storage);
       end if;
    end Register_Partition;
+
+   ----------------------
+   -- Register_Storage --
+   ----------------------
+
+   procedure Register_Storage
+     (Storage_Name : in String;
+      Storage_Data : in Shared_Data_Access)
+   is
+      Major_Name : String := "_" & Major (Storage_Name);
+
+   begin
+      if SST.Get (Major_Name'Unrestricted_Access) = null then
+         pragma Debug (D ("register storage major " & Major_Name));
+         SST.Set (new String'(Major_Name), Storage_Data);
+      end if;
+   end Register_Storage;
 
 end System.Garlic.Storages;
