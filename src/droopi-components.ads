@@ -35,6 +35,13 @@ package Droopi.Components is
    --  Emit message Msg on Signal.
 
    -------------------------
+   -- Component factories --
+   -------------------------
+
+   type Component_Factory is access function
+     return Component_Access;
+
+   -------------------------
    -- Group communication --
    -------------------------
 

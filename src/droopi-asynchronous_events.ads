@@ -12,6 +12,10 @@ package Droopi.Asynchronous_Events is
    type Asynchronous_Event_Monitor_Access is
      access all Asynchronous_Event_Monitor'Class;
 
+   type AEM_Factory is access function
+     return Asynchronous_Event_Monitor_Access;
+   --  A function that allocates an instance of a concrete AEM type.
+
    type Asynchronous_Event_Source is abstract tagged limited private;
    type Asynchronous_Event_Source_Access is
      access all Asynchronous_Event_Source'Class;
@@ -19,6 +23,13 @@ package Droopi.Asynchronous_Events is
    function Notepad_Of (AES : Asynchronous_Event_Source_Access)
      return Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
+   --  Return the AES' Notepad.
+
+   function AEM_Factory_Of (AES : Asynchronous_Event_Source)
+     return AEM_Factory is abstract;
+   pragma Inline (AEM_Factory_Of);
+   --  Return a factory capable of creating an AEM that can
+   --  monitor AES.
 
    procedure Create (AEM : out Asynchronous_Event_Monitor)
      is abstract;

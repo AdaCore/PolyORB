@@ -9,10 +9,13 @@ with Droopi.Jobs;
 with Droopi.Requests;
 with Droopi.Schedulers;
 with Droopi.Soft_Links;
+with Droopi.Transport;
 
 package Droopi.ORB is
 
+   use Droopi.Asynchronous_Events;
    use Droopi.Schedulers;
+   use Droopi.Transport;
 
    ----------------------------------
    -- Abstract tasking policy type --
@@ -41,13 +44,15 @@ package Droopi.ORB is
      (Asynchronous_Events.Asynchronous_Event_Monitor_Access);
    subtype Monitor_Seq is Monitor_Seqs.Sequence;
 
-   --  XXX dummy!
-   type Active_Socket is new Integer;
+   type Active_Connection is record
+      AES : Asynchronous_Event_Source_Access;
+      TE  : Transport_Endpoint_Access;
+   end record;
 
    procedure Handle_New_Connection
      (P   : access Tasking_Policy_Type;
       ORB : ORB_Access;
-      AS  : Active_Socket) is abstract;
+      C   : Active_Connection) is abstract;
    --  Create the necessary processing resources for newly-created
    --  communication endpoint AS.
 
@@ -102,15 +107,17 @@ package Droopi.ORB is
    --  Shut down ORB. If Wait_For_Completion is True, do
    --  not return before the shutdown is completed.
 
-   procedure Insert_Socket
+   procedure Insert_Source
      (ORB : access ORB_Type;
-      AS  : Active_Socket);
-   --  Insert socket S with kind K in the set of sockets monitored by O.
+      AES : Asynchronous_Event_Source_Access);
+   --  Insert AES in the set of asynchronous event sources
+   --  monitored by ORB.
 
-   procedure Delete_Socket
+   procedure Delete_Source
      (ORB : access ORB_Type;
-      AS  : Active_Socket);
-   --  Delete socket S from the set of sockets monitored by ORB.
+      AES : Asynchronous_Event_Source_Access);
+   --  Delete AES from the set of asynchronous event sources
+   --  monitored by ORB.
 
    procedure Queue_Job
      (ORB : access ORB_Type;
@@ -127,6 +134,12 @@ private
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
    is new Droopi.Schedulers.Server_Type with record
+
+      -----------------------------------
+      -- Mutex for access to ORB state --
+      -----------------------------------
+
+      ORB_Lock : Soft_Links.Adv_Mutex_Access;
 
       ------------------
       -- Server state --

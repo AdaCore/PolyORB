@@ -21,6 +21,8 @@ is
    Server : Socket_Type;
    Addr : Sock_Addr_Type;
 
+   The_ORB : ORB_Access;
+
 begin
    -------------------------------
    -- Initialize all subsystems --

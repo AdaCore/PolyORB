@@ -34,6 +34,9 @@ package Droopi.Asynchronous_Events.Sockets is
      (Socket : Droopi.Sockets.Socket_Type)
      return Asynchronous_Event_Source_Access;
 
+   function AEM_Factory_Of (AES : Socket_Event_Source)
+     return AEM_Factory;
+
 private
 
    type Socket_Event_Source is new Asynchronous_Event_Source

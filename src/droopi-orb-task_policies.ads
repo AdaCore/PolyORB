@@ -22,7 +22,7 @@ package Droopi.ORB.Task_Policies is
    procedure Handle_New_Connection
      (P   : access No_Tasking;
       ORB : ORB_Access;
-      AS  : Active_Socket);
+      C   : Active_Connection);
 
    procedure Handle_Request
      (P   : access No_Tasking;

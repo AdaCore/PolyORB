@@ -149,4 +149,19 @@ package body Droopi.Asynchronous_Events.Sockets is
       return Result;
    end Create_Event_Source;
 
+   function Create_Socket_Event_Monitor
+     return Asynchronous_Event_Monitor_Access;
+
+   function Create_Socket_Event_Monitor
+     return Asynchronous_Event_Monitor_Access is
+   begin
+      return new Socket_Event_Monitor;
+   end Create_Socket_Event_Monitor;
+
+   function AEM_Factory_Of (AES : Socket_Event_Source)
+     return AEM_Factory is
+   begin
+      return Create_Socket_Event_Monitor'Access;
+   end AEM_Factory_Of;
+
 end Droopi.Asynchronous_Events.Sockets;

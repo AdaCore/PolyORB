@@ -41,11 +41,17 @@ package body Droopi.ORB is
    is
       ORB : constant ORB_Access := new ORB_Type (Tasking_Policy);
    begin
+      Create (ORB.ORB_Lock);
+      --  From now on access to ORB state is protected by this mutex.
+
+      Enter (ORB.ORB_Lock.all);
+
       Create (ORB.Idle_Tasks);
 
       ORB.Job_Queue := Droopi.Jobs.Create_Queue;
       ORB.Shutdown := False;
       ORB.Polling  := False;
+      Leave (ORB.ORB_Lock.all);
 
       return ORB;
    end Create_ORB;
@@ -59,7 +65,10 @@ package body Droopi.ORB is
       raise Not_Implemented;
    end Start;
 
-   function Try_Perform_Work (Q : access Job_Queue) return Boolean;
+   function Try_Perform_Work
+     (ORB : access ORB_Type;
+      Q   : access Job_Queue)
+     return Boolean;
    --  Perform one item of work from Q, if available.
    --  Precondition: This function must be called from within a
    --    critical section.
@@ -68,13 +77,16 @@ package body Droopi.ORB is
    --    If no job was available, the critical section is not left,
    --    and False is returned.
 
-   function Try_Perform_Work (Q : access Job_Queue) return Boolean is
+   function Try_Perform_Work
+     (ORB : access ORB_Type;
+      Q   : access Job_Queue)
+     return Boolean is
    begin
       if not Empty (Q) then
          declare
             Job : Job_Access := Fetch_Job (Q);
          begin
-            Leave_Critical_Section;
+            Leave (ORB.ORB_Lock.all);
 
             pragma Assert (Job /= null);
             Run (Job);
@@ -156,9 +168,11 @@ package body Droopi.ORB is
                                       TE     => New_TE)));
                --  Register link from AES to TE.
 
-               --  XXX TODO: Take the newly-created event source
-               --  into account.
-               --  Insert_Source (ORB, New_AES);
+               Handle_New_Connection
+                 (ORB.Tasking_Policy,
+                  ORB_Access (ORB),
+                  Active_Connection'(AES => New_AES, TE => New_TE));
+               --  Assign execution resources to the newly-created connection.
             end;
          when A_TE_AES =>
             Emit (Component_Access (Note.D.TE),
@@ -172,19 +186,19 @@ package body Droopi.ORB is
       May_Poll       : Boolean := False) is
    begin
       loop
-         pragma Debug (O ("Run: enter."));
-         Enter_Critical_Section;
+         pragma Debug (O ("Run: enter loop."));
+         Enter (ORB.ORB_Lock.all);
 
          if (Exit_Condition /= null and then Exit_Condition.all)
            or else ORB.Shutdown then
-            Leave_Critical_Section;
+            Leave (ORB.ORB_Lock.all);
             exit;
          end if;
 
-         if Try_Perform_Work (ORB.Job_Queue) then
+         if Try_Perform_Work (ORB, ORB.Job_Queue) then
             null;
          elsif May_Poll then
-
+            pragma Debug (O ("About to poll external event sources."));
             declare
                Monitors : constant Monitor_Seqs.Element_Array
                  := Monitor_Seqs.To_Element_Array (ORB.Monitors);
@@ -199,7 +213,7 @@ package body Droopi.ORB is
             begin
 
                ORB.Polling := True;
-               Leave_Critical_Section;
+               Leave (ORB.ORB_Lock.all);
 
                if Monitors'Length = 1 then
                   Timeout := Droopi.Asynchronous_Events.Forever;
@@ -225,7 +239,7 @@ package body Droopi.ORB is
                   delay Poll_Interval;
                end if;
 
-               Enter_Critical_Section;
+               Enter (ORB.ORB_Lock.all);
                ORB.Polling := False;
                if Event_Happened then
                   Update (ORB.Idle_Tasks);
@@ -244,7 +258,7 @@ package body Droopi.ORB is
 --
 --              begin
 --                 ORB.Polling := True;
---                 Leave_Critical_Section;
+--                 Leave (ORB.ORB_Lock.all);
 --
 --                 for I in Monitored_Set'Range loop
 --                    Set (R_Set, Monitored_Set (I).Socket);
@@ -269,7 +283,7 @@ package body Droopi.ORB is
 --                 pragma Debug (O ("Selector returned status "
 --                                  & Status'Img));
 --
---                 Enter_Critical_Section;
+--                 Enter (ORB.ORB_Lock.all);
 --                 ORB.Polling := False;
 --
 --                 for I in Monitored_Set'Range loop
@@ -290,7 +304,7 @@ package body Droopi.ORB is
 --                 end loop;
 --                 Update (ORB.Idle_Tasks);
 --                 --  Wake up any task that is waiting for something to do.
---                 Leave_Critical_Section;
+--                 Leave (ORB.ORB_Lock.all);
 --              end;
          else
 
@@ -313,17 +327,17 @@ package body Droopi.ORB is
    is
       Result : Boolean;
    begin
-      Enter_Critical_Section;
+      Enter (ORB.ORB_Lock.all);
       Result := not Empty (ORB.Job_Queue);
-      Leave_Critical_Section;
+      Leave (ORB.ORB_Lock.all);
       return Result;
    end Work_Pending;
 
    procedure Perform_Work (ORB : access ORB_Type) is
    begin
-      Enter_Critical_Section;
-      if not Try_Perform_Work (ORB.Job_Queue) then
-         Leave_Critical_Section;
+      Enter (ORB.ORB_Lock.all);
+      if not Try_Perform_Work (ORB, ORB.Job_Queue) then
+         Leave (ORB.ORB_Lock.all);
       end if;
    end Perform_Work;
 
@@ -340,61 +354,71 @@ package body Droopi.ORB is
          raise Not_Implemented;
       end if;
 
-      Enter_Critical_Section;
+      Enter (ORB.ORB_Lock.all);
       ORB.Shutdown := True;
-      Leave_Critical_Section;
+      Leave (ORB.ORB_Lock.all);
 
    end Shutdown;
 
-   procedure Insert_Socket
+   procedure Insert_Source
      (ORB : access ORB_Type;
-      AS  : Active_Socket) is
+      AES : Asynchronous_Event_Source_Access) is
    begin
---        pragma Assert (AS.Kind /= Invalid_Sk);
---
---        Enter_Critical_Section;
---        Sock_Seqs.Append (ORB.ORB_Sockets, AS);
---
---        if ORB.Polling then
---           Abort_Selector (ORB.Selector.all);
---        end if;
---        Leave_Critical_Section;
-      null;
-   end Insert_Socket;
+      pragma Assert (AES /= null);
 
-   procedure Delete_Socket
+      Enter (ORB.ORB_Lock.all);
+
+      declare
+         use Monitor_Seqs;
+
+         Monitors : constant Element_Array
+           := To_Element_Array (ORB.Monitors);
+         Success : Boolean;
+      begin
+         Success := False;
+         for I in Monitors'Range loop
+            Register_Source (Monitors (I).all, AES, Success);
+            exit when Success;
+         end loop;
+
+         if not Success then
+            declare
+               New_AEM : constant Asynchronous_Event_Monitor_Access
+                 := AEM_Factory_Of (AES.all).all;
+            begin
+               Create (New_AEM.all);
+               Append (ORB.Monitors, New_AEM);
+               Register_Source (New_AEM.all, AES, Success);
+               pragma Assert (Success);
+            end;
+         end if;
+      end;
+
+      if ORB.Polling then
+         Abort_Check_Sources (ORB.Selector.all);
+      end if;
+      Leave (ORB.ORB_Lock.all);
+   end Insert_Source;
+
+   procedure Delete_Source
      (ORB : access ORB_Type;
-      AS  : Active_Socket)
-   is
-      Deleted : Boolean := False;
+      AES : Asynchronous_Event_Source_Access) is
    begin
---        Enter_Critical_Section;
---
---        declare
---           Sockets : constant Sock_Seqs.Element_Array
---             := Sock_Seqs.To_Element_Array (ORB.ORB_Sockets);
---        begin
---           All_Sockets :
---           for I in Sockets'Range loop
---              if Sockets (I) = AS then
---                 Sock_Seqs.Delete
---                   (Source  => ORB.ORB_Sockets,
---                    From    => 1 + I - Sockets'First,
---                    Through => 1 + I - Sockets'First);
---                 Deleted := True;
---                 exit All_Sockets;
---              end if;
---           end loop All_Sockets;
---
---           pragma Assert (Deleted);
---        end;
---
---        if ORB.Polling then
---           Abort_Selector (ORB.Selector.all);
---        end if;
---        Leave_Critical_Section;
-      null;
-   end Delete_Socket;
+      Enter (ORB.ORB_Lock.all);
+
+      Unregister_Source (AES);
+
+      if ORB.Polling then
+         Abort_Check_Sources (ORB.Selector.all);
+      end if;
+      --  XXX Destroy AES.
+      --  XXX Destroy associated TE, associated TAP ?
+      --  The requirement to destroy all associated resources
+      --  would advocate the creation of a type "ORB Entity"
+      --  catpuring the association of a set of resources,
+      --  eg (AES + TAP) or (AES + TE).
+      Leave (ORB.ORB_Lock.all);
+   end Delete_Source;
 
    ----------------------------------
    -- Job type for object requests --
