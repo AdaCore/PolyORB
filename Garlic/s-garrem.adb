@@ -110,7 +110,7 @@ package body System.Garlic.Remote is
    is
 
       Rsh_Full_Command : constant String :=
-        Launcher & " " & Host & " """ & Command & """ >/dev/null";
+        Launcher & " " & Host & " -n """ & Command & """ >/dev/null";
 
       C_Command : C.Strings.chars_ptr :=
         C.Strings.New_String (Rsh_Full_Command);

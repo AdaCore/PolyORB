@@ -1,3 +1,8 @@
+Sat Mar  8 16:48:38 1997  Laurent Pautet  <pautet@inf.enst.fr>
+
+	* s-garrem.adb: Add -n to rsh. It won't break anything and at
+	least, it may avoid dup2 to fail.
+
 Fri Mar  7 14:14:46 1997  Laurent Pautet  <pautet@inf.enst.fr>
 
 	* s-garrem.adb, s-garrem.ads: Add a parameter Launcher to most of
