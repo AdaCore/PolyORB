@@ -261,13 +261,6 @@ package body XE_Stdcnf is
          Type_Sloc    => Null_Location,
          Type_Node    => Locations_Type_Node);
 
-      --  Legal attribute : 'Main
-      --  Legal attribute : 'Host
-      --  Legal attribute : 'Filter
-      --  Legal attribute : 'Storage_Dir
-      --  Legal attribute : 'Termination
-      --  Legal attribute : 'Command_Line
-      --  Legal attribute : 'Protocol
 
       Declare_Type_Attribute
         (Type_Node      => Partition_Type_Node,
@@ -287,9 +280,9 @@ package body XE_Stdcnf is
 
       Declare_Type_Attribute
         (Type_Node      => Partition_Type_Node,
-         Attribute_Name => Str_To_Id ("storage_dir"),
+         Attribute_Name => Str_To_Id ("directory"),
          Attr_Type_Node => String_Type_Node,
-         Attribute_Kind => Attribute_Storage_Dir,
+         Attribute_Kind => Attribute_Directory,
          Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 
@@ -337,7 +330,7 @@ package body XE_Stdcnf is
         (Type_Node        => Partition_Type_Node,
          Attribute_Name   => Str_To_Id ("self_location"),
          Attr_Type_Node   => Locations_Type_Node,
-         Attribute_Kind   => Attribute_Self_Location,
+         Attribute_Kind   => Attribute_Protocol,
          Attribute_Sloc   => Null_Location,
          Attribute_Node   => Attribute_Node);
 
@@ -345,7 +338,15 @@ package body XE_Stdcnf is
         (Type_Node        => Partition_Type_Node,
          Attribute_Name   => Str_To_Id ("self_location"),
          Attr_Type_Node   => Location_Type_Node,
-         Attribute_Kind   => Attribute_Self_Location,
+         Attribute_Kind   => Attribute_Protocol,
+         Attribute_Sloc   => Null_Location,
+         Attribute_Node   => Attribute_Node);
+
+      Declare_Type_Attribute
+        (Type_Node        => Partition_Type_Node,
+         Attribute_Name   => Str_To_Id ("data_location"),
+         Attr_Type_Node   => Location_Type_Node,
+         Attribute_Kind   => Attribute_Storage,
          Attribute_Sloc   => Null_Location,
          Attribute_Node   => Attribute_Node);
 
@@ -354,6 +355,14 @@ package body XE_Stdcnf is
          Attribute_Name => Str_To_Id ("is boot partition"),
          Attr_Type_Node => Boolean_Type_Node,
          Attribute_Kind => Attribute_Leader,
+         Attribute_Sloc => Null_Location,
+         Attribute_Node => Attribute_Node);
+
+      Declare_Type_Attribute
+        (Type_Node      => Partition_Type_Node,
+         Attribute_Name => Str_To_Id ("passive"),
+         Attr_Type_Node => Boolean_Type_Node,
+         Attribute_Kind => Attribute_Passive,
          Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 

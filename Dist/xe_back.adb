@@ -34,19 +34,22 @@ with Osint;
 with Output;           use Output;
 with Types;            use Types;
 with XE;               use XE;
+with XE_Defs;          use XE_Defs;
 with XE_Utils;         use XE_Utils;
 
 package body XE_Back is
 
    subtype Node_Id is XE.Node_Id;
 
+   Min_Width : constant := 11;
+
    procedure Add_Location
      (First : in out LID_Type;
       Last  : in out LID_Type;
-      Name  : in Name_Id;
-      Data  : in Name_Id);
-   --  Read components name and data from variable and add this pair
-   --  to partition location list.
+      Major : in Name_Id;
+      Minor : in Name_Id);
+   --  Read major and minor from variable and add this pair to
+   --  partition location list.
 
    procedure Build_New_Channel
      (Channel   : in Variable_Id);
@@ -64,6 +67,7 @@ package body XE_Back is
 
    procedure Build_New_Variable
      (Variable : in Variable_Id);
+   --  Dispatching procedure to create entities of different types.
 
    procedure Set_Channel_Attribute
      (Attribute : in Attribute_Id;
@@ -79,15 +83,25 @@ package body XE_Back is
    procedure Set_Type_Attribute
      (Pre_Type : in Type_Id);
 
-   procedure Show_Partition (PID : in PID_Type);
+   procedure Show_Partition
+     (PID : in PID_Type);
+   --  Output the different attributes of a partition.
+
+   procedure Write_Field
+     (Indent : in Natural;
+      Field  : in String;
+      Width  : in Natural := Min_Width);
+   --  Output field with at least Width characters and indent it.
 
    ---------------------------
    -- Add_Channel_Partition --
    ---------------------------
 
    procedure Add_Channel_Partition
-     (Partition : in Partition_Name_Type; To : in CID_Type) is
-      PID  : PID_Type := Get_PID (Partition);
+     (Partition : in Partition_Name_Type;
+      To        : in CID_Type)
+   is
+      PID  : PID_Type;
 
       procedure Update_Channel_Partition
         (Channel_Partition : in out Channel_Partition_Type;
@@ -100,8 +114,10 @@ package body XE_Back is
       procedure Update_Channel_Partition
         (Channel_Partition : in out Channel_Partition_Type;
          Partition         : in PID_Type;
-         Channel           : in CID_Type) is
+         Channel           : in CID_Type)
+      is
          CID : CID_Type;
+
       begin
          Channel_Partition.My_Partition := Partition;
          Channel_Partition.Next_Channel := Null_CID;
@@ -118,7 +134,6 @@ package body XE_Back is
             end if;
             Partitions.Table (Partition).Last_Channel := Channel;
          end if;
-
       end Update_Channel_Partition;
 
    begin
@@ -126,6 +141,7 @@ package body XE_Back is
          Message ("add partition", Partition,
                   "to channel", Channels.Table (To).Name);
       end if;
+      PID := Get_PID (Partition);
       if Channels.Table (To).Lower = Null_Channel_Partition then
          Update_Channel_Partition (Channels.Table (To).Lower, PID, To);
       elsif PID > Channels.Table (To).Lower.My_Partition then
@@ -144,7 +160,6 @@ package body XE_Back is
      (CU : in CUnit_Name_Type;
       To : in PID_Type) is
    begin
-
       if Get_PID (CU) = To then
          return;
       end if;
@@ -174,7 +189,6 @@ package body XE_Back is
          CUnits.Table (Partitions.Table (To).Last_Unit).Next := CUnits.Last;
       end if;
       Partitions.Table (To).Last_Unit := CUnits.Last;
-
    end Add_Conf_Unit;
 
    ------------------
@@ -184,19 +198,20 @@ package body XE_Back is
    procedure Add_Location
      (First : in out LID_Type;
       Last  : in out LID_Type;
-      Name  : in Name_Id;
-      Data  : in Name_Id)
+      Major : in Name_Id;
+      Minor : in Name_Id)
    is
-      LID       : LID_Type;
+      LID : LID_Type;
+
    begin
       --  Add a new element in the location table and fill it with the
-      --  protocol name and the protocol data.
+      --  protocol name (major) and the protocol data (minor).
 
       Locations.Increment_Last;
       LID := Locations.Last;
-      Locations.Table (LID).Protocol_Name := Name;
-      Locations.Table (LID).Protocol_Data := Data;
-      Locations.Table (LID).Next_Location := Null_LID;
+      Locations.Table (LID).Major := Major;
+      Locations.Table (LID).Minor := Minor;
+      Locations.Table (LID).Next := Null_LID;
 
       --  Link this new location to the end of the partition location
       --  list.
@@ -204,7 +219,7 @@ package body XE_Back is
       if First = Null_LID then
          First := LID;
       else
-         Locations.Table (Last).Next_Location := LID;
+         Locations.Table (Last).Next := LID;
       end if;
       Last := LID;
    end Add_Location;
@@ -220,9 +235,16 @@ package body XE_Back is
       Name_Buffer (Name_Len) := '%';
       Name_Len := Name_Len + 1;
       Name_Buffer (Name_Len) := 'b';
+
+      --  If this unit is already loaded then its info is set to its
+      --  unit entry.
+
       if Get_Name_Table_Info (Name_Find) /= 0 then
          return True;
       end if;
+
+      --  If this unit has only a spec, check again.
+
       Name_Buffer (Name_Len) := 's';
       if Get_Name_Table_Info (Name_Find) /= 0 then
          return True;
@@ -237,6 +259,7 @@ package body XE_Back is
    procedure Back is
       Node : Node_Id;
       HID  : HID_Type;
+
    begin
       First_Configuration_Declaration (Configuration_Node, Node);
       while Node /= Null_Node loop
@@ -281,12 +304,14 @@ package body XE_Back is
    procedure Build_New_Channel
      (Channel   : in Variable_Id)
    is
-      Channel_Name   : Name_Id := Get_Variable_Name (Channel);
+      Channel_Name   : Name_Id;
       Partition_Name : Name_Id;
       Partition_Node : Variable_Id;
       Component_Node : Component_Id;
       Channel_ID     : CID_Type;
+
    begin
+      Channel_Name := Get_Variable_Name (Channel);
 
       --  Create a new entry in Channels.Table.
 
@@ -316,7 +341,6 @@ package body XE_Back is
          Next_Variable_Component (Component_Node);
 
       end loop;
-
    end Build_New_Channel;
 
    --------------------
@@ -325,12 +349,13 @@ package body XE_Back is
 
    procedure Build_New_Host
      (Subprogram : in Subprogram_Id;
-      Host_Entry : out HID_Type) is
+      Host_Entry : out HID_Type)
+   is
       Host : HID_Type;
       Name : Name_Id;
       Node : Node_Id;
-   begin
 
+   begin
       Node := Node_Id (Subprogram);
       Name := Get_Node_Name (Node);
       Host := Get_HID (Name);
@@ -343,7 +368,6 @@ package body XE_Back is
       end if;
 
       Host_Entry := Host;
-
    end Build_New_Host;
 
    -------------------------
@@ -353,12 +377,14 @@ package body XE_Back is
    procedure Build_New_Partition
      (Partition : in Variable_Id)
    is
-      Partition_Name : Name_Id := Get_Variable_Name (Partition);
+      Partition_Name : Name_Id;
       Ada_Unit_Name  : Name_Id;
       Ada_Unit_Node  : Variable_Id;
       Component_Node : Component_Id;
       Partition_ID   : PID_Type;
+
    begin
+      Partition_Name := Get_Variable_Name (Partition);
 
       --  Create a new entry into Partitions.Table.
 
@@ -390,7 +416,6 @@ package body XE_Back is
          Next_Variable_Component (Component_Node);
 
       end loop;
-
    end Build_New_Partition;
 
    ------------------------
@@ -398,14 +423,15 @@ package body XE_Back is
    ------------------------
 
    procedure Build_New_Variable
-     (Variable : in Variable_Id) is
+     (Variable : in Variable_Id)
+   is
       Var_Type : Type_Id;
       Pre_Type : Predefined_Type;
+
    begin
       Var_Type := Get_Variable_Type (Variable);
       Pre_Type := Get_Type_Kind (Var_Type);
       case Pre_Type is
-
          when Pre_Type_Partition =>
             Build_New_Partition (Variable);
 
@@ -424,8 +450,10 @@ package body XE_Back is
 
    procedure Compute_Checksum
      (P : in PID_Type;
-      F : in File_Name_Type) is
+      F : in File_Name_Type)
+   is
       S : Int;
+
    begin
       S := Get_Name_Table_Info (F);
       if S = 0 then
@@ -443,8 +471,10 @@ package body XE_Back is
    procedure Create_Channel
      (Name : in  Channel_Name_Type;
       Node : in  Node_Id;
-      CID  : out CID_Type) is
+      CID  : out CID_Type)
+   is
       Channel : CID_Type;
+
    begin
       if Debug_Mode then
          Message ("create channel", Name);
@@ -468,8 +498,10 @@ package body XE_Back is
    procedure Create_Host
      (Name : in Host_Name_Type;
       Node : in Node_Id;
-      HID  : out HID_Type) is
+      HID  : out HID_Type)
+   is
       Host : HID_Type;
+
    begin
       if Debug_Mode then
          Message ("create host", Name);
@@ -494,8 +526,10 @@ package body XE_Back is
    procedure Create_Partition
      (Name : in Partition_Name_Type;
       Node : in Node_Id;
-      PID  : out PID_Type) is
+      PID  : out PID_Type)
+   is
       Partition : PID_Type;
+
    begin
       if Debug_Mode then
          Message ("create partition", Name);
@@ -512,13 +546,14 @@ package body XE_Back is
         (Name            => Name,
          Node            => Node,
          Host            => Null_HID,
-         Storage_Dir     => No_Storage_Dir,
+         Directory       => No_Directory,
          Command_Line    => No_Command_Line,
          Main_Subprogram => No_Name,
          Termination     => Unknown_Termination,
          Reconnection    => Unknown_Reconnection,
          Task_Pool       => No_Task_Pool,
          Light_PCS       => True,
+         Passive         => Bunknown,
          Filter          => No_Filter_Name,
          Executable_File => No_Name,
          Partition_Dir   => No_Name,
@@ -526,8 +561,9 @@ package body XE_Back is
          Last_Unit       => Null_CUID,
          First_Channel   => Null_CID,
          Last_Channel    => Null_CID,
-         First_Location  => Null_LID,
-         Last_Location   => Null_LID,
+         F_Net_Location  => Null_LID,
+         L_Net_Location  => Null_LID,
+         Mem_Location    => Null_LID,
          To_Build        => True,
          Most_Recent     => No_File,
          Global_Checksum => 0);
@@ -538,16 +574,17 @@ package body XE_Back is
    -- Get_Absolute_Exec --
    -----------------------
 
-   function Get_Absolute_Exec (P : in PID_Type) return Name_Id is
-      S : Name_Id := Partitions.Table (P).Storage_Dir;
+   function Get_Absolute_Exec (P : PID_Type) return Name_Id is
+      S : Name_Id;
       N : Name_Id renames Partitions.Table (P).Name;
-   begin
 
-      if S = No_Storage_Dir then
-         S := Partitions.Table (Default_Partition).Storage_Dir;
+   begin
+      S := Partitions.Table (P).Directory;
+      if S = No_Directory then
+         S := Partitions.Table (Default_Partition).Directory;
       end if;
 
-      if S = No_Storage_Dir then
+      if S = No_Directory then
 
          --  No storage directory means current directory.
          return Dir (PWD_Id, N & Exe_Suffix);
@@ -568,7 +605,6 @@ package body XE_Back is
          return Dir (S, N & Exe_Suffix);
 
       end if;
-
    end Get_Absolute_Exec;
 
    ----------------
@@ -577,6 +613,7 @@ package body XE_Back is
 
    function Get_ALI_Id (N : Name_Id) return ALI_Id is
       Info : Int;
+
    begin
       Info := Get_Name_Table_Info (N);
       case Info is
@@ -594,6 +631,7 @@ package body XE_Back is
 
    function Get_CID (N : Name_Id) return CID_Type is
       Info : Int;
+
    begin
       Info := Get_Name_Table_Info (N);
       if Info in Int (CID_Type'First) .. Int (CID_Type'Last) then
@@ -607,16 +645,16 @@ package body XE_Back is
    -- Get_Command_Line --
    ----------------------
 
-   function Get_Command_Line    (P : in PID_Type) return Command_Line_Type is
-      Cmd : Command_Line_Type := Partitions.Table (P).Command_Line;
-   begin
+   function Get_Command_Line (P : PID_Type) return Command_Line_Type is
+      Cmd : Command_Line_Type;
 
+   begin
+      Cmd := Partitions.Table (P).Command_Line;
       if Cmd = No_Command_Line then
          Cmd := Partitions.Table (Default_Partition).Command_Line;
       end if;
 
       return Cmd;
-
    end Get_Command_Line;
 
    --------------
@@ -625,6 +663,7 @@ package body XE_Back is
 
    function Get_CUID (N : Name_Id) return CUID_Type is
       Info : Int;
+
    begin
       Info := Get_Name_Table_Info (N);
       if Info in Int (CUID_Type'First) .. Int (CUID_Type'Last) then
@@ -634,34 +673,49 @@ package body XE_Back is
       end if;
    end Get_CUID;
 
+   ---------------------
+   -- Get_Directory --
+   ---------------------
+
+   function Get_Directory (P : PID_Type) return Directory_Name_Type is
+      S : Directory_Name_Type;
+
+   begin
+      S := Partitions.Table (P).Directory;
+      if S = No_Directory then
+         S := Partitions.Table (Default_Partition).Directory;
+      end if;
+      return S;
+   end Get_Directory;
+
    ----------------
    -- Get_Filter --
    ----------------
 
-   function Get_Filter          (C : CID_Type) return Name_Id is
-      F : Name_Id := Channels.Table (C).Filter;
-   begin
+   function Get_Filter (C : CID_Type) return Name_Id is
+      F : Name_Id;
 
+   begin
+      F := Channels.Table (C).Filter;
       if F = No_Filter_Name then
          F := Channels.Table (Default_Channel).Filter;
       end if;
       return F;
-
    end Get_Filter;
 
    ----------------
    -- Get_Filter --
    ----------------
 
-   function Get_Filter          (P : PID_Type) return Name_Id is
-      F : Name_Id := Partitions.Table (P).Filter;
-   begin
+   function Get_Filter (P : PID_Type) return Name_Id is
+      F : Name_Id;
 
+   begin
+      F := Partitions.Table (P).Filter;
       if F = No_Filter_Name then
          F := Partitions.Table (Default_Partition).Filter;
       end if;
       return F;
-
    end Get_Filter;
 
    -------------
@@ -670,6 +724,7 @@ package body XE_Back is
 
    function Get_HID (N : Name_Id) return HID_Type is
       Info : Int;
+
    begin
       Info := Get_Name_Table_Info (N);
       if Info in Int (HID_Type'First) .. Int (HID_Type'Last) then
@@ -683,10 +738,11 @@ package body XE_Back is
    -- Get_Host --
    --------------
 
-   function Get_Host (P : in PID_Type) return Name_Id is
-      H : HID_Type := Partitions.Table (P).Host;
-   begin
+   function Get_Host (P : PID_Type) return Name_Id is
+      H : HID_Type;
 
+   begin
+      H := Partitions.Table (P).Host;
       if H = Null_HID then
          H := Partitions.Table (Default_Partition).Host;
       end if;
@@ -721,10 +777,17 @@ package body XE_Back is
 
       else
          return No_Name;
-
       end if;
-
    end Get_Host;
+
+   -----------------------
+   -- Get_Internal_Dir --
+   -----------------------
+
+   function Get_Internal_Dir (P : PID_Type) return File_Name_Type is
+   begin
+      return Dir (DSA_Dir, Configuration, Partitions.Table (P).Name);
+   end Get_Internal_Dir;
 
    -------------------
    -- Get_Light_PCS --
@@ -735,28 +798,15 @@ package body XE_Back is
       return Partitions.Table (P).Light_PCS;
    end Get_Light_PCS;
 
-   ------------------
-   -- Get_Location --
-   ------------------
-
-   function Get_Location        (P : PID_Type) return LID_Type is
-      L : LID_Type := Partitions.Table (P).First_Location;
-   begin
-      if L = Null_LID then
-         L := Partitions.Table (Default_Partition).First_Location;
-      end if;
-      return L;
-   end Get_Location;
-
    -------------------------
    -- Get_Main_Subprogram --
    -------------------------
 
-   function Get_Main_Subprogram
-     (P : in PID_Type)
-      return Main_Subprogram_Type is
-      Main : Main_Subprogram_Type := Partitions.Table (P).Main_Subprogram;
+   function Get_Main_Subprogram (P : PID_Type) return Main_Subprogram_Type is
+      Main : Main_Subprogram_Type;
+
    begin
+      Main := Partitions.Table (P).Main_Subprogram;
       if Main = No_Main_Subprogram then
          Main := Partitions.Table (Default_Partition).Main_Subprogram;
       end if;
@@ -780,14 +830,20 @@ package body XE_Back is
       return No_Name;
    end Get_Parent;
 
-   -----------------------
-   -- Get_Partition_Dir --
-   -----------------------
+   -----------------
+   -- Get_Passive --
+   -----------------
 
-   function Get_Partition_Dir (P : in PID_Type) return File_Name_Type is
+   function Get_Passive (P : PID_Type) return Boolean_Type is
+      Passive : Boolean_Type;
+
    begin
-      return Dir (DSA_Dir, Configuration, Partitions.Table (P).Name);
-   end Get_Partition_Dir;
+      Passive := Partitions.Table (P).Passive;
+      if Passive = Bunknown then
+         Passive := Partitions.Table (Default_Partition).Passive;
+      end if;
+      return Passive;
+   end Get_Passive;
 
    -------------
    -- Get_PID --
@@ -795,6 +851,7 @@ package body XE_Back is
 
    function Get_PID (N : Name_Id) return PID_Type is
       Info : Int;
+
    begin
       Info := Get_Name_Table_Info (N);
       if Info in Int (PID_Type'First) .. Int (PID_Type'Last) then
@@ -804,60 +861,79 @@ package body XE_Back is
       end if;
    end Get_PID;
 
-   -----------------------
-   -- Get_Relative_Exec --
-   -----------------------
+   ------------------
+   -- Get_Protocol --
+   ------------------
 
-   function Get_Relative_Exec (P : in PID_Type) return Name_Id is
-      D : Name_Id := Partitions.Table (P).Storage_Dir;
-      N : Name_Id renames Partitions.Table (P).Name;
+   function Get_Protocol (P : PID_Type) return LID_Type is
+      L : LID_Type;
+
    begin
-      if D = No_Storage_Dir then
-         D := Partitions.Table (Default_Partition).Storage_Dir;
+      L := Partitions.Table (P).F_Net_Location;
+      if L = Null_LID then
+         L := Partitions.Table (Default_Partition).F_Net_Location;
       end if;
-      if D = No_Storage_Dir then
-         return N & Exe_Suffix;
-      else
-         return Dir (D, N & Exe_Suffix);
-      end if;
-   end Get_Relative_Exec;
+      return L;
+   end Get_Protocol;
 
    ----------------------
    -- Get_Reconnection --
    ----------------------
 
    function Get_Reconnection (P : PID_Type) return Reconnection_Type is
-      Reconnection : Reconnection_Type := Partitions.Table (P).Reconnection;
+      Reconnection : Reconnection_Type;
 
    begin
+      Reconnection := Partitions.Table (P).Reconnection;
       if Reconnection = Unknown_Reconnection then
          Reconnection := Partitions.Table (Default_Partition).Reconnection;
       end if;
       return Reconnection;
    end Get_Reconnection;
 
-   ---------------------
-   -- Get_Storage_Dir --
-   ---------------------
+   -----------------------
+   -- Get_Relative_Exec --
+   -----------------------
 
-   function Get_Storage_Dir (P : in PID_Type) return Storage_Dir_Name_Type is
-      S : Storage_Dir_Name_Type := Partitions.Table (P).Storage_Dir;
+   function Get_Relative_Exec (P : in PID_Type) return Name_Id is
+      D : Name_Id := Partitions.Table (P).Directory;
+      N : Name_Id renames Partitions.Table (P).Name;
 
    begin
-      if S = No_Storage_Dir then
-         S := Partitions.Table (Default_Partition).Storage_Dir;
+      if D = No_Directory then
+         D := Partitions.Table (Default_Partition).Directory;
       end if;
-      return S;
-   end Get_Storage_Dir;
+      if D = No_Directory then
+         return N & Exe_Suffix;
+      else
+         return Dir (D, N & Exe_Suffix);
+      end if;
+   end Get_Relative_Exec;
+
+   -----------------
+   -- Get_Storage --
+   -----------------
+
+   function Get_Storage (P : PID_Type) return LID_Type is
+      Mem_Location : LID_Type;
+
+   begin
+      Mem_Location := Partitions.Table (P).Mem_Location;
+      if Mem_Location = Null_LID then
+         Mem_Location := Partitions.Table (Default_Partition).Mem_Location;
+      end if;
+      return Mem_Location;
+   end Get_Storage;
 
    -------------------
    -- Get_Task_Pool --
    -------------------
 
    function Get_Task_Pool (P : PID_Type) return Task_Pool_Type is
-      Task_Pool : Task_Pool_Type := Partitions.Table (P).Task_Pool;
+      Task_Pool : Task_Pool_Type;
 
    begin
+      Task_Pool := Partitions.Table (P).Task_Pool;
       if Task_Pool = No_Task_Pool then
          Task_Pool := Partitions.Table (Default_Partition).Task_Pool;
       end if;
@@ -868,12 +944,11 @@ package body XE_Back is
    -- Get_Termination --
    ---------------------
 
-   function Get_Termination
-     (P : in PID_Type)
-      return Termination_Type is
-      Termination : Termination_Type := Partitions.Table (P).Termination;
+   function Get_Termination (P : PID_Type) return Termination_Type is
+      Termination : Termination_Type;
 
    begin
+      Termination := Partitions.Table (P).Termination;
       if Termination = Unknown_Termination then
          Termination := Partitions.Table (Default_Partition).Termination;
       end if;
@@ -902,7 +977,7 @@ package body XE_Back is
    -- Get_Unit_Sfile --
    --------------------
 
-   function Get_Unit_Sfile (U : in Unit_Id) return File_Name_Type is
+   function Get_Unit_Sfile (U : Unit_Id) return File_Name_Type is
    begin
       Get_Name_String (Units.Table (U).Sfile);
       Name_Len := Name_Len - 4;
@@ -917,7 +992,15 @@ package body XE_Back is
       P : PID_Type;
       C : CID_Type;
       N : Partition_Name_Type;
+
    begin
+      Locations.Increment_Last;
+      Def_Data_Location := Locations.Last;
+      Locations.Table (Def_Data_Location).Major
+        := Str_To_Id (Get_Def_Storage_Name);
+      Locations.Table (Def_Data_Location).Minor
+        := Str_To_Id (Get_Def_Storage_Data);
+
       N := Get_Node_Name (Node_Id (Partition_Type_Node));
       Create_Partition (N, Null_Node, P);
       Name_Len := 1;
@@ -1136,24 +1219,37 @@ package body XE_Back is
       Name      : Name_Id;
       Data      : Name_Id;
 
-      procedure Write_Error_Message
-        (Node : in Node_Id;
-         Part : in PID_Type;
-         Attr : in String);
+      procedure Write_Attr_Init_Error
+        (Attr_Name : in String);
+      procedure Write_Attr_Kind_Error
+        (Attr_Name : in String;
+         Attr_Kind : in String);
 
-      procedure Write_Error_Message
-        (Node : in Node_Id;
-         Part : in PID_Type;
-         Attr : in String) is
+      procedure Write_Attr_Init_Error
+        (Attr_Name : in String) is
       begin
-         Write_SLOC (Node);
+         Write_SLOC (Node_Id (Attribute));
          Write_Name (Partitions.Table (Partition).Name);
          Write_Str ("'s ");
-         Write_Str (Attr);
+         Write_Str (Attr_Name);
          Write_Str (" attribute has been assigned twice");
          Write_Eol;
          raise Parsing_Error;
-      end Write_Error_Message;
+      end Write_Attr_Init_Error;
+
+      procedure Write_Attr_Kind_Error
+        (Attr_Name : in String;
+         Attr_Kind : in String) is
+      begin
+         Write_SLOC (Node_Id (Attribute));
+         Write_Name (Partitions.Table (Partition).Name);
+         Write_Str ("'s ");
+         Write_Str (Attr_Name);
+         Write_Str (" attribute must be ");
+         Write_Str (Attr_Kind);
+         Write_Eol;
+         raise Parsing_Error;
+      end Write_Attr_Kind_Error;
 
    begin
 
@@ -1179,12 +1275,7 @@ package body XE_Back is
             --  Only string literals are allowed here.
 
             if Get_Variable_Type (Attr_Item) /= String_Type_Node then
-               Write_SLOC (Node_Id (Attribute));
-               Write_Name (Partitions.Table (PID).Name);
-               Write_Str ("'s filter attribute must be ");
-               Write_Str ("a string literal");
-               Write_Eol;
-               raise Parsing_Error;
+               Write_Attr_Kind_Error ("filter", "a string literal");
             end if;
 
             --  Does it apply to all partitions ? Therefore, check
@@ -1212,30 +1303,24 @@ package body XE_Back is
             --  This operation has already been done !
 
             else
-               Write_Error_Message (Node_Id (Attribute), PID, "filter");
+               Write_Attr_Init_Error ("filter");
             end if;
 
-         when Attribute_Storage_Dir =>
+         when Attribute_Directory =>
 
             --  Only strings are allowed here.
 
             if Get_Variable_Type (Attr_Item) /= String_Type_Node then
-               Write_SLOC (Node_Id (Attribute));
-               Write_Name (Partitions.Table (PID).Name);
-               Write_Str ("'s storage_dir attribute must be ");
-               Write_Str ("a string litteral");
-               Write_Eol;
-               raise Parsing_Error;
+               Write_Attr_Kind_Error ("directory", "a string litteral");
             end if;
 
             --  Check that it has not already been assigned.
 
-            if Partitions.Table (PID).Storage_Dir = No_Storage_Dir then
-               Partitions.Table (PID).Storage_Dir
+            if Partitions.Table (PID).Directory = No_Directory then
+               Partitions.Table (PID).Directory
                  := Get_Variable_Name (Attr_Item);
             else
-               Write_Error_Message
-                 (Node_Id (Attribute), PID, "storage_dir");
+               Write_Attr_Init_Error ("directory");
             end if;
 
          when Attribute_Host =>
@@ -1253,11 +1338,7 @@ package body XE_Back is
                   Build_New_Host (Subprogram_Id (Attr_Item), Host);
 
                when others =>
-                  Write_SLOC (Node_Id (Attribute));
-                  Write_Name (Partitions.Table (PID).Name);
-                  Write_Str  ("'s host attribute must of string type");
-                  Write_Eol;
-                  raise Parsing_Error;
+                  Write_Attr_Kind_Error ("host", "of string type");
             end case;
 
             --  Check that it has not already been assigned.
@@ -1265,7 +1346,7 @@ package body XE_Back is
             if Partitions.Table (PID).Host = Null_HID then
                Partitions.Table (PID).Host := Host;
             else
-               Write_Error_Message (Node_Id (Attribute), PID, "host");
+               Write_Attr_Init_Error ("host");
             end if;
 
          when Attribute_Main =>
@@ -1283,7 +1364,7 @@ package body XE_Back is
                Add_Conf_Unit (Ada_Unit, PID);
 
             else
-               Write_Error_Message (Node_Id (Attribute), PID, "main");
+               Write_Attr_Init_Error ("main");
             end if;
 
          when Attribute_Command_Line =>
@@ -1291,11 +1372,7 @@ package body XE_Back is
             --  Only strings are allowed.
 
             if Get_Variable_Type (Attr_Item) /= String_Type_Node then
-               Write_SLOC (Node_Id (Attribute));
-               Write_Name (Partitions.Table (PID).Name);
-               Write_Str ("'s command line attribute must be string litteral");
-               Write_Eol;
-               raise Parsing_Error;
+               Write_Attr_Kind_Error ("command_line", "a string litteral");
             end if;
 
             --  Check that this has not already been assigned.
@@ -1304,19 +1381,13 @@ package body XE_Back is
                Partitions.Table (PID).Command_Line
                  := Get_Variable_Name (Attr_Item);
             else
-               Write_Error_Message
-                 (Node_Id (Attribute), PID, "command_Line");
+               Write_Attr_Init_Error ("command_line");
             end if;
 
          when Attribute_Termination =>
 
             if Get_Variable_Type (Attr_Item) /= Integer_Type_Node then
-               Write_SLOC (Node_Id (Attribute));
-               Write_Name (Partitions.Table (PID).Name);
-               Write_Str ("'s termination attribute must be ");
-               Write_Str ("of termination type");
-               Write_Eol;
-               raise Parsing_Error;
+               Write_Attr_Kind_Error ("termination", "of termination type");
             end if;
 
             --  Check that it has not already been assigned.
@@ -1325,19 +1396,28 @@ package body XE_Back is
                Set_Termination
                  (PID, Termination_Type (Get_Scalar_Value (Attr_Item)));
             else
-               Write_Error_Message
-                 (Node_Id (Attribute), PID, "termination");
+               Write_Attr_Init_Error ("termination");
+            end if;
+
+         when Attribute_Passive =>
+
+            if Get_Variable_Type (Attr_Item) /= Boolean_Type_Node then
+               Write_Attr_Kind_Error ("passive", "of boolean type");
+            end if;
+
+            --  Check that it has not already been assigned.
+
+            if Partitions.Table (PID).Passive = Bunknown then
+               Set_Passive
+                 (PID, Boolean_Type (Get_Scalar_Value (Attr_Item)));
+            else
+               Write_Attr_Init_Error ("passive");
             end if;
 
          when Attribute_Reconnection =>
 
             if Get_Variable_Type (Attr_Item) /= Integer_Type_Node then
-               Write_SLOC (Node_Id (Attribute));
-               Write_Name (Partitions.Table (PID).Name);
-               Write_Str ("'s reconnection attribute must be ");
-               Write_Str ("of reconnection type");
-               Write_Eol;
-               raise Parsing_Error;
+               Write_Attr_Kind_Error ("reconnection", "of reconnection type");
             end if;
 
             --  Check that it has not already been assigned.
@@ -1345,8 +1425,7 @@ package body XE_Back is
             if Partitions.Table (PID).Reconnection = Unknown_Reconnection then
                Set_Reconnection (PID, Convert (Get_Scalar_Value (Attr_Item)));
             else
-               Write_Error_Message
-                 (Node_Id (Attribute), PID, "reconnection");
+               Write_Attr_Init_Error ("reconnection");
             end if;
 
          when Attribute_Leader =>
@@ -1373,8 +1452,29 @@ package body XE_Back is
                Next_Variable_Component (Comp_Node);
             end loop;
 
-         when Attribute_Self_Location =>
-            if Partitions.Table (PID).First_Location = Null_LID then
+         when Attribute_Storage =>
+            if Partitions.Table (PID).Mem_Location = Null_LID then
+               First_Variable_Component (Attr_Item, Comp_Node);
+               Name := Get_Variable_Name (Get_Component_Value (Comp_Node));
+               Next_Variable_Component (Comp_Node);
+               Data := Get_Variable_Name (Get_Component_Value (Comp_Node));
+               declare
+                  LID : LID_Type;
+               begin
+                  Locations.Increment_Last;
+                  LID := Locations.Last;
+                  Locations.Table (LID).Major := Name;
+                  Locations.Table (LID).Minor := Data;
+                  Locations.Table (LID).Next := Null_LID;
+                  Set_Storage (PID, LID);
+               end;
+
+            else
+               Write_Attr_Init_Error ("storage");
+            end if;
+
+         when Attribute_Protocol =>
+            if Partitions.Table (PID).F_Net_Location = Null_LID then
                Attr_Type := Get_Variable_Type (Attr_Item);
 
                case Get_Type_Kind (Attr_Type) is
@@ -1386,8 +1486,8 @@ package body XE_Back is
                      Data
                        := Get_Variable_Name (Get_Component_Value (Comp_Node));
                      Add_Location
-                       (Partitions.Table (PID).First_Location,
-                        Partitions.Table (PID).Last_Location,
+                       (Partitions.Table (PID).F_Net_Location,
+                        Partitions.Table (PID).L_Net_Location,
                         Name, Data);
 
                   when Pre_Type_Locations =>
@@ -1405,8 +1505,8 @@ package body XE_Back is
                            Data
                              := Get_Variable_Name (Get_Component_Value (C));
                            Add_Location
-                             (Partitions.Table (PID).First_Location,
-                              Partitions.Table (PID).Last_Location,
+                             (Partitions.Table (PID).F_Net_Location,
+                              Partitions.Table (PID).L_Net_Location,
                               Name, Data);
                         end;
                         Next_Variable_Component (Comp_Node);
@@ -1417,22 +1517,33 @@ package body XE_Back is
                end case;
 
             else
-               Write_Error_Message
-                 (Node_Id (Attribute), PID, "location");
+               Write_Attr_Init_Error ("location");
             end if;
 
          when Attribute_CFilter | Attribute_Unknown =>
             raise Fatal_Error;
 
       end case;
-
    end Set_Partition_Attribute;
+
+   -----------------
+   -- Set_Passive --
+   -----------------
+
+   procedure Set_Passive
+     (P : in PID_Type;
+      B : in XE.Boolean_Type) is
+   begin
+      Partitions.Table (P).Passive := B;
+   end Set_Passive;
 
    -------------
    -- Set_PID --
    -------------
 
-   procedure Set_PID (N : Name_Id; P : PID_Type) is
+   procedure Set_PID
+     (N : in Name_Id;
+      P : in PID_Type) is
    begin
       Set_Name_Table_Info (N, Int (P));
    end Set_PID;
@@ -1453,6 +1564,7 @@ package body XE_Back is
       Data        : Name_Id;
       Param_Type  : Type_Id;
       Param_Kind  : Predefined_Type;
+
    begin
 
       --  Apply pragma statement.
@@ -1554,7 +1666,6 @@ package body XE_Back is
             raise Program_Error;
 
       end case;
-
    end Set_Pragma_Statement;
 
    ----------------------
@@ -1562,17 +1673,30 @@ package body XE_Back is
    ----------------------
 
    procedure Set_Reconnection
-     (P : PID_Type; R : Reconnection_Type) is
+     (P : in PID_Type;
+      R : in Reconnection_Type) is
    begin
       Partitions.Table (P).Reconnection := R;
    end Set_Reconnection;
+
+   ------------------------
+   -- Set_Storage --
+   ------------------------
+
+   procedure Set_Storage
+     (P : in PID_Type;
+      L : in LID_Type) is
+   begin
+      Partitions.Table (P).Mem_Location := L;
+   end Set_Storage;
 
    ---------------------
    -- Set_Termination --
    ---------------------
 
    procedure Set_Termination
-     (P : PID_Type; T : Termination_Type) is
+     (P : in PID_Type;
+      T : in Termination_Type) is
    begin
       Partitions.Table (P).Termination := T;
    end Set_Termination;
@@ -1581,10 +1705,10 @@ package body XE_Back is
    -- Set_Type_Attribute --
    ------------------------
 
-   procedure Set_Type_Attribute
-     (Pre_Type : in Type_Id) is
+   procedure Set_Type_Attribute (Pre_Type : in Type_Id) is
       Component_Node : Component_Id;
       Pre_Type_Id    : Predefined_Type;
+
    begin
       if Is_Type_Composite (Pre_Type) then
          Pre_Type_Id := Get_Type_Kind (Pre_Type);
@@ -1615,17 +1739,16 @@ package body XE_Back is
    -- Set_Unit_Id --
    -----------------
 
-   procedure Set_Unit_Id (N : Name_Id; U : Unit_Id) is
+   procedure Set_Unit_Id (N : in Name_Id; U : in Unit_Id) is
    begin
       Set_Name_Table_Info (N, Int (U));
    end Set_Unit_Id;
 
-   -------------------------
-   --  Show_Configuration --
-   -------------------------
+   ------------------------
+   -- Show_Configuration --
+   ------------------------
 
    procedure Show_Configuration is
-
    begin
       Write_Str (" ------------------------------");
       Write_Eol;
@@ -1635,15 +1758,16 @@ package body XE_Back is
       Write_Eol;
       Write_Str ("Configuration :");
       Write_Eol;
-      Write_Str ("   Name        : ");
-      Write_Name (Configuration);
+
+      Write_Field (1, "Name");
+      Write_Name  (Configuration);
       Write_Eol;
 
-      Write_Str ("   Main        : ");
-      Write_Name (Main_Subprogram);
+      Write_Field (1, "Main");
+      Write_Name  (Main_Subprogram);
       Write_Eol;
 
-      Write_Str ("   Starter     : ");
+      Write_Field (1, "Starter");
       case Default_Starter is
          when Ada_Import =>
             Write_Str ("Ada code");
@@ -1655,24 +1779,24 @@ package body XE_Back is
       Write_Eol;
 
       if Def_Boot_Location_First /= Null_LID then
-         Write_Str  ("   Protocol    : ");
+         Write_Field (1, "Protocols");
          declare
             LID : LID_Type := Def_Boot_Location_First;
-            One : Boolean  := (Locations.Table (LID).Next_Location = Null_LID);
+            One : Boolean  := (Locations.Table (LID).Next = Null_LID);
          begin
             if One then
-               Write_Name (Locations.Table (LID).Protocol_Name);
+               Write_Name (Locations.Table (LID).Major);
                Write_Str  ("://");
-               Write_Name (Locations.Table (LID).Protocol_Data);
+               Write_Name (Locations.Table (LID).Minor);
 
             else
                while LID /= Null_LID loop
                   Write_Eol;
                   Write_Str ("             - ");
-                  Write_Name (Locations.Table (LID).Protocol_Name);
+                  Write_Name (Locations.Table (LID).Major);
                   Write_Str  ("://");
-                  Write_Name (Locations.Table (LID).Protocol_Data);
-                  LID := Locations.Table (LID).Next_Location;
+                  Write_Name (Locations.Table (LID).Minor);
+                  LID := Locations.Table (LID).Next;
                end loop;
             end if;
             Write_Eol;
@@ -1696,32 +1820,17 @@ package body XE_Back is
                Write_Str  ("Channel ");
                Write_Name (Channels.Table (C).Name);
                Write_Eol;
-               if Debug_Mode then
-                  Write_Str  ("   Number      : ");
-                  Write_Int (Int (C));
-                  Write_Eol;
-               end if;
-               Write_Str     ("   Partition 1 : ");
+               Write_Field (1, "Partition 1");
                P := Channels.Table (C).Lower.My_Partition;
                Write_Name (Partitions.Table (P).Name);
                Write_Eol;
-               if Debug_Mode then
-                  Write_Str ("   Channel     : ");
-                  Write_Int (Int (Channels.Table (C).Lower.Next_Channel));
-                  Write_Eol;
-               end if;
-               Write_Str     ("   Partition 2 : ");
+               Write_Field (1, "Partition 2");
                P := Channels.Table (C).Upper.My_Partition;
                Write_Name (Partitions.Table (P).Name);
                Write_Eol;
-               if Debug_Mode then
-                  Write_Str ("   Channel     : ");
-                  Write_Int (Int (Channels.Table (C).Upper.Next_Channel));
-                  Write_Eol;
-               end if;
                F := Get_Filter (C);
                if F /= No_Filter_Name then
-                  Write_Str  ("   Filter      : ");
+                  Write_Field  (1, "Filter");
                   Write_Name (F);
                   Write_Eol;
                end if;
@@ -1731,30 +1840,30 @@ package body XE_Back is
          Write_Str (" -------------------------------");
          Write_Eol;
       end if;
-
    end Show_Configuration;
 
    --------------------
    -- Show_Partition --
    --------------------
 
-   procedure Show_Partition (PID : PID_Type) is
-
+   procedure Show_Partition
+     (PID : in PID_Type)
+   is
       M : Main_Subprogram_Type;
       H : HID_Type;
-      S : Storage_Dir_Name_Type;
+      S : Directory_Name_Type;
       C : Command_Line_Type;
       T : Task_Pool_Type;
       U : CUID_Type;
 
    begin
-      Write_Str ("Partition ");
+      Write_Str  ("Partition ");
       Write_Name (Partitions.Table (PID).Name);
       Write_Eol;
 
       M := Get_Main_Subprogram (PID);
       if M /= No_Main_Subprogram then
-         Write_Str ("   Main        : ");
+         Write_Field (1, "Main");
          Write_Name (M);
          Write_Eol;
       end if;
@@ -1765,7 +1874,7 @@ package body XE_Back is
       end if;
 
       if H /= Null_HID then
-         Write_Str ("   Host        : ");
+         Write_Field (1, "Host");
          if Hosts.Table (H).Static then
             Write_Name (Hosts.Table (H).Name);
          else
@@ -1783,23 +1892,23 @@ package body XE_Back is
          Write_Eol;
       end if;
 
-      S := Get_Storage_Dir (PID);
-      if S /= No_Storage_Dir then
-         Write_Str ("   Storage     : ");
+      S := Get_Directory (PID);
+      if S /= No_Directory then
+         Write_Field (1, "Directory");
          Write_Name (S);
          Write_Eol;
       end if;
 
       C := Get_Command_Line (PID);
       if C /= No_Command_Line then
-         Write_Str ("   Command     : ");
+         Write_Field (1, "Command");
          Write_Name (C);
          Write_Eol;
       end if;
 
       T := Get_Task_Pool (PID);
       if T /= No_Task_Pool then
-         Write_Str ("   Task Pool   : ");
+         Write_Field (1, "Task Pool");
          for B in T'Range loop
             Write_Name (T (B));
             Write_Str (" ");
@@ -1808,7 +1917,7 @@ package body XE_Back is
       end if;
 
       if Get_Termination (PID) /= Unknown_Termination then
-         Write_Str ("   Termination : ");
+         Write_Field (1, "Termination");
          case Get_Termination (PID) is
             when Local_Termination =>
                Write_Str ("local");
@@ -1822,27 +1931,46 @@ package body XE_Back is
          Write_Eol;
       end if;
 
-      if Get_Location (PID) /= Null_LID then
-         Write_Str  ("   Locations   : ");
+      if Get_Protocol (PID) /= Null_LID then
+         Write_Field  (1, "Protocols");
          Write_Eol;
          declare
-            L : LID_Type := Get_Location (PID);
+            L : LID_Type := Get_Protocol (PID);
          begin
             while L /= Null_LID loop
                Write_Str  ("             - ");
-               Write_Name (Locations.Table (L).Protocol_Name);
-               if Locations.Table (L).Protocol_Data /= No_Name then
+               Write_Name (Locations.Table (L).Major);
+               if Locations.Table (L).Minor /= No_Name then
                   Write_Str ("://");
-                  Write_Name (Locations.Table (L).Protocol_Data);
+                  Write_Name (Locations.Table (L).Minor);
                end if;
                Write_Eol;
-               L := Locations.Table (L).Next_Location;
+               L := Locations.Table (L).Next;
+            end loop;
+         end;
+      end if;
+
+      if Get_Storage (PID) /= Null_LID then
+         Write_Field  (1, "Storages");
+         Write_Eol;
+         declare
+            L : LID_Type := Get_Storage (PID);
+         begin
+            while L /= Null_LID loop
+               Write_Str  ("             - ");
+               Write_Name (Locations.Table (L).Major);
+               if Locations.Table (L).Minor /= No_Name then
+                  Write_Str ("://");
+                  Write_Name (Locations.Table (L).Minor);
+               end if;
+               Write_Eol;
+               L := Locations.Table (L).Next;
             end loop;
          end;
       end if;
 
       if Partitions.Table (PID).First_Unit /= Null_CUID then
-         Write_Str ("   Units       : ");
+         Write_Field (1, "Units");
          Write_Eol;
 
          U := Partitions.Table (PID).First_Unit;
@@ -1873,5 +2001,32 @@ package body XE_Back is
    begin
       return Partitions.Table (CUnits.Table (U).Partition).To_Build;
    end To_Build;
+
+   -----------------
+   -- Write_Field --
+   -----------------
+
+   procedure Write_Field
+     (Indent : in Natural;
+      Field  : in String;
+      Width  : in Natural := Min_Width)
+   is
+      W : Natural := Width;
+
+   begin
+      for I in 1 .. Indent loop
+         Write_Str ("   ");
+      end loop;
+      if Field'Length > W then
+         W := Field'Length;
+      end if;
+      declare
+         L : String (1 .. W) := (others => ' ');
+      begin
+         L (1 .. Field'Length) := Field;
+         Write_Str (L);
+      end;
+      Write_Str (" : ");
+   end Write_Field;
 
 end XE_Back;

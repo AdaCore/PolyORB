@@ -76,11 +76,11 @@ package XE is
 
    -- Attribute_Type --
 
-   type Attribute_Type is new Types.Int range 200 .. 211;
+   type Attribute_Type is new Types.Int range 200 .. 213;
 
    Attribute_Unknown       : constant Attribute_Type := 200;
    Attribute_Host          : constant Attribute_Type := 201;
-   Attribute_Storage_Dir   : constant Attribute_Type := 202;
+   Attribute_Directory     : constant Attribute_Type := 202;
    Attribute_Main          : constant Attribute_Type := 203;
    Attribute_Command_Line  : constant Attribute_Type := 204;
    Attribute_Termination   : constant Attribute_Type := 205;
@@ -89,7 +89,9 @@ package XE is
    Attribute_CFilter       : constant Attribute_Type := 208;
    Attribute_Task_Pool     : constant Attribute_Type := 209;
    Attribute_Reconnection  : constant Attribute_Type := 210;
-   Attribute_Self_Location : constant Attribute_Type := 211;
+   Attribute_Protocol      : constant Attribute_Type := 211;
+   Attribute_Storage       : constant Attribute_Type := 212;
+   Attribute_Passive       : constant Attribute_Type := 213;
 
 
    -- Pragma_Type --
@@ -156,10 +158,10 @@ package XE is
 
    type Reconnection_Type is new Types.Int range 700 .. 703;
 
-   Unknown_Reconnection  : constant Reconnection_Type := 700;
-   Reject_On_Restart   : constant Reconnection_Type := 701;
-   Block_Until_Restart : constant Reconnection_Type := 702;
-   Fail_Until_Restart  : constant Reconnection_Type := 703;
+   Unknown_Reconnection : constant Reconnection_Type := 700;
+   Reject_On_Restart    : constant Reconnection_Type := 701;
+   Block_Until_Restart  : constant Reconnection_Type := 702;
+   Fail_Until_Restart   : constant Reconnection_Type := 703;
 
 
    -- Node_Id --
@@ -229,7 +231,7 @@ package XE is
          Anonymous : Types.Int;
       end record;
 
-   Configuration_File       : Types.File_Name_Type  := Types.No_File;
+   Configuration_File : Types.File_Name_Type  := Types.No_File;
 
 
    -- GNATDIST flags --
@@ -672,7 +674,9 @@ package XE is
    --  Initiliaze this statement with a copy of the subprogram tree. This
    --  tree contains the parameters with their associated values.
 
-   procedure Set_Token (N : String; T : Token_Type);
+   procedure Set_Token
+     (N : in String;
+      T : in Token_Type);
 
    procedure Set_Type_Kind
      (Type_Node : in Type_Id;

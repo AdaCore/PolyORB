@@ -105,8 +105,8 @@ package XE_Back is
    subtype Command_Line_Type is Types.Name_Id;
    No_Command_Line : constant Command_Line_Type := Types.No_Name;
 
-   subtype Storage_Dir_Name_Type is Types.Name_Id;
-   No_Storage_Dir  : constant Storage_Dir_Name_Type := Types.No_Name;
+   subtype Directory_Name_Type is Types.Name_Id;
+   No_Directory  : constant Directory_Name_Type := Types.No_Name;
 
    type Task_Pool_Type is array (1 .. 3) of Types.Name_Id;
    No_Task_Pool    : Task_Pool_Type;
@@ -119,6 +119,7 @@ package XE_Back is
    Default_Registration_Filter : Filter_Name_Type      := No_Filter_Name;
    Def_Boot_Location_First     : LID_Type              := Null_LID;
    Def_Boot_Location_Last      : LID_Type              := Null_LID;
+   Def_Data_Location           : LID_Type              := Null_LID;
    Default_Starter             : XE.Import_Method_Type := XE.Ada_Import;
    Default_Version_Check       : Boolean               := True;
 
@@ -159,16 +160,16 @@ package XE_Back is
    end record;
 
    type Location_Type is record
-      Protocol_Name : Types.Name_Id;
-      Protocol_Data : Types.Name_Id;
-      Next_Location : LID_Type;
+      Major : Types.Name_Id;
+      Minor : Types.Name_Id;
+      Next  : LID_Type;
    end record;
 
    type Partition_Type is record
       Name            : Partition_Name_Type;
       Node            : XE.Node_Id;
       Host            : HID_Type;
-      Storage_Dir     : Storage_Dir_Name_Type;
+      Directory     : Directory_Name_Type;
       Command_Line    : Command_Line_Type;
       Main_Subprogram : Types.Unit_Name_Type;
       Termination     : XE.Termination_Type;
@@ -176,14 +177,16 @@ package XE_Back is
       Task_Pool       : Task_Pool_Type;
       Filter          : Filter_Name_Type;
       Light_PCS       : Boolean;
+      Passive         : XE.Boolean_Type;
       Executable_File : Types.File_Name_Type;
       Partition_Dir   : Types.File_Name_Type;
       First_Unit      : CUID_Type;
       Last_Unit       : CUID_Type;
       First_Channel   : CID_Type;
       Last_Channel    : CID_Type;
-      First_Location  : LID_Type;
-      Last_Location   : LID_Type;
+      F_Net_Location  : LID_Type;
+      L_Net_Location  : LID_Type;
+      Mem_Location    : LID_Type;
       To_Build        : Boolean;
       Most_Recent     : Types.File_Name_Type;
       Global_Checksum : Types.Word;
@@ -278,7 +281,7 @@ package XE_Back is
    --  Create a new partition and store its PID in its name key.
 
    function Get_Absolute_Exec (P : PID_Type) return Types.File_Name_Type;
-   --  Look for storage_dir into partitions and compute absolute executable
+   --  Look for directory into partitions and compute absolute executable
    --  name. If null, return default.
 
    function Get_ALI_Id (N : Types.Name_Id) return ALI.ALI_Id;
@@ -306,29 +309,35 @@ package XE_Back is
    function Get_Light_PCS       (P : PID_Type) return Boolean;
    --  Return true when a partition has neither RCI nor RACW.
 
-   function Get_Location        (P : PID_Type) return LID_Type;
-   --  Look for location definition. If none, return default.
-
    function Get_Main_Subprogram (P : PID_Type) return Main_Subprogram_Type;
    --  Look for main_subprogram into partitions. If null, return default.
+
+   function Get_Protocol    (P : PID_Type) return LID_Type;
+   --  Look for first network location definition. If none, return default.
 
    function Get_Parent          (N : Types.Name_Id) return Types.Name_Id;
    --  Extract any parent from this name.
 
-   function Get_Partition_Dir   (P : PID_Type) return Types.File_Name_Type;
+   function Get_Internal_Dir   (P : PID_Type) return Types.File_Name_Type;
    --  Look for partition_dir into partitions. If null, return default.
+
+   function Get_Passive         (P : PID_Type) return XE.Boolean_Type;
+   --  Return true when a partition is passive.
 
    function Get_PID             (N : Types.Name_Id) return PID_Type;
 
    function Get_Relative_Exec   (P : PID_Type) return Types.File_Name_Type;
-   --  Look for storage_dir into partitions and compute relative executable
+   --  Look for directory into partitions and compute relative executable
    --  name into partitions. If null, return default.
 
    function Get_Reconnection    (P : PID_Type) return XE.Reconnection_Type;
    --  Look for reconnection mode into partitions. If null, return default.
 
-   function Get_Storage_Dir     (P : PID_Type) return Storage_Dir_Name_Type;
-   --  Look for storage_dir into partitions. If null, return default.
+   function Get_Storage  (P : PID_Type) return LID_Type;
+   --  Look for shared storage location. If Null8LID, return default.
+
+   function Get_Directory     (P : PID_Type) return Directory_Name_Type;
+   --  Look for directory into partitions. If null, return default.
 
    function Get_Task_Pool       (P : PID_Type) return Task_Pool_Type;
    --  Look for task_pool into partitions. If null, return default.
@@ -373,11 +382,17 @@ package XE_Back is
    procedure Set_HID
      (N : in Types.Name_Id; H : in HID_Type);
 
+   procedure Set_Passive
+     (P : in PID_Type; B : in XE.Boolean_Type);
+
    procedure Set_PID
      (N : in Types.Name_Id; P : in PID_Type);
 
    procedure Set_Reconnection
      (P : in PID_Type; R : in XE.Reconnection_Type);
+
+   procedure Set_Storage
+     (P : in PID_Type; L : in LID_Type);
 
    procedure Set_Termination
      (P : in PID_Type; T : in XE.Termination_Type);
