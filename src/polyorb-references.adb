@@ -58,6 +58,11 @@ package body PolyORB.References is
       if Profiles'Length = 0 then
          Set (R, null);
       else
+         for I in Profiles'Range loop
+            null;
+            pragma Assert (Profiles (I) /= null);
+         end loop;
+
          declare
             RIP : constant Entity_Ptr := new Reference_Info;
             TRIP : Reference_Info renames Reference_Info (RIP.all);

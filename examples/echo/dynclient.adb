@@ -45,7 +45,6 @@ with CORBA.NVList;
 with CORBA.ORB;
 --  with Broca.Naming_Tools; use Broca.Naming_Tools;
 
-pragma Elaborate_All (PolyORB.Setup.CORBA_Client);
 pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
 --  Just elaborate it.
 

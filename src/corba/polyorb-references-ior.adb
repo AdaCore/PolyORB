@@ -136,31 +136,36 @@ package body PolyORB.References.IOR is
         := Unmarshall (Buffer);
 
       Profs   : Profile_Array := (1 .. Integer (N_Profiles) => null);
+      Last_Profile : Integer := Profs'First - 1;
    begin
 
       pragma Debug
         (O ("Decapsulate_IOR: type " & Type_Id
             & " (" & N_Profiles'Img & " profiles)."));
 
-      for N in Profs'Range loop
+      for N in 1 .. N_Profiles loop
          declare
             Temp_Tag : Types.Unsigned_Long := Unmarshall (Buffer);
             Tag      : constant Profile_Tag := Profile_Tag (Temp_Tag);
          begin
-
             for I in 1 .. Length (Callbacks) loop
                if Element_Of (Callbacks, I).Tag = Tag then
-                  Profs (N) := Element_Of (Callbacks, I).
+                  Last_Profile := Last_Profile + 1;
+                  Profs (Last_Profile) := Element_Of (Callbacks, I).
                     Unmarshall_Profile_Body (Buffer);
                   --  Profiles dynamically allocated here
                   --  will be freed when the returned
                   --  reference is finalised.
                end if;
             end loop;
+            --  XXX actually if no callback matches this tag,
+            --  we should unmarshall the profile body as an encaps
+            --  and simply keep it as 'unsupported profile'.
          end;
       end loop;
 
-      Create_Reference (Profs, Type_Id, Result.Ref);
+      Create_Reference
+        (Profs (Profs'First .. Last_Profile), Type_Id, Result.Ref);
 
       return Result;
    end Unmarshall;

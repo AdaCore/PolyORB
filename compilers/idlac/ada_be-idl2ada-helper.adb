@@ -445,6 +445,9 @@ package body Ada_Be.Idl2Ada.Helper is
       II (CU);
       PL (CU, "if not Deferred_Initialization_Done then");
       II (CU);
+      PL (CU, "null;");
+      --  This 'if' block might be empty, so put a statement
+      --  in there to keep the compiler happy.
       Divert (CU, Visible_Declarations);
    end Gen_Body_Prelude;
 
@@ -596,8 +599,6 @@ package body Ada_Be.Idl2Ada.Helper is
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
-         --  Add_With (CU, "Broca.Refs");
-         --  XXX Is this necessary?
          Add_With (CU, "PolyORB.CORBA_P.Exceptions");
 
          NL (CU);
@@ -740,7 +741,6 @@ package body Ada_Be.Idl2Ada.Helper is
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
-         Add_With (CU, "Broca.Refs");
          Add_With (CU, "PolyORB.CORBA_P.Exceptions");
 
          NL (CU);
@@ -1491,6 +1491,7 @@ package body Ada_Be.Idl2Ada.Helper is
             It   : Node_Iterator;
             Case_Node : Node_Id;
             I : Long_Integer := 0;
+            Has_Default : Boolean := False;
          begin
             Init (It, Cases (Node));
             while not Is_End (It) loop
@@ -1501,6 +1502,7 @@ package body Ada_Be.Idl2Ada.Helper is
                   First_Label : Boolean := True;
                begin
                   if Default_Index (Node) = I then
+                     Has_Default := True;
                      Put (CU, "when others");
                   else
                      Init (It2, Labels (Case_Node));
@@ -1538,7 +1540,11 @@ package body Ada_Be.Idl2Ada.Helper is
                   DI (CU);
                end;
             end loop;
+            if not Has_Default then
+               Gen_When_Others_Clause (CU);
+            end if;
          end;
+
          DI (CU);
          PL (CU, "end case;");
          PL (CU, "return Result;");
@@ -1575,6 +1581,7 @@ package body Ada_Be.Idl2Ada.Helper is
             It   : Node_Iterator;
             Case_Node : Node_Id;
             I : Long_Integer := 0;
+            Has_Default : Boolean := False;
          begin
             Init (It, Cases (Node));
             while not Is_End (It) loop
@@ -1587,6 +1594,7 @@ package body Ada_Be.Idl2Ada.Helper is
                begin
                   if Default_Index (Node) = I then
                      Put (CU, "when others");
+                     Has_Default := True;
                   else
                      Init (It2, Labels (Case_Node));
                      while not Is_End (It2) loop
@@ -1615,6 +1623,9 @@ package body Ada_Be.Idl2Ada.Helper is
                   DI (CU);
                end;
             end loop;
+            if not Has_Default then
+               Gen_When_Others_Clause (CU);
+            end if;
          end;
 
          DI (CU);
@@ -2322,7 +2333,7 @@ package body Ada_Be.Idl2Ada.Helper is
             Put (CU, "TC_" & Img (Index));
          end if;
          Add_With (CU, "CORBA");
-         Put (CU, ", CORBA.To_Any (Unsigned_Long (");
+         Put (CU, ", CORBA.To_Any (CORBA.Unsigned_Long (");
          Gen_Node_Stubs_Spec (CU, Bound_Node);
          PL (CU, ")));");
          Put (CU, "CORBA.TypeCode.Add_Parameter (");
@@ -2332,11 +2343,9 @@ package body Ada_Be.Idl2Ada.Helper is
             Put (CU, "TC_" & Img (Index));
          end if;
          if Last_Bound then
-            Add_With (CU, Ada_Helper_Name (Type_Node));
             Put (CU, ", "
-                 & Ada_Helper_Name (Type_Node)
-                 & ".To_Any (");
-            Put (CU, Ada_Full_TC_Name (Type_Node));
+                 & "CORBA.To_Any ("
+                 & Ada_Full_TC_Name (Type_Node));
          else
             Put (CU, ", To_Any (TC_"
                  & Img (Index + 1));

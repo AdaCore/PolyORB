@@ -713,13 +713,14 @@ package body PolyORB.ORB is
                  := Profile_Factory_Of (TAPs (I));
             begin
                if PF /= null then
+                  --  Null profile factories may occur for access points
+                  --  that have an ad hoc protocol stack, but no binding
+                  --  data information.
                   Last_Profile := Last_Profile + 1;
                   Profiles (Last_Profile) := Create_Profile
                     (Profile_Factory_Of (TAPs (I)), TAPs (I), Oid.all);
+                  pragma Assert (Profiles (Last_Profile) /= null);
                end if;
-               --  Null profile factories may occur for access points
-               --  that have an ad hoc protocol stack, but no binding
-               --  data information.
             end;
          end loop;
 

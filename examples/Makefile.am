@@ -1,14 +1,13 @@
+SUBDIRS=	echo
+
 TESTS=  polyorb-test-no_tasking \
         polyorb-test-thread_pool \
         polyorb-test-no_tasking_poa \
-        polyorb-test-thread_pool_poa \
-        dynclient \
-        server
+        polyorb-test-thread_pool_poa
 
 all: $(TESTS)
 
-$(TESTS):
-	(cd ../src && $(MAKE) all)
+$(TESTS): force
 	$(GNATMAKE) -c \
 	-I../src -I../src/corba -I../src/soap $(XMLADA_INCLUDE) echo-impl.adb \
 	-cargs -g -O2 -Wall -gnatfa -gnatwu -gnatwe -gnatwl -bargs $(BARGS) \
@@ -20,3 +19,8 @@ $(TESTS):
 	-L../src/corba/.libs -lpolyorb-corba \
 	-L../src/soap/.libs -lpolyorb-soap \
 	-bargs $(BARGS) -largs $(XMLADA_LIBS)
+
+force:
+	(cd ../src && $(MAKE) all)
+
+clean:
