@@ -17,9 +17,8 @@ for i in `gnatls -v | sed -e '1,/Object Search Path/ d' | \
     break
   fi
 done
-S2=`echo ${S2} | sed 's/^[a-zA-Z]://'`
 if test "x$1" = "xpathtolib"; then
-  echo "${S2}"
+  echo "${S2}" | sed 's,^[a-zA-Z]:,,;s,\\,/,g'
   exit 0
 fi
 cat >sdefault.adb <<EOF
