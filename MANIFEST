@@ -483,6 +483,8 @@ ada/table.adb
 ada/table.ads
 ada/targparm.adb
 ada/targparm.ads
+ada/tempdir.ads
+ada/tempdir.adb
 ada/tree_io.adb
 ada/tree_io.ads
 ada/types.adb
