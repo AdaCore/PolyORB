@@ -76,8 +76,8 @@ package body XE_Stubs is
    procedure Create_Stub (A : in ALI_Id; Both : in Boolean);
    --  Create the caller stub and the receiver stub for a RCI or SP unit.
 
-   procedure Delete_Stub (Source_Dir, Base_Name : in File_Name_Type);
-   --  Delete stub files (ali, object) from a source directory.
+   procedure Delete_Stub (Directory, ALI_File : in File_Name_Type);
+   --  Delete stub files (ali, object) from a given directory.
 
    procedure Dwrite_Call (FD  : in File_Descriptor;
                           Ind : in Int;
@@ -241,7 +241,7 @@ package body XE_Stubs is
                   else
 
                      --  Remove previous copies of stubs stored.
-                     Delete_Stub (Directory, Units.Table (U).Sfile);
+                     Delete_Stub (Directory, ALIs.Table (ALI).Afile);
 
                   end if;
 
@@ -939,19 +939,16 @@ package body XE_Stubs is
    -- Delete_Stub --
    -----------------
 
-   procedure Delete_Stub (Source_Dir, Base_Name  : in File_Name_Type) is
-      ALI_Src : File_Name_Type := Dir (Source_Dir, Base_Name & ALI_Suffix);
-      Obj_Src : File_Name_Type := Dir (Source_Dir, Base_Name & Obj_Suffix);
+   procedure Delete_Stub (Directory, ALI_File  : in File_Name_Type) is
+      Stub_ALI : File_Name_Type := Dir (Directory, ALI_File);
+      Stub_Obj : File_Name_Type := Strip_Suffix (Stub_ALI) & Obj_Suffix;
    begin
-
-      if Is_Regular_File (ALI_Src) then
-         Delete (ALI_Src);
+      if Is_Regular_File (Stub_ALI) then
+         Delete (Stub_ALI);
       end if;
-
-      if Is_Regular_File (Obj_Src) then
-         Delete (Obj_Src);
+      if Is_Regular_File (Stub_Obj) then
+         Delete (Stub_Obj);
       end if;
-
    end Delete_Stub;
 
    -----------------

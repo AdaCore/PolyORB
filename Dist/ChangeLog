@@ -1,3 +1,12 @@
+1999-07-23  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: gnatdist was supposed to remove object and ali
+ 	files of rci units that are not configured on a partition. This
+ 	could happen when the user modifies the configuration file and
+ 	when rci units previously configured on a given partition are no
+ 	longer configured on it. The deletion was incorrect because the
+ 	filenames were incorrect.
+	
 1999-07-20  Pascal Obry  <obry@gnat.com>
 
 	* xe_utils.ads: add some comments.
