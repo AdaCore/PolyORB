@@ -1,8 +1,8 @@
-IDLAC = ../../idlac/idlac
-SOCK_CONS = ../../adasockets/src/sockets-constants.ads
+include $(srcdir)/../Makefile.common
 
 GNATMAKE_FLAGS = -I$(srcdir) \
 	-I../naming \
+	-I$(srcdir)/../naming \
 	-I../../src \
 	-I$(srcdir)/../../src \
 	-I../../adasockets/src \
@@ -146,28 +146,13 @@ coseventchanneladmin-proxypullsupplier-impl.ads \
 coseventchanneladmin-eventchannel-impl.adb \
 coseventchanneladmin-eventchannel-impl.ads
 
-CLEANFILES = b~*.* *.o *.ali $(GEN_1) $(GEN_2) $(PROGRAM)
-
-DISTCLEANFILES = $(PROGRAM)
-
-all-local: $(PROGRAM)
-
-SUFFIXES = .idl .ads .adb
+CLEANFILES += $(GEN_1) $(GEN_2)
 
 $(GEN_1): $(IDL_1) $(IDLAC)
-	$(IDLAC) $(IDL_1)
+	$(IDLAC) -I$(srcdir) $(IDL_1)
 
 $(GEN_2): $(IDL_2) $(IDLAC)
-	$(IDLAC) $(IDL_2)
-
-$(IDLAC): force
-	cd ../../idlac && $(MAKE) idlac
-
-$(SOCK_CONS):
-	cd ../../adasockets/src && $(MAKE) sockets-constants.ads
+	$(IDLAC) -I$(srcdir) $(IDL_2)
 
 $(PROGRAM): force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2)
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
-
-force::
-	cd ../../src && $(MAKE)

@@ -1,5 +1,4 @@
-IDLAC = ../../idlac/idlac
-SOCK_CONS = ../../adasockets/src/sockets-constants.ads
+include $(srcdir)/../Makefile.common
 
 GNATMAKE_FLAGS = -I$(srcdir) \
 	-I../../src \
@@ -58,13 +57,7 @@ cosnaming-namingcontext-impl.ads \
 cosnaming-bindingiterator-impl.adb \
 cosnaming-bindingiterator-impl.ads
 
-CLEANFILES = b~*.* *.o *.ali $(GEN_1) $(GEN_2) $(PROGRAM)
-
-DISTCLEANFILES = $(PROGRAM)
-
-all-local: $(PROGRAM)
-
-SUFFIXES = .idl .ads .adb
+CLEANFILES += $(GEN_1) $(GEN_2)
 
 $(GEN_1): $(IDL_1) $(IDLAC)
 	$(IDLAC) $(IDL_1)
@@ -72,14 +65,5 @@ $(GEN_1): $(IDL_1) $(IDLAC)
 $(GEN_2): $(IDL_2) $(IDLAC)
 	$(IDLAC) $(IDL_2)
 
-$(IDLAC): force
-	cd ../../idlac && $(MAKE) idlac
-
-$(SOCK_CONS):
-	cd ../../adasockets/src && $(MAKE) sockets-constants.ads
-
 $(PROGRAM): force $(GEN_1) $(GEN_2) $(IMP_1) $(IMP_2)
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
-
-force::
-	cd ../../src && $(MAKE)

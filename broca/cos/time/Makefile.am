@@ -1,10 +1,8 @@
 include $(srcdir)/../Makefile.common
 
-all-local: test_time
+PROGRAM = test_time
 
-CLEANFILES += test_time $(GEN_COSTIME)
-
-DISTCLEANFILES += test_time
+CLEANFILES += $(GEN_COSTIME)
 
 GEN_COSTIME =	costime.ads costime.adb \
 		costime-helper.ads costime-helper.adb \
@@ -33,4 +31,3 @@ $(GEN_COSTIME): CosTime.idl TimeBase.idl $(IDLAC)
 
 test_time: force $(GEN_COSTIME)
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
-
