@@ -1073,8 +1073,14 @@ package body Exp_Dist is
       RPC_Receiver                   : Entity_Id;
       RPC_Receiver_Statements        : List_Id;
       RPC_Receiver_Case_Alternatives : constant List_Id := New_List;
+      RPC_Receiver_Elsif_Parts       : constant List_Id := New_List;
       RPC_Receiver_Request           : Entity_Id;
       RPC_Receiver_Subp_Id           : Entity_Id;
+      --  Subprogram identifier from RPC receiver body
+
+      RPC_Receiver_Subp_Index        : Entity_Id;
+      --  Subprogram number (index within the list of all remotely callable
+      --  primitives).
 
       Subp_Str : String_Id;
 
@@ -1102,12 +1108,28 @@ package body Exp_Dist is
       if not Is_RAS then
          RPC_Receiver := Make_Defining_Identifier (Loc,
                            New_Internal_Name ('P'));
+         RPC_Receiver_Subp_Index := Make_Defining_Identifier (Loc,
+                                      New_Internal_Name ('S'));
          Build_RPC_Receiver_Body (
            RPC_Receiver => RPC_Receiver,
            Request      => RPC_Receiver_Request,
            Subp_Id      => RPC_Receiver_Subp_Id,
            Stmts        => RPC_Receiver_Statements,
            Decl         => RPC_Receiver_Decl);
+         Append_To (Declarations (RPC_Receiver_Decl),
+           Make_Object_Declaration (Loc,
+             Defining_Identifier => RPC_Receiver_Subp_Index,
+             Object_Definition   => New_Occurrence_Of (Standard_Integer, Loc),
+             Expression          =>
+               Make_Attribute_Reference (Loc,
+                 Prefix         => New_Occurrence_Of (Standard_Integer, Loc),
+                 Attribute_Name => Name_Last)));
+
+         Append_To (RPC_Receiver_Statements,
+           Make_Implicit_If_Statement (Designated_Type,
+             Condition       => New_Occurrence_Of (Standard_False, Loc),
+             Then_Statements => New_List,
+             Elsif_Parts     => RPC_Receiver_Elsif_Parts));
       end if;
 
       --  Build callers, receivers for every primitive operations and a RPC
@@ -1201,8 +1223,8 @@ package body Exp_Dist is
 
                   --  Add a case alternative to the receiver
 
-                  Append_To (RPC_Receiver_Case_Alternatives,
-                    Make_Implicit_If_Statement (Designated_Type,
+                  Append_To (RPC_Receiver_Elsif_Parts,
+                    Make_Elsif_Part (Loc,
                       Condition =>
                         Make_Function_Call (Loc,
                           Name =>
@@ -1212,6 +1234,18 @@ package body Exp_Dist is
                             New_Occurrence_Of (RPC_Receiver_Subp_Id, Loc),
                             Make_String_Literal (Loc, Subp_Str))),
                       Then_Statements => New_List (
+                        Make_Assignment_Statement (Loc,
+                          Name =>
+                            New_Occurrence_Of (RPC_Receiver_Subp_Index, Loc),
+                          Expression =>
+                            Make_Integer_Literal (Loc,
+                               Current_Primitive_Number)))));
+
+                  Append_To (RPC_Receiver_Case_Alternatives,
+                    Make_Case_Statement_Alternative (Loc,
+                      Discrete_Choices => New_List (
+                        Make_Integer_Literal (Loc, Current_Primitive_Number)),
+                      Statements       => New_List (
                         Make_Procedure_Call_Statement (Loc,
                           Name                   =>
                             New_Occurrence_Of (Current_Receiver, Loc),
@@ -1232,8 +1266,16 @@ package body Exp_Dist is
       --  Build the case statement and the heart of the subprogram
 
       if not Is_RAS then
-         Append_List_To (RPC_Receiver_Statements,
-           RPC_Receiver_Case_Alternatives);
+         Append_To (RPC_Receiver_Case_Alternatives,
+           Make_Case_Statement_Alternative (Loc,
+             Discrete_Choices => New_List (Make_Others_Choice (Loc)),
+             Statements       => New_List (Make_Null_Statement (Loc))));
+
+         Append_To (RPC_Receiver_Statements,
+           Make_Case_Statement (Loc,
+             Expression   =>
+               New_Occurrence_Of (RPC_Receiver_Subp_Index, Loc),
+             Alternatives => RPC_Receiver_Case_Alternatives));
 
          Append_To (Decls, RPC_Receiver_Decl);
 
