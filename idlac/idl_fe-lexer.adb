@@ -24,17 +24,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO;
 with Ada.Command_Line;
+with Ada.Text_IO;
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 with Ada.Characters.Handling;
 with Ada.Strings.Fixed;
 with Ada.Strings;
 with Ada.Strings.Maps;
+
+with GNAT.Command_Line;
 with GNAT.Case_Util;
 with GNAT.OS_Lib;
+
 with Idl_Fe.Debug;
 pragma Elaborate_All (Idl_Fe.Debug);
+
 with Platform;
 
 package body Idl_Fe.Lexer is
@@ -1098,9 +1102,14 @@ package body Idl_Fe.Lexer is
    ------------------
    --  Initialize  --
    ------------------
-   procedure Initialize (Filename : in String;
-                         Preprocess : in Boolean;
-                         Keep_Temporary_Files : in Boolean) is
+
+   procedure Initialize
+     (Filename : in String;
+      Preprocess : in Boolean;
+      Keep_Temporary_Files : in Boolean)
+   is
+      use GNAT.OS_Lib;
+
       Idl_File : Ada.Text_IO.File_Type;
    begin
       if Filename'Length = 0 then
@@ -1111,13 +1120,16 @@ package body Idl_Fe.Lexer is
       Lexer.Keep_Temporary_Files := Keep_Temporary_Files;
       Current_Location.Line := 0;
       Current_Location.Col := 0;
+
       declare
-         use GNAT.OS_Lib;
-         use Idl_Fe.Errors;
          use Ada.Strings.Fixed;
          use Ada.Strings.Maps;
          use Ada.Strings;
+
+         use Idl_Fe.Errors;
+
          Separator : Natural;
+
       begin
          Separator := Index (Filename,
                              To_Set (Directory_Separator),
@@ -1133,9 +1145,11 @@ package body Idl_Fe.Lexer is
             Current_Location.Filename := new String'(Filename);
          end if;
       end;
+
       if Preprocess then
          declare
-            use GNAT.OS_Lib;
+            use GNAT.Command_Line;
+
             Spawn_Result : Boolean;
             Fd : File_Descriptor;
          begin
@@ -1148,13 +1162,21 @@ package body Idl_Fe.Lexer is
             Add_Argument ("-x");
             Add_Argument ("c++");
             Add_Argument ("-ansi");
+
+            Goto_Section ("cppargs");
+            while Getopt ("*") /= Ascii.NUL loop
+               --  Pass user options to the preprocessor.
+               Add_Argument (Full_Switch);
+            end loop;
+
             Create_Temp_File (Fd, Tmp_File_Name);
             if Fd = Invalid_FD then
-               Idl_Fe.Errors.Lexer_Error (Ada.Command_Line.Command_Name &
-                                          ": cannot create temporary " &
-                                          "file name",
-                                          Idl_Fe.Errors.Fatal,
-                                          Get_Real_Location);
+               Idl_Fe.Errors.Lexer_Error
+                 (Ada.Command_Line.Command_Name &
+                  ": cannot create temporary " &
+                  "file name",
+                  Idl_Fe.Errors.Fatal,
+                  Get_Real_Location);
             end if;
             --  We don't need the fd.
             Close (Fd);
@@ -1168,19 +1190,22 @@ package body Idl_Fe.Lexer is
             pragma Debug (O ("Initialize : preprocessing done"));
             if not Spawn_Result then
                pragma Debug (O ("Initialize : preprocessing failed"));
-               Idl_Fe.Errors.Lexer_Error (Ada.Command_Line.Command_Name &
-                                          " : preprocessor failed",
-                                          Idl_Fe.Errors.Fatal,
-                                          Idl_Fe.Errors.No_Location);
+               Idl_Fe.Errors.Lexer_Error
+                 (Ada.Command_Line.Command_Name &
+                  " : preprocessor failed",
+                  Idl_Fe.Errors.Fatal,
+                  Idl_Fe.Errors.No_Location);
             end if;
-            Ada.Text_IO.Open (Idl_File,
-                              Ada.Text_IO.In_File,
-                              Tmp_File_Name);
+            Ada.Text_IO.Open
+              (Idl_File,
+               Ada.Text_IO.In_File,
+               Tmp_File_Name);
          end;
       else
-         Ada.Text_IO.Open (Idl_File,
-                           Ada.Text_IO.In_File,
-                           Filename);
+         Ada.Text_IO.Open
+           (Idl_File,
+            Ada.Text_IO.In_File,
+            Filename);
       end if;
       pragma Debug (O ("Initialize : end"));
       Ada.Text_IO.Set_Input (Idl_File);

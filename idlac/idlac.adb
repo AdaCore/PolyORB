@@ -95,12 +95,8 @@ begin
          Usage;
       end if;
 
-      Goto_Section ("cppargs");
-      while Getopt ("*") /= Ascii.NUL loop
-         --  FIXME: Support passing arguments to CPP.
-         --  Add_Preproc_Argument (Full_Switch);
-         Put_Line ("Ignoring CPP arg: " & Full_Switch);
-      end loop;
+      --  The "cppargs" section is processed in
+      --  Idl_Fe.Lexer.Initialize.
 
    exception
       when Invalid_Switch    =>

@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# $Id: //depot/adabroker/main/broca/src/adabroker-config.in#5 $
+# $Id: //depot/adabroker/main/broca/src/adabroker-config.in#6 $
 #
 
 prefix="@prefix@"
@@ -8,4 +8,4 @@ exec_prefix="@exec_prefix@"
 libdir="@libdir@"
 alidir="$libdir/adabroker"
 
-echo "-I$alidir -L$alidir -largs -lbroca"
+echo "-I$alidir -largs -L$libdir -lbroca"
