@@ -58,7 +58,7 @@ install-exec-local:
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(INSTALL_PROGRAM) po_cos_naming $(DESTDIR)$(bindir)/po_cos_naming
 	$(INSTALL_PROGRAM) po_cos_naming_shell $(DESTDIR)$(bindir)/po_cos_naming_shell
-	for f in $(srcdir)/cos*.ad[bs] cos*.ali polyorb-corba_p-naming_tools.ad[bs] polyorb-corba_p-naming_tools.ali ; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
+	for f in $(srcdir)/cos*.ad[bs] cos*.ali $(srcdir)/polyorb-corba_p-naming_tools.ad[bs] polyorb-corba_p-naming_tools.ali ; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
 $(ir_exe): force_ir
 
