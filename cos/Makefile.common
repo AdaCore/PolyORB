@@ -123,8 +123,10 @@ gen: $(GEN)
 
 install-exec-local:
 	$(INSTALL) -d $(DESTDIR)$(bindir)
-	for p in $(PROGS); do \
+	for p in dummy $(PROGS); do \
+	  if [ $$p != dummy ]; then \
 	    $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$p; \
+	  fi; \
 	done
 
 install-data-local:
