@@ -50,22 +50,24 @@ package PolyORB.Servants is
 
    function Handle_Message
      (S   : access Servant;
-      Msg : Components.Message'Class)
+      Msg :        Components.Message'Class)
       return Components.Message'Class;
 
    function Execute_Servant
      (S   : access Servant;
-      Msg : Components.Message'Class)
-      return Components.Message'Class is abstract;
+      Msg :        Components.Message'Class)
+     return Components.Message'Class
+      is abstract;
 
    procedure Set_Thread_Policy
      (S  : access Servant;
-      TP : POA_Policies.Thread_Policy.ThreadPolicy_Access);
+      TP :        POA_Policies.Thread_Policy.ThreadPolicy_Access);
    pragma Inline (Set_Thread_Policy);
    --  Set a ThreadPolicy pointer for the servant
 
-   function Notepad_Of (S : Servant_Access)
-                       return PolyORB.Annotations.Notepad_Access;
+   function Notepad_Of
+     (S : Servant_Access)
+     return PolyORB.Annotations.Notepad_Access;
    pragma Inline (Notepad_Of);
    --  Return Notepad associated to a servant.
 

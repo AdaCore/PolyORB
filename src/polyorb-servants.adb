@@ -48,7 +48,8 @@ package body PolyORB.Servants is
    -- Notepad_Of --
    ----------------
 
-   function Notepad_Of (S : Servant_Access)
+   function Notepad_Of
+     (S : Servant_Access)
      return PolyORB.Annotations.Notepad_Access is
    begin
       return S.Notepad'Access;
@@ -60,7 +61,7 @@ package body PolyORB.Servants is
 
    procedure Set_Thread_Policy
      (S  : access Servant;
-      TP : POA_Policies.Thread_Policy.ThreadPolicy_Access) is
+      TP :        POA_Policies.Thread_Policy.ThreadPolicy_Access) is
    begin
       S.TP_Access := TP;
    end Set_Thread_Policy;
@@ -71,7 +72,7 @@ package body PolyORB.Servants is
 
    function Handle_Message
      (S   : access Servant;
-      Msg : Components.Message'Class)
+      Msg :        Components.Message'Class)
       return Components.Message'Class
    is
       use PolyORB.Objects.Interface;
