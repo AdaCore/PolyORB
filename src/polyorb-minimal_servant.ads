@@ -76,10 +76,6 @@ private
    type Implementation (As_Servant : access Servant'Class)
    is new PolyORB.Servants.Servant with null record;
 
-   function "=" (X, Y : Implementation) return Boolean;
-   --  XXX Why does the compiler require the presence of this operator?
-   --  As a descendant of Component, Implementation is a limited type!
-
    function Execute_Servant
      (Self : access Implementation;
       Msg  : PolyORB.Components.Message'Class)

@@ -96,15 +96,4 @@ package body PolyORB.Minimal_Servant is
       return S.Neutral_View'Access;
    end To_PolyORB_Servant;
 
-   ----------
-   -- '=' --
-   ----------
-
-   function "=" (X, Y : Implementation) return Boolean
-   is
-   begin
-      raise Program_Error;
-      return False;
-   end "=";
-
 end PolyORB.Minimal_Servant;
