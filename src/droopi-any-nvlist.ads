@@ -1,7 +1,5 @@
 --  $Id$
 
-with Ada.Finalization;
-
 with Sequences.Unbounded;
 pragma Elaborate_All (Sequences.Unbounded);
 
@@ -65,7 +63,6 @@ private
    type Object_Ptr is access all Object;
 
    procedure Finalize (Obj : in out Object);
-
 
    function Create_Object return Object_Ptr;
    --  Create a new and empty Object

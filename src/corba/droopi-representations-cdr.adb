@@ -25,8 +25,6 @@ with Droopi.Types;
 
 package body Droopi.Representations.CDR is
 
-   --  use CORBA;
-
    use Droopi.Log;
    use Droopi.CORBA_P.Exceptions;
    use Droopi.CORBA_P.Exceptions.Stack;
@@ -239,7 +237,8 @@ package body Droopi.Representations.CDR is
       pragma Debug (O ("Marshall (WChar) : enter"));
       Align_Marshall_Big_Endian_Copy
         (Buffer,
-         Stream_Element_Array'(Stream_Element (Droopi.Types.Wchar'Pos (Data) / 256),
+         Stream_Element_Array'
+         (Stream_Element (Droopi.Types.Wchar'Pos (Data) / 256),
          Stream_Element (Droopi.Types.Wchar'Pos (Data) mod 256)), 2);
       pragma Debug (O ("Marshall (WChar) : end"));
    end Marshall;
@@ -411,17 +410,20 @@ package body Droopi.Representations.CDR is
       Data   :        Droopi.Types.Wide_String)
    is
       Equiv : constant Wide_String
-        := Droopi.Types.To_Wide_String (Data) & Standard.Wide_Character'Val (0);
+        := Droopi.Types.To_Wide_String (Data)
+        & Standard.Wide_Character'Val (0);
 
       --  XXXXX: Val (0) is suspicious ...
    begin
       pragma Debug (O ("Marshall (Droopi.Types.Wide_String) : enter"));
-      pragma Debug (O ("Marshall (Droopi.Types.Wide_String) : length is " &
-                       Droopi.Types.Unsigned_Long'Image (Equiv'Length)));
+      pragma Debug (O ("Marshall (Droopi.Types.Wide_String) : length is "
+                       & Droopi.Types.Unsigned_Long'Image (Equiv'Length)));
 
       Marshall (Buffer, Droopi.Types.Unsigned_Long'(Equiv'Length));
       for I in Equiv'Range loop
-         Marshall (Buffer, Droopi.Types.Wchar'Val (Wide_Character'Pos (Equiv (I))));
+         Marshall
+           (Buffer, Droopi.Types.Wchar'Val
+            (Wide_Character'Pos (Equiv (I))));
       end loop;
 
       pragma Debug (O ("Marshall (Droopi.Types.Wide_String) : end"));
@@ -656,10 +658,13 @@ package body Droopi.Representations.CDR is
                  Droopi.Any.TypeCode.Content_Type (Data_Type);
             begin
                pragma Debug (O ("Marshall_From_Any : dealing with an array"));
-               while Droopi.Any.TypeCode.Kind (Content_True_Type) = Tk_Array loop
+
+               while Droopi.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
+               loop
                   Content_True_Type :=
                     Droopi.Any.TypeCode.Content_Type (Content_True_Type);
                end loop;
+
                for I in 0 .. Nb - 1 loop
                   Value := Droopi.Any.Get_Aggregate_Element
                     (Data,
@@ -702,7 +707,9 @@ package body Droopi.Representations.CDR is
 
          when Tk_Ulonglong =>
             pragma Debug (O ("Marshall_From_Any : dealing with a ULongLong"));
-            Marshall (Buffer, Droopi.Types.Unsigned_Long_Long'(From_Any (Data)));
+            Marshall
+              (Buffer,
+               Droopi.Types.Unsigned_Long_Long'(From_Any (Data)));
 
          when Tk_Longdouble =>
             pragma Debug
@@ -870,12 +877,13 @@ package body Droopi.Representations.CDR is
                                       & "to marshall a new  member"));
                      Marshall (Complex_Buffer,
                                Droopi.Any.TypeCode.Member_Name (Data, I));
-                     pragma Debug (O ("Marshall (TypeCode) : marshalling "
-                                      & "the type ("
-                                      & TCKind'Image
-                                      (TypeCode.Kind
-                                       (Droopi.Any.TypeCode.Member_Type (Data, I)))
-                                      & ")"));
+                     pragma Debug
+                       (O ("Marshall (TypeCode) : marshalling "
+                           & "the type ("
+                           & TCKind'Image
+                           (TypeCode.Kind
+                            (Droopi.Any.TypeCode.Member_Type (Data, I)))
+                           & ")"));
                      Marshall (Complex_Buffer,
                                Droopi.Any.TypeCode.Member_Type (Data, I));
                      pragma Debug (O ("Marshall (TypeCode) : "
@@ -889,14 +897,18 @@ package body Droopi.Representations.CDR is
          when Tk_Union =>
             Marshall (Buffer, Droopi.Types.Unsigned_Long'(16));
             Start_Encapsulation (Complex_Buffer);
-            Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Id (Data));
-            Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Name (Data));
-            Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Discriminator_Type (Data));
-            Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Default_Index (Data));
+            Marshall
+              (Complex_Buffer,
+               Droopi.Any.TypeCode.Id (Data));
+            Marshall
+              (Complex_Buffer,
+               Droopi.Any.TypeCode.Name (Data));
+            Marshall
+              (Complex_Buffer,
+               Droopi.Any.TypeCode.Discriminator_Type (Data));
+            Marshall
+              (Complex_Buffer,
+               Droopi.Any.TypeCode.Default_Index (Data));
             declare
                Nb : Droopi.Types.Unsigned_Long :=
                  Droopi.Any.TypeCode.Member_Count (Data);
@@ -904,12 +916,15 @@ package body Droopi.Representations.CDR is
                Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Marshall_From_Any (Complex_Buffer,
-                                        Droopi.Any.TypeCode.Member_Label (Data, I));
-                     Marshall (Complex_Buffer,
-                               Droopi.Any.TypeCode.Member_Name (Data, I));
-                     Marshall (Complex_Buffer,
-                               Droopi.Any.TypeCode.Member_Type (Data, I));
+                     Marshall_From_Any
+                       (Complex_Buffer,
+                        Droopi.Any.TypeCode.Member_Label (Data, I));
+                     Marshall
+                       (Complex_Buffer,
+                        Droopi.Any.TypeCode.Member_Name (Data, I));
+                     Marshall
+                       (Complex_Buffer,
+                        Droopi.Any.TypeCode.Member_Type (Data, I));
                   end loop;
                end if;
             end;
@@ -1015,14 +1030,18 @@ package body Droopi.Representations.CDR is
          when Tk_Value =>
             Marshall (Buffer, Droopi.Types.Unsigned_Long'(29));
             Start_Encapsulation (Complex_Buffer);
-            Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Id (Data));
-            Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Name (Data));
-            Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Type_Modifier (Data));
-            Marshall (Complex_Buffer,
-                      Droopi.Any.TypeCode.Concrete_Base_Type (Data));
+            Marshall
+              (Complex_Buffer,
+               Droopi.Any.TypeCode.Id (Data));
+            Marshall
+              (Complex_Buffer,
+               Droopi.Any.TypeCode.Name (Data));
+            Marshall
+              (Complex_Buffer,
+               Droopi.Any.TypeCode.Type_Modifier (Data));
+            Marshall
+              (Complex_Buffer,
+               Droopi.Any.TypeCode.Concrete_Base_Type (Data));
             declare
                Nb : Droopi.Types.Unsigned_Long :=
                  Droopi.Any.TypeCode.Member_Count (Data);
@@ -1030,12 +1049,15 @@ package body Droopi.Representations.CDR is
                Marshall (Complex_Buffer, Nb);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
-                     Marshall (Complex_Buffer,
-                               Droopi.Any.TypeCode.Member_Name (Data, I));
-                     Marshall (Complex_Buffer,
-                               Droopi.Any.TypeCode.Member_Type (Data, I));
-                     Marshall (Complex_Buffer,
-                               Droopi.Any.TypeCode.Member_Visibility (Data, I));
+                     Marshall
+                       (Complex_Buffer,
+                        Droopi.Any.TypeCode.Member_Name (Data, I));
+                     Marshall
+                       (Complex_Buffer,
+                        Droopi.Any.TypeCode.Member_Type (Data, I));
+                     Marshall
+                       (Complex_Buffer,
+                        Droopi.Any.TypeCode.Member_Visibility (Data, I));
                   end loop;
                end if;
             end;
@@ -1294,7 +1316,8 @@ package body Droopi.Representations.CDR is
      return Droopi.Types.Boolean is
    begin
       pragma Debug (O ("Unmarshall (Boolean) : enter & end"));
-      return Droopi.Types.Boolean'Val (Droopi.Types.Octet'(Unmarshall (Buffer)));
+      return Droopi.Types.Boolean'Val
+        (Droopi.Types.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
@@ -1302,7 +1325,8 @@ package body Droopi.Representations.CDR is
      return Droopi.Types.Char is
    begin
       pragma Debug (O ("Unmarshall (Char) : enter & end"));
-      return Droopi.Types.Char'Val (Droopi.Types.Octet'(Unmarshall (Buffer)));
+      return Droopi.Types.Char'Val
+        (Droopi.Types.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
@@ -1490,7 +1514,8 @@ package body Droopi.Representations.CDR is
      return Droopi.Types.Identifier is
    begin
       pragma Debug (O ("Unmarshall (Identifier) : enter & end"));
-      return Droopi.Types.Identifier (Droopi.Types.String'(Unmarshall (Buffer)));
+      return Droopi.Types.Identifier
+        (Droopi.Types.String'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
@@ -1498,7 +1523,8 @@ package body Droopi.Representations.CDR is
      return Droopi.Types.ScopedName is
    begin
       pragma Debug (O ("Unmarshall (ScopedName) : enter & end"));
-      return Droopi.Types.ScopedName (Droopi.Types.String'(Unmarshall (Buffer)));
+      return Droopi.Types.ScopedName
+        (Droopi.Types.String'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
@@ -1506,7 +1532,8 @@ package body Droopi.Representations.CDR is
      return Droopi.Types.RepositoryId is
    begin
       pragma Debug (O ("Unmarshall (RepositoryId) : enter & end"));
-      return Droopi.Types.RepositoryId (Droopi.Types.String'(Unmarshall (Buffer)));
+      return Droopi.Types.RepositoryId
+        (Droopi.Types.String'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
@@ -1514,7 +1541,8 @@ package body Droopi.Representations.CDR is
      return Droopi.Any.ValueModifier is
    begin
       pragma Debug (O ("Unmarshall (ValueModifier) : enter & end"));
-      return Droopi.Any.ValueModifier (Droopi.Types.Short'(Unmarshall (Buffer)));
+      return Droopi.Any.ValueModifier
+        (Droopi.Types.Short'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
@@ -1522,7 +1550,8 @@ package body Droopi.Representations.CDR is
      return Droopi.Any.Visibility is
    begin
       pragma Debug (O ("Unmarshall (Visibility) : enter & end"));
-      return Droopi.Any.Visibility (Droopi.Types.Short'(Unmarshall (Buffer)));
+      return Droopi.Any.Visibility
+        (Droopi.Types.Short'(Unmarshall (Buffer)));
    end Unmarshall;
 
    function Unmarshall
@@ -1784,11 +1813,13 @@ package body Droopi.Representations.CDR is
                  TypeCode.Content_Type (Tc);
                Arg : Droopi.Any.Any;
             begin
-               while Droopi.Any.TypeCode.Kind (Content_True_Type) = Tk_Array loop
+               while Droopi.Any.TypeCode.Kind (Content_True_Type) = Tk_Array
+               loop
                   Nb := Nb * TypeCode.Length (Content_True_Type);
                   Content_True_Type :=
                     TypeCode.Content_Type (Content_True_Type);
                end loop;
+
                Set_Any_Aggregate_Value (Result);
                if Nb /= 0 then
                   for I in 0 .. Nb - 1 loop
@@ -2565,7 +2596,8 @@ package body Droopi.Representations.CDR is
 --   begin
 --      Droopi.CORBA_P.Object.Unmarshall
 --        (Buffer, Droopi.CORBA_P.Object.Object_Type (Obj.all));
---      Droopi.Types.AbstractBase.Set (Data, Droopi.Types.Impl.Object_Ptr (Obj));
+--      Droopi.Types.AbstractBase.Set
+--        (Data, Droopi.Types.Impl.Object_Ptr (Obj));
 --   end Unmarshall;
 
    ----------------

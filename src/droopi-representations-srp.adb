@@ -21,12 +21,10 @@ package body Droopi.Representations.SRP is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-
-   -----------------------------------
-
    ------------------------------------------
    -- Part taken from AWS (Ada Web Server) --
    ------------------------------------------
+
    ----------------
    -- Decode_URL --
    ----------------
@@ -458,7 +456,8 @@ package body Droopi.Representations.SRP is
    begin
       Encode_URL (Local_SRP_Info);
       Coded_URL :=
-        new String'(Types.To_Standard_String (From_Any (Join (Local_SRP_Info))));
+        new String'(Types.To_Standard_String
+                    (From_Any (Join (Local_SRP_Info))));
       pragma Debug (O ("Coded URL : " & Coded_URL.all));
 
       for I in Coded_URL.all'Range loop
