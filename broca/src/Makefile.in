@@ -108,7 +108,7 @@ CLEANFILES = *.ali
 
 LINK = libtool $(ADA) -o libbroca.la
 
-ADAFLAGS = $(CFLAGS) -I../adasockets/src -g -O2
+ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao -I../adasockets/src -g -O2 $(CFLAGS)
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/../support/mkinstalldirs
 CONFIG_CLEAN_FILES = 

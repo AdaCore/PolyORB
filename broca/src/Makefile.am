@@ -61,7 +61,7 @@ CLEANFILES = *.ali
 
 LINK = libtool $(ADA) -o libbroca.la
 
-ADAFLAGS = $(CFLAGS) -I../adasockets/src -g -O2
+ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao -I../adasockets/src -g -O2 $(CFLAGS)
 
 %.lo: %.adb
 	@chmod +x ./adacompiler
