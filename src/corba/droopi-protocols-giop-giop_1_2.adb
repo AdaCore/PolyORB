@@ -351,7 +351,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
      (Buffer            : access Buffer_Type;
       Request_Id        : out Types.Unsigned_Long;
       Response_Expected : out Boolean;
-      Target_Ref        : out Target_Address;
+      Target_Ref        : out Target_Address_Access;
       Operation         : out Types.String)
    is
       use  Representations.CDR;
@@ -386,23 +386,37 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
          when 0  =>
             declare
                   Obj : Stream_Element_Array :=  Unmarshall (Buffer);
+                  Target : aliased Target_Address :=  Target_Address'(
+                          Address_Type => Key_Addr,
+                          Object_Key => new Object_Id'(Object_Id (Obj)));
             begin
-                  Target_Ref := Target_Address'(Address_Type => Key_Addr,
-                  Object_Key => new Object_Id'(Object_Id (Obj)));
+                  Target_Ref := Target'Unchecked_Access;
             end;
          when 1  =>
-            Target_Ref := Target_Address'(Address_Type => Profile_Addr,
-                Profile  => Binding_Data.IIOP.Unmarshall_IIOP_Profile_Body
-                           (Buffer));
+            declare
+                  Target : aliased Target_Address :=
+                    Target_Address'(Address_Type => Profile_Addr,
+                    Profile  =>  Binding_Data.IIOP.
+                                 Unmarshall_IIOP_Profile_Body (Buffer));
+            begin
+                  Target_Ref := Target'Unchecked_Access;
+            end;
+
          when 2  =>
             declare
                   Temp_Ref :  IOR_Addressing_Info_Access :=
                                 new IOR_Addressing_Info;
+
             begin
                   Temp_Ref.Selected_Profile_Index := Unmarshall (Buffer);
                   Temp_Ref.IOR := Unmarshall (Buffer);
-                  Target_Ref := Target_Address'(Address_Type => Reference_Addr,
+                  declare
+                        Target : aliased Target_Address := Target_Address'
+                              (Address_Type => Reference_Addr,
                               Ref  => Temp_Ref);
+                  begin
+                        Target_Ref := Target'Unchecked_Access;
+                  end;
             end;
 
          when others =>

@@ -87,7 +87,7 @@ package Droopi.Protocols.GIOP.GIOP_1_2 is
      (Buffer            : access Buffers.Buffer_Type;
       Request_Id        : out Types.Unsigned_Long;
       Response_Expected : out Boolean;
-      Target_Ref        : out Target_Address;
+      Target_Ref        : out Target_Address_Access;
       Operation         : out Types.String);
 
    procedure Unmarshall_Reply_Message

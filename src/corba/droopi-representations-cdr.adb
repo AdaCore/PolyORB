@@ -1098,9 +1098,9 @@ package body Droopi.Representations.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Data   : Droopi.Any.NamedValue) is
+      Data   : in Droopi.Any.NamedValue) is
    begin
-      pragma Debug (O ("Marshall (NamedValue) : enter"));
+      pragma Debug (O ("Marshall (Namedalue) : enter"));
       Marshall_From_Any (Buffer, Data.Argument);
       pragma Debug (O ("Marshall (NamedValue) : end"));
    end Marshall;
@@ -2369,9 +2369,11 @@ package body Droopi.Representations.CDR is
       return Result;
    end Unmarshall;
 
-   procedure Unmarshall
-     (Buffer : access Buffer_Type;
-      NV     : in out Droopi.Any.NamedValue) is
+   function  Unmarshall
+     (Buffer : access Buffer_Type)
+      return Droopi.Any.NamedValue
+   is
+      NV  :  Droopi.Any.NamedValue;
    begin
       pragma Debug (O ("Unmarshall (NamedValue) : enter"));
       pragma Debug (O ("Unmarshall (NamedValue) : is_empty := "
@@ -2382,7 +2384,9 @@ package body Droopi.Representations.CDR is
                        & Boolean'Image (Droopi.Any.Is_Empty
                                         (NV.Argument))));
       pragma Debug (O ("Unmarshall (NamedValue) : end"));
+      return NV;
    end Unmarshall;
+
 
    --   function Unmarshall (Buffer : access Buffer_Type)
    --     return Encapsulation

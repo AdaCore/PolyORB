@@ -299,15 +299,17 @@ package Droopi.Representations.CDR is
    function Unmarshall (Buffer : access Buffer_Type)
      return Droopi.Any.TypeCode.Object;
 
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Data   : access Droopi.Any.NamedValue);
+
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : in Droopi.Any.NamedValue);
 
-   procedure Unmarshall (Buffer : access Buffer_Type;
-                         NV : in out Droopi.Any.NamedValue);
+   procedure Marshall
+     (Buffer : access Buffer_Type;
+      Data   : access Droopi.Any.NamedValue);
+
+   function  Unmarshall (Buffer : access Buffer_Type)
+             return Droopi.Any.NamedValue;
 
    --  Marshalling and unmashalling of object references
    --  (but not valuetypes)

@@ -190,6 +190,14 @@ package Droopi.Protocols.GIOP is
          2 => Ver2);
 
    -------------------------
+   --  Initialize the Lock
+   -----------------------
+
+   procedure Initialize;
+
+   procedure Finalize;
+
+   -------------------------
    -- Marshalling helpers --
    -------------------------
 
@@ -398,7 +406,9 @@ private
        Target_Profile  : Binding_Data.Profile_Access;
      end record;
 
-   package Req_Seq is new Sequences.Unbounded (Pending_Request);
+   package Pend_Req_Seq is new Sequences.Unbounded (Pending_Request);
+
+   package Req_Seq is new Sequences.Unbounded (Requests.Request_Access);
 
    type GIOP_Session is new Session with record
       Major_Version        : Version := Ver1;
@@ -406,7 +416,8 @@ private
       Buffer_Out           : Buffers.Buffer_Access;
       Buffer_In            : Buffers.Buffer_Access;
       Role                 : ORB.Endpoint_Role := Client;
-      Pending_Rq           : Req_Seq.Sequence;
+      Pending_Rq           : Pend_Req_Seq.Sequence;
+      Processing_Rq        : Req_Seq.Sequence;
       Current_Profile      : Profile_Access;
       Object_Found         : Boolean := False;
       Nbr_Tries            : Natural := 0;
@@ -448,5 +459,7 @@ private
 
    Endianness_Bit : constant Bit_Order_Type := 0;
    Fragment_Bit   : constant Bit_Order_Type := 1;
+
+   Current_Request_Id   : Types.Unsigned_Long := 1;
 
 end Droopi.Protocols.GIOP;
