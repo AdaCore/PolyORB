@@ -111,6 +111,7 @@ package body Priority_Queue is
       --  Mapping of priority onto priority range subdivisions
       Queuenum := (Prio + 32767) / (2**(16-PQ.Factor));
 
+      Enter_Critical_Section;
       --  Check for room in the queue
       --  Discard an element if neccessary
       if State (PQ.Queue_Lock) = PQ.MaxSize and PQ.MaxSize > -1 then
@@ -128,7 +129,7 @@ package body Priority_Queue is
       Event.P := Prio;
       --  Event is of course the last element of its priority
       Event.Last := Event;
-      Enter_Critical_Section;
+
       if PQ.Priority_Queues (Queuenum) = null then
          --  this queue is empty, so simple place Event
          --  in first place
@@ -185,7 +186,7 @@ package body Priority_Queue is
             if Event.Next /= null then
                --  there are elements following Event
                Event.Next.Last_Higher := Event;
-               Event.Last.Last_Higher := Event;
+               Event.Next.Last.Last_Higher := Event;
                Event.Next.Prev := Event;
             end if;
          end if;
@@ -207,7 +208,7 @@ package body Priority_Queue is
 
       --  Update Lowest_Priority
       if Queuenum < PQ.Lowest_Priority then
-         PQ.Highest_Priority := Queuenum;
+         PQ.Lowest_Priority := Queuenum;
       end if;
 
       Leave_Critical_Section;
@@ -274,9 +275,11 @@ package body Priority_Queue is
          PQ.FirstTime := Event.NextTime;
       end if;
 
-      --  Update  Lowest priority if the list is now empty
+      --  Update  Lowest and Highest priority
+      --  if the list is now empty
       if State (PQ.Queue_Lock) = 0 then
          PQ.Lowest_Priority := 2 ** PQ.Factor - 1;
+         PQ.Highest_Priority := 0;
       end if;
 
       Leave_Critical_Section;
