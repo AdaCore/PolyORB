@@ -227,7 +227,6 @@ idlac/utils.ads
 src/ChangeLog
 src/Makefile.am
 src/Makefile.in
-src/aclocal.m4
 src/adabroker-config.in
 src/allsrc.adb
 src/broca-server_tools.adb
@@ -298,7 +297,6 @@ src/broca-vararray.adb
 src/broca-vararray.ads
 src/broca.ads
 src/broca.opt
-src/configure
 src/corba-abstractbase.adb
 src/corba-abstractbase.ads
 src/corba-context.adb
