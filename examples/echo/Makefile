@@ -13,3 +13,10 @@ clean:
 .adb.o:
 	$(GNATGCC)  $(DO_NOT_LINK) $(ADABROKER_INCLUDES) $<
 
+echo.o : echo.ads echo.adb echo-proxies.ads echo-proxies.adb 
+
+echo-impl.o : echo-impl.ads echo-impl.adb echo.o
+
+echo-proxies.o: echo-proxies.ads echo-proxies.adb echo.o
+
+echo-skeleton.o: echo-skeleton.ads echo-skeleton.adb echo.o
