@@ -31,20 +31,19 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract model for the POA Active Object Map.
+--  Abstract model for the Active Object Map.
+--  An implementation of this map needs to be able to access an entry
+--  by its index (an Integer).
 
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
 
-with PolyORB.POA_Types;
+with PolyORB.Sequences.Unbounded;
 with PolyORB.Servants;
+with PolyORB.POA_Types;
 
 package PolyORB.Object_Maps is
-
-   ----------------------
-   -- Object_Map_Entry --
-   ----------------------
 
    type Object_Map_Entry is limited record
       Oid     : PolyORB.POA_Types.Unmarshalled_Oid_Access;
@@ -56,13 +55,19 @@ package PolyORB.Object_Maps is
    procedure Free is new Ada.Unchecked_Deallocation
      (Object_Map_Entry, Object_Map_Entry_Access);
 
-   ----------------
-   -- Object_Map --
-   ----------------
+   type Object_Map is limited private;
+   type Object_Map_Access is access all Object_Map;
 
-   type Object_Map is abstract tagged limited private;
+   function Add
+     (O_Map : access Object_Map;
+      Obj   : in     Object_Map_Entry_Access)
+     return Integer;
 
-   type Object_Map_Access is access all Object_Map'Class;
+   procedure Add
+     (O_Map : access Object_Map;
+      Obj   : in     Object_Map_Entry_Access;
+      Index : in     Integer);
+   --  Adds a new entry in the map, returning its index.
 
    function Is_Servant_In
      (O_Map : in Object_Map;
@@ -81,35 +86,33 @@ package PolyORB.Object_Maps is
    function Get_By_Id
      (O_Map : in Object_Map;
       Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
-     return Object_Map_Entry_Access
-      is abstract;
+     return Object_Map_Entry_Access;
    --  Given an Object_Id, look up the corresponding map entry.
    --  If not found, returns null.
 
    function Get_By_Servant
      (O_Map  : in Object_Map;
       Item   : in PolyORB.Servants.Servant_Access)
-     return Object_Map_Entry_Access
-      is abstract;
+     return Object_Map_Entry_Access;
    --  Given a servant, looks for the corresponding map entry
    --  Doesn't check that the servant is only once in the map
    --  If not found, returns null.
 
    function Remove_By_Id
      (O_Map : access Object_Map;
-      Item  : in     PolyORB.POA_Types.Unmarshalled_Oid)
-     return Object_Map_Entry_Access
-     is abstract;
+      Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
+     return Object_Map_Entry_Access;
    --  Given an Object_Id, removes an entry from the map
    --  and returns it . A null value means
    --  that the object_id wasn't in the map.
 
 private
 
-   type Object_Map is abstract tagged limited null record;
+   package Map_Entry_Seqs is new PolyORB.Sequences.Unbounded
+     (Object_Map_Entry_Access);
 
-   function Is_Null
-     (Item : in Object_Map_Entry_Access)
-     return Boolean;
+   type Object_Map is limited record
+      Map : Map_Entry_Seqs.Sequence;
+   end record;
 
 end PolyORB.Object_Maps;

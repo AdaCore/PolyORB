@@ -48,6 +48,7 @@ package body PolyORB.ORB.Thread_Pool is
 
    use PolyORB.Components;
    use PolyORB.Configuration;
+   use PolyORB.Components;
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.Tasking.Threads;
@@ -102,8 +103,8 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Handle_New_Server_Connection
      (P   : access Thread_Pool_Policy;
-      ORB :        ORB_Access;
-      C   :        Active_Connection)
+      ORB : ORB_Access;
+      C   : Active_Connection)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
@@ -128,8 +129,8 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Handle_New_Client_Connection
      (P   : access Thread_Pool_Policy;
-      ORB :        ORB_Access;
-      C   :        Active_Connection)
+      ORB : ORB_Access;
+      C   : Active_Connection)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P, ORB);
@@ -150,7 +151,7 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Handle_Request_Execution
      (P   : access Thread_Pool_Policy;
-      ORB :        ORB_Access;
+      ORB : ORB_Access;
       RJ  : access Request_Job'Class)
    is
       pragma Warnings (Off);
@@ -171,8 +172,8 @@ package body PolyORB.ORB.Thread_Pool is
    ----------
 
    procedure Idle
-     (P   : access Thread_Pool_Policy;
-      ORB :         ORB_Access)
+     (P : access Thread_Pool_Policy;
+      ORB : ORB_Access)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -202,8 +203,8 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Queue_Request_To_Handler
      (P   : access Thread_Pool_Policy;
-      ORB :        ORB_Access;
-      Msg :        Message'Class)
+      ORB : ORB_Access;
+      Msg : Message'Class)
    is
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -230,10 +231,8 @@ package body PolyORB.ORB.Thread_Pool is
 
    procedure Initialize_Threads;
 
-   procedure Initialize_Threads
-   is
+   procedure Initialize_Threads is
       use PolyORB.Configuration;
-
       Number_Of_Threads : Positive;
    begin
       pragma Debug (O ("Initialize_threads : enter"));
@@ -257,19 +256,19 @@ package body PolyORB.ORB.Thread_Pool is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"orb.thread_pool",
+      (Name => +"orb.thread_pool",
        Conflicts => +"no_tasking",
-       Depends   => +"soft_links",
-       Provides  => +"orb.tasking_policy",
-       Init      => Initialize_Tasking_Policy_Access'Access));
+       Depends => +"soft_links",
+       Provides => +"orb.tasking_policy",
+       Init => Initialize_Tasking_Policy_Access'Access));
 
    Register_Module
      (Module_Info'
-      (Name      => +"orb.threads_init",
+      (Name => +"orb.threads_init",
        Conflicts => +"no_tasking",
-       Depends   => +"orb",
-       Provides  => +"orb.tasking_policy_init",
-       Init      => Initialize_Threads'Access));
+       Depends => +"orb",
+       Provides => +"orb.tasking_policy_init",
+       Init => Initialize_Threads'Access));
 
    --  Two Register_Module are needed because, on one hand, the
    --  variable Setup.The_Tasking_Policy must be initialized before

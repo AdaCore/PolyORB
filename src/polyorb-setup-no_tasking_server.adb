@@ -54,6 +54,10 @@ with PolyORB.Setup.Server;
 pragma Elaborate_All (PolyORB.Setup.Server);
 pragma Warnings (Off, PolyORB.Setup.Server);
 
+with PolyORB.Tasking.Soft_Links;
+pragma Warnings (Off, PolyORB.Tasking.Soft_Links);
+pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
+
 package body PolyORB.Setup.No_Tasking_Server is
 
 end PolyORB.Setup.No_Tasking_Server;

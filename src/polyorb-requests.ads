@@ -85,7 +85,7 @@ package PolyORB.Requests is
    -- Request --
    -------------
 
-   Default_Flags : constant Flags;
+   Default_Flags       : constant Flags;
    --  Default flag for member Req_Flags of request.
 
    type Request is limited record
@@ -191,7 +191,7 @@ package PolyORB.Requests is
    --  Run Self.
 
    procedure Arguments
-     (Self :        Request_Access;
+     (Self : Request_Access;
       Args : in out Any.NVList.Ref);
    --  Retrieve the invocation's arguments into Args.
    --  Call back the protocol layer to do the unmarshalling,
@@ -204,13 +204,14 @@ package PolyORB.Requests is
       Val  : Any.Any);
    --  Set the value of Self's result to Val.
 
-   procedure Set_Out_Args
-     (Self : Request_Access);
+   procedure Set_Out_Args (Self : Request_Access);
    --  Copy back the values of out and inout arguments
    --  from Out_Args to Args.
 
-   procedure Destroy_Request
-     (R : in out Request_Access);
+   procedure Destroy_Request (R : in out Request_Access);
+
+   function Image (Req : Request) return String;
+   --  For debugging purposes.
 
    procedure Pump_Up_Arguments
      (Dst_Args        : in out Any.NVList.Ref;
@@ -220,11 +221,6 @@ package PolyORB.Requests is
    --  True arguments of direction Direction (or INOUT) from received
    --  protocol arguments list P_Args (either from a request, on server
    --  side, or for a reply, on client side) into A_Args.
-
-   function Image
-     (Req : Request)
-     return String;
-   --  For debugging purposes.
 
 private
 

@@ -53,8 +53,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Create --
    ------------
 
-   procedure Create
-     (AEM : out Socket_Event_Monitor) is
+   procedure Create (AEM : out Socket_Event_Monitor) is
    begin
       Empty (AEM.Monitored_Set);
       Create_Selector (AEM.Selector);
@@ -64,8 +63,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Destroy --
    -------------
 
-   procedure Destroy
-     (AEM : in out Socket_Event_Monitor) is
+   procedure Destroy (AEM : in out Socket_Event_Monitor) is
    begin
       Empty (AEM.Monitored_Set);
       Close_Selector (AEM.Selector);
@@ -77,25 +75,19 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    procedure Register_Source
      (AEM     : access Socket_Event_Monitor;
-      AES     :        Asynch_Ev_Source_Access;
-      Success :    out Boolean) is
+      AES     : Asynch_Ev_Source_Access;
+      Success : out Boolean) is
    begin
-      pragma Debug (O ("Register_Source: enter"));
-
       Success := False;
       if AES.all not in Socket_Event_Source then
-         pragma Debug (O ("Register_Source: leave"));
          return;
       end if;
 
       Set (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
       Source_Lists.Append (AEM.Sources, AES);
-      pragma Debug (O ("Register_Source: Sources'Length:="
-                       & Integer'Image (Source_Lists.Length (AEM.Sources))));
       AES.Monitor := Asynch_Ev_Monitor_Access (AEM);
 
       Success := True;
-      pragma Debug (O ("Register_Source: leave"));
    end Register_Source;
 
    -----------------------
@@ -104,17 +96,12 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    procedure Unregister_Source
      (AEM : in out Socket_Event_Monitor;
-      AES :        Asynch_Ev_Source_Access)
+      AES : Asynch_Ev_Source_Access)
    is
       use Source_Lists;
-
    begin
-      pragma Debug (O ("Unregister_Source: enter"));
       Clear (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
       Source_Lists.Remove (AEM.Sources, AES);
-      pragma Debug (O ("Unregister_Source: Sources'Length:="
-                       & Integer'Image (Source_Lists.Length (AEM.Sources))));
-      pragma Debug (O ("Unregister_Source: leave"));
    end Unregister_Source;
 
    -------------------
@@ -123,11 +110,10 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    function Check_Sources
      (AEM     : access Socket_Event_Monitor;
-      Timeout :        Duration)
+      Timeout : Duration)
      return AES_Array
    is
       use Source_Lists;
-
       Result : AES_Array (1 .. Length (AEM.Sources));
       Last   : Integer := 0;
 
@@ -196,8 +182,7 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- Abort_Check_Sources --
    -------------------------
 
-   procedure Abort_Check_Sources
-     (AEM : Socket_Event_Monitor) is
+   procedure Abort_Check_Sources (AEM : Socket_Event_Monitor) is
    begin
       --  XXX check that selector is currently blocking!
       --  (and do it in a thread-safe manner, if applicable!)
@@ -236,15 +221,13 @@ package body PolyORB.Asynch_Ev.Sockets is
    -- AEM_Factory_Of --
    --------------------
 
-   function AEM_Factory_Of
-     (AES : Socket_Event_Source)
-     return AEM_Factory
-   is
+   function AEM_Factory_Of (AES : Socket_Event_Source)
+     return AEM_Factory is
+   begin
       pragma Warnings (Off);
       pragma Unreferenced (AES);
       pragma Warnings (On);
-
-   begin
+      --  Parameter used only for dispatch.
       return Create_Socket_Event_Monitor'Access;
    end AEM_Factory_Of;
 

@@ -49,10 +49,6 @@ package PolyORB.POA_Policies.Id_Assignment_Policy.System is
      (Self : System_Id_Policy)
      return String;
 
-   function Create_Object_Map
-     (Self : System_Id_Policy)
-     return PolyORB.Object_Maps.Object_Map_Access;
-
    procedure Assign_Object_Identifier
      (Self  :        System_Id_Policy;
       OA    :        PolyORB.POA_Types.Obj_Adapter_Access;

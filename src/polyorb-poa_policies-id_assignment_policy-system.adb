@@ -31,13 +31,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  with Ada.Unchecked_Conversion;
+
 with PolyORB.Log;
-with PolyORB.Object_Maps.System;
+with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Types;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Types;
+--  with PolyORB.Utils.Strings;
 with PolyORB.Utils;
 
 package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
@@ -96,22 +99,6 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       return "ID_ASSIGNMENT_POLICY.SYSTEM_ID";
    end Policy_Id;
 
-   -----------------------
-   -- Create_Object_Map --
-   -----------------------
-
-   function Create_Object_Map
-     (Self : System_Id_Policy)
-     return PolyORB.Object_Maps.Object_Map_Access
-   is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
-   begin
-      return new PolyORB.Object_Maps.System.System_Object_Map;
-   end Create_Object_Map;
-
    ------------------------------
    -- Assign_Object_Identifier --
    ------------------------------
@@ -129,7 +116,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       pragma Warnings (On);
 
       use PolyORB.POA_Policies.Lifespan_Policy;
-      use PolyORB.Object_Maps.System;
+      use PolyORB.Object_Maps;
       use PolyORB.Exceptions;
 
       POA : constant PolyORB.POA.Obj_Adapter_Access
@@ -137,24 +124,18 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       The_Entry : Object_Map_Entry_Access;
       Index : Integer;
 
+--      function As_String_Ptr is new Ada.Unchecked_Conversion
+--        (Object_Id_Access, Utils.Strings.String_Ptr);
+
    begin
       pragma Debug (O ("Assign_Object_Identifier: enter"));
 
       Lock_W (POA.Map_Lock);
 
       if POA.Active_Object_Map = null then
-         POA.Active_Object_Map := Create_Object_Map
-           (POA.Id_Assignment_Policy.all);
+         POA.Active_Object_Map := new Object_Map;
       end if;
-
-      if POA.Active_Object_Map.all not in System_Object_Map'Class then
-         Throw (Error,
-                Internal_E,
-                System_Exception_Members'(Minor => 0,
-                                          Completed => Completed_No));
-         Unlock_W (POA.Map_Lock);
-         return;
-      end if;
+      pragma Assert (POA.Active_Object_Map /= null);
 
       if Hint /= null then
          pragma Debug (O ("Hint is not null"));
@@ -187,10 +168,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
                  Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
                Creator          => POA.Absolute_Address);
 
-            Add (System_Object_Map (POA.Active_Object_Map.all)'Access,
-                 The_Entry,
-                 Index);
-
+            Add (POA.Active_Object_Map, The_Entry, Index);
             Unlock_W (POA.Map_Lock);
          end;
 
@@ -203,11 +181,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
          --   attribution cooperate with id_uniqueness_policy?
 
          The_Entry := new Object_Map_Entry;
-
-         Index := Add
-           (System_Object_Map (POA.Active_Object_Map.all)'Access,
-            The_Entry);
-
+         Index := Add (POA.Active_Object_Map, The_Entry);
          The_Entry.Oid
            := PolyORB.POA_Types.Create_Id
            (Name             =>
@@ -216,6 +190,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
             Persistency_Flag =>
               Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
             Creator          => POA.Absolute_Address);
+
 
          Unlock_W (POA.Map_Lock);
       end if;
@@ -247,6 +222,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
    begin
       U_Oid := PolyORB.POA_Types.Oid_To_U_Oid (Oid);
+
    end Reconstruct_Object_Identifier;
 
    -----------------------

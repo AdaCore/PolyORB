@@ -79,11 +79,11 @@ package body PolyORB.Tasking.Soft_Links is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"soft_links",
+      (Name => +"tasking.soft_links",
        Conflicts => Empty,
-       Depends   => +"tasking.threads"
+       Depends => +"tasking.threads"
          & "tasking.condition_variables"
          & "tasking.mutexes",
-       Provides  => Empty,
-       Init      => Initialize'Access));
+       Provides => +"soft_links",
+       Init => Initialize'Access));
 end PolyORB.Tasking.Soft_Links;

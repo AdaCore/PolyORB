@@ -4,6 +4,7 @@ include $(srcdir)/../Makefile.common
 
 corba_exe=ab_names test_naming test_naming_corba
 ir_exe=ir_ab_names
+ir_dir=../ir
 
 PROGS= po_names test_naming_generic @APPLI_EXES@ @SERVICE_EXES@
 
@@ -13,7 +14,6 @@ TOOLS=	polyorb-corba_p-naming_tools.adb polyorb-services-naming-tools.adb
 EXTRA=	$(TOOLS:.adb=.ali)
 
 COS_DIRS=../../idls/cos/naming
-
 COS_GNATMAKE_FLAGS=-I../../idls/cos/naming
 
 COS_IMPL=\
@@ -55,8 +55,3 @@ stamp-gen: $(IDL) $(IDLAC)
 install-exec-local:
 	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
 	$(INSTALL_PROGRAM) ab_names $(DESTDIR)$(exec_prefix)/bin/ab_names
-
-$(ir_exe): force_ir
-
-force_ir: force
-	cd ../ir && $(MAKE)
