@@ -497,6 +497,7 @@ AC_OUTPUT([
 	idls/cos/event/Makefile
 	idls/cos/naming/Makefile
 	idls/cos/time/Makefile
+	idls/cos/notification/Makefile
 	cos/Makefile
 	cos/event/Makefile
 	cos/naming/Makefile
