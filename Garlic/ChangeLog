@@ -1,5 +1,8 @@
 Thu Nov 28 22:33:30 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
+	* s-garela.adb: Removed useless faulty lines (do not work with
+	  serial protocol).
+
 	* s-rpc.adb: Handle task non-abortion (which is quite frequent :-)
 	more elegantly than before. It also corrects a strange
 	segmentation fault in GNAT runtime which appeared only when
