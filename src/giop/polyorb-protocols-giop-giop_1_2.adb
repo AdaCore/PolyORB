@@ -64,11 +64,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Permitted_Sync_Scopes : constant PolyORB.Requests.Flags :=
-     Sync_None or
-     Sync_With_Transport or
-     Sync_With_Server or
-     Sync_With_Target;
+   Permitted_Sync_Scopes : constant PolyORB.Requests.Flags
+     := Sync_None
+     or Sync_With_Transport
+     or Sync_With_Server
+     or Sync_With_Target;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (GIOP_Ctx_1_2, GIOP_Ctx_1_2_Access);
@@ -110,18 +110,15 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    -- Internal function declaration --
    -----------------------------------
 
-   procedure Process_Request
-     (S : access GIOP_Session);
+   procedure Process_Request (S : access GIOP_Session);
 
-   procedure Process_Locate_Request
-     (S : in out Session'Class);
+   procedure Process_Locate_Request (S : in out Session'Class);
 
    -----------------------
    -- Initialize_Implem --
    -----------------------
 
-   procedure Initialize_Implem
-     (Implem : access GIOP_Implem_1_2)
+   procedure Initialize_Implem (Implem : access GIOP_Implem_1_2)
    is
       use PolyORB.Types;
       use PolyORB.Configuration;
@@ -130,14 +127,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
         := Types.Unsigned_Long
         (Get_Conf
          (To_Standard_String (Implem.Section),
-          Get_Conf_Chain (Implem)
-          & ".max_message_size",
+          Get_Conf_Chain (Implem) & ".max_message_size",
           Default_Max_GIOP_Message_Size_1_2));
    begin
-      Implem.Data_Alignment := Data_Alignment_1_2;
+      Implem.Data_Alignment        := Data_Alignment_1_2;
       Implem.Max_GIOP_Message_Size := Max - (Max mod 8);
-      Implem.Max_Body := Implem.Max_GIOP_Message_Size -
-        Types.Unsigned_Long (GIOP_Header_Size);
+      Implem.Max_Body              :=
+        Implem.Max_GIOP_Message_Size - Types.Unsigned_Long (GIOP_Header_Size);
       Implem.Permitted_Sync_Scopes := Permitted_Sync_Scopes;
    end Initialize_Implem;
 
@@ -201,24 +197,26 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             if Sess.Role /= Server then
                raise Bidirectionnal_GIOP_Not_Implemented;
             end if;
+
             Process_Request (Sess'Access);
 
          when Reply =>
             if Sess.Role /= Client then
                raise Bidirectionnal_GIOP_Not_Implemented;
             end if;
+
             declare
                Request_Id   : Types.Unsigned_Long;
                Reply_Status : Reply_Status_Type;
             begin
-
-               --  Request Id has been read before in fragmenting packet
-
                if CDR_Position (Sess.Buffer_In) = GIOP_Header_Size then
                   Request_Id := Unmarshall (Sess.Buffer_In);
                else
+                  --  Request Id has been read before in fragmenting packet
+
                   Request_Id := Ctx.Frag_Req_Id;
                end if;
+
                Reply_Status := Unmarshall (Sess.Buffer_In);
                Unmarshall_Service_Context_List (Sess.Buffer_In);
                Common_Reply_Received (Sess'Access, Request_Id, Reply_Status);
@@ -228,12 +226,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             if Sess.Role /= Server then
                raise Bidirectionnal_GIOP_Not_Implemented;
             end if;
+
             Cancel_Pending_Request (Sess'Access);
             Expect_GIOP_Header (Sess'Access);
 
          when Fragment =>
 
-            --  Receive a fragmented packet
+            --  Fragmented packet
 
             case Ctx.Frag_State is
                when None =>
@@ -245,10 +244,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                   --  in other fragments
 
                   Ctx.Frag_Req_Id := Unmarshall (Sess.Buffer_In);
-                  Ctx.Frag_Size := Ctx.Message_Size;
-                  Ctx.Frag_Buf := Sess.Buffer_In;
-                  Sess.Buffer_In := new Buffer_Type;
-                  Ctx.Frag_State := Req;
+                  Ctx.Frag_Size   := Ctx.Message_Size;
+                  Ctx.Frag_Buf    := Sess.Buffer_In;
+                  Sess.Buffer_In  := new Buffer_Type;
+                  Ctx.Frag_State  := Req;
                   pragma Debug (O ("First fragment received"));
                   pragma Debug (O ("Request ID :" & Ctx.Frag_Req_Id'Img));
                   pragma Debug (O ("Size       :" & Ctx.Frag_Size'Img));
@@ -267,13 +266,15 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                   pragma Debug (O ("Header fragment received"));
                   pragma Debug (O ("Request ID :" & Ctx.Frag_Req_Id'Img));
                   pragma Debug (O ("Frag Size  :" & Ctx.Frag_Next'Img));
+
                   Ctx.Frag_State := Fragment;
+
                   if Ctx.Frag_Next > 0 then
                      Emit_No_Reply
                        (Port => Lower (S),
                         Msg  => GIOP_Data_Expected'
                         (In_Buf => Ctx.Frag_Buf,
-                         Max    =>  Stream_Element_Count (Ctx.Frag_Next),
+                         Max    => Stream_Element_Count (Ctx.Frag_Next),
                          State  => Sess.State));
                   else
                      Process_Message (Implem, S);
@@ -342,16 +343,19 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                else
                   Request_Id := Ctx.Frag_Req_Id;
                end if;
+
                Locate_Reply := Unmarshall (Sess.Buffer_In);
-               Common_Process_Locate_Reply (Sess'Access,
-                                            Request_Id,
-                                            Locate_Reply);
+               Common_Process_Locate_Reply
+                 (Sess'Access,
+                  Request_Id,
+                  Locate_Reply);
             end;
 
          when Locate_Request =>
             if Sess.Role /= Server then
                raise Bidirectionnal_GIOP_Not_Implemented;
             end if;
+
             Process_Locate_Request (Sess);
 
          when Message_Error =>
@@ -456,8 +460,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             end if;
 
             declare
-               Target_Profile : constant Binding_Data.Profile_Access :=
-                 new Local_Profile_Type;
+               Target_Profile : constant Binding_Data.Profile_Access
+                 := new Local_Profile_Type;
             begin
                Create_Local_Profile
                 (Target_Addr.Object_Key.all,
@@ -496,7 +500,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Queue_Request_To_Handler
         (ORB.Tasking_Policy, ORB,
          Queue_Request'
-         (Request => Req,
+         (Request   => Req,
           Requestor => Component_Access (S)));
 
       Free (Target_Addr);
@@ -550,8 +554,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       Sess : GIOP_Session renames GIOP_Session (S.all);
       Ctx  : GIOP_Ctx_1_2 renames GIOP_Ctx_1_2 (Sess.Ctx.all);
-      Message_Size : Types.Unsigned_Long :=
-        Types.Unsigned_Long (Length (Buffer));
+
+      Message_Size : Types.Unsigned_Long
+        := Types.Unsigned_Long (Length (Buffer));
    begin
       if Message_Size > Implem.Max_GIOP_Message_Size then
 
@@ -588,10 +593,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             --  check if fragmenting is allowed
 
             if False
-              or Message_Type = Cancel_Request
-              or Message_Type = Close_Connection
-              or Message_Type = Message_Error
-              or Message_Type = Fragment
+              or else Message_Type = Cancel_Request
+              or else Message_Type = Close_Connection
+              or else Message_Type = Message_Error
+              or else Message_Type = Fragment
             then
                raise GIOP_Error;
             end if;
@@ -601,15 +606,14 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             Message_Size2 := Unmarshall (Buffer);
             pragma Assert (Message_Size2
                              + Types.Unsigned_Long (GIOP_Header_Size)
-                             = Message_Size);
+                           = Message_Size);
 
             --  read the request id
             --  request id is always the first field in all message type
 
             Request_Id := Unmarshall (Buffer);
 
-            pragma Debug (O ("Request Id :"
-                             & Request_Id'Img));
+            pragma Debug (O ("Request Id :" & Request_Id'Img));
 
             --  fill out_buff with headers
 
@@ -618,7 +622,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             Ctx.Fragmented := True;
             Ctx.Message_Type := Message_Type;
             Marshall_GIOP_Header (Implem, S, Out_Buf);
-
 
             --  marshall request id and first slice of data
 
@@ -641,8 +644,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
                --  check if it's the last slice
 
-               if Message_Size >
-                 Implem.Max_Body - Types.Unsigned_Long (Frag_Header_Size)
+               if Message_Size
+                 > Implem.Max_Body - Types.Unsigned_Long (Frag_Header_Size)
                then
                   Emit_Size := Implem.Max_Body
                     - Types.Unsigned_Long (Frag_Header_Size);
@@ -652,8 +655,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                   Ctx.Fragmented := False;
                end if;
 
-               Ctx.Message_Size := Emit_Size
-                 + Types.Unsigned_Long (Frag_Header_Size);
+               Ctx.Message_Size
+                 := Emit_Size + Types.Unsigned_Long (Frag_Header_Size);
 
                --  fill out_buf with headers
 
@@ -667,8 +670,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
                   Copy (Buffer, Out_Buf, Emit_Size);
                end if;
 
-               pragma Debug (O ("Fragment sent, size :"
-                                & Emit_Size'Img));
+               pragma Debug (O ("Fragment sent, size :" & Emit_Size'Img));
 
                Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => Out_Buf));
                Release_Contents (Out_Buf.all);
@@ -689,8 +691,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             Release (Out_Buf);
          end;
       else
-         pragma Debug (O ("Emit message, size :"
-                          & Message_Size'Img));
+         pragma Debug (O ("Emit message, size :" & Message_Size'Img));
          Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => Buffer));
       end if;
    end Emit_Message;
@@ -702,7 +703,6 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
    procedure Process_Locate_Request
      (S : in out Session'Class)
    is
-
       use PolyORB.Binding_Data;
       use PolyORB.Binding_Data.Local;
       use PolyORB.ORB;
@@ -719,14 +719,16 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Result       : Locate_Reply_Type;
 
    begin
-
-      --  Request Id, has been read before in fragmenting packet
-
       if CDR_Position (Buffer) = GIOP_Header_Size then
          Request_Id := Unmarshall (Buffer);
+
       else
+         --  Request Id, has been read before in fragmenting packet
+
          Request_Id := Ctx.Frag_Req_Id;
       end if;
+
+      pragma Debug (O ("Locate_Request, Request_Id :" & Request_Id'Img));
 
       --  Target Ref
 
@@ -782,14 +784,11 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             end;
       end case;
 
-      pragma Debug (O ("Locate_Request, Request_Id :"
-                       & Request_Id'Img));
-
       --  Check if object is on this node
 
       declare
-         ORB  : constant PolyORB.ORB.ORB_Access :=
-           PolyORB.ORB.ORB_Access (S.Server);
+         ORB  : constant PolyORB.ORB.ORB_Access
+           := PolyORB.ORB.ORB_Access (S.Server);
 
          Component : PolyORB.Components.Component_Access;
          Profile : PolyORB.Binding_Data.Profile_Access;
@@ -861,13 +860,13 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Buffer := new Buffer_Type;
       Header_Buffer := new Buffer_Type;
       Header_Space := Reserve (Buffer, GIOP_Header_Size);
+
       Marshall_Locate_Request
         (Buffer,
          R.Locate_Req_Id,
          Target_Address'
          (Address_Type => Key_Addr,
-          Object_Key =>
-            Get_Object_Key (R.Target_Profile.all)));
+          Object_Key   => Get_Object_Key (R.Target_Profile.all)));
 
       Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
       Ctx.Fragmented := False;
@@ -902,8 +901,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Buffer        : Buffer_Access;
       Header_Buffer : Buffer_Access;
       Header_Space  : Reservation;
-      Sync          : Sync_Scope := NONE;
-      Sink          : constant Types.Octet := 0;
+      Sync          : Sync_Scope;
 
       Oid           : constant Object_Id_Access
         := Binding_Data.Get_Object_Key (R.Target_Profile.all);
@@ -930,6 +928,8 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Header_Space := Reserve (Buffer, GIOP_Header_Size);
       Marshall (Buffer, R.Request_Id);
 
+      --  Marshalling synchronization scope
+
       case Sync is
          when NONE | WITH_TRANSPORT =>
             Marshall (Buffer, Types.Octet (0));
@@ -941,16 +941,20 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             Marshall (Buffer, Types.Octet (3));
       end case;
 
+      --  Reserved
+
       for J in 1 .. 3 loop
-         Marshall (Buffer, Sink);
+         Marshall (Buffer, Types.Octet (0));
       end loop;
+
+      --  Target Reference
 
       if Target_Ref.Object_Key /= null then
          Marshall (Buffer, Key_Addr);
          Marshall
            (Buffer,
-            Stream_Element_Array
-            (Target_Ref.Object_Key.all));
+            Stream_Element_Array (Target_Ref.Object_Key.all));
+
       else
          declare
             use PolyORB.References.IOR;
@@ -966,24 +970,37 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          end;
       end if;
 
+      --  Operation
+
       pragma Debug (O ("Operation : "
                        & To_Standard_String (R.Req.Operation)));
-
       Marshall (Buffer, R.Req.Operation);
+
+      --  Service context
+
       Marshall_Service_Context_List (Buffer);
+
+      --  Arguments
 
       Marshall_Argument_List
         (Sess.Implem, Buffer, R.Req.Args, PolyORB.Any.ARG_IN,
          Sess.Implem.Data_Alignment);
 
+      --  GIOP Header
+
       Marshall_Global_GIOP_Header (Sess'Access, Header_Buffer);
+
       Ctx.Fragmented := False;
       Ctx.Message_Type := Request;
       Ctx.Message_Size := Types.Unsigned_Long (Length (Buffer))
         - Types.Unsigned_Long (GIOP_Header_Size);
+
       Marshall_GIOP_Header (Sess.Implem, Sess'Access, Header_Buffer);
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
+
+      --  Sending request
+
       Emit_Message (Sess.Implem, Sess'Access, Buffer);
       pragma Debug (O ("Request sent, Id :" & R.Request_Id'Img));
       Release (Buffer);
@@ -1040,9 +1057,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Buffer  : Buffer_Access renames Sess.Buffer_In;
       Flags   : Types.Octet;
    begin
+      --  Flags
+
       Flags := Unmarshall (Buffer);
-      pragma Debug (O ("Flags : "
-                       & Flags'Img));
+      pragma Debug (O ("Flags : " & Flags'Img));
 
       if Is_Set (Bit_Endianness, Flags) then
          Ctx.Message_Endianness := Little_Endian;
@@ -1054,37 +1072,33 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       pragma Debug (O ("Message Endianness : "
                        & Ctx.Message_Endianness'Img));
 
-      if (Is_Set (Bit_Fragment, Flags)) then
-         Ctx.Fragmented := True;
-      else
-         Ctx.Fragmented := False;
-      end if;
-      pragma Debug (O ("Message Fragment   : "
-                       & Ctx.Fragmented'Img));
+      Ctx.Fragmented := Is_Set (Bit_Fragment, Flags);
+      pragma Debug (O ("Message Fragment   : " & Ctx.Fragmented'Img));
 
-      --  Extract type
+      --  Message type
 
       Ctx.Message_Type := Unmarshall (Buffer);
-      pragma Debug (O ("Message Type       : "
-                       & Ctx.Message_Type'Img));
+      pragma Debug (O ("Message Type       : " & Ctx.Message_Type'Img));
 
-      --  Extract size
+      --  Message size
 
       Ctx.Message_Size := Unmarshall (Buffer);
-      pragma Debug (O ("Message Size       :"
-                       & Ctx.Message_Size'Img));
+      pragma Debug (O ("Message Size       :" & Ctx.Message_Size'Img));
 
       if Ctx.Message_Type = Fragment
-        and then Ctx.Frag_State /= None then
-         Ctx.Frag_Next := Ctx.Message_Size -
-           Types.Unsigned_Long (Frag_Header_Size);
+        and then Ctx.Frag_State /= None
+      then
+         Ctx.Frag_Next
+           := Ctx.Message_Size - Types.Unsigned_Long (Frag_Header_Size);
+
          Ctx.Message_Size := Types.Unsigned_Long (Frag_Header_Size);
       end if;
 
       if Ctx.Fragmented
-        and then Ctx.Frag_State = None then
-         Ctx.Frag_State := First;
-         Ctx.Frag_Type := Ctx.Message_Type;
+        and then Ctx.Frag_State = None
+      then
+         Ctx.Frag_State   := First;
+         Ctx.Frag_Type    := Ctx.Message_Type;
          Ctx.Message_Type := Fragment;
          pragma Debug (O ("Enter fragment mode"));
       end if;
@@ -1212,8 +1226,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
          when Reference_Addr  =>
             declare
-               Ref :
-                 constant IOR_Addressing_Info_Access
+               Ref : constant IOR_Addressing_Info_Access
                  := new IOR_Addressing_Info;
             begin
                Ref.Selected_Profile_Index := Unmarshall (Buffer);
@@ -1221,7 +1234,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
                Target_Ref := new Target_Address'
                  (Address_Type => Reference_Addr,
-                  Ref  => Ref);
+                  Ref          => Ref);
             end;
       end case;
 
@@ -1273,7 +1286,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       Marshall (Buffer, Request_Id);
 
-      --  Marshalling the target address
+      --  Target address
 
       Marshall (Buffer, Target_Ref.Address_Type);
 
@@ -1281,8 +1294,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
          when Key_Addr =>
             Marshall
               (Buffer,
-               Stream_Element_Array
-               (Target_Ref.Object_Key.all));
+               Stream_Element_Array (Target_Ref.Object_Key.all));
 
          when Profile_Addr =>
             declare
@@ -1323,8 +1335,9 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
    procedure Initialize is
    begin
-      Global_Register_GIOP_Version (GIOP_Version'(Major => 1, Minor => 2),
-                                    New_Implem'Access);
+      Global_Register_GIOP_Version
+        (GIOP_Version'(Major => 1, Minor => 2),
+         New_Implem'Access);
    end Initialize;
 
    use PolyORB.Initialization;
