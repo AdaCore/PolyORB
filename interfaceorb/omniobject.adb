@@ -406,9 +406,11 @@ package body OmniObject is
    begin
       pragma Debug(Output(Omniobject,"Omniobject.Omniobject_Duplicate : entering ...")) ;
       C_Arg := Address_To_Object.To_Address(From_Object_Ptr(Self)) ;
+      pragma Debug(Output(Omniobject,"Omniobject.Omniobject_Duplicate : got the C++ pointer, calling the C++ function")) ;
       C_Result := C_Omniobject_Duplicate(C_Arg) ;
+      pragma Debug(Output(Omniobject,"Omniobject.Omniobject_Duplicate : got the answer of the C++ function")) ;
       Result := To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
-      pragma Debug(Output(Omniobject,"Omniobject.Omniobject_Duplicate : C function called, ")) ;
+      pragma Debug(Output(Omniobject,"Omniobject.Omniobject_Duplicate : got the Ada pointer ")) ;
       if not (Result = null) then
          Result.all.Implobj := null ;
       end if ;
