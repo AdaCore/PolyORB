@@ -1,0 +1,38 @@
+This is an example to illustrate the reconnection policy. In this example,
+we have four partitions. Part0 executes a RPC RCI_1.F on part1 which
+has a Failed_Until_Restart reconnection policy. On part1, RCI_1.F executes
+a RPC RCI_2.F on part2 which has a Blocked_Until_Restart reconnection
+policy. On part2, RCI_2.F executes a RPC on part3 which has a 
+Rejected_On_Restart reconnection policy.
+
+Build the application and execute each partition in separate sessions.
+
+* part0 prints a report message on the different executed RPCs.
+
+* Kill part1. part0 reports that RCI_1.F cannot be executed and that
+  Communication_Error is raised. Any attempt to execute RCI_1.F
+  will raise Communication_Error until part1 (and RCI_1) is restarted.
+  Restart part1 and part0 will print the usual message again.
+  This is the Failed_Until_Restart reconnection policy.
+
+* Kill part2. part0 hangs and no longer prints the usual message.
+  Any attempt to execute RCI_2.F is kept blocking until part2 (and RCI_2)
+  is restarted. No Communication_Error exception is raised. This
+  behaviour is similar to the one you would get with a partition
+  not yet elaborated. Restart part2 and part0 will print the usual
+  message again. This is the Blocked_Until_Restart reconnection policy.
+
+* Kill part3. part0 hangs and no longer prints the usual message.
+  Communication_Error is raised on part2 after any attempt to execute
+  RCI_3.F. Restart part3 and you will get "raised PROGRAM_ERROR : RCI unit
+  rci_3 is already declared". This is the Rejected_On_Restart reconnection
+  policy. Once a partition which contains at least a RCI package is started
+  it won't be possible to restart it. This is the same behaviour you would
+  get by executing twice a partition which contains at least a RCI package.
+  A RCI package has to unique in the distributed system. In this example,
+  RCI_3 was already declared and even if its partition is dead, it cannot
+  be relocated. This is the default reconnection policy.
+
+After several attempts to execute RCI_3.F, RCI_2.F raises Program_Error
+which is propagated to Main and the distributed application terminates
+smoothly.
