@@ -91,6 +91,18 @@ package System.Garlic.Streams is
    type Stream_Element_Access is access Ada.Streams.Stream_Element_Array;
    for Stream_Element_Access'Storage_Pool use Streams_Pool;
 
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : out Stream_Element_Access);
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : in Stream_Element_Access);
+
+   for Stream_Element_Access'Read  use Read;
+   for Stream_Element_Access'Write use Write;
+
+
    procedure Copy
      (Source : in Params_Stream_Type;
       Target : in out Params_Stream_Type);

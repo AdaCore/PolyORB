@@ -226,6 +226,22 @@ package body System.Garlic.Streams is
       end if;
    end Read;
 
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : out Stream_Element_Access)
+   is
+   begin
+      if Boolean'Input (S) then
+         X := null;
+      else
+         X := new Stream_Element_Array'(Stream_Element_Array'Input (S));
+      end if;
+   end Read;
+
    ---------------------------
    -- To_Params_Stream_Type --
    ---------------------------
@@ -358,6 +374,20 @@ package body System.Garlic.Streams is
       Current.Content (Current.Last .. Current.Last + Length - 1) :=
         Item;
       Current.Last := Current.Last + Length;
+   end Write;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : in Stream_Element_Access) is
+   begin
+      Boolean'Write (S, (X = null));
+      if X /= null then
+         Stream_Element_Array'Output (S, X.all);
+      end if;
    end Write;
 
 end System.Garlic.Streams;
