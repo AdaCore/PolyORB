@@ -51,8 +51,12 @@ GLADE is the GNAT implementation of Distributed Systems Annex.
 * The Distributed System Annex::  
 * Architecture of A DSA Application::  
 * Presentation Of Categorization Pragmas::  
+* Pragma Remote_Call_Interface::  
+* Pragma Remote_Types::         
+* Pragma Shared_Passive::       
+* More About Pragmas::          
 * Most Features in One Example::  
-* Non-Distributed versus Distributed Applications::  
+* A Comparison between CORBA and DSA::  
 @end menu
 
 @node Introduction To Distributed Systems, The Distributed System Annex, Tutorial on the Distributed Systems Annex, Tutorial on the Distributed Systems Annex
@@ -318,40 +322,10 @@ subprograms. Otherwise, a partition calling a remote subprogram on
 Unit_2 would not be able to statically determine where to perform the
 remote call.
  
-@smallexample
-@group
-       +-------------------------------+
-       |         STORAGE NODE          |
-       |                               |
-       |       Passive_Partition       |
-       |          +--------+           |
-       |          | Data_1 |           |
-       |          +--------+           |
-       |                               |
-       | File, Database, Shared Memory |
-       +-------------------------------+
-         /\                         /\
-         ||                         ||
-         \/                         \/
-+-------------------------+ +-----------------+
-|    PROCESSING NODE      | | PROCESSING NODE |
-|                         | |                 |
-| Partition_1 Partition_2 | |   Partition_2   |
-| +--------+   +--------+ | |   +--------+    |
-| | Unit_1 |   | Unit_2 | | |   | Unit_2 |    |
-| | Data_2 |   | Unit_3 | | |   | Unit_3 |    |
-| +--------+   +--------+ | |   +--------+    |
-+-------------------------+ +-----------------+
-          /\                        /\
-          ||                        ||
-          \/                        \/
-=============================================
-                    NETWORK
-@end group
-@end smallexample
+@image{xe-arch.fig}
 
-@node Presentation Of Categorization Pragmas, Most Features in One Example, Architecture of A DSA Application, Tutorial on the Distributed Systems Annex
-@section Presentation Of Categorization Pragmas
+@node Presentation Of Categorization Pragmas, Pragma Remote_Call_Interface, Architecture of A DSA Application, Tutorial on the Distributed Systems Annex
+@section Categorization Pragmas
 
 Library units can be categorized according to the role they play in a
 distributed program. A categorization pragma is a library unit pragma
@@ -386,8 +360,8 @@ are not allowed in the following Ada library units.
 * More About Pragmas::          
 @end menu
 
-@node Pragma Remote_Call_Interface, Pragma Remote_Types, Presentation Of Categorization Pragmas, Presentation Of Categorization Pragmas
-@subsection Pragma Remote_Call_Interface
+@node Pragma Remote_Call_Interface, Pragma Remote_Types, Presentation Of Categorization Pragmas, Tutorial on the Distributed Systems Annex
+@section Pragma Remote_Call_Interface
 
 @menu
 * Overview of Remote Call Interface Units::  
@@ -398,7 +372,7 @@ are not allowed in the following Ada library units.
 @end menu
 
 @node  Overview of Remote Call Interface Units, Regular Remote Subprograms (RCI), Pragma Remote_Call_Interface, Pragma Remote_Call_Interface
-@subsubsection Overview of Remote Call Interface Units
+@subsection Overview of Pragma Remote_Call_Interface
 
 Library units categorized with this pragma can declare subprograms to be
 called and executed remotely.  This classical RPC operation is a
@@ -409,7 +383,7 @@ Dynamically bound calls are integrated with Ada capabilities to
 dereference subprograms (remote access to subprogram - RAS) and to
 dispatch on access-to-class-wide operands (remote access on class wide
 types - RACW). These remote access types can be declared in a RCI
-package.
+package as well.
 
 A remote access type (RAS or RACW) can be viewed as a fat pointer or a
 structure with a remote address and a local address. The remote address
@@ -418,187 +392,68 @@ the local address describes the classical local memory address (like an
 URL).
 
 @node Regular Remote Subprograms (RCI), Remote Access To Subprograms (RAS), Overview of Remote Call Interface Units, Pragma Remote_Call_Interface
-@subsubsection Regular Remote Subprograms (RCI)
+@subsection Regular Remote Subprograms (RCI)
 
-In the following example, a bank offers several remote services:
+In the following example, a RCIBank offers several remote services:
 Balance, Transfert, Deposit and Withdraw. On the caller side, the bank
-client will use the stub files of unit Bank. On the receiver side, the
-bank receiver will use the skeleton files of unit Bank including the
-body of this package.
+client will use the stub files of unit RCIBank. On the receiver side,
+the bank receiver will use the skeleton files of unit RCIBank including
+the body of this package.
 
-@smallexample
-@group
-with Types; use Types;
-package Bank is
-   pragma Remote_Call_Interface;
-
-   function Balance
-     (Customer : in Customer_Type;
-      Password : in Password_Type)
-      return Integer;
-
-   procedure Transfer
-     (Donator  : in Customer_Type;
-      Password : in Password_Type;
-      Deposit  : in Positive;
-      Customer : in Customer_Type);
-
-   procedure Deposit
-     (Customer : in Customer_Type;
-      Amount   : in Positive);
-
-   procedure Withdraw
-     (Customer : in Customer_Type;
-      Password : in Password_Type;
-      Amount   : in out Positive);
-
-end Bank;
-@end group
-@end smallexample
+@image{types.ads}
+@image{rcibank.ads}
 
 @node Remote Access To Subprograms (RAS), Remote Access To Class Wide Types (RACW), Regular Remote Subprograms (RCI), Pragma Remote_Call_Interface
-@subsubsection Remote Access To Subprograms (RAS)
+@subsection Remote Access To Subprograms (RAS)
 
 In the following example, several mirroring banks offer their
-services. Each bank register a reference to each of its services to a
+services. Each bank registers a reference to each of its services to a
 central bank. A central bank client asks for a service of one of the
-mirroring banks. In this purpose, the RCI unit Central_Bank defines
+mirroring banks. In this purpose, the RCI unit RASBank defines
 Balance_Type, a remote access to subprogram. An access type in a remote
 unit has to be either remote access to subprogram or remote access to
 class wide type.
 
 Note that to get a remote access to subprogram the subprogram has to be
-remote itself. Therefore, French_Bank is a RCI library unit.
+remote itself. Therefore, MirrorBank is a RCI library unit.
 
-@smallexample
-@group
-with Types; use Types;
-package Central_Bank is
-   pragma Remote_Call_Interface;
-
-   type Balance_Type is access function
-     (Customer : in Customer_Type;
-      Password : in Password_Type)
-      return Integer;
-
-   procedure Register
-      (Balance : in Balance_Type);
-
-   function Get_Balance
-      return Balance_Type;
-
-   [...]  --  Same for other services
-end Central_Bank;
-@end group
-@end smallexample
+@image{rasbank.ads}
 
 In the code below, a mirroring bank registers its services to the
 central bank.
 
-@smallexample
-@group
-with Types; use Types;
-package French_Bank is
-   pragma Remote_Call_Interface;
-
-   function Balance
-     (Customer : in Customer_Type;
-      Password : in Password_Type)
-      return Integer;
-
-   [...]  --  Other services
-end French_Bank;
-@end group
-@end smallexample
-
-@smallexample
-@group
-with Central_Bank; use Central_Bank;
-with Types; use Types;
-package body French_Bank is
-
-   function Balance
-     (Customer : in Customer_Type;
-      Password : in Password_Type)
-      return Integer is
-   begin [...] end Balance;
-
-begin
-   Register (Balance'Access);
-   [...]  --  Register other services
-end French_Bank;
-@end group
-@end smallexample
+@image{mirrorbank.ads}
+@image{mirrorbank.adb}
 
 In the code below, a central bank client asks for a mirroring bank and
 calls the Balance service of this bank by dereferencing a remote access
 type.
 
-@smallexample
-@group
-with Bank; use Bank;
-procedure Client is
-   B : Integer;
-   C : Customer_Type;
-   P : Password_Type;
-begin
-   B := Get_Balance.all (C, P);
-end Client;
-@end group
-@end smallexample
+@image{bankclient.adb}
+
+@menu
+* Remote Access To Class Wide Types (RACW)::  
+@end menu
 
 @node Remote Access To Class Wide Types (RACW), Summary on Remote Call Interface Units, Remote Access To Subprograms (RAS), Pragma Remote_Call_Interface
-@subsubsection Remote Access To Class Wide Types (RACW)
+@subsection Remote Access To Class Wide Types (RACW)
 
 A bank client is now connected to a bank through a terminal. The bank
-wants to notify a connected client with a message on the terminal when
+wants to notify a connected client with a message on its terminal when
 another client grants him with a given amount of money.
 
-@smallexample
-@group
-with Types; use Types;
-package Terminal is
-   pragma Pure;
+@image{terminal.ads}
 
-   type Term_Type is abstract tagged limited private;
-
-   procedure Notify
-     (Terminal : access Term_Type;
-      Donator  : in Customer_Type;
-      Amount   : in Integer) is abstract;
-
-private
-   type Term_Type is abstract tagged limited null record;
-end Terminal;
-@end group
-@end smallexample
-
-In the code below, the RCI unit Bank defines Term_Access, a remote
+In the code below, the RCI unit RACWBank defines Term_Access, a remote
 access to class wide type. Term_Access becomes a reference to a
 distributed object. In the next section, we will see how to derive
 Term_Type, how to create a distributed object and how to use a reference
 to it.
 
-@smallexample
-@group
-with Terminal, Types; use Terminal, Types;
-package Bank is
-   pragma Remote_Call_Interface;
-
-   type Term_Access is access all Term_Type'Access;
-
-   procedure Register
-     (Terminal : in Terminal_Access;
-      Customer : in Customer_Type;
-      Password : in Password_Type);
-
-   [...]
-end Bank;
-@end group
-@end smallexample
+@image{racwbank.ads}
 
 @node  Summary on Remote Call Interface Units,  , Remote Access To Class Wide Types (RACW), Pragma Remote_Call_Interface
-@subsubsection Summary on Remote Call Interface Units
+@subsection Summary on Pragma Remote_Call_Interface
 
 Remote call interface units:
 
@@ -624,19 +479,20 @@ Prevent specification from depending on normal units
 * Pragma Remote_Types::         
 * Pragma Shared_Passive::       
 * More About Pragmas::          
-* Non-Distributed versus Distributed Applications::  
 @end menu
 
-@node Pragma Remote_Types, Transmitting Dynamic Structure, Pragma Remote_Call_Interface, Presentation Of Categorization Pragmas
-@subsection Pragma Remote_Types
+@node Pragma Remote_Types, Pragma Shared_Passive, Pragma Remote_Call_Interface, Tutorial on the Distributed Systems Annex
+@section Pragma Remote_Types
 
 @menu
 * Overview of Remote Types Units::  
 * Distributed Object::          
+* Transmitting Dynamic Structure::  
+* Summary on Remote Types Units::  
 @end menu
 
 @node  Overview of Remote Types Units, Distributed Object, Pragma Remote_Types, Pragma Remote_Types
-@subsubsection Overview of Remote Types Units
+@subsection Overview of Pragma Remote_Types
 
 Unlike to RCI units, library units categorized with this pragma can
 define distributed objects and remote methods on them. Both RCI and RT
@@ -645,101 +501,41 @@ subprogram defined in a RT unit is not a remote subprogram. Unlike to
 RCI units, a RT unit can be duplicated on several partitions in which
 case all its entities are different with each other.
 
-@node Distributed Object,  , Overview of Remote Types Units, Pragma Remote_Types
-@subsubsection Distributed Object
+@node Distributed Object, Transmitting Dynamic Structure, Overview of Remote Types Units, Pragma Remote_Types
+@subsection Distributed Object
 
 If we want to implement the notification feature proposed in the
 previous section, we have to derive Term_Type. Such a derivation is
-possible in a remote types unit, New_Terminal. Any object of type
+possible in a remote types unit, NewTerminal. Any object of type
 New_Term_Type becomes a distributed object and any reference to such an
 object becomes a fat pointer or a reference to a distributed object.
 
-@smallexample
-@group
-with Types, Terminal;
-use Types, Terminal;
-package New_Terminal is
-   pragma Remote_Types;
+@image{newterminal.ads}
 
-   type New_Term_Type is
-      new Term_Type with null record;
+In the code below, a client registers his terminal to
+RACWBank. Therefore, when any donator grants him with a given amount of
+money, RACWBank is able to notify this client of the granting operation.
 
-   procedure Notify
-     (Terminal : access New_Term_Type;
-      Donator  : in Customer_Type;
-      Amount   : in Integer);
-end New_Terminal;
-@end group
-@end smallexample
-
-In the code below, a client registers his terminal to Bank. Therefore,
-when any donator grants him with a given amount of money, Bank is able
-to notify this client of this granting operation.
-
-@smallexample
-@group
-with New_Terminal, Bank, Types;
-use New_Terminal, Bank, Types;
-procedure Client_2 is
-   T2 : aliased New_Term_Type;
-   C2 : Customer_Type := [...];
-   P2 : Password_Type := [...];
-begin
-   Register (T2'Access, C2, P2);
-   [...]
-end Client_2;
-@end group
-@end smallexample
+@image{term2client.adb}
 
 In the code below, a second client, the donator, registers his terminal
 to the bank and executes a transfer to the first client.
 
-@smallexample
-@group
-with New_Terminal, Bank, Types;
-use New_Terminal, Bank, Types;
-procedure Client_1 is
-   T1 : aliased New_Term_Type;
-   C1 : Customer_Type := [...];
-   P1 : Password_Type := [...];
-   C2 : Customer_Type := [...];
-begin
-   Register (T1'Access, C1, P1);
-   Transfer (C1, P1, 100, C2);
-end Client_1;
-@end group
-@end smallexample
+@image{term1client.adb}
 
 In the code below, we describe the general design of Transfer. Classical
-operations of Withdraw and Deposit are performed. Then, Bank retrieves
-the terminal of the granted client and invoke a dispatching operation by
-dereferencing a distributed object Term. The reference is analyzed and
-the execution of this operation occurs on the partition to which the
-distributed object belongs.
+operations of Withdraw and Deposit are performed. Then, RACWBank
+retrieves the terminal of the granted client and invoke a dispatching
+operation by dereferencing a distributed object Term. The reference is
+analyzed and the execution of this operation occurs on the partition to
+which the distributed object belongs.
 
-@smallexample
-@group
-package body Bank is
-   procedure Register ([...]) is
-   begin
-      [...]; -- Save customer and terminal in name table. 
-   end Register;
+@image{racwbank.adb}
 
-   procedure Transfer ([...]) is
-      Term : Term_Access := [...]; -- Find customer terminal.
-   begin
-      Withdraw ([...]);
-      Deposit  ([...]);
-      Notify (Term, Donator, Amount); -- Notify on C2 terminal.
-   end Transfer;
-   
-   [...]
-end Bank;
-@end group
-@end smallexample
-
-@node Transmitting Dynamic Structure, Pragma Shared_Passive, Pragma Remote_Types, Presentation Of Categorization Pragmas
+@node Transmitting Dynamic Structure, Summary on Remote Types Units, Distributed Object, Pragma Remote_Types
 @subsection Transmitting Dynamic Structure
+
+@image{stringarraystream.ads}
 
 General access types are forbidden in public part of a remote types
 unit. But this would be too restrictive. It is possible to define
@@ -747,75 +543,17 @@ private general access types as long as the user provides its
 marshalling procedures. The code below describes how to transmit a
 linked structure.
 
-@smallexample
-@group
-with Ada.Streams; use Ada.Streams;
-package String_FIFO is
-   pragma Remote_Types;
-
-   type List is private;
-   procedure Append (L : access List; O : in String);
-   function  Delete (L : access List) return String;
-
-private
-   type String_Access is access String;
-
-   type Node;
-   type List is access Node;
-
-   type Node is record
-      Content : String_Access;
-      Next    : Node_Access;
-   end record;
-
-   type List is new Node_Access;
-   procedure Read  (S : access Root_Stream_Type'Class; L : out List);
-   procedure Write (S : access Root_Stream_Type'Class; L : in List);
-   for List'Read use Read;
-   for List'Write use Write;
-end String_FIFO;
-@end group
-@end smallexample
-
 The code below provides an implementation of the marshalling operations
 defined above:
 
-@smallexample
-@group
-package body String_FIFO is
-   [...]
-
-   procedure Read (S : access Root_Stream_Type'Class; L : out List) is
-   begin
-      if Boolean'Input (S) then
-         L := new Node;
-         L.Content := new String'(String'Input (S));
-         List'Read (S, L.Next);
-      else
-         L := null;
-      end if;
-   end Read;
-
-   procedure Write (S : access Root_Stream_Type'Class; L : in List) is
-   begin
-      if L = null then
-         Boolean'Output (S, False);
-      else
-         Boolean'Output (S, True);
-         String'Output (S, L.Content.all);
-         List'Write (S, L.Next);
-      end if;
-   end Write;
-end String_FIFO;
-@end group
-@end smallexample
+@image{stringarraystream.adb}
 
 @menu
 * Summary on Remote Types Units::  
 @end menu
 
-@node  Summary on Remote Types Units,  , Transmitting Dynamic Structure, Transmitting Dynamic Structure
-@subsubsection Summary on Remote Types Units
+@node  Summary on Remote Types Units,  , Transmitting Dynamic Structure, Pragma Remote_Types
+@subsection Summary on Remote Types Units
 
 Remote types units:
 
@@ -837,8 +575,8 @@ Prevent specification from depending on normal units
 
 @end itemize
 
-@node Pragma Shared_Passive, More About Pragmas, Transmitting Dynamic Structure, Presentation Of Categorization Pragmas
-@subsection Pragma Shared_Passive
+@node Pragma Shared_Passive, More About Pragmas, Pragma Remote_Types, Tutorial on the Distributed Systems Annex
+@section Pragma Shared_Passive
 
 @menu
 * Overview of Shared Passive Units::  
@@ -846,7 +584,7 @@ Prevent specification from depending on normal units
 @end menu
 
 @node  Overview of Shared Passive Units, Summary on Shared Passive Units, Pragma Shared_Passive, Pragma Shared_Passive
-@subsubsection Overview of Shared Passive Units
+@subsection Overview of Pragma Shared_Passive
 
 The entities declared in such categorized unit library are to be mapped
 on a shared address space (file, memory, database). When two partitions
@@ -855,7 +593,7 @@ same variable. This supports the shared variables paradigm. Entry-less
 protected objects declared in these units provide an atomic access to
 some shared data, somehow like in a transaction.
 
-@subsubsection Shared and Protected Objects
+@subsection Shared and Protected Objects
 
 In the code below, we define two kinds of shared
 objects. External_Synchronization requires that the different partitions
@@ -864,36 +602,10 @@ objects. Internal_Synchronization provides a way to get an atomic
 operation on shared objects. Note that only entry-less subprograms are
 allowed in a shared passive unit.
 
-@smallexample
-@group
-package Changes is
-   pragma Shared_Passive;
- 
-   Max : Positive := 10;
-   type Index_Type is range 1 .. Max;
-   type Rate_Type is new Float;
-
-   type Rates_Type is array (Index_Type) of Rate_Type;
-
-   External_Synchronization : Rates_Type;
-
-   protected Internal_Synchronization is
-      procedure Set
-        (Index : in Index_Type;
-         Rate  : in Rate_Type);
-      
-      procedure Get
-        (Index : in Index_Type;
-         Rate  : out Rate_Type);
-   private
-      Rates : Rates_Type;
-   end Internal_Synchronization;
-end Changes;
-@end group
-@end smallexample
+@image{sharedobjects.ads}
 
 @node  Summary on Shared Passive Units,  , Overview of Shared Passive Units, Pragma Shared_Passive
-@subsubsection Summary on Shared Passive Units
+@subsection Summary on Pragma Shared_Passive
 
 @itemize @bullet
 @item
@@ -910,36 +622,152 @@ Prevent specification from depending on normal units
 
 @end itemize
 
-@node More About Pragmas,  , Pragma Shared_Passive, Presentation Of Categorization Pragmas
-@subsection More About Pragmas
+@node More About Pragmas, Most Features in One Example, Pragma Shared_Passive, Tutorial on the Distributed Systems Annex
+@section More About Categorization Pragmas
 
-In RT or RCI units, variables are forbidden and general access types
-are allowed as long as their marshaling subprograms are provided. Any
-exception raised in remote method or subprogram call is propagated to
-the caller.
+@menu
+* Variables::                   
+* Pragma Asynchronous::         
+* Pragma All_Calls_Remote::     
+* Generic Categorized Units  ::  
+* Categorization Unit Dependencies::  
+@end menu
+
+@node Variables, Pragma Asynchronous, More About Pragmas, More About Pragmas
+@subsection Variables, Non-Remote Access Types, RPC Failures and Exceptions
+
+In RT or RCI units, variables are forbidden and general access types are
+allowed as long as their marshaling subprograms are provided. Calls are
+made at most one time. They are made exactly one time or they fail with
+an exception.  Any exception raised in remote method or subprogram call
+is propagated to the caller. Exceptions semantics are preserved in the
+regular Ada way.
+
+@image{internal.ads}
+@image{rempkg2.ads}
+@image{rempkg1.ads}
+
+Let's say that RemPkg2, Internal and RemExcMain packages are on the same
+partition Partition_1 and that RemPkg1 is on partition Partition_2.
+
+@image{rempkg2.adb}
+@image{rempkg1.adb}
+@image{remexcmain.adb}
+
+When RemPkg1.Subprogram on Partition_1 raises Internal.Exc, this
+exception is propagated on Partition_2. As Internal.Exc is not defined
+on Partition_2, it is not possible to catch this exception without an
+exception handler @b{when others}. When we reraise this exception in
+RemPkg1.Subprogram, it is propagated on Partition_1. But this time,
+Internal.Exc is defined and can be handled as we would in a regular Ada
+program. Of course, the exception message is also preserved.
+  
+@node Pragma Asynchronous, Pragma All_Calls_Remote, Variables, More About Pragmas
+@subsection Pragma Asynchronous
+
+A pragma Asynchronous allows statically and dynamically bound remote
+calls to be executed asynchronously. An asynchronous procedure doesn't
+wait for the completion of the remote call and lets the caller continue
+its execution path. This allows a calling task to proceed without
+waiting for callee procedure to complete. The procedure must have only
+@b{in} parameters and any exception raised during the execution of the
+remote procedure is lost. Of course, this precludes exception
+propagation of remotely called procedure.
+
+When pragma Asynchronous applies to a regular subprogram with @b{in}
+parameters, any call to this subprogram will be executed
+asynchronously. Declaration of AsynchronousRCI.Asynchronous gives an
+example.
+
+@image{asynchronousrci.ads}
+@image{asynchronousrt.ads}
+
+A pragma Asynchronous applies to a RAS. An asynchronous RAS can be both
+asynchronous and synchronous depending on the designated subprogram. For
+install, in the code above, remote call (1) is asynchronous but remote
+call (2) is synchronous.
+
+A pragma Asynchronous applies to a RACW as well. In this case, the
+invocation of @b{any} method with in parameters is @b{always} performed
+asynchronously. Remote method invocation (3) is asynchronous when remote
+method invocation (4) is synchronous.
+
+@image{asynchronousmain.adb}
+
+This feature allows message passing programming. But the user has to
+realize that message passing programming, and asynchronous remote calls
+in particular, has several drawbacks:
+
+@itemize
+
+@item
+Violate original (remote) procedure semantics
+
+@item
+Allow some kind of remote GOTO mechanism
+
+@item
+Prevent development and debugging in a non-distributed context
+
+@item
+Introduce potential race conditions
+
+@end itemize
+
+To illustrate this, let's take the following example:
+
+@image{node2.ads}
+@image{node2.adb}
+@image{node1.ads}
+@image{node1.adb}
+@image{nondeterministic.adb}
+
+Let's say that Main is configured on Partition_0, Node1 on Partition_1
+and Node2 on Partition_2. If Node1.Send and Node2.Send procedures were
+synchronous or if no latency was introduced during network
+communication, we would have the following RPC order: Main remotely
+calls Node1.Send which remotely calls Node2.Send which sets V to
+1. Then, Main remotely calls Node2.Send and sets V to 2.
+
+Now, let's assume that both Send procedures are asynchronous and that
+the connection between Partition_1 and Partition_2 is very slow. The
+following scenario can very well occur. Main remotely calls Node1.Send
+and is unblocked. Immediatly after this call, Main remotely calls
+Node2.Send and sets V to 2. Once this is done, the remote call to
+Node1.Send completes on Partition_1 and it remotely calls Node2.Send
+which sets V to 1.
+
+@node Pragma All_Calls_Remote, Generic Categorized Units  , Pragma Asynchronous, More About Pragmas
+@subsection Pragma All_Calls_Remote
 
 A pragma All_Calls_Remote in a RCI unit can force a remote procedure
 call to be routed through the communication subsystem even for a local
 call. This allows to debug an application in a non-distributed
 situation that is very close to the distributed one.
-  
-A pragma Asynchronous allows statically and dynamically bound remote
-calls to be executed asynchronously. An asynchronous procedure doesn't
-wait for the completion of the remote call and lets the caller
-continue its execution path. The procedure must have only @b{in}
-parameters and any exception raised during the execution of the remote
-procedure is lost.
-  
+
+@node Generic Categorized Units  , Categorization Unit Dependencies, Pragma All_Calls_Remote, More About Pragmas
+@subsection Generic Categorized Units  
+
+@image{genericrci.ads}
+@image{rciinstantiation.ads}
+@image{normalinstantiation.ads}
+
 Any of these categorized units can be generic. Instances of these
-generic packages can be either categorized or not. In the latter, such
-a unit loses its categorization property.
+generic packages can be either categorized or not. In the latter, such a
+unit loses its categorization property. Like any categorized unit, the
+generic categorized unit can only be instantiated at the library level
+and regular restrictions of categorized units apply on instantiation (in
+particular on generic formal parameters).
+
+@node Categorization Unit Dependencies,  , Generic Categorized Units  , More About Pragmas
+@subsection Categorization Unit Dependencies
 
 Each categorization pragma has very specific visibility rules. As a
 general rule, RCI > RT > SP > Pure. That means that a
 Remote_Types package can make visible in its specification only
 Remote_Types, Shared_Passive and Pure units.
 
-@node Most Features in One Example, Non-Distributed versus Distributed Applications, Presentation Of Categorization Pragmas, Tutorial on the Distributed Systems Annex
+@node Most Features in One Example, A Comparison between CORBA and DSA, More About Pragmas, Tutorial on the Distributed Systems Annex
 @section Most Features in One Example
 
 The example shown on the following figure highlights most of
@@ -950,109 +778,22 @@ job (query - 2) to him. The worker performs the job and saves the
 result (reply - 3) in a storage common to all the factories.  The
 worker notifies the factory of the end of his job (notify - 4).
 
-@format
-@group
-@t{
-+-------------+               +-------------++-------------++-------------+
-|  Partition  |               |  Partition  ||  Partition  ||  Partition  |
-|             |               |             ||             ||             |
-|+-----------+|               |+-----------+||+-----------+||+-----------+|
-||One_Factory||               ||  Storage  ||||  Workers  ||||One_Factory||
-|+-----------+|               |+-----------+||+-----------+||+-----------+|
-|      *      |               |             |+-------------+|      *      |
-|      \      |               |             |       ^       |      /      |
-|      /      |               |             |       |       |      \      |
-|      +...............       |             |       +----(Hire)----+      |
-|      +----(Query)---+       |             |       +----(Query)---+      |
-|      \      |       |       |             |       |       |      /      |
-|      /      |       v       |             |       v       |      \      |
-|      \      |+-------------+|             |+-------------+|      /      |
-|      /      ||  Partition  ||             ||  Partition  ||      \      |
-|      \      ||             ||             ||             ||      /      |
-|      /      |+------------+||             ||+-----------+||      \      |
-|      *      |||One_Worker |||             |||One_Worker |||      *      |
-|      ^      ||+-----------+||     ^ ^     ||+-----------+||      ^      |
-+------|------++------|------++-----|-|-----++------|------++------|------+
-       |              |             | |             |              |
-       |              |             | |             |              |
-       |              +---(Reply)---+ +---(Reply)---+              |
-       +---(Notify)---+                             +---(Notify)---+
-}
-@end group
-@end format
-
-@smallexample
-@group
-package Storage is
-   pragma Shared_Passive;
-
-   protected Queue is
-      procedure Insert (Q, R : Integer);
-      procedure Remove
-        (Q : in Integer;
-         R : out Integer);
-   private
-      -- Declaration not shown
-   end Queue;
-end Storage;
-@end group
-@end smallexample
+@image{full-ex.fig}
+@image{storage.ads}
 
 When a worker has achieved his job, the result should be saved in a
 common storage. To do this, we define a protected area in SP package
 Storage (see sample above). Two entry-less protected objects
 ensure atomic access on this area.
 
-@smallexample
-@group
-with Storage; use Storage;
-package Types is
-   pragma Remote_Types;
-
-   type Notify is
-      access procedure (Q : Integer);
-   pragma Asynchronous (Notify);
-
-   type Worker is
-      abstract tagged limited private;
-   procedure Assign
-     (W : access Worker;
-      Q : in Integer;
-      N : in Notify) is abstract;
-
-   type Any_Worker is
-      access all Worker'Class;
-   pragma Asynchronous (Any_Worker);
-
-private
-   -- Declaration not shown
-end Types;
-@end group
-@end smallexample
+@image{common.ads}
 
 Types is a Remote_Types package that defines most of the remote services
 of the above system (see sample above). First, we define a way for the
 workers to notify the end of his job.  This callback mechanism is
 implemented using RAS Notify.
 
-@smallexample
-@group
-with Types, Storage; use Types, Storage;
-package One_Worker is
-   pragma Remote_Types;
-
-   type G1_Worker is
-      new Worker with private;
-
-   procedure Assign
-     (W : access G1_Worker;
-      Q : Integer;
-      N : Notify);
-private
-   -- Declaration not shown
-end One_Worker;
-@end group
-@end smallexample
+@image{newworkers.ads}
 
 We define an abstract tagged type Worker which is intended to be the
 root type of the whole distributed objects hierarchy. Assign allows a
@@ -1061,164 +802,342 @@ the end of this job. Any_Worker is a remote access to class wide type
 (RACW). In other words, it is a reference to a distributed object of any
 derived type from Worker class.
 
-@smallexample
-@group
-with Types, Storage; use Types, Storage;
-with One_Worker; use One_Worker;
-package Another_Worker is
-   pragma Remote_Types;
+@image{newnewworkers.ads}
 
-   type G2_Worker is
-      new G1_Worker with private;
+NewWorker is derived from type Worker and Assign is overridden. Sample
+above shows how to derive a second generation of workers NewNewWorker
+from the first generation NewWorker. As mentioned above, this RT package
+can be duplicate on several partitions to produce several types of
+workers and also several remote workers.
 
-   procedure Assign
-     (W : access G2_Worker;
-      Q : Integer;
-      N : Notify);
-private
-   -- Declaration not shown
-end Another_Worker;
-@end group
-@end smallexample
-
-G1_Worker is derived from type Worker and Assign is overridden. Sample
-above shows how to derive a second generation of workers G2_Worker from
-the first generation G1_Worker. As mentioned above, this RT package can
-be duplicate on several partitions to produce several types of workers
-and also several remote workers.
-
-@smallexample
-@group
-with Types; use Types;
-package Workers is
-   pragma Remote_Call_Interface;
-
-   procedure Insert (W : in  Any_Worker);
-   procedure Remove (W : out Any_Worker);
-end Workers;
-@end group
-@end smallexample
+@image{workercity.ads}
 
 In sample above, we define an unique place where workers wait for
 jobs. Workers is a Remote_Call_Interface package with services to hire
 and free workers. Unlike to Remote_Types packages, Remote_Call_Interface
 packages cannot be duplicated.
 
-@smallexample
-@group
-with Storage; use Storage;
-generic
-package Factory is
-   pragma Remote_Call_Interface;
-
-   procedure Notify (Q : Integer);
-   pragma Asynchronous (Notify);
-end Factory;
-@end group
-@end smallexample
-
-@smallexample
-@group
-with Factory;
-package One_Factory is new Factory;
-pragma Remote_Call_Interface (One_Factory);
-@end group
-@end smallexample
+@image{workercity.ads}
+@image{newfactory.ads}
 
 In order to use even more DSA features, Factory is defined as a generic
 RCI package (see sample above). Any instantiation defines a new factory
 (see sample above). To be RCI, this instantiation has to be categorized
 once again.
 
-@node Non-Distributed versus Distributed Applications,  , Most Features in One Example, Tutorial on the Distributed Systems Annex
-@section Non-Distributed versus Distributed Applications
-
-A sequential application may have a different behavior whether it is
-configured to be a distributed program or not. Let's take the example
-below.
+@node A Comparison between CORBA and DSA,  , Most Features in One Example, Tutorial on the Distributed Systems Annex
+@section A Comparison between CORBA and DSA
 
 @menu
-* Code Example::                
-* Execution in Non-Distributed System::  
-* Execution in Distributed System::  
+* CORBA Architecture::          
+* Interface Definition Language::  
+* Network Communication Subsystem::  
+* Distributed Application Development::  
+* Some elements of comparison::  
 @end menu
 
-@node Code Example, Execution in Non-Distributed System, Non-Distributed versus Distributed Applications, Non-Distributed versus Distributed Applications
-@subsection Code Example
-@smallexample
-@group
-package RCI_1 is                    package RCI_2 is
-   pragma Remote_Call_Interface;       pragma Remote_Call_Interface;
-   procedure P (X : Integer);          procedure P (X : Integer);
-   pragma Asynchronous (P);            pragma Asynchronous (P);         
-end RCI_1;                          end RCI_2;
-@end group
-@end smallexample
+@node  CORBA Architecture, Interface Definition Language, A Comparison between CORBA and DSA, A Comparison between CORBA and DSA
+@subsection CORBA Architecture
 
-@smallexample
-@group
-with RCI_2;                         
-package body RCI_1 is               package body RCI_2 is
-                                       V : Integer := 0;
-   procedure P (X : Integer) is        procedure P (X : Integer) is
-   begin                               begin
-      RCI_2.P (X);                        V := X;
-   end P;                              end P;
-end RCI_1;                          end RCI_2;
-@end group
-@end smallexample
+CORBA is an industry-sponsored effort to standardize the distributed
+object paradigm via the CORBA Interface Definition Language (IDL).  The
+use of IDL makes CORBA more self-describing than any other client/server
+middleware. The Common Object Request Broker: Architecture and
+Specification, revision 2.2 describes the main features of CORBA which
+are Interface Definition Language, Language Mappings, Stubs, Skeletons
+and Object Adapters, ORB, Interface Repository, Dynamic Invocation, ORB
+protocols and CORBA services.
 
-@smallexample
-@group
-with RCI_1, RCI_2;
-procedure Main is
-begin
-   RCI_1.P (1);
-   RCI_2.P (2);
-end Main;
-@end group
-@end smallexample
+@image{corba-arch.fig}
 
-@node Execution in Non-Distributed System, Execution in Distributed System, Code Example, Non-Distributed versus Distributed Applications
-@subsection Execution in Non-Distributed System
+The IDL specifies modules, constants, types and interfaces. An object
+interface defines the operations, exceptions and public attributes a
+client can invoke or access. CORBA offers a model based only on
+distributed objects. In some respects, it can be compared to Java as
+this language provides only an object-oriented programming model, and
+discards the classical structured programming model.
 
-@smallexample
-@group
-RCI_1.P(1)
-   |
-  [1]
-   |
-   v
-RCI_2.P(1) - [2] -> V = 1
-   |
-  [3]
-   |
-   v
-RCI_2.P(2) - [4] -> V = 2
-@end group
-@end smallexample
+An IDL pre-compiler generates client stubs and server skeletons in a
+host language (C++, C, Java, Smalltalk, Ada95); a language mapping
+specifies how CORBA constructs are implemented in the host language. Of
+course, if the host language is Java or C++, as the IDL is already
+closed to these languages, the mapping is quite straightforward. If the
+language is Ada95, then the user can have significantly much work to
+suit the generated code to his actual needs.
 
-@node Execution in Distributed System,  , Execution in Non-Distributed System, Non-Distributed versus Distributed Applications
-@subsection Execution in Distributed System
+The IDL pre-compiler produces two host language source files: a client
+file called stub and a server file called skeleton. These files are
+specific to a vendor and product, as they make calls to a proprietary
+communication subsystem, but their structure is supposed to follow a
+standard canvas.  The client stubs convert user queries into requests to
+the ORB, which transmits these requests through an object adaptor to the
+server skeleton.
 
-@smallexample
-@group
-+-------------+     +-------------+     +-------------+ 
-| Partition 1 |     | Partition 2 |     | Partition 3 |
-+-------------+     +-------------+     +-------------+ 
+@node Interface Definition Language, Network Communication Subsystem, CORBA Architecture, A Comparison between CORBA and DSA
+@subsection Interface Definition Language
 
-RCI_1.P(1) - [1] -> RCI_2.P(1) 
-   |                   |
-  [2]                  |
-   |                   |
-   v                   
-RCI_2.P(2) ---------- [3] ------------> RCI_2.P(2) - [4] -> V = 2
+In DSA, the IDL is a subset of Ada95. The user identifies at compile
+time interface packages. Some interface packages are categorized using
+pragmas and these interface packages have to be unit libraries. There
+are three kinds of categorization pragmas:
 
-                       |
-                       v
-                    RCI_2.P(1) - [5] -> RCI_2.P(1) - [6] -> V = 1 
-@end group
-@end smallexample
+In CORBA, the IDL is a descriptive language; it supports @t{C++}
+syntax for constant, type and operation declarations. From IDL
+descriptions, a pre-compiler can directly generate client header files
+and server implementation skeletons.
+
+An IDL file can start by defining a module. This provides a name-space
+to gather a set of interfaces. This is a way to introduce a level of
+hierarchy (<@i{module}>::<@i{interface}>::<@i{operation}>). The Ada95
+binding maps this element into a (child) package. @t{\#include}
+will make any other namespaces visible.
+
+A module can define interfaces. An interface defines a set of
+methods that a client can invoke on an object. An interface can also
+define exceptions and attributes. An exception is like a @t{C++}
+exception and a component can be attached to it. An attribute is a
+component field. For each of them, the implementation automatically
+creates Get and Set operations. Only Get is provided for
+readonly attributes. An interface can derived from one or more
+interfaces (multiple inheritance).
+
+The Ada95 binding maps this element into a package or a child
+package. For the client stub, the implementation will automatically
+create a tagged type named Ref (which is derived from CORBA.Object.Ref
+or from the derived type Ref of another interface) in a package named
+like the interface. For the server skeleton, the implementation will
+automatically create a tagged type named Object (which is derived from
+an implementation defined private tagged type Object) in a package named
+Impl, child package of a package named like the interface
+(<@i{interface}>.Impl).
+
+@image{naming.idl}
+
+A method is defined by its unique name (no overloading allowed) and its
+signature (the types of its formal parameters). Each parameter can be of
+mode @b{in}, @b{out} or @b{inout}, whose meaning is
+comparable to their Ada homonyms. Every exception that can be raised by
+a method must also be declared as part of the method signature.
+
+In addition, the @b{oneway} attribute can be applied to a subprogram,
+making it an asynchronous method. The caller of an asynchronous method
+will continue its execution path without waiting for the completion of
+the remote call.
+
+Most CORBA data types map naturally onto predefined Ada types, with
+the exception of @t{any} and @t{sequence}. @t{any},
+that can designate any CORBA type, will be mapped onto a stream type
+with @t{read} and @t{write} operations. A @t{sequence}
+holds a list of data with a given type and will be represented in Ada
+using a pair of lengthy generic packages (the declaration itself would
+take about 20 pages). One may note that the CORBA @t{string} type
+is mapped onto the @t{Unbounded\_String} predefined Ada type.
+
+The Ada95 mapping provides special mechanisms to implement two difficult
+CORBA features. First, it provides a way to implement multiple
+inheritance. As described above, an Ada95 package defines a type derived
+from the first interface and extends the list of its primitives to
+achieve inheritance from other interfaces. Another difficult feature of
+CORBA comes from forward declarations. In Ada, two package
+specifications cannot ``with'' each others, but this can occur between
+to IDL interfaces (see IDL specification above). To solve this, the
+mapping proposes to create ``forward'' packages. This can result in a
+very non-intuitive situation where the client stub does not ``with'' its
+usual interface packages but ``forward'' packages.
+
+We can note that to develop a distributed application with CORBA, a good
+understanding of the IDL is not enough. The user has also to understand
+very well the language mapping defined for the host language he wants to
+use. This can introduce a high level of complexity in the user code.
+
+Interface information coded in IDL can be stored in an on-line database
+of object definitions called Interface Repository. A CORBA specification
+describes how the interface repository is organized and how to retrieve
+information on IDL from this repository. The reader familiar with Ada95
+tools will note that this information is very close to what ASIS would
+provide.
+
+This interface repository becomes useful when a client wants to invoke a
+method for which he does not know the signature. CORBA defines an API to
+retrieve in the database the data that defines the server operation. It
+also defines a way to build a full request by generating the parameters
+needed for a method invocation.
+
+Basically, this API allows the client to explore the repository classes
+to obtain a module definition tree. From this tree, the client is able
+to extract subtrees defining constants, types, exceptions and
+interfaces. From an interface subtree, the client can select an
+operation with its list of parameters (type, name and mode) and
+exceptions.
+
+Therefore, the client has three ways to invoke the request. He can send
+the request and wait for the results. But he can also defer to get the
+result or ask to ignore the results (oneway). This mechanism is known as
+Dynamic Invocation Interface (DII). This mechanism is also available on
+the server side and is known as Dynamic Skeleton Interface. Of course,
+these mechanisms are powerful but very complex and tedious to use. Most
+of the users will keep working with static invocations.
+
+@node Network Communication Subsystem, Distributed Application Development, Interface Definition Language, A Comparison between CORBA and DSA
+@subsection Network Communication Subsystem
+
+@menu
+* DSA PCS::                     
+* CORBA ORB::                   
+@end menu
+
+@node DSA PCS, CORBA ORB, Network Communication Subsystem, Network Communication Subsystem
+@subsubsection DSA PCS
+
+In the DSA world, everything that is not done by the compiler in regard
+to the distribution belongs to the partition communication subsystem
+(PCS). For example figuring out on which partition a package that will
+be called remotely is located is part of the PCS responsibility.
+
+The PCS entry points are well defined in the Distributed Systems Annex
+and described in the @t{System.RPC} package declaration.  By looking at
+this package, one can notice that there is nothing related to abortion
+of remote subprogram calls, although the Annex states that if such a
+call is aborted, an abortion message must be sent to the remote
+partition to cancel remote processing. That means that the PCS is in
+charge of detecting that a call to one of its entry points has been
+aborted and must send such an abortion message, without any help from
+the compiler.
+
+Another interesting characteristic of the PCS is its behavior regarding
+unknown exceptions. When an exception is raised as the result of the
+execution of a remote subprogram call, it is propagated back to the
+caller. However, the caller may not have any visibility over the
+exception declaration, but may still catch it with a @t{when
+  others} clause. But if the caller does not catch it and let it be
+propagated upstream (maybe in another partition), and if the upstream
+caller has visibility over this exception, it must be able to catch it
+using its name. That means that the PCS must recognize that a
+previously unknown exception maps onto a locally known one, for
+example by being able to dynamically register a new exception into the 
+runtime.
+
+@node CORBA ORB,  , DSA PCS, Network Communication Subsystem
+@subsubsection CORBA ORB
+
+CORBA has adopted a much more fragmented point of view in regard to
+services: as much services as possible will be defined externally.  For
+example, the naming service (whose duty is to locate remote objects from
+their name) is itself a distributed object with a standardized IDL
+interface.
+
+While this looks like more pure an approach, this may also induce some
+slowdowns. Being itself a distributed object, the naming service cannot
+be optimized specifically for the ORB needs.  Also some magic is
+required in the ORB to be able to locate the naming service itself
+(chicken and egg problem).
+
+Regarding exception propagation, an ORB is not able to propagate an
+exception that has not been declared in the IDL interface. This
+restriction, although annoying because it restricts the usage of
+exceptions, is understandable given the multi-language CORBA approach:
+what should be done for example with a C++ exception which reaches a
+caller written in Ada?
+
+@node Distributed Application Development, Some elements of comparison, Network Communication Subsystem, A Comparison between CORBA and DSA
+@subsection Distributed Application Development
+
+@menu
+* DSA Application Development::  
+* CORBA Application Development::  
+@end menu
+
+@node DSA Application Development, CORBA Application Development, Distributed Application Development, Distributed Application Development
+@subsubsection DSA Application Development
+
+The DSA does not describe how a distributed application should be
+configured. It is up to the user (using a partitioning tool whose
+specification is outside the scope of the annex) to define what the
+partitions in her program are and on which machines they should be
+executed.
+
+GLADE provides a Configuration Tool and a Partition Communication
+Subsystem to build a distributed application. The GNATDIST tool and its
+configuration language have been purposely designed to let the user
+partition her program and specify the machines where the individual
+partitions will be executing. The Generic Ada Reusable Library for
+Interpartition Communication (GARLIC) is a high level communication
+library that implements with object-oriented techniques the interface
+between the Partition Communication Subsystem defined in the Reference
+Manual and the network communication layer.
+
+@node CORBA Application Development,  , DSA Application Development, Distributed Application Development
+@subsubsection CORBA Application Development
+
+@c \reviewers{We shall give more details on the distributed
+@c   application development in the final paper. This will also describe
+@c   the services available in CORBA: CosNaming, CosEvents,
+@c   ...}
+
+@node Some elements of comparison,  , Distributed Application Development, A Comparison between CORBA and DSA
+@subsection Some elements of comparison
+
+CORBA provides an outstanding and very popular framework. The IDL syntax
+is close to @t{C++}. The object model is close to @t{Java}: CORBA
+defines only distributed objects. Furthermore, the stub and skeleton
+generated code is close to Java with two root classes, Ref for clients
+and Object for servers.
+
+DSA provides a more general model. This includes distributed objects,
+but also regular remote subprograms and references on remote
+subprograms. Shared passive packages can be defined as an abstraction
+for a (distributed) shared memory, a persistency support or a database.
+Basically, the IDL is a subset of Ada95 and the remote services are
+defined in packages categorized by three kinds of pragmas (RCI, RT,
+SP). The distributed boundaries are more transparent as the application
+is not split into IDL sources and others sources in some host languages.
+
+To use a client stub or server skeleton, a CORBA user has to perfectly
+understand the Ada95 mapping or any other language mapping. Some types
+can be quite difficult or expensive to map like exceptions, any, string
+and sequence. Some IDL features are also difficult to implement in
+Ada95 like multiple inheritance and forward declarations.
+
+In DSA, any Ada type can be used except access types, but this can be
+solved by providing the marshaling operations for such a type. The
+exception model is entirely preserved. Overloading is allowed in DSA
+(not in CORBA). The user can also define generic packages and use mixin
+mechanism to obtain some kind of multiple inheritance.
+
+The DSA user can design, implement and test his application in a
+non-distributed environment, and then switch to a distributed situation.
+With this two-phase design approach, the user always works within his
+favorite Ada95 environment. Pragma All_Calls_Remote also facilitates
+debugging of a distributed application in a non-distributed context.
+
+The CORBA user has to re-adapt his code to the code generated by the
+pre-compiler from the IDL file anytime it is modified. He also has to
+use the predefined CORBA types instead of Ada standard types; he has to
+call adaptor services to obtain remote object references or a specific
+naming service.
+
+As Ada95 is the IDL, the user will not have to deal with any generated
+stub or skeleton code. The configuration environment will take care of
+updating object, stub and skeleton files when sources have been
+updated. The system will automatically take in charge some naming
+services like declaring RCI services. It will also take care of aborting
+remote procedure calls, detecting the distributed termination, checking
+version consistency between clients and servers or preserving and
+propagating remote exceptions.
+
+CORBA is a very rich but very complex system. The drawbacks include the
+high learning curve for developing and managing CORBA applications
+effectively, performance limitations, as well as the lack of portability
+and security.  These drawbacks are the price to pay for language
+interoperability, a facility the Ada95-oriented DSA does not provide.
+
+Using its IDL, the OMG has described a number of @i{Common Object
+Services} that are frequently needed to develop distributed
+systems. Unfortunately, these specifications are limited to an IDL
+description, and most of the semantics is up to the vendor. The DSA
+misses such a user-level library including basic distributed software
+components.  More generally, the lack of component libraries has always
+been a problem for Ada.
 
 @node Getting Started With GLADE, Index, Tutorial on the Distributed Systems Annex, Top
 @chapter Getting Started With GLADE

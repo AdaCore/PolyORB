@@ -1,0 +1,18 @@
+#! /bin/sh
+#
+# Correct a buggy bounding box computation in ps2epsi
+
+f=$1
+set `psbb $f`
+llx=$1
+lly=$2
+urx=$3
+ury=$4
+# Corrections
+if [ "x$USER" != "xsam" ]; then
+    ury=`expr $ury + 20`
+fi
+llx=20
+urx=320
+sed -e "s/^%%BoundingBox.*/%%BoundingBox: $llx $lly $urx $ury/" < $f > $f.tmp
+mv $f.tmp $f

@@ -1,3 +1,19 @@
+1999-01-01  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* glade_ug.texi: More on tutorial and DSA/CORBA comparison.
+
+	* full-ex.fig, xe-arch.fig, corba-arch.fig : Figures
+	for full example, DSA architecture and CORBA architecture.
+
+	* full-ex.fig.txt, xe-arch.fig.txt, corba-arch.fig.txt :
+	ASCII versions of the previous figures.
+	
+ 	* adjustbb, corba.ssh, Makefile : Script to adjust wrong
+	bounding box, a format for a2ps and Makefile.
+        
+   	* naming.idl, all-srcs.ada : IDL example and all Ada sources in a
+	chopable format.
+
 1998-12-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* user_guide.txt: A section on how to trace what is going on

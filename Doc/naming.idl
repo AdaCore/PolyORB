@@ -1,0 +1,37 @@
+module CosNaming {
+  typedef string Istring;
+  struct NameComponent {
+    Istring id;
+    Istring kind;
+  };
+  typedef sequence <NameComponent> Name;
+  enum BindingType {nobject, ncontext};
+  struct Binding {
+    Name binding_name;
+    BindingType binding_type; 
+  };
+  typedef sequence <Binding> BindingList;
+
+  interface BindingIterator;
+
+  interface NamingContext {
+      exception CannotProceed {
+	  NamingContext cxt;
+	  Name rest_of_name;
+	};
+      void bind (in Name n, in Object obj)
+	raises (CannotProceed);
+      void list 
+	(in unsigned long how_many, 
+	 out BindingList bl, 
+	 out BindingIterator bi);
+      // Other declarations not shown
+    };
+  
+  interface BindingIterator {
+      boolean next_n 
+	(in unsigned long how_many,
+	 out BindingList bl);
+      // Other declarations not shown
+    };
+};
