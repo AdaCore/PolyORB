@@ -28,6 +28,9 @@
 #include <idl_extern.hh>
 #include "debug.h"
 
+char *lower (const char *str);
+// Used to removed the upper case in a string
+
 class string_list
 {
  public:
@@ -521,6 +524,8 @@ class adabe_interface : public virtual AST_Interface,
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
+
+  bool is_forwarded(void) { return pd_is_forwarded; };
 
  private:
 

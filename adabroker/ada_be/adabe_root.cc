@@ -95,7 +95,7 @@ adabe_root::produce() {
 		  
 		  string module_file_name =
 		    remove_dot(module->get_ada_full_name())+".ads";
-		  ofstream module_file(module_file_name.c_str()); 	// Open the ads module file	
+		  ofstream module_file(lower(module_file_name.c_str())); 	// Open the ads module file	
 		  module_file << module_with_string;
 		  module_file << module_previous; 
 		  module_file << module_body;
@@ -116,7 +116,7 @@ adabe_root::produce() {
 
 		  interface_with_string = *interface_with.produce("with ");
 		  string interface_file_name = remove_dot(interface->get_ada_full_name())+".ads";
-		  ofstream interface_file(interface_file_name.c_str());	
+		  ofstream interface_file(lower(interface_file_name.c_str()));
 		  interface_file << interface_with_string;
 		  interface_file << interface_previous;    
 		  interface_file << interface_body;
@@ -142,7 +142,7 @@ adabe_root::produce() {
 #endif
       if (!first)
 	{
-	  ofstream header(ada_file_name.c_str());
+	  ofstream header(lower(ada_file_name.c_str()));
 	  
 	  header_includes = *header_with.produce ("with ");
 	  header << header_includes;
@@ -194,7 +194,7 @@ adabe_root::produce() {
 		    interface_with_string = *interface_with.produce("with ");
 		    
 		    string interface_file_name = remove_dot(interface->get_ada_full_name())+".adb";
-		    ofstream interface_file(interface_file_name.c_str());	
+		    ofstream interface_file(lower(interface_file_name.c_str()));	
 		    interface_file << interface_with_string;
 		    interface_file << interface_previous;    
 		    interface_file << interface_body;
@@ -251,7 +251,7 @@ adabe_root::produce() {
 		    
 		    string impl_header_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-impl.ads";
-		    ofstream impl_header_interface_file(impl_header_interface_file_name.c_str());	
+		    ofstream impl_header_interface_file(lower(impl_header_interface_file_name.c_str()));	
 		    impl_header_interface_file << impl_header_interface_with_string;
 		    impl_header_interface_file << impl_header_interface_previous;    
 		    impl_header_interface_file << impl_header_interface_body;
@@ -304,7 +304,7 @@ adabe_root::produce() {
 		    
 		    string impl_body_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-impl.adb";
-		    ofstream impl_body_interface_file(impl_body_interface_file_name.c_str());	
+		    ofstream impl_body_interface_file(lower(impl_body_interface_file_name.c_str()));	
 		    impl_body_interface_file << impl_body_interface_with_string;
 		    impl_body_interface_file << impl_body_interface_previous;    
 		    impl_body_interface_file << impl_body_interface_body;
@@ -360,7 +360,7 @@ adabe_root::produce() {
 		    
 		    string proxy_header_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-proxies.ads";
-		    ofstream proxy_header_interface_file(proxy_header_interface_file_name.c_str());	
+		    ofstream proxy_header_interface_file(lower(proxy_header_interface_file_name.c_str()));	
 		    proxy_header_interface_file << proxy_header_interface_with_string;
 		    proxy_header_interface_file << proxy_header_interface_previous;    
 		    proxy_header_interface_file << proxy_header_interface_body;
@@ -413,7 +413,7 @@ adabe_root::produce() {
 		    
 		    string proxy_body_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-proxies.adb";
-		    ofstream proxy_body_interface_file(proxy_body_interface_file_name.c_str());	
+		    ofstream proxy_body_interface_file(lower(proxy_body_interface_file_name.c_str()));	
 		    proxy_body_interface_file << proxy_body_interface_with_string;
 		    proxy_body_interface_file << proxy_body_interface_previous;    
 		    proxy_body_interface_file << proxy_body_interface_body;
@@ -469,7 +469,7 @@ adabe_root::produce() {
 		    
 		    string skel_header_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-skeleton.ads";
-		    ofstream skel_header_interface_file(skel_header_interface_file_name.c_str());	
+		    ofstream skel_header_interface_file(lower(skel_header_interface_file_name.c_str()));	
 		    skel_header_interface_file << skel_header_interface_with_string;
 		    skel_header_interface_file << skel_header_interface_previous;    
 		    skel_header_interface_file << skel_header_interface_body;
@@ -522,7 +522,7 @@ adabe_root::produce() {
 		    
 		    string skel_body_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-skeleton.adb";
-		    ofstream skel_body_interface_file(skel_body_interface_file_name.c_str());	
+		    ofstream skel_body_interface_file(lower(skel_body_interface_file_name.c_str()));	
 		    skel_body_interface_file << skel_body_interface_with_string;
 		    skel_body_interface_file << skel_body_interface_previous;    
 		    skel_body_interface_file << skel_body_interface_body;
@@ -567,7 +567,6 @@ adabe_root::produce() {
 		case AST_Decl::NT_struct:
 		case AST_Decl::NT_enum:
 		case AST_Decl::NT_typedef:
-		case AST_Decl::NT_interface_fwd:
 		  {
 		    if (first) {
 		      marshal_header_previous = "Package " + get_ada_full_name() + "-marshal";
@@ -591,7 +590,7 @@ adabe_root::produce() {
 		    
 		    string marshal_module_file_name =
 		      remove_dot(module->get_ada_full_name())+"-marshal.ads";
-		    ofstream marshal_module_file(marshal_module_file_name.c_str());
+		    ofstream marshal_module_file(lower(marshal_module_file_name.c_str()));
 		    marshal_module_file << marshal_module_with_string;
 		    marshal_module_file << marshal_module_previous; 
 		    marshal_module_file << marshal_module_body;
@@ -612,7 +611,7 @@ adabe_root::produce() {
 		    
 		    string marshal_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-marshal.ads";
-		    ofstream marshal_interface_file(marshal_interface_file_name.c_str());	
+		    ofstream marshal_interface_file(lower(marshal_interface_file_name.c_str()));	
 		    marshal_interface_file << marshal_interface_with_string;
 		    marshal_interface_file << marshal_interface_previous;    
 		    marshal_interface_file << marshal_interface_body;
@@ -621,7 +620,6 @@ adabe_root::produce() {
 		  
 		  break;
 		default:
-		  throw adabe_internal_error(__FILE__,__LINE__,"unexpected contening scope");
 		  break;
 		}
 	    }
@@ -631,7 +629,7 @@ adabe_root::produce() {
       if (!first)
 	{
 	  string marshal_ada_file_name = idl_file_name+"-marshal.ads";
-	  ofstream marshal_header(marshal_ada_file_name.c_str());
+	  ofstream marshal_header(lower(marshal_ada_file_name.c_str()));
 	  marshal_header_includes = *marshal_header_with.produce ("with ");
 	  marshal_header << marshal_header_includes;
 	  marshal_header << marshal_header_previous;
@@ -671,7 +669,6 @@ adabe_root::produce() {
 		case AST_Decl::NT_struct:
 		case AST_Decl::NT_enum:
 		case AST_Decl::NT_typedef:
-		case AST_Decl::NT_interface_fwd:
 		  {
 		    if (first) {
 		      marshal_body_previous = "Package " + get_ada_full_name() + "-marshal";
@@ -695,7 +692,7 @@ adabe_root::produce() {
 		    
 		    string marshal_module_file_name =
 		      remove_dot(module->get_ada_full_name())+"-marshal.adb";
-		    ofstream marshal_module_file(marshal_module_file_name.c_str());
+		    ofstream marshal_module_file(lower(marshal_module_file_name.c_str()));
 		    marshal_module_file << marshal_body_module_with_string;
 		    marshal_module_file << marshal_body_module_previous; 
 		    marshal_module_file << marshal_body_module_body;
@@ -717,7 +714,7 @@ adabe_root::produce() {
 		    
 		    string marshal_interface_file_name =
 		      remove_dot(interface->get_ada_full_name())+"-marshal.adb";
-		    ofstream marshal_interface_file(marshal_interface_file_name.c_str());	
+		    ofstream marshal_interface_file(lower(marshal_interface_file_name.c_str()));	
 		    marshal_interface_file << marshal_interface_with_string;
 		    marshal_interface_file << marshal_interface_previous;    
 		    marshal_interface_file << marshal_interface_body;
@@ -733,7 +730,7 @@ adabe_root::produce() {
 	{ 
 	  string marshal_ada_file_name =
 	    remove_dot(idl_file_name)+"-marshal.adb";
-	  ofstream marshal_body(marshal_ada_file_name.c_str());
+	  ofstream marshal_body(lower(marshal_ada_file_name.c_str()));
 	  marshal_body_includes = *marshal_body_with.produce ("with ");
 	  marshal_body << marshal_body_includes;
 	  marshal_body << marshal_body_previous;

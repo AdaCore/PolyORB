@@ -64,7 +64,7 @@ adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinitio
 	    
 	    string module_file_name =
 	      remove_dot(module->get_ada_full_name()) + ".ads";
-	    ofstream module_file(module_file_name.c_str());
+	    ofstream module_file(lower(module_file_name.c_str()));
 	    module_file << module_with_string;
 	    module_file << module_previous;
 	    module_file << module_body;
@@ -85,7 +85,7 @@ adabe_module::produce_ads(dep_list& with,string &body, string &previousdefinitio
 	    
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name())+ ".ads";
-	    ofstream interface_file(interface_file_name.c_str());
+	    ofstream interface_file(lower(interface_file_name.c_str()));
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
@@ -151,7 +151,7 @@ adabe_module::produce_adb(dep_list& with,string &body, string &previousdefinitio
 	    
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name()) + ".adb";
-	    ofstream interface_file(interface_file_name.c_str());
+	    ofstream interface_file(lower(interface_file_name.c_str()));
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
@@ -213,7 +213,7 @@ adabe_module::produce_impl_ads(dep_list& with,string &body, string &previousdefi
 	      remove_dot(interface->get_ada_full_name()) + "-impl.ads";
 	    cout << 	      remove_dot(interface->get_ada_full_name()) + "-impl.ads" <<endl;
 
-	    ofstream interface_file(interface_file_name.c_str());
+	    ofstream interface_file(lower(interface_file_name.c_str()));
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
@@ -272,7 +272,7 @@ adabe_module::produce_impl_adb(dep_list& with,string &body, string &previousdefi
 	    
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name()) + "-impl.adb";
-	    ofstream interface_file(interface_file_name.c_str());
+	    ofstream interface_file(lower(interface_file_name.c_str()));
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
@@ -334,7 +334,7 @@ adabe_module::produce_proxies_ads(dep_list& with,string &body, string &previousd
 	    
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name()) + "-proxies.ads";
-	    ofstream interface_file(interface_file_name.c_str());
+	    ofstream interface_file(lower(interface_file_name.c_str()));
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
@@ -394,7 +394,7 @@ adabe_module::produce_proxies_adb(dep_list& with,string &body, string &previousd
 	    
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name()) + "-proxies.adb";
-	    ofstream interface_file(interface_file_name.c_str());
+	    ofstream interface_file(lower(interface_file_name.c_str()));
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
@@ -454,7 +454,7 @@ adabe_module::produce_skel_ads(dep_list& with,string &body, string &previousdefi
 	    
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name()) + "-skeleton.ads";
-	    ofstream interface_file(interface_file_name.c_str());
+	    ofstream interface_file(lower(interface_file_name.c_str()));
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
@@ -517,7 +517,7 @@ adabe_module::produce_skel_adb(dep_list& with,string &body, string &previousdefi
 	    
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name()) + "-skeleton.adb";
-	    ofstream interface_file(interface_file_name.c_str());
+	    ofstream interface_file(lower(interface_file_name.c_str()));
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
@@ -576,7 +576,7 @@ adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousd
 	    
 	    string module_file_name =
 	      remove_dot(module->get_ada_full_name()) + "-marshal.ads";
-	    ofstream module_file(module_file_name.c_str());
+	    ofstream module_file(lower(module_file_name.c_str()));
 	    module_file << module_with_string;
 	    module_file << module_previous;
 	    module_file << module_body;
@@ -597,7 +597,7 @@ adabe_module::produce_marshal_ads(dep_list& with,string &body, string &previousd
 	    
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name()) + "-marshal.ads";
-	    ofstream interface_file(interface_file_name.c_str());
+	    ofstream interface_file(lower(interface_file_name.c_str()));
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;
@@ -660,7 +660,7 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	    
 	    string module_file_name =
 	      remove_dot(module->get_ada_full_name()) + "-marshal.adb";
-	    ofstream module_file(module_file_name.c_str());
+	    ofstream module_file(lower(module_file_name.c_str()));
 	    module_file << module_with_string;
 	    module_file << module_previous;
 	    module_file << module_body;
@@ -681,7 +681,7 @@ adabe_module::produce_marshal_adb(dep_list& with,string &body, string &previousd
 	    
 	    string interface_file_name =
 	      remove_dot(interface->get_ada_full_name()) +"-marshal.adb";
-	    ofstream interface_file(interface_file_name.c_str());
+	    ofstream interface_file(lower(interface_file_name.c_str()));
 	    interface_file << interface_with_string;
 	    interface_file << interface_previous;       
 	    interface_file << interface_body;

@@ -728,7 +728,6 @@ adabe_interface::marshal_name(dep_list& with, string &previous)
   else return (get_ada_full_name()+".Ref");
 }
 
-
 IMPL_NARROW_METHODS1(adabe_interface, AST_Interface)
 IMPL_NARROW_FROM_DECL(adabe_interface)
 IMPL_NARROW_FROM_SCOPE(adabe_interface)

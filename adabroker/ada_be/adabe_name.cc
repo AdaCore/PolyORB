@@ -465,8 +465,17 @@ adabe_name::is_imported (dep_list& with)
   if (NT == AST_Decl::NT_interface)
     {
       bool temp;
-      temp = with.check (get_ada_full_name()); 
-      if (!temp) with.add (get_ada_full_name());
+      adabe_interface *inter = dynamic_cast<adabe_interface *>(this);
+      if (inter->is_forwarded())
+	{
+	  temp = with.check (get_ada_full_name() + "_forward"); 
+	  if (!temp) with.add (get_ada_full_name() + "_forward");
+	}
+      else
+	{
+	  temp = with.check (get_ada_full_name()); 
+	  if (!temp) with.add (get_ada_full_name());
+	}
       return 1;
     }
   if (NT == AST_Decl::NT_module)
@@ -778,6 +787,18 @@ internal_search_pragma(AST_Decl* decl,char* p)
   return result;
 }
 
+char *lower (const char *str)
+{
+  char *new_str = new char[strlen(str)+1];
+  strcpy(new_str,str);
+  for (unsigned int i = 0; i < strlen(str); i++) 
+    {
+      if ((str[i] > 64) && ( str[i] < 91))
+	new_str[i] = new_str[i] + 32;
+    }
+  cout << "File name :" << new_str <<endl; 
+  return new_str;
+}
 
 IMPL_NARROW_FROM_DECL(adabe_name)
 IMPL_NARROW_FROM_SCOPE(adabe_name)
