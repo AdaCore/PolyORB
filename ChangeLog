@@ -1,3 +1,11 @@
+1998-05-04  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* configure.in: New variable CP_PRESERVE which gives cp flag to
+ 	preserve the original files' owner, group, permissions, and
+ 	timestamps.
+
+	* Makefile.am, Makefile.in: See above.
+	
 1998-04-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure, configure.in, Makefile.in: Add platform Open NT.

@@ -10,6 +10,7 @@ RANLIB  = @RANLIB@
 
 CONSTANTS_SH = ${srcdir}/constants.sh
 CP           = cp
+CP_PRESERVE  = @CP_PRESERVE@
 GARLIC       = ${prefix}/lib/garlic
 GNATFLAGS    = -gnatg @GNATFLAGS@
 INCFLAGS           = -I. -I${srcdir}
@@ -242,13 +243,13 @@ install-data-local: all-local install-dirs-local install-extra-libs
 	if test `cat inlining` = "yes"; then\
 	   (cd gnatlib;\
 	    ${AR} cq ${GARLIC}/libgnat.a `cat rebuild`;\
-            ${CP} -p `${SED} 's/\.o/.ali/g' rebuild` ${GARLIC});\
+            ${CP} ${CPPRESERVE} `${SED} 's/\.o/.ali/g' rebuild` ${GARLIC});\
 	fi
 	${RANLIB} ${GARLIC}/libgnat.a
 	for i in ${GARLIC} ${SOURCES} \
 		`echo ${OBJECTS} | ${SED} -e 's/\.o/.ali/g'`; do \
 		if test -f $$i; then \
-			${CP} -p $$i ${GARLIC}/; \
+			${CP} ${CPPRESERVE} $$i ${GARLIC}/; \
 		fi; \
 	done
 	${AR} cq ${GARLIC}/libgarlic.a ${OBJECTS}

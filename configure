@@ -1431,12 +1431,20 @@ case "${PLATFORM_SPECIFIC}" in
    *) PSNAME="Unknown (${PLATFORM_SPECIFIC})";;
 esac
 echo "$ac_t""$PSNAME" 1>&6
+echo $ac_n "checking preserve the original file properties with""... $ac_c" 1>&6
+echo "configure:1436: checking preserve the original file properties with" >&5
+
+case "${PLATFORM_SPECIFIC}" in
+   w) CP_PRESERVE="-lf";;
+   *) CP_PRESERVE="-p";;
+esac
+echo "$ac_t""$CP_PRESERVE" 1>&6
 #
 # Local launcher. Linux does not support local launching of programs with
 # LinuxThreads. This crashes the machine.
 #
 echo $ac_n "checking if platform supports local launching""... $ac_c" 1>&6
-echo "configure:1440: checking if platform supports local launching" >&5
+echo "configure:1448: checking if platform supports local launching" >&5
 case "${target}" in
   *-linux*)	SUPPORTS_LOCAL_LAUNCH=False; echo "$ac_t""no" 1>&6;;
   *)            SUPPORTS_LOCAL_LAUNCH=True; echo "$ac_t""yes" 1>&6;;
@@ -1446,7 +1454,7 @@ esac
 # Remote shell
 #
 echo $ac_n "checking which remote shell to use""... $ac_c" 1>&6
-echo "configure:1450: checking which remote shell to use" >&5
+echo "configure:1458: checking which remote shell to use" >&5
 # Check whether --with-remsh or --without-remsh was given.
 if test "${with_remsh+set}" = set; then
   withval="$with_remsh"
@@ -1476,7 +1484,7 @@ else
 fi
 
 echo $ac_n "checking default filters""... $ac_c" 1>&6
-echo "configure:1480: checking default filters" >&5
+echo "configure:1488: checking default filters" >&5
 
 if test -d Garlic; then
   :
@@ -1504,7 +1512,7 @@ if test "${with_protocols+set}" = set; then
   withval="$with_protocols"
   
   echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1508: checking default protocols" >&5
+echo "configure:1516: checking default protocols" >&5
   LIST="";
   PROTOCOLSSOURCES="";
   PROTOCOLSOBJECTS="";
@@ -1529,7 +1537,7 @@ echo "configure:1508: checking default protocols" >&5
 else
   
 echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1533: checking default protocols" >&5
+echo "configure:1541: checking default protocols" >&5
 PROTOCOLSSOURCES="\$(TCPSOURCES)";
 PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
 TCP_INCLUDED=""
@@ -1539,7 +1547,7 @@ fi
 
 if test "$TCP_INCLUDED" = ""; then
   echo $ac_n "checking thread-blocking I/O""... $ac_c" 1>&6
-echo "configure:1543: checking thread-blocking I/O" >&5
+echo "configure:1551: checking thread-blocking I/O" >&5
     if grep Non_Blocking $srcdir/Garlic/5${PLATFORM_SPECIFIC}gtplsp.ads \
       > /dev/null 2>&1; then
 	echo "$ac_t""no" 1>&6
@@ -1768,6 +1776,7 @@ s%@LAUNCHINGOBJECTS@%$LAUNCHINGOBJECTS%g
 s%@LAUNCHING_INCLUDED@%$LAUNCHING_INCLUDED%g
 s%@GNAT_SOURCE@%$GNAT_SOURCE%g
 s%@PLATFORM_SPECIFIC@%$PLATFORM_SPECIFIC%g
+s%@CP_PRESERVE@%$CP_PRESERVE%g
 s%@SUPPORTS_LOCAL_LAUNCH@%$SUPPORTS_LOCAL_LAUNCH%g
 s%@RSH@%$RSH%g
 /@FILTERFILE@/r $FILTERFILE

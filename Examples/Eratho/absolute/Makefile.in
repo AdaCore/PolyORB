@@ -65,6 +65,7 @@ target_alias = @target_alias@
 target_triplet = @target@
 AWK = @AWK@
 CC = @CC@
+CP_PRESERVE = @CP_PRESERVE@
 EXEEXT = @EXEEXT@
 EXTRA_LIBS = @EXTRA_LIBS@
 GNATFLAGS = @GNATFLAGS@
