@@ -3,10 +3,9 @@
 ***                             file:  adabe_name.cc                                           ***
 ***                                                                                            ***
 ***      This file provides the implementation of class adabe_name      declared in adabe.h    ***
-***   (L 70 ). This class is the correspondant of the Sun's Front-End class AST_Interface.     ***
-***   It provides produce functions for each generated file, a constructor and two little      ***
-***   functions : dump_name and marshall_name whose job is to print the name of the types.     ***
-***                                                                                            ***
+***   (L 70 ).                                                                                 ***
+***      This file contains all functions used to determine the ada name of the idl identifiers***
+***      It also contains methods to add the used files in the dep_list.                       ***
 ***                                                                                            ***
 ***   Copyright 1999                                                                           ***
 ***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***

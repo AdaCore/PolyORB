@@ -1,3 +1,26 @@
+/*************************************************************************************************
+***                              ADA BACK-END COMPILER                                         ***
+***                             file:  adabe_typedef.cc                                        ***
+***                                                                                            ***
+***      This file provides the implementation of class adabe_typedef   declared in adabe.h    ***
+***   (L 497). This class is the correspondant of the Sun's Front-End class AST_Typedef.       ***
+***   It provides produce functions for each generated file, a constructor and two little      ***
+***   functions : dump_name and marshall_name whose job is to print the name of the type.      ***
+***                                                                                            ***
+***   Copyright 1999                                                                           ***
+***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
+***                                                                                            ***
+***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
+***   General Public License, as published by the Free Software Foundation.                    ***
+***                                                                                            ***
+***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
+***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
+***  PURPOSE.                                                                                  ***
+***                                                                                            ***
+***  See the GNU General Public License for more details.                                      ***
+***                                                                                            ***
+***                                                                                            ***
+*************************************************************************************************/
 #include <adabe.h>
 
 adabe_typedef::adabe_typedef(AST_Type *bt, UTL_ScopedName *n, UTL_StrList *p)
@@ -52,32 +75,6 @@ adabe_typedef::produce_ads(dep_list& with, string &body, string &previous)
     }
   set_already_defined ();
 }
-/*
-  void
-  adabe_typedef::produce_adb(dep_list& with,string &body, string &previous)
-  {
-  if (!is_imported(with)) return get_ada_local_name();
-  return get_ada_full_name();	   
-  }
-  
-  void
-  adabe_typedef::produce_impl_ads(dep_list& with,string &body, string &previous)
-  {
-  INDENTATION(body);
-  body += "type" + get_ada_local_name() + "is new ";
-  AST_Decl *b  base_type();
-  string name =  dynamic_cast<adabe_name *>(b)->dump_name(with, previous); //virtual method
-  body += name;
-  body += ";\n";
-  }
-  
-  void
-  adabe_typedef::produce_impl_adb(dep_list& with,string &body, string &previous)
-  {
-  if (!is_imported(with)) return get_ada_local_name();
-  return get_ada_full_name();
-  }
-*/
 
 void
 adabe_typedef::produce_marshal_ads(dep_list& with, string &body, string &previous)

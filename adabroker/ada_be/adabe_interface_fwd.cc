@@ -1,3 +1,25 @@
+/*************************************************************************************************
+***                              ADA BACK-END COMPILER                                         ***
+***                             file:  adabe_interface_fwd.cc                                  ***
+***                                                                                            ***
+***      This file provides the implementation of class adabe_interface declared in adabe.h    ***
+***   (L 550). This class is the correspondant of the Sun's Front-End class AST_Interface_fwd. ***
+***      It creates a file in which the interface is forward declared.                         ***
+***                                                                                            ***
+***   Copyright 1999                                                                           ***
+***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
+***                                                                                            ***
+***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
+***   General Public License, as published by the Free Software Foundation.                    ***
+***                                                                                            ***
+***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
+***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
+***  PURPOSE.                                                                                  ***
+***                                                                                            ***
+***  See the GNU General Public License for more details.                                      ***
+***                                                                                            ***
+***                                                                                            ***
+*************************************************************************************************/
 #include <adabe.h>
 
 adabe_interface_fwd::adabe_interface_fwd(UTL_ScopedName *n, UTL_StrList *p)

@@ -1,3 +1,27 @@
+/*************************************************************************************************
+***                              ADA BACK-END COMPILER                                         ***
+***                             file:  adabe_operation.cc                                      ***
+***                                                                                            ***
+***      This file provides the implementation of class adabe_operation declared in adabe.h    ***
+***   (L 466). This class is the correspondant of the Sun's Front-End class AST_Operation.     ***
+***   It provides produce functions for each generated file, a constructor and two little      ***
+***   functions : is_function() and return_is_void().                                          ***
+***                                                                                            ***
+***                                                                                            ***
+***   Copyright 1999                                                                           ***
+***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
+***                                                                                            ***
+***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
+***   General Public License, as published by the Free Software Foundation.                    ***
+***                                                                                            ***
+***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
+***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
+***  PURPOSE.                                                                                  ***
+***                                                                                            ***
+***  See the GNU General Public License for more details.                                      ***
+***                                                                                            ***
+***                                                                                            ***
+*************************************************************************************************/
 #include <adabe.h>
 
 adabe_operation::adabe_operation(AST_Type *rt, AST_Operation::Flags fl,

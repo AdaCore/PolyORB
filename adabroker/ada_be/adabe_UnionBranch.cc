@@ -1,3 +1,25 @@
+/*************************************************************************************************
+***                              ADA BACK-END COMPILER                                         ***
+***                             file:  adabe_union_branch                                      ***
+***                                                                                            ***
+***      This file provides the implementation of class adabe_union_branch declared in adabe.h ***
+***   (L 319). This class is the correspondant of the Sun's Front-End class AST_UnionBranch.   ***
+***   It provides produce functions for spec of the main file, and for the marshall file.      ***
+***                                                                                            ***
+***   Copyright 1999                                                                           ***
+***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
+***                                                                                            ***
+***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
+***   General Public License, as published by the Free Software Foundation.                    ***
+***                                                                                            ***
+***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
+***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
+***  PURPOSE.                                                                                  ***
+***                                                                                            ***
+***  See the GNU General Public License for more details.                                      ***
+***                                                                                            ***
+***                                                                                            ***
+*************************************************************************************************/
 #include <adabe.h>
 #include <strstream>
 
@@ -32,14 +54,6 @@ adabe_union_branch::produce_ads(dep_list& with, string &body, string &previous, 
   adabe_field::produce_ads(with, body, previous);   
 }
 
-/*
-  /////////////////////// peut etre inutile ///////////////////////
-  void
-  adabe_union_branch::produce_impl_ads(dep_list& with,string &body, string &previous, AST_ConcreteType *concrete)
-  {
-  produce_ads(with, body, previous, concrete);
-  }
-*/ 
 
 void
 adabe_union_branch::produce_marshal_adb (dep_list& with,
@@ -99,19 +113,7 @@ produce_disc_value( AST_ConcreteType* t,AST_Expression* exp)
 	 case AST_Expression::EV_bool:
 	   return ((v->u.bval == 0) ? "FALSE" : "TRUE");
 	 case AST_Expression::EV_char:        
-#ifdef DEBUG_UNION_BRANCH
-  cerr << "Le case vaut : " << v->u.cval << endl;
-#endif
 	   sprintf(temp, "%c",v->u.cval);  
-	     //	    if (c >= ' ' && c <= '~')
-	     //	      s << "'" << c << "'";
-	     //	    else {
-	     //	      s << "'\\"
-	     //		<< (int) ((c & 0100) >> 6)
-	     //		<< (int) ((c & 070) >> 3)
-	     //		<< (int) (c & 007)
-	     //		<< "'";
-	     //	    }
 	   break;
 	 default:
 	   throw adabe_internal_error(__FILE__,__LINE__,

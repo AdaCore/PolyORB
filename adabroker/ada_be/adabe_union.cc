@@ -1,3 +1,26 @@
+/*************************************************************************************************
+***                              ADA BACK-END COMPILER                                         ***
+***                             file:  adabe_union.cc                                          ***
+***                                                                                            ***
+***      This file provides the implementation of class adabe_union     declared in adabe.h    ***
+***   (L 299). This class is the correspondant of the Sun's Front-End class AST_Union .        ***
+***   It provides produce functions for each generated file, a constructor and two little      ***
+***   functions : dump_name and marshall_name whose job is to print the name of the type.      ***
+***                                                                                            ***
+***   Copyright 1999                                                                           ***
+***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
+***                                                                                            ***
+***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
+***   General Public License, as published by the Free Software Foundation.                    ***
+***                                                                                            ***
+***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
+***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
+***  PURPOSE.                                                                                  ***
+***                                                                                            ***
+***  See the GNU General Public License for more details.                                      ***
+***                                                                                            ***
+***                                                                                            ***
+*************************************************************************************************/
 #include <adabe.h>
 
 adabe_union::adabe_union(AST_ConcreteType *dt, UTL_ScopedName *n, UTL_StrList *p)
@@ -12,9 +35,6 @@ adabe_union::adabe_union(AST_ConcreteType *dt, UTL_ScopedName *n, UTL_StrList *p
 void
 adabe_union::produce_ads(dep_list& with, string &body, string &previous)
 {
-  ///////////WARNING//////////////
-  //  the type of the discriminant should be check. From this type result a specific solution  
-
   no_fixed_size();
   // set a flag of this object and its ancestors saying
   // they have not a fixed size.

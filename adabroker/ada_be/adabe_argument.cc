@@ -3,7 +3,7 @@
 ***                             file:  adabe_argument.cc                                       ***
 ***                                                                                            ***
 ***      This file provides the implementation of class adabe_argument  declared in adabe.h    ***
-***   (L 420). This class is the correspondant of the Sun's Front-End class AST_Interface.     ***
+***   (L 420). This class is the correspondant of the Sun's Front-End class AST_Argument.      ***
 ***   It provides produce functions for each generated file, a constructor and two little      ***
 ***   functions : dump_name and marshall_name whose job is to print the name of the types.     ***
 ***                                                                                            ***

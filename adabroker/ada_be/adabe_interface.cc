@@ -5,7 +5,7 @@
 ***      This file provides the implementation of class adabe_interface declared in adabe.h    ***
 ***   (L 512). This class is the correspondant of the Sun's Front-End class AST_Interface.     ***
 ***   It provides produce functions for each generated file, a constructor and two little      ***
-***   functions : dump_name and marshall_name whose job is to print the names of the type      ***
+***   functions : dump_name and marshall_name whose job is to print the name of the type       ***
 ***                                                                                            ***
 ***                                                                                            ***
 ***   Copyright 1999                                                                           ***

@@ -1,3 +1,25 @@
+/*************************************************************************************************
+***                              ADA BACK-END COMPILER                                         ***
+***                             file:  adabe_field                                             ***
+***                                                                                            ***
+***      This file provides the implementation of class adabe_field declared in adabe.h        ***
+***   (L 243). This class is the correspondant of the Sun's Front-End class AST_Field.         ***
+***   It provides produce functions for spec of the main file, and for the marshall file.      ***
+***                                                                                            ***
+***   Copyright 1999                                                                           ***
+***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
+***                                                                                            ***
+***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
+***   General Public License, as published by the Free Software Foundation.                    ***
+***                                                                                            ***
+***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
+***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
+***  PURPOSE.                                                                                  ***
+***                                                                                            ***
+***  See the GNU General Public License for more details.                                      ***
+***                                                                                            ***
+***                                                                                            ***
+*************************************************************************************************/
 #include <adabe.h>
 
 adabe_field::adabe_field(AST_Type *ft, UTL_ScopedName *n, UTL_StrList *p)
@@ -23,27 +45,6 @@ adabe_field::produce_ads(dep_list& with, string &body, string &previous)
 #endif 
   body += ";\n";
 }
-
-/*
-  void
-  adabe_field::produce_adb(dep_list& with,string &body, string &previous) 
-  {
-  produce_ads(with, &body, &previous);
-  }
-  
-  ///////////////// perhaps useless /////////////////////
-  void
-  adabe_field::produce_impl_ads(dep_list& with,string &body, string &previous) 
-  {
-  produce_ads( with, &body, &previous);
-  }
-  
-  void
-  adabe_field::produce_impl_adb(dep_list& with,string &body, string &previous) 
-  {
-  produce_ads(with, &body, &previous);
-  }
-*/
 
 void
 adabe_field::produce_marshal_adb(dep_list& with, string &body, string &marshall, string &unmarshall, string &align_size)
@@ -71,3 +72,5 @@ adabe_field::produce_marshal_adb(dep_list& with, string &body, string &marshall,
   
 IMPL_NARROW_METHODS1(adabe_field, AST_Field)
 IMPL_NARROW_FROM_DECL(adabe_field)
+
+

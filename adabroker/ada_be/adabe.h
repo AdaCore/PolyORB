@@ -39,11 +39,11 @@ string spaces (int n, char d);
 char *lower (const char *str);
 // Used to removed the upper case in a string
 
-class string_list
+class adabe_string_list
 {
  public:
-  string_list ();
-  ~string_list ();
+  adabe_string_list ();
+  ~adabe_string_list ();
   // constructor and destructor
   
   void add(string str);
@@ -63,7 +63,7 @@ class string_list
   str_ptr *str_list;
 };
 
-typedef string_list dep_list;
+typedef adabe_string_list dep_list;
 
 
 
