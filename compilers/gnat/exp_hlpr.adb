@@ -1381,9 +1381,11 @@ package body Exp_Hlpr is
       Expr := Make_Function_Call (Loc,
                 Name => New_Occurrence_Of (Fnam, Loc),
                 Parameter_Associations => Args);
+
       Set_Etype (Expr, RTE (RE_TypeCode));
-      --  Allow Expr to be used as an argument to
+      --  Allows Expr to be used as an argument to
       --  Build_To_Any_Call immediately.
+
       return Expr;
    end Build_TypeCode_Call;
 
@@ -1474,15 +1476,19 @@ package body Exp_Hlpr is
       function Make_Constructed_TypeCode
         (Kind : Entity_Id;
          Parameters : List_Id)
-         return Node_Id is
+         return Node_Id
+      is
+         Constructed_TC : constant Node_Id :=
+           Make_Function_Call (Loc,
+             Name =>
+               New_Occurrence_Of (RTE (RE_TC_Build), Loc),
+             Parameter_Associations => New_List (
+               New_Occurrence_Of (Kind, Loc),
+               Make_Aggregate (Loc,
+                  Expressions => Parameters)));
       begin
-         return Make_Function_Call (Loc,
-                  Name =>
-                    New_Occurrence_Of (RTE (RE_TC_Build), Loc),
-                  Parameter_Associations => New_List (
-                    New_Occurrence_Of (Kind, Loc),
-                    Make_Aggregate (Loc,
-                       Expressions => Parameters)));
+         Set_Etype (Constructed_TC, RTE (RE_TypeCode));
+         return Constructed_TC;
       end Make_Constructed_TypeCode;
 
       procedure Return_Constructed_TypeCode (Kind : Entity_Id) is
