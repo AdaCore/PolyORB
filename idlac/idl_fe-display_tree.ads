@@ -19,4 +19,10 @@ private
                           Full : Boolean;
                           Op : String);
 
+   --  displays a unary operator
+   procedure Disp_Unary (N : N_Unary_Expr'Class;
+                         Indent : Natural;
+                         Full : Boolean;
+                         Op : String);
+
 end Idl_Fe.Display_Tree;

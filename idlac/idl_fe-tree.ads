@@ -379,11 +379,17 @@ package Idl_Fe.Tree is
    type N_Binary_Expr_Acc is access all N_Binary_Expr'Class;
    function Get_Kind (N : N_Binary_Expr) return Types.Node_Kind is abstract;
 
---    type N_Unary_Expr is abstract new N_Expr with record
---       Operand : Types.N_Root_Acc;
---    end record;
---    type N_Unary_Expr_Acc is access all N_Unary_Expr'Class;
---    function Get_Kind (N : N_Unary_Expr) return Types.Node_Kind is abstract;
+   type N_Unary_Expr is abstract new N_Expr with record
+      Operand : N_Expr_Acc;
+   end record;
+   type N_Unary_Expr_Acc is access all N_Unary_Expr'Class;
+   function Get_Kind (N : N_Unary_Expr) return Types.Node_Kind is abstract;
+
+   type N_Primary_Expr is new N_Expr with record
+      Operand : Types.N_Root_Acc;
+   end record;
+   type N_Primary_Expr_Acc is access all N_Primary_Expr'Class;
+   function Get_Kind (N : N_Primary_Expr) return Types.Node_Kind;
 
    type N_Or_Expr is new N_Binary_Expr with null record;
    type N_Or_Expr_Acc is access N_Or_Expr;
@@ -393,49 +399,49 @@ package Idl_Fe.Tree is
    type N_Xor_Expr_Acc is access N_Xor_Expr;
    function Get_Kind (N : N_Xor_Expr) return Types.Node_Kind;
 
---    type N_And_Expr is new N_Binary_Expr with null record;
---    type N_And_Expr_Acc is access N_And_Expr;
---    function Get_Kind (N : N_And_Expr) return Types.Node_Kind;
+   type N_And_Expr is new N_Binary_Expr with null record;
+   type N_And_Expr_Acc is access N_And_Expr;
+   function Get_Kind (N : N_And_Expr) return Types.Node_Kind;
 
---    type N_Shl_Expr is new N_Binary_Expr with null record;
---    type N_Shl_Expr_Acc is access N_Shl_Expr;
---    function Get_Kind (N : N_Shl_Expr) return Types.Node_Kind;
+   type N_Shl_Expr is new N_Binary_Expr with null record;
+   type N_Shl_Expr_Acc is access N_Shl_Expr;
+   function Get_Kind (N : N_Shl_Expr) return Types.Node_Kind;
 
---    type N_Shr_Expr is new N_Binary_Expr with null record;
---    type N_Shr_Expr_Acc is access N_Shr_Expr;
---    function Get_Kind (N : N_Shr_Expr) return Types.Node_Kind;
+   type N_Shr_Expr is new N_Binary_Expr with null record;
+   type N_Shr_Expr_Acc is access N_Shr_Expr;
+   function Get_Kind (N : N_Shr_Expr) return Types.Node_Kind;
 
---    type N_Add_Expr is new N_Binary_Expr with null record;
---    type N_Add_Expr_Acc is access N_Add_Expr;
---    function Get_Kind (N : N_Add_Expr) return Types.Node_Kind;
+   type N_Add_Expr is new N_Binary_Expr with null record;
+   type N_Add_Expr_Acc is access N_Add_Expr;
+   function Get_Kind (N : N_Add_Expr) return Types.Node_Kind;
 
---    type N_Sub_Expr is new N_Binary_Expr with null record;
---    type N_Sub_Expr_Acc is access N_Sub_Expr;
---    function Get_Kind (N : N_Sub_Expr) return Types.Node_Kind;
+   type N_Sub_Expr is new N_Binary_Expr with null record;
+   type N_Sub_Expr_Acc is access N_Sub_Expr;
+   function Get_Kind (N : N_Sub_Expr) return Types.Node_Kind;
 
---    type N_Mul_Expr is new N_Binary_Expr with null record;
---    type N_Mul_Expr_Acc is access N_Mul_Expr;
---    function Get_Kind (N : N_Mul_Expr) return Types.Node_Kind;
+   type N_Mul_Expr is new N_Binary_Expr with null record;
+   type N_Mul_Expr_Acc is access N_Mul_Expr;
+   function Get_Kind (N : N_Mul_Expr) return Types.Node_Kind;
 
---    type N_Div_Expr is new N_Binary_Expr with null record;
---    type N_Div_Expr_Acc is access N_Div_Expr;
---    function Get_Kind (N : N_Div_Expr) return Types.Node_Kind;
+   type N_Div_Expr is new N_Binary_Expr with null record;
+   type N_Div_Expr_Acc is access N_Div_Expr;
+   function Get_Kind (N : N_Div_Expr) return Types.Node_Kind;
 
---    type N_Mod_Expr is new N_Binary_Expr with null record;
---    type N_Mod_Expr_Acc is access N_Mod_Expr;
---    function Get_Kind (N : N_Mod_Expr) return Types.Node_Kind;
+   type N_Mod_Expr is new N_Binary_Expr with null record;
+   type N_Mod_Expr_Acc is access N_Mod_Expr;
+   function Get_Kind (N : N_Mod_Expr) return Types.Node_Kind;
 
---    type N_Neg_Expr is new N_Unary_Expr with null record;
---    type N_Neg_Expr_Acc is access N_Neg_Expr;
---    function Get_Kind (N : N_Neg_Expr) return Types.Node_Kind;
+   type N_Neg_Expr is new N_Unary_Expr with null record;
+   type N_Neg_Expr_Acc is access N_Neg_Expr;
+   function Get_Kind (N : N_Neg_Expr) return Types.Node_Kind;
 
---    type N_Id_Expr is new N_Unary_Expr with null record;
---    type N_Id_Expr_Acc is access N_Id_Expr;
---    function Get_Kind (N : N_Id_Expr) return Types.Node_Kind;
+   type N_Id_Expr is new N_Unary_Expr with null record;
+   type N_Id_Expr_Acc is access N_Id_Expr;
+   function Get_Kind (N : N_Id_Expr) return Types.Node_Kind;
 
---    type N_Not_Expr is new N_Unary_Expr with null record;
---    type N_Not_Expr_Acc is access N_Not_Expr;
---    function Get_Kind (N : N_Not_Expr) return Types.Node_Kind;
+   type N_Not_Expr is new N_Unary_Expr with null record;
+   type N_Not_Expr_Acc is access N_Not_Expr;
+   function Get_Kind (N : N_Not_Expr) return Types.Node_Kind;
 
    type N_Literal is abstract new Types.N_Root with null record;
    type N_Literal_Acc is access all N_Literal'Class;

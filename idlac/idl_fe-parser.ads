@@ -384,6 +384,65 @@ private
    procedure Parse_Xor_Expr (Result : out N_Expr_Acc;
                              Success : out Boolean);
 
+   --  Rule 32
+   --  <and_expr> ::= <shift_expr>
+   --             |   <and_expr> "&" <shift_expr>
+   --  actually, the implemented gramar is slightly different :
+   --  <and_expr> ::= <shift_expr>
+   --             |   <shift_expr> "&" <and_expr>
+   procedure Parse_And_Expr (Result : out N_Expr_Acc;
+                             Success : out Boolean);
+
+   --  Rule 33
+   --  <shift_expr> ::= <add_expr>
+   --               |   <shift_expr> ">>" <add_expr>
+   --               |   <shift_expr> "<<" <add_expr>
+   --  actually, the implemented gramar is slightly different :
+   --  <shift_expr> ::= <add_expr>
+   --               |   <add_expr> ">>" <shift_expr>
+   --               |   <add_expr> "<<" <shift_expr>
+   procedure Parse_Shift_Expr (Result : out N_Expr_Acc;
+                               Success : out Boolean);
+
+   --  Rule 34
+   --  <add_expr> ::= <mult_expr>
+   --             |   <add_expr> "+" <mult_expr>
+   --             |   <add_expr> "-" <mult_expr>
+   --  actually, the implemented gramar is slightly different :
+   --  <Add_expr> ::= <mult_expr>
+   --             |   <mult_expr> ">>" <add_expr>
+   --             |   <mult_expr> "<<" <add_expr>
+   procedure Parse_Add_Expr (Result : out N_Expr_Acc;
+                             Success : out Boolean);
+
+   --  Rule 35
+   --  <mult_expr> ::= <unary_expr>
+   --              |   <mult_expr> "*" <unary_expr>
+   --              |   <mult_expr> "/" <unary_expr>
+   --              |   <mult_expr> "%" <unary_expr>
+   --  actually, the implemented gramar is slightly different :
+   --  <mult_expr> ::= <unary_expr>
+   --              |   <unary_expr> "*" <mult_expr>
+   --              |   <unary_expr> "/" <mult_expr>
+   --              |   <unary_expr> "%" <mult_expr>
+   procedure Parse_Mult_Expr (Result : out N_Expr_Acc;
+                              Success : out Boolean);
+
+   --  Rule 36
+   --  <unary_expr> ::= <unary_operator> <primary_expr>
+   --               |   <primary_expr>
+   --  Rule 37
+   --  <unary_operator> ::= "+" | "-" | "~"
+   procedure Parse_Unary_Expr (Result : out N_Expr_Acc;
+                               Success : out Boolean);
+
+   --  Rule 38
+   --  <primary_expr> ::= <scoped_name>
+   --                 |   <literal>
+   --                 |   "(" <const_expr> ")"
+   procedure Parse_Primary_Expr (Result : out N_Expr_Acc;
+                                 Success : out Boolean);
+
    --  Rule 41
    --  <positive_int_const> ::= <const_exp>
    procedure Parse_Positive_Int_Const (Result : out N_Expr_Acc;
@@ -763,8 +822,77 @@ private
                            Result : out Value_Ptr;
                            Loc : in Idl_Fe.Errors.Location);
 
+   --  Xor expression evaluation
+   procedure Eval_Xor_Expr (Left : in Value_Ptr;
+                            Right : in Value_Ptr;
+                            Result : out Value_Ptr;
+                            Loc : in Idl_Fe.Errors.Location);
+
+   --  And expression evaluation
+   procedure Eval_And_Expr (Left : in Value_Ptr;
+                            Right : in Value_Ptr;
+                            Result : out Value_Ptr;
+                            Loc : in Idl_Fe.Errors.Location);
+
+   --  Right shift expression evaluation
+   procedure Eval_Shr_Expr (Left : in Value_Ptr;
+                            Right : in Value_Ptr;
+                            Result : out Value_Ptr;
+                            Loc : in Idl_Fe.Errors.Location);
+
+   --  Left shift expression evaluation
+   procedure Eval_Shl_Expr (Left : in Value_Ptr;
+                            Right : in Value_Ptr;
+                            Result : out Value_Ptr;
+                            Loc : in Idl_Fe.Errors.Location);
+
+   --  Add expression evaluation
+   procedure Eval_Add_Expr (Left : in Value_Ptr;
+                            Right : in Value_Ptr;
+                            Result : out Value_Ptr;
+                            Loc : in Idl_Fe.Errors.Location);
+
+   --  Sub expression evaluation
+   procedure Eval_Sub_Expr (Left : in Value_Ptr;
+                            Right : in Value_Ptr;
+                            Result : out Value_Ptr;
+                            Loc : in Idl_Fe.Errors.Location);
+
+   --  Mul expression evaluation
+   procedure Eval_Mul_Expr (Left : in Value_Ptr;
+                            Right : in Value_Ptr;
+                            Result : out Value_Ptr;
+                            Loc : in Idl_Fe.Errors.Location);
+
+   --  Div expression evaluation
+   procedure Eval_Div_Expr (Left : in Value_Ptr;
+                            Right : in Value_Ptr;
+                            Result : out Value_Ptr;
+                            Loc : in Idl_Fe.Errors.Location);
+
+   --  Mod expression evaluation
+   procedure Eval_Mod_Expr (Left : in Value_Ptr;
+                            Right : in Value_Ptr;
+                            Result : out Value_Ptr;
+                            Loc : in Idl_Fe.Errors.Location);
+
+   --  Neg expression evaluation
+   procedure Eval_Neg_Expr (Operand : in Value_Ptr;
+                            Result : out Value_Ptr;
+                            Loc : in Idl_Fe.Errors.Location);
+
+   --  Not expression evaluation
+   procedure Eval_Not_Expr (Operand : in Value_Ptr;
+                            Result : out Value_Ptr;
+                            Loc : in Idl_Fe.Errors.Location);
+
    --  actual or functions for idl types
    function "or" (X, Y : Idl_Short) return Idl_Short;
+   function "or" (X, Y : Idl_Long) return Idl_Long;
+   function "or" (X, Y : Idl_LongLong) return Idl_LongLong;
+   function "or" (X, Y : Idl_UShort) return Idl_UShort;
+   function "or" (X, Y : Idl_ULong) return Idl_ULong;
+   function "or" (X, Y : Idl_ULongLong) return Idl_ULongLong;
 
    ------------------------------
    --  To resume after errors  --
@@ -830,45 +958,7 @@ private
 
 
 
---    --  Rule 23:
---    --  <primary_expr> ::= <scoped_name>
---    --                 |   <literal>
---    --                 |   "(" <const_expr> ")"
---    function Parse_Primary_Expr return N_Root_Acc is
-
---    --  Rule 21:
---    --  <unary_expr> ::= <unary_operator> <primary_expr>
---    --               |   <primary_expr>
 --    --
---    --  Rule 22:
---    --  <unary_operator> ::= "+" | "-" | "~"
---    function Parse_Unary_Expr return N_Root_Acc is
-
---    --  Rule 20:
---    --  <mult_expr> ::= <unary_expr>
---    --              |   <mult_expr> "*" <unary_expr>
---    --              |   <mult_expr> "/" <unary_expr>
---    --              |   <mult_expr> "%" <unary_expr>
---    function Parse_Mult_Expr return N_Root_Acc is
-
---    --  Rule 19:
---    --  <add_expr> ::= <mult_expr>
---    --             |   <add_expr> "+" <mult_expr>
---    --             |   <add_expr> "-" <mult_expr>
---    function Parse_Add_Expr return N_Root_Acc is
-
---    --  Rule 18:
---    --  <shift_expr> ::= <add_expr>
---    --               |   <shift_expr> ">>" <add_expr>
---    --               |   <shift_expr> "<<" <add_expr>
---    function Parse_Shift_Expr return N_Root_Acc is
-
---    --  Rule 17:
---    --  <and_expr> ::= <shift_expr>
---    --             |   <and_expr> "&" <shift_expr>
---    function Parse_And_Expr return N_Root_Acc is
-
-
 --    --
 --    --  Rule 70:
 --    --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>

@@ -53,12 +53,16 @@ package body Idl_Fe.Display_Tree is
       Disp_Tree (N.Right.all, Indent, Full);
    end Disp_Binary;
 
---       procedure Disp_Unary (Op : String) is
---       begin
---          Put_Line ("unary operator " & Op);
---          Disp_Indent (N_Indent, "operand:");
---          Disp_Tree (N_Unary_Expr (N).Operand.all, N_Indent + Offset, Full);
---       end Disp_Unary;
+   procedure Disp_Unary (N : N_Unary_Expr'Class;
+                         Indent : Natural;
+                         Full : Boolean;
+                         Op : String) is
+   begin
+      Put_Line ("unary operator " & Op & ", value = ");
+--                Long_Long_Integer'Image (N.Value.all));
+      Disp_Indent (Indent, "operand:");
+      Disp_Tree (N.Operand.all, Indent, Full);
+   end Disp_Unary;
 
    --  Disp tree procedure
    procedure Disp_Tree (N : N_Root'Class; Indent : Natural; Full : Boolean) is
@@ -313,38 +317,44 @@ package body Idl_Fe.Display_Tree is
          when K_Xor =>
             Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "xor");
 
---          when K_And =>
---             Disp_Binary ("and");
+         when K_And =>
+            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "and");
 
---          when K_Shl =>
---             Disp_Binary ("shl");
+         when K_Shl =>
+            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "shl");
 
---          when K_Shr =>
---             Disp_Binary ("shr");
+         when K_Shr =>
+            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "shr");
 
---          when K_Add =>
---             Disp_Binary ("add");
+         when K_Add =>
+            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "add");
 
---          when K_Sub =>
---             Disp_Binary ("sub");
+         when K_Sub =>
+            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "sub");
 
---          when K_Mul =>
---             Disp_Binary ("mul");
+         when K_Mul =>
+            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "mul");
 
---          when K_Div =>
---             Disp_Binary ("div");
+         when K_Div =>
+            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "div");
 
---          when K_Mod =>
---             Disp_Binary ("mod");
+         when K_Mod =>
+            Disp_Binary (N_Binary_Expr (N), N_Indent + Offset, Full, "mod");
 
---          when K_Not =>
---             Disp_Unary ("not");
+         when K_Not =>
+            Disp_Unary (N_Unary_Expr (N), N_Indent + Offset, Full, "not");
 
---          when K_Neg =>
---             Disp_Unary ("neg");
+         when K_Neg =>
+            Disp_Unary (N_Unary_Expr (N), N_Indent + Offset, Full, "neg");
 
---          when K_Id =>
---             Disp_Unary ("Id");
+         when K_Id =>
+            Disp_Unary (N_Unary_Expr (N), N_Indent + Offset, Full, "id");
+
+         when K_Primary =>
+            Put_Line ("primary expression, value = ");
+            Disp_Tree (N_Primary_Expr (N).Operand.all,
+                       N_Indent + Offset,
+                       Full);
 
 --          when K_Lit_Char =>
 --             raise Errors.Internal_Error;

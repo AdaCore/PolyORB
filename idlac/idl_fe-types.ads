@@ -61,17 +61,18 @@ package Idl_Fe.Types is
        K_Enum,
        K_Or,                   --  Binary operators.
        K_Xor,
---        K_And,
---        K_Sub,
---        K_Add,
---        K_Shr,
---        K_Shl,
---        K_Mul,
---        K_Div,
---        K_Mod,
---        K_Id,                   --  Unary operators.
---        K_Neg,
---        K_Not,
+       K_And,
+       K_Shr,
+       K_Shl,
+       K_Sub,
+       K_Add,
+       K_Mul,
+       K_Div,
+       K_Mod,
+       K_Id,                   --  Unary operators.
+       K_Neg,
+       K_Not,
+       K_Primary,              --  Primary expression
 --        K_Lit_Integer,          --  Literals.
 --        K_Lit_Floating_Point,
 --        K_Lit_Fixed_Point,

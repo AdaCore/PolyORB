@@ -459,90 +459,98 @@ package body Idl_Fe.Tree is
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_And_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_And;
---    end Get_Kind;
+   function Get_Kind (N : N_And_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_And;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Shl_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_Shl;
---    end Get_Kind;
+   function Get_Kind (N : N_Shl_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Shl;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Shr_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_Shr;
---    end Get_Kind;
+   function Get_Kind (N : N_Shr_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Shr;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Add_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_Add;
---    end Get_Kind;
+   function Get_Kind (N : N_Add_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Add;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Sub_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_Sub;
---    end Get_Kind;
+   function Get_Kind (N : N_Sub_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Sub;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Mul_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_Mul;
---    end Get_Kind;
+   function Get_Kind (N : N_Mul_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Mul;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Div_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_Div;
---    end Get_Kind;
+   function Get_Kind (N : N_Div_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Div;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Mod_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_Mod;
---    end Get_Kind;
+   function Get_Kind (N : N_Mod_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Mod;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Neg_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_Neg;
---    end Get_Kind;
+   function Get_Kind (N : N_Neg_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Neg;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Id_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_Id;
---    end Get_Kind;
+   function Get_Kind (N : N_Id_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Id;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Not_Expr) return Types.Node_Kind is
---    begin
---       return Types.K_Not;
---    end Get_Kind;
+   function Get_Kind (N : N_Not_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Not;
+   end Get_Kind;
+
+   ----------------
+   --  Get_Kind  --
+   ----------------
+   function Get_Kind (N : N_Primary_Expr) return Types.Node_Kind is
+   begin
+      return Types.K_Primary;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
