@@ -685,7 +685,8 @@ package body System.Garlic.Units is
          --  remove the current unit from the previous partition units
          --  list. Therefore, Previous_Unit is set back to Null_Unit_Id.
 
-         if New_Unit_Info.Status = Undefined
+         if (New_Unit_Info.Status = Undefined
+             or else New_Unit_Info.Status = Invalid)
            and then New_Unit_Info.Partition /= Partition
          then
             if Previous_Unit = Unit then

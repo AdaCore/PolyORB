@@ -1,3 +1,9 @@
+1998-12-11  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garuni.adb: Once invalidate an unit status can be either
+	Undefined or Invalidate depending on the reconnection mode. Handle 
+	this case correctly (0004-G11).
+
 1998-12-11  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garuti.ads, s-garuti.adb: Made Error_Type a limited private
