@@ -195,8 +195,8 @@ package body XE_Check is
       --  already used.
 
       if Get_Name_Table_Info (Configuration) /= 0 then
-         Write_Program_Name;
-         Write_Str  (": configuration name """);
+         Write_SLOC (XE.Node_Id (Configuration_Node));
+         Write_Str  ("configuration name """);
          Write_Name (Configuration);
          Write_Str  (""" conflicts with an Ada unit name");
          Write_Eol;

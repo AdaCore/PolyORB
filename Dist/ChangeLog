@@ -1,5 +1,9 @@
 Wed Nov 20 12:39:57 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
+	* xe.ads: Move Write_SLOC from xe_back.adb to xe.ads.
+
+	* xe_check.adb: Fix an error message.
+
 	* xe_back.adb: Use SLOC to print a more usefull error message.
 
 	* xe_parse.adb: Check in P_Configuration_End that the

@@ -716,6 +716,9 @@ package XE is
    Protocol_Data      : Name_Id        := No_Name;
    --  Several variables to build the boot server.
 
+   procedure Write_SLOC (Node : Node_Id);
+   --  See Write_Location.
+
    procedure Maybe_Most_Recent_Stamp (Stamp : Time_Stamp_Type);
    --  Maybe set Most_Recent_Stamp.
 

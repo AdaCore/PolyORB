@@ -45,8 +45,6 @@ package body XE_Back is
    subtype Unit_Name_Type is Types.Unit_Name_Type;
    subtype Int            is Types.Int;
 
-   procedure Write_SLOC (Node : Node_Id);
-
    procedure Set_Host
      (Node : in Node_Id;
       Host : in Host_Id);
@@ -73,22 +71,6 @@ package body XE_Back is
      (Pre_Type : Type_Id);
    procedure Set_Pragma_Statement
      (Subprogram : Subprogram_Id);
-
-   ----------------
-   -- Write_SLOC --
-   ----------------
-
-   procedure Write_SLOC (Node : Node_Id) is
-      X, Y : Int;
-   begin
-      Get_Node_SLOC (Node, X, Y);
-      Write_Name (Configuration_File);
-      Write_Str (":");
-      Write_Int (X);
-      Write_Str (":");
-      Write_Int (Y);
-      Write_Str (": ");
-   end Write_SLOC;
 
    --------------
    -- Set_Host --

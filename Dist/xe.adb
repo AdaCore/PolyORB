@@ -1783,6 +1783,22 @@ package body XE is
       return Name_Find;
    end Get_Unit_Sfile;
 
+   ----------------
+   -- Write_SLOC --
+   ----------------
+
+   procedure Write_SLOC (Node : Node_Id) is
+      X, Y : Int;
+   begin
+      Get_Node_SLOC (Node, X, Y);
+      Write_Name (Configuration_File);
+      Write_Str (":");
+      Write_Int (X);
+      Write_Str (":");
+      Write_Int (Y);
+      Write_Str (": ");
+   end Write_SLOC;
+
 end XE;
 
 
