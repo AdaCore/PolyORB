@@ -235,22 +235,25 @@ package body Broca.Server is
    is
       use Broca.Marshalling;
       use Broca.Poa;
-      Index : Broca.Poa.Poa_Index_Type;
-      Pos : Buffer_Index_Type;
-      A_Long : CORBA.Unsigned_Long;
-      Length : Buffer_Index_Type;
       Key_Length : Buffer_Index_Type;
       Current_Poa : Broca.Poa.POA_Object_Access;
-      Old_Poa : Broca.Poa.POA_Object_Access;
-      Name : CORBA.String;
-      Tmp_Poa_State : Broca.Poa.Processing_State_Type;
-      Saved_Endianness : CORBA.Boolean;
+      Old_POA   : Broca.Poa.POA_Object_Access;
+      Tmp_POA_State : Broca.Poa.Processing_State_Type;
+
+      POA_Name  : CORBA.String;
+      Path_Size : CORBA.Unsigned_Long;
+      POA_Date  : Natural;
+      POA_Index : Broca.Poa.POA_Index_Type;
+      Boot_Time : CORBA.Unsigned_Long;
+      Endianess : Boolean;
+      Length    : Buffer_Index_Type;
+      Size      : Buffer_Index_Type;
    begin
       pragma Debug (O ("Unmarshall_Object_Key : enter"));
-      --  Length of the sequence.
-      Unmarshall (Buffer, A_Long);
-      Length := Buffer_Index_Type (A_Long);
-      Pos := Buffer.Pos;
+
+      --  Length of POA ref
+      Unmarshall (Buffer, CORBA.Unsigned_Long (Length));
+      Size := Size_Left (Buffer);
 
       --  The contents of an object key must be interpreted
       --  with the endianness of its creator.
@@ -258,33 +261,36 @@ package body Broca.Server is
       --  when leaving Unmarshall_Object_Key. To exit
       --  this function, use
       --    goto Restore_Endianness_And_Return;
-      Saved_Endianness := Buffer.Little_Endian;
-      Buffer.Little_Endian := Is_Little_Endian;
+      Endianess := Get_Endianess (Buffer);
+      Set_Endianess (Buffer, Is_Little_Endian);
 
       --  Unmarshall boot time.
-      Unmarshall (Buffer, A_Long);
-      if A_Long /= 0 and then A_Long /= Broca.Flags.Boot_Time then
-         pragma Debug (O ("Not my boot time: " & CORBA.Unsigned_Long'Image (A_Long) & " (expected " & CORBA.Unsigned_Long'Image (Broca.Flags.Boot_Time) & ")"));
+      Unmarshall (Buffer, Boot_Time);
+      if Boot_Time /= 0
+        and then Boot_Time /= Broca.Flags.Boot_Time
+      then
+         pragma Debug (O ("Incorrect boot time"));
+         pragma Debug (O ("Local boot time is" & Broca.Flags.Boot_Time'Img));
+         pragma Debug (O ("Remote boot time is" & Boot_Time'Img));
          Broca.Exceptions.Raise_Object_Not_Exist;
       end if;
 
       --  Unmarshall POA index.
-      Unmarshall (Buffer, A_Long);
-      Index := Broca.Poa.Poa_Index_Type (Natural (A_Long));
-      pragma Debug (O ("index =" & Broca.Poa.Poa_Index_Type'Image (Index)));
+      Unmarshall (Buffer, CORBA.Unsigned_Long (POA_Index));
+      pragma Debug (O ("POA index =" & POA_Index'Img));
 
-      --  Unmarshall index date.
-      Unmarshall (Buffer, A_Long);
-      pragma Debug (O ("date =" & CORBA.Unsigned_Long'Image (A_Long)));
+      --  Unmarshall POA date.
+      Unmarshall (Buffer, CORBA.Unsigned_Long (POA_Date));
+      pragma Debug (O ("POA date =" & POA_Date'Img));
 
       --  Lock the table, so that we are sure the poa won't be destroyed.
       Broca.Poa.All_POAs_Lock.Lock_R;
 
       if All_POAs /= null
-        and then Index in All_POAs.all'Range
-        and then All_POAs (Index).Date = Integer (A_Long)
+        and then POA_Index in All_POAs.all'Range
+        and then All_POAs (POA_Index).Date = POA_Date
       then
-         Poa := All_POAs (Index).Poa;
+         Poa := All_POAs (POA_Index).Poa;
 
          --  Neither the POA won't be destroyed, nor its children.
          Poa.Link_Lock.Lock_R;
@@ -292,20 +298,20 @@ package body Broca.Server is
 
          --  Just skip the path name.
          --  Unmarshall number of POAs in path name.
-         Unmarshall (Buffer, A_Long);
+         Unmarshall (Buffer, Path_Size);
 
-         for I in 1 .. A_Long loop
+         for I in 1 .. Path_Size loop
             Skip_String (Buffer);
          end loop;
          Inc_Usage_If_Active (Get_The_POAManager (Poa).all, Poa_State);
       else
          --  Not up to date.
          --  Unmarshall number of POAs in path name.
-         Unmarshall (Buffer, A_Long);
-         if A_Long = 0 then
+         Unmarshall (Buffer, Path_Size);
+         if Path_Size = 0 then
             --  Its was an objectId for a transient POA.
             Poa := null;
-            Buffer.Pos := Pos + Length;
+            Skip_Bytes (Buffer, Length - (Size - Size_Left (Buffer)));
             Broca.Poa.All_POAs_Lock.Unlock_R;
 
             goto Restore_Endianness_And_Return;
@@ -315,22 +321,21 @@ package body Broca.Server is
          --  Neither the POA won't be destroyed, nor its children.
          Current_Poa.Link_Lock.Lock_R;
          Broca.Poa.All_POAs_Lock.Unlock_R;
-         while A_Long > 0 loop
+         for I in 1 .. Path_Size loop
             Inc_Usage_If_Active (Get_The_POAManager (Current_Poa).all,
                                  Tmp_Poa_State);
             if Tmp_Poa_State /= Active then
                Poa := Current_Poa;
                Poa_State := Tmp_Poa_State;
-               Key.Pos := 0;
                goto Restore_Endianness_And_Return;
             end if;
             Dec_Usage (Get_The_POAManager (Current_Poa).all);
-            Unmarshall (Buffer, Name);
+            Unmarshall (Buffer, POA_Name);
             Old_Poa := Current_Poa;
-            Current_Poa := Broca.Poa.Find_POA (Current_Poa, Name, True);
+            Current_Poa := Broca.Poa.Find_POA (Current_Poa, POA_Name, True);
             if Current_Poa = null then
                Old_Poa.Link_Lock.Unlock_R;
-               Buffer.Little_Endian := Saved_Endianness;
+               Set_Endianess (Buffer, Endianess);
                Broca.Exceptions.Raise_Object_Not_Exist;
                --  Dummy return, because never reached.
                return;
@@ -346,12 +351,12 @@ package body Broca.Server is
       end if;
 
       --  Length of the key
-      Key_Length := Length - (Buffer.Pos - Pos);
+      Key_Length := Length - (Size - Size_Left (Buffer));
       Allocate_Buffer_And_Clear_Pos (Key, Key_Length);
       Extract_Buffer (Key, Buffer, Key_Length);
 
       <<Restore_Endianness_And_Return>>
-        Buffer.Little_Endian := Saved_Endianness;
+        Set_Endianess (Buffer, Endianess);
       return;
    end Unmarshall_Object_Key;
 
@@ -735,24 +740,26 @@ package body Broca.Server is
       use Broca.Poa;
       use Broca.Marshalling;
       use Broca.Stream;
-      Service_Context : CORBA.Unsigned_Long;
+      Context    : CORBA.Unsigned_Long;
       Request_Id : CORBA.Unsigned_Long;
       Reponse_Expected : CORBA.Boolean;
       Operation : CORBA.String;
       Principal : CORBA.String;
       Poa : Broca.Poa.POA_Object_Access;
       Poa_State : Broca.Poa.Processing_State_Type;
-      Pos : Buffer_Index_Type;
       Key : Buffer_Descriptor;
+      Copy : Buffer_Descriptor;
    begin
       pragma Debug (O ("Handle_Request : enter"));
 
-      Pos := Buffer.Pos;
+      --  Copy to use when we realize that we have to queue this
+      --  request.
+      Copy := Buffer;
 
-      --  service_context
-      Unmarshall (Buffer, Service_Context);
-      if Service_Context /= Broca.Giop.No_Context then
-         pragma Debug (O ("Handle_Request : incorrect context" & Service_Context'Img));
+      --  Service context
+      Unmarshall (Buffer, Context);
+      if Context /= Broca.Giop.No_Context then
+         pragma Debug (O ("Handle_Request : incorrect context" & Context'Img));
          Broca.Exceptions.Raise_Bad_Param;
       end if;
 
@@ -838,8 +845,7 @@ package body Broca.Server is
             Log ("queue request");
 
             --  Queue this request
-            Buffer.Pos := Pos;
-            Queues.Hold_Queue.Append (Stream, Buffer, Poa);
+            Queues.Hold_Queue.Append (Stream, Copy, Poa);
             Buffer.Buffer := null;
 
          when Inactive =>
@@ -950,10 +956,10 @@ package body Broca.Server is
       use Broca.Marshalling;
       Ior : Buffer_Descriptor;
       Object_Key : Broca.Buffers.Buffer_Descriptor;
-      Pos : Buffer_Index_Type;
       Nbr_Profiles : CORBA.Unsigned_Long;
       Server : Server_Acc;
       Length : CORBA.Unsigned_Long;
+      Old_Size : Buffer_Index_Type;
    begin
       --  Lock the POA.  As a result, we are sure it won't be destroyed
       --  during the marshalling of the IOR.
@@ -964,43 +970,48 @@ package body Broca.Server is
       Compute_New_Size (Object_Key, UL_Size, UL_Size);
       Marshall_Size_Object_Key (Object_Key, Poa);
       Compute_New_Size (Object_Key, Key);
-      Length := CORBA.Unsigned_Long (Object_Key.Pos - 4);
+
+      Length := CORBA.Unsigned_Long (Size (Object_Key) - UL_Size);
+
       Allocate_Buffer (Object_Key);
       Marshall (Object_Key, Length);
       Marshall_Object_Key (Object_Key, Poa);
       Append_Buffer (Object_Key, Key);
       Poa.Link_Lock.Unlock_R;
 
-      Ior.Pos := 0;
+      Allocate_Buffer_And_Clear_Pos (IOR, 0);
+
       --  An ior is an encapsulation.
       Compute_New_Size (IOR, O_Size, O_Size);
-      --  The type_id
+
+      --  Type id
       Compute_New_Size (IOR, CORBA.String (Type_Id));
-      --  nbr of profiles
+
+      --  Nbr of profiles
       Compute_New_Size (IOR, UL_Size, UL_Size);
 
       Nbr_Profiles := 0;
       for N in Server_Id_Type loop
          Server := Server_Table.Get_Server_By_Id (N);
          exit when Server = null;
-         Pos := Ior.Pos;
+         Old_Size := Size (IOR);
          Marshall_Size_Profile (Server, Ior, Object_Key);
-         if Ior.Pos /= Pos then
+         if Old_Size /= Size (IOR) then
             Nbr_Profiles := Nbr_Profiles + 1;
          end if;
       end loop;
 
       if Nbr_Profiles = 0 then
-         Ior.Pos := 0;
+         Allocate_Buffer_And_Clear_Pos (IOR, 0);
          Target := Ior;
          return;
       end if;
 
-      Allocate_Buffer (Ior);
+      Allocate_Buffer (IOR);
 
-      Marshall (Ior, Is_Little_Endian);
-      Marshall (Ior, CORBA.String (Type_Id));
-      Marshall (Ior, Nbr_Profiles);
+      Marshall (IOR, Is_Little_Endian);
+      Marshall (IOR, CORBA.String (Type_Id));
+      Marshall (IOR, Nbr_Profiles);
       for N in Server_Id_Type loop
          Server := Server_Table.Get_Server_By_Id (N);
          exit when Server = null;
@@ -1009,7 +1020,7 @@ package body Broca.Server is
 
       Free (Object_Key.Buffer);
 
-      Target := Ior;
+      Target := IOR;
    end Build_Ior;
 
    --  Create an ORB server.
