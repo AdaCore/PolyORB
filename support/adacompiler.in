@@ -34,4 +34,4 @@ else
   $ADA $cline$newname
 fi
 mv $newname $1
-mv $tmp/*.ali .
+mv $tmp/* .
