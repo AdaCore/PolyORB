@@ -8,7 +8,7 @@ with Namet;           use Namet;
 with Types;           use Types;
 with Usage;
 
-procedure AADL is
+procedure Axil is
    File_Desc   : GNAT.OS_Lib.File_Descriptor;
    Source_File : Name_Id := No_Name;
 begin
@@ -36,4 +36,4 @@ begin
          exit;
       end if;
    end loop;
-end AADL;
+end Axil;

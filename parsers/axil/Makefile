@@ -3,10 +3,10 @@ GNATMAKE = gnatmake
 INCLUDE = -I../common_files/
 CMD = ${GNATMAKE} ${GNATFLAGS} ${INCLUDE}
 
-all: aadl
+all: axil
 
-aadl: lexer parser
-	${CMD} aadl
+axil: lexer parser
+	${CMD} axil
 
 parser:
 	${CMD} parser
@@ -26,7 +26,7 @@ debug:
 clean:
 	-rm -f *.ali *.o
 	-rm -f *~
-	-rm -f b~aadl.ad*
+	-rm -f b~axil.ad*
 
 realclean: clean
-	-rm -f aadl
+	-rm -f axil
