@@ -137,13 +137,16 @@ package body System.Garlic.Partitions is
       Allocator_Value := Allocate (Self_PID);
       Partitions.Leave;
 
-      pragma Debug (D ("Propose new partition" & Allocator_Value'Img));
+      if N_Boot_Mirrors > 1 then
+         pragma Debug (D ("Propose new partition" & Allocator_Value'Img));
 
-      Request_Type'Output
-        (Query'Access, (Compute_Partition_ID, Allocator_Value));
-      Broadcast (Partition_Operation, Query'Access);
+         Request_Type'Output
+           (Query'Access, (Compute_Partition_ID, Allocator_Value));
+         Broadcast (Partition_Operation, Query'Access);
 
-      Wait (Allocator_Ready);
+         Wait (Allocator_Ready);
+      end if;
+
       Partition := Allocator_Value;
 
       pragma Debug (D ("Validate new partition" & Allocator_Value'Img));
@@ -455,10 +458,12 @@ package body System.Garlic.Partitions is
                Info.Boot_Partition := Self_PID;
                Partitions.Set_Component (Partition, Info);
 
-               pragma Debug (D ("Send partition table to group"));
+               if N_Boot_Mirrors > 1 then
+                  pragma Debug (D ("Send partition table to group"));
 
-               Request_Type'Output (To_All'Access, Copy_Table);
-               Write_Partitions    (To_All'Access);
+                  Request_Type'Output (To_All'Access, Copy_Table);
+                  Write_Partitions    (To_All'Access);
+               end if;
             end if;
 
             --  Reply to a partition declaration with a set partition
@@ -480,6 +485,11 @@ package body System.Garlic.Partitions is
             --  partition.
 
             if Self_PID = Null_PID then
+
+               --  We have the reply from the boot partition. Move
+               --  the old partition info into the new partition
+               --  info.
+
                if Boot_PID /= Partition then
                   Info := Partitions.Get_Component (Boot_PID);
                   if Info.Logical_Name /= null then
@@ -489,12 +499,18 @@ package body System.Garlic.Partitions is
                   Info.Allocated := False;
                   Info.Status    := None;
                   Partitions.Set_Component (Boot_PID, Info);
+                  Boot_PID := Partition;
                end if;
-               Boot_PID := Partition;
 
             elsif Request.Partition /= Null_PID then
-               Request_Type'Output (To_All'Access, Copy_Table);
-               Write_Partitions    (To_All'Access);
+
+               if N_Boot_Mirrors > 1 then
+
+                  --  Why do we send a copy to the group ???
+
+                  Request_Type'Output (To_All'Access, Copy_Table);
+                  Write_Partitions    (To_All'Access);
+               end if;
             end if;
 
             --  This is step 4.
@@ -514,7 +530,9 @@ package body System.Garlic.Partitions is
                   --  If this partition wants to join the boot server group,
                   --  send an add partition info request. This is step 7.
 
-                  if Info.Is_Boot_Mirror then
+                  if Info.Is_Boot_Mirror
+                    and then N_Boot_Mirrors > 1
+                  then
                      pragma Debug (D ("Send partition table to group"));
 
                      Request_Type'Output (To_All'Access, Copy_Table);
@@ -588,10 +606,13 @@ package body System.Garlic.Partitions is
       end if;
       Partitions.Leave;
 
-      if Options.Is_Boot_Mirror then
+      if Options.Is_Boot_Mirror
+        and then N_Boot_Mirrors > 1
+      then
          Request_Type'Output (Query'Access, Copy_Table);
          Write_Partitions    (Query'Access);
          Broadcast (Partition_Operation, Query'Access);
+
       elsif Partition /= Boot_PID then
          Request_Type'Output (Query'Access, (Push_Partition_Table, Partition));
          Write_Partitions    (Query'Access);

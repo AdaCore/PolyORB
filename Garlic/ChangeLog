@@ -1,12 +1,18 @@
+1999-07-14  Laurent Pautet  <pautet@dorine.enst.fr>
+
+        * s-garuni.adb, s-garpar.ads, s-garpar.adb: Do not send unit table
+        or partition table to boot mirrors group when there is only one
+        partition in this group (useless marshalling and unmarshalling).
+
 1999-07-13  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-garpar.adb: Improve partition id table use.
+        * s-garpar.adb: Improve partition id table use.
 
-	* s-gartab.adb: Improve Last computation.
+        * s-gartab.adb: Improve Last computation.
 
-	* s-garfil.adb: Fix bug introduced by recent checkins. As we do
-	not look at partition id table directly, reload channel copy
-	because it may be updated in the meantime.
+        * s-garfil.adb: Fix bug introduced by recent checkins. As we do
+        not look at partition id table directly, reload channel copy
+        because it may be updated in the meantime.
 
 1999-07-12  Laurent Pautet  <pautet@dorine.enst.fr>
 

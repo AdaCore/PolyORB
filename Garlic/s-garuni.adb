@@ -399,7 +399,9 @@ package body System.Garlic.Units is
       --  mirrors group. We marshal the table while we still have a lock on
       --  it.
 
-      if To_All then
+      if To_All
+        and then N_Boot_Mirrors > 1
+      then
          Request_Type'Output (Token'Access, Copy_Units);
          Write_Units (Token'Access);
       end if;
