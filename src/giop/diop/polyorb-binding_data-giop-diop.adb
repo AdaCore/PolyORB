@@ -174,11 +174,9 @@ package body PolyORB.Binding_Data.GIOP.DIOP is
       Oid :        Objects.Object_Id)
      return Profile_Access
    is
-      Result : constant Profile_Access
-        := new DIOP_Profile_Type;
+      Result : constant Profile_Access := new DIOP_Profile_Type;
 
-      TResult : DIOP_Profile_Type
-        renames DIOP_Profile_Type (Result.all);
+      TResult : DIOP_Profile_Type renames DIOP_Profile_Type (Result.all);
    begin
       TResult.Version_Major := DIOP_Version_Major;
       TResult.Version_Minor := DIOP_Version_Minor;

@@ -172,11 +172,9 @@ package body PolyORB.Binding_Data.GIOP.IIOP is
    is
       use PolyORB.GIOP_P.Tagged_Components;
 
-      Result : constant Profile_Access
-        := new IIOP_Profile_Type;
+      Result : constant Profile_Access := new IIOP_Profile_Type;
 
-      TResult : IIOP_Profile_Type
-        renames IIOP_Profile_Type (Result.all);
+      TResult : IIOP_Profile_Type renames IIOP_Profile_Type (Result.all);
 
    begin
       TResult.Version_Major := IIOP_Version_Major;
