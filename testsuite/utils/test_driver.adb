@@ -34,6 +34,7 @@
 
 --  $Id$
 
+with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 
@@ -196,6 +197,17 @@ procedure Test_Driver is
 
       New_Line;
       Close (Fd);
+
+   exception
+      when E : others =>
+         Put_Line ("==> Test failure <==");
+         Put_Line (" Got exception: "
+                   & Ada.Exceptions.Exception_Name (E)
+                   & ", "
+                   & Ada.Exceptions.Exception_Message (E));
+         New_Line;
+         Close (Fd);
+
    end Launch_Test;
 
    ------------------
