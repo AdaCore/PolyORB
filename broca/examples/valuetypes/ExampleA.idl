@@ -1,0 +1,14 @@
+module ExampleA {
+
+	typedef sequence<unsigned long> WeightSeq;
+
+	valuetype WeightedBinaryTree {
+		public long weight;
+		private WeightedBinaryTree left;
+		private WeightedBinaryTree right;
+		factory createWBT(in long w);
+		WeightSeq preOrder();
+		WeightSeq postOrder();
+	};
+};
+

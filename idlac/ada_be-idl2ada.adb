@@ -86,6 +86,10 @@ package body Ada_Be.Idl2Ada is
       Node : Node_Id);
    --  Generate the stubs code for a node.
 
+   procedure Gen_Operation_Stubs_Body_For_ValueTypes
+     (CU : in out Compilation_Unit;
+      Node : in Node_Id);
+
    procedure Gen_Node_Stream_Spec
      (CU   : in out Compilation_Unit;
       Node : Node_Id);
@@ -374,7 +378,10 @@ package body Ada_Be.Idl2Ada is
                Gen_Scope (Export_Node, Implement, To_Stdout);
             else
                Gen_Node_Stubs_Spec (Stubs_Spec, Export_Node);
-               --  Gen_Node_Value_Stubs_Body (Stubs_Body, Export_Node);
+               if Kind (Export_Node) = K_Operation then
+                  Gen_Operation_Stubs_Body_For_ValueTypes (Stubs_Body,
+                                                           Export_Node);
+               end if;
 
                Gen_Node_Stream_Spec (Stream_Spec, Export_Node);
                Gen_Node_Stream_Body (Stream_Body, Export_Node);
@@ -407,6 +414,69 @@ package body Ada_Be.Idl2Ada is
       end if;
 
    end Gen_Value_Scope;
+
+   -----------------------------------------------
+   --  Gen_Operation_Stubs_Body_For_ValueTypes  --
+   -----------------------------------------------
+   procedure Gen_Operation_Stubs_Body_For_ValueTypes
+     (CU : in out Compilation_Unit;
+      Node : in Node_Id) is
+      Op_Name : constant String
+        := Ada_Operation_Name (Node);
+      Is_Function : constant Boolean
+        := Kind (Operation_Type (Node)) /= K_Void;
+      It : Node_Iterator;
+      Param : Node_Id;
+   begin
+      pragma Assert (Kind (Node) = K_Operation);
+      if not Is_Implicit_Inherited (Node) then
+         Gen_Operation_Profile (CU,
+                                "in "
+                                & Ada_Type_Defining_Name
+                                (Parent_Scope (Node)),
+                                Node);
+         PL (CU, " is");
+         PL (CU, "begin");
+         II (CU);
+
+         PL (CU, "if Is_Nil (Self) then");
+         II (CU);
+         PL (CU, "Broca.Exceptions.Raise_Inv_Objref;");
+         DI (CU);
+         PL (CU, "end if;");
+
+         if Is_Function then
+            PL (CU, "return");
+            II (CU);
+         end if;
+
+         PL (CU, Ada_Full_Name (Parent_Scope (Node))
+              & ".Value_Impl."
+              & Op_Name);
+         II (CU);
+
+         --  first, controlling argument
+         Put (CU, "(Self.Ptr.all");
+         --  now all the arguments
+         Init (It, Contents (Node));
+         while not Is_End (It) loop
+            Get_Next_Node (It, Param);
+            PL (CU, ";");
+            Put (CU, " " & Ada_Name (Param));
+         end loop;
+         PL (CU, ");");
+
+         DI (CU);
+         if  Is_Function then
+            DI (CU);
+         end if;
+
+         DI (CU);
+         PL (CU, "end " & Op_Name);
+      end if;
+
+   end Gen_Operation_Stubs_Body_For_ValueTypes;
+
 
    --------------------------
    --  Gen_Value_Impl_Decl --
@@ -1408,6 +1478,10 @@ package body Ada_Be.Idl2Ada is
 
    end Gen_Node_Impl_Body;
 
+
+   -------------------------
+   --  Gen_Node_Skel_Body --
+   -------------------------
    procedure Gen_Node_Skel_Body
      (CU   : in out Compilation_Unit;
       Node : Node_Id)
@@ -1752,6 +1826,13 @@ package body Ada_Be.Idl2Ada is
                DI (CU);
                PL (CU, "begin");
                II (CU);
+
+               PL (CU, "if Is_Nil (Self) then");
+               II (CU);
+               PL (CU, "Broca.Exceptions.Raise_Inv_Objref;");
+               DI (CU);
+               PL (CU, "end if;");
+
                PL (CU, "loop");
                II (CU);
                PL (CU, "Broca.GIOP.Send_Request_Marshall");
@@ -2040,6 +2121,9 @@ package body Ada_Be.Idl2Ada is
 
    end Gen_Node_Stream_Spec;
 
+   ----------------------------
+   --  Gen_Operation_Profile --
+   ----------------------------
    procedure Gen_Operation_Profile
      (CU : in out Compilation_Unit;
       Object_Type : in String;
