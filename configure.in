@@ -98,3 +98,7 @@ do
     cp $srcdir/$a $a
   fi
 done
+for a in linker adacompiler
+do
+  chmod a+x support/$a
+done
