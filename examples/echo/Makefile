@@ -23,6 +23,6 @@ main:
 	gnatmake -gnatf -gnata -m -i server $(COMMAND_LINE)
 
 clean:
-	rm *.ali *.o
+	rm *.ali *.o *~
 
 

@@ -15,6 +15,8 @@ with Netbufferedstream ; use Netbufferedstream ;
 
 use type Corba.Unsigned_Long ;
 
+with Adabroker_Debug ; use Adabroker_Debug ;
+
 package body Echo.Proxies is
 
    --------------------------------------------------
@@ -81,8 +83,11 @@ package body Echo.Proxies is
    -----------
    procedure Finalize(Self : in out EchoString_Proxy) is
    begin
+      pragma Debug(Output(Echo_Proxies,"Finalizing EchoString_Proxy")) ;
       Corba.Free(Self.Arg_Msg) ;
+      pragma Debug(Output(Echo_Proxies,"Deleted the argument")) ;
       Corba.Free(Self.Private_Result) ;
+      pragma Debug(Output(Echo_Proxies,"Deleted the result")) ;
    end ;
 
 

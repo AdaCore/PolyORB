@@ -13,8 +13,12 @@ with Corba ;
 with Giop_C ;
 with Omniproxycalldesc ;
 
+with Adabroker_Debug ;
+pragma Elaborate(Adabroker_Debug) ;
+
 package Echo.Proxies is
 
+   Echo_Proxies : constant Boolean := Adabroker_Debug.Is_Active("echo.proxies") ;
 
    --------------------------------------------------
    ----        function EchoString               ----

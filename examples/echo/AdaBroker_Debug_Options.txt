@@ -13,3 +13,4 @@ giop_c
 echo.impl
 omniobject
 echo.skeleton
+echo.proxies
