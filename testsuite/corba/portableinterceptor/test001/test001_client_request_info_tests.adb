@@ -173,7 +173,8 @@ package body Test001_Client_Request_Info_Tests is
       Operation : constant String := "get_request_policy";
       Valid     : constant Boolean := Point /= Send_Poll;
       Pol       : CORBA.Policy.Ref;
-      pragma Unreferenced (Pol);
+      --  pragma Unreferenced (Pol);
+      pragma Warnings (Off, Pol); --  WAG:5.02 DB08-008
       --  Assigned but never read
 
    begin

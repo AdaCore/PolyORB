@@ -86,7 +86,8 @@ begin
    declare
       Obj_Name : CosNaming.Name;
       Rcvd_Ref : CORBA.Object.Ref;
-      pragma Unreferenced (Rcvd_Ref);
+      --  pragma Unreferenced (Rcvd_Ref);
+      pragma Warnings (Off, Rcvd_Ref); --  WAG:5.02 DB08-008
       --  Assigned but never read
 
    begin
