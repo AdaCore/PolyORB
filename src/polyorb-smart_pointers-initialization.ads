@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Initialization code for PolyORB.Smart_Pointers
+
 --  $Id$
 
 package PolyORB.Smart_Pointers.Initialization is
