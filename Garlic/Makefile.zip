@@ -11,7 +11,7 @@ s-gafizi.o
 zip-sources = \
 ${srcdir}/s-gafizi.ads ${srcdir}/s-gafizi.adb
 
-zip-extra-objects = adler32.o compress.o crc32.o gzio.o \
+zipLIBOBJS = adler32.o compress.o crc32.o gzio.o \
 	uncompr.o deflate.o trees.o zutil.o \
 	inflate.o infblock.o inftrees.o \
 	infcodes.o infutil.o inffast.o
@@ -19,10 +19,10 @@ zip-extra-objects = adler32.o compress.o crc32.o gzio.o \
 %.o: $(srcdir)/zlib/%.c
 	$(CC) -c -O2 -I$(srcdir)/zlib $<
 
-libz.a: $(zip-extra-objects)
+libz.a: $(zipLIBOBJS)
 	$(AR) cq libz.a $(zipLIBOBJS)
 
-install-zlib: libz.a
+install-zlib: libz.a install-dirs-local
 	$(INSTALL_DATA) libz.a $(GARLIC)
 	$(RANLIB) $(GARLIC)/libz.a
 
