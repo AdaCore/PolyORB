@@ -99,7 +99,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Threads is
       function STID_To_ATID is new Ada.Unchecked_Conversion
         (System.Tasking.Task_ID, Ada.Task_Identification.Task_Id);
    begin
-      return STID_To_ATID (System.Tasking.To_Task_Id (PTT.To_Address (TID)));
+      pragma Style_Checks (Off); --  WAG: 5.02
+      return STID_To_ATID (System.Tasking.To_Task_ID (PTT.To_Address (TID)));
+      pragma Style_Checks (On);  --  WAG: 5.02
    end P_To_A_Task_Id;
 
    --------------------
