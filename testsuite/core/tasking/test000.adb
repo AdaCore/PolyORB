@@ -53,6 +53,10 @@ pragma Elaborate_All
 pragma Warnings
   (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
 
+with PolyORB.Parameters.File;
+pragma Warnings (Off, PolyORB.Parameters.File);
+pragma Elaborate_All (PolyORB.Parameters.File);
+
 with Test000_Common;
 
 procedure Test000 is

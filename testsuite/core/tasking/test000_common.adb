@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -555,7 +555,7 @@ package body Test000_Common is
       begin
          O ("task "
             & Integer'Image (Id)
-            & " begins tast_test_watcher");
+            & " begins task_test_watcher");
          Lookup (Test_Version, 1);
          O ("task "
             & Integer'Image (Id)
@@ -585,6 +585,16 @@ package body Test000_Common is
                & Exception_Message (Exc));
       end;
       Synchro_Joiner.Signal_End;
+
+   exception
+      when Exc : others =>
+         Ok := False;
+         O ("task "
+            & Integer'Image (Id)
+            & " EXCEPTION RAISED ! "
+            & Exception_Name (Exc)
+            & " : "
+            & Exception_Message (Exc));
    end Task_Test_Watchers;
 
    --------------------------------
@@ -888,6 +898,15 @@ package body Test000_Common is
       end;
       Synchro_Joiner.Signal_End;
 
+   exception
+      when Exc : others =>
+         Ok := False;
+         O ("task "
+            & Integer'Image (Id)
+            & " EXCEPTION RAISED ! "
+            & Exception_Name (Exc)
+            & " : "
+            & Exception_Message (Exc));
    end Task_Test_Mutexes;
 
    -----------
@@ -958,6 +977,8 @@ package body Test000_Common is
       use PolyORB.Tasking.Mutexes;
       use PolyORB.Tasking.Condition_Variables;
    begin
+      PolyORB.Utils.Report.New_Test ("Synchronisations");
+
       declare
          use PolyORB.Tasking.Threads;
          RA : Runnable_Access;
@@ -1062,6 +1083,8 @@ package body Test000_Common is
    procedure Test_Mutexes is
       Id : constant Integer := -1;
    begin
+      PolyORB.Utils.Report.New_Test ("Mutexes");
+
       PTMX.Create (My_Mutex);
       Synchro.Reset;
       Counter.Reset;
@@ -1098,12 +1121,12 @@ package body Test000_Common is
       PolyORB.Utils.Report.Output
         ("retest threads before Adv mutex tests", Ok);
 
-
       Synchro.Simple_Release;
-
       Synchro.Signal (1);
       Synchro_Joiner.Join;
+
       PolyORB.Utils.Report.Output ("test mutual exclusion for Adv mutex", Ok);
+
       Ok := True;
 
       Synchro.Signal (2);
@@ -1158,6 +1181,15 @@ package body Test000_Common is
         ("same test, with Enter called several times", Ok);
       Ok := True;
 
+   exception
+      when Exc : others =>
+         Ok := False;
+         O ("main task "
+            & " EXCEPTION RAISED ! "
+            & Exception_Name (Exc)
+            & " : "
+            & Exception_Message (Exc));
+         raise;
    end Test_Mutexes;
 
    ------------------
@@ -1169,6 +1201,8 @@ package body Test000_Common is
 
       Ok : Boolean := True;
    begin
+      PolyORB.Utils.Report.New_Test ("Thread manipulation");
+
       Synchro.Reset;
       Counter.Reset;
 
@@ -1251,6 +1285,8 @@ package body Test000_Common is
 
    procedure Test_Watchers is
    begin
+      PolyORB.Utils.Report.New_Test ("Watchers");
+
       PTW.Create (My_Watcher.all);
       Synchro.Reset;
       Counter.Reset;
@@ -1309,6 +1345,15 @@ package body Test000_Common is
       Ok := Ok and Counter.Get = 1;
       PolyORB.Utils.Report.Output ("test watchers", Ok);
       Ok := True;
+
+   exception
+      when Exc : others =>
+         Ok := False;
+         O ("main task "
+            & " EXCEPTION RAISED ! "
+            & Exception_Name (Exc)
+            & " : "
+            & Exception_Message (Exc));
    end Test_Watchers;
 
 end Test000_Common;
