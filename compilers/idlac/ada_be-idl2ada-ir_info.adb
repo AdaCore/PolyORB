@@ -24,7 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Perforce: //droopi/main/compilers/idlac/ada_be-idl2ada-ir_info.adb#8 $
+--  $Id$
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -224,8 +224,8 @@ package body Ada_Be.Idl2Ada.IR_Info is
            K_Module            |
            K_Interface         |
            K_Forward_Interface |
-           K_ValueType         |
-           K_Forward_ValueType |
+            --          K_ValueType         |
+            --          K_Forward_ValueType |
            K_Enum              |
            K_Union             |
            K_Struct            |
@@ -318,11 +318,11 @@ package body Ada_Be.Idl2Ada.IR_Info is
            K_Forward_Interface =>
             return Parent_Scope_Name (Node) & Suffix;
 
+            --          K_ValueType         |
+            --          K_Forward_ValueType |
          when
             --  K_Sequence_Instance |
             --  K_String_Instance   |
-           K_ValueType         |
-           K_Forward_ValueType |
            K_Enum              |
            K_Union             |
            K_Struct            |

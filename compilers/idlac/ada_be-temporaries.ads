@@ -27,7 +27,6 @@
 package Ada_Be.Temporaries is
 
    pragma Pure;
-   pragma Warnings (Off);
 
    T_Handler             : constant String;
    T_Returns             : constant String;

@@ -24,7 +24,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Perforce: //droopi/main/compilers/idlac/ada_be-idl2ada-skel.adb#18 $
+--  $Id$
 
 with Idl_Fe.Types;          use Idl_Fe.Types;
 with Idl_Fe.Tree;           use Idl_Fe.Tree;
@@ -38,8 +38,6 @@ with Ada_Be.Idl2Ada.Value_Skel;
 
 with Ada_Be.Debug;
 pragma Elaborate_All (Ada_Be.Debug);
-
-pragma Warnings (Off);
 
 package body Ada_Be.Idl2Ada.Skel is
 
