@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.ads#17 $
+--  $Id: //droopi/main/src/polyorb-any.ads#18 $
 
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
@@ -607,31 +607,33 @@ package PolyORB.Any is
    procedure Set_Any_Value (Any_Value : in out Any;
                             Value : in Any);
 
+   procedure Set_Any_Aggregate_Value (Any_Value : in out Any);
    --  This one is a bit special : it doesn't put any value but
    --  create the aggregate value if it does not exist.
-   procedure Set_Any_Aggregate_Value (Any_Value : in out Any);
 
    --  Not in spec : some methods to deal with any aggregates.
    --  What is called any aggregate is an any, made of an aggregate
    --  of values, instead of one unique. It is used for structs,
    --  unions, enums, arrays, sequences, objref, values...
 
-   --  returns the number of elements in an any aggregate
    function Get_Aggregate_Count (Value : Any) return Types.Unsigned_Long;
+   --  Returns the number of elements in an any aggregate
 
+   procedure Add_Aggregate_Element
+     (Value   : in out Any;
+      Element : in     Any);
    --  Adds an element to an any aggregate
    --  This element is given as a typecode but only its value is
    --  added to the aggregate
-   procedure Add_Aggregate_Element (Value : in out Any;
-                                    Element : in Any);
 
+   function Get_Aggregate_Element
+     (Value : Any;
+      Tc    : TypeCode.Object;
+      Index : Types.Unsigned_Long)
+      return Any;
    --  Gets an element in an any agregate
    --  returns an any made of the typecode Tc and the value read in
-   --  the aggregate
-   function Get_Aggregate_Element (Value : Any;
-                                   Tc : TypeCode.Object;
-                                   Index : Types.Unsigned_Long)
-                                   return Any;
+   --  the aggregate.
 
    --  returns an empty any aggregate
    --  puts its type to Tc
