@@ -44,6 +44,11 @@ package System.Garlic.Thin is
    --  standard interface. Although it is named using GNAT conventions for
    --  Linux, it will be used as a default for all the platforms that do not
    --  have a specific version of this file.
+   --
+   --  If you change this spec you must change all the target specific
+   --  implementations too. Here is a list of them:
+   --
+   --     NT implementation      5wgarthi.ads and .adb
 
    package C renames Interfaces.C;
    package Strings renames C.Strings;
