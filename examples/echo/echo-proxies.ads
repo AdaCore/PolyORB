@@ -26,6 +26,7 @@ package Echo.Proxies is
    function New_Proxy_Object(Self : in ObjectFactory ;
                              R : in Rope.object ;
                              Key : in Corba.Octet ;
+                             Key_Size : in Corba.Unsigned_Long ;
                              Profiles : in Iop.Tagged_Profile_List ;
                              Release : in Corba.Boolean)
                              return Echo.Ref ;

@@ -14,7 +14,7 @@ with Ada.Characters.Latin_1 ;
 with Corba ;
 use type Corba.Unsigned_Long ;
 
-with Omni ;
+with Omni, omniobject ;
 
 
 package body Echo.Proxies is
@@ -34,8 +34,9 @@ package body Echo.Proxies is
                              return Echo.Ref is
       Result : Echo.Ref ;
    begin
-      Init (Self, Result, Echo.Intercae_Repository_Id, R,
+      Omniobject.Init (Result, Echo.Interface_Repository_Id, R,
             Key, Key_Size, Profiles, Release) ;
+      Omniobject.Object_Is_Ready(Result) ;
       return Result ;
    end ;
 
@@ -48,7 +49,8 @@ package body Echo.Proxies is
 
    -- is_a
    -------
-   function Is_A(String Base_RepoID) return Corba.Boolean is
+   function Is_A(Self : in ObjectFactory ;
+                 Base_RepoID : in String) return Corba.Boolean is
    begin
       return False ;
       -- I don't know what it should do !!
