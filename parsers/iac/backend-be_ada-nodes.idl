@@ -6,6 +6,7 @@ module Backend::BE_Ada::Nodes {
 
   typedef octet   Mode_Id;
   typedef long    Name_Id;
+  typedef long    Value_Id; 
 
   /******************/
   /* Internal nodes */
@@ -36,8 +37,17 @@ module Backend::BE_Ada::Nodes {
   /*****************/
 
   interface Literal : Node_Id {
-    Name_Id    Literal;
+    Value_Id   Value;
   };
+
+  interface Integer_Literal : Literal {};
+  interface String_Literal : Literal {};
+  interface Wide_String_Literal : Literal {};
+  interface Character_Literal : Literal {};
+  interface Wide_Character_Literal : Literal {};
+  interface Fixed_Point_Literal : Literal {};
+  interface Floating_Point_Literal : Literal {};
+  interface Boolean_Literal : Literal {};
 
 
   /******************/

@@ -12,22 +12,9 @@ package body Backend.BE_Ada.Nutils is
    -- Append_Node_To_List --
    -------------------------
 
-   procedure Append_Node_To_List (E : Node_Id; L : in out List_Id) is
+   procedure Append_Node_To_List (E : Node_Id; L : List_Id) is
       Last : Node_Id;
-      List_Kind : Node_Kind;
    begin
-
-      --  XXX Tres mauvais !
-
-      if L = No_List then
-         case Kind (E) is
-            when K_Declaration_List =>
-               List_Kind := K_Declaration_List;
-            when others =>
-               List_Kind := K_List_Id;
-         end case;
-         L := New_List (List_Kind, No_Location);
-      end if;
 
       Last := Last_Node (L);
       if No (Last) then
@@ -55,38 +42,6 @@ package body Backend.BE_Ada.Nutils is
       end if;
    end Current_Package;
 
-   ------------------
-   -- Push_Package --
-   ------------------
-
-   procedure Push_Package (E : Node_Id) is
-   begin
-      Increment_Last;
-      Table (Last).Node := E;
-   end Push_Package;
-
-   -----------------
-   -- Pop_Package --
-   -----------------
-
-   procedure Pop_Package is
-   begin
-      if Last > No_Inheritance_Depth then
-         Decrement_Last;
-      else
-         null;  --  maybe it's better to raise an exception.
-      end if;
-   end Pop_Package;
-
-   ------------------
-   -- Package_Name --
-   ------------------
-
-   function Package_Name (E : Node_Id) return String is
-   begin
-      return Get_Name_String (Name (Identifier (E)));
-   end Package_Name;
-
    -----------------------
    -- Full_Package_Name --
    -----------------------
@@ -105,36 +60,14 @@ package body Backend.BE_Ada.Nutils is
       end if;
    end Full_Package_Name;
 
-   --------------
-   -- New_Node --
-   --------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   function New_Node
-     (Kind : Node_Kind;
-      Loc : Location)
-     return Node_Id is
-      N : Node_Id;
+   procedure Initialize is
    begin
-      Entries.Increment_Last;
-      N := Entries.Last;
-      Entries.Table (N) := Default_Node;
-      Set_Kind (N, Kind);
-      Set_Loc  (N, Loc);
-
-      return N;
-   end New_Node;
-
-   --------------
-   -- New_List --
-   --------------
-
-   function New_List
-     (Kind : Node_Kind;
-      Loc  : Location)
-     return List_Id is
-   begin
-      return List_Id (New_Node (Kind, Loc));
-   end New_List;
+      Init;
+   end Initialize;
 
    --------------
    -- Is_Empty --
@@ -144,70 +77,6 @@ package body Backend.BE_Ada.Nutils is
    begin
       return L = No_List or else No (First_Node (L));
    end Is_Empty;
-
-   ---------------------------
-   -- Remove_Node_From_List --
-   ---------------------------
-
-   procedure Remove_Node_From_List (E : Node_Id; L : List_Id) is
-      C : Node_Id;
-   begin
-      C := First_Node (L);
-      if C = E then
-         Set_First_Node (L, Next_Node (E));
-         if Last_Node (L) = E then
-            Set_Last_Node (L, No_Node);
-         end if;
-      else
-         while Present (C) loop
-            if Next_Node (C) = E then
-               Set_Next_Node (C, Next_Node (E));
-               if Last_Node (L) = E then
-                  Set_Last_Node (L, C);
-               end if;
-               exit;
-            end if;
-            C := Next_Node (C);
-         end loop;
-      end if;
-   end Remove_Node_From_List;
-
-   -----------------
-   -- To_Ada_Name --
-   -----------------
-
-   function To_Ada_Name (N : Name_Id) return Name_Id
-   is
-      First : Natural := 1;
-   begin
-      Get_Name_String (N);
-      while First <= Name_Len
-        and then Name_Buffer (First) = '_'
-      loop
-         First := First + 1;
-      end loop;
-
-      for I in First .. Name_Len loop
-         if Name_Buffer (I) = '_'
-           and then I < Name_Len
-           and then Name_Buffer (I + 1) = '_'
-         then
-            Name_Buffer (I + 1) := 'U';
-         end if;
-      end loop;
-
-      if Name_Buffer (Name_Len) = '_' then
-         Add_Char_To_Name_Buffer ('U');
-      end if;
-
-      return Name_Find;
-   end To_Ada_Name;
-
-   function To_Ada_Name (N : String) return String is
-   begin
-      Set_Str_To_Name_Buffer (N);
-      return Get_Name_String (To_Ada_Name (Name_Find));
-   end To_Ada_Name;
 
    ------------------------
    -- Make_Ada_Parameter --
@@ -247,24 +116,45 @@ package body Backend.BE_Ada.Nutils is
       return Make_Ada_Identifier (Name_Find);
    end Make_Ada_Identifier;
 
-   --------------------------
-   -- Make_Subprogram_Spec --
-   --------------------------
+   ---------------------
+   -- Make_Array_Type --
+   ---------------------
 
-   function Make_Subprogram_Spec
-     (S : Node_Id;
-      P : List_Id;
-      T : Node_Id := No_Node)
-     return Node_Id
-   is
+   function Make_Array_Type (T : Node_Id; L : List_Id) return Node_Id is
       N : Node_Id;
    begin
-      N := New_Node (K_Ada_Subprogram_Spec, No_Location);
-      Set_Identifier (N, S);
-      Set_Parameters (N, P);
+      N := New_Node (K_Array_Type, No_Location);
       Set_Type_Spec (N, T);
+      Set_Array_Sizes (N, L);
       return N;
-   end Make_Subprogram_Spec;
+   end Make_Array_Type;
+
+   --------------------------------
+   -- Make_Empty_Enumerator_List --
+   --------------------------------
+
+   function Make_Empty_Enumerator_List return List_Id is
+   begin
+      return New_List (K_Enumerator_List, No_Location);
+   end Make_Empty_Enumerator_List;
+
+   ------------------------
+   -- Make_Empty_List_Id --
+   ------------------------
+
+   function Make_Empty_List_Id return List_Id is
+   begin
+      return New_List (K_List_Id, No_Location);
+   end Make_Empty_List_Id;
+
+   --------------------------------------
+   -- Make_Empty_Package_Specification --
+   --------------------------------------
+
+   function Make_Empty_Package_Spec return Node_Id is
+   begin
+      return New_Node (K_Package_Specification, No_Location);
+   end Make_Empty_Package_Spec;
 
    ---------------------------
    -- Make_Enumeration_Type --
@@ -297,6 +187,57 @@ package body Backend.BE_Ada.Nutils is
       return Node;
    end Make_Derived_Type_Declaration;
 
+   --------------------------
+   -- Make_Integer_Literal --
+   --------------------------
+
+   function Make_Integer_Literal (V : Value_Id) return Node_Id is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Integer_Literal, No_Location);
+      Set_Value (N, V);
+      return N;
+   end Make_Integer_Literal;
+
+   ------------------------------
+   -- Make_Package_Declaration --
+   ------------------------------
+
+   function Make_Package_Declaration
+     (I : Node_Id; P : Node_Id; S : Node_Id; Im : Node_Id) return Node_Id is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Package_Declaration, No_Location);
+      Set_Identifier (N, I);
+      Set_Parent (N, P);
+      if S = No_Node then
+         Set_Package_Specification (N, Make_Empty_Package_Spec);
+      else
+         Set_Package_Specification (N, S);
+      end if;
+      Set_Package_Implementation (N, Im);
+      return N;
+   end Make_Package_Declaration;
+
+   --------------------------
+   -- Make_Subprogram_Spec --
+   --------------------------
+
+   function Make_Subprogram_Spec
+     (S : Node_Id;
+      P : List_Id;
+      T : Node_Id := No_Node)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Ada_Subprogram_Spec, No_Location);
+      Set_Identifier (N, S);
+      Set_Parameters (N, P);
+      Set_Type_Spec (N, T);
+      return N;
+   end Make_Subprogram_Spec;
+
    ---------------------------
    -- Make_Type_Declaration --
    ---------------------------
@@ -314,6 +255,64 @@ package body Backend.BE_Ada.Nutils is
       return Node;
    end Make_Type_Declaration;
 
+   --------------------------------
+   -- Make_Package_Specification --
+   --------------------------------
+
+   function Make_Package_Specification
+     (D : Node_Id; W : List_Id; V : List_Id; P : List_Id) return Node_Id is
+      N : Node_Id;
+
+   begin
+      N := New_Node (K_Package_Specification, No_Location);
+      Set_Package_Declaration (N, D);
+      Set_Withed_Packages (N, W);
+      Set_Visible_Part (N, V);
+      Set_Private_Part (N, P);
+
+      return N;
+   end Make_Package_Specification;
+
+   --------------
+   -- New_Node --
+   --------------
+
+   function New_Node
+     (Kind : Node_Kind;
+      Loc : Location)
+     return Node_Id is
+      N : Node_Id;
+   begin
+      Entries.Increment_Last;
+      N := Entries.Last;
+      Entries.Table (N) := Default_Node;
+      Set_Kind (N, Kind);
+      Set_Loc  (N, Loc);
+
+      return N;
+   end New_Node;
+
+   --------------
+   -- New_List --
+   --------------
+
+   function New_List
+     (Kind : Node_Kind;
+      Loc  : Location)
+     return List_Id is
+   begin
+      return List_Id (New_Node (Kind, Loc));
+   end New_List;
+
+   ------------------
+   -- Package_Name --
+   ------------------
+
+   function Package_Name (E : Node_Id) return String is
+   begin
+      return Get_Name_String (Name (Identifier (E)));
+   end Package_Name;
+
    --------------------
    -- Parameter_Mode --
    --------------------
@@ -325,6 +324,56 @@ package body Backend.BE_Ada.Nutils is
       return Mode_Type'Val (M);
    end Parameter_Mode;
 
+   ------------------
+   -- Push_Package --
+   ------------------
+
+   procedure Push_Package (E : Node_Id) is
+   begin
+      Increment_Last;
+      Table (Last).Node := E;
+   end Push_Package;
+
+   -----------------
+   -- Pop_Package --
+   -----------------
+
+   procedure Pop_Package is
+   begin
+      if Last > No_Inheritance_Depth then
+         Decrement_Last;
+      else
+         null;  --  maybe it's better to raise an exception.
+      end if;
+   end Pop_Package;
+
+   ---------------------------
+   -- Remove_Node_From_List --
+   ---------------------------
+
+   procedure Remove_Node_From_List (E : Node_Id; L : List_Id) is
+      C : Node_Id;
+   begin
+      C := First_Node (L);
+      if C = E then
+         Set_First_Node (L, Next_Node (E));
+         if Last_Node (L) = E then
+            Set_Last_Node (L, No_Node);
+         end if;
+      else
+         while Present (C) loop
+            if Next_Node (C) = E then
+               Set_Next_Node (C, Next_Node (E));
+               if Last_Node (L) = E then
+                  Set_Last_Node (L, C);
+               end if;
+               exit;
+            end if;
+            C := Next_Node (C);
+         end loop;
+      end if;
+   end Remove_Node_From_List;
+
    ------------------------
    -- Set_Parameter_Mode --
    ------------------------
@@ -335,5 +384,62 @@ package body Backend.BE_Ada.Nutils is
       B := Mode_Type'Pos (M);
       Nodes.Set_Parameter_Mode (E, Mode_Id (B));
    end Set_Parameter_Mode;
+
+   -----------------
+   -- To_Ada_Name --
+   -----------------
+
+   function To_Ada_Name (N : Name_Id) return Name_Id
+   is
+      First : Natural := 1;
+   begin
+      Get_Name_String (N);
+      while First <= Name_Len
+        and then Name_Buffer (First) = '_'
+      loop
+         First := First + 1;
+      end loop;
+
+      for I in First .. Name_Len loop
+         if Name_Buffer (I) = '_'
+           and then I < Name_Len
+           and then Name_Buffer (I + 1) = '_'
+         then
+            Name_Buffer (I + 1) := 'U';
+         end if;
+      end loop;
+
+      if Name_Buffer (Name_Len) = '_' then
+         Add_Char_To_Name_Buffer ('U');
+      end if;
+
+      return Name_Find;
+   end To_Ada_Name;
+
+   function To_Ada_Name (N : String) return String is
+   begin
+      Set_Str_To_Name_Buffer (N);
+      return Get_Name_String (To_Ada_Name (Name_Find));
+   end To_Ada_Name;
+
+   ---------------------
+   -- To_Library_Name --
+   ---------------------
+
+   function To_Library_Name (N : Name_Id) return Name_Id is
+      First : constant Natural := 1;
+      Lib_Name : Name_Id;
+   begin
+      Get_Name_String (N);
+      Name_Len := Name_Len - 4;
+      for I in First .. Name_Len loop
+         if Name_Buffer (I) = ' ' then
+            Name_Buffer (I) := '_';
+         end if;
+      end loop;
+      Add_Str_To_Name_Buffer ("_IDL_File");
+      Lib_Name := To_Ada_Name (Name_Find);
+      return Lib_Name;
+   end To_Library_Name;
 
 end Backend.BE_Ada.Nutils;

@@ -7,9 +7,12 @@ with Lexer;  use Lexer;
 with Namet;  use Namet;
 with Output; use Output;
 with Types;  use Types;
+with Values;  use Values;
 
 package body Backend.BE_Ada.Generator is
 
+   procedure Generate_Array_Sizes (L : List_Id);
+   procedure Generate_Array_Type (E : Node_Id);
    procedure Generate_Enumeration_Type (E : Node_Id);
    procedure Generate_Identifier (E : Node_Id);
    procedure Generate_Package (E : Node_Id);
@@ -57,6 +60,49 @@ package body Backend.BE_Ada.Generator is
          N := Next_Node (N);
       end loop;
    end Generate;
+
+   --------------------------
+   -- Generate_Array_Sizes --
+   --------------------------
+
+   procedure Generate_Array_Sizes (L : List_Id) is
+      D : Node_Id;
+      V : Value_Id;
+      VT : Value_Type;
+   begin
+      Write_Str ("(");
+      D := First_Node (L);
+      while Present (D) loop
+         Write_Str ("0 .. ");
+         V := Value (D);
+         VT := Value (V);
+         VT.IVal := VT.IVal - 1;
+         Set_Value (V, VT);
+         Write_Str (Values.Image (V));
+         D := Next_Node (D);
+         if Present (D) then
+            Write_Str (",");
+            Write_Space;
+         end if;
+      end loop;
+      Write_Str (")");
+   end Generate_Array_Sizes;
+
+   -------------------------
+   -- Generate_Array_Type --
+   -------------------------
+
+   procedure Generate_Array_Type (E : Node_Id) is
+   begin
+
+      Write_Str ("array");
+      Write_Space;
+      Generate_Array_Sizes (Array_Sizes (E));
+      Write_Space;
+      Write_Str ("of");
+      Write_Space;
+      Generate_Type_Spec (Type_Spec (E));
+   end Generate_Array_Type;
 
    ------------------------------
    -- Generate_Subprogram_Spec --
@@ -180,9 +226,12 @@ package body Backend.BE_Ada.Generator is
       Id := Identifier (E);
       case Kind (Id) is
          when K_Ada_Identifier =>
-            Generate_Identifier (Identifier (E));
+            Generate_Identifier (Id);
          when K_Float .. K_Octet =>
-            Write_Str (Image (Image (Base_Type (Identifier (E)))));
+            Write_Str (Image (Image (Base_Type (Id))));
+         when K_Type_Declaration =>
+            Write_Str (Full_Package_Name (Current_Package) & ".");
+            Generate_Identifier (Identifier (Id));
          when others =>
             null;
       end case;
@@ -241,6 +290,9 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Package_Spec (E : Node_Id) is
    begin
+      if E = No_Node then
+         return;
+      end if;
       Generate_Package_With (Withed_Packages (E));
       Write_Indentation;
       Write_Str  ("package ");
@@ -325,6 +377,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Enumeration_Type =>
             Generate_Enumeration_Type (E);
+
+         when K_Array_Type =>
+            Generate_Array_Type (E);
 
          when others =>
             DE (Image (Kind (E)) & " not supported");

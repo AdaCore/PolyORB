@@ -5,6 +5,7 @@ with Namet;       use Namet;
 with Output;      use Output;
 with Types;       use Types;
 with Utils;       use Utils;
+with Values;      use Values;
 
 with Backend.BE_Ada.Generator; use Backend.BE_Ada.Generator;
 with Backend.BE_Ada.Nodes;     use Backend.BE_Ada.Nodes;
@@ -65,6 +66,11 @@ package body Backend.BE_Ada.Debug is
       S : constant String := Int'Image (N);
    begin
       return S (S'First + 1 .. S'Last);
+   end Image;
+
+   function Image (N : Value_Id) return String is
+   begin
+      return Values.Image (N);
    end Image;
 
    ---------------

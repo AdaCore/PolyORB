@@ -1,3 +1,11 @@
+2004-06-21  Saber Souli <souli@enst.fr>
+	* backend-be_ada.adb : Handle complex declarator. Now the backend
+	map all the list of declarators. Generate library file (IDL). Add
+	append_type_to_package_spec (T:Node_Id ; P : node_id): a function
+	that add the type <T> in the specification part of the package P.  
+	    
+
+	
 2004-06-21  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_a.adb, backend-be_a-nutils.adb: Clarification between
