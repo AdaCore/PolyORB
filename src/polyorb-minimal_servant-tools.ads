@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . M O M A _ P . T O O L S                  --
+--        P O L Y O R B . M I N I M A L _ S E R V A N T . T O O L S         --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -35,14 +35,16 @@
 with PolyORB.Minimal_Servant;
 with PolyORB.References;
 with PolyORB.Obj_Adapters.Simple;
+with PolyORB.Types;
 
-package PolyORB.MOMA_P.Tools is
+package PolyORB.Minimal_Servant.Tools is
 
    procedure Initiate_Servant
      (Obj     : access PolyORB.Minimal_Servant.Servant'Class;
       If_Desc : in  PolyORB.Obj_Adapters.Simple.Interface_Description;
+      Type_Id : in     PolyORB.Types.String;
       Ref     : out PolyORB.References.Ref);
 
    procedure Run_Server;
 
-end PolyORB.MOMA_P.Tools;
+end PolyORB.Minimal_Servant.Tools;

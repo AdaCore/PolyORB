@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                 P O L Y O R B . M O M A _ P . T O O L S                  --
+--        P O L Y O R B . M I N I M A L _ S E R V A N T . T O O L S         --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -43,10 +43,9 @@ with PolyORB.Objects;
 with PolyORB.Servants;
 with PolyORB.ORB;
 with PolyORB.Setup;
+with PolyORB.Types;
 
-with MOMA.Types;
-
-package body PolyORB.MOMA_P.Tools is
+package body PolyORB.Minimal_Servant.Tools is
 
    use PolyORB.Log;
    use PolyORB.Minimal_Servant;
@@ -93,6 +92,7 @@ package body PolyORB.MOMA_P.Tools is
    procedure Initiate_Servant
      (Obj     : access PolyORB.Minimal_Servant.Servant'Class;
       If_Desc : in     PolyORB.Obj_Adapters.Simple.Interface_Description;
+      Type_Id : in     PolyORB.Types.String;
       Ref     : out    PolyORB.References.Ref)
    is
       Servant : constant PolyORB.Servants.Servant_Access
@@ -100,8 +100,6 @@ package body PolyORB.MOMA_P.Tools is
 
       Obj_Adapter : PolyORB.Obj_Adapters.Obj_Adapter_Access;
 
-      Type_Id_S : constant String :=
-        MOMA.Types.To_Standard_String (MOMA.Types.MOMA_Type_Id);
    begin
       Initialize_OA;
       Obj_Adapter := PolyORB.ORB.Object_Adapter (The_ORB);
@@ -118,7 +116,10 @@ package body PolyORB.MOMA_P.Tools is
             (Obj_Adapter.all), Servant_Id, If_Desc);
          --  Set object description.
 
-         Create_Reference (The_ORB, Servant_Id, Type_Id_S, Ref);
+         Create_Reference (The_ORB,
+                           Servant_Id,
+                           PolyORB.Types.To_Standard_String (Type_Id),
+                           Ref);
       end;
    end Initiate_Servant;
 
@@ -131,4 +132,4 @@ package body PolyORB.MOMA_P.Tools is
       PolyORB.ORB.Run (PolyORB.Setup.The_ORB, May_Poll => True);
    end Run_Server;
 
-end PolyORB.MOMA_P.Tools;
+end PolyORB.Minimal_Servant.Tools;

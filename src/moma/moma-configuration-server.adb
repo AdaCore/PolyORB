@@ -34,12 +34,12 @@
 
 with MOMA.Provider.Message_Pool;
 with PolyORB.Log;
-with PolyORB.MOMA_P.Tools;
+with PolyORB.Minimal_Servant.Tools;
 
 package body MOMA.Configuration.Server is
 
    use PolyORB.Configuration;
-   use PolyORB.MOMA_P.Tools;
+   use PolyORB.Minimal_Servant.Tools;
    use PolyORB.Log;
 
    use MOMA.Types;
@@ -63,6 +63,7 @@ package body MOMA.Configuration.Server is
                        & To_Standard_String (Get_Name (Pool))));
       Initiate_Servant (MOMA_Obj,
                         MOMA.Provider.Message_Pool.If_Desc,
+                        MOMA_Type_Id,
                         Ref);
       MOMA.Provider.Message_Pool.Initialize (MOMA_Obj, Pool);
    end Create_Message_Pool;

@@ -42,7 +42,7 @@ with MOMA.Provider.Message_Producer;
 with MOMA.Types;
 
 with PolyORB.Call_Back;
-with PolyORB.MOMA_P.Tools;
+with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
@@ -54,7 +54,7 @@ package body MOMA.Sessions.Queues is
    use MOMA.Destinations;
    use MOMA.Connections.Queues;
 
-   use PolyORB.MOMA_P.Tools;
+   use PolyORB.Minimal_Servant.Tools;
 
    ------------------
    -- Create_Queue --
@@ -111,6 +111,7 @@ package body MOMA.Sessions.Queues is
       MOMA_Obj.Remote_Ref := Get_Ref (Dest);
       Initiate_Servant (MOMA_Obj,
                         MOMA.Provider.Message_Producer.If_Desc,
+                        MOMA.Types.MOMA_Type_Id,
                         MOMA_Ref);
 
       Set_Destination (Queue, Dest);
@@ -165,6 +166,7 @@ package body MOMA.Sessions.Queues is
       MOMA_Obj.Remote_Ref := Get_Ref (Dest);
       Initiate_Servant (MOMA_Obj,
                         MOMA.Provider.Message_Producer.If_Desc,
+                        MOMA.Types.MOMA_Type_Id,
                         MOMA_Ref);
 
       Set_Destination (Queue, Dest);
