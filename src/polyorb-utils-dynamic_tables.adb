@@ -164,13 +164,13 @@ package body PolyORB.Utils.Dynamic_Tables is
    procedure Reallocate (T : in out Instance)
    is
       Old_Table : Table_Ptr := T.Table;
-      Increment : constant Natural := (100 + Table_Increment) / 100;
 
    begin
       if T.P.Max < T.P.Last_Val then
          while T.P.Max < T.P.Last_Val loop
-            T.P.Length := Integer'Max (T.P.Length * Increment,
-                                       T.P.Length + 10);
+            T.P.Length
+              := Integer'Max (T.P.Length * (100 + Table_Increment) / 100,
+                              T.P.Length + 10);
 
             --  We use the maximum of these 2 values to ensure
             --  T.P.Length (and then T.P.Max) increases; avoiding
