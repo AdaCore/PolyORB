@@ -240,6 +240,8 @@ Base class for all application objects.
 6. Application personalities
 ----------------------------
 
+* CORBA:
+
 ./corba/corba-*.ads
 
 Standard CORBA packages.
@@ -250,10 +252,80 @@ PolyORB-specific components of the CORBA personality. This includes
 internal utility components, as well as some tools that can be used
 directly by application developers (eg PolyORB.CORBA_P.Server_Tools).
 
-./moma/
+* DSA:
 
-Directory containing the MOMA (Message-Oriented Middleware for Ada)
-applicative personality.
+./dsa/s-polint.ads
 
+Wrapper between GNAT generated code and PolyORB internals.
 
+./dsa/polyorb-poa_config-racws.ads
+
+Configuration of the POA for RACW.
+
+* MOMA:
+
+./moma/moma-configuration* 
+
+Utility function to extract configuration information from
+configuration files.
+
+./moma/moma-connection_factories*
+./moma/moma-connections*
+./moma/moma-destinations*
+
+Definition of MOMA Connection_Factory, Connection and Destination types.
+
+./moma/moma-message_consumer*
+
+MOMA client objects and API to receive message from a pool. It
+contains stub routines to interact with a Message_Consumer servant.
+It is the facade shown to the client to the message receiving part of
+MOMA specification.
+
+./moma/moma-message_producer*
+
+MOMA client objects and API to send message to a pool. It contains
+stub routines to interact with a Message_Producer servant.  It is the
+facade shown to the client to the message sending part of MOMA
+specification.
+
+./moma/moma-messages*
+
+API to construct the different types of MOMA messages.
+
+./moma/moma-provider.ads
+
+Base package for MOMA provider, collection of servants providing MOM
+functionnalities on top of PolyORB neutral core layer.
+
+./moma/moma-provider-message_consumer.ads
+
+Servant object implementing Message_Consumer object that interacts
+with message pools. This package contains both its skeleton and
+implementation subroutines. By construction, its implementation
+contains parts of a stub to access the Message_Pool object.
+
+./moma/moma-provider-message_producer.ads
+
+Servant object implementing Message_Producer object that interacts
+with message pools. This package contains both its skeleton and
+implementation subroutines. By construction, its implementation
+contains parts of a stub to access the Message_Pool object.
+
+./moma/moma-provider-message_pool.ads
+
+Servant object implementing Message_Pool object. This package contains
+both its skeleton and implementation subroutines.
+
+./moma/moma-provider-warehouse.ads
+
+Implementation of a placeholder for received messages.
+
+./moma/moma-sessions*
+
+Definition of the session type (see JMS definition for more details)
+
+./moma/moma-types.ads
+
+All MOMA types.
 

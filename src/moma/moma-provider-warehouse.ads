@@ -30,7 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A dynamic, protected  dictionnary of Any, indexed by Strings.
+--  A dynamic, protected  dictionnary of Any, indexed by Strings. It is used
+--  as a placeholder for received messages.
 
 --  $Id$
 

@@ -57,11 +57,12 @@ package body MOMA.Message_Consumers.Queues is
    -- Get_Queue Function --
    ------------------------
 
-   function Get_Queue return MOMA.Destinations.Queue is
+   function Get_Queue (Self : Queue) return MOMA.Destinations.Queue is
    begin
       raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
-      return Get_Queue;
+      pragma Unreferenced (Self);
+      return Get_Queue (Self);
       pragma Warnings (On);
    end Get_Queue;
 

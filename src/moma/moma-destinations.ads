@@ -30,57 +30,51 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Definition of the 'destination' type.
-
---  A destination is a structure embedding a reference to an object
---  (message pool or message router) to which message must be sent.
+--  A Destination contains data to reference an object to which messages
+--  can be sent.
 
 --  $Id$
 
+--  XXX is a derivation for queues and topics required ?
+
 with MOMA.Types;
+
 with PolyORB.Any;
 with PolyORB.References;
 
 package MOMA.Destinations is
 
-   type Destination is record
-      Name : MOMA.Types.String;
-      Ref  : PolyORB.References.Ref;
-      --  Reference to the actual destination object.
-   end record;
-
-   type Queue is new Destination;
-
-   function Get_Name (Self : Destination)
-                      return MOMA.Types.String;
-   --  returns the 'name' member of a destination.
-
-   procedure Set_Name (Self : in out Destination;
-                       Name : MOMA.Types.String);
-   --  sets the 'name' member of a destination.
-
-   function Get_Ref (Self : Destination)
-                     return PolyORB.References.Ref;
-   --  returns the destination reference.
-   --  XXX should be restricted to internal use only ...
-
-   procedure Set_Ref (Self : in out Destination;
-                      Ref  : PolyORB.References.Ref);
-   --  sets the destination reference.
-   --  XXX should be restricted to internal use only ...
+   type Destination is private;
+   --  Name : Logical name of the destination
+   --  Ref  : Reference to the actual destination object.
 
    function Create (Name : MOMA.Types.String;
                     Ref  : PolyORB.References.Ref)
                     return Destination;
 
    function Create return Destination;
-   --  creates a destination structure.
-
-   procedure Delete;
-   --  XXX really useful in this context ?
+   --  Create a destination structure.
 
    function Image (Self : Destination) return String;
-   --  Image function.
+   --  Image function for destination type.
+
+   --  Accessors to Destination internal data.
+
+   function Get_Name (Self : Destination)
+                      return MOMA.Types.String;
+
+   procedure Set_Name (Self : in out Destination;
+                       Name : MOMA.Types.String);
+
+   function Get_Ref (Self : Destination)
+                     return PolyORB.References.Ref;
+   --  XXX should be restricted to internal use only ...
+
+   procedure Set_Ref (Self : in out Destination;
+                      Ref  : PolyORB.References.Ref);
+   --  XXX should be restricted to internal use only ...
+
+   --  Marshalling support for Destination type.
 
    TC_MOMA_Destination : PolyORB.Any.TypeCode.Object
          := PolyORB.Any.TypeCode.TC_Struct;
@@ -89,14 +83,30 @@ package MOMA.Destinations is
                     return PolyORB.Any.Any;
 
    function From_Any (Self : PolyORB.Any.Any)
-                      return Destination;
+                     return Destination;
+
+   --  XXX check the conformance and pertinence of the above spec.
+   procedure Delete;
+   --  XXX really useful in this context ?
+
+   type Queue is private;
+   --  XXX necessary ??
 
 private
+
+   type Destination is record
+      Name : MOMA.Types.String;
+      --  Logical name of the destination
+
+      Ref  : PolyORB.References.Ref;
+      --  Reference to the actual destination object.
+   end record;
+
+   type Queue is new Destination;
 
    pragma Inline (Get_Name);
    pragma Inline (Set_Name);
    pragma Inline (Get_Ref);
    pragma Inline (Set_Ref);
-
 
 end MOMA.Destinations;

@@ -30,17 +30,30 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  A Connection provides access to the provider to the client.
+
 --  $Id$
+
+--  XXX need to check the use of Create_Consumer, seems unnecessary as
+--  Create_Sender & Create_Producer exists !
+--  XXX should connection be abstract and tagged ?
+--  XXX is a derivation for queues and topics required ?
 
 with MOMA.Message_Consumers;
 with MOMA.Types;
+
 with PolyORB.References;
 
 package MOMA.Connections is
 
    type Connection is abstract tagged private;
+   --  Client_Id : Id of the MOMA client.
+   --  Ref       : Reference
 
    procedure Close;
+   --  Close the connection.
+
+   --  Accessors to Connection internal data.
 
    function Get_Client_Id (Self : Connection)
                            return MOMA.Types.String;
@@ -55,11 +68,18 @@ package MOMA.Connections is
                       Ref  : in PolyORB.References.Ref);
 
    procedure Start;
+   --  Start the connection, i.e activate all rattached message producers
+   --  and consumers.
+   --  XXX to be implemented.
 
    procedure Stop;
+   --  Stop the connection, i.e desactivate all rattached message producers
+   --  and consumers.
+   --  XXX to be implemented.
+
+   --  XXX check the conformance and pertinence of the above spec.
 
    function Get_Meta_Data return MOMA.Types.Meta_Data;
-
 
    function Create_Consumer return Message_Consumers.Message_Consumer
       is abstract;

@@ -30,22 +30,35 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Derivation of Message_Consumers for Queues.
+
 --  $Id$
 
-with Ada.Real_Time; use Ada.Real_Time;
+with Ada.Real_Time;
 
 with MOMA.Messages;
 
 package MOMA.Message_Consumers.Queues is
 
+   use Ada.Real_Time;
+
    type Queue is new Message_Consumer with null record;
 
-   function Get_Queue return MOMA.Destinations.Queue;
+   function Get_Queue (Self : Queue) return MOMA.Destinations.Queue;
+   --  XXX not implemented.
 
    function Receive (Self : Queue) return MOMA.Messages.Message'Class;
+   --  Get next message from the pool if it is non empty; otherwise the call
+   --  is blocking until a new message is received by the pool.
+   --  XXX not all cases are tested !
 
    function Receive (Timeout : Time) return MOMA.Messages.Message;
+   --  Get next message from the pool if it is non empty; otherwise will
+   --  wait 'Timeout' until a new message arrive.
+   --  XXX not implemented.
 
    function Receive_No_Wait return MOMA.Messages.Message;
+   --  Get next message from the pool if it is non empty; exit otherwise.
+   --  XXX not implemented.
 
 end MOMA.Message_Consumers.Queues;

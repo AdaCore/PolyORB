@@ -30,6 +30,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  A Message_Consumer object is the client view of the message receiving
+--  process. It is the facade to all communications carried out with
+--  a message pool to receive messages; it contains the stub to access
+--  'Message_Consumer' servants (see MOMA.Provider and child packages
+--  for more details).
+
+--  NOTE: A MOMA client must use only this package, and its child packages to
+--  receive message from a message pool.
+
 --  $Id$
 
 with MOMA.Destinations;
@@ -38,10 +47,17 @@ with PolyORB.References;
 package MOMA.Message_Consumers is
 
    type Message_Consumer is abstract tagged private;
+   --  Destination : destination of all message sent.
+   --  Ref : reference.
+   --  (XXX to be defined, connection reference, pool reference ?)
 
    procedure Close;
+   --  XXX not implemented. rename it to Destroy ?
 
    function Get_Message_Selector return String;
+   --  XXX not implemented.
+
+   --  Accessors to Message_Consumer internal data.
 
    function Get_Ref (Self : Message_Consumer) return PolyORB.References.Ref;
 
@@ -59,4 +75,5 @@ private
       Destination    : MOMA.Destinations.Destination;
       Ref            : PolyORB.References.Ref;
    end record;
+
 end MOMA.Message_Consumers;

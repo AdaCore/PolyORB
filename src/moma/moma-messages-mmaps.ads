@@ -43,15 +43,19 @@ package MOMA.Messages.MMaps is
 
    type MMap is new Message with private;
 
+   function Create_Map_Message return Messages.MMaps.MMap;
+   --  Create a MMap message.
+
+   function Image (Self : MMap) return String;
+   --  Image function for MMap type.
+
+   --  Accessors to MMap payload.
+
    function Get_Map (Self : MMap)
                      return MOMA.Types.Map;
 
    procedure Set_Map (Self : in out MMap;
                       Value : MOMA.Types.Map);
-
-   function Create_Map_Message return Messages.MMaps.MMap;
-
-   function Image (Self : MMap) return String;
 
 private
    type MMap is new Message with null record;

@@ -30,6 +30,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  MByte message type.
+--
+--  A MByte message's payload is a basic type among: Boolean, Byte, Char,
+--  Double, Float, Long, Short, Unsigned_Short, Unsigned_Long.
+
 --  $Id$
 
 with MOMA.Types;
@@ -38,11 +43,14 @@ package MOMA.Messages.MBytes is
 
    type MByte is new Message with private;
 
-   function Create_Byte_Message
-            return MByte;
+   function Create_Byte_Message return MByte;
+   --  Create a MByte message.
 
    function Image (Self : MByte)
                    return String;
+   --  Image function for MByte type.
+
+   --  Accessors to MByte payload.
 
    function Get_Boolean (Self : MByte)
                          return MOMA.Types.Boolean;

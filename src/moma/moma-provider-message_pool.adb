@@ -220,7 +220,10 @@ package body MOMA.Provider.Message_Pool is
                          Info : MOMA.Types.Message_Pool) is
    begin
       Self.Pool := Info;
-      MOMA.Provider.Warehouse.Set_Persistence (Self.W, Info.Persistence);
+      MOMA.Provider.Warehouse.Set_Persistence
+        (Self.W,
+         MOMA.Types.Get_Persistence (Info));
+
    end Initialize;
 
    -------------

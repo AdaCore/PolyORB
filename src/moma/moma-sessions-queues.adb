@@ -210,15 +210,15 @@ package body MOMA.Sessions.Queues is
 
       Set_Ref (Message_Producer (Queue), ORB_Object_IOR);
       Set_Type_Id_Of (Message_Producer (Queue), Type_Id_S);
-      Queue.CBH := new PolyORB.Call_Back.Call_Back_Handler;
+      Set_CBH (Queue, new PolyORB.Call_Back.Call_Back_Handler);
       --  XXX should free this memory sometime, somewhere ...
 
       Attach_Handler_To_CB
-        (Call_Back_Handler (Queue.CBH.all),
+        (Call_Back_Handler (Get_CBH (Queue).all),
          MOMA.Message_Producers.Queues.Response_Handler'Access);
 
       Set_Note
-         (Notepad_Of (Queue.CBH).all,
+         (Notepad_Of (Get_CBH (Queue)).all,
           CBH_Note'(Note with Dest => Dest_Ref_Object_IOR));
 
       return Queue;

@@ -30,22 +30,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Implementation of Connection_Factory for Message Queues.
+
 --  $Id$
 
 package MOMA.Connection_Factories.Queues is
 
    type Connection_Factory_Queue is new Connection_Factory with null record;
 
-
    procedure Create (Self     : out Connection_Factory_Queue;
                      Remote   : PolyORB.References.Ref);
+   --  Create a new connection factory, with the provider Remote.
 
    function Create_Connection (Self   : Connection_Factory_Queue)
                                return MOMA.Connections.Connection'Class;
+   --  Create a new connection using this connection factory.
 
    function Create_Connection (Self      : Connection_Factory_Queue;
                                Username  : String;
                                Password  : String)
                                return MOMA.Connections.Connection'Class;
+   --  Create a new connection using this connection factory
+   --  and providing a username/password.
 
 end MOMA.Connection_Factories.Queues;

@@ -30,9 +30,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  A Message_Producer object is the client view of the message sending
+--  process. It is the facade to all communication carried out with
+--  a message pool to send messages; it contains the stub to access
+--  'Message_Producer' servants (see MOMA.Provider and child packages
+--  for more details).
+
+--  NOTE: A MOMA client must use only this package, and its child packages to
+--  send message to a message pool.
+
 --  $Id$
 
-with Ada.Real_Time; use Ada.Real_Time;
+with Ada.Real_Time;
 
 with MOMA.Destinations;
 with MOMA.Types;
@@ -40,22 +49,23 @@ with MOMA.Types;
 with PolyORB.Call_Back;
 with PolyORB.References;
 
-
 package MOMA.Message_Producers is
 
-   --  type Message_Producer is abstract tagged private;
+   use Ada.Real_Time;
 
-   type Message_Producer is abstract tagged record
-      Priority_Level : MOMA.Types.Priority;
-      Persistent     : Boolean;
-      TTL            : Time;
-      Destination    : MOMA.Destinations.Destination;
-      Type_Id_Of     : MOMA.Types.String;
-      Ref            : PolyORB.References.Ref;
-      CBH            : PolyORB.Call_Back.CBH_Access;
-   end record;
+   type Message_Producer is abstract tagged private;
+   --  Priority_Level : priority of the message producer
+   --  Persistent     : default persistent status for sent messages
+   --  TTL            : default time to live for sent messages.
+   --  Destination    : destination of sent messages.
+   --  Type_Id_Of     : XXX to be defined
+   --  Ref            : reference (XXX to be defined).
+   --  CBH            : call back handler associated to the producer.
 
    procedure Close;
+   --  XXX not implemented. rename it to Destroy ?
+
+   --  Accessors to Message_Producer internal data.
 
    function Get_Persistent (Self : Message_Producer) return Boolean;
 
@@ -92,5 +102,36 @@ package MOMA.Message_Producers is
    procedure Set_Type_Id_Of (Self : in out Message_Producer;
                              Type_Id_Of : MOMA.Types.String);
 
+   function Get_CBH (Self : Message_Producer)
+                    return PolyORB.Call_Back.CBH_Access;
+
+   procedure Set_CBH (Self : in out Message_Producer;
+                      CBH  : PolyORB.Call_Back.CBH_Access);
+private
+
+   type Message_Producer is abstract tagged record
+      Priority_Level : MOMA.Types.Priority;
+      Persistent     : Boolean;
+      TTL            : Time;
+      Destination    : MOMA.Destinations.Destination;
+      Type_Id_Of     : MOMA.Types.String;
+      Ref            : PolyORB.References.Ref;
+      CBH            : PolyORB.Call_Back.CBH_Access;
+   end record;
+
+   pragma Inline (Get_Persistent,
+                    Set_Persistent,
+                    Get_Priority,
+                    Set_Priority,
+                    Get_Time_To_Live,
+                    Set_Time_To_Live,
+                    Get_Ref,
+                    Set_Ref,
+                    Get_Destination,
+                    Set_Destination,
+                    Get_Type_Id_Of,
+                    Set_Type_Id_Of,
+                    Get_CBH,
+                    Set_CBH);
 
 end MOMA.Message_Producers;

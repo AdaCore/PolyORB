@@ -30,15 +30,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  A Session defines an execution context in which Message_Producers and
+--  Message_Consumers live. We use the capabilities of PolyORB's POA to
+--  associate a thread to each session.
+
+--  XXX this package requires first to complete the implementation of POA
+--  policies. Its definition and the completion of its API is left 'as is'.
+
 --  $Id$
 
 with MOMA.Types;
 
 package MOMA.Sessions is
-
-   ------------------------------
-   --  Abstract Session Object --
-   ------------------------------
 
    --   type Session is abstract tagged private;
 

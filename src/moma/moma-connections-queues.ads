@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  See MOMA.Connections for more details.
+
 --  $Id$
 
 with MOMA.Destinations;
@@ -44,7 +46,5 @@ package MOMA.Connections.Queues is
    function Create_Consumer (Queue : Destinations.Queue;
                              Message_Selector : String)
                             return Message_Consumers.Queues.Queue;
-
-
 
 end MOMA.Connections.Queues;

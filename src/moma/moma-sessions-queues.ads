@@ -30,6 +30,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Derivation of the Session type for Queues. See MOMA.Sessions for more
+--  details.
+
 --  $Id$
 
 with MOMA.Connections.Queues;

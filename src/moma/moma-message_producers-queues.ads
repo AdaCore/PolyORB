@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Derivation of Message_Producers for Queues.
+
 --  $Id$
 
 with MOMA.Messages;
@@ -52,12 +54,16 @@ package MOMA.Message_Producers.Queues is
 
    procedure Send (Self    : Queue;
                    Message : MOMA.Messages.Message'Class);
+   --  Send message to Self.
    --  XXX should send asynchronous message !!!
 
-   procedure Send (Message        : MOMA.Messages.Message'Class;
+   procedure Send (Self           : Queue;
+                   Message        : MOMA.Messages.Message'Class;
                    Persistent     : Boolean;
                    Priority_Value : MOMA.Types.Priority;
                    TTL            : Time);
+   --  Send message to Self, override default producer's values.
+   --  XXX not implemented.
 
    procedure Response_Handler
      (Req : PolyORB.Requests.Request;

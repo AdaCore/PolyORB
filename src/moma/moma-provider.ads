@@ -30,6 +30,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Base package for MOMA provider. Its child packages define MOMA actual
+--  objects, implemented as PolyORB servants using the Minimal_Servant
+--  construction; they also define internal constructs.
+
 --  $Id$
 
 package MOMA.Provider is

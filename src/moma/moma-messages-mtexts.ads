@@ -30,6 +30,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  MTexy message type.
+--
+--  A MByte message's payload is a string.
+
 --  $Id$
 
 with MOMA.Types;
@@ -38,15 +42,18 @@ package MOMA.Messages.MTexts is
 
    type MText is new Message with private;
 
+   function Create_Text_Message return Messages.MTexts.MText;
+   --  Create a MText message.
+
+   function Image (Self : MText) return String;
+   --  Image function for MText type.
+
+   --  Accessors to MText payload.
    function Get_Text (Self : MText)
                       return MOMA.Types.String;
 
    procedure Set_Text (Self : in out MText;
                        Value : MOMA.Types.String);
-
-   function Create_Text_Message return Messages.MTexts.MText;
-
-   function Image (Self : MText) return String;
 
 private
    type MText is new Message with null record;

@@ -30,14 +30,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package provides utility functions to setup a MOMA server node.
+
 --  $Id$
 
 with MOMA.Types;
+
 with PolyORB.References;
 
 package MOMA.Configuration.Server is
 
    procedure Create_Message_Pool (Pool : MOMA.Types.Message_Pool;
                                   Ref  : out PolyORB.References.Ref);
+   --  Create a message pool and return its reference.
 
 end MOMA.Configuration.Server;

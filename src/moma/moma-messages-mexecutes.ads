@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  MExecute message type. HIGHLY EXPERIMENTAL.
+--  MExecute message type.
 --
 --  A MExecute message derives directly from MMap message.
 --  Its payload contains a 'map' type.
@@ -61,18 +61,21 @@ package MOMA.Messages.MExecutes is
 
    type MExecute is new Message with private;
 
+   function Create_Execute_Message return Messages.MExecutes.MExecute;
+   --  Create a MExecute message.
+
+   function Image (Self : MExecute) return String;
+   --  Image function for MExecute type.
+
+   --  Accessors to MExecute payload.
+
    function Get_Parameter (Self : MExecute)
                            return MOMA.Types.Map;
 
    procedure Set_Parameter (Self : in out MExecute;
                             Value : MOMA.Types.Map);
 
-   function Create_Execute_Message return Messages.MExecutes.MExecute;
-
-   function Image (Self : MExecute) return String;
-
 private
    type MExecute is new Message with null record;
-
 
 end MOMA.Messages.MExecutes;

@@ -30,6 +30,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Actual implementation of the Message_Pool object. It is derived
+--  from PolyORB's Minimal_Servant. This package contains Message_Pool
+--  skeleton and implementation subroutines.
+
 --  $Id$
 
 with MOMA.Types;
@@ -52,12 +56,12 @@ package MOMA.Provider.Message_Pool is
    procedure Invoke
      (Self : access Object;
       Req  : in     PolyORB.Requests.Request_Access);
-   --  Middleware 'glue'.
+   --  Message_Pool servant skeleton.
 
    function If_Desc
      return PolyORB.Obj_Adapters.Simple.Interface_Description;
    pragma Inline (If_Desc);
-   --  Middleware 'glue'.
+   --  Interface description for SOA object adapter.
 
 private
 

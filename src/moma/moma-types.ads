@@ -30,9 +30,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  MOMA Types definitions.
+--  This package provides definition of all MOMA types.
 
 --  $Id$
+
 with Ada.Strings.Unbounded;
 
 with PolyORB.Any;
@@ -45,7 +46,7 @@ package MOMA.Types is
    use PolyORB.Types;
 
    --
-   --  Generic types.
+   --  Basic types.
    --
 
    subtype Boolean        is PolyORB.Types.Boolean;
@@ -206,12 +207,30 @@ package MOMA.Types is
                          Map_M,
                          Text_M);
 
-   type Message_Pool is record
-      Pool        : MOMA.Types.Pool_Type;
-      Name        : MOMA.Types.String;
-      Persistence : MOMA.Types.Persistence_Mode;
-   end record;
-   --  XXX should be private !
+   --  Message_Pool type and accessors.
+
+   type Message_Pool is private;
+   --  Type        : type of the pool.
+   --  Name        : name of the pool.
+   --  Persistence : persistence mode of the pool.
+
+   function Get_Name (Pool : MOMA.Types.Message_Pool)
+                      return MOMA.Types.String;
+
+   procedure Set_Name (Pool : in out MOMA.Types.Message_Pool;
+                       Name : MOMA.Types.String);
+
+   function Get_Type (Pool : MOMA.Types.Message_Pool)
+                      return MOMA.Types.Pool_Type;
+
+   procedure Set_Type (Pool  : in out MOMA.Types.Message_Pool;
+                       PType : Pool_Type);
+
+   function Get_Persistence (Pool : MOMA.Types.Message_Pool)
+                            return MOMA.Types.Persistence_Mode;
+
+   procedure Set_Persistence  (Pool  : in out MOMA.Types.Message_Pool;
+                               PMode : Persistence_Mode);
 
    type Meta_Data        is new    Integer;
    type Acknowledge_Type is new    Integer;
@@ -220,8 +239,14 @@ package MOMA.Types is
    --  XXX to be completed
 
 private
-
    MOMA_Type_Id : constant MOMA.Types.String := PolyORB.Types.String
      (Ada.Strings.Unbounded.To_Unbounded_String ("MOMA"));
+
+   type Message_Pool is record
+      Pool        : MOMA.Types.Pool_Type;
+      Name        : MOMA.Types.String;
+      Persistence : MOMA.Types.Persistence_Mode;
+   end record;
+
 end MOMA.Types;
 

@@ -1,3 +1,5 @@
+--  XXX should we keep it ?
+
 package MOMA.Messages.MStreams is
 
    ---------------------

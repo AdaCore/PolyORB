@@ -45,15 +45,20 @@ package MOMA.Messages is
 
    type Message is tagged private;
 
-   TC_MOMA_Message : TypeCode.Object := TypeCode.TC_Struct;
-
    procedure Acknowledge;
+   --  Acknowledge message.
+   --  XXX not implemented. need to define acknowledgment process.
 
    procedure Clear_Body;
+   --  Clear message payload.
+   --  XXX not implemented.
 
    function Image (Self : Message) return String;
+   --  Image function for message type.
 
    procedure Set_Default_Message_Header (Self : in out Message);
+   --  Set Message header to its default value.
+   --  XXX define this 'default value'.
 
    procedure Set_Message_Header
      (Self            : in out Message;
@@ -66,10 +71,9 @@ package MOMA.Messages is
       Expiration      : Ada.Real_Time.Time;
       Is_Persistent   : MOMA.Types.Boolean;
       Is_Redelivered  : MOMA.Types.Boolean);
+   --  Set the Message's header.
 
-   --
-   --  Accessor functions to message internals
-   --
+   --  Accessor to Message internal data.
 
    function Get_Correlation_Id (Self : Message)
                                 return MOMA.Types.String;
@@ -152,9 +156,9 @@ package MOMA.Messages is
                           return MOMA.Types.Property_Type;
    pragma Inline (Get_Property);
 
-   --
-   --  Message Marshalling/Unmarshalling functions
-   --
+   --  Marshalling support for Message type.
+
+   TC_MOMA_Message : TypeCode.Object := TypeCode.TC_Struct;
 
    function To_Any (Self : Message) return PolyORB.Any.Any;
 

@@ -1,3 +1,6 @@
+--  Derivation of the Session type for Queues. See MOMA.Sessions for more
+--  details.
+
 with MOMA.Destinations;
 with MOMA.Message_Consumers.Topics;
 with MOMA.Message_Producers.Topics;

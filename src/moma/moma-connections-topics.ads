@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  See MOMA.Connections for more details.
+
 --  $Id$
 
 with MOMA.Destinations;

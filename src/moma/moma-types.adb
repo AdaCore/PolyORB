@@ -378,6 +378,66 @@ package body MOMA.Types is
       Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Short (Value));
    end Set_Unsigned_Short;
 
+   --------------
+   -- Get_Name --
+   --------------
+
+   function Get_Name (Pool : MOMA.Types.Message_Pool)
+                      return MOMA.Types.String is
+   begin
+      return Pool.Name;
+   end Get_Name;
+
+   --------------
+   -- Set_Name --
+   --------------
+
+   procedure Set_Name (Pool : in out MOMA.Types.Message_Pool;
+                       Name : MOMA.Types.String) is
+   begin
+      Pool.Name := Name;
+   end Set_Name;
+
+   --------------
+   -- Get_Type --
+   --------------
+
+   function Get_Type (Pool : MOMA.Types.Message_Pool)
+                      return Pool_Type is
+   begin
+      return Pool.Pool;
+   end Get_Type;
+
+   --------------
+   -- Set_Type --
+   --------------
+
+   procedure Set_Type (Pool  : in out MOMA.Types.Message_Pool;
+                       PType : Pool_Type) is
+   begin
+      Pool.Pool := PType;
+   end Set_Type;
+
+   --------------------
+   -- Get_Persistent --
+   --------------------
+
+   function Get_Persistence (Pool : MOMA.Types.Message_Pool)
+                            return Persistence_Mode is
+   begin
+      return Pool.Persistence;
+   end Get_Persistence;
+
+   ---------------------
+   -- Set_Persistence --
+   ---------------------
+
+   procedure Set_Persistence  (Pool  : in out MOMA.Types.Message_Pool;
+                               PMode : Persistence_Mode) is
+   begin
+      Pool.Persistence := PMode;
+   end Set_Persistence;
+
    ----------------
    -- Initialize --
    ----------------

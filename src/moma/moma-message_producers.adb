@@ -43,6 +43,16 @@ package body MOMA.Message_Producers is
       null;
    end Close;
 
+   -------------
+   -- Get_CBH --
+   -------------
+
+   function Get_CBH (Self : Message_Producer)
+                    return PolyORB.Call_Back.CBH_Access is
+   begin
+      return Self.CBH;
+   end Get_CBH;
+
    ---------------------
    -- Get_Destination --
    ---------------------
@@ -102,6 +112,16 @@ package body MOMA.Message_Producers is
    begin
       return Self.Type_Id_Of;
    end Get_Type_Id_Of;
+
+   -------------
+   -- Set_CBH --
+   -------------
+
+   procedure Set_CBH (Self : in out Message_Producer;
+                      CBH  : PolyORB.Call_Back.CBH_Access) is
+   begin
+      Self.CBH := CBH;
+   end Set_CBH;
 
    ---------------------
    -- Set_Destination --

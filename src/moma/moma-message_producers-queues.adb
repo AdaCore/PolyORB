@@ -220,13 +220,15 @@ package body MOMA.Message_Producers.Queues is
    ----------
 
    procedure Send
-     (Message        : MOMA.Messages.Message'Class;
+     (Self           : Queue;
+      Message        : MOMA.Messages.Message'Class;
       Persistent     : Boolean;
       Priority_Value : MOMA.Types.Priority;
       TTL            : Time)
    is
    begin
       pragma Warnings (Off);
+      pragma Unreferenced (Self);
       pragma Unreferenced (Message);
       pragma Unreferenced (Persistent);
       pragma Unreferenced (Priority_Value);

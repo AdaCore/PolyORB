@@ -34,7 +34,7 @@
 --
 --  A MAny message's payload is a PolyORB Any. It's an 'all purpose' message
 --  type designed to create ad hoc messages, from various data types such as
---  arrays, records, user defined types.
+--  arrays, records, user defined types ..
 
 --  $Id$
 
@@ -44,15 +44,19 @@ package MOMA.Messages.MAnys is
 
    type MAny is new Message with private;
 
+   function Create_Any_Message return Messages.MAnys.MAny;
+   --  Create a MAny message.
+
+   function Image (Self : MAny) return String;
+   --  Image function for MAny type.
+
+   --  Accessors to MAny payload.
+
    function Get_Any (Self : MAny)
                      return PolyORB.Any.Any;
 
    procedure Set_Any (Self : in out MAny;
                       Value : PolyORB.Any.Any);
-
-   function Create_Any_Message return Messages.MAnys.MAny;
-
-   function Image (Self : MAny) return String;
 
 private
    type MAny is new Message with null record;
