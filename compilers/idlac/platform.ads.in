@@ -33,7 +33,7 @@
 
 --  $Id$
 
-pragma (Style_Checks, Off);
+pragma Style_Checks (Off);
 --  This file contains automatic configure substitutions which may yield
 --  long lines.
 

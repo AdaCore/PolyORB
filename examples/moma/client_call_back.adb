@@ -85,8 +85,12 @@ procedure Client_Call_Back is
    MOMA_Producer      : MOMA.Message_Producers.Message_Producer;
    MOMA_Consumer      : MOMA.Message_Consumers.Message_Consumer;
    MOMA_Consumer_Acc  : MOMA.Message_Consumers.Message_Consumer_Acc;
-   MOMA_Handler       : MOMA.Message_Handlers.Message_Handler;
    MOMA_Handler_Acc   : MOMA.Message_Handlers.Message_Handler_Acc;
+   MOMA_Handler       : MOMA.Message_Handlers.Message_Handler;
+   --  pragma Unreferenced (MOMA_Handler);
+   pragma Warnings (Off, MOMA_Handler); --  WAG:5.02 DB08-008
+   --  Assigned but never read
+
    Message_Id         : MOMA.Types.Byte;
 
    ----------

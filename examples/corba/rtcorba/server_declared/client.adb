@@ -93,6 +93,10 @@ procedure Client is
    use PolyORB.Utils.Report;
 
    Sent_Msg, Rcvd_Msg : CORBA.String;
+   --  pragma Unreferenced (Rcvd_Msg);
+   pragma Warnings (Off, Rcvd_Msg); --  WAG:5.02 DB08-008
+   --  Assigned but never read
+
    myecho : Echo.Ref;
    Echo_Objects : Echo.Objects;
 
