@@ -36,6 +36,7 @@ with Ada.Unchecked_Conversion;
 with Ada.Streams;
 
 with PolyORB.Any; use PolyORB.Any;
+with PolyORB.Any.ObjRef;
 with PolyORB.Buffers; use PolyORB.Buffers;
 with PolyORB.CORBA_P.Exceptions;
 --  SOLELY for exception raising procedures Raise_*
@@ -47,8 +48,6 @@ with PolyORB.References;
 with PolyORB.References.IOR;
 with PolyORB.Types;
 with PolyORB.Utils.Buffers; use PolyORB.Utils.Buffers;
-
-with CORBA.Object.Helper;
 
 package body PolyORB.Representations.CDR is
 
@@ -525,14 +524,7 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Objref =>
             pragma Debug (O ("Marshall_From_Any : dealing with an objRef"));
-            declare
-               CO : constant CORBA.Object.Ref
-                 := CORBA.Object.Helper.From_Any (Data);
-               O : PolyORB.References.Ref;
-            begin
-               PolyORB.References.Set (O, CORBA.Object.Entity_Of (CO));
-               Marshall (Buffer, O);
-            end;
+            Marshall (Buffer, PolyORB.Any.ObjRef.From_Any (Data));
 
          when Tk_Struct | Tk_Except =>
             declare
@@ -1628,15 +1620,8 @@ package body PolyORB.Representations.CDR is
             raise PolyORB.Not_Implemented;
 
          when Tk_Objref =>
-            declare
-               O : constant PolyORB.References.Ref
-                 := Unmarshall (Buffer);
-               CO : CORBA.Object.Ref;
-            begin
-               CORBA.Object.Set
-                 (CO, PolyORB.References.Entity_Of (O));
-               CORBA.Object.Helper.Set_Any_Value (Result, CO);
-            end;
+            PolyORB.Any.ObjRef.Set_Any_Value
+              (Result, Unmarshall (Buffer));
 
          when Tk_Struct | Tk_Except =>
             declare
