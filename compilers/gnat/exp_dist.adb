@@ -195,6 +195,7 @@ package body Exp_Dist is
       Object : Node_Id;
       Etyp   : Entity_Id)
       return   Node_Id;
+   pragma Unreferenced (Pack_Node_Into_Stream);
    --  Similar to above, with an arbitrary node instead of an entity
 
    function Pack_Node_Into_Stream_Access
@@ -2068,9 +2069,6 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (Nod);
 
-      Stream_Parameter : Node_Id;
-      --  Name of the stream used to transmit parameters to the remote package
-
       Target_Parameter : Node_Id;
       --  The reference that designates the target of a remote call.
 
@@ -2128,23 +2126,6 @@ package body Exp_Dist is
       --  as well as the declaration of Result. For a function call,
       --  'Input is always used to read the result even if it is constrained.
 
-      Stream_Parameter :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
-
-      Append_To (Decls,
-        Make_Object_Declaration (Loc,
-          Defining_Identifier => Stream_Parameter,
-          Aliased_Present     => True,
-          Object_Definition   =>
-            Make_Subtype_Indication (Loc,
-              Subtype_Mark =>
-                New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc),
-              Constraint   =>
-                Make_Index_Or_Discriminant_Constraint (Loc,
-                  Constraints =>
-                    New_List (Make_Integer_Literal (Loc, 0))))));
-
-
       Request_Parameter :=
         Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
 
@@ -2192,6 +2173,7 @@ package body Exp_Dist is
                      Constraints =>
                        New_List (Make_Integer_Literal (Loc, 0))))));
 
+
          Result_NV_Parameter :=
            Make_Defining_Identifier (Loc, New_Internal_Name ('N'));
 
@@ -2225,37 +2207,6 @@ package body Exp_Dist is
           Parameter_Associations => New_List (
             New_Occurrence_Of (Args_Parameter, Loc))));
 
-      --  Put first the RPC receiver corresponding to the remote package
-
-      Append_To (Statements,
-        Make_Attribute_Reference (Loc,
-          Prefix         =>
-            New_Occurrence_Of (RTE (RE_Unsigned_64), Loc),
-          Attribute_Name => Name_Write,
-          Expressions    => New_List (
-            Make_Attribute_Reference (Loc,
-              Prefix         =>
-                New_Occurrence_Of (Stream_Parameter, Loc),
-              Attribute_Name =>
-                Name_Access),
-            RPC_Receiver)));
-
-      --  Then put the Subprogram_Id of the subprogram we want to call in
-      --  the stream.
-
-      Append_To (Statements,
-        Make_Attribute_Reference (Loc,
-          Prefix         =>
-            New_Occurrence_Of (RTE (RE_Subprogram_Id), Loc),
-          Attribute_Name =>
-            Name_Write,
-          Expressions      => New_List (
-            Make_Attribute_Reference (Loc,
-              Prefix         =>
-                New_Occurrence_Of (Stream_Parameter, Loc),
-              Attribute_Name => Name_Access),
-            Subprogram_Id)));
-
       Current_Parameter := First (Ordered_Parameters_List);
 
       while Current_Parameter /= Empty loop
@@ -2265,17 +2216,18 @@ package body Exp_Dist is
             --  In the case of a controlling formal argument, we marshall
             --  its addr field rather than the local stub.
 
-            Append_To (Statements,
-               Pack_Node_Into_Stream (Loc,
-                 Stream => Stream_Parameter,
-                 Object =>
-                   Make_Selected_Component (Loc,
-                     Prefix        =>
-                       New_Occurrence_Of (
-                         Defining_Identifier (Current_Parameter), Loc),
-                     Selector_Name =>
-                       Make_Identifier (Loc, Name_Addr)),
-                 Etyp   => RTE (RE_Unsigned_64)));
+--              Append_To (Statements,
+--                 Pack_Node_Into_Stream (Loc,
+--                   Stream => Stream_Parameter,
+--                   Object =>
+--                     Make_Selected_Component (Loc,
+--                       Prefix        =>
+--                         New_Occurrence_Of (
+--                           Defining_Identifier (Current_Parameter), Loc),
+--                       Selector_Name =>
+--                         Make_Identifier (Loc, Name_Addr)),
+--                   Etyp   => RTE (RE_Unsigned_64)));
+            null;
 
          else
             declare
@@ -2501,26 +2453,26 @@ package body Exp_Dist is
 
       if not Is_Known_Non_Asynchronous then
 
-         --  Build the call to System.RPC.Do_APC
+--           --  Build the call to System.RPC.Do_APC
 
-         Asynchronous_Statements := New_List (
-           Make_Procedure_Call_Statement (Loc,
-             Name                   =>
-               New_Occurrence_Of (RTE (RE_Do_Apc), Loc),
-             Parameter_Associations => New_List (
-               New_Occurrence_Of (Target_Partition, Loc),
-               Make_Attribute_Reference (Loc,
-                 Prefix         =>
-                   New_Occurrence_Of (Stream_Parameter, Loc),
-                 Attribute_Name =>
-                   Name_Access))));
+--           Asynchronous_Statements := New_List (
+--             Make_Procedure_Call_Statement (Loc,
+--               Name                   =>
+--                 New_Occurrence_Of (RTE (RE_Do_Apc), Loc),
+--               Parameter_Associations => New_List (
+--                 New_Occurrence_Of (Target_Partition, Loc),
+--                 Make_Attribute_Reference (Loc,
+--                   Prefix         =>
+--                     New_Occurrence_Of (Stream_Parameter, Loc),
+--                   Attribute_Name =>
+--                     Name_Access))));
+         Asynchronous_Statements := No_List;
+         --  XXX Asynch calls not supported yet.
       else
          Asynchronous_Statements := No_List;
       end if;
 
       if not Is_Known_Asynchronous then
-
---          --  Build the call to System.RPC.Do_RPC
 
          Non_Asynchronous_Statements := New_List (
            Make_Null_Statement (Loc));
@@ -2639,24 +2591,24 @@ package body Exp_Dist is
 
       else
          pragma Assert (Asynchronous /= Empty);
-         Prepend_To (Asynchronous_Statements,
-           Make_Attribute_Reference (Loc,
-             Prefix         => New_Occurrence_Of (Standard_Boolean, Loc),
-             Attribute_Name => Name_Write,
-             Expressions    => New_List (
-               Make_Attribute_Reference (Loc,
-                 Prefix         => New_Occurrence_Of (Stream_Parameter, Loc),
-                 Attribute_Name => Name_Access),
-               New_Occurrence_Of (Standard_True, Loc))));
-         Prepend_To (Non_Asynchronous_Statements,
-           Make_Attribute_Reference (Loc,
-             Prefix         => New_Occurrence_Of (Standard_Boolean, Loc),
-             Attribute_Name => Name_Write,
-             Expressions    => New_List (
-               Make_Attribute_Reference (Loc,
-                 Prefix         => New_Occurrence_Of (Stream_Parameter, Loc),
-                 Attribute_Name => Name_Access),
-               New_Occurrence_Of (Standard_False, Loc))));
+--           Prepend_To (Asynchronous_Statements,
+--             Make_Attribute_Reference (Loc,
+--               Prefix         => New_Occurrence_Of (Standard_Boolean, Loc),
+--               Attribute_Name => Name_Write,
+--               Expressions    => New_List (
+--                 Make_Attribute_Reference (Loc,
+--               Prefix         => New_Occurrence_Of (Stream_Parameter, Loc),
+--               Attribute_Name => Name_Access),
+--                 New_Occurrence_Of (Standard_True, Loc))));
+--           Prepend_To (Non_Asynchronous_Statements,
+--             Make_Attribute_Reference (Loc,
+--               Prefix         => New_Occurrence_Of (Standard_Boolean, Loc),
+--               Attribute_Name => Name_Write,
+--               Expressions    => New_List (
+--                 Make_Attribute_Reference (Loc,
+--               Prefix         => New_Occurrence_Of (Stream_Parameter, Loc),
+--               Attribute_Name => Name_Access),
+--                 New_Occurrence_Of (Standard_False, Loc))));
          Append_To (Statements,
            Make_Implicit_If_Statement (Nod,
              Condition       => Asynchronous,
