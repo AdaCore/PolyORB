@@ -11,11 +11,11 @@ package System.PolyORB_Interface is
 
    pragma Elaborate_Body;
 
-   function To_PolyORB_String (S : Standard.String)
+   function To_PolyORB_String (S : String)
      return PolyORB.Types.Identifier
      renames PolyORB.Types.To_PolyORB_String;
    function To_Standard_String (S : PolyORB.Types.Identifier)
-     return Standard.String
+     return String
      renames PolyORB.Types.To_Standard_String;
 
    subtype Any is PolyORB.Any.Any;
@@ -81,6 +81,8 @@ package System.PolyORB_Interface is
 --       function FA_SU (Item : PolyORB.Any.Any) return X;
 --       function FA_U (Item : PolyORB.Any.Any) return X;
    function FA_WC (Item : PolyORB.Any.Any) return Wide_Character;
+
+   function FA_String (Item : PolyORB.Any.Any) return String;
 
 --     function TA_AD (X) return PolyORB.Any.Any;
 --     function TA_AS (X) return PolyORB.Any.Any;
@@ -153,6 +155,9 @@ package System.PolyORB_Interface is
      renames PolyORB.Any.TC_Unsigned_Long;
    function TC_WC return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TC_Wchar;
+
+   function TC_String return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TypeCode.TC_String;
 
    function TC_Alias return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Alias;

@@ -351,7 +351,8 @@ package body Exp_Dist is
      (Loc      : Source_Ptr;
       Var_Type : Entity_Id;
       Stream   : Entity_Id)
-     return Node_Id;
+      return Node_Id;
+   pragma Unreferenced (Input_With_Tag_Check);
    --  Return a function with the following form:
    --    function R return Var_Type is
    --    begin
@@ -1710,9 +1711,9 @@ package body Exp_Dist is
 
       Current_Declaration       : Node_Id;
       Current_Subprogram_Number : Int := 0;
---        Current_Stubs             : Node_Id;
+      Current_Stubs             : Node_Id;
 
-      --  Actuals : List_Id;
+      Actuals : List_Id;
 
 --        Dummy_Register_Name : Name_Id;
 --        Dummy_Register_Spec : Node_Id;
@@ -1842,7 +1843,7 @@ package body Exp_Dist is
             New_Occurrence_Of (RTE (RE_Request_Access), Loc),
           Expression          =>
             Make_Selected_Component (Loc,
-              Prefix => OK_Convert_To (
+              Prefix => Unchecked_Convert_To (
                 RTE (RE_Execute_Request),
                 New_Occurrence_Of (Message_Parameter, Loc)),
               Selector_Name =>
@@ -1890,23 +1891,22 @@ package body Exp_Dist is
               Get_Subprogram_Id (Defining_Unit_Name (Specification (
                 Current_Declaration))));
 
---              Current_Stubs :=
---                Build_Subprogram_Receiving_Stubs
---                  (Vis_Decl     => Current_Declaration,
---                   Asynchronous =>
---                     Nkind (Specification (Current_Declaration)) =
---                         N_Procedure_Specification
---                       and then Is_Asynchronous
---                         (Defining_Unit_Name (Specification
---                            (Current_Declaration))));
+            Current_Stubs :=
+              Build_Subprogram_Receiving_Stubs
+                (Vis_Decl     => Current_Declaration,
+                 Asynchronous =>
+                   Nkind (Specification (Current_Declaration)) =
+                       N_Procedure_Specification
+                     and then Is_Asynchronous
+                       (Defining_Unit_Name (Specification
+                          (Current_Declaration))));
 
---              Append_To (Decls, Current_Stubs);
---              Analyze (Current_Stubs);
-
-            --  XXX TBD!
+            Append_To (Decls, Current_Stubs);
+            Analyze (Current_Stubs);
 
             --  Actuals :=
             --    New_List (New_Occurrence_Of (Stream_Parameter, Loc));
+            Actuals := New_List (New_Occurrence_Of (Request, Loc));
 
             if Nkind (Specification (Current_Declaration))
                 = N_Function_Specification
@@ -1922,21 +1922,37 @@ package body Exp_Dist is
                null;
             end if;
 
-            Append_To (Pkg_RPC_Receiver_Cases,
-              Make_Case_Statement_Alternative (Loc,
-                Discrete_Choices =>
-                  New_List (
-                    Make_Integer_Literal (Loc, Current_Subprogram_Number)),
-
-                Statements       =>
-                  New_List (Make_Null_Statement (Loc))));
+--              Append_To (Pkg_RPC_Receiver_Cases,
+--                Make_Case_Statement_Alternative (Loc,
+--                  Discrete_Choices =>
+--                    New_List (
+--                      Make_Integer_Literal (Loc, Current_Subprogram_Number)),
+--                  Statements       =>
 --                      Make_Procedure_Call_Statement (Loc,
 --                        Name                   =>
 --                          New_Occurrence_Of (
 --                            Defining_Entity (Current_Stubs), Loc),
 --                        Parameter_Associations =>
 --                          Actuals))));
-            --  XXX TBD
+
+            Get_Name_String (Chars (
+              Defining_Unit_Name (Specification (Current_Declaration))));
+            Append_To (Pkg_RPC_Receiver_Cases,
+              Make_If_Statement (Loc,
+                Make_Function_Call (Loc,
+                  Name =>
+                    New_Occurrence_Of (Standard_Op_Eq, Loc),
+                  Parameter_Associations => New_List (
+                    New_Occurrence_Of (Subp_Id, Loc),
+                    Make_String_Literal (Loc,
+                      Strval => String_From_Name_Buffer))),
+                Then_Statements => New_List (
+                  Make_Procedure_Call_Statement (Loc,
+                    Name                   =>
+                      New_Occurrence_Of (
+                        Defining_Entity (Current_Stubs), Loc),
+                    Parameter_Associations =>
+                      Actuals))));
 
             Current_Subprogram_Number := Current_Subprogram_Number + 1;
          end if;
@@ -1952,20 +1968,20 @@ package body Exp_Dist is
       --  every exception will be caught and (if the subprogram is not an
       --  APC) put into the result stream and sent away.
 
-      Append_To (Pkg_RPC_Receiver_Cases,
-        Make_Case_Statement_Alternative (Loc,
-          Discrete_Choices =>
-            New_List (Make_Others_Choice (Loc)),
-          Statements       =>
-            New_List (Make_Null_Statement (Loc))));
+--        Append_To (Pkg_RPC_Receiver_Cases,
+--          Make_Case_Statement_Alternative (Loc,
+--            Discrete_Choices =>
+--              New_List (Make_Others_Choice (Loc)),
+--            Statements       =>
+--              New_List (Make_Null_Statement (Loc))));
 
 --        Append_To (Pkg_RPC_Receiver_Stmts,
 --          Make_Case_Statement (Loc,
 --            Expression   =>
 --              New_Occurrence_Of (Subp_Id, Loc),
 --            Alternatives => Pkg_RPC_Receiver_Cases));
-      Append_To (Pkg_RPC_Receiver_Stmts,
-        Make_Null_Statement (Loc));
+      Append_List_To (Pkg_RPC_Receiver_Stmts,
+        Pkg_RPC_Receiver_Cases);
 
       Append_To (Pkg_RPC_Receiver_Outer_Stmts,
         Make_Block_Statement (Loc,
@@ -3078,9 +3094,13 @@ package body Exp_Dist is
    is
       Loc : constant Source_Ptr := Sloc (Vis_Decl);
 
-      Stream_Parameter : Node_Id;
-      Result_Parameter : Node_Id;
+      --  Stream_Parameter : Node_Id;
+      --  Result_Parameter : Node_Id;
+      Request_Parameter : Node_Id;
       --  See explanations of those in Build_Subprogram_Calling_Stubs
+
+      The_Any : Entity_Id;
+      --  XXX dummy placeholder
 
       Decls : constant List_Id := New_List;
       --  All the parameters will get declared before calling the real
@@ -3117,7 +3137,7 @@ package body Exp_Dist is
       Called_Subprogram : Node_Id;
       --  The subprogram to call
 
-      Null_Raise_Statement : Node_Id;
+      --  Null_Raise_Statement : Node_Id;
 
       Dynamic_Async : Entity_Id;
 
@@ -3131,8 +3151,12 @@ package body Exp_Dist is
              Defining_Unit_Name (Specification (Vis_Decl)), Loc);
       end if;
 
-      Stream_Parameter :=
-        Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
+--        Stream_Parameter :=
+--          Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
+      Request_Parameter :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('R'));
+      The_Any :=
+        Make_Defining_Identifier (Loc, New_Internal_Name ('A'));
 
       if Dynamically_Asynchronous then
          Dynamic_Async :=
@@ -3141,35 +3165,46 @@ package body Exp_Dist is
          Dynamic_Async := Empty;
       end if;
 
-      if not Asynchronous or else Dynamically_Asynchronous then
-         Result_Parameter :=
-           Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
+--        if not Asynchronous or else Dynamically_Asynchronous then
+--           Result_Parameter :=
+--             Make_Defining_Identifier (Loc, New_Internal_Name ('S'));
 
-         --  The first statement after the subprogram call is a statement to
-         --  writes a Null_Occurrence into the result stream.
+--       --  The first statement after the subprogram call is a statement to
+--       --  writes a Null_Occurrence into the result stream.
 
-         Null_Raise_Statement :=
-           Make_Attribute_Reference (Loc,
-             Prefix         =>
-               New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc),
-             Attribute_Name => Name_Write,
-             Expressions    => New_List (
-               New_Occurrence_Of (Result_Parameter, Loc),
-               New_Occurrence_Of (RTE (RE_Null_Occurrence), Loc)));
+--           Null_Raise_Statement :=
+--             Make_Attribute_Reference (Loc,
+--               Prefix         =>
+--                 New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc),
+--               Attribute_Name => Name_Write,
+--               Expressions    => New_List (
+--                 New_Occurrence_Of (Result_Parameter, Loc),
+--                 New_Occurrence_Of (RTE (RE_Null_Occurrence), Loc)));
 
-         if Dynamically_Asynchronous then
-            Null_Raise_Statement :=
-              Make_Implicit_If_Statement (Vis_Decl,
-                Condition       =>
-                  Make_Op_Not (Loc, New_Occurrence_Of (Dynamic_Async, Loc)),
-                Then_Statements => New_List (Null_Raise_Statement));
-         end if;
+--           if Dynamically_Asynchronous then
+--              Null_Raise_Statement :=
+--                Make_Implicit_If_Statement (Vis_Decl,
+--                  Condition       =>
+--                  Make_Op_Not (Loc, New_Occurrence_Of (Dynamic_Async, Loc)),
+--                  Then_Statements => New_List (Null_Raise_Statement));
+--           end if;
 
-         Append_To (After_Statements, Null_Raise_Statement);
+--           Append_To (After_Statements, Null_Raise_Statement);
 
-      else
-         Result_Parameter := Empty;
-      end if;
+--        else
+--           Result_Parameter := Empty;
+--        end if;
+
+      Append_To (After_Statements, Make_Null_Statement (Loc));
+      --  XXX TBD!
+
+      Append_To (Decls,
+        Make_Object_Declaration (Loc,
+          Defining_Identifier =>
+            The_Any,
+          Object_Definition =>
+            New_Occurrence_Of (RTE (RE_Any), Loc)));
+      --  XXX dummy placeholder to construct From_Any calls.
 
       --  Loop through every parameter and get its value from the stream. If
       --  the parameter is unconstrained, then the parameter is read using
@@ -3214,24 +3249,37 @@ package body Exp_Dist is
                --  the object declaration and the variable is set using
                --  'Input instead of 'Read.
 
-               if Constrained then
-                  Append_To (Statements,
-                    Make_Attribute_Reference (Loc,
-                      Prefix         => New_Occurrence_Of (Etyp, Loc),
-                      Attribute_Name => Name_Read,
-                      Expressions    => New_List (
-                        New_Occurrence_Of (Stream_Parameter, Loc),
-                        New_Occurrence_Of (Object, Loc))));
+               Expr := Build_From_Any_Call (
+                         Etyp, New_Occurrence_Of (The_Any, Loc));
+               --  XXX The_Any is a dummy placeholder!
 
+               if Constrained then
+--                    Append_To (Statements,
+--                      Make_Attribute_Reference (Loc,
+--                        Prefix         => New_Occurrence_Of (Etyp, Loc),
+--                        Attribute_Name => Name_Read,
+--                        Expressions    => New_List (
+--                          New_Occurrence_Of (Stream_Parameter, Loc),
+--                          New_Occurrence_Of (Object, Loc))));
+                  Append_To (Statements,
+                    Make_Assignment_Statement (Loc,
+                      Name =>
+                        New_Occurrence_Of (Object, Loc),
+                      Expression =>
+                         Expr));
+                  Expr := Empty;
                else
-                  Expr := Input_With_Tag_Check (Loc,
-                    Var_Type => Etyp,
-                    Stream   => Stream_Parameter);
-                  Append_To (Decls, Expr);
-                  Expr := Make_Function_Call (Loc,
-                    New_Occurrence_Of (Defining_Unit_Name
-                      (Specification (Expr)), Loc));
+--                    Expr := Input_With_Tag_Check (Loc,
+--                      Var_Type => Etyp,
+--                      Stream   => Stream_Parameter);
+--                    Append_To (Decls, Expr);
+--                    Expr := Make_Function_Call (Loc,
+--                      New_Occurrence_Of (Defining_Unit_Name
+--                        (Specification (Expr)), Loc));
+                  null;
+
                end if;
+
             end if;
 
             --  If we do not have to output the current parameter, then
@@ -3258,13 +3306,15 @@ package body Exp_Dist is
               and then
                 Etype (Parameter_Type (Current_Parameter)) /= Stub_Type
             then
-               Append_To (After_Statements,
-                 Make_Attribute_Reference (Loc,
-                   Prefix         => New_Occurrence_Of (Etyp, Loc),
-                   Attribute_Name => Name_Write,
-                   Expressions    => New_List (
-                       New_Occurrence_Of (Result_Parameter, Loc),
-                     New_Occurrence_Of (Object, Loc))));
+--                 Append_To (After_Statements,
+--                   Make_Attribute_Reference (Loc,
+--                     Prefix         => New_Occurrence_Of (Etyp, Loc),
+--                     Attribute_Name => Name_Write,
+--                     Expressions    => New_List (
+--                         New_Occurrence_Of (Result_Parameter, Loc),
+--                       New_Occurrence_Of (Object, Loc))));
+               --  XXX TBD!
+               null;
             end if;
 
             if
@@ -3333,22 +3383,24 @@ package body Exp_Dist is
 
                   Formal_Type : constant Entity_Id :=
                                   Etype (Extra_Parameter);
-
+                  pragma Unreferenced (Formal_Entity, Formal_Type);
                begin
-                  Append_To (Decls,
-                    Make_Object_Declaration (Loc,
-                      Defining_Identifier => Formal_Entity,
-                      Object_Definition   =>
-                        New_Occurrence_Of (Formal_Type, Loc)));
+--                    Append_To (Decls,
+--                      Make_Object_Declaration (Loc,
+--                        Defining_Identifier => Formal_Entity,
+--                        Object_Definition   =>
+--                          New_Occurrence_Of (Formal_Type, Loc)));
 
-                  Append_To (Extra_Formal_Statements,
-                    Make_Attribute_Reference (Loc,
-                      Prefix         => New_Occurrence_Of (Formal_Type, Loc),
-                      Attribute_Name => Name_Read,
-                      Expressions    => New_List (
-                        New_Occurrence_Of (Stream_Parameter, Loc),
-                        New_Occurrence_Of (Formal_Entity, Loc))));
-                  Set_Extra_Constrained (Object, Formal_Entity);
+--                    Append_To (Extra_Formal_Statements,
+--                      Make_Attribute_Reference (Loc,
+--                    Prefix         => New_Occurrence_Of (Formal_Type, Loc),
+--                        Attribute_Name => Name_Read,
+--                        Expressions    => New_List (
+--                          New_Occurrence_Of (Stream_Parameter, Loc),
+--                          New_Occurrence_Of (Formal_Entity, Loc))));
+--                    Set_Extra_Constrained (Object, Formal_Entity);
+--  XXX TBD!
+                  null;
                end;
             end if;
          end;
@@ -3382,13 +3434,14 @@ package body Exp_Dist is
                     Name                   => Called_Subprogram,
                     Parameter_Associations => Parameter_List)));
 
-            Append_To (After_Statements,
-              Make_Attribute_Reference (Loc,
-                Prefix         => New_Occurrence_Of (Etyp, Loc),
-                Attribute_Name => Name_Output,
-                Expressions    => New_List (
-                  New_Occurrence_Of (Result_Parameter, Loc),
-                  New_Occurrence_Of (Result, Loc))));
+--              Append_To (After_Statements,
+--                Make_Attribute_Reference (Loc,
+--                  Prefix         => New_Occurrence_Of (Etyp, Loc),
+--                  Attribute_Name => Name_Output,
+--                  Expressions    => New_List (
+--                    New_Occurrence_Of (Result_Parameter, Loc),
+--                    New_Occurrence_Of (Result, Loc))));
+            --  XXX TBD!
          end;
 
          Append_To (Statements,
@@ -3402,21 +3455,22 @@ package body Exp_Dist is
          --  The remote subprogram is a procedure. We do not need any inner
          --  block in this case.
 
-         if Dynamically_Asynchronous then
-            Append_To (Decls,
-              Make_Object_Declaration (Loc,
-                Defining_Identifier => Dynamic_Async,
-                Object_Definition   =>
-                  New_Occurrence_Of (Standard_Boolean, Loc)));
+--           if Dynamically_Asynchronous then
+--              Append_To (Decls,
+--                Make_Object_Declaration (Loc,
+--                  Defining_Identifier => Dynamic_Async,
+--                  Object_Definition   =>
+--                    New_Occurrence_Of (Standard_Boolean, Loc)));
 
-            Append_To (Statements,
-              Make_Attribute_Reference (Loc,
-                Prefix         => New_Occurrence_Of (Standard_Boolean, Loc),
-                Attribute_Name => Name_Read,
-                Expressions    => New_List (
-                  New_Occurrence_Of (Stream_Parameter, Loc),
-                  New_Occurrence_Of (Dynamic_Async, Loc))));
-         end if;
+--              Append_To (Statements,
+--                Make_Attribute_Reference (Loc,
+--              Prefix         => New_Occurrence_Of (Standard_Boolean, Loc),
+--                  Attribute_Name => Name_Read,
+--                  Expressions    => New_List (
+--                    New_Occurrence_Of (Stream_Parameter, Loc),
+--                    New_Occurrence_Of (Dynamic_Async, Loc))));
+--           end if;
+--  XXX TBD!
 
          Append_To (Statements,
            Make_Procedure_Call_Statement (Loc,
@@ -3427,23 +3481,21 @@ package body Exp_Dist is
 
       end if;
 
+      Subp_Spec :=
+        Make_Procedure_Specification (Loc,
+          Defining_Unit_Name       =>
+            Make_Defining_Identifier (Loc, New_Internal_Name ('F')),
+
+          Parameter_Specifications => New_List (
+            Make_Parameter_Specification (Loc,
+              Defining_Identifier => Request_Parameter,
+              Parameter_Type      =>
+                New_Occurrence_Of (RTE (RE_Request_Access), Loc))));
+
       if Asynchronous and then not Dynamically_Asynchronous then
 
-         --  An asynchronous procedure does not want a Result
-         --  parameter. Also, we put an exception handler with an others
-         --  clause that does nothing.
-
-         Subp_Spec :=
-           Make_Procedure_Specification (Loc,
-             Defining_Unit_Name       =>
-               Make_Defining_Identifier (Loc, New_Internal_Name ('F')),
-             Parameter_Specifications => New_List (
-               Make_Parameter_Specification (Loc,
-                 Defining_Identifier => Stream_Parameter,
-                 Parameter_Type      =>
-                   Make_Access_Definition (Loc,
-                   Subtype_Mark =>
-                     New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc)))));
+         --  An asynchronous procedure wants an exception handler
+         --  with an others clause that does nothing.
 
          Excep_Handler :=
            Make_Exception_Handler (Loc,
@@ -3453,6 +3505,7 @@ package body Exp_Dist is
                Make_Null_Statement (Loc)));
 
       else
+
          --  In the other cases, if an exception is raised, then the
          --  exception occurrence is copied into the output stream and
          --  no other output parameter is written.
@@ -3460,14 +3513,17 @@ package body Exp_Dist is
          Excep_Choice :=
            Make_Defining_Identifier (Loc, New_Internal_Name ('E'));
 
-         Excep_Code := New_List (
-           Make_Attribute_Reference (Loc,
-             Prefix         =>
-               New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc),
-             Attribute_Name => Name_Write,
-             Expressions    => New_List (
-               New_Occurrence_Of (Result_Parameter, Loc),
-               New_Occurrence_Of (Excep_Choice, Loc))));
+--           Excep_Code := New_List (
+--             Make_Attribute_Reference (Loc,
+--               Prefix         =>
+--                 New_Occurrence_Of (RTE (RE_Exception_Occurrence), Loc),
+--               Attribute_Name => Name_Write,
+--               Expressions    => New_List (
+--                 New_Occurrence_Of (Result_Parameter, Loc),
+--                 New_Occurrence_Of (Excep_Choice, Loc))));
+
+         Excep_Code := New_List (Make_Null_Statement (Loc));
+         --  XXX TBD!
 
          if Dynamically_Asynchronous then
             Excep_Code := New_List (
@@ -3476,32 +3532,12 @@ package body Exp_Dist is
                   New_Occurrence_Of (Dynamic_Async, Loc)),
                 Then_Statements => Excep_Code));
          end if;
-
          Excep_Handler :=
            Make_Exception_Handler (Loc,
              Choice_Parameter   => Excep_Choice,
              Exception_Choices  => New_List (Make_Others_Choice (Loc)),
              Statements         => Excep_Code);
 
-         Subp_Spec :=
-           Make_Procedure_Specification (Loc,
-             Defining_Unit_Name       =>
-               Make_Defining_Identifier (Loc, New_Internal_Name ('F')),
-
-             Parameter_Specifications => New_List (
-               Make_Parameter_Specification (Loc,
-                 Defining_Identifier => Stream_Parameter,
-                 Parameter_Type      =>
-                   Make_Access_Definition (Loc,
-                   Subtype_Mark =>
-                     New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc))),
-
-               Make_Parameter_Specification (Loc,
-                 Defining_Identifier => Result_Parameter,
-                 Parameter_Type      =>
-                   Make_Access_Definition (Loc,
-                  Subtype_Mark =>
-                  New_Occurrence_Of (RTE (RE_Params_Stream_Type), Loc)))));
       end if;
 
       return

@@ -194,6 +194,9 @@ package body Exp_Hlpr is
 --              Lib_RE := RE_FA_AS;
 --           end if;
 
+      elsif U_Type = Standard_String then
+         Lib_RE := RE_FA_String;
+
       --  Other (non-primitive) types
 
       else
@@ -396,6 +399,9 @@ package body Exp_Hlpr is
 --           else
 --              Lib_RE := RE_TA_AS;
 --           end if;
+
+      elsif U_Type = Standard_String then
+         Lib_RE := RE_TA_String;
 
       --  Other (non-primitive) types
 
@@ -623,6 +629,9 @@ package body Exp_Hlpr is
 --           else
 --              Lib_RE := RE_TC_AS;
 --           end if;
+
+      elsif U_Type = Standard_String then
+         Lib_RE := RE_TC_String;
 
       --  Other (non-primitive) types
 

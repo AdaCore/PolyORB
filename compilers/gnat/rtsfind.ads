@@ -1064,6 +1064,7 @@ package Rtsfind is
      RE_FA_SU,                           -- System.PolyORB_Interface
      RE_FA_U,                            -- System.PolyORB_Interface
      RE_FA_WC,                           -- System.PolyORB_Interface
+     RE_FA_String,                       -- System.PolyORB_Interface
 
      RE_TA_AD,                           -- System.PolyORB_Interface
      RE_TA_AS,                           -- System.PolyORB_Interface
@@ -1109,6 +1110,7 @@ package Rtsfind is
      RE_TC_SU,                           -- System.PolyORB_Interface
      RE_TC_U,                            -- System.PolyORB_Interface
      RE_TC_WC,                           -- System.PolyORB_Interface
+     RE_TC_String,                       -- System.PolyORB_Interface,
 
      RE_IS_Is1,                          -- System.Scalar_Values
      RE_IS_Is2,                          -- System.Scalar_Values
@@ -2061,6 +2063,7 @@ package Rtsfind is
      RE_FA_SU                            => System_PolyORB_Interface,
      RE_FA_U                             => System_PolyORB_Interface,
      RE_FA_WC                            => System_PolyORB_Interface,
+     RE_FA_String                        => System_PolyORB_Interface,
 
      RE_TA_AD                            => System_PolyORB_Interface,
      RE_TA_AS                            => System_PolyORB_Interface,
@@ -2106,6 +2109,7 @@ package Rtsfind is
      RE_TC_SU                            => System_PolyORB_Interface,
      RE_TC_U                             => System_PolyORB_Interface,
      RE_TC_WC                            => System_PolyORB_Interface,
+     RE_TC_String                        => System_PolyORB_Interface,
 
      RE_Global_Pool_Object               => System_Pool_Global,
 
