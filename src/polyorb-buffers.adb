@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-buffers.adb#10 $
+--  $Id$
 
 with Ada.Unchecked_Deallocation;
 --  For Iovec_Pools.Free.
@@ -82,7 +82,7 @@ package body PolyORB.Buffers is
      (Buffer : in out Buffer_Type) is
    begin
       Release (Buffer.Contents);
-      Release (Buffer.Storage'Access);
+      Buffer_Chunk_Pools.Release (Buffer.Storage'Access);
       Buffer.CDR_Position := 0;
       Buffer.Initial_CDR_Position := 0;
       Buffer.Endianness := Host_Order;

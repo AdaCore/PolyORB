@@ -603,7 +603,7 @@ package body PolyORB.POA.Basic_POA is
          for I in 1 .. Length (Sequence (Self.Children.all)) loop
             A_Child := PolyORB.POA.Obj_Adapter_Access
               (Element_Of (Sequence (Self.Children.all), I));
-            Destroy
+            POA.Destroy
               (A_Child.all'Access,
                Etherealize_Objects,
                Wait_For_Completion);
@@ -614,7 +614,7 @@ package body PolyORB.POA.Basic_POA is
 
       --  Tell father to remove current POA from its list of children
       if Self.Father /= null then
-         Remove_POA_By_Name
+         POA.Remove_POA_By_Name
            (PolyORB.POA.Obj_Adapter_Access (Self.Father).all'Access,
             Self.Name);
       end if;

@@ -85,7 +85,7 @@ package body PolyORB.Binding_Data.Test is
       Connect_Socket (S, Remote_Addr);
       TE := new Transport.Sockets.Socket_Endpoint;
       Create (Socket_Endpoint (TE.all), S);
-      Create (P'Access, Filter_Access (Session));
+      PolyORB.Protocols.Echo.Create (P'Access, Filter_Access (Session));
 
       Transport.Connect_Upper (TE, Session);
       Connect_Lower

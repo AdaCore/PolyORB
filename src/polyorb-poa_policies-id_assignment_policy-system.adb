@@ -121,7 +121,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       if P_OA.Active_Object_Map = null then
          P_OA.Active_Object_Map := Object_Map_Access (New_Map);
       end if;
-      Index := Add (P_OA.Active_Object_Map.all'Access,
+      Index := Object_Maps.Add (P_OA.Active_Object_Map.all'Access,
                     Object_Map_Entry_Access (New_Entry));
 
       New_Entry.Oid := new Unmarshalled_Oid;
@@ -162,7 +162,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       New_Entry.Servant := Object;
 
       Lock_W (P_OA.Map_Lock);
-      Replace_By_Index
+      Object_Maps.Replace_By_Index
         (P_OA.Active_Object_Map.all'Access,
          Object_Map_Entry_Access (New_Entry),
          Integer'Value (To_Standard_String (New_Entry.Oid.Id)));
@@ -234,7 +234,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       if An_Entry = null then
          raise PolyORB.POA.Object_Not_Active;
       end if;
-      An_Entry := Remove_By_Index (P_OA.Active_Object_Map.all'Access, Index);
+      An_Entry := Object_Maps.Remove_By_Index
+        (P_OA.Active_Object_Map.all'Access, Index);
       Unlock_W (P_OA.Map_Lock);
       --  Frees only the Unmarshalled_Oid_Access and the entry.
       --  The servant has to be freed by the application.
