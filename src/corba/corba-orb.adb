@@ -85,12 +85,12 @@ package body CORBA.ORB is
       Original_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
+      Result : CORBA.TypeCode.Object := TypeCode.TC_Alias;
    begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Alias_Tc (Id, Name, Original_Type);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Name));
+      CORBA.TypeCode.Add_Parameter (result, CORBA.To_Any (Id));
+      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Original_Type));
+      return Result;
    end Create_Alias_Tc;
 
    ---------------------
@@ -102,12 +102,11 @@ package body CORBA.ORB is
       Element_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
+      Result : CORBA.TypeCode.Object := TypeCode.TC_Array;
    begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Array_Tc (Length, Element_Type);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Length));
+      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Element_Type));
+      return Result;
    end Create_Array_Tc;
 
    ---------------------
@@ -136,12 +135,13 @@ package body CORBA.ORB is
       Name : in CORBA.Identifier)
       return CORBA.TypeCode.Object
    is
+      Result : TypeCode.Object := TypeCode.TC_Object;
    begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Interface_Tc (Id, Name);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      CORBA.TypeCode.Add_Parameter
+        (Result, CORBA.To_Any (CORBA.String (Name)));
+      CORBA.TypeCode.Add_Parameter
+        (Result, CORBA.To_Any (CORBA.String (Id)));
+      return Result;
    end Create_Interface_Tc;
 
    -----------------
@@ -220,12 +220,11 @@ package body CORBA.ORB is
       Element_Type : in CORBA.TypeCode.Object)
       return CORBA.TypeCode.Object
    is
+      Result : CORBA.TypeCode.Object := TypeCode.TC_Sequence;
    begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Sequence_Tc (Bound, Element_Type);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Bound));
+      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Element_Type));
+      return Result;
    end Create_Sequence_Tc;
 
    ----------------------
@@ -236,12 +235,10 @@ package body CORBA.ORB is
      (Bound : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
+      Result : CORBA.TypeCode.Object := TypeCode.TC_String;
    begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_String_Tc (Bound);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Bound));
+      return Result;
    end Create_String_Tc;
 
    -----------------------
@@ -252,12 +249,10 @@ package body CORBA.ORB is
      (Bound : in CORBA.Unsigned_Long)
       return CORBA.TypeCode.Object
    is
+      Result : CORBA.TypeCode.Object := TypeCode.TC_Wide_String;
    begin
-      raise PolyORB.Not_Implemented;
-      pragma Warnings (Off);
-      return Create_Wstring_Tc (Bound);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
+      CORBA.TypeCode.Add_Parameter (Result, CORBA.To_Any (Bound));
+      return Result;
    end Create_Wstring_Tc;
 
    -------------------------
