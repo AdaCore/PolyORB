@@ -33,6 +33,7 @@ module Frontend::Nodes {
   interface List_Id {
     Node_Id    First_Entity;
     Node_Id    Last_Entity;
+    long       Size;
   };
 
   interface Scope_Definition : Definition {

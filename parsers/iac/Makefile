@@ -361,7 +361,10 @@ $(PROG): force mknodes $(PROG_FILES)
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 tests: $(PROG)
-	(cd testsuite; $(MAKE) all)
+	@for i in `cat testsuite/MANIFEST | grep -v '^#'`; do \
+	  testsuite/run-test testsuite/$$i; \
+	done
+
 
 force::
 

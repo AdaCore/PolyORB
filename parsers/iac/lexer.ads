@@ -126,6 +126,26 @@ pragma Elaborate_Body (Lexer);
       T_Floating_Point_Literal,
       T_Boolean_Literal,
 
+      --  CORBA 3.0
+
+      T_Component,
+      T_Consumes,
+      T_Emits,
+      T_Eventtype,
+      T_Finder,
+      T_Get_Raises,
+      T_Home,
+      T_Import,
+      T_Local,
+      T_Multiple,
+      T_Primary_Key,
+      T_Provides,
+      T_Publishes,
+      T_Set_Raises,
+      T_Type_Id,
+      T_Type_Prefix,
+      T_Uses,
+
       T_EOF);
 
    First_Token_Pos : constant := Token_Type'Pos (Token_Type'First);

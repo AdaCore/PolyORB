@@ -6,21 +6,14 @@ with Frontend.Nodes; use Frontend.Nodes;
 
 package body Frontend.Nutils is
 
-   -----------------------
-   -- Set_First_Homonym --
-   -----------------------
-
-   procedure Set_First_Homonym (N : Node_Id; V : Node_Id) is
-   begin
-      Set_Name_Table_Info (Name (N), Int (V));
-   end Set_First_Homonym;
-
    -------------------------
    -- Append_Node_To_List --
    -------------------------
 
    procedure Append_Node_To_List (E : Node_Id; L : List_Id) is
       Last : Node_Id;
+      Many : Int := Size (L);
+
    begin
       Last := Last_Entity (L);
       if No (Last) then
@@ -31,8 +24,10 @@ package body Frontend.Nutils is
       Last := E;
       while Present (Last) loop
          Set_Last_Entity (L, Last);
+         Many := Many + 1;
          Last := Next_Entity (Last);
       end loop;
+      Set_Size (L, Many);
    end Append_Node_To_List;
 
    -------------------------------
@@ -65,7 +60,7 @@ package body Frontend.Nutils is
    procedure Bind_Identifier_To_Entity (N : Node_Id; E : Node_Id) is
    begin
       Set_Identifier (E, N);
-      Set_Corresponding_Entity       (N, E);
+      Set_Corresponding_Entity (N, E);
    end Bind_Identifier_To_Entity;
 
    ----------------------
@@ -89,8 +84,7 @@ package body Frontend.Nutils is
    -- First_Homonym --
    -------------------
 
-   function First_Homonym (N : Node_Id) return Node_Id
-   is
+   function First_Homonym (N : Node_Id) return Node_Id is
       HN : constant Name_Id := Name (N);
    begin
       return Node_Id (Get_Name_Table_Info (HN));
@@ -100,8 +94,7 @@ package body Frontend.Nutils is
    -- Insert_After_Node --
    -----------------------
 
-   procedure Insert_After_Node (E : Node_Id; N : Node_Id)
-   is
+   procedure Insert_After_Node (E : Node_Id; N : Node_Id) is
       Next : constant Node_Id := Next_Entity (N);
    begin
       Set_Next_Entity (N, E);
@@ -156,8 +149,7 @@ package body Frontend.Nutils is
    -- Is_A_Non_Module --
    ---------------------
 
-   function Is_A_Non_Module (E : Node_Id) return Boolean
-   is
+   function Is_A_Non_Module (E : Node_Id) return Boolean is
       K : constant Node_Kind := Kind (E);
    begin
       return K /= K_Module and then K /= K_Specification;
@@ -229,8 +221,7 @@ package body Frontend.Nutils is
    -- Is_Attribute_Or_Operation --
    -------------------------------
 
-   function Is_Attribute_Or_Operation (E : Node_Id) return Boolean
-   is
+   function Is_Attribute_Or_Operation (E : Node_Id) return Boolean is
       K : constant Node_Kind := Kind (E);
    begin
       return K = K_Attribute_Declaration
@@ -270,6 +261,15 @@ package body Frontend.Nutils is
             return False;
       end case;
    end Is_Interface_Redefinable_Node;
+
+   ------------
+   -- Length --
+   ------------
+
+   function Length (L : List_Id) return Natural is
+   begin
+      return Natural (Size (L));
+   end Length;
 
    ----------------------
    -- Make_Scoped_Name --
@@ -441,6 +441,15 @@ package body Frontend.Nutils is
          end loop;
       end if;
    end Remove_Node_From_List;
+
+   -----------------------
+   -- Set_First_Homonym --
+   -----------------------
+
+   procedure Set_First_Homonym (N : Node_Id; V : Node_Id) is
+   begin
+      Set_Name_Table_Info (Name (N), Int (V));
+   end Set_First_Homonym;
 
    ------------------
    -- Set_Operator --

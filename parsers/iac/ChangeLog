@@ -1,3 +1,31 @@
+2004-06-24  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* lexer.adb, lexer.ads: Add CORBA 3.0 keywords.
+
+	* frontend-nodes.idl, frontend-nutils.ads, frontend-nutils.adb:
+	Add function Length.
+
+	* Makefile: Invoke run-test right from the Makefile.
+
+2004-06-23  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* values.adb: Format float image in such a way that we do not have
+	useless zeros.
+
+	* frontend-debug.adb: Use Parameter_Mode.
+
+	* backend-be_ada.adb: Handle inout and out parameters in
+	functions.
+
+	* analyzer.adb: Handle forward entities when resolving types.
+
+	* backend-be_ada-nutils.adb, backend-be_ada-nutils.ads,
+	backend-be_ada-nodes.idl: Replace subprogram_specification with
+	specification to match GNAT tree.
+
+	* scopes.adb: Do not reset scope to No_Node for forward entities
+	as they can be visited mater on and need to have a scope anyway.
+
 2004-06-22  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* frontend-nutils.adb, frontend-nutils.ads, backend-be_idl.adb:

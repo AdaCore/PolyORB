@@ -21,6 +21,8 @@ package Frontend.Nutils is
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id);
    --  Remove node N to list L.
 
+   function Length (L : List_Id) return Natural;
+
    function Is_Empty (L : List_Id) return Boolean;
    pragma Inline (Is_Empty);
    --  Return true when L is empty
