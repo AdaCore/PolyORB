@@ -42,7 +42,7 @@ stamp-gen: $(IDL) $(IDLAC)
 	touch stamp-gen
 	$(IDLAC) $(IDL)
 
-$(PROGS): force
+$(PROGS): force $(GEN)
 	$(GNATMAKE) $@ $(GNATMAKE_FLAGS)
 
 install-exec-local:
