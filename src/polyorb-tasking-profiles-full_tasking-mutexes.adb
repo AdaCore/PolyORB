@@ -33,7 +33,7 @@
 
 --  Implementation of mutexes under the Full_Tasking profile.
 
-with Unchecked_Deallocation;
+with Ada.Unchecked_Deallocation;
 
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
@@ -51,13 +51,9 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
    procedure Initialize;
 
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free is new Unchecked_Deallocation
-     (Full_Tasking_Mutex_Type'Class,
-      Full_Tasking_Mutex_Access);
+   -------------------------------------------------------------
+   -- Underlying protected object for Full_Tasking_Mutex_Type --
+   -------------------------------------------------------------
 
    protected type Mutex_PO is
       --  Protected object which is the real implementation of
@@ -74,6 +70,16 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
       --  False when the lock is free; else True;
    end Mutex_PO;
 
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (PTM.Mutex_Type'Class, PTM.Mutex_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Mutex_PO, Mutex_PO_Access);
+
    ------------
    -- Create --
    ------------
@@ -81,12 +87,16 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
    function Create
      (MF   : access Full_Tasking_Mutex_Factory_Type;
       Name : String := "")
-     return PTM.Mutex_Access is
+      return PTM.Mutex_Access
+   is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
+
       pragma Unreferenced (Name);
-      pragma Warnings (On);
       --  XXX The use of Name is not yet implemented
+
+      pragma Warnings (On);
+
       M : Full_Tasking_Mutex_Access := new Full_Tasking_Mutex_Type;
    begin
       pragma Debug (O ("Create Mutex"));
@@ -100,13 +110,16 @@ package body PolyORB.Tasking.Profiles.Full_Tasking.Mutexes is
 
    procedure Destroy
      (MF : access Full_Tasking_Mutex_Factory_Type;
-      M  : in out PTM.Mutex_Access) is
+      M  : in out PTM.Mutex_Access)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (MF);
       pragma Warnings (On);
+
    begin
       pragma Debug (O ("Detroy Mutex"));
-      Free (Full_Tasking_Mutex_Access (M));
+      Free (Full_Tasking_Mutex_Access (M).The_PO);
+      Free (M);
    end Destroy;
 
    -----------
