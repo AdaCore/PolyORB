@@ -1,3 +1,6 @@
+privatelibdir = $(libdir)/adasockets
+bin_SCRIPTS = adasockets-config
+
 CLEANFILES = *.o *.ali sockets-constants.ads
 DISTCLEANFILES = b_split.c b~split.ad? split constants_nodef
 
