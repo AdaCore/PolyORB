@@ -6,7 +6,7 @@
 --                                                                         --
 --                                S p e c                                  --
 --                                                                         --
---                        $ReleaseVersion$                         --
+--                        $ReleaseVersion: 0.1.6 $                         --
 --                                                                         --
 --                        Copyright (C) 1998-2000                          --
 --             École Nationale Supérieure des Télécommunications           --
@@ -40,9 +40,7 @@
 
 with Interfaces.C.Pointers;
 with Interfaces.C.Strings;
-with Sockets.Link;
-pragma Warnings (Off, Sockets.Link);
-with System;
+with System.Storage_Elements;
 
 package Sockets.Thin is
 
@@ -146,7 +144,7 @@ package Sockets.Thin is
 
    type Iovec is record
       Iov_Base : System.Address;
-      Iov_Len  : C.int;
+      Iov_Len  : System.Storage_Elements.Storage_Offset;
    end record;
    pragma Convention (C, Iovec);
    --  Iovec C type
