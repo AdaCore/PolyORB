@@ -33,6 +33,9 @@
 New features
 ------------
 
+idlac now returns an exit status of 2 in the case of an illegal
+IDL specification. (9213)
+
 idlac now supports typeid declarations. (9212)
 
 Incompatible changes

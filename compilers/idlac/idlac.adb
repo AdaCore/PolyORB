@@ -240,7 +240,12 @@ begin
             Intf_Repo   => Generate_IR,
             To_Stdout   => To_Stdout);
 
-         Idl_Fe.Parser.Finalize;
+      end if;
+
+      Idl_Fe.Parser.Finalize;
+
+      if Errors.Is_Error then
+         OS_Exit (2);
       end if;
    end if;
 end Idlac;
