@@ -74,11 +74,12 @@ package body PolyORB.POA.Basic_POA is
    -- Declaration of additional procedures and functions --
    --------------------------------------------------------
 
-   function Get_Boot_Time return Time_Stamp;
+   function Get_Boot_Time
+     return Time_Stamp;
 
    procedure Init_With_User_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : POA_Policies.PolicyList);
+      Policies :        POA_Policies.PolicyList);
    --  Initialize OA with a set of policies provided by the user.
 
    procedure Init_With_Default_Policies
@@ -97,13 +98,15 @@ package body PolyORB.POA.Basic_POA is
    --  This procedure should be called from a point that protects the
    --  Self's Children List.
 
-   procedure Destroy_Policies (OA : in out Basic_Obj_Adapter);
+   procedure Destroy_Policies
+     (OA : in out Basic_Obj_Adapter);
    pragma Warnings (Off);
    pragma Unreferenced (Destroy_Policies);
    pragma Warnings (On);
    --  Destroys OA's policies.
 
-   procedure Destroy_OA (OA : in out Basic_Obj_Adapter_Access);
+   procedure Destroy_OA
+     (OA : in out Basic_Obj_Adapter_Access);
    --  Destroy OA's components.
 
    procedure Create_Root_POA
@@ -129,7 +132,8 @@ package body PolyORB.POA.Basic_POA is
    --  are not yet explicitly set in OA. If Default is False,
    --  set all policies, and warn for duplicates.
 
-   function POA_Manager_Of (OA : access Basic_Obj_Adapter)
+   function POA_Manager_Of
+     (OA : access Basic_Obj_Adapter)
      return POA_Manager.POAManager_Access;
    --  Return the POA Manager associated to 'OA'.
 
@@ -141,7 +145,8 @@ package body PolyORB.POA.Basic_POA is
    -- POA_Manager_Of --
    --------------------
 
-   function POA_Manager_Of (OA : access Basic_Obj_Adapter)
+   function POA_Manager_Of
+     (OA : access Basic_Obj_Adapter)
      return POA_Manager.POAManager_Access
    is
       use Smart_Pointers;
@@ -157,7 +162,8 @@ package body PolyORB.POA.Basic_POA is
    -- Get_Boot_Time --
    -------------------
 
-   function Get_Boot_Time return Time_Stamp is
+   function Get_Boot_Time
+     return Time_Stamp is
    begin
       return Time_Stamp (16#0deadc0d#);
       --  XXX should compute a real time stamp! But:
@@ -171,8 +177,8 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Set_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : POA_Policies.PolicyList;
-      Default  : Boolean)
+      Policies :        POA_Policies.PolicyList;
+      Default  :        Boolean)
    is
       use Policy_Sequences;
 
@@ -275,7 +281,7 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Init_With_User_Policies
      (OA       : access Basic_Obj_Adapter;
-      Policies : POA_Policies.PolicyList) is
+      Policies :        POA_Policies.PolicyList) is
    begin
       pragma Debug (O ("Init POA with user provided policies"));
 
@@ -388,7 +394,8 @@ package body PolyORB.POA.Basic_POA is
    -- Destroy_Policies --
    ----------------------
 
-   procedure Destroy_Policies (OA : in out Basic_Obj_Adapter)
+   procedure Destroy_Policies
+     (OA : in out Basic_Obj_Adapter)
    is
       procedure Free is new Ada.Unchecked_Deallocation
         (Policy'Class, Policy_Access);
@@ -407,7 +414,7 @@ package body PolyORB.POA.Basic_POA is
    ----------------
 
    procedure Destroy_OA
-     (OA : in out  Basic_Obj_Adapter_Access) is
+     (OA : in out Basic_Obj_Adapter_Access) is
    begin
       pragma Debug (O ("Destroy_OA: enter"));
 
@@ -1073,7 +1080,8 @@ package body PolyORB.POA.Basic_POA is
    -- Create --
    ------------
 
-   procedure Create (OA : access Basic_Obj_Adapter) is
+   procedure Create
+     (OA : access Basic_Obj_Adapter) is
    begin
       Create_Root_POA (OA);
    end Create;
