@@ -13,7 +13,6 @@ with PolyORB.ORB.No_Tasking;
 with PolyORB.ORB;
 with PolyORB.Setup;
 with PolyORB.Setup.Client;
-with PolyORB.DSA_P.Partitions;
 pragma Warnings (On);
 
 procedure Client is
@@ -35,18 +34,17 @@ procedure Client is
    end Try_RACW;
 
    Z : constant RCI.Complex := (Re => 2.0, Im => 3.0);
-   This_Partition_ID : System.RPC.Partition_ID;
 
 begin
    --  XXX BEGIN PolyORB INITIAL SETUP
    PolyORB.Initialization.Initialize_World;
-   This_Partition_ID := System.RPC.Partition_ID
-     (PolyORB.DSA_P.Partitions.Allocate_Partition_ID ("clientp"));
    --  XXX END PolyORB INITIAL SETUP
 
    SP.Shared_Integer := 42;
    Put_Line ("I said: " & S);
-   Put_Line ("The server replied: "
+   Put_Line ("The server (on partition"
+     & System.RPC.Partition_ID'Image (RCI'Partition_Id)
+     & ") replied: "
      & RCI.echoString (S));
    RAS := RCI.echoString'Access;
    Put_Line ("through RAS: " & RAS (S & " (RASI)"));

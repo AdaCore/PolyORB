@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#15 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#16 $
 
 with Ada.Exceptions;
 with Ada.Unchecked_Deallocation;
@@ -178,6 +178,7 @@ package body PolyORB.Smart_Pointers is
       pragma Unreferenced (X);
       pragma Warnings (On);
    begin
+      pragma Assert (Counter_Lock /= null);
       null;
    end Initialize;
 

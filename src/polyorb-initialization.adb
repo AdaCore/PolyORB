@@ -237,7 +237,7 @@ package body PolyORB.Initialization is
       Dep : Module_Access;
    begin
       if M.In_Progress then
-         O (M.Info.Name.all & " is part of a cycle.", Critical);
+         O (M.Info.Name.all & " is part of a cycle:", Critical);
          raise Circular_Dependency;
       end if;
 
@@ -246,7 +246,13 @@ package body PolyORB.Initialization is
       while not Last (MI) loop
          Dep := Value (MI).all;
          if not Dep.Visited then
-            Visit (Dep);
+            begin
+               Visit (Dep);
+            exception
+               when Circular_Dependency =>
+                  O ("... depended upon by " & Dep.Info.Name.all, Critical);
+                  raise;
+            end;
          end if;
          Next (MI);
       end loop;

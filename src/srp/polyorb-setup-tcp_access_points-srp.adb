@@ -97,5 +97,4 @@ begin
        Provides => String_Lists.Empty,
        Init => Initialize_Access_Points'Access));
 
-
 end PolyORB.Setup.TCP_Access_Points.SRP;

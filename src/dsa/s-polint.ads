@@ -55,6 +55,17 @@ package System.PolyORB_Interface is
 
    subtype Object_Ref is PolyORB.References.Ref;
 
+   ---------------------------
+   -- Partition identifiers --
+   ---------------------------
+
+   function Get_Active_Partition_ID (Name : String) return RPC.Partition_ID;
+   --  Get the Partition_ID of the partition where remote call interface
+   --  unit Name resides.
+
+   function Get_Local_Partition_ID return RPC.Partition_ID;
+   --  Return the Partition_ID of the current partition
+
    ---------------------
    -- RCI information --
    ---------------------

@@ -1063,9 +1063,7 @@ package Rtsfind is
      RE_Size_Type,                       -- System.Parameters
      RE_Unspecified_Size,                -- System.Parameters
 
-     RE_Get_Active_Partition_Id,         -- System.Partition_Interface
      RE_Get_Passive_Partition_Id,        -- System.Partition_Interface
-     RE_Get_Local_Partition_Id,          -- System.Partition_Interface
      RE_Get_RCI_Package_Receiver,        -- System.Partition_Interface
      RE_Raise_Program_Error_For_E_4_18,  -- System.Partition_Interface
      RE_Raise_Program_Error_Unknown_Tag, -- System.Partition_Interface
@@ -1084,6 +1082,8 @@ package Rtsfind is
      RE_Partition_ID,                    -- System.RPC
      RE_RPC_Receiver,                    -- System.RPC
 
+     RE_Get_Active_Partition_Id,         -- System.PolyORB_Interface
+     RE_Get_Local_Partition_Id,          -- System.PolyORB_Interface
      RE_To_PolyORB_String,               -- System.PolyORB_Interface
      RE_To_Standard_String,              -- System.PolyORB_Interface
      RE_Caseless_String_Eq,              -- System.PolyORB_Interface
@@ -2127,15 +2127,15 @@ package Rtsfind is
      RE_Size_Type                        => System_Parameters,
      RE_Unspecified_Size                 => System_Parameters,
 
-     RE_Get_Active_Partition_Id          => System_Partition_Interface,
      RE_Get_Passive_Partition_Id         => System_Partition_Interface,
-     RE_Get_Local_Partition_Id           => System_Partition_Interface,
      RE_Get_RCI_Package_Receiver         => System_Partition_Interface,
      RE_Raise_Program_Error_For_E_4_18   => System_Partition_Interface,
      RE_Raise_Program_Error_Unknown_Tag  => System_Partition_Interface,
      RE_Register_Passive_Package         => System_Partition_Interface,
      RE_Subprogram_Id                    => System_Partition_Interface,
 
+     RE_Get_Active_Partition_Id          => System_PolyORB_Interface,
+     RE_Get_Local_Partition_Id           => System_PolyORB_Interface,
      RE_To_PolyORB_String                => System_PolyORB_Interface,
      RE_To_Standard_String               => System_PolyORB_Interface,
      RE_Caseless_String_Eq               => System_PolyORB_Interface,

@@ -1209,9 +1209,13 @@ begin
        Depends => +"soft_links" & "orb.tasking_policy"
          & "binding_data.soap?"
          & "binding_data.srp?"
-         & "binding_data.iiop?",
+         & "binding_data.iiop?"
+         & "protocols.srp?"
+         & "protocols.giop?"
+         & "protocols.srp?"
+         & "smart_pointers"
+         & "exceptions.stack",
        Provides => Empty,
        Init => Initialize'Access));
-   --  XXX should not depend explicitly on the various binding_data.*:
-   --  they should all provide "binding_data"
+
 end PolyORB.ORB;
