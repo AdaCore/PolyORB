@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -173,7 +173,6 @@ package body XE_Utils is
 
    procedure Change_Dir (To : in File_Name_Type) is
    begin
-
       if Debug_Mode then
          Message ("change to dir", To);
       end if;
@@ -260,10 +259,11 @@ package body XE_Utils is
 
          if not Success then
             Message ("cannot copy file " & S.all & " to " & T.all);
+            raise Fatal_Error;
          end if;
 
       else
-         Force_Remove (T.all);
+         Delete_File (T.all, Success);
 
          if Maybe_Symbolic then
             Execute (Link, (Symbolic, S, T));
@@ -336,15 +336,22 @@ package body XE_Utils is
    ------------
 
    procedure Delete (File : in File_Name_Type) is
-      Error : Boolean;
+      Success : Boolean;
    begin
       if Verbose_Mode then
          Message ("deleting", File);
       end if;
+
       Get_Name_String (File);
-      Name_Len := Name_Len + 1;
-      Name_Buffer (Name_Len) := ASCII.NUL;
-      Delete_File (Name_Buffer'Address, Error);
+
+      if Is_Regular_File (Name_Buffer (1 .. Name_Len)) then
+         Delete_File (Name_Buffer (1 .. Name_Len), Success);
+
+         if not Success then
+            Message ("cannot delete file", File);
+            raise Fatal_Error;
+         end if;
+      end if;
    end Delete;
 
    ---------
@@ -1483,16 +1490,6 @@ package body XE_Utils is
          return U;
       end if;
    end U_To_N;
-
-   -----------------
-   -- Unlink_File --
-   -----------------
-
-   procedure Unlink_File (File : in File_Name_Type) is
-   begin
-      Get_Name_String (File);
-      Force_Remove (Name_Buffer (1 .. Name_Len));
-   end Unlink_File;
 
    ---------------------------
    -- Write_Compile_Command --
