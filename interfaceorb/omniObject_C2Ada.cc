@@ -127,19 +127,6 @@ void*
 omniObject_C2Ada::_widenFromTheMostDerivedIntf(const char* repoId,
 					       _CORBA_Boolean is_cxx_type_id)
 {
-
-  cerr << "****************************************************" << endl
-       << "** omniObject_C2Ada::_widenFromTheMostDerivedIntf **" << endl 
-       << "** should never be called : it is not properly    **" << endl 
-       << "** implemented in Ada. If this box appears, you   **" << endl 
-       << "** have to redefine is_a for each X.Impl.Object   **" << endl 
-       << "** ( Fabien Azavant )                             **" << endl 
-       << "****************************************************" << endl ;
-
-  
-  exit(-1) ;
-    
-  
   if (Ada_OmniObject_Pointer->Ada_Is_A(repoId) ) {
     return (void*) this ;
   } else {

@@ -153,7 +153,7 @@ ADABROKER_TRY
   }
 ADABROKER_CATCH 
   // never reach here just a default return for dummy compilers.
-  _CORBA_ULong* default_result = NULL;
+  _CORBA_ULong default_result = 0;
   return default_result; 
 };
 

@@ -100,6 +100,14 @@ package OmniObject is
    -- of Implemented_Object, therwise it would have to
    -- for each descendant in the user's code.
 
+   type Is_A_Function is access
+     function (Repoid : in Corba.String ) return Corba.Boolean ;
+   -- this type is used to make the dispatchnig call.
+   -- this type is made to handle dispatchnig calls
+   -- from the ORB. This procedure cannot be made a primitive
+   -- of Implemented_Object, therwise it would have to
+   -- for each descendant in the user's code.
+
 
    -----------------------------------------------
    --             Omniobject                    --
@@ -143,7 +151,8 @@ package OmniObject is
 
    procedure Init_Local_Object (Self : in out Implemented_Object'Class ;
                                 Repo_Id : in Corba.String ;
-                                Disp : in Dispatch_Procedure ) ;
+                                Disp : in Dispatch_Procedure ;
+                                Isa : in Is_A_Function ) ;
    -- calls the C++ Init to set the init_ok boolean to true
    -- and sets the repoID of this object. It also sets
    -- the dispatch procedure associated with this object
@@ -389,6 +398,7 @@ private
   type Implemented_Object is abstract new Ada.Finalization.Controlled with record
       Omniobj : Object_Ptr ;
       Dispatch : Dispatch_Procedure ;
+      Is_A : Is_A_Function ;
   end record ;
 
 

@@ -559,8 +559,11 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   body += "   procedure Initialize(Self : in out Object) is\n" ;
   body += "   begin\n" ;
   body += "      Omniobject.Init_Local_Object(Omniobject.Implemented_Object(Self),\n" ;
-  body += "                                 Repository_Id, " ;
-  body += get_ada_full_name() + ".Skeleton.Dispatch'Access) ;\n" ;
+  body += "                                 Repository_Id,\n" ;
+  body += "                                 " ;
+  body += get_ada_full_name() + ".Skeleton.Dispatch'Access,\n" ;
+  body += "                                 " ;
+  body += get_ada_full_name() + ".Is_A'Access) ;\n" ;
   body += "      -- You can add things *BELOW* this line\n" ;
   body += "   end Initialize ;\n\n\n" ;
   body += "   -- Adjust\n" ;

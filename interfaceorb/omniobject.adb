@@ -98,7 +98,8 @@ package body OmniObject is
    --------------------
    procedure Init_Local_Object (Self : in out Implemented_Object'Class ;
                                 Repo_Id : in Corba.String ;
-                                Disp : in Dispatch_Procedure ) is
+                                Disp : in Dispatch_Procedure ;
+                                Isa : in Is_A_Function ) is
       C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
    begin
       pragma Debug(Output(Omni_Fin,"Omniobject.Init_Local_Object")) ;
@@ -108,6 +109,7 @@ package body OmniObject is
          C_Init_Local_Object (Self.Omniobj.all, C_repoid) ;
          Interfaces.C.Strings.Free(C_Repoid) ;
          Self.Dispatch := Disp ;
+         Self.Is_A := Isa ;
       else
          Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
                                         "Omniobject.Init(Implemented_Object, Corba.String"
@@ -663,6 +665,7 @@ package body OmniObject is
       Tmp.all.Implobj := To_Implemented_Object_Ptr(Self'Access) ;
       Self.Omniobj := Tmp ;
       Self.Dispatch := null ;
+      Self.Is_A := null ;
    end ;
 
 
@@ -688,6 +691,7 @@ package body OmniObject is
          pragma Debug(Output(Omni_Fin,"Omniobject.Finalize :object destroyed")) ;
          Self.Omniobj := null ;
          Self.Dispatch := null ;
+         Self.Is_A := null ;
          pragma Debug(Output(Omni_Fin,"Omniobject.Finalize : OK")) ;
       end if ;
    end ;
@@ -957,7 +961,7 @@ package body OmniObject is
    begin
       -- never called, never used
       Rep := Corba.To_Corba_String(Interfaces.C.Strings.Value(RepoId)) ;
-      return Sys_Dep.Boolean_Ada_To_C(Is_A(Self.Implobj.all, Rep)) ;
+      return Sys_Dep.Boolean_Ada_To_C(Self.Implobj.all.Is_A(Rep)) ;
    end ;
 
 
