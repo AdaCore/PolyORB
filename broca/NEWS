@@ -1,7 +1,14 @@
 AdaBroker news
 --------------
 
-$Revision: 1.2 $
+$Revision: 1.3 $
+
+New features in version 0.91
+============================
+
+A new IDL to Ada compiler, idlac, written
+entirely in Ada 95. No more C++ code, and
+no need for the Sun IDL front-end.
 
 New features in version 0.9
 ===========================
