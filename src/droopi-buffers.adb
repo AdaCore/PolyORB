@@ -235,7 +235,7 @@ package body Droopi.Buffers is
          return;
       end if;
 
-      Grow (Buffer.Contents'Access, Padding, Padding_Space);
+      Grow_Shrink (Buffer.Contents'Access, Padding, Padding_Space);
       --  Try to extend Buffer.Content's last Iovec
       --  to provide proper alignment.
 
@@ -290,7 +290,7 @@ package body Droopi.Buffers is
    is
       A_Data : Opaque_Pointer;
    begin
-      Grow (Buffer.Contents'Access, Size, A_Data);
+      Grow_Shrink (Buffer.Contents'Access, Size, A_Data);
       --  First try to grow an existing Iovec.
 
       if A_Data.Zone = null then
@@ -317,6 +317,15 @@ package body Droopi.Buffers is
       Buffer.CDR_Position := Buffer.CDR_Position + Size;
       Buffer.Length := Buffer.Length + Size;
    end Allocate_And_Insert_Cooked_Data;
+
+   procedure Unuse_Allocation
+     (Buffer    : access Buffer_Type;
+      Size      : Stream_Element_Count)
+   is
+      Data : Opaque_Pointer;
+   begin
+      Grow_Shrink (Buffer.Contents'Access, -Size, Data);
+   end Unuse_Allocation;
 
    procedure Extract_Data
      (Buffer : access Buffer_Type;
@@ -349,6 +358,26 @@ package body Droopi.Buffers is
    begin
       Iovec_Pools.Write_To_Socket (Socket, Buffer.Contents'Access);
    end Send_Buffer;
+
+   procedure Receive_Buffer
+     (Buffer   : access Buffer_Type;
+      Socket   : Sockets.Socket_Type;
+      Max      : Stream_Element_Count;
+      Received : out Stream_Element_Count)
+   is
+      Data : Opaque_Pointer;
+      Last : Stream_Element_Offset;
+      Addr : Droopi.Sockets.Sock_Addr_Type;
+   begin
+      Allocate_And_Insert_Cooked_Data (Buffer, Max, Data);
+      Droopi.Sockets.Receive_Socket
+        (Socket => Socket,
+         Item   => Data.Zone (Data.Offset .. Data.Offset + Max - 1),
+         Last   => Last,
+         From   => Addr);
+      Received := Last - Data.Offset + 1;
+      Unuse_Allocation (Buffer, Max - Received);
+   end Receive_Buffer;
 
    -------------------------
    -- Utility subprograms --
@@ -409,9 +438,9 @@ package body Droopi.Buffers is
       procedure Free is new Ada.Unchecked_Deallocation
         (Iovec_Array, Iovec_Array_Access);
 
-      procedure Grow
+      procedure Grow_Shrink
         (Iovec_Pool   : access Iovec_Pool_Type;
-         Size         : Stream_Element_Count;
+         Size         : Stream_Element_Offset;
          Data         : out Opaque_Pointer)
       is
 
@@ -442,12 +471,22 @@ package body Droopi.Buffers is
                   Chunk_Metadata : constant Chunk_Metadata_Access
                     := Metadata (Last_Chunk);
                begin
-                  if Chunk_Metadata.Last_Used + Size
-                    <= Last_Chunk.Size then
+                  if False
+                    or else (Size > 0
+                             and then Chunk_Metadata.Last_Used + Size
+                               <= Last_Chunk.Size)
+                    or else (Size < 0
+                             and then Chunk_Metadata.Last_Used + Size
+                               >= 0
+                             and then Last_Iovec.Iov_Len + Size >= 0)
+                  then
                      Chunk_Metadata.Last_Used
                        := Chunk_Metadata.Last_Used + Size;
                      Data := First_Address_After (Last_Iovec);
                      Last_Iovec.Iov_Len := Last_Iovec.Iov_Len + Size;
+                  else
+                     pragma Assert (False);
+                     null;
                   end if;
                end;
             end if;
@@ -467,7 +506,7 @@ package body Droopi.Buffers is
             Do_Grow (Iovec_Pool.Dynamic_Array (Iovec_Pool.Last),
                      Iovec_Pool.Last_Chunk);
          end if;
-      end Grow;
+      end Grow_Shrink;
 
       ----------------------------------------
       -- Utility Subprograms (declarations) --

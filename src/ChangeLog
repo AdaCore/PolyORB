@@ -1,3 +1,7 @@
+2001-01-29  Thomas Quinot  <quinot@inf.enst.fr>
+
+	* Droopi.Channels: Implemented Send_Data and Receive_Data.
+
 2001-01-25  Thomas Quinot  <quinot@inf.enst.fr>
 
 	* Droopi.Setup.Test: Test setup procedure for a minimal

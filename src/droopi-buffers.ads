@@ -1,6 +1,6 @@
 --  Buffer management
 
---  $Id: //droopi/main/src/droopi-buffers.ads#5 $
+--  $Id: //droopi/main/src/droopi-buffers.ads#6 $
 
 with System;
 --  For bit-order information.
@@ -30,8 +30,7 @@ package Droopi.Buffers is
    --  The byte order of this host.
 
    type Buffer_Type is limited private;
-
-   type Buffer_Access is access Buffer_Type;
+   type Buffer_Access is access all Buffer_Type;
    --  A pointer to a dynamically allocated buffer.
 
    ------------------------
@@ -217,7 +216,16 @@ package Droopi.Buffers is
    --  A pointer to the allocated space is returned,
    --  so the caller can copy data into it.
    --  This procedure is used to implement marshalling
-   --  by copy.
+   --  by copy. The current position is not changed.
+
+   procedure Unuse_Allocation
+     (Buffer    : access Buffer_Type;
+      Size      : Stream_Element_Count);
+   --  Cancel the allocation of Size bytes at the end
+   --  of this Buffer's memory pool. Size must be no greater
+   --  than the size of the last chunk inserted, which must
+   --  have been allocated using Allocate_And_Insert_Cooked_Data.
+   --  XXX Check that this last restriction is enforced.
 
    --  Retrieving data from a buffer
 
@@ -242,6 +250,16 @@ package Droopi.Buffers is
      (Buffer : access Buffer_Type;
       Socket : Sockets.Socket_Type);
    --  Send the contents of Buffer onto Socket.
+
+   procedure Receive_Buffer
+     (Buffer   : access Buffer_Type;
+      Socket   : Sockets.Socket_Type;
+      Max      : Stream_Element_Count;
+      Received : out Stream_Element_Count);
+   --  Received at most Max octets of data into Buffer at
+   --  current position. On return, Received is set to the
+   --  effective amount of data received, and the current
+   --  position is advanced by that much.
 
    -------------------------
    -- Utility subprograms --
@@ -313,11 +331,11 @@ private
 
       type Iovec_Pool_Type is private;
 
-      procedure Grow
+      procedure Grow_Shrink
         (Iovec_Pool   : access Iovec_Pool_Type;
-         Size         : Stream_Element_Count;
+         Size         : Stream_Element_Offset;
          Data         : out Opaque_Pointer);
-      --  Augment the length of the last Iovec in
+      --  Augment/reduce the length of the last Iovec in
       --  Iovec_Pool by Size elements, if possible.
       --  On success, a pointer to the reserved
       --  space is returned in Data. On failure, a null

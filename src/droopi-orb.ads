@@ -8,10 +8,13 @@ with Droopi.Channels;
 with Droopi.Jobs;
 with Droopi.Protocols;
 with Droopi.Requests;
+with Droopi.Servers;
 with Droopi.Soft_Links;
 with Droopi.Sockets;
 
 package Droopi.ORB is
+
+   use Droopi.Servers;
 
    ----------------------------------
    -- Abstract tasking policy type --
@@ -33,7 +36,7 @@ package Droopi.ORB is
    ---------------------
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
-      is limited private;
+      is new Droopi.Servers.Server_Type with private;
    type ORB_Access is access all ORB_Type;
 
    ------------------------
@@ -83,13 +86,15 @@ package Droopi.ORB is
    -- Server object operations --
    ------------------------------
 
+   procedure Run
+     (ORB : access ORB_Type; Exit_When : Exit_Condition_Access);
+   --  Override inherited primitive.
+
    function Create_ORB
      (Tasking_Policy : Tasking_Policy_Access)
      return ORB_Access;
    --  Create a new ORB with the given Tasking_Policy and
    --  initialize it.
-
-   type Exit_Condition_Access is access all Boolean;
 
    procedure Run
      (ORB            : access ORB_Type;
@@ -128,7 +133,7 @@ package Droopi.ORB is
 
    procedure Delete_Socket
      (ORB : access ORB_Type;
-      S   : Sockets.Socket_Type);
+      AS  : Active_Socket);
    --  Delete socket S from the set of sockets monitored by ORB.
 
 private
@@ -136,7 +141,7 @@ private
    type Tasking_Policy_Type is abstract tagged limited null record;
 
    type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
-   is limited record
+   is new Droopi.Servers.Server_Type with record
 
       ------------------
       -- Server state --
@@ -157,7 +162,7 @@ private
 
       Polling : Boolean;
       --  True if, and only if, one task is blocked waiting
-      --  for external events on Monitored_Sockets.
+      --  for external events on ORB_Sockets.
 
       Selector : Sockets.Selector_Access;
       --  The selector object used to wait for an external event.

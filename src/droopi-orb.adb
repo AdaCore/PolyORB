@@ -20,6 +20,45 @@ package body Droopi.ORB is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   ------------------------------------
+   -- Job type for ORB socket events --
+   ------------------------------------
+
+   type Socket_Ev_Job is new Job with record
+      ORB : ORB_Access;
+      AS  : Active_Socket;
+   end record;
+
+   procedure Run (J : access Socket_Ev_Job);
+   procedure Run (J : access Socket_Ev_Job) is
+   begin
+      Handle_Event (J.ORB, J.AS);
+      Insert_Socket (J.ORB, J.AS);
+   end Run;
+
+   ------------------------------------------
+   -- Job type for suspension of a channel --
+   ------------------------------------------
+
+   --  When a channel waits for data to arrive on
+   --  a socket managed by an ORB, the channel executes
+   --  the suspension object it was given when created.
+
+   --  The execution of such an object must cause the
+   --  ORB to execute until the condition variable for
+   --  the channel is True.
+
+   type Channel_Suspension_Job is new Job with record
+      ORB : ORB_Access;
+      Condition : Exit_Condition_Access;
+   end record;
+
+   procedure Run (J : access Channel_Suspension_Job);
+   procedure Run (J : access Channel_Suspension_Job) is
+   begin
+      Run (J.ORB, J.Condition, True);
+   end Run;
+
    ------------------------------
    -- Server object operations --
    ------------------------------
@@ -57,8 +96,9 @@ package body Droopi.ORB is
                end if;
 
                New_AS.Channel := Channels.Create
-                 (Socket => New_AS.Socket,
-                  Session => New_AS.Session);
+                 (Socket  => New_AS.Socket,
+                  Session => New_AS.Session,
+                  Server  => Server_Access (ORB));
 
                Handle_New_Connection
                  (ORB.Tasking_Policy, ORB_Access (ORB), New_AS);
@@ -99,6 +139,12 @@ package body Droopi.ORB is
             null;
       end case;
    end Handle_Event;
+
+   procedure Run
+     (ORB : access ORB_Type; Exit_When : Exit_Condition_Access) is
+   begin
+      Run (ORB, Exit_When, True);
+   end Run;
 
    function Create_ORB
      (Tasking_Policy : Tasking_Policy_Access)
@@ -143,6 +189,7 @@ package body Droopi.ORB is
 
             pragma Assert (Job /= null);
             Run (Job);
+            Free (Job);
             return True;
          end;
       else
@@ -206,20 +253,24 @@ package body Droopi.ORB is
 
                Enter_Critical_Section;
                ORB.Polling := False;
-               Leave_Critical_Section;
 
                for I in Monitored_Set'Range loop
-                  pragma Debug
-                    (O ("Checking event on socket"
-                        & Image (Monitored_Set (I).Socket)));
                   if Is_Set (R_Set, Monitored_Set (I).Socket) then
+                     Delete_Socket (ORB, Monitored_Set (I));
                      pragma Debug
                        (O ("Got event on socket"
                            & Image (Monitored_Set (I).Socket)));
-                     Handle_Event (ORB, Monitored_Set (I));
-                  end if;
+                     declare
+                        J : constant Job_Access := new Socket_Ev_Job;
+                     begin
+                        Socket_Ev_Job (J.all).ORB := ORB_Access (ORB);
+                        Socket_Ev_Job (J.all).AS  := Monitored_Set (I);
 
+                        Queue_Job (ORB.Job_Queue, J);
+                     end;
+                  end if;
                end loop;
+               Leave_Critical_Section;
             end;
          else
 
@@ -288,7 +339,11 @@ package body Droopi.ORB is
       Leave_Critical_Section;
    end Insert_Socket;
 
-   procedure Delete_Socket (ORB : access ORB_Type; S : Socket_Type) is
+   procedure Delete_Socket
+     (ORB : access ORB_Type;
+      AS  : Active_Socket)
+   is
+      Deleted : Boolean := False;
    begin
       Enter_Critical_Section;
 
@@ -298,20 +353,17 @@ package body Droopi.ORB is
       begin
          All_Sockets :
          for I in Sockets'Range loop
-            if Sockets (I).Socket = S then
+            if Sockets (I) = AS then
                Sock_Seqs.Delete
                  (Source  => ORB.ORB_Sockets,
                   From    => 1 + I - Sockets'First,
                   Through => 1 + I - Sockets'First);
-
+               Deleted := True;
                exit All_Sockets;
             end if;
          end loop All_Sockets;
 
-         --  Tried to delete a socket that is not part
-         --  of the monitored set!
-
-         pragma Assert (False);
+         pragma Assert (Deleted);
       end;
 
       if ORB.Polling then

@@ -1,4 +1,5 @@
 --  Job management for ORB activities.
+
 --  $Id$
 
 package Droopi.Jobs is
@@ -18,6 +19,9 @@ package Droopi.Jobs is
    procedure Run (J : access Job) is abstract;
    --  Execute the given Job. A task processes a Job
    --  by invoking its Run primitive.
+
+   procedure Free (X : in out Job_Access);
+   --  Deallocate X.all.
 
    ---------------
    -- Job_Queue --

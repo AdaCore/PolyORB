@@ -8,7 +8,9 @@ with Droopi.Log;
 
 package body Droopi.Channels is
 
+   use Droopi.Buffers;
    use Droopi.Log;
+   use Droopi.Servers;
    use Droopi.Sockets;
 
    package L is new Droopi.Log.Facility_Log ("droopi.channels");
@@ -16,8 +18,9 @@ package body Droopi.Channels is
      renames L.Output;
 
    function Create
-     (Socket : Sockets.Socket_Type;
-      Session : Protocols.Session_Access)
+     (Socket  : Sockets.Socket_Type;
+      Session : Protocols.Session_Access;
+      Server  : Server_Access)
      return Channel_Access
    is
       Result : constant Channel_Access
@@ -25,8 +28,9 @@ package body Droopi.Channels is
    begin
       pragma Assert (Result /= null);
 
-      Result.Socket := Socket;
+      Result.Socket  := Socket;
       Result.Session := Session;
+      Result.Server  := Server;
       return Result;
    end Create;
 
@@ -37,6 +41,10 @@ package body Droopi.Channels is
       Free (C);
    end Destroy;
 
+   ----------------------------
+   -- Upper layers interface --
+   ----------------------------
+
    procedure Send_Data
      (C : access Channel;
       B : access Buffers.Buffer_Type) is
@@ -44,18 +52,50 @@ package body Droopi.Channels is
       Droopi.Buffers.Send_Buffer (B, C.Socket);
    end Send_Data;
 
-   procedure Expect_Data (C : access Channel; Size : Natural) is
+   procedure Receive_Data
+     (C     : access Channel;
+      B     : access Buffers.Buffer_Type;
+      Size  : Stream_Element_Count;
+      Exact : Boolean := True)
+   is
    begin
-      raise Not_Implemented;
-   end Expect_Data;
+      C.Data_Expected := Size;
+      C.Data_Exact    := Exact;
+      C.Data_Buffer   := Buffer_Access (B);
+      C.Data_Arrived  := False;
+      Run (C.Server, Exit_Condition_Access'(C.Data_Arrived'Access));
+   end Receive_Data;
+
+   -------------------------------
+   -- Callback from lower layer --
+   -------------------------------
 
    procedure Handle_Data
      (C : access Channel;
-      S : Sockets.Socket_Type) is
+      S : Sockets.Socket_Type)
+   is
+      Data_Received : Stream_Element_Count;
    begin
-      O ("Data received on socket " & Image (C.Socket));
+      pragma Debug (O ("Data received on socket"
+                       & Image (C.Socket)));
+
+      if C.Data_Buffer = null or else C.Data_Expected = 0 then
+         O ("Unexpected data received on fd" & Image (C.Socket));
+
+         --  XXX Should signal error and close channel altogether!
+         return;
+      end if;
+
+      Droopi.Buffers.Receive_Buffer
+        (C.Data_Buffer, C.Socket, C.Data_Expected, Data_Received);
+      pragma Assert (Data_Received <= C.Data_Expected);
+      C.Data_Expected := C.Data_Expected - Data_Received;
+
+      if C.Data_Expected = 0 or else not C.Data_Exact then
+         C.Data_Expected := 0;
+         C.Data_Buffer   := null;
+         C.Data_Arrived  := True;
+      end if;
    end Handle_Data;
 
 end Droopi.Channels;
-
-

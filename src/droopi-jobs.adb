@@ -1,9 +1,16 @@
 --  $Id$
 
 with Ada.Unchecked_Deallocation;
-with Droopi.Soft_Links;
 
 package body Droopi.Jobs is
+
+   procedure Free (X : in out Job_Access)
+   is
+      procedure Job_Free is new Ada.Unchecked_Deallocation
+        (Job'Class, Job_Access);
+   begin
+      Job_Free (X);
+   end Free;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Queue_Element, Queue_Element_Access);
