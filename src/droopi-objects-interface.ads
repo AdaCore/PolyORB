@@ -11,7 +11,9 @@ package Droopi.Objects.Interface is
       Req : Requests.Request_Access;
    end record;
    --  Request the receiving Servant to execute Req.
-   --  The expected reply is Executed_Request.
+   --  The expected reply is Executed_Request. Null_Message
+   --  can also be returned if the request was not processed
+   --  immediately.
 
    type Executed_Request is new Components.Message with record
       Req : Requests.Request_Access;

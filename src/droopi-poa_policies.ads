@@ -8,14 +8,13 @@ with Sequences.Unbounded;
 
 with Droopi.POA_Types;
 with Droopi.Static_Dict;
---  with Droopi.Types;
 
 with CORBA.Policy_Values; use CORBA.Policy_Values;
 --  XXX remove reference to CORBA.
 
 package Droopi.POA_Policies is
 
-   --  type PolicyType is new Droopi.Types.Unsigned_Long;
+   pragma Elaborate_Body;
 
    type Policy is abstract tagged
       record
@@ -28,11 +27,13 @@ package Droopi.POA_Policies is
    subtype PolicyList is Policy_Sequences.Sequence;
    type PolicyList_Access is access all PolicyList;
 
-   package Policies_Factory_Pkg is
+   package Policy_Repository_Pkg is
       new Droopi.Static_Dict
      (Value => Droopi.POA_Policies.Policy_Access,
       Key   => CORBA.Policy_Values.Policy_Value);
-   subtype Policies_Factory is Policies_Factory_Pkg.Dict_Access;
+   subtype Policy_Repository is Policy_Repository_Pkg.Dict_Access;
+
+   function Policy_Id (Self : Policy) return Policy_Value;
 
    procedure Check_Compatibility
      (Self : Policy;
@@ -41,11 +42,13 @@ package Droopi.POA_Policies is
    --  Check the compatibility of the current policy with the
    --  other policies of the object adapter.
 
-   function Create return Policy_Access is abstract;
-   --  The creation function, implemented for each type of policy
+   --  function Create return Policy_Access is abstract;
+   --  The creation function, implemented for each type of policy.
+   --  Useless because no controlling operand and no controlling result.
 
-   procedure Free (P   : in     Policy;
-                   Ptr : in out Policy_Access)
+   procedure Free
+     (P   : in     Policy;
+      Ptr : in out Policy_Access)
      is abstract;
 
 end Droopi.POA_Policies;

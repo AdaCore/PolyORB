@@ -8,7 +8,7 @@ with Droopi.POA_Types;     use Droopi.POA_Types;
 with Droopi.POA_Manager;
 
 with CORBA;
-with CORBA.Policy_Values; use CORBA.Policy_Values;
+--  with CORBA.Policy_Values; use CORBA.Policy_Values;
 with CORBA.Object_Map;
 
 with Droopi.Types;
@@ -29,6 +29,8 @@ use Droopi.POA_Policies.Servant_Retention_Policy;
 use Droopi.POA_Policies.Lifespan_Policy;
 use Droopi.POA_Policies.Implicit_Activation_Policy;
 
+with POA_Configuration;
+
 package Droopi.POA is
 
    --  Unit has no proper body: no elab control necessary.
@@ -44,10 +46,13 @@ package Droopi.POA is
          Absolute_Address           : Types.String;
          Active_Object_Map          : CORBA.Object_Map.Object_Map_Access;
 
+         --  Configuration
+         Configuration              : POA_Configuration.Configuration_Access;
+
          --  Policies (one of each is required)
          Thread_Policy              : ThreadPolicy_Access             := null;
          Request_Processing_Policy  : RequestProcessingPolicy_Access  := null;
-         Id_Assignment_Policy      : IdAssignmentPolicy_Access      := null;
+         Id_Assignment_Policy       : IdAssignmentPolicy_Access      := null;
          Id_Uniqueness_Policy       : IdUniquenessPolicy_Access       := null;
          Servant_Retention_Policy   : ServantRetentionPolicy_Access   := null;
          Lifespan_Policy            : LifespanPolicy_Access           := null;
@@ -87,47 +92,47 @@ package Droopi.POA is
       is abstract;
    --  Destroys recursively the POA and all his descendants
 
-   function Create_Thread_Policy
-     (Self  : access Obj_Adapter;
-      Value :        ThreadPolicyValue)
-     return ThreadPolicy_Access
-      is abstract;
+--    function Create_Thread_Policy
+--      (Self  : access Obj_Adapter;
+--       Value :        ThreadPolicyValue)
+--      return ThreadPolicy_Access
+--       is abstract;
 
-   function Create_Lifespan_Policy
-     (Self  : access Obj_Adapter;
-      Value :        LifespanPolicyValue)
-     return LifespanPolicy_Access
-      is abstract;
+--    function Create_Lifespan_Policy
+--      (Self  : access Obj_Adapter;
+--       Value :        LifespanPolicyValue)
+--      return LifespanPolicy_Access
+--       is abstract;
 
-   function Create_Id_Uniqueness_Policy
-     (Self  : access Obj_Adapter;
-      Value :        IdUniquenessPolicyValue)
-     return IdUniquenessPolicy_Access
-      is abstract;
+--    function Create_Id_Uniqueness_Policy
+--      (Self  : access Obj_Adapter;
+--       Value :        IdUniquenessPolicyValue)
+--      return IdUniquenessPolicy_Access
+--       is abstract;
 
-   function Create_Id_Assignment_Policy
-     (Self  : access Obj_Adapter;
-      Value :        IdAssignmentPolicyValue)
-     return IdAssignmentPolicy_Access
-     is abstract;
+--    function Create_Id_Assignment_Policy
+--      (Self  : access Obj_Adapter;
+--       Value :        IdAssignmentPolicyValue)
+--      return IdAssignmentPolicy_Access
+--      is abstract;
 
-   function Create_Servant_Retention_Policy
-     (Self  : access Obj_Adapter;
-      Value :        ServantRetentionPolicyValue)
-     return ServantRetentionPolicy_Access
-     is abstract;
+--    function Create_Servant_Retention_Policy
+--      (Self  : access Obj_Adapter;
+--       Value :        ServantRetentionPolicyValue)
+--      return ServantRetentionPolicy_Access
+--      is abstract;
 
-   function Create_Request_Processing_Policy
-     (Self  : access Obj_Adapter;
-      Value :        RequestProcessingPolicyValue)
-     return RequestProcessingPolicy_Access
-     is abstract;
+--    function Create_Request_Processing_Policy
+--      (Self  : access Obj_Adapter;
+--       Value :        RequestProcessingPolicyValue)
+--      return RequestProcessingPolicy_Access
+--      is abstract;
 
-   function Create_Implicit_Activation_Policy
-     (Self  : access Obj_Adapter;
-      Value :        ImplicitActivationPolicyValue)
-     return ImplicitActivationPolicy_Access
-      is abstract;
+--    function Create_Implicit_Activation_Policy
+--      (Self  : access Obj_Adapter;
+--       Value :        ImplicitActivationPolicyValue)
+--      return ImplicitActivationPolicy_Access
+--       is abstract;
 
    function Activate_Object
      (Self      : access Obj_Adapter;

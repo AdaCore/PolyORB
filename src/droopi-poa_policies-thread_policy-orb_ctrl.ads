@@ -1,21 +1,21 @@
 with Ada.Unchecked_Deallocation;
 
-package Droopi.POA_Policies.Thread_Policy.Orb_Ctrl is
+package Droopi.POA_Policies.Thread_Policy.ORB_Ctrl is
 
-   type Orb_Ctrl_Policy is new ThreadPolicy with null record;
-   type Orb_Ctrl_Policy_Access is access all Orb_Ctrl_Policy;
+   type ORB_Ctrl_Policy is new ThreadPolicy with null record;
+   type ORB_Ctrl_Policy_Access is access all ORB_Ctrl_Policy;
 
-   function Create return Orb_Ctrl_Policy_Access;
-   procedure Check_Compatibility (Self : Orb_Ctrl_Policy;
+   function Create return ORB_Ctrl_Policy_Access;
+   procedure Check_Compatibility (Self : ORB_Ctrl_Policy;
                                   OA   : Droopi.POA_Types.Obj_Adapter_Access);
 
---    procedure Free (P   : Orb_Ctrl_Policy;
---                    Ptr : Orb_Ctrl_Policy_Access);
+--    procedure Free (P   : ORB_Ctrl_Policy;
+--                    Ptr : ORB_Ctrl_Policy_Access);
 
-   procedure Free (P   : in     Orb_Ctrl_Policy;
+   procedure Free (P   : in     ORB_Ctrl_Policy;
                    Ptr : in out Policy_Access);
 
-   procedure Free is new Ada.Unchecked_Deallocation (Orb_Ctrl_Policy,
-                                                     Orb_Ctrl_Policy_Access);
+   procedure Free is new Ada.Unchecked_Deallocation (ORB_Ctrl_Policy,
+                                                     ORB_Ctrl_Policy_Access);
 
-end Droopi.POA_Policies.Thread_Policy.Orb_Ctrl;
+end Droopi.POA_Policies.Thread_Policy.ORB_Ctrl;

@@ -1,4 +1,4 @@
-package body Droopi.POA_Policies.Thread_Policy.Orb_Ctrl is
+package body Droopi.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    use CORBA.Policy_Values;
 
@@ -6,11 +6,11 @@ package body Droopi.POA_Policies.Thread_Policy.Orb_Ctrl is
    -- Create --
    ------------
 
-   function Create return Orb_Ctrl_Policy_Access
+   function Create return ORB_Ctrl_Policy_Access
    is
-      Policy : Orb_Ctrl_Policy_Access;
+      Policy : ORB_Ctrl_Policy_Access;
    begin
-      Policy := new Orb_Ctrl_Policy'
+      Policy := new ORB_Ctrl_Policy'
         (Value => CORBA.Policy_Values.ORB_CTRL_MODEL);
       return Policy;
    end Create;
@@ -20,7 +20,7 @@ package body Droopi.POA_Policies.Thread_Policy.Orb_Ctrl is
    -------------------------
 
    procedure Check_Compatibility
-     (Self : Orb_Ctrl_Policy;
+     (Self : ORB_Ctrl_Policy;
       OA   : Droopi.POA_Types.Obj_Adapter_Access)
    is
    begin
@@ -32,11 +32,11 @@ package body Droopi.POA_Policies.Thread_Policy.Orb_Ctrl is
    ----------
 
    procedure Free
-     (P   : in     Orb_Ctrl_Policy;
+     (P   : in     ORB_Ctrl_Policy;
       Ptr : in out Policy_Access)
    is
    begin
-      Free (Orb_Ctrl_Policy_Access (Ptr));
+      Free (ORB_Ctrl_Policy_Access (Ptr));
    end Free;
 
-end Droopi.POA_Policies.Thread_Policy.Orb_Ctrl;
+end Droopi.POA_Policies.Thread_Policy.ORB_Ctrl;

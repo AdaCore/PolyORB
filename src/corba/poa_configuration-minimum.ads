@@ -4,6 +4,10 @@ package POA_Configuration.Minimum is
 
    procedure Initialize
      (C : Minimum_Configuration;
-      F : Droopi.POA_Policies.Policies_Factory);
+      F : Droopi.POA_Policies.Policy_Repository);
+
+   function Default_Policies
+     (C : Minimum_Configuration)
+     return Droopi.POA_Policies.PolicyList_Access;
 
 end POA_Configuration.Minimum;

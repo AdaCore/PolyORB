@@ -587,8 +587,14 @@ package body Droopi.ORB is
             --  Unbind (J.Req.Target, J.ORB, Servant);
             --  XXX Unbind must Release_Servant.
 
-            Emit_No_Reply (J.Requestor, Result);
-            --  Send back answer.
+            if not (Result in Null_Message) then
+               --  An answer was synchronously provided by the
+               --  servant:
+
+               Emit_No_Reply (J.Requestor, Result);
+               --  send it back.
+            end if;
+
 
             --  XXX Should that be Emit? Should there be a reply
             --      from Requestor?

@@ -10,7 +10,7 @@ package body Droopi.POA_Manager.Basic_Manager is
    use Requests_Queue_P;
 
    package L is new Droopi.Log.Facility_Log
-     ("corba.poa_manager.basic_manager");
+     ("droopi.poa_manager.basic_manager");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
 
