@@ -120,7 +120,6 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
       POA : constant PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
-      --  Object_Id_Info : Unmarshalled_Oid;
       The_Entry : Object_Map_Entry_Access;
       Index : Integer;
 
@@ -140,8 +139,8 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       if Hint /= null then
          begin
             Index := Integer'Value (As_String_Ptr (Hint).all);
-            The_Entry := Get_By_Index
-              (POA.Active_Object_Map.all, Index);
+            The_Entry := Get_By_Id
+              (POA.Active_Object_Map.all, Oid_To_U_Oid (Hint));
          exception
             when others =>
                Unlock_W (POA.Map_Lock);
@@ -197,7 +196,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
       pragma Warnings (On);
 
    begin
-      if U_Oid.System_Generated = False then
+      if not U_Oid.System_Generated then
          raise PolyORB.POA.Bad_Param;
       end if;
    end Ensure_Oid_Origin;

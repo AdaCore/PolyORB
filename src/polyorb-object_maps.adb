@@ -75,19 +75,6 @@ package body PolyORB.Object_Maps is
       return Elts'Last + 1;
    end Add;
 
-   ----------------------
-   -- Replace_By_Index --
-   ----------------------
-
-   procedure Replace_By_Index
-     (O_Map : access Object_Map;
-      Obj   : in     Object_Map_Entry_Access;
-      Index : in     Integer)
-   is
-   begin
-      Replace_Element (O_Map.Map, Index, Obj);
-   end Replace_By_Index;
-
    -------------------
    -- Is_Servant_In --
    -------------------
@@ -157,24 +144,6 @@ package body PolyORB.Object_Maps is
       return null;
    end Get_By_Servant;
 
-   ------------------
-   -- Get_By_Index --
-   ------------------
-
-   function Get_By_Index
-     (O_Map : in Object_Map;
-      Index : in Integer)
-     return Object_Map_Entry_Access
-   is
-      An_Entry : constant Object_Map_Entry_Access
-        := Element_Of (O_Map.Map, Index);
-   begin
-      if Is_Null (An_Entry) then
-         return null;
-      end if;
-      return An_Entry;
-   end Get_By_Index;
-
    ------------
    -- Remove --
    ------------
@@ -186,30 +155,20 @@ package body PolyORB.Object_Maps is
    is
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
    begin
-      for I in Elts'Range loop
-         if not Is_Null (Elts (I))
-           and then Elts (I).Oid.all = Item
+      for J in Elts'Range loop
+         if not Is_Null (Elts (J))
+           and then Elts (J).Oid.all = Item
          then
-            return Remove_By_Index (O_Map, I);
+            declare
+               Old_Entry : constant Object_Map_Entry_Access
+                 := Element_Of (O_Map.Map, J);
+            begin
+               Replace_Element (O_Map.Map, J, null);
+               return Old_Entry;
+            end;
          end if;
       end loop;
       return null;
    end Remove_By_Id;
-
-   ---------------------
-   -- Remove_By_Index --
-   ---------------------
-
-   function Remove_By_Index
-     (O_Map : access Object_Map;
-      Index : in     Integer)
-     return Object_Map_Entry_Access
-   is
-      Old_Entry : constant Object_Map_Entry_Access
-        := Element_Of (O_Map.Map, Index);
-   begin
-      Replace_Element (O_Map.Map, Index, null);
-      return Old_Entry;
-   end Remove_By_Index;
 
 end PolyORB.Object_Maps;

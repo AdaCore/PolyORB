@@ -32,7 +32,6 @@
 
 with PolyORB.Object_Maps;
 with PolyORB.Tasking.Rw_Locks;
-with PolyORB.Types;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy;
 with PolyORB.POA_Policies.Lifespan_Policy;
@@ -110,32 +109,29 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
         (POA.Id_Uniqueness_Policy.all, OA, P_Servant);
 
       Lock_W (POA.Map_Lock);
-      if U_Oid.System_Generated then
-         Object_Maps.Get_By_Index
-           (POA.Active_Object_Map.all,
-            Integer'Value (Types.To_Standard_String (U_Oid.Id))).Servant
-           := P_Servant;
-      else
-         declare
-            The_Entry : Object_Map_Entry_Access
-              := Get_By_Id (POA.Active_Object_Map.all, U_Oid);
-         begin
-            if The_Entry = null then
-               The_Entry := new Object_Map_Entry;
-               The_Entry.Oid := new Unmarshalled_Oid'(U_Oid);
-               declare
-                  Index : constant Integer
-                    := Add (POA.Active_Object_Map, The_Entry);
-                  pragma Warnings (Off);
-                  pragma Unreferenced (Index);
-                  pragma Warnings (On);
-               begin
-                  null;
-               end;
-            end if;
-            The_Entry.Servant := P_Servant;
-         end;
-      end if;
+      declare
+         The_Entry : Object_Map_Entry_Access
+           := Get_By_Id (POA.Active_Object_Map.all, U_Oid);
+      begin
+         if not U_Oid.System_Generated
+           and then The_Entry = null then
+            --  If the U_Oid is not System_Generated, the entry may
+            --  not yet exist, thus we allocate it.
+
+            The_Entry := new Object_Map_Entry;
+            The_Entry.Oid := new Unmarshalled_Oid'(U_Oid);
+            declare
+               Index : constant Integer
+                 := Add (POA.Active_Object_Map, The_Entry);
+               pragma Warnings (Off);
+               pragma Unreferenced (Index);
+               pragma Warnings (On);
+            begin
+               null;
+            end;
+         end if;
+         The_Entry.Servant := P_Servant;
+      end;
       Unlock_W (POA.Map_Lock);
    end Retain_Servant_Association;
 

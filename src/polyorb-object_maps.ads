@@ -63,12 +63,6 @@ package PolyORB.Object_Maps is
      return Integer;
    --  Adds a new entry in the map, returning its index.
 
-   procedure Replace_By_Index
-     (O_Map : access Object_Map;
-      Obj   : in     Object_Map_Entry_Access;
-      Index : in     Integer);
-   --  Replace an element in the map, given its index.
-
    function Is_Servant_In
      (O_Map : in Object_Map;
       Item  : in PolyORB.Servants.Servant_Access)
@@ -98,13 +92,6 @@ package PolyORB.Object_Maps is
    --  Doesn't check that the servant is only once in the map
    --  If not found, returns null.
 
-   function Get_By_Index
-     (O_Map : in Object_Map;
-      Index : in Integer)
-     return Object_Map_Entry_Access;
-   --  Given an index, returns the corrsponding map entry
-   --  If Index is out of bounds, returns null.
-
    function Remove_By_Id
      (O_Map : access Object_Map;
       Item  : in PolyORB.POA_Types.Unmarshalled_Oid)
@@ -112,16 +99,6 @@ package PolyORB.Object_Maps is
    --  Given an Object_Id, removes an entry from the map
    --  and returns it . A null value means
    --  that the object_id wasn't in the map.
-
-   function Remove_By_Index
-     (O_Map : access Object_Map;
-      Index : in     Integer)
-     return Object_Map_Entry_Access;
-   --  Given an index, removes an entry from the map
-   --  and returns it. A null value means that the index
-   --  points to an empty value.
-   --  The caller is responsible for freeing the Oid
-   --  and the object map entry.
 
 private
 
