@@ -244,14 +244,14 @@ package body Errors is
 
    begin
       if Verbose and then Loc.Line > 0 and then Loc.Col > 0 then
-         Put_Line (Current_Error, "At " & Display_Location (Loc));
+         Put_Line (Current_Error, "In file " & Full_Name (Loc));
          New_Line (Current_Error);
          declare
             File_Name : constant String := Full_Name (Loc);
             File      : File_Type;
             Line      : String (1 .. 1024);
             Last      : Natural;
-            LN        : constant String := Nat_To_String (Loc.Col);
+            LN        : constant String := Nat_To_String (Loc.Line);
             LNN       : constant Positive := LN'Length;
          begin
             Open (File, In_File, File_Name);
