@@ -53,12 +53,15 @@ package PolyORB.Tasking.Watchers is
    type Version_Id is mod 2 ** 8;
    --  Type of the version stored in the Watcher.
    --  XXX This type is not private for the moment, but it
-   --  will as soon as PolyORB.Soft_Links will not be used anymore
+   --      will as soon as PolyORB.Soft_Links will not be used anymore.
+   --      No computation is allowed on Version_Ids outside of implementations
+   --      of the Watcher interface.
 
    procedure Differ
      (W : in out Watcher_Type;
       V : in Version_Id);
-   --  Await until W's version differs from V.
+   --  Await until W's version differs from V. V must be a Version
+   --  value obtained from a previous call to Lookup on the same watcher.
 
    procedure Lookup
      (W : in Watcher_Type;
