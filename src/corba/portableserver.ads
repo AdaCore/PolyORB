@@ -46,6 +46,7 @@ pragma Elaborate_All (CORBA.Forward);
 with CORBA.Impl;
 with CORBA.Object;
 with CORBA.ServerRequest;
+with CORBA.Sequences.Unbounded;
 
 pragma Warnings (Off);              --  WAG:3.15
 with PolyORB.Any;                   --  WAG:3.15
@@ -59,7 +60,14 @@ package PortableServer is
 
    pragma Elaborate_Body;
 
+   --  forward declaration
+
    package POA_Forward is new CORBA.Forward;
+
+   package IDL_Sequence_POA_Forward is new
+     CORBA.Sequences.Unbounded (POA_Forward.Ref);
+
+   subtype POAList is IDL_Sequence_POA_Forward.Sequence;
 
    ---------------------------
    -- DynamicImplementation --

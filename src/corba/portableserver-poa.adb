@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#40 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#41 $
 
 with Ada.Exceptions;
 
@@ -55,6 +55,7 @@ with PolyORB.References.Binding;
 with PolyORB.Servants;
 with PolyORB.Setup;
 with PolyORB.Smart_Pointers;
+with PolyORB.Tasking.Rw_Locks;
 with PolyORB.Types;
 with PolyORB.Utils.Strings;
 
@@ -363,6 +364,49 @@ package body PortableServer.POA is
          (PolyORB.Smart_Pointers.Entity_Ptr
           (To_POA (Self).Father)));
    end Get_The_Parent;
+
+   ----------------------
+   -- Get_The_Children --
+   ----------------------
+
+   function Get_The_Children
+     (Self : in Ref)
+     return POAList
+   is
+      use type PolyORB.POA_Types.POATable_Access;
+      use PolyORB.POA_Types.POA_HTables;
+      use PolyORB.Smart_Pointers;
+      use IDL_Sequence_POA_Forward;
+
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      Result : POAList;
+   begin
+      pragma Debug (O ("Get_The_Children: enter"));
+
+      if POA.Children /= null
+        and then not Is_Empty (POA.Children.all) then
+         PolyORB.Tasking.Rw_Locks.Lock_R (POA.Children_Lock);
+
+         pragma Debug (O ("Iterate over existing children"));
+         declare
+            It : Iterator := First (POA.Children.all);
+         begin
+            while not Last (It) loop
+               pragma Debug (O ("++"));
+               Append (Result,
+                       Convert.To_Forward
+                       (Create_Ref (Entity_Ptr (Value (It)))));
+               Next (It);
+            end loop;
+         end;
+
+         PolyORB.Tasking.Rw_Locks.Unlock_R (POA.Children_Lock);
+      end if;
+
+      pragma Debug (O ("Get_The_Children: end"));
+      return Result;
+   end Get_The_Children;
 
    ------------------------
    -- Get_The_POAManager --

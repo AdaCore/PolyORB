@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.ads#11 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.ads#12 $
 
 with Ada.Exceptions;
 
@@ -61,7 +61,9 @@ package PortableServer.POA is
 
    type Ref is new CORBA.Object.Ref with null record;
 
-   function To_Ref (Self : CORBA.Object.Ref'Class) return Ref;
+   function To_Ref
+     (Self : CORBA.Object.Ref'Class)
+     return Ref;
 
    AdapterAlreadyExists : exception;
    AdapterNonExistent   : exception;
@@ -134,9 +136,9 @@ package PortableServer.POA is
      (Self : in Ref)
      return Ref'Class;
 
-   --  function Get_The_Children
-   --    (Self : in Ref)
-   --    return POAList;
+   function Get_The_Children
+     (Self : in Ref)
+     return POAList;
 
    function Get_The_POAManager
      (Self : in Ref)
