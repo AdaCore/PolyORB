@@ -9,8 +9,8 @@ with Ada.Unchecked_Deallocation;
 
 package Broca.Exceptions.Stack is
 
-   --  the maximum number of exception members stored in each task.
-   Stack_Size : constant Integer := 100;
+   --  the maximum number of exception members stored globally
+   Pool_Size : constant Integer := 100;
 
    --  unique Ids are given to each exception members.
    --  A modular type is used to generate these unique Ids.
@@ -44,32 +44,23 @@ private
    --  each exception occurrence is given a unique ID
    type Exception_Occurrence_ID is mod Unique_Id_Modulo;
 
+
    --  a structure to hold an ID an the corresponding member
+   type Cell;
+   type Cell_Ptr is access Cell;
    type Cell is
       record
          ID : Exception_Occurrence_ID := 0;
          Member_Ptr : IDL_Exception_Members_Ptr := null;
+         Next : Cell_Ptr := null;
+         Previous : Cell_Ptr := null;
       end record;
 
-   --  a special type for the indexes in the stack
-   type Index_Type is mod Stack_Size;
-   type Cell_Array is array (Index_Type) of Cell;
-
-   --  a stack
-   --  youngest points to the youngest element if the stack is not empty
-   --  oldest points to the oldest element if the stack is not empty
-   --  when the stack is empty, youngest = oldest and Is_Empty = true
-   type Stack is record
-      Is_Empty : Standard.Boolean := True;
-      Cells : Cell_Array;
-      Youngest : Index_Type := 0;
-      Oldest : Index_Type := 0;
-   end record;
-
+   procedure Free is new Ada.Unchecked_Deallocation (Cell, Cell_Ptr);
 
    --  The protected type for this package to be
    --  thread-safe
-   protected The_Stack is
+   protected The_Pool is
 
       --  puts an element in the list
       --  and throws away the oldest element if
@@ -89,10 +80,14 @@ private
       --  returns true if the stack is full
       function Is_Full return Boolean;
 
+      --  removes the last element from the list
+      procedure Remove_Last_Element;
+
    private
-      Value : Stack;
-      Next_Id : Exception_Occurrence_ID;
-   end The_Stack;
+      Pool : Cell_Ptr := null;
+      Next_Id : Exception_Occurrence_ID := 0;
+      Current_Size : Integer := 0;
+   end The_Pool;
 
 end Broca.Exceptions.Stack;
 

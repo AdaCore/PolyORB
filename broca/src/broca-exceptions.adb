@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.8 $
+--                            $Revision: 1.9 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -204,7 +204,8 @@ package body Broca.Exceptions is
    end Raise_Transient;
 
    procedure Raise_Internal
-     (Minor : Unsigned_Long; Status : Completion_Status := Completed_No) is
+     (Minor : Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No) is
    begin
       Raise_Exception
         (Internal'Identity,

@@ -14,8 +14,8 @@ package body Broca.Exceptions.Stack is
       Ex_Mb : IDL_Exception_Members_Ptr
         := new IDL_Exception_Members'Class' (Excp_Memb);
    begin
-      The_Stack.Get_Next_Id (ID);
-      The_Stack.Put (Ex_Mb, ID);
+      The_Pool.Get_Next_Id (ID);
+      The_Pool.Put (Ex_Mb, ID);
       Ada.Exceptions.Raise_Exception (Excp,
                                       Exception_Occurrence_ID'Image (ID));
       --  should never reach this point
@@ -28,23 +28,23 @@ package body Broca.Exceptions.Stack is
    procedure Get_Members (From : in CORBA.Exception_Occurrence;
                           To : out IDL_Exception_Members'Class) is
    begin
-      The_Stack.Get (From, To);
+      The_Pool.Get (From, To);
    end Get_Members;
 
 
 
    --------------------
-   -- The_Stack body --
+   -- The_Pool body --
    --------------------
 
-   protected body The_Stack is
+   protected body The_Pool is
 
       --------------
       --  Is_Full --
       --------------
       function Is_Full return Boolean is
       begin
-         return (Value.Youngest = Value.Oldest + 1);
+         return (Current_Size = Pool_Size);
       end Is_Full;
 
 
@@ -53,41 +53,32 @@ package body Broca.Exceptions.Stack is
       ----------
       procedure Put (Excp_Mb : in IDL_Exception_Members_Ptr;
                      Excp_Id : in Exception_Occurrence_ID) is
+         Head : Cell_Ptr;
       begin
-         pragma Debug (O ("Put start, ID="
+         pragma Debug (O ("Put starts Excp_ID="
                           & Exception_Occurrence_ID'Image (Excp_Id)
-                          & ", Youngest="
-                          & Index_Type'Image (Value.Youngest)
-                          & ", Oldest="
-                          & Index_Type'Image (Value.Oldest)
-                          & ", Is_Empty="
-                          & Boolean'Image (Value.Is_Empty)));
-
-         if Value.Is_Empty then
-            Value.Is_Empty := False;
-         else
-            if (Is_Full) then
-               --  free previous member
-               Free (Value.Cells (Value.Oldest).Member_Ptr);
-               Value.Youngest := Value.Youngest - 1;
-               Value.Oldest := Value.Oldest - 1;
-            else
-               Value.Youngest := Value.Youngest - 1;
-            end if;
+                          & " ,Current_Size="
+                          & Integer'Image (Current_Size)));
+         if Is_Full then
+            Remove_Last_Element;
          end if;
 
-         --  insert the new member at the youngest position
-         Value.Cells (Value.Youngest).ID := Excp_Id;
-         Value.Cells (Value.Youngest).Member_Ptr := Excp_Mb;
+         Head := new Cell' (ID => Excp_Id,
+                            Member_Ptr => Excp_Mb,
+                            Next => Pool,
+                            Previous => null);
+         if Pool /= null then
+            Pool.all.Previous := Head;
+         end if;
 
-         pragma Debug (O ("Put end, ID="
+         Pool := Head;
+
+         Current_Size := Current_Size + 1;
+
+         pragma Debug (O ("Put ends Excp_ID="
                           & Exception_Occurrence_ID'Image (Excp_Id)
-                          & ", Youngest="
-                          & Index_Type'Image (Value.Youngest)
-                          & ", Oldest="
-                          & Index_Type'Image (Value.Oldest)
-                          & ", Is_Empty="
-                          & Boolean'Image (Value.Is_Empty)));
+                          & " ,Current_Size="
+                          & Integer'Image (Current_Size)));
       end Put;
 
 
@@ -96,68 +87,57 @@ package body Broca.Exceptions.Stack is
       -----------
       procedure Get (From : in CORBA.Exception_Occurrence;
                      Result : out IDL_Exception_Members'Class) is
-         I : Index_Type := Value.Youngest;
-         Found : Boolean := False;
-         Expected_ID : Exception_Occurrence_ID
+         Index : Cell_Ptr := Pool;
+         Excp_Id : Exception_Occurrence_ID
            := Exception_Occurrence_ID'Value
            (Ada.Exceptions.Exception_Message (From));
-         J : Index_Type := Value.Youngest;
       begin
-         pragma Debug (O ("Get start, ID="
-                          & Exception_Occurrence_ID'Image (Expected_ID)
-                          & ", Youngest="
-                          & Index_Type'Image (Value.Youngest)
-                          & ", Oldest="
-                          & Index_Type'Image (Value.Oldest)
-                          & ", Is_Empty="
-                          & Boolean'Image (Value.Is_Empty)));
 
-         if Value.Is_Empty then
-            Broca.Exceptions.Raise_Imp_Limit;
+         pragma Debug (O ("Get starts Excp_ID="
+                          & Exception_Occurrence_ID'Image (Excp_Id)
+                          & " ,Current_Size="
+                          & Integer'Image (Current_Size)));
+
+         if Index = null then
+            Broca.Exceptions.Raise_Internal;
          end if;
 
-         --  loop to find the expected ID
-         loop
-            if Value.Cells (I).ID = Expected_ID then
-               Found := True;
-            else
-               I := I + 1;
-            end if;
-            exit when ((Found) or (I = Value.Youngest));
-         end loop;
+         --  if it is the first
+         if Pool.all.ID = Excp_Id then
+            Pool := Pool.all.Next;
 
-         if (not Found) then
-            Broca.Exceptions.Raise_Imp_Limit;
-         end if;
-
-         --  found : return this cell
-         Result := Value.Cells (I).Member_Ptr.all;
-
-         --  and free all the previous ones
-         loop
-            Free (Value.Cells (J).Member_Ptr);
-            J := J + 1;
-            exit when (J = I + 1);
-         end loop;
-
-         --  shift the youngest index to remove the bottom of the stack
-         if (I = Value.Oldest) then
-            --  remove everything
-            Value.Youngest := Value.Oldest;
-            Value.Is_Empty := True;
          else
-            Value.Youngest := I + 1;
+            --  else find it
+            while (Index /= null)
+              and then Index.all.ID /= Excp_Id loop
+               Index := Index.all.Next;
+            end loop;
+
+            --  if not found :
+            --  either it is a bug
+            --  or the pool size has been reached
+            if Index = null then
+               Broca.Exceptions.Raise_Imp_Limit;
+
+            else
+               Index.Previous.all.Next := Index.all.Next;
+               if Index.Next /= null then
+                  Index.Next.all.Previous := Index.Previous;
+               end if;
+            end if;
          end if;
 
-         pragma Debug (O ("Get ends, ID="
-                          & Exception_Occurrence_ID'Image (Expected_ID)
-                          & ", Youngest="
-                          & Index_Type'Image (Value.Youngest)
-                          & ", Oldest="
-                          & Index_Type'Image (Value.Oldest)
-                          & ", Is_Empty="
-                          & Boolean'Image (Value.Is_Empty)));
+         Result := Index.all.Member_Ptr.all;
 
+         --  free the resources
+         Free (Index.all.Member_Ptr);
+         Free (Index);
+         Current_Size := Current_Size - 1;
+
+         pragma Debug (O ("Get ends Excp_ID="
+                          & Exception_Occurrence_ID'Image (Excp_Id)
+                          & " ,Current_Size="
+                          & Integer'Image (Current_Size)));
       end Get;
 
 
@@ -170,6 +150,27 @@ package body Broca.Exceptions.Stack is
          Result := Next_Id;
       end Get_Next_Id;
 
-   end The_Stack;
+      --------------------------
+      --  Remove_Last_Element --
+      --------------------------
+      procedure Remove_Last_Element is
+         Index : Cell_Ptr := Pool;
+      begin
+         if Index = null then
+            Broca.Exceptions.Raise_Internal;
+         end if;
+
+         while Index.all.Next /= null loop
+            Index := Index.all.Next;
+         end loop;
+
+         Index.Previous.all.Next := null;
+         Free (Index.all.Member_Ptr);
+         Free (Index);
+         Current_Size := Current_Size - 1;
+      end Remove_Last_Element;
+
+
+   end The_Pool;
 
 end Broca.Exceptions.Stack;

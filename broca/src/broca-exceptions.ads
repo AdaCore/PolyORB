@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.7 $
+--                            $Revision: 1.8 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -133,7 +133,8 @@ package Broca.Exceptions is
 
    --  Raise CORBA.internal
    procedure Raise_Internal
-     (Minor : Unsigned_Long; Status : Completion_Status := Completed_No);
+     (Minor : Unsigned_Long := 0;
+      Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Internal);
 
    --  Raise_Imp_Limit
