@@ -61,6 +61,7 @@ package body XE_Utils is
    Gnatbind       : String_Access;
    Gnatlink       : String_Access;
    Gnatmake       : String_Access;
+   Strip          : String_Access;
 
    Up_To_Low : constant := Character'Pos ('A') - Character'Pos ('a');
 
@@ -202,7 +203,7 @@ package body XE_Utils is
       Maybe_Symbolic : in Boolean := False) is
       S : String_Access := new String (1 .. Strlen (Source));
       T : String_Access := new String (1 .. Strlen (Target));
-      procedure Free is new Unchecked_Deallocation (String, String_Access);
+      --  procedure Free is new Unchecked_Deallocation (String, String_Access);
    begin
       Get_Name_String (Source);
       S.all := Name_Buffer (1 .. Name_Len);
@@ -543,6 +544,21 @@ package body XE_Utils is
 
    end Execute_Link;
 
+   -------------------
+   -- Execute_Strip --
+   -------------------
+
+   procedure Execute_Strip
+     (Executable : in File_Name_Type) is
+      File : Argument_List (1 .. 1);
+
+   begin
+      Get_Name_String (Executable);
+      File (1) := new String'(Name_Buffer (1 .. Name_Len));
+      Execute (Strip, File);
+      Free (File (1));
+   end Execute_Strip;
+
    ----------------
    -- GNAT_Style --
    ----------------
@@ -625,6 +641,7 @@ package body XE_Utils is
       Gnatbind        := Locate ("gnatbind");
       Gnatlink        := Locate ("gnatlink");
       Gnatmake        := Locate ("gnatmake");
+      Strip           := Locate ("strip");
 
       ALI_Suffix     := Str_To_Id (".ali");
       ADS_Suffix     := Str_To_Id (".ads");
@@ -674,17 +691,31 @@ package body XE_Utils is
       Name_Buffer (2) := 'L';
       L_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
+      Optimization_Mode := True;
       for I in 1 .. Argument_Count loop
-         if (Argument (I)(1) = Switch_Character or else Argument (I)(1) = '-')
-           and then (Argument (I)(2 .. Argument (I)'Last) = "cargs"
-                     or else Argument (I)(2 .. Argument (I)'Last) = "bargs"
-                     or else Argument (I)(2 .. Argument (I)'Last) = "largs")
+         if Argument (I)(1) = Switch_Character
+           or else Argument (I)(1) = '-'
          then
-            Scan_Make_Arg (I_GARLIC_Dir.all);
-            GARLIC_Included := True;
+            if Argument (I)(2 .. Argument (I)'Last) = "cargs"
+              or else Argument (I)(2 .. Argument (I)'Last) = "bargs"
+              or else Argument (I)(2 .. Argument (I)'Last) = "largs"
+            then
+               Scan_Make_Arg (I_GARLIC_Dir.all);
+               GARLIC_Included := True;
+            elsif Argument (I)'Length = 2
+              and then Argument (I)(2) = 'g' then
+               Optimization_Mode := False;
+            elsif Argument (I)'Length > 2
+              and then Argument (I)(2) = 'O' then
+               Optimization_Mode := False;
+            end if;
          end if;
          Scan_Make_Arg (Argument (I));
       end loop;
+
+      if Optimization_Mode then
+         Scan_Make_Arg ("-O2");
+      end if;
 
       if not GARLIC_Included then
          Scan_Make_Arg (I_GARLIC_Dir.all);
@@ -703,12 +734,14 @@ package body XE_Utils is
       --  Use Gnatmake already defined switches.
       Verbose_Mode       := Opt.Verbose_Mode;
       Debug_Mode         := Debug.Debug_Flag_Q;
+      Optimization_Mode  := Optimization_Mode and then Debug.Debug_Flag_S;
       Quiet_Output       := Opt.Quiet_Output;
       No_Recompilation   := Opt.Dont_Execute;
       Building_Script    := Opt.List_Dependencies;
 
-      --  Use -dq for Gnatdist internal debugging.
+      --  Use -dq and -ds for Gnatdist internal debugging.
       Debug.Debug_Flag_Q := False;
+      Debug.Debug_Flag_S := False;
 
       --  Don't want log messages that would corrupt scripts.
       if Building_Script then
@@ -977,7 +1010,7 @@ package body XE_Utils is
 
    procedure Unlink_File (File : in File_Name_Type) is
       File_Name : String_Access := new String (1 .. Strlen (File));
-      procedure Free is new Unchecked_Deallocation (String, String_Access);
+      --  procedure Free is new Unchecked_Deallocation (String, String_Access);
    begin
       Get_Name_String (File);
       File_Name.all := Name_Buffer (1 .. Name_Len);

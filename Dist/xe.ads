@@ -203,6 +203,7 @@ package XE is
 
    Verbose_Mode       : Boolean;
    Debug_Mode         : Boolean;
+   Optimization_Mode  : Boolean;
    Quiet_Output       : Boolean;
    No_Recompilation   : Boolean;
    Building_Script    : Boolean;

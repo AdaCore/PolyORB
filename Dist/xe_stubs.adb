@@ -491,6 +491,10 @@ package body XE_Stubs is
          (Library, L_Caller_Dir, L_Current_Dir)
          );
 
+      if Optimization_Mode then
+         Execute_Strip (Partitions.Table (PID).Executable_File);
+      end if;
+
       Free (Include);
       Free (Library);
 

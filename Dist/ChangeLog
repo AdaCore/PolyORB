@@ -1,3 +1,16 @@
+1998-07-28  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_utils.adb, xe_utils.ads: Add a new procedure Execute_Strip to
+ 	strip an executable. Change optimization level for gnatdist. When
+ 	nothing (-g or -O?) is specified, use -O2.
+
+	* xe.ads: Add a new flag Optimization_Mode (-ds). This allows to
+	strip an executable. Useful to pass regressions tests when we
+	don't have enough space left in /tmp. This flag is not documented
+	in purpose.
+
+	* xe_stubs.adb: Strip when needed.
+
 1998-07-22  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Use Global_Termination to trigger global

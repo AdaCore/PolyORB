@@ -136,6 +136,10 @@ package XE_Utils is
       Args : in GNAT.OS_Lib.Argument_List);
    --  Execute gnatlink and add gnatdist flags
 
+   procedure Execute_Strip
+      (Executable : in Types.File_Name_Type);
+   --  Strip executable
+
    function Find_Source (U : Types.Name_Id) return Types.File_Name_Type;
    --  Retrieve main source file of unit U.
 
