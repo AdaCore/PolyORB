@@ -10,19 +10,22 @@ web_common_lib=-I$(top_builddir)/src/web_common/libpolyorb-web_common.la
 
 POLYORB_LIBS = -I$(top_builddir)/src/libpolyorb.la @PROTO_LIBS@ @APPLI_LIBS@ @LIBS_LIBS@
 
-corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba
+naming_inc=-I$(top_srcdir)/cos/naming -I$(top_builddir)/cos/naming \
+           -I$(top_builddir)/idls/cos/naming
+time_inc=-I$(top_srcdir)/cos/time -I$(top_builddir)/cos/time \
+           -I$(top_builddir)/idls/cos/time
+corba_inc=-I$(top_srcdir)/src/corba -I$(top_builddir)/src/corba $(naming_inc) $(time_inc) 
 giop_inc=-I$(top_srcdir)/src/giop -I$(top_builddir)/src/giop -I$(top_srcdir)/src/giop/iiop -I$(top_builddir)/src/giop/iiop -I$(top_srcdir)/src/giop/diop -I$(top_builddir)/src/giop/diop -I$(top_builddir)/src/giop/iiop -I$(top_srcdir)/src/giop/miop -I$(top_builddir)/src/giop/miop
 moma_inc=-I$(top_srcdir)/src/moma -I$(top_builddir)/src/moma
 soap_inc=-I$(top_srcdir)/src/soap -I$(top_builddir)/src/soap
 srp_inc=-I$(top_srcdir)/src/srp -I$(top_builddir)/src/srp
 web_common_inc=-I$(top_srcdir)/src/web_common -I$(top_builddir)/src/web_common
-naming_inc=-I$(top_srcdir)/cos/naming -I$(top_builddir)/cos/naming \
-           -I$(top_builddir)/idls/cos/naming
+
 
 ir_inc=-I$(top_srcdir)/cos/ir -I$(top_builddir)/cos/ir
 
 POLYORB_INCS = -I$(srcdir) -I$(top_srcdir)/src -I$(top_builddir)/src \
-	     $(naming_inc) @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@ @LIBS_INCS@
+	     @PROTO_INCS@ @APPLI_INCS@ @SERVICE_INCS@ @LIBS_INCS@
 
 GNATMAKE_FLAGS = \
 	$(POLYORB_INCS) \
