@@ -63,6 +63,7 @@ target_alias = @target_alias@
 target_triplet = @target@
 ADA_FOR_TARGET = @ADA_FOR_TARGET@
 AWK = @AWK@
+BOOT_SERVER = @BOOT_SERVER@
 CC = @CC@
 CP_PRESERVE = @CP_PRESERVE@
 EXEEXT = @EXEEXT@

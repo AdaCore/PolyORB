@@ -51,7 +51,8 @@ procedure XE_Lead is
      (Partition : in PID_Type) is
    begin
       if Default_Protocol_Name = No_Name then
-         Write_Str  (FD, "BOOT_SERVER=tcp://`hostname`:5555");
+         Write_Str  (FD, "BOOT_SERVER=tcp://`hostname`:");
+         Write_Str  (FD, "`echo 000$$ | sed 's,^.*\(...\),5\1,'`");
          Write_Eol  (FD);
       else
          Write_Str  (FD, "BOOT_SERVER=");
