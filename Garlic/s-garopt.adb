@@ -69,9 +69,12 @@ package body System.Garlic.Options is
       Is_Pure_Client  := False;
       Is_Boot_Mirror  := False;
       Is_Boot_Server  := False;
+      Local_Launch    := Supports_Local_Launch;
       Nolaunch        := False;
       Reconnection    := Reject_On_Restart;
       Termination     := Global_Termination;
+      Rsh_Command     := new String'(Platform_Specific.Rsh_Command);
+      Rsh_Options     := new String'(Platform_Specific.Rsh_Options);
    end Initialize_Default_Options;
 
    -----------------------------
@@ -154,6 +157,24 @@ package body System.Garlic.Options is
       end if;
       GNAT.OS_Lib.Free (EV);
 
+      EV := GNAT.OS_Lib.Getenv ("RSH_COMMAND");
+      if EV'Length /= 0 then
+         Set_Rsh_Command (EV.all);
+      end if;
+      GNAT.OS_Lib.Free (EV);
+
+      EV := GNAT.OS_Lib.Getenv ("RSH_OPTIONS");
+      if EV'Length /= 0 then
+         Set_Rsh_Command (EV.all);
+      end if;
+      GNAT.OS_Lib.Free (EV);
+
+      EV := GNAT.OS_Lib.Getenv ("LOCAL_LAUNCH");
+      if EV'Length /= 0 then
+         Set_Local_Launch (Boolean'Value (EV.all));
+      end if;
+      GNAT.OS_Lib.Free (EV);
+
       while Index <= Argument_Count loop
 
          if Argument (Index) = "--boot_server" then
@@ -207,6 +228,16 @@ package body System.Garlic.Options is
             Next_Argument (Index);
             Set_Termination (Value (Argument (Index)));
 
+         elsif Argument (Index) = "--rsh-command" then
+
+            Next_Argument (Index);
+            Set_Rsh_Command (Argument (Index));
+
+         elsif Argument (Index) = "--rsh-options" then
+
+            Next_Argument (Index);
+            Set_Rsh_Options (Argument (Index));
+
          elsif Argument (Index) = "--nolaunch" then
 
             Set_Nolaunch (True);
@@ -218,6 +249,11 @@ package body System.Garlic.Options is
          elsif Argument (Index) = "--replay" then
 
             Set_Execution_Mode (Replay_Mode);
+
+         elsif Argument (Index) = "--local-launch" then
+
+            Next_Argument (Index);
+            Set_Local_Launch (Boolean'Value (Argument (Index)));
 
          end if;
 
@@ -395,6 +431,15 @@ package body System.Garlic.Options is
       Has_A_Light_PCS := Default;
    end Set_Light_PCS;
 
+   ----------------------
+   -- Set_Local_Launch --
+   ----------------------
+
+   procedure Set_Local_Launch (Default : in Boolean) is
+   begin
+      Local_Launch := Default;
+   end Set_Local_Launch;
+
    -------------------------
    -- Set_Mirror_Expected --
    -------------------------
@@ -457,6 +502,30 @@ package body System.Garlic.Options is
    begin
       Reconnection := Default;
    end Set_Reconnection;
+
+   ---------------------
+   -- Set_Rsh_Command --
+   ---------------------
+
+   procedure Set_Rsh_Command (Default : in String) is
+   begin
+      if Rsh_Command /= null then
+         Destroy (Rsh_Command);
+      end if;
+      Rsh_Command := new String'(Default);
+   end Set_Rsh_Command;
+
+   ---------------------
+   -- Set_Rsh_Options --
+   ---------------------
+
+   procedure Set_Rsh_Options (Default : in String) is
+   begin
+      if Rsh_Options /= null then
+         Destroy (Rsh_Options);
+      end if;
+      Rsh_Options := new String'(Default);
+   end Set_Rsh_Options;
 
    -----------------------
    -- Set_Self_Location --

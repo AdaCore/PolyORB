@@ -43,7 +43,6 @@ with Interfaces.C;                    use Interfaces.C;
 with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Options;
 with System.Garlic.Partitions;        use System.Garlic.Partitions;
-with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
 with System.Garlic.Utils;             use System.Garlic.Utils;
 
 package body System.Garlic.Remote is
@@ -125,7 +124,7 @@ package body System.Garlic.Remote is
       Arguments : constant String :=
         "--detach --boot_location '" & Get_Boot_Locations & "' &";
    begin
-      if Supports_Local_Launch
+      if System.Garlic.Options.Local_Launch
         and then Host (Host'First) /= '`'
         and then Is_Local_Host (Host)
       then
@@ -142,16 +141,17 @@ package body System.Garlic.Remote is
          declare
             C1 : constant String := Command;
             C2 : constant String := Quote (C1 & ' ' & Arguments);
-            C3 : constant String := Host & ' ' & Rsh_Options;
-            C4 : constant String := Rsh_Command & ' ' & C3;
+            C3 : constant String := Host & ' ' & Options.Rsh_Options.all;
+            C4 : constant String := Options.Rsh_Command.all & ' ' & C3;
             C5 : constant String := C4 & ' ' & C2;
             C6 : constant String := C5 & " < /dev/null > /dev/null 2>&1";
 
          begin
-
-            pragma Debug (D ("Run Spawn: " & C6));
+            pragma Debug (D ("Enter Spawn: " & C6));
 
             Spawn (C6);
+
+            pragma Debug (D ("Leave Spawn: " & C6));
          end;
       end if;
    end Full_Launch;
