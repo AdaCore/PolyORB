@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.7 $
+--                            $Revision: 1.8 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -302,7 +302,8 @@ package AdaBroker.NetBufferedStream is
       Initial_Offset : in CORBA.Unsigned_Long;
       N              : in CORBA.Unsigned_Long := 1)
       return CORBA.Unsigned_Long;
-   --  Compute the size needed to marshall N objects of type System_Exception_Members
+   --  Compute the size needed to marshall N objects
+   --  of type System_Exception_Members
    --  into a netbufferedstream object whose initial offset is Initial_Offset
 
    function Is_Reusing_Existing_Connection

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.10 $
+--                            $Revision: 1.11 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -114,9 +114,10 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Marshall_1,
       "marshall__21Ada_netBufferedStreamUcR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : Marshall
    --  name was changed to avoid conflict
-   
+
    --------------
    -- Marshall --
    --------------
@@ -142,9 +143,10 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Unmarshall_1,
       "unmarshall__21Ada_netBufferedStreamRUcR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : UnMarshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : UnMarshall
    --  name was changed to avoid conflict
-   
+
    ----------------
    -- Unmarshall --
    ----------------
@@ -185,7 +187,8 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Marshall_2,
       "marshall__21Ada_netBufferedStreambR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : Marshall
    --  name was changed to avoid conflict
 
    --------------
@@ -214,9 +217,10 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Unmarshall_2,
       "unmarshall__21Ada_netBufferedStreamRbR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : UnMarshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : UnMarshall
    --  name was changed to avoid conflict
-   
+
    ----------------
    -- Unmarshall --
    ----------------
@@ -288,9 +292,10 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Unmarshall_3,
       "unmarshall__21Ada_netBufferedStreamRsR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : UnMarshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : UnMarshall
    --  name was changed to avoid conflict
-   
+
    ----------------
    -- Unmarshall --
    ----------------
@@ -332,7 +337,8 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Marshall_4,
       "marshall__21Ada_netBufferedStreamUsR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : Marshall
    --  name was changed to avoid conflict
 
    --------------
@@ -361,7 +367,8 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_UnMarshall_4,
       "unmarshall__21Ada_netBufferedStreamRUsR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : UnMarshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : UnMarshall
    --  name was changed to avoid conflict
 
    ----------------
@@ -406,7 +413,8 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Marshall_5,
       "marshall__21Ada_netBufferedStreamlR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : Marshall
    --  name was changed to avoid conflict
 
    --------------
@@ -435,7 +443,8 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Unmarshall_5,
       "unmarshall__21Ada_netBufferedStreamRlR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : UnMarshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : UnMarshall
    --  name was changed to avoid conflict
 
    ----------------
@@ -480,7 +489,8 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Marshall_6,
       "marshall__21Ada_netBufferedStreamUlR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : Marshall
    --  name was changed to avoid conflict
 
    --------------
@@ -514,7 +524,8 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Unmarshall_6,
       "unmarshall__21Ada_netBufferedStreamRUlR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Unmarshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : Unmarshall
    --  name was changed to avoid conflict
 
    ----------------
@@ -560,7 +571,8 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Marshall_7,
       "marshall__21Ada_netBufferedStreamfR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : Marshall
    --  name was changed to avoid conflict
 
    --------------
@@ -592,7 +604,8 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Unmarshall_7,
       "unmarshall__21Ada_netBufferedStreamRfR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Unmarshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : Unmarshall
    --  name was changed to avoid conflict
 
    ----------------
@@ -637,7 +650,8 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Marshall_8,
       "marshall__21Ada_netBufferedStreamdR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Marshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : Marshall
    --  name was changed to avoid conflict
 
    --------------
@@ -669,7 +683,8 @@ package body AdaBroker.NetBufferedStream is
      (CPP, C_Unmarshall_8,
       "unmarshall__21Ada_netBufferedStreamRdR21Ada_netBufferedStream");
    --  Wrapper around Ada_netBufferedStream function marshall
-   --  (see Ada_netBufferedStream.hh) and called by the Ada equivalent : Unmarshall
+   --  (see Ada_netBufferedStream.hh) and called by the Ada
+   --  equivalent : Unmarshall
    --  name was changed to avoid conflict
 
    ----------------

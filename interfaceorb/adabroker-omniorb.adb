@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.14 $
+--                            $Revision: 1.15 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -277,7 +277,7 @@ package body AdaBroker.OmniORB is
 
       else
          --  Add size of an unsigned_long (for the size of the RepoId),
-	 --  the size of the RepoID itself and the size of profiles.
+         --  the size of the RepoID itself and the size of profiles.
 
          declare
             use Ada.Strings.Unbounded;
