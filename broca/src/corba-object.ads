@@ -37,9 +37,9 @@
 
 --  with CORBA.ImplementationDef;
 --  with CORBA.InterfaceDef;
---  with CORBA.Context;
---  with CORBA.NVList;
---  with CORBA.Request;
+with CORBA.Context;
+with CORBA.NVList;
+with CORBA.Request;
 
 with CORBA.AbstractBase;
 
@@ -100,7 +100,6 @@ package CORBA.Object is
 
    --    not yet implemented
    --
-   --    function To_Any (From : in Ref) return Any;
    --    function To_Ref (From : in Any) return Ref;
    --
    --    function Get_Implementation (Self : in Ref)
@@ -108,16 +107,15 @@ package CORBA.Object is
    --
    --    function Get_Interface (Self : in Ref)
    --      return CORBA.InterfaceDef.Ref;
-   --
-   --    procedure Create_Request
-   --      (Self      : in     Ref;
-   --       Ctx       : in     CORBA.Context.Object;
-   --       Operation : in     Identifier;
-   --       Arg_List  : in     CORBA.NVList.Object;
-   --       Result    : in out NamedValue;
-   --       Request   :    out CORBA.Request.Object;
-   --       Req_Flags : in     Flags;
-   --       Returns   : out    Status);
+
+   procedure Create_Request
+     (Self      : in     Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags);
 
    -----------
    --  Any  --

@@ -31,7 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA;
 with Ada.Unchecked_Deallocation;
+with Ada.Strings.Unbounded;
 
 with Broca.CDR; use Broca.CDR;
 with Broca.Exceptions;
@@ -62,8 +64,8 @@ package body Broca.GIOP is
    --  The offset of the byte_order boolean field in
    --  a GIOP message header.
 
-   Nobody_Principal : constant CORBA.String :=
-     CORBA.To_CORBA_String ("nobody");
+   Nobody_Principal : constant Ada.Strings.Unbounded.Unbounded_String
+      := Ada.Strings.Unbounded.To_Unbounded_String ("nobody");
 
    MsgType_To_Octet :
      constant array (MsgType'Range) of CORBA.Octet
@@ -332,7 +334,7 @@ package body Broca.GIOP is
       Marshall (Handler.Buffer'Access, CORBA.String (Operation));
 
       --  Principal
-      Marshall (Handler.Buffer'Access, Nobody_Principal);
+      Marshall (Handler.Buffer'Access, CORBA.String (Nobody_Principal));
    end Send_Request_Marshall;
 
    -----------------------

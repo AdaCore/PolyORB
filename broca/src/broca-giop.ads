@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
-pragma Elaborate_All (CORBA);
 with CORBA.Object;
 with Broca.Object;
 with Broca.Opaque;

@@ -70,6 +70,27 @@ package body CORBA.Object is
       end;
    end Object_To_String;
 
+   ----------------------
+   --  Create_Request  --
+   ----------------------
+   procedure Create_Request
+     (Self      : in     Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags) is
+   begin
+      CORBA.Request.Create_Request (CORBA.AbstractBase.Ref (Self),
+                                    Ctx,
+                                    Operation,
+                                    Arg_List,
+                                    Result,
+                                    Request,
+                                    Req_Flags);
+   end Create_Request;
+
 
    -----------
    --  Any  --

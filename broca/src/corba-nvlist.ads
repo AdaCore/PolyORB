@@ -31,14 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Object;
+with CORBA.AbstractBase;
 with System;
 with Ada.Unchecked_Deallocation;
 with Broca.Buffers;
 
 package CORBA.NVList is
 
-   type Ref is new CORBA.Object.Ref with null record;
+   type Ref is new CORBA.AbstractBase.Ref with null record;
 
    procedure Add_Item
      (Self       :    Ref;

@@ -64,7 +64,7 @@ package body CORBA.Request is
          --  create the request handler
          Broca.GIOP.Send_Request_Marshall
            (Handler,
-            Broca.Object.Object_Ptr (CORBA.Object.Get (Self.Target)),
+            Broca.Object.Object_Ptr (CORBA.AbstractBase.Get (Self.Target)),
             True,
             Self.Operation);
 
@@ -75,7 +75,7 @@ package body CORBA.Request is
          --  send the request
          Broca.GIOP.Send_Request_Send
            (Handler,
-            Broca.Object.Object_Ptr (CORBA.Object.Get (Self.Target)),
+            Broca.Object.Object_Ptr (CORBA.AbstractBase.Get (Self.Target)),
             True,
             Send_Request_Result);
 
@@ -125,5 +125,23 @@ package body CORBA.Request is
    begin
       return False;
    end Poll_Response;
+
+
+   procedure Create_Request
+     (Self      : in     CORBA.AbstractBase.Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags) is
+   begin
+      Request := (Ctx => Ctx,
+                  Target => Self,
+                  Operation => Operation,
+                  Args_List => Arg_List,
+                  Result => Result,
+                  Req_Flags => Req_Flags);
+   end Create_Request;
 
 end CORBA.Request;

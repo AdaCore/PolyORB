@@ -2,9 +2,9 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                       C O R B A . R E Q U E S T                          --
+--                       C O R B A . C O N T E X T                          --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
@@ -31,61 +31,53 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System;
-with CORBA.AbstractBase;
-with CORBA.NVList;
-with CORBA.Context;
+package body CORBA.Context is
 
-package CORBA.Request is
+   procedure Set_One_Value
+     (Self      : in Ref;
+      Prop_Name : in Identifier;
+      Value     : in CORBA.String) is
+   begin
+      null;
+   end Set_One_Value;
 
-   type Object is private;
+   procedure Set_Values
+     (Self   : in Ref;
+      Values : in CORBA.NVList.Ref) is
+   begin
+      null;
+   end Set_Values;
 
-   procedure Add_Arg
-     (Self      : in out Object;
-      Arg_Type  : in     CORBA.TypeCode.Object;
-      Value     : in     System.Address;
-      Len       : in     Long;
-      Arg_Flags : in     Flags);
+   procedure Get_Values
+     (Self        : in     Ref;
+      Start_Scope : in     Identifier;
+      This_Object : in     Boolean := TRUE;
+      Prop_Name   : in     Identifier;
+      Values      :    out CORBA.NVList.Ref) is
+   begin
+      null;
+   end Get_Values;
 
-   procedure Add_Arg
-     (Self : in out Object;
-      Arg  : in     NamedValue);
+   procedure Delete_Values
+     (Self      : in Ref;
+      Prop_Name : in Identifier) is
+   begin
+      null;
+   end Delete_Values;
 
-   procedure Invoke
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
+   procedure Create_Child
+     (Self      : in     Ref;
+      Ctx_Name  : in     Identifier;
+      Child_Ctx :    out Ref) is
+   begin
+      null;
+   end Create_Child;
 
-   procedure Delete (Self : in out Object);
+   procedure Delete
+     (Self       : in Ref;
+      Del_Flagfs : in Flags) is
+   begin
+      null;
+   end Delete;
 
-   procedure Send
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
-
-   procedure Get_Response
-     (Self         : in out Object;
-      Invoke_Flags : in     Flags  := 0);
-
-   function Poll_Response (Self : in Object) return Boolean;
-
-   procedure Create_Request
-     (Self      : in     CORBA.AbstractBase.Ref;
-      Ctx       : in     CORBA.Context.Ref;
-      Operation : in     Identifier;
-      Arg_List  : in     CORBA.NVList.Ref;
-      Result    : in out NamedValue;
-      Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags);
-
-private
-
-   type Object is
-      record
-         Ctx        : CORBA.Context.Ref;
-         Target     : CORBA.AbstractBase.Ref;
-         Operation  : CORBA.Identifier;
-         Args_List  : CORBA.NVList.Ref;
-         Result     : CORBA.NamedValue;
-         Req_Flags  : CORBA.Flags;
-      end record;
-
-end CORBA.Request;
+end CORBA.Context;
