@@ -132,7 +132,7 @@ package PolyORB.Requests is
       --      on a proxy object?
 
       Exception_Info : Any.Any;
-      --  If non-empty, information relatuve to an exception
+      --  If non-empty, information relative to an exception
       --  raised during execution of this request.
 
       --  Ctxt_List  : CORBA.ContextList.Ref;

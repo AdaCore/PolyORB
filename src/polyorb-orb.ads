@@ -151,8 +151,8 @@ package PolyORB.ORB is
      (P   : access Tasking_Policy_Type;
       ORB : ORB_Access;
       Msg : Message'Class) is abstract;
-   --  Externally-visible interface to tasking policy.
-   --  XXX to be documented!
+   --  Assign the handling of a Request (i.e. an upcall to
+   --  an application object) to the appropriate task.
 
    ------------------------------
    -- Server object operations --
