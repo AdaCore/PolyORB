@@ -819,13 +819,14 @@ package body Ada_Be.Idl2Ada is
       PL (Stubs_Spec, "   Type_Id : CORBA.RepositoryId)");
       PL (Stubs_Spec, "  return CORBA.Boolean;");
 
-      Divert (Stubs_Spec, Private_Declarations);
       NL (Stubs_Spec);
       PL (Stubs_Spec, T_Repository_Id
           & " : constant CORBA.RepositoryId");
       PL (Stubs_Spec, "  := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node) & """);");
+      NL (Stubs_Spec);
 
+      Divert (Stubs_Spec, Private_Declarations);
       NL (Stubs_Spec);
       PL (Stubs_Spec, "function Is_A");
       PL (Stubs_Spec, "  (Type_Id : CORBA.RepositoryId)");
@@ -835,7 +836,7 @@ package body Ada_Be.Idl2Ada is
       --  Implementation
 
       Add_With (Stubs_Body, "Broca.Repository");
-      Add_With (Stubs_Body, "Broca.Object");
+      Add_With (Stubs_Body, "CORBA.Object");
 
       NL (Stubs_Body);
       PL (Stubs_Body, "--  The visible Is_A object reference");
