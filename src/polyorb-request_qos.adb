@@ -111,6 +111,7 @@ package body PolyORB.Request_QoS is
 
       Result : QoS_Parameter_Lists.List;
 
+      A_Parameter : QoS_Parameter_Access;
    begin
       pragma Debug (O ("Fetch_Qos: enter"));
 
@@ -119,7 +120,10 @@ package body PolyORB.Request_QoS is
             pragma Debug (O ("Fetching QoS parameters for "
                              & QoS_Kind'Image (J)));
 
-            Append (Result, Call_Back_Array (J) (Ref));
+            A_Parameter := Call_Back_Array (J) (Ref);
+            if A_Parameter /= null then
+               Append (Result, A_Parameter);
+            end if;
          end if;
       end loop;
 

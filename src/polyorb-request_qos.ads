@@ -98,6 +98,7 @@ package PolyORB.Request_QoS is
      return QoS_Parameter_Access;
    --  This call-back function retrieves one QoS_Parameter to be
    --  applied when sending a request to the target denoted by Ref.
+   --  Return null if QoS parameter is not applicable for Ref.
 
    procedure Register (Kind : QoS_Kind; CB : Fetch_QoS_CB);
    --  Register one call-back function attached to QoS_Kind Kind

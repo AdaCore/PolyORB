@@ -67,9 +67,13 @@ package body PolyORB.Request_QoS.Priority is
    begin
       Get_Note (Get_Current_Thread_Notepad.all, Note, Default_Note);
 
-      return new QoS_Parameter'(Kind => Static_Priority,
-                                OP => OP,
-                                EP => Note.Priority);
+      if Note /= Default_Note then
+         return new QoS_Parameter'(Kind => Static_Priority,
+                                   OP => OP,
+                                   EP => Note.Priority);
+      else
+         return null;
+      end if;
    end Fetch_Priority;
 
    ----------------
