@@ -1,12 +1,8 @@
-
 \documentclass[a4paper,10pt]{article}
 
 \title{POA Policies}
-\author{Nicolas Roche}
+\author{}
 
-%\usepackage[T1]{fontenc}
-%\usepackage[french]{babel}
-%\usepackage[dvips]{graphicx}
 \usepackage{array}
 
 \begin{document}
@@ -19,8 +15,8 @@
 \hline
 \hline
 Thread             &ORB Control               &X&X&X\\
-                   &Single Thread             & & & \\
-	           &Main Thread               & & & \\
+                   &Single Thread             & &X& \\
+	           &Main Thread               & &X& \\
 \hline
 LifeSpan           &Transient                 &X&X(1)&X\\
 		   &Persistant                &X&X(1)& \\
@@ -44,7 +40,7 @@ Implicit Activation&Implicit Activation       & & & \\
 \end{tabular}
 \begin{enumerate}
 \item \textit{Implemented but maybe not tested}
-\item \textit{Default POA policies as defined by CORBA}
+\item \textit{Default POA policies as defined by CORBA for the RootPOA}
 \end{enumerate}
 \end{center}
 \end{document}
