@@ -267,7 +267,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
             return Get_Primitive ("pk_char");
 
          when K_Wide_Char =>
-            return Get_Primitive ("pk_widechar");
+            return Get_Primitive ("pk_wchar");
 
          when K_Boolean =>
             return Get_Primitive ("pk_boolean");
@@ -285,7 +285,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
             return Get_Primitive ("pk_string");
 
          when K_Wide_String =>
-            return Get_Primitive ("pk_widestring");
+            return Get_Primitive ("pk_wstring");
 
          when K_Octet =>
             return Get_Primitive ("pk_octet");

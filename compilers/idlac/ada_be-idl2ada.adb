@@ -3225,7 +3225,7 @@ package body Ada_Be.Idl2Ada is
             return Prefix & "Char";
 
          when K_Wide_Char =>
-            return Prefix & "Wide_Char";
+            return Prefix & "Wchar";
 
          when K_Boolean =>
             return Prefix & "Boolean";

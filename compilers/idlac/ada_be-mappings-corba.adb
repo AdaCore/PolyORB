@@ -422,7 +422,7 @@ package body Ada_Be.Mappings.CORBA is
             Typ := +"CORBA.Char";
 
          when K_Wide_Char =>
-            Typ := +"CORBA.Wide_Char";
+            Typ := +"CORBA.Wchar";
 
          when K_Boolean =>
             Typ := +"CORBA.Boolean";
