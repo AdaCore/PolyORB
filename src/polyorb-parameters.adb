@@ -157,9 +157,7 @@ package body PolyORB.Parameters is
 
    function Fetch (Key : String) return String is
    begin
-      if Key'Length > 4
-        and then Key (Key'First .. Key'First + 4) = "file:"
-      then
+      if PolyORB.Utils.Has_Prefix (Key, "file:") then
          declare
             Filename : constant String := Key (Key'First + 5 .. Key'Last);
             File     : File_Type;
