@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //droopi/main/utils/make_distrib#16 $
+# $Id: //droopi/main/utils/make_distrib#17 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -96,8 +96,6 @@ if $prcs; then
 # Perforce
 
 elif $perforce; then
-  . ./${P4CONFIG:-.p4}
-  export P4USER P4PORT P4PASSWD
   if [ "${branch}" = "" ]; then
     view_root=`p4 files MANIFEST | sed 's,/MANIFEST#.*$,,'`
   else
