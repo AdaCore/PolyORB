@@ -242,8 +242,13 @@ package body Switch is
          elsif C = 'D' then
             Ptr := Ptr + 1;
 
+            --  Note: -gnatD also sets -gnatx (to turn off cross-reference
+            --  generation in the ali file) since otherwise this generation
+            --  gets confused by the "wrong" Sloc values put in the tree.
+
             if Program = Compiler then
                Debug_Generated_Code := True;
+               Xref_Active := False;
                Set_Debug_Flag ('g');
 
             else
@@ -572,6 +577,17 @@ package body Switch is
                Try_Semantics := True;
             elsif Program = Make then
                Quiet_Output := True;
+            else
+               raise Bad_Switch;
+            end if;
+
+         --  Processing for q switch
+
+         elsif C = 'Q' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler then
+               Force_ALI_File := True;
             else
                raise Bad_Switch;
             end if;

@@ -1879,7 +1879,7 @@ package body Make is
          Write_Eol;
          Write_Str ("GNATMAKE ");
          Write_Str (Gnatvsn.Gnat_Version_String);
-         Write_Str (" Copyright 1995-1999 Free Software Foundation, Inc.");
+         Write_Str (" Copyright 1995-2000 Free Software Foundation, Inc.");
          Write_Eol;
       end if;
 

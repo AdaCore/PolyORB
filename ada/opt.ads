@@ -249,6 +249,10 @@ package Opt is
    --  of GNAT), in which case this variable is set to D or G for
    --  D_Float or G_Float.
 
+   Force_ALI_File : Boolean := False;
+   --  GNAT
+   --  Force generation of ali file even if errors are encountered.
+
    Force_Compilations : Boolean := False;
    --  GNATMAKE
    --  Set to force recompilations even when the objects are up-to-date.

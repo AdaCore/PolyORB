@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -149,6 +149,10 @@ package ALI is
       --  pragma was present or that this is a language defined unit.
       --  Otherwise set to first character (upper case) of policy name.
 
+      Compile_Errors : Boolean;
+      --  Set to True if compile errors for unit. Note that No_Object
+      --  will always be set as well in this case.
+
       Float_Format : Character;
       --  Set to float format (set to I if no float-format given)
 
@@ -229,9 +233,9 @@ package ALI is
       --  Indicates presence of EB parameter for a package which has a
       --  pragma Preelaborate_Body.
 
-      Has_RACW_Type : Boolean;
+      Has_RACW : Boolean;
       --  Indicates presence of RA parameter for a package that declares
-      --  at least one Remote Access to Class_Wide (RACW) type.
+      --  at least one Remote Access to Class_Wide (RACW) object.
 
       Remote_Types : Boolean;
       --  Indicates presence of RT parameter for a package which has a

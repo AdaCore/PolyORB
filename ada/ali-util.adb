@@ -312,7 +312,12 @@ package body ALI.Util is
 
                Free (Text);
 
-               if ALIs.Table (Idread).No_Object then
+               if ALIs.Table (Idread).Compile_Errors then
+                  Error_Msg_Name_1 := Withs.Table (J).Sfile;
+                  Error_Msg ("% had errors, must be fixed, and recompiled");
+                  Set_Name_Table_Info (Afile, Int (No_Unit_Id));
+
+               elsif ALIs.Table (Idread).No_Object then
                   Error_Msg_Name_1 := Withs.Table (J).Sfile;
                   Error_Msg ("% must be recompiled");
                   Set_Name_Table_Info (Afile, Int (No_Unit_Id));

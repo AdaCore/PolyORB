@@ -427,6 +427,7 @@ package body ALI is
 
       ALIs.Table (Id) := (
         Afile                   => F,
+        Compile_Errors          => False,
         First_Sdep              => No_Sdep_Id,
         First_Unit              => No_Unit_Id,
         Float_Format            => 'I',
@@ -545,7 +546,11 @@ package body ALI is
          Skip_Space;
          C := Getc;
 
-         if C = 'F' then
+         if C = 'C' then
+            Checkc ('E');
+            ALIs.Table (Id).Compile_Errors := True;
+
+         elsif C = 'F' then
             Float_Format_Specified := Getc;
             ALIs.Table (Id).Float_Format := Float_Format_Specified;
 
@@ -657,7 +662,7 @@ package body ALI is
          Units.Table (Units.Last).Shared_Passive := False;
          Units.Table (Units.Last).RCI            := False;
          Units.Table (Units.Last).Remote_Types   := False;
-         Units.Table (Units.Last).Has_RACW_Type  := False;
+         Units.Table (Units.Last).Has_RACW       := False;
          Units.Table (Units.Last).Is_Generic     := False;
          Units.Table (Units.Last).Icasing        := Mixed_Case;
          Units.Table (Units.Last).Kcasing        := All_Lower_Case;
@@ -850,7 +855,7 @@ package body ALI is
 
                elsif C = 'A' then
                   Check_At_End_Of_Field;
-                  Units.Table (Units.Last).Has_RACW_Type := True;
+                  Units.Table (Units.Last).Has_RACW := True;
 
                else
                   Fatal_Error;

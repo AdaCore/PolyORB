@@ -142,6 +142,10 @@ package Namet is
    --  and Name_Len is set. It is an error to call Get_Name_String with one
    --  of the special name Id values (No_Name or Error_Name).
 
+   function Get_Name_String (Id : Name_Id) return String;
+   --  This functional form returns the result as a string without affecting
+   --  the contents of either Name_Buffer or Name_Len.
+
    procedure Get_Unqualified_Name_String (Id : Name_Id);
    --  Similar to the above except that qualification (as defined in unit
    --  Exp_Dbug) is removed (including both preceding __ delimited names,

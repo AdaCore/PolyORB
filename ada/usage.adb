@@ -8,7 +8,7 @@
 --                                                                          --
 --                           $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999, Free Software Foundation, Inc.         --
+--          Copyright (C) 1992-2000, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -236,6 +236,11 @@ begin
 
    Write_Switch_Char ("q");
    Write_Line ("Don't quit, try semantics, even if parse errors");
+
+   --  Line for -gnatQ switch
+
+   Write_Switch_Char ("Q");
+   Write_Line ("Don't quit, write ali file even if compile errors");
 
    --  Line for -gnatR switch
 

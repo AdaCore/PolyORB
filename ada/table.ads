@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -42,10 +42,6 @@ with Types; use Types;
 
 package Table is
 pragma Elaborate_Body (Table);
-
-   --  Note. We make the outer Table non-generic, to avoid having generic
-   --  library packages in the compiler, which caused a bootstrap path
-   --  problem from 3.09 to 3.10.
 
    generic
       type Table_Component_Type is private;

@@ -415,6 +415,25 @@ package body Namet is
       end loop;
    end Get_Name_String;
 
+   function Get_Name_String (Id : Name_Id) return String is
+      S : Int;
+
+   begin
+      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
+      S := Name_Entries.Table (Id).Name_Chars_Index;
+
+      declare
+         R : String (1 .. Natural (Name_Entries.Table (Id).Name_Len));
+
+      begin
+         for J in R'Range loop
+            R (J) := Name_Chars.Table (S + Int (J));
+         end loop;
+
+         return R;
+      end;
+   end Get_Name_String;
+
    --------------------------------
    -- Get_Name_String_And_Append --
    --------------------------------
