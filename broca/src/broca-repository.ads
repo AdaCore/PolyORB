@@ -36,6 +36,13 @@ with CORBA.Object;
 
 package Broca.Repository is
 
+   function Is_Equivalent
+     (RI1 : CORBA.RepositoryId;
+      RI2 : CORBA.RepositoryId)
+     return Boolean;
+   --  Return True if, and only if, RI1 and RI2 denote the same
+   --  repository entity (a case-insensitive string match).
+
    --  The repository contains all the known factories.
 
    type Factory_Type;

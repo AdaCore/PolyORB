@@ -91,13 +91,18 @@ package body Ada_Be.Idl2Ada is
    -- Specialised generation subprograms --
    ----------------------------------------
 
-   procedure Gen_Is_A
-     (Node : in Node_Id;
-      Spec : in out Compilation_Unit;
-      Bod  : in out Compilation_Unit);
-   --  Generated code for Repository_Id and Is_A
-   --  functions. This is common to interfaces and
-   --  valuetypes.
+   procedure Gen_Is_A_Stubs
+     (Node       : in Node_Id;
+      Stubs_Spec : in out Compilation_Unit;
+      Stubs_Body : in out Compilation_Unit);
+   --  Generate code for Repository_Id and Is_A
+   --  object reference operation.
+
+   procedure Gen_Is_A_Skel
+     (Node      : in Node_Id;
+      Skel_Body : in out Compilation_Unit);
+   --  Generate server-side support for the Is_A
+   --  operation.
 
    procedure Gen_Object_Reference_Declaration
      (CU        : in out Compilation_Unit;
@@ -248,7 +253,7 @@ package body Ada_Be.Idl2Ada is
       end if;
 
       --  Repository_Id and Is_A function
-      Gen_Is_A (Node, Stubs_Spec, Stubs_Body);
+      Gen_Is_A_Stubs (Node, Stubs_Spec, Stubs_Body);
 
       --  Marshalling subprograms for the reference type
       Stream.Gen_Node_Spec (Stream_Spec, Node);
@@ -647,6 +652,9 @@ package body Ada_Be.Idl2Ada is
                DI (Skel_Body);
                PL (Skel_Body, "begin");
                II (Skel_Body);
+
+               Gen_Is_A_Skel (Node, Skel_Body);
+
             end if;
 
             declare
@@ -694,7 +702,7 @@ package body Ada_Be.Idl2Ada is
                end loop;
             end;
 
-            Gen_Is_A (Node, Stubs_Spec, Stubs_Body);
+            Gen_Is_A_Stubs (Node, Stubs_Spec, Stubs_Body);
 
             --  CORBA 2.3
             Helper.Gen_Node_Spec (Helper_Spec, Node);
@@ -767,59 +775,101 @@ package body Ada_Be.Idl2Ada is
       end;
    end Gen_Interface_Module_Scope;
 
+   --------------------
+   -- Gen_Is_A_Stubs --
+   --------------------
 
-   ----------------
-   --  Gen_Is_A  --
-   ----------------
-   procedure Gen_Is_A
-     (Node : in Node_Id;
-      Spec : in out Compilation_Unit;
-      Bod  : in out Compilation_Unit) is
+   procedure Gen_Is_A_Stubs
+     (Node       : in Node_Id;
+      Stubs_Spec : in out Compilation_Unit;
+      Stubs_Body : in out Compilation_Unit) is
       NK : constant Node_Kind
         := Kind (Node);
    begin
       pragma Assert ((NK = K_Interface)
                      or (NK = K_ValueType));
-      Add_With (Spec, "CORBA",
+      Add_With (Stubs_Spec, "CORBA",
                 Use_It => False,
                 Elab_Control => Elaborate_All);
-      NL (Spec);
-      PL (Spec, T_Repository_Id
+      NL (Stubs_Spec);
+      PL (Stubs_Spec, T_Repository_Id
           & " : constant CORBA.RepositoryId");
-      PL (Spec, "  := CORBA.To_CORBA_String ("""
+      PL (Stubs_Spec, "  := CORBA.To_CORBA_String ("""
           & Idl_Repository_Id (Node) & """);");
-      NL (Spec);
-      PL (Spec, "function Is_A");
-      PL (Spec, "  (Self : "
+      PL (Stubs_Spec, "function Is_A");
+      PL (Stubs_Spec, "  (Self : "
           & Ada_Type_Defining_Name (Node)
           & ";");
-      PL (Spec, "   Type_Id : CORBA.RepositoryId)");
-      PL (Spec, "  return CORBA.Boolean;");
+      PL (Stubs_Spec, "   Type_Id : CORBA.RepositoryId)");
+      PL (Stubs_Spec, "  return CORBA.Boolean;");
 
-      NL (Bod);
-      PL (Bod, "function Is_A");
-      PL (Bod, "  (Self : "
+      Divert (Stubs_Spec, Private_Declarations);
+      NL (Stubs_Spec);
+      PL (Stubs_Spec, "function Is_A");
+      PL (Stubs_Spec, "  (Type_Id : CORBA.RepositoryId)");
+      PL (Stubs_Spec, "  return CORBA.Boolean;");
+      Divert (Stubs_Spec, Visible_Declarations);
+
+      NL (Stubs_Body);
+      PL (Stubs_Body, "--  The visible Is_A object reference");
+      PL (Stubs_Body, "--  operation (a dispatching operation");
+      PL (Stubs_Body, "--  of all object reference types).");
+      NL (Stubs_Body);
+      PL (Stubs_Body, "function Is_A");
+      PL (Stubs_Body, "  (Self : "
           & Ada_Type_Defining_Name (Node)
           & ";");
-      PL (Bod, "   Type_Id : CORBA.RepositoryId)");
-      PL (Bod, "  return CORBA.Boolean");
-      PL (Bod, "is");
-      II (Bod);
-      PL (Bod, "use CORBA;");
-      DI (Bod);
-      PL (Bod, "begin");
-      II (Bod);
-      PL (Bod, "return Type_Id = " & T_Repository_Id);
-      PL (Bod, "  or else Type_Id =");
-      PL (Bod, "    CORBA.To_CORBA_String");
+      PL (Stubs_Body, "   Type_Id : CORBA.RepositoryId)");
+      PL (Stubs_Body, "  return CORBA.Boolean");
+      PL (Stubs_Body, "is");
+      PL (Stubs_Body, "begin");
+      II (Stubs_Body);
+      PL (Stubs_Body, "return Is_A (Type_Id);");
+      DI (Stubs_Body);
+      PL (Stubs_Body, "end Is_A;");
+      NL (Stubs_Body);
+
+      NL (Stubs_Body);
+      PL (Stubs_Body, "--  The internal Is_A implementation for");
+      PL (Stubs_Body, "--  this interface.");
+      NL (Stubs_Body);
+      Add_With (Stubs_Body, "Broca.Repository");
+      PL (Stubs_Body, "function Is_A");
+      PL (Stubs_Body, "  (Type_Id : CORBA.RepositoryId)");
+      PL (Stubs_Body, "  return CORBA.Boolean");
+      PL (Stubs_Body, "is");
+      II (Stubs_Body);
+      PL (Stubs_Body, "use CORBA;");
+      PL (Stubs_Body, "use Broca.Repository;");
+      DI (Stubs_Body);
+      PL (Stubs_Body, "begin");
+      II (Stubs_Body);
+
+      --  An instance of a type verifies Is_A for that type...
+
+      PL (Stubs_Body, "return Is_Equivalent (Type_Id, "
+          & T_Repository_Id & ")");
+      PL (Stubs_Body, "  or else Is_Equivalent (Type_Id, ");
+      PL (Stubs_Body, "    RepositoryId (CORBA.String'(To_CORBA_String");
+
+      --  ... and for CORBA::Object (if it is an interface) or
+      --  CORBA::ValueBase (if it is a valuetype), either
+      --  of which is at the root of the instance type's inheritance
+      --  hierarchy
+
       if Kind (Node) = K_Interface then
-         PL (Bod, "      (""IDL:omg.org/CORBA/OBJECT:1.0"")");
+         PL (Stubs_Body, "      (""IDL:omg.org/CORBA/OBJECT:1.0""))))");
       else
-         PL (Bod, "      (""IDL:omg.org/CORBA/ValueBase:1.0"")");
+         PL (Stubs_Body, "      (""IDL:omg.org/CORBA/ValueBase:1.0""))))");
       end if;
-      PL (Bod, "  or else Type_Id =");
-      PL (Bod, "    CORBA.To_CORBA_String");
-      PL (Bod, "      (""IDL:omg.org/CORBA/AbstractBase:1.0"")");
+      --  XXX remove: There is no repositoryid for AbstractBase
+      --    because neither CORBA::Object nor CORBA::ValueBase derive
+      --    from it.
+--       PL (Stubs_Body, "  or else Type_Id =");
+--       PL (Stubs_Body, "    CORBA.To_CORBA_String");
+--       PL (Stubs_Body, "      (""IDL:omg.org/CORBA/AbstractBase:1.0"")");
+
+      --  ... and for all of its ancestor types.
 
       declare
          Parents : Node_List
@@ -831,22 +881,69 @@ package body Ada_Be.Idl2Ada is
          while not Is_End (It) loop
             Get_Next_Node (It, P_Node);
 
-            Add_With (Bod, Ada_Full_Name (P_Node));
-            PL (Bod, "  or else Type_Id = "
+            Add_With (Stubs_Body, Ada_Full_Name (P_Node));
+            PL (Stubs_Body, "  or else Is_Equivalent (Type_Id, "
                 & Ada_Full_Name (P_Node)
-                & "." & T_Repository_Id);
+                & "." & T_Repository_Id & ")");
          end loop;
          Free (Parents);
       end;
 
-      PL (Bod, "  or else False;");
-      DI (Bod);
-      PL (Bod, "end Is_A;");
-   end Gen_Is_A;
+      PL (Stubs_Body, "  or else False;");
+      DI (Stubs_Body);
+      PL (Stubs_Body, "end Is_A;");
+   end Gen_Is_A_Stubs;
 
-   ---------------------------------------
-   --  Gen_Object_Reference_Declaration --
-   ---------------------------------------
+   -------------------
+   -- Gen_Is_A_Skel --
+   -------------------
+
+   procedure Gen_Is_A_Skel
+     (Node      : in Node_Id;
+      Skel_Body : in out Compilation_Unit) is
+   begin
+      --  FIXME: Hard-coded string constant.
+
+      PL (Skel_Body, "if Operation = ""_is_a"" then");
+      II (Skel_Body);
+      PL (Skel_Body, "declare");
+      II (Skel_Body);
+      PL (Skel_Body, "IDL_Logical_Type_Id : constant CORBA.RepositoryId");
+      PL (Skel_Body, "  := Unmarshall (Request_Buffer);");
+      PL (Skel_Body, T_Returns & " : constant CORBA.Boolean");
+      PL (Skel_Body, "  := " & Ada_Full_Name (Node) & ".Is_A");
+      PL (Skel_Body, "       (IDL_Logical_Type_Id);");
+      DI (Skel_Body);
+      PL (Skel_Body, "begin");
+      II (Skel_Body);
+
+      --  FIXME: The following code fragment is duplicated
+      --    (from Gen_Node_Skel_Body).
+      PL (Skel_Body, "--  Marshall service context");
+      PL (Skel_Body, "Marshall");
+      PL (Skel_Body, "  (Reply_Buffer,");
+      PL (Skel_Body, "   CORBA.Unsigned_Long (Broca.GIOP.No_Context));");
+      NL (Skel_Body);
+      PL (Skel_Body, "--  Marshall request ID");
+      PL (Skel_Body, "Marshall (Reply_Buffer, Request_Id);");
+      NL (Skel_Body);
+      PL (Skel_Body, "--  Marshall reply status");
+      PL (Skel_Body, "Broca.GIOP.Marshall");
+      PL (Skel_Body, "  (Reply_Buffer,");
+      PL (Skel_Body, "   Broca.GIOP.No_Exception);");
+      NL (Skel_Body);
+      PL (Skel_Body, "--  Marshall return value");
+      Add_With (Skel_Body, "Broca.CDR");
+      PL (Skel_Body, "Marshall (Reply_Buffer, " & T_Returns & ");");
+      DI (Skel_Body);
+      PL (Skel_Body, "end;");
+      DI (Skel_Body);
+      PL (Skel_Body, "end if;");
+   end Gen_Is_A_Skel;
+
+   --------------------------------------
+   -- Gen_Object_Reference_Declaration --
+   --------------------------------------
 
    procedure Gen_Object_Reference_Declaration
      (CU        : in out Compilation_Unit;
@@ -1576,6 +1673,10 @@ package body Ada_Be.Idl2Ada is
          end;
 
          PL (CU, "end;");
+
+         --  FIXME: This code is duplicated (above for each
+         --    exception that can be raised by this operation,
+         --    and also in Gen_Is_A_Skel).
 
          NL (CU);
          PL (CU, "--  Marshall service context");

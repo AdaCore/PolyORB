@@ -320,7 +320,7 @@ begin
                      Fil := To_File (Argv);
 
                   exception when others =>
-                     Ada.Text_IO.Put_Line ("Creating file " & Argv);
+                     Ada.Text_IO.Put_Line ("Creating file " & Argv.all);
                      Fil := File.Impl.New_File;
                      Bind (From (Argv),
                            To_Name (Argv),
