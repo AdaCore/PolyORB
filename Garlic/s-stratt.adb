@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.IO_Exceptions;
 with Ada.Streams;              use Ada.Streams;
 with Ada.Unchecked_Conversion;
 
@@ -44,7 +43,7 @@ package body System.Stream_Attributes is
 
    use UST;
 
-   Err : exception renames Ada.IO_Exceptions.Data_Error;
+   Data_Error : exception;
    --  Exception raised if insufficient data read.
 
    SU : constant := System.Storage_Unit;
@@ -360,7 +359,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       else
          for N in S'Range loop
             U := U * BB + XDR_TM (S (N));
@@ -379,7 +378,7 @@ package body System.Stream_Attributes is
       case I_SSU (Stream) is
          when 0      => return False;
          when 1      => return True;
-         when others => raise Err;
+         when others => raise Data_Error;
       end case;
    end I_B;
 
@@ -395,7 +394,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       else
 
          --  Use Ada requirements on Character representation clause.
@@ -416,7 +415,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       else
          for N in S'Range loop
             U := U * BB + XDR_WC (S (N));
@@ -451,7 +450,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       end if;
 
       --  Extract Fraction, Exponent and Sign.
@@ -543,7 +542,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       end if;
 
       --  Extract Fraction, Exponent and Sign.
@@ -635,7 +634,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       end if;
 
       --  Extract Fraction, Exponent and Sign.
@@ -727,7 +726,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       end if;
 
       --  Extract Fraction, Exponent and Sign.
@@ -808,7 +807,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       elsif Optimize_Integers then
          return XDR_S_SSI_To_Short_Short_Integer (S);
       else
@@ -839,7 +838,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       elsif Optimize_Integers then
          return XDR_S_SI_To_Short_Integer (S);
       else
@@ -869,7 +868,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       elsif Optimize_Integers then
          return XDR_S_I_To_Integer (S);
       else
@@ -900,7 +899,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       elsif Optimize_Integers then
          return Long_Integer (XDR_S_LI_To_Long_Long_Integer (S));
       else
@@ -942,7 +941,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       elsif Optimize_Integers then
          return XDR_S_LLI_To_Long_Long_Integer (S);
       else
@@ -982,7 +981,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       else
          --  for N in S'Range loop
          --     U := U * BB + XDR_SSU (S (N));
@@ -1006,7 +1005,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       elsif Optimize_Integers then
          return XDR_S_SU_To_Short_Unsigned (S);
       else
@@ -1031,7 +1030,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       elsif Optimize_Integers then
          return XDR_S_U_To_Unsigned (S);
       else
@@ -1057,7 +1056,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       elsif Optimize_Integers then
          return Long_Unsigned (XDR_S_LU_To_Long_Long_Unsigned (S));
       else
@@ -1093,7 +1092,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Read (Stream.all, S, L);
 
       if L /= S'Last then
-         raise Err;
+         raise Data_Error;
       elsif Optimize_Integers then
          return XDR_S_LLU_To_Long_Long_Unsigned (S);
       else
@@ -1141,7 +1140,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Write (Stream.all, S);
 
       if U /= 0 then
-         raise Err;
+         raise Data_Error;
       end if;
    end W_AD;
 
@@ -1162,7 +1161,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Write (Stream.all, S);
 
       if U /= 0 then
-         raise Err;
+         raise Data_Error;
       end if;
    end W_AS;
 
@@ -1217,7 +1216,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Write (Stream.all, S);
 
       if U /= 0 then
-         raise Err;
+         raise Data_Error;
       end if;
    end W_WC;
 
@@ -1332,7 +1331,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Write (Stream.all, S);
 
       if U /= 0 then
-         raise Err;
+         raise Data_Error;
       end if;
    end W_SF;
 
@@ -1447,7 +1446,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Write (Stream.all, S);
 
       if U /= 0 then
-         raise Err;
+         raise Data_Error;
       end if;
    end W_F;
 
@@ -1562,7 +1561,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Write (Stream.all, S);
 
       if U /= 0 then
-         raise Err;
+         raise Data_Error;
       end if;
    end W_LF;
 
@@ -1677,7 +1676,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Write (Stream.all, S);
 
       if U /= 0 then
-         raise Err;
+         raise Data_Error;
       end if;
    end W_LLF;
 
@@ -1731,7 +1730,7 @@ package body System.Stream_Attributes is
          end loop;
 
          if U /= 0 then
-            raise Err;
+            raise Data_Error;
          end if;
       end if;
 
@@ -1763,7 +1762,7 @@ package body System.Stream_Attributes is
          end loop;
 
          if U /= 0 then
-            raise Err;
+            raise Data_Error;
          end if;
       end if;
 
@@ -1806,7 +1805,7 @@ package body System.Stream_Attributes is
          end loop;
 
          if U /= 0 then
-            raise Err;
+            raise Data_Error;
          end if;
       end if;
 
@@ -1849,7 +1848,7 @@ package body System.Stream_Attributes is
          end loop;
 
          if U /= 0 then
-            raise Err;
+            raise Data_Error;
          end if;
       end if;
 
@@ -1874,7 +1873,7 @@ package body System.Stream_Attributes is
       Ada.Streams.Write (Stream.all, S);
 
       --  if U /= 0 then
-      --     raise Err;
+      --     raise Data_Error;
       --  end if;
    end W_SSU;
 
@@ -1896,7 +1895,7 @@ package body System.Stream_Attributes is
          end loop;
 
          if U /= 0 then
-            raise Err;
+            raise Data_Error;
          end if;
       end if;
 
@@ -1921,7 +1920,7 @@ package body System.Stream_Attributes is
          end loop;
 
          if U /= 0 then
-            raise Err;
+            raise Data_Error;
          end if;
       end if;
 
@@ -1956,7 +1955,7 @@ package body System.Stream_Attributes is
          end loop;
 
          if U /= 0 then
-            raise Err;
+            raise Data_Error;
          end if;
       end if;
 
@@ -1992,7 +1991,7 @@ package body System.Stream_Attributes is
          end loop;
 
          if U /= 0 then
-            raise Err;
+            raise Data_Error;
          end if;
       end if;
 
