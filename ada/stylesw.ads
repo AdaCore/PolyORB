@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                              --
 --                                                                          --
 --          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
 --                                                                          --
@@ -38,7 +38,8 @@
 --  Switches. All other style checking issues are handled using the public
 --  interfaces in the spec of Style.
 
-with Types; use Types;
+with Hostparm; use Hostparm;
+with Types;    use Types;
 
 package Stylesw is
 
@@ -53,7 +54,13 @@ package Stylesw is
 
    --  The actual mechanism for setting these switches to other than
    --  default values is via the Set_Style_Check_Option procedure or
-   --  through a call to Set_Default_Style_Check_Options.
+   --  through a call to Set_Default_Style_Check_Options. They should
+   --  not be set directly in any other manner.
+
+   Style_Check_Attribute_Casing : Boolean := False;
+   --  This can be set True by using the -gnatg or -gnatya switches. If
+   --  it is True, then attribute names (including keywords such as
+   --  digits used as attribute names) must be in mixed case.
 
    Style_Check_Blanks_At_End : Boolean := False;
    --  This can be set True by using the -gnatg or -gnatyb switches. If
@@ -91,6 +98,11 @@ package Stylesw is
    --  This can be set True by using the -gnatg or -gnatye switches. If
    --  it is True, then optional END labels must always be present.
 
+   Style_Check_Form_Feeds : Boolean := False;
+   --  This can be set True by using the -gnatg or -gnatyf switches. If
+   --  it is True, then form feeds and vertical tabs are not allowed in
+   --  the source text.
+
    Style_Check_Horizontal_Tabs : Boolean := False;
    --  This can be set True by using the -gnatg or -gnatyh switches. If
    --  it is True, then horizontal tabs are not allowed in source text.
@@ -127,18 +139,11 @@ package Stylesw is
    --  or keyword such as END, start on a column that is a multiple of the
    --  indentiation value.
 
-   Style_Check_Kasing : Boolean := False;
+   Style_Check_Keyword_Casing : Boolean := False;
    --  This can be set True by using the -gnatg or -gnatyk switches. If
-   --  it is True, then the standard casing rules must be followed:
-   --
-   --    All keywords in lower case
-   --
-   --    Identifiers must have the same casing as their declarations
-   --
-   --    Attribute and Pragma identifiers must be in mixed case
-   --
-   --  Note that there is no specific requirement on the casing style
-   --  used for identifiers, only a requirement for consistency.
+   --  it is True, then keywords are required to be in all lower case.
+   --  This rule does not apply to keywords such as digits appearing as
+   --  an attribute name.
 
    Style_Check_Max_Line_Length : Boolean := False;
    --  This can be set True by using the -gnatg or -gnatym switches. If
@@ -146,11 +151,21 @@ package Stylesw is
    --  characters (chosen to fit in standard 80 column displays that don't
    --  handle the limiting case of 80 characters cleanly).
 
-   Style_Check_RM_Column_Layout : Boolean := False;
-   --  This can be set True by using the -gnatg or -gnatyr switches. If
+   Style_Check_Pragma_Casing : Boolean := False;
+   --  This can be set True by using the -gnatg or -gnatyp switches. If
+   --  it is True, then pragma names must use mixed case.
+
+   Style_Check_Layout : Boolean := False;
+   --  This can be set True by using the -gnatg or -gnatyl switches. If
    --  it is True, it activates checks that constructs are indented as
    --  suggested by the examples in the RM syntax, e.g. that the ELSE
    --  keyword must line up with the IF keyword.
+
+   Style_Check_References : Boolean := False;
+   --  This can be set True by using the -gnatg or -gnatyr switches. If
+   --  it is True, then all references to declared identifiers are
+   --  checked. The requirement is that casing of the reference be the
+   --  same as the casing of the corresponding declaration.
 
    Style_Check_Specs : Boolean := False;
    --  This can be set True by using the -gnatg or -gnatys switches. If
@@ -202,6 +217,10 @@ package Stylesw is
    --  where horizontal tabs are permitted, a horizontal tab is acceptable
    --  for meeting the requirement for a space.
 
+   Style_Max_Line_Length : Int := 79;
+   --  Value used to check maximum line length. Can be reset by a call to
+   --  Set_Max_Line_Length. The value here is the default if no such call.
+
    -----------------
    -- Subprograms --
    -----------------
@@ -216,5 +235,11 @@ package Stylesw is
    --  the option character is valid, then the appropriate internal
    --  checking switch is set, and OK is set True on return. If the
    --  option character is invalid, then OK is set False on return.
+
+   procedure Set_Max_Line_Length (Max : Nat);
+   --  This procedure has the opportunity of setting a new value for the
+   --  maximum line length which is different from the standard default
+   --  value of 79 used for this check. This call also implies setting
+   --  the max line length check active.
 
 end Stylesw;

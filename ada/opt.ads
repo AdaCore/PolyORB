@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                            --
 --                                                                          --
 --          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
 --                                                                          --
@@ -38,6 +38,7 @@
 --  the binder or gnatmake. The comments indicate which options are used by
 --  which programs (GNAT, GNATBIND, GNATMAKE).
 
+with Hostparm;       use Hostparm;
 with Types;          use Types;
 with System.WCh_Con; use System.WCh_Con;
 
@@ -126,6 +127,21 @@ package Opt is
    --  GNATMAKE
    --  Set to True to skip bind and link step.
 
+   subtype Debug_Level_Value is Nat range 0 .. 3;
+   Debugger_Level : Debug_Level_Value := 0;
+   --  GNATBIND
+   --  The value given to the -g parameter.
+   --  The default value for -g with no value is 2
+   --  This is usually ignored by GNATBIND, except in the VMS version
+   --  where it is passed as an argument to __gnat_initialize to trigger
+   --  the activation of the remote debugging interface.
+
+   Debug_Generated_Code : Boolean := False;
+   --  GNAT
+   --  Set True (-gnatD switch) to debug generated expanded code instead
+   --  of the original source code. Causes debugging information to be
+   --  written with respect to the generated code file that is written.
+
    type Distribution_Stub_Mode_Type is
    --  GNAT
      (No_Stubs,
@@ -138,15 +154,6 @@ package Opt is
       Generate_Caller_Stub_Body);
       --  The unit being compiled is the RCI spec, and the compiler will
       --  generate the body for the caller stubs and compile it.
-
-   subtype Debug_Level_Value is Nat range 0 .. 3;
-   Debugger_Level : Debug_Level_Value := 0;
-   --  GNATBIND
-   --  The value given to the -g parameter.
-   --  The default value for -g with no value is 2
-   --  This is usually ignored by GNATBIND, except in the VMS version
-   --  where it is passed as an argument to __gnat_initialize to trigger
-   --  the activation of the remote debugging interface.
 
    Distribution_Stub_Mode : Distribution_Stub_Mode_Type := No_Stubs;
    --  GNAT
@@ -277,6 +284,10 @@ package Opt is
    --  outputs the list of object dependencies. This list can be used
    --  directly in a Makefile.
 
+   List_Representation_Info : Boolean := False;
+   --  GNAT
+   --  Set true by -gnatR switch to list representation information
+
    Locking_Policy : Character := ' ';
    --  GNAT, GNATBIND
    --  Set to ' ' for the default case (no locking policy specified). Reset to
@@ -309,6 +320,10 @@ package Opt is
    --  GNATMAKE
    --  Set to True if minimal recompilation mode requested.
 
+   No_Gnatlib : Boolean := False;
+   --  GNATMAKE
+   --  Set to True if no default search dirs added to search list.
+
    No_Main_Subprogram : Boolean := False;
    --  GNATMAKE, GNATBIND
    --  Set to True if compilation/binding of a program without main
@@ -339,6 +354,10 @@ package Opt is
    --  for GNATBIND or when the object filename is given with option
    --  -gnatO for GNAT.
 
+   Output_Object_List : Boolean := False;
+   --  GNATBIND
+   --  True if output of list of objects is requested (-O switch set)
+
    Pessimistic_Elab_Order : Boolean := False;
    --  GNATBIND
    --  True if pessimistic elaboration order is to be chosen (-p switch set)
@@ -347,6 +366,11 @@ package Opt is
    --  GNAT
    --  Set to True if polling for asynchronous abort is enabled by using
    --  the -gnatP option for GNAT.
+
+   Print_Generated_Code : Boolean := False;
+   --  GNAT
+   --  Set to True to enable output of generated code in source form. This
+   --  flag is set by the -gnatG switch.
 
    Propagate_Exceptions : Boolean := False;
    --  GNAT
@@ -450,6 +474,11 @@ package Opt is
    --  occur. This will probably cause blowups at this stage in the game. On
    --  the other hand, most such blowups will be caught cleanly and simply
    --  say compilation abandoned.
+
+   Unique_Error_Tag : Boolean := Tag_Errors;
+   --  GNAT
+   --  Indicates if error messages are to be prefixed by the string error:
+   --  Initialized from Tag_Errors, can be forced on with the -gnatU switch.
 
    Unreserve_All_Interrupts : Boolean := False;
    --  GNAT, GNATBIND

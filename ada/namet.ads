@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1997 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -126,7 +126,6 @@ package Namet is
    --  Length of name stored in Name_Buffer. Used as an input parameter for
    --  Name_Find, and as an output value by Get_Name_String, or Write_Name.
 
-
    -----------------
    -- Subprograms --
    -----------------
@@ -202,8 +201,7 @@ package Namet is
    --  Return starting address of names table. Used in Back_End call to Gigi.
 
    function Name_Entries_Count return Nat;
-   --  Return current number of entries in the names table. Used in Back_End
-   --  call to Gigi.
+   --  Return current number of entries in the names table
 
    function Name_Find return Name_Id;
    --  Name_Find is called with a string stored in Name_Buffer whose length

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                             --
 --                                                                          --
 --          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -251,8 +251,8 @@ package body Make is
    --  Path for compiler, binder, linker programs, defaulted now for gnatdist.
    --  Changed later if overridden on command line.
 
-   Output_Flag       : constant String_Access := new String'("-o");
    Comp_Flag         : constant String_Access := new String'("-c");
+   Output_Flag       : constant String_Access := new String'("-o");
    Ada_Flag_1        : constant String_Access := new String'("-x");
    Ada_Flag_2        : constant String_Access := new String'("ada");
    GNAT_Flag         : constant String_Access := new String'("-gnatg");
@@ -387,8 +387,7 @@ package body Make is
 
       case T is
          when Compiler =>
-            pragma Assert
-              (Gcc_Switches.First <= Pos and Pos <= Gcc_Switches.Last);
+            pragma Assert (Pos in Gcc_Switches.First .. Gcc_Switches.Last);
 
             Gcc_Switches.Increment_Last;
             for J in reverse Pos + 1 .. Gcc_Switches.Last loop
@@ -656,6 +655,7 @@ package body Make is
 
       else
          ALI := Scan_ALI (Lib_File, Text, Err => True);
+         Free (Text);
 
          if ALI = No_ALI_Id then
             Verbose_Msg (Full_Lib_File, "incorrectly formatted ALI file");
@@ -1069,6 +1069,7 @@ package body Make is
       function Compile (S : Name_Id; L : Name_Id) return Process_Id is
 
          Comp_Args : Argument_List (Args'First .. Args'Last + 7);
+         Comp_Next : Integer := Args'First;
          Comp_Last : Integer;
 
          function Ada_File_Name (Name : Name_Id) return Boolean;
@@ -1089,7 +1090,8 @@ package body Make is
       --  Start of processing for Compile
 
       begin
-         Comp_Args (Args'First) := Comp_Flag;
+         Comp_Args (Comp_Next) := Comp_Flag;
+         Comp_Next := Comp_Next + 1;
 
          --  Optimize the simple case where the gcc command line looks like
          --     gcc -c -I. ... -I- file.adb  --into->  gcc -c ... file.adb
@@ -1098,13 +1100,13 @@ package body Make is
            and then Args (Args'Last).all = "-I-"
            and then S = Strip_Directory (S)
          then
-            Comp_Last := Args'Last - 1;
-            Comp_Args (Args'First + 1 .. Comp_Last) :=
-                                 Args (Args'First + 1 .. Args'Last - 1);
+            Comp_Last := Comp_Next + Args'Length - 3;
+            Comp_Args (Comp_Next .. Comp_Last) :=
+              Args (Args'First + 1 .. Args'Last - 1);
 
          else
-            Comp_Last := Args'Last + 1;
-            Comp_Args (Args'First + 1 .. Comp_Last) := Args;
+            Comp_Last := Comp_Next + Args'Length - 1;
+            Comp_Args (Comp_Next .. Comp_Last) := Args;
          end if;
 
          --  Set -gnatg for predefined files (for this purpose the renamings
@@ -1471,6 +1473,7 @@ package body Make is
 
                if Text /= null then
                   ALI := Scan_ALI (Lib_File, Text);
+                  Free (Text);
                   Record_Good_ALI (ALI);
 
                --  This should probably just be Assert (False) now. It is
@@ -1726,21 +1729,46 @@ package body Make is
 
       Compilation_Failures : Natural;
 
-      Is_Main_Unit     : Boolean;
-      --  If True the Main_Source_File can be a main unit (is this used???
-      --  It is not used here for sure???)
+      Is_Main_Unit : Boolean;
+      --  Set to True by Compile_Sources if the Main_Source_File can be a
+      --  main unit.
 
       Main_ALI_File : File_Name_Type;
       --  The ali file corresponding to Main_Source_File
 
    begin
-      Initialize;
+      Make.Initialize;
+
+      if Hostparm.Java_VM then
+         Gcc := new String'("jgnat");
+
+         --  Do not check for an object file (".o") when compiling to
+         --  Java bytecode since ".class" files are generated instead.
+
+         Opt.Check_Object_Consistency := False;
+
+         --  ??? temporary hack for GNAT-for-Java make since we do not
+         --  have a binder or linker yet.
+
+         Opt.Compile_Only := True;
+
+         --  ??? temporary message
+
+         Write_Eol;
+         Write_Str ("JGNAT: ");
+         Write_Str ("The GNAT Ada 95 toolchain for the Java Virtual Machine");
+         Write_Eol;
+         Write_Str ("   http://www.gnat.com - http://www.act-europe.fr");
+         Write_Eol;
+         Write_Str ("Early Beta version");
+         Write_Eol;
+      end if;
 
       if Opt.Verbose_Mode then
          Write_Eol;
          Write_Str ("GNATMAKE ");
          Write_Str (Gnatvsn.Gnat_Version_String);
-         Write_Str (" Copyright 1995-1998 Free Software Foundation, Inc.");
+         Write_Str (" Copyright 1995-1999 Free Software Foundation, Inc.");
          Write_Eol;
       end if;
 
@@ -2193,10 +2221,7 @@ package body Make is
       Name_Len := Dir'Length;
       Name_Buffer (1 .. Name_Len) := Dir;
 
-      if Name_Buffer (Name_Len) /= Directory_Separator
-           or else
-         Name_Buffer (Name_Len) /= '/'
-      then
+      if not Is_Directory_Separator (Name_Buffer (Name_Len)) then
          Name_Len := Name_Len + 1;
          Name_Buffer (Name_Len) := Directory_Separator;
       end if;
@@ -2438,6 +2463,16 @@ package body Make is
          then
             Opt.Minimal_Recompilation := True;
 
+         --  -S (Assemble)
+         --  Since no object file is created, don't check object objecct
+         --  consistency.
+
+         elsif Argv (2) = 'S'
+           and then Argv'Last = 2
+         then
+            Opt.Check_Object_Consistency := False;
+            Add_Switch (Argv, Compiler);
+
          --  By default all switches with more than one character
          --  or one character switches which are not in 'a' .. 'z'
          --  are passed to the compiler, unless we are dealing
@@ -2451,6 +2486,10 @@ package body Make is
             Opt.Operating_Mode := Opt.Check_Semantics;
             Opt.Check_Object_Consistency := False;
             Opt.Compile_Only             := True;
+
+         elsif Argv (2 .. Argv'Last) = "nognatlib" then
+            Opt.No_Gnatlib := True;
+            Add_Switch (Argv, Linker);
 
          elsif Argv (2) /= 'j'
            and then Argv (2) /= 'd'

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                             --
 --                                                                          --
 --          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -33,18 +33,42 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package contains low level output routines used by the compiler
+--  for writing error messages and informational output. It is also used
+--  by the debug source file output routines (see Sprintf.Print_Eol).
+
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with Types;       use Types;
 
 package Output is
 pragma Elaborate_Body (Output);
 
---  This package contains low level output routines used by the compiler
+   -------------------------
+   -- Line Buffer Control --
+   -------------------------
 
-   function Column return Int;
-   --  Returns column number about to be written (start of line = column 1)
-   --  If a tab is output, this column count reflects the result of outputting
-   --  an equivalent number of blanks (with standard positions 1,9,17..)
+   --  Note: the following buffer and column position are maintained by
+   --  the subprograms defined in this package, and are not normally
+   --  directly modified or accessed by a client. However, a client is
+   --  permitted to modify these values, using the knowledge that only
+   --  Write_Eol actually generates any output.
+
+   Buffer_Max : constant := 8192;
+   Buffer     : String (1 .. Buffer_Max + 1);
+   --  Buffer used to build output line. We do line buffering because it
+   --  is needed for the support of the debug-generated-code option (-gnatD).
+   --  Historically it was first added because on VMS, line buffering is
+   --  needed with certain file formats. So in any case line buffering must
+   --  be retained for this purpose, even if other reasons disappear. Note
+   --  any attempt to write more output to a line than can fit in the buffer
+   --  will be silently ignored.
+
+   Column : Pos range 1 .. Buffer'Length := 1;
+   --  Column about to be written.
+
+   -----------------
+   -- Subprograms --
+   -----------------
 
    procedure Set_Standard_Error;
    --  Sets subsequent output to appear on the standard error file (whatever
@@ -62,6 +86,9 @@ pragma Elaborate_Body (Output);
    procedure Write_Eol;
    --  Write an end of line (whatever is required by the system in use,
    --  e.g. CR/LF for DOS, or LF for Unix) to the standard output file.
+   --  This routine also empties the line buffer, actually writing it
+   --  to the file. Note that Write_Eol is the only routine that causes
+   --  any actual output to be written.
 
    procedure Write_Int (Val : Int);
    --  Write an integer value with no leading blanks or zeroes. Negative

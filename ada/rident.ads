@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -53,6 +53,7 @@ package Rident is
       No_Access_Subprograms,                   -- (RM H.4(17))
       No_Allocators,                           -- (RM H.4(7))
       No_Asynchronous_Control,                 -- (RM D.9(10))
+      No_Complex_Barriers,                     -- GNAT (Ravenscar)
       No_Delay,                                -- (RM H.4(21))
       No_Dispatch,                             -- (RM H.4(19))
       No_Dynamic_Priorities,                   -- (RM D.9(9))
@@ -66,6 +67,7 @@ package Rident is
       No_Protected_Types,                      -- (RM H.4(5))
       No_Recursion,                            -- (RM H.4(22))
       No_Reentrancy,                           -- (RM H.4(23))
+      No_Select_Statements,                    -- GNAT (Ravenscar)
       No_Task_Allocators,                      -- (RM D.7(7))
       No_Task_Hierarchy,                       -- (RM D.7(3), H.4(3))
       No_Terminate_Alternatives,               -- (RM D.7(6))
@@ -79,6 +81,7 @@ package Rident is
       No_Implementation_Attributes,            -- GNAT
       No_Implementation_Pragmas,               -- GNAT
       No_Elaboration_Code,                     -- GNAT
+      No_Entry_Queue,                          -- GNAT
 
       Not_A_Restriction_Id);
 

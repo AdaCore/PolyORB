@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                             --
 --                                                                          --
 --          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -81,7 +81,7 @@ package body Debug is
    --  dK
    --  dL   Output trace information on elaboration checking
    --  dM
-   --  dN
+   --  dN   Generate file/line exception messages with zero-cost exception
    --  dO
    --  dP   Do not check for controlled objects in preelaborable packages
    --  dQ
@@ -251,6 +251,13 @@ package body Debug is
    --       other basic tree operations also cause a line of output to be
    --       generated. This option is useful in seeing where the parser is
    --       blowing up.;
+
+   --  dN   Generate file/line exception messages even when using zero cost
+   --       exceptions. Normally when using zero cost exceptions, we do not
+   --       do the explicit generation of these messages, since they are
+   --       redundant with respect to the trace back information, but for
+   --       debugging purposes (and fixed regression runs), it is useful to
+   --       be able to force the generation of these messages all the time.
 
    --  do   Print the source recreated from the generated tree. In the case
    --       where the tree has been rewritten, this output includes only the

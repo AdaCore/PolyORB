@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                             --
 --                                                                          --
 --          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -38,7 +38,6 @@ with Opt;
 with Output;  use Output;
 with System;  use System;
 with Tree_IO; use Tree_IO;
-with Unchecked_Deallocation;
 
 package body Table is
    package body Table is
@@ -50,8 +49,8 @@ package body Table is
       --  Number of entries in currently allocated table. The value of zero
       --  ensures that we initially allocate the table.
 
-      procedure Free is
-        new Unchecked_Deallocation (Big_Table_Type, Table_Ptr);
+      procedure free (T : Table_Ptr);
+      pragma Import (C, free);
 
       -----------------------
       -- Local Subprograms --
@@ -217,7 +216,7 @@ package body Table is
 
       procedure Restore (T : Saved_Table) is
       begin
-         Free (Table);
+         free (Table);
          Last_Val := T.Last_Val;
          Max      := T.Max;
          Table    := T.Table;

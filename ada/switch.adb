@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                            --
 --                                                                          --
 --          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
 --                                                                          --
@@ -226,6 +226,19 @@ package body Switch is
 
             return;
 
+         --  Processing for D switch
+
+         elsif C = 'D' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler then
+               Debug_Generated_Code := True;
+               Set_Debug_Flag ('g');
+
+            else
+               raise Bad_Switch;
+            end if;
+
          --  Processing for e switch
 
          elsif C = 'e' then
@@ -261,17 +274,6 @@ package body Switch is
                Force_Compilations := True;
             elsif Program = Binder then
                Full_Elaboration_Semantics := True;
-            else
-               raise Bad_Switch;
-            end if;
-
-         --  Processing for H switch
-
-         elsif C = 'H' then
-            Ptr := Ptr + 1;
-
-            if Program = Compiler then
-               HLO_Active := True;
             else
                raise Bad_Switch;
             end if;
@@ -312,18 +314,26 @@ package body Switch is
 
          --  Processing for G switch
 
-         --  Note: this switch is equivalent to -gnatdg, it is separately
-         --  provided since this particular debugging switch is more likely
-         --  to be of interest to users than the others.
-
          elsif C = 'G' then
-            Set_Debug_Flag ('g');
+            Ptr := Ptr + 1;
+            Print_Generated_Code := True;
 
          --  Processing for h switch
 
          elsif C = 'h' then
             Ptr := Ptr + 1;
             Usage_Requested := True;
+
+         --  Processing for H switch
+
+         elsif C = 'H' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler then
+               HLO_Active := True;
+            else
+               raise Bad_Switch;
+            end if;
 
          --  Processing for i switch
 
@@ -467,6 +477,8 @@ package body Switch is
 
             if Program = Compiler then
                Output_Filename_Present := True;
+            elsif Program = Binder then
+               Output_Object_List := True;
             else
                raise Bad_Switch;
             end if;
@@ -528,8 +540,32 @@ package body Switch is
          elsif C = 'r' then
             Ptr := Ptr + 1;
 
-            if Program = Binder then
+            --  Temporarily allow -gnatr to mean -gnatyl (use RM layout)
+            --  for compatibility with pre 3.12 versions of GNAT,
+            --  to be removed for 3.13 ???
+
+            if Program = Compiler then
+               Style_Check := True;
+
+               declare
+                  Discard : Boolean;
+               begin
+                  Set_Style_Check_Option ('l', Discard);
+               end;
+
+            elsif Program = Binder then
                Bind_Alternate_Main_Name := True;
+            else
+               raise Bad_Switch;
+            end if;
+
+         --  Processing for R switch
+
+         elsif C = 'R' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler then
+               List_Representation_Info := True;
             else
                raise Bad_Switch;
             end if;
@@ -587,6 +623,17 @@ package body Switch is
 
             if Program = Compiler then
                List_Units := True;
+            else
+               raise Bad_Switch;
+            end if;
+
+         --  Processing for U switch
+
+         elsif C = 'U' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler then
+               Unique_Error_Tag := True;
             else
                raise Bad_Switch;
             end if;
@@ -691,12 +738,18 @@ package body Switch is
                   begin
                      while Ptr <= Max loop
                         C := Switches (Ptr);
-                        Set_Style_Check_Option (C, OK);
 
-                        if not OK then
-                           raise Bad_Switch;
-                        else
+                        if C = 'M' then
                            Ptr := Ptr + 1;
+                           Set_Max_Line_Length (Scan_Pos);
+                        else
+                           Set_Style_Check_Option (C, OK);
+
+                           if not OK then
+                              raise Bad_Switch;
+                           else
+                              Ptr := Ptr + 1;
+                           end if;
                         end if;
                      end loop;
                   end;

@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                            --
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -88,14 +88,15 @@ package body Osint is
    --  excluding the directory path
 
    procedure Write_Info (Info : String);
-   --  Implementation of Write_Binder_Info and Write_Library_Info (identical)
+   --  Implementation of Write_Binder_Info, Write_Debug_Info and
+   --  Write_Library_Info (identical)
 
    procedure Write_With_Check (A  : Address; N  : Integer);
    --  Writes N bytes from buffer starting at address A to file whose FD is
-   --  stored in Output_FD, and whose file name is stored as a
-   --  File_Name_Type in Output_File_Name. A check is made for disk full,
-   --  and if this is detected, the file being written is deleted, and a
-   --  fatal error is signalled.
+   --  stored in Output_FD, and whose file name is stored as a File_Name_Type
+   --  in Output_File_Name. A check is made for disk full, and if this is
+   --  detected, the file being written is deleted, and a fatal error is
+   --  signalled.
 
    function More_Files return Boolean;
    --  Implements More_Source_Files and More_Lib_Files.
@@ -124,11 +125,11 @@ package body Osint is
    --  Finds a source or library file depending on the value of T following
    --  the directory search order rules unless N is the name of the file
    --  just read with Next_Main_File and already contains directiory
-   --  information, in which case just look in the
-   --  Primary_Directory. Returns File_Name_Type of the full file name if
-   --  found, No_File if file not found. Note that for the special case of
-   --  gnat.adc, only the compilation environment directory is searched,
-   --  i.e. the directory where the ali an object files are written
+   --  information, in which case just look in the Primary_Directory.
+   --  Returns File_Name_Type of the full file name if found, No_File if
+   --  file not found. Note that for the special case of gnat.adc, only the
+   --  compilation environment directory is searched, i.e. the directory
+   --  where the ali and object files are written
 
    function C_String_Length (S : Address) return Integer;
    --  Returns length of a C string. Returns zero for a null address.
@@ -146,6 +147,9 @@ package body Osint is
 
    ALI_Suffix : constant String_Ptr := new String'("ali");
    --  The suffix used for the library files (also known as ALI files).
+
+   Object_Suffix : constant String := Get_Object_Suffix.all;
+   --  The suffix used for the object files.
 
    EOL : constant Character := Ascii.LF;
    --  End of line character
@@ -358,6 +362,16 @@ package body Osint is
       end if;
    end Close_Binder_Output;
 
+   ----------------------
+   -- Close_Debug_File --
+   ----------------------
+
+   procedure Close_Debug_File is
+   begin
+      pragma Assert (In_Compiler);
+      Close (Output_FD);
+   end Close_Debug_File;
+
    -------------------------------
    -- Close_Output_Library_Info --
    -------------------------------
@@ -367,16 +381,6 @@ package body Osint is
       pragma Assert (In_Compiler);
       Close (Output_FD);
    end Close_Output_Library_Info;
-
-   -----------------------
-   -- Close_Xref_Output --
-   -----------------------
-
-   procedure Close_Xref_Output is
-   begin
-      pragma Assert (In_Compiler);
-      Close (Output_FD);
-   end Close_Xref_Output;
 
    --------------------------
    -- Create_Binder_Output --
@@ -481,6 +485,27 @@ package body Osint is
       Create_File_And_Check (Output_FD, Text);
    end Create_Binder_Output;
 
+   -----------------------
+   -- Create_Debug_File --
+   -----------------------
+
+   function Create_Debug_File (Src : File_Name_Type) return File_Name_Type is
+      Result : File_Name_Type;
+
+   begin
+      Get_Name_String (Src);
+      if Hostparm.OpenVMS then
+         Name_Buffer (Name_Len + 1 .. Name_Len + 3) := "_dg";
+      else
+         Name_Buffer (Name_Len + 1 .. Name_Len + 3) := ".dg";
+      end if;
+      Name_Len := Name_Len + 3;
+      Result := Name_Find;
+      Name_Buffer (Name_Len + 1) := Ascii.NUL;
+      Create_File_And_Check (Output_FD, Text);
+      return Result;
+   end Create_Debug_File;
+
    ---------------------------
    -- Create_File_And_Check --
    ---------------------------
@@ -553,64 +578,6 @@ package body Osint is
 
    end Create_Output_Library_Info;
 
-   -----------------------
-   -- Create_Req_Output --
-   -----------------------
-
-   procedure Create_Req_Output is
-   begin
-      pragma Assert (In_Compiler);
-      Create_File_And_Check (Output_FD, Text);
-   end Create_Req_Output;
-
-   ------------------------
-   -- Create_Xref_Output --
-   ------------------------
-
-   procedure Create_Xref_Output (Typ : Xfiltyp) is
-      Ptr : Natural;
-
-   begin
-      pragma Assert (In_Compiler);
-
-      if Typ /= Xglobal then
-         Get_Name_String (Current_Main);
-         Ptr := Name_Len;
-
-         while Ptr > 1 loop
-            if Name_Buffer (Ptr) = '.' then
-               Name_Len := Ptr - 1;
-               exit;
-
-            elsif Name_Buffer (Ptr) = ']'
-              or else Name_Buffer (Ptr) = '\'
-              or else Name_Buffer (Ptr) = '/'
-            then
-               exit;
-
-            else
-               Ptr := Ptr - 1;
-            end if;
-         end loop;
-
-         if Typ = Xbody then
-            Add_Str_To_Name_Buffer (".xrb");
-         else
-            Add_Str_To_Name_Buffer (".xrs");
-         end if;
-
-         Name_Buffer (Name_Len + 1) := Ascii.NUL;
-
-
-      else -- Typ = Xglobal
-         Name_Buffer (1 .. 5) := "X.ref";
-         Name_Buffer (6) := Ascii.NUL;
-         Name_Len := 5;
-      end if;
-
-      Create_File_And_Check (Output_FD, Text);
-   end Create_Xref_Output;
-
    --------------------------------
    -- Current_Library_File_Stamp --
    --------------------------------
@@ -638,78 +605,20 @@ package body Osint is
       return Current_Full_Source_Stamp;
    end Current_Source_File_Stamp;
 
-   --------------------------------
-   -- Record_Time_From_Last_Bind --
-   --------------------------------
+   ---------------------------
+   -- Debug_File_Eol_Length --
+   ---------------------------
 
-   procedure Record_Time_From_Last_Bind is
+   function Debug_File_Eol_Length return Nat is
    begin
-      Recording_Time_From_Last_Bind := True;
-   end Record_Time_From_Last_Bind;
+      --  There has to be a cleaner way to do this! ???
 
-   -------------------------
-   -- Time_From_Last_Bind --
-   -------------------------
-
-   function Time_From_Last_Bind return Nat is
-      Old_Y  : Nat;
-      Old_M  : Nat;
-      Old_D  : Nat;
-      Old_H  : Nat;
-      Old_Mi : Nat;
-      Old_S  : Nat;
-      New_Y  : Nat;
-      New_M  : Nat;
-      New_D  : Nat;
-      New_H  : Nat;
-      New_Mi : Nat;
-      New_S  : Nat;
-
-      type Month_Data is array (Int range 1 .. 12) of Int;
-      Cumul : constant Month_Data := (0, 0, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7);
-      --  Represents the difference in days from a period compared to the
-      --  same period if all months had 31 days, i.e:
-      --
-      --    Cumul (m) = 31x(m-1) - (number of days from 01/01 to m/01)
-
-      Res : Int;
-
-   begin
-      if not Recording_Time_From_Last_Bind
-        or else not Binder_Output_Time_Stamps_Set
-      then
-         return Nat'Last;
+      if Directory_Separator = '/' then
+         return 1;
+      else
+         return 2;
       end if;
-
-      Split_Time_Stamp
-       (Old_Binder_Output_Time_Stamp,
-        Old_Y, Old_M, Old_D, Old_H, Old_Mi, Old_S);
-
-      Split_Time_Stamp
-       (New_Binder_Output_Time_Stamp,
-        New_Y, New_M, New_D, New_H, New_Mi, New_S);
-
-      Res := New_Mi - Old_Mi;
-
-      --  60 minutes in an hour
-
-      Res := Res + 60 * (New_H  - Old_H);
-
-      --  24 hours in a day
-
-      Res := Res + 60 * 24 * (New_D  - Old_D);
-
-      --  Almost 31 days in a month
-
-      Res := Res + 60 * 24 *
-        (31 * (New_M - Old_M) - Cumul (New_M) + Cumul (Old_M));
-
-      --  365 days in a year
-
-      Res := Res + 60 * 24 * 365 * (New_Y - Old_Y);
-
-      return Res;
-   end Time_From_Last_Bind;
+   end Debug_File_Eol_Length;
 
    ---------------------
    -- Executable_Name --
@@ -808,9 +717,7 @@ package body Osint is
       Get_Name_String (Name);
 
       for J in reverse 1 .. Name_Len loop
-         if Name_Buffer (J) = Directory_Separator
-           or else Name_Buffer (J) = '/'
-         then
+         if Is_Directory_Separator (Name_Buffer (J)) then
             Name_Len := J;
             return Name_Find;
          end if;
@@ -820,6 +727,24 @@ package body Osint is
       Name_Buffer (1 .. Name_Len) := Hostparm.Normalized_CWD;
       return Name_Find;
    end Get_Directory;
+
+   ----------------------------
+   -- Is_Directory_Separator --
+   ----------------------------
+
+   function Is_Directory_Separator (C : Character) return Boolean is
+   begin
+      --  In addition to the default directory_separator allow the '/' to
+      --  act as separator since this is allowed in MS-DOS, Windows 95/NT,
+      --  and OS2 ports. On VMS, the situation is more complicated because
+      --  there are two characters to check for.
+
+      return
+        C = Directory_Separator
+          or else C = '/'
+          or else (Hostparm.OpenVMS
+                    and then (C = ']' or else C = ':'));
+   end Is_Directory_Separator;
 
    -----------------
    -- Locate_File --
@@ -1036,8 +961,6 @@ package body Osint is
    ----------------------
 
    function Object_File_Name (N : File_Name_Type) return File_Name_Type is
-      Object_Suffix : String_Access;
-
    begin
       if N = No_File then
          return No_File;
@@ -1045,11 +968,10 @@ package body Osint is
 
       Get_Name_String (N);
       Name_Len := Name_Len - ALI_Suffix'Length - 1;
-      Object_Suffix := Get_Object_Suffix;
 
-      for J in Object_Suffix.all'Range loop
+      for J in Object_Suffix'Range loop
          Name_Len := Name_Len + 1;
-         Name_Buffer (Name_Len) := Object_Suffix.all (J);
+         Name_Buffer (Name_Len) := Object_Suffix (J);
       end loop;
 
       return Name_Enter;
@@ -1137,6 +1059,15 @@ package body Osint is
 
    end Initialize;
 
+   --------------------------------
+   -- Record_Time_From_Last_Bind --
+   --------------------------------
+
+   procedure Record_Time_From_Last_Bind is
+   begin
+      Recording_Time_From_Last_Bind := True;
+   end Record_Time_From_Last_Bind;
+
    ------------------------
    -- Scan_Compiler_Args --
    ------------------------
@@ -1144,110 +1075,131 @@ package body Osint is
    procedure Scan_Compiler_Args is
       Output_Filename_Seen : Boolean := False;
       --  Set to True after having scanned the file_name for
-      --  switch "-o file_name"
+      --  switch "-gnatO file_name"
 
-      Next_Arg    : Positive;
+      Next_Arg : Positive := 1;
 
    begin
+      pragma Assert (In_Compiler);
+
       --  Loop through command line arguments, storing them for later access
 
-      Next_Arg := 1;
-      Scan_Args : loop
+      while Next_Arg <= Argument_Count loop
 
-         exit when not In_Compiler;
-
-         if Next_Arg > Argument_Count
-           and then Output_Filename_Present
-           and then not Output_Filename_Seen
-         then
-            Fail ("Output filename missing after -o");
-         end if;
-
-         exit when Next_Arg > Argument_Count;
-
-         declare
+         Look_At_Arg : declare
             Next_Argv : String (1 .. Len_Arg (Next_Arg));
 
          begin
             Fill_Arg (Next_Argv'Address, Next_Arg);
 
+            if Next_Argv'Length = 0 then
+               Fail ("Empty argument");
+
+            --  Normalize the switch character to be '-' to make the tests
+            --  below more concise.
+
+            elsif Next_Argv (1) = Switch_Character then
+               Next_Argv (1) := '-';
+            end if;
+
             --  If the previous switch has set the Output_Filename_Present
-            --  flag (that is we have seen a -o), then the next argument is
-            --  the name of the output file.
+            --  flag (that is we have seen a -gnatO), then the next argument
+            --  is the name of the output object file.
 
             if Output_Filename_Present
               and then not Output_Filename_Seen
             then
-               Output_Filename_Seen := True;
-
-               if Next_Argv'Length = 0
-                 or else (Next_Argv'Length >= 1
-                          and then (Next_Argv (1) = Switch_Character
-                                    or else Next_Argv (1) = '-'))
-               then
-                  Fail ("Output filename missing after -o");
-
+               if Next_Argv (1) = '-' then
+                  Fail ("Object file name missing after -gnatO");
                else
                   pragma Assert (Output_Filename = null);
-                  Output_Filename := new String'(Next_Argv);
+                  Output_Filename      := new String'(Next_Argv);
+                  Output_Filename_Seen := True;
                end if;
 
-            elsif Next_Argv'Length = 1
-              and then (Next_Argv (1) = Switch_Character
-                        or else Next_Argv (1) = '-')
-            then
-               Fail ("switch character cannot be followed by a blank");
+            --  Is it a file name ?
 
-            elsif Next_Argv'Length >= 2
-              and then (Next_Argv (1) = Switch_Character
-                        or else Next_Argv (1) = '-')
-            then
-               if Next_Argv (2 .. Next_Argv'Last) = "I-" then
-                  Opt.Look_In_Primary_Dir := False;
-
-               elsif Next_Argv (2) = 'I' then
-                  Add_Src_Search_Dir (Next_Argv (3 .. Next_Argv'Last));
-                  Add_Lib_Search_Dir (Next_Argv (3 .. Next_Argv'Last));
-
-               elsif Next_Argv'Length >= 3
-                 and then Next_Argv (2 .. 3) = "aI"
-               then
-                  Add_Src_Search_Dir (Next_Argv (4 .. Next_Argv'Last));
-
-               elsif Next_Argv'Length >= 3
-                 and then Next_Argv (2 .. 3) = "aO"
-               then
-                  Add_Lib_Search_Dir (Next_Argv (4 .. Next_Argv'Last));
-
-               --  All other options are single character and are handled
-               --  by Scan_Switches.
-
-               else
-                  Scan_Switches (Next_Argv);
-               end if;
-
-            --  Not a switch, so must be a filename (if non-empty)
-
-            elsif Next_Argv'Length /= 0 then
+            elsif Next_Argv (1) /= '-' then
                Number_File_Names := Number_File_Names + 1;
                File_Names (Number_File_Names) := new String'(Next_Argv);
+
+            --  Otherwise it must be a switch
+
+            else
+               pragma Assert (Next_Argv (1) = '-');
+
+               if Next_Argv = "-" then
+                  Fail ("missing switch character");
+
+               elsif Next_Argv = "-I-" then
+                  Opt.Look_In_Primary_Dir := False;
+
+               elsif Next_Argv (1 .. 2) = "-I" then
+                  Add_Src_Search_Dir (Next_Argv (3 .. Next_Argv'Last));
+
+               elsif not Hostparm.Java_VM then
+                  Scan_Switches (Next_Argv);
+
+               --  We need special switch treatment when compiling for the JVM.
+               --  In particular if we have a switch starting with "-gnat" we
+               --  must skip the "-gnat" prefix since the gcc driver is not
+               --  there to do it for us. In addition we must recognize
+               --  ourselves switches "-c", "-g" and "-O[0123]" for the same
+               --  reason. Switch "-c" is recognized but otherwise ignored.
+               --  This is done for compatibility with other GNAT compilers.
+
+               else
+                  if Next_Argv = "-gnat" then
+                     Fail ("missing switch character");
+
+                  elsif Next_Argv'Length > 5
+                    and then Next_Argv (1 .. 5) = "-gnat"
+                  then
+                     --  Must start at 5 so that Scan_Switches can skip to
+                     --  the next character which is the 1st switch character.
+
+                     Scan_Switches (Next_Argv (5 .. Next_Argv'Last));
+
+                  elsif Next_Argv = "-c" then
+                     null;
+
+                  elsif Next_Argv = "-g" then
+                     null;  --  ??? for now debugging is always on
+
+                  elsif Next_Argv = "-O0" then
+                     null;  --  no optimization, the default
+
+                  elsif Next_Argv = "-O" then
+                     null;  --  ??? for now ignore optimization
+
+                  elsif     Next_Argv = "-O1"
+                    or else Next_Argv = "-O2"
+                    or else Next_Argv = "-O3"
+                  then
+                     Write_Line ("Warning: Optimization not implemented yet");
+
+                  else
+                     Fail ("invalid switch: ", Next_Argv);
+                  end if;
+
+               end if;
             end if;
-         end;
+         end Look_At_Arg;
 
          Next_Arg := Next_Arg + 1;
-      end loop Scan_Args;
+      end loop;
 
       --  Make sure that the object file has the expected extension.
 
       if Output_Filename /= null then
          declare
-            S1 : String_Access := Get_Object_Suffix;
-            S2 : String_Ptr    := Output_Filename;
+            S1 : constant String := Object_Suffix;
+            S2 : String_Ptr      := Output_Filename;
             L1 : Natural := S1'Length;
             L2 : Natural := S2'Length;
 
          begin
-            if L2 <= L1 or else S2 (L2 - L1 + 1 .. L2) /= S1.all then
+            if L2 <= L1 or else S2 (L2 - L1 + 1 .. L2) /= S1 then
                Fail ("incorrect object file extension");
             end if;
          end;
@@ -1444,21 +1396,23 @@ package body Osint is
 
       --  The last place to look are the defaults
 
-      Search_Path := String_Access (Update_Path (Include_Dir_Default_Name));
-      Get_Next_Dir_In_Path_Init (Search_Path);
-      loop
-         Search_Dir := Get_Next_Dir_In_Path (Search_Path);
-         exit when Search_Dir = null;
-         Add_Search_Dir (Search_Dir, True);
-      end loop;
+      if not Opt.No_Gnatlib then
+         Search_Path := String_Access (Update_Path (Include_Dir_Default_Name));
+         Get_Next_Dir_In_Path_Init (Search_Path);
+         loop
+            Search_Dir := Get_Next_Dir_In_Path (Search_Path);
+            exit when Search_Dir = null;
+            Add_Search_Dir (Search_Dir, True);
+         end loop;
 
-      Search_Path := String_Access (Update_Path (Object_Dir_Default_Name));
-      Get_Next_Dir_In_Path_Init (Search_Path);
-      loop
-         Search_Dir := Get_Next_Dir_In_Path (Search_Path);
-         exit when Search_Dir = null;
-         Add_Search_Dir (Search_Dir, False);
-      end loop;
+         Search_Path := String_Access (Update_Path (Object_Dir_Default_Name));
+         Get_Next_Dir_In_Path_Init (Search_Path);
+         loop
+            Search_Dir := Get_Next_Dir_In_Path (Search_Path);
+            exit when Search_Dir = null;
+            Add_Search_Dir (Search_Dir, False);
+         end loop;
+      end if;
 
    end Add_Default_Search_Dirs;
 
@@ -1593,13 +1547,11 @@ package body Osint is
       Fptr      : Natural;
 
    begin
+      pragma Assert (More_Files);
+
       Current_File_Name_Index := Current_File_Name_Index + 1;
 
-      --  Fatal error if no more files (use More_Files to check)
-
-      pragma Assert (Current_File_Name_Index <= Number_File_Names);
-
-      --  Otherwise return name of the file
+      --  Get the file and directory name
 
       File_Name := File_Names (Current_File_Name_Index);
       Fptr := File_Name'First;
@@ -1723,9 +1675,7 @@ package body Osint is
       if Directory'Length = 0 then
          Result := new String'(Hostparm.Normalized_CWD);
 
-      elsif Directory (Directory'Last) = Directory_Separator
-        or else Directory (Directory'Last) = '/'
-      then
+      elsif Is_Directory_Separator (Directory (Directory'Last)) then
          Result := new String'(Directory);
       else
          Result := new String (1 .. Directory'Length + 1);
@@ -2094,9 +2044,7 @@ package body Osint is
 
       begin
          for J in reverse S'Range loop
-            if S (J) = Directory_Separator
-              or else S (J) = '/'
-            then
+            if Is_Directory_Separator (S (J)) then
                Fptr := J + 1;
                exit;
             end if;
@@ -2145,6 +2093,70 @@ package body Osint is
          return Strlen (S);
       end if;
    end C_String_Length;
+
+   -------------------------
+   -- Time_From_Last_Bind --
+   -------------------------
+
+   function Time_From_Last_Bind return Nat is
+      Old_Y  : Nat;
+      Old_M  : Nat;
+      Old_D  : Nat;
+      Old_H  : Nat;
+      Old_Mi : Nat;
+      Old_S  : Nat;
+      New_Y  : Nat;
+      New_M  : Nat;
+      New_D  : Nat;
+      New_H  : Nat;
+      New_Mi : Nat;
+      New_S  : Nat;
+
+      type Month_Data is array (Int range 1 .. 12) of Int;
+      Cumul : constant Month_Data := (0, 0, 3, 3, 4, 4, 5, 5, 5, 6, 6, 7);
+      --  Represents the difference in days from a period compared to the
+      --  same period if all months had 31 days, i.e:
+      --
+      --    Cumul (m) = 31x(m-1) - (number of days from 01/01 to m/01)
+
+      Res : Int;
+
+   begin
+      if not Recording_Time_From_Last_Bind
+        or else not Binder_Output_Time_Stamps_Set
+      then
+         return Nat'Last;
+      end if;
+
+      Split_Time_Stamp
+       (Old_Binder_Output_Time_Stamp,
+        Old_Y, Old_M, Old_D, Old_H, Old_Mi, Old_S);
+
+      Split_Time_Stamp
+       (New_Binder_Output_Time_Stamp,
+        New_Y, New_M, New_D, New_H, New_Mi, New_S);
+
+      Res := New_Mi - Old_Mi;
+
+      --  60 minutes in an hour
+
+      Res := Res + 60 * (New_H  - Old_H);
+
+      --  24 hours in a day
+
+      Res := Res + 60 * 24 * (New_D  - Old_D);
+
+      --  Almost 31 days in a month
+
+      Res := Res + 60 * 24 *
+        (31 * (New_M - Old_M) - Cumul (New_M) + Cumul (Old_M));
+
+      --  365 days in a year
+
+      Res := Res + 60 * 24 * 365 * (New_Y - Old_Y);
+
+      return Res;
+   end Time_From_Last_Bind;
 
    ---------------------------
    -- To_Canonical_Dir_Spec --
@@ -2400,7 +2412,6 @@ package body Osint is
       Close (Output_FD);
    end Tree_Close;
 
-
    ----------------
    -- Write_Info --
    ----------------
@@ -2417,6 +2428,12 @@ package body Osint is
    -----------------------
 
    procedure Write_Binder_Info (Info : String) renames Write_Info;
+
+   -----------------------
+   -- Write_Debug_Info --
+   -----------------------
+
+   procedure Write_Debug_Info (Info : String) renames Write_Info;
 
    ------------------------
    -- Write_Library_Info --
@@ -2438,19 +2455,10 @@ package body Osint is
 
       --  The program name might be specified by a full path name. However,
       --  we don't want to print that all out in an error message, so the
-      --  path might need to be stripped away. In addition to the default
-      --  directory_separator allow the '/' to act as separator since this
-      --  is allowed in MS-DOS, Windows 95/NT, and OS2 ports. On VMS, the
-      --  situation is more complicated because there are two characters to
-      --  check for.
+      --  path might need to be stripped away.
 
       for J in reverse Cindex1 .. Cindex2 loop
-         if Command_Name (J) = Directory_Separator
-           or else Command_Name (J) = '/'
-           or else (Hostparm.OpenVMS
-                    and then (Command_Name (J) = ']'
-                              or else Command_Name (J) = ':'))
-         then
+         if Is_Directory_Separator (Command_Name (J)) then
             Cindex1 := J + 1;
             exit;
          end if;
@@ -2550,19 +2558,5 @@ package body Osint is
          Exit_Program (E_Fatal);
       end if;
    end Write_With_Check;
-
-   -----------------------
-   -- Write_Xref_Output --
-   -----------------------
-
-   procedure Write_Xref_Info (Info : String; Eol : Boolean := True) is
-   begin
-      pragma Assert (In_Compiler);
-      Write_With_Check (Info'Address, Info'Length);
-
-      if Eol then
-         Write_With_Check (Osint.EOL'Address, 1);
-      end if;
-   end Write_Xref_Info;
 
 end Osint;

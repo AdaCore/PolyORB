@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                             --
 --                                                                          --
 --          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
 --                                                                          --
@@ -33,42 +33,36 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Hostparm;
 package body Output is
-
-   Current_Column : Pos := 1;
-   --  Current column number
 
    Current_FD : File_Descriptor := Standout;
    --  File descriptor for current output
 
-   Buffer_Max : constant := 8192;
-   Buffer     : String (1 .. Buffer_Max + 1);
-   --  Buffer used to build output line. Note that the reason we do line
-   --  buffering is that on VMS, this works better with certain file formats,
-   --  where writing pieces separately results in separate lines. Note that
-   --  the +1 here ensures there is always space for the terminating LF.
-
-   Buffer_Count : Natural := 0;
-   --  Count of number of characters stored in Buffer
-
    -----------------------
-   -- Local Subprograms --
+   -- Local_Subprograms --
    -----------------------
 
-   procedure Write_Buffer;
-   --  Write contents of buffer if last character is a line feed, or if
-   --  we are on a system other than VMS. As noted above, we buffer up
-   --  lines on VMS, since this works better for certain file formats.
+   procedure Flush_Buffer;
+   --  Flush buffer if non-empty and reset column counter
 
-   -------------
-   --  Column --
-   -------------
+   ------------------
+   -- Flush_Buffer --
+   ------------------
 
-   function Column return Int is
+   procedure Flush_Buffer is
+      Len : constant Natural := Natural (Column - 1);
+
    begin
-      return Current_Column;
-   end Column;
+      if Len /= 0 then
+         if Len /= Write (Current_FD, Buffer'Address, Len) then
+            Set_Standard_Error;
+            Write_Line ("fatal error: disk full");
+            OS_Exit (2);
+         end if;
+
+         Column := 1;
+      end if;
+   end Flush_Buffer;
 
    ------------------------
    -- Set_Standard_Error --
@@ -76,7 +70,9 @@ package body Output is
 
    procedure Set_Standard_Error is
    begin
+      Flush_Buffer;
       Current_FD := Standerr;
+      Column := 1;
    end Set_Standard_Error;
 
    -------------------------
@@ -85,33 +81,10 @@ package body Output is
 
    procedure Set_Standard_Output is
    begin
+      Flush_Buffer;
       Current_FD := Standout;
+      Column := 1;
    end Set_Standard_Output;
-
-   ------------------
-   -- Write_Buffer --
-   ------------------
-
-   procedure Write_Buffer is
-   begin
-      if Buffer_Count = 0 then
-         return;
-
-      elsif (not Hostparm.OpenVMS)
-        or else (Buffer_Count in Buffer'Range
-                  and then Buffer (Buffer_Count) = Ascii.LF)
-      then
-         if Buffer_Count /=
-              Write (Current_FD, Buffer'Address, Buffer_Count)
-         then
-            Set_Standard_Error;
-            Write_Str ("fatal error: disk full");
-            OS_Exit (2);
-         end if;
-
-         Buffer_Count := 0;
-      end if;
-   end Write_Buffer;
 
    ----------------
    -- Write_Char --
@@ -119,15 +92,10 @@ package body Output is
 
    procedure Write_Char (C : Character) is
    begin
-      if Buffer_Count >= Buffer_Max then
-         raise Constraint_Error;
+      if Column < Buffer'Length then
+         Buffer (Natural (Column)) := C;
+         Column := Column + 1;
       end if;
-
-      Buffer_Count := Buffer_Count + 1;
-      Buffer (Buffer_Count) := C;
-      Write_Buffer;
-
-      Current_Column := Current_Column + 1;
    end Write_Char;
 
    ---------------
@@ -136,11 +104,9 @@ package body Output is
 
    procedure Write_Eol is
    begin
-      Buffer_Count := Buffer_Count + 1;
-      Buffer (Buffer_Count) := Ascii.LF;
-      Write_Buffer;
-
-      Current_Column := 1;
+      Buffer (Natural (Column)) := Ascii.LF;
+      Column := Column + 1;
+      Flush_Buffer;
    end Write_Eol;
 
    ---------------
@@ -178,19 +144,9 @@ package body Output is
 
    procedure Write_Str (S : String) is
    begin
-      if S'Length /= 0 then
-         if Buffer_Count + S'Length >= Buffer_Max then
-            raise Constraint_Error;
-         end if;
-
-         for I in S'Range loop
-            Buffer_Count := Buffer_Count + 1;
-            Buffer (Buffer_Count) := S (I);
-         end loop;
-
-         Write_Buffer;
-         Current_Column := Current_Column + S'Length;
-      end if;
+      for J in S'Range loop
+         Write_Char (S (J));
+      end loop;
    end Write_Str;
 
    --------------------------

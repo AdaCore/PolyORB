@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                             --
 --                                                                          --
 --          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -40,10 +40,29 @@
 package Hostparm is
 pragma Pure (Hostparm);
 
+   -----------------------
+   -- TARGET Parameters --
+   -----------------------
+
+   --  ??? The following should really be moved to a Target package
+
+   Java_VM : constant Boolean := False;
+   --  Set true when compiling the GNAT-for-Java toolset (compiler, make, etc)
+
    OpenVMS : constant Boolean := False;
+   --  ??? WARNING this flag is really used both as a HOST flag (e.g. see
+   --  Osint) and a target flag, so it should really be split into two
+   --  separate flags, Hostparm.OpenVMS and Target.OpenVMS. Perhaps it is
+   --  not worth bothering since there are no cross compilers with VMS as a
+   --  host, unless we want to have GNAT-for-Java on VMS.
+   --
    --  Set true for compilers for OpenVMS systems. This is really a target
    --  flag, which should be sorted out some time??? For now we have no cross
    --  compilers with OpenVMS as the target so there is no confusion.
+
+   Zero_Cost_Exceptions : constant Boolean := False;
+   --  This switch is set to True if zero cost exceptions are implemented
+   --  on the current target. See unit Ada.Exceptions for full details.
 
    Long_Integer_Size : constant := 0;
    --  This is the length of the long integer type in bits. A value of
@@ -53,6 +72,10 @@ pragma Pure (Hostparm);
    --  the C long type remains at 32 bits. This is really a target flag,
    --  which should be sorted out some time??? For now we have no cross
    --  compilers with OpenVMS as the target, so there is no confusion
+
+   ---------------------
+   -- HOST Parameters --
+   ---------------------
 
    Normalized_CWD : constant String := "./";
    --  Normalized string to access current directory
@@ -76,14 +99,10 @@ pragma Pure (Hostparm);
 
    Tag_Errors : constant Boolean := False;
    --  If set to true, then brief form error messages will be prefaced by
-   --  the string "error:"
+   --  the string "error:". Used as default for Opt.Unique_Error_Tag.
 
    Exclude_Missing_Objects : constant Boolean := True;
    --  If set to true, gnatbind will exclude from consideration all
    --  non-existent .o files.
-
-   Zero_Cost_Exceptions : constant Boolean := False;
-   --  This switch is set to True if zero cost exceptions are implemented
-   --  on the current target. See unit Ada.Exceptions for full details.
 
 end Hostparm;

@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -319,6 +319,7 @@ package body ALI is
                end if;
 
                Idread := Scan_ALI (Afile, Text);
+               Free (Text);
 
                if ALIs.Table (Idread).No_Object then
                   Error_Msg_Name_1 := Withs.Table (J).Sfile;
@@ -917,14 +918,26 @@ package body ALI is
               and then Unit.Table (Unit.Last).Sfile /=
                        Unit.Table (Unit_Id (Info)).Sfile
             then
-               Error_Msg ("duplicate unit name");
-               Error_Msg_Name_1 := Unit.Table (Unit.Last).Uname;
-               Error_Msg_Name_2 := Unit.Table (Unit.Last).Sfile;
-               Error_Msg ("unit & found in file %");
-               Error_Msg_Name_1 := Unit.Table (Unit_Id (Info)).Uname;
-               Error_Msg_Name_2 := Unit.Table (Unit_Id (Info)).Sfile;
-               Error_Msg ("unit & found in file %");
-               raise Unrecoverable_Error;
+               --  If Err is set then treat duplicate unit name as an instance
+               --  of a bad ALI format. This is the case of being called from
+               --  gnatmake, and the point is that if anything is wrong with
+               --  the ALI file, then gnatmake should just recompile.
+
+               if Err then
+                  raise Bad_ALI_Format;
+
+               --  If Err is not set, then this is a fatal error
+
+               else
+                  Error_Msg ("duplicate unit name");
+                  Error_Msg_Name_1 := Unit.Table (Unit.Last).Uname;
+                  Error_Msg_Name_2 := Unit.Table (Unit.Last).Sfile;
+                  Error_Msg ("unit & found in file %");
+                  Error_Msg_Name_1 := Unit.Table (Unit_Id (Info)).Uname;
+                  Error_Msg_Name_2 := Unit.Table (Unit_Id (Info)).Sfile;
+                  Error_Msg ("unit & found in file %");
+                  raise Unrecoverable_Error;
+               end if;
             end if;
          end;
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                              --
 --                                                                          --
 --          Copyright (C) 1992-1998, Free Software Foundation, Inc.         --
 --                                                                          --
@@ -33,21 +33,24 @@ package body Stylesw is
    -------------------------------------
 
    procedure Set_Default_Style_Check_Options is
+      Checks : constant String := "3abcefhiklmprst";
       Discard : Boolean;
 
    begin
-      Set_Style_Check_Option ('3', Discard);
-      Set_Style_Check_Option ('b', Discard);
-      Set_Style_Check_Option ('c', Discard);
-      Set_Style_Check_Option ('e', Discard);
-      Set_Style_Check_Option ('h', Discard);
-      Set_Style_Check_Option ('i', Discard);
-      Set_Style_Check_Option ('k', Discard);
-      Set_Style_Check_Option ('m', Discard);
-      Set_Style_Check_Option ('r', Discard);
-      Set_Style_Check_Option ('s', Discard);
-      Set_Style_Check_Option ('t', Discard);
+      for J in Checks'Range loop
+         Set_Style_Check_Option (Checks (J), Discard);
+      end loop;
    end Set_Default_Style_Check_Options;
+
+   -------------------------
+   -- Set_Max_Line_Length --
+   -------------------------
+
+   procedure Set_Max_Line_Length (Max : Nat) is
+   begin
+      Style_Max_Line_Length := Int'Min (Max, Hostparm.Max_Line_Length);
+      Style_Check_Max_Line_Length := True;
+   end Set_Max_Line_Length;
 
    ----------------------------
    -- Set_Style_Check_Option --
@@ -61,6 +64,9 @@ package body Stylesw is
          when '1' .. '9' =>
             Style_Check_Indentation := Character'Pos (C) - Character'Pos ('0');
 
+         when 'a' =>
+            Style_Check_Attribute_Casing := True;
+
          when 'b' =>
             Style_Check_Blanks_At_End    := True;
 
@@ -70,6 +76,9 @@ package body Stylesw is
          when 'e' =>
             Style_Check_End_Labels       := True;
 
+         when 'f' =>
+            Style_Check_Form_Feeds       := True;
+
          when 'h' =>
             Style_Check_Horizontal_Tabs  := True;
 
@@ -77,13 +86,19 @@ package body Stylesw is
             Style_Check_If_Then_Layout   := True;
 
          when 'k' =>
-            Style_Check_Kasing           := True;
+            Style_Check_Keyword_Casing   := True;
+
+         when 'l' =>
+            Style_Check_Layout           := True;
 
          when 'm' =>
             Style_Check_Max_Line_Length  := True;
 
+         when 'p' =>
+            Style_Check_Pragma_Casing    := True;
+
          when 'r' =>
-            Style_Check_RM_Column_Layout := True;
+            Style_Check_References       := True;
 
          when 's' =>
             Style_Check_Specs            := True;

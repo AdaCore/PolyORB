@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$
+--                            $Revision$                             --
 --                                                                          --
 --          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -33,6 +33,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  This package contains the low level, operating system routines used in
+--  the GNAT compiler and binder for command line processing and file input
+--  output. The specification is suitable for use with MS-DOS, Unix, and
+--  similar systems. Note that for input source and library information
+--  files, the line terminator may be either CR/LF or LF alone, and the
+--  DOS-style EOF (16#1A#) character marking the end of the text in a
+--  file may be used in all systems including Unix. This allows for more
+--  convenient processing of DOS files in a Unix environment.
+
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with System;      use System;
 with Table;
@@ -40,12 +49,8 @@ with Types;       use Types;
 
 package Osint is
 
---  This package contains the low level, operating system routines used in
---  the GNAT compiler and binder for command line processing and file
---  input output. The specification is suitable for use with MS-DOS,
---  Unix or similar systems. Note that for input source and library
---  information files, the line terminator may be either CR/LF or LF alone,
---  and the EOF character at the end of a file is optional.
+   --  ??? The following are only used in Make and by gnatdist and should
+   --  be moved to the SPEC of Make
 
    --  The 3 following packages are used to store gcc, gnatbind and gnatbl
    --  switches passed on the gnatmake command line. Note that the lower
@@ -139,6 +144,9 @@ package Osint is
    procedure Fail (S1 : String; S2 : String := ""; S3 : String := "");
    --  Outputs error messages S1 & S2 & S3 preceeded by the name of the
    --  executing program and exits with E_Fatal.
+
+   function Is_Directory_Separator (C : Character) return Boolean;
+   --  Returns True if C is a directory separator
 
    function Get_Directory (Name : File_Name_Type) return File_Name_Type;
    --  Get the prefix directory name (if any) from Name. The last separator
@@ -507,6 +515,33 @@ package Osint is
    --  compiler to determine the proper library information names to be placed
    --  in the generated library information file.
 
+   ------------------------------
+   -- Debug Source File Output --
+   ------------------------------
+
+   --  These routines are used by the compiler to generate the debug source
+   --  file for the Debug_Generated_Code (-gnatD switch) option. Note that
+   --  debug source file writing occurs at a completely different point in
+   --  the processing from library information output, so the code in the
+   --  body can assume these functions are never used at the same time.
+
+   function Create_Debug_File (Src : File_Name_Type) return File_Name_Type;
+   --  Given the simple name of a source file, this routine creates the
+   --  corresponding debug file, and returns its full name.
+
+   procedure Write_Debug_Info (Info : String);
+   --  Writes contents of given string as next line of the current debug
+   --  source file created by the most recent call to Get_Debug_Name. Info
+   --  does not contain any end of line or other formatting characters.
+
+   procedure Close_Debug_File;
+   --  Close current debug file created by the most recent call to
+   --  Get_Debug_Name.
+
+   function Debug_File_Eol_Length return Nat;
+   --  Returns the number of characters (1 for NL, 2 for CR/LF) written
+   --  at the end of each line by Write_Debug_Info.
+
    --------------------------------
    -- Semantic Tree Input-Output --
    --------------------------------
@@ -556,47 +591,6 @@ package Osint is
    procedure Close_Binder_Output;
    --  Closes the file created by Create_Binder_Output, flushing any
    --  buffers etc from writes by Write_Binder_Info.
-
-   -----------------
-   -- Xref Output --
-   -----------------
-
-   --  These routines are used by the xref tool to generate the .ref files
-   --  containing the xref output.
-
-   procedure Create_Req_Output;
-   --  Create the output file for the required interface of the unit I. The
-   --  file name must be in Name_Buffer (without a terminating Nul character)
-   --  before calling this routine. Name_Len indicates the length of the name.
-
-   type Xfiltyp is (
-      Xbody,
-      --  File to be created is xxx.xrb, where xxx is the current main file
-      --  name, i.e. existing extension is replaced by xrb, or, if there
-      --  is no extension, the extension is added.
-
-      Xspec,
-      --  File to be created is xxx.xrs, where xxx is the current main file
-      --  name, i.e. existing extension is replaced by xrs, or, if there
-      --  is no extension, the extension is added.
-
-      Xglobal);
-      --  Global xref file (-x6 case), file name is always x.ref
-
-   procedure Create_Xref_Output (Typ : Xfiltyp);
-   --  Create xref file with name specified by Typ, as described above
-
-   procedure Write_Xref_Info (Info : String; Eol : Boolean := True);
-   --  Writes the contents of the referenced string to the Xref output file
-   --  created by a previous call to Create_Xref_Output. Info represents a
-   --  single line in the file, but does not contain any line termination
-   --  characters. The implementation of Write_Xref_Info is responsible
-   --  for adding necessary end of line and end of file control characters
-   --  as required by the operating system.
-
-   procedure Close_Xref_Output;
-   --  Closes the file created by Create_Xref_Output, flushing any
-   --  buffers etc from writes by Write_Xref_Info.
 
    -----------------
    -- Termination --
