@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.ads#5 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.ads#6 $
 
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
@@ -805,7 +805,13 @@ private
    --             |   <attr_spec>
    --
    --  Actually implement below rule:
-   --  <attr_dcl> ::= [ "readonly" ] "attribute" <param_type_spec>
+   --  <attr_dcl> ::= "readonly" "attribute" <param_type_spec>
+   --                 <simple_declarator> <raises_expr>
+   --             |   "readonly" "attribute" <param_type_spec>
+   --                 <simple_declarator> { "," <simple_declarator> }*
+   --             |   "attribute" <param_type_spec>
+   --                 <simple_declarator> <attr_raises_expr>
+   --             |   "attribute" <param_type_spec>
    --                 <simple_declarator> { "," <simple_declarator> }*
    procedure Parse_Attr_Dcl (Result : out Node_Id;
                              Success : out Boolean);
@@ -852,7 +858,9 @@ private
 
    --  Rule 93
    --  <raises_expr> ::= "raises" "(" <scoped_name> { ","
-   --                                 <scoped_name" }* ")"
+   --                                 <scoped_name>" }* ")"
+   --  actually, the implemented gramar is slightly different :
+   --  <raises_expr> ::= "raises" <exception_list>
    procedure Parse_Raises_Expr (Result : out Node_List;
                                 Success : out Boolean);
 
@@ -885,55 +893,71 @@ private
    procedure Parse_Value_Base_Type (Result : out Node_Id;
                                     Success : out Boolean);
 
-   ------------------------------------------
-   --  Rules from CORBA 3.0 specification  --
-   --  Not implemented                     --
-   ------------------------------------------
-
    --  Rule 99
    --  <constr_forward_decl> := "struct" <identifier>
    --                        |  "union" <identifier>
+   --  Not implemented
 
    --  Rule 100
    --  <import> ::= "import" <imported_scope> ";"
+   --  Not implemented
 
    --  Rule 101
    --  <imported_scope> ::= <scoped_name> | <string_literal>
+   --  Not implemented
 
    --  Rule 102
    --  <type_id_dcl> ::= "typeid" <scoped_name> <string_literal>
+   --  Not implemented
 
    --  Rule 103
    --  <type_prefix_dcl> ::= "typeprefix" <scoped_name> <string_literal>
+   --  Not implemented
 
    --  Rule 104
    --  <readonly_attr_spec> ::= "readonly" "attribute" <param_type_spec>
    --                           <readonly_attr_declarator>
+   --  Implemented as part of rule 85.
 
    --  Rule 105
    --  <readonly_attr_declarator> ::= <simple_declarator> <raises_expr>
    --                             |   <simple_declarator>
    --                                 { "," <simple_declarator> }*
+   --  Implemented as part of rule 85.
 
    --  Rule 106
    --  <attr_spec> ::= "attribute" <param_type_spec> <attr_declarator>
+   --  Implemented as part of rule 85.
 
    --  Rule 107
    --  <attr_declarator> ::= <simple_declarator> <attr_raises_expr>
    --                    |   <simple_declarator> { "," <simple_declarator> }*
+   --  Implemented as part of rule 85.
 
    --  Rule 108
    --  <attr_raises_expr> ::= <get_excep_expr> [ <set_excep_expr> ]
    --                     |   <set_excep_expr>
+   --  Actually implement below rule:
+   --  <attr_raises_expr> ::= "getraises" <exception_list>
+   --                         [ "setraises" <exception_list> ]
+   --                     |   "setraises" <exception_list>
+   procedure Parse_Attr_Raises_Expr (Result_Get : out Node_List;
+                                     Result_Set : out Node_List;
+                                     Success    : out Boolean);
 
    --  Rule 109
    --  <get_excep_expr> ::= "getraises" <exception_list>
+   --  Implemented as part of rule 108
 
    --  Rule 110
    --  <get_excep_expr> ::= "setraises" <exception_list>
+   --  Implemented as part of rule 108
 
    --  Rule 111
    --  <exception_list> ::= "(" <scoped_name> { "," <scoped_name> }* ")"
+   procedure Parse_Exception_List (Result : out Node_List;
+                                   Success : out Boolean;
+                                   Statement : in String);
 
    --  Rules 112 .. 138 corresponded to CORBA components specification what
    --  can't currently supported.
