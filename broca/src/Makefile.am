@@ -1,3 +1,5 @@
+alidir = $(libdir)/adabroker/adalib
+
 ADA_FULL = \
 	   broca-debug.ads \
 	   broca-opaque-chunk_pools.ads \
@@ -69,10 +71,12 @@ LINK = libtool $(ADA) -o libbroca.la
 ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao -I../adasockets/src -g -O2 $(CFLAGS)
 
 %.lo: %.adb
-	@chmod +x ./adacompiler
-	$(LIBTOOL) --mode=compile ./adacompiler -c $(ADAFLAGS) $<
+	@chmod +x ../adacompiler
+	$(LIBTOOL) --mode=compile ../adacompiler -c $(ADAFLAGS) $<
 
 %.lo: %.ads
-	@chmod +x ./adacompiler
-	$(LIBTOOL) --mode=compile ./adacompiler -c $(ADAFLAGS) $<
+	@chmod +x ../adacompiler
+	$(LIBTOOL) --mode=compile ../adacompiler -c $(ADAFLAGS) $<
 
+install-data-local:
+	$(INSTALL) -m 444 *.ali $(alidir)

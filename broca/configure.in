@@ -26,4 +26,4 @@ AM_ADA_PREREQ(19990629, 3.12p)
 # Output
 #
 AC_OUTPUT([Makefile idlac/Makefile idlac/platform.ads src/Makefile
-           src/adacompiler idlac/testsuite/Makefile])
+           adacompiler idlac/testsuite/Makefile])
