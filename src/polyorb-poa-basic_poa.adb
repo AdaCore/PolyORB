@@ -286,8 +286,8 @@ package body PolyORB.POA.Basic_POA is
       pragma Debug (O ("Init Basic_POA with default policies"));
 
       Set_Policies
-        (OA, POA_Config.Default_Policies
-         (POA_Config.Configuration.all),
+        (OA,
+         POA_Config.Default_Policies (POA_Config.Configuration.all),
          Default => True);
    end Init_With_Default_Policies;
 
@@ -1075,7 +1075,9 @@ package body PolyORB.POA.Basic_POA is
       Do_Check :        Check_State)
      return Servants.Servant_Access
    is
-      U_Oid : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
+      use type PolyORB.Servants.Servant_Access;
+
+      U_Oid  : constant Unmarshalled_Oid := Oid_To_U_Oid (Id);
       The_OA : constant Basic_Obj_Adapter_Access
         := Basic_Obj_Adapter_Access
         (Find_POA (OA, To_Standard_String (U_Oid.Creator)));
@@ -1122,14 +1124,19 @@ package body PolyORB.POA.Basic_POA is
                & Objects.To_String (Id.all)));
 
          S := Servants.Servant_Access (Id_To_Servant (The_OA, Id.all));
-         Servants.Set_Thread_Policy (S, The_OA.Thread_Policy);
+         if S /= null then
+            Servants.Set_Thread_Policy (S, The_OA.Thread_Policy);
+         else
+            Unlock_R (The_OA.POA_Lock);
+            raise Object_Not_Exist;
+         end if;
 
          pragma Debug (O ("Find_Servant: Leave."));
          Unlock_R (The_OA.POA_Lock);
 
          return S;
+
       else
-         Unlock_R (The_OA.POA_Lock);
          raise Invalid_Object_Id;
          --  This is a PolyORB exception.
       end if;
