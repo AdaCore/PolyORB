@@ -308,9 +308,6 @@ xe_defs.adb: Makefile
 	  echo "   function Get_"$$i"_Dir return String_Access is"; \
 	  echo "   begin"; \
 	  if [ "$(PSNAME)" = "Windows NT" ]; then \
-	    echo "      if GNAT.OS_Lib.Is_Directory ("$$i"_Dir) then"; \
-	    echo "         return new String'("$$i"_Dir);"; \
-	    echo "      end if;"; \
 	    echo "      return XE_Reg.Get_"$$i"_Dir;"; \
 	  else \
 	    echo "      return new String'("$$i"_Dir);"; \
