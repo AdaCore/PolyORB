@@ -3,8 +3,8 @@
 --
 
 with Ada.Text_IO; use Ada.Text_IO;
-with Remote; use Remote;
-with Timing; use Timing;
+with Remote;      use Remote;
+with Timing;      use Timing;
 
 procedure Local is
 
@@ -12,7 +12,25 @@ procedure Local is
 
    Before, After : Milliseconds;
 
-   Iterations : constant := 500;
+   Iterations : constant := 5000;
+
+   package FIO is new Float_IO (Float);
+   use FIO;
+
+   procedure Put_Summary (T : in String);
+
+   -----------------
+   -- Put_Summary --
+   -----------------
+
+   procedure Put_Summary (T : in String) is
+   begin
+      Put_Line ("done");
+      Put ("                   " & T & " summary:");
+      Put (Float (After - Before) / Float (Iterations), Fore => 3, Aft => 2,
+           Exp => 0);
+      Put_Line ("ms");
+   end Put_Summary;
 
 begin
    Put ("Testing communication...");
@@ -26,8 +44,7 @@ begin
       Asynchronous_Empty_Test;
    end loop;
    After := Current;
-   Put_Line ("AET summary:" &
-             Milliseconds'Image ((After - Before) / Iterations) & "ms");
+   Put_Summary ("AET");
 
    Put ("Starting AT... ");
    Before := Current;
@@ -35,8 +52,7 @@ begin
       Asynchronous_Test (Buffer);
    end loop;
    After := Current;
-   Put_Line ("AT summary:" &
-             Milliseconds'Image ((After - Before) / Iterations) & "ms");
+   Put_Summary ("AT");
 
    Put ("Starting SET... ");
    Before := Current;
@@ -44,8 +60,7 @@ begin
       Synchronous_Empty_Test;
    end loop;
    After := Current;
-   Put_Line ("SET summary:" &
-             Milliseconds'Image ((After - Before) / Iterations) & "ms");
+   Put_Summary ("SET");
 
    Put ("Starting ST... ");
    Before := Current;
@@ -53,6 +68,6 @@ begin
       Synchronous_Test (Buffer);
    end loop;
    After := Current;
-   Put_Line ("ST summary:" &
-             Milliseconds'Image ((After - Before) / Iterations) & "ms");
+   Put_Summary ("ST");
+
 end Local;
