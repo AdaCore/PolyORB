@@ -40,7 +40,7 @@
 
 --  Note: Buffers should only be read/written sequentially.
 
---  $Id: //droopi/main/src/polyorb-buffers.ads#24 $
+--  $Id: //droopi/main/src/polyorb-buffers.ads#25 $
 
 with Ada.Streams;
 
@@ -150,9 +150,7 @@ package PolyORB.Buffers is
      (Buffer   : access Buffer_Type)
      return Ada.Streams.Stream_Element_Array;
    --  Dump the contents of Buffer into a Stream_Element_Array.
-   --  Using this function is dangerous because it may overflow
-   --  the stack with the contents of a big buffer. It is therefore
-   --  DEPRECATED. Use the following instead.
+   --  Beware of overflowing the stack when Using this function.
 
    function Peek
      (Buffer   : access Buffer_Type;
