@@ -466,11 +466,11 @@ package body PolyORB.ORB is
                --  ORB.ORB_Lock is held.
 
                for I in Monitors'Range loop
-                  ORB.Polling := True;
-                  ORB.Selector := Monitors (I);
                   Set_Status_Blocked (This_Task, Monitors (I));
 
                   <<Retry>>
+                  ORB.Selector := Monitors (I);
+                  ORB.Polling := True;
                   ORB.Source_Deleted := False;
                   Lookup (ORB.Polling_Watcher, ORB.Polling_Version);
                   Leave (ORB.ORB_Lock);
@@ -486,6 +486,9 @@ package body PolyORB.ORB is
                      Enter (ORB.ORB_Lock);
                      Update (ORB.Polling_Watcher);
 
+                     ORB.Polling := False;
+                     ORB.Selector := null;
+
                      exit Main_Loop when Exit_Now;
 
                      if ORB.Source_Deleted then
@@ -498,8 +501,6 @@ package body PolyORB.ORB is
                         Unregister_Source (Monitors (I).all, Events (J));
                      end loop;
 
-                     ORB.Polling := False;
-                     ORB.Selector := null;
                      Set_Status_Running (This_Task);
 
                      for J in Events'Range loop
