@@ -18,4 +18,10 @@ package Remote is
    procedure Asynchronous_Test (A : in T);
    pragma Asynchronous (Asynchronous_Test);
 
+   procedure Enter_Test_Mode
+     (Partition : in Natural;
+      Port      : in Positive;
+      Tries     : in Natural);
+   pragma Asynchronous (Enter_Test_Mode);
+
 end Remote;
