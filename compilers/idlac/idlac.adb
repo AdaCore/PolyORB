@@ -56,8 +56,8 @@ procedure Idlac is
       Put_Line (Current_Error, "  -E     Preprocess only.");
       Put_Line (Current_Error, "  -d     Generate delegation package.");
       Put_Line (Current_Error, "  -i     Generate implementation template.");
-      Put_Line (Current_Error, "  -nodyn Don't generate code for dynamic "
-                & "invocation.");
+--      Put_Line (Current_Error, "  -nodyn Don't generate code for dynamic "
+--                & "invocation.");
       Put_Line (Current_Error, "  -k     Keep temporary files.");
       Put_Line (Current_Error, "  -p     Produce source on standard output.");
       Put_Line (Current_Error, "  -q     Be quiet.");
@@ -78,7 +78,8 @@ begin
         ('-', False, "cppargs");
 
       loop
-         case Getopt ("E I: d i k p q nodyn noir") is
+--         case Getopt ("E I: d i k p q nodyn noir") is
+         case Getopt ("E I: d i k p q noir") is
             when ASCII.Nul => exit;
 
             when 'E' =>
@@ -95,9 +96,9 @@ begin
                Generate_Impl_Template := True;
 
             when 'n' =>
-               if Full_Switch = "nodyn" then
-                  Generate_Dyn := False;
-               elsif Full_Switch = "noir" then
+--               if Full_Switch = "nodyn" then
+--                  Generate_Dyn := False;
+               if Full_Switch = "noir" then
                   Generate_IR := False;
                end if;
 
