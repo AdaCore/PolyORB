@@ -1,0 +1,9 @@
+To run this demo, you must
+
+- run PolyORB's CORBA COS Naming 'ab_names' located in /cos/naming
+directory.
+
+- export the POLYORB_CORBA_NAMING_IOR environment variable returned
+by 'ab_names' in every terminal session in which you plan to run the demo.
+
+- then run 'server' and 'client' programs.
