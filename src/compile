@@ -1,0 +1,68 @@
+#! /bin/sh
+
+setgcc () {
+  for a in adagcc gnatgcc
+  do
+    if f=`which $a 2> /dev/null` && [ -x "$f" ]
+    then
+      ADAGCC="$a"
+      return
+    fi
+  done
+  ADAGCC=gcc
+}
+
+setfile () {
+  while [ "$#" -gt 1 ]
+  do
+    shift
+  done
+  file="$1"
+}
+
+setecho () {
+  if [ -x /usr/ucb/echo ]
+  then
+    echo=/usr/ucb/echo
+  else
+    echo=echo
+  fi
+}
+
+if [ ! -x "$ADAGCC" ]
+then
+  setgcc
+fi
+setfile "$@"
+setecho
+
+########## Start processing.
+
+$echo -n "Compiling $file"
+
+# Determine if style checks should be applied.
+
+case "$file" in
+  echo-impl.adb)
+    STYLE=
+    ;;
+  *)
+    STYLE=-gnaty
+    ;;
+esac
+
+case $file in
+  polyorb-orb-thread_pool.adb|polyorb-protected_objects.adb)
+    echo " without gnat.adc"
+    mv -f gnat.adc gnat.adc-
+    $ADAGCC $STYLE "$@"
+    rc=$!
+    mv -f gnat.adc- gnat.adc
+    exit $rc
+    ;;
+  *)
+    echo ""
+    exec $ADAGCC $STYLE "$@"
+    ;;
+esac
+

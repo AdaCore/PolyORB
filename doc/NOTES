@@ -1,0 +1,57 @@
+Diverses notes de développement sur DROOPI.
+-------------------------------------------
+
+$Id$
+
+1. Les sémantiques attachées à la dérivation de type.
+----------------------------------------------------
+
+1.1. Sémantique contractuelle.
+------------------------------
+
+La classe dérivée implémente l'interface définie par la classe ancêtre.
+La classe dérivée surcharge les méthodes abstraites de la classe ancêtre
+abstraite. La classe dérivée a une propriété : elle implémente par essence
+la vue de service définie par la classe ancêtre.
+
+Cf. interfaces Java. En Java, un objet peut implémenter plusieurs interfaces
+-> peut offrir plusieurs vues de service.
+
+Implémentation "vues multiples" en Ada :
+
+type Transport is abstract...
+type AES is abstract...
+
+type Socket is record
+  Transport_View : Transport (Socket'Access);
+  AES_View : AES (Socket'Access);
+end record;
+
+Problème : les vues partielles ont nécessairement visibilité sur
+une classe ancêtre de la vue complète.
+
+Solution : tout dérive d'une classe Component abstraite et vide.
+
+Le problème de cross-visibilité est aussi résolu, puisqu'on ne va manipuler
+que des Component_Access. Problème : difficile d'enrichier/altérer
+la sémantique (pattern Decorator) de façon générique car le
+décorateur doit à son tour offrir la même interface que celle
+de la classe décorée.
+
+Autre implémentation, qui résout ce pb : Droopi.Components.
+Une interface est définie par un ensemble de messages, un composant
+implémente l'interface en traitant ces messages. Un décorateur
+générique peut intercepter/manipuler des messages sans nécessairement
+être lié linguistiquement à une interface (= un ensemble de messages)
+particulier. Exemple : communication anycast ou multicast via un
+composant générique « groupe ».
+
+1.2. Sémantique comportementale.
+--------------------------------
+
+La classe dérivée étend le comportement de la classe ancêtre. Elle expose
+à ses clients une nouvelle vue de service qui inclut et prolonge/décore/adorne
+la vue de la classe ancêtre.
+
+La dérivation Ada (sans héritage multiple) est plus dans cette idée.
+

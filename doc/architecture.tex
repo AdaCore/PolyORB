@@ -1,0 +1,1895 @@
+%% Architecture de DROOPI
+%% $Id$
+
+\documentclass[10pt,a4paper]{article}
+\usepackage{slashbox}
+\usepackage{interop}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+\usepackage[francais]{babel}
+\usepackage{graphics}
+\usepackage{psfig}
+\usepackage{array}
+\usepackage{amsmath}
+
+\title{Conception et mise en {\oe}uvre de \droopi{}\\
+Un intergiciel générique pour systèmes d'objets
+répartis interopérables}
+\author{Thomas Quinot}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+L'utilisation d'intergiciels (\emph{middlewares}) pour la réalisation
+de systèmes répartis permet au concepteur d'applications de
+s'affranchir de certaines contraintes, telles que la gestion de
+la communication entre n{\oe}uds, ou l'hétérogénéité des architectures
+matérielles et logicielles des n{\oe}uds. Il peut ainsi concentrer
+ses ressources sur l'application proprement dite. En revanche, l'existence
+de plusieurs plates-formes de répartition différentes introduit
+un nouveau point d'incompatibilité potentiel. En effet, les
+divers systèmes existants, tels que CORBA, l'annexe des systèmes
+répartis d'\ada{} (\dsa{}, \emph{Distributed Systems Annex}) et
+Java/RMI utilisent des variantes distinctes
+du modèle «~objets répartis~», et des protocoles différents pour
+la communication entre n{\oe}uds. D'autres intergiciels, tels
+que les MOM, ne sont pas basés sur les objets répartis, mais sur
+le passage de message
+
+Ainsi, dans le cas d'un système d'objets répartis, un objet
+créé à l'aide d'une plate-forme de répartition
+donnée ne sera accessible qu'à l'intérieur de cette plate-forme.
+Pourtant, on pourrait souhaiter que le service rendu par cet
+objet soit disponible pour des clients utilisant d'autres
+plates-formes de répartition. Symétriquement, un client désirant
+utiliser un service particulier aurait avantage à pouvoir
+obtenir ce service de tout objet qui peut le lui fournir, quel
+que soit le modèle de répartition utilisé par chacun.
+
+\subsection{Pourquoi l'interopérabilité ?}
+
+Se pose donc la question des mécanismes que l'intergiciel peut
+offrir pour permettre l'interopération entre des objets, clients
+et serveurs, existant au sein de plates-formes de répartition
+différentes. Un exemple de cas où l'on souhaite avoir
+une telle possibilité est le développement d'un objet
+rendant un service à des clients. On peut par exemple
+vouloir profiter de la sûreté du langage \ada{} et de
+la facilité d'utilisation de l'annexe pour les systèmes répartis,
+tout en bénéficiant de l'ouverture à des plates-formes
+hétérogènes offerte par CORBA. On cherchera alors à faire
+interopérer des composants utilisant les deux plates-formes,
+afin d'obtenir l'ensemble des bénéfices associés à chacune
+
+\cite{breg98} détaille également une situation où un objet
+HPC++ fournissant un service de calcul intensif sur machine
+parallèle est piloté au moyen d'une interface utilisateur
+graphique réalisée avec des objets Java utilisant RMI.
+Divers solutions permettant aux objets Java de communiquer
+avec les objets répartis sont proposés. La solution retenue
+est un mécanisme d'interopérabilité entre RMI et les objets
+répartis HPC++ est établi. Ses performances sont évaluées,
+en comparaison avec des appels de méthodes distants à
+l'intérieur de chaque plate-forme.
+
+% XXX
+% les intergiciels, les plates-formes à objets répartis
+% Préliminaires sur la question de l'interopérabilité.
+% Deux solutions possibles pour l'interopérabilité :
+%   - les passerelles ;
+%   - l'utilisation d'un intergiciel générique
+%     -> Pourquoi un intergiciel générique peut-il répondre
+%        aux problématiques de l'interopérabilité ?
+%
+% état de l'art : les intergiciels génériques existants.
+% Quels sont les caractéristiques principales de ces intergiciels ?
+% Quels sont nos objectifs propres ? (interopérabilité, flexibilité,
+% configurabilité, temps réel, GL) ? Quelles sont les caractéristiques
+% des intergiciels existants qui nous semblent pertinentes par rapport
+% à ces objectifs ?
+%
+% -> proposer notre contribution comme une synthèse d'éléments
+% dont certains existent dans des intergiciels existants, et que
+% nous combinons d'une façon originale pour résoudre un problème
+% que nous nous posons : l'interopérabilité.
+
+\subsection{Passerelles}
+
+Une première solution au problème de l'interopérabilité est
+l'établissement de passerelles entre plates-formes, c'est-à-dire
+d'objets recevant des appels de méthodes par une plate-forme,
+et les répercutant dans une autre. Nous avons ainsi proposé
+une solution permettant à un implémenteur de services d'utiliser
+l'annexe des systèmes répartis d'\ada{} pour développer un objet,
+et de rendre cet objet accessible pour des clients CORBA.
+
+À cet effet, nous générons automatiquement la
+spécification du service en OMG~IDL, à partir de sa spécification
+en \ada{}. En utilisant un traducteur CORBA préexistant,
+nous pouvons générer automatiquement un squelette de serveur en Ada.
+L'implémentation de ce serveur est également générée 
+automatiquement par un autre module de l'outil que nous avons
+développé.
+
+La mise en {\oe}uvre des méthodes de chaque objet CORBA ainsi
+défini consiste en des appels aux services Ada~95 correspondants.
+Nous réalisons donc une passerelle jouant à la fois le rôle de serveur
+CORBA et de client de l'annexe~; ce composant permettra d'utiliser les services
+«~actifs~» de l'annexe à partir du monde CORBA.
+
+Cette approche a l'intérêt d'avoir été prototypée avec succès.
+Elle présente cependant certaines limitations, qui sont de deux
+ordres. Les unes sont spécifiques de notre implémentation~:
+\begin{itemize}
+\item telle que nous l'avons réalisée, elle ne traduit pas certaines
+  constructions évoluées de l'annexe qui ne se projettent pas
+  naturellement dans le modèle de CORBA~;
+\item elle ne permet l'interopération que dans un seul sens,
+  c'est-à-dire uniquement avec des clients CORBA et des
+  serveurs \dsa{}. Elle ne permet pas à des clients \dsa{}
+  d'utiliser les services d'un objet CORBA. En particulier,
+  les mécanismes de rappel (\emph{callback}) ne sont pas
+  supportés. En effet, cela nécessiterait le développement
+  d'une deuxième passerelle réalisant une fonction symétrique
+  de celle existante.
+\end{itemize}
+
+\subsection{Intergiciels interopérables}
+
+Une deuxième possibilité consiste à introduire le support
+de multiples plates-formes directement à l'intérieur de l'intergiciel.
+Deux approches sont possibles pour ce faire.
+
+La première consiste à intégrer, de manière \emph{ad hoc}, le support
+d'un protocole de communication choisi comme référence commune au sein
+d'une application associant plusieurs modèles de répartition. Elle
+est décrite dans~\cite{breg98}, où une application de calcul réparti
+en HPC++ est pilotée par une interface graphique en Java, et où Java/RMI
+est utilisé pour la coordination entre n{\oe}uds de calcul et n{\oe}uds
+de contrôle.
+
+La deuxième prolonge les travaux existants sur les intergiciels génériques
+tels que Quarterware~\cite{singhai99:quarterware},
+TAO~\cite{schmidt98:patterns} et ACT~\cite{francu99:act}. Ces
+projets proposent une conception modulaire des intergiciels. De
+tels systèmes peuvent se prêtent en effet aisément à une reconfiguration
+et une adaptation par addition ou échange de modules bien délimités au
+sein d'une architecture flexible.
+
+Nous avons donc proposé, et nous décrivons dans les sections suivantes,
+une architecture d'intergiciel générique ayant comme objectif de permettre
+la cohabitation de différents modèles et protocoles de répartition au sein
+d'un même n{\oe}ud d'un système réparti.
+
+\section{Position du problème}
+% Maintenant, introduire une étude de cas détaillée.
+% On est en train de reprendre et d'étendre la sous-section
+% 'pourquoi l'interopérabilité ?' de l'intro.
+
+\subsection{Contexte}
+\label{sec:contexte}
+% Les entités qu'on va être amenés à faire coopérer
+
+On considère un ensemble d'objets (entités) que l'on souhaite faire interopérer,
+par exemple~:
+\begin{itemize}
+\item des serveurs DSA~;
+\item des clients DSA~;
+\item des serveurs CORBA~;
+\item des clients CORBA.
+\end{itemize}
+
+Toute entité est rattachée à un ORB qui est chargé d'assurer les fonctions
+liées à la répartition nécessaires aux besoins de l'entité.
+
+Ainsi, une entité DSA (client ou serveur) peut être rattachée à un ORB GLADE
+(le code existant), ou bien à un ORB générique \droopi{} (possédant une
+personnalité DSA).
+
+De même, une entité CORBA (client ou serveur) peut être rattachée à un ORB CORBA
+(\adabroker{} par exemple), ou bien à un ORB générique \droopi{} (possédant
+une personnalité CORBA).
+
+Un ORB possède deux façades~:
+\begin{itemize}
+\item une façade qu'il présente aux entités (clients
+  ou serveurs) qui lui sont rattachées~;
+\item une façade qu'il présente à d'autres ORBs à travers un
+  réseau de communication et des protocoles de communication inter-ORB.
+\end{itemize}
+
+Chacune de ces façades possède plusieurs variantes, correspondant
+chacune à un type de plate-forme de répartition (par exemple \dsa{},
+CORBA ou Java/RMI)~; le choix d'une variante pour une façade détermine
+une personnalité sur cette façade.
+
+L'objectif de \droopi{} est de découpler ces deux façades. D'une part, une entité
+peut se rattacher à un ORB \droopi{} au moyen d'une des personnalités de cet ORB
+(personnalité «~applicative~» paramétrant la façade présentée aux objets de
+l'application).
+
+D'autre part, un ORB distants peut invoquer une méthode sur cette entité en
+transmettant une demande d'invocation à \droopi{} au moyen d'une (autre)
+personnalité (personnalité «~protocolaire~» paramétrant la façade présentée
+aux autres ORBs \emph{via} un réseau de communication).
+
+\subsection{Domaine}
+% Limitation du scope de l'étude
+
+Nous souhaitons limiter notre étude à un ensemble de cas précis.
+
+Nous identifions les cas d'interopération possibles par une matrice~:
+
+\newcommand{\RH}[1]{\raisebox{-1ex}[0pt][1em]{\makebox[1em][l]{\rotatebox{45}{#1}}}}
+{
+\def\myrule{\relax}
+\vspace{2cm}
+\begin{tabular}{l|*{4}{c!{\myrule}}@{\gdef\myrule{\vline}}}
+\backslashbox{Client}{Serveur}
+& \RH{DSA \droopi{}}
+& \RH{DSA \glade{}}
+& \RH{CORBA \droopi{}}
+& \RH{CORBA \adabroker{}}  \\ \hline\hline
+DSA \droopi{}      & 3 & 6 & 5 & 5  \\\hline
+DSA \glade{}       & 6 & 1 & 8 & 8  \\\hline
+CORBA \droopi{}    & 4 & 7 & 2 & 2  \\\hline
+CORBA \adabroker{} & 4 & 7 & 2 & 1  \\\hline
+\end{tabular}
+}
+
+\begin{enumerate}
+\item %1
+  Ne fait pas intervenir \droopi{}.
+\item %2
+  La personnalité CORBA de \droopi{} implémente les spécifications CORBA de l'OMG.
+  Cela suppose un support par un compilateur IDL.
+\item %3
+  La personnalité DSA de \droopi{} implémente l'annexe des systèmes
+  répartis d'\ada{}. Cela suppose un support dans le compilateur.
+\item %4
+  Découplage des personnalités. Situation fonctionnellement
+  équivalente (pour le développeur d'application répartie) à CIAO,
+  mais sans avoir besoin d'un relais.
+\item %5
+  Réciproque du précédent.
+\item %6
+  Suppose le support par \droopi{} du protocole actuel de GLADE.
+\item %7
+  Suppose le support du protocole actuel de GLADE \emph{et} d'un
+  mécanisme permettant de retransmettre une requête reçue par un subrogé
+  «~serveur~» à un subrogé «~client~», pour continuation.\\
+  Situation identique à CIAO (avec relais).
+\item %8
+  Réciproque du précédent.
+\end{enumerate}
+
+\section{Analyse fonctionnelle}
+
+Dans cette section, nous présentons une description des fonctions
+récurrentes dans les plates-formes de répartition basées sur les
+objets répartis. Cette description se veut neutre vis-à-vis de
+la plate-forme, et ne décrit pas une mise en {\oe}uvre particulière
+du modèle objets répartis. Nous donnons ainsi un modèle d'architecture
+pour une telle plate-forme de répartition, puis nous montrons comment
+CORBA et l'annexe des systèmes répartis d'\ada{} peuvent être
+interprétées comme des instances de ce modèle.
+
+Nous formalisons dans ce modèle les traits communs structuraux
+et fonctionnels que nous avons identifiés dans les intergiciels
+de répartition. Notre objectif est d'apporter une aide à la
+conception d'un intergiciel supportant la reconfiguration séparée
+de chacun de ces aspects, afin de le rendre personnalisable,
+et la cohabitation de différentes personnalités au sein de la
+même instance de l'intergiciel en cours d'exécution, afin
+de le rendre «~schizophrène~».
+
+\subsection{Services offerts aux utilisateurs de l'intergiciel}
+\label{sec:recurring-svcs}
+
+Les services de base offerts par les logiciels système pour
+la répartition (intergiciels) constituent une couche d'abstraction
+des services de communication du système d'exploitation. Dans
+les environnements de répartition orientés objets, cette couche
+doit réaliser les mécanismes fondamentaux du modèle «~objets~».
+Chaque objet doit disposer d'une adresse unique et distinctive
+(reflétant la propriété d'\emph{identité} des objets). Un moyen
+d'échanger des messages entre objets doit être offert~; à cet
+effet, des mécanismes de transport, de représentation des données
+et de signalisation entre objets doivent être mis en place. Ils
+réalisent le mécanisme abstrait de l'\emph{appel de méthodes}.
+Enfin, l'intergiciel est comptable des ressources du système qu'il
+utilise. Il doit dont effectuer l'activation des entités concrètes
+utilisées pour répondre aux appels de méthodes, orienter les
+messages au sein de l'application, et restituer au système les
+ressources qui ne sont plus utilisées~: il implémente le \emph{cycle
+de vie} des objets.
+
+Toutes ces fonctions doivent être accomplies par les intergiciels
+orientés objets. Nous donnons maintenant une description plus
+détaillée de ces différents services, que l'on retrouve dans
+les divers environnements de répartition existants~:
+
+\newif\ifexamples\examplestrue
+\begin{description}
+\item[Adressage]\mbox{}
+
+  \begin{description}
+
+  \item[Définition] Il est nécessaire d'affecter une adresse
+  (ou \emph{référence}) à chaque objet. Une adresse est un élément
+  d'information communicable entre n{\oe}uds, qui dénote un objet
+  particulier de façon non-ambigüe, pour toute sa durée de vie.
+
+  \item[Propriétés] Les adresses doivent être globalement uniques.
+  Elles doivent distinguer un objet particulier aussi longtemps que
+  celui-ci possède une identité propre, et sans ambiguïté.
+
+  \item[Discussion] L'identité des objets est une propriété fondamentale
+  du modèle objets. Les identificateurs affectés par le service d'adressage
+  réalisent cette propriété en permettant de déterminer et de communiquer
+  l'identité de chaque objet.
+
+\ifexamples
+  \item[Exemple] %% Solution CORBA 
+  Un espace d'adressage ouvert satisfaisant ces propriétés peut être
+  établi en associant les adresses des points d'accès du service de
+  transport (TSAP, \emph{Transport
+  Service Access Points}~\cite{iso7498-1:osi-basic})
+  du réseau de communication sous-jacent. En associant ces
+  adresses avec un identifiant localement unique de chaque objet
+  attribué par son intergiciel, on obtient un identificateur globalement
+  unique qui peut être utilisé pour désigner chaque objet. Cette solution
+  est celle retenue pour CORBA.
+
+  D'autres systèmes peuvent être établis, du moment que les propriétés
+  définies ci-dessus sont satisfaites. Néanmoins, l'utilisation des
+  adresses de TSAP présente l'intérêt qu'il n'est pas nécessaire alors
+  de maintenir la connaissance globale d'une traduction des identificateurs
+  globaux en adresses réseau.
+\fi
+  \end{description}
+
+\item[Liaisons]\mbox{}
+
+  \begin{description}
+  \item[Définition]
+  Lorsqu'une méthode d'un objet distant doit être appelée,
+  il est nécessaire d'établir une connexion de transport.
+  Cet établissement nécessite le choix de l'adresse d'un
+  point d'accès au sein du service de communication, et celui
+  d'un protocole à utiliser sur ce service de communication.
+
+  Le service de liaisons a pour rôle de créer un point de transport
+  ouvert et d'établir une session de protocole, à partir des informations
+  contenues dans une référence d'objet.
+
+  Lorsqu'une requête arrive sur un n{\oe}ud, elle doit soit être
+  traitée localement, soit retransmise à un autre n{\oe}ud.
+  Dans les deux cas, le service de liaisons est également utilisé
+  pour déterminer quelle structure locale doit être utilisée
+  pour la remise de la requête. Si celle-ci doit être traitée
+  localement, il s'agira de l'entité concrète implémentant l'objet~;
+  dans le cas contraire, il s'agira d'un objet subrogé de l'objet
+  réel.
+
+  Le service de liaisons (défini notamment par le framework
+  \emph{Objectweb}~~\cite{dangtran97:jonathan}) a donc pour
+  tâche la gestion des associations entre des objets désirant
+  interagir d'une part, et les ressources nécessaires aux échanges
+  de messages entre ces objets d'autre part (ces ressources sont
+  les constituants des «~objets de liaison~», \emph{binding objects}
+  dans Objectweb).
+
+  \item[Propriétés]
+  L'opération de liaison peut être implicite ou explicite.
+  La liaison implicite permet d'appeler des méthodes de façon
+  transparente sur un objet distant, sans que l'utilisateur
+  ait besoin de demander explicitement l'établissement d'une
+  connexion avec l'objet destinataire.
+
+  Dans une liaison explicite, l'utilisateur effectue explicitement
+  la mise en place des ressources de transport et de protocole
+  nécessaires à l'échange de message. Il peut ainsi en contrôler
+  précisément les paramètres.
+
+%%  XXX Cette discussion est un imbittable pipeau.
+
+%%    \item[Discussion]
+%%  
+%%    Distribution requires separation of abstract references that
+%%    designate ``logical'' objects from the actual structures that
+%%    implement them (which are language and operating system
+%%    structures). Each particular language and operating system
+%%    has specific features that allow one to associate identifiers
+%%    with actual implementation structures~; in order to construct
+%%    transparent distributed systems, it is necessary to devise
+%%    a mechanisme that will encapsulate these features.
+
+  \end{description}
+
+\item[Transport]\mbox{}
+
+  \begin{description}
+  \item[Définition]
+  Chaque n{\oe}ud doit pouvoir établir un canal de communication avec
+  les objets sur lesquels il souhaite effectuer des appels de méthode.
+  Ce canal est utilisé pour transmettre les messages représentant les
+  requêtes d'exécution de ces méthodes.
+
+%%  XXX On ne peut dire cela que si, dans la discussion, on
+%%     justifie que le transport non fiable est en dehos
+%%     du scope des SR OO. Ce qui n'a rien d'évident.
+%%     Est-ce qu'on doit dire qu'un appel de méthode est toujours
+%%     exécuté (ou une erreur signalée) (auquel cas la fonction
+%%     de transport de l'ORB fournit un service de transport
+%%     fiable, même si le service du sys. sous-jacent est
+%%     non fiable) ou bien... ?
+
+%%  \item[Propriétés]
+%%  Messages must be reliably delivered.
+
+  \item[Discussion]
+  Réaliser un appel de méthode dans le modèle de programmation
+  orienté objets est modélisé par un \emph{envoi de message}
+  vers cet objet~\cite{ingalls78:smalltalk}. La répartition s'intègre
+  naturellement à ce modèle théorique~: les envois de messages abstraits
+  sont incarnés par des envois de messages réels sur un réseau
+  de communication.
+
+\ifexamples
+  \item[Exemple]
+  Des bibliothèques existantes de passage de message peuvent
+  être réutilisées pour assurer le service de transport dans
+  un intergiciel orienté objets. En particulier, plusieurs
+  mises en {\oe}uvre de Java/RMI ont été développées avec
+  succès en utilisant de telles bibliothèques, pour tirer
+  parti d'infrastructures de communication existantes
+  particulières.
+
+  \cite{nester99}~présente KaRMI, un composant susceptible de
+  remplacer purement et simplement l'implémentation de référence
+  de RMI de Sun. KaRMI offre une abstraction du mécanisme de
+  transport utilisé~: ce service peut donc bien être analysé
+  comme un module bien délimité de l'architecture.
+
+  Dans KaRMI, cette abstraction peut utiliser les protocoles
+  normalisés TCP/IP, ou bien un support de passage de messages
+  au moyen de matériel spécialisé en environnement parallèle.
+  KaRMI offre également la possibilité de créer au vol des
+  passerelles entre ces différents domaines technologiques.
+\fi
+  \end{description}
+
+\item[Représentation]\mbox{}
+
+  \begin{description}
+  \item[Définition] Les données associées à une requête (ses paramètres)
+  doivent être traduites de la représentation native du client vers
+  une représentation adaptée à la transmission sur un réseau.
+
+  \item[Propriétés] 
+  Pour construire des applications interopérables, il est nécessaire
+  que le choix d'une représentation soit convenu à l'avance et normalisé.
+  Par exemple, tous les n{\oe}uds doivent être d'accord sur la taille
+  de représentation à utiliser pour les entiers, et l'ordre des octets.
+
+  \item[Discussion]
+  Le choix d'une représentation est un compromis entre la portabilité
+  et le coût des conversions entre les représentations natives sur chaque
+  n{\oe}ud et la représentation commune.
+
+\ifexamples
+  \item[Exemple]
+  Il est nécessaire de trouver un équilibre entre les
+  contraintes de représentation imposées par le matériel et
+  l'environnement de chaque n{\oe}ud et celles imposées par
+  l'application (nécessité de faire interopérer des n{\oe}uds
+  hétérogènes, performances souhaitées). Par exemple, une représentation
+  commune des types de données peut être définie de façon fixée,
+  mais en autorisant plusieurs choix d'ordre des octets, et
+  en permettant à chaque n{\oe}ud d'indiquer l'ordre choisi
+  au moyen d'un drapeau placé dans chaque message (solution
+  retenue dans CORBA).
+
+  Le choix d'une représentation fixée permet ainsi d'avoir une
+  représentation simple et compacte. Elle autorise également l'interopérabilité
+  entre n{\oe}uds. Le drapeau d'ordre, enfin, permet de supprimer,
+  lorsque c'est possible, les opérations coûteuses
+  de remise en ordre des données. Cette optimisation est intéressante,
+  car la mise en forme des données représente une fraction importante du
+  temps passé dans l'intergiciel~\cite{nester99}.
+
+\fi
+  \end{description}
+
+\item[Protocole]\mbox{}
+
+  \begin{description} \item[Définition]
+  L'intergiciel met en {\oe}uvre un protocole pour la transmission
+  des requêtes d'invocation de méthodes entre différentes instances
+  d'exécutifs pour la répartition.
+
+  \item[Propriétés]
+  Les primitives fondamentales d'un protocoles pour les objets
+  réparties sont \emph{Requête} et \emph{Réponse}, qui interviennent
+  dans la réalisation de l'appel à distance de sous-programmes. Le
+  protocole peut également offrir un mécanisme d'avortement d'une
+  requête en cours.
+
+  Des primitives supplémentaires peuvent exister dans certaines
+  plates-formes de répartition. Elles sont utilisées pour effectuer
+  diverses tâches de haut niveau (par exemple la localisation initiale
+  de certains services du système). Elles peuvent être comprises
+  comme des requêtes particulières, échangées non entre des objets
+  applicatifs, mais entre des objets qui font partie intégrante de
+  l'intergiciel.
+\ifexamples
+  \item[Exemple]
+  CORBA définit GIOP (\emph{Generic Inter-ORB Protocol}), un
+  protocole permettant l'échange de messages entre intergiciels,
+  fournissant les primitives nécessaires au modèle
+  «~objets répartis~».
+\fi
+  \end{description}
+
+\item[Activation]\mbox{}
+
+  \begin{description} \item[Définition]
+  L'intergiciel est chargé d'activer les entités concrètes qui
+  implémentent les objets de l'application. Lorsqu'une requête est
+  reçue, il assure la projection de la référence utilisée par le
+  client sur une implémentation réelle de l'objet. Pour cela,
+  selon sa configuration, l'intergiciel peut choisir l'objet
+  destinataire au sein d'un ensemble d'objets actifs, ou bien
+  créer à la volée une implémentation, ou en charger une à partir
+  d'un espace de stockage persistant.
+
+  \item[Propriétés]
+  Avant le traitement d'une requête, le contexte doit être correctement
+  mis en place~: l'état et l'identité de l'objet cible doivent être
+  déterminés et réalisés par l'implémentation, en tenant compte de
+  l'historique des requêtes précédemment traitées, le cas échéant.
+\ifexamples
+  \item[Exemple] Le POA (\emph{Portable Object Adapter}) de CORBA
+  fournit la fonction d'activation. Plusieurs aspects de son comportement
+  peuvent être paramétrés au moyen de politiques (\emph{policies})~:
+  activation automatique, attribution des identificateurs locaux d'objets
+  par l'utilisateur...
+\fi
+  \end{description}
+
+\item[Aiguillage]\mbox{}
+  
+  \begin{description} \item[Définition]
+  Quand une requête arrive sur un n{\oe}ud, des ressources d'exécution
+  (fil d'exécution, structures de contrôle) doivent être affectées
+  à son traitement. L'exécutif
+  de répartition doit fournir ce fil d'exécution (en choisissant
+  un fil existant, dans le cadre de la politique de gestion des tâches
+  en vigueur sur le n{\oe}ud, ou bien en en créant un pour l'occasion).
+
+  \item[Propriétés]
+  Le mécanisme d'aiguillage ne doit pas introduire d'étreinte fatale
+  (\emph{dead lock}). Les requêtes doivent être traitées équitablement,
+  autant que faire se peut. Des distinctions de priorités entre les
+  requêtes peuvent également être supportées.
+
+  \item[Discussion]
+  Plusieurs politiques peuvent être employées pour décider quand
+  créer des fils de contrôle, et quel fil de contrôle utiliser pour
+  le traitement d'une requête donné. Le choix d'une politique
+  ou d'une autre est discuté notamment dans~\cite{schmidt4}.
+\ifexamples
+  \item[Exemple] \glade{} possède un pool de fils d'exécution
+  créés et détruits dynamiquement en fonction des besoins. La
+  plupart des requêtes entrantes peuvent ainsi être servies
+  immédiatement, sans souffrir la pénalité liée à la création
+  d'un fil de contrôle, tout en permettant à l'encombrement
+  en mémoire de l'exécutif et le coût des changements de
+  contexte demeurent bornés~\cite{glade:ug}.
+\fi
+  \end{description}
+\end{description}
+
+Les services listés précédemment suffisent pour créer une application
+répartie orientée objets de base. Ils sont construits à partir des
+fonctionnalités de communication et de gestion de ressources du
+système d'exploitation, et fournissent les abstractions de base
+des objets répartis.
+
+Cependant, le déploiement d'une application répartie complète
+nécessite des services plus sophistiqués, liés aux problèmes de
+déploiement spécifiques à la répartition. Des exemples de tels
+services sont~:
+\begin{description}
+
+\item[Nommage]\mbox{}
+
+  \begin{description}
+  \item[Définition]
+  Le service de nommage (annuaire) permet d'associer des noms symboliques à des
+  références d'objets. Un n{\oe}ud qui cherche à contacter un objet peut
+  alors interroger le service en fournissant le nom de l'objet, et retrouver
+  la référence associée.
+
+  \item[Discussion]
+  Ce service permet aux applications de déterminer les références des
+  objets qu'elles doivent contacter seulement à l'exécution. Il est essentiel
+  pour toute application qui doit pouvoir s'adapter à des modifications de
+  son environnement ou de sa configuration. Il permet aussi à l'application
+  de suivre des changements technologiques, ou des évolutions des besoins
+  des utilisateurs. Il autorise enfin les développeurs à ne pas utiliser
+  des références enregistrées directement dans le code de l'application,
+  ce qui permet de rendre celle-ci portable et configurable.
+\ifexamples
+  \item[Exemple]
+  L'annexe des systèmes répartis d'\ada{} a un service de nommage
+  implicite~: chaque n{\oe}ud sait faire appel aux sous-programmes
+  déclarés par les unités ayant la catégorie \emph{Remote Call
+  Interfaces}. L'exécutif de répartition se charge de localiser
+  le n{\oe}ud sur lequel chacune de ces unités réside.
+
+  Dans \glade{}, l'exécutif assure également que chaque nom ne correspond bien
+  qu'à une seule instance d'une unité, à chaque instant, et
+  que clients et serveurs utilisent bien la même version de la
+  spécification de l'unité.
+\fi
+  \end{description}
+
+\item[Synchronisation]\mbox{}
+
+  \begin{description}
+
+  \item[Définition]
+  Un service de synchronisation peut être mis en {\oe}uvre pour
+  coordonner les actions de différents n{\oe}uds travaillant
+  en parallèle.
+
+  \item[Discussion]
+  Une application répartie contient plusieurs calculateurs indépendants,
+  qui effectuent leurs traitements en parallèle. Ces traitements
+  peuvent nécessiter qu'à certains instants, les différents n{\oe}uds
+  soient coordonnés. En particulier, si des accès concurrents à une
+  ressource partagée doivent avoir lieu, ils doivent être effectués
+  d'une façon ordonnée et cohérente.
+
+  Les plates-formes de répartition peuvent donc implémenter des services
+  de synchronisation pour assister les applications. Par exemple, un
+  mécanisme d'exclusion mutuelle répartie tel que celui décrit
+  par~\cite{naimi96:mutex} peut être offert.
+  \end{description}
+
+\item[Référentiel des interfaces]\mbox{}
+
+  \begin{description}
+  \item[Définition]
+  Une application peut avoir besoin d'appeler des méthodes d'un
+  objet dont l'interface exacte n'était pas connue au moment de
+  la création de l'application. Pour qu'un tel appel puisse avoir
+  lieu, une description de l'interface (comportant la liste des
+  méthodes, le nombre et les types de leurs paramètres) doit
+  être disponible. L'objet du référentiel des interfaces est
+  de collecter et diffuser cette information~: il constitue une
+  base de données de descriptions d'interfaces accessible
+  aux clients intéressés.
+  
+  \item[Propriétés]
+  Les objets manipulés par le référentiel des interfaces doivent
+  permettre de décrire les abstractions du modèle de répartition
+  utilisé par la plate-forme choisie.
+
+  Un mécanisme d'appel dynamique doit être disponible pour permettre
+  à un client d'effectuer un appel de méthode, à partir des informations
+  qu'il a obtenues du référentiel d'interfaces.
+
+  L'appel dynamique permet à un n{\oe}ud de faire exécuter des méthodes
+  découvertes par interrogation du référentiel d'interfaces. Pour
+  ce faire, le processus de création et d'émission d'une requête
+  d'appel de méthode à distance doit être rendu explicitement
+  manipulable par l'application (réifié). Une fois qu'un objet
+  représentant une requête est construit, il peut être confié
+  à l'exécutif pour qu'il soit traité comme tout appel de méthode
+  à distance ordinaire (statique)~; l'objet destinataire ne peut
+  distinguer un appel construit dynamiquement d'un appel statique.
+\ifexamples
+  \item[Exemple]
+  CORBA offre un service normalisé de référentiel d'interfaces
+  (\emph{CORBA Interface Repository}) et une interface d'appel
+  dynamique (\emph{DII}, \emph{Dynamic Invocation Interface}).
+\fi
+  \end{description}
+ 
+\item[Terminaison]\mbox{}
+
+  \begin{description}
+  \item[Définition]
+  Si, à un moment donné, tous les n{\oe}uds d'une application
+  répartie considèrent que leur objectif est atteint, ils peuvent
+  décider d'une terminaison globale de l'application, et effectuer
+  un arrêt ordonné. Un service de terminaison peut être proposé
+  pour établir la décision globale de terminaison. 
+
+  \item[Propriétés]
+  Le service de terminaison doit déterminer un consensus au sein
+  des n{\oe}uds participants. Son implémentation nécessite une
+  coopération du noyau de répartition, en plus des services de
+  base évoqués précédemment. En particulier, l'intergiciel doit
+  exposer des informations sur l'état de ses fils d'exécution
+  internes, et sur les messages en transit dans le réseau.
+\ifexamples
+  \item[Exemple] \glade{} implémente un algorithme de terminaison
+  globale. Si tous les n{\oe}uds ont terminé leurs traitements locaux,
+  et qu'aucun message n'est en transit dans le réseau de communication,
+  on montre~\cite{mattern87:termination} que l'état de l'application
+  ne peut évoluer. Dans ce cas, la terminaison globale peut être décidée.
+
+  L'utilisateur peut choisir, pour chaque n{\oe}ud, s'il participe
+  ou non au processus de terminaison globale~\cite{glade:ug}.
+\fi
+  \end{description}
+
+\item[Données partagées]\mbox{}
+
+  \begin{description}
+
+  \item[Définition]  Un service de données partagées permet aux
+  n{\oe}uds participant à une application répartie de disposer d'un
+  espace de stockage commun, permettant aux différents objets
+  constituant l'application d'échanger
+  des informations de manière transparente, simplement en
+  accédant à cet espace commun. En effet, les données partagées
+  apparaissent à l'utilisateur comme s'il s'agissait de données
+  stockées localement. L'exécutif assure la distribution des
+  données, et propage les effets de chaque accès d'un n{\oe}ud
+  à l'autre.
+
+  \item[Propriétés]
+  Une vue cohérente de l'espace partagé doit être présentée aux
+  utilisateurs. Plusieurs modèles de cohérence peuvent être
+  définis.
+
+  \item[Discussion]
+  Ce service offre aux développeurs d'applications un moyen très
+  simple et flexible pour définir un ensemble de données globalement
+  disponibles.
+\ifexamples
+  \item[Exemple] L'annexe des systèmes répartis d'\ada{} permet
+  la déclaration d'unités ayant la catégorie~\emph{Shared Passive}.
+  Il s'agit d'unités contenant uniquement des variables (aucun code
+  exécutable), au contenu desquelles chaque n{\oe}ud peut accéder.
+  \glade{} implémente cette fonctionnalité, et peut pour ce faire
+  utiliser de multiples supports tels qu'un système de fichiers
+  partagés comme NFS~\cite{rfc1813} ou un mécanisme de mémoire virtuelle
+  partagée répartie cohérente~\cite{lihudak}.
+\fi
+  \end{description}
+
+\end{description}
+
+\subsection{Exemple}
+
+Considérons un objet très simple, ayant une unique méthode \emph{echo}
+prenant un argument chaîne de caractère, et renvoyant cette chaîne
+au client. Le déroulement d'un appel sur cette méthode se déroulerait
+alors ainsi~:
+\begin{description}
+\item[Adressage] L'appelant détermine une référence de l'objet.
+
+\item[Transport] À partir de l'adresse réseau contenue dans
+  la référence, le service de transport de l'intergiciel client
+  crée une connexion vers l'intergiciel serveur.
+
+\item[Liaisons] La référence est associée à la connexion de transport,
+  et à une session de protocole, pour former côté client un
+  \emph{subrogé lié} de l'objet initial, c'est-à-dire un subrogé
+  faisant partie d'un objet de liaison (\emph{binding object}).
+  Ce subrogé acceptera les requêtes côté client, et les transmettra
+  à l'objet réel.
+
+\item[Représentation]
+  L'intergiciel client convertit la chaîne passée en paramètre de
+  l'appel vers une représentation transmissible sur le réseau,
+  par exemple un entier sur quatre octets codant sa longueur,
+  suivi des caractères eux-mêmes.
+
+\item[Protocole]
+  Il crée un message \emph{Request} contenant le nom de la méthode,
+  la référence de l'objet, et la représentation de l'argument, ainsi
+  qu'un identificateur unique de la requête.
+
+\item[Transport]
+  Le message est acheminé de l'intergiciel client vers l'intergiciel
+  appelé. Celui-ci reçoit le message.
+
+\item[Activation]
+  L'intergiciel appelé recherche l'objet à partir de la référence
+  contenue dans le message, et détermine la structure concrète
+  qui représente cet objet (ou la crée au vol).
+
+\item[Aiguillage]
+  L'intergiciel appelé choisit un fil d'exécution disponible pour
+  traiter la requête, et lui attribue cette requête.
+
+\item[Représentation] L'intergiciel appelé remet la chaîne retournée
+  par l'objet sous forme transmissible.
+
+\item[Protocole]
+  Il crée un message \emph{Reply} contenant l'identificateur unique de
+  la requête, et la représentation du résultat. Cette réponse est
+  renvoyée à l'intergiciel client.
+
+  Celui-ci convertit la représentation du résultat vers la forme
+  native, et rend le contrôle à l'appelant.
+\end{description}
+
+L'association d'un objet serveur avec un point d'accès du service
+de transport n'est pas discutée ici.
+
+De même que l'opération de liaison côté client décrite ci-dessus,
+cette association peut être implicite ou explicite. Dans
+le cas implicite, un objet est associé à un point d'accès par le
+simple fait d'être créé et enregistré auprès de l'intergiciel
+qui a ouvert ce point d'accès. Il s'agit là du cas ordinaire
+de CORBA et de la plupart des plates-formes de répartition
+existantes.
+
+Un mécanisme d'association explicite peut être nécessaire pour
+des objets justiciables d'une configuration spécifique de
+la couche de transport. Un exemple d'une telle situation
+est donné dans~\cite{dumant98:jonathan}, où un objet
+consommateur de flux multimedia est explicitement associé
+à un point d'accès lui permettant de recevoir des requêtes
+d'un flux de diffusion multicast.
+
+\subsection{Services internes}
+
+L'intergiciel doit assurer un certain nombre de fonctions, notamment
+de gestion de ressources, pour offrir les services décrits dans la
+section~\ref{sec:recurring-svcs}~:
+\begin{itemize}
+\item allocation de mémoire~;
+\item protection de l'accès concurrent aux données partagées par
+  plusieurs composants (si situation multitâches)~;
+\item ordonnancement d'activités concurrentes~;
+\item gestion de collections d'entités telles que séquences,
+  ensembles non ordonnés, tableaux de taille variable, etc~;
+\item gestion de répertoires d'entités (catalogues,
+  \emph{Naming\_Contexts}...)
+\end{itemize}
+
+La façon dont ces services internes sont implémentés doit être
+adaptable pour chaque besoin, et configurable pour satisfaire
+les contraintes de l'application (e. g. temps réel).
+
+\section{Architecture générale}
+\subsection{Vue d'ensemble}
+
+\begin{figure}
+\begin{center}
+\mbox{\psfig{file=droopi-arch.eps,width=10cm}}
+\end{center}
+\caption{Architecture de \droopi{}}
+\label{fig:droopi-arch}
+\end{figure}
+
+La figure~\ref{fig:droopi-arch} donne une vue d'ensemble de
+l'architecture retenue pour \droopi{}. Celle-ci comporte trois
+niveaux~:
+
+\begin{description}
+\item[Couche applicative] \emph{(en haut)}
+  Les modules de l'intergiciel permettant aux objets de l'application
+  de s'intégrer à l'environnement réparti. Ces entités fournissent
+  des services permettant notamment aux objets de l'application
+  de s'enregistrer auprès de l'ORB pour recevoir des requêtes
+  provenant d'objets distants, et d'émettre des requêtes vers
+  des objets distants.
+
+  Cette couche est implémentée pour chaque personnalité. Elle
+  utilise des fonctionnalités du c{\oe}ur de l'ORB qui, elles,
+  sont génériques.
+
+\item[Couche générique --- c{\oe}ur de répartition] \emph{(au centre)}
+  Les éléments de l'ORB indépendants de la personnalité.
+  Ces entités implémentent les abstractions et patterns
+  communs à toutes les personnalités d'intergiciel.
+
+\item[Couche protocolaire] \emph{(en bas)}
+  Les éléments de l'ORB permettant la communication avec
+  d'autres ORBs. Ces entités, implémentées pour chaque
+  personnalité, exécutent les protocoles de communication
+  inter-ORB.
+\end{description}
+
+À ces trois niveaux s'ajoutent des modules génériques assurant
+des fonctions internes, utilisés par toutes les couches de l'ORB
+\emph{(à droite)}.
+
+\subsection{Organisation d'un client, d'un serveur}
+
+Un client \droopi{} dispose d'une description de service dans une
+personnalité donnée. Cette description de service va permettre
+de générer~:
+\begin{itemize}
+\item des stubs génériques~;
+\item des stubs spécifiques (par ex. fonction de sérialisation
+  d'un objet de type «~requête~»)~;
+\item des fonctions de représentation des types de données
+  manipulées.
+\end{itemize}
+
+Un serveur \droopi{} dispose d'une description de service dans une
+personnalité donnée. Cette description de service va permettre
+de générer un squelette (composé d'une partie générique, indépendante
+de la personnalité, et d'une partie spécifique de la personnalité
+utilisée).
+
+Si on souhaite supporter plusieurs familles de représentations
+différentes (eg. CDR (CORBA) \emph{et} XDR (GLADE)), alors il faut disposer
+des descriptions des types de données pour chaque personnalité
+associée.
+
+\subsection{Processus de personnalisation}
+
+\droopi{} offre une liaison flexible entre des objets d'applications et
+une architecture de transport de messages. Deux facettes de l'intergiciel sont
+donc personnalisables~:
+\begin{itemize}
+\item l'interface avec les objets d'application («~personnalité applicative~»)~;
+\item l'interface avec d'autres intergiciels à travers l'architecture de transport
+ («~personnalité protocolaire~»).
+\end{itemize}
+
+L'articulation entre ces deux facettes est l'objet Request. Cet objet représente, de manière
+indépendante à la fois de la personnalité applicative et de la personnalité protocolaire,
+une requête d'invocation d'une méthode sur un objet.
+
+L'implémentation d'une personnalité applicative doit~:
+\begin{itemize}
+\item transformer une invocation de méthode en un objet Request, et livrer cet objet
+  à l'ORB générique, puis prendre connaissance du résultat renvoyé par l'ORB générique
+  et de le retransformer en retour d'invocation \emph{(côté client)}~;
+\item recevoir de l'ORB générique des objets Request destiné à des objets locaux, effectuer
+  les appels de méthode locaux correspondants, et retourner les résultats à l'ORB générique
+  \emph{(côté serveur)}.
+\end{itemize}
+
+L'implémentation d'une personnalité protocolaire doit~:
+\begin{itemize}
+\item recevoir des Request de l'ORB générique, et les expédier sous forme de messages à
+  d'autres ORBs, puis recevoir les messages en réponse~;
+\item recevoir des messages d'invocation provenant d'autres ORBs, les transformer en Requests
+  et les transmettre à l'ORB générique pour exécution, puis récupérer le résultat et l'expédier
+  sous forme de message à l'ORB client.
+\end{itemize}
+
+\section{Intégration des fonctions dans l'architecture}
+
+\newcommand{\funcfig}[2]{% \funcfig{fooing}{Caption}
+\begin{figure}
+\begin{center}
+\mbox{\psfig{file=droopi-func-#1.eps,width=8cm}}
+\end{center}
+\caption{#2}
+\label{fig:func-#1}
+\end{figure}
+}
+
+\subsection{Adressage}
+
+\funcfig{addressing}{Fonction \emph{adressage}}
+
+\emph{Fonction faisant intervenir la couche applicative et la couche protocolaire.
+Cf. figure \ref{fig:func-addressing}.}
+
+La création d'une référence pour un objet enregistré auprès de l'ORB nécessite
+l'association d'un identifiant local de l'objet enregistré (information fournie
+par la couche applicative) et d'une adresse de transport (information fournie
+par la couche protocolaire). Elle doit donc être accomplie par un module
+(\emph{Refs}) situé à l'interface entre les deux, dans la couche générique.
+
+Ce module définit une structure de donnée agrégeant d'une part l'identifiant
+d'objet (fourni par le répertoire d'objets que constitue l'\emph{Object Adapter}),
+et d'autre part une collection d'adresses de point d'accès de transport, correspondant
+à la liste des points d'accès enregistrés par la couche protocolaire.
+
+\subsection{Transport}
+
+\funcfig{transport}{Fonction \emph{transport}}
+
+\emph{Fonction faisant intervenir seulement la couche protocolaire.
+Cf. figure \ref{fig:func-transport}.}
+
+Le service de transport consiste à transférer une information d'un point à un
+autre~: il correspond au niveau le plus bas du système de communication.
+Ce service est réalisé en concrétisant un certain nombre de classes
+abstraites~:
+\begin{description}
+\item[Transport\_Access\_Point]
+\item[Transport\_Endpoint]
+\item[Asynchronous\_Event\_Source]
+\end{description}
+
+%%  XXX à compléter !
+
+\subsection{Liaisons}
+
+\funcfig{binding}{Fonction \emph{liaisons}}
+
+\emph{Fonction faisant intervenir seulement la couche protocolaire.
+Cf. figure \ref{fig:func-binding}.}
+
+Étant donnée une référence désignant un objet distant, le service
+de liaison (\emph{binding}) a pour rôle de créer, sur un client, une structure qui
+représente l'objet désigné et le fait qu'une liaison avec lui a été établie
+(\emph{binding object}), et qui est capable de traiter des appels
+de méthode (en les transmettant à l'objet réel). Cette structure
+est un \emph{subrogé} de l'objet réel (car elle contient son identité, le
+moyen de le contacter, i.e. son adresse au sein d'un service de transport,
+et une information de typage permettant de savoir quelles méthodes sont supportées
+par l'objet). De plus, un subrogé qui est un \emph{binding object} contient
+la désignation d'un point de terminaison du service de transport et du protocole~:
+il s'agit d'un subrogé \emph{lié}. (Une référence d'objet contient les mêmes informations,
+mais ne contient pas d'association avec un point de terminaison de transport et
+un protocole. Elle constitue donc un subrogé \emph{non lié}).
+
+Le mécanisme d'établissement de cette association peut soit être implicite
+(comme c'est le cas notamment dans CORBA), lorsque l'établissement d'une
+connexion de transport et son association avec une référence sont
+effectuées de façon transparente pour l'utilisateur, au cours d'un appel
+de méthode. Il peut aussi être explicite, lorsque l'utilisateur souhaite
+contrôler certains aspects de l'établissement de la connexion, par exemple
+pour choisir des paramètres de qualité de service à négocier avec
+le réseau.
+
+\subsection{Représentation}
+
+\funcfig{representation}{Fonction \emph{représentation}}
+
+\emph{Fonction faisant intervenir seulement la couche protocolaire.
+Cf. figure \ref{fig:func-representation}.}
+
+La fonction de représentation convertit une donnée $D$ de type $T$ en message transmissible
+à un autre ORB, conformément à la représentation imposée par un protocole de communication
+entre ORBs~:
+$$<D>_T\ \xrightarrow{Representation}\ \mathit{msg}$$
+Cette transformation peut s'effectuer avec une perte d'information~: le message résultant
+doit contenir suffisamment d'information pour reconstituer la valeur $D$ connaissant
+$T$ et $\mathit{msg}$, mais pas nécessairement pour reconstituer $<D>_T$ en connaissant
+seulement $\mathit{msg}$ (par exemple dans GIOP, une suite quelconque de quatre octets
+peut correspondre à un entier long ou bien à deux entiers courts)
+En effet, cela nécessiterait la reconstitution «~magique~» de l'information de type qui
+a été perdue lors de la première transformation.
+
+La transformation réciproque que doit offrir le mécanisme de représentation doit
+donc prendre $\mathit{msg}$ \textbf{et} $T$ en entrée, et restituer la donnée
+correctement typée . Nous la définissons donc par~:
+$$(\mathit{msg},<\cdot>_T)\ \xrightarrow{Representation}\ <D>_T$$
+où $<\cdot>_T$ représente un conteneur vide mais possédant l'information
+de type $T$.
+
+On impose ainsi au client du service de représentation de connaître \emph{a priori}
+le type des données qu'il souhaite recevoir~: on a éludé le problème de la
+reconstitution du typage en le transférant au client.
+
+Le service de représentation sera réalisé en concrétisant une interface abstraite fournissant
+les deux transformations indiquées ci-dessus.
+
+\subsection{Protocole}
+
+\funcfig{protocol}{Fonction \emph{protocole d'invocation}}
+
+\emph{Fonction faisant intervenir seulement la couche protocolaire.
+Cf. figure \ref{fig:func-protocol}.}
+
+La fonction «~protocole d'invocation de méthodes~» présente des similarités
+avec la fonction de représentation, au sens où elle transforme des données
+d'une représentation locale vers une forme transmissible au sein d'un
+message, et réciproquement.
+
+Par ailleurs, cette fonction orchestre le déroulement d'un appel de méthode~:
+à partir d'une demande d'invocation locale, préparation et émission d'un
+message, puis attente d'une réponse et restitution de la réponse à la couche
+applicative~; à partir d'une demande d'invocation reçue d'un autre ORB,
+récupération des paramètres et de l'identité de l'objet cible, puis exécution
+de la requête.
+
+Les requêtes manipulées par la fonction protocole sont représentées comme un
+objet générique de classe \emph{Request}, qui doit contenir~:
+\begin{itemize}
+\item l'identité de l'objet cible~;
+\item l'identification de la méthode à invoquer (ce qui suppose que les moyens
+  d'identifier les méthodes utilisés d'une part par les personnalités applicatives,
+  d'autre part par les personnalités protocolaires, sont projetés dans le méta-modèle.
+  En particulier, le méta-modèle ne peut se satisfaire du seul nom d'une méthode
+  pour identifier celle-ci, sous peine de ne pouvoir supporter de personnalité
+  autorisant la surcharge des identificateurs)~;
+\item les paramètres et le résultat de l'invocation.
+\end{itemize}
+
+Cette classe ressemble aux interfaces \emph{Request} et \emph{ServerRequest}
+de CORBA.
+
+L'interface qui doit être implémentée par chaque protocole spécifique contient
+donc au moins les fonctionnalités suivantes~:
+\begin{itemize}
+\item transformation d'une requête en message~;
+\item transformation d'un message en requête, en interrogeant l'Object adapter
+  pour obtenir des informations sur la signature de la méthode appelée (et
+  ainsi pouvoir fournir à la fonction de représentation le conteneur typé
+  nécessaire à la désérialisation des paramètres).
+\end{itemize}
+
+\subsection{Activation}
+
+\funcfig{activation}{Fonction \emph{activation des objets d'implémentation}}
+
+\emph{Fonction faisant intervenir seulement la couche applicative.
+Cf. figure \ref{fig:func-activation}.}
+
+Lorsqu'une requête reçue par la couche protocolaire est prête à être exécutée,
+il appartient à l'ORB d'associer l'objet logique sur lequel l'appel est effectué
+avec un objet concret qui l'implémente. Cette tâche consistant à «~incarner~» un
+objet est dévolue à l'\emph{Object adapter} (terminologie CORBA).
+
+\subsection{Aiguillage}
+
+\funcfig{dispatching}{Fonction \emph{aiguillage}}
+
+\emph{Fonction faisant intervenir seulement la couche applicative.
+Cf. figure \ref{fig:func-dispatching}.}
+
+Un appel de méthode correspondant à une requête reçue doit être affecté
+à un flot d'exécution. Ce flot doit être soit prêté par l'application,
+soit pris dans un pool de tâches de l'ORB, soit avoir été créé pour
+la session ou pour la requête.
+
+Ces différents comportements sont implémentés par l'objet \emph{Scheduler},
+responsable de faire exécuter toutes les activités de l'ORB (y compris
+les exécutions d'appels de méthodes reçus). La configuration des différentes
+options possibles est assurée par délégation d'une partie des fonctions
+du scheduler à des objets de type \emph{Tasking\_Policy}.
+
+\section{Conception d'une solution}
+
+% Ici pour l'instant on présente à la fois la conception, sous forme
+% de schémas UML, et ce qui est implémenté. Éventuellement, il faudrait
+% faire évoluer cela sous forme de deux sections :
+%
+% \section{Conception} -> UML, classes, patterns
+% \section{Mise en {\oe}uvre -> réalisation de cette conception.
+
+\subsection{Vue d'ensemble}
+
+\begin{figure}
+\begin{center}
+\mbox{\psfig{file=droopi-design.eps,width=8.8cm}}
+\end{center}
+\caption{Conception \droopi{}}
+\label{fig:droopi-uml}
+\end{figure}
+
+La figure \ref{fig:droopi-uml} donne une vue d'ensemble de
+l'implémentation de \droopi{}. Elle est pilotée par des événements
+échangés entre modules. En effet, l'intergiciel ne doit pas imposer
+l'ajout de nouvelles tâches dans une application qui n'en comporte pas.
+Les activités de l'ORB ne doivent être déclenchées que lorsqu'elles
+sont nécessaires (lorsque l'application souhaite invoquer une méthode distante,
+ou lorsqu'un message est reçu sur un canal de communication).
+
+\subsection{Framework}
+
+\droopi{} fournit un certain nombre de mécanismes de base pour le découpage
+de l'ORB en modules indépendants dont les responsabilités et les interfaces
+sont bien délimitées. Cette section présente ces mécanismes de base en
+tentant de les décrire comme des patterns.
+
+\subsubsection{Composants}
+\label{sec:components}
+
+\paragraph{Contexte~:}\mbox{}\\
+  Un ORB est un système composé d'entités communiquant
+  ensemble par invocation de méthode selon un canevas quelconque
+  (le graphe d'appel est un graphe non orienté général).
+
+\paragraph{Problème~:}\mbox{}\\
+\begin{enumerate}
+\item vues croisées~: la spécification d'un composant décrit
+  les services offerts aux clients de ce composant, et
+  les autres composants avec lesquels il est en relation.
+
+  Pour décrire ces relations, le composant a besoin d'avoir une
+  visibilité sur une vue des composants dont il est client.
+\item flexibilité du mécanisme de passage de messages~:
+  un composant doit pouvoir intercepter et manipuler des messages
+  sans nécessairement connaître le détail de l'interprétation du message
+  par le destinataire final, par exemple pour modifier la modalité de
+  communication sans modifier le sens du message.
+
+  Exemple~: communication de groupe.
+\end{enumerate}
+
+\paragraph{Solution~:}\mbox{}\\
+L'introduction d'un niveau d'héritage supplémentaire permet à un composant
+de faire référence à une vue incomplète d'un autre composant.
+
+Ici, un objet constitutif de la structure de l'ORB est dérivé de la
+classe abstraite \emph{Component}. Un objet peut contenir un certain
+nombre de «~ports~», des voies de communication vers d'autres composants.
+
+Une fonction est offerte pour connecter un port vers un composant.
+Des messages synchrones peuvent alors être émis sur le port, et reçues par le
+composant destinataire. Lorsqu'un composant doit recevoir un message, sa méthode
+\emph{Handle\_Message} est exécutée. Ce mécanisme consiste en fait à expliciter
+l'envoi de message (local) notionnellement impliqué par l'invocation d'une
+méthode d'objet.
+
+\begin{figure}
+\begin{center}
+\mbox{\psfig{file=components.eps,width=12cm}}
+\end{center}
+\caption{Pattern «~Component~»}
+\label{fig:components}
+\end{figure}
+
+\subsubsection{Annotations}
+\label{sec:annotations}
+
+\paragraph{Contexte~:}\mbox{}\\
+  Les clients d'un objet désirent associer à cet objet des informations
+  sur lesquelles l'objet lui-même n'a pas visibilité (par exemple le
+  client agrège l'objet avec un autre objet).
+
+\paragraph{Problème~:}\mbox{}\\
+  Permettre cette association, et permettre la récupération
+  efficace de l'information (en temps constant par rapport au nombre
+  d'objets possédés par le client).
+
+\paragraph{Solution~:}\mbox{}\\
+  L'objet expose un attribut qui est une collection d'instances d'une
+  classe-conteneur abstraite «~Annotation~», étiquetées par l'identité
+  des clients de l'objet. Les clients dérivent la classe «~Annotation~»
+  et peuvent ajouter ou retirer une instance du type concret dans la
+  collection.
+
+\begin{figure}
+\begin{center}
+\mbox{\psfig{file=annotations.eps,width=12cm}}
+\end{center}
+\caption{Pattern «~Annotation~»}
+\label{fig:annotation}
+\end{figure}
+
+%  Il peut être nécessaire pour un client d'un objet d'associer des
+%  informations à cet objet. De plus, on souhaite pouvoir retrouver ces
+%  informations en temps constant relativement au nombre d'objects
+%  (par souci d'efficacité).
+
+\subsection{Ordonnancement}
+
+Un objet \emph{Scheduler} (ordonnanceur) régit l'exécution des activités de l'ORB
+en fonction des événements qui se produisent. Différentes politiques
+d'ordonnancement peuvent être mises en {\oe}uvre. Elles sont matérialisées
+par des objets dérivés de \emph{Tasking\_Policy}, auxquels l'ordonnanceur
+délègue une partie de ses comportements.
+
+\subsection{Couche applicative}
+
+Les personnalités applicatives sont réalisées par concrétisation
+d'un certain nombre de classes abstraites.
+
+\begin{description}
+\item[Object\_Adapter] un  «~annuaire d'objets~» qui associe
+  des références logiques (\emph{Object\_References})
+  aux implémentations concrètes (\emph{Servants})~;
+\item[Object\_Reference] une information communicable,
+  créée par un object adapter, qui contient un ou plusieurs
+  profils.
+  Chaque profil désigne un point d'accès du service de transport,
+  qu'il associe à un protocole d'appel de méthodes.
+  Lorsqu'une connexion de transport est établie vers ce point
+  d'accès, le protocole associé peut être utilisé sur cette
+  connexion pour envoyer des requêtes d'appel de méthode.
+
+  Chaque profile contient
+  également l'identité de l'object adapter qui a créé la référence,
+  et l'identité de l'objet logique désigné.
+\item[Servant] la classe racine de toutes les implémentations
+  d'objets, i. e. de toute chose susceptible d'exécuter une
+  méthode invoquée à distance.
+\end{description}
+
+Les classes \emph{Servant} et \emph{Object\_Reference} sont
+éventuellement dérivées par chaque personnalité d'une façon qui
+lui est propre, pour s'articuler avec les composants applicatifs.
+
+\subsection{Couche protocolaire}
+
+Les personnalités procotolaires sont réalisées par concrétisation
+d'un certain nombre de classes abstraites.
+
+\begin{description}
+\item[Asynch\_Event\_Source] une source d'événements externes
+  asynchrones, par exemple un descripteur de fichier qui peut
+  participer à un appel à \emph{select(2)}~;
+\item[Transport\_Access\_Point] un objet susceptible de recevoir
+  des connexions d'un ORB extérieur, et de créer un canal
+  de communication lorsqu'une connexion est reçue.
+  L'objet qui concrétise un TE peut également être vu comme une source
+  d'événements asynchrones (\emph{AES\_View})~; l'interface
+  \emph{Transport\_Access\_Point} est la vue de cet objet qui est présentée
+  aux couches supérieures du module de communication, tandis que la vue
+  \emph{Asynchronous\_Event\_Source} présentée à l'ordonnanceur.
+  Un TAP est doté d'une \emph{adresse} qui permet de le repérer sans
+  ambiguïté au sein d'un domaine de communication.
+\item[Transport\_Endpoint] une extrémité d'un canal de communication
+  permettant d'échanger des messages avec un autre ORB.
+  L'objet qui concrétise un TE peut également être vu comme une source
+  d'événements asynchrones (\emph{AES\_View})~; l'interface
+  \emph{Transport\_Endpoint} est la vue de cet objet qui est présentée
+  aux couches supérieures du module de communication, tandis que la vue
+  \emph{Asynchronous\_Event\_Source} présentée à l'ordonnanceur.
+\item[Filter] une interface supportant le passage de messages
+  dynamiquement typés à l'intérieur de \droopi{}. Toute entité
+  qui a besoin de participer à la gestion des communications
+  avec d'autres ORBS implémente cette interface. Ainsi, les
+  types concrets de messages échangés entre les entités peuvent
+  être définis séparément, ce qui résout les problèmes de
+  visibilité croisée.
+\item[Representation] interface pour un algorithme de représentation
+  des données~: encapsule un mécanisme permettant de transformer une
+  donnée en sa représentation canonique transmissible.
+\item[Protocol] interface abstraite pour un protocole d'appel de méthode
+  à distance (par exemple GIOP ou SOAP). Un \emph{Protocol} est une factory
+  d'objets \emph{Session}.
+\item[Session] incarne l'état d'une session ouverte d'un protocole.
+  Cet objet effectue l'échange de messages nécessaire pour passer
+  des demandes d'invocation de méthodes d'un ORB à l'autre.
+\end{description}
+
+Les sections suivantes présentent plus en détail chacun de ces objets.
+
+\subsubsection{Asynchronous event source (AES)}
+
+Tout objet susceptible de générer spontanément (de façon asynchrone)
+des événements devant donner lieu à traitement par une activité de l'ORB.
+
+Exemple~: un descripteur de fichier (peut participer à un appel
+  système \emph{poll}).
+
+Une AES est enregistrée auprès d'un moniteur
+(AEM, \emph{Asynchronous\_Event\_Monitor}) qui permet à l'ORB
+de savoir si un événement s'est produit, ou d'attendre qu'un
+événement se produise.
+
+\subsubsection{Transport access point (TAP)}
+
+$\leftrightarrow$ une socket en écoute, un identificateur d'IPC.
+
+Doit pouvoir participer à un poll.
+
+Primitives~: bind/accept.
+
+Un TAP est associé à un seul protocole. Le TAP agit comme une factory de TE.
+Lorsqu'un TE est créé à partir d'un TAP, le TE hérite du protocole de son TAP
+(une session de ce protocole est créée et liée au TE).
+
+Comme un TE, un TAP a une vue comme source d'événements asynchrone,
+pour pouvoir participer à un poll.
+
+\subsubsection{Transport endpoint (TE)}
+
+Un point d'accès du service de transport.
+
+$\leftrightarrow$ une socket de comm, un identificateur d'IPC.
+
+Primitives~: open/read/write/close
+
+Doit pourvoir participer à un poll (e/s asynchrones, liées au mécanisme
+de gestion des événements dans l'ORB)~: un TE est capable de donner
+une vue de lui-même qui est une source d'événements asynchrones.
+Un point de terminaison connecté est associé à un seul protocole~\ref{sec:protocoles}.
+Le TE est un composant, il est capable de recevoir des messages envoyés
+par la pile de protocole associée ou par l'ORB.
+
+\subsubsection{Filter}
+
+Les TE produisent des données (reçues du réseau) et acceptent des données (à émettre
+vers le réseau). Les réifications ces échanges de données sont les Data\_Units.
+
+Il peut être nécessaire d'intercaler des traitements de mise en forme des Data\_Unit entre
+TE et sessions. C'est le rôle des objets abstraits «~filtres~». À un TAP est associée
+une pile de factories de filtres (dont la dernière, au sommet, définit le protocole
+du TAP). Lorsqu'une connexion est acceptée et un TE créé, chaque factory est invoquée
+pour créer une pile d'instances de filtres qui sont chaînés. Ces filtres échangent
+ensuite des Data\_Unit soit du bas de la pile (du TE) vers le haut (la session) (données
+reçues), soit du haut de la pile vers le bas (données émises).
+
+Un exemple typique de filtre est le délimiteur de messages~: lorsqu'un transport
+offre un service de flux continu de données (par exemple une socket TCP), il est
+nécessaire de délimiter les messages échangés à l'intérieur du flux (par exemple
+en connaissant à l'avance la taille des messages qui vont être reçus, ou bien
+au moyen de fanions placés aux extrémités des messages). Un filtre va recevoir
+les Data\_Units issus du réseau (correspondant à des fragments de messages) et les
+rassembler pour reformer des messages complets (tels qu'attendus par les sessions).
+
+Un pseudo-filtre est associé à chaque type de TE (pour l'instant implémenté uniquement
+pour les sockets) qui produit des Data\_Unit quand des données sont reçues sur le réseau,
+et émet sur le réseau les Data\_Units acceptées.
+
+De même, les sessions sont des pseudo-filtres qui acceptent les Data\_Units issues des couches
+inférieures, et agissent en fonction des messages reçues (au lieu de les transmettre
+comme Data\_Units aux couches supérieures).
+
+Les filtres sont implémentés comme des composants particuliers,
+caractérisés par le fait que chacun d'eux est lié à exactement
+deux autres composants~: un \emph{Upper} (voisin du dessus dans
+la pile de protocole) et un \emph{Lower} (voisin du dessous).
+Les Data\_Units sont un type particulier de messages, ayant
+comme propriété particulière une direction de propagation
+à travers la pile~: une Data\_Unit est définie pour être propagée
+soit de bas en haut (du transport vers la session), soit de
+haut en bas (de la session vers le transport), jamais les deux.
+
+\textbf{Critique de l'implémentation actuelle~:}
+  Droopi.Filters fournit l'abstraction des filtres et aussi les types concrets
+  de Data\_Units. Il faudrait séparer les deux et ne définir qu'un type Data\_Unit abstrait. Ensuite,
+  les Data\_Units concrètes seraient définies dans d'autres unités, qui ne seraient visibles que
+  là où c'est nécessaire (une Data\_Unit échangée entre les couches A et B ne serait visible que
+  par les unités implémentant A et B.)
+
+\textbf{Piste pour approfondir~:} si on considère que le scheduler de l'ORB est la couche supérieure par
+  rapport aux sessions, et que l'objet Request est une Data\_Unit, alors la Session est juste un
+  filtre qui convertit des messages en requests et des replys en messages. À explorer.
+
+\subsubsection{Sérialisation~: Representations}
+
+Pour tout type de données (existant dans le contexte d'une personnalité utilisateur)
+il faut établir des fonctions de sérialisation (dans le contexte d'une personnalité protocole).
+
+On va donc générer dans chaque personnalité utilisateur des fonctions de conversion
+des données vers des types \emph{auto-descriptifs} de manière à ce que chaque encodeur
+(dans une personnalité protocole) implémente (différemment) un même comportement générique.
+Ces types auto-descriptifs seront similaires aux \emph{Any} de CORBA~; cette approche ressemble
+à l'idée qui consiste à construire un ORB CORBA en partant de l'invocation dynamique.
+
+Cela impose peut-être que le modèle de types de \droopi{} (i.e. le modèle de description des types
+auto-descriptifs) soit aussi riche que celui de DSA ($>$ CORBA) (notion par exemple d'argument
+non-contraint pour lesquels une représentation particulière est nécessaire ??)
+
+L'abstraction d'une méthode pour
+représenter des données sous une forme transmissible sur un
+réseau (i. e. la réification d'un algorithme de sérialisation).
+
+Primitives~: conversion d'un Any (une donnée quelconque) en
+un flot d'octets et vice-versa.
+
+Exemples de dérivations concrètes possibles~: CDR, XDR.
+
+\subsubsection{Protocole d'invocation~: Protocols et Sessions}
+\label{sec:protocoles}
+
+Droopi.Session est l'abstraction d'une connexion ouverte avec un autre
+intergiciel, sur laquelle on peut émettre ou recevoir des requêtes d'invocation
+de méthodes. Une session se situe au sommet d'une pile de filtres
+liée à un TE.
+
+Étant donnée une requête d'invocation de méthode
+destinée à un objet (une instance de Request), la session
+construit un message et transmet ce message à un intergiciel distant
+afin que la requête soit exécutée.
+
+Étant donnée un message reçu, la session construit une requête et la fait
+exécuter par un servant local. Cela nécessite que le serveur local
+ait fourni au préalable une description de la signature de la requête.
+En effet, le message «~sur le fil~» ne contient pas \emph{a priori}
+de description des données transportées (cette information a été perdue
+lors de la transformation de la requête en message côté client). Pour
+reconstituer l'objet de type \emph{Request}, l'ORB côté serveur doit
+connaître la délimitation et le type des paramètres, pour pouvoir les
+désérialiser en fonction du protocole utilisé. Il est donc nécessaire,
+côté serveur, d'avoir une description indépendante de la personnalité
+des signatures de services, par exemple en ayant une sorte d'\emph{Interface
+Reposiotry} générique.
+
+Les sessions sont créées à partir de factories appelées Protocols. Un protocole
+est défini comme un moyen d'associer une session et une représentation à un TE.
+
+\section{Implémentation}
+
+\subsection{Objets communs}
+
+\subsubsection{Synchronisation}
+
+\begin{description}
+\item[Droopi.Soft\_Links] Abstractions de toutes les constructions
+  susceptibles de dépendre d'un exécutif de parallélisme.
+\item[Droopi.Protected\_Objects] Implémentation des soft-links utilisant
+  les objets protégés, pour le cas d'un ORB multi-tâches.
+\item[Droopi.No\_Tasking] Implémentation vide des soft-links pour
+  le cas d'un ORB mono-tâche.
+\item[Droopi.Locks] Objets de haut niveau implémentés par-dessus les Soft\_Links
+  et fournissant des abstractions plus évoluées.\\
+  Exemple~: verrou lecteur-écrivain.\\
+  Extension possible~: verrou avec priority ceiling.
+\end{description}
+
+\subsubsection{Composants}
+
+Le mécanisme de composants flexibles décrit dans la section
+\ref{sec:components} est implémenté au moyen de plusieurs paquetages~:
+
+\begin{description}
+\item[Droopi.Components] Cette unité définit les types abstraits «~Component~» et
+  «~Message~»~;
+\item[Droopi.*.Interface] Chacun de ces paquetages déclare les types de messages
+  correspondant aux composants déclarés dans leur paquetage père.
+\end{description}
+
+\subsubsection{Annotations}
+
+Le motif de conception «~Annotations~» décrit dans la section
+\ref{sec:annotations} est réalisé au moyen des types déclarés
+dans le paquetage Droopi.Annotations.
+
+\subsubsection{Gestion de mémoire}
+
+Plusieurs unités contribuent dans \droopi{} à l'allocation et à la désallocation
+de mémoire~:
+
+\begin{description}
+\item[Droopi.Storage\_Pools] déclare les pools de stockage utilisés par
+  certains autres composants de \droopi{}, et centralise ainsi la configuration
+  de cet aspect.
+\item[Droopi.Smart\_Pointers] fournit un mécanisme de pointeurs
+  effectuant automatiquement un comptage de références sur les objets
+  désignés, et désallouant chaque objet lorsqu'il n'est plus désigné
+  par aucune référence.
+\item[Droopi.Buffers] offre un système de tampons pour la réception
+  et l'émission de flots d'octets au moyen des services de transport.
+\end{description}
+
+\subsubsection{Réification des appels de méthodes}
+
+Les appels de méthodes et leurs paramètres doivent être représentés
+par des objets que l'intergiciel peut manipuler.
+
+\begin{description}
+\item[Droopi.Any] permet de manipuler toute donnée
+  de l'utilisateur (argument d'un appel de méthode, valeur de
+  retour ou exception) sous forme d'un type conteneur universel.
+  L'intergiciel peut ainsi stocker et transporter des données
+  de types arbitraires sans connaître le détail de leur structure
+  et de leur sens.
+\item[Droopi.Requests] définit le type représentant un appel
+  de méthode avec ses arguments.
+\end{description}
+
+\subsection{Transport}
+
+\droopi{} fournit une couche d'abstraction des services de
+transport de données.
+
+\begin{description}
+\item[Droopi.Transports] contient les types abstraits représentant
+  un point d'accès du service de transport (i.e. une entité possédant
+  une adresse, qui peut être contactée par un client) et un point
+  de terminaison du service de transport (une entité permettant
+  de dialoguer avec un point d'accès distant).
+\item[Droopi.Asynch\_Ev] Les événements liés aux entités de transport
+  sont gérées de manière asynchrone par le noyau de répartition.
+  Chaque point d'accès et chaque point de terminaison du service
+  de transport est associé à un objet «~source d'événements asynchrones~».
+  Le paquetage Asynch\_Ev contient la définition du type abstrait dont
+  ces objets sont dérivés.
+\end{description}
+
+Des implémentations de ces deux paquetages basées sur les sockets
+TCP ont été réalisées.
+
+Une application particulière des «~Components~» de \droopi{} est utilisée
+pour créer des piles de filtres.
+
+\begin{description}
+\item[Droopi.Filters] Le type abstrait «~Filter~» correspond à une
+  couche d'une pile de transport, qui communique uniquement avec
+  les couches situées immédiatement au-dessus et en-dessous.
+\item[Droopi.Filters.Slicer] Un filtre ayant pour tâche de découper
+  un flot d'octets en blocs de taille connue, utilisé notamment pour
+  délimiter les messages GIOP.
+\end{description}
+
+\subsection{Nommage}
+
+Les types de données de base pour le service de nommage sont
+définis par les paquetages~:
+
+\begin{description}
+\item[Droopi.References] contenant les types de données de
+  base pour représenter des références d'objets constituées
+  d'un ensemble de profils.
+\item[Droopi.Binding\_Data] définissant le type abstrait
+  «~Profile\_Type~» correspondant à un profil.
+\end{description}
+
+Pour chaque personnalité, il est défini un ou plusieurs types
+de profils concrets permettant de désigner l'association d'une
+adresse au sein d'un service de transport avec le choix d'un
+protocole.
+
+\subsection{Liaison (\emph{binding})}
+
+Le service de liaison est assuré par les paquetages~:
+
+\begin{description}
+\item[Droopi.References.Binding] contenant la fonction
+  principale créant un subrogé lié (un objet de type
+  \emph{Session}) à partir d'un subrogé libre (un objet
+  de type \emph{References.Ref})~;
+\item[Droopi.Binding\_Data.*] qui fournissent, pour
+  chaque type de profil, le moyen d'instancier une
+  Session associant un point de terminaison du service
+  de transport connecté au point d'accès dont l'adresse
+  est contenue dans le profil avec le protocole dénoté
+  par le profil.
+\end{description}
+
+\subsection{Protocole}
+
+Le service de protocole d'appel de méthodes est basé sur un type
+abstrait central~: «~Session~», qui représente l'association entre
+un canal de transport établi entre deux n\oe{}uds et la convention
+d'utiliser sur ce canal un protocole donné. Les objets concrets de
+types dérivés de Session sont créés par des «~usines~» qui sont
+les objets de type «~Protocol~».
+
+\begin{description}
+\item[Droopi.Protocols] contient les déclarations des types abstraits
+  Protocol et Session~;
+\item[Droopi.Protocols.GIOP] déclare les types concrets correspondants
+  à toutes les versions du protocole GIOP de CORBA, indépendemment
+  du type de canal de transport utilisé.
+%%  ./droopi-protocols-echo.ads
+%%  ./droopi-protocols-soap.ads
+%%  ./droopi-protocols-srp.ads
+%%  ./droopi-protocols.ads
+\end{description}
+
+\subsection{Représentation}
+
+La fonction de représentation consiste à traduire une donnée utilisateur
+quelconque (sous forme de conteneur Any) en un flot d'octets, selon
+une convention données.
+
+\begin{description}
+\item[Droopi.Representations] Interface abstraite implémentée
+  par toutes les réalisations de la fonction de représentation.
+\item[Droopi.Representations.SOAP] Réalisation pour la convention
+  de représentation de SOAP.
+\item[Droopi.Representations.CDR] La représentation commune CDR
+  de CORBA.
+\item[Droopi.Representations.SRP] Représentation simpliste pour
+  SRP, un prototype de protocole.
+\end{description}
+
+\subsection{Activation}
+
+Le service d'activation est réalisé par les adaptateurs d'objets.
+
+\begin{description}
+\item[Droopi.Obj\_Adapters] définit le type abstrait dont tout
+  adaptateur doit dériver.
+\item[Droopi.Obj\_Adapters.Simple] implémente un adaptateur
+  trivial, rappelant le Basic Object Adapter (BOA) des premières
+  versions de CORBA.
+\item[Droopi.POA] définit l'interface d'un adaptateur plus
+  flexible, permettant d'établir une hiérarchie d'organisation
+  des objets. Il offre à l'utilisateur de nombreuses possibilités
+  de contrôle sur différents aspects des fonctions d'activation
+  et d'aiguillage au moyen de «~politiques~». Le POA de \droopi{}
+  est directement basé sur l'organisation du Portable Object
+  Adapter de CORBA. Une implémentation en est réalisée dans
+  Droopi.POA.Basic\_POA.
+\item[Droopi.POA\_Policies] À chaque aspect de personnalisation
+  du POA correspond un type de politique défini dans une unité
+  fille de Droopi.POA\_Policies. Les aspects existants sont~:
+  \begin{itemize}
+  \item Droopi.POA\_Policies.Id\_Assignment\_Policy
+  \item Droopi.POA\_Policies.Id\_Uniqueness\_Policy
+  \item Droopi.POA\_Policies.Implicit\_Activation\_Policy
+  \item Droopi.POA\_Policies.Lifespan\_Policy
+  \item Droopi.POA\_Policies.Request\_Processing\_Policy
+  \item Droopi.POA\_Policies.Servant\_Retention\_Policy
+  \item Droopi.POA\_Policies.Thread\_Policy
+  \end{itemize}
+\item[Droopi.POA\_Config] L'utilisateur peut manipuler des
+  ensembles de politiques cohérents pour un POA de manière
+  encapsulée~: des configurations complètes peuvent être définies
+  au moyen du paquetage POA\_Config. Une configuration minimale
+  est proposée dans Droopi.POA\_Config.Minimum.
+\end{description}
+
+
+\subsection{Aiguillage}
+
+La fonction d'aiguillage et d'ordonnancement de toutes les activités
+internes de l'ORB est réalisée par la collaboration de plusieurs unités.
+
+\begin{description}
+\item[Droopi.Jobs] fournit un type abstrait «~Job~» représentant
+  tout travail susceptible d'être affecté à un fil de traitement
+  pour être exécuté. Ce type est dérivé par chaque module de l'intergiciel
+  qui a besoin de faire exécuter une tâche dont l'étendue est délimitée
+  dans le temps~;
+\item[Droopi.ORB] contient le mécanisme de base d'ordonnancement
+  des \emph{Jobs}. Ce moteur délègue chaque étape des traitements
+  de l'ORB a des objets de types dérivés de \emph{Droopi.ORB.Task\_Policy},
+  représentant les différentes politiques d'ordonnancement et de gestion
+  des fils d'exécutions supportées. L'utilisateur peut ainsi configurer
+  le fonctionnement de l'ORB conformément à ses besoins et aux contraintes
+  de son environnement. Les politiques de gestion des fils d'exécution
+  utilisent Droopi.Soft\_Links lorsqu'elles ont besoin de coordonner
+  les activités de différents fils. Ainsi, la pénalité liée à cette
+  coordination peut être supprimée lorsque l'application ne contient
+  qu'un seul flot de contrôle.
+\end{description}
+
+Les politiques suivantes sont actuellement réalisées~:
+\begin{description}
+\item[No\_Tasking] pour le cas d'une application à un seul fil de
+  contrôle~;
+\item[Thread\_Pool] utilisant un ensemble de tâches «~à tout faire~»
+  susceptibles de traiter tout événement interne de l'ORB~;
+\item[Thread\_Per\_Session] utilisant une tâche dédiée pour chaque
+  session établie.
+\end{description}
+
+%%  ./droopi-constants.ads
+
+%%  ./droopi-dict.ads
+%%  ./droopi-dynamic_dict.ads
+%%  ./droopi-static_dict.ads
+
+
+%%  ./droopi-log.ads
+
+
+%%  ./droopi-object_map.ads
+%%  ./droopi-objects-interface.ads
+%%  ./droopi-objects.ads
+%%  ./droopi-opaque-chunk_pools.ads
+%%  ./droopi-opaque.ads
+%%  
+%%  ./droopi-poa_manager-basic_manager.ads
+%%  ./droopi-poa_manager.ads
+%%  
+%%  ./droopi-poa_policies-id_assignment_policy-system.ads
+%%  ./droopi-poa_policies-id_uniqueness_policy-unique.ads
+%%  ./droopi-poa_policies-implicit_activation_policy-no_activation.ads
+%%  ./droopi-poa_policies-lifespan_policy-transient.ads
+%%  ./droopi-poa_policies-request_processing_policy-active_object_map_only.ads
+%%  ./droopi-poa_policies-servant_retention_policy-retain.ads
+%%  ./droopi-poa_policies-thread_policy-orb_ctrl.ads
+%%  
+%%  ./droopi-poa_types.ads
+
+
+
+
+%%  ./droopi-setup-corba_client.ads
+%%  ./droopi-setup-test.ads
+%%  ./droopi-setup-test_corba.ads
+%%  ./droopi-setup.ads
+
+%%  ./droopi-storage_pools.ads
+%%  ./droopi-task_info.ads
+
+%%  ./droopi-test_object.ads
+%%  ./droopi-types.ads
+%%  ./droopi-utils-srp.ads
+%%  ./droopi-utils.ads
+%%  ./droopi.ads
+
+%%  ./corba-test_object.ads
+%%  ./corba-test_poa.ads
+%%  ./corba/corba-abstractbase.ads
+%%  ./corba/corba-context.ads
+%%  ./corba/corba-contextlist.ads
+%%  ./corba/corba-exceptionlist.ads
+%%  ./corba/corba-forward.ads
+%%  ./corba/corba-impl.ads
+%%  ./corba/corba-nvlist.ads
+%%  ./corba/corba-object.ads
+%%  ./corba/corba-object_map-sequence_map.ads
+%%  ./corba/corba-object_map.ads
+%%  ./corba/corba-orb.ads
+%%  ./corba/corba-policy_types.ads
+%%  ./corba/corba-policy_values.ads
+%%  ./corba/corba-request.ads
+%%  ./corba/corba-serverrequest.ads
+%%  ./corba/corba.ads
+%%  ./corba/droopi-binding_data-iiop.ads
+
+%%  ./corba/droopi-corba_p-exceptions-stack.ads
+%%  ./corba/droopi-corba_p-exceptions.ads
+%%  ./corba/droopi-corba_p-names.ads
+%%  ./corba/droopi-corba_p-server_tools.ads
+%%  ./corba/droopi-corba_p.ads
+
+%%  ./corba/droopi-protocols-giop-giop_1_0.ads
+%%  ./corba/droopi-protocols-giop-giop_1_1.ads
+%%  ./corba/droopi-protocols-giop-giop_1_2.ads
+%%  ./corba/droopi-protocols-giop.ads
+%%  ./corba/droopi-references-ior.ads
+
+%%  ./corba/portableserver-adapteractivator-impl.ads
+%%  ./corba/portableserver-adapteractivator.ads
+%%  ./corba/portableserver-current.ads
+%%  ./corba/portableserver-poa.ads
+%%  ./corba/portableserver-poamanager.ads
+%%  ./corba/portableserver-servantactivator-impl.ads
+%%  ./corba/portableserver-servantactivator.ads
+%%  ./corba/portableserver-servantlocator-impl.ads
+%%  ./corba/portableserver-servantlocator.ads
+%%  ./corba/portableserver-servantmanager-impl.ads
+%%  ./corba/portableserver-servantmanager.ads
+%%  ./corba/portableserver-servantretentionpolicy.ads
+%%  ./corba/portableserver-threadpolicy.ads
+%%  ./corba/portableserver.ads
+
+%%  ./echo-impl.ads
+%%  ./echo.ads
+%%  ./locked_queue.ads
+%%  ./sequences-bounded.ads
+%%  ./sequences-unbounded-search.ads
+%%  ./sequences-unbounded.ads
+%%  ./sequences.ads
+
+\section{Performances}
+
+Nous avons mesuré le temps pour effectuer 10\,000 RPC locaux
+consistant en un écho d'une chaîne de caractères, avec des
+clients dynamiques basés l'un sur \droopi{}, l'autre sur
+\adabroker, et des serveurs basés sur ces deux intergiciels.
+Les résultats sont donnés en secondes.
+
+{
+\def\myrule{\relax}
+\vspace{2cm}
+\begin{tabular}{l|*{3}{c!{\myrule}}@{\gdef\myrule{\vline}}}
+\backslashbox{Client}{Serveur}
+& \RH{\droopi{} no tasking, BOA}
+& \RH{\droopi{} tasking, POA}
+& \RH{\adabroker{}}      \\ \hline\hline
+\droopi{}    & 13,36 & 31,66 & 8,64 \\ \hline
+\adabroker{} & 18,23 & 36,27 & 26,20 \\ \hline
+\end{tabular}
+}
+
+\section{Perspectives}
+
+Parallèles et relations avec d'autres systèmes de répartition basés
+sur d'autres paradigmes que les objets répartis~:
+\begin{itemize}
+\item mémoire partagée~;
+\item passage de messages (MPI, MOM~: JMS, mqSeries...)
+  Un MOM (\emph{Message Oriented Middleware}) en Ada a été prototypé
+  en utilisant \droopi{} comme sous-système de communication.
+  Son API est calqué sur les classes JMS.
+\end{itemize}
+
+Considérer ces autres systèmes de répartition selon deux angles~:
+\begin{enumerate}
+\item peut-on les utiliser comme des transports pour \droopi{}~?
+\item peut-on utiliser \droopi{} comme base d'un intergiciel réalisant
+  ces systèmes (i. e. compatibilité de ces systèmes avec le méta-modèle
+  côté application)~?
+\end{enumerate}
+
+\bibliographystyle{plain}
+\bibliography{interop}
+
+\end{document}
