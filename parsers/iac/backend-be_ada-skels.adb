@@ -744,6 +744,11 @@ package body Backend.BE_Ada.Skels is
          N := Is_A_Invoke_Part;
          Append_Node_To_List (N, Then_Statements);
 
+         N := Make_Subprogram_Call
+           (RE (RE_Raise_Bad_Operation),
+            Make_List_Id (RE (RE_Default_Sys_Member)));
+         Append_Node_To_List (N, Else_Statements);
+
          N := Make_If_Statement
            (C,
             Then_Statements,

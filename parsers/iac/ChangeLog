@@ -1,3 +1,15 @@
+2004-08-26  Saber Souli  <souli@loozy.rezel.enst.fr>
+
+	* backend-be_ada-runtime.ads: Add runtimes entities.
+
+	* backend-be_ada-helpers.adb: Generate Complex declarator helper. 
+
+	* backend-be_ada-generator.adb: Correct the generation of case statement. 
+
+	* backend-be_ada-skels.adb: Raise Bad_Operation exception when the client try to invoke an unknown operation.  
+
+	* backend-be_ada-stubs.adb: In the stubs subprograms, constant local variables are declared as global to the subprogram. To save the overhead introduced by the allocation and the initialization of these variables.   
+
 2004-08-20  Saber Souli  <souli@loozy.rezel.enst.fr>
 
 	* testsuite/echo/echo.idl: Test the generated code with polyorb (the script buid correctely the server and the client, but do no tests the binary. the binary work manually). 

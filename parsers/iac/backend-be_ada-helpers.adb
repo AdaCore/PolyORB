@@ -3,7 +3,6 @@ with Values;     use Values;
 
 with Frontend.Nodes;   use Frontend.Nodes;
 
-
 with Backend.BE_Ada.Expand;  use Backend.BE_Ada.Expand;
 with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
 with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
@@ -602,6 +601,7 @@ package body Backend.BE_Ada.Helpers is
         return Node_Id
       is
          N           : Node_Id;
+         M           : Node_Id;
          Spec        : Node_Id;
          D           : constant List_Id := New_List (K_List_Id);
          S           : constant List_Id := New_List (K_List_Id);
@@ -616,9 +616,65 @@ package body Backend.BE_Ada.Helpers is
          -----------------------------
 
          function Complex_Declarator_Body (E : Node_Id) return Node_Id is
-            pragma Unreferenced (E);
+            I                    : Integer := 0;
+            Sizes                : constant List_Id :=
+              Range_Constraints
+              (Type_Definition (Stub_Node (BE_Node (Identifier (E)))));
+            Dim                  : Node_Id;
+            Loop_Statements      : List_Id := No_List;
+            Enclosing_Statements : List_Id;
+            Index_List           : constant List_Id
+              := New_List (K_List_Id);
+            Item_Offset          : Node_Id;
+            pragma Unreferenced (Item_Offset);
          begin
-            return No_Node;
+            Spec := Helper_Node (BE_Node (Identifier (E)));
+            Spec := Next_Node (Spec);
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (PN (P_Result)),
+               Object_Definition =>
+                 Copy_Designator (Return_Type (Spec)));
+            Append_Node_To_List (N, D);
+
+            Dim := First_Node (Sizes);
+            loop
+               Set_Str_To_Name_Buffer ("I");
+               Add_Str_To_Name_Buffer (Img (I));
+               M := Make_Defining_Identifier
+                 (Add_Suffix_To_Name (Var_Suffix, Name_Find));
+               Append_Node_To_List (M, Index_List);
+               Enclosing_Statements := Loop_Statements;
+               Loop_Statements := New_List (K_List_Id);
+               N := Make_For_Statement
+                 (M, Dim, Loop_Statements);
+
+               if I > 0 then
+                  Append_Node_To_List (N, Enclosing_Statements);
+               else
+                  Append_Node_To_List (N, S);
+               end if;
+
+               I := I + 1;
+               Dim := Next_Node (Dim);
+               exit when No (Dim);
+            end loop;
+            N := Make_Subprogram_Call
+              (Make_Defining_Identifier (PN (P_Result)),
+               Index_List);
+            M := Make_Subprogram_Call
+              (RE (RE_Get_Aggregate_Element),
+               Make_List_Id
+               (Make_Defining_Identifier (PN (P_Item))));
+            --    TC,
+            --    Item_Offset));
+            Append_Node_To_List (N, Loop_Statements);
+            N := Make_Return_Statement
+              (Make_Defining_Identifier (PN (P_Result)));
+            Append_Node_To_List (N, S);
+            N := Make_Subprogram_Implementation
+              (Spec, D, S);
+            return N;
          end Complex_Declarator_Body;
 
          --------------------------------

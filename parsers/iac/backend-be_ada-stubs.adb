@@ -98,9 +98,6 @@ package body Backend.BE_Ada.Stubs is
       procedure Visit_Attribute_Declaration (E : Node_Id) is
          N : Node_Id;
          A : Node_Id;
-         --  P : Node_Id;
-         --  D : List_Id;
-         --  S : List_Id;
 
       begin
          A := First_Entity (Declarators (E));
@@ -645,15 +642,18 @@ package body Backend.BE_Ada.Stubs is
      (Subp_Spec       : Node_Id)
       return            List_Id
    is
-      Statements    : List_Id;
-      N             : Node_Id;
-      C             : Node_Id;
-      P             : List_Id;
-      S             : List_Id;
-      Count         : Natural;
-      Return_T      : Node_Id;
-      I             : Node_Id;
-      Param         : Node_Id;
+      Statements     : List_Id;
+      N              : Node_Id;
+      C              : Node_Id;
+      P              : List_Id;
+      S              : List_Id;
+      Count          : Natural;
+      Return_T       : Node_Id;
+      I              : Node_Id;
+      Param          : Node_Id;
+      R              : Name_Id;
+      Operation_Name : constant Name_Id
+        := BEN.Name (Defining_Identifier (Subp_Spec));
 
    begin
       Return_T := Return_Type (Subp_Spec);
@@ -702,7 +702,8 @@ package body Backend.BE_Ada.Stubs is
          I := Next_Node (I);
          loop
             P := Make_List_Id (Make_Designator (VN (V_Argument_List)));
-            Set_Str_To_Name_Buffer ("Arg_Name_U_");
+            Get_Name_String (Operation_Name);
+            Add_Str_To_Name_Buffer ("_Arg_Name_U_");
             Get_Name_String_And_Append (BEN.Name (Defining_Identifier (I)));
             N := Make_Designator (Name_Find);
             Append_Node_To_List (N, P);
@@ -734,11 +735,14 @@ package body Backend.BE_Ada.Stubs is
 
       --  Set result type (maybe void)
       --  --  PolyORB.Types.Identifier (Result_Name)
-
+      Get_Name_String (Operation_Name);
+      Add_Char_To_Name_Buffer ('_');
+      Get_Name_String_And_Append (VN (V_Result_Name));
+      R := Name_Find;
       C := Make_Subprogram_Call
         (Defining_Identifier   => RE (RE_Identifier),
          Actual_Parameter_Part =>
-           Make_List_Id (Make_Defining_Identifier (VN (V_Result_Name))));
+           Make_List_Id (Make_Defining_Identifier (R)));
 
       --  -- Name => PolyORB.Types.Identifier (Result_Name)
 
@@ -801,9 +805,14 @@ package body Backend.BE_Ada.Stubs is
         (Selector_Name => Make_Defining_Identifier (PN (P_Target)),
          Expression    => N);
       P := Make_List_Id (N);
+
+      Get_Name_String (Operation_Name);
+      Add_Char_To_Name_Buffer ('_');
+      Get_Name_String_And_Append (VN (V_Operation_Name));
+      R := Name_Find;
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Operation)),
-         Expression    => Make_Defining_Identifier (VN (V_Operation_Name)));
+         Expression    => Make_Defining_Identifier (R));
       Append_Node_To_List (N, P);
       N := Make_Component_Association
         (Selector_Name => Make_Defining_Identifier (PN (P_Arg_List)),
@@ -901,15 +910,17 @@ package body Backend.BE_Ada.Stubs is
    -----------------------------
 
    function Marshaller_Declarations (Subp_Spec : Node_Id) return List_Id is
-      L : List_Id;
-      P : List_Id;
-      N : Node_Id;
-      V : Value_Id;
-      C : Node_Id;
-      I : Node_Id;
-      X : Name_Id;
-      D : Node_Id;
-      R : Name_Id;
+      L               : List_Id;
+      P               : List_Id;
+      N               : Node_Id;
+      V               : Value_Id;
+      C               : Node_Id;
+      I               : Node_Id;
+      X               : Name_Id;
+      D               : Node_Id;
+      R               : Name_Id;
+      Operation_Name  : constant Name_Id
+        := BEN.Name (Defining_Identifier (Subp_Spec));
 
    begin
       L := New_List (BEN.K_List_Id);
@@ -940,7 +951,8 @@ package body Backend.BE_Ada.Stubs is
             Actual_Parameter_Part =>
               Make_List_Id (Make_Literal (New_String_Value (X, False))));
 
-         Set_Str_To_Name_Buffer ("Arg_Name_U_");
+         Get_Name_String (Operation_Name);
+         Add_Str_To_Name_Buffer ("_Arg_Name_U_");
          Get_Name_String_And_Append (X);
          R := Name_Find;
          N := Make_Object_Declaration
@@ -948,7 +960,7 @@ package body Backend.BE_Ada.Stubs is
             Constant_Present => False,
             Object_Definition => RE (RE_Identifier),
             Expression => C);
-         Append_Node_To_List (N, L);
+         Append_Node_To_List (N, Statements (Current_Package));
 
          --  Argument_U_X declaration
          --  Argument_U_X : CORBA.Any := Y.Helper.To_Any (X);
@@ -995,15 +1007,18 @@ package body Backend.BE_Ada.Stubs is
 
       --  Operation_Name_U declaration
 
-      V := New_String_Value
-        (BEN.Name (BEN.Defining_Identifier (Subp_Spec)), False);
+      V := New_String_Value (R, False);
+      Get_Name_String (Operation_Name);
+      Add_Char_To_Name_Buffer ('_');
+      Get_Name_String_And_Append (VN (V_Operation_Name));
+      R := Name_Find;
       N := Make_Object_Declaration
         (Defining_Identifier =>
-           Make_Defining_Identifier (VN (V_Operation_Name)),
+           Make_Defining_Identifier (R),
          Constant_Present    => True,
          Object_Definition   => RE (RE_String_2),
          Expression          => Make_Literal (V));
-      Append_Node_To_List (N, L);
+      Append_Node_To_List (N, Statements (Current_Package));
 
       --  Self_Ref_U declaration
       --  Self_Ref_U : CORBA.Object.Ref  := CORBA.Object.Ref (Self);
@@ -1050,14 +1065,17 @@ package body Backend.BE_Ada.Stubs is
         (Defining_Identifier   => RE (RE_To_CORBA_String),
          Actual_Parameter_Part =>
            Make_List_Id (Make_Literal (V)));
-
+      Get_Name_String (Operation_Name);
+      Add_Char_To_Name_Buffer ('_');
+      Get_Name_String_And_Append (VN (V_Result_Name));
+      R := Name_Find;
       N := Make_Object_Declaration
         (Defining_Identifier =>
-           Make_Defining_Identifier (VN (V_Result_Name)),
+           Make_Defining_Identifier (R),
          Constant_Present    => False,
          Object_Definition   => RE (RE_String_0),
          Expression          => C);
-      Append_Node_To_List (N, L);
+      Append_Node_To_List (N, Statements (Current_Package));
 
       return L;
    end Marshaller_Declarations;

@@ -52,6 +52,7 @@ package Backend.BE_Ada.Runtime is
       RE_Any,                       --  CORBA.Any
       RE_To_Any_0,                  --  CORBA.To_Any
       RE_From_Any_0,                --  CORBA.From_Any
+      RE_Get_Aggregate_Element,     --  CORBA.Get_Aggregate_Element
       RE_Get_Empty_Any,             --  CORBA.Get_Empty_Any
       RE_Identifier_0,              --  CORBA.Identifier
       RE_Is_Equivalent,             --  CORBA.Is_Equivalent
@@ -89,6 +90,7 @@ package Backend.BE_Ada.Runtime is
       RE_IDL_Exception_Members,     --  CORBA.IDL_Exception_Members
       RE_Object_Is_Nil,             --  CORBA.Object_Is_Nil
       RE_Raise_Inv_Objref,          --  CORBA.Raise_Inv_Objref
+      RE_Raise_Bad_Operation,       --  CORBA.Raise_Bad_Operation
       RE_Raise_Bad_Param,           --  CORBA.Raise_Bad_Param
       RE_To_CORBA_String,           --  CORBA.To_CORBA_String
       RE_Ref_1,                     --  CORBA.AbstractBase.Ref
@@ -163,6 +165,7 @@ package Backend.BE_Ada.Runtime is
          RE_Any                     => RU_CORBA,
          RE_To_Any_0                => RU_CORBA,
          RE_From_Any_0              => RU_CORBA,
+         RE_Get_Aggregate_Element   => RU_CORBA,
          RE_Get_Empty_Any           => RU_CORBA,
          RE_Identifier_0            => RU_CORBA,
          RE_Is_Equivalent           => RU_CORBA,
@@ -200,6 +203,7 @@ package Backend.BE_Ada.Runtime is
          RE_IDL_Exception_Members   => RU_CORBA,
          RE_Object_Is_Nil           => RU_CORBA,
          RE_To_CORBA_String         => RU_CORBA,
+         RE_Raise_Bad_Operation         => RU_CORBA,
          RE_Raise_Inv_Objref        => RU_CORBA,
          RE_Raise_Bad_Param         => RU_CORBA,
          RE_Set_Type                => RU_CORBA,

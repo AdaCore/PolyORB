@@ -310,11 +310,12 @@ package body Backend.BE_Ada.Generator is
       Write (Tok_Case);
       Write_Space;
       Generate (Expression (N));
+      Write_Space;
+      Write_Line (Tok_Is);
       D := First_Node (Case_Statement_Alternatives (N));
       Increment_Indentation;
       while Present (D) loop
          M := First_Node (Discret_Choice_List (D));
-         Write_Eol;
          Write_Indentation;
          Write (Tok_When);
          Write_Space;
@@ -327,13 +328,13 @@ package body Backend.BE_Ada.Generator is
             Write_Space;
          end loop;
          Write_Space;
-         Write (Tok_Arrow);
-         Write_Eol;
+         Write_Line (Tok_Arrow);
          Increment_Indentation;
          Write_Indentation;
          M := First_Node (Statements (D));
          while Present (M) loop
             Generate (M);
+            Write_Line (Tok_Semicolon);
             M := Next_Node (M);
          end loop;
          Decrement_Indentation;
