@@ -1,0 +1,34 @@
+----------------------------------------------
+--  This file has been generated automatically
+--  by AdaBroker (http://adabroker.eu.org/)
+----------------------------------------------
+
+with CORBA.Repository_Root.IRObject.Impl;
+pragma Elaborate_All (CORBA.Repository_Root.IRObject.Impl);
+
+package CORBA.Repository_Root.IDLType.Impl is
+
+   type Object is
+     new CORBA.Repository_Root.IRObject.Impl.Object with private;
+
+   type Object_Ptr is access all Object'Class;
+
+   --  method used to initialize recursively the object fields.
+   procedure Init (Self : access Object;
+                   Real_Object :
+                     CORBA.Repository_Root.IRObject.Impl.Object_Ptr;
+                   Def_Kind : CORBA.Repository_Root.DefinitionKind;
+                   IDL_Type : CORBA.TypeCode.Object);
+
+   function get_type
+     (Self : access Object)
+     return CORBA.TypeCode.Object;
+
+private
+
+   type Object is
+     new CORBA.Repository_Root.IRObject.Impl.Object with record
+        IDL_Type : CORBA.TypeCode.Object;
+   end record;
+
+end CORBA.Repository_Root.IDLType.Impl;
