@@ -4,6 +4,8 @@ with GNAT.Case_Util;
 with Idl_Fe.Errors;
 with Idl_Fe.Lexer;
 with Idl_Fe.Debug;
+with Idl_Fe.Tree;
+
 pragma Elaborate_All (Idl_Fe.Debug);
 
 
@@ -595,7 +597,6 @@ package body Idl_Fe.Types is
    --  identifiers handling methods  --
    ------------------------------------
 
-
    ----------------------
    --  Is_Redefinable  --
    ----------------------
@@ -606,11 +607,22 @@ package body Idl_Fe.Types is
       if Check_Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
          return False;
       end if;
+
       Definition := Find_Identifier_Definition (Name);
-      --  Checks if the identifier is not being redefined in the same
-      --  scope.
       if Definition /= null then
+         pragma Debug (O ("Is_Redefinable : " &
+                          "Definition found is" &
+                          Node_Kind'Image
+                          (Get_Kind (Definition.Node.all))));
+         --  Checks if the identifier is not being redefined in the same
+         --  scope.
          if Definition.Parent_Scope = Current_Scope.Scope then
+            return False;
+         end if;
+         --  A attribute or operation may not be redefined
+         if Get_Kind (Definition.Node.all) = K_Operation or
+           Get_Kind (Definition.Node.all) = K_Attribute_Declarator then
+            pragma Debug (O ("Is_Redefinable : cannot redefine an op, attr"));
             return False;
          end if;
          --  Ckecks if identifier found is the current scope name:
@@ -692,8 +704,8 @@ package body Idl_Fe.Types is
    function Find_Identifier_Definition (Name : String)
                                         return Identifier_Definition_Acc is
       Index : Uniq_Id;
-      Definition, Imported_Definition, Inherited_Definition
-        : Identifier_Definition_Acc;
+      Imported_Definition, Inherited_Definition : Identifier_Definition_Acc;
+      Definition : Identifier_Definition_Acc := null;
    begin
       pragma Debug (O ("Find_Identifier_Definition : enter"));
       Index := Check_Identifier_Index (Name);
@@ -704,24 +716,26 @@ package body Idl_Fe.Types is
          --  is the definition in the scope
          if Definition.Parent_Scope = Current_Scope.Scope then
             return Definition;
-         else
-            Imported_Definition := Find_Imported_Identifier_Definition (Name);
-            --  is the definition imported
-            if Imported_Definition /= null then
-               return Imported_Definition;
-            end if;
-            --  is the definition inherited
-            Inherited_Definition
-              := Find_Inherited_Identifier_Definition (Name);
-            if Inherited_Definition /= null then
-               return Inherited_Definition;
-            end if;
          end if;
-         --  the definition is in a upper scope
-         return Definition;
-      else
-         return null;
       end if;
+
+      Imported_Definition := Find_Imported_Identifier_Definition (Name);
+      --  is the definition imported
+      if Imported_Definition /= null then
+         return Imported_Definition;
+      end if;
+      --  is the definition inherited
+      Inherited_Definition
+        := Find_Inherited_Identifier_Definition (Name);
+      if Inherited_Definition /= null then
+         pragma Debug (O ("Find_Identifier_Definition : " &
+                          "Inherited definition is of type " &
+                          Node_Kind'Image
+                          (Get_Kind (Inherited_Definition.Node.all))));
+         return Inherited_Definition;
+      end if;
+      --  the definition is in a upper scope
+      return Definition;
    end Find_Identifier_Definition;
 
    ----------------------------
@@ -1046,16 +1060,20 @@ package body Idl_Fe.Types is
       --  loop for all the Parent of the scope
       while not Is_End (It) loop
          Node := Get_Node (It);
-         Definition := Find_Identifier_In_Storage (N_Scope_Acc (Node),
-                                                   Name);
+         if Get_Kind (Node.all) /= K_Scoped_Name then
+            raise Idl_Fe.Errors.Internal_Error;
+         end if;
+         pragma Debug (O ("Find_Identifier_In_Inheritance : " &
+                          Node_Kind'Image (Get_Kind (Node.all))));
+         Definition := Find_Identifier_In_Storage
+           (N_Scope_Acc (Idl_Fe.Tree.N_Scoped_Name_Acc (Node).Value), Name);
          if Definition /= null then
             Append_Node (List, N_Root_Acc (Definition.Node));
          else
             Find_Identifier_In_Inheritance (Name, N_Imports_Acc (Node), List);
-            Next (It);
          end if;
+         Next (It);
       end loop;
-      Free (Parent);
       return;
    end Find_Identifier_In_Inheritance;
 
@@ -1077,12 +1095,16 @@ package body Idl_Fe.Types is
       Result_List := Simplify_Node_List (First_List);
       Free (First_List);
       if Get_Length (Result_List) = 0 then
+         pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
+                          "Nothing found in inheritance"));
          return null;
       elsif  Get_Length (Result_List) = 1 then
          declare
             It : Node_Iterator;
             Node : N_Root_Acc;
          begin
+            pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
+                             "One definition found in inheritance"));
             Init (It, Result_List);
             Node := Get_Node (It);
             Free (Result_List);
@@ -1093,6 +1115,8 @@ package body Idl_Fe.Types is
          end;
       else
          --  there is multiple definition
+         pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
+                          "Many definitions found in inheritance"));
          Free (Result_List);
          return null;
       end if;

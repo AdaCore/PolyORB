@@ -190,10 +190,13 @@ package body Idl_Fe.Display_Tree is
             end if;
             Put_Line ("");
             Disp_Indent (N_Indent, "type:");
-            Disp_Tree (N_Attribute (N).A_Type.all, N_Indent, Full);
+            Disp_Tree (N_Attribute (N).A_Type.all, N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "declarators:");
             Disp_List (N_Attribute (N).Declarators,
                        N_Indent + Offset, Full);
+
+         when K_Attribute_Declarator =>
+            Put_Line ("declarator " & Get_Name (N_Attribute_Declarator (N)));
 
          when K_Void =>
             Put_Line ("void");
@@ -287,6 +290,7 @@ package body Idl_Fe.Display_Tree is
             Disp_List (N_Member (N).Decl, N_Indent + Offset, Full);
             Disp_Indent (N_Indent, "type:");
             Disp_Tree (N_Member (N).M_Type.all, N_Indent + Offset, Full);
+
 
          when K_Declarator =>
             Put_Line ("declarator " & Get_Name (N_Declarator (N)));

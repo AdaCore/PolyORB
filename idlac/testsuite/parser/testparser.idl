@@ -266,7 +266,19 @@ readonly attribute long tutu, trotro;
 readonly attribute long tutu,;
 attribute string abab, obob;
 };
-	
+
+/* Test of rule 86 */
+exception;
+exception etoto1;
+exception etoto3};
+exception etoto4{};
+exception etoto4{};
+exception etoto5{lbl};
+exception etoto6{long };
+exception etoto7{long truc};
+exception etoto8{long truc;};
+exception etoto8{long etoto8;};
+	     
 /* Test of rule 87 */
 boolean;
 oneway boolean;

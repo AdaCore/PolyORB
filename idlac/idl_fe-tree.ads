@@ -230,6 +230,12 @@ package Idl_Fe.Tree is
    type N_Attribute_Acc is access all N_Attribute;
    function Get_Kind (N : N_Attribute) return Types.Node_Kind;
 
+   type N_Attribute_Declarator is new Types.N_Named with record
+      Attribute : N_Attribute_Acc;
+   end record;
+   type N_Attribute_Declarator_Acc is access all N_Attribute_Declarator;
+   function Get_Kind (N : N_Attribute_Declarator) return Types.Node_Kind;
+
    type N_Void is new Types.N_Root with null record;
    type N_Void_Acc is access all N_Void;
    function Get_Kind (N : N_Void) return Types.Node_Kind;
@@ -309,7 +315,7 @@ package Idl_Fe.Tree is
    type N_Param_Acc is access all N_Param;
    function Get_Kind (N : N_Param) return Types.Node_Kind;
 
-   type N_Exception is new Types.N_Named with record
+   type N_Exception is new Types.N_Scope with record
       Members : Types.Node_List;
    end record;
    type N_Exception_Acc is access all N_Exception;

@@ -251,6 +251,14 @@ package body Idl_Fe.Tree is
    ----------------
    --  Get_Kind  --
    ----------------
+   function Get_Kind (N : N_Attribute_Declarator) return Types.Node_Kind is
+   begin
+      return Types.K_Attribute_Declarator;
+   end Get_Kind;
+
+   ----------------
+   --  Get_Kind  --
+   ----------------
    function Get_Kind (N : N_Void) return Types.Node_Kind is
    begin
       return Types.K_Void;

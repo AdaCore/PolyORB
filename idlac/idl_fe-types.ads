@@ -25,6 +25,7 @@ package Idl_Fe.Types is
        K_Initializer,
        K_Operation,
        K_Attribute,
+       K_Attribute_Declarator,
        K_Param,
        K_Exception,
        K_Member,
@@ -325,6 +326,8 @@ package Idl_Fe.Types is
    ----------------------------
 
    --  Check if the name is redefinable in the current scope
+   --  If result is false, means that find_identifier_definition
+   --  has a NOT NULL result!
    function Is_Redefinable (Name : String) return Boolean;
 
    --  Check if the  uniq_id from an identifier is already defined

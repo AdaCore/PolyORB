@@ -320,8 +320,7 @@ package body Idl_Fe.Parser is
             Parse_Definition (Definition, Definition_Result);
             if not Definition_Result then
                Go_To_Next_Definition;
-            end if;
-            if Definition /= null then
+            elsif Definition /= null then
                Append_Node (Result.Contents,
                             Definition);
             end if;
@@ -730,10 +729,13 @@ package body Idl_Fe.Parser is
                Parse_Op_Dcl (Result_Operation, Success);
                Result := N_Root_Acc (Result_Operation);
             end;
-            --          when T_Right_Cbracket =>
-            --             return;
-            --          when T_Exception =>
-            --             Append_Node (List, N_Root_Acc (Parse_Except_Dcl));
+         when T_Exception =>
+            declare
+               Result_Except : N_Exception_Acc;
+            begin
+               Parse_Except_Dcl (Result_Except, Success);
+               Result := N_Root_Acc (Result_Except);
+            end;
          when T_Union =>
             declare
                Result_Union : N_Union_Acc;
@@ -805,7 +807,15 @@ package body Idl_Fe.Parser is
                   Go_To_Next_Left_Cbracket;
                   exit;
                else
-                  Append_Node (Result.Parents, N_Root_Acc (Name));
+                  --  the inheritance should be an interface
+                  if Get_Kind (Name.Value.all) /= K_Interface then
+                     Idl_Fe.Errors.Parser_Error
+                       ("inheritance is not an interface",
+                        Idl_Fe.Errors.Error,
+                        Get_Previous_Token_Location);
+                  else
+                     Append_Node (Result.Parents, N_Root_Acc (Name));
+                  end if;
                end if;
             end;
             exit when Get_Token /= T_Comma;
@@ -3536,9 +3546,13 @@ package body Idl_Fe.Parser is
          --  Is there a previous definition
          if not Is_Redefinable (Get_Token_String) then
             declare
-               Definition : Identifier_Definition_Acc :=
-                 Find_Identifier_Definition (Get_Token_String);
+               Definition : Identifier_Definition_Acc; --  :=
+               --  Find_Identifier_Definition (Get_Token_String);
             begin
+               pragma Debug (O ("Parse_Simple_Declarator : not redefinable"));
+               Definition := Find_Identifier_Definition (Get_Token_String);
+               pragma Debug (O ("Parse_Simple_Declarator : not redefinable " &
+                                " after definition"));
                Idl_Fe.Errors.Parser_Error
                  ("This identifier is already used in this scope : " &
                   Idl_Fe.Errors.Display_Location
@@ -4745,23 +4759,79 @@ package body Idl_Fe.Parser is
    procedure Parse_Except_Dcl (Result : out N_Exception_Acc;
                                Success : out Boolean) is
    begin
-      Result := null;
-      Success := False;
---    function Parse_Except_Dcl return N_Exception_Acc is
---       Res : N_Exception_Acc;
---    begin
---       Expect (T_Exception);
---       Res := new N_Exception;
---       Set_Location (Res.all, Get_Location);
---       Scan_Expect (T_Identifier);
---       Add_Identifier (Res);
---       Scan_Expect (T_Left_Cbracket);
---       Next_Token;
---       while Token /= T_Right_Cbracket loop
---          Parse_Member_List (Res.Members);
---       end loop;
---       Next_Token;
---       return Res;
+      pragma Debug (O ("Parse_Except_Dcl : enter"));
+      pragma Debug (O ("Parse_Except_Dcl : first token " &
+                       Idl_Token'Image (Get_Token)));
+      if Get_Token /= T_Exception then
+         Idl_Fe.Errors.Parser_Error
+           ("'exception' expected",
+            Idl_Fe.Errors.Error,
+            Get_Token_Location);
+         Success := False;
+         Result := null;
+         return;
+      end if;
+      Result := new N_Exception;
+      --  memory leak
+      Set_Location (Result.all, Get_Token_Location);
+      Next_Token;
+      if Get_Token /= T_Identifier then
+         Idl_Fe.Errors.Parser_Error
+           ("identifier expected",
+            Idl_Fe.Errors.Error,
+            Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      pragma Debug (O ("Parse_Except_Dcl : token befor add" &
+                       Idl_Token'Image (Get_Token)));
+      if not Add_Identifier (Result, Get_Token_String) then
+         declare
+            Definition : Identifier_Definition_Acc :=
+              Find_Identifier_Definition (Get_Token_String);
+         begin
+            Idl_Fe.Errors.Parser_Error
+              ("This identifier is already used in this scope : " &
+               Idl_Fe.Errors.Display_Location
+               (Get_Location (Definition.Node.all)),
+               Idl_Fe.Errors.Error,
+               Get_Token_Location);
+            Success := False;
+            return;
+         end;
+      end if;
+      pragma Debug (O ("Parse_Except_Dcl : token after add" &
+                       Idl_Token'Image (Get_Token)));
+      Next_Token;
+      if Get_Token /= T_Left_Cbracket then
+         Idl_Fe.Errors.Parser_Error
+           ("'{' expected",
+            Idl_Fe.Errors.Error,
+            Get_Token_Location);
+         Success := False;
+         return;
+      else
+         Next_Token;
+      end if;
+      Push_Scope (Result);
+      while Get_Token /= T_Right_Cbracket loop
+         declare
+            Mem : N_Member_Acc;
+            Mem_Success : Boolean;
+         begin
+            Parse_Member (Mem, Mem_Success);
+            if not Mem_Success then
+               Go_To_Next_Member;
+            else
+               Append_Node (Result.Members, N_Root_Acc (Mem));
+            end if;
+         end;
+      end loop;
+      Pop_Scope;
+      --  to eat the right bracket
+      Next_Token;
+      Success := True;
+      return;
    end Parse_Except_Dcl;
 
    --------------------
@@ -5521,6 +5591,52 @@ package body Idl_Fe.Parser is
 --       return Res;
 --    end Parse_Or_Expr;
 
+   ----------------------------------
+   --  Parse_Attribute_Declarator  --
+   ----------------------------------
+   procedure Parse_Attribute_Declarator
+     (Result : out N_Attribute_Declarator_Acc;
+      Success : out Boolean) is
+   begin
+      if Get_Token /= T_Identifier then
+         Idl_Fe.Errors.Parser_Error ("Identifier expected.",
+                                     Idl_Fe.Errors.Error,
+                                     Get_Token_Location);
+         Success := False;
+         return;
+      else
+         pragma Debug (O ("Parse_Attribute_Declarator : the scope is " &
+                          Node_Kind'Image (Get_Kind (Get_Current_Scope.all))));
+         --  Is there a previous definition
+         if not Is_Redefinable (Get_Token_String) then
+            declare
+               Definition : Identifier_Definition_Acc :=
+                 Find_Identifier_Definition (Get_Token_String);
+            begin
+               Idl_Fe.Errors.Parser_Error
+                 ("This identifier is already used in this scope : " &
+                  Idl_Fe.Errors.Display_Location
+                  (Get_Location (Definition.Node.all)),
+                  Idl_Fe.Errors.Error,
+                  Get_Token_Location);
+               Success := False;
+               return;
+            end;
+         else
+            Result := new N_Attribute_Declarator;
+            Set_Location (Result.all, Get_Token_Location);
+            --  no previous definition
+            if not Add_Identifier (Result,
+                                   Get_Token_String) then
+               raise Idl_Fe.Errors.Internal_Error;
+            end if;
+         end if;
+      end if;
+      Success := True;
+      Next_Token;
+      return;
+   end Parse_Attribute_Declarator;
+
    ---------------------
    --  Parse_Attr_Dcl --
    ---------------------
@@ -5566,52 +5682,37 @@ package body Idl_Fe.Parser is
          return;
       end if;
       declare
-         Res : N_Declarator_Acc;
+         Res : N_Attribute_Declarator_Acc;
       begin
-         Parse_Simple_Declarator (Res, Success);
+         Parse_Attribute_Declarator (Res, Success);
          if not Success then
+            --  memory leak >>>>>>>>>>>>>>>>>>>
             Result := null;
             Success := False;
             return;
          else
+            Res.Attribute := El;
             Append_Node (El.Declarators, N_Root_Acc (Res));
          end if;
       end;
       while Get_Token = T_Comma loop
          Next_Token;
          declare
-            Res : N_Declarator_Acc;
+            Res : N_Attribute_Declarator_Acc;
          begin
-            Parse_Simple_Declarator (Res, Success);
+            Parse_Attribute_Declarator (Res, Success);
             if not Success then
+               --  memory leak >>>>>>>>>>>>>>>>>>>
                Result := null;
                Success := False;
                return;
             else
+               Res.Attribute := El;
                Append_Node (El.Declarators, N_Root_Acc (Res));
             end if;
          end;
       end loop;
---      if not Add_Identifier (El, Get_Token_String) then
---         declare
---            Loc : Idl_Fe.Errors.Location;
---         begin
---            Loc := Types.Get_Location
---              (Find_Identifier_Node (Get_Token_String).all);
---            Idl_Fe.Errors.Parser_Error
---              ("This attribute name is already defined in" &
---               " this scope : " &
---               Idl_Fe.Errors.Display_Location (Loc),
---               Idl_Fe.Errors.Error,
---               Get_Token_Location);
---            --  memory leak >>>>>>>>>>>>>>>>>>>
---            Result := null;
---            Success := False;
---            return;
---         end;
---      end if;
       Result := El;
---      Next_Token;
    end Parse_Attr_Dcl;
 
 
@@ -6387,14 +6488,14 @@ package body Idl_Fe.Parser is
             case Get_Token is
                when T_Module
                  | T_Interface
+                 | T_Exception
                  | T_Union
                  | T_Struct
                  | T_Enum
                  | T_Typedef
                  | T_Custom
                  | T_Abstract
-                 | T_ValueType
-                 | T_Right_Cbracket =>
+                 | T_ValueType =>
                   return;
                when others =>
                   null;
@@ -6403,7 +6504,7 @@ package body Idl_Fe.Parser is
          if Get_Token = T_Left_Cbracket then
             Num := Num + 1;
          end if;
-         if Get_Token = T_Right_Cbracket then
+         if Get_Token = T_Right_Cbracket and Num > 0 then
             Num := Num - 1;
          end if;
          Next_Token;
@@ -6449,10 +6550,9 @@ package body Idl_Fe.Parser is
         and Get_Token /= T_Right_Cbracket loop
          Next_Token;
       end loop;
-      if Get_Token /= T_Right_Cbracket then
+      if Get_Token /= T_Eof and Get_Token /= T_Right_Cbracket then
          Next_Token;
-      end if;
-      if Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
+      elsif Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
          raise Errors.Internal_Error;
       end if;
    end Go_To_Next_Export;
@@ -6466,10 +6566,9 @@ package body Idl_Fe.Parser is
         and Get_Token /= T_Right_Cbracket loop
          Next_Token;
       end loop;
-      if Get_Token /= T_Right_Cbracket then
+      if Get_Token /= T_Eof and Get_Token /= T_Right_Cbracket then
          Next_Token;
-      end if;
-      if Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
+      elsif Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
          raise Errors.Internal_Error;
       end if;
    end Go_To_Next_Value_Element;
@@ -6482,8 +6581,9 @@ package body Idl_Fe.Parser is
       while Get_Token /= T_Eof and Get_Token /= T_Semi_Colon loop
          Next_Token;
       end loop;
-      Next_Token;
-      if Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
+      if Get_Token /= T_Eof then
+         Next_Token;
+      elsif Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
          raise Errors.Internal_Error;
       end if;
    end Go_To_End_Of_State_Member;
@@ -6510,10 +6610,9 @@ package body Idl_Fe.Parser is
         and Get_Token /= T_Right_Cbracket loop
          Next_Token;
       end loop;
-      if Get_Token /= T_Right_Cbracket then
+      if Get_Token /= T_Eof and Get_Token /= T_Right_Cbracket then
          Next_Token;
-      end if;
-      if Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
+      elsif Get_Current_Scope /= Get_Root_Scope and Get_Token = T_Eof then
          raise Errors.Internal_Error;
       end if;
    end Go_To_Next_Member;
