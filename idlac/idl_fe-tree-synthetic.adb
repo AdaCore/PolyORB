@@ -5,7 +5,7 @@ package body Idl_Fe.Tree.Synthetic is
 
    function Head
      (NL : Node_List)
-     return N_Root_Acc
+     return Node_Id
    is
       It : Node_Iterator;
    begin
@@ -42,17 +42,17 @@ package body Idl_Fe.Tree.Synthetic is
    end Length;
 
    function Is_Interface_Type
-     (Node : N_Root_Acc)
+     (Node : Node_Id)
      return Boolean is
    begin
-      case Get_Kind (Node.all) is
+      case Kind (Node) is
          when
            K_Interface         |
            K_Forward_Interface =>
             return True;
          when K_Scoped_Name =>
             return Is_Interface_Type
-              (N_Root_Acc (N_Named_Acc'(Value (Node))));
+              (Node_Id (Value (Node)));
          when K_Declarator =>
             if Is_Empty (Array_Bounds (Node)) then
                --  return Is_Interface_Type (Parent (Node));
@@ -61,18 +61,18 @@ package body Idl_Fe.Tree.Synthetic is
                return False;
             end if;
          when K_Type_Declarator =>
-            return Is_Interface_Type (N_Root_Acc (T_Type (Node)));
+            return Is_Interface_Type (Node_Id (T_Type (Node)));
          when others =>
             return False;
       end case;
    end Is_Interface_Type;
 
    function Is_Scope
-     (Node : N_Root_Acc)
+     (Node : Node_Id)
      return Boolean
    is
       K : constant Node_Kind
-        := Get_Kind (Node.all);
+        := Kind (Node);
    begin
       return (False
         or else K = K_Repository

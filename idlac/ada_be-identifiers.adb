@@ -1,27 +1,24 @@
+with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree; use Idl_Fe.Tree;
-with Idl_Fe.Tree.Accessors; use Idl_Fe.Tree.Accessors;
+--  with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 package body Ada_Be.Identifiers is
 
    function Ada_Full_Name
-     (Node : N_Root_Acc)
+     (Node : Node_Id)
      return String is
    begin
-      case Get_Kind (Node.all) is
+      case Kind (Node) is
          when K_Scoped_Name =>
-            declare
-               Denoted_Entity : constant
-                 N_Named_Acc := Value (Node);
-            begin
-               return Get_Name (Denoted_Entity.all);
-            end;
+            return Get_Name (Value (Node));
+
          when others =>
-            return Get_Name (N_Named_Acc (Node).all);
+            return Get_Name (Node);
       end case;
    end Ada_Full_Name;
 
    function Ada_Name
-     (Node : N_Root_Acc)
+     (Node : Node_Id)
      return String
    is
       Full_Name : constant String

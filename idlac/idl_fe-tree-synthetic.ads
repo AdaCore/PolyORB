@@ -10,7 +10,7 @@ package Idl_Fe.Tree.Synthetic is
 
    function Head
      (NL : Node_List)
-     return N_Root_Acc;
+     return Node_Id;
    --  Return the first node in NL.
 
    function Is_Empty
@@ -28,15 +28,15 @@ package Idl_Fe.Tree.Synthetic is
    ---------------------------------------
 
    function Is_Interface_Type
-     (Node : N_Root_Acc)
+     (Node : Node_Id)
      return Boolean;
    --  True iff Node is a <type_spec> that denotes an
    --  object reference type.
 
-   function Is_Scope
-     (Node : N_Root_Acc)
+   function Is_Gen_Scope
+     (Node : Node_Id)
      return Boolean;
-   --  True iff Node is a Scope (ie N_Repository,
-   --  N_Module, N_Interface or N_ValueType).
+   --  True iff Node is a generable Scope (ie K_Repository,
+   --  K_Module, K_Interface or K_ValueType).
 
 end Idl_Fe.Tree.Synthetic;

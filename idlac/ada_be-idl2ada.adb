@@ -2,7 +2,6 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Tree;  use Idl_Fe.Tree;
-with Idl_Fe.Tree.Accessors; use Idl_Fe.Tree.Accessors;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree.Synthetic;
 
 with Ada_Be.Identifiers; use Ada_Be.Identifiers;
@@ -26,39 +25,39 @@ package body Ada_Be.Idl2Ada is
    -------------------------------------------------
 
    procedure Gen_Scope
-     (Node : N_Root_Acc);
+     (Node : Node_Id);
    --  Generate all the files for scope Node.
 
    procedure Gen_Node_Stubs_Spec
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc);
+      Node : Node_Id);
    --  Generate the declaration for the stubs of a node.
 
    procedure Gen_Node_Stubs_Body
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc);
+      Node : Node_Id);
    --  Generate the body for the stubs of a node.
 
    procedure Gen_Node_Stream_Spec
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc);
+      Node : Node_Id);
    --  Generate the package declaration for the
    --  marchalling function of a node.
 
    procedure Gen_Node_Stream_Body
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc);
+      Node : Node_Id);
    --  Generate the package declaration for the
    --  marchalling function of a node.
 
    procedure Gen_Node_Skel_Spec
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc);
+      Node : Node_Id);
    --  Generate the declaration for the skeleton of a node.
 
    procedure Gen_Node_Default
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc);
+      Node : Node_Id);
    --  Generate the text for a node whose mapping is
    --  common to all generated files.
 
@@ -68,14 +67,14 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Object_Reference_Declaration
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc;
+      Node : Node_Id;
       Full_View : Boolean);
    --  Generate the declaration of an object
    --  reference type.
 
    procedure Gen_Object_Servant_Declaration
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc);
+      Node : Node_Id);
    --  Generate the declaration of an object
    --  implementation type.
 
@@ -108,10 +107,10 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_When_Clause
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc;
+      Node : Node_Id;
       Default_Case_Seen : out Boolean);
-   --  Generate "when" clause for union N_Case Node.
-   --  If this N_Case has a "default:" label, then
+   --  Generate "when" clause for union K_Case Node.
+   --  If this K_Case has a "default:" label, then
    --  Default_Case_Seen is set to True, else its
    --  value is left unchanged.
 
@@ -121,15 +120,15 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Operation_Profile
      (CU : in out Compilation_Unit;
-      Node : N_Root_Acc);
-   --  Generate the profile for an N_Operation node.
+      Node : Node_Id);
+   --  Generate the profile for an K_Operation node.
 
    ------------------------
    -- Helper subprograms --
    ------------------------
 
    function Ada_Type_Name
-     (Node : N_Root_Acc)
+     (Node : Node_Id)
      return String;
    --  The name of the Ada type that maps Node.
 
@@ -157,15 +156,15 @@ package body Ada_Be.Idl2Ada is
    ----------------------------------------------
 
    procedure Generate
-     (Node : in N_Root_Acc) is
+     (Node : in Node_Id) is
    begin
-      pragma Assert (Is_Scope (Node));
+      pragma Assert (Is_Gen_Scope (Node));
 
       Gen_Scope (Node);
    end Generate;
 
    procedure Gen_Scope
-     (Node : N_Root_Acc)
+     (Node : Node_Id)
    is
       Stubs_Name : constant String
         := Ada_Full_Name (Node);
@@ -197,7 +196,7 @@ package body Ada_Be.Idl2Ada is
       --    := New_Package (Impl_Name, Unit_Body);
 
    begin
-      case Get_Kind (Node.all) is
+      case Kind (Node) is
          when K_ValueType =>
             --  Not implemented yet.
             raise Program_Error;
@@ -208,14 +207,14 @@ package body Ada_Be.Idl2Ada is
 
             declare
                It   : Node_Iterator;
-               Decl_Node : N_Root_Acc;
+               Decl_Node : Node_Id;
             begin
                Init (It, Contents (Node));
                while not Is_End (It) loop
                   Decl_Node := Get_Node (It);
                   Next (It);
 
-                  if Is_Scope (Decl_Node) then
+                  if Is_Gen_Scope (Decl_Node) then
                      Gen_Scope (Decl_Node);
                   else
                      Gen_Node_Stubs_Spec
@@ -251,10 +250,10 @@ package body Ada_Be.Idl2Ada is
             --  reference type.
 
             declare
-               Forward_Node : constant N_Root_Acc
-                 := N_Root_Acc (N_Forward_Interface_Acc'(Forward (Node)));
+               Forward_Node : constant Node_Id
+                 := Forward (Node);
             begin
-               if Forward_Node /= null then
+               if Forward_Node /= No_Node then
                   --  This interface has a forward declaration.
 
                   NL (Stubs_Spec);
@@ -267,13 +266,13 @@ package body Ada_Be.Idl2Ada is
 
             declare
                It   : Node_Iterator;
-               Export_Node : N_Root_Acc;
+               Export_Node : Node_Id;
             begin
                Init (It, Contents (Node));
                while not Is_End (It) loop
                   Export_Node := Get_Node (It);
                   Next (It);
-                  if Is_Scope (Export_Node) then
+                  if Is_Gen_Scope (Export_Node) then
                      Gen_Scope (Export_Node);
                   else
                      Gen_Node_Stubs_Spec
@@ -395,10 +394,10 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Object_Reference_Declaration
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc;
+      Node : Node_Id;
       Full_View : Boolean) is
    begin
-      case Get_Kind (Node.all) is
+      case Kind (Node) is
 
          when K_Interface =>
 
@@ -435,9 +434,9 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Object_Servant_Declaration
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc) is
+      Node : Node_Id) is
    begin
-      case Get_Kind (Node.all) is
+      case Kind (Node) is
 
          when K_Interface =>
 
@@ -470,15 +469,15 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_When_Clause
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc;
+      Node : Node_Id;
       Default_Case_Seen : out Boolean)
    is
       It   : Node_Iterator;
-      Label_Node : N_Root_Acc;
+      Label_Node : Node_Id;
       First_Label : Boolean := True;
       Multiple_Labels : Boolean;
    begin
-      pragma Assert (Get_Kind (Node.all) = K_Case);
+      pragma Assert (Kind (Node) = K_Case);
 
       Init (It, Labels (Node));
       while not Is_End (It) loop
@@ -492,7 +491,7 @@ package body Ada_Be.Idl2Ada is
          end if;
 
          if Multiple_Labels then
-            pragma Assert (Label_Node /= null);
+            pragma Assert (Label_Node /= No_Node);
             --  The null label is the "default:"
             --  one, and must have its own case.
 
@@ -503,7 +502,7 @@ package body Ada_Be.Idl2Ada is
             end if;
          end if;
 
-         if Label_Node /= null then
+         if Label_Node /= No_Node then
             Gen_Node_Stubs_Spec (CU, Label_Node);
          else
             Put (CU, "others");
@@ -528,9 +527,9 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Node_Stubs_Spec
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc) is
+      Node : Node_Id) is
    begin
-      case Get_Kind (Node.all) is
+      case Kind (Node) is
 
          --  Scopes
 
@@ -586,7 +585,7 @@ package body Ada_Be.Idl2Ada is
 
             declare
                It   : Node_Iterator;
-               Decl_Node : N_Root_Acc;
+               Decl_Node : Node_Id;
             begin
                Init (It, Decl (Node));
                while not Is_End (It) loop
@@ -609,7 +608,7 @@ package body Ada_Be.Idl2Ada is
             declare
                First_Enumerator : Boolean := True;
                It   : Node_Iterator;
-               E_Node : N_Root_Acc;
+               E_Node : Node_Id;
             begin
 
                Init (It, Enumerators (Node));
@@ -641,7 +640,7 @@ package body Ada_Be.Idl2Ada is
             begin
                declare
                   It   : Node_Iterator;
-                  Decl_Node : N_Root_Acc;
+                  Decl_Node : Node_Id;
                begin
                   Init (It, Declarators (Node));
                   while not Is_End (It) loop
@@ -650,7 +649,7 @@ package body Ada_Be.Idl2Ada is
 
                      declare
                         Bounds_It : Node_Iterator;
-                        Bound_Node : N_Root_Acc;
+                        Bound_Node : Node_Id;
                         First_Bound : Boolean := True;
                         Is_Array : constant Boolean
                           := not Is_Empty (Array_Bounds (Decl_Node));
@@ -718,7 +717,7 @@ package body Ada_Be.Idl2Ada is
 
             declare
                It   : Node_Iterator;
-               Case_Node : N_Root_Acc;
+               Case_Node : Node_Id;
                Has_Default : Boolean := False;
             begin
                Init (It, Cases (Node));
@@ -730,7 +729,7 @@ package body Ada_Be.Idl2Ada is
 
                   II (CU);
                   Gen_Node_Stubs_Spec
-                    (CU, N_Root_Acc (Case_Decl (Node)));
+                    (CU, Case_Decl (Node));
                   Put (CU, " : ");
                   Gen_Node_Stubs_Spec (CU, Case_Type (Node));
                   PL (CU, ";");
@@ -758,7 +757,7 @@ package body Ada_Be.Idl2Ada is
 
             declare
                It   : Node_Iterator;
-               Member_Node : N_Root_Acc;
+               Member_Node : Node_Id;
             begin
                Init (It, Members (Node));
                while not Is_End (It) loop
@@ -793,9 +792,9 @@ package body Ada_Be.Idl2Ada is
             --  for the original (anonymous) <fixed_type_spec>.
 
             --  Put (CU, "delta 10 ** -(");
-            --  Gen_Node_Stubs_Spec (CU, N_Root_Acc (Scale (Node)));
+            --  Gen_Node_Stubs_Spec (CU, Scale (Node));
             --  Put (CU, ") digits ");
-            --  Gen_Node_Stubs_Spec (CU, N_Root_Acc (Digits_Nb (Node)));
+            --  Gen_Node_Stubs_Spec (CU, Digits_Nb (Node));
 
          when others =>
             Gen_Node_Default (CU, Node);
@@ -805,9 +804,9 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Node_Skel_Spec
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc) is
+      Node : Node_Id) is
    begin
-      case Get_Kind (Node.all) is
+      case Kind (Node) is
 
          --  Scopes
 
@@ -856,9 +855,9 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Node_Stubs_Body
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc) is
+      Node : Node_Id) is
    begin
-      case Get_Kind (Node.all) is
+      case Kind (Node) is
 
          --  Scopes
 
@@ -895,7 +894,7 @@ package body Ada_Be.Idl2Ada is
             declare
                O_Name : constant String
                  := Ada_Name (Node);
-               O_Type : constant N_Root_Acc
+               O_Type : constant Node_Id
                  := Operation_Type (Node);
                Response_Expected : constant Boolean
                  := not Is_Oneway (Node);
@@ -916,7 +915,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "Handler : Broca.GIOP.Request_Handler;");
                PL (CU, "Send_Request_Result : "
                          & "Broca.GIOP.Send_Request_Result_Type;");
-               if Get_Kind (O_Type.all) /= K_Void then
+               if Kind (O_Type) /= K_Void then
                   --  XXX Add_With (O_Type.Stream)
 
                   PL (CU, "Returns : " & Ada_Type_Name (O_Type));
@@ -934,7 +933,7 @@ package body Ada_Be.Idl2Ada is
 
                declare
                   It   : Node_Iterator;
-                  P_Node : N_Root_Acc;
+                  P_Node : Node_Id;
                   First : Boolean := True;
                begin
                   Init (It, Parameters (Node));
@@ -954,7 +953,7 @@ package body Ada_Be.Idl2Ada is
                            end if;
                            PL
                              (CU, "Marshall (Stream, " & Ada_Name
-                              (N_Root_Acc (Declarator (P_Node))) & ");");
+                              (Declarator (P_Node)) & ");");
                         when others =>
                            null;
                      end case;
@@ -973,7 +972,7 @@ package body Ada_Be.Idl2Ada is
                PL (CU, "when Broca.GIOP.Sr_Reply =>");
                II (CU);
 
-               if Get_Kind (O_Type.all) /= K_Void then
+               if Kind (O_Type) /= K_Void then
                   NL (CU);
                   PL (CU, "--  Unmarshall return value.");
                   PL (CU, "Returns := Unmarshall (Stream);");
@@ -981,7 +980,7 @@ package body Ada_Be.Idl2Ada is
 
                declare
                   It   : Node_Iterator;
-                  P_Node : N_Root_Acc;
+                  P_Node : Node_Id;
                   First : Boolean := True;
                begin
                   Init (It, Parameters (Node));
@@ -999,7 +998,7 @@ package body Ada_Be.Idl2Ada is
                               First := False;
                            end if;
                            PL (CU, Ada_Name
-                                     (N_Root_Acc (Declarator (P_Node)))
+                                     (Declarator (P_Node))
                                      & ":= Unmarshall (Stream);");
                         when others =>
                            null;
@@ -1008,7 +1007,7 @@ package body Ada_Be.Idl2Ada is
                   end loop;
                end;
 
-               if Get_Kind (O_Type.all) /= K_Void then
+               if Kind (O_Type) /= K_Void then
                   PL (CU, "return Returns;");
                else
                   PL (CU, "return;");
@@ -1044,9 +1043,9 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Node_Stream_Spec
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc) is
+      Node : Node_Id) is
    begin
-      case Get_Kind (Node.all) is
+      case Kind (Node) is
 
          when K_Exception =>
             --  ???
@@ -1078,7 +1077,7 @@ package body Ada_Be.Idl2Ada is
 
                   declare
                      It   : Node_Iterator;
-                     Decl_Node : N_Root_Acc;
+                     Decl_Node : Node_Id;
                   begin
                      Init (It, Declarators (Node));
                      while not Is_End (It) loop
@@ -1105,15 +1104,15 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Operation_Profile
      (CU : in out Compilation_Unit;
-      Node : N_Root_Acc) is
+      Node : Node_Id) is
    begin
-      case Get_Kind (Node.all) is
+      case Kind (Node) is
 
          when K_Operation =>
             --  Subprogram name
 
             NL (CU);
-            if Get_Kind (Operation_Type (Node).all) = K_Void then
+            if Kind (Operation_Type (Node)) = K_Void then
                Put (CU, "procedure ");
             else
                Put (CU, "function ");
@@ -1129,7 +1128,7 @@ package body Ada_Be.Idl2Ada is
 
             declare
                It   : Node_Iterator;
-               P_Node : N_Root_Acc;
+               P_Node : Node_Id;
             begin
 
                Init (It, Parameters (Node));
@@ -1147,7 +1146,7 @@ package body Ada_Be.Idl2Ada is
 
             --  Return type
 
-            if Get_Kind (Operation_Type (Node).all) /= K_Void then
+            if Kind (Operation_Type (Node)) /= K_Void then
                NL (CU);
                --  XXX Add_With for Operation_Type (Node).
                Put (CU, "  return "
@@ -1157,7 +1156,7 @@ package body Ada_Be.Idl2Ada is
          when K_Param =>
 
             Gen_Operation_Profile
-              (CU, N_Root_Acc (Declarator (Node)));
+              (CU, Declarator (Node));
             case Mode (Node) is
                when Mode_In =>
                   Put (CU, " : in ");
@@ -1240,9 +1239,9 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Node_Stream_Body
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc) is
+      Node : Node_Id) is
    begin
-      case Get_Kind (Node.all) is
+      case Kind (Node) is
 
          when K_Exception =>
             --  ???
@@ -1262,7 +1261,7 @@ package body Ada_Be.Idl2Ada is
 
                declare
                   It   : Node_Iterator;
-                  Member_Node : N_Root_Acc;
+                  Member_Node : Node_Id;
                begin
                   Init (It, Members (Node));
                   while not Is_End (It) loop
@@ -1274,7 +1273,7 @@ package body Ada_Be.Idl2Ada is
 
                      declare
                         DIt   : Node_Iterator;
-                        Decl_Node : N_Root_Acc;
+                        Decl_Node : Node_Id;
                      begin
                         Init (DIt, Decl (Member_Node));
                         while not Is_End (DIt) loop
@@ -1304,7 +1303,7 @@ package body Ada_Be.Idl2Ada is
 
                declare
                   It   : Node_Iterator;
-                  Member_Node : N_Root_Acc;
+                  Member_Node : Node_Id;
                begin
                   Init (It, Members (Node));
                   while not Is_End (It) loop
@@ -1313,7 +1312,7 @@ package body Ada_Be.Idl2Ada is
 
                      declare
                         DIt   : Node_Iterator;
-                        Decl_Node : N_Root_Acc;
+                        Decl_Node : Node_Id;
                      begin
                         Init (DIt, Decl (Member_Node));
                         while not Is_End (DIt) loop
@@ -1354,7 +1353,7 @@ package body Ada_Be.Idl2Ada is
 
                declare
                   It   : Node_Iterator;
-                  Case_Node : N_Root_Acc;
+                  Case_Node : Node_Id;
                   Has_Default : Boolean := False;
                begin
                   Init (It, Cases (Node));
@@ -1369,7 +1368,7 @@ package body Ada_Be.Idl2Ada is
                      --  Case_Type (Case_Node);
                      PL (CU, "Marshall (Stream, Val."
                                & Ada_Name
-                               (N_Root_Acc (Case_Decl (Case_Node)))
+                               (Case_Decl (Case_Node))
                                & ");");
                      DI (CU);
                   end loop;
@@ -1408,7 +1407,7 @@ package body Ada_Be.Idl2Ada is
 
                declare
                   It   : Node_Iterator;
-                  Case_Node : N_Root_Acc;
+                  Case_Node : Node_Id;
                   Has_Default : Boolean := False;
                begin
                   Init (It, Cases (Node));
@@ -1420,7 +1419,7 @@ package body Ada_Be.Idl2Ada is
                      Gen_When_Clause (CU, Case_Node, Has_Default);
                      II (CU);
                      PL (CU, "Returns."
-                         & Ada_Name (N_Root_Acc (Case_Decl (Case_Node)))
+                         & Ada_Name (Case_Decl (Case_Node))
                          & " := Unmarshall (Stream);");
                      DI (CU);
 
@@ -1484,7 +1483,7 @@ package body Ada_Be.Idl2Ada is
                        := Ada_Type_Name (T_Type (Node));
 
                      It   : Node_Iterator;
-                     Decl_Node : N_Root_Acc;
+                     Decl_Node : Node_Id;
                   begin
                      --  XXX Add_With for
                      --  <Scope (Base_Type_Node)>.Stream;
@@ -1589,22 +1588,22 @@ package body Ada_Be.Idl2Ada is
 
    procedure Gen_Node_Default
      (CU   : in out Compilation_Unit;
-      Node : N_Root_Acc) is
+      Node : Node_Id) is
    begin
-      case Get_Kind (Node.all) is
+      case Kind (Node) is
 
          when K_Scoped_Name =>
 
             declare
-               Denoted_Entity : constant N_Named_Acc
+               Denoted_Entity : constant Node_Id
                  := Value (Node);
             begin
-               case Get_Kind (Denoted_Entity.all) is
+               case Kind (Denoted_Entity) is
                   when
                     K_Forward_Interface |
                     K_Interface         =>
                      Add_With
-                       (CU, Ada_Name (N_Root_Acc (Denoted_Entity)));
+                       (CU, Ada_Name (Denoted_Entity));
                   when others =>
                      --  XXX FIXME Add with for scope containing
                      --  Denoted_Entity.
@@ -1621,16 +1620,30 @@ package body Ada_Be.Idl2Ada is
             --  A simple or complex (array) declarator.
 
          --  Base types
-         when K_Simple_Type'Range =>
+         when
+           K_Float              |
+           K_Double             |
+           K_Long_Double        |
+           K_Short              |
+           K_Long               |
+           K_Long_Long          |
+           K_Unsigned_Short     |
+           K_Unsigned_Long      |
+           K_Unsigned_Long_Long |
+           K_Char               |
+           K_Wide_Char          |
+           K_Boolean            |
+           K_Octet              =>
             Add_With (CU, "CORBA");
             Put (CU, Ada_Type_Name (Node));
 
          when K_Enumerator =>
             Put (CU, Ada_Name (Node));
 
-         when K_Or =>                   --  Binary operators.
+         when K_Or_Expr =>                   --  Binary operators.
             null;
-         when K_Xor =>
+
+         when K_Xor_Expr =>
             null;
             --        when K_And =>
             --        when K_Sub =>
@@ -1680,11 +1693,11 @@ package body Ada_Be.Idl2Ada is
    end Gen_Unmarshall_Profile;
 
    function Ada_Type_Name
-     (Node : N_Root_Acc)
+     (Node : Node_Id)
      return String
    is
       NK : constant Node_Kind
-        := Get_Kind (Node.all);
+        := Kind (Node);
    begin
       case NK is
          when K_Interface =>
@@ -1697,8 +1710,7 @@ package body Ada_Be.Idl2Ada is
             return Ada_Name (Node);
 
          when K_Scoped_Name =>
-            return Ada_Type_Name
-              (N_Root_Acc (N_Named_Acc'(Value (Node))));
+            return Ada_Type_Name (Value (Node));
 
          when K_Declarator =>
             --  A type created by a typedef.

@@ -3,6 +3,6 @@ with Idl_Fe.Types; use Idl_Fe.Types;
 
 package Ada_Be.Idl2Ada is
 
-   procedure Generate (Node : in N_Root_Acc);
+   procedure Generate (Node : in Node_Id);
 
 end Ada_Be.Idl2Ada;
