@@ -52,13 +52,16 @@ ORB_CLASSPATH = $(OPENORB_CLASSPATH)
 #######################################################################
 
 IDL_FILE    = all_types.idl
-CLASS_FILES = DynSkeleton.class DynServer.class DynClient.class Client.class
+CLASS_FILES = DynSkeleton.class DynServer.class DynClient.class Client.class Server.class
 
 all: class idl
 
 idl : $(IDL_FILE:.idl=)
 
 class : idl $(CLASS_FILES:.java=.class)
+
+run_server : Server.class
+	$(RUN) Server
 
 run_client : Client.class
 	$(RUN) Client
@@ -70,7 +73,7 @@ run_dynclient : DynClient.class
 	$(RUN) DynClient
 
 clean:
-	$(DEL) *~ IOR
+	$(DEL) *~ *\# IOR
 	$(DEL) *.class
 
 veryclean: clean
