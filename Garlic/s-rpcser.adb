@@ -46,7 +46,6 @@ with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Exceptions;   use System.Garlic.Exceptions;
 with System.Garlic.Heart;        use System.Garlic.Heart;
 with System.Garlic.Options;
-with System.Garlic.Priorities;   use System.Garlic.Priorities;
 with System.Garlic.Soft_Links;
 with System.Garlic.Streams;
 with System.Garlic.Tasking;
@@ -125,7 +124,7 @@ package body System.RPC.Server is
       entry  Execute;
       entry  Shutdown;
       pragma Priority (Default_Priority);
-      pragma Storage_Size (3_000_000);
+      pragma Storage_Size (2_000_000);
    end Anonymous_Task;
    type Anonymous_Task_Access is access Anonymous_Task;
    --  An anonymous task will serve a request. Is the pragma Storage_Size
@@ -168,15 +167,6 @@ package body System.RPC.Server is
 
    procedure Stop_Tasks_Pool;
    --  This procedure will be called upon shutdown
-
-   task type Background_Creation is
-      pragma Priority (Background_Creation_Priority);
-   end Background_Creation;
-   --  This task will have a low priority and create tasks in the background
-   --  when they are needed.
-
-   type Background_Creation_Access is access Background_Creation;
-   Background_Task : Background_Creation_Access;
 
    ----------------
    -- Abort_Task --
@@ -407,32 +397,6 @@ package body System.RPC.Server is
          Destroy_Anonymous_Task (Self);
    end Anonymous_Task;
 
-   -------------------------
-   -- Background_Creation --
-   -------------------------
-
-   task body Background_Creation is
-      Identifier : Task_Identifier_Access;
-
-   begin
-      System.Garlic.Soft_Links.Add_Non_Terminating_Task;
-      while not Terminated loop
-         System.Garlic.Soft_Links.Enter (Tasks_Pool_Mutex);
-         if Tasks_Pool_Count < Low_Mark then
-            Identifier       := Create_Anonymous_Task;
-            Identifier.Next  := Idle_Tasks_Queue;
-            Idle_Tasks_Queue := Identifier;
-
-         else
-            Identifier := null;
-         end if;
-         System.Garlic.Soft_Links.Leave (Tasks_Pool_Mutex);
-
-         exit when Identifier = null;
-      end loop;
-      System.Garlic.Soft_Links.Sub_Non_Terminating_Task;
-   end Background_Creation;
-
    ---------------------------
    -- Create_Anonymous_Task --
    ---------------------------
@@ -472,41 +436,27 @@ package body System.RPC.Server is
       Finalize (Handler.Outer.PID, Handler.Outer.Wait, Handler.Outer.Key);
    end Finalize;
 
-   ---------------------
-   -- Show_Tasks_Pool --
-   ---------------------
-
-   procedure Show_Tasks_Pool is
-   begin
-      return;
-      pragma Debug (D ("Idle Tasks Count :" & Idle_Tasks_Count'Img));
-      pragma Debug (D ("Tasks Pool Count :" & Tasks_Pool_Count'Img));
-      pragma Debug (D ("Allocated   Tasks:" & Allocated_Tasks'Img));
-      pragma Debug (D ("Deallocated Tasks:" & Deallocated_Tasks'Img));
-      null;
-   end Show_Tasks_Pool;
-
-   ---------------------
-   -- Stop_Tasks_Pool --
-   ---------------------
-
-   procedure Stop_Tasks_Pool is
-   begin
-      pragma Debug (D ("Stop tasks pool"));
-      Terminated := True;
-      System.Garlic.Soft_Links.Update (Tasks_Pool_Watcher);
-   end Stop_Tasks_Pool;
-
    ----------------
    -- Initialize --
    ----------------
 
    procedure Initialize is
-      Handler : System.Garlic.Soft_Links.Abort_Handler_Access
+      Identifier : Task_Identifier_Access;
+      Handler    : System.Garlic.Soft_Links.Abort_Handler_Access
         := new Outer_Abort_Handler_Type;
 
    begin
-      Background_Task := new Background_Creation;
+
+      --  Preallocate a pool of anonymous tasks
+
+      System.Garlic.Soft_Links.Enter (Tasks_Pool_Mutex);
+      while Tasks_Pool_Count < Low_Mark loop
+         Identifier       := Create_Anonymous_Task;
+         Identifier.Next  := Idle_Tasks_Queue;
+         Idle_Tasks_Queue := Identifier;
+         Idle_Tasks_Count := Idle_Tasks_Count + 1;
+      end loop;
+      System.Garlic.Soft_Links.Leave (Tasks_Pool_Mutex);
 
       --  This handler will be finalized. We must initialized its
       --  internal values correctly.
@@ -518,6 +468,19 @@ package body System.RPC.Server is
       System.Garlic.Soft_Links.Adjust (Handler.all);
       System.Garlic.Soft_Links.Register_Abort_Handler (Handler);
    end Initialize;
+
+   ---------------------
+   -- Show_Tasks_Pool --
+   ---------------------
+
+   procedure Show_Tasks_Pool is
+   begin
+      pragma Debug (D ("Idle Tasks Count :" & Idle_Tasks_Count'Img));
+      pragma Debug (D ("Tasks Pool Count :" & Tasks_Pool_Count'Img));
+      pragma Debug (D ("Allocated   Tasks:" & Allocated_Tasks'Img));
+      pragma Debug (D ("Deallocated Tasks:" & Deallocated_Tasks'Img));
+      null;
+   end Show_Tasks_Pool;
 
    --------------
    -- Shutdown --
@@ -536,6 +499,17 @@ package body System.RPC.Server is
       System.Garlic.Soft_Links.Update (Tasks_Pool_Watcher);
       System.Garlic.Soft_Links.Leave (Tasks_Pool_Mutex);
    end Shutdown;
+
+   ---------------------
+   -- Stop_Tasks_Pool --
+   ---------------------
+
+   procedure Stop_Tasks_Pool is
+   begin
+      pragma Debug (D ("Stop tasks pool"));
+      Terminated := True;
+      System.Garlic.Soft_Links.Update (Tasks_Pool_Watcher);
+   end Stop_Tasks_Pool;
 
 begin
    System.Garlic.Soft_Links.Create (Tasks_Pool_Mutex);
