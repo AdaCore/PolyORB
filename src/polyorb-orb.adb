@@ -1234,7 +1234,7 @@ begin
        & "protocols.giop?"
        & "protocols.soap?"
        & "smart_pointers"
-       & "exceptions.stack"
+       & "exceptions"
        & "tasking.threads",
        Provides => Empty,
        Implicit => False,
