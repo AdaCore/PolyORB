@@ -1213,6 +1213,19 @@ package body System.PolyORB_Interface is
 
    end Initialize;
 
+   --------------
+   -- Make_Ref --
+   --------------
+
+   function Make_Ref (The_Entity : PolyORB.Smart_Pointers.Entity_Ptr)
+     return PolyORB.References.Ref
+   is
+      Result : PolyORB.References.Ref;
+   begin
+      Set_Ref (Result, The_Entity);
+      return Result;
+   end Make_Ref;
+
    --------------------
    -- Naming_Context --
    --------------------

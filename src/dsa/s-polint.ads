@@ -185,6 +185,8 @@ package System.PolyORB_Interface is
      (The_Ref    : in out PolyORB.References.Ref;
       The_Entity :        PolyORB.Smart_Pointers.Entity_Ptr)
      renames PolyORB.References.Set;
+   function Make_Ref (The_Entity : PolyORB.Smart_Pointers.Entity_Ptr)
+     return PolyORB.References.Ref;
    function Entity_Of
      (R : PolyORB.References.Ref)
       return PolyORB.Smart_Pointers.Entity_Ptr
