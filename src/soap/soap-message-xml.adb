@@ -129,10 +129,10 @@ package body SOAP.Message.XML is
 --       S : in State)
 --      return PolyORB.Any.NamedValue;
 
---    function Parse_Record
---      (N : in DOM.Core.Node;
---       S : in State)
---      return PolyORB.Any.NamedValue;
+   function Parse_Record
+     (N : in DOM.Core.Node;
+      S : in State)
+     return PolyORB.Any.NamedValue;
 
    procedure Error (Node : in DOM.Core.Node; Message : in String);
    pragma No_Return (Error);
@@ -460,8 +460,7 @@ package body SOAP.Message.XML is
             --  No attributes, this is a SOAP record since we are not parsing
             --  arrays entries.
 
-            --  XXX return Parse_Record (N, S);
-            raise PolyORB.Not_Implemented;
+            return Parse_Record (N, S);
 
          else
             case S.A_State is
@@ -546,32 +545,51 @@ package body SOAP.Message.XML is
    -- Parse_Record --
    ------------------
 
---    function Parse_Record
---      (N : in DOM.Core.Node;
---       S : in State)
---      return PolyORB.Any.NamedValue
---    is
---       use type DOM.Core.Node;
---       use SOAP.Types;
+   function Parse_Record
+     (N : in DOM.Core.Node;
+      S : in State)
+     return PolyORB.Any.NamedValue
+   is
+      use type DOM.Core.Node;
+      use SOAP.Types;
+      use PolyORB.Any.TypeCode;
 
---       Name  : constant PolyORB.Types.Identifier
---         := To_PolyORB_String (Local_Name (N));
---       OS    : Types.Object_Set (1 .. Max_Object_Size);
---       K     : Natural := 0;
+      Name  : constant PolyORB.Types.Identifier
+        := To_PolyORB_String (Local_Name (N));
+      TC_Record : TypeCode.Object;
+      Any_Record : Any := Get_Empty_Any_Aggregate (TC_Record);
 
---       Field : DOM.Core.Node;
---    begin
---       Field := First_Child (N);
+      Field : DOM.Core.Node;
+   begin
+      TC_Record := TC_Struct;
+      Add_Parameter (TC_Record, To_Any
+                     (PolyORB.Types.String (Name)));
+      Add_Parameter (TC_Record, To_Any
+                     (PolyORB.Types.String ("IDL:" & Name & ":1.0")));
 
---       while Field /= null loop
---          K := K + 1;
---          OS (K) := +Parse_Param (Field, S);
+      Field := First_Child (N);
 
---          Field := Next_Sibling (Field);
---       end loop;
+      while Field /= null loop
+         declare
+            Field_Value : constant NamedValue
+              := Parse_Param (Field, S);
+         begin
+            Add_Parameter (TC_Record, To_Any
+                           (Get_Type (Field_Value.Argument)));
+            Add_Parameter (TC_Record, To_Any
+                           (PolyORB.Types.String (Field_Value.Name)));
 
---       return Types.R (OS (1 .. K), Name);
---    end Parse_Record;
+            Add_Aggregate_Element (Any_Record, Field_Value.Argument);
+         end;
+         Field := Next_Sibling (Field);
+      end loop;
+      Set_Type (Any_Record, TC_Record);
+
+      return NamedValue'
+        (Name => Name,
+         Argument => Any_Record,
+         Arg_Modes => ARG_IN);
+   end Parse_Record;
 
    ------------------
    -- Parse_String --
