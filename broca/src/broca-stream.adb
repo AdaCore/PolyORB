@@ -31,11 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Sockets.Thin;
-
 with Broca.Buffers.IO_Operations;
 with Broca.Debug;
-pragma Elaborate_All (Broca.Debug);
+with Broca.Sockets;
 
 package body Broca.Stream is
 
@@ -83,22 +81,15 @@ package body Broca.Stream is
    function Receive
      (Stream : access Fd_Stream_Type;
       Length : Index_Type)
-     return Octet_Array
+     return Octet_Array_Ptr
    is
-      use Sockets.Thin;
-      use Interfaces.C;
-
-      Bytes : Octet_Array (1 .. Length);
-      Result : Interfaces.C.int;
+      Bytes  : Octet_Array_Ptr := new Octet_Array (1 .. Length);
    begin
       Stream.Lock_R.Check_Owner;
-      Result := C_Recv
-        (Stream.Fd,
-         Bytes (1)'Address,
-         Interfaces.C.int (Length), 0);
+      pragma Debug (O ("Receive: try to read " & Length'Img & " bytes"));
 
-      if Result /=  Interfaces.C.int (Length) then
-         raise Connection_Closed;
+      if Sockets.Receive (Stream.Fd, Bytes, Length) /= Length then
+            raise Connection_Closed;
       end if;
 
       --  Write (Buffer, Bytes);

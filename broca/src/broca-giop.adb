@@ -371,7 +371,7 @@ package body Broca.GIOP is
 
       pragma Debug (O ("Receive answer ..."));
       declare
-         Message_Header : aliased Broca.Opaque.Octet_Array
+         Message_Header : Broca.Opaque.Octet_Array_Ptr
            := IOP.Receive (Handler.Connection,
                            Message_Header_Size);
          Message_Header_Buffer : aliased Buffer_Type;
@@ -391,7 +391,7 @@ package body Broca.GIOP is
          Broca.Buffers.Initialize_Buffer
            (Message_Header_Buffer'Access,
             Message_Header_Size,
-            Message_Header'Address,
+            Message_Header.all'Address,
             Endianness,
             0);
 
@@ -403,6 +403,7 @@ package body Broca.GIOP is
          pragma Assert (Message_Endianness = Endianness);
 
          Release (Message_Header_Buffer);
+         Free (Message_Header);
       end;
 
       if not (Header_Correct and then Message_Type = Reply) then
@@ -410,9 +411,9 @@ package body Broca.GIOP is
       end if;
 
       --  1.4.5 Receive the reply header and body.
-      Handler.Data.Message_Body := new Broca.Opaque.Octet_Array'
-        (IOP.Receive (Handler.Connection,
-                      Broca.Opaque.Index_Type (Message_Size)));
+      Handler.Data.Message_Body :=
+        IOP.Receive (Handler.Connection,
+                     Broca.Opaque.Index_Type (Message_Size));
       declare
          Message_Body : Octet_Array_Ptr := Handler.Data.Message_Body;
          Message_Body_Buffer : Buffer_Type

@@ -43,6 +43,7 @@ with Broca.Soft_Links;  use Broca.Soft_Links;
 with Broca.Buffers.IO_Operations;
 with Broca.IOP;         use Broca.IOP;
 with Broca.Sequences;   use Broca.Sequences;
+with Broca.Sockets;
 
 with Sockets.Constants;
 with Sockets.Naming;
@@ -52,6 +53,10 @@ with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);
 
 package body Broca.IIOP is
+
+   package Constants renames Standard.Sockets.Constants;
+   package Naming renames Standard.Sockets.Naming;
+   package Thin renames Standard.Sockets.Thin;
 
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.iiop");
    procedure O is new Broca.Debug.Output (Flag);
@@ -66,12 +71,12 @@ package body Broca.IIOP is
 
    No_Strand : constant Strand_Type
      := (List   => null,
-         Socket => Sockets.Thin.Failure);
+         Socket => Thin.Failure);
 
    function Receive
      (Connection : access Strand_Connection_Type;
       Length     : Opaque.Index_Type)
-     return Opaque.Octet_Array;
+     return Opaque.Octet_Array_Ptr;
 
    procedure Release
      (Connection : access Strand_Connection_Type);
@@ -146,7 +151,7 @@ package body Broca.IIOP is
       begin
          Leave_Critical_Section;
          for I in Socks'Range loop
-            Sockets.Thin.C_Close (Socks (I).Socket);
+            Thin.C_Close (Socks (I).Socket);
          end loop;
       end;
    end Finalize;
@@ -199,9 +204,9 @@ package body Broca.IIOP is
      return Connection_Ptr
    is
       use Interfaces.C;
-      use Sockets.Naming;
-      use Sockets.Constants;
-      use Sockets.Thin;
+      use Naming;
+      use Constants;
+      use Thin;
 
       use Broca.Refs;
 
@@ -463,11 +468,11 @@ package body Broca.IIOP is
    function Receive
      (Connection : access Strand_Connection_Type;
       Length     : Opaque.Index_Type)
-     return Opaque.Octet_Array
+     return Opaque.Octet_Array_Ptr
    is
       use Broca.Opaque;
 
-      Result : Octet_Array (1 .. Length);
+      Result : Octet_Array_Ptr := new Octet_Array (1 .. Length);
 
    begin
       if Length = 0 then
@@ -476,24 +481,14 @@ package body Broca.IIOP is
          return Result;
       end if;
 
-      declare
-         use Sockets.Thin;
-         use Interfaces.C;
+      if
+        Sockets.Receive (Connection.Strand.Socket, Result, Length) /= Length
+      then
+         Free (Result);
+         Broca.Exceptions.Raise_Comm_Failure;
+      end if;
 
-         Received : Interfaces.C.int;
-
-      begin
-         Received := C_Recv
-           (Connection.Strand.Socket,
-            Result (1)'Address,
-            Interfaces.C.int (Length), 0);
-
-         if Received /=  Interfaces.C.int (Length) then
-            Broca.Exceptions.Raise_Comm_Failure;
-         end if;
-
-         return Result;
-      end;
+      return Result;
    end Receive;
 
    -------------
@@ -523,7 +518,7 @@ package body Broca.IIOP is
      (Connection : access Strand_Connection_Type;
       Buffer     : access Buffer_Type)
    is
-      use Sockets.Thin;
+      use Thin;
       use Interfaces.C;
 
    begin

@@ -20,6 +20,7 @@ broca.repository
 broca.rootpoa
 broca.sequences
 broca.server
+broca.sockets
 broca.stream
 broca.types
 broca.vararray

@@ -278,6 +278,7 @@ src/broca-opaque-chunk_pools.ads
 src/broca-opaque.ads
 src/broca-orb.adb
 src/broca-orb.ads
+src/broca-parameters.ads
 src/broca-poa.adb
 src/broca-poa.ads
 src/broca-policy.adb
@@ -296,6 +297,8 @@ src/broca-server.adb
 src/broca-server.ads
 src/broca-server_tools.adb
 src/broca-server_tools.ads
+src/broca-sockets.adb
+src/broca-sockets.ads
 src/broca-soft_links.adb
 src/broca-soft_links.ads
 src/broca-stream.adb

@@ -4,6 +4,8 @@ with CORBA.ORB;
 with PortableServer.POA;
 with PortableServer.POAManager;
 
+with Broca.Parameters;
+
 with Broca.RootPOA;
 pragma Elaborate (Broca.RootPOA);
 pragma Elaborate_All (PortableServer.POA);
@@ -12,7 +14,9 @@ package body Broca.Server_Tools is
 
    Root_POA : PortableServer.POA.Ref;
 
-   task type ORBTask;
+   task type ORBTask is
+      pragma Storage_Size (Broca.Parameters.Server_Tasks_Storage_Size);
+   end ORBTask;
    type ORBTaskPtr is access ORBTask;
 
    task body ORBTask is

@@ -45,6 +45,7 @@ with Broca.CDR;         use Broca.CDR;
 with Broca.Opaque;
 with Broca.Exceptions;
 with Broca.GIOP;
+with Broca.Parameters;
 with Broca.Stream;
 with Broca.Flags;
 with Broca.ORB;
@@ -804,7 +805,7 @@ package body Broca.Server is
 
       --  Receive body of the message.
       declare
-         Message_Body : aliased Broca.Opaque.Octet_Array
+         Message_Body : Broca.Opaque.Octet_Array_Ptr
            := Receive (Stream,
                        Broca.Opaque.Index_Type (Message_Size));
          Message_Body_Buffer : aliased Buffer_Type;
@@ -812,7 +813,7 @@ package body Broca.Server is
          Broca.Buffers.Initialize_Buffer
            (Message_Body_Buffer'Access,
             Broca.Opaque.Index_Type (Message_Size),
-            Message_Body'Address,
+            Message_Body.all'Address,
             Message_Endianness,
             GIOP.Message_Header_Size);
 
@@ -858,10 +859,13 @@ package body Broca.Server is
                   Release (Reply_Buffer);
                end;
             when others =>
+               Release (Message_Body_Buffer);
+               Broca.Opaque.Free (Message_Body);
                Broca.Exceptions.Raise_Comm_Failure;
          end case;
 
          Release (Message_Body_Buffer);
+         Broca.Opaque.Free (Message_Body);
       end;
    exception
       when Broca.Stream.Connection_Closed =>
@@ -978,6 +982,7 @@ package body Broca.Server is
 
    procedure Run (ORB : in out This_ORB_Type) is
       task type Server_Task_Type is
+         pragma Storage_Size (Broca.Parameters.Server_Tasks_Storage_Size);
       end Server_Task_Type;
 
       task body Server_Task_Type is

@@ -54,9 +54,9 @@ with Broca.IIOP;
 with Broca.Flags;
 with Broca.Server;
 with Broca.Sequences;
+with Broca.Sockets;
 
 with Broca.Debug;
-pragma Elaborate_All (Broca.Debug);
 
 with Broca.Exceptions;
 pragma Elaborate_All (Broca.Exceptions);
@@ -69,7 +69,7 @@ package body Broca.Inet_Server is
    --  The number of simultaneously open streams.
    Simultaneous_Streams : Positive := 10;
 
-   My_Addr : Sockets.Thin.In_Addr;
+   My_Addr : In_Addr;
    IIOP_Host : CORBA.String;
    IIOP_Port : CORBA.Unsigned_Short;
    Listening_Socket : Interfaces.C.int;
@@ -92,9 +92,9 @@ package body Broca.Inet_Server is
    procedure Wait_Fd_Request;
 
    --  Convert an IN_ADDR to the decimal string representation.
-   function In_Addr_To_Str (Addr : Sockets.Thin.In_Addr) return String;
+   function In_Addr_To_Str (Addr : In_Addr) return String;
 
-   function In_Addr_To_Str (Addr : Sockets.Thin.In_Addr) return String
+   function In_Addr_To_Str (Addr : In_Addr) return String
    is
       function Image (Val : Interfaces.C.unsigned_char) return String;
       function Image (Val : Interfaces.C.unsigned_char) return String is
@@ -113,7 +113,6 @@ package body Broca.Inet_Server is
 
    procedure Get_Host_Address is
       use Interfaces.C;
-      use Sockets.Thin;
       Host_Name_Acc : Interfaces.C.Strings.char_array_access;
       Host_Name_Ptr : Interfaces.C.Strings.chars_ptr;
       Len : int;
@@ -428,10 +427,11 @@ package body Broca.Inet_Server is
 
    procedure Accept_Poll_Set_Change
    is
+      use Broca.Opaque;
       C : aliased Interfaces.Unsigned_32;
    begin
       pragma Debug (O ("Accepting poll set change."));
-      if C_Recv (Signal_Fd_Read, C'Address, 4, 0) /= 4 then
+      if Sockets.Receive (Signal_Fd_Read, C'Address, 4) /= 4 then
          pragma Debug (O ("--> failed!"));
          null;
       end if;
@@ -517,7 +517,6 @@ package body Broca.Inet_Server is
    --  from other address spaces.
    procedure Wait_Fd_Request is
       use Interfaces.C;
-      use Sockets.Constants;
 
       use Broca.Opaque;
       use Broca.GIOP;
@@ -527,7 +526,7 @@ package body Broca.Inet_Server is
       Sock : Interfaces.C.int;
       Sock_Name : Sockaddr_In;
       Size : aliased C.int;
-      Bytes : Octet_Array (1 .. Message_Header_Size);
+      Bytes : aliased Octet_Array := (1 .. Message_Header_Size => 0);
       A_Job : Job;
 
    begin
@@ -631,17 +630,12 @@ package body Broca.Inet_Server is
          Sock := A_Job.Fd;
 
          --  Receive a message header
-         Res := C_Recv (Sock, Bytes'Address, Message_Header_Size, 0);
-         if Res <= 0 then
+         if Sockets.Receive (Sock, Bytes'Access, Message_Header_Size)
+           /= Message_Header_Size
+         then
             if Broca.Flags.Log then
-               if Res < 0 then
-                  Broca.Server.Log
-                    ("error " & C.int'Image (Res)
-                     & " on fd" & C.int'Image (Sock));
-               else
-                  Broca.Server.Log
-                    ("connection closed on fd" & C.int'Image (Sock));
-               end if;
+               Broca.Server.Log
+                 ("connection closed on fd" & C.int'Image (Sock));
             end if;
 
             --  The fd was closed
@@ -651,8 +645,6 @@ package body Broca.Inet_Server is
             Lock.Delete_Descriptor (A_Job.Fd);
             Signal_Poll_Set_Change;
 
-         elsif Res /= Broca.GIOP.Message_Header_Size then
-            Broca.Exceptions.Raise_Comm_Failure;
          else
             declare
                Endianness : Endianness_Type;

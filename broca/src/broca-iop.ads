@@ -65,7 +65,7 @@ package Broca.IOP is
    function Receive
      (Connection : access Connection_Type;
       Length     : Opaque.Index_Type)
-     return Opaque.Octet_Array is abstract;
+     return Opaque.Octet_Array_Ptr is abstract;
    --  Receive data from a connection. Raise Comm_Failure on error.
 
    --------------------------------

@@ -76,7 +76,7 @@ package Broca.Stream is
    function Receive
      (Stream : access Stream_Type;
       Length : Index_Type)
-     return Octet_Array is abstract;
+     return Octet_Array_Ptr is abstract;
 
    --  Become an exclusive owner for receiving data from the
    --  stream. Can queue the task.
@@ -97,7 +97,7 @@ package Broca.Stream is
    function Receive
      (Stream : access Fd_Stream_Type;
       Length : Index_Type)
-     return Octet_Array;
+     return Octet_Array_Ptr;
 
    type Stream_Ptr is access all Stream_Type'Class;
    type Stream_Ptr_Array is array (Natural range <>) of Stream_Ptr;
