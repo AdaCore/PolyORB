@@ -1,3 +1,13 @@
+1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am, Makefile.in: gnatdist is no longer a script. Use
+	$(EXEEXT) to build a platform independent executable.
+	
+	* gnatdist.in: No longer needed.
+
+	* xe_utils.adb: Add GARLIC flags directly in Ada code rather than
+	in gnatdist script (-I${GARLIC}, -L${GARLIC}, -lgarlic).
+
 1998-02-19  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_utils.ads: Fix capitalization of OS_Lib.

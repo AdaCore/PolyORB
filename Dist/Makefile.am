@@ -10,21 +10,20 @@ GNATFLAGS = -gnatpg @GNATFLAGS@
 RSH = @RSH@
 srcdir = @srcdir@
 
-bin_SCRIPTS = gnatdist
-libexec_PROGRAMS = dist1
-dist1_DEPENDENCIES = xe_defs.o sdefault.o
-dist1_SOURCES =
-dist1_LDADD =
+bin_PROGRAMS = gnatdist
+gnatdist_DEPENDENCIES = xe_defs.o sdefault.o
+gnatdist_SOURCES =
+gnatdist_LDADD =
 
 GNATMAKE = gnatmake
 
-CLEANFILES = *.ali gnatdist xe_defs.adb sdefault.adb
+CLEANFILES = *.ali gnatdist$(EXEEXT) xe_defs.adb sdefault.adb
 
 force: 
 
-dist1: ${dist1_DEPENDENCIES} force
+gnatdist: ${gnatdist_DEPENDENCIES} force
 	${GNATMAKE} -m -a ${GNATFLAGS} -I. -I${srcdir} -I${GNATSRC} \
-	   ${srcdir}/xe_build.adb -o dist1
+	   ${srcdir}/xe_build.adb -o gnatdist$(EXEEXT)
 
 xe_defs.adb: Makefile
 	@echo Generating xe_defs.adb

@@ -608,43 +608,58 @@ package body XE_Utils is
          Get_Name_String (Lib_Path_Flag);
          Name_Buffer (Name_Len + 1 .. Name_Len + Len) := Dir.all;
          L_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len + Len));
+
+         Name := Inc_Path_Flag & Dot_Sep_Id;
+         Get_Name_String (Name);
+         I_Current_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+         Name := Inc_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
+           Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
+         Get_Name_String (Name);
+         I_Caller_Dir  := new String'(Name_Buffer (1 .. Name_Len));
+
+         Name := Inc_Path_Flag & DSA_Dir &
+           Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
+         Get_Name_String (Name);
+         I_DSA_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+         Name := Inc_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
+           Dir_Sep_Id & Parent_Dir & Dir_Sep_Id;
+         I_Original_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+         Name := Lib_Path_Flag & Dot_Sep_Id;
+         L_Current_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+         Name := Lib_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
+           Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
+         Get_Name_String (Name);
+         L_Caller_Dir  := new String'(Name_Buffer (1 .. Name_Len));
+
+         Name := Lib_Path_Flag & DSA_Dir &
+           Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
+         Get_Name_String (Name);
+         L_DSA_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+         Name := Lib_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
+           Dir_Sep_Id & Parent_Dir & Dir_Sep_Id;
+         L_Original_Dir := new String'(Name_Buffer (1 .. Name_Len));
+
+         Add_Src_Search_Dir (Dir.all);
+         Add_Lib_Search_Dir (Dir.all);
+
+         Gcc_Switches.Increment_Last;
+         Gcc_Switches.Table (Gcc_Switches.Last) := I_GARLIC_Dir;
+
+         Binder_Switches.Increment_Last;
+         Binder_Switches.Table (Binder_Switches.Last) := I_GARLIC_Dir;
+
+         Linker_Switches.Increment_Last;
+         Linker_Switches.Table (Linker_Switches.Last) := L_GARLIC_Dir;
+
+         Linker_Switches.Increment_Last;
+         Linker_Switches.Table (Linker_Switches.Last)
+           :=  new String'("-lgarlic");
       end;
-
-      Name := Inc_Path_Flag & Dot_Sep_Id;
-      Get_Name_String (Name);
-      I_Current_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
-      Name := Inc_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
-              Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
-      Get_Name_String (Name);
-      I_Caller_Dir  := new String'(Name_Buffer (1 .. Name_Len));
-
-      Name := Inc_Path_Flag & DSA_Dir &
-        Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
-      Get_Name_String (Name);
-      I_DSA_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
-      Name := Inc_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
-        Dir_Sep_Id & Parent_Dir & Dir_Sep_Id;
-      I_Original_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
-      Name := Lib_Path_Flag & Dot_Sep_Id;
-      L_Current_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
-      Name := Lib_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
-        Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
-      Get_Name_String (Name);
-      L_Caller_Dir  := new String'(Name_Buffer (1 .. Name_Len));
-
-      Name := Lib_Path_Flag & DSA_Dir &
-        Dir_Sep_Id & Private_Id & Dir_Sep_Id & Caller_Id & Dir_Sep_Id;
-      Get_Name_String (Name);
-      L_DSA_Caller_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
-      Name := Lib_Path_Flag & Parent_Dir & Dir_Sep_Id & Parent_Dir &
-        Dir_Sep_Id & Parent_Dir & Dir_Sep_Id;
-      L_Original_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
 
    end Initialize;
 

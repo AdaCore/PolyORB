@@ -82,36 +82,33 @@ GNATFLAGS = -gnatpg @GNATFLAGS@
 RSH = @RSH@
 srcdir = @srcdir@
 
-bin_SCRIPTS = gnatdist
-libexec_PROGRAMS = dist1
-dist1_DEPENDENCIES = xe_defs.o sdefault.o
-dist1_SOURCES =
-dist1_LDADD =
+bin_PROGRAMS = gnatdist
+gnatdist_DEPENDENCIES = xe_defs.o sdefault.o
+gnatdist_SOURCES =
+gnatdist_LDADD =
 
 GNATMAKE = gnatmake
 
-CLEANFILES = *.ali gnatdist xe_defs.adb sdefault.adb
+CLEANFILES = *.ali gnatdist$(EXEEXT) xe_defs.adb sdefault.adb
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES =  gnatdist
-PROGRAMS =  $(libexec_PROGRAMS)
+CONFIG_CLEAN_FILES = 
+PROGRAMS =  $(bin_PROGRAMS)
 
 
 DEFS = @DEFS@ -I. -I$(srcdir) 
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-dist1_OBJECTS = 
-dist1_LDFLAGS = 
-SCRIPTS =  $(bin_SCRIPTS)
-
-DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO gnatdist.in
+gnatdist_OBJECTS = 
+gnatdist_LDFLAGS = 
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 GZIP = --best
-SOURCES = $(dist1_SOURCES)
-OBJECTS = $(dist1_OBJECTS)
+SOURCES = $(gnatdist_SOURCES)
+OBJECTS = $(gnatdist_OBJECTS)
 
 default: all
 
@@ -124,34 +121,32 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-gnatdist: $(top_builddir)/config.status gnatdist.in
-	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 
-mostlyclean-libexecPROGRAMS:
+mostlyclean-binPROGRAMS:
 
-clean-libexecPROGRAMS:
-	@list='$(libexec_PROGRAMS)'; for p in $$list; do \
+clean-binPROGRAMS:
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
 	  rm -f $$p $$p$(EXEEXT); \
 	done
 
-distclean-libexecPROGRAMS:
+distclean-binPROGRAMS:
 
-maintainer-clean-libexecPROGRAMS:
+maintainer-clean-binPROGRAMS:
 
-install-libexecPROGRAMS: $(libexec_PROGRAMS)
+install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(libexecdir)
-	@list='$(libexec_PROGRAMS)'; for p in $$list; do \
+	$(mkinstalldirs) $(bindir)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo "  $(INSTALL_PROGRAM) $$p$(EXEEXT) $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT)"; \
-	     $(INSTALL_PROGRAM) $$p$(EXEEXT) $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT); \
+	    echo "  $(INSTALL_PROGRAM) $$p$(EXEEXT) $(bindir)/`echo $$p|sed '$(transform)'`$(EXEEXT)"; \
+	     $(INSTALL_PROGRAM) $$p$(EXEEXT) $(bindir)/`echo $$p|sed '$(transform)'`$(EXEEXT); \
 	  else :; fi; \
 	done
 
-uninstall-libexecPROGRAMS:
+uninstall-binPROGRAMS:
 	$(NORMAL_UNINSTALL)
-	list='$(libexec_PROGRAMS)'; for p in $$list; do \
-	  rm -f $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT); \
+	list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  rm -f $(bindir)/`echo $$p|sed '$(transform)'`$(EXEEXT); \
 	done
 
 .c.o:
@@ -166,25 +161,6 @@ distclean-compile:
 	rm -f *.tab.c
 
 maintainer-clean-compile:
-
-install-binSCRIPTS: $(bin_SCRIPTS)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(bindir)
-	@list='$(bin_SCRIPTS)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(INSTALL_SCRIPT) $$p $(bindir)/`echo $$p|sed '$(transform)'`$(EXEEXT)"; \
-	    $(INSTALL_SCRIPT) $$p $(bindir)/`echo $$p|sed '$(transform)'`$(EXEEXT); \
-	  else if test -f $(srcdir)/$$p; then \
-	    echo " $(INSTALL_SCRIPT) $(srcdir)/$$p $(bindir)/`echo $$p|sed '$(transform)'`$(EXEEXT)"; \
-	    $(INSTALL_SCRIPT) $(srcdir)/$$p $(bindir)/`echo $$p|sed '$(transform)'`$(EXEEXT); \
-	  else :; fi; fi; \
-	done
-
-uninstall-binSCRIPTS:
-	$(NORMAL_UNINSTALL)
-	list='$(bin_SCRIPTS)'; for p in $$list; do \
-	  rm -f $(bindir)/`echo $$p|sed '$(transform)'`; \
-	done
 
 tags: TAGS
 
@@ -222,7 +198,7 @@ dvi:
 check: all
 	$(MAKE)
 installcheck:
-install-exec: install-libexecPROGRAMS install-binSCRIPTS
+install-exec: install-binPROGRAMS
 	@$(NORMAL_INSTALL)
 
 install-data: 
@@ -231,14 +207,14 @@ install-data:
 install: install-exec install-data all
 	@:
 
-uninstall: uninstall-libexecPROGRAMS uninstall-binSCRIPTS
+uninstall: uninstall-binPROGRAMS
 
-all: Makefile $(PROGRAMS) $(SCRIPTS)
+all: Makefile $(PROGRAMS)
 
 install-strip:
 	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' INSTALL_SCRIPT='$(INSTALL_PROGRAM)' install
 installdirs:
-	$(mkinstalldirs)  $(libexecdir) $(bindir)
+	$(mkinstalldirs)  $(bindir)
 
 
 mostlyclean-generic:
@@ -255,38 +231,37 @@ distclean-generic:
 maintainer-clean-generic:
 	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
-mostlyclean:  mostlyclean-libexecPROGRAMS mostlyclean-compile \
+mostlyclean:  mostlyclean-binPROGRAMS mostlyclean-compile \
 		mostlyclean-tags mostlyclean-generic
 
-clean:  clean-libexecPROGRAMS clean-compile clean-tags clean-generic \
+clean:  clean-binPROGRAMS clean-compile clean-tags clean-generic \
 		mostlyclean
 
-distclean:  distclean-libexecPROGRAMS distclean-compile distclean-tags \
+distclean:  distclean-binPROGRAMS distclean-compile distclean-tags \
 		distclean-generic clean
 	rm -f config.status
 
-maintainer-clean:  maintainer-clean-libexecPROGRAMS \
-		maintainer-clean-compile maintainer-clean-tags \
-		maintainer-clean-generic distclean
+maintainer-clean:  maintainer-clean-binPROGRAMS maintainer-clean-compile \
+		maintainer-clean-tags maintainer-clean-generic \
+		distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
-.PHONY: default mostlyclean-libexecPROGRAMS distclean-libexecPROGRAMS \
-clean-libexecPROGRAMS maintainer-clean-libexecPROGRAMS \
-uninstall-libexecPROGRAMS install-libexecPROGRAMS mostlyclean-compile \
-distclean-compile clean-compile maintainer-clean-compile \
-uninstall-binSCRIPTS install-binSCRIPTS tags mostlyclean-tags \
-distclean-tags clean-tags maintainer-clean-tags distdir info dvi \
-installcheck install-exec install-data install uninstall all \
-installdirs mostlyclean-generic distclean-generic clean-generic \
+.PHONY: default mostlyclean-binPROGRAMS distclean-binPROGRAMS \
+clean-binPROGRAMS maintainer-clean-binPROGRAMS uninstall-binPROGRAMS \
+install-binPROGRAMS mostlyclean-compile distclean-compile clean-compile \
+maintainer-clean-compile tags mostlyclean-tags distclean-tags \
+clean-tags maintainer-clean-tags distdir info dvi installcheck \
+install-exec install-data install uninstall all installdirs \
+mostlyclean-generic distclean-generic clean-generic \
 maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
 force: 
 
-dist1: ${dist1_DEPENDENCIES} force
+gnatdist: ${gnatdist_DEPENDENCIES} force
 	${GNATMAKE} -m -a ${GNATFLAGS} -I. -I${srcdir} -I${GNATSRC} \
-	   ${srcdir}/xe_build.adb -o dist1
+	   ${srcdir}/xe_build.adb -o gnatdist$(EXEEXT)
 
 xe_defs.adb: Makefile
 	@echo Generating xe_defs.adb
