@@ -51,9 +51,6 @@ pragma Warnings (Off, PolyORB.Setup.Server);
 
 package body PolyORB.Setup.Ravenscar_TP_Server is
 
-   pragma Warnings (Off);
-   --  No direct reference on this package: it only initializes hooks
-
    package Ravenscar_Profile_Instance is
       new PolyORB.Setup.Tasking.Ravenscar
      (Number_Of_Application_Tasks => 4,
@@ -62,6 +59,8 @@ package body PolyORB.Setup.Ravenscar_TP_Server is
       Number_Of_Mutexes           => 1_000,
       Task_Priority               => System.Default_Priority);
 
-   pragma Warnings (On);
+   pragma Unreferenced (Ravenscar_Profile_Instance);
+   --  There is no direct reference on this package: it only
+   --  initializes hooks
 
 end PolyORB.Setup.Ravenscar_TP_Server;
