@@ -1,3 +1,23 @@
+2001-06-28  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-ganota.adb, s-ganota.ads, s-gartas.adb, s-gartas.adb,
+	s-gasoli.adb, s-gasoli.ads: Keep track of the starting date of a
+	rpc request in a task attribute when debug mode is enabled. 
+
+	* s-gaprtc.adb: Read and write stamp in messages when debug mode
+	is enabled. Set socket to TCP_NODELAY to fix 9019-020.
+
+	* s-garhea.adb, s-rpc.adb, s-rpcser.adb: Propagate stamp during
+	the rpc process and set task stamp to No_Stamp once processed.
+
+	* s-gartyp.ads, s-gartyp.adb: Declare Stamp_Type with few
+	primitives with it.
+
+	* s-garstr.adb, s-garstr.adb: Activate storage pool back as
+	7830-007 is fixed now. Improve performance tests.
+
+	* s-garuti.ads: Add a comment with '"' to please ada-mode.
+
 2001-05-30  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* s-gafizi.adb: Fix incorrect offset in compression. Bug found by
