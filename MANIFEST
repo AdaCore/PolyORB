@@ -500,6 +500,8 @@ src/polyorb-filters-slicers.ads
 src/polyorb-filters.adb
 src/polyorb-filters.ads
 src/polyorb-if_descriptors.ads
+src/polyorb-if_descriptors-corba_ir.adb
+src/polyorb-if_descriptors-corba_ir.ads
 src/polyorb-initialization.adb
 src/polyorb-initialization.ads
 src/polyorb-jobs.adb
