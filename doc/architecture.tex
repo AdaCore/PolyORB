@@ -311,7 +311,7 @@ les divers environnements de répartition existants~:
 
 \newif\ifexamples\examplestrue
 \begin{description}
-\item[Addressage]\mbox{}
+\item[Adressage]\mbox{}
 
   \begin{description}
 
@@ -504,63 +504,86 @@ les divers environnements de répartition existants~:
 
 \item[Protocole]\mbox{}
 
-  \begin{description} \item[Définition] The intergiciel implements a
-  protocol for the transmission of requests among instances of
-  distribution runtimes.
+  \begin{description} \item[Définition]
+  L'intergiciel met en {\oe}uvre un protocole pour la transmission
+  des requêtes d'invocation de méthodes entre différentes instances
+  d'exécutifs pour la répartition.
 
-  \item[Propriétés] The fundamental primitives of a distributed
-  objects protocol are \emph{Request} and \emph{Reply}, which are used
-  to implement remote invocation of subprograms and methods. Abortion
-  of pending requests can also be provided by protocol
-  primitives. Further primitives may be found in particular platforms;
-  these are used to perform various high-level functions, and can be
-  functionally understood as requests sent to objects that are part
-  of the platform implementation.
+  \item[Propriétés]
+  Les primitives fondamentales d'un protocoles pour les objets
+  réparties sont \emph{Requête} et \emph{Réponse}, qui interviennent
+  dans la réalisation de l'appel à distance de sous-programmes. Le
+  protocole peut également offrir un mécanisme d'avortement d'une
+  requête en cors.
+
+  Des primitives supplémentaires peuvent exister dans certaines
+  plates-formes de répartition. Elles sont utilisées pour effectuer
+  diverses tâches de haut niveau (par exemple la localisation initiale
+  de certains services du système). Elles peuvent être comprises
+  comme des requêtes particulières, échangées non entre des objets
+  applicatifs, mais entre des objets qui font partie intégrante de
+  l'intergiciel.
 \ifexamples
   \item[Exemple]
-  CORBA defines a Generic Inter-ORB Protocol for this purpose.
+  CORBA définit GIOP (Generic Inter-ORB Protocol) pour l'échange
+  de messages entre intergiciels.
 \fi
   \end{description}
 
 \item[Activation]\mbox{}
 
-  \begin{description} \item[Définition] The intergiciel has to activate
-  and deactivate the concrete entities implementing objects.  When a
-  request is received, it ensures that the object reference is mapped
-  onto an actual object implementation. The intergiciel may have to
-  create an object implementation on-the-fly, or to retrieve an object
-  state from persistent storage.
+  \begin{description} \item[Définition]
+  L'intergiciel est chargé d'activer les entités concrètes qui
+  implémentent les objets de l'application. Lorsqu'une requête est
+  reçue, il assure la projection de la référence utilisée par le
+  client sur une implémentation réelle de l'objet. Pour cela,
+  selon sa configuration, l'intergiciel peut choisir l'objet
+  destinataire au sein d'un ensemble d'objets actifs, ou bien
+  créer à la volée une implémentation, ou en charger une à partir
+  d'un espace de stockage persistant.
 
-  \item[Propriétés] Each request must be processed within the correct
-  context (including object state and identity, history of preceding
-  requests, etc.)
+  \item[Propriétés]
+  Avant le traitement d'une requête, le contexte doit être correctement
+  mis en place~: l'état et l'identité de l'objet cible doivent être
+  déterminés et réalisés par l'implémentation, en tenant compte de
+  l'historique des requêtes précédemment traitées, le cas échéant.
 \ifexamples
-  \item[Exemple] The Portable Object Adaptor of CORBA provides several
-  policies on various issues (automatic activation, system or user id
-  creation, thread creation per-request or per-object, ...)
+  \item[Exemple] Le POA (\emph{Portable Object Adapter}) de CORBA
+  fournit la fonction d'activation. Plusieurs aspects de son comportement
+  peuvent être paramétrés au moyen de politiques (\emph{policies})~:
+  activation automatique, attribution des identificateurs locaux d'objets
+  par l'utilisateur...
 \fi
   \end{description}
 
 \item[Aiguillage]\mbox{}
   
-  \begin{description} \item[Définition] When a request reaches a node,
-  it has to be assigned onto an execution resource (a thread of
-  control) for processing.  The distribution runtime has to find a
-  suitable thread on the node, or create one if necessary.
+  \begin{description} \item[Définition]
+  Quand une requête arrive sur un n{\oe}ud, des ressources d'exécution
+  (un fil de contrôle) doit être affecté à son traitement. L'exécutif
+  de répartition doit fournir ce fil d'exécution (en choisissant
+  un fil existant, dans le cadre de la politique de gestion des tâches
+  en vigueur sur le n{\oe}ud, ou bien en en créant un pour l'occasion).
 
-  \item[Propriétés] The dispatching mechanism should not introduce
-  dead locks. If possible, it should process requests fairly; request
-  prioritization support may also be provided.
+  \item[Propriétés]
+  Le mécanisme d'aiguillage ne doit pas introduire d'étreinte fatale
+  (\emph{dead lock}). Les requêtes doivent être traitées équitablement,
+  autant que faire se peut. Des distinctions de priorités entre les
+  requêtes peuvent également être supportées.
 
-  \item[Discussion] Several policies for deciding when to create a
-  thread, and on which thread to dispatch a given request, can be
-  defined. The choice of a particular threading policy is discussed
-  in~\cite{schmidt4}.
+  \item[Discussion]
+  Plusieurs politiques peuvent être employées pour décider quand
+  créer des fils de contrôle, et quel fil de contrôle utiliser pour
+  le traitement d'une requête donné. Le choix d'une politique
+  ou d'une autre est discuté notamment dans~\cite{schmidt4}.
 \ifexamples
-  \item[Exemple] \glade{} implements a pool of dynamically created
-  threads. Most incoming requests can thus be served
-  immediately, while keeping the memory and context switching footprint of the
-  runtime within limits~\cite{glade:ug}.
+  \item[Exemple] \glade{} possède un pool de fils d'exécution
+  créés et détruits dynamiquement en fonction des besoins. La
+  plupart des requêtes entrantes peuvent ainsi être servies
+  immédiatement, sans souffrir la pénalité liée à la création
+  d'un fil de contrôle, tout en permettant à l'encombrement
+  en mémoire de l'exécutif et le coût des changements de
+  contexte demeurent bornés~\cite{glade:ug}.
 \fi
   \end{description}
 \end{description}
@@ -708,7 +731,7 @@ Let us suppose that we have a very simple object with a single method \emph{echo
 taking a string argument, and sending that string back to the caller.
 Invoking this method involves the following steps:
 \begin{description}
-\item[Addressage] The caller determines a reference to the object.
+\item[Adressage] The caller determines a reference to the object.
 
 \item[Transport] The caller-side ORB extracts a network address from
   the reference and creates a connection to the object's ORB.
