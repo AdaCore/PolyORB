@@ -143,7 +143,22 @@ in its own elaboration code.
 Bug reports
 -----------
 
-Please send bug reports to the PolyORB team at polyorb-devel@polyorb.eu.org.
+If you find a bug or would like to submit patches, please do so indicating 
+the release you use. We accept patch files. To produce such a patch file, 
+put your files in the PolyORB directory and our files in the directory 
+PolyORB.orig, and use the following command:
+
+  diff --recursive --context PolyORB.orig PolyORB > patch_file
+
+and send us the patch_file via e-mail at the address 
+
+	polyorb-devel@polyorb.eu.org
+
+If your diff version do not understand the --recursive or --context
+option, please use the GNU diffutils package which may be found on any
+GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
+
+Note that unified diff files (-u option of GNU diff) are also welcomed.
 
 Contributors:
 -------------
