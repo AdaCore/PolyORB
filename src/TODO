@@ -63,15 +63,13 @@ Items still requiring attention
 
 * Implement CORBA bounded strings
 
-* Implement CORBA fixed-point types
-
 * When registering a profile tag, the associated representation
   subprograms should be To_Any and From_Any, not CDR marshalling
   subprograms.
   
 * Clarify the uniform interface of representations:
-  create a PolyORB.Representations.CDR.CDR_Representation
-  type (derived from P.R.Representation), idem for SOAP.
+  create a PolyORB.Representations.SOAP.SOAP__Representation
+  type (derived from P.R.Representation).
 
 * Extend Transport framework with a new abstract class
   Transport_Access_Point_Name with a bind() primitive operation
@@ -143,6 +141,12 @@ Items still requiring attention
 
 Items processed
 ---------------
+
+* Clarify the uniform interface of representations:
+  create a PolyORB.Representations.CDR.CDR_Representation
+  type (derived from P.R.Representation) (8544)
+
+* Implement CORBA fixed-point types (8516)
 
 * Exception support: separate personality-specific (CORBA)
   code from generic code. Check proper implementation of
