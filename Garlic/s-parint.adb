@@ -697,7 +697,9 @@ package body System.Partition_Interface is
 
    function Same_Partition
       (Left  : access RACW_Stub_Type;
-       Right : access RACW_Stub_Type) return Boolean is
+       Right : access RACW_Stub_Type) return Boolean
+   is
+      use type System.RPC.Partition_ID;
    begin
       return Left.Origin = Right.Origin;
    end Same_Partition;
