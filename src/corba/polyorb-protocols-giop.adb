@@ -868,9 +868,9 @@ package body PolyORB.Protocols.GIOP is
    end Location_Forward_Reply;
 
 
-   -------------------------------------------------------
-   --  Need_Addressing_Mode_Message
-   --------------------------------------------------------
+   ----------------------------------
+   -- Need_Addressing_Mode_Message --
+   ----------------------------------
 
    procedure Needs_Addressing_Mode_Message
      (Ses             : access GIOP_Session;
@@ -1427,9 +1427,9 @@ package body PolyORB.Protocols.GIOP is
       Free (Object_Key);
    end Request_Received;
 
-   -------------------------------
-   -- Receiving a Reply Message --
-   -------------------------------
+   --------------------
+   -- Reply_Received --
+   --------------------
 
    procedure Unmarshall_System_Exception_To_Any
      (Buffer : Buffer_Access;
@@ -1610,9 +1610,9 @@ package body PolyORB.Protocols.GIOP is
    end Reply_Received;
 
 
-   ---------------------------------------------
-   ---   receiving a locate request
-   ----------------------------------------------
+   ----------------------------
+   -- Locate_Request_Receive --
+   ----------------------------
 
    procedure Locate_Request_Receive
      (Ses : access GIOP_Session)
@@ -1726,8 +1726,7 @@ package body PolyORB.Protocols.GIOP is
          S.Nbr_Tries := 0;
       end if;
 
-      --  Sending the message
-      --  Sending the data to lower layers
+      --  Send the data to lower layers
       Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => S.Buffer_Out));
    end Invoke_Request;
 
@@ -1826,31 +1825,35 @@ package body PolyORB.Protocols.GIOP is
 
       pragma Debug (O ("Sending reply"));
 
-      --  Sending the message
+      --  Send the message down to lower layers.
       Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => S.Buffer_Out));
 
       pragma Debug (O ("After Sending Reply"));
    end Send_Reply;
 
-   ----------------------------------
-   --  Handle Connect Indication ----
-   ----------------------------------
+   -------------------------------
+   -- Handle_Connect_Indication --
+   -------------------------------
 
-   procedure Handle_Connect_Indication (S : access GIOP_Session)
-   is
-
+   procedure Handle_Connect_Indication (S : access GIOP_Session) is
    begin
-      pragma Debug (O ("Received new connection ..."));
       S.Role := Server;
       Expect_Message (S);
    end Handle_Connect_Indication;
 
+   ---------------------------------
+   -- Handle_Connect_Confirmation --
+   ---------------------------------
+
    procedure Handle_Connect_Confirmation (S : access GIOP_Session) is
    begin
-      pragma Debug (O (" Connection established to server ..."));
       S.Role := Client;
       Expect_Message (S);
    end Handle_Connect_Confirmation;
+
+   ----------------------------
+   -- Handle_Data_Indication --
+   ----------------------------
 
    procedure Handle_Data_Indication
      (S : access GIOP_Session;
@@ -1899,12 +1902,6 @@ package body PolyORB.Protocols.GIOP is
          --  be in one of the states where it expects data.
          null;
       end if;
-
-      --  if Fragment_Next then
-      --   Expect_Data ();
-      --   return;
-      --  end if
-      --  XXX what is that?
 
       pragma Debug (O ("Processing message body of type "
                        & S.Mess_Type_Received'Img));
@@ -2006,7 +2003,8 @@ package body PolyORB.Protocols.GIOP is
                               (Current_Req.Target_Profile.all),
                               TE, Component_Access (New_Ses));
 
-                           --  Release the previous session buffers
+                           --  Release the previous session buffers.
+
                            Release (S.Buffer_In);
                            Release (S.Buffer_Out);
                            GIOP.Invoke_Request
@@ -2041,6 +2039,7 @@ package body PolyORB.Protocols.GIOP is
       end case;
 
       if S.State = Expect_Body then
+
          --  The expected message body has now been received
          --  and processed: prepare to receive next message.
 

@@ -113,8 +113,8 @@ package body PolyORB.Protocols is
          --  have to determine the signature of the called
          --  method in order to translate the request.
 
-         --  XXX this may require an interface repository lookup
-         --  and is not implemented.
+         --  XXX this may require an interface repository lookup,
+         --      which is not implemented.
 
          Invoke_Request
            (Session_Access (Sess),
@@ -134,20 +134,6 @@ package body PolyORB.Protocols is
          end;
       elsif S in Disconnect_Request then
          return Emit (Lower (Sess), S);
-      elsif S in Queue_Request then
-         --  XXX
-         --  This is very wrong:
-         --    * a session should not ever receive Queue_Request
-         --      (this is a message from the ORB interface!)
-         --    * Put_Line must NEVER EVER be used at all.
-         --      debugging messages MUST use the PolyORB.Log mechanism.
-         --
-         --  Therefore disabling all the branch.
-         --  Thomas 20010823
-         raise Program_Error;
---          Ada.Text_IO.Put_Line ("message is queue request");
---          Sess.Pending_Request := Queue_Request (S);
---          PolyORB.Soft_Links.Update (Sess.Request_Watcher);
       else
          raise Components.Unhandled_Message;
       end if;
