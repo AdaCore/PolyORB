@@ -73,6 +73,7 @@ procedure Test_Naming is
       Write,
       List,
       Ls,
+      Namei,
       Lmkdir,
       Mkdir,
       Md,
@@ -99,6 +100,7 @@ procedure Test_Naming is
          Write  => M ("write <F> <S>, write string S in file F"),
          List   => M ("list [<D>], list files in dir D [def = <.>]"),
          Ls     => M ("   (alias for LIST)"),
+         Namei  => M ("namei <N>, show IOR bound to <N>"),
          Lmkdir => M ("lmdir <D>, make local dir and bind it to <D>"),
          Mkdir  => M ("   (alias for LMKDIR)"),
          Md     => M ("   (alias for LMKDIR)"),
@@ -128,6 +130,11 @@ procedure Test_Naming is
      (S   : String;
       Sep : Character := '/')
      return File.Ref;
+
+   function To_Object
+     (S   : String;
+      Sep : Character := '/')
+     return CORBA.Object.Ref;
 
    function To_Name
      (S   : String;
@@ -216,12 +223,24 @@ procedure Test_Naming is
       Sep : Character := '/')
      return File.Ref is
    begin
-      return File.Helper.To_Ref (Resolve (From (S), To_Name (S)));
+      return File.Helper.To_Ref (To_Object (S, Sep));
+   end To_File;
+
+   ---------------
+   -- To_Object --
+   ---------------
+
+   function To_Object
+     (S   : String;
+      Sep : Character := '/')
+     return CORBA.Object.Ref is
+   begin
+      return Resolve (From (S), To_Name (S));
    exception
       when others =>
-         Ada.Text_IO.Put_Line ("No such file " & S);
+         Ada.Text_IO.Put_Line ("No such object " & S);
          raise;
-   end To_File;
+   end To_Object;
 
    -------------
    -- To_Name --
@@ -426,15 +445,10 @@ begin
                     raise Syntax_Error;
                   end if;
                   Argv  := Argument (2);
-                  Ada.Text_IO.Put_Line ("@@1");
                   Dir   := New_Context (From (Argv.all));
-                  Ada.Text_IO.Put_Line ("@@2");
                   Bind_Context (From (Argv.all), To_Name (Argv.all), Dir);
-                  Ada.Text_IO.Put_Line ("@@3");
                   Bind_Context (Dir, Here, Dir);
-                  Ada.Text_IO.Put_Line ("@@4");
                   Bind_Context (Dir, Back, Parent (Argv.all));
-                  Ada.Text_IO.Put_Line ("@@5");
 
                when Lmkdir | Mkdir | Md =>
                   if Argc /= 2 then
@@ -472,6 +486,16 @@ begin
                   Fil   := To_File (Argv.all);
                   Ada.Text_IO.Put_Line
                     (CORBA.To_Standard_String (Get_Image (Fil)));
+
+               when Namei =>
+                  if Argc /= 2 then
+                     raise Syntax_Error;
+                  end if;
+
+                  Argv := Argument (2);
+                  Ada.Text_IO.Put_Line
+                    (CORBA.To_Standard_String
+                     (CORBA.Object.Object_To_String (To_Object (Argv.all))));
 
                when List | Ls =>
                   if Argc >= 3 then
