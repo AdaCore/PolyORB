@@ -1,4 +1,4 @@
-// $Id$
+// $Id: //droopi/main/examples/corba/all_types/interop/cpp/dynserver_mt.cc#2 $
 
 // DSI server, implements echoULong method. It uses TAO's worker thread pool.
 // NOTE: this server will compile only with TAO

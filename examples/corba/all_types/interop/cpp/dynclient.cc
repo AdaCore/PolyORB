@@ -1,4 +1,4 @@
-// $Id$
+// $Id: //droopi/main/examples/corba/all_types/interop/cpp/dynclient.cc#3 $
 // DII client, makes 10 000 calls to echoULong method
 
 #include <stdlib.h>

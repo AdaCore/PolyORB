@@ -1,4 +1,4 @@
-// $Id$
+// $Id: //droopi/main/examples/corba/all_types/interop/cpp/dynserver.cc#3 $
 // DSI server, implements echoULong method
 
 #include <iostream>
