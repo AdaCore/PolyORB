@@ -92,7 +92,36 @@ String += "\n end " + get_ada_name() + "\n"
 
 
 adabe_interface::produce_adb(dep_list with,string &String, string &previousdefinition);
+/*
+string Previous = ""
+string tmp = ""
 
+with.add("Ada.Tags");
+with.add("Ada.exceptions");
+with.add("Ada.Omniproxycallwrapper");
+with.add("Ada.Proxies");
+with.add("Ada.Object");
+String += "pakage body" + get_ada_name() + " is /n"
+
+String += "function To_Ref(The_Ref : in Corba.Object.ref'CLASS) return Ref \n"
+//////////////////////////// a completer /////////////////////////////////////
+
+
+// instructions
+
+scan du UTL_Scope de this
+   {
+   cast du NT en son veritable type et
+       {
+       string tmp1 = "";
+       string tmp2 = "";
+       NT.produce_ads(with,tmp1,tmp2);
+       String += tmp2 + tmp1;  
+       }   
+   }
+String += "\n end " + get_ada_name() + "\n"    
+
+*/
 
 //  void produce_adb(std::fstream& s);
 //  void produce_impl_ads(std::fstream& s);

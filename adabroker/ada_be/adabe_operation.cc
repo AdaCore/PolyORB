@@ -17,7 +17,7 @@ adabe_operation::produce_ads(dep_list with,string &String, string &previousdefin
   cast the return_type() in his NT;
   if (is_function())
   {
-    string += " function" + ada.name + "(Self : in Ref ";
+    string += " function" + get_ada_name() + "(Self : in Ref ";
     while the UTL_Scope is not empty (make a copy)               //this
     {
        string += ","
@@ -29,7 +29,7 @@ adabe_operation::produce_ads(dep_list with,string &String, string &previousdefin
   }
   else
   {
-    string += " procedure" + ada.name + "(Self : in Ref ";
+    string += " procedure" + get_ada_name() + "(Self : in Ref ";
     while the UTL_Scope is not empty               //this
     {
        string += ","
@@ -37,7 +37,7 @@ adabe_operation::produce_ads(dep_list with,string &String, string &previousdefin
        if it is an argument
        argument.produce_ads(dep_list with,string &String, string &previousdefinition);
     }
-    string += ", Returns : out " return_type_cast.dump_name(dep_list with,string &String, string &previousdefinition) + ");";
+    string += ", Result : out " return_type_cast.dump_name(dep_list with,string &String, string &previousdefinition) + ");";
   }
 */
 
@@ -68,9 +68,80 @@ adabe_operation::is_function();
 */
 
 
+void
+adabe_operation::produce_adb(dep_list with,string &String, string &previousdefinition);
+/*
+  String += (case of the Flags)              //oneway ...
+  cast the return_type() in his NT if not null;
+  if (is_function())
+  {
+    String += " function" + get_ada_name() + "(Self : in Ref ";
+    while the UTL_Scope is not empty (make a copy)              
+    {
+       String += ","
+       cast the node into his NT type
+       if it is an argument
+       argument.produce_ads(with, &String, &previousdefinition);
+    }
+    name = return_type_cast.dump_name( with, &String, &previousdefinition);
+    name_of_the_package = ???????????????????????????????????????????????????????????????????????????????????????????????
+    String += ") return " + name +" is \n";
+    String += "Opcd : " + name_of_the_package + ".Proxies." + get_ada_name() + "_Proxy ;\n"
+    String += "Result : " + name +";\n";
+    String += "begin \n";
+    String += "Assert_Ref_Not_Nil(Self);";
+    String += "Opcd := " + name_of_the_package + ".Proxies.Create(";
+    while the UTL_Scope is not empty (make a copy)              
+    {
+       cast the node into his NT type
+       if it is an argument
+       String += argument.get_ada_name();
+       if UTL_Scope not empty String += ", ";
+    }
+    String += ") ;\n";
+    String += "OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
+    String += "Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
+    String += name_of_the_package + ".Proxies.Free(Opcd) ;\n";
+    String += "return Result ;";
+    String += "end;";
+  }
+  else
+  {
+    String += " procedure" + ada.name + "(Self : in Ref ";
+    while the UTL_Scope is not empty               //this
+    {
+       String += ","
+       cast the node into his NT type
+       if it is an argument
+       argument.produce_ads(dep_list with,string &String, string &previousdefinition);
+    }
+    if return_type not null {
+           name =  return_type_cast.dump_name(dep_list with,string &String, string &previousdefinition);
+           String += ", Result : out " + name + ") is\n";
+	   }
+    else   String += ") is \n";
+    name_of_the_package = ???????????????????????????????????????????????????????????????????????????????????????????????
+    String += "Opcd : " + name_of_the_package + ".Proxies." + get_ada_name() + "_Proxy ;\n"
+    String += "begin \n";
+    String += "Assert_Ref_Not_Nil(Self);";
+    String += "Opcd := " + name_of_the_package + ".Proxies.Create(";
+    while the UTL_Scope is not empty (make a copy)              
+    {
+       cast the node into his NT type
+       if it is an argument
+       String += argument.get_ada_name();
+       if UTL_Scope not empty String += ", ";
+    }
+    if return_type() not null String += ", Result) ;\n"
+    else String += ");\n";
+    String += "OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
+    String += name_of_the_package + ".Proxies.Free(Opcd) ;\n";
+    String += "return ;";
+    String += "end;";
+    
+  }
 
-
-
+*/
 
 
 

@@ -13,18 +13,53 @@ adabe_attribute::produce_ads(dep_list with,string &String, string &previousdefin
   name = ada_name.compute();
   cast le field_type en NT
   String += "function get_" + name +"(Self : in Ref) return " 
-  String += NT.dump_name(dep_list with,string &String, string &previousdefinition);
+  String += NT.dump_name(dep_list with,string &String, string &previousdefinition) + ";\n";
   if (pd_readonly)
   {
-    String += "procedure get_" + name +"(Self : in Ref, To : in "
+    String += "procedure set_" + name +"(Self : in Ref, To : in "
     String += NT.dump_name(dep_list with,string &String, string &previousdefinition);
     String += ");";
   }
 
 
 */
-adabe_attribute::produce_adb(dep_list with,string &String, string &previousdefinition);
+void
+adabe_operation::produce_adb(dep_list with,string &String, string &previousdefinition);
 /*
+  
+  cast le field_type en NT
+  String += "function get_" + get_ada_name() +"(Self : in Ref) return " 
+  name = NT.dump_name(dep_list with,string &String, string &previousdefinition);
+  String += name + ";\n";  
+  name_of_the_package = ???????????????????????????????????????????????????????????????????????????????????????????????
+  String += "Opcd : " + name_of_the_package + ".Proxies.Get_" + get_ada_name() + "_Proxy ;\n"
+  String += "Result : " + name +";\n";
+  String += "begin \n";
+  String += "Assert_Ref_Not_Nil(Self);";
+  String += "Opcd := " + name_of_the_package + ".Proxies.Create();\n";
+  String += "OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
+  String += "Result := " + name_of_the_package + ".Proxies.Get_Result(Opcd) ;\n";
+  String += name_of_the_package + ".Proxies.Free(Opcd) ;\n";
+  String += "return Result ;";
+  String += "end;";
+
+  if (pd_readonly)
+  {
+    String += "procedure set_" + name +"(Self : in Ref, To : in ";
+    String += name + ") is \n";
+    name_of_the_package = ???????????????????????????????????????????????????????????????????????????????????????????????
+    String += "Opcd : " + name_of_the_package + ".Proxies." + get_ada_name() + "_Proxy ;\n"
+    String += "begin \n";
+    String += "Assert_Ref_Not_Nil(Self);";
+    String += "Opcd := " + name_of_the_package + ".Proxies.Create(To);";
+    String += "OmniProxyCallWrapper.Invoke(Self, Opcd) ;\n";
+    String += name_of_the_package + ".Proxies.Free(Opcd) ;\n";
+    String += "return ;";
+    String += "end;";    
+  }
+
+
+*/
 
 
 //  void produce_adb(std::fstream& s);
