@@ -43,6 +43,7 @@ begin
    Output ("test string",
            EchoString (MyAll_Types, To_CORBA_String ("hello")) =
            To_CORBA_String ("hello"));
+   Output ("test enum", EchoColor (MyAll_Types, Blue) = Blue);
 
 --   begin
 --      Ok := False;

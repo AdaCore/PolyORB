@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.13 $
+//                            $Revision: 1.14 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -206,6 +206,7 @@ adabe_operation::produce_adb (dep_list & with,
       out_args += ", Returns";
       AST_Decl *b = return_type ();
       string tmp = dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
+      dynamic_cast<adabe_name *>(b)->is_marshal_imported (with);
       in_decls += ";\n              " + space + "Returns : out " +  tmp;
     }
   in_decls += ")";

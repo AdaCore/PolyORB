@@ -16,6 +16,11 @@ interface all_types {
   string echoString (in string arg) ;
   all_types echoRef (in all_types arg);
 
+  // Enum
+  //-----
+  enum Color { Red, Green, Blue };
+  Color echoColor (in Color arg);
+
   // Exceptions
   //-----------
 //  exception simple_exception {};
@@ -52,11 +57,6 @@ interface all_types {
 
 //  manu_struct inverseStruct (in manu_struct arg);
 
-
-  // Enum
-  //-----
-//  enum Color { Red, Green, Blue };
-//  Color echo3 (in Color arg);
 
 
   // Strings

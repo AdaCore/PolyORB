@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -103,7 +103,7 @@ adabe_enum::produce_stream_adb (dep_list & with,
 {
   body +=
     "   procedure Marshall\n"
-    "      (Stream : in out Buffer_Descriptor;\n"
+    "      (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
     "       Val : " + get_ada_local_name () + ")\n"
     "   is\n"
     "   begin\n"
@@ -114,19 +114,20 @@ adabe_enum::produce_stream_adb (dep_list & with,
     "   end Marshall;\n"
     "\n"
     "   procedure Unmarshall\n"
-    "      (Stream : in out Buffer_Descriptor;\n"
+    "      (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
     "       Res : out " + get_ada_local_name () + ")\n"
     "   is \n"
     "      Tmp : CORBA.Unsigned_Long;\n"
     "   begin\n"
-    "      Unmarshall (Stream, Tmp, S);\n"
-    "      A := " + get_ada_local_name () + "'Val (Tmp);\n"
+    "      Unmarshall (Stream, Tmp);\n"
+    "      Res := " + get_ada_local_name () + "'Val (Tmp);\n"
     "   end Unmarshall;\n"
     "\n"
     "   procedure Compute_New_Size\n"
-    "      (Stream : in out Buffer_Descriptor;\n"
+    "      (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
     "       Val : " + get_ada_local_name () + ")\n"
     "   is\n"
+    "      use Broca.Buffers;\n"
     "   begin\n"
     "      Compute_New_Size (Stream, UL_Size, UL_Size);\n"
     "   end Compute_New_Size;\n"

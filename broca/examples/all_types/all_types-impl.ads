@@ -72,6 +72,11 @@ private
       arg : in Ref)
       return Ref;
 
+   function echoColor
+     (Self : access Object;
+      arg  : in Color)
+      return Color;
+
 --   procedure simple_exception_test
 --     (Self : access Object);
 --

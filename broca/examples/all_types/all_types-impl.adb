@@ -99,6 +99,14 @@ package body all_types.Impl is
       return arg;
    end echoRef;
 
+   function echoColor
+     (Self : access Object;
+      arg  : in Color)
+      return Color is
+   begin
+      return arg;
+   end echoColor;
+
 --   procedure simple_exception_test
 --     (Self : access Object)
 --   is

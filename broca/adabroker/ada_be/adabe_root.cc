@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.7 $
+//                            $Revision: 1.8 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -242,18 +242,22 @@ void adabe_root::produce () {
 		    string interface_prologue = "";
 		    string interface_maincode = "";
 		    string interface_withcode = "";
+		    string interface_usecode = "";
 		    dep_list interface_withlist;
 
 		    interface->produce_adb
 		      (interface_withlist,
 		       interface_maincode,
 		       interface_prologue);
+
 		    interface_withcode = *interface_withlist.produce ("with ");
+		    interface_usecode = *interface_withlist.produce ("use ");
 
 		    produce_file
 		      (interface->get_ada_full_name (),
 		       is_body,
 		       interface_withcode
+		       + interface_usecode
 		       + interface_prologue
 		       + interface_maincode);
 		  }
@@ -367,6 +371,7 @@ void adabe_root::produce () {
 		    string interface_prologue = "";
 		    string interface_maincode = "";
 		    string interface_withcode = "";
+		    string interface_usecode = "";
 		    dep_list interface_withlist;
 		    
 		    interface->produce_skel_adb
@@ -374,11 +379,13 @@ void adabe_root::produce () {
 		       interface_maincode,
 		       interface_prologue);
 		    interface_withcode = *interface_withlist.produce ("with ");
+		    interface_usecode = *interface_withlist.produce ("use ");
 		    
 		    produce_file
 		      (interface->get_ada_full_name (),
 		       is_skel_body,
 		       interface_withcode
+		       + interface_usecode
 		       + interface_prologue
 		       + interface_maincode);
 		  }
@@ -407,6 +414,7 @@ void adabe_root::produce () {
       
       root_prologue += "use type CORBA.Unsigned_Long; \n";
       root_withlist.add ("CORBA");
+      root_withlist.add ("Broca.Buffers");
 
       root_prologue += "package " + get_ada_full_name () + ".Stream is\n";
 		  
@@ -455,6 +463,8 @@ void adabe_root::produce () {
 		    string module_withcode;
 		    dep_list module_withlist;
 
+                    module_withlist.add ("Broca.Buffers");
+
 		    module->produce_stream_ads
 		      (module_withlist,
 		       module_maincode,
@@ -482,6 +492,8 @@ void adabe_root::produce () {
 		    string interface_maincode = "";
 		    string interface_withcode;
 		    dep_list interface_withlist;
+
+                    interface_withlist.add ("Broca.Buffers");
 
 		    interface->produce_stream_ads
 		      (interface_withlist,

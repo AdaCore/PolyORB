@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.11 $
+//                            $Revision: 1.12 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -644,8 +644,9 @@ adabe_name::is_marshal_imported (dep_list& with)
     {
       return 0;
     }
-  if (this == adabe_global::adabe_current_file ()) 
-    return 0;
+  //XXX TQ 19991027
+  // if (this == adabe_global::adabe_current_file ()) 
+  //   return 0;
   AST_Decl::NodeType NT = node_type ();
   if (NT == AST_Decl::NT_interface)
     {
