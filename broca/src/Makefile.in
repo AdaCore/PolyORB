@@ -106,7 +106,7 @@ libbroca_la_LDFLAGS = -lgnat -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-LINK = libtool $(ADA) -o libbroca.la
+LINK = $(LIBTOOL) $(ADA) -o libbroca.la
 
 ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao 	-I. -I$(srcdir) -I../adasockets/src -I$(srcdir)/../adasockets/src 	-g -O2 $(CFLAGS)
 
@@ -141,7 +141,8 @@ sockets-naming.lo sockets-thin.lo sockets-utils.lo sockets.lo
 libbroca_la_OBJECTS = 
 SCRIPTS =  $(bin_SCRIPTS)
 
-DIST_COMMON =  ChangeLog Makefile.am Makefile.in adabroker-config.in
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in adabroker-config.in \
+configure
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -259,7 +260,7 @@ distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$/$$file $(distdir)/$$file; \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \

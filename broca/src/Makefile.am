@@ -69,7 +69,7 @@ libbroca_la_LDFLAGS = -lgnat -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali
 
-LINK = libtool $(ADA) -o libbroca.la
+LINK = $(LIBTOOL) $(ADA) -o libbroca.la
 
 ADAFLAGS = -gnatwu -gnatwl -gnatf -gnatgao \
 	-I. -I$(srcdir) -I../adasockets/src -I$(srcdir)/../adasockets/src \

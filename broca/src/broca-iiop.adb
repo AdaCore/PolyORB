@@ -95,6 +95,22 @@ package body Broca.IIOP is
       Major := Unmarshall (Profile_Body_Buffer'Access);
       Minor := Unmarshall (Profile_Body_Buffer'Access);
 
+      --  FIXME: Magic.
+      --    The following line is /required/ for this to work
+      --    on Sparc. Remove at your own risks
+
+      declare
+         S : constant String
+           := "Unmarshall_IIOP_Profile_Body: version = "
+           & CORBA.Octet'Image (Major)
+           & "."
+           & CORBA.Octet'Image (Minor);
+         pragma Warnings (Off, S);
+      begin
+         pragma Debug (O (S));
+         null;
+      end;
+
       IIOP_Profile.Host := Unmarshall (Profile_Body_Buffer'Access);
       IIOP_Profile.Port := Unmarshall (Profile_Body_Buffer'Access);
       IIOP_Profile.Network_Port := Port_To_Network_Port (IIOP_Profile.Port);
@@ -103,9 +119,9 @@ package body Broca.IIOP is
       Profile :=  Profile_Ptr (IIOP_Profile);
    end Unmarshall_IIOP_Profile_Body;
 
-   -------------------------
+   --------------------------------
    -- Marshall_IIOP_Profile_Body --
-   -------------------------
+   --------------------------------
 
    procedure Marshall_IIOP_Profile_Body
      (IOR     : access Buffer_Type;
