@@ -1,0 +1,12 @@
+interface vehicle {
+  attribute string mark;
+  boolean can_drive(in unsigned short age) ;
+};
+
+interface weapon {
+  typedef string name;
+  void shoot ();
+};
+
+interface tank : vehicle, weapon {
+};
