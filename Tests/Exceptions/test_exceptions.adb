@@ -56,6 +56,6 @@ begin
    exception
       when Error : others =>
          Put_Line (Exception_Name (Error) & " raised");
-         Put_Line ("with message " & Exception_Message (Error));
+         Put_Line ("with message: " & Exception_Message (Error));
    end;
 end Test_Exceptions;
