@@ -1,5 +1,11 @@
 2003-11-18  Laurent Pautet  <pautet@enst.fr>
 
+	* 5wgarrem.adb, s-gartab.ads, s-gartab.adb, s-ganata.adb,
+	s-garfil.adb s-garpar.adb, s-garuni.adb s-rpstio.adb,
+	s-gasoli.adb: Update copyright for 2003.
+	
+2003-11-18  Laurent Pautet  <pautet@enst.fr>
+
 	* s-gaprtc.adb: For a pure client partition, its net location is
 	set to an empty value (there is no way to connect to it). When it
 	dies, we loose the only socket connection. But we may have to send
