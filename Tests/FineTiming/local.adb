@@ -28,7 +28,9 @@ procedure Local is
    package FIO is new Float_IO (Float);
    use FIO;
 
-   procedure Put_Summary (T : in String);
+   procedure Put_Summary (T : in String; R : access Float);
+
+   procedure Sum (Head : in String; R : in Float);
 
    function Port_To_Use (Sock : access int) return Interfaces.C.unsigned_short;
 
@@ -63,19 +65,41 @@ procedure Local is
    -- Put_Summary --
    -----------------
 
-   procedure Put_Summary (T : in String) is
+   procedure Put_Summary (T : in String; R : access Float) is
    begin
       Put_Line ("done");
       Put ("                   " & T & " summary:");
-      Put (Float (After - Before) / Float (Iterations), Fore => 3, Aft => 2,
-           Exp => 0);
+      R.all := Float (After - Before) / Float (Iterations);
+      Put (R.all, Fore => 3, Aft => 3, Exp => 0);
       Put_Line ("ms");
    end Put_Summary;
+
+   ---------
+   -- Sum --
+   ---------
+
+   procedure Sum (Head : in String; R : in Float) is
+   begin
+      for I in 1 .. 50 loop
+         if I <= Head'Length then
+            Put (Head (I - Head'First + 1));
+         else
+            Put ('.');
+         end if;
+      end loop;
+      Put (" ");
+      Put (R, Fore => 3, Aft => 3, Exp => 0);
+      Put_Line ("ms");
+   end Sum;
 
    S   : aliased int;
    NS  : int;
    NA  : aliased Sockaddr_In;
    NAL : aliased int := NA'Size / 8;
+
+   SET, RSET, Recept, MarshUnmarsh2000, MarshUnmarsh,
+     ST, RST, AET, RAET, Setup, ATT, RAT, Marsh1000, Marsh,
+     Unmarsh : aliased Float;
 
 begin
    Put ("Testing communication... ");
@@ -89,7 +113,7 @@ begin
       Synchronous_Empty_Test;
    end loop;
    After := Current;
-   Put_Summary ("SET");
+   Put_Summary ("SET", SET'Access);
 
    Put ("Starting ST... ");
    Before := Current;
@@ -97,7 +121,7 @@ begin
       Synchronous_Test (Buffer);
    end loop;
    After := Current;
-   Put_Summary ("ST");
+   Put_Summary ("ST", ST'Access);
 
    Put ("Starting AET... "); Flush;
    Before := Current;
@@ -105,7 +129,7 @@ begin
       Asynchronous_Empty_Test;
    end loop;
    After := Current;
-   Put_Summary ("AET");
+   Put_Summary ("AET", AET'Access);
 
    Put ("Starting AT... ");
    Before := Current;
@@ -113,7 +137,7 @@ begin
       Asynchronous_Test (Buffer);
    end loop;
    After := Current;
-   Put_Summary ("AT");
+   Put_Summary ("AT", ATT'Access);
 
    Put ("Entering raw socket test mode... ");
    OneBuffer := new Stream_Element_Array (1 .. 1);
@@ -130,7 +154,7 @@ begin
       Receive (NS, OneBuffer);
    end loop;
    After := Current;
-   Put_Summary ("raw SET");
+   Put_Summary ("raw SET", RSET'Access);
 
    Put ("Starting raw ST... ");
    Before := Current;
@@ -139,7 +163,7 @@ begin
       Receive (NS, SBuffer);
    end loop;
    After := Current;
-   Put_Summary ("raw ST");
+   Put_Summary ("raw ST", RST'Access);
 
    Put ("Starting raw AET... ");
    Before := Current;
@@ -147,7 +171,7 @@ begin
       Send (NS, OneBuffer);
    end loop;
    After := Current;
-   Put_Summary ("raw AET");
+   Put_Summary ("raw AET", RAET'Access);
 
    Put ("Starting raw AT... ");
    Before := Current;
@@ -155,6 +179,24 @@ begin
       Send (NS, SBuffer);
    end loop;
    After := Current;
-   Put_Summary ("raw AT");
+   Put_Summary ("raw AT", RAT'Access);
+
+   New_Line;
+
+   Recept := SET - RSET;
+   MarshUnmarsh2000 := ST - RST - Recept;
+   MarshUnmarsh := MarshUnmarsh2000 / 2000.0;
+   Setup := AET - RAET;
+   Marsh1000 := ATT - RAT;
+   Marsh := Marsh1000 / 1000.0;
+   Unmarsh := MarshUnmarsh - Marsh;
+
+   Sum ("Setup of an anonymous task", Recept);
+   Sum ("Marshaling+unmarshaling of 2000 integers", MarshUnmarsh2000);
+   Sum ("Marshaling+unmarshaling of one integer", MarshUnmarsh);
+   Sum ("Setup of sender", Setup);
+   Sum ("Marshaling of 1000 integers", Marsh1000);
+   Sum ("Marshaling of one integer", Marsh);
+   Sum ("Unmarshaling of one integer", Unmarsh);
 
 end Local;
