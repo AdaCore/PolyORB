@@ -77,13 +77,6 @@ package System.Partition_Interface is
    --  Register the fact that the Name receiving stub is now elaborated.
    --  Register the access value to the package RPC_Receiver procedure.
 
-   function Register_Receiving_Stub
-     (Name     : Unit_Name;
-      Receiver : RPC.RPC_Receiver;
-      Version  : String := "")
-      return Boolean;
-   --  Same than above, but may be used in a declarative part.
-
    procedure Invalidate_Receiving_Stub
      (Name     : in Unit_Name);
    --  Declare this receiving stub as corrupted to the RCI Name Server.
