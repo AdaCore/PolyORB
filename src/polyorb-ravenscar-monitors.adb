@@ -90,12 +90,6 @@ package body PolyORB.Ravenscar.Monitors is
       --  task own the monitor). If so, it take it; If it cannot,
       --  it is queued.
 
-      procedure Retest_Entry
-        (Result : out Boolean;
-         Place  : Thread_Index);
-      --  Retest if the task can enter the Monitor, assuming that
-      --  the task has already been queued.
-
       procedure Evaluate
         (Id     : Thread_Index;
          C      : access PTM.Condition_Type'Class;
@@ -181,15 +175,9 @@ package body PolyORB.Ravenscar.Monitors is
         (Exit_Condition,
          Place,
          Current_Thread_Id);
-      while not Exit_Condition loop
-         --  We need this loop, because we are not sure that
-         --  the owner will call "Resume" first.
-         --  pragma Assert (Current_Thread /= null);
-         Suspend (Current_Thread_Id);
-         The_Infos_Arr (M.Id).Retest_Entry
-           (Exit_Condition,
-            Place);
-      end loop;
+      if not Exit_Condition then
+         Determinist_Suspend (Current_Thread_Id);
+      end if;
    end Enter;
 
    ----------------
@@ -272,9 +260,8 @@ package body PolyORB.Ravenscar.Monitors is
 
          if Waiters (Former_Owner).Next /= Null_Thread_Index then
             Owner := Waiters (Former_Owner).Next;
-            --  pragma Assert (Waiters (Owner).This /= null);
-            Resume (Waiters (Owner).This);
-            Waiters (Owner).WT := None;
+            pragma Assert (Waiters (Owner).WT = Enter_Wait);
+            Determinist_Resume (Waiters (Owner).This);
          else
             Owner := Null_Thread_Index;
          end if;
@@ -282,22 +269,12 @@ package body PolyORB.Ravenscar.Monitors is
          if Waiters (Former_Owner).WT /= Condition_Wait then
             Waiters (Former_Owner).WT := None;
          end if;
+         Waiters (Former_Owner).Next := Null_Thread_Index;
+
       exception
          when others =>
             raise;
       end Leave_Entry;
-
-      ----------------------------------
-      -- Protected_Infos.Retest_Entry --
-      ----------------------------------
-
-      procedure Retest_Entry
-        (Result : out Boolean;
-         Place  : Thread_Index) is
-      begin
-         Result := Place = Owner
-           or else Owner = Null_Thread_Index;
-      end Retest_Entry;
 
       ----------------------------
       -- Protected_Infos.Signal --
@@ -346,7 +323,9 @@ package body PolyORB.Ravenscar.Monitors is
          if Result then
             Owner := Place;
             Waiters (Place).Next := Null_Thread_Index;
-            Waiters (Place).WT := None;
+            if Waiters (Place).WT /= Condition_Wait then
+               Waiters (Place).WT := None;
+            end if;
          elsif Precedent = Null_Thread_Index then
             Waiters (Place).Next := Waiters (Owner).Next;
             Waiters (Owner).Next := Place;
@@ -384,7 +363,6 @@ package body PolyORB.Ravenscar.Monitors is
       T_Id           : constant Extended_Thread_Index
         := Get_Thread_Index (Current_Thread_Id);
    begin
-
       if The_Infos_Arr (M.Id).Get_Owner /= T_Id then
          raise Program_Error;
       end if;
@@ -394,17 +372,21 @@ package body PolyORB.Ravenscar.Monitors is
          C,
          Exit_Condition);
 
-      while not Exit_Condition loop
+      if not Exit_Condition then
          Leave (M);
-         --  pragma Assert (Current_Thread /= null);
-         Suspend (Current_Thread_Id);
-         Enter (M);
-         The_Infos_Arr (M.Id).Evaluate
-           (Get_Thread_Index (Current_Thread_Id),
-            C,
-            Exit_Condition);
 
-      end loop;
+         while not Exit_Condition loop
+            --  pragma Assert (Current_Thread /= null);
+            Suspend (Current_Thread_Id);
+            The_Infos_Arr (M.Id).Evaluate
+              (Get_Thread_Index (Current_Thread_Id),
+               C,
+               Exit_Condition);
+         end loop;
+
+         Enter (M);
+      end if;
+
    end Wait;
 
    use PolyORB.Initialization;

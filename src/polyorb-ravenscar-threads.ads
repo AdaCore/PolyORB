@@ -129,9 +129,20 @@ package PolyORB.Ravenscar.Threads is
    --  raise a Program_Error if another task call
    --  "Suspend" on the same synchronisation object.
 
+   procedure Determinist_Suspend (T : Ravenscar_Thread_Id);
+   --  This procedure is only used for determinist suspension:
+   --  for example, the wait in a bounded FIFO for
+   --  a mutex.
+   --  The same conditions that Suspend applies.
+
    procedure Resume (T : Ravenscar_Thread_Id);
    --  The call to this procedure free the task waiting
    --  on the internal synchronisation object of "T".
+
+   procedure Determinist_Resume (T : Ravenscar_Thread_Id);
+   --  The call to this procedure free the task waiting
+   --  on the internal synchronisation object of "T" dedicated
+   --  to the determinist suspension.
 
    function Get_Thread_Index (T : Ravenscar_Thread_Id)
                              return Integer;

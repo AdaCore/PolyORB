@@ -103,7 +103,6 @@ package body PolyORB.Ravenscar.Threads is
 
    private
       Signaled : Boolean := False;
-      Count    : Integer := 0;
    end Barrier;
 
    -----------
@@ -193,7 +192,11 @@ package body PolyORB.Ravenscar.Threads is
      of Barrier;
 
    Sync_Pool : Barrier_Arr;
-   --  Pool of Barrier.
+   --  Pool of Barrier used for non-determinist synchronisations.
+
+
+   Determinist_Sync_Pool : Barrier_Arr;
+   --  Pool of Barrier used for determinist synchronisations.
 
    ----------
    -- Free --
@@ -227,7 +230,6 @@ package body PolyORB.Ravenscar.Threads is
 
       procedure Signal is
       begin
-         Count := Count + 1;
          Signaled := True;
       end Signal;
 
@@ -237,11 +239,7 @@ package body PolyORB.Ravenscar.Threads is
 
       entry Wait when Signaled is
       begin
-         Count := Count - 1;
-
-         if Count = 0 then
-            Signaled := False;
-         end if;
+         Signaled := False;
       end Wait;
 
    end Barrier;
@@ -264,6 +262,25 @@ package body PolyORB.Ravenscar.Threads is
    begin
       Result.Id := Content.Id;
    end Copy_Thread_Id;
+
+   ------------------------
+   -- Determinist_Resume --
+   ------------------------
+
+   procedure Determinist_Resume (T : Ravenscar_Thread_Id) is
+   begin
+      Determinist_Sync_Pool (T.Id).Signal;
+   end Determinist_Resume;
+
+   -------------------------
+   -- Determinist_Suspend --
+   -------------------------
+
+   procedure Determinist_Suspend (T : Ravenscar_Thread_Id) is
+   begin
+      Determinist_Sync_Pool (T.Id).Wait;
+   end Determinist_Suspend;
+
 
    ---------------------------
    -- Get_Current_Thread_Id --
