@@ -549,9 +549,10 @@ package body Switch is
             if Program = Compiler or else Program = Binder then
 
                case Switches (Ptr) is
-                  when 's' => Warning_Mode  := Suppress;
-                  when 'e' => Warning_Mode  := Treat_As_Error;
-                  when 'l' => Elab_Warnings := True;
+                  when 's' => Warning_Mode       := Suppress;
+                  when 'e' => Warning_Mode       := Treat_As_Error;
+                  when 'l' => Elab_Warnings      := True;
+                  when 'u' => Check_Unreferenced := True;
 
                   when others =>
                      raise Bad_Switch;

@@ -1437,9 +1437,7 @@ package body Make is
    ----------------
 
    procedure Initialize is
-      Next_Arg    : Positive;
-      Search_Dir  : String_Access;
-      Search_Path : String_Access;
+      Next_Arg : Positive;
 
    begin
       --  Default initialization of the flags affecting gnatmake
@@ -1505,21 +1503,12 @@ package body Make is
       Main_ALI_File : File_Name_Type;
       --  The ali file corresponding to Main_Source_File
 
-      File_Name : String_Ptr;
-      --  As arguments are scanned in Initialize, filenames are stored
-      --  in this array. The string does not contain a terminating NUL.
-
       -----------------------
       -- Local Subprograms --
       -----------------------
 
       procedure Makeusg;
       --  Outputs gnatmake usage information.
-
-      function To_Lower (Name : Name_Id) return Name_Id;
-      --  If Name does not have upper case characters, Name is returned,
-      --  otherwise this routine creates and returns a new lower case
-      --  version of Name.
 
       -------------
       -- Makeusg --
@@ -1712,23 +1701,6 @@ package body Make is
          Write_Eol;
 
       end Makeusg;
-
-      --------------
-      -- To_Lower --
-      --------------
-
-      function To_Lower (Name : Name_Id) return Name_Id is
-      begin
-         Get_Name_String (Name);
-
-         for J in 1 .. Name_Len loop
-            if Csets.Is_Upper_Case_Letter (Name_Buffer (J)) then
-               Name_Buffer (J) := Csets.Fold_Lower (Name_Buffer (J));
-            end if;
-         end loop;
-
-         return Name_Enter;
-      end To_Lower;
 
    --  Start of processing for Gnatmake
 

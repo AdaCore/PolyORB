@@ -116,6 +116,10 @@ package Opt is
    --  Set to False for object file consistency check only. This flag is
    --  directly modified by gnatmake, to affect the shared binder routines.
 
+   Check_Unreferenced : Boolean := False;
+   --  GNAT
+   --  Set to True to enable checking for unreferenced variables
+
    Compile_Only : Boolean := False;
    --  GNATMAKE
    --  Set to True to skip bind and link step.
@@ -293,6 +297,10 @@ package Opt is
    --  Maximum number of processes that should be spawned to carry out
    --  compilations.
 
+   Minimal_Recompilation : Boolean := False;
+   --  GNATMAKE
+   --  Set to True if minimal recompilation mode requested.
+
    Normalize_Scalars : Boolean := False;
    --  GNAT
    --  Set true if a pragma Normalize_Scalars applies to the current unit
@@ -331,10 +339,6 @@ package Opt is
    --  Flag set to cause column alignment to be taken into account in
    --  determining legality of various constructs, using the layout rules
    --  specified in the RM.
-
-   Minimal_Recompilation : Boolean := False;
-   --  GNATMAKE
-   --  Set to True if minimal recompilation mode requested.
 
    Software_Overflow_Checking : Boolean;
    --  GNAT
@@ -427,6 +431,10 @@ package Opt is
    --  encoding method uses the upper bit for this encoding, then this flag
    --  is set True, and upper half characters in the source indicate the
    --  start of a wide character sequence.
+
+   Use_VADS_Size : Boolean := False;
+   --  GNAT
+   --  Set to True if a valid pragma Use_VADS_Size is processed
 
    Verbose_Mode : Boolean := False;
    --  GNAT, GNATF, GNATBIND

@@ -293,8 +293,9 @@ package body ALI is
    --------------
 
    procedure Read_ALI (Id : ALI_Id) is
-      Afile : File_Name_Type;
-      Text  : Text_Buffer_Ptr;
+      Afile  : File_Name_Type;
+      Text   : Text_Buffer_Ptr;
+      Idread : ALI_Id;
 
    begin
       for I in ALIs.Table (Id).First_Unit .. ALIs.Table (Id).Last_Unit loop
@@ -308,6 +309,7 @@ package body ALI is
             if Afile /= No_File and then Get_Name_Table_Info (Afile) = 0 then
 
                Text := Read_Library_Info (Afile);
+
                if Text = null then
                   Error_Msg_Name_1 := Afile;
                   Error_Msg_Name_2 := Withs.Table (J).Sfile;
@@ -316,8 +318,17 @@ package body ALI is
                   return;
                end if;
 
-               Read_ALI (Scan_ALI (Afile, Text));
-               --  Scan and recurse
+               Idread := Scan_ALI (Afile, Text);
+
+               if ALIs.Table (Idread).No_Object then
+                  Error_Msg_Name_1 := Withs.Table (J).Sfile;
+                  Error_Msg ("% must be recompiled");
+                  Set_Name_Table_Info (Afile, Int (No_Unit_Id));
+               end if;
+
+               --  Recurse to get new dependents
+
+               Read_ALI (Idread);
             end if;
          end loop;
       end loop;
@@ -636,6 +647,8 @@ package body ALI is
       ALIs.Table (Id).Main_Priority        := -1;
       ALIs.Table (Id).Time_Slice_Value     := -1;
       ALIs.Table (Id).Main_Program         := None;
+      ALIs.Table (Id).No_Object            := False;
+      ALIs.Table (Id).Unit_Exception_Table := False;
       ALIs.Table (Id).Zero_Cost_Exceptions := False;
 
       --  Acquire library version
@@ -899,12 +912,32 @@ package body ALI is
 
                Check_At_End_Of_Field;
 
-            --  NE parameter (no elaboration)
+            --  NE/NO parameters
 
             elsif C = 'N' then
-               Checkc ('E');
-               Check_At_End_Of_Field;
-               Unit.Table (Unit.Last).No_Elab := True;
+               C := Getc;
+
+               --  NE parameter (no elaboration)
+
+               if C = 'E' then
+                  Check_At_End_Of_Field;
+                  Unit.Table (Unit.Last).No_Elab := True;
+
+               --  NO parameter (No object file)
+
+               --  Note: this is really a file wide option, but for
+               --  convenience it is given as a unit attribute, but in
+               --  the ALI data tables, it is the ALI file entry that
+               --  is flagged, not the unit entry.
+
+               elsif C = 'O' then
+                  Check_At_End_Of_Field;
+                  ALIs.Table (Id).No_Object := True;
+                  No_Object := True;
+
+               else
+                  Fatal_Error;
+               end if;
 
             --  PR/PU/PK parameters
 
@@ -978,6 +1011,17 @@ package body ALI is
                else
                   Fatal_Error;
                end if;
+
+            --  UX parameter (unit exception table generated)
+
+            --  Note: this is really a file wide option, but for convenience
+            --  it is given as a unit attribute, but in the ALI data tables,
+            --  it is the ALI file entry that is flagged, not the unit entry.
+
+            elsif C = 'U' then
+               Checkc ('X');
+               Check_At_End_Of_Field;
+               ALIs.Table (Id).Unit_Exception_Table := True;
 
             --  ZX parameter (zero cost exceptions)
 

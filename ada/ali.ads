@@ -39,6 +39,9 @@ package ALI is
    Zero_Cost_Exceptions : Boolean := False;
    --  Set to True if zero cost exceptions active for this bind
 
+   No_Object : Boolean := False;
+   --  Set True if No_Object flag encountered in any unit
+
    --------------
    -- Id Types --
    --------------
@@ -141,6 +144,12 @@ package ALI is
 
       Float_Format : Character;
       --  Set to float format (set to I if no float-format given)
+
+      No_Object : Boolean;
+      --  Set to True if unit generated no object file
+
+      Unit_Exception_Table : Boolean;
+      --  Set to True if unit exception table pointer generated
 
       Zero_Cost_Exceptions : Boolean;
       --  Set to True if unit is compiled with zero cost exceptions
