@@ -49,6 +49,16 @@ package body Idl_Fe.Types is
      := Idl_Fe.Debug.Is_Active ("idl_fe.types_method_trace");
    procedure O2 is new Idl_Fe.Debug.Output (Flag2);
 
+   --------------------------
+   -- Internal subprograms --
+   --------------------------
+
+   procedure Add_Definition_To_Storage
+     (Scope      : in Node_Id;
+      Definition : in Identifier_Definition_Acc);
+   --  Add the definition to Scope storage table.
+   --  It is done at the end of the scope parsing (called by pop_scope)
+
    --------------------------------------
    -- Root of the tree parsed from IDL --
    --------------------------------------
@@ -519,7 +529,7 @@ package body Idl_Fe.Types is
         (Definition => Identifier,
          Next => Identifier_List (Scope));
       Set_Identifier_List (Scope, List);
-      Add_Definition_To_Storage (Identifier);
+      Add_Definition_To_Storage (Scope, Identifier);
       pragma Debug (O2 ("Add_Identifier_Definition : end"));
    end Add_Identifier_Definition;
 
@@ -1009,11 +1019,23 @@ package body Idl_Fe.Types is
    -- Is_Redefinable --
    --------------------
 
-   function Is_Redefinable (Name : String) return Boolean is
+   function Is_Redefinable
+     (Name  : String;
+      Scope : Node_Id := No_Node)
+     return Boolean is
       A_Definition : Identifier_Definition_Acc;
+      Scop         : Node_Id;
    begin
       pragma Debug (O2 ("Is_Redefinable : enter"));
       pragma Debug (O ("Is_Redefinable : the identifier is : " & Name));
+
+      if Scope = No_Node then
+         Scop := Current_Scope.Scope;
+      else
+         Scop := Scope;
+      end if;
+      pragma Assert (Is_Scope (Scop));
+
       --  Checks if the identifier is already imported
       if Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
          pragma Debug (O2 ("Is_Redefinable : already imported"));
@@ -1028,26 +1050,28 @@ package body Idl_Fe.Types is
                           (Kind (A_Definition.Node))));
          --  Checks if the identifier is not being redefined in the same
          --  scope.
-         if A_Definition.Parent_Scope = Current_Scope.Scope then
+         if A_Definition.Parent_Scope = Scop then
             pragma Debug (O2 ("Is_Redefinable : end"));
             return False;
          end if;
          --  An attribute or operation may not be redefined
-         if Kind (A_Definition.Node) = K_Operation or
+         if Kind (A_Definition.Node) = K_Operation or else
            (Kind (A_Definition.Node) = K_Declarator and then
-            Kind (Parent (A_Definition.Node)) = K_Attribute) then
-            if Kind (Get_Current_Scope) = K_Interface or
-              Kind (Get_Current_Scope) = K_ValueType then
+            Kind (Parent (A_Definition.Node)) = K_Attribute)
+         then
+            if Kind (Scop) = K_Interface or
+              Kind (Scop) = K_ValueType then
                pragma Debug (O ("Is_Redefinable : cannot redefine " &
                                 "an op, attr"));
                pragma Debug (O2 ("Is_Redefinable : end"));
                return False;
             end if;
          end if;
-         --  Ckecks if identifier found is the current scope name:
+         --  Ckecks if identifier found is the scope name:
          --  it is not allowed except for the operation
-         if Kind (Current_Scope.Scope) /= K_Operation
-           and then A_Definition = Definition (Current_Scope.Scope) then
+         if Kind (Scop) /= K_Operation
+           and then A_Definition = Definition (Scop)
+         then
             pragma Debug (O2 ("Is_Redefinable : end"));
             return False;
          end if;
@@ -1270,17 +1294,25 @@ package body Idl_Fe.Types is
    --------------------
 
    function Add_Identifier
-     (Node : Node_Id;
-      Name : String)
+     (Node  : Node_Id;
+      Name  : String;
+      Scope : Node_Id := No_Node)
      return Boolean
    is
       Definition : Identifier_Definition_Acc;
-      Index : Uniq_Id;
+      Index      : Uniq_Id;
+      Scop       : Node_Id;
    begin
+      if Scope = No_Node then
+         Scop := Current_Scope.Scope;
+      else
+         Scop := Scope;
+      end if;
+      pragma Assert (Is_Scope (Scop));
       pragma Debug (O2 ("Add_Identifier : enter"));
       pragma Debug (O ("Add_Identifier : the identifier is " & Name));
       --  Checks if the identifier is redefinable
-      if not Is_Redefinable (Name) then
+      if not Is_Redefinable (Name, Scop) then
          pragma Debug (O ("Add_Identifier : identifier not redefinable"));
          pragma Debug (O2 ("Add_Identifier : end"));
          return False;
@@ -1294,11 +1326,11 @@ package body Idl_Fe.Types is
       Definition.Id := Index;
       Definition.Node := Node;
       Definition.Previous_Definition := Id_Table.Table (Index).Definition;
-      Definition.Parent_Scope := Current_Scope.Scope;
+      Definition.Parent_Scope := Scop;
       Id_Table.Table (Index).Definition := Definition;
       pragma Debug (O ("Add_Identifier : adding definition to " &
                        "the current scope"));
-      Add_Identifier_Definition (Current_Scope.Scope, Definition);
+      Add_Identifier_Definition (Scop, Definition);
       pragma Debug (O ("Add_Identifier : puting the definition in its node"));
       Set_Definition (Node, Definition);
       pragma Debug (O2 ("Add_Identifier : end"));
@@ -1377,7 +1409,8 @@ package body Idl_Fe.Types is
    -------------------------------
 
    procedure Add_Definition_To_Storage
-     (Definition : in Identifier_Definition_Acc)
+     (Scope      : in Node_Id;
+      Definition : in Identifier_Definition_Acc)
    is
       Index : Uniq_Id;
    begin
@@ -1385,9 +1418,9 @@ package body Idl_Fe.Types is
       Index := Create_Identifier_In_Storage (Definition.Name.all);
       --  their shouldn't be any redefinition
       pragma Assert (Identifier_Table
-                     (Current_Scope.Scope).Content_Table.
+                     (Scope).Content_Table.
                      Table (Index).Definition = null);
-      Identifier_Table (Current_Scope.Scope).Content_Table.
+      Identifier_Table (Scope).Content_Table.
         Table (Index).Definition := Definition;
       pragma Debug (O2 ("Add_Definition_To_Storage : end"));
    end Add_Definition_To_Storage;

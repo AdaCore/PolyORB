@@ -374,9 +374,12 @@ package Idl_Fe.Types is
    -- Identifiers handling --
    --------------------------
 
-   function Is_Redefinable (Name : String) return Boolean;
-   --  Check if the name is redefinable in the current scope.
-   --  If result is false, means that Find_Identifier_Definition
+   function Is_Redefinable
+     (Name  : String;
+      Scope : Node_Id := No_Node)
+     return Boolean;
+   --  Check if the name is redefinable in Scope or in the current scope
+   --  (default). If result is false, means that Find_Identifier_Definition
    --  has a NOT NULL result!
 
    function Find_Identifier_Definition
@@ -398,11 +401,12 @@ package Idl_Fe.Types is
    --  only used in the case of a forward interface definition
 
    function Add_Identifier
-     (Node : Node_Id;
-      Name : String)
+     (Node  : Node_Id;
+      Name  : String;
+      Scope : Node_Id := No_Node)
      return Boolean;
    --  Creates an identifier definition for the current identifier
-   --  and add it to the current scope.
+   --  and add it to scope Scope or the current scope if Scope is No_Node.
    --  Node is the node where the identifier is defined.
    --  Returns true if successful, False if the identifier was
    --  already in this scope.
@@ -412,11 +416,6 @@ package Idl_Fe.Types is
      return Identifier_Definition_Acc;
    --  Find the identifier definition in Scope.
    --  If this identifier is not defined, returns a null pointer.
-
-   procedure Add_Definition_To_Storage
-     (Definition : in Identifier_Definition_Acc);
-   --  Add the definition to the current scope storage table.
-   --  It is done at the end of the scope parsing (called by pop_scope)
 
    function Find_Imported_Identifier_Definition
      (Name : String)

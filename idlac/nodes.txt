@@ -19,6 +19,7 @@ Root
   Kind : Node_Kind
   Original_Node : Node_Id
   Loc : Location
+  Expanded : Boolean := False
 
 Named
   Definition : Identifier_Definition_Acc
