@@ -125,17 +125,15 @@ package PolyORB.GIOP_P.Tagged_Components is
      (Tag                 : Tag_Value;
       New_Empty_Component : New_Empty_Component_Func_Access;
       Fetch_Component     : Fetch_Component_Func_Access);
-   --  Register a new kind of tagged component
-   --  This procedure must be called to activate a new kind of components
-
+   --  Register tagged component with tag Tag
 
    -----------------------
    -- Unknown Component --
    -----------------------
 
-   --  Unknown component is used when tag is unknown at unmarshalling time
-   --  Users cannot access to unknown components data,
-   --  but unknown components can be remarshalled without being modified
+   --  Unknown component is used when tag is unknown at unmarshalling time.
+   --  Users cannot access to unknown components data, but unknown
+   --  components can be remarshalled without being modified.
 
    type Octet_Access is access all Ada.Streams.Stream_Element_Array;
    --  Data in an unknow tagged component

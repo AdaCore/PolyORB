@@ -96,12 +96,12 @@ package body PolyORB.GIOP_P.Tagged_Components is
       use type PolyORB.Types.Unsigned_Long;
 
    begin
-      --  Check if this Tag has already been registered.
+      --  Check if this Tag has already been registered
 
       for J in 1 .. Bind_Index loop
          if Binding_List (J).Tag = Tag then
 
-            --  FATAL ERROR: This tag has already been registered.
+            --  FATAL ERROR: This tag has already been registered
 
             raise Program_Error;
          end if;
@@ -109,7 +109,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
 
       Bind_Index := Bind_Index + 1;
 
-      --  Register tag.
+      --  Register tag
 
       Binding_List (Bind_Index)
         := Bind_Tag'(Tag => Tag,
@@ -127,7 +127,8 @@ package body PolyORB.GIOP_P.Tagged_Components is
    is
       use Component_Seq;
 
-      C        : Tagged_Component_Access;
+      C : Tagged_Component_Access;
+
    begin
       pragma Debug (O ("Marshall"
                        & Integer'Image (Length (Components))
@@ -265,6 +266,7 @@ package body PolyORB.GIOP_P.Tagged_Components is
    is
       Result : Tagged_Component_List;
       New_Component : Tagged_Component_Access;
+
    begin
       for J in 1 .. Bind_Index loop
          if Binding_List (J).Fetch_Component /= null then
