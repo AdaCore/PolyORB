@@ -944,7 +944,8 @@ package body Analyzer is
       case Kind (Switch_Type) is
          when K_Short .. K_Wide_Char
            | K_Boolean
-           | K_Octet =>
+           | K_Octet
+           | K_Enumeration_Type =>
             null;
 
          when others =>
