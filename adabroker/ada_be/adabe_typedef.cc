@@ -103,8 +103,8 @@ adabe_typedef::produce_marshal_ads(dep_list& with, string &body, string &previou
 	  {
 	    string arg2 = "";
 	    adabe_name *c = dynamic_cast<adabe_name *>(b);
-	    c->set_ada_local_name(get_ada_local_name());
-	    c->set_ada_full_name(get_ada_full_name());
+	    //	    c->set_ada_local_name(get_ada_local_name());
+	    //	    c->set_ada_full_name(get_ada_full_name());
 	    c->produce_marshal_ads(with, body, arg2);
 	    body += arg2;
 	    set_already_defined();
@@ -146,8 +146,8 @@ adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previou
 	case AST_Decl::NT_union:
 	  {
 	    adabe_name *c = dynamic_cast<adabe_name *>(b);
-	    c->set_ada_local_name(get_ada_local_name());
-	    c->set_ada_full_name(get_ada_full_name());
+	    //	    c->set_ada_local_name(get_ada_local_name());
+	    //	    c->set_ada_full_name(get_ada_full_name());
 	    c->produce_marshal_adb(with, body, arg2);
 	    body += arg2;
 	    set_already_defined();

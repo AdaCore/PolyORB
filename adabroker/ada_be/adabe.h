@@ -401,6 +401,8 @@ public:
   DEF_NARROW_METHODS1(adabe_array, AST_Array);
   DEF_NARROW_FROM_DECL(adabe_array);
 
+  bool is_compute_name_needed();
+  
   virtual void produce_ads (dep_list &with, string &body, string &previous);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);

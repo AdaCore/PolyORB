@@ -75,14 +75,54 @@ adabe_array::local_type()
   return "local_type";
 }
 
+bool adabe_array::is_compute_name_needed()
+  // this function returns 0 if the arry is defined in a typedef
+  // and 1 in all other cases
+{
+  adabe_name *parent_node;
+  UTL_Scope *parent_scope = defined_in();
+  UTL_ScopeActiveIterator parent_scope_activator(parent_scope,UTL_Scope::IK_decls);
+  adabe_name *decl;
+  while (!parent_scope_activator.is_done())
+    {
+      decl = dynamic_cast<adabe_name *>(parent_scope_activator.item());
+      switch (decl->node_type())
+	{
+	case AST_Decl::NT_field:
+	case AST_Decl::NT_argument:
+	  if (dynamic_cast<AST_Field *>(decl)->field_type() == this)
+	    return 1;
+	  break;
+	case AST_Decl::NT_op:
+	  if (dynamic_cast<AST_Operation *>(decl)->return_type() == this)
+	    return 1;
+	  break;
+	case AST_Decl::NT_typedef:
+	  if (dynamic_cast<AST_Typedef *>(decl)->base_type() == this)
+	    return 0;
+	  break;
+		       
+	default:
+	  break;
+	}
+      parent_scope_activator.next();
+    }
+  return 1;
+}
+
 void
 adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
   char number[256];
+  
+  // if the array s defined in a typedef,
+  // no compute_ada_name is needed (hte name is forced)
+  if (is_compute_name_needed())
+    compute_ada_name();
+  
+  body += "   type " + get_ada_local_name() + " is array (";
 
-  compute_ada_name();
-  body += "   type " + get_ada_local_name() + " is array";
-  body += " (";  
-  for (unsigned int i=0; i < n_dims(); i++) 
+  
+  for (unsigned int i=0; i < n_dims(); i++)  // loops over the dimensions of the array
     {
       AST_Expression::AST_ExprValue* v = dims()[i]->ev();
       body += " 0..";  
@@ -104,17 +144,31 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
 	  throw adabe_internal_error(__FILE__,__LINE__,"unexpected type in array expression");
 	}
       body +=number;
+      
+      // if an other dimension follows, a ',' is added
       if (i != n_dims() - 1) body += ",";  
     }
   body +=" )";
+
+  // determinaion of the array type
   adabe_name *f = dynamic_cast<adabe_name *>(base_type());
   body+= " of " + f->dump_name(with, previous);
   body += " ;\n" ;
+
+  // definition of a pointer on the array
   body += "   type " + get_ada_local_name() + "_Ptr is access ";
   body += get_ada_local_name() + " ;\n\n";
+
+  // definition of the free function
   body += "   procedure Free is new Ada.Unchecked_Deallocation(";
   body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";
+
+  // if the structure in the array does not have
+  // a fixed size a fag is put (the marshall is not
+  // the same)
   if (!f->has_fixed_size()) no_fixed_size();
+
+  // set the node to defined
   set_already_defined();
 }
 
@@ -147,7 +201,8 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
 {
   adabe_name *b = dynamic_cast<adabe_name *>(base_type());
   string name = b->marshal_name(with, previous);
-  
+
+  // computing the number of cases in the array
   unsigned long size = 1;
   for (unsigned int i=0; i < n_dims(); i++) {
     AST_Expression::AST_ExprValue* v = dims()[i]->ev();
@@ -198,12 +253,14 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   align_size += "   begin\n";
   if (b->has_fixed_size())
     {
+      // if the size is fiwed, ther no problem
       align_size += "      Tmp := Align_Size (A(A'First), Initial_Offset, N * ";
       align_size += Size;
       align_size += ") ;\n";
     } 
   else 
     {
+      // else, we must loop
       align_size += "      for I in 1..N loop\n";
     }
 
