@@ -58,15 +58,13 @@ package body PolyORB.Smart_Pointers is
       pragma Debug (O ("Inc_Usage: Obj is a "
                        & Entity_External_Tag (Obj.all)));
 
-      pragma Assert (Counter_Lock /= null);
-      Enter (Counter_Lock);
+      Entity_Lock (Obj.all);
       pragma Debug (O ("Inc_Usage: Counter"
                        & Natural'Image (Obj.Counter)
                        & " ->"
                        & Natural'Image (Obj.Counter + 1)));
       Obj.Counter := Obj.Counter + 1;
-      Leave (Counter_Lock);
-
+      Entity_Unlock (Obj.all);
    end Inc_Usage;
 
    ---------------
@@ -98,9 +96,8 @@ package body PolyORB.Smart_Pointers is
                           & Entity_External_Tag (Obj.all)));
 
          Entity_Unlock (Obj.all);
-         --  Releasing Counter_Lock at this stage is sufficient to
-         --  ensure that only one task finalizes 'Obj.all' and
-         --  frees 'Obj'.
+         --  Releasing Obj lock at this stage is sufficient to ensure
+         --  that only one task finalizes Obj.all and frees Obj.
 
          if Obj.all not in Entity'Class then
             --  This entity is not controlled: finalize it ourselves
