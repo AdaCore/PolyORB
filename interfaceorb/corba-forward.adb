@@ -103,6 +103,17 @@ package body Corba.Forward is
 
    end Convert ;
 
+   --------------------------------------------------
+   ---        AdaBroker  specific                 ---
+   --------------------------------------------------
+
+   -- Free
+   -------
+   procedure Free(Self : in out Ref_Ptr) is
+   begin
+      Private_Free(Self) ;
+   end;
+
 
 end Corba.Forward ;
 

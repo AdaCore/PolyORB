@@ -45,6 +45,7 @@
 
 with Corba.Object ;
 with Adabroker_Debug ;
+with Ada.Unchecked_Deallocation;
 pragma Elaborate(Adabroker_Debug) ;
 
 generic
@@ -54,7 +55,11 @@ package Corba.Forward is
    Forward : constant Boolean := Adabroker_Debug.Is_Active("corba.forward") ;
 
    type Ref is new Corba.Object.Ref with null record;
-   type Ref_Ptr is access all Ref'Class ;
+   type Ref_Ptr is access all Ref ;
+   -- just to give a name to pointers on Ref objects
+
+   procedure Free(Self : in out Ref_Ptr) ;
+   -- to deallocate Object_Ptr
 
    function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
 
@@ -79,5 +84,11 @@ package Corba.Forward is
    end Convert ;
 
 
+private
+
+   procedure Private_Free is new Ada.Unchecked_Deallocation(Ref, Ref_Ptr) ;
+
 end Corba.Forward ;
+
+
 
