@@ -370,11 +370,11 @@ package body PolyORB.Protocols.GIOP is
    pragma Warnings (On);
 
    procedure Marshall_Argument_List
-     (Ses : access GIOP_Session;
+     (Buf  : Buffer_Access;
       Args : in out Any.NVList.Ref;
       Direction : Any.Flags);
    --  Internal subprogram: Marshall arguments from Args
-   --  into Ses.
+   --  into Buf.
    --  Direction may be ARG_IN or ARG_OUT. Only NamedValues
    --  with Arg_Modes equal to either ARG_INOUT or Direction
    --  will be considered.
@@ -576,6 +576,7 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Request_Message
      (Ses                    : access GIOP_Session;
+      Buffer_Out             : Buffer_Access;
       Pend_Req               : Pending_Request;
       Response_Expected      : in Boolean;
       Fragment_Next          : out Boolean;
@@ -586,7 +587,7 @@ package body PolyORB.Protocols.GIOP is
       use PolyORB.Objects;
 
       Header_Space  : constant Reservation
-        := Reserve (Ses.Buffer_Out, Message_Header_Size);
+        := Reserve (Buffer_Out, Message_Header_Size);
       Header_Buffer : Buffer_Access := new Buffer_Type;
 
       Request_Id : Types.Unsigned_Long
@@ -602,7 +603,7 @@ package body PolyORB.Protocols.GIOP is
             --  GIOP 1.0
 
             GIOP.GIOP_1_0.Marshall_Request_Message
-              (Ses.Buffer_Out, Request_Id,
+              (Buffer_Out, Request_Id,
                Pend_Req.Target_Profile, Response_Expected,
                To_Standard_String (Pend_Req.Req.Operation));
 
@@ -610,7 +611,7 @@ package body PolyORB.Protocols.GIOP is
             --  GIOP 1.1
 
             GIOP.GIOP_1_1.Marshall_Request_Message
-              (Ses.Buffer_Out, Request_Id,
+              (Buffer_Out, Request_Id,
                Pend_Req.Target_Profile, Response_Expected,
                To_Standard_String (Pend_Req.Req.Operation));
 
@@ -627,7 +628,7 @@ package body PolyORB.Protocols.GIOP is
                  (Pend_Req.Target_Profile.all);
             begin
                GIOP.GIOP_1_2.Marshall_Request_Message
-                 (Ses.Buffer_Out,
+                 (Buffer_Out,
                   Request_Id,
                   Target_Address'
                   (Address_Type => Key_Addr,
@@ -643,9 +644,9 @@ package body PolyORB.Protocols.GIOP is
       end case;
 
       Marshall_Argument_List
-        (Ses, Pend_Req.Req.Args, PolyORB.Any.ARG_IN);
+        (Buffer_Out, Pend_Req.Req.Args, PolyORB.Any.ARG_IN);
 
-      if  Length (Ses.Buffer_Out) > Maximum_Message_Size then
+      if  Length (Buffer_Out) > Maximum_Message_Size then
          Fragment_Next := True;
       end if;
 
@@ -653,18 +654,18 @@ package body PolyORB.Protocols.GIOP is
          when 0 =>
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Request,  Length (Ses.Buffer_Out));
+               GIOP.Request,  Length (Buffer_Out));
 
          when 1 =>
             GIOP.GIOP_1_1.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Request, Length (Ses.Buffer_Out),
+               GIOP.Request, Length (Buffer_Out),
                Fragment_Next);
 
          when 2 =>
             GIOP.GIOP_1_2.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Request, Length (Ses.Buffer_Out),
+               GIOP.Request, Length (Buffer_Out),
                Fragment_Next);
          when others =>
             Release (Header_Buffer);
@@ -674,7 +675,7 @@ package body PolyORB.Protocols.GIOP is
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
 
-      pragma Debug (Show (Ses.Buffer_Out.all));
+      pragma Debug (Show (Buffer_Out.all));
    end Request_Message;
 
    ------------------------
@@ -683,12 +684,13 @@ package body PolyORB.Protocols.GIOP is
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
+      Buffer_Out    :        Buffer_Access;
       Request       :        Requests.Request_Access;
       Fragment_Next :    out Boolean)
    is
       Header_Buffer : Buffer_Access := new Buffer_Type;
       Header_Space : constant Reservation
-        := Reserve (Ses.Buffer_Out, Message_Header_Size);
+        := Reserve (Buffer_Out, Message_Header_Size);
       N : Request_Note;
       Request_Id : Types.Unsigned_Long renames N.Id;
    begin
@@ -699,15 +701,15 @@ package body PolyORB.Protocols.GIOP is
       case Ses.Minor_Version is
          when 0 =>
             GIOP.GIOP_1_0.Marshall_No_Exception
-              (Ses.Buffer_Out, Request_Id);
+              (Buffer_Out, Request_Id);
 
          when 1 =>
             GIOP.GIOP_1_1.Marshall_No_Exception
-              (Ses.Buffer_Out, Request_Id);
+              (Buffer_Out, Request_Id);
 
          when 2 =>
             GIOP.GIOP_1_2.Marshall_No_Exception
-              (Ses.Buffer_Out, Request_Id);
+              (Buffer_Out, Request_Id);
 
          when others =>
             Release (Header_Buffer);
@@ -717,17 +719,17 @@ package body PolyORB.Protocols.GIOP is
       --  Marshall the reply Body
 
       if Ses.Minor_Version >= 2 then
-         Pad_Align (Ses.Buffer_Out, 8);
+         Pad_Align (Buffer_Out, 8);
          --  For GIOP 1.2 and higher, reply bodies are
          --  aligned on an 8-byte boundary.
       end if;
 
-      Marshall_From_Any (Ses.Buffer_Out, Request.Result.Argument);
+      Marshall_From_Any (Buffer_Out, Request.Result.Argument);
 
       Marshall_Argument_List
-        (Ses, Request.Args, PolyORB.Any.ARG_OUT);
+        (Buffer_Out, Request.Args, PolyORB.Any.ARG_OUT);
 
-      if Length (Ses.Buffer_Out)  > Maximum_Message_Size then
+      if Length (Buffer_Out)  > Maximum_Message_Size then
          Fragment_Next := True;
       end if;
 
@@ -736,20 +738,20 @@ package body PolyORB.Protocols.GIOP is
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Reply,
-               Length (Ses.Buffer_Out));
+               Length (Buffer_Out));
 
          when 1 =>
             GIOP.GIOP_1_1.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Reply,
-               Length (Ses.Buffer_Out),
+               Length (Buffer_Out),
                Fragment_Next);
 
          when 2 =>
             GIOP.GIOP_1_2.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Reply,
-               Length (Ses.Buffer_Out),
+               Length (Buffer_Out),
                Fragment_Next);
 
          when others =>
@@ -767,15 +769,16 @@ package body PolyORB.Protocols.GIOP is
    ---------------------
 
    procedure Exception_Reply
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Exception_Type  : in Reply_Status_Type;
-      Occurence       : in Any.Any;
-      Fragment_Next   : out Boolean)
+     (Ses            : access GIOP_Session;
+      Buffer_Out     :        Buffer_Access;
+      Request        :        Requests.Request_Access;
+      Exception_Type : in     Reply_Status_Type;
+      Occurence      : in     Any.Any;
+      Fragment_Next  :    out Boolean)
    is
       Header_Buffer :  Buffer_Access := new Buffer_Type;
       Header_Space : constant Reservation
-        := Reserve (Ses.Buffer_Out, Message_Header_Size);
+        := Reserve (Buffer_Out, Message_Header_Size);
       N : Request_Note;
       Request_Id : Types.Unsigned_Long renames N.Id;
 
@@ -790,43 +793,43 @@ package body PolyORB.Protocols.GIOP is
       case Ses.Minor_Version is
          when 0 =>
             GIOP.GIOP_1_0.Marshall_Exception
-              (Ses.Buffer_Out, Request_Id,
+              (Buffer_Out, Request_Id,
                Exception_Type, CORBA_Occurence);
 
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Reply, Length (Ses.Buffer_Out));
+               GIOP.Reply, Length (Buffer_Out));
 
          when 1 =>
             GIOP.GIOP_1_1.Marshall_Exception
-              (Ses.Buffer_Out,
+              (Buffer_Out,
                Request_Id,
                Exception_Type,
                CORBA_Occurence);
 
-            if Length (Ses.Buffer_Out) > Maximum_Message_Size then
+            if Length (Buffer_Out) > Maximum_Message_Size then
                Fragment_Next := True;
             end if;
 
             GIOP.GIOP_1_1.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Reply, Length (Ses.Buffer_Out),
+               GIOP.Reply, Length (Buffer_Out),
                Fragment_Next);
 
          when 2 =>
             GIOP.GIOP_1_2.Marshall_Exception
-              (Ses.Buffer_Out,
+              (Buffer_Out,
                Request_Id,
                Exception_Type,
                CORBA_Occurence);
 
-            if  Length (Ses.Buffer_Out) > Maximum_Message_Size then
+            if  Length (Buffer_Out) > Maximum_Message_Size then
                Fragment_Next := True;
             end if;
 
             GIOP.GIOP_1_2.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Reply, Length (Ses.Buffer_Out),
+               GIOP.Reply, Length (Buffer_Out),
                Fragment_Next);
 
          when others =>
@@ -844,15 +847,16 @@ package body PolyORB.Protocols.GIOP is
    ----------------------------
 
    procedure Location_Forward_Reply
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Forward_Ref     : in PolyORB.References.IOR.IOR_Type;
-      Fragment_Next   : out Boolean)
+     (Ses           : access GIOP_Session;
+      Buffer_Out    :        Buffer_Access;
+      Request       :        Requests.Request_Access;
+      Forward_Ref   : in     PolyORB.References.IOR.IOR_Type;
+      Fragment_Next :    out Boolean)
 
    is
       Header_Buffer : Buffer_Access := new Buffer_Type;
       Header_Space  : constant Reservation
-        := Reserve (Ses.Buffer_Out, Message_Header_Size);
+        := Reserve (Buffer_Out, Message_Header_Size);
       N : Request_Note;
       Request_Id : Types.Unsigned_Long renames N.Id;
    begin
@@ -863,20 +867,20 @@ package body PolyORB.Protocols.GIOP is
       case Ses.Minor_Version is
          when 0 =>
             GIOP.GIOP_1_0.Marshall_Location_Forward
-              (Ses.Buffer_Out, Request_Id,
+              (Buffer_Out, Request_Id,
                Forward_Ref);
 
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Reply,
-               Length (Ses.Buffer_Out));
+               Length (Buffer_Out));
 
          when 1 =>
             GIOP.GIOP_1_1.Marshall_Location_Forward
-              (Ses.Buffer_Out, Request_Id,
+              (Buffer_Out, Request_Id,
                Forward_Ref);
 
-            if  Length (Ses.Buffer_Out) >
+            if  Length (Buffer_Out) >
               Maximum_Message_Size
             then
                Fragment_Next := True;
@@ -884,16 +888,16 @@ package body PolyORB.Protocols.GIOP is
 
             GIOP.GIOP_1_1.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Reply, Length (Ses.Buffer_Out),
+               GIOP.Reply, Length (Buffer_Out),
                Fragment_Next);
 
          when 2 =>
             GIOP.GIOP_1_2.Marshall_Location_Forward
-              (Ses.Buffer_Out, Request_Id,
+              (Buffer_Out, Request_Id,
                GIOP.Location_Forward,
                Forward_Ref);
 
-            if  Length (Ses.Buffer_Out) >
+            if  Length (Buffer_Out) >
               Maximum_Message_Size
             then
                Fragment_Next := True;
@@ -901,7 +905,7 @@ package body PolyORB.Protocols.GIOP is
 
             GIOP.GIOP_1_2.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Reply, Length (Ses.Buffer_Out),
+               GIOP.Reply, Length (Buffer_Out),
                Fragment_Next);
 
          when others =>
@@ -918,14 +922,15 @@ package body PolyORB.Protocols.GIOP is
    -----------------------------------
 
    procedure Needs_Addressing_Mode_Message
-     (Ses             : access GIOP_Session;
-      Request          : Requests.Request_Access;
-      Address_Type    : in Addressing_Disposition)
+     (Ses          : access GIOP_Session;
+      Buffer_Out   :        Buffer_Access;
+      Request      :        Requests.Request_Access;
+      Address_Type : in     Addressing_Disposition)
 
    is
       Header_Buffer :  Buffer_Access := new Buffer_Type;
       Header_Space  : constant Reservation
-        := Reserve (Ses.Buffer_Out, Message_Header_Size);
+        := Reserve (Buffer_Out, Message_Header_Size);
       N : Request_Note;
       Request_Id : Types.Unsigned_Long renames N.Id;
    begin
@@ -938,11 +943,11 @@ package body PolyORB.Protocols.GIOP is
       end if;
 
       GIOP.GIOP_1_2.Marshall_Needs_Addressing_Mode
-        (Ses.Buffer_Out, Request_Id, Address_Type);
+        (Buffer_Out, Request_Id, Address_Type);
 
       GIOP.GIOP_1_2.Marshall_GIOP_Header
         (Header_Buffer,
-         GIOP.Reply, Length (Ses.Buffer_Out),
+         GIOP.Reply, Length (Buffer_Out),
          False);
 
       Copy_Data (Header_Buffer.all, Header_Space);
@@ -955,11 +960,12 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Cancel_Request_Message
      (Ses             : access GIOP_Session;
+      Buffer_Out      : Buffer_Access;
       Request         : Requests.Request_Access)
    is
       Header_Buffer :  Buffer_Access := new Buffer_Type;
       Header_Space  : constant Reservation
-        := Reserve (Ses.Buffer_Out, Message_Header_Size);
+        := Reserve (Buffer_Out, Message_Header_Size);
       N : Request_Note;
       Request_Id : Types.Unsigned_Long renames N.Id;
 
@@ -970,25 +976,25 @@ package body PolyORB.Protocols.GIOP is
       case Ses.Minor_Version is
          when 0 =>
             GIOP.Marshall_Cancel_Request
-              (Ses.Buffer_Out, Request_Id);
+              (Buffer_Out, Request_Id);
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Cancel_Request, Length (Ses.Buffer_Out));
+               GIOP.Cancel_Request, Length (Buffer_Out));
 
          when 1 =>
             GIOP.Marshall_Cancel_Request
-              (Ses.Buffer_Out, Request_Id);
+              (Buffer_Out, Request_Id);
             GIOP.GIOP_1_1.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Cancel_Request, Length (Ses.Buffer_Out),
+               GIOP.Cancel_Request, Length (Buffer_Out),
                False);
 
          when 2 =>
             GIOP.Marshall_Cancel_Request
-              (Ses.Buffer_Out, Request_Id);
+              (Buffer_Out, Request_Id);
             GIOP.GIOP_1_2.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Cancel_Request, Length (Ses.Buffer_Out),
+               GIOP.Cancel_Request, Length (Buffer_Out),
                False);
 
          when others =>
@@ -1005,14 +1011,15 @@ package body PolyORB.Protocols.GIOP is
    ----------------------------
 
    procedure Locate_Request_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Object_Key      : access Objects.Object_Id;
-      Fragment_Next   : out Boolean)
+     (Ses           : access GIOP_Session;
+      Buffer_Out    :        Buffer_Access;
+      Request       :        Requests.Request_Access;
+      Object_Key    : access Objects.Object_Id;
+      Fragment_Next :    out Boolean)
    is
       Header_Buffer :  Buffer_Access := new Buffer_Type;
       Header_Space  : constant Reservation
-        := Reserve (Ses.Buffer_Out, Message_Header_Size);
+        := Reserve (Buffer_Out, Message_Header_Size);
       N : Request_Note;
       Request_Id : Types.Unsigned_Long renames N.Id;
 
@@ -1024,40 +1031,40 @@ package body PolyORB.Protocols.GIOP is
       case Ses.Minor_Version is
          when 0 =>
             GIOP.Marshall_Locate_Request
-              (Ses.Buffer_Out, Request_Id,
+              (Buffer_Out, Request_Id,
                Object_Key);
 
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Locate_Request,
-               Length (Ses.Buffer_Out));
+               Length (Buffer_Out));
 
          when 1 =>
             GIOP.Marshall_Locate_Request
-              (Ses.Buffer_Out, Request_Id,
+              (Buffer_Out, Request_Id,
                Object_Key);
 
             GIOP.GIOP_1_1.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Locate_Request,
-               Length (Ses.Buffer_Out),
+               Length (Buffer_Out),
                False);
 
          when 2 =>
             GIOP.GIOP_1_2.Marshall_Locate_Request
-              (Ses.Buffer_Out, Request_Id,
+              (Buffer_Out, Request_Id,
                Target_Address'
                (Address_Type => Key_Addr,
                 Object_Key =>   Object_Key.all'Unchecked_Access));
 
-            if  Length (Ses.Buffer_Out) > Maximum_Message_Size then
+            if  Length (Buffer_Out) > Maximum_Message_Size then
                Fragment_Next := True;
             end if;
 
             GIOP.GIOP_1_2.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Locate_Request,
-               Length (Ses.Buffer_Out),
+               Length (Buffer_Out),
                False);
 
          when others =>
@@ -1075,13 +1082,14 @@ package body PolyORB.Protocols.GIOP is
    --------------------------
 
    procedure Locate_Reply_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Locate_Status   : in Locate_Status_Type)
+     (Ses           : access GIOP_Session;
+      Buffer_Out    :        Buffer_Access;
+      Request       :        Requests.Request_Access;
+      Locate_Status : in     Locate_Status_Type)
    is
       Header_Buffer :  Buffer_Access := new Buffer_Type;
       Header_Space  : constant Reservation
-        := Reserve (Ses.Buffer_Out, Message_Header_Size);
+        := Reserve (Buffer_Out, Message_Header_Size);
       N : Request_Note;
       Request_Id : Types.Unsigned_Long renames N.Id;
 
@@ -1101,25 +1109,25 @@ package body PolyORB.Protocols.GIOP is
       end if;
 
       GIOP.Marshall_Locate_Reply
-        (Ses.Buffer_Out, Request_Id, Locate_Status);
+        (Buffer_Out, Request_Id, Locate_Status);
 
       case Ses.Minor_Version is
          when 0 =>
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
-               GIOP.Locate_Reply, Length (Ses.Buffer_Out));
+               GIOP.Locate_Reply, Length (Buffer_Out));
 
          when 1 =>
             GIOP.GIOP_1_1.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Locate_Reply,
-               Length (Ses.Buffer_Out), False);
+               Length (Buffer_Out), False);
 
          when 2 =>
             GIOP.GIOP_1_2.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Locate_Reply,
-               Length (Ses.Buffer_Out), False);
+               Length (Buffer_Out), False);
          when others =>
             Release (Header_Buffer);
             raise GIOP_Error;
@@ -1166,7 +1174,6 @@ package body PolyORB.Protocols.GIOP is
    begin
       Protocols.Initialize (Protocols.Session (S));
       S.Buffer_In  := new Buffer_Type;
-      S.Buffer_Out := new Buffer_Type;
    end Initialize;
 
    --------------
@@ -1185,9 +1192,6 @@ package body PolyORB.Protocols.GIOP is
       end if;
       if S.Buffer_In /= null then
          Release (S.Buffer_In);
-      end if;
-      if S.Buffer_Out /= null then
-         Release (S.Buffer_Out);
       end if;
    end Finalize;
 
@@ -1208,6 +1212,7 @@ package body PolyORB.Protocols.GIOP is
 
    procedure Expect_Message (S : access GIOP_Session) is
    begin
+      pragma Assert (S.State /= Expect_Header);
       Buffers.Release_Contents (S.Buffer_In.all);
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
       S.State := Expect_Header;
@@ -1254,7 +1259,7 @@ package body PolyORB.Protocols.GIOP is
    ----------------------------
 
    procedure Marshall_Argument_List
-     (Ses : access GIOP_Session;
+     (Buf : Buffer_Access;
       Args : in out Any.NVList.Ref;
       Direction : Any.Flags)
    is
@@ -1278,7 +1283,7 @@ package body PolyORB.Protocols.GIOP is
                              & Types.To_Standard_String (Arg.Name)
                              & " = " & Image (Arg.Argument)));
 
-            Marshall (Ses.Buffer_Out, Arg);
+            Marshall (Buf, Arg);
          end if;
       end loop;
    end Marshall_Argument_List;
@@ -1663,9 +1668,7 @@ package body PolyORB.Protocols.GIOP is
                     (IIOP_Profile_Type (Prof.all),
                      Component_Access (ORB)));
 
-               --  Release the previous session buffers
                Release (Ses.Buffer_In);
-               Release (Ses.Buffer_Out);
 
                Current_Req.Target_Profile := Prof;
                Invoke_Request
@@ -1745,13 +1748,14 @@ package body PolyORB.Protocols.GIOP is
 
       Fragment_Next  : Boolean := False;
       Current_Req    : Pending_Request;
+      Buffer_Out     : Buffer_Access;
    begin
 
       if S.Role  = Server then
          raise GIOP_Error;
       end if;
 
-      Release_Contents (S.Buffer_Out.all);
+      Buffer_Out := new Buffer_Type;
 
       declare
          Binding_Object : Components.Component_Access;
@@ -1785,7 +1789,8 @@ package body PolyORB.Protocols.GIOP is
                    (Current_Req.Target_Profile.all);
             begin
                Locate_Request_Message
-                 (S, Current_Req.Req, Oid, Fragment_Next);
+                 (S, Buffer_Out, Current_Req.Req, Oid,
+                  Fragment_Next);
                S.Nbr_Tries := S.Nbr_Tries + 1;
                pragma Debug (O ("Locate Request Message"));
             end;
@@ -1796,22 +1801,26 @@ package body PolyORB.Protocols.GIOP is
          end if;
       else
          if Is_Set (Sync_None, R.Req_Flags) then
-            Request_Message (S, Current_Req,
-                             False, Fragment_Next, NONE);
+            Request_Message
+              (S, Buffer_Out, Current_Req,
+               False, Fragment_Next, NONE);
 
          elsif Is_Set (Sync_With_Transport, R.Req_Flags) then
-            Request_Message (S, Current_Req,
-                             False, Fragment_Next, WITH_TRANSPORT);
+            Request_Message
+              (S, Buffer_Out, Current_Req,
+               False, Fragment_Next, WITH_TRANSPORT);
 
          else
             if Is_Set (Sync_With_Server, R.Req_Flags) then
                Request_Message
-                 (S, Current_Req, False, Fragment_Next, WITH_SERVER);
+                 (S, Buffer_Out, Current_Req,
+                  False, Fragment_Next, WITH_SERVER);
             elsif Is_Set (Sync_With_Target, R.Req_Flags)
               or else Is_Set (Sync_Call_Back, R.Req_Flags)
             then
                Request_Message
-                 (S, Current_Req, True, Fragment_Next, WITH_TARGET);
+                 (S, Buffer_Out, Current_Req, True,
+                  Fragment_Next, WITH_TARGET);
             end if;
          end if;
 
@@ -1820,7 +1829,8 @@ package body PolyORB.Protocols.GIOP is
       end if;
 
       --  Send the data to lower layers
-      Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => S.Buffer_Out));
+      Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => Buffer_Out));
+      Release (Buffer_Out);
    end Invoke_Request;
 
    -------------------
@@ -1835,22 +1845,24 @@ package body PolyORB.Protocols.GIOP is
       use Pend_Req_Seq;
       Current_Req   : aliased Pending_Request;
       Current_Note  : Request_Note;
+      Buffer_Out : Buffer_Access;
    begin
 
       if S.Role  = Server then
          raise GIOP_Error;
       end if;
 
+      Buffer_Out := new Buffer_Type;
+
       Get_Note (R.Notepad, Current_Note);
 
       Current_Req := Get_Pending_Request (S, Current_Note.Id);
 
-      Release_Contents (S.Buffer_Out.all);
-      Cancel_Request_Message (S, Current_Req.Req);
+      Cancel_Request_Message (S, Buffer_Out, Current_Req.Req);
 
       --  Sending the message
-      Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => S.Buffer_Out));
-
+      Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => Buffer_Out));
+      Release (Buffer_Out);
    end Abort_Request;
 
    ----------------
@@ -1865,17 +1877,17 @@ package body PolyORB.Protocols.GIOP is
       use Representations.CDR;
       use PolyORB.Filters.Interface;
       Fragment_Next : Boolean := False;
+      Buffer_Out : Buffer_Access;
    begin
 
       if S.Role  = Client then
          raise GIOP_Error;
       end if;
-
-      Release_Contents (S.Buffer_Out.all);
+      Buffer_Out := new Buffer_Type;
 
       if PolyORB.Any.Is_Empty (R.Exception_Info) then
          pragma Debug (O ("Send_Reply: No exception."));
-         No_Exception_Reply (S, R, Fragment_Next);
+         No_Exception_Reply (S, Buffer_Out, R, Fragment_Next);
       else
          declare
             use PolyORB.Any;
@@ -1904,16 +1916,15 @@ package body PolyORB.Protocols.GIOP is
                + PolyORB.Exceptions.PolyORB_Prefix'Length - 1)));
             pragma Debug (O (PolyORB.Exceptions.PolyORB_Prefix));
             Exception_Reply
-              (S, R, EType, R.Exception_Info, Fragment_Next);
+              (S, Buffer_Out, R, EType,
+               R.Exception_Info, Fragment_Next);
          end;
       end if;
 
       pragma Debug (O ("Sending reply"));
-
-      --  Send the message down to lower layers.
-      Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => S.Buffer_Out));
-
-      pragma Debug (O ("After Sending Reply"));
+      Emit_No_Reply (Lower (S), Data_Out'(Out_Buf => Buffer_Out));
+      Release (Buffer_Out);
+      pragma Debug (O ("Reply sent."));
    end Send_Reply;
 
    -------------------------------
@@ -2049,7 +2060,6 @@ package body PolyORB.Protocols.GIOP is
                      when Unknown_Object =>
                         pragma Debug (O ("Object not found"));
                         Release (S.Buffer_In);
-                        Release (S.Buffer_Out);
                         return;
 
                      when Object_Forward | Object_Forward_Perm =>
@@ -2071,7 +2081,6 @@ package body PolyORB.Protocols.GIOP is
                            --  Release the previous session buffers.
 
                            Release (S.Buffer_In);
-                           Release (S.Buffer_Out);
 
                            Invoke_Request
                              (GIOP_Session (New_Ses.all)'Access,
@@ -2120,7 +2129,6 @@ package body PolyORB.Protocols.GIOP is
    procedure Handle_Disconnect (S : access GIOP_Session) is
    begin
       Release (S.Buffer_In);
-      Release (S.Buffer_Out);
    end Handle_Disconnect;
 
    ---------

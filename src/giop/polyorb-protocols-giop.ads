@@ -298,48 +298,56 @@ private
 
    procedure Request_Message
      (Ses               : access GIOP_Session;
-      Pend_Req          : Pending_Request;
-      Response_Expected : Boolean;
-      Fragment_Next     : out Boolean;
-      Sync_Type         : Sync_Scope);
+      Buffer_Out        :        Buffers.Buffer_Access;
+      Pend_Req          :        Pending_Request;
+      Response_Expected :        Boolean;
+      Fragment_Next     :    out Boolean;
+      Sync_Type         :        Sync_Scope);
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
+      Buffer_Out    :        Buffers.Buffer_Access;
       Request       :        Requests.Request_Access;
       Fragment_Next :    out Boolean);
 
    procedure Exception_Reply
-     (Ses             : access GIOP_Session;
-      Request         :  Requests.Request_Access;
-      Exception_Type  : in Reply_Status_Type;
-      Occurence       : in Any.Any;
-      Fragment_Next   : out Boolean);
+     (Ses            : access GIOP_Session;
+      Buffer_Out     :        Buffers.Buffer_Access;
+      Request        :        Requests.Request_Access;
+      Exception_Type : in     Reply_Status_Type;
+      Occurence      : in     Any.Any;
+      Fragment_Next  :    out Boolean);
 
    procedure Location_Forward_Reply
-     (Ses             : access GIOP_Session;
-      Request         :  Requests.Request_Access;
-      Forward_Ref     : in PolyORB.References.IOR.IOR_Type;
-      Fragment_Next   : out Boolean);
+     (Ses           : access GIOP_Session;
+      Buffer_Out    :        Buffers.Buffer_Access;
+      Request       :        Requests.Request_Access;
+      Forward_Ref   : in     PolyORB.References.IOR.IOR_Type;
+      Fragment_Next :    out Boolean);
 
    procedure Needs_Addressing_Mode_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Address_Type    : in Addressing_Disposition);
+     (Ses          : access GIOP_Session;
+      Buffer_Out   :        Buffers.Buffer_Access;
+      Request      :        Requests.Request_Access;
+      Address_Type : in     Addressing_Disposition);
 
    procedure Cancel_Request_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access);
+     (Ses        : access GIOP_Session;
+      Buffer_Out :        Buffers.Buffer_Access;
+      Request    :        Requests.Request_Access);
 
    procedure Locate_Request_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Object_Key      : access Objects.Object_Id;
-      Fragment_Next   : out Boolean);
+     (Ses           : access GIOP_Session;
+      Buffer_Out    :        Buffers.Buffer_Access;
+      Request       :        Requests.Request_Access;
+      Object_Key    : access Objects.Object_Id;
+      Fragment_Next :    out Boolean);
 
    procedure Locate_Reply_Message
-     (Ses             : access GIOP_Session;
-      Request         : Requests.Request_Access;
-      Locate_Status   : in Locate_Status_Type);
+     (Ses           : access GIOP_Session;
+      Buffer_Out    :        Buffers.Buffer_Access;
+      Request       :        Requests.Request_Access;
+      Locate_Status : in     Locate_Status_Type);
 
    --  Explicit bounds are required in the nominal subtype
    --  in order to comply with Ravenscar restriction
@@ -370,7 +378,6 @@ private
       Minor_Version        : Types.Octet := 2;
       --  By default, we implement GIOP 1.2.
 
-      Buffer_Out           : Buffers.Buffer_Access;
       Buffer_In            : Buffers.Buffer_Access;
       Role                 : ORB.Endpoint_Role;
       Pending_Rq           : Pend_Req_Seq.Sequence;
