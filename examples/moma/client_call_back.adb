@@ -41,7 +41,6 @@ with Client_Call_Back_Procedures;
 
 with PolyORB.Setup.Thread_Pool_Server;
 pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
---  XXX this package should be renamed to PolyORB.Setup.Thread_Pool_Node ...
 
 with MOMA.Connection_Factories;
 with MOMA.Connections;
@@ -180,6 +179,8 @@ begin
    --  Initialization is completed.
    Output ("Initialization", True);
 
+   --  Test #1.
+
    Set_Byte_Test_Note (MOMA_Handler_Acc,
                        Byte_Value => MOMA.Types.Byte (1),
                        Proceed => False);
@@ -194,16 +195,21 @@ begin
    --  Message 1 is handled.
    --  Behavior is set to Notify by current Handle procedure.
    Wait;
+   Output ("Test #1", True);
+
+   --  Test #2.
 
    Set_Behavior (MOMA_Handler_Acc, Notify);
 
    Set_Byte_Test_Note (MOMA_Handler_Acc,
                        Byte_Value => MOMA.Types.Byte (2),
                        Proceed => False);
-
    Send_MByte (MOMA_Producer, 2);
    --  Message 2 is notified and received.
    Wait;
+   Output ("Test #2", True);
+
+   --  Test #3.
 
    Set_Notifier (MOMA_Handler_Acc,
                  MOMA.Message_Handlers.Template_Notifier'Access);
@@ -211,12 +217,19 @@ begin
    Send_MByte (MOMA_Producer, 3);
    --  Message 3 is notified and not received.
 
+   Output ("Test #3", True);
+
+   --  Test #4.
+
    Set_Notifier (MOMA_Handler_Acc, Notify_Then_Handle'Access);
 
    Send_MByte (MOMA_Producer, 4);
    --  Message 4 is notified and not received.
    --  Behavior is set to Handle by current Notify procedure.
    Wait;
+   Output ("Test #4", True);
+
+   --  Test #5.
 
    Set_Byte_Test_Note (MOMA_Handler_Acc,
                        Byte_Value => MOMA.Types.Byte (5),
@@ -226,11 +239,17 @@ begin
    --  Message 5 is handled.
    --  Behavior is set to Notify by current Handle procedure.
    Wait;
+   Output ("Test #5", True);
+
+   --  Test #6.
 
    Set_Behavior (MOMA_Handler_Acc, None);
 
    Send_MByte (MOMA_Producer, 6);
    --  No call_back actions are defined for Message 6
+   Output ("Test #6", True);
+
+   --  Test #7.
 
    Message_Id := Receive_MByte (MOMA_Consumer);
    Output ("Receive message " & MOMA.Types.Byte'Image (Message_Id),
@@ -245,6 +264,7 @@ begin
       Message_Id = MOMA.Types.Byte (6));
 
    --  XXX should destroy all structures here !
+   Output ("Test #7", True);
    Output ("End of tests", True);
 
 end Client_Call_Back;

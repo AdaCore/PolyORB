@@ -126,7 +126,7 @@ package body Client_Call_Back_Procedures is
       Get_Call_Back_Data (Handler, Data);
       Data.Proceed := True;
       Set_Call_Back_Data (Handler, Data);
-      Set_Behavior (Handler, None);
+      Set_Behavior (Handler, Handle);
    end Notify_Then_Handle;
 
    -------------------
@@ -153,6 +153,7 @@ package body Client_Call_Back_Procedures is
    begin
       Set_Byte (MByte_Message_Sent, Id);
       Send (MOMA_Producer, MByte_Message_Sent);
+      Output ("Send message #" & Id'Img, True);
    end Send_MByte;
 
    ------------------------
