@@ -17,12 +17,12 @@
 ----------------------------------------
 
 --  Various mapping functions for CIAO.Translator.
---  $Id: //depot/ciao/main/ciao-translator-maps.ads#6 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.ads#2 $
 
 with Asis;       use Asis;
 
-with CIAO.Types;    use CIAO.Types;
-with CIAO.IDL_Tree; use CIAO.IDL_Tree;
+with Idl_Fe.Types; use Idl_Fe.Types;
+with Idl_Fe.Tree;  use Idl_Fe.Tree;
 
 package CIAO.Translator.Maps is
 

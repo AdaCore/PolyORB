@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //depot/ciao/main/ciao-translator-state.ads#7 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#2 $
 
 package CIAO.Translator.State is
 
@@ -31,37 +31,37 @@ package CIAO.Translator.State is
      (Normal,
       --  We are translating declarations in order of
       --  appearance.
+
       Deferred_Discriminant_Part,
       --  We are translating a discriminant part which was
       --  precedently left over into a set of <member>s.
+
       Type_Definition,
       --  We are translating a type_definition into a <type_spec>.
+
       Translate_Subtype_Mark,
       --  We are translating a subtype_mark.
+
       Normal_Formal_Parameter,
       --  An ordinary formal parameter of a subprogram
+
       Self_Formal_Parameter
-      --  The first parameter_specification of a subprogram
-      --  profile such that the subprogram is a primitive
-      --  of the parameter type.
+      --  The first controlling formal parameter of a dispatching
+      --  operation.
       );
 
    type Translator_State is record
-      Unit_Category : Unit_Categories
-        := Other;
+      Unit_Category : Unit_Categories := Other;
       --  The category (Pure, Remote_Types or Remote_Call_Interface)
       --  of the library unit being translated.
 
-      IDL_Tree     : Node_Id
-        := Empty;
+      IDL_Tree     : Node_Id := Empty;
       --  The root of the translated IDL tree.
 
-      Current_Node : Node_Id
-        := Empty;
+      Current_Node : Node_Id := Empty;
       --  The IDL node which is being constructed.
 
-      Pass         : Translation_Pass
-        := Normal;
+      Pass         : Translation_Pass := Normal;
       --  The current translation pass.
    end record;
 

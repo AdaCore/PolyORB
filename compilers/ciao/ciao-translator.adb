@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //depot/ciao/main/ciao-translator.adb#36 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#2 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_Io;  use Ada.Wide_Text_Io;
@@ -36,10 +36,15 @@ with Asis.Text;
 
 with CIAO.ASIS_Queries; use CIAO.ASIS_Queries;
 with CIAO.Filenames;    use CIAO.Filenames;
-with CIAO.IDL_Tree;     use CIAO.IDL_Tree;
-with CIAO.IDL_Syntax;   use CIAO.IDL_Syntax;
-with CIAO.IDL_Syntax.Scoped_Names; use CIAO.IDL_Syntax.Scoped_Names;
-with CIAO.Nlists;       use CIAO.Nlists;
+
+--  with CIAO.IDL_Tree;     use CIAO.IDL_Tree;
+--  with CIAO.IDL_Syntax;   use CIAO.IDL_Syntax;
+--  with CIAO.IDL_Syntax.Scoped_Names; use CIAO.IDL_Syntax.Scoped_Names;
+--  with CIAO.Nlists;       use CIAO.Nlists;
+with Idl_Fe.Types; use Idl_Fe.Types;
+with Idl_Fe.Tree;  use Idl_Fe.Tree;
+with Idl_Fe.Utils; use Idl_Fe.Utils;
+with Errors;       use Errors;
 
 with CIAO.Translator.Maps;  use CIAO.Translator.Maps;
 with CIAO.Translator.State; use CIAO.Translator.State;
@@ -61,8 +66,13 @@ package body CIAO.Translator is
 
    procedure Raise_Translation_Error
      (Element : Asis.Element;
-      Message : String) is
+      Message : String);
+   pragma No_Return (Raise_Translation_Error);
 
+   procedure Raise_Translation_Error
+     (Element : Asis.Element;
+      Message : String)
+   is
       use Asis.Text;
 
       E_Span       : constant Span
@@ -193,6 +203,11 @@ package body CIAO.Translator is
    -- to take care of particular Element_Kinds.            --
    ----------------------------------------------------------
 
+   function Map_Defining_Name
+     (Name : in Asis.Defining_Name)
+     return String;
+   --  Return the IDL representation of Name.
+
    procedure Translate_Defining_Name
      (Name    : in Asis.Defining_Name;
       State   : in out Translator_State);
@@ -319,8 +334,8 @@ package body CIAO.Translator is
       --  Post-condition: State.Current_Node is the <op_dcl> node
       --  and its name has not been set.
 
-      function Get_Constants_Interface (N : in Node_Id)
-        return Node_Id;
+--       function Get_Constants_Interface (N : in Node_Id)
+--         return Node_Id;
       --  Returns the Node_Id of the <interface_dcl> node that
       --  contains all constants exported by the module;
       --  allocates it if it does not exist yet.
@@ -328,24 +343,29 @@ package body CIAO.Translator is
       procedure Process_Distributed_Object_Declaration
         (Element : in Asis.Element;
          Control : in out Traverse_Control;
-         State   : in out Translator_State) is
+         State   : in out Translator_State)
+      is
          Forward_Node : Node_Id;
+         Success : Boolean;
       begin
-         Forward_Node := New_Forward_Interface;
-         Set_Parent (Forward_Node, State.Current_Node);
-         Add_Definition (State.Current_Node, Forward_Node);
+--          Forward_Node := New_Forward_Interface;
+--          Set_Parent (Forward_Node, State.Current_Node);
+--          Add_Definition (State.Current_Node, Forward_Node);
 
-         Node := New_Interface;
-         Set_Parent (Node, State.Current_Node);
-         Add_Interface (State.Current_Node, Node);
+--          Node := New_Interface;
+--          Set_Parent (Node, State.Current_Node);
+--          Add_Interface (State.Current_Node, Node);
+         Forward_Node := Make_Forward (No_Location);
+         Success := Add_Identifier
+           (Forward_Node, Map_Defining_Name (Defining_Name));
+         pragma Assert (Success);
+         Append_Node_To_Contents
+           (State.Current_Node, Forward_Node);
 
-         State.Current_Node := Specific_Interface (Forward_Node);
-         Translate_Defining_Name
-           (Defining_Name, State);
-
-         State.Current_Node := Interface_Header (Specific_Interface (Node));
-         Translate_Defining_Name
-           (Defining_Name, State);
+         Node := Make_Interface (No_Location);
+         Set_Forward (Node, Forward_Node);
+         Set_Forward (Forward_Node, Node);
+         Set_Definition (Node, Idl_Fe.Tree.Definition (Forward_Node));
 
          if DK = A_Private_Extension_Declaration then
             --  This is an extension of a distributed object declaration:
@@ -358,33 +378,22 @@ package body CIAO.Translator is
                  (Asis.Definitions.Subtype_Mark
                   (Ancestor_Subtype_Indication
                    (Type_Declaration_View (Element))));
-               Include_Node : constant Node_Id
-                 := Get_Translation (Unit_Declaration
-                                     (Enclosing_Compilation_Unit
-                                      (Ancestor_Definition)));
             begin
-               if Include_Node /= Empty
-                 and then Node_Kind (Include_Node) = N_Preprocessor_Include
-               then
-                  Set_Unit_Used (Include_Node, True);
-               end if;
-
-               Add_Inherited_Interface
-                 (State.Current_Node,
-                  (Relative_Scoped_Name
-                   (Denoted_Definition => Ancestor_Definition,
-                    Referer            => Element)));
+               Set_Parents
+                 (Node,
+                  Append_Node
+                  (Parents (Node), Get_Translation
+                   (Ancestor_Definition)));
             end;
          else
             --  This is a root distributed object declaration.
             null;
          end if;
-         State.Current_Node := Old_Current_Node;
 
-         Set_Translation (Element, Specific_Interface (Node));
+         Set_Translation (Element, Node);
          --  The translation information for a tagged
          --  type definition is the corresponding
-         --  <interface_dcl>.
+         --  Interface node.
 
          Control := Abandon_Children;
          --  Children were processed explicitly.
@@ -402,20 +411,19 @@ package body CIAO.Translator is
          --  <param_type_spec> or "void", for use in <op_type_spec>.
 
       begin
-         Op_Node := New_Operation;
-         Set_Parent (Op_Node, State.Current_Node);
-         Add_Export (State.Current_Node, Op_Node);
+         Op_Node := Make_Operation (No_Location);
+         Append_Node_To_Contents (Op_Node, State.Current_Node);
 
          if  Is_Nil (Result_Profile) then
-            Value_Type_Node := New_Void;
+            Value_Type_Node := Make_Void (No_Location);
          else
-            Value_Type_Node := New_Node (N_Param_Type_Spec);
-            State.Current_Node := Value_Type_Node;
-            Translate_Subtype_Mark (Result_Profile, State);
+            Value_Type_Node
+              := Get_Translation
+              (Corresponding_Entity_Name_Definition
+               (Result_Profile));
          end if;
 
-         Set_Parent (Value_Type_Node, Op_Type_Spec (Op_Node));
-         Set_Operation_Value_Type (Op_Type_Spec (Op_Node), Value_Type_Node);
+         Set_Operation_Type (Op_Node, Value_Type_Node);
 
          State.Current_Node := Op_Node;
 
@@ -435,26 +443,26 @@ package body CIAO.Translator is
          end loop;
       end Process_Operation_Declaration;
 
-      function Get_Constants_Interface (N : in Node_Id)
-        return Node_Id is
-         Interface_Node     : Node_Id;
-         Interface_Dcl_Node : Node_Id;
-      begin
-         Interface_Dcl_Node := Constants_Interface (N);
-         if No (Interface_Dcl_Node) then
-            Interface_Node := New_Interface;
-            Set_Parent (Interface_Node, State.Current_Node);
-            Add_Interface (State.Current_Node, Interface_Node);
+--       function Get_Constants_Interface (N : in Node_Id)
+--         return Node_Id is
+--          Interface_Node     : Node_Id;
+--          Interface_Dcl_Node : Node_Id;
+--       begin
+--          Interface_Dcl_Node := Constants_Interface (N);
+--          if No (Interface_Dcl_Node) then
+--             Interface_Node := New_Interface;
+--             Set_Parent (Interface_Node, State.Current_Node);
+--             Add_Interface (State.Current_Node, Interface_Node);
 
-            Interface_Dcl_Node := Specific_Interface (Interface_Node);
+--             Interface_Dcl_Node := Specific_Interface (Interface_Node);
 
-            Set_Constants_Interface (State.Current_Node, Interface_Dcl_Node);
-            Set_Name (Interface_Header (Interface_Dcl_Node),
-                      New_Name ("Constants"));
-         end if;
+--             Set_Constants_Interface (State.Current_Node, Interface_Dcl_Node);
+--             Set_Name (Interface_Header (Interface_Dcl_Node),
+--                       New_Name ("Constants"));
+--          end if;
 
-         return Interface_Dcl_Node;
-      end Get_Constants_Interface;
+--          return Interface_Dcl_Node;
+--       end Get_Constants_Interface;
 
    begin
       case DK is
@@ -466,6 +474,7 @@ package body CIAO.Translator is
             declare
                Type_Definition      : constant Asis.Definition
                  := Declarations.Type_Declaration_View (Element);
+               Success : Boolean;
             begin
                pragma Assert (Defining_Names'Length = 1);
                --  Only one defining_name in a full_type_declaration,
@@ -484,24 +493,24 @@ package body CIAO.Translator is
                      Interface_Node : Node_Id;
                      Interface_Dcl_Node : Node_Id;
                   begin
-                     Interface_Node := New_Interface;
-                     Set_Parent (Interface_Node, State.Current_Node);
-                     Add_Definition (State.Current_Node, Interface_Node);
-
-                     Interface_Dcl_Node := Specific_Interface (Interface_Node);
-
-                     State.Current_Node := Interface_Header
-                       (Interface_Dcl_Node);
-                     Translate_Defining_Name (Defining_Names
-                                              (Defining_Names'First), State);
-                     State.Current_Node := Interface_Dcl_Node;
+                     Interface_Node := Make_Interface (No_Location);
+                     Append_Node_To_Contents
+                       (State.Current_Node,
+                        Interface_Node);
+                     Success := Add_Identifier
+                       (Interface_Node,
+                        Map_Defining_Name
+                        (Defining_Names (Defining_Names'First)));
+                     pragma Assert (Success);
+                     State.Current_Node := Interface_Node;
 
                      case Access_Type_Kind (Type_Definition) is
                         when
                           An_Access_To_Procedure           |
                           An_Access_To_Protected_Procedure =>
                            Process_Operation_Declaration
-                             (State, Access_To_Subprogram_Parameter_Profile
+                             (State,
+                              Access_To_Subprogram_Parameter_Profile
                               (Type_Definition));
                         when
                           An_Access_To_Function           |
@@ -509,16 +518,18 @@ package body CIAO.Translator is
                            Process_Operation_Declaration
                              (State,
                               Access_To_Subprogram_Parameter_Profile
-                                (Type_Definition),
+                              (Type_Definition),
                               Result_Profile =>
                                 Access_To_Function_Result_Profile
-                                  (Type_Definition));
+                              (Type_Definition));
                         when others =>
                            --  This cannot happen because we checked that
                            --  Access_Kind in Access_To_Subprogram_Definition
                            raise ASIS_Failed;
                      end case;
-                     Set_Name (State.Current_Node, New_Name ("Invoke"));
+                     Success := Add_Identifier (State.Current_Node, "Call");
+                     pragma Assert (Success);
+
                      Set_Translation (Element, State.Current_Node);
                      --  The translation of a RAS declaration is
                      --  an <op_dcl>.
@@ -527,23 +538,22 @@ package body CIAO.Translator is
                   --  This is the definition of a normal type.
                   declare
                      Type_Dcl_Node        : Node_Id;
-                     Type_Declarator_Node : Node_Id;
                      Declarator_Node      : Node_Id;
+                     Success : Boolean;
                   begin
-                     Type_Dcl_Node := New_Node (N_Type_Dcl);
-                     Set_Parent (Type_Dcl_Node, State.Current_Node);
-                     Add_Definition (State.Current_Node, Type_Dcl_Node);
+                     Type_Dcl_Node := Make_Type_Declarator (No_Location);
+                     Append_Node_To_Contents (Type_Dcl_Node, State.Current_Node);
                      Set_Translation (Element, Type_Dcl_Node);
                      --  The translation of a type declaration is
                      --  a <type_dcl>.
 
-                     Type_Declarator_Node := New_Node (N_Type_Declarator);
-                     Set_Parent (Type_Declarator_Node, Type_Dcl_Node);
-                     Set_Type_Declarator (Type_Dcl_Node, Type_Declarator_Node);
-
-                     Declarator_Node := New_Node (N_Declarator);
-                     Set_Parent (Declarator_Node, Type_Declarator_Node);
-                     Add_Declarator (Type_Declarator_Node, Declarator_Node);
+                     Declarator_Node := Make_Declarator (No_Location);
+                     Set_Parent (Declarator_Node, Type_Dcl_Node);
+                     Set_Declarators
+                       (Type_Dcl_Node,
+                        Append_Node
+                        (Declarators (Type_Dcl_Node),
+                         Declarator_Node));
 
                      if False
                        --  For now, we cannot determine the bounds of a
@@ -551,39 +561,31 @@ package body CIAO.Translator is
                        and then Definition_Kind (Type_Definition) = A_Type_Definition
                        and then Type_Kind (Type_Definition) = A_Constrained_Array_Definition
                      then
-                        Node := New_Node (N_Array_Declarator);
-                        Set_Parent (Node, Declarator_Node);
-                        Set_Specific_Declarator (Declarator_Node, Node);
+--                         Node := New_Node (N_Array_Declarator);
+--                         Set_Parent (Node, Declarator_Node);
+--                         Set_Specific_Declarator (Declarator_Node, Node);
 
-                        State.Current_Node := Node;
-                        Translate_Defining_Name (Defining_Name, State);
+--                         State.Current_Node := Node;
+--                         Translate_Defining_Name (Defining_Name, State);
 
                         --  Here we should process the array dimensions
 
                         raise Program_Error;
                      else
-                        Node := New_Node (N_Simple_Declarator);
-                        Set_Parent (Node, Declarator_Node);
-                        Set_Specific_Declarator (Declarator_Node, Node);
-
-                        State.Current_Node := Node;
-                        Translate_Defining_Name
-                          (Defining_Name, State);
+                        Success := Add_Identifier
+                          (Declarator_Node, Map_Defining_Name (Defining_Name));
+                        pragma Assert (Success);
                      end if;
 
                      --  known_discriminant_part is not processed now.
                      if DK = A_Subtype_Declaration then
-                        declare
-                           Type_Spec_Node : Node_Id;
-                        begin
-                           Type_Spec_Node := Insert_New_Simple_Type_Spec
-                             (Type_Declarator_Node);
-
-                           State.Current_Node := Specific_Type_Spec (Type_Spec_Node);
-                           Translate_Subtype_Mark (Type_Definition, State);
-                        end;
+                        Set_T_Type
+                          (Type_Dcl_Node,
+                           Get_Translation
+                           (Corresponding_Entity_Name_Definition
+                            (Type_Definition)));
                      else
-                        State.Current_Node := Type_Declarator_Node;
+                        State.Current_Node := Type_Dcl_Node;
                         Translate_Type_Definition (Type_Definition, State);
                      end if;
                   end;
@@ -634,37 +636,28 @@ package body CIAO.Translator is
                   --  opaque sequence of octets.
                   declare
                      Type_Dcl_Node        : Node_Id;
-                     Type_Declarator_Node : Node_Id;
                      Declarator_Node      : Node_Id;
+                     Success : Boolean;
                   begin
-                     Type_Dcl_Node := New_Node (N_Type_Dcl);
-                     Set_Parent (Type_Dcl_Node, State.Current_Node);
-                     Add_Definition (State.Current_Node, Type_Dcl_Node);
+                     Type_Dcl_Node := Make_Type_Declarator (No_Location);
+                     Append_Node_To_Contents (Type_Dcl_Node, State.Current_Node);
                      Set_Translation (Element, Type_Dcl_Node);
                      --  The translation of a type declaration is a <type_dcl>.
 
-                     Type_Declarator_Node := New_Node (N_Type_Declarator);
-                     Set_Parent (Type_Declarator_Node, Type_Dcl_Node);
-                     Set_Type_Declarator (Type_Dcl_Node, Type_Declarator_Node);
+                     Declarator_Node := Make_Declarator (No_Location);
+                     Set_Parent (Declarator_Node, Type_Dcl_Node);
 
-                     Declarator_Node := New_Node (N_Declarator);
-                     Set_Parent (Declarator_Node, Type_Declarator_Node);
-                     Add_Declarator (Type_Declarator_Node, Declarator_Node);
+                     Set_Declarators
+                       (Type_Dcl_Node,
+                        Append_Node
+                        (Declarators (Type_Dcl_Node),
+                         Declarator_Node));
 
-                     Node := New_Node (N_Simple_Declarator);
-                     Set_Parent (Node, Declarator_Node);
-                     Set_Specific_Declarator (Declarator_Node, Node);
+                     Success := Add_Identifier
+                       (Declarator_Node, Map_Defining_Name (Defining_Name));
+                     pragma Assert (Success);
+                     Set_T_Type (Type_Dcl_Node, New_Opaque_Type);
 
-                     State.Current_Node := Node;
-                     Translate_Defining_Name
-                       (Defining_Name, State);
-                     declare
-                        Opaque_Type_Node : constant Node_Id
-                          := New_Opaque_Type;
-                     begin
-                        Set_Type_Spec (Type_Declarator_Node, Opaque_Type_Node);
-                        Set_Parent (Opaque_Type_Node, Type_Declarator_Node);
-                     end;
                      State.Current_Node := Old_Current_Node;
                   end;
 
@@ -698,7 +691,7 @@ package body CIAO.Translator is
                --  a tagged limited private (possibly abstract)
                --  type declaration, the implicit processing is done,
                --  resulting in an opaque type mapping.
-               -- NOT CHECKED!
+               --  XXX NOT CHECKED!
             end;
 
          when
@@ -713,101 +706,109 @@ package body CIAO.Translator is
            A_Deferred_Constant_Declaration |             -- 3.3.1(6), 7.4(2)
            An_Integer_Number_Declaration   |             -- 3.3.2(2)
            A_Real_Number_Declaration       =>            -- 3.5.6(2)
-            declare
-               Interface_Dcl_Node : constant Node_Id
-                 := Get_Constants_Interface (State.Current_Node);
-               Op_Node         : Node_Id;
-               --  The <op_dcl>
-               Value_Type_Node : Node_Id;
-               --  <param_type_spec> or "void", for use in <op_type_spec>.
-            begin
-               for I in Defining_Names'Range loop
-                  --  A constant is mapped to a parameter-less operation
-                  --  in the "Constants" <interface_dcl> of the current
-                  --  <module>.
-                  Op_Node := New_Operation;
-                  Set_Parent (Op_Node, Interface_Dcl_Node);
-                  Add_Export (Interface_Dcl_Node, Op_Node);
+--             declare
+--                Interface_Dcl_Node : constant Node_Id
+--                  := Get_Constants_Interface (State.Current_Node);
+--                Op_Node         : Node_Id;
+--                --  The <op_dcl>
+--                Value_Type_Node : Node_Id;
+--                --  <param_type_spec> or "void", for use in <op_type_spec>.
+--             begin
+--                for I in Defining_Names'Range loop
+--                   --  A constant is mapped to a parameter-less operation
+--                   --  in the "Constants" <interface_dcl> of the current
+--                   --  <module>.
+--                   Op_Node := New_Operation;
+--                   Set_Parent (Op_Node, Interface_Dcl_Node);
+--                   Add_Export (Interface_Dcl_Node, Op_Node);
 
-                  --  Set the <op_type_spec> to the <param_type_spec>
-                  --  that corresponds to the constant's subtype.
-                  Value_Type_Node := New_Node (N_Param_Type_Spec);
-                  State.Current_Node := Value_Type_Node;
-                  if False
-                    or else DK = A_Constant_Declaration
-                    or else DK = A_Deferred_Constant_Declaration
-                  then
-                     declare
-                        Object_Definition : constant Asis.Definition
-                          := Object_Declaration_View (Element);
-                     begin
-                        case Definition_Kind (Object_Definition) is
-                           when A_Subtype_Indication =>
-                              Translate_Subtype_Mark
-                                (Asis.Definitions.Subtype_Mark (Object_Definition), State);
-                           when A_Type_Definition => --  A_Constrained_Array_Definition
-                              -- XXX TODO:
-                              -- * emit a type <name_of_constant>_array
-                              -- * map the constant to a function which returns that type.
-                              -- (an IDL function cannot return an anonymous array.)
-                              raise Program_Error;
+--                   --  Set the <op_type_spec> to the <param_type_spec>
+--                   --  that corresponds to the constant's subtype.
+--                   Value_Type_Node := New_Node (N_Param_Type_Spec);
+--                   State.Current_Node := Value_Type_Node;
+--                   if False
+--                     or else DK = A_Constant_Declaration
+--                     or else DK = A_Deferred_Constant_Declaration
+--                   then
+--                      declare
+--                         Object_Definition : constant Asis.Definition
+--                           := Object_Declaration_View (Element);
+--                      begin
+--                         case Definition_Kind (Object_Definition) is
+--                            when A_Subtype_Indication =>
+--                               Translate_Subtype_Mark
+--                                 (Asis.Definitions.Subtype_Mark (Object_Definition), State);
+--                            when A_Type_Definition => --  A_Constrained_Array_Definition
+--                               -- XXX TODO:
+--                               -- * emit a type <name_of_constant>_array
+--                               -- * map the constant to a function which returns that type.
+--                               -- (an IDL function cannot return an anonymous array.)
+--                               raise Program_Error;
 
-                           when others =>
-                              Raise_Translation_Error
-                                (Element, "Unexpected object definition (A_Constant_Declaration).");
-                        end case;
-                     end;
-                  else
-                     --  An_Integer_Number_Declaration or A_Real_Number_Declaration
-                     -- XXX This code is more or less replicated in An_Unconstrained_Array_Definition
-                     --     and should be factored.
-                     declare
-                        TS_Node : Node_Id;
-                        STS_Node : Node_Id;
-                        BTS_Node : Node_Id;
-                     begin
-                        TS_Node := Insert_New_Simple_Type_Spec (State.Current_Node);
+--                            when others =>
+--                               Raise_Translation_Error
+--                                 (Element, "Unexpected object definition (A_Constant_Declaration).");
+--                         end case;
+--                      end;
+--                   else
+--                      --  An_Integer_Number_Declaration or A_Real_Number_Declaration
+--                      -- XXX This code is more or less replicated in An_Unconstrained_Array_Definition
+--                      --     and should be factored.
+--                      declare
+--                         TS_Node : Node_Id;
+--                         STS_Node : Node_Id;
+--                         BTS_Node : Node_Id;
+--                      begin
+--                         TS_Node := Insert_New_Simple_Type_Spec (State.Current_Node);
 
-                        STS_Node := Specific_Type_Spec (TS_Node);
+--                         STS_Node := Specific_Type_Spec (TS_Node);
 
-                        if DK = An_Integer_Number_Declaration then
-                           BTS_Node := New_Base_Type (Base_Type (Root_Integer));
-                        else
-                           BTS_Node := New_Base_Type (Base_Type (Root_Real));
-                        end if;
+--                         if DK = An_Integer_Number_Declaration then
+--                            BTS_Node := New_Base_Type (Base_Type (Root_Integer));
+--                         else
+--                            BTS_Node := New_Base_Type (Base_Type (Root_Real));
+--                         end if;
 
-                        Set_Base_Type_Spec (STS_Node, BTS_Node);
-                        Set_Parent (BTS_Node, STS_Node);
-                     end;
-                  end if;
+--                         Set_Base_Type_Spec (STS_Node, BTS_Node);
+--                         Set_Parent (BTS_Node, STS_Node);
+--                      end;
+--                   end if;
 
-                  Set_Parent (Value_Type_Node, Op_Type_Spec (Op_Node));
-                  Set_Operation_Value_Type (Op_Type_Spec (Op_Node), Value_Type_Node);
+--                   Set_Parent (Value_Type_Node, Op_Type_Spec (Op_Node));
+--                   Set_Operation_Value_Type (Op_Type_Spec (Op_Node), Value_Type_Node);
 
-                  State.Current_Node := Op_Node;
-                  Translate_Defining_Name (Defining_Names (I), State);
-                  Set_Translation (Element, State.Current_Node);
-                  --  The translation of a constant declaration is the
-                  --  corresponding <op_dcl>.
+--                   State.Current_Node := Op_Node;
+--                   Translate_Defining_Name (Defining_Names (I), State);
+--                   Set_Translation (Element, State.Current_Node);
+--                   --  The translation of a constant declaration is the
+--                   --  corresponding <op_dcl>.
 
-                  State.Current_Node := Old_Current_Node;
-               end loop;
+--                   State.Current_Node := Old_Current_Node;
+--                end loop;
 
-               Control := Abandon_Children;
-               --  Child elements were processed explicitly.
-            end;
+--                Control := Abandon_Children;
+--                --  Child elements were processed explicitly.
+--             end;
+            raise Not_Implemented;
 
          when An_Enumeration_Literal_Specification =>    -- 3.5.1(3)
             declare
                Enumerator_Node : Node_Id;
+               Success : Boolean;
             begin
                pragma Assert (Defining_Names'Length = 1);
                --  Only one defining_name in an enumeration_literal_specification.
 
-               Enumerator_Node := Insert_New_Enumerator (State.Current_Node);
-
-               State.Current_Node := Enumerator_Node;
-               Translate_Defining_Name (Defining_Name, State);
+               Enumerator_Node := Make_Enumerator (No_Location);
+               Set_Enumerators
+                 (State.Current_Node,
+                  Append_Node
+                  (Enumerators (State.Current_Node),
+                   Enumerator_Node));
+               Success := Add_Identifier
+                 (Enumerator_Node, Map_Defining_Name
+                  (Defining_Name));
+               pragma Assert (Success);
                State.Current_Node := Old_Current_Node;
 
                Control := Abandon_Children;
@@ -820,8 +821,8 @@ package body CIAO.Translator is
             declare
                Component_Subtype_Mark : Asis.Expression;
                Declarator_Node        : Node_Id;
-               Simple_Declarator_Node : Node_Id;
                Type_Spec_Node         : Node_Id;
+               Success : Boolean;
             begin
                if DK = A_Discriminant_Specification then
                   Component_Subtype_Mark := Declaration_Subtype_Mark (Element);
@@ -831,26 +832,26 @@ package body CIAO.Translator is
                      (Object_Declaration_View (Element)));
                end if;
 
-               Node := Insert_New_Member (State.Current_Node);
+               Node := Make_Member (No_Location);
+               Set_Members
+                 (State.Current_Node,
+                  Append_Node (Members (State.Current_Node), Node));
 
                for I in Defining_Names'Range loop
-                  Declarator_Node := New_Node (N_Declarator);
+                  Declarator_Node := Make_Declarator (No_Location);
                   Set_Parent (Declarator_Node, Node);
-                  Add_Declarator (Node, Declarator_Node);
-
-                  Simple_Declarator_Node := New_Node (N_Simple_Declarator);
-                  Set_Parent (Simple_Declarator_Node, Declarator_Node);
-                  Set_Specific_Declarator
-                    (Declarator_Node, Simple_Declarator_Node);
-
-                  State.Current_Node := Simple_Declarator_Node;
-                  Translate_Defining_Name (Defining_Names (I), State);
+                  Set_Decl (Node, Append_Node (Decl (Node), Declarator_Node));
+                  Success := Add_Identifier
+                    (Declarator_Node, Map_Defining_Name (Defining_Name));
+                  pragma Assert (Success);
                end loop;
 
-               Type_Spec_Node := Insert_New_Simple_Type_Spec (Node);
+               Set_M_Type
+                 (Node,
+                  Get_Translation
+                  (Corresponding_Entity_Name_Definition
+                   (Component_Subtype_Mark)));
 
-               State.Current_Node := Specific_Type_Spec (Type_Spec_Node);
-               Translate_Subtype_Mark (Component_Subtype_Mark, State);
                State.Current_Node := Old_Current_Node;
 
                Control := Abandon_Children;
@@ -866,9 +867,9 @@ package body CIAO.Translator is
                Profile                 : constant Parameter_Specification_List
                  := Parameter_Profile (Element);
                Implicit_Self_Parameter : Asis.Element := Nil_Element;
-               Interface_Dcl_Node      : Node_Id := Empty;
-               Old_Current_Node        : constant Node_Id
-                 := State.Current_Node;
+               Interface_Dcl_Node      : Node_Id := No_Node;
+               Old_Current_Node        : constant Node_Id := State.Current_Node;
+               Success : Boolean;
             begin
                pragma Assert (Defining_Names'Length = 1);
                --  Only one defining_name in a subprogram declaration.
@@ -932,18 +933,23 @@ package body CIAO.Translator is
                --  <interface> is part of the current <specification>, and
                --  Interface_Dcl_Node is set to the corresponding N_Interface node.
 
-               if Node_Kind (Interface_Dcl_Node) = N_Interface_Dcl then
+               if Kind (Interface_Dcl_Node) = K_Interface then
                   State.Current_Node := Interface_Dcl_Node;
                   if Is_Function then
-                     Process_Operation_Declaration (State, Profile,
-                                                    Result_Profile => Result_Profile (Element),
-                                                    Implicit_Self_Parameter => Implicit_Self_Parameter);
+                     Process_Operation_Declaration
+                       (State, Profile,
+                        Result_Profile => Result_Profile (Element),
+                        Implicit_Self_Parameter => Implicit_Self_Parameter);
                   else
-                     Process_Operation_Declaration (State, Profile,
-                                                    Result_Profile => Nil_Element,
-                                                    Implicit_Self_Parameter => Implicit_Self_Parameter);
+                     Process_Operation_Declaration
+                       (State, Profile,
+                        Result_Profile => Nil_Element,
+                        Implicit_Self_Parameter => Implicit_Self_Parameter);
                   end if;
-                  Translate_Defining_Name (Defining_Name, State);
+                  Success := Add_Identifier
+                    (State.Current_Node, Map_Defining_Name (Defining_Name));
+                  pragma Assert (Success);
+
                   Set_Translation (Element, State.Current_Node);
                   --  The translation of a subprogram declaration is the corresponding
                   --  <op_dcl>.
@@ -960,9 +966,11 @@ package body CIAO.Translator is
                  := Declarations.Names (Element);
                Subtype_Mark     : constant Asis.Expression
                  := Declarations.Declaration_Subtype_Mark (Element);
-               Attribute_Node        : Node_Id;
+               Declarator_Node : Node_Id;
+               Mode : Param_Mode;
                Old_Current_Node : constant Node_Id
                  := State.Current_Node;
+               Success : Boolean;
             begin
                pragma Assert (False
                  or else State.Pass = CIAO.Translator.State.Self_Formal_Parameter
@@ -971,20 +979,29 @@ package body CIAO.Translator is
                for I in Defining_Names'Range loop
                   if State.Pass /= Self_Formal_Parameter
                     or else I /= Defining_Names'First then
-                     Node := New_Parameter;
-                     Set_Parent (Node, State.Current_Node);
-                     Add_Param_Dcl (State.Current_Node, Node);
+                     Node := Make_Param (No_Location);
+                     Set_Parameters
+                       (State.Current_Node,
+                        Append_Node
+                        (Parameters
+                         (State.Current_Node), Node));
+                     Declarator_Node := Make_Declarator (No_Location);
+                     Set_Declarator (Node, Declarator_Node);
+                     Set_Parent (Declarator_Node, Node);
+                     Success := Add_Identifier
+                       (Declarator_Node,
+                        Map_Defining_Name (Defining_Names (I)));
+                     pragma Assert (Success);
 
-                     State.Current_Node := Node;
-                     Translate_Defining_Name (Defining_Names (I), State);
-
-                     State.Current_Node := Param_Type_Spec (Node);
-                     Translate_Subtype_Mark (Subtype_Mark, State);
+                     Set_Param_Type
+                       (Node, Get_Translation
+                        (Corresponding_Entity_Name_Definition
+                         (Subtype_Mark)));
 
                      State.Current_Node := Old_Current_Node;
 
                      if Trait_Kind (Element) = An_Access_Definition_Trait then
-                        Attribute_Node := New_Inout_Attribute;
+                        Mode := Mode_Inout;
                      else
                         case Mode_Kind (Element) is
                            when Not_A_Mode     =>          -- An unexpected element
@@ -993,15 +1010,14 @@ package body CIAO.Translator is
                            when
                              A_Default_In_Mode |           -- procedure A(B :        C);
                              An_In_Mode        =>          -- procedure A(B : IN     C);
-                              Attribute_Node := New_In_Attribute;
+                              Mode := Mode_In;
                            when An_Out_Mode    =>          -- procedure A(B :    OUT C);
-                              Attribute_Node := New_Out_Attribute;
+                              Mode := Mode_Out;
                            when An_In_Out_Mode =>          -- procedure A(B : IN OUT C);
-                              Attribute_Node := New_Inout_Attribute;
+                              Mode := Mode_Inout;
                         end case;
                      end if;
-                     Set_Parent (Attribute_Node, Node);
-                     Set_Parameter_Attribute (Node, Attribute_Node);
+                     Set_Mode (Node, Mode);
                   end if;
                end loop;
             end;
@@ -1017,34 +1033,36 @@ package body CIAO.Translator is
                  := Declarations.Visible_Part_Declarative_Items
                  (Declaration => Element,
                   Include_Pragmas => True);
-
-               Interface_Dcl_Node : Node_Id;
+               Success : Boolean;
             begin
 
                if State.Unit_Category = Remote_Call_Interface then
 
                   --  The translation of a Remote Call Interface is an <interface>
 
-                  Node := New_Interface;
-                  Set_Parent (Node, State.Current_Node);
-                  Add_Interface (State.Current_Node, Node);
+                  Node := Make_Interface (No_Location);
+                  Append_Node_To_Contents (State.Current_Node, Node);
 
-                  Interface_Dcl_Node := Specific_Interface (Node);
-                  Set_Is_Remote_Subprograms (Interface_Dcl_Node, True);
+                  --  Set_Is_Remote_Subprograms (Node, True);
+                  --  XXX CANNOT BE REPRESENTED in idlac tree!
+                  --  but will we need this in code gen phase?
 
-                  State.Current_Node := Interface_Header (Interface_Dcl_Node);
-                  Translate_Defining_Name (Defining_Name, State);
-                  State.Current_Node := Interface_Dcl_Node;
+                  Success := Add_Identifier
+                    (Node, Map_Defining_Name (Defining_Name));
+                  pragma Assert (Success);
+
+                  State.Current_Node := Node;
                else
 
                   --  The translation of a non-RCI package declaration is a <module>
 
-                  Node := New_Node (N_Module);
-                  Set_Parent (Node, State.Current_Node);
-                  Add_Definition (State.Current_Node, Node);
+                  Node := Make_Module (No_Location);
+                  Append_Node_To_Contents (State.Current_Node, Node);
+
                   Set_Translation (Element, Node);
-                  State.Current_Node := Node;
-                  Translate_Defining_Name (Defining_Name, State);
+                  Success := Add_Identifier
+                    (Node, Map_Defining_Name (Defining_Name));
+                  pragma Assert (Success);
                end if;
 
            Do_Visible_Part:
@@ -1199,14 +1217,15 @@ package body CIAO.Translator is
            A_Task_Definition      |               -- 9.1(4)
            A_Protected_Definition =>              -- 9.4(4)
             --  A task type or protected type.
-            declare
-               Type_Spec_Node : Node_Id;
-            begin
-               Type_Spec_Node := Insert_New_Opaque_Type (State.Current_Node);
+--             declare
+--                Type_Spec_Node : Node_Id;
+--             begin
+--                Type_Spec_Node := Insert_New_Opaque_Type (State.Current_Node);
 
-               Control := Abandon_Children;
-               --  Children not processed (the mapping is opaque).
-            end;
+--                Control := Abandon_Children;
+--                --  Children not processed (the mapping is opaque).
+--             end;
+            raise Not_Implemented;
 
          when A_Formal_Type_Definition =>         -- 12.5(3)
             -- XXX Does this ever happen ? We are not supposed to support generics?!?!
@@ -1216,9 +1235,10 @@ package body CIAO.Translator is
    end Process_Definition;
 
    --  Get a <base_type_spec> corresponding to a standard type definition.
-   function Base_Type_For_Standard_Definition (Element : Asis.Type_Definition)
-     return Node_Id is
-      BTS_Node : Node_Id;
+   function Base_Type_For_Standard_Definition
+     (Element : Asis.Type_Definition)
+     return Node_Id
+   is
    begin
       if Definition_Kind (Element) = A_Subtype_Indication then
          --  Unwind all levels of subtyping.
@@ -1229,27 +1249,26 @@ package body CIAO.Translator is
       else
          case Type_Kind (Element) is
             when A_Signed_Integer_Type_Definition =>
-               BTS_Node := New_Base_Type (Base_Type (Root_Integer));
+               return Base_Type (Root_Integer);
             when A_Modular_Type_Definition =>
-               BTS_Node := New_Base_Type (Base_Type (Root_Modular));
+               return Base_Type (Root_Modular);
             when
               A_Floating_Point_Definition        |
               An_Ordinary_Fixed_Point_Definition |
               A_Decimal_Fixed_Point_Definition   =>
-               BTS_Node := New_Base_Type (Base_Type (Root_Real));
+               return Base_Type (Root_Real);
             when An_Enumeration_Type_Definition =>
             --  This is "Boolean".
-               BTS_Node := New_Base_Type (Base_Type (Root_Boolean));
+               return Base_Type (Root_Boolean);
             when An_Unconstrained_Array_Definition =>
                --  This is "String".
-               BTS_Node := New_Base_Type (Base_Type (Root_String));
+               return Base_Type (Root_String);
             when others =>
-               -- XXX Error should not happen
-               Raise_Translation_Error
-                 (Element, "Unexpected standard type definition.");
+               null;
          end case;
-         return BTS_Node;
       end if;
+      Raise_Translation_Error
+        (Element, "Unexpected standard type definition.");
    end Base_Type_For_Standard_Definition;
 
    procedure Process_Expression
@@ -1674,10 +1693,10 @@ package body CIAO.Translator is
       end case;
    end Process_Type_Definition;
 
-   procedure Translate_Defining_Name
-     (Name    : in Asis.Defining_Name;
-      State   : in out Translator_State) is
-      IDL_Name : Name_Id;
+   function Map_Defining_Name
+     (Name : in Asis.Defining_Name)
+     return String
+   is
       Name_Image : constant Program_Text
         := Declarations.Defining_Name_Image (Name);
    begin
@@ -1685,9 +1704,7 @@ package body CIAO.Translator is
         (Enclosing_Element (Name),
          Unit_Declaration (Enclosing_Compilation_Unit (Name)))
       then
-         --  This is the defining name in a library_unit_declaration
-         IDL_Name := New_Name (IDL_Module_Name
-                               (Enclosing_Compilation_Unit (Name)));
+         return Enclosing_Compilation_Unit (Name);
       else
          case Defining_Name_Kind (Name) is
             when Not_A_Defining_Name =>
@@ -1696,18 +1713,31 @@ package body CIAO.Translator is
             when
               A_Defining_Identifier |
               A_Defining_Enumeration_Literal =>
-               IDL_Name := New_Name (Name_Image);
+               return Name_Image;
+
             when A_Defining_Character_Literal =>
-               IDL_Name := New_Name (Maps.Character_Literal_Identifier (Name_Image));
+               return Maps.Character_Literal_Identifier (Name_Image);
+
             when A_Defining_Operator_Symbol =>
-               IDL_Name := New_Name (Maps.Operator_Symbol_Identifier (Name_Image));
+               return Maps.Operator_Symbol_Identifier (Name_Image);
+
             when A_Defining_Expanded_Name =>
                --  Cannot happen (this is a defining_program_unit_name,
                --  taken care of by "if" above.)
                raise ASIS_Failed;
          end case;
       end if;
-      Set_Name (State.Current_Node, IDL_Name);
+   end Map_Defining_Name;
+
+   procedure Translate_Defining_Name
+     (Name    : in Asis.Defining_Name;
+      State   : in out Translator_State)
+   is
+      IDL_Name : Name_Id;
+      Name_Image : constant Program_Text
+        := Declarations.Defining_Name_Image (Name);
+   begin
+      Add_Identifier (State.Current_Node, Map_Defining_Name (Name));
    end Translate_Defining_Name;
 
    procedure Translate_Subtype_Mark

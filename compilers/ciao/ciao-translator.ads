@@ -18,16 +18,21 @@
 
 --  This unit generates a decorated IDL tree by traversing
 --  the ASIS tree of a DSA package specification.
---  $Id: //depot/ciao/main/ciao-translator.ads#5 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.ads#2 $
 
 with Asis;
-with CIAO.Types; use CIAO.Types;
+
+with Idl_Fe.Types; use Idl_Fe.Types;
 
 package CIAO.Translator is
 
    Translation_Error : exception;
    --  An error occured, and the library unit could
    --  not be translated.
+
+   Not_Implemented : exception;
+   --  A construct was encountered whose translation is not implemented
+   --  in this version of the CIAO translator.
 
    type Unit_Categories is
      (Pure, Remote_Types, Remote_Call_Interface, Other);
