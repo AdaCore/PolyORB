@@ -989,7 +989,10 @@ testsuite/core/poa/test_servant.adb
 testsuite/core/poa/test_servant.ads
 testsuite/core/tasking/Makefile.am
 testsuite/core/tasking/Makefile.in
+testsuite/core/tasking/ravenscar_setup.adb
+testsuite/core/tasking/ravenscar_setup.ads
 testsuite/core/tasking/test000.adb
+testsuite/core/tasking/test000r.adb
 testsuite/core/tasking/test000_common.adb
 testsuite/core/tasking/test000_common.ads
 testsuite/core/tasking/test001.adb
