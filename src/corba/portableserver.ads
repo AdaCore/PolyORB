@@ -190,6 +190,7 @@ package PortableServer is
    --  from PortableServer.DynamicImplementation, the user
    --  must override the Invoke operation himself, and the
    --  Dispatcher will be ignored and can be null.
+   --  NOTE: This procedure is not thread safe.
 
 --    --  Calling ForwardRequest does not increase the usage counter of
 --    --  REFERENCE.  As a result, the user must ensure not to release

@@ -187,14 +187,14 @@ package body PortableServer is
       use Skeleton_Lists;
    begin
       pragma Debug (O ("Register_Skeleton enter"));
-      Enter_Critical_Section;
+
       Prepend (All_Skeletons,
                (Type_Id    => Type_Id,
                 Is_A       => Is_A,
                 Dispatcher => Dispatcher));
       pragma Debug (O ("Registered : type_id = " &
                        CORBA.To_Standard_String (Type_Id)));
-      Leave_Critical_Section;
+
    end Register_Skeleton;
 
    -----------------

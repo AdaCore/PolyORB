@@ -350,37 +350,6 @@ package body Ada_Be.Idl2Ada.Skel is
       DI (CU);
       PL (CU, "end Invoke;");
 
-      Add_With (CU, "PolyORB.Initialization");
-      Add_With (CU, "PolyORB.Utils.Strings");
-
-      NL (CU);
-      PL (CU, "----------------");
-      PL (CU, "-- Initialize --");
-      PL (CU, "----------------");
-      NL (CU);
-      PL (CU, "procedure Initialize;");
-      NL (CU);
-      PL (CU, "procedure Initialize is");
-      PL (CU, "begin");
-      PL (CU, "PortableServer.Register_Skeleton");
-      Put (CU, "  (CORBA.To_CORBA_String (");
-      Put (CU, Ada_Full_Name (Node));
-      PL (CU, "." & Repository_Id_Name (Node) &"),");
-      if not Is_Delegate then
-         PL (CU, "   Servant_Is_A'Access,");
-         PL (CU, "   Invoke'Access);");
-      else
-         PL (CU, "   Servant_Is_A'Unrestricted_Access,");
-         PL (CU, "   Invoke'Unrestricted_Access);");
-      end if;
-      PL (CU, "end Initialize;");
-      NL (CU);
-      PL (CU, "use PolyORB.Initialization;");
-      PL (CU, "use PolyORB.Initialization.String_Lists;");
-      PL (CU, "use PolyORB.Utils.Strings;");
-      NL (CU);
-
-
       Divert (CU, Elaboration);
 
       if not Is_Delegate then
@@ -393,14 +362,17 @@ package body Ada_Be.Idl2Ada.Skel is
          end loop;
       end if;
 
-      PL (CU, "PolyORB.Initialization.Register_Module");
-      PL (CU, "   (Module_Info'");
-      PL (CU, "    (Name => +""" & Ada_Full_Name (Node) & "-skel"",");
-      PL (CU, " Conflicts => Empty,");
-      PL (CU, " Depends => +""orb"",");
-      PL (CU, " Provides => Empty,");
-      PL (CU, " Init => Initialize'Access));");
-
+      PL (CU, "PortableServer.Register_Skeleton");
+      Put (CU, "  (CORBA.To_CORBA_String (");
+      Put (CU, Ada_Full_Name (Node));
+      PL (CU, "." & Repository_Id_Name (Node) &"),");
+      if not Is_Delegate then
+         PL (CU, "   Servant_Is_A'Access,");
+         PL (CU, "   Invoke'Access);");
+      else
+         PL (CU, "   Servant_Is_A'Unrestricted_Access,");
+         PL (CU, "   Invoke'Unrestricted_Access);");
+      end if;
 
    end Gen_Body_Common_End;
 
