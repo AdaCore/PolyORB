@@ -137,7 +137,7 @@ package body PolyORB.Representations.CDR.Common is
       Marshall
         (Buffer,
          PolyORB.Types.Boolean
-         (Endianness (Buffer.all) = Little_Endian));
+         (Endianness (Buffer) = Little_Endian));
       --  An encapsulation starts with a Boolean value
       --  which is True if the remainder of the buffer is
       --  Little_Endian, and False otherwise.
@@ -708,59 +708,68 @@ package body PolyORB.Representations.CDR.Common is
    end Unmarshall;
 
    function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Unsigned_Short
+     (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Short
    is
-      Octets : constant Stream_Element_Array
-        := Align_Unmarshall_Big_Endian_Copy (Buffer, 2, 2);
-
+      package FSU is new Fixed_Size_Unmarshall (Size => 2, Alignment => 2);
+      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall (UShort) : enter & end"));
-      return PolyORB.Types.Unsigned_Short (Octets (Octets'First)) * 256 +
-        PolyORB.Types.Unsigned_Short (Octets (Octets'First + 1));
+      if Endianness (Buffer) = Big_Endian then
+         return Types.Unsigned_Short (Z (0)) * 256
+              + Types.Unsigned_Short (Z (1));
+      else
+         return Types.Unsigned_Short (Z (1)) * 256
+              + Types.Unsigned_Short (Z (0));
+      end if;
    end Unmarshall;
 
    function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Unsigned_Long
+     (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Long
    is
-      Octets : constant Stream_Element_Array
-        := Align_Unmarshall_Big_Endian_Copy (Buffer, 4, 4);
-
+      package FSU is new Fixed_Size_Unmarshall (Size => 4, Alignment => 4);
+      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall (ULong) : enter & end"));
-      return PolyORB.Types.Unsigned_Long (Octets (Octets'First)) * 256**3
-        + PolyORB.Types.Unsigned_Long (Octets (Octets'First + 1)) * 256**2
-        + PolyORB.Types.Unsigned_Long (Octets (Octets'First + 2)) * 256
-        + PolyORB.Types.Unsigned_Long (Octets (Octets'First + 3));
-      --  Hard-coded expression will be optimized by the compiler
-      --  as shifts+adds.
+      if Endianness (Buffer) = Big_Endian then
+         return Types.Unsigned_Long (Z (0)) * 256**3
+              + Types.Unsigned_Long (Z (1)) * 256**2
+              + Types.Unsigned_Long (Z (2)) * 256
+              + Types.Unsigned_Long (Z (3));
+      else
+         return Types.Unsigned_Long (Z (3)) * 256**3
+              + Types.Unsigned_Long (Z (2)) * 256**2
+              + Types.Unsigned_Long (Z (1)) * 256
+              + Types.Unsigned_Long (Z (0));
+      end if;
    end Unmarshall;
 
    function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Unsigned_Long_Long
+     (Buffer : access Buffer_Type) return PolyORB.Types.Unsigned_Long_Long
    is
-      Octets : constant Stream_Element_Array
-        := Align_Unmarshall_Big_Endian_Copy (Buffer, 8, 8);
-
+      package FSU is new Fixed_Size_Unmarshall (Size => 8, Alignment => 8);
+      Z : constant FSU.AZ := FSU.Align_Unmarshall (Buffer);
    begin
-      pragma Debug (O ("Unmarshall (ULongLong) : enter & end"));
-      return PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First)) * 256**7
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 1)) * 256**6
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 2)) * 256**5
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 3)) * 256**4
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 4)) * 256**3
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 5)) * 256**2
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 6)) * 256
-        + PolyORB.Types.Unsigned_Long_Long (Octets (Octets'First + 7));
-      --  Hard-coded expression will be optimized by the compiler
-      --  as shifts+adds.
+      if Endianness (Buffer) = Big_Endian then
+         return Types.Unsigned_Long_Long (Z (0)) * 256**7
+              + Types.Unsigned_Long_Long (Z (1)) * 256**6
+              + Types.Unsigned_Long_Long (Z (2)) * 256**5
+              + Types.Unsigned_Long_Long (Z (3)) * 256**4
+              + Types.Unsigned_Long_Long (Z (4)) * 256**3
+              + Types.Unsigned_Long_Long (Z (5)) * 256**2
+              + Types.Unsigned_Long_Long (Z (6)) * 256
+              + Types.Unsigned_Long_Long (Z (7));
+      else
+         return Types.Unsigned_Long_Long (Z (7)) * 256**7
+              + Types.Unsigned_Long_Long (Z (6)) * 256**6
+              + Types.Unsigned_Long_Long (Z (5)) * 256**5
+              + Types.Unsigned_Long_Long (Z (4)) * 256**4
+              + Types.Unsigned_Long_Long (Z (3)) * 256**3
+              + Types.Unsigned_Long_Long (Z (2)) * 256**2
+              + Types.Unsigned_Long_Long (Z (1)) * 256
+              + Types.Unsigned_Long_Long (Z (0));
+      end if;
    end Unmarshall;
 
    function Unmarshall
-     (Buffer : access Buffer_Type)
-     return PolyORB.Types.Long_Long
+     (Buffer : access Buffer_Type) return PolyORB.Types.Long_Long
    is
    begin
       pragma Debug (O ("Unmarshall (LongLong) : enter & end"));

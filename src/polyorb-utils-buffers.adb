@@ -69,7 +69,7 @@ package body PolyORB.Utils.Buffers is
       Octets    :        Stream_Element_Array;
       Alignment :        Alignment_Type := 1) is
    begin
-      if Endianness (Buffer.all) = Big_Endian then
+      if Endianness (Buffer) = Big_Endian then
          Align_Marshall_Copy (Buffer, Octets, Alignment);
       else
          Align_Marshall_Copy (Buffer, Rev (Octets), Alignment);
@@ -86,7 +86,7 @@ package body PolyORB.Utils.Buffers is
       Alignment :        Alignment_Type := 1)
      return Stream_Element_Array is
    begin
-      if Endianness (Buffer.all) = Big_Endian then
+      if Endianness (Buffer) = Big_Endian then
          return Align_Unmarshall_Copy (Buffer, Size, Alignment);
       else
          return Rev (Align_Unmarshall_Copy
@@ -103,7 +103,7 @@ package body PolyORB.Utils.Buffers is
       Octets    :        Stream_Element_Array;
       Alignment :        Alignment_Type := 1) is
    begin
-      if Endianness (Buffer.all) = Host_Order then
+      if Endianness (Buffer) = Host_Order then
          Align_Marshall_Copy (Buffer, Octets, Alignment);
       else
          Align_Marshall_Copy (Buffer, Rev (Octets), Alignment);
@@ -120,7 +120,7 @@ package body PolyORB.Utils.Buffers is
       Alignment :        Alignment_Type := 1)
      return Stream_Element_Array is
    begin
-      if Endianness (Buffer.all) = Host_Order then
+      if Endianness (Buffer) = Host_Order then
          return Align_Unmarshall_Copy (Buffer, Size, Alignment);
       else
          return Rev (Align_Unmarshall_Copy
@@ -165,18 +165,26 @@ package body PolyORB.Utils.Buffers is
       Alignment :        Alignment_Type := 1)
      return Stream_Element_Array
    is
-      Data_Address : Opaque_Pointer;
+      package FSU is new Fixed_Size_Unmarshall
+        (Size => Size, Alignment => Alignment);
    begin
-      Align_Position (Buffer, Alignment);
-      Extract_Data (Buffer, Data_Address, Size);
-      declare
-         Z_Addr : constant System.Address := Data_Address;
-         Z : Stream_Element_Array (0 .. Size - 1);
-         for Z'Address use Z_Addr;
-         pragma Import (Ada, Z);
-      begin
-         return Z;
-      end;
+      return Stream_Element_Array (FSU.Align_Unmarshall (Buffer).all);
    end Align_Unmarshall_Copy;
+
+   ---------------------------
+   -- Fixed_Size_Unmarshall --
+   ---------------------------
+
+   package body Fixed_Size_Unmarshall is
+
+      function Align_Unmarshall (Buffer : access Buffer_Type) return AZ is
+         Data_Address : Opaque_Pointer;
+      begin
+         Align_Position (Buffer, Alignment);
+         Extract_Data (Buffer, Data_Address, Size);
+         return Address_To_Access_Conversion.To_Pointer (Data_Address);
+      end Align_Unmarshall;
+
+   end Fixed_Size_Unmarshall;
 
 end PolyORB.Utils.Buffers;

@@ -645,7 +645,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       else
          Ctx.Message_Endianness := Big_Endian;
       end if;
-      pragma Assert (Ctx.Message_Endianness = Endianness (Buffer.all));
+      pragma Assert (Ctx.Message_Endianness = Endianness (Buffer));
 
       pragma Debug (O ("Message Endianness : "
                        & Ctx.Message_Endianness'Img));
@@ -682,7 +682,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_0 is
       Ctx  : GIOP_Ctx_1_0 renames GIOP_Ctx_1_0 (Sess.Ctx.all);
 
    begin
-      Marshall (Buffer, Endianness (Buffer.all) = Little_Endian);
+      Marshall (Buffer, Endianness (Buffer) = Little_Endian);
       Marshall (Buffer, Ctx.Message_Type);
       Marshall (Buffer, Ctx.Message_Size);
    end Marshall_GIOP_Header;

@@ -34,7 +34,7 @@
 --  Utility subprograms for data representation methods and buffer access.
 
 with Ada.Streams;
-
+with System.Address_To_Access_Conversions;
 with PolyORB.Buffers;
 
 package PolyORB.Utils.Buffers is
@@ -58,10 +58,28 @@ package PolyORB.Utils.Buffers is
       Size      : Stream_Element_Count;
       Alignment : Alignment_Type := 1)
      return Stream_Element_Array;
+   pragma Unreferenced (Align_Unmarshall_Big_Endian_Copy);
    --  Align Buffer on Alignment, then unmarshall a copy of
    --  Size octets from it.
    --  The data is returned in big-endian byte order.
 
+   generic
+      Size     : Stream_Element_Count;
+      Alignment : Alignment_Type := 1;
+   package Fixed_Size_Unmarshall is
+      type Z is new Stream_Element_Array (0 .. Size - 1);
+      package Address_To_Access_Conversion is
+         new System.Address_To_Access_Conversions (Z);
+      subtype AZ is Address_To_Access_Conversion.Object_Pointer;
+
+      function Align_Unmarshall (Buffer : access Buffer_Type) return AZ;
+      pragma Inline (Align_Unmarshall);
+      --  Align Buffer on Alignment, then unmarshall Size octets from it,
+      --  and return an access to the unmarshalled data. Note that the
+      --  returned access value must not be dereferenced once Buffer's contents
+      --  have been released.
+   end Fixed_Size_Unmarshall;
+   --
    procedure Align_Marshall_Host_Endian_Copy
      (Buffer    : access Buffer_Type;
       Octets    : Stream_Element_Array;

@@ -668,7 +668,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
             pragma Debug (O ("Fragmenting message, size :"
                              & Message_Size'Img));
 
-            Set_Endianness (Out_Buf, Endianness (Buffer.all));
+            Set_Endianness (Out_Buf, Endianness (Buffer));
 
             --  unmarshall headers of input buffer
 
@@ -1291,7 +1291,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       else
          Ctx.Message_Endianness := Big_Endian;
       end if;
-      pragma Assert (Ctx.Message_Endianness = Endianness (Buffer.all));
+      pragma Assert (Ctx.Message_Endianness = Endianness (Buffer));
 
       pragma Debug (O ("Message Endianness : "
                        & Ctx.Message_Endianness'Img));
@@ -1347,7 +1347,7 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
       Ctx  : GIOP_Ctx_1_2 renames GIOP_Ctx_1_2 (Sess.Ctx.all);
       Flags : Types.Octet := 0;
    begin
-      Set (Flags, Bit_Little_Endian, Endianness (Buffer.all) = Little_Endian);
+      Set (Flags, Bit_Little_Endian, Endianness (Buffer) = Little_Endian);
       Set (Flags, Bit_Fragment, Ctx.Fragmented);
 
       Marshall (Buffer, Flags);

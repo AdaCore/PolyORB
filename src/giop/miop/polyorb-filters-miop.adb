@@ -148,7 +148,7 @@ package body PolyORB.Filters.MIOP is
       else
          Header.Endianness := Big_Endian;
       end if;
-      pragma Assert (Header.Endianness = Endianness (Buffer.all));
+      pragma Assert (Header.Endianness = Endianness (Buffer));
 
       pragma Debug (O ("Message Endianness : "
                        & Header.Endianness'Img));

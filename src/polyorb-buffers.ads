@@ -80,10 +80,9 @@ package PolyORB.Buffers is
       E      :        Endianness_Type);
    pragma Inline (Set_Endianness);
    --  Set the endianness of Buffer.
+   --  XXX This should be moved to CDR.
 
-   function Endianness
-     (Buffer : Buffer_Type)
-     return Endianness_Type;
+   function Endianness (Buffer : access Buffer_Type) return Endianness_Type;
    pragma Inline (Endianness);
    --  Return the endianness of Buffer.
    --  XXX This should be moved to CDR.

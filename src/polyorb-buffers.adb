@@ -97,9 +97,7 @@ package body PolyORB.Buffers is
    -- Endianness --
    ----------------
 
-   function Endianness
-     (Buffer : Buffer_Type)
-     return Endianness_Type is
+   function Endianness (Buffer : access Buffer_Type) return Endianness_Type is
    begin
       return Buffer.Endianness;
    end Endianness;
