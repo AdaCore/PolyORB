@@ -1,3 +1,10 @@
+1998-03-11  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_check.adb: Some units are explicitly loaded (comes from
+ 	configuration file). If its library is a readonly library, it
+ 	won't be loaded by gnatmake. So, we have to load this library
+ 	ourself in the ALI table.
+
 1998-03-09  Laurent Pautet  <pautet@scapin.enst.fr>
 
         * xe_utils.adb: Use Scan_Make_Arg from Make unit. Re-organize

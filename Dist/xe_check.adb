@@ -75,10 +75,14 @@ package body XE_Check is
       procedure Recompile (Unit : Name_Id);
 
       procedure Recompile (Unit : Name_Id) is
-         File_Name    : Name_Id;
-         Missing_Alis : Boolean;
-         Object       : Name_Id;
-         Stamp        : Time_Stamp_Type;
+         File_Name     : Name_Id;
+         Missing_Alis  : Boolean;
+         Object        : Name_Id;
+         Stamp         : Time_Stamp_Type;
+         Lib_File      : Name_Id;
+         Full_Lib_File : Name_Id;
+         Text          : Text_Buffer_Ptr;
+         ALI           : ALI_Id;
 
       begin
 
@@ -93,23 +97,35 @@ package body XE_Check is
                end if;
             end if;
 
-            Compile_Sources
-              (Main_Source           => File_Name,
-               Args                  => Args,
-               First_Compiled_File   => Compiled,
-               Most_Recent_Obj_File  => Object,
-               Most_Recent_Obj_Stamp => Stamp,
-               Main_Unit             => Main,
-               Missing_Alis          => Missing_Alis,
-               Check_Readonly_Files  => Opt.Check_Readonly_Files,
-               Dont_Execute          => No_Recompilation,
-               Force_Compilations    => Opt.Force_Compilations,
-               In_Place_Mode         => Opt.In_Place_Mode,
-               Initialize_Ali_Data   => False,
-               Max_Process           => Opt.Maximum_Processes);
+            --  This file has to be explicitly loaded. If the library
+            --  is a readonly library, it won't be loaded by gnatmake
+            --  but we need to load this library in the ALI table.
+            Lib_File := Lib_File_Name (File_Name);
+            Full_Lib_File := Full_Lib_File_Name (Lib_File);
+            if Full_Lib_File /= No_File and then
+              Is_Readonly_Library (Full_Lib_File) then
+               Text := Read_Library_Info (Lib_File);
+               ALI := Scan_ALI (Lib_File, Text);
 
-            if Building_Script then
-               Write_Compile_Command (File_Name);
+            else
+               Compile_Sources
+                 (Main_Source           => File_Name,
+                  Args                  => Args,
+                  First_Compiled_File   => Compiled,
+                  Most_Recent_Obj_File  => Object,
+                  Most_Recent_Obj_Stamp => Stamp,
+                  Main_Unit             => Main,
+                  Missing_Alis          => Missing_Alis,
+                  Check_Readonly_Files  => Opt.Check_Readonly_Files,
+                  Dont_Execute          => No_Recompilation,
+                  Force_Compilations    => Opt.Force_Compilations,
+                  In_Place_Mode         => Opt.In_Place_Mode,
+                  Initialize_Ali_Data   => False,
+                  Max_Process           => Opt.Maximum_Processes);
+
+               if Building_Script then
+                  Write_Compile_Command (File_Name);
+               end if;
             end if;
 
          end if;
