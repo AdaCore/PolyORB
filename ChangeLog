@@ -1,3 +1,8 @@
+1998-04-09  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Remove Garlic/s-garthi.ads, and add
+	Garlic/5lgarthi.ads and Garlic/5wgarthi.ads.
+
 1998-04-05  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* INSTALL: Add a note on LinuxThreads/FSU threads issue.
