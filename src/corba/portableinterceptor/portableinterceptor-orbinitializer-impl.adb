@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package body PortableInterceptor.ORBInitializer.Impl is
 
    ----------

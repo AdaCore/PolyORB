@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PortableInterceptor.ClientRequestInfo.Impl;
 
 package body PortableInterceptor.ClientRequestInfo is

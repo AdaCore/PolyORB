@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PortableInterceptor.ClientRequestInfo;
 with PortableInterceptor.Interceptor;
 

@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.Object;
 with PolyORB.Any;
 with PolyORB.CORBA_P.Exceptions;

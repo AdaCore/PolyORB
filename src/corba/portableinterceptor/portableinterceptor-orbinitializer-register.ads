@@ -39,7 +39,5 @@
 --  This subprogram is derived from CORBA 3.0 specifications, section
 --  21.7.3.1 "Mappings of register_orb_initializer Operation".
 
---  $Id$
-
 procedure PortableInterceptor.ORBInitializer.Register
   (Init : in PortableInterceptor.ORBInitializer.Local_Ref);

@@ -36,8 +36,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.Local;
 
 package PortableInterceptor.Interceptor.Impl is

@@ -40,6 +40,4 @@
 --  PolyORB initialization so that interceptors are configured when
 --  initializing the CORBA ORB.
 
---  $Id$
-
 procedure PortableInterceptor.ORBInitializer.Initialize_All;
