@@ -33,6 +33,7 @@
 --  $Id$
 
 with CORBA.Policy;
+
 with PortableServer.IdAssignmentPolicy;
 with PortableServer.IdUniquenessPolicy;
 with PortableServer.ImplicitActivationPolicy;
@@ -121,8 +122,7 @@ package body PolyORB.CORBA_P.POA_Config is
 
    begin
       for J in CORBA_Policy_Array'Range loop
-         Policy := PortableServer.ThreadPolicy.Get_Policy_Type
-           (PortableServer.ThreadPolicy.Ref (CORBA_Policy_Array (J).all));
+         Policy := CORBA.Policy.Get_Policy_Type (CORBA_Policy_Array (J).all);
 
          case Policy is
 
@@ -268,7 +268,6 @@ package body PolyORB.CORBA_P.POA_Config is
                         PS.Append
                           (Result,
                            Policy_Access (RPP.Use_Default_Servant.Create));
-
 
                      when USE_SERVANT_MANAGER =>
                         raise Not_Implemented;
