@@ -84,6 +84,8 @@ package PolyORB.Utils.Chained_Lists is
 
    procedure Deallocate (L : in out List);
 
+private
+
    pragma Inline (First);
    pragma Inline (Value);
    pragma Inline (Last);
@@ -92,8 +94,6 @@ package PolyORB.Utils.Chained_Lists is
    pragma Inline (Append);
    pragma Inline ("+");
    pragma Inline ("&");
-
-private
 
    type Node;
    type Node_Access is access all Node;
@@ -105,8 +105,7 @@ private
    type Iterator is new Node_Access;
 
    type List is record
-      First : Node_Access;
-      Last : Node_Access;
+      First, Last : Node_Access;
    end record;
 
    Empty : constant List := (null, null);
