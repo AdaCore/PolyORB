@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  MOMA.PROVIDER.MESSAGE_POOL.WAREHOUSE                    --
+--              M O M A . P R O V I D E R . W A R E H O U S E               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -44,7 +44,7 @@ with PolyORB.Opaque;
 with PolyORB.Representations.CDR;
 with PolyORB.Utils.HTables.Perfect;
 
-package body MOMA.Provider.Message_Pool.Warehouse is
+package body MOMA.Provider.Warehouse is
 
    use Ada.Streams;
    use Ada.Streams.Stream_IO;
@@ -188,4 +188,4 @@ package body MOMA.Provider.Message_Pool.Warehouse is
       when No_Key => raise Key_Not_Found;
    end Unregister;
 
-end MOMA.Provider.Message_Pool.Warehouse;
+end MOMA.Provider.Warehouse;

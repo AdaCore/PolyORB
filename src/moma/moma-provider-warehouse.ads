@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---  M O M A . P R O V I D E R . M E S S A G E _ C O N S U M E R . I M P L   --
+--              M O M A . P R O V I D E R . W A R E H O U S E               --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
@@ -30,63 +30,59 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  A dynamic, protected  dictionnary of objects, indexed by Strings.
+
 --  $Id$
 
-with PolyORB.Types;
 with PolyORB.Any;
-with PolyORB.Any.NVList;
-with PolyORB.References;
+with PolyORB.Utils.HTables.Perfect;
+with PolyORB.Locks;
 
-package body MOMA.Provider.Message_Consumer.Impl is
+package MOMA.Provider.Warehouse is
 
-   use PolyORB.Types;
+   package Perfect_Htable is
+      new PolyORB.Utils.HTables.Perfect (PolyORB.Any.Any);
 
-   ---------
-   -- Get --
-   ---------
+   use Perfect_Htable;
 
-   function Get (Self       : in PolyORB.References.Ref;
-                 Message_Id : in PolyORB.Types.String)
-                 return PolyORB.Any.Any
-   is
-      Arg_Name_Mesg : PolyORB.Types.Identifier
-       := PolyORB.Types.To_PolyORB_String ("Message");
+   type Warehouse is record
+      T : Table_Instance;
+      T_Initialized : Boolean := False;
+      T_Lock : PolyORB.Locks.Rw_Lock_Access;
+   end record;
 
-      Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any (Message_Id);
+   Key_Not_Found : exception;
 
-      Operation_Name : constant Standard.String := "Get";
+   procedure Ensure_Initialization (W : in out Warehouse);
+   pragma Inline (Ensure_Initialization);
+   --  Ensure that T was initialized
 
-      Request     : PolyORB.Requests.Request_Access;
-      Arg_List    : PolyORB.Any.NVList.Ref;
-      Result      : PolyORB.Any.NamedValue;
-      Result_Name : PolyORB.Types.String := To_PolyORB_String ("Result");
+   procedure Register
+     (W : Warehouse;
+      K : String;
+      V : PolyORB.Any.Any);
+   --  Associate key K with value V.
 
-   begin
-      PolyORB.Any.NVList.Create (Arg_List);
+   procedure Unregister
+     (W : Warehouse;
+      K : String);
+   --  Remove any association for K. Key_Not_Found is raised
+   --  if no value was registered for this key.
 
-      PolyORB.Any.NVList.Add_Item (Arg_List,
-                                   Arg_Name_Mesg,
-                                   Argument_Mesg,
-                                   PolyORB.Any.ARG_IN);
+   function Lookup
+      (W : Warehouse;
+       K : String)
+     return PolyORB.Any.Any;
+   --  Lookup K in the dictionary, and return the associated value.
+   --  Key_Not_Found is raised if no value was registered for this
+   --  key.
 
-      Result := (Name      => PolyORB.Types.Identifier (Result_Name),
-                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Any),
-                 Arg_Modes => 0);
+   function Lookup
+     (W : Warehouse;
+      K : String;
+      Default : PolyORB.Any.Any)
+     return PolyORB.Any.Any;
+   --  As above, but Default is returned for non-registered keys,
+   --  insted of raising an exception.
 
-      PolyORB.Requests.Create_Request
-        (Target    => Self,
-         Operation => Operation_Name,
-         Arg_List  => Arg_List,
-         Result    => Result,
-         Req       => Request);
-
-      PolyORB.Requests.Invoke (Request);
-
-      PolyORB.Requests.Destroy_Request (Request);
-
-      --  Retrieve return value.
-      return Result.Argument;
-
-   end Get;
-
-end MOMA.Provider.Message_Consumer.Impl;
+end MOMA.Provider.Warehouse;

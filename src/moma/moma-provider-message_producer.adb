@@ -30,24 +30,32 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Message_Producer servant.
+
 --  $Id$
 
-with PolyORB.Any; use PolyORB.Any;
-with PolyORB.Any.NVList; use PolyORB.Any.NVList;
+with PolyORB.Any;
+with PolyORB.Any.NVList;
 with PolyORB.Log;
-with PolyORB.Types; use PolyORB.Types;
-with PolyORB.Requests; use PolyORB.Requests;
-
-with MOMA.Provider.Message_Producer.Impl;
+with PolyORB.Types;
+with PolyORB.Requests;
 
 package body MOMA.Provider.Message_Producer is
 
+   use PolyORB.Any;
+   use PolyORB.Any.NVList;
    use PolyORB.Log;
+   use PolyORB.Requests;
+   use PolyORB.Types;
 
    package L is
      new PolyORB.Log.Facility_Log ("moma.provider.message_producer");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   procedure Publish (Self    : in PolyORB.References.Ref;
+                      Message : in PolyORB.Any.Any);
+   --  Actual function implemented by the servant.
 
    ------------
    -- Invoke --
@@ -81,8 +89,7 @@ package body MOMA.Provider.Message_Producer is
             Publish_Arg : PolyORB.Any.Any :=
               NV_Sequence.Element_Of (Args_Sequence.all, 1).Argument;
          begin
-            MOMA.Provider.Message_Producer.Impl.Publish (Self.Remote_Ref,
-                                                         Publish_Arg);
+            Publish (Self.Remote_Ref, Publish_Arg);
          end;
 
       end if;
@@ -157,4 +164,39 @@ package body MOMA.Provider.Message_Producer is
          RP_Desc => Get_Result_Profile'Access);
    end If_Desc;
 
+   -------------
+   -- Publish --
+   -------------
+
+   procedure Publish (Self    : in PolyORB.References.Ref;
+                      Message : in PolyORB.Any.Any)
+   is
+      Request     : PolyORB.Requests.Request_Access;
+      Arg_List    : PolyORB.Any.NVList.Ref;
+      Result      : PolyORB.Any.NamedValue;
+
+   begin
+      PolyORB.Any.NVList.Create (Arg_List);
+
+      PolyORB.Any.NVList.Add_Item (Arg_List,
+                                   To_PolyORB_String ("Message"),
+                                   Message,
+                                   PolyORB.Any.ARG_IN);
+
+      Result := (Name      => To_PolyORB_String ("Result"),
+                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Void),
+                 Arg_Modes => 0);
+
+      PolyORB.Requests.Create_Request
+        (Target    => Self,
+         Operation => "Publish",
+         Arg_List  => Arg_List,
+         Result    => Result,
+         Req       => Request);
+
+      PolyORB.Requests.Invoke (Request);
+
+      PolyORB.Requests.Destroy_Request (Request);
+
+   end Publish;
 end MOMA.Provider.Message_Producer;

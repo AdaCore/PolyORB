@@ -30,6 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  Message_Consumer servant.
+
 --  $Id$
 
 with PolyORB.Any;
@@ -37,8 +39,7 @@ with PolyORB.Any.NVList;
 with PolyORB.Log;
 with PolyORB.Types;
 with PolyORB.Requests;
-
-with MOMA.Provider.Message_Consumer.Impl;
+with MOMA.Types;
 
 package body MOMA.Provider.Message_Consumer is
 
@@ -52,6 +53,11 @@ package body MOMA.Provider.Message_Consumer is
      new PolyORB.Log.Facility_Log ("moma.provider.message_consumer");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   function Get (Self       : in PolyORB.References.Ref;
+                 Message_Id : in MOMA.Types.String)
+                 return PolyORB.Any.Any;
+   --  Actual function implemented by the servant.
 
    ------------
    -- Invoke --
@@ -84,8 +90,7 @@ package body MOMA.Provider.Message_Consumer is
               From_Any (NV_Sequence.Element_Of
                         (Args_Sequence.all, 1).Argument);
          begin
-            Set_Result (Req, MOMA.Provider.Message_Consumer.Impl.Get
-                        (Self.Remote_Ref, Get_Arg));
+            Set_Result (Req, Get (Self.Remote_Ref, Get_Arg));
 
             pragma Debug (O ("Result: " & Image (Req.Result)));
          end;
@@ -158,5 +163,53 @@ package body MOMA.Provider.Message_Consumer is
         (PP_Desc => Get_Parameter_Profile'Access,
          RP_Desc => Get_Result_Profile'Access);
    end If_Desc;
+
+   ---------
+   -- Get --
+   ---------
+
+   function Get (Self       : in PolyORB.References.Ref;
+                 Message_Id : in PolyORB.Types.String)
+                 return PolyORB.Any.Any
+   is
+      Arg_Name_Mesg : PolyORB.Types.Identifier
+       := PolyORB.Types.To_PolyORB_String ("Message");
+
+      Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any (Message_Id);
+
+      Operation_Name : constant Standard.String := "Get";
+
+      Request     : PolyORB.Requests.Request_Access;
+      Arg_List    : PolyORB.Any.NVList.Ref;
+      Result      : PolyORB.Any.NamedValue;
+      Result_Name : PolyORB.Types.String := To_PolyORB_String ("Result");
+
+   begin
+      PolyORB.Any.NVList.Create (Arg_List);
+
+      PolyORB.Any.NVList.Add_Item (Arg_List,
+                                   Arg_Name_Mesg,
+                                   Argument_Mesg,
+                                   PolyORB.Any.ARG_IN);
+
+      Result := (Name      => PolyORB.Types.Identifier (Result_Name),
+                 Argument  => PolyORB.Any.Get_Empty_Any (PolyORB.Any.TC_Any),
+                 Arg_Modes => 0);
+
+      PolyORB.Requests.Create_Request
+        (Target    => Self,
+         Operation => Operation_Name,
+         Arg_List  => Arg_List,
+         Result    => Result,
+         Req       => Request);
+
+      PolyORB.Requests.Invoke (Request);
+
+      PolyORB.Requests.Destroy_Request (Request);
+
+      --  Retrieve return value.
+      return Result.Argument;
+
+   end Get;
 
 end MOMA.Provider.Message_Consumer;
