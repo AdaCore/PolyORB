@@ -51,6 +51,7 @@ with MOMA.Messages;
 with MOMA.Message_Consumers.Queues;
 with MOMA.Types;
 use MOMA.Message_Consumers.Queues;
+use MOMA.Types;
 
 package MOMA.Provider.Message_Handler is
 
@@ -59,51 +60,56 @@ package MOMA.Provider.Message_Handler is
    type Object_Acc is access Object;
 
    type Handler is access procedure (
-      Message_Queue : MOMA.Message_Consumers.Queues.Queue;
+      Self : access Object;
       Message : MOMA.Messages.Message'Class);
-   --  The procedure to be called when a message is received.
+   --  The procedure to be called when a message is received, if the behavior
+   --  is Handle.
 
    type Notifier is access procedure (
-      Message_Queue : MOMA.Message_Consumers.Queues.Queue);
+      Self : access Object);
+   --  The procedure to be called when a message is received, if the behavior
+   --  is Notify.
 
    procedure Initialize (Self : in out Object_Acc;
                          Message_Queue : Queue_Acc;
                          Self_Ref : PolyORB.References.Ref;
-                         New_Notifier_Procedure : in Notifier := null;
-                         New_Handler_Procedure : in Handler := null);
+                         Notifier_Procedure : in Notifier := null;
+                         Handler_Procedure : in Handler := null;
+                         Behavior : MOMA.Types.Call_Back_Behavior := None);
    --  Initialize the Message_Handler and return its Reference.
-   --  If both Notifier and Handler procedure are given a not null value,
-   --  the Behavior is set to Notify and the Handler procedure will be
-   --  treated as null.
+   --  If the behavior is Handle and no Handler_Procedure is provided, the
+   --  incoming messages will be lost.
 
    procedure Invoke (Self : access Object;
                      Req  : in     PolyORB.Requests.Request_Access);
    --  Message_Handler servant skeleton.
 
-   procedure Set_Handler (Self : access Object;
-                          New_Handler_Procedure : in Handler);
+   procedure Set_Behavior (
+      Self : access Object;
+      New_Behavior : in MOMA.Types.Call_Back_Behavior);
+   --  Set the Behavior. A request is sent to the actual queue if the
+   --  behavior has changed.
+
+   procedure Set_Handler (
+      Self : access Object;
+      New_Handler_Procedure : in Handler;
+      Handle_Behavior : Boolean := False);
    --  Associate a Handler procedure to the Message Handler.
-   --  Replace the current Handler procedure and set the Notifier procedure
-   --  to null (even if the Handler procedure is null).
-   --  A request is sent to the actual queue to change its behaviour.
-   --  The actual queue will request the Message Handler to Handle the message
-   --  rather than just Notify it.
+   --  Replace the current Handler procedure.
+   --  The behavior is set to Handle if Handle_Behavior is true.
 
-   procedure Set_Notifier (Self : access Object;
-                           New_Notifier_Procedure : in Notifier);
+   procedure Set_Notifier (
+      Self : access Object;
+      New_Notifier_Procedure : in Notifier;
+      Notify_Behavior : Boolean := False);
    --  Symmetric of Set_Handler
-   --  Messages will not be handled any more, but just notified.
-
-
-   procedure Set_Queue (Self : access Object;
-                        New_Queue : Queue_Acc);
-   --  Set the message queue which handles the messages.
 
    procedure Template_Handler (
-      Message_Queue : MOMA.Message_Consumers.Queues.Queue;
+      Self : access Object;
       Message : MOMA.Messages.Message'Class);
+
    procedure Template_Notifier (
-      Message_Queue : MOMA.Message_Consumers.Queues.Queue);
+      Self : access Object);
    --  Templates for handler and notifier proceddures
 
    function If_Desc
@@ -112,8 +118,6 @@ package MOMA.Provider.Message_Handler is
    --  Interface description for SOA object adapter.
 
 private
-   use MOMA.Types;
-
    type Object is new PolyORB.Minimal_Servant.Servant with record
       Self_Ref : PolyORB.References.Ref;
       Message_Queue : Queue_Acc;
@@ -141,6 +145,6 @@ private
 
    procedure Register_To_Queue (Self : access Object);
    --  Register the Message_Handler or change the Behavior,
-   --  via a Request to the actual queue,
+   --  via a Request to the actual queue.
 
 end MOMA.Provider.Message_Handler;
