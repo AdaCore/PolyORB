@@ -1,19 +1,23 @@
-all::
-	cd adabroker && \
-		$(MAKE) all
-	cd adasockets && \
-		./configure --cache-file=../config.cache && \
-		$(MAKE) all
-	cd src && \
-		./configure --cache-file=../config.cache && \
-		$(MAKE) all
+all:: config-stamp
+	cd idlac && $(MAKE) all
+	cd adasockets && $(MAKE) all
+	cd src && $(MAKE) all
+
+config-stamp:
+	cd idlac && ./configure --cache-file=../config.cache
+	cd adasockets && ./configure --cache-file=../config.cache
+	cd src && ./configure --cache-file=../config.cache
+	touch config-stamp
 
 clean::
-	cd adabroker && $(MAKE) clean
+	rm -f config-stamp
+	cd idlac && $(MAKE) clean
 	cd adasockets && $(MAKE) clean
 	cd src && $(MAKE) clean
 
 distclean::
-	cd adabroker && $(MAKE) clean
-	cd adasockets && $(MAKE) distclean
-	cd src && $(MAKE) distclean
+	rm -f config-stamp
+	-cd idlac && $(MAKE) distclean
+	-cd adasockets && $(MAKE) distclean
+	-cd src && $(MAKE) distclean
+	rm -f config.cache

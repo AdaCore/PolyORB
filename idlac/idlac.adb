@@ -9,6 +9,8 @@ with Ada_Be.Idl2Ada;
 
 procedure Idlac is
 
+   procedure Help;
+
    procedure Help is
    begin
       Put_Line ("Usage: " & Command_Name & " idl_file");

@@ -251,7 +251,7 @@ package body Ada_Be.Idl2Ada is
 
          when
            K_Repository   |
-           K_BEN_IDL_File |
+           K_Ben_Idl_File |
            K_Module       =>
 
             declare
