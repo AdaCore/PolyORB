@@ -32,26 +32,27 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with System.Address_To_Access_Conversions;
+
 with CORBA; use CORBA;
+
 with Broca.Exceptions;
-with Broca.Refs;
 with Broca.ORB;
+with Broca.Soft_Links; use Broca.Soft_Links;
+with Broca.Configuration;
+pragma Warnings (Off, Broca.Configuration);
+pragma Elaborate (Broca.Configuration);
+
 with PortableServer.POA;
 
 package body PortableServer is
-
-   package Address_To_Ref_Ptr_Conversions is
-     new System.Address_To_Access_Conversions (Broca.Refs.Ref_Type);
-   use Address_To_Ref_Ptr_Conversions;
 
    ---------------------------------------
    -- Information about a skeleton unit --
    ---------------------------------------
 
    type Skeleton_Info is record
-      Type_Id : CORBA.RepositoryId;
-      Is_A : Servant_Class_Predicate;
+      Type_Id    : CORBA.RepositoryId;
+      Is_A       : Servant_Class_Predicate;
       Dispatcher : GIOP_Dispatcher;
    end record;
 
@@ -59,119 +60,120 @@ package body PortableServer is
    -- A list of Skeleton_Info --
    -----------------------------
 
-   type Skeleton_Cell;
-   type Skeleton_List is access Skeleton_Cell;
+   type Skeleton_Node;
+   type Skeleton_List is access Skeleton_Node;
 
-   type Skeleton_Cell is record
+   type Skeleton_Node is record
       Info : Skeleton_Info;
       Next : Skeleton_List;
    end record;
 
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Skeleton_Cell, Skeleton_List);
+   procedure Free is
+      new Ada.Unchecked_Deallocation (Skeleton_Node, Skeleton_List);
 
-   Skeleton_Exists : exception;
+   Skeleton_Exists  : exception;
    Skeleton_Unknown : exception;
 
-   protected Skeletons_Repository is
+   All_Skeletons : Skeleton_List;
 
-      procedure Register
-        (Id : CORBA.RepositoryId;
-         Is_A : Servant_Class_Predicate;
-         Dispatcher : GIOP_Dispatcher);
-      procedure Unregister
-        (Id : CORBA.RepositoryId);
+   function Find_Info
+     (For_Servant : Servant)
+     return Skeleton_Info;
 
-      function Find_Info
-        (Obj : Servant)
-        return Skeleton_Info;
+   ---------------
+   -- Find_Info --
+   ---------------
 
-   private
+   function Find_Info
+     (For_Servant : Servant)
+     return Skeleton_Info
+   is
+      Current : Skeleton_List;
+      Info    : Skeleton_Info;
 
-      All_Skeletons : Skeleton_List := null;
+   begin
+      Enter_Critical_Section;
+      Current := All_Skeletons;
+      while Current /= null loop
+         exit when Current.Info.Is_A (For_Servant);
+         Current := Current.Next;
+      end loop;
 
-   end Skeletons_Repository;
+      if Current = null then
+         Leave_Critical_Section;
+         raise Skeleton_Unknown;
+      end if;
 
-   protected body Skeletons_Repository is
+      Info := Current.Info;
+      Leave_Critical_Section;
 
-      procedure Register
-        (Id : CORBA.RepositoryId;
-         Is_A : Servant_Class_Predicate;
-         Dispatcher : GIOP_Dispatcher)
-      is
-         Cur : Skeleton_List := All_Skeletons;
-      begin
-         while Cur /= null loop
-            if Cur.Info.Type_Id = Id then
-               raise Skeleton_Exists;
-            end if;
-            Cur := Cur.Next;
-         end loop;
+      return Info;
+   end Find_Info;
 
-         All_Skeletons := new Skeleton_Cell'
-           (Info => (Type_Id => Id,
-                     Is_A => Is_A,
-                     Dispatcher => Dispatcher),
-            Next => All_Skeletons);
-      end Register;
-
-      procedure Unregister
-        (Id : CORBA.RepositoryId)
-      is
-         Cur : Skeleton_List := All_Skeletons;
-         Prev : Skeleton_List := null;
-      begin
-         while Cur /= null loop
-            exit when Cur.Info.Type_Id = Id;
-
-            Prev := Cur;
-            Cur := Cur.Next;
-         end loop;
-
-         if Cur = null then
-            raise Skeleton_Unknown;
-         end if;
-
-         if Prev /= null then
-            Prev.Next := Cur.Next;
-         else
-            All_Skeletons := Cur.Next;
-         end if;
-
-         Free (Cur);
-      end Unregister;
-
-      function Find_Info
-        (Obj : Servant)
-        return Skeleton_Info
-      is
-         Cur : Skeleton_List := All_Skeletons;
-      begin
-         while Cur /= null loop
-            exit when Cur.Info.Is_A (Obj);
-            Cur := Cur.Next;
-         end loop;
-
-         if Cur = null then
-            raise Skeleton_Unknown;
-         end if;
-
-         return Cur.Info;
-      end Find_Info;
-   end Skeletons_Repository;
+   -----------------------
+   -- Register_Skeleton --
+   -----------------------
 
    procedure Register_Skeleton
-     (Id : CORBA.RepositoryId;
-      Is_A : Servant_Class_Predicate;
-      Dispatcher : GIOP_Dispatcher) is
+     (Type_Id    : in CORBA.RepositoryId;
+      Is_A       : in Servant_Class_Predicate;
+      Dispatcher : in GIOP_Dispatcher)
+   is
+      Current : Skeleton_List;
+
    begin
-      Skeletons_Repository.Register (Id, Is_A, Dispatcher);
+      Enter_Critical_Section;
+      Current := All_Skeletons;
+      while Current /= null loop
+         if Current.Info.Type_Id = Type_Id then
+            Leave_Critical_Section;
+            raise Skeleton_Exists;
+         end if;
+         Current := Current.Next;
+      end loop;
+
+      All_Skeletons := new Skeleton_Node'
+           (Info => (Type_Id    => Type_Id,
+                     Is_A       => Is_A,
+                     Dispatcher => Dispatcher),
+            Next => All_Skeletons);
+      Leave_Critical_Section;
    end Register_Skeleton;
 
+   -----------------------
+   -- Register_Skeleton --
+   -----------------------
+
    procedure Unregister_Skeleton
-     (Id : CORBA.RepositoryId) is
+     (Type_Id : in CORBA.RepositoryId)
+   is
+      Current  : Skeleton_List;
+      Previous : Skeleton_List;
+
    begin
-      Skeletons_Repository.Unregister (Id);
+      Enter_Critical_Section;
+      Current := All_Skeletons;
+      while Current /= null loop
+         exit when Current.Info.Type_Id = Type_Id;
+
+         Previous := Current;
+         Current  := Current.Next;
+      end loop;
+
+      if Current = null then
+         Leave_Critical_Section;
+         raise Skeleton_Unknown;
+      end if;
+
+      if Previous /= null then
+         Previous.Next := Current.Next;
+
+      else
+         All_Skeletons := Current.Next;
+      end if;
+
+      Free (Current);
+      Leave_Critical_Section;
    end Unregister_Skeleton;
 
    -----------------
@@ -179,13 +181,10 @@ package body PortableServer is
    -----------------
 
    function Get_Type_Id
-     (Obj : Servant)
-     return CORBA.RepositoryId
-   is
-      Info : Skeleton_Info;
+     (For_Servant : Servant)
+     return CORBA.RepositoryId is
    begin
-      Info := Skeletons_Repository.Find_Info (Obj);
-      return Info.Type_Id;
+      return Find_Info (For_Servant).Type_Id;
    exception
       when Skeleton_Unknown =>
          return CORBA.To_CORBA_String ("IDL:omg.org/CORBA/OBJECT:1.0");
@@ -198,19 +197,24 @@ package body PortableServer is
    -------------------
 
    procedure GIOP_Dispatch
-     (Obj : Servant;
-      Operation : String;
-      Request_Id : CORBA.Unsigned_Long;
-      Response_Expected : CORBA.Boolean;
-      Request_Buffer : access Broca.Buffers.Buffer_Type;
-      Reply_Buffer   : access Broca.Buffers.Buffer_Type)
+     (For_Servant       : in Servant;
+      Operation         : in String;
+      Request_Id        : in CORBA.Unsigned_Long;
+      Response_Expected : in CORBA.Boolean;
+      Request_Buffer    : access Broca.Buffers.Buffer_Type;
+      Reply_Buffer      : access Broca.Buffers.Buffer_Type)
    is
       Info : Skeleton_Info;
+
    begin
-      Info := Skeletons_Repository.Find_Info (Obj);
-      Info.Dispatcher (Obj, Operation, Request_Id,
-                       Response_Expected, Request_Buffer,
-                       Reply_Buffer);
+      Info := Find_Info (For_Servant);
+      Info.Dispatcher
+        (For_Servant,
+         Operation,
+         Request_Id,
+         Response_Expected,
+         Request_Buffer,
+         Reply_Buffer);
    exception
       when Skeleton_Unknown =>
          Broca.Exceptions.Raise_Bad_Operation;
@@ -228,19 +232,22 @@ package body PortableServer is
    begin
       return PortableServer.POA.Convert.To_Forward
         (POA.To_Ref
-         (Broca.ORB.Resolve_Initial_References (Broca.ORB.Root_POA_ObjectId)));
+         (Broca.ORB.Resolve_Initial_References
+          (Broca.ORB.Root_POA_ObjectId)));
    end Get_Default_POA;
 
    ---------------------------
    -- Raise_Forward_Request --
    ---------------------------
 
-   procedure Raise_Forward_Request (Reference : CORBA.Object.Ref) is
-      Excp_Mb : ForwardRequest_Members
-        := (Forward_Reference => Reference);
+   procedure Raise_Forward_Request
+     (Reference : in CORBA.Object.Ref)
+   is
+      Excp_Mb : ForwardRequest_Members := (Forward_Reference => Reference);
+
    begin
-      Broca.Exceptions.User_Raise_Exception (ForwardRequest'Identity,
-                                             Excp_Mb);
+      Broca.Exceptions.User_Raise_Exception
+        (ForwardRequest'Identity, Excp_Mb);
    end Raise_Forward_Request;
 
    -----------------
@@ -249,8 +256,7 @@ package body PortableServer is
 
    procedure Get_Members
      (From : in CORBA.Exception_Occurrence;
-      To   : out ForwardRequest_Members)
-   is
+      To   : out ForwardRequest_Members) is
    begin
       Broca.Exceptions.User_Get_Members (From, To);
    end Get_Members;

@@ -27,12 +27,22 @@
 ------------------------------------------------------------------------------
 
 with all_types.Impl;
-with GenericServer; use GenericServer;
+
+with CORBA;
+with CORBA.Object;
+
+with Broca.Basic_Startup; use Broca.Basic_Startup;
+pragma Elaborate (Broca.Basic_Startup);
+
+with Ada.Text_IO;
 
 procedure Server is
-begin
-   Repository_Id := new String'("IDL:all_types:1.0");
-   My_Obj := new all_types.Impl.Object;
-   GenericServer.Main (My_Obj);
+   Ref : CORBA.Object.Ref;
 
+begin
+   Initiate_Servant (new all_types.Impl.Object, Ref);
+   Ada.Text_IO.Put_Line
+     ("'" & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)) &
+      "'");
+   Initiate_Server;
 end Server;

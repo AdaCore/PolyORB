@@ -392,7 +392,7 @@ package body Portableserver.POA is
    end Servant_To_Reference;
 
    function Reference_To_Id
-     (Self : Ref; Reference : CORBA.Object.Ref'CLASS) return ObjectId
+     (Self : Ref; Reference : CORBA.Object.Ref'Class) return ObjectId
    is
       use Broca.POA;
       POA : Broca.POA.POA_Object_Ptr;
@@ -407,7 +407,7 @@ package body Portableserver.POA is
    end Reference_To_Id;
 
    function Reference_To_Servant
-     (Self : Ref; Reference : CORBA.Object.Ref'CLASS) return Servant
+     (Self : Ref; Reference : CORBA.Object.Ref'Class) return Servant
    is
       use Broca.POA;
       POA : Broca.POA.POA_Object_Ptr;
