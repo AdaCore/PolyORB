@@ -33,6 +33,7 @@ package Droopi.Protocols.GIOP is
 
    use Droopi.Log;
    use Droopi.Binding_Data;
+   use ORB;
 
    package Arg_Seq is new Sequences.Unbounded (CORBA.NamedValue);
 
@@ -343,6 +344,9 @@ package Droopi.Protocols.GIOP is
      (Proto   : access GIOP_Protocol;
       Session : out Filter_Access);
 
+    procedure Initialise_Session
+      (S       : access GIOP_Session;
+       Role    : ORB.Endpoint_Role);
 
    procedure Invoke_Request (S : access GIOP_Session; R : Requests.Request);
 
@@ -376,7 +380,7 @@ private
       Minor_Version        : Version;
       Buffer_Out           : Buffers.Buffer_Access;
       Buffer_In            : Buffers.Buffer_Access;
-      Role                 : ORB.Endpoint_Role;
+      Role                 : ORB.Endpoint_Role := Client;
       Object_Found         : Boolean := False;
       Nbr_Tries            : Natural := 0;
       Expect_Header        : Boolean := True;

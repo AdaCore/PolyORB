@@ -980,8 +980,8 @@ package body Droopi.Protocols.GIOP is
       Target : References.Ref;
       Target_Ref  : Target_Address_Access := null;
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
-      Transp_AP : Droopi.Transport.Transport_Access_Point_Access
-        := new Socket_Access_Point;
+      --Transp_AP : Droopi.Transport.Transport_Access_Point_Access
+      --  := new Socket_Access_Point;
       Temp_Arg : CORBA.NamedValue;
       List     : NV_Sequence_Access;
 
@@ -1092,7 +1092,7 @@ package body Droopi.Protocols.GIOP is
       Target : References.Ref;
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
 
-      Transp_AP : Transport_Access_Point_Access := new Socket_Access_Point;
+
 
    begin
 
@@ -1168,10 +1168,13 @@ package body Droopi.Protocols.GIOP is
                  (IIOP_Profile_Type (Pend_Req.Target_Profile.all),
                   TE,
                   Component_Access (New_Ses));
+
                -- release the previous session buffers
                Release(Ses.Buffer_In);
                Release(Ses.Buffer_Out);
 
+               Pend_Req.Request_Id := Current_Request_Id;
+               Current_Request_Id := Current_Request_Id + 1;
                Invoke_Request (New_Ses, Pend_Req.Req.all);
             end;
 
@@ -1241,6 +1244,18 @@ package body Droopi.Protocols.GIOP is
 
 
    --------------------
+   --  Initialise Session
+   --------------------
+   procedure Initialise_Session
+      (S       : access GIOP_Session;
+       Role    : ORB.Endpoint_Role)
+   is
+   begin
+    S.Role := Role;
+   end  Initialise_Session;
+
+
+   --------------------
    -- Invoke_Request --
    --------------------
 
@@ -1254,7 +1269,6 @@ package body Droopi.Protocols.GIOP is
       use Droopi.Filters.Interface;
       use Droopi.Objects;
       Buf            : Buffer_Access := new Buffer_Type;
-      Sli            : Filter_Access;
       Fragment_Next  : Boolean := False;
       Arg_Count      : CORBA.Long;
       Arg            : CORBA.NamedValue;
@@ -1266,7 +1280,6 @@ package body Droopi.Protocols.GIOP is
          raise GIOP_Error;
       end if;
 
-      Sli := Filter_Access (Lower (S));
       Release_Contents (S.Buffer_Out.all);
 
       --  fragmentation not yet implemented
@@ -1300,8 +1313,8 @@ package body Droopi.Protocols.GIOP is
       --  Sending the message
 
       --  Sending the data to lower layers
-
       Data_Send.Out_Buf := S.Buffer_In;
+      --  Handle_Message (S, Data_Send);
 
       --  Expecting data
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
@@ -1322,9 +1335,25 @@ package body Droopi.Protocols.GIOP is
 
    procedure Abort_Request
      (S : access GIOP_Session;
-      R :  Requests.Request) is
+      R :  Requests.Request)
+   is
+     use Droopi.Filters.Interface;
+     Data_Send     : Data_Out;
    begin
-      raise Not_Implemented;
+      if S.Role  = Server then
+         raise GIOP_Error;
+      end if;
+
+     Release_Contents (S.Buffer_Out.all);
+     Cancel_Request_Message(S);
+
+     --  Sending the message
+     Data_Send.Out_Buf := S.Buffer_Out;
+     --  Handle_Message (S, Data_Send);
+
+     --  Expecting data
+     Expect_Data (S, S.Buffer_In, Message_Header_Size);
+
    end Abort_Request;
 
 
@@ -1340,24 +1369,21 @@ package body Droopi.Protocols.GIOP is
       use Representations.CDR;
       use Droopi.Filters.Interface;
 
-      Buf        : Buffer_Access := new Buffer_Type;
-      Data_Send  : Data_Out;
-      Fragment_Next  : Boolean := False;
+      Data_Send     : Data_Out;
+      Fragment_Next : Boolean := False;
 
    begin
       if S.Role = Client then
          raise GIOP_Error;
       end if;
 
-      --  Sli := Lower (S);
+      --Pend_Req.Req  := R;
 
       Release_Contents (S.Buffer_Out.all);
-
       No_Exception_Reply (S, Pend_Req.Request_Id, Fragment_Next);
 
       --  Sending the message
-      --  Sli.In_Buf := Ses.Buffer_Out;
-      Data_Send.Out_Buf := S.Buffer_In;
+      Data_Send.Out_Buf := S.Buffer_Out;
       --  Handle_Message (S, Data_Send);
 
       --  Expecting data
@@ -1399,10 +1425,9 @@ package body Droopi.Protocols.GIOP is
       use References.IOR;
       Req           : Request_Access := null;
       Mess_Type     : Msg_Type;
-      Mess_Size     :  CORBA.Unsigned_Long;
+      Mess_Size     : CORBA.Unsigned_Long;
       Fragment_Next : Boolean;
       Success       : Boolean;
-
 
    begin
       pragma Debug (O ("Received data on socket service..."));
@@ -1468,7 +1493,10 @@ package body Droopi.Protocols.GIOP is
                            Invoke_Request (S, Pend_Req.Req.all);
 
                         when Unknown_Object =>
-                           raise GIOP_Error;
+                            pragma Debug (O ("Object not found"));
+                            Release(S.Buffer_In);
+                            Release(S.Buffer_Out);
+                            return;
 
                         when Object_Forward | Object_Forward_Perm =>
                            declare
@@ -1477,18 +1505,21 @@ package body Droopi.Protocols.GIOP is
                               TE      : Transport_Endpoint_Access;
                               New_Ses : Session_Access;
                            begin
-                              Pend_Req.Target_Profile
-                                := Select_Profile (S.Buffer_In);
+                              Pend_Req.Target_Profile  := Select_Profile (S.Buffer_In);
                               Binding_Data.IIOP.Bind_Profile
                                 (IIOP_Profile_Type
-                                 (Pend_Req.Target_Profile.all),
+                                  (Pend_Req.Target_Profile.all),
                                  TE, Component_Access (New_Ses));
-                             -- release the previous session buffers
-                             Release(S.Buffer_In);
-                             Release(S.Buffer_Out);
 
-                             Invoke_Request (New_Ses, Pend_Req.Req.all);
+                              -- release the previous session buffers
+                              Release(S.Buffer_In);
+                              Release(S.Buffer_Out);
+
+                              Pend_Req.Request_Id := Current_Request_Id;
+                              Current_Request_Id := Current_Request_Id + 1;
+                              Invoke_Request (New_Ses, Pend_Req.Req.all);
                            end;
+
                         when Loc_Needs_Addressing_Mode =>
                            raise Not_Implemented;
 
@@ -1508,8 +1539,8 @@ package body Droopi.Protocols.GIOP is
                   raise Not_Implemented;
                end if;
 
-            when Message_Error =>
-               raise Not_Implemented;
+             when Message_Error =>
+               raise GIOP_Error;
 
             when Fragment =>
                raise Not_Implemented;
@@ -1527,7 +1558,8 @@ package body Droopi.Protocols.GIOP is
 
    procedure Handle_Disconnect (S : access GIOP_Session) is
    begin
-      raise Not_Implemented;
+      Release(S.Buffer_In);
+      Release(S.Buffer_Out);
    end Handle_Disconnect;
 
 end Droopi.Protocols.GIOP;
