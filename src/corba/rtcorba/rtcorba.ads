@@ -40,6 +40,11 @@
 
 with CORBA.Sequences.Unbounded;
 
+pragma Warnings (Off); --  WAG:3.15
+with PolyORB.Any; --  WAG:3.15
+pragma Elaborate_All (PolyORB.Any); --  WAG:3.15
+pragma Warnings (On); --  WAG:3.15
+
 package RTCORBA is
 
    type NativePriority is new CORBA.Short;
