@@ -58,6 +58,7 @@ package body PolyORB.Binding_Data.IIOP is
    use PolyORB.Representations.CDR;
    use PolyORB.Transport.Connected.Sockets;
    use PolyORB.Types;
+   use PolyORB.GIOP_P.Tagged_Components;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.binding_data.iiop");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
@@ -70,14 +71,6 @@ package body PolyORB.Binding_Data.IIOP is
    procedure Unmarshall_Socket
      (Buffer : access Buffer_Type;
       Sock   :    out Sockets.Sock_Addr_Type);
-
-   procedure Marshall_Tagged_Component
-     (Buffer     : access Buffer_Type;
-      Components :        Component_Seq.Sequence);
-
-   function Unmarshall_Tagged_Component
-     (Buffer : access Buffer_Type)
-     return Component_Seq.Sequence;
 
    Preference : Profile_Preference;
    --  Global variable: the preference to be returned
@@ -113,6 +106,7 @@ package body PolyORB.Binding_Data.IIOP is
      (P : in out IIOP_Profile_Type) is
    begin
       Free (P.Object_Id);
+      Release_Contents (P.Components);
    end Finalize;
 
    ------------------
@@ -253,7 +247,7 @@ package body PolyORB.Binding_Data.IIOP is
    begin
       TResult.Object_Id  := new Object_Id'(Oid);
       TResult.Address    := PF.Address;
-      TResult.Components := Component_Seq.Null_Sequence;
+      TResult.Components := Null_Tagged_Component_List;
       return Result;
    end Create_Profile;
 
@@ -419,52 +413,6 @@ package body PolyORB.Binding_Data.IIOP is
       Sock.Port := Port_Type (Port);
 
    end Unmarshall_Socket;
-
-   -------------------------------
-   -- Marshall_Tagged_Component --
-   -------------------------------
-
-   procedure Marshall_Tagged_Component
-     (Buffer     : access Buffer_Type;
-      Components :        Component_Seq.Sequence)
-   is
-      use Component_Seq;
-
-   begin
-      Marshall (Buffer,  Types.Unsigned_Long (Length (Components)));
-
-      for J in 1 .. Length (Components) loop
-         Marshall (Buffer, Element_Of (Components, J).Tag);
-         Marshall (Buffer, Element_Of (Components, J).Component_Data.all);
-      end loop;
-   end Marshall_Tagged_Component;
-
-   ---------------------------------
-   -- Unmarshall_Tagged_Component --
-   ---------------------------------
-
-   function Unmarshall_Tagged_Component
-     (Buffer   : access Buffer_Type)
-     return Component_Seq.Sequence
-   is
-      use Component_Seq;
-
-      Comp       : Tagged_Component;
-      Components : Component_Seq.Sequence := Null_Sequence;
-      Len        : Types.Unsigned_Long;
-   begin
-      Len := Unmarshall (Buffer);
-
-      for J in 1 .. Len loop
-         Comp.Tag  := Unmarshall (Buffer);
-         Comp.Component_Data
-           := new Stream_Element_Array'(Unmarshall (Buffer));
-
-         Append (Components, Comp);
-      end loop;
-
-      return Components;
-   end Unmarshall_Tagged_Component;
 
    -----------
    -- Image --

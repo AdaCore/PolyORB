@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---            P O L Y O R B . B I N D I N G _ D A T A . I I O P             --
+--      P O L Y O R B . G I O P _ P . T A G G E D _ C O M P O N E N T S     --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,81 +31,94 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Binding data concrete implementation for IIOP.
+--  Implementation of CORBA IOR Tagged components
 
-with PolyORB.Buffers;
-with PolyORB.Sockets;
 with PolyORB.Types;
-with PolyORB.GIOP_P.Tagged_Components;
+with PolyORB.Sequences.Unbounded;
+with PolyORB.Buffers;
 
-package PolyORB.Binding_Data.IIOP is
+package PolyORB.GIOP_P.Tagged_Components is
 
    use PolyORB.Buffers;
 
-   type IIOP_Profile_Type is new Profile_Type with private;
-   type IIOP_Profile_Factory is new Profile_Factory with private;
+   Tagged_Components_Error : exception;
 
-   procedure Initialize (P : in out IIOP_Profile_Type);
-   procedure Adjust     (P : in out IIOP_Profile_Type);
-   procedure Finalize   (P : in out IIOP_Profile_Type);
+   ----------------------
+   -- Tagged_Component --
+   ----------------------
 
-   function Create_Profile
-     (PF  : access IIOP_Profile_Factory;
-      Oid :        Objects.Object_Id)
-     return Profile_Access;
+   type Tagged_Component is abstract tagged record
+      Tag : Types.Unsigned_Long := Types.Unsigned_Long'Last;
+   end record;
+   type Tagged_Component_Access is access all Tagged_Component'Class;
 
-   function Is_Local_Profile
-     (PF : access IIOP_Profile_Factory;
-      P  : access Profile_Type'Class)
-      return Boolean;
+   procedure Marshall
+     (C      : access Tagged_Component;
+      Buffer : access Buffer_Type)
+      is abstract;
 
-   function Bind_Profile
-     (Profile : IIOP_Profile_Type;
-      The_ORB : Components.Component_Access)
-     return Components.Component_Access;
+   procedure Unmarshall
+     (C      : access Tagged_Component;
+      Buffer : access Buffer_Type)
+      is abstract;
 
-   function Get_Profile_Tag
-     (Profile : IIOP_Profile_Type)
-     return Profile_Tag;
-   pragma Inline (Get_Profile_Tag);
+   function Get_Tag
+     (C : access Tagged_Component)
+     return Types.Unsigned_Long
+      is abstract;
 
-   function Get_Profile_Preference
-     (Profile : IIOP_Profile_Type)
-     return Profile_Preference;
-   pragma Inline (Get_Profile_Preference);
+   procedure Release_Contents
+     (C : access Tagged_Component)
+      is abstract;
+   --  free memory associate with component
 
-   procedure Create_Factory
-     (PF  : out IIOP_Profile_Factory;
-      TAP :     Transport.Transport_Access_Point_Access;
-      ORB :     Components.Component_Access);
+   ----------------------------
+   --  Tagged_Component_List --
+   ----------------------------
 
-   procedure Marshall_IIOP_Profile_Body
-     (Buf     : access Buffer_Type;
-      Profile :        Profile_Access);
+   type Tagged_Component_List is private;
 
-   function Unmarshall_IIOP_Profile_Body
-     (Buffer   : access Buffer_Type)
-    return  Profile_Access;
+   Null_Tagged_Component_List : constant Tagged_Component_List;
 
-   function Image (Prof : IIOP_Profile_Type) return String;
+   procedure Release_Contents
+     (List : Tagged_Component_List);
+
+   procedure Marshall_Tagged_Component
+     (Buffer     : access Buffer_Type;
+      Components :        Tagged_Component_List);
+
+   function Unmarshall_Tagged_Component
+     (Buffer     : access Buffer_Type)
+     return Tagged_Component_List;
+
+   function Get_Component
+     (List : Tagged_Component_List;
+      Tag  : Types.Unsigned_Long)
+     return Tagged_Component_Access;
+
+   procedure Add
+     (List : in out Tagged_Component_List;
+      C    :        Tagged_Component_Access);
+
+   -------------------------
+   -- Register components --
+   -------------------------
+
+   type New_Component_Func_Access is access
+     function return Tagged_Component_Access;
+
+   procedure Register
+     (Tag : Types.Unsigned_Long;
+      F   : New_Component_Func_Access);
 
 private
 
-   IIOP_Major_Version : constant Types.Octet := 1;
-   IIOP_Minor_Version : constant Types.Octet := 2;
+   package Component_Seq
+   is new PolyORB.Sequences.Unbounded (Tagged_Component_Access);
 
-   --  XXX DOCUMENTATION: What is a Tagged_Component, and what is it
-   --  used for ??
+   type Tagged_Component_List is new Component_Seq.Sequence;
 
-   type IIOP_Profile_Type is new Profile_Type with record
-      Major_Version : Types.Octet := IIOP_Major_Version;
-      Minor_Version : Types.Octet := IIOP_Minor_Version;
-      Address       : Sockets.Sock_Addr_Type;
-      Components    : PolyORB.GIOP_P.Tagged_Components.Tagged_Component_List;
-   end record;
+   Null_Tagged_Component_List : constant Tagged_Component_List
+     := Tagged_Component_List (Component_Seq.Null_Sequence);
 
-   type IIOP_Profile_Factory is new Profile_Factory with record
-      Address : Sockets.Sock_Addr_Type;
-   end record;
-
-end PolyORB.Binding_Data.IIOP;
+end PolyORB.GIOP_P.Tagged_Components;
