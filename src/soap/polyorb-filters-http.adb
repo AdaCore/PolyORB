@@ -137,15 +137,17 @@ package body PolyORB.Filters.HTTP is
                            Stream_Element (Character'Pos (ASCII.LF)),
                            Stream_Element (Character'Pos (ASCII.CR)),
                            Stream_Element (Character'Pos (ASCII.LF)));
+                     LFB_Position : constant Stream_Element_Offset
+                       := CDR_Position (F.In_Buf) + Length (F.In_Buf) - 4;
                   begin
                      pragma Debug
                        (O ("Extracting last 4 bytes of buffer at position"
-                           & Stream_Element_Offset'Image
-                           (CDR_Position (F.In_Buf))));
+                           & LFB_Position'Img));
+
                      Extract_Data
                        (F.In_Buf, Last_Four_Bytes, 4,
                         Use_Current => False,
-                        At_Position => CDR_Position (F.In_Buf) - 4);
+                        At_Position => LFB_Position);
                      pragma Debug (O ("done."));
                      if Last_Four_Bytes.Zone
                        (Last_Four_Bytes.Offset .. Last_Four_Bytes.Offset + 3)
