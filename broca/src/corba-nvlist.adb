@@ -108,24 +108,29 @@ package body CORBA.NVList is
       Item_Name  : in Identifier;
       Item       : in CORBA.Any;
       Item_Flags : in Flags) is
+      Argument :  CORBA.Any;
+      The_Value : Any_Content_Ptr;
+      The_Counter : Natural_Ptr;
    begin
       pragma Debug (O ("Add_Item (4 params) : enter"));
       pragma Debug (O ("Add_Item (4 params) : Item type is "
                        & Ada.Tags.External_Tag (Get_Value (Item).all'Tag)));
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
                        & Positive'Image (Get_Counter (Item).all)));
---      Item.Any_Lock.Lock_W;
+      Item.Any_Lock.Lock_W;
+      The_Value := Item.The_Value;
+      The_Counter := Item.Ref_Counter;
       Item.Ref_Counter.all := Item.Ref_Counter.all + 1;
+      Item.Any_Lock.Unlock_W;
+      Argument := (Ada.Finalization.Controlled with
+                   The_Value => The_Value,
+                   The_Type => Item.The_Type,
+                   As_Reference => True,
+                   Ref_Counter => The_Counter,
+                   Any_Lock => Item.Any_Lock);
       Add_Item (Self, (Name => Item_Name,
-                       Argument => (Ada.Finalization.Controlled
-                                    with
-                                    The_Value => Item.The_Value,
-                                    The_Type => Item.The_Type,
-                                    As_Reference => True,
-                                    Ref_Counter => Item.Ref_Counter,
-                                    Any_Lock => Item.Any_Lock),
+                       Argument => Argument,
                        Arg_Modes => Item_Flags));
---      Item.Any_Lock.Unlock_W;
       pragma Debug (O ("Add_Item (4 params) : ref_counter = "
                        & Positive'Image (Get_Counter (Item).all)));
       pragma Debug (O ("Add_Item (4 params) : end"));
@@ -143,10 +148,10 @@ package body CORBA.NVList is
    begin
       pragma Debug (O ("Add_Item (2 params) : enter"));
       pragma Debug (O ("Add_Item (2 params) : ref_counter = "
-                       & Positive'Image (Get_Counter (Item.Argument).all)));
+                       & Positive'Image (Item.Argument.Ref_Counter.all)));
       Add_Cell (Actual_Ref.List, Item);
       pragma Debug (O ("Add_Item (2 params) : ref_counter = "
-                       & Positive'Image (Get_Counter (Item.Argument).all)));
+                       & Positive'Image (Item.Argument.Ref_Counter.all)));
       pragma Debug (O ("Add_Item (2 params) : end"));
    end Add_Item;
 

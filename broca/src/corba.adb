@@ -1769,9 +1769,9 @@ package body CORBA is
       if Get_Type (Any_Value) /= CORBA.TC_Octet then
          Broca.Exceptions.Raise_Bad_TypeCode;
       end if;
---      Any_Value.Any_Lock.Lock_W;
+      Any_Value.Any_Lock.Lock_W;
       Content_Octet_Ptr (Any_Value.The_Value).Value := Value;
---      Any_Value.Any_Lock.Unlock_W;
+      Any_Value.Any_Lock.Unlock_W;
    end Set_Any_Value;
 
    ---------------------
@@ -2040,7 +2040,7 @@ package body CORBA is
       Cl : Content_List;
    begin
       pragma Debug (O ("Add_Aggregate_Element : enter"));
---      Value.Any_Lock.Lock_W;
+      Value.Any_Lock.Lock_W;
       Cl := Content_Aggregate_Ptr (Value.The_Value).Value;
       pragma Debug (O ("Add_Aggregate_Element : element kind is "
                        & CORBA.TCKind'Image
@@ -2057,7 +2057,7 @@ package body CORBA is
          Cl.Next := new Content_Cell' (Duplicate (Element.The_Value),
                                        Null_Content_List);
       end if;
---      Value.Any_Lock.Unlock_W;
+      Value.Any_Lock.Unlock_W;
       pragma Debug (O ("Add_Aggregate_Element : end"));
    end Add_Aggregate_Element;
 
@@ -2072,7 +2072,7 @@ package body CORBA is
       Ptr : Content_List;
    begin
       pragma Debug (O ("Get_Aggregate_Element : enter"));
---      Value.Any_Lock.Lock_R;
+      Value.Any_Lock.Lock_R;
       Ptr := Content_Aggregate_Ptr (Value.The_Value).Value;
       pragma Debug (O ("Get_Aggregate_Element : Index = "
                        & CORBA.Unsigned_Long'Image (Index)
@@ -2088,7 +2088,7 @@ package body CORBA is
       pragma Assert (Ptr /= null);
       pragma Assert (Ptr.The_Value /= null);
       Result.The_Value := Duplicate (Ptr.The_Value);
---      Value.Any_Lock.Unlock_R;
+      Value.Any_Lock.Unlock_R;
       Set_Type (Result, Tc);
       pragma Debug (O ("Get_Aggregate_Element : end"));
       return Result;
@@ -2357,7 +2357,7 @@ package body CORBA is
    begin
       pragma Debug (O2 ("Initialize"));
       Object.Ref_Counter := new Natural'(0);
---    Object.Any_Lock := new Broca.Locks.Rw_Lock_Type;
+      Object.Any_Lock := new Broca.Locks.Rw_Lock_Type;
    end Initialize;
 
    --------------
@@ -2369,14 +2369,17 @@ package body CORBA is
       if Object.As_Reference then
          Inc_Usage (Object);
       else
---         Object.Any_Lock.Lock_W;
-         if Object.The_Value /= Null_Content_Ptr then
+         if Get_Value (Object) /= Null_Content_Ptr then
             pragma Debug (O ("object type is "
-                             & Ada.Tags.External_Tag (Object.The_Value'Tag)));
+                             & Ada.Tags.External_Tag
+                             (Get_Value (Object).all'Tag)));
+            pragma Assert (Object.Any_Lock /= null);
+            Object.Any_Lock.Lock_R;
             Object.The_Value := Duplicate (Object.The_Value);
+            Object.Any_Lock.Unlock_R;
             Object.Ref_Counter := new Natural'(1);
+            Object.Any_Lock := new Broca.Locks.Rw_Lock_Type;
          end if;
---         Object.Any_Lock.Unlock_W;
       end if;
       pragma Debug (O ("Adjust : end"));
    end Adjust;
@@ -2397,9 +2400,9 @@ package body CORBA is
    -----------------
    procedure Set_Value (Obj : in out Any; The_Value : in Any_Content_Ptr) is
    begin
---      Obj.Any_Lock.Lock_W;
+      Obj.Any_Lock.Lock_W;
       Obj.The_Value := The_Value;
---      Obj.Any_Lock.Unlock_W;
+      Obj.Any_Lock.Unlock_W;
    end Set_Value;
 
    -------------------
@@ -2407,9 +2410,9 @@ package body CORBA is
    -------------------
    procedure Set_Counter (Obj : in out Any; The_Counter : in Natural_Ptr) is
    begin
---      Obj.Any_Lock.Lock_W;
+      Obj.Any_Lock.Lock_W;
       Obj.Ref_Counter := The_Counter;
---      Obj.Any_Lock.Unlock_W;
+      Obj.Any_Lock.Unlock_W;
    end Set_Counter;
 
    -----------------
@@ -2418,9 +2421,9 @@ package body CORBA is
    function Get_Value (Obj : Any) return Any_Content_Ptr is
       Content : Any_Content_Ptr;
    begin
---      Obj.Any_Lock.Lock_R;
+      Obj.Any_Lock.Lock_R;
       Content := Obj.The_Value;
---      Obj.Any_Lock.Unlock_R;
+      Obj.Any_Lock.Unlock_R;
       return Content;
    end Get_Value;
 
@@ -2430,9 +2433,9 @@ package body CORBA is
    function Get_Counter (Obj : Any) return Natural_Ptr is
       Counter : Natural_Ptr;
    begin
---      Obj.Any_Lock.Lock_R;
+      Obj.Any_Lock.Lock_R;
       Counter := Obj.Ref_Counter;
---      Obj.Any_Lock.Unlock_R;
+      Obj.Any_Lock.Unlock_R;
       return Counter;
    end Get_Counter;
 
@@ -2441,9 +2444,11 @@ package body CORBA is
    -----------------
    procedure Inc_Usage (Obj : in Any) is
    begin
---      Obj.Any_Lock.Lock_W;
+      pragma Debug (O ("Inc_Usage : enter"));
+      Obj.Any_Lock.Lock_W;
       Obj.Ref_Counter.all := Obj.Ref_Counter.all + 1;
---      Obj.Any_Lock.Unlock_W;
+      Obj.Any_Lock.Unlock_W;
+      pragma Debug (O ("Inc_Usage : end"));
    end Inc_Usage;
 
    -----------------
@@ -2453,24 +2458,24 @@ package body CORBA is
    begin
       pragma Debug (O ("Dec_Usage : enter"));
       pragma Debug (O2 ("Dec_Usage"));
---      Obj.Any_Lock.Lock_W;
+      Obj.Any_Lock.Lock_W;
       pragma Debug (O ("Dec_Usage : lock placed"));
       if Obj.Ref_Counter.all > 1 then
          Obj.Ref_Counter.all := Obj.Ref_Counter.all - 1;
          pragma Debug (O ("Dec_Usage : counter decremented"));
---         Obj.Any_Lock.Unlock_W;
+         Obj.Any_Lock.Unlock_W;
          pragma Debug (O ("Dec_Usage : lock released"));
       else
          if Obj.The_Value /= Null_Content_Ptr then
             Deallocate (Obj.The_Value);
             Deallocate (Obj.Ref_Counter);
             pragma Debug (O ("Dec_Usage : counter deallocated"));
---            Obj.Any_Lock.Unlock_W;
+            Obj.Any_Lock.Unlock_W;
             pragma Debug (O ("Dec_Usage : lock released"));
             Deallocate (Obj.Any_Lock);
---         else
---            Obj.Any_Lock.Unlock_W;
---            pragma Debug (O ("Dec_Usage : lock released"));
+         else
+            Obj.Any_Lock.Unlock_W;
+            pragma Debug (O ("Dec_Usage : lock released"));
          end if;
       end if;
       pragma Debug (O ("Dec_Usage : end"));
