@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/testgen.adb#3 $
+--  $Id: //droopi/main/compilers/idlac/testgen.adb#4 $
 
 with GNAT.Command_Line;
 
@@ -42,14 +42,11 @@ with Ada_Be.Expansion;
 with Ada_Be.Idl2Ada;
 with Ada_Be.Mappings.CORBA;
 
-procedure testgen is
+procedure Testgen is
    The_CORBA_Mapping : Ada_Be.Mappings.CORBA.CORBA_Mapping_Type;
    Rep : Idl_Fe.Types.Node_Id;
 begin
-   Idl_Fe.Parser.Initialize
-     (GNAT.Command_Line.Get_Argument,
-      Preprocess => True,
-      Keep_Temporary_Files => False);
+   Idl_Fe.Parser.Initialize (GNAT.Command_Line.Get_Argument);
 
    Rep := Idl_Fe.Parser.Parse_Specification;
 
@@ -60,4 +57,6 @@ begin
       Node        => Rep,
       Implement   => True);
 
-end testgen;
+   Idl_Fe.Lexer.Remove_Temporary_Files;
+
+end Testgen;
