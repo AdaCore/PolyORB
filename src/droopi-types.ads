@@ -22,8 +22,9 @@ package Droopi.Types is
    type    Octet              is new Interfaces.Unsigned_8;
    subtype Boolean            is Standard.Boolean;
 
-   --  type    String             is new Ada.Strings.Unbounded.Unbounded_String;
-   --  type    Wide_String        is
+   --  type    String         is
+   --    new Ada.Strings.Unbounded.Unbounded_String;
+   --  type    Wide_String    is
    --    new Ada.Strings.Wide_Unbounded.Unbounded_Wide_String;
 
 end Droopi.Types;

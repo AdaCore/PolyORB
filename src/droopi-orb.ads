@@ -7,6 +7,7 @@ with Sequences.Unbounded;
 with Droopi.Asynch_Ev;
 with Droopi.Filters;
 with Droopi.Jobs;
+with Droopi.Obj_Adapters;
 with Droopi.Requests;
 with Droopi.Schedulers;
 with Droopi.Soft_Links;
@@ -109,6 +110,14 @@ package Droopi.ORB is
      (ORB   : access ORB_Type;
       TAP   : Transport_Access_Point_Access;
       Chain : Filters.Factory_Chain_Access);
+   --  Register a newly-created transport access point with
+   --  ORB. When a connection is received on TAP, a filter
+   --  chain is instanciated using Chain, and associated
+   --  to the corresponding transport endpoint.
+
+   function Object_Adapter (ORB : access ORB_Type)
+     return Obj_Adapters.Obj_Adapter_Access;
+   --  Return the object adapter associated with ORB.
 
    procedure Insert_Source
      (ORB : access ORB_Type;
@@ -166,6 +175,12 @@ private
       --  for external events on ORB_Sockets.
 
       Selector : Asynch_Ev.Asynch_Ev_Monitor_Access;
+      --  The asynchronous event monitor on which this ORB is
+      --  currently waiting for events.
+
+      Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
+      --  The object adapter that manages objects registered
+      --  with this ORB.
    end record;
 
 end Droopi.ORB;

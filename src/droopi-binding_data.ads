@@ -1,12 +1,12 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#2 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#3 $
 
 with Ada.Finalization;
 with Ada.Streams;
 
-with Droopi.Protocols;
+with Droopi.Components;
 with Droopi.Types;
 
 package Droopi.Binding_Data is
@@ -46,8 +46,8 @@ package Droopi.Binding_Data is
 
    function Find_Connection
      (Profile : Profile_Type)
-     return Protocols.Session_Access is abstract;
-   --  Find or create a session (or create a new one) that matches
+     return Components.Component_Access is abstract;
+   --  Find or create a session component (or create a new one) that matches
    --  this profile in order to send a message to the designated
    --  transport endpoint.
 

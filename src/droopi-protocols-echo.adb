@@ -110,6 +110,10 @@ package body Droopi.Protocols.Echo is
          Req : Request_Access := null;
          Args   : CORBA.NVList.Ref;
          Result : CORBA.NamedValue;
+
+         Nil_Ref : References.Ref;
+         pragma Warnings (Off, Nil_Ref);
+         --  XXX dummy - not initialised.
       begin
          Buffers.Release_Contents (S.Buffer.all);
          --  Clear buffer
@@ -124,7 +128,7 @@ package body Droopi.Protocols.Echo is
 
             Create_Request
               ( --  Target=> Make_Reference (TSAP_Of (The_TE), Oid)
-               Target    => References.Nil_Ref,
+               Target    => Nil_Ref,
                Operation => Method,
                Arg_List  => Args,
                Result    => Result,

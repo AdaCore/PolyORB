@@ -9,6 +9,7 @@ with Droopi.Constants;
 with Droopi.Filters;
 with Droopi.Filters.Interface;
 with Droopi.Log;
+with Droopi.References.Binding;
 with Droopi.Soft_Links;
 with Droopi.Transport;
 
@@ -360,10 +361,19 @@ package body Droopi.ORB is
                             (Kind   => A_TAP_AES,
                              TAP    => TAP,
                              Filter_Factory_Chain => Chain)));
-      --  Register link from AES to TAP.
+      --  Set link from AES to TAP.
 
+      Enter (ORB.ORB_Lock.all);
       Insert_Source (ORB, New_AES);
+      --  XXX Should also keep a direct list of TAPs.
+      Leave (ORB.ORB_Lock.all);
    end Register_Access_Point;
+
+   function Object_Adapter (ORB : access ORB_Type)
+     return Obj_Adapters.Obj_Adapter_Access is
+   begin
+      return ORB.Obj_Adapter;
+   end Object_Adapter;
 
    procedure Insert_Source
      (ORB : access ORB_Type;
@@ -439,12 +449,15 @@ package body Droopi.ORB is
       declare
 --           Oid : constant Objects.Object_Id
 --             := Extract_Local_Object_Id (J.Req.Target);
---
 --           Servant : constant Objects.Servant_Access
---             := Find_Servant (ORB.Object_Adapter, Oid);
+--             := References.Binding.Bind (J.Req.Target);
+         --  XXX not referenced
+         pragma Warnings (Off, Droopi.References.Binding);
       begin
          pragma Debug (O ("Executing: " & Requests.Image (J.Req.all)));
+         --  Setup_Environment (Oid);
          --  Objects.Execute_Request (Servant, J.Req.all);
+         --  Unbind (J.Req.Target);
          null;
          pragma Debug (O ("Run Request_Job: executed request"));
       end;
