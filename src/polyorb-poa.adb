@@ -34,12 +34,18 @@
 
 --  $Id$
 
+with PolyORB.Log;
 with PolyORB.Utils;
 
 package body PolyORB.POA is
 
+   use PolyORB.Log;
    use PolyORB.Types;
    use PolyORB.Utils;
+
+   package L is new Log.Facility_Log ("polyorb.poa");
+   procedure O (Message : in Standard.String; Level : Log_Level := Debug)
+     renames L.Output;
 
    function Oid_To_Rel_URI
      (OA : access Obj_Adapter;
@@ -52,6 +58,15 @@ package body PolyORB.POA is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Warnings (On);
+
+      pragma Debug (O ("Oid: Creator: "
+                         & To_Standard_String (U_Oid.Creator)
+                         & ", Id: " & To_Standard_String (U_Oid.Id)
+                         & ", sys = " & Boolean'Image
+                         (U_Oid.System_Generated)
+                         & ", pf = " & Lifespan_Cookie'Image
+                         (U_Oid.Persistency_Flag)));
+
       if Length (U_Oid.Creator) /= 0 then
          URI := URI & U_Oid.Creator & To_PolyORB_String ("/");
       end if;
@@ -71,6 +86,7 @@ package body PolyORB.POA is
            (Integer (U_Oid.Persistency_Flag));
       end if;
 
+      pragma Debug (O ("-> URI: " & To_Standard_String (URI)));
       return URI;
    end Oid_To_Rel_URI;
 
@@ -88,6 +104,8 @@ package body PolyORB.POA is
       Colon : Integer := Find (S, S'First, ';');
       Last_Slash : Integer := Colon - 1;
    begin
+      pragma Debug (O ("URI: " & To_Standard_String (URI)));
+
       while S (Last_Slash) /= '/' and then Last_Slash >= S'First loop
          Last_Slash := Last_Slash - 1;
       end loop;
@@ -110,7 +128,16 @@ package body PolyORB.POA is
       then
          U_Oid.Persistency_Flag
            := Lifespan_Cookie'Value (S (Colon + 4 .. S'Last));
+      else
+         U_Oid.Persistency_Flag := 0;
       end if;
+      pragma Debug (O ("-> Oid: Creator: "
+                         & To_Standard_String (U_Oid.Creator)
+                         & ", Id: " & To_Standard_String (U_Oid.Id)
+                         & ", sys = " & Boolean'Image
+                         (U_Oid.System_Generated)
+                         & ", pf = " & Lifespan_Cookie'Image
+                         (U_Oid.Persistency_Flag)));
       return U_Oid_To_Oid (U_Oid);
    end Rel_URI_To_Oid;
 
