@@ -1,6 +1,4 @@
-// Java DSI All Types client, cf all_types.idl for more details
-
-// XXX : IDL file is different to accomodate bug in compilation process with OpenORB
+// Java All Types static client, cf all_types.idl for more details
 
 public class Client
 {
