@@ -1724,21 +1724,22 @@ package body Exp_Dist is
 
       Register_Pkg_Actuals : constant List_Id := New_List;
 
-      Dummy_Register_Name : Name_Id;
-      Dummy_Register_Spec : Node_Id;
-      Dummy_Register_Decl : Node_Id;
-      Dummy_Register_Body : Node_Id;
-
       All_Calls_Remote_E  : Entity_Id;
 
       procedure Append_Stubs_To
         (RPC_Receiver_Cases : List_Id;
          Declaration        : Node_Id;
          Stubs              : Node_Id;
-         Subprogram_Number  : Int);
-      --  Add one case to the specified RPC receiver case list
-      --  associating Subprogram_Number with the subprogram declared
-      --  by Declaration, for which we have receiving stubs in Stubs.
+         Subp_Number        : Int;
+         Subp_Dist_Name     : Entity_Id;
+         Subp_Proxy_Addr    : Entity_Id);
+      --  Add one case to the specified RPC receiver case list associating
+      --  Subprogram_Number with the subprogram declared by Declaration, for
+      --  which we have receiving stubs in Stubs. Subp_Number is an internal
+      --  subprogram index. Subp_Dist_Name is the string used to call the
+      --  subprogram by name, and Subp_Dist_Addr is the address of the proxy
+      --  object, used in the context of calls through remote
+      --  access-to-subprogram types.
 
       ---------------------
       -- Append_Stubs_To --
@@ -1748,7 +1749,9 @@ package body Exp_Dist is
         (RPC_Receiver_Cases : List_Id;
          Declaration        : Node_Id;
          Stubs              : Node_Id;
-         Subprogram_Number  : Int)
+         Subp_Number        : Int;
+         Subp_Dist_Name     : Entity_Id;
+         Subp_Proxy_Addr    : Entity_Id)
       is
          Case_Stmts : List_Id;
       begin
@@ -1770,9 +1773,38 @@ package body Exp_Dist is
          Append_To (RPC_Receiver_Cases,
            Make_Case_Statement_Alternative (Loc,
              Discrete_Choices =>
-                New_List (Make_Integer_Literal (Loc, Subprogram_Number)),
+                New_List (Make_Integer_Literal (Loc, Subp_Number)),
              Statements       =>
                Case_Stmts));
+
+         Append_To (Dispatch_On_Name,
+           Make_Elsif_Part (Loc,
+             Condition =>
+               Make_Function_Call (Loc,
+                 Name =>
+                   New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
+                 Parameter_Associations => New_List (
+                   New_Occurrence_Of (Subp_Id, Loc),
+                   New_Occurrence_Of (Subp_Dist_Name, Loc))),
+             Then_Statements => New_List (
+               Make_Assignment_Statement (Loc,
+                 New_Occurrence_Of (Subp_Index, Loc),
+                 Make_Integer_Literal (Loc,
+                    Subp_Number)))));
+
+         Append_To (Dispatch_On_Address,
+           Make_Elsif_Part (Loc,
+             Condition =>
+               Make_Op_Eq (Loc,
+                 Left_Opnd  =>
+                   New_Occurrence_Of (Local_Address, Loc),
+                 Right_Opnd =>
+                   New_Occurrence_Of (Subp_Proxy_Addr, Loc)),
+             Then_Statements => New_List (
+               Make_Assignment_Statement (Loc,
+                 New_Occurrence_Of (Subp_Index, Loc),
+                 Make_Integer_Literal (Loc,
+                    Subp_Number)))));
       end Append_Stubs_To;
 
    --  Start of processing for Add_Receiving_Stubs_To_Declarations
@@ -1979,41 +2011,11 @@ package body Exp_Dist is
                          New_Occurrence_Of (Proxy_Object_Addr, Loc)))));
 
                Append_Stubs_To (Pkg_RPC_Receiver_Cases,
-                 Declaration =>
-                   Current_Declaration,
-                 Stubs =>
-                   Current_Stubs,
-                 Subprogram_Number =>
-                   Current_Subprogram_Number);
-
-               Append_To (Dispatch_On_Name,
-                 Make_Elsif_Part (Loc,
-                   Condition =>
-                     Make_Function_Call (Loc,
-                       Name =>
-                         New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
-                       Parameter_Associations => New_List (
-                         New_Occurrence_Of (Subp_Id, Loc),
-                         New_Occurrence_Of (Subp_Dist_Name, Loc))),
-                   Then_Statements => New_List (
-                     Make_Assignment_Statement (Loc,
-                       New_Occurrence_Of (Subp_Index, Loc),
-                       Make_Integer_Literal (Loc,
-                          Current_Subprogram_Number)))));
-
-               Append_To (Dispatch_On_Address,
-                 Make_Elsif_Part (Loc,
-                   Condition =>
-                     Make_Op_Eq (Loc,
-                       Left_Opnd  =>
-                         New_Occurrence_Of (Local_Address, Loc),
-                       Right_Opnd =>
-                         New_Occurrence_Of (Proxy_Object_Addr, Loc)),
-                   Then_Statements => New_List (
-                     Make_Assignment_Statement (Loc,
-                       New_Occurrence_Of (Subp_Index, Loc),
-                       Make_Integer_Literal (Loc,
-                          Current_Subprogram_Number)))));
+                 Declaration     => Current_Declaration,
+                 Stubs           => Current_Stubs,
+                 Subp_Number     => Current_Subprogram_Number,
+                 Subp_Dist_Name  => Subp_Dist_Name,
+                 Subp_Proxy_Addr => Proxy_Object_Addr);
             end;
 
             Current_Subprogram_Number := Current_Subprogram_Number + 1;
@@ -2084,22 +2086,6 @@ package body Exp_Dist is
       --  Handler field of the Pkg_Receiver_Object, and then register
       --  the package receiving stubs on the nameserver.
 
-      Dummy_Register_Name := New_Internal_Name ('P');
-
-      Dummy_Register_Spec :=
-        Make_Package_Specification (Loc,
-          Defining_Unit_Name   =>
-            Make_Defining_Identifier (Loc, Dummy_Register_Name),
-          Visible_Declarations => No_List,
-          End_Label => Empty);
-
-      Dummy_Register_Decl :=
-        Make_Package_Declaration (Loc,
-          Specification => Dummy_Register_Spec);
-
-      Append_To (Decls, Dummy_Register_Decl);
-      Analyze (Dummy_Register_Decl);
-
       Get_Library_Unit_Name_String (Pkg_Spec);
       Append_To (Register_Pkg_Actuals,
          --  Name
@@ -2152,23 +2138,12 @@ package body Exp_Dist is
          --  Is_All_Calls_Remote
         New_Occurrence_Of (All_Calls_Remote_E, Loc));
 
-      Dummy_Register_Body :=
-        Make_Package_Body (Loc,
-          Defining_Unit_Name         =>
-            Make_Defining_Identifier (Loc, Dummy_Register_Name),
-          Declarations               => No_List,
-
-          Handled_Statement_Sequence =>
-            Make_Handled_Sequence_Of_Statements (Loc,
-              Statements => New_List (
-                Make_Procedure_Call_Statement (Loc,
-                  Name                   =>
-                    New_Occurrence_Of
-                       (RTE (RE_Register_Pkg_Receiving_Stub), Loc),
-                  Parameter_Associations => Register_Pkg_Actuals))));
-
-      Append_To (Decls, Dummy_Register_Body);
-      Analyze (Dummy_Register_Body);
+      Append_To (Decls,
+        Make_Procedure_Call_Statement (Loc,
+          Name                   =>
+            New_Occurrence_Of (RTE (RE_Register_Pkg_Receiving_Stub), Loc),
+          Parameter_Associations => Register_Pkg_Actuals));
+      Analyze (Last (Decls));
    end Add_Receiving_Stubs_To_Declarations;
 
    -------------------
