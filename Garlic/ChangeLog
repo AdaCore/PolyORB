@@ -1,8 +1,18 @@
+Tue Jan 28 16:18:41 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* ChangeLog: Removed spurious blank line introduced by the last
+	  check-in !
+
+	* s-parint.ads: Change '???' into 'XXXXX' which is our way of
+	  indicating portions of code that are either not quite perfect or
+	  likely to be modified in the future (workaround for
+	  example). Also capitalize the explanation, to be style
+	  conformant.
+
 Tue Jan 28 16:11:53 1997  Laurent Pautet <pautet@inf.enst.fr>
 
 	* s-parint.ads: Change Unit_Name_Access definition in order to
 	workaround a bug in GNAT 3.09.
-	
 
 Wed Jan 22 17:32:39 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
