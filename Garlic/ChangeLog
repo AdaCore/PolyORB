@@ -1,3 +1,9 @@
+1998-07-22  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garter.adb: Solve termination problem caused by a
+	misunderstanding of gnat termination and a bug in gnat awake_count 
+	computation.
+
 1998-07-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-ganobl.ads: Add some stat info to count sigpoll interrupts and 

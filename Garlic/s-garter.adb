@@ -41,6 +41,7 @@ with System.Garlic.Soft_Links;    use System.Garlic.Soft_Links;
 with System.Garlic.Streams;       use System.Garlic.Streams;
 with System.Garlic.Types;         use System.Garlic.Types;
 with System.Task_Primitives.Operations;
+with System.Tasking.Debug;    use System.Tasking, System.Tasking.Debug;
 with System.Tasking.Utilities;    use System.Tasking, System.Tasking.Utilities;
 pragma Elaborate_All (System.Tasking);
 pragma Elaborate_All (System.Tasking.Utilities);
@@ -208,13 +209,18 @@ package body System.Garlic.Termination is
    ---------------------------
 
    function Get_Active_Task_Count return Natural is
-      Environment_Task_Count : Natural := 1;
+      Total : Integer;
    begin
-      if Environment_Task.State = Master_Completion_Sleep then
-         Environment_Task_Count := 0;
+      Total := Environment_Task.Awake_Count - Count.Get
+        - Independent_Task_Count;
+      if Debug_Mode (D_Debug, Private_Debug_Key) then
+         List_Tasks;
       end if;
-      return Environment_Task.Awake_Count - Count.Get
-        - Independent_Task_Count - (1 - Environment_Task_Count);
+      pragma Debug (D (D_Debug, "awake =" & Environment_Task.Awake_Count'Img));
+      pragma Debug (D (D_Debug, "count =" & Count.Get'Img));
+      pragma Debug (D (D_Debug, "indep =" & Independent_Task_Count'Img));
+      pragma Debug (D (D_Debug, "total =" & Total'Img));
+      return Total;
    end Get_Active_Task_Count;
 
    ------------------------------
@@ -281,12 +287,14 @@ package body System.Garlic.Termination is
    -----------------------
 
    procedure Local_Termination is
-      Count : Natural;
    begin
       loop
-         Count := Get_Active_Task_Count;
-         pragma Debug (D (D_Debug, "Count =" & Natural'Image (Count)));
-         exit when Count = 1;
+         pragma Debug (D (D_Debug, "Count =" & Get_Active_Task_Count'Img));
+
+         --  This procedure is executed by the env. task. So, we terminate
+         --  when the env. task is the only active task.
+         exit when Get_Active_Task_Count = 1;
+
          delay Time_Between_Checks;
       end loop;
       pragma Debug (D (D_Debug, "Local termination detected"));
@@ -339,7 +347,12 @@ package body System.Garlic.Termination is
                pragma Debug (D (D_Debug,
                                 "Active task count is" &
                                 Natural'Image (Get_Active_Task_Count)));
-               if OK and then Get_Active_Task_Count = 1 and then
+
+               --  To terminate, Get_Active_Task_Count should be 2 because
+               --  the env. task is still active (awake) and the termination
+               --  task is also active.
+
+               if OK and then Get_Active_Task_Count = 2 and then
                  Options.Termination /= Deferred_Termination then
                   Termination_Code'Write (Answer'Access, Positive_Ack);
                else
@@ -393,7 +406,7 @@ package body System.Garlic.Termination is
             Shutdown_Keeper.Wait;
             exit Main_Loop;
          then abort
-            delay Time_Between_Checks;
+            delay Time_Between_Checks * 2.0;
          end select;
 
          --  If there is only one active task (me!), we can initiate
@@ -403,7 +416,11 @@ package body System.Garlic.Termination is
                           "Checking for active tasks:" &
                           Natural'Image (Get_Active_Task_Count)));
 
-         if Get_Active_Task_Count = 1 then
+         --  To terminate, Get_Active_Task_Count should be 2 because the
+         --  env. task is still active (awake) and the termination task is
+         --  also active.
+
+         if Get_Active_Task_Count = 2 then
             declare
                function Clock return Duration
                  renames System.Task_Primitives.Operations.Clock;
@@ -463,7 +480,11 @@ package body System.Garlic.Termination is
                  (D (D_Debug,
                      "Get_Active_Task_Count is" & Get_Active_Task_Count'Img));
 
-               if Success and then Get_Active_Task_Count = 1 then
+               --  To terminate, Get_Active_Task_Count should be 2 because
+               --  the env. task is still active (awake) and the termination
+               --  task is also active.
+
+               if Success and then Get_Active_Task_Count = 2 then
 
                   --  Everyone agrees it's time to die, so let's initiate
                   --  this if nothing runs here.
