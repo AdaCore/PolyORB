@@ -132,11 +132,8 @@ package body Broca.Buffers is
      (Buffer : access Buffer_Type)
      return Buffer_Access
    is
-      Into : constant Buffer_Access
-        := new Buffer_Type;
-
-      Octets : constant Octet_Array
-        := Dump (Buffer.Contents);
+      Into         : constant Buffer_Access := new Buffer_Type;
+      Octets       : Octet_Array_Ptr        := Dump (Buffer.Contents);
       Copy_Address : Opaque_Pointer;
 
       subtype Data is Octet_Array (Octets'Range);
@@ -154,7 +151,9 @@ package body Broca.Buffers is
         (Into,
          Octets'Length,
          Copy_Address);
-      To_Pointer (Copy_Address).all := Octets;
+      To_Pointer (Copy_Address).all := Octets.all;
+
+      Free (Octets);
 
       Into.CDR_Position := Buffer.Initial_CDR_Position;
 
@@ -179,11 +178,15 @@ package body Broca.Buffers is
 
    function Encapsulate
      (Buffer   : access Buffer_Type)
-     return Encapsulation is
+     return Encapsulation
+   is
+      Contents : Octet_Array_Ptr        := Iovec_Pools.Dump (Buffer.Contents);
+      Result   : constant Encapsulation := Contents.all;
    begin
       pragma Assert (Buffer.Initial_CDR_Position = 0);
 
-      return Iovec_Pools.Dump (Buffer.Contents);
+      Free (Contents);
+      return Result;
    end Encapsulate;
 
    procedure Decapsulate
@@ -354,12 +357,12 @@ package body Broca.Buffers is
    -------------------------
 
    procedure Show
-     (Octets : Octet_Array);
+     (Octets : access Octet_Array);
    --  Display the contents of Octets for
    --  debugging purposes.
 
    procedure Show
-     (Octets : Octet_Array)
+     (Octets : access Octet_Array)
    is
       Output : Output_Line;
       Index  : Natural := 1;
@@ -509,7 +512,7 @@ package body Broca.Buffers is
 
       function Dump
         (Iovecs : Iovec_Array)
-        return Octet_Array;
+        return Octet_Array_Ptr;
       --  Dump the data designated by an Iovec_Array
       --  into an array of octets.
 
@@ -539,7 +542,7 @@ package body Broca.Buffers is
 
       function Dump
         (Iovecs : Iovec_Array)
-        return Octet_Array
+        return Octet_Array_Ptr
       is
          Length : Index_Type := 0;
       begin
@@ -548,7 +551,8 @@ package body Broca.Buffers is
          end loop;
 
          declare
-            Result  : Octet_Array (1 .. Length);
+            Result  : constant Octet_Array_Ptr :=
+              new Octet_Array (1 .. Length);
             Current : Index_Type := Result'First;
          begin
             for I in Iovecs'Range loop
@@ -703,7 +707,7 @@ package body Broca.Buffers is
 
       function Dump
         (Iovec_Pool : in Iovec_Pool_Type)
-        return Octet_Array is
+        return Octet_Array_Ptr is
       begin
          if Is_Dynamic (Iovec_Pool) then
             return Dump (Iovec_Pool.Dynamic_Array

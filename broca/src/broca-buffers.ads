@@ -377,9 +377,9 @@ private
 
       function Dump
         (Iovec_Pool : in Iovec_Pool_Type)
-        return Octet_Array;
-      --  Dump the contents of Iovec_Pool into an
-      --  array of octets.
+        return Octet_Array_Ptr;
+      --  Dump the contents of Iovec_Pool into an array of octets. The result
+      --  must be deallocated when not used anymore.
 
       procedure Write_To_FD
         (FD : in Interfaces.C.int;
