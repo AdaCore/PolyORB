@@ -152,6 +152,10 @@ package body Backend.BE_Ada.Generator is
 
    procedure Write (T : Token_Type);
 
+   procedure Write_Extra_Indentation;
+   --  Write an indentation plus two blank chraracters
+   --  used to exactly output the same code as idlac code.
+
    --------------
    -- Generate --
    --------------
@@ -300,10 +304,9 @@ package body Backend.BE_Ada.Generator is
 
    begin
       if Is_Abstract_Type (N) then
-         Write_Space;
          Write (Tok_Abstract);
+         Write_Space;
       end if;
-      Write_Space;
       Write (Tok_New);
       Write_Space;
       Generate (Subtype_Indication (N));
@@ -380,12 +383,13 @@ package body Backend.BE_Ada.Generator is
 
    procedure Generate_Full_Type_Declaration (N : Node_Id) is
    begin
-      Write_Indentation;
       Write (Tok_Type);
       Write_Space;
       Write_Name (Name (Defining_Identifier (N)));
       Write_Space;
       Write (Tok_Is);
+      Write_Eol;
+      Write_Extra_Indentation;
       Generate  (Type_Definition (N));
    end Generate_Full_Type_Declaration;
 
@@ -488,7 +492,8 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Generate (Object_Definition (N));
       if Present (Expression (N)) then
-         Write_Space;
+         Write_Eol;
+         Write_Extra_Indentation;
          Write (Tok_Colon_Equal);
          Write_Space;
          Generate (Expression (N));
@@ -529,6 +534,7 @@ package body Backend.BE_Ada.Generator is
       Increment_Indentation;
       P := First_Node (Statements (N));
       while Present (P) loop
+         Write_Indentation;
          Generate (P);
          Write (Tok_Semicolon);
          Write_Eol;
@@ -565,6 +571,7 @@ package body Backend.BE_Ada.Generator is
       Increment_Indentation;
       P := First_Node (Visible_Part (N));
       while Present (P) loop
+         Write_Indentation;
          Generate (P);
          Write (Tok_Semicolon);
          Write_Eol;
@@ -623,9 +630,7 @@ package body Backend.BE_Ada.Generator is
       N : Node_Id;
 
    begin
-      N_Space := N_Space - 1;
-      Write_Indentation;
-      N_Space := N_Space + 1;
+      Write_Extra_Indentation;
       N := First_Node (L);
       Write (Tok_Left_Paren);
       while Present (N) loop
@@ -634,7 +639,8 @@ package body Backend.BE_Ada.Generator is
          if Present (N) then
             Write (Tok_Semicolon);
             Write_Eol;
-            Write_Indentation;
+            Write_Extra_Indentation;
+            Write_Space;
          end if;
       end loop;
       Write (Tok_Right_Paren);
@@ -790,7 +796,6 @@ package body Backend.BE_Ada.Generator is
 
    begin
       T := Return_Type (N);
-      Write_Indentation;
       if Present (T) then
          Write (Tok_Function);
       else
@@ -799,7 +804,6 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write_Name (Name (Defining_Identifier (N)));
       Write_Eol;
-      Increment_Indentation;
       P := Parameter_Profile (N);
       if not Is_Empty (P) then
          Generate_Parameter_List (P);
@@ -807,12 +811,11 @@ package body Backend.BE_Ada.Generator is
       T := Return_Type (N);
       if Present (T) then
          Write_Eol;
-         Write_Indentation;
+         Write_Extra_Indentation;
          Write (Tok_Return);
          Write_Space;
          Generate_Type_Spec (T);
       end if;
-      Decrement_Indentation;
    end Generate_Subprogram_Specification;
 
    ------------------------
@@ -929,5 +932,16 @@ package body Backend.BE_Ada.Generator is
    begin
       Write_Name (Token_Image (T));
    end Write;
+
+   -----------------------------
+   -- Write_Extra_Indentation --
+   -----------------------------
+
+   procedure Write_Extra_Indentation is
+   begin
+      Write_Indentation;
+      Write_Space;
+      Write_Space;
+   end Write_Extra_Indentation;
 
 end Backend.BE_Ada.Generator;

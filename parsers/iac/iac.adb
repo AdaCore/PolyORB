@@ -60,10 +60,9 @@ begin
       --  Remove any suffix
 
       Last := Name_Len;
-      for I in 1 .. Name_Len loop
+      for I in First .. Name_Len loop
          if Name_Buffer (I) = '.' then
             Last := I - 1;
-            exit;
          end if;
       end loop;
 
