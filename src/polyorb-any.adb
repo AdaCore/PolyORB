@@ -1243,26 +1243,6 @@ package body PolyORB.Any is
       procedure Destroy_TypeCode
         (Self : in out Object)
       is
-
-         procedure Free is new Ada.Unchecked_Deallocation
-           (Cell, Cell_Ptr);
-
-         C_Ptr : Cell_Ptr := Self.Parameters;
-
-         procedure Deallocate_Cells (Self : in out Cell_Ptr);
-
-         procedure Deallocate_Cells (Self : in out Cell_Ptr) is
-         begin
-            if Self = null then
-               pragma Debug (O2 ("Deallocate_Cells: leave"));
-               return;
-            else
-               pragma Debug (O2 ("Deallocate_Cells: iterate"));
-               Deallocate_Cells (Self.Next);
-               Free (Self);
-            end if;
-         end Deallocate_Cells;
-
       begin
          pragma Debug (O2 ("Destroy_TypeCode: enter"));
 
@@ -1274,7 +1254,18 @@ package body PolyORB.Any is
          Self.Is_Destroyed := True;
 
          if Self.Is_Volatile then
-            Deallocate_Cells (C_Ptr);
+            declare
+               procedure Free is new Ada.Unchecked_Deallocation
+                                       (Cell, Cell_Ptr);
+               Cur_Cell, Next_Cell : Cell_Ptr;
+            begin
+               Cur_Cell := Self.Parameters;
+               while Cur_Cell /= null loop
+                  Next_Cell := Cur_Cell.Next;
+                  Free (Cur_Cell);
+                  Cur_Cell := Next_Cell;
+               end loop;
+            end;
          else
             pragma Debug (O2 ("Destroy_TypeCode:"
                               & " no deallocating required"));
@@ -3768,6 +3759,7 @@ package body PolyORB.Any is
    is
       Container : constant Any_Container_Ptr
         := Any_Container_Ptr (Entity_Of (Obj));
+      pragma Assert (Container /= null);
    begin
       return Container.The_Value;
    end Get_Value;
@@ -3842,5 +3834,31 @@ package body PolyORB.Any is
         & To_Standard_String (NV.Name)
         & " = " & Image (NV.Argument);
    end Image;
+
+   --------------------
+   -- Move_Any_Value --
+   --------------------
+
+   procedure Move_Any_Value (Dest : Any; Src : Any) is
+   begin
+      pragma Debug (O ("Move_Any_Value: enter"));
+
+      if TypeCode.Kind (Get_Unwound_Type (Dest))
+        /= TypeCode.Kind (Get_Unwound_Type (Src))
+      then
+         pragma Debug (O ("Move Any value from: "
+                          & Image (Get_Unwound_Type (Src))));
+         pragma Debug (O ("  to: " & Image (Get_Unwound_Type (Dest))));
+         raise TypeCode.Bad_TypeCode;
+      end if;
+
+      declare
+         Src_Value : constant Any_Content_Ptr := Get_Value (Src);
+      begin
+         Any_Container_Ptr (Entity_Of (Src)).The_Value := null;
+         Set_Value (Dest, Src_Value);
+      end;
+      pragma Debug (O ("Move_Any_Value: leave"));
+   end Move_Any_Value;
 
 end PolyORB.Any;

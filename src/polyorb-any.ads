@@ -809,16 +809,18 @@ package PolyORB.Any is
    --  Return an any made of the typecode Tc and the value read in
    --  the aggregate. The first element has index 0.
 
-   procedure Copy_Any_Value
-     (Dest : Any;
-      Src  : Any);
-   --  Set the value of Dest from the value of Src (as
+   procedure Copy_Any_Value (Dest : Any; Src : Any);
+   --  Set the value of Dest from a copy of the value of Src (as
    --  Set_Any_Value would do, but without the need to
    --  know the precise type of Src). Dest and Src must be Any's
    --  with identical typecodes. Dest may be empty.
    --  This is not the same as Set_Any_Value (Dest, Src), which
    --  sets the value of Dest (an Any which a Tk_Any type code)
    --  to be Src (not the /value/ of Src).
+
+   procedure Move_Any_Value (Dest : Any; Src : Any);
+   --  Set the value of Dest to the value of Src, and make Src empty.
+   --  Dest and Src must be Any's with identical typecodes. Dest may be empty.
 
    ----------------
    -- NamedValue --
@@ -860,7 +862,7 @@ private
    -- Any --
    ---------
 
-   --  Any is implemented this way :
+   --  An Any is a smart reference-counted pointer to a container that holds:
    --   - one field for the typecode (TypeCode.Object)
    --   - one field for the value
    --
@@ -873,9 +875,14 @@ private
    --  we use a special child of Content, Content_Aggregate, which has a field
    --  pointing on a list of childs of Content; various methods are provided
    --  to manipulate this list.
+   --  The contents of an Any must be referenced by at most one container
+   --  at any given time. Distinct Any's that are supposed to correspond to
+   --  the same stored object must be references to the same container.
+   --  This allows all the memory management of Content objects to be done
+   --  in containers. In particular, when changing the Value field of a
+   --  container, the previous contents (if non-null) is deallocated.
 
    type Content is abstract tagged null record;
-
    type Any_Content_Ptr is access all Content'Class;
 
    procedure Deallocate
