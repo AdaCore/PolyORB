@@ -1,5 +1,5 @@
 CP = /bin/cp
-SED = sed
+SED = /bin/sed
 
 CFGFILES=\
 myconfig.cfg
@@ -52,7 +52,14 @@ asynchronousmain.adb\
 genericrci.ads\
 rciinstantiation.ads\
 rciclient.adb\
-normalinstantiation.ads
+normalinstantiation.ads\
+new_integers.ads\
+new_integers.adb
+
+SEDFILES=\
+ada.sed\
+cfg.sed\
+idl.sed
 
 TEXIFILES = $(ADAFILES:=.texi) $(CFGFILES:=.texi) $(IDLFILES:=.texi)
 
@@ -68,35 +75,35 @@ default: $(GUIDE).ps
 
 all: $(GUIDE).ps $(GUIDE).info $(GUIDE).html $(GUIDE).pdf
 
-$(GUIDE).html: $(GUIDE).texi $(JPEGFILES)
+$(GUIDE).html: $(GUIDE).texi $(JPEGFILES) $(SEDFILES)
 	texi2html -menu -monolithic $(GUIDE).texi
 
-$(GUIDE).info: $(GUIDE).texi
+$(GUIDE).info: $(GUIDE).texi $(SEDFILES)
 	makeinfo $(GUIDE).texi
 
-$(GUIDE).ps: $(GUIDE).dvi
+$(GUIDE).ps: $(GUIDE).dvi $(SEDFILES)
 	dvips -o $(GUIDE).ps $(GUIDE).dvi
 
-$(GUIDE).dvi: $(GUIDE).texi $(TEXIFILES) $(EPSFILES)
+$(GUIDE).dvi: $(GUIDE).texi $(TEXIFILES) $(EPSFILES) $(SEDFILES)
 	texi2dvi $(GUIDE).texi
 
-$(GUIDE).pdf: $(GUIDE).texi $(PDFFILES)
+$(GUIDE).pdf: $(GUIDE).texi $(PDFFILES) $(SEDFILES)
 	texi2pdf $(GUIDE).texi
 
 $(ADAFILES): all-srcs.ada
 	gnatchop -w all-srcs.ada
 
 %.cfg.texi: %.cfg cfg.sed
-	@gentexifile $< $@
+	gentexifile $< $@
 
 %.idl.texi: %.idl idl.sed
-	@gentexifile $< $@
+	gentexifile $< $@
 
 %.ads.texi: %.ads ada.sed
-	@gentexifile $< $@
+	gentexifile $< $@
 
 %.adb.texi: %.adb ada.sed
-	@gentexifile $< $@
+	gentexifile $< $@
 
 %.fig.eps: %.fig
 	fig2dev -L ps $< $@
@@ -108,7 +115,7 @@ $(ADAFILES): all-srcs.ada
 	convert $< $@
 
 %.sed: %.kw
-	@gensedfile $< $@
+	gensedfile $< $@
 
 clean:
 	rm -f *.aux *.log *.ads *.adb *.dvi *.ps *.eps *.html *.pdf
