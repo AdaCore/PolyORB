@@ -122,7 +122,7 @@ package XE is
       (Pragma_Unknown,
        Pragma_Starter,            --  (1) Starter
        Pragma_Import,             --  (2) Import
-       Pragma_Invocation          --  (3) Invocation
+       Pragma_Boot_Server         --  (3) Boot_Server
        );
 
    Prag_Wrong : constant Int := 300;
@@ -228,7 +228,7 @@ package XE is
 
    Pragma_Starter_Node       : Subprogram_Id;
    Pragma_Import_Node        : Subprogram_Id;
-   Pragma_Invocation_Node    : Subprogram_Id;
+   Pragma_Boot_Server_Node   : Subprogram_Id;
 
    function Get_Node_Name
      (Node : in Node_Id)
@@ -694,9 +694,9 @@ package XE is
    Most_Recent_Stamp  : Time_Stamp_Type;
    --  Several variables related to the main procedure.
 
-   Protocol_Name      : Name_Id;
-   Protocol_Data      : Name_Id;
-   --  Several variables to build the invocation key.
+   Protocol_Name      : Name_Id        := No_Name;
+   Protocol_Data      : Name_Id        := No_Name;
+   --  Several variables to build the boot server.
 
    procedure Maybe_Most_Recent_Stamp (Stamp : Time_Stamp_Type);
    --  Maybe set Most_Recent_Stamp.

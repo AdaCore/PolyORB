@@ -494,7 +494,7 @@ package body XE_Back is
             Value := Get_Variable_Value (Variable_Id (Parameter));
             Starter_Method := Convert (Get_Variable_Mark (Value));
 
-         when Pragma_Invocation =>
+         when Pragma_Boot_Server =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
             Protocol_Name := Get_Node_Name (Node_Id (Value));
             Next_Subprogram_Parameter (Parameter);

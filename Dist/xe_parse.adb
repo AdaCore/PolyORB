@@ -1330,7 +1330,7 @@ package body XE_Parse is
 
          --  What is the the convention used here.
 
-         T_Identifier;
+         Take_Token ((Tok_Identifier, Tok_String_Literal));
          Location := Get_Token_Location;
          Take_Token ((Tok_Arrow, Tok_Comma, Tok_Right_Paren));
          if Token = Tok_Arrow then
@@ -1807,31 +1807,31 @@ package body XE_Parse is
          Pragma_Import_Node,
          Parameter_Node);
 
-      --  pragma invocation_key ... or
+      --  pragma boot_server ... or
       --  procedure pragma__starter
       --    (method : starter__type);
 
       Declare_Subprogram
-        (Pragma_Prefix & Str_To_Id ("invocation"),
+        (Pragma_Prefix & Str_To_Id ("boot_server"),
          True,
          Null_Location,
-         Pragma_Invocation_Node);
+         Pragma_Boot_Server_Node);
 
       --  To easily retrieve the enumeration literal.
       Set_Subprogram_Mark
-        (Pragma_Invocation_Node,
-         Convert (Pragma_Invocation));
+        (Pragma_Boot_Server_Node,
+         Convert (Pragma_Boot_Server));
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("protocol_name"),
          String_Type_Node,
-         Pragma_Invocation_Node,
+         Pragma_Boot_Server_Node,
          Parameter_Node);
 
       Declare_Subprogram_Parameter
         (Str_To_Id ("protocol_data"),
          String_Type_Node,
-         Pragma_Invocation_Node,
+         Pragma_Boot_Server_Node,
          Parameter_Node);
 
       Print_Configuration;

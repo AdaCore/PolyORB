@@ -148,13 +148,21 @@ procedure XE_Lead is
    procedure Set_Boot_Server
      (Partition : in PID_Type) is
    begin
-      Write_Name (FD, Partitions.Table (Partition).Name);
-      Write_Str  (FD, "_HOST=`hostname`");
-      Write_Eol  (FD);
-      Write_Str  (FD, "BOOT_SERVER=tcp://$");
-      Write_Name (FD, Partitions.Table (Partition).Name);
-      Write_Str  (FD, "_HOST:5555");
-      Write_Eol  (FD);
+      if Protocol_Name = No_Name then
+         Write_Name (FD, Partitions.Table (Partition).Name);
+         Write_Str  (FD, "_HOST=`hostname`");
+         Write_Eol  (FD);
+         Write_Str  (FD, "BOOT_SERVER=tcp://$");
+         Write_Name (FD, Partitions.Table (Partition).Name);
+         Write_Str  (FD, "_HOST:5555");
+         Write_Eol  (FD);
+      else
+         Write_Str  (FD, "BOOT_SERVER=");
+         Write_Name (FD, Protocol_Name);
+         Write_Str  (FD, "://");
+         Write_Name (FD, Protocol_Data);
+         Write_Eol  (FD);
+      end if;
    end Set_Boot_Server;
 
 begin
