@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.ads#7 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.ads#8 $
 
 with Ada.Exceptions;
 
@@ -55,7 +55,8 @@ package PortableServer.POAManager is
 
    AdapterInactive : exception;
 
-   procedure Activate (Self : in Ref);
+   procedure Activate
+     (Self : in Ref);
 
    procedure Hold_Requests
      (Self                : in Ref;

@@ -36,7 +36,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.ads#10 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.ads#11 $
 
 with Ada.Exceptions;
 
@@ -96,33 +96,33 @@ package PortableServer.POA is
 
    --  Factories for Policy objects
 
-   function Create_Id_Assignment_Policy
-     (Value : in PortableServer.IdAssignmentPolicyValue)
-     return PortableServer.IdAssignmentPolicy.Ref;
-
-   function Create_Id_Uniqueness_Policy
-     (Value : in PortableServer.IdUniquenessPolicyValue)
-     return PortableServer.IdUniquenessPolicy.Ref;
-
-   function Create_Implicit_Activation_Policy
-     (Value : in PortableServer.ImplicitActivationPolicyValue)
-     return PortableServer.ImplicitActivationPolicy.Ref;
+   function Create_Thread_Policy
+     (Value : in PortableServer.ThreadPolicyValue)
+     return PortableServer.ThreadPolicy.Ref;
 
    function Create_Lifespan_Policy
      (Value : in PortableServer.LifespanPolicyValue)
      return PortableServer.LifespanPolicy.Ref;
 
-   function Create_Request_Processing_Policy
-     (Value : in PortableServer.RequestProcessingPolicyValue)
-     return PortableServer.RequestProcessingPolicy.Ref;
+   function Create_Id_Uniqueness_Policy
+     (Value : in PortableServer.IdUniquenessPolicyValue)
+     return PortableServer.IdUniquenessPolicy.Ref;
+
+   function Create_Id_Assignment_Policy
+     (Value : in PortableServer.IdAssignmentPolicyValue)
+     return PortableServer.IdAssignmentPolicy.Ref;
+
+   function Create_Implicit_Activation_Policy
+     (Value : in PortableServer.ImplicitActivationPolicyValue)
+     return PortableServer.ImplicitActivationPolicy.Ref;
 
    function Create_Servant_Retention_Policy
      (Value : in PortableServer.ServantRetentionPolicyValue)
      return PortableServer.ServantRetentionPolicy.Ref;
 
-   function Create_Thread_Policy
-     (Value : in PortableServer.ThreadPolicyValue)
-     return PortableServer.ThreadPolicy.Ref;
+   function Create_Request_Processing_Policy
+     (Value : in PortableServer.RequestProcessingPolicyValue)
+     return PortableServer.RequestProcessingPolicy.Ref;
 
    --  POA attributes
 
@@ -133,6 +133,10 @@ package PortableServer.POA is
    function Get_The_Parent
      (Self : in Ref)
      return Ref'Class;
+
+   --  function Get_The_Children
+   --    (Self : in Ref)
+   --    return POAList;
 
    function Get_The_POAManager
      (Self : in Ref)
@@ -227,12 +231,16 @@ package PortableServer.POA is
       Oid  : in ObjectId)
      return CORBA.Object.Ref;
 
+   ----------------------------------
+   -- Convert from POA_Forward Ref --
+   ----------------------------------
+
    package Convert is new
      PortableServer.POA_Forward.Convert (Ref);
 
-   -------------------------------
-   -- POA Exceptions Management --
-   -------------------------------
+   ----------------------------------------------
+   -- PortableServer.POA Exceptions Management --
+   ----------------------------------------------
 
    procedure Raise_From_Error
      (Error : in out PolyORB.Exceptions.Error_Container);

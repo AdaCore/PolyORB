@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#39 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#40 $
 
 with Ada.Exceptions;
 
@@ -94,175 +94,6 @@ package body PortableServer.POA is
       return Res;
    end Create_Ref;
 
-   -----------------
-   -- Get_Members --
-   -----------------
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out AdapterAlreadyExists_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= AdapterAlreadyExists'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := AdapterAlreadyExists_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out AdapterNonExistent_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= AdapterNonExistent'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := AdapterNonExistent_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out InvalidPolicy_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= InvalidPolicy'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      PolyORB.Exceptions.User_Get_Members (From, To);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out NoServant_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= NoServant'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := NoServant_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out ObjectAlreadyActive_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= ObjectAlreadyActive'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := ObjectAlreadyActive_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out ObjectNotActive_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= ObjectNotActive'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := ObjectNotActive_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out ServantAlreadyActive_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= ServantAlreadyActive'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := ServantAlreadyActive_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out ServantNotActive_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= ServantNotActive'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := ServantNotActive_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out WrongAdapter_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= WrongAdapter'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := WrongAdapter_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out WrongPolicy_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= WrongPolicy'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := WrongPolicy_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   ------------
-   -- To_Ref --
-   ------------
-
-   function To_Ref
-     (Self : CORBA.Object.Ref'Class)
-     return Ref is
-   begin
-      if CORBA.Object.Entity_Of (Self).all
-        not in PolyORB.POA.Obj_Adapter'Class then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      return Create_Ref (CORBA.Object.Entity_Of (Self));
-   end To_Ref;
-
    ------------
    -- To_POA --
    ------------
@@ -295,6 +126,218 @@ package body PortableServer.POA is
          return The_POA;
       end;
    end To_POA;
+
+   ------------
+   -- To_Ref --
+   ------------
+
+   function To_Ref
+     (Self : CORBA.Object.Ref'Class)
+     return Ref is
+   begin
+      if CORBA.Object.Entity_Of (Self).all
+        not in PolyORB.POA.Obj_Adapter'Class then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      return Create_Ref (CORBA.Object.Entity_Of (Self));
+   end To_Ref;
+
+   ----------------
+   -- Create_POA --
+   ----------------
+
+   function Create_POA
+     (Self         : Ref;
+      Adapter_Name : CORBA.String;
+      A_POAManager : PortableServer.POAManager.Ref;
+      Policies     : CORBA.Policy.PolicyList)
+     return Ref'Class
+   is
+      Res : PolyORB.POA.Obj_Adapter_Access;
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      Error : PolyORB.Exceptions.Error_Container;
+
+   begin
+      pragma Debug (O ("Creating POA "
+                       & CORBA.To_Standard_String (Adapter_Name)));
+
+      --  Note : Policy compability is tested by PolyORB.POA.Create_POA.
+
+      PolyORB.POA.Create_POA
+        (POA,
+         PolyORB.Types.String (Adapter_Name),
+         PolyORB.POA_Manager.POAManager_Access
+         (PortableServer.POAManager.Entity_Of (A_POAManager)),
+         PolyORB.CORBA_P.POA_Config.Convert_PolicyList (Policies),
+         Res,
+         Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      pragma Debug (O ("POA created"));
+
+      declare
+         New_Ref : Ref'Class :=
+           Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (Res));
+      begin
+         return New_Ref;
+      end;
+
+   end Create_POA;
+
+   --------------
+   -- Find_POA --
+   --------------
+
+   function Find_POA
+     (Self         : Ref;
+      Adapter_Name : CORBA.String;
+      Activate_It  : CORBA.Boolean)
+      return Ref'Class
+   is
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      POA_Ref : PolyORB.POA.Obj_Adapter_Access;
+
+      Res : Ref;
+
+      Error : Error_Container;
+   begin
+      PolyORB.POA.Find_POA
+        (POA,
+         CORBA.To_Standard_String (Adapter_Name),
+         Activate_It,
+         POA_Ref,
+         Error);
+
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
+
+      Res := Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (POA_Ref));
+
+      return Res;
+   end Find_POA;
+
+   -------------
+   -- Destroy --
+   -------------
+
+   procedure Destroy
+     (Self                : in out Ref;
+      Etherealize_Objects : in     CORBA.Boolean;
+      Wait_For_Completion : in     CORBA.Boolean)
+   is
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+   begin
+
+      PolyORB.POA.Destroy
+        (POA,
+         PolyORB.Types.Boolean (Etherealize_Objects),
+         PolyORB.Types.Boolean (Wait_For_Completion));
+
+      --  XXX CORBA Specifications says 'Self' should be an 'in'
+      --  parameter; by doing so 'Self' is still a reference to an
+      --  invalid POA --> file an issue against the spec to have Ref
+      --  converted to an 'in out' arg...
+
+   end Destroy;
+
+   ---------------------------------
+   -- Create_Id_Assignment_Policy --
+   ---------------------------------
+
+   function Create_Id_Assignment_Policy
+     (Value : in PortableServer.IdAssignmentPolicyValue)
+     return PortableServer.IdAssignmentPolicy.Ref is
+   begin
+      return PortableServer.IdAssignmentPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (ID_ASSIGNMENT_POLICY_ID, To_Any (Value)));
+   end Create_Id_Assignment_Policy;
+
+   ---------------------------------
+   -- Create_Id_Uniqueness_Policy --
+   ---------------------------------
+
+   function Create_Id_Uniqueness_Policy
+     (Value : in PortableServer.IdUniquenessPolicyValue)
+     return PortableServer.IdUniquenessPolicy.Ref is
+   begin
+      return PortableServer.IdUniquenessPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (ID_UNIQUENESS_POLICY_ID, To_Any (Value)));
+   end Create_Id_Uniqueness_Policy;
+
+   ---------------------------------------
+   -- Create_Implicit_Activation_Policy --
+   ---------------------------------------
+
+   function Create_Implicit_Activation_Policy
+     (Value : in PortableServer.ImplicitActivationPolicyValue)
+     return PortableServer.ImplicitActivationPolicy.Ref is
+   begin
+      return PortableServer.ImplicitActivationPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (IMPLICIT_ACTIVATION_POLICY_ID, To_Any (Value)));
+   end Create_Implicit_Activation_Policy;
+
+   ----------------------------
+   -- Create_Lifespan_Policy --
+   ----------------------------
+
+   function Create_Lifespan_Policy
+     (Value : in PortableServer.LifespanPolicyValue)
+     return PortableServer.LifespanPolicy.Ref is
+   begin
+      return PortableServer.LifespanPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (LIFESPAN_POLICY_ID, To_Any (Value)));
+   end Create_Lifespan_Policy;
+
+   --------------------------------------
+   -- Create_Request_Processing_Policy --
+   --------------------------------------
+
+   function Create_Request_Processing_Policy
+     (Value : in PortableServer.RequestProcessingPolicyValue)
+     return PortableServer.RequestProcessingPolicy.Ref is
+   begin
+      return PortableServer.RequestProcessingPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (REQUEST_PROCESSING_POLICY_ID, To_Any (Value)));
+   end Create_Request_Processing_Policy;
+
+   -------------------------------------
+   -- Create_Servant_Retention_Policy --
+   -------------------------------------
+
+   function Create_Servant_Retention_Policy
+     (Value : in PortableServer.ServantRetentionPolicyValue)
+     return PortableServer.ServantRetentionPolicy.Ref is
+   begin
+      return PortableServer.ServantRetentionPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (SERVANT_RETENTION_POLICY_ID, To_Any (Value)));
+   end Create_Servant_Retention_Policy;
+
+   --------------------------
+   -- Create_Thread_Policy --
+   --------------------------
+
+   function Create_Thread_Policy
+     (Value : in PortableServer.ThreadPolicyValue)
+     return PortableServer.ThreadPolicy.Ref is
+   begin
+      return PortableServer.ThreadPolicy.To_Ref
+        (CORBA.ORB.Create_Policy
+         (THREAD_POLICY_ID, To_Any (Value)));
+   end Create_Thread_Policy;
 
    ------------------
    -- Get_The_Name --
@@ -343,6 +386,52 @@ package body PortableServer.POA is
       pragma Debug (O ("Get_The_POAManager: leave"));
       return Res;
    end Get_The_POAManager;
+
+   -----------------------
+   -- Get_The_Activator --
+   -----------------------
+
+   function Get_The_Activator
+     (Self : Ref)
+     return PortableServer.AdapterActivator.Ref'Class
+   is
+      use PolyORB.CORBA_P.AdapterActivator;
+      use PolyORB.POA_Types;
+
+      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+
+      Result : PortableServer.AdapterActivator.Ref;
+   begin
+      if POA.Adapter_Activator /= null then
+         pragma Assert (POA.Adapter_Activator.all
+                          in CORBA_AdapterActivator'Class);
+
+         return Get_Adapter_Activator
+           (CORBA_AdapterActivator (POA.Adapter_Activator.all));
+      end if;
+
+      return Result;
+   end Get_The_Activator;
+
+   -----------------------
+   -- Set_The_Activator --
+   -----------------------
+
+   procedure Set_The_Activator
+     (Self : in     Ref;
+      To   : access PortableServer.AdapterActivator.Ref'Class)
+   is
+      use PolyORB.CORBA_P.AdapterActivator;
+      use PolyORB.POA_Types;
+
+      POA : PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+   begin
+      if POA.Adapter_Activator /= null then
+         Free (POA.Adapter_Activator);
+      end if;
+
+      Create (POA.Adapter_Activator, To);
+   end Set_The_Activator;
 
    -------------------------
    -- Get_Servant_Manager --
@@ -474,157 +563,6 @@ package body PortableServer.POA is
 
       raise PolyORB.Not_Implemented;
    end Set_Servant_Manager;
-
-   -----------------------
-   -- Get_The_Activator --
-   -----------------------
-
-   function Get_The_Activator
-     (Self : Ref)
-     return PortableServer.AdapterActivator.Ref'Class
-   is
-      use PolyORB.CORBA_P.AdapterActivator;
-      use PolyORB.POA_Types;
-
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
-      Result : PortableServer.AdapterActivator.Ref;
-   begin
-      if POA.Adapter_Activator /= null then
-         pragma Assert (POA.Adapter_Activator.all
-                          in CORBA_AdapterActivator'Class);
-
-         return Get_Adapter_Activator
-           (CORBA_AdapterActivator (POA.Adapter_Activator.all));
-      end if;
-
-      return Result;
-   end Get_The_Activator;
-
-   -----------------------
-   -- Set_The_Activator --
-   -----------------------
-
-   procedure Set_The_Activator
-     (Self : in     Ref;
-      To   : access PortableServer.AdapterActivator.Ref'Class)
-   is
-      use PolyORB.CORBA_P.AdapterActivator;
-      use PolyORB.POA_Types;
-
-      POA : PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-   begin
-      if POA.Adapter_Activator /= null then
-         Free (POA.Adapter_Activator);
-      end if;
-
-      Create (POA.Adapter_Activator, To);
-   end Set_The_Activator;
-
-   ----------------
-   -- Create_POA --
-   ----------------
-
-   function Create_POA
-     (Self         : Ref;
-      Adapter_Name : CORBA.String;
-      A_POAManager : PortableServer.POAManager.Ref;
-      Policies     : CORBA.Policy.PolicyList)
-     return Ref'Class
-   is
-      Res : PolyORB.POA.Obj_Adapter_Access;
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
-      Error : PolyORB.Exceptions.Error_Container;
-
-   begin
-      pragma Debug (O ("Creating POA "
-                       & CORBA.To_Standard_String (Adapter_Name)));
-
-      --  Note : Policy compability is tested by PolyORB.POA.Create_POA.
-
-      PolyORB.POA.Create_POA
-        (POA,
-         PolyORB.Types.String (Adapter_Name),
-         PolyORB.POA_Manager.POAManager_Access
-         (PortableServer.POAManager.Entity_Of (A_POAManager)),
-         PolyORB.CORBA_P.POA_Config.Convert_PolicyList (Policies),
-         Res,
-         Error);
-
-      if Found (Error) then
-         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-      end if;
-
-      pragma Debug (O ("POA created"));
-
-      declare
-         New_Ref : Ref'Class :=
-           Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (Res));
-      begin
-         return New_Ref;
-      end;
-
-   end Create_POA;
-
-   --------------
-   -- Find_POA --
-   --------------
-
-   function Find_POA
-     (Self         : Ref;
-      Adapter_Name : CORBA.String;
-      Activate_It  : CORBA.Boolean)
-      return Ref'Class
-   is
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
-      POA_Ref : PolyORB.POA.Obj_Adapter_Access;
-
-      Res : Ref;
-
-      Error : Error_Container;
-   begin
-      PolyORB.POA.Find_POA
-        (POA,
-         CORBA.To_Standard_String (Adapter_Name),
-         Activate_It,
-         POA_Ref,
-         Error);
-
-      if Found (Error) then
-         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
-      end if;
-
-      Res := Create_Ref (PolyORB.Smart_Pointers.Entity_Ptr (POA_Ref));
-
-      return Res;
-   end Find_POA;
-
-   -------------
-   -- Destroy --
-   -------------
-
-   procedure Destroy
-     (Self                : in out Ref;
-      Etherealize_Objects : in     CORBA.Boolean;
-      Wait_For_Completion : in     CORBA.Boolean)
-   is
-      POA : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
-
-   begin
-
-      PolyORB.POA.Destroy
-        (POA,
-         PolyORB.Types.Boolean (Etherealize_Objects),
-         PolyORB.Types.Boolean (Wait_For_Completion));
-
-      --  XXX CORBA Specifications says 'Self' should be an 'in'
-      --  parameter; by doing so 'Self' is still a reference to an
-      --  invalid POA --> file an issue against the spec to have Ref
-      --  converted to an 'in out' arg...
-
-   end Destroy;
 
    -----------------
    -- Get_Servant --
@@ -920,21 +858,6 @@ package body PortableServer.POA is
       return C_Result;
    end Servant_To_Reference;
 
-   ---------------------
-   -- Reference_To_Id --
-   ---------------------
-
-   function Reference_To_Id
-     (Self      : Ref;
-      Reference : CORBA.Object.Ref'Class)
-     return ObjectId is
-   begin
-      --  XXX does someone know a better implementation ?
-
-      return Servant_To_Id
-        (Self, Reference_To_Servant (Self, Reference));
-   end Reference_To_Id;
-
    --------------------------
    -- Reference_To_Servant --
    --------------------------
@@ -972,6 +895,21 @@ package body PortableServer.POA is
       return Servant (CORBA.Impl.To_CORBA_Servant
                       (PolyORB.Servants.Servant_Access (The_Servant)));
    end Reference_To_Servant;
+
+   ---------------------
+   -- Reference_To_Id --
+   ---------------------
+
+   function Reference_To_Id
+     (Self      : Ref;
+      Reference : CORBA.Object.Ref'Class)
+     return ObjectId is
+   begin
+      --  XXX does someone know a better implementation ?
+
+      return Servant_To_Id
+        (Self, Reference_To_Servant (Self, Reference));
+   end Reference_To_Id;
 
    -------------------
    -- Id_To_Servant --
@@ -1014,96 +952,278 @@ package body PortableServer.POA is
         (Self, Id_To_Servant (Self, Oid));
    end Id_To_Reference;
 
-   ---------------------------------
-   -- Create_Id_Assignment_Policy --
-   ---------------------------------
+   ----------------------
+   -- Raise_From_Error --
+   ----------------------
 
-   function Create_Id_Assignment_Policy
-     (Value : in PortableServer.IdAssignmentPolicyValue)
-     return PortableServer.IdAssignmentPolicy.Ref is
+   procedure Raise_From_Error
+     (Error : in out PolyORB.Exceptions.Error_Container) is
    begin
-      return PortableServer.IdAssignmentPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (ID_ASSIGNMENT_POLICY_ID, To_Any (Value)));
-   end Create_Id_Assignment_Policy;
+      pragma Debug (O ("Raise_From_Error: enter."));
 
-   ---------------------------------
-   -- Create_Id_Uniqueness_Policy --
-   ---------------------------------
+      pragma Assert (Is_Error (Error));
 
-   function Create_Id_Uniqueness_Policy
-     (Value : in PortableServer.IdUniquenessPolicyValue)
-     return PortableServer.IdUniquenessPolicy.Ref is
+      --  One to one mapping of PolyORB Error_Id to CORBA POA exceptions.
+
+      case Error.Kind is
+         when AdapterAlreadyExists_E =>
+            declare
+               Member : constant AdapterAlreadyExists_Members
+                 := AdapterAlreadyExists_Members'
+                 (CORBA.IDL_Exception_Members with null record);
+            begin
+               Free (Error.Member);
+               Raise_AdapterAlreadyExists (Member);
+            end;
+
+         when AdapterNonExistent_E =>
+            declare
+               Member : constant AdapterNonExistent_Members
+                 := AdapterNonExistent_Members'
+                 (CORBA.IDL_Exception_Members with null record);
+            begin
+               Free (Error.Member);
+               Raise_AdapterNonExistent (Member);
+            end;
+
+         when InvalidPolicy_E =>
+            declare
+               Member : constant InvalidPolicy_Members
+                 := InvalidPolicy_Members'
+                 (CORBA.IDL_Exception_Members with Index => 0);
+               --  XXX Should handle this case.
+            begin
+               Free (Error.Member);
+               Raise_InvalidPolicy (Member);
+            end;
+
+         when NoServant_E =>
+            declare
+               Member : constant NoServant_Members
+                 := NoServant_Members'
+                 (CORBA.IDL_Exception_Members with null record);
+            begin
+               Free (Error.Member);
+               Raise_NoServant (Member);
+            end;
+
+         when ObjectAlreadyActive_E =>
+            declare
+               Member : constant ObjectAlreadyActive_Members
+                 := ObjectAlreadyActive_Members'
+                 (CORBA.IDL_Exception_Members with null record);
+            begin
+               Free (Error.Member);
+               Raise_ObjectAlreadyActive (Member);
+            end;
+
+         when ObjectNotActive_E =>
+            declare
+               Member : constant ObjectNotActive_Members
+                 := ObjectNotActive_Members'
+                 (CORBA.IDL_Exception_Members with null record);
+            begin
+               Free (Error.Member);
+               Raise_ObjectNotActive (Member);
+            end;
+
+         when ServantAlreadyActive_E =>
+            declare
+               Member : constant ServantAlreadyActive_Members
+                 := ServantAlreadyActive_Members'
+                 (CORBA.IDL_Exception_Members with null record);
+            begin
+               Free (Error.Member);
+               Raise_ServantAlreadyActive (Member);
+            end;
+
+         when ServantNotActive_E =>
+            declare
+               Member : constant ServantNotActive_Members
+                 := ServantNotActive_Members'
+                 (CORBA.IDL_Exception_Members with null record);
+            begin
+               Free (Error.Member);
+               Raise_ServantNotActive (Member);
+            end;
+
+         when WrongAdapter_E =>
+            declare
+               Member : constant WrongAdapter_Members
+                 := WrongAdapter_Members'
+                 (CORBA.IDL_Exception_Members with null record);
+            begin
+               Free (Error.Member);
+               Raise_WrongAdapter (Member);
+            end;
+
+         when WrongPolicy_E =>
+            declare
+               Member : constant WrongPolicy_Members
+                 := WrongPolicy_Members'
+                 (CORBA.IDL_Exception_Members with null record);
+            begin
+               Free (Error.Member);
+               Raise_WrongPolicy (Member);
+            end;
+
+         when others =>
+            raise Program_Error;
+      end case;
+   end Raise_From_Error;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out AdapterAlreadyExists_Members)
+   is
+      use Ada.Exceptions;
+
    begin
-      return PortableServer.IdUniquenessPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (ID_UNIQUENESS_POLICY_ID, To_Any (Value)));
-   end Create_Id_Uniqueness_Policy;
+      if Exception_Identity (From) /= AdapterAlreadyExists'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
 
-   ---------------------------------------
-   -- Create_Implicit_Activation_Policy --
-   ---------------------------------------
+      To := AdapterAlreadyExists_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
 
-   function Create_Implicit_Activation_Policy
-     (Value : in PortableServer.ImplicitActivationPolicyValue)
-     return PortableServer.ImplicitActivationPolicy.Ref is
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out AdapterNonExistent_Members)
+   is
+      use Ada.Exceptions;
+
    begin
-      return PortableServer.ImplicitActivationPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (IMPLICIT_ACTIVATION_POLICY_ID, To_Any (Value)));
-   end Create_Implicit_Activation_Policy;
+      if Exception_Identity (From) /= AdapterNonExistent'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
 
-   ----------------------------
-   -- Create_Lifespan_Policy --
-   ----------------------------
+      To := AdapterNonExistent_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
 
-   function Create_Lifespan_Policy
-     (Value : in PortableServer.LifespanPolicyValue)
-     return PortableServer.LifespanPolicy.Ref is
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out InvalidPolicy_Members)
+   is
+      use Ada.Exceptions;
+
    begin
-      return PortableServer.LifespanPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (LIFESPAN_POLICY_ID, To_Any (Value)));
-   end Create_Lifespan_Policy;
+      if Exception_Identity (From) /= InvalidPolicy'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
 
-   --------------------------------------
-   -- Create_Request_Processing_Policy --
-   --------------------------------------
+      PolyORB.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
 
-   function Create_Request_Processing_Policy
-     (Value : in PortableServer.RequestProcessingPolicyValue)
-     return PortableServer.RequestProcessingPolicy.Ref is
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out NoServant_Members)
+   is
+      use Ada.Exceptions;
+
    begin
-      return PortableServer.RequestProcessingPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (REQUEST_PROCESSING_POLICY_ID, To_Any (Value)));
-   end Create_Request_Processing_Policy;
+      if Exception_Identity (From) /= NoServant'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
 
-   -------------------------------------
-   -- Create_Servant_Retention_Policy --
-   -------------------------------------
+      To := NoServant_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
 
-   function Create_Servant_Retention_Policy
-     (Value : in PortableServer.ServantRetentionPolicyValue)
-     return PortableServer.ServantRetentionPolicy.Ref is
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ObjectAlreadyActive_Members)
+   is
+      use Ada.Exceptions;
+
    begin
-      return PortableServer.ServantRetentionPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (SERVANT_RETENTION_POLICY_ID, To_Any (Value)));
-   end Create_Servant_Retention_Policy;
+      if Exception_Identity (From) /= ObjectAlreadyActive'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
 
-   --------------------------
-   -- Create_Thread_Policy --
-   --------------------------
+      To := ObjectAlreadyActive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
 
-   function Create_Thread_Policy
-     (Value : in PortableServer.ThreadPolicyValue)
-     return PortableServer.ThreadPolicy.Ref is
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ObjectNotActive_Members)
+   is
+      use Ada.Exceptions;
+
    begin
-      return PortableServer.ThreadPolicy.To_Ref
-        (CORBA.ORB.Create_Policy
-         (THREAD_POLICY_ID, To_Any (Value)));
-   end Create_Thread_Policy;
+      if Exception_Identity (From) /= ObjectNotActive'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := ObjectNotActive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ServantAlreadyActive_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= ServantAlreadyActive'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := ServantAlreadyActive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ServantNotActive_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= ServantNotActive'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := ServantNotActive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out WrongAdapter_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= WrongAdapter'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := WrongAdapter_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out WrongPolicy_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= WrongPolicy'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := WrongPolicy_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
 
    --------------------------------
    -- Raise_AdapterAlreadyExists --
@@ -1245,126 +1365,6 @@ package body PortableServer.POA is
    begin
       raise WrongPolicy;
    end Raise_WrongPolicy;
-
-   ----------------------
-   -- Raise_From_Error --
-   ----------------------
-
-   procedure Raise_From_Error
-     (Error : in out PolyORB.Exceptions.Error_Container) is
-   begin
-      pragma Debug (O ("Raise_From_Error: enter."));
-
-      pragma Assert (Is_Error (Error));
-
-      --  One to one mapping of PolyORB Error_Id to CORBA POA exceptions.
-
-      case Error.Kind is
-         when AdapterAlreadyExists_E =>
-            declare
-               Member : constant AdapterAlreadyExists_Members
-                 := AdapterAlreadyExists_Members'
-                 (CORBA.IDL_Exception_Members with null record);
-            begin
-               Free (Error.Member);
-               Raise_AdapterAlreadyExists (Member);
-            end;
-
-         when AdapterNonExistent_E =>
-            declare
-               Member : constant AdapterNonExistent_Members
-                 := AdapterNonExistent_Members'
-                 (CORBA.IDL_Exception_Members with null record);
-            begin
-               Free (Error.Member);
-               Raise_AdapterNonExistent (Member);
-            end;
-
-         when InvalidPolicy_E =>
-            declare
-               Member : constant InvalidPolicy_Members
-                 := InvalidPolicy_Members'
-                 (CORBA.IDL_Exception_Members with Index => 0);
-               --  XXX Should handle this case.
-            begin
-               Free (Error.Member);
-               Raise_InvalidPolicy (Member);
-            end;
-
-         when NoServant_E =>
-            declare
-               Member : constant NoServant_Members
-                 := NoServant_Members'
-                 (CORBA.IDL_Exception_Members with null record);
-            begin
-               Free (Error.Member);
-               Raise_NoServant (Member);
-            end;
-
-         when ObjectAlreadyActive_E =>
-            declare
-               Member : constant ObjectAlreadyActive_Members
-                 := ObjectAlreadyActive_Members'
-                 (CORBA.IDL_Exception_Members with null record);
-            begin
-               Free (Error.Member);
-               Raise_ObjectAlreadyActive (Member);
-            end;
-
-         when ObjectNotActive_E =>
-            declare
-               Member : constant ObjectNotActive_Members
-                 := ObjectNotActive_Members'
-                 (CORBA.IDL_Exception_Members with null record);
-            begin
-               Free (Error.Member);
-               Raise_ObjectNotActive (Member);
-            end;
-
-         when ServantAlreadyActive_E =>
-            declare
-               Member : constant ServantAlreadyActive_Members
-                 := ServantAlreadyActive_Members'
-                 (CORBA.IDL_Exception_Members with null record);
-            begin
-               Free (Error.Member);
-               Raise_ServantAlreadyActive (Member);
-            end;
-
-         when ServantNotActive_E =>
-            declare
-               Member : constant ServantNotActive_Members
-                 := ServantNotActive_Members'
-                 (CORBA.IDL_Exception_Members with null record);
-            begin
-               Free (Error.Member);
-               Raise_ServantNotActive (Member);
-            end;
-
-         when WrongAdapter_E =>
-            declare
-               Member : constant WrongAdapter_Members
-                 := WrongAdapter_Members'
-                 (CORBA.IDL_Exception_Members with null record);
-            begin
-               Free (Error.Member);
-               Raise_WrongAdapter (Member);
-            end;
-
-         when WrongPolicy_E =>
-            declare
-               Member : constant WrongPolicy_Members
-                 := WrongPolicy_Members'
-                 (CORBA.IDL_Exception_Members with null record);
-            begin
-               Free (Error.Member);
-               Raise_WrongPolicy (Member);
-            end;
-
-         when others =>
-            raise Program_Error;
-      end case;
-   end Raise_From_Error;
 
    ----------------
    -- Initialize --

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#14 $
+--  $Id: //droopi/main/src/corba/portableserver-poamanager.adb#15 $
 
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
@@ -52,65 +52,6 @@ package body PortableServer.POAManager is
    --  reference points to a non null POAM, the type of the referenced
    --  object (else BAD_PARAM is raised).  Check that the POAM is
    --  active (else AdapterInactive is raised).
-
-   -----------------
-   -- Get_Members --
-   -----------------
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out AdapterInactive_Members)
-   is
-      use Ada.Exceptions;
-
-   begin
-      if Exception_Identity (From) /= AdapterInactive'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      To := AdapterInactive_Members'
-        (CORBA.IDL_Exception_Members with null record);
-   end Get_Members;
-
-   ---------------------------
-   -- Raise_AdapterInactive --
-   ---------------------------
-
-   procedure Raise_AdapterInactive
-     (Excp_Memb : in AdapterInactive_Members)
-   is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
-
-   begin
-      raise AdapterInactive;
-   end Raise_AdapterInactive;
-
-   ----------------------
-   -- Raise_From_Error --
-   ----------------------
-
-   procedure Raise_From_Error
-     (Error : in out PolyORB.Exceptions.Error_Container) is
-   begin
-      pragma Assert (Is_Error (Error));
-
-      case Error.Kind is
-         when AdapterInactive_E =>
-            declare
-               Member : constant AdapterInactive_Members
-                 := AdapterInactive_Members'(CORBA.IDL_Exception_Members
-                                             with null record);
-            begin
-               Free (Error.Member);
-               Raise_AdapterInactive (Member);
-            end;
-
-         when others =>
-            raise Program_Error;
-      end case;
-   end Raise_From_Error;
 
    --------------------
    -- To_POA_Manager --
@@ -217,6 +158,65 @@ package body PortableServer.POAManager is
    begin
       return PortableServer.POAManager.State (State);
    end Get_State;
+
+   ----------------------
+   -- Raise_From_Error --
+   ----------------------
+
+   procedure Raise_From_Error
+     (Error : in out PolyORB.Exceptions.Error_Container) is
+   begin
+      pragma Assert (Is_Error (Error));
+
+      case Error.Kind is
+         when AdapterInactive_E =>
+            declare
+               Member : constant AdapterInactive_Members
+                 := AdapterInactive_Members'(CORBA.IDL_Exception_Members
+                                             with null record);
+            begin
+               Free (Error.Member);
+               Raise_AdapterInactive (Member);
+            end;
+
+         when others =>
+            raise Program_Error;
+      end case;
+   end Raise_From_Error;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out AdapterInactive_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= AdapterInactive'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := AdapterInactive_Members'
+        (CORBA.IDL_Exception_Members with null record);
+   end Get_Members;
+
+   ---------------------------
+   -- Raise_AdapterInactive --
+   ---------------------------
+
+   procedure Raise_AdapterInactive
+     (Excp_Memb : in AdapterInactive_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+
+   begin
+      raise AdapterInactive;
+   end Raise_AdapterInactive;
 
    ----------------
    -- Initialize --

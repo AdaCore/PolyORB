@@ -88,13 +88,15 @@ package PortableServer is
    --  Servant_Base type and default implementations of the primitve
    --  operations on Servant_Base that meet the required semantics.
 
+   --  XXX What is the status of these commented spec ?
+
    --  FIXME: how to implement this ?
    --  function "=" (Left, Right : Servant) return Boolean;
    --  pragma Convention (Intrinsic, "=");
 
-   function Get_Default_POA
-     (For_Servant : Servant_Base)
-     return POA_Forward.Ref;
+   --  function Get_Default_POA
+   --   (For_Servant : Servant_Base)
+   --    return POA_Forward.Ref;
 
    --     function Get_Interface
    --       (For_Servant : Servant_Base)
@@ -130,14 +132,6 @@ package PortableServer is
    ------------------------------
 
    ForwardRequest : exception;
-
-   type ForwardRequest_Members is new CORBA.IDL_Exception_Members with record
-      Forward_Reference : CORBA.Object.Ref;
-   end record;
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out ForwardRequest_Members);
 
    ---------------
    -- Constants --
@@ -181,86 +175,135 @@ package PortableServer is
       USE_DEFAULT_SERVANT,
       USE_SERVANT_MANAGER);
 
+   ------------------------------------------
+   -- PortableServer Exceptions Management --
+   -------------------------------------------
+
+   type ForwardRequest_Members is new CORBA.IDL_Exception_Members with record
+      Forward_Reference : CORBA.Object.Ref;
+   end record;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ForwardRequest_Members);
+
+   procedure Raise_ForwardRequest
+     (Excp_Memb : in ForwardRequest_Members);
+   pragma No_Return (Raise_ForwardRequest);
+
+   --  XXX What is the status of this comment ??
+
+   --  Calling ForwardRequest does not increase the usage counter of
+   --  REFERENCE.  As a result, the user must ensure not to release
+   --  REFERENCE while the exception is processed.
+   --  There is a dilemna here:
+   --  - if we increase the counter, the usage counter will never
+   --    be decreased if get_members is not called
+   --  - if we do not increase it, the object may be deleted
+   --    before the exception is caught.
+
    -----------------------------
    -- Helpers for PolicyValue --
    -----------------------------
 
-   TC_ThreadPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  ThreadPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return ThreadPolicyValue;
+   TC_ThreadPolicyValue : CORBA.TypeCode.Object
+     := CORBA.TypeCode.TC_Enum;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return ThreadPolicyValue;
 
    function To_Any
      (Item : in ThreadPolicyValue)
      return CORBA.Any;
 
-   TC_LifespanPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  LifespanPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return LifespanPolicyValue;
+   TC_LifespanPolicyValue : CORBA.TypeCode.Object
+     := CORBA.TypeCode.TC_Enum;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return LifespanPolicyValue;
 
    function To_Any
      (Item : in LifespanPolicyValue)
      return CORBA.Any;
 
-   TC_IdUniquenessPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  IdUniquenessPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return IdUniquenessPolicyValue;
+   TC_IdUniquenessPolicyValue : CORBA.TypeCode.Object
+     := CORBA.TypeCode.TC_Enum;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return IdUniquenessPolicyValue;
 
    function To_Any
      (Item : in IdUniquenessPolicyValue)
      return CORBA.Any;
 
+   --  IdAssignmentPolicyValue
+
    TC_IdAssignmentPolicyValue : CORBA.TypeCode.Object :=
      CORBA.TypeCode.TC_Enum;
 
-   function From_Any (Item : in CORBA.Any)
-                     return IdAssignmentPolicyValue;
+   function From_Any
+     (Item : in CORBA.Any)
+     return IdAssignmentPolicyValue;
 
    function To_Any
      (Item : in IdAssignmentPolicyValue)
      return CORBA.Any;
 
-   TC_ImplicitActivationPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  ImplicitActivationPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return ImplicitActivationPolicyValue;
+   TC_ImplicitActivationPolicyValue : CORBA.TypeCode.Object
+     := CORBA.TypeCode.TC_Enum;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return ImplicitActivationPolicyValue;
 
    function To_Any
      (Item : in ImplicitActivationPolicyValue)
      return CORBA.Any;
 
-   TC_ServantRetentionPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  ServantRetentionPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return ServantRetentionPolicyValue;
+   TC_ServantRetentionPolicyValue : CORBA.TypeCode.Object
+     := CORBA.TypeCode.TC_Enum;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return ServantRetentionPolicyValue;
 
    function To_Any
      (Item : in ServantRetentionPolicyValue)
      return CORBA.Any;
 
-   TC_RequestProcessingPolicyValue : CORBA.TypeCode.Object :=
-     CORBA.TypeCode.TC_Enum;
+   --  RequestProcessingPolicyValue
 
-   function From_Any (Item : in CORBA.Any)
-                     return RequestProcessingPolicyValue;
+   TC_RequestProcessingPolicyValue : CORBA.TypeCode.Object
+     := CORBA.TypeCode.TC_Enum;
+
+   function From_Any
+     (Item : in CORBA.Any)
+     return RequestProcessingPolicyValue;
 
    function To_Any
      (Item : in RequestProcessingPolicyValue)
      return CORBA.Any;
 
-   --  XXX Old AdaBroker-specific spec, kept here for
-   --  now for easy reference. Please do not remove yet.
-
    -------------------------
    -- Specific to PolyORB --
    -------------------------
+
+   --  XXX Old AdaBroker-specific spec, kept here for
+   --  now for easy reference. Please do not remove yet.
+   --  XXX is the above comment still pertinent ?
 
    function Get_Type_Id (For_Servant : Servant)
      return CORBA.RepositoryId;
@@ -288,17 +331,6 @@ package PortableServer is
    --  Dispatcher will be ignored and can be null.
    --  NOTE: This procedure is not thread safe.
 
---    --  Calling ForwardRequest does not increase the usage counter of
---    --  REFERENCE.  As a result, the user must ensure not to release
---    --  REFERENCE while the exception is processed.
---    --  There is a dilemna here:
---    --  - if we increase the counter, the usage counter will never
---    --    be decreased if get_members is not called
---    --  - if we do not increase it, the object may be deleted
---    --    before the exception is caught.
---    procedure Raise_Forward_Request (Reference : in CORBA.Object.Ref);
---    pragma No_Return (Raise_Forward_Request);
-
 private
 
    type DynamicImplementation is
@@ -306,7 +338,7 @@ private
 
    function Execute_Servant
      (Self : access DynamicImplementation;
-      Msg  : PolyORB.Components.Message'Class)
+      Msg  :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
 
    type Servant_Base is
@@ -314,6 +346,6 @@ private
 
    procedure Invoke
      (Self    : access Servant_Base;
-      Request : in CORBA.ServerRequest.Object_Ptr);
+      Request : in     CORBA.ServerRequest.Object_Ptr);
 
 end PortableServer;

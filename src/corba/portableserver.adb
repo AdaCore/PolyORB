@@ -136,39 +136,6 @@ package body PortableServer is
       --  Self's primitive operations to that skeleton.
    end Invoke;
 
-   ---------------------
-   -- Get_Default_POA --
-   ---------------------
-
-   function Get_Default_POA
-     (For_Servant : Servant_Base)
-     return POA_Forward.Ref is
-   begin
-      raise PolyORB.Not_Implemented;
-
-      pragma Warnings (Off);
-      return Get_Default_POA (For_Servant);
-      --  "Possible infinite recursion".
-      pragma Warnings (On);
-   end Get_Default_POA;
-
-   -----------------
-   -- Get_Members --
-   -----------------
-
-   procedure Get_Members
-     (From : in  Ada.Exceptions.Exception_Occurrence;
-      To   : out ForwardRequest_Members)
-   is
-      use Ada.Exceptions;
-   begin
-      if Exception_Identity (From) /= ForwardRequest'Identity then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      PolyORB.Exceptions.User_Get_Members (From, To);
-   end Get_Members;
-
    ---------------
    -- Find_Info --
    ---------------
@@ -284,6 +251,37 @@ package body PortableServer is
    begin
       return PolyORB.Types.To_String (Get_Name (Object_Id (Id)));
    end ObjectId_To_String;
+
+   -----------------
+   -- Get_Members --
+   -----------------
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out ForwardRequest_Members)
+   is
+      use Ada.Exceptions;
+   begin
+      if Exception_Identity (From) /= ForwardRequest'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      PolyORB.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
+
+   --------------------------
+   -- Raise_ForwardRequest --
+   --------------------------
+
+   procedure Raise_ForwardRequest
+     (Excp_Memb : in ForwardRequest_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+   begin
+      raise PolyORB.Not_Implemented;
+   end Raise_ForwardRequest;
 
    --------------
    -- From_Any --
