@@ -550,10 +550,10 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
     
     // add this ancestor to the with list
     string corps = inher->get_ada_full_name();
-    with.add(corps);
+    with.add(corps + ".Impl");
     
     // define type Object as child of the ancestor Object type
-    body += "   type Object is new " + corps + ".Object with private ;\n";
+    body += "   type Object is new " + corps + ".Impl.Object with private ;\n";
 
     // Now loop over all other ancestors to redefine the subprograms
     if (n_inherits() > 1) {
@@ -566,7 +566,7 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
 	string corps2 = inher->get_ada_full_name();
 	int len = corps2.length();
 	
-	with.add(corps2);
+	with.add(corps2 + ".Impl");
 	
 	tmp += "   -----------------------" + spaces(len,'-') + "\n";
 	tmp += "   -- inheritance from " + corps2 + "\n";
@@ -587,7 +587,7 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
 		  {
 		    string tempo1 = "";
 		    string tempo2 = "";
-		    e->produce_ads(with, tempo1, tempo2);
+		    e->produce_impl_ads(with, tempo1, tempo2);
 		    tmp += tempo2 + tempo1;
 		  }
 		  break ;
@@ -646,10 +646,21 @@ adabe_interface::produce_impl_ads(dep_list& with, string &body, string &previous
   // by user)
   if (n_inherits() == 0) {
     body += "   type Object is new Omniobject.Implemented_Object with record\n";
-    body += "      null ;\n" ;
+    body += "      Null ;\n" ;
     body += "   end record ;\n\n" ;
   }
-
+  else if (n_inherits() > 0)
+    {
+      inher = adabe_interface::narrow_from_decl(inherits()[0]);
+      
+      // add this ancestor to the with list
+      string corps = inher->get_ada_full_name();
+    
+      // define type Object as child of the ancestor Object type
+      body += "   type Object is new " + corps + ".Impl.Object with record\n";
+      body += "      Null;\n";
+      body += "   end record;\n\n";
+    }
   // declaration of functions initialize, adjust and finalize since the 
   /// object type is controlled
   body += "   --------------------------------------------------\n" ;
@@ -675,7 +686,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   string ancestor ;
   if (n_inherits()) {
     ancestor= adabe_interface::narrow_from_decl(inherits()[0])->get_ada_full_name();
-    with.add(ancestor);
+    with.add(ancestor + ".Impl");
   }
 
   //  note the file in which we are working in order to known what
@@ -688,7 +699,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   body += "\n\n" ;
 
   body += "package body " + get_ada_full_name() + ".Impl is \n\n\n";
-  
+
   // In case of multiple inheritance, we have to redefine
   // ll the function of the parents but the first one
   if (n_inherits() > 1) {
@@ -701,7 +712,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
       string corps2 = inher->get_ada_full_name();
       int len = corps2.length();
       
-      with.add(corps2);
+      with.add(corps2 + ".Impl");
       
       body += "   -----------------------" + spaces(len,'-') + "\n";
       body += "   -- inheritance from " + corps2 + "\n";
@@ -781,7 +792,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   body += "   begin\n" ;
   body += "      " ;
   if(n_inherits()) {
-    body += ancestor + ".Initialize(" + ancestor + ".Object(" ;
+    body += ancestor + ".Impl.Initialize(" + ancestor + ".Impl.Object(" ;
   } else {
     body += "Omniobject.Initialize(Omniobject.Implemented_Object(" ;
   }
@@ -802,7 +813,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   body += "   begin\n" ;
   body += "   " ;
   if(n_inherits()) {
-    body += ancestor + ".Adjust(" + ancestor + ".Object(" ;
+    body += ancestor + ".Impl.Adjust(" + ancestor + ".Impl.Object(" ;
   } else {
     body += "Omniobject.Adjust(Omniobject.Implemented_Object(" ;
   }
@@ -818,7 +829,7 @@ adabe_interface::produce_impl_adb(dep_list& with, string &body, string &previous
   body += "      -- You can add things *BEFORE* this line\n" ;
   body += "   " ;
   if(n_inherits()) {
-    body += ancestor + ".Finalize(" + ancestor + ".Object(" ;
+    body += ancestor + ".Impl.Finalize(" + ancestor + ".Impl.Object(" ;
   } else {
     body += "Omniobject.Finalize(Omniobject.Implemented_Object(" ;
   }
@@ -958,6 +969,15 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
   // must be imported and what not.
   adabe_global::set_adabe_current_file(this);
 
+  string corps1 = "";
+  if (n_inherits() > 0)
+    {
+      // corps1 contains the name of the father 
+      adabe_interface *inher_0 = adabe_interface::narrow_from_decl(inherits()[0]);
+      corps1 = inher_0->get_ada_full_name();
+      with.add(corps1 + ".Skeleton");
+    }
+  
   // add the corresponding impl and marshal packages to the with clauses
   with.add(get_ada_full_name() + ".Impl");
   with.add(get_ada_full_name() + ".Marshal");
@@ -1067,8 +1087,16 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
       }
     }
   }
-  
-  body += "      Dispatch_Returns := false ;\n";
+  if (n_inherits() == 0)
+    body += "      Dispatch_Returns := false ;\n";
+  else
+    {
+      body += "      " + corps1 + ".Skeleton.Dispatch(Myself,\n";
+      body += "                             Orls,\n";
+      body += "                             Orl_Op,\n";
+      body += "                             Orl_Response_Expected,\n";
+      body += "                             Dispatch_Returns);\n";
+    }
   body += "   end ;\n\n";
 
   // end of the package

@@ -298,7 +298,6 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
   adabe_name *e = dynamic_cast<adabe_name *>(d);
   string type_name = e->dump_name(with, private_definition);
   e->is_marshal_imported(with);
-  string full_type_name = e->get_ada_local_name ();
   string name = get_ada_local_name ();
   string full_name = get_ada_full_name ();
   string pack_name = full_name.substr(0,full_name.find_last_of('.')) ;
@@ -308,7 +307,7 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
   body += "\" then\n";
   body += "         declare\n";
   body += "            Result : ";
-  body += full_type_name;
+  body += type_name;
   body += " ;\n";
   body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
   body += "         begin\n";
@@ -348,7 +347,7 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
       body += "\" then\n";
       body += "         declare\n";
       body += "            Mesg : ";
-      body += full_type_name;
+      body += type_name;
       body += " ;\n";
       body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
       body += "         begin\n";
