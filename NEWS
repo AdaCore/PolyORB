@@ -1,6 +1,13 @@
 Changes since GLADE 3.16a
 =========================
 
+Restrictions
+------------
+
+*   Abortion of synchronous remote subprogram invocation is not
+    supported in zero-cost exception context because of current GNAT5
+    limitations.
+
 New Functionnalities
 --------------------
 
