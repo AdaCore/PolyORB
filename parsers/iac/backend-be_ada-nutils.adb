@@ -38,6 +38,8 @@ package body Backend.BE_Ada.Nutils is
    procedure Add_With_Package (E : Node_Id) is
 
       function To_Library_Unit (E : Node_Id) return Node_Id;
+      --  Return the library unit which E belongs to in order to with
+      --  it. As a special rule, package Standard returns No_Node.
 
       ---------------------
       -- To_Library_Unit --
@@ -68,7 +70,14 @@ package body Backend.BE_Ada.Nutils is
          --  this unit but for one of its parents.
 
          if Is_Subunit_Package (U) then
-            return To_Library_Unit (Parent_Unit_Name (E));
+            U := Parent_Unit_Name (E);
+
+            --  This is a special case to handle package Standard
+
+            if No (U) then
+               return No_Node;
+            end if;
+            return To_Library_Unit (U);
          end if;
 
          return E;
@@ -82,6 +91,9 @@ package body Backend.BE_Ada.Nutils is
       I : Node_Id;
 
    begin
+      if No (P) then
+         return;
+      end if;
 
       --  Build a string "<current_entity>%[s,b] <withed_entity>" that
       --  is the current entity name, a character 's' (resp 'b') to

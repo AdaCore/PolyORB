@@ -148,6 +148,11 @@ package body Backend.BE_Ada.Runtime is
       Declare_Subunit (RUD (RU_PolyORB_Any_TypeCode));
       Declare_Subunit (RUD (RU_PolyORB_Any_TypeCode_Internals));
 
+      --  Package Standard is not a subunit but it has to be handled
+      --  in a specific way as well as subunit.
+
+      Declare_Subunit (RUD (RU_Standard));
+
       for E in RE_Id loop
          Set_Str_To_Name_Buffer (RE_Id'Image (E));
          Set_Str_To_Name_Buffer (Name_Buffer (4 .. Name_Len));
