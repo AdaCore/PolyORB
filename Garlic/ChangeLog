@@ -1,7 +1,13 @@
-Wed Sep 11 19:43:48 1996  Samuel Tardieu  <sam@inf.enst.fr>
+Thu Sep 12 14:55:27 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* s-garter.adb: Increased the synchronization time to have more
-	  chance of stopping.
+	* mkdep: Change the way dependencies are generated. This one seems
+	  to be the good one.
+
+	* s-garter.adb: Don't check Get_Active_Task_Count during the
+	  second termination phase to avoid unexpected rejection of
+	  termination.
+
+Wed Sep 11 19:43:48 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garhea.adb: Added the framework needed to free an unused
 	  Partition_ID.

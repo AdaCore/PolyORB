@@ -116,7 +116,7 @@ package body System.Garlic.Termination is
    type Termination_Service_Access is access Termination_Service;
 
    Time_Between_Checks : constant Duration := 2.0;
-   Time_To_Synchronize : constant Duration := 20.0;
+   Time_To_Synchronize : constant Duration := 10.0;
    --  Constants which change the behaviour of this package.
 
    Environment_Task : System.Tasking.Task_ID;
@@ -208,7 +208,7 @@ package body System.Garlic.Termination is
          end;
       end loop;
       D (D_Debug,
-         Natural'Image (Count) & " messages sent");
+         "Sent" & Natural'Image (Count) & " messages");
       Termination_Watcher.Messages_Sent (Count);
       for Partition in Get_Boot_Server + 1 .. Latest loop
          declare
@@ -350,8 +350,19 @@ package body System.Garlic.Termination is
                   Success := False;
                then abort
                   Termination_Watcher.Termination_Accepted (Id, Success);
+                  D (D_Debug,
+                     "Termination accepted => " & Boolean'Image (Success));
                end select;
-               if Success and then Get_Active_Task_Count = 1 then
+               D (D_Debug,
+                  "Get_Active_Task_Count is" &
+                  Natural'Image (Get_Active_Task_Count));
+
+               --  XXXXX At this point, it appears that Get_Active_Task_Count
+               --  may sometimes return 2 instead of 1. The result is not
+               --  checked because it prevents termination which should
+               --  occur.
+
+               if Success then
 
                   --  Everyone agrees it's time to die, so let's initiate
                   --  this if nothing runs here.

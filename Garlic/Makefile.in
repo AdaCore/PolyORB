@@ -238,26 +238,27 @@ s-gartcp.o: s-garcon.ads s-gtplsp.ads
 s-garthi.o: s-garcon.ads
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
-s-ganobl.o: s-ganobl.adb s-garlic.ads s-garcon.ads s-gardeb.adb s-garhea.adb s-garpri.ads s-garter.adb s-ganobl.ads s-garlic.ads s-garthi.ads
-s-gaphlo.o: s-gaphlo.adb s-gaphlo.ads s-garlic.ads s-garpro.adb s-rpc.adb
-s-garcon.o: s-garcon.ads s-garlic.ads
-s-gardeb.o: s-gardeb.adb s-gardeb.ads s-garlic.ads
-s-garhea.o: s-garhea.adb s-garlic.ads s-gardeb.adb s-garpro.adb s-garter.adb s-garuti.adb s-garhea.ads s-garlic.ads s-gaphlo.adb s-rpc.adb
+s-ganobl.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-garhea.ads s-ganobl.ads s-ganobl.adb s-gaphlo.ads s-garpoi.ads s-garpri.ads s-garpro.ads s-garter.ads s-garthi.ads s-rpc.ads
+s-gaphlo.o: s-garlic.ads s-gaphlo.ads s-gaphlo.adb s-garpro.ads s-rpc.ads
+s-garcon.o: s-garlic.ads s-garcon.ads
+s-gardeb.o: s-garlic.ads s-gardeb.ads s-gardeb.adb
+s-garhea.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-garhea.adb s-gaphlo.ads s-garpro.ads s-garter.ads s-garuti.ads s-rpc.ads
 s-garlic.o: s-garlic.ads
-s-garnam.o: s-garnam.adb s-garlic.ads s-garcon.ads s-garnam.ads s-garlic.ads s-garthi.ads
-s-garopt.o: s-garopt.adb s-garlic.ads s-gardeb.adb s-garopt.ads s-garlic.ads
-s-garpri.o: s-garpri.ads s-garlic.ads
-s-garpro.o: s-garpro.adb s-garpro.ads s-garlic.ads s-rpc.adb
-s-garrem.o: s-garrem.adb s-garlic.ads s-garcon.ads s-garthi.ads s-rpc.adb s-garrem.ads s-garlic.ads
-s-garsta.o: s-garsta.adb s-garlic.ads s-gardeb.adb s-garhea.adb s-garopt.adb s-gaphlo.adb s-garpro.adb s-garrem.adb s-gartcp.adb s-garter.adb s-rpc.adb s-garsta.ads s-garlic.ads
-s-gartcp.o: s-gartcp.adb s-garlic.ads s-garcon.ads s-gardeb.adb s-garhea.adb s-garnam.adb s-garopt.adb s-gaphlo.adb s-garpri.ads s-gartcp.adb s-gtplsp.ads s-garter.adb s-garthi.ads s-garuti.adb s-gartcp.ads s-garlic.ads s-garpro.adb s-rpc.adb
-s-garter.o: s-garter.adb s-garlic.ads s-gardeb.adb s-garhea.adb s-garpri.ads s-garuti.adb s-rpc.adb s-garter.ads s-garlic.ads s-rpc.adb
-s-garthi.o: s-garthi.ads s-garlic.ads s-garcon.ads
-s-garuti.o: s-garuti.adb s-garuti.ads s-garlic.ads s-rpc.adb
-s-gtplsp.o: s-gtplsp.ads s-garlic.ads s-gartcp.adb s-garthi.ads
-s-parint.o: s-parint.adb s-garlic.ads s-gardeb.adb s-garhea.adb s-garter.adb s-rpc.adb s-parint.ads s-partyp.ads s-rpc.adb
-s-partyp.o: s-partyp.ads s-rpc.adb
-s-rpc.o: s-rpc.adb s-garlic.ads s-gardeb.adb s-garhea.adb s-garter.adb s-rpc.ads
+s-garnam.o: s-garlic.ads s-garcon.ads s-garnam.ads s-garnam.adb s-garpoi.ads s-garthi.ads
+s-garopt.o: s-garlic.ads s-gardeb.ads s-garopt.ads s-garopt.adb
+s-garpri.o: s-garlic.ads s-garpri.ads
+s-garpro.o: s-garlic.ads s-garpro.ads s-garpro.adb s-rpc.ads
+s-garrem.o: s-garlic.ads s-garcon.ads s-garpoi.ads s-garrem.ads s-garrem.adb s-garthi.ads s-rpc.ads
+s-garsta.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-garopt.ads s-gaphlo.ads s-garpro.ads s-garrem.ads s-garsta.ads s-garsta.adb s-gartcp.ads s-garter.ads s-rpc.ads
+s-gartcp.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-garhea.ads s-garnam.ads s-garopt.ads s-gaphlo.ads s-garpoi.ads s-garpri.ads s-garpro.ads s-gartcp.ads s-gartcp.adb s-gtplsp.ads s-garter.ads s-garthi.ads s-garuti.ads s-rpc.ads
+s-garter.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-garter.ads s-garter.adb s-garuti.ads s-rpc.ads
+s-garthi.o: s-garlic.ads s-garcon.ads s-garpoi.ads s-garpoi.adb s-garthi.ads
+s-garuti.o: s-garlic.ads s-garuti.ads s-garuti.adb s-rpc.ads
+s-gtplsp.o: s-garlic.ads s-garcon.ads s-garpoi.ads s-garpro.ads s-gartcp.ads s-gtplsp.ads s-garthi.ads s-rpc.ads
+s-parint.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-gaphlo.ads s-garpro.ads s-garsta.ads s-garter.ads s-parint.ads s-parint.adb s-partyp.ads s-rpc.ads
+s-partyp.o: s-partyp.ads s-rpc.ads
+s-rpc.o: s-garlic.ads s-garcac.ads s-garcac.adb s-gardeb.ads s-garhea.ads s-gaphlo.ads s-garpro.ads s-garter.ads s-rpc.ads s-rpc.adb
+s-stratt.o: s-stratt.adb
 .SUFFIXES:
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
