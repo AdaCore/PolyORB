@@ -303,6 +303,7 @@ Garlic/zlib/infcodes.c
 Garlic/zlib/infcodes.h
 Garlic/zlib/inffast.c
 Garlic/zlib/inffast.h
+Garlic/zlib/inffixed.h
 Garlic/zlib/inflate.c
 Garlic/zlib/inftrees.c
 Garlic/zlib/inftrees.h
