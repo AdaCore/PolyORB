@@ -11,8 +11,6 @@ package Tapes is
 
    procedure Rewind (T : access Tape) is abstract;
 
-   -- More operations
-
 private
    type Tape is abstract tagged limited null record;
 end Tapes;

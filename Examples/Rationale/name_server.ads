@@ -13,6 +13,7 @@ package Name_Server is
    function  Find     (Name : String) return Tape_Ptr;
    procedure Register (Name : in String; T : in Tape_Ptr);
    procedure Remove   (T : in Tape_Ptr);
+   function  Name     (T : in Tape_Ptr) return String;
 
    -- More operations
 
