@@ -1,0 +1,95 @@
+#!/bin/sh
+# @configure_input@
+
+prefix=@EXEC_PREFIX@
+is_corba=@IS_CORBA@
+is_moma=@IS_MOMA@
+is_soap=@IS_SOAP@
+
+if test x"$is_corba" = xyes 
+then
+corba_files="-I${prefix}/lib/polyorb-corba"
+corba_libs="${prefix}/lib/libpolyorb-corba.la"
+fi
+
+if test x"$is_moma" = xyes 
+then
+moma_files="-I${prefix}/lib/polyorb-moma"
+moma_libs="${prefix}/lib/libpolyorb-moma.la"
+fi
+
+if test x"$is_soap" = xyes 
+then
+soap_files="@XMLADA_INCLUDE@ -I${prefix}/lib/polyorb-soap"
+soap_libs="@XMLADA_LIBS@ ${prefix}/lib/libpolyorb-soap.la"
+fi
+
+MAJOR=@POLYORB_MAJOR_VERSION@
+MINOR=@POLYORB_MINOR_VERSION@
+
+usage()
+{
+   cat <<EOF
+Usage: polyorb-config [OPTIONS]
+Options:
+        No option:
+            Output all the flags (compiler and linker) required
+            to compiler your program
+        [--prefix]
+            Output the directory in which PolyORB is installed.
+        [--version|-v]
+            Output the version of PolyORB
+        [--config]
+            Output PolyORB's configuration parameters.
+        [--libs]
+            Output the linker flags to use for PolyORB.
+        [--cflags]
+            Output the compiler flags to use for PolyORB.
+EOF
+}
+
+output_type=full
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --help|-h)
+      usage 1>&2
+      exit 1
+      ;;
+    --prefix)
+      echo $prefix
+      exit 0
+      ;;
+    --version|-v)
+      echo PolyORB ${MAJOR}.${MINOR}
+      exit 0
+      ;;
+    --config)
+      echo "Parameters used :" 
+      echo "* CORBA : " $is_corba
+      echo "* MOMA  : " $is_moma
+      echo "* SOAP  : " $is_soap
+      exit 0
+      ;;  
+    --libs)
+      echo "-largs ${prefix}/lib/libpolyorb.la $corba_libs $moma_libs $soap_libs"
+      exit 0
+      ;;
+    --cflags)
+      echo "-I${prefix}/lib/polyorb $corba_files $moma_files $soap_files"
+      exit 0
+      ;;
+    *)
+      usage 1>&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+echo  "-I${prefix}/lib/polyorb $corba_files $moma_files $soap_files" "-largs ${prefix}/lib/libpolyorb.la $corba_libs $moma_libs $soap_libs"
