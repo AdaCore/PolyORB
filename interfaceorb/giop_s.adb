@@ -54,14 +54,6 @@ with Ada.Exceptions ;
 
 package body Giop_S is
 
-   -- C_To_Ada_Unsigned_Long
-   -------------------------
-   function C_To_Ada_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Interfaces.C.Unsigned_Long,
-                                   Corba.Unsigned_Long) ;
-   -- needed to change C type Interfaces.C.Unsigned_Long
-   -- into Ada type Corba.Unsigned_Long
-
 
    -- C_Reply_Header_Size
    ----------------------
@@ -78,7 +70,7 @@ package body Giop_S is
       -- calls the C function ...
       C_Result := C_Reply_Header_Size (Self) ;
       -- ... and transforms the result into an Ada type
-      return C_To_ada_Unsigned_Long (C_Result) ;
+      return Corba.Unsigned_Long (C_Result) ;
    end ;
 
 
@@ -105,15 +97,6 @@ package body Giop_S is
    end;
 
 
-   -- Ada_To_C_Unsigned_Long
-   -------------------------
-   function Ada_To_C_Unsigned_Long is
-     new Ada.Unchecked_Conversion (Corba.Unsigned_Long,
-                                   Interfaces.C.Unsigned_Long) ;
-   -- needed to change ada type Corba.Unsigned_Long
-   -- into C type Interfaces.C.Unsigned_Long
-
-
    -- C_Initialise_Reply
    ---------------------
    procedure C_Initialize_Reply (Self : in out Object'Class ;
@@ -135,7 +118,7 @@ package body Giop_S is
    begin
       -- transforms the arguments into a C type ...
       C_Status := Giop.Reply_Status_Type_To_C_Int(Status) ;
-      C_MsgSize := Ada_To_C_Unsigned_Long (MsgSize) ;
+      C_MsgSize := Interfaces.C.Unsigned_long (MsgSize) ;
       -- ... and calls the C procedure
       C_Initialize_Reply (Self, C_Status, C_MsgSize) ;
    end;

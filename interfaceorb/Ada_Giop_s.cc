@@ -103,24 +103,10 @@ Ada_Giop_s::InitialiseReply(const int status,
 			    const size_t  msgsize)
 {
   if (Init_Ok) {
-    cerr << "InitialiseReply " << status << "  " << msgsize << endl ;
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    try {
-      GIOP::ReplyStatusType a = GIOP::NO_EXCEPTION ;
-      ((GIOP_S *) C_Object)->InitialiseReply(a, msgsize);
-      //    ((GIOP_S *) C_Object)->InitialiseReply((GIOP::ReplyStatusType) status,
-      //				       msgsize);
-      cerr << "InitialiseReply OKOKOKOK" << endl ;
-    } catch (CORBA::INTERNAL &e) {
-      cerr << "CAUGHT !!!!" << endl ;
-    } catch (omniORB::fatalException e) {
-      cerr << "Yup !!" << endl ;
-    } catch (CORBA::MARSHAL &e) {
-      cerr << "Oyehhh" << endl ;
-    } catch (...) {
-      cerr << "smth else " << endl ;
-    }
+    ((GIOP_S *) C_Object)->InitialiseReply((GIOP::ReplyStatusType) status,
+					   msgsize);
   } else {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_s::InitialiseReply without initialising object.");
