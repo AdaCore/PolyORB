@@ -19,7 +19,7 @@
 #
 # $Name:  $
 #
-# $Id: //depot/adabroker/main/WWW/bugs/RT-submit-pr.cgi#3 $
+# $Id: //depot/adabroker/main/WWW/bugs/RT-submit-pr.cgi#4 $
 #
 ####################################################################
  
@@ -33,6 +33,10 @@ use strict;
 ##
  
 $main::rt = '/usr/local/rt/bin/rt';
+$main::versions = [ '1.0pre3', '1.0pre2', '1.0pre1', 'other (please specify)' ];
+$main::start_prio = 70;
+$main::end_prio = 70;
+
 ## $main::groups = ['CFS','CSS','DOS','DSM','PCS'];
 ## %main::queues = ('CFS'=>'DSS-Oncall',
 ##                  'CSS'=>'general',
@@ -71,7 +75,7 @@ sub show_form {
   my($s_form,$s_header,$s_footer);
   my($s_group,$s_userid,$s_time,$s_date,$s_inoffice);
   my($s_down,$s_up,$s_resolved,$s_ppn,$s_scn,$s_contact,$s_rtreporter);
-  my($s_summary,$s_description,$s_resolution,$s_environment);
+  my($s_summary,$s_version,$s_description,$s_resolution,$s_environment);
   my($s_usr,$s_grp);
   my($oh_cgi) = $main::oh_cgi;
  
@@ -245,6 +249,11 @@ sub show_form {
                                     size=>'72',
                                     maxlength=>'72'});
   
+   $s_version = "<B>Version:</B><BR>";
+   $s_version .= $oh_cgi->popup_menu({name=>'version',
+				      values=>$main::versions,
+				      default=>$main::versions[0]});
+  
   $s_description = "<B>Full description:</B><BR>";
   $s_description .= $oh_cgi->textarea({name=>'description',
                                        rows=>'10',
@@ -287,6 +296,7 @@ sub show_form {
   $s_form .= $oh_cgi->hr();
   $s_form .= $oh_cgi->p($s_rtreporter);
   $s_form .= $oh_cgi->p($s_summary);
+  $s_form .= $oh_cgi->p($s_version);
   $s_form .= $oh_cgi->p($s_description);
   $s_form .= $oh_cgi->p($s_environment);
   $s_form .= $oh_cgi->p($s_resolution);
@@ -394,6 +404,8 @@ sub process_form {
 ##   $s_rtbody .= sprintf("System(s): %s\n", $oh_cgi->param('system'));
 ##   $s_rtbody .= "Summary:\n";
 ##   $s_rtbody .= $oh_cgi->param('summary');
+  $s_rtbody .= "Version:\n";
+  $s_rtbody .= $oh_cgi->param('version');
   $s_rtbody .= "Description:\n";
   $s_rtbody .= $oh_cgi->param('description');
   $s_rtbody .= "\n\nEnvironment:\n";
@@ -422,7 +434,9 @@ sub process_form {
     else {
       $s_file->print("$s_rtgiveto $s_time $s_date\n");
     }
-    $s_file->print("\n\n\n");
+    $s_file->print("$main::start_prio\n");
+    $s_file->print("$main::end_prio\n");
+    $s_file->print("\n"); # Due date (MM/DD/YY)
     $s_file->print("$s_rtbody\n.\n"); 
   }
   $s_file->close();
