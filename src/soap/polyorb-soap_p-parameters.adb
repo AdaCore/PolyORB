@@ -89,8 +89,7 @@ package body PolyORB.SOAP_P.Parameters is
    exception
       when SOAP_P.Types.Data_Error =>
          return False;
-      when others =>
-         raise;
+
    end Exist;
 
    function Get (P : in List; Name : in String) return Integer is

@@ -37,7 +37,6 @@
 
 with Ada.Streams; use Ada.Streams;
 
-with PolyORB.Any;
 with PolyORB.Configuration;
 with PolyORB.Filters;
 with PolyORB.Filters.HTTP;
@@ -530,9 +529,8 @@ package body PolyORB.Binding_Data.SOAP is
 
    procedure Initialize;
 
-   procedure Initialize is
-      use PolyORB.Any;
-      use PolyORB.Any.TypeCode;
+   procedure Initialize
+   is
       use PolyORB.References.URI;
 
       Preference_Offset : constant String :=
