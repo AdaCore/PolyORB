@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#48 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#49 $
 
 @include version.texi
 
@@ -1568,8 +1568,13 @@ PolyORB implements the CORBA COS Naming service.
 
 @noindent
 @command{po_cos_naming} is a stand alone server that supports CORBA
-COS Naming specification. When launched, it returns its @code{IOR}
-that can then be used by other CORBA applications.
+COS Naming specification. When launched, it returns its @code{IOR} and
+@code{corbaloc} that can then be used by other CORBA applications.
+
+If you want @command{po_cos_naming} to return the same @code{IOR} or
+@code{corbaloc} at each startup, you must set a default listen port
+for the protocol personalities you use. See @ref{Configuring protocol
+personality preferences} for more details.
 
 @c -------------------------------------------------------------------
 @node Using the COS Naming
