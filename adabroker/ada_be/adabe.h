@@ -92,7 +92,11 @@ public:
   // is this name already used in the current scope ?
 
   bool is_imported(dep_list &with);
-  // if the node is imported and include the corresponding file in "with"; 
+  // if the node is imported; 
+
+  virtual string local_type (void);
+  //  Used to compute the name of a type know as "local type";
+
   bool is_marshal_imported(dep_list &with);
   // if the node is imported and include the corresponding marshal file in "with"; 
   
@@ -242,6 +246,7 @@ public:
   virtual void produce_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual string local_type (void);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
   
@@ -358,6 +363,7 @@ public:
   virtual void produce_ads (dep_list &with, string &body, string &previous);
   virtual void produce_marshal_ads(dep_list &with, string &body, string &previous);
   virtual void produce_marshal_adb(dep_list &with, string &body, string &previous);
+  virtual string local_type (void);
   virtual string dump_name(dep_list &with, string &previous);
   virtual string marshal_name(dep_list &with, string &previous);
 
@@ -562,9 +568,9 @@ class adabe_global {
 
 private:
   static adabe_root* myself;
+ public:
   static adabe_name* pd_adabe_current_file;
 
-public:
 
   static void set_adabe_current_file(adabe_name *new_file) {/* pd_adabe_current_file = new_file;*/ };
  
@@ -718,3 +724,4 @@ private:
 ostream& operator<<(ostream &s, AST_Decl::NodeType x);
 
 #endif
+

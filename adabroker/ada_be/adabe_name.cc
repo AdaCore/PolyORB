@@ -111,6 +111,12 @@ adabe_name::dump_name(dep_list&, string&)
   throw adabe_internal_error(__FILE__,__LINE__,"dump_name called in adabe_name");
 }
 
+string
+adabe_name::local_type(void)
+{
+  throw adabe_internal_error(__FILE__,__LINE__,"Unxecpected local type");
+}
+
 string 
 adabe_name::marshal_name(dep_list&, string&)
 {
@@ -128,6 +134,8 @@ adabe_name::compute_ada_name()
 #ifdef DEBUG_NAME
     cout << "in adabe_name, befor convert" << endl;
 #endif
+    if (temp_name == "local type")
+      temp_name = local_type();
     convert(temp_name);
     // which must be the ada_name ?
 #ifdef DEBUG_NAME

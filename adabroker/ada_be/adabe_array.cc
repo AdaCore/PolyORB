@@ -13,6 +13,44 @@ adabe_array::adabe_array(UTL_ScopedName *n, unsigned long ndims, UTL_ExprList *d
 {
 }
 
+string
+adabe_array::local_type()
+{
+  bool find = false;
+  UTL_Scope *parent_scope = defined_in();
+  UTL_ScopeActiveIterator parent_scope_activator(parent_scope,UTL_Scope::IK_decls);
+  adabe_name *decl = dynamic_cast<adabe_name *>(parent_scope_activator.item());
+  do
+    {
+      switch (decl->node_type())
+	{
+	case AST_Decl::NT_field:
+	case AST_Decl::NT_argument:
+	  if (dynamic_cast<AST_Field *>(decl)->field_type() == this)
+	    find = true;
+	  break;
+	case AST_Decl::NT_op:
+	  if (dynamic_cast<AST_Operation *>(decl)->return_type() == this)
+	    find =true;
+	  break;
+	case AST_Decl::NT_typedef:
+	  if (dynamic_cast<AST_Typedef *>(decl)->base_type() == this)
+	    find =true;
+	  break;
+		       
+	default:
+	  break;
+	}
+      parent_scope_activator.next();
+      if (!find)
+	decl = dynamic_cast<adabe_name *>(parent_scope_activator.item());
+    }
+  while (!find && !(parent_scope_activator.is_done()));
+  if (find)
+    return decl->get_ada_local_name() +"_Array";
+
+  return "local_type";
+}
 void
 adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
   char number[256];
@@ -43,7 +81,7 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
     body +=number;
     body +=" )";
   }
-  body+=" of "+ (dynamic_cast<adabe_name *>(base_type())->dump_name(with, previous));
+  body+="of\n\t\t"+ (dynamic_cast<adabe_name *>(base_type())->dump_name(with, previous));
   body += " ;\n" ;
   set_already_defined();
 }
@@ -52,23 +90,6 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
 void
 adabe_array::produce_marshal_ads(dep_list& with,string &body, string &previous)
 {
-  body += "   procedure Marshall (A : in ";
-  body += get_ada_local_name();
-  body += " ;\n";
-  body += "      S : in out Giop_C.Object) ;\n\n";
-
-  body += "   procedure UnMarshall (A : out ";
-  body += get_ada_local_name();
-  body += " ;\n";
-  body += "      S : in out Giop_C.Object) ;\n\n";
-
-  body += "   function Align_Size (A : in";
-  body += get_ada_local_name();
-  body += " ;\n";
-  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "               N : in Corba.Unsigned_Long := 1)\n";
-  body += "               return Corba.Unsigned_Long ;\n\n\n";
-
 }
 
 void
@@ -137,4 +158,5 @@ string adabe_array::marshal_name(dep_list& with, string &previous)
     }
   return get_ada_full_name();	   
 }    
+
 

@@ -25,7 +25,20 @@ adabe_root::produce() {
     if (end_of_name > 0) name = name.substr(0, end_of_name);
     string idl_file_name = "";
 #ifdef DEBUG_ROOT
+<<<<<<< adabe_root.cc
+    cout << "Here is the produce" << endl;
+    {
+      UTL_ScopeActiveIterator header_activator(this,UTL_Scope::IK_decls);
+      while (!header_activator.is_done())
+	{
+	  AST_Decl *d = header_activator.item();
+	  if (d->in_main_file()) cout << "In root scope, list of the node types encountered :" << (int) d->node_type() << endl;
+	  header_activator.next();
+	}
+    }
+=======
     cout << "Here is the produce of the file : "<< name << endl;
+>>>>>>> 1.4
 #endif
     idl_file_name =  name + "_IDL_FILE";
     set_ada_local_name (name);
