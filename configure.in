@@ -62,7 +62,7 @@ AC_OUTPUT([Makefile
 #
 for a in src/gnat.adc
 do
-  if [ ! -f "$a" ]
+  if test ! -f "$a"
   then
     echo "creating $a"
     cp $srcdir/$a $a
