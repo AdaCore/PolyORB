@@ -842,7 +842,7 @@ procedure XE_Stubs is
       if Get_Permanent (PID) then
          Dwrite_Str (FD, "   Set_Permanent (True);");
       else
-         Dwrite_Str (FD, "   Set_Permanent (True);");
+         Dwrite_Str (FD, "   Set_Permanent (False);");
       end if;
       Dwrite_Eol (FD);
 
