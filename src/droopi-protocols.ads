@@ -14,8 +14,6 @@ with Droopi.ORB.Interface;
 
 package Droopi.Protocols is
 
-   pragma Elaborate_Body;
-
    --  A protocol is a factory of sessions. Each session corresponds
    --  to a connection to a remote protocol entity.
 

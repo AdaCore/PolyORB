@@ -6,6 +6,7 @@ with Ada.Unchecked_Deallocation;
 
 with Droopi.Filters.Interface;
 with Droopi.Objects.Interface;
+with Droopi.Protocols.Interface;
 
 package body Droopi.Protocols is
 
@@ -13,6 +14,7 @@ package body Droopi.Protocols is
    use Droopi.Filters.Interface;
    use Droopi.Objects.Interface;
    use Droopi.ORB.Interface;
+   use Droopi.Protocols.Interface;
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Session'Class, Session_Access);
@@ -46,6 +48,15 @@ package body Droopi.Protocols is
          Handle_Disconnect (Session_Access (Sess));
       elsif S in Data_Indication then
          Handle_Data_Indication (Session_Access (Sess));
+      elsif S in Unmarshall_Arguments then
+         declare
+            Args : Droopi.Any.NVList.Ref
+              := Unmarshall_Arguments (S).Args;
+         begin
+            Handle_Unmarshall_Arguments
+              (Session_Access (Sess), Args);
+            return Unmarshalled_Arguments'(Args => Args);
+         end;
       elsif S in Set_Server then
          Sess.Server := Set_Server (S).Server;
       elsif S in Execute_Request then

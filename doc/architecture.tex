@@ -1361,14 +1361,21 @@ de mémoire~:
   et l'émission de flots d'octets au moyen des services de transport.
 \end{description}
 
-\subsubsection{Manipulation des données utilisateurs}
+\subsubsection{Réification des appels de méthodes}
 
-Le paquetage Droopi.Any permet de manipuler toute donnée
-de l'utilisateur (argument d'un appel de méthode, valeur de
-retour ou exception) sous forme d'un type conteneur universel.
-Le middleware peut ainsi stocker et transporter des données
-de types arbitraires sans connaître le détail de leur structure
-et de leur sens.
+Les appels de méthodes et leurs paramètres doivent être représentés
+par des objects que le middleware peut manipuler.
+
+\bein{description}
+\item[Droopi.Any] permet de manipuler toute donnée
+  de l'utilisateur (argument d'un appel de méthode, valeur de
+  retour ou exception) sous forme d'un type conteneur universel.
+  Le middleware peut ainsi stocker et transporter des données
+  de types arbitraires sans connaître le détail de leur structure
+  et de leur sens.
+\item[Droopi.Requests] définit le type représentant un appel
+  de méthode avec ses arguments.
+\end{description}
 
 \subsection{Transport}
 
@@ -1550,7 +1557,6 @@ protocole.
 
 
 
-%%  ./droopi-requests.ads
 
 %%  ./droopi-setup-corba_client.ads
 %%  ./droopi-setup-test.ads

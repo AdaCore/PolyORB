@@ -78,10 +78,19 @@ package body Droopi.Requests is
    begin
       if Is_Nil (Self.Args) then
          pragma Assert (Self.Deferred_Arguments_Session /= null);
-         Self.Args := Args;
-         Components.Emit_No_Reply
-           (Self.Deferred_Arguments_Session,
-            Protocols.Interface.Unmarshall_Arguments'(Args => Args));
+         declare
+            use Protocols.Interface;
+
+            Reply : constant Components.Message'Class
+              := Components.Emit
+              (Self.Deferred_Arguments_Session,
+               Unmarshall_Arguments'
+               (Args => Args));
+         begin
+            pragma Assert (Reply in Unmarshalled_Arguments);
+            Args := Unmarshalled_Arguments (Reply).Args;
+            Self.Args := Args;
+         end;
          Self.Deferred_Arguments_Session := null;
       else
          pragma Assert (Self.Deferred_Arguments_Session = null);
