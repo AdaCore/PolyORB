@@ -35,7 +35,7 @@ package System.Garlic.Dfs is
       Var_Name : in  String;
       Var_Data : out SGS.Shared_Data_Access);
 
-   procedure Initialize (Default : in String);
+   procedure Initialize;
 
    procedure Enter_Variable (Var_Data : in out DFS_Data_Type);
    procedure Leave_Variable (Var_Data : in out DFS_Data_Type);

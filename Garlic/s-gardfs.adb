@@ -11,6 +11,9 @@ with System.File_IO;
 with System.Garlic.Debug; use System.Garlic.Debug;
 pragma Elaborate (System.Garlic.Debug);
 
+with System.Garlic.Physical_Location;
+use  System.Garlic.Physical_Location;
+
 with System.Garlic.Options;    use System.Garlic.Options;
 with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
 with System.Garlic.Utils;      use System.Garlic.Utils;
@@ -41,6 +44,8 @@ package body System.Garlic.Dfs is
 
    procedure Free is
       new Ada.Unchecked_Deallocation (DFS_Data_Type, DFS_Data_Access);
+
+   Sep : Character renames OS.Directory_Separator;
 
    Root : DFS_Data_Access;
 
@@ -73,11 +78,17 @@ package body System.Garlic.Dfs is
       Location : in  String;
       Storage  : out SGS.Shared_Data_Access)
    is
-      Result : DFS_Data_Access;
+      Result   : DFS_Data_Access;
 
    begin
       Result := new DFS_Data_Type;
-      Result.Data_Name := new String'(Location);
+      if Location'Length /= 0 then
+         Result.Data_Name := new String'(Location & Sep);
+      else
+         Result.Data_Name := new String'(Location);
+      end if;
+      pragma Debug
+        (D ("create storage dfs with data """ & Result.Data_Name.all & """"));
       Storage := SGS.Shared_Data_Access (Result);
    end Create_Storage;
 
@@ -152,26 +163,30 @@ package body System.Garlic.Dfs is
    -- Initialize --
    ----------------
 
-   procedure Initialize (Default : in String) is
+   procedure Initialize
+   is
+      Data_Dir : OS.String_Access;
+
    begin
       pragma Debug (D ("initialize DFS"));
 
       if Root = null then
          Root := new DFS_Data_Type;
-         if Data_Location /= null then
-            for L in Data_Location'Range loop
-               if Data_Location (L).all = Dfs_Storage_Name then
-                  Root.Data_Name := OS.String_Access (Data_Location (L));
-                  exit;
-               end if;
-            end loop;
+         if Data_Location /= null
+           and then Get_Support_Name (Data_Location (1).all) = Dfs_Storage_Name
+         then
+            Data_Dir := new String'(Get_Support_Data (Data_Location (1).all));
          end if;
-         if OS."=" (Root.Data_Name, null) then
-            Root.Data_Name := OS.Getenv ("DFS_DATA_DIR");
-            if Root.Data_Name'Length = 0 then
-               Root.Data_Name := new String'(Default);
-            end if;
+         if Data_Dir = null then
+            Data_Dir := OS.Getenv ("DFS_DATA_DIR");
          end if;
+         if Data_Dir'Length = 0 then
+            Root.Data_Name := new String'(Data_Dir.all);
+         else
+            Root.Data_Name := new String'(Data_Dir.all & Sep);
+         end if;
+         Free (Data_Dir);
+         pragma Debug (D ("root data name is """ & Root.Data_Name.all & """"));
          SGS.Register_Storage
            (Dfs_Storage_Name,
             SGS.Shared_Data_Access (Root));
