@@ -28,6 +28,10 @@ configuration Master51 is
    --  Generate a shell script as a starter.
    pragma Starter (Shell);
 
+   --  Default protocol name is "tcp".
+   --  Default protocol data is "<current host>:<port=5555>".
+   pragma Boot_Server ("tcp", "`hostname`:4567");
+
 begin
    part1:=();
    part2:=(prime_1);

@@ -10,7 +10,7 @@ procedure master is
    Success : Boolean;
    Where   : Std_Node;
 begin
-   for Number in Std_Number(2) .. Std_Number(200) loop
+   for Number in Std_Number(2) .. Std_Number(100) loop
       Prime_1.Initiate (Number, Where, Success);
       if Success then
 	 System.IO.Put_Line (Std_Number'Image (Number) & " (node" &
