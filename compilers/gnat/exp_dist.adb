@@ -1128,7 +1128,7 @@ package body Exp_Dist is
       RPC_Receiver                   : Entity_Id;
       RPC_Receiver_Statements        : List_Id;
       RPC_Receiver_Case_Alternatives : constant List_Id := New_List;
-      RPC_Receiver_Elsif_Parts       : constant List_Id := New_List;
+      RPC_Receiver_Elsif_Parts       : List_Id;
       RPC_Receiver_Request           : Entity_Id;
       RPC_Receiver_Subp_Id           : Entity_Id;
       RPC_Receiver_Subp_Index        : Entity_Id;
@@ -1167,11 +1167,18 @@ package body Exp_Dist is
            Stmts        => RPC_Receiver_Statements,
            Decl         => RPC_Receiver_Decl);
 
-         Append_To (RPC_Receiver_Statements,
-           Make_Implicit_If_Statement (Designated_Type,
-             Condition       => New_Occurrence_Of (Standard_False, Loc),
-             Then_Statements => New_List,
-             Elsif_Parts     => RPC_Receiver_Elsif_Parts));
+         if Get_PCS_Name = Name_PolyORB_DSA then
+            --  For the case of PolyORB, we need to map a textual operation
+            --  name into a primitive index. Currently we do so using a
+            --  simple sequence of string comparisons.
+
+            RPC_Receiver_Elsif_Parts := New_List;
+            Append_To (RPC_Receiver_Statements,
+              Make_Implicit_If_Statement (Designated_Type,
+                Condition       => New_Occurrence_Of (Standard_False, Loc),
+                Then_Statements => New_List,
+                Elsif_Parts     => RPC_Receiver_Elsif_Parts));
+         end if;
       end if;
 
       --  Build callers, receivers for every primitive operations and a RPC
@@ -1265,23 +1272,25 @@ package body Exp_Dist is
 
                   --  Add a case alternative to the receiver
 
-                  Append_To (RPC_Receiver_Elsif_Parts,
-                    Make_Elsif_Part (Loc,
-                      Condition =>
-                        Make_Function_Call (Loc,
-                          Name =>
-                            New_Occurrence_Of (
-                              RTE (RE_Caseless_String_Eq), Loc),
-                          Parameter_Associations => New_List (
-                            New_Occurrence_Of (RPC_Receiver_Subp_Id, Loc),
-                            Make_String_Literal (Loc, Subp_Str))),
-                      Then_Statements => New_List (
-                        Make_Assignment_Statement (Loc,
-                          Name =>
-                            New_Occurrence_Of (RPC_Receiver_Subp_Index, Loc),
-                          Expression =>
-                            Make_Integer_Literal (Loc,
-                               Current_Primitive_Number)))));
+                  if Get_PCS_Name = Name_PolyORB_DSA then
+                     Append_To (RPC_Receiver_Elsif_Parts,
+                       Make_Elsif_Part (Loc,
+                         Condition =>
+                           Make_Function_Call (Loc,
+                             Name =>
+                               New_Occurrence_Of (
+                                 RTE (RE_Caseless_String_Eq), Loc),
+                             Parameter_Associations => New_List (
+                               New_Occurrence_Of (RPC_Receiver_Subp_Id, Loc),
+                               Make_String_Literal (Loc, Subp_Str))),
+                         Then_Statements => New_List (
+                           Make_Assignment_Statement (Loc,
+                             Name => New_Occurrence_Of (
+                                       RPC_Receiver_Subp_Index, Loc),
+                             Expression =>
+                               Make_Integer_Literal (Loc,
+                                  Current_Primitive_Number)))));
+                  end if;
 
                   Append_To (RPC_Receiver_Case_Alternatives,
                     Make_Case_Statement_Alternative (Loc,
@@ -5142,8 +5151,7 @@ package body Exp_Dist is
                 Make_Attribute_Reference (Loc,
                   Prefix =>
                     New_Occurrence_Of (
-                      Defining_Unit_Name (
-                        Specification (Parent (RPC_Receiver))), Loc),
+                      Defining_Unit_Name (Parent (RPC_Receiver)), Loc),
                   Attribute_Name =>
                     Name_Access),
 
