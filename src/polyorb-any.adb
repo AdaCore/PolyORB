@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-any.adb#36 $
+--  $Id: //droopi/main/src/polyorb-any.adb#37 $
 
 with Ada.Exceptions;
 with Ada.Tags;
@@ -1523,7 +1523,9 @@ package body PolyORB.Any is
                   --  TODO Call a different equality procedure
                   --  to accomodate eventual circular references in
                   --  typecodes
-                  pragma Debug (O ("Equal (Any, TypeCode) : end"));
+                  pragma Debug (O ("Equal (Any, TypeCode) :" &
+                                   " Tk_Value NOT IMPLEMENTED"));
+                  raise Program_Error;
                   return True;
                else
                   pragma Debug (O ("Equal (Any, TypeCode) : end"));
