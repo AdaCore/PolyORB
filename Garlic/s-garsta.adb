@@ -53,6 +53,7 @@ pragma Elaborate_All (System.Garlic.Heart);
 
 with System.Garlic.Name_Table;
 pragma Elaborate_All (System.Garlic.Name_Table);
+pragma Warnings (Off, System.Garlic.Name_Table);
 
 with System.Garlic.Naming;
 pragma Elaborate_All (System.Garlic.Naming);
@@ -129,12 +130,6 @@ begin
    pragma Debug (D ("Entering partition startup phase"));
 
    --  At system startup, the operations occur in this order:
-
-   --  (0) The elaboration code of System.Garlic.Startup initializes
-   --      all the non-configurable units which do not depend on
-   --      soft links.
-
-   System.Garlic.Name_Table.Initialize;
 
    --  (1) The elaboration code of System.Garlic.Startup initializes
    --      all the run-time options (command line and environment
