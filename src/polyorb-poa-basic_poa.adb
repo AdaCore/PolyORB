@@ -182,15 +182,17 @@ package body PolyORB.POA.Basic_POA is
       Policies :        POA_Policies.PolicyList;
       Default  :        Boolean)
    is
-      use Policy_Sequences;
+      use Policy_Lists;
 
-      Policies_Array : constant Element_Array := To_Element_Array (Policies);
+      It : Iterator := First (Policies);
+
       A_Policy : Policy_Access;
+
    begin
       Enter (OA.POA_Lock);
 
-      for J in Policies_Array'Range loop
-         A_Policy := Policies_Array (J);
+      while not Last (It) loop
+         A_Policy := Value (It).all;
 
          if A_Policy.all in ThreadPolicy'Class then
             if OA.Thread_Policy = null or else not Default then
@@ -272,6 +274,8 @@ package body PolyORB.POA.Basic_POA is
             null;
             pragma Debug (O ("Unknown policy ignored"));
          end if;
+
+         Next (It);
       end loop;
 
       Leave (OA.POA_Lock);

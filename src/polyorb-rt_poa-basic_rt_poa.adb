@@ -96,14 +96,15 @@ package body PolyORB.RT_POA.Basic_RT_POA is
       Policies :        POA_Policies.PolicyList)
    is
       use PolyORB.POA_Policies;
-      use Policy_Sequences;
+      use Policy_Lists;
 
-      Policies_Array : constant Element_Array := To_Element_Array (Policies);
+      It : Policy_Lists.Iterator := First (Policies);
+
       A_Policy : Policy_Access;
 
    begin
-      for J in Policies_Array'Range loop
-         A_Policy := Policies_Array (J);
+      while not Last (It) loop
+         A_Policy := Value (It).all;
 
          if A_Policy.all in PriorityModelPolicy'Class then
             if OA.Priority_Model_Policy /= null then
@@ -124,6 +125,8 @@ package body PolyORB.RT_POA.Basic_RT_POA is
             OA.Thread_Pool_Policy := ThreadPoolPolicy_Access (A_Policy);
             pragma Debug (O ("Setting up ThreadPoolPolicy"));
          end if;
+
+         Next (It);
       end loop;
    end Set_Policies;
 

@@ -126,7 +126,7 @@ package body PolyORB.CORBA_P.POA_Config is
      (List : CORBA.Policy.PolicyList)
      return PolyORB.POA_Policies.PolicyList
    is
-      package PS renames PolyORB.POA_Policies.Policy_Sequences;
+      package PL renames PolyORB.POA_Policies.Policy_Lists;
 
       package ISP renames CORBA.Policy.IDL_Sequence_Policy;
 
@@ -151,17 +151,17 @@ package body PolyORB.CORBA_P.POA_Config is
                begin
                   case PolicyValue is
                      when ORB_CTRL_MODEL =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Thread_Policy.ORB_Ctrl.Create));
 
                      when SINGLE_THREAD_MODEL =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Thread_Policy.Single_Thread.Create));
 
                      when MAIN_THREAD_MODEL =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Thread_Policy.Main_Thread.Create));
                   end case;
@@ -176,13 +176,13 @@ package body PolyORB.CORBA_P.POA_Config is
                begin
                   case PolicyValue is
                      when PortableServer.TRANSIENT =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Lifespan_Policy.Transient.Create));
 
 
                      when PERSISTENT =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Lifespan_Policy.Persistent.Create));
                   end case;
@@ -197,12 +197,12 @@ package body PolyORB.CORBA_P.POA_Config is
                begin
                   case PolicyValue is
                      when UNIQUE_ID =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Id_Uniqueness_Policy.Unique.Create));
 
                      when MULTIPLE_ID =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access
                            (Id_Uniqueness_Policy.Multiple.Create));
@@ -218,12 +218,12 @@ package body PolyORB.CORBA_P.POA_Config is
                begin
                   case PolicyValue is
                      when USER_ID =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Id_Assignment_Policy.User.Create));
 
                      when SYSTEM_ID =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (Id_Assignment_Policy.System.Create));
                   end case;
@@ -238,13 +238,13 @@ package body PolyORB.CORBA_P.POA_Config is
                begin
                   case PolicyValue is
                      when IMPLICIT_ACTIVATION =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access
                            (Implicit_Activation_Policy.Activation.Create));
 
                      when NO_IMPLICIT_ACTIVATION =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access
                            (Implicit_Activation_Policy.No_Activation.Create));
@@ -260,13 +260,13 @@ package body PolyORB.CORBA_P.POA_Config is
                begin
                   case PolicyValue is
                      when RETAIN =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access
                            (Servant_Retention_Policy.Retain.Create));
 
                      when NON_RETAIN =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access
                            (Servant_Retention_Policy.Non_Retain.Create));
@@ -283,17 +283,17 @@ package body PolyORB.CORBA_P.POA_Config is
                   case PolicyValue is
 
                      when USE_ACTIVE_OBJECT_MAP_ONLY =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (RPP.Active_Object_Map_Only.Create));
 
                      when USE_DEFAULT_SERVANT =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (RPP.Use_Default_Servant.Create));
 
                      when USE_SERVANT_MANAGER =>
-                        PS.Append
+                        PL.Append
                           (Result,
                            Policy_Access (RPP.Use_Servant_Manager.Create));
                   end case;
@@ -314,7 +314,7 @@ package body PolyORB.CORBA_P.POA_Config is
 
                begin
                   if Policy = Info.Policy then
-                     PS.Append (Result,
+                     PL.Append (Result,
                                 Info.Allocator.all (CORBA_Policy_Array (J)));
                      exit;
                   end if;

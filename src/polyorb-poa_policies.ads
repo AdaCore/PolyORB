@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -38,7 +38,7 @@
 --  $Id$
 
 with PolyORB.Exceptions;
-with PolyORB.Sequences.Unbounded;
+with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.POA_Policies is
 
@@ -47,8 +47,8 @@ package PolyORB.POA_Policies is
    type Policy is abstract tagged limited private;
    type Policy_Access is access all Policy'Class;
 
-   package Policy_Sequences is new PolyORB.Sequences.Unbounded (Policy_Access);
-   subtype PolicyList is Policy_Sequences.Sequence;
+   package Policy_Lists is new PolyORB.Utils.Chained_Lists (Policy_Access);
+   subtype PolicyList is Policy_Lists.List;
 
    type AllPolicies is array (1 .. 7) of Policy_Access;
 
