@@ -158,14 +158,6 @@ package body XE_Check is
       end loop;
 
       for H in Hosts.First .. Hosts.Last loop
-         Write_Name (Hosts.Table (H).Name);
-         if Hosts.Table (H).Static then
-            Write_Str  (" : Static");
-         else
-            Write_Str  (" : ");
-            Write_Name (Hosts.Table (H).External);
-         end if;
-         Write_Eol;
 
          if not Hosts.Table (H).Static and then
             Hosts.Table (H).Import = Ada_Import then

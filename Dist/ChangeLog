@@ -1,9 +1,13 @@
 Wed Jan 22 16:18:13 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* xe_check.adb: Get rid of debugging information.
+
+	* xe_build.adb : Use of new version of Gnatmake.
+
 	* xe_back.adb: Fix a bug that didn't occur until 3.09w.
 	  The first host used to be a dummy host, but was no longer
 	  used. This incorrect host was causing the current bug.
-
+	
 Thu Dec 19 23:12:41 1996  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe-gcc-filter.in: Get rid of some generated pieces of
