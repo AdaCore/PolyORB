@@ -5,7 +5,7 @@ mkdir $TMP
 cd $TMP
 cp ../idlac.out/*.adb .
 cp ../../Makefile.ada ./Makefile > /dev/null
-iac -ada -ds ../tin.idl > iac.ada
+iac -ada -ds -i ../tin.idl > iac.ada
 gnatchop -w iac.ada > /dev/null
 
 make > /dev/null 2>$LOG
