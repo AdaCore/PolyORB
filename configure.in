@@ -225,7 +225,7 @@ then
 fi
 
 ##########################################
-# Test : if IR is built, 
+# Test : if IR is built,
 #        then CORBA must be built
 ##########################################
 
