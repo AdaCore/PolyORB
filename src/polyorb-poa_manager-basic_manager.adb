@@ -113,7 +113,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
       --  If we were holding requests, reemit them.
 
       if Self.PM_Hold_Servant /= null
-        and then Length (Self.Holded_Requests) > 0 then
+        and then Length (Self.Held_Requests) > 0 then
          Reemit_Requests (Self);
       end if;
 
@@ -491,16 +491,16 @@ package body PolyORB.POA_Manager.Basic_Manager is
       use Requests_Queue_P;
 
       R : Execute_Request;
-      N : constant Natural := Length (Self.Holded_Requests);
+      N : constant Natural := Length (Self.Held_Requests);
 
       All_Requests : Element_Array (1 .. N);
    begin
       pragma Debug (O ("Number of requests to reemit"
-                       & Integer'Image (Length (Self.Holded_Requests))));
+                       & Integer'Image (Length (Self.Held_Requests))));
 
       Lock_W (Self.Queue_Lock);
-      All_Requests := To_Element_Array (Self.Holded_Requests);
-      Delete (Self.Holded_Requests, 1, N);
+      All_Requests := To_Element_Array (Self.Held_Requests);
+      Delete (Self.Held_Requests, 1, N);
       Unlock_W (Self.Queue_Lock);
 
       for J in 1 .. N loop
@@ -531,7 +531,7 @@ package body PolyORB.POA_Manager.Basic_Manager is
          Lock_W (S.PM.Queue_Lock);
 
          pragma Debug (O ("Hold Servant queues message"));
-         Append (S.PM.Holded_Requests, Execute_Request (Msg));
+         Append (S.PM.Held_Requests, Execute_Request (Msg));
 
          Unlock_W (S.PM.Queue_Lock);
       else

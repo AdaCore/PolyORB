@@ -146,7 +146,7 @@ private
       PM_Hold_Servant : Hold_Servant_Access := null;
       --  Reference to the holding servant.
 
-      Holded_Requests : Requests_Queue;
+      Held_Requests : Requests_Queue;
       --  List of holded requests.
 
       Queue_Lock      : PolyORB.Tasking.Rw_Locks.Rw_Lock_Access;
