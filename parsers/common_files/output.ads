@@ -100,37 +100,4 @@ pragma Elaborate_Body (Output);
    procedure Write_Indentation (Offset : Integer := 0);
    procedure Write_Space;
 
-   --------------------------
-   -- Debugging Procedures --
-   --------------------------
-
-   --  The following procedures are intended only for debugging purposes,
-   --  for temporary insertion into the text in environments where a debugger
-   --  is not available. They all have non-standard very short lower case
-   --  names, precisely to make sure that they are only used for debugging!
-
-   procedure w (C : Character);
-   --  Dump quote, character quote, followed by line return
-
-   procedure w (S : String);
-   --  Dump string followed by line return
-
-   procedure w (V : Int);
-   --  Dump integer followed by line return
-
-   procedure w (B : Boolean);
-   --  Dump Boolean followed by line return
-
-   procedure w (L : String; C : Character);
-   --  Dump contents of string followed by blank, quote, character, quote
-
-   procedure w (L : String; S : String);
-   --  Dump two strings separated by blanks, followed by line return
-
-   procedure w (L : String; V : Int);
-   --  Dump contents of string followed by blank, integer, line return
-
-   procedure w (L : String; B : Boolean);
-   --  Dump contents of string followed by blank, Boolean, line return
-
 end Output;
