@@ -1,0 +1,19 @@
+#! /bin/sh
+
+tr '=' ' ' | awk '
+  /^nmax/ { nmax=$2 }
+  /^moy/  { moy=$2 }
+  /^siz/  { siz=$2 }
+  /^coun/ { cnt=$2 }
+  /^serverp_thr/ { sthr=$2 }
+  /^evolutedp_thr/ { ethr=$2 }
+  /^ect/  { 
+     if (sthr == 0) sthr = 4;
+     if (ethr == 0) ethr = 4;
+     if (sthr == ethr) {
+       thr = sprintf ("%d", sthr);
+     } else {
+       thr = sprintf ("%ds+%de", sthr, ethr)
+     }
+     f = sprintf ("data_%diter_%sthr_%dbytes", cnt, thr, siz);
+     printf "%.12g %.12g %.12g\n", nmax, moy, $2 >> f }'
