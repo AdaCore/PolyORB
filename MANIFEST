@@ -402,7 +402,7 @@ ada/prj-pars.adb
 ada/prj-pars.ads
 ada/prj-part.adb
 ada/prj-part.ads
-ada/prj.proc.adb
+ada/prj-proc.adb
 ada/prj-proc.ads
 ada/prj-strt.adb
 ada/prj-strt.ads
