@@ -104,14 +104,14 @@ begin
        Init => Init_Fred'Unrestricted_Access));
 
    Initialize_World;
-   Report.Output ("Test initialization #2", False);
+   Report.Output ("Test initialization #1", False);
 
 exception
    when PolyORB.Initialization.Conflict =>
-      Report.Output ("Test initialization #2", True);
+      Report.Output ("Test initialization #1", True);
       Report.End_Report;
 
    when others =>
-      Report.Output ("Test initialization #2", False);
+      Report.Output ("Test initialization #1", False);
 
 end Test001;
