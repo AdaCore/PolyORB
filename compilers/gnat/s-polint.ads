@@ -2,6 +2,7 @@ with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Components;
+with PolyORB.Objects;
 with PolyORB.Objects.Interface;
 with PolyORB.References;
 with PolyORB.Requests;
@@ -54,7 +55,8 @@ package System.PolyORB_Interface is
         := PolyORB.Any.ExceptionList.Nil_Ref;
       Req       :    out PolyORB.Requests.Request_Access;
       Req_Flags : in     PolyORB.Any.Flags := 0;
-      Deferred_Arguments_Session : in PolyORB.Components.Component_Access := null
+      Deferred_Arguments_Session :
+        in PolyORB.Components.Component_Access := null
      ) renames PolyORB.Requests.Create_Request;
 
    procedure Request_Invoke
@@ -107,8 +109,10 @@ package System.PolyORB_Interface is
    function TA_String (S : String) return PolyORB.Any.Any;
    function TA_TC (TC : PolyORB.Any.TypeCode.Object) return PolyORB.Any.Any
      renames PolyORB.Any.To_Any;
---       function TC_AD return PolyORB.Any.TypeCode.Object renames PolyORB.Any.TC_X;
---       function TC_AS return PolyORB.Any.TypeCode.Object renames PolyORB.Any.TC_X;
+   --       function TC_AD return PolyORB.Any.TypeCode.Object
+   --       renames PolyORB.Any.TC_X;
+   --       function TC_AS return PolyORB.Any.TypeCode.Object
+   --       renames PolyORB.Any.TC_X;
 
    --  The typecodes below define the mapping of Ada elementary
    --  types onto PolyORB types.
@@ -184,19 +188,19 @@ package System.PolyORB_Interface is
      function (M : PolyORB.Components.Message'Class)
                return PolyORB.Components.Message'Class;
 
-   type Component is new PolyORB.Components.Component with record
+   type Servant is new PolyORB.Objects.Servant with record
       Handler : Message_Handler_Access;
    end record;
-   type Component_Access is access all Component;
+   subtype Servant_Access is PolyORB.Objects.Servant_Access;
 
    function Handle_Message
-     (Self : access Component;
+     (Self : access Servant;
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class;
 
    procedure Register_Receiving_Stub
      (Name     : in String;
-      Receiver : in Component_Access;
+      Receiver : in Servant_Access;
       Version  : in String := "");
    --  Register the fact that the Name receiving stub is now elaborated.
    --  Register the access value to the package RPC_Receiver procedure.
@@ -207,5 +211,14 @@ package System.PolyORB_Interface is
      PolyORB.Objects.Interface.Execute_Request;
    subtype Executed_Request is
      PolyORB.Objects.Interface.Executed_Request;
+
+private
+
+   pragma Inline
+     (FA_B, FA_C, FA_F, FA_I, FA_LF, FA_LI, FA_LLF, FA_LLI,
+      FA_SF, FA_SI, FA_SSI, FA_WC, FA_String,
+
+      TA_B, TA_C, TA_F, TA_I, TA_LF, TA_LI, TA_LLF, TA_LLI,
+      TA_SF, TA_SI, TA_SSI, TA_WC, TA_String);
 
 end System.PolyORB_Interface;

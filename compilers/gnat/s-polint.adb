@@ -1,11 +1,101 @@
+with PolyORB.Setup;
+with PolyORB.Obj_Adapters;
+with PolyORB.ORB;
+with PolyORB.References;
+with PolyORB.Utils.Chained_Lists;
+with PolyORB.Utils.Strings;
+
 package body System.PolyORB_Interface is
+
+   use PolyORB.Any;
+   use PolyORB.Utils.Strings;
+
+   type Receiving_Stub is record
+      Name     : String_Ptr;
+      Receiver : PolyORB.Objects.Servant_Access;
+      Version  : String_Ptr;
+   end record;
+
+   package Receiving_Stub_Lists is new PolyORB.Utils.Chained_Lists
+     (Receiving_Stub);
+
+   All_Receiving_Stubs : Receiving_Stub_Lists.List;
+
+   --------------
+   -- From_Any --
+   --------------
+
+   function FA_B (Item : PolyORB.Any.Any) return Boolean is
+   begin
+      return Boolean (PolyORB.Types.Boolean'(From_Any (Item)));
+   end FA_B;
+
+   function FA_C (Item : PolyORB.Any.Any) return Character is
+   begin
+      return Character (PolyORB.Types.Char'(From_Any (Item)));
+   end FA_C;
+
+   function FA_F (Item : PolyORB.Any.Any) return Float is
+   begin
+      return Float (PolyORB.Types.Float'(From_Any (Item)));
+   end FA_F;
+
+   function FA_I (Item : PolyORB.Any.Any) return Integer is
+   begin
+      return Integer (PolyORB.Types.Long'(From_Any (Item)));
+   end FA_I;
+
+   function FA_LF (Item : PolyORB.Any.Any) return Long_Float is
+   begin
+      return Long_Float (PolyORB.Types.Double'(From_Any (Item)));
+   end FA_LF;
+
+   function FA_LI (Item : PolyORB.Any.Any) return Long_Integer is
+   begin
+      return Long_Integer (PolyORB.Types.Long'(From_Any (Item)));
+   end FA_LI;
+
+   function FA_LLF (Item : PolyORB.Any.Any) return Long_Long_Float is
+   begin
+      return Long_Long_Float (PolyORB.Types.Long_Double'(From_Any (Item)));
+   end FA_LLF;
+
+   function FA_LLI (Item : PolyORB.Any.Any) return Long_Long_Integer is
+   begin
+      return Long_Long_Integer (PolyORB.Types.Long_Long'(From_Any (Item)));
+   end FA_LLI;
+
+   function FA_SF (Item : PolyORB.Any.Any) return Short_Float is
+   begin
+      return Short_Float (PolyORB.Types.Float'(From_Any (Item)));
+   end FA_SF;
+
+   function FA_SI (Item : PolyORB.Any.Any) return Short_Integer is
+   begin
+      return Short_Integer (PolyORB.Types.Short'(From_Any (Item)));
+   end FA_SI;
+
+   function FA_SSI (Item : PolyORB.Any.Any) return Short_Short_Integer is
+   begin
+      return Short_Short_Integer (PolyORB.Types.Octet'(From_Any (Item)));
+   end FA_SSI;
+
+   function FA_WC (Item : PolyORB.Any.Any) return Wide_Character is
+   begin
+      return Wide_Character (PolyORB.Types.Wchar'(From_Any (Item)));
+   end FA_WC;
+
+   function FA_String (Item : PolyORB.Any.Any) return String is
+   begin
+      return PolyORB.Types.To_String (From_Any (Item));
+   end FA_String;
 
    --------------------
    -- Handle_Message --
    --------------------
 
    function Handle_Message
-     (Self : access Component;
+     (Self : access Servant;
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class
    is
@@ -14,9 +104,129 @@ package body System.PolyORB_Interface is
       return Self.Handler.all (Msg);
    end Handle_Message;
 
-   ---------------
-   -- TA_String --
-   ---------------
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+   pragma Unreferenced (Initialize);
+   procedure Initialize
+   is
+      use Receiving_Stub_Lists;
+
+      It : Iterator;
+   begin
+      It := First (All_Receiving_Stubs);
+      while not Last (It) loop
+         declare
+            use PolyORB.Obj_Adapters;
+            use PolyORB.Objects;
+            use PolyORB.ORB;
+            use PolyORB.Setup;
+
+            Stub : Receiving_Stub := Value (It).all;
+
+            Oid : aliased PolyORB.Objects.Object_Id
+              := Export (Object_Adapter (The_ORB), Stub.Receiver);
+            Ref : PolyORB.References.Ref;
+         begin
+            Create_Reference
+              (The_ORB, Oid'Access,
+               Stub.Name.all & ":" & Stub.Version.all,
+               Ref);
+            --  XXX register ref with naming service so it
+            --  can be located by other partitions.
+
+            Free (Stub.Name);
+            Free (Stub.Version);
+         end;
+         Next (It);
+      end loop;
+      Deallocate (All_Receiving_Stubs);
+   end Initialize;
+
+   -----------------------------
+   -- Register_Receiving_Stub --
+   -----------------------------
+
+   procedure Register_Receiving_Stub
+     (Name     : in String;
+      Receiver : in Servant_Access;
+      Version  : in String := "")
+   is
+      use Receiving_Stub_Lists;
+   begin
+      Append
+        (All_Receiving_Stubs,
+         Receiving_Stub'
+           (Name     => +Name,
+            Receiver => Receiver,
+            Version  => +Version));
+   end Register_Receiving_Stub;
+
+   ------------
+   -- To_Any --
+   ------------
+
+   function TA_B (Item : Boolean) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Boolean (Item));
+   end TA_B;
+
+   function TA_C (Item : Character) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Char (Item));
+   end TA_C;
+
+   function TA_F (Item : Float) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Float (Item));
+   end TA_F;
+
+   function TA_I (Item : Integer) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Long (Item));
+   end TA_I;
+
+   function TA_LF (Item : Long_Float) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Double (Item));
+   end TA_LF;
+
+   function TA_LI (Item : Long_Integer) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Long (Item));
+   end TA_LI;
+
+   function TA_LLF (Item : Long_Long_Float) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Long_Double (Item));
+   end TA_LLF;
+
+   function TA_LLI (Item : Long_Long_Integer) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Long_Long (Item));
+   end TA_LLI;
+
+   function TA_SF (Item : Short_Float) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Float (Item));
+   end TA_SF;
+
+   function TA_SI (Item : Short_Integer) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Short (Item));
+   end TA_SI;
+
+   function TA_SSI (Item : Short_Short_Integer) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Octet (Item));
+   end TA_SSI;
+
+   function TA_WC (Item : Wide_Character) return PolyORB.Any.Any is
+   begin
+      return To_Any (PolyORB.Types.Wchar (Item));
+   end TA_WC;
 
    function TA_String (S : String) return PolyORB.Any.Any is
    begin

@@ -2044,7 +2044,7 @@ package body Exp_Dist is
             Make_Defining_Identifier (Loc, New_Internal_Name ('R')),
           Aliased_Present     => True,
           Object_Definition   =>
-            New_Occurrence_Of (RTE (RE_Component), Loc));
+            New_Occurrence_Of (RTE (RE_Servant), Loc));
       Append_To (Decls, Pkg_RPC_Receiver_Object);
       Analyze (Last (Decls));
 
