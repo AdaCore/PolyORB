@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.SETUP.TCP_ACCESS_POINTS.IIOP                    --
+--          P O L Y O R B . S E T U P . A C C E S S _ P O I N T S           --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,10 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up CORBA TCP Access points.
+--  Root name space for protocol personality packages that create access
+--  points.
 
-package PolyORB.Setup.TCP_Access_Points.IIOP is
+--  $Id$
 
-   pragma Elaborate_Body;
+package PolyORB.Setup.Access_Points is
 
-end PolyORB.Setup.TCP_Access_Points.IIOP;
+end PolyORB.Setup.Access_Points;

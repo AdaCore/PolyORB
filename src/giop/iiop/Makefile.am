@@ -8,7 +8,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-protocols-giop-iiop.ads \
 	polyorb-binding_data-iiop.ads \
 	polyorb-setup-iiop.ads \
-	polyorb-setup-tcp_access_points-iiop.ads
+	polyorb-setup-access_points-iiop.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) 
 

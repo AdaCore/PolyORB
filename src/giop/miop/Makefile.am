@@ -13,8 +13,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-filters-miop-miop_out.ads \
 	polyorb-protocols-giop-uipmc.ads \
 	polyorb-binding_data-uipmc.ads \
-	polyorb-setup-udp_access_points-mcast.ads \
-	polyorb-setup-udp_access_points-mcast-uipmc.ads 
+	polyorb-setup-access_points-uipmc.ads 
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	polyorb-miop_p.ads

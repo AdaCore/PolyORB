@@ -9,7 +9,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-binding_data-srp.ads \
 	polyorb-protocols-srp.ads \
 	polyorb-representations-srp.ads \
-	polyorb-setup-tcp_access_points-srp.ads \
+	polyorb-setup-access_points-srp.ads \
 	polyorb-utils-srp.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY)

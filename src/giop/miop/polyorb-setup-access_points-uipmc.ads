@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.SETUP.UDP_ACCESS_POINTS.MCAST                   --
+--               POLYORB.SETUP.UDP_ACCESS_POINTS.MCAST.UIPMC                --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
@@ -31,51 +31,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Setup socket for multicast
+--  Setup socket for UIPMC
 
-with PolyORB.Components;
-with PolyORB.Sockets;
-with PolyORB.Transport.Datagram.Sockets_In;
+package PolyORB.Setup.Access_Points.UIPMC is
 
-package body PolyORB.Setup.UDP_Access_Points.MCast is
+   pragma Elaborate_Body;
 
-   procedure Initialize_MCast
-     (API     : in out UDP_Access_Point_Info;
-      Address : in     Inet_Addr_Type;
-      Port    : in     Port_Type)
-   is
-      use PolyORB.Sockets;
-      use PolyORB.Transport.Datagram.Sockets_In;
+   --  Default values for multicast setup
+   Default_Multicast_Group : constant String := "239.239.239.18";
+   Default_Port : constant Integer := 5678;
 
-   begin
-      Initialize_Socket (API);
-
-      API.Address :=
-        Sock_Addr_Type'(Addr => Address,
-                        Port => Port,
-                        Family => Family_Inet);
-
-      Set_Socket_Option
-        (API.Socket,
-         IP_Protocol_For_IP_Level,
-         (Add_Membership, Address, Any_Inet_Addr));
-      --  Register to multicast group
-
-      Set_Socket_Option
-        (API.Socket,
-         IP_Protocol_For_IP_Level,
-         (Multicast_Loop, True));
-      --  Allow local multicast operation
-
-      Init_Socket_In
-        (Socket_In_Access_Point (API.SAP.all), API.Socket, API.Address, False);
-
-      if API.PF /= null then
-         Create_Factory
-           (API.PF.all,
-            API.SAP,
-            PolyORB.Components.Component_Access (The_ORB));
-      end if;
-   end Initialize_MCast;
-
-end PolyORB.Setup.UDP_Access_Points.MCast;
+end PolyORB.Setup.Access_Points.UIPMC;

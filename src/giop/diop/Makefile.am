@@ -7,7 +7,7 @@ alidir = $(libdir)/polyorb-diop
 ADA_SPECS_WITH_BODY = \
 	polyorb-protocols-giop-diop.ads \
 	polyorb-setup-diop.ads \
-	polyorb-setup-udp_access_points-sockets-diop.ads \
+	polyorb-setup-access_points-diop.ads \
 	polyorb-binding_data-diop.ads 
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) 

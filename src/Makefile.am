@@ -96,9 +96,6 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-setup-proxies_poa.ads \
 		polyorb-setup-tasking-full_tasking.ads \
 		polyorb-setup-tasking-no_tasking.ads \
-		polyorb-setup-tcp_access_points.ads \
-		polyorb-setup-udp_access_points.ads \
-		polyorb-setup-udp_access_points-sockets.ads \
 		polyorb-smart_pointers.ads \
 		polyorb-sockets_copy.ads \
 		polyorb-sockets_initialization.ads \
@@ -139,6 +136,8 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-utils-sockets.ads \
 		polyorb-utils-strings.ads \
 		polyorb-utils-strings-lists.ads \
+		polyorb-utils-tcp_access_points.ads \
+		polyorb-utils-udp_access_points.ads \
 		polyorb-utils-text_buffers.ads
 
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
@@ -160,6 +159,7 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 		polyorb-sequences.ads \
 		polyorb-servants-interface.ads \
 		polyorb-setup.ads \
+		polyorb-setup-access_points.ads \
 		polyorb-setup-tasking.ads \
 		polyorb-setup-tasking-ravenscar.ads \
 		polyorb-sockets.ads \

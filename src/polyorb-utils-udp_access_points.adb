@@ -33,21 +33,89 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper subprograms to set up access points based on normal UDP sockets
---  for a PolyORB server.
---  Do NOT use for multicast sockets.
+--  Helper subprograms to set up access points based on UDP sockets
+
+--  $Id$
 
 with PolyORB.Components;
-with PolyORB.Sockets;
+with PolyORB.Setup;
 with PolyORB.Transport.Datagram.Sockets_In;
 
-package body PolyORB.Setup.UDP_Access_Points.Sockets is
+package body PolyORB.Utils.UDP_Access_Points is
+
+   use PolyORB.Binding_Data;
+   use PolyORB.Sockets;
+
+   procedure Initialize_Socket
+     (API : in out UDP_Access_Point_Info);
+   --  Shared part between Initialize_Unicast_Socket and
+   --  Initialize_Multicast_Socket.
+
+   ---------------------------------
+   -- Initialize_Multicast_Socket --
+   ---------------------------------
+
+   procedure Initialize_Multicast_Socket
+     (API     : in out UDP_Access_Point_Info;
+      Address : in     Inet_Addr_Type;
+      Port    : in     Port_Type)
+   is
+      use PolyORB.Transport.Datagram.Sockets_In;
+
+   begin
+      Initialize_Socket (API);
+
+      API.Address :=
+        Sock_Addr_Type'(Addr => Address,
+                        Port => Port,
+                        Family => Family_Inet);
+
+      Set_Socket_Option
+        (API.Socket,
+         IP_Protocol_For_IP_Level,
+         (Add_Membership, Address, Any_Inet_Addr));
+      --  Register to multicast group
+
+      Set_Socket_Option
+        (API.Socket,
+         IP_Protocol_For_IP_Level,
+         (Multicast_Loop, True));
+      --  Allow local multicast operation
+
+      Init_Socket_In
+        (Socket_In_Access_Point (API.SAP.all), API.Socket, API.Address, False);
+
+      if API.PF /= null then
+         Create_Factory
+           (API.PF.all,
+            API.SAP,
+            PolyORB.Components.Component_Access (Setup.The_ORB));
+      end if;
+   end Initialize_Multicast_Socket;
 
    -----------------------
    -- Initialize_Socket --
    -----------------------
 
    procedure Initialize_Socket
+     (API : in out UDP_Access_Point_Info)
+   is
+   begin
+      Create_Socket
+        (API.Socket, Family_Inet, Socket_Datagram);
+
+      --  Allow reuse of local addresses.
+      Set_Socket_Option
+        (API.Socket,
+         Socket_Level,
+         (Reuse_Address, True));
+   end Initialize_Socket;
+
+   -------------------------------
+   -- Initialize_Unicast_Socket --
+   -------------------------------
+
+   procedure Initialize_Unicast_Socket
      (API       : in out UDP_Access_Point_Info;
       Port_Hint : in     Port_Type)
    is
@@ -83,8 +151,8 @@ package body PolyORB.Setup.UDP_Access_Points.Sockets is
          Create_Factory
            (API.PF.all,
             API.SAP,
-            PolyORB.Components.Component_Access (The_ORB));
+            PolyORB.Components.Component_Access (Setup.The_ORB));
       end if;
-   end Initialize_Socket;
+   end Initialize_Unicast_Socket;
 
-end PolyORB.Setup.UDP_Access_Points.Sockets;
+end PolyORB.Utils.UDP_Access_Points;

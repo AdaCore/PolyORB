@@ -15,7 +15,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-buffer_sources.ads \
 	polyorb-filters-http.ads \
 	polyorb-protocols-soap_pr.ads \
-	polyorb-setup-tcp_access_points-soap.ads \
+	polyorb-setup-access_points-soap.ads \
 	polyorb-soap_p-response.ads \
 	polyorb-soap_p-message-payload.ads \
 	polyorb-soap_p-message-reader.ads \

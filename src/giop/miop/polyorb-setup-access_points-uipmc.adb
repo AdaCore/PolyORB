@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.SETUP.TCP_ACCESS_POINTS.IIOP                    --
+--               POLYORB.SETUP.UDP_ACCESS_POINTS.MCAST.UIPMC                --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,40 +31,43 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Setup for IIOP access point.
+--  Setup socket for UIPMC
 
-with PolyORB.Binding_Data.IIOP;
-with PolyORB.Protocols.GIOP;
-with PolyORB.Protocols.GIOP.IIOP;
-
+with PolyORB.Binding_Data.UIPMC;
 with PolyORB.Filters;
-with PolyORB.Filters.Slicers;
+with PolyORB.Filters.Fragmenter;
+with PolyORB.Filters.MIOP.MIOP_In;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
 with PolyORB.Parameters;
 with PolyORB.Protocols;
-with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Protocols.GIOP.UIPMC;
+with PolyORB.Sockets;
+with PolyORB.Transport.Datagram.Sockets_In;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.UDP_Access_Points;
 
-package body PolyORB.Setup.TCP_Access_Points.IIOP is
+package body PolyORB.Setup.Access_Points.UIPMC is
 
    use PolyORB.Filters;
-   use PolyORB.Filters.Slicers;
+   use PolyORB.Filters.Fragmenter;
+   use PolyORB.Filters.MIOP.MIOP_In;
    use PolyORB.ORB;
-   use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Sockets;
+   use PolyORB.Transport.Datagram.Sockets_In;
+   use PolyORB.Utils.UDP_Access_Points;
 
-   --  The 'GIOP' access point.
-
-   GIOP_Access_Point : Access_Point_Info
+   UIPMC_Access_Point : UDP_Access_Point_Info
      := (Socket  => No_Socket,
          Address => No_Sock_Addr,
-         SAP     => new Socket_Access_Point,
-         PF      => new Binding_Data.IIOP.IIOP_Profile_Factory);
+         SAP     => new Socket_In_Access_Point,
+         PF      => new Binding_Data.UIPMC.UIPMC_Profile_Factory);
 
-   IIOP_Pro : aliased Protocols.GIOP.IIOP.IIOP_Protocol;
-   Sli      : aliased Slicer_Factory;
+   UIPMC_Pro : aliased Protocols.GIOP.UIPMC.UIPMC_Protocol;
+   M_Fact    : aliased MIOP_In_Factory;
+   Frag      : aliased Fragmenter_Factory;
 
    ------------------------------
    -- Initialize_Access_Points --
@@ -76,19 +79,29 @@ package body PolyORB.Setup.TCP_Access_Points.IIOP is
    is
       use PolyORB.Parameters;
 
+      Addr : constant String
+        := Get_Conf
+        ("miop", "polyorb.miop.multicast_addr",
+         Default_Multicast_Group);
+      Port : constant Port_Type
+        := Port_Type (Get_Conf
+                      ("miop", "polyorb.miop.multicast_port",
+                       Default_Port));
    begin
-      if Get_Conf ("access_points", "iiop", True) then
+      if Get_Conf ("access_points", "uipmc", True) then
 
-         Initialize_Socket (GIOP_Access_Point, Any_Port);
+         Initialize_Multicast_Socket
+           (UIPMC_Access_Point, Inet_Addr (Addr), Port);
 
-         Chain_Factories ((0 => Sli'Unchecked_Access,
-                           1 => IIOP_Pro'Unchecked_Access));
+         Chain_Factories ((0 => Frag'Unchecked_Access,
+                           1 => M_Fact'Unchecked_Access,
+                           2 => UIPMC_Pro'Unchecked_Access));
 
          Register_Access_Point
            (ORB    => The_ORB,
-            TAP    => GIOP_Access_Point.SAP,
-            Chain  => Sli'Unchecked_Access,
-            PF     => GIOP_Access_Point.PF);
+            TAP    => UIPMC_Access_Point.SAP,
+            Chain  => Frag'Unchecked_Access,
+            PF     => UIPMC_Access_Point.PF);
       end if;
 
    end Initialize_Access_Points;
@@ -100,12 +113,10 @@ package body PolyORB.Setup.TCP_Access_Points.IIOP is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"tcp_access_points.corba",
-       Conflicts => Empty,
-       Depends   => +"sockets"
-                   & "orb"
-                   & "protocols.giop.iiop",
-       Provides  => +"access_points",
+      (Name      => +"access_points.uipmc",
+       Conflicts => String_Lists.Empty,
+       Depends   => +"orb" & "sockets",
+       Provides  => String_Lists.Empty,
        Init      => Initialize_Access_Points'Access));
 
-end PolyORB.Setup.TCP_Access_Points.IIOP;
+end PolyORB.Setup.Access_Points.UIPMC;

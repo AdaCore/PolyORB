@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.SETUP.TCP_ACCESS_POINTS.SOAP                    --
+--  P O L Y O R B . S E T U P . U D P _ A C C E S S _ P O I N T S . D I O P --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,10 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up SOAP TCP Access points.
+--  Setup socket for DIOP
 
-package PolyORB.Setup.TCP_Access_Points.SOAP is
+--  $Id$
+
+package PolyORB.Setup.Access_Points.DIOP is
 
    pragma Elaborate_Body;
 
-end PolyORB.Setup.TCP_Access_Points.SOAP;
+end PolyORB.Setup.Access_Points.DIOP;

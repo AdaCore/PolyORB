@@ -2,9 +2,9 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---  P O L Y O R B . S E T U P . T C P _ A C C E S S _ P O I N T S . S R P   --
+--                  POLYORB.SETUP.TCP_ACCESS_POINTS.IIOP                    --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
@@ -31,10 +31,84 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Set up SRP TCP Access points.
+--  Setup for IIOP access point.
 
-package PolyORB.Setup.TCP_Access_Points.SRP is
+with PolyORB.Binding_Data.IIOP;
+with PolyORB.Protocols.GIOP;
+with PolyORB.Protocols.GIOP.IIOP;
 
-   pragma Elaborate_Body;
+with PolyORB.Parameters;
+with PolyORB.Filters;
+with PolyORB.Filters.Slicers;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-end PolyORB.Setup.TCP_Access_Points.SRP;
+with PolyORB.ORB;
+with PolyORB.Protocols;
+with PolyORB.Sockets;
+with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Utils.Strings;
+with PolyORB.Utils.TCP_Access_Points;
+
+package body PolyORB.Setup.Access_Points.IIOP is
+
+   use PolyORB.Filters;
+   use PolyORB.Filters.Slicers;
+   use PolyORB.ORB;
+   use PolyORB.Sockets;
+   use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Utils.TCP_Access_Points;
+
+   --  The 'GIOP' access point.
+
+   GIOP_Access_Point : Access_Point_Info
+     := (Socket  => No_Socket,
+         Address => No_Sock_Addr,
+         SAP     => new Socket_Access_Point,
+         PF      => new Binding_Data.IIOP.IIOP_Profile_Factory);
+
+   IIOP_Pro : aliased Protocols.GIOP.IIOP.IIOP_Protocol;
+   Sli      : aliased Slicer_Factory;
+
+   ------------------------------
+   -- Initialize_Access_Points --
+   ------------------------------
+
+   procedure Initialize_Access_Points;
+
+   procedure Initialize_Access_Points
+   is
+      use PolyORB.Parameters;
+   begin
+      if Get_Conf ("access_points", "iiop", True) then
+
+         Initialize_Socket (GIOP_Access_Point, Any_Port);
+
+         Chain_Factories ((0 => Sli'Unchecked_Access,
+                           1 => IIOP_Pro'Unchecked_Access));
+
+         Register_Access_Point
+           (ORB    => The_ORB,
+            TAP    => GIOP_Access_Point.SAP,
+            Chain  => Sli'Unchecked_Access,
+            PF     => GIOP_Access_Point.PF);
+      end if;
+
+   end Initialize_Access_Points;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"access_points.iiop",
+       Conflicts => Empty,
+       Depends   => +"sockets"
+                   & "orb"
+                   & "protocols.giop.iiop",
+       Provides  => +"access_points",
+       Init      => Initialize_Access_Points'Access));
+
+end PolyORB.Setup.Access_Points.IIOP;

@@ -2,11 +2,13 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               POLYORB.SETUP.UDP_ACCESS_POINTS.MCAST.UIPMC                --
+--      P O L Y O R B . S E T U P . U D P _ A C C E S S _ P O I N T S       --
+--                                                                          --
+--                             . S O C K E T S                              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,14 +33,31 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Setup socket for UIPMC
+--  Helper subprograms to set up access points based on UDP sockets
 
-package PolyORB.Setup.UDP_Access_Points.MCast.UIPMC is
+--  $Id$
 
-   pragma Elaborate_Body;
+with PolyORB.Binding_Data;
+with PolyORB.Sockets;
+with PolyORB.Transport;
 
-   --  Default values for multicast setup
-   Default_Multicast_Group : constant String := "239.239.239.18";
-   Default_Port : constant Integer := 5678;
+package PolyORB.Utils.UDP_Access_Points is
 
-end PolyORB.Setup.UDP_Access_Points.MCast.UIPMC;
+   type UDP_Access_Point_Info is record
+      Socket  : Sockets.Socket_Type;
+      Address : Sockets.Sock_Addr_Type;
+
+      SAP     : Transport.Transport_Access_Point_Access;
+      PF      : Binding_Data.Profile_Factory_Access;
+   end record;
+
+   procedure Initialize_Unicast_Socket
+     (API       : in out UDP_Access_Point_Info;
+      Port_Hint : in     Sockets.Port_Type);
+
+   procedure Initialize_Multicast_Socket
+     (API     : in out UDP_Access_Point_Info;
+      Address : in     Sockets.Inet_Addr_Type;
+      Port    : in     Sockets.Port_Type);
+
+end PolyORB.Utils.UDP_Access_Points;

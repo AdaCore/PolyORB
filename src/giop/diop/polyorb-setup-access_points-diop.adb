@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . S E T U P . U D P _ A C C E S S _ P O I N T S       --
+-- P O L Y O R B . S E T U P . U D P _ A C C E S S _ P O I N T S . D I O P  --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,27 +31,78 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper subprograms to set up access points based on UDP sockets
---  for a PolyORB server.
+--  Setup socket for DIOP
 
-package body PolyORB.Setup.UDP_Access_Points is
+with PolyORB.Binding_Data.DIOP;
+with PolyORB.Protocols.GIOP.DIOP;
 
-   -----------------------
-   -- Initialize_Socket --
-   -----------------------
+with PolyORB.Filters;
+with PolyORB.Filters.Fragmenter;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
-   procedure Initialize_Socket
-     (API : in out UDP_Access_Point_Info)
+with PolyORB.ORB;
+with PolyORB.Parameters;
+with PolyORB.Protocols;
+with PolyORB.Sockets;
+with PolyORB.Transport.Datagram.Sockets_In;
+with PolyORB.Utils.Strings;
+with PolyORB.Utils.UDP_Access_Points;
+
+package body PolyORB.Setup.Access_Points.DIOP is
+
+   use PolyORB.Filters;
+   use PolyORB.Filters.Fragmenter;
+   use PolyORB.ORB;
+   use PolyORB.Sockets;
+   use PolyORB.Transport.Datagram.Sockets_In;
+   use PolyORB.Utils.UDP_Access_Points;
+
+   DIOP_Access_Point : UDP_Access_Point_Info
+     := (Socket  => No_Socket,
+         Address => No_Sock_Addr,
+         SAP     => new Socket_In_Access_Point,
+         PF      => new Binding_Data.DIOP.DIOP_Profile_Factory);
+
+   Pro  : aliased Protocols.GIOP.DIOP.DIOP_Protocol;
+   Frag : aliased Fragmenter_Factory;
+
+   ------------------------------
+   -- Initialize_Access_Points --
+   ------------------------------
+
+   procedure Initialize_Access_Points;
+
+   procedure Initialize_Access_Points
    is
+      use PolyORB.Parameters;
+
    begin
-      Create_Socket
-        (API.Socket, Family_Inet, Socket_Datagram);
+      if Get_Conf ("access_points", "diop", True) then
+         Initialize_Unicast_Socket (DIOP_Access_Point, Any_Port);
 
-      --  Allow reuse of local addresses.
-      Set_Socket_Option
-        (API.Socket,
-         Socket_Level,
-         (Reuse_Address, True));
-   end Initialize_Socket;
+         Chain_Factories ((0 => Frag'Unchecked_Access,
+                           1 => Pro'Unchecked_Access));
 
-end PolyORB.Setup.UDP_Access_Points;
+         Register_Access_Point
+           (ORB    => The_ORB,
+            TAP    => DIOP_Access_Point.SAP,
+            Chain  => Frag'Unchecked_Access,
+            PF     => DIOP_Access_Point.PF);
+      end if;
+   end Initialize_Access_Points;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"access_points.diop",
+       Conflicts => String_Lists.Empty,
+       Depends   => +"orb" & "sockets",
+       Provides  => String_Lists.Empty,
+       Init      => Initialize_Access_Points'Access));
+
+end PolyORB.Setup.Access_Points.DIOP;

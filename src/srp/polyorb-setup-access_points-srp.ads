@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                  POLYORB.SETUP.UDP_ACCESS_POINTS.MCAST                   --
+--  P O L Y O R B . S E T U P . T C P _ A C C E S S _ P O I N T S . S R P   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,13 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Setup socket for multicast
+--  Set up SRP TCP Access points.
 
-package PolyORB.Setup.UDP_Access_Points.MCast is
+package PolyORB.Setup.Access_Points.SRP is
 
-   procedure Initialize_MCast
-     (API     : in out UDP_Access_Point_Info;
-      Address : in     Inet_Addr_Type;
-      Port    : in     Port_Type);
+   pragma Elaborate_Body;
 
-end PolyORB.Setup.UDP_Access_Points.MCast;
+end PolyORB.Setup.Access_Points.SRP;

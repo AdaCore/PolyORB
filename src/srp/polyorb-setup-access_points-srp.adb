@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . S E T U P . T C P _ A C C E S S _ P O I N T S       --
+--  P O L Y O R B . S E T U P . T C P _ A C C E S S _ P O I N T S . S R P   --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,60 +31,73 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper subprograms to set up access points based on TCP sockets
---  for a PolyORB server.
+--  Setup for SRP access point.
 
---  $Id$
+with PolyORB.Binding_Data.SRP;
+with PolyORB.Protocols.SRP;
 
-with PolyORB.Components;
+with PolyORB.Configuration;
+with PolyORB.Filters;
+with PolyORB.Initialization;
+pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
+
+with PolyORB.ORB;
+with PolyORB.Protocols;
 with PolyORB.Transport.Connected.Sockets;
+with PolyORB.Utils.Strings;
+with PolyORB.Utils.TCP_Access_Points;
 
-package body PolyORB.Setup.TCP_Access_Points is
+package body PolyORB.Setup.TCP_Access_Points.SRP is
 
+   use PolyORB.Filters;
+   use PolyORB.ORB;
    use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Utils.TCP_Access_Points;
 
-   procedure Initialize_Socket
-     (DAP  : in out Access_Point_Info;
-      Port_Hint : in Port_Type)
+   --  The 'SRP' access point.
+
+   SRP_Access_Point : Access_Point_Info
+     := (Socket  => No_Socket,
+         Address => No_Sock_Addr,
+         SAP     => new Socket_Access_Point,
+         PF      => new Binding_Data.SRP.SRP_Profile_Factory);
+
+   SRP_Protocol  : aliased Protocols.SRP.SRP_Protocol;
+
+   ------------------------------
+   -- Initialize_Access_Points --
+   ------------------------------
+
+   procedure Initialize_Access_Points;
+
+   procedure Initialize_Access_Points
    is
-      Port : Port_Type := Port_Hint;
+      use PolyORB.Configuration;
    begin
-      Create_Socket (DAP.Socket);
+      if Get_Conf ("access_points", "srp", True) then
 
-      DAP.Address.Addr := Any_Inet_Addr;
-
-      --  Allow reuse of local addresses.
-
-      Set_Socket_Option
-        (DAP.Socket,
-         Socket_Level,
-         (Reuse_Address, True));
-
-      if DAP.SAP = null then
-         DAP.SAP := new Socket_Access_Point;
+         Initialize_Socket (SRP_Access_Point, Any_Port);
+         Register_Access_Point
+           (ORB    => The_ORB,
+            TAP    => SRP_Access_Point.SAP,
+            Chain  => SRP_Protocol'Unchecked_Access,
+            PF     => SRP_Access_Point.PF);
+         --  Register socket with ORB object, associating a protocol
+         --  to the transport service access point.
       end if;
-      loop
-         DAP.Address.Port := Port;
-         begin
-            Create
-              (Socket_Access_Point (DAP.SAP.all),
-               DAP.Socket,
-               DAP.Address);
-            exit;
-         exception
-            when Sockets.Socket_Error =>
-               Port := Port + 1;
-               if Port = Port_Hint then
-                  raise;
-                  --  Argh! we tried every possible value and
-                  --  wrapped. Bail out.
-               end if;
-         end;
-      end loop;
-      if DAP.PF /= null then
-         Create_Factory
-           (DAP.PF.all, DAP.SAP, Components.Component_Access (The_ORB));
-      end if;
-   end Initialize_Socket;
+   end Initialize_Access_Points;
 
-end PolyORB.Setup.TCP_Access_Points;
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"access_points.srp",
+       Conflicts => Empty,
+       Depends   => +"orb",
+       Provides  => +"access_points",
+       Init      => Initialize_Access_Points'Access));
+
+end PolyORB.Setup.TCP_Access_Points.SRP;

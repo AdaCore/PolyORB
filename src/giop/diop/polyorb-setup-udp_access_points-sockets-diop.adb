@@ -75,7 +75,7 @@ package body PolyORB.Setup.UDP_Access_Points.Sockets.DIOP is
 
    begin
       if Get_Conf ("access_points", "diop", True) then
-         Initialize_Socket (DIOP_Access_Point, Any_Port);
+         Initialize_Unicast_Socket (DIOP_Access_Point, Any_Port);
 
          Chain_Factories ((0 => Frag'Unchecked_Access,
                            1 => Pro'Unchecked_Access));

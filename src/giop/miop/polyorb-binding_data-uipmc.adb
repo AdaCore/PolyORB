@@ -157,7 +157,6 @@ package body PolyORB.Binding_Data.UIPMC is
    begin
       pragma Debug (O ("Bind UIPMC profile: enter"));
 
-      --  Create Socket
       Create_Socket (Socket => Sock,
                      Family => Family_Inet,
                      Mode => Socket_Datagram);
@@ -167,8 +166,6 @@ package body PolyORB.Binding_Data.UIPMC is
          Socket_Level,
          (Reuse_Address, True));
 
-
-      --  Set TTL value for this socket
       Set_Socket_Option
         (Sock,
          IP_Protocol_For_IP_Level,
@@ -186,7 +183,6 @@ package body PolyORB.Binding_Data.UIPMC is
          TE,
          Filter,
          ORB.Client);
-      --  Register the endpoint and lowest filter with the ORB.
 
       pragma Debug (O ("Preparing local copy of profile"));
       TProf.Address := Profile.Address;
@@ -271,20 +267,23 @@ package body PolyORB.Binding_Data.UIPMC is
       Error      : Error_Container;
       Oid_Access : Object_Id_Access := new Object_Id'(Oid);
    begin
-      Find_Servant (Obj_Adapter_Access (PolyORB.Setup.UIPMC.UIPMC_GOA),
-                    Oid_Access,
-                    GS,
-                    Error);
+      Find_Servant
+        (Obj_Adapter_Access (PolyORB.Setup.UIPMC.UIPMC_GOA),
+         Oid_Access, GS, Error);
+
       if Found (Error) then
          Free (Oid_Access);
          return null;
       end if;
+
       Get_Group_Object_Id (GS, Oid_Access, Error);
+
       if Found (Error)
         or else Oid /= Oid_Access.all then
          Free (Oid_Access);
          return null;
       end if;
+
       declare
          Result : constant Profile_Access
            := new UIPMC_Profile_Type;
@@ -292,6 +291,7 @@ package body PolyORB.Binding_Data.UIPMC is
          TResult : UIPMC_Profile_Type
            renames UIPMC_Profile_Type (Result.all);
          TC_G_I     : TC_Group_Info_Access := new TC_Group_Info;
+
       begin
          TResult.Object_Id := Oid_Access;
          TResult.Address := PF.Address;
@@ -302,6 +302,7 @@ package body PolyORB.Binding_Data.UIPMC is
               Tagged_Component_Access (TC_G_I));
          return Result;
       end;
+
    end Create_Profile;
 
    ----------------------

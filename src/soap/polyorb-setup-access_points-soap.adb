@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---               POLYORB.SETUP.UDP_ACCESS_POINTS.MCAST.UIPMC                --
+--                  POLYORB.SETUP.TCP_ACCESS_POINTS.SOAP                    --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,39 +31,47 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Setup socket for UIPMC
+--  Setup for SOAP access point.
 
-with PolyORB.Binding_Data.UIPMC;
-with PolyORB.Filters;
-with PolyORB.Filters.Fragmenter;
-with PolyORB.Filters.MIOP.MIOP_In;
+with PolyORB.Binding_Data.SOAP;
+with PolyORB.Filters.HTTP;
+with PolyORB.Protocols.SOAP_Pr;
+
+with PolyORB.Configuration;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.ORB;
-with PolyORB.Parameters;
 with PolyORB.Protocols;
-with PolyORB.Protocols.GIOP.UIPMC;
-with PolyORB.Transport.Datagram.Sockets_In;
+with PolyORB.Transport.Connected.Sockets;
 with PolyORB.Utils.Strings;
+with PolyORB.Utils.TCP_Access_Points;
 
-package body PolyORB.Setup.UDP_Access_Points.MCast.UIPMC is
+package body PolyORB.Setup.Access_Points.SOAP is
 
    use PolyORB.Filters;
-   use PolyORB.Filters.Fragmenter;
-   use PolyORB.Filters.MIOP.MIOP_In;
    use PolyORB.ORB;
-   use PolyORB.Transport.Datagram.Sockets_In;
+   use PolyORB.Transport.Connected.Sockets;
+   use PolyORB.Utils.TCP_Access_Points;
 
-   UIPMC_Access_Point : UDP_Access_Point_Info
+   --  The 'SOAP' access point.
+
+   SOAP_Access_Point : Access_Point_Info
      := (Socket  => No_Socket,
          Address => No_Sock_Addr,
-         SAP     => new Socket_In_Access_Point,
-         PF      => new Binding_Data.UIPMC.UIPMC_Profile_Factory);
-
-   UIPMC_Pro : aliased Protocols.GIOP.UIPMC.UIPMC_Protocol;
-   M_Fact    : aliased MIOP_In_Factory;
-   Frag      : aliased Fragmenter_Factory;
+         SAP     => new Socket_Access_Point,
+         PF      => new Binding_Data.SOAP.SOAP_Profile_Factory);
+   HTTP_Filter   : aliased PolyORB.Filters.HTTP.HTTP_Filter_Factory;
+   SOAP_Protocol : aliased Protocols.SOAP_Pr.SOAP_Protocol;
+   --  XXX
+   --  It is not a very satisfying thing to have to chain
+   --  HTTP_Filter and SOAP_Protocol explicitly on the server
+   --  side. On the client side, this is done in Binding_Data.SOAP
+   --  (as an effect of binding a SOAP object reference).
+   --  Since Binding_Data encapsulates the association of a protocol
+   --  with a complete transport stack, it should also provide
+   --  the corresponding server-side primitive (eg as a constant
+   --  filter chain created at initialisation.)
 
    ------------------------------
    -- Initialize_Access_Points --
@@ -73,34 +81,22 @@ package body PolyORB.Setup.UDP_Access_Points.MCast.UIPMC is
 
    procedure Initialize_Access_Points
    is
-      use PolyORB.Parameters;
-
-      Addr : constant String
-        := Get_Conf
-        ("miop", "polyorb.miop.multicast_addr",
-         Default_Multicast_Group);
-      Port : constant Port_Type
-        := Port_Type (Get_Conf
-                      ("miop", "polyorb.miop.multicast_port",
-                       Default_Port));
+      use PolyORB.Configuration;
    begin
-      if Get_Conf ("access_points", "uipmc", True) then
+      if Get_Conf ("access_points", "soap", True) then
 
-
-         Initialize_MCast
-           (UIPMC_Access_Point, Inet_Addr (Addr), Port);
-
-         Chain_Factories ((0 => Frag'Unchecked_Access,
-                           1 => M_Fact'Unchecked_Access,
-                           2 => UIPMC_Pro'Unchecked_Access));
-
+         Initialize_Socket (SOAP_Access_Point, 8080);
+         Chain_Factories
+           ((0 => HTTP_Filter'Unchecked_Access,
+             1 => SOAP_Protocol'Unchecked_Access));
          Register_Access_Point
            (ORB    => The_ORB,
-            TAP    => UIPMC_Access_Point.SAP,
-            Chain  => Frag'Unchecked_Access,
-            PF     => UIPMC_Access_Point.PF);
+            TAP    => SOAP_Access_Point.SAP,
+            Chain  => HTTP_Filter'Unchecked_Access,
+            PF     => SOAP_Access_Point.PF);
+         --  Register socket with ORB object, associating a protocol
+         --  to the transport service access point.
       end if;
-
    end Initialize_Access_Points;
 
    use PolyORB.Initialization;
@@ -110,10 +106,10 @@ package body PolyORB.Setup.UDP_Access_Points.MCast.UIPMC is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"mcast_access_points.corba",
-       Conflicts => String_Lists.Empty,
-       Depends   => +"orb" & "sockets",
-       Provides  => String_Lists.Empty,
+      (Name      => +"access_points.soap",
+       Conflicts => Empty,
+       Depends   => +"orb",
+       Provides  => +"access_points",
        Init      => Initialize_Access_Points'Access));
 
-end PolyORB.Setup.UDP_Access_Points.MCast.UIPMC;
+end PolyORB.Setup.Access_Points.SOAP;

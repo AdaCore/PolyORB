@@ -2,13 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---      P O L Y O R B . S E T U P . U D P _ A C C E S S _ P O I N T S       --
---                                                                          --
---                             . S O C K E T S                              --
+--                  POLYORB.SETUP.TCP_ACCESS_POINTS.IIOP                    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -33,14 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper subprograms to set up access points based on normal UDP sockets
---  for a PolyORB server.
---  Do NOT use for multicast sockets.
+--  Set up CORBA TCP Access points.
 
-package PolyORB.Setup.UDP_Access_Points.Sockets is
+package PolyORB.Setup.Access_Points.IIOP is
 
-   procedure Initialize_Socket
-     (API       : in out UDP_Access_Point_Info;
-      Port_Hint : in     Port_Type);
+   pragma Elaborate_Body;
 
-end PolyORB.Setup.UDP_Access_Points.Sockets;
+end PolyORB.Setup.Access_Points.IIOP;

@@ -31,37 +31,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Helper subprograms to set up access points based on TCP sockets
---  for a PolyORB server.
+--  Root name space for protocol personality packages that create access
+--  points.
 
 --  $Id$
 
-with PolyORB.Binding_Data;
-with PolyORB.Sockets;
-with PolyORB.Transport;
+package PolyORB.Setup.Access_Points is
 
-package PolyORB.Setup.TCP_Access_Points is
+   pragma Pure;
 
-   use PolyORB.Binding_Data;
-   use PolyORB.Sockets;
-   use PolyORB.Transport;
-
-   ----------------------------------
-   -- Access_Point_Info descriptor --
-   ----------------------------------
-
-   type Access_Point_Info is record
-      Socket  : Socket_Type;
-      Address : Sock_Addr_Type;
-
-      SAP : Transport_Access_Point_Access;
-      PF  : Profile_Factory_Access;
-   end record;
-
-   procedure Initialize_Socket
-     (DAP       : in out Access_Point_Info;
-      Port_Hint : in     Port_Type);
-   --  Initialize DAP.Socket and bind it to a free port,
-   --  Port if possible.
-
-end PolyORB.Setup.TCP_Access_Points;
+end PolyORB.Setup.Access_Points;
