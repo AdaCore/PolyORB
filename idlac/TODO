@@ -20,5 +20,6 @@
 * add blank lines.
 * expansion: (see README.Expansion)
 * code generation:
-  - Repository_Id
-  - Is_A
+  - Repository_Id;
+  - Is_A;
+  - native types.
