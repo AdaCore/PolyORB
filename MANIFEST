@@ -5,6 +5,8 @@
 ./dir.mk
 ./Examples/GNUmakefile
 ./Examples/dir.mk
+./Examples/report.ads
+./Examples/report.adb
 ./Examples/all_exceptions/GNUmakefile
 ./Examples/all_exceptions/all_exceptions-impl.adb
 ./Examples/all_exceptions/all_exceptions-impl.ads
