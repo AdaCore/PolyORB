@@ -1619,6 +1619,22 @@ package body XE_Back is
                      Name,
                      Data);
 
+               when Pre_Type_Location =>
+                  declare
+                     V : Variable_Id;
+                     C : Component_Id;
+                  begin
+                     V := Get_Parameter_Value (Parameter);
+                     First_Variable_Component (V, C);
+                     Name := Get_Variable_Name (Get_Component_Value (C));
+                     Next_Variable_Component (C);
+                     Data := Get_Variable_Name (Get_Component_Value (C));
+                     Add_Location
+                       (Def_Boot_Location_First,
+                        Def_Boot_Location_Last,
+                        Name, Data);
+                  end;
+
                when Pre_Type_Locations =>
                   declare
                      V1 : Variable_Id;

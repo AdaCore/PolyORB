@@ -115,6 +115,9 @@ package body XE_Stdcnf is
          Type_Sloc    => Null_Location,
          Type_Node    => Integer_Type_Node);
 
+      --  Type Termination. To easily retrieve the enumeration literal
+      --  and their image.
+
       for T in Termination_Img'Range loop
          Declare_Variable
            (To_Lower (Termination_Img (T)),
@@ -123,6 +126,9 @@ package body XE_Stdcnf is
             Variable_Node);
          Set_Scalar_Value (Variable_Node, Int (T));
       end loop;
+
+      --  type Reconnection. To easily retrieve the enumeration literal
+      --  and their image.
 
       for R in Reconnection_Img'Range loop
          Declare_Variable
@@ -238,14 +244,14 @@ package body XE_Stdcnf is
 
       Declare_Type_Component
         (Type_Node        => Location_Type_Node,
-         Component_Name   => Str_To_Id ("protocol_name"),
+         Component_Name   => Str_To_Id ("support_name"),
          Comp_Type_Node   => String_Type_Node,
          Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
 
       Declare_Type_Component
         (Type_Node        => Location_Type_Node,
-         Component_Name   => Str_To_Id ("protocol_data"),
+         Component_Name   => Str_To_Id ("support_data"),
          Comp_Type_Node   => String_Type_Node,
          Component_Sloc   => Null_Location,
          Component_Node   => Component_Node);
@@ -253,7 +259,7 @@ package body XE_Stdcnf is
       --  type type__location_list (standard)
 
       Declare_Type
-        (Type_Name    => Type_Prefix & "location_list",
+        (Type_Name    => Type_Prefix & "location list",
          Type_Kind    => Pre_Type_Locations,
          Composite    => True,
          Comp_Type    => Location_Type_Node,
@@ -261,6 +267,7 @@ package body XE_Stdcnf is
          Type_Sloc    => Null_Location,
          Type_Node    => Locations_Type_Node);
 
+      --  Define attributes for partition
 
       Declare_Type_Attribute
         (Type_Node      => Partition_Type_Node,
@@ -543,7 +550,7 @@ package body XE_Stdcnf is
 
       --  pragma boot_server ... or
       --  procedure pragma__boot_server
-      --    (protocol_list : type__location_list);
+      --    (location : type__location);
 
       Declare_Subprogram
         (Pragma_Prefix & "boot_server",
@@ -553,7 +560,25 @@ package body XE_Stdcnf is
          Pragma_Boot_Location_Node);
 
       Declare_Subprogram_Parameter
-        (Str_To_Id ("protocol_list"),
+        (Str_To_Id ("location"),
+         Location_Type_Node,
+         Pragma_Boot_Location_Node,
+         Null_Location,
+         Parameter_Node);
+
+      --  pragma boot_server ... or
+      --  procedure pragma__boot_server
+      --    (locations : type__location__list);
+
+      Declare_Subprogram
+        (Pragma_Prefix & "boot_server",
+         Pragma_Boot_Location,
+         True,
+         Null_Location,
+         Pragma_Boot_Location_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("locations"),
          Locations_Type_Node,
          Pragma_Boot_Location_Node,
          Null_Location,
@@ -587,7 +612,7 @@ package body XE_Stdcnf is
 
       --  pragma boot_location ... or
       --  procedure pragma__boot_server
-      --    (protocol_list : type__location_list);
+      --    (location : type__location);
 
       Declare_Subprogram
         (Pragma_Prefix & "boot_location",
@@ -597,7 +622,25 @@ package body XE_Stdcnf is
          Pragma_Boot_Location_Node);
 
       Declare_Subprogram_Parameter
-        (Str_To_Id ("protocol_list"),
+        (Str_To_Id ("location"),
+         Location_Type_Node,
+         Pragma_Boot_Location_Node,
+         Null_Location,
+         Parameter_Node);
+
+      --  pragma boot_location ... or
+      --  procedure pragma__boot_server
+      --    (locations : type__location__list);
+
+      Declare_Subprogram
+        (Pragma_Prefix & "boot_location",
+         Pragma_Boot_Location,
+         True,
+         Null_Location,
+         Pragma_Boot_Location_Node);
+
+      Declare_Subprogram_Parameter
+        (Str_To_Id ("locations"),
          Locations_Type_Node,
          Pragma_Boot_Location_Node,
          Null_Location,
