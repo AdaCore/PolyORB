@@ -83,11 +83,8 @@ package body Backend.BE_Ada is
 
    procedure Bind_FE_To_BE (F : Node_Id; B : Node_Id) is
    begin
-      if Present (F) then
-         Set_BE_Node (F, B);
-      end if;
       if Present (B) then
-         Set_FE_Node (B, F);
+         BEN.Set_FE_Node (B, F);
       end if;
    end Bind_FE_To_BE;
 
@@ -166,15 +163,16 @@ package body Backend.BE_Ada is
 
       --  XXX LP I don't get this.
 
-      if Is_Base_Type (Type_Spec (Declaration (Attribute))) then
-         Param_Type := Make_Designator
-           (Type_Spec (Declaration (Attribute)));
-
-      else
-         Param_Type := Make_Fully_Qualified_Identifier
-           (Type_Spec (Declaration (Attribute)));
-      end if;
-
+      --  if Is_Base_Type (Type_Spec (Declaration (Attribute))) then
+      Param_Type := Make_Designator
+        (Type_Spec (Declaration (Attribute)));
+      --  else
+      --    Param_Type := Make_Fully_Qualified_Identifier
+      --      (Type_Spec (Declaration (Attribute)));
+      --  end if;
+      Bind_FE_To_BE
+        (Type_Spec (Declaration (Attribute)),
+         Defining_Identifier (Param_Type));
       --  For the setter subprogram, add the second parameter To. T
 
       if Accessor = Setter then
@@ -531,8 +529,9 @@ package body Backend.BE_Ada is
          Expression    => Make_Literal (New_Integer_Value (0, 0, 10)));
       Append_Node_To_List (N, P);
 
+
       C := Make_Subprogram_Call
-        (Defining_Identifier  => RE (RE_Get_Empty_Any),
+        (Defining_Identifier  => RE (RE_Get_Empty_Any_0),
          Actual_Parameter_Part =>
            Make_List_Id (Make_Literal (Int0_Val)));
       N := Make_Component_Association
@@ -604,21 +603,28 @@ package body Backend.BE_Ada is
          --  Argument_U_X : CORBA.Any := Y.Helper.To_Any (X);
          --  ** where X is the parameter name.
          --  ** where Y is the fully qualified current package Name.
-         D := New_Node (K_Designator);
-
-         if BEN.Parameter_Mode (I) = Mode_Out then
-            Set_Str_To_Name_Buffer ("To_Any");
-            Set_Defining_Identifier
-              (D, Make_Defining_Identifier (Name_Find));
+         if FEN.Kind
+           (BEN.FE_Node (Defining_Identifier (Parameter_Type (I))))
+           in FEN.K_Float .. FEN.K_Value_Base
+         then
+            if BEN.Parameter_Mode (I) = Mode_Out then
+               D := RE (RE_Get_Empty_Any_0);
+            else
+               D := RE (RE_To_Any_0);
+            end if;
+         else
+            if BEN.Parameter_Mode (I) = Mode_Out then
+               D := RE (RE_Get_Empty_Any_1);
+            else
+               D := RE (RE_To_Any_1);
+            end if;
             Set_Parent_Unit_Name
               (D, Defining_Identifier (Helper_Package (Current_Entity)));
-            C :=  Make_Subprogram_Call
+         end if;
+         C :=  Make_Subprogram_Call
            (Defining_Identifier   => D,
             Actual_Parameter_Part =>
               Make_List_Id (Make_Defining_Identifier (X)));
-         else
-            null;
-         end if;
 
          Set_Str_To_Name_Buffer ("Argument_U_");
          Get_Name_String_And_Append (X);
@@ -915,16 +921,16 @@ package body Backend.BE_Ada is
       else
          N := Make_Designator (First_Entity (L));
       end if;
-      N :=
-        Make_Full_Type_Declaration
-        (RE (RE_Ref_0),
-         Make_Derived_Type_Definition
-             (Subtype_Indication    => N,
-              Record_Extension_Part =>
-                Make_Record_Type_Definition
-                  (Record_Definition => Make_Record_Definition (No_List))));
-      Append_Node_To_List
-        (N, Visible_Part (Current_Package));
+      --  N :=
+      --   Make_Full_Type_Declaration
+      --  (RE (RE_Ref_0),
+      --   Make_Derived_Type_Definition
+      --      (Subtype_Indication    => N,
+      --        Record_Extension_Part =>
+      --          Make_Record_Type_Definition
+      --            (Record_Definition => Make_Record_Definition (No_List))));
+      --   Append_Node_To_List
+      --   (N, Visible_Part (Current_Package));
       Append_Node_To_List
         (Make_Repository_Declaration (E), Visible_Part (Current_Package));
 
@@ -987,13 +993,11 @@ package body Backend.BE_Ada is
 
       IDL_Param := First_Entity (Parameters (E));
       while Present (IDL_Param) loop
-         if Is_Base_Type (Type_Spec (IDL_Param)) then
-            Type_Designator := Make_Designator
-              (Type_Spec (IDL_Param));
-         else
-            Type_Designator := Make_Fully_Qualified_Identifier
-              (Type_Spec (IDL_Param));
-         end if;
+         Type_Designator := Make_Designator
+           (Type_Spec (IDL_Param));
+         Bind_FE_To_BE
+           (Type_Spec (IDL_Param),
+            Defining_Identifier (Type_Designator));
          Ada_Param := Make_Parameter_Specification
            (Make_Defining_Identifier (Declarator (IDL_Param)),
             Type_Designator,
@@ -1017,10 +1021,15 @@ package body Backend.BE_Ada is
          --  new parameter Returns to pass the returned value.
 
          else
+            Type_Designator := Make_Designator
+              (Type_Spec (E));
             Ada_Param := Make_Parameter_Specification
               (Make_Defining_Identifier (PN (P_Returns)),
-               Make_Designator (Type_Spec (E)),
+               Type_Designator,
                Mode_Out);
+            Bind_FE_To_BE
+              (Type_Spec (E),
+               Defining_Identifier (Type_Designator));
             Append_Node_To_List (Ada_Param, Profile);
          end if;
       end if;

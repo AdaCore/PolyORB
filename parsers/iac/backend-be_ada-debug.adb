@@ -152,7 +152,7 @@ package body Backend.BE_Ada.Debug is
       if A = "Next_Entity"
         or else A = "Next_Node"
         or else A = "Package_Declaration"
-        or else A = "FE_Node"
+
       then
          return;
       end if;

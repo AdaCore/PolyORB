@@ -1,3 +1,12 @@
+2004-07-06  souli  <souli@neraka.enst.fr>
+
+	* backend-be_ada-runtime.ads: Add To_Any_0, To_Get_Empty_Any_0,
+	To_Any_1 and To_Get_Empty_Any_1 to RE_Id to handle new runtimes
+	entities. 	
+
+	* backend-be_ada.adb: Update FE_Node attribut of Type_Spec
+	Nodes. Use type helper functions. 	
+
 2004-07-05  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_ada-nutils.adb, backend-be_ada-nutils.ads,
@@ -16,6 +25,7 @@
 	generation of object initialization.
 
 	* backend-be_idl.adb: Minor reformatting.
+
 
 2004-07-03  Laurent Pautet  <pautet@dorine.enst.fr>
 
@@ -144,6 +154,16 @@
 
 	* backend-be_ada-runtime.adb: Remove 6619 as it causes RE_X_Y to
 	be output X_Y instead of X.Y as done previously.
+
+2004-06-29  Saber Souli   <souli@enst.fr>
+
+	* backend-be_ada_nutils.adb :  Modification of To_Ada : To  insert
+	"IDL_" string before identifiers that collide with an Ada
+	reserved word.
+
+	* backend-be_ada-generator.adb : Factoring  Token_Type and it's
+	subprograms in orther be used from other packages. 
+
 
 2004-06-29  Laurent Pautet  <pautet@dorine.enst.fr>
 

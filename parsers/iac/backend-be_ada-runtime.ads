@@ -22,9 +22,12 @@ package Backend.BE_Ada.Runtime is
 
    type RE_Id is
      (RE_Ref_0,                     --  Ref
-      RE_Get_Empty_Any,             --  Get_Empty_Any
+      RE_To_Any_1,                  --  CORBA.To_Any
+      RE_Get_Empty_Any_1,           --  CORBA.Get_Empty_Any
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_Any,                       --  CORBA.Any
+      RE_To_Any_0,                  --  CORBA.To_Any
+      RE_Get_Empty_Any_0,           --  CORBA.Get_Empty_Any
       RE_Float,                     --  CORBA.Float
       RE_Double,                    --  CORBA.Double
       RE_Long_Double,               --  CORBA.Long_Double
@@ -53,14 +56,17 @@ package Backend.BE_Ada.Runtime is
       RE_Request_Access,            --  PolyORB.Requests.Request_Access
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
-      RE_String_2);              --  Standard.String
+      RE_String_2);                 --  Standard.String
 
    RE_Unit_Table : array (RE_Id) of RU_Id
 
      := (RE_Ref_0                 => RU_Null,
-         RE_Get_Empty_Any         => RU_Null,
+         RE_To_Any_1              => RU_Null,
+         RE_Get_Empty_Any_1       => RU_Null,
          RE_Exception_Occurrence  => RU_Ada_Exceptions,
          RE_Any                   => RU_CORBA,
+         RE_To_Any_0              => RU_CORBA,
+         RE_Get_Empty_Any_0       => RU_CORBA,
          RE_Float                 => RU_CORBA,
          RE_Double                => RU_CORBA,
          RE_Long_Double           => RU_CORBA,

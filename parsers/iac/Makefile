@@ -359,6 +359,7 @@ mknodes : force
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 $(PROG): force mknodes $(PROG_FILES)
+
 	$(GNATMAKE) -m -gnata -gnatyo $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
@@ -366,7 +367,6 @@ tests: $(PROG)
 	@for i in `cat testsuite/MANIFEST | grep -v '^#'`; do \
 	  testsuite/run-test testsuite/$$i; \
 	done
-
 
 force::
 
