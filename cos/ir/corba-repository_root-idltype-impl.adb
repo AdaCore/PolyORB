@@ -78,6 +78,9 @@ package body CORBA.Repository_Root.IDLType.Impl is
             begin
                return Interfacedef.Impl.Get_IDLType_View (Interm);
             end;
+         when
+           Dk_AbstractInterface .. Dk_Event =>
+            raise PolyORB.Not_Implemented;
       end case;
    end To_IDLType;
 

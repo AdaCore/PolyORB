@@ -43,7 +43,7 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
       package SMS renames
-        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_StructMember;
+        CORBA.Repository_Root.IDL_Sequence_CORBA_StructMember;
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
         (PolyORB.Any.TypeCode.TC_Struct);
@@ -57,9 +57,9 @@ package body CORBA.ORB.Typecode is
       begin
          for I in Memb_Array'Range loop
             CORBA.TypeCode.Internals.Add_Parameter
-              (Result, To_Any (Memb_Array (I).IDL_type));
+              (Result, To_Any (Memb_Array (I).IDL_Type));
             CORBA.TypeCode.Internals.Add_Parameter
-              (Result, To_Any (CORBA.String (Memb_Array (I).name)));
+              (Result, To_Any (CORBA.String (Memb_Array (I).Name)));
          end loop;
       end;
       return Result;
@@ -74,7 +74,7 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
       package UMS renames
-        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_UnionMember;
+        CORBA.Repository_Root.IDL_Sequence_CORBA_UnionMember;
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
         (PolyORB.Any.TypeCode.TC_Union);
@@ -90,11 +90,11 @@ package body CORBA.ORB.Typecode is
       begin
          for I in Memb_Array'Range loop
             CORBA.TypeCode.Internals.Add_Parameter
-              (Result, To_Any (Memb_Array (I).IDL_type));
+              (Result, To_Any (Memb_Array (I).IDL_Type));
             CORBA.TypeCode.Internals.Add_Parameter
-              (Result, To_Any (Memb_Array (I).label));
+              (Result, To_Any (Memb_Array (I).Label));
             CORBA.TypeCode.Internals.Add_Parameter
-              (Result, To_Any (CORBA.String (Memb_Array (I).name)));
+              (Result, To_Any (CORBA.String (Memb_Array (I).Name)));
          end loop;
       end;
       return Result;
@@ -108,7 +108,7 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
       package EMS renames
-        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Identifier;
+        CORBA.Repository_Root.IDL_Sequence_CORBA_Identifier;
       Memb_Array : EMS.Element_Array
         := EMS.To_Element_Array (EMS.Sequence (Members));
    begin
@@ -152,7 +152,7 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
       package SMS renames
-        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_StructMember;
+        CORBA.Repository_Root.IDL_Sequence_CORBA_StructMember;
    begin
       Result := CORBA.TypeCode.Internals.To_CORBA_Object
         (PolyORB.Any.TypeCode.TC_Except);
@@ -166,9 +166,9 @@ package body CORBA.ORB.Typecode is
       begin
          for I in Memb_Array'Range loop
             CORBA.TypeCode.Internals.Add_Parameter
-              (Result, To_Any (Memb_Array (I).IDL_type));
+              (Result, To_Any (Memb_Array (I).IDL_Type));
             CORBA.TypeCode.Internals.Add_Parameter
-              (Result, To_Any (CORBA.String (Memb_Array (I).name)));
+              (Result, To_Any (CORBA.String (Memb_Array (I).Name)));
          end loop;
       end;
       return Result;
@@ -276,8 +276,7 @@ package body CORBA.ORB.Typecode is
    is
       Result : CORBA.TypeCode.Object;
 
-      package VMS renames
-        CORBA.Repository_Root.IDL_SEQUENCE_CORBA_Repository_Root_ValueMember;
+      package VMS renames CORBA.Repository_Root.IDL_Sequence_CORBA_ValueMember;
 
    begin
       Result := TC_Value;
@@ -295,11 +294,11 @@ package body CORBA.ORB.Typecode is
       begin
          for I in Memb_Array'Range loop
             CORBA.TypeCode.Internals.Add_Parameter
-              (Result, To_Any (CORBA.Short (Memb_Array (I).IDL_access)));
+              (Result, To_Any (CORBA.Short (Memb_Array (I).IDL_Access)));
             CORBA.TypeCode.Internals.Add_Parameter
-              (Result, To_Any (Memb_Array (I).IDL_type));
+              (Result, To_Any (Memb_Array (I).IDL_Type));
             CORBA.TypeCode.Internals.Add_Parameter
-              (Result, To_Any (CORBA.String (Memb_Array (I).name)));
+              (Result, To_Any (CORBA.String (Memb_Array (I).Name)));
          end loop;
       end;
       return Result;

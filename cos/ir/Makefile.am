@@ -118,21 +118,18 @@ GEN_SPECS_WITH_BODY= \
   corba-repository_root-wstringdef-skel.ads \
   corba-repository_root-wstringdef.ads
 
-GEN_SPECS_NO_BODY= \
-  corba-repository_root.ads
-
 GEN_BODIES = $(GEN_SPECS_WITH_BODY:.ads=.adb)
 
 GEN= \
-	$(GEN_SPECS_NO_BODY) \
 	$(GEN_SPECS_WITH_BODY)
 
 $(GEN): $(srcdir)/ir.idl $(srcdir)/typecode.sh $(IDLAC)
 	$(IDLAC) $(srcdir)/ir.idl
+	$(RM) corba-repository_root.ads
 	@chmod +x $(srcdir)/typecode.sh
 	$(srcdir)/typecode.sh $(SED) $(RM) $(GEN) $(GEN_BODIES)
 
-DISTCLEANFILES += ${GEN}
+DISTCLEANFILES += $(GEN) $(GEN_BODIES)
 
 #
 # Building libpolyorb-corba-cos-ir-impl library

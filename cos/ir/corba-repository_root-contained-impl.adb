@@ -39,7 +39,7 @@ with PortableServer;
 
 package body CORBA.Repository_Root.Contained.Impl is
 
-   package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+   package Contained_For_Seq renames IDL_Sequence_CORBA_Contained_Forward;
 
    -----------
    -- Debug --
@@ -261,6 +261,9 @@ package body CORBA.Repository_Root.Contained.Impl is
                return Contained.Convert_Forward.To_Forward
                  (Contained.Helper.To_Ref (The_Ref));
             end;
+         when
+           Dk_AbstractInterface .. Dk_Event =>
+            raise PolyORB.Not_Implemented;
 
       end case;
    end To_Forward;
@@ -337,6 +340,9 @@ package body CORBA.Repository_Root.Contained.Impl is
             begin
                Result := Interfacedef.Impl.Get_Contained_View (Interm);
             end;
+         when
+           Dk_AbstractInterface .. Dk_Event =>
+            raise PolyORB.Not_Implemented;
       end case;
       return;
    end To_Contained;
@@ -409,6 +415,9 @@ package body CORBA.Repository_Root.Contained.Impl is
             begin
                return Interfacedef.Impl.Get_Contained_View (Interm);
             end;
+         when
+           Dk_AbstractInterface .. Dk_Event =>
+            raise PolyORB.Not_Implemented;
       end case;
    end To_Contained;
 
@@ -642,6 +651,9 @@ package body CORBA.Repository_Root.Contained.Impl is
             begin
                return Interfacedef.Impl.Describe (Interm);
             end;
+         when
+           Dk_AbstractInterface .. Dk_Event =>
+            raise PolyORB.Not_Implemented;
       end case;
    end describe;
 

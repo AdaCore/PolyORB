@@ -41,8 +41,8 @@ package body CORBA.Repository_Root.InterfaceDef.Impl is
      renames L2.Output;
 
 
-   package IntDef renames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
-   package IdSeq renames IDL_SEQUENCE_CORBA_RepositoryId;
+   package IntDef renames IDL_Sequence_CORBA_InterfaceDef_Forward;
+   package IdSeq renames IDL_Sequence_CORBA_RepositoryId;
 
    ------------
    --  INIT  --

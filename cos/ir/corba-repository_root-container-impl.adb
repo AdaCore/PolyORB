@@ -182,7 +182,8 @@ package body CORBA.Repository_Root.Container.Impl is
                return Container.Convert_Forward.To_Forward
                  (Container.Helper.To_Ref (The_Ref));
             end;
-
+         when dk_AbstractInterface .. dk_Event =>
+            raise PolyORB.Not_Implemented;
       end case;
    end To_Forward;
 
@@ -287,6 +288,8 @@ package body CORBA.Repository_Root.Container.Impl is
             begin
                Result := UnionDef.Impl.Get_Container_View (Interm);
             end;
+         when dk_AbstractInterface .. dk_Event =>
+            raise PolyORB.Not_Implemented;
       end case;
       return;
    end To_Container;
@@ -345,6 +348,9 @@ package body CORBA.Repository_Root.Container.Impl is
             begin
                return UnionDef.Impl.Get_Container_View (Interm);
             end;
+         when
+           dk_AbstractInterface .. dk_Event =>
+            raise PolyORB.Not_Implemented;
       end case;
    end To_Container;
 
@@ -382,7 +388,7 @@ package body CORBA.Repository_Root.Container.Impl is
    function Check_Name (Self : access Object;
                         Name : Identifier) return Boolean
    is
-      package Contained_For_Seq reNames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+      package Contained_For_Seq renames IDL_Sequence_CORBA_Contained_Forward;
       use Contained_For_Seq;
    begin
       pragma Debug (O2 ("Check_Name (container)"));
@@ -519,9 +525,9 @@ package body CORBA.Repository_Root.Container.Impl is
       return CORBA.Repository_Root.ContainedSeq
    is
       Result : CORBA.Repository_Root.ContainedSeq;
-      package Contained_For_Seq reNames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
-      package IdF reNames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
-      package VDF reNames IDL_SEQUENCE_CORBA_Repository_Root_ValueDef_Forward;
+      package Contained_For_Seq renames IDL_Sequence_CORBA_Contained_Forward;
+      package IdF renames IDL_Sequence_CORBA_InterfaceDef_Forward;
+      package VDF renames IDL_Sequence_CORBA_ValueDef_Forward;
    begin
       --  Get the direct contained
       Result := Contained.Impl.contents (Self.Contents,
@@ -651,9 +657,9 @@ package body CORBA.Repository_Root.Container.Impl is
       exclude_inherited : in CORBA.Boolean)
       return CORBA.Repository_Root.ContainedSeq
    is
-      package Contained_For_Seq reNames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
-      package IdF reNames IDL_SEQUENCE_CORBA_Repository_Root_InterfaceDef_Forward;
-      package VDF reNames IDL_SEQUENCE_CORBA_Repository_Root_ValueDef_Forward;
+      package Contained_For_Seq renames IDL_Sequence_CORBA_Contained_Forward;
+      package IdF renames IDL_Sequence_CORBA_InterfaceDef_Forward;
+      package VDF renames IDL_Sequence_CORBA_ValueDef_Forward;
       Result : CORBA.Repository_Root.ContainedSeq;
    begin
       Result := Contained.Impl.Lookup_Name (Self.Contents,
@@ -820,7 +826,7 @@ package body CORBA.Repository_Root.Container.Impl is
      return CORBA.Repository_Root.Container.DescriptionSeq
    is
       Content : Contained.Impl.Contained_Seq.Sequence;
-      package CD reNames IDL_SEQUENCE_CORBA_Repository_Root_Container_Description;
+      package CD renames IDL_Sequence_CORBA_Container_Description;
       Result : DescriptionSeq := DescriptionSeq (CD.Null_Sequence);
       use Contained.Impl;
    begin

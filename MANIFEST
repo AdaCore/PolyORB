@@ -478,6 +478,7 @@ src/corba/corba-policy.adb
 src/corba/corba-policy.ads
 src/corba/corba-request.adb
 src/corba/corba-request.ads
+src/corba/corba-repository_root.ads
 src/corba/corba-sequences-bounded.ads
 src/corba/corba-sequences-unbounded.ads
 src/corba/corba-sequences.ads

@@ -23,8 +23,8 @@ with PortableServer;
 
 package body CORBA.Repository_Root.ValueDef.Impl is
 
-   package ValDef renames IDL_SEQUENCE_CORBA_Repository_Root_ValueDef_Forward;
-   package IdSeq renames IDL_SEQUENCE_CORBA_RepositoryId;
+   package ValDef renames IDL_Sequence_CORBA_ValueDef_Forward;
+   package IdSeq renames IDL_Sequence_CORBA_RepositoryId;
 
    ------------
    --  INIT  --
@@ -554,7 +554,7 @@ package body CORBA.Repository_Root.ValueDef.Impl is
    is
       Val : CORBA.ValueModifier;
       Base_TC : CORBA.TypeCode.Object;
-      package VMS renames IDL_SEQUENCE_CORBA_Repository_Root_ValueMember;
+      package VMS renames IDL_Sequence_CORBA_ValueMember;
    begin
       if not ValueDef.Is_Nil (Self.Base_Value) then
          declare

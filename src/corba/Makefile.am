@@ -53,6 +53,7 @@ ADA_SPECS_WITH_BODY = \
 ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 	corba-current.ads \
 	corba-local.ads \
+	corba-repository_root.ads \
 	corba-sequences-bounded.ads \
 	corba-sequences-unbounded.ads \
 	corba-sequences.ads \

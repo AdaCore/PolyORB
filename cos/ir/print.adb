@@ -215,21 +215,21 @@ procedure Print is
 
 
    procedure Print_ParDescriptionSeq (Des : ParDescriptionSeq;
-                                      Inc : Standard.String) is
-      package PDS renames
-        IDL_SEQUENCE_CORBA_Repository_Root_ParameterDescription;
+                                      Inc : Standard.String)
+   is
+      package PDS renames IDL_Sequence_CORBA_ParameterDescription;
       A : PDS.Element_Array
         := PDS.To_Element_Array (PDS.Sequence (Des));
    begin
       for I in A'Range loop
          Put_Line (Inc & "Param " & Integer'Image (I) & " : ");
          Put (Inc & "    type   : ");
-         Print_TypeCode (A (I).IDL_type, Inc & "        ");
+         Print_TypeCode (A (I).IDL_Type, Inc & "        ");
          Put_Line (" ");
          Put_Line (Inc & "    name   : " &
-                   CORBA.To_Standard_String (CORBA.String ((A (I).name))));
+                   CORBA.To_Standard_String (CORBA.String ((A (I).Name))));
          Put_Line (Inc & "    mode   : " &
-                   ParameterMode'Image (A (I).mode));
+                   ParameterMode'Image (A (I).Mode));
       end loop;
    end Print_ParDescriptionSeq;
 
@@ -257,10 +257,10 @@ procedure Print is
                  Helper.From_Any (Des.value);
             begin
                Put (Inc & "Type     :");
-               Print_TypeCode (D.IDL_type, Inc & "    ");
+               Print_TypeCode (D.IDL_Type, Inc & "    ");
                Put_Line (" ");
                Put_Line (Inc & "Mode     :" &
-                         AttributeMode'Image (D.mode));
+                         AttributeMode'Image (D.Mode));
             end;
 
          when
@@ -274,9 +274,9 @@ procedure Print is
                  Helper.From_Any (Des.value);
             begin
                Put (Inc & "Result_type : ");
-               Print_TypeCode (D.result, Inc & "    ");
+               Print_TypeCode (D.Result, Inc & "    ");
                Put_Line (" ");
-               Print_ParDescriptionSeq (D.parameters, Inc);
+               Print_ParDescriptionSeq (D.Parameters, Inc);
             end;
          when
            dk_Alias      |
@@ -334,8 +334,7 @@ procedure Print is
                             Inc : Standard.String) is
 
       package Contained_For_Seq renames
-      CORBA.Repository_Root.
-        IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+        CORBA.Repository_Root.  IDL_Sequence_CORBA_Contained_Forward;
       Cont_Array : Contained_For_Seq.Element_Array
         := Contained_For_Seq.To_Element_Array
         (Contained_For_Seq.Sequence (In_Seq));
