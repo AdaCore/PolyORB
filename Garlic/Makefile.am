@@ -7,7 +7,6 @@ AUTOMAKE_OPTIONS = no-dependencies foreign
 CC      = @CC@
 SED     = @SED@
 RANLIB  = @RANLIB@
-LIBTOOL = @LIBTOOL@
 
 CONSTANTS_SH = ${srcdir}/constants.sh
 CP           = cp
@@ -121,28 +120,24 @@ SOURCES = \
 $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
-CLEANFILES = -r *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
-	s-garser.adb $(FILTERSOBJECTS) split *.lo *.la .libs
+CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaosli.ads s-gaprco.adb \
+	s-garser.adb $(FILTERSOBJECTS) split
 
 SUFFIXES = .adb .ads .ali .o .xrb
 
 %.o: %.adb
-	${LIBTOOL} --mode=compile \
-		${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
 %.o: %.ads
-	${LIBTOOL} --mode=compile \
-		${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
 
 %.ali: %.adb
-	${LIBTOOL} --mode=compile \
-		${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
 
 %.ali: %.ads
-	${LIBTOOL} --mode=compile \
-		${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
 s-garcon.ads: ${CONSTANTS_SH} split
 	if test -f ${CONSTANTS_PLATFORM}; then \
@@ -175,11 +170,7 @@ install-data-local: all-local install-dirs-local install-extra-libs
 			${CP} -p $$i ${GARLIC}/; \
 		fi; \
 	done
-	${LIBTOOL} --mode=link \
-		${CC} -version-info 1:0 -o libgarlic.la -rpath ${GARLIC} \
-		`echo ${OBJECTS} | ${SED} -e 's/\.o/.lo/g'`
-	${LIBTOOL} --mode=install \
-		${INSTALL} libgarlic.la ${GARLIC} | grep -v LIBDIR
+	ar cq ${GARLIC}/libgarlic.a ${OBJECTS}
 	chmod a+r ${GARLIC}/*
 	chmod a-w ${GARLIC}/*
 

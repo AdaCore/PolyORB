@@ -69,8 +69,6 @@ GNAT_SOURCE = @GNAT_SOURCE@
 LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
 LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
 LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
-LD = @LD@
-LIBTOOL = @LIBTOOL@
 PACKAGE = @PACKAGE@
 PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
 PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
@@ -264,7 +262,6 @@ clean:  clean-recursive clean-am
 
 distclean:  distclean-recursive distclean-am
 	rm -f config.status
-	rm -f libtool
 
 maintainer-clean:  maintainer-clean-recursive maintainer-clean-am
 	@echo "This command is intended for maintainers to use;"

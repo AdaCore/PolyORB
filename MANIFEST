@@ -10,8 +10,6 @@ config.sub
 configure
 configure.in
 install-sh
-ltconfig
-ltmain.sh
 missing
 mkinstalldirs
 Dist/Makefile.am

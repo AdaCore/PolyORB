@@ -19,16 +19,6 @@ if test $# = 0; then
   exit 0
 fi
 
-if test ! -f ${GARLIC}/libgarlic.so; then
-  cl="$@ -largs ${GARLIC}/libgarlic.a -lgnat"
-else
-  case "$@" in
-      *-static*) \
-	cl=`echo "$@ -largs ${GARLIC}/libgarlic.a -lgnat" | \
-	    sed -e 's/-static//g'`;;
-      *)  \
-     cl="$@ -largs -L${GARLIC} -R${GARLIC} -lgarlic -lgnat";;
-  esac
-fi
+LIBS="${GARLIC}/libgarlic.a ${GARLIC}/libgnat.a"
 
-eval dist1 -I${GARLIC} -L${GARLIC} $cl
+eval dist1 -I${GARLIC} -L${GARLIC} "$@" -largs ${LIBS}

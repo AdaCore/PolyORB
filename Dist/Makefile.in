@@ -63,8 +63,6 @@ GNAT_SOURCE = @GNAT_SOURCE@
 LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
 LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
 LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
-LD = @LD@
-LIBTOOL = @LIBTOOL@
 PACKAGE = @PACKAGE@
 PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
 PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
@@ -120,7 +118,7 @@ OBJECTS = $(dist1_OBJECTS)
 default: all
 
 .SUFFIXES:
-.SUFFIXES: .c .o .lo
+.SUFFIXES: .c .o
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --foreign Dist/Makefile
 
@@ -149,8 +147,8 @@ install-libexecPROGRAMS: $(libexec_PROGRAMS)
 	$(mkinstalldirs) $(libexecdir)
 	@list='$(libexec_PROGRAMS)'; for p in $$list; do \
 	  if test -f $$p; then \
-	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p$(EXEEXT) $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT)"; \
-	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p$(EXEEXT) $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT); \
+	    echo "  $(INSTALL_PROGRAM) $$p$(EXEEXT) $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT)"; \
+	     $(INSTALL_PROGRAM) $$p$(EXEEXT) $(libexecdir)/`echo $$p|sed '$(transform)'`$(EXEEXT); \
 	  else :; fi; \
 	done
 
@@ -172,19 +170,6 @@ distclean-compile:
 	rm -f *.tab.c
 
 maintainer-clean-compile:
-
-.c.lo:
-	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
-
-mostlyclean-libtool:
-	rm -f *.lo
-
-clean-libtool:
-	rm -rf .libs
-
-distclean-libtool:
-
-maintainer-clean-libtool:
 
 install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
@@ -296,22 +281,18 @@ maintainer-clean-generic:
 	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 	test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 mostlyclean:  mostlyclean-libexecPROGRAMS mostlyclean-compile \
-		mostlyclean-libtool mostlyclean-tags \
-		mostlyclean-generic
+		mostlyclean-tags mostlyclean-generic
 
-clean:  clean-libexecPROGRAMS clean-compile clean-libtool clean-tags \
-		clean-generic mostlyclean
+clean:  clean-libexecPROGRAMS clean-compile clean-tags clean-generic \
+		mostlyclean
 
-distclean:  distclean-libexecPROGRAMS distclean-compile \
-		distclean-libtool distclean-tags distclean-generic \
-		clean
+distclean:  distclean-libexecPROGRAMS distclean-compile distclean-tags \
+		distclean-generic clean
 	rm -f config.status
-	rm -f libtool
 
 maintainer-clean:  maintainer-clean-libexecPROGRAMS \
-		maintainer-clean-compile maintainer-clean-libtool \
-		maintainer-clean-tags maintainer-clean-generic \
-		distclean
+		maintainer-clean-compile maintainer-clean-tags \
+		maintainer-clean-generic distclean
 	@echo "This command is intended for maintainers to use;"
 	@echo "it deletes files that may require special tools to rebuild."
 
@@ -319,13 +300,12 @@ maintainer-clean:  maintainer-clean-libexecPROGRAMS \
 clean-libexecPROGRAMS maintainer-clean-libexecPROGRAMS \
 uninstall-libexecPROGRAMS install-libexecPROGRAMS mostlyclean-compile \
 distclean-compile clean-compile maintainer-clean-compile \
-mostlyclean-libtool distclean-libtool clean-libtool \
-maintainer-clean-libtool uninstall-binSCRIPTS install-binSCRIPTS \
-uninstall-libexecSCRIPTS install-libexecSCRIPTS tags mostlyclean-tags \
-distclean-tags clean-tags maintainer-clean-tags distdir info dvi \
-installcheck install-exec install-data install uninstall all \
-installdirs mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+uninstall-binSCRIPTS install-binSCRIPTS uninstall-libexecSCRIPTS \
+install-libexecSCRIPTS tags mostlyclean-tags distclean-tags clean-tags \
+maintainer-clean-tags distdir info dvi installcheck install-exec \
+install-data install uninstall all installdirs mostlyclean-generic \
+distclean-generic clean-generic maintainer-clean-generic clean \
+mostlyclean distclean maintainer-clean
 
 
 force: 
