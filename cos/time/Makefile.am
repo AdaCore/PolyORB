@@ -17,4 +17,4 @@ COS_DIRS=../../idls/cos/time
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
-	for f in $(srcdir)/cos*.ad[bs] cos*.ali $(srcdir)/time*.ad[bs] time*.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
+	for f in $(srcdir)/cos*.ad[bs] $(srcdir)/time*.ad[bs]; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
