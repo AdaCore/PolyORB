@@ -387,7 +387,7 @@ if test $target = $host; then
 AC_CHECK_HEADERS([stdio.h sys/types.h sys/socket.h errno.h netdb.h string.h])
 AC_CHECK_HEADERS([netinet/in.h signal.h fcntl.h termio.h termios.h sys/file.h])
 AC_CHECK_HEADERS([sys/ioctl.h netinet/tcp.h sys/systeminfo.h poll.h stropts.h])
-AC_CHECK_HEADERS([sys/conf.h])
+AC_CHECK_HEADERS([sys/conf.h sys/param.h time.h])
 fi
 #
 # Output
