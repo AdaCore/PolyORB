@@ -142,13 +142,54 @@ package body Test001_Server_Request_Info_Tests is
      (Point : in Server_Interception_Point;
       Info  : in PortableInterceptor.ServerRequestInfo.Local_Ref)
    is
-      pragma Unreferenced (Info);
-
       Operation : constant String := "object_id";
-   begin
-      --  XXX Not yet implemented in ServerRequestInfo
+      Valid     : constant Boolean
+        := Point /= Receive_Request_Service_Contexts;
 
-      Output (Point, Operation, False, " (NO TEST)");
+   begin
+      declare
+         Aux : constant ObjectId := Get_Object_Id (Info);
+      begin
+         if not Valid then
+            Output (Point, Operation, False);
+         elsif Aux /= Test_ObjectId then
+            Output (Point, Operation, False);
+         else
+            Output (Point, Operation, True);
+         end if;
+      end;
+
+   exception
+      when E : Bad_Inv_Order =>
+         declare
+            Members : System_Exception_Members;
+         begin
+            Get_Members (E, Members);
+            if not Valid and then Members.Minor = 14 then
+               Output (Point, Operation, True);
+            else
+               Output (Point, Operation, False);
+            end if;
+         end;
+
+      when E : No_Resources =>
+         declare
+            Members : System_Exception_Members;
+         begin
+            Get_Members (E, Members);
+            if Valid
+              and then (Point = Send_Exception
+                          or else Point = Send_Other)
+              and then Members.Minor = 1
+            then
+               Output (Point, Operation, True, " (NO_RESOURCES)");
+            else
+               Output (Point, Operation, False);
+            end if;
+         end;
+
+      when others =>
+         Output (Point, Operation, False);
    end Test_Object_Id;
 
    -----------------

@@ -34,6 +34,7 @@
 with CORBA.ORB;
 with PortableInterceptor.ORBInitializer.Register;
 with PortableInterceptor.ORBInitializer.Initialize_All;
+with PortableServer.POA;
 
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Smart_Pointers;
@@ -44,6 +45,7 @@ pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
 pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
 
 with Test001_Globals;
+with Test001_Interface.Helper;
 with Test001_Interface.Impl;
 with Test001_ORB_Initializer.Impl;
 
@@ -71,8 +73,24 @@ begin
 
    PolyORB.CORBA_P.Server_Tools.Initiate_Server (True);
 
-   PolyORB.CORBA_P.Server_Tools.Initiate_Servant
-     (new Test001_Interface.Impl.Object, Test_Object);
+   declare
+      Root_POA : PortableServer.POA.Ref;
+   begin
+      Root_POA := PortableServer.POA.To_Ref
+        (CORBA.ORB.Resolve_Initial_References
+         (CORBA.ORB.To_CORBA_String ("RootPOA")));
+
+      declare
+         Id : constant PortableServer.ObjectId
+           := PortableServer.POA.Activate_Object
+               (Root_POA, new Test001_Interface.Impl.Object);
+      begin
+         Test_ObjectId := To_PortableInterceptor_ObjectId (Id);
+         Test_Object :=
+           Test001_Interface.Helper.To_Ref
+            (PortableServer.POA.Id_To_Reference (Root_POA, Id));
+      end;
+   end;
 
    PolyORB.Utils.Report.New_Test ("Request Information");
 
