@@ -1608,6 +1608,11 @@ package body Ada_Be.Idl2Ada is
                  := Operation_Type (Node);
                Response_Expected : constant Boolean
                  := not Is_Oneway (Node);
+
+               Is_Function : constant Boolean
+                 := Kind (O_Type) /= K_Void;
+               --  Is this operation mapped as an Ada function?
+
             begin
                Add_With (CU, "CORBA",
                          Use_It    => False,
@@ -1627,8 +1632,7 @@ package body Ada_Be.Idl2Ada is
                NL (CU);
                PL (CU, "is");
                II (CU);
-               if Kind (O_Type) /= K_Void then
-                  Add_With_Stream (CU, O_Type);
+               if Is_Function then
                   PL (CU, T_Returns & " : " & Ada_Type_Name (O_Type) & ";");
                end if;
 
@@ -1687,10 +1691,16 @@ package body Ada_Be.Idl2Ada is
                      P_Node : Node_Id;
                      First  : Boolean := True;
                   begin
-                     if Kind (O_Type) /= K_Void then
+                     if Kind (Original_Operation_Type (Node)) /= K_Void then
+                        Add_With_Stream (CU, Original_Operation_Type (Node));
                         NL (CU);
                         PL (CU, "--  Unmarshall return value.");
-                        PL (CU, T_Returns & " := Unmarshall (" & T_Handler &
+                        if Is_Function then
+                           Put (CU, T_Returns);
+                        else
+                           Put (CU, "Returns");
+                        end if;
+                        PL (CU, " := Unmarshall (" & T_Handler &
                             ".Buffer'Access);");
                      end if;
 
@@ -1698,28 +1708,30 @@ package body Ada_Be.Idl2Ada is
                      while not Is_End (It) loop
                         Get_Next_Node (It, P_Node);
 
-                        case Mode (P_Node) is
-                           when Mode_Inout | Mode_Out =>
-                              if First then
-                                 NL (CU);
-                                 PL
-                                   (CU,
-                                    "--  Unmarshall inout and out " &
-                                    "parameters.");
-                                 First := False;
-                              end if;
-                              PL (CU, Ada_Name (Declarator (P_Node))
-                                  & " := Unmarshall (" & T_Handler &
-                                  ".Buffer'Access);");
-                           when others =>
-                              null;
-                        end case;
+                        if not Is_Returns (P_Node) then
+                           case Mode (P_Node) is
+                              when Mode_Inout | Mode_Out =>
+                                 if First then
+                                    NL (CU);
+                                    PL
+                                      (CU,
+                                       "--  Unmarshall inout and out " &
+                                       "parameters.");
+                                    First := False;
+                                 end if;
+                                 PL (CU, Ada_Name (Declarator (P_Node))
+                                     & " := Unmarshall (" & T_Handler &
+                                     ".Buffer'Access);");
+                              when others =>
+                                 null;
+                           end case;
+                        end if;
 
                      end loop;
                   end;
 
                   PL (CU, "Broca.GIOP.Release (" & T_Handler & ");");
-                  if Kind (O_Type) /= K_Void then
+                  if Is_Function then
                      PL (CU, "return " & T_Returns & ";");
                   else
                      PL (CU, "return;");

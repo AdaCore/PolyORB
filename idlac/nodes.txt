@@ -162,6 +162,10 @@ Param
   Mode : Param_Mode
   Param_Type : Node_Id
   Declarator : Node_Id
+  Is_Returns : Boolean := False
+  --  Expansion attribute: is this a mode out
+  --  formal that represents the return value
+  --  of a function with out or inout formals?
 
 Exception <-- Scope
   Members : Node_List

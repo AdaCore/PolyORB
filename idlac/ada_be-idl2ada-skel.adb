@@ -133,8 +133,11 @@ package body Ada_Be.Idl2Ada.Skel is
                  := Parent_Scope (Node);
                --  The Interface Or valuetype node that contains
                --  this operation.
+
+               Operation_Type_Node : constant Node_Id
+                 := Operation_Type (Node);
                Is_Function : constant Boolean
-                 := Kind (Operation_Type (Node)) /= K_Void;
+                 := Kind (Operation_Type_Node) /= K_Void;
                Is_Supported : constant Boolean
                  := Kind (I_Node) = K_ValueType;
             begin
@@ -186,7 +189,7 @@ package body Ada_Be.Idl2Ada.Skel is
 
                if Is_Function then
                   PL (CU, T_Returns & " : "
-                      & Ada_Type_Name (Operation_Type (Node))
+                      & Ada_Type_Name (Operation_Type_Node)
                       & ";");
                end if;
 
@@ -395,12 +398,15 @@ package body Ada_Be.Idl2Ada.Skel is
                PL (CU, "  (Reply_Buffer,");
                PL (CU, "   Broca.GIOP.No_Exception);");
 
-               if Is_Function then
+               if Kind (Original_Operation_Type (Node)) /= K_Void then
+                  Add_With_Stream (CU, Original_Operation_Type (Node));
                   NL (CU);
                   PL (CU, "--  Marshall return value");
-                  Add_With_Stream (CU, Operation_Type (Node));
-
-                  PL (CU, "Marshall (Reply_Buffer, " & T_Returns & ");");
+                  if Is_Function then
+                     PL (CU, "Marshall (Reply_Buffer, " & T_Returns & ");");
+                  else
+                     PL (CU, "Marshall (Reply_Buffer, IDL_Returns);");
+                  end if;
                end if;
 
                declare
@@ -418,17 +424,19 @@ package body Ada_Be.Idl2Ada.Skel is
                   while not Is_End (It) loop
                      Get_Next_Node (It, P_Node);
 
-                     case Mode (P_Node) is
-                        when
-                          Mode_Inout |
-                          Mode_Out   =>
-                           Add_With_Stream (CU, Param_Type (P_Node));
+                     if not Is_Returns (P_Node) then
+                        case Mode (P_Node) is
+                           when
+                             Mode_Inout |
+                             Mode_Out   =>
+                              Add_With_Stream (CU, Param_Type (P_Node));
 
-                           PL (CU, "Marshall (Reply_Buffer, IDL_"
-                               & Ada_Name (Declarator (P_Node)) & ");");
-                        when others =>
-                           null;
-                     end case;
+                              PL (CU, "Marshall (Reply_Buffer, IDL_"
+                                  & Ada_Name (Declarator (P_Node)) & ");");
+                           when others =>
+                              null;
+                        end case;
+                     end if;
                   end loop;
                end;
 

@@ -53,6 +53,8 @@ technical information or if you are interested in the way AdaBroker is built, pl
 
 \paragraph{}You'll find here a general introduction to CORBA as well as an explanation of the way it works globally.
 If you already know something on CORBA, just skip this chapter.
+\paragraph{}We'll first describe CORBA in general, then give a little example of a CORBA application and at last speak of some of
+the more advanced CORBA features.
 
 %%%  OMG
 \section{The OMG}
@@ -70,15 +72,124 @@ applications.
 
 %%%  Client-server model
 \section{a Client - Server architecture}
-\paragraph{}The CORBA model is based on a classical client-server architecture. There is thus two types of applications using CORBA : clients and servers (even if you can be both at the same time). The servers provide some functionnalities through objects and methods on them and the client can use them remotely through the CORBA Bus. The figure \ref{fig:CSModel} page \pageref{fig:CSModel} provides a schema of the mechanism.
+\paragraph{}As can be expected, CORBA based on a classical client-server architecture where the client and the server communicate
+through the so called CORBA Bus.
+\paragraph{}There is thus two types of applications using CORBA : 
+\begin{itemize}
+\item servers, or service furnishers that provide some useful objects to be used by all otjer CORBA users.
+\item clients which place some sort of remote procedure calls on the objects provided by the different servers.
+\end{itemize}
+Figure \ref{fig:CSModel} on page \pageref{fig:CSModel} shows you a schema of this process.
 \begin{figure}
 \label{fig:CSModel}
 \begin{center}
-\includegraphics[angle=270,scale=0.5]{client-server_model.ps}
+\includegraphics[scale=0.7]{client-server_model.eps}
 \caption{Client-Server Model}
 \end{center}
 \end{figure}
 
+\paragraph{}You can notice on this scema that even inside the client or the server, there are two different levels.
+The upper level on each side (Stub for the client and Skeleton for the server) are actually an abstraction level that provides langage
+independency and distributed facilities. As a matter of fact, CORBA allows the programmers to write code in his prefered langage
+without being bored by the distributed aspect. The user, for example uses Object References as if it were local objects and when he calls
+methods on them, these are redirected on the stub that performs all the network work.
+\paragraph{}Let's see a little more in detail how all this work.
+
+%%% Object Definition in IDL
+\section{Object definition in IDL}
+\paragraph{}IDL stands for Interface Definition Langage since objects are called interfaces in CORBA.
+This langage provides a way of specifying
+objects through their interfaces in order to make that both servers and clients be speaking of the same things.
+\paragraph{}IDL uses a kind of modified C syntax. There is no point to detail this syntax here, just refer to \cite{OMG3} if you need further
+details. Here is a sample IDL file, defining a calculator service.
+\begin{verbatim}
+interface calculator {
+  long Add (in long a, in long b);
+  long Sub (in long a, in long b);
+};
+\end{verbatim}
+\paragraph{}If defines an object {\it calculator} with two methods : Add and Sub taking both two long and returning one.
+Now let's see how this file is used.
+
+%%% Language Mapping
+\section{Mapping to a language}
+\paragraph{}We said CORBA is langage independant and everyone can program in its prefered language. At this moment, we only introduced a
+new language : IDL. How does it help us ?
+\paragraph{}It helps since it gives a common description of the object that will be used in all other langages to generate a language
+specific code implementing the object. This operation is called mapping. It is done by IDL to whatever compiler that automatically
+generate the Stub and Skeleton we saw before in the language you are interested in. As an example, we show here some result of this
+mapping on the calculator object (only the specification is presented here) :
+\begin{itemize}
+\item In C++ (using omniOrb)
+\begin{verbatim}
+class calculator : public virtual omniObject, public virtual CORBA::Object {
+public:
+
+  virtual CORBA::Long  Add(CORBA::Long  a, CORBA::Long  b) = 0;
+  virtual CORBA::Long  Sub(CORBA::Long  a, CORBA::Long  b) = 0;
+  (...)
+};
+\end{verbatim}
+\item In Java (using orbacus)
+\begin{verbatim}
+public interface calculatorOperations {
+
+    public int Add(int a, int b);
+    public int Sub(int a, int b);
+}
+\end{verbatim}
+\item and last but not least : in Ada (using the wonderful AdaBroker)
+\begin{verbatim}
+package calculator is
+   (...)
+   function Add (Self : in Ref;
+                 a : in CORBA.Long;
+                 b : in CORBA.Long)
+                 return CORBA.Long;
+
+   function Sub (Self : in Ref;
+                 a : in CORBA.Long;
+                 b : in CORBA.Long)
+                 return CORBA.Long;
+   (...)
+end calculator;
+\end{verbatim}
+\end{itemize}
+\paragraph{}The CORBA specification defines precisely each of these mappings. For the Ada one, please report to \cite{AdaMapping} 
+if you are interested. Both writter of the client and server part can then use the mapping they prefer with a very convenient 
+interface written in their own language.
+
+%%% Distributivity
+\section{Distributed ?}
+\paragraph{}We know at this moment how a client or a server are implemented, in a language independant manner
+but what about a distributivity ? Can my client and my server be on different machines, in different places ? Yes of course and this is
+provided through the definition of the GIOP : the {\bf G}eneral {\bf I}nter{\bf O}RB {\bf P}rotocol.
+\paragraph{}This protocol defines the way different machines running a CORBA ORB can communicate to allow clients of one to call servers
+on the other. The theory is pretty simple : it defines a way of coding a procedure call (basically an object name, an operation
+name and some arguments) and how the result is inserted in a TCP/IP packet or whatever else. It also defines the way the result is
+sent back (even when exceptions occurs).
+\paragraph{}All these operations of coding, decoding (we call it marshalling and unmarshalling) and dealing with the network are transparent
+to the user since they are implemented in the automatically generated Stub and Skeleton. The user can then code its client or server
+as if he was only using local objects. Note that this GIOP is also the key of the language independency since the bytes that are sent
+over the network are the same for every mapping. They do not depend on the sender language.
+
+%%% Some other features
+\section{Some other CORBA features}
+CORBA has some more features we didn't spoke of yet. Let's detail some of them.
+
+\subsection{Dynamic Invocation}
+\paragraph{}The dynamic invocation is a way of placing a remote procedure call on an object without knowing its specification.
+It allows a client
+code to invoke a method in a very general manner without using the Stub and Skeleton we spoke of since you're not supposed to
+have the IDL file here. It can seem a bit odd but it can be very usefull. Most of this document is devoted to the explanation of
+this feature and its implementation in AdaBroker so you know where to find some information.
+\subsection{Interface Repository}
+\paragraph{}This is actually a CORBA server as many others except it allows you to register some objects (in case you are a server
+providing them) and allows then the clients to discover them dynamically. Together with the dynamic invocation, it allows a code to
+use some object that didn't even exist when the code was written.
+\subsection{other services}
+\paragraph{}The interface repository is not the only service to be defined by the OMG itself. There are a bunch of them and the most
+know are cosNaming, cosTime and cosEvent (I let you guess what kind of service they provide).
 
 %%%  Adabroker
 %%%%%%%%%%%%%%%%%%%%%
@@ -86,11 +197,16 @@ applications.
 \paragraph{}You'll find here a general introduction to AdaBroker, a GPL released Ada ORB for CORBA.
 
 \section{What it is}
-\paragraph{}AdaBroker is an Ada ORB for CORBA. It all began with a student project at the ENST (Ecole Nationale Supérieure des Télécoms) in Paris, France in Januar 1999. The first version (beta 0.8) was released in the summer 99 and already provided most of the existing CORBA fetures. It was mostly based on external component since it used the Sun front-end for the parsing of Idl in the Idl to Ada compiler and the OmniORB ORB.
-\paragraph{}The first major work for the AdaBroker team was to rewrite all the components in Ada in order to provide an independant, full Ada software. This was achieved in version 1pre1, released in April 2000. The two main components of the AdaBroker software are now :
+\paragraph{}AdaBroker is an Ada ORB for CORBA. It all began with a student project at the ENST 
+(Ecole Nationale Supérieure des Télécoms) in Paris, France in Januar 1999. 
+The first version (beta 0.8) was released in the summer 99 and already provided most of the existing CORBA fetures.
+It was mostly based on external components since it used the Sun front-end for the parsing of
+ Idl and the OmniORB ORB.
+\paragraph{}The first major work for the AdaBroker team was to rewrite all the components in Ada in order to provide an independant,
+full Ada software. This was achieved in version 1pre1, released in April 2000. The two main components of the AdaBroker software are now :
 \begin{itemize}
-\item {\bf idlac} as idl to Ada compiler, full written in Ada by the AdaBroker team
-\item {\bf broca} as ORB, also full written in Ada by the AdaBroker team
+\item {\bf idlac} as an idl to Ada compiler, full written in Ada by the AdaBroker team
+\item {\bf broca} as an ORB, also full written in Ada by the AdaBroker team
 \end{itemize}
 \paragraph{}In this 1pre1 version, the features were still the same :
 \begin{itemize}
@@ -98,6 +214,7 @@ applications.
 \item management of exceptions
 \item management of forward declarations (to allow recursive definitions)
 \item management of multiple inheritance in Idl
+\item management of all CORBA types, including sequences, unions and fixed but not values since it didn't exist.
 \end{itemize}
 Some components were missing to provide a full ORB :
 \begin{itemize}
@@ -106,9 +223,9 @@ Some components were missing to provide a full ORB :
 \item interface repository
 \item the major services  cosNaming, cosEvent, cosTime...
 \end{itemize}
-Most of these components are currently under developpement and the next release (1pre3 or next one) will provide dynamic invocation (client part, an interface repository, the management of values and some services. This is the purpose of this document to describe at least the dynamic invocation mechanism on the client side.
+Most of these components are currently under developpement and the next release (1pre3 or next one) will provide dynamic invocation (client part), an interface repository, the management of values and some services. This is the purpose of this document to describe at least the dynamic invocation mechanism on the client side.
 
-\section{How to get it}
+\section{How to get it, how to contact us}
 You just have to go to http://adabroker.eu.org. You can download the soft there and have some information concerning the mailing lists and current releases. This site is hosted by Ada France.
 
 %%% Static invocation Mechanism
@@ -329,7 +446,7 @@ part, were blocking ? That will be another feature of the dynamic invocation : t
 %%%% DII
 %%%%%%%%%%%%%%%%
 \chapter{The dynamic invocation mechanism}
-
+\label{cha:DIM}
 \paragraph{}In the previous chapter, we saw all the mechanism of the static invocation mechanism and its limitations.
 We present here the solution to these limitations : the dynamic invocation mechanism.
 
@@ -343,7 +460,7 @@ a self-describing type that is able to encapsulate any given value. This type is
 \texttt{TypeCode} type used to describe a value type.
 
 \paragraph{}Giving these generic type and a generic proxy, all works fine. Lets look further in all this, using the same example 
-we used in chapter \ref{SIM}.
+we used in chapter \ref{SIM}, page \pageref{SIM}.
 
 %%% The generic Proxy
 \section{The generic proxy}
@@ -410,7 +527,7 @@ to make the actual call to the ORB.
 account in the static invocation.
 \item{\it Operation} is the name of the operation : ``{\it echoString}'' in our case
 \item{\it Arg\_List} : This is the key argument : it contains all the arguments to be passed to the {\it echoString} method, 
-as a list of Any. See chapter \ref{NVList} for further information on the type of this argument.
+as a list of Any. See chapter \ref{NV-NVList} on page \pageref{NV-NVList} for further information on the type of this argument.
 \item{\it Result} is an any where the result of the operation may be stored (if it exists). Note that it is an inout argument since the
 type of the result must already be set when {\it Create\_Request} is called.
 \item{\it Request} is the built request Object.
@@ -552,7 +669,7 @@ begin
    (...)
 end DynClient;
 \end{verbatim}
-\paragraph{}You can notice here the way of handling {\it Any} types or argument lists. For a more complete description of this, please see part \ref{BigPicture}.
+\paragraph{}You can notice here the way of handling {\it Any} types or argument lists. For a more complete description of this, please see part \ref{BigPicture} on page \pageref{BigPicture}.
 
 %%% Conclusion
 \section{Conclusion}
@@ -1446,7 +1563,7 @@ Abstract\_interface & ???\\ \hline
 \item{\bf Equal} is a comparison operator between two {\it Any} values. 
 It first compares the types of each value and then the value if they are equal.
 \item{\bf To\_Any, From\_Any} are encapsulating and decapsulating methods for simple types. For more complicated ones, you have to do it
-manually or to use some generated code (see chapter \ref{UsingGeneratedCode})
+manually or to use some generated code (see chapter \ref{UsingGeneratedCode}, page \pageref{UsingGeneratedCode})
 \item{\bf Get\_Type} returns the type of the {\it Any}
 \item{\bf Iterate\_Over\_Any\_Element} is not yet implemented
 \end{itemize}
@@ -1539,16 +1656,17 @@ to implement them.
 \subsection{Memory management in a value semantic}
 The memory management in the case of a value semantic is the most simple one. The only thing to do is to duplicate every pointer contained 
 by the object each time you make an assignment and to deallocate them when the object is deallocated. This way, each object contains its
-own pointer that no other object knows and all the pointed values are independant. Figure \ref{fig:valueMemManag} gives a 
+own pointer that no other object knows and all the pointed values are independant. Figure \ref{fig:ValueMemManag}
+on page \pageref{fig:ValueMemManag} gives a 
 view of what happens when you make A := B in this case.
 \begin{figure}
-\label{fig:valueMemManag}
+\label{fig:ValueMemManag}
 \begin{center}
-\includegraphics[angle=270,scale=0.5]{value_semantic.ps}
+\includegraphics[scale=0.7]{value_semantic.eps}
 \caption{The value semantic}
 \end{center}
 \end{figure}
-In the case of the Any type, you'll have to duplicate the field The\_Value and that's why we provide the following methods :
+\paragraph{} In the case of the Any type, you'll have to duplicate the field The\_Value and that's why we provide the following methods :
 \begin{verbatim}
    function Duplicate (Object : access Content)
                        return Any_Content_Ptr;
@@ -1574,27 +1692,86 @@ field {\it Ref\_Counter} in the Any implementation.
 
 When you create an Any, this field is set to one : the reference you've just created. When you finalize an Any, the {\it Ref\_Counter}
 is decreased and the value deallocate only if if it reaches 0. At last, in case of assignment, you just add one to {\it Ref\_Counter}
-saying than one more reference on the value was created. Figure \ref{fig:refMemManag} show you the assignment.
+saying than one more reference on the value was created. Figure \ref{fig:refMemManag} on page \pageref{fig:refMemManag}
+show you the assignment.
 \begin{figure}
 \label{fig:refMemManag}
 \begin{center}
-\includegraphics[angle=270,scale=0.5]{reference_semantic.ps}
+\includegraphics[scale=0.7]{reference_semantic.eps}
 \caption{The reference semantic}
 \end{center}
 \end{figure}
 
 
 \subsection{A controlled type}
-The easiest way to provide memory management for a given type in Ada is to derive from the Controlled object. This way, you have access
-to every initialization, assignment and finalization of your objects.
+\paragraph{}The easiest way to provide memory management for a given type in
+ Ada is to derive from the Controlled object. This way, you have access
+to every initialization, assignment and finalization of your objects. In the case of the Any type, the behavior of each of these
+operations is dependant of the current semantic. That's why we put the field {\it As\_Reference} telling us what the current semantic is.
+By default, this field is set to {\it False} by the Initialize method since it provides the behavior that the user is expected.
+The only place where it is put to {\it True} is during the creation of a request.
+\paragraph{}To sum up all of it, here is the actual code for the Any type memory management (except I took off the lines concerning
+thread-safe implementation). Note that the counter is used in the value
+semantic too since the same value could be pointed by an Any with a value semantic and another one with a reference semantic.
+\begin{verbatim}
+   procedure Initialize (Object : in out Any) is
+   begin
+      Object.Ref_Counter := new Natural'(0);
+   end Initialize;
+
+   procedure Adjust (Object : in out Any) is
+   begin
+      if Object.As_Reference then
+         Inc_Usage (Object);
+      else
+         if Object.The_Value /= Null_Content_Ptr then
+            Object.The_Value := Duplicate (Object.The_Value);
+            Object.Ref_Counter := new Natural'(1);
+         end if;
+      end if;
+   end Adjust;
+
+   procedure Finalize (Object : in out Any) is
+   begin
+      Dec_Usage (Object);
+   end Finalize;
+
+   procedure Inc_Usage (Obj : in Any) is
+   begin
+      Obj.Ref_Counter.all := Obj.Ref_Counter.all + 1;
+   end Inc_Usage;
+
+   procedure Dec_Usage (Obj : in out Any) is
+   begin
+      if Obj.Ref_Counter.all > 1 then
+         Obj.Ref_Counter.all := Obj.Ref_Counter.all - 1;
+      else
+         if Obj.The_Value /= Null_Content_Ptr then
+            Deallocate (Obj.The_Value);
+            Deallocate (Obj.Ref_Counter);
+         end if;
+      end if;
+   end Dec_Usage;
+\end{verbatim}
+
+%%% Thread-safe Anys
+\section{Thread-safe Anys}
+\paragraph{} The fact that some values are pointed to by several Any object raises a problem in the case of a multi task environment.
+In such a case, you'll have to make sure that two Anys are not using the same value at the same time or that one is not reading a value
+that another in changing.
+\paragraph{}In order to achieve this goal, you have to controll every access to the {\it The\_Value} and {\it Ref\_Counter} field of the
+Any type and place some lock on each of them. This is done by encapsulating all access to an Any inside 4 methods :
+{\it Get\_Value}, {\it Set\_Value}, {\it Get\_Counter} and {\it Set\_Counter}. 
+On the other side, the {\it Any\_Lock} field of each Any object provides a lock, shared, as the {\it The\_Value} field, 
+by all Any pointing to the same value and insuring you that only one of them will access the Any at the same time.
 
 %%% NamedValue, NVList
 %%%%%%%%%%%%%%%%%%%%%%
 \chapter{NamedValue, NVList}
-\label{NVList}
+\label{NV-NVList}
 \paragraph{}The two types presented here : {\it NamedValue} and {\it NVList} are used in the dynamic
 invocation process to describe arguments to
-be passed to a function. {\it NamedValue} describe a single argument while {\it NVList} describes a list of them.
+be passed to a function. {\it NamedValue} describes a single argument while {\it NVList} describes a list of them.
 
 %%% NamedValue
 \section{NamedValue}
@@ -1624,9 +1801,9 @@ Here is the Ada specification of the {\it NamedValue} type found in the {\it COR
 
 %%% NVList
 \section{NVList}
-
-\paragraph{}The {\it NVList} type could be a simple list of {\it NamedValue} but the CORBA specification prefered encapsulate the type
-in the new package {\it CORBA.NVList}.
+\label{NVList}
+\paragraph{}The {\it NVList} type is a simple list of {\it NamedValue} except the CORBA specification prefered encapsulating it
+in an object reference defined in the package {\it CORBA.NVList}.
 \paragraph{}As usual, we'll describe the implementation of the type itself before describing the methods on this type 
 given by the spec and finally the added method in the case of AdaBroker.
 
@@ -1660,32 +1837,35 @@ package CORBA.NVList is
 
 end CORBA.NVList;
 \end{verbatim}
+\paragraph{}Next to these specification, there is a constructor for {\it NVList} provided in the {\it CORBA.ORB} package. Here is its specification :
+\begin{verbatim}
+   procedure Create_List (Count    : in     CORBA.Long;
+                          New_List :    out CORBA.NVList.Ref);
+\end{verbatim}
 
 \subsection{implementation}
 
-\paragraph{}Since the specification imposes that {\it NVList.Ref} be a null record extension of {\it CORBA.AbstractBase.Ref}, we can not just
-put a list of argument in a field of CORBA.NVList. What we did is to keep at every moment a list of the defined NVList, each of them 
-associated with a list of arguments. Here is the private part of the {\it NVList} package defining that :
+\paragraph{}Since the specification imposes the encapsulation of the list of NamedValues in an object reference, we had to define
+a new descendant of {\it CORBA.Impl.Object} containing this list. The list by itself is provided by the {\it Sequences.Unbounded} package.
+Here are the corresponding definitions :
 \begin{verbatim}
-   type NV_Cell;
-   type NV_List is access all NV_Cell;
-   type NV_Cell is record
-      NV : NamedValue;
-      Next : NV_List;
-   end record;
-   Null_NVList : constant NV_List := null;
+package CORBA.NVList is
 
-   type NVList_Cell;
-   type NVList_List is access all NVList_Cell;
-   type NVList_Cell is record
-      Obj : Ref;
-      List : NV_List;
-      Next : NVList_List;
+   type Ref is new CORBA.AbstractBase.Ref with null record;
+
+   type Object is new CORBA.Impl.Object with private;
+   type Object_Ptr is access all Object;
+   (...)
+
+private
+   package NV_Sequence is new Sequences.Unbounded (CORBA.NamedValue);
+
+   type Object is new CORBA.Impl.Object with record
+      List : NV_Sequence.Sequence := NV_Sequence.Null_Sequence;
    end record;
-   Null_NVList_List : constant NVList_List := null;
+   (...)
+end CORBA.NVList;
 \end{verbatim}
-\paragraph{}The type {\it NV\_List} is the actual list of arguments whereas {\it NVList\_List} is a list of the defined {\it NVList}
-with the corresponding argument list.
 
 \subsection{methods on type NVList}
 
@@ -1694,57 +1874,262 @@ Here is the meaning of each method :
 \item{\bf Add\_Item} There are three Add\_Item methods. They all does the same : adding an argument to the list of arguments of Self.
 This new argument can be described in three different forms : either you give it as a {\it NamedValue}, already encapsulated, or you
 can give it as an {\it Identifier} (the name of the argument), an {\it Any} (the value of the argument) and a flag (the mode of the
-arguement. You can even avoid to build the {\it Any} value yourself by giving a {\it Typecode.Object}, a value and the length of the value.
-\item{\bf Free, Free\_Memory} Not implemented.
+argument. You can even avoid to build the {\it Any} value yourself by giving a {\it Typecode.Object}, a value and the length of the value.
+\item{\bf Free, Free\_Memory} : They are not implemented (or at least do nothing). Actually the Object type is sort of controlled and
+the memory deallocation is automatic. No need for the user to think at it.
 \item{\bf Get\_Count} returns the number of arguments in the argument list.
 \end{itemize}
+\paragraph{}The constructor methods don't need any comment.
 
 \subsection{Added methods on NVList}
 
-\paragraph{}Since the methods provided by the specification only allow to build an NVList, we added some new. There are two kinds of them.
-\paragraph{}The first kind deals with the internal management of the Ref type. They are all private and here is their Ada specification :
+\paragraph{}There are four added methods on the NVList type. The first ones deal with marshalling and unmarshalling
+of an NVList (it just marshalls or unmarshalls all elements of the list that should be marshalled or unmarshalled).
+The two last are a constructor and a destructor for the Object type. Here are all the specifications :
 \begin{verbatim}
-   procedure Add_Cell (List : in out NV_List;
-                       NV : in NamedValue);
+   procedure Marshall (Buffer : access Broca.Buffers.Buffer_Type;
+                       Data   : Ref);
+   procedure Unmarshall (Buffer : access Broca.Buffers.Buffer_Type;
+                         Data : in out Ref);
 
-   procedure Free is new Ada.Unchecked_Deallocation (NV_Cell, NV_List);
-   procedure Free_All_List (List : in out NV_List);
+   function Create_Object return Object_Ptr;
+   procedure Finalize (Obj : in out Object);
+\end{verbatim}
+\paragraph{}Just notice that {\it Create\_Object} creates an empty object, this means without any NVList associated and that the type
+{\it CORBA.NVList.Ref} is controlled as a descendant of a controlled type.
 
-   function Length (List : in NV_List) return CORBA.Long;
+%%% ExceptionList and ContextList
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{ExceptionList, Contextlist}
+\paragraph{}If you look for these two packages in the CORBA specification (v2.3),
+I don't thing you'll find something interesting. They simply
+does not exist. However they are needed by the dynamic invocation and thus, some issues were issued concerning this point.
+The packages presented here are a kind of translation of the C++ Mapping specification, adapted to Ada.
+We hope it will become part of the next specification of the Ada Mapping.
+\paragraph{}Due to the similitudes between these packages and the NVList package, this chapter is not so precise than the others.
+Please report to section section \ref{NVList} of chapter \ref{NV-NVList} page \pageref{NVList} for further details.
 
-   procedure Add_NVList (Obj : in Ref;
-                         List : in NV_List);
+%%% specification
+\section{The Ada Specifications}
+Here is the Ada specifications of these packages :
+\begin{verbatim}
+package CORBA.ExceptionList is
 
-   procedure Remove_NVList (Obj : Ref);
+   type Ref is new CORBA.AbstractBase.Ref with null record;
 
-   function Get_NVList (Obj : Ref) return NV_List;
+   function Get_Count (Self : in Ref)
+                       return CORBA.Unsigned_Long;
+   procedure Add (Self : in Ref;
+                  Exc : in CORBA.TypeCode.Object);
+   function Item (Self : in Ref;
+                  Index : in CORBA.Unsigned_Long)
+                  return CORBA.TypeCode.Object;
+   procedure Remove (Self : in Ref;
+                     Index : in CORBA.Unsigned_Long);
+end CORBA.ExceptionList;
 
-   procedure Free is new Ada.Unchecked_Deallocation (NVList_Cell, NVList_List);
+
+package CORBA.ContextList is
+
+   type Ref is new CORBA.AbstractBase.Ref with null record;
+
+   function Get_Count (Self : in Ref)
+                       return CORBA.Unsigned_Long;
+   procedure Add (Self : in Ref;
+                  Exc : in CORBA.String);
+   function Item (Self : in Ref;
+                  Index : in CORBA.Unsigned_Long)
+                  return CORBA.String;
+   procedure Remove (Self : in Ref;
+                     Index : in CORBA.Unsigned_Long);
+end CORBA.ContextList;
 \end{verbatim}
 
-
-
+\paragraph{}Next to these specification, there are two constructors for {\it ExceptionList} and {\it ContextList} provided in the package
+{\it CORBA.ORB} :
 \begin{verbatim}
-   --  to marshall all the NamedValues of an NVList
-   procedure Marshall
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Data   : Ref);
-
-   --  to unmarshall all the NamedValues of an NVList
-   procedure Unmarshall
-     (Buffer : access Broca.Buffers.Buffer_Type;
-      Data : in out Ref);
+   procedure Create_List (New_List : out CORBA.ExceptionList.Ref);
+   procedure Create_List (New_List : out CORBA.ContextList.Ref);
 \end{verbatim}
 
+%%% Implementation
+\section{Implementation}
+\paragraph{}The implementation is mapped from {\it CORBA.NVList}. Thus we won't detail it here. Please report to section 
+\ref{NVList} on page \pageref{NVList} and replace {\it NamedValue} by {\it TypeCode} for {\it ExceptionList} or by {\it CORBA.String} for 
+{\it ContextList}.
+
+%%% Methods
+\section{Methods}
+\paragraph{}Here is a very brief description of each method of these packages :
+\begin{itemize}
+\item {\bf Get\_Count} : returns the number of element in the list
+\item {\bf Add} : adds an element at the end of the list
+\item {\bf Item} : returns the element at the given index in the list
+\item {\bf Remove} : removes an element from the list
+\end{itemize}
+\paragraph{}The constructor methods don't need any comment.
+
+%%% Added methods
+\section{Added methods}
+\paragraph{}There are first two methods added in both {\it ExceptionList} and {\it ContextList} :
+\begin{itemize}
+\item {\bf Create\_Object} : it is the constructor of the Object type. Only used by the constructor of the Ref type actually.
+\item {\bf Finalize} : it is the destructor of the Object type. You can notice here that these type are controlled.
+So the user don't have to take care of the memory he uses.
+\end{itemize}
+\paragraph{}The last method only exists in {\it ExceptionList} : {\bf Search\_Exception\_Id}. It is a searching function that returns the
+index of the first {\it TypeCode} from the list denoting an exception called {\it Name}. That's at least used in the {\it invoke} method
+of the package {\it CORBA.Request}.
 
 
-
-
-
-
-
-
+%%% Request
+%%%%%%%%%%%
 \chapter{Request}
+
+\paragraph{}The {\it Request} package is the heart of the dynamic invocation interface. It's the package that allows you to specify
+a request, to invoke it and to get the result of it (if there is one). As usual now, we'll give the specification of this package before
+detailing its implementation and the different methods provided.
+
+%%% specification
+\section{The Ada Specification}
+\paragraph{} The Ada specification of the request package is the following :
+\begin{verbatim}
+
+package CORBA.Request is
+
+   type Object is private;
+
+   procedure Add_Arg
+     (Self      : in out Object;
+      Arg_Type  : in     CORBA.TypeCode.Object;
+      Value     : in     System.Address;
+      Len       : in     Long;
+      Arg_Flags : in     Flags);
+
+   procedure Add_Arg
+     (Self : in out Object;
+      Arg  : in     NamedValue);
+
+   procedure Invoke
+     (Self         : in out Object;
+      Invoke_Flags : in     Flags  := 0);
+
+   procedure Delete (Self : in out Object);
+
+   procedure Send
+     (Self         : in out Object;
+      Invoke_Flags : in     Flags  := 0);
+
+   procedure Get_Response
+     (Self         : in out Object;
+      Invoke_Flags : in     Flags  := 0);
+
+   function Poll_Response (Self : in Object) return Boolean;
+
+end CORBA.Request;
+\end{verbatim}
+
+\paragraph{}Next to this specification, there are two constructors for the type {\it CORBA.Request.Ref} provided in the {\it CORBA.Object}
+package. Here is the Ada their specification :
+\begin{verbatim}
+   procedure Create_Request
+     (Self      : in     Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags);
+
+   procedure Create_Request
+     (Self      : in     Ref;
+      Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Identifier;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out NamedValue;
+      Exc_List  : in     ExceptionList.Ref;
+      Ctxt_List : in     ContextList.Ref;
+      Request   :    out CORBA.Request.Object;
+      Req_Flags : in     Flags);
+\end{verbatim}
+\paragraph{}Actually, if you look in the current Ada mapping, you'll only find the first constructor. The second one is not provided
+but was issued as an issue to the OMG by the Adabroker team. Maybe the next CORBA specification will include it.
+
+%%% Implementation
+\section{Implementation}
+\paragraph{}Since the Request package is the heart of the dynamic invocation mechanism, you find in its implementation all the components
+needed to realise an invocation. Here is the definition of the {\it Request.Object} type :
+\begin{verbatim}
+   type Object is
+      record
+         Ctx        : CORBA.Context.Ref;
+         Target     : CORBA.AbstractBase.Ref;
+         Operation  : CORBA.Identifier;
+         Args_List  : CORBA.NVList.Ref;
+         Result     : CORBA.NamedValue;
+         Exc_List   : CORBA.ExceptionList.Ref;
+         Ctxt_List  : CORBA.ContextList.Ref;
+         Req_Flags  : CORBA.Flags;
+      end record;
+\end{verbatim}
+\paragraph{}Most of the fields are understandable but let's detail a little bit each of them :
+\begin{itemize}
+\item {\bf Ctx} : the context of the invocation. The context object is not described in this documentation since this fonctionality is not
+currently available in AdaBroker. However, the {\it CORBA.Context} package exists and its constant {\it Nil\_Ref} can be used.
+\item {\bf Target} : the object on which the invocation will be done.
+\item {\bf Operation} : the operation to be invoked.
+\item {\bf Args\_List} : the list of arguments to pass to this operation. You can put a null list here and add some arguments to the request
+later if you want (by using {\it Add\_Arg}).
+\item {\bf Result} : the type of the result to be returned. You may say it should be a {\it TypeCode} since it only carries a type. The fact
+is that the result will be put there after computation. So you must give an {\it Any} but it can have no value.
+\item {\bf Exc\_List} : the list of the exception potentially raised by the method to be invoked, given as a list of {\it TypeCode}.
+\item {\bf Ctxt\_List} : the list of the context elements to be passed to the invoked method. This field is not used for the moment.
+\item {\bf Req\_Flags} : some flags dealing with the memory management. As the former : not used.
+\end{itemize}
+
+
+%%% Methods
+\section{Methods on Request Objects}
+\paragraph{}Here is the description of all methods of the {\it CORBA.Request} object and of the constructors of this type. I must precise
+here that only the blocking invocation is provided by AdaBroker at this moment which means that the methods {\it Send}, {\it Get\_Response},
+and {\it Poll\_Response} are not implemented. Note also that the different arguments dealing with contexts are not managed since contexts
+are not implemented.
+
+\begin{itemize}
+\item{\bf Create\_Request} These methods take as parameters all what is needed to make the create the request. The first one just omit
+the exception list and the context list and to put to default values. Each argument of these fonction is directly put into the
+coresponding field of the created request object.
+
+\item{\bf Add\_Arg} These methods allows you to add an argument to a request in case you put an 
+empty argument list at the creation. You can either give directly a NamedValue that encapsulates 
+all the fields of an argument or give each of these fields. Here is their meaning :
+\begin{itemize}
+\item{\it Arg\_type} is the type of the argument given as a TypeCode.
+\item{\it Value} is the value of the argument. Together with the argument type, you have an Any value : a value and its description.
+\item{\it Len} is the length of the argument.
+\item{\it Arg\_Flags} is a flag describing the mode of the argument.
+ There is only three possible values : {\it CORBA.ARG\_IN}, {\it CORBA.ARG\_INOUT} and {\it CORBA.ARG\_OUT}.
+\end{itemize}
+
+\item{\bf Invoke} This is the key method for a regular invocation. It takes a request and makes the invocation. What it does is
+marshalling the request first (object reference, operation name, arguments and perhaps context), then call the ORB to send the
+buffer to the server and wait for the response. When the reply comes, it unmarshalls the result (or the exception if any) and puts it
+in the {\it Result} field (or raise it). Note that the call is blocking : {\it Invoke} will only return once the result is known.
+
+\item{\bf Delete} deletes a request and frees the associated memory.
+
+\item{\bf Send} This method is the pending of {\it Invoke} for non blocking calls. It only marshall the elements of the request and calls
+the ORB but does not wait for any answer. It means that but gives you the control right back without waiting the processing of your
+call to finish.
+
+\item{\bf Get\_Response} This is the complement of the {\it Send} method. It allows you to get the result of an invocation made with 
+{\it Send}. This method is blocking if the result is not yet ready.
+
+\item{\bf Poll\_Response} This allows you to know if a given result is ready or not. This way, you are able 
+call {\it Get\_Response} only when you know you won't wait.
+\end{itemize}
+
+
 
 \chapter{Marshall, Unmarshall}
 
@@ -1908,5 +2293,10 @@ string (Name)\\  \hline
 \chapter{Using generated code}
 \label{UsingGeneratedCode}
 \chapter{Contexts}
+
+\begin{thebibliography}{99}
+\bibitem[OMG3]{OMG3} The Common Object Request Broker:Architecture and Specification Revised Edition: July 1995
+\bibitem[AdaM]{AdaMapping} Ada Language Mapping Specification - version 1.2 : May 2000
+\end{thebibliography}
 
 \end{document}

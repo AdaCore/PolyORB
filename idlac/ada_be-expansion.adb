@@ -902,31 +902,40 @@ package body Ada_Be.Expansion is
       if Kind (Operation_Type (Node)) /= K_Void
         and then Has_Out_Formals (Node) then
          declare
-            Void_Node : constant Node_Id
+            Operation_Type_Node : Node_Id
+              := Operation_Type (Node);
+
+            Void_Node : Node_Id
               := Make_Void;
+
             Param_Node : constant Node_Id
               := Make_Param;
             Decl_Node : constant Node_Id
               := Make_Declarator;
+
             Success : Boolean;
          begin
             Push_Scope (Node);
             Success := Add_Identifier (Decl_Node, "Returns");
             pragma Assert (Success);
             Pop_Scope;
-            --  Create an identifier in the operation's scope.
+            --  Create an identifier in the operation's scope
+
+            Replace_Node (Operation_Type_Node, Void_Node);
+            --  Make the operation void. The actual operation
+            --  type is Void_Node's Original_Node.
 
             Set_Mode (Param_Node, Mode_Out);
-            Set_Param_Type (Param_Node, Operation_Type (Node));
+            Set_Param_Type (Param_Node, Operation_Type_Node);
             Set_Declarator (Param_Node, Decl_Node);
+            Set_Is_Returns (Param_Node, True);
             Set_Parent (Decl_Node, Param_Node);
-            --  Create a new parameter node.
+            --  Create a new parameter node
 
-            Set_Parameters (Node, Append_Node
-                            (Parameters (Node), Param_Node));
-            Set_Operation_Type (Node, Void_Node);
+            Set_Parameters
+              (Node, Append_Node
+               (Parameters (Node), Param_Node));
             --  Insert it in the operation parameter list
-            --  and make the operation void.
          end;
       end if;
 

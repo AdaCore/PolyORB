@@ -111,6 +111,22 @@ package body Idl_Fe.Tree.Synthetic is
       end if;
    end Name;
 
+   function Original_Operation_Type
+     (Node : in Node_Id)
+     return Node_Id
+   is
+      OT_Node : constant Node_Id
+        := Operation_Type (Node);
+      Original_OT_Node : constant Node_Id
+        := Original_Node (OT_Node);
+   begin
+      if Original_OT_Node /= No_Node then
+         return Original_OT_Node;
+      else
+         return OT_Node;
+      end if;
+   end Original_Operation_Type;
+
    function Parent_Scope
      (Node : in Node_Id)
      return Node_Id

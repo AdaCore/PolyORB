@@ -46,6 +46,9 @@ package body Broca.CDR is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.cdr");
    procedure O is new Broca.Debug.Output (Flag);
 
+   Flag2 : constant Natural := Broca.Debug.Is_Active ("broca.cdr-verbose");
+   procedure O2 is new Broca.Debug.Output (Flag2);
+
    use CORBA;
    --  For operators on CORBA integer types.
 
@@ -166,9 +169,9 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Char) is
    begin
-      pragma Debug (O ("Marshall (Char) : enter"));
+      pragma Debug (O2 ("Marshall (Char) : enter"));
       Marshall (Buffer, CORBA.Octet'(CORBA.Char'Pos (Data)));
-      pragma Debug (O ("Marshall (Char) : end"));
+      pragma Debug (O2 ("Marshall (Char) : end"));
    end Marshall;
 
    procedure Marshall
@@ -188,9 +191,9 @@ package body Broca.CDR is
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Octet) is
    begin
-      pragma Debug (O ("Marshall (Octet) : enter"));
+      pragma Debug (O2 ("Marshall (Octet) : enter"));
       Align_Marshall_Copy (Buffer, (1 => BO_Octet (Data)), 1);
-      pragma Debug (O ("Marshall (Octet) : end"));
+      pragma Debug (O2 ("Marshall (Octet) : end"));
    end Marshall;
 
    procedure Marshall
@@ -407,13 +410,9 @@ package body Broca.CDR is
    procedure Marshall_From_Any
      (Buffer : access Buffer_Type;
       Data   : in CORBA.Any) is
-      Data_Type : CORBA.TypeCode.Object := Get_Type (Data);
+      Data_Type : CORBA.TypeCode.Object := CORBA.Get_Precise_Type (Data);
    begin
       pragma Debug (O ("Marshall_From_Any : enter"));
-      while CORBA.TypeCode.Kind (Data_Type) = Tk_Alias loop
-         Data_Type := CORBA.TypeCode.Content_Type (Data_Type);
-      end loop;
-      pragma Debug (O ("Marshall_From_Any : data_type computed"));
       case CORBA.TypeCode.Kind (Data_Type) is
          when Tk_Null
            | Tk_Void =>
@@ -510,13 +509,15 @@ package body Broca.CDR is
                  CORBA.Get_Aggregate_Count (Data);
                Value : CORBA.Any;
             begin
-               for I in 0 .. Nb - 1 loop
-                  Value := CORBA.Get_Aggregate_Element
-                    (Data,
-                     CORBA.TypeCode.Member_Type (Data_Type, I),
-                     I);
-                  Marshall_From_Any (Buffer, Value);
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Value := CORBA.Get_Aggregate_Element
+                       (Data,
+                        CORBA.TypeCode.Member_Type (Data_Type, I),
+                        I);
+                     Marshall_From_Any (Buffer, Value);
+                  end loop;
+               end if;
             end;
          when Tk_Union =>
             pragma Debug (O ("Marshall_From_Any : dealing with an union"));
@@ -581,13 +582,15 @@ package body Broca.CDR is
                   CORBA.TypeCode.TC_Unsigned_Long,
                   CORBA.Unsigned_Long (0));
                Marshall_From_Any (Buffer, Value);
-               for I in 1 .. Nb - 1 loop
-                  Value := CORBA.Get_Aggregate_Element
-                    (Data,
-                     CORBA.TypeCode.Content_Type (Data_Type),
-                     I);
-                  Marshall_From_Any (Buffer, Value);
-               end loop;
+               if Nb /= 0 then
+                  for I in 1 .. Nb - 1 loop
+                     Value := CORBA.Get_Aggregate_Element
+                       (Data,
+                        CORBA.TypeCode.Content_Type (Data_Type),
+                        I);
+                     Marshall_From_Any (Buffer, Value);
+                  end loop;
+               end if;
             end;
          when Tk_Array =>
             pragma Debug (O ("Marshall_From_Any : dealing with an array"));
@@ -602,17 +605,19 @@ package body Broca.CDR is
                   Content_True_Type :=
                     CORBA.TypeCode.Content_Type (Content_True_Type);
                end loop;
-               for I in 0 .. Nb - 1 loop
-                  Value := CORBA.Get_Aggregate_Element
-                    (Data,
-                     Content_True_Type,
-                     I);
-                  pragma Debug (O ("Marshall_From_Any : value kind is "
-                                   & CORBA.TCKind'Image
-                                   (CORBA.TypeCode.Kind
-                                    (CORBA.Get_Type (Value)))));
-                  Marshall_From_Any (Buffer, Value);
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Value := CORBA.Get_Aggregate_Element
+                       (Data,
+                        Content_True_Type,
+                        I);
+                     pragma Debug (O ("Marshall_From_Any : value kind is "
+                                      & CORBA.TCKind'Image
+                                      (CORBA.TypeCode.Kind
+                                       (CORBA.Get_Type (Value)))));
+                     Marshall_From_Any (Buffer, Value);
+                  end loop;
+               end if;
             end;
          when Tk_Alias =>
             --  we should never reach this point
@@ -624,13 +629,15 @@ package body Broca.CDR is
                  CORBA.Get_Aggregate_Count (Data);
                Value : CORBA.Any;
             begin
-               for I in 0 .. Nb - 1 loop
-                  Value := CORBA.Get_Aggregate_Element
-                    (Data,
-                     CORBA.TypeCode.Member_Type (Data_Type, I),
-                     I);
-                  Marshall_From_Any (Buffer, Value);
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Value := CORBA.Get_Aggregate_Element
+                       (Data,
+                        CORBA.TypeCode.Member_Type (Data_Type, I),
+                        I);
+                     Marshall_From_Any (Buffer, Value);
+                  end loop;
+               end if;
             end;
          when Tk_Longlong =>
             pragma Debug (O ("Marshall_From_Any : "
@@ -702,6 +709,8 @@ package body Broca.CDR is
       Complex_Buffer : aliased Buffer_Type;
    begin
       pragma Debug (O ("Marshall (Typecode) : enter"));
+      pragma Debug (O ("Marshall (Typecode) : kind is " &
+                       TCKind'Image (CORBA.TypeCode.Kind (Data))));
       case CORBA.TypeCode.Kind (Data) is
          when Tk_Null =>
             Marshall (Buffer, CORBA.Unsigned_Long'(0));
@@ -728,6 +737,7 @@ package body Broca.CDR is
          when Tk_Any =>
             Marshall (Buffer, CORBA.Unsigned_Long'(11));
          when Tk_TypeCode =>
+            pragma Debug (O ("Marshall (TypeCode) : dealing with a TypeCode"));
             Marshall (Buffer, CORBA.Unsigned_Long'(12));
          when Tk_Principal =>
             Marshall (Buffer, CORBA.Unsigned_Long'(13));
@@ -736,24 +746,43 @@ package body Broca.CDR is
             Marshall (Buffer, CORBA.TypeCode.Id (Data));
             Marshall (Buffer, CORBA.TypeCode.Name (Data));
          when Tk_Struct =>
+            pragma Debug (O ("Marshall (TypeCode) : dealing with a struct"));
             Marshall (Buffer, CORBA.Unsigned_Long'(15));
             Start_Encapsulation (Complex_Buffer'Access);
+            pragma Debug (O ("Marshall (TypeCode) : marshalling the id"));
             Marshall (Complex_Buffer'Access,
                       CORBA.TypeCode.Id (Data));
+            pragma Debug (O ("Marshall (TypeCode) : marshalling the name"));
             Marshall (Complex_Buffer'Access,
                       CORBA.TypeCode.Name (Data));
             declare
                Nb : CORBA.Unsigned_Long :=
-                 CORBA.TypeCode.Parameter_Count (Data);
+                 CORBA.TypeCode.Member_Count (Data);
             begin
+               pragma Debug (O ("Marshall (TypeCode) : " &
+                                "marshalling the members. Nb = "
+                                & CORBA.Unsigned_Long'Image (Nb)));
                Marshall (Complex_Buffer'Access, Nb);
-               for I in 0 .. Nb - 1 loop
-                  Marshall (Complex_Buffer'Access,
-                            CORBA.TypeCode.Member_Name (Data, I));
-                  Marshall (Complex_Buffer'Access,
-                            CORBA.TypeCode.Member_Type (Data, I));
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     pragma Debug (O ("Marshall (TypeCode) : about "
+                                      & "to marshall a new  member"));
+                     Marshall (Complex_Buffer'Access,
+                               CORBA.TypeCode.Member_Name (Data, I));
+                     pragma Debug (O ("Marshall (TypeCode) : marshalling "
+                                      & "the type ("
+                                      & TCKind'Image
+                                      (TypeCode.Kind
+                                       (CORBA.TypeCode.Member_Type (Data, I)))
+                                      & ")"));
+                     Marshall (Complex_Buffer'Access,
+                               CORBA.TypeCode.Member_Type (Data, I));
+                     pragma Debug (O ("Marshall (TypeCode) : "
+                                      & "member marshalled"));
+                  end loop;
+               end if;
             end;
+            pragma Debug (O ("Marshall : all members marshalled"));
             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
             Release (Complex_Buffer);
          when Tk_Union =>
@@ -769,17 +798,19 @@ package body Broca.CDR is
                       CORBA.TypeCode.Default_Index (Data));
             declare
                Nb : CORBA.Unsigned_Long :=
-                 CORBA.TypeCode.Parameter_Count (Data);
+                 CORBA.TypeCode.Member_Count (Data);
             begin
                Marshall (Complex_Buffer'Access, Nb);
-               for I in 0 .. Nb - 1 loop
-                  Marshall_From_Any (Complex_Buffer'Access,
-                                     CORBA.TypeCode.Member_Label (Data, I));
-                  Marshall (Complex_Buffer'Access,
-                            CORBA.TypeCode.Member_Name (Data, I));
-                  Marshall (Complex_Buffer'Access,
-                            CORBA.TypeCode.Member_Type (Data, I));
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Marshall_From_Any (Complex_Buffer'Access,
+                                        CORBA.TypeCode.Member_Label (Data, I));
+                     Marshall (Complex_Buffer'Access,
+                               CORBA.TypeCode.Member_Name (Data, I));
+                     Marshall (Complex_Buffer'Access,
+                               CORBA.TypeCode.Member_Type (Data, I));
+                  end loop;
+               end if;
             end;
             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
             Release (Complex_Buffer);
@@ -792,19 +823,27 @@ package body Broca.CDR is
                       CORBA.TypeCode.Name (Data));
             declare
                Nb : CORBA.Unsigned_Long :=
-                 CORBA.TypeCode.Parameter_Count (Data);
+                 CORBA.TypeCode.Member_Count (Data);
             begin
                Marshall (Complex_Buffer'Access, Nb);
-               for I in 0 .. Nb - 1 loop
-                  Marshall (Complex_Buffer'Access,
-                            CORBA.TypeCode.Member_Name (Data, I));
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Marshall (Complex_Buffer'Access,
+                               CORBA.TypeCode.Member_Name (Data, I));
+                  end loop;
+               end if;
             end;
             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
             Release (Complex_Buffer);
          when Tk_String =>
+            pragma Debug (O ("marshall (typecode) : dealing with a string"));
             Marshall (Buffer, CORBA.Unsigned_Long'(18));
+            pragma Debug (O ("marshall (typecode) : " &
+                             "about to marshall length : " &
+                             CORBA.Unsigned_Long'Image
+                             (CORBA.TypeCode.Length (Data))));
             Marshall (Buffer, CORBA.TypeCode.Length (Data));
+            pragma Debug (O ("marshall (typecode) : length marshalled"));
          when Tk_Sequence =>
             Marshall (Buffer, CORBA.Unsigned_Long'(19));
             Start_Encapsulation (Complex_Buffer'Access);
@@ -843,15 +882,17 @@ package body Broca.CDR is
                       CORBA.TypeCode.Name (Data));
             declare
                Nb : CORBA.Unsigned_Long :=
-                 CORBA.TypeCode.Parameter_Count (Data);
+                 CORBA.TypeCode.Member_Count (Data);
             begin
                Marshall (Complex_Buffer'Access, Nb);
-               for I in 0 .. Nb - 1 loop
-                  Marshall (Complex_Buffer'Access,
-                            CORBA.TypeCode.Member_Name (Data, I));
-                  Marshall (Complex_Buffer'Access,
-                            CORBA.TypeCode.Member_Type (Data, I));
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Marshall (Complex_Buffer'Access,
+                               CORBA.TypeCode.Member_Name (Data, I));
+                     Marshall (Complex_Buffer'Access,
+                               CORBA.TypeCode.Member_Type (Data, I));
+                  end loop;
+               end if;
             end;
             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
             Release (Complex_Buffer);
@@ -883,17 +924,19 @@ package body Broca.CDR is
                       CORBA.TypeCode.Concrete_Base_Type (Data));
             declare
                Nb : CORBA.Unsigned_Long :=
-                 CORBA.TypeCode.Parameter_Count (Data);
+                 CORBA.TypeCode.Member_Count (Data);
             begin
                Marshall (Complex_Buffer'Access, Nb);
-               for I in 0 .. Nb - 1 loop
-                  Marshall (Complex_Buffer'Access,
-                            CORBA.TypeCode.Member_Name (Data, I));
-                  Marshall (Complex_Buffer'Access,
-                            CORBA.TypeCode.Member_Type (Data, I));
-                  Marshall (Complex_Buffer'Access,
-                            CORBA.TypeCode.Member_Visibility (Data, I));
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Marshall (Complex_Buffer'Access,
+                               CORBA.TypeCode.Member_Name (Data, I));
+                     Marshall (Complex_Buffer'Access,
+                               CORBA.TypeCode.Member_Type (Data, I));
+                     Marshall (Complex_Buffer'Access,
+                               CORBA.TypeCode.Member_Visibility (Data, I));
+                  end loop;
+               end if;
             end;
             Marshall (Buffer, Encapsulate (Complex_Buffer'Access));
             Release (Complex_Buffer);
@@ -1154,7 +1197,7 @@ package body Broca.CDR is
    function Unmarshall (Buffer : access Buffer_Type)
      return CORBA.Char is
    begin
-      pragma Debug (O ("Unmarshall (Char) : enter & end"));
+      pragma Debug (O2 ("Unmarshall (Char) : enter & end"));
       return CORBA.Char'Val (CORBA.Octet'(Unmarshall (Buffer)));
    end Unmarshall;
 
@@ -1174,7 +1217,7 @@ package body Broca.CDR is
       Result : constant Octet_Array
         := Align_Unmarshall_Copy (Buffer, 1, 1);
    begin
-      pragma Debug (O ("Unmarshall (Octet) : enter & end"));
+      pragma Debug (O2 ("Unmarshall (Octet) : enter & end"));
       return CORBA.Octet (Result (Result'First));
    end Unmarshall;
 
@@ -1375,17 +1418,13 @@ package body Broca.CDR is
 
    procedure Unmarshall_To_Any (Buffer : access Buffer_Type;
                                 Result : in out CORBA.Any) is
-      Any_Type : TypeCode.Object := Get_Type (Result);
-      Tc : CORBA.TypeCode.Object := Any_Type;
+      Tc : CORBA.TypeCode.Object := Get_Precise_Type (Result);
       Is_Empty : Boolean := CORBA.Is_Empty (Result);
       use CORBA;
    begin
       pragma Debug (O ("Unmarshall_To_Any : enter"));
       pragma Debug (O ("Unmarshall_To_Any : Any_Type is " &
                        CORBA.TCKind'Image (TypeCode.Kind (Tc))));
-      while TypeCode.Kind (Tc) = Tk_Alias loop
-         Tc := TypeCode.Content_Type (Tc);
-      end loop;
       case TypeCode.Kind (Tc) is
          when Tk_Null
            | Tk_Void =>
@@ -1397,126 +1436,71 @@ package body Broca.CDR is
                pragma Debug (O ("Unmarshall_To_Any : dealing with a short"));
                pragma Debug (O ("Unmarshall_To_Any : its value is "
                                 & CORBA.Short'Image (S)));
-               if Is_Empty then
-                  pragma Debug (O ("Unmarshall_To_Any : creating a node"));
-                  Result := To_Any (S);
-                  Set_Type (Result, Any_Type);
-               else
-                  pragma Debug (O ("Unmarshall_To_Any : using existing node"));
-                  Set_Any_Value (Result, S);
-               end if;
+               Set_Any_Value (Result, S);
             end;
          when Tk_Long =>
             declare
                L : Long := Unmarshall (Buffer);
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with a long"));
-               if Is_Empty then
-                  Result := To_Any (L);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, L);
-               end if;
+               Set_Any_Value (Result, L);
             end;
          when Tk_Ushort =>
             declare
                Us : Unsigned_Short := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (Us);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Us);
-               end if;
+               Set_Any_Value (Result, Us);
             end;
          when Tk_Ulong =>
             declare
                Ul : Unsigned_Long := Unmarshall (Buffer);
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with an Ulong"));
-               if Is_Empty then
-                  Result := To_Any (Ul);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Ul);
-               end if;
+               Set_Any_Value (Result, Ul);
             end;
          when Tk_Float =>
             declare
                F : CORBA.Float := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (F);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, F);
-               end if;
+               Set_Any_Value (Result, F);
             end;
          when Tk_Double =>
             declare
                D : Double := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (D);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, D);
-               end if;
+               Set_Any_Value (Result, D);
             end;
          when Tk_Boolean =>
             declare
                B : CORBA.Boolean := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (B);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, B);
-               end if;
+               Set_Any_Value (Result, B);
             end;
          when Tk_Char =>
             declare
                C : Char := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (C);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, C);
-               end if;
+               Set_Any_Value (Result, C);
             end;
          when Tk_Octet =>
             declare
                O : CORBA.Octet := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (O);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, O);
-               end if;
+               Set_Any_Value (Result, O);
             end;
          when Tk_Any =>
             declare
                A : Any := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (A);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, A);
-               end if;
+               Set_Any_Value (Result, A);
             end;
          when Tk_TypeCode =>
             declare
                T : TypeCode.Object := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (T);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, T);
-               end if;
+               pragma Debug (O ("Unmarshall_To_Any : "
+                                & "dealing with a TypeCode"));
+               Set_Any_Value (Result, T);
             end;
          when Tk_Principal =>
             --  FIXME : to be done
@@ -1525,12 +1509,7 @@ package body Broca.CDR is
             declare
                O : CORBA.Object.Ref := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := CORBA.Object.Helper.To_Any (O);
-                  Set_Type (Result, Any_Type);
-               else
-                  CORBA.Object.Helper.Set_Any_Value (Result, O);
-               end if;
+               CORBA.Object.Helper.Set_Any_Value (Result, O);
             end;
          when Tk_Struct =>
             declare
@@ -1538,24 +1517,30 @@ package body Broca.CDR is
                  TypeCode.Member_Count (Tc);
                Arg : CORBA.Any;
             begin
-               if Is_Empty then
-                  Result := Get_Empty_Any_Aggregate (Any_Type);
+               pragma Debug (O ("unmarshall_to_any : dealing with a struct"));
+               CORBA.Set_Any_Aggregate_Value (Result);
+               pragma Debug (O ("unmarshall_to_any : about to "
+                                & "unmarshall parameters"));
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     pragma Debug (O ("unmarshall_to_any : get the element"));
+                     if Is_Empty then
+                        Arg := Get_Empty_Any (TypeCode.Member_Type (Tc, I));
+                     else
+                        Arg := Get_Aggregate_Element
+                          (Result,
+                           TypeCode.Member_Type (Tc, I),
+                           I);
+                     end if;
+                     pragma Debug (O ("unmarshall_to_any : about to "
+                                      & "unmarshall a parameter"));
+                     Unmarshall_To_Any (Buffer,
+                                        Arg);
+                     if Is_Empty then
+                        Add_Aggregate_Element (Result, Arg);
+                     end if;
+                  end loop;
                end if;
-               for I in 0 .. Nb - 1 loop
-                  if Is_Empty then
-                     Arg := Get_Empty_Any (TypeCode.Member_Type (Tc, I));
-                  else
-                     Arg := Get_Aggregate_Element
-                       (Result,
-                        TypeCode.Member_Type (Tc, I),
-                        I);
-                  end if;
-                  Unmarshall_To_Any (Buffer,
-                                     Arg);
-                  if Is_Empty then
-                     Add_Aggregate_Element (Result, Arg);
-                  end if;
-               end loop;
             end;
          when Tk_Union =>
             declare
@@ -1563,8 +1548,8 @@ package body Broca.CDR is
                Label, Arg : CORBA.Any;
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with an union"));
+               Set_Any_Aggregate_Value (Result);
                if Is_Empty then
-                  Result := Get_Empty_Any_Aggregate (Any_Type);
                   Label := Get_Empty_Any (TypeCode.Discriminator_Type (Tc));
                else
                   Label := Get_Aggregate_Element
@@ -1603,8 +1588,8 @@ package body Broca.CDR is
             declare
                Arg : CORBA.Any;
             begin
+               Set_Any_Aggregate_Value (Result);
                if Is_Empty then
-                  Result := Get_Empty_Any_Aggregate (Any_Type);
                   Arg := Get_Empty_Any (TC_Unsigned_Long);
                else
                   Arg := Get_Aggregate_Element
@@ -1621,12 +1606,7 @@ package body Broca.CDR is
             declare
                S : CORBA.String := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (S);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, S);
-               end if;
+               Set_Any_Value (Result, S);
             end;
          when Tk_Sequence =>
             declare
@@ -1639,8 +1619,11 @@ package body Broca.CDR is
                if Max_Nb > 0 and then Nb > Max_Nb then
                   Broca.Exceptions.Raise_Marshal;
                end if;
+               Set_Any_Aggregate_Value (Result);
+               pragma Debug (O ("Unmarshall_To_Any : aggregate value set"));
                if Is_Empty then
-                  Result := Get_Empty_Any_Aggregate (Any_Type);
+                  pragma Debug (O ("Unmarshall_To_Any : about to call"
+                                   & " add_aggregate_element"));
                   Add_Aggregate_Element (Result, To_Any (Nb));
                else
                   Arg := Get_Aggregate_Element
@@ -1649,18 +1632,20 @@ package body Broca.CDR is
                      CORBA.Unsigned_Long (0));
                   Set_Any_Value (Arg, Nb);
                end if;
-               for I in 0 .. Nb - 1 loop
-                  if Is_Empty then
-                     Arg := Get_Empty_Any (TypeCode.Content_Type (Tc));
-                  else
-                     Arg := Get_Aggregate_Element
-                       (Result, TypeCode.Content_Type (Tc), I + 1);
-                  end if;
-                  Unmarshall_To_Any (Buffer, Arg);
-                  if Is_Empty then
-                     Add_Aggregate_Element (Result, Arg);
-                  end if;
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     if Is_Empty then
+                        Arg := Get_Empty_Any (TypeCode.Content_Type (Tc));
+                     else
+                        Arg := Get_Aggregate_Element
+                          (Result, TypeCode.Content_Type (Tc), I + 1);
+                     end if;
+                     Unmarshall_To_Any (Buffer, Arg);
+                     if Is_Empty then
+                        Add_Aggregate_Element (Result, Arg);
+                     end if;
+                  end loop;
+               end if;
             end;
          when Tk_Array =>
             declare
@@ -1674,21 +1659,21 @@ package body Broca.CDR is
                   Content_True_Type :=
                     TypeCode.Content_Type (Content_True_Type);
                end loop;
-               if Is_Empty then
-                  Result := Get_Empty_Any_Aggregate (Any_Type);
+               Set_Any_Aggregate_Value (Result);
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     if Is_Empty then
+                        Arg := Get_Empty_Any (Content_True_Type);
+                     else
+                        Arg := Get_Aggregate_Element
+                          (Result, Content_True_Type, I);
+                     end if;
+                     Unmarshall_To_Any (Buffer, Arg);
+                     if Is_Empty then
+                        Add_Aggregate_Element (Result, Arg);
+                     end if;
+                  end loop;
                end if;
-               for I in 0 .. Nb - 1 loop
-                  if Is_Empty then
-                     Arg := Get_Empty_Any (Content_True_Type);
-                  else
-                     Arg := Get_Aggregate_Element
-                       (Result, Content_True_Type, I);
-                  end if;
-                  Unmarshall_To_Any (Buffer, Arg);
-                  if Is_Empty then
-                     Add_Aggregate_Element (Result, Arg);
-                  end if;
-               end loop;
             end;
          when Tk_Alias =>
             --  we should never reach this point
@@ -1699,79 +1684,54 @@ package body Broca.CDR is
                  TypeCode.Member_Count (Tc);
                Arg : CORBA.Any;
             begin
-               if Is_Empty then
-                  Result := Get_Empty_Any_Aggregate (Any_Type);
+               Set_Any_Aggregate_Value (Result);
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     if Is_Empty then
+                        Arg := Get_Empty_Any (TypeCode.Member_Type (Tc, I));
+                     else
+                        Arg := Get_Aggregate_Element
+                          (Result,
+                           TypeCode.Member_Type (Tc, I),
+                           I);
+                     end if;
+                     Unmarshall_To_Any (Buffer,
+                                        Arg);
+                     if Is_Empty then
+                        Add_Aggregate_Element (Result, Arg);
+                     end if;
+                  end loop;
                end if;
-               for I in 0 .. Nb - 1 loop
-                  if Is_Empty then
-                     Arg := Get_Empty_Any (TypeCode.Member_Type (Tc, I));
-                  else
-                     Arg := Get_Aggregate_Element
-                       (Result,
-                        TypeCode.Member_Type (Tc, I),
-                        I);
-                  end if;
-                  Unmarshall_To_Any (Buffer,
-                                     Arg);
-                  if Is_Empty then
-                     Add_Aggregate_Element (Result, Arg);
-                  end if;
-               end loop;
             end;
          when Tk_Longlong =>
             declare
                Ll : Long_Long := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (Ll);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Ll);
-               end if;
+               Set_Any_Value (Result, Ll);
             end;
          when Tk_Ulonglong =>
             declare
                Ull : Unsigned_Long_Long := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (Ull);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Ull);
-               end if;
+               Set_Any_Value (Result, Ull);
             end;
          when Tk_Longdouble =>
             declare
                Ld : Long_Double := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (Ld);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Ld);
-               end if;
+               Set_Any_Value (Result, Ld);
             end;
          when Tk_Widechar =>
             declare
                Wc : Wchar := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (Wc);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Wc);
-               end if;
+               Set_Any_Value (Result, Wc);
             end;
          when Tk_Wstring =>
             declare
                Ws : CORBA.Wide_String := Unmarshall (Buffer);
             begin
-               if Is_Empty then
-                  Result := To_Any (Ws);
-                  Set_Type (Result, Any_Type);
-               else
-                  Set_Any_Value (Result, Ws);
-               end if;
+               Set_Any_Value (Result, Ws);
             end;
          when Tk_Fixed =>
             --  FIXME : to be done
@@ -1824,6 +1784,8 @@ package body Broca.CDR is
          when 11 =>
             Result := CORBA.TypeCode.TC_Any;
          when 12 =>
+            pragma Debug (O ("Unmarshall (TypeCode) : "
+                             & "dealing with a TypeCode"));
             Result := CORBA.TypeCode.TC_TypeCode;
          when 13 =>
             Result := CORBA.TypeCode.TC_Principal;
@@ -1848,6 +1810,8 @@ package body Broca.CDR is
                Nb : CORBA.Unsigned_Long;
                Member_Type : CORBA.TypeCode.Object;
             begin
+               pragma Debug (O ("unmarshall (TypeCode) : dealing "
+                                & "with a struct"));
                Decapsulate (Complex_Encap'Access, Complex_Buffer'Access);
                Id   := Unmarshall (Complex_Buffer'Access);
                Name := Unmarshall (Complex_Buffer'Access);
@@ -1856,14 +1820,16 @@ package body Broca.CDR is
                  (Result, To_Any (Name));
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
-               for I in 0 .. Nb - 1 loop
-                  Member_Name := Unmarshall (Complex_Buffer'Access);
-                  Member_Type := Unmarshall (Complex_Buffer'Access);
-                  CORBA.TypeCode.Add_Parameter
-                    (Result, To_Any (Member_Name));
-                  CORBA.TypeCode.Add_Parameter
-                    (Result, To_Any (Member_Type));
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Member_Name := Unmarshall (Complex_Buffer'Access);
+                     Member_Type := Unmarshall (Complex_Buffer'Access);
+                     CORBA.TypeCode.Add_Parameter
+                       (Result, To_Any (Member_Type));
+                     CORBA.TypeCode.Add_Parameter
+                       (Result, To_Any (Member_Name));
+                  end loop;
+               end if;
             end;
          when 16 =>
             Result := CORBA.TypeCode.TC_Union;
@@ -1890,18 +1856,20 @@ package body Broca.CDR is
                  (Result, To_Any (Discriminator_Type));
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Default_Index));
-               for I in 0 .. Nb - 1 loop
-                  Member_Label := Get_Empty_Any (Discriminator_Type);
-                  Unmarshall_To_Any (Complex_Buffer'Access, Member_Label);
-                  Member_Name := Unmarshall (Complex_Buffer'Access);
-                  Member_Type := Unmarshall (Complex_Buffer'Access);
-                  CORBA.TypeCode.Add_Parameter
-                    (Result, Member_Label);
-                  CORBA.TypeCode.Add_Parameter
-                    (Result, To_Any (Member_Name));
-                  CORBA.TypeCode.Add_Parameter
-                    (Result, To_Any (Member_Type));
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Member_Label := Get_Empty_Any (Discriminator_Type);
+                     Unmarshall_To_Any (Complex_Buffer'Access, Member_Label);
+                     Member_Name := Unmarshall (Complex_Buffer'Access);
+                     Member_Type := Unmarshall (Complex_Buffer'Access);
+                     CORBA.TypeCode.Add_Parameter
+                       (Result, Member_Label);
+                     CORBA.TypeCode.Add_Parameter
+                       (Result, To_Any (Member_Type));
+                     CORBA.TypeCode.Add_Parameter
+                       (Result, To_Any (Member_Name));
+                  end loop;
+               end if;
             end;
          when 17 =>
             Result := CORBA.TypeCode.TC_Enum;
@@ -1920,11 +1888,13 @@ package body Broca.CDR is
                  (Result, To_Any (Name));
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
-               for I in 0 .. Nb - 1 loop
-                  Member_Name := Unmarshall (Complex_Buffer'Access);
-                  CORBA.TypeCode.Add_Parameter
-                    (Result, To_Any (Member_Name));
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Member_Name := Unmarshall (Complex_Buffer'Access);
+                     CORBA.TypeCode.Add_Parameter
+                       (Result, To_Any (Member_Name));
+                  end loop;
+               end if;
             end;
          when 18 =>
             Result := CORBA.TypeCode.TC_String;
@@ -1948,9 +1918,9 @@ package body Broca.CDR is
                Content_Type := Unmarshall (Complex_Buffer'Access);
                Length := Unmarshall (Complex_Buffer'Access);
                CORBA.TypeCode.Add_Parameter
-                 (Result, To_Any (Content_Type));
-               CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Length));
+               CORBA.TypeCode.Add_Parameter
+                 (Result, To_Any (Content_Type));
             end;
          when 20 =>
             Result := CORBA.TypeCode.TC_Array;
@@ -1965,9 +1935,9 @@ package body Broca.CDR is
                Content_Type := Unmarshall (Complex_Buffer'Access);
                Length := Unmarshall (Complex_Buffer'Access);
                CORBA.TypeCode.Add_Parameter
-                 (Result, To_Any (Content_Type));
-               CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Length));
+               CORBA.TypeCode.Add_Parameter
+                 (Result, To_Any (Content_Type));
             end;
          when 21 =>
             Result := CORBA.TypeCode.TC_Alias;
@@ -2007,14 +1977,16 @@ package body Broca.CDR is
                  (Result, To_Any (Name));
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Id));
-               for I in 0 .. Nb - 1 loop
-                  Member_Name := Unmarshall (Complex_Buffer'Access);
-                  Member_Type := Unmarshall (Complex_Buffer'Access);
-                  CORBA.TypeCode.Add_Parameter
-                    (Result, To_Any (Member_Name));
-                  CORBA.TypeCode.Add_Parameter
-                    (Result, To_Any (Member_Type));
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Member_Name := Unmarshall (Complex_Buffer'Access);
+                     Member_Type := Unmarshall (Complex_Buffer'Access);
+                     CORBA.TypeCode.Add_Parameter
+                       (Result, To_Any (Member_Type));
+                     CORBA.TypeCode.Add_Parameter
+                       (Result, To_Any (Member_Name));
+                  end loop;
+               end if;
             end;
          when 23 =>
             Result := CORBA.TypeCode.TC_Long_Long;
@@ -2046,8 +2018,6 @@ package body Broca.CDR is
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Fixed_Scale));
             end;
-
-
          when 29 =>
             Result := CORBA.TypeCode.TC_Value;
             declare
@@ -2073,17 +2043,19 @@ package body Broca.CDR is
                  (Result, To_Any (Type_Modifier));
                CORBA.TypeCode.Add_Parameter
                  (Result, To_Any (Concrete_Base_Type));
-               for I in 0 .. Nb - 1 loop
-                  Member_Name := Unmarshall (Complex_Buffer'Access);
-                  Member_Type := Unmarshall (Complex_Buffer'Access);
-                  Visibility := Unmarshall (Complex_Buffer'Access);
-                  CORBA.TypeCode.Add_Parameter
-                    (Result, To_Any (Member_Name));
-                  CORBA.TypeCode.Add_Parameter
-                    (Result, To_Any (Member_Type));
-                  CORBA.TypeCode.Add_Parameter
-                    (Result, To_Any (Visibility));
-               end loop;
+               if Nb /= 0 then
+                  for I in 0 .. Nb - 1 loop
+                     Member_Name := Unmarshall (Complex_Buffer'Access);
+                     Member_Type := Unmarshall (Complex_Buffer'Access);
+                     Visibility := Unmarshall (Complex_Buffer'Access);
+                     CORBA.TypeCode.Add_Parameter
+                       (Result, To_Any (Visibility));
+                     CORBA.TypeCode.Add_Parameter
+                       (Result, To_Any (Member_Type));
+                     CORBA.TypeCode.Add_Parameter
+                       (Result, To_Any (Member_Name));
+                  end loop;
+               end if;
             end;
          when 30 =>
             Result := CORBA.TypeCode.TC_Valuebox;

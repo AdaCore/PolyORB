@@ -2,7 +2,7 @@
 
 # cobuild: Build AdaBroker from a checked-out wavefront.
 
-# $Id: //depot/adabroker/release-1/utils/cobuild#1 $
+# $Id: //depot/adabroker/main/broca/utils/cobuild#6 $
 
 usage () {
   echo "Usage: $0 -m EMAIL_ADDRESS -C CLIENT_WORKSPACE_TOP -o OUTPUT_DIR [ -c CHANGELIST ]"
@@ -84,8 +84,9 @@ export CHANGE
 
 /usr/local/bin/rungroup /bin/sh -c '(
   set -e
-  #sleep 120
+  sleep 10
 
+  echo "---------- Building AdaBroker ch. $CHANGE"
   ./support/reconfig
   cd $OUTDIR
   mkdir build > /dev/null 2>&1 || true
@@ -95,8 +96,6 @@ export CHANGE
   $CLIENT_TOP/configure --disable-shared --prefix=$OUTDIR/install \
   && make && make install
   RC=$?
-
-  echo "---------- Build ended: `date`"
   exit $RC
 )' &
 
@@ -116,16 +115,19 @@ set -e
 
 if [ $RC = 0 ]
 then
+  echo "---------- Build completed successfully: `date`"
   STATUS="completed"
   OUTPATH=`echo $OUTDIR | sed 's,/usr/home,/infres,'`
   MSG="Build completed successfully.\\nSee details at $OUTPATH/build.log"
   SUCCESS=true
 elif [ $RC -ge 128 ]
 then
+  echo "---------- Build aborted by a signal: `date`"
   STATUS="aborted"
   MSG="The build process was interrupted by a signal."
   SUCCESS=true
 else
+  echo "---------- BUILD FAILED: `date`"
   SUCCESS=false
 fi
 
