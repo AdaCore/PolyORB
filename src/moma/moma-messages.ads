@@ -43,11 +43,6 @@ package MOMA.Messages is
 
    type Message is tagged private;
 
-   type Message_To_Any_T is access function (Self : Message)
-                                             return PolyORB.Any.Any;
-   --  XXX what we want to do with the message before sending it to the
-   --  server ...
-
    procedure Acknowledge;
 
    procedure Clear_Body;
@@ -144,10 +139,6 @@ package MOMA.Messages is
                        Type_Of_Message : MOMA.Types.Message_Type);
    pragma Inline (Set_Type);
 
-   procedure Set_Message_To_Any (Self : in out Message;
-                                 Message_To_Any : Message_To_Any_T);
-   pragma Inline (Set_Message_To_Any);
-
    --  XXX Are the following functions junk ?
    --  ??? return
    function Get_Property_Names
@@ -163,10 +154,13 @@ package MOMA.Messages is
                           return MOMA.Types.Property_Type;
    pragma Inline (Get_Property);
 
-   function To_Any (Self : Message) return PolyORB.Any.Any;
-   pragma Inline (To_Any);
+   --
+   --  Various functions
+   --
 
-   function Simple_Marshalling (Self : Message) return PolyORB.Any.Any;
+   function To_Any (Self : Message) return PolyORB.Any.Any;
+
+   function From_Any (Self : PolyORB.Any.Any) return PolyORB.Any.Any;
 
 private
    type Message is tagged record
@@ -181,7 +175,6 @@ private
       Is_Persistent   : MOMA.Types.Boolean;
       Is_Redelivered  : MOMA.Types.Boolean;
       Payload         : PolyORB.Any.Any;
-      Message_To_Any  : Message_To_Any_T; --  XXX find a better name
    end record;
 
 end MOMA.Messages;

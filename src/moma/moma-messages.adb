@@ -326,26 +326,16 @@ package body MOMA.Messages is
 
    function To_Any (Self : Message) return PolyORB.Any.Any is
    begin
-      return Self.Message_To_Any (Self);
+      return PolyORB.Any.To_Any (Self.Payload);
    end To_Any;
 
-   ------------------------
-   -- Set_Message_to_Any --
-   ------------------------
+   --------------
+   -- From_Any --
+   --------------
 
-   procedure Set_Message_To_Any (Self : in out Message;
-                                 Message_To_Any : Message_To_Any_T) is
+   function From_Any (Self : PolyORB.Any.Any) return PolyORB.Any.Any is
    begin
-      Self.Message_To_Any := Message_To_Any;
-   end Set_Message_To_Any;
-
-   ------------------------
-   -- Simple_Marshalling --
-   ------------------------
-
-   function Simple_Marshalling (Self : Message) return PolyORB.Any.Any is
-   begin
-      return PolyORB.Any.To_Any (Self.Payload);
-   end Simple_Marshalling;
+      return PolyORB.Any.From_Any (Self);
+   end From_Any;
 
 end MOMA.Messages;

@@ -38,12 +38,20 @@ with PolyORB.Types;
 
 package MOMA.Types is
 
-   --  Generic types.
-   --
-   --  Whenever possible, we reuse definitions from the CORBA specifications
+   use PolyORB.Types;
 
-   subtype Boolean is Standard.Boolean;
-   subtype String  is PolyORB.Types.String;
+   --  Generic types.
+
+   subtype Boolean        is PolyORB.Types.Boolean;
+   subtype Byte           is PolyORB.Types.Octet;
+   subtype Char           is PolyORB.Types.Char;
+   subtype Double         is PolyORB.Types.Double;
+   subtype Float          is PolyORB.Types.Float;
+   subtype Long           is PolyORB.Types.Long;
+   subtype Short          is PolyORB.Types.Short;
+   subtype String         is PolyORB.Types.String;
+   subtype Unsigned_Long  is PolyORB.Types.Unsigned_Long;
+   subtype Unsigned_Short is PolyORB.Types.Unsigned_Short;
 
    --  String conversion fonctions.
 
@@ -60,7 +68,6 @@ package MOMA.Types is
    type Meta_Data        is new    Integer;
    type Acknowledge_Type is new    Integer;
    type Property_Type    is new    Integer;
-   type String_Ptr       is access String;
    type Priority         is new    Integer range 1 .. 10;
    type Record_Type      is new    Integer;
    type Array_Type       is new    Integer;

@@ -33,6 +33,7 @@
 --  $Id: //droopi/main/src/moma/moma-message_consumers-queues.adb#3
 
 with MOMA.Messages;
+with MOMA.Messages.MBytes;
 with MOMA.Messages.MTexts;
 
 with PolyORB.Any;
@@ -47,6 +48,7 @@ package body MOMA.Message_Consumers.Queues is
    use PolyORB.Log;
    use PolyORB.Types;
    use MOMA.Messages;
+   use MOMA.Messages.MBytes;
    use MOMA.Messages.MTexts;
 
    package L is
@@ -81,11 +83,12 @@ package body MOMA.Message_Consumers.Queues is
 
       Operation_Name : constant Standard.String := "Get";
 
-      Request     : PolyORB.Requests.Request_Access;
-      Arg_List    : PolyORB.Any.NVList.Ref;
-      Result      : PolyORB.Any.NamedValue;
-      Result_Name : PolyORB.Types.String := To_PolyORB_String ("Result");
-      Result_Any  : PolyORB.Any.Any;
+      Request       : PolyORB.Requests.Request_Access;
+      Arg_List      : PolyORB.Any.NVList.Ref;
+      Result        : PolyORB.Any.NamedValue;
+      Result_Name   : PolyORB.Types.String := To_PolyORB_String ("Result");
+      Result_Any    : PolyORB.Any.Any;
+      TypeCode_Kind : PolyORB.Any.TCKind;
 
    begin
       PolyORB.Any.NVList.Create (Arg_List);
@@ -110,12 +113,30 @@ package body MOMA.Message_Consumers.Queues is
 
       PolyORB.Requests.Destroy_Request (Request);
 
-      Result_Any := From_Any (Result.Argument);
+      Result_Any := MOMA.Messages.From_Any (Result.Argument);
       pragma Debug (O ("Received " & PolyORB.Any.Image (Result_Any)));
 
-      if TypeCode.Kind (Get_Type (Result_Any)) = Tk_String then
+      TypeCode_Kind := TypeCode.Kind (Get_Type (Result_Any));
+      if TypeCode_Kind = Tk_String then
          declare
             Rcvd_Message : MOMA.Messages.MTexts.MText := Create_Text_Message;
+         begin
+            Set_Payload (Rcvd_Message, Result_Any);
+            return Rcvd_Message;
+         end;
+
+      elsif TypeCode_Kind = Tk_Boolean or
+        TypeCode_Kind = Tk_Octet or
+        TypeCode_Kind = Tk_Char or
+        TypeCode_Kind = Tk_Double or
+        TypeCode_Kind = Tk_Float or
+        TypeCode_Kind = Tk_Long or
+        TypeCode_Kind = Tk_Short or
+        TypeCode_Kind = Tk_Ulong or
+        TypeCode_Kind = Tk_Ushort
+      then
+         declare
+            Rcvd_Message : MOMA.Messages.MBytes.MByte := Create_Byte_Message;
          begin
             Set_Payload (Rcvd_Message, Result_Any);
             return Rcvd_Message;
