@@ -44,16 +44,18 @@ package PolyORB.Objects.Interface is
       Req : Requests.Request_Access;
       Pro : PolyORB.Binding_Data.Profile_Access;
    end record;
-   --  Request the receiving Servant to execute Req. Oid is
-   --  the object Id that was determined to be associated with
-   --  the receiving surrogate of the object.
-   --  The expected reply is Executed_Request. Null_Message
-   --  can also be returned if the request was not processed
-   --  immediately.
+   --  Request the receiving Servant to execute Req. On the client
+   --  side, Pro is the profile of the target object reference that
+   --  was used to establish a binding object with the target.
+   --  The expected reply is Executed_Request, or Null_Message
+   --  if the request was not processed immediately.
 
    type Executed_Request is new Components.Message with record
       Req : Requests.Request_Access;
    end record;
-   --  Returned by a servant after Req has been executed.
+   --  Notify the completion of Req's execution. This message can
+   --  be a synchronous reply to Execute_Request, or it can be
+   --  emitted asynchronously to the requesting component if
+   --  Null_Message was returned as the reply for Execute_Request.
 
 end PolyORB.Objects.Interface;

@@ -109,6 +109,8 @@ package PolyORB.Protocols is
       P : access Binding_Data.Profile_Type'Class)
       is abstract;
    --  Send a method invocation message for request R on session S.
+   --  P designates the profile of the target object reference that
+   --  was bound to establish session S.
 
    procedure Abort_Request
      (S : access Session;
