@@ -62,25 +62,30 @@ package body MOMA.Provider.Message_Pool is
 
    --  Actual functions implemented by the servant.
 
-   procedure Publish (Self : access Object;
-                      Message : in PolyORB.Any.Any);
+   procedure Publish
+     (Self    : access Object;
+      Message : in     PolyORB.Any.Any);
 
-   function Get (Self : access Object;
-                 Message_Id : in MOMA.Types.String)
-                return PolyORB.Any.Any;
+   function Get
+     (Self       : access Object;
+      Message_Id : in     MOMA.Types.String)
+     return PolyORB.Any.Any;
 
-   procedure Register_Handler (Self : access Object;
-                               Handler_Ref : PolyORB.References.Ref;
-                               Behavior : MOMA.Types.Call_Back_Behavior);
+   procedure Register_Handler
+     (Self        : access Object;
+      Handler_Ref :        PolyORB.References.Ref;
+      Behavior    :        MOMA.Types.Call_Back_Behavior);
 
    --  Accessors to servant interface.
 
-   function Get_Parameter_Profile (Method : String)
-                                  return PolyORB.Any.NVList.Ref;
+   function Get_Parameter_Profile
+     (Method : String)
+     return PolyORB.Any.NVList.Ref;
    --  Parameters part of the interface description.
 
-   function Get_Result_Profile (Method : String)
-                               return PolyORB.Any.Any;
+   function Get_Result_Profile
+     (Method : String)
+     return PolyORB.Any.Any;
    --  Result part of the interface description.
 
    ------------
@@ -255,8 +260,9 @@ package body MOMA.Provider.Message_Pool is
    -- Initialize --
    ----------------
 
-   procedure Initialize (Self : access Object;
-                         Info : MOMA.Types.Message_Pool) is
+   procedure Initialize
+     (Self : access Object;
+      Info :        MOMA.Types.Message_Pool) is
    begin
       Self.Pool := Info;
       MOMA.Provider.Warehouse.Set_Persistence
@@ -269,8 +275,9 @@ package body MOMA.Provider.Message_Pool is
    -- Publish --
    -------------
 
-   procedure Publish (Self : access Object;
-                      Message : in PolyORB.Any.Any)
+   procedure Publish
+     (Self    : access Object;
+      Message : in     PolyORB.Any.Any)
    is
       Temp : constant String := Integer'Image (Self.Message_Id);
       Key  : constant String := "M" & Temp (2 .. Temp'Last);
@@ -370,9 +377,10 @@ package body MOMA.Provider.Message_Pool is
    -- Get --
    ---------
 
-   function Get (Self : access Object;
-                 Message_Id : in MOMA.Types.String)
-                return PolyORB.Any.Any
+   function Get
+     (Self       : access Object;
+      Message_Id : in     MOMA.Types.String)
+     return PolyORB.Any.Any
    is
       Result : PolyORB.Any.Any;
       Temp : constant String := Integer'Image (Self.Last_Read_Id);
@@ -393,6 +401,7 @@ package body MOMA.Provider.Message_Pool is
                           & " with id " & Key));
 
       end if;
+
       return Result;
    end Get;
 
@@ -400,9 +409,10 @@ package body MOMA.Provider.Message_Pool is
    -- Register_Handler --
    ----------------------
 
-   procedure Register_Handler (Self : access Object;
-                               Handler_Ref : PolyORB.References.Ref;
-                               Behavior : MOMA.Types.Call_Back_Behavior) is
+   procedure Register_Handler
+     (Self        : access Object;
+      Handler_Ref :        PolyORB.References.Ref;
+      Behavior    :        MOMA.Types.Call_Back_Behavior) is
    begin
       Self.Message_Handler := Handler_Ref;
       Self.Behavior := Behavior;

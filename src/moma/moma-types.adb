@@ -70,8 +70,9 @@ package body MOMA.Types is
       return Result;
    end From_Any;
 
-   function From_Any (Item : in PolyORB.Any.Any)
-                     return IDL_SEQUENCE_Map_Element.Sequence
+   function From_Any
+     (Item : in PolyORB.Any.Any)
+     return IDL_SEQUENCE_Map_Element.Sequence
    is
       use IDL_SEQUENCE_Map_Element;
       Nb_Any : Any := Get_Aggregate_Element
@@ -84,11 +85,12 @@ package body MOMA.Types is
 
    begin
       pragma Debug (O ("From_Any : (IDL_Sequence_Map_Element)"));
-      for I in 1 .. Nb loop
+
+      for J in 1 .. Nb loop
          Index := Get_Aggregate_Element (Item,
                                          TC_Map_Element,
-                                         Unsigned_Long (I));
-         Result (I) := From_Any (Index);
+                                         Unsigned_Long (J));
+         Result (J) := From_Any (Index);
       end loop;
 
       return To_Sequence (Result);
@@ -128,8 +130,9 @@ package body MOMA.Types is
       return Result;
    end To_Any;
 
-   function To_Any (Item : in IDL_SEQUENCE_Map_Element.Sequence)
-                   return PolyORB.Any.Any
+   function To_Any
+     (Item : in IDL_SEQUENCE_Map_Element.Sequence)
+     return PolyORB.Any.Any
    is
       use IDL_SEQUENCE_Map_Element;
       Array_Item : Element_Array := To_Element_Array (Item);
@@ -141,9 +144,9 @@ package body MOMA.Types is
       Add_Aggregate_Element
         (Result, To_Any (Unsigned_Long (Length (Item))));
 
-      for I in Array_Item'Range loop
+      for J in Array_Item'Range loop
          Add_Aggregate_Element (Result,
-                                To_Any (Array_Item (I)));
+                                To_Any (Array_Item (J)));
       end loop;
 
       return Result;
@@ -172,8 +175,9 @@ package body MOMA.Types is
    -- Get_Boolean --
    -----------------
 
-   function Get_Boolean (Self : Map_Element)
-                        return MOMA.Types.Boolean is
+   function Get_Boolean
+     (Self : Map_Element)
+     return MOMA.Types.Boolean is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Boolean;
@@ -182,8 +186,9 @@ package body MOMA.Types is
    -- Set_Boolean --
    -----------------
 
-   procedure Set_Boolean (Self : in out Map_Element;
-                          Value : MOMA.Types.Boolean) is
+   procedure Set_Boolean
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Boolean) is
    begin
       Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Boolean (Value));
    end Set_Boolean;
@@ -192,8 +197,9 @@ package body MOMA.Types is
    -- Get_Byte --
    --------------
 
-   function Get_Byte (Self : Map_Element)
-                     return MOMA.Types.Byte is
+   function Get_Byte
+     (Self : Map_Element)
+     return MOMA.Types.Byte is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Byte;
@@ -202,8 +208,9 @@ package body MOMA.Types is
    -- Set_Byte --
    --------------
 
-   procedure Set_Byte (Self : in out Map_Element;
-                       Value : MOMA.Types.Byte) is
+   procedure Set_Byte
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Byte) is
    begin
       Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Octet (Value));
    end Set_Byte;
@@ -212,8 +219,9 @@ package body MOMA.Types is
    -- Get_Char --
    --------------
 
-   function Get_Char (Self : Map_Element)
-                     return MOMA.Types.Char is
+   function Get_Char
+     (Self : Map_Element)
+     return MOMA.Types.Char is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Char;
@@ -222,8 +230,9 @@ package body MOMA.Types is
    -- Set_Char --
    --------------
 
-   procedure Set_Char (Self : in out Map_Element;
-                       Value : MOMA.Types.Char) is
+   procedure Set_Char
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Char) is
    begin
       Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Char (Value));
    end Set_Char;
@@ -232,8 +241,9 @@ package body MOMA.Types is
    -- Get_Double --
    ----------------
 
-   function Get_Double (Self : Map_Element)
-                       return MOMA.Types.Double is
+   function Get_Double
+     (Self : Map_Element)
+     return MOMA.Types.Double is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Double;
@@ -242,8 +252,9 @@ package body MOMA.Types is
    -- Set_Double --
    ----------------
 
-   procedure Set_Double (Self : in out Map_Element;
-                         Value : MOMA.Types.Double) is
+   procedure Set_Double
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Double) is
    begin
       Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Double (Value));
    end Set_Double;
@@ -252,8 +263,9 @@ package body MOMA.Types is
    -- Get_Float --
    ---------------
 
-   function Get_Float (Self : Map_Element)
-                      return MOMA.Types.Float is
+   function Get_Float
+     (Self : Map_Element)
+     return MOMA.Types.Float is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Float;
@@ -262,8 +274,9 @@ package body MOMA.Types is
    -- Set_Float --
    ---------------
 
-   procedure Set_Float (Self : in out Map_Element;
-                        Value : MOMA.Types.Float) is
+   procedure Set_Float
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Float) is
    begin
       Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Float (Value));
    end Set_Float;
@@ -272,8 +285,9 @@ package body MOMA.Types is
    -- Get_Long --
    --------------
 
-   function Get_Long (Self : Map_Element)
-                     return MOMA.Types.Long is
+   function Get_Long
+     (Self : Map_Element)
+     return MOMA.Types.Long is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Long;
@@ -282,8 +296,9 @@ package body MOMA.Types is
    -- Set_Long --
    --------------
 
-   procedure Set_Long (Self : in out Map_Element;
-                       Value : MOMA.Types.Long) is
+   procedure Set_Long
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Long) is
    begin
       Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Long (Value));
    end Set_Long;
@@ -292,8 +307,9 @@ package body MOMA.Types is
    -- Get_Name --
    --------------
 
-   function Get_Name (Self : Map_Element)
-                     return MOMA.Types.String is
+   function Get_Name
+     (Self : Map_Element)
+     return MOMA.Types.String is
    begin
       return Self.Name;
    end Get_Name;
@@ -302,8 +318,9 @@ package body MOMA.Types is
    -- Set_Name --
    --------------
 
-   procedure Set_Name (Self : in out Map_Element;
-                       Value : MOMA.Types.String) is
+   procedure Set_Name
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.String) is
    begin
       Self.Name := Value;
    end Set_Name;
@@ -312,8 +329,9 @@ package body MOMA.Types is
    -- Get_Short --
    ---------------
 
-   function Get_Short (Self : Map_Element)
-                      return MOMA.Types.Short is
+   function Get_Short
+     (Self : Map_Element)
+     return MOMA.Types.Short is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Short;
@@ -322,8 +340,9 @@ package body MOMA.Types is
    -- Set_Short --
    ---------------
 
-   procedure Set_Short (Self : in out Map_Element;
-                        Value : MOMA.Types.Short) is
+   procedure Set_Short
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Short) is
    begin
       Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Short (Value));
    end Set_Short;
@@ -332,8 +351,9 @@ package body MOMA.Types is
    -- Get_String --
    ----------------
 
-   function Get_String (Self : Map_Element)
-                       return MOMA.Types.String is
+   function Get_String
+     (Self : Map_Element)
+     return MOMA.Types.String is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_String;
@@ -342,8 +362,9 @@ package body MOMA.Types is
    -- Set_String --
    ----------------
 
-   procedure Set_String (Self : in out Map_Element;
-                         Value : MOMA.Types.String) is
+   procedure Set_String
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.String) is
    begin
       Self.Value := PolyORB.Any.To_Any (PolyORB.Types.String (Value));
    end Set_String;
@@ -352,8 +373,9 @@ package body MOMA.Types is
    -- Get_Unsigned_Long --
    -----------------------
 
-   function Get_Unsigned_Long (Self : Map_Element)
-                              return MOMA.Types.Unsigned_Long is
+   function Get_Unsigned_Long
+     (Self : Map_Element)
+     return MOMA.Types.Unsigned_Long is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Unsigned_Long;
@@ -362,8 +384,9 @@ package body MOMA.Types is
    -- Set_Unsigned_Long --
    -----------------------
 
-   procedure Set_Unsigned_Long (Self : in out Map_Element;
-                                Value : MOMA.Types.Unsigned_Long) is
+   procedure Set_Unsigned_Long
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Unsigned_Long) is
    begin
       Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Long (Value));
    end Set_Unsigned_Long;
@@ -372,8 +395,9 @@ package body MOMA.Types is
    -- Get_Unsigned_Short --
    ------------------------
 
-   function Get_Unsigned_Short (Self : Map_Element)
-                               return MOMA.Types.Unsigned_Short is
+   function Get_Unsigned_Short
+     (Self : Map_Element)
+     return MOMA.Types.Unsigned_Short is
    begin
       return PolyORB.Any.From_Any (Self.Value);
    end Get_Unsigned_Short;
@@ -382,8 +406,9 @@ package body MOMA.Types is
    -- Set_Unsigned_Short --
    ------------------------
 
-   procedure Set_Unsigned_Short (Self : in out Map_Element;
-                                 Value : MOMA.Types.Unsigned_Short) is
+   procedure Set_Unsigned_Short
+     (Self  : in out Map_Element;
+      Value :        MOMA.Types.Unsigned_Short) is
    begin
       Self.Value := PolyORB.Any.To_Any (PolyORB.Types.Unsigned_Short (Value));
    end Set_Unsigned_Short;
@@ -392,8 +417,9 @@ package body MOMA.Types is
    -- Get_Name --
    --------------
 
-   function Get_Name (Pool : MOMA.Types.Message_Pool)
-                     return MOMA.Types.String is
+   function Get_Name
+     (Pool : MOMA.Types.Message_Pool)
+     return MOMA.Types.String is
    begin
       return Pool.Name;
    end Get_Name;
@@ -402,8 +428,9 @@ package body MOMA.Types is
    -- Set_Name --
    --------------
 
-   procedure Set_Name (Pool : in out MOMA.Types.Message_Pool;
-                       Name : MOMA.Types.String) is
+   procedure Set_Name
+     (Pool : in out MOMA.Types.Message_Pool;
+      Name :        MOMA.Types.String) is
    begin
       Pool.Name := Name;
    end Set_Name;
@@ -412,8 +439,9 @@ package body MOMA.Types is
    -- Get_Type --
    --------------
 
-   function Get_Type (Pool : MOMA.Types.Message_Pool)
-                     return Pool_Type is
+   function Get_Type
+     (Pool : MOMA.Types.Message_Pool)
+     return Pool_Type is
    begin
       return Pool.Pool;
    end Get_Type;
@@ -422,8 +450,9 @@ package body MOMA.Types is
    -- Set_Type --
    --------------
 
-   procedure Set_Type (Pool  : in out MOMA.Types.Message_Pool;
-                       PType : Pool_Type) is
+   procedure Set_Type
+     (Pool  : in out MOMA.Types.Message_Pool;
+      PType :        Pool_Type) is
    begin
       Pool.Pool := PType;
    end Set_Type;
@@ -432,8 +461,9 @@ package body MOMA.Types is
    -- Get_Persistent --
    --------------------
 
-   function Get_Persistence (Pool : MOMA.Types.Message_Pool)
-                            return Persistence_Mode is
+   function Get_Persistence
+     (Pool : MOMA.Types.Message_Pool)
+     return Persistence_Mode is
    begin
       return Pool.Persistence;
    end Get_Persistence;
@@ -442,8 +472,9 @@ package body MOMA.Types is
    -- Set_Persistence --
    ---------------------
 
-   procedure Set_Persistence  (Pool  : in out MOMA.Types.Message_Pool;
-                               PMode : Persistence_Mode) is
+   procedure Set_Persistence
+     (Pool  : in out MOMA.Types.Message_Pool;
+      PMode :        Persistence_Mode) is
    begin
       Pool.Persistence := PMode;
    end Set_Persistence;

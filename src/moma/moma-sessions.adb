@@ -73,12 +73,14 @@ package body MOMA.Sessions is
       Acknowledge_Mode : MOMA.Types.Acknowledge_Type)
      return Session
    is
-      New_Session : Session;
-
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Connection);
       pragma Warnings (On);
+
+      New_Session : Session;
+
+   begin
+
       --  XXX ??? Why
       New_Session.Transacted := Transacted;
       New_Session.Acknowledge_Mode := Acknowledge_Mode;
@@ -122,9 +124,10 @@ package body MOMA.Sessions is
    -- Subscribe --
    ---------------
 
-   procedure Subscribe (Topic : MOMA.Destinations.Destination;
-                        Pool  : MOMA.Destinations.Destination;
-                        Sub   : Boolean := True)
+   procedure Subscribe
+     (Topic : MOMA.Destinations.Destination;
+      Pool  : MOMA.Destinations.Destination;
+      Sub   : Boolean := True)
    is
       use MOMA.Destinations;
       use type MOMA.Types.Destination_Type;

@@ -66,17 +66,19 @@ package body MOMA.Message_Producers is
      renames L.Output;
 
    procedure Response_Handler
-     (Req : PolyORB.Requests.Request;
+     (Req :        PolyORB.Requests.Request;
       CBH : access PolyORB.Call_Back.Call_Back_Handler);
    --  Call back handler attached to a MOM producer interacting with
    --  an ORB node.
 
-   procedure Send_To_MOM (Servant : PolyORB.References.Ref;
-                          Message : MOMA.Messages.Message'Class);
+   procedure Send_To_MOM
+     (Servant : PolyORB.References.Ref;
+      Message : MOMA.Messages.Message'Class);
    --  Send Message to a MOM object.
 
-   procedure Send_To_ORB (Self    : Message_Producer;
-                          Message : MOMA.Messages.Message'Class);
+   procedure Send_To_ORB
+     (Self    : Message_Producer;
+      Message : MOMA.Messages.Message'Class);
    --  Send Message to an ORB object, see MOMA.Messages.MExecutes
    --  specifications for more details.
 
@@ -93,9 +95,10 @@ package body MOMA.Message_Producers is
    -- Create_Producer --
    ---------------------
 
-   function Create_Producer (Session  : MOMA.Sessions.Session;
-                             Dest     : MOMA.Destinations.Destination)
-                             return Message_Producer
+   function Create_Producer
+     (Session  : MOMA.Sessions.Session;
+      Dest     : MOMA.Destinations.Destination)
+     return Message_Producer
    is
       pragma Warnings (Off);
       pragma Unreferenced (Session);
@@ -108,13 +111,13 @@ package body MOMA.Message_Producers is
 
       use MOMA.Types;
 
-      MOMA_Obj : constant MOMA.Provider.Message_Producer.Object_Acc
-        := new MOMA.Provider.Message_Producer.Object;
+      MOMA_Obj : constant MOMA.Provider.Message_Producer.Object_Acc :=
+        new MOMA.Provider.Message_Producer.Object;
 
       MOMA_Ref : PolyORB.References.Ref;
       Producer : MOMA.Message_Producers.Message_Producer;
-      Type_Id_S : MOMA.Types.String
-        := To_MOMA_String (Type_Id_Of (MOMA.Destinations.Get_Ref (Dest)));
+      Type_Id_S : MOMA.Types.String :=
+        To_MOMA_String (Type_Id_Of (MOMA.Destinations.Get_Ref (Dest)));
 
       Error : Error_Container;
    begin
@@ -138,9 +141,10 @@ package body MOMA.Message_Producers is
       return Producer;
    end Create_Producer;
 
-   function Create_Producer (ORB_Object : MOMA.Types.String;
-                             Mesg_Pool  : MOMA.Types.String)
-                             return Message_Producer
+   function Create_Producer
+     (ORB_Object : MOMA.Types.String;
+      Mesg_Pool  : MOMA.Types.String)
+     return Message_Producer
    is
       use MOMA.Types;
 
@@ -155,12 +159,12 @@ package body MOMA.Message_Producers is
       ORB_Object_IOR      : constant IOR_Type := String_To_Object (ORB_Object);
       Dest_Ref_Object_IOR : constant IOR_Type := String_To_Object (Mesg_Pool);
 
-      Type_Id_S : MOMA.Types.String
-        := To_MOMA_String (Type_Id_Of (ORB_Object_IOR));
+      Type_Id_S : MOMA.Types.String :=
+        To_MOMA_String (Type_Id_Of (ORB_Object_IOR));
 
    begin
       if Type_Id_S = MOMA_Type_Id then
-         raise  Program_Error;
+         raise Program_Error;
       end if;
 
       Set_Ref (Producer, ORB_Object_IOR);
@@ -183,8 +187,9 @@ package body MOMA.Message_Producers is
    -- Get_CBH --
    -------------
 
-   function Get_CBH (Self : Message_Producer)
-                    return PolyORB.Call_Back.CBH_Access is
+   function Get_CBH
+     (Self : Message_Producer)
+     return PolyORB.Call_Back.CBH_Access is
    begin
       return Self.CBH;
    end Get_CBH;
@@ -193,8 +198,9 @@ package body MOMA.Message_Producers is
    -- Get_Destination --
    ---------------------
 
-   function Get_Destination (Self : Message_Producer)
-                             return MOMA.Destinations.Destination is
+   function Get_Destination
+     (Self : Message_Producer)
+     return MOMA.Destinations.Destination is
    begin
       return Self.Destination;
    end Get_Destination;
@@ -203,8 +209,9 @@ package body MOMA.Message_Producers is
    -- Get_Persistent --
    --------------------
 
-   function Get_Persistent (Self : Message_Producer)
-                            return Boolean is
+   function Get_Persistent
+     (Self : Message_Producer)
+     return Boolean is
    begin
       return Self.Persistent;
    end Get_Persistent;
@@ -213,8 +220,9 @@ package body MOMA.Message_Producers is
    -- Get_Priority --
    ------------------
 
-   function Get_Priority (Self : Message_Producer)
-                          return MOMA.Types.Priority is
+   function Get_Priority
+     (Self : Message_Producer)
+     return MOMA.Types.Priority is
    begin
       return Self.Priority_Level;
    end Get_Priority;
@@ -223,8 +231,9 @@ package body MOMA.Message_Producers is
    -- Get_Ref --
    -------------
 
-   function Get_Ref (Self : Message_Producer)
-                     return PolyORB.References.Ref is
+   function Get_Ref
+     (Self : Message_Producer)
+     return PolyORB.References.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -233,8 +242,9 @@ package body MOMA.Message_Producers is
    -- Get_Time_To_Live --
    ----------------------
 
-   function Get_Time_To_Live (Self : Message_Producer)
-                              return Time is
+   function Get_Time_To_Live
+     (Self : Message_Producer)
+     return Time is
    begin
       return Self.TTL;
    end Get_Time_To_Live;
@@ -243,8 +253,9 @@ package body MOMA.Message_Producers is
    -- Get_Type_Id_Of --
    --------------------
 
-   function Get_Type_Id_Of (Self : Message_Producer)
-                            return MOMA.Types.String is
+   function Get_Type_Id_Of
+     (Self : Message_Producer)
+     return MOMA.Types.String is
    begin
       return Self.Type_Id_Of;
    end Get_Type_Id_Of;
@@ -254,7 +265,7 @@ package body MOMA.Message_Producers is
    ----------------------
 
    procedure Response_Handler
-     (Req : PolyORB.Requests.Request;
+     (Req :        PolyORB.Requests.Request;
       CBH : access PolyORB.Call_Back.Call_Back_Handler)
    is
       use PolyORB.Annotations;
@@ -291,8 +302,9 @@ package body MOMA.Message_Producers is
    -- Send --
    ----------
 
-   procedure Send (Self    : Message_Producer;
-                   Message : in out MOMA.Messages.Message'Class)
+   procedure Send
+     (Self    :        Message_Producer;
+      Message : in out MOMA.Messages.Message'Class)
    is
       use MOMA.Destinations;
       Type_Id_S     : constant MOMA.Types.String := Get_Type_Id_Of (Self);
@@ -311,13 +323,13 @@ package body MOMA.Message_Producers is
    -- Send --
    ----------
 
-   procedure Send (Self           : Message_Producer;
-                   Message        : MOMA.Messages.Message'Class;
-                   Persistent     : Boolean;
-                   Priority_Value : MOMA.Types.Priority;
-                   TTL            : Time)
+   procedure Send
+     (Self           : Message_Producer;
+      Message        : MOMA.Messages.Message'Class;
+      Persistent     : Boolean;
+      Priority_Value : MOMA.Types.Priority;
+      TTL            : Time)
    is
-   begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Unreferenced (Message);
@@ -325,6 +337,8 @@ package body MOMA.Message_Producers is
       pragma Unreferenced (Priority_Value);
       pragma Unreferenced (TTL);
       pragma Warnings (On);
+   begin
+
       null;
       --  XXX Not Implemented
    end Send;
@@ -333,8 +347,9 @@ package body MOMA.Message_Producers is
    -- Send_To_MOM --
    -----------------
 
-   procedure Send_To_MOM (Servant : PolyORB.References.Ref;
-                          Message : MOMA.Messages.Message'Class)
+   procedure Send_To_MOM
+     (Servant : PolyORB.References.Ref;
+      Message : MOMA.Messages.Message'Class)
    is
       Argument_Mesg : PolyORB.Any.Any := MOMA.Messages.To_Any (Message);
       Request       : PolyORB.Requests.Request_Access;
@@ -371,8 +386,9 @@ package body MOMA.Message_Producers is
    -- Send_To_ORB --
    -----------------
 
-   procedure Send_To_ORB (Self    : Message_Producer;
-                          Message : MOMA.Messages.Message'Class)
+   procedure Send_To_ORB
+     (Self    : Message_Producer;
+      Message : MOMA.Messages.Message'Class)
    is
       use PolyORB.Any.TypeCode;
       use PolyORB.Call_Back;
@@ -450,8 +466,9 @@ package body MOMA.Message_Producers is
    -- Set_CBH --
    -------------
 
-   procedure Set_CBH (Self : in out Message_Producer;
-                      CBH  : PolyORB.Call_Back.CBH_Access) is
+   procedure Set_CBH
+     (Self : in out Message_Producer;
+      CBH  :        PolyORB.Call_Back.CBH_Access) is
    begin
       Self.CBH := CBH;
    end Set_CBH;
@@ -460,8 +477,9 @@ package body MOMA.Message_Producers is
    -- Set_Destination --
    ---------------------
 
-   procedure Set_Destination (Self : in out Message_Producer;
-                              Dest : MOMA.Destinations.Destination) is
+   procedure Set_Destination
+     (Self : in out Message_Producer;
+      Dest :        MOMA.Destinations.Destination) is
    begin
       Self.Destination := Dest;
    end Set_Destination;
@@ -470,8 +488,9 @@ package body MOMA.Message_Producers is
    -- Set_Persistent --
    --------------------
 
-   procedure Set_Persistent (Self : in out Message_Producer;
-                             Persistent : Boolean) is
+   procedure Set_Persistent
+     (Self       : in out Message_Producer;
+      Persistent :        Boolean) is
    begin
       Self.Persistent := Persistent;
    end Set_Persistent;
@@ -480,8 +499,9 @@ package body MOMA.Message_Producers is
    -- Set_Priority --
    ------------------
 
-   procedure Set_Priority (Self : in out Message_Producer;
-                           Value : MOMA.Types.Priority) is
+   procedure Set_Priority
+     (Self  : in out Message_Producer;
+      Value :        MOMA.Types.Priority) is
    begin
       Self.Priority_Level := Value;
    end Set_Priority;
@@ -490,8 +510,9 @@ package body MOMA.Message_Producers is
    -- Set_Ref --
    -------------
 
-   procedure Set_Ref (Self : in out Message_Producer;
-                      Ref  : PolyORB.References.Ref) is
+   procedure Set_Ref
+     (Self : in out Message_Producer;
+      Ref  :        PolyORB.References.Ref) is
    begin
       Self.Ref := Ref;
    end Set_Ref;
@@ -500,8 +521,9 @@ package body MOMA.Message_Producers is
    -- Set_Time_To_Live --
    ----------------------
 
-   procedure Set_Time_To_Live (Self : in out Message_Producer;
-                               TTL : Time) is
+   procedure Set_Time_To_Live
+     (Self : in out Message_Producer;
+      TTL  :        Time) is
    begin
       Self.TTL := TTL;
    end Set_Time_To_Live;
@@ -510,8 +532,9 @@ package body MOMA.Message_Producers is
    -- Set_Type_Id_Of --
    --------------------
 
-   procedure Set_Type_Id_Of (Self        : in out Message_Producer;
-                             Type_Id_Of  : MOMA.Types.String) is
+   procedure Set_Type_Id_Of
+     (Self        : in out Message_Producer;
+      Type_Id_Of  :        MOMA.Types.String) is
    begin
       Self.Type_Id_Of := Type_Id_Of;
    end Set_Type_Id_Of;

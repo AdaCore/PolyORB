@@ -79,8 +79,9 @@ package body MOMA.Connections is
    -- Get_Client_Id --
    -------------------
 
-   function Get_Client_Id (Self : Connection)
-                           return MOMA.Types.String is
+   function Get_Client_Id
+     (Self : Connection)
+     return MOMA.Types.String is
    begin
       return Self.Client_Id;
    end Get_Client_Id;
@@ -89,8 +90,9 @@ package body MOMA.Connections is
    -- Set_Client_Id --
    -------------------
 
-   procedure Set_Client_Id (Self : in out Connection;
-                            Client_Id : MOMA.Types.String) is
+   procedure Set_Client_Id
+     (Self      : in out Connection;
+      Client_Id :        MOMA.Types.String) is
    begin
       Self.Client_Id := Client_Id;
    end Set_Client_Id;
@@ -99,7 +101,9 @@ package body MOMA.Connections is
    -- Get_Ref --
    -------------
 
-   function Get_Ref (Self : Connection) return PolyORB.References.Ref is
+   function Get_Ref
+     (Self : Connection)
+     return PolyORB.References.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -108,8 +112,9 @@ package body MOMA.Connections is
    -- Set_Ref --
    -------------
 
-   procedure Set_Ref (Self : in out Connection;
-                      Ref  : PolyORB.References.Ref) is
+   procedure Set_Ref
+     (Self : in out Connection;
+      Ref  :        PolyORB.References.Ref) is
    begin
       Self.Ref := Ref;
    end Set_Ref;

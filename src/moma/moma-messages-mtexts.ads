@@ -50,13 +50,13 @@ package MOMA.Messages.MTexts is
    --  Image function for MText type.
 
    --  Accessors to MText payload.
-   function Get_Text (Self : MText)
-                      return MOMA.Types.String;
 
-   procedure Set_Text (Self : in out MText;
-                       Value : MOMA.Types.String);
+   function Get_Text (Self : MText) return MOMA.Types.String;
+
+   procedure Set_Text (Self : in out MText; Value : MOMA.Types.String);
 
 private
+
    type MText is new Message with null record;
 
 end MOMA.Messages.MTexts;

@@ -63,11 +63,13 @@ package MOMA.Provider.Message_Producer is
 
    --  Accessors to Object internals.
 
-   function Get_Remote_Ref (Self : Object)
-      return PolyORB.References.Ref;
+   function Get_Remote_Ref
+     (Self : Object)
+     return PolyORB.References.Ref;
 
-   procedure Set_Remote_Ref (Self : in out Object;
-                             Ref  : PolyORB.References.Ref);
+   procedure Set_Remote_Ref
+     (Self : in out Object;
+      Ref  :        PolyORB.References.Ref);
 
 private
 

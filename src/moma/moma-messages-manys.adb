@@ -41,8 +41,7 @@ package body MOMA.Messages.MAnys is
    -- Get_Any --
    --------------
 
-   function Get_Any (Self : MAny)
-                     return PolyORB.Any.Any is
+   function Get_Any (Self : MAny) return PolyORB.Any.Any is
    begin
       return Get_Payload (Self);
    end Get_Any;
@@ -51,8 +50,8 @@ package body MOMA.Messages.MAnys is
    -- Set_Any --
    --------------
 
-   procedure Set_Any (Self  : in out MAny;
-                      Value : PolyORB.Any.Any) is
+   procedure Set_Any (Self  : in out MAny; Value : PolyORB.Any.Any) is
+
    begin
       Set_Payload (Self, Value);
    end Set_Any;
@@ -61,8 +60,7 @@ package body MOMA.Messages.MAnys is
    -- Create_Any_Message --
    -------------------------
 
-   function Create_Any_Message
-            return MAny
+   function Create_Any_Message return MAny
    is
       Result : MAny;
 
@@ -77,8 +75,7 @@ package body MOMA.Messages.MAnys is
    -- Image --
    -----------
 
-   function Image (Self : MAny)
-                  return String is
+   function Image (Self : MAny) return String is
    begin
       return Image (Get_Any (Self));
    end Image;

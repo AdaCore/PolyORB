@@ -61,20 +61,22 @@ package MOMA.Provider.Routers is
    type Routers_List is private;
    --  A protected list of routers.
 
-   function Create_Destination (Self : Router)
-      return MOMA.Destinations.Destination;
+   function Create_Destination
+     (Self : Router)
+     return MOMA.Destinations.Destination;
    --  Return a destination object whose reference is the router and whose
    --  name is the router Id.
 
-   procedure Initialize (Self       : access Router;
-                         Router_Ref : PolyORB.References.Ref);
+   procedure Initialize
+     (Self       : access Router;
+      Router_Ref :        PolyORB.References.Ref);
    --  Initialize a Router.
    --  Router_Ref is a reference to another router on the network (it can be
    --  Nil_Ref) the router will register with.
 
    procedure Invoke
      (Self : access Router;
-      Req  : PolyORB.Requests.Request_Access);
+      Req  :        PolyORB.Requests.Request_Access);
    --  Router servant skeleton.
 
    function If_Desc
@@ -84,15 +86,21 @@ package MOMA.Provider.Routers is
 
    --  Accessors to internal data.
 
-   function Get_Id (Self : Router) return MOMA.Types.String;
+   function Get_Id
+     (Self : Router)
+     return MOMA.Types.String;
 
-   procedure Set_Id (Self  : in out Router;
-                     Id    : MOMA.Types.String);
+   procedure Set_Id
+     (Self  : in out Router;
+      Id    :        MOMA.Types.String);
 
-   function Get_Self_Ref (Self : Router) return PolyORB.References.Ref;
+   function Get_Self_Ref
+     (Self : Router)
+     return PolyORB.References.Ref;
 
-   procedure Set_Self_Ref (Self  : in out Router;
-                           Ref   : PolyORB.References.Ref);
+   procedure Set_Self_Ref
+     (Self  : in out Router;
+      Ref   :        PolyORB.References.Ref);
 
 private
 
@@ -109,9 +117,9 @@ private
       Topics   : MOMA.Provider.Topic_Datas.Topic_Data;
    end record;
 
-   pragma Inline (Get_Id,
-                  Set_Id,
-                  Get_Self_Ref,
-                  Set_Self_Ref);
+   pragma Inline (Get_Id);
+   pragma Inline (Set_Id);
+   pragma Inline (Get_Self_Ref);
+   pragma Inline (Set_Self_Ref);
 
 end MOMA.Provider.Routers;

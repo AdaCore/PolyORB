@@ -53,13 +53,12 @@ package MOMA.Messages.MAnys is
 
    --  Accessors to MAny payload.
 
-   function Get_Any (Self : MAny)
-                     return PolyORB.Any.Any;
+   function Get_Any (Self : MAny) return PolyORB.Any.Any;
 
-   procedure Set_Any (Self : in out MAny;
-                      Value : PolyORB.Any.Any);
+   procedure Set_Any (Self : in out MAny; Value : PolyORB.Any.Any);
 
 private
+
    type MAny is new Message with null record;
 
 end MOMA.Messages.MAnys;

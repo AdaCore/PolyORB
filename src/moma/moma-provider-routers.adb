@@ -60,43 +60,50 @@ package body MOMA.Provider.Routers is
 
    --  Actual functions implemented by the servant.
 
-   procedure Add_Router (Self    : in out Router;
-                         Router  : MOMA.Destinations.Destination);
+   procedure Add_Router
+     (Self    : in out Router;
+      Router  :        MOMA.Destinations.Destination);
    --  Add a Router to the list of known routers.
 
-   procedure Publish (Self             : access Router;
-                      Message          : PolyORB.Any.Any;
-                      From_Router_Id   : MOMA.Types.String :=
-                                            To_MOMA_String (""));
+   procedure Publish
+     (Self             : access Router;
+      Message          :        PolyORB.Any.Any;
+      From_Router_Id   :        MOMA.Types.String := To_MOMA_String (""));
+
    --  Publish a Message on the topic given by the Message destination.
    --  From_Router_Id is the Id of the router the message is coming from, if
    --  it's received from a router and not from a client.
 
-   procedure Register (Self         : access Router;
-                       Router_Ref   : PolyORB.References.Ref);
+   procedure Register
+     (Self       : access Router;
+      Router_Ref :        PolyORB.References.Ref);
    --  Register a router with another one : this means they will exchange
    --  messages one with each other.
 
-   procedure Route (Self      : access Router;
-                    Message   : PolyORB.Any.Any;
-                    To_Router : MOMA.Destinations.Destination);
+   procedure Route
+     (Self      : access Router;
+      Message   :        PolyORB.Any.Any;
+      To_Router :        MOMA.Destinations.Destination);
    --  Route a Message to another router.
 
-   procedure Store (Pool      : Ref;
-                    Message   : PolyORB.Any.Any);
+   procedure Store
+     (Pool    : Ref;
+      Message : PolyORB.Any.Any);
    --  Store a Message in a Pool.
    --  XXX Code from Moma.Provider.Message_Producer is duplicated.
 
-   procedure Subscribe (Self     : access Router;
-                        Topic    : MOMA.Destinations.Destination;
-                        Pool     : MOMA.Destinations.Destination);
+   procedure Subscribe
+     (Self     : access Router;
+      Topic    :        MOMA.Destinations.Destination;
+      Pool     :        MOMA.Destinations.Destination);
    --  Subscribe a Pool to a Topic.
    --  Topic's kind must be set to "Topic".
    --  Pool's kind must be set to "Pool".
 
-   procedure Unsubscribe (Self   : access Router;
-                          Topic  : MOMA.Destinations.Destination;
-                          Pool   : MOMA.Destinations.Destination);
+   procedure Unsubscribe
+     (Self   : access Router;
+      Topic  :        MOMA.Destinations.Destination;
+      Pool   :        MOMA.Destinations.Destination);
    --  Unsubscribe a Pool to a Topic (same parameters as Subscribe).
    --  NB : the current implementation needs a client to send the
    --  Unsubscription and Subscription requests for a same pool to the same
@@ -104,27 +111,30 @@ package body MOMA.Provider.Routers is
 
    --  Accessors to servant interface.
 
-   function Get_Parameter_Profile (Method : String)
+   function Get_Parameter_Profile
+     (Method : String)
      return PolyORB.Any.NVList.Ref;
    --  Parameters part of the interface description.
 
-   function Get_Result_Profile (Method : String)
+   function Get_Result_Profile
+     (Method : String)
      return PolyORB.Any.Any;
    --  Result part of the interface description.
 
    --  Private accessors to some internal data.
 
-   function Get_Routers (Self : Router)
-      return MOMA.Provider.Topic_Datas.Destination_List.List;
+   function Get_Routers
+     (Self : Router)
+     return MOMA.Provider.Topic_Datas.Destination_List.List;
    --  Return a copy of the list Self.Routers.List.
 
    ----------------
    -- Add_Router --
    ----------------
 
-   procedure Add_Router (Self    : in out Router;
-                         Router  : MOMA.Destinations.Destination)
-   is
+   procedure Add_Router
+     (Self    : in out Router;
+      Router  :        MOMA.Destinations.Destination) is
    begin
       Lock_W (Self.Routers.L_Lock);
       Destination_List.Append (Self.Routers.List, Router);
@@ -137,9 +147,9 @@ package body MOMA.Provider.Routers is
    -- Create_Destination --
    ------------------------
 
-   function Create_Destination (Self : Router)
-      return MOMA.Destinations.Destination
-   is
+   function Create_Destination
+     (Self : Router)
+     return MOMA.Destinations.Destination is
    begin
       return MOMA.Destinations.Create_Destination
         (Get_Id (Self),
@@ -151,8 +161,9 @@ package body MOMA.Provider.Routers is
    -- Get_Id --
    ------------
 
-   function Get_Id (Self : Router) return MOMA.Types.String
-   is
+   function Get_Id
+     (Self : Router)
+     return MOMA.Types.String is
    begin
       return Self.Id;
    end Get_Id;
@@ -161,7 +172,8 @@ package body MOMA.Provider.Routers is
    -- Get_Parameter_Profile --
    ---------------------------
 
-   function Get_Parameter_Profile (Method : String)
+   function Get_Parameter_Profile
+     (Method : String)
      return PolyORB.Any.NVList.Ref
    is
       Result : PolyORB.Any.NVList.Ref;
@@ -220,7 +232,8 @@ package body MOMA.Provider.Routers is
    -- Get_Result_Profile --
    ------------------------
 
-   function Get_Result_Profile (Method : String)
+   function Get_Result_Profile
+     (Method : String)
      return PolyORB.Any.Any
    is
       use PolyORB.Any;
@@ -239,8 +252,9 @@ package body MOMA.Provider.Routers is
    -- Get_Routers --
    -----------------
 
-   function Get_Routers (Self : Router)
-      return MOMA.Provider.Topic_Datas.Destination_List.List
+   function Get_Routers
+     (Self : Router)
+     return MOMA.Provider.Topic_Datas.Destination_List.List
    is
       Routers : Destination_List.List;
    begin
@@ -254,8 +268,9 @@ package body MOMA.Provider.Routers is
    -- Get_Self_Ref --
    ------------------
 
-   function Get_Self_Ref (Self : Router) return PolyORB.References.Ref
-   is
+   function Get_Self_Ref
+     (Self : Router)
+     return PolyORB.References.Ref is
    begin
       return Self.Self_Ref;
    end Get_Self_Ref;
@@ -272,19 +287,21 @@ package body MOMA.Provider.Routers is
          RP_Desc => Get_Result_Profile'Access);
    end If_Desc;
 
-   -----------------
-   --  Initialize --
-   -----------------
+   ----------------
+   -- Initialize --
+   ----------------
 
-   procedure Initialize (Self       : access Router;
-                         Router_Ref : PolyORB.References.Ref)
-   is
+   procedure Initialize
+     (Self       : access Router;
+      Router_Ref :        PolyORB.References.Ref) is
    begin
       MOMA.Provider.Topic_Datas.Ensure_Initialization (Self.Topics);
+
       if not (Self.Routers.L_Initialized) then
          PolyORB.Tasking.Rw_Locks.Create (Self.Routers.L_Lock);
          Self.Routers.L_Initialized := True;
       end if;
+
       if Router_Ref /= PolyORB.References.Nil_Ref then
          Register (Self, Router_Ref);
       end if;
@@ -296,7 +313,7 @@ package body MOMA.Provider.Routers is
 
    procedure Invoke
      (Self : access Router;
-      Req  : PolyORB.Requests.Request_Access)
+      Req  :        PolyORB.Requests.Request_Access)
    is
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
@@ -377,10 +394,10 @@ package body MOMA.Provider.Routers is
    -- Publish --
    -------------
 
-   procedure Publish (Self             : access Router;
-                      Message          : PolyORB.Any.Any;
-                      From_Router_Id   : MOMA.Types.String :=
-                                            To_MOMA_String (""))
+   procedure Publish
+     (Self             : access Router;
+      Message          :        PolyORB.Any.Any;
+      From_Router_Id   :        MOMA.Types.String := To_MOMA_String (""))
    is
       Subscribers : Destination_List.List;
       I           : Destination_List.Iterator;
@@ -426,14 +443,15 @@ package body MOMA.Provider.Routers is
    -- Register --
    --------------
 
-   procedure Register (Self         : access Router;
-                       Router_Ref   : PolyORB.References.Ref)
+   procedure Register
+     (Self       : access Router;
+      Router_Ref :        PolyORB.References.Ref)
    is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
       Result      : PolyORB.Any.NamedValue;
       Destination : constant MOMA.Destinations.Destination :=
-                       Create_Destination (Self.all);
+        Create_Destination (Self.all);
    begin
       PolyORB.Any.NVList.Create (Arg_List);
       PolyORB.Any.NVList.Add_Item (Arg_List,
@@ -460,9 +478,10 @@ package body MOMA.Provider.Routers is
    -- Route --
    -----------
 
-   procedure Route (Self      : access Router;
-                    Message   : PolyORB.Any.Any;
-                    To_Router : MOMA.Destinations.Destination)
+   procedure Route
+     (Self      : access Router;
+      Message   :        PolyORB.Any.Any;
+      To_Router :        MOMA.Destinations.Destination)
    is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
@@ -494,9 +513,9 @@ package body MOMA.Provider.Routers is
    -- Set_Id --
    ------------
 
-   procedure Set_Id (Self  : in out Router;
-                     Id    : MOMA.Types.String)
-   is
+   procedure Set_Id
+     (Self  : in out Router;
+      Id    :        MOMA.Types.String) is
    begin
       Self.Id := Id;
    end Set_Id;
@@ -505,9 +524,9 @@ package body MOMA.Provider.Routers is
    --  Set_Self_Ref --
    -------------------
 
-   procedure Set_Self_Ref (Self  : in out Router;
-                           Ref   : PolyORB.References.Ref)
-   is
+   procedure Set_Self_Ref
+     (Self  : in out Router;
+      Ref   :        PolyORB.References.Ref) is
    begin
       Self.Self_Ref := Ref;
    end Set_Self_Ref;
@@ -516,8 +535,9 @@ package body MOMA.Provider.Routers is
    -- Store --
    -----------
 
-   procedure Store (Pool      : Ref;
-                    Message   : PolyORB.Any.Any)
+   procedure Store
+     (Pool    : Ref;
+      Message : PolyORB.Any.Any)
    is
       Request     : PolyORB.Requests.Request_Access;
       Arg_List    : PolyORB.Any.NVList.Ref;
@@ -545,10 +565,10 @@ package body MOMA.Provider.Routers is
    -- Subscribe --
    ---------------
 
-   procedure Subscribe (Self  : access Router;
-                        Topic : MOMA.Destinations.Destination;
-                        Pool  : MOMA.Destinations.Destination)
-   is
+   procedure Subscribe
+     (Self  : access Router;
+      Topic :        MOMA.Destinations.Destination;
+      Pool  :        MOMA.Destinations.Destination) is
    begin
       if Get_Kind (Topic) /= MOMA.Types.Topic
       or else Get_Kind (Pool) /= MOMA.Types.Pool then
@@ -563,18 +583,20 @@ package body MOMA.Provider.Routers is
    -- Unsubscribe --
    -----------------
 
-   procedure Unsubscribe (Self   : access Router;
-                          Topic  : MOMA.Destinations.Destination;
-                          Pool   : MOMA.Destinations.Destination)
-   is
+   procedure Unsubscribe
+     (Self   : access Router;
+      Topic  :        MOMA.Destinations.Destination;
+      Pool   :        MOMA.Destinations.Destination) is
    begin
       if Get_Kind (Topic) /= MOMA.Types.Topic
       or else Get_Kind (Pool) /= MOMA.Types.Pool then
          raise Program_Error;
       end if;
-      MOMA.Provider.Topic_Datas.Remove_Subscriber (Self.Topics,
-                                                   Get_Name (Topic),
-                                                   Pool);
+
+      MOMA.Provider.Topic_Datas.Remove_Subscriber
+        (Self.Topics,
+         Get_Name (Topic),
+         Pool);
    end Unsubscribe;
 
 end MOMA.Provider.Routers;
