@@ -41,13 +41,6 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
       corps = "Corba.Object";
       body += "   type Ref is new Corba.Object.Ref with null record;\n";
     }
- // forward declarated
-
-  if (pd_is_forwarded == true)           
-    {
-      with.add(get_ada_full_name()+"_Forward");
-      tmp += "   package Convert is new " + get_ada_full_name() + "_Forward.Convert(Ref) ;\n";
-    }
 
   //inheritance
 
@@ -179,7 +172,17 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
   body += "   function Is_A(Repo_Id : in Corba.String)\n";
   body += "                 return Corba.Boolean ;\n\n";
   body += "   function Get_Nil_Ref(Self : in Ref)\n";
-  body += "                        return Ref ;\n"; 
+  body += "                        return Ref ;\n\n"; 
+
+  body += "   procedure Free is new Unchecked_Deallocation(Ref, Ref_Ptr) ;\n\n" ;
+  // forward declarated
+
+  if (pd_is_forwarded == true)           
+    {
+      with.add(get_ada_full_name()+"_Forward");
+      tmp += "   package Convert is new " + get_ada_full_name() + "_Forward.Convert(Ref) ;\n";
+    }
+
   body += "\nprivate\n";
   body += "   Nil_Ref : aliased constant Ref := ( Corba.Object.Nil_Ref with null record) ;\n";
   body += "end " + get_ada_full_name() + " ;\n";    
