@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.15 $
+//                            $Revision: 1.16 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -581,48 +581,8 @@ adabe_name::set_undefined ()
 bool
 adabe_name::is_imported (dep_list& with)
 {
-  if (node_type () == AST_Decl::NT_pre_defined) return 0;
-    // the predefined type are not in main file
-    // but they are declared in the root and not imported
-    // so the root must not be included in those cases
-  
-  if (this == adabe_global::adabe_current_file ())
-    // we are in athe scope that has defined the type
-    // this type isn't imported
-    return 0;
-  
   AST_Decl::NodeType NT = node_type ();
 
-  // if the node type is an interface, a module
-  // or the root, the type is imported
-  if (NT == AST_Decl::NT_interface)
-    {
-      bool temp;
-      adabe_interface *inter = dynamic_cast<adabe_interface *>(this);
-      if ((string) local_name ()->get_string () == "Object") 
-	{
-	  with.add ("CORBA.Object");
-          return 1;
-	}
-      else
-	if (inter->is_forwarded ())
-	  {
-	    // if the interface is forwarded, the full
-	    // name of the library package is that of
-            // the enclosing scope (of which the forward
-            // package is a subpackage).
-	    // with.add (get_ada_full_name () + "_Forward");
-
-            // Do nothing and fall through to the
-            // recursive call at end of is_imported().
-	  }
-	else
-	  {
-	    // else simply add the interface file
-	    with.add (get_ada_full_name ());
-            return 1;
-	  }
-    }
   if (NT == AST_Decl::NT_module)
     {
       // add the module file name to the dependency list
@@ -636,6 +596,48 @@ adabe_name::is_imported (dep_list& with)
       return 1;
     }
   
+  if (NT == AST_Decl::NT_pre_defined)
+    return 0;
+  // the predefined type are not in main file
+  // but they are declared in the root and not imported
+  // so the root must not be included in those cases
+    
+#if 0
+  if (this == adabe_global::adabe_current_file ())
+    // we are in the scope that has defined the type
+    // this type isn't imported
+    return 0;
+#endif
+  // if the node type is an interface, a module
+  // or the root, the type is imported
+  if (NT == AST_Decl::NT_interface)
+    {
+      bool temp;
+      adabe_interface *inter = dynamic_cast<adabe_interface *>(this);
+      if ((string) local_name ()->get_string () == "Object") 
+	{
+	  with.add ("CORBA.Object");
+          return 1;
+	}
+      else {
+	if (inter->is_forwarded ())
+	  {
+	    // if the interface is forwarded, the full
+	    // name of the library package is that of
+            // the enclosing scope (of which the forward
+            // package is a subpackage).
+
+	    return (dynamic_cast<adabe_name *>(defined_in ()))->is_imported (with); 
+	  }
+
+	// else simply add the interface file
+	with.add (get_ada_full_name ());
+	return 1;
+      }
+    }
+
+  if (get_ada_local_name () != "")
+    return 0;
 
   // else go to the containing scope
   return (dynamic_cast<adabe_name *>(defined_in ()))->is_imported (with); 

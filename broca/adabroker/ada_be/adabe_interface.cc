@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.13 $
+//                            $Revision: 1.14 $
 //                                                                          //
 //         Copyright (C) 1999 ENST Paris University, France.                //
 //                                                                          //
@@ -997,14 +997,26 @@ adabe_interface::dump_name (dep_list & with,
   // imported, return a short name.  Otherwise, return a full name
   // after checking whether it is a forward declaration.
 {
-  // If imported, short name.
-  if (!is_imported (with)) return "Ref";
+  if (pd_is_forwarded) {
+    adabe_name *enclosing_scope =
+      dynamic_cast<adabe_name *>(defined_in ());
 
-  // Else if forwarded, full name + _forward.
-  else if (pd_is_forwarded) return (get_ada_full_name ()+"_Forward.Ref");
+    if (enclosing_scope != adabe_global::adabe_current_file ())
+      enclosing_scope->is_imported (with);
+    
+    if (enclosing_scope->node_type () == NT_root) {
+      return enclosing_scope->get_ada_full_name () + "."
+	+ get_ada_full_name () + "_Forward.Ref";
+    }
 
-  // else full name without _forward
-  else return (get_ada_full_name ()+".Ref");
+    return get_ada_full_name () + "_Forward.Ref";
+  }
+
+  if (!is_imported (with)) {
+    return "Ref";
+  }
+
+  return get_ada_full_name () + ".Ref";
 }
 
 

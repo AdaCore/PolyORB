@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.3 $
+//                            $Revision: 1.4 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -38,7 +38,8 @@ adabe_interface_fwd::adabe_interface_fwd (UTL_ScopedName *n, UTL_StrList *p)
     adabe_name (AST_Decl::NT_interface_fwd, n, p)
 {
 }
-  
+
+#if 0  
 static string remove_dot (string  name)
 {
   char c;
@@ -46,35 +47,15 @@ static string remove_dot (string  name)
     name[c]='-';
   return name;
 }
+#endif
+
 void
 adabe_interface_fwd::produce_ads (dep_list& with, string &body, string &previous)
 {
-  //  compute_ada_name ();  
-  //  dynamic_cast<adabe_name *>(full_definition ())->set_ada_local_name (get_ada_local_name ()); 
-  //  dynamic_cast<adabe_name *>(full_definition ())->set_ada_full_name (get_ada_full_name ());
-
-#if 0
-  string file_name = remove_dot (get_ada_full_name ()) + "_forward.ads";
-  char *lower_case_name = lower (file_name.c_str ());
-  ofstream file (lower_case_name);
-  delete[] lower_case_name;
-  file << "with CORBA.Forward;\n";
-  file << "package " + get_ada_full_name () + "_Forward is new CORBA.Forward;\n";
-  file.close ();  
-#else
   with.add ("CORBA.Forward");
   body +=
-    "   package " + get_ada_local_name () + "_Forward is new CORBA.Forward;\n";
-#endif
+    "   package " + get_ada_local_name () + "_Forward is new CORBA.Forward;\n\n";
 }
-
-/*
-  void
-  adabe_interface_fwd::produce_ads (dep_list& with, string &body, string &previous)
-  {
-  produce_ads ( with, body, previous);
-  }
-*/
 
 IMPL_NARROW_METHODS1 (adabe_interface_fwd, AST_InterfaceFwd)
 IMPL_NARROW_FROM_DECL (adabe_interface_fwd)

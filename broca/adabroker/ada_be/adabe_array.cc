@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.4 $
+//                            $Revision: 1.5 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -99,7 +99,7 @@ adabe_array::local_type ()
   if (find)
     return decl->get_ada_local_name () +"_Array";
 
-  return "local_type";
+  return "local type";
 }
 
 ////////////////////////////////////////////////////////////////
