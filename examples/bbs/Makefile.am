@@ -19,8 +19,8 @@ s-polint.ali: $(DSA_SRC)/s-polint.ads $(DSA_SRC)/s-polint.adb
 # -gnatg cannot be used as the moment, because s-polint has a dep
 # on generated CosNaming code, which does not support it.
 
-common.o common.ali: common.ads common.adb
-	$(GNATMAKE_FOR_TARGET) -c common.adb
+common.o common.ali: $(srcdir)/common.ads $(srcdir)/common.adb
+	$(GNATMAKE_FOR_TARGET) -c $(srcdir)/common.adb
 
 server.stubs/server.ali: $(srcdir)/server.ads $(srcdir)/server.adb common.ali s-polint.ali
 	@-mkdir server.stubs
