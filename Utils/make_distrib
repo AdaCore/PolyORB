@@ -34,6 +34,7 @@ if [ -f Utils/VERSION.INFO ]; then
 fi
 find . -name CVS -type d -exec rm -rf {} \;
 find . -type d -print | xargs rmdir 2>/dev/null
+find . -name aclocal.m4 -exec touch {} \;
 find . -name Makefile.in -exec touch {} \;
 find . -name configure -exec touch {} \;
 cd ..
