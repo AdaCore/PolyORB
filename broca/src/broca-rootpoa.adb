@@ -485,35 +485,29 @@ package body Broca.RootPOA is
    procedure Free is new Ada.Unchecked_Deallocation
      (Object => Object_Map_Type, Name => Object_Map_Ptr);
 
-   Null_Object : Object;
-   pragma Warnings (Off, Null_Object);
-   --  Freeze type 'Objects' to keep the compiler happy about
-   --  the following operations, which are not intended to be
-   --  primitive operations of Object.
-
    function Slot_By_Object_Id
-     (Self : access Object;
+     (Self : access Object'Class;
       Oid  : ObjectId)
      return Slot_Index;
 
    function Slot_By_Servant
-     (Self : access Object;
+     (Self : access Object'Class;
       P_Servant : Servant)
      return Slot_Index;
 
    function Slot_By_Skeleton
-     (Self : access Object;
+     (Self : access Object'Class;
       Skeleton : Broca.POA.Skeleton_Ptr)
       return Slot_Index;
 
    --  Return how many times the servant was activated.
    function Nbr_Slots_For_Servant
-     (Self : access Object;
+     (Self : access Object'Class;
       P_Servant : Servant)
      return Natural;
 
    function Reserve_A_Slot
-     (Self : access Object)
+     (Self : access Object'Class)
      return Slot_Index;
 
    procedure Build_Key_For_ObjectId
@@ -521,21 +515,21 @@ package body Broca.RootPOA is
       Oid : ObjectId);
 
    function Clean_Slot
-     (Self : access Object;
+     (Self : access Object'Class;
       Slot : Slot_Index)
      return Boolean;
    procedure Unlink_POA (Self : POA_Object_Ptr);
 
    --  Find a skeleton to be destroyed
    function Get_Slot_To_Destroy
-     (Self : access Object)
+     (Self : access Object'Class)
      return Slot_Index;
 
    procedure Set_Cleanup_Call_Back
-     (Self : access Object);
+     (Self : access Object'Class);
 
    function Nbr_Slots_For_Servant
-     (Self : access Object;
+     (Self : access Object'Class;
       P_Servant : Servant)
      return Natural
    is
@@ -557,7 +551,7 @@ package body Broca.RootPOA is
      (The_POA : Broca.POA.POA_Object_Ptr)
      return Broca.POA.Ref;
    function To_POA_Ref
-     (The_POA : access Object)
+     (The_POA : access Object'Class)
      return Broca.POA.Ref;
    --  Return a reference to the given POA object.
 
@@ -572,7 +566,7 @@ package body Broca.RootPOA is
    end To_POA_Ref;
 
    function To_POA_Ref
-     (The_POA : access Object)
+     (The_POA : access Object'Class)
      return Broca.POA.Ref is
    begin
       return To_POA_Ref (Broca.POA.POA_Object_Ptr (The_POA));
@@ -583,7 +577,7 @@ package body Broca.RootPOA is
    -----------------------
 
    function Slot_By_Object_Id
-     (Self : access Object;
+     (Self : access Object'Class;
       Oid  : ObjectId)
      return Slot_Index is
    begin
@@ -604,7 +598,7 @@ package body Broca.RootPOA is
    ---------------------
 
    function Slot_By_Servant
-     (Self      : access Object;
+     (Self      : access Object'Class;
       P_Servant : Servant)
      return Slot_Index is
    begin
@@ -625,7 +619,7 @@ package body Broca.RootPOA is
    ----------------------
 
    function Slot_By_Skeleton
-     (Self : access Object;
+     (Self : access Object'Class;
       Skeleton : Broca.POA.Skeleton_Ptr)
       return Slot_Index is
    begin
@@ -644,7 +638,7 @@ package body Broca.RootPOA is
    --------------------
 
    function Reserve_A_Slot
-     (Self : access Object)
+     (Self : access Object'Class)
      return Slot_Index
    is
       Slot           : Slot_Index;
@@ -1041,7 +1035,7 @@ package body Broca.RootPOA is
    end ObjectId_To_Slot_Index;
 
    function Get_Slot_To_Destroy
-     (Self : access Object)
+     (Self : access Object'Class)
      return Slot_Index is
    begin
       Self.Map_Lock.Lock;
@@ -1062,7 +1056,7 @@ package body Broca.RootPOA is
    --  Return true if cleanup should be called.
    --  The Object Map must be locked.
    function Clean_Slot
-     (Self : access Object; Slot : Slot_Index)
+     (Self : access Object'Class; Slot : Slot_Index)
      return Boolean is
    begin
       if not PSSM.Is_Nil (Self.Servant_Manager)
@@ -1156,7 +1150,7 @@ package body Broca.RootPOA is
       --  Broca.Refs.Dec_Usage (A_Ref);
    end Cleanup;
 
-   procedure Set_Cleanup_Call_Back (Self : access Object) is
+   procedure Set_Cleanup_Call_Back (Self : access Object'Class) is
    begin
       if Self.POA_Manager /= null then
          Broca.POA.Inc_Usage (Self.POA_Manager.all);
