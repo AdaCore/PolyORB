@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.1g from Makefile.am
+# Makefile.in generated automatically by automake 1.0 from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -37,50 +37,31 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
-target_alias = @target_alias@
-build_alias = @build_alias@
-host_triplet = @host@
-target_triplet = @target@
-build_triplet = @build@
-host_alias = @host_alias@
-LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
-LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
-AWK = @AWK@
-CC = @CC@
-VERSION = @VERSION@
-GNATFLAGS = @GNATFLAGS@
-PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
-PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
-GNAT_SOURCE = @GNAT_SOURCE@
-INSTALL_SCRIPT = @INSTALL_SCRIPT@
-PACKAGE = @PACKAGE@
-SED = @SED@
-EXTRA_LIBS = @EXTRA_LIBS@
-LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
-TCP_INCLUDED = @TCP_INCLUDED@
-PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
 
 AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = absolute cycle dynamic spiral
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES = 
-DIST_COMMON =  README Makefile.am Makefile.in README
+mkinstalldirs = $(top_srcdir)/mkinstalldirs
+DIST_COMMON = README Makefile.am Makefile.in README
 
 
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
+DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(EXTRA_DIST) $(DATA)
 
 TAR = tar
 default: all
 
 
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in
-	cd $(top_srcdir) && automake --strictness=foreign $(subdir)/Makefile
+	cd $(top_srcdir) && automake $(subdir)/Makefile
 
-Makefile: $(top_builddir)/config.status $(srcdir)/Makefile.in $(BUILT_SOURCES)
-	cd $(top_builddir) \
-	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+Makefile: $(top_builddir)/config.status Makefile.in
+	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -92,12 +73,13 @@ Makefile: $(top_builddir)/config.status $(srcdir)/Makefile.in $(BUILT_SOURCES)
 @SET_MAKE@
 
 all-recursive install-data-recursive install-exec-recursive \
-installdirs-recursive install-recursive uninstall-recursive  \
+installdirs-recursive install-recursive uninstall-recursive \
 check-recursive installcheck-recursive info-recursive dvi-recursive \
 mostlyclean-recursive clean-recursive distclean-recursive \
 maintainer-clean-recursive:
 	for subdir in $(SUBDIRS); do		\
 	  target=`echo $@ | sed s/-recursive//`; \
+	  echo making $$target in $$subdir;	\
 	  (cd $$subdir && $(MAKE) $$target)	\
 	   || case "$(MFLAGS)" in *k*) fail=yes;; *) exit 1;; esac; \
 	done && test -z "$$fail"
@@ -114,7 +96,9 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES) $(CONFIG_HEADER) \
 	tags=; \
 	here=`pwd`; \
 	for subdir in $(SUBDIRS); do \
-	  test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+	  test -f $$subdir/TAGS && { \
+	    tags="$$tags -i $$here/$$subdir/TAGS"; \
+	  } \
 	done; \
 	test -z "$(ETAGS_ARGS)$(CONFIG_HEADER)$(SOURCES)$(HEADERS)$$tags" \
 	  || etags $(ETAGS_ARGS) $$tags $(CONFIG_HEADER) $(SOURCES) $(HEADERS)
@@ -128,36 +112,35 @@ distclean-tags:
 
 maintainer-clean-tags:
 
-distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-
 subdir = Examples/Eratho
-distdir: $(DISTFILES)
-	@for file in $(DISTFILES); do \
-	  d=$(srcdir); \
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+distdir: $(DEP_DISTFILES)
+	@for file in `cd $(srcdir) && echo $(DISTFILES)`; do \
 	  test -f $(distdir)/$$file \
-	  || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
-	  || cp -p $$d/$$file $(distdir)/$$file; \
+	  || ln $(srcdir)/$$file $(distdir)/$$file 2> /dev/null \
+	  || cp -p $(srcdir)/$$file $(distdir)/$$file; \
 	done
 	for subdir in $(SUBDIRS); do		\
 	  test -d $(distdir)/$$subdir		\
 	  || mkdir $(distdir)/$$subdir		\
 	  || exit 1;				\
-	  chmod 755 $(distdir)/$$subdir;	\
+	  chmod 777 $(distdir)/$$subdir;	\
 	  (cd $$subdir && $(MAKE) distdir=../$(distdir)/$$subdir distdir) \
 	    || exit 1; \
 	done
 info: info-recursive
+
 dvi: dvi-recursive
-check: all-am
-	$(MAKE) check-recursive
+
+check: all check-recursive
+
 installcheck: installcheck-recursive
+
 all-am: Makefile
 
 install-exec: install-exec-recursive
-	$(NORMAL_INSTALL)
 
 install-data: install-data-recursive
-	$(NORMAL_INSTALL)
 
 install: install-recursive
 	@:
@@ -179,8 +162,7 @@ clean-generic:
 
 distclean-generic:
 	rm -f Makefile $(DISTCLEANFILES)
-	rm -f config.cache config.log stamp-h
-	test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
+	rm -f config.cache config.log $(CONFIG_HEADER) stamp-h
 
 maintainer-clean-generic:
 	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
