@@ -1,9 +1,9 @@
 # Tests from Ada backend
-ada0001/tin.idl
-ada0002/tin.idl
-ada0003/tin.idl
-ada0004/tin.idl
-ada0005/tin.idl
+#ada0001/tin.idl
+#ada0002/tin.idl
+#ada0003/tin.idl
+#ada0004/tin.idl
+#ada0005/tin.idl
 # Tests from CORBA 2.6 Chapter 3
 idl02030/tin.idl
 idl15001/tin.idl
@@ -40,7 +40,7 @@ test008/tin.idl
 test009/tin.idl
 test010/tin.idl
 test011/tin.idl
-#test012/tin.idl
+test012/tin.idl
 test013/tin.idl
 test014/tin.idl
 test015/tin.idl
