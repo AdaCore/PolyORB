@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---             Copyright (C) 1999-2004 Free Software Fundation              --
+--         Copyright (C) 1999-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -83,12 +83,12 @@ Available options for the 'configure' script include:
   --with-appli-perso="...": application personalities to build
       Available personalities: CORBA, DSA, MOMA
       e.g.   --with-appli-perso="corba moma" to build both the CORBA 
-             and MOMA personnalities
+             and MOMA personalities
 
   --with-proto-perso="...": personalities to build
       Available personalities: GIOP, SOAP, SRP
       e.g.   --with-proto-perso="giop soap" to build both the GIOP 
-             and SOAP personnalities
+             and SOAP personalities
 
   --with-services="...": CORBA COS services to build
       Available services: event, ir, naming, time

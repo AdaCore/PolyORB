@@ -28,7 +28,7 @@ constraints for the target.
 This release should be considered as a stable implementation of CORBA
 middleware over PolyORB.
 
-Other instanciations of PolyORB are available in the public PolyORB
+Other instantiations of PolyORB are available in the public PolyORB
 CVS repository for testing purposes. They will be included in future
 releases.
 
@@ -125,7 +125,7 @@ development branch, available through CVS access):
       DSA partitions has been successfully tested;
 
     * protocol personalities: SOAP, GIOP (CORBA generic protocol
-      layer) and the folowing instanciations: IIOP (over TCP/IP), DIOP
+      layer) and the following instantiations: IIOP (over TCP/IP), DIOP
       (over UDP/IP for oneway requests), and MIOP/UIPMC (group
       communication over multicast/IP)
 
