@@ -183,7 +183,7 @@ package XE_Utils is
 
    function Is_Relative_Dir (File : File_Name_Type) return Boolean;
 
-   function More_Recent (File1, File2 : Name_Id) return Boolean;
+   function ">" (File1, File2 : Name_Id) return Boolean;
 
    procedure Produce_Partition_Executable
      (Partition     : in Name_Id;
@@ -225,7 +225,7 @@ package XE_Utils is
       Stdout : in Boolean := False);
 
    procedure Write_Stamp_Comparison
-     (Newer, Older : in File_Name_Type);
+     (Newer, Older   : in File_Name_Type);
 
    procedure Write_Str
      (File   : in File_Descriptor;

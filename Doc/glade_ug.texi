@@ -1,5 +1,4 @@
 \input texinfo @c -*-texinfo-*-
-@c %**start of header
 @setfilename glade_ug.info
 @settitle GLADE User's Guide
 @setchapternewpage odd
@@ -59,7 +58,7 @@ About This Guide
 
 Short Tutorial on the Distributed Systems Annex
 
-* Categorization pragmas::
+* Categorization Pragmas::
 * Using The Facilities Of The Distributed System Annex::
 * Comparisons With Other Existing Standards::
 * Simple Exaple : Hello_World::
@@ -99,8 +98,15 @@ The GLADE Execution Model
 
 Advanced Features
 
-* Configuration For Embedded Systems
 * Multiple Platforms
+* Message Passing Layer
+* Replicated Partitions
+* Priority
+
+Internals
+
+* Debugging Distributed Applications
+* Configuring GLADE For Embedded Systems
 
 Extended Examples
 
@@ -122,14 +128,23 @@ Extended Examples
 @section Using The Facilities Of The Distributed System Annex
 
 The basic idea of the Distributed Systems Annex is to allow a user to
-develop his application the same way whether it is going to be executed
-as several programs on a distributed system or as a whole program on a
-non-distributed system.
+develop his application the same way whether this application is going
+to be executed as several programs on a distributed system or as a whole
+program on a non-distributed system. The Distributed Systems Annex has
+been designed so as to minimize the changes required to the source code
+of a program, in converting it from an ordinary non-distributed program,
+to a distributed program.
 
 The first step is to develop the application on a non-distributed
 system. Of course, the design of the application should take into
-account the fact that some units are going to be accessed
-remotely. Therefore, they must contain a restricted set of Ada
+account the fact that some units are going to be accessed remotely. In
+order to write an Ada 95 distributed program, it is necessary for the
+user to categorize certain library level compilation units of the
+application program, by inserting categorization pragmas into them. The
+units which require categorization are typically those which are called
+remotely, or ones which provide types used in remote calls.
+
+Therefore, these units must contain only a restricted set of Ada
 entities. For instance, if the distributed system has no shared memory,
 shared variables should be forbidden. To ensure such restrictions, the
 Distributed System Annex provides several categorization pragmas in
@@ -139,7 +154,10 @@ The second step is to develop the non-distributed application with your
 usual software engineering environment. This is very important to note
 that you don't need to acquire specialized tools to develop your
 distributed application. For instance, you can debug your application
-with your usual debugger. 
+with your usual debugger. A non-distributed program is not to be
+confused with a distributed application composed of only one partition
+program. The later is built with the help of the configuration tool and
+includes the communication library.
 
 The third step is to partition and to configure your non-distributed
 application into a distributed application, that means multiple
@@ -147,6 +165,13 @@ partitions working cooperatively as part of a single Ada program. The
 process of mapping the partitions of a program to the nodes in a
 distributed system is called configuring the partitions of the
 program. This is what GLADE is for.
+
+The distributed version of the user application should work as is, but
+even when a program can be built either as a non-distributed or a
+distributed program using the same source code, there may still be
+differences in program execution between the distributed and
+non-distributed versions. These differences will be presented in others
+sections.
 
 @node Categorization pragmas
 @section Categorization pragmas
@@ -184,8 +209,25 @@ pragma Remote_Call_Interface occurs in the specification of an Ada
 package, then this package is said to be RCI (Remote Call Interface). As
 this pragma is used to implement RPC features, entities forbidden in
 this model are also forbidden in such a unit. This applies to variables
-and to most access types. A distributed program retains the same type
-safety as the equivalent single partition program.
+and to most access types. 
+
+A distributed program retains the same type safety as the equivalent
+single partition program.
+
+If an exception is propagated by a remotely called subprogram, and the
+call is not an asynchronous call (see next subsection), the
+corresponding exception is reraised at the point of the remote
+subprogram call. If a given exception is propagated by a remote
+subprogram call, but the exception does not exist in the calling
+partition, the exception can be handled by an others choice or be
+propagated to and handled by a third partition.
+
+@node Plain Remote Procedure Call
+@subsubsection Plain Remote Procedure Call
+
+Any subprogram declared in a RCI package specification becomes a remote
+subprogram. This package specification acts as an IDL specification. In
+other terms, Ada acts as an IDL.
 
 @example 
 package RCI is 
@@ -198,10 +240,97 @@ end RCI;
 @end example
 
 Pragma Asynchronous can be applied to any subprogram of a RCI package as
-long as this subprogram has no inout or out parameters. In this case,
-the subprogram calls is allowed to return prior to the completion of
-subprogram execution. 
- 
+long as this subprogram has only "in" parameters. In this case, the
+subprogram calls is allowed to return prior to the completion of
+subprogram execution. In this case, any exception is lost.
+
+@example
+package RCI is
+   function Name return String;
+   procedure Set (Variable : String; Value : Integer);
+   pragma Asynchronous (Name, Set);
+end RCI;
+@end example
+
+@node Remote Access To Subprogram
+@subsubsection Remote Access To Subprogram
+
+@node Remote Access To Class Wide
+@subsubsection Remote Access To Class Wide
+
+@page
+
+@node Non-Distributed versus Distributed Applications
+@subsubsection Non-Distributed versus Distributed Applications
+
+A sequential application may have a different behaviour whether it is
+configured to be a distributed program or not. Let's take the following
+example:
+
+@smallexample
+package RCI_1 is                    package RCI_2 is
+   pragma Remote_Call_Interface;       pragma Remote_Call_Interface;
+   procedure P (X : Integer);          procedure P (X : Integer);
+   pragma Asynchronous (P);            pragma Asynchronous (P);         
+end RCI_1;                          end RCI_2;
+
+with RCI_2;                         
+package body RCI_1 is               package body RCI_2 is
+                                       V : Integer := 0;
+   procedure P (X : Integer) is        procedure P (X : Integer) is
+   begin                               begin
+      RCI_2.P (X);                        V := X;
+   end P;                              end P;
+end RCI_1;                          end RCI_2;
+
+with RCI_1, RCI_2;
+procedure Main is
+begin
+   RCI_1.P (1);
+   RCI_2.P (2);
+end Main;
+@end smallexample
+
+@page
+Execution of Two Asynchronous Procedures in Non-Distributed Systems:
+
+@smallexample
+RCI_1.P(1)
+   |
+  [1]
+   |
+   v
+RCI_2.P(1) - [2] -> V = 1
+   |
+  [3]
+   |
+   v
+RCI_2.P(2) - [4] -> V = 2
+@end smallexample
+
+@*
+Execution of Two Asynchronous Procedures in Distributed Systems:
+
+@smallexample
++-------------+     +-------------+     +-------------+ 
+| Partition 1 |     | Partition 2 |     | Partition 3 |
++-------------+     +-------------+     +-------------+ 
+
+RCI_1.P(1) - [1] -> RCI_2.P(1) 
+   |                   |
+  [2]                  |
+   |                   |
+   v                   
+RCI_2.P(2) ---------- [3] ------------> RCI_2.P(2) - [4] -> V = 2
+
+                       |
+                       v
+                    RCI_2.P(1) - [5] -> RCI_2.P(1) - [6] -> V = 1 
+@end smallexample
+
+@node Pragma Remote_Types
+@subsection Pragma Remote_Types
+
 @node Getting Started With GLADE
 @chapter Getting Started With GLADE
 

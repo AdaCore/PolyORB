@@ -239,10 +239,10 @@ package body XE_Stubs is
 
    begin
 
-      if not Is_Regular_File (Exec_File) or else
+      if not Is_Regular_File (Executable) or else
         not Is_Regular_File (Stmp_File) or else
-        More_Recent (Executable, Stmp_File) or else
-        More_Recent (Partitions.Table (Partition).Most_Recent, Executable) then
+        Partitions.Table (Partition).Most_Recent > Executable or else
+        Executable > Stmp_File then
 
          Change_Dir (Directory);
 
@@ -306,7 +306,7 @@ package body XE_Stubs is
             Write_Missing_File (Caller_Body);
          end if;
          Obsolete := True;
-      elsif not Obsolete and then More_Recent (Full_RCI_Spec, Caller_Body) then
+      elsif not Obsolete and then Full_RCI_Spec > Caller_Body then
          if Verbose_Mode then
             Write_Stamp_Comparison (Full_RCI_Spec, Caller_Body);
          end if;
@@ -318,7 +318,7 @@ package body XE_Stubs is
             Write_Missing_File (Caller_Object);
          end if;
          Obsolete := True;
-      elsif not Obsolete and then More_Recent (Caller_Body, Caller_Object) then
+      elsif not Obsolete and then Caller_Body > Caller_Object then
          if Verbose_Mode then
             Write_Stamp_Comparison (Caller_Body, Caller_Object);
          end if;
@@ -330,14 +330,14 @@ package body XE_Stubs is
             Write_Missing_File (Caller_ALI);
          end if;
          Obsolete := True;
-      elsif not Obsolete and then More_Recent (Caller_Body, Caller_ALI) then
+      elsif not Obsolete and then Caller_Body > Caller_ALI then
          if Verbose_Mode then
             Write_Stamp_Comparison (Caller_Body, Caller_ALI);
          end if;
          Obsolete := True;
       end if;
 
-      if not Obsolete and then More_Recent (Full_ALI_File, Caller_ALI) then
+      if not Obsolete and then Full_ALI_File > Caller_ALI then
          if Verbose_Mode then
             Write_Stamp_Comparison (Full_ALI_File, Caller_ALI);
          end if;
@@ -382,8 +382,7 @@ package body XE_Stubs is
             Write_Missing_File (Receiver_Body);
          end if;
          Obsolete := True;
-      elsif not Obsolete and then
-         More_Recent (Full_RCI_Body, Receiver_Body) then
+      elsif not Obsolete and then Full_RCI_Body > Receiver_Body then
          if Verbose_Mode then
             Write_Stamp_Comparison (Full_RCI_Body, Receiver_Body);
          end if;
@@ -394,8 +393,7 @@ package body XE_Stubs is
             Write_Missing_File (Receiver_Object);
          end if;
          Obsolete := True;
-      elsif not Obsolete and then
-         More_Recent (Receiver_Body, Receiver_Object) then
+      elsif not Obsolete and then Receiver_Body > Receiver_Object then
          if Verbose_Mode then
             Write_Stamp_Comparison (Receiver_Body, Receiver_Object);
          end if;
@@ -406,15 +404,13 @@ package body XE_Stubs is
             Write_Missing_File (Receiver_ALI);
          end if;
          Obsolete := True;
-      elsif not Obsolete and then
-         More_Recent (Receiver_Body, Receiver_ALI) then
+      elsif not Obsolete and then Receiver_Body > Receiver_ALI then
          if Verbose_Mode then
             Write_Stamp_Comparison (Receiver_Body, Receiver_ALI);
          end if;
          Obsolete := True;
       end if;
-      if not Obsolete and then
-         More_Recent (Full_ALI_File, Receiver_ALI) then
+      if not Obsolete and then Full_ALI_File > Receiver_ALI then
          if Verbose_Mode then
             Write_Stamp_Comparison (Full_ALI_File, Receiver_ALI);
          end if;
@@ -516,7 +512,7 @@ package body XE_Stubs is
          if Verbose_Mode then
             Write_Missing_File (Elaboration);
          end if;
-      elsif More_Recent (Most_Recent, Elaboration) then
+      elsif Most_Recent > Elaboration then
          if Verbose_Mode then
             Write_Stamp_Comparison (Most_Recent, Elaboration);
          end if;
@@ -693,6 +689,7 @@ package body XE_Stubs is
       Close (FD);
 
       More_Recent_Stamp (PID, Elaboration);
+      Delete (Directory & Dir_Sep_Id & Build_Stamp_File);
 
    end Create_Elaboration_File;
 
@@ -722,7 +719,7 @@ package body XE_Stubs is
          if Verbose_Mode then
             Write_Missing_File (Main_File);
          end if;
-      elsif More_Recent (Most_Recent, Main_File) then
+      elsif Most_Recent > Main_File then
          if Verbose_Mode then
             Write_Stamp_Comparison (Most_Recent, Main_File);
          end if;
@@ -949,6 +946,7 @@ package body XE_Stubs is
       Close (FD);
 
       More_Recent_Stamp (PID, Main_File);
+      Delete (Directory & Dir_Sep_Id & Build_Stamp_File);
 
    end Create_Partition_Main_File;
 

@@ -98,7 +98,7 @@ package body XE_Check is
                Most_Recent_Obj_File  => Obj,
                Most_Recent_Obj_Stamp => Stamp,
                Main_Unit             => Main,
-               Check_Internal_Files  => True,
+               Check_Internal_Files  => Check_Internal_Files,
                Dont_Execute          => No_Recompilation,
                Force_Compilations    => Force_Compilations,
                Initialize_Ali_Data   => False,

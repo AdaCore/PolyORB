@@ -1,3 +1,23 @@
+Tue Apr 29 10:24:53 1997  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* xe_utils.ads, xe_utils.adb: Change More_Recent into ">" to avoid
+ 	confusion.
+
+	* xe_stubs.adb, xe_back.adb: Fix a problem with file stamp on very
+ 	fast machines (stamp (.o) = stamp (.adb)).
+
+Wed Apr 23 14:38:20 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
+	* xe_stubs.adb: Corrected major typo in procedure
+ 	Create_Elaboration_File: condition to generate calls to
+ 	Set_Channel_Filter was inverted. Bug reported and fixed by T. Wolf
+
+Tue Apr 22 19:06:32 1997  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_check.adb: Use Check_Internal_Files in Compile_Sources as a
+ 	workaround to gnatmake -a bug on Linux platform (no object file
+ 	present with the shared library)
+
 Mon Apr  7 16:27:47 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_utils.adb: Removed references to xe-gcc.

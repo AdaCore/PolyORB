@@ -38,7 +38,7 @@ in Doc/install_guide.txt.
      with other versions of make. If you have problems building GLADE
      with your local make tool, switch to GNU make.
    - verify that you will be able to run distributed applications
-      (on Unix, your .rhost file must contain the machine from which
+      (on Unix, your .rhosts file must contain the machine from which
        you will start the distributed application)
 
 2. Configure GLADE

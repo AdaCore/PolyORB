@@ -83,12 +83,12 @@ AUTOMAKE_OPTIONS = no-dependencies foreign
 
 GNATDIST = gnatdist
 
-EXTRA_PROGS = mainloop
+EXTRA_PROGS = bank_client
 CFGFILE = simcity.cfg
 PARTITIONS = bank_server bank_client
 
-CLEANFILES = -r dsa *.o *.ali bin
-DISTCLEANFILES = $(EXTRA_PROGS) $(PARTITIONS)
+CLEANFILES = -r dsa *.o *.ali bin $(PARTITIONS)
+DISTCLEANFILES = $(CLEANFILES)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  README Makefile.am Makefile.in
@@ -175,16 +175,14 @@ distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
 
-all-local: ${top_srcdir}/Examples/check-stamp ${EXTRA_PROGS}
+all-local: ${top_srcdir}/Examples/check-stamp $(EXTRA_PROGS)
 
 ${top_srcdir}/Examples/check-stamp:
 	IN_MAKE=yes ${SHELL} ${top_srcdir}/Examples/check-config
 	echo "It worked on `date`" > ${top_srcdir}/Examples/check-stamp
 
-$(PARTITIONS):
+$(EXTRA_PROGS):
 	${GNATDIST} -I${srcdir} $(CFGFILE)
-
-$(EXTRA_PROGS): $(PARTITIONS)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

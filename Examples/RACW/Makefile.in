@@ -86,8 +86,8 @@ GNATDIST = ${exec_prefix}/bin/gnatdist
 
 EXTRA_PROGS = main
 
-CLEANFILES = -r dsa *.o *.ali
-DISTCLEANFILES = main part1 part2 part3
+CLEANFILES = -r dsa *.o *.ali $(EXTRA_PROGS)
+DISTCLEANFILES = $(CLEANFILES)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  README Makefile.am Makefile.in
@@ -180,7 +180,7 @@ all-local: ../check-stamp ${EXTRA_PROGS}
 	IN_MAKE=yes ${SHELL} ../check-config
 	echo "It worked on `date`" > ../check-stamp
 
-main: 
+$(EXTRA_PROGS): 
 	${GNATDIST} -I${srcdir} ${srcdir}/racw.cfg
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

@@ -1,3 +1,13 @@
+Wed Apr 23 11:36:04 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am (install-data-local): Make installed source read-only
+	to anticipate gnatmake changes (right fix in the right place).
+
+Tue Apr 22 17:44:25 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.in (install-data-local): Make installed sources
+	  read-only to anticipate gnatmake changes.
+
 Mon Apr  7 12:46:42 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.zip: The previous one was totally uncompatible with

@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = Eratho RACW Bank LightBank
+SUBDIRS = Eratho Bank LightBank
 
 CLEANFILES = check-stamp
 DISTCLEANFILES = check-config

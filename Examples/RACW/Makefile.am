@@ -10,8 +10,8 @@ GNATDIST = ${exec_prefix}/bin/gnatdist
 
 EXTRA_PROGS = main
 
-CLEANFILES = -r dsa *.o *.ali
-DISTCLEANFILES = main part1 part2 part3
+CLEANFILES = -r dsa *.o *.ali $(EXTRA_PROGS)
+DISTCLEANFILES = $(CLEANFILES)
 
 all-local: ../check-stamp ${EXTRA_PROGS}
 
@@ -19,6 +19,6 @@ all-local: ../check-stamp ${EXTRA_PROGS}
 	IN_MAKE=yes ${SHELL} ../check-config
 	echo "It worked on `date`" > ../check-stamp
 
-main: 
+$(EXTRA_PROGS): 
 	${GNATDIST} -I${srcdir} ${srcdir}/racw.cfg
 

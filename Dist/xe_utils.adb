@@ -322,6 +322,12 @@ package body XE_Utils is
    procedure Delete (File : in File_Name_Type) is
       Error : Boolean;
    begin
+      if Verbose_Mode then
+         Write_Program_Name;
+         Write_Str  ("delete ");
+         Write_Name (File);
+         Write_Eol;
+      end if;
       Get_Name_String (File);
       Name_Len := Name_Len + 1;
       Name_Buffer (Name_Len) := Ascii.Nul;
@@ -769,11 +775,11 @@ package body XE_Utils is
       return Prog;
    end Locate;
 
-   -----------------
-   -- More_Recent --
-   -----------------
+   ---------
+   -- ">" --
+   ---------
 
-   function More_Recent (File1, File2 : Name_Id) return Boolean is
+   function ">" (File1, File2 : Name_Id) return Boolean is
    begin
       if Source_File_Stamp (File1) > Source_File_Stamp (File2) then
          if Debug_Mode then
@@ -781,12 +787,9 @@ package body XE_Utils is
          end if;
          return True;
       else
-         if Debug_Mode then
-            Write_Stamp_Comparison (File2, File1);
-         end if;
          return False;
       end if;
-   end More_Recent;
+   end ">";
 
    ----------------------------------
    -- Produce_Partition_Executable --
@@ -992,13 +995,13 @@ package body XE_Utils is
    ----------------------------
 
    procedure Write_Stamp_Comparison
-     (Newer, Older : in File_Name_Type) is
+     (Newer, Older   : in File_Name_Type) is
    begin
       Write_Program_Name;
       Write_Str (": ");
       Write_Name (Newer);
       Write_File_Stamp (Newer);
-      Write_Str (" is more recent than ");
+      Write_Str (" > ");
       Write_Name (Older);
       Write_File_Stamp (Older);
       Write_Eol;

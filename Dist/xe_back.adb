@@ -829,7 +829,7 @@ package body XE_Back is
 
    procedure More_Recent_Stamp (P : in PID_Type; F : in File_Name_Type) is
    begin
-      if More_Recent (F, Partitions.Table (P).Most_Recent) then
+      if F > Partitions.Table (P).Most_Recent then
          if Debug_Mode then
             Write_Program_Name;
             Write_Str   (": ");

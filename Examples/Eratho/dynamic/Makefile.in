@@ -86,10 +86,9 @@ GNATDIST = ${exec_prefix}/bin/gnatdist
 
 EXTRA_PROGS = mainloop
 CFGFILE = dynamic.cfg
-PARTITIONS = partition1 partition2 partition3
 
-CLEANFILES = -r dsa *.o *.ali bin
-DISTCLEANFILES = $(EXTRA_PROGS) $(PARTITIONS)
+CLEANFILES = -r dsa *.o *.ali bin $(EXTRA_PROGS)
+DISTCLEANFILES = $(CLEANFILES)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  Makefile.am Makefile.in
@@ -182,10 +181,8 @@ all-local: ../../check-stamp ${EXTRA_PROGS}
 	IN_MAKE=yes ${SHELL} ../../check-config
 	echo "It worked on `date`" > ../../check-stamp
 
-$(PARTITIONS):
+$(EXTRA_PROGS):
 	${GNATDIST} -I${srcdir} $(CFGFILE)
-
-$(EXTRA_PROGS): $(PARTITIONS)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

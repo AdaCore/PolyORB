@@ -10,10 +10,9 @@ GNATDIST = ${exec_prefix}/bin/gnatdist
 
 EXTRA_PROGS = mainloop
 CFGFILE = filters.cfg
-PARTITIONS = p1 p2 p3 p4
 
-CLEANFILES = -r dsa *.o *.ali bin
-DISTCLEANFILES = $(EXTRA_PROGS) $(PARTITIONS)
+CLEANFILES = -r dsa *.o *.ali bin $(EXTRA_PROGS)
+DISTCLEANFILES = $(CLEANFILES)
 
 all-local: ../../check-stamp ${EXTRA_PROGS}
 
@@ -21,8 +20,6 @@ all-local: ../../check-stamp ${EXTRA_PROGS}
 	IN_MAKE=yes ${SHELL} ../../check-config
 	echo "It worked on `date`" > ../../check-stamp
 
-$(PARTITIONS):
+$(EXTRA_PROGS):
 	${GNATDIST} -I${srcdir} $(CFGFILE)
-
-$(EXTRA_PROGS): $(PARTITIONS)
 

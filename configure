@@ -1436,29 +1436,34 @@ echo "$ac_t""$RSH" 1>&6
 if test "${with_filters+set}" = set; then
   withval="$with_filters"
   
-  echo $ac_n "checking default filters""... $ac_c" 1>&6
-echo "configure:1441: checking default filters" >&5
-  FILTERLIST="";
-  FILTERFILE=Garlic/Makefile.fil;
-  echo "" >${FILTERFILE}
-  for F in ${withval}; do
-    if test -f Garlic/Makefile.${F}; then
-      FILTERLIST="${FILTERLIST} ${F}";
-      cat Garlic/Makefile.${F} >>${FILTERFILE}
-      echo "" >>${FILTERFILE}
-    fi;
-  done
-  echo "$ac_t""${FILTERLIST}" 1>&6
+  FILTERLIST="${withval}";
 
 else
   
-echo $ac_n "checking default filters""... $ac_c" 1>&6
-echo "configure:1457: checking default filters" >&5
-FILTERFILE="zip";
-echo "$ac_t""none" 1>&6
+  FILTERLIST="zip"
 
 fi
 
+echo $ac_n "checking default filters""... $ac_c" 1>&6
+echo "configure:1449: checking default filters" >&5
+
+if test -d Garlic; then
+  :
+else
+  mkdir Garlic
+fi
+FILTERFILE=Garlic/Makefile.fil;
+rm -f ${FILTERFILE}
+for F in ${FILTERLIST}; do
+  if test -f ${srcdir}/Garlic/Makefile.${F}; then
+    cat ${srcdir}/Garlic/Makefile.${F} >>${FILTERFILE}
+    echo "" >>${FILTERFILE}
+  else
+    { echo "configure: error: unknown filter ${F}" 1>&2; exit 1; }
+  fi;
+done
+
+echo "$ac_t""${FILTERLIST}" 1>&6
 
 #
 # Protocol list
@@ -1468,7 +1473,7 @@ if test "${with_protocols+set}" = set; then
   withval="$with_protocols"
   
   echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1472: checking default protocols" >&5
+echo "configure:1477: checking default protocols" >&5
   LIST="";
   PROTOCOLSSOURCES="";
   PROTOCOLSOBJECTS="";
@@ -1493,7 +1498,7 @@ echo "configure:1472: checking default protocols" >&5
 else
   
 echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1497: checking default protocols" >&5
+echo "configure:1502: checking default protocols" >&5
 PROTOCOLSSOURCES="\$(TCPSOURCES)";
 PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
 TCP_INCLUDED=""
@@ -1503,7 +1508,7 @@ fi
 
 if test "$TCP_INCLUDED" = ""; then
   echo $ac_n "checking thread-blocking I/O""... $ac_c" 1>&6
-echo "configure:1507: checking thread-blocking I/O" >&5
+echo "configure:1512: checking thread-blocking I/O" >&5
     if grep Non_Blocking $srcdir/Garlic/2${PLATFORM_SPECIFIC}gtplsp.ads \
       > /dev/null 2>&1; then
 	echo "$ac_t""no" 1>&6
@@ -1520,7 +1525,7 @@ fi
 # Find get_errno or __get_errno
 #
 echo $ac_n "checking for get_errno in -lgnat""... $ac_c" 1>&6
-echo "configure:1524: checking for get_errno in -lgnat" >&5
+echo "configure:1529: checking for get_errno in -lgnat" >&5
 ac_lib_var=`echo gnat'_'get_errno | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1528,7 +1533,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lgnat  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1532 "configure"
+#line 1537 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1539,7 +1544,7 @@ int main() {
 get_errno()
 ; return 0; }
 EOF
-if { (eval echo configure:1543: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1548: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1575,7 +1580,7 @@ fi
 # Check if gnatmake -s is ok (smart recompilation)
 #
 echo $ac_n "checking if gnatmake supports -s""... $ac_c" 1>&6
-echo "configure:1579: checking if gnatmake supports -s" >&5
+echo "configure:1584: checking if gnatmake supports -s" >&5
 if gnatmake -s -a -gnatg -gnatdj ada > /dev/null 2>&1; then
    GNATMAKE="gnatmake -s"
    echo "$ac_t""yes" 1>&6
@@ -1712,8 +1717,7 @@ trap 'rm -fr `echo "Makefile
            Examples/Eratho/dynamic/Makefile
            Examples/Eratho/spiral/Makefile
            Examples/Bank/Makefile
-           Examples/LightBank/Makefile
-           Examples/RACW/Makefile" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+           Examples/LightBank/Makefile" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -1846,8 +1850,7 @@ CONFIG_FILES=\${CONFIG_FILES-"Makefile
            Examples/Eratho/dynamic/Makefile
            Examples/Eratho/spiral/Makefile
            Examples/Bank/Makefile
-           Examples/LightBank/Makefile
-           Examples/RACW/Makefile"}
+           Examples/LightBank/Makefile"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then

@@ -1,45 +1,64 @@
 Changes since GLADE 1.01
 ========================
 
-* New examples Bank and LightBank. LightBank is an example of 
-  client / server application written in Ada 95 and Annex E. 
-  Bank is a more sophisticated example with distributed objects 
-  and filtering.
+New Functionnalities
+--------------------
 
-* Addition of filters. A filter is a set of subprograms which will be
-  called automatically before sending bytes on the communication
-  channel and after receiving them. An example (the ZIP filter) is
-  bundled and install along with GLADE, which uses the zlib
-  library. There are new pragmas and attributes in GNATDIST to use
-  this feature.
+  * Filters. 
+    A filter is a set of subprograms which will be called
+    automatically before sending bytes on the communication channel
+    and after receiving them. An example (the ZIP filter) is bundled
+    and installed along with GLADE, which uses the zlib library.
+    There are new pragmas and attributes in GNATDIST to use this
+    feature.
 
-* It is possible to pass two new predefined arguments --trace and --replay
-  to a partition. In tracing mode, network inputs and outputs are logged
-  such a way that when the partition executable is invoked with arguments
-  --replay, inputs and outputs are read from the log files. Therefore,
-  you can easily debug your distributed application without any
-  non-deterministic side effects.
+  * Trace and Replay
+    It is possible to pass two new predefined arguments --trace and
+    --replay to a partition. In tracing mode, network inputs and
+    outputs are logged in such a way that when the partition
+    executable is invoked with arguments --replay, inputs and outputs
+    are read from the log files. Therefore, you can easily debug your
+    distributed application without any non-deterministic side
+    effects.
 
-* Copies of buffers have been suppressed wherever possible, thus
-  decreasing execution time.
+Examples
+---------
 
-* The 'rsh' command can now be changed at installation time using the
-  --with-remsh parameter of configure.
+   * LightBank 
+     It is a simple example of client/server application written in
+     Ada 95 and Annex E. Shows in particular how a simple partition
+     (the client) can be duplicated at will. 
 
-* Upgraded to automake 1.1n. If the user does modifies sensitive files 
-  (such as Makefile.am) and does not have automake, then print a
-  message instead of crashing with an unclear error.
+   * Bank 
+     A more sophisticated example on the same theme. It demonstrates 
+     distributed objects and filtering.
 
-* Bug fixes for float transmissions between architectures with
-  different word sizes.
+Bug fixes
+---------
 
-* Bug fixes for pathological cases in GNATDIST.
+   * Float transmissions between different architectures with
+     different word sizes now work.
 
-* Reorganisation of GNATDIST directory hierarchy.
+   * Pathological cases in GNATDIST.
 
-* Clearer error messages for GNATDIST.
+Misc
+----
 
-* New file NEWS (this file).
+   * Copies of buffers have been suppressed wherever possible, thus
+     decreasing execution time.
+
+   * The 'rsh' command can now be changed at installation time using the
+      --with-remsh parameter of configure (in preparation for HP support)
+
+   * Upgraded to automake 1.1n. If the user does modifies sensitive files 
+     (such as Makefile.am) and does not have automake, then print a
+     message instead of crashing with an unclear error.
+
+   * Reorganisation of GNATDIST directory hierarchy.
+
+   * Clearer error messages for GNATDIST.
+
+   * New file NEWS (this file).
 
 # Local Variables:
 # mode: text

@@ -9,6 +9,7 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 EXEEXT=@EXEEXT@
+RSH=@RSH@
 
 #
 # Utilities
@@ -86,10 +87,10 @@ esac
 #
 
 machine=`uname -n`
-res=`rsh -n $machine echo Works < /dev/null 2>&1 | grep Works | head -1`
+res=`${RSH} -n $machine echo Works < /dev/null 2>&1 | grep Works | head -1`
 if test "x$res" != "xWorks"; then
-  echo "You should make sure you are authorized to use the rsh command" >&2
-  echo "You may want to check the rsh manual by typing: man rsh" >&2
+  echo "You should make sure you are authorized to use the ${RSH} command" >&2
+  echo "You may want to check the ${RSH} manual by typing: man ${RSH}" >&2
   echo 'Look for the section concerning ".rhosts" files' >&2
   exit 1
 fi

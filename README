@@ -23,20 +23,24 @@
 ------------------------------------------------------------------------------
 
 This is release @glade_version@ of the Ada 95 distributed systems annex
-for GNAT @gnat_version@.
+for GNAT @gnat_version@. New features are described in file NEWS.
 
 Contents.
 ---------
    Introduction: Ada 95 & Distributed Systems.
    Installation, Documentation & Examples.
    What Does It Run on.
-   Downloading Glade.
+   Downloading GLADE.
    Commercial Support.
    Bug Reports & Technical Questions.
    Submitting Bug Fixes.
-   Glade Development Team.
-   Thanks.
+   GLADE History.
+   Contributions.
+
 ------------------------------------------------------------------------------ 
+
+Additional information can be found in files INSTALL and NEWS as well
+as in the 'Doc' directory.
 
 Introduction: Ada 95 & Distributed Systems.
 -------------------------------------------
@@ -50,9 +54,10 @@ layer.  Likewise, by combining the distributed and real-time
 capabilities of Ada 95, it is possible to design applications which
 meet real-time constraints in a distributed environment.
 
-The Distributed Systems Annex (called Glade) for GNAT is an environment for
-developing distributed applications based on Annex E of the Ada 95
-Reference Manual. This environment comprises:
+GLADE is an implementation of the Distributed Systems Annex for the
+GNAT compiler. GLADE stands for GNAT Library for Ada Distributed
+Execution. It is an complete environment for developping distributed
+applications that includes: 
 
      - a complete PCS (Partition Communication System)
      - a simple partition description language & tool
@@ -67,36 +72,32 @@ Installation, Documentation & Examples.
 
 To see how to install the system please read file INSTALL in this
 directory. Please look under the "Doc" directory for documentation on
-how to use Glade (user_guide.txt) and some more hints on installation
+how to use GLADE (user_guide.txt) and some more hints on installation
 possibilities (install_guide.txt) . Directory "Examples" contains
 some examples on how to program a distributed application in Ada 95.
 
-What Does It Run on.
+What does it run on.
 --------------------
 
-This release works on:
-
+This release is fully supported on:
   - Sparc/Solaris (2.3 and above)
   - PC/Linux.
-
-This release also works on the following machines although less efficiently:
-
   - Sparc/SunOS (4.1.3)
-    [NOTE: Sometimes termination does not work on SunOS due to a bug in the
-     pthreads library. If this happens, you will have to kill the
-     partitions by hand (using the kill(1) command).]
 
-Ports to  SGI/Irix, DEC/OSF, HP/HP-UX, Windows NT will appear in the
-future. Please contact ACT Europe (sales@act-europe.fr) for more 
-information.
+This release has also been reported to work on:
+  - Alpha/Decunix
+  - HP/HP-UX
 
-Downloading Glade.
+Please contact ACT Europe (sales@act-europe.fr) for support
+information  and future platforms availibility.
+
+Downloading GLADE.
 ------------------
 
-You can download Glade by anonymous ftp from cs.nyu.edu (cd
+You can download GLADE by anonymous ftp from cs.nyu.edu (cd
 pub/gnat/glade) and the usual GNAT mirror sites around the world.
 
-There is an official WWW page for Glade containing the major annoucements
+There is an official WWW page for GLADE containing the major annoucements
 as well as the mailing-lists archives (see below):
 
       http://www.act-europe.fr/glade.html
@@ -104,9 +105,9 @@ as well as the mailing-lists archives (see below):
 Commercial Support.
 -------------------
 
-Commercial support for Glade will be available from Ada Core
-Technologies and ACT-Europe. Contact sales@gnat.com or
-sales@act-europe.fr for further details.
+Commercial support, consulting and training for GLADE are available
+from ACT-Europe and Ada Core Technologie. Contact sales@act-europe.fr
+for further details.
 
 Bug Reports & Technical Questions.
 ----------------------------------
@@ -116,7 +117,7 @@ should be sent to:
 
 		   glade-report@act-europe.fr
 
-To participate to general discussions on glade, subscribe to the
+To participate to general discussions on GLADE, subscribe to the
 mailing list 
                    glade-chat@act-europe.fr
 
@@ -153,33 +154,15 @@ are composed entirely of blank lines or Ada comments.
 If you want to be maximally helpful, try to reduce your example to a
 simple one but DON'T spend too much time doing this.
 
+If you think that you have found a bug in GNATDIST, use the -v flag of
+GNATDIST and send the full output of the command.
+
 If a bug involves incorrect operation of the generated code, then the
 first thing the program should do is to output a line indicating the
 expected output or behavior. If at all possible, do a test later on
 that prints out "passed" or "failed" depending on the behavior. Of
 course it may not always be possible to structure a test this way, but
 that's the most convenient form (for obvious reasons!)
-
-When we receive a bug report, we take a preliminary look to categorize
-it into one of the following:
-
-   1.  Pilot error, documentation problems, installation problems etc.
-
-   2.  Interesting comment, suggestion etc, but not a bug
-
-   3.  Bug that we already know about
-
-   4.  Bug that is already fixed in our development version
-
-   5.  Obvious bug that we correct immediately in our development version
-
-   6.  Real genuine new unfixed bug.
-
-In the first 5 cases, you will get a message telling you the
-status. In the 6th case only, we assign a bug tracking number of the
-form mmdd-nnn, where mmdd is the date of receipt, and nnn is a serial
-number. In this case, the release notes will tell you what the status
-of the bug is, and also we will send you a message when it is fixed.
 
 Submitting Bug Fixes.
 ---------------------
@@ -197,10 +180,10 @@ If your diff version do not understand the --recursive or --context
 option, please use the GNU diffutils package which may be found on any
 GNU archive (e.g. ftp://ftp.ibp.fr/pub/gnu/).
 
-Glade History.
+GLADE History.
 --------------
 
-Glade has been jointly developed by Ada Core Technologies and a
+GLADE has been jointly developed by Ada Core Technologies and a
 research team from the Ecole Nat. Sup. de Telecommunication (Paris &
 Brittany). The ENST team comprises:
   Yvon Kermarrec (yvon.kermarrec@enst-bretagne.fr),
@@ -209,10 +192,10 @@ Brittany). The ENST team comprises:
   Samuel Tardieu (sam@inf.enst.fr).
 
 
-Glade Contributions.
---------------------
+Contributions.
+---------------
 
-Glade filtering is part of a free contribution (04/97) from
+GLADE filtering is part of a free contribution (04/97) from
 Prof. A. Strohmeier, T. Wolf and J. Kienzle (EPFL, Lausanne,
 Switzerland). Extra filters are available on:
 
@@ -224,8 +207,10 @@ described in the following paper: J. Kienzle, Th. Wolf, A. Strohmeier:
 '96, Montreux, Switzerland, June 1996, published as Lecture Notes in
 Computer Science 1088, pp. 198 - 210, Springer 1996.
 
+The ZIP filter has been built on top of the zlib library developed by 
+Jean-loup Gailly and Mark Adler. See Garlic/zlib/README for details.
 
-Glade replay features is part of a free contribution (04/97) from D. Neri
+GLADE replay features is part of a free contribution (04/97) from D. Neri
 <d92-dne@nada.kth.se>, KTH (Royal Institute of Technology, Stockholm,
 Sweden).
 

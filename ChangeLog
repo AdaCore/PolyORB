@@ -1,3 +1,30 @@
+Fri Apr 25 18:11:16 1997  Laurent Pautet <pautet@inf.enst.fr>
+
+	* configure.in : get rid of RACW.
+
+Thu Apr 24 16:55:02 1997  Laurent Pautet <pautet@inf.enst.fr>
+
+	* INSTALL: .rhost --> .rhosts.
+
+	* README: Various modifications motivated by LG comments
+	  before 1.02 release.
+
+Tue Apr 22 17:24:29 1997  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* README: Tell the user to include GNATDIST -v output when
+	  reporting a GNATDIST bug.
+
+Mon Apr 22 10:34:24 1997  Laurent Pautet <pautet@inf.enst.fr>
+
+	* README: Reference NEWS. Acknowledge zlib usage.
+
+	* NEWS: Reformat and fix typos.
+
+
+	* NEWS: New file.
+	* configure.in: Fixed bug reported by Cyrille Comar.
+
+	* configure.in: Use zip filter by default.
 
 Mon Apr  7 12:43:26 1997  Samuel Tardieu  <sam@inf.enst.fr>
 

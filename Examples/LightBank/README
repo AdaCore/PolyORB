@@ -1,6 +1,5 @@
 This example describes a way to develop client / server
-applications. To provide advanced features, in this example, we had a
-mechanism of notification.
+applications.
 
 There are three main ada units in this bank example. The "bank" that
 manages the client accounts, a "manager" which loads the accounts from
@@ -9,9 +8,6 @@ their accounts and transfer money from their account to the account of
 someone else. This is always the same executable for the different
 clients, but of course, they don't get the same partition id in order
 to differentiate them.
-
-To proove this, the bank server notifies a customer when its account
-has been granted with money by another customer.
 
 --
 
@@ -84,10 +80,17 @@ Menu :
 
    Balance
    Deposit
-   Transfer
    Withdraw
 
-Request : 
+Request : w
+
+=> Deposit
+
+   Amount : 1000
+
+Balance : 1025
+
+Menu :
 
 [On session 3, start the rich client and transfer money from rich to poor]
 
@@ -101,15 +104,13 @@ Menu :
 
    Balance
    Deposit
-   Transfer
    Withdraw
 
-Request : t
+Request : w
 
-=> Transfer
+=> Withdraw
 
    Amount : 1000
-   Customer : poor
 
 Balance : 1500
 
@@ -117,16 +118,24 @@ Menu :
 
    Balance
    Deposit
-   Transfer
    Withdraw
 
-[and then you will realize that on session 2, poor has been notified
-of the donation]
+[On session 1, ask for the balances]
 
-=> Receive 1000 from rich
+Request : p
 
+=> Print
 
+   Customer : poor
+   Password : xxxx
+   Customer :  1025
 
+   Customer : middle
+   Password : yyyy
+   Customer :  250
 
+   Customer : rich
+   Password : zzzz
+   Customer :  1500
 
 

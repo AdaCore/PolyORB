@@ -129,24 +129,30 @@ AC_MSG_RESULT($RSH)
 AC_ARG_WITH(filters,
 [  --with-filters=list     Enumerate filter list (default=zip)],
 [
-  AC_MSG_CHECKING([default filters])
-  FILTERLIST="";
-  FILTERFILE=Garlic/Makefile.fil;
-  echo "" >${FILTERFILE}
-  for F in ${withval}; do
-    if test -f Garlic/Makefile.${F}; then
-      FILTERLIST="${FILTERLIST} ${F}";
-      cat Garlic/Makefile.${F} >>${FILTERFILE}
-      echo "" >>${FILTERFILE}
-    fi;
-  done
-  AC_MSG_RESULT([${FILTERLIST}])
+  FILTERLIST="${withval}";
 ],
 [
-AC_MSG_CHECKING([default filters])
-FILTERFILE="zip";
-AC_MSG_RESULT([none])
+  FILTERLIST="zip"
 ])
+AC_MSG_CHECKING([default filters])
+[
+if test -d Garlic; then
+  :
+else
+  mkdir Garlic
+fi
+FILTERFILE=Garlic/Makefile.fil;
+rm -f ${FILTERFILE}
+for F in ${FILTERLIST}; do
+  if test -f ${srcdir}/Garlic/Makefile.${F}; then
+    cat ${srcdir}/Garlic/Makefile.${F} >>${FILTERFILE}
+    echo "" >>${FILTERFILE}
+  else
+    ]AC_MSG_ERROR([unknown filter ${F}])[
+  fi;
+done
+]
+AC_MSG_RESULT([${FILTERLIST}])
 AC_SUBST_FILE(FILTERFILE)
 #
 # Protocol list
@@ -236,5 +242,4 @@ AC_OUTPUT([Makefile
            Examples/Eratho/dynamic/Makefile
            Examples/Eratho/spiral/Makefile
            Examples/Bank/Makefile
-           Examples/LightBank/Makefile
-           Examples/RACW/Makefile])
+           Examples/LightBank/Makefile])
