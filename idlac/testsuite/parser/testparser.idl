@@ -161,3 +161,37 @@ valuetype value49 {
 
 /* Test of rule 59 */
 unsigned Error;
+
+/* Test of rule 69 */
+struct { long i;};
+struct struct1 { long i; };
+struct struct1 { long i; };
+struct struct3 { long struct1; };
+struct struct3 {;
+struct struct4 { long struct4; };
+
+/* Test of rule 70 */
+struct struct5 {};
+
+/* Test of rule 71 */
+struct struct6 { long i };
+
+/* Test of rule 72 */
+union;
+union union1 switch (boolean) { case true : long i; };
+union union1 switch (boolean) { case true : long i; };
+union union2;
+union union3 switch;
+union union4 switch (boolean {};
+union union5 switch (boolean);
+union union6 switch (boolean) { case true : long i; ;
+
+/* Test of rule 73 */
+union union7 switch (error) { case true : long i; };
+
+/* Test of rule 74 */
+union union8 switch (boolean) { };
+union union9 switch (boolean) {
+    default : long i;
+    default : short j;
+};

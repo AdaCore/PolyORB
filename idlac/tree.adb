@@ -277,10 +277,10 @@ package body Tree is
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Member) return Types.Node_Kind is
---    begin
---       return Types.K_Member;
---    end Get_Kind;
+   function Get_Kind (N : N_Member) return Types.Node_Kind is
+   begin
+      return Types.K_Member;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --
@@ -301,10 +301,10 @@ package body Tree is
    ----------------
    --  Get_Kind  --
    ----------------
---    function Get_Kind (N : N_Case) return Types.Node_Kind is
---    begin
---       return Types.K_Case;
---    end Get_Kind;
+   function Get_Kind (N : N_Case) return Types.Node_Kind is
+   begin
+      return Types.K_Case;
+   end Get_Kind;
 
    ----------------
    --  Get_Kind  --

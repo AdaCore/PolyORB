@@ -500,6 +500,16 @@ private
    procedure Parse_Struct_Type (Result : out N_Struct_Acc;
                                 Success : out Boolean);
 
+   --  Rule 70
+   --  <member_list> ::= <member>+
+   procedure Parse_Member_List (Result : out Node_List;
+                                Success : out Boolean);
+
+   --  Rule 71
+   --  <member> ::= <type_spec> <declarators> ";"
+   procedure Parse_Member (Result : out N_Member_Acc;
+                           Success : out Boolean);
+
    --  Rule 72
    --  <union_type> ::= "union" <identifier>
    --                   "switch" "(" <switch_type_spec> ")"
@@ -513,9 +523,22 @@ private
    --                     |   <boolean_type>
    --                     |   <enum_type>
    --                     |   <scoped_name>
+   procedure Parse_Switch_Type_Spec (Result : out N_Root_Acc;
+                                     Success : out Boolean);
 
    --  Rule 74
    --  <switch_body> ::= <case>+
+   procedure Parse_Switch_Body (Result : out Node_List;
+                                Success : out Boolean);
+
+   --  Rule 75
+   --  <case> ::= <case_label>+ <element_spec> ";"
+   procedure Parse_Case (Result : out N_Case_Acc;
+                         Success : out Boolean);
+
+   --  Rule 76
+   --  <case_label> ::= "case" <const_exp> ":"
+   --                 | "default ":"
 
    --  Rule 78
    --  <enum_type> ::= "enum" <identifier> "{" <enumerator>
@@ -598,6 +621,12 @@ private
 
    --  Goes to the next right parenthesis.
    procedure Go_To_Next_Right_Paren;
+
+   --  Goes to the next member (see rule 71)
+   procedure Go_To_Next_Member;
+
+   --  Goes to the next case clause in an union (see rule 74)
+   procedure Go_To_Next_Case;
 
 
 
@@ -719,20 +748,7 @@ private
 --    --  <fixed_array_size> ::= "[" <positive_int_const> "]"
 --    function Parse_Declarator return N_Declarator_Acc is
 
---    --  Rule 55:
---    --  <member_list> ::= <member>+
 --    --
---    --  Rule 56:
---    --  <member> ::= <type_spec> <declarators> ";"
---    procedure Parse_Member_List (List : in out Node_List) is
-
---    --  Rule 60:
---    --  <case> ::= <case_label>+ <element_spec> ";"
---    --
---    --  Rule 61:
---    --  <case_label> ::= "case" <const_exp> ":"
---    --               |   "default ":"
---    function Parse_Case return N_Case_Acc is
 
 
 --    --  Rule 13:

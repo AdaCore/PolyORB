@@ -240,12 +240,12 @@ package Tree is
    type N_Exception_Acc is access all N_Exception;
    function Get_Kind (N : N_Exception) return Types.Node_Kind;
 
---    type N_Member is new Types.N_Root with record
---       M_Type : Types.N_Root_Acc;
---       Decl : Types.Node_List;
---    end record;
---    type N_Member_Acc is access all N_Member;
---    function Get_Kind (N : N_Member) return Types.Node_Kind;
+   type N_Member is new Types.N_Root with record
+      M_Type : Types.N_Root_Acc;
+      Decl : Types.Node_List;
+   end record;
+   type N_Member_Acc is access all N_Member;
+   function Get_Kind (N : N_Member) return Types.Node_Kind;
 
    type N_Native is new Types.N_Root with record
       Declarator : N_Declarator_Acc;
@@ -260,15 +260,15 @@ package Tree is
    type N_Union_Acc is access all N_Union;
    function Get_Kind (N : N_Union) return Types.Node_Kind;
 
---    --  Labels is a list of const_expression.  For the "default" label,
---    --  a null element is used.
---    type N_Case is new Types.N_Root with record
---       Labels : Types.Node_List;
---       C_Type : Types.N_Root_Acc;
---       C_Decl : N_Declarator_Acc;
---    end record;
---    type N_Case_Acc is access all N_Case;
---    function Get_Kind (N : N_Case) return Types.Node_Kind;
+   --  Labels is a list of const_expression.  For the "default" label,
+   --  a null element is used.
+   type N_Case is new Types.N_Root with record
+      Labels : Types.Node_List;
+      C_Type : Types.N_Root_Acc;
+      C_Decl : N_Declarator_Acc;
+   end record;
+   type N_Case_Acc is access all N_Case;
+   function Get_Kind (N : N_Case) return Types.Node_Kind;
 
    type N_Struct is new Types.N_Scope with record
       Members : Types.Node_List;

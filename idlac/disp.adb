@@ -288,12 +288,12 @@ package body Disp is
                Disp_List (N_Exception (N).Members, N_Indent + Offset, Full);
             end if;
 
---          when K_Member =>
---             Put_Line ("member");
---             Disp_Indent (N_Indent, "declarator:");
---             Disp_List (N_Member (N).Decl, N_Indent + Offset, Full);
---             Disp_Indent (N_Indent, "type:");
---             Disp_Tree (N_Member (N).M_Type.all, N_Indent + Offset, Full);
+         when K_Member =>
+            Put_Line ("member");
+            Disp_Indent (N_Indent, "declarator:");
+            Disp_List (N_Member (N).Decl, N_Indent + Offset, Full);
+            Disp_Indent (N_Indent, "type:");
+            Disp_Tree (N_Member (N).M_Type.all, N_Indent + Offset, Full);
 
          when K_Declarator =>
             Put_Line ("declarator " & Get_Name (N_Declarator (N)));
@@ -313,14 +313,14 @@ package body Disp is
                Disp_List (N_Union (N).Cases, N_Indent + Offset, True);
             end if;
 
---          when K_Case =>
---             Put_Line ("case");
---             Disp_Indent (N_Indent, "labels:");
---             Disp_List (N_Case (N).Labels, N_Indent, Full);
---             Disp_Indent (N_Indent, "type:");
---             Disp_Tree (N_Case (N).C_Type.all, N_Indent, Full);
---             Disp_Indent (N_Indent, "declarator:");
---             Disp_Tree (N_Case (N).C_Decl.all, N_Indent, Full);
+         when K_Case =>
+            Put_Line ("case");
+            Disp_Indent (N_Indent, "labels:");
+            Disp_List (N_Case (N).Labels, N_Indent, Full);
+            Disp_Indent (N_Indent, "type:");
+            Disp_Tree (N_Case (N).C_Type.all, N_Indent, Full);
+            Disp_Indent (N_Indent, "declarator:");
+            Disp_Tree (N_Case (N).C_Decl.all, N_Indent, Full);
 
 --          when K_Or =>
 --             Disp_Binary ("or");

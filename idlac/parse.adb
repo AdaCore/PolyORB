@@ -2556,76 +2556,388 @@ package body Parse is
    -------------------------
    procedure Parse_Struct_Type (Result : out N_Struct_Acc;
                                 Success : out Boolean) is
+      Name : String_Ptr;
    begin
-      Result := null;
-      Success := False;
---       Res : N_Struct_Acc;
---    begin
---       Res := new N_Struct;
---       Set_Location (Res.all, Get_Location);
---       Scan_Expect (T_Identifier);
---       Add_Identifier (Res);
---       Scan_Expect (T_Left_Cbracket);
---       Next_Token;
---       Push_Scope (Res);
---       Parse_Member_List (Res.Members);
---       Expect (T_Right_Cbracket);
---       Pop_Scope;
---       Next_Token;
---       return Res;
+      Next_Token;
+      if Get_Token /= T_Identifier then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 7;
+            Errors.Parser_Error ("identifier expected in struct declaration.",
+                                 Errors.Error,
+                                 Loc);
+            Result := null;
+            Success := False;
+         end;
+      end if;
+      declare
+         Definition : Identifier_Definition_Acc;
+      begin
+         Definition := Find_Identifier_Definition (Get_Token_String);
+         --  Is there a previous definition and in the same scope ?
+         if Definition /= null
+           and then Definition.Parent_Scope = Get_Current_Scope then
+            Errors.Parser_Error
+              ("This identifier is already used in this scope : " &
+               Errors.Display_Location (Get_Location (Definition.Node.all)),
+               Errors.Error,
+               Get_Token_Location);
+            Success := False;
+            Result := null;
+            return;
+         end if;
+         Result := new N_Struct;
+         Set_Location (Result.all, Get_Token_Location);
+         --  here we keep the name of the struct without adding it
+         --  to the scope in order to avoid recursive constructed
+         --  type as in :
+         --      struct foo {
+         --          foo chain;
+         --  }
+         Name := new String'(Get_Token_String);
+      end;
+      Next_Token;
+      if Get_Token /= T_Left_Cbracket then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+            Errors.Parser_Error ("'{' expected in struct definition.",
+                                 Errors.Error,
+                                 Loc);
+            Success := False;
+            if not Add_Identifier (Result,
+                                   Name.all) then
+               raise Errors.Internal_Error;
+            end if;
+            Free_String_Ptr (Name);
+            return;
+         end;
+      end if;
+      Next_Token;
+      Push_Scope (Result);
+      Parse_Member_List (Result.Members, Success);
+      Pop_Scope;
+      if not Success then
+         return;
+      end if;
+      if not Add_Identifier (Result,
+                             Name.all) then
+         raise Errors.Internal_Error;
+      end if;
+      Free_String_Ptr (Name);
+      if Get_Token /= T_Right_Cbracket then
+         Errors.Parser_Error ("'}' expected at the end of struct definition.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      end if;
    end Parse_Struct_Type;
 
+
+   -------------------------
+   --  Parse_Member_List  --
+   -------------------------
+   procedure Parse_Member_List (Result : out Node_List;
+                                Success : out Boolean) is
+   begin
+      Result := Nil_List;
+      if Get_Token = T_Right_Cbracket then
+         Errors.Parser_Error ("member expected : a struct may not be empty.",
+                              Errors.Error,
+                              Get_Token_Location);
+      end if;
+      loop
+         declare
+            Member : N_Member_Acc;
+            Member_Success : Boolean;
+         begin
+            Parse_Member (Member, Member_Success);
+            if not Member_Success then
+               Go_To_Next_Member;
+            else
+               Append_Node (Result, N_Root_Acc (Member));
+            end if;
+         end;
+         exit when Get_Token = T_Right_Cbracket;
+      end loop;
+         Success := True;
+         return;
+   end Parse_Member_List;
+
+   --------------------
+   --  Parse_Member  --
+   --------------------
+   procedure Parse_Member (Result : out N_Member_Acc;
+                           Success : out Boolean) is
+      Type_Spec : N_Root_Acc;
+      Loc : Errors.Location;
+   begin
+      Loc := Get_Token_Location;
+      Parse_Type_Spec (Type_Spec, Success);
+      if not Success then
+         return;
+      end if;
+      Result := new N_Member;
+      Set_Location (Result.all, Loc);
+      Result.M_Type := Type_Spec;
+      Parse_Declarators (Result.Decl, Success);
+      if not Success then
+         return;
+      end if;
+      if Get_Token /= T_Semi_Colon then
+         Errors.Parser_Error ("';' expected at the end of member declaration.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         return;
+      end if;
+      return;
+   end Parse_Member;
 
    ------------------------
    --  Parse_Union_Type  --
    ------------------------
    procedure Parse_Union_Type (Result : out N_Union_Acc;
                                Success : out Boolean) is
+      Name : String_Ptr;
+   begin
+      Next_Token;
+      if Get_Token /= T_Identifier then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 6;
+            Errors.Parser_Error ("identifier expected in union definition.",
+                                 Errors.Error,
+                                 Loc);
+            Result := null;
+            Success := False;
+            return;
+         end;
+      end if;
+      declare
+         Definition : Identifier_Definition_Acc;
+      begin
+         Definition := Find_Identifier_Definition (Get_Token_String);
+         --  Is there a previous definition and in the same scope ?
+         if Definition /= null
+           and then Definition.Parent_Scope = Get_Current_Scope then
+            Errors.Parser_Error
+              ("This identifier is already used in this scope : " &
+               Errors.Display_Location (Get_Location (Definition.Node.all)),
+               Errors.Error,
+               Get_Token_Location);
+            Success := False;
+            Result := null;
+            return;
+         end if;
+         Result := new N_Union;
+         Set_Location (Result.all, Get_Token_Location);
+         --  here we keep the name of the union without adding it
+         --  to the scope in order to avoid recursive constructed
+         --  type as in :
+         --      union foo {
+         --          foo chain;
+         --  }
+         Name := new String'(Get_Token_String);
+      end;
+      Next_Token;
+      if Get_Token /= T_Switch then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + Get_Previous_Token_String'Length;
+            Errors.Parser_Error ("switch expected in union definition.",
+                                 Errors.Error,
+                                 Loc);
+            Result := null;
+            Success := False;
+            return;
+         end;
+      end if;
+      Next_Token;
+      if Get_Token /= T_Left_Paren then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 2;
+            Errors.Parser_Error ("'(' expected after " &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 "switch" &
+                                 Ada.Characters.Latin_1.Quotation &
+                                 ".",
+                                 Errors.Error,
+                                 Loc);
+            Result := null;
+            Success := False;
+            return;
+         end;
+      end if;
+      Next_Token;
+      Push_Scope (Result);
+      Parse_Switch_Type_Spec (Result.Switch_Type, Success);
+      if not Success then
+         Pop_Scope;
+         return;
+      end if;
+      if Get_Token /= T_Right_Paren then
+         Errors.Parser_Error ("')' expected at the end of switch " &
+                              "specification.",
+                              Errors.Error,
+                              Get_Token_Location);
+         Success := False;
+         Pop_Scope;
+         return;
+      end if;
+      Next_Token;
+      if Get_Token /= T_Left_Cbracket then
+         declare
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Previous_Token_Location;
+            Loc.Col := Loc.Col + 2;
+            Errors.Parser_Error ("'{' expected at the beginning of union.",
+                                 Errors.Error,
+                                 Loc);
+            Result := null;
+            Success := False;
+            Pop_Scope;
+            return;
+         end;
+      end if;
+      Next_Token;
+      Parse_Switch_Body (Result.Cases, Success);
+      Pop_Scope;
+      if not Success then
+         return;
+      end if;
+      if not Add_Identifier (Result,
+                             Name.all) then
+         raise Errors.Internal_Error;
+      end if;
+      Free_String_Ptr (Name);
+      if Get_Token /= T_Right_Cbracket then
+            Errors.Parser_Error ("'}' expected at the end of union.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Result := null;
+            Success := False;
+            return;
+      end if;
+      Next_Token;
+      return;
+   end Parse_Union_Type;
+
+   ------------------------------
+   --  Parse_Switch_Type_Spec  --
+   ------------------------------
+   procedure Parse_Switch_Type_Spec (Result : out N_Root_Acc;
+                                     Success : out Boolean) is
+   begin
+      case Get_Token is
+         when T_Long
+           | T_Short
+           | T_Unsigned =>
+            Parse_Integer_Type (Result, Success);
+         when T_Char =>
+            declare
+               Res : N_Char_Acc;
+            begin
+               Parse_Char_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Boolean =>
+            declare
+               Res : N_Boolean_Acc;
+            begin
+               Parse_Boolean_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Enum =>
+            declare
+               Res : N_Enum_Acc;
+            begin
+               Parse_Enum_Type (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when T_Colon_Colon
+           | T_Identifier =>
+            declare
+               Res : N_Scoped_Name_Acc;
+            begin
+               Parse_Scoped_Name (Res, Success);
+               Result := N_Root_Acc (Res);
+            end;
+         when others =>
+            Errors.Parser_Error ("switch type expected.",
+                                 Errors.Error,
+                                 Get_Token_Location);
+            Success := False;
+            Result := null;
+      end case;
+      return;
+   end Parse_Switch_Type_Spec;
+
+   -------------------------
+   --  Parse_Switch_Body  --
+   -------------------------
+   procedure Parse_Switch_Body (Result : out Node_List;
+                                Success : out Boolean) is
+      Default_Clause : Boolean := False;
+   begin
+      Result := Nil_List;
+      if Get_Token = T_Right_Cbracket then
+         Errors.Parser_Error ("case clause expected : " &
+                              "a union may not be empty.",
+                              Errors.Error,
+                              Get_Token_Location);
+      end if;
+      loop
+         declare
+            Case_Clause : N_Case_Acc;
+            Case_Success : Boolean;
+            Loc : Errors.Location;
+         begin
+            Loc := Get_Token_Location;
+            Parse_Case (Case_Clause, Case_Success);
+            if not Case_Success then
+               Go_To_Next_Case;
+            else
+               Append_Node (Result, N_Root_Acc (Case_Clause));
+               if Is_In_List (Case_Clause.Labels, null) then
+                  if Default_Clause then
+                     Errors.Parser_Error ("default clause already appeared.",
+                                          Errors.Error,
+                                          Loc);
+                  else
+                     Default_Clause := True;
+                  end if;
+               end if;
+            end if;
+         end;
+         exit when Get_Token = T_Right_Cbracket;
+      end loop;
+      Success := True;
+      return;
+   end Parse_Switch_Body;
+
+   ------------------
+   --  Parse_Case  --
+   ------------------
+   procedure Parse_Case (Result : out N_Case_Acc;
+                         Success : out Boolean) is
    begin
       Result := null;
       Success := False;
---       Res : N_Union_Acc;
---    begin
---       Res := new N_Union;
---       Set_Location (Res.all, Get_Location);
---       Expect (T_Union);
---       Scan_Expect (T_Identifier);
---       Add_Identifier (Res);
---       Scan_Expect (T_Switch);
---       Scan_Expect (T_Left_Paren);
---       Next_Token;
---       case Token is
---          when T_Short | T_Unsigned | T_Boolean =>
---             Res.Switch_Type := Parse_Base_Type_Spec;
---          when T_Long =>
---             Next_Token;
---             if Token = T_Long then
---                Next_Token;
---                Res.Switch_Type := new N_Long_Long;
---             else
---                Res.Switch_Type := new N_Long;
---             end if;
---          when T_Enum =>
---             raise Errors.Internal_Error;
---          when T_Colon_Colon | T_Identifier =>
---             Res.Switch_Type := N_Root_Acc (Parse_Scoped_Name);
---          when others =>
---             Errors.Parser_Error ("switch type expected",
---                                  Errors.Error);
---             raise Parse_Error;
---       end case;
---       Expect (T_Right_Paren);
---       Scan_Expect (T_Left_Cbracket);
---       Push_Scope (Res);
---       Next_Token;
---       loop
---          Append_Node (Res.Cases, N_Root_Acc (Parse_Case));
---          exit when Token = T_Right_Cbracket;
---       end loop;
---       Pop_Scope;
---       Next_Token;
---       return Res;
-   end Parse_Union_Type;
+   end Parse_Case;
 
    -----------------------
    --  Parse_Enum_Type  --
@@ -3408,6 +3720,22 @@ package body Parse is
          Next_Token;
       end loop;
    end Go_To_Next_Right_Paren;
+
+   -------------------------
+   --  Go_To_Next_Member  --
+   -------------------------
+   procedure Go_To_Next_Member is
+   begin
+      null;
+   end Go_To_Next_Member;
+
+   -----------------------
+   --  Go_To_Next_Case  --
+   -----------------------
+   procedure Go_To_Next_Case is
+   begin
+      null;
+   end Go_To_Next_Case;
 
    --
    --  INUTILE ?????
