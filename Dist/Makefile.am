@@ -8,6 +8,7 @@ GNATSRC = @GNAT_SOURCE@
 GARLIC = ${libdir}/garlic
 GNATFLAGS = -gnatpg @GNATFLAGS@
 EXTRA_LIBS = @EXTRA_LIBS@
+GNATMAKE = @GNATMAKE@
 
 bin_SCRIPTS = gnatdist
 libexec_PROGRAMS = dist1
@@ -15,8 +16,6 @@ libexec_SCRIPTS = xe-gcc xe-gcc-filter xe-gcc-post xe-gcc-prep
 dist1_DEPENDENCIES = xe_defs.o sdefault.o
 dist1_SOURCES =
 dist1_LDADD =
-
-GNATMAKE = gnatmake
 
 CLEANFILES = *.ali gnatdist xe_defs.adb sdefault.adb
 

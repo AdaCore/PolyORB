@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.0 from Makefile.am
+# Makefile.in generated automatically by automake 1.1g from Makefile.am
 
 # Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -37,6 +37,27 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 transform = @program_transform_name@
+target_alias = @target_alias@
+build_alias = @build_alias@
+host_triplet = @host@
+target_triplet = @target@
+build_triplet = @build@
+host_alias = @host_alias@
+LAUNCHING_INCLUDED = @LAUNCHING_INCLUDED@
+LAUNCHINGOBJECTS = @LAUNCHINGOBJECTS@
+AWK = @AWK@
+CC = @CC@
+VERSION = @VERSION@
+CERRNO = @CERRNO@
+PROTOCOLSSOURCES = @PROTOCOLSSOURCES@
+PLATFORM_SPECIFIC = @PLATFORM_SPECIFIC@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+PACKAGE = @PACKAGE@
+TCP_INCLUDED = @TCP_INCLUDED@
+PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
+GNAT_SOURCE = @GNAT_SOURCE@
+SED = @SED@
+LAUNCHINGSOURCES = @LAUNCHINGSOURCES@
 
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
@@ -44,6 +65,7 @@ GNATSRC = @GNAT_SOURCE@
 GARLIC = ${libdir}/garlic
 GNATFLAGS = -gnatpg @GNATFLAGS@
 EXTRA_LIBS = @EXTRA_LIBS@
+GNATMAKE = @GNATMAKE@
 
 bin_SCRIPTS = gnatdist
 libexec_PROGRAMS = dist1
@@ -52,38 +74,26 @@ dist1_DEPENDENCIES = xe_defs.o sdefault.o
 dist1_SOURCES =
 dist1_LDADD =
 
-GNATMAKE = gnatmake
-
 CLEANFILES = *.ali gnatdist xe_defs.adb sdefault.adb
-mkinstalldirs = $(top_srcdir)/mkinstalldirs
-PROGRAMS = $(libexec_PROGRAMS)
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_CLEAN_FILES =  xe-gcc xe-gcc-filter
+PROGRAMS =  $(libexec_PROGRAMS)
 
-
-CC = @CC@
-LEX = @LEX@
-YACC = @YACC@
 
 DEFS = @DEFS@ -I. -I$(srcdir) 
 CPPFLAGS = @CPPFLAGS@
-CFLAGS = @CFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
+dist1_OBJECTS = 
+EXTRA_dist1_SOURCES = 
+SCRIPTS =  $(bin_SCRIPTS) $(libexec_SCRIPTS)
 
-COMPILE = $(CC) -c $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
-LINK = $(CC) $(LDFLAGS) -o $@
-EXTRA_dist1_SOURCES =
-SCRIPTS = $(bin_SCRIPTS) $(libexec_SCRIPTS)
-
-DIST_COMMON = ChangeLog Makefile.am Makefile.in TODO
+DIST_COMMON =  ChangeLog Makefile.am Makefile.in TODO xe-gcc-filter.in \
+xe-gcc.in
 
 
-PACKAGE = @PACKAGE@
-VERSION = @VERSION@
-
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFOS) $(MANS) $(EXTRA_DIST) $(DATA)
-DEP_DISTFILES = $(DIST_COMMON) $(SOURCES) $(BUILT_SOURCES) $(HEADERS) \
-	$(TEXINFOS) $(INFO_DEPS) $(MANS) $(EXTRA_DIST) $(DATA)
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
+	$(TEXINFOS) $(MANS) $(EXTRA_DIST)
 
 TAR = tar
 SOURCES = $(dist1_SOURCES)
@@ -93,10 +103,11 @@ default: all
 
 
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in
-	cd $(top_srcdir) && automake $(subdir)/Makefile
+	cd $(top_srcdir) && automake --strictness=foreign $(subdir)/Makefile
 
-Makefile: $(top_builddir)/config.status Makefile.in
-	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
+Makefile: $(top_builddir)/config.status $(srcdir)/Makefile.in $(BUILT_SOURCES)
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 xe-gcc: $(top_builddir)/config.status xe-gcc.in
 	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 xe-gcc-filter: $(top_builddir)/config.status xe-gcc-filter.in
@@ -105,13 +116,14 @@ xe-gcc-filter: $(top_builddir)/config.status xe-gcc-filter.in
 mostlyclean-libexecPROGRAMS:
 
 clean-libexecPROGRAMS:
-	rm -f $(libexec_PROGRAMS)
+	test -z "$(libexec_PROGRAMS)" || rm -f $(libexec_PROGRAMS)
 
 distclean-libexecPROGRAMS:
 
 maintainer-clean-libexecPROGRAMS:
 
 install-libexecPROGRAMS: $(libexec_PROGRAMS)
+	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(libexecdir)
 	list="$(libexec_PROGRAMS)"; for p in $$list; do \
 	  if test -f $$p; then \
@@ -125,7 +137,7 @@ uninstall-libexecPROGRAMS:
 	done
 
 .c.o:
-	$(COMPILE) $<
+	$(COMPILE) -c $<
 
 mostlyclean-compile:
 	rm -f *.o core
@@ -138,6 +150,7 @@ distclean-compile:
 maintainer-clean-compile:
 
 install-binSCRIPTS: $(bin_SCRIPTS)
+	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(bindir)
 	list="$(bin_SCRIPTS)"; for p in $$list; do \
 	  if test -f $$p; then \
@@ -154,6 +167,7 @@ uninstall-binSCRIPTS:
 	done
 
 install-libexecSCRIPTS: $(libexec_SCRIPTS)
+	$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(libexecdir)
 	list="$(libexec_SCRIPTS)"; for p in $$list; do \
 	  if test -f $$p; then \
@@ -186,25 +200,25 @@ distclean-tags:
 
 maintainer-clean-tags:
 
-subdir = Dist
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-distdir: $(DEP_DISTFILES)
-	@for file in `cd $(srcdir) && echo $(DISTFILES)`; do \
+
+subdir = Dist
+distdir: $(DISTFILES)
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
 	  test -f $(distdir)/$$file \
-	  || ln $(srcdir)/$$file $(distdir)/$$file 2> /dev/null \
-	  || cp -p $(srcdir)/$$file $(distdir)/$$file; \
+	  || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	  || cp -p $$d/$$file $(distdir)/$$file; \
 	done
 info:
-
 dvi:
-
 check: all
-
 installcheck:
-
 install-exec: install-libexecPROGRAMS install-binSCRIPTS install-libexecSCRIPTS
+	$(NORMAL_INSTALL)
 
 install-data: 
+	$(NORMAL_INSTALL)
 
 install: install-exec install-data all
 	@:
@@ -227,7 +241,8 @@ clean-generic:
 
 distclean-generic:
 	rm -f Makefile $(DISTCLEANFILES)
-	rm -f config.cache config.log $(CONFIG_HEADER) stamp-h
+	rm -f config.cache config.log stamp-h
+	test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 
 maintainer-clean-generic:
 	test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
