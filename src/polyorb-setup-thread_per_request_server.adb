@@ -32,16 +32,19 @@
 
 with PolyORB.Initialization;
 with PolyORB.ORB.Thread_Per_Request;
-with PolyORB.Protected_Objects;
+with PolyORB.Tasking.Full_Tasking_Profile;
+with PolyORB.Tasking.Soft_Links;
 with PolyORB.Setup.Server;
 
 pragma Elaborate_All (PolyORB.ORB.Thread_Per_Request);
-pragma Elaborate_All (PolyORB.Protected_Objects);
+pragma Elaborate_All (PolyORB.Tasking.Full_Tasking_Profile);
+pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
 pragma Elaborate_All (PolyORB.Setup.Server);
 
 pragma Warnings (Off, PolyORB.Initialization);
 pragma Warnings (Off, PolyORB.ORB.Thread_Per_Request);
-pragma Warnings (Off, PolyORB.Protected_Objects);
+pragma Warnings (Off, PolyORB.Tasking.Full_Tasking_Profile);
+pragma Warnings (Off, PolyORB.Tasking.Soft_Links);
 pragma Warnings (Off, PolyORB.Setup.Server);
 
 package body PolyORB.Setup.Thread_Per_Request_Server is

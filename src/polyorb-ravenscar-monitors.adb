@@ -41,12 +41,17 @@ with PolyORB.Ravenscar.Threads;
 with PolyORB.Initialization;
 with PolyORB.Utils.Strings;
 
+with GNAT.IO; use GNAT.IO;
+
 package body PolyORB.Ravenscar.Monitors is
    use PolyORB.Ravenscar.Threads;
 
    package PTT renames PolyORB.Tasking.Threads;
 
    package PTM renames PolyORB.Tasking.Monitors;
+
+   Debug : constant Boolean
+     := False;
 
    type Waiting_Type is (Enter_Wait, Condition_Wait, None);
    --  Type of event a task can be waiting :
@@ -82,6 +87,8 @@ package body PolyORB.Ravenscar.Monitors is
       --  Provide thread safe primitives for a  Monitor,
       --  and manage its Thread_Queue.
 
+      procedure Display (S : String);
+
       procedure Test_And_Set_Entry
         (Result : out Boolean;
          Place  : Thread_Index;
@@ -109,13 +116,14 @@ package body PolyORB.Ravenscar.Monitors is
       --  Resume the waiting tasks, so that they can reevaluate their
       --  condition.
 
-      procedure Initialize;
+      procedure Initialize (N : Monitor_Index_Type);
       --  Initialize the Monitor.
 
       function Get_Owner return Extended_Thread_Index;
       --  return the Id of the owner of the Monitor.
 
    private
+      My_Index         : Monitor_Index_Type;
       Owner            : Extended_Thread_Index;
       Waiters          : Thread_Queue;
    end Protected_Infos;
@@ -145,7 +153,7 @@ package body PolyORB.Ravenscar.Monitors is
       My_Index_Manager.Get (Index);
       M := The_Monitor_Pool (Index)'Access;
       M.Id := Index;
-      The_Infos_Arr (M.Id).Initialize;
+      The_Infos_Arr (M.Id).Initialize (M.Id);
       return Monitor_Access (M);
    end Create;
 
@@ -199,7 +207,7 @@ package body PolyORB.Ravenscar.Monitors is
    begin
       My_Index_Manager.Initialize;
       for J in The_Infos_Arr'Range loop
-         The_Infos_Arr (J).Initialize;
+         The_Infos_Arr (J).Initialize (J);
       end loop;
       PTM.Register_Monitor_Factory (PTM.Monitor_Factory_Access
                                     (The_Monitor_Factory));
@@ -220,6 +228,24 @@ package body PolyORB.Ravenscar.Monitors is
 
    protected body Protected_Infos is
 
+      procedure Display (S : String) is
+      begin
+         if Debug then
+            Put_Line ("----------------------"
+                      & S & " " & Monitor_Index_Type'Image (My_Index));
+            Put_Line ("Owner = " & Extended_Thread_Index'Image (Owner));
+            Put_Line ("Waiters : ");
+            for J in Thread_Index'Range loop
+               Put_Line  ("Number = " & Thread_Index'Image (J)
+                          & ", This =" & Image (Waiters (J).This)
+                          & ", Next = " & Thread_Index'Image (Waiters (J).Next)
+                          & ", WT = " & Waiting_Type'Image (Waiters (J).WT));
+            end loop;
+            Put_Line ("-------------------------------");
+         end if;
+      end Display;
+
+
       ------------------------------
       -- Protected_Infos.Evaluate --
       ------------------------------
@@ -229,6 +255,7 @@ package body PolyORB.Ravenscar.Monitors is
          C      : access PTM.Condition_Type'Class;
          Result : out Boolean) is
       begin
+         Display ("Evaluate");
          PTM.Evaluate (C.all,
                        Result);
          if not Result then
@@ -249,8 +276,10 @@ package body PolyORB.Ravenscar.Monitors is
       -- Protected_Infos.Initialize --
       --------------------------------
 
-      procedure Initialize is
+      procedure Initialize (N : Monitor_Index_Type) is
       begin
+         My_Index := N;
+         Display ("initialize ");
          Owner := Null_Thread_Index;
          for J in Waiters'Range loop
             --  Waiters (J).This := null;
@@ -266,6 +295,7 @@ package body PolyORB.Ravenscar.Monitors is
       procedure Leave_Entry is
          Former_Owner : constant Extended_Thread_Index := Owner;
       begin
+         Display ("Leave_Entry");
          pragma Assert (Owner /= Null_Thread_Index);
 
          if Waiters (Former_Owner).Next /= Null_Thread_Index then
@@ -280,6 +310,10 @@ package body PolyORB.Ravenscar.Monitors is
          if Waiters (Former_Owner).WT /= Condition_Wait then
             Waiters (Former_Owner).WT := None;
          end if;
+      exception
+         when others =>
+            Put_Line ("FAILED");
+            raise;
       end Leave_Entry;
 
       ----------------------------------
@@ -290,6 +324,7 @@ package body PolyORB.Ravenscar.Monitors is
         (Result : out Boolean;
          Place  : Thread_Index) is
       begin
+         Display ("Retest_Entry");
          Result := Place = Owner
            or else Owner = Null_Thread_Index;
       end Retest_Entry;
@@ -300,6 +335,7 @@ package body PolyORB.Ravenscar.Monitors is
 
       procedure Signal is
       begin
+         Display ("Signal");
          for J in Waiters'Range loop
             if Waiters (J).WT = Condition_Wait then
                --  pragma Assert (Waiters (J).This /= null);
@@ -319,6 +355,7 @@ package body PolyORB.Ravenscar.Monitors is
          Current   : Extended_Thread_Index;
          Precedent : Extended_Thread_Index;
       begin
+         Display ("test_and_set_entry");
          Result :=  Owner = Null_Thread_Index;
          --  pragma Assert (T /= null);
          pragma Assert (Owner = Null_Thread_Index

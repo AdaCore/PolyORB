@@ -1,1 +1,3 @@
 polyorb-protected_objects.adb
+polyorb-full_tasking-threads.adb
+polyorb-full_tasking-monitors.adb

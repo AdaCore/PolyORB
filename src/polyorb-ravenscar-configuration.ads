@@ -53,13 +53,13 @@ package PolyORB.Ravenscar.Configuration is
 
 private
 
-   Default_Threads          : constant Integer := 10;
+   Default_Threads          : constant Integer := 20;
    --  Default value for Number_Of_Threads.
 
-   Default_Watchers         : constant Integer := 10;
+   Default_Watchers         : constant Integer := 40;
    --  Default value for Number_Of_Watcher.
 
-   Default_Mutexes          : constant Integer := 10;
+   Default_Mutexes          : constant Integer := 40;
    --  Default value for Number_Of_Mutexes.
 
    Default_Monitors         : constant Integer

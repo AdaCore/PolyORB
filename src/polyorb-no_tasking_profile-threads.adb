@@ -152,6 +152,9 @@ package body PolyORB.No_Tasking_Profile.Threads is
    -----------
 
    function Image (T : No_Tasking_Thread_Id) return String is
+      pragma Warnings (Off);
+      pragma Unreferenced (T);
+      pragma Warnings (On);
    begin
       return "task_id";
    end Image;

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---     P O L Y O R B . S E T U P . T H R E A D _ P O O L _ S E R V E R      --
+--   P O L Y O R B - T A S K I N G - N O _ T A S K I N G _ P R O F I L E    --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2002 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -29,31 +29,10 @@
 --              PolyORB is maintained by ENST Paris University.             --
 --                                                                          --
 ------------------------------------------------------------------------------
+--  Set up a no tasking profile
 
---  Elaborate a complete server with the ``thread pool''
---  tasking policy.
+--  //droopi/main/design/tasking/polyorb-tasking-no_tasking_profile.ads
 
---  $Id$
-
-with PolyORB.Initialization;
-with PolyORB.ORB.Thread_Pool;
-with PolyORB.Tasking.Ravenscar_Profile;
-with PolyORB.Tasking.Soft_Links;
-with PolyORB.Setup.Server;
-
-pragma Elaborate_All (PolyORB.ORB.Thread_Pool);
-pragma Elaborate_All (PolyORB.Tasking.Ravenscar_Profile);
-pragma Elaborate_All (PolyORB.Tasking.Soft_Links);
-pragma Elaborate_All (PolyORB.Setup.Server);
-
-pragma Warnings (Off, PolyORB.Initialization);
-pragma Warnings (Off, PolyORB.ORB.Thread_Pool);
-pragma Warnings (Off, PolyORB.Tasking.Ravenscar_Profile);
-pragma Warnings (Off, PolyORB.Tasking.Soft_Links);
-pragma Warnings (Off, PolyORB.Setup.Server);
-
-package body PolyORB.Setup.Thread_Pool_Server is
-
-begin
-   PolyORB.Initialization.Initialize_World;
-end PolyORB.Setup.Thread_Pool_Server;
+package PolyORB.Tasking.No_Tasking_Profile is
+   pragma Elaborate_Body;
+end PolyORB.Tasking.No_Tasking_Profile;

@@ -34,6 +34,8 @@
 
 --  $Id$
 
+with Unchecked_Deallocation;
+
 with PolyORB.Ravenscar.Index_Manager;
 with PolyORB.Ravenscar.Configuration;
 with Ada.Task_Identification;
@@ -159,6 +161,13 @@ package body PolyORB.Ravenscar.Threads is
 
    Sync_Pool : Barrier_Arr;
    --  Pool of Barrier.
+
+   ----------
+   -- Free --
+   ----------
+
+   procedure Free is new Unchecked_Deallocation
+     (Runnable'Class, Runnable_Access);
 
    ---------
    -- "=" --
@@ -339,7 +348,7 @@ package body PolyORB.Ravenscar.Threads is
          T   : out Thread_Access) is
          Result : Ravenscar_Thread_Access;
       begin
-         My_Thread_Arr (Id).Run := Runnable_Access (Run);
+         My_Thread_Arr (Id).Run := new Runnable'Class'(Run.all);
          Result := My_Thread_Arr (Id)'Access;
          T := Thread_Access (Result);
       end Create_Thread;
@@ -416,6 +425,7 @@ package body PolyORB.Ravenscar.Threads is
       loop
          Suspend (Th_Id);
          Run (My_Thread_Arr (Id)'Access);
+         Free (My_Thread_Arr (Id).Run);
          My_Index_Manager.Release (Id);
       end loop;
    end Simple_Task;
