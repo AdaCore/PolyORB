@@ -6,22 +6,43 @@
 
 # $Id$
 
+usage() {
+  echo "Usage: $0 [-c] <file.ads>"
+  echo "  -c: produce a case-sensitive matcher"
+  exit 1
+}
+
+case_sensitive=0
+
+while getopts "c" opt
+do
+  case "$opt" in
+    c)
+      case_sensitive=1
+      ;;
+    *)
+      usage
+  esac
+done
+
+shift `expr $OPTIND - 1`
+
 if [ $# != 1 ]
 then
-  exit 1
+  usage
 fi
 
 ads=$1
-prefix=`echo $ads | sed 's/\.ads$//'`
+prefix=`basename "$ads" .ads`
 adb=$prefix.adb
 aux=$prefix.aux
 perf=$prefix.perf
 cfile=`echo $ads | sed 's/\.ads$/_GPERF.c/'`
 
-trap "rm -f $aux $perf" 0
+# trap "rm -f $aux $perf" 0
 
 unit=`echo $prefix | sed 's/-/__/g'`
-matchfun="$unit"_IN_WORD_SET
+matchfun="$unit"__IN_WORD_SET
 
 
 awk 'BEGIN { i = 0; st = 0; print "%{\nenum kwids {"; }
@@ -33,34 +54,68 @@ awk 'BEGIN { i = 0; st = 0; print "%{\nenum kwids {"; }
         match ($0, /type ([^ ]*) is/, m);
         print "ent=" m[1] >> "'$aux'";
      }
+     st == 0 && /<GPERF/ {
+        match ($0, /<GPERF ARGS="([^"]*)"\/>/, m);
+        print "gpa=\"" m[1] "\"" >> "'$aux'";
+        next;
+     }
      st == 0 && /<ENUM>/ { st = 1; next; }
-     st == 1 && /--  >>/ {
-        match ($0, /^[ 	]*([^ 	,]*),?[ 	]*--  >> "([^"]*)"/, m)
-        print "  " m[1] ", /* " m[2] " */";
-        print "key:" m[1] >> "'$aux'";
-        print "str:" m[2] >> "'$aux'";
-        enum_val[i] = m[1];
-        str_val[i++] = m[2]; }
      st == 1 && /<\/ENUM>/ {
         st = 0; print "};\n%}";
         print "struct kwinfo { char *name; enum kwids id; };"
         print "%%";
         for (j = 0; j < i; j++) {
-          print str_val[j] ", " enum_val[j];
+          if ('$case_sensitive') {
+            print str_val[j] ", " enum_val[j];
+          } else {
+            print tolower (str_val[j]) ", " enum_val[j];
+          }
         }
-        next; }' < $ads > $perf
-
-gperf -N $matchfun -t $perf > $cfile
+        next; }
+     st == 1 {
+        if (match ($0,
+	  /^[ 	]*([^ 	,]*),?[ 	]*--  >> "([^"]*)"/,
+	  m) == 0) {
+          if (match ($0, /^[ 	]*([^ 	,-]+)([, 	-].*)?$/, m)) {
+	    print "  " m[1] ", /* no-match case */";
+            print "unk=" m[1] >> "'$aux'";
+          }
+        } else {
+          print "  " m[1] ", /* \"" m[2] "\" */";
+          print "key:" m[1] >> "'$aux'";
+          print "str:" m[2] >> "'$aux'";
+	  enum_val[i] = m[1];
+          str_val[i++] = m[2];
+        }
+     }' < $ads > $perf
 
 eval `grep "^...=" $aux`
 
-cat > $adb <<EOF
-with Interfaces.C;
-with Interfaces.C.Strings;
-package body $pkg is
+gperf -N $matchfun -t $perf $gpa > $cfile
 
-   use Interfaces.C;
-   use Interfaces.C.Strings;
+if [ "$unk" != "" ]
+then
+  unk_handler="return $unk;"
+else
+  unk_handler="raise Constraint_Error;"
+fi
+
+exec > $adb
+
+echo "--  AUTOMATICALLY GENERATED on `date` by $0"
+echo "--  EDIT $1, NOT THIS FILE!"
+echo ""
+
+if [ "$case_sensitive" = 0 ]
+then
+  echo "with Ada.Characters.Handling; use Ada.Characters.Handling;"
+fi
+
+cat <<EOF
+with Interfaces.C; use Interfaces.C;
+with Interfaces.C.Strings; use Interfaces.C.Strings;
+
+package body $pkg is
 
    type Keyword_Info is record
       Name : Interfaces.C.Strings.chars_ptr;
@@ -77,7 +132,16 @@ package body $pkg is
 
    function In_Word_Set (S : String) return $ent
    is
-      Chars : aliased char_array := To_C (S);
+EOF
+
+if [ "$case_sensitive" = 1 ]
+then
+  echo "      Chars : aliased char_array := To_C (S);"
+else
+  echo "      Chars : aliased char_array := To_C (To_Lower (S));"
+fi
+
+cat <<EOF
       Info : constant Keyword_Info_Access
         := C_In_Word_Set
           (To_Chars_Ptr (Chars'Unchecked_Access), S'Length);
@@ -85,7 +149,7 @@ package body $pkg is
       if Info /= null then
          return Info.Id;
       end if;
-      raise Constraint_Error;
+      $unk_handler
    end In_Word_Set;
 
    function To_String (Id : $ent) return String is
@@ -94,11 +158,21 @@ package body $pkg is
 EOF
 
 sed -n -e '/^key:\(.*\)/s//         when \1 =>/p' \
-       -e '/^str:\(.*\)/s//            return "\1";/p' < $aux >> $adb
+       -e '/^str:\(.*\)/s//            return "\1";/p' \
+       < $aux
 
-cat >> $adb <<EOF
+if [ "$unk" != "" ]
+then
+  cat <<EOF
+         when others =>
+            raise Constraint_Error;
+EOF
+fi
+
+cat <<EOF
       end case;
    end To_String;
 
 end $pkg;
 EOF
+exit 0

@@ -1,6 +1,7 @@
 package PolyORB.HTTP_Methods is
 
-   type Method is (
+   type Method is
+     (
       --  <ENUM>
       OPTIONS,  --  >> "OPTIONS"
       GET,      --  >> "GET"
@@ -11,7 +12,7 @@ package PolyORB.HTTP_Methods is
       TRACE,    --  >> "TRACE"
       CONNECT   --  >> "CONNECT"
       --  </ENUM>
-   );
+      );
    pragma Convention (C, Method);
 
    function To_String (Id : Method) return String;
