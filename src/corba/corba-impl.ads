@@ -18,9 +18,6 @@ package CORBA.Impl is
    --  (a CORBA.Impl.Object'Class), or a surrogate thereof
    --  (a D.SP.Entity'Class not derived from CORBA.Impl.Object).
 
-   --  procedure Inc_Usage (Obj : in Object_Ptr);
-   --  procedure Dec_Usage (Obj : in out Object_Ptr);
-
    function Handle_Message
      (Self : access Object;
       Msg  : Droopi.Components.Message'Class)

@@ -27,11 +27,52 @@
 ------------------------------------------------------------------------------
 
 with Ada.Text_IO;
+with CORBA;
+with CORBA.NVList;
 
 package body Echo.Impl is
 
-   function EchoString (Self : access Object; Mesg : in CORBA.String)
-                        return CORBA.String is
+   procedure Invoke
+     (Self : access Object;
+      R : in CORBA.ServerRequest.Object_Ptr)
+   is
+      use CORBA;
+      use CORBA.NVList;
+      use CORBA.ServerRequest;
+
+   begin
+      Ada.Text_IO.Put_Line ("In Echo.Impl.Invoke!");
+      if CORBA.ServerRequest.Operation (R.all)
+        = To_CORBA_String ("echoString") then
+         declare
+            Args : CORBA.NVList.Ref;
+
+         begin
+            CORBA.NVList.Create (Args);
+
+            Add_Item (Args,
+                      (Name      => To_CORBA_String ("S"),
+                       Argument  => Get_Empty_Any (TypeCode.TC_String),
+                       Arg_Modes => ARG_IN));
+
+            Arguments (R, Args);
+
+            declare
+               echoString_Arg : CORBA.String :=
+                 From_Any (Item (Args, 1).Argument);
+            begin
+               Set_Result
+                 (R, To_Any (EchoString (Self, echoString_Arg)));
+            end;
+         end;
+      else
+         raise Program_Error;
+      end if;
+   end Invoke;
+
+   function EchoString
+     (Self : access Object; Mesg : in CORBA.String)
+     return CORBA.String is
    begin
       Ada.Text_IO.Put_Line ("Echoing string: « "
                 & CORBA.To_Standard_String (Mesg) & " »");

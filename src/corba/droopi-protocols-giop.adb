@@ -1164,13 +1164,17 @@ package body Droopi.Protocols.GIOP is
 
       Req    : Request_Access;
       Args   : Any.NVList.Ref;
+
       Result : Any.NamedValue;
+      --  Dummy NamedValue for Create_Request; the actual Result
+      --  is set by the called method.
 
       Target_Profile : Binding_Data.Profile_Access
         := new Local_Profile_Type;
       Target : References.Ref;
       Target_Ref  : Target_Address_Access;
 
+      Deferred_Arguments_Session : Component_Access;
       ORB : constant ORB_Access := ORB_Access (Ses.Server);
 
    begin
@@ -1226,16 +1230,19 @@ package body Droopi.Protocols.GIOP is
          --  Unable to obtain the list of arguments at this point.
          --  Defer the unmarshalling until the Servant has a chance
          --  to provide its own arg list.
-         null;
+         Deferred_Arguments_Session
+           := Components.Component_Access (Ses);
       end if;
 
-      Result :=
-        (Name     => To_Droopi_String ("Result"),
-         Argument => Obj_Adapters.Get_Empty_Result
-         (Object_Adapter (ORB),
-          Object_Key.all,
-          To_Standard_String (Operation)),
-         Arg_Modes => 0);
+--       Result :=
+--         (Name     => To_Droopi_String ("Result"),
+--          Argument => Obj_Adapters.Get_Empty_Result
+--          (Object_Adapter (ORB),
+--           Object_Key.all,
+--           To_Standard_String (Operation)),
+--          Arg_Modes => 0);
+      --  XXX Useless at this stage: the type will be set by
+      --  the called method.
 
       if Ses.Minor_Version = 2
         and then Target_Ref.Address_Type /= Key_Addr
@@ -1256,6 +1263,7 @@ package body Droopi.Protocols.GIOP is
          Operation => To_Standard_String (Operation),
          Arg_List  => Args,
          Result    => Result,
+         Deferred_Arguments_Session => Deferred_Arguments_Session,
          Req       => Req);
 
       Set_Note

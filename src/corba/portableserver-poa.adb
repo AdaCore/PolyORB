@@ -128,7 +128,7 @@ package body PortableServer.POA is
          The_POA : constant Droopi.POA.Obj_Adapter_Ptr
            := Droopi.POA.Obj_Adapter_Ptr (Res);
       begin
-         if The_POA.POA_Manager = null then
+         if Is_Nil (The_POA.POA_Manager) then
             Droopi.CORBA_P.Exceptions.Raise_Object_Not_Exist;
          end if;
 
@@ -153,13 +153,16 @@ package body PortableServer.POA is
      (Self : Ref)
      return PortableServer.POAManager.Ref
    is
+      use Droopi.Smart_Pointers;
       use PortableServer.POAManager;
 
       Res : PortableServer.POAManager.Ref;
 
    begin
-      Set (Res, Droopi.Smart_Pointers.Entity_Ptr
-           (To_POA (Self).POA_Manager));
+      pragma Debug (O ("Get_The_POAManager: enter"));
+      Set (Res, Entity_Ptr (Droopi.POA_Manager.Entity_Of
+                            (To_POA (Self).POA_Manager)));
+      pragma Debug (O ("Get_The_POAManager: leave"));
       return Res;
    end Get_The_POAManager;
 

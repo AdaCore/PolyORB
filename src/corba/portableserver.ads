@@ -85,8 +85,8 @@ package PortableServer is
      abstract new Servant_Base with private;
 
    procedure Invoke
-     (Self    : DynamicImplementation;
-      Request : CORBA.ServerRequest.Object)
+     (Self    : access DynamicImplementation;
+      Request : in CORBA.ServerRequest.Object_Ptr)
      is abstract;
 
    --------------

@@ -4,9 +4,11 @@
 
 with Ada.Real_Time;
 
-with Droopi.Objects;
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
+
+with Droopi.Objects;
+with Droopi.Smart_Pointers;
 
 with CORBA;
 with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
@@ -82,6 +84,20 @@ package body Droopi.POA.Basic_POA is
      return Droopi.Objects.Servant_Access;
    --  The Find_Servant from Droopi, plus a parameter.
    --  If check is NO_CHECK, the POA doesn't check its state.
+
+   function POA_Manager_Of (OA : access Basic_Obj_Adapter)
+     return POA_Manager.POAManager_Access;
+
+   function POA_Manager_Of (OA : access Basic_Obj_Adapter)
+     return POA_Manager.POAManager_Access
+   is
+      use Droopi.Smart_Pointers;
+
+      E : constant Entity_Ptr := Entity_Of (OA.POA_Manager);
+   begin
+      pragma Assert (E.all in POA_Manager.POAManager'Class);
+      return POAManager_Access (E);
+   end POA_Manager_Of;
 
    ------------------------------------
    --  Code of additional functions  --
@@ -390,9 +406,11 @@ package body Droopi.POA.Basic_POA is
      (OA : access Basic_Obj_Adapter)
    is
    begin
-      if OA.POA_Manager /= null then
-         Remove_POA (OA.POA_Manager,
-                     Droopi.POA_Types.Obj_Adapter_Access (OA));
+      if not Is_Nil (OA.POA_Manager) then
+         Remove_POA
+           (POA_Manager_Of (OA),
+            Droopi.POA_Types.Obj_Adapter_Access (OA));
+         Set (OA.POA_Manager, null);
       end if;
       Destroy_Policies (OA.all);
       Destroy_Locks    (OA.all);
@@ -424,10 +442,10 @@ package body Droopi.POA.Basic_POA is
       Create (New_Obj_Adapter.Children_Lock);
       Create (New_Obj_Adapter.Map_Lock);
 
-      New_Obj_Adapter.POA_Manager      := new Basic_POA_Manager;
-      Create (New_Obj_Adapter.POA_Manager);
+      Set (New_Obj_Adapter.POA_Manager, new Basic_POA_Manager);
+      Create (POA_Manager_Of (New_Obj_Adapter));
       Register_POA
-        (New_Obj_Adapter.POA_Manager,
+        (POA_Manager_Of (New_Obj_Adapter),
          POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
 
       --  Create and initialize policies factory
@@ -480,13 +498,15 @@ package body Droopi.POA.Basic_POA is
       New_Obj_Adapter.Name      := Adapter_Name;
 
       if A_POAManager = null then
-         New_Obj_Adapter.POA_Manager := new Basic_POA_Manager;
-         Create (New_Obj_Adapter.POA_Manager);
+         Set (New_Obj_Adapter.POA_Manager, new Basic_POA_Manager);
+         Create (POA_Manager_Of (New_Obj_Adapter));
          Register_POA
-           (New_Obj_Adapter.POA_Manager,
+           (POA_Manager_Of (New_Obj_Adapter),
             Droopi.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
       else
-         New_Obj_Adapter.POA_Manager := A_POAManager;
+         Set
+           (New_Obj_Adapter.POA_Manager,
+            Smart_Pointers.Entity_Ptr (A_POAManager));
          Register_POA
            (A_POAManager,
             Droopi.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
@@ -862,19 +882,27 @@ package body Droopi.POA.Basic_POA is
      return Droopi.Any.NVList.Ref
    is
       S : Servant_Access;
+      Nil_Result : Droopi.Any.NVList.Ref;
    begin
       pragma Debug (O ("Get_Empty_Arg_List for Id "
                        & Droopi.Objects.To_String (Oid)));
       S := Servant_Access (Find_Servant (OA, Oid, NO_CHECK));
       if S.If_Desc.PP_Desc /= null then
          return S.If_Desc.PP_Desc (Method);
+      else
+         return Nil_Result;
+         --  If If_Desc is null (eg in the case of an actual
+         --  use of the DSI, where no generated code is used on
+         --  the server side, another means of determining the
+         --  signature must be used, eg a query to an
+         --  Interface repository. Here we only return a Nil
+         --  NVList.Ref, indicating to the Protocol layer
+         --  that arguments unmarshalling is to be deferred
+         --  until the request processing in the Application
+         --  layer is started (at which time the Application
+         --  layer can provide more information as to the
+         --  signature of the called method).
       end if;
-      raise Droopi.Not_Implemented;
-      --  If If_Desc is null (eg in the case of an actual
-      --  use of the DSI, where no generated code is used on
-      --  the server side, another means of determining the
-      --  signature must be used, eg a query to an
-      --  Interface repository.
    end Get_Empty_Arg_List;
 
    ----------------------
@@ -924,10 +952,9 @@ package body Droopi.POA.Basic_POA is
    is
       U_Oid  : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Object_Id (Id));
-      The_OA : Basic_Obj_Adapter_Access;
    begin
       if Do_Check = CHECK then
-         case Get_State (OA.POA_Manager.all) is
+         case Get_State (POA_Manager_Of (OA).all) is
             when DISCARDING | INACTIVE =>
                Raise_Transient (1);
                --  ??? Do we have to do something special for INACTIVE
@@ -937,7 +964,7 @@ package body Droopi.POA.Basic_POA is
                begin
                   S := Droopi.Objects.Servant_Access
                     (Get_Hold_Servant
-                     (OA.POA_Manager.all'Access,
+                     (POA_Manager_Of (OA),
                       Droopi.POA_Types.Obj_Adapter_Access (OA)));
                   return S;
                end;
@@ -945,21 +972,29 @@ package body Droopi.POA.Basic_POA is
                null;
          end case;
       end if;
-      pragma Debug (O ("Look for OA with name #"
-                       & To_Standard_String (U_Oid.Creator)
-                       & "# starting from RootPOA"));
-      The_OA := Find_POA_Recursively (OA, U_Oid.Creator);
-      pragma Debug (O ("OA : "
-                       & To_Standard_String (The_OA.Name)
-                       & " looks for servant associated with Id "
-                       & Droopi.Objects.To_String (Id)));
-      if The_OA /= null then
-         return Droopi.Objects.Servant_Access (Id_To_Servant (The_OA,
-                                                              Id));
-      else
-         raise Invalid_Object_Id;
-         --  This is an exception from Droopi
-      end if;
+
+      pragma Debug
+        (O ("Look for OA with name #"
+            & To_Standard_String (U_Oid.Creator)
+            & "# starting from RootPOA"));
+
+      declare
+         The_OA : constant Basic_Obj_Adapter_Access
+           := Find_POA_Recursively (OA, U_Oid.Creator);
+      begin
+         pragma Debug
+           (O ("OA : " & To_Standard_String (The_OA.Name)
+               & " looks for servant associated with Id "
+               & Droopi.Objects.To_String (Id)));
+
+         if The_OA /= null then
+            return Droopi.Objects.Servant_Access
+              (Id_To_Servant (The_OA, Id));
+         else
+            raise Invalid_Object_Id;
+            --  This is an exception from Droopi
+         end if;
+      end;
    end Find_Servant;
 
    ---------------------

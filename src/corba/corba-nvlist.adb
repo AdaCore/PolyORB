@@ -11,7 +11,7 @@ package body CORBA.NVList is
       Item_Flags : in Flags) is
    begin
       Droopi.Any.NVList.Add_Item
-        (Self.Self,
+        (To_Droopi_Ref (Self),
          Droopi.Types.Identifier (Item_Name),
          Item, Item_Flags);
    end Add_Item;
@@ -20,12 +20,12 @@ package body CORBA.NVList is
      (Self : Ref;
       Item : in CORBA.NamedValue) is
    begin
-      Droopi.Any.NVList.Add_Item (Self.Self, Item);
+      Droopi.Any.NVList.Add_Item (To_Droopi_Ref (Self), Item);
    end Add_Item;
 
    function Get_Count (Self : Ref) return CORBA.Long is
    begin
-      return CORBA.Long (Droopi.Any.NVList.Get_Count (Self.Self));
+      return CORBA.Long (Droopi.Any.NVList.Get_Count (To_Droopi_Ref (Self)));
    end Get_Count;
 
    procedure Free (Self : Ref) is
@@ -33,20 +33,38 @@ package body CORBA.NVList is
       null;
    end Free;
 
-   function To_Droopi_Ref (Self : Ref) return Droopi.Any.NVList.Ref is
+   function To_Droopi_Ref (Self : Ref) return Droopi.Any.NVList.Ref
+   is
+      Res : Droopi.Any.NVList.Ref;
    begin
-      return Self.Self;
+      Droopi.Any.NVList.Set (Res, Entity_Of (Self));
+      return Res;
    end To_Droopi_Ref;
 
-   function To_CORBA_Ref (Self : Droopi.Any.NVList.Ref) return Ref is
+   function To_CORBA_Ref (Self : Droopi.Any.NVList.Ref) return Ref
+   is
+      Res : Ref;
    begin
-      return (CORBA.AbstractBase.Ref with Self => Self);
+      Set (Res, Droopi.Any.NVList.Entity_Of (Self));
+      return Res;
    end To_CORBA_Ref;
 
    procedure Create (Self : out Ref)
    is
+      Res : Droopi.Any.NVList.Ref;
    begin
-      Droopi.Any.NVList.Create (Self.Self);
+      Droopi.Any.NVList.Create (Res);
+      Self := To_CORBA_Ref (Res);
    end Create;
+
+   function Item (Self : Ref; Index : CORBA.Long)
+     return CORBA.NamedValue
+   is
+      use Droopi.Any.NVList.Internals;
+      use Droopi.Any.NVList.Internals.NV_Sequence;
+   begin
+      return Element_Of (List_Of (To_Droopi_Ref (Self)).all,
+                         Integer (Index));
+   end Item;
 
 end CORBA.NVList;

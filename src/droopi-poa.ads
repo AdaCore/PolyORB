@@ -39,7 +39,7 @@ package Droopi.POA is
    type Obj_Adapter is abstract new Droopi.POA_Types.Obj_Adapter with
       record
          Name                       : Types.String;
-         POA_Manager                : Droopi.POA_Manager.POAManager_Access;
+         POA_Manager                : Droopi.POA_Manager.Ref;
          Boot_Time                  : Time_Stamp;
          Absolute_Address           : Types.String;
          Active_Object_Map          : CORBA.Object_Map.Object_Map_Access;

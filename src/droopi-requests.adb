@@ -27,8 +27,9 @@ package body Droopi.Requests is
       Result    : in out Any.NamedValue;
       --  Exc_List  : in     ExceptionList.Ref;
       --  Ctxt_List : in     ContextList.Ref;
-      Req       :    out Request_Access
+      Req       :    out Request_Access;
       --  Req_Flags : in     Flags
+      Deferred_Arguments_Session : in Components.Component_Access := null
      )
    is
       Res : constant Request_Access := new Request;
@@ -37,6 +38,7 @@ package body Droopi.Requests is
       Res.Target    := Target;
       Res.Operation := To_Droopi_String (Operation);
       Res.Args      := Arg_List;
+      Res.Deferred_Arguments_Session := Deferred_Arguments_Session;
       Res.Result    :=
         (Name      => Result.Name,
          Argument  => Result_Any,

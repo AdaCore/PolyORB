@@ -16,9 +16,7 @@
 -- List_Initial_Services --
 -- Perform_Work --
 -- Resolve_Initial_References --
--- Run --
 -- Shutdown --
--- String_To_Object --
 -- Work_Pending --
 
 with Ada.Exceptions;
@@ -287,7 +285,7 @@ package body CORBA.ORB is
 
    procedure Run is
    begin
-      Droopi.ORB.Run (The_ORB);
+      Droopi.ORB.Run (The_ORB, May_Poll => True);
    end Run;
 
    --------------

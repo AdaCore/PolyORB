@@ -328,9 +328,9 @@ package body Droopi.POA_Manager.Basic_Manager is
          Destroy (Self.Queue_Lock);
          Destroy (Self.Holded_Requests);
          Free (BPM);
-         return;
+      else
+         Unlock_R (Self.Count_Lock);
       end if;
-      Unlock_R (Self.Count_Lock);
    end Destroy_If_Unused;
 
    ------------

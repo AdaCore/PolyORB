@@ -167,7 +167,9 @@ package body Droopi.Smart_Pointers is
 
    procedure Finalize (The_Ref : in out Ref) is
    begin
-      pragma Debug (O ("Finalize: enter"));
+      pragma Debug (O ("Finalize: enter, The_Ref is a "
+                       & Ada.Tags.External_Tag
+                       (Ref'Class (The_Ref)'Tag)));
       if The_Ref.A_Ref /= null then
          Dec_Usage (The_Ref.A_Ref);
       else

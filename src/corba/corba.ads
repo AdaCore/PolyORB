@@ -157,6 +157,9 @@ package CORBA is
    subtype Identifier is Droopi.Types.Identifier;
    Null_Identifier : constant Identifier := Identifier (Null_String);
 
+   function "=" (X, Y : Identifier) return Boolean
+     renames Droopi.Types."=";
+
    function To_Standard_String (S : Identifier) return Standard.String
      renames Droopi.Types.To_Standard_String;
    function To_CORBA_String (S : Standard.String) return Identifier
@@ -164,6 +167,9 @@ package CORBA is
 
    subtype RepositoryId is Droopi.Types.RepositoryId;
    Null_RepositoryId : constant RepositoryId := RepositoryId (Null_String);
+
+   function "=" (X, Y : RepositoryId) return Boolean
+     renames Droopi.Types."=";
 
    function To_Standard_String
      (S : RepositoryId)

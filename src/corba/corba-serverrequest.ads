@@ -19,31 +19,32 @@ package CORBA.ServerRequest is
 --         void                set_exception(in any val);
 --     };
 
-   type Object is private;
+   subtype Object is Droopi.Requests.Request;
+   subtype Object_Ptr is Droopi.Requests.Request_Access;
 
    function Operation (O : Object) return Identifier;
-   procedure Arguments (O : Object; NV : in out NVList.Ref);
+   procedure Arguments (O : access Object; NV : in out NVList.Ref);
    --  function Ctx return Context;
-   procedure Set_Result (O : Object; Val : Any);
+   procedure Set_Result (O : access Object; Val : Any);
    procedure Set_Exception (O : Object; Val : Any);
 
    --------------------------------------
    -- The following is DROOPI-specific --
    --------------------------------------
 
-   function To_Droopi_Request
-     (O : Object)
-     return Droopi.Requests.Request_Access;
+--    function To_Droopi_Request
+--      (O : access Object)
+--      return Droopi.Requests.Request_Access;
 
-   function To_CORBA_ServerRequest
-     (R : Droopi.Requests.Request_Access)
-     return Object;
+--    function To_CORBA_ServerRequest
+--      (R : Droopi.Requests.Request_Access)
+--      return Object_Ptr;
 
-private
+--  private
 
-   type Object is new Droopi.Requests.Request_Access;
+--    type Object is new Droopi.Requests.Request with null record;
 
-   pragma Inline (To_Droopi_Request);
-   pragma Inline (To_CORBA_ServerRequest);
+--    pragma Inline (To_Droopi_Request);
+--    pragma Inline (To_CORBA_ServerRequest);
 
 end CORBA.ServerRequest;

@@ -53,8 +53,10 @@ package body Droopi.Setup.Test_CORBA is
       --  Create application server object.
       CORBA.Test_Object.Create (My_Object (My_Servant.all));
 
-      POA_Manager.Activate
-        (POA.Obj_Adapter (Obj_Adapter.all).POA_Manager);
+      Droopi.POA_Manager.Activate
+        (Droopi.POA_Manager.POAManager_Access
+         (Droopi.POA_Manager.Entity_Of
+          (POA.Obj_Adapter (Obj_Adapter.all).POA_Manager)));
 
       declare
          My_Id : constant Objects.Object_Id_Access

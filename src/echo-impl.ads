@@ -27,19 +27,25 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
+with CORBA.ServerRequest;
 with PortableServer;
 
 package Echo.Impl is
    --  My own implementation of echo object.
    --  This is simply used to define the operations.
 
-   type Object is new PortableServer.Servant_Base with record
+   type Object is new PortableServer.DynamicImplementation with record
       Msg : CORBA.String;
    end record;
 
    type Object_Acc is access Object;
 
-   function EchoString (Self : access Object; Mesg : in CORBA.String)
-                        return CORBA.String;
+   procedure Invoke
+     (Self : access Object;
+      R : in CORBA.ServerRequest.Object_Ptr);
+
+   function EchoString
+     (Self : access Object; Mesg : in CORBA.String)
+     return CORBA.String;
 
 end Echo.Impl;

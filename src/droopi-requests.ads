@@ -90,8 +90,9 @@ package Droopi.Requests is
       Result    : in out Any.NamedValue;
       --  Exc_List  : in     ExceptionList.Ref;
       --  Ctxt_List : in     ContextList.Ref;
-      Req       :    out Request_Access
+      Req       :    out Request_Access;
       --  Req_Flags : in     Flags;
+      Deferred_Arguments_Session : in Components.Component_Access := null
      );
 
    procedure Invoke (Self : Request_Access);

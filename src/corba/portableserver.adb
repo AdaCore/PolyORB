@@ -53,9 +53,8 @@ package body PortableServer is
             R : constant Request_Access
               := Execute_Request (Msg).Req;
          begin
-            Invoke
-              (DynamicImplementation'Class (Self.all),
-               To_CORBA_ServerRequest (R));
+            Invoke (DynamicImplementation'Class (Self.all)'Access,
+                    CORBA.ServerRequest.Object_Ptr (R));
             --  Redispatch
 
             return Executed_Request'(Req => R);

@@ -12,6 +12,8 @@ package Droopi.POA_Manager is
    type State is
      (HOLDING, ACTIVE, DISCARDING, INACTIVE);
 
+   type Ref is new Smart_Pointers.Ref with private;
+
    type POAManager is abstract new Smart_Pointers.Entity
      with private;
 
@@ -81,6 +83,8 @@ package Droopi.POA_Manager is
       is abstract;
 
 private
+
+   type Ref is new Smart_Pointers.Ref with null record;
 
    type POAManager is abstract new Smart_Pointers.Entity with record
       Current_State : State;
