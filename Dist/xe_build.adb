@@ -27,6 +27,7 @@
 ------------------------------------------------------------------------------
 
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
+with Make;             use Make;
 with Namet;            use Namet;
 with Osint;            use Osint;
 with Osint.M;          use Osint.M;
@@ -188,6 +189,8 @@ exception
       Exit_Program (E_Fatal);
    when Fatal_Error =>
       Message ("*** can't continue");
+      Exit_Program (E_Fatal);
+   when Compilation_Failed =>
       Exit_Program (E_Fatal);
    when others =>
       Message ("*** unknown error");
