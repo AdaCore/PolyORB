@@ -201,6 +201,27 @@ package body Backend.BE_Ada.Nutils is
       return No_List;
    end Mk_Node_Ada_Argument_List;
 
+   -------------------------------
+   --  Make Node Ada Identifier --
+   -------------------------------
+   function Mk_Node_Ada_Identifier (Name : Name_Id) return Node_Id is
+      Node : Node_Id;
+   begin
+      Node := New_Node (K_Ada_Identifier, No_Location);
+      Set_Name (Node, Map_Identifier_Name_2Ada (Name));
+      return Node;
+   end Mk_Node_Ada_Identifier;
+
+   -------------------------------
+   --  Make Node Ada Identifier --
+   -------------------------------
+   function Mk_Node_Ada_Identifier (Name : String) return Node_Id is
+   begin
+
+      Set_Str_To_Name_Buffer (Map_Identifier_Name_2Ada (Name));
+      return Mk_Node_Ada_Identifier (Name_Find);
+   end Mk_Node_Ada_Identifier;
+
 
    function Mk_Node_Ada_Function_Spec
      (Function_Id : Node_Id;

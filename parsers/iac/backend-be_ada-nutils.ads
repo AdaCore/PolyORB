@@ -53,6 +53,8 @@ package Backend.BE_Ada.Nutils is
    function Mk_Node_Ada_Function
      (Function_Spec : Node_Id; Decl : List_Id;
                                Funct_Body : List_Id) return Node_Id;
+   function Mk_Node_Ada_Identifier (Name : Name_Id) return Node_Id;
+   function Mk_Node_Ada_Identifier (Name : String) return Node_Id;
    function Mk_Node_Ada_Procedure_Spec
      (Procedure_Id : Node_Id;
       Arg_List : List_Id) return Node_Id;

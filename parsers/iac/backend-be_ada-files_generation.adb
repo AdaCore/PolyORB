@@ -60,6 +60,7 @@ package body Backend.BE_Ada.FILES_Generation is
    procedure Generate_Ada_Function_Spec (E : Node_Id) is
       Arg_List : List_Id;
    begin
+      W_Indents;
       Write_Str ("function "
                  & Get_Name_String (Name (Identifier (E))) & " ");
       Arg_List := Argument_List (E);
@@ -77,6 +78,7 @@ package body Backend.BE_Ada.FILES_Generation is
    procedure Generate_Ada_Procedure_Spec (E : Node_Id) is
       Arg_List : List_Id;
    begin
+      W_Indents;
       Write_Str ("procedure "
                  & Get_Name_String (Name (Identifier (E))) & " ");
       Arg_List := Argument_List (E);
@@ -221,11 +223,16 @@ package body Backend.BE_Ada.FILES_Generation is
          Ada_Public_List := Ada_Public (E);
          Ada_Private_List := Ada_Private (E);
       end if;
+      N_Indents := 0;
+      W_Indents;
       Generate_Package_With (Package_With_List);
       Write_Line ("package "
                   & Full_Package_Name (Current_Package) & " is");
+      N_Indents := N_Indents + 1;
       Generate_Ada_Public (Ada_Public_List);
       Generate_Ada_Private (Ada_Private_List);
+      N_Indents := N_Indents - 1;
+      W_Indents;
       Write_Line ("end "
                   & Full_Package_Name (Current_Package) & ";");
    end Generate_Package_Spec;
@@ -237,9 +244,10 @@ package body Backend.BE_Ada.FILES_Generation is
    procedure Generate_Package_Body (E : Node_Id) is
       pragma Unreferenced (E);
    begin
+      W_Indents;
       Write_Line ("package body "
                   & Full_Package_Name (Current_Package) & " is");
-
+      W_Indents;
       Write_Line ("end "
                   & Full_Package_Name (Current_Package) & ";");
    end Generate_Package_Body;
@@ -268,6 +276,7 @@ package body Backend.BE_Ada.FILES_Generation is
       end if;
       Type_Identifier := Identifier (E);
       Type_Spec_Node := Type_Spec (E);
+      W_Indents;
       Write_Str ("type " & Get_Name_String (Name (Type_Identifier)) & " is ");
       Generate_Type_Spec (Type_Spec_Node);
       Write_Line (";");
