@@ -15,12 +15,13 @@ interface all_types {
   };
 
   enum Color { Red, Green, Blue };
-
+ 
   typedef string Name;
 
   typedef sequence<short> Data;
+  typedef sequence<long,512> Data2;
 
   attribute example f;
 
-  simple_struct foo (in Data h);
+  simple_struct foo (in Data h) raises (simple_exception, complexe_exception);
 };
