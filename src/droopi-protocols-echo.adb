@@ -7,6 +7,7 @@ with Ada.Exceptions;
 with CORBA;
 with CORBA.NVList;
 
+with Droopi.Binding_Data.Local;
 with Droopi.Buffers;
 with Droopi.Log;
 with Droopi.Objects;
@@ -97,7 +98,10 @@ package body Droopi.Protocols.Echo is
 
    procedure Handle_Data_Indication (S : access Echo_Session)
    is
+      use Binding_Data.Local;
       use Objects;
+      use References;
+
    begin
       pragma Debug (O ("Received data on echo service..."));
       pragma Debug (Buffers.Show (S.Buffer.all));
@@ -114,9 +118,9 @@ package body Droopi.Protocols.Echo is
          Args   : CORBA.NVList.Ref;
          Result : CORBA.NamedValue;
 
-         Nil_Ref : References.Ref;
-         pragma Warnings (Off, Nil_Ref);
-         --  XXX dummy - not initialised.
+         Target_Profile : Binding_Data.Profile_Access
+           := new Local_Profile_Type;
+         Target : References.Ref;
       begin
          Buffers.Release_Contents (S.Buffer.all);
          --  Clear buffer
@@ -129,9 +133,12 @@ package body Droopi.Protocols.Echo is
             --  Args := Get_Empty_Arg_List (OA, Oid, Method);
             --  Result := Get_Empty_Result (OA, Oid, Method);
 
+            Create_Local_Profile
+              (Oid, Local_Profile_Type (Target_Profile.all));
+            Create_Reference ((1 => Target_Profile), Target);
+
             Create_Request
-              ( --  Target=> Make_Reference (TSAP_Of (The_TE), Oid)
-               Target    => Nil_Ref,
+              (Target    => Target,
                Operation => Method,
                Arg_List  => Args,
                Result    => Result,

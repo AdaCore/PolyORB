@@ -10,8 +10,18 @@ package Droopi.References is
 
    pragma Elaborate_Body;
 
+   package Profile_Seqs is new Sequences.Unbounded
+     (Binding_Data.Profile_Access);
+   subtype Profile_Array is Profile_Seqs.Element_Array;
+
    type Ref is private;
    --  An object reference of any kind.
+
+   procedure Create_Reference
+     (Profiles : Profile_Array;
+      R        : out Ref);
+   --  Create a reference with Profiles as its profiles.
+   --  The returned ref R is nil iff Profiles'Length = 0.
 
    function Is_Nil (R : Ref) return Boolean;
    --  True iff R is a Nil reference, i.e. a reference that
@@ -22,8 +32,6 @@ package Droopi.References is
 
 private
 
-   package Profile_Seqs is new Sequences.Unbounded
-     (Binding_Data.Profile_Access);
    subtype Profile_Seq is Profile_Seqs.Sequence;
 
    type Ref (Nil_Ref : Boolean := True) is record

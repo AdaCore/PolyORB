@@ -1,12 +1,12 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/droopi-binding_data.ads#3 $
+--  $Id: //droopi/main/src/droopi-binding_data.ads#4 $
 
 with Ada.Finalization;
-with Ada.Streams;
 
 with Droopi.Components;
+with Droopi.Objects;
 with Droopi.Types;
 
 package Droopi.Binding_Data is
@@ -35,13 +35,14 @@ package Droopi.Binding_Data is
 
    Tag_Internet_IOP        : constant Profile_Tag;
    Tag_Multiple_Components : constant Profile_Tag;
+   Tag_Local               : constant Profile_Tag;
 
    type Profile_Preference is new Integer range 0 .. Integer'Last;
    --  Profile_Preference'First means "unsupported profile type"
 
    function Get_Object_Key
      (Profile : Profile_Type)
-     return Ada.Streams.Stream_Element_Array is abstract;
+     return Objects.Object_Id is abstract;
    --  Retrieve the opaque object key from Profile.
 
    function Find_Connection
@@ -65,8 +66,14 @@ package Droopi.Binding_Data is
 
 private
 
+   --  Standard tags defined by CORBA
+
    Tag_Internet_IOP        : constant Profile_Tag := 0;
    Tag_Multiple_Components : constant Profile_Tag := 1;
+
+   --  Tags defined by DROOPI
+
+   Tag_Local               : constant Profile_Tag := 16#7fffff00#;
 
    type Profile_Type is abstract
      new Ada.Finalization.Limited_Controlled with null record;
