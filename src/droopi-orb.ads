@@ -8,11 +8,8 @@ with Droopi.Jobs;
 with Droopi.Protocols;
 with Droopi.Soft_Links;
 with Droopi.Sockets;
-with Droopi.Tasking_Policies;
 
 package Droopi.ORB is
-
-   pragma Elaborate_Body;
 
    ---------------------
    -- A server object --

@@ -52,7 +52,7 @@ package body Droopi.ORB is
             declare
                New_AS : Active_Socket
                  := (Kind     => Communication_Sk,
-                     Socket   => Null_Socket,
+                     Socket   => No_Socket,
                      Session  => Protocols.Create_Session
                        (AS.Protocol),
                      Protocol => AS.Protocol);
@@ -187,12 +187,13 @@ package body Droopi.ORB is
                Empty (W_Set);
 
                if O.Selector = null then
-                  Create_Selector (O.Selector);
+                  O.Selector := new Selector_Type;
+                  pragma Assert (O.Selector /= null);
+                  Create_Selector (O.Selector.all);
                end if;
-               pragma Assert (O.Selector /= null);
 
                Check_Selector
-                 (Selector     => O.Selector,
+                 (Selector     => O.Selector.all,
                   R_Socket_Set => R_Set,
                   W_Socket_Set => W_Set,
                   Status       => Status);
@@ -269,7 +270,7 @@ package body Droopi.ORB is
       Sock_Seqs.Append (O.ORB_Sockets, AS);
 
       if O.Polling then
-         Abort_Selector (O.Selector);
+         Abort_Selector (O.Selector.all);
       end if;
       Leave_Critical_Section;
    end Insert_Socket;
@@ -301,7 +302,7 @@ package body Droopi.ORB is
       end;
 
       if O.Polling then
-         Abort_Selector (O.Selector);
+         Abort_Selector (O.Selector.all);
       end if;
       Leave_Critical_Section;
    end Delete_Socket;
