@@ -501,11 +501,9 @@ package body Sem_Dist is
                   Name_Class)));
       Set_Is_Remote_Call_Interface (RACW_Type, Is_RCI);
       Set_Is_Remote_Types (RACW_Type, Is_RT);
-      --  XXX RACW RPC Receiver generation should be shorted out for this
-      --      RACW type.
-      --  XXX RACW From_Any generation should be changed for this type
-      --      to always instantiate a stub type, regardless of locality.
-      --  XXX possible predicate: not (Comes_From_Source (Designated_Type))
+      --  ??? Object RPC receiver generation should be bypassed for this
+      --  RACW type, since actually calls will be received by the package
+      --  RPC receiver for the designated RCI subprogram.
 
       Subpkg_Decl :=
         Make_Package_Declaration (Loc,
