@@ -355,4 +355,3 @@ private
    Null_Sequence : constant Sequence := Default;
 
 end PolyORB.Sequences.Bounded;
-

@@ -91,6 +91,7 @@ ADA_SPECS_WITH_BODY = \
 		polyorb-requests.ads \
 		polyorb-scheduler.ads \
 		polyorb-sequences-bounded.ads \
+		polyorb-sequences-bounded-helper.ads \
 		polyorb-sequences-unbounded.ads \
 		polyorb-sequences-unbounded-helper.ads \
 		polyorb-sequences-unbounded-search.ads \
@@ -321,6 +322,7 @@ polyorb-requests.lo:polyorb.ads polyorb-annotations.ads polyorb-any.adb polyorb-
 polyorb-scheduler.lo:polyorb.ads polyorb-annotations.ads polyorb-asynch_ev.ads polyorb-components.ads polyorb-initialization.ads polyorb-jobs.ads polyorb-log.adb polyorb-log.ads polyorb-scheduler.adb polyorb-scheduler.ads polyorb-sequences.ads polyorb-sequences-unbounded.adb polyorb-sequences-unbounded.ads polyorb-task_info.adb polyorb-task_info.ads polyorb-tasking.ads polyorb-tasking-condition_variables.ads polyorb-tasking-mutexes.ads polyorb-tasking-threads.ads polyorb-types.ads polyorb-utils.ads polyorb-utils-chained_lists.adb polyorb-utils-chained_lists.ads polyorb-utils-strings.adb polyorb-utils-strings.ads polyorb-utils-strings-lists.adb polyorb-utils-strings-lists.ads 
 polyorb-sequences.lo:polyorb.ads polyorb-sequences.ads 
 polyorb-sequences-bounded.lo:polyorb.ads polyorb-sequences.ads polyorb-sequences-bounded.adb polyorb-sequences-bounded.ads 
+polyorb-sequences-bounded-helper.lo:polyorb.ads polyorb-any.ads polyorb-sequences.ads polyorb-sequences-bounded.ads polyorb-sequences-bounded-helper.adb polyorb-sequences-bounded-helper.ads polyorb-smart_pointers.ads polyorb-types.ads 
 polyorb-sequences-unbounded.lo:polyorb.ads polyorb-sequences.ads polyorb-sequences-unbounded.adb polyorb-sequences-unbounded.ads 
 polyorb-sequences-unbounded-helper.lo:polyorb.ads polyorb-any.ads polyorb-sequences.ads polyorb-sequences-unbounded.ads polyorb-sequences-unbounded-helper.adb polyorb-sequences-unbounded-helper.ads polyorb-smart_pointers.ads polyorb-types.ads 
 polyorb-sequences-unbounded-search.lo:polyorb.ads polyorb-sequences.ads polyorb-sequences-unbounded.ads polyorb-sequences-unbounded-search.adb polyorb-sequences-unbounded-search.ads 
