@@ -60,7 +60,11 @@ Package body Omni is
       Temp : Corba.Unsigned_Long ;
    begin
       Temp := Size mod Corba.Unsigned_Long (Align) ;
-      return Size + Corba.Unsigned_Long (Align) - Size ;
+      if Temp = 0 then
+         return Size ;
+      else
+         return Size + Corba.Unsigned_Long (Align) - Temp ;
+      end if ;
    end ;
 
 end Omni ;
