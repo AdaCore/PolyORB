@@ -2287,7 +2287,7 @@ package body Ada_Be.Idl2Ada.Helper is
             Put (CU, "TC_" & Img (Index));
          end if;
          Add_With (CU, "CORBA");
-         Put (CU, ", CORBA.To_Any (Unsigned_Long (");
+         Put (CU, ", CORBA.To_Any (CORBA.Unsigned_Long (");
          Gen_Node_Stubs_Spec (CU, Bound_Node);
          PL (CU, ")));");
          Put (CU, "CORBA.TypeCode.Add_Parameter (");
@@ -2297,11 +2297,9 @@ package body Ada_Be.Idl2Ada.Helper is
             Put (CU, "TC_" & Img (Index));
          end if;
          if Last_Bound then
-            Add_With (CU, Ada_Helper_Name (Type_Node));
             Put (CU, ", "
-                 & Ada_Helper_Name (Type_Node)
-                 & ".To_Any (");
-            Put (CU, Ada_Full_TC_Name (Type_Node));
+                 & "CORBA.To_Any ("
+                 & Ada_Full_TC_Name (Type_Node));
          else
             Put (CU, ", To_Any (TC_"
                  & Img (Index + 1));
