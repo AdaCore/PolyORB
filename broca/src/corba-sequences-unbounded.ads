@@ -232,7 +232,7 @@ private
    type Sequence is new Ada.Finalization.Controlled with
       record
          Length  : Natural := 0;
-         Content : Element_Array_Access;
+         Content : Element_Array_Access := null;
       end record;
 
    procedure Initialize (Object : in out Sequence);

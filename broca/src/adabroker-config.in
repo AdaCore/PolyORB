@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# $Id$
+# $Id: //depot/adabroker/main/broca/src/adabroker-config.in#5 $
 #
 
 prefix="@prefix@"

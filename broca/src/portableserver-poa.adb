@@ -33,6 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions;
+
 with Broca.Refs;
 with Broca.Exceptions;
 with Broca.POA;
