@@ -137,7 +137,7 @@ package body XE_Scan is
    begin
       Read_Source_File (File, First_Source_Ptr, Dummy, Buffer);
       if Buffer = null then
-         Message ("cannot open file ", File);
+         Message ("cannot open file", File);
          raise Fatal_Error;
       else
          Scan_Ptr := Buffer.all'First;

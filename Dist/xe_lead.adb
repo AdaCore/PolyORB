@@ -118,7 +118,7 @@ procedure XE_Lead is
 begin
 
    if Default_Starter /= None_Import and then not Quiet_Output then
-      Message ("generating starter ", Main_Subprogram);
+      Message ("generating starter", Main_Subprogram);
    end if;
 
    case Default_Starter is

@@ -55,7 +55,7 @@ package body XE_Stdcnf is
 
       Create_Configuration (Configuration_Node, Str_To_Id ("private"));
 
-      --  type Boolean_Type is (False, True); (standard)
+      --  type Boolean_Type is (False, True, Unknown);
 
       Declare_Type
         (Type_Name    => Str_To_Id ("boolean"),
@@ -73,7 +73,7 @@ package body XE_Stdcnf is
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Scalar_Value (Variable_Node, 1);
+      Set_Scalar_Value (Variable_Node, Int (Btrue));
 
       Declare_Variable
         (Str_To_Id ("false"),
@@ -82,7 +82,16 @@ package body XE_Stdcnf is
          Variable_Node);
 
       --  To easily retrieve the enumeration literal.
-      Set_Scalar_Value (Variable_Node, 0);
+      Set_Scalar_Value (Variable_Node, Int (Bfalse));
+
+      Declare_Variable
+        (Str_To_Id ("unknown boolean"),
+         Boolean_Type_Node,
+         Null_Location,
+         Variable_Node);
+
+      --  To easily retrieve the enumeration literal.
+      Set_Scalar_Value (Variable_Node, Int (Bunknown));
 
       --  type string (standard)
 
@@ -106,32 +115,23 @@ package body XE_Stdcnf is
          Type_Sloc    => Null_Location,
          Type_Node    => Integer_Type_Node);
 
-      Declare_Variable
-        (Str_To_Id ("local_termination"),
-         Integer_Type_Node,
-         Null_Location,
-         Variable_Node);
+      for T in Termination_Img'Range loop
+         Declare_Variable
+           (To_Lower (Termination_Img (T)),
+            Integer_Type_Node,
+            Null_Location,
+            Variable_Node);
+         Set_Scalar_Value (Variable_Node, Int (T));
+      end loop;
 
-      --  To easily retrieve the enumeration literal.
-      Set_Scalar_Value (Variable_Node, Int (Local_Termination));
-
-      Declare_Variable
-        (Str_To_Id ("global_termination"),
-         Integer_Type_Node,
-         Null_Location,
-         Variable_Node);
-
-      --  To easily retrieve the enumeration literal.
-      Set_Scalar_Value (Variable_Node, Int (Global_Termination));
-
-      Declare_Variable
-        (Str_To_Id ("deferred_termination"),
-         Integer_Type_Node,
-         Null_Location,
-         Variable_Node);
-
-      --  To easily retrieve the enumeration literal.
-      Set_Scalar_Value (Variable_Node, Int (Deferred_Termination));
+      for R in Reconnection_Img'Range loop
+         Declare_Variable
+           (To_Lower (Reconnection_Img (R)),
+            Integer_Type_Node,
+            Null_Location,
+            Variable_Node);
+         Set_Scalar_Value (Variable_Node, Int (R));
+      end loop;
 
       --  type type__host_function (standard)
       --     function F (...: String) return String;
@@ -251,6 +251,14 @@ package body XE_Stdcnf is
          Attribute_Name => Str_To_Id ("storage_dir"),
          Attr_Type_Node => String_Type_Node,
          Attribute_Kind => Attribute_Storage_Dir,
+         Attribute_Sloc => Null_Location,
+         Attribute_Node => Attribute_Node);
+
+      Declare_Type_Attribute
+        (Type_Node      => Partition_Type_Node,
+         Attribute_Name => Str_To_Id ("reconnection"),
+         Attr_Type_Node => Integer_Type_Node,
+         Attribute_Kind => Attribute_Reconnection,
          Attribute_Sloc => Null_Location,
          Attribute_Node => Attribute_Node);
 

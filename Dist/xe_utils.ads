@@ -68,6 +68,8 @@ package XE_Utils is
    I_GARLIC_Dir          : GNAT.OS_Lib.String_Access;
    L_GARLIC_Dir          : GNAT.OS_Lib.String_Access;
 
+   No_Args : constant GNAT.OS_Lib.Argument_List (1 .. 0) := (others => null);
+
    -- Exceptions --
 
    Fatal_Error         : exception;   --  Operating system error
@@ -92,6 +94,9 @@ package XE_Utils is
 
    procedure Change_Dir (To : in Types.File_Name_Type);
 
+   procedure Compilation_Error (File : Types.File_Name_Type);
+   --  Write standard error message when GNAT cannot compile File
+
    procedure Compile_RCI_Caller
      (Source, Object : in Types.File_Name_Type);
    --  Compile the caller stubs (-gnatzC).
@@ -106,9 +111,9 @@ package XE_Utils is
    --  Copy source into target and preserves file stamps.
 
    procedure Create
-     (File : in out GNAT.OS_Lib.File_Descriptor;
-      Name : in Types.File_Name_Type;
-      Exec : in Boolean := False);
+     (File  : in out GNAT.OS_Lib.File_Descriptor;
+      Name  : in Types.File_Name_Type;
+      Exec  : in Boolean := False);
 
    procedure Create_Dir
      (To : in Types.File_Name_Type);
@@ -117,32 +122,39 @@ package XE_Utils is
      (File : in Types.File_Name_Type);
 
    procedure Execute
-     (Prog : in GNAT.OS_Lib.String_Access;
-      Args : in GNAT.OS_Lib.Argument_List);
+     (Prog  : in GNAT.OS_Lib.String_Access;
+      Args  : in GNAT.OS_Lib.Argument_List;
+      Fatal : in Boolean := True);
    --  Execute the command and raise Fatal Error if not successful
 
    procedure Execute_Bind
      (Lib  : in Types.File_Name_Type;
-      Args : in GNAT.OS_Lib.Argument_List);
+      Args : in GNAT.OS_Lib.Argument_List;
+      Fatal : in Boolean := True);
    --  Execute gnatbind and add gnatdist flags
 
    procedure Execute_Gcc
      (File   : in Types.File_Name_Type;
       Object : in Types.File_Name_Type;
-      Args   : in GNAT.OS_Lib.Argument_List);
+      Args   : in GNAT.OS_Lib.Argument_List;
+      Fatal  : in Boolean := True);
    --  Execute gcc and add gnatdist compilation flags
 
    procedure Execute_Link
-     (Lib  : in Types.File_Name_Type;
-      Exec : in Types.File_Name_Type;
-      Args : in GNAT.OS_Lib.Argument_List);
+     (Lib   : in Types.File_Name_Type;
+      Exec  : in Types.File_Name_Type;
+      Args  : in GNAT.OS_Lib.Argument_List;
+      Fatal : in Boolean := True);
    --  Execute gnatlink and add gnatdist flags
 
    procedure Execute_Strip
       (Executable : in Types.File_Name_Type);
    --  Strip executable
 
-   function Find_Source (U : Types.Name_Id) return Types.File_Name_Type;
+   function Find_Source
+     (Uname : Types.Unit_Name_Type;
+      Fatal : Boolean := False)
+      return Types.File_Name_Type;
    --  Retrieve main source file of unit U.
 
    procedure Free is
@@ -157,12 +169,31 @@ package XE_Utils is
    function Is_Regular_File (File : Types.File_Name_Type) return Boolean;
    function Is_Relative_Dir (File : Types.File_Name_Type) return Boolean;
 
+   function Is_Body_Name (U : Types.Unit_Name_Type) return Boolean;
+   --  Returns True iff the given name is the unit name of a body (i.e. if
+   --  it ends with the characters %b).
+
+   function Is_Spec_Name (U : Types.Unit_Name_Type) return Boolean;
+   --  Returns True iff the given name is the unit name of a spec (i.e. if
+   --  it ends with the characters %s).
+
+   function To_Spec (U : Types.Unit_Name_Type) return Types.Unit_Name_Type;
+   --  Returns the unit name of a spec from a given name (i.e. it ends
+   --  with the characters %s).
+
+   function To_String (N : Types.Name_Id) return Types.Name_Id;
+   --  Make a string containing N and return it as a Name_Id
+
    procedure Message
      (S1 : in String        := "";
       S2 : in Types.Name_Id := Types.No_Name;
       S3 : in String        := "";
       S4 : in Types.Name_Id := Types.No_Name;
       S5 : in String        := "");
+
+   procedure Source_File_Error (Uname : Types.Unit_Name_Type);
+   --  Write standard error message when we cannot find a source file
+   --  for a given unit.
 
    function Stamp (F : Types.File_Name_Type) return String;
 
@@ -173,6 +204,7 @@ package XE_Utils is
 
    procedure To_Lower   (S : in out String);
    procedure To_Lower   (N : in out Types.Name_Id);
+   function  To_Lower   (N : Types.Name_Id) return Types.Name_Id;
 
    function U_To_N
      (U : in Types.Unit_Name_Type)

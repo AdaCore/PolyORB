@@ -285,7 +285,7 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 force: 
 
 gnatdist$(EXEEXT): ${gnatdist_DEPENDENCIES} force
-	${GNATMAKE} -m -a ${GNATFLAGS} -I. -I${srcdir} -I${GNATSRC} \
+	${GNATMAKE} -m ${GNATFLAGS} -I. -I${srcdir} -I${GNATSRC} \
 	   ${srcdir}/xe_build.adb -o gnatdist$(EXEEXT)
 
 xe_defs.adb: Makefile

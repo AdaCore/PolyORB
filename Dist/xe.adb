@@ -30,6 +30,7 @@ with Namet;        use Namet;
 with Output;       use Output;
 with Table;
 with Types;        use Types;
+with XE_Utils;     use XE_Utils;
 
 package body XE is
 
@@ -714,6 +715,27 @@ package body XE is
       pragma Assert (Is_Variable_Initialized (Variable_Node));
       return Variable_Id (Nodes.Table (Node).Node_3);
    end Get_Variable_Value;
+
+   procedure Initialize is
+   begin
+      Termination_Img
+        := (Unknown_Termination  => Str_To_Id ("Unknown Termination"),
+            Local_Termination    => Str_To_Id ("Local_Termination"),
+            Global_Termination   => Str_To_Id ("Global_Termination"),
+            Deferred_Termination => Str_To_Id ("Deferred_Termination"));
+
+      Reconnection_Img
+        := (Unknown_Reconnection  => Str_To_Id ("Unknown Reconnection"),
+            Rejected_On_Restart   => Str_To_Id ("Rejected_On_Restart"),
+            Blocked_Until_Restart => Str_To_Id ("Blocked_Until_Restart"),
+            Failed_Until_Restart  => Str_To_Id ("Failed_Until_Restart"));
+
+      Boolean_Img
+        := (Bunknown  => Str_To_Id ("Unknown Boolean"),
+            Bfalse    => Str_To_Id ("False"),
+            Btrue     => Str_To_Id ("True"));
+
+   end Initialize;
 
    ------------------
    -- Is_Component --

@@ -112,8 +112,8 @@ package body XE_Back is
 
    begin
       if Debug_Mode then
-         Message ("add partition ", Partition,
-                  " to channel ", Channels.Table (To).Name);
+         Message ("add partition", Partition,
+                  "to channel", Channels.Table (To).Name);
       end if;
       if Channels.Table (To).Lower = Null_Channel_Partition then
          Update_Channel_Partition (Channels.Table (To).Lower, PID, To);
@@ -139,8 +139,8 @@ package body XE_Back is
       end if;
 
       if Debug_Mode then
-         Message ("configuring unit ", CU,
-                  " on partition ", Partitions.Table (To).Name);
+         Message ("configuring unit", CU,
+                  "on partition", Partitions.Table (To).Name);
       end if;
 
       --  Mark this configured unit as already partitioned.
@@ -405,7 +405,7 @@ package body XE_Back is
       Channel : CID_Type;
    begin
       if Debug_Mode then
-         Message ("create channel ", Name);
+         Message ("create channel", Name);
       end if;
 
       Channels.Increment_Last;
@@ -430,7 +430,7 @@ package body XE_Back is
       Host : HID_Type;
    begin
       if Debug_Mode then
-         Message ("create host ", Name);
+         Message ("create host", Name);
       end if;
 
       Hosts.Increment_Last;
@@ -456,7 +456,7 @@ package body XE_Back is
       Partition : PID_Type;
    begin
       if Debug_Mode then
-         Message ("create partition ", Name);
+         Message ("create partition", Name);
       end if;
 
       Partitions.Increment_Last;
@@ -470,13 +470,14 @@ package body XE_Back is
       Partitions.Table (Partition).Main_Subprogram := No_Name;
       Partitions.Table (Partition).Filter          := No_Filter_Name;
       Partitions.Table (Partition).Termination     := Unknown_Termination;
+      Partitions.Table (Partition).Reconnection    := Unknown_Reconnection;
+      Partitions.Table (Partition).Task_Pool       := No_Task_Pool;
       Partitions.Table (Partition).First_Unit      := Null_CUID;
       Partitions.Table (Partition).Last_Unit       := Null_CUID;
       Partitions.Table (Partition).First_Channel   := Null_CID;
       Partitions.Table (Partition).Last_Channel    := Null_CID;
       Partitions.Table (Partition).To_Build        := True;
       Partitions.Table (Partition).Most_Recent     := No_File;
-      Partitions.Table (Partition).Task_Pool       := No_Task_Pool;
       Partitions.Table (Partition).Light_PCS       := True;
       Partitions.Table (Partition).Global_Checksum := 0;
       PID := Partition;
@@ -757,6 +758,20 @@ package body XE_Back is
       end if;
    end Get_Relative_Exec;
 
+   ----------------------
+   -- Get_Reconnection --
+   ----------------------
+
+   function Get_Reconnection (P : PID_Type) return Reconnection_Type is
+      Reconnection : Reconnection_Type := Partitions.Table (P).Reconnection;
+
+   begin
+      if Reconnection = Unknown_Reconnection then
+         Reconnection := Partitions.Table (Default_Partition).Reconnection;
+      end if;
+      return Reconnection;
+   end Get_Reconnection;
+
    ---------------------
    -- Get_Storage_Dir --
    ---------------------
@@ -777,6 +792,7 @@ package body XE_Back is
 
    function Get_Task_Pool (P : PID_Type) return Task_Pool_Type is
       Task_Pool : Task_Pool_Type := Partitions.Table (P).Task_Pool;
+
    begin
       if Task_Pool = No_Task_Pool then
          Task_Pool := Partitions.Table (Default_Partition).Task_Pool;
@@ -791,8 +807,13 @@ package body XE_Back is
    function Get_Termination
      (P : in PID_Type)
       return Termination_Type is
+      Termination : Termination_Type := Partitions.Table (P).Termination;
+
    begin
-      return Partitions.Table (P).Termination;
+      if Termination = Unknown_Termination then
+         Termination := Partitions.Table (Default_Partition).Termination;
+      end if;
+      return Termination;
    end Get_Termination;
 
    -----------------
@@ -801,6 +822,7 @@ package body XE_Back is
 
    function Get_Unit_Id (N : Name_Id) return Unit_Id is
       Info : Int;
+
    begin
       Info := Get_Name_Table_Info (N);
       case Info is
@@ -856,11 +878,6 @@ package body XE_Back is
 
       Channels.Table (C).Filter             := No_Filter_Name;
       Default_Channel := C;
-
-      Image := (Unknown_Termination  => No_Name,
-                Local_Termination    => Str_To_Id ("Local_Termination"),
-                Global_Termination   => Str_To_Id ("Global_Termination"),
-                Deferred_Termination => Str_To_Id ("Deferred_Termination"));
 
    end Initialize;
 
@@ -942,9 +959,10 @@ package body XE_Back is
 
             --  Only string literals are allowed here.
 
-            if not Is_Variable (Attr_Item) or else
-              Get_Variable_Type (Variable_Id (Attr_Item)) /=
-              String_Type_Node then
+            if not Is_Variable (Attr_Item)
+              or else
+              Get_Variable_Type (Variable_Id (Attr_Item)) /= String_Type_Node
+            then
                Write_SLOC (XE.Node_Id (Attribute));
                Write_Name (Channels.Table (Channel).Name);
                Write_Str ("'s filter attribute must be ");
@@ -956,8 +974,10 @@ package body XE_Back is
             --  Does it apply to all channels ? Therefore, check
             --  that this has not already been done.
 
-            if Channel = Null_CID and then
-               Channels.Table (Default_Channel).Filter = No_Filter_Name then
+            if Channel = Null_CID
+              and then
+              Channels.Table (Default_Channel).Filter = No_Filter_Name
+            then
                Channels.Table (Default_Channel).Filter
                  := Get_Node_Name (Attr_Item);
                To_Lower (Channels.Table (Default_Channel).Filter);
@@ -965,8 +985,10 @@ package body XE_Back is
             --  Apply to one channel. Check that it has not already
             --  been done.
 
-            elsif Channel /= Null_CID and then
-              Channels.Table (Channel).Filter = No_Filter_Name then
+            elsif Channel /= Null_CID
+              and then
+              Channels.Table (Channel).Filter = No_Filter_Name
+            then
                Channels.Table (Channel).Filter
                  := Get_Node_Name (Attr_Item);
                To_Lower (Channels.Table (Channel).Filter);
@@ -1088,20 +1110,15 @@ package body XE_Back is
 
       PID := Partition;
 
---       if Partition = Null_PID then
---          PID := Default_Partition;
---       else
---          PID := Partition;
---       end if;
-
       case Attr_Kind is
          when Attribute_PFilter =>
 
             --  Only string literals are allowed here.
 
-            if not Is_Variable (Attr_Item) or else
-              Get_Variable_Type (Variable_Id (Attr_Item)) /=
-              String_Type_Node then
+            if not Is_Variable (Attr_Item)
+              or else
+              Get_Variable_Type (Variable_Id (Attr_Item)) /= String_Type_Node
+            then
                Write_SLOC (XE.Node_Id (Attribute));
                Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s filter attribute must be ");
@@ -1113,8 +1130,9 @@ package body XE_Back is
             --  Does it apply to all partitions ? Therefore, check
             --  that this has not already been done.
 
-            if PID = Default_Partition and then
-               Partitions.Table (PID).Filter = No_Filter_Name
+            if PID = Default_Partition
+              and then
+              Partitions.Table (PID).Filter = No_Filter_Name
             then
                Partitions.Table (PID).Filter := Get_Node_Name (Attr_Item);
                To_Lower (Partitions.Table (PID).Filter);
@@ -1141,9 +1159,10 @@ package body XE_Back is
 
             --  Only strings are allowed here.
 
-            if not Is_Variable (Attr_Item) or else
-              Get_Variable_Type (Variable_Id (Attr_Item)) /=
-              String_Type_Node then
+            if not Is_Variable (Attr_Item)
+              or else
+              Get_Variable_Type (Variable_Id (Attr_Item)) /= String_Type_Node
+            then
                Write_SLOC (XE.Node_Id (Attribute));
                Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s storage_dir attribute must be ");
@@ -1214,9 +1233,10 @@ package body XE_Back is
 
             --  Only strings are allowed.
 
-            if not Is_Variable (Attr_Item) or else
-              Get_Variable_Type (Variable_Id (Attr_Item)) /=
-              String_Type_Node then
+            if not Is_Variable (Attr_Item)
+              or else
+              Get_Variable_Type (Variable_Id (Attr_Item)) /= String_Type_Node
+            then
                Write_SLOC (XE.Node_Id (Attribute));
                Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s command line attribute must be string litteral");
@@ -1236,11 +1256,10 @@ package body XE_Back is
 
          when Attribute_Termination =>
 
-            --  Only booleans are allowed.
-
-            if not Is_Variable (Attr_Item) or else
-              Get_Variable_Type (Variable_Id (Attr_Item)) /=
-              Integer_Type_Node then
+            if not Is_Variable (Attr_Item)
+              or else
+              Get_Variable_Type (Variable_Id (Attr_Item)) /= Integer_Type_Node
+            then
                Write_SLOC (XE.Node_Id (Attribute));
                Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s termination attribute must be ");
@@ -1257,6 +1276,30 @@ package body XE_Back is
             else
                Write_Error_Message
                  (XE.Node_Id (Attribute), PID, "termination");
+            end if;
+
+         when Attribute_Reconnection =>
+
+            if not Is_Variable (Attr_Item)
+              or else
+              Get_Variable_Type (Variable_Id (Attr_Item)) /= Integer_Type_Node
+            then
+               Write_SLOC (XE.Node_Id (Attribute));
+               Write_Name (Partitions.Table (PID).Name);
+               Write_Str ("'s reconnection attribute must be ");
+               Write_Str ("of reconnection type");
+               Write_Eol;
+               raise Parsing_Error;
+            end if;
+
+            --  Check that it has not already been assigned.
+
+            if Partitions.Table (PID).Reconnection = Unknown_Reconnection then
+               Set_Reconnection (PID, Reconnection_Type
+                                (Get_Scalar_Value (Variable_Id (Attr_Item))));
+            else
+               Write_Error_Message
+                 (XE.Node_Id (Attribute), PID, "reconnection");
             end if;
 
          when Attribute_Leader =>
@@ -1346,7 +1389,7 @@ package body XE_Back is
 
          when Pragma_Version =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
-            Default_Version_Check := (Get_Scalar_Value (Value) /= 0);
+            Default_Version_Check := (Get_Scalar_Value (Value) = Int (Btrue));
 
          when Pragma_Reg_Filter =>
             Value := Get_Variable_Value (Variable_Id (Parameter));
@@ -1358,6 +1401,16 @@ package body XE_Back is
       end case;
 
    end Set_Pragma_Statement;
+
+   ----------------------
+   -- Set_Reconnection --
+   ----------------------
+
+   procedure Set_Reconnection
+     (P : PID_Type; R : Reconnection_Type) is
+   begin
+      Partitions.Table (P).Reconnection := R;
+   end Set_Reconnection;
 
    ---------------------
    -- Set_Termination --
@@ -1621,5 +1674,14 @@ package body XE_Back is
          Write_Eol;
       end if;
    end Show_Partition;
+
+   --------------
+   -- To_Build --
+   --------------
+
+   function To_Build (U : CUID_Type) return Boolean is
+   begin
+      return Partitions.Table (CUnit.Table (U).Partition).To_Build;
+   end To_Build;
 
 end XE_Back;

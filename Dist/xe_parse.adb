@@ -32,7 +32,6 @@ with Types;            use Types;
 with XE;               use XE;
 with XE_Scan;          use XE_Scan;
 with XE_Utils;         use XE_Utils;
-with XE_Stdcnf;        use XE_Stdcnf;
 
 package body XE_Parse is
 
@@ -478,10 +477,6 @@ package body XE_Parse is
       ISN_Subpro_Par := Str_To_Id ("_sub_prog_param");
       ISN_Proc_Call  := Str_To_Id ("_procedure_call");
       ISN_Proc_Call  := Str_To_Id ("_procedure_unit");
-
-      XE_Stdcnf.Initialize;
-
-      Print;
 
    end Initialize;
 

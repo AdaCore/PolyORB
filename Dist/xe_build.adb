@@ -27,6 +27,7 @@
 ------------------------------------------------------------------------------
 
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
+with Make;             use Make;
 with Namet;            use Namet;
 with Osint;            use Osint;
 with Types;            use Types;
@@ -35,6 +36,7 @@ with XE_Back;          use XE_Back;
 with XE_Check;         use XE_Check;
 with XE_Parse;         use XE_Parse;
 with XE_Scan;          use XE_Scan;
+with XE_Stdcnf;        use XE_Stdcnf;
 with XE_Stubs;         use XE_Stubs;
 with XE_Utils;         use XE_Utils;
 
@@ -56,8 +58,10 @@ begin
 
       --  Initialization of differents modules.
 
+      XE.Initialize;
       XE_Scan.Initialize;
       XE_Parse.Initialize;
+      XE_Stdcnf.Initialize;
       XE_Back.Initialize;
       XE_Check.Initialize;
 
@@ -88,7 +92,7 @@ begin
          --  If the filename is not already correct.
          if not Is_Regular_File (N) then
 
-            Message ("", N, " not found");
+            Message ("", To_String (N), "not found");
             Exit_Program (E_Fatal);
          else
             Configuration_File := N;
@@ -109,16 +113,10 @@ begin
       Name_Len := Name_Len - 4;
       if Configuration /= Name_Find then
          if not Quiet_Output then
-            Message ("configuration file name should be """, Configuration,
-                     ".cfg""");
+            Message ("configuration file name should be",
+                     To_String (Configuration & Str_To_Id (Suffix)));
          end if;
          raise Fatal_Error;
-      end if;
-
-      Check;
-
-      if not Quiet_Output then
-         Show_Configuration;
       end if;
 
       --  Look for a partition list on the command line. Only those
@@ -146,6 +144,22 @@ begin
             end;
 
          end loop;
+
+         --  Do we build the full configuration?
+         for P in Partitions.First + 1 .. Partitions.Last loop
+            if not Partitions.Table (P).To_Build then
+               Partitions.Table (Default_Partition).To_Build := False;
+               exit;
+            end if;
+         end loop;
+      end if;
+
+      --  Check consistency now that we know the partitions to build
+
+      Check;
+
+      if not Quiet_Output then
+         Show_Configuration;
       end if;
 
       XE_Stubs.Build;
@@ -173,6 +187,8 @@ exception
       Exit_Program (E_Fatal);
    when Fatal_Error =>
       Message ("*** can't continue");
+      Exit_Program (E_Fatal);
+   when Compilation_Failed =>
       Exit_Program (E_Fatal);
    when others =>
       Message ("*** unknown error");

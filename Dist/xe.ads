@@ -76,7 +76,7 @@ package XE is
 
    -- Attribute_Type --
 
-   type Attribute_Type is new Types.Int range 200 .. 209;
+   type Attribute_Type is new Types.Int range 200 .. 210;
 
    Attribute_Unknown      : constant Attribute_Type := 200;
    Attribute_Host         : constant Attribute_Type := 201;
@@ -88,6 +88,7 @@ package XE is
    Attribute_PFilter      : constant Attribute_Type := 207;
    Attribute_CFilter      : constant Attribute_Type := 208;
    Attribute_Task_Pool    : constant Attribute_Type := 209;
+   Attribute_Reconnection : constant Attribute_Type := 210;
 
 
    -- Pragma_Type --
@@ -136,6 +137,24 @@ package XE is
    Local_Termination    : constant Termination_Type := 501;
    Global_Termination   : constant Termination_Type := 502;
    Deferred_Termination : constant Termination_Type := 503;
+
+
+   -- Boolean_Type --
+
+   type Boolean_Type is new Types.Int range 600 .. 602;
+
+   Bunknown  : constant Boolean_Type := 600;
+   Bfalse    : constant Boolean_Type := 601;
+   Btrue     : constant Boolean_Type := 602;
+
+   -- Reconnection_Type --
+
+   type Reconnection_Type is new Types.Int range 700 .. 703;
+
+   Unknown_Reconnection  : constant Reconnection_Type := 700;
+   Rejected_On_Restart   : constant Reconnection_Type := 701;
+   Blocked_Until_Restart : constant Reconnection_Type := 702;
+   Failed_Until_Restart  : constant Reconnection_Type := 703;
 
 
    -- Node_Id --
@@ -208,6 +227,9 @@ package XE is
    No_Recompilation   : Boolean;
    Building_Script    : Boolean;
 
+   Reconnection_Img : array (Reconnection_Type) of Types.Name_Id;
+   Termination_Img  : array (Termination_Type) of Types.Name_Id;
+   Boolean_Img      : array (Boolean_Type) of Types.Name_Id;
 
    procedure Add_Configuration_Declaration
      (Configuration_Node : in Configuration_Id;
@@ -382,6 +404,8 @@ package XE is
      (Variable_Node : Variable_Id)
      return Variable_Id;
    --  Return a variable rather than a scalar as a value.
+
+   procedure Initialize;
 
    function  Is_Component
      (Node : Node_Id)

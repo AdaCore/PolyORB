@@ -1,3 +1,57 @@
+1998-08-17  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* Makefile.am, Makefile.in: Remove flag -a as we are not supposed
+	to check gnat library.
+
+	* xe_back.adb: Provide 'Image to some GLADE enuerate types.
+
+	* xe.ads: Add new reconnection attribute and reconnection
+	enumerate type.
+
+	* xe_back.adb: Reformat some output messages and handle
+ 	reconnection attribute. Add function To_Build which returns True
+ 	when an unit has to be built because it explictly mapped on a
+	partition in the configuration file.
+
+	* xe_back.ads: Add a set of subprograms to handle reconnection
+ 	attribute.
+
+	* xe_build.adb: Improve the way packages are initiliazed in order
+ 	to initialize GLADE enumerate type images. Evaluate a new boolean
+ 	Build_Full_Configuration.
+
+	* xe_check.adb: Rewrite everything to handle the case where the
+ 	user builds only a part of the configuration with an incomplete
+ 	set of sources (all the sources to build the distributed
+ 	application are not available). Improve the checks to perform when
+ 	we don't build the full configuration.
+	
+	* xe_lead.adb: Reformat some output messages.
+
+	* xe_parse.adb: Improve the way packages are initiliazed.
+
+	* xe_scan.adb: Reformat some output messages.
+
+	* xe_stdcnf.adb: Improve the way enumerate types are handled. Add
+	attribute reconnection.
+
+	* xe_stubs.adb: Generate appropriate call when reconnection
+ 	attribute is used. Find RCI caller packages in a less tricky
+ 	way. Improve the way the partition closure is computed. Improve
+ 	the checks to perform when we don't build the full
+ 	configuration. Use enumeration type images.
+
+	* xe_utils.adb: Export No_Args. Provide new procedures (see
+ 	below). Skip parameter Object in Execute_Gcc when this parameter
+ 	is No_File. Don't exit when GCC fails to compile. Reformat some
+ 	output messages. Improve procedure Find_Source in order to use
+ 	%[bs] when it is available..
+
+	* xe_utils.ads: Add new procedures Compilation_Error and
+	Source_File_Error to print a message and raise an exception. Add
+	Is_Spec_Name and Is_Body_Name (same as uname, but do not drag this 
+	unit). Add To_Spec to get an encoded spec name. Add To_String.
+	
 1998-08-05  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* xe_lead.adb: Do not issue -n inconditionnally when building

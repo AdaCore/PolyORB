@@ -80,7 +80,6 @@ package body XE_Utils is
    Ada_File_Flag         : constant String_Access := new String' ("ada");
 
    Garlic           : constant String_Access := Get_GARLIC_Dir;
-   No_Args          : constant Argument_List (1 .. 0) := (others => null);
 
    function Locate
      (Exec_Name  : String;
@@ -139,14 +138,14 @@ package body XE_Utils is
    begin
 
       if Debug_Mode then
-         Message ("change to dir ", To);
+         Message ("change to dir", To);
       end if;
 
       Get_Name_String (To);
       C_Path (1 .. Name_Len) := Name_Buffer (1 .. Name_Len);
       C_Path (Name_Len + 1) := Ascii.Nul;
       if Chdir (C_Path'Address) /= 0 then
-         Message ("cannot change dir to ", To);
+         Message ("cannot change dir to", To);
          raise Fatal_Error;
       end if;
 
@@ -165,6 +164,16 @@ package body XE_Utils is
       end if;
 
    end Change_Dir;
+
+   -----------------------
+   -- Compilation_Error --
+   -----------------------
+
+   procedure Compilation_Error (File : File_Name_Type) is
+   begin
+      Message ("", File, "compilation error");
+      raise Compilation_Failed;
+   end Compilation_Error;
 
    ------------------------
    -- Compile_RCI_Caller --
@@ -203,7 +212,7 @@ package body XE_Utils is
       Maybe_Symbolic : in Boolean := False) is
       S : String_Access := new String (1 .. Strlen (Source));
       T : String_Access := new String (1 .. Strlen (Target));
-      --  procedure Free is new Unchecked_Deallocation (String, String_Access);
+
    begin
       Get_Name_String (Source);
       S.all := Name_Buffer (1 .. Name_Len);
@@ -239,13 +248,13 @@ package body XE_Utils is
       File_Name (File_Name_Len + 1) := Ascii.Nul;
 
       if Verbose_Mode then
-         Message ("creating file ", Name);
+         Message ("creating file", Name);
       end if;
 
       File := Create_File (File_Name'Address, Text);
 
       if File = Invalid_FD then
-         Message ("cannot create file ", Name);
+         Message ("cannot create file", Name);
          raise Fatal_Error;
       end if;
 
@@ -290,7 +299,7 @@ package body XE_Utils is
       Error : Boolean;
    begin
       if Verbose_Mode then
-         Message ("deleting ", File);
+         Message ("deleting", File);
       end if;
       Get_Name_String (File);
       Name_Len := Name_Len + 1;
@@ -335,8 +344,9 @@ package body XE_Utils is
    -------------
 
    procedure Execute
-     (Prog : in String_Access;
-      Args : in Argument_List) is
+     (Prog  : in String_Access;
+      Args  : in Argument_List;
+      Fatal : in Boolean := True) is
       Success : Boolean := False;
    begin
 
@@ -366,8 +376,8 @@ package body XE_Utils is
 
       Spawn (Prog.all, Args, Success);
 
-      if not Success then
-         Message ("", No_Name, Prog.all, No_Name, " failed");
+      if Fatal and then not Success then
+         Message (Prog.all, No_Name, "failed");
          raise Fatal_Error;
       end if;
 
@@ -378,8 +388,9 @@ package body XE_Utils is
    ------------------
 
    procedure Execute_Bind
-     (Lib  : in File_Name_Type;
-      Args : in Argument_List) is
+     (Lib   : in File_Name_Type;
+      Args  : in Argument_List;
+      Fatal : in Boolean := True) is
 
 
       Length : constant Positive :=
@@ -417,7 +428,7 @@ package body XE_Utils is
 
       --  Call gnatbind
 
-      Execute (Gnatbind, Bind_Flags (1 .. N_Bind_Flags));
+      Execute (Gnatbind, Bind_Flags (1 .. N_Bind_Flags), Fatal);
 
    end Execute_Bind;
 
@@ -428,7 +439,8 @@ package body XE_Utils is
    procedure Execute_Gcc
      (File   : in File_Name_Type;
       Object : in File_Name_Type;
-      Args   : in Argument_List) is
+      Args   : in Argument_List;
+      Fatal  : in Boolean := True) is
 
       Max_Length  : constant Natural
         := Gcc_Switches.Last - Gcc_Switches.First + 6 + Args'Length + 2;
@@ -457,13 +469,15 @@ package body XE_Utils is
       File_Name := new String'(Name_Buffer (1 .. Name_Len));
       Gcc_Flags (N_Gcc_Flags) := File_Name;
 
-      N_Gcc_Flags := N_Gcc_Flags + 1;
-      Gcc_Flags (N_Gcc_Flags) := Output_Flag;
+      if Object /= No_File then
+         N_Gcc_Flags := N_Gcc_Flags + 1;
+         Gcc_Flags (N_Gcc_Flags) := Output_Flag;
 
-      N_Gcc_Flags := N_Gcc_Flags + 1;
-      Get_Name_String (Object);
-      Object_Name := new String'(Name_Buffer (1 .. Name_Len));
-      Gcc_Flags (N_Gcc_Flags) := Object_Name;
+         N_Gcc_Flags := N_Gcc_Flags + 1;
+         Get_Name_String (Object);
+         Object_Name := new String'(Name_Buffer (1 .. Name_Len));
+         Gcc_Flags (N_Gcc_Flags) := Object_Name;
+      end if;
 
       for I in Args'Range loop
          N_Gcc_Flags := N_Gcc_Flags + 1;
@@ -478,7 +492,7 @@ package body XE_Utils is
       N_Gcc_Flags := N_Gcc_Flags + 1;
       Gcc_Flags (N_Gcc_Flags) := I_Current_Dir;
 
-      Execute (Gcc, Gcc_Flags (1 .. N_Gcc_Flags));
+      Execute (Gcc, Gcc_Flags (1 .. N_Gcc_Flags), Fatal);
 
       Free (File_Name);
       Free (Object_Name);
@@ -490,9 +504,10 @@ package body XE_Utils is
    ------------------
 
    procedure Execute_Link
-     (Lib  : in File_Name_Type;
-      Exec : in File_Name_Type;
-      Args : in Argument_List) is
+     (Lib   : in File_Name_Type;
+      Exec  : in File_Name_Type;
+      Args  : in Argument_List;
+      Fatal : in Boolean := True) is
 
 
       Length : constant Positive :=
@@ -540,7 +555,7 @@ package body XE_Utils is
 
       --  Call gnatmake
 
-      Execute (Gnatlink, Link_Flags (1 .. N_Link_Flags));
+      Execute (Gnatlink, Link_Flags (1 .. N_Link_Flags), Fatal);
 
    end Execute_Link;
 
@@ -790,6 +805,30 @@ package body XE_Utils is
    end Initialize;
 
    ------------------
+   -- Is_Body_Name --
+   ------------------
+
+   function Is_Body_Name (U : Unit_Name_Type) return Boolean is
+   begin
+      Get_Name_String (U);
+      return Name_Len > 2
+        and then Name_Buffer (Name_Len - 1) = '%'
+        and then Name_Buffer (Name_Len) = 'b';
+   end Is_Body_Name;
+
+   ------------------
+   -- Is_Spec_Name --
+   ------------------
+
+   function Is_Spec_Name (U : Unit_Name_Type) return Boolean is
+   begin
+      Get_Name_String (U);
+      return Name_Len > 2
+        and then Name_Buffer (Name_Len - 1) = '%'
+        and then Name_Buffer (Name_Len) = 's';
+   end Is_Spec_Name;
+
+   ------------------
    -- Is_Directory --
    ------------------
 
@@ -825,16 +864,23 @@ package body XE_Utils is
    -- Find_Source --
    -----------------
 
-   function Find_Source (U : Name_Id) return File_Name_Type is
+   function Find_Source
+     (Uname : Unit_Name_Type;
+      Fatal : Boolean := False)
+      return File_Name_Type is
       Info : Int;
       File : File_Name_Type;
+      Name : Unit_Name_Type;
+      Spec : Boolean;
 
    begin
-      Get_Name_String (U);
-      Name_Len := Name_Len + 1;
-      Name_Buffer (Name_Len) := '%';
-      Name_Len := Name_Len + 1;
-      Name_Buffer (Name_Len) := 'b';
+      Get_Name_String (Uname);
+      if Name_Len < 3 or else Name_Buffer (Name_Len - 1) /= '%' then
+         Name_Len := Name_Len + 1;
+         Name_Buffer (Name_Len) := '%';
+         Name_Len := Name_Len + 1;
+         Name_Buffer (Name_Len) := 'b';
+      end if;
 
       --  If Info /= 0, then this unit is already in table Unit. Info
       --  corresponds to the index in this table. Check body first.
@@ -843,10 +889,6 @@ package body XE_Utils is
 
       Info := Get_Name_Table_Info (Name_Find);
       if Info /= 0 then
-         if Debug_Mode then
-            Message ("unit ", U,
-                     " => source ", Unit.Table (Unit_Id (Info)).Sfile);
-         end if;
          return Unit.Table (Unit_Id (Info)).Sfile;
       else
          --  If Info /= 0, then this unit is already in table Unit. Info
@@ -855,26 +897,41 @@ package body XE_Utils is
          Name_Buffer (Name_Len) := 's';
          Info := Get_Name_Table_Info (Name_Find);
          if Info /= 0 then
-            if Debug_Mode then
-               Message ("unit ", U,
-                        " => source ", Unit.Table (Unit_Id (Info)).Sfile);
-            end if;
             return Unit.Table (Unit_Id (Info)).Sfile;
          end if;
 
-         --  Find a regular source file.
-         File := File_Name_Of_Body (U);
-         if Full_Source_Name (File) = No_File then
-            File := File_Name_Of_Spec (U);
-            if Full_Source_Name (File) = No_File then
-               Message ("no source file for unit """, U, """");
-               Exit_Program (E_Fatal);
+         Name := U_To_N (Uname);
+
+         --  Find a regular source file. If Uname is a spec name,
+         --  then try to find the spec source first. Otherwise,
+         --  try to find the body source, then the spec one.
+
+         Spec := Is_Spec_Name (Uname);
+
+         if Spec then
+            File := File_Name_Of_Spec (Name);
+            if Full_Source_Name (File) /= No_File then
+               return File;
             end if;
          end if;
-         if Debug_Mode then
-            Message ("unit ", U, " => source ", File);
+
+         File := File_Name_Of_Body (Name);
+         if Full_Source_Name (File) /= No_File then
+            return File;
          end if;
-         return File;
+
+         if not Spec then
+            File := File_Name_Of_Spec (Name);
+            if Full_Source_Name (File) /= No_File then
+               return File;
+            end if;
+         end if;
+
+         if Fatal then
+            Source_File_Error (Uname);
+         end if;
+
+         return No_File;
       end if;
    end Find_Source;
 
@@ -898,7 +955,7 @@ package body XE_Utils is
       begin
          Loc := Locate_Regular_File (Exe, Path.all);
          if Loc = null and then Show_Error then
-            Message (Exe, No_Name, " is not in your path");
+            Message (Exe, No_Name, "is not in your path");
             raise Fatal_Error;
          end if;
       end;
@@ -917,24 +974,39 @@ package body XE_Utils is
       S5 : in String  := "") is
    begin
       Write_Program_Name;
-      Write_Str (": ");
+      Write_Str (":");
       if S1 /= "" then
-         Write_Str (S1);
+         Write_Char (' ');
+         Write_Str  (S1);
       end if;
       if S2 /= No_Name then
+         Write_Char (' ');
          Write_Name (S2);
       end if;
       if S3 /= "" then
-         Write_Str (S3);
+         Write_Char (' ');
+         Write_Str  (S3);
       end if;
       if S4 /= No_Name then
+         Write_Char (' ');
          Write_Name (S4);
       end if;
       if S5 /= "" then
-         Write_Str (S5);
+         Write_Char (' ');
+         Write_Str  (S5);
       end if;
       Write_Eol;
    end Message;
+
+   -----------------------
+   -- Source_File_Error --
+   -----------------------
+
+   procedure Source_File_Error (Uname : Unit_Name_Type) is
+   begin
+      Message ("no source file for unit", To_String (U_To_N (Uname)));
+      raise Compilation_Failed;
+   end Source_File_Error;
 
    -----------
    -- Stamp --
@@ -992,6 +1064,50 @@ package body XE_Utils is
       To_Lower (Name_Buffer (1 .. Name_Len));
       N := Name_Find;
    end To_Lower;
+
+   --------------
+   -- To_Lower --
+   --------------
+
+   function To_Lower (N : Name_Id) return Name_Id is
+   begin
+      Get_Name_String (N);
+      To_Lower (Name_Buffer (1 .. Name_Len));
+      return Name_Find;
+   end To_Lower;
+
+   -------------
+   -- To_Spec --
+   -------------
+
+   function To_Spec (U : Unit_Name_Type) return Unit_Name_Type is
+   begin
+      Get_Name_String (U);
+      if Name_Len > 2
+        and then Name_Buffer (Name_Len - 1) = '%'
+      then
+         Name_Buffer (Name_Len) := 's';
+      else
+         Name_Len := Name_Len + 1;
+         Name_Buffer (Name_Len) := '%';
+         Name_Len := Name_Len + 1;
+         Name_Buffer (Name_Len) := 's';
+      end if;
+      return Name_Find;
+   end To_Spec;
+
+   ---------------
+   -- To_String --
+   ---------------
+
+   function To_String (N : Name_Id) return Name_Id is
+   begin
+      Name_Len := 0;
+      Add_Char_To_Name_Buffer ('"');
+      Get_Name_String_And_Append (N);
+      Add_Char_To_Name_Buffer ('"');
+      return Name_Find;
+   end To_String;
 
    ------------
    -- U_To_N --
@@ -1084,7 +1200,7 @@ package body XE_Utils is
    procedure Write_Missing_File
      (File  : in File_Name_Type) is
    begin
-      Message ("", File, " does not exist");
+      Message ("", File, "does not exist");
    end Write_Missing_File;
 
    -------------------

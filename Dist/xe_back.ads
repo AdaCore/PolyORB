@@ -157,6 +157,7 @@ package XE_Back is
       Command_Line    : Command_Line_Type;
       Main_Subprogram : Types.Unit_Name_Type;
       Termination     : XE.Termination_Type;
+      Reconnection    : XE.Reconnection_Type;
       First_Unit      : CUID_Type;
       Last_Unit       : CUID_Type;
       First_Channel   : CID_Type;
@@ -233,8 +234,6 @@ package XE_Back is
      (P : in PID_Type;
       F : in Types.File_Name_Type);
 
-   Image : array (XE.Termination_Type) of Types.Name_Id;
-
    procedure Create_Channel
      (Name : in  Channel_Name_Type;
       Node : in  XE.Node_Id;
@@ -297,6 +296,9 @@ package XE_Back is
    --  Look for storage_dir into partitions and compute relative executable
    --  name into partitions. If null, return default.
 
+   function Get_Reconnection    (P : PID_Type) return XE.Reconnection_Type;
+   --  Look for reconnection mode into partitions. If null, return default.
+
    function Get_Storage_Dir     (P : PID_Type) return Storage_Dir_Name_Type;
    --  Look for storage_dir into partitions. If null, return default.
 
@@ -344,14 +346,20 @@ package XE_Back is
    procedure Set_PID
      (N : in Types.Name_Id; P : in PID_Type);
 
+   procedure Set_Reconnection
+     (P : in PID_Type; R : in XE.Reconnection_Type);
+
    procedure Set_Termination
      (P : in PID_Type; T : in XE.Termination_Type);
 
    procedure Set_Unit_Id
      (N : in Types.Name_Id; U : in ALI.Unit_Id);
-   --  Set U into N key.
+   --  Set U into N key
 
    procedure Show_Configuration;
-   --  Report the current configuration.
+   --  Report the current configuration
+
+   function To_Build (U : CUID_Type) return Boolean;
+   --  Is this unit mapped on a partition to build
 
 end XE_Back;

@@ -1,4 +1,4 @@
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
@@ -33,6 +33,7 @@ with Make;             use Make;
 with Namet;            use Namet;
 with Opt;
 with Osint;            use Osint;
+with Table;
 with Types;            use Types;
 with XE;               use XE;
 with XE_Back;          use XE_Back;
@@ -40,256 +41,181 @@ with XE_Utils;         use XE_Utils;
 
 package body XE_Check is
 
-   ----------------
-   -- Initialize --
-   ----------------
+   type Compilation_Job is
+      record
+         Uname : Unit_Name_Type;
+         Fatal : Boolean;
+      end record;
 
-   procedure Initialize is
+   package Compilation_Jobs  is new Table.Table
+     (Table_Component_Type => Compilation_Job,
+      Table_Index_Type     => Natural,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 20,
+      Table_Increment      => 100,
+      Table_Name           => "Compilation_Jobs");
+
+   Arguments    : Argument_List_Access;
+   Old_Obj_Chk  : Boolean;
+
+   Compilation_Jobs_First : Natural := 1;
+
+   function Build_Full_Configuration return Boolean;
+   --  True iff we build all the partitions
+
+   procedure Compile_RCI_Spec_Only
+     (Uname : in Unit_Name_Type;
+      Ufile : in File_Name_Type);
+   --  GNAT failed to compile unit Uname. Either it does not find
+   --  Ufile or Ufile does not compile. Try to compile the spec file
+   --  instead. To do so, check that Ufile is not already a spec file.
+   --  If any error occurs in this procedure, then we shall
+   --  decide later on if it is a fatal error. If it compiles, then
+   --  load the ali file to check it is a RCI unit. If it is not a RCI
+   --  unit, remove its ali file and returns. If it is a RCI unit,
+   --  push the withed units of the spec unit in the compilation queue.
+
+   function Empty return Boolean;
+   --  True iff compilation queue is empty
+
+   procedure Load_Unit
+     (Uname : in Unit_Name_Type;
+      Afile : in File_Name_Type := No_File);
+   --  Load ali file of unit Uname and call Load_Withed_Unit on the withed
+   --  units. If Afile is different from No_File, then use it. Otherwise,
+   --  try to find it. If the ali file does not exist, then raise a
+   --  compilation error.
+
+   procedure Load_Withed_Unit (W : in With_Id);
+   --  Load ali file of unit W and call Load_Withed_Unit on the withed
+   --  units. If its ali file does not exist, then raise a compilation
+   --  error. If W is a RCI unit and W is not marked, then call
+   --  Load_Withed_Unit on the withed units of the spec unit only.
+
+   function Marked (U : Unit_Name_Type) return Boolean;
+   --  True iff U is already in the compilation queue
+
+   procedure Mask_Object_Consistency_Check;
+   --  Preserve Check_Object_Consistency and set it to False
+
+   procedure Pull
+     (Uname : out Unit_Name_Type;
+      Fatal : out Boolean);
+   --  Extract first compilation job from queue
+
+   procedure Push
+     (Uname : in  Unit_Name_Type;
+      Fatal : in  Boolean);
+   --  Append a compilation job in queue and mark Uname to avoid
+   --  multiple instances of this job.
+
+   procedure Recompile
+     (Uname : in Unit_Name_Type;
+      Fatal : in Boolean);
+   --  Recompile unit of name Unameand as many as its dependencies it is
+   --  possible. When Fatal is true, a compilation failure on file of
+   --  unit name Uname raises a fatal error. Otherwise, on a compilation
+   --  failure, try to compile the spec file instead.
+
+   procedure Unmask_Object_Consistency_Check;
+   --  Restore Check_Object_Consistency
+
+   ------------------------------
+   -- Build_Full_Configuration --
+   ------------------------------
+
+   function Build_Full_Configuration return Boolean is
    begin
-      Initialize_ALI;
-   end Initialize;
+      return Partitions.Table (Default_Partition).To_Build;
+   end Build_Full_Configuration;
 
    -----------
    -- Check --
    -----------
 
    procedure Check is
-
-      --  Once this procedure called, we have the following properties:
-      --
-      --  * Info of CUnit.Table (U).CUname corresponds to its ALI_Id ie ali
-      --  index corresponding to ada unit CUnit.Table (U).CUname.
-      --
-      --  * Info of Unit.Table (U).Uname corresponds to its CUID_Id ie
-      --  mapped unit index corresponding to ada unit Unit.Table (U).Uname
-      --  if this unit has been mapped.
-      --
-      --  * Info of Partitions.Table (P).Name corresponds to its PID.
-
-      Inconsistent : Boolean := False;
-      PID  : PID_Type;
-      Ali  : ALI_Id;
-
-      Compiled    : Name_Id;
-      Args        : Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
-      Main        : Boolean;
-
-      procedure Load_ALIs (Afile : in File_Name_Type);
-      --  Load ali in ali table and recursively load dependencies. Skip
-      --  loading for an internal library or an already loaded library.
-
-      procedure Load_Units (Uname : in Name_Id);
-      --  Load ali of this unit in ali table and recursively load
-      --  dependencies. Don't load an already loaded library.
-
-      procedure Recompile (Unit : in Name_Id);
-
-      ---------------
-      -- Load_ALIs --
-      ---------------
-
-      procedure Load_ALIs (Afile : in File_Name_Type) is
-         A    : ALI_Id;
-         Text : Text_Buffer_Ptr;
-
-      begin
-         if Debug_Mode then
-            Message ("load alis of ", Afile);
-         end if;
-
-         if Is_Internal_File_Name (Afile) then
-            if Debug_Mode then
-               Message ("... skip ", Afile, " internal library");
-            end if;
-            return;
-         end if;
-
-         A := Get_ALI_Id (Afile);
-         if A /= No_ALI_Id then
-            if Debug_Mode then
-               Message ("... skip ", Afile, " already loaded");
-            end if;
-            return;
-         end if;
-
-         Text := Read_Library_Info (Afile);
-         A    := Scan_ALI (Afile, Text);
-         ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (Afile);
-
-         for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
-            for W in Unit.Table (U).First_With .. Unit.Table (U).Last_With loop
-               if Withs.Table (W).Afile /= No_File then
-                  Load_ALIs (Withs.Table (W).Afile);
-               end if;
-            end loop;
-         end loop;
-      end Load_ALIs;
-
-      ----------------
-      -- Load_Units --
-      ----------------
-
-      procedure Load_Units (Uname : in Name_Id) is
-         A    : ALI_Id;
-         Lib  : Name_Id;
-         Text : Text_Buffer_Ptr;
-
-      begin
-         if Debug_Mode then
-            Message ("load alis of ", Uname);
-         end if;
-
-         Lib := Lib_File_Name (Find_Source (Uname));
-
-         A := Get_ALI_Id (Lib);
-         if A /= No_ALI_Id then
-            if Debug_Mode then
-               Message ("... skip ", Lib, " already loaded");
-            end if;
-            return;
-         end if;
-
-         Text := Read_Library_Info (Lib);
-         A    := Scan_ALI (Lib, Text);
-         ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (Lib);
-
-         if Is_Internal_File_Name (Lib) then
-            if Debug_Mode then
-               Message ("... skip ", Lib, " internal library");
-            end if;
-            return;
-         end if;
-
-         for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
-            for W in Unit.Table (U).First_With .. Unit.Table (U).Last_With loop
-               if Withs.Table (W).Afile /= No_File then
-                  Load_ALIs (Withs.Table (W).Afile);
-               end if;
-            end loop;
-         end loop;
-      end Load_Units;
-
-      ---------------
-      -- Recompile --
-      ---------------
-
-      procedure Recompile (Unit : in Name_Id) is
-         File_Name     : Name_Id;
-         Missing_Alis  : Boolean;
-         Object        : Name_Id;
-         Stamp         : Time_Stamp_Type;
-         Lib_File      : Name_Id;
-
-      begin
-         File_Name := Find_Source (Unit);
-         Lib_File  := Lib_File_Name (File_Name);
-
-         if Get_ALI_Id (Lib_File) /= No_ALI_Id then
-            return;
-         end if;
-
-         if Verbose_Mode then
-            Message ("recompile ", Unit);
-         end if;
-
-         Compile_Sources
-           (Main_Source           => File_Name,
-            Args                  => Args,
-            First_Compiled_File   => Compiled,
-            Most_Recent_Obj_File  => Object,
-            Most_Recent_Obj_Stamp => Stamp,
-            Main_Unit             => Main,
-            Missing_Alis          => Missing_Alis,
-            Check_Readonly_Files  => Opt.Check_Readonly_Files,
-            Dont_Execute          => No_Recompilation,
-            Force_Compilations    => Opt.Force_Compilations,
-            In_Place_Mode         => Opt.In_Place_Mode,
-            Initialize_Ali_Data   => False,
-            Max_Process           => Opt.Maximum_Processes);
-
-         if Building_Script then
-            Write_Compile_Command (File_Name);
-         end if;
-      end Recompile;
+      A      : ALI_Id;
+      CU     : CUID_Type;
+      Uname  : Unit_Name_Type;
+      CUname : Unit_Name_Type;
+      Fatal  : Boolean;
+      Error  : Boolean := False;
 
    begin
-      --  Configure units configured on partition type on every partition
+      Compilation_Jobs.Init;
 
-      declare
-         U : CUID_Type := Partitions.Table (Default_Partition).First_Unit;
-      begin
-         while U /= Null_CUID loop
-            for P in Partitions.First + 1 .. Partitions.Last loop
-               Add_Conf_Unit (CUnit.Table (U).CUname, P);
-            end loop;
-            U := CUnit.Table (U).Next;
+      --  Configure units on every partition when they are
+      --  configured on partition type. This is the case when
+      --  we have for Partition'Main use Main; Main has to be
+      --  configured on every partition.
+
+      CU := Partitions.Table (Default_Partition).First_Unit;
+      while CU /= Null_CUID loop
+         for P in Partitions.First + 1 .. Partitions.Last loop
+            Add_Conf_Unit (CUnit.Table (CU).CUname, P);
          end loop;
-      end;
-
-      if Debug_Mode then
-         Message ("unmark configured units");
-      end if;
-
-      for U in CUnit.First .. CUnit.Last loop
-         Set_Name_Table_Info (CUnit.Table (U).CUname, 0);
+         CU := CUnit.Table (CU).Next;
       end loop;
 
-      --  Set future Ada names to null. Compile (or load) all Ada units and
-      --  check later on that these are not already used.
+      --  Unmark any configured unit
+      for CU in CUnit.First .. CUnit.Last loop
+         Set_Name_Table_Info (CUnit.Table (CU).CUname, 0);
+      end loop;
 
-      Set_Name_Table_Info (Configuration, 0);
-
-      --  Recompile the non-distributed application
-
+      --  Initialize parameters for Compile_Sources
       if not No_Recompilation then
-
+         Arguments
+           := new Argument_List (Gcc_Switches.First .. Gcc_Switches.Last);
          Display_Commands (Verbose_Mode or Building_Script);
          for Switch in Gcc_Switches.First .. Gcc_Switches.Last loop
-            Args (Switch) := Gcc_Switches.Table (Switch);
+            Arguments (Switch) := Gcc_Switches.Table (Switch);
          end loop;
-
       end if;
+
+      --  Check consistency of units when we need them to build the
+      --  partitions we want to generate. We try to load main subprogram
+      --  first, because the main subprogram file name has to follow
+      --  GNAT file naming convention. Then, it will take gnat.adc into
+      --  account and the next units will be allowed to have special naming.
+
+      if Debug_Mode then
+         Message ("check non-dist. app. units");
+      end if;
+
+      Main_Subprogram := Get_Main_Subprogram (Main_Partition);
+      if Partitions.Table (Main_Partition).To_Build then
+         Push (Main_Subprogram, True);
+      end if;
+      for U in CUnit.First .. CUnit.Last loop
+         if To_Build (U) then
+            Push (CUnit.Table (U).CUname, True);
+         end if;
+      end loop;
+
+      while not Empty loop
+         Pull (Uname, Fatal);
+         Recompile (Uname, Fatal);
+      end loop;
+
+      --  These units have to be explicitly loaded. If the library is a
+      --  readonly or internal library, it won't be loaded by gnatmake but
+      --  we *must* load this library in the ALI table. Moreover, when
+      --  Compile_Sources is invoked several times, it won't always realize
+      --  that some units are already loaded. We may have to load incomplete
+      --  ali file (compiled with spec only). We choose to free the tables
+      --  and then to reload everything. We also check that each partition
+      --  closure is correct.
 
       if Debug_Mode then
          Message ("load dist. app. units");
       end if;
 
-      --  Recompile all the configured units to check that
-      --  they are read Ada units. It is also a way to load the ali
-      --  files in the ALIs table and to get the most recent file to
-      --  which depends a unit. Load the main subprogram first because
-      --  this unit has to match GNAT source file convention. When
-      --  this unit is loaded, gnat.adc has been taken into account
-      --  and the next units will be allowed to have special naming.
-
-      Main_Subprogram := Get_Main_Subprogram (Main_Partition);
-      Recompile (Main_Subprogram);
-      for U in CUnit.First .. CUnit.Last loop
-         Recompile (CUnit.Table (U).CUname);
-      end loop;
-
-      --  These units have to be explicitly loaded. If the library is a
-      --  readonly or internal library, it won't be loaded by gnatmake but
-      --  we need to load this library in the ALI table. Moreover, when
-      --  gnatmake is invoked several times, it won't realize that some
-      --  units are already loaded. For this reason, we can't use Recompile
-      --  to load the ALI files. Moreover, when an ALI file is incorrect,
-      --  the wrong ALI file is kept in the ALI table. So, we choose to
-      --  recompile everything, to free the tables and then to reload
-      --  everything.
-
       for A in ALIs.First .. ALIs.Last loop
          Set_Name_Table_Info (ALIs.Table (A).Afile, 0);
-         if Debug_Mode then
-            Message ("reset ", ALIs.Table (A).Afile);
-         end if;
       end loop;
 
       for U in Unit.First .. Unit.Last loop
          Set_Name_Table_Info (Unit.Table (U).Uname, 0);
-         if Debug_Mode then
-            Message ("reset ", Unit.Table (U).Uname);
-         end if;
       end loop;
 
       ALIs.Init;
@@ -298,28 +224,30 @@ package body XE_Check is
       Sdep.Init;
       Source.Init;
 
-      declare
-         Old_Check_Object_Consistency : Boolean
-           := Opt.Check_Object_Consistency;
-      begin
-         --  Supress object consistency because of Ada libraries. Anyway,
-         --  we know that the application is consistent. Somehow, it is an
-         --  optimization.
+      --  Suppress object consistency because of Ada libraries and RCI
+      --  units compiled with spec only. We know that the application
+      --  is consistent. Somehow, it is an optimization.
 
-         Opt.Check_Object_Consistency := False;
-         Load_Units (Main_Subprogram);
-         for U in CUnit.First .. CUnit.Last loop
-            Load_Units (CUnit.Table (U).CUname);
-         end loop;
-         Opt.Check_Object_Consistency := Old_Check_Object_Consistency;
-      end;
+      --  Note that all the configured units have been marked because
+      --  they were pushed in the compilation queue. This assertion
+      --  is very important and use in Load_Unit and Load_Withed_Unit.
+
+      Mask_Object_Consistency_Check;
+
+      if Partitions.Table (Main_Partition).To_Build then
+         Load_Unit (Main_Subprogram);
+      end if;
+      for U in CUnit.First .. CUnit.Last loop
+         if To_Build (U) then
+            Load_Unit (CUnit.Table (U).CUname);
+         end if;
+      end loop;
+
+      Unmask_Object_Consistency_Check;
 
       --  Set configured unit name key to No_Ali_Id       (1)
 
-      if Debug_Mode then
-         Message ("set configured unit name key to No_Ali_Id");
-      end if;
-
+      Set_ALI_Id (Configuration, No_ALI_Id);
       for U in CUnit.First .. CUnit.Last loop
          Set_ALI_Id (CUnit.Table (U).CUname, No_ALI_Id);
       end loop;
@@ -327,23 +255,12 @@ package body XE_Check is
       --  Set ada unit name key to null                   (2)
       --  Set configured unit name key to the ali file id (3)
 
-      if Debug_Mode then
-         Message ("set ada unit name key to null");
-         Message ("set configured unit name key to the ali file id");
-      end if;
-
       for U in Unit.First .. Unit.Last loop
          Set_CUID (Unit.Table (U).Uname, Null_CUID);
-         Get_Name_String (Unit.Table (U).Uname);
-         Name_Len := Name_Len - 2;
-         Set_ALI_Id (Name_Find, Unit.Table (U).My_ALI);
+         Set_ALI_Id (U_To_N (Unit.Table (U).Uname), Unit.Table (U).My_ALI);
       end loop;
 
       --  Set partition name key to Null_PID              (4)
-
-      if Debug_Mode then
-         Message ("set partition name key to Null_PID");
-      end if;
 
       for P in Partitions.First + 1 .. Partitions.Last loop
          Set_PID (Partitions.Table (P).Name, Null_PID);
@@ -357,92 +274,105 @@ package body XE_Check is
       --  Check conf. unit are not multiply configured.
 
       if Debug_Mode then
-         Message ("check conf. unit name key to detect non-Ada unit");
-         Message ("check conf. unit are not multiply configured");
+         Message ("detect non-Ada unit");
+         Message ("detect multiply conf. unit");
       end if;
 
       for U in CUnit.First .. CUnit.Last loop
-         Ali := Get_ALI_Id (CUnit.Table (U).CUname);
 
-         --  Use (3) and (1). If null, then there is no ali
-         --  file associated to this configured unit name.
-         --  The configured unit is not an Ada unit.
+         if To_Build (U) then
 
-         if Ali = No_ALI_Id then
+            CUname := CUnit.Table (U).CUname;
 
-            --  This unit is not an ada unit
-            --  as no ali file has been found.
+            A := Get_ALI_Id (CUname);
 
-            Message ("configured unit """, CUnit.Table (U).CUname,
-                     """ is not an Ada unit");
-            Inconsistent := True;
+            --  Use (3) and (1). If null, then there is no ali
+            --  file associated to this configured unit name.
+            --  The configured unit is not an Ada unit.
 
-         else
-            for I in ALIs.Table (Ali).First_Unit ..
-                     ALIs.Table (Ali).Last_Unit loop
+            if A = No_ALI_Id then
+               Message ("configured unit", To_String (CUname),
+                        "is not an Ada unit");
+               Error := True;
 
-               if Unit.Table (I).Is_Generic then
-                  Message ("generic unit """, U_To_N (Unit.Table (I).Uname),
-                           """ cannot be assigned to a partition");
-                  Inconsistent := True;
+            else
+               for I in ALIs.Table (A).First_Unit ..
+                 ALIs.Table (A).Last_Unit loop
 
-               elsif Unit.Table (I).RCI then
+                  Uname := Unit.Table (I).Uname;
 
-                  --  If not null, we have already set this
-                  --  configured rci unit name to a partition.
+                  if Unit.Table (I).Is_Generic then
+                     Message ("generic unit", To_String (CUname),
+                              "cannot be assigned to a partition");
+                     Error := True;
 
-                  if Get_CUID (Unit.Table (I).Uname) /= Null_CUID  then
-                     Message ("RCI Ada unit """, CUnit.Table (U).CUname,
-                              """ has been assigned twice");
-                     Inconsistent := True;
+                  elsif Unit.Table (I).RCI then
+
+                     --  If not null, we have already set this
+                     --  configured rci unit name to a partition.
+
+                     if Get_CUID (Uname) /= Null_CUID  then
+                        Message ("RCI Ada unit", To_String (CUname),
+                                 "has been assigned twice");
+                        Error := True;
+                     end if;
+
+                     --  This RCI has been assigned                  (5)
+                     --  and it won't be assigned again.
+
+                     Set_CUID (Uname, U);
+
                   end if;
 
-                  --  This RCI has been assigned                  (5)
-                  --  and it won't be assigned again.
+                  --  Save spec unit id or body unit id if not possible
 
-                  Set_CUID (Unit.Table (I).Uname, U);
+                  if Unit.Table (I).Utype /= Is_Body then
+                     CUnit.Table (U).My_Unit := I;
+                  end if;
 
-               end if;
+               end loop;
 
-               --  If there is no body, reference the spec
+               CUnit.Table (U).My_ALI := A;
 
-               if Unit.Table (I).Utype /= Is_Body then
-                  CUnit.Table (U).My_Unit := I;
-               end if;
+               --  Set partition name to its index value.             (7)
+               --  This way we confirm that the partition is not
+               --  empty as it contains at least one unit.
 
-            end loop;
+               declare
+                  PID : PID_Type := CUnit.Table (U).Partition;
+               begin
+                  Set_PID (Partitions.Table (PID).Name, PID);
+               end;
 
-            CUnit.Table (U).My_ALI := Ali;
-
-            --  Set partition name to its index value.             (7)
-            --  This way we confirm that the partition is not
-            --  empty as it contains at least one unit.
-
-            PID := CUnit.Table (U).Partition;
-            Set_PID (Partitions.Table (PID).Name, PID);
+            end if;
 
          end if;
       end loop;
 
-      --  Use (5) and (2). To check all RCI units (except generics)
-      --  are configured.
+      if Build_Full_Configuration then
 
-      if Debug_Mode then
-         Message ("check all RCI units are configured");
+         --  Use (5) and (2). To check all RCI units (except generics)
+         --  are configured.
+
+         if Debug_Mode then
+            Message ("check all RCI units are configured");
+         end if;
+
+         for U in Unit.First .. Unit.Last loop
+            Uname := Unit.Table (U).Uname;
+            if Unit.Table (U).RCI
+              and then not Unit.Table (U).Is_Generic
+              and then Get_CUID (Uname) = Null_CUID then
+               Message ("RCI Ada unit", To_String (U_To_N (Uname)),
+                        "has not been assigned to a partition");
+               Error := True;
+            end if;
+         end loop;
+
       end if;
 
-      for U in Unit.First .. Unit.Last loop
-         if Unit.Table (U).RCI
-           and then not Unit.Table (U).Is_Generic
-           and then Get_CUID (Unit.Table (U).Uname) = Null_CUID then
-            Message ("RCI Ada unit """, U_To_N (Unit.Table (U).Uname),
-                     """ has not been assigned to a partition");
-            Inconsistent := True;
-         end if;
-      end loop;
-
       if Debug_Mode then
-         Message ("check child and parent are configured on same partition");
+         Message ("check child and parent are on same partition");
       end if;
 
       declare
@@ -455,37 +385,35 @@ package body XE_Check is
       begin
          for U in CUnit.First .. CUnit.Last loop
 
-            --  Update most recent stamp of the partition on which this
-            --  unit is configured.
-            Most_Recent_Stamp
-              (CUnit.Table (U).Partition,
-               ALIs.Table (CUnit.Table (U).My_ALI).Ofile_Full_Name);
+            if To_Build (U) then
 
-            --  This check applies to a RCI package
-            if Unit.Table (CUnit.Table (U).My_Unit).RCI then
-               Child := CUnit.Table (U).CUname;
-               CPID  := CUnit.Table (U).Partition;
+               --  This check applies to a RCI package
+               if Unit.Table (CUnit.Table (U).My_Unit).RCI then
+                  Child := CUnit.Table (U).CUname;
+                  CPID  := CUnit.Table (U).Partition;
 
-               loop
-                  Parent := Get_Parent (Child);
-                  exit when Parent = No_Name;
+                  loop
+                     Parent := Get_Parent (Child);
+                     exit when Parent = No_Name;
 
-                  CUID := Get_CUID (Parent & Spec_Suffix);
-                  if CUID /= Null_CUID then
+                     CUID := Get_CUID (Parent & Spec_Suffix);
+                     if CUID /= Null_CUID then
 
-                     --  The child has to be on its parent partition
-                     PPID := CUnit.Table (CUID).Partition;
-                     if PPID /= CPID then
-                        Message ("""", Parent, """ and """, Child,
-                                 """ are not on the same partition");
-                        Inconsistent := True;
+                        --  The child has to be on its parent partition
+                        PPID := CUnit.Table (CUID).Partition;
+                        if PPID /= CPID then
+                           Message ("", To_String (Parent),
+                                    "and", To_String (Child),
+                                    "are not on the same partition");
+                           Error := True;
+                        end if;
+
                      end if;
 
-                  end if;
+                     Child := Parent;
+                  end loop;
 
-                  Child := Parent;
-               end loop;
-
+               end if;
             end if;
          end loop;
       end;
@@ -497,30 +425,23 @@ package body XE_Check is
       end if;
 
       for P in Partitions.First + 1 .. Partitions.Last loop
-         PID := Get_PID (Partitions.Table (P).Name);
-         if PID = Null_PID and then
-           Partitions.Table (P).Main_Subprogram = No_Name then
-            Message ("partition """, Partitions.Table (P).Name,
-                     """ is empty");
-            Inconsistent := True;
+         if Partitions.Table (P).To_Build
+           and then Get_PID (Partitions.Table (P).Name) = Null_PID
+         then
+            Message ("partition", To_String (Partitions.Table (P).Name),
+                     "is empty");
+            Error := True;
          end if;
-      end loop;
-
-      for U in Unit.First .. Unit.Last loop
-         Set_PID (Unit.Table (U).Uname, Null_PID);
-      end loop;
-
-      --  Is it still used ???
-
-      for U in CUnit.First .. CUnit.Last loop
-         Set_ALI_Id (CUnit.Table (U).CUname, CUnit.Table (U).My_ALI);
       end loop;
 
       --  Check that the main program is really a main program
 
-      if ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None then
-         Message ("""", Main_Subprogram, """ is not a main program");
-         Inconsistent := True;
+      if Partitions.Table (Main_Partition).To_Build
+        and then
+        ALIs.Table (Get_ALI_Id (Main_Subprogram)).Main_Program = None
+      then
+         Message ("", To_String (Main_Subprogram), "is not a main program");
+         Error := True;
       end if;
 
       --  Check channel configuration (duplication, inconsistency, ...)
@@ -531,9 +452,9 @@ package body XE_Check is
          for C in Channels.First + 1 .. Channels.Last loop
             if Channels.Table (C).Upper.My_Partition =
               Channels.Table (C).Lower.My_Partition then
-               Message ("channel """, Channels.Table (C).Name,
-                        """ is an illegal pair of partitions");
-               Inconsistent := True;
+               Message ("channel", To_String (Channels.Table (C).Name),
+                        "is an illegal pair of partitions");
+               Error := True;
             end if;
             Lower :=
               Partitions.Table (Channels.Table (C).Lower.My_Partition).Name;
@@ -547,18 +468,441 @@ package body XE_Check is
             Upper :=
               Partitions.Table (Channels.Table (C).Upper.My_Partition).Name;
             if Get_CID (Dir (Lower, Upper)) /= Null_CID then
-               Message ("two channels define """, Lower,
-                        """ and """, Upper, """ pair");
-               Inconsistent := True;
+               Message ("two channels define", To_String (Lower),
+                        "and", To_String (Upper), "pair");
+               Error := True;
             end if;
             Set_CID (Dir (Lower, Upper), C);
          end loop;
       end;
 
-      if Inconsistent then
+      if Error then
          raise Partitioning_Error;
       end if;
 
+      --  Once this procedure called, we have the following properties:
+      --
+      --  * Info of CUnit.Table (U).CUname corresponds to its ALI_Id ie ali
+      --  index corresponding to ada unit CUnit.Table (U).CUname.
+      --
+      --  * Info of Unit.Table (U).Uname corresponds to its CUID_Id ie
+      --  mapped unit index corresponding to ada unit Unit.Table (U).Uname
+      --  if this unit has been mapped.
+      --
+      --  * Info of Partitions.Table (P).Name corresponds to its PID.
+
    end Check;
+
+   ---------------------------
+   -- Compile_RCI_Spec_Only --
+   ---------------------------
+
+   procedure Compile_RCI_Spec_Only
+     (Uname : in Unit_Name_Type;
+      Ufile : in File_Name_Type) is
+      Source : File_Name_Type;
+      Afile  : File_Name_Type;
+      Text   : Text_Buffer_Ptr;
+
+      A : ALI_Id;
+      R : Unit_Id;
+
+   begin
+      if Debug_Mode then
+         Message ("try to rescue", Uname, "or", Ufile);
+      end if;
+
+      --  This applies only to specs
+      Source := Find_Source (To_Spec (Uname));
+
+      --  Either the source is not available or GNAT failed to compile
+      --  the spec file. Return immediatly and decide if it is fatal
+      --  error later on.
+
+      if Source = No_File
+        or else  Source = Ufile
+      then
+         return;
+      end if;
+
+      if Verbose_Mode then
+         Message ("compile", To_String (Source),
+                  "instead of", To_String (Ufile));
+      end if;
+
+      Execute_Gcc (Source, No_File, Arguments.all, False);
+
+      --  In this mode, there is no object file. Switch off
+      --  object consistency check to restore it later.
+
+      Mask_Object_Consistency_Check;
+
+      Afile := Lib_File_Name (Source);
+      Text  := Read_Library_Info (Afile);
+
+      --  Decide later on if the compilation failure is a problem
+      if Text = null then
+         return;
+      end if;
+
+      Unmask_Object_Consistency_Check;
+
+      A := Scan_ALI (Afile, Text);
+      ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (Afile);
+      Set_Source_Table (A);
+
+      --  If we succeed to compile the spec, then check whether it
+      --  is a RCI unit. R corresponds to RCI spec unit id.
+
+      R := No_Unit_Id;
+      for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
+         if Unit.Table (U).RCI then
+            R := U;
+            exit;
+         end if;
+      end loop;
+
+      --  We tried to compile a non-RCI spec. We should have not done that
+      --  and we remove the ali file. Note that we decide if it is a fatal
+      --  error later on.
+
+      if R = No_Unit_Id then
+         Delete (Afile);
+         return;
+      end if;
+
+      --  Any withed unit has to be checked
+      for W in Unit.Table (R).First_With .. Unit.Table (R).Last_With loop
+         Source := Get_File_Name (Withs.Table (W).Uname);
+         Push (Withs.Table (W).Uname, False);
+      end loop;
+
+   end Compile_RCI_Spec_Only;
+
+   -----------
+   -- Empty --
+   -----------
+
+   function Empty return Boolean is
+   begin
+      return Compilation_Jobs.Last < Compilation_Jobs_First;
+   end Empty;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Initialize_ALI;
+   end Initialize;
+
+   ---------------
+   -- Load_Unit --
+   ---------------
+
+   procedure Load_Unit
+     (Uname : in Unit_Name_Type;
+      Afile : in File_Name_Type := No_File) is
+      A : ALI_Id;
+      L : File_Name_Type;
+      S : File_Name_Type;
+      T : Text_Buffer_Ptr;
+
+   begin
+      S := Find_Source (Uname);
+      if Afile = No_File then
+         L := Lib_File_Name (S);
+      else
+         L := Afile;
+      end if;
+
+      if Debug_Mode then
+         Message ("load unit", U_To_N (Uname));
+      end if;
+
+      A := Get_ALI_Id (L);
+      if A /= No_ALI_Id then
+         if Debug_Mode then
+            Message ("... skip", L, "already loaded");
+         end if;
+         return;
+      end if;
+
+      if Is_Internal_File_Name (L)
+        and then not Opt.Check_Readonly_Files then
+         if Debug_Mode then
+            Message ("... skip", L, "internal library");
+         end if;
+         return;
+      end if;
+
+      T := Read_Library_Info (L);
+      if T = null then
+         if S = No_File then
+            Source_File_Error (Uname);
+         end if;
+         Compilation_Error (S);
+      end if;
+
+      A := Scan_ALI (L, T);
+      ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (L);
+      Set_Source_Table (A);
+
+      for I in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
+         if Unit.Table (I).RCI then
+
+            --  Load_Unit applies to explicitly configured units. For a
+            --  RCI, it is a fatal error if we cannot load the whole unit,
+            --  because we won't be able to generate caller *and* receiver
+            --  stubs (this is the case for explictly configured unit).
+
+            S := Find_Source (Uname, True);
+
+            exit;
+         end if;
+      end loop;
+
+      for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
+         for W in Unit.Table (U).First_With .. Unit.Table (U).Last_With loop
+
+            --  If the withed unit is configured, then load it later.
+
+            if Withs.Table (W).Afile /= No_File then
+               if Marked (Withs.Table (W).Uname) then
+                  Load_Unit (Withs.Table (W).Uname, Withs.Table (W).Afile);
+               else
+                  Load_Withed_Unit (W);
+               end if;
+            end if;
+         end loop;
+      end loop;
+   end Load_Unit;
+
+   ----------------------
+   -- Load_Withed_Unit --
+   ----------------------
+
+   procedure Load_Withed_Unit
+     (W : in With_Id) is
+      A : ALI_Id;
+      T : Text_Buffer_Ptr;
+      L : File_Name_Type := Withs.Table (W).Afile;
+      N : Unit_Name_Type := U_To_N (Withs.Table (W).Uname);
+
+      FU : Unit_Id;
+      LU : Unit_Id;
+
+   begin
+      if Debug_Mode then
+         Message ("load withed unit", N);
+      end if;
+
+      if Get_ALI_Id (L) /= No_ALI_Id then
+         if Debug_Mode then
+            Message ("... skip", L, "already loaded");
+         end if;
+         return;
+      end if;
+
+      if Is_Internal_File_Name (L) then
+         if Debug_Mode then
+            Message ("... skip", L, "internal library");
+         end if;
+         return;
+      end if;
+
+      T := Read_Library_Info (L);
+      if T = null then
+         Compilation_Error (Withs.Table (W).Sfile);
+      end if;
+
+      A := Scan_ALI (L, T);
+      ALIs.Table (A).Ofile_Full_Name := Full_Lib_File_Name (L);
+      Set_Source_Table (A);
+
+      --  Special case: we can afford to load only withed units of a RCI
+      --  spec unit because the unit is configured on a partition which is
+      --  not going be generated. Is this the case?
+
+      FU := ALIs.Table (A).First_Unit;
+      LU := ALIs.Table (A).Last_Unit;
+      for I in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
+         if Unit.Table (I).RCI then
+            FU := I;
+            LU := I;
+            exit;
+         end if;
+      end loop;
+
+      for U in FU .. LU loop
+         for W in Unit.Table (U).First_With .. Unit.Table (U).Last_With loop
+
+            --  If the withed unit is configured, load it later.
+
+            if Withs.Table (W).Afile /= No_File
+              and then not Marked (Withs.Table (W).Uname)
+            then
+               Load_Withed_Unit (W);
+            end if;
+         end loop;
+      end loop;
+
+   end Load_Withed_Unit;
+
+   ------------
+   -- Marked --
+   ------------
+
+   function Marked (U : Unit_Name_Type) return Boolean is
+   begin
+      return Get_Name_Table_Info (U_To_N (U)) /= 0;
+   end Marked;
+
+   -----------------------------------
+   -- Mask_Object_Consistency_Check --
+   -----------------------------------
+
+   procedure Mask_Object_Consistency_Check is
+   begin
+      Old_Obj_Chk := Opt.Check_Object_Consistency;
+      Opt.Check_Object_Consistency := False;
+   end Mask_Object_Consistency_Check;
+
+   ---------
+   -- Pull --
+   ---------
+
+   procedure Pull
+     (Uname : out Unit_Name_Type;
+      Fatal : out Boolean) is
+   begin
+      Uname := Compilation_Jobs.Table (Compilation_Jobs_First).Uname;
+      Fatal := Compilation_Jobs.Table (Compilation_Jobs_First).Fatal;
+      Compilation_Jobs_First := Compilation_Jobs_First + 1;
+   end Pull;
+
+   ----------
+   -- Push --
+   ----------
+
+   procedure Push
+     (Uname : in Unit_Name_Type;
+      Fatal : in Boolean) is
+      N : Name_Id := U_To_N (Uname);
+
+   begin
+      if Get_Name_Table_Info (N) /= 0 then
+         return;
+      end if;
+      Compilation_Jobs.Increment_Last;
+      Compilation_Jobs.Table (Compilation_Jobs.Last).Uname := Uname;
+      Compilation_Jobs.Table (Compilation_Jobs.Last).Fatal := Fatal;
+      Set_Name_Table_Info (N, Int (Compilation_Jobs.Last));
+   end Push;
+
+   ---------------
+   -- Recompile --
+   ---------------
+
+   procedure Recompile
+     (Uname : in Unit_Name_Type;
+      Fatal : in Boolean) is
+
+      File  : File_Name_Type;
+      Unit  : Unit_Name_Type;
+
+      Source  : File_Name_Type;
+      Object  : File_Name_Type;
+      Afile   : File_Name_Type;
+      Dummy   : File_Name_Type;
+      Stamp   : Time_Stamp_Type;
+
+      Main     : Boolean;
+      Count    : Natural;
+      Found    : Boolean;
+
+   begin
+      Source := Find_Source (Uname, Fatal);
+      if Source = No_File then
+
+         --  If Uname is an encoded unit name, it is not an explicitly
+         --  conf. unit. It is possible that we do not need the whole
+         --  unit but only its spec (if it is a RCI). Modify unit name
+         --  and try again. But now, it is a fatal error if it fails.
+
+         Unit := Uname;
+         if Is_Body_Name (Unit) then
+            Unit := U_To_N (Unit);
+         end if;
+         Source := Find_Source (Unit, True);
+         Compile_RCI_Spec_Only (Unit, Source);
+         return;
+      end if;
+
+      Afile  := Lib_File_Name (Source);
+      if Get_ALI_Id (Afile) /= No_ALI_Id then
+         return;
+      end if;
+
+      Compile_Sources
+        (Main_Source           => Source,
+         Args                  => Arguments.all,
+         First_Compiled_File   => Dummy,
+         Most_Recent_Obj_File  => Object,
+         Most_Recent_Obj_Stamp => Stamp,
+         Main_Unit             => Main,
+         Compilation_Failures  => Count,
+         Check_Readonly_Files  => Opt.Check_Readonly_Files,
+         Dont_Execute          => No_Recompilation,
+         Force_Compilations    => Opt.Force_Compilations,
+         Keep_Going            => True,
+         In_Place_Mode         => Opt.In_Place_Mode,
+         Initialize_Ali_Data   => False,
+         Max_Process           => Opt.Maximum_Processes);
+
+      for I in 1 .. Count loop
+         Extract_Failure (File, Unit, Found);
+
+         if Debug_Mode then
+            Message ("cannot compile unit", U_To_N (Unit));
+         end if;
+
+         --  When this failure comes from the original unit (i.e
+         --  explicitly configured on a partition), then it is a
+         --  fatal error.
+
+         if Fatal and then Source = File then
+            Compilation_Error (Source);
+         end if;
+
+         --  It is possible that the failure comes from a unit that
+         --  is not needed to build the current set of partitions.
+         --  We will decide later whether we need it or not. But in the
+         --  case of a RCI unit, it could be useful to compile only the
+         --  spec because we just need the caller stubs. Check whether
+         --  Unit is already in the compilation queue. For that, Unit has
+         --  to be different from No_Name. This is true with
+         --  Compile_Sources when Source was successfully compiled.
+
+         if Source /= File and then not Marked (Unit) then
+            Compile_RCI_Spec_Only (Unit, File);
+         end if;
+      end loop;
+
+      if Building_Script then
+         --  ???
+         Write_Compile_Command (Source);
+      end if;
+   end Recompile;
+
+   -------------------------------------
+   -- Unmask_Object_Consistency_Check --
+   -------------------------------------
+
+   procedure Unmask_Object_Consistency_Check is
+   begin
+      Opt.Check_Object_Consistency := Old_Obj_Chk;
+   end Unmask_Object_Consistency_Check;
 
 end XE_Check;

@@ -30,6 +30,7 @@ with ALI;              use ALI;
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Namet;            use Namet;
 with Osint;            use Osint;
+with Table;
 with Types;            use Types;
 with XE;               use XE;
 with XE_Back;          use XE_Back;
@@ -39,6 +40,14 @@ with XE_Utils;         use XE_Utils;
 package body XE_Stubs is
 
    Stdout : Boolean;
+
+   package Callers  is new Table.Table
+     (Table_Component_Type => Unit_Name_Type,
+      Table_Index_Type     => Natural,
+      Table_Low_Bound      => 1,
+      Table_Initial        => 20,
+      Table_Increment      => 100,
+      Table_Name           => "Callers");
 
    function C (N : Types.Name_Id) return Types.Name_Id renames GNAT_Style;
    function C (S : String) return Types.Name_Id;
@@ -64,7 +73,7 @@ package body XE_Stubs is
    --  Create a stamp file in which the executable file stamp and the
    --  configuration file stamp are stored.
 
-   procedure Create_Stub (A : in ALI_Id);
+   procedure Create_Stub (A : in ALI_Id; Both : in Boolean);
    --  Create the caller stub and the receiver stub for a RCI unit.
 
    procedure Delete_Stub (Source_Dir, Base_Name : in File_Name_Type);
@@ -119,16 +128,15 @@ package body XE_Stubs is
    --  Check various file stamps to decide whether the partition
    --  executable should be regenerated.
 
-   function To_String (N : Name_Id) return Name_Id;
-   --  Make a string containing N and return it as a name_id
-
    -----------
    -- Build --
    -----------
 
    procedure Build is
       ALI       : ALI_Id;
+      PID       : PID_Type;
       CUID      : CUID_Type;
+      Both      : Boolean;
       Directory : File_Name_Type;
 
    begin
@@ -140,60 +148,78 @@ package body XE_Stubs is
          Create_Dir (Receiver_Dir);
       end if;
 
-      --  Generate all the stubs (objects and alis).
-      for CUID in CUnit.First .. CUnit.Last loop
-         if Unit.Table (CUnit.Table (CUID).My_Unit).RCI
-           and then not Unit.Table (CUnit.Table (CUID).My_Unit).Is_Generic then
-            Create_Stub (CUnit.Table (CUID).My_ALI);
+      for U in CUnit.First .. CUnit.Last loop
+         Set_PID (CUnit.Table (U).CUname, CUnit.Table (U).Partition);
+      end loop;
+
+      --  Create caller *and* receiver stubs only if we have
+      --  to build the partition on which this unit is mapped.
+      --  Note that a RCI unit is not always configured when
+      --  we don't build the full configuration.
+
+      for U in Unit.First .. Unit.Last loop
+         if Unit.Table (U).RCI and then not Unit.Table (U).Is_Generic then
+            PID := Get_PID (U_To_N (Unit.Table (U).Uname));
+            Both := PID /= Null_PID and then Partitions.Table (PID).To_Build;
+            Create_Stub (Unit.Table (U).My_ALI, Both);
          end if;
       end loop;
 
       --  Create and fill partition directories.
-      for PID in Partitions.First + 1 .. Partitions.Last loop
+      for P in Partitions.First + 1 .. Partitions.Last loop
 
-         if Partitions.Table (PID).To_Build then
-            Partitions.Table (PID).Executable_File :=
-              Partitions.Table (PID).Name & Exe_Suffix;
+         if Partitions.Table (P).To_Build then
+            Callers.Init;
+
+            Partitions.Table (P).Executable_File :=
+              Partitions.Table (P).Name & Exe_Suffix;
 
             --  Create storage dir and update executable filename.
-            Directory  := Get_Storage_Dir (PID);
+            Directory  := Get_Storage_Dir (P);
             if Directory /= No_Storage_Dir then
                if not Is_Directory (Directory) then
                   Create_Dir (Directory);
                end if;
-               Partitions.Table (PID).Executable_File :=
-                 Dir (Directory, Partitions.Table (PID).Executable_File);
+               Partitions.Table (P).Executable_File :=
+                 Dir (Directory, Partitions.Table (P).Executable_File);
             end if;
 
             --  Create directory in which receiver stubs, main partition
             --  unit and elaboration unit are stored.
-            Directory := Get_Partition_Dir (PID);
-            Partitions.Table (PID).Partition_Dir := Directory;
+            Directory := Get_Partition_Dir (P);
+            Partitions.Table (P).Partition_Dir := Directory;
             if not Is_Directory (Directory) then
                Create_Dir (Directory);
             end if;
 
-            --  Mark all units present on this partition.
-            CUID := Partitions.Table (PID).First_Unit;
+            --  Mark all units present on this partition and update
+            --  the most recent of this partition.
+
+            CUID := Partitions.Table (P).First_Unit;
             while CUID /= Null_CUID loop
-               Mark_Units_On_Partition (PID, CUnit.Table (CUID).My_ALI);
-               Set_PID (CUnit.Table (CUID).CUname, PID);
+
+               --  Update most recent stamp of this partition
+               Most_Recent_Stamp
+                 (P, ALIs.Table (CUnit.Table (CUID).My_ALI).Ofile_Full_Name);
+
+               --  Now mark all the dependencies
+               Mark_Units_On_Partition (P, CUnit.Table (CUID).My_ALI);
                CUID := CUnit.Table (CUID).Next;
             end loop;
 
             for U in Unit.First .. Unit.Last loop
 
-               if Get_PID (Unit.Table (U).Uname) = PID then
+               if Get_PID (Unit.Table (U).Uname) = P then
                   ALI := Unit.Table (U).My_ALI;
 
                   --  Update stubs
                   if not Unit.Table (U).RCI then
                      null;
 
-                  elsif Get_PID (U_To_N (Unit.Table (U).Uname)) = PID then
+                  elsif Get_PID (U_To_N (Unit.Table (U).Uname)) = P then
 
                      --  Copy RCI receiver stubs when this unit has been
-                     --  assigned on PID partition. RCI caller stubs are
+                     --  assigned on P partition. RCI caller stubs are
                      --  not needed because GNATDIST add the caller directory
                      --  in its include path.
 
@@ -202,7 +228,7 @@ package body XE_Stubs is
                      --  We have RCI units in this partition. So, we
                      --  need all the PCS features in this partition.
 
-                     Set_Light_PCS (PID, False);
+                     Set_Light_PCS (P, False);
 
                   else
 
@@ -215,46 +241,46 @@ package body XE_Stubs is
                   --  need all the PCS features in this partition.
 
                   if Unit.Table (U).Has_RACW_Type then
-                     Set_Light_PCS (PID, False);
+                     Set_Light_PCS (P, False);
                   end if;
 
                   --  Update more recent stamp to decide later on whether
                   --  we should update the partition executable.
-                  Most_Recent_Stamp (PID, ALIs.Table (ALI).Afile);
+                  Most_Recent_Stamp (P, ALIs.Table (ALI).Afile);
 
                   --  Compute the new checksum. This checksum will be
                   --  useful to identify this partition.
-                  Compute_Checksum  (PID, Unit.Table (U).Sfile);
+                  Compute_Checksum  (P, Unit.Table (U).Sfile);
 
                end if;
 
             end loop;
 
             --  Check whether the partition should have a local termination
-            if Get_Termination (PID) = Unknown_Termination
-              and then Get_Light_PCS (PID)
-              and then Main_Partition /= PID
+            if Get_Termination (P) = Unknown_Termination
+              and then Get_Light_PCS (P)
+              and then Main_Partition /= P
             then
                if Verbose_Mode then
-                  Message ("local termination forced for ",
-                           Partitions.Table (PID).Name);
+                  Message ("local termination forced for",
+                           Partitions.Table (P).Name);
                end if;
-               Set_Termination (PID, Local_Termination);
+               Set_Termination (P, Local_Termination);
             end if;
 
-            if Rebuild_Partition (PID) then
+            if Rebuild_Partition (P) then
                if not Quiet_Output then
-                  Message ("building partition ", Partitions.Table (PID).Name);
+                  Message ("building partition", Partitions.Table (P).Name);
                end if;
 
-               Create_Partition_Main_File (PID);
-               Create_Elaboration_File (PID);
-               Create_Executable_File (PID);
-               Create_Stamp_File (PID);
+               Create_Partition_Main_File (P);
+               Create_Elaboration_File (P);
+               Create_Executable_File (P);
+               Create_Stamp_File (P);
             end if;
 
          elsif Verbose_Mode then
-            Message ("no need to build ", Partitions.Table (PID).Name);
+            Message ("no need to build", Partitions.Table (P).Name);
 
          end if;
 
@@ -313,10 +339,11 @@ package body XE_Stubs is
    -----------------------------
 
    procedure Create_Elaboration_File (PID : in PID_Type) is
-      Partition   : Partition_Name_Type;
-      Elaboration : File_Name_Type;
-      Task_Pool   : Task_Pool_Type;
-      Termination : Name_Id;
+      Partition    : Partition_Name_Type;
+      Elaboration  : File_Name_Type;
+      Task_Pool    : Task_Pool_Type;
+      Termination  : Termination_Type;
+      Reconnection : Reconnection_Type;
 
       CID : CID_Type;
       FD  : File_Descriptor;
@@ -400,9 +427,19 @@ package body XE_Stubs is
       --  How should the partition terminate. Note that in Garlic,
       --  Global_Termination is the default. No need to force the default.
 
-      Termination := Image (Get_Termination (PID));
-      if Termination /= Image (Unknown_Termination) then
-         Dwrite_Call (FD, 2, "Set_Termination", Termination);
+      Termination := Get_Termination (PID);
+      if Termination /= Unknown_Termination then
+         Dwrite_Call (FD, 2, "Set_Termination",
+                      Termination_Img (Termination));
+      end if;
+
+      --  When this partition is restarted, how should we handle
+      --  reconnections?
+
+      Reconnection := Get_Reconnection (PID);
+      if Reconnection /= Unknown_Reconnection then
+         Dwrite_Call (FD, 2, "Set_Reconnection",
+                      Reconnection_Img (Reconnection));
       end if;
 
       --  If a protocol has been specified, then use it (with its data
@@ -546,7 +583,7 @@ package body XE_Stubs is
 
       Main_File   : File_Name_Type;
 
-      UID         : CUID_Type;
+      CU          : CUID_Type;
       Host        : Name_Id;
       Main        : Name_Id;
 
@@ -568,27 +605,17 @@ package body XE_Stubs is
       Create (FD, Main_File);
 
       --  First pass to map RCI receivers on the partition.
-      UID := Partitions.Table (PID).First_Unit;
-      while UID /= Null_CUID loop
-         Set_PID (Unit.Table (CUnit.Table (UID).My_Unit).Uname,
-                  CUnit.Table (UID).Partition);
-         Dwrite_With_Clause (FD, No_Str, CUnit.Table (UID).CUname, False);
-         UID := CUnit.Table (UID).Next;
+      CU := Partitions.Table (PID).First_Unit;
+      while CU /= Null_CUID loop
+         Dwrite_With_Clause (FD, No_Str, CUnit.Table (CU).CUname, False);
+         CU := CUnit.Table (CU).Next;
       end loop;
 
       --  Need the RCI callers to compare their version with the
       --  receiver version.
 
-      --  Second pass to 'with' the RCI callers.
-      for U in CUnit.First .. CUnit.Last loop
-         if Unit.Table (CUnit.Table (U).My_Unit).RCI then
-            if CUnit.Table (U).Partition /= PID and then
-              Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname) = PID then
-               Dwrite_With_Clause (FD, No_Str, CUnit.Table (U).CUname, False);
-            end if;
-         else
-            Set_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname, Null_PID);
-         end if;
+      for C in Callers.First .. Callers.Last loop
+         Dwrite_With_Clause (FD, No_Str, Callers.Table (C), False);
       end loop;
 
       Dwrite_With_Clause (FD, "System.RPC", No_Name, False);
@@ -645,29 +672,18 @@ package body XE_Stubs is
          --  Version consistency between receiver and caller.
          --  Checks perform on all the rci caller stubs.
 
-         for U in CUnit.First .. CUnit.Last loop
+         for C in Callers.First .. Callers.Last loop
 
-            --  Check if unit is RCI and if it is in the
-            --  partition closure and if the unit is configured
-            --  on another partition.
-
-            if Unit.Table (CUnit.Table (U).My_Unit).RCI
-              and then CUnit.Table (U).Partition /= PID
-              and then Get_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname)
-                = PID
-            then
-               declare
-                  Version : Name_Id;
-               begin
-                  Get_Name_String (CUnit.Table (U).CUname);
-                  Add_Str_To_Name_Buffer ("'Version");
-                  Version := Name_Find;
-                  Dwrite_Call (FD, 1, "Check",
-                               To_String (CUnit.Table (U).CUname),
-                               No_Str, Version);
-               end;
-               Set_PID (Unit.Table (CUnit.Table (U).My_Unit).Uname, Null_PID);
-            end if;
+            declare
+               Version : Name_Id;
+            begin
+               Get_Name_String (Callers.Table (C));
+               Add_Str_To_Name_Buffer ("'Version");
+               Version := Name_Find;
+               Dwrite_Call (FD, 1, "Check",
+                            To_String (Callers.Table (C)),
+                            No_Str, Version);
+            end;
          end loop;
       end if;
 
@@ -712,11 +728,11 @@ package body XE_Stubs is
       Write_Eol (FD);
       Close     (FD);
       if Debug_Mode then
-         Message ("save C => ", No_Name,
+         Message ("save C =>", No_Name,
                   Stamp (Configuration_File));
-         Message ("save E => ", No_Name,
+         Message ("save E =>", No_Name,
                   Stamp (Partitions.Table (PID).Executable_File));
-         Message ("save O => ", No_Name,
+         Message ("save O =>", No_Name,
                   Stamp (Partitions.Table (PID).Most_Recent));
       end if;
    end Create_Stamp_File;
@@ -725,7 +741,7 @@ package body XE_Stubs is
    -- Create_Stub --
    -----------------
 
-   procedure Create_Stub (A : in ALI_Id) is
+   procedure Create_Stub (A : in ALI_Id; Both : Boolean) is
       Obsolete        : Boolean;
       Full_RCI_Spec   : File_Name_Type;
       Full_RCI_Body   : File_Name_Type;
@@ -745,6 +761,15 @@ package body XE_Stubs is
       --  filename.
 
       Unit_Name := U_To_N (Unit.Table (ALIs.Table (A).First_Unit).Uname);
+
+      if Debug_Mode then
+         if Both then
+            Message ("create caller and recevier stubs for", Unit_Name);
+         else
+            Message ("create caller stubs for", Unit_Name);
+         end if;
+      end if;
+
       for U in ALIs.Table (A).First_Unit .. ALIs.Table (A).Last_Unit loop
          case Unit.Table (U).Utype is
             when Is_Spec =>
@@ -813,7 +838,7 @@ package body XE_Stubs is
       if Obsolete then
          if not Quiet_Output then
             Message
-              ("building ", Unit_Name, " caller stubs from ", Full_RCI_Spec);
+              ("building", Unit_Name, "caller stubs from", Full_RCI_Spec);
          end if;
 
          declare
@@ -839,7 +864,11 @@ package body XE_Stubs is
             end if;
          end;
       elsif not Quiet_Output then
-         Message ("   ", Unit_Name, " caller stubs is up to date");
+         Message ("  ", Unit_Name, "caller stubs is up to date");
+      end if;
+
+      if not Both then
+         return;
       end if;
 
       --  Do we need to generate the receiver stub and its ali.
@@ -883,13 +912,13 @@ package body XE_Stubs is
       if Obsolete then
          if not Quiet_Output then
             Message
-              ("building ", Unit_Name, " receiver stubs from ", Full_RCI_Body);
+              ("building", Unit_Name, "receiver stubs from", Full_RCI_Body);
          end if;
 
          Compile_RCI_Receiver (Full_RCI_Body, Receiver_Object);
 
       elsif not Quiet_Output then
-         Message ("   ", Unit_Name, " receiver stubs is up to date");
+         Message ("  ", Unit_Name, "receiver stubs is up to date");
       end if;
 
    end Create_Stub;
@@ -1032,26 +1061,42 @@ package body XE_Stubs is
    procedure Mark_Units_On_Partition
      (PID : in PID_Type;
       Lib : in ALI_Id) is
-
       Current_ALI : ALI_Id;
       Continue    : Boolean;
+      First_Unit  : Unit_Id;
+      Last_Unit   : Unit_Id;
 
    begin
 
       if Debug_Mode then
-         Message ("mark ali file ", ALIs.Table (Lib).Afile);
+         Message ("mark ali file", ALIs.Table (Lib).Afile);
       end if;
 
-      --  Mark this unit to avoid infinite recursive search.
-      for I in ALIs.Table (Lib).First_Unit ..
+      First_Unit := ALIs.Table (Lib).First_Unit;
+      Last_Unit  := ALIs.Table (Lib).Last_Unit;
+
+      for U in ALIs.Table (Lib).First_Unit ..
                ALIs.Table (Lib).Last_Unit loop
-         Set_PID (Unit.Table (I).Uname, PID);
+         if Unit.Table (U).RCI
+           and then Get_PID (U_To_N (Unit.Table (U).Uname)) /= PID then
+            First_Unit := U;
+            Last_Unit  := U;
+            Callers.Increment_Last;
+            Callers.Table (Callers.Last) := U_To_N (Unit.Table (U).Uname);
+            if Debug_Mode then
+               Message ("insert caller", U_To_N (Unit.Table (U).Uname));
+            end if;
+         end if;
       end loop;
 
-      for I in ALIs.Table (Lib).First_Unit ..
+      --  Mark this unit to avoid infinite recursive search.
+      for U in ALIs.Table (Lib).First_Unit ..
                ALIs.Table (Lib).Last_Unit loop
-         for J in Unit.Table (I).First_With ..
-                  Unit.Table (I).Last_With loop
+         Set_PID (Unit.Table (U).Uname, PID);
+      end loop;
+
+      for I in First_Unit .. Last_Unit loop
+         for J in Unit.Table (I).First_With .. Unit.Table (I).Last_With loop
 
             --  Avoid generic units.
             Continue := not (Withs.Table (J).Afile = No_File);
@@ -1076,30 +1121,15 @@ package body XE_Stubs is
                for K in ALIs.Table (Current_ALI).First_Unit ..
                         ALIs.Table (Current_ALI).Last_Unit loop
 
-                  --  Look for a RCI units
-                  if Unit.Table (K).RCI then
-
-                     --  This one is a caller (mapped on a different
-                     --  partition). Note that an unit name key is
-                     --  a partition id if unit is RCI.
-                     if Get_PID (Unit.Table (K).Uname) /= PID then
-                        Set_PID (Unit.Table (K).Uname, PID);
-                     end if;
-
-                     --  No need to search deeper. This unit is not
-                     --  on this partition.
-                     Continue := False;
-
-                  elsif Get_PID (Unit.Table (K).Uname) = PID then
-
-                     --  No need to search deeper. Already done.
+                  --  No need to search deeper. Already done.
+                  if Get_PID (Unit.Table (K).Uname) = PID then
                      Continue := False;
                      exit;
-
                   end if;
+
                end loop;
 
-               --  This unit is not a RCI unit or has not been scanned.
+               --  This unit has not been scanned
                if Continue then
                   Mark_Units_On_Partition (PID, Current_ALI);
                end if;
@@ -1133,7 +1163,7 @@ package body XE_Stubs is
 
    begin
       if Verbose_Mode then
-         Message ("check stamps for ", Partition);
+         Message ("check stamps for", Partition);
       end if;
 
       --  Check that executable exists and is up to date vs new object files.
@@ -1174,14 +1204,14 @@ package body XE_Stubs is
       end loop;
       Conf_Stamp2 := Source_File_Stamp (Configuration_File);
       if Debug_Mode then
-         Message ("load C => ", No_Name, String (Conf_Stamp1));
-         Message ("find C => ", No_Name, String (Conf_Stamp2));
+         Message ("load C =>", No_Name, String (Conf_Stamp1));
+         Message ("find C =>", No_Name, String (Conf_Stamp2));
       end if;
 
       --  Compare this file stamp with the current executable file stamp.
       if Conf_Stamp1 /= Conf_Stamp2 then
          if Verbose_Mode then
-            Message ("configuration file modified for partition ", Partition);
+            Message ("configuration file modified for partition", Partition);
          end if;
          return True;
       end if;
@@ -1206,14 +1236,14 @@ package body XE_Stubs is
       end loop;
       Exec_Stamp2 := Source_File_Stamp (Executable);
       if Debug_Mode then
-         Message ("load E => ", No_Name, String (Exec_Stamp1));
-         Message ("read E => ", No_Name, String (Exec_Stamp2));
+         Message ("load E =>", No_Name, String (Exec_Stamp1));
+         Message ("read E =>", No_Name, String (Exec_Stamp2));
       end if;
 
       --  Compare this file stamp with the current configuration file stamp.
       if Exec_Stamp1 /= Exec_Stamp2 then
          if Verbose_Mode then
-            Message ("executable file modified for partition ", Partition);
+            Message ("executable file modified for partition", Partition);
          end if;
          return True;
       end if;
@@ -1238,32 +1268,19 @@ package body XE_Stubs is
       end loop;
       Obj_Stamp2 := Source_File_Stamp (Most_Recent);
       if Debug_Mode then
-         Message ("load O => ", No_Name, String (Obj_Stamp1));
-         Message ("find O => ", No_Name, String (Obj_Stamp2));
+         Message ("load O =>", No_Name, String (Obj_Stamp1));
+         Message ("find O =>", No_Name, String (Obj_Stamp2));
       end if;
 
       --  Compare this object stamp with the current object file stamp.
       if Obj_Stamp1 /= Obj_Stamp2 then
          if Verbose_Mode then
-            Message ("most recent object modified for partition ", Partition);
+            Message ("most recent object modified for partition", Partition);
          end if;
          return True;
       end if;
 
       return False;
    end Rebuild_Partition;
-
-   ---------------
-   -- To_String --
-   ---------------
-
-   function To_String (N : Name_Id) return Name_Id is
-   begin
-      Name_Len := 0;
-      Add_Char_To_Name_Buffer ('"');
-      Get_Name_String_And_Append (N);
-      Add_Char_To_Name_Buffer ('"');
-      return Name_Find;
-   end To_String;
 
 end XE_Stubs;
