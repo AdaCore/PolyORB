@@ -30,7 +30,7 @@ package body CORBA.Repository_Root.UnionDef.Impl is
                    IDL_Type : CORBA.TypeCode.Object;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
                    Contents :
-                     CORBA.Repository_Root.Contained.Impl.Contained_List;
+                     CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
                    Container_View : CORBA.Repository_Root.Container.Impl.Object_Ptr;
                    Discriminator_Type : CORBA.TypeCode.Object;
                    Discriminator_Type_Def : CORBA.Repository_Root.IDLType.Ref;

@@ -345,6 +345,15 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data   : in CORBA.ScopedName) is
+   begin
+      pragma Debug (O ("Marshall (ScopedName) : enter"));
+      Marshall (Buffer, CORBA.String (Data));
+      pragma Debug (O ("Marshall (ScopedName) : end"));
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data   : in CORBA.RepositoryId) is
    begin
       pragma Debug (O ("Marshall (RepositoryId) : enter"));
@@ -1015,6 +1024,13 @@ package body Broca.CDR is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
+      Data   : access CORBA.ScopedName) is
+   begin
+      Marshall (Buffer, Data.all);
+   end Marshall;
+
+   procedure Marshall
+     (Buffer : access Buffer_Type;
       Data   : access CORBA.RepositoryId) is
    begin
       Marshall (Buffer, Data.all);
@@ -1243,6 +1259,14 @@ package body Broca.CDR is
    begin
       pragma Debug (O ("Unmarshall (Identifier) : enter & end"));
       return CORBA.Identifier (Result);
+   end Unmarshall;
+
+   function Unmarshall (Buffer : access Buffer_Type)
+     return CORBA.ScopedName is
+      Result : CORBA.String := Unmarshall (Buffer);
+   begin
+      pragma Debug (O ("Unmarshall (ScopedName) : enter & end"));
+      return CORBA.ScopedName (Result);
    end Unmarshall;
 
    function Unmarshall (Buffer : access Buffer_Type)

@@ -90,132 +90,18 @@ package CORBA.Repository_Root.Contained.Impl is
       new_version : in CORBA.Repository_Root.VersionSpec);
 
 
-   --------------------------------
-   -- A useful list of contained --
-   --------------------------------
+   ------------------------------------
+   -- A useful sequence of contained --
+   ------------------------------------
 
-   type Contained_List is private;
-   --  A list of containeds.
+   --  This package is used to store the content of the container.
+   --  It is better to store the Objct_ptr instead of the ref_forward
+   --  as it is declared in the corba.Repository_Root module.
+   package Contained_Seq is new Sequences.Unbounded (Object_Ptr);
 
-   type Contained_Iterator is private;
-   --  An iterator on a contained list.
-
-   --  the empty list
-   Nil_List : constant Contained_List;
-
-   function Head
-     (NL : Contained_List)
-     return Object_Ptr;
-   --  Return the first contained in NL.
-
-   function Is_Empty
-     (NL : Contained_List)
-     return Boolean;
-   --  True iff NL is empty.
-
-   function Length
-     (NL : Contained_List)
-     return Natural;
-   --  The length of a list.
-
-   --  Simple way to iterate over a contained_list.
-   --  CONTAINED_ITERATOR is a type representing an iterator, which must
-   --  be initialiazed by INIT.
-   --  End of list is detected by IS_END.
-   --  Until the end of list is reached, the contained can be extracted
-   --  with GET_CONTAINED and the iterator can be incremented with NEXT.
-   --  Therefore, usual way to use an iterator is:
-   --  declare
-   --    it: contained_iterator;
-   --    contained: Object_Ptr;
-   --  begin
-   --    init (it, rep.contents);
-   --    while not is_end (it) loop
-   --      get_next_contained (it, contained);
-   --      ...
-   --    end loop;
-   --  end;
-
-   procedure Init
-     (It : out Contained_Iterator;
-      List : Contained_List);
-
-   procedure Get_Next_Contained
-     (It : in out Contained_Iterator;
-      Contained : out Object_Ptr);
-
-   function Is_End
-     (It : Contained_Iterator)
-     return Boolean;
-
-   --  Appends a contained at the end of a list.
-   procedure Append_Contained (List : in out Contained_List;
-                          Contained : in Object_Ptr);
-
-   --  Appends a contained at the end of a list.
-   function Append_Contained (List : in Contained_List;
-                         Contained : Object_Ptr) return Contained_List;
-
-   --  Remove the first occurrence of Contained from List
-   --  Take care, those functions doesn't remove the Contained, just the cell!
-   procedure Remove_Contained
-     (List : in out Contained_List;
-      Contained : Object_Ptr);
-   function Remove_Contained
-     (List : in Contained_List;
-      Contained : Object_Ptr)
-     return Contained_List;
-
-   --  Insert Contained into List immediately before the first
-   --  occurrence of Before.
-   procedure Insert_Before
-     (List : in out Contained_List;
-      Contained : Object_Ptr;
-      Before : Object_Ptr);
-
-   --  Insert Contained into List immediately after the first
-   --  occurrence of After.
-   procedure Insert_After
-     (List : in Contained_List;
-      Contained : Object_Ptr;
-      After : Object_Ptr);
-
-   --  Look whether contained is in list or not
-   function Is_In_List (List : Contained_List; Contained : Object_Ptr) return Boolean;
-
-   --  Look whether contained is in the list or not
-   --  contained is supposed to be a scoped name and the list must be
-   --  a list of scoped names. What is compared here is not the containeds
-   --  themselves but the contained they are pointing to
-   function Is_In_Pointed_List (List : Contained_List; Contained : Object_Ptr)
-                                return Boolean;
-
-   --  Frees all the list
-   procedure Free (List : in out Contained_List);
-
-   --  computes the length of the list
-   function Get_Length (List : in Contained_List) return Integer;
-
-   --  Function that take a contained list and remove all the redondant items
-   --  returns the resulting contained list
-   --  useful for the inheritance treatement
-   function Simplify_Contained_List (In_List : Contained_List) return Contained_List;
-
-   procedure Merge_List
-     (Into : in out Contained_List;
-      From : in Contained_List);
-   --  Appends all containeds of list From to list Into, unless they are
-   --  in it already.
-
-   --  transform this list into a corba sequence
-   function To_ContainedSeq
-     (In_List : Contained_List)
-      return  CORBA.Repository_Root.ContainedSeq;
-
-   --  search the list for a given ID
-   --  return null if not found
+   --  return null if RepId not found in In_Seq
    function Lookup_Id
-     (In_List : Contained_List;
+     (In_Seq : Contained_Seq.Sequence;
       Search_Id : CORBA.RepositoryId)
       return Object_Ptr;
 
@@ -230,22 +116,6 @@ private
         Absolute_Name : CORBA.ScopedName;
         Containing_Repository : CORBA.Repository_Root.Repository_Forward.Ref;
      end record;
-
-   --------------------
-   -- Contained list --
-   --------------------
-
-   type Contained_List_Cell;
-   type Contained_List is access Contained_List_Cell;
-   type Contained_List_Cell is record
-      Car : Object_Ptr;
-      Cdr : Contained_List;
-   end record;
-
-   Nil_List : constant Contained_List := null;
-
-   type Contained_Iterator is new Contained_List;
-
 
 end CORBA.Repository_Root.Contained.Impl;
 

@@ -90,4 +90,22 @@ package body Sequences.Unbounded.Search is
       return 0;
    end Index;
 
+   ------------------
+   -- Sub_Sequence --
+   ------------------
+   function Sub_Sequence
+     (Haystack : Sequence;
+      Needle   : Needle_Type)
+      return Sequence
+   is
+      Result : Sequence := Null_Sequence;
+   begin
+      for Index in 1 .. Haystack.Length loop
+         if Match (Haystack.Content (Index), Needle) then
+            Append (Result, Haystack.Content (Index));
+         end if;
+      end loop;
+
+      return Result;
+   end Sub_Sequence;
 end Sequences.Unbounded.Search;

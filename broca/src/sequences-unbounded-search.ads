@@ -41,6 +41,11 @@ package Sequences.Unbounded.Search is
       Going    : Direction := Forward)
      return Natural;
 
+   function Sub_Sequence
+     (Haystack : Sequence;
+      Needle   : Needle_Type)
+      return Sequence;
+
    function Count
      (Haystack : in Sequence;
       Needle   : in Needle_Type)

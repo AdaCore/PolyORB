@@ -21,7 +21,7 @@ package body CORBA.Repository_Root.Container.Impl is
                    Real_Object : IRObject.Impl.Object_Ptr;
                    Def_Kind : Corba.Repository_Root.DefinitionKind;
                    Contents :
-                     CORBA.Repository_Root.Contained.Impl.Contained_List) is
+                     CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence) is
    begin
       IRObject.Impl.Init (IRObject.Impl.Object_Ptr (Self), Real_Object, Def_Kind);
       Self.Contents := Contents;
@@ -37,19 +37,42 @@ package body CORBA.Repository_Root.Container.Impl is
           (Fw_Ref)));
    end To_Object;
 
-   function Get_Contained_List
+   function Get_Contents
      (Self : access Object)
-      return CORBA.Repository_Root.Contained.Impl.Contained_List is
+      return CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence is
    begin
       return Self.Contents;
-   end Get_Contained_List;
+   end Get_Contents;
 
-   procedure Set_Contained_List
+   procedure Set_Contents
      (Self : access Object;
-      New_List : in CORBA.Repository_Root.Contained.Impl.Contained_List) is
+      New_List : in CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence) is
    begin
       Self.Contents := New_List;
-   end Set_Contained_List;
+   end Set_Contents;
+
+   procedure Append_To_Contents (Self : access Object;
+                                 Element : Contained.Impl.Object_Ptr)
+   is
+   begin
+      Contained.Impl.Contained_Seq.Append (Self.Contents,
+                                           Element);
+   end;
+
+   procedure Delete_From_Contents (Self : access Object;
+                                   Element : Contained.Impl.Object_Ptr)
+   is
+      Index : Positive;
+      Cont_Array : Contained.Impl.Contained_Seq.Element_Array (1 .. 1);
+   begin
+      Cont_Array (1) := Element;
+      Index := Contained.Impl.Contained_Seq.Index
+        (Self.Contents,
+         Cont_Array);
+      Contained.Impl.Contained_Seq.Delete (Self.Contents,
+                                           Index,
+                                           Natural (Index));
+   end;
 
    procedure To_Container
      (Self : IRObject.Impl.Object_Ptr;

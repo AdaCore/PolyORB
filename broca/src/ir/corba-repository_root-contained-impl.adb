@@ -97,23 +97,25 @@ package body CORBA.Repository_Root.Contained.Impl is
       --  change also recursively all ist descendant if it is a container
       declare
          Container_Object : Container.Impl.Object_Ptr;
-         It : Contained_Iterator;
-         Cont : Object_Ptr;
       begin
          Container.Impl.To_Container (Get_Real_Object (Contained_Object),
                                       Success,
                                       Container_Object);
          if Success then
-            Init (It, Container.Impl.Get_Contained_List (Container_Object));
-            while not Is_End (It) loop
-               Get_Next_Contained (It, Cont);
-               Change_Absolute_Name (Cont);
-            end loop;
+            declare
+               Cont_Array : Contained_Seq.Element_Array
+                 := Contained_Seq.To_Element_Array
+                 (Container.Impl.Get_Contents (Container_Object));
+            begin
+               for I in Cont_Array'Range loop
+                  Change_Absolute_Name (Cont_Array (I));
+               end loop;
+            end;
          end if;
       end;
    end Change_Absolute_Name;
 
-   Package Contained_Seq renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+   Package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
 
    -----------------
    --  To_Object  --
@@ -247,7 +249,7 @@ package body CORBA.Repository_Root.Contained.Impl is
       To : in CORBA.Identifier)
    is
       Other : ContainedSeq;
-      use Contained_Seq;
+      use Contained_For_Seq;
    begin
       --  Must check if the name is not already used in this scope
       --  So we check all the nodes in this container with the same name
@@ -257,7 +259,7 @@ package body CORBA.Repository_Root.Contained.Impl is
          1,
          Dk_All,
          False);
-      if Contained_Seq.Null_Sequence = (Contained_Seq.Sequence (Other))
+      if Contained_For_Seq.Null_Sequence = (Contained_For_Seq.Sequence (Other))
       then
          Self.Name := To;
          --  We must change the absolute_name
@@ -519,21 +521,18 @@ package body CORBA.Repository_Root.Contained.Impl is
             --  should be more precise
             declare
                Other : ContainedSeq;
-               use Contained_Seq;
+               use Contained_For_Seq;
             begin
                Other := Container.Impl.Lookup_Name
                  (New_Container_Ptr, New_Name, 1, Dk_All, False);
-               if (Contained_Seq.Null_Sequence = Contained_Seq.Sequence (Other))
+               if (Contained_For_Seq.Null_Sequence = Contained_For_Seq.Sequence (Other))
                then
                   Not_Allowed := True;
                   Broca.Exceptions.Raise_Bad_Param (Minor => 3);
                else
                   --  remove the contained from the previous container
-                  Container.Impl.Set_Contained_List
-                    (For_Container_Ptr,
-                     Remove_Contained (Container.Impl.Get_Contained_List
-                                       (For_Container_Ptr),
-                                       Object_Ptr (Self)));
+                  Container.Impl.Delete_From_Contents (For_Container_Ptr,
+                                                       Object_Ptr (Self));
                   --  we can move this contained to this container
                   Self.Defined_In := New_Container;
                   Self.Name := New_Name;
@@ -541,357 +540,41 @@ package body CORBA.Repository_Root.Contained.Impl is
                   --  we must change the absolute_name, recursively
                   Change_Absolute_Name (Object_Ptr (Self));
                   --  add the contained to the new container
-                  Container.Impl.Set_Contained_List
-                    (New_Container_Ptr,
-                     Append_Contained (Container.Impl.Get_Contained_List
-                                       (New_Container_Ptr),
-                                       Object_Ptr (Self)));
+                  Container.Impl.Append_To_Contents (New_Container_Ptr,
+                                                     Object_Ptr (Self));
                end if;
             end;
          end if;
       end if;
    end move;
 
-   -------------------------
-   -- A list of contained --
-   -------------------------
-
-   ------------
-   --  Head  --
-   ------------
-
-   function Head
-     (NL : Contained_List)
-     return Object_Ptr is
-   begin
-      pragma Assert (NL /= Nil_List);
-      return NL.Car;
-   end Head;
-
-   ----------------
-   --  Is_Empty  --
-   ----------------
-
-   function Is_Empty
-     (NL : Contained_List)
-     return Boolean is
-   begin
-      return NL = Nil_List;
-   end Is_Empty;
-
-   --------------
-   --  Length  --
-   --------------
-
-   function Length
-     (NL : Contained_List)
-     return Natural
-   is
-      Current : Contained_List
-        := NL;
-      Count : Natural
-        := 0;
-   begin
-      while not Is_Empty (Current) loop
-         Count := Count + 1;
-         Current := Current.Cdr;
-      end loop;
-
-      return Count;
-   end Length;
-
-   ----------
-   -- Init --
-   ----------
-
-   procedure Init (It : out Contained_Iterator; List : Contained_List) is
-   begin
-      It := Contained_Iterator (List);
-   end Init;
-
    ------------------------
-   -- Get_Next_Contained --
+   -- A Seq of contained --
    ------------------------
-
-   procedure Get_Next_Contained
-     (It : in out Contained_Iterator;
-      Contained : out Object_Ptr) is
-   begin
-      Contained := It.Car;
-      It := Contained_Iterator (It.Cdr);
-   end Get_Next_Contained;
-
-   --------------
-   --  Is_End  --
-   --------------
-   function Is_End (It : Contained_Iterator) return Boolean is
-   begin
-      return Is_Empty (Contained_List (It));
-   end Is_End;
-
-   ------------------------
-   --  Append_Contained  --
-   ------------------------
-
-   procedure Append_Contained
-     (List : in out Contained_List;
-      Contained : in Object_Ptr) is
-   begin
-      List := Append_Contained (List, Contained);
-   end Append_Contained;
-
-   ------------------------
-   --  Append_Contained  --
-   ------------------------
-
-   function Append_Contained
-     (List : Contained_List;
-      Contained : Object_Ptr) return Contained_List
-   is
-      Cell, Last : Contained_List;
-   begin
-      Cell := new Contained_List_Cell'(Car => Contained, Cdr => null);
-      if List = null then
-         return Cell;
-      else
-         Last := List;
-         while Last.Cdr /= null loop
-            Last := Last.Cdr;
-         end loop;
-         Last.Cdr := Cell;
-         return List;
-      end if;
-   end Append_Contained;
-
-   ---------------------
-   --  Insert_Before  --
-   ---------------------
-
-   procedure Insert_Before
-     (List : in out Contained_List;
-      Contained : Object_Ptr;
-      Before : Object_Ptr)
-   is
-      Cell : Contained_List;
-   begin
-      pragma Assert (List /= Nil_List);
-
-      if List.Car = Before then
-         Cell := new Contained_List_Cell'
-           (Car => Contained,
-            Cdr => List);
-         List := Cell;
-      else
-         Insert_Before (List.Cdr, Contained, Before);
-      end if;
-   end Insert_Before;
-
-   --------------------
-   --  Insert_After  --
-   --------------------
-
-   procedure Insert_After
-     (List : in Contained_List;
-      Contained : Object_Ptr;
-      After : Object_Ptr)
-   is
-      Cell : Contained_List;
-   begin
-      pragma Assert (List /= Nil_List);
-
-      if List.Car = After then
-         Cell := new Contained_List_Cell'
-           (Car => Contained,
-            Cdr => List.Cdr);
-         List.Cdr := Cell;
-      else
-         Insert_After (List.Cdr, Contained, After);
-      end if;
-   end Insert_After;
-
-   ------------------
-   --  Is_In_List  --
-   ------------------
-
-   function Is_In_List
-     (List : Contained_List;
-      Contained : Object_Ptr)
-     return Boolean is
-   begin
-      pragma Debug (O2 ("Is_In_List : enter"));
-      if List = Nil_List then
-         pragma Debug (O2 ("Is_In_List : enter"));
-         pragma Debug (O ("Is_In_List : nil_list"));
-         return False;
-      end if;
-      if List.Car = Contained then
-         pragma Debug (O2 ("Is_In_List : enter"));
-         pragma Debug (O ("Is_In_List : found"));
-         return True;
-      else
-         pragma Debug (O2 ("Is_In_List : enter"));
-         pragma Debug (O ("Is_In_List : searching further"));
-         return Is_In_List (List.Cdr, Contained);
-      end if;
-   end Is_In_List;
-
-   --------------------------
-   --  Is_In_Pointed_List  --
-   --------------------------
-
-   function Is_In_Pointed_List
-     (List : Contained_List;
-      Contained : Object_Ptr)
-      return Boolean is
-   begin
-      if List = Nil_List then
-         return False;
-      end if;
-      if List.Car = Contained then
-         return True;
-      else
-         return Is_In_Pointed_List (List.Cdr, Contained);
-      end if;
-   end Is_In_Pointed_List;
-
-   ------------------------
-   --  Remove_Contained  --
-   ------------------------
-
-   procedure Unchecked_Deallocation is
-      new Ada.Unchecked_Deallocation
-     (Contained_List_Cell, Contained_List);
-
-   ------------------------
-   --  Remove_Contained  --
-   ------------------------
-
-   function Remove_Contained
-     (List : Contained_List;
-      Contained : Object_Ptr)
-     return Contained_List is
-   begin
-      if List /= Nil_List then
-         if List.Car = Contained then
-            declare
-               Old_List : Contained_List := List;
-               Old_Cdr : constant Contained_List
-                 := List.Cdr;
-            begin
-               Unchecked_Deallocation (Old_List);
-               return Old_Cdr;
-            end;
-         else
-            List.Cdr := Remove_Contained (List.Cdr, Contained);
-         end if;
-      end if;
-      return List;
-   end Remove_Contained;
-
-   procedure Remove_Contained
-     (List : in out Contained_List;
-      Contained : Object_Ptr) is
-   begin
-      List := Remove_Contained (List, Contained);
-   end Remove_Contained;
-
-   ------------
-   --  Free  --
-   ------------
-
-   procedure Free
-     (List : in out Contained_List)
-   is
-      Old_List : Contained_List;
-   begin
-      while List /= null loop
-         Old_List := List;
-         List := List.Cdr;
-         Unchecked_Deallocation (Old_List);
-      end loop;
-   end Free;
-
-   ------------------
-   --  Get_Length  --
-   ------------------
-
-   function Get_Length
-     (List : Contained_List)
-     return Integer
-   is
-      Temp_List : Contained_List := List;
-      Result : Integer := 0;
-   begin
-      while Temp_List /= Nil_List loop
-         Result := Result + 1;
-         Temp_List := Temp_List.Cdr;
-      end loop;
-      return Result;
-   end Get_Length;
-
-   -------------------------------
-   --  Simplify contained list  --
-   -------------------------------
-
-   function Simplify_Contained_List
-     (In_List : Contained_List)
-     return Contained_List
-   is
-      Result_List : Contained_List := null;
-      It : Contained_Iterator;
-      Contained : Object_Ptr;
-   begin
-      Init (It, In_List);
-      while not Is_End (It) loop
-         Get_Next_Contained (It, Contained);
-
-         if not Is_In_List (Result_List, Contained) then
-            Append_Contained (Result_List, Contained);
-         end if;
-      end loop;
-      return Result_List;
-   end Simplify_Contained_List;
-
-   procedure Merge_List
-     (Into : in out Contained_List;
-      From : in Contained_List)
-   is
-      It : Contained_Iterator;
-      N : Object_Ptr;
-   begin
-      Init (It, From);
-      while not Is_End (It) loop
-         Get_Next_Contained (It, N);
-
-         if not Is_In_List (Into, N) then
-            Append_Contained (Into, N);
-         end if;
-      end loop;
-   end Merge_List;
 
    -----------------
    --  Lookup_id  --
    -----------------
-   function Lookup_Id (In_List : Contained_List;
+   function Lookup_Id (In_Seq : Contained_Seq.Sequence;
                        Search_Id : CORBA.RepositoryId)
-     return Object_Ptr is
-      It : Contained_Iterator;
-      N : Object_Ptr;
+                       return Object_Ptr is
       Result : Object_Ptr := null;
       Success : Boolean;
       Container_Object : Container.Impl.Object_Ptr;
+      Cont_Array : Contained_Seq.Element_Array
+        := Contained_Seq.To_Element_Array (In_Seq);
    begin
-      Init (It, In_List);
-      while (not Is_End (It)) or (Result = null)  loop
-         Get_Next_Contained (It, N);
-         if N.Id = Search_Id then
-            Result := N;
+
+      for I in Cont_Array'Range loop
+         exit when Result /= null;
+         if Cont_Array (I).Id = Search_Id then
+            Result := Cont_Array (I);
          else
-            Container.Impl.To_Container (Get_Real_Object (N),
+            Container.Impl.To_Container (Get_Real_Object (Cont_Array (I)),
                                          Success,
                                          Container_Object);
             if Success then
-               Result := Lookup_Id (Container.Impl.Get_Contained_List
+               Result := Lookup_Id (Container.Impl.Get_Contents
                                     (Container_Object),
                                     Search_Id);
             end if;
@@ -904,28 +587,30 @@ package body CORBA.Repository_Root.Contained.Impl is
    --  To_containedSeq  --
    -----------------------
    function To_ContainedSeq
-     (In_List : Contained_List)
+     (In_Seq : Contained_Seq.Sequence)
       return  CORBA.Repository_Root.ContainedSeq is
-      It : Contained_Iterator;
+      Cont_Array : Contained_Seq.Element_Array
+        := Contained_Seq.To_Element_Array (In_Seq);
       The_Ref : CORBA.Repository_Root.Contained.Ref;
-      Contained_Object : Object_Ptr;
       Result : CORBA.Repository_Root.ContainedSeq
-        := CORBA.Repository_Root.ContainedSeq (Contained_Seq.Null_Sequence);
+        := CORBA.Repository_Root.ContainedSeq (Contained_For_Seq.Null_Sequence);
    begin
-      Init (It, In_List);
-      while not Is_End (It) loop
-         Get_Next_Contained (It, Contained_Object);
-         Contained.Set (The_Ref,
-                        CORBA.Impl.Object_Ptr (Contained_Object));
-         Contained_Seq.Append (Contained_Seq.Sequence (Result),
-                               Contained.Convert_Forward.To_Forward (The_Ref));
+      for I in Cont_Array'Range loop
+         declare
+            Cont : Object_Ptr := Cont_Array (I);
+         begin
+            Contained.Set (The_Ref,
+                           CORBA.Impl.Object_Ptr (Cont));
+            Contained_For_Seq.Append (Contained_For_Seq.Sequence (Result),
+                                      Contained.Convert_Forward.To_Forward (The_Ref));
+         end;
       end loop;
       return Result;
    end;
 
 
-
 end CORBA.Repository_Root.Contained.Impl;
+
 
 
 

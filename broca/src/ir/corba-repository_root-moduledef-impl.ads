@@ -30,7 +30,7 @@ package CORBA.Repository_Root.ModuleDef.Impl is
                    Containing_Repository :
                      CORBA.Repository_Root.Repository_Forward.Ref;
                    Contents :
-                     CORBA.Repository_Root.Contained.Impl.Contained_List;
+                     CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
                    Contained_View :  CORBA.Repository_Root.Contained.Impl.Object_Ptr);
 
    --  For multiple inheritance, to access the different views

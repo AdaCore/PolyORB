@@ -30,7 +30,7 @@ package body CORBA.Repository_Root.StructDef.Impl is
                    IDL_Type : CORBA.TypeCode.Object;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
                    Contents :
-                     CORBA.Repository_Root.Contained.Impl.Contained_List;
+                     CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
                    Container_View : CORBA.Repository_Root.Container.Impl.Object_Ptr;
                    Members : CORBA.Repository_Root.StructMemberSeq) is
   begin

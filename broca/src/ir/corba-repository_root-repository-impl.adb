@@ -39,7 +39,7 @@ package body CORBA.Repository_Root.Repository.Impl is
       Result_Ref : Contained.Ref;
       use Contained.Impl;
    begin
-      Result_Object := Contained.Impl.Lookup_Id (Get_Contained_List (Self),
+      Result_Object := Contained.Impl.Lookup_Id (Get_Contents (Self),
                                                  Search_Id);
       Contained.Set (Result_Ref,
                      CORBA.Impl.Object_Ptr (Result_Object));

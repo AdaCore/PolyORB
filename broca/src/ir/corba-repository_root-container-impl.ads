@@ -21,7 +21,7 @@ package CORBA.Repository_Root.Container.Impl is
                      CORBA.Repository_Root.IRObject.Impl.Object_Ptr;
                    Def_Kind : Corba.Repository_Root.DefinitionKind;
                    Contents :
-                     CORBA.Repository_Root.Contained.Impl.Contained_List);
+                     CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence);
 
 
    --  To transform a forward_ref in impl.object_ptr.
@@ -29,13 +29,21 @@ package CORBA.Repository_Root.Container.Impl is
      return Container.Impl.Object_Ptr;
 
    --  Our function to get the contents list.
-   function Get_Contained_List (Self : access Object)
-     return CORBA.Repository_Root.Contained.Impl.Contained_List;
+   function Get_Contents (Self : access Object)
+     return CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
 
    --  Our function to set the contents list.
-   procedure Set_Contained_List
+   procedure Set_Contents
      (Self : access Object;
-      New_List : in CORBA.Repository_Root.Contained.Impl.Contained_List);
+      New_List : in CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence);
+
+   --  Procedure to append an element to the contents
+   procedure Append_To_Contents (Self : access Object;
+                                 Element : Contained.Impl.Object_Ptr);
+
+   --  Procedure to delete an element from the contents
+   procedure Delete_From_Contents (Self : access Object;
+                                   Element : Contained.Impl.Object_Ptr);
 
    --  usefull for the multiple inhertance
    --  transform an IRObject to a container
@@ -173,7 +181,7 @@ private
 
    type Object is
      new CORBA.Repository_Root.IRObject.Impl.Object with record
-        Contents : CORBA.Repository_Root.Contained.Impl.Contained_List;
+        Contents : CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
    end record;
 
 end CORBA.Repository_Root.Container.Impl;

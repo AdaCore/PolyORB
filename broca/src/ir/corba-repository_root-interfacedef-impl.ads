@@ -35,7 +35,7 @@ package CORBA.Repository_Root.InterfaceDef.Impl is
                    Containing_Repository :
                      CORBA.Repository_Root.Repository_Forward.Ref;
                    Contents :
-                     CORBA.Repository_Root.Contained.Impl.Contained_List;
+                     CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
                    IDL_Type : CORBA.TypeCode.Object;
                    Contained_View :  CORBA.Repository_Root.Contained.Impl.Object_Ptr;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
