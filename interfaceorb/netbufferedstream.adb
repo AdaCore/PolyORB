@@ -638,6 +638,76 @@ package body NetBufferedStream is
    end ;
 
 
+   -- Marshall
+   -----------
+   procedure Marshall (A : in Corba.Completion_Status ;
+                       S : in out Object'Class) is
+   begin
+      -- maps the possible values on the firste shorts
+      -- and marshall the right one
+      case A is
+         when Corba.Completed_Yes =>
+            Marshall (Corba.Unsigned_Short (1),S) ;
+         when Corba.Completed_No =>
+            Marshall (Corba.Unsigned_Short (2),S) ;
+         when Corba.Completed_Maybe =>
+            Marshall (Corba.Unsigned_Short (3),S) ;
+      end case ;
+   end;
+
+
+   -- UnMarshall
+   -------------
+   procedure UnMarshall (A : out Corba.Completion_Status ;
+                         S : in out Object'Class) is
+      Tmp : Corba.Unsigned_Short ;
+   begin
+      -- unmarshalls an unsigned short
+      UnMarshall (Tmp,S) ;
+      -- and returns the corresponding Completion_Status
+      case Tmp is
+         when 1 =>
+            A := Corba.Completed_Yes ;
+         when 2 =>
+            A := Corba.Completed_No ;
+         when 3 =>
+            A := Corba.Completed_Maybe ;
+         when others =>
+            Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
+                                            "Expected Completion_Status in netbufferedstream.UnMarshall" & Corba.CRLF &
+                                            "Short out of range" & Corba.CRLF &
+                                            "(see netbufferedstream L660)");
+      end case ;
+   end;
+
+
+   -- Marshall
+   -----------
+   procedure Marshall (A : in Corba.Ex_Body'Class ;
+                       S : in out Object'Class) is
+   begin
+      -- just marshall each field
+      Marshall (A.Minor,S) ;
+      Marshall (A.Completed,S) ;
+   end;
+
+
+   -- UnMarshall
+   -------------
+   procedure UnMarshall (A : out Corba.Ex_Body'Class ;
+                         S : in out Object'Class) is
+      Minor : Corba.Unsigned_Long ;
+      Completed : Corba.Completion_Status ;
+   begin
+      -- Unmarshalls the two fields
+      UnMarshall (Completed,S) ;
+      UnMarshall (Minor,S) ;
+      -- and return the object
+      A.Minor := Minor ;
+      A.Completed := Completed ;
+   end;
+
+
    -- C_Is_Reusing_Existing_Connection
    -----------------------------------
    function C_Is_Reusing_Existing_Connection (Self : in Object'Class)

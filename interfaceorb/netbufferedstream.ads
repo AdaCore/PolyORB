@@ -182,6 +182,27 @@ package NetBufferedStream is
    -- UnMarshalls a Corba.String from a netbufferedstream object
 
 
+   procedure Marshall (A : in Corba.Completion_Status ;
+                       S : in out Object'Class);
+   -- Marshalls a Corba.Completion_Status into a netbufferedstream object
+
+
+   procedure UnMarshall (A : out Corba.Completion_Status ;
+                         S : in out Object'Class);
+   -- UnMarshalls a Corba.Completion_Status from a netbufferedstream object
+
+
+   procedure Marshall (A : in Corba.Ex_Body'Class ;
+                       S : in out Object'Class);
+   -- Marshalls a Corba system exception into a netbufferedstream object
+
+
+   procedure UnMarshall (A : out Corba.Ex_Body'Class ;
+                         S : in out Object'Class);
+   -- UnMarshalls a Corba system exception from a netbufferedstream object
+
+
+
    function Is_Reusing_Existing_Connection (Self : in Object'Class)
                                             return CORBA.Boolean;
    -- Indicates whether the netbufferedstream is reusing an existing

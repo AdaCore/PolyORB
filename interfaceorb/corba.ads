@@ -236,8 +236,8 @@ package Corba is
     ----        not in spec, AdaBroker specific             ---
     -----------------------------------------------------------
 
-    procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
-                                    Excp_Memb: in Idl_Exception_Members'Class) ;
+    procedure Raise_Corba_Exception (Excp : in Ada.Exceptions.Exception_Id ;
+                                     Excp_Memb: in Idl_Exception_Members'Class) ;
     -- raises the corresponding exception corba exception and stores
     -- its member so that it can be retrieved with Get_Members
 

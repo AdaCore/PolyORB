@@ -172,9 +172,32 @@ package MemBufferedStream is
                        S : in out Object'Class);
    -- Marshalls a Corba.String into a membufferedstream object
 
+
    procedure UnMarshall (A : out Corba.String ;
                          S : in out Object'Class);
    -- UnMarshalls a Corba.String from a membufferedstream object
+
+
+   procedure Marshall (A : in Corba.Completion_Status ;
+                       S : in out Object'Class);
+   -- Marshalls a Corba.Completion_Status into a netbufferedstream object
+
+
+   procedure UnMarshall (A : out Corba.Completion_Status ;
+                         S : in out Object'Class);
+   -- UnMarshalls a Corba.Completion_Status from a netbufferedstream object
+
+
+   procedure Marshall (A : in Corba.Ex_Body'Class ;
+                       S : in out Object'Class);
+   -- Marshalls a Corba system exception into a membufferedstream object
+
+
+   procedure UnMarshall (A : out Corba.Ex_Body'Class ;
+                         S : in out Object'Class);
+   -- UnMarshalls a Corba system exception from a membufferedstream object
+
+
 
 
 private
