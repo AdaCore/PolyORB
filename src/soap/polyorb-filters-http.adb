@@ -47,8 +47,6 @@ with PolyORB.Filters.Interface;
 with PolyORB.HTTP_Headers;
 with PolyORB.Log;
 with PolyORB.Opaque;
-with PolyORB.Protocols;
---  For exception Protocol_Error.
 with PolyORB.Utils;
 with PolyORB.Utils.Text_Buffers;
 
@@ -70,7 +68,7 @@ package body PolyORB.Filters.HTTP is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   Protocol_Error : exception renames Protocols.Protocol_Error;
+   HTTP_Error : exception;
 
    -----------------------------------------
    -- Declaration of internal subprograms --
@@ -356,7 +354,7 @@ package body PolyORB.Filters.HTTP is
                case Z (J) is
                   when Character'Pos (ASCII.CR) =>
                      if F.CR_Seen then
-                        raise Protocol_Error;
+                        raise HTTP_Error;
                         --  Two consecutive CRs.
                      end if;
 
@@ -364,7 +362,7 @@ package body PolyORB.Filters.HTTP is
 
                   when Character'Pos (ASCII.LF) =>
                      if not F.CR_Seen then
-                        raise Protocol_Error;
+                        raise HTTP_Error;
                         --  LF not preceded with CR.
                      end if;
                      F.CR_Seen := False;
@@ -464,7 +462,7 @@ package body PolyORB.Filters.HTTP is
                      L : constant Integer := Length (F.Entity);
                   begin
                      if Slice (F.Entity, L - 1, L) /= CRLF then
-                        raise Protocol_Error;
+                        raise HTTP_Error;
                         --  XXX chunk data not terminated by CRLF;
                      end if;
 
@@ -592,7 +590,7 @@ package body PolyORB.Filters.HTTP is
                         --  the connection at the end of the message,
                         --  because then there would be no channel
                         --  for sending a response.
-                        raise Protocol_Error;
+                        raise HTTP_Error;
                      end if;
 
                      --  We are on the client side, and the
@@ -699,11 +697,11 @@ package body PolyORB.Filters.HTTP is
       Result : HTTP_Version;
    begin
       if S (S'First .. Version - 1) /= HTTP_Slash then
-         raise Protocol_Error;
+         raise HTTP_Error;
       end if;
       Dot := Find (S, Version, '.');
       if Dot >= S'Last then
-         raise Protocol_Error;
+         raise HTTP_Error;
       end if;
       Result.Major := Natural'Value (S (Version .. Dot - 1));
       Result.Minor := Natural'Value (S (Dot + 1 .. S'Last));
@@ -735,7 +733,7 @@ package body PolyORB.Filters.HTTP is
 
       if Version > S'Last then
          --  XXX bad request
-         raise Protocol_Error;
+         raise HTTP_Error;
       end if;
 
       Utils.Strings.Free (F.Request_URI);
@@ -758,13 +756,13 @@ package body PolyORB.Filters.HTTP is
    begin
       Space := Find_Whitespace (S, S'First);
       if Space > S'Last then
-         raise Protocol_Error;
+         raise HTTP_Error;
       end if;
       F.Version := Parse_HTTP_Version (S (S'First .. Space - 1));
       Status_Pos := Skip_Whitespace (S, Space);
       Space := Find_Whitespace (S, Status_Pos);
       if Space > S'Last or else Space - Status_Pos /= 3 then
-         raise Protocol_Error;
+         raise HTTP_Error;
       end if;
 
       F.Status := To_HTTP_Status_Code
@@ -793,14 +791,14 @@ package body PolyORB.Filters.HTTP is
       Tok_First, Tok_Last : Integer;
    begin
       if Colon > S'Last then
-         raise Protocol_Error;
+         raise HTTP_Error;
       end if;
       Header_Kind := PolyORB.HTTP_Headers.In_Word_Set
         (S (S'First .. Colon - 1));
       if (F.Role = Client and then Header_Kind in Request_Header)
         or else (F.Role = Server and then Header_Kind in Response_Header)
       then
-         raise Protocol_Error;
+         raise HTTP_Error;
       end if;
 
       Pos := Colon + 1;
@@ -811,7 +809,7 @@ package body PolyORB.Filters.HTTP is
             Tok_Last := S'Last;
             Trim_LWS (S, Tok_Last);
             if Pos > Tok_Last then
-               raise Protocol_Error;
+               raise HTTP_Error;
             end if;
             F.Content_Length := Stream_Element_Count'Value
               (S (Pos .. Tok_Last));
@@ -820,7 +818,7 @@ package body PolyORB.Filters.HTTP is
             Pos := Colon + 1;
 
             if Length (F.Transfer_Encoding) /= 0 then
-               raise Protocol_Error;
+               raise HTTP_Error;
                --  XXX duplicate Transfer-Encoding header.
             end if;
 
@@ -837,14 +835,14 @@ package body PolyORB.Filters.HTTP is
                  := Length (F.Transfer_Encoding);
             begin
                if Nb_Encodings = 0 then
-                  raise Protocol_Error;
+                  raise HTTP_Error;
                   --  XXX at least one token is required.
                end if;
 
                if Value (First (F.Transfer_Encoding)).all
                  /= Encoding_Chunked
                then
-                  raise Protocol_Error;
+                  raise HTTP_Error;
                   --  XXX RFC 2616 3.6 When one or more
                   --  are specified, "chunked" must be specified
                   --  exactly once and must be the last specified.
@@ -856,7 +854,7 @@ package body PolyORB.Filters.HTTP is
             Tok_Last := S'Last;
             Trim_LWS (S, Tok_Last);
             if Pos > Tok_Last then
-               raise Protocol_Error;
+               raise HTTP_Error;
             end if;
             pragma Debug (O ("SOAP action is " & S (Pos .. Tok_Last)));
 
