@@ -61,7 +61,7 @@ valuetype forward_value;
 valuetype forward_value long;
 valuetype toto long;
 valuetype rightboxedvalue long;
-valuetype FooSeq sequence <FooSeq>;
+//valuetype FooSeq sequence <FooSeq>;
 
 /* Test of rule 19 */
 /* test errors */
@@ -101,9 +101,9 @@ valuetype value32 : value4, value1 {};
 valuetype value33 : value4, value1, value 31 {};
 valuetype value34 : truncatable value4 {};
 valuetype value35 : truncatable value4, value1 {};
-valuetype value36 : truncatable value4, value1, value 31 {};
+valuetype value36 : truncatable value4, value1, value31 {};
 abstract valuetype value37 : value1 {};
-abstract valuetype value38 : value1, value 31 {};
+abstract valuetype value38 : value1, value31 {};
 abstract interface valueinterface4 {};
 abstract interface valueinterface5 {};
 valuetype value39 supports valueinterface1 {};

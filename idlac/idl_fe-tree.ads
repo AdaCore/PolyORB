@@ -145,6 +145,7 @@ package Idl_Fe.Tree is
    end record;
    type N_Interface_Acc is access all N_Interface;
    function Get_Kind (N : N_Interface) return Types.Node_Kind;
+   function Get_Parents (Node : N_Interface) return Types.Node_List;
 
    --  Forward declaration of an interface.
    type N_Forward_Interface is new Types.N_Named with record
@@ -168,6 +169,7 @@ package Idl_Fe.Tree is
    end record;
    type N_ValueType_Acc is access all N_ValueType;
    function Get_Kind (N : N_ValueType) return Types.Node_Kind;
+   function Get_Parents (Node : N_ValueType) return Types.Node_List;
 
    --  Forward declaration of an interface.
    type N_Forward_ValueType is new Types.N_Named with record

@@ -3,8 +3,18 @@ with System;
 with GNAT.Case_Util;
 with Idl_Fe.Errors;
 with Idl_Fe.Lexer;
+with Idl_Fe.Debug;
+pragma Elaborate_All (Idl_Fe.Debug);
+
 
 package body Idl_Fe.Types is
+
+   --------------
+   --   Debug  --
+   --------------
+
+   Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.types");
+   procedure O is new Idl_Fe.Debug.Output (Flag);
 
 
    --------------------------------------------
@@ -512,6 +522,8 @@ package body Idl_Fe.Types is
       Old_Definition_List : Identifier_Definition_List;
       Forward_Defs : Node_Iterator;
       Forward_Def : N_Root_Acc;
+      Hash_Index : Hash_Value_Type;
+      Index : Uniq_Id;
    begin
       --  Remove all definition of scope from the hash table, and
       --  replace them by the previous one.
@@ -522,6 +534,23 @@ package body Idl_Fe.Types is
            (Id_Table.Table (Definition_List.Definition.Id).Definition);
          Id_Table.Table (Definition_List.Definition.Id).Definition :=
            Definition_List.Definition.Previous_Definition;
+         --  memory leak
+         --  FIXME >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+         if Definition_List.Definition.Previous_Definition = null then
+            Hash_Index := Hash (Definition_List.Definition.Name.all)
+              mod Hash_Mod;
+            if Id_Table.Table (Hash_Table (Hash_Index)).Definition = null then
+               Hash_Table (Hash_Index) := Nil_Uniq_Id;
+            else
+               Index := Hash_Table (Hash_Index);
+               while Id_Table.Table (Id_Table.Table (Index).Next).Definition
+                 /= null loop
+                  Index := Id_Table.Table (Index).Next;
+               end loop;
+               Id_Table.Table (Index).Next := Nil_Uniq_Id;
+            end if;
+         end if;
+
          Old_Definition_List := Definition_List;
          Definition_List := Definition_List.Next;
          Unchecked_Deallocation (Old_Definition_List);
@@ -568,6 +597,7 @@ package body Idl_Fe.Types is
       Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id := Hash_Table (Hash_Index);
    begin
+      pragma Debug (O ("Check_Identifier_Index : enter"));
       if Index /= Nil_Uniq_Id then
          while Id_Table.Table (Index).Definition.Name /= null loop
             if Idl_Identifier_Equal
@@ -582,6 +612,7 @@ package body Idl_Fe.Types is
             Index := Id_Table.Table (Index).Next;
          end loop;
       end if;
+      pragma Debug (O ("Check_Identifier_Index : end"));
       return Nil_Uniq_Id;
    end Check_Identifier_Index;
 
@@ -593,6 +624,7 @@ package body Idl_Fe.Types is
       Hash_Index : Hash_Value_Type := Hash (Identifier) mod Hash_Mod;
       Index : Uniq_Id := Hash_Table (Hash_Index);
    begin
+      pragma Debug (O ("Create_Identifier_Index : enter"));
       if Index = Nil_Uniq_Id then
          Id_Table.Increment_Last;
          Index := Id_Table.Last;
@@ -629,7 +661,10 @@ package body Idl_Fe.Types is
       Definition, Imported_Definition, Inherited_Definition
         : Identifier_Definition_Acc;
    begin
+      pragma Debug (O ("Find_Identifier_Definition : enter"));
       Index := Check_Identifier_Index (Name);
+      pragma Debug (O ("Find_Identifier_Definition : " &
+                       "check_identifier_index done"));
       if Index /= Nil_Uniq_Id then
          Definition := Id_Table.Table (Index).Definition;
          --  is the definition in the scope
@@ -693,6 +728,13 @@ package body Idl_Fe.Types is
       Definition : Identifier_Definition_Acc;
       Index : Uniq_Id;
    begin
+      pragma Debug (O ("Add_Identifier : enter"));
+      pragma Debug (O ("Add_Identifier : identifier is " & Name));
+      --  Checks if the identifier is already imported
+      if Check_Imported_Identifier_Index (Name) /= Nil_Uniq_Id then
+         return False;
+      end if;
+
       Index := Create_Identifier_Index (Name);
       Definition := Id_Table.Table (Index).Definition;
       --  Checks if the identifier is not being redefined in the same
@@ -836,10 +878,9 @@ package body Idl_Fe.Types is
       Index : Uniq_Id;
       Scope : N_Imports_Acc;
    begin
-      --  there is no imports in moduls types
       if Get_Kind (Current_Scope.Scope.all) = K_Repository or
         Get_Kind (Current_Scope.Scope.all) = K_Module then
-         raise Idl_Fe.Errors.Internal_Error;
+         return Nil_Uniq_Id;
       end if;
 
       Scope := N_Imports_Acc (Current_Scope.Scope);
@@ -975,15 +1016,10 @@ package body Idl_Fe.Types is
       It : Node_Iterator;
       Node : N_Root_Acc;
       Definition : Identifier_Definition_Acc;
-      Parent : Node_List := null;
+      Parent : Node_List;
    begin
-      if Get_Kind (Scope.all) = K_Interface then
-         Parent := null;  --  N_Interface_Acc (Scope_Node).Parents;
-      end if;
-      if Get_Kind (Scope.all) = K_ValueType then
-         Parent := null;  --  N_ValueType_Acc (Scope_Node).Parents;
-      end if;
 
+      Parent :=  Get_Parents (Scope.all);
       Init (It, Parent);
       --  loop for all the Parent of the scope
       while not Is_End (It) loop

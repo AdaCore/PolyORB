@@ -1,12 +1,20 @@
---  with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
 with GNAT.Case_Util;
 with Idl_Fe.Lexer; use Idl_Fe.Lexer;
 with Idl_Fe.Types; use Idl_Fe.Types;
 with Idl_Fe.Errors;
+with Idl_Fe.Debug;
+pragma Elaborate_All (Idl_Fe.Debug);
 
 package body Idl_Fe.Parser is
+
+   --------------
+   --   Debug  --
+   --------------
+
+   Flag : constant Natural := Idl_Fe.Debug.Is_Active ("idl_fe.parser");
+   procedure O is new Idl_Fe.Debug.Output (Flag);
 
    ---------------------
    --  Initialization --
@@ -63,6 +71,8 @@ package body Idl_Fe.Parser is
    -----------------
    function Get_Token return Idl_Token is
    begin
+      pragma Debug (O ("Get_Token : token is " & Idl_Token'Image
+                       (Token_Buffer (Current_Index))));
       return Token_Buffer (Current_Index);
    end Get_Token;
 
@@ -550,6 +560,7 @@ package body Idl_Fe.Parser is
       Fd_Res : N_Forward_Interface_Acc;
       Definition : Identifier_Definition_Acc;
    begin
+      pragma Debug (O ("Parse_Interface : enter"));
       --  interface header.
       Res := new N_Interface;
       --  is the interface abstracted
@@ -616,6 +627,7 @@ package body Idl_Fe.Parser is
                end;
             end if;
          else
+            pragma Debug (O ("Parse_Interface : identifier not defined"));
             Fd_Res := null;
             Res.Forward := null;
             if not Add_Identifier (Res,
@@ -639,6 +651,7 @@ package body Idl_Fe.Parser is
             return;
          end;
       end if;
+      pragma Debug (O ("Parse_Interface : identifier parsed"));
       Next_Token;
       --  Hups, this was just a forward declaration.
       if Get_Token = T_Semi_Colon then
@@ -824,6 +837,7 @@ package body Idl_Fe.Parser is
       Scope : N_Scope_Acc;
       Name : N_Named_Acc;
    begin
+      pragma Debug (O ("Parse_Scoped_Name : enter"));
       Result := null;
       Success := False;
       Prev := null;
@@ -867,6 +881,7 @@ package body Idl_Fe.Parser is
             Res.Value := Name;
             Success := True;
             Result := Res;
+            pragma Debug (O ("Parse_Scoped_Name : end if simple identifier"));
             return;
          end if;
          --  is the identifier a scope?
@@ -945,6 +960,7 @@ package body Idl_Fe.Parser is
       Res.Value := Name;
       Success := True;
       Result := Res;
+      pragma Debug (O ("Parse_Scoped_Name : return"));
       return;
    end Parse_Scoped_Name;
 
@@ -954,6 +970,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Value (Result : out N_Named_Acc;
                           Success : out Boolean) is
    begin
+      pragma Debug (O ("Initialize_Local_Object : enter"));
       case Get_Token is
          when T_Custom =>
             Next_Token;
@@ -980,6 +997,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Custom_Value (Result : out N_ValueType_Acc;
                                  Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Custom_Value : enter"));
       if Get_Token /= T_ValueType then
          declare
             Loc : Idl_Fe.Errors.Location;
@@ -1022,6 +1040,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Abstract_Value (Result : out N_Named_Acc;
                                    Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Abstract_Value : enter"));
       if Get_Token /= T_ValueType then
          declare
             Loc : Idl_Fe.Errors.Location;
@@ -1039,6 +1058,7 @@ package body Idl_Fe.Parser is
          Success := False;
       else
          Next_Token;
+         pragma Debug (O ("Parse_Abstract_Value : check for identifier"));
          if Get_Token /= T_Identifier then
             declare
                Loc : Idl_Fe.Errors.Location;
@@ -1086,6 +1106,7 @@ package body Idl_Fe.Parser is
             end case;
          end if;
       end if;
+      pragma Debug (O ("Parse_Abstract_Value : end"));
       return;
    end Parse_Abstract_Value;
 
@@ -1095,6 +1116,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Direct_Value (Result : out N_Named_Acc;
                                  Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Direct_Value : enter"));
       Next_Token;
       if Get_Token /= T_Identifier then
          declare
@@ -1181,6 +1203,7 @@ package body Idl_Fe.Parser is
                                   Abst : in Boolean) is
       Definition : Identifier_Definition_Acc;
    begin
+      pragma Debug (O ("Parse_End_Value_Dcl : enter"));
       Result := new N_ValueType;
       Result.Abst := Abst;
       Result.Custom := Custom;
@@ -1278,6 +1301,7 @@ package body Idl_Fe.Parser is
       --  consumes the right Cbracket
       Next_Token;
       Success := True;
+      pragma Debug (O ("Parse_End_Value_Dcl : end"));
       return;
    end Parse_End_Value_Dcl;
 
@@ -1389,12 +1413,13 @@ package body Idl_Fe.Parser is
       return;
    end Parse_End_Value_Box_Dcl;
 
-   -------------------------------
-   --  Parse_End_Value_Box_Dcl  --
-   -------------------------------
+   ------------------------------------
+   --  Parse_Value_Inheritance_Spec  --
+   ------------------------------------
    procedure Parse_Value_Inheritance_Spec (Result : in out N_ValueType_Acc;
                                            Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Value_Inheritance_Spec : enter"));
       if Get_Token = T_Colon then
          Next_Token;
          if Get_Token = T_Truncatable then
@@ -1415,6 +1440,7 @@ package body Idl_Fe.Parser is
             end if;
             Next_Token;
          end if;
+         pragma Debug (O ("Parse_Value_Inheritance_Spec : truncable treated"));
          --  parse value inheritance
          declare
             Name : N_Scoped_Name_Acc;
@@ -1442,7 +1468,6 @@ package body Idl_Fe.Parser is
                         end if;
                      end if;
                      Append_Node (Result.Parents, N_Root_Acc (Name));
-                     Next_Token;
                   when K_Forward_ValueType =>
                      Idl_Fe.Errors.Parser_Error
                        ("A value may not inherit from a forward declared" &
@@ -1479,6 +1504,8 @@ package body Idl_Fe.Parser is
                return;
             end if;
          end;
+         pragma Debug (O ("Parse_Value_Inheritance_Spec : " &
+                          "first parent parsed"));
          while Get_Token = T_Comma loop
             Next_Token;
             declare
@@ -1489,6 +1516,8 @@ package body Idl_Fe.Parser is
                if Name_Success then
                   case Get_Kind (Name.Value.all) is
                      when K_ValueType =>
+                        pragma Debug (O ("Parse_Value_Inheritance_Spec : " &
+                                         "parent is a valuetype"));
                         if Is_In_List (Result.Parents, N_Root_Acc (Name)) then
                            --  already inherited
                            Idl_Fe.Errors.Parser_Error
@@ -1506,7 +1535,6 @@ package body Idl_Fe.Parser is
                            end if;
                            Append_Node (Result.Parents, N_Root_Acc (Name));
                         end if;
-                        Next_Token;
                      when K_Forward_ValueType =>
                         Idl_Fe.Errors.Parser_Error
                           ("A value may not inherit from a forward declared" &
@@ -1545,6 +1573,8 @@ package body Idl_Fe.Parser is
             end;
          end loop;
       end if;
+      pragma Debug (O ("Parse_Value_Inheritance_Spec : " &
+                       "begining parsing of supports declarations"));
       --  since we entered this method after reading T_colon or
       --  T_Supports, we should have T_Supports now
       case Get_Token is
@@ -1566,7 +1596,6 @@ package body Idl_Fe.Parser is
                               Non_Abstract_Interface := True;
                            end if;
                            Append_Node (Result.Supports, N_Root_Acc (Name));
-                           Next_Token;
                         when K_Forward_Interface =>
                            Idl_Fe.Errors.Parser_Error
                              ("A value may not support a forward declared" &
@@ -1625,7 +1654,6 @@ package body Idl_Fe.Parser is
                                  end if;
                               end if;
                               Append_Node (Result.Supports, N_Root_Acc (Name));
-                              Next_Token;
                            when K_Forward_Interface =>
                               Idl_Fe.Errors.Parser_Error
                                 ("A value may not support a forward declared" &
@@ -1663,7 +1691,6 @@ package body Idl_Fe.Parser is
             end;
          when T_Left_Cbracket =>
             Success := True;
-            return;
          when others =>
             declare
                Loc : Idl_Fe.Errors.Location;
@@ -1679,9 +1706,9 @@ package body Idl_Fe.Parser is
                   Idl_Fe.Errors.Error,
                   Loc);
                Success := False;
-               return;
             end;
       end case;
+      pragma Debug (O ("Parse_Value_Inheritance_Spec : enter"));
    end Parse_Value_Inheritance_Spec;
 
    ---------------------------

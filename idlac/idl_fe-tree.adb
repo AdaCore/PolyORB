@@ -160,6 +160,14 @@ package body Idl_Fe.Tree is
       return Types.K_Interface;
    end Get_Kind;
 
+   -------------------
+   --  Get_Parents  --
+   -------------------
+   function Get_Parents (Node : N_Interface) return Types.Node_List is
+   begin
+      return Node.Parents;
+   end Get_Parents;
+
    ----------------
    --  Get_Kind  --
    ----------------
@@ -175,6 +183,14 @@ package body Idl_Fe.Tree is
    begin
       return Types.K_ValueType;
    end Get_Kind;
+
+   -------------------
+   --  Get_Parents  --
+   -------------------
+   function Get_Parents (Node : N_ValueType) return Types.Node_List is
+   begin
+      return Node.Parents;
+   end Get_Parents;
 
    ----------------
    --  Get_Kind  --

@@ -280,6 +280,10 @@ package Idl_Fe.Types is
    function Get_Definition (Node : N_Named_Acc)
                             return Identifier_Definition_Acc;
 
+   --  Return the node list containing the inherited interfaces
+   function Get_Parents (Node : N_Imports)
+                         return Node_List is abstract;
+
    ----------------------
    --  scope handling  --
    ----------------------
