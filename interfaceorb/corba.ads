@@ -11,7 +11,7 @@
 -----------------------------------------------------------------------
 
 
-
+with Ada.Characters.Latin_1 ;
 with Ada.Exceptions ;
 with Ada.Strings.Unbounded ;
 with Interfaces ;
@@ -55,7 +55,7 @@ package Corba is
 
     type Idl_Exception_Members is abstract tagged null record;
 
-    procedure Get_Members (From : in Ada.Exceptions.Exception_Occurrence;
+    procedure Get_Members (From : in Ada.Exceptions.Exception_Id;
                            To : out Idl_Exception_Members) is abstract;
 
     -- Standard Exceptions:
@@ -104,9 +104,6 @@ package Corba is
     Obj_Adapter : exception;  -- failure detected by object adapter
     Data_Conversion : exception;  -- data conversion error
 
-    Constraint_Error : exception ;
-    -- failure on to_ref
-    -- CORBA 2.2, page 23.15
 
     type Unknown_Members is new System_Exception_Members with null record;
     type Bad_Param_Members is new System_Exception_Members with null record;
@@ -134,12 +131,24 @@ package Corba is
     type Obj_Adapter_Members is new System_Exception_Members with null record;
     type Data_Conversion_Members is new System_Exception_Members with null record;
 
-    type Constraint_Error_Members is new System_Exception_Members with null record ;
-
 
     -----------------------------------------------------------
     ----        not in spec, AdaBroker specific             ---
     -----------------------------------------------------------
+
+    CRLF : constant String := (Ada.Characters.Latin_1.LF, Ada.Characters.Latin_1.CR) ;
+    -- when we want to split a string into sevral lines:
+    -- "first line" & Corba.CRLF & "second line"
+
+    AdaBroker_Fatal_Error : exception ;
+    -- raised when there is an error
+    -- in the AdaBroker runtime
+
+    procedure Raise_Corba_Exception(Excp : in Ada.Exceptions.Exception_Id ;
+                                    Excp_Memb: in Idl_Exception_Members'class) ;
+    -- raises the corresponding exception
+    -- and stores the Except_Member so
+    -- that it can be retrieved with Get_Members
 
     function To_Corba_String(S: in Standard.String) return Corba.String ;
 

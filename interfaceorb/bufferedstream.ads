@@ -22,14 +22,14 @@ package BufferedStream is
    ----   marshalling objects into buffered streams    ----
    --------------------------------------------------------
 
-   procedure Marshall (Len : in CORBA.Unsigned_Long ;
+   procedure Marshal (Len : in CORBA.Unsigned_Long ;
                        Giop_Client : in out Object'Class);
    -- marshalling Objects into BufferedStream
    -- has to be defined for all CORBA Objects
    -- corresponds to operator>>=
    -- in bufferedStream.h L 203
 
-   procedure Marshall (obj : in CORBA.Char ;
+   procedure Marshal (obj : in CORBA.Char ;
                        Giop_Client : in out Object'Class) ;
 
 
@@ -39,17 +39,20 @@ package BufferedStream is
    ---- unmarshalling objects from buffered streams    ----
    --------------------------------------------------------
 
-   function UnMarshall (Giop_Client : in Object'Class)
+   function UnMarshal (Giop_Client : in Object'Class)
                         return CORBA.Char ;
    -- marshalling Objects into BufferedStream
    -- has to be defined for all CORBA Objects
+
+   function UnMarshal (Giop_Client : in Object'Class)
+                        return CORBA.Unsigned_Long ;
 
 
    -------------------------------------------------------
    ----           others                              ----
    -------------------------------------------------------
 
-   procedure Put_Char_Array (Self: in Object ;
+   procedure Put_Char_Array (Self: in Object'Class ;
                                B: in Corba.String ;
                                Size: in Integer ;
                                Align: in Omni.Alignment_T := Omni.ALIGN_1 ;
@@ -62,9 +65,9 @@ package BufferedStream is
    --                             CORBA::Boolean at_most_once)
    -- in nbufferedStream.cc L 154
 
-   procedure Get_Char_Array (Self : in Object ;
+   procedure Get_Char_Array (Self : in Object'Class ;
                                B : in Corba.String ;
-                               Size : in Integer ;
+                               Size : in Corba.Unsigned_Long ;
                                Align : in Omni.Alignment_T := Omni.ALIGN_1 ;
                                StartMTU : in Corba.Boolean := False) ;
    -- wrapper around void NetBufferedStream::get_char_array(CORBA::Char* b,

@@ -16,7 +16,7 @@ package Giop_S is
 
    type Object is tagged limited private ;
 
-   procedure RequestReceived (Self : in Object);
+   procedure Request_Received (Self : in Object);
    -- wrapper around void GIOP_S::RequestReceived(CORBA::Boolean skip_msg)
    -- in giopServer.cc L 134
    --
@@ -24,7 +24,7 @@ package Giop_S is
    --
 
 
-   procedure InitialiseReply (Self : in Object ;
+   procedure Initialize_Reply (Self : in Object ;
                               Status : in GIOP.ReplyStatusType ;
                               MsgSize : Integer );
    -- wrapped around void GIOP_S::InitialiseReply(
@@ -48,7 +48,7 @@ package Giop_S is
    -- in nbufferedStream.cc L 154
 
 
-   procedure ReplyCompleted (Self : in Object'Class);
+   procedure Reply_Completed (Self : in Object'Class);
    -- wrapper around void GIOP_S::ReplyCompleted()
    -- In giopServer.cc L 264
 

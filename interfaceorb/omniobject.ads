@@ -30,7 +30,7 @@ package OmniObject is
    -- wrapper around   omniObject(omniObjectManager*p =0);
    -- in omniInternal.h L 294
 
-   procedure SetRopeAndKey (Self : in out Object ;
+   procedure Set_Rope_And_Key (Self : in out Object ;
                             L : in out Omniropeandkey.Object ;
                             KeepIOP : Corba.boolean
                            ) ;
@@ -39,23 +39,23 @@ package OmniObject is
    -- in omniInternal.h L 328
 
 
-   procedure GetRopeAndKey (Self : in Object ;
+   procedure Get_Rope_And_Key (Self : in Object ;
                            L : in out Omniropeandkey.Object ;
                            Result : out Corba.Boolean) ;
    -- wrapper around _CORBA_Boolean getRopeAndKey(omniRopeAndKey& l) const;
    -- in omniInternal.h L 338
 
-   procedure AssertObjectExistent (Self : in Object) ;
+   procedure Assert_Object_Existent (Self : in Object) ;
    -- wrapper around   void assertObjectExistent();
    -- in omniInternal.h L 356
 
-   procedure ResetRopeAndKey (Self : in Object);
+   procedure Reset_Rope_And_Key (Self : in Object);
    -- wrapper around void resetRopeAndKey();
    -- in omniInternal.h L 332
 
 private
 
-   type Object is null record ;
+   type Object is limited null record ;
 
    function Dispatch (Self : in System.address ;
                         Orls : in System.Address ;
@@ -69,3 +69,5 @@ private
 
 
 end OmniObject ;
+
+

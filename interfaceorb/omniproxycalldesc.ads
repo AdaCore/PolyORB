@@ -23,21 +23,31 @@ package omniProxyCallDesc is
                    Operator : in String ;
                    Has_Exceptions : Corba.boolean);
 
-   function AlignedSize(Size_In: in Corba.Unsigned_Long)
-                        return Corba.Unsigned_Long is abstract ;
+   procedure Aligned_Size(Self : in Object'Class ;
+                         Size_In: in out Corba.Unsigned_Long) is abstract ;
+   -- used to be a function as in omniORB
+   -- taking Size_In as a parameter and
+   -- returning the same parameter modified
+   -- (Fabien, 02/11/99)
 
-   procedure MarshalArguments (Giop_Client: in out Giop_C.Object ) is abstract ;
+   procedure Marshal_Arguments (Self : in Object'Class ;
+                                Giop_Client: in out Giop_C.Object ) is abstract ;
 
-   procedure UnmarshalReturnedValues (Giop_Client: in out Giop_C.Object ) is abstract ;
+   procedure Unmarshal_Returned_Values (Self : in Object'Class ;
+                                        Giop_Client: in out Giop_C.Object ) is abstract ;
 
-   procedure UserException (Giop_Client : in Giop_C.Object ;
-                            RepoId : in CORBA.String) ;
+   procedure User_Exception (Self : in Object'Class ;
+                             Giop_Client : in Giop_C.Object ;
+                             RepoId : in CORBA.String) ;
 
-   function Has_User_Exceptions (Self : in Object) return CORBA.Boolean ;
+   function Has_User_Exceptions (Self : in Object'Class)
+                                 return CORBA.Boolean ;
 
-   function Operation_Len (Self : in Object) return Integer ;
+   function Operation_Len (Self : in Object'Class)
+                           return Integer ;
 
-   function Operation (Self : in Object) return CORBA.String;
+   function Operation (Self : in Object'Class)
+                       return CORBA.String;
 
 private
 

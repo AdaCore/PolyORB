@@ -48,7 +48,7 @@ package Corba.Object is
    function Get_Dynamic_Object(Self: in Ref'Class) return Ref'Class ;
 
 
-   procedure MarshalObjRef(The_Object: Ref'Class ;
+   procedure Marshal_Obj_Ref(The_Object: Ref'Class ;
                            RepoID : String ;
                            Nbs : NetBufferedStream.Object) ;
    -- wrapper around void CORBA::MarshalObjRef(CORBA::Object_ptr obj,
@@ -57,7 +57,7 @@ package Corba.Object is
    --        NetBufferedStream &s)
    -- defined in objectRef.cc L721
 
-   procedure MarshalObjRef(The_Object: Ref'Class ;
+   procedure Marshal_Obj_Ref(The_Object: Ref'Class ;
                            RepoID : String ;
                            Mbs : MemBufferedStream.Object) ;
    -- wrapper around void CORBA::MarshalObjRef(CORBA::Object_ptr obj,
@@ -66,7 +66,7 @@ package Corba.Object is
    --        MemBufferedStream &s)
    -- defined in objectRef.cc L850
 
-   function UnMarshalObjRef(Repoid : in String ;
+   function UnMarshal_Obj_Ref(Repoid : in String ;
                             Nbs : in NetBufferedStream.Object
                            ) return Ref'Class ;
    -- return ???
@@ -76,7 +76,7 @@ package Corba.Object is
    --                           NetBufferedStream& s)
    -- in objectRef.cc L637
 
-   function UnMarshalObjRef(Repoid : in String ;
+   function UnMarshal_Obj_Ref(Repoid : in String ;
                             Mbs : in MemBufferedStream.Object
                            ) return Ref'Class ;
    -- return ???
@@ -86,7 +86,7 @@ package Corba.Object is
    --                           MemBufferedStream& s)
    -- in objectRef.cc L765
 
-   function AlignedObjRef(The_Object : Ref'Class ;
+   function Aligned_Obj_Ref(The_Object : Ref'Class ;
                           RepoID : String ;
                           Initial_Offset : Integer
                          ) return Integer ;
@@ -97,11 +97,41 @@ package Corba.Object is
    --                size_t initialoffset)
    -- in objectRef.cc L744
 
+   -----------------------------------------------------
+   ----      all the following methods are wrappers ----
+   ----          around omniobject.adb              ----
+   ----  to simulate C++ multiple inheritance       ----
+   -----------------------------------------------------
+
+   function Is_Proxy return Boolean ;
+
+   procedure PR_IRRepositoryId(RepositoryId : in String ) ;
+
+   procedure Init (Self : in out Object ;
+                   Manager : in OmniObjectManager.Object);
+
+   procedure Set_Rope_And_Key (Self : in out Object ;
+                            L : in out Omniropeandkey.Object ;
+                            KeepIOP : Corba.boolean
+                           ) ;
+
+   procedure Get_Rope_And_Key (Self : in Object ;
+                           L : in out Omniropeandkey.Object ;
+                           Result : out Corba.Boolean) ;
+
+   procedure Assert_Object_Existent (Self : in Object) ;
+
+   procedure Reset_Rope_And_Key (Self : in Object);
+
 
 private
 
+   type Dynamic_Type is access Ref'Class ;
+   -- needed for compilation !! (Fabien)
+
    type Ref is new Ada.Finalization.Controlled with record
-      Dynamic_Object : access Ref'Class := null ;
+      Dynamic_Object : Dynamic_Type := null ;
+      Omniobject : Omniobject.Object ;
    end record ;
 
    procedure Initialize (Self: in out Ref'Class);

@@ -23,42 +23,17 @@ package Giop_C is
 
 
 
-   procedure Put_Char_Array (Self: in Object ;
-                               B: in Corba.String ;
-                               Size: in Integer ;
-                               Align: in Omni.Alignment_T := Omni.ALIGN_1 ;
-                               StartMTU: in Corba.Boolean := False ;
-                               At_Most_One: in Corba.Boolean := False ) ;
-   -- wrapper around NetBufferedStream::put_char_array(const CORBA::Char* b,
-   --                             int size,
-   --                             omni::alignment_t align,
-   --                             CORBA::Boolean startMTU,
-   --                             CORBA::Boolean at_most_once)
-   -- in nbufferedStream.cc L 154
-
-   procedure Get_Char_Array (Self : in Object ;
-                               B : in Corba.String ;
-                               Size : in Integer ;
-                               Align : in Omni.Alignment_T := Omni.ALIGN_1 ;
-                               StartMTU : in Corba.Boolean := False) ;
-   -- wrapper around void NetBufferedStream::get_char_array(CORBA::Char* b,
-   --                                               int size,
-   --                                               omni::alignment_t align,
-   --                                               CORBA::Boolean startMTU)
-   -- in nbufferedStream.cc L 121
-
-   function Request_Header_Size (Objkeysize : in Integer ;
-                              Opnamesize : in Integer ) return Integer ;
+   function Request_Header_Size (Objkeysize : in Corba.Unsigned_long ;
+                              Opnamesize : in Integer ) return Corba.Unsigned_long ;
    -- wrapper around   static size_t RequestHeaderSize(const size_t objkeysize,
    --                                                  const size_t opnamesize);
    -- in giopDriver.h L 220
 
-   procedure InitialiseRequest (Self : in OmniORB.ObjectKey ;
-                                 Objkey : in Integer ;
-                                 Objkeysize : in Integer ;
+   procedure Initialize_Request (Self : in Object'Class ;
+                                 Objkey : in Corba.Octet ;
+                                 Objkeysize : in Corba.Unsigned_Long ;
                                  Opname : in CORBA.STRING ;
-                                 OpnameSize : in Integer ;
-                                 MsgSize : in Integer ;
+                                 MsgSize : in Corba.Unsigned_Long ;
                                  Oneway : in CORBA.Boolean) ;
    -- wrapper arround void GIOP_C::InitialiseRequest(const void *objkey,
    --                     const size_t         objkeysize,
@@ -68,12 +43,12 @@ package Giop_C is
    --                     const CORBA::Boolean oneway)
    -- in giopClient.cc L 119
 
-   function ReceiveReply (Self : in Object) return Giop.ReplyStatusType ;
+   function Receive_Reply (Self : in Object) return Giop.ReplyStatusType ;
    -- wrapper around GIOP::ReplyStatusType GIOP_C::ReceiveReply()
    -- in giopClient L174
 
-   procedure RequestCompleted (Self : in Object ;
-                               Skip_Msg : in CORBA.Boolean) ;
+   procedure Request_Completed (Self : in Object ;
+                               Skip_Msg : in CORBA.Boolean := False) ;
    -- wrapper around void GIOP_C::RequestCompleted(CORBA::Boolean skip_msg)
    -- in giopClient L 274
 

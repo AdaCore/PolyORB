@@ -16,7 +16,7 @@ package NetBufferedStream is
 
    type Object is new BufferedStream.Object with null record;
 
-   function Is_Reusing_Existing_Connection (Self : in Object)
+   function Is_Reusing_Existing_Connection (Self : in Object'Class)
                                          return CORBA.Boolean;
    -- wrapper around     _CORBA_Boolean isReUsingExistingConnection() const;
    -- de la classe Sync
