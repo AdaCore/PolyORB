@@ -89,6 +89,7 @@ package body Ada_Be.Expansion is
             Idl_File_Node : Node_Id;
             Success : Boolean;
          begin
+            pragma Assert (Filename /= null);
             pragma Debug (O ("node "
                              & Node_Kind'Image (Kind (Current))
                              & " in file "
@@ -135,8 +136,28 @@ package body Ada_Be.Expansion is
    --------------------
    procedure Expand_Module (Node : in Node_Id) is
    begin
+      pragma Assert (Kind (Node) = K_Module);
       Expand_Node_List (Contents (Node));
    end Expand_Module;
+
+   -----------------------
+   --  Expand_Interface --
+   -----------------------
+   procedure Expand_Interface (Node : in Node_Id) is
+   begin
+      pragma Assert (Kind (Node) = K_Interface);
+      Expand_Node_List (Contents (Node));
+   end Expand_Interface;
+
+   -----------------------
+   --  Expand_Attribute --
+   -----------------------
+   procedure Expand_Attribute (Node : in Node_Id) is
+
+   begin
+      null;
+   end Expand_Attribute;
+
 
 
    -----------------------------------------

@@ -13,6 +13,10 @@ private
 
 
    procedure Expand_Module (Node : in Node_Id);
+   procedure Expand_Interface (Node : in Node_Id);
+   procedure Expand_Attribute (Node : in Node_Id);
+
+
 
    --  useful function to expand a whole list of nodes
    procedure Expand_Node_List (List : in Node_List);

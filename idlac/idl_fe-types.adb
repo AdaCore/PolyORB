@@ -29,8 +29,19 @@ package body Idl_Fe.Types is
    procedure Set_Location
      (N : Node_Id;
       Loc : Idl_Fe.Errors.Location) is
+      Loc2 : Idl_Fe.Errors.Location;
+      use Idl_Fe.Errors;
    begin
-      Set_Loc (N, Loc);
+      Loc2.Col := Loc.Col;
+      Loc2.Line := Loc.Line;
+      pragma Assert (Loc.Filename /= null);
+      Loc2.Filename := new String'(Loc.Filename.all);
+      if (Loc.Dirname = null) then
+         Loc2.Dirname := null;
+      else
+         Loc2.Dirname := new String'(Loc.Dirname.all);
+      end if;
+      Set_Loc (N, Loc2);
    end Set_Location;
 
    --------------------

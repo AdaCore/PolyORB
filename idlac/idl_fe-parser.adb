@@ -161,6 +161,7 @@ package body Idl_Fe.Parser is
    --------------------------
    function Get_Token_Location return Idl_Fe.Errors.Location is
    begin
+      pragma Debug (O ("Get_Token_Location : enter"));
       return Location_Buffer (Current_Index);
    end Get_Token_Location;
 
@@ -313,11 +314,13 @@ package body Idl_Fe.Parser is
    function Parse_Specification return Node_Id is
       Result : Node_Id;
    begin
+      pragma Debug (O ("Parse_Specification : enter"));
+      --  first call next_token in order to initialize the location
+      Next_Token;
       Result := Make_Repository;
       Set_Location (Result, Get_Token_Location);
       --  The repository is the root scope.
       Push_Scope (Result);
-      Next_Token;
       if Get_Token = T_Eof then
          Idl_Fe.Errors.Parser_Error
            ("Definition expected : a specification may not be empty.",
@@ -3452,6 +3455,7 @@ package body Idl_Fe.Parser is
    procedure Parse_Type_Declarator (Result : out Node_Id;
                                     Success : out Boolean) is
    begin
+      pragma Debug (O ("Parse_Type_declarator : enter"));
       Result := Make_Type_Declarator;
       Set_Location (Result, Get_Token_Location);
       declare
@@ -3463,7 +3467,7 @@ package body Idl_Fe.Parser is
          Set_T_Type (Result, Node);
       end;
       if not Success then
-         pragma Debug (O ("Parse_Type_declarator : type_spec return false"));
+         pragma Debug (O ("Parse_Type_Declarator : type_spec return false"));
          return;
       end if;
       declare

@@ -1295,6 +1295,8 @@ package body Idl_Fe.Lexer is
    --------------------------
    function Get_Lexer_Location return Idl_Fe.Errors.Location is
    begin
+      pragma Debug (O ("Get_Lexer_Location : filename is " &
+                       Current_Token_Location.Filename.all));
       return Current_Token_Location;
    end Get_Lexer_Location;
 
