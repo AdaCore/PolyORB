@@ -445,6 +445,9 @@ package body Ada_Be.Idl2Ada.Helper is
       II (CU);
       PL (CU, "if not Deferred_Initialization_Done then");
       II (CU);
+      PL (CU, "null;");
+      --  This 'if' block might be empty, so put a statement
+      --  in there to keep the compiler happy.
       Divert (CU, Visible_Declarations);
    end Gen_Body_Prelude;
 
