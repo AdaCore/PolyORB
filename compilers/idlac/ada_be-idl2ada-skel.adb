@@ -191,7 +191,6 @@ package body Ada_Be.Idl2Ada.Skel is
    begin
       pragma Assert ((NK = K_Interface)
                      or else (NK = K_ValueType));
-      --  FIXME: Hard-coded string constant.
 
       PL (CU, "if Operation = ""_is_a"" then");
       II (CU);
@@ -199,33 +198,33 @@ package body Ada_Be.Idl2Ada.Skel is
       PL (CU, "declare");
       II (CU);
 
-      PL (CU, "Type_Id            : CORBA.String;");
-      PL (CU, "Arg_Name_Ü_Type_Id : constant CORBA.Identifier");
+      PL (CU, "Type_Id : CORBA.String;");
+      PL (CU, T_Arg_Name & "Type_Id : constant CORBA.Identifier");
       PL (CU, ":= CORBA.To_CORBA_String (""Type_Id"");");
-      PL (CU, "Argument_Ü_Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);");
+      PL (CU, T_Argument & "Type_Id : CORBA.Any := CORBA.To_Any (Type_Id);");
       PL (CU, "");
-      PL (CU, "Result_Ü           : CORBA.Boolean;");
+      PL (CU, T_Result & " : CORBA.Boolean;");
       DI (CU);
       PL (CU, "begin");
       II (CU);
       PL (CU, "CORBA.NVList.Add_Item");
-      PL (CU, "(Arg_List_Ü,");
-      PL (CU, "Arg_Name_Ü_Type_Id,");
-      PL (CU, "Argument_Ü_Type_Id,");
+      PL (CU, "(" & T_Arg_List & ",");
+      PL (CU, T_Arg_Name & "Type_Id,");
+      PL (CU, T_Argument & "Type_Id,");
       PL (CU, "CORBA.ARG_IN);");
       NL (CU);
 
-      PL (CU, "CORBA.ServerRequest.Arguments (Request, Arg_List_Ü);");
+      PL (CU, "CORBA.ServerRequest.Arguments (Request, " & T_Arg_List & ");");
       NL (CU);
       PL (CU, "begin");
       II (CU);
       PL (CU, "--  Convert arguments from their Any");
       NL (CU);
       PL (CU, "Type_Id :=");
-      PL (CU, "  CORBA.From_Any (Argument_Ü_Type_Id);");
+      PL (CU, "  CORBA.From_Any (" & T_Argument & "Type_Id);");
       NL (CU);
       PL (CU, "--  Call implementation");
-      Put (CU, "Result_Ü := ");
+      Put (CU, T_Result & " := ");
 
       if NK = K_Interface then
          Put (CU, Ada_Full_Name (Node));
@@ -248,8 +247,7 @@ package body Ada_Be.Idl2Ada.Skel is
       NL (CU);
       PL (CU, "CORBA.ServerRequest.Set_Result");
       PL (CU, "(Request,");
-      PL (CU, "CORBA.To_Any (");
-      PL (CU, "Result_Ü));");
+      PL (CU, "CORBA.To_Any (" & T_Result & "));");
       PL (CU, "return;");
       DI (CU);
       PL (CU, "end;");
