@@ -1,3 +1,11 @@
+2002-01-04  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* xe_parse.adb, xe_parse.ads: Remove unused subprograms
+	Search_Variable (9704-003).
+
+	* xe_stubs.adb : Remove usued subprograms SGP_Initialize
+	(9704-003).
+
 2001-08-20  Pascal Obry  <obry@gnat.com>
 
         * xe_utils.adb:

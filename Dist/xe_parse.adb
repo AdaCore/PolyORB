@@ -204,7 +204,7 @@ package body XE_Parse is
          --  subprogram node. This way, function or procedure are handled
          --  as normal ada units.
 
-         Search_Variable (Subprogram_Name, Ada_Unit_Type_Node, Unit);
+         Search_Variable (Subprogram_Name, Unit);
          if Unit = Null_Variable then
             Declare_Variable
               (Subprogram_Name,
@@ -1129,7 +1129,7 @@ package body XE_Parse is
 
       Take_Token ((Tok_Is, Tok_Semicolon, Tok_Dot));
 
-      Search_Variable (Procedure_Name, Ada_Unit_Type_Node, Ada_Unit_Node);
+      Search_Variable (Procedure_Name, Ada_Unit_Node);
 
       if Token = Tok_Dot then
          Write_Error_Message
@@ -2132,25 +2132,6 @@ package body XE_Parse is
 
    procedure Search_Variable
      (Variable_Name : in  Name_Id;
-      Variable_Node : out Variable_Id)
-   is
-      Node : Node_Id;
-   begin
-      Search_Declaration (Variable_Name, Node);
-      if Node /= Null_Node  and then
-         not Is_Variable (Node) then
-         Node := Null_Node;
-      end if;
-      Variable_Node := Variable_Id (Node);
-   end Search_Variable;
-
-   ---------------------
-   -- Search_Variable --
-   ---------------------
-
-   procedure Search_Variable
-     (Variable_Name : in  Name_Id;
-      Variable_Type : in Type_Id;
       Variable_Node : out Variable_Id)
    is
       Node : Node_Id;

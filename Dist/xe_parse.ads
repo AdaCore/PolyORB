@@ -308,13 +308,6 @@ package XE_Parse is
    --  Search for the first occurrence of a variable Variable_Name. If
    --  unsuccessful, returns Null_Variable.
 
-   procedure Search_Variable
-     (Variable_Name : in  Types.Name_Id;
-      Variable_Type : in  XE.Type_Id;
-      Variable_Node : out XE.Variable_Id);
-   --  Search for the first occurrence of a variable Variable_Name. If
-   --  unsuccessful, returns Null_Variable. Check Varaible_Type also.
-
    procedure Set_Node_Location
      (Node     : in XE.Node_Id;
       Location : in XE_Scan.Location_Type);

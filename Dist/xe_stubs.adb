@@ -115,9 +115,6 @@ package body XE_Stubs is
    function SGF_Initialize (N : in Name_Id) return String;
    --  Return System.Garlic.Filters.<N>.Initialize
 
-   function SGP_Initialize (N : in Name_Id) return String;
-   --  Return System.Garlic.Protocols.<N>.Initialize
-
    function SGS_Initialize (N : in Name_Id) return String;
    --  Return System.Garlic.Storage.<N>.Initialize
 
@@ -1633,7 +1630,7 @@ package body XE_Stubs is
    end SG_Initialize;
 
    --------------------
-   -- SGP_Initialize --
+   -- SGF_Initialize --
    --------------------
 
    function SGF_Initialize (N : Name_Id) return String is
@@ -1642,17 +1639,6 @@ package body XE_Stubs is
       Add_Str_To_Name_Buffer (".Initialize");
       return Name_Buffer (1 .. Name_Len);
    end SGF_Initialize;
-
-   --------------------
-   -- SGP_Initialize --
-   --------------------
-
-   function SGP_Initialize (N : Name_Id) return String is
-   begin
-      Get_Name_String (SGP (N));
-      Add_Str_To_Name_Buffer (".Initialize");
-      return Name_Buffer (1 .. Name_Len);
-   end SGP_Initialize;
 
    --------------------
    -- SGS_Initialize --
