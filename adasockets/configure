@@ -1345,9 +1345,9 @@ test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 # Check whether --enable-debug or --disable-debug was given.
 if test "${enable_debug+set}" = set; then
   enableval="$enable_debug"
-  ADAFLAGS="-g -O2 -Wall -gnatag"
+  ADAFLAGS="-g -O2 -Wall -gnaty3bcefhikmt -gnatfaog -gnatwu -gnatwe"
 else
-  ADAFLAGS="-O2 -gnatpng"
+  ADAFLAGS="-g -O2"
 fi
 
 
