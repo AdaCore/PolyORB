@@ -31,9 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/corba-helper.adb#3 $
+--  $Id: //droopi/main/src/corba/corba-helper.adb#4 $
 
-with PolyORB.Any;
+with PolyORB.Initialization;
+with PolyORB.Utils.Strings;
 
 package body CORBA.Helper is
 
@@ -41,21 +42,11 @@ package body CORBA.Helper is
    -- TC_Repository_Id --
    ----------------------
 
-   function TC_RepositoryId return CORBA.TypeCode.Object
-   is
-      Result : CORBA.TypeCode.Object := CORBA.TypeCode.TC_Alias;
-      Name : constant CORBA.String
-        := CORBA.To_CORBA_String ("RepositoryId");
-      Id : constant CORBA.String := CORBA.To_CORBA_String
-        ("IDL:omg.org/CORBA/RepositoryId:1.0");
+   TC_RepositoryId_Cache : CORBA.TypeCode.Object;
+
+   function TC_RepositoryId return CORBA.TypeCode.Object is
    begin
-      CORBA.TypeCode.Add_Parameter
-        (Result, CORBA.To_Any (Name));
-      CORBA.TypeCode.Add_Parameter
-        (Result, CORBA.To_Any (Id));
-      CORBA.TypeCode.Add_Parameter
-        (Result, CORBA.To_Any (CORBA.TC_String));
-      return Result;
+      return TC_RepositoryId_Cache;
    end TC_RepositoryId;
 
    --------------
@@ -79,8 +70,6 @@ package body CORBA.Helper is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Set_Type (Result, TC_RepositoryId);
-      PolyORB.Any.Set_Volatile (Result, True);
-
       return Result;
    end To_Any;
 
@@ -88,21 +77,11 @@ package body CORBA.Helper is
    -- TC_Identifier --
    -------------------
 
-   function TC_Identifier return CORBA.TypeCode.Object
-   is
-      Result : CORBA.TypeCode.Object := CORBA.TypeCode.TC_Alias;
-      Name : constant CORBA.String
-        := CORBA.To_CORBA_String ("Identifier");
-      Id : constant CORBA.String := CORBA.To_CORBA_String
-        ("IDL:omg.org/CORBA/Identifier:1.0");
+   TC_Identifier_Cache : CORBA.TypeCode.Object;
+
+   function TC_Identifier return CORBA.TypeCode.Object is
    begin
-      CORBA.TypeCode.Add_Parameter
-        (Result, CORBA.To_Any (Name));
-      CORBA.TypeCode.Add_Parameter
-        (Result, CORBA.To_Any (Id));
-      CORBA.TypeCode.Add_Parameter
-        (Result, CORBA.To_Any (CORBA.TC_String));
-      return Result;
+      return TC_Identifier_Cache;
    end TC_Identifier;
 
    --------------
@@ -126,8 +105,6 @@ package body CORBA.Helper is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Set_Type (Result, TC_Identifier);
-      PolyORB.Any.Set_Volatile (Result, True);
-
       return Result;
    end To_Any;
 
@@ -135,21 +112,11 @@ package body CORBA.Helper is
    -- TC_ScopedName --
    -------------------
 
-   function TC_ScopedName return CORBA.TypeCode.Object
-   is
-      Result : CORBA.TypeCode.Object := CORBA.TypeCode.TC_Alias;
-      Name : constant CORBA.String
-        := CORBA.To_CORBA_String ("ScopedName");
-      Id : constant CORBA.String := CORBA.To_CORBA_String
-        ("IDL:omg.org/CORBA/ScopedName:1.0");
+   TC_ScopedName_Cache : CORBA.TypeCode.Object;
+
+   function TC_ScopedName return CORBA.TypeCode.Object is
    begin
-      CORBA.TypeCode.Add_Parameter
-        (Result, CORBA.To_Any (Name));
-      CORBA.TypeCode.Add_Parameter
-        (Result, CORBA.To_Any (Id));
-      CORBA.TypeCode.Add_Parameter
-        (Result, CORBA.To_Any (CORBA.TC_String));
-      return Result;
+      return TC_ScopedName_Cache;
    end TC_ScopedName;
 
    --------------
@@ -173,9 +140,56 @@ package body CORBA.Helper is
       Result : CORBA.Any := CORBA.To_Any (CORBA.String (Item));
    begin
       CORBA.Set_Type (Result, TC_ScopedName);
-      PolyORB.Any.Set_Volatile (Result, True);
-
       return Result;
    end To_Any;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+      use CORBA.TypeCode;
+
+      function Build_TC_Alias_String
+        (Name : Standard.String)
+         return CORBA.TypeCode.Object;
+      --  Build a typecode for type Name which is an alias of CORBA::String
+
+      function Build_TC_Alias_String
+        (Name : Standard.String)
+         return CORBA.TypeCode.Object
+      is
+         TC : CORBA.TypeCode.Object := TC_Alias;
+      begin
+         Add_Parameter
+           (TC, CORBA.To_Any (To_CORBA_String (Name)));
+         Add_Parameter
+           (TC, CORBA.To_Any (To_CORBA_String
+                              ("IDL:omg.org/CORBA/" & Name & ":1.0")));
+         Add_Parameter
+           (TC, CORBA.To_Any (CORBA.TC_String));
+         return TC;
+      end Build_TC_Alias_String;
+
+   begin
+      TC_RepositoryId_Cache := Build_TC_Alias_String ("RepositoryId");
+      TC_Identifier_Cache := Build_TC_Alias_String ("Identifier");
+      TC_ScopedName_Cache := Build_TC_Alias_String ("ScopedName");
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"corba.helper",
+       Conflicts => Empty,
+       Depends   => +"corba" & "any",
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end CORBA.Helper;

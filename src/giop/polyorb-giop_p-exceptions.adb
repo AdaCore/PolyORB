@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Any;
+with PolyORB.Dynamic_Dict;
 with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Types;
@@ -230,15 +231,25 @@ package body PolyORB.GIOP_P.Exceptions is
    -- System_Exception_TypeCode --
    -------------------------------
 
+   package System_Exception_TC_Cache is new PolyORB.Dynamic_Dict
+     (Value => TypeCode.Object);
+
    function System_Exception_TypeCode
      (Name : Standard.String)
      return Any.TypeCode.Object
    is
-      TC    : TypeCode.Object := TypeCode.TC_Except;
-      Shift : Natural := 0;
+      use System_Exception_TC_Cache;
 
+      TC    : TypeCode.Object
+        := Lookup (Name, TypeCode.TC_Except);
+
+      Shift : Natural := 0;
       Repository_Id : PolyORB.Types.String;
+
    begin
+      if TypeCode.Parameter_Count (TC) > 0 then
+         return TC;
+      end if;
 
       --  Name
 
@@ -274,6 +285,7 @@ package body PolyORB.GIOP_P.Exceptions is
       pragma Debug (O ("Built Exception TypeCode for: "
                        & To_Standard_String (Repository_Id)));
 
+      Register (Name, TC);
       return TC;
    end System_Exception_TypeCode;
 

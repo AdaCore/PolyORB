@@ -182,9 +182,41 @@ package body Ada_Be.Idl2Ada.Helper is
    function Visibility (Node : in Node_Id) return String;
    --  Return the visibility of a state member
 
+   procedure Add_Helper_Dependency
+     (CU          : in out Compilation_Unit;
+      Helper_Name :        String);
+   --  Add a semantic dependency and an initialization dependency in CU
+   --  upon Helper_Name
+
    ----------------------------------------------
    -- End of internal subprograms declarations --
    ----------------------------------------------
+
+   ---------------------------
+   -- Add_Helper_Dependency --
+   ---------------------------
+
+   procedure Add_Helper_Dependency
+     (CU          : in out Compilation_Unit;
+      Helper_Name :        String)
+   is
+      Previous_Diversion : constant Diversion := Current_Diversion (CU);
+   begin
+      Add_With (CU, Helper_Name);
+      Divert (CU, Initialization_Dependencies);
+      if Helper_Name = "CORBA.Object.Helper" then
+         PL (CU, "& ""corba.object""");
+
+      elsif Helper_Name = "CORBA.Helper" then
+         PL (CU, "& ""corba.helper""");
+
+      elsif Helper_Name /= "CORBA"
+        and then Helper_Name /= Name (CU)
+      then
+         PL (CU, "& """ & Helper_Name & """");
+      end if;
+      Divert (CU, Previous_Diversion);
+   end Add_Helper_Dependency;
 
    -------------------
    -- Gen_Node_Spec --
@@ -748,6 +780,10 @@ package body Ada_Be.Idl2Ada.Helper is
                Get_Next_Node (It, Member_Node);
                if Is_State_Member (Member_Node) then
                   declare
+                     Type_Node : constant Node_Id
+                       := State_Type (Member_Node);
+                     Helper_Name : constant String
+                       := Ada_Helper_Name (Type_Node);
                      It2   : Node_Iterator;
                      Decl_Node : Node_Id;
                   begin
@@ -765,11 +801,9 @@ package body Ada_Be.Idl2Ada.Helper is
                             & Natural'Image (Position)
                             & " = "" & CORBA.Image (Temp_Any)));");
                         declare
-                           Type_Node : constant Node_Id :=
-                              State_Type (Member_Node);
+                           Decl_Name : constant String := Ada_Name (Decl_Node);
                         begin
-                           Add_With
-                              (CU, Ada_Helper_Name (Type_Node));
+                           Add_Helper_Dependency (CU, Helper_Name);
 
                            if (Kind (Type_Node) = K_Scoped_Name) and then
                              ((Kind (Value (Type_Node)) =
@@ -785,18 +819,18 @@ package body Ada_Be.Idl2Ada.Helper is
                               PL (CU, "begin");
                               II (CU);
                               PL (CU,
-                                  Ada_Helper_Name (State_Type (Member_Node))
+                                  Helper_Name
                                   & ".From_Any (Temp_Any, New_Ref,"
                                   & " Unmarshalled_List);");
-                              PL (CU, "Result." & Ada_Name (Decl_Node)
+                              PL (CU, "Result." & Decl_Name
                                   & " := New_Ref;");
                               DI (CU);
                               PL (CU, "end;");
                            else
                               PL (CU, "--  Regular member.");
-                              PL (CU, "Result." & Ada_Name (Decl_Node)
+                              PL (CU, "Result." & Decl_Name
                                   & " := "
-                                  & Ada_Helper_Name (State_Type (Member_Node))
+                                  & Helper_Name
                                   & ".From_Any (Temp_Any);");
                            end if;
                         end;
@@ -890,6 +924,10 @@ package body Ada_Be.Idl2Ada.Helper is
                Get_Next_Node (It, Member_Node);
                if Is_State_Member (Member_Node) then
                   declare
+                     Type_Node : constant Node_Id :=
+                       State_Type (Member_Node);
+                     Helper_Name : constant String
+                       := Ada_Helper_Name (Type_Node);
                      It2   : Node_Iterator;
                      Decl_Node : Node_Id;
                   begin
@@ -897,11 +935,9 @@ package body Ada_Be.Idl2Ada.Helper is
                      while not Is_End (It2) loop
                         Get_Next_Node (It2, Decl_Node);
                         declare
-                           Type_Node : constant Node_Id :=
-                              State_Type (Member_Node);
+                           Decl_Name : constant String := Ada_Name (Decl_Node);
                         begin
-                           Add_With
-                              (CU, Ada_Helper_Name (Type_Node));
+                           Add_Helper_Dependency (CU, Helper_Name);
 
                            if (Kind (Type_Node) = K_Scoped_Name) and then
                              ((Kind (Value (Type_Node)) =
@@ -919,8 +955,8 @@ package body Ada_Be.Idl2Ada.Helper is
                                   & Ada_Full_TC_Name (State_Type (Member_Node))
                                   & ");");
                               PL (CU,
-                                  Ada_Helper_Name (State_Type (Member_Node)) &
-                                  ".To_Any (Object_U." & Ada_Name (Decl_Node)
+                                  Helper_Name
+                                  & ".To_Any (Object_U." & Decl_Name
                                   & ", Temp_Any, Marshalled_List);");
                               PL (CU, "pragma Debug (O (""To_Any: member=""" &
                                   " & CORBA.Image (Temp_Any)));");
@@ -935,14 +971,14 @@ package body Ada_Be.Idl2Ada.Helper is
                               PL (CU, "--  Regular member.");
                               PL (CU, "CORBA.Add_Aggregate_Element");
                               PL (CU, "  (Temp_Result, "
-                                  & Ada_Helper_Name (State_Type (Member_Node))
+                                  & Helper_Name
                                   & ".To_Any (Object_U."
-                                  & Ada_Name (Decl_Node)
+                                  & Decl_Name
                                   & "));");
                               PL (CU,
-                                  " pragma Debug (O (""To_Any: member1=""" &
-                                  " & CORBA.Image (CORBA.To_Any (Object_U." &
-                                  Ada_Name (Decl_Node) & "))));");
+                                  " pragma Debug (O (""To_Any: member1="""
+                                  & " & CORBA.Image (CORBA.To_Any (Object_U."
+                                  & Decl_Name & "))));");
                            end if;
                         end;
                      end loop;
@@ -1633,15 +1669,18 @@ package body Ada_Be.Idl2Ada.Helper is
                   declare
                      It2   : Node_Iterator;
                      Decl_Node : Node_Id;
+                     Helper_Name : constant String
+                       := Ada_Helper_Name (M_Type (Member_Node));
                   begin
+                     Add_Helper_Dependency (CU, Helper_Name);
                      Init (It2, Decl (Member_Node));
                      while not Is_End (It2) loop
                         Get_Next_Node (It2, Decl_Node);
+
                         PL (CU,
                             "Index := CORBA.Get_Aggrega"
                             & "te_Element (Item,");
-                        Add_With (CU, Ada_Helper_Name
-                                  (M_Type (Member_Node)));
+
                         PL (CU,
                             "                                      "
                             & Ada_Full_TC_Name (M_Type (Member_Node))
@@ -1651,12 +1690,10 @@ package body Ada_Be.Idl2Ada.Helper is
                             & "CORBA.Unsigned_Long ("
                             & Integer'Image (I)
                             &"));");
-                        Add_With (CU, Ada_Helper_Name
-                                  (M_Type (Member_Node)));
                         PL (CU, "Result_"
                             & Ada_Name (Decl_Node)
                             & " := "
-                            & Ada_Helper_Name (M_Type (Member_Node))
+                            & Helper_Name
                             & ".From_Any (Index);");
                         I := I + 1;
                      end loop;
@@ -1732,6 +1769,8 @@ package body Ada_Be.Idl2Ada.Helper is
             while not Is_End (It) loop
                Get_Next_Node (It, Member_Node);
                declare
+                  Helper_Name : constant String
+                    := Ada_Helper_Name (M_Type (Member_Node));
                   It2   : Node_Iterator;
                   Decl_Node : Node_Id;
                begin
@@ -1740,9 +1779,8 @@ package body Ada_Be.Idl2Ada.Helper is
                      Get_Next_Node (It2, Decl_Node);
                      PL (CU, "CORBA.Add_Aggregate_Element");
                      II (CU);
-                     Add_With (CU, Ada_Helper_Name (M_Type (Member_Node)));
                      PL (CU, "(Result, "
-                         & Ada_Helper_Name (M_Type (Member_Node))
+                         & Helper_Name
                          & ".To_Any (Item."
                          & Ada_Name (Decl_Node)
                          & "));");
@@ -1814,7 +1852,6 @@ package body Ada_Be.Idl2Ada.Helper is
                   Init (It2, Decl (Member_Node));
                   while not Is_End (It2) loop
                      Get_Next_Node (It2, Decl_Node);
-                     Add_With (CU, Ada_Helper_Name (M_Type (Member_Node)));
                      PL (CU, "CORBA.TypeCode.Add_Parameter ("
                          & Ada_TC_Name (Node)
                          & ", CORBA.To_Any ("
@@ -1973,11 +2010,14 @@ package body Ada_Be.Idl2Ada.Helper is
 
    procedure Gen_Union_Body
      (CU        : in out Compilation_Unit;
-      Node      : in     Node_Id) is
+      Node      : in     Node_Id)
+   is
+      Switch_Helper_Name : constant String
+        := Ada_Helper_Name (Switch_Type (Node));
    begin
       if Generate_Dyn then
          Add_With (CU, "CORBA", Use_It => True);
-         Add_With (CU, Ada_Helper_Name (Switch_Type (Node)));
+         Add_Helper_Dependency (CU, Switch_Helper_Name);
 
          --  From_Any
 
@@ -1996,7 +2036,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "Label : constant "
              & Ada_Type_Name (Switch_Type (Node))
              & " := "
-             & Ada_Helper_Name (Switch_Type (Node))
+             & Switch_Helper_Name
              & ".From_Any (Label_Any);");
          PL (CU, "Result : "
              & Ada_Type_Name (Node)
@@ -2018,10 +2058,13 @@ package body Ada_Be.Idl2Ada.Helper is
             while not Is_End (It) loop
                Get_Next_Node (It, Case_Node);
                declare
+                  Helper_Name : constant String
+                    := Ada_Helper_Name (Case_Type (Case_Node));
                   It2         : Node_Iterator;
                   Label_Node  : Node_Id;
                   First_Label : Boolean := True;
                begin
+                  Add_Helper_Dependency (CU, Helper_Name);
                   if Default_Index (Node) = I then
                      Has_Default := True;
                      Put (CU, "when others");
@@ -2044,8 +2087,6 @@ package body Ada_Be.Idl2Ada.Helper is
                   II (CU);
                   PL (CU, "(Item,");
 
-                  Add_With (CU, Ada_Helper_Name (Case_Type (Case_Node)));
-
                   PL (CU, " "
                       & Ada_Full_TC_Name (Case_Type (Case_Node))
                       & ",");
@@ -2056,7 +2097,7 @@ package body Ada_Be.Idl2Ada.Helper is
                   PL (CU, "Result."
                       & Ada_Name (Case_Decl (Case_Node))
                       & " := "
-                      & Ada_Helper_Name (Case_Type (Case_Node))
+                      & Helper_Name
                       & ".From_Any (Index);");
                   DI (CU);
                end;
@@ -2090,9 +2131,8 @@ package body Ada_Be.Idl2Ada.Helper is
          II (CU);
          PL (CU, "CORBA.Add_Aggregate_Element");
          II (CU);
-         Add_With (CU, Ada_Helper_Name (Switch_Type (Node)));
          PL (CU, "(Result, "
-             & Ada_Helper_Name (Switch_Type (Node))
+             & Switch_Helper_Name
              & ".To_Any (Item.Switch));");
          DI (CU);
          PL (CU, "case Item.Switch is");
@@ -2109,6 +2149,8 @@ package body Ada_Be.Idl2Ada.Helper is
                Get_Next_Node (It, Case_Node);
 
                declare
+                  Helper_Name : constant String
+                    := Ada_Helper_Name (Case_Type (Case_Node));
                   It2         : Node_Iterator;
                   Label_Node  : Node_Id;
                   First_Label : Boolean := True;
@@ -2133,9 +2175,8 @@ package body Ada_Be.Idl2Ada.Helper is
                   II (CU);
                   PL (CU, "CORBA.Add_Aggregate_Element");
                   II (CU);
-                  Add_With (CU, Ada_Helper_Name (Case_Type (Case_Node)));
                   PL (CU, "(Result, "
-                      & Ada_Helper_Name (Case_Type (Case_Node))
+                      & Helper_Name
                       & ".To_Any (Item."
                       & Ada_Name (Case_Decl (Case_Node))
                       & "));");
@@ -2224,12 +2265,11 @@ package body Ada_Be.Idl2Ada.Helper is
                      PL (CU, "CORBA.TypeCode.Add_Parameter ("
                          & Ada_TC_Name (Node)
                          & ", CORBA.To_Any ("
-                         & Ada_Helper_Name (Switch_Type (Node))
+                         & Switch_Helper_Name
                          & ".To_Any ("
                          & Ada_Type_Name (Switch_Type (Node))
                          & "'First)));");
 
-                     Add_With (CU, Ada_Helper_Name (Case_Type (Case_Node)));
                      PL (CU, "CORBA.TypeCode.Add_Parameter ("
                          & Ada_TC_Name (Node)
                          & ", CORBA.To_Any ("
@@ -2247,14 +2287,13 @@ package body Ada_Be.Idl2Ada.Helper is
                         Put (CU, "CORBA.TypeCode.Add_Parameter ("
                              & Ada_TC_Name (Node)
                              & ", CORBA.To_Any ("
-                             & Ada_Helper_Name (Switch_Type (Node))
+                             & Switch_Helper_Name
                              & ".To_Any ("
                              & Ada_Type_Name (Switch_Type (Node))
                              & "'(");
                         Gen_Constant_Value (CU, Label_Node);
                         PL (CU, "))));");
 
-                        Add_With (CU, Ada_Helper_Name (Case_Type (Case_Node)));
                         PL (CU, "CORBA.TypeCode.Add_Parameter ("
                             & Ada_TC_Name (Node)
                             & ", CORBA.To_Any ("
@@ -2374,7 +2413,6 @@ package body Ada_Be.Idl2Ada.Helper is
             PL (CU, "CORBA.TypeCode.Add_Parameter ("
                 & Ada_TC_Name (Node)
                 & ", CORBA.To_Any (Id));");
-            Add_With (CU, Ada_Helper_Name (Type_Node));
             PL (CU, "CORBA.TypeCode.Add_Parameter ("
                 & Ada_TC_Name (Node)
                 & ", CORBA.To_Any ("
@@ -2397,16 +2435,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, " is");
          II (CU);
 
-         Add_With (CU, Ada_Helper_Name (Type_Node));
-
-         if Helper_Name /= "CORBA"
-           and then Helper_Name /= "CORBA.Object.Helper"
-           and then Helper_Name /= Name (CU)
-         then
-            Divert (CU, Initialization_Dependencies);
-            PL (CU, "& """ & Ada_Helper_Name (Type_Node) & """");
-            Divert (CU, Visible_Declarations);
-         end if;
+         Add_Helper_Dependency (CU, Helper_Name);
 
          if Is_Array then
             PL (CU, "Result : "
@@ -2449,12 +2478,11 @@ package body Ada_Be.Idl2Ada.Helper is
                end loop;
 
                PL (CU, " := "
-                   & Ada_Helper_Name (Type_Node)
+                   & Helper_Name
                    & ".From_Any");
                II (CU);
                Add_With (CU, "CORBA");
                PL (CU, "(CORBA.Get_Aggregate_Element (Item,");
-               Add_With (CU, Ada_Helper_Name (Type_Node));
                PL (CU, "                              "
                    & Ada_Full_TC_Name (Type_Node)
                    & ",");
@@ -2497,7 +2525,7 @@ package body Ada_Be.Idl2Ada.Helper is
             PL (CU, "Result : constant "
                 & Ada_Type_Name (Type_Node)
                 & " := "
-                & Ada_Helper_Name (Type_Node)
+                & Helper_Name
                 & ".From_Any (Item);");
             DI (CU);
             PL (CU, "begin");
@@ -2546,9 +2574,8 @@ package body Ada_Be.Idl2Ada.Helper is
                end loop;
 
                PL (CU, "CORBA.Add_Aggregate_Element (Result,");
-               Add_With (CU, Ada_Helper_Name (Type_Node));
                Put (CU, "                             "
-                    & Ada_Helper_Name (Type_Node)
+                    & Helper_Name
                     & ".To_Any (Item (I0");
                for I in 1 .. Number - 1 loop
                   Put (CU, ", I" & Img (I));
@@ -2563,10 +2590,9 @@ package body Ada_Be.Idl2Ada.Helper is
             PL (CU, "return Result;");
 
          else
-            Add_With (CU, Ada_Helper_Name (Type_Node));
             Add_With (CU, "CORBA");
             PL (CU, "Result : CORBA.Any := "
-                & Ada_Helper_Name (Type_Node)
+                & Helper_Name
                 & ".To_Any ("
                 & Ada_Type_Name (Type_Node)
                 & " (Item));");

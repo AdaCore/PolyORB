@@ -41,8 +41,10 @@ with GNAT.HTable;
 
 with PolyORB.CORBA_P.Local;
 with PolyORB.CORBA_P.Names;
+with PolyORB.Initialization;
 with PolyORB.Log;
 with PolyORB.Smart_Pointers;
+with PolyORB.Utils.Strings;
 
 with CORBA.AbstractBase;
 with CORBA.Object.Helper;
@@ -478,15 +480,40 @@ package body CORBA.Object is
    -- TC_Object --
    ---------------
 
+   TC_Object_Cache : CORBA.TypeCode.Object;
+
    function TC_Object return CORBA.TypeCode.Object is
-      use PolyORB.Any.TypeCode;
-
-      T : CORBA.TypeCode.Object := PolyORB.Any.TypeCode.TC_Object;
    begin
-      Add_Parameter (T, To_Any (To_CORBA_String ("Object")));
-      Add_Parameter (T, To_Any (To_CORBA_String ("IDL:CORBA/Object:1.0")));
-
-      return T;
+      return TC_Object_Cache;
    end TC_Object;
 
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize;
+
+   procedure Initialize is
+      use PolyORB.Any.TypeCode;
+   begin
+      TC_Object_Cache := PolyORB.Any.TypeCode.TC_Object;
+      Add_Parameter
+        (TC_Object_Cache, To_Any (To_CORBA_String ("Object")));
+      Add_Parameter
+        (TC_Object_Cache, To_Any (To_CORBA_String ("IDL:CORBA/Object:1.0")));
+   end Initialize;
+
+   use PolyORB.Initialization;
+   use PolyORB.Initialization.String_Lists;
+   use PolyORB.Utils.Strings;
+
+begin
+   Register_Module
+     (Module_Info'
+      (Name      => +"corba.object",
+       Conflicts => Empty,
+       Depends   => +"corba" & "any",
+       Provides  => Empty,
+       Implicit  => False,
+       Init      => Initialize'Access));
 end CORBA.Object;

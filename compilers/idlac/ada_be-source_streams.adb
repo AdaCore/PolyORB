@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -184,6 +184,11 @@ package body Ada_Be.Source_Streams is
       raise Program_Error;
       --  Too many diversions open.
    end Allocate_User_Diversion;
+
+   function Current_Diversion (CU : Compilation_Unit) return Diversion is
+   begin
+      return CU.Current_Diversion;
+   end Current_Diversion;
 
    procedure Divert
      (CU     : in out Compilation_Unit;

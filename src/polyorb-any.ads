@@ -33,7 +33,7 @@
 
 --  Definition of the container type 'Any'
 
---  $Id: //droopi/main/src/polyorb-any.ads#39 $
+--  $Id: //droopi/main/src/polyorb-any.ads#40 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -323,8 +323,9 @@ package PolyORB.Any is
       procedure Set_Volatile
         (Self        : in out Object;
          Is_Volatile : in     Boolean);
+      pragma Unreferenced (Set_Volatile);
       --  Set to True if TypeCode is volatile, i.e. can be destroyed,
-      --  False otherwise.
+      --  False otherwise. Currently unused.
 
       procedure Destroy_TypeCode
         (Self : in out Object);
@@ -383,6 +384,8 @@ package PolyORB.Any is
         return Types.Unsigned_Long;
       --  Return the number of parameters in typecode Self.
 
+      procedure Initialize;
+
    private
 
       pragma Inline (Kind);
@@ -403,10 +406,10 @@ package PolyORB.Any is
       end record;
 
       type Object is record
-         Kind        : TCKind   := Tk_Void;
-         Parameters  : Cell_Ptr := null;
-         Is_Volatile : Boolean  := False;
-         Is_Destroyed : Boolean := False;
+         Kind         : TCKind   := Tk_Void;
+         Parameters   : Cell_Ptr := null;
+         Is_Volatile  : Boolean  := False;
+         Is_Destroyed : Boolean  := False;
       end record;
 
       ---------------------------
@@ -653,12 +656,6 @@ package PolyORB.Any is
       The_Type : in     TypeCode.Object);
    --  Not in spec : change the type of an any without changing its
    --  value : to be used carefully
-
-   procedure Set_Volatile
-     (Obj         : in out Any;
-      Is_Volatile : in    Boolean);
-   --  Not in spec : mark the Obj's TypeCode as volatile, see
-   --  Set_Volatile in package PolyORB.Any.TypeCode for more details.
 
    generic
       with procedure Process

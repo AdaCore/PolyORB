@@ -1462,23 +1462,23 @@ package body PolyORB.Any is
       -- TC_String --
       ---------------
 
-      function TC_String
-        return TypeCode.Object
-      is
-         Result : TypeCode.Object := PTC_String;
+      TC_String_Cache : TypeCode.Object;
+
+      function TC_String return TypeCode.Object is
       begin
-         Add_Parameter (Result, To_Any (Unsigned_Long (0)));
-         return Result;
+         return TC_String_Cache;
       end TC_String;
 
       --------------------
       -- TC_Wide_String --
       --------------------
 
+      TC_Wide_String_Cache : TypeCode.Object;
+
       function TC_Wide_String
         return TypeCode.Object is
       begin
-         return PTC_Wide_String;
+         return TC_Wide_String_Cache;
       end TC_Wide_String;
 
       ------------------
@@ -1639,6 +1639,19 @@ package body PolyORB.Any is
 
          return N;
       end Parameter_Count;
+
+      procedure Initialize is
+      begin
+
+         --  Construct default complex typecodes
+
+         TC_String_Cache := TypeCode.PTC_String;
+         Add_Parameter (TC_String_Cache, To_Any (Unsigned_Long (0)));
+
+         TC_Wide_String_Cache := TypeCode.PTC_Wide_String;
+         Add_Parameter (TC_Wide_String_Cache, To_Any (Unsigned_Long (0)));
+
+      end Initialize;
 
    end TypeCode;
 
@@ -2326,18 +2339,12 @@ package body PolyORB.Any is
      return Any
    is
       Result : Any;
-      Tco : TypeCode.Object;
    begin
       pragma Debug (O ("To_Any (String) : enter"));
 
-      TypeCode.Set_Kind (Tco, Tk_String);
-      TypeCode.Add_Parameter (Tco, To_Any (Unsigned_Long (0)));
-      TypeCode.Set_Volatile (Tco, True);
-      --  the string is supposed to be unbounded
-
       Set_Value (Result, new Content_String'
                  (Value => new PolyORB.Types.String'(Item)));
-      Set_Type (Result, Tco);
+      Set_Type (Result, TC_String);
       pragma Debug (O ("To_Any (String) : end"));
       return Result;
    end To_Any;
@@ -2347,16 +2354,10 @@ package body PolyORB.Any is
      return Any
    is
       Result : Any;
-      Tco : TypeCode.Object;
    begin
-      TypeCode.Set_Kind (Tco, Tk_Wstring);
-      TypeCode.Add_Parameter (Tco, To_Any (Unsigned_Long (0)));
-      TypeCode.Set_Volatile (Tco, True);
-      --  the string is supposed to be unbounded
-
       Set_Value (Result, new Content_Wide_String'
                  (Value => new Types.Wide_String'(Item)));
-      Set_Type (Result, Tco);
+      Set_Type (Result, TC_Wide_String);
       return Result;
    end To_Any;
 
@@ -3636,20 +3637,6 @@ package body PolyORB.Any is
                Value => Duplicate (Object.V.Value)));
    end Duplicate;
 
-   ------------------
-   -- Set_Volatile --
-   ------------------
-
-   procedure Set_Volatile
-     (Obj         : in out Any;
-      Is_Volatile : in     Boolean)
-   is
-
-      Container : Any_Container_Ptr := Any_Container_Ptr (Entity_Of (Obj));
-   begin
-      TypeCode.Set_Volatile (Container.The_Type, Is_Volatile);
-   end Set_Volatile;
-
    ----------------
    -- Initialize --
    ----------------
@@ -3802,7 +3789,9 @@ package body PolyORB.Any is
 
    procedure Initialize is
    begin
-      null;
+
+      TypeCode.Initialize;
+
    end Initialize;
 
    use PolyORB.Initialization;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-source_streams.ads#6 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-source_streams.ads#7 $
 
 with Ada.Finalization;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
@@ -84,6 +84,9 @@ package Ada_Be.Source_Streams is
    function Allocate_User_Diversion return Diversion;
    --  Creates a system-wide user-defined diversion identifier
    --  and returns it.
+
+   function Current_Diversion (CU : Compilation_Unit) return Diversion;
+   --  Return the current diversion of CU.
 
    procedure Divert
      (CU     : in out Compilation_Unit;
