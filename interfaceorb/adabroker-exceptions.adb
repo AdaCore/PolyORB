@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.7 $
+--                            $Revision: 1.8 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -47,7 +47,6 @@ pragma Elaborate_All (AdaBroker.Debug);
 with Ada.Exceptions; use Ada.Exceptions;
 
 with GNAT.Table;
-with Ada.Task_Identification; use Ada.Task_Identification;
 
 package body AdaBroker.Exceptions is
 
@@ -57,16 +56,21 @@ package body AdaBroker.Exceptions is
      := AdaBroker.Debug.Is_Active ("adabroker.exceptions");
    procedure O is new AdaBroker.Debug.Output (Flag);
 
+   type Stamp is new Natural;
+   First_Stamp : constant Stamp := Stamp'First;
+   Last_Stamp  : Stamp := First_Stamp;
+   Obsolete    : constant Stamp := 256;
+
    type Member_Record is
       record
-         T : Task_Id                   := Null_Task_Id;
+         S : Stamp                     := First_Stamp;
          M : IDL_Exception_Members_Ptr := null;
       end record;
 
    type Occurrence_Id is new Natural;
    Occurrence_Low_Bound : constant Occurrence_Id := 1;
-   Occurrence_Initial   : constant Natural       := 5;
-   Occurrence_Increment : constant Natural       := 50;
+   Occurrence_Initial   : constant Natural       := 8;
+   Occurrence_Increment : constant Natural       := 64;
 
    package Occurrences is new GNAT.Table
      (Member_Record,
@@ -120,7 +124,7 @@ package body AdaBroker.Exceptions is
       end if;
 
       Member := Occurrences.Table (Occurrence).M;
-      Occurrences.Table (Occurrence).T := Null_Task_Id;
+      Occurrences.Table (Occurrence).S := First_Stamp;
       if Member = null then
          Unlock_Occurrence_Table;
          pragma Debug (O ("null exception member"));
@@ -170,14 +174,12 @@ package body AdaBroker.Exceptions is
       Lock_Occurrence_Table;
 
       for Occ in 1 .. Occurrences.Last loop
-         if Occurrences.Table (Occ).T = Null_Task_Id then
+         if Occurrences.Table (Occ).S = First_Stamp then
             Occurrence := Occ;
             Full       := False;
             exit;
          else
-            pragma Debug
-              (O ("occurrence" & Occ'Img &
-                  " used by task "& Image (Occurrences.Table (Occ).T)));
+            pragma Debug (O ("occurrence" & Occ'Img & " in use"));
             null;
          end if;
       end loop;
@@ -185,12 +187,10 @@ package body AdaBroker.Exceptions is
       if Full then
          --  Try to collect garbage before incrementing table.
          for Occ in 1 .. Occurrences.Last loop
-            if Is_Terminated (Occurrences.Table (Occ).T) then
-               pragma Debug
-                 (O ("collect occurrence" & Occ'Img &
-                     " used by task "& Image (Occurrences.Table (Occ).T)));
+            if Last_Stamp - Occurrences.Table (Occ).S > Obsolete then
+               pragma Debug (O ("collect occurrence" & Occ'Img));
 
-               Occurrences.Table (Occ).T := Null_Task_Id;
+               Occurrences.Table (Occ).S := First_Stamp;
                if Occurrences.Table (Occ).M /= null then
                   Free (Occurrences.Table (Occ).M);
                end if;
@@ -216,8 +216,9 @@ package body AdaBroker.Exceptions is
       Member := new IDL_Exception_Members'Class'(Ex_Member);
       Output_Ex_Member (Member);
 
+      Last_Stamp := Last_Stamp + 1;
       Occurrences.Table (Occurrence).M := Member;
-      Occurrences.Table (Occurrence).T := Current_Task;
+      Occurrences.Table (Occurrence).S := Last_Stamp;
 
       Unlock_Occurrence_Table;
 
