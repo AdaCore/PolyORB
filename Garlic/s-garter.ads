@@ -69,6 +69,10 @@ package System.Garlic.Termination is
    procedure Initialize;
    --  Initialization.
 
+   procedure Main_Program_Is_Terminated;
+   --  This procedure must be called whenever the main program is terminated.
+   --  Until it gets called, no shutdown will ever be accepted.
+
    procedure Activity_Detected;
    pragma Inline (Activity_Detected);
    --  Some activity has been detected. This means that the current

@@ -1,0 +1,4 @@
+Mon Aug 26 20:57:30 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_stubs.adb: Make use of System.Garlic.Termination procedures.
+

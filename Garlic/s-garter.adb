@@ -50,6 +50,10 @@ package body System.Garlic.Termination is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
+   Main_Program_In_Progress : Boolean := True;
+   --  This boolean will be set to False whenever a shutdown may be
+   --  accepted.
+
    protected Count is
       procedure Increment;
       procedure Decrement;
@@ -222,13 +226,22 @@ package body System.Garlic.Termination is
    ----------------
 
    procedure Initialize is
+   begin
+      Receive (Shutdown_Synchronization, Receive_Message'Access);
+   end Initialize;
+
+   --------------------------------
+   -- Main_Program_Is_Terminated --
+   --------------------------------
+
+   procedure Main_Program_Is_Terminated is
       Dummy : Termination_Service_Access;
    begin
+      Main_Program_In_Progress := False;
       if Is_Boot_Partition then
          Dummy := new Termination_Service;
       end if;
-      Receive (Shutdown_Synchronization, Receive_Message'Access);
-   end Initialize;
+   end Main_Program_Is_Terminated;
 
    ---------------------
    -- Receive_Message --
@@ -274,7 +287,8 @@ package body System.Garlic.Termination is
                --  Send a positive ack if there has been no activity and
                --  no task is active but the current one.
 
-               if OK and then Get_Active_Task_Count = 1 then
+               if (not Main_Program_In_Progress) and then OK and then
+                 Get_Active_Task_Count = 1 then
                   Termination_Code'Write (Answer'Access, Positive_Ack);
                else
                   Termination_Code'Write (Answer'Access, Negative_Ack);
@@ -319,15 +333,6 @@ package body System.Garlic.Termination is
 
       Main_Loop : loop
 
-         --  Wait for a given time.
-
-         select
-            Shutdown_Keeper.Wait;
-            exit Main_Loop;
-         then abort
-            delay Time_Between_Checks;
-         end select;
-
          --  If there is only one active task (me !), we can initiate
          --  the algorithm.
 
@@ -355,6 +360,15 @@ package body System.Garlic.Termination is
                end if;
             end;
          end if;
+
+         --  Wait for a given time.
+
+         select
+            Shutdown_Keeper.Wait;
+            exit Main_Loop;
+         then abort
+            delay Time_Between_Checks;
+         end select;
 
       end loop Main_Loop;
    end Termination_Service;
