@@ -538,7 +538,7 @@ ${RM} ${PROTO_SERVER_WITHS}
 # build directory (only necessary when source dir != build dir).
 #
 
-for a in src/gnat.adc src/corba/gnat.adc src/moma/gnat.adc src/giop/gnat.adc src/giop/iiop/gnat.adc src/giop/diop/gnat.adc src/giop/miop/gnat.adc src/soap/gnat.adc src/srp/gnat.adc src/web_common/gnat.adc
+for a in src/gnat.adc src/corba/gnat.adc src/corba/rtcorba/gnat.adc src/moma/gnat.adc src/giop/gnat.adc src/giop/iiop/gnat.adc src/giop/diop/gnat.adc src/giop/miop/gnat.adc src/soap/gnat.adc src/srp/gnat.adc src/web_common/gnat.adc
 do
   if test ! -f "$a"
   then
