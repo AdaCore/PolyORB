@@ -126,6 +126,10 @@ package body PolyORB.Ravenscar.Threads is
       --  This procedure is called at iniatialisation time
       --  by the tasks, to get a unique id.
 
+      entry Wait_For_Package_Initialization;
+      --  This entry block the initialisation loop
+      --  until all the Thread are initialised.
+
       procedure Create_Thread
         (Id  : Thread_Index_Type;
          Run : Runnable'Class;
@@ -138,16 +142,17 @@ package body PolyORB.Ravenscar.Threads is
          T  : out Thread_Access);
       --  This is the protected section of the Create_Thread procedure.
 
-      function Lookup (Tid : Ada.Task_Identification.Task_Id)
-                      return Integer;
+      procedure Lookup (Tid : Ada.Task_Identification.Task_Id;
+                        Result : out Integer);
       --  Get the Thread_Access associated to the given Task_Id.
 
       procedure Initialize;
       --  Initialisation procedure of Pool_Manager.
 
    private
-      Current        : Integer := Task_Index_Type'First;
-      My_Task_Id_Arr : Task_Id_Arr;
+      Package_Initialized : Boolean;
+      Current             : Integer := Task_Index_Type'First;
+      My_Task_Id_Arr      : Task_Id_Arr;
    end Pool_Manager;
 
    type Thread_Arr is array (Thread_Index_Type)
@@ -274,7 +279,7 @@ package body PolyORB.Ravenscar.Threads is
         := Ada.Task_Identification.Current_Task;
       Result  : Ravenscar_Thread_Id;
    begin
-      Result.Id := Pool_Manager.Lookup (Task_Id);
+      Pool_Manager.Lookup (Task_Id, Result.Id);
       return Thread_Id'Class (Result);
    end Get_Current_Thread_Id;
 
@@ -316,6 +321,7 @@ package body PolyORB.Ravenscar.Threads is
       Pool_Manager.Initialize;
       PTT.Register_Thread_Factory (PTT.Thread_Factory_Access
                                    (The_Thread_Factory));
+      Pool_Manager.Wait_For_Package_Initialization;
    end Initialize;
 
    ------------------
@@ -377,14 +383,15 @@ package body PolyORB.Ravenscar.Threads is
          My_Thread_Arr (Id).Id.Id := Id;
          My_Task_Id_Arr (Current) := Tid;
          Current := Current + 1;
+         Package_Initialized := Current >= Thread_Index_Type'Last;
       end Initialize_Id;
 
       -------------------------
       -- Pool_Manager.Lookup --
       -------------------------
 
-      function Lookup (Tid : Ada.Task_Identification.Task_Id)
-                      return Integer is
+      procedure Lookup (Tid : Ada.Task_Identification.Task_Id;
+                        Result : out Integer) is
          J : Integer := Thread_Index_Type'First;
          use Ada.Task_Identification;
          --  Result : Ravenscar_Thread_Access;
@@ -393,10 +400,17 @@ package body PolyORB.Ravenscar.Threads is
             pragma Assert (J /= Thread_Index_Type'Last);
             J := J + 1;
          end loop;
-         --  Result :=  My_Thread_Arr (J)'Access;
-         return J;
-         --  Thread_Access (Result);
+         Result := J;
       end Lookup;
+
+      --------------------------------------------------
+      -- Pool_Manager.Wait_For_Package_Initialization --
+      --------------------------------------------------
+
+      entry Wait_For_Package_Initialization when Package_Initialized Is
+      begin
+         null;
+      end Wait_For_Package_Initialization;
 
    end Pool_Manager;
 
