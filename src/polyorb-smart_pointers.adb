@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.adb#24 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.adb#25 $
 
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
@@ -100,34 +100,24 @@ package body PolyORB.Smart_Pointers is
 
       if Obj.Counter = 0 then
 
-         --  Free'ing 'Obj' must be done under Critical Section to
-         --  avoid race conditions between two tasks deallocating the
-         --  same object.
-
          pragma Debug (O ("Dec_Usage: deallocating."));
 
-         if Obj.all not in Entity'Class then
-            --  This entity is not controlled: finalize it
-            --  ourselves.
+         Leave (Counter_Lock);
+         --  Releasing Counter_Lock at this stage is sufficient to
+         --  ensure that only one task finalizes 'Obj.all' and
+         --  frees 'Obj'.
 
-            Leave (Counter_Lock);
-            --  Release Lock, as Finalize may need to acquire it.
+         if Obj.all not in Entity'Class then
+            --  This entity is not controlled: finalize it ourselves
 
             Finalize (Obj.all);
-
-            Enter (Counter_Lock);
-            --  Reacquire Lock before going any further
          end if;
 
-         if Obj /= null then
-            --  Test Obj has not been freed by another task,
-
-            Free (Obj);
-         end if;
-
+         Free (Obj);
+      else
+         Leave (Counter_Lock);
       end if;
 
-      Leave (Counter_Lock);
       pragma Debug (O ("Leaving Dec_Usage"));
    end Dec_Usage;
 
