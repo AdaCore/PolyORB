@@ -33,6 +33,9 @@ package body Broca.CDR is
    function To_Unsigned_Short is
       new Ada.Unchecked_Conversion (CORBA.Short, CORBA.Unsigned_Short);
 
+   function Align (Index : Index_Type; Alignment : Alignment_Type)
+     return Index_Type;
+
    ------------
    -- Adjust --
    ------------
@@ -41,6 +44,18 @@ package body Broca.CDR is
    begin
       Buffer.Content := new Octet_Array'(Buffer.Content.all);
    end Adjust;
+
+   -----------
+   -- Align --
+   -----------
+
+   function Align (Index : Index_Type; Alignment : Alignment_Type)
+     return Index_Type
+   is
+   begin
+      return Index_Type (Alignment) *
+        ((Index + Index_Type (Alignment) - 1) / Index_Type (Alignment));
+   end Align;
 
    --------------
    -- Finalize --
@@ -249,9 +264,8 @@ package body Broca.CDR is
       Octets    : in Octet_Array;
       Alignment : in Alignment_Type := 1)
    is
-      Pad_Size    : constant Index_Type := Index_Type (Alignment - 1) -
-        ((Buffer.Content'Size + Index_Type (Alignment) - 1)
-         mod Index_Type (Alignment));
+      Pad_Size    : constant Index_Type :=
+        Align (Buffer.Content'Last, Alignment) - Buffer.Content'Last;
       Padding     : constant Octet_Array (1 .. Pad_Size) := (others => 0);
       New_Content : constant Octet_Array_Access :=
         new Octet_Array'(Buffer.Content.all & Padding & Octets);
@@ -408,9 +422,8 @@ package body Broca.CDR is
       Alignment : Alignment_Type := 1)
      return Octet_Array
    is
-      Pad_Size : constant Index_Type := Index_Type (Alignment - 1) -
-        ((Buffer.Index + Index_Type (Alignment) - 1)
-         mod Index_Type (Alignment));
+      Pad_Size    : constant Index_Type :=
+        Align (Buffer.Index, Alignment) - Buffer.Index;
       Result   : Octet_Array (0 .. Size - 1);
    begin
       Buffer.Index := Buffer.Index + Pad_Size;
