@@ -2915,11 +2915,11 @@ package body Exp_Dist is
       --  case statement will be made on the Subprogram_Id to dispatch
       --  to the right subprogram.
 
-      All_Calls_Remote_E := Boolean_Literals (
-        Has_All_Calls_Remote (Defining_Entity (Pkg_Spec)));
-
       Overload_Counter_Table.Reset;
       Reserve_NamingContext_Methods;
+
+      All_Calls_Remote_E := Boolean_Literals (
+        Has_All_Calls_Remote (Defining_Entity (Pkg_Spec)));
 
       Current_Declaration := First (Visible_Declarations (Pkg_Spec));
       while Current_Declaration /= Empty loop
@@ -2928,13 +2928,15 @@ package body Exp_Dist is
          then
             declare
                Loc : constant Source_Ptr :=
-                 Sloc (Current_Declaration);
-               --  While specifically processing Current_Declaration,
-               --  use its Sloc as the location of all generated
-               --  nodes.
+                       Sloc (Current_Declaration);
+               --  While specifically processing Current_Declaration, use its
+               --  Sloc as the location of all generated nodes.
 
-               Subp_Def       : constant Entity_Id :=
-                 Defining_Unit_Name (Specification (Current_Declaration));
+               Subp_Def : constant Entity_Id :=
+                            Defining_Unit_Name
+                              (Specification (Current_Declaration));
+
+               Subp_Val : String_Id;
 
                Subp_Dist_Name : constant Entity_Id :=
                  Make_Defining_Identifier (Loc,
@@ -2943,11 +2945,12 @@ package body Exp_Dist is
                      Suffix       => 'D',
                      Suffix_Index => -1));
 
-               Subp_Val          : String_Id;
                Case_Stmts        : List_Id;
                Proxy_Object_Addr : Entity_Id;
 
             begin
+               pragma Assert (Current_Subprogram_Number =
+                 Get_Subprogram_Id (Subp_Def));
 
                --  Build receiving stub
 
@@ -3021,14 +3024,12 @@ package body Exp_Dist is
                         Defining_Entity (Current_Stubs), Loc),
                     Parameter_Associations =>
                       New_List (New_Occurrence_Of (Request, Loc))));
-
                if Nkind (Specification (Current_Declaration))
                    = N_Function_Specification
                  or else not Is_Asynchronous (Subp_Def)
                then
                   Append_To (Case_Stmts, Make_Return_Statement (Loc));
                end if;
-
                Append_To (Dispatch_On_Name,
                  Make_Elsif_Part (Loc,
                    Condition =>
@@ -3057,7 +3058,6 @@ package body Exp_Dist is
                        New_Occurrence_Of (Subp_Index, Loc),
                        Make_Integer_Literal (Loc,
                           Current_Subprogram_Number)))));
-
                Append_To (Pkg_RPC_Receiver_Cases,
                  Make_Case_Statement_Alternative (Loc,
                    Discrete_Choices =>
@@ -4353,7 +4353,7 @@ package body Exp_Dist is
       Loc : constant Source_Ptr := Sloc (Vis_Decl);
 
       Request_Parameter : Node_Id;
-      --  See explanations of those in Build_Subprogram_Calling_Stubs
+      --  See explanations of these in Build_Subprogram_Calling_Stubs
 
       Outer_Decls : constant List_Id := New_List;
       --  At the outermost level, an NVList and Any's are
