@@ -1,3 +1,8 @@
+1998-08-18  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* xe_stubs.adb: Don't check version on RCI generic unit. Bug
+	introduced by latest checkins.
+
 1998-08-17  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am, Makefile.in: Remove flag -a as we are not supposed

@@ -615,6 +615,7 @@ package body XE_Stubs is
       --  receiver version.
 
       for C in Callers.First .. Callers.Last loop
+
          Dwrite_With_Clause (FD, No_Str, Callers.Table (C), False);
       end loop;
 
@@ -1078,6 +1079,7 @@ package body XE_Stubs is
       for U in ALIs.Table (Lib).First_Unit ..
                ALIs.Table (Lib).Last_Unit loop
          if Unit.Table (U).RCI
+           and then not Unit.Table (U).Is_Generic
            and then Get_PID (U_To_N (Unit.Table (U).Uname)) /= PID then
             First_Unit := U;
             Last_Unit  := U;
