@@ -37,13 +37,10 @@
 with Ada.Command_Line;
 with Ada.Text_IO;
 
-with PolyORB.Setup.No_Tasking_Server;
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
---  XXX this package should be renamed to PolyORB.Setup.No_Tasking_Node ...
-
---  XXX do not change Tasking model for now, otherwise there is a risk
---  of a race condition between producer and consumer ...
+with PolyORB.Setup.Thread_Pool_Server;
+pragma Elaborate_All (PolyORB.Setup.Thread_Pool_Server);
+pragma Warnings (Off, PolyORB.Setup.Thread_Pool_Server);
+--  XXX this package should be renamed to PolyORB.Setup.Thread_Pool_Node ...
 
 with MOMA.Sessions.Queues;
 
@@ -55,10 +52,7 @@ with MOMA.Types;
 
 with PolyORB.Any;
 
-with Report;
-
 procedure Client_MOMA is
-pragma Warnings (Off);
 
    use Ada.Command_Line;
    use Ada.Text_IO;
@@ -69,11 +63,7 @@ pragma Warnings (Off);
    use MOMA.Sessions.Queues;
    use MOMA.Types;
 
-   use Report;
-
    MOMA2ORB_Producer : MOMA.Message_Producers.Queues.Queue;
-
-   Ok : Boolean;
 
    --------------------------
    -- Execute Message Test --
@@ -86,7 +76,6 @@ pragma Warnings (Off);
       use PolyORB.Any;
 
       MExecute_Message_Sent : MOMA.Messages.MExecutes.MExecute;
-      MExecute_Message_Rcvd : MOMA.Messages.MExecutes.MExecute;
 
       Method_Name   : Map_Element;
       Return_1      : Map_Element;
@@ -112,6 +101,7 @@ pragma Warnings (Off);
       Set_Parameter (MExecute_Message_Sent, Parameter_Map);
 
       Send (MOMA2ORB_Producer, MExecute_Message_Sent);
+      Put_Line ("Request sent !");
 
    end Test_MExecute;
 
@@ -131,12 +121,8 @@ begin
    MOMA2ORB_Producer := Create_Sender (To_MOMA_String (Argument (1)),
                                        To_MOMA_String (Argument (2)));
 
-   Output ("Initilisation", True);
-
    --  Testing MExecute.
 
    Test_MExecute;
 
-
-pragma Warnings (On);
 end Client_MOMA;

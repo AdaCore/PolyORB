@@ -36,18 +36,12 @@ with Ada.Tags;
 with PolyORB.Log;
 with PolyORB.Components;
 with PolyORB.Requests;
-with PolyORB.Task_Info;
-with PolyORB.Asynch_Ev;
-with PolyORB.Soft_Links;
 with PolyORB.Objects.Interface;
 
 package body PolyORB.Call_Back is
 
    use PolyORB.Log;
    use PolyORB.Requests;
-   use PolyORB.Task_Info;
-   use PolyORB.Asynch_Ev;
-   use PolyORB.Soft_Links;
    use PolyORB.Objects.Interface;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.call_back");
@@ -80,32 +74,10 @@ package body PolyORB.Call_Back is
             CB_Handler.CB_Function.all (Req.all, CB_Handler.Dest_Ref);
 
             --  Complete Request execution
-
             Req.Completed := True;
 
-            case Status (Req.Requesting_Task.all)
-            is
-               when Running =>
-                  null;
-
-               when Blocked =>
-
-                  declare
-                     use Asynch_Ev;
-
-                     Sel : constant Asynch_Ev_Monitor_Access
-                       := Selector (Req.Requesting_Task.all);
-                  begin
-                     pragma Debug (O ("About to abort block"));
-                     pragma Assert (Sel /= null);
-                     Abort_Check_Sources (Sel.all);
-                     pragma Debug (O ("Aborted."));
-                  end;
-
-               when Idle =>
-                  Update (Watcher (Req.Requesting_Task.all));
-
-            end case;
+            --  Note : a complete terminaison may be required, it is left to
+            --  the call back handler procedure.
 
          end;
       end if;

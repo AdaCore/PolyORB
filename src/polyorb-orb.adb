@@ -846,10 +846,10 @@ package body PolyORB.ORB is
                --  servant: send it back to the requesting party
                --  iff it is required.
 
-               if Is_Set (Sync_With_Target, J.Request.Req_Flags) then
+               if Is_Set (Sync_With_Target, J.Request.Req_Flags)
+                 or Is_Set (Sync_Call_Back, J.Request.Req_Flags) then
                   Emit_No_Reply (J.Requestor, Result);
                end if;
-
             end if;
 
             --  XXX Should that be Emit? Should there be a reply

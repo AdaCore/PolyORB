@@ -194,7 +194,8 @@ package body MOMA.Message_Producers.Queues is
             Operation => Method_Name,
             Arg_List  => Arg_List,
             Result    => Result,
-            Req       => Request);
+            Req       => Request,
+            Req_Flags => PolyORB.Requests.Sync_Call_Back);
 
          if Result_TypeCode /= TypeCode.TC_Void then
             pragma Debug (O ("Non void return parameter."));
@@ -206,7 +207,12 @@ package body MOMA.Message_Producers.Queues is
 
          PolyORB.Requests.Invoke (Request);
 
-         PolyORB.Requests.Destroy_Request (Request);
+         if Result_TypeCode = TypeCode.TC_Void then
+            PolyORB.Requests.Destroy_Request (Request);
+         end if;
+         --  Note : in the other case, the request is destroyed when sending
+         --  see polyorb-protocols.adb for more details.
+
       end;
 
    end Send_To_ORB;
