@@ -39,6 +39,7 @@
 with CORBA.Object;
 with CORBA.Policy;
 
+with IOP;
 with PortableInterceptor.RequestInfo;
 
 package PortableInterceptor.ClientRequestInfo is
@@ -81,10 +82,10 @@ package PortableInterceptor.ClientRequestInfo is
       IDL_Type : in CORBA.PolicyType)
       return CORBA.Policy.Ref;
 
---   procedure Add_Request_Service_Context
---     (Self            : in Local_Ref;
---      Service_Context : in IOP.ServiceContext;
---      Replace         : in CORBA.Boolean);
+   procedure Add_Request_Service_Context
+     (Self            : in Local_Ref;
+      Service_Context : in IOP.ServiceContext;
+      Replace         : in CORBA.Boolean);
 
    --  Repository_Ids
 

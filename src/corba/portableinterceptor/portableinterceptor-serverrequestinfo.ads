@@ -37,6 +37,7 @@
 ------------------------------------------------------------------------------
 
 with CORBA.Policy;
+with IOP;
 with PortableInterceptor.RequestInfo;
 
 package PortableInterceptor.ServerRequestInfo is
@@ -82,11 +83,10 @@ package PortableInterceptor.ServerRequestInfo is
       return CORBA.Boolean;
    --  Not implemented.
 
---   procedure Add_Reply_Service_Context
---     (Self            : in Local_Ref;
---      Service_Context : in CORBA.IOP.ServiceContext;
---      Replace         : in CORBA.Boolean);
---   --  Not implemented.
+   procedure Add_Reply_Service_Context
+     (Self            : in Local_Ref;
+      Service_Context : in IOP.ServiceContext;
+      Replace         : in CORBA.Boolean);
 
    --  Repository_Ids
 

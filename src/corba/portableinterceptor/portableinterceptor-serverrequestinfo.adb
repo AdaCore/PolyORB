@@ -36,27 +36,28 @@ with PortableInterceptor.ServerRequestInfo.Impl;
 
 package body PortableInterceptor.ServerRequestInfo is
 
---   -------------------------------
---   -- Add_Reply_Service_Context --
---   -------------------------------
---
---   procedure Add_Reply_Service_Context
---     (Self            : in Local_Ref;
---      Service_Context : in CORBA.IOP.ServiceContext;
---      Replace         : in CORBA.Boolean)
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      PortableInterceptor.ServerRequestInfo.Impl.Add_Reply_Service_Context
---       (PortableInterceptor.ServerRequestInfo.Impl.Object_Ptr
---         (Entity_Of (Self)),
---        Service_Context,
---        Replace);
+   -------------------------------
+   -- Add_Reply_Service_Context --
+   -------------------------------
+
+   procedure Add_Reply_Service_Context
+     (Self            : in Local_Ref;
+      Service_Context : in IOP.ServiceContext;
+      Replace         : in CORBA.Boolean)
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      PortableInterceptor.ServerRequestInfo.Impl.Add_Reply_Service_Context
+       (PortableInterceptor.ServerRequestInfo.Impl.Object_Ptr
+         (Entity_Of (Self)),
+        Service_Context,
+        Replace);
+   end Add_Reply_Service_Context;
 
    ----------------------
    -- Get_Adapter_Name --

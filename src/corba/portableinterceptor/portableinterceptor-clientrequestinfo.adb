@@ -35,28 +35,28 @@ with PortableInterceptor.ClientRequestInfo.Impl;
 
 package body PortableInterceptor.ClientRequestInfo is
 
---   ---------------------------------
---   -- Add_Request_Service_Context --
---   ---------------------------------
---
---   procedure Add_Request_Service_Context
---     (Self            : in Local_Ref;
---      Service_Context : in IOP.ServiceContext;
---      Replace         : in CORBA.Boolean)
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      PortableInterceptor.ClientRequestInfo.Impl.Add_Request_Service_Context
---       (PortableInterceptor.ClientRequestInfo.Impl.Object_Ptr
---         (Entity_Of (Self)),
---        Service_Context,
---        Replace);
---   end Get_Effective_Component;
+   ---------------------------------
+   -- Add_Request_Service_Context --
+   ---------------------------------
+
+   procedure Add_Request_Service_Context
+     (Self            : in Local_Ref;
+      Service_Context : in IOP.ServiceContext;
+      Replace         : in CORBA.Boolean)
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      PortableInterceptor.ClientRequestInfo.Impl.Add_Request_Service_Context
+       (PortableInterceptor.ClientRequestInfo.Impl.Object_Ptr
+         (Entity_Of (Self)),
+        Service_Context,
+        Replace);
+   end Add_Request_Service_Context;
 
 --   -----------------------------
 --   -- Get_Effective_Component --

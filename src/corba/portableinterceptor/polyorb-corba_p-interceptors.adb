@@ -41,6 +41,7 @@ with PolyORB.Exceptions;
 with PolyORB.Initialization;
 with PolyORB.References;
 with PolyORB.Requests;
+with PolyORB.Request_QoS.Service_Contexts;
 with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 with PolyORB.Tasking.Threads.Annotations;
@@ -61,6 +62,7 @@ package body PolyORB.CORBA_P.Interceptors is
 
    use PolyORB.Annotations;
    use PolyORB.CORBA_P.Interceptors_Slots;
+   use PolyORB.Request_QoS.Service_Contexts;
    use PolyORB.Tasking.Threads.Annotations;
 
    --  Client Interceptors
@@ -452,6 +454,8 @@ package body PolyORB.CORBA_P.Interceptors is
       loop
          Set_Note (Cur_Req.Notepad, TSC);
 
+         Rebuild_Request_Service_Contexts (Request);
+
          Index := Length (All_Client_Interceptors);
 
          --  Call Send_Request on all interceptors.
@@ -472,6 +476,8 @@ package body PolyORB.CORBA_P.Interceptors is
             end if;
          end loop;
 
+         Rebuild_Request_QoS_Parameters (Request);
+
          --  Avoid operation invocation if interceptor raise system exception.
 
          if Index = Length (All_Client_Interceptors) then
@@ -481,6 +487,9 @@ package body PolyORB.CORBA_P.Interceptors is
             --  invokation.
             Set_Note (Cur_Req.Notepad, TSC);
          end if;
+
+         Rebuild_Request_Service_Contexts (Request);
+         Rebuild_Reply_Service_Contexts (Request);
 
          for J in reverse 0 .. Index - 1 loop
             if not PolyORB.Any.Is_Empty (Cur_Req.Exception_Info) then
@@ -726,6 +735,8 @@ package body PolyORB.CORBA_P.Interceptors is
          end loop;
       end if;
 
+      Rebuild_Reply_QoS_Parameters (Request);
+
       PolyORB.Annotations.Set_Note (Request.Notepad, Note);
 
       if Break_Invocation then
@@ -776,6 +787,8 @@ package body PolyORB.CORBA_P.Interceptors is
       Allocate_Slots (RSC);
       Set_Note (Request.Notepad, RSC);
 
+      Rebuild_Request_Service_Contexts (Request);
+
       for J in 0 .. Note.Last_Interceptor - 1 loop
          Call_Receive_Request_Service_Contexts
            (Element (All_Server_Interceptors, J).all,
@@ -793,6 +806,8 @@ package body PolyORB.CORBA_P.Interceptors is
             exit;
          end if;
       end loop;
+
+      Rebuild_Reply_QoS_Parameters (Request);
 
       --  Copy ing request scope slots to thread scope slots
 
@@ -855,6 +870,8 @@ package body PolyORB.CORBA_P.Interceptors is
                Request.Exception_Info);
          end if;
       end loop;
+
+      Rebuild_Reply_QoS_Parameters (Request);
    end Server_Invoke;
 
    -------------------------------------------

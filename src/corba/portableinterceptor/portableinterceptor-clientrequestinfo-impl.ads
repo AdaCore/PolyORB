@@ -84,10 +84,10 @@ package PortableInterceptor.ClientRequestInfo.Impl is
       IDL_Type : in     CORBA.PolicyType)
       return CORBA.Policy.Ref;
 
---   procedure Add_Request_Service_Context
---     (Self            : access Object;
---      Service_Context : in     IOP.ServiceContext;
---      Replace         : in     CORBA.Boolean);
+   procedure Add_Request_Service_Context
+     (Self            : access Object;
+      Service_Context : in     IOP.ServiceContext;
+      Replace         : in     CORBA.Boolean);
 
    function Is_A
      (Self            : access Object;
@@ -144,14 +144,14 @@ private
      (Self : access Object)
      return CORBA.Object.Ref;
 
---   function Get_Request_Service_Context
---     (Self : access Object;
---      Id   : in     IOP.ServiceId)
---      return IOP.ServiceContext;
---
---   function Get_Reply_Service_Context
---     (Self : access Object;
---      Id   : in     IOP.ServiceId)
---      return IOP.ServiceContext;
+   function Get_Request_Service_Context
+     (Self : access Object;
+      Id   : in     IOP.ServiceId)
+      return IOP.ServiceContext;
+
+   function Get_Reply_Service_Context
+     (Self : access Object;
+      Id   : in     IOP.ServiceId)
+      return IOP.ServiceContext;
 
 end PortableInterceptor.ClientRequestInfo.Impl;

@@ -38,6 +38,7 @@
 
 with CORBA.Object;
 with Dynamic;
+with IOP;
 with Messaging;
 
 package PortableInterceptor.RequestInfo is
@@ -93,15 +94,15 @@ package PortableInterceptor.RequestInfo is
       Id   : in SlotId)
       return CORBA.Any;
 
---   function Get_Request_Service_Context
---     (Self : in Local_Ref;
---      Id   : in IOP.ServiceId)
---      return IOP.ServiceContext;
---
---   function Get_Reply_Service_Context
---     (Self : in Local_Ref;
---      Id   : in IOP.ServiceId)
---      return IOP.ServiceContext;
+   function Get_Request_Service_Context
+     (Self : in Local_Ref;
+      Id   : in IOP.ServiceId)
+      return IOP.ServiceContext;
+
+   function Get_Reply_Service_Context
+     (Self : in Local_Ref;
+      Id   : in IOP.ServiceId)
+      return IOP.ServiceContext;
 
    --  Repository_Ids
 

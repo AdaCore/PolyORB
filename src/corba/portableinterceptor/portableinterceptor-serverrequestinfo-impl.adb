@@ -33,29 +33,87 @@
 
 with Ada.Streams;
 with Ada.Unchecked_Conversion;
+with Ada.Unchecked_Deallocation;
 
 with CORBA;
 with PortableInterceptor.RequestInfo;
 
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
+with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Interceptors;
 with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.Objects;
 with PolyORB.POA;
+with PolyORB.Representations.CDR.Common;
+with PolyORB.Request_QoS.Service_Contexts;
 
 package body PortableInterceptor.ServerRequestInfo.Impl is
 
    use PolyORB.CORBA_P.Interceptors;
 
---   -------------------------------
---   -- Add_Reply_Service_Context --
---   -------------------------------
---
---   procedure Add_Reply_Service_Context
---     (Self            : access Object;
---      Service_Context : in     CORBA.IOP.ServiceContext;
---      Replace         : in     CORBA.Boolean);
+   -------------------------------
+   -- Add_Reply_Service_Context --
+   -------------------------------
+
+   procedure Add_Reply_Service_Context
+     (Self            : access Object;
+      Service_Context : in     IOP.ServiceContext;
+      Replace         : in     CORBA.Boolean)
+   is
+      use PolyORB.CORBA_P.Codec_Utils;
+      use PolyORB.Representations.CDR.Common;
+      use PolyORB.Request_QoS;
+      use PolyORB.Request_QoS.Service_Contexts;
+      use Service_Context_Lists;
+      use type Service_Id;
+
+      procedure Free is
+        new Ada.Unchecked_Deallocation (Encapsulation, Encapsulation_Access);
+
+      SCP  : QoS_GIOP_Service_Contexts_Parameter_Access;
+      Iter : Iterator;
+   begin
+      SCP :=
+        QoS_GIOP_Service_Contexts_Parameter_Access
+         (Extract_Reply_Parameter (GIOP_Service_Contexts, Self.Request));
+
+      if SCP = null then
+         SCP := new QoS_GIOP_Service_Contexts_Parameter;
+         Add_Reply_QoS
+           (Self.Request,
+            GIOP_Service_Contexts,
+            QoS_Parameter_Access (SCP));
+      end if;
+
+      Iter := First (SCP.Service_Contexts);
+      while not Last (Iter) loop
+         if Value (Iter).Context_Id
+              = Service_Id (Service_Context.Context_Id)
+         then
+            if not Replace then
+               CORBA.Raise_Bad_Inv_Order
+                (CORBA.Bad_Inv_Order_Members'
+                 (Minor     => 11,
+                  Completed => CORBA.Completed_No));
+            end if;
+
+            Free (Value (Iter).Context_Data);
+            Value (Iter).Context_Data :=
+              new Encapsulation'
+              (To_Encapsulation (Service_Context.Context_Data));
+
+            return;
+         end if;
+         Next (Iter);
+      end loop;
+
+      Append
+        (SCP.Service_Contexts,
+         (Service_Id (Service_Context.Context_Id),
+          new Encapsulation'
+          (To_Encapsulation (Service_Context.Context_Data))));
+   end Add_Reply_Service_Context;
 
 --   --------------------
 --   -- Get_Adapter_Id --
@@ -282,14 +340,28 @@ package body PortableInterceptor.ServerRequestInfo.Impl is
       return Result;
    end Get_ORB_Id;
 
---   -------------------------------
---   -- Get_Reply_Service_Context --
---   -------------------------------
---
---   function Get_Reply_Service_Context
---     (Self : access Object;
---      id : in IOP.ServiceId)
---      return IOP.ServiceContext;
+   -------------------------------
+   -- Get_Reply_Service_Context --
+   -------------------------------
+
+   function Get_Reply_Service_Context
+     (Self : access Object;
+      Id   : in     IOP.ServiceId)
+      return IOP.ServiceContext
+   is
+   begin
+      if Self.Point = Receive_Request_Service_Contexts
+        or else Self.Point = Receive_Request
+      then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      return
+        RequestInfo.Impl.Get_Reply_Service_Context
+         (RequestInfo.Impl.Object (Self.all)'Access, Id);
+   end Get_Reply_Service_Context;
 
    ----------------------
    -- Get_Reply_Status --

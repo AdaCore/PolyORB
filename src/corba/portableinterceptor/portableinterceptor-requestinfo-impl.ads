@@ -96,15 +96,15 @@ package PortableInterceptor.RequestInfo.Impl is
       Id   : in     SlotId)
       return CORBA.Any;
 
---   function Get_Request_Service_Context
---     (Self : access Object;
---      Id   : in     IOP.ServiceId)
---      return IOP.ServiceContext;
---
---   function Get_Reply_Service_Context
---     (Self : access Object;
---      Id   : in     IOP.ServiceId)
---      return IOP.ServiceContext;
+   function Get_Request_Service_Context
+     (Self : access Object;
+      Id   : in     IOP.ServiceId)
+      return IOP.ServiceContext;
+
+   function Get_Reply_Service_Context
+     (Self : access Object;
+      Id   : in     IOP.ServiceId)
+      return IOP.ServiceContext;
 
    function Is_A
      (Self            : access Object;

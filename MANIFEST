@@ -523,6 +523,8 @@ src/corba/portableinterceptor/iop-codecfactory-impl.ads
 src/corba/portableinterceptor/iop-codecfactory.adb
 src/corba/portableinterceptor/iop-codecfactory.ads
 src/corba/portableinterceptor/iop.ads
+src/corba/portableinterceptor/polyorb-corba_p-codec_utils.adb
+src/corba/portableinterceptor/polyorb-corba_p-codec_utils.ads
 src/corba/portableinterceptor/polyorb-corba_p-interceptors.adb
 src/corba/portableinterceptor/polyorb-corba_p-interceptors.ads
 src/corba/portableinterceptor/polyorb-corba_p-interceptors_slots.adb

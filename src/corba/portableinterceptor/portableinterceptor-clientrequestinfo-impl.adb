@@ -31,14 +31,87 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
+with Ada.Unchecked_Deallocation;
 
+with CORBA;
 with PolyORB.Any;
+with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Interceptors;
+with PolyORB.Representations.CDR.Common;
+with PolyORB.Request_QoS.Service_Contexts;
 
 package body PortableInterceptor.ClientRequestInfo.Impl is
 
+   use PolyORB.CORBA_P.Codec_Utils;
    use PolyORB.CORBA_P.Interceptors;
+   use PolyORB.Representations.CDR.Common;
+   use PolyORB.Request_QoS;
+   use PolyORB.Request_QoS.Service_Contexts;
+
+   ---------------------------------
+   -- Add_Request_Service_Context --
+   ---------------------------------
+
+   procedure Add_Request_Service_Context
+     (Self            : access Object;
+      Service_Context : in     IOP.ServiceContext;
+      Replace         : in     CORBA.Boolean)
+   is
+      use Service_Context_Lists;
+      use type Service_Id;
+
+      procedure Free is
+        new Ada.Unchecked_Deallocation (Encapsulation, Encapsulation_Access);
+
+      SCP  : QoS_GIOP_Service_Contexts_Parameter_Access;
+      Iter : Iterator;
+   begin
+      if Self.Point /= Send_Request then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      SCP :=
+        QoS_GIOP_Service_Contexts_Parameter_Access
+         (Extract_Request_Parameter (GIOP_Service_Contexts, Self.Request));
+
+      if SCP = null then
+         SCP := new QoS_GIOP_Service_Contexts_Parameter;
+         Add_Request_QoS
+           (Self.Request,
+            GIOP_Service_Contexts,
+            QoS_Parameter_Access (SCP));
+      end if;
+
+      Iter := First (SCP.Service_Contexts);
+      while not Last (Iter) loop
+         if Value (Iter).Context_Id
+              = Service_Id (Service_Context.Context_Id)
+         then
+            if not Replace then
+               CORBA.Raise_Bad_Inv_Order
+                (CORBA.Bad_Inv_Order_Members'
+                 (Minor     => 15,
+                  Completed => CORBA.Completed_No));
+            end if;
+
+            Free (Value (Iter).Context_Data);
+            Value (Iter).Context_Data :=
+              new Encapsulation'
+              (To_Encapsulation (Service_Context.Context_Data));
+
+            return;
+         end if;
+         Next (Iter);
+      end loop;
+
+      Append
+        (SCP.Service_Contexts,
+         (Service_Id (Service_Context.Context_Id),
+          new Encapsulation'
+          (To_Encapsulation (Service_Context.Context_Data))));
+   end Add_Request_Service_Context;
 
    -------------------
    -- Get_Arguments --
@@ -195,6 +268,28 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
            (PolyORB.Any.Get_Type (Self.Request.Exception_Info)));
    end Get_Received_Exception_Id;
 
+   -------------------------------
+   -- Get_Reply_Service_Context --
+   -------------------------------
+
+   function Get_Reply_Service_Context
+     (Self : access Object;
+      Id   : in     IOP.ServiceId)
+      return IOP.ServiceContext
+   is
+   begin
+      if Self.Point = Send_Request
+        or else Self.Point = Send_Poll
+      then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      return RequestInfo.Impl.Get_Reply_Service_Context
+              (RequestInfo.Impl.Object (Self.all)'Access, Id);
+   end Get_Reply_Service_Context;
+
    ----------------------
    -- Get_Reply_Status --
    ----------------------
@@ -239,6 +334,26 @@ package body PortableInterceptor.ClientRequestInfo.Impl is
       raise PolyORB.Not_Implemented;
       return Result;
    end Get_Request_Policy;
+
+   ---------------------------------
+   -- Get_Request_Service_Context --
+   ---------------------------------
+
+   function Get_Request_Service_Context
+     (Self : access Object;
+      Id   : in     IOP.ServiceId)
+      return IOP.ServiceContext
+   is
+   begin
+      if Self.Point = Send_Poll then
+         CORBA.Raise_Bad_Inv_Order
+          (CORBA.Bad_Inv_Order_Members'(Minor     => 14,
+                                        Completed => CORBA.Completed_No));
+      end if;
+
+      return RequestInfo.Impl.Get_Request_Service_Context
+              (RequestInfo.Impl.Object (Self.all)'Access, Id);
+   end Get_Request_Service_Context;
 
    ----------------
    -- Get_Result --

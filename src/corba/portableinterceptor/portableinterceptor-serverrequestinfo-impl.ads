@@ -92,14 +92,14 @@ package PortableInterceptor.ServerRequestInfo.Impl is
       Id   : in     CORBA.RepositoryId)
       return CORBA.Boolean;
 
---   procedure Add_Reply_Service_Context
---     (Self            : access Object;
---      Service_Context : in     CORBA.IOP.ServiceContext;
---      Replace         : in     CORBA.Boolean);
+   procedure Add_Reply_Service_Context
+     (Self            : access Object;
+      Service_Context : in     IOP.ServiceContext;
+      Replace         : in     CORBA.Boolean);
 
    function Is_A
-     (Self : access Object;
-      Logical_Type_Id : Standard.String)
+     (Self            : access Object;
+      Logical_Type_Id : in     Standard.String)
       return Boolean;
 
 private
@@ -137,9 +137,9 @@ private
      (Self : access Object)
      return CORBA.Object.Ref;
 
---   function get_reply_service_context
---     (Self : access Object;
---      id : in IOP.ServiceId)
---     return IOP.ServiceContext;
+   function Get_Reply_Service_Context
+     (Self : access Object;
+      Id   : in     IOP.ServiceId)
+      return IOP.ServiceContext;
 
 end PortableInterceptor.ServerRequestInfo.Impl;

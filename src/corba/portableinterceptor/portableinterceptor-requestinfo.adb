@@ -153,26 +153,26 @@ package body PortableInterceptor.RequestInfo is
         (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)));
    end Get_Operation_Context;
 
---   -------------------------------
---   -- Get_Reply_Service_Context --
---   -------------------------------
---
---   function Get_Reply_Service_Context
---     (Self : in Local_Ref;
---      Id   : in IOP.ServiceId)
---      return IOP.ServiceContext
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return PortableInterceptor.RequestInfo.Impl.Get_Reply_Service_Context
---        (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)),
---         Id);
---   end Get_Reply_Service_Context;
+   -------------------------------
+   -- Get_Reply_Service_Context --
+   -------------------------------
+
+   function Get_Reply_Service_Context
+     (Self : in Local_Ref;
+      Id   : in IOP.ServiceId)
+      return IOP.ServiceContext
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return PortableInterceptor.RequestInfo.Impl.Get_Reply_Service_Context
+        (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)),
+         Id);
+   end Get_Reply_Service_Context;
 
    ----------------------
    -- Get_Reply_Status --
@@ -209,26 +209,26 @@ package body PortableInterceptor.RequestInfo is
         (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)));
    end Get_Request_Id;
 
---   ---------------------------------
---   -- Get_Request_Service_Context --
---   ---------------------------------
---
---   function Get_Request_Service_Context
---     (Self : in Local_Ref;
---      Id   : in IOP.ServiceId)
---      return IOP.ServiceContext
---   is
---      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
---   begin
---
---      if CORBA.Object.Is_Nil (Self_Ref) then
---         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
---      end if;
---
---      return PortableInterceptor.RequestInfo.Impl.Get_Request_Service_Context
---        (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)),
---         Id);
---   end Get_Request_Service_Context;
+   ---------------------------------
+   -- Get_Request_Service_Context --
+   ---------------------------------
+
+   function Get_Request_Service_Context
+     (Self : in Local_Ref;
+      Id   : in IOP.ServiceId)
+      return IOP.ServiceContext
+   is
+      Self_Ref : constant CORBA.Object.Ref := CORBA.Object.Ref (Self);
+   begin
+
+      if CORBA.Object.Is_Nil (Self_Ref) then
+         CORBA.Raise_Inv_Objref (CORBA.Default_Sys_Member);
+      end if;
+
+      return PortableInterceptor.RequestInfo.Impl.Get_Request_Service_Context
+        (PortableInterceptor.RequestInfo.Impl.Object_Ptr (Entity_Of (Self)),
+         Id);
+   end Get_Request_Service_Context;
 
    ---------------------------
    -- Get_Response_Expected --

@@ -37,14 +37,19 @@ with CORBA.Repository_Root;
 with PolyORB.Annotations;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
+with PolyORB.CORBA_P.Codec_Utils;
 with PolyORB.CORBA_P.Interceptors_Slots;
 with PolyORB.Exceptions;
 with PolyORB.References;
+with PolyORB.Request_QoS.Service_Contexts;
 with PolyORB.Smart_Pointers;
 
 package body PortableInterceptor.RequestInfo.Impl is
 
    use Dynamic;
+   use PolyORB.Request_QoS;
+   use PolyORB.CORBA_P.Codec_Utils;
+   use PolyORB.Request_QoS.Service_Contexts;
 
    function To_CORBA_ParameterMode (Mode : in PolyORB.Any.Flags)
       return CORBA.Repository_Root.ParameterMode;
@@ -171,6 +176,38 @@ package body PortableInterceptor.RequestInfo.Impl is
       return Result;
    end Get_Operation_Context;
 
+   -------------------------------
+   -- Get_Reply_Service_Context --
+   -------------------------------
+
+   function Get_Reply_Service_Context
+     (Self : access Object;
+      Id   : in     IOP.ServiceId)
+      return IOP.ServiceContext
+   is
+      use Service_Context_Lists;
+      use type Service_Id;
+
+      SCP  : constant QoS_GIOP_Service_Contexts_Parameter_Access
+        := QoS_GIOP_Service_Contexts_Parameter_Access
+            (Extract_Reply_Parameter (GIOP_Service_Contexts, Self.Request));
+      Iter : Iterator;
+   begin
+      if SCP /= null then
+         Iter := First (SCP.Service_Contexts);
+         while not Last (Iter) loop
+            if Value (Iter).Context_Id = Service_Id (Id) then
+               return (Id, To_Sequence (Value (Iter).Context_Data.all));
+            end if;
+            Next (Iter);
+         end loop;
+      end if;
+
+      CORBA.Raise_Bad_Param
+       (CORBA.Bad_Param_Members'(Minor     => 26,
+                                 Completed => CORBA.Completed_No));
+   end Get_Reply_Service_Context;
+
    ----------------------
    -- Get_Reply_Status --
    ----------------------
@@ -224,6 +261,38 @@ package body PortableInterceptor.RequestInfo.Impl is
       raise PolyORB.Not_Implemented;
       return 0;
    end Get_Request_Id;
+
+   ---------------------------------
+   -- Get_Request_Service_Context --
+   ---------------------------------
+
+   function Get_Request_Service_Context
+     (Self : access Object;
+      Id   : in     IOP.ServiceId)
+      return IOP.ServiceContext
+   is
+      use Service_Context_Lists;
+      use type Service_Id;
+
+      SCP  : constant QoS_GIOP_Service_Contexts_Parameter_Access
+        := QoS_GIOP_Service_Contexts_Parameter_Access
+            (Extract_Request_Parameter (GIOP_Service_Contexts, Self.Request));
+      Iter : Iterator;
+   begin
+      if SCP /= null then
+         Iter := First (SCP.Service_Contexts);
+         while not Last (Iter) loop
+            if Value (Iter).Context_Id = Service_Id (Id) then
+               return (Id, To_Sequence (Value (Iter).Context_Data.all));
+            end if;
+            Next (Iter);
+         end loop;
+      end if;
+
+      CORBA.Raise_Bad_Param
+       (CORBA.Bad_Param_Members'(Minor     => 26,
+                                 Completed => CORBA.Completed_No));
+   end Get_Request_Service_Context;
 
    ---------------------------
    -- Get_Response_Expected --
@@ -302,16 +371,6 @@ package body PortableInterceptor.RequestInfo.Impl is
           (Logical_Type_Id,
            "IDL:omg.org/CORBA/Object:1.0");
    end Is_A;
-
---   function Get_Request_Service_Context
---     (Self : access Object;
---      Id   : in     IOP.ServiceId)
---      return IOP.ServiceContext;
---
---   function Get_Reply_Service_Context
---     (Self : access Object;
---      Id   : in     IOP.ServiceId)
---      return IOP.ServiceContext;
 
    ----------
    -- Init --
