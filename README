@@ -95,9 +95,17 @@ By default, only the CORBA and GIOP personalities are built.
 Platform notes
 --------------
 
-On Solaris 2.8, /usr/bin/sed and /usr/ucb/sed will silently chop long
-lines, and /usr/xpg4/bin/sed will enter an endless loop while processing
-PolyORB files. GNU sed is required to configure and build PolyORB.
+Solaris 2.8:
+
+  * /usr/bin/sed and /usr/ucb/sed will silently chop long
+    lines, and /usr/xpg4/bin/sed will enter an endless loop while
+    processing PolyORB files.
+    GNU sed is required to configure and build PolyORB.
+
+  * /usr/ucb/tr does not handle control character escape sequences: it
+    cannot be used to recompute dependencies ('make depend');
+    /usr/bin/tr or /usr/xpg4/bin/tr must be used.
+
 
 Documentation overview
 ----------------------
