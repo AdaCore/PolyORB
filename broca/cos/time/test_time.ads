@@ -4,7 +4,7 @@
 --                                                                          --
 --                            T E S T _ T I M E                             --
 --                                                                          --
---                                 B o d y                                  --
+--                                 S p e c                                  --
 --                                                                          --
 --          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
@@ -31,67 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Text_IO;                use Ada.Text_IO;
-with Broca.Basic_Startup;
-with CORBA.Object;
-with CosTime;                    use CosTime;
-with CosTime.TimeService;        use CosTime.TimeService;
-with CosTime.TimeService.Helper;
-with CosTime.TimeService.Impl;
-with CosTime.TIO;                use CosTime.TIO;
-with CosTime.UTO;                use CosTime.UTO;
-with PortableServer;
-with TimeBase;                   use TimeBase;
-
-package body Test_Time is
-
-   procedure Display (Time : in TIO.Ref);
-   procedure Display (Time : in UTO.Ref);
-
-   type TimeService_Ptr is access CosTime.TimeService.Impl.Object;
-
-   R   : CORBA.Object.Ref;
-   Ref : CosTime.TimeService.Ref;
-
-   UTO1, UTO2 : UTO.Ref;
-   TIO1       : TIO.Ref;
-
-   -------------
-   -- Display --
-   -------------
-
-   procedure Display (Time : in TIO.Ref) is
-      IT : constant IntervalT := get_time_interval (Time);
-   begin
-      Put_Line ("Lower bound:" & TimeT'Image (IT.lower_bound));
-      Put_Line ("Upper bound:" & TimeT'Image (IT.upper_bound));
-   end Display;
-
-   -------------
-   -- Display --
-   -------------
-
-   procedure Display (Time : in UTO.Ref) is
-   begin
-      Put_Line ("Time:      " & TimeT'Image (get_time (Time)));
-      Put_Line ("Inaccuracy:" & InaccuracyT'Image (get_inaccuracy (Time)));
-      Put_Line ("Tdf:       " & TdfT'Image (get_tdf (Time)));
-   end Display;
-
-begin
-   Broca.Basic_Startup.Initiate_Server;
-   Broca.Basic_Startup.Initiate_Servant
-     (PortableServer.Servant
-      (Timeservice_Ptr'(new CosTime.TimeService.Impl.Object)),
-      R);
-   Ref := CosTime.TimeService.Helper.To_Ref (R);
-   UTO1 := Universal_Time (Ref);
-   Display (UTO1);
-   Put_Line ("Waiting for 3 seconds");
-   delay 3.0;
-   UTO2 := Universal_Time (Ref);
-   Display (UTO2);
-   Put_Line ("Interval is");
-   TIO1 := TIO.Convert_Forward.To_Ref (time_to_interval (UTO1, UTO2));
-   Display (TIO1);
+package Test_Time is
+   
+   pragma Elaborate_Body;
+   
 end Test_Time;

@@ -1,6 +1,6 @@
 include $(srcdir)/../Makefile.common
 
-GNATMAKE_FLAGS = -I$(srcdir) \
+GNATMAKE_FLAGS = -z -I$(srcdir) \
 	-I../event \
 	-I$(srcdir)/../event \
 	-I../../src \
