@@ -94,7 +94,9 @@ package body Corba.Forward is
                           return Ref is
          Result : Ref ;
       begin
+         pragma Debug(Output(Forward,"Corba.Forward.To_Forward : entering...")) ;
          Corba.Object.Internal_Copy(The_Ref,Result) ;
+         pragma Debug(Output(Forward,"Corba.Forward.To_Forward : got the internal copy")) ;
          return Result ;
       end ;
 
