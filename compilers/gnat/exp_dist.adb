@@ -3843,12 +3843,12 @@ package body Exp_Dist is
          --  The remote subprogram is a procedure. We do not need any inner
          --  block in this case.
 
---           if Dynamically_Asynchronous then
---              Append_To (Decls,
---                Make_Object_Declaration (Loc,
---                  Defining_Identifier => Dynamic_Async,
---                  Object_Definition   =>
---                    New_Occurrence_Of (Standard_Boolean, Loc)));
+         if Dynamically_Asynchronous then
+            Append_To (Decls,
+              Make_Object_Declaration (Loc,
+                Defining_Identifier => Dynamic_Async,
+                Object_Definition   =>
+                  New_Occurrence_Of (Standard_Boolean, Loc)));
 
 --              Append_To (Statements,
 --                Make_Attribute_Reference (Loc,
@@ -3857,8 +3857,8 @@ package body Exp_Dist is
 --                  Expressions    => New_List (
 --                    New_Occurrence_Of (Stream_Parameter, Loc),
 --                    New_Occurrence_Of (Dynamic_Async, Loc))));
---           end if;
 --  XXX TBD asynchronous!
+         end if;
 
          Append_To (After_Statements,
            Make_Procedure_Call_Statement (Loc,
