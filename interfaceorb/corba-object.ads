@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.73 $
+--                            $Revision: 1.74 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -97,7 +97,7 @@ package CORBA.Object is
 
    function To_Any (From : in CORBA.Object.Ref) return CORBA.Any;
 
-   function From_any (From : in CORBA.Any) return CORBA.Object.Ref;
+   function From_Any (From : in CORBA.Any) return CORBA.Object.Ref;
 
 
    --  the 2 following functions will be implemented later
@@ -150,10 +150,10 @@ private
    --  DII  --
    -----------
 
-   type C_Object_Ref is new Content with
+   type Content_Object_Ref is new Content with
       record
          Value : CORBA.Object.Ref;
       end record;
-   type C_Object_Ref_Ptr is access all C_Object_Ref;
+   type Content_Object_Ref_Ptr is access all Content_Object_Ref;
 
 end CORBA.Object;

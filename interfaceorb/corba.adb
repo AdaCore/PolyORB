@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.25 $
+--                            $Revision: 1.26 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -168,6 +168,29 @@ package body CORBA is
          return Ptr.Parameter;
       end Parameter;
 
+      --  implementation dependant ones :
+      procedure Add_Parameter
+        (Self  : in out Object;
+         Param : in     CORBA.Any)
+      is
+         C_Ptr : Cell_Ptr := new Cell' (Param, Self.Parameters);
+      begin
+         Self.Parameters := C_Ptr;
+      end Add_Parameter;
+
+      procedure Reverse_Parameters
+        (Self : in out Object)
+      is
+         Result : TypeCode.Object;
+         Cp     : Cell_Ptr := Self.Parameters;
+      begin
+         Result.Kind := Self.Kind;
+         while (Cp /= null) loop
+            Add_Parameter (Result, Cp.Parameter);
+            Cp := Cp.Next;
+         end loop;
+         Self := Result;
+      end Reverse_Parameters;
    end TypeCode;
 
    function Get_Type (The_Any : in CORBA.Any)
@@ -394,5 +417,15 @@ package body CORBA is
       Tmp := Content_Double_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
+
+   procedure SetAny
+     (A : in out CORBA.Any;
+      T : in     CORBA.TypeCode.Object)
+   is
+   begin
+      A.The_Value := null;
+      A.The_Type := T;
+   end SetAny;
+
 
 end CORBA;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.4 $
+--                            $Revision: 1.5 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -115,7 +115,24 @@ package body CORBA.Request is
      (Self         : in out Object;
       Invoke_Flags : in     Flags)
    is
+--      Operation : Operation_Proxy;
+--      Op_Type   : Operation_Type;
    begin
+      --  set a proxy for the operation
+--      if CORBA.TypeCode.Kind (Get_Type (Self.Result.Argument)) = Tk_Void then
+--         Op_Type := Operation_Procedure;
+--      else
+--         Op_Type := Operation_Function;
+--      end if;
+--      Init (Operation,
+--            Self.Operation,
+--            Self.Args_List,
+--            Self.Result,
+--            Op_Type);
+--      pragma Debug (O ("Request.Send : dynamic proxy initialized"));
+      --  send
+--      AdaBroker.OmniProxyCallWrapper.One_Way (Self.Target, Operation);
+--      pragma Debug (O ("Request.Send : dynamic invocation done"));
       null;
    end Send;
 

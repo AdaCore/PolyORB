@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.52 $
+--                            $Revision: 1.53 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -261,6 +261,18 @@ package CORBA is
       --  the index'th parameter. Parameters are indexed
       --  from 0 to (Param_Count - 1)
 
+      --
+      --  implementation dependant procedures
+      --
+
+      procedure Add_Parameter
+        (Self  : in out Object;
+         Param : in     CORBA.Any);
+      --  prepend an element in the typecode parameters list
+
+      procedure Reverse_Parameters
+        (Self : in out Object);
+
    private
       --  implementation defined
       Out_Of_Bounds_Index : exception;
@@ -270,7 +282,6 @@ package CORBA is
          Parameter : CORBA.Any;
          Next : Cell_Ptr;
       end record;
-      --  choice of a list implementation may be temporary
       type Object is
          record
             Kind : CORBA.TCKind := Tk_Void;
@@ -309,6 +320,12 @@ package CORBA is
 
 
    type Identifier is new CORBA.String;
+
+   --  implementation dependant
+   procedure SetAny
+     (A : in out CORBA.Any;
+      T : in     CORBA.TypeCode.Object);
+   --  used for omplex types like struct
 
    ----------------------------------
    -- Dynamic Invocation Interface --

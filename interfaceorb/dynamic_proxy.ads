@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.2 $
+--                            $Revision: 1.3 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -105,9 +105,7 @@ private
 
    procedure Unmarshall_To_Any
      (GIOP_Client : in out AdaBroker.GIOP_C.Object;
-      A           :    out Any;
-      Tck         : in     TCKind);
---      Tck         : in     TCKind);
+      A           : in out Any);
    --  Creates an Any from the given typecode and the unmarshalled things
    --  Called by Unmarshal_Returned_Values
 

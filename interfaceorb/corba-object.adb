@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.67 $
+--                            $Revision: 1.68 $
 --                                                                          --
 --         Copyright (C) 1999-2000 ENST Paris University, France.           --
 --                                                                          --
@@ -220,18 +220,18 @@ package body CORBA.Object is
       Tco : CORBA.TypeCode.Object;
    begin
       CORBA.TypeCode.Set (Tco, Tk_Objref);
-      The_Any := (new C_Object_Ref' (Value => From), Tco);
+      The_Any := (new Content_Object_Ref' (Value => From), Tco);
       return The_Any;
    end To_Any;
 
    function From_Any (From : in Any)
                       return Ref is
-      Tmp : C_Object_Ref_Ptr;
+      Tmp : Content_Object_Ref_Ptr;
    begin
       if (TypeCode.Kind (From.The_Type) /= Tk_Objref) then
          raise CORBA.Bad_Typecode;
       end if;
-      Tmp := C_Object_Ref_Ptr (From.The_Value);
+      Tmp := Content_Object_Ref_Ptr (From.The_Value);
       return Tmp.Value;
    end From_Any;
 
