@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.11 $
+//                            $Revision: 1.12 $
 //                                                                          //
 //         Copyright (C) 1999 ENST Paris University, France.                //
 //                                                                          //
@@ -292,13 +292,23 @@ adabe_interface::produce_ads (dep_list &with,
 
   if (pd_is_forwarded == true)           
     {
-      // Add a with clause for the forward package corresponding to
-      // this object and rename it.
-      with.add (get_ada_full_name () + "_Forward");
-      body += "   package Convert_Forward is\n";
-      body += "      new ";
-      body += get_ada_full_name ();
-      body += "_Forward.Convert (Ref);\n\n\n";
+      UTL_Scope *parent_scope = defined_in ();
+      string parent_scope_name = 
+	dynamic_cast<adabe_name*>(parent_scope)->get_ada_full_name ();
+
+      if (parent_scope->scope_node_type () == NT_root) {
+	with.add (parent_scope_name);
+      }
+      // else (module or interface) the _Forward package is a
+      // subpackage of an ancestor of the current package, and is thus
+      // visible without the need of an explicit dependency.
+      body +=
+	"   package Convert_Forward is\n"
+	"      new " 
+	+ parent_scope_name +
+	"."
+	+ get_ada_local_name () +
+	"_Forward.Convert (Ref);\n\n";
     }
 
   // End of package.
@@ -349,8 +359,6 @@ adabe_interface::produce_adb (dep_list& with,
   with.add ("Broca.Exceptions");
   with.add ("Broca.Refs");
   with.add ("Broca.Repository");
-  // with.add ("AdaBroker.OmniORB");
-  // with.add ("Interfaces.C");
   
   // Header of the package
   body += 

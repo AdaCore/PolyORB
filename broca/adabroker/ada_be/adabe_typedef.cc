@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.7 $
+//                            $Revision: 1.8 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -132,9 +132,32 @@ adabe_typedef::produce_stream_ads (dep_list & with,
 {
   AST_Decl *b = base_type ();
   AST_Decl::NodeType base_node_type = b->node_type ();
+  string type_name = get_ada_local_name ();
 
   if (base_node_type == NT_interface
    || base_node_type == NT_interface_fwd) {
+    // string base_type_name = dynamic_cast<adabe_name*>(b)->get_ada_full_name ();
+
+    string base_type_name = dynamic_cast<adabe_name *>(b)->dump_name (with, previous);
+    string pack = base_type_name.substr (0, base_type_name.find_last_of ('.'));
+
+    body +=
+      "   procedure Marshall\n"
+      "      (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
+      "       Val : " + type_name + ")\n"
+      "   renames " + pack + ".Marshall;\n"
+      "\n"
+      "   procedure Unmarshall\n"
+      "      (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
+      "       Res : out " + type_name + ")\n"
+      "   renames " + pack + ".Unmarshall;\n"
+      "\n"
+      "   procedure Compute_New_Size\n"
+      "      (Stream : in out Broca.Buffers.Buffer_Descriptor;\n"
+      "       Val : " + type_name + ")\n"
+      "   renames " + pack + ".Compute_New_Size;\n"
+      "\n";
+
     set_already_defined ();
     return;
   }
@@ -158,7 +181,7 @@ adabe_typedef::produce_stream_ads (dep_list & with,
 	}
     }
 
-  gen_marshalling_declarations (body, get_ada_local_name ());
+  gen_marshalling_declarations (body, type_name);
 
   set_already_defined ();
 }

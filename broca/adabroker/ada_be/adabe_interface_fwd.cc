@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.2 $
+//                            $Revision: 1.3 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -52,6 +52,8 @@ adabe_interface_fwd::produce_ads (dep_list& with, string &body, string &previous
   //  compute_ada_name ();  
   //  dynamic_cast<adabe_name *>(full_definition ())->set_ada_local_name (get_ada_local_name ()); 
   //  dynamic_cast<adabe_name *>(full_definition ())->set_ada_full_name (get_ada_full_name ());
+
+#if 0
   string file_name = remove_dot (get_ada_full_name ()) + "_forward.ads";
   char *lower_case_name = lower (file_name.c_str ());
   ofstream file (lower_case_name);
@@ -59,6 +61,11 @@ adabe_interface_fwd::produce_ads (dep_list& with, string &body, string &previous
   file << "with CORBA.Forward;\n";
   file << "package " + get_ada_full_name () + "_Forward is new CORBA.Forward;\n";
   file.close ();  
+#else
+  with.add ("CORBA.Forward");
+  body +=
+    "   package " + get_ada_local_name () + "_Forward is new CORBA.Forward;\n";
+#endif
 }
 
 /*
@@ -72,12 +79,3 @@ adabe_interface_fwd::produce_ads (dep_list& with, string &body, string &previous
 IMPL_NARROW_METHODS1 (adabe_interface_fwd, AST_InterfaceFwd)
 IMPL_NARROW_FROM_DECL (adabe_interface_fwd)
 IMPL_NARROW_FROM_SCOPE (adabe_interface_fwd)
-
-
-
-
-
-
-
-
-

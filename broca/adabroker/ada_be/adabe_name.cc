@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.12 $
+//                            $Revision: 1.13 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -255,7 +255,7 @@ adabe_name::compute_ada_name ()
 	  }
 
 #ifdef DEBUG_NAME
-      cout << "in adabe_name. The idl name is" << temp_name;
+      cout << "in adabe_name. The idl name is " << temp_name;
 #endif
       convert (temp_name);
       // Looks if the name is valid in ADA, and
@@ -290,6 +290,9 @@ adabe_name::compute_ada_name ()
 	      
 	      pd_ada_full_name = 
 		(dynamic_cast<adabe_name *>(parent_scope))->get_ada_full_name ();
+#ifdef DEBUG_NAME
+	      cout << "The name of the enclosing scope is " << pd_ada_full_name <<endl;
+#endif
 
 	      // is this name already used ?
 	      already_used =
@@ -319,12 +322,15 @@ adabe_name::compute_ada_name ()
 	      pd_ada_local_name = temp_name + extension;
 	    }
 
-	  // If the node is an interface or a Module or an
-	  // InterfaceFwd (all the typed that are mapped in individual
-	  // files)
-	  if ((node_type () != AST_Decl::NT_module) &&
-	      (node_type () != AST_Decl::NT_interface)
-	      && (node_type () != AST_Decl::NT_interface_fwd))
+	  // If the node is an interface or a Module
+	  // (node types that are mapped in individual file)
+#ifdef DEBUG_NAME
+	  cout << "The local name is " << pd_ada_local_name << endl;
+#endif
+
+	  if ((node_type () != AST_Decl::NT_module)
+	      && (node_type () != AST_Decl::NT_interface))
+	    //	      && (node_type () != AST_Decl::NT_interface_fwd))
 	    if (pd_ada_full_name != "")   //  perhaps useless
 	      pd_ada_full_name = pd_ada_full_name + "." + pd_ada_local_name;
 	    else  
@@ -333,7 +339,7 @@ adabe_name::compute_ada_name ()
 	      }
 	  else
 	    // the nodes contained in the root does not need to have a
-	    // full-name
+	    // full-name, except forward interfaces.
 	    if (parent_scope->scope_node_type () != AST_Decl::NT_root)
 	      pd_ada_full_name = pd_ada_full_name + "." + pd_ada_local_name;
 	    else  pd_ada_full_name = pd_ada_local_name;
@@ -596,21 +602,26 @@ adabe_name::is_imported (dep_list& with)
       if ((string) local_name ()->get_string () == "Object") 
 	{
 	  with.add ("CORBA.Object");
+          return 1;
 	}
       else
 	if (inter->is_forwarded ())
 	  {
 	    // if the interface is forwarded, the full
-	    // name of the file is the interface
-	    // name+"_forward"
-	    with.add (get_ada_full_name () + "_Forward");
+	    // name of the library package is that of
+            // the enclosing scope (of which the forward
+            // package is a subpackage).
+	    // with.add (get_ada_full_name () + "_Forward");
+
+            // Do nothing and fall through to the
+            // recursive call at end of is_imported().
 	  }
 	else
 	  {
 	    // else simply add the interface file
 	    with.add (get_ada_full_name ());
+            return 1;
 	  }
-      return 1;
     }
   if (NT == AST_Decl::NT_module)
     {

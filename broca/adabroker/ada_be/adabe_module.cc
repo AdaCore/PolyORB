@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.15 $
+//                            $Revision: 1.16 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -152,7 +152,7 @@ adabe_module::produce_ads (dep_list & withlist,
       iterator.next ();
     }
 
-  maincode += "end " + get_ada_full_name () + ";";
+  maincode += "end " + get_ada_full_name () + ";\n";
 }
 
 //---------------------------//
@@ -512,9 +512,9 @@ adabe_module::produce_stream_ads (dep_list & withlist,
       iterator.next ();
     }
 
-  // if (!first) maincode += "end " + get_ada_full_name () + ".Stream;";
+  // if (!first) maincode += "end " + get_ada_full_name () + ".Stream;\n";
   // else maincode = "";
-  maincode += "end " + get_ada_full_name () + ".Stream;";
+  maincode += "end " + get_ada_full_name () + ".Stream;\n";
 }
 
 //----------------------------------//
@@ -633,8 +633,10 @@ adabe_module::produce_stream_adb (dep_list & withlist,
       iterator.next ();
     }
 
-  if (!empty) maincode += "end " + get_ada_full_name () + ".Stream;";
-  else maincode = "";
+  if (!empty)
+    maincode += "end " + get_ada_full_name () + ".Stream;\n";
+  else
+    maincode = "";
 }
 
 IMPL_NARROW_METHODS3 (adabe_module, AST_Module, adabe_name, UTL_Scope);

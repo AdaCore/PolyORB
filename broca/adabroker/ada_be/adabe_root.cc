@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.9 $
+//                            $Revision: 1.10 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -192,6 +192,8 @@ void adabe_root::produce () {
 	}
 
       root_maincode += "end " + get_ada_full_name () + ";\n";
+
+      root_withcode = *root_withlist.produce ("with ");
 
       produce_file
 	(root_name,
@@ -520,7 +522,7 @@ void adabe_root::produce () {
       if (!first)
 	{
 	  root_withcode = *root_withlist.produce ("with ");
-	  root_maincode += "end " + get_ada_full_name () + ".Stream;";
+	  root_maincode += "end " + get_ada_full_name () + ".Stream;\n";
 
 	  produce_file
 	    (root_name,
