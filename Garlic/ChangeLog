@@ -1,8 +1,18 @@
 2000-12-14  Laurent Pautet  <pautet@arlequin.enst.fr>
 
+	* s-garthi.ads: Add Socketpair to implement Select_Abort.
+	
+	* 5egasose.adb: Select operations for Unix.
+
+	* s-gasose.ads: New thick binding for select operations on socket.
+
+	* constants.sh: Add SO_KEEPALIVE to the constants list.
+
+	* 5lgarcon.ads: Compute SO_KEEPALIVE for Linux.
+
 	* 5egarsoc.adb: s-garsoc.adb for Unix.
 
-	* s-garsoc.adb, s-garsoc.ads: New thick binding for socket that is
+	* s-garsoc.ads: New thick binding for socket that is
 	intended to be portable for JVM and native platforms (NT and
 	Unix).
 
