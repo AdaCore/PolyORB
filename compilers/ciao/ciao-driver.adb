@@ -18,7 +18,7 @@
 
 --  Main subprogram for the CIAO generation tool.
 --  Some code is taken from display-source, gnatstub and gnatelim.
---  $Id: //droopi/main/compilers/ciao/ciao-driver.adb#2 $
+--  $Id: //droopi/main/compilers/ciao/ciao-driver.adb#3 $
 
 with Ada.Command_Line;           use Ada.Command_Line;
 with Ada.Exceptions;             use Ada.Exceptions;
@@ -585,13 +585,11 @@ exception
       Put (To_Wide_String (Exception_Name (Ex)));
       Put (" was raised: ");
 
-      if Exception_Message (Ex)'Length = 0 then
+      if Exception_Information (Ex)'Length = 0 then
          Put_Line ("(no exception message)");
       else
-         Put_Line (To_Wide_String (Exception_Message (Ex)));
+         Put_Line (To_Wide_String (Exception_Information (Ex)));
       end if;
-
-      Put_Line ("Please report to ciao-report@adabroker.eu.org");
 
       --  Exit cleanly.
       Set_Output (Standard_Output);

@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#4 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#5 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_Io;  use Ada.Wide_Text_Io;
@@ -428,9 +428,8 @@ package body CIAO.Translator is
          end if;
 
          Set_Translation (Element, Node);
-         --  The translation information for a tagged
-         --  type definition is the corresponding
-         --  Interface node.
+         --  The translation information for a tagged type
+         --  definition is the corresponding Interface node.
 
          Control := Abandon_Children;
          --  Children were processed explicitly.
@@ -569,7 +568,9 @@ package body CIAO.Translator is
                   --  The translation of a RAS declaration is
                   --  an <op_dcl>.
                else
-                  --  This is the definition of a normal type.
+
+                  --  This is the definition of a normal type or
+                  --  of a subtype.
 
                   Node := No_Node;
 
@@ -601,8 +602,14 @@ package body CIAO.Translator is
                   end case;
 
                   if Node /= No_Node then
+
+                     --  An enumeration, record or array definition.
+
                      pragma Assert (Success);
-                     Append_Node_To_Contents (State.Current_Node, Node);
+                     Append_Node_To_Contents
+                       (State.Current_Node, Node);
+                     Set_Translation (Element, Node);
+
                      State.Current_Node := Node;
 
                      --  Process children recursively.
@@ -610,13 +617,10 @@ package body CIAO.Translator is
 
                   else
 
-                     --  A non-enumerated type.
+                     --  Any other type definition.
 
                      Node := Make_Type_Declarator (No_Location);
                      Append_Node_To_Contents (State.Current_Node, Node);
-                     Set_Translation (Element, Node);
-                     --  The translation of a type declaration is
-                     --  a <type_dcl>.
 
                      declare
                         Declarator_Node : constant Node_Id
@@ -626,6 +630,10 @@ package body CIAO.Translator is
                         Set_Declarators
                           (Node, Append_Node (Declarators (Node),
                                               Declarator_Node));
+                        Set_Translation (Element, Declarator_Node);
+                        --  The translation of a type declaration is
+                        --  a <declarator> in a <type_dcl>.
+
 
                         if False
                           --  For now, we cannot determine the bounds of a
@@ -716,8 +724,6 @@ package body CIAO.Translator is
                   begin
                      Type_Dcl_Node := Make_Type_Declarator (No_Location);
                      Append_Node_To_Contents (Type_Dcl_Node, State.Current_Node);
-                     Set_Translation (Element, Type_Dcl_Node);
-                     --  The translation of a type declaration is a <type_dcl>.
 
                      Declarator_Node := Make_Declarator (No_Location);
                      Set_Parent (Declarator_Node, Type_Dcl_Node);
@@ -727,6 +733,7 @@ package body CIAO.Translator is
                         Append_Node
                         (Declarators (Type_Dcl_Node),
                          Declarator_Node));
+                     Set_Translation (Element, Declarator_Node);
 
                      Success := Add_Identifier
                        (Declarator_Node, Map_Defining_Name (Defining_Name));
@@ -1402,7 +1409,6 @@ package body CIAO.Translator is
 --                      Set_Parent (Node, State.Current_Node);
 --                   end;
 --                end if;
-
 --                Control := Abandon_Children;
 --                --  Children were processed explicitly.
 --             end;
@@ -1796,11 +1802,81 @@ package body CIAO.Translator is
 --       State.Pass := Current_Pass;
 --    end Translate_Subtype_Mark;
 
-   function Translate_Subtype_Mark (Exp : in Asis.Expression)
-     return Node_Id is
+   function Translate_Subtype_Mark
+     (Exp : in Asis.Expression)
+     return Node_Id
+   is
+      EK : constant Expression_Kinds := Expression_Kind (Exp);
    begin
-      return Get_Translation
-        (Corresponding_Entity_Name_Definition (Exp));
+      case EK is
+         when
+           An_Identifier        |                 -- 4.1
+           A_Selected_Component =>                -- 4.1.3
+
+            declare
+               use Asis.Compilation_Units;
+
+               Name_Definition : constant Asis.Element
+                 := Corresponding_Entity_Name_Definition (Exp);
+               Origin          : constant Compilation_Unit :=
+                 Enclosing_Compilation_Unit (Name_Definition);
+               --  The library unit where the name is declared.
+
+            begin
+               if Is_Nil (Corresponding_Parent_Declaration (Origin)) then
+
+                  --  Exp is a subtype_mark that denotes a type
+                  --  declared in predefined package Standard.
+
+                  return Base_Type_For_Standard_Definition
+                    (Type_Declaration_View
+                     (Enclosing_Element
+                      (Name_Definition)));
+               else
+
+                  --  Exp is a name that resolves to denote a
+                  --  user-defined type.
+
+                  declare
+                     N : constant Node_Id := Get_Translation
+                       (Corresponding_Entity_Name_Declaration (Exp));
+                     Name : constant Node_Id := Make_Scoped_Name (No_Location);
+                  begin
+                     if N = No_Node then
+                        Raise_Translation_Error
+                          (Exp, "Translation of element is unknown.");
+                     end if;
+
+                     if not Is_Named (N) then
+                        Raise_Translation_Error
+                          (Exp, "Translation of element is not named (it is a "
+                           & Node_Kind'Image (Kind (N)) & ").");
+                     end if;
+
+                     Set_Value (Name, N);
+                     return Name;
+                  end;
+               end if;
+            end;
+
+         when An_Attribute_Reference =>           -- 4.1.4
+            case Attribute_Kind (Exp) is
+               when
+                 A_Base_Attribute  |
+                 A_Class_Attribute =>
+                  return Translate_Subtype_Mark (Prefix (Exp));
+               when others =>
+                  Raise_Translation_Error
+                    (Exp, "Unexpected element (An_Attribute_Reference).");
+            end case;
+
+         when others =>
+            null;
+      end case;
+
+      Raise_Translation_Error
+        (Exp, "Unexpected element (not a subtype mark).");
+
    end Translate_Subtype_Mark;
 
    procedure Translate_Discriminant_Part
@@ -1879,7 +1955,6 @@ package body CIAO.Translator is
       Defining_Names : constant Asis.Name_List
         := Names (Unit_Declaration (Library_Unit));
       Name  : constant Asis.Name := Defining_Names (Defining_Names'First);
-      Include_Node : Node_Id;
    begin
       --  Include_Node := New_Include_Directive;
       --  Set_Parent (Include_Node, State.Current_Node);
@@ -1906,10 +1981,16 @@ package body CIAO.Translator is
                            Unit_Translation : constant Node_Id
                              := Translate
                              (Enclosing_Compilation_Unit (Unit_Declaration));
+                           Include_Node : constant Node_Id
+                             := Make_Ben_Idl_File (No_Location);
+                           Success : Boolean;
                         begin
-                           Include_Node := Make_Ben_Idl_File (No_Location);
                            Append_Node_To_Contents (State.Current_Node, Include_Node);
-
+                           Success := Add_Identifier
+                             (Include_Node, IDL_Module_Name
+                              (Enclosing_Compilation_Unit
+                               (Unit_Declaration)));
+                           pragma Assert (Success);
                            Set_Contents
                              (Include_Node, Contents (Unit_Translation));
                            Set_Translation (Unit_Declaration, Include_Node);
@@ -1937,10 +2018,16 @@ package body CIAO.Translator is
               := Translate
               (Enclosing_Compilation_Unit (Unit_Declaration));
 
-            Include_Node : Node_Id;
+            Include_Node : constant Node_Id
+              := Make_Ben_Idl_File (No_Location);
+            Success : Boolean;
          begin
-            Include_Node := Make_Ben_Idl_File (No_Location);
             Append_Node_To_Contents (State.Current_Node, Include_Node);
+            Success := Add_Identifier
+              (Include_Node, IDL_Module_Name
+               (Enclosing_Compilation_Unit
+                (Unit_Declaration)));
+            pragma Assert (Success);
 
             Set_Contents
               (Include_Node, Contents (Unit_Translation));
