@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -288,7 +288,7 @@ package body System.Garlic.Protocols.Tcp is
       end if;
 
       for I in First_Incoming .. Last_Incoming loop
-         pragma Debug (D ("Start acceptor task on" &
+         pragma Debug (D ("Start acceptor task on " &
                           Image (Incomings (I).Sock_Addr)));
 
          Allocate_Acceptor_Task (I);
