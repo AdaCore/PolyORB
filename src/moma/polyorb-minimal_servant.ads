@@ -30,6 +30,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  A Minimal_Servant is servant independant from any application
+--  personalities. It allows the creation of servants on top of PolyORB's
+--  neutral core layer.
+--
+--  Hence, these servants can be made available to all applications
+--  personalities, without the need of a specific one, allowing easy
+--  deployment of common services.
+--
+--  However, it is a 'minimal' servant : it is incomplete and you will have
+--  to write Invoke function corresponding to your servant.
+--  This allows you to precisely control the servants created.
+
 --  $Id$
 
 with PolyORB.Components;
@@ -63,7 +75,6 @@ private
 
    type Implementation (As_Servant : access Servant'Class)
    is new PolyORB.Servants.Servant with null record;
-   --  The MOMA personality is based on the Portable Object Adapter.
 
    function "=" (X, Y : Implementation) return Boolean;
    --  XXX Why does the compiler require the presence of this operator?
