@@ -1,3 +1,2 @@
 #!/bin/sh
-cd ../../examples/all_types
-./client_moma $*
+../../examples/corba/all_types/client_moma "$@"
