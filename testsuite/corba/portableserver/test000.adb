@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---            Copyright (C) 2003 Free Software Foundation, Inc.             --
+--         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -804,7 +804,7 @@ procedure Test000 is
       return Are_Policies_Valid (Tp, Lp, Up, Ap, Ip, Sp, Rp);
 
    exception
-      when E : others =>
+      when E : PortableServer.POA.InvalidPolicy =>
          if Are_Policies_Valid (Tp, Lp, Up, Ap, Ip, Sp, Rp) then
             --  If policies are valid, then there is a problem.
 
@@ -820,6 +820,10 @@ procedure Test000 is
          end if;
 
          return not Are_Policies_Valid (Tp, Lp, Up, Ap, Ip, Sp, Rp);
+
+      when others =>
+         Output ("Fatal Error", False);
+         return False;
 
    end Create_And_Destroy_POA;
 
