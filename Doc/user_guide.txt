@@ -257,11 +257,10 @@ configuration My_Config is
   --  Use filter "My_Own_Filter" on "Channel_2". This filter must be imple-
   --  mented in a package "System.Garlic.Filters.My_Own_Filter".
 
-  for Partition_3'Filter use "ZIP";
-  --  For all data exchanged with "Partition_3", use the filter "ZIP". (I.e.
-  --  for both arriving remote calls as well as for calls made by this parti-
-  --  tion.) Only for calls on "Channel_2" (i.e. for communication between
-  --  "Partition_2" and "Partition_3"), the filter "My_Own_Filter" is used.
+  for Partition'Filter use "ZIP";
+  --  For all data exchanged between partitions, use the filter "ZIP". (I.e.
+  --  for both arriving remote calls as well as for calls made by a parti-
+  --  tion.)
 
   pragma Registration_Filter ("Some_Filter");
   --  "Some_Filter" will be used to exchange a filter's parameters between
