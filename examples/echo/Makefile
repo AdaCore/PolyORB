@@ -1,10 +1,4 @@
-GNATGCC = gnatgcc -gnatf -gnata
-DO_NOT_LINK = -c
-BIND = gnatbind
-LINK = gnatlink
-
 ADABROKER_PATH = ../../InterfaceORB
-ORBCORE_PATH = ../../omniORB_2.7.0/src/lib/omniORB2/orbcore
 
 CPP_LINK_FILES = $(ADABROKER_PATH)/Ada_Giop_c.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Giop_s.o
@@ -16,49 +10,17 @@ CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_memBufferedStream.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/proxyObjectFactory_C2Ada.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Corba_Orb.o
 CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_Corba_Exceptions.o
-#CPP_LINK_FILES += $(ADABROKER_PATH)/toto.o
+CPP_LINK_FILES += $(ADABROKER_PATH)/Ada_exceptions.o
 
-
+COMMAND_LINE = -I$(ADABROKER_PATH) \
+-largs $(CPP_LINK_FILES) \
+-L../../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
+-lomniORB2 -lomniDynamic2 -lomnithread -lpthread -ltcpwrapGK
 
 main:
 	make -C ../../InterfaceORB main
-	make client
-	make server
-
-client: echo.o echo-proxies.o client.o  $(ADABROKER_PATH)
-	$(BIND) -I$(ADABROKER_PATH) client.ali
-	$(LINK)  \
--Wl,-rpath,../../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
--L../../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
-client.ali $(CPP_LINK_FILES) \
--lomniORB2 -lomniDynamic2 -lomnithread -lpthread -ltcpwrapGK
-
-server: echo.o echo-impl.o echo-skeleton.o echo-proxies.o server.o
-	$(BIND) -I$(ADABROKER_PATH) server.ali
-	$(LINK)  \
--Wl,-rpath,../../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
--L../../omniORB_2.7.0/lib/i586_linux_2.0_glibc \
-server.ali $(CPP_LINK_FILES) \
--lomniORB2 -lomniDynamic2 -lomnithread -lpthread -ltcpwrapGK
-
-
-
-.SUFFIXES: .adb .o
-
-.adb.o:
-	$(GNATGCC)  $(DO_NOT_LINK) -I$(ADABROKER_PATH) $<
-
-echo.o : echo.ads echo.adb echo-proxies.ads echo-proxies.adb $(ADABROKER_PATH)
-
-echo-impl.o : echo-impl.ads echo-impl.adb echo.o echo-skeleton.o $(ADABROKER_PATH)
-
-echo-proxies.o: echo-proxies.ads echo-proxies.adb echo.o $(ADABROKER_PATH)
-
-echo-skeleton.o: echo-skeleton.ads echo-skeleton.adb $(ADABROKER_PATH)
-
-server.o: echo.ads echo-impl.ads $(ADABROKER_PATH)
-
-client.o: echo.ads $(ADABROKER_PATH)
+	gnatmake -gnatf -gnata -m -i client $(COMMAND_LINE)
+	gnatmake -gnatf -gnata -m -i server $(COMMAND_LINE)
 
 clean:
 	rm *.ali *.o

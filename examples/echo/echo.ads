@@ -10,7 +10,7 @@
 ----------------------------------------------------------------------------
 
 with Corba, Corba.Object ;
-
+with Adabroker ;
 with Adabroker_Debug ;
 pragma Elaborate(Adabroker_Debug) ;
 
