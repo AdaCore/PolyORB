@@ -659,3 +659,4 @@ module moduleB {
   typedef typeA typeB;
   const long constB = constA;
 };
+
