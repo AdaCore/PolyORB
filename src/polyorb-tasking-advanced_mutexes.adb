@@ -48,14 +48,6 @@ package body PolyORB.Tasking.Advanced_Mutexes is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   ----------
-   -- Free --
-   ----------
-
-   procedure Free is new Ada.Unchecked_Deallocation
-     (PTT.Thread_Id'Class,
-      PTT.Thread_Id_Access);
-
    ------------
    -- Create --
    ------------
@@ -65,13 +57,11 @@ package body PolyORB.Tasking.Advanced_Mutexes is
 
       My_Thread_Factory : constant PTT.Thread_Factory_Access
         := PTT.Get_Thread_Factory;
-      Self              : constant PTT.Thread_Id'Class
-        := PTT.Get_Current_Thread_Id (My_Thread_Factory);
    begin
       pragma Debug (O ("Create"));
 
       M := new Adv_Mutex_Type;
-      M.Current := new PTT.Thread_Id'Class'(Self);
+      M.Current := Current_Task;
       M.Empty := True;
       PTM.Create (M.MMutex);
       PTCV.Create (M.MCondition);
@@ -91,7 +81,6 @@ package body PolyORB.Tasking.Advanced_Mutexes is
    begin
       pragma Debug (O ("Destroy"));
 
-      Free (M.Current);
       PTM.Destroy (M.MMutex);
       PTCV.Destroy (M.MCondition);
       Free (M);
@@ -103,23 +92,18 @@ package body PolyORB.Tasking.Advanced_Mutexes is
 
    procedure Enter (M : access Adv_Mutex_Type) is
       use PolyORB.Tasking.Threads;
-
-      My_Thread_Factory : constant PTT.Thread_Factory_Access
-        := PTT.Get_Thread_Factory;
-      Self              : constant PTT.Thread_Id'Class
-        := PTT.Get_Current_Thread_Id (My_Thread_Factory);
+      Self : constant Thread_Id := Current_Task;
    begin
       PTM.Enter (M.MMutex);
 
-      pragma Debug (O (PTT.Image (M.Current.all)
+      pragma Debug (O (PTT.Image (M.Current)
                        & " tries to Enter Adv_Mutex"));
 
-      while not M.Empty
-        and then M.Current.all /= Self loop
+      while not M.Empty and then M.Current /= Self loop
 
          pragma Debug (O (PTT.Image (Self)
                           & "Will wait for Adv_Mutex, current owner is "
-                          & PTT.Image (M.Current.all)));
+                          & PTT.Image (M.Current)));
 
          if not M.Passing then
             PTCV.Wait (M.MCondition, M.MMutex);
@@ -131,9 +115,9 @@ package body PolyORB.Tasking.Advanced_Mutexes is
 
       M.Empty := False;
       M.Level := M.Level + 1;
-      Copy_Thread_Id (My_Thread_Factory, Self, M.Current);
+      M.Current := Self;
 
-      pragma Debug (O ("Enter: " & PTT.Image (M.Current.all)));
+      pragma Debug (O ("Enter: " & PTT.Image (M.Current)));
 
       PTM.Leave (M.MMutex);
    end Enter;
@@ -144,16 +128,13 @@ package body PolyORB.Tasking.Advanced_Mutexes is
 
    procedure Leave (M : access Adv_Mutex_Type) is
       use PolyORB.Tasking.Threads;
-      My_Thread_Factory  : constant PTT.Thread_Factory_Access
-        := PTT.Get_Thread_Factory;
-      Self               : constant PTT.Thread_Id'Class
-        := PTT.Get_Current_Thread_Id (My_Thread_Factory);
+      Self : constant Thread_Id := Current_Task;
    begin
       PTM.Enter (M.MMutex);
 
       pragma Debug (O ("Leave, owner was "
                        & PTT.Image (Self)));
-      pragma Assert (M.Current.all = Self);
+      pragma Assert (M.Current = Self);
       pragma Assert (M.Level > 0);
 
       M.Level := M.Level - 1;

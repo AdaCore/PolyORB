@@ -101,7 +101,7 @@ private
       pragma Atomic (Empty);
       --  If no theres is no owner for this Mutex, True. else, False.
 
-      Current     : Threads.Thread_Id_Access;
+      Current     : Threads.Thread_Id;
       pragma Atomic (Current);
       --  Identity of the thread owning the mutex.
 
