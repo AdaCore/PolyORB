@@ -6,7 +6,7 @@
 
 # $Id$
 
-import sys, os, re, getopt
+import sys, os, re, getopt, string
 
 def usage():
   print "Usage: $0 [-c] <file.ads>"
@@ -32,7 +32,7 @@ hadb = open (adb, "w")
 cfile=prefix + "_GPERF.c"
 
 unit = prefix
-matchfun = unit.replace ("-", "__") + "__IN_WORD_SET"
+matchfun = string.replace (unit, "-", "__") + "__IN_WORD_SET"
 
 i = 0
 st = 0
@@ -40,7 +40,7 @@ gpa = ""
 values = []
 hperf.write ("%{\nenum kwids {\n")
 for ll in open (ads).readlines():
-  l = ll.rstrip ()
+  l = string.rstrip (ll)
   m = re.match ("^package ([^ ]*) is", l)
   if m:
     pkg = m.group (1)
@@ -71,7 +71,7 @@ for ll in open (ads).readlines():
       if case_sensitive:
         hperf.write (v [1] + ", " + v[0] + "\n")
       else:
-        hperf.write (v[1].lower () + ", " + v[0] + "\n")
+        hperf.write (string.lower (v[1]) + ", " + v[0] + "\n")
     continue
 
   if st == 1:
