@@ -30,7 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides XXX.
+--  This package provides one-dimensional, variable-size arrays support.
+--  See the package specification for more details.
 
 --  $Id$
 
@@ -38,8 +39,8 @@ with Ada.Unchecked_Deallocation;
 
 package body PolyORB.Utils.Dynamic_Tables is
 
-   Min : constant Integer := Integer (Table_Low_Bound);
-   --  Subscript of the minimum entry in the currently allocated table
+   Table_First : constant Integer := Integer (Table_Low_Bound);
+   --  Subscript of the first entry in the currently allocated table
 
    -----------------------
    -- Local Subprograms --
@@ -72,11 +73,13 @@ package body PolyORB.Utils.Dynamic_Tables is
    ----------------
    -- Deallocate --
    ----------------
+
    procedure Deallocate (T : in out Instance) is
    begin
       Free_Table (T.Table);
       T.Table := null;
    end Deallocate;
+
    --------------------
    -- Decrement_Last --
    --------------------
@@ -85,6 +88,19 @@ package body PolyORB.Utils.Dynamic_Tables is
    begin
       T.P.Last_Val := T.P.Last_Val - 1;
    end Decrement_Last;
+
+   -----------
+   -- First --
+   -----------
+
+   function First (T : in Instance) return Table_Index_Type is
+   begin
+      pragma Warnings (Off);
+      pragma Unreferenced (T);
+      pragma Warnings (On);
+
+      return First_Index;
+   end First;
 
    --------------------
    -- Increment_Last --
@@ -103,27 +119,31 @@ package body PolyORB.Utils.Dynamic_Tables is
    -- Init --
    ----------
 
-   procedure Init (T : in out Instance) is
+   procedure Init (T : in out Instance)
+   is
       Old_Length : constant Integer := T.P.Length;
 
    begin
-      T.P.Last_Val := Min - 1;
-      T.P.Max      := Min + Table_Initial - 1;
-      T.P.Length   := T.P.Max - Min + 1;
+      T.P.Last_Val := Table_First - 1;
+      T.P.Max      := Table_First + Table_Initial - 1;
+      T.P.Length   := T.P.Max - Table_First + 1;
 
-      --  If table is same size as before (happens when table is never
-      --  expanded which is a common case), then simply reuse it. Note
-      --  that this also means that an explicit Init call right after
-      --  the implicit one in the package body is harmless.
 
       if Old_Length = T.P.Length then
+
+         --  If table is same size as before (happens when table is never
+         --  expanded which is a common case), then simply reuse it. Note
+         --  that this also means that an explicit Init call right after
+         --  the implicit one in the package body is harmless.
+
          return;
 
-      --  Otherwise we can use Reallocate to get a table of the right size.
-      --  Note that Reallocate works fine to allocate a table of the right
-      --  initial size when it is first allocated.
-
       else
+
+         --  Otherwise we can use Reallocate to get a table of the right size.
+         --  Note that Reallocate works fine to allocate a table of the right
+         --  initial size when it is first allocated.
+
          Reallocate (T);
       end if;
    end Init;
@@ -141,29 +161,36 @@ package body PolyORB.Utils.Dynamic_Tables is
    -- Reallocate --
    ----------------
 
-   procedure Reallocate (T : in out Instance) is
+   procedure Reallocate (T : in out Instance)
+   is
       Old_Table : Table_Ptr := T.Table;
+      Increment : constant Natural := (100 + Table_Increment) / 100;
+
    begin
       if T.P.Max < T.P.Last_Val then
          while T.P.Max < T.P.Last_Val loop
-            T.P.Length := T.P.Length * (100 + Table_Increment) / 100;
-            T.P.Max := Min + T.P.Length - 1;
+            T.P.Length := Integer'Max (T.P.Length * Increment,
+                                       T.P.Length + 10);
+
+            --  We use the maximum of these 2 values to ensure
+            --  T.P.Length (and then T.P.Max) increases; avoiding
+            --  infinite loop in case Table_Increment is too small,
+            --  implying Increment = 1.
+
+            T.P.Max := Table_First + T.P.Length - 1;
          end loop;
       end if;
-
 
       if T.Table = null then
          T.Table := new Table_Type (Table_Low_Bound ..
                                     Table_Index_Type (T.P.Max));
-      elsif T.P.Max - Min + 1 > 0 then
 
+      elsif T.P.Max >= Table_First then
          T.Table := new Table_Type (Table_Low_Bound ..
                                     Table_Index_Type (T.P.Max));
-         for J in Old_Table'Range loop
-            T.Table.all (J) := Old_Table.all (J);
-         end loop;
-         Free_Table (Old_Table);
 
+         T.Table (Old_Table'Range) := Old_Table (Old_Table'Range);
+         Free_Table (Old_Table);
       end if;
 
       if T.P.Length /= 0 and then T.Table = null then
@@ -178,7 +205,7 @@ package body PolyORB.Utils.Dynamic_Tables is
 
    procedure Release (T : in out Instance) is
    begin
-      T.P.Length := T.P.Last_Val - Integer (Table_Low_Bound) + 1;
+      T.P.Length := T.P.Last_Val - Table_First + 1;
       T.P.Max    := T.P.Last_Val;
       Reallocate (T);
    end Release;
@@ -187,21 +214,17 @@ package body PolyORB.Utils.Dynamic_Tables is
    -- Set_Last --
    --------------
 
-   procedure Set_Last (T : in out Instance; New_Val : Table_Index_Type) is
-      Old_Last : Integer;
-
+   procedure Set_Last
+     (T : in out Instance;
+      New_Val : Table_Index_Type)
+   is
    begin
-      if Integer (New_Val) < T.P.Last_Val then
-         T.P.Last_Val := Integer (New_Val);
+      T.P.Last_Val := Integer (New_Val);
 
-      else
-         Old_Last := T.P.Last_Val;
-         T.P.Last_Val := Integer (New_Val);
-
-         if T.P.Last_Val > T.P.Max then
-            Reallocate (T);
-         end if;
+      if T.P.Last_Val > T.P.Max then
+         Reallocate (T);
       end if;
+
    end Set_Last;
 
 end PolyORB.Utils.Dynamic_Tables;

@@ -30,23 +30,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  This package provides one-dimensional, variable-size arrays support
-
---  It has the same specification as GNAT.Dynamic_Table, but in addition
---  it is Preelaborate (GNAT.Dynamic_Table can't, because it uses
---  System.Memory).
+--  This package provides one-dimensional, variable-size arrays support.
 
 --  This package provides an implementation of dynamically resizable one
 --  dimensional arrays. The idea is to mimic the normal Ada semantics for
 --  arrays as closely as possible with the one additional capability of
 --  dynamically modifying the value of the Last attribute.
 
---  This package provides a facility similar to that of GNAT.Table, except
---  that this package declares a type that can be used to define dynamic
---  instances of the table, while an instantiation of GNAT.Table creates a
---  single instance of the table type.
+--  This package is notionnaly equivalent to GNAT.Dynamic_Table's, yet
+--   * it is Preelaborate (GNAT.Dynamic_Table can't because it System.Memory).
+--   * declares a type that can be used to define dynamic instances of
+--  the table, while an instantiation of GNAT.Table creates a single
+--  instance of the table type.
 
---  Note controlled types are not supported by this package. In particular
+--  Note: controlled types are not supported by this package. In particular
 --  the type provided for Table_Component_Type may not be a controlled type.
 
 --  $Id$
@@ -58,10 +55,6 @@ generic
    Table_Low_Bound : Table_Index_Type;
    Table_Initial   : Positive;
    Table_Increment : Natural;
-
-package PolyORB.Utils.Dynamic_Tables is
-
-   pragma Preelaborate;
 
    --  Table_Component_Type and Table_Index_Type specify the type of the
    --  array, Table_Low_Bound is the lower bound. Index_type must be an
@@ -89,31 +82,27 @@ package PolyORB.Utils.Dynamic_Tables is
    --  restrict the use of table for discriminated types. If it is necessary
    --  to take the access of a table element, use Unrestricted_Access.
 
+package PolyORB.Utils.Dynamic_Tables is
+
+   pragma Preelaborate;
+
    type Table_Type is
      array (Table_Index_Type range <>) of Table_Component_Type;
-
---   subtype Big_Table_Type is
---     Table_Type (Table_Low_Bound .. Table_Index_Type'Last);
-   --  We work with pointers to a bogus array type that is constrained
-   --  with the maximum possible range bound. This means that the pointer
-   --  is a thin pointer, which is more efficient. Since subscript checks
-   --  in any case must be on the logical, rather than physical bounds,
-   --  safety is not compromised by this approach.
 
    type Table_Ptr is access all Table_Type;
    --  The table is actually represented as a pointer to allow
    --  reallocation.
 
    type Table_Private is private;
-   --  table private data that is not exported in Instance.
+   --  Table private data that is not exported in Instance.
 
    type Instance is record
       Table : aliased Table_Ptr := null;
-   --  The table itself. The lower bound is the value of Low_Bound.
-   --  Logically the upper bound is the current value of Last (although
-   --  the actual size of the allocated table may be larger than this).
-   --  The program may only access and modify Table entries in the
-   --  range First .. Last.
+      --  The table itself. The lower bound is the value of Low_Bound.
+      --  Logically the upper bound is the current value of Last (although
+      --  the actual size of the allocated table may be larger than this).
+      --  The program may only access and modify Table entries in the
+      --  range First .. Last.
 
       P : Table_Private;
    end record;
@@ -123,21 +112,20 @@ package PolyORB.Utils.Dynamic_Tables is
    --  previously allocated larger table). Init must be called before using
    --  the table. Init is convenient in reestablishing a table for new use.
 
+   First_Index : constant Table_Index_Type := Table_Low_Bound;
+   --  Export First as synonym for Low_Bound (parallel with use of Last)
+
+   function First (T : in Instance) return Table_Index_Type;
+   pragma Inline (First);
+   --  Returns the 'First value of the table, basically this function
+   --  returns First. This function is a facility to access this value.
+
    function Last (T : in Instance) return Table_Index_Type;
    pragma Inline (Last);
    --  Returns the current value of the last used entry in the table,
    --  which can then be used as a subscript for Table. Note that the
    --  only way to modify Last is to call the Set_Last procedure. Last
-   --  must always be used to determine the logically last entry.
-
-   procedure Release (T : in out Instance);
-   --  Storage is allocated in chunks according to the values given in the
-   --  Initial and Increment parameters. A call to Release releases all
-   --  storage that is allocated, but is not logically part of the current
-   --  array value. Current array values are not affected by this call.
-
-   First : constant Table_Index_Type := Table_Low_Bound;
-   --  Export First as synonym for Low_Bound (parallel with use of Last)
+   --  must always be used to determine the logical last entry.
 
    procedure Set_Last (T : in out Instance; New_Val : Table_Index_Type);
    pragma Inline (Set_Last);
@@ -150,18 +138,26 @@ package PolyORB.Utils.Dynamic_Tables is
 
    procedure Increment_Last (T : in out Instance);
    pragma Inline (Increment_Last);
-   --  Adds 1 to Last (same as Set_Last (Last + 1).
+   --  Adds 1 to Last (same as Set_Last (T, Last (T) + 1)).
 
    procedure Decrement_Last (T : in out Instance);
    pragma Inline (Decrement_Last);
-   --  Subtracts 1 from Last (same as Set_Last (Last - 1).
+   --  Subtracts 1 from Last (same as Set_Last (T, Last (T) - 1)).
+
+   procedure Release (T : in out Instance);
+   --  Storage is allocated in chunks according to the values given in the
+   --  Initial and Increment parameters. A call to Release releases all
+   --  storage that is allocated, but is not logically part of the current
+   --  array value. Current array values are not affected by this call.
 
    procedure Allocate (T   : in out Instance;
                        Num : Integer := 1);
    pragma Inline (Allocate);
-   --  Adds Num to Last.
+   --  Allocate room for 'Num' Table_Component_Type in table 'T',
+   --  eventually reallocate T.
 
    procedure Deallocate (T : in out Instance);
+   --  Deallocate 'T' instance.
 
 private
 
