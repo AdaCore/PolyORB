@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/release/1.0/src/polyorb-smart_pointers.adb#3 $
+--  $Id: //droopi/release/1.0/src/polyorb-smart_pointers.adb#4 $
 
 with Ada.Unchecked_Deallocation;
 with Ada.Tags;
@@ -288,7 +288,6 @@ begin
      (Module_Info'
       (Name      => +"smart_pointers",
        Conflicts => Empty,
-       Depends   => +"tasking.mutexes",
        Depends   => +"soft_links" & "tasking.mutexes",
        Provides  => Empty,
        Init      => Initialize'Access));
