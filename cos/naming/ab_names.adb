@@ -63,10 +63,15 @@ begin
    CORBA.ORB.Initialize ("ORB");
    Initiate_Servant (PortableServer.Servant (Root_NC), Ref);
 
-   --  Register_Initial_Reference (Name_Service_ObjectId, Ref);
-   Ada.Text_IO.Put_Line
-     ("POLYORB_CORBA_NAMING_IOR="
-      & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)));
+   declare
+      IOR : constant CORBA.String
+        := CORBA.Object.Object_To_String (Ref);
+   begin
+      CORBA.ORB.Register_Initial_Reference
+        (CORBA.To_CORBA_String ("NamingService"), IOR);
+      Ada.Text_IO.Put_Line
+        ("POLYORB_CORBA_NAMING_IOR=" & CORBA.To_Standard_String (IOR));
+   end;
 
    Initiate_Server;
 end AB_Names;
