@@ -35,9 +35,9 @@ GNATMAKE_FLAGS = \
 
 # Due to a bug in Automake 1.4, this line must not be splitted.
 
-CLEANFILES = b~*.* *.o *.ali $(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb $(EXAMPLE)_idl_file-helper.ads $(EXAMPLE)_idl_file-helper.adb $(EXAMPLE).ads $(EXAMPLE).adb $(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb $(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb $(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb $(EXAMPLE)-delegate.ads $(EXAMPLE)-delegate.adb
+CLEANFILES = b~*.* *.o *.ali $(EXAMPLE)_idl_file.ads $(EXAMPLE)_idl_file.adb $(EXAMPLE)_idl_file-helper.ads $(EXAMPLE)_idl_file-helper.adb $(EXAMPLE).ads $(EXAMPLE).adb $(EXAMPLE)-skel.ads $(EXAMPLE)-skel.adb $(EXAMPLE)-stream.ads $(EXAMPLE)-stream.adb $(EXAMPLE)-helper.ads $(EXAMPLE)-helper.adb $(EXAMPLE)-delegate.ads $(EXAMPLE)-delegate.adb $(EXAMPLE)-ir_info.adb $(EXAMPLE)-ir_info.ads $(EXAMPLE)_idl_file-ir_info.adb $(EXAMPLE)_idl_file-ir_info.ads
 
-DISTCLEANFILES = client server
+DISTCLEANFILES = client server $(EXTRA)
 
 all-local: client server $(EXTRA)
 
