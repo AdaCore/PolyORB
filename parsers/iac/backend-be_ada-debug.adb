@@ -8,8 +8,10 @@ with Types;       use Types;
 with Utils;       use Utils;
 with Values;      use Values;
 
-with Backend.BE_Ada.Nodes;     use Backend.BE_Ada.Nodes;
 with Frontend.Nodes;
+
+with Backend.BE_Ada.Nodes;     use Backend.BE_Ada.Nodes;
+--  with Backend.BE_Ada.Nutils;    use Backend.BE_Ada.Nutils;
 
 package body Backend.BE_Ada.Debug is
 
@@ -58,6 +60,11 @@ package body Backend.BE_Ada.Debug is
    function Image (N : Mode_Id) return String is
    begin
       return Quoted (Image (Token_Type'Val (N)));
+   end Image;
+
+   function Image (N : Operator_Id) return String is
+   begin
+      return Quoted (Image (Operator_Type'Val (N)));
    end Image;
 
    function Image (N : Boolean) return String is

@@ -111,10 +111,42 @@ package Backend.BE_Ada.Nutils is
       Tok_Arrow,           -- =>
       Tok_Vertical_Bar,    -- |
       Tok_Dot_Dot);        -- ..
-
    Token_Image : array (Token_Type) of Name_Id;
+
    subtype Keyword_Type is Token_Type
      range Tok_Mod .. Tok_Separate;
+
+   type Operator_Type  is
+     (Op_And,             -- and
+      Op_And_Then,        -- and then
+      Op_Or,              -- or
+      Op_Or_Then,         -- or then
+      Op_Double_Asterisk, -- **
+      Op_Minus,           -- -
+      Op_Plus,            -- +
+      Op_Asterisk,        -- *
+      Op_Slash,           -- /
+      Op_Less,            -- <
+      Op_Equal,           -- =
+      Op_Greater,         -- >
+      Op_Not_Equal,       -- /=
+      Op_Greater_Equal,   -- >=
+      Op_Less_Equal,      -- <=
+      Op_Box,             -- <>
+      Op_Colon_Equal,     -- :=
+      Op_Colon,           -- :
+      Op_Greater_Greater, -- >>
+      Op_Less_Less,       -- <<
+      Op_Semicolon,       -- ;
+      Op_Arrow,           -- =>
+      Op_Vertical_Bar);   -- |
+
+   Operator_Image : array
+     (Operator_Type'Pos (Op_And) ..  Operator_Type'Pos (Op_Vertical_Bar))
+     of Name_Id;
+
+   subtype Keyword_Operator is Operator_Type
+     range Op_And .. Op_Or_Then;
 
    type Parameter_Id is
      (P_Arg_Modes,
@@ -126,7 +158,9 @@ package Backend.BE_Ada.Nutils is
       P_Self,
       P_To,
       P_The_Ref,
-      P_Item);
+      P_Item,
+      P_Repository_Id,
+      P_Default_Sys_Member);
 
    PN : array (Parameter_Id) of Name_Id;
 
@@ -157,7 +191,8 @@ package Backend.BE_Ada.Nutils is
       S_Unchecked_To_Ref,
       S_To_Ref,
       S_From_Any,
-      S_To_Any);
+      S_To_Any,
+      S_Set);
 
    SN : array (Subprogram_Id) of Name_Id;
 
@@ -201,6 +236,7 @@ package Backend.BE_Ada.Nutils is
      return List_Id;
 
    function Image (T : Token_Type) return String;
+   function Image (O : Operator_Type) return String;
    procedure Initialize;
    procedure New_Token (T : Token_Type; I : String := "");
 
@@ -259,6 +295,12 @@ package Backend.BE_Ada.Nutils is
      (Defining_Identifier : Node_Id)
      return Node_Id;
 
+   function Make_Expression
+     (Left_Expr : Node_Id;
+      Operator  : Operator_Type;
+      Right_Expr : Node_Id)
+     return Node_Id;
+
    function Make_Full_Type_Declaration
      (Defining_Identifier : Node_Id;
       Type_Definition     : Node_Id;
@@ -283,9 +325,9 @@ package Backend.BE_Ada.Nutils is
 
    function Make_Object_Declaration
      (Defining_Identifier : Node_Id;
-      Constant_Present    : Boolean;
+      Constant_Present    : Boolean := False;
       Object_Definition   : Node_Id;
-      Expression          : Node_Id)
+      Expression          : Node_Id := No_Node)
       return                Node_Id;
 
    function Make_Package_Declaration
@@ -312,6 +354,10 @@ package Backend.BE_Ada.Nutils is
       Is_Tagged_Type    : Boolean := False;
       Is_Limited_Type   : Boolean := False)
       return              Node_Id;
+
+   function Make_Return_Statement
+     (Expression : Node_Id)
+     return Node_Id;
 
    function Make_Subprogram_Call
      (Defining_Identifier : Node_Id;

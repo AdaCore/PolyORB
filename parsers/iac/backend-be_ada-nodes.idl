@@ -5,6 +5,7 @@ module Backend::BE_Ada::Nodes {
   /******************/
 
   typedef octet   Mode_Id;
+  typedef octet   Operator_Id;
   typedef long    Name_Id;
   typedef long    Value_Id;
 
@@ -158,6 +159,9 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Expression;  
   };
 
+  interface Return_Statement : Node_Id {
+    Node_Id    Expression; 
+  };
 
   /***************/
   /* Other nodes */
@@ -268,6 +272,13 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Skel_Node;
     Node_Id    Impl_Node;
   };
+
+  interface Expression : Node_Id {
+    Operator_Id Operator;
+    Node_Id     Left_Expr;
+    Node_Id     Right_Expr;
+  };
+
 
   /**************/
   /* Base types */

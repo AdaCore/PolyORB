@@ -26,6 +26,9 @@ package body Backend.BE_Ada.Nutils is
 
    use Entity_Stack;
 
+   procedure New_Operator
+     (O : Operator_Type;
+      I : String := "");
 
    ----------------------
    -- Add_With_Package --
@@ -198,6 +201,18 @@ package body Backend.BE_Ada.Nutils is
       return S (5 .. S'Last);
    end Image;
 
+   function Image (O : Operator_Type) return String is
+      S : String := Operator_Type'Image (O);
+   begin
+      To_Lower (S);
+      for I in S'First .. S'Last loop
+         if S (I) = '_' then
+            S (I) := ' ';
+         end if;
+      end loop;
+      return S (4 .. S'Last);
+   end Image;
+
    ----------------
    -- Initialize --
    ----------------
@@ -237,6 +252,29 @@ package body Backend.BE_Ada.Nutils is
       New_Token (Tok_Arrow, "=>");
       New_Token (Tok_Vertical_Bar, "|");
       New_Token (Tok_Dot_Dot, "..");
+
+      for O in Op_And .. Op_Or_Then loop
+         New_Operator (O);
+      end loop;
+      New_Operator (Op_Double_Asterisk, "**");
+      New_Operator (Op_Minus, "-");
+      New_Operator (Op_Plus, "+");
+      New_Operator (Op_Asterisk, "*");
+      New_Operator (Op_Slash, "/");
+      New_Operator (Op_Less, "<");
+      New_Operator (Op_Equal, "=");
+      New_Operator (Op_Greater, ">");
+      New_Operator (Op_Not_Equal, "/=");
+      New_Operator (Op_Greater_Equal, ">=");
+      New_Operator (Op_Less_Equal, "<=");
+      New_Operator (Op_Box, "<>");
+      New_Operator (Op_Colon_Equal, ":=");
+      New_Operator (Op_Colon, "--");
+      New_Operator (Op_Greater_Greater, ">>");
+      New_Operator (Op_Less_Less, "<<");
+      New_Operator (Op_Semicolon, ";");
+      New_Operator (Op_Arrow, "=>");
+      New_Operator (Op_Vertical_Bar, "|");
 
       for A in Attribute_Id loop
          Set_Str_To_Name_Buffer (Attribute_Id'Image (A));
@@ -280,6 +318,8 @@ package body Backend.BE_Ada.Nutils is
          Capitalize (Name_Buffer (1 .. Name_Len));
          VN (V) := Name_Find;
       end loop;
+
+
    end Initialize;
 
    --------------
@@ -452,6 +492,25 @@ package body Backend.BE_Ada.Nutils is
       return N;
    end Make_Exception_Declaration;
 
+   ---------------------
+   -- Make_Expression --
+   ---------------------
+
+   function Make_Expression
+     (Left_Expr  : Node_Id;
+      Operator   : Operator_Type;
+      Right_Expr : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Expression);
+      Set_Left_Expr (N, Left_Expr);
+      Set_Operator (N, Operator_Type'Pos (Operator));
+      Set_Right_Expr (N, Right_Expr);
+      return N;
+   end Make_Expression;
+
    --------------------------------
    -- Make_Full_Type_Declaration --
    --------------------------------
@@ -477,7 +536,6 @@ package body Backend.BE_Ada.Nutils is
       end if;
       return N;
    end Make_Full_Type_Declaration;
-
 
    -----------------------
    -- Make_If_Statement --
@@ -538,9 +596,9 @@ package body Backend.BE_Ada.Nutils is
 
    function Make_Object_Declaration
      (Defining_Identifier : Node_Id;
-      Constant_Present    : Boolean;
+      Constant_Present    : Boolean := False;
       Object_Definition   : Node_Id;
-      Expression          : Node_Id)
+      Expression          : Node_Id := No_Node)
      return Node_Id
    is
       N : Node_Id;
@@ -653,6 +711,21 @@ package body Backend.BE_Ada.Nutils is
       Set_Record_Definition (N, Record_Definition);
       return N;
    end Make_Record_Type_Definition;
+
+   ---------------------------
+   -- Make_Return_Statement --
+   ---------------------------
+
+   function Make_Return_Statement
+     (Expression : Node_Id)
+     return Node_Id
+   is
+      N : Node_Id;
+   begin
+      N := New_Node (K_Return_Statement);
+      Set_Expression (N, Expression);
+      return N;
+   end Make_Return_Statement;
 
    --------------------------
    -- Make_Subprogram_Call --
@@ -836,6 +909,22 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Token_Image (T) := Name_Find;
    end New_Token;
+
+   ------------------
+   -- New_Operator --
+   ------------------
+
+   procedure New_Operator
+     (O : Operator_Type;
+      I : String := "") is
+   begin
+      if O in Keyword_Operator then
+         Set_Str_To_Name_Buffer (Image (O));
+      else
+         Set_Str_To_Name_Buffer (I);
+      end if;
+      Operator_Image (Operator_Type'Pos (O)) := Name_Find;
+   end New_Operator;
 
    ----------------
    -- Pop_Entity --

@@ -8,7 +8,6 @@ with Backend.BE_Ada.Nodes;   use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
 with Backend.BE_Ada.Runtime; use Backend.BE_Ada.Runtime;
 
-
 package body Backend.BE_Ada.Helpers is
 
    package FEN renames Frontend.Nodes;
@@ -389,17 +388,11 @@ package body Backend.BE_Ada.Helpers is
         (E : Node_Id)
         return Node_Id;
       --  return windening object reference helper.
-      function TypeCode_Body
-        (E : Node_Id)
-        return Node_Id;
-      --  return a TypeCode constant for a given type (E) node in the Helper
-      --  package.
       function Widening_Ref_Body
         (E : Node_Id)
         return Node_Id;
       --  return widening object reference helper.
-      pragma Unreferenced (From_Any_Body, To_Any_Body, TypeCode_Body,
-                             Widening_Ref_Body, Narrowing_Ref_Body);
+
       procedure Visit_Enumeration_Type (E : Node_Id);
       procedure Visit_Interface_Declaration (E : Node_Id);
       procedure Visit_Module (E : Node_Id);
@@ -442,23 +435,46 @@ package body Backend.BE_Ada.Helpers is
         (E : Node_Id)
         return Node_Id
       is
-         pragma Unreferenced (E);
+         Spec         : Node_Id;
+         Declarations : List_Id;
+         Statements   : List_Id;
+         Param        : Node_Id;
+         N            : Node_Id;
+         L            : List_Id;
       begin
-         return No_Node;
+         Spec := Helper_Node (BE_Node (Identifier (E)));
+         Spec := Next_Node (Spec);  --  Second in the list of helpers
+
+         --  Declarative Part
+         Declarations := New_List (K_List_Id);
+         Param := Make_Object_Declaration
+           (Defining_Identifier =>
+              Make_Defining_Identifier (PN (P_Result)),
+            Object_Definition =>
+              Expand_Designator (Stub_Node (BE_Node (Identifier (E)))));
+         Append_Node_To_List (Param, Declarations);
+
+         --  Statements Part
+
+         Statements := New_List (K_List_Id);
+         L := New_List (K_List_Id);
+         Append_Node_To_List
+           (Make_Defining_Identifier (PN (P_Result)), L);
+         Append_Node_To_List
+           (Make_Subprogram_Call
+            (RE (RE_Object_Of),
+             Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref)))), L);
+         N := Make_Subprogram_Call
+           (Defining_Identifier   => Make_Defining_Identifier (SN (S_Set)),
+            Actual_Parameter_Part => L);
+         Append_Node_To_List (N, Statements);
+         N := Make_Return_Statement
+           (Make_Defining_Identifier (PN (P_Result)));
+         Append_Node_To_List (N, Statements);
+         N := Make_Subprogram_Implementation
+           (Spec, Declarations, Statements);
+         return N;
       end Narrowing_Ref_Body;
-
-      -------------------
-      -- TypeCode_Body --
-      -------------------
-
-      function TypeCode_Body
-        (E : Node_Id)
-        return Node_Id
-      is
-         pragma Unreferenced (E);
-      begin
-         return No_Node;
-      end TypeCode_Body;
 
       -----------
       -- Visit --
@@ -511,10 +527,23 @@ package body Backend.BE_Ada.Helpers is
       procedure Visit_Interface_Declaration (E : Node_Id) is
          N : Node_Id;
       begin
-         N := Helper_Node (BE_Node (Identifier (E)));
-         if No (N) then
-            null;
-         end if;
+         N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
+         Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
+         Set_Helper_Body;
+         Append_Node_To_List
+           (Widening_Ref_Body (E), Statements (Current_Package));
+         Append_Node_To_List
+           (Narrowing_Ref_Body (E), Statements (Current_Package));
+         Append_Node_To_List
+           (From_Any_Body (E), Statements (Current_Package));
+         Append_Node_To_List
+           (To_Any_Body (E), Statements (Current_Package));
+         N := First_Entity (Interface_Body (E));
+         while Present (N) loop
+            Visit (N);
+            N := Next_Entity (N);
+         end loop;
+         Pop_Entity;
       end Visit_Interface_Declaration;
 
       ------------------
@@ -522,9 +551,15 @@ package body Backend.BE_Ada.Helpers is
       ------------------
 
       procedure Visit_Module (E : Node_Id) is
-         pragma Unreferenced (E);
+         D : Node_Id;
       begin
-         null;
+         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+         D := First_Entity (Definitions (E));
+         while Present (D) loop
+            Visit (D);
+            D := Next_Entity (D);
+         end loop;
+         Pop_Entity;
       end Visit_Module;
 
       -------------------------
@@ -532,9 +567,15 @@ package body Backend.BE_Ada.Helpers is
       -------------------------
 
       procedure Visit_Specification (E : Node_Id) is
-         pragma Unreferenced (E);
+         Definition : Node_Id;
       begin
-         null;
+         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+         Definition := First_Entity (Definitions (E));
+         while Present (Definition) loop
+            Visit (Definition);
+            Definition := Next_Entity (Definition);
+         end loop;
+         Pop_Entity;
       end Visit_Specification;
 
       --------------------------
@@ -571,13 +612,42 @@ package body Backend.BE_Ada.Helpers is
       -- Widening_Ref_Body --
       -----------------------
 
-      function Widening_Ref_Body
-        (E : Node_Id)
-        return Node_Id
-      is
-         pragma Unreferenced (E);
+      function Widening_Ref_Body (E : Node_Id) return Node_Id is
+         Spec        : constant Node_Id
+           := Helper_Node (BE_Node (Identifier (E)));
+         Statements  : List_Id;
+         N           : Node_Id;
+         M           : Node_Id;
       begin
-         return No_Node;
+         Statements := New_List (K_List_Id);
+         N := Make_Expression
+           (Left_Expr  =>
+              Make_Subprogram_Call
+            (RE (RE_Is_Nil),
+             Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref)))),
+            Operator   => Op_And_Then,
+            Right_Expr =>
+              Make_Subprogram_Call
+            (RE (RE_Is_A),
+             Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref)),
+                           Make_Defining_Identifier (PN (P_Repository_Id)))));
+         M := Make_Subprogram_Call
+           (Make_Defining_Identifier (SN (S_Unchecked_To_Ref)),
+            Make_List_Id (Make_Defining_Identifier (PN (P_The_Ref))));
+         M := Make_Return_Statement (M);
+         N := Make_If_Statement
+           (Condition => N,
+            Then_Statements => Make_List_Id (M),
+            Else_Statements => No_List);
+         Append_Node_To_List (N, Statements);
+         N := Make_Subprogram_Call
+           (RE (RE_Raise_Bad_Param),
+            Make_List_Id (Make_Defining_Identifier
+                          (PN (P_Default_Sys_Member))));
+         Append_Node_To_List (N, Statements);
+         N := Make_Subprogram_Implementation
+           (Spec, No_List, Statements);
+         return N;
       end Widening_Ref_Body;
 
    end Package_Body;

@@ -17,6 +17,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Designator (N : Node_Id);
    procedure Generate_Enumeration_Type_Definition (N : Node_Id);
    procedure Generate_Exception_Declaration (N : Node_Id);
+   procedure Generate_Expression (N : Node_Id);
    procedure Generate_Full_Type_Declaration (N : Node_Id);
    procedure Generate_IDL_Unit_Packages (N : Node_Id);
    procedure Generate_If_Statement (N : Node_Id);
@@ -30,6 +31,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Record_Aggregate (N : Node_Id);
    procedure Generate_Record_Definition (N : Node_Id);
    procedure Generate_Record_Type_Definition (N : Node_Id);
+   procedure Generate_Return_Statement (N : Node_Id);
    procedure Generate_Subprogram_Call (N : Node_Id);
    procedure Generate_Subprogram_Implementation (N : Node_Id);
    procedure Generate_Subprogram_Specification (N : Node_Id);
@@ -74,6 +76,9 @@ package body Backend.BE_Ada.Generator is
          when K_Exception_Declaration =>
             Generate_Exception_Declaration (N);
 
+         when K_Expression =>
+            Generate_Expression (N);
+
          when K_Full_Type_Declaration =>
             Generate_Full_Type_Declaration (N);
 
@@ -106,6 +111,9 @@ package body Backend.BE_Ada.Generator is
 
          when K_Record_Type_Definition =>
             Generate_Record_Type_Definition (N);
+
+         when K_Return_Statement =>
+            Generate_Return_Statement (N);
 
          when K_Subprogram_Call =>
             Generate_Subprogram_Call (N);
@@ -300,6 +308,27 @@ package body Backend.BE_Ada.Generator is
       Write_Space;
       Write (Tok_Exception);
    end Generate_Exception_Declaration;
+
+   -------------------------
+   -- Generate_Expression --
+   -------------------------
+
+   procedure Generate_Expression (N : Node_Id) is
+      L_Expr  : constant Node_Id := Left_Expr (N);
+      Op      : constant Operator_Id := Operator (N);
+      R_Expr  : constant Node_Id := Right_Expr (N);
+   begin
+      Generate (L_Expr);
+      if Present (R_Expr) then
+         Write_Eol;
+         Increment_Indentation;
+         Write_Indentation;
+         Write_Name (Operator_Image (Standard.Integer (Op)));
+         Write_Space;
+         Generate (R_Expr);
+         Decrement_Indentation;
+      end if;
+   end Generate_Expression;
 
    ------------------------------------
    -- Generate_Full_Type_Declaration --
@@ -693,6 +722,17 @@ package body Backend.BE_Ada.Generator is
       end if;
    end Generate_Record_Type_Definition;
 
+   -------------------------------
+   -- Generate_Return_Statement --
+   -------------------------------
+
+   procedure Generate_Return_Statement (N : Node_Id) is
+      E : constant Node_Id := Expression (N);
+   begin
+      Write (Tok_Return);
+      Write_Space;
+      Generate (E);
+   end Generate_Return_Statement;
    ------------------------------
    -- Generate_Subprogram_Call --
    ------------------------------
@@ -755,13 +795,19 @@ package body Backend.BE_Ada.Generator is
       Write_Eol;
 
       Increment_Indentation;
-      M := First_Node (S);
-      while Present (M) loop
+      if not Is_Empty (S) then
+         M := First_Node (S);
+         while Present (M) loop
+            Write_Indentation;
+            Generate (M);
+            M := Next_Node (M);
+            Write_Line (Tok_Semicolon);
+         end loop;
+      else
          Write_Indentation;
-         Generate (M);
-         M := Next_Node (M);
+         Write (Tok_Null);
          Write_Line (Tok_Semicolon);
-      end loop;
+      end if;
       Decrement_Indentation;
 
       Write_Indentation;
