@@ -416,6 +416,7 @@ package body XE_Stubs is
       Location     : LID_Type;
       Light_PCS    : Boolean;
       Pure_Client  : Boolean;
+      Remote_Host  : Name_Id;
 
       CID : CID_Type;
       File  : File_Descriptor;
@@ -440,6 +441,7 @@ package body XE_Stubs is
       Dwrite_With_Clause (File, True, SG ("Heart"));
       Dwrite_With_Clause (File, True, SG ("Options"));
       Dwrite_With_Clause (File, True, SG ("Name_Table"));
+      Dwrite_With_Clause (File, True, SG ("Remote"));
       Dwrite_With_Clause (File, True, SG ("Types"));
 
       if Light_PCS then
@@ -636,6 +638,39 @@ package body XE_Stubs is
          end loop;
       end if;
 
+      if PID = Main_Partition then
+         if Default_Starter = Ada_Import and
+            Partitions.First + 1 /= Partitions.Last then
+            for Partition in Partitions.First + 1 .. Partitions.Last loop
+               if Partition /= Main_Partition
+                 and then Get_Passive (Partition) /= Btrue
+               then
+                  Dwrite_Line (File, 2, "Register_Partition_To_Launch");
+                  Name_Len := 0;
+                  Add_Str_To_Name_Buffer ("(""");
+                  Add_Str_To_Name_Buffer (Get_Rsh_Command);
+                  Add_Str_To_Name_Buffer (""",");
+                  Dwrite_Line (File, 3, Name_Buffer (1 .. Name_Len));
+                  Remote_Host := Get_Host (Partition);
+                  if Remote_Host = No_Name then
+                     Dwrite_Line (File, 3, "False, """,
+                                  Partitions.Table (Partition).Name, """,");
+                  else
+                     Dwrite_Line (File, 3, "True, ", Remote_Host, ",");
+                  end if;
+                  Name_Len := 0;
+                  Add_Str_To_Name_Buffer ("""");
+                  Add_Str_To_Name_Buffer (Get_Rsh_Options);
+                  Add_Str_To_Name_Buffer (""",");
+                  Dwrite_Line (File, 3, Name_Buffer (1 .. Name_Len));
+                  Dwrite_Line (File, 3, """", Get_Absolute_Exec (Partition),
+                               "", Get_Command_Line  (Partition), """);");
+               end if;
+            end loop;
+         end if;
+
+      end if;
+
       --  Footer.
 
       Dwrite_Line (File, 1, "end Initialize;");
@@ -750,7 +785,6 @@ package body XE_Stubs is
 
       Filename    : File_Name_Type;
       CU          : CUID_Type;
-      Host        : Name_Id;
       Main        : Name_Id;
       File        : File_Descriptor;
       V_Partition : Name_Id := Str_To_Id ("Partition");
@@ -840,39 +874,6 @@ package body XE_Stubs is
          end if;
          CU := CUnits.Table (CU).Next;
       end loop;
-
-      if PID = Main_Partition then
-         if Default_Starter = Ada_Import and
-            Partitions.First + 1 /= Partitions.Last then
-            for Partition in Partitions.First + 1 .. Partitions.Last loop
-               if Partition /= Main_Partition
-                 and then Get_Passive (Partition) /= Btrue
-               then
-                  Dwrite_Line (File, 1, "Launch");
-                  Name_Len := 0;
-                  Add_Str_To_Name_Buffer ("(""");
-                  Add_Str_To_Name_Buffer (Get_Rsh_Command);
-                  Add_Str_To_Name_Buffer (""",");
-                  Dwrite_Line (File, 2, Name_Buffer (1 .. Name_Len));
-                  Host := Get_Host (Partition);
-                  if Host = No_Name then
-                     Dwrite_Line (File, 2, "False, """,
-                                  Partitions.Table (Partition).Name, """,");
-                  else
-                     Dwrite_Line (File, 2, "True, ", Host, ",");
-                  end if;
-                  Name_Len := 0;
-                  Add_Str_To_Name_Buffer ("""");
-                  Add_Str_To_Name_Buffer (Get_Rsh_Options);
-                  Add_Str_To_Name_Buffer (""",");
-                  Dwrite_Line (File, 2, Name_Buffer (1 .. Name_Len));
-                  Dwrite_Line (File, 2, """", Get_Absolute_Exec (Partition),
-                               "", Get_Command_Line  (Partition), """);");
-               end if;
-            end loop;
-         end if;
-
-      end if;
 
       if Default_Version_Check then
 
