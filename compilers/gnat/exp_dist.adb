@@ -2294,6 +2294,11 @@ package body Exp_Dist is
                                  Make_Defining_Identifier (Loc,
                                    New_Internal_Name ('A'));
 
+               Actual_Parameter : constant Node_Id :=
+                                    New_Occurrence_Of (
+                                      Defining_Identifier (
+                                        Current_Parameter), Loc);
+
                --  Just for testing: pull in helpers (actually
                --  the TypeCode is needed only for Out parameters;
                --  for in and onout, only To_Any is required
@@ -2342,9 +2347,8 @@ package body Exp_Dist is
                    Object_Definition   =>
                      New_Occurrence_Of (RTE (RE_Any), Loc),
                    Expression          =>
-                     Build_To_Any_Call (Loc,
-                       New_Occurrence_Of (
-                         Defining_Identifier (Current_Parameter), Loc))));
+                     Actual_Parameter));
+               Rewrite_To_Any_Call (Actual_Parameter);
 
                Get_Name_String (Chars (Defining_Identifier
                                          (Current_Parameter)));

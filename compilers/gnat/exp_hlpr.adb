@@ -2,7 +2,7 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                             E X P _ S T R M                              --
+--                             E X P _ H L P R                              --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -88,11 +88,10 @@ package body Exp_Hlpr is
    -- Build_To_Any_Call --
    -----------------------
 
-   function Build_To_Any_Call
-     (Loc : Source_Ptr;
-      N   : Node_Id)
-      return Node_Id
+   procedure Rewrite_To_Any_Call
+     (N   : Node_Id)
    is
+      Loc : constant Source_Ptr := Sloc (N);
       Typ : constant Entity_Id := Etype (N);
       U_Type  : constant Entity_Id  := Underlying_Type (Typ);
       --  The full view, if Typ is private; the completion,
@@ -106,8 +105,7 @@ package body Exp_Hlpr is
       Lib_RE  : RE_Id := RE_Null;
 
    begin
-      return Empty;
-      pragma Warnings (Off);
+
       --  First simple case where the To_Any function is present
       --  in the type's TSS.
 
@@ -195,7 +193,7 @@ package body Exp_Hlpr is
             Decl : Entity_Id;
          begin
             Build_To_Any_Function (Loc, U_Type, Decl, Fnam);
-            Insert_Action (Declaration_Node (Typ), Decl);
+            Insert_Action (N, Decl);
          end;
       end if;
 
@@ -206,12 +204,13 @@ package body Exp_Hlpr is
          Fnam := RTE (Lib_RE);
       end if;
 
-      return
+      Rewrite (N,
           Make_Function_Call (Loc,
             Name => New_Occurrence_Of (Fnam, Loc),
-            Parameter_Associations => New_List (N));
-      pragma Warnings (On);
-   end Build_To_Any_Call;
+            Parameter_Associations => Empty_List));
+      Set_Parameter_Associations (N, New_List (Original_Node (N)));
+
+   end Rewrite_To_Any_Call;
 
    -----------------------------
    -- Build_To_Any_Function --
