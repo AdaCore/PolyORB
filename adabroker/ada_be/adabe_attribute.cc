@@ -162,7 +162,9 @@ adabe_attribute::produce_proxies_adb(dep_list &with, string &body, string &priva
 {
   AST_Decl *d = field_type();
   with.add("Netbufferedstream") ;
-  string name = dynamic_cast<adabe_name *>(d)->dump_name(with, private_definition);
+  adabe_name *att = dynamic_cast<adabe_name *>(d);
+  string name = att->dump_name(with, private_definition);
+  att->is_marshal_imported(with);
   body += "   -----------------------------------------------------------\n" ;
   body += "   ---               Get_" + get_ada_local_name() + "\n" ; 
   body += "   -----------------------------------------------------------\n\n" ;

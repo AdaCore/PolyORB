@@ -62,14 +62,15 @@ adabe_argument::produce_proxies_ads(dep_list &with, string &in_decls, bool &no_i
   string type_name = type_adabe_name->dump_name(with, previous);
   string full_type_name = type_adabe_name->get_ada_full_name() ;
 
-  if ((direction() == dir_IN) | (direction() == dir_INOUT)) {
+  if ((direction() == dir_IN) || (direction() == dir_INOUT)) {
     no_in = false;
     in_decls += " ;\n                  ";
     in_decls += get_ada_local_name ();
     in_decls += " : in ";
     in_decls += type_name;
   }
-  if ((direction() == dir_OUT) | (direction() == dir_INOUT)) {
+  if ((direction() == dir_OUT) || (direction() == dir_INOUT)) {
+    is_marshal_imported(with);
     no_out = false;
   }
   fields += "      ";
@@ -88,7 +89,7 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
   string type_name =  dynamic_cast<adabe_name *>(d)->dump_name(with, previous);
   string full_type_name = dynamic_cast<adabe_name *>(d)->get_ada_full_name() ;
   
-  if ((direction() == dir_IN) | (direction() == dir_INOUT)) {
+  if ((direction() == dir_IN) || (direction() == dir_INOUT)) {
     no_in = false;
     in_decls += " ;\n                  ";
     in_decls += get_ada_local_name ();
@@ -111,7 +112,7 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
     marshall += get_ada_local_name ();
     marshall += ".all,Giop_Client) ;\n";
   }
-  if ((direction() == dir_OUT) | (direction() == dir_INOUT)) {
+  if ((direction() == dir_OUT) || (direction() == dir_INOUT)) {
     no_out = false;
     unmarshall_decls += "      ";
     unmarshall_decls += get_ada_local_name ();
@@ -158,7 +159,7 @@ adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
   in_decls += type_name;
   in_decls += " ;\n";
     
-  if ((direction() == dir_IN) | (direction() == dir_INOUT))
+  if ((direction() == dir_IN) || (direction() == dir_INOUT))
     {
       no_in = false;
       unmarshall += "            UnMarshall(";
@@ -169,7 +170,7 @@ adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
   call_args += ", ";
   call_args += get_ada_local_name ();
 
-  if ((direction() == dir_OUT) | (direction() == dir_INOUT))
+  if ((direction() == dir_OUT) || (direction() == dir_INOUT))
     {
       no_out = false;
       marshall += "            Marshall(";
