@@ -266,15 +266,6 @@ package body Exp_Hlpr is
       elsif U_Type = RTE (RE_Long_Long_Unsigned) then
          Lib_RE := RE_FA_LLU;
 
-      --  Access types
-
---        elsif Is_Access_Type (U_Type) then
---           if P_Size > System_Address_Size then
---              Lib_RE := RE_FA_AD;
---           else
---              Lib_RE := RE_FA_AS;
---           end if;
-
       elsif U_Type = Standard_String then
          Lib_RE := RE_FA_String;
 
@@ -2348,8 +2339,8 @@ package body Exp_Hlpr is
          raise Program_Error;
       end if;
 
-      --  XXX fixed point types??
-      --  XXX numeric types with a biased representation??
+      --  TBD: fixed point types???
+      --  TBverified numeric types with a biased representation???
 
    end Find_Numeric_Representation;
 
