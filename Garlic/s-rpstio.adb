@@ -115,6 +115,8 @@ package body System.RPC.Stream_IO is
       --  outgoing stream element array.
 
       if Str.Mode = Out_Mode then
+         pragma Debug (D ("Send new message"));
+
          Send (Types.Partition_ID (Stream.PID),
                Msgcode,
                Str.Outgoing'Access,
@@ -243,7 +245,6 @@ package body System.RPC.Stream_IO is
          raise Stream_Error;
       end if;
 
-      pragma Debug (D ("Read new message"));
       while Len = 0 loop
 
          --  Is there something to read ?
@@ -276,6 +277,7 @@ package body System.RPC.Stream_IO is
 
                if Len /= 0 then
 
+                  pragma Debug (D ("Read new message"));
                   pragma Debug (D ("Read" & Len'Img & " bytes"));
 
                   --  There are elements left. Signal to potential
@@ -348,8 +350,6 @@ package body System.RPC.Stream_IO is
 
       --  Procedure Write just buffers the stream element
       --  array. Procedure Close really sends them.
-
-      pragma Debug (D ("Send new message"));
 
       if Str.Mode /= Out_Mode then
          pragma Debug (D ("Mode should be Out_Mode"));

@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
+with Ada.Task_Identification;
 with Ada.Unchecked_Deallocation;
 with System.Soft_Links;   use System.Soft_Links;
 with System.Garlic.Debug; use System.Garlic.Debug;

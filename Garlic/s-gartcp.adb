@@ -891,7 +891,7 @@ package body System.Garlic.TCP is
             Hits := Options.Connection_Hits;
          end if;
 
-         while Hits > 0 loop
+         while not Shutdown_In_Progress and then Hits > 0 loop
             Peer.Socket  := Do_Connect (Peer.Location);
             exit when Peer.Socket /= Failure;
 
@@ -901,7 +901,7 @@ package body System.Garlic.TCP is
 
          Sockets.Set_Component (Partition, Peer);
 
-         if Hits = 0 then
+         if Shutdown_In_Progress or else Hits = 0 then
             Leave (Partition);
             Throw (Error, "Send: Cannot connect to" & Partition'Img);
             return;

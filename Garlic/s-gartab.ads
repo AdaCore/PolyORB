@@ -50,13 +50,6 @@ package System.Garlic.Table is
 
    package Complex is
 
-      type Component_Table_Type is
-         array (Index_Type range <>) of Component_Type;
-
-      type Component_Table_Access is access Component_Table_Type;
-
-      Table : Component_Table_Access;
-
       --  These procedures are atomic and cannot be aborted
 
       procedure Differ (Version : in Utils.Version_Id);

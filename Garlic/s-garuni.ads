@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Interfaces;
-with System.Garlic.Table;
 with System.Garlic.Types;
 with System.Garlic.Utils;
 
@@ -44,90 +43,22 @@ package System.Garlic.Units is
 
    --  This package needs comments ???
 
-   type Request_Id is new Natural;
-   Null_Request_Id  : constant Request_Id := 0;
-   First_Request_Id : constant Request_Id := 3_000_000;
-   Request_Id_Increment : constant := 10;
+   procedure Get_Partition
+     (Unit      : in Types.Unit_Id;
+      Partition : out Types.Partition_ID;
+      Error     : in out Utils.Error_Type);
 
-   type Request_Kind is (Copy_Units_Table,
-                         Define_New_Units,
-                         Invalidate_Units,
-                         Pull_Units_Table,
-                         Push_Units_Table);
+   procedure Get_Receiver
+     (Unit     : in Types.Unit_Id;
+      Receiver : out Interfaces.Unsigned_64;
+      Error    : in out Utils.Error_Type);
 
-   type Unit_Status is (Queried, Undefined, Declared, Defined, Invalid);
-   --  The order is very important. At the beginning, a unit is undefined
-   --  on the caller side. It will send a request to get info on this
-   --  request and the new status will be queried (just to avoid multiple
-   --  requests). On the receiver side, it is declared. The receiver
-   --  registers the unit to the boot server. The boot server will try to
-   --  get a first agreement from other boot mirrors. If the unit info has
-   --  not been modified after a first pass, then the unit becomes defined
-   --  and this new info is sent once again to other boot mirrors. When the
-   --  unit becomes Defined, the boot mirrors are allowed to answer to
-   --  pending request from other partitions. When a partition dies, all
-   --  its units are invalidated. If the reconnection mode of the partition
-   --  is Blocked_Until_Restart, then the unit status is set to
-   --  Undefined. Otherwise, it is set to Invalidated.
+   procedure Get_Version
+     (Unit    : in Types.Unit_Id;
+      Version : out Types.Version_Type;
+      Error   : in out Utils.Error_Type);
 
-   type Unit_Info is
-      record
-         Next_Unit : Types.Unit_Id;
-         Partition : Types.Partition_ID;
-         Receiver  : Interfaces.Unsigned_64;
-         Version   : Types.Version_Type;
-         Status    : Unit_Status;
-         Requests  : Request_Id;
-      end record;
-
-   Null_Unit : constant Unit_Info :=
-     (Next_Unit => Types.Null_Unit_Id,
-      Partition => Types.Null_PID,
-      Receiver  => 0,
-      Version   => Types.Null_Version,
-      Status    => Undefined,
-      Requests  => Null_Request_Id);
-
-   --  Next_Unit   : units on the same partition are linked together
-   --  Partition   : unit partition id
-   --  Receiver    : unit rpc receiver
-   --  Version     : unit version id
-   --  Status      : unit info status
-   --  Pending     : true when requests are pending
-   --  Requests    : request(p) true for a pending request from partition p
-
-   type Request_Type (Kind : Request_Kind := Pull_Units_Table) is
-      record
-         case Kind is
-            when Copy_Units_Table |
-                 Define_New_Units |
-                 Pull_Units_Table |
-                 Push_Units_Table =>
-               null;
-
-            when Invalidate_Units =>
-               Partition : Types.Partition_ID;
-
-         end case;
-      end record;
-
-   package Units is new System.Garlic.Table.Complex
-     (Index_Type     => Types.Unit_Id,
-      Null_Index     => Types.Null_Unit_Id,
-      First_Index    => Types.First_Unit_Id,
-      Initial_Size   => Types.Unit_Id_Increment,
-      Increment_Size => Types.Unit_Id_Increment,
-      Component_Type => Unit_Info,
-      Null_Component => Null_Unit);
-
-   procedure Dump_Unit_Table;
-
-   procedure Get_Unit_Info
-     (Unit  : in Types.Unit_Id;
-      Info  : out Unit_Info;
-      Error : in out Utils.Error_Type);
-   --  Return unit info on these unit. If status is unknown, then ask a
-   --  potential boot server or mirror for a copy of unit info.
+   function Get_Unit_Id (Name : String) return Types. Unit_Id;
 
    procedure Initialize;
 
@@ -142,7 +73,7 @@ package System.Garlic.Units is
    procedure Register_Unit
      (Name     : in String;
       Receiver : in Interfaces.Unsigned_64;
-      Version  : in Utils.String_Access);
+      Version  : in Types.Version_Type);
    --  Register locally this unit. The remote registration is postponed and
    --  will be performed with procedure above.
 
@@ -150,5 +81,8 @@ package System.Garlic.Units is
      (Error : in out Utils.Error_Type);
    --  Register all the units previously locally registered. Then, get back
    --  info on these units to check that these units are valid.
+
+   procedure Shutdown;
+   --  Resume tasks waiting for an update of units info table.
 
 end System.Garlic.Units;

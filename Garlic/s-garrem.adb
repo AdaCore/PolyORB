@@ -134,6 +134,8 @@ package body System.Garlic.Remote is
         Executable_Name & " " & "--detach --boot_server " &
         Get_Boot_Server;
    begin
+      pragma Debug (D ("Launch Command: " & Full_Command));
+
       Launch (Launcher, Host, Full_Command);
    end Full_Launch;
 
@@ -176,6 +178,8 @@ package body System.Garlic.Remote is
         and then Host (Host'First) /= '`'
         and then Is_Local_Host (Host)
       then
+         pragma Debug (D ("Run Spawn: " & Command));
+
          Local_Launcher (Command);
       else
          Rsh_Launcher (Launcher, Host, Command);
@@ -217,6 +221,8 @@ package body System.Garlic.Remote is
         " &"" < /dev/null > /dev/null";
       C_Command        : aliased char_array := To_C (Rsh_Full_Command);
    begin
+      pragma Debug (D ("Run System: " & Rsh_Full_Command));
+
       if C_System (C_Command'Address) / 256 /= 0 then
          raise Program_Error;
       end if;

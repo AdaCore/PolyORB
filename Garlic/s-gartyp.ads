@@ -40,6 +40,7 @@ package System.Garlic.Types is
    pragma Elaborate_Body;
 
    type Status_Type is (None, Busy, Done, Dead);
+   --  General status type for automaton
 
    Null_Partition_ID   : constant := 0;
    First_Partition_ID  : constant := Null_Partition_ID + 1;
@@ -58,6 +59,10 @@ package System.Garlic.Types is
    --  A partition whose ID fits in Valid_Partition_ID is a real partition
 
    Partition_ID_Increment : constant := 10;
+
+   type Partition_List is array (Natural range <>) of Partition_ID;
+   Null_Partition_List : constant Partition_List (1 .. 0)
+     := (others => Null_PID);
 
    type Unit_Id is new Natural;
    Null_Unit_Id  : constant Unit_Id := 0;

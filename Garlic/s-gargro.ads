@@ -35,7 +35,6 @@
 
 with System.Garlic.Heart;
 with System.Garlic.Streams;
-with System.Garlic.Utils;
 
 package System.Garlic.Group is
 

@@ -223,6 +223,10 @@ package body System.Garlic.Options is
          Index := Index + 1;
       end loop;
 
+      if Is_Boot_Server then
+         Is_Boot_Mirror := True;
+      end if;
+
       if Boot_Location = null then
          if (Is_Boot_Server and then not Nolaunch)
            or else Default_Boot_Server = ""

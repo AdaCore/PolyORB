@@ -35,14 +35,14 @@
 
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
+with System.Garlic.Options;
+pragma Warnings (Off, System.Garlic.Options);
 with System.Garlic.Partitions; use System.Garlic.Partitions;
 with System.Garlic.Streams;    use System.Garlic.Streams;
 with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Utils;      use System.Garlic.Utils;
 
 package body System.Garlic.Group is
-
-   package Partitions renames System.Garlic.Partitions.Partitions;
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARGRO", "(s-gargro): ");
@@ -61,7 +61,7 @@ package body System.Garlic.Group is
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type);
 
-   procedure Send_Neighbor
+   procedure Send_Next_Mirror
      (Opcode : in Any_Opcode;
       Params : access Streams.Params_Stream_Type);
 
@@ -74,13 +74,12 @@ package body System.Garlic.Group is
       Params : access Streams.Params_Stream_Type)
    is
    begin
-      pragma Assert (N_Boot_Mirrors > 1);
       Enter (Group_Mutex);
       pragma Debug (D ("Broadcast facility is locked"));
       Insert (Params.all);
       Partition_ID'Write (Params, Self_PID);
       Any_Opcode'Write (Params, Opcode);
-      Send_Neighbor (Group_Service, Params);
+      Send_Next_Mirror (Group_Service, Params);
    end Broadcast;
 
    --------------------
@@ -132,7 +131,7 @@ package body System.Garlic.Group is
          else
             pragma Debug (D ("Continue broacast for a second time"));
 
-            Send_Neighbor (Group_Service, Reply);
+            Send_Next_Mirror (Group_Service, Reply);
          end if;
          Deallocate (Inner_Query);
 
@@ -148,7 +147,7 @@ package body System.Garlic.Group is
             Any_Opcode'Write   (Inner_Query'Access, Inner_Code);
          end if;
 
-         Send_Neighbor (Group_Service, Inner_Query'Access);
+         Send_Next_Mirror (Group_Service, Inner_Query'Access);
       end if;
    end Handle_Request;
 
@@ -162,29 +161,29 @@ package body System.Garlic.Group is
       Register_Handler (Group_Service, Handle_Request'Access);
    end Initialize;
 
-   -------------------
-   -- Send_Neighbor --
-   -------------------
+   ----------------------
+   -- Send_Next_Mirror --
+   ----------------------
 
-   procedure Send_Neighbor
+   procedure Send_Next_Mirror
      (Opcode : in Any_Opcode;
       Params : access Streams.Params_Stream_Type)
    is
-      Error     : Error_Type;
-      Partition : Partition_ID := Self_PID;
+      Error  : Error_Type;
+      PID    : Partition_ID;
    begin
+      pragma Assert (Options.Is_Boot_Mirror);
       loop
-         Partition := Next_Boot_Mirror (Partition);
-         Send (Partition, Opcode, Params, Error);
+         PID := Next_Boot_Mirror;
+         Send (PID, Opcode, Params, Error);
          exit when not Found (Error);
 
-         --  The following assertion catches the unlikely case where a
-         --  send to the current partition has failed.
-
-         pragma Assert (Partition /= Self_PID);
+         --  On error, retry from Self_PID. We know that this
+         --  partition is already a boot mirror. If we can not find a
+         --  candidate, at least, send the message to itself.
 
          Catch (Error);
       end loop;
-   end Send_Neighbor;
+   end Send_Next_Mirror;
 
 end System.Garlic.Group;

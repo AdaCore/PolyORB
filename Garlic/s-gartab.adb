@@ -54,6 +54,13 @@ package body System.Garlic.Table is
 
    package body Complex is
 
+      type Component_Table_Type is
+         array (Index_Type range <>) of Component_Type;
+
+      type Component_Table_Access is access Component_Table_Type;
+
+      Table : Component_Table_Access;
+
       Min_Pos  : constant Integer := Integer (First_Index);
       Max_Pos  :          Integer := Min_Pos + Initial_Size - 1;
       Last_Pos :          Integer := Min_Pos - 1;

@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with System.Garlic.Physical_Location;
 with System.Garlic.Streams;
 with System.Garlic.Types;
 with System.Garlic.Utils;
@@ -57,10 +56,6 @@ package System.Garlic.Heart is
 
    procedure Initialize;
    --  Initialize package
-
-   procedure Set_Boot_Location
-     (Location : in System.Garlic.Physical_Location.Location_Type);
-   --  Set boot server coordinates
 
    --------------
    -- Settings --

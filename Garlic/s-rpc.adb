@@ -55,8 +55,6 @@ package body System.RPC is
    use Ada.Streams;
    use System.Garlic.Units;
 
-   package Units renames System.Garlic.Units.Units;
-
    use type System.Garlic.Streams.Params_Stream_Access;
    use type System.Garlic.Streams.Params_Stream_Type;
    use type System.Garlic.Types.Partition_ID;
@@ -440,10 +438,7 @@ package body System.RPC is
    is
    begin
       Pool.Shutdown;
-
-      --  Resume tasks waiting for an update of units info table.
-
-      Units.Update;
+      Units.Shutdown;
    end Shutdown;
 
    --------------

@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-with Ada.Task_Identification;
 
 package System.Garlic.Utils is
 

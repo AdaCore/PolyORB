@@ -57,9 +57,6 @@ package body System.Garlic.Heart is
 
    use Ada.Streams;
 
-   package Partitions renames System.Garlic.Partitions.Partitions;
-   use Partitions;
-
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARHEA", "(s-garhea): ");
 
@@ -257,7 +254,6 @@ package body System.Garlic.Heart is
      (PID   : out Partition_ID;
       Error : in out Error_Type)
    is
-      Server_Info  : Partition_Info;
    begin
 
       --  The current partition has a fake partition id and partition info.
@@ -268,20 +264,7 @@ package body System.Garlic.Heart is
 
          if Options.Is_Boot_Server then
 
-            --  Get fake partition info. Compute a real pid and then update
-            --  fake partition info in its slot. Deallocate the fake slot.
-
-            Partitions.Enter;
-            Self_PID    := Boot_PID;
-
-            Server_Info                := Partitions.Get_Component (Boot_PID);
-            Server_Info.Allocated      := True;
-            Server_Info.Status         := Done;
-            Server_Info.Boot_Partition := Boot_PID;
-            Partitions.Set_Component (Boot_PID, Server_Info);
-
-            Partitions.Leave;
-
+            Self_PID := Boot_PID;
             Set_My_Partition_ID (Error);
             if Found (Error) then
                return;
@@ -646,37 +629,6 @@ package body System.Garlic.Heart is
       Deallocate (Params_Copy);
    end Send_Boot_Server;
 
-   -----------------------
-   -- Set_Boot_Location --
-   -----------------------
-
-   procedure Set_Boot_Location
-     (Location : in Location_Type)
-   is
-      Info : Partition_Info :=
-        (Allocated      => True,
-         Location       => Location,
-         Protocol       => Get_Protocol (Location),
-         Logical_Name   => null,
-         Reconnection   => Rejected_On_Restart,
-         Termination    => Global_Termination,
-         Has_Light_PCS  => False,
-         Is_Boot_Mirror => True,
-         Boot_Partition => Null_PID,
-         Remote_Units   => Null_Unit_Id,
-         Status         => Done);
-   begin
-      if Options.Is_Boot_Server then
-         Info.Logical_Name := Options.Partition_Name;
-      end if;
-
-      pragma Debug (D ("Set boot location to " & To_String (Info.Location)));
-
-      --  Use Last_PID to store boot partition info
-
-      Partitions.Set_Component (Boot_PID, Info);
-   end Set_Boot_Location;
-
    -------------------------
    -- Set_My_Partition_ID --
    -------------------------
@@ -734,10 +686,6 @@ package body System.Garlic.Heart is
       Physical_Location.Shutdown;
       RPC_Shutdown;
 
-      --  Resume tasks waiting for an update of partition info table.
-
-      Partitions.Update;
-
       Destroy (Self_PID_Barrier);
    end Shutdown;
 
@@ -747,8 +695,6 @@ package body System.Garlic.Heart is
 
    procedure Soft_Shutdown
    is
-      PID  : Partition_ID;
-      Info : Partition_Info;
    begin
       Shutdown_In_Progress := True;
       if Options.Is_Boot_Server then
@@ -757,25 +703,21 @@ package body System.Garlic.Heart is
          --  any alive partition interested by a global termination. Ignore
          --  any communication error as this is a shutdown.
 
-         PID := Null_PID;
-         loop
-            Next_Partition (PID);
-            exit when PID = Null_PID;
-            Info := Partitions.Get_Component (PID);
-
-            if PID /= Self_PID
-              and then Info.Status = Done
-              and then Info.Termination /= Local_Termination
-            then
+         declare
+            PIDs  : Partition_List := Global_Termination_Partitions;
+            Error : Error_Type;
+         begin
+            for I in PIDs'Range loop
                declare
                   Empty : aliased Params_Stream_Type (0);
-                  Error : Error_Type;
                begin
-                  Send (PID, Shutdown_Operation, Empty'Access, Error);
-                  Catch (Error);
+                  if PIDs (I) /= Self_PID then
+                     Send (PIDs (I), Shutdown_Operation, Empty'Access, Error);
+                     Catch (Error);
+                  end if;
                end;
-            end if;
-         end loop;
+            end loop;
+         end;
       end if;
       Heart.Shutdown;
    end Soft_Shutdown;

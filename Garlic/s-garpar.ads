@@ -37,82 +37,10 @@ with System.Garlic.Name_Table;
 with System.Garlic.Physical_Location;
 with System.Garlic.Protocols;
 with System.Garlic.Streams;
-with System.Garlic.Table;
 with System.Garlic.Types;
 with System.Garlic.Utils;
 
 package System.Garlic.Partitions is
-
-   type Partition_Info is record
-      Location       : Physical_Location.Location_Type;
-      Protocol       : Protocols.Protocol_Access;
-      Logical_Name   : Utils.String_Access;
-      Termination    : Types.Termination_Type;
-      Reconnection   : Types.Reconnection_Type;
-      Has_Light_PCS  : Boolean;
-      Is_Boot_Mirror : Boolean;
-      Boot_Partition : Types.Partition_ID;
-      Remote_Units   : Types.Unit_Id;
-      Status         : Types.Status_Type;
-      Allocated      : Boolean;
-   end record;
-
-   --  Allocated      : true when this slot is not empty
-   --  Location       : partition physical location
-   --  Protocol       : cache for location protocol
-   --  Logical_Name   : name of the partition (may be duplicated)
-   --  Termination    : termination policy to adopt for this partition
-   --  Reconnection   : reconnection policy to adopt for this partition
-   --  Has_Light_PCS  : true for a partition which does not receive request
-   --  Is_Boot_Mirror : true for a partition which has a copy of PID table
-   --  Boot_Partition : pid of the partition used to boot a partition
-   --  Remote_Units   : root of the remote unit list
-   --  Status         : partition info status
-
-   Null_Partition : constant Partition_Info :=
-     (Allocated      => False,
-      Location       => Physical_Location.Null_Location,
-      Protocol       => null,
-      Logical_Name   => null,
-      Termination    => Types.Global_Termination,
-      Reconnection   => Types.Rejected_On_Restart,
-      Has_Light_PCS  => False,
-      Is_Boot_Mirror => False,
-      Boot_Partition => Types.Null_PID,
-      Remote_Units   => Types.Null_Unit_Id,
-      Status         => Types.None);
-
-   type Request_Kind is
-      (Compute_Partition_ID,
-       Copy_Partition_Table,
-       Define_New_Partition,
-       Pull_Partition_Table,
-       Push_Partition_Table);
-
-   type Request_Type (Kind : Request_Kind := Pull_Partition_Table) is
-      record
-         case Kind is
-            when Pull_Partition_Table |
-                 Copy_Partition_Table =>
-               null;
-            when Push_Partition_Table |
-                 Compute_Partition_ID =>
-               Partition : Types.Partition_ID;
-            when Define_New_Partition =>
-               null;
-               --  Note that a partition info always follows such a
-               --  request.
-         end case;
-      end record;
-
-   package Partitions is new System.Garlic.Table.Complex
-     (Index_Type     => Types.Partition_ID,
-      Null_Index     => Types.Null_PID,
-      First_Index    => Types.First_PID,
-      Initial_Size   => Natural (Types.Partition_ID_Increment),
-      Increment_Size => Natural (Types.Partition_ID_Increment),
-      Component_Type => Partition_Info,
-      Null_Component => Null_Partition);
 
    procedure Allocate_PID
      (Partition : out Types.Partition_ID;
@@ -120,15 +48,14 @@ package System.Garlic.Partitions is
    --  Allocate a new partition ID. This can need the agreement of the boot
    --  mirrors group.
 
-   function Boot_Partition
-     (Partition : Types.Partition_ID)
-      return Types.Partition_ID;
-   --  Return the pid of the partition used to boot Partition.
-
-   procedure Dump_Partition_Table;
-
    function Get_Boot_Server return String;
    --  This function returns the coordinates of the boot server
+
+   procedure Get_Boot_Partition
+     (Partition      : in Types.Partition_ID;
+      Boot_Partition : out Types.Partition_ID;
+      Error          : in out Utils.Error_Type);
+   --  Return the pid of the partition used to boot Partition.
 
    procedure Get_Location
      (Partition : in Types.Partition_ID;
@@ -146,13 +73,6 @@ package System.Garlic.Partitions is
       Error     : in out Utils.Error_Type);
    --  Return the name of a partition in its coded or plaintext form
 
-   procedure Get_Partition_Info
-     (Partition : in     Types.Partition_ID;
-      Info      :    out Partition_Info;
-      Error     : in out Utils.Error_Type);
-   --  If cached, then return local partition info. Otherwise, on a non
-   --  boot mirror, send a request. Wait for info to be available.
-
    procedure Get_Protocol
      (Partition : in Types.Partition_ID;
       Protocol  : out Protocols.Protocol_Access;
@@ -169,12 +89,9 @@ package System.Garlic.Partitions is
 
    function Get_Self_Location return Physical_Location.Location_Type;
 
-   procedure Get_Termination_Policy
-     (Partition    : in Types.Partition_ID;
-      Termination  : out Types.Termination_Type;
-      Error        : in out Utils.Error_Type);
-   --  Return the termination policy of a remote partition. Use
-   --  Get_Partition_Info.
+   function Global_Termination_Partitions return Types.Partition_List;
+   function Local_Termination_Partitions return Types.Partition_List;
+   function Known_Partitions return Types.Partition_List;
 
    procedure Handle_Partition_Request
      (Partition : in Types.Partition_ID;
@@ -191,24 +108,12 @@ package System.Garlic.Partitions is
    --  (not a slave). Send to boot mirrors group the invalidation request
    --  or to boot server if the current partition is not a boot mirror.
 
-   function Is_Dead (Partition : Types.Partition_ID) return Boolean;
-   --  Return True if Partition's status is Dead
-
    function N_Boot_Mirrors return Natural;
    --  Number of boot mirrors in the partition info table
 
-   procedure Next_Partition
-     (Partition : in out Types.Partition_ID);
-   --  Find next allocated partition after Partition. If no partition is
-   --  available, return Null_PID. If Partition is Null_PID when
-   --  Next_Partition is called, then starts from the first slot in the
-   --  table.
-
-   function Next_Boot_Mirror (Partition : Types.Partition_ID)
-     return Types.Partition_ID;
-   --  When called with a partition number that is a boot mirror, return
-   --  the next partition which is also a boot mirror. It may return the
-   --  same partition number if no other boot mirror is available.
+   function Next_Boot_Mirror return Types.Partition_ID;
+   --  Return the first boot mirror after this partition or else after
+   --  Null_PID.
 
    procedure Send_Boot_Request
      (Location : in Physical_Location.Location_Type;
@@ -228,9 +133,12 @@ package System.Garlic.Partitions is
    --  request to the boot partition. This is step 7. Then an all partition
    --  info request will be broadcast. This is step 8.
 
-   procedure Validate_PID
-     (PID  : in out Types.Partition_ID;
-      From : in Types.Partition_ID);
-   --  Validation occurs when all the boot server agree for a given PID.
+   procedure Set_Boot_Location
+     (Location : in System.Garlic.Physical_Location.Location_Type);
+   --  Set boot server coordinates
+
+   procedure Shutdown;
+   --  Resume tasks waiting for an update of partition info table to
+   --  ensure shutdown.
 
 end System.Garlic.Partitions;

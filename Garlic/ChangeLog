@@ -1,15 +1,105 @@
+1999-07-21  Laurent Pautet  <pautet@dorine.enst.fr>
+
+        * s-gargro.adb: Remove visibility on Partitions.Table. Rename
+        Send_Neighbor into Send_Next_Mirror.
+
+        * s-gargro.ads: Remove unused withed package.
+
+        * s-garhea.adb: Remove visibility on Partitions.Table. Remove
+        update of boot server partition info. It was correct from the
+        first time except for its location. Therefore, move
+        Set_Boot_Location into System.Garlic.Partitions and include boot
+        server location update into it. Invoke Partitions.Shutdown to
+        resume tasks blocked on Partitions.Table operations. Use
+        Partitions.Known_Partitions to send a message to force termination
+        on the alive partitions.
+
+        * s-garhea.ads: Move Set_Boot_Location into Partitions.
+
+        * s-garopt.adb: Force a boot server to be a boot mirror.
+
+        * s-garpar.adb: Move Partitions.Table from spec to body. Hide most
+        of the subprograms which have to be synchronized. Improve
+        concurrent access to this table. Define several functions to
+        compute a set of partitions matching some criteria
+        (Known_Partitions, Global_Termination_Partitions,
+        Local_Termination_Partitions). Fix a problem in the allocation of
+        a partition id in the boot mirror group (several passes can be
+        needed). Improve partition table broadcast (when a boot mirror
+        join the group, do not send a copy of the table to the previous
+        group. Just let the new boot mirror do the job once he has joined
+        the new group). Improve group communication (do not build a query
+        stream for a group when there is only one member in this
+        group). Always keep N_Boot_Mirrors up to date.
+
+        * s-garpar.ads: Hide most of the data of the old spec into the
+        body.  Add Shutdown and Set_Boot_Location procedures. Remove some
+        unused subprograms and withed units.
+
+        * s-garsta.adb: Elaborate System.Garlic.Filters and
+        System.Garlic.Partitions.
+
+        * s-gartab.adb, s-gartab.ads: Move Table from spec to body.
+
+        * s-gartcp.adb: Do not try to connect to a partition when
+        Shutdown_In_Progress.
+
+        * s-garter.adb: Use {Local|Global}_Termination_Partitions instead
+        of Next_Partition iterator.
+
+        * s-gartyp.ads: Add Partition_Array for all the functions
+        computing a set of partitions matching a given criteria.
+
+        * s-garuni.adb: Before inserting a partition request into the
+        pending list check that this request is not already there. Dump
+        pending request when we dump a unit info. The first remote unit of
+        a partition is no longer stored in the partition (the list of
+        remote units configured on a partition X starts with fake unit
+        "root X"). When we search for info on a unit and when the list of
+        unit info has not been merged into the distributed unit
+        table. look into the list of unit info (problem of elaboration
+        detected in one of the Eratho examples). To do this, protect the
+        list into a critical section. Improve group communication (do not
+        build a query stream for a group when there is only one member in
+        this group). Move message passing operations outside critical
+        section to avoid deadlocks.
+
+        * s-garuni.ads: Move Units.Table from spec to body. Change
+        Register_Unit Version parameter from String_Access to
+        Version_Type. Define new operations to get access to unit info
+        which is now hidden into the body. Add new Shutdown operation to
+        resume tasks blocked on Units.Table operations.
+
+        * s-garuti.adb, s-garuti.ads: Move a withed unit from spec to
+        body.
+
+        * s-parint.adb: Use new subprograms of Units to get access to
+        the version, the partition id and the rpc_receiver of a unit.
+
+        * s-rpc.adb: Remove visibility on Units.Table. Call Units.Shutdown
+        during Shutdown.
+
+        * s-rpc.ads: Fix Partition_ID range (starts from
+        Null_Partition_ID not from First_Partition_ID).
+
+        * s-rpstio.adb: Minor reformating.
+
+        * Makefile.am, Makefile.in: Update dependencies. Rebuild
+        lib[AP]tasking.a when they exist the same way we do with
+        libgnat.a (just to try for SGI).
+
 1999-07-15  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* s-rpc.ads, s-gartyp.ads: Cosmetic fixes.
+        * s-rpc.ads, s-gartyp.ads: Cosmetic fixes.
 
-	* s-gargro.adb: Defensive test. Check that broadcast is not call
-	when N_Boot_Mirrors = 1.
+        * s-gargro.adb: Defensive test. Check that broadcast is not call
+        when N_Boot_Mirrors = 1.
 
-	* s-garpar.adb: When a client partition (without RCI and RACW in
-	it) is dead, recycle its partition id.
+        * s-garpar.adb: When a client partition (without RCI and RACW in
+        it) is dead, recycle its partition id.
 
-	* s-garuni.adb: Do not broadcast partition unit table on
-	invalidation when there is only one boot mirror.
+        * s-garuni.adb: Do not broadcast partition unit table on
+        invalidation when there is only one boot mirror.
 
 1999-07-15  Laurent Pautet  <pautet@dorine.enst.fr>
 

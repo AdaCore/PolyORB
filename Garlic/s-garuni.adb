@@ -42,6 +42,7 @@ with System.Garlic.Heart;       use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
 with System.Garlic.Options;     use System.Garlic.Options;
 with System.Garlic.Partitions;  use System.Garlic.Partitions;
+with System.Garlic.Soft_Links;  use System.Garlic.Soft_Links;
 with System.Garlic.Streams;     use System.Garlic.Streams;
 with System.Garlic.Table;
 with System.Garlic.Types;       use System.Garlic.Types;
@@ -52,12 +53,92 @@ package body System.Garlic.Units is
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARUNI", "(s-garuni): ");
 
-   package Partitions renames System.Garlic.Partitions.Partitions;
-
    procedure D
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
+
+   type Request_Id is new Natural;
+   Null_Request_Id  : constant Request_Id := 0;
+   First_Request_Id : constant Request_Id := 3_000_000;
+   Request_Id_Increment : constant := 10;
+
+   subtype Request_List is Request_Id;
+   Null_Request_List : constant Request_List := Null_Request_Id;
+
+   type Request_Kind is (Copy_Units_Table,
+                         Define_New_Units,
+                         Invalidate_Units,
+                         Pull_Units_Table,
+                         Push_Units_Table);
+
+   type Unit_Status is (Queried, Undefined, Declared, Defined, Invalid);
+   --  The order is very important. At the beginning, a unit is
+   --  UNDEFINED on the caller side. It will send a request to get
+   --  info on this request and the new status will be QUERIED (just
+   --  to avoid multiple requests). On the receiver side, it is
+   --  DECLARED. The receiver registers the unit to the boot
+   --  server. The boot server will try to get a first agreement from
+   --  other boot mirrors. If the unit info has not been modified
+   --  after a first pass, then the unit becomes DEFINED and this new
+   --  info is sent once again to other boot mirrors. When the unit
+   --  becomes DEFINED, the boot mirrors are allowed to answer to
+   --  pending request from other partitions. When a partition dies,
+   --  all its units are INVALID. If the reconnection mode of the
+   --  partition is Blocked_Until_Restart, then the unit status is set
+   --  to UNDEFINED. Otherwise, it is set to INVALID. If the
+   --  reconnection mode is Failed_Until_Restart, then the status can
+   --  get back to DEFINED.
+
+   type Unit_Info is
+      record
+         Next_Unit : Types.Unit_Id;
+         Partition : Types.Partition_ID;
+         Receiver  : Interfaces.Unsigned_64;
+         Version   : Types.Version_Type;
+         Status    : Unit_Status;
+         Requests  : Request_List;
+      end record;
+
+   Null_Unit : constant Unit_Info :=
+     (Next_Unit => Types.Null_Unit_Id,
+      Partition => Types.Null_PID,
+      Receiver  => 0,
+      Version   => Types.Null_Version,
+      Status    => Undefined,
+      Requests  => Null_Request_List);
+
+   --  Next_Unit   : units on the same partition are linked together
+   --  Partition   : unit partition id
+   --  Receiver    : unit rpc receiver
+   --  Version     : unit version id
+   --  Status      : unit info status
+   --  Pending     : true when requests are pending
+   --  Requests    : pending requests - list of partition ids
+
+   type Request_Type (Kind : Request_Kind := Pull_Units_Table) is
+      record
+         case Kind is
+            when Copy_Units_Table |
+                 Define_New_Units |
+                 Pull_Units_Table |
+                 Push_Units_Table =>
+               null;
+
+            when Invalidate_Units =>
+               Partition : Types.Partition_ID;
+
+         end case;
+      end record;
+
+   package Units is new System.Garlic.Table.Complex
+     (Index_Type     => Types.Unit_Id,
+      Null_Index     => Types.Null_Unit_Id,
+      First_Index    => Types.First_Unit_Id,
+      Initial_Size   => Types.Unit_Id_Increment,
+      Increment_Size => Types.Unit_Id_Increment,
+      Component_Type => Unit_Info,
+      Null_Component => Null_Unit);
 
    type Request_Info is record
       PID  : Partition_ID;
@@ -67,30 +148,40 @@ package body System.Garlic.Units is
 
    package Requests is
      new System.Garlic.Table.Complex
-     (Request_Id,
-      Null_Request_Id,
-      First_Request_Id,
-      Request_Id_Increment,
-      Request_Id_Increment,
-      Request_Info,
-      Null_Request_Info);
+       (Request_Id,
+        Null_Request_Id,
+        First_Request_Id,
+        Request_Id_Increment,
+        Request_Id_Increment,
+        Request_Info,
+        Null_Request_Info);
 
-   procedure Pop
-     (List : in out Request_Id;
+   procedure Extract
+     (List : in out Request_List;
       PID  : out Partition_ID);
-   procedure Push
-     (List : in out Request_Id;
+
+   procedure Insert
+     (List : in out Request_List;
       PID  : in Partition_ID);
 
-   procedure Answer_Pending_Requests (List : in Request_Id);
-   --  A boot server or mirror can receive a request on an unit for
-   --  which it has no info on it yet. So, we keep track of this
-   --  request in order to answer it later on. When info becomes
-   --  available, answer to pending requests.
+   procedure Answer_Pending_Requests (List : in Request_List);
+   --  A boot mirror can receive a request on a unit for which it has
+   --  no info on it yet. So, we keep track of this request in order
+   --  to answer it later on. When info becomes available, answer to
+   --  pending requests.
+
+   procedure Dump_Unit_Table;
 
    procedure Dump_Unit_Info
      (Unit : in Unit_Id;
       Info : in Unit_Info);
+
+   procedure Get_Unit_Info
+     (Unit  : in Unit_Id;
+      Info  : out Unit_Info;
+      Error : in out Utils.Error_Type);
+   --  Return unit info on these unit. If status is unknown, then ask
+   --  a boot mirror for a copy of unit info.
 
    procedure Handle_Request
      (Partition : in Partition_ID;
@@ -99,20 +190,14 @@ package body System.Garlic.Units is
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type);
    --  Global message receiver. This Handle_Request is quite complex
-   --  because it interacts rather strongly with the group communication
-   --  package. For normal requests (other than Copy_Unit_Table), Query and
-   --  Reply have the usual meaning. For Copy_Unit_Table, Query can be
-   --  updated because a followup is intented. When Query is empty, there
-   --  is another case of followup with Reply. This is a request for a new
-   --  communication broadcast. There is no other way to do this because
-   --  Handle_Request is invoked asynchronously and we need to use the
-   --  current task to start the next group request.
+   --  because it interacts rather strongly with the group
+   --  communication package.
 
    procedure Invalidate_Unit_List
      (Partition : in Partition_ID);
    --  Modify status of units configured on Partition. This final status is
-   --  Invalid when Partition reconnection mode is Rejected_On_Restart or
-   --  Failed_Until_Restart, Undefined when reconnection is
+   --  INVALID when Partition reconnection mode is Rejected_On_Restart or
+   --  Failed_Until_Restart, UNDEFINED when reconnection is
    --  Blocked_Until_Restart.
 
    procedure Store_New_Unit
@@ -121,33 +206,46 @@ package body System.Garlic.Units is
       Receiver  : in Unsigned_64;
       Version   : in Version_Type;
       Status    : in Unit_Status;
-      Pending   : in out Request_Id);
+      Pending   : in out Request_List);
    --  Fill new unit slot and link unit into the partition unit list.
    --  Return a pending requests list. Basically, this procedure
-   --  *merges* the new info with the old info already present. For
-   --  instance, an update from Invalidated to Defined will be ignored
-   --  because the sender does know that a particular partition has
-   --  been invalidated.
+   --  merges the new info with the old info already present. For
+   --  instance, an update from INVALID to DEFINED will be ignored
+   --  because the sender does not know that a particular partition
+   --  has been invalidated.
+
+   function Get_First_Remote_Unit
+     (PID  : Partition_ID)
+     return Unit_Id;
+   --  Return the first unit configured on this partition.
+
+   procedure Set_First_Remote_Unit
+     (PID  : in Partition_ID;
+      Unit : in Unit_Id);
+   --  Assign Unit as the first remote unit of this partition.
 
    procedure Read_Units
      (Stream : access Params_Stream_Type;
-      List   : out Request_Id);
+      List   : out Request_List);
+
    procedure Write_Units
      (Stream : access Params_Stream_Type);
    --  Marshal and unmarshal the units table. We marshal this table
-   --  par partition seq1 = (True, Partition_ID, seq2). Then, we
-   --  marshal each unit of this partition. seq2 = (True, Name, Receiver,
-   --  Partition, Status).
+   --  per partition seq1 = (True, Partition_ID, seq2). Then, we
+   --  marshal each unit of this partition. seq2 = (True, Name,
+   --  Receiver, Partition, Status). This ends up with False to
+   --  indicate the end of one of the list.
 
    type Receiver_Node;
    type Receiver_List is access Receiver_Node;
    type Receiver_Node is
       record
          Name     : String_Access;
-         Version  : String_Access;
+         Version  : Version_Type;
          Receiver : Interfaces.Unsigned_64;
          Next     : Receiver_List;
       end record;
+
    Receivers : Receiver_List;
    --  This is a list of receiver units to register when
    --  Establish_RPC_Receiver is called.
@@ -157,30 +255,21 @@ package body System.Garlic.Units is
    Define_Units : constant Request_Type := (Kind => Define_New_Units);
    Copy_Units   : constant Request_Type := (Kind => Copy_Units_Table);
    Push_Units   : constant Request_Type := (Kind => Push_Units_Table);
-   --  Basic requests
+   --  Shortcuts.
 
    -----------------------------
    -- Answer_Pending_Requests --
    -----------------------------
 
-   procedure Answer_Pending_Requests (List : in Request_Id) is
+   procedure Answer_Pending_Requests (List : in Request_List) is
       Root : Request_Id := List;
       PID  : Partition_ID;
    begin
-      while Root /= Null_Request_Id loop
-         Pop (Root, PID);
+      while Root /= Null_Request_List loop
+         Extract (Root, PID);
 
-         if Is_Dead (PID) then
-
-            --  The partition is dead in the meantime. Do nothing as
-            --  it is already marked as dead.
-
-            pragma Debug (D ("Skipping pending request for dead " &
-                             "partition" & Partition_ID'Image (PID)));
-            null;
-
-         elsif Self_PID /= PID then
-            --  Send the whole table even if the request was on a
+         if Self_PID /= PID then
+            --  Send the whole unit table even if the request was on a
             --  specific unit.
 
             declare
@@ -214,12 +303,12 @@ package body System.Garlic.Units is
      (Unit : in Unit_Id;
       Info : in Unit_Info)
    is
-      function Request_List_Image (L : Request_Id) return String;
-      function Request_List_Image (L : Request_Id) return String
+      function Request_List_Image (L : Request_List) return String;
+      function Request_List_Image (L : Request_List) return String
       is
          Info : Request_Info;
       begin
-         if L /= Null_Request_Id then
+         if L /= Null_Request_List then
             Info := Requests.Get_Component (L);
             return Info.PID'Img & Request_List_Image (Info.Next);
          end if;
@@ -235,7 +324,7 @@ package body System.Garlic.Units is
       else
          D ("   Version       <no version>");
       end if;
-      if Info.Requests /= Null_Request_Id then
+      if Info.Requests /= Null_Request_List then
          D ("   Requests     " & Request_List_Image (Info.Requests));
       end if;
       D ("   Status        " & Info.Status'Img);
@@ -248,16 +337,16 @@ package body System.Garlic.Units is
 
    procedure Dump_Unit_Table
    is
-      Unit : Unit_Id;
-      Info : Unit_Info;
+      Unit  : Unit_Id;
+      Info  : Unit_Info;
+      PIDs  : Partition_List := Known_Partitions;
    begin
-      Partitions.Enter;
       D ("Unit Info Table");
       D ("---------------");
-      for P in First_PID .. Partitions.Last loop
-         Unit := Partitions.Get_Component (P).Remote_Units;
+      for I in PIDs'Range loop
+         Unit := Get_First_Remote_Unit (PIDs (I));
          if Unit /= Null_Unit_Id then
-            D ("** Partition" & P'Img);
+            D ("** Partition" & PIDs (I)'Img);
          end if;
          while Unit /= Null_Unit_Id loop
             Info := Units.Get_Component (Unit);
@@ -265,15 +354,104 @@ package body System.Garlic.Units is
             Unit := Info.Next_Unit;
          end loop;
       end loop;
-      D ("** Partition Unknown");
+      D ("** Not Yet Configured Units");
       for U in First_Unit_Id .. Units.Last loop
          Info := Units.Get_Component (U);
-         if Info.Requests /= Null_Request_Id then
+         if Info.Requests /= Null_Request_List then
             Dump_Unit_Info (U, Info);
          end if;
       end loop;
-      Partitions.Leave;
    end Dump_Unit_Table;
+
+   -------------
+   -- Extract --
+   -------------
+
+   procedure Extract
+     (List : in out Request_List;
+      PID  : out Partition_ID)
+   is
+      Info : Request_Info;
+   begin
+      Info := Requests.Get_Component (List);
+      Requests.Set_Component (List, Null_Request_Info);
+      PID  := Info.PID;
+      List := Info.Next;
+   end Extract;
+
+   ---------------------------
+   -- Get_First_Remote_Unit --
+   ---------------------------
+
+   function Get_First_Remote_Unit
+     (PID : Partition_ID)
+     return Unit_Id
+   is
+      Root : Unit_Id;
+   begin
+      Root := Units.Get_Index ("root " & PID'Img);
+      return Units.Get_Component (Root).Next_Unit;
+   end Get_First_Remote_Unit;
+
+   -------------------
+   -- Get_Partition --
+   -------------------
+
+   procedure Get_Partition
+     (Unit      : in Types.Unit_Id;
+      Partition : out Types.Partition_ID;
+      Error     : in out Utils.Error_Type)
+   is
+      Info : Unit_Info;
+   begin
+      Get_Unit_Info (Unit, Info, Error);
+      if Info.Status = Invalid then
+         Throw (Error, "Partition" & Info.Partition'Img & " is unreachable");
+      end if;
+      Partition := Info.Partition;
+   end Get_Partition;
+
+   ------------------
+   -- Get_Receiver --
+   ------------------
+
+   procedure Get_Receiver
+     (Unit     : in Types.Unit_Id;
+      Receiver : out Interfaces.Unsigned_64;
+      Error    : in out Utils.Error_Type)
+   is
+      Info : Unit_Info;
+   begin
+      Get_Unit_Info (Unit, Info, Error);
+      if Info.Status = Invalid then
+         Throw (Error, "Partition" & Info.Partition'Img & " is unreachable");
+      end if;
+      Receiver := Info.Receiver;
+   end Get_Receiver;
+
+   -----------------
+   -- Get_Unit_Id --
+   -----------------
+
+   function Get_Unit_Id (Name : String) return Types.Unit_Id is
+   begin
+      return Units.Get_Index (Name);
+   end Get_Unit_Id;
+
+   -----------------
+   -- Get_Version --
+   -----------------
+
+   procedure Get_Version
+     (Unit    : in Types.Unit_Id;
+      Version : out Types.Version_Type;
+      Error   : in out Utils.Error_Type)
+   is
+      Info : Unit_Info;
+   begin
+      Get_Unit_Info (Unit, Info, Error);
+      Version := Info.Version;
+   end Get_Version;
 
    -------------------
    -- Get_Unit_Info --
@@ -288,6 +466,35 @@ package body System.Garlic.Units is
       Current : Unit_Info;
    begin
       pragma Assert (Unit /= Null_Unit_Id);
+
+      if Receivers /= null then
+
+         --  If the partition is not yet fully elaborated, then look
+         --  for unit in the local unit list. Otherwise, we will have
+         --  to wait for info from other partitions.
+
+         Enter_Critical_Section;
+         declare
+            Name : String := Units.Get_Name (Unit);
+            List : Receiver_List := Receivers;
+         begin
+            while List /= null loop
+               if List.Name.all = Name then
+                  Info.Next_Unit := Null_Unit_Id;
+                  Info.Partition := Self_PID;
+                  Info.Receiver  := List.Receiver;
+                  Info.Version   := List.Version;
+                  Info.Status    := Declared;
+                  Info.Requests  := Null_Request_List;
+                  Leave_Critical_Section;
+                  return;
+               end if;
+               List := List.Next;
+            end loop;
+         end;
+         Leave_Critical_Section;
+      end if;
+
       loop
          Current := Units.Get_Component (Unit);
 
@@ -295,12 +502,11 @@ package body System.Garlic.Units is
 
          pragma Debug
            (D ("Looking for information on unit "&  Units.Get_Name (Unit)));
-         pragma Debug (Dump_Unit_Info (Unit, Current));
 
          Units.Enter;
          Current := Units.Get_Component (Unit);
 
-         --  In the meantime, unit status can be different. Check again.
+         --  In the meantime, unit can be different. Check again.
 
          if not Is_Boot_Server
            and then Current.Status in Undefined .. Declared
@@ -340,9 +546,8 @@ package body System.Garlic.Units is
       Reply     : access Params_Stream_Type;
       Error     : in out Error_Type)
    is
-      To_All  : Boolean;
-      Token   : aliased Params_Stream_Type (0);
-      Pending : Request_Id := Null_Request_Id;
+      To_All  : aliased Params_Stream_Type (0);
+      Pending : Request_List := Null_Request_List;
       Request : Request_Type;
       Unit    : Unit_Id;
       Info    : Unit_Info;
@@ -370,6 +575,8 @@ package body System.Garlic.Units is
                when Defined | Invalid =>
                   pragma Debug (D (Units.Get_Name (Unit) & " is known"));
 
+                  --  Reply with the whole unit list.
+
                   Request_Type'Output (Reply, Push_Units);
                   Write_Units (Reply);
 
@@ -378,10 +585,10 @@ package body System.Garlic.Units is
                     (D ("Queuing request from" & Partition'Img &
                         " on " & Units.Get_Name (Unit)));
 
-                  --  Queue this request in order to answer it when info is
-                  --  available.
+                  --  Insert this request in order to answer it when
+                  --  info is available.
 
-                  Push (Info.Requests, Partition);
+                  Insert (Info.Requests, Partition);
                   Units.Set_Component (Unit, Info);
 
                when Queried =>
@@ -390,28 +597,26 @@ package body System.Garlic.Units is
 
             end case;
 
-            --  No group communication
-
-            To_All := False;
-
          when Copy_Units_Table =>
+
+            --  Merge local unit list with the list we received.
 
             Read_Units (Query, Pending);
 
             declare
-               List        : Request_Id := Pending;
-               Info        : Request_Info;
-               Second_Pass : Boolean := False;
+               List  : Request_List := Pending;
+               Info  : Request_Info;
+               Again : Boolean := False;
             begin
 
                --  Having a pending request for the current partition means
                --  that it has to send a second copy of the unit info table.
-               --  Some units were only Declared but are now Defined.
+               --  Some units were only DECLARED but are now DEFINED.
 
-               while List /= Null_Request_Id loop
+               while List /= Null_Request_List loop
                   Info := Requests.Get_Component (List);
                   if Info.PID = Self_PID then
-                     Second_Pass := True;
+                     Again := True;
                      exit;
                   end if;
                   List := Info.Next;
@@ -427,26 +632,32 @@ package body System.Garlic.Units is
                   Request_Type'Output (Query, Copy_Units);
                   Write_Units (Query);
 
-               elsif Second_Pass then
+               elsif Again then
                   Request_Type'Output (Reply, Copy_Units);
                   Write_Units (Reply);
                end if;
             end;
 
-            --  No group communication
-
-            To_All := False;
-
          when Define_New_Units |
            Push_Units_Table =>
 
-            To_All := False;
+            --  Merge the local unit list with the list we received.
+
             Read_Units (Query, Pending);
+
+            --  If there are new units and if this partition is a boot
+            --  mirror, then broadcast the new unit table to the other
+            --  boot mirrors. If so, we will answer to pending
+            --  requests when the current partition receives its copy
+            --  back.
+
             if Request.Kind = Define_New_Units
-              and then Is_Boot_Server
+              and then Is_Boot_Mirror
             then
                if N_Boot_Mirrors > 1 then
-                  To_All := True;
+                  Request_Type'Output (To_All'Access, Copy_Units);
+                  Write_Units (To_All'Access);
+
                else
                   Answer_Pending_Requests (Pending);
                end if;
@@ -454,21 +665,17 @@ package body System.Garlic.Units is
 
          when Invalidate_Units =>
 
+            --  This does not work like partitions ???
+
             Invalidate_Unit_List (Request.Partition);
-            To_All := Is_Boot_Server;
+            if Is_Boot_Server
+              and then N_Boot_Mirrors > 1
+            then
+               Request_Type'Output (To_All'Access, Copy_Units);
+               Write_Units (To_All'Access);
+            end if;
 
       end case;
-
-      --  For some units table modifications, we send the new table to boot
-      --  mirrors group. We marshal the table while we still have a lock on
-      --  it.
-
-      if To_All
-        and then N_Boot_Mirrors > 1
-      then
-         Request_Type'Output (Token'Access, Copy_Units);
-         Write_Units (Token'Access);
-      end if;
 
       pragma Debug (Dump_Unit_Table);
 
@@ -476,8 +683,8 @@ package body System.Garlic.Units is
 
       --  Send the new table to boot mirrors group.
 
-      if not Empty (Token'Access) then
-         Broadcast (Unit_Name_Service, Token'Access);
+      if not Empty (To_All'Access) then
+         Broadcast (Unit_Name_Service, To_All'Access);
       end if;
    end Handle_Request;
 
@@ -490,6 +697,40 @@ package body System.Garlic.Units is
       Register_Handler (Unit_Name_Service, Handle_Request'Access);
    end Initialize;
 
+   ------------
+   -- Insert --
+   ------------
+
+   procedure Insert
+     (List : in out Request_List;
+      PID  : in Partition_ID)
+   is
+      Info    : Request_Info;
+      Request : Request_Id;
+      Last    : Request_Id;
+   begin
+      --  If this request has already been inserted then ignored.
+
+      Request := List;
+      while Request /= Null_Request_Id loop
+         Info := Requests.Get_Component (Request);
+         if Info.PID = PID then
+            return;
+         end if;
+      end loop;
+
+      Last    := Requests.Last + 1;
+      Request := First_Request_Id;
+      while Request <= Last loop
+         Info := Requests.Get_Component (Request);
+         exit when Info = Null_Request_Info;
+         Request := Request + 1;
+      end loop;
+      Requests.Set_Component (Request, (PID, List));
+
+      List := Request;
+   end Insert;
+
    --------------------------------
    -- Invalidate_Partition_Units --
    --------------------------------
@@ -497,8 +738,9 @@ package body System.Garlic.Units is
    procedure Invalidate_Partition_Units
      (Partition : in Partition_ID)
    is
-      Query : aliased Params_Stream_Type (0);
-      Error : Error_Type;
+      Query  : aliased Params_Stream_Type (0);
+      To_All : aliased Params_Stream_Type (0);
+      Error  : Error_Type;
    begin
       if Shutdown_In_Progress then
          return;
@@ -506,21 +748,26 @@ package body System.Garlic.Units is
 
       Units.Enter;
       Invalidate_Unit_List (Partition);
-      Units.Leave;
 
-      if Is_Boot_Mirror
-        and then N_Boot_Mirrors > 1
-      then
-         Request_Type'Output (Query'Access, Copy_Units);
-         Write_Units (Query'Access);
-         Broadcast (Unit_Name_Service, Query'Access);
+      if Is_Boot_Mirror then
+         if N_Boot_Mirrors > 1 then
+            Request_Type'Output (To_All'Access, Copy_Units);
+            Write_Units (To_All'Access);
+         end if;
 
       else
          Request_Type'Output (Query'Access, (Invalidate_Units, Partition));
-         Send_Boot_Server (Unit_Name_Service, Query'Access, Error);
       end if;
 
-      Catch (Error);
+      Units.Leave;
+
+      if not Empty (To_All'Access) then
+         Broadcast (Unit_Name_Service, To_All'Access);
+
+      elsif not Empty (Query'Access) then
+         Send_Boot_Server (Unit_Name_Service, Query'Access, Error);
+         Catch (Error);
+      end if;
    end Invalidate_Partition_Units;
 
    --------------------------
@@ -560,7 +807,7 @@ package body System.Garlic.Units is
          Status := Invalid;
       end if;
 
-      Unit := Partitions.Get_Component (Partition).Remote_Units;
+      Unit := Get_First_Remote_Unit (Partition);
       while Unit /= Null_Unit_Id loop
          Info := Units.Get_Component (Unit);
          Info.Status := Status;
@@ -574,52 +821,13 @@ package body System.Garlic.Units is
       end loop;
    end Invalidate_Unit_List;
 
-   ---------
-   -- Pop --
-   ---------
-
-   procedure Pop
-     (List : in out Request_Id;
-      PID  : out Partition_ID)
-   is
-      Info : Request_Info;
-   begin
-      Info := Requests.Get_Component (List);
-      Requests.Set_Component (List, Null_Request_Info);
-      PID  := Info.PID;
-      List := Info.Next;
-   end Pop;
-
-   ----------
-   -- Push --
-   ----------
-
-   procedure Push
-     (List : in out Request_Id;
-      PID  : in Partition_ID)
-   is
-      Info : Request_Info;
-      Root : Request_Id;
-   begin
-      Root := Null_Request_Id;
-      for R in First_Request_Id .. Requests.Last + 1 loop
-         Info := Requests.Get_Component (R);
-         if Info = Null_Request_Info then
-            Root := R;
-            exit;
-         end if;
-      end loop;
-      Requests.Set_Component (Root, (PID, List));
-      List := Root;
-   end Push;
-
    ----------------
    -- Read_Units --
    ----------------
 
    procedure Read_Units
      (Stream : access Params_Stream_Type;
-      List   : out Request_Id)
+      List   : out Request_List)
    is
       Unit      : Unit_Id;
       Partition : Partition_ID;
@@ -627,24 +835,27 @@ package body System.Garlic.Units is
       Version   : Version_Type;
       Status    : Unit_Status;
    begin
-      List := Null_Request_Id;
+      List := Null_Request_List;
 
       while Boolean'Input (Stream) loop
          Partition_ID'Read (Stream, Partition);
          pragma Debug
            (D ("Read units mapped on partition" & Partition'Img));
 
+         Set_First_Remote_Unit (Partition, Null_Unit_Id);
          while Boolean'Input (Stream) loop
             Unit := Units.Get_Index (String'Input (Stream));
             pragma Debug
               (D ("Read unit info about " & Units.Get_Name (Unit)));
 
-            Unsigned_64'Read (Stream, Receiver);
-            Version := Version_Type (String'Input (Stream));
-            Unit_Status'Read (Stream, Status);
+            Unsigned_64'Read  (Stream, Receiver);
+            Version_Type'Read (Stream, Version);
+            Unit_Status'Read  (Stream, Status);
             Store_New_Unit (Unit, Partition, Receiver, Version, Status, List);
          end loop;
       end loop;
+
+      pragma Debug (Dump_Unit_Table);
    exception
       when Error : others =>
          pragma Debug (D ("Exception raised in Read_Units: " &
@@ -659,15 +870,21 @@ package body System.Garlic.Units is
    procedure Register_Unit
      (Name     : in String;
       Receiver : in Interfaces.Unsigned_64;
-      Version  : in Utils.String_Access)
+      Version  : in Types.Version_Type)
    is
       Node : Receiver_List := new Receiver_Node;
    begin
+      --  We need this critical section because a package can be
+      --  already elaborated and one of its tasks can ask for the
+      --  partition id of a local rci unit.
+
+      Enter_Critical_Section;
       Node.Name     := new String'(Name);
       Node.Version  := Version;
       Node.Receiver := Receiver;
       Node.Next     := Receivers;
       Receivers     := Node;
+      Leave_Critical_Section;
    end Register_Unit;
 
    -----------------------------------
@@ -677,25 +894,29 @@ package body System.Garlic.Units is
    procedure Register_Units_On_Boot_Server
      (Error : in out Error_Type)
    is
-      Node  : Receiver_List := Receivers;
+      List  : Receiver_List := Receivers;
+      Node  : Receiver_List;
       Unit  : Unit_Id;
       Info  : Unit_Info;
       Query : aliased Params_Stream_Type (0);
    begin
-      if Node /= null then
+      Receivers := null;
+
+      if List /= null then
          Request_Type'Output (Query'Access, Define_Units);
          Boolean'Write       (Query'Access, True);
          Partition_ID'Write  (Query'Access, Self_PID);
       end if;
 
+      Node := List;
       while Node /= null loop
          pragma Debug (D ("Register unit " & Node.Name.all));
 
-         Boolean'Write     (Query'Access, True);
-         String'Output     (Query'Access, Node.Name.all);
-         Unsigned_64'Write (Query'Access, Node.Receiver);
-         String'Output     (Query'Access, Node.Version.all);
-         Unit_Status'Write (Query'Access, Declared);
+         Boolean'Write      (Query'Access, True);
+         String'Output      (Query'Access, Node.Name.all);
+         Unsigned_64'Write  (Query'Access, Node.Receiver);
+         Version_Type'Write (Query'Access, Node.Version);
+         Unit_Status'Write  (Query'Access, Declared);
 
          Node  := Node.Next;
       end loop;
@@ -714,8 +935,8 @@ package body System.Garlic.Units is
       --  Info should be the same. Otherwise, there is a conflict and
       --  these units are duplicated. The partition has to shutdown.
 
-      while Receivers /= null loop
-         Unit := Units.Get_Index (Receivers.Name.all);
+      while List /= null loop
+         Unit := Units.Get_Index (List.Name.all);
          Get_Unit_Info (Unit, Info, Error);
          if Found (Error) then
             return;
@@ -727,17 +948,44 @@ package body System.Garlic.Units is
             Soft_Shutdown;
             Ada.Exceptions.Raise_Exception
               (Program_Error'Identity,
-               "RCI unit " & Receivers.Name.all & " is already declared");
+               "RCI unit " & List.Name.all & " is already declared");
          end if;
 
-         Node      := Receivers;
-         Receivers := Receivers.Next;
+         Node := List;
+         List := List.Next;
 
          Free (Node.Name);
-         Free (Node.Version);
          Free (Node);
       end loop;
    end Register_Units_On_Boot_Server;
+
+   ---------------------------
+   -- Set_First_Remote_Unit --
+   ---------------------------
+
+   procedure Set_First_Remote_Unit
+     (PID  : in Partition_ID;
+      Unit : in Unit_Id)
+   is
+      Root : Unit_Id;
+      Info : Unit_Info;
+   begin
+      Root := Units.Get_Index ("root " & PID'Img);
+      Info := Units.Get_Component (Root);
+      Info.Next_Unit := Unit;
+      Units.Set_Component (Root, Info);
+   end Set_First_Remote_Unit;
+
+   --------------
+   -- Shutdown --
+   --------------
+
+   procedure Shutdown is
+   begin
+      --  Resume tasks waiting for an update of units info table.
+
+      Units.Update;
+   end Shutdown;
 
    --------------------
    -- Store_New_Unit --
@@ -749,22 +997,18 @@ package body System.Garlic.Units is
       Receiver  : in Unsigned_64;
       Version   : in Version_Type;
       Status    : in Unit_Status;
-      Pending   : in out Request_Id)
+      Pending   : in out Request_List)
    is
       Current_Info      : Unit_Info := Units.Get_Component (Unit);
       Current_Status    : Unit_Status renames Current_Info.Status;
       Current_Partition : Partition_ID renames Current_Info.Partition;
 
-      In_Queue          : Boolean := True;
-      --  This variable is set to False if the current info does not
-      --  belong to a partition list of units (or has been removed
-      --  from such a list).
-
    begin
 
-      --  If a request is supposed to change the status from Invalid to
-      --  Defined, then this request should be ignored. The sender doesn't
-      --  know yet that the partition has been invalidated with all its units.
+      --  If a request is supposed to change the status from INVALID
+      --  to DEFINED, then this request should be ignored. The sender
+      --  is not yet aware that the partition has been invalidated
+      --  with all its units.
 
       if Current_Status = Invalid and then Status = Defined then
          pragma Debug (D ("Ignoring late request to define unit " &
@@ -772,7 +1016,7 @@ package body System.Garlic.Units is
          return;
       end if;
 
-      --  If the status is Declared when it is already set to Defined on
+      --  If the status is DECLARED when it is already set to DEFINED on
       --  this partition, then a partition tries to register twice an unit.
 
       if Current_Status = Defined and then Status = Declared then
@@ -806,16 +1050,11 @@ package body System.Garlic.Units is
          end;
       end if;
 
-      if Current_Partition = Null_PID then
-
-         --  The unit has not been enqueued into a partition list yet
-
-         In_Queue := False;
-
-      elsif (Current_Status = Undefined
-             or else Current_Status = Invalid
-             or else Current_Status = Queried)
+      if Current_Partition /= Null_PID
         and then Current_Partition /= Partition
+        and then (Current_Status = Undefined
+                  or else Current_Status = Invalid
+                  or else Current_Status = Queried)
       then
          --  A unit may have an Undefined status once its partition has
          --  been invalidated. This comes from a partition reconnection
@@ -830,14 +1069,12 @@ package body System.Garlic.Units is
          declare
             Previous_Unit : Unit_Id;
             Previous_Info : Unit_Info;
-            The_Part_Info : Partition_Info;
          begin
-            Partitions.Enter;
-            The_Part_Info := Partitions.Get_Component (Current_Partition);
-            Previous_Unit := The_Part_Info.Remote_Units;
+            Previous_Unit := Get_First_Remote_Unit (Current_Partition);
             if Previous_Unit = Unit then
-               The_Part_Info.Remote_Units := Current_Info.Next_Unit;
-               Partitions.Set_Component (Current_Partition, The_Part_Info);
+               Previous_Info := Units.Get_Component (Previous_Unit);
+               Set_First_Remote_Unit
+                 (Current_Partition, Previous_Info.Next_Unit);
             else
                loop
                   Previous_Info := Units.Get_Component (Previous_Unit);
@@ -848,12 +1085,10 @@ package body System.Garlic.Units is
                Previous_Info.Next_Unit := Current_Info.Next_Unit;
                Units.Set_Component (Previous_Unit, Previous_Info);
             end if;
-            Partitions.Leave;
 
             pragma Debug (D ("Dequeuing unit " & Units.Get_Name (Unit) &
                              " from partition" &
                              Partition_ID'Image (Current_Partition)));
-            In_Queue := False;
          end;
       end if;
 
@@ -872,20 +1107,33 @@ package body System.Garlic.Units is
       --  pending request that was whether or not the unit has been
       --  successfully defined.
 
-      if Current_Status = Declared and then Status = Declared then
+      if Current_Status = Declared
+        and then Status = Declared
+      then
          if Current_Partition < Partition then
             pragma Debug (D ("Ignoring late conflict on unit " &
                              Units.Get_Name (Unit)));
             return;
 
-         elsif Boot_Partition (Partition) = Self_PID then
-            pragma Debug (D ("Defining unit " & Units.Get_Name (Unit)));
-            Current_Status := Defined;
-            Push (Pending, Self_PID);
-
          else
-            pragma Debug (D ("Declaring unit " & Units.Get_Name (Unit)));
-            Current_Status := Declared;
+            declare
+               Boot  : Partition_ID;
+               Error : Error_Type;
+            begin
+               Get_Boot_Partition (Partition, Boot, Error);
+               if not Found (Error)
+                 and then Boot = Self_PID
+               then
+                  pragma Debug (D ("Defining unit " & Units.Get_Name (Unit)));
+                  Current_Status := Defined;
+                  Insert (Pending, Self_PID);
+
+               else
+                  pragma Debug (D ("Declaring unit " & Units.Get_Name (Unit)));
+                  Current_Status := Declared;
+               end if;
+               Catch (Error);
+            end;
          end if;
 
       elsif Status = Declared
@@ -910,33 +1158,22 @@ package body System.Garlic.Units is
       --  Add this unit in the partition unit list
 
       if Current_Status in Declared .. Invalid then
-         if not In_Queue then
-            pragma Debug
-              (D ("Add new unit " & Units.Get_Name (Unit) &
-                  " to partition" & Partition'Img));
+         pragma Debug
+           (D ("Add unit " & Units.Get_Name (Unit) &
+               " to partition" & Partition'Img));
 
-            declare
-               The_Part_Info : Partition_Info;
-            begin
-               Partitions.Enter;
-               The_Part_Info := Partitions.Get_Component (Partition);
-               Current_Info.Next_Unit := The_Part_Info.Remote_Units;
-               The_Part_Info.Remote_Units := Unit;
-               Partitions.Set_Component (Partition, The_Part_Info);
-               Partitions.Leave;
-            end;
-            In_Queue := True;
-         end if;
+         Current_Info.Next_Unit := Get_First_Remote_Unit (Partition);
+         Set_First_Remote_Unit (Partition, Unit);
       end if;
 
       --  Add pending requests to Pending and mark them as handled
 
       if Current_Status in Defined .. Invalid then
-         if Current_Info.Requests /= Null_Request_Id then
+         if Current_Info.Requests /= Null_Request_List then
             pragma Debug (D ("Dequeuing pending requests for unit " &
                              Units.Get_Name (Unit)));
             Pending := Current_Info.Requests;
-            Current_Info.Requests := Null_Request_Id;
+            Current_Info.Requests := Null_Request_List;
          end if;
       end if;
 
@@ -950,23 +1187,23 @@ package body System.Garlic.Units is
    procedure Write_Units
      (Stream : access Params_Stream_Type)
    is
+      PIDs : Partition_List := Known_Partitions;
       Unit : Unit_Id;
       Info : Unit_Info;
    begin
-      Partitions.Enter;
-      for P in First_PID .. Partitions.Last loop
-         Unit := Partitions.Get_Component (P).Remote_Units;
+      for I in PIDs'Range loop
+         Unit := Get_First_Remote_Unit (PIDs (I));
          if Unit /= Null_Unit_Id then
             Boolean'Write      (Stream, True);
-            Partition_ID'Write (Stream, P);
+            Partition_ID'Write (Stream, PIDs (I));
             while Unit /= Null_Unit_Id loop
                Info := Units.Get_Component (Unit);
                if Info.Status /= Queried then
-                  Boolean'Write     (Stream, True);
-                  String'Output     (Stream, Units.Get_Name (Unit));
-                  Unsigned_64'Write (Stream, Info.Receiver);
-                  String'Output     (Stream, String (Info.Version));
-                  Unit_Status'Write (Stream, Info.Status);
+                  Boolean'Write      (Stream, True);
+                  String'Output      (Stream, Units.Get_Name (Unit));
+                  Unsigned_64'Write  (Stream, Info.Receiver);
+                  Version_Type'Write (Stream, Info.Version);
+                  Unit_Status'Write  (Stream, Info.Status);
                end if;
                Unit := Info.Next_Unit;
             end loop;
@@ -974,7 +1211,6 @@ package body System.Garlic.Units is
          end if;
       end loop;
       Boolean'Write      (Stream, False);
-      Partitions.Leave;
    end Write_Units;
 
 end System.Garlic.Units;

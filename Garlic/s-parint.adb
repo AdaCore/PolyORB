@@ -38,6 +38,7 @@ with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 with GNAT.HTable;              use GNAT.HTable;
 with GNAT.Table;
+with Interfaces;               use Interfaces;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
@@ -61,8 +62,6 @@ package body System.Partition_Interface is
      (Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
-
-   package Units renames System.Garlic.Units.Units;
 
    Passive_Prefix : constant String := "SP__";
    --  Prefix to use for Shared_Passive packages
@@ -222,23 +221,20 @@ package body System.Partition_Interface is
       return RPC.Partition_ID
    is
       N : String := Name;
-      U : Unit_Id;
-      I : Unit_Info;
       E : aliased Error_Type;
+      P : Partition_ID;
    begin
       pragma Debug (D ("Request Get_Active_Partition_ID"));
 
       To_Lower (N);
-      U := Units.Get_Index (N);
-
-      Get_Unit_Info (U, I, E);
+      Get_Partition (Get_Unit_Id (N), P, E);
       if Found (E) then
          Raise_Communication_Error (E'Access);
       end if;
 
-      D ("Unit " & N & " is configured on" & I.Partition'Img);
+      D ("Unit " & N & " is configured on" & P'Img);
 
-      return RPC.Partition_ID (I.Partition);
+      return RPC.Partition_ID (P);
    end Get_Active_Partition_ID;
 
    ------------------------
@@ -250,21 +246,18 @@ package body System.Partition_Interface is
       return String
    is
       N : String := Name;
-      U : Unit_Id;
-      I : Unit_Info;
+      V : Version_Type;
       E : aliased Error_Type;
    begin
       pragma Debug (D ("Request Get_Active_Version"));
 
       To_Lower (N);
-      U := Units.Get_Index (N);
-
-      Get_Unit_Info (U, I, E);
+      Get_Version (Get_Unit_Id (N), V, E);
       if Found (E) then
          Raise_Communication_Error (E'Access);
       end if;
 
-      return String (I.Version);
+      return String (V);
    end Get_Active_Version;
 
    ----------------------------
@@ -321,24 +314,21 @@ package body System.Partition_Interface is
 
    function Get_RCI_Package_Receiver
      (Name : Unit_Name)
-      return Interfaces.Unsigned_64
+      return Unsigned_64
    is
       N : String := Name;
-      U : Unit_Id;
-      I : Unit_Info;
+      R : Unsigned_64;
       E : aliased Error_Type;
    begin
       pragma Debug (D ("Request Get_Package_Receiver"));
 
       To_Lower (N);
-      U := Units.Get_Index (N);
-
-      Get_Unit_Info (U, I, E);
+      Get_Receiver (Get_Unit_Id (N), R, E);
       if Found (E) then
          Raise_Communication_Error (E'Access);
       end if;
 
-      return I.Receiver;
+      return R;
    end Get_RCI_Package_Receiver;
 
    -------------------------------
@@ -459,13 +449,12 @@ package body System.Partition_Interface is
       Version  : in String := "")
    is
       N : String := Name;
+      V : Version_Type := Version_Type (Version);
    begin
       pragma Debug (D ("Request Register_Receiving_Stub"));
 
       To_Lower (N);
-      Register_Unit
-        (N, Interfaces.Unsigned_64 (System.Address'(Convert (Receiver))),
-         new String'(Version));
+      Register_Unit (N, Unsigned_64 (System.Address'(Convert (Receiver))), V);
    end Register_Receiving_Stub;
 
    --------------
@@ -483,45 +472,35 @@ package body System.Partition_Interface is
 
       function Get_Active_Partition_ID return RPC.Partition_ID
       is
-         Info  : Unit_Info;
-         Error : aliased Error_Type;
+         Partition : Partition_ID;
+         Error     : aliased Error_Type;
       begin
-         Get_Unit_Info (Unit, Info, Error);
+         Get_Partition (Unit, Partition, Error);
          if Found (Error) then
             Raise_Communication_Error (Error'Access);
          end if;
-
-         if Info.Status = Invalid then
-            Raise_Communication_Error
-              ("Partition" & Info.Partition'Img & " is unreachable");
-         end if;
-         return RPC.Partition_ID (Info.Partition);
+         return RPC.Partition_ID (Partition);
       end Get_Active_Partition_ID;
 
       ------------------------------
       -- Get_RCI_Package_Receiver --
       ------------------------------
 
-      function Get_RCI_Package_Receiver return Interfaces.Unsigned_64
+      function Get_RCI_Package_Receiver return Unsigned_64
       is
-         Info  : Unit_Info;
-         Error : aliased Error_Type;
+         Receiver : Unsigned_64;
+         Error    : aliased Error_Type;
       begin
-         Get_Unit_Info (Unit, Info, Error);
+         Get_Receiver (Unit, Receiver, Error);
          if Found (Error) then
             Raise_Communication_Error (Error'Access);
          end if;
-
-         if Info.Status = Invalid then
-            Raise_Communication_Error
-              ("Partition" & Info.Partition'Img & " is unreachable");
-         end if;
-         return Info.Receiver;
+         return Receiver;
       end Get_RCI_Package_Receiver;
 
    begin
       To_Lower (Name);
-      Unit := Units.Get_Index (Name);
+      Unit := Get_Unit_Id (Name);
    end RCI_Info;
 
    ---------
@@ -569,11 +548,6 @@ package body System.Partition_Interface is
          Caller := Caller.Next;
          Free (Dummy);
       end loop;
-
-      if Debug_Mode (Private_Debug_Key) then
-         Dump_Partition_Table;
-         Dump_Unit_Table;
-      end if;
 
       D ("Execute partition main subprogram");
       if Main /= null then

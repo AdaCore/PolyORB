@@ -58,9 +58,6 @@ package body System.Garlic.Termination is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   package Partitions renames System.Garlic.Partitions.Partitions;
-   use Partitions;
-
    Non_Terminating_Tasks : Natural := 0;
    pragma Atomic (Non_Terminating_Tasks);
    --  Count non-terminating tasks. Counter is an Integer instead of a
@@ -380,39 +377,17 @@ package body System.Garlic.Termination is
             declare
                function Clock return Duration
                  renames System.Task_Primitives.Operations.Clock;
-               Ready    : Boolean := True;
-               Stamp    : Stamp_Type;
-               Success  : Boolean;
-               Deadline : Duration;
-               PID      : Partition_ID;
-               Info     : Partition_Info;
-               Count    : Natural := 0;
-               Error    : Error_Type;
+               Stamp       : Stamp_Type;
+               Success     : Boolean;
+               Deadline    : Duration;
+               Count       : Natural := 0;
+               Error       : Error_Type;
             begin
                --  First of all, check if there is any alive partition whose
                --  termination is local. If this is the case, that means
                --  that these partitions have not terminated yet.
 
-               PID := Null_PID;
-               loop
-                  Next_Partition (PID);
-                  exit when PID = Null_PID;
-                  Info := Partitions.Get_Component (PID);
-
-                  if PID /= Self_PID
-                    and then Info.Status = Done
-                    and then Info.Termination = Local_Termination
-                  then
-                     pragma Debug
-                       (D ("Partition" & PID'Img & " still active"));
-                     Ready := False;
-                     exit;
-                  end if;
-               end loop;
-
-               --  We can start a termination vote.
-
-               if Ready then
+               if Local_Termination_Partitions'Length = 0 then
                   --  Update termination stamp to start a new vote.
 
                   Enter_Critical_Section;
@@ -424,62 +399,51 @@ package body System.Garlic.Termination is
                   --  Send a first wave of requests to indicate the new
                   --  stamp.
 
-                  PID := Null_PID;
-                  loop
-                     Next_Partition (PID);
-                     exit when PID = Null_PID;
-                     Info := Partitions.Get_Component (PID);
+                  declare
+                     PIDs : Partition_List := Global_Termination_Partitions;
+                  begin
+                     Count := 0;
+                     for I in PIDs'Range loop
+                        if PIDs (I) /= Self_PID then
+                           Count := Count + 1;
+                           Send (PIDs (I), Set_Stamp, Stamp, Error);
+                        end if;
+                     end loop;
 
-                     if PID /= Self_PID
-                       and then Info.Status = Done
-                       and then Info.Termination /= Local_Termination
-                     then
-                        Send (PID, Set_Stamp, Stamp, Error);
-                        Count := Count + 1;
-                        Catch (Error);
+                     --  Note the number of voters.
+
+                     Enter_Critical_Section;
+                     Acknowledge_Count := Count;
+                     if Count = 0 then
+                        Vote_Result_Ready := True;
+                        Vote_Result_Value := True;
                      end if;
-                  end loop;
+                     Leave_Critical_Section;
 
-                  --  Note the number of voters.
+                     --  Send a second wave of requests to see if the
+                     --  partition is ready to terminate or if the
+                     --  partition has received a request from another
+                     --  partition since the first wave.
 
-                  Enter_Critical_Section;
-                  Acknowledge_Count := Count;
-                  if Count = 0 then
-                     Vote_Result_Ready := True;
-                     Vote_Result_Value := True;
-                  end if;
-                  Leave_Critical_Section;
 
-                  --  Send a second wave of requests to see if the
-                  --  partition is ready to terminate or if the partition
-                  --  has received a request from another partition since
-                  --  the first wave .
-
-                  PID := Null_PID;
-                  loop
-                     Next_Partition (PID);
-                     exit when PID = Null_PID;
-                     Info := Partitions.Get_Component (PID);
-
-                     if PID /= Self_PID
-                       and then Info.Status = Done
-                       and then Info.Termination /= Local_Termination
-                     then
-                        Send (PID, Check_Stamp, Stamp, Error);
-                        Catch (Error);
-                     end if;
-                  end loop;
+                     for I in PIDs'Range loop
+                        if PIDs (I) /= Self_PID then
+                           Send (PIDs (I), Check_Stamp, Stamp, Error);
+                        end if;
+                     end loop;
+                  end;
 
                   Success  := False;
                   Deadline := Clock + Time_To_Synchronize;
                   while Clock < Deadline loop
 
                      --  The following construction is against all the
-                     --  quality and style guidelines; but they cannot be
-                     --  applied here: we do NOT care if this is not
-                     --  executed in time, since that means that some other
-                     --  activity took place. If this is the case, then it
-                     --  is likely that we do not want to terminate anymore.
+                     --  quality and style guidelines; but they cannot
+                     --  be applied here: we do NOT care if this is
+                     --  not executed in time, since that means that
+                     --  some other activity took place. If this is
+                     --  the case, then it is likely that we do not
+                     --  want to terminate anymore.
 
                      delay Polling_Interval;
 
