@@ -33,6 +33,7 @@
 
 with CORBA.Object;
 with System;
+with Ada.Unchecked_Deallocation;
 
 package CORBA.NVList is
 
@@ -61,5 +62,55 @@ package CORBA.NVList is
    procedure Free_Memory (Self : Ref);
 
    function Get_Count (Self : Ref) return CORBA.Long;
+
+private
+   --  the actual implementation of an NVList, just a list of NamedValue
+   type NV_Cell;
+   type NV_List is access all NV_Cell;
+   type NV_Cell is record
+      NV : NamedValue;
+      Next : NV_List;
+   end record;
+   Null_NVList : constant NV_List := null;
+
+   --  some usefull fonctions - no further comment are needed
+   procedure Add_Cell (List : in out NV_List;
+                       NV : in NamedValue);
+
+   procedure Free is new Ada.Unchecked_Deallocation (NV_Cell, NV_List);
+   procedure Free_All_List (List : in out NV_List);
+
+   function Length (List : in NV_List) return CORBA.Long;
+
+
+   --  in order to be able to deal with several NVLists at the
+   --  same time, each NVList is associated to a Ref.
+   --  The set of NVLists is stored in an NVList_List
+   type NVList_Cell;
+   type NVList_List is access all NVList_Cell;
+   type NVList_Cell is record
+      Obj : Ref;
+      List : NV_List;
+      Next : NVList_List;
+   end record;
+   Null_NVList_List : constant NVList_List := null;
+
+   --  Adds a cell to the list of current NVLists
+   --  The new Cell will be associated to List
+   procedure Add_NVList (Obj : in Ref;
+                         List : in NV_List);
+
+   --  removes an NV_List from the list and frees it
+   --  does nothing if the given Ref does not correspond to any list
+   procedure Remove_NVList (Obj : Ref);
+
+   --  returns the list associated to a given Ref
+   --  returns Null_NVList_List if the given Ref does not correspond
+   --  to any list
+   function Get_NVList (Obj : Ref) return NV_List;
+
+   --  to free a NV_List_Cell
+   procedure Free is new Ada.Unchecked_Deallocation
+     (NVList_Cell, NVList_List);
 
 end CORBA.NVList;
