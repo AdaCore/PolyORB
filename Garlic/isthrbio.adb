@@ -18,9 +18,9 @@ procedure IsThrBIO is
    task body A_Task is
    begin
       accept Start;
-      delay 0.5;
+      delay 0.1;
       select
-         delay 0.5;
+         delay 0.1;
          Process_Blocking_IO := False;
       or
          accept Stop;
@@ -36,7 +36,7 @@ procedure IsThrBIO is
    Result  : int;
    Input   : Fd_Set_Access := new Fd_Set'(0);
 
-   Timeout : Timeval_Access := new Timeval'(3, 0);
+   Timeout : Timeval_Access := new Timeval'(1, 0);
 
    File    : File_Type;
 
