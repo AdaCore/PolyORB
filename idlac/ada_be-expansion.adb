@@ -220,6 +220,33 @@ package body Ada_Be.Expansion is
    function Is_Ada_Keyword (Name : String) return Boolean;
    --  Check whether Name is an Ada 95 keyword
 
+   procedure Recursive_Copy_Operations
+     (Into : in out Node_List;
+      Parent : in Node_Id;
+      From : Node_Id;
+      Implicit_Inherited : Boolean;
+      Directly_Supported : Boolean;
+      Oldest_ValueType_That_Has_It : Node_Id;
+      Parents_Seen : in out Node_List);
+   --  Recursively copy all operations from K_Interface
+   --  or K_ValueType
+   --  node From and all its ancestors into Into.
+   --  Ancestors are appended to the Parents_Seen list
+   --  as they are explored, and will not be explored twice.
+
+   --  The Parent_Scope for the copies is set to Parent,
+   --  and the Is_Implicit_Inherited attribute is set
+   --  to Implicit_Inherited.
+
+   --  Directly_Supported and Oldest_ValueType_That_Has_It
+   --  are valuetype attributes. See nodes.txt for their
+   --  meaning
+
+
+   --------------------------------------------------
+   --  Subprogram bodies from here
+   --------------------------------------------------
+
    -----------------
    -- Expand_Node --
    -----------------
@@ -455,26 +482,10 @@ package body Ada_Be.Expansion is
       Pop_Scope;
    end Expand_Ben_Idl_File;
 
-   ----------------------
-   -- Expand_Interface --
-   ----------------------
 
-   procedure Recursive_Copy_Operations
-     (Into : in out Node_List;
-      Parent : in Node_Id;
-      From : Node_Id;
-      Implicit_Inherited : Boolean;
-      Directly_Supported : Boolean;
-      Oldest_ValueType_That_Has_It : Node_Id;
-      Parents_Seen : in out Node_List);
-   --  Recursively copy all operations from K_Interface
-   --  node From and all its ancestors into Into.
-   --  Ancestors are appended to the Parents_Seen list
-   --  as they are explored, and will not be explored twice.
-
-   --  The Parent_Scope for the copies is set to Parent,
-   --  and the Is_Implicit_Inherited attribute is set
-   --  to Implicit_Inherited.
+   ---------------------------------
+   --  Recursive_Copy_Operations  --
+   ---------------------------------
 
    procedure Recursive_Copy_Operations
      (Into : in out Node_List;
@@ -535,6 +546,10 @@ package body Ada_Be.Expansion is
             Parents_Seen);
       end loop;
    end Recursive_Copy_Operations;
+
+   ----------------------
+   -- Expand_Interface --
+   ----------------------
 
    procedure Expand_Interface
      (Node : in Node_Id)

@@ -205,6 +205,28 @@ package body Idl_Fe.Tree.Synthetic is
       return No_Node;
    end Primary_Parent;
 
+
+   ---------------------------------------
+   --  Supports_Non_Abstract_Interface  --
+   ---------------------------------------
+   function Supports_Non_Abstract_Interface (Node : in Node_Id)
+     return Boolean is
+      It : Node_Iterator;
+      Current : Node_Id;
+   begin
+      pragma Assert (Kind (Node) = K_ValueType);
+      Init (It, Supports (Node));
+      while not Is_End (It) loop
+         Get_Next_Node (It, Current);
+         --  we get a K_Scoped_Name that we must transform into K_Interface
+         if not Abst (Value (Current)) then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Supports_Non_Abstract_Interface;
+
+
    function Integer_Value
      (Node : Node_Id)
      return Integer is

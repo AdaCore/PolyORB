@@ -130,6 +130,20 @@ private
    --  Generate the text for a node whose mapping is
    --  common to all generated files.
 
+   function Idl_Operation_Id
+     (Node : Node_Id)
+     return String;
+   --  The GIOP operation identifier (to use in
+   --  a GIOP Request message) corresponding
+   --  to K_Operation Node.
+
+   procedure Add_With_Entity
+     (CU : in out Compilation_Unit;
+      Node : Node_Id);
+   --  Add a semantic dependency of CU on the
+   --  package that contains the mapping of
+   --  the entity defined by Node.
+
    ---------------
    -- Shortcuts --
    ---------------

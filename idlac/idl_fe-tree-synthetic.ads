@@ -107,6 +107,11 @@ package Idl_Fe.Tree.Synthetic is
    --  and the first non abstract parent valuetype for a valuetype node.
    --  returns No_Node if such a parent does not exist
 
+   function Supports_Non_Abstract_Interface (Node : in Node_Id)
+     return Boolean;
+   --  For a valuetype, returns true if it supports at least one
+   --  non abstract interface
+
    function Integer_Value
      (Node : Node_Id)
      return Integer;

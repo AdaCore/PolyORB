@@ -47,6 +47,16 @@ package body Ada_Be.Idl2Ada.Value_Skel is
       Node : Node_Id) is
    begin
       case Kind (Node) is
+
+         when K_ValueType =>
+            --  we have to generate code for the is_a operation
+            NL (CU);
+            PL (CU, "function Is_A");
+            Add_With (CU, "CORBA");
+            PL (CU, "  (Type_Id : CORBA.RepositoryId)");
+            PL (CU, "  return CORBA.Boolean;");
+            NL (CU);
+
          when K_Operation =>
 
             if not Abst (Parent_Scope (Node)) then
@@ -113,15 +123,16 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                                                CU);
             --  and then register this operation
             Divert (CU, Elaboration);
+            Add_With (CU, "Broca.Value.Value_Skel");
             PL (CU,
                 "Broca.Value.Value_Skel.Is_A_Store.Register_Operation");
             PL (CU,
                 "  ("
-                & Parent_Scope_Name (Node)
-                & "Value_Impl.Object'Tag,");
+                & Ada_Full_Name (Node)
+                & ".Value_Impl.Object'Tag,");
             PL (CU,
                 "   "
-                & Parent_Scope_Name (Node)
+                & Ada_Full_Name (Node)
                 & ".Value_Skel.Is_A'Access);");
             NL (CU);
             Divert (CU, Visible_Declarations);
@@ -136,7 +147,7 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                Add_With (CU, V_Impl_Name);
                Gen_Operation_Profile
                  (CU, "CORBA.Impl.Object_Ptr", Node);
-               PL (CU, "is");
+               PL (CU, " is");
                PL (CU, "begin");
                II (CU);
 
