@@ -61,7 +61,7 @@ pragma Elaborate_Body (Output);
    --  Write one character to the standard output file. Note that the
    --  character should not be LF or CR (use Write_Eol for end of line)
 
-   procedure Write_Eol;
+   procedure Write_Eol (N : Natural := 1);
    --  Write an end of line (whatever is required by the system in use,
    --  e.g. CR/LF for DOS, or LF for Unix) to the standard output file.
    --  This routine also empties the line buffer, actually writing it
@@ -93,7 +93,7 @@ pragma Elaborate_Body (Output);
    procedure Increment_Indentation;
 
    procedure Set_Space_Increment (Value : Natural);
-   procedure Write_Indentation;
+   procedure Write_Indentation (Offset : Integer := 0);
    procedure Write_Space;
 
    --------------------------

@@ -239,20 +239,22 @@ package body Output is
    -- Write_Eol --
    ---------------
 
-   procedure Write_Eol is
+   procedure Write_Eol (N : Natural := 1) is
    begin
-      Buffer (Natural (Next_Column)) := ASCII.LF;
-      Next_Column := Next_Column + 1;
-      Flush_Buffer;
+      for I in 1 .. N loop
+         Buffer (Natural (Next_Column)) := ASCII.LF;
+         Next_Column := Next_Column + 1;
+         Flush_Buffer;
+      end loop;
    end Write_Eol;
 
    -----------------------
    -- Write_Indentation --
    -----------------------
 
-   procedure Write_Indentation is
+   procedure Write_Indentation (Offset : Integer := 0) is
    begin
-      for I in 1 .. N_Space loop
+      for I in 1 .. N_Space + Offset loop
          Write_Char (' ');
       end loop;
    end Write_Indentation;
