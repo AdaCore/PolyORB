@@ -57,7 +57,7 @@ package body Ada_Be.Idl2Ada.Value_Skel is
       case Kind (Node) is
 
          when K_ValueType =>
-            --  we have to generate code for the is_a operation
+
             NL (CU);
             PL (CU, "function Is_A");
             Add_With (CU, "CORBA");
@@ -67,12 +67,9 @@ package body Ada_Be.Idl2Ada.Value_Skel is
 
          when K_Operation =>
 
-            if not Abst (Parent_Scope (Node)) then
-               Add_Elaborate_Body (CU);
-            end if;
+            --  Write the store only if the operation is not inherited from
+            --  another valuetype.
 
-            --  Write the store only if the operation
-            --  is not inherited from another valuetype.
             if Oldest_Supporting_ValueType (Node) = Parent_Scope (Node) then
                declare
                   Opname : constant String
@@ -190,7 +187,7 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                PL (CU, "end " & Opname & ";");
                NL (CU);
 
-               --  Register this operation in the proper Operation_Store.
+               --  Register this operation in the proper Operation_Store
 
                Divert (CU, Elaboration);
                declare
