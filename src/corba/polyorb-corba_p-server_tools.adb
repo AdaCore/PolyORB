@@ -166,8 +166,7 @@ package body PolyORB.CORBA_P.Server_Tools is
                        & "call CORBA.Object.Set"));
 
       CORBA.Object.Set
-        (CORBA.Object.Ref (R),
-         CORBA.Object.Object_Of
+        (R, CORBA.Object.Object_Of
          (PortableServer.POA.Servant_To_Reference (Root_POA, S)));
 
       pragma Debug (O ("Initiate_Servant : end"));
