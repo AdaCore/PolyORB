@@ -30,65 +30,65 @@ package Types is
 
    --  all the possible kinds of node
    type Node_Kind is
-      (K_Repository,
-       K_Scoped_Name,
-       K_Module,
-       K_Interface,
-       K_Forward_Interface,
-       K_Operation,
-       K_Attribute,
-       K_Void,
-       K_Float,
-       K_Double,
-       K_Long_Double,
-       K_Short,
-       K_Long,
-       K_Long_Long,
-       K_Unsigned_Short,
-       K_Unsigned_Long,
-       K_Unsigned_Long_Long,
-       K_Char,
-       K_Wchar,
-       K_Boolean,
-       K_Octet,
-       K_Any,
-       K_Object,
-       K_String,
-       K_Native,
-       K_Param,
-       K_Exception,
-       K_Member,
-       K_Declarator,
-       K_Type_Declarator,
-       K_Const,
-       K_Union,
-       K_Case,
-       K_Sequence,
-       K_Struct,
-       K_Enum,
-       K_Enumerator,
-       K_Or,                   --  Binary operators.
-       K_And,
-       K_Xor,
-       K_Sub,
-       K_Add,
-       K_Shr,
-       K_Shl,
-       K_Mul,
-       K_Div,
-       K_Mod,
-       K_Id,                   --  Unary operators.
-       K_Neg,
-       K_Not,
-       K_Lit_Integer,          --  Literals.
-       K_Lit_Floating_Point,
-       K_Lit_Fixed_Point,
-       K_Lit_Char,
-       K_Lit_Wchar,
-       K_Lit_String,
-       K_Lit_Wstring,
-       K_Lit_True,
-       K_Lit_False
+      (K_Repository  --  ,
+--        K_Scoped_Name,
+--        K_Module,
+--        K_Interface,
+--        K_Forward_Interface,
+--        K_Operation,
+--        K_Attribute,
+--        K_Void,
+--        K_Float,
+--        K_Double,
+--        K_Long_Double,
+--        K_Short,
+--        K_Long,
+--        K_Long_Long,
+--        K_Unsigned_Short,
+--        K_Unsigned_Long,
+--        K_Unsigned_Long_Long,
+--        K_Char,
+--        K_Wchar,
+--        K_Boolean,
+--        K_Octet,
+--        K_Any,
+--        K_Object,
+--        K_String,
+--        K_Native,
+--        K_Param,
+--        K_Exception,
+--        K_Member,
+--        K_Declarator,
+--        K_Type_Declarator,
+--        K_Const,
+--        K_Union,
+--        K_Case,
+--        K_Sequence,
+--        K_Struct,
+--        K_Enum,
+--        K_Enumerator,
+--        K_Or,                   --  Binary operators.
+--        K_And,
+--        K_Xor,
+--        K_Sub,
+--        K_Add,
+--        K_Shr,
+--        K_Shl,
+--        K_Mul,
+--        K_Div,
+--        K_Mod,
+--        K_Id,                   --  Unary operators.
+--        K_Neg,
+--        K_Not,
+--        K_Lit_Integer,          --  Literals.
+--        K_Lit_Floating_Point,
+--        K_Lit_Fixed_Point,
+--        K_Lit_Char,
+--        K_Lit_Wchar,
+--        K_Lit_String,
+--        K_Lit_Wstring,
+--        K_Lit_True,
+--        K_Lit_False
        );
 
 
@@ -98,6 +98,11 @@ package Types is
    type N_Root is abstract tagged private;
    type N_Root_Acc is access all N_Root'Class;
    Nil_Node : constant N_Root_Acc;
+
+   --  To get the kind of a node. Each node type has to redifine
+   --  this method, returning the right type.
+   --  For a N_root, this method is abstract
+   function Get_Kind (N : N_Root) return Node_Kind is abstract;
 
 
    --  Basic type for a named_node.
@@ -138,12 +143,6 @@ package Types is
 
    --  To get the name of a named node
    function Get_Name (Node : in N_Named'Class) return String;
-
-   --  To get the kind of a node. Each node type has to redifine
-   --  this method, returning the right type.
-   --  For a N_root, this method is abstract
-   function Get_Kind (N : N_Root) return Node_Kind is abstract;
-
 
 
    --------------------------------------------
@@ -200,8 +199,8 @@ package Types is
    --  The current identifier is the one just scanned by the lexer
    --  If this identifier is not defined in the given scope,
    --  returns a null pointer.
-   function Find_Identifier_Node (Scope : N_Scope_Acc)
-                                  return N_Named_Acc;
+--   function Find_Identifier_Node (Scope : N_Scope_Acc)
+--                                  return N_Named_Acc;
 
    --  Change the definition (associed node) of CELL.
    --  only used in the case of a forward interface definition

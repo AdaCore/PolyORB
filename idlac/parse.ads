@@ -20,7 +20,18 @@ with Tree; use Tree;
 
 package Parse is
 
-   Parse_Error : exception;
+   ---------------------
+   --  Initialization --
+   ---------------------
 
+   procedure Initialize (Filename : in String;
+                         Preprocess : in Boolean;
+                         Keep_Temporary_Files : in Boolean);
+
+
+   --------------------------
+   --  Parsing of the idl  --
+   --------------------------
    function Parse_Specification return N_Repository_Acc;
+
 end Parse;

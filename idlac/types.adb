@@ -269,22 +269,23 @@ package body Types is
       end if;
    end Find_Identifier_Node;
 
-   function Find_Identifier_Node (Scope : N_Scope_Acc)
-                                  return N_Named_Acc is
-      Definition : Identifier_Definition_Acc;
-   begin
-      Definition := Find_Identifier_Definition;
-      loop
-         if Definition = null then
-            return null;
-         end if;
-         if Definition.Parent_Scope = Scope then
-            return Definition.Node;
-         else
-            Definition := Definition.Previous_Definition;
-         end if;
-      end loop;
-   end Find_Identifier_Node;
+--  FIXME : to be uncomment when used
+--    function Find_Identifier_Node (Scope : N_Scope_Acc)
+--                                   return N_Named_Acc is
+--       Definition : Identifier_Definition_Acc;
+--    begin
+--       Definition := Find_Identifier_Definition;
+--       loop
+--          if Definition = null then
+--             return null;
+--          end if;
+--          if Definition.Parent_Scope = Scope then
+--             return Definition.Node;
+--          else
+--             Definition := Definition.Previous_Definition;
+--          end if;
+--       end loop;
+--    end Find_Identifier_Node;
 
    procedure Redefine_Identifier
      (Definition : Identifier_Definition_Acc; Node : access N_Named'Class) is
