@@ -177,86 +177,17 @@ package body System.Partition_Interface is
         (Program_Error'Identity, Ada.Exceptions.Exception_Message (E));
    end Raise_Program_Error_Unknown_Tag;
 
---    --------------
---    -- RCI_Info --
---    --------------
+   --------------------
+   -- Same_Partition --
+   --------------------
 
---    package body RCI_Info is
-
---       -----------------------------
---       -- Get_Active_Partition_ID --
---       -----------------------------
-
---       function Get_Active_Partition_ID return System.RPC.Partition_ID is
---          P : Pkg_List := Pkg_Head;
---          N : String   := Lower (RCI_Name);
-
---       begin
---          while P /= null loop
---             if P.Name.all = N then
---                return Get_Local_Partition_ID;
---             end if;
-
---             P := P.Next;
---          end loop;
-
---          return M;
---       end Get_Active_Partition_ID;
-
---       ------------------------------
---       -- Get_RCI_Package_Receiver --
---       ------------------------------
-
---       function Get_RCI_Package_Receiver return Interfaces.Unsigned_64 is
---       begin
---          return 0;
---       end Get_RCI_Package_Receiver;
-
---    end RCI_Info;
-
---    ------------------------------
---    -- Register_Passive_Package --
---    ------------------------------
-
---    procedure Register_Passive_Package
---      (Name    : in Unit_Name;
---       Version : in String := "")
---    is
---    begin
---       Register_Receiving_Stub (Passive_Prefix & Name, null, Version);
---    end Register_Passive_Package;
-
---    -----------------------------
---    -- Register_Receiving_Stub --
---    -----------------------------
-
---    procedure Register_Receiving_Stub
---      (Name     : in Unit_Name;
---       Receiver : in RPC.RPC_Receiver;
---       Version  : in String := "")
---    is
---    begin
---       if Pkg_Tail = null then
---          Pkg_Head := new Pkg_Node'(new String'(Lower (Name)), null);
---          Pkg_Tail := Pkg_Head;
-
---       else
---          Pkg_Tail.Next := new Pkg_Node'(new String'(Lower (Name)), null);
---          Pkg_Tail := Pkg_Tail.Next;
---       end if;
---    end Register_Receiving_Stub;
-
---    ---------
---    -- Run --
---    ---------
-
---    procedure Run
---      (Main : in Main_Subprogram_Type := null)
---    is
---    begin
---       if Main /= null then
---          Main.all;
---       end if;
---    end Run;
+   function Same_Partition
+      (Left  : access RACW_Stub_Type;
+       Right : access RACW_Stub_Type) return Boolean is
+      pragma Unreferenced (Left, Right);
+   begin
+      return False;
+      --  XXX not implemented yet!
+   end if;
 
 end System.Partition_Interface;
