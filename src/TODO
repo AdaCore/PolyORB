@@ -6,9 +6,9 @@ $Id$
 Items still requiring attention
 -------------------------------
 
-* Move CORBA.POA to Droopi.<something>.
-
 * Make compliant PortableServer tree for CORBA personality.
+
+* Remove all deps on CORBA in Droopi.POA.*, Droopi.POA_Policies.* & co.
 
 * Dynamic Task Pool threading policy.
 
@@ -95,3 +95,5 @@ Items processed
 * Profile type registration system (for References.IOR).
   For a profile to be used when creating and parsing IORs,
   its tag must be registered.
+
+* Move CORBA.POA to Droopi.<something> (3329).
