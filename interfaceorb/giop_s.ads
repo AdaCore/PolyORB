@@ -10,11 +10,11 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-with Corba, Giop ;
+with Corba, Giop, Omni ;
 
 package Giop_S is
 
-   type Object is limited private ;
+   type Object is tagged limited private ;
 
    procedure RequestReceived (Self : in Object);
    -- wrapper around void GIOP_S::RequestReceived(CORBA::Boolean skip_msg)
@@ -34,7 +34,7 @@ package Giop_S is
 
 
    procedure Put_Char_Array (Self : in out Object'Class ;
-                             B : Corba.Character ;
+                             B : Corba.Char ;
                              Size : Integer ;
                              Align : Omni.Alignment_T ;
                              StartMTU : Corba.Boolean ;
@@ -48,14 +48,14 @@ package Giop_S is
    -- in nbufferedStream.cc L 154
 
 
-   procedure ReplyCompleted (Self : in Object);
+   procedure ReplyCompleted (Self : in Object'Class);
    -- wrapper around void GIOP_S::ReplyCompleted()
    -- In giopServer.cc L 264
 
 
 private
 
-
+   type Object is tagged limited null record ;
 
 end Giop_S ;
 

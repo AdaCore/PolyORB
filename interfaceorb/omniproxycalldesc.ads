@@ -20,7 +20,8 @@ package omniProxyCallDesc is
    -- to omniORB's OmniProxyCallDesc
    -- In proxyCall.h L33
    procedure Init (Self : in out Object ;
-                   Operator : String
+                   Operator : in String ;
+                   Message : in String
                   );
 
    function AlignedSize(Size_In: in Corba.Unsigned_Long)

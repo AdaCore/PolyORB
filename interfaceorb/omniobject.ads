@@ -10,7 +10,7 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-with System, Interfaces.C.Pointers ;
+with System, Interfaces.C.Strings ;
 with Corba, OmniObjectManager, Omniropeandkey ;
 
 package OmniObject is
@@ -57,9 +57,9 @@ private
 
    type Object is null record ;
 
-   function Dispatch (Self : in Interfaces.C.Pointers.Pointer ;
+   function Dispatch (Self : in System.address ;
                         Orls : in System.Address ;
-                        Orl_Op : in Interfaces.C.Chars_Ptr ;
+                        Orl_Op : in Interfaces.C.Strings.Chars_Ptr ;
                         Orl_Response_Expected : in System.Address)
                       return System.Address;
    pragma Export (C,Dispatch,"dispatch_ada");

@@ -22,7 +22,7 @@ package Echo is
 
    type Ref is new Corba.Object.Ref with null record ;
 
-   function To_Ref(From: in Corba.Object.Ref'Class) return Ref ;
+   function To_Ref(The_Ref: in Corba.Object.Ref'Class) return Ref ;
 
    function EchoString(Self: in Ref; Message: in Corba.String) return Corba.String ;
 
@@ -58,7 +58,7 @@ private
 
    type OmniProxyCallDesc_Echo is new OmniProxyCallDesc.Object with record
       Arg : Corba.String ;
-      Result : Corba.String ;
+      Private_Result : Corba.String ;
    end record ;
 
 

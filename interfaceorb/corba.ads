@@ -20,7 +20,7 @@ with Interfaces ;
 package Corba is
 
    -----------------------------------------------------------
-   ----           base types                               ---
+   ----           base types in spec                       ---
    -----------------------------------------------------------
 
 
@@ -50,7 +50,7 @@ package Corba is
 
 
    -----------------------------------------------------------
-   ----           Exceptions                               ---
+   ----           Exceptions in spec                       ---
    -----------------------------------------------------------
 
     type Idl_Exception_Members is abstract tagged null record;
@@ -104,7 +104,9 @@ package Corba is
     Obj_Adapter : exception;  -- failure detected by object adapter
     Data_Conversion : exception;  -- data conversion error
 
-
+    Constraint_Error : exception ;
+    -- failure on to_ref
+    -- CORBA 2.2, page 23.15
 
     type Unknown_Members is new System_Exception_Members with null record;
     type Bad_Param_Members is new System_Exception_Members with null record;
@@ -132,20 +134,23 @@ package Corba is
     type Obj_Adapter_Members is new System_Exception_Members with null record;
     type Data_Conversion_Members is new System_Exception_Members with null record;
 
+    type Constraint_Error_Members is new System_Exception_Members with null record ;
+
+
+    -----------------------------------------------------------
+    ----        not in spec, AdaBroker specific             ---
+    -----------------------------------------------------------
+
+    function To_Corba_String(S: in Standard.String) return Corba.String ;
+
+    function To_Standard_String(S: in Corba.String) return Standard.String ;
+
+
 
 
 
    -----------------------------------------------------------
-   ----           functions, procedures                    ---
-   -----------------------------------------------------------
-
-
-
-
-
-
-   -----------------------------------------------------------
-   ----           not in spec                              ---
+   ----           not in spec  omniORB2 specific           ---
    -----------------------------------------------------------
 
 

@@ -12,13 +12,13 @@
 
 with Ada.Command_Line ;
 with Text_Io ; use Text_Io ;
-with Corba, Corba.Orb, Corba.Boa ;
+with Corba, Corba.Orb, Corba.Boa, Corba.Object ;
 with Echo ;
 
 
 procedure Client is
 
-   IOR, Sent_Msg, Rcvd_msg : CORBA.String ;
+   Sent_Msg, Rcvd_Msg, IOR : CORBA.String ;
 
    Obj : Corba.Object.Ref ;
 
@@ -33,7 +33,7 @@ begin
    end if ;
 
    -- transforms the Ada string into Corba.String
-   IOR := Corba.String(Ada.Comand_Line.Argument(1)) ;
+   IOR := Corba.To_Corba_String(Ada.Command_Line.Argument(1)) ;
 
    -- ORB init
    Corba.Orb.Init("omniORB2") ;
@@ -47,7 +47,8 @@ begin
    Corba.Orb.String_To_Object(IOR, Obj) ;
 
    -- narrowing it into Echo
-   Obj_Echo := Echo.To_Ref(Obj) ;
+   -- Obj_Echo := Echo.To_Ref(Obj) ;
+   -- Pb becausee limited type
 
    -- checking if it worked
    if Corba.Object.Is_Nil(Obj_Echo) then
@@ -56,12 +57,12 @@ begin
    end if ;
 
    -- sending message
-   Sent_Msg := Corba.String("Hello World !") ;
-   Rcvd_Msg := Echo.EchoString(Sent_Msg) ;
+   Sent_Msg := Corba.To_Corba_String("Hello World !") ;
+   Rcvd_Msg := Echo.EchoString(Obj_Echo, Sent_Msg) ;
 
    -- printing result
-   Put_Line("I said : " & Sent_Msg ) ;
-   Put_Line("The object answered : " & Rcvd_Msg) ;
+   Put_Line("I said : " & Corba.To_Standard_String(Sent_Msg) ) ;
+   Put_Line("The object answered : " & Corba.To_Standard_String(Rcvd_Msg)) ;
 
 end Client ;
 

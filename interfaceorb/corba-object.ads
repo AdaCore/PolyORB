@@ -14,11 +14,11 @@ with Omniobject, NetBufferedStream, MemBufferedStream ;
 
 package Corba.Object is
 
-   type Ref is tagged private;
+   type Ref is tagged limited private;
 
    --I boolean is_nil();
-   function Is_Nil(Self: in Ref) return Boolean;
-   function Is_Null(Self: in Ref) return Boolean renames Is_Nil;
+   function Is_Nil(Self: in Ref'Class) return Boolean;
+   function Is_Null(Self: in Ref'Class) return Boolean renames Is_Nil;
 
    --I void release();
    procedure Release (Self : in out Ref'class);
@@ -44,7 +44,7 @@ package Corba.Object is
    --------------------------------------------------
    ---        AdaBroker  specific                 ---
    --------------------------------------------------
-   function Get_Dynamic_Object return Ref'Class ;
+   function Get_Dynamic_Object(Self: in Ref'Class) return Ref'Class ;
 
 
    procedure MarshalObjRef(The_Object: Ref'Class ;
@@ -67,7 +67,7 @@ package Corba.Object is
 
    function UnMarshalObjRef(Repoid : in String ;
                             Nbs : in NetBufferedStream.Object
-                           ) return Ref ;
+                           ) return Ref'Class ;
    -- return ???
    -- wrapper around CORBA::Object_ptr
    --                CORBA::UnMarshalObjRef(
@@ -77,7 +77,7 @@ package Corba.Object is
 
    function UnMarshalObjRef(Repoid : in String ;
                             Mbs : in MemBufferedStream.Object
-                           ) return Ref ;
+                           ) return Ref'Class ;
    -- return ???
    -- wrapper around CORBA::Object_ptr
    --                CORBA::UnMarshalObjRef(
@@ -103,10 +103,10 @@ private
 
 
 
-   type Dynamic_Type is access all Ref'Class ;
+   type Dynamic_Type(Ptr : access Ref'Class) is limited null record ;
 
-   type Ref is tagged record
-      Dynamic_Object : Dynamic_Type := Ref'Access ;
+   type Ref is tagged limited record
+      Dynamic_Object : Dynamic_Type(Ref'Access) ;
    end record ;
 
 end Corba.Object ;

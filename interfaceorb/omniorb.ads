@@ -10,7 +10,7 @@
 ----                                                               ----
 -----------------------------------------------------------------------
 
-with Interfaces.C.Pointers ;
+with System ;
 with Corba ;
 
 package Omniorb is
@@ -34,7 +34,6 @@ package Omniorb is
 
 private
 
-   type ObjectKey is new Interfaces.C.Pointers.Pointer ;
-   -- I'm not sure !!
+   type ObjectKey is new System.Address ;
 
 end Omniorb ;

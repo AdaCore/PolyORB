@@ -10,6 +10,8 @@
 ----                                                                    ----
 ----------------------------------------------------------------------------
 
+with Corba, Corba.Object, BufferedStream ;
+with Omniproxycalldesc, Omniproxycallwrapper ;
 
 package body Echo is
 
@@ -20,17 +22,18 @@ package body Echo is
    -- To_Ref
    ---------
    function To_Ref(The_Ref : in Corba.Object.Ref'Class) return Ref is
-      Real_Object : Corba.Object'Class ;
+      Real_Object : Corba.Object.Ref'Class :=
+        Corba.Object.Get_Dynamic_Object(The_Ref) ;
       Result : Ref ;
    begin
-      Real_Object := Get_Dynamic_Object(The_Ref) ;
-      AdaBroker_Cast_To_Parent(Real_Object,Result) ;
+      AdaBroker_Cast_To_Parent(Echo.Ref(Real_Object),Result) ;
       return Result;
    end ;
 
    -- EchoString
    -------------
-   function EchoString(Self: in Ref; message: in Corba.String)
+   function EchoString(Self: in Ref ;
+                       Message: in Corba.String)
                        return Corba.String is
 
       Opcd : OmniProxyCallDesc_Echo ;
@@ -48,36 +51,43 @@ package body Echo is
    -- AlignedSize
    --------------
    function AlignedSize(Self: in OmniProxyCallDesc_Echo;
-                          MsgSize: in Corba.Unsigned_Long)
+                        Size_In: in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long is
    begin
       MsgSize := Omni.Align_To(MsgSize,Omni.ALIGN_4) + 5 + Arg'Length;
-      return MsgSize;
+      return Size_In;
    end;
 
    -- MarshalArguments
    -------------------
-   procedure MarshalArguments(Self: in OmniProxyCallDesc_Echo;
-                                Giop_Client: in out Giop_C) is
+   procedure MarshalArguments(Self: in OmniProxyCallDesc_Echo ;
+                              Giop_Client: in out Giop_C.Object ) is
       Len : CORBA.Unsigned_Long;
    begin
       Len := Arg'Length + 1;
-      Marshall(Len,Giop_Client);
+      BufferedStream.Marshall(Len,Giop_Client);
       if (Len > 1) then
-         Put_Char_Array (Giop_Client,Arg,Len);
+         BufferedStream.Put_Char_Array (Giop_Client,Arg,Len);
       else
-         Marshall(Nul,Giop_Client);
+         BufferedStream.Marshall(Nul,Giop_Client);
       end if;
    end;
 
    -- UnMarshalReturnValues
    ------------------------
-   procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo;
-                                     Giop_Client: in out Giop_C) is
+   procedure UnmarshalReturnedValues(Self: in OmniProxyCallDesc_Echo ;
+                                     Giop_Client: in out Giop_C.Object) is
    begin
-      Result :=  UnMarshall(Giop_Client);
+      Result :=  BufferedStream.UnMarshall(Giop_Client);
    end ;
 
+
+   -- Result
+   ---------
+   function Result (Self : in Ref) return CORBA.String is
+   begin
+      return Private_Result ;
+   end ;
 
    --------------------------------------------------
    ----    not in  spec AdaBroker specific       ----
@@ -87,12 +97,12 @@ package body Echo is
    ---------------------------
    procedure AdaBroker_Cast_To_Parent(Real_Object: in Ref;
                                       Result: out Corba.Object'Class) is
-      Data_Conversion_Error : Corba.Data_Conversion ;
+      Impossible_Cast : Corba.Constraint_Error ;
    begin
       if Real_Object'Tag = Result'Tag then
          Result := Real_Object ;
       else
-         raise Data_Conversion_Error;
+         raise Impossible_Cast;
       end if ;
    end ;
 
