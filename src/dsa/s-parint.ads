@@ -73,6 +73,11 @@ package System.Partition_Interface is
    --  Do not change its definition or its layout without updating
    --  exp_dist.adb.
 
+   subtype RAS_Proxy_Type is System.PolyORB_Interface.RAS_Proxy_Type;
+   subtype RAS_Proxy_Type_Access is
+     Sustem.PolyORB_Interface.RAS_Proxy_Type_Access;
+   --  SHARED: none
+
 --    procedure Check
 --      (Name    : in Unit_Name;
 --       Version : in String;

@@ -204,7 +204,16 @@ package System.PolyORB_Interface is
    type RACW_Stub_Type_Access is access all RACW_Stub_Type;
    --  This type is used by the expansion to implement distributed objects.
    --  Do not change its definition or its layout without updating
-   --  exp_dist.adb.
+   --  Exp_Dist.Add_RACW_Stub_Type.
+
+   type RAS_Proxy_Type is tagged limited record
+      All_Calls_Remote : Boolean;
+      Stub             : System.Address;
+   end record;
+   type RAS_Proxy_Type_Access is access RAS_Proxy_Type;
+   --  This type is used by the expansion to implement distributed objects.
+   --  Do not change its definition or its layout without updating
+   --  Exp_Dist.Build_Remote_Supbrogram_Proxy_Type.
 
    procedure Get_Unique_Remote_Pointer
      (Handler : in out RACW_Stub_Type_Access);
