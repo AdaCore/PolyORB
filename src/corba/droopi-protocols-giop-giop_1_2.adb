@@ -101,6 +101,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
       --  Response_Flags
       Marshall (Buffer, Types.Octet (Sync_Scope'Pos (Sync_Type)));
+      --  XXX inconsistency: is this Response_Flags or Sync_Type?
 
       --  Reserved
       for I in 1 .. 3 loop
@@ -128,9 +129,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Marshall (Buffer, Operation);
 
       --  Service context
-      for I in 0 .. 9 loop
-         Marshall (Buffer, Types.Octet (ServiceId'Pos
-                  (Service_Context_List_1_2 (I))));
+      for I in Service_Context_List_1_2'Range loop
+         Marshall
+           (Buffer,
+            Types.Octet (ServiceId'Pos (Service_Context_List_1_2 (I))));
       end loop;
 
    end Marshall_Request_Message;
@@ -163,9 +165,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
 
       --  Service context
-      for I in 0 .. 9 loop
-         Marshall (Buffer, Types.Octet (ServiceId'Pos
-                   (Service_Context_List_1_2 (I))));
+      for I in Service_Context_List_1_2'Range loop
+         Marshall
+           (Buffer,
+            Types.Octet (ServiceId'Pos (Service_Context_List_1_2 (I))));
       end loop;
 
 
@@ -197,9 +200,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
 
       --  Service context
-      for I in 0 .. 9 loop
-         Marshall (Buffer, Types.Octet (ServiceId'Pos
-                   (Service_Context_List_1_2 (I))));
+      for I in Service_Context_List_1_2'Range loop
+         Marshall
+           (Buffer,
+            Types.Octet (ServiceId'Pos (Service_Context_List_1_2 (I))));
       end loop;
 
       --  Occurrence
@@ -233,9 +237,10 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
 
       --  Service context
-      for I in 0 .. 9 loop
-         Marshall (Buffer, Types.Octet (ServiceId'Pos
-                 (Service_Context_List_1_2 (I))));
+      for I in Service_Context_List_1_2'Range loop
+         Marshall
+           (Buffer,
+            Types.Octet (ServiceId'Pos (Service_Context_List_1_2 (I))));
       end loop;
 
       --  Reference
@@ -263,7 +268,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
 
 
       --  Service context
-      for I in 0 .. 9 loop
+      for I in Service_Context_List_1_2'Range loop
          Marshall (Buffer, Types.Octet (ServiceId'Pos
                  (Service_Context_List_1_2 (I))));
       end loop;
@@ -343,7 +348,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
    is
       use  Representations.CDR;
 
-      Service_Context      : array (0 .. 9) of Types.Unsigned_Long;
+      Service_Context      : array (0 .. 9) of Types.Octet;
       Reserved             : Types.Octet;
       Received_Flags       : Types.Octet;
       Temp_Octet           : Addressing_Disposition;
@@ -357,6 +362,9 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Received_Flags := Unmarshall (Buffer);
 
       if Received_Flags = 3 then
+         --  XXX Dubious.
+         --  I seem to remember that Response_Expected
+         --  is the LSBit of Flags.
          Response_Expected := True;
       else
          Response_Expected := False;
@@ -370,10 +378,9 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       --  Target Ref
       Temp_Octet := Unmarshall (Buffer);
 
-      case  Temp_Octet  is
+      case  Temp_Octet is
          when Key_Addr  =>
-            --  XXX Where do these hard-coded values come from??
-            --  what is Temp_Octet?????
+
             declare
                Obj : Stream_Element_Array :=  Unmarshall (Buffer);
             begin
@@ -381,6 +388,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
                  (Address_Type => Key_Addr,
                   Object_Key => new Object_Id'(Object_Id (Obj)));
             end;
+
          when Profile_Addr  =>
             Target_Ref := new Target_Address'
               (Address_Type => Profile_Addr,
@@ -402,6 +410,8 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
             end;
 
          when others =>
+            pragma Debug (O ("Incorrect address type in request:"
+                             & Temp_Octet'Img));
             raise GIOP_Error;
 
       end case;
@@ -410,11 +420,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Operation :=  Unmarshall (Buffer);
 
       --  Service context
-      for I in 0 .. 9 loop
+      for I in Service_Context'Range loop
          Service_Context (I) := Unmarshall (Buffer);
       end loop;
 
-      for I in 0 .. 9 loop
+      for I in Service_Context'Range loop
          if Service_Context (I) /= ServiceId'Pos
             (Service_Context_List_1_2 (I)) then
             pragma Debug
@@ -435,7 +445,7 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
        Reply_Status : out Reply_Status_Type)
    is
       use  Representations.CDR;
-      Service_Context   : array (0 .. 9) of Types.Unsigned_Long;
+      Service_Context   : array (0 .. 9) of Types.Octet;
    begin
 
 
@@ -446,11 +456,11 @@ package body Droopi.Protocols.GIOP.GIOP_1_2 is
       Reply_Status := Unmarshall (Buffer);
 
       --  Service context
-      for I in 0 .. 9 loop
+      for I in Service_Context'Range loop
          Service_Context (I) := Unmarshall (Buffer);
       end loop;
 
-      for I in 0 .. 9 loop
+      for I in Service_Context'Range loop
          if Service_Context (I) /= ServiceId'Pos
             (Service_Context_List_1_2 (I)) then
             pragma Debug (O
