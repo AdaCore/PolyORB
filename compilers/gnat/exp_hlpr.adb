@@ -106,25 +106,31 @@ package body Exp_Hlpr is
    --  for typecode TC, returning the Idx'th element.
 
    generic
-      with function Build_Start_Dimen
-        (Loc   : Source_Ptr;
-         Dimen : Int)
-         return List_Id
-        is <>;
-   function Make_Array_Iterator
-     (Subprogram    : Entity_Id;
-      Arry          : Entity_Id;
-      Innermost_Stm : Node_Id;
-      Indices       : List_Id)
-      return Node_Id;
+      Subprogram : Entity_Id;
+      --  Reference location for Make_Implicit_Loop_Statement.
+
+      Arry : Entity_Id;
+      --  For 'Range and Etype.
+
+      Indices : List_Id;
+      --  For the construction of the innermost element expression.
+
+      with procedure Append_Process_Element
+        (Stmts : List_Id;
+         Any   : Entity_Id;
+         Datum : Node_Id);
+
+   procedure Append_Array_Iterator
+     (Stmts : List_Id;
+      Any   : Entity_Id;
+      Depth : Pos := 1);
    --  Build nested loop statements that iterate over the elements
-   --  of an array Arry. Statement Innermost_Stm is executed
-   --  for each element; Indices is the list of indices to be used
-   --  in the construction of the indexed component that denotes
+   --  of an array Arry. The statement(s) built by Append_Process_Element
+   --  are executed for each element; Indices is the list of indices to be
+   --  used in the construction of the indexed component that denotes
    --  the current element. Subprogram is the entity for the subprogram
-   --  for which this iterator is generated. Build_Start_Dimen returns
-   --  an optional list of statements to be executed at the beginning of
-   --  each dimension.
+   --  for which this iterator is generated.
+   --  The generated statements are appended to Stmts.
 
    generic
       with procedure Process_One_Field (E : Entity_Id);
@@ -501,16 +507,16 @@ package body Exp_Hlpr is
             function Build_Increment_Counter return Node_Id;
             --  Return a statement that increments the Counter variable.
 
-            function From_Any_Start_Dimen
-              (Loc   : Source_Ptr;
-               Dimen : Int)
-              return List_Id;
-            --  If starting a dimension in an unconstrained array, skip the
-            --  length on that dimension.
+            procedure From_Any_Append_Process_Element
+              (Stmts : List_Id;
+               Any   : Entity_Id;
+               Datum : Node_Id);
 
             Counter : constant Entity_Id
               := Make_Defining_Identifier (Loc, Name_J);
             Initial_Counter_Value : Int := 0;
+            Component_TC : constant Entity_Id
+              := Make_Defining_Identifier (Loc, Name_T);
 
             function Build_Increment_Counter return Node_Id is
             begin
@@ -525,34 +531,59 @@ package body Exp_Hlpr is
                        Make_Integer_Literal (Loc, 1)));
             end Build_Increment_Counter;
 
-            function From_Any_Start_Dimen
-              (Loc   : Source_Ptr;
-               Dimen : Int)
-              return List_Id
+            procedure From_Any_Append_Process_Element
+              (Stmts : List_Id;
+               Any   : Entity_Id;
+               Datum : Node_Id)
             is
-               pragma Unreferenced (Loc, Dimen);
+               Assignment : constant Node_Id :=
+                 Make_Assignment_Statement (Loc,
+                   Name       => Datum,
+                   Expression => Empty);
+
+               Element_Any : constant Node_Id :=
+                 Build_Get_Aggregate_Element (Loc,
+                   Any,
+                   Make_Function_Call (Loc,
+                     Name =>
+                       New_Occurrence_Of (RTE (RE_Content_Type), Loc),
+                     Parameter_Associations => New_List (
+                       Make_Function_Call (Loc,
+                         Name =>
+                           New_Occurrence_Of (RTE (RE_Get_Type), Loc),
+                         Parameter_Associations => New_List (
+                           New_Occurrence_Of (Any, Loc))))),
+                   New_Occurrence_Of (Counter, Loc));
             begin
-               if Constrained then
-                  return No_List;
+               if Nkind (Datum) = N_Indexed_Component then
+                  Append_To (Stmts, Assignment);
+                  if Etype (Datum) /= RTE (RE_Any) then
+                     Set_Expression (Assignment,
+                        Build_From_Any_Call (
+                          Component_Type (Typ),
+                          Element_Any,
+                          Decls));
+                  else
+                     Set_Expression (Assignment, Element_Any);
+                  end if;
                end if;
-
-               return New_List (Build_Increment_Counter);
-               --  Skip the length componend on that dimension.
-            end From_Any_Start_Dimen;
-
-            function Make_From_Any_Array_Iterator is
-              new Make_Array_Iterator (From_Any_Start_Dimen);
-
-            Assign_Component : Node_Id;
-            Indices : constant List_Id := New_List;
+               Append_To (Stmts, Build_Increment_Counter);
+               --  XXX Counter must be local to the Any, not linearised!!!!!
+            end From_Any_Append_Process_Element;
 
             Res : constant Entity_Id
               := Make_Defining_Identifier (Loc, Name_R);
+
+            procedure Append_From_Any_Array_Iterator is
+              new Append_Array_Iterator (
+                Subprogram => Fnam,
+                Arry       => Res,
+                Indices    => New_List,
+                Append_Process_Element => From_Any_Append_Process_Element);
+
             Res_Subtype_Indication : Node_Id
               := New_Occurrence_Of (Typ, Loc);
 
-            Component_TC : constant Entity_Id
-              := Make_Defining_Identifier (Loc, Name_T);
          begin
             if not Constrained then
                declare
@@ -660,30 +691,7 @@ package body Exp_Hlpr is
                 Expression =>
                   Build_TypeCode_Call (Loc, Component_Type (Typ), Decls)));
 
-            Assign_Component := Make_Block_Statement (Loc,
-              Handled_Statement_Sequence =>
-                Make_Handled_Sequence_Of_Statements (Loc,
-                  Statements => New_List (
-                    Make_Assignment_Statement (Loc,
-                      Name =>
-                        Make_Indexed_Component (Loc,
-                          Prefix => New_Occurrence_Of (Res, Loc),
-                          Expressions => Indices),
-                      Expression =>
-                        Build_From_Any_Call (
-                          Component_Type (Typ),
-                          Build_Get_Aggregate_Element (Loc,
-                            Any_Parameter,
-                            New_Occurrence_Of (Component_TC, Loc),
-                            New_Occurrence_Of (Counter, Loc)),
-                          Decls)),
-                   Build_Increment_Counter)));
-
-            Append_To (Stms,
-              Make_From_Any_Array_Iterator (Fnam,
-                Res,
-                Assign_Component,
-                Indices));
+            Append_From_Any_Array_Iterator (Stms, Any_Parameter);
 
             Append_To (Stms,
               Make_Return_Statement (Loc,
@@ -1079,47 +1087,40 @@ package body Exp_Hlpr is
 
             Constrained : constant Boolean := Is_Constrained (Typ);
 
-            function To_Any_Start_Dimen
-              (Loc   : Source_Ptr;
-               Dimen : Int)
-              return List_Id;
-            --  If starting a dimension in an unconstrained array, output the
-            --  length on that dimension (the array is represented as nested
-            --  sequences.)
+            procedure To_Any_Append_Process_Element
+              (Stmts : List_Id;
+               Any   : Entity_Id;
+               Datum : Node_Id);
 
-            function To_Any_Start_Dimen
-              (Loc   : Source_Ptr;
-               Dimen : Int)
-              return List_Id
+            procedure To_Any_Append_Process_Element
+              (Stmts : List_Id;
+               Any   : Entity_Id;
+               Datum : Node_Id)
             is
+               Element_Any : Node_Id;
             begin
-               if Constrained then
-                  return No_List;
+               if Etype (Datum) = RTE (RE_Any) then
+                  Element_Any := Datum;
+               else
+                  Element_Any := Build_To_Any_Call (Datum, Decls);
                end if;
 
-               return New_List (
+               Append_To (Stmts,
                  Make_Procedure_Call_Statement (Loc,
                    Name =>
                      New_Occurrence_Of (RTE (RE_Add_Aggregate_Element), Loc),
                    Parameter_Associations => New_List (
                      New_Occurrence_Of (Any, Loc),
-                     Build_To_Any_Call (
-                       OK_Convert_To (RTE (RE_Long_Unsigned),
-                         Make_Attribute_Reference (Loc,
-                           Prefix =>
-                             New_Occurrence_Of (Expr_Parameter, Loc),
-                           Attribute_Name =>
-                             Name_Length,
-                           Expressions => New_List (
-                             Make_Integer_Literal (Loc, Dimen)))),
-                       Decls))));
-            end To_Any_Start_Dimen;
+                     Element_Any)));
+            end To_Any_Append_Process_Element;
 
-            function Make_To_Any_Array_Iterator is
-              new Make_Array_Iterator (To_Any_Start_Dimen);
+            procedure Append_To_Any_Array_Iterator is
+              new Append_Array_Iterator (
+                Subprogram => Fnam,
+                Arry       => Expr_Parameter,
+                Indices    => New_List,
+                Append_Process_Element => To_Any_Append_Process_Element);
 
-            Indices : constant List_Id := New_List;
-            Component : Node_Id;
             Index : Node_Id;
          begin
             Set_Expression (Any_Decl,
@@ -1128,11 +1129,6 @@ package body Exp_Hlpr is
                   New_Occurrence_Of (RTE (RE_Get_Empty_Any_Aggregate), Loc),
                 Parameter_Associations => New_List (Result_TC)));
             Result_TC := Empty;
-
-            Component := Make_Indexed_Component (Loc,
-              Prefix => New_Occurrence_Of (Expr_Parameter, Loc),
-              Expressions => Indices);
-            Set_Etype (Component, Component_Type (Typ));
 
             if not Constrained then
                Index := First_Index (Typ);
@@ -1157,16 +1153,7 @@ package body Exp_Hlpr is
                end loop;
             end if;
 
-            Append_To (Stms,
-              Make_To_Any_Array_Iterator (Fnam,
-                Expr_Parameter,
-                Make_Procedure_Call_Statement (Loc,
-                  Name =>
-                    New_Occurrence_Of (RTE (RE_Add_Aggregate_Element), Loc),
-                  Parameter_Associations => New_List (
-                    New_Occurrence_Of (Any, Loc),
-                    Build_To_Any_Call (Component, Decls))),
-                Indices));
+            Append_To_Any_Array_Iterator (Stms, Any);
 
          end;
       elsif Is_Integer_Type (Typ) or else Is_Unsigned_Type (Typ) then
@@ -1834,61 +1821,130 @@ package body Exp_Hlpr is
 
    end Find_Numeric_Representation;
 
-   -------------------------
-   -- Make_Array_Iterator --
-   -------------------------
+   ---------------------------
+   -- Append_Array_Iterator --
+   ---------------------------
 
-   function Make_Array_Iterator
-     (Subprogram    : Entity_Id;
-      Arry          : Entity_Id;
-      Innermost_Stm : Node_Id;
-      Indices       : List_Id)
-      return Node_Id
+   procedure Append_Array_Iterator
+     (Stmts  : List_Id;
+      Any    : Entity_Id;
+      Depth  : Pos := 1)
    is
+      Constrained : constant Boolean := Is_Constrained (Arry);
+
       Loc       : constant Source_Ptr := Sloc (Subprogram);
       Typ       : constant Entity_Id  := Etype (Arry);
       Ndim      : constant Pos        := Number_Dimensions (Typ);
-      Inner_Stm : Node_Id             := Innermost_Stm;
-      Stm_List  : List_Id;
+      Inner_Any : Entity_Id;
+      Loop_Stm  : Node_Id;
+      Inner_Stmts : constant List_Id := New_List;
    begin
-      for J in 1 .. Ndim loop
-         Append_To (Indices,
-           Make_Identifier (Loc, New_External_Name ('L', J)));
-         Inner_Stm :=
-           Make_Implicit_Loop_Statement (Subprogram,
-             Iteration_Scheme =>
-               Make_Iteration_Scheme (Loc,
-                 Loop_Parameter_Specification =>
-                   Make_Loop_Parameter_Specification (Loc,
-                     Defining_Identifier =>
-                       Make_Defining_Identifier (Loc,
-                         Chars => New_External_Name ('L', Ndim - J + 1)),
+      if Depth > Ndim then
+         declare
+            Element_Expr : constant Node_Id
+              := Make_Indexed_Component (Loc,
+                   New_Occurrence_Of (Arry, Loc), Indices);
+         begin
+            Set_Etype (Element_Expr, Component_Type (Typ));
+            Append_Process_Element (
+              Stmts, Any, Element_Expr);
+            return;
+         end;
+      end if;
 
-                     Discrete_Subtype_Definition =>
-                       Make_Attribute_Reference (Loc,
-                         Prefix         => New_Occurrence_Of (Arry, Loc),
-                         Attribute_Name => Name_Range,
+      Append_To (Indices,
+        Make_Identifier (Loc, New_External_Name ('L', Depth)));
 
-                         Expressions => New_List (
-                           Make_Integer_Literal (Loc, Ndim - J + 1))))),
-             Statements => New_List (Inner_Stm));
+      if Constrained then
+         Inner_Any := Any;
+      else
+         Inner_Any := Make_Defining_Identifier (Loc,
+           New_External_Name ('A', Depth));
+         Set_Etype (Inner_Any, RTE (RE_Any));
 
-         --  In the case of unconstrained arrays, additional processing
-         --  is required at the beginning of each dimension. Call the
-         --  appropriate subprogram (Start_Dimen).
+         Append_Process_Element (Inner_Stmts,
+           Any   => Any,
+           Datum => New_Occurrence_Of (Inner_Any, Loc));
+         --  Link outer and inner any.
+      end if;
 
-         Stm_List := Build_Start_Dimen (Loc, J);
-         if Present (Stm_List) then
-            Append_To (Stm_List, Inner_Stm);
-            Inner_Stm := Make_Block_Statement (Loc,
-              Handled_Statement_Sequence =>
-                Make_Handled_Sequence_Of_Statements (Loc,
-                  Statements => Stm_List));
-         end if;
+      Append_Array_Iterator (Inner_Stmts, Inner_Any, Depth + 1);
 
-      end loop;
-      return Inner_Stm;
-   end Make_Array_Iterator;
+      Loop_Stm :=
+        Make_Implicit_Loop_Statement (Subprogram,
+          Iteration_Scheme =>
+            Make_Iteration_Scheme (Loc,
+              Loop_Parameter_Specification =>
+                Make_Loop_Parameter_Specification (Loc,
+                  Defining_Identifier =>
+                    Make_Defining_Identifier (Loc,
+                      Chars => New_External_Name ('L', Depth)),
+
+                  Discrete_Subtype_Definition =>
+                    Make_Attribute_Reference (Loc,
+                      Prefix         => New_Occurrence_Of (Arry, Loc),
+                      Attribute_Name => Name_Range,
+
+                      Expressions => New_List (
+                        Make_Integer_Literal (Loc, Depth))))),
+          Statements => Inner_Stmts);
+
+      if Constrained then
+         Append_To (Stmts, Loop_Stm);
+         return;
+      end if;
+
+      declare
+         Decls : constant List_Id := New_List;
+         Inner_Stmts : constant List_Id := New_List;
+         Length_Node : Node_Id;
+      begin
+         Append_To (Decls,
+           Make_Object_Declaration (Loc,
+             Defining_Identifier => Inner_Any,
+             Object_Definition   => New_Occurrence_Of (RTE (RE_Any), Loc),
+             Expression          =>
+               Make_Function_Call (Loc,
+                 Name =>
+                   New_Occurrence_Of (
+                     RTE (RE_Get_Empty_Any_Aggregate), Loc),
+                 Parameter_Associations => New_List (
+                   Make_Function_Call (Loc,
+                     Name =>
+                       New_Occurrence_Of (RTE (RE_Content_Type), Loc),
+                     Parameter_Associations => New_List (
+                       Make_Function_Call (Loc,
+                         Name =>
+                           New_Occurrence_Of (RTE (RE_Get_Type), Loc),
+                         Parameter_Associations => New_List (
+                           New_Occurrence_Of (Any, Loc)))))))));
+         --  XXX wrong typecode computation here.
+
+         Length_Node := Make_Attribute_Reference (Loc,
+               Prefix         => New_Occurrence_Of (Arry, Loc),
+               Attribute_Name => Name_Length,
+               Expressions    =>
+                 New_List (Make_Integer_Literal (Loc, Depth)));
+         Set_Etype (Length_Node, RTE (RE_Long_Unsigned));
+
+         Append_Process_Element (Inner_Stmts,
+           Datum => Length_Node,
+           Any   => Inner_Any);
+
+         Append_To (Inner_Stmts, Loop_Stm);
+         --  Loop_Stm does approrpriate processing for each element
+         --  of Inner_Any.
+
+         Append_To (Stmts,
+           Make_Block_Statement (Loc,
+             Declarations =>
+               Decls,
+             Handled_Statement_Sequence =>
+               Make_Handled_Sequence_Of_Statements (Loc,
+                 Statements => Inner_Stmts)));
+      end;
+
+   end Append_Array_Iterator;
 
    -----------------------------------------
    -- Make_Stream_Procedure_Function_Name --

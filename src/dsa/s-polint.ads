@@ -267,6 +267,11 @@ package System.PolyORB_Interface is
       T : PolyORB.Any.TypeCode.Object)
       renames PolyORB.Any.Set_Type;
 
+   function Get_Type
+     (The_Any : in Any)
+     return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.Get_Type;
+
    function Get_Empty_Any
      (Tc : PolyORB.Any.TypeCode.Object)
       return Any
@@ -276,6 +281,11 @@ package System.PolyORB_Interface is
      (Tc : PolyORB.Any.TypeCode.Object)
       return Any
      renames PolyORB.Any.Get_Empty_Any_Aggregate;
+
+   function Content_Type
+     (Self : PolyORB.Any.TypeCode.Object)
+      return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TypeCode.Content_Type;
 
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
    procedure NVList_Create (NVList : out PolyORB.Any.NVList.Ref)
