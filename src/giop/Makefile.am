@@ -43,9 +43,10 @@ install-data-local:
 	for f in $(srcdir)/*.ad[bs] *.ali; do $(INSTALL) -m 444 $$f $(DESTDIR)$(alidir); done
 
 $(top_builddir)/src/giop/polyorb-giop_p-code_sets-data.ads: $(GEN_CODESETS) $(srcdir)/cs_registry1.2h
-	$(GNATMAKE) gen_codeset -cargs $(GNATFLAGS) 
-	./gen_codeset "PolyORB.GIOP_P.Code_Sets.Data" \
-	  < $(srcdir)/cs_registry1.2h > polyorb-giop_p-code_sets-data.ads
+	$(GNATMAKE) gen_codeset -I$(srcdir) -cargs $(GNATFLAGS) 
+	./gen_codeset -c "PolyORB.GIOP_P.Code_Sets.Data" \
+	  < $(srcdir)/cs_registry1.2h > polyorb-giop_p-code_sets-data.ads.new
+	$(MOVEIFCHANGE) polyorb-giop_p-code_sets-data.ads.new polyorb-giop_p-code_sets-data.ads
 
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
 polyorb-binding_data-giop.lo: $(top_srcdir)/src/giop/polyorb-binding_data-giop.adb $(top_srcdir)/src/giop/polyorb-binding_data-giop.ads $(top_srcdir)/src/giop/polyorb-giop_p-tagged_components.ads $(top_srcdir)/src/giop/polyorb-giop_p.ads $(top_srcdir)/src/polyorb-annotations.ads $(top_srcdir)/src/polyorb-any.ads $(top_srcdir)/src/polyorb-asynch_ev.ads $(top_srcdir)/src/polyorb-binding_data.ads $(top_srcdir)/src/polyorb-buffers.ads $(top_srcdir)/src/polyorb-components.ads $(top_srcdir)/src/polyorb-exceptions.ads $(top_srcdir)/src/polyorb-jobs.ads $(top_srcdir)/src/polyorb-objects.ads $(top_srcdir)/src/polyorb-opaque-chunk_pools.adb $(top_srcdir)/src/polyorb-opaque-chunk_pools.ads $(top_srcdir)/src/polyorb-opaque.ads $(top_srcdir)/src/polyorb-sequences-unbounded.adb $(top_srcdir)/src/polyorb-sequences-unbounded.ads $(top_srcdir)/src/polyorb-sequences.ads $(top_srcdir)/src/polyorb-smart_pointers.ads $(top_srcdir)/src/polyorb-sockets.ads $(top_srcdir)/src/polyorb-sockets_initialization.ads $(top_srcdir)/src/polyorb-tasking-mutexes.ads $(top_srcdir)/src/polyorb-tasking.ads $(top_srcdir)/src/polyorb-transport.ads $(top_srcdir)/src/polyorb-types.ads $(top_srcdir)/src/polyorb-utils-chained_lists.adb $(top_srcdir)/src/polyorb-utils-chained_lists.ads $(top_srcdir)/src/polyorb-utils.ads $(top_srcdir)/src/polyorb.ads
