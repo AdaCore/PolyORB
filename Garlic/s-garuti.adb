@@ -193,7 +193,8 @@ package body System.Garlic.Utils is
    -- Quote --
    -----------
 
-   function Quote (S : String; C : Character := '"') return String is -- '
+   function Quote
+     (S : String; C : Character := '"')     return String is -- "
    begin
       return C & S & C;
    end Quote;
