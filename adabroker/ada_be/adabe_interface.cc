@@ -15,7 +15,7 @@ adabe_interface::adabe_interface(UTL_ScopedName *n, AST_Interface **ih, long nih
 }
 
 void
-adabe_interface::produce_ads(dep_list with,string &String, string &previousdefinition);
+adabe_interface::produce_ads(dep_list with,string &String, string &previousdefinition)
 {
   string Previous = "";
   string tmp = "";

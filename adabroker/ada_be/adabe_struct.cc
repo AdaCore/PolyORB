@@ -13,29 +13,27 @@ void
 adabe_structure::produce_ads(dep_list with,string &String, string &previousdefinition)
 {
   compute_ada_names();
-  string tmp = "";
-  INDENT(tmp);
-  tmp += "type " + get_ada_name() + "is record\n";
+  INDENT(String);
+  String += "type " + get_ada_name() + "is record\n";
   INC_INDENT();
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
     {
-      INDENT(tmp);
+      INDENT(String);
       AST_Decl *d = i.item();
       if (d->node_type() == AST_Decl::NT_field)
-	adabe_name::narrow_from_decl(d)->produce_ads(with, tmp, previousdefinition);
+	adabe_name::narrow_from_decl(d)->produce_ads(with, String, previousdefinition);
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in structure");
       i.next();
     }
   DEC_INDENT();
-  INDENT(tmp);
-  tmp += "end record;\n";
-  INDENT(tmp);
-  tmp += "type " + get_ada_name() + "_Ptr is access all " + get_ada_name() + ";\n";
-  INDENT(tmp);
-  tmp += "procedure free is new Unchecked_Deallocation(";
-  tmp += get_ada_name() + ", " + get_ada_name ()+ "_Ptr);\n";  
-  previousdefinition += tmp;
+  INDENT(String);
+  String += "end record;\n";
+  INDENT(String);
+  String += "type " + get_ada_name() + "_Ptr is access all " + get_ada_name() + ";\n";
+  INDENT(String);
+  String += "procedure free is new Unchecked_Deallocation(";
+  String += get_ada_name() + ", " + get_ada_name ()+ "_Ptr);\n";  
   set_already_defined();
 }
 
@@ -83,7 +81,11 @@ adabe_structure::dump_name(dep_list with,string &String, string &previousdefinit
   if (!is_imported(with))
     {
       if (!is_already_defined)
-	produce_ads(with, String, previousdefinition);
+	{
+	  string tmp = "";
+	  produce_ads(with, tmp, previousdefinition);
+	  previousdefinition += tmp;
+	}
       return get_ada_name();
     }
   return get_ada_full_name();	   

@@ -6,7 +6,8 @@ IMPL_NARROW_FROM_DECL(adabe_module);
 IMPL_NARROW_FROM_SCOPE(adabe_module);
 
 void
-adabe_module::produce_ads(dep_list with,string &String, string &previousdefinition) {
+adabe_module::produce_ads(dep_list with,string &String, string &previousdefinition)
+{
   
   // before doing anything compute the ada name
   
