@@ -9,7 +9,13 @@ with Broca.Object;
 with Broca.Repository;
 with Broca.Iiop;
 
+with Broca.Debug;
+pragma Elaborate_All (Broca.Debug);
+
 package body Broca.Orb is
+   Flag : constant Natural := Broca.Debug.Is_Active ("broca.orb");
+   procedure O is new Broca.Debug.Output (Flag);
+
    procedure IOR_To_Object (Ior : in out Broca.Types.Buffer_Descriptor;
                             Res : out CORBA.Object.Ref'Class)
    is
@@ -20,6 +26,7 @@ package body Broca.Orb is
       Type_Id : CORBA.String;
       Obj : Broca.Object.Object_Acc;
    begin
+      pragma Debug (O ("Ior_To_Object : enter"));
       --  The IOR is an encapsulation (defined in 13.3.3) as described in
       --  11.6.6
       --  Extract the endianness

@@ -1,4 +1,5 @@
-ADA_SRCS = \
+ADA_FULL = \
+	   broca-debug.ads \
            broca-exceptions.ads \
            broca-flags.ads \
            broca-giop.ads \
@@ -16,35 +17,38 @@ ADA_SRCS = \
            broca-sequences.ads \
            broca-server.ads \
            broca-stream.ads \
-           broca-types.ads \
            broca-vararray.ads \
-           broca.ads \
            corba-forward.ads \
-           corba-iop.ads \
            corba-object.ads \
            corba-orb.ads \
            corba-sequences-unbounded.ads \
-           corba-sequences.ads \
            corba.ads \
            portableserver-adapteractivator-impl.ads \
            portableserver-adapteractivator.ads \
            portableserver-poa.ads \
            portableserver-poamanager.ads \
-           portableserver-servantactivator-impl.ads \
            portableserver-servantactivator.ads \
-           portableserver-servantlocator-impl.ads \
            portableserver-servantlocator.ads \
            portableserver-servantmanager-impl.ads \
-           portableserver-servantmanager.ads \
            portableserver.ads
 #           broca-policy.ads \
 #           corba-boa.ads \
 #           corba-policy.ads \
 #           corba-sequences-bounded.ads \
 #           portableserver-servantretentionpolicy.ads \
-#           portableserver-threadpolicy.ads \
+#           portableserver-threadpolicy.ads
 
-ADA_OBJS = $(ADA_SRCS:.ads=.o)
+ADA_IMPLS = $(ADA_FULL:.ads=.adb)
+
+ADA_SPECS += $(ADA_FULL) \
+           broca.ads \
+           broca-types.ads \
+           corba-sequences.ads \
+           portableserver-servantactivator-impl.ads \
+           portableserver-servantlocator-impl.ads \
+           portableserver-servantmanager.ads
+
+ADA_OBJS = $(ADA_SPECS:.ads=.o)
 
 lib = $(patsubst %,$(LibPattern),broca)
 
@@ -55,7 +59,7 @@ $(lib): $(ADA_OBJS)
 
 $(ADA_OBJS): allsrc
 
-allsrc: $(ADA_SRCS)
+allsrc: $(ADA_SPECS) $(ADA_IMPLS)
 	$(GNATMAKE) $(BROCA_FLAGS) allsrc; \
 
 clean::
