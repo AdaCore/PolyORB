@@ -1,3 +1,9 @@
+1998-04-22  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* 5pgtplsp.ads: Change casing for imported WSAStartup.
+
+	* 5wgtplsp.ads: Likewise.
+
 1998-04-20  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-ganobl.adb: Get Use_Poll from s-gtplsp.ads instead of

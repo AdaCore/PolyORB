@@ -57,7 +57,7 @@ private
    function WSAStartup (WS_Version     : Interfaces.C.int;
                         WSADataAddress : System.Address)
      return Interfaces.C.int;
-   pragma Import (Stdcall, WSAStartup);
+   pragma Import (Stdcall, WSAStartup, "WSAStartup");
 
    --  Start the winsock service
 
