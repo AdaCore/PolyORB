@@ -1,3 +1,24 @@
+1998-08-03  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* NEWS: Updated for heterogeneous support.
+
+	* MANIFEST: Add Garlic/s-garloc.ad[bs] to the distribution.
+
+	* Makefile.am: Remove isthrbio and associated files when doing a
+	"make clean".
+
+	* configure.in: Use -m to recompile isthrbio to avoid useless
+	recompilations.
+	Use ./isthrbio in the case where the user does not have "." in her
+	PATH.
+	Do not remove ./isthrbio to allow subsequent runs of configure
+	without extra compilation.
+	Reformat the comment for --enable-thread-blocking-io to make
+	respect the GNU coding standards.
+	Remove -gnatx from default flags since its meaning has been
+	reversed.
+	Use -gnatawe since -gnatwu is included with -gnatg.
+	
 1998-08-03  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* configure.in, configure: Create a new configuration option:

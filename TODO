@@ -8,3 +8,5 @@
 * Check why adding extra explicit conversion of a RACW into the same RACW type
   makes GNAT generate extra checks that are not bogus in the new expansion
   scheme (Sam, 28 Feb 98)
+* Unblock caller when remote partition dies during a remote call
+  (Laurent, 15 Jul 98)
