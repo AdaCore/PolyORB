@@ -25,7 +25,10 @@ package body Backend.BE_Ada.FILES_Generation is
    procedure Generate_Record_Type_Spec (E : Node_Id);
    procedure Generate_Type_Declaration (E : Node_Id);
    procedure Generate_Type_Spec (E : Node_Id);
-
+   procedure Write_Package_Spec_Header (E : Node_Id);
+   procedure Write_Function_Spec_Header (E : Node_Id);
+   procedure Write_Procedure_Spec_Header (E : Node_Id);
+   procedure Write_Type_Declaration  (E : Node_Id);
 
 
 
@@ -60,9 +63,7 @@ package body Backend.BE_Ada.FILES_Generation is
    procedure Generate_Ada_Function_Spec (E : Node_Id) is
       Arg_List : List_Id;
    begin
-      W_Indents;
-      Write_Str ("function "
-                 & Get_Name_String (Name (Identifier (E))) & " ");
+      Write_Function_Spec_Header (E);
       Arg_List := Argument_List (E);
       if Arg_List /= No_List then
          Generate_Argument_List (Arg_List);
@@ -78,9 +79,7 @@ package body Backend.BE_Ada.FILES_Generation is
    procedure Generate_Ada_Procedure_Spec (E : Node_Id) is
       Arg_List : List_Id;
    begin
-      W_Indents;
-      Write_Str ("procedure "
-                 & Get_Name_String (Name (Identifier (E))) & " ");
+      Write_Procedure_Spec_Header (E);
       Arg_List := Argument_List (E);
       if Arg_List /= No_List then
          Generate_Argument_List (Arg_List);
@@ -224,10 +223,8 @@ package body Backend.BE_Ada.FILES_Generation is
          Ada_Private_List := Ada_Private (E);
       end if;
       N_Indents := 0;
-      W_Indents;
       Generate_Package_With (Package_With_List);
-      Write_Line ("package "
-                  & Full_Package_Name (Current_Package) & " is");
+      Write_Package_Spec_Header (Current_Package);
       N_Indents := N_Indents + 1;
       Generate_Ada_Public (Ada_Public_List);
       Generate_Ada_Private (Ada_Private_List);
@@ -276,8 +273,7 @@ package body Backend.BE_Ada.FILES_Generation is
       end if;
       Type_Identifier := Identifier (E);
       Type_Spec_Node := Type_Spec (E);
-      W_Indents;
-      Write_Str ("type " & Get_Name_String (Name (Type_Identifier)) & " is ");
+      Write_Type_Declaration (Type_Identifier);
       Generate_Type_Spec (Type_Spec_Node);
       Write_Line (";");
    end Generate_Type_Declaration;
@@ -314,4 +310,42 @@ package body Backend.BE_Ada.FILES_Generation is
       end if;
    end Generate_Record_Type_Spec;
 
+   --------------------------------
+   --  Write_Package_Spec_Header --
+   --------------------------------
+   procedure Write_Package_Spec_Header (E : Node_Id) is
+   begin
+      W_Indents;
+      Write_Line ("package "
+                  & Full_Package_Name (E) & " is");
+   end Write_Package_Spec_Header;
+
+   --------------------------------
+   --  Write_Package_Spec_Header --
+   --------------------------------
+   procedure Write_Function_Spec_Header (E : Node_Id) is
+   begin
+      W_Indents;
+      Write_Str ("function "
+                 & Get_Name_String (Name (Identifier (E))) & " ");
+   end Write_Function_Spec_Header;
+
+   ----------------------------------
+   --  Write_Procedure_Spec_Header --
+   ----------------------------------
+   procedure Write_Procedure_Spec_Header (E : Node_Id) is
+   begin
+      W_Indents;
+      Write_Str ("procedure "
+                 & Get_Name_String (Name (Identifier (E))) & " ");
+   end Write_Procedure_Spec_Header;
+
+   ----------------------------
+   -- Write_Type_Declaration --
+   ----------------------------
+   procedure Write_Type_Declaration  (E : Node_Id) is
+   begin
+      W_Indents;
+      Write_Str ("type " & Get_Name_String (Name (E)) & " is ");
+   end Write_Type_Declaration;
 end Backend.BE_Ada.FILES_Generation;
