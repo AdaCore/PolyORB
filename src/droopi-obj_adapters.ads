@@ -4,7 +4,6 @@
 --  $Id$
 
 with Droopi.Objects; use Droopi.Objects;
-with Droopi.Refs;
 
 package Droopi.Obj_Adapters is
 

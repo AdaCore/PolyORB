@@ -1,13 +1,13 @@
 --  $Id$
 
-with Droopi.Refs;
+with Droopi.Smart_Pointers;
 with CORBA.Impl;
 
 package CORBA.AbstractBase is
 
    pragma Elaborate_Body;
 
-   type Ref is new Droopi.Refs.Ref with private;
+   type Ref is new Droopi.Smart_Pointers.Ref with private;
 
    procedure Set
      (The_Ref : in out Ref;
@@ -19,7 +19,7 @@ package CORBA.AbstractBase is
      renames Object_Of;
 
    --  The following primitive operations are inherited
-   --  from Droopi.Refs.Ref.
+   --  from Droopi.Smart_Pointers.Ref.
 
    --    procedure Set
    --      (The_Ref : in out Ref;
@@ -41,8 +41,8 @@ package CORBA.AbstractBase is
 
 private
 
-   type Ref is new Droopi.Refs.Ref with null record;
+   type Ref is new Droopi.Smart_Pointers.Ref with null record;
    Nil_Ref : constant Ref
-     := (Droopi.Refs.Nil_Ref with null record);
+     := (Droopi.Smart_Pointers.Nil_Ref with null record);
 
 end CORBA.AbstractBase;

@@ -38,7 +38,7 @@ with Ada.Tags;
 with Droopi.Log;
 with Droopi.Soft_Links;
 
-package body Droopi.Refs is
+package body Droopi.Smart_Pointers is
 
    use Droopi.Log;
    use Droopi.Soft_Links;
@@ -207,4 +207,4 @@ package body Droopi.Refs is
       return The_Ref.A_Ref;
    end Entity_Of;
 
-end Droopi.Refs;
+end Droopi.Smart_Pointers;

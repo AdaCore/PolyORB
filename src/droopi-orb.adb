@@ -414,21 +414,16 @@ package body Droopi.ORB is
    end record;
 
    procedure Run (J : access Request_Job);
-   procedure Run (J : access Request_Job)
-   is
-      Res : Requests.Result;
+   procedure Run (J : access Request_Job) is
    begin
       pragma Debug (O ("Run Request_Job: enter"));
       pragma Assert (J.Req /= null);
-      Requests.Execute (J.Req.all, Res);
+      Requests.Execute_Request (J.Req.all);
       pragma Debug (O ("Run Request_Job: executed request"));
       --  Execute request.
 
       --  Send_Result (Session, Result);
       --  Send back answer.
-
-      Destroy (Res);
-      --  Clear result.
 
       Destroy_Request (J.Req);
       --  Destroy request.

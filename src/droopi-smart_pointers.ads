@@ -33,7 +33,7 @@
 
 with Ada.Finalization;
 
-package Droopi.Refs is
+package Droopi.Smart_Pointers is
 
    pragma Elaborate_Body;
 
@@ -109,4 +109,4 @@ private
    Nil_Ref : constant Ref := (Ada.Finalization.Controlled
                               with A_Ref => null);
 
-end Droopi.Refs;
+end Droopi.Smart_Pointers;

@@ -21,7 +21,7 @@ package body CORBA.AbstractBase is
      (The_Ref : in out Ref;
       The_Object : CORBA.Impl.Object_Ptr) is
    begin
-      Set (The_Ref, Droopi.Refs.Entity_Ptr (The_Object));
+      Set (The_Ref, Droopi.Smart_Pointers.Entity_Ptr (The_Object));
    end Set;
 
 end CORBA.AbstractBase;

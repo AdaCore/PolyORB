@@ -4,7 +4,7 @@ with Ada.Tags;
 
 with Droopi.Log;
 with Droopi.Locks; use Droopi.Locks;
-with Droopi.Refs;
+with Droopi.Smart_Pointers;
 
 package body CORBA.NVList is
 
@@ -109,7 +109,7 @@ package body CORBA.NVList is
    is
       Object : constant Object_Ptr := Create_Object;
    begin
-      Set (NVList, Droopi.Refs.Entity_Ptr (Object));
+      Set (NVList, Droopi.Smart_Pointers.Entity_Ptr (Object));
    end Create;
 
 --     --------------

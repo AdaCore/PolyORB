@@ -13,17 +13,25 @@ package body Droopi.Requests is
      renames L.Output;
 
    procedure Create_Request
-     (Req       : out Request_Access;
-      Target    : Object;
-      Operation : String;
-      Args      : CORBA.NVList.Ref)
+     (Target    : in     References.Ref;
+      --  May or may not be local!
+      --  Ctx       : in     CORBA.Context.Ref;
+      Operation : in     Operation_Id;
+      Arg_List  : in     CORBA.NVList.Ref;
+      Result    : in out CORBA.NamedValue;
+      --  Exc_List  : in     ExceptionList.Ref;
+      --  Ctxt_List : in     ContextList.Ref;
+      Req       :    out Request_Access
+      --  Req_Flags : in     Flags
+     )
    is
-      Result : constant Request_Access := new Request;
+      Res : constant Request_Access := new Request;
    begin
-      Result.Target := new String'(Target.all);
-      Result.Operation := new String'(Operation);
-      Result.Args := Args;
-      Req := Result;
+      Res.Target := Target;
+      Res.Operation := new String'(Operation);
+      Res.Args := Arg_List;
+      Res.Result := Result;
+      Req := Res;
    end Create_Request;
 
    procedure Free is new Ada.Unchecked_Deallocation
@@ -32,16 +40,17 @@ package body Droopi.Requests is
    procedure Destroy_Request
      (Req : in out Request_Access) is
    begin
-      Free (Req.Target);
       Free (Req.Operation);
       Free (Req);
    end Destroy_Request;
 
-   procedure Execute (Req : Request; Res : out Result)
+   procedure Execute_Request
+     (Req : in out Request)
    is
-      The_Result : constant Result := new String'
+      The_Result : constant String_Ptr := new String'
         ("Your request " & Req.Operation.all
-         & " was executed on object " & Req.Target.all
+         & " was executed"
+         --  & " on object " & Req.Target.all
          --  & " with arguments " & Req.Args.all
          & "." & ASCII.CR & ASCII.LF);
    begin
@@ -50,12 +59,9 @@ package body Droopi.Requests is
         (O ("Result is « "
             & The_Result (The_Result'First .. The_Result'Last - 2)
             & " »."));
-      Res := The_Result;
-   end Execute;
-
-   procedure Destroy (Res : in out Result) is
-   begin
-      Free (Res);
-   end Destroy;
+      --  XXX TODO
+      --  Request.Res := The_Result;
+      null;
+   end Execute_Request;
 
 end Droopi.Requests;

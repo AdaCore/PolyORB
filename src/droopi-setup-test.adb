@@ -8,9 +8,9 @@ with Droopi.Filters;
 with Droopi.Log;
 with Droopi.ORB.Task_Policies;
 with Droopi.No_Tasking;
-with Droopi.Refs;
 with Droopi.Protocols;
 with Droopi.Protocols.Echo;
+with Droopi.Smart_Pointers;
 with Droopi.Sockets;
 with Droopi.Transport.Sockets;
 
@@ -38,7 +38,7 @@ begin
    --  Setup soft links.
 
    Put_Line ("@@3");
-   Droopi.Refs.Initialize;
+   Droopi.Smart_Pointers.Initialize;
    --  Depends on Soft_Links.
 
    Put_Line ("@@4");
