@@ -23,23 +23,36 @@ public class DynClient
             System.exit( 0 );
         }
 
+	boolean pass = true;
+
 	// Call the `unsigned long echoULong (unsigned long arg)` method.
-       org.omg.CORBA.Request req = obj._request( "echoULong" );
 
-       org.omg.CORBA.Any param1 = req.add_in_arg( );
-       param1.insert_ulong( 123 );
+	for (int j = 0; j < 10000; j++)
+	    {
+		org.omg.CORBA.Request req = obj._request( "echoULong" );
 
-       org.omg.CORBA.TypeCode tc_return = orb.get_primitive_tc( org.omg.CORBA.TCKind.tk_ulong );
-       req.set_return_type( tc_return );
+		org.omg.CORBA.Any param1 = req.add_in_arg( );
+		param1.insert_ulong( 123 );
 
-       req.invoke();
+		org.omg.CORBA.TypeCode tc_return = orb.get_primitive_tc( org.omg.CORBA.TCKind.tk_ulong );
+		req.set_return_type( tc_return );
 
-       org.omg.CORBA.Any result = req.return_value();
+		req.invoke();
 
-       long res = result.extract_ulong ();
+		java.lang.Exception exception = req.env().exception();
+		
+		if ( exception != null )
+		    {
+			System.out.println ("Got an exception !");
+			return;
+		    }
+
+		org.omg.CORBA.Any result = req.return_value();
+		
+		pass = pass & (result.extract_ulong () == (long) 123);
+	    }
 
        // Output the result.
-       System.out.println (res);
-
+       System.out.println (pass);
     }
 }
