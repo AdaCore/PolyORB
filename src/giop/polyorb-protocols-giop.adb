@@ -35,7 +35,6 @@ with Ada.Streams;
 
 with PolyORB.Annotations;
 with PolyORB.Binding_Data;
-with PolyORB.Binding_Data.IIOP;
 with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.GIOP_P.Exceptions;
@@ -620,6 +619,7 @@ package body PolyORB.Protocols.GIOP is
      (Buffer  : access Buffer_Type)
      return PolyORB.Binding_Data.Profile_Access
    is
+      use PolyORB.Binding_Data;
       use PolyORB.References;
       use PolyORB.References.IOR;
 
@@ -630,7 +630,7 @@ package body PolyORB.Protocols.GIOP is
       pragma Debug (O ("Reply Message : Received Location_Forward"));
 
       for J in Prof_Array'Range loop
-         if Prof_Array (J).all in Binding_Data.IIOP.IIOP_Profile_Type then
+         if Get_Profile_Tag (Prof_Array (J).all) = Tag_Internet_IOP then
             return Prof_Array (J);
          end if;
       end loop;

@@ -32,7 +32,6 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.Any.ExceptionList;
-with PolyORB.Binding_Data.IIOP;
 with PolyORB.Buffers;
 with PolyORB.Exceptions;
 with PolyORB.GIOP_P.Exceptions;
@@ -378,7 +377,6 @@ package body PolyORB.Protocols.GIOP.Common is
       use PolyORB.ORB;
       use PolyORB.Components;
       use PolyORB.Objects;
-      use PolyORB.Binding_Data.IIOP;
       use Pend_Req_Seq;
 
       Req          : Pending_Request_Access;
@@ -523,9 +521,8 @@ package body PolyORB.Protocols.GIOP.Common is
             begin
                Prof := Select_Profile (Sess.Buffer_In);
                New_Sess := Session_Access
-                 (Binding_Data.IIOP.Bind_Profile
-                    (IIOP_Profile_Type (Prof.all),
-                     Component_Access (ORB)));
+                 (Binding_Data.Bind_Profile
+                    (Prof.all, Component_Access (ORB)));
 
                Release (Sess.Buffer_In);
 
