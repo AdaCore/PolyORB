@@ -20,7 +20,7 @@ with Droopi.Binding_Data;
 
 package Droopi.Protocols.GIOP.GIOP_1_0 is
 
-   No_Context : constant CORBA.Unsigned_Long := 0;
+   pragma Elaborate_Body;
 
    procedure GIOP_Header_Marshall
      (Buffer       : access Buffer_Type;

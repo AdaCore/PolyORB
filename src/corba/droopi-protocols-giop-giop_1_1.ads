@@ -14,22 +14,23 @@
 with Ada.Streams; use Ada.Streams;
 
 with CORBA;
-with CORBA.GIOP;
 
 with Droopi.Opaque;
 with Droopi.Buffers;
-with Droopi.References
+with Droopi.References;
 with Droopi.Binding_Data;
 
 
 package Droopi.Protocols.GIOP.GIOP_1_1  is
 
+   pragma Elaborate_Body;
 
-   Service_Context_List_1_1 : constant array ( range 0 .. 1) of ServiceId;
+   type Service_Id_Array is array (Integer range <>) of ServiceId;
+   Service_Context_List_1_1 : constant Service_Id_Array;
 
    procedure GIOP_Header_Marshall
      (Buffer        : access Buffers.Buffer_Type;
-      Message_Type  : in MsgType;
+      Message_Type  : in Msg_Type;
       Message_Size  : in Stream_Element_Offset;
       Fragment_Next : in Boolean);
 
@@ -48,7 +49,7 @@ package Droopi.Protocols.GIOP.GIOP_1_1  is
 
    procedure No_Exception_Marshall
     (Buffer      : access Buffer_Type;
-     Request_Id  : in CORBA.Unsigned_Long)
+     Request_Id  : in CORBA.Unsigned_Long);
 
 
    procedure Exception_Marshall
@@ -66,22 +67,22 @@ package Droopi.Protocols.GIOP.GIOP_1_1  is
 
    procedure Request_Message_Unmarshall
      ( Buffer            : access Buffer_Type;
-       Request_Id        : out Corba.Unisgned_Long;
+       Request_Id        : out CORBA.Unsigned_Long;
        Response_Expected : out Boolean;
        Object_Key        : out Objects.Object_Id;
-       Operation         : out Corba.String;
+       Operation         : out CORBA.String;
        Principal         : out Stream_Element_Array);
 
     procedure Reply_Message_Unmarshall
       (Buffer       : access Buffer_Type;
-       Request_Id   : out Corba.Unsigned_Long;
+       Request_Id   : out CORBA.Unsigned_Long;
        Reply_Status : out Reply_Status_Type);
 
 
 private
 
-   Service_Context_List_1_1 : constant array ( range 0 .. 1) of ServiceId
-                              := (TransactionService, CodeSets);
+   Service_Context_List_1_1 : constant Service_Id_Array
+      := (0 => Transaction_Service, 1 => CodeSets);
 
    Major_Version : constant CORBA.Octet
      := 1;
