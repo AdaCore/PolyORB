@@ -122,7 +122,8 @@ adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previ
   align_size += "                        return Corba.Unsigned_Long is\n";
   align_size += "      Tmp : Corba.Unsigned_Long := Initial_Offset ;\n";
   align_size += "   begin\n";
-
+  align_size += "      for I in (1..N) loop\n";
+  
   UTL_ScopeActiveIterator activator(this,UTL_Scope::IK_decls);
   while (!activator.is_done())
     {
@@ -141,8 +142,9 @@ adabe_exception::produce_marshal_adb (dep_list& with,string &body, string &previ
       activator.next();
     }
   marshall += "   end ;\n";
-  unmarshall += "      return Tmp ;\n";
+  unmarshall += "      S := Tmp ;\n";
   unmarshall += "   end ;\n";
+  align_size += "      end loop ;\n";
   align_size += "      return Tmp ;\n";
   align_size += "   end ;\n";
 

@@ -3,7 +3,12 @@
 
 void
 adabe_sequence::produce_ads(dep_list& with, string &body,
-			    string &previous){
+			    string &previous)
+{
+  no_fixed_size();
+  // set a flag of this object and its ancestors saying
+  // they have not a fixed size.
+  
   string is_bounded;
   adabe_name *adabe_base_type;
 
@@ -49,6 +54,8 @@ adabe_sequence::produce_marshal_ads(dep_list& with, string &body,string &previou
   body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
   body += "                        N : in Corba.Unsigned_Long := 1)\n";
   body += "                        return Corba.Unsigned_Long ;\n\n\n";
+
+  set_already_defined();
 }
 
 void
@@ -95,18 +102,23 @@ adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previo
   body += "   function Align_Size (A : in ";
   body += get_ada_local_name ();
   body += " ;\n"; 
-  body += "                        Initial_Offset : in Corba.Unsigned_Long)\n";
+  body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "                        N : in Corba.Unsigned_Long := 1)\n";
   body += "                        return Corba.Unsigned_Long is\n";
   body += "      Len : Corba.Unsigned_Long\n";
   body += "        := Corba.Unsigned_Long (Length(A)) ;\n";
   body += "      Tmp : Corba.Unsigned_Long ;\n";
   body += "   begin\n";
-  body += "      Tmp := Align_Size (Len,Initial_Offset) ;\n";
-  body += "      for I in (1..Len) loop\n";
-  body += "         Align_Size (Element_Of(A,I),Tmp) ;\n";
+  body += "      for I in (1..N) loop\n";
+  body += "         Tmp := Align_Size (Len,Initial_Offset) ;\n";
+  body += "         for I in (1..Len) loop\n";
+  body += "            Align_Size (Element_Of(A,I),Tmp) ;\n";
+  body += "         end loop ;\n";
   body += "      end loop ;\n";
   body += "      return Tmp ;\n";
   body += "   end ;\n\n\n";
+
+  set_already_defined();
 }
 
 string

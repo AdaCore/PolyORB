@@ -40,7 +40,7 @@ class string_list
   
   bool check(string str);
   // check for the presence of the string in the list, and add it
-  
+
   string *produce();
   string *produce(string);
   // dump the content of the list in a string
@@ -91,6 +91,12 @@ public:
   int is_name_already_used(string name, UTL_Scope *in_scope);
   // is this name already used in the current scope ?
 
+  bool has_fixed_size();
+  // return true if the size of this element is fixed
+
+  void no_fixed_size() ;
+  // set fixed size to False and calls no_fixed_size of the parent
+  
   bool is_imported(dep_list &with);
   // if the node is imported; 
 
@@ -147,6 +153,9 @@ public:
   
   void convert(string &);        
   // give the ADA name given by the OMG mapping rules of the AST node
+
+  bool pd_fixed_size;
+  // true if the size of this element is fixed
 
   //  bool is_reserved_name(void);
   // determines if the name of the node is an ADA reserved name

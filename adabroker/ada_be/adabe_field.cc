@@ -61,7 +61,7 @@ adabe_field::produce_marshal_adb(dep_list& with, string &body, string &marshall,
   unmarshall += get_ada_local_name ();
   unmarshall += ",S) ;\n";
   
-  align_size += "      Tmp := Align_Size(A.";
+  align_size += "         Tmp := Align_Size(A.";
   align_size += get_ada_local_name ();
   align_size += ", Tmp) ;\n";
 

@@ -83,6 +83,8 @@ adabe_structure::produce_marshal_ads(dep_list &with, string &body, string &previ
   body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
   body += "                        N : in Corba.Unsigned_Long := 1)\n";
   body += "                        return Corba.Unsigned_Long ;\n\n\n";
+
+  set_already_defined();
 }
 
 void
@@ -111,6 +113,7 @@ adabe_structure::produce_marshal_adb(dep_list &with, string &body, string &previ
   align_size += "                        return Corba.Unsigned_Long is\n";
   align_size += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
   align_size += "   begin\n";
+  align_size += "      for I in (1..N) loop\n";
   
   UTL_ScopeActiveIterator i(this,UTL_Scope::IK_decls);
   while (!i.is_done())
@@ -125,11 +128,14 @@ adabe_structure::produce_marshal_adb(dep_list &with, string &body, string &previ
 
   marshall += "   end Marshall;\n\n";
   unmarshall += "   end Unmarshall;\n\n";
+  align_size += "      end loop ;\n";
+  align_size += "      return Tmp ;\n";
   align_size += "   end Align_Size;\n\n\n";
 
   body += marshall;
   body += unmarshall;
   body += align_size;
+
   set_already_defined();
 }
 

@@ -15,6 +15,10 @@ adabe_union::produce_ads(dep_list& with, string &body, string &previous)
   ///////////WARNING//////////////
   //  the type of the discriminant should be check. From this type result a specific solution  
 
+  no_fixed_size();
+  // set a flag of this object and its ancestors saying
+  // they have not a fixed size.
+  
   compute_ada_name();
   body += "   type " + get_ada_local_name();
   adabe_name *b = dynamic_cast<adabe_name *>(disc_type());
@@ -76,8 +80,7 @@ adabe_union::produce_marshal_ads(dep_list& with, string &body, string &previous)
   body += "   function Align_Size (A : in";
   body += get_ada_local_name();
   body += " ;\n";
-  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
-  body += "               N : in Corba.Unsigned_Long := 1)\n";
+  body += "               Initial_Offset : in Corba.Unsigned_Long)\n";
   body += "               return Corba.Unsigned_Long ;\n\n\n";
 
   set_already_defined ();
@@ -117,8 +120,7 @@ adabe_union::produce_marshal_adb(dep_list& with, string &body, string &previous)
   align_size += "   function Align_Size (A : in";
   align_size += get_ada_local_name();
   align_size += " ;\n";
-  align_size += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
-  align_size += "               N : in Corba.Unsigned_Long := 1)\n";
+  align_size += "               Initial_Offset : in Corba.Unsigned_Long)\n";
   align_size += "               return Corba.Unsigned_Long is\n";
   align_size += "      Tmp : Corba.Unsigned_Long := 0 ;\n";
   align_size += "   begin\n";

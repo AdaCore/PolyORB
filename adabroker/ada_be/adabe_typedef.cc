@@ -96,6 +96,8 @@ adabe_typedef::produce_marshal_ads(dep_list& with, string &body, string &previou
   body += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
   body += "                        N : in Corba.Unsigned_Long := 1)\n";
   body += "                        return Corba.Unsigned_Long ;\n\n\n";
+
+  set_already_defined();
 }
 
 void
@@ -134,8 +136,9 @@ adabe_typedef::produce_marshal_adb(dep_list& with, string &body, string &previou
   body += "   begin\n";
   body += "      Tmp := Align_Size(";
   body += name;
-  body += "(A) , Tmp) ;\n";
+  body += "(A) , Tmp, N) ;\n";
   body += "   end ;\n\n\n";
+
   set_already_defined();
 }
 

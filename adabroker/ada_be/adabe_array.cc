@@ -54,11 +54,10 @@ adabe_array::local_type()
 void
 adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
   char number[256];
-  int i;
 
   compute_ada_name();
   body += "   type " + get_ada_local_name() + " is array";
-  for (i=0; i < n_dims(); i++) {
+  for (unsigned int i=0; i < n_dims(); i++) {
     body += "( 0..";  
     AST_Expression::AST_ExprValue* v = dims()[i]->ev();
     switch (v->et) 
@@ -90,34 +89,51 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
 void
 adabe_array::produce_marshal_ads(dep_list& with,string &body, string &previous)
 {
+  body += "   procedure Marshall (A : in ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
+
+  body += "   procedure UnMarshall (A : out ";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "      S : in out Giop_C.Object) ;\n\n";
+
+  body += "   function Align_Size (A : in";
+  body += get_ada_local_name();
+  body += " ;\n";
+  body += "               Initial_Offset : in Corba.Unsigned_Long ;\n";
+  body += "               N : in Corba.Unsigned_Long := 1)\n";
+  body += "               return Corba.Unsigned_Long ;\n\n\n";
+
+  set_already_defined();
 }
 
 void
 adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
 {
-  string name = (dynamic_cast<adabe_name *>(base_type()))->marshal_name(with, previous);
+  adabe_name *b = dynamic_cast<adabe_name *>(base_type());
+  string name = b->marshal_name(with, previous);
   
   body += "   procedure Marshall (A : in ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "      S : in out Giop_C.Object) is\n";
-  body += "    i:Integer;\n";
   body += "   begin\n";
-  body += "     for i in A'range loop \n";
-  body += "      Marshall (A(i); S); \n";
-  body += "     end loop;\n ";
+  body += "      for I in A'range loop \n";
+  body += "         Marshall (A(i), S) ; \n";
+  body += "      end loop ;\n ";
   body += "   end Marshall\n";
 
   body += "   procedure UnMarshall (A : out ";
   body += get_ada_local_name();
   body += " ;\n";
   body += "      S : in out Giop_C.Object) is \n\n";
-  body += "    i:Integer;\n";
   body += "   begin\n";
-  body += "     for i in A'range loop \n";
-  body += "      UnMarshall (A(i); S);\n";
-  body += "     end loop;\n ";
-  body += "   end UnMarshall\n";
+  body += "      for I in A'range loop \n";
+  body += "         UnMarshall (A(I), S) ;\n";
+  body += "      end loop ;\n ";
+  body += "   end UnMarshall ;\n";
 
   body += "   function Align_Size (A : in";
   body += get_ada_local_name();
@@ -126,8 +142,22 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   body += "               N : in Corba.Unsigned_Long := 1)\n";
   body += "               return Corba.Unsigned_Long ;\n\n\n";
   body += "   begin\n";
-  body += "      return Align_Size (A'First;Initial_Offset; N*A'Length);\n";
+  if (b->has_fixed_size())
+    {
+      body += "      return Align_Size (A'First, Initial_Offset, N * ";
+      body += n_dims();
+      body += ") ;\n";
+    } else {
+      body += "      for I in (1..N) loop\n";
+      body += "         for J in (1..\n";
+      body += n_dims();
+      body += ") loop\n";
+      body += "            return Align_Size (A(J),Initial_Offset) ;\n";
+      body += "         end loop ;\n";
+      body += "      end loop ;\n";
+    }
   body += "   end Align_Size\n";
+      
   set_already_defined();
 }
 
