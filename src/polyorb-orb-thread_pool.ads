@@ -70,15 +70,7 @@ package PolyORB.ORB.Thread_Pool is
 
    procedure Initialize
      (Number_Of_Threads : Positive;
-      Queue_Size        : Positive);
-   --  This function must be called once before any other call in this package.
-   --  Number_Of_Threads indicates how many threads will be created to deal
-   --  with client requests.
-   --  Queue_Size indicates how many requests can be queued while waiting for
-   --  a thread to become available.
-   --  When this queue is full, calls to Handle_Request_Execution become
-   --  blocking.
-   --  See package body for more information.
+      ORB               : ORB_Access);
 
 private
 

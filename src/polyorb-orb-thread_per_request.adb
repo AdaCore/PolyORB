@@ -60,15 +60,40 @@ package body PolyORB.ORB.Thread_Per_Request is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
-   task type Request_Thread is
-      entry Start (A_Job : Jobs.Job_Access;
-                   A_N   : Natural);
-   end Request_Thread;
+   A_Job : Jobs.Job_Access := null;
+   A_N   : Natural         := 0;
+   --  This variables are used to initialized the threads local variables.
+   --  They are used to replaced the accept statement
 
-   type Request_Thread_Access is access Request_Thread;
+   Thread_Init_Watcher    : Watcher_Access := null;
+   Thread_Init_Version_Id : Version_Id;
+   --  This Watcher and his associated Version Id are used during
+   --  the initialisation of a thread.
 
+   -------------------------
+   -- Main_Request_Thread --
+   -------------------------
+   --  This procedure is a parameterless procedure used as
+   --  the body of the threads
+   procedure Main_Request_Thread;
 
-
+   procedure Main_Request_Thread
+   is
+      Id  : Natural;
+      Job : Jobs.Job_Access;
+   begin
+      Id := A_N;
+      Job := A_Job;
+      Update (Thread_Init_Watcher);
+      pragma Debug (O ("Thread number"
+                          & Integer'Image (Id)
+                       & " is executing Job"));
+      Jobs.Run (Job);
+      Jobs.Free (Job);
+      pragma Debug (O ("Thread number"
+                       & Integer'Image (Id)
+                       & " has executed Job"));
+   end Main_Request_Thread;
 
    ----------------------------------
    -- Handle_New_Server_Connection --
@@ -122,7 +147,6 @@ package body PolyORB.ORB.Thread_Per_Request is
       ORB : ORB_Access;
       RJ  : access Jobs.Job'Class)
    is
-      Dummy_Task : Request_Thread_Access;
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -131,10 +155,11 @@ package body PolyORB.ORB.Thread_Per_Request is
       pragma Debug (O ("Handle_Request_Execution : Run Job"));
       if RJ.all in Request_Job then
          N := N + 1;
-         Dummy_Task := new Request_Thread;
-         Dummy_Task.Start
-           (PolyORB.ORB.Duplicate_Request_Job (RJ),
-            N);
+         A_N := N;
+         A_Job := PolyORB.ORB.Duplicate_Request_Job (RJ);
+         Create_Task (Main_Request_Thread'Access);
+         Differ (Thread_Init_Watcher, Thread_Init_Version_Id);
+         Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
       else
          Jobs.Run (RJ);
       end if;
@@ -159,9 +184,6 @@ package body PolyORB.ORB.Thread_Per_Request is
       --  (XXX just in case).
    end Idle;
 
-
-
-
    ------------------------------
    -- Queue_Request_To_Handler --
    ------------------------------
@@ -178,39 +200,15 @@ package body PolyORB.ORB.Thread_Per_Request is
       Emit_No_Reply (Component_Access (ORB), Msg);
    end Queue_Request_To_Handler;
 
-   --------------------
-   -- Request_Thread --
-   --------------------
-
-   task body Request_Thread
-   is
-      Id  : Natural;
-      Job : Jobs.Job_Access;
-   begin
-      accept Start (A_Job : Jobs.Job_Access;
-                    A_N   : Natural)
-      do
-         Id := A_N;
-         Job := A_Job;
-         pragma Debug (O ("Session Thread number "
-                          & Integer'Image (N)
-                          & " is starting"));
-      end Start;
-
-         pragma Debug (O ("Thread number"
-                          & Integer'Image (Id)
-                          & " is executing Job"));
-         Jobs.Run (Job);
-         Jobs.Free (Job);
-         pragma Debug (O ("Thread number"
-                          & Integer'Image (Id)
-                          & " has executed Job"));
-   end Request_Thread;
-
+   ----------------
+   -- Initialize --
+   ----------------
    procedure Initialize;
    procedure Initialize is
    begin
       Setup.The_Tasking_Policy := new Thread_Per_Request_Policy;
+      Create (Thread_Init_Watcher);
+      Lookup (Thread_Init_Watcher, Thread_Init_Version_Id);
    end Initialize;
 
    use PolyORB.Initialization;
