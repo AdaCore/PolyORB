@@ -58,8 +58,8 @@ package PolyORB.Setup.TCP_Access_Points is
    end record;
 
    procedure Initialize_Socket
-     (DAP  : in out Access_Point_Info;
-      Port : Port_Type);
+     (DAP       : in out Access_Point_Info;
+      Port_Hint : in     Port_Type);
    --  Initialize DAP.Socket and bind it to a free port,
    --  Port if possible.
 

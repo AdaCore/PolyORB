@@ -44,12 +44,13 @@ package body PolyORB.Setup.TCP_Access_Points is
 
    procedure Initialize_Socket
      (DAP  : in out Access_Point_Info;
-      Port : Port_Type) is
+      Port_Hint : in Port_Type)
+   is
+      Port : Port_Type := Port_Hint;
    begin
       Create_Socket (DAP.Socket);
 
       DAP.Address.Addr := Any_Inet_Addr;
-      DAP.Address.Port := Port;
 
       --  Allow reuse of local addresses.
 
@@ -61,10 +62,24 @@ package body PolyORB.Setup.TCP_Access_Points is
       if DAP.SAP = null then
          DAP.SAP := new Transport.Sockets.Socket_Access_Point;
       end if;
-      Create
-        (Socket_Access_Point (DAP.SAP.all),
-         DAP.Socket,
-         DAP.Address);
+      loop
+         DAP.Address.Port := Port;
+         begin
+            Create
+              (Socket_Access_Point (DAP.SAP.all),
+               DAP.Socket,
+               DAP.Address);
+            exit;
+         exception
+            when Sockets.Socket_Error =>
+               Port := Port + 1;
+               if Port = Port_Hint then
+                  raise;
+                  --  Argh! we tried every possible value and
+                  --  wrapped. Bail out.
+               end if;
+         end;
+      end loop;
       if DAP.PF /= null then
          Create_Factory
            (DAP.PF.all, DAP.SAP, Components.Component_Access (The_ORB));
