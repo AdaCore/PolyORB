@@ -1,3 +1,8 @@
+2000-02-08  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-parint.ads, s-parint.adb: Add new procedure for fixing 7313-009,
+	(Raise_Program_Error_Unknown_Tag).
+
 2000-01-31  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.zip: Change pattern matching rules to explicit rules
