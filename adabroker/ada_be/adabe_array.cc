@@ -56,6 +56,7 @@ void
 adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
   char number[256];
 
+  cout << "ALLLLLLLLLLLLO " << get_ada_local_name() << "   " << local_name()->get_string() << endl;
   compute_ada_name();
   body += "   type " + get_ada_local_name() + " is array";
   for (unsigned int i=0; i < n_dims(); i++) {

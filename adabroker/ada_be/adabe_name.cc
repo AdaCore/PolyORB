@@ -13,7 +13,7 @@ adabe_name::adabe_name(AST_Decl::NodeType t,UTL_ScopedName* n, UTL_StrList* up)
   pd_defined_type   = 0;
   pd_fixed_size = true ;
   pd_repositoryID = internal_produce_repositoryID(this,this);
-
+  compute_ada_name();
 };
 
 string
@@ -133,9 +133,10 @@ adabe_name::marshal_name(dep_list&, string&)
 void
 adabe_name::compute_ada_name()
 {
-  pd_ada_full_name = "";
-  if (get_ada_local_name() == "")
+  string loc_value = local_name()->get_string();
+  if ((get_ada_local_name() == "") || (loc_value ==  "local type"))
     {
+      pd_ada_full_name = "";
       int already_used;
       int loop = 0;
       string temp_name = local_name()->get_string();

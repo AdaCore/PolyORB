@@ -69,7 +69,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 	      case AST_Decl::NT_sequence:
 	      case AST_Decl::NT_string:
 	      case AST_Decl::NT_array:	    
-		tmp += "   subtype" +  e->get_ada_local_name();
+		tmp += "   subtype " +  e->get_ada_local_name();
 		tmp += " is " + e->get_ada_full_name() + " ;\n";	      
 		break;
 	      default:break;
@@ -103,7 +103,7 @@ adabe_interface::produce_ads(dep_list &with, string &body, string &previous)
 		      case AST_Decl::NT_sequence:
 		      case AST_Decl::NT_string:
 		      case AST_Decl::NT_array:			
-			tmp += "   subtype" +  e->get_ada_local_name();
+			tmp += "   subtype " +  e->get_ada_local_name();
 			tmp += " is " + e->get_ada_full_name() + " ;\n";			
 			break;
 		      case AST_Decl::NT_op:

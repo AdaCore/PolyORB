@@ -549,8 +549,8 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
 
   UTL_ExceptlistActiveIterator except_iterator(exceptions()) ;
 
-#ifdef DEBUG_OPERATION
   bool user_exceptions = (! except_iterator.is_done()) ;
+#ifdef DEBUG_OPERATION
   cerr << "begin of exception generation" << endl;
   if (user_exceptions)
     cerr << "     there is some exceptions" << endl;
