@@ -539,14 +539,27 @@ ${RM} ${PROTO_SERVER_WITHS}
 # build directory (only necessary when source dir != build dir).
 #
 
-for a in src/gnat.adc src/corba/gnat.adc src/corba/rtcorba/gnat.adc src/moma/gnat.adc src/giop/gnat.adc src/giop/iiop/gnat.adc src/giop/diop/gnat.adc src/giop/miop/gnat.adc src/soap/gnat.adc src/srp/gnat.adc src/web_common/gnat.adc
+for dir in \
+  src \
+  src/corba \
+  src/corba/rtcorba \
+  src/moma \
+  src/giop \
+  src/giop/iiop \
+  src/giop/diop \
+  src/giop/miop \
+  src/soap \
+  src/srp \
+  src/web_common
 do
-  if test ! -f "$a"
+  adc="${dir}/gnat.adc
+  if test -d "${dir}" -a ! -f "${adc}"
   then
-    echo "creating $a"
-    cp $srcdir/$a $a
+    echo "creating ${adc}"
+    cp ${srcdir}/${adc} ${adc}
   fi
 done
+
 for a in linker adacompiler
 do
   chmod a+x support/$a
