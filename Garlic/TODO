@@ -1,17 +1,9 @@
-* We really need to inform the user that the boot server on the command line
-is wrong. Especially if --detach is not provided.
-
 * Provide a generic package to distributly manage data caching.
 
-* Handle concurrent connections.
-
-* Check that the Partition_RPC_Receiver of s-parint.adb cannot be installed
-  more than once.
-
-* Make sure that System.Garlic.Startup is elaborated *before* any user
-  partition.
-
 * Handle priority inversion issues when dealing with TCP sockets. Split
-  messages into part ?
+  messages into parts ?
 
 * Add SysV messages protocol and UDP protocol
+
+* Re-write Garlic.Table (clean up). Use one global lock for all the critical
+  sections. Re-write RPC.IO.

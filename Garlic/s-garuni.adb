@@ -188,7 +188,24 @@ package body System.Garlic.Units is
 
    procedure Dump_Unit_Info
      (Unit : in Unit_Id;
-      Info : in Unit_Info) is
+      Info : in Unit_Info)
+   is
+      PID : Partition_ID := Null_PID;
+
+      function Partition_List return String;
+      function Partition_List return String is
+      begin
+         while PID < Info.Requests'Last loop
+            PID := PID + 1;
+            exit when Info.Requests (PID);
+         end loop;
+         if not Info.Requests (PID) then
+            return "";
+         else
+            return PID'Img & Partition_List;
+         end if;
+      end Partition_List;
+
    begin
       D ("* Unit " & Units.Get_Name (Unit));
       D ("   Partition    "  & Info.Partition'Img);
@@ -197,6 +214,9 @@ package body System.Garlic.Units is
          D ("   Version       " & String (Info.Version));
       else
          D ("   Version       <no version>");
+      end if;
+      if Info.Pending then
+         D ("   Requests     " & Partition_List);
       end if;
       D ("   Status        " & Info.Status'Img);
       D ("   Next Unit    " & Info.Next_Unit'Img);
@@ -223,6 +243,13 @@ package body System.Garlic.Units is
             Dump_Unit_Info (Unit, Info);
             Unit := Info.Next_Unit;
          end loop;
+      end loop;
+      D ("** Partition Unknown");
+      for U in First_Unit_Id .. Units.Last loop
+         Info := Units.Get_Component (U);
+         if Info.Pending then
+            Dump_Unit_Info (U, Info);
+         end if;
       end loop;
    end Dump_Unit_Table;
 
@@ -363,9 +390,9 @@ package body System.Garlic.Units is
                Answer_Pending_Requests (Pending);
 
                --  This is a group request. If it has started on this
-               --  partition, then do not follow up except when a second
-               --  pass is explicitly required. The second pass will handle
-               --  at the group communication level.
+               --  partition, then do not follow up except when a
+               --  second pass is explicitly required. The second pass
+               --  will be handled at the group communication level.
 
                if Partition /= Self_PID then
                   Request_Type'Output (Query, Copy_Units);
@@ -384,9 +411,18 @@ package body System.Garlic.Units is
          when Define_New_Units |
            Push_Units_Table =>
 
+            To_All := False;
             Read_Units (Query, Pending);
-            To_All := Is_Boot_Server
-              and then (Request.Kind = Define_New_Units);
+            if Request.Kind = Define_New_Units
+              and then Is_Boot_Server
+            then
+               if N_Boot_Mirrors > 1 then
+                  To_All := True;
+               else
+                  Pending (Self_PID) := False;
+                  Answer_Pending_Requests (Pending);
+               end if;
+            end if;
 
          when Invalidate_Units =>
 
@@ -651,11 +687,13 @@ package body System.Garlic.Units is
       Current_Partition : Partition_ID renames Current_Info.Partition;
 
       In_Queue          : Boolean := True;
-      --  This variable is set to False if the current info does not belong
-      --  to a list of units for a partition (or has been removed from such
-      --  a list).
+      --  This variable is set to False if the current info does not
+      --  belong to a partition list of units (or has been removed
+      --  from such a list).
+
    begin
-      --  If a request is supposed to switch the status from Invalid to
+
+      --  If a request is supposed to change the status from Invalid to
       --  Defined, then this request should be ignored. The sender doesn't
       --  know yet that the partition has been invalidated with all its units.
 
@@ -669,7 +707,7 @@ package body System.Garlic.Units is
       --  this partition, then a partition tries to register twice an unit.
 
       if Current_Status = Defined and then Status = Declared then
-         pragma Debug (D ("Ignoring double registration of unit " &
+         pragma Debug (D ("Ignoring multiple registration of unit " &
                           Units.Get_Name (Unit)));
          return;
       end if;
@@ -746,31 +784,48 @@ package body System.Garlic.Units is
          end;
       end if;
 
-      --  When Current_Info.Status and Status are both set to Declared, we
-      --  have to resolve a conflict.  We discard the unit declared by the
-      --  partition of greater partition id. If the unit is declared by a
-      --  partition whose boot partition is the current partition, then the
-      --  token has performed a full pass and the unit status is no longer
-      --  Declared but Defined. That means it has been accepted by all the
-      --  boot mirrors. As the status of this unit has been modified, we
-      --  need to send a new copy of the table to the other boot mirrors.
-      --  For this purpose, Pending (Self_PID) is set to true. That means
-      --  the current partition has the answer to its pending request that
-      --  was whether or not the unit has been successfully defined.
+
+      --  When Current_Info.Status and Status are both set to
+      --  Declared, we have to resolve a conflict.  We discard the
+      --  unit declared by the partition of greater partition id. If
+      --  the unit is declared by a partition whose boot partition is
+      --  the current partition, then the token has performed a full
+      --  pass and the unit status is no longer Declared but
+      --  Defined. That means it has been accepted by all the boot
+      --  mirrors. As the status of this unit has been modified, we
+      --  need to send a new copy of the table to the other boot
+      --  mirrors.  For this purpose, Pending (Self_PID) is set to
+      --  true. That means the current partition has the answer to its
+      --  pending request that was whether or not the unit has been
+      --  successfully defined.
 
       if Current_Status = Declared and then Status = Declared then
          if Current_Partition < Partition then
             pragma Debug (D ("Ignoring late conflict on unit " &
                              Units.Get_Name (Unit)));
             return;
+
          elsif Boot_Partition (Partition) = Self_PID then
             pragma Debug (D ("Defining unit " & Units.Get_Name (Unit)));
             Current_Status := Defined;
             Pending (Self_PID) := True;
+
          else
             pragma Debug (D ("Declaring unit " & Units.Get_Name (Unit)));
             Current_Status := Declared;
          end if;
+
+      elsif Status = Declared
+        and then Options.Is_Boot_Server
+        and then N_Boot_Mirrors = 1
+      then
+
+         --  If the case below, we do not need a group consensus. Just
+         --  set the status to Defined. There is no possible conflict.
+
+         pragma Debug (D ("Defining (forced) unit " & Units.Get_Name (Unit)));
+         Current_Status := Defined;
+
       else
          Current_Status := Status;
       end if;
