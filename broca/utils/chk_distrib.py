@@ -5,6 +5,19 @@ import string, sys, re, os, glob
 
 # All dirs: check MANIFEST vs. files
 
+subdirs = [
+  'idlac',
+  'cos/event',
+  'cos/naming',
+  'cos/time',
+  'examples/all_functions',
+  'examples/all_types',
+  'examples/echo',
+  'examples/generic',
+  'examples/module',
+  'examples/random'
+  ]
+
 def read_MANIFEST (dir):
   MANIFEST = []
   for l in open ("MANIFEST", "r").readlines ():
@@ -103,9 +116,10 @@ if len (sys.argv) > 1:
   allsrc = read_allsrc (sys.argv[1])
   compare_lists ("files", "allsrc", 0)
 
-print "Checking idlac/...\n"
+for d in subdirs:
+  print "Checking " + d + "/...\n"
+  
+  MANIFEST = read_MANIFEST (d)
+  files = read_files (d)
 
-MANIFEST = read_MANIFEST ("idlac")
-files = read_files ("idlac")
-
-compare_lists ("files", "MANIFEST", 1)
+  compare_lists ("files", "MANIFEST", 1)
