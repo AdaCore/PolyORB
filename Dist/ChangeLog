@@ -1,3 +1,8 @@
+2002-01-25  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* xe_sysdep-nt.adb: Add a pragma Unreferenced to an unused
+	procedure parameter in the NT version of XE_Sysdep.
+
 2002-01-13  Pascal Obry  <p.obry@wanadoo.fr>
 
 	* Makefile.in, Makefile.am:

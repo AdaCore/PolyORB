@@ -87,6 +87,7 @@ package body XE_Sysdep is
    --  ".exe" suffix under NT. There is no executable file attribute under NT.
 
    procedure Set_Executable_Attribute (File : String) is
+      pragma Unreferenced (File);
    begin
       null;
    end Set_Executable_Attribute;
