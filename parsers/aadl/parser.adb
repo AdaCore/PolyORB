@@ -21,13 +21,14 @@ package body Parser is
 --   Cat_Device      : constant Natural :=  9;
 --   Cat_System      : constant Natural := 10;
 
-   function P_AADL_Specification return Node_Id;
    function P_AADL_Declaration return Node_Id;
+   function P_AADL_Specification return Node_Id;
 
    function P_Component return Node_Id;
    --  Parse Component_Type, Component_Type_Extension
    --        Component_Implementation, Component_Implementation_Extension
 
+   function P_Package_Items return Node_Id;
    function P_Package_Specification return Node_Id;
    function P_Port_Group return Node_Id;
    function P_Property_Set return Node_Id;
@@ -128,13 +129,77 @@ package body Parser is
       return No_Node;
    end P_Component;
 
+   ---------------------
+   -- P_Package_Items --
+   ---------------------
+
+   function P_Package_Items return Node_Id is
+   begin
+      return No_Node;
+   end P_Package_Items;
+
    -----------------------------
    -- P_Package_Specification --
    -----------------------------
 
    function P_Package_Specification return Node_Id is
+
+   --  package_spec ::=
+   --     package defining_package_name
+   --      ( public package_items [ private package_items ]
+   --         | private package_items )
+   --     end defining_package_name;
+
+   --  package_name ::= { package_identifier . } * package_identifier
+
+      Defining_Name  : List_Id;      --  package name
+      Identifier     : Node_Id;      --  current identifier
+      Package_Spec   : Node_Id;      --  result
+      Current_Items  : List_Id;      --  items parsed by P_Package_Items
+      Public_Items   : List_Id;      --  all public items of the package
+      Private_Items  : List_Id;      --  all private items of the package
+
    begin
-      return No_Node;
+      Package_Spec  := No_Node;
+      Defining_Name := New_List (K_Package_Name, Token_Location);
+      Public_Items  := New_List (K_Package_Items, Token_Location);
+      Private_Items := New_List (K_Package_Items, Token_Location);
+
+      loop
+         Scan_Token;
+         if Token = T_Identifier then
+            Identifier := New_Node (K_Identifier, Token_Location);
+            Set_Name (Identifier, Token_Name);
+            Append_Node_To_List (Identifier, Defining_Name);
+         else
+            Error_Loc (1) := Token_Location;
+            DE ("Parsing Defining_Package_Name, identifier expected, found "
+                & Image_Current_Token);
+         end if;
+
+         Scan_Token;
+         if Token /= T_Dot then
+            exit;
+         end if;
+      end loop;
+
+      loop
+         if Token = T_Public then
+            Current_Items := List_Id (P_Package_Items);
+            Append_List_To_List (Current_Items, Public_Items);
+         elsif Token = T_Private then
+            Current_Items := List_Id (P_Package_Items);
+            Append_List_To_List (Current_Items, Private_Items);
+         elsif Token = T_End then
+            exit;
+         else
+            Error_Loc (1) := Token_Location;
+            DE ("Parsing Package_Specification, unexpected token "
+                & Image_Current_Token);
+         end if;
+      end loop;
+
+      return Package_Spec;
    end P_Package_Specification;
 
    ------------------
@@ -160,6 +225,9 @@ package body Parser is
    -----------------------
 
    function P_System_Instance return Node_Id is
+
+      --  First identifier is in CURRENT TOKEN
+
    begin
       return No_Node;
    end P_System_Instance;

@@ -117,16 +117,16 @@ package body Lexer is
             return "[ERROR]";
 
          when T_Identifier =>
-            return Get_Name_String (Identifier_Name);
+            return Get_Name_String (Token_Name);
 
          when T_Access .. T_Units =>
             return "'" & Image (Token) & "'";
 
          when T_Real_Literal =>
-            return "[F " & Long_Long_Float'Image (Float_Literal_Value) & "]";
+            return "[" & Long_Long_Float'Image (Float_Literal_Value) & "]";
 
          when T_Integer_Literal =>
-            return "[I " & Long_Long_Unsigned'Image (Integer_Literal_Value)
+            return "[" & Long_Long_Unsigned'Image (Integer_Literal_Value)
               & "]";
 
          when T_String_Literal =>
@@ -326,6 +326,7 @@ package body Lexer is
       New_Token (T_Out, "out");
       New_Token (T_Package, "package");
       New_Token (T_Port, "port");
+      New_Token (T_Private, "private");
       New_Token (T_Process, "process");
       New_Token (T_Processor, "processor");
       New_Token (T_Properties, "properties");
@@ -554,7 +555,7 @@ package body Lexer is
 
       --  check whether it is a reserved word
 
-      Identifier_Name := Name_Find;
+      Token_Name := Name_Find;
 
       B := Get_Name_Table_Byte (Name_Find);
       if B in First_Reserved_Word_Pos .. Last_Reserved_Word_Pos then

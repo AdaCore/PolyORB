@@ -70,10 +70,10 @@ module Nodes {
     //    package defining_package_name 
     //     ( public package_items [ private package_items ]
     //        | private package_items )
-    // end defining_package_name;
+    //    end defining_package_name;
 
   interface Package_Spec : Node_Id {
-    List_Id  Name;
+    List_Id  Full_Name;
     Node_Id  Public_Package_Items;
     Node_Id  Private_Package_Items;
   };

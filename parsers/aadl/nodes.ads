@@ -7,10 +7,12 @@ package Nodes is
    type Node_Kind is
      (K_Node_Id,
       K_List_Id,
+      K_Identifier,
       K_AADL_Specification,
       K_AADL_Declaration,
       K_AADL_Declaration_List,
       K_Package_Items,
+      K_Package_Name,
       K_Package_Spec,
       K_Component_Type,
       K_Component_Type_Ext);
@@ -27,6 +29,15 @@ package Nodes is
    --    First_Node               : Node_Id
    --    Last_Node                : Node_Id
    --
+
+   --
+   --  Identifier
+   --
+   --    Next_Node                : Node_Id
+   --    Name                     : Name_Id
+   --
+
+   procedure W_Identifier (N : Node_Id);
 
    --
    --  AADL_Specification
@@ -65,10 +76,19 @@ package Nodes is
    procedure W_Package_Items (N : Node_Id);
 
    --
+   --  Package_Name
+   --
+   --    First_Node               : Node_Id
+   --    Last_Node                : Node_Id
+   --
+
+   procedure W_Package_Name (N : List_Id);
+
+   --
    --  Package_Spec
    --
    --    Next_Node                : Node_Id
-   --    Name                     : Name_Id
+   --    Full_Name                : List_Id
    --    Public_Package_Items     : Node_Id
    --    Private_Package_Items    : Node_Id
    --
@@ -122,6 +142,9 @@ package Nodes is
    function Last_Node (N : List_Id) return Node_Id;
    procedure Set_Last_Node (N : List_Id; V : Node_Id);
 
+   function Name (N : Node_Id) return Name_Id;
+   procedure Set_Name (N : Node_Id; V : Name_Id);
+
    function Declarations (N : Node_Id) return List_Id;
    procedure Set_Declarations (N : Node_Id; V : List_Id);
 
@@ -131,8 +154,8 @@ package Nodes is
    function Properties (N : Node_Id) return List_Id;
    procedure Set_Properties (N : Node_Id; V : List_Id);
 
-   function Name (N : Node_Id) return Name_Id;
-   procedure Set_Name (N : Node_Id; V : Name_Id);
+   function Full_Name (N : Node_Id) return List_Id;
+   procedure Set_Full_Name (N : Node_Id; V : List_Id);
 
    function Public_Package_Items (N : Node_Id) return Node_Id;
    procedure Set_Public_Package_Items (N : Node_Id; V : Node_Id);

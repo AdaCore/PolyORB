@@ -32,6 +32,7 @@ package body Nodes is
    begin
       pragma Assert (False
         or else Table (Node_Id (N)).Kind = K_Node_Id
+        or else Table (Node_Id (N)).Kind = K_Identifier
         or else Table (Node_Id (N)).Kind = K_AADL_Specification
         or else Table (Node_Id (N)).Kind = K_AADL_Declaration
         or else Table (Node_Id (N)).Kind = K_Package_Items
@@ -46,6 +47,7 @@ package body Nodes is
    begin
       pragma Assert (False
         or else Table (Node_Id (N)).Kind = K_Node_Id
+        or else Table (Node_Id (N)).Kind = K_Identifier
         or else Table (Node_Id (N)).Kind = K_AADL_Specification
         or else Table (Node_Id (N)).Kind = K_AADL_Declaration
         or else Table (Node_Id (N)).Kind = K_Package_Items
@@ -61,7 +63,8 @@ package body Nodes is
    begin
       pragma Assert (False
         or else Table (Node_Id (N)).Kind = K_List_Id
-        or else Table (Node_Id (N)).Kind = K_AADL_Declaration_List);
+        or else Table (Node_Id (N)).Kind = K_AADL_Declaration_List
+        or else Table (Node_Id (N)).Kind = K_Package_Name);
 
       return Node_Id (Table (Node_Id (N)).L (1));
    end First_Node;
@@ -70,7 +73,8 @@ package body Nodes is
    begin
       pragma Assert (False
         or else Table (Node_Id (N)).Kind = K_List_Id
-        or else Table (Node_Id (N)).Kind = K_AADL_Declaration_List);
+        or else Table (Node_Id (N)).Kind = K_AADL_Declaration_List
+        or else Table (Node_Id (N)).Kind = K_Package_Name);
 
       Table (Node_Id (N)).L (1) := Int (V);
    end Set_First_Node;
@@ -80,7 +84,8 @@ package body Nodes is
    begin
       pragma Assert (False
         or else Table (Node_Id (N)).Kind = K_List_Id
-        or else Table (Node_Id (N)).Kind = K_AADL_Declaration_List);
+        or else Table (Node_Id (N)).Kind = K_AADL_Declaration_List
+        or else Table (Node_Id (N)).Kind = K_Package_Name);
 
       return Node_Id (Table (Node_Id (N)).L (2));
    end Last_Node;
@@ -89,10 +94,32 @@ package body Nodes is
    begin
       pragma Assert (False
         or else Table (Node_Id (N)).Kind = K_List_Id
-        or else Table (Node_Id (N)).Kind = K_AADL_Declaration_List);
+        or else Table (Node_Id (N)).Kind = K_AADL_Declaration_List
+        or else Table (Node_Id (N)).Kind = K_Package_Name);
 
       Table (Node_Id (N)).L (2) := Int (V);
    end Set_Last_Node;
+
+
+   function Name (N : Node_Id) return Name_Id is
+   begin
+      pragma Assert (False
+        or else Table (Node_Id (N)).Kind = K_Identifier
+        or else Table (Node_Id (N)).Kind = K_Component_Type
+        or else Table (Node_Id (N)).Kind = K_Component_Type_Ext);
+
+      return Name_Id (Table (Node_Id (N)).L (2));
+   end Name;
+
+   procedure Set_Name (N : Node_Id; V : Name_Id) is
+   begin
+      pragma Assert (False
+        or else Table (Node_Id (N)).Kind = K_Identifier
+        or else Table (Node_Id (N)).Kind = K_Component_Type
+        or else Table (Node_Id (N)).Kind = K_Component_Type_Ext);
+
+      Table (Node_Id (N)).L (2) := Int (V);
+   end Set_Name;
 
 
    function Declarations (N : Node_Id) return List_Id is
@@ -150,25 +177,21 @@ package body Nodes is
    end Set_Properties;
 
 
-   function Name (N : Node_Id) return Name_Id is
+   function Full_Name (N : Node_Id) return List_Id is
    begin
       pragma Assert (False
-        or else Table (Node_Id (N)).Kind = K_Package_Spec
-        or else Table (Node_Id (N)).Kind = K_Component_Type
-        or else Table (Node_Id (N)).Kind = K_Component_Type_Ext);
+        or else Table (Node_Id (N)).Kind = K_Package_Spec);
 
-      return Name_Id (Table (Node_Id (N)).L (2));
-   end Name;
+      return List_Id (Table (Node_Id (N)).L (2));
+   end Full_Name;
 
-   procedure Set_Name (N : Node_Id; V : Name_Id) is
+   procedure Set_Full_Name (N : Node_Id; V : List_Id) is
    begin
       pragma Assert (False
-        or else Table (Node_Id (N)).Kind = K_Package_Spec
-        or else Table (Node_Id (N)).Kind = K_Component_Type
-        or else Table (Node_Id (N)).Kind = K_Component_Type_Ext);
+        or else Table (Node_Id (N)).Kind = K_Package_Spec);
 
       Table (Node_Id (N)).L (2) := Int (V);
-   end Set_Name;
+   end Set_Full_Name;
 
 
    function Public_Package_Items (N : Node_Id) return Node_Id is
@@ -320,6 +343,9 @@ package body Nodes is
    procedure W_Node (N : Node_Id) is
    begin
       case Kind (N) is
+         when K_Identifier =>
+            W_Identifier
+              (Node_Id (N));
          when K_AADL_Specification =>
             W_AADL_Specification
               (Node_Id (N));
@@ -332,6 +358,9 @@ package body Nodes is
          when K_Package_Items =>
             W_Package_Items
               (Node_Id (N));
+         when K_Package_Name =>
+            W_Package_Name
+              (List_Id (N));
          when K_Package_Spec =>
             W_Package_Spec
               (Node_Id (N));
@@ -345,6 +374,21 @@ package body Nodes is
             null;
       end case;
    end W_Node;
+
+   procedure W_Identifier (N : Node_Id) is
+   begin
+      W_Node_Header
+        (Node_Id (N));
+      W_Node_Attribute
+        ("Next_Node",
+         "Node_Id",
+         Image (Next_Node (N)),
+         Int (Next_Node (N)));
+      W_Node_Attribute
+        ("Name",
+         "Name_Id",
+         Image (Name (N)));
+   end W_Identifier;
 
    procedure W_AADL_Specification (N : Node_Id) is
    begin
@@ -410,6 +454,22 @@ package body Nodes is
          Int (Properties (N)));
    end W_Package_Items;
 
+   procedure W_Package_Name (N : List_Id) is
+   begin
+      W_Node_Header
+        (Node_Id (N));
+      W_Node_Attribute
+        ("First_Node",
+         "Node_Id",
+         Image (First_Node (N)),
+         Int (First_Node (N)));
+      W_Node_Attribute
+        ("Last_Node",
+         "Node_Id",
+         Image (Last_Node (N)),
+         Int (Last_Node (N)));
+   end W_Package_Name;
+
    procedure W_Package_Spec (N : Node_Id) is
    begin
       W_Node_Header
@@ -420,9 +480,10 @@ package body Nodes is
          Image (Next_Node (N)),
          Int (Next_Node (N)));
       W_Node_Attribute
-        ("Name",
-         "Name_Id",
-         Image (Name (N)));
+        ("Full_Name",
+         "List_Id",
+         Image (Full_Name (N)),
+         Int (Full_Name (N)));
       W_Node_Attribute
         ("Public_Package_Items",
          "Node_Id",
@@ -445,14 +506,14 @@ package body Nodes is
          Image (Next_Node (N)),
          Int (Next_Node (N)));
       W_Node_Attribute
+        ("Name",
+         "Name_Id",
+         Image (Name (N)));
+      W_Node_Attribute
         ("Properties",
          "List_Id",
          Image (Properties (N)),
          Int (Properties (N)));
-      W_Node_Attribute
-        ("Name",
-         "Name_Id",
-         Image (Name (N)));
       W_Node_Attribute
         ("Category",
          "Byte",
@@ -489,14 +550,14 @@ package body Nodes is
          Image (Next_Node (N)),
          Int (Next_Node (N)));
       W_Node_Attribute
+        ("Name",
+         "Name_Id",
+         Image (Name (N)));
+      W_Node_Attribute
         ("Properties",
          "List_Id",
          Image (Properties (N)),
          Int (Properties (N)));
-      W_Node_Attribute
-        ("Name",
-         "Name_Id",
-         Image (Name (N)));
       W_Node_Attribute
         ("Category",
          "Byte",

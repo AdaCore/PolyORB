@@ -3,6 +3,9 @@ with Nodes;        use Nodes;
 with Types;        use Types;
 
 package Nutils is
+   procedure Append_List_To_List (S : List_Id; D : List_Id);
+   --  Append list S to list D
+
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
    --  Append node N to list L.
 

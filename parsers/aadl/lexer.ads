@@ -103,6 +103,7 @@ package Lexer is
       T_Out,                   --  'out'
       T_Package,               --  'package'
       T_Port,                  --  'port'
+      T_Private,               --  'private'
       T_Process,               --  'process'
       T_Processor,             --  'processor'
       T_Properties,            --  'properties'
@@ -186,7 +187,7 @@ package Lexer is
 
    --  Various literal values updated when the corresponding token is read
 
-   Identifier_Name       : Name_Id;   --  for Tokens : T_identifier
+   Token_Name            : Name_Id;   --  for Tokens : T_identifier
    String_Literal_Value  : Name_Id;   --  for Tokens : T_String
 
    Integer_Literal_Value : Long_Long_Unsigned;

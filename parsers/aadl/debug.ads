@@ -38,4 +38,6 @@ package Debug is
    procedure wni (N : Node_Id);
    pragma Export (C, wni, "wni");
 
+   procedure Print (N : Node_Id);
+
 end Debug;

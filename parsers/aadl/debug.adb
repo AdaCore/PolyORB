@@ -1,3 +1,5 @@
+with Ada.Text_IO; use Ada.Text_IO;
+
 with Charset;     use Charset;
 with Locations;   use Locations;
 with Lexer;       use Lexer;
@@ -70,6 +72,24 @@ package body Debug is
    begin
       return S (S'First + 1 .. S'Last);
    end Image;
+
+   -----------
+   -- Print --
+   -----------
+
+   procedure Print (N : Node_Id) is
+   begin
+      case Kind (N) is
+         when K_Node_Id =>
+            Put ("Node");
+            Put ("Print TODO");
+            New_Line;
+
+         when others =>
+            Put ("Other");
+            New_Line;
+      end case;
+   end Print;
 
    ---------------
    -- W_Boolean --
