@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,8 +30,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Object adapters: entities that manage the association
---  of references with servants.
+--  This package provides the root definition of all Object adapters.
+--  An Object Adapter manages the association of references to servants.
 
 --  $Id$
 
@@ -126,7 +126,7 @@ package PolyORB.Obj_Adapters is
       return Servants.Servant_Access
       is abstract;
    --  Retrieve the servant managed by OA for logical object Id.
-   --  The servant that incarnates the object is return.
+   --  The servant that incarnates the object is returned.
 
    procedure Release_Servant
      (OA      : access Obj_Adapter;

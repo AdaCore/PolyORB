@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -59,12 +59,9 @@ package body PolyORB.Obj_Adapters.Simple is
 
    function Index_To_Oid is
       new Ada.Unchecked_Conversion (Integer, Simple_OA_Oid);
+
    function Oid_To_Index is
       new Ada.Unchecked_Conversion (Simple_OA_Oid, Integer);
-
-   ----------------
-   -- Find_Entry --
-   ----------------
 
    function Find_Entry
      (OA    : Simple_Obj_Adapter;
@@ -75,26 +72,29 @@ package body PolyORB.Obj_Adapters.Simple is
    --  return the associated entry. If Index is out of range
    --  or associated to a null Servant, Invalid_Object_Id is raised.
 
+   ----------------
+   -- Find_Entry --
+   ----------------
+
    function Find_Entry
      (OA    : Simple_Obj_Adapter;
       Index : Integer)
       return Object_Map_Entry
    is
       use type Servants.Servant_Access;
-   begin
-      declare
-         OME : constant Object_Map_Entry
+      OME : constant Object_Map_Entry
            := Element_Of (OA.Object_Map, Index);
-      begin
-         if OME.Servant = null then
-            raise Invalid_Object_Id;
-         end if;
+   begin
+      if OME.Servant = null then
+         raise Invalid_Object_Id;
+      end if;
 
-         return OME;
-      end;
+      return OME;
+
    exception
       when Sequences.Index_Error =>
          raise Invalid_Object_Id;
+
       when others =>
          raise;
    end Find_Entry;
@@ -182,15 +182,14 @@ package body PolyORB.Obj_Adapters.Simple is
    begin
       Enter (OA.Lock);
 
+      declare
+         OME : Object_Map_Entry
+           := Find_Entry (OA.all, Index);
       begin
-         declare
-            OME : Object_Map_Entry
-              := Find_Entry (OA.all, Index);
-         begin
-            pragma Assert (OME.Servant /= null);
-            OME := (Servant => null, If_Desc => (null, null));
-            Replace_Element (OA.Object_Map, Index, OME);
-         end;
+         pragma Assert (OME.Servant /= null);
+         OME := (Servant => null, If_Desc => (null, null));
+         Replace_Element (OA.Object_Map, Index, OME);
+
       exception
          when others =>
             Leave (OA.Lock);
@@ -233,15 +232,14 @@ package body PolyORB.Obj_Adapters.Simple is
    begin
       Enter (OA.Lock);
 
+      declare
+         OME : Object_Map_Entry
+           := Find_Entry (OA, Index);
       begin
-         declare
-            OME : Object_Map_Entry
-              := Find_Entry (OA, Index);
-         begin
-            pragma Assert (OME.Servant /= null);
-            OME.If_Desc := If_Desc;
-            Replace_Element (OA.Object_Map, Index, OME);
-         end;
+         pragma Assert (OME.Servant /= null);
+         OME.If_Desc := If_Desc;
+         Replace_Element (OA.Object_Map, Index, OME);
+
       exception
          when others =>
             Leave (OA.Lock);
@@ -266,16 +264,15 @@ package body PolyORB.Obj_Adapters.Simple is
    begin
       Enter (OA.Lock);
 
+      declare
+         OME : constant Object_Map_Entry
+           := Find_Entry (OA.all, Index);
       begin
-         declare
-            OME : constant Object_Map_Entry
-              := Find_Entry (OA.all, Index);
-         begin
-            if OME.If_Desc.PP_Desc = null then
-               raise Invalid_Method;
-            end if;
-            Result := OME.If_Desc.PP_Desc (Method);
-         end;
+         if OME.If_Desc.PP_Desc = null then
+            raise Invalid_Method;
+         end if;
+         Result := OME.If_Desc.PP_Desc (Method);
+
       exception
          when others =>
             Leave (OA.Lock);
@@ -301,17 +298,16 @@ package body PolyORB.Obj_Adapters.Simple is
    begin
       Enter (OA.Lock);
 
+      declare
+         OME : constant Object_Map_Entry
+           := Find_Entry (OA.all, Index);
       begin
-         declare
-            OME : constant Object_Map_Entry
-              := Find_Entry (OA.all, Index);
-         begin
-            if OME.If_Desc.PP_Desc = null then
-               raise Invalid_Method;
-            end if;
+         if OME.If_Desc.PP_Desc = null then
+            raise Invalid_Method;
+         end if;
 
-            Result := OME.If_Desc.RP_Desc (Method);
-         end;
+         Result := OME.If_Desc.RP_Desc (Method);
+
       exception
          when others =>
             Leave (OA.Lock);
@@ -351,12 +347,14 @@ package body PolyORB.Obj_Adapters.Simple is
    procedure Release_Servant
      (OA : access Simple_Obj_Adapter;
       Id : access Objects.Object_Id;
-      Servant : in out Servants.Servant_Access) is
-   begin
+      Servant : in out Servants.Servant_Access)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (OA);
       pragma Unreferenced (Id);
       pragma Warnings (On);
+
+   begin
       --  SOA: do nothing.
       Servant := null;
    end Release_Servant;
