@@ -1,5 +1,0 @@
-#include "weapon.idl"
-#include "vehicle.idl"
-
-interface tank : Vehicle, Weapon {
-};
