@@ -1,8 +1,8 @@
 #
 # $Id$
 #
-AC_INIT([Dist/xe.ads])
-AM_CONFIG_HEADER([Garlic/config.h])
+AC_INIT(Dist/xe.ads)
+AM_CONFIG_HEADER(Garlic/config.h)
 AC_CONFIG_AUX_DIR(support)
 #
 # Package description
@@ -16,7 +16,7 @@ AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
 AC_PROG_CC
 AM_PROG_WORKING_ADA
 AM_CROSS_PROG_WORKING_ADA
-AM_EXEEXT
+AC_EXEEXT
 AC_PROG_RANLIB
 AC_CHECK_PROGS(SED, [gnused gsed sed])
 AC_CHECK_PROGS(TAR, [gtar tar])
@@ -288,6 +288,20 @@ done
 ]
 AC_MSG_RESULT([${FILTERLIST}])
 AC_SUBST_FILE(FILTERFILE)
+#
+# Libraries used for filters
+#
+case ${FILTERLIST} in
+  *zip*)
+    AC_CHECK_LIB(z,zlibVersion)
+    if test $ac_cv_lib_z_zlibVersion = no; then
+      ZIPLIBOBJSNEEDED='${ZIPLIBOBJS}'
+      ZIPLIBINSTALLNEEDED='${ZIPLIBINSTALL}'
+    fi
+    AC_SUBST(ZIPLIBOBJSNEEDED)
+    AC_SUBST(ZIPLIBINSTALLNEEDED)
+    ;;
+esac
 #
 # Extra libraries
 #

@@ -160,6 +160,7 @@ Examples/Reconnection/rci_3.ads
 Examples/Reconnection/reconnection.cfg
 Garlic/5bgtplsp.ads
 Garlic/5egtplsp.ads
+Garlic/5lgarcon.ads
 Garlic/5sgtplsp.ads
 Garlic/5wgarcon.ads
 Garlic/5wgtplsp.ads

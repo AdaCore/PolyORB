@@ -1,3 +1,12 @@
+1999-04-12  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* MANIFEST: Add 5lgarcon.ads.
+
+	* configure.in: If the ZIP filter has been selected, check for the 
+	presence of the zlib to determine whether it needs to be built or
+	not.
+	Updated for autoconf 1.3.
+
 1999-02-16  Samuel Tardieu <sam@inf.enst.fr>
 
 	* configure.in: Add a test for the string.h header file.
