@@ -1,3 +1,11 @@
+2001-07-11  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* xe_stubs.adb: Split storage_dir string into substrings to fix
+	9109-011.
+
+	* xe_utils.adb, xe_utils.adb: Split strings into substrings to
+	compile with -gnatg.
+
 2001-06-05  Pascal Obry  <obry@gnat.com>
 
 	* xe_reg.adb: Check for GCC_ROOT environment variable before
