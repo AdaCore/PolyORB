@@ -36,7 +36,6 @@
 with Ada.Exceptions;
 with Ada.Text_IO;
 
-with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Types;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Policies;
@@ -44,14 +43,21 @@ with PolyORB.POA_Config.Minimum;
 
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
-with PolyORB.Setup.No_Tasking_Server;
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
-
 with PolyORB.Servants;
 with PolyORB.Types;
-
 with PolyORB.Utils.Report;
+
+with PolyORB.ORB.No_Tasking;
+pragma Warnings (Off, PolyORB.ORB.No_Tasking);
+pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+
+with PolyORB.Setup.Tasking.No_Tasking;
+pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
+pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
+
+with PolyORB.POA.Basic_POA;
+--  POA to be tested
+
 with Test_Servant;
 
 procedure Test000 is

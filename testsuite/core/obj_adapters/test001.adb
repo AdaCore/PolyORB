@@ -35,13 +35,19 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 
 with PolyORB.Initialization;
-with PolyORB.POA.Basic_POA;
-with PolyORB.POA_Config.Root_POA;
 with PolyORB.Utils.Report;
 
-with PolyORB.Setup.No_Tasking_Server;
-pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
-pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
+with PolyORB.ORB.No_Tasking;
+pragma Warnings (Off, PolyORB.ORB.No_Tasking);
+pragma Elaborate_All (PolyORB.ORB.No_Tasking);
+
+with PolyORB.Setup.Tasking.No_Tasking;
+pragma Warnings (Off, PolyORB.Setup.Tasking.No_Tasking);
+pragma Elaborate_All (PolyORB.Setup.Tasking.No_Tasking);
+
+with PolyORB.POA.Basic_POA;
+with PolyORB.POA_Config.Root_POA;
+--  OA to be tested
 
 with Test_Common;
 
