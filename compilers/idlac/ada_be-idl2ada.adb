@@ -775,10 +775,17 @@ package body Ada_Be.Idl2Ada is
                   end if;
                end loop;
 
-               if Intf_Repo and then Kind (Node) = K_Module then
-                  IR_Info.Gen_Node_Spec (S.IR_Info (Unit_Spec), Node);
-                  IR_Info.Gen_Node_Body (S.IR_Info (Unit_Body), Node);
+               if Kind (Node) = K_Module then
+
+                  Gen_Repository_Id (Node, S.Stubs (Unit_Spec));
+
+                  if Intf_Repo then
+                     IR_Info.Gen_Node_Spec (S.IR_Info (Unit_Spec), Node);
+                     IR_Info.Gen_Node_Body (S.IR_Info (Unit_Body), Node);
+                  end if;
+
                end if;
+
             end;
 
          when K_Interface =>
@@ -1417,7 +1424,7 @@ package body Ada_Be.Idl2Ada is
 
          when
            K_Repository |
-           K_Module =>
+           K_Module     =>
             null;
 
          when K_Interface  =>

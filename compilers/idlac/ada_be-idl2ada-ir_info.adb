@@ -618,6 +618,7 @@ package body Ada_Be.Idl2Ada.IR_Info is
          PL (CU, "end if;");
          NL (CU);
 
+         Add_With (CU, "CORBA.Object");
          Divert (CU, Registration);
          PL (CU, "declare");
          II (CU);
