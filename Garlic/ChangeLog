@@ -1,3 +1,11 @@
+2002-10-19  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* s-parint.adb, s-garsto.adb, s-garsto.ads, s-gastdf.adb,
+	s-gastdf.ads, s-gastds.adb, s-gastds.ads, s-shasto.adb: Improve
+	error handling. Continue work on B930-014.
+
+	* Makefile.am, Makefile.in: Update dependencies.
+
 2002-10-16  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* 5egarrem.adb: Use GNAT.Strings instead of System.Garlic.Utils.
