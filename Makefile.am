@@ -16,6 +16,7 @@ SUBDIRS = compilers idls src cos examples @APPLI_DIRS@ @PROTO_DIRS@
 endif
 
 CLEANFILES = config-stamp
+DISTCLEANFILES = support/adacompiler support/native-adacompiler support/linker
 
 depend:
 	cd src && ${MAKE} depend
