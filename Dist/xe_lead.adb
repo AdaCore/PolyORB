@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -81,7 +81,7 @@ procedure XE_Lead is
    --------------
 
    procedure Set_Host (Partition : in PID_Type) is
-      Host : Name_Id := Get_Host (Partition);
+      Host : constant Name_Id := Get_Host (Partition);
 
    begin
       if Host = No_Name then
@@ -108,7 +108,7 @@ procedure XE_Lead is
    ------------------
 
    procedure Set_Launcher (Partition  : in PID_Type) is
-      Ext_Quote : Character := '"';  -- "
+      Ext_Quote : constant Character := '"';  -- "
       Int_Quote : Character := ''';  -- '
 
    begin
@@ -201,9 +201,9 @@ begin
          for PID in Partitions.First + 1 .. Partitions.Last loop
             if PID = Main_Partition then
                declare
-                  P               : Partition_Name_Type :=
+                  P               : constant Partition_Name_Type :=
                     Partitions.Table (PID).Name & Exe_Suffix;
-                  Main_Executable : Main_Subprogram_Type :=
+                  Main_Executable : constant Main_Subprogram_Type :=
                     Main_Subprogram & Exe_Suffix;
                   D               : Directory_Name_Type;
                begin

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -1185,9 +1185,7 @@ package body XE_Parse is
             Attribute_Kind     => Attribute_Main,
             Component_Sloc     => Procedure_Sloc,
             Component_Node     => Component_Node);
-         Set_Component_Value
-           (Component_Node,
-            Variable_Id (Ada_Unit_Node));
+         Set_Component_Value (Component_Node, Ada_Unit_Node);
 
          Search_Variable (Str_To_Id ("true"), Constant_True);
 
@@ -1198,9 +1196,7 @@ package body XE_Parse is
             Attribute_Kind     => Attribute_Leader,
             Component_Sloc     => Procedure_Sloc,
             Component_Node     => Component_Node);
-         Set_Component_Value
-           (Component_Node,
-            Variable_Id (Constant_True));
+         Set_Component_Value (Component_Node, Constant_True);
 
          T_Semicolon;
       end if;
@@ -1412,7 +1408,6 @@ package body XE_Parse is
             --  Reset context and location
             Jump_Context (Context);
             Set_Token_Location (Expr_Sloc);
-
 
             --  Find another overloaded attribute.
             Search_Next_Component
@@ -1934,7 +1929,7 @@ package body XE_Parse is
          Prev := Next;
          Next_Subprogram_Parameter (Next);
       end loop;
-      Parameter_Node := Parameter_Id (Prev);
+      Parameter_Node := Prev;
    end Search_Function_Returned_Parameter;
 
    -------------------------------
