@@ -49,10 +49,11 @@ procedure DynClient is
    Result : CORBA.NamedValue;
    Result_Name : CORBA.String := To_CORBA_String ("Result");
    Recv_Msg : CORBA.String;
+   Iter : Natural := 1;
 begin
 
    if Ada.Command_Line.Argument_Count < 1 then
-      Put_Line ("usage : client <IOR_string_from_server>|-i");
+      Put_Line ("usage : client <IOR_string_from_server>|-i [niter]");
       return;
    end if;
 
@@ -62,37 +63,43 @@ begin
    else
       myecho := Locate (Ada.Command_Line.Argument (1));
    end if;
+   if Ada.Command_Line.Argument_Count > 1 then
+      Iter := Integer'Value (Ada.Command_Line.Argument (2));
+   end if;
 
-   --  creating the argument list
-   CORBA.ORB.Create_List (0, Arg_List);
-   Argument := CORBA.To_Any (Sent_Msg);
-   CORBA.NVList.Add_Item (Arg_List,
-                          Arg_Name,
-                          Argument,
-                          CORBA.ARG_IN);
+   for I in 1 .. Iter loop
+      --  creating the argument list
+      CORBA.ORB.Create_List (0, Arg_List);
+      Argument := CORBA.To_Any (Sent_Msg);
+      CORBA.NVList.Add_Item (Arg_List,
+                             Arg_Name,
+                             Argument,
+                             CORBA.ARG_IN);
 
-   --  setting the result type
-   Result := (Name => Identifier (Result_Name),
-              Argument => Get_Empty_Any (CORBA.TC_String),
-              Arg_Modes => 0);
+      --  setting the result type
+      Result := (Name => Identifier (Result_Name),
+                 Argument => Get_Empty_Any (CORBA.TC_String),
+                 Arg_Modes => 0);
 
-   --  creating a request
-   CORBA.Object.Create_Request (myecho,
-                                Ctx,
-                                Operation_Name,
-                                Arg_List,
-                                Result,
-                                Request,
-                                0);
+      --  creating a request
+      CORBA.Object.Create_Request (myecho,
+                                   Ctx,
+                                   Operation_Name,
+                                   Arg_List,
+                                   Result,
+                                   Request,
+                                   0);
 
-   --  sending message
-   CORBA.Request.Invoke (Request, 0);
+      --  sending message
+      CORBA.Request.Invoke (Request, 0);
 
-   --  getting the answer
-   Recv_Msg := From_Any (Result.Argument);
+      --  getting the answer
+      Recv_Msg := From_Any (Result.Argument);
 
-   --  printing result
-   Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));
-   Put_Line ("The object answered : " & CORBA.To_Standard_String (Recv_Msg));
+      --  printing result
+      Put_Line ("I said : " & CORBA.To_Standard_String (Sent_Msg));
+      Put_Line ("The object answered : "
+         & CORBA.To_Standard_String (Recv_Msg));
+   end loop;
 
 end DynClient;
