@@ -1113,7 +1113,7 @@ package body XE is
    begin
       if Debug_Mode then
          Write_Str ("delete [");
-         Write_Int (Int (Context.Last_Node));
+         Write_Int (Int (Context.Last_Node + 1));
          Write_Str (" .. ");
          Write_Int (Int (Nodes.Last));
          Write_Str ("]");
@@ -1121,9 +1121,16 @@ package body XE is
       end if;
 
       --  Cut the link to the next declarations because there are no
-      --  longer meaningfull.
+      --  longer meaningfull. Except when the declaration list was
+      --  empty (the last declaration is the configuration node itself).
+      --  In this case, reset configuration head to null.
 
-      Nodes.Table (Context.Last_Decl).Node_1 := Null_Node;
+      if Context.Last_Decl /= Null_Node then
+         Nodes.Table (Context.Last_Decl).Node_1 := Null_Node;
+
+      else
+         Nodes.Table (Context.Conf_Node).Node_1 := Null_Node;
+      end if;
 
       --  Update the configuration tail.
 
