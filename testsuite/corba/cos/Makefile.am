@@ -9,7 +9,7 @@ giop_dir  =
 soap_dir  =
 srp_dir   =
 
-SUBDIRS = event ir naming time
+SUBDIRS = @SERVICE_LIST@
 
 CLEANFILES = config-stamp
 
