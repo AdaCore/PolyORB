@@ -33,15 +33,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;                  use Ada.Exceptions;
+with Ada.Exceptions;                      use Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with Interfaces.C.Strings;
-with System.Garlic.Constants;         use System.Garlic.Constants;
-with System.Garlic.Debug;             use System.Garlic.Debug;
-with System.Garlic.Heart;             use System.Garlic.Heart;
-with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
-with System.Garlic.Naming;            use System.Garlic.Naming;
+with System.Garlic.Constants;             use System.Garlic.Constants;
+with System.Garlic.Debug;                 use System.Garlic.Debug;
+with System.Garlic.Heart;                 use System.Garlic.Heart;
+with System.Garlic.Naming;                use System.Garlic.Naming;
 with System.Garlic.Options;
 with System.Garlic.Physical_Location;     use System.Garlic.Physical_Location;
 with System.Garlic.Priorities;

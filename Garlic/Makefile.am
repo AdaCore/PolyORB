@@ -4,9 +4,9 @@
 
 AUTOMAKE_OPTIONS = no-dependencies foreign
 
-CC      = @CC@
-SED     = @SED@
-RANLIB  = @RANLIB@
+ADA_FOR_TARGET = @ADA_FOR_TARGET@
+SED            = @SED@
+RANLIB         = @RANLIB@
 
 CONSTANTS_SH = ${srcdir}/constants.sh
 CP           = cp
@@ -90,7 +90,6 @@ s-stratt.o
 
 COMMONSOURCES = \
 ${srcdir}/s-galiop.ads \
-${srcdir}/s-garthi.ads \
 ${srcdir}/s-gaphlo.ads ${srcdir}/s-gaphlo.adb \
           s-garcon.ads                        \
 ${srcdir}/s-gardeb.ads ${srcdir}/s-gardeb.adb \
@@ -107,6 +106,7 @@ ${srcdir}/s-garrep.ads ${srcdir}/s-garrep.adb \
 ${srcdir}/s-garser.ads           s-garser.adb \
 ${srcdir}/s-garsta.ads ${srcdir}/s-garsta.adb \
 ${srcdir}/s-garstr.ads $(srcdir)/s-garstr.adb \
+${srcdir}/s-garthi.ads \
 ${srcdir}/s-gartra.ads ${srcdir}/s-gartra.adb \
 ${srcdir}/s-gaprco.ads           s-gaprco.adb \
 ${srcdir}/s-garela.ads ${srcdir}/s-garela.adb \
@@ -136,33 +136,37 @@ $(FILTERSSOURCES) \
 $(COMMONSOURCES)
 
 CLEANFILES = *.ali s-garcon.ads *.o s-gtplsp.ads s-gaprco.adb s-galiop.ads\
-	s-garser.adb s-gaplsp.ads ${FILTERSOBJECTS} split s-rpcdum.ads\
-	inlining gnatlib/* ${TCP_PLATFORM_SOURCE}
+	s-garser.adb s-gaplsp.ads $(FILTERSOBJECTS) split s-rpcdum.ads\
+	inlining gnatlib/* constants_nodef ${TCP_PLATFORM_SOURCE} config.h
 
 SUFFIXES = .adb .ads .ali .o .xrb
 
 s-gtplsp.o: ${TCP_PLATFORM_SOURCE}
-	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} ${TCP_PLATFORM_SOURCE}
+	${ADA_FOR_TARGET} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} \
+		${TCP_PLATFORM_SOURCE}
 
 %.o: %.adb
-	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	${ADA_FOR_TARGET} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
 %.o: %.ads
-	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	${ADA_FOR_TARGET} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
 
 %.ali: %.adb
-	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	${ADA_FOR_TARGET} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
 
 %.ali: %.ads
-	${CC} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
+	${ADA_FOR_TARGET} -c ${CFLAGS} ${INCFLAGS} ${GNATFLAGS} $<
 
-s-garcon.ads: ${CONSTANTS_SH} split
+constants_nodef: ${srcdir}/constants.c config.h
+	${CC} -o constants_nodef -I. -UCONSTANT_NAME ${srcdir}/constants.c
+
+s-garcon.ads: ${CONSTANTS_SH} split constants_nodef config.h
 	if test -f ${CONSTANTS_PLATFORM}; then \
 	  cp ${CONSTANTS_PLATFORM} s-garcon.ads; \
 	else \
-	  ${SHELL} ${CONSTANTS_SH} System.Garlic.Constants; \
+	  ${SHELL} ${CONSTANTS_SH} System.Garlic.Constants ${srcdir}; \
 	fi
 
 s-galiop.ads:
@@ -199,7 +203,7 @@ s-rpcdum.ads: ${SOURCES} Makefile
 
 install-dirs-local:
 	-rm -rf ${GARLIC}
-	${top_srcdir}/mkinstalldirs ${GARLIC}
+	${mkinstalldirs} ${GARLIC}
 
 inlining: all-local
 	@echo 'with Text_IO; use Text_IO;'  >inline.adb
@@ -223,9 +227,11 @@ inlining: all-local
 	   for o in `cat gnatlib/tocheck`; do\
 	      if [ ! -f $$o ]; then \
 	          s=`gnatls -a -s $$o`; \
-	          echo "${CC} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s" \
-	               "-o gnatlib/$$o"; \
-	          ${CC} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s -o gnatlib/$$o; \
+	          echo \
+                    "${ADA_FOR_TARGET} -c ${CFLAGS} ${GNATFLAGS} -I. -I- $$s" \
+	            "-o gnatlib/$$o"; \
+	          ${ADA_FOR_TARGET} -c ${CFLAGS} ${GNATFLAGS} -I. -I- \
+                    $$s -o gnatlib/$$o; \
 	          echo $$o >>gnatlib/rebuild; \
 	      fi;\
 	   done;\
@@ -283,7 +289,6 @@ X.ref: ${SOURCES}
 s-gafizi.o: s-garlic.ads s-gardeb.ads s-garfil.ads s-gafizi.ads s-gafizi.adb s-garhea.ads s-ganata.ads s-gaphlo.ads s-garpro.ads s-gastha.ads s-garstr.ads s-gartyp.ads s-garuti.ads
 s-galiop.o: s-garlic.ads s-galiop.ads
 s-ganata.o: s-garlic.ads s-gardeb.ads s-ganata.ads s-ganata.adb s-gartab.ads s-gartab.adb s-gartyp.ads s-garuti.ads
-s-ganobl.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-ganobl.ads s-ganobl.adb s-gaphlo.ads s-garpri.ads s-garpro.ads s-gastha.ads s-garstr.ads s-gartcp.ads s-garter.ads s-garthi.ads s-gartyp.ads s-garuti.ads
 s-gaphlo.o: s-garlic.ads s-gardeb.ads s-gaphlo.ads s-gaphlo.adb s-garpro.ads s-gartyp.ads
 s-gaplsp.o: s-garlic.ads s-gaplsp.ads
 s-gaprco.o: s-garlic.ads s-garloo.ads s-garpro.ads s-gaprco.ads s-gaprco.adb s-garrep.ads s-gartcp.ads s-gartyp.ads
@@ -304,7 +309,7 @@ s-garser.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-g
 s-garsta.o: s-garlic.ads s-gardeb.ads s-garela.ads s-garfil.ads s-garhea.ads s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpro.ads s-gaprco.ads s-garser.ads s-garsta.ads s-garsta.adb s-gastha.ads s-garstr.ads s-garter.ads s-gartra.ads s-gartyp.ads s-garuti.ads s-rpc.ads s-rpcini.ads
 s-garstr.o: s-garlic.ads s-gardeb.ads s-gastha.ads s-gastha.adb s-garstr.ads s-garstr.adb s-garuti.ads
 s-gartab.o: s-garlic.ads s-gardeb.ads s-ganata.ads s-gartab.ads s-gartab.adb s-garuti.ads
-s-gartcp.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garnam.ads s-ganobl.ads s-garopt.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-gastha.ads s-garstr.ads s-gartcp.ads s-gartcp.adb s-gtplsp.ads s-garter.ads s-garthi.ads s-gartyp.ads s-garuti.ads
+s-gartcp.o: s-garlic.ads s-garcon.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garnam.ads s-garopt.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-gastha.ads s-garstr.ads s-gartcp.ads s-gartcp.adb s-gtplsp.ads s-garter.ads s-garthi.ads s-gartyp.ads s-garuti.ads
 s-garter.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpri.ads s-garpro.ads s-gastha.ads s-garstr.ads s-garter.ads s-garter.adb s-gartyp.ads s-garuti.ads
 s-garthi.o: s-garlic.ads s-garthi.ads
 s-gartra.o: s-garlic.ads s-gardeb.ads s-garhea.ads s-ganata.ads s-garopt.ads s-gaphlo.ads s-garpro.ads s-gastha.ads s-garstr.ads s-gartra.ads s-gartra.adb s-gartyp.ads s-garuti.ads

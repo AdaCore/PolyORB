@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Interfaces.C.Pointers;
+pragma Warnings (Off, Interfaces.C.Pointers);
 with Interfaces.C.Strings;
 
 package System.Garlic.Thin is

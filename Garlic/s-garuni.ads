@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Name_Table;
 with System.Garlic.Table;
 with System.Garlic.Heart;
 with System.Garlic.Streams;

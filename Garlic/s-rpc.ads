@@ -35,7 +35,6 @@
 
 with Ada.Streams;
 with System.Garlic.Streams;
-with System.Storage_Elements;
 
 package System.RPC is
 

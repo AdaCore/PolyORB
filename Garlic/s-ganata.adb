@@ -33,7 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Table;
 with System.Garlic.Types;        use System.Garlic.Types;

@@ -36,7 +36,6 @@
 with Ada.IO_Exceptions;
 with Ada.Streams; use Ada.Streams;
 with Ada.Unchecked_Conversion;
-with Interfaces;  use Interfaces;
 
 package body System.Stream_Attributes is
 

@@ -36,7 +36,6 @@
 with Ada.Dynamic_Priorities;
 with Ada.Exceptions;
 with Ada.Finalization;
-with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;

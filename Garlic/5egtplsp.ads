@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Thin;
+pragma Warnings (Off, System.Garlic.Thin);
 
 package System.Garlic.TCP.Platform_Specific is
 

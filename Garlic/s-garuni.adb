@@ -37,7 +37,6 @@ with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Heart; use System.Garlic.Heart;
 with System.Garlic.Streams; use System.Garlic.Streams;
 with System.Garlic.Types; use System.Garlic.Types;
-with System.Garlic.Utils; use System.Garlic.Utils;
 
 package body System.Garlic.Units is
 

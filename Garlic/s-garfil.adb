@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;              use Ada.Streams;
-with Interfaces.C;
 with System.Garlic.Debug;      use System.Garlic.Debug;
 with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Name_Table; use System.Garlic.Name_Table;

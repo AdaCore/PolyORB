@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with System.Garlic.Non_Blocking;
+pragma Warnings (Off, System.Garlic.Non_Blocking);
 
 package System.Garlic.TCP.Platform_Specific is
 

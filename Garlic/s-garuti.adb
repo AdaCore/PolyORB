@@ -35,7 +35,6 @@
 
 with Ada.Unchecked_Deallocation;
 with GNAT.OS_Lib;                use GNAT.OS_Lib;
-with Interfaces.C;               use Interfaces.C;
 with System.Garlic.Types;
 
 package body System.Garlic.Utils is
