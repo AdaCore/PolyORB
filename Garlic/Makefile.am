@@ -127,7 +127,7 @@ $(COMMONSOURCES)
 CLEANFILES = lib*.a *.ali *.o b_*.c b~*.ad[bs]\
 	s-gaprco.adb s-galiop.ads\
 	inlining gnatlib/* constants_nodef\
-	b_gaprco$(EXEEXT) isthrbio$(EXEEXT)\
+	isthrbio$(EXEEXT)\
 	$(FILTERSOBJECTS)
 
 DISTCLEANFILES = Makefile.fil s-garrem.adb
@@ -146,11 +146,15 @@ SUFFIXES = .adb .ads .ali .o .xrb
 .ads.ali:
 	@$(GNAT_FOR_TARGET) $(COMPILE) $(INCFLAGS) $(GNATFLAGS) $<
 
-b_gaprco$(EXEEXT): $(srcdir)/b_gaprco.adb
-	@$(GNAT_FOR_HOST) $(GNATFLAGS) $(srcdir)/b_gaprco -o b_gaprco$(EXEEXT)
+bldtool/b_gaprco$(EXEEXT): $(srcdir)/b_gaprco.adb
+	@-mkdir bldtool
+	@rm -f bldtool/b_gaprco.adb
+	@cp -p $(srcdir)/b_gaprco.adb bldtool
+	cd bldtool && \
+	 $(GNAT_FOR_HOST) $(GNATFLAGS) b_gaprco -o b_gaprco$(EXEEXT)
 
-s-gaprco.adb: b_gaprco$(EXEEXT)
-	@./b_gaprco$(EXEEXT) $(DEFPROTOCOLNAME) >s-gaprco.adb
+s-gaprco.adb: bldtool/b_gaprco$(EXEEXT)
+	@bldtool/b_gaprco$(EXEEXT) $(DEFPROTOCOLNAME)
 
 s-garrem.adb:
 	@if test -f $(srcdir)/5${PLATFORM_SPECIFIC}garrem.adb; then\
@@ -182,6 +186,9 @@ used:
 
 
 all-local: $(SOURCES) $(OBJECTS) $(LINKTEST) $(FILTERSINSTALL)
+
+clean-local:
+	-rm -fr bldtool
 
 install-dirs-local:
 	-rm -rf $(GARLIC)
