@@ -19,6 +19,11 @@ package Idl_Fe.Errors is
       Col : Natural;
    end record;
 
+   No_Location : constant Location :=
+     (Filename => null,
+      Line => 0,
+      Col => 0);
+
    --  this exception is for internal use,
    --  it is raised when idlac reaches an inconsistent state
    Internal_Error : exception;

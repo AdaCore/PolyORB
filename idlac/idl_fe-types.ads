@@ -153,6 +153,9 @@ package Idl_Fe.Types is
                            Loc : Idl_Fe.Errors.Location);
    function Get_Location (N : N_Root'Class) return Idl_Fe.Errors.Location;
 
+   --  To set the "old" node of a root (for expansion only)
+   procedure Set_Old (N : in out N_Root'Class;
+                     Old : in N_Root_Acc);
 
    ---------------------------------
    -- A useful list of root nodes --
@@ -556,7 +559,9 @@ private
    --  The basic node only contains its location (filename, line,
    --  column)
    type N_Root is abstract tagged record
-      Loc : Idl_Fe.Errors.Location;
+      Loc : Idl_Fe.Errors.Location := Idl_Fe.Errors.No_Location;
+      --  for expansion, to remember from what an expression was expanded
+      Old : N_Root_Acc := Nil_Node;
    end record;
 
    Nil_Node : constant N_Root_Acc := null;

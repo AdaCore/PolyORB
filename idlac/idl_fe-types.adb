@@ -40,6 +40,15 @@ package body Idl_Fe.Types is
       return N.Loc;
    end Get_Location;
 
+   ---------------
+   --  Set_Old  --
+   ---------------
+   procedure Set_Old (N : in out N_Root'Class;
+                      Old : in N_Root_Acc) is
+   begin
+      N.Old := Old;
+   end Set_Old;
+
 
 
    ------------------------------------
