@@ -1,4 +1,4 @@
-README file for adasockets version @releaseversion@ (@releasestate@)
+README file for adasockets.
 
 AdaSockets is a medium binding (it is not a thin binding because it uses Ada
 types and not a thick binding because you have the same subprogram names as

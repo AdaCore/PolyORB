@@ -5,8 +5,7 @@ AC_CONFIG_AUX_DIR(../support)
 # Package description
 #
 AC_CANONICAL_SYSTEM
-# $Format: "AM_INIT_AUTOMAKE([$ReleaseName$],[$ReleaseVersion$])"$
-AM_INIT_AUTOMAKE([adasockets],[0.1.6])
+AM_INIT_AUTOMAKE([adasockets],[0.1.7-pre])
 #
 AC_CHECK_PROGS(AWK, [gnuawk gawk awk])
 AC_PROG_CC
