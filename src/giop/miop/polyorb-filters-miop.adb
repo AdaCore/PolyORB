@@ -74,7 +74,7 @@ package body PolyORB.Filters.MIOP is
       Marshall (Buffer, Flags);
 
       --  Flags
-      Set (Flags, Bit_Endianness, Header.Endianness = Little_Endian);
+      Set (Flags, Bit_Little_Endian, Header.Endianness = Little_Endian);
       Set (Flags, Bit_Collect_Mode, Header.Collect_Mode);
       Marshall (Buffer, Flags);
 
@@ -113,7 +113,7 @@ package body PolyORB.Filters.MIOP is
       --  in different miop version
       Flags := Types.Octet (Peek (Buffer, Flags_Index - 1));
 
-      if (Is_Set (Bit_Endianness, Flags)) then
+      if Is_Set (Bit_Little_Endian, Flags) then
          Set_Endianness (Buffer, Little_Endian);
       else
          Set_Endianness (Buffer, Big_Endian);
@@ -132,9 +132,9 @@ package body PolyORB.Filters.MIOP is
       end if;
 
       --  Version
-      Flags := Unmarshall (Buffer);
-      if ((Flags and 15) = MIOP_Minor_Version) and
-        ((Flags and 240) = (MIOP_Major_Version * 240)) then
+      if Types.Octet'(Unmarshall (Buffer))
+        /= (MIOP_Major_Version * 16 or MIOP_Minor_Version)
+      then
          raise MIOP_Packet_Error;
       end if;
 
@@ -143,7 +143,7 @@ package body PolyORB.Filters.MIOP is
       --  Flags
       Flags := Unmarshall (Buffer);
 
-      if (Is_Set (Bit_Endianness, Flags)) then
+      if Is_Set (Bit_Little_Endian, Flags) then
          Header.Endianness := Little_Endian;
       else
          Header.Endianness := Big_Endian;
@@ -153,7 +153,7 @@ package body PolyORB.Filters.MIOP is
       pragma Debug (O ("Message Endianness : "
                        & Header.Endianness'Img));
 
-      if (Is_Set (Bit_Collect_Mode, Flags)) then
+      if Is_Set (Bit_Collect_Mode, Flags) then
          Header.Collect_Mode := True;
       else
          Header.Collect_Mode := False;
