@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -445,7 +445,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "  return " & Type_Name & ";");
       end;
 
-      if Generate_Dyn then
+      if Generate_Dyn and then not Local (Node) then
          --  TypeCode
          NL (CU);
          Add_With (CU, "CORBA");
@@ -1215,7 +1215,7 @@ package body Ada_Be.Idl2Ada.Helper is
          PL (CU, "end To_" & Type_Defining_Name & ";");
       end;
 
-      if Generate_Dyn then
+      if Generate_Dyn and then not Local (Node) then
          --  From_Any
 
          Add_With (CU, "CORBA.Object.Helper");

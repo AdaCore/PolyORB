@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#14 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-parser.adb#15 $
 
 with Ada.Characters.Latin_1;
 with Ada.Unchecked_Deallocation;
@@ -562,6 +562,37 @@ package body Idl_Fe.Parser is
                   end;
             end case;
 
+         when T_Local =>
+            case View_Next_Token is
+               when T_Interface =>
+                  Parse_Interface (Result, Success);
+                  if not Success then
+                     pragma Debug (O2 ("Parse_Definition: end"));
+                     return;
+                  end if;
+
+               when others =>
+                  declare
+                     Loc : Errors.Location;
+                  begin
+                     Loc := Get_Token_Location;
+                     Loc.Col := Loc.Col + 6;
+                     Errors.Error
+                       (Ada.Characters.Latin_1.Quotation &
+                        "interface" &
+                        Ada.Characters.Latin_1.Quotation &
+                        " expected after the local keyword.",
+                        Errors.Error,
+                        Get_Token_Location);
+                     Success := False;
+                     Result := No_Node;
+                     --  consumes T_Local
+                     Next_Token;
+                     pragma Debug (O2 ("Parse_Definition: end"));
+                     return;
+                  end;
+            end case;
+
          when T_Interface =>
             Parse_Interface (Result, Success);
             if not Success then
@@ -811,11 +842,19 @@ package body Idl_Fe.Parser is
       --  is the interface abstracted
       if Get_Token = T_Abstract then
          Set_Abst (Res, True);
+         Set_Local (Res, False);
+         --  the T_Interface token should "interface"
+         --  (it is already checked)
+         Next_Token;
+      elsif Get_Token = T_Local then
+         Set_Abst (Res, False);
+         Set_Local (Res, True);
          --  the T_Interface token should "interface"
          --  (it is already checked)
          Next_Token;
       else
          Set_Abst (Res, False);
+         Set_Local (Res, False);
       end if;
       Set_Location (Res, Get_Token_Location);
       Set_Initial_Current_Prefix (Res);
@@ -1097,6 +1136,14 @@ package body Idl_Fe.Parser is
                         Errors.Error
                           ("An abstract interface may not inherit from " &
                            "a statefull one.",
+                           Errors.Error,
+                           Get_Token_Location);
+                     end if;
+                     --  verify XXX
+                     if not Local (Result) and Local (Value (Name)) then
+                        Errors.Error
+                          ("An unconstrained interface may not inherit from " &
+                           "a local interface.",
                            Errors.Error,
                            Get_Token_Location);
                      end if;

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---            Copyright (C) 2001 Free Software Foundation, Inc.             --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.ads#2 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.ads#3 $
 
 with Errors;
 
@@ -45,7 +45,7 @@ package Idl_Fe.Lexer is
 
    --  All the idl_keywords
    --
-   --  IDL Syntax and semantics, CORBA V2.3 § 3.2.4
+   --  IDL Syntax and semantics, CORBA V3.0 § 3.2.4
    --
    --  All the idl tokens.
    type Idl_Token is
@@ -57,32 +57,46 @@ package Idl_Fe.Lexer is
        T_Boolean,
        T_Case,
        T_Char,
+       T_Component,
        T_Const,
+       T_Consumes,
        T_Context,
        T_Custom,
        T_Default,
        T_Double,
+       T_Emits,
        T_Enum,
+       T_EventType,
        T_Exception,
        T_Factory,
        T_False,
+       T_Finder,
        T_Fixed,
        T_Float,
+       T_GetRaises,
+       T_Home,
+       T_Import,
        T_In,
        T_Inout,
        T_Interface,
+       T_Local,
        T_Long,
        T_Module,
+       T_Multiple,
        T_Native,
        T_Object,
        T_Octet,
        T_Oneway,
        T_Out,
+       T_PrimaryKey,
        T_Private,
+       T_Provides,
        T_Public,
+       T_Publishes,
        T_Raises,
        T_Readonly,
        T_Sequence,
+       T_SetRaises,
        T_Short,
        T_String,
        T_Struct,
@@ -91,8 +105,11 @@ package Idl_Fe.Lexer is
        T_True,
        T_Truncatable,
        T_Typedef,
+       T_TypeId,
+       T_TypePrefix,
        T_Unsigned,
        T_Union,
+       T_Uses,
        T_ValueBase,
        T_ValueType,
        T_Void,

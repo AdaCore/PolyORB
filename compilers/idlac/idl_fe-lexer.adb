@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#11 $
+--  $Id: //droopi/main/compilers/idlac/idl_fe-lexer.adb#12 $
 
 with Ada.Command_Line;
 with Ada.Text_IO;
@@ -72,32 +72,46 @@ package body Idl_Fe.Lexer is
       T_Boolean     => new String'("boolean"),
       T_Case        => new String'("case"),
       T_Char        => new String'("char"),
+      T_Component   => new String'("component"),
       T_Const       => new String'("const"),
+      T_Consumes    => new String'("consumes"),
       T_Context     => new String'("context"),
       T_Custom      => new String'("custom"),
       T_Default     => new String'("default"),
       T_Double      => new String'("double"),
+      T_Emits       => new String'("emits"),
       T_Enum        => new String'("enum"),
+      T_EventType   => new String'("eventtype"),
       T_Exception   => new String'("exception"),
       T_Factory     => new String'("factory"),
       T_False       => new String'("FALSE"),
+      T_Finder      => new String'("finder"),
       T_Fixed       => new String'("fixed"),
       T_Float       => new String'("float"),
+      T_GetRaises   => new String'("getraises"),
+      T_Home        => new String'("home"),
+      T_Import      => new String'("import"),
       T_In          => new String'("in"),
       T_Inout       => new String'("inout"),
       T_Interface   => new String'("interface"),
+      T_Local       => new String'("local"),
       T_Long        => new String'("long"),
       T_Module      => new String'("module"),
+      T_Multiple    => new String'("multiple"),
       T_Native      => new String'("native"),
       T_Object      => new String'("Object"),
       T_Octet       => new String'("octet"),
       T_Oneway      => new String'("oneway"),
       T_Out         => new String'("out"),
+      T_PrimaryKey  => new String'("primarykey"),
       T_Private     => new String'("private"),
+      T_Provides    => new String'("provides"),
       T_Public      => new String'("public"),
+      T_Publishes   => new String'("publishes"),
       T_Raises      => new String'("raises"),
       T_Readonly    => new String'("readonly"),
       T_Sequence    => new String'("sequence"),
+      T_SetRaises   => new String'("setraises"),
       T_Short       => new String'("short"),
       T_String      => new String'("string"),
       T_Struct      => new String'("struct"),
@@ -106,8 +120,11 @@ package body Idl_Fe.Lexer is
       T_True        => new String'("TRUE"),
       T_Truncatable => new String'("truncatable"),
       T_Typedef     => new String'("typedef"),
+      T_TypeId      => new String'("typeid"),
+      T_TypePrefix  => new String'("typeprefix"),
       T_Unsigned    => new String'("unsigned"),
       T_Union       => new String'("union"),
+      T_Uses        => new String'("uses"),
       T_ValueBase   => new String'("ValueBase"),
       T_ValueType   => new String'("valuetype"),
       T_Void        => new String'("void"),
