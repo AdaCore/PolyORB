@@ -12,7 +12,7 @@ EXTRA_PROGS = mainloop
 CFGFILE = dynamic.cfg
 PARTITIONS = partition1 partition2 partition3
 
-CLEANFILES = -r dsa *.o *.ali
+CLEANFILES = -r dsa *.o *.ali bin
 DISTCLEANFILES = $(EXTRA_PROGS) $(PARTITIONS)
 
 all-local: ../../check-stamp ${EXTRA_PROGS}
