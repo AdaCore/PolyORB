@@ -46,23 +46,25 @@ with RTCORBA.Mutex;
 with RTCORBA.PriorityModelPolicy;
 with RTCORBA.ThreadpoolPolicy;
 
+with PolyORB.Smart_Pointers;
+
 package RTCORBA.RTORB is
 
-   type Ref is new CORBA.Object.Ref with private;
+   type Local_Ref is new CORBA.Object.Ref with private;
 
-   function To_Ref (Self : CORBA.Object.Ref'Class) return Ref;
-
-   function Create_Mutex (Self : in Ref) return RTCORBA.Mutex.Local_Ref;
+   function Create_Mutex
+     (Self : in Local_Ref)
+     return RTCORBA.Mutex.Local_Ref;
    --  XXX for now, there is no priority inheritance mechanism in use.
 
    procedure Destroy_Mutex
-     (Self      : in Ref;
+     (Self      : in Local_Ref;
       The_Mutex : in RTCORBA.Mutex.Local_Ref);
 
    InvalidThreadpool : exception;
 
    function Create_Threadpool
-     (Self                    : in Ref;
+     (Self                    : in Local_Ref;
       Stacksize               : in CORBA.Unsigned_Long;
       Static_Threads          : in CORBA.Unsigned_Long;
       Dynamic_Threads         : in CORBA.Unsigned_Long;
@@ -84,7 +86,7 @@ package RTCORBA.RTORB is
    --  no queued job to process.
 
    function Create_Threadpool_With_Lanes
-     (Self                    : in Ref;
+     (Self                    : in Local_Ref;
       Stacksize               : in CORBA.Unsigned_Long;
       Lanes                   : in RTCORBA.ThreadpoolLanes;
       Allow_Borrowing         : in CORBA.Boolean;
@@ -109,7 +111,7 @@ package RTCORBA.RTORB is
    --  no queued job to process.
 
    procedure Destroy_Threadpool
-     (Self       : in Ref;
+     (Self       : in Local_Ref;
       Threadpool : in RTCORBA.ThreadpoolId);
    --  Implementation Note: RT-CORBA specifications defines no return
    --  exception for this function. However, the user has no control
@@ -118,15 +120,15 @@ package RTCORBA.RTORB is
    --  will raise InvalidThreadpool if Threadpool is not valid.
 
    function Create_Priority_Model_Policy
-     (Self            : in Ref;
+     (Self            : in Local_Ref;
       Priority_Model  : in RTCORBA.PriorityModel;
       Server_Priority : in RTCORBA.Priority)
-     return RTCORBA.PriorityModelPolicy.Ref;
+     return RTCORBA.PriorityModelPolicy.Local_Ref;
 
    function Create_Threadpool_Policy
-     (Self       : in Ref;
+     (Self       : in Local_Ref;
       Threadpool : in RTCORBA.ThreadpoolId)
-     return RTCORBA.ThreadpoolPolicy.Ref;
+     return RTCORBA.ThreadpoolPolicy.Local_Ref;
    --  Implementation Note: RT-CORBA specifications defines no return
    --  exception for this function. However, the user has no control
    --  on generated ThreadpoolIds, thus creating a Threadpool_Policy
@@ -149,6 +151,8 @@ package RTCORBA.RTORB is
 
 private
 
-   type Ref is new CORBA.Object.Ref with null record;
+   type Local_Ref is new CORBA.Object.Ref with null record;
+
+   type RTORB_Object is new PolyORB.Smart_Pointers.Entity with null record;
 
 end RTCORBA.RTORB;

@@ -2,16 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          R T C O R B A . P R I O R I T Y M O D E L P O L I C Y           --
+--   R T C O R B A . P R I O R I T Y M O D E L P O L I C Y . H E L P E R    --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
---                                                                          --
--- This specification is derived from the CORBA Specification, and adapted  --
--- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,31 +31,60 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Policy;
+--  $Id$
 
-package RTCORBA.PriorityModelPolicy is
+package body RTCORBA.PriorityModelPolicy.Helper is
 
-   type Local_Ref is new CORBA.Policy.Ref with private;
+   ----------------------------
+   -- Unchecked_To_Local_Ref --
+   ----------------------------
 
-   --  Implementation note: OMG Issue #5613 indicates:
-   --
-   --  "RTCORBA::PriorityModelPolicy cannot be created via
-   --  ORB::create_policy() method because this policy has two
-   --  attributes and and the Any that is passed to the
-   --  ORB::create_policy() method can only hold one parameter."
-   --
-   --  Thus, no Any helpers are provided for this policy.
+   function Unchecked_To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTCORBA.PriorityModelPolicy.Local_Ref
+   is
+      Result : RTCORBA.PriorityModelPolicy.Local_Ref;
 
-   function Get_Priority_Model
-     (Self : in Local_Ref)
-     return RTCORBA.PriorityModel;
+   begin
+      Set (Result, CORBA.Object.Object_Of (The_Ref));
 
-   function Get_Server_Priority
-     (Self : in Local_Ref)
-     return RTCORBA.Priority;
+      return Result;
+   end Unchecked_To_Local_Ref;
 
-private
+   ------------------
+   -- To_Local_Ref --
+   ------------------
 
-   type Local_Ref is new CORBA.Policy.Ref with null record;
+   function To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTCORBA.PriorityModelPolicy.Local_Ref
+   is
+      use type CORBA.PolicyType;
 
-end RTCORBA.PriorityModelPolicy;
+   begin
+      --        if CORBA.Object.Is_Nil (The_Ref)
+      --          or else CORBA.Object.Is_A (The_Ref, Repository_Id) then
+      --           return Unchecked_To_Local_Ref (The_Ref);
+      --        end if;
+      --        CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+
+      if The_Ref not in CORBA.Policy.Ref'Class
+        or else CORBA.Policy.Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
+        /= PRIORITY_MODEL_POLICY_TYPE
+      then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      declare
+         Result : Local_Ref;
+
+      begin
+         CORBA.Policy.Set (CORBA.Policy.Ref (Result),
+                           CORBA.Object.Entity_Of (The_Ref));
+
+         return Result;
+      end;
+
+   end To_Local_Ref;
+
+end RTCORBA.PriorityModelPolicy.Helper;

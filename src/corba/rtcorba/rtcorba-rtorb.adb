@@ -53,12 +53,12 @@ with PolyORB.Tasking.Priorities;
 with PolyORB.Types;
 with PolyORB.Utils.Strings.Lists;
 
+with RTCORBA.ThreadpoolPolicy.Helper;
+
 package body RTCORBA.RTORB is
 
    use CORBA;
    use PolyORB.Tasking.Priorities;
-
-   type RTORB_Object is new PolyORB.Smart_Pointers.Entity with null record;
 
    function Create return CORBA.Object.Ref;
    --  Create a RTCORBA.RTORB.Ref
@@ -68,7 +68,7 @@ package body RTCORBA.RTORB is
    ------------
 
    function Create return CORBA.Object.Ref is
-      Result : Ref;
+      Result : Local_Ref;
 
       RTORB_Obj : constant PolyORB.Smart_Pointers.Entity_Ptr
         := new RTORB_Object;
@@ -79,28 +79,14 @@ package body RTCORBA.RTORB is
       return CORBA.Object.Ref (Result);
    end Create;
 
-   ------------
-   -- To_Ref --
-   ------------
-
-   function To_Ref (Self : CORBA.Object.Ref'Class) return Ref is
-      Result : Ref;
-
-   begin
-      if CORBA.Object.Entity_Of (Self).all
-        not in RTORB_Object'Class then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      Set (Result, CORBA.Object.Entity_Of (Self));
-      return Result;
-   end To_Ref;
-
    ------------------
    -- Create_Mutex --
    ------------------
 
-   function Create_Mutex (Self : in Ref) return RTCORBA.Mutex.Local_Ref is
+   function Create_Mutex
+     (Self : in Local_Ref)
+     return RTCORBA.Mutex.Local_Ref
+   is
       pragma Unreferenced (Self);
 
       use PolyORB.Smart_Pointers;
@@ -122,7 +108,7 @@ package body RTCORBA.RTORB is
    -------------------
 
    procedure Destroy_Mutex
-     (Self      : in Ref;
+     (Self      : in Local_Ref;
       The_Mutex : in RTCORBA.Mutex.Local_Ref)
    is
       pragma Unreferenced (Self);
@@ -143,7 +129,7 @@ package body RTCORBA.RTORB is
    -----------------------
 
    function Create_Threadpool
-     (Self                    : in Ref;
+     (Self                    : in Local_Ref;
       Stacksize               : in CORBA.Unsigned_Long;
       Static_Threads          : in CORBA.Unsigned_Long;
       Dynamic_Threads         : in CORBA.Unsigned_Long;
@@ -191,7 +177,7 @@ package body RTCORBA.RTORB is
    ----------------------------------
 
    function Create_Threadpool_With_Lanes
-     (Self                    : in Ref;
+     (Self                    : in Local_Ref;
       Stacksize               : in CORBA.Unsigned_Long;
       Lanes                   : in RTCORBA.ThreadpoolLanes;
       Allow_Borrowing         : in CORBA.Boolean;
@@ -248,7 +234,7 @@ package body RTCORBA.RTORB is
    ------------------------
 
    procedure Destroy_Threadpool
-     (Self       : in Ref;
+     (Self       : in Local_Ref;
       Threadpool : in RTCORBA.ThreadpoolId)
    is
       pragma Warnings (Off);
@@ -270,10 +256,10 @@ package body RTCORBA.RTORB is
    ----------------------------------
 
    function Create_Priority_Model_Policy
-     (Self            : in Ref;
+     (Self            : in Local_Ref;
       Priority_Model  : in RTCORBA.PriorityModel;
       Server_Priority : in RTCORBA.Priority)
-     return RTCORBA.PriorityModelPolicy.Ref
+     return RTCORBA.PriorityModelPolicy.Local_Ref
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
@@ -281,7 +267,7 @@ package body RTCORBA.RTORB is
 
       use PolyORB.RTCORBA_P.PriorityModelPolicy;
 
-      Result : RTCORBA.PriorityModelPolicy.Ref;
+      Result : RTCORBA.PriorityModelPolicy.Local_Ref;
 
       Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
         := Create (Priority_Model, Server_Priority);
@@ -297,9 +283,9 @@ package body RTCORBA.RTORB is
    ------------------------------
 
    function Create_Threadpool_Policy
-     (Self       : in Ref;
+     (Self       : in Local_Ref;
       Threadpool : in RTCORBA.ThreadpoolId)
-     return RTCORBA.ThreadpoolPolicy.Ref
+     return RTCORBA.ThreadpoolPolicy.Local_Ref
    is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
@@ -312,7 +298,7 @@ package body RTCORBA.RTORB is
          raise InvalidThreadpool;
       end if;
 
-      return RTCORBA.ThreadpoolPolicy.To_Ref
+      return RTCORBA.ThreadpoolPolicy.Helper.To_Local_Ref
         (CORBA.ORB.Create_Policy
          (THREADPOOL_POLICY_TYPE, To_Any (Threadpool)));
    end Create_Threadpool_Policy;

@@ -42,7 +42,7 @@ with CORBA.Policy;
 with PortableServer.POA.Helper;
 with PortableServer.POAManager;
 
-with RTCORBA.RTORB;
+with RTCORBA.RTORB.Helper;
 with RTCORBA.PriorityMapping.Linear;
 with RTCORBA.PriorityModelPolicy;
 with RTCORBA.ThreadpoolPolicy;
@@ -123,7 +123,7 @@ begin
    declare
       use CORBA.Policy.IDL_Sequence_Policy;
 
-      RT_ORB : RTCORBA.RTORB.Ref;
+      RT_ORB : RTCORBA.RTORB.Local_Ref;
 
       Root_POA : PortableServer.POA.Ref;
 
@@ -138,7 +138,8 @@ begin
 
       procedure Test_SERVER_DECLARED_1 is
          Obj_Server : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
-         Priority_Model_Policy_Ref_Server : RTCORBA.PriorityModelPolicy.Ref;
+         Priority_Model_Policy_Ref_Server :
+           RTCORBA.PriorityModelPolicy.Local_Ref;
          Child_POA_Server : RTPortableServer.POA.Local_Ref;
          Policies_Server : CORBA.Policy.PolicyList;
          Ref_Server : CORBA.Object.Ref;
@@ -292,12 +293,13 @@ begin
 
       procedure Test_SERVER_DECLARED_2 is
          Obj_Server : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
-         Priority_Model_Policy_Ref_Server : RTCORBA.PriorityModelPolicy.Ref;
+         Priority_Model_Policy_Ref_Server :
+           RTCORBA.PriorityModelPolicy.Local_Ref;
          Child_POA_Server : RTPortableServer.POA.Local_Ref;
          Policies_Server : CORBA.Policy.PolicyList;
          Ref_Server : CORBA.Object.Ref;
          Thread_Pool_Id : RTCORBA.ThreadpoolId;
-         Thread_Pool_Policy_Ref : RTCORBA.ThreadpoolPolicy.Ref;
+         Thread_Pool_Policy_Ref : RTCORBA.ThreadpoolPolicy.Local_Ref;
 
          No_Implicit_Activation_Policy : CORBA.Policy.Ref
            := CORBA.Policy.Ref
@@ -473,7 +475,8 @@ begin
 
       procedure Test_CLIENT_PROPAGATED_1 is
          Obj_Client : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
-         Priority_Model_Policy_Ref_Client : RTCORBA.PriorityModelPolicy.Ref;
+         Priority_Model_Policy_Ref_Client :
+           RTCORBA.PriorityModelPolicy.Local_Ref;
          Child_POA_Client : RTPortableServer.POA.Local_Ref;
          Policies_Client : CORBA.Policy.PolicyList;
          Ref_Client : CORBA.Object.Ref;
@@ -604,7 +607,8 @@ begin
 
       procedure Test_CLIENT_PROPAGATED_2 is
          Obj_Client : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
-         Priority_Model_Policy_Ref_Client : RTCORBA.PriorityModelPolicy.Ref;
+         Priority_Model_Policy_Ref_Client :
+           RTCORBA.PriorityModelPolicy.Local_Ref;
          Child_POA_Client : RTPortableServer.POA.Local_Ref;
          Policies_Client : CORBA.Policy.PolicyList;
          Ref_Client : CORBA.Object.Ref;
@@ -686,7 +690,7 @@ begin
 
       --  Retrieve RT ORB
 
-      RT_ORB := RTCORBA.RTORB.To_Ref
+      RT_ORB := RTCORBA.RTORB.Helper.To_Local_Ref
         (Resolve_Initial_References
          (To_CORBA_String ("RTORB")));
 

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          R T C O R B A . P R I O R I T Y M O D E L P O L I C Y           --
+--   R T C O R B A . P R I O R I T Y M O D E L P O L I C Y . H E L P E R    --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- This specification is derived from the CORBA Specification, and adapted  --
 -- for use with PolyORB. The copyright notice above, and the license        --
@@ -36,31 +36,18 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA.Policy;
+--  $Id$
 
-package RTCORBA.PriorityModelPolicy is
+with CORBA.Object;
 
-   type Local_Ref is new CORBA.Policy.Ref with private;
+package RTCORBA.PriorityModelPolicy.Helper is
 
-   --  Implementation note: OMG Issue #5613 indicates:
-   --
-   --  "RTCORBA::PriorityModelPolicy cannot be created via
-   --  ORB::create_policy() method because this policy has two
-   --  attributes and and the Any that is passed to the
-   --  ORB::create_policy() method can only hold one parameter."
-   --
-   --  Thus, no Any helpers are provided for this policy.
+   function Unchecked_To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTCORBA.PriorityModelPolicy.Local_Ref;
 
-   function Get_Priority_Model
-     (Self : in Local_Ref)
-     return RTCORBA.PriorityModel;
+   function To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTCORBA.PriorityModelPolicy.Local_Ref;
 
-   function Get_Server_Priority
-     (Self : in Local_Ref)
-     return RTCORBA.Priority;
-
-private
-
-   type Local_Ref is new CORBA.Policy.Ref with null record;
-
-end RTCORBA.PriorityModelPolicy;
+end RTCORBA.PriorityModelPolicy.Helper;

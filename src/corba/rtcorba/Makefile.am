@@ -17,12 +17,15 @@ ADA_SPECS_WITH_BODY = \
 		rtcorba-mutex.ads \
 		rtcorba-mutex-helper.ads \
 		rtcorba-rtorb.ads \
+		rtcorba-rtorb-helper.ads \
 		rtcorba-prioritymapping.ads \
 		rtcorba-prioritymapping-direct.ads \
 		rtcorba-prioritymapping-linear.ads \
 		rtcorba-prioritymodelpolicy.ads \
+		rtcorba-prioritymodelpolicy-helper.ads \
 		rtcorba-prioritytransform.ads \
 		rtcorba-threadpoolpolicy.ads \
+		rtcorba-threadpoolpolicy-helper.ads \
 		rtportableserver-poa.ads \
 		rtportableserver-poa-helper.ads
 

@@ -2,16 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---          R T C O R B A . P R I O R I T Y M O D E L P O L I C Y           --
+--      R T C O R B A . T H R E A D P O O L P O L I C Y . H E L P E R       --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
---                                                                          --
--- This specification is derived from the CORBA Specification, and adapted  --
--- for use with PolyORB. The copyright notice above, and the license        --
--- provisions that follow apply solely to the contents neither explicitely  --
--- nor implicitely specified by the CORBA Specification defined by the OMG. --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -36,31 +31,75 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+--  $Id$
+
 with CORBA.Policy;
 
-package RTCORBA.PriorityModelPolicy is
+with PolyORB.CORBA_P.Policy;
+with PolyORB.Smart_Pointers;
 
-   type Local_Ref is new CORBA.Policy.Ref with private;
+package body RTCORBA.ThreadpoolPolicy.Helper is
 
-   --  Implementation note: OMG Issue #5613 indicates:
-   --
-   --  "RTCORBA::PriorityModelPolicy cannot be created via
-   --  ORB::create_policy() method because this policy has two
-   --  attributes and and the Any that is passed to the
-   --  ORB::create_policy() method can only hold one parameter."
-   --
-   --  Thus, no Any helpers are provided for this policy.
+   ----------------------------
+   -- Unchecked_To_Local_Ref --
+   ----------------------------
 
-   function Get_Priority_Model
-     (Self : in Local_Ref)
-     return RTCORBA.PriorityModel;
+   function Unchecked_To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTCORBA.ThreadpoolPolicy.Local_Ref
+   is
+      Result : RTCORBA.ThreadpoolPolicy.Local_Ref;
 
-   function Get_Server_Priority
-     (Self : in Local_Ref)
-     return RTCORBA.Priority;
+   begin
+      Set (Result, CORBA.Object.Object_Of (The_Ref));
 
-private
+      return Result;
+   end Unchecked_To_Local_Ref;
 
-   type Local_Ref is new CORBA.Policy.Ref with null record;
+   ------------------
+   -- To_Local_Ref --
+   ------------------
 
-end RTCORBA.PriorityModelPolicy;
+   function To_Local_Ref
+     (The_Ref : in CORBA.Object.Ref'Class)
+     return RTCORBA.ThreadpoolPolicy.Local_Ref
+   is
+      use PolyORB.CORBA_P.Policy;
+      use type CORBA.PolicyType;
+
+   begin
+      --        if CORBA.Object.Is_Nil (The_Ref)
+      --          or else CORBA.Object.Is_A (The_Ref, Repository_Id) then
+      --           return Unchecked_To_Local_Ref (The_Ref);
+      --        end if;
+      --        CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+
+      if The_Ref not in CORBA.Policy.Ref'Class
+        or else CORBA.Policy.Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
+        /= THREADPOOL_POLICY_TYPE
+      then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      declare
+         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
+           := new Policy_Object_Type;
+
+         Result : Local_Ref;
+      begin
+         Set_Policy_Type (Policy_Object_Type (Entity.all),
+                          THREADPOOL_POLICY_TYPE);
+
+         Set_Policy_Value (Policy_Object_Type (Entity.all),
+                           Get_Policy_Value
+                           (Policy_Object_Type
+                            (CORBA.Policy.Entity_Of
+                             (CORBA.Policy.Ref (The_Ref)).all)));
+
+         CORBA.Policy.Set (CORBA.Policy.Ref (Result), Entity);
+
+         return Result;
+      end;
+   end To_Local_Ref;
+
+end RTCORBA.ThreadpoolPolicy.Helper;

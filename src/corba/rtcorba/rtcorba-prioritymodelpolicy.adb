@@ -48,6 +48,7 @@ with PolyORB.Tasking.Priorities;
 with PolyORB.Utils.Strings;
 
 with RTCORBA.PriorityMapping;
+with RTCORBA.PriorityModelPolicy.Helper;
 
 package body RTCORBA.PriorityModelPolicy is
 
@@ -68,32 +69,6 @@ package body RTCORBA.PriorityModelPolicy is
       Value    : in CORBA.Any)
      return CORBA.Policy.Ref;
 
-   ------------
-   -- To_Ref --
-   ------------
-
-   function To_Ref (The_Ref : in CORBA.Object.Ref'Class) return Ref is
-      use type CORBA.PolicyType;
-
-   begin
-      if The_Ref not in CORBA.Policy.Ref'Class
-        or else CORBA.Policy.Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
-        /= PRIORITY_MODEL_POLICY_TYPE
-      then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      declare
-         Result : Ref;
-
-      begin
-         CORBA.Policy.Set (CORBA.Policy.Ref (Result),
-                           CORBA.Object.Entity_Of (The_Ref));
-
-         return Result;
-      end;
-   end To_Ref;
-
    -------------------------------------
    -- Priority_Model_Policy_Allocator --
    -------------------------------------
@@ -104,6 +79,7 @@ package body RTCORBA.PriorityModelPolicy is
    is
       use type PolyORB.RTCORBA_P.Setup.PriorityMapping_Access;
       use PolyORB.Tasking.Priorities;
+      use RTCORBA.PriorityModelPolicy.Helper;
 
       Priority_Mapping : constant
         PolyORB.RTCORBA_P.Setup.PriorityMapping_Access
@@ -121,7 +97,7 @@ package body RTCORBA.PriorityModelPolicy is
 
       RTCORBA.PriorityMapping.To_Native
         (Priority_Mapping.all,
-         Get_Server_Priority (To_Ref (Self)),
+         Get_Server_Priority (To_Local_Ref (Self)),
          New_Priority,
          Success);
 
@@ -131,9 +107,10 @@ package body RTCORBA.PriorityModelPolicy is
                                             Completed => CORBA.Completed_No));
       end if;
 
-      return Create (Get_Priority_Model (To_Ref (Self)),
+      return Create (Get_Priority_Model (To_Local_Ref (Self)),
                      ORB_Priority (New_Priority),
-                     External_Priority (Get_Server_Priority (To_Ref (Self))));
+                     External_Priority (Get_Server_Priority
+                                        (To_Local_Ref (Self))));
    end Priority_Model_Policy_Allocator;
 
    ---------------------------------
@@ -171,7 +148,10 @@ package body RTCORBA.PriorityModelPolicy is
    -- Get_Priority_Model --
    ------------------------
 
-   function Get_Priority_Model (Self : in Ref) return RTCORBA.PriorityModel is
+   function Get_Priority_Model
+     (Self : in Local_Ref)
+     return RTCORBA.PriorityModel
+   is
    begin
       return Get_Priority_Model
         (PriorityModelPolicy_Type (Entity_Of (Self).all));
@@ -181,7 +161,10 @@ package body RTCORBA.PriorityModelPolicy is
    -- Get_Server_Priority --
    -------------------------
 
-   function Get_Server_Priority (Self : in Ref) return RTCORBA.Priority is
+   function Get_Server_Priority
+     (Self : in Local_Ref)
+     return RTCORBA.Priority
+   is
    begin
       return Get_Server_Priority
         (PriorityModelPolicy_Type (Entity_Of (Self).all));

@@ -42,7 +42,7 @@ with CORBA.Policy;
 with PortableServer.POA.Helper;
 with PortableServer.POAManager;
 
-with RTCORBA.RTORB;
+with RTCORBA.RTORB.Helper;
 with RTCORBA.PriorityMapping.Linear;
 with RTCORBA.PriorityModelPolicy;
 with RTCORBA.ThreadpoolPolicy;
@@ -126,7 +126,7 @@ begin
    New_Test ("RTORB");
 
    declare
-      RT_ORB : RTCORBA.RTORB.Ref;
+      RT_ORB : RTCORBA.RTORB.Local_Ref;
 
       Root_POA : PortableServer.POA.Ref;
 
@@ -134,7 +134,7 @@ begin
 
       --  Retrieve RT ORB
 
-      RT_ORB := RTCORBA.RTORB.To_Ref
+      RT_ORB := RTCORBA.RTORB.Helper.To_Local_Ref
         (Resolve_Initial_References
          (To_CORBA_String ("RTORB")));
 
@@ -157,7 +157,7 @@ begin
 
       declare
          Thread_Pool_Id : RTCORBA.ThreadpoolId;
-         Thread_Pool_Policy : RTCORBA.ThreadpoolPolicy.Ref;
+         Thread_Pool_Policy : RTCORBA.ThreadpoolPolicy.Local_Ref;
 
       begin
          Thread_Pool_Id := RTCORBA.RTORB.Create_Threadpool
@@ -185,7 +185,7 @@ begin
          --  Construct Thread Pool policy from invalid threadpool
 
          declare
-            Thread_Pool_2 : RTCORBA.ThreadpoolPolicy.Ref;
+            Thread_Pool_2 : RTCORBA.ThreadpoolPolicy.Local_Ref;
 
          begin
             Thread_Pool_2 := RTCORBA.RTORB.Create_Threadpool_Policy
@@ -218,7 +218,7 @@ begin
          Lanes : ThreadpoolLanes;
 
          Thread_Pool_Id : RTCORBA.ThreadpoolId;
-         Thread_Pool_Policy : RTCORBA.ThreadpoolPolicy.Ref;
+         Thread_Pool_Policy : RTCORBA.ThreadpoolPolicy.Local_Ref;
 
       begin
          Append (Lanes, Lane1);
@@ -252,9 +252,9 @@ begin
       declare
          Obj_Server : constant CORBA.Impl.Object_Ptr := new Echo.Impl.Object;
 
-         Priority_Model_Policy_Ref : RTCORBA.PriorityModelPolicy.Ref;
+         Priority_Model_Policy_Ref : RTCORBA.PriorityModelPolicy.Local_Ref;
          Thread_Pool_Id : RTCORBA.ThreadpoolId;
-         Thread_Pool_Policy_Ref : RTCORBA.ThreadpoolPolicy.Ref;
+         Thread_Pool_Policy_Ref : RTCORBA.ThreadpoolPolicy.Local_Ref;
          Policies : CORBA.Policy.PolicyList;
          Child_POA_Server : RTPortableServer.POA.Local_Ref;
 

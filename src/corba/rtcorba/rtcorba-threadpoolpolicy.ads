@@ -38,19 +38,16 @@
 
 --  $Id$
 
-with CORBA.Object;
 with CORBA.Policy;
 
 package RTCORBA.ThreadpoolPolicy is
 
-   type Ref is new CORBA.Policy.Ref with private;
+   type Local_Ref is new CORBA.Policy.Ref with private;
 
-   function To_Ref (The_Ref : in CORBA.Object.Ref'Class) return Ref;
-
-   function Get_Threadpool (Self : in Ref) return RTCORBA.ThreadpoolId;
+   function Get_Threadpool (Self : in Local_Ref) return RTCORBA.ThreadpoolId;
 
 private
 
-   type Ref is new CORBA.Policy.Ref with null record;
+   type Local_Ref is new CORBA.Policy.Ref with null record;
 
 end RTCORBA.ThreadpoolPolicy;

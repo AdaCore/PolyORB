@@ -47,6 +47,8 @@ with PolyORB.RT_POA_Policies.Thread_Pool_Policy;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
+with RTCORBA.ThreadpoolPolicy.Helper;
+
 package body RTCORBA.ThreadpoolPolicy is
 
    use CORBA;
@@ -60,42 +62,6 @@ package body RTCORBA.ThreadpoolPolicy is
      (The_Type : in CORBA.PolicyType;
       Value    : in CORBA.Any)
      return CORBA.Policy.Ref;
-
-   ------------
-   -- To_Ref --
-   ------------
-
-   function To_Ref (The_Ref : in CORBA.Object.Ref'Class) return Ref is
-      use type CORBA.PolicyType;
-
-   begin
-      if The_Ref not in CORBA.Policy.Ref'Class
-        or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
-        /= THREADPOOL_POLICY_TYPE
-      then
-         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
-      end if;
-
-      declare
-         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr
-           := new Policy_Object_Type;
-
-         Result : Ref;
-      begin
-         Set_Policy_Type (Policy_Object_Type (Entity.all),
-                          THREADPOOL_POLICY_TYPE);
-
-         Set_Policy_Value (Policy_Object_Type (Entity.all),
-                           Get_Policy_Value
-                           (Policy_Object_Type
-                            (Entity_Of
-                             (CORBA.Policy.Ref (The_Ref)).all)));
-
-         CORBA.Policy.Set (CORBA.Policy.Ref (Result), Entity);
-
-         return Result;
-      end;
-   end To_Ref;
 
    -----------------------------
    -- Create_ThreadpoolPolicy --
@@ -132,7 +98,10 @@ package body RTCORBA.ThreadpoolPolicy is
    -- Get_Threadpool --
    --------------------
 
-   function Get_Threadpool (Self : in Ref) return RTCORBA.ThreadpoolId is
+   function Get_Threadpool
+     (Self : in Local_Ref)
+     return RTCORBA.ThreadpoolId
+   is
    begin
       return From_Any (Get_Policy_Value
                        (Policy_Object_Type
@@ -154,9 +123,10 @@ package body RTCORBA.ThreadpoolPolicy is
    is
       use PolyORB.RT_POA_Policies.Thread_Pool_Policy;
       use PolyORB.RTCORBA_P.ThreadPoolManager;
+      use RTCORBA.ThreadpoolPolicy.Helper;
 
       Lanes : constant PolyORB.Lanes.Lane_Root_Access
-        := Lane (Get_Threadpool (To_Ref (Self)));
+        := Lane (Get_Threadpool (To_Local_Ref (Self)));
 
    begin
       return Create (Lanes);
