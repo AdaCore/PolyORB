@@ -145,9 +145,6 @@ package PolyORB.Tasking.Threads is
    function Image (T : Task_Id) return String;
    pragma Inline (Image);
 
-   function To_Integer (T : Task_Id) return Integer;
-   pragma Inline (To_Integer);
-
    function Run_In_Task
      (TF               : access Thread_Factory_Type;
       Name             : String := "";

@@ -89,25 +89,9 @@ package body PolyORB.Tasking.Threads is
    -----------
 
    function Image (T : Task_Id) return String is
-      pragma Warnings (Off);
-      pragma Warnings (On);
    begin
       return Threads.Image (T.X.all);
    end Image;
-
-   ----------------
-   -- To_Integer --
-   ----------------
-
-   function To_Integer (T : Task_Id) return Integer is
-      pragma Warnings (Off);
-      pragma Unreferenced (T);
-      pragma Warnings (On);
-   begin
-      --  Not implementable with PolyORB.Tasking.
-      raise Not_Implemented;
-      return -1;
-   end To_Integer;
 
    -------------------
    -- Free_Runnable --
