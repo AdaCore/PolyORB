@@ -14,14 +14,14 @@ with CORBA.Policy;
 with CORBA.Policy_Values; use CORBA.Policy_Values;
 with CORBA.Policy.Thread_Policy;
 with CORBA.Policy.Request_Processing_Policy;
-with CORBA.Policy.Id_Assignement_Policy;
+with CORBA.Policy.Id_Assignment_Policy;
 with CORBA.Policy.Id_Uniqueness_Policy;
 with CORBA.Policy.Servant_Retention_Policy;
 with CORBA.Policy.Lifespan_Policy;
 with CORBA.Policy.Implicit_Activation_Policy;
 use CORBA.Policy.Thread_Policy;
 use CORBA.Policy.Request_Processing_Policy;
-use CORBA.Policy.Id_Assignement_Policy;
+use CORBA.Policy.Id_Assignment_Policy;
 use CORBA.Policy.Id_Uniqueness_Policy;
 use CORBA.Policy.Servant_Retention_Policy;
 use CORBA.Policy.Lifespan_Policy;
@@ -73,10 +73,10 @@ package Droopi.POA.Basic_POA is
       Value :        IdUniquenessPolicyValue)
      return IdUniquenessPolicy_Access;
 
-   function Create_Id_Assignement_Policy
+   function Create_Id_Assignment_Policy
      (Self  : access Basic_Obj_Adapter;
-      Value :        IdAssignementPolicyValue)
-     return IdAssignementPolicy_Access;
+      Value :        IdAssignmentPolicyValue)
+     return IdAssignmentPolicy_Access;
 
    function Create_Servant_Retention_Policy
      (Self  : access Basic_Obj_Adapter;

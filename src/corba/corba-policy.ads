@@ -5,8 +5,7 @@
 with CORBA.Policy_Values; use CORBA.Policy_Values;
 with Droopi.POA_Types;
 with Sequences.Unbounded;
-with Generic_Factory;
-pragma Elaborate_All (Generic_Factory);
+with Droopi.Static_Dict;
 
 package CORBA.Policy is
 
@@ -22,12 +21,14 @@ package CORBA.Policy is
    type PolicyList_Access is access all PolicyList;
 
    package Policies_Factory_Pkg is
-     new Generic_Factory (CORBA.Policy.Policy_Access,
-                          CORBA.Policy_Values.Policy_Value);
-   subtype Policies_Factory is Policies_Factory_Pkg.Factory_Access;
+      new Droopi.Static_Dict
+     (Value => CORBA.Policy.Policy_Access,
+      Key   => CORBA.Policy_Values.Policy_Value);
+   subtype Policies_Factory is Policies_Factory_Pkg.Dict_Access;
 
-   procedure Check_Compatibility (Self : Policy;
-                                  OA   : Droopi.POA_Types.Obj_Adapter_Access)
+   procedure Check_Compatibility
+     (Self : Policy;
+      OA   : Droopi.POA_Types.Obj_Adapter_Access)
       is abstract;
    --  Check the compatibility of the current policy with the
    --  other policies of the object adapter.

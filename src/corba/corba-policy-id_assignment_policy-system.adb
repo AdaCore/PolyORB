@@ -6,7 +6,7 @@ with CORBA.Policy.Lifespan_Policy;
 with CORBA.Policy_Types;            use CORBA.Policy_Types;
 with Droopi.Locks;                  use Droopi.Locks;
 
-package body CORBA.Policy.Id_Assignement_Policy.System is
+package body CORBA.Policy.Id_Assignment_Policy.System is
 
    use CORBA.Policy_Values;
 
@@ -19,7 +19,7 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
       Policy : System_Id_Policy_Access;
    begin
       Policy := new System_Id_Policy'(Policy_Type =>
-                                        ID_ASSIGNEMENT_POLICY_ID,
+                                        ID_ASSIGNMENT_POLICY_ID,
                                       Value =>
                                         CORBA.Policy_Values.SYSTEM_ID);
       return Policy;
@@ -222,4 +222,4 @@ package body CORBA.Policy.Id_Assignement_Policy.System is
       Free (System_Id_Policy_Access (Ptr));
    end Free;
 
-end CORBA.Policy.Id_Assignement_Policy.System;
+end CORBA.Policy.Id_Assignment_Policy.System;

@@ -24,7 +24,7 @@ package CORBA.Policy_Values is
      range TRANSIENT .. PERSISTENT;
    subtype IdUniquenessPolicyValue is Policy_Value
      range UNIQUE_ID .. MULTIPLE_ID;
-   subtype IdAssignementPolicyValue is Policy_Value
+   subtype IdAssignmentPolicyValue is Policy_Value
      range USER_ID .. SYSTEM_ID;
    subtype ImplicitActivationPolicyValue is Policy_Value
      range IMPLICIT_ACTIVATION .. NO_IMPLICIT_ACTIVATION;

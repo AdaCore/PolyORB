@@ -69,7 +69,7 @@ package CORBA.Policy.Servant_Retention_Policy is
                           return Servant_Access
       is abstract;
    --  Case RETAIN:
-   --    Asks the Id_Assignement_Policy to look for the given Object_Id.
+   --    Asks the Id_Assignment_Policy to look for the given Object_Id.
    --    If found, returns the associated servant. Otherwisem returns null.
    --  Case NON_RETAIN:
    --    Raises WrongPolicy.

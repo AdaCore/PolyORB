@@ -1,4 +1,4 @@
-with CORBA.Policy.Id_Assignement_Policy.System;
+with CORBA.Policy.Id_Assignment_Policy.System;
 with CORBA.Policy.Id_Uniqueness_Policy.Unique;
 with CORBA.Policy.Implicit_Activation_Policy.No_Activation;
 with CORBA.Policy.Lifespan_Policy.Transient;
@@ -24,7 +24,7 @@ package body  POA_Configuration.Minimum is
       Register
         (F.all,
          SYSTEM_ID,
-         Policy_Access (Id_Assignement_Policy.System.Create));
+         Policy_Access (Id_Assignment_Policy.System.Create));
       Register
         (F.all,
          UNIQUE_ID,

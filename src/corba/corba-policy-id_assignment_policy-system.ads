@@ -1,8 +1,8 @@
 with Ada.Unchecked_Deallocation;
 
-package CORBA.Policy.Id_Assignement_Policy.System is
+package CORBA.Policy.Id_Assignment_Policy.System is
 
-   type System_Id_Policy is new IdAssignementPolicy with null record;
+   type System_Id_Policy is new IdAssignmentPolicy with null record;
    type System_Id_Policy_Access is access all System_Id_Policy;
 
    function Create return System_Id_Policy_Access;
@@ -50,4 +50,4 @@ package CORBA.Policy.Id_Assignement_Policy.System is
      (System_Id_Policy,
       System_Id_Policy_Access);
 
-end CORBA.Policy.Id_Assignement_Policy.System;
+end CORBA.Policy.Id_Assignment_Policy.System;

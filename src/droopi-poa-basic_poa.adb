@@ -5,7 +5,6 @@ with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
 with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
 
-with CORBA.Policy_Types;
 with CORBA.Policy_Values;
 with Droopi.POA_Types;
 with Droopi.POA_Manager.Basic_Manager;
@@ -20,7 +19,6 @@ package body Droopi.POA.Basic_POA is
    use Droopi.Log;
    use Droopi.Locks;
    use CORBA.Policy;
-   use CORBA.Policy_Types;
    use POA_Configuration;
    use POA_Configuration.Minimum;
    use Droopi.POA_Manager;
@@ -132,77 +130,72 @@ package body Droopi.POA.Basic_POA is
       pragma Debug (O ("Init Basic_POA with user provided policies"));
       for I in 1 .. Policy_Sequences.Length (Policies.all) loop
          A_Policy := Policy_Sequences.Element_Of (Policies.all, I);
-         case A_Policy.Policy_Type is
-            when THREAD_POLICY_ID =>
-               if OA.Thread_Policy /= null then
-                  pragma Debug
-                    (O ("Duplicate in ThreadPolicy: using last one"));
-                  null;
-               end if;
-               OA.Thread_Policy
-                 := Create_Thread_Policy (OA,  A_Policy.Value);
 
-            when LIFESPAN_POLICY_ID =>
-               if OA.Lifespan_Policy /= null then
-                  pragma Debug
-                    (O ("Duplicate in LifespanPolicy: using last one"));
-                  null;
-               end if;
-               OA.Lifespan_Policy
-                 := Create_Lifespan_Policy (OA,  A_Policy.Value);
+         if A_Policy.all in ThreadPolicy'Class then
+            if OA.Thread_Policy /= null then
+               pragma Debug
+                 (O ("Duplicate in ThreadPolicy: using last one"));
+               null;
+            end if;
+            OA.Thread_Policy
+              := Create_Thread_Policy (OA,  A_Policy.Value);
+         elsif A_Policy.all in LifespanPolicy'Class then
+            if OA.Lifespan_Policy /= null then
+               pragma Debug
+                 (O ("Duplicate in LifespanPolicy: using last one"));
+               null;
+            end if;
+            OA.Lifespan_Policy
+              := Create_Lifespan_Policy (OA,  A_Policy.Value);
+         elsif A_Policy.all in IdUniquenessPolicy'Class then
+            if OA.Id_Uniqueness_Policy /= null then
+               pragma Debug
+                 (O ("Duplicate in IdUniquenessPolicy: using last one"));
+               null;
+            end if;
+            OA.Id_Uniqueness_Policy
+              := Create_Id_Uniqueness_Policy (OA,  A_Policy.Value);
+         elsif A_Policy.all in IdAssignmentPolicy'Class then
+            if OA.Id_Assignment_Policy /= null then
+               pragma Debug
+                 (O ("Duplicate in IdAssignmentPolicy: using last one"));
+               null;
+            end if;
+            OA.Id_Assignment_Policy
+              := Create_Id_Assignment_Policy (OA,  A_Policy.Value);
 
-            when ID_UNIQUENESS_POLICY_ID =>
-               if OA.Id_Uniqueness_Policy /= null then
-                  pragma Debug
-                    (O ("Duplicate in IdUniquenessPolicy: using last one"));
-                  null;
-               end if;
-               OA.Id_Uniqueness_Policy
-                 := Create_Id_Uniqueness_Policy (OA,  A_Policy.Value);
-
-            when ID_ASSIGNEMENT_POLICY_ID =>
-               if OA.Id_Assignement_Policy /= null then
-                  pragma Debug
-                    (O ("Duplicate in IdAssignementPolicy: using last one"));
-                  null;
-               end if;
-               OA.Id_Assignement_Policy
-                 := Create_Id_Assignement_Policy (OA,  A_Policy.Value);
-
-            when SERVANT_RETENTION_POLICY_ID =>
-               if OA.Servant_Retention_Policy /= null then
-                  pragma Debug
-                    (O ("Duplicate in ServantRetentionPolicy:"
-                        & " using last one"));
-                  null;
-               end if;
-               OA.Servant_Retention_Policy
-                 := Create_Servant_Retention_Policy (OA,  A_Policy.Value);
-
-            when REQUEST_PROCESSING_POLICY_ID =>
-               if OA.Request_Processing_Policy /= null then
-                  pragma Debug
-                    (O ("Duplicate in RequestProcessingPolicy:"
-                        & " using last one"));
-                  null;
-               end if;
-               OA.Request_Processing_Policy
-                 := Create_Request_Processing_Policy (OA,  A_Policy.Value);
-
-            when IMPLICIT_ACTIVATION_POLICY_ID =>
-               if OA.Implicit_Activation_Policy /= null then
-                  pragma Debug
-                    (O ("Duplicate in ImplicitActivationPolicy:"
-                        & "using last one"));
-                  null;
-               end if;
+         elsif A_Policy.all in ServantRetentionPolicy'Class then
+            if OA.Servant_Retention_Policy /= null then
+               pragma Debug
+                 (O ("Duplicate in ServantRetentionPolicy:"
+                     & " using last one"));
+               null;
+            end if;
+            OA.Servant_Retention_Policy
+              := Create_Servant_Retention_Policy (OA,  A_Policy.Value);
+         elsif A_Policy.all in RequestProcessingPolicy'Class then
+            if OA.Request_Processing_Policy /= null then
+               pragma Debug
+                 (O ("Duplicate in RequestProcessingPolicy:"
+                     & " using last one"));
+               null;
+            end if;
+            OA.Request_Processing_Policy
+              := Create_Request_Processing_Policy (OA,  A_Policy.Value);
+         elsif A_Policy.all in ImplicitActivationPolicy'Class then
+            if OA.Implicit_Activation_Policy /= null then
+               pragma Debug
+                 (O ("Duplicate in ImplicitActivationPolicy:"
+                     & "using last one"));
+               null;
+            end if;
                OA.Implicit_Activation_Policy
                  := Create_Implicit_Activation_Policy (OA,  A_Policy.Value);
 
-            when others =>
-               null;
-               pragma Debug (O ("Unknown policy ignored"));
-         end case;
+         else
+            null;
+            pragma Debug (O ("Unknown policy ignored"));
+         end if;
       end loop;
    end Init_With_User_Policies;
 
@@ -230,9 +223,9 @@ package body Droopi.POA.Basic_POA is
            Create_Id_Uniqueness_Policy (OA, UNIQUE_ID);
       end if;
 
-      if OA.Id_Assignement_Policy = null then
-         OA.Id_Assignement_Policy :=
-           Create_Id_Assignement_Policy (OA, SYSTEM_ID);
+      if OA.Id_Assignment_Policy = null then
+         OA.Id_Assignment_Policy :=
+           Create_Id_Assignment_Policy (OA, SYSTEM_ID);
       end if;
 
       if OA.Servant_Retention_Policy = null then
@@ -272,7 +265,7 @@ package body Droopi.POA.Basic_POA is
         (OA.Id_Uniqueness_Policy.all,
          Droopi.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
-        (OA.Id_Assignement_Policy.all,
+        (OA.Id_Assignment_Policy.all,
          Droopi.POA_Types.Obj_Adapter_Access (OA));
       Check_Compatibility
         (OA.Servant_Retention_Policy.all,
@@ -331,9 +324,9 @@ package body Droopi.POA.Basic_POA is
          Free (OA.Id_Uniqueness_Policy.all,
                Policy_Access (OA.Id_Uniqueness_Policy));
       end if;
-      if OA.Id_Assignement_Policy /= null then
-         Free (OA.Id_Assignement_Policy.all,
-               Policy_Access (OA.Id_Assignement_Policy));
+      if OA.Id_Assignment_Policy /= null then
+         Free (OA.Id_Assignment_Policy.all,
+               Policy_Access (OA.Id_Assignment_Policy));
       end if;
       if OA.Implicit_Activation_Policy /= null then
          Free (OA.Implicit_Activation_Policy.all,
@@ -419,7 +412,7 @@ package body Droopi.POA.Basic_POA is
 
       --  Create and initialize policies factory
       New_Obj_Adapter.P_Factory
-        := CORBA.Policy.Policies_Factory_Pkg.New_Factory;
+        := CORBA.Policy.Policies_Factory_Pkg.New_Dict;
       Initialize (Conf, New_Obj_Adapter.P_Factory);
 
       --  Use default policies
@@ -483,7 +476,7 @@ package body Droopi.POA.Basic_POA is
 
       --  Create and initialize policies factory
       New_Obj_Adapter.P_Factory
-        := CORBA.Policy.Policies_Factory_Pkg.New_Factory;
+        := CORBA.Policy.Policies_Factory_Pkg.New_Dict;
       Initialize (Conf, New_Obj_Adapter.P_Factory);
 
       --  Init policies with those given by the user
@@ -586,7 +579,7 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return ThreadPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Create (Self.P_Factory.all, Value));
+        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
    end Create_Thread_Policy;
 
    ----------------------------
@@ -600,7 +593,7 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return LifespanPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Create (Self.P_Factory.all, Value));
+        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
    end Create_Lifespan_Policy;
 
    ---------------------------------
@@ -614,22 +607,22 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return IdUniquenessPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Create (Self.P_Factory.all, Value));
+        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
    end Create_Id_Uniqueness_Policy;
 
    ----------------------------------
-   -- Create_Id_Assignement_Policy --
+   -- Create_Id_Assignment_Policy --
    ----------------------------------
 
-   function Create_Id_Assignement_Policy
+   function Create_Id_Assignment_Policy
      (Self  : access Basic_Obj_Adapter;
-      Value :        IdAssignementPolicyValue)
-     return IdAssignementPolicy_Access
+      Value :        IdAssignmentPolicyValue)
+     return IdAssignmentPolicy_Access
    is
    begin
-      return IdAssignementPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Create (Self.P_Factory.all, Value));
-   end Create_Id_Assignement_Policy;
+      return IdAssignmentPolicy_Access
+        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
+   end Create_Id_Assignment_Policy;
 
    -------------------------------------
    -- Create_Servent_Retention_Policy --
@@ -642,7 +635,7 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return ServantRetentionPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Create (Self.P_Factory.all, Value));
+        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
    end Create_Servant_Retention_Policy;
 
    --------------------------------------
@@ -656,7 +649,7 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return RequestProcessingPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Create (Self.P_Factory.all, Value));
+        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
    end Create_Request_Processing_Policy;
 
    ---------------------------------------
@@ -670,7 +663,7 @@ package body Droopi.POA.Basic_POA is
    is
    begin
       return ImplicitActivationPolicy_Access
-        (CORBA.Policy.Policies_Factory_Pkg.Create (Self.P_Factory.all, Value));
+        (CORBA.Policy.Policies_Factory_Pkg.Lookup (Self.P_Factory.all, Value));
    end Create_Implicit_Activation_Policy;
 
    ---------------------
@@ -820,7 +813,7 @@ package body Droopi.POA.Basic_POA is
       To.Active_Object_Map := From.Active_Object_Map;
       To.Thread_Policy              := From.Thread_Policy;
       To.Request_Processing_Policy  := From.Request_Processing_Policy;
-      To.Id_Assignement_Policy      := From.Id_Assignement_Policy;
+      To.Id_Assignment_Policy      := From.Id_Assignment_Policy;
       To.Id_Uniqueness_Policy       := From.Id_Uniqueness_Policy;
       To.Servant_Retention_Policy   := From.Servant_Retention_Policy;
       To.Lifespan_Policy            := From.Lifespan_Policy;

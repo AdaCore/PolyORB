@@ -1,5 +1,5 @@
 with Droopi.CORBA_P.Exceptions;          use Droopi.CORBA_P.Exceptions;
-with CORBA.Policy.Id_Assignement_Policy;
+with CORBA.Policy.Id_Assignment_Policy;
 with CORBA.Policy.Id_Uniqueness_Policy;
 with CORBA.Policy.Lifespan_Policy;
 with CORBA.Policy.Request_Processing_Policy;
@@ -48,18 +48,18 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
       P_Servant : Servant_Access)
      return Object_Id_Access
    is
-      use CORBA.Policy.Id_Assignement_Policy;
+      use CORBA.Policy.Id_Assignment_Policy;
       use CORBA.Policy.Id_Uniqueness_Policy;
       POA : Droopi.POA.Obj_Adapter_Access
         := Droopi.POA.Obj_Adapter_Access (OA);
    begin
-      if not Is_System (POA.Id_Assignement_Policy.all) then
+      if not Is_System (POA.Id_Assignment_Policy.all) then
          Raise_Wrong_Policy;
       end if;
       Ensure_Servant_Uniqueness (POA.Id_Uniqueness_Policy.all,
                                  OA,
                                  P_Servant);
-      return Activate_Object (POA.Id_Assignement_Policy.all, OA, P_Servant);
+      return Activate_Object (POA.Id_Assignment_Policy.all, OA, P_Servant);
    end Activate_Object;
 
    ---------------------
@@ -72,7 +72,7 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
       P_Servant : Servant_Access;
       Oid       : Object_Id)
    is
-      use CORBA.Policy.Id_Assignement_Policy;
+      use CORBA.Policy.Id_Assignment_Policy;
       use CORBA.Policy.Id_Uniqueness_Policy;
       use CORBA.Policy.Lifespan_Policy;
       POA       : Droopi.POA.Obj_Adapter_Access
@@ -80,18 +80,18 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
       U_Oid     : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Oid);
    begin
-      Ensure_Oid_Origin (POA.Id_Assignement_Policy.all,
+      Ensure_Oid_Origin (POA.Id_Assignment_Policy.all,
                          U_Oid);
       Ensure_Lifespan (POA.Lifespan_Policy.all,
                        OA,
                        U_Oid);
-      Ensure_Oid_Uniqueness (POA.Id_Assignement_Policy.all,
+      Ensure_Oid_Uniqueness (POA.Id_Assignment_Policy.all,
                              OA,
                              U_Oid);
       Ensure_Servant_Uniqueness (POA.Id_Uniqueness_Policy.all,
                                  OA,
                                  P_Servant);
-      Activate_Object_With_Id (POA.Id_Assignement_Policy.all,
+      Activate_Object_With_Id (POA.Id_Assignment_Policy.all,
                                OA,
                                P_Servant,
                                Oid);
@@ -107,7 +107,7 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
       OA        : Droopi.POA_Types.Obj_Adapter_Access;
       Oid       : Object_Id)
    is
-      use CORBA.Policy.Id_Assignement_Policy;
+      use CORBA.Policy.Id_Assignment_Policy;
       use CORBA.Policy.Request_Processing_Policy;
       U_Oid     : Unmarshalled_Oid_Access
         := Oid_To_U_Oid (Oid);
@@ -118,7 +118,7 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
                        OA,
                        U_Oid);
       --  In case a ServantManager is used
-      Remove_Entry (POA.Id_Assignement_Policy.all,
+      Remove_Entry (POA.Id_Assignment_Policy.all,
                     OA,
                     U_Oid);
    end Deactivate;
@@ -158,11 +158,11 @@ package body CORBA.Policy.Servant_Retention_Policy.Retain is
                            U_Oid : Unmarshalled_Oid_Access)
                           return Servant_Access
    is
-      use CORBA.Policy.Id_Assignement_Policy;
+      use CORBA.Policy.Id_Assignment_Policy;
       POA : Droopi.POA.Obj_Adapter_Access
         := Droopi.POA.Obj_Adapter_Access (OA);
    begin
-      return Id_To_Servant (POA.Id_Assignement_Policy.all,
+      return Id_To_Servant (POA.Id_Assignment_Policy.all,
                             OA,
                             U_Oid);
    end Id_To_Servant;
