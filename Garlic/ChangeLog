@@ -1,3 +1,18 @@
+Tue Aug 13 13:43:00 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* Makefile.am: Added s-garpri.{ads,ali,o}.
+
+	* s-garpri.ads: New file defining static priorities.
+
+	* s-rpc.adb: Take priorities into accounts (transmit priorities
+	  from end to end and use static priorites for other tasks).
+
+	* s-garter.adb: Idem.
+
+	* s-gartcp.adb: Idem.
+
+	* s-ganobl.adb: Idem.
+
 Mon Aug 12 16:13:54 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garthi.ads: Fixed (it won't compile (from R. Dewar) in the
