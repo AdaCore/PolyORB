@@ -43,7 +43,7 @@
 --   object from a derivation od IDL_Exception_Members
 
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#5 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.ads#6 $
 
 with Ada.Exceptions;
 
@@ -80,13 +80,6 @@ package PolyORB.CORBA_P.Exceptions is
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
       To   : out System_Exception_Members);
-
-   function Get_ExcepId_By_RepositoryId
-     (RepoId : in Standard.String)
-     return Ada.Exceptions.Exception_Id;
-   --  return the corresponding Ada Exception_Id for
-   --  an IDL repository. Returns Null_Id if RepoId
-   --  is unknown.
 
    function Occurrence_To_Name
      (Occurrence : Ada.Exceptions.Exception_Occurrence)

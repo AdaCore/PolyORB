@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#9 $
+--  $Id: //droopi/main/src/corba/polyorb-corba_p-exceptions.adb#10 $
 
 with Ada.Unchecked_Conversion;
 
@@ -44,6 +44,7 @@ with PolyORB.CORBA_P.Exceptions.Stack;
 with PolyORB.Log;
 with PolyORB.Soft_Links;
 with PolyORB.Types;
+with PolyORB.Utils;
 with PolyORB.Utils.Chained_Lists;
 
 package body PolyORB.CORBA_P.Exceptions is
@@ -54,6 +55,13 @@ package body PolyORB.CORBA_P.Exceptions is
    package L is new PolyORB.Log.Facility_Log ("polyorb.corba_p.exceptions");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
      renames L.Output;
+
+   procedure Get_ExcepId_By_RepositoryId
+     (RepoId              : in     Standard.String;
+      ExcpId              :    out Ada.Exceptions.Exception_Id;
+      Is_CORBA_System_Exc :    out Boolean);
+   --  Return the corresponding Ada Exception_Id for
+   --  an IDL repository id.
 
    ----------------------
    -- User_Get_Members --
@@ -87,18 +95,34 @@ package body PolyORB.CORBA_P.Exceptions is
    -- System exception handling --
    -------------------------------
 
-   function Get_ExcepId_By_RepositoryId
-     (RepoId : in Standard.String)
-      return Ada.Exceptions.Exception_Id
+   procedure Get_ExcepId_By_RepositoryId
+     (RepoId              : in     Standard.String;
+      ExcpId              :    out Ada.Exceptions.Exception_Id;
+      Is_CORBA_System_Exc :    out Boolean)
    is
+
+      use PolyORB.Utils;
+
+      Colon1 : constant Integer := Find (RepoId, RepoId'First, ':');
+      Colon2 : constant Integer := Find (RepoId, Colon1 + 1, ':');
+
       function To_Exception_Id is new Ada.Unchecked_Conversion
         (System.Standard_Library.Exception_Data_Ptr,
          Ada.Exceptions.Exception_Id);
-      Internal_Name : String := RepoId;
+
+      --  A repository ID is of the form 'MODEL:X/Y/Z:VERSION'
+
+      Model : constant String   := RepoId (RepoId'First .. Colon1 - 1);
+      Internal_Name : String    := RepoId (Colon1 + 1 .. Colon2 - 1);
+      --  Version : constant String := RepoId (Colon2 + 1 .. RepoId'Last);
+
       Result : Ada.Exceptions.Exception_Id;
    begin
+      Is_CORBA_System_Exc := False;
+
       if RepoId = "" then
-         return Ada.Exceptions.Null_Id;
+         ExcpId := Ada.Exceptions.Null_Id;
+         return;
       end if;
 
       for J in Internal_Name'Range loop
@@ -106,13 +130,21 @@ package body PolyORB.CORBA_P.Exceptions is
             Internal_Name (J) := '.';
          end if;
       end loop;
+
       Result := To_Exception_Id
         (System.Exception_Table.Internal_Exception
            (Internal_Name));
+
       if Result = Ada.Exceptions.Null_Id then
-         return PolyORB.Unknown'Identity;
+         ExcpId := PolyORB.Unknown'Identity;
       else
-         return Result;
+         ExcpId := Result;
+         Is_CORBA_System_Exc
+           := (Model = "IDL"
+           and then Internal_Name'Length > 5
+           and then Internal_Name
+                 (Internal_Name'First .. Internal_Name'First + 5)
+                 = "CORBA.");
       end if;
    end Get_ExcepId_By_RepositoryId;
 
@@ -481,12 +513,15 @@ package body PolyORB.CORBA_P.Exceptions is
         := CORBA.RepositoryId
         (Any.TypeCode.Id (Get_Type (Occurrence)));
 
-      System_Id : constant Ada.Exceptions.Exception_Id
-        := Get_ExcepId_By_RepositoryId
-        (To_Standard_String (Repository_Id));
-
+      System_Id : Ada.Exceptions.Exception_Id;
+      Is_CORBA_System_Exc : Boolean;
    begin
-      if System_Id /= Ada.Exceptions.Null_Id then
+      Get_ExcepId_By_RepositoryId
+        (To_Standard_String (Repository_Id),
+         System_Id,
+         Is_CORBA_System_Exc);
+
+      if Is_CORBA_System_Exc then
          --  This is a system exception.
 
          declare
@@ -503,7 +538,11 @@ package body PolyORB.CORBA_P.Exceptions is
             Raise_System_Exception
               (System_Id,
                System_Exception_Members'
-               (Minor => Minor, Completed => Completed));
+                 (Minor => Minor, Completed => Completed));
+
+            raise Program_Error;
+            --  Not reached.
+
          end;
       end if;
 
