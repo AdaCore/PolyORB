@@ -520,6 +520,7 @@ AC_OUTPUT([
 	testsuite/corba/cos/Makefile
 	testsuite/corba/cos/naming/Makefile
 	testsuite/corba/cos/time/Makefile
+	testsuite/corba/harness/Makefile
 	testsuite/corba/local/Makefile
 	testsuite/corba/portableserver/Makefile
 	testsuite/core/Makefile
