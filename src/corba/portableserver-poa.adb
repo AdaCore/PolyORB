@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#44 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#45 $
 
 with Ada.Exceptions;
 
@@ -1023,9 +1023,7 @@ package body PortableServer.POA is
          when InvalidPolicy_E =>
             declare
                Member : constant InvalidPolicy_Members :=
-                 InvalidPolicy_Members'
-                 (CORBA.IDL_Exception_Members with Index => 0);
-               --  XXX Should handle this case.
+                 InvalidPolicy_Members (Error.Member.all);
             begin
                Free (Error.Member);
                Raise_InvalidPolicy (Member);
@@ -1292,14 +1290,10 @@ package body PortableServer.POA is
    -------------------------
 
    procedure Raise_InvalidPolicy
-     (Excp_Memb : in InvalidPolicy_Members)
-   is
-      pragma Warnings (Off); --  WAG:3.15
-      pragma Unreferenced (Excp_Memb);
-      pragma Warnings (On); --  WAG:3.15
+     (Excp_Memb : in InvalidPolicy_Members) is
    begin
-      raise InvalidPolicy;
-      --  XXX FIXME: need to marshall some data
+      PolyORB.Exceptions.User_Raise_Exception
+        (InvalidPolicy'Identity, Excp_Memb);
    end Raise_InvalidPolicy;
 
    ---------------------
