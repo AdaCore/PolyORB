@@ -1,3 +1,12 @@
+Sat Mar 21 22:38:35 1998  Laurent Pautet  <pautet@paris.act-europe.fr>
+
+	* xe_utils.adb: Don't include GARLIC as Ada library.
+
+	* xe_usage.adb: Update usage.
+
+	* xe_stubs.adb: Rename object file when RCI spec and body file
+ 	name are different (gnat.adc).
+
 1998-03-20  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_utils.ads, xe_utils.adb: Add Dir to build concatenate several

@@ -729,8 +729,28 @@ package body XE_Stubs is
               ("building ", Unit_Name, " caller stubs from ", Full_RCI_Spec);
          end if;
 
-         Compile_RCI_Caller (Full_RCI_Spec, Caller_Object);
+         declare
+            Spec_Obj, Spec_ALI : File_Name_Type;
+         begin
 
+            --  Caller_ALI name may not match RCI_Spec name, because its
+            --  name is based on the body source filename. With gnat.adc,
+            --  spec and body may have different base names. The caller
+            --  stub generation uses the spec source file and GNAT
+            --  generates an object file which name is based on the source
+            --  file name. In this case, the expected object file and the
+            --  generated object file mismatch.
+
+            Spec_ALI := Dir (Caller_Dir, Strip_Suffix (RCI_Spec) & ALI_Suffix);
+            Spec_Obj := Dir (Caller_Dir, Strip_Suffix (RCI_Spec) & Obj_Suffix);
+            Compile_RCI_Caller (Full_RCI_Spec, Spec_Obj);
+
+            --  Rename the files when mismatch (see above).
+            if Spec_ALI /= Caller_ALI then
+               Copy_With_File_Stamp (Spec_ALI, Caller_ALI);
+               Copy_With_File_Stamp (Spec_Obj, Caller_Object);
+            end if;
+         end;
       elsif not Quiet_Output then
          Message ("   ", Unit_Name, " caller stubs is up to date");
       end if;

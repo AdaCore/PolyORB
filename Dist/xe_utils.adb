@@ -645,12 +645,10 @@ package body XE_Utils is
       Name_Buffer (2) := 'L';
       L_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
 
-      Name_Buffer (2) := 'A';
-      A_GARLIC_Dir := new String'(Name_Buffer (1 .. Name_Len));
-
       I_Current_Dir := new String'("-I.");
       L_Current_Dir := new String'("-L.");
 
+      Name_Len := 22;
       Name_Buffer (1 .. 22) := "-Idsa/private/caller";
       Name_Buffer (6)  := Directory_Separator;
       Name_Buffer (14) := Directory_Separator;
@@ -663,7 +661,7 @@ package body XE_Utils is
          Scan_Make_Arg (Argument (Next_Arg));
       end loop;
 
-      Scan_Make_Arg (A_GARLIC_Dir.all);
+      Scan_Make_Arg (I_GARLIC_Dir.all);
 
       Osint.Add_Default_Search_Dirs;
 
