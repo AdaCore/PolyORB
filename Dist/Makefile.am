@@ -16,7 +16,7 @@ RSH_OPT       = @RSH_OPT@
 srcdir        = @srcdir@
 
 bin_PROGRAMS = gnatdist
-gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.adb sdefault.adb
+gnatdist_DEPENDENCIES = xe_defs.o xe_sysdep.adb sdefault.adb link.o
 gnatdist_SOURCES =
 gnatdist_LDADD =
 
@@ -24,6 +24,10 @@ CLEANFILES = b~*.ad[bs] *.ali gnatdist$(EXEEXT) b_xe_defs$(EXEEXT) \
              xe_defs.adb xe_sysdep.adb sdefault.adb
 
 force: 
+
+link.o: $(GNATSRC)/link.c
+	$(CC) -c -I$(srcdir) -I$(GNATSRC) \
+	  $<
 
 gnatdist$(EXEEXT): $(gnatdist_DEPENDENCIES) force
 	$(GNAT_FOR_HOST) -m $(GNATFLAGS) -I. -I$(srcdir) -I$(GNATSRC) \
@@ -54,13 +58,13 @@ xe_defs.adb: Makefile b_xe_defs$(EXEEXT)
 	   DEFPROTOCOLNAME="$(DEFPROTOCOLNAME)" \
 	   PSNAME="$(PSNAME)" >xe_defs.adb
 
-xe_defs.o: xe_defs.ads xe_defs.adb
+xe_defs.o: xe_defs.adb xe_defs.ads
 	$(GNAT_FOR_HOST) $(COMPILE) $(GNATFLAGS) -I$(srcdir) -I$(GNATSRC) \
-	   xe_defs.adb
+	   $<
 
-xe_sysdep.o: xe_sysdep.ads xe_sysdep.adb
+xe_sysdep.o: xe_sysdep.adb xe_sysdep.ads
 	$(GNAT_FOR_HOST) $(COMPILE) -$(GNATFLAGS) -I$(srcdir) -I$(GNATSRC) \
-	   xe_sysdep.adb
+	   $<
 
 sdefault.adb: $(srcdir)/config.sdefault
 	@if [ -f $(GNATSRC)/sdefault.adb ]; then \

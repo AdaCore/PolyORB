@@ -393,6 +393,7 @@ ada/lib-list.adb
 ada/lib-sort.adb
 ada/lib.adb
 ada/lib.ads
+ada/link.c
 ada/make.adb
 ada/make.ads
 ada/makeusg.adb
