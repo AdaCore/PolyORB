@@ -39,6 +39,7 @@ with Ada.Unchecked_Conversion;
 with Interfaces;
 with System.Garlic.Debug;             use System.Garlic.Debug;
 pragma Elaborate_All (System.Garlic.Debug);
+with System.Garlic.Exceptions;        use System.Garlic.Exceptions;
 with System.Garlic.Filters;           use System.Garlic.Filters;
 with System.Garlic.Options;           use System.Garlic.Options;
 with System.Garlic.Partitions;        use System.Garlic.Partitions;
@@ -50,17 +51,12 @@ with System.Garlic.Types;             use System.Garlic.Types;
 with System.Garlic.Utils;             use System.Garlic.Utils;
 with System.Standard_Library;
 
-with System.Tasking;
-pragma Elaborate_All (System.Tasking);
-
 with System.Garlic.Linker_Options;
 pragma Warnings (Off, System.Garlic.Linker_Options);
 
 package body System.Garlic.Heart is
 
    use Ada.Streams;
-
-   use type System.Tasking.Task_ID;
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARHEA", "(s-garhea): ");
@@ -76,11 +72,11 @@ package body System.Garlic.Heart is
    --  by more than one task (in fact, they should not be modified after
    --  the elaboration is terminated).
 
-   Elaboration_Barrier : Soft_Links.Barrier_Access;
+   Elaboration_Watcher : Soft_Links.Watcher_Access;
    --  This barrier will be no longer blocking when the elaboration is
    --  terminated.
 
-   Self_PID_Barrier : Soft_Links.Barrier_Access;
+   Self_PID_Watcher : Soft_Links.Watcher_Access;
    --  Block any task until Self_PID is different from Null_PID
 
    Handlers : array (External_Opcode) of Request_Handler;
@@ -88,9 +84,6 @@ package body System.Garlic.Heart is
 
    Notify_Partition_RPC_Error : RPC_Error_Notifier_Type;
    --  Call this procedure when a partition dies.
-
-   Environment_Task : constant System.Tasking.Task_ID := System.Tasking.Self;
-   --  The environment task. Self will be set to it at elaboration time.
 
    procedure Handle_External
      (Partition : in Partition_ID;
@@ -129,13 +122,12 @@ package body System.Garlic.Heart is
    -----------------------
 
    procedure Activate_Shutdown is
-      Self : constant System.Tasking.Task_ID := System.Tasking.Self;
    begin
       pragma Debug (D ("Activate partition shutdown"));
 
       --  Only the environment task can activate the shutdown process.
 
-      if Self /= Environment_Task then
+      if not Soft_Links.Is_Environment_Task then
          Soft_Links.Enter_Critical_Section;
 
          --  If the partition is not yet elaborated, resume main task
@@ -144,7 +136,7 @@ package body System.Garlic.Heart is
          --  its partition id.
 
          if Self_PID = Null_PID then
-            Soft_Links.Signal_All (Self_PID_Barrier);
+            Soft_Links.Update (Self_PID_Watcher);
 
          elsif Shutdown_Activation = None then
             Shutdown_Activation := Busy;
@@ -200,7 +192,7 @@ package body System.Garlic.Heart is
       Trace.Shutdown;
       pragma Debug (D ("Activate RPC shutdown"));
       Soft_Links.RPC_Shutdown;
-      Soft_Links.Destroy (Self_PID_Barrier);
+      Soft_Links.Destroy (Self_PID_Watcher);
 
       pragma Debug (D ("Partition shutdown completed"));
    end Activate_Shutdown;
@@ -300,35 +292,6 @@ package body System.Garlic.Heart is
       Opcode     := Code;
    end Analyze_Stream;
 
-   ------------------------------
-   -- Can_Have_A_Light_Runtime --
-   ------------------------------
-
-   function Can_Have_A_Light_Runtime return Boolean is
-   begin
-      --  If the termination is not Local_Termination, fail
-
-      if Options.Termination /= Local_Termination then
-         return False;
-      end if;
-
-      --  If there is any RCI or RACW package, fail
-
-      if Options.Has_RCI_Pkg_Or_RACW_Var then
-         return False;
-      end if;
-
-      --  If this is the main partition, fail
-
-      if Options.Is_Boot_Server then
-         return False;
-      end if;
-
-      --  There is no reason not to have a light runtime
-
-      return True;
-   end Can_Have_A_Light_Runtime;
-
    --------------------------
    -- Complete_Elaboration --
    --------------------------
@@ -337,7 +300,7 @@ package body System.Garlic.Heart is
    begin
       pragma Debug (D ("Complete termination"));
 
-      Soft_Links.Signal_All (Elaboration_Barrier);
+      Soft_Links.Update (Elaboration_Watcher);
    end Complete_Elaboration;
 
    -------------------------
@@ -374,7 +337,7 @@ package body System.Garlic.Heart is
                                              (Options.Data_Location)),
                Termination    => Options.Termination,
                Reconnection   => Options.Reconnection,
-               Has_Light_PCS  => Can_Have_A_Light_Runtime,
+               Is_Pure_Client => Options.Is_Pure_Client,
                Is_Boot_Mirror => Options.Is_Boot_Mirror,
                Error          => Error);
             if Found (Error) then
@@ -473,8 +436,8 @@ package body System.Garlic.Heart is
 
    procedure Initialize is
    begin
-      Soft_Links.Create (Elaboration_Barrier);
-      Soft_Links.Create (Self_PID_Barrier);
+      Soft_Links.Create (Elaboration_Watcher, No_Version);
+      Soft_Links.Create (Self_PID_Watcher, No_Version);
    end Initialize;
 
    ----------------------------
@@ -758,7 +721,7 @@ package body System.Garlic.Heart is
          return;
       end if;
 
-      Soft_Links.Signal_All (Self_PID_Barrier);
+      Soft_Links.Update (Self_PID_Watcher);
 
       pragma Debug (Dump_Partition_Table (Private_Debug_Key));
    end Set_My_Partition_ID;
@@ -789,7 +752,7 @@ package body System.Garlic.Heart is
 
    procedure Wait_For_Elaboration_Completion is
    begin
-      Soft_Links.Wait (Elaboration_Barrier);
+      Soft_Links.Differ (Elaboration_Watcher, No_Version);
    end Wait_For_Elaboration_Completion;
 
    ------------------------------
@@ -798,7 +761,7 @@ package body System.Garlic.Heart is
 
    procedure Wait_For_My_Partition_ID is
    begin
-      Soft_Links.Wait (Self_PID_Barrier);
+      Soft_Links.Differ (Self_PID_Watcher, No_Version);
       pragma Debug (Dump_Partition_Table (Private_Debug_Key));
       if Self_PID = Null_PID then
          Activate_Shutdown;
