@@ -472,6 +472,14 @@ package System.PolyORB_Interface is
       Index : System.Unsigned_Types.Long_Unsigned)
       return Any;
 
+   function Get_Nested_Sequence_Length
+     (Value : Any;
+      Depth : Positive)
+     return Unsigned;
+   --  Return the length of the sequence at nesting level Depth
+   --  within Value, a Tk_Struct any representing an unconstrained
+   --  array.
+
    --------------
    -- Requests --
    --------------

@@ -900,6 +900,40 @@ package body System.PolyORB_Interface is
       Addr := Null_Address;
    end Get_Local_Address;
 
+   --------------------------------
+   -- Get_Nested_Sequence_Length --
+   --------------------------------
+
+   function Get_Nested_Sequence_Length
+     (Value : Any;
+      Depth : Positive)
+     return Unsigned
+   is
+      use type PolyORB.Types.Unsigned_Long;
+
+      Seq_Any : PolyORB.Any.Any;
+      Tc      : constant PolyORB.Any.TypeCode.Object := Get_Type (Value);
+   begin
+      if PolyORB.Any.TypeCode.Kind (Tc) = Tk_Struct then
+         declare
+            Index : constant PolyORB.Types.Unsigned_Long
+              := PolyORB.Any.TypeCode.Member_Count (Tc) - 1;
+         begin
+            Seq_Any := Get_Aggregate_Element (Value,
+              PolyORB.Any.TypeCode.Member_Type (Tc, Index),
+              Index);
+         end;
+      else
+         Seq_Any := Value;
+      end if;
+
+      if Depth = 1 then
+         return FA_U (PolyORB.Any.Get_Aggregate_Element (Seq_Any, TC_U, 0));
+      else
+         return Get_Nested_Sequence_Length (Seq_Any, Depth - 1);
+      end if;
+   end Get_Nested_Sequence_Length;
+
    -----------------
    -- Get_RAS_Ref --
    -----------------
