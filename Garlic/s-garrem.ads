@@ -38,6 +38,10 @@ package System.Garlic.Remote is
    --  This package implements calls to the 'rsh' Unix command to
    --  launch other partitions.
 
+   procedure Detach;
+   --  Detach a procedure by setsid() and closing the 0, 1 and 2 file
+   --  descriptors.
+
    procedure Full_Launch
      (Rsh_Command : in String;
       Host        : in String;
@@ -49,8 +53,19 @@ package System.Garlic.Remote is
    function Get_Host (Partition : String) return String;
    --  Ask a host name for a partition and return it
 
-   procedure Detach;
-   --  Detach a procedure by setsid() and closing the 0, 1 and 2 file
-   --  descriptors.
+   procedure Register_Partition_To_Launch
+     (Rsh_Command  : in String;
+      Name_Is_Host : in Boolean;
+      General_Name : in String;
+      Rsh_Options  : in String;
+      Command_Line : in String);
+   --  General_Name represents the name of the machine or the name of
+   --  the partition (depending on the value of
+   --  Name_Is_Host). Command_Line holds the extra options that will
+   --  be given on the command line.  Rsh_Command is typically "rsh",
+   --  that will be used to launch the other partition. Rsh_Options is
+   --  an command line argument for Rsh_Command.
+
+   procedure Launch_Registered_Partitions;
 
 end System.Garlic.Remote;
