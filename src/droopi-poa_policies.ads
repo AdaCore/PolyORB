@@ -7,7 +7,8 @@
 with Sequences.Unbounded;
 
 with Droopi.POA_Types;
-with Droopi.Static_Dict;
+with Droopi.Dynamic_Dict;
+pragma Elaborate_All (Droopi.Dynamic_Dict);
 
 with CORBA.Policy_Values; use CORBA.Policy_Values;
 --  XXX remove reference to CORBA.
@@ -27,13 +28,10 @@ package Droopi.POA_Policies is
    subtype PolicyList is Policy_Sequences.Sequence;
    type PolicyList_Access is access all PolicyList;
 
-   package Policy_Repository_Pkg is
-      new Droopi.Static_Dict
-     (Value => Droopi.POA_Policies.Policy_Access,
-      Key   => CORBA.Policy_Values.Policy_Value);
-   subtype Policy_Repository is Policy_Repository_Pkg.Dict_Access;
+   package Policy_Repository is
+      new Droopi.Dynamic_Dict (Droopi.POA_Policies.Policy_Access);
 
-   function Policy_Id (Self : Policy) return Policy_Value;
+   function Policy_Id (Self : Policy) return String;
 
    procedure Check_Compatibility
      (Self : Policy;

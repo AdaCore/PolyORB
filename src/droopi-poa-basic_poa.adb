@@ -431,11 +431,8 @@ package body Droopi.POA.Basic_POA is
          POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
 
       --  Create and initialize policies factory
-      New_Obj_Adapter.P_Factory
-        := Droopi.POA_Policies.Policy_Repository_Pkg.New_Dict;
       POA_Configuration.Initialize
-        (POA_Configuration.Configuration.all,
-         New_Obj_Adapter.P_Factory);
+        (POA_Configuration.Configuration.all);
 
       --  Use default policies
       Init_With_Default_Policies (New_Obj_Adapter);
@@ -494,11 +491,6 @@ package body Droopi.POA.Basic_POA is
            (A_POAManager,
             Droopi.POA_Types.Obj_Adapter_Access (New_Obj_Adapter));
       end if;
-
-      --  Inherit policy repository from the Root POA.
-      New_Obj_Adapter.P_Factory
-        := Basic_Obj_Adapter_Access
-        (New_Obj_Adapter.Father).P_Factory;
 
       --  Init policies with those given by the user
       if Policies /= null then

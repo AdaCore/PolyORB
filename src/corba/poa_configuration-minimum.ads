@@ -1,10 +1,13 @@
+--  A POA configuration corresponding to minimumCORBA policies.
+
+--  $Id$
+
 package POA_Configuration.Minimum is
 
    type Minimum_Configuration is new Configuration_Type with private;
 
    procedure Initialize
-     (C : Minimum_Configuration;
-      F : Droopi.POA_Policies.Policy_Repository);
+     (C : Minimum_Configuration);
 
    function Default_Policies
      (C : Minimum_Configuration)

@@ -1,3 +1,8 @@
+--  A POA configuration corresponding to minimumCORBA policies.
+
+--  $Id$
+
+with Droopi.POA_Policies;
 with Droopi.POA_Policies.Id_Assignment_Policy.System;
 with Droopi.POA_Policies.Id_Uniqueness_Policy.Unique;
 with Droopi.POA_Policies.Implicit_Activation_Policy.No_Activation;
@@ -9,7 +14,6 @@ with Droopi.POA_Policies.Thread_Policy.ORB_Ctrl;
 package body  POA_Configuration.Minimum is
 
    use Droopi.POA_Policies;
-   use Droopi.POA_Policies.Policy_Repository_Pkg;
 
    ----------------
    -- Initialize --
@@ -18,8 +22,7 @@ package body  POA_Configuration.Minimum is
    My_Default_Policies : aliased PolicyList;
 
    procedure Initialize
-     (C : Minimum_Configuration;
-      F : Droopi.POA_Policies.Policy_Repository)
+     (C : Minimum_Configuration)
    is
       use Droopi.POA_Policies.Policy_Sequences;
       P : constant Element_Array
@@ -33,38 +36,10 @@ package body  POA_Configuration.Minimum is
             Policy_Access (Thread_Policy.ORB_Ctrl.Create));
    begin
       for I in P'Range loop
-         Register (F.all, Policy_Id (P (I).all), P (I));
+         Droopi.POA_Policies.Policy_Repository.Register
+           (Policy_Id (P (I).all), P (I));
       end loop;
       My_Default_Policies := To_Sequence (P);
---       Register
---         (F.all,
---          SYSTEM_ID,
---          Policy_Access (Id_Assignment_Policy.System.Create));
---       Register
---         (F.all,
---          UNIQUE_ID,
---          Policy_Access (Id_Uniqueness_Policy.Unique.Create));
---       Register
---         (F.all,
---          NO_IMPLICIT_ACTIVATION,
---          Policy_Access (Implicit_Activation_Policy.No_Activation.Create));
---       Register
---         (F.all,
---          TRANSIENT,
---          Policy_Access (Lifespan_Policy.Transient.Create));
---       Register
---         (F.all,
---          USE_ACTIVE_OBJECT_MAP_ONLY,
---          Policy_Access (Request_Processing_Policy.
---                         Active_Object_Map_Only.Create));
---       Register
---         (F.all,
---          RETAIN,
---          Policy_Access (Servant_Retention_Policy.Retain.Create));
---       Register
---         (F.all,
---          ORB_CTRL_MODEL,
---          Policy_Access (Thread_Policy.ORB_Ctrl.Create));
    end Initialize;
 
    function Default_Policies

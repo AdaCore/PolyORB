@@ -4,21 +4,18 @@
 
 with Ada.Unchecked_Deallocation;
 
-with Droopi.Objects;
 with Droopi.Any;
 with Droopi.Any.NVList;
-with Droopi.Requests;
-
+with Droopi.Objects;
 with Droopi.POA_Policies;
+with Droopi.Requests;
 
 package Droopi.POA.Basic_POA is
 
    pragma Elaborate_Body;
 
-   type Basic_Obj_Adapter is new Droopi.POA.Obj_Adapter with
-      record
-         P_Factory : Droopi.POA_Policies.Policy_Repository;
-      end record;
+   type Basic_Obj_Adapter is new Droopi.POA.Obj_Adapter
+     with private;
    type Basic_Obj_Adapter_Access is access all Basic_Obj_Adapter;
    --  The POA object
 
@@ -127,10 +124,13 @@ package Droopi.POA.Basic_POA is
    --  name is Name. Returns null if not found.
    --  ??? Should be private
 
+private
+
+   type Basic_Obj_Adapter is new Droopi.POA.Obj_Adapter
+     with null record;
+
    procedure Free is new Ada.Unchecked_Deallocation
      (Basic_Obj_Adapter, Basic_Obj_Adapter_Access);
-
-private
 
    type Check_State is (CHECK, NO_CHECK);
 

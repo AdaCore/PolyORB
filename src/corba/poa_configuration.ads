@@ -6,12 +6,13 @@ with Droopi.POA_Policies;
 
 package POA_Configuration is
 
+   --  pragma Preelaborate;
+
    type Configuration_Type is abstract tagged null record;
    type Configuration_Access is access all Configuration_Type'Class;
 
    procedure Initialize
-     (C : Configuration_Type;
-      F : Droopi.POA_Policies.Policy_Repository)
+     (C : Configuration_Type)
       is abstract;
    --  Create all policies available in this configuration,
    --  and register them with policy repository F.
