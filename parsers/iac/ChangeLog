@@ -1,5 +1,9 @@
 2004-08-03  Saber Souli  <souli@neraka.enst.fr>
 
+	* backend-be_ada-impls.adb: Complete generation of the  implementation body. 
+
+2004-08-03  Saber Souli  <souli@neraka.enst.fr>
+
 	* backend-be_ada-runtime.adb: Moved Convert to
 	backend-be_ada-nutils.  
 

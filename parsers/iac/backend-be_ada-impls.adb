@@ -1,8 +1,9 @@
 with Frontend.Nodes;  use Frontend.Nodes;
 
-with Backend.BE_Ada.Nodes;  use Backend.BE_Ada.Nodes;
-with Backend.BE_Ada.Nutils;  use Backend.BE_Ada.Nutils;
-with Backend.BE_Ada.Runtime;  use Backend.BE_Ada.Runtime;
+with Backend.BE_Ada.IDL_To_Ada;  use Backend.BE_Ada.IDL_To_Ada;
+with Backend.BE_Ada.Nodes;       use Backend.BE_Ada.Nodes;
+with Backend.BE_Ada.Nutils;      use Backend.BE_Ada.Nutils;
+with Backend.BE_Ada.Runtime;     use Backend.BE_Ada.Runtime;
 
 package body Backend.BE_Ada.Impls is
 
@@ -44,6 +45,10 @@ package body Backend.BE_Ada.Impls is
          end case;
       end Visit;
 
+      ---------------------------------
+      -- Visit_Attribute_Declaration --
+      ---------------------------------
+
       procedure Visit_Attribute_Declaration (E : Node_Id) is
          N          : Node_Id;
          R          : Node_Id;
@@ -71,6 +76,7 @@ package body Backend.BE_Ada.Impls is
             R := Make_Subprogram_Specification
               (R, Parameters, Copy_Designator (Return_Type (N)));
             Append_Node_To_List (R, Visible_Part (Current_Package));
+            Bind_FE_To_Impl (Identifier (A), R);
 
             if not Is_Readonly (E) then
                N := Next_Node (Stub_Node (BE_Node (Identifier (A))));
@@ -203,6 +209,7 @@ package body Backend.BE_Ada.Impls is
          Subp_Spec := Make_Subprogram_Specification
            (Copy_Node (Defining_Identifier (Stub)), Profile, Returns);
          Append_Node_To_List (Subp_Spec, Visible_Part (Current_Package));
+         Bind_FE_To_Impl (Identifier (E), Subp_Spec);
       end Visit_Operation_Declaration;
 
       -------------------------
@@ -225,15 +232,166 @@ package body Backend.BE_Ada.Impls is
 
    package body Package_Body is
 
+      procedure Visit_Attribute_Declaration (E : Node_Id);
+      procedure Visit_Interface_Declaration (E : Node_Id);
+      procedure Visit_Module (E : Node_Id);
+      procedure Visit_Operation_Declaration (E : Node_Id);
+      procedure Visit_Specification (E : Node_Id);
+
       -----------
       -- Visit --
       -----------
 
       procedure Visit (E : Node_Id) is
-         pragma Unreferenced (E);
       begin
-         null;
+         case FEN.Kind (E) is
+            when K_Attribute_Declaration =>
+               Visit_Attribute_Declaration (E);
+
+            when K_Interface_Declaration =>
+               Visit_Interface_Declaration (E);
+
+            when K_Module =>
+               Visit_Module (E);
+
+            when K_Operation_Declaration =>
+               Visit_Operation_Declaration (E);
+
+            when K_Specification =>
+               Visit_Specification (E);
+
+            when others =>
+               null;
+         end case;
       end Visit;
 
+      ---------------------------------
+      -- Visit_Attribute_Declaration --
+      ---------------------------------
+
+      procedure Visit_Attribute_Declaration (E : Node_Id) is
+         N          : Node_Id;
+         A          : Node_Id;
+         Subp_Spec  : Node_Id;
+         D          : constant List_Id := New_List (K_List_Id);
+         S          : constant List_Id := New_List (K_List_Id);
+      begin
+         Set_Impl_Body;
+         A := First_Entity (Declarators (E));
+         while Present (A) loop
+            Subp_Spec := Impl_Node (BE_Node (Identifier (A)));
+
+            if No (Subp_Spec) then
+               raise Program_Error;
+            end if;
+
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (PN (P_Result)),
+               Object_Definition =>
+                 Copy_Designator (Return_Type (Subp_Spec)));
+            Append_Node_To_List (N, D);
+            N := Make_Return_Statement
+              (Make_Defining_Identifier (PN (P_Result)));
+            Append_Node_To_List (N, S);
+            N := Make_Subprogram_Implementation
+              (Subp_Spec, D, S);
+            Append_Node_To_List (N, Statements (Current_Package));
+
+            if not Is_Readonly (E) then
+               Subp_Spec := Next_Node (Subp_Spec);
+               N := Make_Subprogram_Implementation
+                 (Subp_Spec, No_List, No_List);
+               Append_Node_To_List (N, Statements (Current_Package));
+            end if;
+
+            A := Next_Entity (A);
+         end loop;
+      end Visit_Attribute_Declaration;
+
+      ---------------------------------
+      -- Visit_Interface_Declaration --
+      ---------------------------------
+
+      procedure Visit_Interface_Declaration (E : Node_Id) is
+         N : Node_Id;
+      begin
+         N := BEN.Parent (Stub_Node (BE_Node (Identifier (E))));
+         Push_Entity (BEN.IDL_Unit (Package_Declaration (N)));
+         Set_Impl_Body;
+         N := First_Entity (Interface_Body (E));
+         while Present (N) loop
+            Visit (N);
+            N := Next_Entity (N);
+         end loop;
+         Pop_Entity;
+      end Visit_Interface_Declaration;
+
+      ------------------
+      -- Visit_Module --
+      ------------------
+
+      procedure Visit_Module (E : Node_Id) is
+         D : Node_Id;
+      begin
+         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+         D := First_Entity (Definitions (E));
+         while Present (D) loop
+            Visit (D);
+            D := Next_Entity (D);
+         end loop;
+         Pop_Entity;
+      end Visit_Module;
+
+      ---------------------------------
+      -- Visit_Operation_Declaration --
+      ---------------------------------
+
+      procedure Visit_Operation_Declaration (E : Node_Id) is
+         Stub       : Node_Id;
+         Subp_Spec  : Node_Id;
+         Returns    : Node_Id := No_Node;
+         D          : constant List_Id := New_List (K_List_Id);
+         S          : constant List_Id := New_List (K_List_Id);
+         N          : Node_Id;
+
+      begin
+         Stub := Stub_Node (BE_Node (Identifier (E)));
+         Subp_Spec := Impl_Node (BE_Node (Identifier (E)));
+
+         if Present (Return_Type (Stub)) then
+            Returns := Copy_Designator (Return_Type (Stub));
+            N := Make_Object_Declaration
+              (Defining_Identifier =>
+                 Make_Defining_Identifier (PN (P_Result)),
+               Object_Definition =>
+                 Returns);
+            Append_Node_To_List (N, D);
+            N := Make_Return_Statement
+              (Make_Defining_Identifier (PN (P_Result)));
+            Append_Node_To_List (N, S);
+         end if;
+
+         Set_Impl_Body;
+         N := Make_Subprogram_Implementation
+           (Subp_Spec, D, S);
+         Append_Node_To_List (N, Statements (Current_Package));
+      end Visit_Operation_Declaration;
+
+      -------------------------
+      -- Visit_Specification --
+      -------------------------
+
+      procedure Visit_Specification (E : Node_Id) is
+         Definition : Node_Id;
+      begin
+         Push_Entity (Stub_Node (BE_Node (Identifier (E))));
+         Definition := First_Entity (Definitions (E));
+         while Present (Definition) loop
+            Visit (Definition);
+            Definition := Next_Entity (Definition);
+         end loop;
+         Pop_Entity;
+      end Visit_Specification;
    end Package_Body;
 end Backend.BE_Ada.Impls;
