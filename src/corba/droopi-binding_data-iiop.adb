@@ -189,8 +189,12 @@ package body Droopi.Binding_Data.IIOP is
       Marshall_Socket (Profile_Body, IIOP_Profile.Address);
 
       --  Marshalling of the Object Id
-      Marshall (Profile_Body, Stream_Element_Array
-                (IIOP_Profile.Object_Id.all));
+      Marshall
+        (Profile_Body, Stream_Element_Array
+         (IIOP_Profile.Object_Id.all));
+
+      --  Marshall the tagged components (none for now).
+      Marshall (Profile_Body, Types.Unsigned_Long'(0));
 
       --  Marshall the Profile_Body into IOR.
       Marshall (Buf, Encapsulate (Profile_Body));
@@ -199,14 +203,13 @@ package body Droopi.Binding_Data.IIOP is
    end Marshall_IIOP_Profile_Body;
 
 
-   --------------------------------
-   -- Marshall_IIOP_Profile_Body --
-   --------------------------------
+   ----------------------------------
+   -- Unmarshall_IIOP_Profile_Body --
+   ----------------------------------
 
    function Unmarshall_IIOP_Profile_Body
      (Buffer       : access Buffer_Type)
      return Profile_Access
-
    is
       use Droopi.CORBA_P.Exceptions;
       Profile_Body   : aliased Encapsulation := Unmarshall (Buffer);
