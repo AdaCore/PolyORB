@@ -1,0 +1,23 @@
+IDLAC = ../../idlac/idlac
+
+GNATMAKE_FLAGS = -I$(srcdir) \
+	-I../../src \
+	-I$(srcdir)/../../src \
+	$(ADASOCKETS_INCLUDE) \
+	-g -O2 -m -gnata
+	-largs $(ADASOCKETS_LIBS)
+
+CLEANFILES = b~*.* *.o *.ali
+
+DISTCLEANFILES =
+
+SUFFIXES = .idl .ads .adb
+
+.idl.ads .idl.adb:
+	$(IDLAC) $<
+
+$(IDLAC): force
+	cd ../../idlac && $(MAKE) idlac
+
+force::
+	cd ../../src && $(MAKE)

@@ -971,9 +971,9 @@ package body Ada_Be.Idl2Ada.Helper is
          while not Is_End (It) loop
             Get_Next_Node (It, Case_Node);
             declare
-               It2   : Node_Iterator;
-               Label_Node : Node_Id;
-               First_Label : boolean := True;
+               It2         : Node_Iterator;
+               Label_Node  : Node_Id;
+               First_Label : Boolean := True;
             begin
                if Default_Index (Node) = I then
                   Put (CU, "when others");
@@ -1042,9 +1042,9 @@ package body Ada_Be.Idl2Ada.Helper is
          while not Is_End (It) loop
             Get_Next_Node (It, Case_Node);
             declare
-               It2   : Node_Iterator;
-               Label_Node : Node_Id;
-               First_Label : boolean := True;
+               It2         : Node_Iterator;
+               Label_Node  : Node_Id;
+               First_Label : Boolean := True;
             begin
                if Default_Index (Node) = I then
                   Put (CU, "when others");
