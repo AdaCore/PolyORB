@@ -90,9 +90,6 @@ private
       List : aliased NV_Sequence.Sequence;
    end record;
 
-   procedure Initialize (X : in out Object);
-   procedure Finalize (X : in out Object);
-
    type Object_Ptr is access all Object;
 
 end PolyORB.Any.NVList;

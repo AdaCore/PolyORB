@@ -136,16 +136,6 @@ package body PolyORB.Any.NVList is
       return Res;
    end Create_Object;
 
-   procedure Initialize (X : in out Object) is
-   begin
-      X.List := NV_Sequence.Null_Sequence;
-   end Initialize;
-
-   procedure Finalize (X : in out Object) is
-   begin
-      Initialize (X);
-   end Finalize;
-
    ------------
    -- Create --
    ------------
