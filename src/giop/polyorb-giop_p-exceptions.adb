@@ -63,9 +63,6 @@ package body PolyORB.GIOP_P.Exceptions is
    -- Is_System_Exception --
    -------------------------
 
-   --  IMPLEMENTATION NOTE : Every change to this function should be
-   --  duplicated to PolyORB.CORBA_P.Exceptions.Is_System_Exception.
-
    function Is_System_Exception
      (Name : String)
      return Boolean
