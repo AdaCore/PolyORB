@@ -1,3 +1,8 @@
+Fri Oct 17 18:37:08 1997  Laurent Pautet  <pautet@esmeralda.enst.fr>
+
+	* xe_stubs.adb: Change s-garela.adb generation. Move s-garela
+	generation code into a procedure Initialize.
+
 Thu Oct 16 16:38:04 1997  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Update caused by System.Garlic.Options changes.

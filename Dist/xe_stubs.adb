@@ -613,16 +613,18 @@ package body XE_Stubs is
       Dwrite_Name (FD, Elaboration_Name);
       Dwrite_Str  (FD, " is");
       Dwrite_Eol  (FD);
-      Dwrite_Str  (FD, "begin");
+      Dwrite_Str  (FD, "   procedure Initialize is");
+      Dwrite_Eol  (FD);
+      Dwrite_Str  (FD, "   begin");
       Dwrite_Eol  (FD);
 
       --  If the partition holds the main unit, then it cannot be slave.
       --  Otherwise, it is.
 
       if PID = Main_Partition then
-         Dwrite_Str (FD, "   Set_Is_Slave (False);");
+         Dwrite_Str (FD, "      Set_Is_Slave (False);");
       else
-         Dwrite_Str (FD, "   Set_Is_Slave (True);");
+         Dwrite_Str (FD, "      Set_Is_Slave (True);");
       end if;
       Dwrite_Eol (FD);
 
@@ -630,11 +632,11 @@ package body XE_Stubs is
 
       case Get_Termination (PID) is
          when Local_Termination =>
-            Dwrite_Str (FD, "   Set_Termination (Local_Termination);");
+            Dwrite_Str (FD, "      Set_Termination (Local_Termination);");
          when Global_Termination =>
-            Dwrite_Str (FD, "   Set_Termination (Global_Termination);");
+            Dwrite_Str (FD, "      Set_Termination (Global_Termination);");
          when Deferred_Termination =>
-            Dwrite_Str (FD, "   Set_Termination (Deferred_Termination);");
+            Dwrite_Str (FD, "      Set_Termination (Deferred_Termination);");
          when Unknown_Termination =>
             null;
       end case;
@@ -645,7 +647,7 @@ package body XE_Stubs is
       --  if present).
 
       if Default_Protocol_Name /= No_Name then
-         Dwrite_Str  (FD, "   Set_Boot_Server (""");
+         Dwrite_Str  (FD, "      Set_Boot_Server (""");
          Dwrite_Name (FD, Default_Protocol_Name);
          if Default_Protocol_Data /= No_Name then
             Dwrite_Str  (FD, "://");
@@ -657,34 +659,34 @@ package body XE_Stubs is
 
       Task_Pool := Get_Task_Pool (PID);
       if Task_Pool /= No_Task_Pool then
-         Dwrite_Str  (FD, "   Task_Pool_Low_Bound := ");
+         Dwrite_Str  (FD, "      Task_Pool_Low_Bound := ");
          Dwrite_Name (FD, Task_Pool (1));
          Dwrite_Str  (FD, ";");
          Dwrite_Eol  (FD);
-         Dwrite_Str  (FD, "   Task_Pool_High_Bound := ");
+         Dwrite_Str  (FD, "      Task_Pool_High_Bound := ");
          Dwrite_Name (FD, Task_Pool (2));
          Dwrite_Str  (FD, ";");
          Dwrite_Eol  (FD);
-         Dwrite_Str  (FD, "   Task_Pool_Max_Bound := ");
+         Dwrite_Str  (FD, "      Task_Pool_Max_Bound := ");
          Dwrite_Name (FD, Task_Pool (3));
          Dwrite_Str  (FD, ";");
          Dwrite_Eol  (FD);
       end if;
 
-      Dwrite_Str     (FD, "   Set_Partition_Name (""");
+      Dwrite_Str     (FD, "      Set_Partition_Name (""");
       Dwrite_Name    (FD, Partition);
       Dwrite_Str     (FD, """);");
       Dwrite_Eol     (FD);
 
       if Default_Registration_Filter /= No_Filter_Name then
-         Dwrite_Str     (FD, "   Set_Registration_Filter (""");
+         Dwrite_Str     (FD, "      Set_Registration_Filter (""");
          Dwrite_Name    (FD, Default_Registration_Filter);
          Dwrite_Str     (FD, """);");
          Dwrite_Eol     (FD);
       end if;
 
       if Partitions.Table (Default_Partition).Filter /= No_Filter_Name then
-         Dwrite_Str     (FD, "   Set_Default_Filter (""");
+         Dwrite_Str     (FD, "      Set_Default_Filter (""");
          Dwrite_Name    (FD, Partitions.Table (Default_Partition).Filter);
          Dwrite_Str     (FD, """);");
          Dwrite_Eol     (FD);
@@ -706,7 +708,7 @@ package body XE_Stubs is
                   CID  := Channels.Table (CID).Upper.Next_Channel;
                end if;
                if Filter /= No_Filter_Name then
-                  Dwrite_Str  (FD, "   Set_Channel_Filter (""");
+                  Dwrite_Str  (FD, "      Set_Channel_Filter (""");
                   Dwrite_Name (FD, Partitions.Table (Peer).Name);
                   Dwrite_Str  (FD, """, """);
                   Dwrite_Name (FD, Filter);
@@ -718,11 +720,13 @@ package body XE_Stubs is
       end if;
 
       if Get_Light_PCS (PID) then
-         Dwrite_Str  (FD, "   Has_RCI_Pkg_Or_RACW_Var := False;");
+         Dwrite_Str  (FD, "      Has_RCI_Pkg_Or_RACW_Var := False;");
          Dwrite_Eol  (FD);
       end if;
 
       --  Footer.
+      Dwrite_Str  (FD, "   end Initialize;");
+      Dwrite_Eol  (FD);
       Dwrite_Str  (FD, "end ");
       Dwrite_Name (FD, Elaboration_Name);
       Dwrite_Str  (FD, ";");
