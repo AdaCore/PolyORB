@@ -157,6 +157,29 @@ package body System.Garlic.Utils is
 
    end Barrier_PO;
 
+   -----------
+   -- Catch --
+   -----------
+
+   procedure Catch (Error : in out Error_Type)
+   is
+   begin
+      if Error /= null then
+         pragma Debug (D ("*** Catch *** " & Error.all));
+         Free (Error);
+      end if;
+   end Catch;
+
+   -----------
+   -- Commit --
+   -----------
+
+   procedure Commit (W : in Watcher_Type; V : out Version_Id) is
+   begin
+      pragma Assert (W /= null);
+      V := W.Commit;
+   end Commit;
+
    -------------
    -- Content --
    -------------
@@ -231,6 +254,7 @@ package body System.Garlic.Utils is
 
    procedure Destroy (M : in out Adv_Mutex_Type) is
    begin
+      pragma Assert (M /= null);
       Destroy (M.Mutex);
       Free (M);
    end Destroy;
@@ -281,14 +305,13 @@ package body System.Garlic.Utils is
    end Enter;
 
    -----------
-   -- Commit --
+   -- Found --
    -----------
 
-   procedure Commit (W : in Watcher_Type; V : out Version_Id) is
+   function Found (Error : Error_Type) return Boolean is
    begin
-      pragma Assert (W /= null);
-      V := W.Commit;
-   end Commit;
+      return Error /= null;
+   end Found;
 
    -----------
    -- Leave --
@@ -385,6 +408,24 @@ package body System.Garlic.Utils is
       B.Signal_All (P);
    end Signal_All;
 
+   -----------
+   -- Throw --
+   -----------
+
+   procedure Throw (Error : in out Error_Type; Message : in String)
+   is
+   begin
+      if Error /= null then
+         pragma Debug (D ("*** Abort *** " & Error.all));
+
+         Free (Error);
+      end if;
+
+      Error := new String'(Message);
+
+      pragma Debug (D ("*** Throw *** " & Error.all));
+   end Throw;
+
    --------------
    -- To_Lower --
    --------------
@@ -472,46 +513,5 @@ package body System.Garlic.Utils is
       end Update;
 
    end Watcher_PO;
-
-   -----------
-   -- Catch --
-   -----------
-
-   procedure Catch (Error : in out Error_Type)
-   is
-   begin
-      if Error /= null then
-         pragma Debug (D ("*** Catch *** " & Error.all));
-
-         Free (Error);
-      end if;
-   end Catch;
-
-   -----------
-   -- Found --
-   -----------
-
-   function Found (Error : Error_Type) return Boolean is
-   begin
-      return Error /= null;
-   end Found;
-
-   -----------
-   -- Throw --
-   -----------
-
-   procedure Throw (Error : in out Error_Type; Message : in String)
-   is
-   begin
-      if Error /= null then
-         pragma Debug (D ("*** Abort *** " & Error.all));
-
-         Free (Error);
-      end if;
-
-      Error := new String'(Message);
-
-      pragma Debug (D ("*** Throw *** " & Error.all));
-   end Throw;
 
 end System.Garlic.Utils;

@@ -134,9 +134,12 @@ package body System.Garlic.Debug is
       Banner   : String)
       return Debug_Key
    is
-      Value : constant String_Access := Getenv (Variable);
+      Value        : String_Access    := Getenv (Variable);
+      Value_Not_OK : constant Boolean := Value'Length = 0
+        or else (Value (Value'First) = 't' and then Value (Value'First) = 'T');
    begin
-      if Value = null or else Value.all /= "true" then
+      Free (Value);
+      if Value_Not_OK then
          return Not_Debugging;
       end if;
       if Current >= Debug_Key'Last then

@@ -34,12 +34,13 @@
 ------------------------------------------------------------------------------
 
 with Ada.Exceptions;
-with GNAT.OS_Lib;             use GNAT.OS_Lib;
-with Interfaces.C;            use Interfaces.C;
-with Interfaces.C.Strings;    use Interfaces.C.Strings;
-with System.Garlic.Constants; use System.Garlic.Constants;
-with System.Garlic.Debug;     use System.Garlic.Debug;
-with System.Garlic.Utils;     use System.Garlic.Utils;
+with GNAT.OS_Lib;              use GNAT.OS_Lib;
+with Interfaces.C;             use Interfaces.C;
+with Interfaces.C.Strings;     use Interfaces.C.Strings;
+with System.Garlic.Constants;  use System.Garlic.Constants;
+with System.Garlic.Debug;      use System.Garlic.Debug;
+with System.Garlic.Soft_Links; use System.Garlic.Soft_Links;
+with System.Garlic.Utils;      use System.Garlic.Utils;
 with Unchecked_Conversion;
 with Unchecked_Deallocation;
 
@@ -59,10 +60,6 @@ package body System.Garlic.Naming is
    procedure Free is
       new Unchecked_Deallocation (char_array, char_array_access);
 
-   function Allocate (Size : Positive := Default_Buffer_Size)
-     return char_array_access;
-   --  Allocate a buffer
-
    function Parse_Entry (Host : Hostent)
      return Host_Entry;
    --  Parse an entry
@@ -72,18 +69,11 @@ package body System.Garlic.Naming is
       Message : in String);
    --  Raise the exception Naming_Error with an appropriate error message
 
-   Get_Host_Mutex : Mutex_Type;
-   --  This protected object will be used to protect calls to gethostbyname,
-   --  since this function is not reentrant and returns statically allocated
-   --  data.
-
    ----------------
    -- Address_Of --
    ----------------
 
-   function Address_Of (Something : String)
-     return Address
-   is
+   function Address_Of (Something : String) return Address is
    begin
       if Is_IP_Address (Something) then
          return Value (Something);
@@ -106,24 +96,11 @@ package body System.Garlic.Naming is
       end loop;
    end Adjust;
 
-   --------------
-   -- Allocate --
-   --------------
-
-   function Allocate
-     (Size : Positive := Default_Buffer_Size)
-     return char_array_access
-   is
-   begin
-      return new char_array (1 .. size_t (Size));
-   end Allocate;
-
    -----------------
    -- Any_Address --
    -----------------
 
-   function Any_Address return Address
-   is
+   function Any_Address return Address is
    begin
       return To_Address (Inaddr_Any);
    end Any_Address;
@@ -148,20 +125,13 @@ package body System.Garlic.Naming is
 
    function Host_Name return String
    is
-      Buff   : char_array_access  := Allocate;
-      Buffer : constant chars_ptr := To_Chars_Ptr (Buff);
-      Res    : constant int       := C_Gethostname (Buffer, Buff'Length);
+      Buffer : aliased char_array (1 .. 64);
+      Res    : constant int := C_Gethostname (Buffer'Address, Buffer'Length);
    begin
       if Res = Failure then
-         Free (Buff);
          Raise_Naming_Error (Errno, "");
       end if;
-      declare
-         Result : constant String := Value (Buffer);
-      begin
-         Free (Buff);
-         return Result;
-      end;
+      return To_Ada (Buffer);
    end Host_Name;
 
    -----------
@@ -199,20 +169,18 @@ package body System.Garlic.Naming is
    function Info_Of (Name : String)
      return Host_Entry
    is
-      Res    : Hostent_Access;
-      C_Name : chars_ptr := New_String (Name);
+      Res : Hostent_Access;
    begin
-      Enter (Get_Host_Mutex);
-      Res := C_Gethostbyname (C_Name);
-      Free (C_Name);
+      Enter_Critical_Section;
+      Res := C_Gethostbyname (To_C (Name));
       if Res = null then
-         Leave (Get_Host_Mutex);
+         Leave_Critical_Section;
          Raise_Naming_Error (Errno, Name);
       end if;
       declare
          Result : constant Host_Entry := Parse_Entry (Res.all);
       begin
-         Leave (Get_Host_Mutex);
+         Leave_Critical_Section;
          return Result;
       end;
    end Info_Of;
@@ -224,25 +192,21 @@ package body System.Garlic.Naming is
    function Info_Of (Addr : Address)
      return Host_Entry
    is
-      function Convert is
-         new Unchecked_Conversion (Source => In_Addr_Access,
-                                   Target => chars_ptr);
-      Temp    : aliased In_Addr    := To_In_Addr (Addr);
-      C_Addr  : constant chars_ptr := Convert (Temp'Unchecked_Access);
-      Res     : Hostent_Access;
+      Add : aliased In_Addr := To_In_Addr (Addr);
+      Res : Hostent_Access;
    begin
-      Enter (Get_Host_Mutex);
-      Res := C_Gethostbyaddr (C_Addr,
-                              C.int (Temp'Size / CHAR_BIT),
+      Enter_Critical_Section;
+      Res := C_Gethostbyaddr (Add'Address,
+                              C.int (Add'Size / CHAR_BIT),
                               Af_Inet);
       if Res = null then
-         Leave (Get_Host_Mutex);
+         Leave_Critical_Section;
          Raise_Naming_Error (Errno, Image (Addr));
       end if;
       declare
          Result : constant Host_Entry := Parse_Entry (Res.all);
       begin
-         Leave (Get_Host_Mutex);
+         Leave_Critical_Section;
          return Result;
       end;
    end Info_Of;
@@ -373,8 +337,7 @@ package body System.Garlic.Naming is
    -- To_Address --
    ----------------
 
-   function To_Address (Addr : In_Addr) return Address
-   is
+   function To_Address (Addr : In_Addr) return Address is
    begin
       return (H1 => Address_Component (Addr.S_B1),
               H2 => Address_Component (Addr.S_B2),
@@ -386,8 +349,7 @@ package body System.Garlic.Naming is
    -- To_In_Addr --
    ----------------
 
-   function To_In_Addr (Addr : Address) return In_Addr
-   is
+   function To_In_Addr (Addr : Address) return In_Addr is
    begin
       return (S_B1 => unsigned_char (Addr.H1),
               S_B2 => unsigned_char (Addr.H2),
@@ -404,16 +366,12 @@ package body System.Garlic.Naming is
       function Convert is
          new Unchecked_Conversion (Source => Interfaces.Unsigned_32,
                                    Target => In_Addr);
-      C_Add     : chars_ptr        := New_String (Add);
-      Converted : constant In_Addr := Convert (C_Inet_Addr (C_Add));
+      Converted : constant In_Addr := Convert (C_Inet_Addr (To_C (Add)));
    begin
-      Free (C_Add);
       return (H1 => Address_Component (Converted.S_B1),
               H2 => Address_Component (Converted.S_B2),
               H3 => Address_Component (Converted.S_B3),
               H4 => Address_Component (Converted.S_B4));
    end Value;
 
-begin
-   Create (Get_Host_Mutex);
 end System.Garlic.Naming;

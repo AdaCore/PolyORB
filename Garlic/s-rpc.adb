@@ -86,7 +86,6 @@ package body System.RPC is
    subtype Valid_RPC_Id is RPC_Id range APC + 1 .. RPC_Id'Last;
 
    Callers : array (Valid_RPC_Id) of RPC_Info;
-   Callers_Mutex   : Mutex_Type;
    Callers_Watcher : Watcher_Type;
 
    type Abort_Keeper is new Ada.Finalization.Controlled with record
@@ -136,18 +135,18 @@ package body System.RPC is
       Version : Version_Id;
    begin
       loop
-         Enter (Callers_Mutex);
+         Enter_Critical_Section;
          for I in Callers'Range loop
             if Callers (I).Status = Unknown then
                Callers (I).Status := Running;
                Callers (I).PID    := PID;
                RPC := I;
-               Leave (Callers_Mutex);
+               Leave_Critical_Section;
                return;
             end if;
          end loop;
          Commit (Callers_Watcher, Version);
-         Leave (Callers_Mutex);
+         Leave_Critical_Section;
          Differ (Callers_Watcher, Version);
       end loop;
    end Allocate;
@@ -159,11 +158,11 @@ package body System.RPC is
    procedure Deallocate (RPC : in RPC_Id)
    is
    begin
-      Enter (Callers_Mutex);
+      Enter_Critical_Section;
       Callers (RPC).Status := Unknown;
       Callers (RPC).PID    := Types.Null_PID;
       Update (Callers_Watcher);
-      Leave (Callers_Mutex);
+      Leave_Critical_Section;
    end Deallocate;
 
    ------------
@@ -265,7 +264,7 @@ package body System.RPC is
    is
    begin
       if Keeper.Sent then
-         Enter (Callers_Mutex);
+         Enter_Critical_Section;
          if Callers (Keeper.RPC).Status = Running then
             D ("Forward local abortion of RPC number" & Keeper.RPC'Img &
                " to partition" & Keeper.PID'Img);
@@ -275,7 +274,7 @@ package body System.RPC is
             Callers (Keeper.RPC).Status := Unknown;
          end if;
          Update (Callers_Watcher);
-         Leave (Callers_Mutex);
+         Leave_Critical_Section;
       end if;
    end Finalize;
 
@@ -352,26 +351,26 @@ package body System.RPC is
             end;
 
          when RPC_Reply =>
-            Enter (Callers_Mutex);
+            Enter_Critical_Section;
             if Callers (Header.RPC).Status = Aborted then
                Callers (Header.RPC).Status := Unknown;
             else
                Callers (Header.RPC).Status := Completed;
-               Callers (Header.RPC).Result
-                 := Streams.To_Stream_Element_Access (Query);
+               Callers (Header.RPC).Result :=
+                 Streams.To_Stream_Element_Access (Query);
             end if;
             Update (Callers_Watcher);
-            Leave (Callers_Mutex);
+            Leave_Critical_Section;
 
          when Abortion_Query =>
             Abort_Task (Partition, Header.RPC);
 
          when Abortion_Reply =>
-            Enter (Callers_Mutex);
+            Enter_Critical_Section;
             Callers (Header.RPC).Status := Unknown;
             Callers (Header.RPC).PID    := Types.Null_PID;
             Update (Callers_Watcher);
-            Leave (Callers_Mutex);
+            Leave_Critical_Section;
 
       end case;
    end Handle_Request;
@@ -384,7 +383,7 @@ package body System.RPC is
    is
       Modified : Boolean := False;
    begin
-      Enter (Callers_Mutex);
+      Enter_Critical_Section;
       for I in Callers'Range loop
          if Callers (I).PID = PID
            and then Callers (I).Status = Running
@@ -396,7 +395,7 @@ package body System.RPC is
       if Modified then
          Update (Callers_Watcher);
       end if;
-      Leave (Callers_Mutex);
+      Leave_Critical_Section;
    end Raise_Partition_Error;
 
    ----------
@@ -458,7 +457,7 @@ package body System.RPC is
       Version : Version_Id;
    begin
       loop
-         Enter (Callers_Mutex);
+         Enter_Critical_Section;
          case Callers (RPC).Status is
             when Completed =>
                Stream := Callers (RPC).Result;
@@ -466,7 +465,7 @@ package body System.RPC is
                Callers (RPC).PID    := Types.Null_PID;
                Callers (RPC).Result := null;
                Update (Callers_Watcher);
-               Leave (Callers_Mutex);
+               Leave_Critical_Section;
                return;
 
             when Aborted =>
@@ -474,12 +473,12 @@ package body System.RPC is
                Callers (RPC).PID    := Types.Null_PID;
                Callers (RPC).Result := null;
                Update (Callers_Watcher);
-               Leave (Callers_Mutex);
+               Leave_Critical_Section;
                Raise_Exception (Communication_Error'Identity,
                                 "remote procedure call aborted");
             when others =>
                Commit (Callers_Watcher, Version);
-               Leave (Callers_Mutex);
+               Leave_Critical_Section;
 
          end case;
          Differ (Callers_Watcher, Version);
@@ -504,7 +503,6 @@ package body System.RPC is
 
 begin
    Create (RPC_Barrier);
-   Create (Callers_Mutex);
    Create (Callers_Watcher);
    Register_Handler (Remote_Call, Handle_Request'Access);
    Pool.Initialize;

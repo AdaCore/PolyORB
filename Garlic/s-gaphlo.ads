@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Finalization;
 with System.Garlic.Protocols;
 with System.Garlic.Types;
 with System.Garlic.Utils;
@@ -96,7 +97,7 @@ package System.Garlic.Physical_Location is
    function Get_Data
      (L : Location_Type)
      return Utils.String_Access;
-   --  Return the additionnal data (used by protocols).
+   --  Return the additionnal data (used by protocols)
 
    function To_Location
      (L : String)
@@ -124,21 +125,27 @@ package System.Garlic.Physical_Location is
    procedure Shutdown;
    --  Shutdown every protocol
 
-private
-
-   type Location_Body;
-
-   type Location_Type is access Location_Body;
-
    function String_To_Location (S : String) return Location_Type
      renames To_Location;
    --  This function renames To_Location because pragma Stream_Convert does
    --  not support overloaded functions.
 
+private
+
+   type Location_Type is new Ada.Finalization.Controlled with record
+      Protocol : Protocols.Protocol_Access;
+      Data     : Utils.String_Access;
+   end record;
+
+   procedure Adjust   (O : in out Location_Type);
+   procedure Finalize (O : in out Location_Type);
+
    pragma Stream_Convert (Entity => Location_Type,
                           Read   => String_To_Location,
                           Write  => To_String);
 
-   Null_Location : constant Location_Type := null;
+   Null_Location : constant Location_Type := (Ada.Finalization.Controlled with
+                                              Protocol => null,
+                                              Data     => null);
 
 end System.Garlic.Physical_Location;

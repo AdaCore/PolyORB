@@ -1,3 +1,16 @@
+1998-12-29  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gaphlo.ads, s-gaphlo.adb: Remove memory leaks by making
+	Location_Type a controlled type. This type is used when connecting 
+	to a new partition, so the penalty won't be unaffordable.
+
+1998-12-28  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-gardeb.adb: Deallocate string returned by Getenv after use.
+
+	* s-gastha.adb: Fix two obvious bugs found by code reading. Pool
+	mutexes were allocated many times and deallocated many times.
+
 1998-12-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gardeb.adb, s-gardeb.ads: Change debugging facilities. Reduce
@@ -9,12 +22,47 @@
 	* s-rpc.adb, s-parint.adb: Debugging facilities are always present 
 	even when GLADE ws not configured with --enable-debug.
 
+1998-12-16  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garthi.ads: Fix some design mistakes that have been here for
+	years now using dynamic allocations.
+
+	* s-garnam.adb: Use as few dynamic allocation as possible.
+
 1998-12-15  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gartcp.adb: Add comments in Initialize.
 
 	* s-garnam.adb, s-garnam.ads: Fix a problem on DecAlpha because
  	host entry names are not always in lower case on this system.
+
+1998-12-14  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garuni.adb: Use new Broadcast function.
+
+	* s-garstr.adb: (Deallocate): avoid code duplication when freeing
+	an access to stream.
+
+	* s-garhea.adb: (Send_Boot_Server): avoid dynamic allocation of
+	the stream copy.
+	Error is really an out parameter, not in out.
+
+	* s-gargro.ads: (Broadcast): there is no need for the Error
+	parameter since no error can be sent back.
+
+	* s-gargro.adb: (Send_Neighbor): Error is really of out type, not in 
+	out. Procedure rewritten to use the new Next_Boot_Mirror from
+	System.Garlic.Partitions.
+
+	* s-garnam.adb: Remove usage of a Mutex_Type and replace it by
+	calls to Enter_ and Leave_Critical_Section.
+
+	* s-garpar.ads: New function Next_Boot_Mirror returning the next
+	boot mirror.
+	
+	* s-garpar.adb: (Next_Boot_Mirror): implementation.
+
+	* s-rpc.adb: Remove usage of Mutex_Type.
 
 1998-12-13  Laurent Pautet  <pautet@scapin.enst.fr>
 

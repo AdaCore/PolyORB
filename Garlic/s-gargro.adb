@@ -63,8 +63,7 @@ package body System.Garlic.Group is
 
    procedure Send_Neighbor
      (Opcode : in Any_Opcode;
-      Params : access Streams.Params_Stream_Type;
-      Error  : in out Error_Type);
+      Params : access Streams.Params_Stream_Type);
 
    ---------------
    -- Broadcast --
@@ -72,8 +71,7 @@ package body System.Garlic.Group is
 
    procedure Broadcast
      (Opcode : in Any_Opcode;
-      Params : access Streams.Params_Stream_Type;
-      Error  : in out Error_Type)
+      Params : access Streams.Params_Stream_Type)
    is
    begin
       Wait (Barrier);
@@ -81,10 +79,7 @@ package body System.Garlic.Group is
       Insert (Params.all);
       Partition_ID'Write (Params, Self_PID);
       Any_Opcode'Write (Params, Opcode);
-      Send_Neighbor (Group_Service, Params, Error);
-      if Found (Error) then
-         Signal (Barrier);
-      end if;
+      Send_Neighbor (Group_Service, Params);
    end Broadcast;
 
    --------------------
@@ -126,7 +121,7 @@ package body System.Garlic.Group is
          else
             pragma Debug (D ("Continue broacast for a second time"));
 
-            Send_Neighbor (Group_Service, Reply, Error);
+            Send_Neighbor (Group_Service, Reply);
          end if;
 
       else
@@ -141,7 +136,7 @@ package body System.Garlic.Group is
             Any_Opcode'Write   (Inner_Query'Access, Inner_Code);
          end if;
 
-         Send_Neighbor (Group_Service, Inner_Query'Access, Error);
+         Send_Neighbor (Group_Service, Inner_Query'Access);
       end if;
    end Handle_Request;
 
@@ -162,38 +157,21 @@ package body System.Garlic.Group is
 
    procedure Send_Neighbor
      (Opcode : in Any_Opcode;
-      Params : access Streams.Params_Stream_Type;
-      Error  : in out Error_Type)
+      Params : access Streams.Params_Stream_Type)
    is
-      Last : Partition_ID := Partitions.Table'Last;
-      PID  : Partition_ID := Self_PID;
-      Info : Partition_Info;
+      Error     : Error_Type;
+      Partition : Partition_ID := Self_PID;
    begin
       loop
-         loop
-            Next_Partition (PID);
-
-            --  To avoid infinite loop.
-
-            if PID > Last then
-               Throw (Error, "Send_Neighbor: group corrupted");
-               return;
-            end if;
-
-            --  When there is no next partition after PID, restart from
-            --  first partition id and update last to avoid infinite loop.
-
-            if PID = Null_PID then
-               Last := Self_PID;
-
-            else
-               Info := Partitions.Get_Component (PID);
-               exit when Info.Is_Boot_Mirror and then Info.Status = Done;
-            end if;
-         end loop;
-
-         Send (PID, Opcode, Params, Error);
+         Partition := Next_Boot_Mirror (Partition);
+         Send (Partition, Opcode, Params, Error);
          exit when not Found (Error);
+
+         --  The following assertion catches the unlikely case where a
+         --  send to the current partition has failed.
+
+         pragma Assert (Partition /= Self_PID);
+
          Catch (Error);
       end loop;
    end Send_Neighbor;

@@ -3,13 +3,6 @@ is wrong. Especially if --detach is not provided.
 
 * Provide a generic package to distributly manage data caching.
 
-* Check pragma Storage_Size in tasks.
-
-* Handle pragma All_Calls_Remote (through protocol loopback) (need to
-  implement this in GNAT first).
-
-* Fix abortion problem.
-
 * Handle concurrent connections.
 
 * Check that the Partition_RPC_Receiver of s-parint.adb cannot be installed
@@ -20,8 +13,5 @@ is wrong. Especially if --detach is not provided.
 
 * Handle priority inversion issues when dealing with TCP sockets. Split
   messages into part ?
-
-* Implement task pools using low and high marks and low priority background
-  task allocation.
 
 * Add SysV messages protocol and UDP protocol

@@ -222,17 +222,17 @@ package System.Garlic.Thin is
       return Strings.chars_ptr;
 
    function C_Gethostbyaddr
-     (Addr     : Strings.chars_ptr;
+     (Addr     : System.Address;
       Length   : C.int;
       Typ      : C.int)
       return Hostent_Access;
 
    function C_Gethostbyname
-     (Name : Strings.chars_ptr)
+     (Name : C.char_array)
       return Hostent_Access;
 
    function C_Gethostname
-     (Name    : Strings.chars_ptr;
+     (Name    : System.Address;
       Namelen : C.int)
       return C.int;
 
@@ -259,7 +259,7 @@ package System.Garlic.Thin is
       return C.int;
 
    function C_Inet_Addr
-     (Cp : Strings.chars_ptr)
+     (Cp : C.char_array)
       return Interfaces.Unsigned_32;
 
    function C_Inet_Network

@@ -91,7 +91,7 @@ package System.Garlic.Streams is
      (Source : in Params_Stream_Type;
       Target : in out Params_Stream_Type);
    pragma Inline (Copy);
-   --  Assign an exact copy of Source to Target.
+   --  Assign an exact copy of Source to Target
 
    procedure Move
      (Source : in out Params_Stream_Type;

@@ -196,6 +196,12 @@ package System.Garlic.Partitions is
    --  Next_Partition is called, then starts from the first slot in the
    --  table.
 
+   function Next_Boot_Mirror (Partition : Types.Partition_ID)
+     return Types.Partition_ID;
+   --  When called with a partition number that is a boot mirror, return
+   --  the next partition which is also a boot mirror. It may return the
+   --  same partition number if no other boot mirror is available.
+
    procedure Read_Partitions
      (Stream : access Streams.Params_Stream_Type);
    --  Marshal partition info table.

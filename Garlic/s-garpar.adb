@@ -57,10 +57,10 @@ package body System.Garlic.Partitions is
      renames Print_Debug_Info;
 
    Allocator_Mutex : Mutex_Type;
-   --  Critical section of PID allocator.
+   --  Critical section of PID allocator
 
    Allocator_Ready : Barrier_Type;
-   --  Barrier to block until the confirmation comes back.
+   --  Barrier to block until the confirmation comes back
 
    Allocator_Value : Partition_ID;
 
@@ -122,15 +122,12 @@ package body System.Garlic.Partitions is
 
       Request_Type'Output
         (Query'Access, (Compute_Partition_ID, Allocator_Value));
-      Broadcast (Partition_Operation, Query'Access, Error);
+      Broadcast (Partition_Operation, Query'Access);
 
-      if not Found (Error) then
-         Wait (Allocator_Ready);
-         Partition := Allocator_Value;
+      Wait (Allocator_Ready);
+      Partition := Allocator_Value;
 
-         pragma Debug (D ("Validate new partition" & Allocator_Value'Img));
-      end if;
-
+      pragma Debug (D ("Validate new partition" & Allocator_Value'Img));
       Leave (Allocator_Mutex);
    end Allocate_PID;
 
@@ -512,10 +509,7 @@ package body System.Garlic.Partitions is
       Partitions.Leave;
 
       if not Empty (To_All'Access) then
-         Broadcast (Partition_Operation, To_All'Access, Error);
-         if Found (Error) then
-            return;
-         end if;
+         Broadcast (Partition_Operation, To_All'Access);
       end if;
 
       --  This is step 5. Release startup from step 6.
@@ -569,8 +563,7 @@ package body System.Garlic.Partitions is
       if Options.Is_Boot_Mirror then
          Request_Type'Output (Query'Access, Copy_Table);
          Write_Partitions    (Query'Access);
-         Broadcast (Partition_Operation, Query'Access, Error);
-
+         Broadcast (Partition_Operation, Query'Access);
       elsif Partition /= Boot_PID then
          Request_Type'Output (Query'Access, (Push_Partition_Table, Partition));
          Write_Partitions    (Query'Access);
@@ -599,6 +592,38 @@ package body System.Garlic.Partitions is
       end if;
       Old_Info.Protocol := Get_Protocol (Old_Info.Location);
    end Merge;
+
+   ----------------------
+   -- Next_Boot_Mirror --
+   ----------------------
+
+   function Next_Boot_Mirror (Partition : Partition_ID)
+     return Partition_ID is
+   begin
+      pragma Assert (Partitions.Table (Partition) .Is_Boot_Mirror);
+      Partitions.Enter;
+      for P in Partition + 1 .. Partitions.Table'Last loop
+         if Partitions.Table (P) .Allocated
+           and then Partitions.Table (P) .Is_Boot_Mirror
+           and then Partitions.Table (P) .Status = Done
+         then
+            Partitions.Leave;
+            return P;
+         end if;
+      end loop;
+
+      for P in Null_PID + 1 .. Partition loop
+         if Partitions.Table (P) .Allocated
+           and then Partitions.Table (P) .Is_Boot_Mirror
+           and then Partitions.Table (P) .Status = Done
+         then
+            Partitions.Leave;
+            return P;
+         end if;
+      end loop;
+
+      raise Program_Error;
+   end Next_Boot_Mirror;
 
    --------------------
    -- Next_Partition --

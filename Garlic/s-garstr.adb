@@ -86,16 +86,11 @@ package body System.Garlic.Streams is
    ----------------
 
    procedure Deallocate (Stream : in out Params_Stream_Access) is
-      Next : Node_Ptr;
    begin
       if Stream = null then
          return;
       end if;
-      while Stream.First /= null loop
-         Next := Stream.First.Next;
-         Free (Stream.First);
-         Stream.First := Next;
-      end loop;
+      Deallocate (Stream.all);
       Free (Stream);
    end Deallocate;
 
@@ -188,7 +183,7 @@ package body System.Garlic.Streams is
       First  : Node_Ptr renames Stream.First;
       Other  : Node_Ptr;
       Offset : Stream_Element_Offset := Item'First;
-      Count  : Stream_Element_Count := Item'Length;
+      Count  : Stream_Element_Count  := Item'Length;
       Length : Stream_Element_Count;
    begin
       while First /= null and then Count > 0 loop
@@ -196,7 +191,7 @@ package body System.Garlic.Streams is
            Stream_Element_Count'Min (First.Last - First.Current, Count);
          Item (Offset .. Offset + Length - 1) :=
            First.Content (First.Current .. First.Current + Length - 1);
-         Count := Count - Length;
+         Count  := Count - Length;
          Offset := Offset + Length;
          First.Current := First.Current + Length;
          if First.Current >= First.Last then

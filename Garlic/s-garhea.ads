@@ -215,7 +215,7 @@ package System.Garlic.Heart is
    procedure Send_Boot_Server
      (Opcode : in Any_Opcode;
       Params : access Streams.Params_Stream_Type;
-      Error  : in out Utils.Error_Type);
+      Error  : out Utils.Error_Type);
    --  Send something to boot server. When this partition is no longer
    --  available, then try to find a boot mirror. When no boot mirror is
    --  available, signal an error.

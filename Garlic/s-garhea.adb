@@ -626,36 +626,32 @@ package body System.Garlic.Heart is
    procedure Send_Boot_Server
      (Opcode : in Any_Opcode;
       Params : access Streams.Params_Stream_Type;
-      Error  : in out Error_Type)
+      Error  : out Error_Type)
    is
-      Params_Copy : Params_Stream_Access :=
-        new Params_Stream_Type (Params.Initial_Size);
+      Params_Copy : Params_Stream_Type (Params.Initial_Size);
    begin
-      --  Preserve Params before any Send operation
+      --  Preserve Params because we may have to send it several times
 
-      Copy (Params.all, Params_Copy.all);
-      loop
+      Copy (Params.all, Params_Copy);
+
+      --  While shutdown is not in progress, we have a boot partition to
+      --  talk to.
+
+      while not Shutdown_In_Progress loop
          Send (Boot_PID, Opcode, Params, Error);
-         if Found (Error) then
-            Notify_Partition_Error (Boot_PID);
+         exit when not Found (Error);
 
-            --  When the boot partition is dead, it is possible that
-            --  no alternative boot partition is available. Then, report
-            --  the error to take the shutdown into account.
+         --  Since there was an error, copy back Params_Copy into Params,
+         --  after removing the junk that may still be in Params.
 
-            exit when Shutdown_In_Progress;
-
-            --  Params has probably been modified. Deallocate a possibly
-            --  corrupted stream and restore Params with Params_Copy.
-
-            Deallocate (Params.all);
-            Copy (Params_Copy.all, Params.all);
-
-         else
-            Deallocate (Params_Copy);
-            exit;
-         end if;
+         Deallocate (Params.all);
+         Copy (Params_Copy, Params.all);
       end loop;
+
+      --  Either the shutdown is in progress, or we have sent the message
+      --  succesfully. In any case, we can get rid of the copy now.
+
+      Deallocate (Params_Copy);
    end Send_Boot_Server;
 
    -----------------------

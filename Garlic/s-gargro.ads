@@ -41,8 +41,7 @@ package System.Garlic.Group is
 
    procedure Broadcast
      (Opcode : in Heart.Any_Opcode;
-      Params : access Streams.Params_Stream_Type;
-      Error  : in out Utils.Error_Type);
+      Params : access Streams.Params_Stream_Type);
 
    procedure Initialize;
 

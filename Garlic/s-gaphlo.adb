@@ -35,7 +35,6 @@
 
 with System.Garlic.Debug;    use System.Garlic.Debug;
 with System.Garlic.Types;    use System.Garlic.Types;
-with System.Garlic.Utils;    use System.Garlic.Utils;
 with Unchecked_Deallocation;
 
 package body System.Garlic.Physical_Location is
@@ -47,12 +46,7 @@ package body System.Garlic.Physical_Location is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use System.Garlic.Protocols;
-
-   type Location_Body is record
-      Protocol : Protocols.Protocol_Access;
-      Data     : String_Access;
-   end record;
+   use Ada.Finalization, System.Garlic.Protocols, System.Garlic.Utils;
 
    type Node;
    type Node_Ptr is access Node;
@@ -73,8 +67,6 @@ package body System.Garlic.Physical_Location is
 
    procedure Free is
      new Unchecked_Deallocation (Node, Node_Ptr);
-   procedure Free_Location is
-     new Unchecked_Deallocation (Location_Body, Location_Type);
 
    procedure Register_Partition
      (P : in Types.Partition_ID;
@@ -84,17 +76,34 @@ package body System.Garlic.Physical_Location is
    function Lookup_Protocol (P : String) return Protocol_Access;
    --  Return a protocol or null if no protocol with this name was found
 
+   ------------
+   -- Adjust --
+   ------------
+
+   procedure Adjust (O : in out Location_Type) is
+   begin
+      if O.Data /= null then
+         O.Data := new String'(O.Data.all);
+      end if;
+   end Adjust;
+
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (O : in out Location_Type) is
+   begin
+      Free (O.Data);
+   end Finalize;
+
    ----------
    -- Free --
    ----------
 
    procedure Free (Location : in out Location_Type) is
    begin
-      if Location /= null then
-         if Location.Data /= null then
-            Free (Location.Data);
-         end if;
-         Free_Location (Location);
+      if Location.Data /= null then
+         Free (Location.Data);
       end if;
    end Free;
 
@@ -257,24 +266,24 @@ package body System.Garlic.Physical_Location is
       for Look_For_Colon in L'Range loop
          if L (Look_For_Colon) = ':' then
             if Look_For_Colon = L'Last then
-               return new Location_Body'
-                 (Protocol => Lookup_Protocol (L (L'First ..
-                                                  Look_For_Colon - 1)),
-                  Data     => new String'(""));
+               return (Controlled with
+                       Protocol => Lookup_Protocol (L (L'First ..
+                                                       Look_For_Colon - 1)),
+                       Data     => new String'(""));
             end if;
             if Look_For_Colon + 2 > L'Last or else
               L (Look_For_Colon + 1 .. Look_For_Colon + 2) /= "//" then
                raise Malformed_Location;
             end if;
-            return new Location_Body'
-              (Protocol => Lookup_Protocol (L (L'First ..
-                                               Look_For_Colon - 1)),
-               Data     => new String'(L (Look_For_Colon + 3 .. L'Last)));
+            return (Controlled with
+                    Protocol => Lookup_Protocol (L (L'First ..
+                                                    Look_For_Colon - 1)),
+                    Data     => new String'(L (Look_For_Colon + 3 .. L'Last)));
          end if;
       end loop;
-      return new Location_Body'
-        (Protocol => Lookup_Protocol (L),
-         Data     => new String'(""));
+      return (Controlled with
+              Protocol => Lookup_Protocol (L),
+              Data     => new String'(""));
    end To_Location;
 
    -----------------
@@ -287,8 +296,9 @@ package body System.Garlic.Physical_Location is
      return Location_Type
    is
    begin
-      return new Location_Body'(Protocol => P,
-                                Data => new String'(D));
+      return (Controlled with
+              Protocol => P,
+              Data => new String'(D));
    end To_Location;
 
    ---------------

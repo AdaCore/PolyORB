@@ -397,7 +397,7 @@ package body System.Garlic.Units is
       --  Send the new table to boot mirrors group.
 
       if not Empty (Token'Access) then
-         Broadcast (Unit_Name_Service, Token'Access, Error);
+         Broadcast (Unit_Name_Service, Token'Access);
       end if;
    end Handle_Request;
 
@@ -431,7 +431,7 @@ package body System.Garlic.Units is
       if Is_Boot_Mirror then
          Request_Type'Output (Query'Access, Copy_Units);
          Write_Units (Query'Access);
-         Broadcast (Unit_Name_Service, Query'Access, Error);
+         Broadcast (Unit_Name_Service, Query'Access);
 
       else
          Request_Type'Output (Query'Access, (Invalidate_Units, Partition));
