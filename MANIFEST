@@ -325,6 +325,7 @@ examples/moma/server.adb
 examples/polyorb/Makefile.am
 examples/polyorb/Makefile.in
 examples/polyorb/README
+examples/polyorb/polyorb-setup-test.ads
 examples/polyorb/polyorb-setup-test_poa.adb
 examples/polyorb/polyorb-setup-test_poa.ads
 examples/polyorb/polyorb-setup-test_soa.adb
@@ -1009,9 +1010,6 @@ src/soap/polyorb-soap_p-response.ads
 src/soap/polyorb-soap_p-types.adb
 src/soap/polyorb-soap_p-types.ads
 src/soap/polyorb-soap_p.ads
-src/soap/soap-message-response-error.adb
-src/soap/soap-message-response-error.ads
-src/soap/soap.ads
 src/srp/Makefile.am
 src/srp/Makefile.in
 src/srp/gnat.adc
