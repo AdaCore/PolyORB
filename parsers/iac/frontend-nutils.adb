@@ -108,6 +108,7 @@ package body Frontend.Nutils is
    function Is_A_Forward_Of (X, Y : Node_Id) return Boolean is
       KX : constant Node_Kind := Kind (X);
       KY : constant Node_Kind := Kind (Y);
+
    begin
       case KY is
          when K_Interface_Declaration
@@ -122,23 +123,17 @@ package body Frontend.Nutils is
             | K_Forward_Union_Type =>
             return KX = K_Forward_Union_Type;
 
-         when K_Value_Declaration
-           | K_Abstract_Value_Declaration
-           | K_Value_Box_Declaration
-           | K_Value_Forward_Declaration =>
-            if KX /= K_Value_Forward_Declaration then
-               return False;
+         when K_Value_Declaration =>
+            return KX = K_Value_Forward_Declaration
+              and then not Is_Abstract_Value (X);
 
-            elsif Is_Abstract_Interface (X) then
-               return KY = K_Abstract_Value_Declaration
-                 or else (KY = K_Value_Forward_Declaration
-                          and then Is_Abstract_Interface (Y));
+         when K_Value_Forward_Declaration =>
+            return KX = K_Value_Forward_Declaration
+              and then (Is_Abstract_Value (X) = Is_Abstract_Value (Y));
 
-            else
-               return KY /= K_Abstract_Value_Declaration
-                 and then (KY /= K_Value_Forward_Declaration
-                           or else not Is_Abstract_Interface (Y));
-            end if;
+         when K_Abstract_Value_Declaration =>
+            return KX = K_Value_Forward_Declaration
+              and then Is_Abstract_Value (X);
 
          when others =>
             return False;

@@ -141,7 +141,9 @@ package body Scopes is
 
             --  We do not handle forward structures or unions
 
-            if KC = K_Forward_Interface_Declaration then
+            if KC = K_Forward_Interface_Declaration
+              or else KC = K_Value_Forward_Declaration
+            then
                Set_Forward       (C, E);
                Remove_From_Scope (H, Scope_Entity (H));
             end if;

@@ -47,6 +47,12 @@ package body Analyzer is
    procedure Analyze_Value_Box_Declaration (E : Node_Id);
    procedure Analyze_Value_Forward_Declaration (E : Node_Id);
 
+   procedure Inherit_From (Parent : Node_Id);
+   --  Add into the scope of the child interface all the entities from
+   --  the scope of the parent interfaces. For each entity of a parent
+   --  interface create a new identifier referencing the entity while
+   --  the entity is still bound to its initial identifier.
+
    procedure Resolve_Expr (E : Node_Id; T : Node_Id);
    function  Resolve_Type (N : Node_Id) return Node_Id;
 
@@ -448,49 +454,9 @@ package body Analyzer is
 
    procedure Analyze_Interface_Declaration (E : Node_Id) is
 
-      procedure Inherit_From_Interface (Parent : Node_Id);
-      --  Add into the scope of the child interface all the entities
-      --  from the scope of the parent interfaces. To do so, for each
-      --  entity of a parent interface create a new identifier
-      --  referencing the entity while the entity is still bound to
-      --  its initial identifier.
-
-      ----------------------------
-      -- Inherit_From_Interface --
-      ----------------------------
-
-      procedure Inherit_From_Interface (Parent : Node_Id) is
-         Entity     : Node_Id;
-         Identifier : Node_Id;
-
-      begin
-         Identifier := Scoped_Identifiers (Parent);
-         while Present (Identifier) loop
-            Entity := Corresponding_Entity (Identifier);
-
-            --  Do not add to the scope a scoped name that was
-            --  introduced in a parent scope. If the interface
-            --  inherits from parent entities, this is a new scope in
-            --  which the names introduced for the parents are no
-            --  longer considered.
-
-            if Present (Entity)
-               and then Kind (Entity) /= K_Scoped_Name
-            then
-               Enter_Name_In_Scope
-                 (Make_Identifier
-                   (Loc (Entity),
-                    IDL_Name (Identifier),
-                    Entity,
-                    Current_Scope));
-            end if;
-            Identifier := Next_Entity (Identifier);
-         end loop;
-      end Inherit_From_Interface;
-
       Parent      : Node_Id;
       Definition  : Node_Id;
-      Scope_Name  : Node_Id;
+      Scoped_Name : Node_Id;
       Is_Local    : constant Boolean := Is_Local_Interface (E);
       Is_Abstract : constant Boolean := Is_Abstract_Interface (E);
 
@@ -500,10 +466,10 @@ package body Analyzer is
       --  Analyze interface names in the current scope (before pushing
       --  a new scope and inheriting from other interfaces).
 
-      Scope_Name := First_Entity (Interface_Spec (E));
-      while Present (Scope_Name) loop
-         Analyze (Scope_Name);
-         Parent := Reference (Scope_Name);
+      Scoped_Name := First_Entity (Interface_Spec (E));
+      while Present (Scoped_Name) loop
+         Analyze (Scoped_Name);
+         Parent := Reference (Scoped_Name);
          if Present (Parent) then
             if Kind (Parent) /= K_Interface_Declaration then
                if Kind (Parent) = K_Forward_Interface_Declaration then
@@ -519,14 +485,14 @@ package body Analyzer is
 
                --  Do not consider this interface later on.
 
-               Set_Reference (Scope_Name, No_Node);
+               Set_Reference (Scoped_Name, No_Node);
 
             elsif not Is_Local then
                if Is_Local_Interface (Parent) then
                   Error_Loc (1) := Loc (E);
                   DE ("interface cannot inherit " &
                       "from a local interface");
-                  Set_Reference (Scope_Name, No_Node);
+                  Set_Reference (Scoped_Name, No_Node);
                end if;
 
             elsif Is_Abstract then
@@ -534,24 +500,24 @@ package body Analyzer is
                   Error_Loc (1) := Loc (E);
                   DE ("abstract interface cannot inherit " &
                       "from a non-abstract interface");
-                  Set_Reference (Scope_Name, No_Node);
+                  Set_Reference (Scoped_Name, No_Node);
                end if;
             end if;
          end if;
-         Scope_Name := Next_Entity (Scope_Name);
+         Scoped_Name := Next_Entity (Scoped_Name);
       end loop;
 
       --  Push a new scope and then inherit from the parent
       --  interfaces.
 
       Push_Scope (E);
-      Scope_Name := First_Entity (Interface_Spec (E));
-      while Present (Scope_Name) loop
-         Parent := Reference (Scope_Name);
+      Scoped_Name := First_Entity (Interface_Spec (E));
+      while Present (Scoped_Name) loop
+         Parent := Reference (Scoped_Name);
          if Present (Parent) then
-            Inherit_From_Interface (Parent);
+            Inherit_From (Parent);
          end if;
-         Scope_Name := Next_Entity (Scope_Name);
+         Scoped_Name := Next_Entity (Scoped_Name);
       end loop;
 
       --  Append and analyze the interface entities
@@ -577,9 +543,9 @@ package body Analyzer is
    -- Analyze_Member --
    --------------------
 
-   procedure Analyze_Member (E : Node_Id)
-   is
+   procedure Analyze_Member (E : Node_Id) is
       D : Node_Id := First_Entity (Declarators (E));
+
    begin
       Analyze (Type_Spec (E));
       while Present (D) loop
@@ -918,7 +884,7 @@ package body Analyzer is
 
    procedure Analyze_State_Member (E : Node_Id) is
    begin
-      Dummy (E);
+      Analyze_Member (E);
    end Analyze_State_Member;
 
    --------------------
@@ -1069,8 +1035,114 @@ package body Analyzer is
    -------------------------------
 
    procedure Analyze_Value_Declaration (E : Node_Id) is
+      Scoped_Name  : Node_Id;
+      Parent       : Node_Id;
+      Definition   : Node_Id;
+      Scoped_Names : List_Id;
+
    begin
-      Dummy (E);
+      Enter_Name_In_Scope (Identifier (E));
+
+      --  Analyze value type names in the current scope (before pushing
+      --  a new scope and inheriting from other value types).
+
+      Scoped_Names := Value_Names (Value_Spec (E));
+      if not Is_Empty (Scoped_Names) then
+         Scoped_Name := First_Entity (Scoped_Names);
+         while Present (Scoped_Name) loop
+            Analyze (Scoped_Name);
+            Parent := Reference (Scoped_Name);
+            if Present (Parent) then
+               if Kind (Parent) /= K_Value_Declaration then
+                  if Kind (Parent) = K_Value_Forward_Declaration then
+                     Error_Loc (1) := Loc (E);
+                     DE ("value type cannot inherit " &
+                         "from a forward-declared value type");
+
+                  else
+                     Error_Loc (1) := Loc (E);
+                     DE ("value type cannot inherit " &
+                         "from a non-value type");
+                  end if;
+
+                  --  Do not consider this value type later on.
+
+                  Set_Reference (Scoped_Name, No_Node);
+               end if;
+            end if;
+            Scoped_Name := Next_Entity (Scoped_Name);
+         end loop;
+      end if;
+
+      --  Analyze interface names in the current scope (before pushing
+      --  a new scope).
+
+      Scoped_Names := Interface_Names (Value_Spec (E));
+      if not Is_Empty (Scoped_Names) then
+         Scoped_Name := First_Entity (Scoped_Names);
+         while Present (Scoped_Name) loop
+            Analyze (Scoped_Name);
+            Parent := Reference (Scoped_Name);
+            if Present (Parent) then
+               if Kind (Parent) /= K_Interface_Declaration then
+                  if Kind (Parent) = K_Forward_Interface_Declaration then
+                     Error_Loc (1) := Loc (E);
+                     DE ("interface cannot inherit " &
+                         "from a forward-declared interface");
+
+                  else
+                     Error_Loc (1) := Loc (E);
+                     DE ("interface cannot inherit " &
+                         "from a non-interface");
+                  end if;
+
+                  --  Do not consider this interface later on.
+
+                  Set_Reference (Scoped_Name, No_Node);
+               end if;
+            end if;
+            Scoped_Name := Next_Entity (Scoped_Name);
+         end loop;
+      end if;
+
+      --  Push a new scope and then inherit from the parent
+      --  value types.
+
+      Push_Scope (E);
+      Scoped_Names := Value_Names (Value_Spec (E));
+      if not Is_Empty (Scoped_Names) then
+         Scoped_Name := First_Entity (Scoped_Names);
+         while Present (Scoped_Name) loop
+            Parent := Reference (Scoped_Name);
+            if Present (Parent) then
+               Inherit_From (Parent);
+            end if;
+            Scoped_Name := Next_Entity (Scoped_Name);
+         end loop;
+      end if;
+
+      --  Inherit from the parent interfaces.
+
+      Scoped_Names := Interface_Names (Value_Spec (E));
+      if not Is_Empty (Scoped_Names) then
+         Scoped_Name := First_Entity (Scoped_Names);
+         while Present (Scoped_Name) loop
+            Parent := Reference (Scoped_Name);
+            if Present (Parent) then
+               Inherit_From (Parent);
+            end if;
+            Scoped_Name := Next_Entity (Scoped_Name);
+         end loop;
+      end if;
+
+      --  Append and analyze the value entities
+
+      Definition := First_Entity (Value_Body (E));
+      while Present (Definition) loop
+         Analyze (Definition);
+         Definition := Next_Entity (Definition);
+      end loop;
+      Pop_Scope;
    end Analyze_Value_Declaration;
 
    ---------------------------------------
@@ -1079,7 +1151,7 @@ package body Analyzer is
 
    procedure Analyze_Value_Forward_Declaration (E : Node_Id) is
    begin
-      Dummy (E);
+      Enter_Name_In_Scope (Identifier (E));
    end Analyze_Value_Forward_Declaration;
 
    -----------------------------
@@ -1112,6 +1184,38 @@ package body Analyzer is
       LT.Table (Op1) := LT.Table (Op2);
       LT.Table (Op2) := N;
    end Exchange;
+
+   ------------------
+   -- Inherit_From --
+   ------------------
+
+   procedure Inherit_From (Parent : Node_Id) is
+      Entity     : Node_Id;
+      Identifier : Node_Id;
+
+   begin
+      Identifier := Scoped_Identifiers (Parent);
+      while Present (Identifier) loop
+         Entity := Corresponding_Entity (Identifier);
+
+         --  Do not add to the scope a scoped name that was introduced
+         --  in a parent scope. If the interface inherits from parent
+         --  entities, this is a new scope in which the names
+         --  introduced for the parents are no longer considered.
+
+         if Present (Entity)
+           and then Kind (Entity) /= K_Scoped_Name
+         then
+            Enter_Name_In_Scope
+              (Make_Identifier
+               (Loc (Entity),
+                IDL_Name (Identifier),
+                Entity,
+                Current_Scope));
+         end if;
+         Identifier := Next_Entity (Identifier);
+      end loop;
+   end Inherit_From;
 
    ---------------
    -- Less_Than --
