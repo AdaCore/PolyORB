@@ -114,10 +114,6 @@ package body PolyORB.Log is
       begin
          Counter := Counter - 1;
 
-         if Counter < 0 then
-            raise Program_Error;
-         end if;
-
          Output ("Counter "
                  & Integer'Image (Old_Counter)
                  & " -> "
