@@ -1,6 +1,10 @@
+Thu Dec 19 13:46:57 1996  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe-gcc-filter.in: Changed bogus test.
+
 Mon Dec 16 16:45:08 1996  Laurent Pautet  <pautet@scapin.enst.fr>
 
-	* xe-gcc-filter.in: Compatibility test (do we use gnat >= 4.0).
+	* xe-gcc-filter.in: Compatibility test (do we use gnat >= 3.09w).
 
 Sat Nov 30 20:21:47 1996  Laurent Pautet  <pautet@quasimodo.enst.fr>
 
