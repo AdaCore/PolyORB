@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-1999 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2000 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GARLIC is free software;  you can redistribute it and/or modify it under --
 -- terms of the  GNU General Public License  as published by the Free Soft- --
@@ -33,16 +33,31 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Streams;
+
 package System.Garlic.Types is
 
    type Status_Type is (None, Busy, Done, Dead);
    --  General status type for automaton
 
+   Partition_ID_Byte   : constant := 4;
+   Partition_ID_Size   : constant := 8 * Partition_ID_Byte;
    Null_Partition_ID   : constant := 0;
    First_Partition_ID  : constant := Null_Partition_ID + 1;
-   Last_Partition_ID   : constant := Natural'Last;
+   Last_Partition_ID   : constant := 2 ** Partition_ID_Size - 1;
 
    type Partition_ID is range Null_Partition_ID .. Last_Partition_ID;
+
+   procedure Read
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : out Partition_ID);
+
+   procedure Write
+     (S : access Ada.Streams.Root_Stream_Type'Class;
+      X : in Partition_ID);
+
+   for Partition_ID'Read  use Read;
+   for Partition_ID'Write use Write;
 
    Null_PID  : constant Partition_ID := Null_Partition_ID;
    First_PID : constant Partition_ID := First_Partition_ID;
@@ -53,6 +68,12 @@ package System.Garlic.Types is
 
    subtype Valid_Partition_ID is Partition_ID range First_PID .. Last_PID;
    --  A partition whose ID fits in Valid_Partition_ID is a real partition
+
+   subtype Partition_ID_SEA is
+     Ada.Streams.Stream_Element_Array (1 .. Partition_ID_Byte);
+
+   function Read  (S : Partition_ID_SEA) return Partition_ID;
+   function Write (P : Partition_ID) return Partition_ID_SEA;
 
    Partition_ID_Increment : constant := 10;
 
