@@ -1,6 +1,6 @@
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
-@cindex GNU Free Documentation License
+@cindex GNU Free Documentation License::
 @cindex License, GNU Free Documentation
 @cindex Free Documentation License, GNU
 

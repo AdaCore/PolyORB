@@ -11,14 +11,14 @@
 
 @title GLADE User's Guide
 @subtitle GLADE, GNAT Library for Ada Distributed Environment
-@subtitle GLADE Version glade-3.16a1
+@subtitle GLADE Version glade-5.03a
 @subtitle @today
 @author Laurent Pautet, Samuel Tardieu
 
 @page
 @vskip 0pt plus 1filll
 
-Copyright @copyright{} 1997-2003, Free Software Foundation
+Copyright @copyright{} 1997-2005, Free Software Foundation
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1
@@ -32,7 +32,7 @@ A copy of the license is included in the section entitled
 
 @end titlepage
 
-@node Top, About This Guide, (dir), (dir)
+@node Top
 @top GLADE User Guide
 
 GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
@@ -42,7 +42,8 @@ GLADE is the GNAT implementation of the Ada95 Distributed Systems Annex.
 * Introduction to Distributed Systems::  
 * The Distributed Systems Annex::  
 * Getting Started With GLADE::  
-* DSA and CORBA::               
+* DSA and CORBA::
+* GNU Free Documentation License::
 @end menu
 
 @node About This Guide, Introduction to Distributed Systems, Top, Top
@@ -1739,7 +1740,7 @@ REPRESENTATION_CLAUSE ::=
 
 @end smallexample
 
-@node Pragma Priority, , Partition Attribute Allow_Light_PCS, The Configuration Language
+@node Pragma Priority, Partition Attribute Priority, Partition Attribute Allow_Light_PCS, The Configuration Language
 @subsection Pragma Priority
 
 It might be necessary for real-time applications to get control over the
@@ -2885,7 +2886,7 @@ kill MAIN_PART.
 @c Language-defined exceptions propagate well through different
 @c partitions.
 
-@node DSA and CORBA,  , Getting Started With GLADE, Top
+@node DSA and CORBA, GNU Free Documentation License, Getting Started With GLADE, Top
 @appendix DSA and CORBA
 
 @menu
@@ -3170,7 +3171,7 @@ library that implements the interface between the Partition
 Communication Subsystem defined in the Reference Manual and the network
 communication layer with object-oriented techniques.
 
-@node CORBA Application Development,  , DSA Application Development, Distributed Application Development
+@node CORBA Application Development, , DSA Application Development, Distributed Application Development
 @subsection CORBA Application Development
 
 The ORB provides a core of basic services. All other services are
@@ -3308,15 +3309,16 @@ ORB. This would also allow applications written in other languages to
 invoke DSA features. We are also seeking to use this approach to offer a
 DII mechanism for DSA.
 
-@c @node GNU Free Documentation License,  , DSA and CORBA, Top
+@c **********************************
+@c * GNU Free Documentation License *
+@c **********************************
 @include gfdl.texi
-
-
-@c XXXXX Index is nonexistent
-@c @node
-@c @unnumbered Index
-@c @printindex cp
+@c GNU Free Documentation License
 
 @contents
+@c Put table of contents at end, otherwise it precedes the "title page" in
+@c the .txt version
+@c Edit the pdf file to move the contents to the beginning, after the title
+@c page
 
 @bye
