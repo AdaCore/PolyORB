@@ -7,6 +7,8 @@ with CORBA;
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Log;
 with Droopi.Representations.CDR; use Droopi.Representations.CDR;
+with Droopi.Binding_Data;
+
 
 package body Droopi.References.IOR is
 
@@ -28,16 +30,18 @@ package body Droopi.References.IOR is
      (Buffer : access Buffer_Type;
       Value  : in IOR_Type)
    is
+      use Profile_Seqs;
+      Profs  : Profile_Array := Profiles_Of (Value.Ref);
    begin
       Marshall (Buffer, Value.Type_Id);
-      Marshall (Buffer, CORBA.Unsigned_Long (Value.Profiles'Length));
+      Marshall (Buffer, CORBA.Unsigned_Long (Profs'Length));
 
-      for N in Value.Profiles'Range loop
-         Marshall (Buffer, Get_Profile_Tag (Value.Profiles (N).all));
+      for N in Profs'Range loop
+         Marshall (Buffer, CORBA.Unsigned_Long (Get_Profile_Tag
+                                                (Profs (N).all)));
          Callbacks
-           (Get_Profile_Tag
-            (Value.Profiles (N).all)).Marshall_Profile_Body
-             (Buffer, Value.Profiles (N));
+           (Get_Profile_Tag (Profs (N).all)).
+            Marshall_Profile_Body (Buffer, Profs (N));
       end loop;
    end Marshall;
 
@@ -49,30 +53,53 @@ package body Droopi.References.IOR is
      (Buffer : access Buffer_Type)
    return  IOR_Type
    is
+      use CORBA;
+      use Profile_Seqs;
       N_Profiles : CORBA.Unsigned_Long;
-      Profiles   : Profile_Array_Access;
       Result     : IOR_Type;
    begin
       Result.Type_Id := Unmarshall (Buffer);
       N_Profiles     := Unmarshall (Buffer);
 
-      pragma Debug
-        (O ("Decapsulate_IOR: type " &
-            To_Standard_String (Type_Id) &
-            " (" & N_Profiles'Img & " profiles)."));
+      declare
+            Profs      : Profile_Array := (1 .. Integer (N_Profiles) => null);
+      begin
 
-      Prof_Array := new Profile_Array'(1 .. N_Profiles => null);
+            pragma Debug
+              (O ("Decapsulate_IOR: type " &
+              To_Standard_String (Result.Type_Id) &
+              " (" & N_Profiles'Img & " profiles)."));
 
-      for N in Profiles'Range loop
-         declare
-            Tag : constant Profile_Tag := Unmarshall (Buffer);
-         begin
-            Callbacks (Tag).Unmarshall_Profile_Body (Buffer, Profiles (N));
-         end;
-      end loop;
+            for N in Profs'Range loop
+               declare
+                     Temp_Tag : CORBA.Unsigned_Long := Unmarshall (Buffer);
+                     Tag      : constant Profile_Tag := Profile_Tag (Temp_Tag);
+               begin
+                     Callbacks (Tag).Unmarshall_Profile_Body
+                                      (Buffer, Profs (N));
+               end;
+            end loop;
 
-      Result.Profiles := To_Sequence (Prof_Array);
-      return Result;
+            Result.Ref.Profiles := To_Sequence (Profs);
+            return Result;
+      end;
    end Unmarshall;
+
+
+   --------------
+   -- Register --
+   --------------
+
+   procedure Register
+     (Profile     : in Profile_Tag;
+      Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
+      Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type) is
+   begin
+      Callbacks (Profile).Marshall_Profile_Body := Marshall_Profile_Body;
+      Callbacks (Profile).Unmarshall_Profile_Body := Unmarshall_Profile_Body;
+   end Register;
+
+
+
 
 end Droopi.References.IOR;

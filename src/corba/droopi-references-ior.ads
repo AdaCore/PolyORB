@@ -4,10 +4,9 @@
 ------------------------------------------------------------------------------
 
 with CORBA;
-with CORBA.Impl;
 
 with Droopi.Buffers;      use Droopi.Buffers;
-with Droopi.Binding_Data;
+
 
 package Droopi.References.IOR is
 
@@ -30,14 +29,19 @@ package Droopi.References.IOR is
      (Buffer  : access Buffers.Buffer_Type;
       Profile : access Profile_Type'Class);
 
-   type Unmarshall_Profile_Body_Type is access procedure
-     (Buffer  : access Buffers.Buffer_Type;
-      Profile : out Droopi.Binding_Data.Profile_Access);
+   type Unmarshall_Profile_Body_Type is access function
+     (Buffer  : access Buffers.Buffer_Type)
+     return Profile_Type'Class;
 
    type Profile_Record is record
       Marshall_Profile_Body   : Marshall_Profile_Body_Type;
       Unmarshall_Profile_Body : Unmarshall_Profile_Body_Type;
    end record;
+
+   procedure Register
+     (Profile                 : in Profile_Tag;
+      Marshall_Profile_Body   : in Marshall_Profile_Body_Type;
+      Unmarshall_Profile_Body : in Unmarshall_Profile_Body_Type);
 
    Callbacks : array (Tag_Internet_IOP .. Tag_Multiple_Components)
      of Profile_Record;

@@ -40,6 +40,7 @@ with Droopi.Components;
 with Droopi.Filters;
 with Droopi.Filters.Interface;
 
+
 package body Droopi.Protocols.GIOP is
 
    use Droopi.Components;
@@ -1160,8 +1161,6 @@ package body Droopi.Protocols.GIOP is
          when Location_Forward | Location_Forward_Perm =>
 
             declare
-               --  Ref     : References.IOR.IOR_Type
-               --    := Unmarshall (Ses.Buffer_In);
                TE      : Transport_Endpoint_Access;
                New_Ses : Session_Access;
             begin
@@ -1270,12 +1269,9 @@ package body Droopi.Protocols.GIOP is
       use Droopi.Filters.Interface;
       use Droopi.Objects;
 
-      Buf            : Buffer_Access := new Buffer_Type;
       Fragment_Next  : Boolean := False;
-      --  Arg_Count      : CORBA.Long;
-      --  Arg            : CORBA.NamedValue;
-      Data_Send      : Data_Out; --  Root_Data_Unit := new Data_Out;
-      --  Message_Size   : CORBA.Unsigned_Long;
+      Data_Send      : Data_Out;
+
    begin
 
       if S.Role  = Server then
@@ -1302,7 +1298,7 @@ package body Droopi.Protocols.GIOP is
             end;
          else
             pragma Debug (O ("Number of tries exceeded"));
-            Release (Buf);
+
             return;
          end if;
       else
@@ -1320,13 +1316,7 @@ package body Droopi.Protocols.GIOP is
 
       --  Expecting data
       Expect_Data (S, S.Buffer_In, Message_Header_Size);
-      Release (Buf);
 
-   exception
-
-      when others =>
-         Release (Buf);
-         raise;
 
    end Invoke_Request;
 
@@ -1424,7 +1414,6 @@ package body Droopi.Protocols.GIOP is
       use ORB;
       use References;
       use References.IOR;
-      --  Req           : Request_Access := null;
       Mess_Type     : Msg_Type;
       Mess_Size     : CORBA.Unsigned_Long;
       Fragment_Next : Boolean;
@@ -1501,8 +1490,6 @@ package body Droopi.Protocols.GIOP is
 
                         when Object_Forward | Object_Forward_Perm =>
                            declare
-                              --  Ref     : References.IOR.IOR_Type
-                              --               := Unmarshall (S.Buffer_In);
                               TE      : Transport_Endpoint_Access;
                               New_Ses : Session_Access;
                            begin
