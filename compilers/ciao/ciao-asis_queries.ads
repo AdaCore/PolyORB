@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  Various ASIS queries for CIAO.
---  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.ads#2 $
+--  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.ads#3 $
 
 with Asis;
 with Asis.Exceptions;
@@ -292,6 +292,22 @@ package CIAO.ASIS_Queries is
    --
    --  Returns the single defining name of a declaration that has only one
    --  (such as a subprogram, type or formal parameter declaration).
+   --
+   --  Appropriate Element_Kinds:
+   --       A_Declaration
+   --
+
+   function Is_Asynchronous
+     (Element : Asis.Declaration)
+     return Boolean;
+   ----------------------------------------------------------------------------
+   --  Element - Specifies the declaration to query.
+   --  Compilation_Unit          - Specifies the compilation unit to query.
+   --
+   --  Returns True if, and only if, Element is a declaration to
+   --  which a pragma Asynchronous applies (Declaration may be
+   --  a remote procedure declaration, a RAS declaration or a RACW
+   --  declaration).
    --
    --  Appropriate Element_Kinds:
    --       A_Declaration

@@ -392,6 +392,7 @@ package body Ada_Be.Expansion is
         := Contents (Node);
       New_Repository_Contents : Node_List
         := Nil_List;
+      Is_Unknown_File : Boolean;
    begin
       Push_Scope (Node);
 
@@ -410,7 +411,10 @@ package body Ada_Be.Expansion is
             Filename := Loc.Filename;
 
             if Filename = null then
+               Is_Unknown_File := True;
                Filename := Unknown_Filename;
+            else
+               Is_Unknown_File := False;
             end if;
             pragma Debug (O ("node "
                              & Node_Kind'Image (Kind (Current))
@@ -424,6 +428,7 @@ package body Ada_Be.Expansion is
 
                --  create a new node Ben_Idl_File
                Idl_File_Node := Make_Ben_Idl_File (Loc);
+               Set_Is_Unknown (Idl_File_Node, Is_Unknown_File);
 
                --  set its name
                --  is it correct when conflict ?

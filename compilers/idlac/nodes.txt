@@ -120,8 +120,9 @@ Operation <-- Scope
   --  IDL -> Ada mapping. Intended for implementation of
   --  Remote Call Interface units in DSA personality.
   Is_Implicit_Inherited : Boolean := False
-  --  Expansion attribute: this operation
-  --  is inherited from the first parent.
+  --  Expansion attribute: this operation is inherited from
+  --  the first parent (and therefore its calling stubs need
+  --  not be redeclared).
   Is_Directly_Supported : Boolean := False
   --  Expansion attribute: this operation is copied
   --  from one of this valuetype's supported interfaces
@@ -303,6 +304,10 @@ Pragma
 
 Ben_Idl_File <-- Scope
   Contents : Node_List
+  Is_Unknown : Boolean := False
+  --  Expansion attribute: set to True if this node does
+  --  not actually correspond to a real file (in which case
+  --  it is expected that it only contains other scopes).
 
 Sequence_Instance <-- Named
   Sequence : Node_Id

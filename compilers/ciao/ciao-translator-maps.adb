@@ -17,16 +17,16 @@
 ----------------------------------------
 
 --  Various mapping functions for CIAO.Translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.adb#3 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.adb#4 $
 
 with Ada.Characters.Latin_1; use Ada.Characters.Latin_1;
 with Ada.Characters.Handling; use Ada.Characters.Handling;
 
 with Asis.Compilation_Units; use Asis.Compilation_Units;
 with Asis.Elements;          use Asis.Elements;
+with Asis.Text;
 
 with Idl_Fe.Tree;            use Idl_Fe.Tree;
-with Errors;
 
 package body CIAO.Translator.Maps is
 
@@ -80,6 +80,23 @@ package body CIAO.Translator.Maps is
          return "DSA_" & IDL_Name;
       end;
    end Internal_IDL_Module_Name;
+
+   function Map_Loc (Element : Asis.Element)
+     return Errors.Location
+   is
+      use Asis.Compilation_Units;
+      use Asis.Text;
+
+      ESpan : constant Span := Element_Span (Element);
+   begin
+      return Errors.Location'
+        (Filename => new String'
+         (To_String
+          (Text_Name (Enclosing_Compilation_Unit (Element)))),
+         Dirname  => null,
+         Line     => ESpan.First_Line,
+         Col      => ESpan.First_Column);
+   end Map_Loc;
 
    function Operator_Symbol_Identifier
      (Op : Asis.Defining_Name)

@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#6 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.ads#7 $
 
 with Asis;
 
@@ -29,19 +29,6 @@ package CIAO.Translator.State is
    -- Iterator.Traverse_Element.                    --
    ---------------------------------------------------
 
-   type Translation_Pass is
-     (Normal,
-      --  We are translating declarations in order of
-      --  appearance.
-
-      Normal_Formal_Parameter,
-      --  An ordinary formal parameter of a subprogram
-
-      Self_Formal_Parameter
-      --  The first controlling formal parameter of a dispatching
-      --  operation.
-      );
-
    type Translator_State is record
       Unit_Category : Unit_Categories := Other;
       --  The category (Pure, Remote_Types or Remote_Call_Interface)
@@ -52,9 +39,6 @@ package CIAO.Translator.State is
 
       Current_Node : Node_Id := No_Node;
       --  The IDL node which is being constructed.
-
-      Pass         : Translation_Pass := Normal;
-      --  The current translation pass.
    end record;
 
    procedure Initialize_Translator_State

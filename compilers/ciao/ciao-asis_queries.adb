@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  Various ASIS queries for CIAO.
---  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.adb#6 $
+--  $Id: //droopi/main/compilers/ciao/ciao-asis_queries.adb#7 $
 
 with Ada.Characters.Handling;
 with Ada.Unchecked_Deallocation;
@@ -971,5 +971,24 @@ package body CIAO.ASIS_Queries is
       pragma Assert (Defining_Names'Length = 1);
       return Defining_Names (Defining_Names'First);
    end Declaration_Name;
+
+   function Is_Asynchronous
+     (Element : Asis.Declaration)
+     return Boolean
+   is
+      Pragmas : constant Asis.Pragma_Element_List
+        := Corresponding_Pragmas (Element);
+   begin
+      if Element_Kind (Element) /= A_Declaration then
+         return False;
+      end if;
+
+      for I in Pragmas'Range loop
+         if Pragma_Kind (Pragmas (I)) = An_Asynchronous_Pragma then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Is_Asynchronous;
 
 end CIAO.ASIS_Queries;

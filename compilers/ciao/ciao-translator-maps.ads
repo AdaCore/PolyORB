@@ -17,10 +17,11 @@
 ----------------------------------------
 
 --  Various mapping functions for CIAO.Translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.ads#5 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-maps.ads#6 $
 
 with Asis;       use Asis;
 
+with Errors;
 with Idl_Fe.Types; use Idl_Fe.Types;
 
 package CIAO.Translator.Maps is
@@ -34,16 +35,14 @@ package CIAO.Translator.Maps is
    function IDL_Module_Name (Library_Unit : Compilation_Unit)
      return String;
 
-   ---------------------------------------------------------
-   -- Relative_Scoped_Name                                --
-   -- A <scoped_name> that denotes the translation of the --
-   -- Denoted_Definition with respect to a declaration    --
-   -- wchich makes reference to it.                       --
-   ---------------------------------------------------------
+   --------------------------------------------------------
+   -- Map_Loc                                            --
+   -- Map a source code location from ASIS location info --
+   -- to Errors.Location.                                --
+   --------------------------------------------------------
 
---    function Relative_Scoped_Name (Denoted_Definition : Definition;
---                                   Referer            : Declaration)
---      return Node_Id;
+   function Map_Loc (Element : ASIS.Element)
+     return Errors.Location;
 
    ----------------------------------------------
    -- Operator_Symbol_Identifier               --

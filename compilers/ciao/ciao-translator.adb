@@ -19,7 +19,7 @@
 --  This unit generates a decorated IDL tree
 --  by traversing the ASIS tree of a DSA package
 --  specification.
---  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#14 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator.adb#15 $
 
 with Ada.Exceptions;
 with Ada.Wide_Text_IO;  use Ada.Wide_Text_IO;
@@ -219,7 +219,6 @@ package body CIAO.Translator is
 
    procedure Translate_Formal_Parameter
      (Specification    : in Asis.Definition;
-      Is_Implicit_Self : in Boolean;
       State            : in out Translator_State);
 
    function New_Opaque_Type return Node_Id;
@@ -265,13 +264,6 @@ package body CIAO.Translator is
             Raise_Translation_Error
               (Element, "Unexpected element.");
 
-         when A_Pragma =>
-            --  XXX Ignore all pragmas for now. This is
-            --  probably wrong. At *least* a pragma
-            --  Asynchronous should be translated to a
-            --  semantic marker.
-            Control := Abandon_Children;
-
          when A_Defining_Name =>
             null;
             --  Defining names are translated explicitly when
@@ -301,8 +293,7 @@ package body CIAO.Translator is
             Raise_Translation_Error
               (Element, "Unexpected element (An_Association).");
 
-         when A_Clause =>
-            --  XXX
+         when A_Pragma | A_Clause =>
             Control := Abandon_Children;
       end case;
    exception
@@ -316,7 +307,8 @@ package body CIAO.Translator is
    procedure Process_Declaration
      (Element : in Asis.Element;
       Control : in out Traverse_Control;
-      State   : in out Translator_State) is
+      State   : in out Translator_State)
+      is
 
       use Asis.Definitions;
 
@@ -345,9 +337,9 @@ package body CIAO.Translator is
       procedure Translate_Operation_Declaration
         (State                   : in out Translator_State;
          Name                    : String;
+         Asynchronous            : Boolean;
          Parameter_Profile       : Asis.Parameter_Specification_List;
          Result_Profile          : Asis.Element := Nil_Element;
-         Implicit_Self_Parameter : Asis.Element := Nil_Element;
          Op_Node                 : out Node_Id);
       --  Core processing for the declaration of a method of a
       --  remote entity, i. e. either a subprogram_declaration,
@@ -355,14 +347,11 @@ package body CIAO.Translator is
       --
       --  State              - The translator state.
       --  Name               - The name of the operation.
+      --  Asynchronous       - Determines whether a pragma Asynchronous
+      --                       applies to invocations of this operations.
       --  Parameter_Profile  - The calling profile of the operation.
       --  Result_Profile     - The return profile (for a funtion),
       --                       Nil_Element (for a procedure).
-      --  Implicit_Self_Parameter - The Parameter_Specification that
-      --                       corresponds to the implicit "Self"
-      --                       parameter, if this is a primitive operation
-      --                       for a distributed object type, Nil_Element
-      --                       otherwise.
       --
       --  Pre-condition:  State.Current_Node is the <interface_dcl>.
       --  Post-condition: The <op_dcl> node is returned. It has already
@@ -428,9 +417,9 @@ package body CIAO.Translator is
       procedure Translate_Operation_Declaration
         (State                   : in out Translator_State;
          Name                    : String;
+         Asynchronous            : Boolean;
          Parameter_Profile       : Asis.Parameter_Specification_List;
          Result_Profile          : Asis.Element := Nil_Element;
-         Implicit_Self_Parameter : Asis.Element := Nil_Element;
          Op_Node                 : out Node_Id)
       is
 
@@ -444,7 +433,11 @@ package body CIAO.Translator is
          Old_Current_Node : constant Node_Id := State.Current_Node;
       begin
          Result := Make_Operation (No_Location);
-         Set_Is_Oneway (Result, False);
+         if Asynchronous then
+            Set_Is_Oneway (Result, True);
+         else
+            Set_Is_Oneway (Result, False);
+         end if;
          Append_Node_To_Contents (State.Current_Node, Result);
          Success := Add_Identifier (Result, Name);
          pragma Assert (Success);
@@ -461,21 +454,9 @@ package body CIAO.Translator is
          State.Current_Node := Result;
 
          Push_Scope (State.Current_Node);
-         for I in Parameter_Profile'Range loop
-            if Is_Identical (Parameter_Profile (I),
-                             Implicit_Self_Parameter) then
-               Translate_Formal_Parameter
-                 (Specification    => Parameter_Profile (I),
-                  Is_Implicit_Self => True,
-                  State            => State);
-            else
-               Translate_Formal_Parameter
-                 (Specification    => Parameter_Profile (I),
-                  Is_Implicit_Self => False,
-                  State            => State);
-            end if;
-         end loop;
+         Translate_List (Parameter_Profile, State);
          Pop_Scope;
+
          State.Current_Node := Old_Current_Node;
          Op_Node := Result;
       end Translate_Operation_Declaration;
@@ -528,6 +509,7 @@ package body CIAO.Translator is
                            Translate_Operation_Declaration
                              (State,
                               "Call",
+                              Is_Asynchronous (Element),
                               Access_To_Subprogram_Parameter_Profile
                               (Type_Definition),
                               Result_Profile => Nil_Element,
@@ -538,6 +520,7 @@ package body CIAO.Translator is
                            Translate_Operation_Declaration
                              (State,
                               "Call",
+                              Is_Asynchronous (Element),
                               Access_To_Subprogram_Parameter_Profile
                               (Type_Definition),
                               Result_Profile =>
@@ -858,7 +841,6 @@ package body CIAO.Translator is
                  := (DK = A_Function_Declaration);
                Profile                 : constant Parameter_Specification_List
                  := Parameter_Profile (Element);
-               Implicit_Self_Parameter : Asis.Element := Nil_Element;
                Interface_Dcl_Node      : Node_Id := No_Node;
                Old_Current_Node        : constant Node_Id
                  := State.Current_Node;
@@ -901,16 +883,21 @@ package body CIAO.Translator is
                      end if;
 
                      if Is_Nil (Tagged_Type_Declaration)
-                       and then Controlling_Formals'Length > 0 then
-                        Implicit_Self_Parameter
-                          := Controlling_Formals
-                          (Controlling_Formals'First);
-
+                       and then Controlling_Formals'Length > 0
+                     then
                         Tagged_Type_Declaration
                           := Corresponding_First_Subtype
                           (Corresponding_Entity_Name_Declaration
                            (Declaration_Subtype_Mark
-                            (Implicit_Self_Parameter)));
+                            (Controlling_Formals
+                             (Controlling_Formals'First))));
+                        --  Note: language rules guarantee that the
+                        --  choice of one controlling formal parameter
+                        --  does not affect the determination of the
+                        --  tagged type for which this operation is a
+                        --  primitive operation, because a dispatching
+                        --  operation is a primitive operation of exactly
+                        --  one tagged type.
                      end if;
 
                      if True
@@ -946,23 +933,24 @@ package body CIAO.Translator is
                      Translate_Operation_Declaration
                        (State,
                         Map_Defining_Name (Defining_Name),
+                        False,
                         Profile,
                         Result_Profile => Result_Profile (Element),
-                        Implicit_Self_Parameter => Implicit_Self_Parameter,
                         Op_Node => Op_Node);
                   else
                      Translate_Operation_Declaration
                        (State,
                         Map_Defining_Name (Defining_Name),
+                        False,
                         Profile,
                         Result_Profile => Nil_Element,
-                        Implicit_Self_Parameter => Implicit_Self_Parameter,
                         Op_Node => Op_Node);
                   end if;
 
-                  if State.Unit_Category = Remote_Call_Interface then
-                     Set_Is_Implicit_Self (Op_Node, True);
-                  end if;
+                  Set_Is_Implicit_Self (Op_Node, True);
+                  --  XXX the name of this flag is misleading.
+                  --  Its meaning is that Self should not be explicitly
+                  --  generated in stubs profiles.
 
                   Set_Translation (Element, Op_Node);
                   --  The translation of a subprogram declaration is
@@ -997,47 +985,45 @@ package body CIAO.Translator is
                  := State.Current_Node;
                Success : Boolean;
             begin
-               pragma Assert (False
-                 or else State.Pass = Self_Formal_Parameter
-                 or else State.Pass = Normal_Formal_Parameter);
-
                for I in Defining_Names'Range loop
-                  if State.Pass /= Self_Formal_Parameter
-                    or else I /= Defining_Names'First then
-                     Node := Make_Param (No_Location);
-                     Append_Node_To_Parameters (State.Current_Node, Node);
-                     Declarator_Node := Make_Declarator (No_Location);
-                     Set_Declarator (Node, Declarator_Node);
-                     Set_Parent (Declarator_Node, Node);
-                     Success := Add_Identifier
-                       (Declarator_Node,
-                        Map_Defining_Name (Defining_Names (I)));
-                     pragma Assert (Success);
+                  Node := Make_Param (No_Location);
+                  Append_Node_To_Parameters (State.Current_Node, Node);
+                  Declarator_Node := Make_Declarator (No_Location);
+                  Set_Declarator (Node, Declarator_Node);
+                  Set_Parent (Declarator_Node, Node);
+                  Success := Add_Identifier
+                    (Declarator_Node,
+                     Map_Defining_Name (Defining_Names (I)));
+                  pragma Assert (Success);
 
-                     Set_Param_Type
-                       (Node, Translate_Subtype_Mark (Subtype_Mark));
+                  Set_Param_Type
+                    (Node, Translate_Subtype_Mark (Subtype_Mark));
 
-                     State.Current_Node := Old_Current_Node;
+                  State.Current_Node := Old_Current_Node;
 
-                     if Trait_Kind (Element) = An_Access_Definition_Trait then
-                        Mode := Mode_Inout;
-                     else
-                        case Mode_Kind (Element) is
-                           when Not_A_Mode     =>   --  An unexpected element
-                              Raise_Translation_Error
-                              (Element, "Unexpected element (Not_A_Mode).");
-                           when
-                             A_Default_In_Mode |    --  P :        T
-                             An_In_Mode        =>   --  P : IN     T
-                              Mode := Mode_In;
-                           when An_Out_Mode    =>   --  P :    OUT T
-                              Mode := Mode_Out;
-                           when An_In_Out_Mode =>   --  P : IN OUT T
-                              Mode := Mode_Inout;
-                        end case;
-                     end if;
-                     Set_Mode (Node, Mode);
+                  if Trait_Kind (Element) = An_Access_Definition_Trait then
+
+                     Mode := Mode_Inout;
+                     --  XXX Wrong. If Element is an access definition whose
+                     --  that resolves to denote a tagged limited private type,
+                     --  then the parameter should be of mode in because
+                     --  the type passed is an object reference.
+                  else
+                     case Mode_Kind (Element) is
+                        when Not_A_Mode     =>   --  An unexpected element
+                           Raise_Translation_Error
+                           (Element, "Unexpected element (Not_A_Mode).");
+                        when
+                          A_Default_In_Mode |    --  P :        T
+                          An_In_Mode        =>   --  P : IN     T
+                           Mode := Mode_In;
+                        when An_Out_Mode    =>   --  P :    OUT T
+                           Mode := Mode_Out;
+                        when An_In_Out_Mode =>   --  P : IN OUT T
+                           Mode := Mode_Inout;
+                     end case;
                   end if;
+                  Set_Mode (Node, Mode);
                end loop;
             end;
 
@@ -1283,7 +1269,7 @@ package body CIAO.Translator is
 
                if Variant_Components'Length = 1
                  and then Element_Kind (Variant_Component) = A_Declaration
-                 --  Only one component, and not a null_component.
+               --  Only one component, and not a null_component.
                then
                   declare
                      Component_Defining_Names :
@@ -1833,6 +1819,14 @@ package body CIAO.Translator is
             --  other access-to-object types would not be allowed in the
             --  visible part of a declared pure, RT or RCI package).
 
+            --  Note: if Is_Asynchronous is True for this RACW type,
+            --  then method calls should be asynchronous when they
+            --  are made that way. DSA stub objects must be parameterised
+            --  to contain a flag that indicates whether method calls
+            --  should be asynchronous or not, and this flag should be
+            --  set when creating a value of a RACW type (i.e. in the
+            --  corresponding From_Any helper).
+
             declare
                Designated_Subtype : constant Asis.Expression
                  := Asis.Definitions.Subtype_Mark
@@ -2003,19 +1997,11 @@ package body CIAO.Translator is
 
    procedure Translate_Formal_Parameter
      (Specification    : in Asis.Definition;
-      Is_Implicit_Self : in Boolean;
-      State            : in out Translator_State) is
+      State            : in out Translator_State)
+   is
       Control : Traverse_Control := Continue;
-      Current_Pass : constant Translation_Pass
-        := State.Pass;
    begin
-      if Is_Implicit_Self then
-         State.Pass := CIAO.Translator.State.Self_Formal_Parameter;
-      else
-         State.Pass := CIAO.Translator.State.Normal_Formal_Parameter;
-      end if;
       Translate_Tree (Specification, Control, State);
-      State.Pass := Current_Pass;
    end Translate_Formal_Parameter;
 
    -----------------------------------------------------------

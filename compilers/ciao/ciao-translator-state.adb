@@ -17,7 +17,7 @@
 ----------------------------------------
 
 --  The internal state of the translator.
---  $Id: //droopi/main/compilers/ciao/ciao-translator-state.adb#5 $
+--  $Id: //droopi/main/compilers/ciao/ciao-translator-state.adb#6 $
 
 with Asis.Elements; use Asis.Elements;
 
@@ -38,7 +38,6 @@ package body CIAO.Translator.State is
       State.Repository    := Repository;
       State.Unit_Category := Category;
       State.Current_Node  := Repository;
-      State.Pass          := Normal;
    end Initialize_Translator_State;
 
    -----------------------------------------------------------

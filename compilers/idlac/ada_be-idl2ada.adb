@@ -31,7 +31,7 @@
 --  XXX The latter should be moved away to a Ada_Be.Idl2Ada.Stubs
 --  child unit one day.
 
---  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#16 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-idl2ada.adb#17 $
 
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded;
@@ -395,8 +395,6 @@ package body Ada_Be.Idl2Ada is
       else
          Generate (Stubs_Spec, False, To_Stdout);
          Generate (Stubs_Body, False, To_Stdout);
---          Generate (Stream_Spec, False, To_Stdout);
---          Generate (Stream_Body, False, To_Stdout);
          Generate (Helper_Spec, False, To_Stdout);
          Generate (Helper_Body, False, To_Stdout);
          Generate (Value_Skel_Spec, False, To_Stdout);
@@ -771,13 +769,6 @@ package body Ada_Be.Idl2Ada is
                end if;
             end if;
 
---             Stream.Gen_Node_Spec
---               (Stream_Spec, Node);
---             Stream.Gen_Node_Body
---               (Stream_Body, Node);
-            --  Marshalling subprograms for the object
-            --  reference type.
-
             declare
                It   : Node_Iterator;
                Export_Node : Node_Id;
@@ -797,11 +788,6 @@ package body Ada_Be.Idl2Ada is
 --                      else
                         Gen_Node_Stubs_Body_Dyn (Stubs_Body, Export_Node);
 --                      end if;
-
---                      Stream.Gen_Node_Spec
---                        (Stream_Spec, Export_Node);
---                      Stream.Gen_Node_Body
---                        (Stream_Body, Export_Node);
 
                      --  No code produced per-node
                      --  in skeleton spec.
@@ -865,11 +851,19 @@ package body Ada_Be.Idl2Ada is
       Helper.Gen_Spec_Postlude (Helper_Spec);
       Helper.Gen_Body_Postlude (Helper_Body);
 
-      --  No skel and impl packages are generated
-      --  for abstract interfaces.
+      if Kind (Node) = K_Ben_Idl_File
+        and then Is_Unknown (Node) then
+         return;
+         --  Do not attempt to generate a 'file' scope if
+         --  there was no actual IDL file (case of a tree that
+         --  is synthetised from a DSA service specification,
+         --  for example.)
+      end if;
 
       declare
          Is_Abstract_Node : Boolean := False;
+         --  No skel and impl packages are generated
+         --  for abstract interfaces.
       begin
          if Kind (Node) = K_Interface then
             Is_Abstract_Node := Abst (Node);
@@ -885,8 +879,6 @@ package body Ada_Be.Idl2Ada is
             Generate (Stubs_Body, False, To_Stdout);
             Generate (Helper_Spec, False, To_Stdout);
             Generate (Helper_Body, False, To_Stdout);
---             Generate (Stream_Spec, False, To_Stdout);
---             Generate (Stream_Body, False, To_Stdout);
             if not Is_Abstract_Node then
                Generate (Skel_Spec, False, To_Stdout);
                Generate (Skel_Body, False, To_Stdout);
