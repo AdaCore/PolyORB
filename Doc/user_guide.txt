@@ -476,7 +476,7 @@ result in the trace files being generated.
 By default, the file name of the trace file is the name of the
 partition's executable (i.e. the string returned by the standard
 procedure Ada.Command_Line.Command_Name) with a trailing
-".trace". This can be changed with the "--trace_file othername"
+".ptf". This can be changed with the "--trace_file othername"
 command line argument. Note that since the remote partitions are
 launched with rsh under Unix, the current directory during execution
 will be the user's home directory. This is no problem when using the

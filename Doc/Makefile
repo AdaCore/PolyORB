@@ -66,20 +66,22 @@ jpegfiles: epsfiles
 	make `echo $(SOURCES) | sed 's,\([^ ][^ ]*\),\1.jpeg,g'`;
 	make `echo $(IMAGES)  | sed 's,\([^ ][^ ]*\),\1.jpeg,g'`;
 
-epsfiles:
+epsfiles: ${SOURCES}
 	make `echo $(SOURCES) | sed 's,\([^ ][^ ]*\),\1.eps,g'`;
 	make `echo $(IMAGES)  | sed 's,\([^ ][^ ]*\),\1.eps,g'`;
 
-$(GUIDE).html: $(GUIDE).texi jpegfiles
+allfiles: txtfiles epsfiles jpegfiles
+
+$(GUIDE).html: $(GUIDE).texi allfiles
 	makeinfo --html $(GUIDE).texi
 
-$(GUIDE).info: $(GUIDE).texi txtfiles
+$(GUIDE).info: $(GUIDE).texi allfiles
 	makeinfo $<
 
 $(GUIDE).ps: $(GUIDE).dvi
 	dvips -o $(GUIDE).ps $(GUIDE).dvi
 
-$(GUIDE).dvi: $(GUIDE).texi epsfiles
+$(GUIDE).dvi: $(GUIDE).texi allfiles
 	texi2dvi $(GUIDE).texi
 
 ${SOURCES}: all-srcs.ada

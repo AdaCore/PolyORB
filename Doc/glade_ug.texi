@@ -698,7 +698,7 @@ This feature allows message passing programming. But the user has to
 realize that message passing programming, and asynchronous remote calls
 in particular, has several drawbacks:
 
-@itemize
+@itemize @bullet
 
 @item
 Violate original (remote) procedure semantics
@@ -1188,7 +1188,7 @@ arguments specific to each partition.
 @node How to Use Gnatdist to Configure a Distributed Application, Gnatdist Command Line Options, Introduction To GLADE, Getting Started With GLADE
 @section How to Use Gnatdist to Configure a Distributed Application
 
-@itemize
+@itemize @bullet
 
 @item
 Write a non-distributed Ada application. Use the categorization pragmas
@@ -1239,7 +1239,7 @@ can type : gnatdist configuration partition_2 partition_3.
 Here is what goes on behind the scenes in gnatdist when building a
 distributed application:
 
-@itemize
+@itemize @bullet
 @item
 Each compilation unit in the program is compiled into an object module
 (as in non distributed applications). This is achieved by calling
@@ -1277,8 +1277,6 @@ will evolve, so will this configuration language.
 
 Every keyword and construct defined in the configuration language have
 been used in the following sample configuration file.
-
-@newpage
 
 @smallexample
 ---------------------------
@@ -1455,13 +1453,13 @@ S_PARINT=true; export S_PARINT
 To start a partition, the main partition executable executes a remote
 shell. Thus you have to make sure that you are authorized to execute a
 remote shell on the remote machine. In this case, a first step would
-be to add into your ${HOME}/.rhosts file a line like :
+be to add into your $HOME/.rhosts file a line like :
 <remote-machine> <your-username>
 
 If you are not authorized at all, you can bypass this problem. All you
 have to do is:
 
-@itemize
+@itemize @bullet
 
 @item
 Open a session on each machine listed in your configuration file.
@@ -1470,7 +1468,7 @@ Open a session on each machine listed in your configuration file.
 If MAIN_PART is the partition that includes the main procedure and if
 you want to start MAIN_PART on host MAIN_HOST:
 
-@itemize
+@itemize @bullet
 
 @item
 Choose a TCP port number PORT_NUM (gnatdist default is 5555 when using a
@@ -1660,7 +1658,7 @@ named PART, you would start it with the command
 
 @smallexample
 % PART [--nolaunch] [--slave] --replay --boot_server replay://
-@end smallexampl
+@end smallexample
 
 possibly under the control of a debugger, such as gdb.
 
