@@ -223,10 +223,12 @@ package body SOAP.Types is
       case Kind is
          when Tk_String =>
             return To_Standard_String (From_Any (O.Argument));
+         when Tk_Char =>
+            return (1 => PolyORB.Types.Char'(From_Any (O.Argument)));
          when others =>
             Exceptions.Raise_Exception
               (Data_Error'Identity,
-               "String expected, found " & TCKind'Image (Kind));
+               "String/character expected, found " & TCKind'Image (Kind));
       end case;
    end Get;
 
@@ -313,7 +315,7 @@ package body SOAP.Types is
                return Strings.Fixed.Trim (Result, Strings.Both);
             end;
 
-         when Tk_String =>
+         when Tk_String | Tk_Char =>
             return Get (O);
 
          when Tk_Boolean =>
@@ -793,7 +795,7 @@ package body SOAP.Types is
             return XML_Float;
          when Tk_Double =>
             return XML_Double;
-         when Tk_String =>
+         when Tk_String | Tk_Char =>
             return XML_String;
          when Tk_Boolean =>
             return XML_Boolean;

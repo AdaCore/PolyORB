@@ -155,6 +155,10 @@ package body SOAP.Message.XML is
      (N  : in     DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue);
 
+   procedure Parse_Char
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue);
+
    procedure Parse_ObjRef
      (N       : in     DOM.Core.Node;
       NV      : in out PolyORB.Any.NamedValue;
@@ -499,18 +503,27 @@ package body SOAP.Message.XML is
       A : PolyORB.Any.Any := Get_Empty_Any_Aggregate
         (Expected_Type);
 
-      CT : constant PolyORB.Any.TypeCode.Object
-        := TypeCode.Content_Type (Unwind_Typedefs (Expected_Type));
+      Unwound_Expected_Type : constant PolyORB.Any.TypeCode.Object
+        := Unwind_Typedefs (Expected_Type);
+
+      Content_Type : constant PolyORB.Any.TypeCode.Object
+        := TypeCode.Content_Type (Unwound_Expected_Type);
+
       Values : constant DOM.Core.Node_List := Child_Nodes (N);
       Length : constant Unsigned_Long
         := Unsigned_Long (DOM.Core.Nodes.Length (Values));
-
+      Bound : constant Unsigned_Long
+        := PolyORB.Any.TypeCode.Length (Unwound_Expected_Type);
       Child : DOM.Core.Node := First_Child (N);
    begin
+      if Bound > 0 and then Length > Bound then
+         raise Constraint_Error;
+      end if;
+
       Add_Aggregate_Element (A, To_Any (Length));
       for I in 1 .. Length loop
          Add_Aggregate_Element
-           (A, Parse_Param (Child, S, CT).Argument);
+           (A, Parse_Param (Child, S, Content_Type).Argument);
          Child := Next_Sibling (Child);
       end loop;
 
@@ -647,13 +660,55 @@ package body SOAP.Message.XML is
      (N  : in     DOM.Core.Node;
       NV : in out PolyORB.Any.NamedValue)
    is
+      use type DOM.Core.Node;
+
       Value : DOM.Core.Node;
+      Bound : constant PolyORB.Types.Unsigned_Long
+        := TypeCode.Length (Get_Unwound_Type (NV.Argument));
    begin
       Normalize (N);
       Value := First_Child (N);
-      Set_Any_Value
-        (NV.Argument, To_PolyORB_String (Node_Value (Value)));
+      if Value /= null then
+         declare
+            S : constant String := Node_Value (Value);
+         begin
+            if Bound > 0 and then S'Length > Bound then
+               raise Constraint_Error;
+            end if;
+            Set_Any_Value
+              (NV.Argument,
+               To_PolyORB_String (Node_Value (Value)));
+         end;
+      else
+         Set_Any_Value
+           (NV.Argument, To_PolyORB_String (""));
+      end if;
    end Parse_String;
+
+   procedure Parse_Char
+     (N  : in     DOM.Core.Node;
+      NV : in out PolyORB.Any.NamedValue)
+   is
+      use type DOM.Core.Node;
+
+      Value : DOM.Core.Node;
+
+   begin
+      Normalize (N);
+      Value := First_Child (N);
+      if Value /= null then
+         declare
+            Str : constant String := Node_Value (Value);
+         begin
+            if Str'Length = 1 then
+               Set_Any_Value
+                 (NV.Argument, PolyORB.Types.Char (Str (Str'First)));
+               return;
+            end if;
+         end;
+      end if;
+      raise Constraint_Error;
+   end Parse_Char;
 
    procedure Parse_ObjRef
      (N       : in     DOM.Core.Node;
@@ -821,8 +876,14 @@ package body SOAP.Message.XML is
                         Parse_Double (N, NV);
 
                      elsif xsd = Types.XML_String then
-                        Parse_String (N, NV);
-
+                        case Expected_TCKind is
+                           when Tk_String =>
+                              Parse_String (N, NV);
+                           when Tk_Char =>
+                              Parse_Char (N, NV);
+                           when others =>
+                              Error (N, "Wrong or not supported type");
+                        end case;
                      elsif xsd = Types.XML_Boolean then
                         Parse_Boolean (N, NV);
 
