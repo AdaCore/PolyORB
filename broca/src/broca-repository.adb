@@ -1,5 +1,4 @@
 with CORBA; use CORBA;
-with Ada.Tags;
 
 package body Broca.Repository is
    --  Single linked list of all classes.

@@ -1,6 +1,4 @@
 with System;
-with Ada.Strings.Unbounded;
-with Ada.Exceptions;
 with Broca.Types; use Broca.Types;
 with CORBA; use CORBA;
 with CORBA.Iop;

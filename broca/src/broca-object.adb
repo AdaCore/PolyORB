@@ -1,4 +1,3 @@
-with Ada.Tags;
 with CORBA;
 
 package body Broca.Object is
