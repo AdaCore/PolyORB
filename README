@@ -68,10 +68,16 @@ just-in-time creation of proxies between incompatible environments
 Build requirements
 ------------------
 
-Ada 95 compiler: GNAT 3.14a1 or later.
+Ada 95 compiler: GNAT 3.15a (or the public release 3.15p) or later.
 
 Optional: XmlAda (http://libre.act-europe.fr/xmlada/) if you want to
 build the SOAP protocol personality.
+
+Note: per construction, the macro used to detect your GNAT compiler
+looks first to the executables 'gnatgcc', then 'adagcc' and finally to
+'gcc' to find out which Ada compiler to use. You should be very
+careful with your path and executables if you have multiple GNAT
+versions installed.
 
 Build instructions
 ------------------
