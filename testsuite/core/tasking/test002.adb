@@ -37,9 +37,19 @@
 
 with PolyORB.Initialization;
 
-with PolyORB.Setup.Tasking.Full_Tasking;
-pragma Elaborate_All (PolyORB.Setup.Tasking.Full_Tasking);
-pragma Warnings (Off, PolyORB.Setup.Tasking.Full_Tasking);
+with PolyORB.Tasking.Profiles.Full_Tasking.Threads;
+pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Threads);
+pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads);
+
+with PolyORB.Tasking.Profiles.Full_Tasking.Mutexes;
+pragma Elaborate_All (PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
+pragma Warnings (Off, PolyORB.Tasking.Profiles.Full_Tasking.Mutexes);
+
+with PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables;
+pragma Elaborate_All
+  (PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
+pragma Warnings
+  (Off, PolyORB.Tasking.Profiles.Full_Tasking.Condition_Variables);
 
 with Test002_Common;
 
