@@ -1,3 +1,14 @@
+2002-12-02  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* Makefile.am, Makefile.in: Fix include path as we compile in the
+	temporary directory instead of the Garlic directory.
+
+2002-11-29  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* Makefile.am, Makefile.in: Do not use -o flags of gnatmake that
+	does not behave as the gcc one. Compile in the expected directory
+	instead.
+
 2002-11-26  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* Makefile.am, Makefile.in: Fix BB23-001 (test concerning gnatgcc).
