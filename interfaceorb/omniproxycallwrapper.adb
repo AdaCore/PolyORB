@@ -45,6 +45,7 @@
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
+
 with Ada.Exceptions ;
 with Ada.Unchecked_Conversion ;
 with Interfaces.C ;
@@ -58,7 +59,6 @@ with Netbufferedstream ;
 with Omniproxycalldesc ;
 with Omniobject ; use type Omniobject.Object_Ptr ;
 with Sys_Dep ;
-
 
 package body omniProxyCallWrapper is
 
@@ -80,7 +80,7 @@ package body omniProxyCallWrapper is
       Retries : Corba.Unsigned_Long := 0 ;
       -- current number of retries
 
-      Rope_And_Key : Omniropeandkey.Object ;
+      Rope_And_Key : Omniropeandkey.Object_Ptr ;
       -- rope and key of the omniobject
 
       Is_Fwd : Corba.Boolean ;
@@ -111,7 +111,7 @@ package body omniProxyCallWrapper is
          Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key,Is_Fwd) ;
 
          -- Get a GIOP driven strand
-         Giop_C.Init (Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key)) ;
+         Giop_C.Init (Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key.all)) ;
 
          -- do the giop_client reuse an existing connection ?
          Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client) ;
@@ -120,7 +120,7 @@ package body omniProxyCallWrapper is
          -- first the size of the header
          Message_Size :=
            Giop_C.Request_Header_Size
-           (Omniropeandkey.Key_Size(Rope_And_Key),
+           (Omniropeandkey.Key_Size(Rope_And_Key.all),
             Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
          -- and then the size of the message itself
          Message_Size := Omniproxycalldesc.Aligned_Size (Call_Desc,
@@ -128,8 +128,8 @@ package body omniProxyCallWrapper is
 
          -- Initialise the request
          Giop_C.Initialize_Request(Giop_Client,
-                                   Omniropeandkey.Get_Key(Rope_And_Key),
-                                   Omniropeandkey.Key_Size(Rope_And_Key),
+                                   Omniropeandkey.Get_Key(Rope_And_Key.all),
+                                   Omniropeandkey.Key_Size(Rope_And_Key.all),
                                    OmniProxycalldesc.Operation(Call_Desc),
                                    Message_Size,
                                    False);
@@ -206,7 +206,7 @@ package body omniProxyCallWrapper is
                declare
                   Obj_Ref : Corba.Object.Ref ;
                   Omniobj_Ptr2 : Omniobject.Object_Ptr ;
-                  R : Omniropeandkey.Object ;
+                  R : Omniropeandkey.Object_Ptr ;
                   Unneeded_Result : Corba.Boolean ;
                begin
                   -- unmarshall the object
@@ -357,7 +357,7 @@ package body omniProxyCallWrapper is
       Retries : Corba.Unsigned_Long := 0 ;
       -- current number of retries
 
-      Rope_And_Key : Omniropeandkey.Object ;
+      Rope_And_Key : Omniropeandkey.Object_Ptr ;
       -- rope and key of the omniobject
 
       Is_Fwd : Corba.Boolean ;
@@ -388,7 +388,7 @@ package body omniProxyCallWrapper is
          Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key,Is_Fwd) ;
 
          -- Get a GIOP driven strand
-         Giop_C.Init (Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key)) ;
+         Giop_C.Init (Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key.all)) ;
 
          -- do the giop_client reuse an existing connection ?
          Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client) ;
@@ -397,7 +397,7 @@ package body omniProxyCallWrapper is
          -- first the size of the header
          Message_Size :=
            Giop_C.Request_Header_Size
-           (Omniropeandkey.Key_Size(Rope_And_Key),
+           (Omniropeandkey.Key_Size(Rope_And_Key.all),
             Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
          -- and then the size of the message itself
          Message_Size := Omniproxycalldesc.Aligned_Size (Call_Desc,
@@ -405,8 +405,8 @@ package body omniProxyCallWrapper is
 
          -- Initialise the request
          Giop_C.Initialize_Request(Giop_Client,
-                                   Omniropeandkey.Get_Key(Rope_And_Key),
-                                   Omniropeandkey.Key_Size(Rope_And_Key),
+                                   Omniropeandkey.Get_Key(Rope_And_Key.all),
+                                   Omniropeandkey.Key_Size(Rope_And_Key.all),
                                    OmniProxycalldesc.Operation(Call_Desc),
                                    Message_Size,
                                    True);
@@ -573,7 +573,7 @@ package body omniProxyCallWrapper is
       return Sys_Dep.C_Boolean ;
    pragma Import (CPP,
                   C_Omni_Call_Transient_Exeption_Handler,
-                  "_omni_callTransientExceptionHandler__FP10omniObjectUlUlQ25CORBA16CompletionStatus") ;
+                  "_omni_callTransientExceptionHandler__FP10omniObjectUlRCQ25CORBA9TRANSIENT") ;
 
 
    -- Omni_Call_Transient_Exception_Handler
@@ -615,7 +615,7 @@ package body omniProxyCallWrapper is
       return Sys_Dep.C_Boolean ;
    pragma Import (CPP,
                   C_Omni_Comm_Failure_Exception_Handler,
-                  "_omni_callCommFailureExceptionHandler__FP10omniObjectUlUlQ25CORBA16CompletionStatus") ;
+                  "_omni_callCommFailureExceptionHandler__FP10omniObjectUlRCQ25CORBA12COMM_FAILURE") ;
 
 
    -- Omni_Comm_Failure_Exception_Handler
@@ -657,7 +657,7 @@ package body omniProxyCallWrapper is
       return Sys_Dep.C_Boolean ;
    pragma Import (CPP,
                   C_Omni_System_Exception_Handler,
-                  "_omni_callSystemExceptionHandler__FP10omniObjectUlUlQ25CORBA16CompletionStatus") ;
+                  "_omni_callSystemExceptionHandler__FP10omniObjectUlRCQ25CORBA15SystemException") ;
 
 
    -- Omni_System_Exception_Handler
@@ -687,49 +687,5 @@ package body omniProxyCallWrapper is
       -- ... and transforms the result into an Ada type
       return Sys_Dep.Boolean_C_To_Ada (C_Result) ;
    end ;
-
-
-   -- C_Omni_Object_Not_Exist_Exception_Handler
-   --------------------------------------------
-   function C_Omni_Object_Not_Exist_Exception_Handler
-     (Obj : in System.Address ;
-      Retries : in Interfaces.C.Unsigned_Long ;
-      Minor : in Interfaces.C.Unsigned_Long ;
-      Status : in Interfaces.C.Int)
-      return Sys_Dep.C_Boolean ;
-   pragma Import (CPP,
-                  C_Omni_Object_Not_Exist_Exception_Handler,
-                  "_omni_callObjectNotExistExceptionHandler__FP10omniObjectUlUlQ25CORBA16CompletionStatus") ;
-
-
-   -- Omni_Object_Not_Exist_Exception_Handler
-   ------------------------------------------
-   function Omni_Object_Not_Exist_Exception_Handler
-     (Obj : in Omniobject.Object'Class ;
-      Retries : in Corba.Unsigned_Long ;
-      Minor : in Corba.Unsigned_Long ;
-      Status : in Corba.Completion_Status)
-      return Corba.Boolean is
-      C_Obj : System.Address ;
-      C_Retries : Interfaces.C.Unsigned_Long ;
-      C_Minor : Interfaces.C.Unsigned_Long ;
-      C_Status : Interfaces.C.Int ;
-      C_Result : Sys_Dep.C_Boolean ;
-   begin
-      -- transforms the arguments in a C type ...
-      C_Obj := Obj'Address ;
-      C_Retries := Ada_To_C_Unsigned_Long (Retries) ;
-      C_Minor := Ada_To_C_Unsigned_Long (Minor) ;
-      C_Status := Completion_Status_To_C_Int (Status) ;
-      -- ... and calls the C function
-      C_Result := C_Omni_Object_Not_Exist_Exception_Handler (C_Obj,
-                                                             C_Retries,
-                                                             C_Minor,
-                                                             C_Status) ;
-      -- ... and transforms the result into an Ada type
-      return Sys_Dep.Boolean_C_To_Ada (C_Result) ;
-   end ;
-
-
 
 end omniproxyCallWrapper ;

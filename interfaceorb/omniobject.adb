@@ -370,7 +370,7 @@ package body OmniObject is
       C_Profiles := System.Address(Profiles) ;
 
       C_Result := C_Create_Omniobject(C_Mdr, C_Profiles, C_R) ;
-      return To_Object_Ptr(A2a.To_Pointer(C_Result)) ;
+      return To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
    end ;
 
 
@@ -387,9 +387,9 @@ package body OmniObject is
       C_Result : System.Address ;
       C_Arg : System.Address ;
    begin
-      C_Arg := A2a.To_Address(From_Object_Ptr(Self)) ;
+      C_Arg := Address_To_Object.To_Address(From_Object_Ptr(Self)) ;
       C_Result := C_Omniobject_Duplicate(C_Arg) ;
-      return To_Object_Ptr(A2a.To_Pointer(C_Result)) ;
+      return To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
    end ;
 
 
@@ -405,7 +405,7 @@ package body OmniObject is
    ------------------------
    procedure Omniobject_Destructor(Self : in Object_Ptr) is
    begin
-      C_Omniobject_Destructor(A2a.To_Address(From_Object_Ptr(Self))) ;
+      C_Omniobject_Destructor(Address_To_Object.To_Address(From_Object_Ptr(Self))) ;
    end ;
 
 
@@ -424,7 +424,7 @@ package body OmniObject is
    ----------------------
    procedure Omniobject_Is_Ready(Self : in Object_Ptr) is
    begin
-      C_Omniobject_Is_Ready(A2a.To_Address(From_Object_Ptr(Self))) ;
+      C_Omniobject_Is_Ready(Address_To_Object.To_Address(From_Object_Ptr(Self))) ;
    end ;
 
    -- C_Omniobject_Dispose
@@ -438,7 +438,7 @@ package body OmniObject is
    ---------------------
    procedure Omniobject_Dispose(Self : in Object_Ptr) is
    begin
-      C_Omniobject_Is_Ready(A2a.To_Address(From_Object_Ptr(Self))) ;
+      C_Omniobject_Is_Ready(Address_To_Object.To_Address(From_Object_Ptr(Self))) ;
    end ;
 
 
@@ -471,7 +471,7 @@ package body OmniObject is
       if  C_Result = System.Null_Address then
          return null ;
       else
-         return To_Object_Ptr(A2a.To_Pointer(C_Result)) ;
+         return To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
       end if ;
    end ;
 
@@ -490,7 +490,7 @@ package body OmniObject is
       C_Obj_ptr : System.Address ;
       C_Result : Interfaces.C.Strings.Chars_Ptr ;
    begin
-      C_Obj_ptr := A2a.To_Address(From_Object_Ptr(Obj_Ptr)) ;
+      C_Obj_ptr := Address_To_Object.To_Address(From_Object_Ptr(Obj_Ptr)) ;
       C_Result := C_Object_To_String(C_Obj_ptr) ;
       return Corba.To_Corba_String(Interfaces.C.Strings.Value(C_Result)) ;
    end ;
@@ -507,7 +507,7 @@ package body OmniObject is
                                 Success : out Sys_Dep.C_Boolean) ;
    pragma Import (CPP,
                   C_Get_Rope_And_Key,
-                  "getRopeAndKey__14Ada_OmniObjectR14omniRopeAndKeyRb") ;
+                  "getRopeAndKey__14Ada_OmniObjectR18Ada_OmniRopeAndKeyRb") ;
    -- wrapper around  Ada_OmniObject function getRopeAndKey
    -- (see Ada_OmniObject.hh)
 
@@ -515,17 +515,23 @@ package body OmniObject is
    -- Get_Rope_And_Key
    -------------------
    procedure Get_Rope_And_Key (Self : in Object'Class ;
-                               L : out Omniropeandkey.Object ;
+                               L : out Omniropeandkey.Object_Ptr ;
                                Success : out Corba.Boolean ) is
       C_Success : Sys_Dep.C_Boolean ;
+      package Address_To_Omniropeandkey is
+        new System.Address_To_Access_Conversions (Omniropeandkey.Object) ;
+      function To_Omniropeandkey is new Ada.Unchecked_Conversion(Address_To_Omniropeandkey.Object_Pointer,
+                                                                 Omniropeandkey.Object_Ptr) ;
+      C_L : System.Address ;
    begin
       if Is_Proxy(Self) then
          Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
                                         "Omniobject.Get_Rope_And_Key cannot be called on a local object") ;
       end if ;
       -- ... calls the C function ...
-      C_Get_Rope_And_Key(Self, L, C_Success) ;
+      C_Get_Rope_And_Key(Self, C_L, C_Success) ;
       -- ... and transforms the result into an Ada type
+      L := To_Omniropeandkey (Address_To_Omniropeandkey.To_Pointer (C_L)) ;
       Success := Sys_Dep.Boolean_C_To_Ada (C_Success) ;
    end ;
 
@@ -670,7 +676,7 @@ package body OmniObject is
                                  L : in System.Address ;
                                  KeepIOP : in Sys_Dep.C_Boolean) ;
    pragma Import (CPP,C_Set_Rope_And_Key,
-                  "setRopeAndKey__14Ada_OmniObjectRC14omniRopeAndKeyb") ;
+                  "setRopeAndKey__14Ada_OmniObjectRC18Ada_OmniRopeAndKeyb") ;
    -- wrapper around  Ada_OmniObject function setRopeAndKey
    -- (see Ada_OmniObject.hh)
 
@@ -678,13 +684,17 @@ package body OmniObject is
    -- Set_Rope_And_Key
    -------------------
    procedure Set_Rope_And_Key (Self : in out Object'Class ;
-                               L : in Omniropeandkey.Object ;
+                               L : in Omniropeandkey.Object_Ptr ;
                                KeepIOP : in Boolean := True) is
       C_L : System.Address;
       C_KeepIOP : Sys_Dep.C_Boolean ;
+      package Address_To_Omniropeandkey is
+        new System.Address_To_Access_Conversions (Omniropeandkey.Object) ;
+      function From_Omniropeandkey is new Ada.Unchecked_Conversion(Omniropeandkey.Object_Ptr,
+                                                                   Address_To_Omniropeandkey.Object_Pointer) ;
    begin
       -- transforms the arguments into a C type ...
-      C_L := L'Address ;
+      C_L := Address_To_Omniropeandkey.To_Address (From_Omniropeandkey (L)) ;
       C_KeepIOP := Sys_Dep.Boolean_Ada_To_C (KeepIOP) ;
       -- ... and calls the C procedure
       C_Set_Rope_And_Key (Self,C_L,C_KeepIOP) ;
@@ -769,7 +779,7 @@ package body OmniObject is
       C_Result : System.Address ;
    begin
       C_Result := C_Object_Ptr_Constructor ;
-      return To_Object_Ptr(A2a.To_Pointer(C_Result)) ;
+      return To_Object_Ptr(Address_To_Object.To_Pointer(C_Result)) ;
    end ;
 
 

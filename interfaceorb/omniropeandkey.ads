@@ -129,7 +129,7 @@ private
 
    function Constructor return Object'Class;
    pragma CPP_Constructor (Constructor);
-   pragma Import (CPP,Constructor,"__14omniRopeAndKey");
+   pragma Import (CPP,Constructor,"__18Ada_OmniRopeAndKey");
    -- default constructor of the C class.
    -- Actually, this constructor does nothing and you must
    -- call Init to init properly an object.

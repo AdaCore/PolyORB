@@ -312,14 +312,14 @@ package OmniObject is
    -- checks that this object really exists
 
    procedure Get_Rope_And_Key (Self : in Object'Class ;
-                               L : out Omniropeandkey.Object ;
+                               L : out Omniropeandkey.Object_Ptr ;
                                Success : out Boolean ) ;
    -- returns the rope and key for this omniobject
    -- if it is a proxy object
 
 
    procedure Set_Rope_And_Key(Self : in out Object'Class ;
-                              L : in Omniropeandkey.Object ;
+                              L : in Omniropeandkey.Object_Ptr ;
                               KeepIOP : in Boolean := True) ;
    -- sets the rope and key for this object
 
@@ -381,11 +381,11 @@ private
    --           PRIVATE PART                    --
    -----------------------------------------------
 
-   package A2a is new System.Address_To_Access_Conversions (Object) ;
-   function To_Object_Ptr is new Ada.Unchecked_Conversion(A2a.Object_Pointer,
+   package Address_To_Object is new System.Address_To_Access_Conversions (Object) ;
+   function To_Object_Ptr is new Ada.Unchecked_Conversion(Address_To_Object.Object_Pointer,
                                                           Object_Ptr) ;
    function From_Object_Ptr is new Ada.Unchecked_Conversion(Object_Ptr,
-                                                            A2a.Object_Pointer) ;
+                                                            Address_To_Object.Object_Pointer) ;
    -- useful routines to convert to/from C types.
 
 

@@ -739,9 +739,14 @@ package body NetBufferedStream is
    function Align_Size (A : in Corba.String ;
                         Initial_Offset : in Corba.Unsigned_Long)
                         return Corba.Unsigned_Long is
+      Tmp : Corba.Unsigned_Long ;
    begin
-      -- no alignment needed here
-      return Initial_Offset + Corba.Length (A) + 1 ;
+      -- alignment
+      Tmp := Omni.Align_To (Initial_Offset,Omni.ALIGN_4) ;
+      -- size of the size of the string
+      Tmp := Tmp + 4 ;
+      -- size of the string itself
+      return Tmp + Corba.Length (A) + 1 ;
       -- + 1 is for the null character (the strings ar marshalled in C style)
    end ;
 

@@ -46,7 +46,6 @@
 
 
 with Ada.Exceptions ;
-with System.Address_To_Access_Conversions ;
 
 with Corba ;
 use type Corba.Unsigned_Long ;

@@ -51,7 +51,6 @@
 
 #include "Ada_OmniObject.hh"
 
-
 // DEBUG is defined at the beginning of each file
 // and undefined at the end of each file
 #define DEBUG
@@ -204,12 +203,12 @@ Ada_OmniObject::disposeObject() {
 // setRopeAndKey
 //--------------
 void
-Ada_OmniObject::setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
+Ada_OmniObject::setRopeAndKey(const Ada_OmniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
 {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    C_Object->setRopeAndKey(l,keepIOP);
+    C_Object->setRopeAndKey(*(l.C_Object),keepIOP);
     return;
   } else {
     // else raise an Ada Exception
@@ -239,11 +238,11 @@ Ada_OmniObject::resetRopeAndKey ()
 // getRopeAndKey
 //--------------
 void
-Ada_OmniObject::getRopeAndKey(omniRopeAndKey& l, _CORBA_Boolean& success) {
+Ada_OmniObject::getRopeAndKey(Ada_OmniRopeAndKey& l, _CORBA_Boolean& success) {
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
-    success = C_Object->getRopeAndKey(l);
+    success = C_Object->getRopeAndKey(*(l.C_Object));
     return ;
   } else {
     // else raise an Ada Exception

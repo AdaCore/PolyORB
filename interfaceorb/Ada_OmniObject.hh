@@ -53,6 +53,7 @@
 #define __Ada_OmniObject__
 #include "omniObject_C2Ada.hh"
 #endif
+#include "Ada_OmniRopeAndKey.hh"
 
 
 class omniObject_C2Ada ;
@@ -109,10 +110,10 @@ public:
   // it has to be done only for local object
   // to tell the ORB they cannot receive connexions any longer
 
-  void setRopeAndKey(const omniRopeAndKey& l,_CORBA_Boolean keepIOP=1);
+  void setRopeAndKey(const Ada_OmniRopeAndKey& l,_CORBA_Boolean keepIOP=1);
   // calls the setRopeAndKey function of C_Object
 
-  void  getRopeAndKey(omniRopeAndKey& l, _CORBA_Boolean& success);
+  void  getRopeAndKey(Ada_OmniRopeAndKey& l, _CORBA_Boolean& success);
   // calls the getRopeAndKey function of C_Object
 
   void resetRopeAndKey();

@@ -81,7 +81,7 @@ Ada_memBufferedStream.o : Ada_memBufferedStream.hh Ada_memBufferedStream.cc
 Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc
 
 Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc omniObject_C2Ada.o \
-omniobject.ads omniobject.adb
+omniobject.ads omniobject.adb Ada_OmniRopeAndKey.o
 
 Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc
 
@@ -164,7 +164,8 @@ corba.ali sys_dep.ali rope.ali Ada_netBufferedStream.o omni.ali
 omni.ali: omni.ads omni.adb corba.ali
 
 omniobject.ali : omniobject.ads omniobject.adb corba.ali omni.ali \
-membufferedstream.ali netbufferedstream.ali
+membufferedstream.ali netbufferedstream.ali giop_s.ali sys_dep.ali \
+iop.ali rope.ali omniropeandkey.ali
 
 omniproxycalldesc.ali: omniproxycalldesc.ads omniproxycalldesc.adb \
 corba.ali giop_c.ali

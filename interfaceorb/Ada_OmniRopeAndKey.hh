@@ -78,10 +78,10 @@ public:
   _CORBA_Boolean equals(Ada_OmniRopeAndKey other) ;
   // compares two objects, imported in Ada
   
-private:
-
   omniRopeAndKey *C_Object;
   // Pointer on the underlying Rope object
+
+private:
 
   bool Init_Ok;
   // This flag tells whether an init function was called or not
