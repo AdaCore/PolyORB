@@ -72,9 +72,20 @@ package PolyORB.ORB.Interface is
    type Oid_Translate is new Components.Message with record
       Oid : Objects.Object_Id_Access;
    end record;
+   --  When sent by middleware core to object adapter:
+   --    Request that Oid be translated into a relative URI.
+   --    The expected reply is URI_Translate.
+   --  When replied by object adapter to middleware core:
+   --    Returns relative URI translated to object id.
 
    type URI_Translate is new Components.Message with record
       Path : Types.String;
    end record;
+   --  When sent by middleware core to object adapter:
+   --    Request that Path (a relative URI) be translated into
+   --    an object id.
+   --    The expected reply is Oid_Translate.
+   --  When replied by object adapter to middleware core:
+   --    Returns object id translated to relative URI.
 
 end PolyORB.ORB.Interface;
