@@ -1,3 +1,22 @@
+2004-07-05  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-nutils.adb, backend-be_ada-nutils.ads,
+	backend-be_ada-nodes.idl: Define tables for attributes,
+	subprograms and components like those we have for parameters and
+	variables. Add component initialization. Add discriminant in full
+	type declaration. Add Make_Type_Attribute to initialize
+	discriminant.
+
+	* backend-be_ada.adb: Implement union type and minor reformatting.
+
+	* analyzer.adb: Minor reformatting and check duplicated default
+	labels.
+	
+	* backend-be_ada-generator.adb: Generate union types. Fix
+	generation of object initialization.
+
+	* backend-be_idl.adb: Minor reformatting.
+
 2004-07-03  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_ada.adb: Produce exception declaration and members
