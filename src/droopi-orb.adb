@@ -369,6 +369,16 @@ package body Droopi.ORB is
       Leave (ORB.ORB_Lock.all);
    end Register_Access_Point;
 
+   procedure Set_Object_Adapter
+     (ORB : access ORB_Type;
+      OA  : Obj_Adapters.Obj_Adapter_Access)
+   is
+      use Obj_Adapters;
+   begin
+      pragma Assert (ORB.Obj_Adapter = null);
+      ORB.Obj_Adapter := OA;
+   end Set_Object_Adapter;
+
    function Object_Adapter (ORB : access ORB_Type)
      return Obj_Adapters.Obj_Adapter_Access is
    begin

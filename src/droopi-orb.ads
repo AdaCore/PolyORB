@@ -115,6 +115,13 @@ package Droopi.ORB is
    --  chain is instanciated using Chain, and associated
    --  to the corresponding transport endpoint.
 
+   procedure Set_Object_Adapter
+     (ORB : access ORB_Type;
+      OA  : Obj_Adapters.Obj_Adapter_Access);
+   --  Associate object adapter OA with ORB.
+   --  Objects registered with OA become visible through
+   --  ORB for external request invocation.
+
    function Object_Adapter (ORB : access ORB_Type)
      return Obj_Adapters.Obj_Adapter_Access;
    --  Return the object adapter associated with ORB.

@@ -93,6 +93,8 @@ begin
       Chain => new Filters.Factory_Chain'
       (This => new Protocols.Echo.Echo_Protocol,
        Upper => null));
+   --  Register socket with ORB object, associating a protocol
+   --  to the transport service access point.
 
    ----------------------------------
    -- Create simple object adapter --
@@ -101,18 +103,7 @@ begin
    Obj_Adapter := new Obj_Adapters.Simple.Simple_Obj_Adapter;
    Obj_Adapters.Create (Obj_Adapter.all);
 
---  XXX remove:
---     Insert_Socket
---       (The_ORB, Active_Socket'
---        (The_ORB => The_ORB,
---         Kind => Listening_Sk,
---         Socket => Server,
---         Chain => new Filters.Factory_Chain'
---         (This => new Protocols.Echo.Echo_Protocol,
---          Upper => null)));
-
-   --  Register socket with ORB object, associating a protocol
-   --  to the transport service access point.
+   Set_Object_Adapter (The_ORB, Obj_Adapter);
 
    Run (The_ORB, May_Poll => True);
    --  Execute the ORB.
