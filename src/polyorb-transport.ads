@@ -109,6 +109,10 @@ package PolyORB.Transport is
       Msg : Components.Message'Class)
      return Components.Message'Class;
 
+   function Upper (TE : Transport_Endpoint_Access)
+                   return Components.Component_Access;
+   --  Return a component access to the upper layer of TE
+
    ----------------------------------------------------
    -- Primitive operations of Transport_Access_Point --
    -- and Transport_Endpoint.                        --
@@ -152,9 +156,6 @@ package PolyORB.Transport is
    --  Write out the contents of Buffer onto TE.
 
    procedure Close (TE : in out Transport_Endpoint) is abstract;
-
-   function Upper (TE : Transport_Endpoint_Access)
-                   return Components.Component_Access;
 
 private
 

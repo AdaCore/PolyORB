@@ -555,8 +555,6 @@ src/polyorb-asynch_ev.adb
 src/polyorb-asynch_ev.ads
 src/polyorb-binding_data-local.adb
 src/polyorb-binding_data-local.ads
-src/polyorb-binding_data-srp.adb
-src/polyorb-binding_data-srp.ads
 src/polyorb-binding_data.adb
 src/polyorb-binding_data.ads
 src/polyorb-buffers.adb
@@ -675,8 +673,6 @@ src/polyorb-protected_objects.ads
 src/polyorb-protocols-echo.adb
 src/polyorb-protocols-echo.ads
 src/polyorb-protocols-interface.ads
-src/polyorb-protocols-srp.adb
-src/polyorb-protocols-srp.ads
 src/polyorb-protocols.adb
 src/polyorb-protocols.ads
 src/polyorb-ravenscar-configuration.ads
@@ -695,8 +691,6 @@ src/polyorb-references.adb
 src/polyorb-references.ads
 src/polyorb-representations-cdr.adb
 src/polyorb-representations-cdr.ads
-src/polyorb-representations-srp.adb
-src/polyorb-representations-srp.ads
 src/polyorb-representations-test.adb
 src/polyorb-representations-test.ads
 src/polyorb-representations.ads
@@ -716,8 +710,6 @@ src/polyorb-setup-no_tasking_server.adb
 src/polyorb-setup-no_tasking_server.ads
 src/polyorb-setup-server.adb
 src/polyorb-setup-server.ads
-src/polyorb-setup-tcp_access_points-srp.ads
-src/polyorb-setup-tcp_access_points-srp.adb
 src/polyorb-setup-tcp_access_points.adb
 src/polyorb-setup-tcp_access_points.ads
 src/polyorb-setup-thread_per_request_server.adb
@@ -776,8 +768,6 @@ src/polyorb-utils-semaphores.adb
 src/polyorb-utils-semaphores.ads
 src/polyorb-utils-simple_flags.adb
 src/polyorb-utils-simple_flags.ads
-src/polyorb-utils-srp.adb
-src/polyorb-utils-srp.ads
 src/polyorb-utils-strings-lists.adb
 src/polyorb-utils-strings-lists.ads
 src/polyorb-utils-strings.adb
@@ -830,6 +820,16 @@ src/soap/soap-types.ads
 src/soap/soap-utils.adb
 src/soap/soap-utils.ads
 src/soap/soap.ads
+src/srp/polyorb-binding_data-srp.adb
+src/srp/polyorb-binding_data-srp.ads
+src/srp/polyorb-protocols-srp.ads
+src/srp/polyorb-protocols-srp.adb
+src/srp/polyorb-utils-srp.adb
+src/srp/polyorb-utils-srp.ads
+src/srp/polyorb-representations-srp.adb
+src/srp/polyorb-representations-srp.ads
+src/srp/polyorb-setup-tcp_access_points-srp.adb
+src/srp/polyorb-setup-tcp_access_points-srp.ads
 support/ada.m4
 support/adacompiler.in
 support/config.guess

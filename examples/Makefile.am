@@ -9,6 +9,10 @@ TESTS=  polyorb-test-no_tasking \
 COS=cos
 endif
 
+if ENABLE_GIOP
+GIOP_LIB=
+endif
+
 if ENABLE_MOMA
 MOMA_DIR = moma
 MOMA_LIB="../src/moma/libpolyorb-moma.la"
@@ -22,13 +26,19 @@ if ENABLE_SOAP
 SOAP_LIB="../src/soap/libpolyorb-soap.la"
 endif
 
+if ENABLE_SOAP
+SRP_LIB="../src/srp/libpolyorb-srp.la"
+endif
+
 SUBDIRS = . $(CORBA_DIR) $(DSA_DIR) $(MOMA_DIR)
 
 POLYORB_LIBS = \
 ../src/libpolyorb.la \
 $(CORBA_LIB) \
+$(GIOP_LIB) \
 $(MOMA_LIB) \
-$(SOAP_LIB)
+$(SOAP_LIB) \
+$(SRP_LIB)
 
 LINKER=	../support/linker
 
@@ -43,10 +53,14 @@ $(TESTS): force
 	-I$(srcdir) \
 	-I$(srcdir)/../src \
 	-I$(srcdir)/../src/corba \
+	-I$(srcdir)/../src/giop \
 	-I$(srcdir)/../src/soap \
+	-I$(srcdir)/../src/srp \
 	-I../src \
 	-I../src/corba \
+	-I../src/giop \
 	-I../src/soap \
+	-I../src/srp \
 	$(XMLADA_INCLUDE) \
 	-m $@ \
 	-cargs $(GNATFLAGS) -bargs $(BARGS) \

@@ -2,7 +2,7 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#10 $
+# $Id: //droopi/main/utils/cobuild#12 $
 
 PROJECT=DROOPI
 
@@ -121,7 +121,7 @@ export CHANGE
   if [ -x $CLIENT_TOP/configure ]
   then
     $CLIENT_TOP/configure --disable-shared --enable-debug --enable-corba \
-      --enable-dsa --enable-moma --enable-soap --prefix=$OUTDIR/install
+       --enable-moma --enable-soap --enable-srp --prefix=$OUTDIR/install
   fi && make && make install
   RC=$?
   exit $RC

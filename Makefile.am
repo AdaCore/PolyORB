@@ -11,3 +11,7 @@ CLEANFILES = config-stamp
 
 depend:
 	cd src && ${MAKE} depend
+
+install-exec-local:
+	$(INSTALL) -d $(DESTDIR)$(exec_prefix)/bin
+	$(INSTALL_PROGRAM) polyorb-config $(DESTDIR)$(exec_prefix)/bin/polyorb-config
