@@ -112,6 +112,10 @@ package body Ada_Be.Expansion is
    --  Expand union: for each case, isolate array declarators,
    --  then expand Case_Type.
 
+   procedure Expand_Enum
+     (Node : Node_Id);
+   --  Expand enum (used to handle renaming of Ada keywords)
+
    procedure Expand_Sequence
      (Node : Node_Id);
    --  Replace a Sequence node with a reference to
@@ -175,9 +179,10 @@ package body Ada_Be.Expansion is
    --  CORBA.Sequences.Bounded or CORBA.Sequences.Unbounded.
 
    procedure Add_Identifier_With_Renaming
-     (Node : Node_Id;
-      Identifier : String);
-   --  Assign Identifier to Node in the current scope,
+     (Node       : Node_Id;
+      Identifier : String;
+      Scope      : Node_Id := No_Node);
+   --  Assign Identifier to Node in Scope (or current scope if No_Node),
    --  possibly appending a numeric prefix if a conflict
    --  would otherwise be introduced.
 
@@ -203,6 +208,17 @@ package body Ada_Be.Expansion is
    begin
       pragma Debug (O ("Expanding node : "
                        & Node_Kind'Image (Kind (Node))));
+
+      --  If node has already been expanded, this is a bug
+
+      if Expanded (Node) then
+         Error ("Node " & Kind (Node)'Img & " already expanded",
+                Fatal, Get_Location (Node));
+      end if;
+
+      --  Set node expanded early to catch infinite loops as well
+
+      Set_Expanded (Node, True);
 
       --  Rename nodes with Ada identifiers
 
@@ -243,6 +259,9 @@ package body Ada_Be.Expansion is
 
          when K_Sequence =>
             Expand_Sequence (Node);
+
+         when K_Enum =>
+            Expand_Enum (Node);
 
          when K_Param =>
             Expand_Param (Node);
@@ -701,7 +720,7 @@ package body Ada_Be.Expansion is
 
          Set_Members (Members_Struct, Members (Node));
          Set_Is_Exception_Members (Members_Struct, True);
-         Expand_Struct (Members_Struct);
+         Expand_Node (Members_Struct);
 
          Insert_Before
            (List => Enclosing_List,
@@ -730,9 +749,9 @@ package body Ada_Be.Expansion is
    procedure Expand_Struct
      (Node : Node_Id) is
    begin
-      --  Push_Scope (Node);
+      Push_Scope (Node);
       Expand_Node_List (Members (Node), False);
-      --  Pop_Scope;
+      Pop_Scope;
    end Expand_Struct;
 
    procedure Expand_Member
@@ -747,6 +766,7 @@ package body Ada_Be.Expansion is
 
       Expand_Node (M_Type (Node));
       Expand_Array_Declarators (Node);
+      Expand_Node_List (Decl (Node), False);
    end Expand_Member;
 
    procedure Expand_Constant
@@ -760,13 +780,13 @@ package body Ada_Be.Expansion is
    is
       R_Node : Node_Id;
    begin
-      --  Push_Scope (Node);
+      Push_Scope (Node);
       Expand_Constructed_Type (Switch_Type (Node), R_Node);
       if R_Node /= No_Node then
          Set_Switch_Type (Node, R_Node);
       end if;
       Expand_Node_List (Cases (Node), False);
-      --  Pop_Scope;
+      Pop_Scope;
    end Expand_Union;
 
    procedure Expand_Case
@@ -781,7 +801,15 @@ package body Ada_Be.Expansion is
 
       Expand_Node (Case_Type (Node));
       Expand_Array_Declarator (Case_Decl (Node));
+      Expand_Node (Case_Decl (Node));
    end Expand_Case;
+
+   procedure Expand_Enum
+     (Node : Node_Id)
+   is
+   begin
+      Expand_Node_List (Enumerators (Node), False);
+   end Expand_Enum;
 
    procedure Expand_Sequence
      (Node : Node_Id)
@@ -795,9 +823,8 @@ package body Ada_Be.Expansion is
    begin
       Add_Identifier_With_Renaming
         (Seq_Inst_Node,
-         "IDL_" & Sequence_Type_Name (Node));
-      --  FIXME: The Add_Identifier should be performed
-      --    in the Current_Gen_Scope, not in the Current_Scope.
+         "IDL_" & Sequence_Type_Name (Node),
+         Get_Current_Gen_Scope);
       --  FIXME: If the identifier is not available
       --     in the current gen scope, that may mean that the
       --     correct sequence type has already been created.
@@ -890,10 +917,8 @@ package body Ada_Be.Expansion is
             Declarator_Node : constant Node_Id
               := Make_Declarator;
          begin
-            --  FIXME: The Add_Identifier should be performed
-            --    in the Current_Gen_Scope, not in the Current_Scope.
-
-            Success := Add_Identifier (Declarator_Node, Identifier);
+            Success := Add_Identifier (Declarator_Node, Identifier,
+                                       Get_Current_Gen_Scope);
             pragma Assert (Success);
 
             Set_Value (Fixed_Ref_Node, Declarator_Node);
@@ -945,28 +970,25 @@ package body Ada_Be.Expansion is
 
          if Parent_Scope (Constr_Type_Node) /= Current_Gen_Scope then
             Add_Identifier_With_Renaming
-              (Constr_Type_Node, Name (Constr_Type_Node));
-            --  FIXME: We change the parent scope of Constr_Type_Node
-            --    (it becomes Current_Scope). Actually this should
-            --    be Current_Gen_Scope.
-         end if;
+              (Constr_Type_Node, Name (Constr_Type_Node),
+               Current_Gen_Scope);
 
-         if Kind (Constr_Type_Node) = K_Enum then
-            --  Also reparent all enumerators
-            declare
-               It : Node_Iterator;
-               E_Node : Node_Id;
-            begin
-               Init (It, Enumerators (Constr_Type_Node));
+            if Kind (Constr_Type_Node) = K_Enum then
+               --  Also reparent all enumerators
+               declare
+                  It : Node_Iterator;
+                  E_Node : Node_Id;
+               begin
+                  Init (It, Enumerators (Constr_Type_Node));
 
-               while not Is_End (It) loop
-                  Get_Next_Node (It, E_Node);
+                  while not Is_End (It) loop
+                     Get_Next_Node (It, E_Node);
 
-                  Add_Identifier_With_Renaming
-                    (E_Node, Name (E_Node));
-                  --   FIXME: See above.
-               end loop;
-            end;
+                     Add_Identifier_With_Renaming
+                       (E_Node, Name (E_Node), Current_Gen_Scope);
+                  end loop;
+               end;
+            end if;
          end if;
 
          Set_Value (Constr_Type_Ref_Node, Constr_Type_Node);
@@ -1079,9 +1101,8 @@ package body Ada_Be.Expansion is
             Append_Node (Nil_List, Array_Node));
          Set_Parent (Array_Node, Array_Type_Node);
          Success := Add_Identifier
-           (Array_Node, Name (Node) & "_Array");
+           (Array_Node, Name (Node) & "_Array", Get_Current_Gen_Scope);
          pragma Assert (Success);
-         --  FIXME: In current /gen/scope (see comment in Expand_Sequence).
 
          Insert_Before_Current (Array_Type_Node);
          Set_Array_Bounds (Array_Node, Array_Bounds (Node));
@@ -1307,17 +1328,18 @@ package body Ada_Be.Expansion is
    end Sequence_Type_Name;
 
    procedure Add_Identifier_With_Renaming
-     (Node : Node_Id;
-      Identifier : String)
+     (Node       : Node_Id;
+      Identifier : String;
+      Scope      : Node_Id := No_Node)
    is
       Suffix : Integer := 1;
    begin
       pragma Debug (O ("Add_Identifier_With_Renaming: trying to add "
                        & Identifier));
 
-      if not Add_Identifier (Node, Identifier) then
+      if not Add_Identifier (Node, Identifier, Scope) then
          while not Add_Identifier
-           (Node, Identifier & "_" & Img (Suffix)) loop
+           (Node, Identifier & "_" & Img (Suffix), Scope) loop
             Suffix := Suffix + 1;
          end loop;
       end if;
@@ -1326,8 +1348,7 @@ package body Ada_Be.Expansion is
    procedure Insert_Before_Current
      (Node : Node_Id)
    is
-      Current_Gen_Scope : constant Node_Id
-        := Get_Current_Gen_Scope;
+      Current_Gen_Scope : constant Node_Id := Get_Current_Gen_Scope;
       Current_Scope_Contents : Node_List;
    begin
       pragma Assert (Is_Gen_Scope (Current_Gen_Scope));

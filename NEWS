@@ -1,15 +1,20 @@
 AdaBroker news
 --------------
 
-New features in version XXX
-===========================
+New features in version 1.0pre2
+===============================
 
 New command line switch: '-p', output all generated
 packages concatenated on standard output (in a form
 suitable for gnatchop).
 
-Incompatible changes in version XXX
-===================================
+Support for fixed-point data types.
+Support for IDL identifiers that conflict with Ada keywords.
+
+Several bug fixes.
+
+Incompatible changes in version 1.0pre2
+=======================================
 
 When invoking idlac with the '-i' command line switch
 to generate an implementation template, only the implementation
