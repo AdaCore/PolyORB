@@ -333,7 +333,7 @@ then
 with ${U};
 pragma Elaborate_All (${U});
 pragma Warnings (Off, ${U});
- 
+
 EOF
    cat >>${PROTO_CLIENT_WITHS} <<EOF
 with ${U};
