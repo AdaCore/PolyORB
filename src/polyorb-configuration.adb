@@ -323,9 +323,9 @@ package body PolyORB.Configuration is
                        or else Ket = Bra + 1
                        or else Ket /= Last
                      then
-                        pragma Debug (O ("Syntax Error line :" &
+                        pragma Debug (O ("Syntax error on line" &
                                          Integer'Image (Current_Line) &
-                                         ", " & Line (Line'First .. Last)));
+                                         ": " & Line (Line'First .. Last)));
                         raise Syntax_Error;
                      end if;
 
@@ -339,9 +339,9 @@ package body PolyORB.Configuration is
                                 Line'First, '=');
                   begin
                      if Eq not in Line'First + 1 .. Last - 1 then
-                        pragma Debug (O ("Syntax Error line :" &
+                        pragma Debug (O ("Syntax error on line" &
                                          Integer'Image (Current_Line) &
-                                         ", " & Line (Line'First .. Last)));
+                                         ": " & Line (Line'First .. Last)));
                         raise Syntax_Error;
                      end if;
 
