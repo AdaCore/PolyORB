@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver.ads#7 $
+--  $Id: //droopi/main/src/corba/portableserver.ads#8 $
 
 with PolyORB.Components;
 with PolyORB.Objects;
@@ -48,14 +48,33 @@ package PortableServer is
 
    package POA_Forward is new CORBA.Forward;
 
-   type Servant_Base is new CORBA.Impl.Object with private;
+   ---------------------------
+   -- DynamicImplementation --
+   ---------------------------
 
+   --  The root of all implementation objects:
+   --  DynamicImplementation.
+
+   type DynamicImplementation is
+     abstract new CORBA.Impl.Object with private;
+
+   procedure Invoke
+     (Self    : access DynamicImplementation;
+      Request : in CORBA.ServerRequest.Object_Ptr)
+      is abstract;
+
+   type Servant is access all DynamicImplementation'Class;
+
+   --  The root of all static implementations: Servant_Base,
+   --  a type derived from DynamicImplementation (which provides
+   --  a default implementation of the Invoke operation.)
+
+   type Servant_Base is
+     abstract new DynamicImplementation with private;
    --  21.41.1
    --  Conforming implementations must provide a controlled (tagged)
    --  Servant_Base type and default implementations of the primitve
    --  operations on Servant_Base that meet the required semantics.
-
-   type Servant is access all Servant_Base'Class;
 
    --  FIXME: how to implement this ?
    --  function "=" (Left, Right : Servant) return Boolean;
@@ -77,18 +96,6 @@ package PortableServer is
    --     function Non_Existent
    --       (For_Servant : Servant_Base)
    --       return Boolean;
-
-   ---------------------------
-   -- DynamicImplementation --
-   ---------------------------
-
-   type DynamicImplementation is
-     abstract new Servant_Base with private;
-
-   procedure Invoke
-     (Self    : access DynamicImplementation;
-      Request : in CORBA.ServerRequest.Object_Ptr)
-     is abstract;
 
    --------------
    -- ObjectId --
@@ -216,15 +223,19 @@ package PortableServer is
 
 private
 
-   type Servant_Base is
-     new CORBA.Impl.Object with null record;
-
    type DynamicImplementation is
-     abstract new Servant_Base with null record;
+     abstract new CORBA.Impl.Object with null record;
 
    function Handle_Message
      (Self : access DynamicImplementation;
       Msg  : PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class;
+
+   type Servant_Base is
+     abstract new DynamicImplementation with null record;
+
+   procedure Invoke
+     (Self    : access Servant_Base;
+      Request : in CORBA.ServerRequest.Object_Ptr);
 
 end PortableServer;

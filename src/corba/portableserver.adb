@@ -65,6 +65,18 @@ package body PortableServer is
       end if;
    end Handle_Message;
 
+   procedure Invoke
+     (Self    : access Servant_Base;
+      Request : in CORBA.ServerRequest.Object_Ptr) is
+   begin
+      raise PolyORB.Not_Implemented;
+      --  Invoke primitive for static object implementations:
+      --  should look up the skeleton associated with
+      --  Self.all'Tag, and delegate the dispatching of
+      --  Request to one of Self's primitive operations to
+      --  that skeleton.
+   end Invoke;
+
    function Get_Default_POA
      (For_Servant : Servant_Base)
      return POA_Forward.Ref is
