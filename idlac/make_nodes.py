@@ -47,7 +47,7 @@ typess = {}
 current = None
 started = 0
 
-input = open ("nodes.txt", "r").readlines()
+input = open (sys.argv [1], "r").readlines()
 for i in input:
     if re.match ("^\s*--", i):
         continue
