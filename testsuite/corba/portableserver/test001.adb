@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                             L I S T E N E R                              --
+--                              T E S T 0 0 1                               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2003-2004 Free Software Foundation, Inc.           --
+--            Copyright (C) 2004 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,16 +31,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
-with Ada.Command_Line;
-with Ada.Text_IO;
-
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
---  Note: this test relies on the fact that the server is mono
---  tasking, see Test.Printer.Impl for more details.
 
 with CORBA.Object;
 with CORBA.ORB;
@@ -49,68 +42,24 @@ with CORBA.Policy;
 
 with PortableServer.POA.GOA;
 
-with PolyORB.CORBA_P.CORBALOC;
 with PolyORB.CORBA_P.Server_Tools;
 
-with Test.Printer.Impl;
+with PolyORB.Utils.Report;
 
-procedure Listener is
+with Echo.Impl;
 
-   use Ada.Command_Line;
+procedure Test001 is
 
-   use CORBA.ORB;
    use PortableServer;
    use PortableServer.POA.GOA;
 
    use PolyORB.CORBA_P.Server_Tools;
 
-   procedure Print_List (List : IDs);
-   --  Output each elements of List
-
-   procedure Usage;
-   --  Output usage information
-
-   ----------------
-   -- Print_List --
-   ----------------
-
-   procedure Print_List (List : IDs)
-   is
-      use Sequence_IDs;
-
-   begin
-      Ada.Text_IO.Put_Line ("Group length :" & Integer'Image (Length (List)));
-
-      for J in 1 .. Length (List) loop
-         Ada.Text_IO.Put_Line
-           (Integer'Image (J)
-            & " - "
-            & PortableServer.ObjectId_To_String (Element_Of (List, J).all));
-      end loop;
-   end Print_List;
-
-   -----------
-   -- Usage --
-   -----------
-
-   procedure Usage is
-   begin
-      Ada.Text_IO.Put_Line ("usage : ./listener [-v]");
-   end Usage;
-
-   Print_IOR : Boolean := False;
+   use PolyORB.Utils.Report;
 
 begin
-   if Argument_Count > 1 then
-      Usage;
-      return;
-   end if;
 
-   if Argument_Count = 1
-     and then Argument (1) = "-v"
-   then
-      Print_IOR := True;
-   end if;
+   New_Test ("GOA");
 
    CORBA.ORB.Initialize ("ORB");
 
@@ -130,9 +79,12 @@ begin
           PortableServer.POA.Get_The_POAManager (Get_Root_POA),
           Policies));
 
-      Obj1 : constant CORBA.Impl.Object_Ptr := new Test.Printer.Impl.Object;
-      Obj2 : constant CORBA.Impl.Object_Ptr := new Test.Printer.Impl.Object;
-      Obj3 : constant CORBA.Impl.Object_Ptr := new Test.Printer.Impl.Object;
+      Obj1 : constant CORBA.Impl.Object_Ptr
+        := new Echo.Impl.Object;
+      Obj2 : constant CORBA.Impl.Object_Ptr
+        := new Echo.Impl.Object;
+      Obj3 : constant CORBA.Impl.Object_Ptr
+        := new Echo.Impl.Object;
 
       Oid1 : constant PortableServer.ObjectId
         := Servant_To_Id (GOA, PortableServer.Servant (Obj1));
@@ -155,34 +107,46 @@ begin
       Associate_Reference_With_Id (GOA, Group, Oid2);
       Associate_Reference_With_Id (GOA, Group, Oid3);
 
-      Print_List (Reference_To_Ids (GOA, Group));
+      Output ("Added 3 servants to Group", True);
 
-      Ada.Text_IO.Put_Line
-        ("Group IOR: '"
-         & CORBA.To_Standard_String (Object_To_String (Group))
-         & "'");
+      Output ("Group'Length is correct",
+              Length (Reference_To_Ids (GOA, Group)) = 3);
 
-      Ada.Text_IO.Put_Line
-        ("Group corbaloc: '"
-         & CORBA.To_Standard_String
-         (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Group))
-         & "'");
+      Disassociate_Reference_With_Id (GOA, Group, Oid1);
 
-      if Print_IOR then
-         Ada.Text_IO.Put_Line
-           ("Object IOR: '"
-            & CORBA.To_Standard_String (Object_To_String (Group))
-            & "'");
+      Output ("Removed 1 servant from Group", True);
 
-         Ada.Text_IO.Put_Line
-           ("Object IOR: '"
-            & CORBA.To_Standard_String
-            (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref1))
-            & "'");
-      end if;
+      Disassociate_Reference_With_Id (GOA, Group, Oid2);
+      Disassociate_Reference_With_Id (GOA, Group, Oid3);
 
-      --  Launch the server
+      Output ("Group'Length is correct",
+              Length (Reference_To_Ids (GOA, Group)) = 0);
 
-      Initiate_Server;
+      Associate_Reference_With_Id (GOA, Group, Oid1);
+      Associate_Reference_With_Id (GOA, Group, Oid2);
+
+      Output ("Added 2 servants to Group", True);
+
+      Output ("Group'Length is correct",
+              Length (Reference_To_Ids (GOA, Group)) = 2);
+
+      declare
+         Obj4 : constant CORBA.Impl.Object_Ptr
+           := new Echo.Impl.Object;
+         Oid : constant PortableServer.ObjectId
+           := Create_Id_For_Reference (GOA, Group);
+      begin
+         Activate_Object_With_Id
+           (GOA,
+            Oid,
+            PortableServer.Servant (Obj4));
+
+         Output ("Activate one Object with Id", True);
+      end;
+
+      Output ("Group'Length is correct",
+              Length (Reference_To_Ids (GOA, Group)) = 3);
+
+      End_Report;
    end;
-end Listener;
+end Test001;

@@ -1,4 +1,4 @@
-corba_exe=test000
+corba_exe=test000 test001
 idl=echo
 include $(srcdir)/../../Makefile.common
 
