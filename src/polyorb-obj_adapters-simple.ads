@@ -35,7 +35,7 @@
 --  $Id$
 
 with PolyORB.Sequences.Unbounded;
-with PolyORB.Tasking.Advanced_Mutexes;
+with PolyORB.Tasking.Mutexes;
 
 package PolyORB.Obj_Adapters.Simple is
 
@@ -125,7 +125,7 @@ private
       --  Object_Ids are simply the indices of the objects
       --  within the object map.
 
-      Lock : PolyORB.Tasking.Advanced_Mutexes.Adv_Mutex_Access;
+      Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
    end record;
 
 end PolyORB.Obj_Adapters.Simple;
