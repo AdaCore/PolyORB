@@ -44,6 +44,8 @@
 
 with Ada.Exceptions;
 
+with PolyORB.CORBA_P.Policy;
+
 with PolyORB.Configuration;
 with PolyORB.Dynamic_Dict;
 with PolyORB.Initialization;
@@ -54,6 +56,7 @@ with PolyORB.ORB;
 with PolyORB.Objects;
 with PolyORB.References.IOR;
 with PolyORB.Setup;
+with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 
@@ -455,10 +458,17 @@ package body CORBA.ORB is
       Val      :    Any)
      return CORBA.Policy.Ref
    is
+      use PolyORB.CORBA_P.Policy;
+
       Result : CORBA.Policy.Ref;
+
+      Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+        new Policy_Object_Type;
    begin
-      Result.Type_Of_Ref := The_Type;
-      Result.Val         := Val;
+      Set_Policy_Type (Policy_Object_Type (Entity.all), The_Type);
+      Set_Policy_Value (Policy_Object_Type (Entity.all), Val);
+
+      CORBA.Policy.Set (Result, Entity);
 
       return Result;
    end Create_Policy;

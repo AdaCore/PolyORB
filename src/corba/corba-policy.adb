@@ -33,7 +33,11 @@
 
 --  $Id$
 
+with PolyORB.CORBA_P.Policy;
+
 package body CORBA.Policy is
+
+   use PolyORB.CORBA_P.Policy;
 
    ---------------------
    -- Get_Policy_Type --
@@ -43,7 +47,7 @@ package body CORBA.Policy is
      (Self : Ref)
      return PolicyType is
    begin
-      return Self.Type_Of_Ref;
+      return Get_Policy_Type (Policy_Object_Type (Entity_Of (Self).all));
    end Get_Policy_Type;
 
    ----------

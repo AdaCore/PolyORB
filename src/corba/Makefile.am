@@ -25,6 +25,7 @@ ADA_SPECS_WITH_BODY = \
 	polyorb-corba_p-exceptions.ads \
 	polyorb-corba_p-names.ads \
 	polyorb-corba_p-poa_config.ads \
+	polyorb-corba_p-policy.ads \
 	polyorb-corba_p-servantactivator.ads \
 	polyorb-corba_p-servantlocator.ads \
 	polyorb-corba_p-server_tools.ads \
