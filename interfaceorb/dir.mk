@@ -62,7 +62,10 @@ ADAALIS = $(ADASSRCS:.ads=.ali)
 
 DIR_CPPFLAGS = -I. -I$(TOP)/include
 DIR_CPPFLAGS += $(CORBA_CPPFLAGS) 
-DIR_CPPFLAGS += -g
+# DIR_CPPFLAGS += -g
+
+GNATFLAGS=-O2
+# GNATFLAGS=-g -O2
 
 lib = $(patsubst %,$(LibPattern),adabroker)
 
@@ -87,7 +90,7 @@ Ada_Sys_Dep: Ada_Sys_Dep.cc
 $(ADAOBJS): all_adabroker.o
 
 all_adabroker.o: long_size_check adabroker-sysdep.ads
-	gnatmake -c -g -O2 -gnata -i all_adabroker.ads -gnatg
+	gnatmake -c -gnata -i $(GNATFLAGS) all_adabroker.ads -gnatg
 
 adabroker-sysdep.ads : adabroker-sysdep.ads.in
 	cd ../support && ./linker_options
