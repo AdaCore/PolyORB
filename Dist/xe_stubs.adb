@@ -1064,7 +1064,7 @@ package body XE_Stubs is
          return True;
       end if;
 
-      if Ascii.CR then
+      if Buffer (Ptr) = Ascii.CR then
          Ptr := Ptr + 1;
       end if;
       Ptr := Ptr + 1;
