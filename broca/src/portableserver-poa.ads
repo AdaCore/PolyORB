@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -49,7 +49,7 @@ package PortableServer.POA is
      with null record;
 
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in CORBA.Exception_Occurrence;
       To   : out AdapterAlreadyExists_Members);
 
    AdapterNonExistent : exception;

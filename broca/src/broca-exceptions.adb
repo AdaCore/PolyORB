@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.7 $
+--                            $Revision: 1.8 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -33,23 +33,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Storage_Elements;
-with Ada.Task_Attributes;
 with Ada.Strings.Unbounded;
 with Ada.Exceptions; use Ada.Exceptions;
 with CORBA; use CORBA;
 with Broca.Marshalling;
+with Broca.Exceptions.Stack;
 
 package body Broca.Exceptions is
 
-   --  User exception members of a user raised CORBA exception are stored
-   --  as a task attribute.
-   --  As a result, the user is *not* allowed to save an exception with
-   --  primitives such as Save_Occurence.
-   package Exception_Attribute is
-     new Ada.Task_Attributes
-     (Attribute => IDL_Exception_Members_Ptr,
-      Initial_Value => null);
+   ------------------------------------------------------------
+   -- conversion between Unsigned_Long and Completion_Status --
+   ------------------------------------------------------------
 
    To_Unsigned_Long :
      constant array (Completion_Status) of CORBA.Unsigned_Long
@@ -59,25 +53,33 @@ package body Broca.Exceptions is
      constant array (CORBA.Unsigned_Long range 0 .. 2) of Completion_Status
      := (0 => Completed_Yes, 1 => Completed_No, 2 => Completed_Maybe);
 
+
+   -----------------------
+   --  User_Get_Members --
+   -----------------------
    --  Extract members from an exception occurence.
    procedure User_Get_Members
-     (Occurrence : Ada.Exceptions.Exception_Occurrence;
-      Members : out CORBA.IDL_Exception_Members'Class) is
-   begin
-      Members := Exception_Attribute.Value.all;
-   end User_Get_Members;
+     (Occurrence : CORBA.Exception_Occurrence;
+      Members : out CORBA.IDL_Exception_Members'Class)
+     renames Broca.Exceptions.Stack.Get_Members;
 
+
+
+   ---------------------------
+   --  User_Raise_Exception --
+   ---------------------------
    procedure User_Raise_Exception
-     (Id : Ada.Exceptions.Exception_Id; Members : IDL_Exception_Members_Ptr) is
-   begin
-      --  FIXME: free previous member.
-      Exception_Attribute.Set_Value (Members);
+     (Id : Ada.Exceptions.Exception_Id;
+      Members : IDL_Exception_Members'Class)
+     renames Broca.Exceptions.Stack.Raise_Exception;
 
-      --  Raise the exception.
-      Ada.Exceptions.Raise_Exception (Id);
-   end User_Raise_Exception;
+   --------------------------------
+   -- System exception handling  --
+   --------------------------------
 
-
+   ----------------------
+   --  Raise_Exception --
+   ----------------------
    --  Raises the corresponding exception CORBA exception and stores its
    --  member so that it can be retrieved with Get_Members
    procedure Raise_Exception
@@ -108,8 +110,12 @@ package body Broca.Exceptions is
       raise Program_Error;
    end Raise_Exception;
 
+
+   ------------------
+   --  Get_Members --
+   ------------------
    procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
+     (From : in CORBA.Exception_Occurrence;
       To   : out System_Exception_Members)
    is
       Str : String := Ada.Exceptions.Exception_Message (From);
@@ -134,6 +140,12 @@ package body Broca.Exceptions is
       when Constraint_Error =>
          Raise_Bad_Param;
    end Get_Members;
+
+
+
+   -------------------------------------------------------
+   -- Useful methods to raise standard CORBA exceptions --
+   -------------------------------------------------------
 
    --  Raise CORBA.bad_param with minor = 0 and completed = Completed_No.
    procedure Raise_Bad_Param (Status : Completion_Status := Completed_No) is
@@ -214,6 +226,20 @@ package body Broca.Exceptions is
         (No_Implement'Identity,
          System_Exception_Members'(Minor => 0, Completed => Status));
    end Raise_No_Implement;
+
+   ----------------------
+   --  Raise_Imp_Limit --
+   ----------------------
+   procedure Raise_Imp_Limit (Minor : Unsigned_Long := 0;
+                              Status : Completion_Status := Completed_No) is
+   begin
+      Raise_Exception (Imp_Limit'Identity,
+                       System_Exception_Members'(Minor => Minor,
+                                                 Completed => Status));
+   end Raise_Imp_Limit;
+
+
+
 
    -----------------------------------------------------------------------
 
@@ -344,41 +370,5 @@ package body Broca.Exceptions is
          System_Exception_Members'(Minor, To_Completion_Status (Status)));
    end Unmarshall_And_Raise;
 
-   procedure Raise_With_Address (Id : Ada.Exceptions.Exception_Id;
-                                 Addr : System.Address)
-   is
-      use System.Storage_Elements;
-      Val : Integer_Address;
-      Str : String (1 .. 8);
-   begin
-      Val := To_Integer (Addr);
-      for I in 1 .. 8 loop
-         Str (I) := Character'Val (Val mod 256);
-         Val := Val / 256;
-      end loop;
-      Ada.Exceptions.Raise_Exception (Id, Str);
 
-      --  Huh, excp can't be null_id.
-      Broca.Exceptions.Raise_Internal (51);
-   end Raise_With_Address;
-
-   procedure Get_Member (Occurrence : Ada.Exceptions.Exception_Occurrence;
-                         Addr : out System.Address)
-   is
-      use System.Storage_Elements;
-      Val : Integer_Address;
-      Str : String := Ada.Exceptions.Exception_Message (Occurrence);
-   begin
-      if Str'Length /= 8 then
-         Raise_Bad_Param;
-      end if;
-      Val := 0;
-      for I in reverse 1 .. 8 loop
-         Val := Val * 256 +  Character'Pos (Str (I));
-      end loop;
-      Addr := To_Address (Val);
-   exception
-      when Constraint_Error =>
-         Raise_Bad_Param;
-   end Get_Member;
 end Broca.Exceptions;

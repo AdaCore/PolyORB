@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with System.Address_To_Access_Conversions;
-with Ada.Exceptions;
 with CORBA;
 with Broca.Exceptions;
 with Broca.Refs;
@@ -88,10 +87,11 @@ package body PortableServer is
    ---------------------------
 
    procedure Raise_Forward_Request (Reference : CORBA.Object.Ref) is
+      Excp_Mb : ForwardRequest_Members
+        := (Forward_Reference => Reference);
    begin
-      Broca.Exceptions.Raise_With_Address
-        (ForwardRequest'Identity,
-         To_Address (Object_Pointer (CORBA.Object.Get (Reference))));
+      Broca.Exceptions.User_Raise_Exception (ForwardRequest'Identity,
+                                             Excp_Mb);
    end Raise_Forward_Request;
 
    -----------------
@@ -102,16 +102,8 @@ package body PortableServer is
      (From : in CORBA.Exception_Occurrence;
       To   : out ForwardRequest_Members)
    is
-      use Ada.Exceptions;
-      Addr : System.Address;
-      Res : CORBA.Object.Ref;
    begin
-      if Exception_Identity (From) /= ForwardRequest'Identity then
-         Broca.Exceptions.Raise_Bad_Param;
-      end if;
-      Broca.Exceptions.Get_Member (From, Addr);
-      CORBA.Object.Set (Res, Broca.Refs.Ref_Ptr (To_Pointer (Addr)));
-      To := ForwardRequest_Members'(CORBA.IDL_Exception_Members with Res);
+      Broca.Exceptions.User_Get_Members (From, To);
    end Get_Members;
 
 end PortableServer;

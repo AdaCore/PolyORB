@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -36,32 +36,10 @@
 with Broca.Exceptions;
 
 package body CORBA is
-   procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
-      To   : out System_Exception_Members)
-     renames Broca.Exceptions.Get_Members;
 
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To : out InvalidName_Members) is
-   begin
-      To := InvalidName_Members'(IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To : out InconsistentTypeCode_Members) is
-   begin
-      To := InconsistentTypeCode_Members'
-        (IDL_Exception_Members with null record);
-   end Get_Members;
-
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence; To : out PolicyError_Members)
-   is
-   begin
-      To := PolicyError_Members'(IDL_Exception_Members with null record);
-   end Get_Members;
+   ---------------------------------
+   -- String conversion functions --
+   ---------------------------------
 
    function To_CORBA_String
      (S : in Standard.String)
@@ -78,13 +56,51 @@ package body CORBA is
         (Ada.Strings.Unbounded.Unbounded_String (S));
    end To_Standard_String;
 
---    function Length
---      (S : in CORBA.String)
---       return CORBA.Unsigned_Long is
---    begin
---       return CORBA.Unsigned_Long
---         (Ada.Strings.Unbounded.Length
---          (Ada.Strings.Unbounded.Unbounded_String (S)));
---    end Length;
+
+   ----------------------------------------
+   --  Get_Members for system exceptions --
+   ----------------------------------------
+   procedure Get_Members
+     (From : in Ada.Exceptions.Exception_Occurrence;
+      To   : out System_Exception_Members)
+     renames Broca.Exceptions.Get_Members;
+
+
+   ----------------------
+   -- other exceptions --
+   ----------------------
+
+   ------------------
+   --  Get_Members --
+   ------------------
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To : out InvalidName_Members) is
+   begin
+      To := InvalidName_Members'(IDL_Exception_Members with null record);
+   end Get_Members;
+
+   ------------------
+   --  Get_Members --
+   ------------------
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To : out InconsistentTypeCode_Members) is
+   begin
+      To := InconsistentTypeCode_Members'
+        (IDL_Exception_Members with null record);
+   end Get_Members;
+
+   ------------------
+   --  Get_Members --
+   ------------------
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To : out PolicyError_Members)
+   is
+   begin
+      Broca.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
+
 end CORBA;
 

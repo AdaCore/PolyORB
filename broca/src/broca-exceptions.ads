@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.6 $
+--                            $Revision: 1.7 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -33,30 +33,61 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System;
+--  Description:
+--  Exceptions_Members are handled differently according to the type
+--  of the exception:
+--   - for System exceptions, it is marshalled in the message
+--   - for user exceptions, it is stored in a global stack
+--   unless the members is an empty struct, in which case nothing
+--   is stored and the Get_Members function created a new
+--   object from a derivation od IDL_Exception_Members
+
+
 with Ada.Exceptions;
 with CORBA; use CORBA;
 with Broca.Buffers; use Broca.Buffers;
 
 package Broca.Exceptions is
+
    -----------------------------------------
    --  Declarations for user exceptions.  --
    -----------------------------------------
 
-   type IDL_Exception_Members_Ptr is
-      access all CORBA.IDL_Exception_Members'Class;
-
    --  Extract members from an exception occurence.
    procedure User_Get_Members
-     (Occurrence : Ada.Exceptions.Exception_Occurrence;
+     (Occurrence : in CORBA.Exception_Occurrence;
       Members : out CORBA.IDL_Exception_Members'Class);
 
    --  Raise an user exception.
    procedure User_Raise_Exception
-     (Id : Ada.Exceptions.Exception_Id; Members : IDL_Exception_Members_Ptr);
+     (Id : in Ada.Exceptions.Exception_Id;
+      Members : in CORBA.IDL_Exception_Members'Class);
+   pragma No_Return (User_Raise_Exception);
 
    -------------------------------------------
    --  Declarations for system exceptions.  --
+   -------------------------------------------
+
+   procedure Get_Members
+     (From : in CORBA.Exception_Occurrence;
+      To   : out System_Exception_Members);
+
+   --  Only for a system exception.
+   procedure Compute_New_Size
+     (Buffer : in out Buffer_Descriptor;
+      Excpt  : in CORBA.Exception_Occurrence);
+
+   procedure Marshall
+     (Buffer : in out Buffer_Descriptor;
+      Excpt  : in CORBA.Exception_Occurrence);
+
+   procedure Unmarshall_And_Raise (Buffer : in out Buffer_Descriptor);
+   pragma No_Return (Unmarshall_And_Raise);
+
+
+
+   -------------------------------------------
+   --  Utilities to raise System Exceptions --
    -------------------------------------------
 
    --  Raise CORBA.bad_param with minor = 0.
@@ -105,26 +136,12 @@ package Broca.Exceptions is
      (Minor : Unsigned_Long; Status : Completion_Status := Completed_No);
    pragma No_Return (Raise_Internal);
 
-   procedure Get_Members
-     (From : in Ada.Exceptions.Exception_Occurrence;
-      To   : out System_Exception_Members);
+   --  Raise_Imp_Limit
+   procedure Raise_Imp_Limit (Minor : Unsigned_Long := 0;
+                              Status : Completion_Status := Completed_No);
+   pragma No_Return (Raise_Imp_Limit);
 
-   --  Only for a system exception.
-   procedure Compute_New_Size
-     (Buffer : in out Buffer_Descriptor;
-      Excpt  : in CORBA.Exception_Occurrence);
-
-   procedure Marshall
-     (Buffer : in out Buffer_Descriptor;
-      Excpt  : in CORBA.Exception_Occurrence);
-
-   procedure Unmarshall_And_Raise (Buffer : in out Buffer_Descriptor);
-   pragma No_Return (Unmarshall_And_Raise);
-
-   procedure Raise_With_Address (Id : Ada.Exceptions.Exception_Id;
-                                 Addr : System.Address);
-   pragma No_Return (Raise_With_Address);
-
-   procedure Get_Member (Occurrence : Ada.Exceptions.Exception_Occurrence;
-                         Addr : out System.Address);
 end Broca.Exceptions;
+
+
+

@@ -2,6 +2,7 @@ ADA_FULL = \
 	   broca-debug.ads \
 	   broca-buffers.ads \
            broca-exceptions.ads \
+           broca-exceptions-stack.ads \
            broca-flags.ads \
            broca-giop.ads \
            broca-iiop.ads \

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.3 $
+--                            $Revision: 1.4 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -70,7 +70,10 @@ package CORBA is
    --  arguments when an exception is raised. The default Member record is
    --  abstract and empty but all other records will inherit from it.
 
+   --  inconsistent spec, this line is not defined in package CORBA
+   --  but it is used in other packages.
    subtype Exception_Occurrence is Ada.Exceptions.Exception_Occurrence;
+
 
    procedure Get_Members
      (From : in Ada.Exceptions.Exception_Occurrence;
@@ -135,6 +138,7 @@ package CORBA is
 
    type Unknown_Members         is new System_Exception_Members
      with null record;
+
    type Bad_Param_Members       is new System_Exception_Members
      with null record;
    type No_Memory_Members       is new System_Exception_Members
@@ -192,6 +196,11 @@ package CORBA is
    type Invalid_Transaction_Members    is new System_Exception_Members
      with null record;
 
+
+   ---------------------------------
+   -- String conversion functions --
+   ---------------------------------
+
    function To_CORBA_String
      (S : in Standard.String)
       return CORBA.String;
@@ -202,30 +211,29 @@ package CORBA is
       return Standard.String;
    --  Transforms a corba string into the correponding standard string
 
-   Null_String : constant CORBA.String;
 
---    function To_CORBA_String
---      (S : in Constants.Exception_Id)
---       return CORBA.String;
---    --  Transforms a standard string into the correponding corba string
-
---    function To_Exception_Id
---      (S : in CORBA.String)
---       return Constants.Exception_Id;
---    --  Transforms a corba string into the correponding standard string
-
---    function Length
---      (S : in CORBA.String)
---       return CORBA.Unsigned_Long;
-   --  Returns the length of a corba string
+   -----------------------------
+   -- exceptions for the ORB  --
+   -----------------------------
 
    --  Defined in 4.7
    type PolicyType is new CORBA.Unsigned_Long;
 
-   --  Defined in 21.34
+   --  excpetion PolicyError
+   PolicyError : exception;
 
    type PolicyErrorCode is new Short;
 
+   type PolicyError_Members is new CORBA.IDL_Exception_Members
+     with record
+        Reason : PolicyErrorCode;
+     end record;
+
+   procedure Get_Members
+     (From : Ada.Exceptions.Exception_Occurrence;
+      To : out PolicyError_Members);
+
+   --  exception InvalidName
    InvalidName : exception;
    type InvalidName_Members is new CORBA.IDL_Exception_Members
      with null record;
@@ -233,6 +241,7 @@ package CORBA is
      (From : Ada.Exceptions.Exception_Occurrence;
       To : out InvalidName_Members);
 
+   --  exception InconsistentTypeCode
    InconsistentTypeCode : exception;
    type InconsistentTypeCode_Members is new CORBA.IDL_Exception_Members
      with null record;
@@ -240,13 +249,10 @@ package CORBA is
      (From : Ada.Exceptions.Exception_Occurrence;
       To : out InconsistentTypeCode_Members);
 
-   PolicyError : exception;
-   type PolicyError_Members is new CORBA.IDL_Exception_Members
-     with null record;
-   procedure Get_Members
-     (From : Ada.Exceptions.Exception_Occurrence;
-      To : out PolicyError_Members);
 
+   -------------------------
+   -- types and constants --
+   -------------------------
    type RepositoryId is new CORBA.String;
    type Identifier is new CORBA.String;
    type ServiceType is new Unsigned_Short;
@@ -256,18 +262,9 @@ package CORBA is
    Security : constant ServiceType := 1;
 
 
-   -----------------------
-   -- omniORB2 specific --
-   -----------------------
-
-   Wrong_Transaction      : exception;
-
-   type Wrong_Transaction_Members is new System_Exception_Members
-     with null record;
-
 private
 
-   Null_String : constant CORBA.String :=
-     CORBA.String (Ada.Strings.Unbounded.Null_Unbounded_String);
+   --  Null_String : constant CORBA.String :=
+   --  CORBA.String (Ada.Strings.Unbounded.Null_Unbounded_String);
 
 end CORBA;

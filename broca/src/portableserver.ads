@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.5 $
+--                            $Revision: 1.6 $
 --                                                                          --
 --            Copyright (C) 1999 ENST Paris University, France.             --
 --                                                                          --
@@ -39,6 +39,7 @@ with CORBA.Forward;
 with CORBA.Object;
 with Broca.Sequences;
 with Broca.Buffers;
+
 pragma Elaborate_All (CORBA.Forward);
 
 package PortableServer is
@@ -75,6 +76,9 @@ package PortableServer is
 
    type ObjectId is new Broca.Sequences.Octet_Sequence;
 
+   -------------------------------
+   --  exception forwardRequest --
+   -------------------------------
    ForwardRequest : exception;
 
    type ForwardRequest_Members is new CORBA.IDL_Exception_Members with
@@ -91,6 +95,11 @@ package PortableServer is
    --  REFERENCE while the exception is processed.
    procedure Raise_Forward_Request (Reference : CORBA.Object.Ref);
    pragma No_Return (Raise_Forward_Request);
+
+
+   -----------------------
+   --  constants        --
+   -----------------------
 
    THREAD_POLICY_ID              : constant CORBA.PolicyType := 16;
    LIFESPAN_POLICY_ID            : constant CORBA.PolicyType := 17;
