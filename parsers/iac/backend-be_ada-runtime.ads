@@ -13,23 +13,26 @@ package Backend.BE_Ada.Runtime is
       RU_CORBA_Object,
       RU_CORBA_Object_Helper,
       RU_CORBA_TypeCode,
+      RU_CORBA_TypeCode_Internals,
       RU_PolyORB,
       RU_PolyORB_Any,
       RU_PolyORB_Any_NVList,
+      RU_PolyORB_Any_TypeCode,
+      RU_PolyORB_Any_TypeCode_Internals,
       RU_PolyORB_Requests,
       RU_PolyORB_Types,
       RU_PolyORB_CORBA_P,
       RU_PolyORB_CORBA_P_Interceptors_Hooks,
       RU_PolyORB_CORBA_P_Exceptions,
-      RU_Standard,
-      RU_PortableServer);
+      RU_PortableServer,
+      RU_Standard);
 
    --  Runtime Entities
 
    type RE_Id is
      (RE_Ref_0,                     --  Ref
-      RE_To_Any_1,                  --  CORBA.To_Any
-      RE_Get_Empty_Any_1,           --  CORBA.Get_Empty_Any
+      RE_To_Any_1,                  --  To_Any
+      RE_Get_Empty_Any_1,           --  Get_Empty_Any
       RE_Exception_Occurrence,      --  Ada.Exceptions.Exception_Occurrence
       RE_TC_Void,                   --  CORBA.TC_Void
       RE_Any,                       --  CORBA.Any
@@ -82,7 +85,8 @@ package Backend.BE_Ada.Runtime is
       RE_To_Any_3,                  --  CORBA.Object.Helper.To_Any
       RE_From_Any,                  --  CORBA.Object.Helper.From_Any
       RE_Object,                    --  CORBA.TypeCode.Object
-      RE_To_CORBA_Object,     --  CORBA.TypeCode.Internals.To_CORBA_Object
+      RE_To_CORBA_Object,           --  CORBA.TypeCode.
+                                    --     Internals.To_CORBA_Object
       RE_NamedValue,                --  PolyORB.Any.NamedValue
       RE_Is_Empty,                  --  PolyORB.Any.Is_Empty
       RE_Ref_3,                     --  PolyORB.Any.NVList.Ref
@@ -98,92 +102,93 @@ package Backend.BE_Ada.Runtime is
       RE_Destroy_Request,           --  PolyORB.Requests.Destroy_Request
       RE_Identifier,                --  PolyORB.Types.Identifier
       RE_To_PolyORB_String,         --  PolyORB.Types.To_PolyORB_String
-      RE_Client_Invoke,    --  PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
-      RE_Raise_From_Any,   --  PolyORB.CORBA_P.Exceptions.Raise_From_Any
+      RE_Client_Invoke,             --  PolyORB.CORBA_P.
+                                    --     Interceptors_Hooks.Client_Invoke
+      RE_Raise_From_Any,            --  PolyORB.CORBA_P.
+                                    --     Exceptions.Raise_From_Any
       RE_String_2,                  --  Standard.String
       RE_Servant_Base);             --  PortableServer.Servant_Base
 
-   RE_Unit_Table : array (RE_Id) of RU_Id
-
-     := (RE_Ref_0                 => RU_Null,
-         RE_To_Any_1              => RU_Null,
-         RE_Get_Empty_Any_1       => RU_Null,
-         RE_Exception_Occurrence  => RU_Ada_Exceptions,
-         RE_TC_Void               => RU_CORBA,
-         RE_Any                   => RU_CORBA,
-         RE_To_Any_0              => RU_CORBA,
-         RE_Get_Empty_Any_0       => RU_CORBA,
-         RE_Float                 => RU_CORBA,
-         RE_Double                => RU_CORBA,
-         RE_Long_Double           => RU_CORBA,
-         RE_Short                 => RU_CORBA,
-         RE_Long                  => RU_CORBA,
-         RE_Long_Long             => RU_CORBA,
-         RE_Unsigned_Short        => RU_CORBA,
-         RE_Unsigned_Long         => RU_CORBA,
-         RE_Unsigned_Long_Long    => RU_CORBA,
-         RE_Char                  => RU_CORBA,
-         RE_WChar                 => RU_CORBA,
-         RE_String_1              => RU_CORBA,
-         RE_Wide_String           => RU_CORBA,
-         RE_Boolean               => RU_CORBA,
-         RE_Octet                 => RU_CORBA,
-         RE_TC_Float              => RU_CORBA,
-         RE_TC_Double             => RU_CORBA,
-         RE_TC_Long_Double        => RU_CORBA,
-         RE_TC_Short              => RU_CORBA,
-         RE_TC_Long               => RU_CORBA,
-         RE_TC_Long_Long          => RU_CORBA,
-         RE_TC_Unsigned_Short     => RU_CORBA,
-         RE_TC_Unsigned_Long      => RU_CORBA,
-         RE_TC_Unsigned_Long_Long => RU_CORBA,
-         RE_TC_Char               => RU_CORBA,
-         RE_TC_WChar              => RU_CORBA,
-         RE_TC_String             => RU_CORBA,
-         RE_TC_Wide_String        => RU_CORBA,
-         RE_TC_Boolean            => RU_CORBA,
-         RE_TC_Octet              => RU_CORBA,
-         RE_IDL_Exception_Members => RU_CORBA,
-         RE_Object_Is_Nil         => RU_CORBA,
-         RE_To_CORBA_String       => RU_CORBA,
-         RE_Raise_Inv_Objref      => RU_CORBA,
-         RE_Raise_Bad_Param       => RU_CORBA,
-         RE_To_PolyORB_Ref        => RU_CORBA,
-         RE_Ref_1                 => RU_CORBA_AbstractBase,
-         RE_Set_Type              => RU_CORBA,
+   RE_Unit_Table : constant array (RE_Id) of RU_Id
+     := (RE_Ref_0                   => RU_Null,
+         RE_To_Any_1                => RU_Null,
+         RE_Get_Empty_Any_1         => RU_Null,
+         RE_Exception_Occurrence    => RU_Ada_Exceptions,
+         RE_TC_Void                 => RU_CORBA,
+         RE_Any                     => RU_CORBA,
+         RE_To_Any_0                => RU_CORBA,
+         RE_Get_Empty_Any_0         => RU_CORBA,
+         RE_Float                   => RU_CORBA,
+         RE_Double                  => RU_CORBA,
+         RE_Long_Double             => RU_CORBA,
+         RE_Short                   => RU_CORBA,
+         RE_Long                    => RU_CORBA,
+         RE_Long_Long               => RU_CORBA,
+         RE_Unsigned_Short          => RU_CORBA,
+         RE_Unsigned_Long           => RU_CORBA,
+         RE_Unsigned_Long_Long      => RU_CORBA,
+         RE_Char                    => RU_CORBA,
+         RE_WChar                   => RU_CORBA,
+         RE_String_1                => RU_CORBA,
+         RE_Wide_String             => RU_CORBA,
+         RE_Boolean                 => RU_CORBA,
+         RE_Octet                   => RU_CORBA,
+         RE_TC_Float                => RU_CORBA,
+         RE_TC_Double               => RU_CORBA,
+         RE_TC_Long_Double          => RU_CORBA,
+         RE_TC_Short                => RU_CORBA,
+         RE_TC_Long                 => RU_CORBA,
+         RE_TC_Long_Long            => RU_CORBA,
+         RE_TC_Unsigned_Short       => RU_CORBA,
+         RE_TC_Unsigned_Long        => RU_CORBA,
+         RE_TC_Unsigned_Long_Long   => RU_CORBA,
+         RE_TC_Char                 => RU_CORBA,
+         RE_TC_WChar                => RU_CORBA,
+         RE_TC_String               => RU_CORBA,
+         RE_TC_Wide_String          => RU_CORBA,
+         RE_TC_Boolean              => RU_CORBA,
+         RE_TC_Octet                => RU_CORBA,
+         RE_IDL_Exception_Members   => RU_CORBA,
+         RE_Object_Is_Nil           => RU_CORBA,
+         RE_To_CORBA_String         => RU_CORBA,
+         RE_Raise_Inv_Objref        => RU_CORBA,
+         RE_Raise_Bad_Param         => RU_CORBA,
+         RE_To_PolyORB_Ref          => RU_CORBA,
+         RE_Set_Type                => RU_CORBA,
          RE_Get_Empty_Any_Aggregate => RU_CORBA,
-         RE_Add_Aggregate_Element => RU_CORBA,
-         RE_Ref_2                 => RU_CORBA_Object,
-         RE_Object_Of             => RU_CORBA_Object,
-         RE_Is_A                  => RU_CORBA_Object,
-         RE_To_Any_3              => RU_CORBA_Object_Helper,
-         RE_From_Any              => RU_CORBA_Object_Helper,
-         RE_Is_Nil                => RU_CORBA_Object,
-         RE_Object                => RU_CORBA,
-         RE_To_CORBA_Object       => RU_CORBA,
-         RE_NamedValue            => RU_PolyORB_Any,
-         RE_Is_Empty              => RU_PolyORB_Any,
-         RE_Ref_3                 => RU_PolyORB_Any_NVList,
-         RE_Create                => RU_PolyORB_Any_NVList,
-         RE_TC_Object             => RU_PolyORB_Any,
-         RE_TC_Alias              => RU_PolyORB_Any,
-         RE_TC_Enum               => RU_PolyORB_Any,
-         RE_TC_Struct             => RU_PolyORB_Any,
-         RE_TC_Array              => RU_PolyORB_Any,
-         RE_Request_Access        => RU_PolyORB_Requests,
-         RE_Create_Request        => RU_PolyORB_Requests,
-         RE_Flags                 => RU_PolyORB_Requests,
-         RE_Destroy_Request       => RU_PolyORB_Requests,
-         RE_Identifier            => RU_PolyORB_Types,
-         RE_To_PolyORB_String     => RU_PolyORB_Types,
-         RE_Client_Invoke         => RU_PolyORB_CORBA_P_Interceptors_Hooks,
-         RE_Raise_From_Any      => RU_PolyORB_CORBA_P_Exceptions,
-         RE_String_2              => RU_Standard,
-         RE_Servant_Base          => RU_PortableServer);
+         RE_Add_Aggregate_Element   => RU_CORBA,
+         RE_Ref_1                   => RU_CORBA_AbstractBase,
+         RE_Ref_2                   => RU_CORBA_Object,
+         RE_Object_Of               => RU_CORBA_Object,
+         RE_Is_A                    => RU_CORBA_Object,
+         RE_Is_Nil                  => RU_CORBA_Object,
+         RE_To_Any_3                => RU_CORBA_Object_Helper,
+         RE_From_Any                => RU_CORBA_Object_Helper,
+         RE_Object                  => RU_CORBA_TypeCode,
+         RE_To_CORBA_Object         => RU_CORBA_TypeCode_Internals,
+         RE_Is_Empty                => RU_PolyORB_Any,
+         RE_NamedValue              => RU_PolyORB_Any,
+         RE_Ref_3                   => RU_PolyORB_Any_NVList,
+         RE_Create                  => RU_PolyORB_Any_NVList,
+         RE_TC_Alias                => RU_PolyORB_Any_TypeCode,
+         RE_TC_Array                => RU_PolyORB_Any_TypeCode,
+         RE_TC_Enum                 => RU_PolyORB_Any_TypeCode,
+         RE_TC_Object               => RU_PolyORB_Any_TypeCode,
+         RE_TC_Struct               => RU_PolyORB_Any_TypeCode,
+         RE_Raise_From_Any          => RU_PolyORB_CORBA_P_Exceptions,
+         RE_Client_Invoke           => RU_PolyORB_CORBA_P_Interceptors_Hooks,
+         RE_Request_Access          => RU_PolyORB_Requests,
+         RE_Create_Request          => RU_PolyORB_Requests,
+         RE_Destroy_Request         => RU_PolyORB_Requests,
+         RE_Flags                   => RU_PolyORB_Requests,
+         RE_Identifier              => RU_PolyORB_Types,
+         RE_To_PolyORB_String       => RU_PolyORB_Types,
+         RE_Servant_Base            => RU_PortableServer,
+         RE_String_2                => RU_Standard);
 
    procedure Initialize;
 
-   function RE (Id : RE_Id; Witheded : Boolean := True) return Node_Id;
+   function RE (Id : RE_Id) return Node_Id;
    --  Return a designator for entity Id
 
    function RU (Id : RU_Id) return Node_Id;

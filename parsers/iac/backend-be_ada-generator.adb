@@ -650,7 +650,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Package_Implementation (N : Node_Id) is
       P : Node_Id;
    begin
-      if not Is_Generated (N) then
+      if Disable_Pkg_Impl_Gen then
          return;
       end if;
 
@@ -705,7 +705,7 @@ package body Backend.BE_Ada.Generator is
    procedure Generate_Package_Specification (N : Node_Id) is
       P : Node_Id;
    begin
-      if not Is_Generated (N) then
+      if Disable_Pkg_Spec_Gen then
          return;
       end if;
 

@@ -3,13 +3,13 @@ with GNAT.Table;
 with Charset;   use Charset;
 with Locations; use Locations;
 with Namet;     use Namet;
+with Output;    use Output;
 with Utils;     use Utils;
 
 with Frontend.Nodes;
 
 with Backend.BE_Ada.Nodes;      use Backend.BE_Ada.Nodes;
 with Backend.BE_Ada.IDL_To_Ada; use Backend.BE_Ada.IDL_To_Ada;
---  with Backend.BE_Ada.Debug; use Backend.BE_Ada.Debug;
 
 package body Backend.BE_Ada.Nutils is
 
@@ -35,47 +35,72 @@ package body Backend.BE_Ada.Nutils is
    -- Add_With_Package --
    ----------------------
 
-   procedure Add_With_Package (P : Node_Id) is
+   procedure Add_With_Package (E : Node_Id) is
 
-      procedure Get_Defining_Identifier_Name (N : Node_Id);
+      function To_Library_Unit (E : Node_Id) return Node_Id;
 
-      ----------------------------------
-      -- Get_Defining_Identifier_Name --
-      ----------------------------------
+      ---------------------
+      -- To_Library_Unit --
+      ---------------------
 
-      procedure Get_Defining_Identifier_Name (N : Node_Id) is
-         P : constant Node_Id := Parent_Unit_Name (N);
+      function To_Library_Unit (E : Node_Id) return Node_Id is
+         U : Node_Id;
 
       begin
-         if Present (P) then
-            Get_Defining_Identifier_Name (P);
-            Add_Char_To_Name_Buffer ('.');
-         end if;
-         Get_Name_String_And_Append (BEN.Name (N));
-      end Get_Defining_Identifier_Name;
+         pragma Assert (Kind (E) = K_Designator);
+         U := Corresponding_Node (Defining_Identifier (E));
 
+         --  This node is not properly built as the corresponding node
+         --  is not set.
+
+         if No (U) then
+            if Output_Tree_Warnings then
+               Write_Str  ("WARNING: node ");
+               Write_Name (Name (Defining_Identifier (E)));
+               Write_Line (" has a null corresponding node");
+            end if;
+            return E;
+         end if;
+
+         pragma Assert (Kind (U) = K_Package_Specification);
+
+         --  This is a subunit and we do not need to add a with for
+         --  this unit but for one of its parents.
+
+         if Is_Subunit_Package (U) then
+            return To_Library_Unit (Parent_Unit_Name (E));
+         end if;
+
+         return E;
+      end To_Library_Unit;
+
+      P : constant Node_Id := To_Library_Unit (E);
       W : Node_Id;
       N : Name_Id;
       B : Byte;
       D : Node_Id;
+      I : Node_Id;
+
    begin
 
       --  Build a string "<current_entity>%[s,b] <withed_entity>" that
       --  is the current entity name, a character 's' (resp 'b') to
-      --  indicate that we consider the spec (resp. body) of the
+      --  indicate whether we consider the spec (resp. body) of the
       --  current entity and the withed entity name.
 
       D := FE_Node (P);
       if Present (D) then
-         if Is_N_Parent_Of_M
-           (D, FE_Node (Current_Entity))
-         then
+
+         --  This is a local entity and there is no need for a with clause
+
+         if Is_N_Parent_Of_M (D, FE_Node (Current_Entity)) then
             return;
          end if;
       end if;
-      Name_Len := 0;
-      Get_Defining_Identifier_Name
-        (Defining_Identifier (Package_Declaration (Current_Package)));
+
+      N := Fully_Qualified_Name (Defining_Identifier (P));
+      I := Defining_Identifier (Package_Declaration (Current_Package));
+      Get_Name_String (Fully_Qualified_Name (I));
       Add_Char_To_Name_Buffer ('%');
       if Kind (Current_Package) = K_Package_Specification then
          Add_Char_To_Name_Buffer ('s');
@@ -83,8 +108,7 @@ package body Backend.BE_Ada.Nutils is
          Add_Char_To_Name_Buffer ('b');
       end if;
       Add_Char_To_Name_Buffer (' ');
-      Get_Defining_Identifier_Name
-        (Defining_Identifier (P));
+      Get_Name_String_And_Append (N);
       N := To_Lower (Name_Find);
 
       --  Get the byte associated to the name in the hash table and
@@ -96,6 +120,11 @@ package body Backend.BE_Ada.Nutils is
          return;
       end if;
       Set_Name_Table_Byte (N, 1);
+
+      if Output_Unit_Withing then
+         Write_Name (N);
+         Write_Eol;
+      end if;
 
       --  Add entity to the withed packages list
 
@@ -227,6 +256,38 @@ package body Backend.BE_Ada.Nutils is
       end if;
    end Current_Package;
 
+   --------------------------
+   -- Fully_Qualified_Name --
+   --------------------------
+
+   function Fully_Qualified_Name (N : Node_Id) return Name_Id is
+      Parent_Node : Node_Id := No_Node;
+      Parent_Name : Name_Id := No_Name;
+
+   begin
+      case Kind (N) is
+         when K_Designator =>
+            return Fully_Qualified_Name (Defining_Identifier (N));
+
+         when K_Defining_Identifier =>
+            Parent_Node := Parent_Unit_Name (N);
+            if Present (Parent_Node) then
+               Parent_Name := Fully_Qualified_Name (Parent_Node);
+            end if;
+
+            Name_Len := 0;
+            if Present (Parent_Node) then
+               Get_Name_String (Parent_Name);
+               Add_Char_To_Name_Buffer ('.');
+            end if;
+            Get_Name_String_And_Append (Name (N));
+            return Name_Find;
+
+         when others =>
+            raise Program_Error;
+      end case;
+   end Fully_Qualified_Name;
+
    -----------
    -- Image --
    -----------
@@ -316,6 +377,7 @@ package body Backend.BE_Ada.Nutils is
       for A in Attribute_Id loop
          Set_Str_To_Name_Buffer (Attribute_Id'Image (A));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         To_Lower (Name_Buffer (1 .. Name_Len));
          Capitalize (Name_Buffer (1 .. Name_Len));
          AN (A) := Name_Find;
       end loop;
@@ -323,6 +385,7 @@ package body Backend.BE_Ada.Nutils is
       for C in Component_Id loop
          Set_Str_To_Name_Buffer (Component_Id'Image (C));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         To_Lower (Name_Buffer (1 .. Name_Len));
          Capitalize (Name_Buffer (1 .. Name_Len));
          CN (C) := Name_Find;
       end loop;
@@ -330,6 +393,7 @@ package body Backend.BE_Ada.Nutils is
       for P in Parameter_Id loop
          Set_Str_To_Name_Buffer (Parameter_Id'Image (P));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         To_Lower (Name_Buffer (1 .. Name_Len));
          Capitalize (Name_Buffer (1 .. Name_Len));
          PN (P) := Name_Find;
       end loop;
@@ -337,6 +401,7 @@ package body Backend.BE_Ada.Nutils is
       for S in Subprogram_Id loop
          Set_Str_To_Name_Buffer (Subprogram_Id'Image (S));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         To_Lower (Name_Buffer (1 .. Name_Len));
          Capitalize (Name_Buffer (1 .. Name_Len));
          SN (S) := Name_Find;
       end loop;
@@ -344,6 +409,7 @@ package body Backend.BE_Ada.Nutils is
       for T in Type_Id loop
          Set_Str_To_Name_Buffer (Type_Id'Image (T));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
+         To_Lower (Name_Buffer (1 .. Name_Len));
          Capitalize (Name_Buffer (1 .. Name_Len));
          TN (T) := Name_Find;
       end loop;
@@ -352,6 +418,7 @@ package body Backend.BE_Ada.Nutils is
          Set_Str_To_Name_Buffer (Variable_Id'Image (V));
          Set_Str_To_Name_Buffer (Name_Buffer (3 .. Name_Len));
          Add_Str_To_Name_Buffer ("_U");
+         To_Lower (Name_Buffer (1 .. Name_Len));
          Capitalize (Name_Buffer (1 .. Name_Len));
          VN (V) := Name_Find;
       end loop;
@@ -359,10 +426,10 @@ package body Backend.BE_Ada.Nutils is
       for G in Pragma_Id loop
          Set_Str_To_Name_Buffer (Pragma_Id'Image (G));
          Set_Str_To_Name_Buffer (Name_Buffer (8 .. Name_Len));
+         To_Lower (Name_Buffer (1 .. Name_Len));
          Capitalize (Name_Buffer (1 .. Name_Len));
          GN (G) := Name_Find;
       end loop;
-
    end Initialize;
 
    --------------
@@ -788,14 +855,12 @@ package body Backend.BE_Ada.Nutils is
          Set_Parent (Unit, Main_Package (Current_Entity));
       end if;
       Pkg := New_Node (K_Package_Specification);
-      Set_Is_Generated (Pkg, False);
       Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
       Set_Visible_Part (Pkg, New_List (K_Declaration_List));
       Set_Private_Part (Pkg, New_List (K_Declaration_List));
       Set_Package_Declaration (Pkg, Unit);
       Set_Package_Specification (Unit, Pkg);
       Pkg := New_Node (K_Package_Implementation);
-      Set_Is_Generated (Pkg, False);
       Set_Withed_Packages (Pkg, New_List (K_Withed_Packages));
       Set_Declarations (Pkg, New_List (K_Declaration_List));
       Set_Statements (Pkg, New_List (K_Statement_List));
@@ -1187,8 +1252,6 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Implementation (Helper_Package (X));
-      Set_Is_Generated
-        (Package_Implementation (Helper_Package (X)), True);
    end Set_Helper_Body;
 
    ---------------------
@@ -1203,8 +1266,6 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Specification (Helper_Package (X));
-      Set_Is_Generated
-        (Package_Specification (Helper_Package (X)), True);
    end Set_Helper_Spec;
 
    -------------------
@@ -1219,8 +1280,6 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Implementation (Implementation_Package (X));
-      Set_Is_Generated
-        (Package_Implementation (Implementation_Package (X)), True);
    end Set_Impl_Body;
 
    -------------------
@@ -1235,8 +1294,6 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Specification (Implementation_Package (X));
-      Set_Is_Generated
-        (Package_Specification (Implementation_Package (X)), True);
    end Set_Impl_Spec;
 
    -------------------
@@ -1251,8 +1308,6 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Implementation (Main_Package (X));
-      Set_Is_Generated
-        (Package_Implementation (Main_Package (X)), True);
    end Set_Main_Body;
 
    -------------------
@@ -1267,8 +1322,6 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Specification (Main_Package (X));
-      Set_Is_Generated
-        (Package_Specification (Main_Package (X)), True);
    end Set_Main_Spec;
 
    -----------------------
@@ -1283,8 +1336,6 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Implementation (Skeleton_Package (X));
-      Set_Is_Generated
-        (Package_Implementation (Skeleton_Package (X)), True);
    end Set_Skeleton_Body;
 
    -----------------------
@@ -1299,8 +1350,6 @@ package body Backend.BE_Ada.Nutils is
       end if;
       Table (Last).Current_Package :=
         Package_Specification (Skeleton_Package (X));
-      Set_Is_Generated
-        (Package_Specification (Skeleton_Package (X)), True);
    end Set_Skeleton_Spec;
 
    -----------------
@@ -1344,5 +1393,23 @@ package body Backend.BE_Ada.Nutils is
       end if;
       return Name;
    end To_Ada_Name;
+
+   ------------------
+   -- To_Spec_Name --
+   ------------------
+
+   function To_Spec_Name (N : Name_Id) return Name_Id is
+   begin
+      Get_Name_String (N);
+      To_Lower (Name_Buffer (1 .. Name_Len));
+      if Name_Len > 2
+        and then Name_Buffer (Name_Len - 1) = '%'
+      then
+         Name_Buffer (Name_Len) := 's';
+      else
+         Add_Str_To_Name_Buffer ("%s");
+      end if;
+      return Name_Find;
+   end To_Spec_Name;
 
 end Backend.BE_Ada.Nutils;

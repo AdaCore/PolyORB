@@ -281,8 +281,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
    --------------------
 
    function Map_Designator
-     (Entity : Node_Id;
-      Witheded : Boolean := True)
+     (Entity : Node_Id)
      return Node_Id
    is
       use FEN;
@@ -307,9 +306,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
          P := Scope_Entity (Identifier (R));
 
          if Present (P) then
-            if Kind (P) = K_Specification
-              and then Witheded
-            then
+            if Kind (P) = K_Specification then
                R := New_Node (K_Designator);
                Set_Defining_Identifier
                  (R,
@@ -320,11 +317,13 @@ package body Backend.BE_Ada.IDL_To_Ada is
                Set_FE_Node (R, P);
                Set_Parent_Unit_Name (N, R);
             else
-               Set_Parent_Unit_Name (N, Map_Designator (P, False));
+               Set_Parent_Unit_Name (N, Map_Designator (P));
             end if;
          end if;
+
       elsif K in FEN.K_Float .. FEN.K_Value_Base then
          N := RE (Convert (K));
+
       else
          N := New_Node (K_Designator);
          Set_Defining_Identifier (N, Map_Defining_Identifier (Entity));
@@ -334,18 +333,16 @@ package body Backend.BE_Ada.IDL_To_Ada is
          then
             P := Scope_Entity (Identifier (Entity));
             Set_FE_Node (N, Entity);
-            Set_Parent_Unit_Name (N, Map_Designator (P, False));
+            Set_Parent_Unit_Name (N, Map_Designator (P));
+
          elsif K = FEN.K_Specification then
             return No_Node;
          end if;
       end if;
 
       P := Parent_Unit_Name (N);
-
-      if Witheded then
-         if Present (P) then
-            Add_With_Package (P);
-         end if;
+      if Present (P) then
+         Add_With_Package (P);
       end if;
 
       return N;
@@ -577,7 +574,7 @@ package body Backend.BE_Ada.IDL_To_Ada is
       return Make_Object_Declaration
         (Defining_Identifier => Make_Defining_Identifier (I),
          Constant_Present    => True,
-         Object_Definition   => RE (RE_String_2, False),
+         Object_Definition   => RE (RE_String_2),
          Expression          => Make_Literal (V));
    end Map_Repository_Declaration;
 

@@ -1,3 +1,42 @@
+2004-08-03  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* backend-be_ada-nutils.adb, backend-be_ada-nutils.ads:
+	Reimplement Add_With_Package. This takes into account whether the
+	unit to with is a subunit. In this case, it explores the parent
+	list and finds the first non-subunit parent in order to with
+	it. Add Fully_Qualified_Name which takes a designator or a
+	defining identifier and builds the fully qualified name of this
+	entity. Add To_Spec_Name which takes a name and return another
+	name with %s at the end when needed. This name designates the
+	specification of a unit. The name info is supposed to contain a
+	reference to the corresponding node.
+
+	* backend-be_ada-runtime.adb, backend-be_ada-runtime.ads: Remove
+	special names and find special words into identifiers in order to
+	apply special casing. For instance, all identifiers with "corba"
+	in it like "to_corba_object" are output with "CORBA" in it. Define
+	run-time entities no only as designator but as package spec as
+	well and set attributes Is_Runtime_Package and Is_Subunit_Package
+	to true when required. Entities and units are supposed to be in
+	alphabetic order.
+
+	* backend-be_ada-expand.adb, backend-be_ada-expand.ads,
+	backend-be_ada-idl_to_ada.adb, backend-be_ada-idl_to_ada.ads,
+	backend-be_ada-stubs.adb: Remove parameter Witheded in
+	*_Designator. Use new signatures.
+
+	* backend-be_ada-nodes.idl: Remove Is_Generated since it is not
+	used (no call to Is_Generated) and add Is_Runtime_Package and
+	Is_Subunit_Package.
+
+	* backend-be_ada.adb, backend-be_ada.ads,
+	backend-be_ada-generator.adb: Add new options. -ta to print Ada
+	tree (Print_Ada_Tree), -ti to print IDL tree (Print_IDL_Tree ???),
+	-ds to only generate package spec (Disable_Pkg_Impl_Gen), -db to
+	only generate package impl (Disable_Pkg_Spec_Gen), -dt to output
+	tree warnings (Output_Tree_Warnings), -dw to output unit withing
+	(Output_Unit_Withing). Use these new flags. 
+	
 2004-08-03  souli  <souli@neraka.enst.fr>
 
 	* backend-be_ada-nutils.ads: Minor reformatting. 

@@ -22,10 +22,6 @@ with Backend.BE_Ada.Skels;
 
 package body Backend.BE_Ada is
 
-   Print_Ada_Tree : Boolean := False;
-   Print_IDL_Tree : Boolean := False;
-   Build_Impls    : constant Boolean := True;
-
    package BEN renames Backend.BE_Ada.Nodes;
 
    procedure Initialize;
@@ -40,26 +36,59 @@ package body Backend.BE_Ada is
    procedure Configure is
    begin
       loop
-         case Getopt ("t i l s b :") is
+         case Getopt ("t! i d! l:") is
             when ASCII.NUL =>
                exit;
 
-            when 'b' =>
-               Generate_Bodies := True;
-               Generate_Specs := False;
+            when 'd' =>
+               declare
+                  S : constant String := Parameter;
+               begin
+                  for I in S'First .. S'Last loop
+                     case S (I) is
+                        when 'b' =>
+                           Disable_Pkg_Impl_Gen := False;
+                           Disable_Pkg_Spec_Gen := True;
 
-            when 's' =>
-               Generate_Specs := True;
-               Generate_Bodies := False;
+                        when 's' =>
+                           Disable_Pkg_Impl_Gen := True;
+                           Disable_Pkg_Spec_Gen := False;
+
+                        when 'w' =>
+                           Output_Unit_Withing := True;
+
+                        when 't' =>
+                           Output_Tree_Warnings := True;
+
+                        when others =>
+                           raise Program_Error;
+                     end case;
+                  end loop;
+               end;
 
             when 'i' =>
-               Print_IDL_Tree := True;
+               Impl_Packages_Gen := True;
 
             when 'l' =>
                Var_Name_Len := Natural'Value (Parameter);
 
             when 't' =>
-               Print_Ada_Tree := True;
+               declare
+                  S : constant String := Parameter;
+               begin
+                  for I in S'First .. S'Last loop
+                     case S (I) is
+                        when 'a' =>
+                           Print_Ada_Tree := True;
+
+                        when 'i' =>
+                           Print_IDL_Tree := True;
+
+                        when others =>
+                           raise Program_Error;
+                     end case;
+                  end loop;
+               end;
 
             when others =>
                raise Program_Error;
@@ -72,17 +101,23 @@ package body Backend.BE_Ada is
    --------------
 
    procedure Generate (E : Node_Id) is
+      Print_Tree : Boolean := False;
+
    begin
       Initialize;
       Visit_Specification (E);
 
       if Print_IDL_Tree then
          Frontend.Debug.W_Node_Id (E);
+         Print_Tree := True;
       end if;
 
       if Print_Ada_Tree then
          W_Node_Id (BEN.Stub_Node (BE_Node (Identifier (E))));
-      else
+         Print_Tree := True;
+      end if;
+
+      if not Print_Tree then
          Generator.Generate (BEN.Stub_Node (BE_Node (Identifier (E))));
       end if;
    end Generate;
@@ -107,8 +142,9 @@ package body Backend.BE_Ada is
       Hdr : constant String (1 .. Indent - 1) := (others => ' ');
    begin
       Write_Str (Hdr);
-      Write_Str ("-i       Generate Implementation files");
-      Write_Str ("-t       Dump Ada tree");
+      Write_Str ("-i       Generate implementation packages");
+      Write_Str ("-ta      Dump Ada tree");
+      Write_Str ("-ti      Dump IDL tree");
       Write_Eol;
    end Usage;
 
@@ -124,7 +160,7 @@ package body Backend.BE_Ada is
       Stubs.Package_Body.Visit (E);
       Helpers.Package_Body.Visit (E);
 
-      if Build_Impls then
+      if Impl_Packages_Gen then
          Impls.Package_Spec.Visit (E);
          Impls.Package_Body.Visit (E);
       end if;

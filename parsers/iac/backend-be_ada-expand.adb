@@ -10,8 +10,7 @@ package body Backend.BE_Ada.Expand is
    -----------------------
 
    function Expand_Designator
-     (N        : Node_Id;
-      Witheded : Boolean := True)
+     (N   : Node_Id)
      return Node_Id
    is
       P  : Node_Id;
@@ -23,20 +22,20 @@ package body Backend.BE_Ada.Expand is
       case Kind (N) is
          when K_Full_Type_Declaration |
            K_Subprogram_Specification =>
-            P := Parent (X);
+            P  := Parent (X);
             FE := FE_Node (X);
 
          when K_Object_Declaration =>
-            P := Parent (X);
+            P  := Parent (X);
             FE := FE_Node (X);
 
          when K_Package_Specification =>
-            X := Package_Declaration (N);
-            P := Parent (X);
+            X  := Package_Declaration (N);
+            P  := Parent (X);
             FE := FE_Node (IDL_Unit (X));
 
          when K_Package_Declaration =>
-            P := Parent (N);
+            P  := Parent (N);
             FE := FE_Node (IDL_Unit (X));
 
          when others =>
@@ -57,15 +56,10 @@ package body Backend.BE_Ada.Expand is
          (Name (Defining_Identifier (X))));
       Set_FE_Node (D, FE);
       Set_Parent_Unit_Name
-        (D, Expand_Designator (P, False));
+        (D, Expand_Designator (P));
       P := Parent_Unit_Name (D);
-
-      if Witheded then
-
-         if Present (P) then
-            Add_With_Package (P);
-         end if;
-
+      if Present (P) then
+         Add_With_Package (P);
       end if;
 
       return D;

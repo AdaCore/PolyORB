@@ -272,7 +272,7 @@ package body Backend.BE_Ada.Stubs is
          Append_Node_To_List (Param, Profile);
          Param := Make_Parameter_Specification
            (Make_Defining_Identifier (PN (P_Logical_Type_Id)),
-            RE (RE_String_2, False));
+            RE (RE_String_2));
          Append_Node_To_List (Param, Profile);
          N := Make_Subprogram_Specification
            (Make_Defining_Identifier (SN (S_Is_A)),
@@ -835,10 +835,11 @@ package body Backend.BE_Ada.Stubs is
       X : Name_Id;
       D : Node_Id;
       R : Name_Id;
+
    begin
       L := New_List (BEN.K_List_Id);
 
-      --  Arg_List_U declaration.
+      --  Arg_List_U declaration
 
       N := Make_Object_Declaration
         (Defining_Identifier =>
@@ -888,11 +889,11 @@ package body Backend.BE_Ada.Stubs is
             end if;
 
          else
-
             if BEN.Parameter_Mode (I) = Mode_Out then
                D := RE (RE_Get_Empty_Any_1);
                Set_Parent_Unit_Name
                  (D, Defining_Identifier (Helper_Package (Current_Entity)));
+
             else
                D := Identifier (FE_Node (Parameter_Type (I)));
                D := Helper_Node
@@ -920,18 +921,20 @@ package body Backend.BE_Ada.Stubs is
       end loop;
 
       --  Operation_Name_U declaration
+
       V := New_String_Value
         (BEN.Name (BEN.Defining_Identifier (Subp_Spec)), False);
       N := Make_Object_Declaration
         (Defining_Identifier =>
            Make_Defining_Identifier (VN (V_Operation_Name)),
          Constant_Present    => True,
-         Object_Definition   => RE (RE_String_2, False),
+         Object_Definition   => RE (RE_String_2),
          Expression          => Make_Literal (V));
       Append_Node_To_List (N, L);
 
       --  Self_Ref_U declaration
       --  Self_Ref_U : CORBA.Object.Ref  := CORBA.Object.Ref (Self);
+
       C := Make_Subprogram_Call
         (Defining_Identifier   => RE (RE_Ref_2),
          Actual_Parameter_Part =>
@@ -946,6 +949,7 @@ package body Backend.BE_Ada.Stubs is
       Append_Node_To_List (N, L);
 
       --  Request_U declaration
+
       N := Make_Object_Declaration
         (Defining_Identifier =>
            Make_Defining_Identifier (VN (V_Request)),
@@ -956,6 +960,7 @@ package body Backend.BE_Ada.Stubs is
 
       --  Result_U declaration
       --  Result_U : PolyORB.Any.NamedValue;
+
       N := Make_Object_Declaration
         (Defining_Identifier =>
            Make_Defining_Identifier (VN (V_Result)),

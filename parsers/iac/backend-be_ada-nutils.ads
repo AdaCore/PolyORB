@@ -233,8 +233,7 @@ package Backend.BE_Ada.Nutils is
 
    GN : array (Pragma_Id) of Name_Id;
 
-   procedure Add_With_Package
-     (P : Node_Id);
+   procedure Add_With_Package (E : Node_Id);
 
    procedure Append_Node_To_List (E : Node_Id; L : List_Id);
 
@@ -462,5 +461,7 @@ package Backend.BE_Ada.Nutils is
    procedure Set_Skeleton_Spec (N : Node_Id := No_Node);
 
    function To_Ada_Name (N : Name_Id) return Name_Id;
+   function To_Spec_Name (N : Name_Id) return Name_Id;
+   function Fully_Qualified_Name (N : Node_Id) return Name_Id;
 
 end Backend.BE_Ada.Nutils;

@@ -3,6 +3,7 @@ with Types; use Types;
 with Frontend.Nodes;
 
 package Backend.BE_Ada.IDL_To_Ada is
+
    package FEN renames Frontend.Nodes;
 
    function Base_Type_TC
@@ -49,8 +50,7 @@ package Backend.BE_Ada.IDL_To_Ada is
      return Node_Id;
 
    function Map_Designator
-     (Entity   : Node_Id;
-      Witheded : Boolean := True)
+     (Entity : Node_Id)
      return Node_Id;
 
    function Map_Fully_Qualified_Identifier

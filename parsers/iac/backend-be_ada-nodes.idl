@@ -60,15 +60,15 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Package_Specification : Node_Id {
-    boolean    Is_Generated; 
     Node_Id    Package_Declaration;
     List_Id    Withed_Packages;
     List_Id    Visible_Part;
     List_Id    Private_Part;
+    boolean    Is_Runtime_Package;
+    boolean    Is_Subunit_Package;
   };
 
   interface Package_Implementation : Node_Id {
-    boolean    Is_Generated; 
     Node_Id    Package_Declaration;
     List_Id    Withed_Packages;
     List_Id    Declarations;
@@ -210,44 +210,44 @@ module Backend::BE_Ada::Nodes {
   /**************/
 
   interface Access_Type_Definition : Node_Id {
-    boolean      Is_All; 
-    boolean      Is_Constant; 
-    Node_Id      Subtype_Indication;
+    boolean    Is_All; 
+    boolean    Is_Constant; 
+    Node_Id    Subtype_Indication;
   };  
 
   interface Derived_Type_Definition : Definition {
-    boolean      Is_Private_Extention; 
-    boolean      Is_Abstract_Type;
-    Node_Id      Subtype_Indication;
-    Node_Id      Record_Extension_Part; 
+    boolean    Is_Private_Extention; 
+    boolean    Is_Abstract_Type;
+    Node_Id    Subtype_Indication;
+    Node_Id    Record_Extension_Part; 
   };
 
   interface Record_Type_Definition : Node_Id{
-    boolean      Is_Abstract_Type; 
-    boolean      Is_Tagged_Type;
-    boolean      Is_Limited_Type; 
-    Node_Id      Record_Definition;
+    boolean    Is_Abstract_Type; 
+    boolean    Is_Tagged_Type;
+    boolean    Is_Limited_Type; 
+    Node_Id    Record_Definition;
   };
 
   interface Component_Declaration : Definition {
-    Node_Id      Subtype_Indication;
-    Node_Id      Expression;
+    Node_Id    Subtype_Indication;
+    Node_Id    Expression;
   };
 
   interface Component_List : List_Id {};
   interface Record_Definition : Node_Id {
-    List_Id      Component_List;
+    List_Id    Component_List;
   };
 
   interface Range_Constraints : List_Id {};
   interface Array_Type_Definition : Node_Id {
-    List_Id      Range_Constraints;
-    Node_Id      Component_Definition;
+    List_Id    Range_Constraints;
+    Node_Id    Component_Definition;
   };
 
   interface Range_Constraint : Node_Id {
-    Value_Id     First;
-    Value_Id     Last;
+    Value_Id   First;
+    Value_Id   Last;
   };
 
   interface Variant_List : List_Id {};
@@ -268,7 +268,7 @@ module Backend::BE_Ada::Nodes {
   /********************/
 
   interface Enumeration_Type : Definition {
-    List_Id      Enumeration_Literals;
+    List_Id    Enumeration_Literals;
   };
 
 
@@ -278,9 +278,9 @@ module Backend::BE_Ada::Nodes {
 
   interface Array_Size_List : List_Id {};
   interface Array_Type : Node_Id {
-    Node_Id     Index_Type;
-    Node_Id     Component_Type;
-    List_Id     Array_Sizes;
+    Node_Id    Index_Type;
+    Node_Id    Component_Type;
+    List_Id    Array_Sizes;
   };
 
 
@@ -289,13 +289,13 @@ module Backend::BE_Ada::Nodes {
   /****************/
 
   interface Object_Declaration: Definition {
-    boolean     Constant_Present;
-    Node_Id     Object_Definition;
-    Node_Id     Expression;
+    boolean    Constant_Present;
+    Node_Id    Object_Definition;
+    Node_Id    Expression;
   };
 
   interface Literal : Node_Id {
-    Value_Id    Value;
+    Value_Id   Value;
   };
 
   interface Exception_Declaration : Definition {
@@ -310,8 +310,8 @@ module Backend::BE_Ada::Nodes {
 
   interface Expression : Node_Id {
     Operator_Id Operator;
-    Node_Id     Left_Expr;
-    Node_Id     Right_Expr;
+    Node_Id    Left_Expr;
+    Node_Id    Right_Expr;
   };
 
 
@@ -320,7 +320,7 @@ module Backend::BE_Ada::Nodes {
   /**************/
 
   interface Base_Type {
-    Name_Id   Image; 
+    Name_Id    Image; 
   };
   interface _Float : Base_Type {};
   interface _Double : Base_Type {};
