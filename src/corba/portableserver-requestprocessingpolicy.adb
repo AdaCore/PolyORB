@@ -42,7 +42,7 @@ package body PortableServer.RequestProcessingPolicy is
    is
       Result : PortableServer.RequestProcessingPolicy.Ref;
    begin
-      Result.Type_Of_Ref := THREAD_POLICY_ID;
+      Result.Type_Of_Ref := REQUEST_PROCESSING_POLICY_ID;
       Result.RequestProcessingPolicy := Value;
 
       return Result;
@@ -60,7 +60,7 @@ package body PortableServer.RequestProcessingPolicy is
       use CORBA;
 
    begin
-      if The_Type /= THREAD_POLICY_ID then
+      if The_Type /= REQUEST_PROCESSING_POLICY_ID then
          raise Program_Error;
       end if;
 
