@@ -82,8 +82,9 @@ private
       Arg : in Simple_Array)
       return Simple_Array;
 
-   procedure TestException
-     (Self : access Object);
+   procedure testException
+     (Self : access Object;
+      arg : in CORBA.Long);
 
    function echoStruct
      (Self : access Object;

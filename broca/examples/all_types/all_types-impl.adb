@@ -1,3 +1,5 @@
+with Broca.Exceptions; use Broca.Exceptions;
+
 package body all_types.Impl is
 
    function echoBoolean
@@ -116,11 +118,17 @@ package body all_types.Impl is
       return Arg;
    end EchoArray;
 
-   procedure TestException
-     (Self : access Object) is
+   procedure testException
+     (Self : access Object;
+      arg : in CORBA.Long)
+   is
+      Members : IDL_Exception_Members_Ptr
+         := new My_Exception_Members'(Info => arg);
+      --  FIXME: introducing potential memory leak in server.
    begin
-      raise My_Exception;
-   end TestException;
+      Broca.Exceptions.User_Raise_Exception
+        (My_Exception'Identity, Members);
+   end testException;
 
    function echoStruct  
      (Self : access Object;

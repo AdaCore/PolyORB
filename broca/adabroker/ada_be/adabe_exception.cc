@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.11 $
+//                            $Revision: 1.12 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -212,6 +212,68 @@ adabe_exception::produce_skel_adb (dep_list & with,
   body += 
     "                  return;\n"
     "               end;\n";
+}
+
+//////////////////////////////////////////////////////////////////
+////////////////       produce_op_adb       ////////////////////
+//////////////////////////////////////////////////////////////////
+//  This method is called by adabe_operation::produce_adb to create
+//  the code to transform a marshalled exception into a raised
+//  Ada exception.
+void
+adabe_exception::produce_op_adb (dep_list & with,
+				 string   & body)
+{
+    UTL_ScopeActiveIterator activator (this, UTL_Scope::IK_decls);
+    bool has_member = !activator.is_done ();
+
+    // Full name of the interface.
+    string full_name = get_ada_full_name ();
+
+    // Name of the package containing the interface.
+    string pack = full_name.substr (0, full_name.find_last_of ('.'));
+
+    // Repository ID of the exception
+    string Rid = repositoryID ();
+
+    // Add the package in which the exception is defined.
+    with.add (pack);
+
+    // We now map the interface
+    body += 
+        "                  if Exception_Repository_Id = \""
+	+ Rid + "\" then\n";
+    
+    if (has_member)
+        {
+            // Declare members.
+            body += 
+		"                     declare\n"
+		"                        use " + pack + ".Stream;\n"
+		"                        Members : " + full_name + "_Members;\n";
+	}
+
+    body +=
+		"                     begin\n";
+	
+    if (has_member)
+	{
+	    body += 
+		"                        Unmarshall (Handler.Buffer, Members);\n"
+		"                        User_Raise_Exception\n"
+		"                          (" + full_name + "'Identity,\n"
+		"                           new " + full_name + "_Members'(Members));\n";
+	    // FIXME: introducing potential memory leak in client.
+	}
+    else
+	{
+	    body +=
+		"                        raise " + full_name + ";";
+	}
+
+    body += 
+	"                     end;\n"
+	"                  end if;\n";
 }
 
 ////////////////////////////////////////////////////////////////

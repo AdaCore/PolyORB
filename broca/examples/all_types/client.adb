@@ -11,7 +11,7 @@ with Report;    use Report;
 procedure Client is
    IOR : CORBA.String;
    MyAll_Types : All_Types.Ref;
---   Ok : Boolean;
+   Ok : Boolean;
 begin
    if Ada.Command_Line.Argument_Count < 1 then
       Ada.Text_IO.Put_Line ("usage : client <IOR_string_from_server>");
@@ -63,17 +63,17 @@ begin
 --   end;
 --   Output ("test simple exception", Ok);
 
---   declare
---      Member : Complexe_Exception_Members;
---   begin
---      Ok := False;
---      Complexe_Exception_Test (MyAll_Types);
---   exception
---      when E : Complexe_Exception =>
---         Get_Members (E, Member);
---         Ok := (Member.Excep = 21);
---   end;
---   Output ("test complexe exception", Ok);
+   declare
+      Member : My_Exception_Members;
+   begin
+      Ok := False;
+      TestException (MyAll_Types, 2485);
+   exception
+      when E : My_Exception =>
+         Get_Members (E, Member);
+         Ok := (Member.Info = 2485);
+   end;
+   Output ("test exception", Ok);
 
 --   declare
 --      X : Example := (Switch => 2, Flags => True);

@@ -24,10 +24,10 @@ interface all_types {
   // Exceptions
   //-----------
 //  exception simple_exception {};
-  exception my_exception {long excep;};
+  exception my_exception {long info;};
 
 //  void simple_exception_test () raises (simple_exception);
-  void testException () raises (my_exception);
+  void testException (in long arg) raises (my_exception);
 
 
   // Unions

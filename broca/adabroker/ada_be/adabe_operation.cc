@@ -4,7 +4,7 @@
 //                                                                          //
 //                            A D A B R O K E R                             //
 //                                                                          //
-//                            $Revision: 1.14 $
+//                            $Revision: 1.15 $
 //                                                                          //
 //         Copyright (C) 1999-2000 ENST Paris University, France.           //
 //                                                                          //
@@ -323,14 +323,42 @@ adabe_operation::produce_adb (dep_list & with,
     }
   body +=
     "            when Broca.Giop.Sr_User_Exception =>\n";
+
   UTL_ExceptlistActiveIterator except_iterator (exceptions ());
+  bool user_exceptions = (! except_iterator.is_done ());
+
+  // If there is one or several possible exceptions.
+  if (user_exceptions)
+    {
+      body +=
+	  "               declare\n"
+	  "                  Exception_Repository_Id : CORBA.String;\n"
+	  "               begin\n"
+	  "                  Unmarshall (Handler.Buffer, Exception_Repository_Id);\n";
+
+      while (!except_iterator.is_done ())
+	{
+	  string tmp = "";
+	  AST_Decl *d = except_iterator.item ();
+	  
+	  // Dispatch them and catch them at the end.
+	  dynamic_cast<adabe_exception *>(d)->produce_op_adb (with, tmp);
+	  body += tmp;
+	  except_iterator.next ();
+	}
+
+      body +=
+	  "               end;\n";
+    }
 
   body +=
-    "               raise Program_Error;\n"
-    "            when Broca.Giop.Sr_Forward =>\n"
-    "               null;\n"
-    "         end case;\n"
-    "      end loop;\n";
+      "               raise Program_Error;\n"
+      // Status is User_Exception but the exception is unknown.
+
+      "            when Broca.Giop.Sr_Forward =>\n"
+      "               null;\n"
+      "         end case;\n"
+      "      end loop;\n";
   body += "   end " + get_ada_local_name () + ";\n\n";
 }
 
