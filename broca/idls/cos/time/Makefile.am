@@ -1,6 +1,6 @@
 include $(srcdir)/../../Makefile.common
 
-CosTime_IDL=CosTime.idl
+CosTime_IDL=$(srcdir)/CosTime.idl
 CosTime_GEN= \
   costime-helper.adb \
   costime-helper.ads \

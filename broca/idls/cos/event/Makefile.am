@@ -1,10 +1,10 @@
 include $(srcdir)/../../Makefile.common
 
-CosEventChannelAdmin_IDL=CosEventChannelAdmin.idl
-CosEventComm_IDL=CosEventComm.idl
+CosEventChannelAdmin_IDL=$(srcdir)/CosEventChannelAdmin.idl
+CosEventComm_IDL=$(srcdir)/CosEventComm.idl
 
-CosTypedEventChannelAdmin_IDL=CosTypedEventChannelAdmin.idl
-CosTypedEventComm_IDL=CosTypedEventComm.idl
+CosTypedEventChannelAdmin_IDL=$(srcdir)/CosTypedEventChannelAdmin.idl
+CosTypedEventComm_IDL=$(srcdir)/CosTypedEventComm.idl
 
 CosEventChannelAdmin_GEN= \
   coseventchanneladmin-consumeradmin-helper.adb \

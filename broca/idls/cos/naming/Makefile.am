@@ -1,6 +1,6 @@
 include $(srcdir)/../../Makefile.common
 
-CosNaming_IDL=CosNaming.idl
+CosNaming_IDL=$(srcdir)/CosNaming.idl
 CosNaming_GEN= \
   cosnaming-bindingiterator-helper.adb \
   cosnaming-bindingiterator-helper.ads \
