@@ -55,7 +55,7 @@
 @c
 @c oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 
-@c $Id: //droopi/main/doc/polyorb_ug.texi#22 $
+@c $Id: //droopi/main/doc/polyorb_ug.texi#23 $
 
 @setfilename polyorb_ug.info
 @settitle PolyORB User's Guide
@@ -1006,15 +1006,15 @@ remote entities.
 
 @smallexample
 [modules]
-binding_data.soap=disable
-binding_data.iiop=disable
+binding_data.soap=enable
+binding_data.iiop=enable
 binding_data.diop=disable
 binding_data.uipmc=disable
 @end smallexample
  
 @noindent
 This example enables the creation of bindings to remote objects using
-SOAP or IIOP. Objects cannot be reached using DIOP or UIMPC.
+SOAP or IIOP. Objects cannot be reached using DIOP or UIPMC.
 
 @emph{Note: by default, all configured personalities are activated.}
 
