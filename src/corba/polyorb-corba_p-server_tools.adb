@@ -36,6 +36,7 @@
 
 with CORBA.Object;
 with CORBA.ORB;
+with CORBA.Policy;
 
 with PortableServer.POA.Helper;
 with PortableServer.POAManager;
@@ -51,15 +52,20 @@ package body PolyORB.CORBA_P.Server_Tools is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   Root_POA : PortableServer.POA.Ref;
+
    ------------------
    -- Get_Root_POA --
    ------------------
 
    function Get_Root_POA return PortableServer.POA.Ref is
    begin
-      return PortableServer.POA.Helper.To_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.To_CORBA_String ("RootPOA")));
+      if PortableServer.POA.Is_Nil (Root_POA) then
+         Root_POA := PortableServer.POA.Helper.To_Ref
+           (CORBA.ORB.Resolve_Initial_References
+              (CORBA.ORB.To_CORBA_String ("RootPOA")));
+      end if;
+      return Root_POA;
    end Get_Root_POA;
 
    ---------------------
@@ -67,14 +73,9 @@ package body PolyORB.CORBA_P.Server_Tools is
    ---------------------
 
    procedure Initiate_Server (Start_New_Task : Boolean := False) is
-      Root_POA : PortableServer.POA.Ref
-        := PortableServer.POA.Helper.To_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.To_CORBA_String ("RootPOA")));
-
    begin
       PortableServer.POAManager.Activate
-        (PortableServer.POA.Get_The_POAManager (Root_POA));
+        (PortableServer.POA.Get_The_POAManager (Get_Root_POA));
 
       if Initiate_Server_Hook /= null then
          Initiate_Server_Hook.all;
@@ -95,21 +96,15 @@ package body PolyORB.CORBA_P.Server_Tools is
      (S : in PortableServer.Servant;
       R : out CORBA.Object.Ref'Class)
    is
-      Root_POA : PortableServer.POA.Ref;
-
    begin
       pragma Debug (O ("Initiate_Servant : enter"));
-
-      Root_POA := PortableServer.POA.Helper.To_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.To_CORBA_String ("RootPOA")));
 
       pragma Debug (O ("Initiate_Servant : ready to "
                        & "call CORBA.Object.Set"));
 
       CORBA.Object.Set
          (R, CORBA.Object.Object_Of
-          (PortableServer.POA.Servant_To_Reference (Root_POA, S)));
+          (PortableServer.POA.Servant_To_Reference (Get_Root_POA, S)));
 
       pragma Debug (O ("Initiate_Servant : end"));
    end Initiate_Servant;
@@ -123,9 +118,42 @@ package body PolyORB.CORBA_P.Server_Tools is
       Name : String;
       R    : out CORBA.Object.Ref'Class)
    is
-      pragma Unreferenced (S, Name, R);
+      use CORBA.Policy.IDL_Sequence_Policy;
+      use PortableServer.POA;
+
+      Policies : CORBA.Policy.PolicyList;
+      Serv_POA : PortableServer.POA.Ref;
    begin
-      null;
+      Append (Policies,
+              CORBA.Policy.Ref (Create_Request_Processing_Policy
+                                  (PortableServer.USE_DEFAULT_SERVANT)));
+      Append (Policies,
+              CORBA.Policy.Ref (Create_Servant_Retention_Policy
+                                  (PortableServer.NON_RETAIN)));
+      Append (Policies,
+              CORBA.Policy.Ref (Create_Id_Assignment_Policy
+                                  (PortableServer.USER_ID)));
+      Append (Policies,
+              CORBA.Policy.Ref (Create_Id_Uniqueness_Policy
+                                  (PortableServer.MULTIPLE_ID)));
+      Append (Policies,
+              CORBA.Policy.Ref (Create_Implicit_Activation_Policy
+                                  (PortableServer.NO_IMPLICIT_ACTIVATION)));
+      Append (Policies,
+              CORBA.Policy.Ref (Create_Lifespan_Policy
+                                  (PortableServer.PERSISTENT)));
+      Serv_POA := PortableServer.POA.Helper.To_Ref
+        (PortableServer.POA.Create_POA
+           (Get_Root_POA,
+            CORBA.To_CORBA_String (Name),
+            PortableServer.POA.Get_The_POAManager (Get_Root_POA),
+            Policies));
+
+      PortableServer.POA.Set_Servant (Serv_POA, S);
+      CORBA.Object.Set (R, CORBA.Object.Object_Of (
+        PortableServer.POA.Create_Reference_With_Id (Serv_POA,
+          PortableServer.String_To_ObjectId ("00"),
+          PortableServer.Get_Type_Id (S))));
    end Initiate_Well_Known_Service;
 
    --------------------------
@@ -136,15 +164,9 @@ package body PolyORB.CORBA_P.Server_Tools is
      (R : in CORBA.Object.Ref'Class;
       S : out PortableServer.Servant)
    is
-      Root_POA : PortableServer.POA.Ref;
-
    begin
-      Root_POA := PortableServer.POA.Helper.To_Ref
-        (CORBA.ORB.Resolve_Initial_References
-         (CORBA.ORB.To_CORBA_String ("RootPOA")));
-
       S := PortableServer.POA.Reference_To_Servant
-        (Root_POA, CORBA.Object.Ref (R));
+        (Get_Root_POA, CORBA.Object.Ref (R));
    end Reference_To_Servant;
 
    --------------------------

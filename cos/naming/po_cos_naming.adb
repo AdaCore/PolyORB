@@ -40,6 +40,7 @@ with PortableServer;
 with CORBA.ORB;
 
 with PolyORB.CORBA_P.Server_Tools;
+with PolyORB.CORBA_P.CORBALOC;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
@@ -63,13 +64,19 @@ begin
    CORBA.ORB.Initialize ("ORB");
 
    Root_NC := CosNaming.NamingContext.Impl.Create;
-   Initiate_Servant (PortableServer.Servant (Root_NC), Ref);
+   --  Initiate_Servant (PortableServer.Servant (Root_NC), Ref);
 
+   PolyORB.CORBA_P.Server_Tools.Initiate_Well_Known_Service
+     (PortableServer.Servant (Root_NC), "NameService", Ref);
    CORBA.ORB.Register_Initial_Reference
      (CORBA.ORB.To_CORBA_String ("NamingService"), Ref);
    Ada.Text_IO.Put_Line
      ("POLYORB_CORBA_NAMING_IOR="
       & CORBA.To_Standard_String (CORBA.Object.Object_To_String (Ref)));
+   Ada.Text_IO.Put_Line
+     ("POLYORB_CORBA_NAMING_URI="
+      & CORBA.To_Standard_String
+          (PolyORB.CORBA_P.CORBALOC.Object_To_Corbaloc (Ref)));
 
    Initiate_Server;
 end PO_COS_Naming;
