@@ -205,7 +205,7 @@ package PolyORB.Tasking.Profiles.Ravenscar.Threads is
    --  The call to this procedure free the task waiting
    --  on S.
    --  If no task is about to Wait (that is, if no call to
-   --  Prepare_Wait were done before the call to Resume),
+   --  Prepare_Suspend were done before the call to Resume),
    --  the signal is lost.
 
    function Get_Thread_Index (T : Thread_Id) return Integer;

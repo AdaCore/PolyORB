@@ -37,13 +37,14 @@ with Ada.Tags;
 
 with PolyORB.CORBA_P.Names;
 
+with PolyORB.Annotations;
 with PolyORB.Exceptions;
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 
 with PolyORB.Log;
 with PolyORB.Requests;
-with PolyORB.Objects.Interface;
+with PolyORB.Servants.Interface;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
@@ -79,16 +80,23 @@ package body PortableServer is
 
    Skeleton_Unknown : exception;
 
+   type Dispatcher_Note is new PolyORB.Annotations.Note with record
+      Skeleton : Request_Dispatcher;
+   end record;
+
+   Null_Dispatcher_Note : constant Dispatcher_Note
+     := (PolyORB.Annotations.Note with Skeleton => null);
+
    ---------------------
    -- Execute_Servant --
    ---------------------
 
    function Execute_Servant
      (Self : access DynamicImplementation;
-      Msg  : PolyORB.Components.Message'Class)
+      Msg  :        PolyORB.Components.Message'Class)
      return PolyORB.Components.Message'Class
    is
-      use PolyORB.Objects.Interface;
+      use PolyORB.Servants.Interface;
 
    begin
       pragma Debug (O ("Execute_Servant: enter"));
@@ -97,16 +105,23 @@ package body PortableServer is
          declare
             use PolyORB.Requests;
             use CORBA.ServerRequest;
+            use PolyORB.Exceptions;
 
-            R : constant Request_Access
-              := Execute_Request (Msg).Req;
+            R : constant Request_Access := Execute_Request (Msg).Req;
+            Error : Error_Container;
          begin
             Invoke (DynamicImplementation'Class (Self.all)'Access,
                     CORBA.ServerRequest.Object_Ptr (R));
             --  Redispatch
 
             pragma Debug (O ("Execute_Servant: executed, setting out args"));
-            Set_Out_Args (R);
+            Set_Out_Args (R, Error);
+
+            if Found (Error) then
+               raise PolyORB.Unknown;
+               --  XXX We should do something if we find a PolyORB exception
+
+            end if;
 
             pragma Debug (O ("Execute_Servant: leave"));
             return Executed_Request'(Req => R);
@@ -125,13 +140,35 @@ package body PortableServer is
 
    procedure Invoke
      (Self    : access Servant_Base;
-      Request : in CORBA.ServerRequest.Object_Ptr) is
+      Request : in     CORBA.ServerRequest.Object_Ptr)
+   is
+      P_Servant : constant PolyORB.Servants.Servant_Access :=
+        CORBA.Impl.To_PolyORB_Servant
+        (CORBA.Impl.Object (Servant (Self).all)'Access);
+
+      Notepad : constant PolyORB.Annotations.Notepad_Access
+        := PolyORB.Servants.Notepad_Of (P_Servant);
+
+      Dispatcher : Dispatcher_Note;
+
    begin
-      Find_Info (Servant (Self)).Dispatcher (Servant (Self), Request);
-      --  Invoke primitive for static object implementations:
-      --  look up the skeleton associated with Self's class,
-      --  and delegate the dispatching of Request to one of
-      --  Self's primitive operations to that skeleton.
+      pragma Debug (O ("Invoke on a static skeleton: enter"));
+
+      --  Information about servant's skeleton is cached in its notepad.
+
+      PolyORB.Annotations.Get_Note
+        (Notepad.all, Dispatcher, Null_Dispatcher_Note);
+
+      if Dispatcher.Skeleton = null then
+         pragma Debug (O ("Cacheing information about skeleton"));
+
+         Dispatcher.Skeleton := Find_Info (Servant (Self)).Dispatcher;
+         PolyORB.Annotations.Set_Note (Notepad.all, Dispatcher);
+      end if;
+
+      Dispatcher.Skeleton (Servant (Self), Request);
+
+      pragma Debug (O ("Invoke on a static skeleton: leave"));
    end Invoke;
 
    ---------------
@@ -144,8 +181,8 @@ package body PortableServer is
    is
       use Skeleton_Lists;
 
-      It : Iterator;
-      Info    : Skeleton_Info;
+      It   : Iterator;
+      Info : Skeleton_Info;
 
    begin
       pragma Debug
@@ -183,6 +220,7 @@ package body PortableServer is
       Dispatcher : in Request_Dispatcher := null)
    is
       use Skeleton_Lists;
+
    begin
       pragma Debug (O ("Register_Skeleton: Enter."));
 
@@ -246,12 +284,28 @@ package body PortableServer is
       To   : out ForwardRequest_Members)
    is
       use Ada.Exceptions;
+
    begin
       if Exception_Identity (From) /= ForwardRequest'Identity then
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
       PolyORB.Exceptions.User_Get_Members (From, To);
+   end Get_Members;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out NotAGroupObject_Members)
+   is
+      use Ada.Exceptions;
+
+   begin
+      if Exception_Identity (From) /= NotAGroupObject'Identity then
+         CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
+      end if;
+
+      To := NotAGroupObject_Members'
+        (CORBA.IDL_Exception_Members with null record);
    end Get_Members;
 
    --------------------------
@@ -264,9 +318,25 @@ package body PortableServer is
       pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Excp_Memb);
       pragma Warnings (On); --  WAG:3.15
+
    begin
       raise PolyORB.Not_Implemented;
    end Raise_ForwardRequest;
+
+   ---------------------------
+   -- Raise_NotAGroupObject --
+   ---------------------------
+
+   procedure Raise_NotAGroupObject
+     (Excp_Memb : in NotAGroupObject_Members)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Excp_Memb);
+      pragma Warnings (On); --  WAG:3.15
+
+   begin
+      raise NotAGroupObject;
+   end Raise_NotAGroupObject;
 
    --------------
    -- From_Any --

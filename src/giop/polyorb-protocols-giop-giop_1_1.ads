@@ -35,12 +35,15 @@ with PolyORB.Protocols.GIOP.Common;
 pragma Elaborate_All (PolyORB.Protocols.GIOP.Common); --  WAG:3.15
 
 package PolyORB.Protocols.GIOP.GIOP_1_1 is
+
    use PolyORB.Protocols.GIOP.Common;
 
    type GIOP_Implem_1_1 is tagged private;
+
    type GIOP_Implem_1_1_Access is access all GIOP_Implem_1_1'Class;
 
    type GIOP_Ctx_1_1 is tagged private;
+
    type GIOP_Ctx_1_1_Access is access all GIOP_Ctx_1_1;
 
 private
@@ -51,6 +54,7 @@ private
    end record;
 
    --  GIOP Message Type
+
    type Msg_Type is
      (Request,
       Reply,
@@ -62,18 +66,21 @@ private
       Fragment);
 
    --  minimal size for fragmented messages
+
    Default_Max_GIOP_Message_Size_1_1 : constant Integer := 1000;
 
    --  fragmenting state
+
    type Fragment_State is (None, Fragment);
 
    --  GIOP 1.1 context
+
    type GIOP_Ctx_1_1 is new GIOP_Ctx with record
       Message_Type : Msg_Type;
       Fragmented   : Types.Boolean;
       Request_Id   : aliased Types.Unsigned_Long;
       Reply_Status : aliased Reply_Status_Type;
-            --  For fragmenting management
+      --  For fragmenting management
       Frag_State   : Fragment_State := None;
       Frag_Type    : Msg_Type;
       Frag_Size    : Types.Unsigned_Long;
@@ -138,13 +145,16 @@ private
       First_Arg_Alignment :        Opaque.Alignment_Type);
 
    --  bits inf flags field
+
    Bit_Fragment   : constant Octet_Flags.Bit_Count := 1;
 
    --  Data alignment
+
    Data_Alignment_1_1 : constant Opaque.Alignment_Type := 1;
 
    --  Principal
-   Nobody_Principal : constant Types.String
-     := Types.To_PolyORB_String ("nobody");
+
+   Nobody_Principal : constant Types.String :=
+     Types.To_PolyORB_String ("nobody");
 
 end PolyORB.Protocols.GIOP.GIOP_1_1;

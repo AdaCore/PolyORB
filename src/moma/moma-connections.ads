@@ -65,17 +65,21 @@ package MOMA.Connections is
 
    --  Accessors to Connection internal data.
 
-   function Get_Client_Id (Self : Connection)
-                           return MOMA.Types.String;
+   function Get_Client_Id
+     (Self : Connection)
+     return MOMA.Types.String;
 
-   procedure Set_Client_Id (Self : in out Connection;
-                            Client_Id : MOMA.Types.String);
+   procedure Set_Client_Id
+     (Self      : in out Connection;
+      Client_Id :        MOMA.Types.String);
 
-   function Get_Ref (Self : Connection)
-                     return PolyORB.References.Ref;
+   function Get_Ref
+     (Self : Connection)
+     return PolyORB.References.Ref;
 
-   procedure Set_Ref (Self : in out Connection;
-                      Ref  : in PolyORB.References.Ref);
+   procedure Set_Ref
+     (Self : in out Connection;
+      Ref  : in     PolyORB.References.Ref);
 
    procedure Start;
    --  Start the connection, i.e activate all rattached message producers

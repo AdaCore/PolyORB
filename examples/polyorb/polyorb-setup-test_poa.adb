@@ -120,8 +120,7 @@ package body PolyORB.Setup.Test_POA is
                 (PolyORB.POA_Types.Oid_To_Rel_URI (Obj_Adapter, My_Id)));
       begin
          Put_Line ("IOR is           : "
-                   & PolyORB.Types.To_Standard_String
-                   (PolyORB.References.IOR.Object_To_String (My_Ref)));
+                   & PolyORB.References.IOR.Object_To_String (My_Ref));
       exception
          when E : others =>
             Put_Line ("Warning: Object_To_String raised:");

@@ -34,11 +34,14 @@
 with CORBA.Object;
 pragma Warnings (Off, CORBA.Object);
 
-with PortableServer;
+with CORBA.Impl;
+
+with CosEventChannelAdmin.ConsumerAdmin;
 
 with CosEventComm.PushConsumer;
 
-with CosEventChannelAdmin.ConsumerAdmin;
+with CosTypedEventComm.TypedPushConsumer;
+with CosTypedEventComm.TypedPushConsumer.Impl;
 
 with CosEventChannelAdmin.ProxyPushSupplier.Helper;
 pragma Elaborate (CosEventChannelAdmin.ProxyPushSupplier.Helper);
@@ -48,6 +51,8 @@ with CosEventChannelAdmin.ProxyPushSupplier.Skel;
 pragma Elaborate (CosEventChannelAdmin.ProxyPushSupplier.Skel);
 pragma Warnings (Off, CosEventChannelAdmin.ProxyPushSupplier.Skel);
 
+with PortableServer;
+
 with PolyORB.CORBA_P.Server_Tools;
 with PolyORB.Tasking.Mutexes;
 
@@ -55,10 +60,12 @@ with PolyORB.Log;
 
 package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
 
-   use PortableServer;
-
    use CosEventComm;
    use CosEventChannelAdmin;
+
+   use CosTypedEventComm;
+
+   use PortableServer;
 
    use PolyORB.CORBA_P.Server_Tools;
    use PolyORB.Tasking.Mutexes;
@@ -71,7 +78,7 @@ package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
    type Proxy_Push_Supplier_Record is record
       This   : Object_Ptr;
       Peer   : PushConsumer.Ref;
-      Admin  : ConsumerAdmin.Impl.Object_Ptr;
+      Admin  : ConsumerAdmin.Ref;
    end record;
 
    ---------------------------
@@ -122,7 +129,7 @@ package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
    ------------
 
    function Create
-     (Admin : ConsumerAdmin.Impl.Object_Ptr)
+     (Admin : ConsumerAdmin.Ref)
      return Object_Ptr
    is
       Supplier : ProxyPushSupplier.Impl.Object_Ptr;
@@ -184,6 +191,35 @@ package body CosEventChannelAdmin.ProxyPushSupplier.Impl is
             pragma Debug (O ("Got exception in Post"));
             raise;
       end;
+   end Post;
+
+   ----------
+   -- Post --
+   ----------
+
+   function Post
+   (Self : access Object)
+      return CORBA.Object.Ref
+   is
+      Ref : CORBA.Object.Ref;
+      Obj   : CORBA.Impl.Object_Ptr;
+   begin
+      pragma Debug
+        (O ("calling get_typed_consumer from" &
+            " proxy pushsupplier to typed push consumer"));
+
+      begin
+         Reference_To_Servant (Self.X.Peer, Servant (Obj));
+         Ref := TypedPushConsumer.Impl.Get_Typed_Consumer
+                (TypedPushConsumer.Impl.Object_Ptr (Obj));
+      exception
+         when others =>
+            pragma Debug (O ("Got exception in Post"));
+            raise;
+      end;
+
+      return Ref;
+
    end Post;
 
 end CosEventChannelAdmin.ProxyPushSupplier.Impl;

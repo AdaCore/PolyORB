@@ -153,11 +153,14 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
       if Operation = "_is_a" then
          declare
+            use PolyORB.Exceptions;
+
             Type_Id          : PolyORB.Types.String;
             Argument_Type_Id : PolyORB.Any.Any
               := Get_Empty_Any (TypeCode.TC_String);
 
             Result           : PolyORB.Types.Boolean;
+            Exception_Error            : Error_Container;
          begin
             --  Create argument list
 
@@ -166,7 +169,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
                       Argument_Type_Id,
                       PolyORB.Any.ARG_IN);
 
-            Arguments (Request, Arg_List);
+            Arguments (Request, Arg_List, Exception_Error);
+
+            if Found (Exception_Error) then
+               raise PolyORB.Unknown;
+               --  XXX We should do something more constructive
+
+            end if;
 
             Type_Id := From_Any (Argument_Type_Id);
 
@@ -181,11 +190,14 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "bind" then
 
          declare
+            use PolyORB.Exceptions;
+
             N           : Name;
             Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Obj          : PolyORB.References.Ref;
             Argument_Obj : PolyORB.Any.Any := Get_Empty_Any (PSNH.TC_Object);
+            Exception_Error        : Error_Container;
          begin
             --  Create argument list
 
@@ -199,7 +211,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
                       Argument_Obj,
                       PolyORB.Any.ARG_IN);
 
-            Arguments (Request, Arg_List);
+            Arguments (Request, Arg_List, Exception_Error);
+
+            if Found (Exception_Error) then
+               raise PolyORB.Unknown;
+               --  XXX We should do something more constructive
+
+            end if;
 
             --  Convert arguments from their Any
             N   := From_Any (Argument_N);
@@ -214,11 +232,14 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "rebind" then
 
          declare
+            use PolyORB.Exceptions;
+
             N          : Name;
             Argument_N : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Obj          : PolyORB.References.Ref;
             Argument_Obj : PolyORB.Any.Any := Get_Empty_Any (PSNH.TC_Object);
+            Exception_Error        : Error_Container;
          begin
             --  Create argument list
 
@@ -231,10 +252,15 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
                       Argument_Obj,
                       PolyORB.Any.ARG_IN);
 
-            Arguments (Request, Arg_List);
+            Arguments (Request, Arg_List, Exception_Error);
+
+            if Found (Exception_Error) then
+               raise PolyORB.Unknown;
+               --  XXX We should do something more constructive
+
+            end if;
 
             --  Convert arguments from their Any
-
             N   := From_Any (Argument_N);
             Obj := From_Any (Argument_Obj);
 
@@ -246,12 +272,14 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "bind_context" then
 
          declare
+            use PolyORB.Exceptions;
+
             N           : Name;
             Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Nc          : NamingContext.Ref;
             Argument_Nc : PolyORB.Any.Any := Get_Empty_Any (TC_NamingContext);
-
+            Exception_Error       : Error_Container;
          begin
             --  Create argument list
 
@@ -264,9 +292,15 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
                       Argument_Nc,
                       PolyORB.Any.ARG_IN);
 
-            Arguments (Request, Arg_List);
+            Arguments (Request, Arg_List, Exception_Error);
 
             --  Convert arguments from their Any
+
+            if Found (Exception_Error) then
+               raise PolyORB.Unknown;
+               --  XXX We should do something more constructive
+
+            end if;
 
             N := From_Any (Argument_N);
             Nc := From_Any (Argument_Nc);
@@ -280,11 +314,14 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "rebind_context" then
 
          declare
+            use PolyORB.Exceptions;
+
             N           : Name;
             Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Nc          : NamingContext.Ref;
             Argument_Nc : PolyORB.Any.Any := Get_Empty_Any (TC_NamingContext);
+            Exception_Error       : Error_Container;
          begin
             --  Create argument list
 
@@ -297,9 +334,15 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
                       Argument_Nc,
                       PolyORB.Any.ARG_IN);
 
-            Arguments (Request, Arg_List);
+            Arguments (Request, Arg_List, Exception_Error);
 
             --  Convert arguments from their Any
+
+            if Found (Exception_Error) then
+               raise PolyORB.Unknown;
+               --  XXX We should do something more constructive
+
+            end if;
 
             N  := From_Any (Argument_N);
             Nc := From_Any (Argument_Nc);
@@ -313,10 +356,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "resolve" then
 
          declare
+            use PolyORB.Exceptions;
+
             N          : Name;
             Argument_N : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
 
             Result     : PolyORB.References.Ref;
+            Exception_Error      : Error_Container;
          begin
             --  Create argument list
 
@@ -325,9 +371,16 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
                       Argument_N,
                       PolyORB.Any.ARG_IN);
 
-            Arguments (Request, Arg_List);
+            Arguments (Request, Arg_List, Exception_Error);
 
             --  Convert arguments from their Any
+
+            if Found (Exception_Error) then
+               raise PolyORB.Unknown;
+               --  XXX We should do something more constructive
+
+            end if;
+
             N := From_Any (Argument_N);
 
             --  Call implementation
@@ -343,9 +396,11 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "unbind" then
 
          declare
+            use PolyORB.Exceptions;
+
             N           : Name;
             Argument_N  : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
-
+            Exception_Error       : Error_Container;
          begin
             --  Create argument list
             Add_Item (Arg_List,
@@ -353,7 +408,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
                       Argument_N,
                       PolyORB.Any.ARG_IN);
 
-            Arguments (Request, Arg_List);
+            Arguments (Request, Arg_List, Exception_Error);
+
+            if Found (Exception_Error) then
+               raise PolyORB.Unknown;
+               --  XXX We should do something more constructive
+
+            end if;
 
             --  Convert arguments from their Any
             N := From_Any (Argument_N);
@@ -367,10 +428,19 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "new_context" then
 
          declare
-            Result      : NamingContext.Ref;
+            use PolyORB.Exceptions;
+
+            Result          : NamingContext.Ref;
+            Exception_Error : Error_Container;
          begin
             --  Create argument list
-            Arguments (Request, Arg_List);
+            Arguments (Request, Arg_List, Exception_Error);
+
+            if Found (Exception_Error) then
+               raise PolyORB.Unknown;
+               --  XXX We should do something more constructive
+
+            end if;
 
             --  Call implementation
             Result := New_Context (Self);
@@ -384,10 +454,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
       elsif Operation = "bind_new_context" then
 
          declare
-            N          : Name;
-            Argument_N : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+            use PolyORB.Exceptions;
 
-            Result      : NamingContext.Ref;
+            N               : Name;
+            Argument_N      : PolyORB.Any.Any := Get_Empty_Any (TC_Name);
+
+            Result          : NamingContext.Ref;
+            Exception_Error : Error_Container;
          begin
             --  Create argument list
             Add_Item (Arg_List,
@@ -395,7 +468,13 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
                       Argument_N,
                       PolyORB.Any.ARG_IN);
 
-            Arguments (Request, Arg_List);
+            Arguments (Request, Arg_List, Exception_Error);
+
+            if Found (Exception_Error) then
+               raise PolyORB.Unknown;
+               --  XXX We should do something more constructive
+
+            end if;
 
             --  Convert arguments from their Any
             N := From_Any (Argument_N);
@@ -1220,7 +1299,7 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
 
       use PolyORB.Exceptions;
 
-      Error : Error_Container;
+      Exception_Error : Error_Container;
 
       My_Ref : NamingContext.Ref;
 
@@ -1230,9 +1309,9 @@ package body PolyORB.Services.Naming.NamingContext.Servant is
           If_Desc,
           To_PolyORB_String ("NAMING"),
           PolyORB.References.Ref (My_Ref),
-          Error);
+          Exception_Error);
 
-      if Found (Error) then
+      if Found (Exception_Error) then
          raise Program_Error;
       end if;
 

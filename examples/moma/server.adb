@@ -42,7 +42,6 @@ with PolyORB.Initialization;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
 with PolyORB.References.IOR;
-with PolyORB.Types;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
@@ -89,14 +88,17 @@ begin
    Create_Message_Pool (Pool_1, MOMA_Ref);
 
    --  Outputs its reference.
-   Put_Line (PolyORB.Types.To_Standard_String
-             (PolyORB.References.IOR.Object_To_String (MOMA_Ref)));
+   Put_Line (PolyORB.References.IOR.Object_To_String (MOMA_Ref));
 
    --  Register reference to naming service.
    if Argument_Count = 1 then
-      Init (PolyORB.References.IOR.String_To_Object
-            (PolyORB.Types.To_PolyORB_String
-             (Ada.Command_Line.Argument (1))));
+      declare
+         R : PolyORB.References.Ref;
+      begin
+         PolyORB.References.String_To_Object
+           (Ada.Command_Line.Argument (1), R);
+         Init (R);
+      end;
 
       Register ("Pool_1", MOMA_Ref);
    end if;

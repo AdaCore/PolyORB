@@ -44,17 +44,20 @@ package MOMA.Connection_Factories is
 
    type Connection_Factory is private;
 
-   procedure Create (Self     : out Connection_Factory;
-                     Remote   : PolyORB.References.Ref);
+   procedure Create
+     (Self     : out Connection_Factory;
+      Remote   :     PolyORB.References.Ref);
    --  Create a new connection factory, with the provider Remote.
 
    --  Accessors to the Connection_Factory internals.
 
-   procedure Set_Ref (Self    : in out Connection_Factory;
-                      Remote  : PolyORB.References.Ref);
+   procedure Set_Ref
+     (Self    : in out Connection_Factory;
+      Remote  :        PolyORB.References.Ref);
 
-   function Get_Ref (Self    : Connection_Factory)
-                     return PolyORB.References.Ref;
+   function Get_Ref
+     (Self    : Connection_Factory)
+     return PolyORB.References.Ref;
 
 private
 

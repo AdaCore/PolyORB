@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 include $(srcdir)/../Makefile.common
 
-corba_exe=test_event
+corba_exe=test_event typedtest_event
 
 COS_GNATMAKE_FLAGS = \
 	-I$(srcdir) \
@@ -47,5 +47,33 @@ coseventchanneladmin-proxypullsupplier-impl.ads \
 coseventchanneladmin-eventchannel-impl.adb \
 coseventchanneladmin-eventchannel-impl.ads
 
-$(PROGS): force $(IMP_1) $(IMP_2)
-	$(GNATMAKE_FOR_TARGET) $@ $(GNATMAKE_FLAGS)
+IMP_3= \
+typedtest_interface-impl.adb \
+typedtest_interface-impl.ads
+
+GEN=\
+typedtest_interface-helper.adb \
+typedtest_interface-helper.ads \
+typedtest_interface-ir_info.adb \
+typedtest_interface-ir_info.ads \
+typedtest_interface_idl_typedtest_interface-helper.adb \
+typedtest_interface_idl_typedtest_interface-helper.ads \
+typedtest_interface_idl_typedtest_interface-ir_info.adb \
+typedtest_interface_idl_typedtest_interface-ir_info.ads \
+typedtest_interface-skel.adb \
+typedtest_interface-skel.ads \
+typedtest_interface-stream.adb \
+typedtest_interface-stream.ads \
+typedtest_interface.adb \
+typedtest_interface.ads \
+typedtest_interface_idl_file.ads
+
+CLEANFILES += $(GEN) stamp-gen
+
+IDL=$(srcdir)/typedtest_interface.idl
+
+$(GEN): stamp-gen
+stamp-gen: $(IDL) $(IDLAC)
+	$(IDLAC) $(IDL)
+	touch stamp-gen
+

@@ -137,17 +137,19 @@ package PolyORB.Asynch_Ev is
    procedure Abort_Check_Sources
      (AEM : Asynch_Ev_Monitor)
       is abstract;
-   --  Send an abort signal to AEM.
+   --  Send an persistent abort signal to AEM. This signal aborts any
+   --  task currently executing Check_Sources on AEM, or will abort
+   --  next call to Check_Sources.
 
    -------------------------------------
    -- Reactor for asynchronous events --
    -------------------------------------
 
-   --  The middleware core implements the Reactor pattern
-   --  to handle event occurring on asynchronous event sources.
-   --  An event handler is associated with each asynchronous
-   --  event source. The handling of an event constitutes
-   --  a Job that can be performed by an ORB task.
+   --  The middleware core implements the Reactor pattern to handle
+   --  event occurring on asynchronous event sources.  An event
+   --  handler is associated with each asynchronous event source. The
+   --  handling of an event constitutes a Job that can be performed by
+   --  an ORB task.
 
    type AES_Event_Handler is abstract new PolyORB.Jobs.Job with record
       ORB : PolyORB.Components.Component_Access;
@@ -158,14 +160,13 @@ package PolyORB.Asynch_Ev is
    procedure Handle_Event
      (H : access AES_Event_Handler)
       is abstract;
-   --  Handle an event that has occurred on this asynchronous
-   --  event source. If AES is null on exit, then the asynchronous
-   --  event source has been destroyed, and the handler must be
-   --  deallocated.
+   --  Handle an event that has occurred on this asynchronous event
+   --  source. If AES is null on exit, then the asynchronous event
+   --  source has been destroyed, and the handler must be deallocated.
 
-   --  In this implementation of the Reactor pattern, the
-   --  association between an event source and its event
-   --  handler is made using an Annotation on the event source.
+   --  In this implementation of the Reactor pattern, the association
+   --  between an event source and its event handler is made using an
+   --  Annotation on the event source.
 
    procedure Run (AEH : access  AES_Event_Handler);
    --  Call Handle_Event.
@@ -178,10 +179,10 @@ private
 
    type Asynch_Ev_Source is abstract tagged limited record
       Monitor : Asynch_Ev_Monitor_Access;
-      --  The AEM with which this source was registered.
-      --  A concrete implementation of Register_Source returning
-      --  with Success = True must set this member of its AES
-      --  argument to the value of its AEM argument.
+      --  The AEM with which this source was registered. A concrete
+      --  implementation of Register_Source returning with Success =
+      --  True must set this member of its AES argument to the value
+      --  of its AEM argument.
 
       Notes   : aliased Annotations.Notepad;
    end record;

@@ -312,7 +312,7 @@ package body Sem_Dist is
          --  If the remote type has not been constructed yet, create
          --  it and its attributes now.
 
-         Attribute_Subp := TSS (New_Type, Name_uRAS_Access);
+         Attribute_Subp := TSS (New_Type, TSS_RAS_Access);
 
          if No (Attribute_Subp) then
             Add_RAST_Features (Parent (New_Type));
@@ -324,7 +324,7 @@ package body Sem_Dist is
          RAS_Type := Equivalent_Type (New_Type);
       end if;
 
-      Attribute_Subp := TSS (RAS_Type, Name_uRAS_Access);
+      Attribute_Subp := TSS (RAS_Type, TSS_RAS_Access);
       Remote_Subp_Decl := Unit_Declaration_Node (Remote_Subp);
 
       if Nkind (Remote_Subp_Decl) = N_Subprogram_Body then
@@ -516,7 +516,7 @@ package body Sem_Dist is
       --  The reason we suppress the initialization procedure is that we know
       --  that no initialization is required (even if Initialize_Scalars mode
       --  is active), and there are order of elaboration problems if we do try
-      --  to generate an Init_Proc for this created record type.
+      --  to generate an init proc for this created record type.
 
       Set_Suppress_Init_Proc (Fat_Type);
 
@@ -571,14 +571,14 @@ package body Sem_Dist is
          return;
       end if;
 
-      Deref_Proc := TSS (New_Type, Name_uRAS_Dereference);
+      Deref_Proc := TSS (New_Type, TSS_RAS_Dereference);
 
       if not Expander_Active then
          return;
 
       elsif No (Deref_Proc) then
          Add_RAST_Features (RAS_Decl);
-         Deref_Proc := TSS (New_Type, Name_uRAS_Dereference);
+         Deref_Proc := TSS (New_Type, TSS_RAS_Dereference);
       end if;
 
       if Ekind (Deref_Proc) = E_Function then

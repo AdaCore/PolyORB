@@ -454,6 +454,7 @@ package Rtsfind is
 
      RE_Root_Stream_Type,                -- Ada.Streams
      RE_Stream_Element,                  -- Ada.Streams
+     RE_Stream_Element_Count,            -- Ada.Streams
      RE_Stream_Element_Offset,           -- Ada.Streams
      RE_Stream_Element_Array,            -- Ada.Streams
 
@@ -485,6 +486,7 @@ package Rtsfind is
      RE_Tag,                             -- Ada.Tags
      RE_Address_Array,                   -- Ada.Tags
 
+     RE_Abort_Task,                      -- Ada.Task_Identification
      RE_Current_Task,                    -- Ada.Task_Identification
      RO_AT_Task_ID,                      -- Ada.Task_Identification
 
@@ -1026,11 +1028,15 @@ package Rtsfind is
      RE_NamedValue,                      -- System.PolyORB_Interface
      RE_Result_Name,                     -- System.PolyORB_Interface
      RE_Object_Ref,                      -- System.PolyORB_Interface
+     RE_Get_Type,                        -- System.PolyORB_Interface
      RE_Get_Empty_Any,                   -- System.PolyORB_Interface
      RE_Get_Empty_Any_Aggregate,         -- System.PolyORB_Interface
      RE_Any_Aggregate_Build,             -- System.PolyORB_Interface
      RE_Add_Aggregate_Element,           -- System.PolyORB_Interface
      RE_Get_Aggregate_Element,           -- System.PolyORB_Interface
+     RE_Content_Type,                    -- System.PolyORB_Interface
+     RE_Member_Type,                     -- System.PolyORB_Interface
+     RE_Get_Nested_Sequence_Length,      -- System.PolyORB_Interface
      RE_NVList_Ref,                      -- System.PolyORB_Interface
      RE_NVList_Create,                   -- System.PolyORB_Interface
      RE_NVList_Add_Item,                 -- System.PolyORB_Interface
@@ -1062,6 +1068,11 @@ package Rtsfind is
      RE_Get_Unique_Remote_Pointer,       -- System.PolyORB_Interface
      RE_Get_RAS_Ref,                     -- System.PolyORB_Interface
      RE_Asynchronous_P_To_Sync_Scope,    -- System.PolyORB_Interface
+     RE_Buffer_Stream_Type,              -- System.PolyORB_Interface
+     RE_Allocate_Buffer,                 -- System.PolyORB_Interface
+     RE_Release_Buffer,                  -- System.PolyORB_Interface
+     RE_BS_To_Any,                       -- System.PolyORB_Interface
+     RE_Any_To_BS,                       -- System.PolyORB_Interface
 
      RE_FA_AD,                           -- System.PolyORB_Interface
      RE_FA_AS,                           -- System.PolyORB_Interface
@@ -1111,6 +1122,7 @@ package Rtsfind is
      RE_TC_Alias,                        -- System.PolyORB_Interface
      RE_TC_Build,                        -- System.PolyORB_Interface
      RE_Set_TC,                          -- System.PolyORB_Interface
+     RE_TC_Any,                          -- System.PolyORB_Interface
      RE_TC_AD,                           -- System.PolyORB_Interface
      RE_TC_AS,                           -- System.PolyORB_Interface
      RE_TC_B,                            -- System.PolyORB_Interface
@@ -1130,6 +1142,7 @@ package Rtsfind is
      RE_TC_SU,                           -- System.PolyORB_Interface
      RE_TC_U,                            -- System.PolyORB_Interface
      RE_TC_Void,                         -- System.PolyORB_Interface
+     RE_TC_Opaque,                       -- System.PolyORB_Interface,
      RE_TC_WC,                           -- System.PolyORB_Interface
      RE_TC_Array,                        -- System.PolyORB_Interface,
      RE_TC_Sequence,                     -- System.PolyORB_Interface,
@@ -1215,6 +1228,8 @@ package Rtsfind is
      RE_W_SU,                            -- System.Stream_Attributes
      RE_W_U,                             -- System.Stream_Attributes
      RE_W_WC,                            -- System.Stream_Attributes
+
+     RE_Block_Stream_Ops_OK,             -- System.Stream_Attributes
 
      RE_Str_Concat,                      -- System.String_Ops
      RE_Str_Concat_CC,                   -- System.String_Ops
@@ -1502,6 +1517,7 @@ package Rtsfind is
 
      RE_Root_Stream_Type                 => Ada_Streams,
      RE_Stream_Element                   => Ada_Streams,
+     RE_Stream_Element_Count             => Ada_Streams,
      RE_Stream_Element_Offset            => Ada_Streams,
      RE_Stream_Element_Array             => Ada_Streams,
 
@@ -1533,6 +1549,7 @@ package Rtsfind is
      RE_Tag                              => Ada_Tags,
      RE_Address_Array                    => Ada_Tags,
 
+     RE_Abort_Task                       => Ada_Task_Identification,
      RE_Current_Task                     => Ada_Task_Identification,
      RO_AT_Task_ID                       => Ada_Task_Identification,
 
@@ -2060,11 +2077,15 @@ package Rtsfind is
      RE_NamedValue                       => System_PolyORB_Interface,
      RE_Result_Name                      => System_PolyORB_Interface,
      RE_Object_Ref                       => System_PolyORB_Interface,
+     RE_Get_Type                         => System_PolyORB_Interface,
      RE_Get_Empty_Any                    => System_PolyORB_Interface,
      RE_Get_Empty_Any_Aggregate          => System_PolyORB_Interface,
      RE_Any_Aggregate_Build              => System_PolyORB_Interface,
      RE_Add_Aggregate_Element            => System_PolyORB_Interface,
      RE_Get_Aggregate_Element            => System_PolyORB_Interface,
+     RE_Content_Type                     => System_PolyORB_Interface,
+     RE_Member_Type                      => System_PolyORB_Interface,
+     RE_Get_Nested_Sequence_Length       => System_PolyORB_Interface,
      RE_NVList_Ref                       => System_PolyORB_Interface,
      RE_NVList_Create                    => System_PolyORB_Interface,
      RE_NVList_Add_Item                  => System_PolyORB_Interface,
@@ -2096,6 +2117,11 @@ package Rtsfind is
      RE_Get_Unique_Remote_Pointer        => System_PolyORB_Interface,
      RE_Get_RAS_Ref                      => System_PolyORB_Interface,
      RE_Asynchronous_P_To_Sync_Scope     => System_PolyORB_Interface,
+     RE_Buffer_Stream_Type               => System_PolyORB_Interface,
+     RE_Allocate_Buffer                  => System_PolyORB_Interface,
+     RE_Release_Buffer                   => System_PolyORB_Interface,
+     RE_BS_To_Any                        => System_PolyORB_Interface,
+     RE_Any_To_BS                        => System_PolyORB_Interface,
 
      RE_FA_AD                            => System_PolyORB_Interface,
      RE_FA_AS                            => System_PolyORB_Interface,
@@ -2145,6 +2171,7 @@ package Rtsfind is
      RE_TC_Alias                         => System_PolyORB_Interface,
      RE_TC_Build                         => System_PolyORB_Interface,
      RE_Set_TC                           => System_PolyORB_Interface,
+     RE_TC_Any                           => System_PolyORB_Interface,
      RE_TC_AD                            => System_PolyORB_Interface,
      RE_TC_AS                            => System_PolyORB_Interface,
      RE_TC_B                             => System_PolyORB_Interface,
@@ -2164,6 +2191,7 @@ package Rtsfind is
      RE_TC_SU                            => System_PolyORB_Interface,
      RE_TC_U                             => System_PolyORB_Interface,
      RE_TC_Void                          => System_PolyORB_Interface,
+     RE_TC_Opaque                        => System_PolyORB_Interface,
      RE_TC_WC                            => System_PolyORB_Interface,
      RE_TC_Array                         => System_PolyORB_Interface,
      RE_TC_Sequence                      => System_PolyORB_Interface,
@@ -2261,6 +2289,8 @@ package Rtsfind is
      RE_W_SU                             => System_Stream_Attributes,
      RE_W_U                              => System_Stream_Attributes,
      RE_W_WC                             => System_Stream_Attributes,
+
+     RE_Block_Stream_Ops_OK              => System_Stream_Attributes,
 
      RE_Str_Concat                       => System_String_Ops,
      RE_Str_Normalize                    => System_String_Ops,
@@ -2547,15 +2577,15 @@ package Rtsfind is
      RE_Expunge_Unactivated_Tasks        => System_Tasking_Stages,
      RE_Terminated                       => System_Tasking_Stages);
 
-   -------------------------
-   -- High Integrity Mode --
-   -------------------------
+   --------------------------------
+   -- Configurable Run-Time Mode --
+   --------------------------------
 
-   --  Part of the job of Rtsfind is to enforce high integrity restrictions
-   --  in high integrity mode. This is done by monitoring implicit access to
-   --  the run time library requested by calls to the RTE function. A call
-   --  may be invalid in high integrity mode for either of the following
-   --  two reasons:
+   --  Part of the job of Rtsfind is to enforce run-time restrictions in
+   --  configurable run-time mode. This is done by monitoring implicit access
+   --  to the run time library requested by calls to the RTE function. A call
+   --  may be invalid in configurable run-time mode for either of the
+   --  following two reasons:
 
    --     1. File in which entity lives is not present in run-time library
    --     2. File is present, but entity is not defined in the file
@@ -2564,12 +2594,12 @@ package Rtsfind is
    --  that indicates that the run-time library is incorrectly configured,
    --  and a fatal error message is issued to signal this error.
 
-   --  In high integrity mode, either of these two situations indicates
-   --  simply that the corresponding operation is not available in high
-   --  integrity mode. This is not a configuration error, but rather just
-   --  a programming error. This programming error is signalled by raising
-   --  the exception RE_Not_Available. The caller must respond to this
-   --  exception by posting an appropriate error message.
+   --  In configurable run-time mode, either of these two situations indicates
+   --  simply that the corresponding operation is not available in the current
+   --  run-time that is use. This is not a configuration error, but rather a
+   --  natural result of a limited run-time. This situation is signalled by
+   --  raising the exception RE_Not_Available. The caller must respond to
+   --  this exception by posting an appropriate error message.
 
    ----------------------
    -- No_Run_Time_Mode --
@@ -2577,11 +2607,11 @@ package Rtsfind is
 
    --  For backwards compatibility with previous versions of GNAT, the
    --  compiler recognizes the pragma No_Run_Time. This provides a special
-   --  version of high integrity mode that operates with the standard
+   --  version of configurable run-time mode that operates with the standard
    --  run-time library, but allows only a subset of entities to be
    --  accessed. If any other entity is accessed, then it is treated
-   --  as a high integrity violation, and the exception RE_Not_Availble
-   --  is raised.
+   --  as a configurable run-time violation, and the exception
+   --  RE_Not_Availble is raised.
 
    --  The following array defines the set of units that contain entities
    --  that can be referenced in No_Run_Time mode. For each of these units,
@@ -2649,6 +2679,14 @@ package Rtsfind is
    --  this call, if the unit is not loaded, then a result of False is returned
    --  immediately, since obviously Ent cannot be the entity in question if the
    --  corresponding unit has not been loaded.
+
+   function Is_RTU (Ent : Entity_Id;  U : RTU_Id) return Boolean;
+   pragma Inline (Is_RTU);
+   --  This function determines if the given entity corresponds to the entity
+   --  for the unit referenced by U. If this unit has not been loaded, the
+   --  answer will always be False. If the unit has been loaded, then the
+   --  entity id values are compared and True is returned if Ent is the
+   --  entity for this unit.
 
    function RTE_Available (E : RE_Id) return Boolean;
    --  Returns true if a call to RTE will succeed without raising an

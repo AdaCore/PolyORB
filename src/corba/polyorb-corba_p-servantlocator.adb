@@ -83,8 +83,8 @@ package body PolyORB.CORBA_P.ServantLocator is
 
       CORBA_Servant : PortableServer.Servant;
 
-      Locator : PortableServer.ServantLocator.Ref'Class
-        := PortableServer.ServantLocator.Ref'Class
+      Locator : PortableServer.ServantLocator.Ref'Class :=
+        PortableServer.ServantLocator.Ref'Class
         (Get_Servant_Manager (Self.all));
 
    begin
@@ -121,8 +121,8 @@ package body PolyORB.CORBA_P.ServantLocator is
       CORBA_Servant : constant PortableServer.Servant :=
         PortableServer.Servant (CORBA.Impl.To_CORBA_Servant (The_Servant));
 
-      Locator : PortableServer.ServantLocator.Ref'Class
-        := PortableServer.ServantLocator.Ref'Class
+      Locator : PortableServer.ServantLocator.Ref'Class :=
+        PortableServer.ServantLocator.Ref'Class
         (Get_Servant_Manager (Self.all));
 
    begin

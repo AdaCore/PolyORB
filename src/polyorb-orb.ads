@@ -47,10 +47,11 @@ with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.Requests;
-with PolyORB.Tasking.Condition_Variables;
+with PolyORB.Scheduler;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Task_Info;
 with PolyORB.Transport;
+with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.ORB is
@@ -60,8 +61,9 @@ package PolyORB.ORB is
    package PC   renames PolyORB.Components;
    package PF   renames PolyORB.Filters;
    package PJ   renames PolyORB.Jobs;
+   package PS   renames PolyORB.Scheduler;
    package PT   renames PolyORB.Transport;
-   package PTCV renames PolyORB.Tasking.Condition_Variables;
+   package PTM  renames PolyORB.Tasking.Mutexes;
 
    type Request_Job is new PJ.Job with private;
 
@@ -162,13 +164,11 @@ package PolyORB.ORB is
    -- Server object operations --
    ------------------------------
 
-   type Boolean_Access is access all Boolean;
-
    type Task_Info_Access_Access is
      access all PolyORB.Task_Info.Task_Info_Access;
 
    type Exit_Condition_T is record
-      Condition : Boolean_Access;
+      Condition : PolyORB.Types.Boolean_Ptr;
       Task_Info : Task_Info_Access_Access;
    end record;
 
@@ -318,54 +318,37 @@ private
       -- Mutex for access to ORB state --
       -----------------------------------
 
-      ORB_Lock : PolyORB.Tasking.Mutexes.Mutex_Access;
+      ORB_Lock : PTM.Mutex_Access;
+
+      -----------------------
+      -- Scheduling Policy --
+      -----------------------
+
+      Scheduling_Policy : PS.Scheduling_Policy_Access;
 
       ------------------
       -- Server state --
       ------------------
 
-      Shutdown   : Boolean := False;
-      --  Set to True when ORB shutdown has been requested.
-
       Job_Queue  : PJ.Job_Queue_Access;
       --  The queue of jobs to be processed by ORB tasks.
-
-      Idle_Tasks : PTCV.Condition_Access;
-      --  Idle ORB task wait on this condition, which is signalled
-      --  when work is queued to be performed by ORB tasks.
-
-      Idle_Counter : Natural;
-      --  Number of thread in the Idle State
 
       Monitors : Monitor_List;
       --  The set of asynchronous event monitors to be watched
       --  by ORB tasks.
+
+      Number_Of_Monitors : Natural := 0;
+      --  Length of list 'Monitors'. This value is precomputed as it
+      --  is written seldom, read often.
 
       Transport_Access_Points : TAP_List;
       --  The set of transport access points managed by this ORB.
 
       Polling : Boolean;
       --  True if, and only if, one task is blocked waiting
-      --  for external events on ORB_Sockets.
-
-      Source_Deleted : Boolean;
-      --  Signals whether Delete_Source has been called while
-      --  another task was polling.
-
-      Polling_Completed : PTCV.Condition_Access;
-      --  This condition is signalled after polling is completed.
-      --  It is used by tasks for the polling task to release any
-      --  reference to an AES that is to be destroyed (see
-      --  Delete_Source).
-
-      Selector : PAE.Asynch_Ev_Monitor_Access;
-      --  The asynchronous event monitor on which this ORB is
-      --  currently waiting for events.
-      --  XXX This is very wrong as is: there might be
-      --      several ORB tasks currently blocked on different
-      --      selectors. A set of task descrptors, including task
-      --      origin, permanentness and current status should really
-      --      be maintained.
+      --  for external events on an Asynchronous Event Monitor.
+      --  XXX This flag is for debug purpose only, keep it for a while
+      --  to test implementation consistency.
 
       Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
       --  The object adapter that manages objects registered

@@ -159,6 +159,10 @@ package PolyORB.Utils.HTables.Perfect is
                   return Item;
    --  Return the Item on which I is placed.
 
+   function Key (I : Iterator)
+                  return String;
+   --  Return the Item's key on which I is placed.
+
    function Last (I : Iterator)
                  return Boolean;
    --  True if I is on the last element of the Table_Instance on which

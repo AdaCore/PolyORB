@@ -34,7 +34,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#15 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#18 $
 
 with Ada.Finalization;
 
@@ -72,10 +72,12 @@ package PolyORB.Binding_Data is
    subtype Profile_Tag is Types.Unsigned_Long;
 
    Tag_Internet_IOP        : constant Profile_Tag;
+   Tag_UIPMC               : constant Profile_Tag;
    Tag_Multiple_Components : constant Profile_Tag;
    Tag_Local               : constant Profile_Tag;
    Tag_SRP                 : constant Profile_Tag;
    Tag_SOAP                : constant Profile_Tag;
+   Tag_DIOP                : constant Profile_Tag;
    Tag_Test                : constant Profile_Tag;
 
    type Profile_Preference is new Integer range 0 .. Integer'Last;
@@ -83,6 +85,16 @@ package PolyORB.Binding_Data is
 
    Preference_Default : constant Profile_Preference;
    --  Default value for profile preference.
+
+   procedure Set_OA
+     (Profile : in out Profile_Type;
+      OA      :        PolyORB.Smart_Pointers.Ref);
+   --  Set the object adapter in which Profile's OID are stored.
+
+   function Get_OA
+     (Profile : Profile_Type)
+     return PolyORB.Smart_Pointers.Ref;
+   --  Get the object adapter in which Profile's OID are stored.
 
    function Get_Object_Key
      (Profile : Profile_Type)
@@ -178,12 +190,16 @@ private
 
    Tag_Internet_IOP        : constant Profile_Tag := 0;
    Tag_Multiple_Components : constant Profile_Tag := 1;
+   Tag_UIPMC               : constant Profile_Tag := 3;
+   --  TAO value :
+   --  Tag_UIPMC               : constant Profile_Tag := 1413566220;
 
    --  Tags defined by PolyORB
 
    Tag_Local               : constant Profile_Tag := 16#7fffff00#;
    Tag_SRP                 : constant Profile_Tag := 16#7fffff02#;
    Tag_SOAP                : constant Profile_Tag := 16#7fffff03#;
+   Tag_DIOP                : constant Profile_Tag := 16#7fffff04#;
    Tag_Test                : constant Profile_Tag := 16#7fffff0f#;
 
    Preference_Default : constant Profile_Preference
@@ -193,6 +209,7 @@ private
      abstract new Ada.Finalization.Limited_Controlled with record
         Object_Id    : Objects.Object_Id_Access;
         Continuation : PolyORB.Smart_Pointers.Ref;
+        OA           : PolyORB.Smart_Pointers.Ref;
      end record;
 
    type Profile_Factory is abstract tagged limited null record;

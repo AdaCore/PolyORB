@@ -33,7 +33,7 @@
 
 --  Definition of the container type 'Any'
 
---  $Id: //droopi/main/src/polyorb-any.ads#35 $
+--  $Id: //droopi/main/src/polyorb-any.ads#36 $
 
 with Ada.Unchecked_Deallocation;
 
@@ -843,7 +843,7 @@ private
    --   - one field for the value
    --
    --  To be able to carry values of different types, the second
-   --  field is an Any_Content_Ptr_Ptr which is an access to an access to any
+   --  field is an Any_Content_Ptr which is  an access to any
    --  type deriving from Content. Every basic types Foo that can be carried
    --  into an Any should be associated to a child of Content (Content_Foo)
    --  which contains a field of the Foo type.
@@ -872,12 +872,6 @@ private
    procedure Deallocate_Any_Content is new Ada.Unchecked_Deallocation
      (Content'Class, Any_Content_Ptr);
 
-   type Any_Content_Ptr_Ptr is access all Any_Content_Ptr;
-
-   --  Free an Any_Content_Ptr_Ptr
-   procedure Deallocate_Any_Content_Ptr is new Ada.Unchecked_Deallocation
-     (Any_Content_Ptr, Any_Content_Ptr_Ptr);
-
    --  The content_TypeCode type is defined inside the TypeCode package
    --  However, the corresponding deallocate function is here
    --  This is due to the fact that the TypeCode.Object type is private
@@ -897,7 +891,7 @@ private
          The_Type     : TypeCode.Object;
          --  TypeCode describing the data
 
-         The_Value    : Any_Content_Ptr_Ptr;
+         The_Value    : Any_Content_Ptr;
          --  Pointer to the actual value contained
 
          Is_Finalized : Boolean := False;
@@ -921,11 +915,6 @@ private
      (Obj : Any)
      return Any_Content_Ptr;
    pragma Inline (Get_Value);
-
-   function Get_Value_Ptr
-     (Obj : Any)
-     return Any_Content_Ptr_Ptr;
-   pragma Inline (Get_Value_Ptr);
 
    --  Deallocation of Any pointers.
    procedure Deallocate is new Ada.Unchecked_Deallocation (Any, Any_Ptr);

@@ -42,11 +42,14 @@ with PolyORB.Any.NVList;
 with PolyORB.Components;
 with PolyORB.References;
 with PolyORB.Task_Info;
+with PolyORB.Exceptions;
 with PolyORB.Types;
 with PolyORB.Utils.Simple_Flags;
 pragma Elaborate_All (PolyORB.Utils.Simple_Flags); --  WAG:3.15
 
 package PolyORB.Requests is
+
+   use PolyORB.Exceptions;
 
    type Flags is new Types.Unsigned_Long;
 
@@ -203,13 +206,22 @@ package PolyORB.Requests is
    --  Run Self.
 
    procedure Arguments
-     (Self :        Request_Access;
-      Args : in out Any.NVList.Ref);
+     (Self  :        Request_Access;
+      Args  : in out Any.NVList.Ref;
+      Error : in out Error_Container);
    --  Retrieve the invocation's arguments into Args.
    --  Call back the protocol layer to do the unmarshalling,
    --  if necessary. Should be called exactly once from within
    --  a servant's Invoke primitive. Args MUST be a correctly
    --  typed NVList for the signature of the method being invoked.
+
+   procedure Arguments
+     (Self       :        Request_Access;
+      Args       : in out Any.NVList.Ref;
+      Error      : in out Error_Container;
+      Can_Extend :        Boolean);
+   --  If Can_Extend is set to True and Self contains extra arguments
+   --  that are not required by Args, they are appended.
 
    procedure Set_Result
      (Self : Request_Access;
@@ -217,7 +229,8 @@ package PolyORB.Requests is
    --  Set the value of Self's result to Val.
 
    procedure Set_Out_Args
-     (Self : Request_Access);
+     (Self  : Request_Access;
+      Error : in out Error_Container);
    --  Copy back the values of out and inout arguments
    --  from Out_Args to Args.
 
@@ -228,10 +241,15 @@ package PolyORB.Requests is
      (Dst_Args        : in out Any.NVList.Ref;
       Src_Args        :        Any.NVList.Ref;
       Direction       :        Any.Flags;
-      Ignore_Src_Mode :        Boolean        := True);
+      Ignore_Src_Mode :        Boolean        := True;
+      Error           : in out Error_Container;
+      Can_Extend      :        Boolean        := False);
    --  True arguments of direction Direction (or INOUT) from received
-   --  protocol arguments list P_Args (either from a request, on server
-   --  side, or for a reply, on client side) into A_Args.
+   --  protocol arguments list P_Args (either from a request, on
+   --  server side, or for a reply, on client side) into A_Args.  If
+   --  Can_Extend is set to True and Src_Args contains extra arguments
+   --  that are not required by Dst_Args, then they are appended.
+
 
    function Image
      (Req : Request)

@@ -34,6 +34,8 @@
 --  Socket implementation of transport service access points
 --  and communication endpoints.
 
+--  $Id$
+
 with PolyORB.Asynch_Ev.Sockets;
 with PolyORB.Log;
 
@@ -151,9 +153,28 @@ package body PolyORB.Transport.Connected.Sockets is
       return Ev_Src;
    end Create_Event_Source;
 
-   -----------
+   -----------------------
+   -- Is_Data_Available --
+   -----------------------
+
+   function Is_Data_Available
+     (TE : Socket_Endpoint;
+      N  : Natural)
+     return Boolean
+   is
+      Request : Request_Type (N_Bytes_To_Read);
+
+   begin
+      Control_Socket (TE.Socket, Request);
+
+      pragma Debug (O ("Found" & Request.Size'Img & " bytes waiting"));
+
+      return Request.Size >= N;
+   end Is_Data_Available;
+
+   ----------
    -- Read --
-   -----------
+   ----------
 
    procedure Read
      (TE     : in out Socket_Endpoint;

@@ -36,6 +36,8 @@ with PortableServer.AdapterActivator;
 
 package Test_AdapterActivator is
 
+   --  Adapter that does nothing
+
    type NullAdapter_Ref is new PortableServer.AdapterActivator.Ref
      with null record;
 
@@ -46,6 +48,8 @@ package Test_AdapterActivator is
       Parent : PortableServer.POA_Forward.Ref;
       Name   : CORBA.String)
      return Boolean;
+
+   --  Simple adapter that creates a POA on demand
 
    type SimpleAdapter_Ref is new PortableServer.AdapterActivator.Ref
      with null record;

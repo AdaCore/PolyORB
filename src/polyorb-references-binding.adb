@@ -156,16 +156,25 @@ package body PolyORB.References.Binding is
       end if;
 
       declare
+         use PolyORB.Objects;
+
          Selected_Profile : Profile_Access
            renames Profiles (Best_Profile_Index);
-         OA : constant Obj_Adapter_Access
-           := Object_Adapter (Local_ORB);
+         OA : Obj_Adapter_Access;
 
          S : PolyORB.Servants.Servant_Access;
       begin
          pragma Debug
            (O ("Found profile: " & Ada.Tags.External_Tag
                (Selected_Profile'Tag)));
+
+         if PolyORB.Smart_Pointers.Is_Nil (Get_OA (Selected_Profile.all)) then
+            OA := Object_Adapter (Local_ORB);
+         else
+            OA := Obj_Adapter_Access
+              (PolyORB.Smart_Pointers.Entity_Of
+               (Get_OA (Selected_Profile.all)));
+         end if;
 
          if Selected_Profile.all in Local_Profile_Type
            or else Is_Profile_Local (Local_ORB, Selected_Profile)
@@ -175,11 +184,15 @@ package body PolyORB.References.Binding is
 
             Object_Id := Get_Object_Key (Selected_Profile.all);
 
+            if Object_Id = null then
+               pragma Debug (O ("Unable to locate object"));
+               return;
+            end if;
+
             if not Is_Proxy_Oid (OA, Object_Id) then
                --  Real local object
 
-               Find_Servant
-                 (Object_Adapter (Local_ORB), Object_Id, S, Error);
+               Find_Servant (OA, Object_Id, S, Error);
 
                if Found (Error) then
                   return;

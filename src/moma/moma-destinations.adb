@@ -50,6 +50,12 @@ package body MOMA.Destinations is
    use PolyORB.Any.ObjRef;
    use PolyORB.Types;
 
+   procedure Set_Kind
+     (Self : in out Destination;
+      Kind :        MOMA.Types.Destination_Type);
+   pragma Inline (Set_Kind);
+
+
    ---------
    -- "=" --
    ---------
@@ -113,8 +119,9 @@ package body MOMA.Destinations is
    -- From_Any --
    --------------
 
-   function From_Any (Self : PolyORB.Any.Any)
-                     return MOMA.Destinations.Destination
+   function From_Any
+     (Self : PolyORB.Any.Any)
+     return MOMA.Destinations.Destination
    is
       Kind     : MOMA.Types.Destination_Type := MOMA.Types.Unknown;
       Name     : MOMA.Types.String;
@@ -142,8 +149,9 @@ package body MOMA.Destinations is
    -- Get_Kind --
    --------------
 
-   function Get_Kind (Self : Destination)
-                     return MOMA.Types.Destination_Type is
+   function Get_Kind
+     (Self : Destination)
+     return MOMA.Types.Destination_Type is
    begin
       return Self.Kind;
    end Get_Kind;
@@ -152,8 +160,9 @@ package body MOMA.Destinations is
    -- Get_Name --
    --------------
 
-   function Get_Name (Self : Destination)
-                     return MOMA.Types.String is
+   function Get_Name
+     (Self : Destination)
+     return MOMA.Types.String is
    begin
       return Self.Name;
    end Get_Name;
@@ -162,8 +171,9 @@ package body MOMA.Destinations is
    -- Get_Ref --
    -------------
 
-   function Get_Ref (Self : Destination)
-                    return PolyORB.References.Ref is
+   function Get_Ref
+     (Self : Destination)
+     return PolyORB.References.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -172,8 +182,9 @@ package body MOMA.Destinations is
    -- Image --
    -----------
 
-   function Image (Self : Destination)
-                  return String is
+   function Image
+     (Self : Destination)
+     return String is
    begin
       return "<name: " & MOMA.Types.To_Standard_String (Self.Name)
         & ",kind: " & MOMA.Types.Destination_Type'Image (Self.Kind)
@@ -185,8 +196,9 @@ package body MOMA.Destinations is
    -- Set_Name --
    --------------
 
-   procedure Set_Name (Self : in out Destination;
-                       Name : MOMA.Types.String) is
+   procedure Set_Name
+     (Self : in out Destination;
+      Name :        MOMA.Types.String) is
    begin
       Self.Name := Name;
    end Set_Name;
@@ -195,8 +207,9 @@ package body MOMA.Destinations is
    -- Set_Ref --
    -------------
 
-   procedure Set_Ref (Self : in out Destination;
-                      Ref  : PolyORB.References.Ref) is
+   procedure Set_Ref
+     (Self : in out Destination;
+      Ref  :        PolyORB.References.Ref) is
    begin
       Self.Ref := Ref;
    end Set_Ref;
@@ -205,8 +218,9 @@ package body MOMA.Destinations is
    -- Set_Kind --
    --------------
 
-   procedure Set_Kind (Self  : in out Destination;
-                       Kind  : MOMA.Types.Destination_Type) is
+   procedure Set_Kind
+     (Self  : in out Destination;
+      Kind  :        MOMA.Types.Destination_Type) is
    begin
       Self.Kind := Kind;
    end Set_Kind;
@@ -215,8 +229,9 @@ package body MOMA.Destinations is
    -- To_Any --
    ------------
 
-   function To_Any (Self : Destination)
-                   return PolyORB.Any.Any
+   function To_Any
+     (Self : Destination)
+     return PolyORB.Any.Any
    is
       Result : Any := Get_Empty_Any_Aggregate (TC_MOMA_Destination);
    begin

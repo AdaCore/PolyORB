@@ -40,7 +40,7 @@ with PolyORB.Utils.Chained_Lists;
 
 package PolyORB.Any.NVList is
 
-   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
+   type Ref is new PolyORB.Smart_Pointers.Ref with private;
 
    procedure Add_Item
      (Self       :    Ref;
@@ -71,8 +71,7 @@ package PolyORB.Any.NVList is
    -- The following is specific to PolyORB --
    ------------------------------------------
 
-   procedure Create
-     (NVList : out Ref);
+   procedure Create (NVList : out Ref);
    --  Create a new NVList object and return a reference to it.
 
    function Image
@@ -96,6 +95,8 @@ package PolyORB.Any.NVList is
    end Internals;
 
 private
+
+   type Ref is new PolyORB.Smart_Pointers.Ref with null record;
 
    type Object is new PolyORB.Smart_Pointers.Non_Controlled_Entity
      with record

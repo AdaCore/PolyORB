@@ -58,15 +58,17 @@ package MOMA.Message_Consumers is
 
    type Message_Consumer_Acc is access Message_Consumer;
 
-   function Create_Consumer (Session : MOMA.Sessions.Session;
-                             Dest    : MOMA.Destinations.Destination)
-      return Message_Consumer_Acc;
+   function Create_Consumer
+     (Session : MOMA.Sessions.Session;
+      Dest    : MOMA.Destinations.Destination)
+     return Message_Consumer_Acc;
    --  Create a new message consumer.
 
-   function Create_Consumer (Session          : MOMA.Sessions.Session;
-                             Dest             : MOMA.Destinations.Destination;
-                             Message_Selector : MOMA.Types.String)
-      return Message_Consumer_Acc;
+   function Create_Consumer
+     (Session          : MOMA.Sessions.Session;
+      Dest             : MOMA.Destinations.Destination;
+      Message_Selector : MOMA.Types.String)
+     return Message_Consumer_Acc;
    --  XXX Not implemented.
 
    procedure Close;
@@ -75,14 +77,16 @@ package MOMA.Message_Consumers is
    function Get_Message_Selector return String;
    --  XXX not implemented.
 
-   function Receive (Self : Message_Consumer)
-      return MOMA.Messages.Message'Class;
+   function Receive
+     (Self : Message_Consumer)
+     return MOMA.Messages.Message'Class;
    --  Get next message from the pool if it is non empty; otherwise the call
    --  is blocking until a new message is received by the pool.
    --  XXX not all cases are tested !
 
-   function Receive (Timeout : Ada.Real_Time.Time)
-      return MOMA.Messages.Message;
+   function Receive
+     (Timeout : Ada.Real_Time.Time)
+     return MOMA.Messages.Message;
    --  Get next message from the pool if it is non empty; otherwise will
    --  wait during Timeout until a new message arrives.
    --  XXX not implemented.
@@ -93,26 +97,32 @@ package MOMA.Message_Consumers is
 
    --  Accessors to Message_Consumer internal data.
 
-   function Get_Ref (Self : Message_Consumer) return PolyORB.References.Ref;
+   function Get_Ref
+     (Self : Message_Consumer)
+     return PolyORB.References.Ref;
 
-   procedure Set_Ref (Self : in out Message_Consumer;
-                      Ref  : PolyORB.References.Ref);
+   procedure Set_Ref
+     (Self : in out Message_Consumer;
+      Ref  :        PolyORB.References.Ref);
 
-   function Get_Destination (Self : Message_Consumer)
-                             return MOMA.Destinations.Destination;
+   function Get_Destination
+     (Self : Message_Consumer)
+     return MOMA.Destinations.Destination;
 
-   procedure Set_Destination (Self : in out Message_Consumer;
-                              Dest : MOMA.Destinations.Destination);
+   procedure Set_Destination
+     (Self : in out Message_Consumer;
+      Dest :        MOMA.Destinations.Destination);
 
 private
+
    type Message_Consumer is record
       Destination    : MOMA.Destinations.Destination;
       Ref            : PolyORB.References.Ref;
    end record;
 
-   pragma Inline (Get_Ref,
-                  Set_Ref,
-                  Get_Destination,
-                  Set_Destination);
+   pragma Inline (Get_Ref);
+   pragma Inline (Set_Ref);
+   pragma Inline (Get_Destination);
+   pragma Inline (Set_Destination);
 
 end MOMA.Message_Consumers;

@@ -64,9 +64,10 @@ package body MOMA.Message_Consumers is
    -- Create_Consumer --
    ---------------------
 
-   function Create_Consumer (Session : MOMA.Sessions.Session;
-                             Dest    : MOMA.Destinations.Destination)
-                            return Message_Consumer_Acc
+   function Create_Consumer
+     (Session : MOMA.Sessions.Session;
+      Dest    : MOMA.Destinations.Destination)
+     return Message_Consumer_Acc
    is
       pragma Warnings (Off);
       pragma Unreferenced (Session);
@@ -74,8 +75,8 @@ package body MOMA.Message_Consumers is
 
       use PolyORB.Exceptions;
 
-      MOMA_Obj : constant MOMA.Provider.Message_Consumer.Object_Acc
-        := new MOMA.Provider.Message_Consumer.Object;
+      MOMA_Obj : constant MOMA.Provider.Message_Consumer.Object_Acc :=
+        new MOMA.Provider.Message_Consumer.Object;
 
       MOMA_Ref : PolyORB.References.Ref;
 
@@ -108,11 +109,11 @@ package body MOMA.Message_Consumers is
       return Consumer;
    end Create_Consumer;
 
-   function Create_Consumer (Session          : MOMA.Sessions.Session;
-                             Dest             : MOMA.Destinations.Destination;
-                             Message_Selector : MOMA.Types.String)
-                            return Message_Consumer_Acc
-   is
+   function Create_Consumer
+     (Session          : MOMA.Sessions.Session;
+      Dest             : MOMA.Destinations.Destination;
+      Message_Selector : MOMA.Types.String)
+     return Message_Consumer_Acc is
    begin
       raise PolyORB.Not_Implemented;
       pragma Warnings (Off);
@@ -136,8 +137,9 @@ package body MOMA.Message_Consumers is
    -- Get_Destination --
    ---------------------
 
-   function Get_Destination (Self : Message_Consumer)
-                            return MOMA.Destinations.Destination is
+   function Get_Destination
+     (Self : Message_Consumer)
+     return MOMA.Destinations.Destination is
    begin
       return Self.Destination;
    end Get_Destination;
@@ -146,8 +148,9 @@ package body MOMA.Message_Consumers is
    -- Get_Ref --
    -------------
 
-   function Get_Ref (Self : Message_Consumer)
-                    return PolyORB.References.Ref is
+   function Get_Ref
+     (Self : Message_Consumer)
+     return PolyORB.References.Ref is
    begin
       return Self.Ref;
    end Get_Ref;
@@ -156,8 +159,9 @@ package body MOMA.Message_Consumers is
    -- Receive --
    -------------
 
-   function Receive (Self : Message_Consumer)
-                    return MOMA.Messages.Message'Class
+   function Receive
+     (Self : Message_Consumer)
+     return MOMA.Messages.Message'Class
    is
       Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any
         (To_PolyORB_String (""));
@@ -219,9 +223,9 @@ package body MOMA.Message_Consumers is
    -- Set_Destination --
    ---------------------
 
-   procedure Set_Destination (Self : in out Message_Consumer;
-                              Dest : MOMA.Destinations.Destination)
-   is
+   procedure Set_Destination
+     (Self : in out Message_Consumer;
+      Dest :        MOMA.Destinations.Destination) is
    begin
       Self.Destination := Dest;
    end Set_Destination;
@@ -230,8 +234,9 @@ package body MOMA.Message_Consumers is
    -- Set_Ref --
    -------------
 
-   procedure Set_Ref (Self : in out Message_Consumer;
-                      Ref  : PolyORB.References.Ref) is
+   procedure Set_Ref
+     (Self : in out Message_Consumer;
+      Ref  :        PolyORB.References.Ref) is
    begin
       Self.Ref := Ref;
    end Set_Ref;

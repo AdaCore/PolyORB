@@ -69,6 +69,9 @@ package PortableServer is
 
    subtype POAList is IDL_Sequence_POA_Forward.Sequence;
 
+   ForwardRequest : exception;
+   NotAGroupObject : exception;
+
    ---------------------------
    -- DynamicImplementation --
    ---------------------------
@@ -139,11 +142,14 @@ package PortableServer is
    --  but defined in various C++ ORB implementation. Moreover, how
    --  can we build an ObjectId without such a conversion function ?
 
-   ------------------------------
-   -- Exception ForwardRequest --
-   ------------------------------
+   type ObjectId_Access is access ObjectId;
 
-   ForwardRequest : exception;
+   package Sequence_IDs
+   is new CORBA.Sequences.Unbounded (ObjectId_Access);
+   --  Implementation note: ObjectId is an unconstrained
+   --  type. Instead, we instantiate a sequence of ObjectId_Access.
+
+   type IDs is new Sequence_IDs.Sequence;
 
    ---------------
    -- Constants --
@@ -189,7 +195,7 @@ package PortableServer is
 
    ------------------------------------------
    -- PortableServer Exceptions Management --
-   -------------------------------------------
+   ------------------------------------------
 
    type ForwardRequest_Members is new CORBA.IDL_Exception_Members with record
       Forward_Reference : CORBA.Object.Ref;
@@ -202,6 +208,17 @@ package PortableServer is
    procedure Raise_ForwardRequest
      (Excp_Memb : in ForwardRequest_Members);
    pragma No_Return (Raise_ForwardRequest);
+
+   type NotAGroupObject_Members is new CORBA.IDL_Exception_Members
+     with null record;
+
+   procedure Get_Members
+     (From : in  Ada.Exceptions.Exception_Occurrence;
+      To   : out NotAGroupObject_Members);
+
+   procedure Raise_NotAGroupObject
+     (Excp_Memb : in NotAGroupObject_Members);
+   pragma No_Return (Raise_NotAGroupObject);
 
    --  XXX What is the status of this comment ??
 
@@ -220,8 +237,8 @@ package PortableServer is
 
    --  ThreadPolicyValue
 
-   TC_ThreadPolicyValue : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Enum;
+   TC_ThreadPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
 
    function From_Any
      (Item : in CORBA.Any)
@@ -233,8 +250,8 @@ package PortableServer is
 
    --  LifespanPolicyValue
 
-   TC_LifespanPolicyValue : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Enum;
+   TC_LifespanPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
 
    function From_Any
      (Item : in CORBA.Any)
@@ -246,8 +263,8 @@ package PortableServer is
 
    --  IdUniquenessPolicyValue
 
-   TC_IdUniquenessPolicyValue : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Enum;
+   TC_IdUniquenessPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
 
    function From_Any
      (Item : in CORBA.Any)
@@ -272,8 +289,8 @@ package PortableServer is
 
    --  ImplicitActivationPolicyValue
 
-   TC_ImplicitActivationPolicyValue : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Enum;
+   TC_ImplicitActivationPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
 
    function From_Any
      (Item : in CORBA.Any)
@@ -285,8 +302,8 @@ package PortableServer is
 
    --  ServantRetentionPolicyValue
 
-   TC_ServantRetentionPolicyValue : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Enum;
+   TC_ServantRetentionPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
 
    function From_Any
      (Item : in CORBA.Any)
@@ -298,8 +315,8 @@ package PortableServer is
 
    --  RequestProcessingPolicyValue
 
-   TC_RequestProcessingPolicyValue : CORBA.TypeCode.Object
-     := CORBA.TypeCode.TC_Enum;
+   TC_RequestProcessingPolicyValue : CORBA.TypeCode.Object :=
+     CORBA.TypeCode.TC_Enum;
 
    function From_Any
      (Item : in CORBA.Any)

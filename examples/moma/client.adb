@@ -65,7 +65,6 @@ with MOMA.Types;
 with PolyORB.Any;
 with PolyORB.Initialization;
 with PolyORB.References;
-with PolyORB.References.IOR;
 with PolyORB.Types;
 with PolyORB.Utils.Report;
 
@@ -88,9 +87,9 @@ procedure Client is
    use PolyORB.Types;
    use PolyORB.Utils.Report;
 
-   Arg1               : MOMA.Types.String;
-   Arg2               : MOMA.Types.String;
-   Arg3               : MOMA.Types.String;
+   Arg1               : String renames Ada.Command_Line.Argument (1);
+   Arg2               : String renames Ada.Command_Line.Argument (2);
+   Arg3               : String renames Ada.Command_Line.Argument (3);
    Pool_Ref           : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
    Router_Ref         : PolyORB.References.Ref := PolyORB.References.Nil_Ref;
    MOMA_Factory       : Connection_Factory;
@@ -390,9 +389,6 @@ procedure Client is
       if Argument_Count /= 3 then
          return False;
       end if;
-      Arg1 := To_MOMA_String (Ada.Command_Line.Argument (1));
-      Arg2 := To_MOMA_String (Ada.Command_Line.Argument (2));
-      Arg3 := To_MOMA_String (Ada.Command_Line.Argument (3));
       if Arg1 = "full" then
          Scenario := Full;
       elsif Arg1 = "stor" then
@@ -442,15 +438,20 @@ begin
 
    --  Get a reference on the message pool to use.
    if Kind = Pool then
-      Pool_Ref := PolyORB.References.IOR.String_To_Object (Arg3);
+      PolyORB.References.String_To_Object (Arg3, Pool_Ref);
    elsif Kind = Naming then
-      Init (PolyORB.References.IOR.String_To_Object (Arg3));
+      declare
+         Naming_Ref : PolyORB.References.Ref;
+      begin
+         PolyORB.References.String_To_Object (Arg3, Naming_Ref);
+         Init (Naming_Ref);
+      end;
       Pool_Ref := Locate ("Pool_1");
       Kind := Pool;
    elsif Kind = Topic then
-      Router_Ref := PolyORB.References.IOR.String_To_Object (Arg3);
+      PolyORB.References.String_To_Object (Arg3, Router_Ref);
       if Scenario = Sub or Scenario = Unsub then
-         Pool_Ref := PolyORB.References.IOR.String_To_Object (Arg2);
+         PolyORB.References.String_To_Object (Arg2, Pool_Ref);
       end if;
    end if;
 

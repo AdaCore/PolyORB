@@ -34,15 +34,16 @@
 with CORBA.Object;
 pragma Warnings (Off, CORBA.Object);
 
-with PortableServer;
-
-with CosEventComm;
-
-with CosEventComm.PullSupplier;
+with CORBA.Impl;
 
 with CosEventChannelAdmin;
-
 with CosEventChannelAdmin.SupplierAdmin.Impl;
+
+with CosEventComm;
+with CosEventComm.PullSupplier;
+
+with CosTypedEventComm.TypedPullSupplier;
+with CosTypedEventComm.TypedPullSupplier.Impl;
 
 with CosEventChannelAdmin.ProxyPullConsumer.Helper;
 pragma Elaborate (CosEventChannelAdmin.ProxyPullConsumer.Helper);
@@ -53,6 +54,8 @@ pragma Elaborate (CosEventChannelAdmin.ProxyPullConsumer.Skel);
 pragma Warnings (Off, CosEventChannelAdmin.ProxyPullConsumer.Skel);
 
 with CosEventChannelAdmin.SupplierAdmin.Impl;
+
+with PortableServer;
 
 with PolyORB.CORBA_P.Server_Tools;
 
@@ -66,6 +69,8 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
 
    use CosEventComm;
    use CosEventChannelAdmin;
+
+   use CosTypedEventComm;
 
    use PortableServer;
 
@@ -83,7 +88,7 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
    type Proxy_Pull_Consumer_Record is record
       This           : Object_Ptr;
       Peer           : PullSupplier.Ref;
-      Admin          : SupplierAdmin.Impl.Object_Ptr;
+      Admin          : SupplierAdmin.Ref;
       Engin_Launched : Boolean := False;
       --  is there a thread launch for the engine
    end record;
@@ -132,6 +137,7 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
       This  : Object_Ptr;
       Peer  : PullSupplier.Ref;
       Event : CORBA.Any;
+      Obj   : CORBA.Impl.Object_Ptr;
    begin
       pragma Debug (O ("Session Thread number "
                        & Image (Current_Task)
@@ -169,7 +175,9 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
          pragma Debug
            (O ("post new data from proxy pull consumer to admin"));
 
-         SupplierAdmin.Impl.Post (This.X.Admin, Event);
+         Reference_To_Servant (This.X.Admin, Servant (Obj));
+         SupplierAdmin.Impl.Post
+         (SupplierAdmin.Impl.Object_Ptr (Obj), Event);
       end loop;
 
       This.X.Engin_Launched := False;
@@ -214,7 +222,7 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
    ------------
 
    function Create
-     (Admin : SupplierAdmin.Impl.Object_Ptr)
+     (Admin : SupplierAdmin.Ref)
      return Object_Ptr
    is
       Consumer : Object_Ptr;
@@ -230,6 +238,35 @@ package body CosEventChannelAdmin.ProxyPullConsumer.Impl is
       Initiate_Servant (Servant (Consumer), My_Ref);
       return Consumer;
    end Create;
+
+   ----------
+   -- Pull --
+   ----------
+
+   function Pull
+     (Self : access Object)
+     return CORBA.Object.Ref
+   is
+      Ref : CORBA.Object.Ref;
+      Obj : CORBA.Impl.Object_Ptr;
+   begin
+      pragma Debug
+        (O ("calling get_typed_supplier from " &
+            "proxy pullconsumer to typed pullsupplier"));
+
+      begin
+         Reference_To_Servant (Self.X.Peer, Servant (Obj));
+         Ref := TypedPullSupplier.Impl.Get_Typed_Supplier
+                 (TypedPullSupplier.Impl.Object_Ptr (Obj));
+      exception
+         when others =>
+            pragma Debug (O ("Got exception in Pull"));
+            raise;
+      end;
+
+      return Ref;
+
+   end Pull;
 
    ------------------------------
    -- Disconnect_Pull_Consumer --

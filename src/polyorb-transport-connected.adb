@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--            Copyright (C) 2003 Free Software Foundation, Inc.             --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -31,7 +31,10 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract connected transport service access points and transport endpoints.
+--  Abstract connected transport service access points and transport
+--  endpoints.
+
+--  $Id$
 
 with Ada.Exceptions;
 
@@ -77,7 +80,7 @@ package body PolyORB.Transport.Connected is
       Register_Endpoint (ORB_Access (H.ORB),
                          New_TE,
                          New_Filter, Server);
-      --  Register end poitn to ORB
+      --  Register end point to ORB
 
       Emit_No_Reply
         (H.ORB,
@@ -109,7 +112,9 @@ package body PolyORB.Transport.Connected is
          --  Both the Endpoint and the associated AES must
          --  now be destroyed.
          Handle_Close_Server_Connection
-           (ORB_Access (H.ORB).Tasking_Policy, H.TE);
+           (ORB_Access (H.ORB).all.Tasking_Policy, H.TE);
+         --  XXX explicit dereference required to work around
+         --  C725-007
 
          Destroy (H.TE);
          --  Destroy the transport endpoint and the associated
@@ -157,9 +162,21 @@ package body PolyORB.Transport.Connected is
             TE.Max    := DE.Max;
          end;
 
-         return Emit
-           (TE.Server, ORB.Interface.Monitor_Endpoint'
-              (TE => Transport_Endpoint_Access (TE)));
+         if Is_Data_Available (Connected_Transport_Endpoint'Class (TE.all),
+                               Natural (TE.Max))
+         then
+            pragma Debug (O ("TE has " & TE.Max'Img
+                             & " bytes waiting, will read data"));
+
+            return Handle_Message
+              (TE, Data_Indication'(Data_Amount => TE.Max));
+         else
+            pragma Debug (O ("No enough data on TE, ORB will monitor TE"));
+
+            return Emit
+              (TE.Server, ORB.Interface.Monitor_Endpoint'
+               (TE => Transport_Endpoint_Access (TE)));
+         end if;
 
       elsif Msg in Data_Indication then
          pragma Debug (O ("Data received"));

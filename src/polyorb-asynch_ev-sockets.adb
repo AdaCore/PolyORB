@@ -104,10 +104,7 @@ package body PolyORB.Asynch_Ev.Sockets is
 
    procedure Unregister_Source
      (AEM : in out Socket_Event_Monitor;
-      AES :        Asynch_Ev_Source_Access)
-   is
-      use Source_Lists;
-
+      AES :        Asynch_Ev_Source_Access) is
    begin
       pragma Debug (O ("Unregister_Source: enter"));
       Clear (AEM.Monitored_Set, Socket_Event_Source (AES.all).Socket);
@@ -138,6 +135,8 @@ package body PolyORB.Asynch_Ev.Sockets is
       Status : Selector_Status;
 
    begin
+      pragma Debug (O ("Check_Sources: enter"));
+
       PolyORB.Sockets_Copy (Source => AEM.Monitored_Set, Target => R_Set);
       PolyORB.Sockets.Empty (W_Set);
 
@@ -154,13 +153,15 @@ package body PolyORB.Asynch_Ev.Sockets is
          Timeout      => T);
 
       pragma Debug (O ("Selector returned status "
-                       & Status'Img));
+                       & Selector_Status'Image (Status)));
 
       if Status = Completed then
          declare
             It : Source_Lists.Iterator := First (AEM.Sources);
          begin
             while not Source_Lists.Last (It) loop
+               pragma Debug (O ("Iterate over source list"));
+
                declare
                   S : Asynch_Ev_Source_Access renames Value (It).all;
                   Sock : Socket_Type
@@ -172,6 +173,7 @@ package body PolyORB.Asynch_Ev.Sockets is
 
                      Last := Last + 1;
                      Result (Last) := S;
+
                      Clear (AEM.Monitored_Set, Sock);
                      Remove (AEM.Sources, It);
                   else
@@ -187,6 +189,8 @@ package body PolyORB.Asynch_Ev.Sockets is
 
       PolyORB.Sockets.Empty (R_Set);
       PolyORB.Sockets.Empty (W_Set);
+
+      pragma Debug (O ("Check_Sources: end"));
 
       return Result (1 .. Last);
 

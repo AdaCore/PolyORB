@@ -65,13 +65,13 @@ package PolyORB.Components is
 
    procedure Set_Allocation_Class
      (C   : in out Component'Class;
-      CAC : Component_Allocation_Class);
+      CAC :        Component_Allocation_Class);
    --  Set C's allocation class to be CAC.
    --  Its current class must be Auto (the default).
 
    function Handle_Message
      (C : access Component;
-      M : Message'Class)
+      M :        Message'Class)
      return Message'Class
       is abstract;
    --  Called internally when component C is to receive message M.
@@ -85,8 +85,8 @@ package PolyORB.Components is
    --  to a component, Emit or Emit_No_Reply must be used.
 
    procedure Connect
-     (Port : out Component_Access;
-      Target : Component_Access);
+     (Port   : out Component_Access;
+      Target :     Component_Access);
    --  Connect Port to Target: when Port is emitted with message
    --  M, Target receives M.
 
@@ -123,12 +123,12 @@ package PolyORB.Components is
 
    procedure Subscribe
      (G      : in out Group;
-      Target : Component_Access);
+      Target :        Component_Access);
    --  Subscribe Target to group G.
 
    procedure Unsubscribe
      (G      : in out Group;
-      Target : Component_Access);
+      Target :        Component_Access);
    --  Unsubscribe Target from group G.
 
    type Multicast_Group is new Group with private;
@@ -165,14 +165,14 @@ private
 
    function Handle_Message
      (Grp : access Multicast_Group;
-      Msg : Message'Class)
+      Msg :        Message'Class)
      return Message'Class;
 
    type Anycast_Group is new Group with null record;
 
    function Handle_Message
      (Grp : access Anycast_Group;
-      Msg : Message'Class)
+      Msg :        Message'Class)
      return Message'Class;
 
 end PolyORB.Components;

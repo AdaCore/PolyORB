@@ -31,7 +31,15 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with PolyORB.CORBA_P.Policy;
+
+with PolyORB.Smart_Pointers;
+
 package body PortableServer.ImplicitActivationPolicy is
+
+   use CORBA.Policy;
+
+   use PolyORB.CORBA_P.Policy;
 
    ------------
    -- To_Ref --
@@ -42,21 +50,35 @@ package body PortableServer.ImplicitActivationPolicy is
      return Ref
    is
       use type CORBA.PolicyType;
-      use CORBA.Policy;
 
-      Result : Ref;
    begin
       if The_Ref not in CORBA.Policy.Ref'Class
-        or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref))
-        /= IMPLICIT_ACTIVATION_POLICY_ID
+        or else Get_Policy_Type (CORBA.Policy.Ref (The_Ref)) /=
+        IMPLICIT_ACTIVATION_POLICY_ID
       then
          CORBA.Raise_Bad_Param (CORBA.Default_Sys_Member);
       end if;
 
-      Result.Type_Of_Ref := CORBA.Policy.Ref (The_Ref).Type_Of_Ref;
-      Result.Val         := CORBA.Policy.Ref (The_Ref).Val;
 
-      return Result;
+      declare
+         Entity : constant PolyORB.Smart_Pointers.Entity_Ptr :=
+           new Policy_Object_Type;
+
+         Result : Ref;
+      begin
+         Set_Policy_Type (Policy_Object_Type (Entity.all),
+                          IMPLICIT_ACTIVATION_POLICY_ID);
+
+         Set_Policy_Value (Policy_Object_Type (Entity.all),
+                           Get_Policy_Value
+                           (Policy_Object_Type
+                            (Entity_Of
+                             (CORBA.Policy.Ref (The_Ref)).all)));
+
+         CORBA.Policy.Set (CORBA.Policy.Ref (Result), Entity);
+
+         return Result;
+      end;
    end To_Ref;
 
    ---------------
@@ -67,7 +89,10 @@ package body PortableServer.ImplicitActivationPolicy is
      (Self : Ref)
      return PortableServer.ImplicitActivationPolicyValue is
    begin
-      return From_Any (Self.Val);
+      return From_Any (Get_Policy_Value
+                       (Policy_Object_Type
+                        (Entity_Of
+                         (CORBA.Policy.Ref (Self)).all)));
    end Get_Value;
 
 end PortableServer.ImplicitActivationPolicy;

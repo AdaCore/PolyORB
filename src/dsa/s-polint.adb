@@ -54,14 +54,18 @@ with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
-with PolyORB.Objects.Interface;
+pragma Warnings (Off);
+--  WAG:5.01
+--  C926-001
+with PolyORB.Opaque;
+pragma Warnings (On);
 with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA_Config;
 with PolyORB.POA_Types;
 with PolyORB.References;
-with PolyORB.References.IOR;
 with PolyORB.Servants;
+with PolyORB.Servants.Interface;
 with PolyORB.Services.Naming;
 with PolyORB.Services.Naming.Helper;
 with PolyORB.Services.Naming.NamingContext.Client;
@@ -81,6 +85,8 @@ with PolyORB.Setup.Proxies_POA;
 package body System.PolyORB_Interface is
 
    use Ada.Characters.Handling;
+   use Ada.Streams;
+
    use PolyORB.Any;
    use PolyORB.Log;
    use PolyORB.References;
@@ -90,8 +96,11 @@ package body System.PolyORB_Interface is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   --  A few handy aliases
+
+   package PATC  renames PolyORB.Any.TypeCode;
    package PSNNC renames PolyORB.Services.Naming.NamingContext;
-   package PTM renames PolyORB.Tasking.Mutexes;
+   package PTM   renames PolyORB.Tasking.Mutexes;
 
    --------------------------------------------------------------
    -- Special operation names for remote call interface objets --
@@ -198,14 +207,13 @@ package body System.PolyORB_Interface is
    --------------------
 
    function Naming_Context return PSNNC.Ref is
+      R : PolyORB.References.Ref;
    begin
       if PSNNC.Is_Nil (Naming_Context_Cache) then
-         PSNNC.Set
-           (Naming_Context_Cache,
-            PolyORB.References.Entity_Of
-            (PolyORB.References.IOR.String_To_Object
-             (PolyORB.Types.To_PolyORB_String
-              (PolyORB.Configuration.Get_Conf ("dsa", "naming_ior")))));
+         PolyORB.References.String_To_Object
+           (PolyORB.Configuration.Get_Conf ("dsa", "naming_ior"),
+            R);
+         PSNNC.Set (Naming_Context_Cache, Entity_Of (R));
       end if;
 
       return Naming_Context_Cache;
@@ -295,8 +303,6 @@ package body System.PolyORB_Interface is
    is
       use PolyORB.Exceptions;
       use PolyORB.Types;
-
-      package PATC renames PolyORB.Any.TypeCode;
 
       Name : constant RepositoryId := Occurrence_To_Name (E);
       TC : PATC.Object := PATC.TC_Except;
@@ -523,7 +529,7 @@ package body System.PolyORB_Interface is
       Msg  : PolyORB.Components.Message'Class)
       return PolyORB.Components.Message'Class
    is
-      use PolyORB.Objects.Interface;
+      use PolyORB.Servants.Interface;
 
       Result : PolyORB.Components.Null_Message;
    begin
@@ -559,6 +565,8 @@ package body System.PolyORB_Interface is
                   --  IDL skel.
 
                   declare
+                     use PolyORB.Exceptions;
+
                      n             : PolyORB.Services.Naming.Name;
                      pragma Warnings (Off, n);
                      --  Accessed before it has a value (by To_Any).
@@ -570,6 +578,8 @@ package body System.PolyORB_Interface is
 
                      Result      : Object_Ref;
                      Arg_List    : NVList_Ref;
+
+                     Error       : Error_Container;
                   begin
                      --  Create argument list
 
@@ -580,7 +590,11 @@ package body System.PolyORB_Interface is
                         Argument_n,
                         ARG_IN);
 
-                     Request_Arguments (EMsg.Req, Arg_List);
+                     Request_Arguments (EMsg.Req, Arg_List, Error);
+
+                     if Found (Error) then
+                        PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+                     end if;
 
                      declare
                         package ISNC renames
@@ -646,7 +660,10 @@ package body System.PolyORB_Interface is
                then
 
                   declare
+                     use PolyORB.Exceptions;
+
                      Arg_List    : NVList_Ref;
+                     Error       : Error_Container;
                   begin
 
                      -----------------------
@@ -657,7 +674,12 @@ package body System.PolyORB_Interface is
                      --  the partition on which this RCI unit resides.
 
                      NVList_Create (Arg_List);
-                     Request_Arguments (EMsg.Req, Arg_List);
+                     Request_Arguments (EMsg.Req, Arg_List, Error);
+
+                     if Found (Error) then
+                        PolyORB.DSA_P.Exceptions.Raise_From_Error (Error);
+                     end if;
+
                      --  Must call Arguments (with an empty Arg_List)
                      --  to notify the protocol personality that this
                      --  request has been completely received.
@@ -899,6 +921,57 @@ package body System.PolyORB_Interface is
       Is_Local := False;
       Addr := Null_Address;
    end Get_Local_Address;
+
+   --------------------------------
+   -- Get_Nested_Sequence_Length --
+   --------------------------------
+
+   function Get_Nested_Sequence_Length
+     (Value : Any;
+      Depth : Positive)
+     return Unsigned
+   is
+      use type PolyORB.Types.Unsigned_Long;
+
+      Seq_Any : PolyORB.Any.Any;
+      Tc      : constant PolyORB.Any.TypeCode.Object := Get_Type (Value);
+   begin
+      pragma Debug (O ("Get_Nested_Sequence_Length: enter, Depth =" & Depth'Img
+                       & ", Tc = " & Image (Tc)));
+
+      if PolyORB.Any.TypeCode.Kind (Tc) = Tk_Struct then
+         declare
+            Index : constant PolyORB.Types.Unsigned_Long
+              := PolyORB.Any.TypeCode.Member_Count (Tc) - 1;
+         begin
+            pragma Debug
+              (O ("Tc is a Tk_Struct, index of last member is" & Index'Img));
+
+            Seq_Any := Get_Aggregate_Element (Value,
+              PolyORB.Any.TypeCode.Member_Type (Tc, Index),
+              Index);
+         end;
+      else
+         pragma Debug (O ("Tc is (assumed to be) a Tk_Sequence"));
+         Seq_Any := Value;
+      end if;
+
+      declare
+         use type Unsigned;
+
+         Outer_Length : constant Unsigned
+           := FA_U (PolyORB.Any.Get_Aggregate_Element (Seq_Any, TC_U, 0));
+      begin
+         if Depth = 1 or else Outer_Length = 0 then
+            return Outer_Length;
+         else
+            Seq_Any := PolyORB.Any.Get_Aggregate_Element
+              (Seq_Any, From_Any (PolyORB.Any.TypeCode.Get_Parameter
+               (Get_Type (Seq_Any), 1)), 1);
+            return Get_Nested_Sequence_Length (Seq_Any, Depth - 1);
+         end if;
+      end;
+   end Get_Nested_Sequence_Length;
 
    -----------------
    -- Get_RAS_Ref --
@@ -1405,6 +1478,112 @@ package body System.PolyORB_Interface is
       return Result;
    end TC_Build;
 
+   ---------------
+   -- TC_Opaque --
+   ---------------
+
+   function TC_Opaque return PolyORB.Any.TypeCode.Object
+   is
+      Result : PolyORB.Any.TypeCode.Object := PATC.TC_Sequence;
+   begin
+      PATC.Add_Parameter (Result, TA_U (0));
+      PATC.Add_Parameter (Result, To_Any (TC_Octet));
+      return Result;
+   end TC_Opaque;
+
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (Stream : in out Buffer_Stream_Type;
+      Item   : out Stream_Element_Array;
+      Last   : out Stream_Element_Offset)
+   is
+      use PolyORB.Buffers;
+
+      Transfer_Length : constant Stream_Element_Count
+        := Stream_Element_Count'Min
+        (Remaining (Stream.Buf), Item'Length);
+      Data : PolyORB.Opaque.Opaque_Pointer;
+   begin
+      Extract_Data (Stream.Buf, Data, Transfer_Length);
+      Last := Item'First + Transfer_Length - 1;
+      declare
+         Z_Addr : constant System.Address := Data;
+         Z : Stream_Element_Array (Item'First .. Last);
+         for Z'Address use Z_Addr;
+         pragma Import (Ada, Z);
+      begin
+         Item (Item'First .. Last) := Z;
+      end;
+   end Read;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (Stream : in out Buffer_Stream_Type;
+      Item   : in Stream_Element_Array)
+   is
+      use PolyORB.Buffers;
+
+      Data : PolyORB.Opaque.Opaque_Pointer;
+   begin
+      Allocate_And_Insert_Cooked_Data (Stream.Buf, Item'Length, Data);
+      declare
+         Z_Addr : constant System.Address := Data;
+         Z : Stream_Element_Array (Item'Range);
+         for Z'Address use Z_Addr;
+         pragma Import (Ada, Z);
+      begin
+         Z := Item;
+      end;
+   end Write;
+
+   ---------------------
+   -- Allocate_Buffer --
+   ---------------------
+
+   procedure Allocate_Buffer (Stream : in out Buffer_Stream_Type) is
+      use type PolyORB.Buffers.Buffer_Access;
+   begin
+      pragma Assert (Stream.Buf = null);
+      Stream.Buf := new PolyORB.Buffers.Buffer_Type;
+   end Allocate_Buffer;
+
+   --------------------
+   -- Release_Buffer --
+   --------------------
+
+   procedure Release_Buffer (Stream : in out Buffer_Stream_Type) is
+   begin
+      PolyORB.Buffers.Release (Stream.Buf);
+   end Release_Buffer;
+
+   ---------------
+   -- Any_To_BS --
+   ---------------
+
+   procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type) is
+      pragma Unreferenced (Item, Stream);
+   begin
+      --  XXX TBD
+      null;
+   end Any_To_BS;
+
+   ---------------
+   -- BS_To_Any --
+   ---------------
+
+   procedure BS_To_Any (Stream : Buffer_Stream_Type; Item : out Any) is
+      pragma Unreferenced (Item, Stream);
+   begin
+      --  XXX TBD
+      null;
+   end BS_To_Any;
+
    use PolyORB.Initialization;
    use PolyORB.Utils.Strings;
    use PolyORB.Utils.Strings.Lists;
@@ -1419,16 +1598,10 @@ begin
        & "naming.Helper"
        & "naming.NamingContext.Helper"
        & "tasking.mutexes"
-       & "tcp_access_points.soap?"
-       & "tcp_access_points.corba?"
-       & "tcp_access_points.srp?"
-       & "protocols.giop.giop_1_0?"
-       & "protocols.giop.giop_1_1?"
-       & "protocols.giop.giop_1_2?",
+       & "access_points?"
+       & "binding_factories"
+       & "references",
        Provides => Empty,
        Init => Initialize'Access));
-
-   --  XXX should depend on virtual module 'access_points' and
-   --  'protocols' only.
 
 end System.PolyORB_Interface;

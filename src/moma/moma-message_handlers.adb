@@ -131,7 +131,7 @@ package body MOMA.Message_Handlers is
 
    procedure Get_Call_Back_Data
      (Self : access Message_Handler;
-      Data : out PolyORB.Annotations.Note'Class) is
+      Data :    out PolyORB.Annotations.Note'Class) is
    begin
       Get_Note (Self.Call_Back_Data, Data);
    end Get_Call_Back_Data;
@@ -151,8 +151,9 @@ package body MOMA.Message_Handlers is
    -- Get_Handler --
    -----------------
 
-   function  Get_Handler (Self : access Message_Handler)
-                         return Handler is
+   function  Get_Handler
+     (Self : access Message_Handler)
+     return Handler is
    begin
       return Self.Handler_Procedure;
    end Get_Handler;
@@ -161,8 +162,9 @@ package body MOMA.Message_Handlers is
    -- Get_Notifier --
    ------------------
 
-   function Get_Notifier (Self : access Message_Handler)
-                         return Notifier is
+   function Get_Notifier
+     (Self : access Message_Handler)
+     return Notifier is
    begin
       return Self.Notifier_Procedure;
    end Get_Notifier;
@@ -226,7 +228,7 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Behavior
      (Self           : access Message_Handler;
-      New_Behavior   : in MOMA.Types.Call_Back_Behavior)
+      New_Behavior   : in     MOMA.Types.Call_Back_Behavior)
    is
       Previous_Behavior :
         constant MOMA.Types.Call_Back_Behavior := Self.Behavior;
@@ -243,7 +245,7 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Call_Back_Data
      (Self : access Message_Handler;
-      Data : PolyORB.Annotations.Note'Class) is
+      Data :        PolyORB.Annotations.Note'Class) is
    begin
       Set_Note (Self.Call_Back_Data, Data);
    end Set_Call_Back_Data;
@@ -254,10 +256,11 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Handler
      (Self                    : access Message_Handler;
-      New_Handler_Procedure   : in Handler;
-      Handle_Behavior         : Boolean := False) is
+      New_Handler_Procedure   : in     Handler;
+      Handle_Behavior         :        Boolean := False) is
    begin
       Self.Handler_Procedure := New_Handler_Procedure;
+
       if Handle_Behavior then
          Set_Behavior (Self, Handle);
       end if;
@@ -269,10 +272,11 @@ package body MOMA.Message_Handlers is
 
    procedure Set_Notifier
      (Self                    : access Message_Handler;
-      New_Notifier_Procedure  : in Notifier;
+      New_Notifier_Procedure  : in     Notifier;
       Notify_Behavior         : Boolean := False) is
    begin
       Self.Notifier_Procedure := New_Notifier_Procedure;
+
       if Notify_Behavior then
          Set_Behavior (Self, Notify);
       end if;
@@ -284,7 +288,8 @@ package body MOMA.Message_Handlers is
 
    procedure Template_Handler
      (Self     : access Message_Handler;
-      Message  : MOMA.Messages.Message'Class) is
+      Message  :        MOMA.Messages.Message'Class)
+   is
       Id : constant String :=
         MOMA.Types.To_Standard_String (MOMA.Messages.Get_Message_Id (Message));
 
@@ -301,10 +306,12 @@ package body MOMA.Message_Handlers is
    -- Template_Notifier --
    -----------------------
 
-   procedure Template_Notifier (Self : access Message_Handler) is
+   procedure Template_Notifier (Self : access Message_Handler)
+   is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
+
    begin
       pragma Debug (O ("Message_Handler is being notified of a message"));
       null;

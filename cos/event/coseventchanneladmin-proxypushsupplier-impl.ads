@@ -31,9 +31,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with CORBA;
+with CORBA.Object;
+
 with PortableServer;
 
-with CosEventChannelAdmin.ConsumerAdmin.Impl;
+with CosEventChannelAdmin.ConsumerAdmin;
 
 package CosEventChannelAdmin.ProxyPushSupplier.Impl is
 
@@ -48,16 +51,18 @@ package CosEventChannelAdmin.ProxyPushSupplier.Impl is
    procedure Disconnect_Push_Supplier
      (Self : access Object);
 
-   ------------------------
-   -- AdaBroker specific --
-   ------------------------
+   --------- ------------
+   -- PolyORB specific --
+   ----------------------
 
-   procedure Post
-     (Self : access Object;
-      Data : in     CORBA.Any);
+   procedure Post (Self : access Object;
+                   Data : in     CORBA.Any);
+
+   function Post (Self : access Object) return CORBA.Object.Ref;
+   --  Get mutually agreed interface from Typed PushConsumers
 
    function Create
-     (Admin : CosEventChannelAdmin.ConsumerAdmin.Impl.Object_Ptr)
+     (Admin : CosEventChannelAdmin.ConsumerAdmin.Ref)
      return Object_Ptr;
 
 private

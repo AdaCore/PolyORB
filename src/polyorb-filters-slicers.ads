@@ -31,8 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  A filter that slices a stream into a set of known-length
---  messages.
+--  A filter that slices a stream into a set of known-length messages.
 
 --  $Id$
 
@@ -49,7 +48,7 @@ package PolyORB.Filters.Slicers is
 
    procedure Create
      (Fact   : access Slicer_Factory;
-      Slicer : out Filter_Access);
+      Slicer :    out Filter_Access);
 
    Unexpected_Data : exception;
    --  Raised when unexpected data is received by this filter.
@@ -67,7 +66,7 @@ private
 
    function Handle_Message
      (F : access Slicer_Filter;
-      S : Components.Message'Class)
+      S :        Components.Message'Class)
      return Components.Message'Class;
 
 end PolyORB.Filters.Slicers;

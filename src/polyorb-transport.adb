@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -59,7 +59,7 @@ package body PolyORB.Transport is
 
    function Handle_Message
      (TAP : access Transport_Access_Point;
-      Msg : Components.Message'Class)
+      Msg :        Components.Message'Class)
      return Components.Message'Class is
    begin
       raise Unhandled_Message;
@@ -81,7 +81,7 @@ package body PolyORB.Transport is
 
    procedure Connect_Upper
      (TE    : access Transport_Endpoint;
-      Upper : Components.Component_Access) is
+      Upper :        Components.Component_Access) is
    begin
       Components.Connect (TE.Upper, Upper);
    end Connect_Upper;
@@ -90,7 +90,8 @@ package body PolyORB.Transport is
    -- Notepad_Of --
    ----------------
 
-   function Notepad_Of (TE : Transport_Endpoint_Access)
+   function Notepad_Of
+     (TE : Transport_Endpoint_Access)
      return Annotations.Notepad_Access is
    begin
       return TE.Notepad'Access;
@@ -116,8 +117,7 @@ package body PolyORB.Transport is
 
    function Upper
      (TE : Transport_Endpoint_Access)
-     return Components.Component_Access
-   is
+     return Components.Component_Access is
    begin
       return TE.Upper;
    end Upper;

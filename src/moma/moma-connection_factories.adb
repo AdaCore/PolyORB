@@ -39,8 +39,9 @@ package body MOMA.Connection_Factories is
    -- Create --
    ------------
 
-   procedure Create (Self     : out Connection_Factory;
-                     Remote   : PolyORB.References.Ref) is
+   procedure Create
+     (Self     : out Connection_Factory;
+      Remote   :     PolyORB.References.Ref) is
    begin
       Set_Ref (Self, Remote);
    end Create;
@@ -49,8 +50,9 @@ package body MOMA.Connection_Factories is
    -- Get_Ref --
    -------------
 
-   function Get_Ref (Self    : Connection_Factory)
-                     return PolyORB.References.Ref is
+   function Get_Ref
+     (Self    : Connection_Factory)
+     return PolyORB.References.Ref is
    begin
       return Self.Remote;
    end Get_Ref;
@@ -59,8 +61,9 @@ package body MOMA.Connection_Factories is
    -- Set_Ref --
    -------------
 
-   procedure Set_Ref (Self    : in out Connection_Factory;
-                      Remote  : PolyORB.References.Ref) is
+   procedure Set_Ref
+     (Self    : in out Connection_Factory;
+      Remote  :        PolyORB.References.Ref) is
    begin
       Self.Remote := Remote;
    end Set_Ref;

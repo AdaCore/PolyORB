@@ -47,3 +47,24 @@ When necessary, tag the code with
 
 - 'Implementation note:' to indicate modifications to a 'should be'
   implementation to work around specific problems.
+
+Whenever possible, do not add new exceptions and exception handlers to
+PolyORB's neutral core and protocol personalities. Instead, use error
+handling mechanisms provided by PolyORB.Exceptions.
+
+Header box should be up to date whenever necessary:
+
+- Copyright date information is either 
+  - x where x is year of file's creation
+  - y - z where y is year of file's creation and z is year of last modification
+
+- Some packages require specific adjustements to take into account
+  references to specifications (e.g. CORBA related packages) or other
+  projects (e.g. AWS)
+
+To rebuild dependences, run 'make depend' from PolyORB's root directory.
+Note that you must ensure that:
+
+- Build is not _without_ debug
+
+- Source tree and build tree are equal

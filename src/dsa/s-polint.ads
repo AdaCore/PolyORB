@@ -33,14 +33,17 @@
 
 --  $Id$
 
+with Ada.Streams;
+with Interfaces;
+
 with System.RPC;
 with System.Unsigned_Types;
-with Interfaces;
 
 with PolyORB.Any;
 with PolyORB.Any.ExceptionList;
 with PolyORB.Any.NVList;
 with PolyORB.Any.ObjRef;
+with PolyORB.Buffers;
 with PolyORB.Components;
 with PolyORB.Obj_Adapters;
 with PolyORB.POA_Config;
@@ -51,6 +54,7 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
+with PolyORB.Exceptions;
 
 package System.PolyORB_Interface is
 
@@ -267,6 +271,11 @@ package System.PolyORB_Interface is
       T : PolyORB.Any.TypeCode.Object)
       renames PolyORB.Any.Set_Type;
 
+   function Get_Type
+     (The_Any : in Any)
+     return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.Get_Type;
+
    function Get_Empty_Any
      (Tc : PolyORB.Any.TypeCode.Object)
       return Any
@@ -276,6 +285,17 @@ package System.PolyORB_Interface is
      (Tc : PolyORB.Any.TypeCode.Object)
       return Any
      renames PolyORB.Any.Get_Empty_Any_Aggregate;
+
+   function Content_Type
+     (Self : PolyORB.Any.TypeCode.Object)
+      return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TypeCode.Content_Type;
+
+   function Member_Type
+     (Self  : PolyORB.Any.TypeCode.Object;
+      Index : PolyORB.Types.Unsigned_Long)
+      return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TypeCode.Member_Type;
 
    subtype NVList_Ref is PolyORB.Any.NVList.Ref;
    procedure NVList_Create (NVList : out PolyORB.Any.NVList.Ref)
@@ -287,8 +307,9 @@ package System.PolyORB_Interface is
       Item_Flags : in PolyORB.Any.Flags)
      renames PolyORB.Any.NVList.Add_Item;
 
-
-   --  Elementary From_Any and To_Any operations
+   -----------------------------------------------
+   -- Elementary From_Any and To_Any operations --
+   -----------------------------------------------
 
    subtype Unsigned is System.Unsigned_Types.Unsigned;
    subtype Long_Unsigned is
@@ -380,6 +401,8 @@ package System.PolyORB_Interface is
    --  type for each Ada type should be selected, if cross-platform
    --  interoperability is desired.
 
+   function TC_Any return PolyORB.Any.TypeCode.Object
+     renames PolyORB.Any.TC_Any;
    function TC_I return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TC_Long;
    function TC_LF return PolyORB.Any.TypeCode.Object
@@ -414,6 +437,7 @@ package System.PolyORB_Interface is
      renames PolyORB.Any.TypeCode.TC_String;
    function TC_Void return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Void;
+   function TC_Opaque return PolyORB.Any.TypeCode.Object;
 
    function TC_Alias return PolyORB.Any.TypeCode.Object
      renames PolyORB.Any.TypeCode.TC_Alias;
@@ -454,6 +478,37 @@ package System.PolyORB_Interface is
       Index : System.Unsigned_Types.Long_Unsigned)
       return Any;
 
+   function Get_Nested_Sequence_Length
+     (Value : Any;
+      Depth : Positive)
+     return Unsigned;
+   --  Return the length of the sequence at nesting level Depth
+   --  within Value, a Tk_Struct any representing an unconstrained
+   --  array.
+
+   -----------------------------------------------------------------------
+   -- Support for opaque data transfer using stream-oriented attributes --
+   -----------------------------------------------------------------------
+
+   type Buffer_Stream_Type is new Ada.Streams.Root_Stream_Type with private;
+
+   --  A stream based on a PolyORB buffer
+
+   procedure Read
+     (Stream : in out Buffer_Stream_Type;
+      Item   : out Ada.Streams.Stream_Element_Array;
+      Last   : out Ada.Streams.Stream_Element_Offset);
+
+   procedure Write
+     (Stream : in out Buffer_Stream_Type;
+      Item   : in Ada.Streams.Stream_Element_Array);
+
+   procedure Any_To_BS (Item : Any; Stream : out Buffer_Stream_Type);
+   procedure BS_To_Any (Stream : Buffer_Stream_Type; Item : out Any);
+
+   procedure Allocate_Buffer (Stream : in out Buffer_Stream_Type);
+   procedure Release_Buffer (Stream : in out Buffer_Stream_Type);
+
    --------------
    -- Requests --
    --------------
@@ -480,12 +535,14 @@ package System.PolyORB_Interface is
      renames PolyORB.Requests.Invoke;
 
    procedure Request_Arguments
-     (R    :        PolyORB.Requests.Request_Access;
-      Args : in out PolyORB.Any.NVList.Ref)
+     (R     :        PolyORB.Requests.Request_Access;
+      Args  : in out PolyORB.Any.NVList.Ref;
+      Error : in out PolyORB.Exceptions.Error_Container)
      renames PolyORB.Requests.Arguments;
 
    procedure Request_Set_Out
-     (R : PolyORB.Requests.Request_Access)
+     (R     : PolyORB.Requests.Request_Access;
+      Error : in out PolyORB.Exceptions.Error_Container)
      renames PolyORB.Requests.Set_Out_Args;
 
    procedure Set_Result
@@ -563,5 +620,8 @@ private
 
    All_Receiving_Stubs : Receiving_Stub_Lists.List;
 
+   type Buffer_Stream_Type is new Ada.Streams.Root_Stream_Type with record
+      Buf : PolyORB.Buffers.Buffer_Access;
+   end record;
 
 end System.PolyORB_Interface;

@@ -124,8 +124,7 @@ package body PolyORB.Any.NVList is
    -- Create --
    ------------
 
-   procedure Create
-     (NVList : out Ref) is
+   procedure Create (NVList : out Ref) is
    begin
       Set (NVList, PolyORB.Smart_Pointers.Entity_Ptr'(new Object));
    end Create;

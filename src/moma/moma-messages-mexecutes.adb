@@ -41,8 +41,7 @@ package body MOMA.Messages.MExecutes is
    -- Get_Parameter --
    -------------------
 
-   function Get_Parameter (Self : MExecute)
-                          return MOMA.Types.Map is
+   function Get_Parameter (Self : MExecute) return MOMA.Types.Map is
    begin
       return MOMA.Types.From_Any (Get_Payload (Self));
    end Get_Parameter;
@@ -51,8 +50,7 @@ package body MOMA.Messages.MExecutes is
    -- Set_Parameter --
    -------------------
 
-   procedure Set_Parameter (Self : in out MExecute;
-                            Value : MOMA.Types.Map) is
+   procedure Set_Parameter (Self : in out MExecute; Value : MOMA.Types.Map) is
    begin
       Set_Payload (Self, MOMA.Types.To_Any (Value));
    end Set_Parameter;
@@ -61,8 +59,7 @@ package body MOMA.Messages.MExecutes is
    -- Create_Execute_Message --
    ----------------------------
 
-   function Create_Execute_Message
-     return MExecute
+   function Create_Execute_Message return MExecute
    is
       Result : MExecute;
 
@@ -77,8 +74,7 @@ package body MOMA.Messages.MExecutes is
    -- Image --
    -----------
 
-   function Image (Self : MExecute)
-                  return String is
+   function Image (Self : MExecute) return String is
    begin
       return Image (Get_Payload (Self));
    end Image;

@@ -14,6 +14,9 @@ client_FLAGS=	-Aclient.stubs
 rt.ali rt.o: rt.ads
 	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/rt.ads $(GNATMAKE_FLAGS)
 
+matrices.ali matrices.o: matrices.adb
+	$(GNATMAKE_FOR_TARGET) -u $(srcdir)/matrices.adb $(GNATMAKE_FLAGS)
+
 ### RCI server stubs
 
 server.stubs/rci.ali: $(srcdir)/rci.ads $(srcdir)/rci.adb rt.ali
@@ -38,8 +41,8 @@ clean: clean-stubs
 clean-stubs:
 	rm -fr server.stubs client.stubs
 
-server: server.stubs/rci.ali server.stubs/polyorb-dsa_p-partitions.ali rt.ali
-client: client.stubs/rci.ali client.stubs/polyorb-dsa_p-partitions.ali rt.ali
+server: server.stubs/rci.ali server.stubs/polyorb-dsa_p-partitions.ali rt.ali matrices.ali
+client: client.stubs/rci.ali client.stubs/polyorb-dsa_p-partitions.ali rt.ali matrices.ali
 
 dsa-dummy.ads: ;
 

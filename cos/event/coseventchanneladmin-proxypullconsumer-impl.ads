@@ -31,9 +31,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PortableServer;
+with CORBA.Object;
 
-with CosEventChannelAdmin.SupplierAdmin.Impl;
+with CosEventChannelAdmin.SupplierAdmin;
+
+with PortableServer;
 
 package CosEventChannelAdmin.ProxyPullConsumer.Impl is
 
@@ -56,13 +58,16 @@ package CosEventChannelAdmin.ProxyPullConsumer.Impl is
    procedure Disconnect_Pull_Consumer
      (Self : access Object);
 
-   ------------------------
-   -- AdaBroker specific --
-   ------------------------
+   ----------------------
+   -- PolyORB specific --
+   ----------------------
 
    function Create
-     (Admin : CosEventChannelAdmin.SupplierAdmin.Impl.Object_Ptr)
+     (Admin : CosEventChannelAdmin.SupplierAdmin.Ref)
      return Object_Ptr;
+
+   function Pull (Self : access Object) return CORBA.Object.Ref;
+   --  Get mutually agreed interface from Typed PullSuppliers
 
 private
 

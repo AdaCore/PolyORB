@@ -36,13 +36,13 @@ with Ada.Tags;
 with PolyORB.Object_Maps;
 with PolyORB.POA;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
-with PolyORB.Tasking.Rw_Locks;
+with PolyORB.Tasking.Mutexes;
 
 package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    use PolyORB.Exceptions;
    use PolyORB.Object_Maps;
-   use PolyORB.Tasking.Rw_Locks;
+   use PolyORB.Tasking.Mutexes;
 
    ------------
    -- Create --
@@ -122,7 +122,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    begin
       if POA.Active_Object_Map /= null then
-         Lock_R (POA.Map_Lock);
+         Enter (POA.Map_Lock);
 
          if Is_Servant_In (POA.Active_Object_Map.all, P_Servant) then
             Throw (Error,
@@ -130,7 +130,7 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
                    Null_Members'(Null_Member));
          end if;
 
-         Unlock_R (POA.Map_Lock);
+         Leave (POA.Map_Lock);
       end if;
    end Ensure_Servant_Uniqueness;
 

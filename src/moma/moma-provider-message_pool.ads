@@ -51,8 +51,9 @@ package MOMA.Provider.Message_Pool is
 
    type Object_Acc is access Object;
 
-   procedure Initialize (Self : access Object;
-                         Info : MOMA.Types.Message_Pool);
+   procedure Initialize
+     (Self : access Object;
+      Info :        MOMA.Types.Message_Pool);
    --  Initialize the object.
 
    procedure Invoke

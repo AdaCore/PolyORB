@@ -44,8 +44,8 @@ pragma Elaborate_All (PolyORB.Log);
 
 with PolyORB.Obj_Adapters;
 with PolyORB.Obj_Adapters.Simple;
-with PolyORB.Objects.Interface;
 with PolyORB.Requests;
+with PolyORB.Servants.Interface;
 with PolyORB.Tasking.Threads;
 with PolyORB.Types;
 
@@ -53,7 +53,7 @@ package body PolyORB.Test_Object_SOA is
 
    use PolyORB.Any;
    use PolyORB.Log;
-   use PolyORB.Objects.Interface;
+   use PolyORB.Servants.Interface;
    use PolyORB.Requests;
    use PolyORB.Types;
 

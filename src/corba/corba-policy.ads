@@ -49,11 +49,7 @@ package CORBA.Policy is
    --  and CORBA.ORB.Create_Policy. We modified type Ref to reduce impacts on
    --  others parts of this CORBA implementation
 
-   type Ref is new CORBA.Object.Ref with record
-      Type_Of_Ref : PolicyType;
-      Val         : Any;
-   end record;
-   --  XXX should be private
+   type Ref is new CORBA.Object.Ref with null record;
 
    function Get_Policy_Type
      (Self : Ref)

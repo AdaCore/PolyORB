@@ -43,7 +43,6 @@ with PolyORB.Initialization;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.References;
 with PolyORB.References.IOR;
-with PolyORB.Types;
 
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
@@ -82,8 +81,8 @@ begin
 
    --  Find reference to other router if needed.
    if Argument_Count = 2 then
-      Other_Router := PolyORB.References.IOR.String_To_Object
-        (PolyORB.Types.To_PolyORB_String (Ada.Command_Line.Argument (2)));
+      PolyORB.References.String_To_Object
+        (Ada.Command_Line.Argument (2), Other_Router);
    end if;
 
    --  Create one router and output its reference.
@@ -92,8 +91,7 @@ begin
        Router,
        Other_Router);
    Put_Line ("Router IOR :");
-   Put_Line (PolyORB.Types.To_Standard_String
-             (PolyORB.References.IOR.Object_To_String (Router)));
+   Put_Line (PolyORB.References.IOR.Object_To_String (Router));
 
    --  Run the server.
    Run_Server;

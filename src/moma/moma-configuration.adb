@@ -53,11 +53,11 @@ package body MOMA.Configuration is
    -- Get_Message_Pool --
    ----------------------
 
-   function Get_Message_Pool (Number : Natural)
-                              return MOMA.Types.Message_Pool
+   function Get_Message_Pool
+     (Number : Natural)
+     return MOMA.Types.Message_Pool
    is
-      Section : constant String
-        := "destination" & Natural'Image (Number);
+      Section : constant String := "destination" & Natural'Image (Number);
 
       Pool_S : constant String := Get_Conf (Section, "type");
       Persistent_S : constant String := Get_Conf (Section, "persistent");
@@ -73,8 +73,10 @@ package body MOMA.Configuration is
 
       if Pool_S = "queue" then
          Set_Type (Result, Queue);
+
       elsif Pool_S = "topic" then
          Set_Type (Result, Topic);
+
       else
          raise Program_Error;
          --  XXX should raise something else ...
@@ -82,8 +84,10 @@ package body MOMA.Configuration is
 
       if Persistent_S = "none" then
          Set_Persistence (Result, None);
+
       elsif Persistent_S = "file" then
          Set_Persistence (Result, File);
+
       else
          raise Program_Error;
          --  XXX should raise something else ...

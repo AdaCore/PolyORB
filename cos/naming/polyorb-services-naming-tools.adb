@@ -33,8 +33,6 @@
 
 --  $Id$
 
-with PolyORB.References.IOR;
-
 with PolyORB.Services.Naming.NamingContext.Client;
 with PolyORB.Services.Naming.NamingContext.Helper;
 
@@ -112,12 +110,11 @@ package body PolyORB.Services.Naming.Tools is
       Sep : Character := '/')
      return PolyORB.References.Ref
    is
-      use PolyORB.References.IOR;
-
+      Res : PolyORB.References.Ref;
    begin
       if IOR_Or_Name (IOR_Or_Name'First .. IOR_Or_Name'First + 3) = "IOR:" then
-         return String_To_Object
-           (PolyORB.Types.To_PolyORB_String (IOR_Or_Name));
+         PolyORB.References.String_To_Object (IOR_Or_Name, Res);
+         return Res;
       end if;
 
       return Locate (Parse_Name (IOR_Or_Name, Sep));
@@ -133,11 +130,11 @@ package body PolyORB.Services.Naming.Tools is
       Sep         : Character := '/')
       return PolyORB.References.Ref
    is
-      use PolyORB.References.IOR;
+      Res : PolyORB.References.Ref;
    begin
       if IOR_Or_Name (IOR_Or_Name'First .. IOR_Or_Name'First + 3) = "IOR:" then
-         return String_To_Object
-           (PolyORB.Types.To_PolyORB_String (IOR_Or_Name));
+         PolyORB.References.String_To_Object (IOR_Or_Name, Res);
+         return Res;
       end if;
 
       return Locate (Context, Parse_Name (IOR_Or_Name, Sep));

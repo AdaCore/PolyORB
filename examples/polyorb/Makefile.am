@@ -21,12 +21,17 @@ $(TESTS): force
 	-I$(srcdir)/../../src \
 	-I$(srcdir)/../../src/corba \
 	-I$(srcdir)/../../src/giop \
+	-I$(srcdir)/../../src/giop/iiop \
+	-I$(srcdir)/../../src/giop/diop \
+	-I$(srcdir)/../../src/giop/miop \
 	-I$(srcdir)/../../src/soap \
+	-I$(srcdir)/../../src/web_common \
 	-I$(srcdir)/../../src/srp \
 	-I../../src \
 	-I../../src/corba \
 	-I../../src/giop \
 	-I../../src/soap \
+	-I../../src/web_common \
 	-I../../src/srp \
 	$(XMLADA_INCS) \
 	-m $@ \

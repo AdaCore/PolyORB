@@ -138,10 +138,13 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       --  A call to Suspend will result in a call to Wait;
       --  a call to Resume will result in a call to Signal.
 
-      procedure Prepare_Wait (State : Boolean);
-      --  If State = True, initialize the barrier for a call to
-      --  Wait. If State is set to False, it abort the previous
-      --  call to Prepare_Wait.
+      procedure Prepare_Wait;
+      --  Initialize the barrier for a call to Wait. If it is already
+      --  prepared to Wait, raise an assertion failure.
+
+      procedure Abort_Wait;
+      --  Abort the previous call to Prepare_Wait. If no call to Prepare_Wait
+      --  has been done, raise an assertion failure.
 
       entry Wait;
       --  Wait until it is signaled.
@@ -265,7 +268,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    begin
       pragma Debug (O ("abort suspend on " & Integer'Image (Integer (S))));
 
-      Sync_Pool (S).Prepare_Wait (False);
+      Sync_Pool (S).Abort_Wait;
 
       pragma Debug (O ("abort done on " & Integer'Image (Integer (S))));
 
@@ -300,20 +303,29 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
       -- Barrier.Prepare_Wait --
       --------------------------
 
-      procedure Prepare_Wait (State : Boolean) is
+      procedure Prepare_Wait is
       begin
          pragma Assert (not Signaled);
          --  Why should we be signaled if we are not waiting yet?
          --  It would definitely be an error.
 
-         pragma Assert (State or Waiting);
+         pragma Assert (not Waiting);
+         --  Fail if it is the second call to Prepare_Wait
+
+         Waiting := True;
+      end Prepare_Wait;
+
+      ------------------------
+      -- Barrier.Abort_Wait --
+      ------------------------
+
+      procedure Abort_Wait is
+      begin
+         pragma Assert (Waiting);
          --  Fail if we try to abort, but no call to suspend were prepared.
 
-         pragma Assert (not State or not Waiting);
-         --  Fail if it is the second call to Prepare_Wait (True)
-
-         Waiting := State;
-      end Prepare_Wait;
+         Waiting := False;
+      end Abort_Wait;
 
       --------------------
       -- Barrier.Signal --
@@ -491,7 +503,7 @@ package body PolyORB.Tasking.Profiles.Ravenscar.Threads is
    begin
       Synchro_Index_Manager.Get (Synchro_Index_Manager.Index_Type (S));
       pragma Debug (O ("prepare a suspend on " & Integer'Image (Integer (S))));
-      Sync_Pool (S).Prepare_Wait (True);
+      Sync_Pool (S).Prepare_Wait;
       pragma Debug (O ("suspend prepared on " & Integer'Image (Integer (S))));
       return S;
    exception

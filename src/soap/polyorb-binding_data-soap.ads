@@ -109,16 +109,25 @@ package PolyORB.Binding_Data.SOAP is
 
    -------------------------------------------
    --  Profile representation subprograms   --
-   --  (used for the construction of IORs). --
+   --  (used for the construction of IORs,  --
+   --   corbalocs and URIs).                --
    -------------------------------------------
 
    procedure Marshall_SOAP_Profile_Body
      (Buf     : access Buffers.Buffer_Type;
       Profile : Profile_Access);
 
-   function   Unmarshall_SOAP_Profile_Body
-     (Buffer   : access Buffers.Buffer_Type)
+   function Unmarshall_SOAP_Profile_Body
+     (Buffer : access Buffers.Buffer_Type)
     return  Profile_Access;
+
+   function Profile_To_URI
+     (P : Profile_Access)
+     return Types.String;
+
+   function URI_To_Profile
+     (Str : Types.String)
+     return Profile_Access;
 
 private
 
@@ -131,4 +140,6 @@ private
       Address : Sockets.Sock_Addr_Type;
    end record;
 
+   SOAP_URI_Prefix : constant Types.String
+     := PolyORB.Types.To_PolyORB_String ("http://");
 end PolyORB.Binding_Data.SOAP;

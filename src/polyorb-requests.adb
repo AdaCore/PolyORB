@@ -42,6 +42,8 @@ with PolyORB.ORB;
 with PolyORB.ORB.Interface;
 with PolyORB.Protocols.Interface;
 with PolyORB.Setup;
+with PolyORB.Dynamic_Dict;
+with PolyORB.Exceptions;
 
 package body PolyORB.Requests is
 
@@ -149,7 +151,9 @@ package body PolyORB.Requests is
      (Dst_Args        : in out Any.NVList.Ref;
       Src_Args        :        Any.NVList.Ref;
       Direction       :        Any.Flags;
-      Ignore_Src_Mode :        Boolean        := True)
+      Ignore_Src_Mode :        Boolean        := True;
+      Error           : in out Error_Container;
+      Can_Extend      :        Boolean        := False)
    is
       use PolyORB.Components;
 
@@ -157,9 +161,23 @@ package body PolyORB.Requests is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Lists;
+      use PolyORB.Exceptions;
 
-      Src_It : Iterator := First (List_Of (Src_Args).all);
+      package Dst_Names is new PolyORB.Dynamic_Dict (Integer);
+
+      Member : constant System_Exception_Members
+        := (Minor => 1, Completed => Completed_No);
       Dst_It : Iterator := First (List_Of (Dst_Args).all);
+
+      Copied_Src_Args : array (1 .. Long (Get_Count (Src_Args))) of Boolean
+        := (others => False);
+      Src_Idx : Long;
+      Src_It : Iterator;
+      Copy_Argument : Boolean;
+      Occurence_Of_Src_Arg_Name : Integer;
+      Identification_By_Name, Identification_By_Position : Boolean := True;
+      --  By default, we assume that arguments are identified by both
+      --  name and position (this is the ideal case).
 
    begin
       pragma Assert (Direction = ARG_IN or else Direction = ARG_OUT);
@@ -193,19 +211,46 @@ package body PolyORB.Requests is
       --  be marked as 'IN'. Also, there is no guarantee that the order
       --  of arguments is the same in Args and Self.Args.)
 
-      --  XXX actually for now we do not check names at all:
-      --  we skip Src_Args with the wrong direction and then assume
-      --  strict positional association.
-      --  If we were brave guys, we should attempt to reconcile
-      --  argument names and argument types (Tricky: see how Ada
-      --  compilers do parameter reconciliation with support for both
-      --  named and positional parameter associations.)
+      declare
+         Loc_Dst_It : Iterator := First (List_Of (Dst_Args).all);
+      begin
+         while not Last (Loc_Dst_It) loop
+            declare
+               Name : constant String := To_String (Value (Loc_Dst_It).Name);
+               Occurences : Integer := Dst_Names.Lookup (Name, 0);
+            begin
+               Occurences := Occurences + 1;
+               if Occurences /= 1 then
+                  --  This means the hash table did not contain an
+                  --  entry for this name
+
+                  begin
+                     Dst_Names.Unregister (Name);
+                  exception
+                     when Dst_Names.Key_Not_Found =>
+                        pragma Debug (O ("Pump_Up_Arguments: Error while "
+                                         & "scanning args names of dst_args"));
+
+                        --  This should never happen
+
+                        null;
+                  end;
+               end if;
+
+               Dst_Names.Register (Name, Occurences);
+               Next (Loc_Dst_It);
+            end;
+         end loop;
+      end;
+
+      --  The reconciliation mechanism itself
 
       while not Last (Dst_It) loop
-
          declare
             Dst_Arg : constant Element_Access := Value (Dst_It);
-
+            Dst_Arg_Type : constant TypeCode.Object
+              := Get_Unwound_Type (Dst_Arg.Argument);
+            Src_Arg_Found : Boolean := False;
          begin
             if Dst_Arg.Arg_Modes = ARG_INOUT
               or else Dst_Arg.Arg_Modes = Direction
@@ -218,31 +263,183 @@ package body PolyORB.Requests is
                --  the arg modes of Src args and copy only those
                --  that need to, according to Direction.
 
+               Src_It := First (List_Of (Src_Args).all);
+               Src_Idx := Copied_Src_Args'First;
+               pragma Debug (O ("Dst_Arg: " & To_String (Dst_Arg.Name)));
                loop
-                  declare
-                     Src_Arg : constant Element_Access := Value (Src_It);
-                  begin
-                     if Ignore_Src_Mode
-                       or else Src_Arg.Arg_Modes = ARG_INOUT
-                       or else Src_Arg.Arg_Modes = Direction
+                  Copy_Argument := False;
+
+                  if (Ignore_Src_Mode
+                      or else Value (Src_It).Arg_Modes = ARG_INOUT
+                      or else Value (Src_It).Arg_Modes = Direction)
+                    and then Copied_Src_Args (Src_Idx) = False
+                  then
+                     Occurence_Of_Src_Arg_Name
+                       := Dst_Names.Lookup (To_String
+                                            (Value (Src_It).Name), 0);
+
+                     pragma Debug (O ("Src_Arg: "
+                                      & To_String (Value (Src_It).Name)));
+                     if PolyORB.Any.TypeCode.Equal
+                       (Dst_Arg_Type, Get_Unwound_Type
+                        (Value (Src_It).Argument))
                      then
-                        Copy_Any_Value (Dst_Arg.Argument, Src_Arg.Argument);
-                        Next (Src_It);
-                        --  These MUST be type-compatible!
-                        exit;
+                        if Dst_Arg.Name = Value (Src_It).Name then
+                           Copy_Argument := True;
+                        --  The arguments match in name and type. Thus
+                        --  we can perform the copy, as the arguments
+                        --  are identified both by name and position.
+
+                        else
+                           if Identification_By_Position then
+                              Copy_Argument := True;
+                              --  The name does not match. It is not a
+                              --  problem if we are identifying
+                              --  arguments by their positions, since
+                              --  we then do not consider the
+                              --  names.
+
+                           end if;
+
+                           if Identification_By_Name
+                             and then Occurence_Of_Src_Arg_Name > 0
+                           then
+                              Identification_By_Position := False;
+                              Copy_Argument := False;
+                              --  If the name does not match, but
+                              --  exists in the hash table, and we are
+                              --  performing identification by name
+                              --  (and possibly identification by
+                              --  position), then we assume that the
+                              --  argument will match by name latern
+                              --  and then we are not performing
+                              --  identification by position any
+                              --  more. Thus identification by name
+                              --  has the priority.
+
+                           else
+                              Identification_By_Name := False;
+                              pragma Debug (O ("no more ident by name"));
+                              --  If we were identifying the arguments
+                              --  by their names and the name does not
+                              --  match and does not exist in the hash
+                              --  table, then we cannot perform such
+                              --  identification any more.
+
+                              if Identification_By_Position = False then
+                                 Throw (Error, Bad_TypeCode_E, Member);
+                                 pragma Debug (O ("dead end"));
+                                 return;
+                                 --  We must identify the arguments either
+                                 --  by their name or their position. If
+                                 --  not, this is an error.
+
+                              end if;
+                           end if;
+                        end if;
                      else
-                        Next (Src_It);
-                        if Last (Src_It) then
-                           raise Program_Error;
+                        Identification_By_Position := False;
+                        pragma Debug (O ("no more ident by pos"));
+                        --  If we were identifying arguments by their
+                        --  positions, the types should have matched
+                        --  (first unused src_arg with first unused
+                        --  dst_arg). This is not the case, so we are
+                        --  not identifying arguments by their
+                        --  positions.
+
+                        if Identification_By_Name then
+                           if Occurence_Of_Src_Arg_Name <= 0 then
+                              --  If the name does not exist, this
+                              --  means that we will never be able to
+                              --  make this argument match.
+
+                              Throw (Error, Bad_Param_E, Member);
+                              pragma Debug (O ("name not found"));
+                              return;
+                           end if;
+
+                           --  Else, the type of src_arg does not
+                           --  match with dst_arg, but its name exists
+                           --  in the hash table; so we can hope that
+                           --  the argument which has the proper name
+                           --  also has the proper type: so we do
+                           --  nothing but continuing the search among
+                           --  src_args.
+                        else
+                           Throw (Error, Bad_TypeCode_E, Member);
+                           pragma Debug (O ("by position impossible"));
+                           return;
+                           --  We must identify the arguments either
+                           --  by their name or their position. If
+                           --  not, this is an error.
+
                         end if;
                      end if;
-                  end;
+                  end if;
 
+                  if Copy_Argument then
+                     pragma Debug (O ("Found the argument: copying"));
+                     Src_Arg_Found := True;
+                     Copy_Any_Value (Dst_Arg.Argument,
+                                     Value (Src_It).Argument);
+                     Copied_Src_Args (Src_Idx) := True;
+                     declare
+                        Occurence : Integer
+                          := Dst_Names.Lookup (To_String (Dst_Arg.Name), 0);
+                     begin
+                        Occurence := Occurence - 1;
+                        Dst_Names.Unregister (To_String (Dst_Arg.Name));
+                     exception
+                        when Dst_Names.Key_Not_Found =>
+                           pragma Debug
+                             (O ("Pump_Up_Arguments: Error when "
+                                 & "updating dst_names hash table"));
+                           Throw (Error, Internal_E, Member);
+                           pragma Debug (O ("hash error"));
+                           return;
+                     end;
+                     exit;
+                  else
+                     Src_Idx := Src_Idx + 1;
+                     Next (Src_It);
+                     if Last (Src_It) then
+                        Src_Arg_Found := False;
+                        exit;
+                     end if;
+                  end if;
                end loop;
+
+               if not Src_Arg_Found then
+                  Throw (Error, Bad_Param_E, Member);
+                  pragma Debug (O ("arg not found"));
+                  return;
+               end if;
             end if;
-            Next (Dst_It);
          end;
+         Next (Dst_It);
       end loop;
+
+      if Can_Extend then
+         --  If dst_args is an extensible NV_List, then we append the
+         --  remaining src_args
+
+         Src_It := First (List_Of (Src_Args).all);
+         Src_Idx := Copied_Src_Args'First;
+
+         pragma Debug (O ("Appending remaining arguments"));
+         while not Last (Src_It) loop
+            if (Ignore_Src_Mode
+                or else Value (Src_It).Arg_Modes = ARG_INOUT
+                or else Value (Src_It).Arg_Modes = Direction)
+              and then Copied_Src_Args (Src_Idx) = False
+            then
+               Add_Item (Dst_Args, Value (Src_It).all);
+            end if;
+
+            Next (Src_It);
+            Src_Idx := Src_Idx + 1;
+         end loop;
+      end if;
 
    end Pump_Up_Arguments;
 
@@ -251,16 +448,32 @@ package body PolyORB.Requests is
    ---------------
 
    procedure Arguments
-     (Self : Request_Access;
-      Args : in out Any.NVList.Ref)
+     (Self       :        Request_Access;
+      Args       : in out Any.NVList.Ref;
+      Error      : in out Error_Container)
+   is
+   begin
+      Arguments (Self, Args, Error, False);
+   end Arguments;
+
+   procedure Arguments
+     (Self       :        Request_Access;
+      Args       : in out Any.NVList.Ref;
+      Error      : in out Error_Container;
+      Can_Extend :        Boolean)
    is
       use Any.NVList;
       use Components;
+      use Exceptions;
+
+      Member : constant System_Exception_Members
+        := (Minor => 1, Completed => Completed_No);
 
    begin
       if Self.Arguments_Called then
          pragma Debug (O ("Arguments called twice"));
-         raise Program_Error;
+         Throw (Error, Internal_E, Member);
+         return;
       end if;
       Self.Arguments_Called := True;
 
@@ -290,9 +503,11 @@ package body PolyORB.Requests is
          pragma Debug (O ("in Arguments: " & Image (Self.Args)));
 
          Pump_Up_Arguments
-           (Dst_Args  => Args,
-            Src_Args  => Self.Args,
-            Direction => Any.ARG_IN);
+           (Dst_Args   => Args,
+            Src_Args   => Self.Args,
+            Direction  => Any.ARG_IN,
+            Error      => Error,
+            Can_Extend => Can_Extend);
       end if;
 
       Self.Out_Args := Args;
@@ -356,13 +571,16 @@ package body PolyORB.Requests is
    ------------------
 
    procedure Set_Out_Args
-     (Self : Request_Access) is
+     (Self : Request_Access;
+      Error : in out Error_Container)
+   is
    begin
       Pump_Up_Arguments
         (Dst_Args        => Self.Args,
          Src_Args        => Self.Out_Args,
          Direction       => PolyORB.Any.ARG_OUT,
-         Ignore_Src_Mode => False);
+         Ignore_Src_Mode => False,
+         Error           => Error);
       --  Copy back inout and out arguments from Out_Args
       --  to Args, so the requestor finds them where
       --  it expects.

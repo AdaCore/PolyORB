@@ -77,12 +77,14 @@ package body PolyORB.CORBA_P.ServantActivator is
       Adapter : access PPT.Obj_Adapter'Class)
      return PolyORB.Servants.Servant_Access
    is
+      use type PortableServer.Servant;
+
       CORBA_POA : PortableServer.POA_Forward.Ref;
 
       CORBA_Servant : PortableServer.Servant;
 
-      Activator : PortableServer.ServantActivator.Ref'Class
-        := PortableServer.ServantActivator.Ref'Class
+      Activator : PortableServer.ServantActivator.Ref'Class :=
+        PortableServer.ServantActivator.Ref'Class
         (Get_Servant_Manager (Self.all));
 
    begin
@@ -95,8 +97,12 @@ package body PolyORB.CORBA_P.ServantActivator is
          PortableServer.ObjectId (Oid),
          CORBA_POA);
 
-      return PolyORB.Servants.Servant_Access
-        (PortableServer.To_PolyORB_Servant (CORBA_Servant));
+      if CORBA_Servant = null then
+         return null;
+      else
+         return PolyORB.Servants.Servant_Access
+           (PortableServer.To_PolyORB_Servant (CORBA_Servant));
+      end if;
    end Incarnate;
 
    -----------------
@@ -116,8 +122,8 @@ package body PolyORB.CORBA_P.ServantActivator is
       POA_Servant : constant PortableServer.Servant :=
         PortableServer.Servant (CORBA.Impl.To_CORBA_Servant (Serv));
 
-      Activator : PortableServer.ServantActivator.Ref'Class
-        := PortableServer.ServantActivator.Ref'Class
+      Activator : PortableServer.ServantActivator.Ref'Class :=
+        PortableServer.ServantActivator.Ref'Class
         (Get_Servant_Manager (Self.all));
 
    begin

@@ -2,11 +2,11 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
--- P O L Y O R B . T R A N S P O R T . C O N N E C T E D . S O C K E T S    --
+--  P O L Y O R B . T R A N S P O R T . C O N N E C T E D . S O C K E T S   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -81,6 +81,11 @@ package PolyORB.Transport.Connected.Sockets is
    function Create_Event_Source
      (TE : Socket_Endpoint)
       return Asynch_Ev.Asynch_Ev_Source_Access;
+
+   function Is_Data_Available
+     (TE : Socket_Endpoint;
+      N  : Natural)
+     return Boolean;
 
    procedure Read
      (TE     : in out Socket_Endpoint;
