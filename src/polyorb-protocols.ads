@@ -156,8 +156,6 @@ package PolyORB.Protocols is
      return Components.Message'Class;
    --  Demultiplex Messages to the above specialized operations.
 
-   Protocol_Error : exception;
-
 private
 
    type Protocol is abstract new Filters.Factory with null record;
