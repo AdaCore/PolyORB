@@ -41,6 +41,8 @@ with CosNaming.NamingContext;
 with PolyORB.CORBA_P.Naming_Tools;
 with PolyORB.CORBA_P.Server_Tools; use PolyORB.CORBA_P.Server_Tools;
 
+--  with PolyORB.ORB.Thread_Pool;
+--  with PolyORB.Setup.Thread_Pool_Server;
 with PolyORB.Setup.No_Tasking_Server;
 pragma Elaborate_All (PolyORB.Setup.No_Tasking_Server);
 pragma Warnings (Off, PolyORB.Setup.No_Tasking_Server);
@@ -51,6 +53,7 @@ procedure Server is
    Ref : CORBA.Object.Ref;
    Repo : Repository.Impl.Object_Ptr := new Repository.Impl.Object;
 begin
+   --  PolyORB.ORB.Thread_Pool.Initialize (4, 10);
    CORBA.ORB.Initialize ("ORB");
    Repository.Impl.Init (Repo,
                          IRObject.Impl.Object_Ptr (Repo),

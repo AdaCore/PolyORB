@@ -52,6 +52,10 @@ use PolyORB.Types;
 with PolyORB.Any;
 use PolyORB.Any;
 
+with PolyORB.Setup.CORBA_Client;
+pragma Elaborate_All (PolyORB.Setup.CORBA_Client);
+pragma Warnings (Off, PolyORB.Setup.CORBA_Client);
+
 procedure Print is
 
    procedure Print_TypeCode (TC  : CORBA.TypeCode.Object;
@@ -409,7 +413,7 @@ procedure Print is
    Myrep : Repository.Ref;
 
 begin
-
+   CORBA.ORB.Initialize ("ORB");
    Myrep := Repository.Helper.To_Ref
      (PolyORB.CORBA_P.Naming_Tools.Locate ("Interface_Repository"));
 
@@ -430,11 +434,12 @@ begin
       return;
    end if;
 
+   Put_Line ("Start IR dump");
    Print_Content (Repository.Contents (Myrep,
                                        Dk_All,
                                        True),
                   " ");
-   Put_Line (" ");
-   Put_Line (" End of Print Interface Repository client!");
+   New_Line;
+   Put_Line ("End of Print Interface Repository client!");
 
 end Print;

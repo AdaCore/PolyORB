@@ -32,17 +32,6 @@
 
 --  The following subprograms still have to be implemented :
 --
--- create_alias_tc --
--- create_array_tc --
--- create_fixed_tc --
--- create_interface_tc --
--- Create_List --
--- create_native_tc --
--- Create_Policy --
--- create_recursive_sequence_tc --
--- create_sequence_tc --
--- create_string_tc --
--- create_wstring_tc --
 -- Get_Default_Context --
 -- Get_Service_Information --
 -- List_Initial_Services --

@@ -322,28 +322,23 @@ package body PolyORB.Protected_Objects is
 
    procedure Leave (M : in Protected_Adv_Mutex_Type) is
    begin
-      pragma Assert (M.X /= null
-                       and then M.X.Mutex /= null
-                       and then M.X.Current = Current_Task
-                       and then M.X.Level > 0);
+      pragma Assert (M.X /= null);
+      pragma Assert (M.X.Mutex /= null);
+      pragma Assert (M.X.Current = Current_Task);
+      pragma Assert (M.X.Level > 0);
 
-      pragma Debug (O ("orb : leaving"));
-      if M.X = null then
-         null;
-         pragma Debug (O ("orb : mutex null"));
-      end if;
-
+      pragma Debug (O ("Prot_Adv_Mutex: leaving"));
       M.X.Level := M.X.Level - 1;
 
-      pragma Debug (O ("orb : checking level"));
+      pragma Debug (O ("Prot_Adv_Mutex: checking level"));
       if M.X.Level = 0 then
-         pragma Debug (O ("orb : level = 0"));
+         pragma Debug (O ("Prot_Adv_Mutex: level = 0"));
          M.X.Current := Null_Task_Id;
-         pragma Debug (O ("orb : setting current to null"));
+         pragma Debug (O ("Prot_Adv_Mutex: setting current to null"));
          M.X.Mutex.Leave;
-         pragma Debug (O ("orb : mutex left"));
+         pragma Debug (O ("Prot_Adv_Mutex: mutex left"));
       end if;
-      pragma Debug (O ("orb : leave left"));
+      pragma Debug (O ("Prot_Adv_Mutex: leave left"));
    end Leave;
 
    -----------

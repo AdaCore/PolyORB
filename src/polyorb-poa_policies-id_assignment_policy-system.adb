@@ -135,6 +135,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
          The_Entry := Get_By_Index
            (POA.Active_Object_Map.all, Index);
+         Unlock_W (POA.Map_Lock);
 
          if The_Entry = null then
             raise PolyORB.POA.Invalid_Policy;
@@ -154,6 +155,7 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
 
          The_Entry := new Object_Map_Entry;
          Index := Add (POA.Active_Object_Map, The_Entry);
+         Unlock_W (POA.Map_Lock);
 
          The_Entry.Oid := new Unmarshalled_Oid;
          The_Entry.Oid.Id := To_PolyORB_String
@@ -164,8 +166,12 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.System is
            (POA.Lifespan_Policy.all, OA);
          The_Entry.Oid.Creator := POA.Absolute_Address;
       end if;
-      Unlock_W (POA.Map_Lock);
+
       return The_Entry.Oid.all;
+   exception
+      when others =>
+         Unlock_W (POA.Map_Lock);
+         raise;
    end Assign_Object_Identifier;
 
    -----------------------
