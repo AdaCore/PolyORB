@@ -177,6 +177,8 @@ begin
                  Counter_Second_Value = Counter_First_Value + 1);
       end;
 
+   end loop;
+
       declare
          X : All_Types.Ref;
       begin
@@ -184,8 +186,5 @@ begin
          Output ("test self reference", EchoLong (X, 31337) = 31337);
       end;
 
-      exit when True;
-
-   end loop;
 
 end Client;

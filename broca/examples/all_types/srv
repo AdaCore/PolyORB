@@ -1,0 +1,5 @@
+killall -9 client server
+./server -ORBlog -ORBserver-tasks 4 >& sl &
+
+sleep 1
+IOR=`grep IOR sl | sed "s/^.*\(IOR:.*\)'.*$/\1/"`
