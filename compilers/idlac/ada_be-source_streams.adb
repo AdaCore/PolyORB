@@ -438,11 +438,6 @@ package body Ada_Be.Source_Streams is
 
    --  Source code streams (diversion specific)
 
-   procedure Set_Empty (Unit : in out Compilation_Unit) is
-   begin
-      Unit.Diversions (Unit.Current_Diversion).Empty := True;
-   end Set_Empty;
-
    procedure Put
      (Unit : in out Compilation_Unit;
       Text : String)

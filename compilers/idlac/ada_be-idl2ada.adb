@@ -353,6 +353,7 @@ package body Ada_Be.Idl2Ada is
 
       if In_Scope = null then
          Gen_Module_Init_Prelude (S.Helper (Unit_Body));
+
          Gen_Module_Init_Prelude (S.Skel (Unit_Body));
 
          if Intf_Repo then
@@ -465,7 +466,10 @@ package body Ada_Be.Idl2Ada is
          return;
       end if;
 
+      Add_Elaborate_Body (S.Helper (Unit_Spec));
       Gen_Module_Init_Postlude (S.Helper (Unit_Body));
+
+      Add_Elaborate_Body (S.Skel (Unit_Spec));
       Gen_Module_Init_Postlude (S.Skel (Unit_Body));
 
       if Intf_Repo then
@@ -1011,11 +1015,13 @@ package body Ada_Be.Idl2Ada is
          return;
       end if;
 
+      Add_Elaborate_Body (S.Helper (Unit_Spec));
       Gen_Module_Init_Postlude (S.Helper (Unit_Body));
 
       --  Local objects can't have skeleton
 
       if not (Kind (Node) = K_Interface and then Local (Node)) then
+         Add_Elaborate_Body (S.Skel (Unit_Spec));
          Gen_Module_Init_Postlude (S.Skel (Unit_Body));
       end if;
 
@@ -3382,6 +3388,5 @@ package body Ada_Be.Idl2Ada is
       DI (CU);
       PL (CU, "end;");
    end Gen_Module_Init_Postlude;
-
 
 end Ada_Be.Idl2Ada;

@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/compilers/idlac/ada_be-source_streams.ads#7 $
+--  $Id: //droopi/main/compilers/idlac/ada_be-source_streams.ads#8 $
 
 with Ada.Finalization;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
@@ -153,10 +153,6 @@ package Ada_Be.Source_Streams is
    ----------------------------------------------------------------
    -- The following subprograms operate on the current diversion --
    ----------------------------------------------------------------
-
-   procedure Set_Empty (Unit : in out Compilation_Unit);
-   --  Set the Empty flag on the compilation unit.
-   pragma Inline (Set_Empty);
 
    procedure Put
      (Unit : in out Compilation_Unit;
