@@ -1,6 +1,15 @@
-process Application
-provides
-   --  Nothing now
-requires
-   --  Nothing now
-end Application;
+package toto.titi
+  public
+    process Application
+      provides
+        --  Nothing now
+      requires
+        --  Nothing now
+    end Application;
+
+    thread DriverModeLogic
+      parameters
+        --  Nothing now
+    end DriverModeLogic;
+  private
+end toto.titi;

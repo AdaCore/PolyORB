@@ -24,6 +24,8 @@ module Nodes {
     Name_Id    Name;
   };
 
+  interface Identifiers_List : List_Id { };
+
     /***********************/
     /* AADL Specifications */
     /***********************/
@@ -58,13 +60,13 @@ module Nodes {
     //     ( property_association { property_association } | none_statement ) ]
 
   interface Package_Items : Node_Id {
-    List_Id  Items;
-    List_Id  Properties;
+    List_Id    Items;
+    List_Id    Properties;
   };
 
     // package_name ::= { package_identifier . } * package_identifier
 
-  interface Package_Identifiers : List_Id { };
+  interface Package_Name : List_Id { };
 
     // package_spec ::= 
     //    package defining_package_name 
@@ -73,9 +75,9 @@ module Nodes {
     //    end defining_package_name;
 
   interface Package_Spec : Node_Id {
-    List_Id  Package_Name;
-    Node_Id  Public_Package_Items;
-    Node_Id  Private_Package_Items;
+    List_Id    Package_Name;
+    Node_Id    Public_Package_Items;
+    Node_Id    Private_Package_Items;
   };
 
     /*******************/
@@ -110,11 +112,11 @@ module Nodes {
 
   interface Unique_Component_Name : Node_Id {
     List_Id  Package_Name;
-    Name_Id  Name;
+    Node_Id  Identifier;
   };
 
   interface Component_Type : Node_Id {
-    Name_Id  Component_Identifier;
+    Node_Id  Identifier;
     octet    Category;
     List_Id  Provides;
     List_Id  Requires;
@@ -122,6 +124,56 @@ module Nodes {
     List_Id  Properties;
     List_Id  Annexes;
     Node_Id  Parent;
+  };
+
+    // feature ::= port_spec | port_group_spec
+    //             | clientserver_subprogram | data_subprogram_spec
+    //             | provided_data_or_bus_subcomponent_access
+
+    // feature_refinement ::= port_refinement | port_group_refinement
+    //                        | clientserver_subprogram_refinement
+    //                        | data_subprogram_refinement
+    //                  | provided_data_or_bus_subcomponent_access_refinement
+
+  interface Refinable : Node_Id {
+    boolean Is_Refinement;
+  };
+
+  interface Feature : Refinable {
+    List_Id Identifiers_List;
+  };
+
+    // port_spec ::=  
+    //    defining_port_identifier_list : ( in | out | in out ) port_type 
+    //    [ { { port_property_association } + } ] ;
+
+    // port_refinement ::=  
+    //    defining_port_identifier_list : refined to
+    //    ( in | out | in out ) port_type 
+    //    [ { { port_property_association } + } ] ;
+
+    // port_type ::=   ( data port data_classifier_reference  )
+    //               | ( event data port data_classifier_reference )
+    //               | ( event port )
+
+    // classifier_reference ::=
+    //     [ unique_component_type_name [ . component_implementation_name ] ]
+
+  interface Classifier_Ref : Node_Id {
+    Node_Id Comp_Type;
+    Node_Id Comp_Impl;
+  };
+
+  interface Port_Type : Node_Id {
+    boolean Is_Event;
+    Node_Id Data_Ref;   // Data_Ref = No_Node ---> event port
+  };
+
+  interface Port_Spec : Feature {
+    boolean  Is_In;
+    boolean  Is_Out;
+    Node_Id  Port_Type;
+    List_Id  Associations;
   };
 
     // component_implementation ::= 
@@ -156,7 +208,7 @@ module Nodes {
     // end component_type_identifier.defining_component_implementation_name ;
 
   interface Component_Implementation : Node_Id {
-    Name_Id Component_Identifier;
+    Node_Id Identifier;
     octet Category;
     // TODO ...
   };

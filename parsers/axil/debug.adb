@@ -107,8 +107,11 @@ package body Debug is
       Str   : Name_Id;
       Node  : Node_Id;
    begin
+      N_Indents := N_Indents + 1;
+
       case Kind (N) is
          when K_Node_Id =>
+            W_Indents;
             Write_Line ("Node_Id = " & Image (N));
 
          when K_List_Id | K_AADL_Declaration_List =>
@@ -119,31 +122,34 @@ package body Debug is
                   Node := Next_Node (Node);
                end loop;
             else
-               Write_Str ("[Empty]");
+               W_Indents;
+               Write_Str ("[EMPTY]");
             end if;
             Write_Eol;
 
          when K_Identifier =>
             Str := Name (N);
+            Str := Name_Id (Get_Name_Table_Info (Str));
             Write_Str (Get_Name_String (Str));
 
          when K_AADL_Specification =>
+            W_Indents;
             Write_Line ("AADL_Specification:");
             Print_Node (Node_Id (Declarations (N)));
 
          when K_Package_Items =>
             Node := Node_Id (Items (N));
             if Present (Node) then
-               Write_Line ("Package Items:");
                Print_Node (Node);
             end if;
             Node := Node_Id (Properties (N));
             if Present (Node) then
-               Write_Line ("Package Properties:");
+               W_Indents;
+               Write_Line ("Properties:");
                Print_Node (Node);
             end if;
 
-         when K_Package_Identifiers =>
+         when K_Package_Name =>
             Ident := First_Node (List_Id (N));
             while Present (Ident) loop
                Print_Node (Ident);
@@ -154,56 +160,69 @@ package body Debug is
             end loop;
 
          when K_Package_Spec =>
+            W_Indents;
             Write_Str ("Package: ");
             Print_Node (Node_Id (Package_Name (N)));
             Write_Eol;
             Node := Node_Id (Public_Package_Items (N));
             if Present (Node) then
+               W_Indents;
                Write_Line ("Public:");
                Print_Node (Node);
             end if;
             Node := Node_Id (Private_Package_Items (N));
             if Present (Node) then
+               W_Indents;
                Write_Line ("Private:");
                Print_Node (Node);
             end if;
 
          when K_Component_Type =>
+            W_Indents;
             Write_Str ("Component_Type: ");
             Print_Component_Category (Category (N));
             Write_Char (' ');
-            Write_Line (Get_Name_String (Component_Identifier (N)));
+            Print_Node (Identifier (N));
+            Write_Eol;
 
             Node := Node_Id (Provides (N));
             if Present (Node) then
+               W_Indents;
                Write_Line ("Provides");
                Print_Node (Node);
             end if;
             Node := Node_Id (Requires (N));
             if Present (Node) then
+               W_Indents;
                Write_Line ("Requires");
                Print_Node (Node);
             end if;
             Node := Node_Id (Parameters (N));
             if Present (Node) then
+               W_Indents;
                Write_Line ("Parameters");
                Print_Node (Node);
             end if;
             Node := Node_Id (Properties (N));
             if Present (Node) then
+               W_Indents;
                Write_Line ("Properties");
                Print_Node (Node);
             end if;
             Node := Node_Id (Annexes (N));
             if Present (Node) then
+               W_Indents;
                Write_Line ("Annexes");
                Print_Node (Node);
             end if;
 
          when others =>
+            W_Indents;
             Put ("Other node");
-            New_Line;
+            Write_Eol;
       end case;
+
+      N_Indents := N_Indents - 1;
    end Print_Node;
 
    ---------------
@@ -245,7 +264,7 @@ package body Debug is
    procedure W_Indents is
    begin
       for I in 1 .. N_Indents loop
-         Write_Str ("   ");
+         Write_Str (" ");
       end loop;
    end W_Indents;
 

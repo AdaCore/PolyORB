@@ -55,14 +55,14 @@ package body Parser is
                               Category  : Component_Category) return Node_Id;
    --  Parse Component_Type, Component_Type_Extension
 
-   function P_Component_Type (Start_Loc : Location;
-                              Category  : Component_Category;
-                              Name      : Name_Id) return Node_Id;
+   function P_Component_Type (Start_Loc  : Location;
+                              Category   : Component_Category;
+                              Identifier : Node_Id) return Node_Id;
    --  Parse Component_Type
 
-   function P_Component_Type_Extension (Start_Loc : Location;
-                                        Category  : Component_Category;
-                                        Name      : Name_Id) return Node_Id;
+   function P_Component_Type_Extension (Start_Loc  : Location;
+                                        Category   : Component_Category;
+                                        Identifier : Node_Id) return Node_Id;
    --  Parse Component_Type_Extension
 
    function P_Expected_Identifier (Expected_Name : Name_Id) return Boolean;
@@ -331,22 +331,23 @@ package body Parser is
 
    function P_Component_Type (Start_Loc : Location;
                               Category  : Component_Category) return Node_Id is
-      Name      : Name_Id;     --  component identifier
-      Loc       : Location;
+      Ident : Node_Id;     --  component identifier
+      Loc   : Location;
 
    begin
       Save_Lexer (Loc);
       Scan_Token;
       if Token = T_Identifier then
-         Name := Token_Name;
+         Ident := New_Node (K_Identifier, Token_Location);
+         Set_Name (Ident, Token_Name);
          Save_Lexer (Loc);
          Scan_Token;
 
          if Token = T_Extends then
-            return P_Component_Type_Extension (Start_Loc, Category, Name);
+            return P_Component_Type_Extension (Start_Loc, Category, Ident);
          else
             Restore_Lexer (Loc);
-            return P_Component_Type (Start_Loc, Category, Name);
+            return P_Component_Type (Start_Loc, Category, Ident);
          end if;
 
       else
@@ -370,9 +371,9 @@ package body Parser is
    --     { annex_subclause } *
    --  end defining_component_type_identifier ;
 
-   function P_Component_Type (Start_Loc : Location;
-                              Category  : Component_Category;
-                              Name      : Name_Id) return Node_Id is
+   function P_Component_Type (Start_Loc  : Location;
+                              Category   : Component_Category;
+                              Identifier : Node_Id) return Node_Id is
       Component       : Node_Id;
       Loc             : Location;
       Provides        : List_Id := No_List;
@@ -451,12 +452,12 @@ package body Parser is
          end case;
       end loop;
 
-      if P_Expected_Identifier (Name) then
+      if P_Expected_Identifier (Name (Identifier)) then
          Save_Lexer (Loc);
          Scan_Token;
 
          if Token = T_Semicolon then
-            Set_Component_Identifier (Component, Name);
+            Set_Identifier (Component, Identifier);
             Set_Category (Component, Component_Category_To_Byte (Category));
             Set_Provides (Component, Provides);
             Set_Requires (Component, Requires);
@@ -496,9 +497,9 @@ package body Parser is
    --     { annex_subclause } *
    --  end defining_component_type_identifier ;
 
-   function P_Component_Type_Extension (Start_Loc : Location;
-                                        Category  : Component_Category;
-                                        Name      : Name_Id) return Node_Id is
+   function P_Component_Type_Extension (Start_Loc  : Location;
+                                        Category   : Component_Category;
+                                        Identifier : Node_Id) return Node_Id is
       Component : Node_Id;
 
    begin
@@ -507,7 +508,7 @@ package body Parser is
       --  TODO
 
       Set_Category (Component, Component_Category_To_Byte (Category));
-      Set_Component_Identifier (Component, Name);
+      Set_Identifier (Component, Identifier);
       return Component;
    end P_Component_Type_Extension;
 
@@ -718,7 +719,7 @@ package body Parser is
             when T_Data | T_Subprogram | T_Thread | T_Process
               | T_Memory | T_Processor | T_Bus | T_Device
               | T_System =>
-               return P_Component;
+               Item := P_Component;
 
             when T_Port =>
                Scan_Token;
@@ -792,7 +793,7 @@ package body Parser is
 
    begin
       Package_Spec  := New_Node (K_Package_Spec, Token_Location);
-      Defining_Name := New_List (K_Package_Identifiers, Token_Location);
+      Defining_Name := New_List (K_Package_Name, Token_Location);
       Public_Items  := No_Node;
       Private_Items := No_Node;
 

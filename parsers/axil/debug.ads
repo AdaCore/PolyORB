@@ -4,7 +4,7 @@ with Types;  use Types;
 
 package Debug is
 
-   N_Indents : Natural := 0;
+   N_Indents : Integer := -1;
 
    procedure W_Eol                       renames Output.Write_Eol;
    procedure W_Int         (N : Int)     renames Output.Write_Int;

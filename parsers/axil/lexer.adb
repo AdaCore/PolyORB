@@ -11,14 +11,20 @@ package body Lexer is
 
    use ASCII;
 
-   Buffer        : Text_Buffer_Ptr;
+   Buffer           : Text_Buffer_Ptr;
    --  Once preprocessed, the idl file is loaded in Buffer and
    --  Token_Location.Scan is used to scan the source file.
 
-   Display_Error : constant Boolean := True;
+   AADL_Name_Buffer : String (1 .. 1024);
+   --  This buffer is used to store temporarily an AADL identifier
+
+   AADL_Name_Len    : Natural;
+   --  Length of name stored in AADL_Name_Buffer
+
+   Display_Error    : constant Boolean := True;
    pragma Unreferenced (Display_Error);
 
-   Token_Image   : array (Token_Type) of Name_Id;
+   Token_Image      : array (Token_Type) of Name_Id;
 
    procedure New_Line;
    --  Increment the line number and save the current position in the
@@ -169,9 +175,7 @@ package body Lexer is
    -- New_Token --
    ---------------
 
-   procedure New_Token
-     (Token : Token_Type;
-      Image : String) is
+   procedure New_Token (Token : Token_Type; Image : String) is
    begin
       Set_Str_To_Name_Buffer (Image);
       Token_Image (Token) := Name_Find;
@@ -186,10 +190,7 @@ package body Lexer is
    -- Preprocess --
    ----------------
 
-   procedure Preprocess
-     (Source : Name_Id;
-      Result : out File_Descriptor)
-   is
+   procedure Preprocess (Source : Name_Id; Result : out File_Descriptor) is
       Tmp_FDesc    : File_Descriptor;
 
    begin
@@ -212,10 +213,7 @@ package body Lexer is
    -- Process --
    -------------
 
-   procedure Process
-     (Source_File : File_Descriptor;
-      Source_Name : Name_Id)
-   is
+   procedure Process (Source_File : File_Descriptor; Source_Name : Name_Id) is
       Result    : Integer;
       Length    : Integer;
 
@@ -399,6 +397,7 @@ package body Lexer is
       Size   : Integer := 0;  --  number of scanned digits
       Digit  : Unsigned_Short_Short;
       Factor : Long_Long_Float;
+
    begin
       Float_Literal_Value := 0.0;
       Factor := Long_Long_Float (1.0 / Long_Long_Float (Base));
@@ -450,6 +449,7 @@ package body Lexer is
       Ch    : Character;
       Size  : Integer := 0;          --  number of scanned digits
       Digit : Unsigned_Short_Short;
+
    begin
       Integer_Literal_Value := 0;
       Token := T_Integer_Literal;
@@ -501,6 +501,7 @@ package body Lexer is
       Size   : Integer := 0;  --  number of scanned digits
       Digit  : Unsigned_Short_Short;
       Factor : Long_Long_Float;
+
    begin
       Float_Literal_Value := 0.0;
       Factor := 0.1;
@@ -536,6 +537,7 @@ package body Lexer is
    procedure Scan_Decimal_Integer_Value is
       Ch   : Character;
       Size : Integer := 0;  --  number of scanned digits
+
    begin
       Integer_Literal_Value := 0;
       Token := T_Integer_Literal;
@@ -571,18 +573,28 @@ package body Lexer is
    ---------------------
 
    procedure Scan_Identifier is
-      B : Byte;
+      B            : Byte;
+      AADL_Name_Id : Name_Id;
+
    begin
       --  The first character of identifier is an alphabetic character.
       --  Buffer (Token_Location.Scan) is tested in Scan_Token before
       --  procedure call.
 
       Name_Len := 0;   --  initialize string buffer
-      Add_Char_To_Name_Buffer (Buffer (Token_Location.Scan));
+      Add_Char_To_Name_Buffer (To_Lower (Buffer (Token_Location.Scan)));
+
+      AADL_Name_Len := 1;
+      AADL_Name_Buffer (AADL_Name_Len) := Buffer (Token_Location.Scan);
+
       Token_Location.Scan := Token_Location.Scan + 1;
 
       while Is_Identifier_Character (Buffer (Token_Location.Scan)) loop
          Add_Char_To_Name_Buffer (To_Lower (Buffer (Token_Location.Scan)));
+
+         AADL_Name_Len := AADL_Name_Len + 1;
+         AADL_Name_Buffer (AADL_Name_Len) := Buffer (Token_Location.Scan);
+
          Token_Location.Scan := Token_Location.Scan + 1;
       end loop;
 
@@ -596,6 +608,19 @@ package body Lexer is
          --  Identifier_Name is not necessairy here
       else
          Token := T_Identifier;
+
+         if Get_Name_Table_Info (Token_Name) = 0 then
+            --  It is the FIRST time identifier is defined
+            --  Add its display string with case-sensitive
+
+            Name_Len := 0;
+            for I in 1 .. AADL_Name_Len loop
+               Add_Char_To_Name_Buffer (AADL_Name_Buffer (I));
+            end loop;
+            AADL_Name_Id := Name_Find;
+
+            Set_Name_Table_Info (Token_Name, Int (AADL_Name_Id));
+         end if;
       end if;
    end Scan_Identifier;
 
@@ -608,6 +633,7 @@ package body Lexer is
       Is_Real  : Boolean := False;   --  scanned number is a real number
       Int_Save : Unsigned_Long_Long; --  temporary value
       Exp_Sign : Boolean;            --  sign of exponent (True >0 / False <0)
+
    begin
       Scan_Decimal_Integer_Value;
       Numeric_Literal_Base := 10;  --  by default, base is ten
@@ -745,6 +771,7 @@ package body Lexer is
    procedure Scan_String_Literal_Value is
       Quoted : Boolean := False;   --  a quotation mark '"' is scanned
       Ch     : Character;
+
    begin
       Name_Len := 0;   --  initialize string buffer
       loop
@@ -992,6 +1019,7 @@ package body Lexer is
 
    procedure Scan_Token (T : Token_Type) is
       Loc : Location := Token_Location;
+
    begin
       Scan_Token;
       if T /= Token and Token /= T_Error then
