@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -43,6 +43,7 @@ with PolyORB.Jobs;
 with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Tasking.Condition_Variables;
+with PolyORB.Tasking.Mutexes;
 with PolyORB.Tasking.Threads;
 with PolyORB.Utils.Strings;
 
@@ -252,7 +253,8 @@ begin
      (Module_Info'
       (Name      => +"orb.thread_per_request",
        Conflicts => +"no_tasking",
-       Depends   => Empty,
+       Depends   => +"tasking.mutexes"
+       & "tasking.condition_variables",
        Provides  => +"orb.tasking_policy",
        Implicit  => False,
        Init      => Initialize'Access));

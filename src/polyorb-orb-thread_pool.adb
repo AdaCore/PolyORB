@@ -263,7 +263,7 @@ begin
      (Module_Info'
       (Name      => +"orb.thread_pool",
        Conflicts => +"no_tasking",
-       Depends   => Empty,
+       Depends   => +"tasking.threads",
        Provides  => +"orb.tasking_policy",
        Implicit  => False,
        Init      => Initialize_Tasking_Policy_Access'Access));
