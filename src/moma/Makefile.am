@@ -19,6 +19,8 @@ ADA_SPECS_WITH_BODY = \
 	moma-messages-mmaps.ads \
 	moma-messages-mtexts.ads \
 	moma-messages.ads \
+	moma-references.ads \
+	moma-runtime.ads \
 	moma-sessions.ads \
 	moma-types.ads \
 	polyorb-moma_p-exceptions.ads \

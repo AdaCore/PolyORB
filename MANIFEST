@@ -738,6 +738,10 @@ src/moma/moma-messages-mtexts.adb
 src/moma/moma-messages-mtexts.ads
 src/moma/moma-messages.adb
 src/moma/moma-messages.ads
+src/moma/moma-references.adb
+src/moma/moma-references.ads
+src/moma/moma-runtime.adb
+src/moma/moma-runtime.ads
 src/moma/moma-sessions.adb
 src/moma/moma-sessions.ads
 src/moma/moma-types.adb
