@@ -49,10 +49,6 @@ AC_ARG_WITH(optimization,
 [GNATDISTOPT="O0"])
 AC_SUBST(GNATDISTOPT)
 #
-# Find GNAT sources
-#
-AC_GNAT_SOURCE
-#
 # Check that the GNAT version is recent enough for this version of GLADE
 #
 AM_GNAT_PREREQ(20010122, 3.14)
