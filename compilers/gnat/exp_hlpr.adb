@@ -103,9 +103,9 @@ package body Exp_Hlpr is
       return Node_Id
    is
       Loc : constant Source_Ptr := Sloc (N);
-      U_Type  : constant Entity_Id  := Underlying_Type (Typ);
-
+      U_Type : Entity_Id  := Underlying_Type (Typ);
       --  Rt_Type : constant Entity_Id  := Root_Type (U_Type);
+
       --  FST     : constant Entity_Id  := First_Subtype (U_Type);
       --  P_Size  : constant Uint       := Esize (FST);
 
@@ -118,6 +118,10 @@ package body Exp_Hlpr is
       --  in the type's TSS.
 
       Fnam := Find_Inherited_TSS (U_Type, Name_uFrom_Any);
+
+      if Sloc (U_Type) <= Standard_Location then
+         U_Type := Base_Type (U_Type);
+      end if;
 
       --  Check first for Boolean and Character. These are enumeration types,
       --  but we treat them specially, since they may require special handling
@@ -153,19 +157,19 @@ package body Exp_Hlpr is
 
       --  Integer types
 
-      elsif U_Type = Standard_Short_Short_Integer then
+      elsif U_Type = Etype (Standard_Short_Short_Integer) then
             Lib_RE := RE_FA_SSI;
 
-      elsif U_Type = Standard_Short_Integer then
+      elsif U_Type = Etype (Standard_Short_Integer) then
          Lib_RE := RE_FA_SI;
 
-      elsif U_Type = Standard_Integer then
+      elsif U_Type = Etype (Standard_Integer) then
          Lib_RE := RE_FA_I;
 
-      elsif U_Type = Standard_Long_Integer then
+      elsif U_Type = Etype (Standard_Long_Integer) then
          Lib_RE := RE_FA_LI;
 
-      elsif U_Type = Standard_Long_Long_Integer then
+      elsif U_Type = Etype (Standard_Long_Long_Integer) then
          Lib_RE := RE_FA_LLI;
 
       --  Unsigned integer types
@@ -311,7 +315,7 @@ package body Exp_Hlpr is
    is
       Loc : constant Source_Ptr := Sloc (N);
       Typ : constant Entity_Id := Etype (N);
-      U_Type  : constant Entity_Id  := Underlying_Type (Typ);
+      U_Type  : Entity_Id  := Underlying_Type (Typ);
       --  The full view, if Typ is private; the completion,
       --  if Typ is incomplete.
 
@@ -334,6 +338,10 @@ package body Exp_Hlpr is
       --  in the transfer protocol. However, this special handling only applies
       --  if they have standard representation, otherwise they are treated like
       --  any other enumeration type.
+
+      if Sloc (U_Type) <= Standard_Location then
+         U_Type := Base_Type (U_Type);
+      end if;
 
       if Present (Fnam) then
          null;
@@ -363,19 +371,19 @@ package body Exp_Hlpr is
 
       --  Integer types
 
-      elsif U_Type = Standard_Short_Short_Integer then
+      elsif U_Type = Etype (Standard_Short_Short_Integer) then
             Lib_RE := RE_TA_SSI;
 
-      elsif U_Type = Standard_Short_Integer then
+      elsif U_Type = Etype (Standard_Short_Integer) then
          Lib_RE := RE_TA_SI;
 
-      elsif U_Type = Standard_Integer then
+      elsif U_Type = Etype (Standard_Integer) then
          Lib_RE := RE_TA_I;
 
-      elsif U_Type = Standard_Long_Integer then
+      elsif U_Type = Etype (Standard_Long_Integer) then
          Lib_RE := RE_TA_LI;
 
-      elsif U_Type = Standard_Long_Long_Integer then
+      elsif U_Type = Etype (Standard_Long_Long_Integer) then
          Lib_RE := RE_TA_LLI;
 
       --  Unsigned integer types
@@ -540,7 +548,7 @@ package body Exp_Hlpr is
       Decls : List_Id)
       return Node_Id
    is
-      U_Type  : constant Entity_Id  := Underlying_Type (Typ);
+      U_Type  : Entity_Id  := Underlying_Type (Typ);
       --  The full view, if Typ is private; the completion,
       --  if Typ is incomplete.
 
@@ -565,6 +573,11 @@ package body Exp_Hlpr is
       --  in the transfer protocol. However, this special handling only applies
       --  if they have standard representation, otherwise they are treated like
       --  any other enumeration type.
+
+      if Sloc (U_Type) <= Standard_Location then
+         U_Type := Base_Type (U_Type);
+         --  Do not try to build alias typecodes for subtypes from Standard.
+      end if;
 
       if Present (Fnam) then
          --  When a TypeCode TSS exists, it has a single parameter
@@ -617,21 +630,21 @@ package body Exp_Hlpr is
       elsif U_Type = Standard_Long_Long_Float then
          Lib_RE := RE_TC_LLF;
 
-      --  Integer types
+      --  Integer types (walk back to the base type)
 
-      elsif U_Type = Standard_Short_Short_Integer then
+      elsif U_Type = Etype (Standard_Short_Short_Integer) then
             Lib_RE := RE_TC_SSI;
 
-      elsif U_Type = Standard_Short_Integer then
+      elsif U_Type = Etype (Standard_Short_Integer) then
          Lib_RE := RE_TC_SI;
 
-      elsif U_Type = Standard_Integer then
+      elsif U_Type = Etype (Standard_Integer) then
          Lib_RE := RE_TC_I;
 
-      elsif U_Type = Standard_Long_Integer then
+      elsif U_Type = Etype (Standard_Long_Integer) then
          Lib_RE := RE_TC_LI;
 
-      elsif U_Type = Standard_Long_Long_Integer then
+      elsif U_Type = Etype (Standard_Long_Long_Integer) then
          Lib_RE := RE_TC_LLI;
 
       --  Unsigned integer types

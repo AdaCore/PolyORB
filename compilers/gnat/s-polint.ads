@@ -138,7 +138,7 @@ package System.PolyORB_Interface is
       Addr     : out System.Address);
    --  If Ref denotes a local object, Is_Local is set to True,
    --  and Addr is set to the object's actual address, else
-   --  Is_Local is set to False and the state of Addr is undefined.
+   --  Is_Local is set to False and Addr is set to Null_Address.
 
    procedure Get_Reference
      (Addr     :        System.Address;

@@ -46,7 +46,6 @@ with Sem_Ch8;     use Sem_Ch8;
 with Sem_Dist;    use Sem_Dist;
 with Sem_Util;    use Sem_Util;
 with Sinfo;       use Sinfo;
-with Sinput;      use Sinput;
 with Snames;      use Snames;
 with Stand;       use Stand;
 with Stringt;     use Stringt;
@@ -115,7 +114,7 @@ package body Exp_Dist is
 
    function Build_Subprogram_Calling_Stubs
      (Vis_Decl                 : Node_Id;
-      Subp_Id                  : Int;
+      Subp_Id                  : Node_Id;
       Asynchronous             : Boolean;
       Dynamically_Asynchronous : Boolean   := False;
       Stub_Type                : Entity_Id := Empty;
@@ -185,10 +184,10 @@ package body Exp_Dist is
       Decls    : in List_Id);
    --  Add receiving stubs to the declarative part
 
-   procedure Add_RAS_Dereference_Attribute (N : in Node_Id);
+   procedure Add_RAS_Dereference_TSS (N : in Node_Id);
    --  Add a subprogram body for RAS dereference
 
-   procedure Add_RAS_Access_Attribute (N : in Node_Id);
+   procedure Add_RAS_Access_TSS (N : in Node_Id);
    --  Add a subprogram body for RAS Access attribute
 
    function Could_Be_Asynchronous (Spec : Node_Id) return Boolean;
@@ -444,14 +443,6 @@ package body Exp_Dist is
    --                            Exception_Message (E));
    --    end R;
 
-   procedure Get_Subprogram_Name
-     (Def : Entity_Id);
-   --  Fill the name buffer with the non-qualified name
-   --  of subprogram Def. If Def is a defining identifier,
-   --  return the name as it appears in source code; if
-   --  Def is a defining operator name, return the same
-   --  result as Get_Name_String.
-
    ------------------------------------
    -- Local variables and structures --
    ------------------------------------
@@ -474,7 +465,6 @@ package body Exp_Dist is
      (Pkg_Spec : in Node_Id;
       Decls    : in List_Id)
    is
-      Current_Subprogram_Number : Int := 0;
       Current_Declaration       : Node_Id;
 
       Loc                       : constant Source_Ptr := Sloc (Pkg_Spec);
@@ -482,6 +472,7 @@ package body Exp_Dist is
       RCI_Instantiation         : Node_Id;
 
       Subp_Stubs                : Node_Id;
+      Subp_Id                   : Node_Id;
 
    begin
       --  The first thing added is an instantiation of the generic package
@@ -509,14 +500,15 @@ package body Exp_Dist is
          if Nkind (Current_Declaration) = N_Subprogram_Declaration
            and then Comes_From_Source (Current_Declaration)
          then
-            pragma Assert (Current_Subprogram_Number =
-              Get_Subprogram_Id (Defining_Unit_Name (Specification (
-                Current_Declaration))));
+            Get_Subprogram_Identifier (
+              Defining_Unit_Name (Specification (
+                Current_Declaration)));
+            Subp_Id := Make_String_Literal (Loc, String_From_Name_Buffer);
 
             Subp_Stubs :=
               Build_Subprogram_Calling_Stubs (
                 Vis_Decl     => Current_Declaration,
-                Subp_Id      => Current_Subprogram_Number,
+                Subp_Id      => Subp_Id,
                 Asynchronous =>
                   Nkind (Specification (Current_Declaration)) =
                     N_Procedure_Specification
@@ -526,8 +518,6 @@ package body Exp_Dist is
 
             Append_To (Decls, Subp_Stubs);
             Analyze (Subp_Stubs);
-
-            Current_Subprogram_Number := Current_Subprogram_Number + 1;
          end if;
 
          Next (Current_Declaration);
@@ -922,7 +912,7 @@ package body Exp_Dist is
       RPC_Receiver_Request           : Entity_Id;
       RPC_Receiver_Subp_Id           : Entity_Id;
 
-      Subp_Val : Node_Id;
+      Subp_Str : String_Id;
 
       Current_Primitive_Elmt   : Elmt_Id;
       Current_Primitive        : Entity_Id;
@@ -1003,10 +993,15 @@ package body Exp_Dist is
                  Nkind (Current_Primitive_Spec) = N_Procedure_Specification
                  and then Could_Be_Asynchronous (Current_Primitive_Spec);
 
+               Get_Subprogram_Identifier (
+                 Defining_Unit_Name (Current_Primitive_Spec));
+               Subp_Str := String_From_Name_Buffer;
+
                Current_Primitive_Body :=
                  Build_Subprogram_Calling_Stubs
                    (Vis_Decl                 => Current_Primitive_Decl,
-                    Subp_Id                  => Current_Primitive_Number,
+                    Subp_Id                  =>
+                      Make_String_Literal (Loc, Subp_Str),
                     Asynchronous             => Possibly_Asynchronous,
                     Dynamically_Asynchronous => Possibly_Asynchronous,
                     Stub_Type                => Stub_Elements.Stub_Type,
@@ -1049,12 +1044,6 @@ package body Exp_Dist is
 --                           New_Occurrence_Of (
 --                             RPC_Receiver_Request, Loc))))));
 
-               Get_Name_String (Chars (
-                 Defining_Unit_Name (Current_Primitive_Spec)));
-
-               Subp_Val := Make_String_Literal (Loc,
-                 Strval => String_From_Name_Buffer);
-
                Append_To (RPC_Receiver_Case_Alternatives,
                  Make_Implicit_If_Statement (Designated_Type,
                    Condition =>
@@ -1063,7 +1052,7 @@ package body Exp_Dist is
                          New_Occurrence_Of (RTE (RE_Caseless_String_Eq), Loc),
                        Parameter_Associations => New_List (
                          New_Occurrence_Of (RPC_Receiver_Subp_Id, Loc),
-                         Subp_Val)),
+                         Make_String_Literal (Loc, Subp_Str))),
                    Then_Statements => New_List (
                      Make_Procedure_Call_Statement (Loc,
                        Name                   =>
@@ -1845,11 +1834,11 @@ package body Exp_Dist is
       Append_To (Declarations, Body_Node);
    end Add_RACW_Write_Attribute;
 
-   ------------------------------
-   -- Add_RAS_Access_Attribute --
-   ------------------------------
+   ------------------------
+   -- Add_RAS_Access_TSS --
+   -------------------------
 
-   procedure Add_RAS_Access_Attribute (N : in Node_Id) is
+   procedure Add_RAS_Access_TSS (N : in Node_Id) is
       Ras_Type : constant Entity_Id := Defining_Identifier (N);
       Fat_Type : constant Entity_Id := Equivalent_Type (Ras_Type);
       --  Ras_Type is the access to subprogram type while Fat_Type points to
@@ -1905,7 +1894,7 @@ package body Exp_Dist is
 
       --  Initialize the fields of the record type with the appropriate data
 
-      Set_Field (Name_Ras,
+      Set_Field (Name_RAS_Calling_Stub,
         OK_Convert_To (RTE (RE_Unsigned_64), New_Occurrence_Of (Param, Loc)));
 
       Set_Field (Name_Origin,
@@ -1981,13 +1970,13 @@ package body Exp_Dist is
 
       Set_TSS (Fat_Type, Proc);
 
-   end Add_RAS_Access_Attribute;
+   end Add_RAS_Access_TSS;
 
-   -----------------------------------
-   -- Add_RAS_Dereference_Attribute --
-   -----------------------------------
+   -----------------------------
+   -- Add_RAS_Dereference_TSS --
+   -----------------------------
 
-   procedure Add_RAS_Dereference_Attribute (N : in Node_Id) is
+   procedure Add_RAS_Dereference_TSS (N : in Node_Id) is
       Loc : constant Source_Ptr := Sloc (N);
 
       Type_Def : constant Node_Id   := Type_Definition (N);
@@ -2059,16 +2048,34 @@ package body Exp_Dist is
 --              New_Occurrence_Of (Pointer, Loc),
 --            Selector_Name =>
 --              Make_Identifier (Loc, Name_Receiver));
-      Target_Object := Empty;
-      --  XXX TBD (RAS) rewrite for PolyORB!
+--  XXX remove this old Garlic version.
 
-      Subprogram_Id :=
-        Unchecked_Convert_To (RTE (RE_Subprogram_Id),
-          Make_Selected_Component (Loc,
-            Prefix        =>
-              New_Occurrence_Of (Pointer, Loc),
-            Selector_Name =>
-              Make_Identifier (Loc, Name_Subp_Id)));
+      Target_Object := Empty;
+      Subprogram_Id := Empty;
+--        Target_Object :=
+--          Make_Defining_Identifier (Loc, New_Internal_Name ('T'));
+
+--        Append_To (Proc_Decls,
+--          Make_Object_Declaration (Loc,
+--            Defining_Identifier => Target_Object,
+--            Constant_Present    => True,
+--            Object_Definition   =>
+--              New_Occurrence_Of (RTE (RE_Reference), Loc),
+--            Expression          =>
+--              Make_Selected_Component (Loc,
+--                Prefix        =>
+--                  New_Occurrence_Of (Pointer, Loc),
+--                Selector_Name =>
+--                  Make_Identifier (Loc, Name_Target))));
+
+--        Subprogram_Id :=
+--          Unchecked_Convert_To (RTE (RE_Subprogram_Id),
+--            Make_Selected_Component (Loc,
+--              Prefix        =>
+--                New_Occurrence_Of (Pointer, Loc),
+--              Selector_Name =>
+--                Make_Identifier (Loc, Name_Subp_Id)));
+--  XXX decomment this new, rewritten version.
 
       --  A function is never asynchronous. A procedure may or may not be
       --  asynchronous depending on whether a pragma Asynchronous applies
@@ -2158,7 +2165,7 @@ package body Exp_Dist is
           OK_Convert_To (RTE (RE_Address),
             Make_Selected_Component (Loc,
               Prefix        => New_Occurrence_Of (Pointer, Loc),
-              Selector_Name => Make_Identifier (Loc, Name_Ras))));
+              Selector_Name => Make_Identifier (Loc, Name_RAS_Calling_Stub))));
 
       if Is_Function then
          Append_To (Direct_Statements,
@@ -2195,7 +2202,8 @@ package body Exp_Dist is
                   Left_Opnd  =>
                     Make_Selected_Component (Loc,
                       Prefix        => New_Occurrence_Of (Pointer, Loc),
-                      Selector_Name => Make_Identifier (Loc, Name_Ras)),
+                      Selector_Name =>
+                         Make_Identifier (Loc, Name_RAS_Calling_Stub)),
                   Right_Opnd =>
                     Make_Integer_Literal (Loc, Uint_0)),
 
@@ -2229,7 +2237,7 @@ package body Exp_Dist is
 
       Set_TSS (Fat_Type, Defining_Unit_Name (Proc_Spec));
 
-   end Add_RAS_Dereference_Attribute;
+   end Add_RAS_Dereference_TSS;
 
    -----------------------
    -- Add_RAST_Features --
@@ -2247,8 +2255,8 @@ package body Exp_Dist is
          return;
       end if;
 
-      Add_RAS_Dereference_Attribute (Vis_Decl);
-      Add_RAS_Access_Attribute (Vis_Decl);
+      Add_RAS_Dereference_TSS (Vis_Decl);
+      Add_RAS_Access_TSS (Vis_Decl);
    end Add_RAST_Features;
 
    -----------------------------------------
@@ -2277,7 +2285,6 @@ package body Exp_Dist is
       --  Subprogram_Id as read from the incoming stream
 
       Current_Declaration       : Node_Id;
-      Current_Subprogram_Number : Int := 0;
       Current_Stubs             : Node_Id;
 
       Dummy_Register_Name : Name_Id;
@@ -2325,10 +2332,6 @@ package body Exp_Dist is
          if Nkind (Current_Declaration) = N_Subprogram_Declaration
            and then Comes_From_Source (Current_Declaration)
          then
-            pragma Assert (Current_Subprogram_Number =
-              Get_Subprogram_Id (Defining_Unit_Name (Specification (
-                Current_Declaration))));
-
             Current_Stubs :=
               Build_Subprogram_Receiving_Stubs
                 (Vis_Decl     => Current_Declaration,
@@ -2393,9 +2396,9 @@ package body Exp_Dist is
                   Append_To (Case_Stmts, Make_Return_Statement (Loc));
                end if;
 
-               Get_Name_String (Chars (
+               Get_Subprogram_Identifier (
                  Defining_Unit_Name (Specification (
-                   Current_Declaration))));
+                   Current_Declaration)));
                Subp_Val := Make_String_Literal (Loc,
                  Strval => String_From_Name_Buffer);
 
@@ -2411,8 +2414,6 @@ package body Exp_Dist is
                    Then_Statements =>
                      Case_Stmts));
             end;
-
-            Current_Subprogram_Number := Current_Subprogram_Number + 1;
          end if;
 
          Next (Current_Declaration);
@@ -2688,9 +2689,6 @@ package body Exp_Dist is
 
       Request : Node_Id;
       --  The request object constructed by these stubs.
-
-      Subp_Id : Node_Id;
-      --  The subprogram identifier passed to Request_Create.
 
       Result : Node_Id;
       --  Name of the result named value (in non-APC cases) which get the
@@ -3047,33 +3045,13 @@ package body Exp_Dist is
 
       Append_List_To (Statements, Extra_Formal_Statements);
 
-      Get_Subprogram_Name (
-        Defining_Unit_Name (Specification (Nod)));
-      Subp_Id := Make_String_Literal (Loc,
-        Strval => String_From_Name_Buffer);
-      --  Here, use Nod (the original visible subprogram declaration)
-      --  and not Spec to determine the "real" subprogram name,
-      --  because we might be generating stubs with an internal
-      --  name if we are calling an All_Calls_Remote unit.
-
-      --  Although the DSA receiving stubs will make a caseless
-      --  comparison when receiving a call, the calling stubs
-      --  will create requests with the exact casing of the
-      --  defining unit name of the called subprogram, so
-      --  as to allow calls to subprograms on distributed
-      --  nodes that do distinguish between casings.
-
-      --  An alternative design would be to allow a representation
-      --  clause on subprogram specs:
-      --  for Subp'Distribution_Subprogram_Identifier use "fooBar";
-
       Append_To (Statements,
         Make_Procedure_Call_Statement (Loc,
           Name =>
             New_Occurrence_Of (RTE (RE_Request_Create), Loc),
           Parameter_Associations => New_List (
             Target_Object,
-            Subp_Id,
+            Subprogram_Id,
             New_Occurrence_Of (Arguments, Loc),
             New_Occurrence_Of (Result, Loc),
             New_Occurrence_Of (RTE (RE_Nil_Exc_List), Loc))));
@@ -3391,7 +3369,7 @@ package body Exp_Dist is
 
    function Build_Subprogram_Calling_Stubs
      (Vis_Decl                 : Node_Id;
-      Subp_Id                  : Int;
+      Subp_Id                  : Node_Id;
       Asynchronous             : Boolean;
       Dynamically_Asynchronous : Boolean   := False;
       Stub_Type                : Entity_Id := Empty;
@@ -3617,7 +3595,7 @@ package body Exp_Dist is
         (Decls                 => Decls,
          Statements            => Statements,
          Target_Object         => Target_Object,
-         Subprogram_Id         => Make_Integer_Literal (Loc, Subp_Id),
+         Subprogram_Id         => Subp_Id,
          Asynchronous          => Asynchronous_Expr,
          Is_Known_Asynchronous => Asynchronous
                                     and then not Dynamically_Asynchronous,
@@ -4451,6 +4429,7 @@ package body Exp_Dist is
       RCI_Cache         : Entity_Id;
       Calling_Stubs     : Node_Id;
       E_Calling_Stubs   : Entity_Id;
+      Subp_Id           : Node_Id;
 
    begin
       E_Calling_Stubs := RCI_Calling_Stubs_Table.Get (Called_Subprogram);
@@ -4493,9 +4472,12 @@ package body Exp_Dist is
             RCI_Locator := Parent (RCI_Cache);
          end if;
 
+         Get_Subprogram_Identifier (Called_Subprogram);
+         Subp_Id := Make_String_Literal (Loc, String_From_Name_Buffer);
+
          Calling_Stubs := Build_Subprogram_Calling_Stubs
            (Vis_Decl               => Parent (Parent (Called_Subprogram)),
-            Subp_Id                => Get_Subprogram_Id (Called_Subprogram),
+            Subp_Id                => Subp_Id,
             Asynchronous           => Nkind (N) = N_Procedure_Call_Statement
                                         and then
                                       Is_Asynchronous (Called_Subprogram),
@@ -4581,29 +4563,6 @@ package body Exp_Dist is
       Store_String_Chars (Val);
       return End_String;
    end Get_String_Id;
-
-   -------------------------
-   -- Get_Subprogram_Name --
-   -------------------------
-
-   procedure Get_Subprogram_Name
-     (Def : Entity_Id)
-   is
-      Sdef : Source_Ptr := Sloc (Def);
-      Tdef : Source_Buffer_Ptr;
-   begin
-      Get_Name_String (Chars (Def));
-      if (not Comes_From_Source (Def))
-        or else Name_Buffer (Name_Buffer'First) = 'O'
-      then
-         return;
-      end if;
-
-      Tdef := Source_Text (Get_Source_File_Index (Sdef));
-      for J in 1 .. Name_Len loop
-         Name_Buffer (J) := Tdef (Sdef + Source_Ptr (J) - 1);
-      end loop;
-   end Get_Subprogram_Name;
 
    ----------
    -- Hash --

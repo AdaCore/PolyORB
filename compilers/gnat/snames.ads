@@ -261,7 +261,7 @@ package Snames is
    Name_Params                         : constant Name_Id := N + 079;
    Name_Partition                      : constant Name_Id := N + 080;
    Name_Partition_Interface            : constant Name_Id := N + 081;
-   Name_Ras                            : constant Name_Id := N + 082;
+   Name_RAS_Calling_Stub               : constant Name_Id := N + 082;
    Name_RCI_Name                       : constant Name_Id := N + 083;
    Name_Receiver                       : constant Name_Id := N + 084;
    Name_Result                         : constant Name_Id := N + 085;
