@@ -90,9 +90,10 @@ package body Ada_Be.Source_Streams is
       if False
         or else Dep = "Standard"
         or else Dep = LU_Name
-        or else Is_Ancestor (Dep, LU_Name)
       then
-         --  No need to with oneself or one's ancestor.
+         --  No need to with oneself. If Dep is an ancestor
+         --  of Unit, register it (even though no 'with' clause
+         --  will be emitted) for the sake of elaboration control.
          return;
       end if;
 
@@ -325,12 +326,19 @@ package body Ada_Be.Source_Streams is
          Dep_Node : Dependency := Unit.Context_Clause;
       begin
          while Dep_Node /= null loop
-            Put (File, "with " & Dep_Node.Library_Unit.all & ";");
+
+            if (not Is_Ancestor
+                (Dep_Node.Library_Unit.all,
+                 Unit.Library_Unit_Name.all))
+              or else Dep_Node.Elab_Control /= None
+            then
+               Put_Line (File, "with " & Dep_Node.Library_Unit.all & ";");
+            end if;
+
             if Dep_Node.Use_It then
                Put_Line (File, " use " & Dep_Node.Library_Unit.all & ";");
-            else
-               New_Line (File);
             end if;
+
             case Dep_Node.Elab_Control is
                when Elaborate_All =>
                   Put_Line (File, "pragma Elaborate_All ("
@@ -341,6 +349,7 @@ package body Ada_Be.Source_Streams is
                when None =>
                   null;
             end case;
+
             if Dep_Node.No_Warnings then
                Put_Line (File, "pragma Warnings (Off, "
                          & Dep_Node.Library_Unit.all & ");");

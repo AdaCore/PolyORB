@@ -2080,8 +2080,7 @@ package body Ada_Be.Idl2Ada is
                   while not Is_End (It) loop
                      Get_Next_Node (It, R_Node);
                      E_Node := Value (R_Node);
-                     Add_With_Entity (CU, E_Node);
-
+                     Add_With (CU, Ada_Helper_Name (E_Node));
                      if First then
                         NL (CU);
                         PL (CU, "--  Create exceptions list.");

@@ -130,8 +130,10 @@ package body Ada_Be.Idl2Ada.Skel is
                   while not Is_End (It) loop
                      Get_Next_Node (It, P_Node);
                      Add_With (CU,
-                               Ada_Full_Name (P_Node) & ".Skel",
-                               Elab_Control => Elaborate);
+                               Ada_Full_Name (P_Node)
+                               & Skel.Suffix (Is_Delegate),
+                               Elab_Control => Elaborate,
+                               No_Warnings  => True);
                   end loop;
                end;
             end if;
@@ -369,8 +371,10 @@ package body Ada_Be.Idl2Ada.Skel is
          while not Is_End (It) loop
             Get_Next_Node (It, P_Node);
             Add_With (CU,
-                      Ada_Full_Name (P_Node) & ".Skel",
-                      Elab_Control => Elaborate);
+                      Ada_Full_Name (P_Node)
+                      & Skel.Suffix (Is_Delegate => False),
+                      Elab_Control => Elaborate,
+                      No_Warnings => True);
          end loop;
       end if;
 
@@ -649,16 +653,18 @@ package body Ada_Be.Idl2Ada.Skel is
                         begin
                            Add_With (CU, Prefix);
 
-                           PL (CU, "when E : " & Ada_Name (E_Node) & " =>");
+                           PL (CU, "when E : "
+                               & Ada_Full_Name (E_Node) & " =>");
                            II (CU);
                            PL (CU, "declare");
                            II (CU);
-                           PL (CU, "Members : " & Ada_Name (E_Node)
+                           PL (CU, "Members : " & Ada_Full_Name (E_Node)
                                & "_Members;");
                            DI (CU);
                            PL (CU, "begin");
                            II (CU);
-                           PL (CU, "Get_Members (E, Members);");
+                           PL (CU, Parent_Scope_Name (E_Node)
+                               & ".Get_Members (E, Members);");
                            PL (CU, "CORBA.ServerRequest.Set_Exception");
                            PL (CU, "  (Request,");
                            II (CU);
