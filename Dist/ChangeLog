@@ -1,3 +1,11 @@
+1998-02-19  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_utils.ads: Fix capitalization of OS_Lib.
+
+	* xe_check.adb: Likewise.
+
+	* xe_utils.adb: Likewise.
+
 1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Use Exe_Suffix to build executable.

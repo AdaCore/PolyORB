@@ -1,3 +1,13 @@
+1998-02-19  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-garthi.ads: Capitalization fixes.
+
+	* s-garrep.adb: Likewise.
+
+	* s-gartcp.adb: Likewise.
+
+	* s-garnam.adb: Likewise.
+
 1998-02-19  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* s-gardeb.adb: Use GNAT.OS_Lib.String_Access and remove
@@ -69,25 +79,6 @@
 	unused entities.
 
 	* s-garsta.adb: Likewise.
-
-1998-02-12  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* s-gadiob.ads: New file.
-
-	* s-gadiob.adb: Likewise.
-
-	* Makefile.am: Add System.Garlic.Distributed_Object to the
-	library.
-
-1998-02-11  Samuel Tardieu  <sam@inf.enst.fr>
-
-	* s-garobj.ads: New file.
-
-	* s-garobj.adb: Likewise.
-
-	* s-garsta.adb: Call initialization of System.Garlic.Objects.
-
-	* Makefile.am: Add System.Garlic.Objects to the library.
 
 1998-01-26  Samuel Tardieu  <sam@inf.enst.fr>
 
