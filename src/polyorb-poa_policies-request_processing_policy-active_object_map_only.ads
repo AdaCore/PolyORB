@@ -60,4 +60,16 @@ is
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Exceptions.Error_Container);
 
+   procedure Set_Servant
+     (Self    :        Active_Map_Only_Policy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Servant :        Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
+   procedure Get_Servant
+     (Self    :        Active_Map_Only_Policy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
 end PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;

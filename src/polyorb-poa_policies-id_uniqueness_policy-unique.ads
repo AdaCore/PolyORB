@@ -49,16 +49,18 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
      return String;
 
    procedure Ensure_Servant_Uniqueness
-     (Self      : Unique_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access;
+     (Self      :        Unique_Id_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
       Error     : in out PolyORB.Exceptions.Error_Container);
 
-   function Activate_Again
-     (Self      : Unique_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access;
-      Oid       : Object_Id_Access)
-     return Object_Id_Access;
+   procedure Activate_Again
+     (Self      :        Unique_Id_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Oid       :        Object_Id_Access;
+      Result    :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container);
+
 
 end PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique;

@@ -32,11 +32,8 @@
 ------------------------------------------------------------------------------
 
 with PolyORB.POA;
-with PolyORB.POA_Policies.Implicit_Activation_Policy;
 
 package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
-
-   use PolyORB.POA_Policies.Implicit_Activation_Policy;
 
    ------------
    -- Create --
@@ -103,25 +100,35 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple is
    -- Activate_Again --
    --------------------
 
-   function Activate_Again
-     (Self      : Multiple_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access;
-      Oid       : Object_Id_Access)
-     return Object_Id_Access
+   procedure Activate_Again
+     (Self      :        Multiple_Id_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Oid       :        Object_Id_Access;
+      Result    :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, Oid);
+      pragma Unreferenced (Self);
       pragma Warnings (On);
 
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
+      U_Oid : Unmarshalled_Oid;
 
    begin
-      return Implicit_Activate_Servant
-        (POA.Implicit_Activation_Policy.all, OA, P_Servant);
+      PolyORB.POA.Activate_Object
+        (PolyORB.POA.Obj_Adapter_Access (OA),
+         P_Servant,
+         Oid,
+         U_Oid,
+         Error);
       --  Activate servant again, regardless of its current
       --  activation state.
+
+      if PolyORB.Exceptions.Found (Error) then
+         return;
+      end if;
+
+      Result := U_Oid_To_Oid (U_Oid);
    end Activate_Again;
 
 end PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;

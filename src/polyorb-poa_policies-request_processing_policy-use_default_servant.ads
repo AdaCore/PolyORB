@@ -62,4 +62,16 @@ package PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant is
       Servant :    out Servants.Servant_Access;
       Error   : in out PolyORB.Exceptions.Error_Container);
 
+   procedure Set_Servant
+     (Self    :        Use_Default_Servant_Policy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Servant :        Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
+   procedure Get_Servant
+     (Self    :        Use_Default_Servant_Policy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
 end PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;

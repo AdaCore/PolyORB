@@ -75,4 +75,18 @@ package PolyORB.POA_Policies.Request_Processing_Policy is
    --    to create it. If there's not servant manager, raises Obj_Adapter
    --    with minor code 4.
 
+   procedure Set_Servant
+     (Self    :        RequestProcessingPolicy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Servant :        Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
+
+   procedure Get_Servant
+     (Self    :        RequestProcessingPolicy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
+
 end PolyORB.POA_Policies.Request_Processing_Policy;

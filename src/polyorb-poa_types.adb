@@ -122,40 +122,35 @@ package body PolyORB.POA_Types is
      (Name             : in Types.String;
       System_Generated : in Types.Boolean;
       Persistency_Flag : in Lifespan_Cookie;
-      Creator          : in Types.String;
-      Completed        : in Boolean := True)
+      Creator          : in Types.String)
      return Unmarshalled_Oid_Access is
    begin
       return new Unmarshalled_Oid'
         (Id               => Name,
          System_Generated => System_Generated,
          Persistency_Flag => Persistency_Flag,
-         Creator          => Creator,
-         Completed        => Completed);
+         Creator          => Creator);
    end Create_Id;
 
    function Create_Id
      (Name             : in Types.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in Types.String;
-      Completed        : in Boolean := True)
+      Creator          : in Types.String)
      return Unmarshalled_Oid is
    begin
       return Unmarshalled_Oid'
         (Id               => Name,
          System_Generated => System_Generated,
          Persistency_Flag => Persistency_Flag,
-         Creator          => Creator,
-         Completed        => Completed);
+         Creator          => Creator);
    end Create_Id;
 
    function Create_Id
      (Name             : in Types.String;
       System_Generated : in Types.Boolean;
       Persistency_Flag : in Lifespan_Cookie;
-      Creator          : in Types.String;
-      Completed        : in Boolean := True)
+      Creator          : in Types.String)
      return Object_Id_Access
    is
    begin
@@ -164,8 +159,7 @@ package body PolyORB.POA_Types is
          (Id               => Name,
           System_Generated => System_Generated,
           Persistency_Flag => Persistency_Flag,
-          Creator          => Creator,
-          Completed        => Completed));
+          Creator          => Creator));
    end Create_Id;
 
    --------------
@@ -320,7 +314,6 @@ package body PolyORB.POA_Types is
       Id               : PolyORB.Types.String;
       System_Generated : PolyORB.Types.Boolean;
       Persistency_Flag : PolyORB.Types.Unsigned_Long;
-      Completed        : PolyORB.Types.Boolean;
    begin
       Index := Oid'First;
 
@@ -332,8 +325,6 @@ package body PolyORB.POA_Types is
         (Stream_Element_Array (Oid), Index, System_Generated);
       Get_ULong
         (Stream_Element_Array (Oid), Index, Persistency_Flag);
-      Get_Boolean
-        (Stream_Element_Array (Oid), Index, Completed);
 
       pragma Assert (Index = Oid'Last + 1);
 
@@ -341,8 +332,7 @@ package body PolyORB.POA_Types is
         (Creator          => Creator,
          Id               => Id,
          System_Generated => System_Generated,
-         Persistency_Flag => Lifespan_Cookie (Persistency_Flag),
-         Completed        => Completed);
+         Persistency_Flag => Lifespan_Cookie (Persistency_Flag));
    end Oid_To_U_Oid;
 
    function Oid_To_U_Oid
@@ -378,8 +368,7 @@ package body PolyORB.POA_Types is
          (Put_String    (U_Oid.Creator)
           & Put_String  (U_Oid.Id)
           & Put_Boolean (U_Oid.System_Generated)
-          & Put_ULong   (U_Oid.Persistency_Flag)
-          & Put_Boolean (U_Oid.Completed)));
+          & Put_ULong   (U_Oid.Persistency_Flag)));
    end U_Oid_To_Oid;
 
 end PolyORB.POA_Types;

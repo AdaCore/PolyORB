@@ -47,11 +47,13 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
      (Self : No_Activation_Policy)
      return String;
 
-   function Implicit_Activate_Servant
-     (Self      : No_Activation_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access)
-     return Object_Id_Access;
+   procedure Implicit_Activate_Servant
+     (Self      :        No_Activation_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Hint      :        Object_Id_Access;
+      Oid       :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container);
 
    function Is_Implicit_Activation_Allowed
      (Self : No_Activation_Policy)

@@ -147,11 +147,13 @@ package body PolyORB.Object_Maps is
    begin
       pragma Debug (O ("Get_By_Id: enter"));
       pragma Debug (O ("Object_Map'Size: " & Integer'Image (Elts'Last)));
+      pragma Debug (O ("Looking for: "
+                       & To_Standard_String (Item.Id)));
 
       for J in Elts'Range loop
 
          if not Is_Null (Elts (J)) then
-            pragma Debug (O ("Looking elt: "
+            pragma Debug (O ("Examinating elt: "
                              & To_Standard_String (Elts (J).Oid.Id)));
 
             if Elts (J).Oid.all = Item then
@@ -182,7 +184,7 @@ package body PolyORB.Object_Maps is
 
       for J in Elts'Range loop
          if not Is_Null (Elts (J)) then
-            pragma Debug (O ("Looking elt: "
+            pragma Debug (O ("Examinating elt: "
                              & To_Standard_String (Elts (J).Oid.Id)));
 
             if Elts (J).Servant = Item then
@@ -208,19 +210,24 @@ package body PolyORB.Object_Maps is
       Elts  : constant Element_Array := To_Element_Array (O_Map.Map);
    begin
       pragma Debug (O ("Remove_By_Id: enter"));
+      pragma Debug (O ("Looking for: "
+                       & To_Standard_String (Item.Id)));
 
       for J in Elts'Range loop
-         if not Is_Null (Elts (J))
-           and then Elts (J).Oid.all = Item
-         then
-            declare
-               Old_Entry : constant Object_Map_Entry_Access
-                 := Element_Of (O_Map.Map, J);
-            begin
-               pragma Debug (O ("Found !"));
-               Replace_Element (O_Map.Map, J, null);
-               return Old_Entry;
-            end;
+         if not Is_Null (Elts (J)) then
+            pragma Debug (O ("Examinating elt: "
+                             & To_Standard_String (Elts (J).Oid.Id)));
+
+            if Elts (J).Oid.all = Item then
+               declare
+                  Old_Entry : constant Object_Map_Entry_Access
+                    := Element_Of (O_Map.Map, J);
+               begin
+                  pragma Debug (O ("Found !"));
+                  Replace_Element (O_Map.Map, J, null);
+                  return Old_Entry;
+               end;
+            end if;
          end if;
       end loop;
 

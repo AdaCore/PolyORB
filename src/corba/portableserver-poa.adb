@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-poa.adb#36 $
+--  $Id: //droopi/main/src/corba/portableserver-poa.adb#37 $
 
 with Ada.Exceptions;
 
@@ -548,21 +548,21 @@ package body PortableServer.POA is
      (Self : Ref)
      return Servant
    is
-      use type PolyORB.Servants.Servant_Access;
-
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := To_POA (Self);
+      POA     : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+      Error   : PolyORB.Exceptions.Error_Container;
+      Servant : PolyORB.Servants.Servant_Access;
 
    begin
---      if Self.Request_Processing_Policy /= USE_DEFAULT_SERVANT then
---         raise WrongPolicy;
---      end if;
+      PolyORB.POA.Get_Servant
+        (POA,
+         Servant,
+         Error);
 
-      if POA.Default_Servant = null then
-         raise NoServant;
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
       end if;
 
-      return Servant (CORBA.Impl.To_CORBA_Servant (POA.Default_Servant));
+      return PortableServer.Servant (CORBA.Impl.To_CORBA_Servant (Servant));
    end Get_Servant;
 
    -----------------
@@ -573,16 +573,18 @@ package body PortableServer.POA is
      (Self      : in Ref;
       P_Servant : in Servant)
    is
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := To_POA (Self);
+      POA   : constant PolyORB.POA.Obj_Adapter_Access := To_POA (Self);
+      Error : PolyORB.Exceptions.Error_Container;
 
    begin
---     if POA.Request_Processing_Policy /= USE_DEFAULT_SERVANT then
---         raise WrongPolicy;
---      end if;
+      PolyORB.POA.Set_Servant
+        (POA,
+         PolyORB.Servants.Servant_Access (To_PolyORB_Servant (P_Servant)),
+         Error);
 
-      POA.Default_Servant := PolyORB.Servants.Servant_Access
-        (To_PolyORB_Servant (P_Servant));
+      if Found (Error) then
+         PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
+      end if;
    end Set_Servant;
 
    ---------------------

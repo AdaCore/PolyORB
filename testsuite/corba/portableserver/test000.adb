@@ -867,6 +867,8 @@ procedure Test000 is
       Activation_Id           : Boolean := True;
       Unique_Activation_Id    : Boolean := True;
       Deactivation_Id         : Boolean := True;
+      Default_Servant_No_Id   : Boolean := True;
+      Default_Servant_Id      : Boolean := True;
 
       Fatal                   : Boolean := False;
    end record;
@@ -1150,8 +1152,24 @@ procedure Test000 is
 
          declare
             Obj_Ref2 : constant Echo.Ref
-              := Echo.Helper.To_Ref (Id_To_Reference (POA, OID));
+              := Echo.Helper.To_Ref
+              (Create_Reference_With_Id
+               (POA,
+                OID,
+                To_CORBA_String (Echo.Repository_Id)));
          begin
+            --  Repository Id sanity check
+
+            Temp := Echo.Repository_Id = To_Standard_String
+              (Get_Type_Id (Reference_To_Servant (POA, Obj_Ref)));
+
+            if not Temp then
+               pragma Debug (O ("Get_Type_Id failed"));
+               Result.Get_Type_Id := False;
+            end if;
+
+            --  Invocation
+
             Temp := Invoke_On_Servant (Obj_Ref2);
 
             if not Temp then
@@ -1191,11 +1209,20 @@ procedure Test000 is
 
          --  Deactivate Object
 
+         --  Note: OID is not a valid Object ID, it is incomplete, we use
+         --  Reference_To_Id to construct a valid POA OID.
+
          begin
-            PortableServer.POA.Deactivate_Object (POA, OID);
+            PortableServer.POA.Deactivate_Object
+              (POA, Reference_To_Id (POA, Obj_Ref));
          exception
             when E : others =>
+               pragma Debug (O ("Got exception "
+                                & Exception_Name (E)
+                                & " : "
+                                & Exception_Message (E)));
                pragma Debug (O ("Deactivaion_Id failed"));
+
                Result.Deactivation_Id := False;
          end;
 
@@ -1225,7 +1252,122 @@ procedure Test000 is
             Result.Unique_Activation_Id := False;
       end;
 
-      --  End of test
+      --
+      --  Default servant tests
+      --
+
+      pragma Debug (O ("  ==> Default servant test <=="));
+
+      declare
+         Servant : constant PortableServer.Servant := new Echo.Impl.Object;
+         Obj_Ref : Echo.Ref;
+
+         Temp : Boolean;
+      begin
+
+         --  Default Servant should be null
+
+         begin
+            declare
+               Servant2 : PortableServer.Servant := Get_Servant (POA);
+            begin
+               pragma Debug (O ("FATAL: Get Servant raised no exception"));
+               Result.Fatal := True;
+            end;
+         exception
+            when PortableServer.POA.NoServant =>
+               null;
+
+            when others =>
+               raise;
+         end;
+
+         --  Test Set_Sevant
+
+         begin
+            Set_Servant (POA, Servant);
+         exception
+            when PortableServer.POA.WrongPolicy =>
+               raise;
+
+            when E : others =>
+               pragma Debug (O ("Got exception A"
+                                & Exception_Name (E)
+                                & " "
+                                & Exception_Message (E)));
+               Result.Fatal := True;
+         end;
+
+         --  Sanity check
+
+         Temp := Servant = Get_Servant (POA);
+
+         if not Temp then
+            pragma Debug (O ("FATAL: Default Servant check failed"));
+            Result.Fatal := True;
+         end if;
+
+         --  Test invocation on default servant with System Id
+
+         begin
+            declare
+               Obj_Ref2 : constant Echo.Ref
+                 := Echo.Helper.To_Ref
+                 (Create_Reference
+                  (POA,
+                   To_CORBA_String (Echo.Repository_Id)));
+            begin
+               Temp := Invoke_On_Servant (Obj_Ref2);
+
+               if not Temp then
+                  pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+                  Result.Fatal := True;
+               end if;
+            end;
+
+         exception
+            when CORBA.Bad_Param =>
+               Result.Default_Servant_No_Id := False;
+         end;
+
+         --  Test invocation on default servant with User Id
+
+         begin
+            declare
+               Obj_Ref2 : constant Echo.Ref
+                 := Echo.Helper.To_Ref
+                 (Create_Reference_With_Id
+                  (POA,
+                   PortableServer.String_To_ObjectId ("foo"),
+                   To_CORBA_String (Echo.Repository_Id)));
+            begin
+               Temp := Invoke_On_Servant (Obj_Ref2);
+
+               if not Temp then
+                  pragma Debug (O ("FATAL: Invooke_On_Servant failed"));
+                  Result.Fatal := True;
+               end if;
+            end;
+
+         exception
+            when CORBA.Bad_Param =>
+               Result.Default_Servant_Id := False;
+         end;
+
+      exception
+         when PortableServer.POA.WrongPolicy =>
+            Result.Default_Servant_Id := False;
+            Result.Default_Servant_No_Id := False;
+
+         when E : others =>
+            pragma Debug (O ("Got exception B"
+                             & Exception_Name (E)
+                             & " "
+                             & Exception_Message (E)));
+            Result.Fatal := True;
+      end;
+
+      --  End of tests
 
       return Result;
 
@@ -1328,6 +1470,22 @@ procedure Test000 is
          return False;
       end if;
 
+      if (Result.Default_Servant_No_Id
+          and then Rp /= USE_DEFAULT_SERVANT
+          and then Ap /= SYSTEM_ID)
+      then
+         Output ("Result.Use_Default_Servant_No_Id", True);
+         return False;
+      end if;
+
+      if (Result.Default_Servant_Id
+          and then Rp /= USE_DEFAULT_SERVANT
+          and then Ap /= USER_ID)
+      then
+         Output ("Result.Use_Default_Servant_Id", True);
+         return False;
+      end if;
+
       return True;
    end Analyze_Result;
 
@@ -1350,38 +1508,38 @@ procedure Test000 is
             for Ap in IdAssignmentPolicyValue'Range loop
                for Ip in ImplicitActivationPolicyValue'Range loop
                   for Sp in ServantRetentionPolicyValue'Range loop
+                     for Rp in USE_ACTIVE_OBJECT_MAP_ONLY ..
+                       USE_DEFAULT_SERVANT loop
 
-                     if Are_Policies_Valid
-                       (ORB_CTRL_MODEL, Lp, Up, Ap, Ip, Sp,
-                        USE_ACTIVE_OBJECT_MAP_ONLY) then
+                        if Are_Policies_Valid
+                          (ORB_CTRL_MODEL, Lp, Up, Ap, Ip, Sp, Rp) then
 
-                        pragma Debug (O (" "));
-                        pragma Debug (O ("Testing: " &
-                                         Policies_Image
-                                         (ORB_CTRL_MODEL,
-                                          Lp, Up, Ap, Ip, Sp,
-                                          USE_ACTIVE_OBJECT_MAP_ONLY)));
 
-                        Test_POA := Create_POA_With_Policies
-                             (ORB_CTRL_MODEL, Lp, Up, Ap, Ip, Sp,
-                              USE_ACTIVE_OBJECT_MAP_ONLY);
+                           pragma Debug (O (" "));
+                           pragma Debug (O ("Testing: " &
+                                            Policies_Image
+                                            (ORB_CTRL_MODEL,
+                                             Lp, Up, Ap, Ip, Sp, Rp)));
 
-                        Temp := Analyze_Result
-                          (Test_POA_Activation_Policies (Test_POA),
-                           ORB_CTRL_MODEL, Lp, Up, Ap, Ip, Sp,
-                           USE_ACTIVE_OBJECT_MAP_ONLY);
+                           Test_POA := Create_POA_With_Policies
+                             (ORB_CTRL_MODEL, Lp, Up, Ap, Ip, Sp, Rp);
 
-                        PortableServer.POA.Destroy
-                          (Test_POA, False, False);
+                           Temp := Analyze_Result
+                             (Test_POA_Activation_Policies (Test_POA),
+                              ORB_CTRL_MODEL, Lp, Up, Ap, Ip, Sp, Rp);
 
-                        Result := Result and Temp;
+                           PortableServer.POA.Destroy
+                             (Test_POA, False, False);
 
-                        if not Temp then
-                           null;
-                           pragma Debug (O ("Not Ok"));
+                           Result := Result and Temp;
+
+                           if not Temp then
+                              null;
+                              pragma Debug (O ("Not Ok"));
+                           end if;
                         end if;
-                     end if;
 
+                     end loop;
                   end loop;
                end loop;
             end loop;

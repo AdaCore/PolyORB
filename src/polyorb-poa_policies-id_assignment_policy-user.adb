@@ -126,12 +126,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
       end if;
 
       pragma Debug (O ("Object Name is '"
-                       & PolyORB.Objects.To_String (Hint.all)
+                       & To_Standard_String (Oid_To_U_Oid (Hint).Id)
                        & "'"));
 
       U_Oid := PolyORB.POA_Types.Create_Id
-        (Name             =>
-           To_PolyORB_String (PolyORB.Objects.To_String (Hint.all)),
+        (Name             => Oid_To_U_Oid (Hint).Id,
          System_Generated => False,
          Persistency_Flag =>
            Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),

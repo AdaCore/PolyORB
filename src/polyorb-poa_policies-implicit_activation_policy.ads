@@ -43,18 +43,14 @@ package PolyORB.POA_Policies.Implicit_Activation_Policy is
    subtype Implicit_Activation_Policy_Access is
      ImplicitActivationPolicy_Access;
 
-   function Implicit_Activate_Servant
-     (Self      : ImplicitActivationPolicy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access)
-     return Object_Id_Access
+   procedure Implicit_Activate_Servant
+     (Self      :        ImplicitActivationPolicy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Hint      :        Object_Id_Access;
+      Oid       :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
       is abstract;
-   --  Case NO_ACTIVATION:
-   --    Returns null
-   --  Case ACTIVATION:
-   --    Activates the servant in the Active Object Map.
-
-   --  XXX the comment above is wrong
 
    function Is_Implicit_Activation_Allowed
      (Self : ImplicitActivationPolicy)

@@ -35,7 +35,6 @@ with Ada.Tags;
 
 with PolyORB.Object_Maps;
 with PolyORB.POA;
-with PolyORB.POA_Policies.Implicit_Activation_Policy;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
 with PolyORB.Tasking.Rw_Locks;
 
@@ -43,7 +42,6 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
 
    use PolyORB.Exceptions;
    use PolyORB.Object_Maps;
-   use PolyORB.POA_Policies.Implicit_Activation_Policy;
    use PolyORB.Tasking.Rw_Locks;
 
    ------------
@@ -140,29 +138,43 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
    -- Activate_Again --
    --------------------
 
-   function Activate_Again
-     (Self      : Unique_Id_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access;
-      Oid       : Object_Id_Access)
-     return Object_Id_Access
+   procedure Activate_Again
+     (Self      :        Unique_Id_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Oid       :        Object_Id_Access;
+      Result    :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
       pragma Unreferenced (Self);
       pragma Warnings (On);
 
-      POA : constant PolyORB.POA.Obj_Adapter_Access
-        := PolyORB.POA.Obj_Adapter_Access (OA);
    begin
       if Oid /= null then
          --  UNIQUE policy: if already active, return the
          --  previous value.
-         return Oid;
+         Result := Oid;
       else
          --  If this servant is not activated yet, try to do
          --  implicit activation now.
-         return Implicit_Activate_Servant
-           (POA.Implicit_Activation_Policy.all, OA, P_Servant);
+         declare
+            U_Oid : Unmarshalled_Oid;
+
+         begin
+            PolyORB.POA.Activate_Object
+              (PolyORB.POA.Obj_Adapter_Access (OA),
+               P_Servant,
+               Oid,
+               U_Oid,
+               Error);
+
+            if Found (Error) then
+               return;
+            end if;
+
+            Result := U_Oid_To_Oid (U_Oid);
+         end;
       end if;
    end Activate_Again;
 

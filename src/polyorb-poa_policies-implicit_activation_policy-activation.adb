@@ -33,6 +33,7 @@
 
 with Ada.Tags;
 
+with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Assignment_Policy.System;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 
@@ -113,20 +114,25 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
    -- Implicit_Activate_Servant --
    -------------------------------
 
-   function Implicit_Activate_Servant
-     (Self      : Activation_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access)
-     return Object_Id_Access
+   procedure Implicit_Activate_Servant
+     (Self      :        Activation_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Hint      :        Object_Id_Access;
+      Oid       :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
    is
-      pragma Warnings (Off);
+      pragma Warnings (Off);  --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
-      pragma Unreferenced (P_Servant);
-      pragma Warnings (On);
+      pragma Warnings (On); --  WAG:3.15
+
+      U_Oid : Unmarshalled_Oid;
 
    begin
-      return null;
+      PolyORB.POA.Activate_Object
+        (PolyORB.POA.Obj_Adapter_Access (OA), P_Servant, Hint, U_Oid, Error);
+
+      Oid := U_Oid_To_Oid (U_Oid);
    end Implicit_Activate_Servant;
 
    ------------------------------------
@@ -137,9 +143,9 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.Activation is
      (Self : Activation_Policy)
      return Boolean
    is
-      pragma Warnings (Off);
+      pragma Warnings (Off);  --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On);
+      pragma Warnings (On); --  WAG:3.15
 
    begin
       return True;

@@ -157,7 +157,7 @@ package PolyORB.POA is
 
    procedure Create_Object_Identification
      (Self  : access Obj_Adapter;
-      Hint  :        Object_Id_Access := null;
+      Hint  :        Object_Id_Access;
       U_Oid :    out Unmarshalled_Oid;
       Error : in out PolyORB.Exceptions.Error_Container)
       is abstract;
@@ -167,8 +167,8 @@ package PolyORB.POA is
 
    procedure Activate_Object
      (Self      : access Obj_Adapter;
-      P_Servant :        Servants.Servant_Access := null;
-      Hint      :        Object_Id_Access := null;
+      P_Servant :        Servants.Servant_Access;
+      Hint      :        Object_Id_Access;
       U_Oid     :    out Unmarshalled_Oid;
       Error     : in out PolyORB.Exceptions.Error_Container)
       is abstract;
@@ -222,6 +222,18 @@ package PolyORB.POA is
    --    is used, returns the default servant (if one has been registered).
    --  Otherwise:
    --    Raises ObjectNotActive
+
+   procedure Get_Servant
+     (Self    : access Obj_Adapter;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
+
+   procedure Set_Servant
+     (Self    : access Obj_Adapter;
+      Servant :        Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+      is abstract;
 
    -----------------------
    -- Utility functions --

@@ -163,4 +163,54 @@ is
       end if;
    end Id_To_Servant;
 
+   -----------------
+   -- Set_Servant --
+   -----------------
+
+   procedure Set_Servant
+     (Self    :        Active_Map_Only_Policy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Servant :        Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Unreferenced (OA);
+      pragma Unreferenced (Servant);
+      pragma Warnings (On); --  WAG:3.15
+
+      use PolyORB.Exceptions;
+
+   begin
+      Throw (Error,
+             WrongPolicy_E,
+             Null_Members'(Null_Member));
+   end Set_Servant;
+
+   -----------------
+   -- Get_Servant --
+   -----------------
+
+   procedure Get_Servant
+     (Self    :        Active_Map_Only_Policy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Unreferenced (OA);
+      pragma Warnings (On); --  WAG:3.15
+
+      use PolyORB.Exceptions;
+
+   begin
+      Servant := null;
+
+      Throw (Error,
+             WrongPolicy_E,
+             Null_Members'(Null_Member));
+   end Get_Servant;
+
+
 end PolyORB.POA_Policies.Request_Processing_Policy.Active_Object_Map_Only;

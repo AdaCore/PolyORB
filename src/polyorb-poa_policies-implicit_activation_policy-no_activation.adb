@@ -82,20 +82,29 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    -- Implicit_Activate_Servant --
    -------------------------------
 
-   function Implicit_Activate_Servant
-     (Self      : No_Activation_Policy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access)
-     return Object_Id_Access
+   procedure Implicit_Activate_Servant
+     (Self      :        No_Activation_Policy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Hint      :        Object_Id_Access;
+      Oid       :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
    is
-      pragma Warnings (Off);
+      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
       pragma Unreferenced (OA);
       pragma Unreferenced (P_Servant);
-      pragma Warnings (On);
+      pragma Unreferenced (Hint);
+      pragma Unreferenced (Oid);
+      pragma Warnings (On);  --  WAG:3.15
+
+      use PolyORB.Exceptions;
 
    begin
-      return null;
+      Throw
+        (Error,
+         ServantNotActive_E,
+         Null_Member);
    end Implicit_Activate_Servant;
 
    ------------------------------------
@@ -106,9 +115,9 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
      (Self : No_Activation_Policy)
      return Boolean
    is
-      pragma Warnings (Off);
+      pragma Warnings (Off); --  WAG:3.15
       pragma Unreferenced (Self);
-      pragma Warnings (On);
+      pragma Warnings (On);  --  WAG:3.15
 
    begin
       return False;

@@ -55,12 +55,13 @@ package PolyORB.POA_Policies.Id_Uniqueness_Policy is
    --  Case MULTIPLE_ID:
    --  Does nothing
 
-   function Activate_Again
-     (Self      : IdUniquenessPolicy;
-      OA        : PolyORB.POA_Types.Obj_Adapter_Access;
-      P_Servant : Servants.Servant_Access;
-      Oid       : Object_Id_Access)
-     return Object_Id_Access
+   procedure Activate_Again
+     (Self      :        IdUniquenessPolicy;
+      OA        :        PolyORB.POA_Types.Obj_Adapter_Access;
+      P_Servant :        Servants.Servant_Access;
+      Oid       :        Object_Id_Access;
+      Result    :    out Object_Id_Access;
+      Error     : in out PolyORB.Exceptions.Error_Container)
       is abstract;
    --  Case UNIQUE_ID:
    --    if Oid is not null, return Oid, else try implicit

@@ -684,8 +684,8 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Create_Object_Identification
      (Self  : access Basic_Obj_Adapter;
-      Hint  :        Object_Id_Access := null;
-      U_Oid : out    Unmarshalled_Oid;
+      Hint  :        Object_Id_Access;
+      U_Oid :    out Unmarshalled_Oid;
       Error : in out PolyORB.Exceptions.Error_Container) is
    begin
       Assign_Object_Identifier
@@ -702,8 +702,8 @@ package body PolyORB.POA.Basic_POA is
 
    procedure Activate_Object
      (Self      : access Basic_Obj_Adapter;
-      P_Servant : in     Servants.Servant_Access := null;
-      Hint      :        Object_Id_Access := null;
+      P_Servant : in     Servants.Servant_Access;
+      Hint      :        Object_Id_Access;
       U_Oid     :    out Unmarshalled_Oid;
       Error     : in out PolyORB.Exceptions.Error_Container) is
    begin
@@ -751,21 +751,6 @@ package body PolyORB.POA.Basic_POA is
    begin
       pragma Debug (O ("Deactivate_Object: enter"));
 
-      if not U_Oid.System_Generated
-        and then not U_Oid.Completed
-      then
-         --  The Oid we got was generated at the application level,
-         --  and is incommplete, generate well formed Oid used within
-         --  PolyORB's POA.
-
-         Assign_Object_Identifier
-           (Self.Id_Assignment_Policy.all,
-            POA_Types.Obj_Adapter_Access (Self),
-            A_Oid'Unchecked_Access,
-            U_Oid,
-            Error);
-      end if;
-
       Etherealize_All
         (Self.Request_Processing_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
@@ -794,18 +779,26 @@ package body PolyORB.POA.Basic_POA is
      (Self      : access Basic_Obj_Adapter;
       P_Servant : in     Servants.Servant_Access;
       Oid       :    out Object_Id_Access;
-      Error     : in out PolyORB.Exceptions.Error_Container) is
+      Error     : in out PolyORB.Exceptions.Error_Container)
+   is
+      Temp_Oid : Object_Id_Access;
    begin
-      Oid := Retained_Servant_To_Id
+      Temp_Oid := Retained_Servant_To_Id
         (Self.Servant_Retention_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
          P_Servant);
 
-      Oid := Activate_Again
+      Activate_Again
         (Self.Id_Uniqueness_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
          P_Servant,
-         Oid);
+         Temp_Oid,
+         Oid,
+         Error);
+
+      if Found (Error) then
+         return;
+      end if;
 
       if Oid = null then
          Throw (Error,
@@ -836,21 +829,6 @@ package body PolyORB.POA.Basic_POA is
         := Oid_To_U_Oid (A_Oid'Access);
 
    begin
-      if not U_Oid.System_Generated
-        and then not U_Oid.Completed
-      then
-         --  The Oid we got was generated at the application level,
-         --  and is incommplete, generate well formed Oid used within
-         --  PolyORB's POA.
-
-         Assign_Object_Identifier
-           (Self.Id_Assignment_Policy.all,
-            POA_Types.Obj_Adapter_Access (Self),
-            A_Oid'Unchecked_Access,
-            U_Oid,
-            Error);
-      end if;
-
       Ensure_Lifespan
         (Self.Lifespan_Policy.all,
          POA_Types.Obj_Adapter_Access (Self),
@@ -904,6 +882,38 @@ package body PolyORB.POA.Basic_POA is
 
       return null;
    end Find_POA;
+
+   -----------------
+   -- Get_Servant --
+   -----------------
+
+   procedure Get_Servant
+     (Self    : access Basic_Obj_Adapter;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container) is
+   begin
+      Get_Servant
+        (Self.Request_Processing_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         Servant,
+         Error);
+   end Get_Servant;
+
+   -----------------
+   -- Set_Servant --
+   -----------------
+
+   procedure Set_Servant
+     (Self    : access Basic_Obj_Adapter;
+      Servant :        Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container) is
+   begin
+      Set_Servant
+        (Self.Request_Processing_Policy.all,
+         POA_Types.Obj_Adapter_Access (Self),
+         Servant,
+         Error);
+   end Set_Servant;
 
    ----------------------
    -- Copy_Obj_Adapter --
@@ -991,9 +1001,7 @@ package body PolyORB.POA.Basic_POA is
       Obj   :        Servants.Servant_Access;
       Key   :        Objects.Object_Id_Access;
       Oid   :    out Objects.Object_Id_Access;
-      Error : in out PolyORB.Exceptions.Error_Container)
-   is
-      U_Oid : Unmarshalled_Oid;
+      Error : in out PolyORB.Exceptions.Error_Container) is
    begin
       --  NOTE: Per construction, this procedure has the same semantics as
       --  Servant_To_Ref CORBA procedure.
@@ -1017,21 +1025,14 @@ package body PolyORB.POA.Basic_POA is
          return;
       end if;
 
-      if Is_Implicit_Activation_Allowed
-        (OA.Implicit_Activation_Policy.all)
-      then
-         Activate_Object (OA, Obj, Key, U_Oid, Error);
-      else
-         Throw (Error,
-                ServantNotActive_E,
-                Null_Member);
-      end if;
+      Implicit_Activate_Servant
+        (OA.Implicit_Activation_Policy.all,
+         POA_Types.Obj_Adapter_Access (OA),
+         Obj,
+         Key,
+         Oid,
+         Error);
 
-      if Found (Error) then
-         return;
-      end if;
-
-      Oid := U_Oid_To_Oid (U_Oid);
    end Export;
 
    --------------

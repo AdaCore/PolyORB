@@ -35,6 +35,7 @@ with Ada.Tags;
 
 with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
+with PolyORB.POA_Policies.Servant_Retention_Policy;
 
 package body
   PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant
@@ -129,11 +130,82 @@ is
       Error   : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);
-      pragma Unreferenced (Self, U_Oid, Error);
+      pragma Unreferenced (Self);
       pragma Warnings (On);
-   begin
 
-      Servant := POA.Obj_Adapter_Access (OA).Default_Servant;
+      use PolyORB.Exceptions;
+      use PolyORB.POA_Policies.Servant_Retention_Policy;
+
+      use type PolyORB.Servants.Servant_Access;
+
+   begin
+      Retained_Id_To_Servant
+        (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all,
+         OA,
+         U_Oid,
+         Servant,
+         Error);
+
+      if Found (Error) then
+         return;
+      end if;
+
+      if Servant = null then
+         if POA.Obj_Adapter_Access (OA).Default_Servant /= null then
+            Servant := POA.Obj_Adapter_Access (OA).Default_Servant;
+         else
+            Throw (Error,
+                   NoServant_E,
+                   Null_Members'(Null_Member));
+         end if;
+      end if;
    end Id_To_Servant;
+
+   -----------------
+   -- Set_Servant --
+   -----------------
+
+   procedure Set_Servant
+     (Self    :        Use_Default_Servant_Policy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Servant :        Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Unreferenced (Error);
+      pragma Warnings (On); --  WAG:3.15
+
+   begin
+      POA.Obj_Adapter_Access (OA).Default_Servant := Servant;
+   end Set_Servant;
+
+   -----------------
+   -- Get_Servant --
+   -----------------
+
+   procedure Get_Servant
+     (Self    :        Use_Default_Servant_Policy;
+      OA      :        PolyORB.POA_Types.Obj_Adapter_Access;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container)
+   is
+      pragma Warnings (Off); --  WAG:3.15
+      pragma Unreferenced (Self);
+      pragma Warnings (On); --  WAG:3.15
+
+      use PolyORB.Exceptions;
+
+      use type PolyORB.Servants.Servant_Access;
+
+   begin
+      if POA.Obj_Adapter_Access (OA).Default_Servant /= null then
+         Servant := POA.Obj_Adapter_Access (OA).Default_Servant;
+      else
+         Throw (Error,
+                NoServant_E,
+                Null_Members'(Null_Member));
+      end if;
+   end Get_Servant;
 
 end PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;

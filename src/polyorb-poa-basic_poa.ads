@@ -79,14 +79,14 @@ package PolyORB.POA.Basic_POA is
 
    procedure Create_Object_Identification
      (Self  : access Basic_Obj_Adapter;
-      Hint  :        Object_Id_Access := null;
-      U_Oid : out    Unmarshalled_Oid;
+      Hint  :        Object_Id_Access;
+      U_Oid :    out Unmarshalled_Oid;
       Error : in out PolyORB.Exceptions.Error_Container);
 
    procedure Activate_Object
      (Self      : access Basic_Obj_Adapter;
-      P_Servant : in     Servants.Servant_Access := null;
-      Hint      :        Object_Id_Access := null;
+      P_Servant : in     Servants.Servant_Access;
+      Hint      :        Object_Id_Access;
       U_Oid     :    out Unmarshalled_Oid;
       Error     : in out PolyORB.Exceptions.Error_Container);
 
@@ -105,6 +105,16 @@ package PolyORB.POA.Basic_POA is
      (Self    : access Basic_Obj_Adapter;
       Oid     :        Object_Id;
       Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
+   procedure Get_Servant
+     (Self    : access Basic_Obj_Adapter;
+      Servant :    out Servants.Servant_Access;
+      Error   : in out PolyORB.Exceptions.Error_Container);
+
+   procedure Set_Servant
+     (Self    : access Basic_Obj_Adapter;
+      Servant :        Servants.Servant_Access;
       Error   : in out PolyORB.Exceptions.Error_Container);
 
    --------------------------------------------------
