@@ -62,8 +62,8 @@ AC_ARG_WITH(platform,
 ],
 [
   case "${target}" in
-    i?86-*-cygwin32*)    PLATFORM_SPECIFIC=w;;
-    i?86-*-mingw32*)     PLATFORM_SPECIFIC=w;;
+    i?86-*-cygwin32*)  PLATFORM_SPECIFIC=w;;
+    i?86-*-mingw32*)   PLATFORM_SPECIFIC=w;;
     alpha*-*-osf*)     PLATFORM_SPECIFIC=a;;
     powerpc-*-aix4*)   PLATFORM_SPECIFIC=b;;
     mips*-sgi-irix*)   PLATFORM_SPECIFIC=g;;
@@ -91,6 +91,38 @@ AC_SUBST(PLATFORM_SPECIFIC)
 ]
 AC_SUBST(PSNAME)
 AC_MSG_RESULT($PSNAME)
+#
+# Select blocking IO policy (process or thread blocking IO)
+#
+AC_MSG_CHECKING([simulate thread blocking io])
+AC_ARG_ENABLE(non-blocking-io,
+[  --enable-nonblockingio  Force to simulate thread blocking io],
+[
+  PROCESS_BLOCKING_IO="yes"],
+[
+  PROCESS_BLOCKING_IO="no";
+  case ${PLATFORM_SPECIFIC} in
+  s|l)
+    ${GNATMAKE} -q -o ./isthrbio ${srcdir}/Garlic/isthrbio.adb>/dev/null 2>&1;
+    if ./isthrbio; then
+      PROCESS_BLOCKING_IO="yes";
+    fi;
+    /bin/rm -f ./isthrbio*;
+    ;;
+  *)
+    ;;
+  esac;
+])
+AC_MSG_RESULT([${PROCESS_BLOCKING_IO}])
+AC_SUBST(PROCESS_BLOCKING_IO)
+if test "${PROCESS_BLOCKING_IO}" = "yes"; then
+  PROCESS_BLOCKING_IO=True;
+else
+  PROCESS_BLOCKING_IO=False;
+fi
+#
+# Flag to use to copy flags without time modification
+#
 AC_MSG_CHECKING(preserve the original file properties with)
 [
   case "${PLATFORM_SPECIFIC}" in
@@ -297,10 +329,10 @@ AC_SUBST(EXTRA_LIBS)
 # Header files, only when not cross-compiling
 #
 #if test $target = $host; then
-#AC_CHECK_HEADERS([stdio.h sys/types.h sys/socket.h errno.h netdb.h string.h])
-#AC_CHECK_HEADERS([netinet/in.h signal.h fcntl.h termio.h termios.h sys/file.h])
-#AC_CHECK_HEADERS([sys/ioctl.h netinet/tcp.h sys/systeminfo.h poll.h stropts.h])
-#AC_CHECK_HEADERS([sys/conf.h sys/param.h time.h])
+# AC_CHECK_HEADERS([stdio.h sys/types.h sys/socket.h errno.h netdb.h string.h])
+# AC_CHECK_HEADERS([netinet/in.h signal.h fcntl.h termio.h termios.h])
+# AC_CHECK_HEADERS([sys/file.h sys/ioctl.h netinet/tcp.h sys/systeminfo.h])
+# AC_CHECK_HEADERS([poll.h stropts.h sys/conf.h sys/param.h time.h])
 #fi
 #
 # Output
