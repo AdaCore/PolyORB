@@ -117,6 +117,46 @@ package body PolyORB.Representations.CDR is
    --      new Ada.Unchecked_Conversion
    --       (Long_Double_Buf, PolyORB.Types.Long_Double);
 
+   ------------------
+   -- TypeCode Ids --
+   ------------------
+
+   --  Numerical value associated to TypeCodes, as defined in CDR
+
+   TC_Null_Id               : constant PolyORB.Types.Unsigned_Long := 0;
+   TC_Void_Id               : constant PolyORB.Types.Unsigned_Long := 1;
+   TC_Short_Id              : constant PolyORB.Types.Unsigned_Long := 2;
+   TC_Long_Id               : constant PolyORB.Types.Unsigned_Long := 3;
+   TC_Unsigned_Short_Id     : constant PolyORB.Types.Unsigned_Long := 4;
+   TC_Unsigned_Long_Id      : constant PolyORB.Types.Unsigned_Long := 5;
+   TC_Float_Id              : constant PolyORB.Types.Unsigned_Long := 6;
+   TC_Double_Id             : constant PolyORB.Types.Unsigned_Long := 7;
+   TC_Boolean_Id            : constant PolyORB.Types.Unsigned_Long := 8;
+   TC_Char_Id               : constant PolyORB.Types.Unsigned_Long := 9;
+   TC_Octet_Id              : constant PolyORB.Types.Unsigned_Long := 10;
+   TC_Any_Id                : constant PolyORB.Types.Unsigned_Long := 11;
+   TC_TypeCode_Id           : constant PolyORB.Types.Unsigned_Long := 12;
+   TC_Principal_Id          : constant PolyORB.Types.Unsigned_Long := 13;
+   TC_Object_Id             : constant PolyORB.Types.Unsigned_Long := 14;
+   TC_Struct_Id             : constant PolyORB.Types.Unsigned_Long := 15;
+   TC_Union_Id              : constant PolyORB.Types.Unsigned_Long := 16;
+   TC_Enum_Id               : constant PolyORB.Types.Unsigned_Long := 17;
+   TC_String_Id             : constant PolyORB.Types.Unsigned_Long := 18;
+   TC_Sequence_Id           : constant PolyORB.Types.Unsigned_Long := 19;
+   TC_Array_Id              : constant PolyORB.Types.Unsigned_Long := 20;
+   TC_Alias_Id              : constant PolyORB.Types.Unsigned_Long := 21;
+   TC_Except_Id             : constant PolyORB.Types.Unsigned_Long := 22;
+   TC_Long_Long_Id          : constant PolyORB.Types.Unsigned_Long := 23;
+   TC_Unsigned_Long_Long_Id : constant PolyORB.Types.Unsigned_Long := 24;
+   TC_Long_Double_Id        : constant PolyORB.Types.Unsigned_Long := 25;
+   TC_Wchar_Id              : constant PolyORB.Types.Unsigned_Long := 26;
+   TC_Wide_String_Id        : constant PolyORB.Types.Unsigned_Long := 27;
+   TC_Fixed_Id              : constant PolyORB.Types.Unsigned_Long := 28;
+   TC_Value_Id              : constant PolyORB.Types.Unsigned_Long := 29;
+   TC_Valuebox_Id           : constant PolyORB.Types.Unsigned_Long := 30;
+   TC_Native_Id             : constant PolyORB.Types.Unsigned_Long := 31;
+   TC_Abstract_Interface_Id : constant PolyORB.Types.Unsigned_Long := 32;
+
    -----------------
    -- Encapsulate --
    -----------------
@@ -1227,51 +1267,52 @@ package body PolyORB.Representations.CDR is
       case PolyORB.Any.TypeCode.Kind (Data) is
 
          when Tk_Null =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(0));
+            Marshall (Buffer, TC_Null_Id);
 
          when Tk_Void =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(1));
+            Marshall (Buffer, TC_Void_Id);
 
          when Tk_Short =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(2));
+            Marshall (Buffer, TC_Short_Id);
 
          when Tk_Long =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(3));
+            Marshall (Buffer, TC_Long_Id);
 
          when Tk_Ushort =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(4));
+            Marshall (Buffer, TC_Unsigned_Short_Id);
+
 
          when Tk_Ulong =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(5));
+            Marshall (Buffer, TC_Unsigned_Long_Id);
 
          when Tk_Float =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(6));
+            Marshall (Buffer, TC_Float_Id);
 
          when Tk_Double =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(7));
+            Marshall (Buffer, TC_Double_Id);
 
          when Tk_Boolean =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(8));
+            Marshall (Buffer, TC_Boolean_Id);
 
          when Tk_Char =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(9));
+            Marshall (Buffer, TC_Char_Id);
 
          when Tk_Octet =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(10));
+            Marshall (Buffer, TC_Octet_Id);
 
          when Tk_Any =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(11));
+            Marshall (Buffer, TC_Any_Id);
 
          when Tk_TypeCode =>
             pragma Debug (O ("Marshall (TypeCode) : dealing with a TypeCode"));
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(12));
+            Marshall (Buffer, TC_TypeCode_Id);
 
          when Tk_Principal =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(13));
+            Marshall (Buffer, TC_Principal_Id);
 
          when Tk_Objref =>
             pragma Debug (O ("Marshall (TypeCode) : dealing with an ObjRef"));
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(14));
+            Marshall (Buffer, TC_Object_Id);
             pragma Debug (O ("Marshall (TypeCode) : it has "
                              & PolyORB.Types.Unsigned_Long'Image
                              (PolyORB.Any.TypeCode.Parameter_Count (Data))
@@ -1281,7 +1322,7 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Struct =>
             pragma Debug (O ("Marshall (TypeCode) : dealing with a struct"));
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(15));
+            Marshall (Buffer, TC_Struct_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             pragma Debug (O ("Marshall (TypeCode) : marshalling the id"));
@@ -1323,7 +1364,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
 
          when Tk_Union =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(16));
+            Marshall (Buffer, TC_Union_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall
@@ -1361,7 +1402,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
 
          when Tk_Enum =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(17));
+            Marshall (Buffer, TC_Enum_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
@@ -1385,7 +1426,7 @@ package body PolyORB.Representations.CDR is
 
          when Tk_String =>
             pragma Debug (O ("marshall (typecode) : dealing with a string"));
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(18));
+            Marshall (Buffer, TC_String_Id);
             pragma Debug (O ("marshall (typecode) : " &
                              "about to marshall length : " &
                              PolyORB.Types.Unsigned_Long'Image
@@ -1394,7 +1435,7 @@ package body PolyORB.Representations.CDR is
             pragma Debug (O ("marshall (typecode) : length marshalled"));
 
          when Tk_Sequence =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(19));
+            Marshall (Buffer, TC_Sequence_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
@@ -1405,7 +1446,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
 
          when Tk_Array =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(20));
+            Marshall (Buffer, TC_Array_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
@@ -1416,7 +1457,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
 
          when Tk_Alias =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(21));
+            Marshall (Buffer, TC_Alias_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
@@ -1429,7 +1470,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
 
          when Tk_Except =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(22));
+            Marshall (Buffer, TC_Except_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
@@ -1454,28 +1495,28 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
 
          when Tk_Longlong =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(23));
+            Marshall (Buffer, TC_Long_Long_Id);
 
          when Tk_Ulonglong =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(24));
+            Marshall (Buffer, TC_Unsigned_Long_Long_Id);
 
          when Tk_Longdouble =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(25));
+            Marshall (Buffer, TC_Long_Double_Id);
 
          when Tk_Widechar =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(26));
+            Marshall (Buffer, TC_Wchar_Id);
 
          when Tk_Wstring =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(27));
+            Marshall (Buffer, TC_Wide_String_Id);
             Marshall (Buffer, PolyORB.Any.TypeCode.Length (Data));
 
          when Tk_Fixed =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(28));
+            Marshall (Buffer, TC_Fixed_Id);
             Marshall (Buffer, PolyORB.Any.TypeCode.Fixed_Digits (Data));
             Marshall (Buffer, PolyORB.Any.TypeCode.Fixed_Scale (Data));
 
          when Tk_Value =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(29));
+            Marshall (Buffer, TC_Value_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall
@@ -1513,7 +1554,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
 
          when Tk_Valuebox =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(30));
+            Marshall (Buffer, TC_Valuebox_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
@@ -1526,7 +1567,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
 
          when Tk_Native =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(31));
+            Marshall (Buffer, TC_Native_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
@@ -1537,7 +1578,7 @@ package body PolyORB.Representations.CDR is
             Release (Complex_Buffer);
 
          when Tk_Abstract_Interface =>
-            Marshall (Buffer, PolyORB.Types.Unsigned_Long'(32));
+            Marshall (Buffer, TC_Abstract_Interface_Id);
             Complex_Buffer := new Buffer_Type;
             Start_Encapsulation (Complex_Buffer);
             Marshall (Complex_Buffer,
@@ -2096,58 +2137,56 @@ package body PolyORB.Representations.CDR is
      (Buffer : access Buffer_Type)
      return PolyORB.Any.TypeCode.Object
    is
-      Nb : constant PolyORB.Types.Unsigned_Long := Unmarshall (Buffer);
+      TypeCode_Id : constant PolyORB.Types.Unsigned_Long
+        := Unmarshall (Buffer);
       Result : PolyORB.Any.TypeCode.Object;
    begin
-      --  XXX The hardcoded values in this case should be replaced
-      --  by symbolic constants.
       pragma Debug (O ("Unmarshall (TypeCode) : enter"));
-      case Nb is
-         when 0 =>
+
+      case TypeCode_Id is
+         when TC_Null_Id =>
             Result := PolyORB.Any.TypeCode.TC_Null;
 
-         when 1 =>
+         when TC_Void_Id =>
             Result := PolyORB.Any.TypeCode.TC_Void;
 
-         when 2 =>
+         when TC_Short_Id =>
             Result := PolyORB.Any.TypeCode.TC_Short;
 
-         when 3 =>
+         when TC_Long_Id =>
             Result := PolyORB.Any.TypeCode.TC_Long;
 
-         when 4 =>
+         when TC_Unsigned_Short_Id =>
             Result := PolyORB.Any.TypeCode.TC_Unsigned_Short;
 
-         when 5 =>
+         when TC_Unsigned_Long_Id =>
             Result := PolyORB.Any.TypeCode.TC_Unsigned_Long;
 
-         when 6 =>
+         when TC_Float_Id =>
             Result := PolyORB.Any.TypeCode.TC_Float;
 
-         when 7 =>
+         when TC_Double_Id =>
             Result := PolyORB.Any.TypeCode.TC_Double;
 
-         when 8 =>
+         when TC_Boolean_Id =>
             Result := PolyORB.Any.TypeCode.TC_Boolean;
 
-         when 9 =>
+         when TC_Char_Id =>
             Result := PolyORB.Any.TypeCode.TC_Char;
 
-         when 10 =>
+         when TC_Octet_Id =>
             Result := PolyORB.Any.TypeCode.TC_Octet;
 
-         when 11 =>
+         when TC_Any_Id =>
             Result := PolyORB.Any.TypeCode.TC_Any;
 
-         when 12 =>
-            pragma Debug (O ("Unmarshall (TypeCode) : "
-                             & "dealing with a TypeCode"));
+         when TC_TypeCode_Id =>
             Result := PolyORB.Any.TypeCode.TC_TypeCode;
 
-         when 13 =>
+         when TC_Principal_Id =>
             Result := PolyORB.Any.TypeCode.TC_Principal;
 
-         when 14 =>
+         when TC_Object_Id =>
             Result := PolyORB.Any.TypeCode.TC_Object;
             declare
                Id : PolyORB.Types.String := Unmarshall (Buffer);
@@ -2159,7 +2198,7 @@ package body PolyORB.Representations.CDR is
                  (Result, To_Any (Id));
             end;
 
-         when 15 =>
+         when TC_Struct_Id =>
             Result := PolyORB.Any.TypeCode.TC_Struct;
             declare
                Complex_Encap :  aliased Encapsulation
@@ -2191,7 +2230,7 @@ package body PolyORB.Representations.CDR is
                end if;
             end;
 
-         when 16 =>
+         when TC_Union_Id =>
             Result := PolyORB.Any.TypeCode.TC_Union;
             declare
                Complex_Encap : aliased Encapsulation
@@ -2232,7 +2271,7 @@ package body PolyORB.Representations.CDR is
                end if;
             end;
 
-         when 17 =>
+         when TC_Enum_Id =>
             Result := PolyORB.Any.TypeCode.TC_Enum;
             declare
                Complex_Encap :  aliased Encapsulation
@@ -2258,7 +2297,7 @@ package body PolyORB.Representations.CDR is
                end if;
             end;
 
-         when 18 =>
+         when TC_String_Id =>
             Result := PolyORB.Any.TypeCode.TC_String;
             declare
                Length : PolyORB.Types.Unsigned_Long;
@@ -2268,7 +2307,7 @@ package body PolyORB.Representations.CDR is
                  (Result, To_Any (Length));
             end;
 
-         when 19 =>
+         when TC_Sequence_Id =>
             Result := PolyORB.Any.TypeCode.TC_Sequence;
             declare
                Complex_Encap :  aliased Encapsulation
@@ -2286,7 +2325,7 @@ package body PolyORB.Representations.CDR is
                  (Result, To_Any (Content_Type));
             end;
 
-         when 20 =>
+         when TC_Array_Id =>
             Result := PolyORB.Any.TypeCode.TC_Array;
             declare
                Complex_Encap : aliased Encapsulation
@@ -2304,7 +2343,7 @@ package body PolyORB.Representations.CDR is
                  (Result, To_Any (Content_Type));
             end;
 
-         when 21 =>
+         when TC_Alias_Id =>
             Result := PolyORB.Any.TypeCode.TC_Alias;
             declare
                Complex_Encap : aliased Encapsulation
@@ -2325,7 +2364,7 @@ package body PolyORB.Representations.CDR is
                  (Result, To_Any (Content_Type));
             end;
 
-         when 22 =>
+         when TC_Except_Id =>
             Result := PolyORB.Any.TypeCode.TC_Except;
             declare
                Complex_Encap : aliased Encapsulation
@@ -2355,19 +2394,19 @@ package body PolyORB.Representations.CDR is
                end if;
             end;
 
-         when 23 =>
+         when TC_Long_Long_Id =>
             Result := PolyORB.Any.TypeCode.TC_Long_Long;
 
-         when 24 =>
+         when TC_Unsigned_Long_Long_Id =>
             Result := PolyORB.Any.TypeCode.TC_Unsigned_Long_Long;
 
-         when 25 =>
+         when TC_Long_Double_Id =>
             Result := PolyORB.Any.TypeCode.TC_Long_Double;
 
-         when 26 =>
+         when TC_Wchar_Id =>
             Result := PolyORB.Any.TypeCode.TC_Wchar;
 
-         when 27 =>
+         when TC_Wide_String_Id =>
             Result := PolyORB.Any.TypeCode.TC_Wide_String;
             declare
                Length : PolyORB.Types.Unsigned_Long;
@@ -2377,7 +2416,7 @@ package body PolyORB.Representations.CDR is
                  (Result, To_Any (Length));
             end;
 
-         when 28 =>
+         when TC_Fixed_Id =>
             Result := PolyORB.Any.TypeCode.TC_Fixed;
             declare
                Fixed_Digits : PolyORB.Types.Unsigned_Short;
@@ -2391,7 +2430,7 @@ package body PolyORB.Representations.CDR is
                  (Result, To_Any (Fixed_Scale));
             end;
 
-         when 29 =>
+         when TC_Value_Id =>
             Result := PolyORB.Any.TypeCode.TC_Value;
             declare
                Complex_Encap : aliased Encapsulation
@@ -2431,7 +2470,7 @@ package body PolyORB.Representations.CDR is
                end if;
             end;
 
-         when 30 =>
+         when TC_Valuebox_Id =>
             Result := PolyORB.Any.TypeCode.TC_Valuebox;
             declare
                Complex_Encap :  aliased Encapsulation
@@ -2452,7 +2491,7 @@ package body PolyORB.Representations.CDR is
                  (Result, To_Any (Content_Type));
             end;
 
-         when 31 =>
+         when TC_Native_Id =>
             Result := PolyORB.Any.TypeCode.TC_Native;
             declare
                Complex_Encap :  aliased Encapsulation
@@ -2469,7 +2508,7 @@ package body PolyORB.Representations.CDR is
                  (Result, To_Any (Id));
             end;
 
-         when 32 =>
+         when TC_Abstract_Interface_Id =>
             Result := PolyORB.Any.TypeCode.TC_Abstract_Interface;
             declare
                Complex_Encap :  aliased Encapsulation
