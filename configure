@@ -1322,7 +1322,7 @@ else
   sparc-sun-solaris2*) PLATFORM_SPECIFIC=s;;
   sparc-sun-sunos4*)   PLATFORM_SPECIFIC=u;;
   *-linux*)            PLATFORM_SPECIFIC=l;;
-  alpha-*-osf*)        PLATFORM_SPECIFIC=a;
+  alpha-*-osf*)        PLATFORM_SPECIFIC=a;;
   i?86-*-cygwin32)     PLATFORM_SPECIFIC=w;;
   mips-sgi-irix*)      PLATFORM_SPECIFIC=g;;
   mips-sni-sysv4)      PLATFORM_SPECIFIC=x;;
@@ -1350,7 +1350,7 @@ echo "$ac_t""$PSNAME" 1>&6
 # LinuxThreads. This crashes the machine.
 #
 echo $ac_n "checking if platform supports local launching""... $ac_c" 1>&6
-echo "configure:1355: checking if platform supports local launching" >&5
+echo "configure:1354: checking if platform supports local launching" >&5
 case "${target}" in
   *-linux*)	SUPPORTS_LOCAL_LAUNCH=False; echo "$ac_t""no" 1>&6;;
   *)            SUPPORTS_LOCAL_LAUNCH=True; echo "$ac_t""yes" 1>&6;;
@@ -1360,7 +1360,7 @@ esac
 # Remote shell
 #
 echo $ac_n "checking which remote shell to use""... $ac_c" 1>&6
-echo "configure:1365: checking which remote shell to use" >&5
+echo "configure:1364: checking which remote shell to use" >&5
 # Check whether --with-remsh or --without-remsh was given.
 if test "${with_remsh+set}" = set; then
   withval="$with_remsh"
@@ -1390,7 +1390,7 @@ else
 fi
 
 echo $ac_n "checking default filters""... $ac_c" 1>&6
-echo "configure:1395: checking default filters" >&5
+echo "configure:1394: checking default filters" >&5
 
 if test -d Garlic; then
   :
@@ -1418,7 +1418,7 @@ if test "${with_protocols+set}" = set; then
   withval="$with_protocols"
   
   echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1423: checking default protocols" >&5
+echo "configure:1422: checking default protocols" >&5
   LIST="";
   PROTOCOLSSOURCES="";
   PROTOCOLSOBJECTS="";
@@ -1443,7 +1443,7 @@ echo "configure:1423: checking default protocols" >&5
 else
   
 echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1448: checking default protocols" >&5
+echo "configure:1447: checking default protocols" >&5
 PROTOCOLSSOURCES="\$(TCPSOURCES)";
 PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
 TCP_INCLUDED=""
@@ -1453,7 +1453,7 @@ fi
 
 if test "$TCP_INCLUDED" = ""; then
   echo $ac_n "checking thread-blocking I/O""... $ac_c" 1>&6
-echo "configure:1458: checking thread-blocking I/O" >&5
+echo "configure:1457: checking thread-blocking I/O" >&5
     if grep Non_Blocking $srcdir/Garlic/2${PLATFORM_SPECIFIC}gtplsp.ads \
       > /dev/null 2>&1; then
 	echo "$ac_t""no" 1>&6
@@ -1470,7 +1470,7 @@ fi
 # Find get_errno or __get_errno
 #
 echo $ac_n "checking for get_errno in -lgnat""... $ac_c" 1>&6
-echo "configure:1475: checking for get_errno in -lgnat" >&5
+echo "configure:1474: checking for get_errno in -lgnat" >&5
 ac_lib_var=`echo gnat'_'get_errno | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1478,7 +1478,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lgnat  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1483 "configure"
+#line 1482 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1489,7 +1489,7 @@ int main() {
 get_errno()
 ; return 0; }
 EOF
-if { (eval echo configure:1494: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:1493: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
