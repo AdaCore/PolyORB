@@ -103,7 +103,10 @@ package PolyORB.Jobs is
 
 private
 
+   pragma Inline (Queue_Job);
+   pragma Inline (Is_Empty);
    pragma Inline (Fetch_Job);
+   pragma Inline (Length);
 
    type Job is abstract tagged limited null record;
 
