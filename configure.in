@@ -28,7 +28,7 @@ AC_ARG_PROGRAM
 #
 AC_ARG_ENABLE(debug,
 [  --enable-debug          Turn on debugging options],
-[GNATFLAGS="-g -gnata"],
+[GNATFLAGS="-g -gnata -gnato"],
 [GNATFLAGS="-O2 -gnatn"])
 AC_SUBST(GNATFLAGS)
 #
