@@ -53,16 +53,16 @@ package MOMA.Types is
    --
 
    subtype Any            is PolyORB.Any.Any;
-   subtype Boolean        is PolyORB.Types.Boolean;
-   subtype Byte           is PolyORB.Types.Octet;
-   subtype Char           is PolyORB.Types.Char;
-   subtype Double         is PolyORB.Types.Double;
-   subtype Float          is PolyORB.Types.Float;
-   subtype Long           is PolyORB.Types.Long;
-   subtype Short          is PolyORB.Types.Short;
-   subtype String         is PolyORB.Types.String;
-   subtype Unsigned_Long  is PolyORB.Types.Unsigned_Long;
-   subtype Unsigned_Short is PolyORB.Types.Unsigned_Short;
+   type Boolean        is new PolyORB.Types.Boolean;
+   type Byte           is new PolyORB.Types.Octet;
+   type Char           is new PolyORB.Types.Char;
+   type Double         is new PolyORB.Types.Double;
+   type Float          is new PolyORB.Types.Float;
+   type Long           is new PolyORB.Types.Long;
+   type Short          is new PolyORB.Types.Short;
+   type String         is new PolyORB.Types.String;
+   type Unsigned_Long  is new PolyORB.Types.Unsigned_Long;
+   type Unsigned_Short is new PolyORB.Types.Unsigned_Short;
    subtype Ref            is PolyORB.References.Ref;
 
    function To_Any (Item : in Any)                return Any;
@@ -89,10 +89,10 @@ package MOMA.Types is
    function From_Any (Item : in Any) return Unsigned_Long;
    function From_Any (Item : in Any) return Unsigned_Short;
 
-   function "=" (Left, Right : in Any) return Boolean
+   function "=" (Left, Right : in Any) return Standard.Boolean
      renames PolyORB.Any."=";
 
-   function "=" (Left, Right : in Ref) return Boolean
+   function "=" (Left, Right : in Ref) return Standard.Boolean
      renames PolyORB.References."=";
 
    Nil_Ref : constant MOMA.Types.Ref
@@ -102,13 +102,9 @@ package MOMA.Types is
    --  String conversion fonctions.
    --
 
-   function To_Standard_String
-     (V : MOMA.Types.String)
-     return Standard.String renames PolyORB.Types.To_Standard_String;
+   function To_Standard_String (V : MOMA.Types.String) return Standard.String;
 
-   function To_MOMA_String
-     (V : Standard.String)
-     return MOMA.Types.String renames PolyORB.Types.To_PolyORB_String;
+   function To_MOMA_String (V : Standard.String) return MOMA.Types.String;
 
    --
    --  MOMA specific types.
@@ -321,7 +317,8 @@ package MOMA.Types is
    --  XXX to be corrected.
 
 private
-   MOMA_Type_Id : constant MOMA.Types.String := PolyORB.Types.String
+
+   MOMA_Type_Id : constant MOMA.Types.String := MOMA.Types.String
      (Ada.Strings.Unbounded.To_Unbounded_String ("MOMA"));
 
    type Message_Pool is record

@@ -138,8 +138,10 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
 
          Req.Result.Argument := Get
            (Self,
-            PolyORB.Any.From_Any
-            (Value (First (List_Of (Args).all)).Argument));
+            MOMA.Types.String
+            (PolyORB.Types.String'
+             (PolyORB.Any.From_Any
+              (Value (First (List_Of (Args).all)).Argument))));
          pragma Debug (O ("Result: " & Image (Req.Result)));
 
       elsif Req.Operation = To_PolyORB_String ("Register_Handler") then
@@ -267,11 +269,9 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
       Id : constant String
         := MOMA.Types.To_Standard_String (Get_Message_Id (Rcvd_Message));
 
-      use PolyORB.References;
-      use MOMA.Types;
    begin
       if Self.Behavior = Handle
-        and then Self.Message_Handler /= PolyORB.References.Nil_Ref
+        and then not PolyORB.References.Is_Nil (Self.Message_Handler)
       then
          --  Send the message to the Message Call_Back Handler.
          --  Do not store the message locally.
@@ -321,7 +321,7 @@ package body PolyORB.MOMA_P.Provider.Message_Pool is
          end if;
 
          if Self.Behavior = Notify
-           and then Self.Message_Handler /= PolyORB.References.Nil_Ref
+           and then not PolyORB.References.Is_Nil (Self.Message_Handler)
          then
             pragma Debug (O ("Forwarding to Message_Handler"
                              & " with Notify request"));

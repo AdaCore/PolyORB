@@ -57,7 +57,6 @@ with MOMA.Runtime;
 
 with MOMA.Types;
 
-with PolyORB.Types;
 with PolyORB.Utils.Report;
 
 procedure Client_Call_Back is
@@ -76,7 +75,6 @@ procedure Client_Call_Back is
    use MOMA.Message_Handlers;
    use MOMA.Types;
 
-   use PolyORB.Types;
    use PolyORB.Utils.Report;
 
    Pool_Ref           : MOMA.Types.Ref := MOMA.Types.Nil_Ref;

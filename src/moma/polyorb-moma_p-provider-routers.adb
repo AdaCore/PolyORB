@@ -265,7 +265,7 @@ package body PolyORB.MOMA_P.Provider.Routers is
          Self.Routers.L_Initialized := True;
       end if;
 
-      if Router_Ref /= PolyORB.References.Nil_Ref then
+      if not PolyORB.References.Is_Nil (Router_Ref) then
          Register (Self, Router_Ref);
       end if;
    end Initialize;
@@ -333,7 +333,9 @@ package body PolyORB.MOMA_P.Provider.Routers is
             Publish
               (Self,
                Message.Argument,
-               PolyORB.Any.From_Any (From_Router_Id.Argument));
+               MOMA.Types.String
+               (PolyORB.Types.String'(PolyORB.Any.From_Any
+                                      (From_Router_Id.Argument))));
          end;
 
       elsif Operation = "Subscribe"
@@ -480,7 +482,7 @@ package body PolyORB.MOMA_P.Provider.Routers is
       PolyORB.Any.NVList.Add_Item
         (Arg_List,
          To_PolyORB_String ("From_Router_Id"),
-         PolyORB.Any.To_Any (Get_Id (Self.all)),
+         PolyORB.Any.To_Any (PolyORB.Types.String (Get_Id (Self.all))),
          PolyORB.Any.ARG_IN);
 
       Result

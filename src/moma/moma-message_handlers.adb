@@ -104,7 +104,7 @@ package body MOMA.Message_Handlers is
 
    begin
       Initiate_Servant (Servant,
-                        MOMA.Types.MOMA_Type_Id,
+                        PolyORB.Types.String (MOMA.Types.MOMA_Type_Id),
                         Servant_Ref,
                         Error);
 

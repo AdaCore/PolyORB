@@ -87,13 +87,14 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
 
    function Get
      (Self       : in PolyORB.References.Ref;
-      Message_Id : in PolyORB.Types.String)
+      Message_Id : in MOMA.Types.String)
      return PolyORB.Any.Any
    is
       Arg_Name_Mesg : PolyORB.Types.Identifier :=
         PolyORB.Types.To_PolyORB_String ("Message");
 
-      Argument_Mesg : PolyORB.Any.Any := PolyORB.Any.To_Any (Message_Id);
+      Argument_Mesg : PolyORB.Any.Any
+        := PolyORB.Any.To_Any (PolyORB.Types.String (Message_Id));
 
       Operation_Name : constant Standard.String := "Get";
 
@@ -223,7 +224,10 @@ package body PolyORB.MOMA_P.Provider.Message_Consumer is
          It := First (List_Of (Args).all);
          Set_Result
            (Req,
-            Get (Self.Remote_Ref, PolyORB.Any.From_Any (Value (It).Argument)));
+            Get (Self.Remote_Ref,
+                 MOMA.Types.String
+                 (PolyORB.Types.String'(PolyORB.Any.From_Any
+                                        (Value (It).Argument)))));
          pragma Debug (O ("Result: " & Image (Req.Result)));
 
       elsif Req.Operation = To_PolyORB_String ("Register_Handler") then

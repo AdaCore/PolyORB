@@ -55,7 +55,6 @@ package body MOMA.Destinations is
       Kind :        MOMA.Types.Destination_Type);
    pragma Inline (Set_Kind);
 
-
    ---------
    -- "=" --
    ---------
@@ -242,7 +241,7 @@ package body MOMA.Destinations is
    begin
       PolyORB.Any.Add_Aggregate_Element
         (Result,
-         PolyORB.Any.To_Any (Self.Name));
+         PolyORB.Any.To_Any (PolyORB.Types.String (Self.Name)));
 
       PolyORB.Any.Add_Aggregate_Element
         (Result,

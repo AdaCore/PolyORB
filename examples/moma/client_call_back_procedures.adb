@@ -36,7 +36,6 @@
 with MOMA.Messages;
 with MOMA.Messages.MBytes;
 
-with PolyORB.Types;
 with PolyORB.Utils.Report;
 
 package body Client_Call_Back_Procedures is
@@ -49,7 +48,6 @@ package body Client_Call_Back_Procedures is
    use MOMA.Types;
 
    use PolyORB.Annotations;
-   use PolyORB.Types;
    use PolyORB.Utils.Report;
 
    --------------------

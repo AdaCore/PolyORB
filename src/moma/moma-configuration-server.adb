@@ -40,6 +40,7 @@ with PolyORB.Exceptions;
 with PolyORB.Log;
 with PolyORB.Minimal_Servant.Tools;
 with PolyORB.MOMA_P.Exceptions;
+with PolyORB.Types;
 
 package body MOMA.Configuration.Server is
 
@@ -71,7 +72,7 @@ package body MOMA.Configuration.Server is
                        & To_Standard_String (Get_Name (Pool))));
 
       Initiate_Servant (MOMA_Obj,
-                        MOMA_Type_Id,
+                        PolyORB.Types.String (MOMA_Type_Id),
                         Ref,
                         Error);
 
@@ -100,7 +101,7 @@ package body MOMA.Configuration.Server is
       pragma Debug (O ("Creating Router"));
 
       Initiate_Servant (Router,
-                        MOMA_Type_Id,
+                        PolyORB.Types.String (MOMA_Type_Id),
                         Ref,
                         Error);
 

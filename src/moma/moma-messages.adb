@@ -103,43 +103,43 @@ package body MOMA.Messages is
       Pos := MOMA.Types.From_Any
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_Short,
-                                Unsigned_Long (0)));
+                                PolyORB.Types.Unsigned_Long (0)));
       Type_Of_Message := Message_Type'Val (Pos);
 
       Message_Id := MOMA.Types.From_Any
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_String,
-                                Unsigned_Long (1)));
+                                PolyORB.Types.Unsigned_Long (1)));
 
       Correlation_Id := MOMA.Types.From_Any
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_String,
-                                Unsigned_Long (2)));
+                                PolyORB.Types.Unsigned_Long (2)));
 
       Destination := MOMA.Destinations.From_Any
         (Get_Aggregate_Element (Self,
                                 TC_MOMA_Destination,
-                                Unsigned_Long (3)));
+                                PolyORB.Types.Unsigned_Long (3)));
 
       Reply_To := MOMA.Destinations.From_Any
         (Get_Aggregate_Element (Self,
                                 TC_MOMA_Destination,
-                                Unsigned_Long (4)));
+                                PolyORB.Types.Unsigned_Long (4)));
 
       Is_Persistent := MOMA.Types.From_Any
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_Boolean,
-                                Unsigned_Long (5)));
+                                PolyORB.Types.Unsigned_Long (5)));
 
       Is_Redelivered := MOMA.Types.From_Any
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_Boolean,
-                                Unsigned_Long (6)));
+                                PolyORB.Types.Unsigned_Long (6)));
 
       Payload := MOMA.Types.From_Any
         (Get_Aggregate_Element (Self,
                                 TypeCode.TC_Any,
-                                Unsigned_Long (7)));
+                                PolyORB.Types.Unsigned_Long (7)));
 
       if Type_Of_Message = Any_M then
          declare
@@ -470,9 +470,9 @@ package body MOMA.Messages is
         & ",Reply_To: "
         & Image (Self.Reply_To)
         & ",Is_Persistent: "
-        & Boolean'Image (Self.Is_Persistent)
+        & Standard.Boolean'Image (Standard.Boolean (Self.Is_Persistent))
         & ",Is_Redelivered: "
-        & Boolean'Image (Self.Is_Redelivered)
+        & Standard.Boolean'Image (Standard.Boolean (Self.Is_Redelivered))
         & ",Content : "
         & Image (Self.Payload) & ">";
    end Image;
@@ -599,7 +599,8 @@ package body MOMA.Messages is
    begin
       Add_Aggregate_Element
         (Result,
-         PolyORB.Any.To_Any (Short (Message_Type'Pos (Self.Type_Of_Message))));
+         PolyORB.Any.To_Any (PolyORB.Types.Short
+                             (Message_Type'Pos (Self.Type_Of_Message))));
       Add_Aggregate_Element (Result, MOMA.Types.To_Any (Self.Message_Id));
       Add_Aggregate_Element (Result, MOMA.Types.To_Any (Self.Correlation_Id));
       Add_Aggregate_Element

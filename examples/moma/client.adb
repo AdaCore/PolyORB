@@ -63,7 +63,6 @@ with MOMA.Runtime;
 
 with MOMA.Types;
 
-with PolyORB.Types;
 with PolyORB.Utils.Report;
 
 procedure Client is
@@ -80,7 +79,6 @@ procedure Client is
    use MOMA.Messages;
    use MOMA.Types;
 
-   use PolyORB.Types;
    use PolyORB.Utils.Report;
 
    Arg1               : String renames Ada.Command_Line.Argument (1);
@@ -97,7 +95,7 @@ procedure Client is
    MOMA_Consumer      : MOMA.Message_Consumers.Message_Consumer;
    MOMA_Consumer_Acc  : MOMA.Message_Consumers.Message_Consumer_Acc;
 
-   Ok : Boolean;
+   Ok : Standard.Boolean;
 
    type Scenario_T is (Full, Stor, Retr, Sub, Unsub);
    Scenario : Scenario_T;
@@ -214,7 +212,7 @@ procedure Client is
 
       --  Byte/Boolean Test
 
-      Set_Boolean (MByte_Message_Sent, MOMA.Types.Boolean (True));
+      Set_Boolean (MByte_Message_Sent, MOMA.Types.Boolean'(True));
       Send_Receive_MByte ("Byte/Boolean");
 
       --  Byte/Byte Test
