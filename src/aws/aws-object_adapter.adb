@@ -10,7 +10,6 @@ with PolyORB.POA_Policies.Id_Uniqueness_Policy.Multiple;
 with PolyORB.POA_Policies.Lifespan_Policy.Persistent;
 with PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain;
-with PolyORB.Types;
 with PolyORB.Servants;
 
 package body AWS.Object_Adapter is
@@ -85,7 +84,7 @@ package body AWS.Object_Adapter is
       PolyORB.POA.Basic_POA.Create_POA
         (PolyORB.POA.Basic_POA.Basic_Obj_Adapter
          (Parent.all)'Access,
-         PolyORB.Types.To_PolyORB_String (Name),
+         Name,
          POAManager_Access (The_Poa_Manager),
          Policies,
          The_Poa,

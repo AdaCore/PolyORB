@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -124,47 +124,47 @@ package body PolyORB.POA_Types is
    ---------------
 
    function Create_Id
-     (Name             : in Types.String;
+     (Name             : in Standard.String;
       System_Generated : in Types.Boolean;
       Persistency_Flag : in Lifespan_Cookie;
-      Creator          : in Types.String)
+      Creator          : in Standard.String)
      return Unmarshalled_Oid_Access is
    begin
       return new Unmarshalled_Oid'
-        (Id               => Name,
+        (Id               => To_PolyORB_String (Name),
          System_Generated => System_Generated,
          Persistency_Flag => Persistency_Flag,
-         Creator          => Creator);
+         Creator          => To_PolyORB_String (Creator));
    end Create_Id;
 
    function Create_Id
-     (Name             : in Types.String;
+     (Name             : in Standard.String;
       System_Generated : in Boolean;
       Persistency_Flag : in Time_Stamp;
-      Creator          : in Types.String)
+      Creator          : in Standard.String)
      return Unmarshalled_Oid is
    begin
       return Unmarshalled_Oid'
-        (Id               => Name,
+        (Id               => To_PolyORB_String (Name),
          System_Generated => System_Generated,
          Persistency_Flag => Persistency_Flag,
-         Creator          => Creator);
+         Creator          => To_PolyORB_String (Creator));
    end Create_Id;
 
    function Create_Id
-     (Name             : in Types.String;
+     (Name             : in Standard.String;
       System_Generated : in Types.Boolean;
       Persistency_Flag : in Lifespan_Cookie;
-      Creator          : in Types.String)
+      Creator          : in Standard.String)
      return Object_Id_Access
    is
    begin
       return U_Oid_To_Oid
         (Unmarshalled_Oid'
-         (Id               => Name,
+         (Id               => To_PolyORB_String (Name),
           System_Generated => System_Generated,
           Persistency_Flag => Persistency_Flag,
-          Creator          => Creator));
+          Creator          => To_PolyORB_String (Creator)));
    end Create_Id;
 
    ---------------

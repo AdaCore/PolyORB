@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -61,6 +61,7 @@ with PolyORB.POA_Types;
 with PolyORB.Servants;
 with PolyORB.Tasking.Mutexes;
 with PolyORB.Types;
+with PolyORB.Utils.Strings;
 
 package PolyORB.POA is
 
@@ -74,16 +75,16 @@ package PolyORB.POA is
    use PolyORB.POA_Policies.Lifespan_Policy;
    use PolyORB.POA_Policies.Implicit_Activation_Policy;
    use PolyORB.POA_Types;
+   use PolyORB.Utils.Strings;
 
    ---------------------------
    -- POA Obj_Adapter type. --
    ---------------------------
 
    type Obj_Adapter is abstract new PolyORB.POA_Types.Obj_Adapter with record
-
-      Name                       : Types.String;
+      Name                       : String_Ptr;
       Boot_Time                  : Time_Stamp;
-      Absolute_Address           : Types.String;
+      Absolute_Address           : String_Ptr;
 
       POA_Manager                : PolyORB.POA_Manager.Ref;
       --  POA Manager attached to this POA.
@@ -135,7 +136,7 @@ package PolyORB.POA is
 
    procedure Create_POA
      (Self         : access Obj_Adapter;
-      Adapter_Name :        Types.String;
+      Adapter_Name :        Standard.String;
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          :    out Obj_Adapter_Access;
@@ -147,7 +148,7 @@ package PolyORB.POA is
 
    procedure Initialize_POA
      (Self         : access Obj_Adapter;
-      Adapter_Name :        Types.String;
+      Adapter_Name :        Standard.String;
       A_POAManager :        POA_Manager.POAManager_Access;
       Policies     :        POA_Policies.PolicyList;
       POA          : in out Obj_Adapter_Access;
@@ -307,7 +308,7 @@ package PolyORB.POA is
 
    procedure Remove_POA_By_Name
      (Self       : access Obj_Adapter;
-      Child_Name :        Types.String);
+      Child_Name :        Standard.String);
    --  Remove a child POA from Self's list of children
    --  Does not lock the list of children
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -139,24 +139,21 @@ procedure Test000 is
       PM1 := POAManager_Access (Entity_Of (Root_POA.POA_Manager));
 
       --  POA1 Creation.
-      PolyORB.POA.Create_POA
-        (Root_POA, To_PolyORB_String ("POA1"), PM1, Policies, OA1, Error);
+      PolyORB.POA.Create_POA (Root_POA, "POA1", PM1, Policies, OA1, Error);
 
       if Found (Error) then
          raise Program_Error;
       end if;
 
       --  POA2 Creation.
-      PolyORB.POA.Create_POA
-        (OA1, To_PolyORB_String ("POA2"), null, Policies, OA2, Error);
+      PolyORB.POA.Create_POA (OA1, "POA2", null, Policies, OA2, Error);
 
       if Found (Error) then
          raise Program_Error;
       end if;
 
       --  POA3 Creation.
-      PolyORB.POA.Create_POA
-        (OA1, To_PolyORB_String ("POA3"), PM1, Policies, OA3, Error);
+      PolyORB.POA.Create_POA (OA1, "POA3", PM1, Policies, OA3, Error);
 
       if Found (Error) then
          raise Program_Error;
@@ -164,8 +161,7 @@ procedure Test000 is
 
       Output ("Child POA construction", True);
 
-      PolyORB.POA.Create_POA
-        (OA1, To_PolyORB_String ("POA3"), PM1, Policies, OA2, Error);
+      PolyORB.POA.Create_POA (OA1, "POA3", PM1, Policies, OA2, Error);
 
       if Found (Error) then
          Ok := True;

@@ -56,7 +56,6 @@ with PolyORB.Exceptions;
 with PolyORB.References;
 with PolyORB.Obj_Adapters;
 
-with PolyORB.Types;
 with PolyORB.Log;
 
 with PolyORB.POA;
@@ -503,9 +502,7 @@ package body AWS.Server is
          PolyORB.POA.Basic_POA.Create_POA
            (PolyORB.POA.Basic_POA.Basic_Obj_Adapter
             (Root_POA.all)'Access,
-            PolyORB.Types.To_PolyORB_String
-            (CNF.Server_Name
-             (The_Server.Properties)),
+            CNF.Server_Name (The_Server.Properties),
             POAManager_Access (The_POA_Manager),
             Policies,
             The_POA,
@@ -545,7 +542,6 @@ package body AWS.Server is
                return;
             else
                declare
-                  use PolyORB.Types;
                   use PolyORB.ORB;
                   use PolyORB.Setup;
                   use PolyORB.POA.Basic_POA;

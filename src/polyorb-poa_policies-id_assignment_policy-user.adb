@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -147,12 +147,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
                        & "'"));
 
       U_Oid := PolyORB.POA_Types.Create_Id
-        (Name             =>
-           To_PolyORB_String (PolyORB.Objects.To_String (Hint.all)),
+        (Name             => PolyORB.Objects.To_String (Hint.all),
          System_Generated => False,
          Persistency_Flag =>
            Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
-         Creator          => POA.Absolute_Address);
+         Creator          => POA.Absolute_Address.all);
 
       pragma Debug (O ("Assign_Object_Identifier: leave"));
    end Assign_Object_Identifier;
@@ -181,13 +180,11 @@ package body PolyORB.POA_Policies.Id_Assignment_Policy.User is
    begin
 
       U_Oid := PolyORB.POA_Types.Create_Id
-        (Name             =>
-           To_PolyORB_String (PolyORB.Objects.To_String (Oid)),
+        (Name             => PolyORB.Objects.To_String (Oid),
          System_Generated => False,
          Persistency_Flag =>
            Get_Lifespan_Cookie (POA.Lifespan_Policy.all, OA),
-         Creator          => POA.Absolute_Address);
-
+         Creator          => POA.Absolute_Address.all);
    end Reconstruct_Object_Identifier;
 
    -----------------------

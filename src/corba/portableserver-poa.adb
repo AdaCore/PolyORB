@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2001-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2001-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -205,7 +205,7 @@ package body PortableServer.POA is
 
       PolyORB.POA.Create_POA
         (POA,
-         PolyORB.Types.String (Adapter_Name),
+         CORBA.To_String (Adapter_Name),
          PolyORB.POA_Manager.POAManager_Access
          (PortableServer.POAManager.Entity_Of (A_POAManager)),
          POA_Policies,
@@ -396,7 +396,7 @@ package body PortableServer.POA is
      (Self : Ref)
      return CORBA.String is
    begin
-      return CORBA.String (To_POA (Self).Name);
+      return CORBA.To_CORBA_String (To_POA (Self).Name.all);
    end Get_The_Name;
 
    --------------------
@@ -986,12 +986,11 @@ package body PortableServer.POA is
          if Found (Error) then
             PolyORB.CORBA_P.Exceptions.Raise_From_Error (Error);
          end if;
-         if U_Oid.Creator /= To_POA (Self).Absolute_Address then
+         if U_Oid.Creator /= To_POA (Self).Absolute_Address.all then
             pragma Debug
               (O (PolyORB.Types.To_Standard_String (U_Oid.Creator)));
             pragma Debug
-              (O (PolyORB.Types.To_Standard_String
-                  (To_POA (Self).Absolute_Address)));
+              (O (To_POA (Self).Absolute_Address.all));
 
             Raise_WrongAdapter
               (WrongAdapter_Members'
