@@ -38,6 +38,9 @@ package PolyORB.Log is
 
    pragma Preelaborate;
 
+   procedure Put_Line (S : String);
+   --  Output S to stderr.
+
    --  Log_Levels are used to classify the importance of messages
 
    type Log_Level is
@@ -94,7 +97,7 @@ package PolyORB.Log is
 
    type Configuration_Hook is access
      function (Section, Key, Default : String)
-               return String;
+              return String;
 
    Get_Conf_Hook : Configuration_Hook := null;
    --  When a configuration subsystem is initialized, it may

@@ -48,9 +48,8 @@ package body PolyORB.Log is
    -- Put_Line --
    --------------
 
-   procedure Put_Line (S : String);
-
-   procedure Put_Line (S : String) is
+   procedure Put_Line (S : String)
+   is
       SS : aliased String := S & ASCII.LF;
 
       procedure C_Write
@@ -72,8 +71,8 @@ package body PolyORB.Log is
    function Get_Log_Level (Facility : in String) return Log_Level;
    --  Returns the user-requested log level for facility Flag.
 
-   function Get_Log_Level (Facility : in String) return Log_Level
-   is
+   function Get_Log_Level (Facility : in String)
+                          return Log_Level is
    begin
       if Get_Conf_Hook /= null then
          return Log_Level'Value
@@ -96,10 +95,13 @@ package body PolyORB.Log is
       Facility_Level : Log_Level := Info;
       Counter        : Natural   := 0;
 
+      ------------
+      -- Output --
+      ------------
+
       procedure Output
         (Message : in String;
-         Level   : Log_Level := Debug)
-      is
+         Level   : Log_Level := Debug) is
       begin
          if not Initialized then
             Facility_Level := Get_Log_Level (Facility);
@@ -111,7 +113,12 @@ package body PolyORB.Log is
          end if;
       end Output;
 
-      procedure Increment is
+      ---------------
+      -- Increment --
+      ---------------
+
+      procedure Increment
+      is
          Old_Counter : constant Natural := Counter;
       begin
          Counter := Counter + 1;
@@ -121,7 +128,12 @@ package body PolyORB.Log is
                  & Integer'Image (Counter));
       end Increment;
 
-      procedure Decrement is
+      ---------------
+      -- Decrement --
+      ---------------
+
+      procedure Decrement
+      is
          Old_Counter : constant Natural := Counter;
       begin
          Counter := Counter - 1;
