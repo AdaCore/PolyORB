@@ -1,3 +1,7 @@
+	  in Doc/install_guide.txt.
+
+	* INSTALL: fix minor typos
+Wed Nov 27 15:58:22 1996  Laurent Pautet <pautet@inf.enst.fr>
 	* configure.in: Check for get_errno or __get_errno.
 
 	* INSTALL: rewrite completely and move all non obvious stuff

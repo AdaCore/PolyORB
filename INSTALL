@@ -32,8 +32,8 @@ in Doc/install_guide.txt.
 
 
 1. Check your environment
-   - verify that GNAT @gnat_version@ is installed and on your  path
-   - verify that GLADE has been ported on your system (see README)
+   - verify that GNAT @gnat_version@ has been installed and is on your path
+   - verify that GLADE has been ported to your system (see README)
    - GLADE is usually build with GNU make. It may or may not be built 
      with other versions of make. If you have problems building GLADE
      with your local make tool, switch to GNU make.
@@ -51,7 +51,7 @@ in Doc/install_guide.txt.
    when no parameters are specified, the build machine is used as host
    and target and installation is done in /usr/local. It is advised to
    install GLADE first in a private directory for testing purposes.
-   This can be achieved with the --prefix parameter, for instance:
+   This can be done by using the --prefix parameter, for instance:
 
       ./configure --prefix=$HOME/glade
 
