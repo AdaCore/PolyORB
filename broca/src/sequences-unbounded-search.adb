@@ -69,20 +69,26 @@ package body Sequences.Unbounded.Search is
       To     : Natural;
 
    begin
+      if Haystack.Length = 0 then
+         return 0;
+      end if;
+
       if Going = Forward then
          Shift := 1;
          From  := 1;
-         To    := Haystack.Length + 1;
+         To    := Haystack.Length;
       else
          Shift := -1;
          From  := Haystack.Length;
-         To    := 0;
+         To    := 1;
       end if;
 
-      while From /= To loop
+      --  There is at least one pass because Haystack.Length /= 0.
+      loop
          if Match (Haystack.Content (From), Needle) then
             return From;
          end if;
+         exit when From = To;
          From := From + Shift;
       end loop;
 
