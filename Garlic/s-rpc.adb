@@ -41,6 +41,9 @@ with System.Garlic;              use System.Garlic;
 with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Heart;        use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
+with System.Garlic.Startup;
+pragma Elaborate_All (System.Garlic.Startup);
+pragma Warnings (Off, System.Garlic.Startup);
 with System.Garlic.Streams;
 with System.Garlic.Types;
 with System.Garlic.Utils;        use System.Garlic.Utils;
@@ -166,7 +169,7 @@ package body System.RPC is
       Any_Priority'Write (Params, Ada.Dynamic_Priorities.Get_Priority);
       Send (Types.Partition_ID (Partition), Remote_Call, Params.X'Access);
    exception
-      when E : System.Garlic.Types.Communication_Error =>
+      when E : System.Garlic.Communication_Error =>
          Raise_Exception (Communication_Error'Identity,
                           Exception_Message (E));
    end Do_APC;
@@ -210,12 +213,12 @@ package body System.RPC is
          Request_Id_Server.Free (Id);
          pragma Debug (D (D_Debug, "Copying the result"));
          pragma Assert (Tmp.Result /= null);
-         Streams.Copy (Tmp.Result.all, Result.X'Access);
+         Streams.Deep_Copy (Tmp.Result.all, Result.X'Access);
          Streams.Free (Tmp.Result);
       end;
       pragma Debug (D (D_Debug, "Returning from Do_RPC"));
    exception
-      when E : System.Garlic.Types.Communication_Error =>
+      when E : System.Garlic.Communication_Error =>
          Raise_Exception (Communication_Error'Identity,
                           Exception_Message (E));
    end Do_RPC;
@@ -235,7 +238,7 @@ package body System.RPC is
       Register_Partition_Error_Notification
         (Partition_Error_Notification'Access);
    exception
-      when E : System.Garlic.Types.Communication_Error =>
+      when E : System.Garlic.Communication_Error =>
          Raise_Exception (Communication_Error'Identity,
                           Exception_Message (E));
    end Establish_RPC_Receiver;
@@ -312,7 +315,7 @@ package body System.RPC is
                  (D (D_Debug,
                      "RPC or APC request received from partition" &
                      Partition'Img));
-               Streams.Copy (Params.all, Params_Copy);
+               Streams.Deep_Copy (Params.all, Params_Copy);
                if not Asynchronous then
                   Id := Header.Id;
                   pragma Debug
@@ -332,7 +335,7 @@ package body System.RPC is
                      Partition'Img & " (request" & Header.Id'Img & ")"));
                Result.Result :=
                 new Streams.Params_Stream_Type (Params.Initial_Size);
-               Streams.Copy (Params.all, Result.Result);
+               Streams.Deep_Copy (Params.all, Result.Result);
                pragma Debug
                  (D (D_Debug, "Signaling that the result is available"));
                Result_Watcher.Set (Header.Id, Result);
@@ -371,7 +374,7 @@ package body System.RPC is
    begin
       System.Garlic.Streams.Read (Stream.X, Item, Last);
    exception
-      when E : System.Garlic.Types.Communication_Error =>
+      when E : System.Garlic.Communication_Error =>
          Raise_Exception (Communication_Error'Identity,
                           Exception_Message (E));
    end Read;
@@ -554,7 +557,7 @@ package body System.RPC is
    begin
       Streams.Write (Stream.X, Item);
    exception
-      when E : System.Garlic.Types.Communication_Error =>
+      when E : System.Garlic.Communication_Error =>
          Raise_Exception (Communication_Error'Identity,
                           Exception_Message (E));
    end Write;
