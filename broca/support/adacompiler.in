@@ -12,9 +12,9 @@ while [ $# -gt 1 ]; do
 done
 
 tmp="tmp$$"
+trap "rm -rf $tmp" 0 1 2 3 15
 mkdir $tmp
 newname=$tmp/`echo $1 | sed -e 's,^\.libs/\(.*\).lo$,\1.o,'`
 $ADA $cline$newname
 mv $newname $1
 mv $tmp/*.ali .
-rmdir $tmp
