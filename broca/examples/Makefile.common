@@ -21,7 +21,7 @@ CLEANFILES = b~*.* \
 
 DISTCLEANFILES = client server
 
-all-local: client server
+all-local: client server dynclient
 
 %.ads %.adb: %.idl $(IDLAC)
 	$(IDLAC) $<
@@ -34,6 +34,9 @@ $(SOCK_CONS):
 
 client server: force $(EXAMPLE).ads
 	$(GNATMAKE) $@ $(EXAMPLES_GNATMAKE_FLAGS)
+
+dynclient: force
+	if test -a $@; then $(GNATMAKE) $@ $(EXAMPLES_GNATMAKE_FLAGS); fi;
 
 force::
 	cd ../../src && $(MAKE)
