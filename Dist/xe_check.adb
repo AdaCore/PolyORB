@@ -356,7 +356,7 @@ package body XE_Check is
                --  empty as it contains at least one unit.
 
                declare
-                  PID : PID_Type := CUnits.Table (U).Partition;
+                  PID : constant PID_Type := CUnits.Table (U).Partition;
                begin
                   Set_PID (Partitions.Table (PID).Name, PID);
                end;
@@ -743,8 +743,8 @@ package body XE_Check is
    is
       A : ALI_Id;
       T : Text_Buffer_Ptr;
-      L : File_Name_Type := Withs.Table (W).Afile;
-      N : Unit_Name_Type := U_To_N (Withs.Table (W).Uname);
+      L : constant File_Name_Type := Withs.Table (W).Afile;
+      N : constant Unit_Name_Type := U_To_N (Withs.Table (W).Uname);
 
       FU : Unit_Id;
       LU : Unit_Id;
@@ -852,7 +852,7 @@ package body XE_Check is
      (Uname : in Unit_Name_Type;
       Fatal : in Boolean)
    is
-      N : Name_Id := U_To_N (Uname);
+      N : constant Name_Id := U_To_N (Uname);
 
    begin
       if Get_Name_Table_Info (N) /= 0 then
