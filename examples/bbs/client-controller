@@ -1,0 +1,52 @@
+#! /bin/sh
+
+# A simple script to launch an automated test run.
+# Highly dependant on the local setup.
+# $Id$
+
+ab_names=/infres/shalmaneser/quinot/projects/droopi/cos/naming/ab_names
+serverp=/infres/shalmaneser/quinot/projects/droopi/examples/bbs/serverp
+evolutedp=/infres/ir10/astre/quinot/polyorb-sparc/build/examples/bbs/evolutedp
+cliout=/infres/ir10/astre/quinot/polyorb-sparc/output
+
+$ab_names > ab_names.out &
+ab_names_pid=$!
+sleep 1
+. ab_names.out
+export POLYORB_CORBA_NAMING_IOR
+
+$serverp > serverp.out &
+serverp_pid=$!
+
+Revolutedp_pids=""
+clinumber=0
+
+host_0=merlin
+host_1=marius
+host_2=ubu
+nmax=3
+
+while [ $clinumber -lt $nmax ]; do
+  ctl=/tmp/cli${clinumber}_ctl
+  rm -f $ctl
+  mkfifo $ctl
+  host=`eval echo \\\$host_$clinumber`
+  ssh $host "POLYORB_CORBA_NAMING_IOR=$POLYORB_CORBA_NAMING_IOR \
+    LD_LIBRARY_PATH=/usr/local/lib \
+    $evolutedp TEST_$clinumber/$nmax > $cliout/cli$clinumber-$host" < $ctl &
+  Revolutedp_pids="$Revolutedp_pids $!"
+  echo "" > $ctl
+  eval "cli_host_$clinumber=$h"
+  clinumber=`expr $clinumber + 1`
+done
+
+sleep 20
+date
+i=0
+while [ $i -lt $clinumber ]; do
+  echo "" > /tmp/cli${i}_ctl &
+  i=`expr $i + 1`
+done
+date
+
+sleep 1000
