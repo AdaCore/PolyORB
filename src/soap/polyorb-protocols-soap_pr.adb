@@ -109,12 +109,21 @@ package body PolyORB.Protocols.SOAP_Pr is
       --  with a mutex on Session.Pending_Request that would be taken
       --  here in Invoke_Request and released when the answer is
       --  received.
-      P := SOAP.Message.Payload.Build
-        (Types.To_Standard_String (R.Operation),
-         SOAP.Parameters.List'(R.Args with null record));
 
-      pragma Debug (O ("SOAP message constructed: "));
-      pragma Debug (O (SOAP.Message.XML.Image (P)));
+      begin
+         P := SOAP.Message.Payload.Build
+           (Types.To_Standard_String (R.Operation),
+            SOAP.Parameters.List'(R.Args with null record));
+
+         pragma Debug (O ("SOAP message constructed: "));
+         pragma Debug (O (SOAP.Message.XML.Image (P)));
+      exception
+         when others =>
+            --  Cleanup before propagating exception to caller.
+            S.Pending_Rq := null;
+            raise;
+      end;
+
       --  RD := (R_Headers, R_Body => SOAP.Message.XML.Image (P));
       Components.Emit_No_Reply
         (Lower (S),
