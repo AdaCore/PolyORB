@@ -227,6 +227,8 @@ package body PolyORB.Protocols.SOAP_Pr is
          SOAP.Message.Response.Free (M);
       end;
       --  Only evaluate the side effects of Load_Response.
+      --  The values designated by the any's in Return_Args
+      --  will be modified in-place: no copy is necessary.
 
       --  XXX BAD BAD this subprogram does not take into account
       --  the case where a FAULT or EXCEPTION has been received
@@ -235,11 +237,6 @@ package body PolyORB.Protocols.SOAP_Pr is
       S.Pending_Rq := null;
 
       Buffers.Release_Contents (S.In_Buf.all);
-
-      PolyORB.Requests.Pump_Up_Arguments
-        (Dst_Args => R.Args, Src_Args => Return_Args,
-         Direction => ARG_OUT);
-      --  XXX Ignore_Src_Mode => True!
 
       Components.Emit_No_Reply
         (S.Server,
