@@ -394,8 +394,10 @@ package body PolyORB.Protocols.GIOP.GIOP_1_2 is
 
       if not Is_Nil (Args) then
          pragma Debug (O ("Immediate arguments unmarshalling"));
-         Handle_Unmarshall_Arguments
-           (S, Args);
+         S.State := Waiting_Unmarshalling;
+         --  XXX change state name ...
+
+         Handle_Unmarshall_Arguments (S, Args);
       else
          pragma Debug (O ("Unmarshalling of arguments deffered"));
          S.State := Waiting_Unmarshalling;
