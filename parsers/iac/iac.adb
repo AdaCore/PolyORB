@@ -16,9 +16,11 @@ with Frontend.Debug;
 
 procedure IAC is
    Preprocessed_File : File_Descriptor;
+
 begin
 
    --  Initialization step
+
    Namet.Initialize;
    Errors.Initialize;
    Backend.Config.Initialize;
@@ -40,8 +42,44 @@ begin
       end if;
    end if;
 
+   declare
+      First, Last : Natural;
+   begin
+      Get_Name_String (Main_Source);
+
+      --  Remove any prefix
+
+      First := 1;
+      for J in reverse 1 .. Name_Len loop
+         if Name_Buffer (J) = '/'
+           or else Name_Buffer (J) = '\'
+         then
+            First := J + 1;
+            exit;
+         end if;
+      end loop;
+
+      --  Remove any suffix.
+      --
+      --  Implementation note: we do not want any '.' character left
+      --  in the specification unit name since this would require to
+      --  define the parent unit as well.
+
+      Last := Name_Len;
+      for J in First .. Name_Len loop
+         if Name_Buffer (J) = '.' then
+            Last := J - 1;
+            exit;
+         end if;
+      end loop;
+
+      Set_Str_To_Name_Buffer (Name_Buffer (First .. Last));
+      IDL_Spec_Name := Name_Find;
+   end;
+
    --  The "cppargs" section is processed in Lexer.Preprocess.
    --  Preprocessor step
+
    Lexer.Preprocess (Main_Source, Preprocessed_File);
 
    if Preprocess_Only then
@@ -50,12 +88,14 @@ begin
    end if;
 
    --  Lexer step
+
    Lexer.Process (Preprocessed_File, Main_Source);
 
    --  Parser step
-   Parser.Process (Root);
 
-   Analyze (Root);
+   Parser.Process (IDL_Spec);
+
+   Analyze (IDL_Spec);
 
    if Print_Full_Tree then
       Frontend.Debug.W_Full_Tree;
@@ -76,7 +116,7 @@ begin
       DE ("$ warning(s)");
    end if;
 
-   Generate (Root);
+   Generate (IDL_Spec);
 
 exception when Fatal_Error =>
    null;

@@ -37,7 +37,8 @@
 --  for writing error messages and informational output. It is also used
 --  by the debug source file output routines (see Sprintf.Print_Eol).
 
-with Types; use Types;
+with GNAT.OS_Lib;
+with Types;          use Types;
 
 package Output is
 pragma Elaborate_Body (Output);
@@ -45,6 +46,9 @@ pragma Elaborate_Body (Output);
    -----------------
    -- Subprograms --
    -----------------
+
+   procedure Set_Output (New_Output : GNAT.OS_Lib.File_Descriptor);
+   --  Sets subsequent output to appear on the given file
 
    procedure Set_Standard_Error;
    --  Sets subsequent output to appear on the standard error file
@@ -61,7 +65,7 @@ pragma Elaborate_Body (Output);
    --  Write one character to the standard output file. Note that the
    --  character should not be LF or CR (use Write_Eol for end of line)
 
-   procedure Write_Eol;
+   procedure Write_Eol (N : Natural := 1);
    --  Write an end of line (whatever is required by the system in use,
    --  e.g. CR/LF for DOS, or LF for Unix) to the standard output file.
    --  This routine also empties the line buffer, actually writing it
@@ -93,7 +97,7 @@ pragma Elaborate_Body (Output);
    procedure Increment_Indentation;
 
    procedure Set_Space_Increment (Value : Natural);
-   procedure Write_Indentation;
+   procedure Write_Indentation (Offset : Integer := 0);
    procedure Write_Space;
 
    --------------------------

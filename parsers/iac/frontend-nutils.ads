@@ -21,6 +21,8 @@ package Frontend.Nutils is
    procedure Remove_Node_From_List (E : Node_Id; L : List_Id);
    --  Remove node N to list L.
 
+   function Length (L : List_Id) return Natural;
+
    function Is_Empty (L : List_Id) return Boolean;
    pragma Inline (Is_Empty);
    --  Return true when L is empty
@@ -31,6 +33,7 @@ package Frontend.Nutils is
    function Is_Attribute_Or_Operation (E : Node_Id) return Boolean;
    function Is_Interface_Redefinable_Node (E : Node_Id) return Boolean;
    function Is_A_Non_Module (E : Node_Id) return Boolean;
+   function Is_A_Local_Type (E : Node_Id) return Boolean;
 
    function New_Node (Kind : Node_Kind; Loc : Location) return Node_Id;
    function New_List (Kind : Node_Kind; Loc : Location) return List_Id;
@@ -44,8 +47,8 @@ package Frontend.Nutils is
    function Operator (E : Node_Id) return Operator_Type;
    procedure Set_Operator (E : Node_Id; O : Operator_Type);
 
-   function Parameter_Mode (E : Node_Id) return Mode_Type;
-   procedure Set_Parameter_Mode (E : Node_Id; M : Mode_Type);
+   function Parameter_Mode (T : Token_Type) return Mode_Id;
+   function Parameter_Mode (M : Mode_Id) return Token_Type;
 
    function Make_Scoped_Name
      (Loc        : Location;
@@ -56,10 +59,10 @@ package Frontend.Nutils is
    --  Return a scoped name
 
    function Make_Identifier
-     (Loc      : Location;
-      IDL_Name : Name_Id;
-      Node     : Node_Id;
-      Scope    : Node_Id)
+     (Loc          : Location;
+      IDL_Name     : Name_Id;
+      Node         : Node_Id;
+      Scope_Entity : Node_Id)
      return Node_Id;
    --  return identifier
 

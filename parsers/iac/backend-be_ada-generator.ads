@@ -2,8 +2,8 @@ with Types; use Types;
 
 package Backend.BE_Ada.Generator is
 
-   procedure Generate (E : List_Id);
+   Var_Name_Len : Natural := 0;
 
-   Packages : List_Id;
+   procedure Generate (N : Node_Id);
 
 end Backend.BE_Ada.Generator;

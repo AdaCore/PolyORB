@@ -1,0 +1,32 @@
+typedef struct Avocado {
+ float ButterBean;
+ float Fig[3];
+ double Cinnamon;
+ double Cloves[3];
+ long BreadFruit;
+ long Tarragon[3];
+ short BambooShoot;
+ short BeechNut[3];
+ unsigned long Fennell;
+ unsigned long Beetroot[3];
+ unsigned short Pineapple;
+ unsigned short RedPepper[3];
+ char Radish;
+ char Susander[3];
+ boolean Damsons;
+ boolean GreenGrapes[3];
+ octet Mullberry;
+ octet Corn[3];
+} Banana;
+interface idlServer {
+ exception BananaExcpt {
+ Banana ex1;
+ };
+ attribute Banana BananaAttr;
+ Banana BananaOp(in Banana p1, out Banana p2, inout Banana p3) raises (idlServer::BananaExcpt);
+ exception AvocadoExcpt {
+ Avocado ex1;
+ };
+ attribute Avocado AvocadoAttr;
+ Avocado AvocadoOp(in Avocado p1, out Avocado p2, inout Avocado p3) raises (idlServer::AvocadoExcpt);
+};

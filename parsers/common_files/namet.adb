@@ -461,26 +461,6 @@ package body Namet is
       end if;
    end Name_Find;
 
-   -------------------------
-   -- Set_Name_Table_Byte --
-   -------------------------
-
-   procedure Set_Name_Table_Byte (Id : Name_Id; Val : Byte) is
-   begin
-      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
-      Name_Entries.Table (Id).Byte_Info := Val;
-   end Set_Name_Table_Byte;
-
-   -------------------------
-   -- Set_Name_Table_Info --
-   -------------------------
-
-   procedure Set_Name_Table_Info (Id : Name_Id; Val : Int) is
-   begin
-      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
-      Name_Entries.Table (Id).Int_Info := Val;
-   end Set_Name_Table_Info;
-
    -----------------------------
    -- Set_Char_To_Name_Buffer --
    -----------------------------
@@ -500,6 +480,26 @@ package body Namet is
       Name_Len := 0;
       Add_Dnat_To_Name_Buffer (V);
    end Set_Dnat_To_Name_Buffer;
+
+   -------------------------
+   -- Set_Name_Table_Byte --
+   -------------------------
+
+   procedure Set_Name_Table_Byte (Id : Name_Id; Val : Byte) is
+   begin
+      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
+      Name_Entries.Table (Id).Byte_Info := Val;
+   end Set_Name_Table_Byte;
+
+   -------------------------
+   -- Set_Name_Table_Info --
+   -------------------------
+
+   procedure Set_Name_Table_Info (Id : Name_Id; Val : Int) is
+   begin
+      pragma Assert (Id in Name_Entries.First .. Name_Entries.Last);
+      Name_Entries.Table (Id).Int_Info := Val;
+   end Set_Name_Table_Info;
 
    ----------------------------
    -- Set_Nat_To_Name_Buffer --

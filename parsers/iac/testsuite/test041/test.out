@@ -1,0 +1,14 @@
+typedef sequence<float> YellowPepper;
+typedef sequence<float> CoxPippin[4];
+interface idlServer {
+ exception YellowPepperExcpt {
+ YellowPepper ex1;
+ };
+ attribute YellowPepper YellowPepperAttr;
+ YellowPepper YellowPepperOp(in YellowPepper p1, out YellowPepper p2, inout YellowPepper p3) raises (idlServer::YellowPepperExcpt);
+ exception CoxPippinExcpt {
+ CoxPippin ex1;
+ };
+ attribute CoxPippin CoxPippinAttr;
+ CoxPippin CoxPippinOp(in CoxPippin p1, out CoxPippin p2, inout CoxPippin p3) raises (idlServer::CoxPippinExcpt);
+};

@@ -160,11 +160,9 @@ pragma Preelaborate (Types);
    No_Node : constant Node_Id := 0;
 
    function Present (E : Node_Id) return Boolean;
-   pragma Inline (Present);
    --  Return true when E is not No_Node
 
    function No (E : Node_Id) return Boolean;
-   pragma Inline (No);
    --  Return true when E is No_Node
 
    procedure Dummy (E : Node_Id);
@@ -173,8 +171,13 @@ pragma Preelaborate (Types);
    No_List : constant List_Id := 0;
 
    type Operator_Id is new Byte;
-   type Mode_Id is new Byte;
    type Value_Id is new Int;
+
+   Mode_In    : constant := 0;
+   Mode_Inout : constant := 1;
+   Mode_Out   : constant := 2;
+
+   type Mode_Id is new Byte range Mode_In .. Mode_Out;
 
    type Base_Type is new Node_Id;
 

@@ -15,14 +15,14 @@ module Frontend::Nodes {
   /******************/
 
   interface Node_Id {
-    Node_Id    Next_Node;
-    Node_Id    BE_Node;
-    // Link nodes together
+    Node_Id    Next_Entity;
+   
   };
 
   interface Definition : Node_Id {
     Node_Id    Identifier;
     // Identifier associated to definition
+   
   };
 
   interface Forward_Declaration : Definition {
@@ -31,8 +31,9 @@ module Frontend::Nodes {
   };
 
   interface List_Id {
-    Node_Id    First_Node;
-    Node_Id    Last_Node;
+    Node_Id    First_Entity;
+    Node_Id    Last_Entity;
+    long       Size;
   };
 
   interface Scope_Definition : Definition {
@@ -43,15 +44,16 @@ module Frontend::Nodes {
     Name_Id    Name;
     Name_Id    IDL_Name;
     Node_Id    Homonym;
-    Node_Id    Node;
-    Node_Id    Scope;
+    Node_Id    Corresponding_Entity;
+    Node_Id    Scope_Entity;
     Node_Id    Potential_Scope;
-    boolean    Explicitely_Visible;
+    boolean    Visible;
     boolean    Implicitely_Visible;
     Node_Id    Next_Identifier;
+    Node_Id    BE_Node;
+    // Link nodes together
   };
-
-
+  
   /*****************/
   /* Literal nodes */
   /*****************/
@@ -151,7 +153,8 @@ module Frontend::Nodes {
   */
 
   interface Forward_Interface_Declaration : Forward_Declaration {
-    boolean     Is_Abstract;
+    boolean     Is_Abstract_Interface;
+    boolean     Is_Local_Interface;
   };
 
   /*
@@ -159,7 +162,7 @@ module Frontend::Nodes {
   */
 
   interface Value_Forward_Declaration : Forward_Declaration {
-    boolean     Is_Abstract;
+    boolean     Is_Abstract_Value;
   };
 
   /*
@@ -184,7 +187,8 @@ module Frontend::Nodes {
   interface Interface_Name_List : List_Id {};
   interface Interface_Body : List_Id {};
   interface Interface_Declaration : Scope_Definition {
-    boolean     Is_Abstract;
+    boolean     Is_Abstract_Interface;
+    boolean     Is_Local_Interface;
     List_Id     Interface_Spec;
     List_Id     Interface_Body;
   };
@@ -203,7 +207,6 @@ module Frontend::Nodes {
     boolean     Is_Readonly;
     Node_Id     Type_Spec;
     List_Id     Declarators;
-    Node_Id     Base_Interface;
   };
 
 
@@ -247,7 +250,6 @@ module Frontend::Nodes {
     List_Id     Parameters;
     List_Id     Exceptions;
     List_Id     Contexts;
-    Node_Id     Base_Interface;
   };
 
 
@@ -257,7 +259,8 @@ module Frontend::Nodes {
 
   interface Scoped_Name : Definition {
     Node_Id     Reference;
-    Node_Id     Parent;
+    Node_Id     Parent_Entity;
+    long        Depth;
     Node_Id     Next_Scoped_Name;
   };
 
@@ -339,11 +342,7 @@ module Frontend::Nodes {
                                <simple_declarator> 
   */
 
-  interface Initializer_Parameter : Parameter_Declaration {};
-  interface Initializer_Parameter_List : List_Id {};
-  interface Initializer_Declaration : Scope_Definition {
-    List_Id     Parameters;
-  };
+  interface Initializer_Declaration : Operation_Declaration {};
 
 
   /*****************/

@@ -2,7 +2,6 @@ with GNAT.Table;
 with GNAT.Bubble_Sort;
 
 with Errors;    use Errors;
-with Flags;     use Flags;
 with Lexer;     use Lexer;
 with Locations; use Locations;
 with Scopes;    use Scopes;
@@ -16,7 +15,6 @@ with Frontend.Nutils; use Frontend.Nutils;
 
 package body Analyzer is
 
-   procedure Analyze_Abstract_Value_Declaration (E : Node_Id);
    procedure Analyze_Attribute_Declaration (E : Node_Id);
    procedure Analyze_Complex_Declarator (E : Node_Id);
    procedure Analyze_Constant_Declaration (E : Node_Id);
@@ -47,6 +45,12 @@ package body Analyzer is
    procedure Analyze_Value_Declaration (E : Node_Id);
    procedure Analyze_Value_Box_Declaration (E : Node_Id);
    procedure Analyze_Value_Forward_Declaration (E : Node_Id);
+
+   procedure Inherit_From (Parent : Node_Id);
+   --  Add into the scope of the child interface all the entities from
+   --  the scope of the parent interfaces. For each entity of a parent
+   --  interface create a new identifier referencing the entity while
+   --  the entity is still bound to its initial identifier.
 
    procedure Resolve_Expr (E : Node_Id; T : Node_Id);
    function  Resolve_Type (N : Node_Id) return Node_Id;
@@ -81,8 +85,9 @@ package body Analyzer is
       end if;
 
       case Kind (E) is
-         when K_Abstract_Value_Declaration =>
-            Analyze_Abstract_Value_Declaration (E);
+         when K_Abstract_Value_Declaration
+           | K_Value_Declaration =>
+            Analyze_Value_Declaration (E);
 
          when K_Attribute_Declaration =>
             Analyze_Attribute_Declaration (E);
@@ -168,9 +173,6 @@ package body Analyzer is
          when K_Union_Type =>
             Analyze_Union_Type (E);
 
-         when K_Value_Declaration =>
-            Analyze_Value_Declaration (E);
-
          when K_Value_Box_Declaration =>
             Analyze_Value_Box_Declaration (E);
 
@@ -185,27 +187,59 @@ package body Analyzer is
       end case;
    end Analyze;
 
-   ----------------------------------------
-   -- Analyze_Abstract_Value_Declaration --
-   ----------------------------------------
-
-   procedure Analyze_Abstract_Value_Declaration (E : Node_Id) is
-   begin
-      Dummy (E);
-   end Analyze_Abstract_Value_Declaration;
-
    -----------------------------------
    -- Analyze_Attribute_Declaration --
    -----------------------------------
 
-   procedure Analyze_Attribute_Declaration (E : Node_Id)
-   is
-      D : Node_Id := First_Node (Declarators (E));
+   procedure Analyze_Attribute_Declaration (E : Node_Id) is
+
+      procedure No_Interface_Attribute_Of_Local_Type
+        (T : Node_Id; I : Node_Id);
+
+      ------------------------------------------
+      -- No_Interface_Attribute_Of_Local_Type --
+      ------------------------------------------
+
+      procedure No_Interface_Attribute_Of_Local_Type
+        (T : Node_Id; I : Node_Id)
+      is
+         PT : Node_Id := T;
+         TK : Node_Kind;
+
+      begin
+         if Present (PT) and then Kind (PT) = K_Scoped_Name then
+            PT := Reference (PT);
+         end if;
+         if No (PT) then
+            return;
+         end if;
+         TK := Kind (PT);
+         if (TK = K_Forward_Interface_Declaration
+             or else TK = K_Forward_Interface_Declaration)
+           and then Is_A_Local_Type (PT)
+         then
+            Error_Loc (1)  := Loc (T);
+            Error_Name (1) := IDL_Name (Identifier (T));
+            Error_Name (1) := IDL_Name (Identifier (I));
+            DE ("local interface#cannot appear as attribute " &
+                "in unconstrained interface#");
+         end if;
+      end No_Interface_Attribute_Of_Local_Type;
+
+
+      Declarator : Node_Id := First_Entity (Declarators (E));
+      Decl_Type  : constant Node_Id := Type_Spec (E);
+      Interface  : constant Node_Id := Current_Scope;
+
    begin
-      Analyze (Type_Spec (E));
-      while Present (D) loop
-         Analyze (D);
-         D := Next_Node (D);
+      Analyze (Decl_Type);
+      if not Is_A_Local_Type (Interface) then
+         No_Interface_Attribute_Of_Local_Type (Decl_Type, Interface);
+      end if;
+
+      while Present (Declarator) loop
+         Analyze (Declarator);
+         Declarator := Next_Entity (Declarator);
       end loop;
    end Analyze_Attribute_Declaration;
 
@@ -221,10 +255,10 @@ package body Analyzer is
 
       --  The array sizes attribute is never empty
 
-      C := First_Node (Array_Sizes (E));
+      C := First_Entity (Array_Sizes (E));
       while Present (C) loop
          Analyze (C);
-         C := Next_Node (C);
+         C := Next_Entity (C);
       end loop;
    end Analyze_Complex_Declarator;
 
@@ -239,6 +273,10 @@ package body Analyzer is
 
    begin
       T := Type_Spec (E);
+      if No (T) then
+         return;
+      end if;
+
       Analyze (T);
 
       --  Resolve base type of T. Types of constant declaration are
@@ -246,6 +284,10 @@ package body Analyzer is
       --  floating point types, fixed point types.
 
       T := Resolve_Type (T);
+      if No (T) then
+         return;
+      end if;
+
       K := Kind (T);
       if K /= K_Fixed_Point_Type
         and then K not in K_Float .. K_Octet
@@ -285,8 +327,9 @@ package body Analyzer is
    begin
       Enter_Name_In_Scope (Identifier (E));
 
-      C := First_Node (Enumerators (E));
+      C := First_Entity (Enumerators (E));
       while Present (C) loop
+
          --  Define scoped name referencing enumeration type
 
          I := Make_Identifier
@@ -303,10 +346,8 @@ package body Analyzer is
            (Loc (E), N, I, C);
          Bind_Identifier_To_Entity (I, N);
 
-         --  This declaration is already analyzed as reference is set
-
-         Enter_Name_In_Scope (I);
-         C := Next_Node (C);
+         Analyze (N);
+         C := Next_Entity (C);
       end loop;
    end Analyze_Enumeration_Type;
 
@@ -323,10 +364,10 @@ package body Analyzer is
       L := Members (E);
       if not Is_Empty (L) then
          Push_Scope (E);
-         C := First_Node (L);
+         C := First_Entity (L);
          while Present (C) loop
             Analyze (C);
-            C := Next_Node (C);
+            C := Next_Entity (C);
          end loop;
          Pop_Scope;
       end if;
@@ -392,7 +433,7 @@ package body Analyzer is
 
    procedure Analyze_Initializer_Declaration (E : Node_Id) is
    begin
-      Dummy (E);
+      Analyze_Operation_Declaration (E);
    end Analyze_Initializer_Declaration;
 
    -----------------------------------
@@ -401,108 +442,80 @@ package body Analyzer is
 
    procedure Analyze_Interface_Declaration (E : Node_Id) is
 
-      procedure Inherit_From_Interface (P : Node_Id);
-
-      ----------------------------
-      -- Inherit_From_Interface --
-      ----------------------------
-
-      procedure Inherit_From_Interface (P : Node_Id)
-      is
-         E : Node_Id;
-         N : Node_Id;
-         K : Node_Kind;
-      begin
-         N := Scoped_Identifiers (P);
-         while Present (N) loop
-            E := Node (N);
-            K := Kind (E);
-            if K = K_Operation_Declaration then
-               null;
-
-            elsif K in K_Simple_Declarator .. K_Complex_Declarator
-              and then Kind (Declaration (E)) = K_Attribute_Declaration
-            then
-               null;
-
-            else
-               E := No_Node;
-            end if;
-
-            if Present (E) then
-               E := Make_Identifier
-                 (Loc (E), IDL_Name (N), E, Scope (N));
-               Enter_Name_In_Scope (E);
-
-            else
-               Make_Implicitely_Visible (N, True);
-            end if;
-            N := Next_Node (N);
-         end loop;
-      end Inherit_From_Interface;
-
-      I : Node_Id;
-      C : Node_Id;
-      S : List_Id;
-      N : Node_Id;
+      Parent      : Node_Id;
+      Definition  : Node_Id;
+      Scoped_Name : Node_Id;
+      Is_Local    : constant Boolean := Is_A_Local_Type (E);
+      Is_Abstract : constant Boolean := Is_Abstract_Interface (E);
 
    begin
       Enter_Name_In_Scope (Identifier (E));
 
-      --  Analyze interface names, enter them in scope and make them
-      --  visible. Enter their attributes and operations as well and
-      --  made other entities visible.
+      --  Analyze interface names in the current scope (before pushing
+      --  a new scope and inheriting from other interfaces).
 
-      Push_Scope (E);
-      S := Interface_Spec (E);
-      if not Is_Empty (S) then
-         I := First_Node (S);
-         while Present (I) loop
-            Analyze (I);
-            C := Reference (I);
-            if Present (C) then
-               if Kind (C) = K_Interface_Declaration then
-                  Inherit_From_Interface (C);
+      Scoped_Name := First_Entity (Interface_Spec (E));
+      while Present (Scoped_Name) loop
+         Analyze (Scoped_Name);
+         Parent := Reference (Scoped_Name);
+         if Present (Parent) then
+            if Kind (Parent) /= K_Interface_Declaration then
+               if Kind (Parent) = K_Forward_Interface_Declaration then
+                  Error_Loc (1) := Loc (E);
+                  DE ("interface cannot inherit " &
+                      "from a forward-declared interface");
 
                else
-                  if Kind (C) = K_Forward_Interface_Declaration then
-                     Error_Loc (1) := Loc (E);
-                     DE ("interface cannot inherit " &
-                         "from a forward-declared interface");
+                  Error_Loc (1) := Loc (E);
+                  DE ("interface cannot inherit " &
+                      "from a non-interface");
+               end if;
 
-                  else
-                     Error_Loc (1) := Loc (E);
-                     DE ("interface cannot inherit " &
-                         "from a non-interface");
-                  end if;
+               --  Do not consider this interface later on.
+
+               Set_Reference (Scoped_Name, No_Node);
+
+            elsif not Is_Local then
+               if Is_A_Local_Type (Parent) then
+                  Error_Loc (1) := Loc (E);
+                  DE ("interface cannot inherit " &
+                      "from a local interface");
+                  Set_Reference (Scoped_Name, No_Node);
+               end if;
+
+            elsif Is_Abstract then
+               if not Is_Abstract_Interface (Parent) then
+                  Error_Loc (1) := Loc (E);
+                  DE ("abstract interface cannot inherit " &
+                      "from a non-abstract interface");
+                  Set_Reference (Scoped_Name, No_Node);
                end if;
             end if;
-            I := Next_Node (I);
-         end loop;
-      end if;
+         end if;
+         Scoped_Name := Next_Entity (Scoped_Name);
+      end loop;
 
-      --  We append and analyze the new entities of the current interface
+      --  Push a new scope and then inherit from the parent
+      --  interfaces.
 
-      N := First_Node (Interface_Body (E));
-      while Present (N) loop
-         Analyze (N);
-         N := Next_Node (N);
+      Push_Scope (E);
+      Scoped_Name := First_Entity (Interface_Spec (E));
+      while Present (Scoped_Name) loop
+         Parent := Reference (Scoped_Name);
+         if Present (Parent) then
+            Inherit_From (Parent);
+         end if;
+         Scoped_Name := Next_Entity (Scoped_Name);
+      end loop;
+
+      --  Append and analyze the interface entities
+
+      Definition := First_Entity (Interface_Body (E));
+      while Present (Definition) loop
+         Analyze (Definition);
+         Definition := Next_Entity (Definition);
       end loop;
       Pop_Scope;
-
-      --  Remove visibility on the parent interfaces entities
-
-      S := Interface_Spec (E);
-      if not Is_Empty (S) then
-         I := First_Node (S);
-         while Present (I) loop
-            C := Reference (I);
-            if Present (C) then
-               null;
-            end if;
-            I := Next_Node (I);
-         end loop;
-      end if;
    end Analyze_Interface_Declaration;
 
    ---------------------
@@ -518,14 +531,14 @@ package body Analyzer is
    -- Analyze_Member --
    --------------------
 
-   procedure Analyze_Member (E : Node_Id)
-   is
-      D : Node_Id := First_Node (Declarators (E));
+   procedure Analyze_Member (E : Node_Id) is
+      D : Node_Id := First_Entity (Declarators (E));
+
    begin
       Analyze (Type_Spec (E));
       while Present (D) loop
          Analyze (D);
-         D := Next_Node (D);
+         D := Next_Entity (D);
       end loop;
    end Analyze_Member;
 
@@ -545,10 +558,10 @@ package body Analyzer is
       L := Definitions (E);
       if not Is_Empty (L) then
          Push_Scope (E);
-         C := First_Node (L);
+         C := First_Entity (L);
          while Present (C) loop
             Analyze (C);
-            C := Next_Node (C);
+            C := Next_Entity (C);
          end loop;
          Pop_Scope;
       end if;
@@ -567,72 +580,184 @@ package body Analyzer is
    -- Analyze_Operation_Declaration --
    -----------------------------------
 
-   procedure Analyze_Operation_Declaration (E : Node_Id)
-   is
-      Node   : Node_Id;
-      List   : List_Id;
-      Oneway : Boolean := Is_Oneway (E);
-      TSpec  : Node_Id;
+   procedure Analyze_Operation_Declaration (E : Node_Id) is
+
+      procedure No_Operation_Parameter_Of_Local_Type
+        (T : Node_Id; I : Node_Id);
+      procedure No_Exception_Member_Of_Local_Type
+        (X : Node_Id; I : Node_Id);
+
+      ---------------------------------------
+      -- No_Exception_Member_Of_Local_Type --
+      ---------------------------------------
+
+      procedure No_Exception_Member_Of_Local_Type
+        (X : Node_Id; I : Node_Id)
+      is
+         EX : Node_Id := X;
+         EM : Node_Id;
+         MT : Node_Id;
+         TK : Node_Kind;
+
+      begin
+         if Present (EX) and then Kind (EX) = K_Scoped_Name then
+            EX := Reference (EX);
+         end if;
+         if No (EX) then
+            return;
+         end if;
+
+         EM := First_Entity (Members (EX));
+         while Present (EM) loop
+            MT := Type_Spec (EM);
+            if Present (MT) and then Kind (MT) = K_Scoped_Name then
+               MT := Reference (MT);
+            end if;
+            if Present (MT) then
+               TK := Kind (MT);
+               if (TK = K_Forward_Interface_Declaration
+                   or else TK = K_Forward_Interface_Declaration)
+                 and then Is_A_Local_Type (MT)
+               then
+                  Error_Loc (1)  := Loc (EM);
+                  Error_Name (1) := IDL_Name (Identifier (MT));
+                  Error_Name (1) := IDL_Name (Identifier (I));
+                  DE ("local interface#cannot appear " &
+                      "as an exception declaration " &
+                      "in unconstrained interface#");
+               end if;
+            end if;
+            EM := Next_Entity (EM);
+         end loop;
+      end No_Exception_Member_Of_Local_Type;
+
+      ------------------------------------------
+      -- No_Operation_Parameter_Of_Local_Type --
+      ------------------------------------------
+
+      procedure No_Operation_Parameter_Of_Local_Type
+        (T : Node_Id; I : Node_Id)
+      is
+         PT : Node_Id := T;
+         TK : Node_Kind;
+
+      begin
+         if Present (PT) and then Kind (PT) = K_Scoped_Name then
+            PT := Reference (PT);
+         end if;
+         if No (PT) then
+            return;
+         end if;
+         TK := Kind (PT);
+         if (TK = K_Forward_Interface_Declaration
+             or else TK = K_Forward_Interface_Declaration)
+           and then Is_A_Local_Type (PT)
+         then
+            Error_Loc (1)  := Loc (T);
+            Error_Name (1) := IDL_Name (Identifier (T));
+            Error_Name (1) := IDL_Name (Identifier (I));
+            DE ("local interface#cannot appear as parameter " &
+                "in unconstrained interface#");
+         end if;
+      end No_Operation_Parameter_Of_Local_Type;
+
+      Interface     : constant Node_Id := Current_Scope;
+      Is_Local      : constant Boolean := Is_A_Local_Type (Interface);
+      Oneway        : Boolean := Is_Oneway (E);
+      Param_Type    : Node_Id;
+      Op_Parameter  : Node_Id;
+      Op_Exception  : Node_Id;
+      Op_Context    : Node_Id;
 
    begin
-      TSpec := Type_Spec (E);
-      Analyze (TSpec);
-
-      --  Use Oneway to check that this operation is a possible oneway
-      --  operation.
-
-      TSpec := Resolve_Type (TSpec);
-      if Oneway and then Kind (TSpec) /= K_Void then
-         Oneway := False;
-         Error_Loc (1)  := Loc (Type_Spec (E));
-         Error_Name (1) := IDL_Name (Identifier (TSpec));
-         DE ("oneway operation cannot return%");
-      end if;
-
       Enter_Name_In_Scope (Identifier (E));
+
+      if Kind (E) /= K_Initializer_Declaration then
+         Param_Type := Type_Spec (E);
+         Analyze (Param_Type);
+
+         if Kind (Param_Type) = K_Scoped_Name then
+            Param_Type := Reference (Param_Type);
+         end if;
+
+         --  When operation is oneway, check return type is void.
+
+         if Oneway and then Kind (Param_Type) /= K_Void then
+            Oneway := False;
+            Error_Loc (1)  := Loc (Type_Spec (E));
+            DE ("oneway operation cannot return a non-void result");
+         end if;
+
+         --  When the current interface is not local, check that its
+         --  operations do not use local types.
+
+         if not Is_Local then
+            No_Operation_Parameter_Of_Local_Type (Param_Type, Interface);
+         end if;
+      end if;
 
       --  Analyze parameters
 
-      List := Parameters (E);
-      if not Is_Empty (List) then
+      if not Is_Empty (Parameters (E)) then
          Push_Scope (E);
-         Node := First_Node (List);
-         while Present (Node) loop
-            Analyze (Node);
-            if Oneway and then Parameter_Mode (Node) /= T_In then
+         Op_Parameter := First_Entity (Parameters (E));
+         while Present (Op_Parameter) loop
+            Analyze (Op_Parameter);
+
+            --  When operation is oneway, check parameter mode is "in"
+
+            if Oneway and then Parameter_Mode (Op_Parameter) /= Mode_In then
                Oneway := False;
-               Error_Loc (1) := Loc (Node);
+               Error_Loc (1) := Loc (Op_Parameter);
                DE ("oneway operation can only have ""in"" parameters");
             end if;
-            Node := Next_Node (Node);
+
+            --  When the current interface is not local, check
+            --  operation parameter are not local types.
+
+            Param_Type := Type_Spec (Op_Parameter);
+            if not Is_Local then
+               No_Operation_Parameter_Of_Local_Type (Param_Type, Interface);
+            end if;
+
+            Op_Parameter := Next_Entity (Op_Parameter);
          end loop;
          Pop_Scope;
       end if;
 
       --  Analyze exceptions
 
-      List := Exceptions (E);
-      if not Is_Empty (List) then
-         Node := First_Node (List);
-         while Present (Node) loop
-            Analyze (Node);
+      if not Is_Empty (Exceptions (E)) then
+         Op_Exception := First_Entity (Exceptions (E));
+         while Present (Op_Exception) loop
+            Analyze (Op_Exception);
+
+            --  When operation is oneway, no exception is allowed
+
             if Oneway then
                Oneway := False;
-               Error_Loc (1) := Loc (Node);
+               Error_Loc (1) := Loc (Op_Exception);
                DE ("oneway operation cannot raise exceptions");
             end if;
-            Node := Next_Node (Node);
+
+            --  When the current interface is not local, check
+            --  an exception member is not of local type.
+
+            if not Is_Local then
+               No_Exception_Member_Of_Local_Type (Op_Exception, Interface);
+            end if;
+
+            Op_Exception := Next_Entity (Op_Exception);
          end loop;
       end if;
 
       --  Analyze contexts
 
-      List := Contexts (E);
-      if not Is_Empty (List) then
-         Node := First_Node (List);
-         while Present (Node) loop
-            Analyze (Node);
-            Node := Next_Node (Node);
+      if not Is_Empty (Contexts (E)) then
+         Op_Context := First_Entity (Contexts (E));
+         while Present (Op_Context) loop
+            Analyze (Op_Context);
+            Op_Context := Next_Entity (Op_Context);
          end loop;
       end if;
    end Analyze_Operation_Declaration;
@@ -651,14 +776,13 @@ package body Analyzer is
    -- Analyze_Scoped_Name --
    -------------------------
 
-   procedure Analyze_Scoped_Name (E : Node_Id)
-   is
-      P : Node_Id := Parent (E);
+   procedure Analyze_Scoped_Name (E : Node_Id) is
+      P : Node_Id := Parent_Entity (E);
       N : Node_Id := Identifier (E);
       C : Node_Id;
+
    begin
-      --  This scoped name has already been analyzed because probably
-      --  expanded.
+      --  This scoped name has already been analyzed.
 
       if Present (Reference (E)) then
          return;
@@ -667,11 +791,11 @@ package body Analyzer is
       --  Analyze single scoped name. First we have to find a possible
       --  visible entity. If there is one, associate the reference to
       --  the designated entity and check whether the casing is
-      --  correct.
+      --  correct. Enter the name in the scope.
 
       if No (P) then
-         if Name (N) = Root_Name then
-            Set_Reference (E, Root);
+         if Name (N) = No_Name then
+            Set_Reference (E, IDL_Spec);
 
          else
             C := Visible_Node (N);
@@ -684,7 +808,7 @@ package body Analyzer is
 
       --  Analyze multiple scoped names. Analyze parent P first and
       --  then and the entity itself. Find the entity in the
-      --  newly-computed parent scope. Check whether the scope is a
+      --  newly-analyzed parent scope. Check whether the scope is a
       --  correct scope for a scoped name (not an operation for
       --  instance).
 
@@ -694,18 +818,32 @@ package body Analyzer is
          if Present (P) then
             if Is_A_Scope (P) then
                C := Node_Explicitly_In_Scope (N, P);
-               if Present (C) then
-                  Set_Reference (E, C);
-                  Check_Identifier (N, Identifier (C));
+               if No (C) then
+                  Error_Loc (1)  := Loc (N);
+                  Error_Name (1) := IDL_Name (N);
+                  Error_Name (2) := IDL_Name (Identifier (P));
+                  DE ("#not declared in#");
+                  return;
+               end if;
+               Set_Reference (E, C);
+               Check_Identifier (N, Identifier (C));
+
+               --  If this scoped name is the full scoped name (and
+               --  not a part of the scoped name), if this designates
+               --  a type name and if the scope is a non-module
+               --  entity, then enter the name in the scope.
+
+               if Depth (E) = 0
+                 and then Is_A_Type (C)
+                 and then Is_A_Non_Module (Current_Scope)
+               then
+                  Enter_Name_In_Scope (N);
                end if;
 
             else
-               if D_Analyzer then
-                  W_Full_Tree;
-               end if;
                N := Identifier (P);
                Error_Loc  (1) := Loc (N);
-               Error_Name (1) := Name (N);
+               Error_Name (1) := IDL_Name (N);
                DE ("#does not form a scope");
             end if;
          end if;
@@ -736,7 +874,7 @@ package body Analyzer is
 
    procedure Analyze_State_Member (E : Node_Id) is
    begin
-      Dummy (E);
+      Analyze_Member (E);
    end Analyze_State_Member;
 
    --------------------
@@ -761,10 +899,10 @@ package body Analyzer is
       L := Members (E);
       if not Is_Empty (L) then
          Push_Scope (E);
-         C := First_Node (L);
+         C := First_Entity (L);
          while Present (C) loop
             Analyze (C);
-            C := Next_Node (C);
+            C := Next_Entity (C);
          end loop;
          Pop_Scope;
       end if;
@@ -776,12 +914,12 @@ package body Analyzer is
 
    procedure Analyze_Type_Declaration (E : Node_Id)
    is
-      D : Node_Id := First_Node (Declarators (E));
+      D : Node_Id := First_Entity (Declarators (E));
    begin
       Analyze (Type_Spec (E));
       while Present (D) loop
          Analyze (D);
-         D := Next_Node (D);
+         D := Next_Entity (D);
       end loop;
    end Analyze_Type_Declaration;
 
@@ -789,13 +927,15 @@ package body Analyzer is
    -- Analyze_Union_Type --
    ------------------------
 
-   procedure Analyze_Union_Type (E : Node_Id)
-   is
+   procedure Analyze_Union_Type (E : Node_Id) is
       Alternative : Node_Id;
       Label       : Node_Id;
       Switch_Type : Node_Id := Switch_Type_Spec (E);
+
    begin
       Enter_Name_In_Scope (Identifier (E));
+
+      Push_Scope (E);
       Analyze (Switch_Type);
 
       --  Check that switch type is a discrete type
@@ -803,9 +943,9 @@ package body Analyzer is
       Switch_Type := Resolve_Type (Switch_Type);
       case Kind (Switch_Type) is
          when K_Short .. K_Wide_Char
-           |  K_Boolean
-           |  K_Octet
-           |  K_Enumeration_Type =>
+           | K_Boolean
+           | K_Octet
+           | K_Enumeration_Type =>
             null;
 
          when others =>
@@ -816,41 +956,43 @@ package body Analyzer is
 
       --  Resolve labels and elements
 
-      Alternative := First_Node (Switch_Type_Body (E));
+      Alternative := First_Entity (Switch_Type_Body (E));
       while Present (Alternative) loop
-         Label := First_Node (Labels (Alternative));
+         Label := First_Entity (Labels (Alternative));
          while Present (Label) loop
             Analyze (Expression (Label));
             Resolve_Expr (Label, Switch_Type);
-            Label := Next_Node (Label);
+            Label := Next_Entity (Label);
          end loop;
          Analyze (Element (Alternative));
-         Alternative := Next_Node (Alternative);
+         Alternative := Next_Entity (Alternative);
       end loop;
 
       --  Check there is no duplicated choice
 
       LT.Init;
-      Alternative := First_Node (Switch_Type_Body (E));
+      Alternative := First_Entity (Switch_Type_Body (E));
       while Present (Alternative) loop
-         Label := First_Node (Labels (Alternative));
+         Label := First_Entity (Labels (Alternative));
          while Present (Label) loop
             LT.Append (Label);
-            Label := Next_Node (Label);
+            Label := Next_Entity (Label);
          end loop;
-         Alternative := Next_Node (Alternative);
+         Alternative := Next_Entity (Alternative);
       end loop;
 
       GNAT.Bubble_Sort.Sort (LT.Last, Exchange'Access, Less_Than'Access);
-
       for I in 1 .. LT.Last - 1 loop
 
          --  If this comparison is false once sorted, it means that
-         --  the two nodes are equal. This is not an issue when these
-         --  nodes are already incorrect (No_Value).
+         --  the two nodes are equal. Take care of duplicated default
+         --  case. Having two incorrect nodes equal is not a problem.
 
-         if not Less_Than (I, I + 1)
-           and then Value (LT.Table (I)) /= No_Value
+         if (No (Expression (LT.Table (I)))
+             and then No (Expression (LT.Table (I + 1))))
+           or else
+            (Value (LT.Table (I)) /= No_Value
+             and then not Less_Than (I, I + 1))
          then
 
             --  Reorder nodes in order to output the error message on
@@ -868,6 +1010,7 @@ package body Analyzer is
             exit;
          end if;
       end loop;
+      Pop_Scope;
    end Analyze_Union_Type;
 
    -----------------------------------
@@ -877,6 +1020,7 @@ package body Analyzer is
    procedure Analyze_Value_Box_Declaration (E : Node_Id) is
    begin
       Enter_Name_In_Scope (Identifier (E));
+      Analyze (Type_Spec (E));
    end Analyze_Value_Box_Declaration;
 
    -------------------------------
@@ -884,8 +1028,128 @@ package body Analyzer is
    -------------------------------
 
    procedure Analyze_Value_Declaration (E : Node_Id) is
+      Scoped_Name  : Node_Id;
+      Parent       : Node_Id;
+      Definition   : Node_Id;
+      Scoped_Names : List_Id;
+      Parent_Kind  : Node_Kind;
+      Is_Abstract  : constant Boolean :=
+        (Kind (E) = K_Abstract_Value_Declaration);
+
    begin
-      Dummy (E);
+      Enter_Name_In_Scope (Identifier (E));
+
+      --  Analyze value type names in the current scope (before pushing
+      --  a new scope and inheriting from other value types).
+
+      Scoped_Names := Value_Names (Value_Spec (E));
+      if not Is_Empty (Scoped_Names) then
+         Scoped_Name := First_Entity (Scoped_Names);
+         while Present (Scoped_Name) loop
+            Analyze (Scoped_Name);
+            Parent := Reference (Scoped_Name);
+            if Present (Parent) then
+               Parent_Kind := Kind (Parent);
+               if Parent_Kind /= K_Value_Declaration
+                 and then Parent_Kind /= K_Abstract_Value_Declaration
+               then
+                  if Parent_Kind = K_Value_Forward_Declaration then
+                     Error_Loc (1) := Loc (E);
+                     DE ("value type cannot inherit " &
+                         "from a forward-declared value type");
+
+                  else
+                     Error_Loc (1) := Loc (E);
+                     DE ("value type cannot inherit " &
+                         "from a non-value type");
+                  end if;
+
+                  --  Do not consider this value type later on.
+
+                  Set_Reference (Scoped_Name, No_Node);
+
+               elsif Is_Abstract
+                 and then Parent_Kind /= K_Abstract_Value_Declaration
+               then
+                  Error_Loc (1) := Loc (E);
+                  DE ("abstract value type cannot inherit " &
+                      "from a non-abstract value type");
+                  Set_Reference (Scoped_Name, No_Node);
+               end if;
+            end if;
+            Scoped_Name := Next_Entity (Scoped_Name);
+         end loop;
+      end if;
+
+      --  Analyze interface names in the current scope (before pushing
+      --  a new scope).
+
+      Scoped_Names := Interface_Names (Value_Spec (E));
+      if not Is_Empty (Scoped_Names) then
+         Scoped_Name := First_Entity (Scoped_Names);
+         while Present (Scoped_Name) loop
+            Analyze (Scoped_Name);
+            Parent := Reference (Scoped_Name);
+            if Present (Parent) then
+               if Kind (Parent) /= K_Interface_Declaration then
+                  if Kind (Parent) = K_Forward_Interface_Declaration then
+                     Error_Loc (1) := Loc (E);
+                     DE ("interface cannot inherit " &
+                         "from a forward-declared interface");
+
+                  else
+                     Error_Loc (1) := Loc (E);
+                     DE ("interface cannot inherit " &
+                         "from a non-interface");
+                  end if;
+
+                  --  Do not consider this interface later on.
+
+                  Set_Reference (Scoped_Name, No_Node);
+               end if;
+            end if;
+            Scoped_Name := Next_Entity (Scoped_Name);
+         end loop;
+      end if;
+
+      --  Push a new scope and then inherit from the parent
+      --  value types.
+
+      Push_Scope (E);
+      Scoped_Names := Value_Names (Value_Spec (E));
+      if not Is_Empty (Scoped_Names) then
+         Scoped_Name := First_Entity (Scoped_Names);
+         while Present (Scoped_Name) loop
+            Parent := Reference (Scoped_Name);
+            if Present (Parent) then
+               Inherit_From (Parent);
+            end if;
+            Scoped_Name := Next_Entity (Scoped_Name);
+         end loop;
+      end if;
+
+      --  Inherit from the parent interfaces.
+
+      Scoped_Names := Interface_Names (Value_Spec (E));
+      if not Is_Empty (Scoped_Names) then
+         Scoped_Name := First_Entity (Scoped_Names);
+         while Present (Scoped_Name) loop
+            Parent := Reference (Scoped_Name);
+            if Present (Parent) then
+               Inherit_From (Parent);
+            end if;
+            Scoped_Name := Next_Entity (Scoped_Name);
+         end loop;
+      end if;
+
+      --  Append and analyze the value entities
+
+      Definition := First_Entity (Value_Body (E));
+      while Present (Definition) loop
+         Analyze (Definition);
+         Definition := Next_Entity (Definition);
+      end loop;
+      Pop_Scope;
    end Analyze_Value_Declaration;
 
    ---------------------------------------
@@ -894,7 +1158,7 @@ package body Analyzer is
 
    procedure Analyze_Value_Forward_Declaration (E : Node_Id) is
    begin
-      Dummy (E);
+      Enter_Name_In_Scope (Identifier (E));
    end Analyze_Value_Forward_Declaration;
 
    -----------------------------
@@ -928,12 +1192,43 @@ package body Analyzer is
       LT.Table (Op2) := N;
    end Exchange;
 
+   ------------------
+   -- Inherit_From --
+   ------------------
+
+   procedure Inherit_From (Parent : Node_Id) is
+      Entity     : Node_Id;
+      Identifier : Node_Id;
+
+   begin
+      Identifier := Scoped_Identifiers (Parent);
+      while Present (Identifier) loop
+         Entity := Corresponding_Entity (Identifier);
+
+         --  Do not add to the scope a scoped name that was introduced
+         --  in a parent scope. If the interface inherits from parent
+         --  entities, this is a new scope in which the names
+         --  introduced for the parents are no longer considered.
+
+         if Present (Entity)
+           and then Kind (Entity) /= K_Scoped_Name
+         then
+            Enter_Name_In_Scope
+              (Make_Identifier
+               (Loc (Entity),
+                IDL_Name (Identifier),
+                Entity,
+                Current_Scope));
+         end if;
+         Identifier := Next_Entity (Identifier);
+      end loop;
+   end Inherit_From;
+
    ---------------
    -- Less_Than --
    ---------------
 
-   function  Less_Than (Op1, Op2 : Natural) return Boolean
-   is
+   function  Less_Than (Op1, Op2 : Natural) return Boolean is
       N1, N2 : Node_Id;
       V1, V2 : Value_Id;
 
@@ -942,7 +1237,7 @@ package body Analyzer is
       --  N1 is default
 
       N1 := LT.Table (Op1);
-      if No (N1) then
+      if No (Expression (N1)) then
          return False;
       end if;
       V1 := Value (N1);
@@ -950,7 +1245,7 @@ package body Analyzer is
       --  N2 is default
 
       N2 := LT.Table (Op2);
-      if No (N2) then
+      if No (Expression (N2)) then
          return True;
       end if;
       V2 := Value (N2);
@@ -1448,6 +1743,7 @@ package body Analyzer is
 
    function Resolve_Type (N : Node_Id) return Node_Id is
       T : Node_Id := N;
+
    begin
       while Present (T) loop
          case Kind (T) is
@@ -1456,6 +1752,12 @@ package body Analyzer is
 
             when K_Scoped_Name =>
                T := Reference (T);
+
+            when K_Forward_Interface_Declaration
+              |  K_Value_Forward_Declaration
+              |  K_Forward_Structure_Type
+              |  K_Forward_Union_Type =>
+               T := Forward (T);
 
             when others =>
                exit;

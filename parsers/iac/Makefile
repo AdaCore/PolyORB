@@ -135,7 +135,9 @@ GNATFLAGS = -g -O2 -gnatfy -gnatwae -gnatoa -fstack-check -gnatg
 
 PROG = iac
 
-PROG_FILES = frontend-nodes.ada backend-be_ada-nodes.ada
+PROG_FILES = \
+frontend-nodes.ada \
+backend-be_ada-nodes.ada
 
 CLEANFILES = *.o *.ali b~*.ads b~*.adb *~
 
@@ -349,17 +351,22 @@ all-local: $(PROG)
 %.ada:%.idl mknodes
 	@-./mknodes $< >$@
 	gnatchop -w $@
+	$(GNATMAKE) -m -gnata $(includes) $*.adb\
+		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 mknodes : force 
-	$(GNATMAKE) -m -gnata $(includes) $@\
+	$(GNATMAKE) -m -gnata -gnatyo $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 $(PROG): force mknodes $(PROG_FILES)
-	$(GNATMAKE) -m -gnata $(includes) $@\
+
+	$(GNATMAKE) -m -gnata -gnatyo $(includes) $@\
 		-cargs $(GNATFLAGS) -bargs $(BARGS)
 
 tests: $(PROG)
-	(cd testsuite; $(MAKE) all)
+	@for i in `cat testsuite/MANIFEST | grep -v '^#'`; do \
+	  testsuite/run-test testsuite/$$i; \
+	done
 
 force::
 

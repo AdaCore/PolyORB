@@ -49,8 +49,8 @@ procedure Mknodes is
       function Type_Spec (N : Node_Id) return Node_Id;
       procedure Set_Type_Spec (N : Node_Id; V : Node_Id);
 
-      function Scope (N : Node_Id) return Node_Id;
-      procedure Set_Scope (N : Node_Id; V : Node_Id);
+      function Scope_Entity (N : Node_Id) return Node_Id;
+      procedure Set_Scope_Entity (N : Node_Id; V : Node_Id);
 
       function First_Entity (N : Node_Id) return Node_Id;
       procedure Set_First_Entity (N : Node_Id; V : Node_Id);
@@ -68,7 +68,7 @@ procedure Mknodes is
          Loc        : Location;
          Identifier : Name_Id;
          Type_Spec  : Node_Id;
-         Scope      : Node_Id;
+         Scope_Entity      : Node_Id;
          First_Entity : Node_Id;
          Last_Entity  : Node_Id;
          Next_Entity  : Node_Id;
@@ -211,17 +211,13 @@ procedure Mknodes is
    function W     (S : String) return String;
    --  Formating routines
 
-   -----------
-   -- Nodes --
-   -----------
-
    package body Nodes is
 
       use Entries;
 
-      ----------------
+      ------------------
       -- First_Entity --
-      ----------------
+      ------------------
 
       function First_Entity (N : Node_Id) return Node_Id is
       begin
@@ -264,15 +260,6 @@ procedure Mknodes is
          return Table (N).Loc;
       end Loc;
 
-      -----------------
-      -- Next_Entity --
-      -----------------
-
-      function Next_Entity (N : Node_Id) return Node_Id is
-      begin
-         return Table (N).Next_Entity;
-      end Next_Entity;
-
       --------------
       -- New_Node --
       --------------
@@ -289,14 +276,23 @@ procedure Mknodes is
          return Node;
       end New_Node;
 
-      -----------
-      -- Scope --
-      -----------
+      -----------------
+      -- Next_Entity --
+      -----------------
 
-      function Scope (N : Node_Id) return Node_Id is
+      function Next_Entity (N : Node_Id) return Node_Id is
       begin
-         return Table (N).Scope;
-      end Scope;
+         return Table (N).Next_Entity;
+      end Next_Entity;
+
+      ------------------
+      -- Scope_Entity --
+      ------------------
+
+      function Scope_Entity (N : Node_Id) return Node_Id is
+      begin
+         return Table (N).Scope_Entity;
+      end Scope_Entity;
 
       ----------------------
       -- Set_First_Entity --
@@ -325,15 +321,6 @@ procedure Mknodes is
          Table (N).Last_Entity := V;
       end Set_Last_Entity;
 
-      ---------------
-      -- Set_Scope --
-      ---------------
-
-      procedure Set_Scope (N : Node_Id; V : Node_Id) is
-      begin
-         Table (N).Scope := V;
-      end Set_Scope;
-
       ---------------------
       -- Set_Next_Entity --
       ---------------------
@@ -342,6 +329,15 @@ procedure Mknodes is
       begin
          Table (N).Next_Entity := V;
       end Set_Next_Entity;
+
+      ----------------------
+      -- Set_Scope_Entity --
+      ----------------------
+
+      procedure Set_Scope_Entity (N : Node_Id; V : Node_Id) is
+      begin
+         Table (N).Scope_Entity := V;
+      end Set_Scope_Entity;
 
       -------------------
       -- Set_Type_Spec --
@@ -401,7 +397,7 @@ procedure Mknodes is
       Attr := First_Attribute;
       while Attr /= No_Node loop
          if Identifier (Attr) = Name then
-            Intf := Scope (Attr);
+            Intf := Scope_Entity (Attr);
             if Debug then
                Write_Str ("--  find attribute in ");
                Write_Name (Identifier (Intf));
@@ -487,6 +483,37 @@ procedure Mknodes is
       return Declaration_Type (Get_Name_Table_Byte (Identifier (N)));
    end Declaration;
 
+   -----------------------
+   -- Declare_Attribute --
+   -----------------------
+
+   procedure Declare_Attribute (A : Node_Id) is
+      Type_Name : constant Name_Id := Identifier (Type_Spec (A));
+      Attr_Name : constant Name_Id := Identifier (A);
+      Attribute : Node_Id;
+   begin
+      Attribute := First_Attribute;
+      while Attribute /= No_Node loop
+         if Identifier (Attribute) = Attr_Name then
+            if Identifier (Type_Spec (Attribute)) /= Type_Name then
+               Error_Loc (1) := Loc (A);
+               DE ("attribute type inconsistency");
+               return;
+            end if;
+         end if;
+         Attribute := Next_Entity (Attribute);
+      end loop;
+
+      if First_Attribute = No_Node then
+         First_Attribute := A;
+      end if;
+      if Last_Attribute /= No_Node then
+         Set_Next_Entity (Last_Attribute, A);
+      end if;
+      Last_Attribute := A;
+      N_Attributes := N_Attributes + 1;
+   end Declare_Attribute;
+
    ------------------
    -- Declare_Type --
    ------------------
@@ -521,37 +548,6 @@ procedure Mknodes is
             null;
       end case;
    end Declare_Type;
-
-   -----------------------
-   -- Declare_Attribute --
-   -----------------------
-
-   procedure Declare_Attribute (A : Node_Id) is
-      Type_Name : constant Name_Id := Identifier (Type_Spec (A));
-      Attr_Name : constant Name_Id := Identifier (A);
-      Attribute : Node_Id;
-   begin
-      Attribute := First_Attribute;
-      while Attribute /= No_Node loop
-         if Identifier (Attribute) = Attr_Name then
-            if Identifier (Type_Spec (Attribute)) /= Type_Name then
-               Error_Loc (1) := Loc (A);
-               DE ("attribute type inconsistency");
-               return;
-            end if;
-         end if;
-         Attribute := Next_Entity (Attribute);
-      end loop;
-
-      if First_Attribute = No_Node then
-         First_Attribute := A;
-      end if;
-      if Last_Attribute /= No_Node then
-         Set_Next_Entity (Last_Attribute, A);
-      end if;
-      Last_Attribute := A;
-      N_Attributes := N_Attributes + 1;
-   end Declare_Attribute;
 
    -------------------
    -- Has_Attribute --
@@ -772,7 +768,7 @@ procedure Mknodes is
                   DE ("attribute already defined");
                   return No_Node;
                end if;
-               Set_Scope (Attribute, Interface);
+               Set_Scope_Entity (Attribute, Interface);
                Add_Attribute_To_Interface (Attribute, Interface);
 
             when T_Right_Brace =>
@@ -893,31 +889,6 @@ procedure Mknodes is
       return "W_" & S;
    end W;
 
-   ---------------------
-   -- W_Pragma_Assert --
-   ---------------------
-
-   procedure W_Pragma_Assert (Attribute : Node_Id) is
-      Interface : Node_Id;
-   begin
-      W_Indentation (2);
-      Write_Str     ("pragma Assert (False");
-      Interface := First_Interface;
-      while Interface /= No_Node loop
-         if Is_Attribute_In_Interface (Attribute, Interface) then
-            Write_Eol;
-            W_Indentation (2);
-            Write_Str  ("  or else ");
-            W_Table_Access ('N', "Kind");
-            Write_Str  (" = K_");
-            Write_Name (Identifier (Interface));
-         end if;
-         Interface := Next_Entity (Interface);
-      end loop;
-      Write_Line (");");
-      Write_Eol;
-   end W_Pragma_Assert;
-
    ----------------------
    -- W_Attribute_Body --
    ----------------------
@@ -926,7 +897,7 @@ procedure Mknodes is
       K  : Node_Kind;
       NS : Node_Id;
    begin
-      NS := Scope (A);
+      NS := Scope_Entity (A);
       while Type_Spec (NS) /= No_Node loop
          NS := Type_Spec (NS);
       end loop;
@@ -996,7 +967,7 @@ procedure Mknodes is
    procedure W_Attribute_Spec (A : Node_Id) is
       NS   : Node_Id;
    begin
-      NS := Scope (A);
+      NS := Scope_Entity (A);
       while Type_Spec (NS) /= No_Node loop
          NS := Type_Spec (NS);
       end loop;
@@ -1338,6 +1309,31 @@ procedure Mknodes is
       Write_Line (";");
    end W_Package_Spec;
 
+   ---------------------
+   -- W_Pragma_Assert --
+   ---------------------
+
+   procedure W_Pragma_Assert (Attribute : Node_Id) is
+      Interface : Node_Id;
+   begin
+      W_Indentation (2);
+      Write_Str     ("pragma Assert (False");
+      Interface := First_Interface;
+      while Interface /= No_Node loop
+         if Is_Attribute_In_Interface (Attribute, Interface) then
+            Write_Eol;
+            W_Indentation (2);
+            Write_Str  ("  or else ");
+            W_Table_Access ('N', "Kind");
+            Write_Str  (" = K_");
+            Write_Name (Identifier (Interface));
+         end if;
+         Interface := Next_Entity (Interface);
+      end loop;
+      Write_Line (");");
+      Write_Eol;
+   end W_Pragma_Assert;
+
    -----------------------
    -- W_Subprogram_Call --
    -----------------------
@@ -1380,46 +1376,6 @@ procedure Mknodes is
       end if;
       Write_Line (");");
    end W_Subprogram_Call;
-
-   ----------------------------
-   -- W_Subprogram_Signature --
-   ----------------------------
-
-   procedure W_Subprogram_Signature
-     (I   : Natural;
-      F   : String;
-      PN1 : Character;
-      PT1 : String;
-      PN2 : Character := ' ';
-      PT2 : String := No_Str) is
-   begin
-      W_Indentation (I);
-      if PN2 = ' ' and then PT2 /= No_Str then
-         Write_Str  ("function");
-      else
-         Write_Str  ("procedure");
-      end if;
-      Write_Str  (" ");
-      Write_Str  (F);
-      Write_Str  (" (");
-      Write_Char (PN1);
-      Write_Str  (" : ");
-      Write_Str  (PT1);
-      if PT2 = No_Str then
-         Write_Char (')');
-         return;
-      end if;
-      if PN2 = ' ' then
-         Write_Str  (") return ");
-         Write_Str  (PT2);
-      else
-         Write_Str  ("; ");
-         Write_Char (PN2);
-         Write_Str  (" : ");
-         Write_Str  (PT2);
-         Write_Char (')');
-      end if;
-   end W_Subprogram_Signature;
 
    ------------------------------
    -- W_Subprogram_Declaration --
@@ -1466,6 +1422,46 @@ procedure Mknodes is
       W_Indentation (I);
       Write_Line ("end " & F & ";");
    end W_Subprogram_Definition_End;
+
+   ----------------------------
+   -- W_Subprogram_Signature --
+   ----------------------------
+
+   procedure W_Subprogram_Signature
+     (I   : Natural;
+      F   : String;
+      PN1 : Character;
+      PT1 : String;
+      PN2 : Character := ' ';
+      PT2 : String := No_Str) is
+   begin
+      W_Indentation (I);
+      if PN2 = ' ' and then PT2 /= No_Str then
+         Write_Str  ("function");
+      else
+         Write_Str  ("procedure");
+      end if;
+      Write_Str  (" ");
+      Write_Str  (F);
+      Write_Str  (" (");
+      Write_Char (PN1);
+      Write_Str  (" : ");
+      Write_Str  (PT1);
+      if PT2 = No_Str then
+         Write_Char (')');
+         return;
+      end if;
+      if PN2 = ' ' then
+         Write_Str  (") return ");
+         Write_Str  (PT2);
+      else
+         Write_Str  ("; ");
+         Write_Char (PN2);
+         Write_Str  (" : ");
+         Write_Str  (PT2);
+         Write_Char (')');
+      end if;
+   end W_Subprogram_Signature;
 
    --------------------
    -- W_Table_Access --

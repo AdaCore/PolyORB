@@ -70,6 +70,24 @@ package body Output is
    procedure Flush_Buffer;
    --  Flush buffer if non-empty and reset column counter
 
+   ------------
+   -- Column --
+   ------------
+
+   function Column return Nat is
+   begin
+      return Next_Column;
+   end Column;
+
+   ---------------------------
+   -- Decrement_Indentation --
+   ---------------------------
+
+   procedure Decrement_Indentation is
+   begin
+      N_Space := N_Space - Space_Increment;
+   end Decrement_Indentation;
+
    ------------------
    -- Flush_Buffer --
    ------------------
@@ -104,24 +122,6 @@ package body Output is
       end if;
    end Flush_Buffer;
 
-   ------------
-   -- Column --
-   ------------
-
-   function Column return Nat is
-   begin
-      return Next_Column;
-   end Column;
-
-   ---------------------------
-   -- Decrement_Indentation --
-   ---------------------------
-
-   procedure Decrement_Indentation is
-   begin
-      N_Space := N_Space - Space_Increment;
-   end Decrement_Indentation;
-
    ---------------------------
    -- Increment_Indentation --
    ---------------------------
@@ -130,6 +130,17 @@ package body Output is
    begin
       N_Space := N_Space + Space_Increment;
    end Increment_Indentation;
+
+   ----------------
+   -- Set_Output --
+   ----------------
+
+   procedure Set_Output (New_Output : File_Descriptor) is
+   begin
+      Flush_Buffer;
+      Next_Column := 1;
+      Current_FD := New_Output;
+   end Set_Output;
 
    -------------------------
    -- Set_Space_Increment --
@@ -239,20 +250,22 @@ package body Output is
    -- Write_Eol --
    ---------------
 
-   procedure Write_Eol is
+   procedure Write_Eol (N : Natural := 1) is
    begin
-      Buffer (Natural (Next_Column)) := ASCII.LF;
-      Next_Column := Next_Column + 1;
-      Flush_Buffer;
+      for I in 1 .. N loop
+         Buffer (Natural (Next_Column)) := ASCII.LF;
+         Next_Column := Next_Column + 1;
+         Flush_Buffer;
+      end loop;
    end Write_Eol;
 
    -----------------------
    -- Write_Indentation --
    -----------------------
 
-   procedure Write_Indentation is
+   procedure Write_Indentation (Offset : Integer := 0) is
    begin
-      for I in 1 .. N_Space loop
+      for I in 1 .. N_Space + Offset loop
          Write_Char (' ');
       end loop;
    end Write_Indentation;

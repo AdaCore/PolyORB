@@ -26,14 +26,13 @@ faut connecter l'arbre IDL et l'arbre Ada. ie etre capable de
 retrouver le noeud IDL correspondant a un noeud Ada et vice versa.
 
 
-3 - Stub Generation
+3 - Code Generation
 -------------------
 
   - In this stage, stub packages are generated, following the Ada
   Language Mapping Specification. For each IDL definition an Ada
-  package or an Ada structure are generated and attached to the tree.
+  package or an Ada structure are generated and inserted to the tree.
 
-LP: les stubs ne sont generes que pour les interfaces.
 
   - Here are the rules of the tree translation:
 
@@ -91,7 +90,7 @@ autre que Ada. Par analogie, pas FE_Node mais FE_Node.
   Reference Type Definition, following this rules:
  
     * Create a Type_Declaration node. Set its identifier name to "Ref"
-      if the corresponding interface is unconstrained (???), to
+      if the corresponding interface is unconstrained (), to
       "Abstract_Ref" if the interface is Abstract, or to "Local_Ref"
       if the interface is Local.
 
@@ -116,7 +115,7 @@ autre que Ada. Par analogie, pas FE_Node mais FE_Node.
 
   - If the Type_Spec is an IDL Base_Type (Node_Kind in {K_Float
   .. F_Octet}). We add to the image of the Type, "CORBA." as a prefix,
-  and replace all spaces by underscores.
+  and replace all spaces with underscores.
           
   
 3.5 - Type Declaration

@@ -177,6 +177,43 @@ package body Lexer is
 
    Token_Image : array (Token_Type) of Name_Id;
 
+   -----------------------------------
+   -- Eval_Integer_From_Name_Buffer --
+   -----------------------------------
+
+   procedure Eval_Integer_From_Name_Buffer
+     (Base  : Unsigned_Short_Short;
+      Fatal : Boolean)
+   is
+      C : Character;
+      D : Natural;
+   begin
+      Integer_Literal_Value := 0;
+      for I in 1 .. Name_Len loop
+         C := Name_Buffer (I);
+         if Integer_Literal_Base = 8 and then C in '8' .. '9' then
+            if Fatal then
+               Error_Loc (1)      := Token_Location;
+               Error_Loc (1).Scan := Error_Loc (1).Scan + Text_Ptr (I - 1);
+               DE ("digit >= base");
+            end if;
+            Skip_Identifier;
+            Token := T_Error;
+            return;
+         end if;
+
+         if C in '0' .. '9' then
+            D := Character'Pos (C) - Character'Pos ('0');
+         else
+            D := Character'Pos (C) - Character'Pos ('a') + 10;
+         end if;
+
+         Integer_Literal_Value :=
+           Integer_Literal_Value * Unsigned_Long_Long (Base)
+           + Unsigned_Long_Long (D);
+      end loop;
+   end Eval_Integer_From_Name_Buffer;
+
    -----------
    -- Image --
    -----------
@@ -312,16 +349,6 @@ package body Lexer is
       Preprocessor : String_Access;
 
    begin
-      --  Use default CPP options:
-      --  -E           only preprocess
-      --  -C           do not discard comments
-      --  -x c++       use c++ preprocessor semantic
-      --  Add_CPP_Flag ("-E");
-      --  Add_CPP_Flag ("-C");
-      --  Add_CPP_Flag ("-x");
-      --  Add_CPP_Flag ("c++");
-      --  Add_CPP_Flag ("-ansi");
-
       Add_CPP_Flag (Get_Name_String (Source));
 
       Create_Temp_File (Tmp_FDesc, Tmp_FName);
@@ -371,6 +398,10 @@ package body Lexer is
 
       Token_Location := Locations.No_Location;
       Set_New_Location (Token_Location, Source, 1);
+
+   exception when others =>
+      Make_Cleanup;
+      raise;
    end Preprocess;
 
    -------------
@@ -427,32 +458,46 @@ package body Lexer is
       New_Token (T_Boolean, "boolean");
       New_Token (T_Case, "case");
       New_Token (T_Char, "char");
+      New_Token (T_Component, "component");
       New_Token (T_Const, "const");
+      New_Token (T_Consumes, "consumes");
       New_Token (T_Context, "context");
       New_Token (T_Custom, "custom");
       New_Token (T_Default, "default");
       New_Token (T_Double, "double");
+      New_Token (T_Emits, "emits");
       New_Token (T_Enum, "enum");
+      New_Token (T_Eventtype, "eventtype");
       New_Token (T_Exception, "exception");
       New_Token (T_Factory, "factory");
       New_Token (T_False, "FALSE");
+      New_Token (T_Finder, "finder");
       New_Token (T_Fixed, "fixed");
       New_Token (T_Float, "float");
+      New_Token (T_Get_Raises, "getraises");
+      New_Token (T_Home, "home");
+      New_Token (T_Import, "import");
       New_Token (T_In, "in");
       New_Token (T_Inout, "inout");
       New_Token (T_Interface, "interface");
+      New_Token (T_Local, "local");
       New_Token (T_Long, "long");
       New_Token (T_Module, "module");
+      New_Token (T_Multiple, "multiple");
       New_Token (T_Native, "native");
       New_Token (T_Object, "Object");
       New_Token (T_Octet, "octet");
       New_Token (T_Oneway, "oneway");
       New_Token (T_Out, "out");
+      New_Token (T_Primary_Key, "primarykey");
       New_Token (T_Private, "private");
+      New_Token (T_Provides, "provides");
       New_Token (T_Public, "public");
+      New_Token (T_Publishes, "publishes");
       New_Token (T_Raises, "raises");
       New_Token (T_Readonly, "readonly");
       New_Token (T_Sequence, "sequence");
+      New_Token (T_Set_Raises, "setraises");
       New_Token (T_Short, "short");
       New_Token (T_String, "string");
       New_Token (T_Struct, "struct");
@@ -461,8 +506,11 @@ package body Lexer is
       New_Token (T_True, "TRUE");
       New_Token (T_Truncatable, "truncatable");
       New_Token (T_Typedef, "typedef");
+      New_Token (T_Type_Id, "typeid");
+      New_Token (T_Type_Prefix, "typeprefix");
       New_Token (T_Unsigned, "unsigned");
       New_Token (T_Union, "union");
+      New_Token (T_Uses, "uses");
       New_Token (T_Value_Base, "ValueBase");
       New_Token (T_Value_Type, "valuetype");
       New_Token (T_Void, "void");
@@ -502,6 +550,10 @@ package body Lexer is
       New_Token (T_Identifier, "<identifier>");
       New_Token (T_Pragma, "<pragma>");
       New_Token (T_EOF, "<end of file>");
+
+   exception when others =>
+      Make_Cleanup;
+      raise;
    end Process;
 
    ------------------
@@ -827,43 +879,6 @@ package body Lexer is
          return;
       end if;
    end Scan_Integer_Literal_Value;
-
-   -----------------------------------
-   -- Eval_Integer_From_Name_Buffer --
-   -----------------------------------
-
-   procedure Eval_Integer_From_Name_Buffer
-     (Base  : Unsigned_Short_Short;
-      Fatal : Boolean)
-   is
-      C : Character;
-      D : Natural;
-   begin
-      Integer_Literal_Value := 0;
-      for I in 1 .. Name_Len loop
-         C := Name_Buffer (I);
-         if Integer_Literal_Base = 8 and then C in '8' .. '9' then
-            if Fatal then
-               Error_Loc (1)      := Token_Location;
-               Error_Loc (1).Scan := Error_Loc (1).Scan + Text_Ptr (I - 1);
-               DE ("digit >= base");
-            end if;
-            Skip_Identifier;
-            Token := T_Error;
-            return;
-         end if;
-
-         if C in '0' .. '9' then
-            D := Character'Pos (C) - Character'Pos ('0');
-         else
-            D := Character'Pos (C) - Character'Pos ('a') + 10;
-         end if;
-
-         Integer_Literal_Value :=
-           Integer_Literal_Value * Unsigned_Long_Long (Base)
-           + Unsigned_Long_Long (D);
-      end loop;
-   end Eval_Integer_From_Name_Buffer;
 
    ---------------------------------
    -- Scan_Integer_To_Name_Buffer --

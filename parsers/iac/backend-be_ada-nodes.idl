@@ -5,7 +5,10 @@ module Backend::BE_Ada::Nodes {
   /******************/
 
   typedef octet   Mode_Id;
+  typedef octet   Operator_Id;
   typedef long    Name_Id;
+  typedef long    Value_Id;
+
 
   /******************/
   /* Internal nodes */
@@ -17,7 +20,8 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Definition : Node_Id {
-    Node_Id    Identifier;
+    Node_Id    Defining_Identifier;
+    Node_Id    Parent; 
   };
 
   interface List_Id {
@@ -25,28 +29,15 @@ module Backend::BE_Ada::Nodes {
     Node_Id    Last_Node;
   };
 
-  interface Ada_Identifier : Node_Id {
+  interface Defining_Identifier : Node_Id {
     Name_Id    Name;
-    Node_Id    Node;
+    Node_Id    Corresponding_Node;
+    Node_Id    Parent_Unit_Name;
   };
 
-
-  /*****************/
-  /* Literal nodes */
-  /*****************/
-
-  interface Literal : Node_Id {
-    Name_Id    Literal;
-  };
-
-
-  /******************/
-  /* Constant nodes */
-  /******************/
-
-  interface Constant_Declaration : Definition {
-    Node_Id    Type_Spec;
-    Node_Id    Expression;
+  interface Designator : Node_Id {
+    Node_Id    Defining_Identifier;
+    Node_Id    Parent_Unit_Name;
   };
 
 
@@ -54,21 +45,13 @@ module Backend::BE_Ada::Nodes {
   /* Package nodes */
   /*****************/
 
-  interface Ada_Pragma : Node_Id {
-    Node_Id    Identifier;
-    Name_Id    Comment; /* To explain why this pragma is necessary */
+  interface Declaration_List : List_Id {
   };
 
-  /*****************/
-  /* Package nodes */
-  /*****************/
+  interface Statement_List : List_Id {
+  };
 
-  interface Declaration_List : List_Id {};
-
-  interface Statement_List : List_Id {};
-
-  interface Withed_Package : Node_Id {
-    Node_Id    Identifier;
+  interface Withed_Package : Definition {
     boolean    Used;
     boolean    Elaborated;
   };
@@ -91,9 +74,18 @@ module Backend::BE_Ada::Nodes {
   };
 
   interface Package_Declaration : Definition {
-    Node_Id    Parent;
+    Node_Id    IDL_Unit;
     Node_Id    Package_Specification;
     Node_Id    Package_Implementation;
+  };
+
+  interface Packages : List_Id {};
+  interface IDL_Unit : Node_Id {
+    Node_Id    Main_Package;
+    Node_Id    Skeleton_Package;
+    Node_Id    Implementation_Package;
+    Node_Id    Helper_Package;
+    List_Id    Packages;
   };
 
 
@@ -101,25 +93,74 @@ module Backend::BE_Ada::Nodes {
   /* Subprogram nodes */
   /********************/
 
-  interface Ada_Parameter : Node_Id {
-    Node_Id    Identifier;
+  interface Parameter_Specification : Definition {
     Mode_Id    Parameter_Mode;
-    Node_Id    Type_Spec;
+    Node_Id    Parameter_Type;
   };
 
-  /* Subprogram Specification */
-  /* Type_Spec = No_Node for function */
-
-  interface Ada_Subprogram_Spec : Definition {
-    List_Id    Parameters;
-    Node_Id    Type_Spec;
+  interface Parameter_Profile : List_Id {};
+  interface Subprogram_Specification : Definition {
+    List_Id    Parameter_Profile;
+    Node_Id    Return_Type;
   };
 
   /* Subprogram Body */
 
-  interface Ada_Subprogram_Body : Ada_Subprogram_Spec {
+  interface Subprogram_Implementation : Node_Id {
+    Node_Id    Specification;
     List_Id    Declarations;
     List_Id    Statements;
+  };
+
+  interface Subprogram_Call : Definition {
+    List_Id    Actual_Parameter_Part; 
+  };
+  
+  interface Parameter_Association : Node_Id{
+    Node_Id    Selector_Name; 
+    Node_Id    Actual_Parameter; 
+  };  
+
+  interface Full_Type_Declaration : Definition {
+    Node_Id    Type_Definition;
+    Node_Id    Discriminant_Spec;
+  };
+
+  interface Enumeration_Literals : List_Id {};
+
+  interface Enumeration_Type_Definition : Node_Id {
+    List_Id    Enumeration_Literals;
+  };
+
+  /**************/
+  /* Aggregates */
+  /**************/
+
+  interface Record_Aggregate : Node_Id {
+    List_Id    Component_Association_List;
+  };
+
+  interface Component_Association : Definition {
+    Node_Id    Expression; 
+  };
+
+
+  /****************/
+  /* Statetements */
+  /****************/
+
+  interface If_Statement : Node_Id {
+    Node_Id    Condition;
+    List_Id    Then_Statements; 
+    List_Id    Else_Statements; 
+  };
+
+  interface Assignment_Statement : Definition {
+    Node_Id    Expression;  
+  };
+
+  interface Return_Statement : Node_Id {
+    Node_Id    Expression; 
   };
 
   /***************/
@@ -131,10 +172,6 @@ module Backend::BE_Ada::Nodes {
     List_Id      Parameter_List;  
   };
 
-  interface Var_Declaration : Definition {
-    Node_Id      Type_Spec;
-    Node_Id      Expression;
-  };
 
   interface Ada_Comment : Definition {
   };
@@ -144,56 +181,59 @@ module Backend::BE_Ada::Nodes {
   /* Type nodes */
   /**************/
 
-  /*  
-      <Full_Type_Declaration> ::=
-          'type' <Defining_Identifier> [<Known_Discriminant_Part>]
-	  'is' <Type_Definition> ';' 
-  */
-	  
-	  
-  interface Type_Declaration : Definition {
-    List_Id      Known_Discriminant_Part; 
-    Node_Id      Type_Spec;    
-  };
-  
-  /***************************/
-  /* Derived Type Definition */
-  /***************************/
-
-    
   interface Derived_Type_Definition : Definition {
-    boolean      Is_Abstract;
-    Node_Id      Record_Extention_Part; 
+    boolean      Is_Abstract_Type;
+    Node_Id      Subtype_Indication;
+    Node_Id      Record_Extension_Part; 
+  };
+
+  interface Record_Type_Definition : Node_Id{
+    boolean      Is_Abstract_Type; 
+    boolean      Is_Tagged_Type;
+    boolean      Is_Limited_Type; 
+    Node_Id      Record_Definition;
+  };
+
+  interface Component_Declaration : Definition {
+    Node_Id      Subtype_Indication;
+    Node_Id      Expression;
+  };
+
+  interface Component_List : List_Id {};
+  interface Record_Definition : Node_Id {
+    List_Id      Component_List;
+  };
+
+  interface Range_Constraints : List_Id {};
+  interface Array_Type_Definition : Node_Id {
+    List_Id      Range_Constraints;
+    Node_Id      Component_Definition;
+  };
+
+  interface Range_Constraint : Node_Id {
+    Value_Id     First;
+    Value_Id     Last;
+  };
+
+  interface Variant_List : List_Id {};
+  interface Variant_Part : Node_Id {
+    List_Id    Variants;
+    Node_Id    Discriminant;
+  };
+
+  interface Discrete_Choice_List : List_Id {};
+  interface Variant : Node_Id {
+    List_Id    Discrete_Choices;
+    Node_Id    Component;
   };
 
 
-  /****************/
-  /* Record Nodes */
-  /****************/
-  /* 
-     <Record_Type_Definition> ::=
-          [['abstract'] 'tagged'] ['limited'] <Record_Definition>; 
-	
-     <Record_Definition> ::= 
-          'record'
-	      Component_List
-	  'end record'
-       |  'null record'; 	
-          
-     <Component_List>::= 
-          <Component_Item> {<Component_Item>}
-       |  {Component_Item} <Variant_Part>
-       |  null 
-  */
-  /* To be continued */
+  /********************/
+  /* Enumeration type */
+  /********************/
 
-
-  interface Record_Type_Spec : Node_Id{
-    boolean      Is_Abstract; 
-    boolean      Is_Tagged;
-    boolean      Is_Limited; 
-    Node_Id      Component_List;
-    boolean      Is_Null_Record; 
+  interface Enumeration_Type : Definition {
+    List_Id      Enumeration_Literals;
   };
 
 
@@ -203,99 +243,46 @@ module Backend::BE_Ada::Nodes {
 
   interface Array_Size_List : List_Id {};
   interface Array_Type : Node_Id {
-    Node_Id     Type_Spec;
+    Node_Id     Index_Type;
+    Node_Id     Component_Type;
     List_Id     Array_Sizes;
   };
 
 
   /****************/
-  /* Member nodes */
+  /* Object nodes */
   /****************/
 
-  interface Member : Node_Id {
-    Node_Id    Identifier;
-    Node_Id    Type_Spec;
-  };
-  interface Member_List : List_Id {};
-
-
-  /*********************/
-  /* Scoped name nodes */
-  /*********************/
-
-  interface Scoped_Name : Node_Id {
-    Node_Id     Identifier;
-    Node_Id     Reference;
-    boolean     Is_Record;
-    List_Id     Members;
+  interface Object_Declaration: Definition {
+    boolean     Constant_Present;
+    Node_Id     Object_Definition;
+    Node_Id     Expression;
   };
 
-
-  /******************/
-  /* Stucture nodes */
-  /******************/
-
-  interface Structure_Type : Node_Id {
-    List_Id      Members;
+  interface Literal : Node_Id {
+    Value_Id    Value;
   };
-
-
-  /***************/
-  /* Union nodes */
-  /***************/
-
-  interface Case_Label_List : List_Id {};
-  interface Switch_Alternative : Node_Id {
-    List_Id    Labels;
-    Node_Id    Element;
-  };
-
-  interface Element : Node_Id {
-    Node_Id    Identifier;
-    Node_Id    Type_Spec;
-  };
-
-  interface Switch_Type_Body : List_Id {};
-  interface Union_Type : Node_Id {
-    Node_Id    Switch_Type_Spec;
-    List_Id    Switch_Type_Body;
-  };
-
-
-  /*********************/
-  /* Enumeration nodes */
-  /*********************/
-
-  interface Enumerator_List : List_Id {
-  };
-
-  interface Enumeration_Type : Node_Id {
-    List_Id    Enumerators;
-  };
-
-  /*******************/
-  /* Exception nodes */
-  /*******************/
 
   interface Exception_Declaration : Definition {
   };
-  interface Exception_Members : Node_Id {
-    List_Id      Members;
+
+  interface BE_Ada : Node_Id {
+    Node_Id    Stub_Node;
+    Node_Id    Helper_Node;
+    Node_Id    Skel_Node;
+    Node_Id    Impl_Node;
+  };
+
+  interface Expression : Node_Id {
+    Operator_Id Operator;
+    Node_Id     Left_Expr;
+    Node_Id     Right_Expr;
   };
 
 
-  /*********************/
-  /* Fixed point nodes */
-  /*********************/
-
-  interface Fixed_Point_Type : Node_Id {
-    Name_Id    N_Digits;
-    Name_Id    N_Delta;
-  };
-
-  /*******************/
-  /* Base type nodes */
-  /*******************/
+  /**************/
+  /* Base types */
+  /**************/
 
   interface Base_Type {
     Name_Id   Image; 
@@ -317,6 +304,4 @@ module Backend::BE_Ada::Nodes {
   interface _Octet : Base_Type {};
   interface _Object : Base_Type {};
   interface _Any : Base_Type {};
-  interface _Void : Base_Type {};
-  interface Value_Base : Base_Type {};
 };
