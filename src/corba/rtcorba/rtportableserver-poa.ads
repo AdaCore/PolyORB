@@ -44,6 +44,16 @@ with RTCORBA;
 
 package RTPortableServer.POA is
 
+   --  Implementation Note: RT-CORBA specifications states these
+   --  functions may fail and raise CORBA.BAD_PARAM if the priority
+   --  parameter doest not match the priority configuration for
+   --  ressources assigned to the POA.
+   --
+   --  As a consequence, PolyORB will raise BAD_PARAM if either the
+   --  POA doest not support a ThreadPoolPolicy or if the set up of
+   --  attached ThreadPoolPolicy doest not match the priority
+   --  parameter.
+
    type Ref is new PortableServer.POA.Ref with private;
 
    function To_Ref (Self : CORBA.Object.Ref'Class) return Ref;
