@@ -72,7 +72,7 @@ package body Droopi.Transport.Sockets is
 
    procedure Read
      (TE     : in out Socket_Endpoint;
-      Buffer : Buffer_Access;
+      Buffer : Buffers.Buffer_Access;
       Size   : in out Stream_Element_Count)
    is
       Data_Received : Stream_Element_Count;
@@ -92,7 +92,7 @@ package body Droopi.Transport.Sockets is
 
    procedure Write
      (TE     : in out Socket_Endpoint;
-      Buffer : Buffer_Access)
+      Buffer : Buffers.Buffer_Access)
    is
    begin
       Droopi.Buffers.Send_Buffer (Buffer, TE.Socket);

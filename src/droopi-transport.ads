@@ -6,13 +6,15 @@
 with Ada.Streams; use Ada.Streams;
 
 with Droopi.Annotations;
-with Droopi.Asynch_Ev; use Droopi.Asynch_Ev;
-with Droopi.Buffers; use Droopi.Buffers;
-with Droopi.Components; use Droopi.Components;
+with Droopi.Asynch_Ev;
+with Droopi.Buffers;
+with Droopi.Components;
 
 package Droopi.Transport is
 
    pragma Elaborate_Body;
+
+   use Droopi.Asynch_Ev;
 
    -------------------------------------------------------------
    -- A transport service access point:                       --
@@ -23,7 +25,7 @@ package Droopi.Transport is
    -------------------------------------------------------------
 
    type Transport_Access_Point
-      is abstract new Component with private;
+      is abstract new Components.Component with private;
    type Transport_Access_Point_Access is
      access all Transport_Access_Point'Class;
    --  A listening transport service access point.
@@ -53,7 +55,8 @@ package Droopi.Transport is
    -- when a transport access point was contacted.               --
    ----------------------------------------------------------------
 
-   type Transport_Endpoint is abstract new Component with private;
+   type Transport_Endpoint
+      is abstract new Components.Component with private;
 
    procedure Connect_Upper
      (TE    : access Transport_Endpoint;
@@ -62,6 +65,9 @@ package Droopi.Transport is
 
    type Transport_Endpoint_Access is access all Transport_Endpoint'Class;
    --  An opened transport endpoint.
+
+   procedure Destroy (TE : in out Transport_Endpoint_Access);
+   --  Destroy a transport endpoint and the associated protocol stack.
 
    function Handle_Message
      (TE  : access Transport_Endpoint;
@@ -97,7 +103,7 @@ package Droopi.Transport is
 
    procedure Read
      (TE     : in out Transport_Endpoint;
-      Buffer : Buffer_Access;
+      Buffer : Buffers.Buffer_Access;
       Size   : in out Stream_Element_Count)
       is abstract;
    --  Receive data from TE into Buffer. When Read is Called,
@@ -106,7 +112,7 @@ package Droopi.Transport is
 
    procedure Write
      (TE     : in out Transport_Endpoint;
-      Buffer : Buffer_Access)
+      Buffer : Buffers.Buffer_Access)
       is abstract;
    --  Write out the contents of Buffer onto TE.
 

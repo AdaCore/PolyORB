@@ -40,18 +40,29 @@ setecho
 
 $echo -n "Compiling $file"
 
+# Determine if style checks should be applied.
+
+case "$file" in
+  echo-impl.adb)
+    STYLE=
+    ;;
+  *)
+    STYLE=-gnaty
+    ;;
+esac
+
 case $file in
   droopi-orb-thread_pool.adb|droopi-protected_objects.adb)
     echo " without gnat.adc"
     mv -f gnat.adc gnat.adc-
-    $ADAGCC "$@"
+    $ADAGCC $STYLE "$@"
     rc=$!
     mv -f gnat.adc- gnat.adc
     exit $rc
     ;;
   *)
     echo ""
-    exec $ADAGCC "$@"
+    exec $ADAGCC $STYLE "$@"
     ;;
 esac
 

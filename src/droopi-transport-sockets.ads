@@ -47,12 +47,12 @@ package Droopi.Transport.Sockets is
 
    procedure Read
      (TE     : in out Socket_Endpoint;
-      Buffer : Buffer_Access;
+      Buffer : Buffers.Buffer_Access;
       Size   : in out Stream_Element_Count);
 
    procedure Write
      (TE     : in out Socket_Endpoint;
-      Buffer : Buffer_Access);
+      Buffer : Buffers.Buffer_Access);
 
    procedure Close (TE : in out Socket_Endpoint);
 

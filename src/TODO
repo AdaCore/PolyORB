@@ -6,6 +6,10 @@ $Id$
 Items still requiring attention
 -------------------------------
 
+* Make Droopi.References.Ref a Smart_Pointers.Entity
+  so the list of profiles can be free'd when not used
+  anymore.
+
 * Make compliant PortableServer tree for CORBA personality.
 
 REQUIRED:

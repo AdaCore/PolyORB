@@ -77,15 +77,18 @@ package body Droopi.Representations.SOAP.Name_Spaces is
    begin
       if Namespace_Obj = null then
          declare
-               Obj : Namespace_Object_Access := new
-               Namespace_Object'(URN => URN, Names => null, Reference => 0);
-               Elt : Child_List_Access := new Child_List_Record'
-               (Item => Element, Next => null);
-               Cont : Container_Element_Access := new
-               Container_Element'(Nbr_Of_Items => 0, Head => Elt, Tail => Elt);
+            Obj : constant Namespace_Object_Access
+              := new Namespace_Object'
+              (URN => URN, Names => null, Reference => 0);
+            Elt : constant Child_List_Access
+              := new Child_List_Record'
+              (Item => Element, Next => null);
+            Cont : constant Container_Element_Access
+              := new Container_Element'
+              (Nbr_Of_Items => 0, Head => Elt, Tail => Elt);
          begin
-               Obj.Names := Cont;
-               NS_Table.Allocate (Obj, Ind);
+            Obj.Names := Cont;
+            NS_Table.Allocate (Obj, Ind);
          end;
       else
          Add_Comp_List (Namespace_Obj.Names, Element);

@@ -5,7 +5,6 @@
 with Ada.Streams; use Ada.Streams;
 
 with Droopi.Components;
-with Droopi.Storage_Pools;
 
 package Droopi.Objects is
 
@@ -13,8 +12,6 @@ package Droopi.Objects is
 
    type Object_Id is new Stream_Element_Array;
    type Object_Id_Access is access all Object_Id;
-   for Object_Id_Access'Storage_Pool
-     use Droopi.Storage_Pools.Debug_Pool;
 
    procedure Free (X : in out Object_Id_Access);
 

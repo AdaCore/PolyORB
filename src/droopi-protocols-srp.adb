@@ -50,6 +50,7 @@ package body Droopi.Protocols.SRP is
       --  This should be factored in Droopi.Protocols.
 
       Session := new SRP_Session;
+      Set_Allocation_Class (Session.all, Dynamic);
 
       SRP_Session (Session.all).Buffer_In := new Buffers.Buffer_Type;
       SRP_Session (Session.all).Buffer_Out := new Buffers.Buffer_Type;

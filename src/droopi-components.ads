@@ -2,6 +2,8 @@
 
 --  $Id$
 
+with Ada.Finalization;
+
 with Sequences.Unbounded;
 pragma Elaborate_All (Sequences.Unbounded);
 
@@ -19,10 +21,21 @@ package Droopi.Components is
 
    type Null_Message is new Message with private;
 
-   type Component is abstract tagged limited private;
+   type Component is
+     abstract new Ada.Finalization.Limited_Controlled
+     with private;
    type Component_Access is access all Component'Class;
 
    Unhandled_Message : exception;
+
+   type Component_Allocation_Class is
+     (Auto, Dynamic);
+
+   procedure Set_Allocation_Class
+     (C   : in out Component'Class;
+      CAC : Component_Allocation_Class);
+   --  Set C's allocation class to be CAC.
+   --  Its current class must be Auto (the default).
 
    function Handle_Message
      (C : access Component;
@@ -54,6 +67,9 @@ package Droopi.Components is
       Msg  : Message'Class);
    --  Emit message Msg on Port. The expected reply must be
    --  Null_Message, and will be discarded.
+
+   procedure Destroy (C : in out Component_Access);
+   --  Destroy C.
 
    -------------------------
    -- Component factories --
@@ -92,9 +108,15 @@ package Droopi.Components is
 
 private
 
+   pragma Inline (Set_Allocation_Class);
+
    type Null_Message is new Message with null record;
 
-   type Component is abstract tagged limited null record;
+   type Component is
+     abstract new Ada.Finalization.Limited_Controlled
+     with record
+        Allocation_Class : Component_Allocation_Class := Auto;
+     end record;
 
    package Component_Seqs is new Sequences.Unbounded
      (Component_Access);

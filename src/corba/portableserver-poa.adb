@@ -544,14 +544,11 @@ package body PortableServer.POA is
      return CORBA.Object.Ref
    is
       POA  : constant Droopi.POA.Obj_Adapter_Ptr := To_POA (Self);
-      Oid : constant Droopi.Objects.Object_Id_Access
-        := new Droopi.Objects.Object_Id'
-        (Droopi.POA.Export (POA, To_Droopi_Servant (P_Servant)));
+      Oid : aliased Droopi.Objects.Object_Id
+        := Droopi.POA.Export (POA, To_Droopi_Servant (P_Servant));
       --  XXX
-      --  1. There is a possible memory leak here. Who free's
-      --     the allocation for Oid?
-      --  2. There is a pending possibility that Export is incorrect.
-      --     See caveats in its body.
+      --  There is a pending possibility that Export is incorrect.
+      --  See caveats in its body.
 
       The_Ref : Droopi.References.Ref;
       The_Ref_Info : constant Droopi.Smart_Pointers.Entity_Ptr
@@ -574,7 +571,7 @@ package body PortableServer.POA is
 
 --       return Droopi.POA.Skeleton_To_Ref (Skel.all);
 
-      Droopi.ORB.Create_Reference (Droopi.Setup.The_ORB, Oid, The_Ref);
+      Droopi.ORB.Create_Reference (Droopi.Setup.The_ORB, Oid'Access, The_Ref);
       --  Obtain object reference.
 
       declare

@@ -38,6 +38,9 @@ package Droopi.Filters is
 
    function Upper (F : access Filter) return Component_Access;
 
+   procedure Finalize (F : in out Filter);
+   --  Destroy Filter and all of its UPPER components in the stack.
+
    --------------------------------------------------------
    -- Filters communicate by exchanging Data_Units,      --
    -- defined in child package Droopi.Filters.Interface. --

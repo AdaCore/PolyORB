@@ -515,18 +515,16 @@ package body Droopi.Protocols.GIOP is
                          (Pend_Req.Target_Profile.all))));
 
             declare
-               Key : Object_Id_Access
-                 := new Object_Id'
-                 (Binding_Data.IIOP.Get_Object_Key
-                  (IIOP_Profile_Type (Pend_Req.Target_Profile.all)));
-               --  XXX memory leak.
+               Key : aliased Object_Id
+                 := (Binding_Data.IIOP.Get_Object_Key
+                     (IIOP_Profile_Type (Pend_Req.Target_Profile.all)));
             begin
                GIOP.GIOP_1_2.Marshall_Request_Message
                  (Ses.Buffer_Out,
                   Request_Id,
                   Target_Address'
                   (Address_Type => Key_Addr,
-                   Object_Key   => Key),
+                   Object_Key   => Key'Unchecked_Access),
                   Sync,
                   To_Standard_String (Pend_Req.Req.Operation));
             end;
@@ -1059,6 +1057,19 @@ package body Droopi.Protocols.GIOP is
       Ses.Current_Profile := Profile;
    end Store_Profile;
 
+   --------------
+   -- Finalize --
+   --------------
+
+   procedure Finalize (S : in out GIOP_Session) is
+   begin
+      pragma Debug (O ("Finalizing GIOP session"));
+      if S.Current_Profile /= null then
+         pragma Debug (O ("... destroying profile."));
+         Destroy_Profile (S.Current_Profile);
+      end if;
+   end Finalize;
+
    --------------------
    -- Expect_Message --
    --------------------
@@ -1453,6 +1464,8 @@ package body Droopi.Protocols.GIOP is
 
    begin
       Session := new GIOP_Session;
+      Set_Allocation_Class (Session.all, Dynamic);
+
       GIOP_Session (Session.all).Buffer_In  := new Buffers.Buffer_Type;
       GIOP_Session (Session.all).Buffer_Out := new Buffers.Buffer_Type;
    end Create;

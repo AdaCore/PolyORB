@@ -6,7 +6,8 @@
 
 GNATMAKE=gnatmake --GCC=./compile
 
-CFLAGS=		-O2 -gnatfy -gnatwae -Icorba $(COPTS)
+CFLAGS=		-O2 -gnatf -gnatwae -Icorba $(COPTS)
+# -gnaty is position by the 'compile' script for files that support it.
 
 # Development
 CFLAGS+=	-g -gnatao

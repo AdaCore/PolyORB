@@ -389,6 +389,8 @@ private
       Mess_Type_Received   : Msg_Type;
    end record;
 
+   procedure Finalize (S : in out GIOP_Session);
+
    procedure Handle_Unmarshall_Arguments
      (Ses : access GIOP_Session;
       Args : in out Any.NVList.Ref);

@@ -24,8 +24,11 @@ package body Droopi.Filters.Slicers is
      (Fact   : access Slicer_Factory;
       Slicer : out Filter_Access)
    is
+      use Droopi.Components;
+
       Res : constant Filter_Access := new Slicer_Filter;
    begin
+      Set_Allocation_Class (Res.all, Dynamic);
       Slicer_Filter (Res.all).Data_Expected := 0;
       Slicer := Res;
    end Create;

@@ -2,6 +2,8 @@
 
 --  $Id$
 
+with Ada.Unchecked_Deallocation;
+
 package body Droopi.Asynch_Ev is
 
    function Notepad_Of (AES : Asynch_Ev_Source_Access)
@@ -16,5 +18,15 @@ package body Droopi.Asynch_Ev is
       pragma Assert (AES /= null and then AES.Monitor /= null);
       Unregister_Source (AES.Monitor.all, AES);
    end Unregister_Source;
+
+   procedure Destroy
+     (AES : in out Asynch_Ev_Source_Access)
+   is
+      procedure Free is
+         new Ada.Unchecked_Deallocation
+        (Asynch_Ev_Source'Class, Asynch_Ev_Source_Access);
+   begin
+      Free (AES);
+   end Destroy;
 
 end Droopi.Asynch_Ev;

@@ -93,7 +93,6 @@ package body Droopi.Binding_Data.IIOP is
         renames IIOP_Profile_Type (Prof.all);
 
    begin
-
       Create_Socket (Sock);
       Connect_Socket (Sock, Remote_Addr);
       TE := new Transport.Sockets.Socket_Endpoint;
@@ -124,7 +123,6 @@ package body Droopi.Binding_Data.IIOP is
 
       --  The caller will invoke Register_Endpoint on TE.
    end Bind_Profile;
-
 
    function Get_Profile_Tag
      (Profile : IIOP_Profile_Type)

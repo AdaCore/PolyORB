@@ -118,18 +118,18 @@ package body Droopi.ORB is
 
    procedure Handle_Event
      (ORB : access ORB_Type;
-      AES : Asynch_Ev_Source_Access);
+      AES : in out Asynch_Ev_Source_Access);
    --  Process an event that occurred on AES.
 
    procedure Handle_Event
      (ORB : access ORB_Type;
-      AES : Asynch_Ev_Source_Access)
+      AES : in out Asynch_Ev_Source_Access)
    is
       Note : AES_Note;
 
    begin
 
-      pragma Debug (O (" handle_event : enter "));
+      pragma Debug (O ("Handle_Event: enter"));
 
       Get_Note (Notepad_Of (AES).all, Note);
       case Note.D.Kind is
@@ -163,8 +163,24 @@ package body Droopi.ORB is
                --  Continue monitoring this source.
 
             exception
+               when Connection_Closed =>
+                  O ("Connection closed.");
+
+                  --  Close has been called on the transport endpoint.
+                  --  Both the Endpoint and the associated AES must
+                  --  now be destroyed.
+
+                  Destroy (Note.D.TE);
+                  Destroy (AES);
+                  --  No need to Unregister_Source, because the AES
+                  --  is already unregistered while an event is being
+                  --  processed.
+
+                  --  XXX
+                  --  the associated filter stack must be destroyed as well.
+
                when E : others =>
-                  O ("Got exception while sending Data_Indication");
+                  O ("Got exception while sending Data_Indication:");
                   O (Ada.Exceptions.Exception_Information (E));
                   --  XXX What to do?
                   --  raise; ???
@@ -252,7 +268,7 @@ package body Droopi.ORB is
                   Leave (ORB.ORB_Lock.all);
 
                   declare
-                     Events : constant AES_Array
+                     Events : AES_Array
                        := Check_Sources (Monitors (I), Timeout);
                   begin
                      Enter (ORB.ORB_Lock.all);
@@ -621,7 +637,7 @@ package body Droopi.ORB is
 
    procedure Create_Reference
      (ORB : access ORB_Type;
-      Oid : Objects.Object_Id_Access;
+      Oid : access Objects.Object_Id;
       Ref : out References.Ref) is
    begin
       Enter (ORB.ORB_Lock.all);

@@ -5,6 +5,7 @@
 with Ada.Tags;
 pragma Warnings (Off, Ada.Tags);
 --  Only used within pragma Debug.
+with Ada.Unchecked_Deallocation;
 
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
@@ -58,6 +59,32 @@ package body Droopi.Components is
       pragma Assert (Reply in Null_Message);
       null;
    end Emit_No_Reply;
+
+   procedure Destroy (C : in out Component_Access)
+   is
+      procedure Free is
+         new Ada.Unchecked_Deallocation
+        (Component'Class, Component_Access);
+   begin
+      pragma Debug
+        (O ("Destroying component with allocation class "
+            & C.Allocation_Class'Img));
+
+      case C.Allocation_Class is
+         when Dynamic =>
+            Free (C);
+         when others =>
+            null;
+      end case;
+   end Destroy;
+
+   procedure Set_Allocation_Class
+     (C   : in out Component'Class;
+      CAC : Component_Allocation_Class) is
+   begin
+      pragma Assert (C.Allocation_Class = Auto);
+      C.Allocation_Class := CAC;
+   end Set_Allocation_Class;
 
    procedure Subscribe
      (G      : in out Group;

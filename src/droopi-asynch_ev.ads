@@ -75,6 +75,10 @@ package Droopi.Asynch_Ev is
      (AES : Asynch_Ev_Source_Access);
    --  Remove AES from any AEM that it is currently in.
 
+   procedure Destroy
+     (AES : in out Asynch_Ev_Source_Access);
+   --  Destroy AES.
+
    type AES_Array is array (Integer range <>)
      of Asynch_Ev_Source_Access;
 

@@ -6,11 +6,11 @@
 with Ada.Text_IO;
 
 with CORBA.ORB;
-with CORBA.ExceptionList;
-with CORBA.ContextList;
+--  with CORBA.ExceptionList;
+--  with CORBA.ContextList;
 with CORBA.NVList;
-with CORBA.Context;
-with CORBA.Object;
+--  with CORBA.Context;
+--  with CORBA.Object;
 with Droopi.CORBA_P.Exceptions;
 with CORBA; use CORBA;
 pragma Elaborate_All (CORBA);
@@ -50,7 +50,7 @@ package body Echo.Impl is
 
          Result_Ü        : CORBA.String;
          Argument_Ü_Result_Ü : CORBA.Any ;
-         Ctx_Ü           : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
+         --  Ctx_Ü           : CORBA.Context.Ref := CORBA.Context.Nil_Ref;
          Arg_List_Ü      : CORBA.NVList.Ref;
       begin
          --  Create argument list

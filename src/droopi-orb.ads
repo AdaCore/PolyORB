@@ -56,7 +56,8 @@ package Droopi.ORB is
    -- A server object --
    ---------------------
 
-   type ORB_Type (Tasking_Policy : access Tasking_Policy_Type'Class)
+   type ORB_Type
+     (Tasking_Policy : access Tasking_Policy_Type'Class)
       is new Droopi.Components.Component with private;
    type ORB_Access is access all ORB_Type;
 
@@ -195,7 +196,7 @@ package Droopi.ORB is
 
    procedure Create_Reference
      (ORB : access ORB_Type;
-      Oid : Objects.Object_Id_Access;
+      Oid : access Objects.Object_Id;
       Ref : out References.Ref);
    --  Create an object reference that designates object Oid
    --  within this ORB.

@@ -3,12 +3,15 @@
 
 --  $Id$
 
+with Ada.Unchecked_Deallocation;
+
 with Droopi.Filters.Interface;
 with Droopi.Log;
 pragma Elaborate_All (Droopi.Log);
 
 package body Droopi.Transport is
 
+   use Droopi.Components;
    use Droopi.Filters.Interface;
    use Droopi.Log;
 
@@ -41,11 +44,22 @@ package body Droopi.Transport is
       Components.Connect (TE.Upper, Upper);
    end Connect_Upper;
 
+   procedure Destroy (TE : in out Transport_Endpoint_Access)
+   is
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Transport_Endpoint'Class, Transport_Endpoint_Access);
+   begin
+      Destroy (TE.Upper);
+      Free (TE);
+   end Destroy;
+
    function Handle_Message
      (TE  : access Transport_Endpoint;
       Msg : Components.Message'Class)
      return Components.Message'Class
    is
+      use Droopi.Buffers;
+
       Nothing : Components.Null_Message;
    begin
       if Msg in Connect_Indication then

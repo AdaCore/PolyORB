@@ -31,6 +31,17 @@ package body Droopi.Filters is
       return F.Upper;
    end Upper;
 
+   procedure Finalize (F : in out Filter) is
+   begin
+      if F.Upper /= null then
+         pragma Debug
+           (O ("Destroying upper of type "
+               & Ada.Tags.External_Tag (F.Upper'Tag)));
+         Destroy (F.Upper);
+         --  XXX WHAT IF F.Upper has not been dynamically allocated?
+      end if;
+   end Finalize;
+
    function Handle_Message
      (F : access Factory;
       Msg : Message'Class)
