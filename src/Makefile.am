@@ -220,10 +220,12 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
+ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
+
 #bin_SCRIPTS = polyorb-config
 lib_LTLIBRARIES = libpolyorb.la
-libpolyorb_la_SOURCES = $(ADA_SPECS) $(ADA_BODIES)
-libpolyorb_la_LIBADD = 
+libpolyorb_la_SOURCES =
+libpolyorb_la_LIBADD = $(ADA_LIBADD)
 libpolyorb_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali

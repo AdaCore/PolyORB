@@ -25,15 +25,13 @@ GEN= \
         $(GEN_SPECS_NO_BODY) \
         $(GEN_SPECS_WITH_BODY)
 
-ALL = $(GEN) $(GEN_BODIES)
-
 $(GEN): $(IDL) $(IDLAC)
 	$(IDLAC) $(IDL) -I$(srcdir)
 	touch $@
 
 $(GEN_BODIES): $(GEN)
 
-DISTCLEANFILES = $(ALL)
+DISTCLEANFILES = $(GEN) $(GEN_BODIES)
 
 #
 # Building libpolyorb-corba-cos-naming library
@@ -47,6 +45,6 @@ ADA_SPECS_NO_BODY = \
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-naming.la
 
-libpolyorb_corba_cos_naming_la_SOURCES = $(ALL)
-libpolyorb_corba_cos_naming_la_LIBADD  = 
+libpolyorb_corba_cos_naming_la_SOURCES = $(GEN_BODIES)
+libpolyorb_corba_cos_naming_la_LIBADD  = $(ADA_LIBADD)
 libpolyorb_corba_cos_naming_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)

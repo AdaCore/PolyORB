@@ -17,8 +17,8 @@ ADA_SPECS_WITH_BODY = \
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-naming-impl.la
 
-libpolyorb_corba_cos_naming_impl_la_SOURCES = $(ADA_SPECS) $(ADA_BODIES)
-libpolyorb_corba_cos_naming_impl_la_LIBADD  = 
+libpolyorb_corba_cos_naming_impl_la_SOURCES =
+libpolyorb_corba_cos_naming_impl_la_LIBADD  = $(ADA_LIBADD)
 libpolyorb_corba_cos_naming_impl_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 #
