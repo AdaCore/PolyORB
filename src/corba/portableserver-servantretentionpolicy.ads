@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver-servantretentionpolicy.ads#3 $
-
 with CORBA.Policy;
 
 package PortableServer.ServantRetentionPolicy is

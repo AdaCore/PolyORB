@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with CORBA.Policy;
 
 package PortableServer.IdUniquenessPolicy is
