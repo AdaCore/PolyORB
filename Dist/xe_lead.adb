@@ -27,8 +27,6 @@
 ------------------------------------------------------------------------------
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
-with Namet;       use Namet;
-with Osint;       use Osint;
 with Types;       use Types;
 with XE;          use XE;
 with XE_Back;     use XE_Back;

@@ -26,11 +26,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with GNAT.OS_Lib;      use GNAT.OS_Lib;
 with Namet;            use Namet;
-with Osint;            use Osint;
 with Output;           use Output;
-with Table;
 with Types;            use Types;
 with XE;               use XE;
 with XE_Scan;          use XE_Scan;

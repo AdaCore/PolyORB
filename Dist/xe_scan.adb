@@ -26,7 +26,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Csets;
 with Namet;         use Namet;
 with Osint;         use Osint;
 with Output;        use Output;

@@ -26,7 +26,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with ALI;          use ALI;
 with Namet;        use Namet;
 with Output;       use Output;
 with Table;
