@@ -311,7 +311,7 @@ les divers environnements de répartition existants~:
 
 \newif\ifexamples\examplestrue
 \begin{description}
-\item[Addressing]\mbox{}
+\item[Addressage]\mbox{}
 
   \begin{description}
 
@@ -462,30 +462,43 @@ les divers environnements de répartition existants~:
 
 \item[Représentation]\mbox{}
 
-  \begin{description} \item[Définition] Request data must be
-  translated into a representation suitable for transmission over a
-  network.
+  \begin{description}
+  \item[Définition] Les données associées à une requête (ses paramètres)
+  doivent être traduites de la représentation native du client vers
+  une rerpésentation adaptée à la transmission sur un réseau.
 
-  \item[Propriétés] In order to build interoperable applications, this
-  representation has to be previously standardized.  For instance, the
-  intergiciel at the calling and receiving ends of the communication
-  channel have to agree on the size and endianness of integers.
+  \item[Propriétés] 
+  Pour construire des applications interopérables, il est nécessaire
+  que le choix d'une représentation soit convenu à l'avance et normalisé.
+  Par exemple, tous les n{\oe}uds doivent être d'accord sur la taille
+  de représentation à utiliser pour les entiers, et l'ordre des octets.
 
-  \item[Discussion] System representation choices are a tradeoff
-  between portability and cost of data conversion from machine
-  representation to network representation (and back).
+  \item[Discussion]
+  Le choix d'une représentation est un compromis entre la portabilité
+  et le coût des conversions entre les représentations natives sur chaque
+  n{\oe}ud et la représentation commune.
+
 \ifexamples
-  \item[Exemple] It is necessary to find a balance between platform
-  related representation (constraints) and application related
-  representation (that can be optimized for a given environment).  For
-  example, a common data representation may be specified for all data
-  types, while messages may still carry an endianness flag which
-  indicates whether data items are stored low-order byte first or
-  high-order byte first~\cite{corba}. This provides a reasonably
-  simple and compact representation of information, while alleviating
-  the cost of ``byte-swapping'' operations. As these operations
-  involve a significant portion of the critical path in request
-  marshalling, this optimization is greatly beneficial to performance.
+  \item[Exemple]
+  Il est nécessaire de trouver un point d'équilibre entre les
+  contraintes de représentation imposées par le matériel et
+  l'environnement de chaque n{\oe}ud et celles imposées par
+  l'application (nécessité de faire interopérer des n{\oe}uds
+  hétérogènes, performances souhaitées). Par exemple, une représentation
+  commune des types de données peut être définie de façon fixée,
+  mais en autorisant plusieurs choix d'ordre des octets, et
+  en permettant à chaque n{\oe}ud d'indiquer l'ordre choisi
+  au moyen d'un drapeau placé dans chaque message (solution
+  retenue dans CORBA).
+
+  Le choix d'une représentation fixée permet ainsi d'avoir une
+  représentation simple et compacte. Elle autorise également l'interopérabilité
+  entre n{\oe}uds. Le drapeau d'ordre, enfin, permet de supprimer,
+  lorsque c'est possible, les opérations coûteuses
+  de remise en ordre des données. Cette optimisation est intéressante,
+  car la mise en forme des données représente une fraction importante du
+  temps passé dans l'intergiciel~\cite{nester99}.
+
 \fi
   \end{description}
 
