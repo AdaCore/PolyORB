@@ -1,33 +1,30 @@
-/**********************************************************************************
-**                          Package   : omniidl2                                 ** 
-** obe_cfe_interface.cc     Created on: 8/8/1996                                 ** 
-**			    Author    : Sai-Lai Lo (sll)                         ** 
-**                                                                               ** 
-**    Copyright (C) 1996, 1997 Olivetti & Oracle Research Laboratory             ** 
-**                                                                               ** 
-**  This file is part of omniidl2.                                               ** 
-**                                                                               ** 
-**  Omniidl2 is free software; you can redistribute it and*or modify             ** 
-**  it under the terms of the GNU General Public License as published by         **  
-**  the Free Software Foundation; either version 2 of the License, or            ** 
-**  (at your option) any later version.                                          ** 
-**                                                                               ** 
-**  This program is distributed in the hope that it will be useful,              ** 
-**  but WITHOUT ANY WARRANTY; without even the implied warranty of               ** 
-**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                ** 
-**  GNU General Public License for more details.                                 ** 
-**                                                                               ** 
-**  You should have received a copy of the GNU General Public License            ** 
-**  along with this program; if not, write to the Free Software                  ** 
-**  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,       ** 
-**  USA.                                                                         ** 
-**                                                                               **
-**********************************************************************************/
+/*************************************************************************************************
+***                       Interface File between the Front End and The Back End                ***
+***                               file:  cfe_interface.cc                                      ***
+***                                                                                            ***
+***      This file is the interface between the front end and the back end.                    ***
+***   It contains all the procedure from the back end called at the initialization.            ***
+***   It contains also the parser for the flags.                                               ***
+***                                                                                            ***
+***   Copyright 1999                                                                           ***
+***   Jean Marie Cottin, Laurent Kubler, Vincent Niebel                                        ***
+***                                                                                            ***
+***   This is free software; you can redistribute it and/or modify it under terms of the GNU   ***
+***   General Public License, as published by the Free Software Foundation.                    ***
+***                                                                                            ***
+***  This back-end is distributed in the hope that it will be usefull, but WITHOUT ANY         ***
+***  WARRANTY; without even the implied waranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR ***
+***  PURPOSE.                                                                                  ***
+***                                                                                            ***
+***  See the GNU General Public License for more details.                                      ***
+***                                                                                            ***
+***                                                                                            ***
+*************************************************************************************************/
 
 
 #include <idl.hh>
 #include <idl_extern.hh>
-#include <o2be.h>
+// #include <o2be.h>
 #include <adabe.h>  
 
 #ifdef HAS_pch
@@ -104,15 +101,15 @@ getopt(int num_args, char* const* args, const char* optstring)
 #endif
 
 
-o2be_root* o2be_global::myself = NULL;
-char* o2be_global::pd_hdrsuffix = DEFAULT_IDL_HDR_SUFFIX;
-char* o2be_global::pd_skelsuffix = DEFAULT_IDL_SKEL_SUFFIX;
-char* o2be_global::pd_dynskelsuffix = DEFAULT_IDL_DYNSKEL_SUFFIX;
-size_t o2be_global::pd_suffixlen = DEFAULT_IDL_SUFFIXLEN;
-int o2be_global::pd_fflag = 0;
-int o2be_global::pd_aflag = 0;
-int o2be_global::pd_qflag = 0;
-int o2be_global::pd_mflag = 1;
+// o2be_root* o2be_global::myself = NULL;
+// char* o2be_global::pd_hdrsuffix = DEFAULT_IDL_HDR_SUFFIX;
+// char* o2be_global::pd_skelsuffix = DEFAULT_IDL_SKEL_SUFFIX;
+// char* o2be_global::pd_dynskelsuffix = DEFAULT_IDL_DYNSKEL_SUFFIX;
+// size_t o2be_global::pd_suffixlen = DEFAULT_IDL_SUFFIXLEN;
+// int o2be_global::pd_fflag = 0;
+// int o2be_global::pd_aflag = 0;
+// int o2be_global::pd_qflag = 0;
+// int o2be_global::pd_mflag = 1;
 
 adabe_name* adabe_global::pd_adabe_current_file = NULL;
 adabe_root* adabe_global::myself = NULL; 
@@ -130,8 +127,8 @@ AST_Generator*
 BE_init()
 {
   AST_Generator *g;
-  if (strcmp(idl_global->be(),"c")==0) g = new o2be_generator();
-  else if (strcmp(idl_global->be(),"ada")==0) g = new adabe_generator();
+  //  if (strcmp(idl_global->be(),"c")==0) g = new o2be_generator();
+  /* else  if (strcmp(idl_global->be(),"ada")==0) */ g = new adabe_generator();
   return g;
 }
 
@@ -149,33 +146,34 @@ BE_version()
 void
 BE_produce() 
 {
-  try {
-    if (strcmp(idl_global->be(),"c")==0) o2be_global::root()->produce(); 
-    else if (strcmp(idl_global->be(),"ada")==0) 
-      {
-#ifdef DEBUG_CFE
-	cout << "produce is launched on the root" << endl;
-#endif
-	adabe_global::root()->produce();	
+  //  try {
+  //    if (strcmp(idl_global->be(),"c")==0) o2be_global::root()->produce(); 
+  //    else if (strcmp(idl_global->be(),"ada")==0) 
+  //      {
+  //#ifdef DEBUG_CFE
+  //	cout << "produce is launched on the root" << endl;
+  //#endif
+  adabe_global::root()->produce();	
+  //      }
+  //}
+  /*  catch (o2be_fe_error &ex) {
+      std::cerr << "Error: " << ex.errmsg() << std::endl;
       }
-  }
-  catch (o2be_fe_error &ex) {
-    std::cerr << "Error: " << ex.errmsg() << std::endl;
-  }
-  catch (o2be_fileio_error &ex) {
-    std::cerr << "Error: " << ex.errmsg() << std::endl;
-    idl_global->err_count();
-  }
-  catch (o2be_unsupported &ex) {
-    std::cerr << "Error: " << ex.file() << "-" << ex.line()
-         << " unsupported IDL syntax. " << ex.msg() << std::endl;
-    idl_global->err_count();
-  }
-  catch (o2be_internal_error &ex) {
-    std::cerr << "omniORB2 back end internal error: " 
-	 << ex.file() << ":" << ex.line() << "-" << ex.errmsg() << std::endl;
-    idl_global->err_count();
-  };
+      catch (o2be_fileio_error &ex) {
+      std::cerr << "Error: " << ex.errmsg() << std::endl;
+      idl_global->err_count();
+      }
+      catch (o2be_unsupported &ex) {
+      std::cerr << "Error: " << ex.file() << "-" << ex.line()
+      << " unsupported IDL syntax. " << ex.msg() << std::endl;
+      idl_global->err_count();
+      }
+      catch (o2be_internal_error &ex) {
+      std::cerr << "omniORB2 back end internal error: " 
+      << ex.file() << ":" << ex.line() << "-" << ex.errmsg() << std::endl;
+      idl_global->err_count();
+      };
+      */
   return;
 }
 
@@ -207,15 +205,15 @@ usage()
   std::cerr << GTDEVEL(" -Uname\t\t\tundefines name for preprocessor\n");
   std::cerr << GTDEVEL(" -V\t\t\tprints version info then exits\n");
   std::cerr << GTDEVEL(" -a\t\t\tgenerates code required by type any\n");
-  std::cerr << GTDEVEL(" -h suffix\t\tspecify suffix for the generated header file(s)\n");
+  // td::cerr << GTDEVEL(" -h suffix\t\tspecify suffix for the generated header file(s)\n");
   std::cerr << GTDEVEL(" -l\t\t\tgenerates code required by LifeCycle service\n");
   std::cerr << GTDEVEL(" -m\t\t\tallow modules to be reopened\n");
-  std::cerr << GTDEVEL(" -s suffix\t\tspecify suffix for the generated stub file(s)\n");
+  //  std::cerr << GTDEVEL(" -s suffix\t\tspecify suffix for the generated stub file(s)\n");
   std::cerr << GTDEVEL(" -t\t\t\tgenerate 'tie' implementation skeleton\n");
   std::cerr << GTDEVEL(" -u\t\t\tprints usage message and exits\n");
   std::cerr << GTDEVEL(" -v\t\t\ttraces compilation stages\n");
   std::cerr << GTDEVEL(" -w\t\t\tsuppresses IDL compiler warning messages\n");
-  std::cerr << GTDEVEL(" -bback_end\t\tcauses specified back end to be used\n");
+  //  std::cerr << GTDEVEL(" -bback_end\t\tcauses specified back end to be used\n");
 
   return;
 }
@@ -235,14 +233,14 @@ void
 BE_parse_args(int argc, char **argv)
 {
   int c;
-  int be_defined = 0;
+  //int be_defined = 0;
   char *buffer;
 
 
-#ifdef __WIN32__
-  o2be_global::set_skelsuffix("SK.cpp");
-  o2be_global::set_dynskelsuffix("DynSK.cpp");
-#endif
+  //#ifdef __WIN32__
+  //  o2be_global::set_skelsuffix("SK.cpp");
+  //  o2be_global::set_dynskelsuffix("DynSK.cpp");
+  //#endif
 
 #ifdef HAS_Cplusplus_Namespace
   // Enable reopen module by default
@@ -252,8 +250,9 @@ BE_parse_args(int argc, char **argv)
 
   DRV_cpp_init();
   idl_global->set_prog_name(argv[0]);
-  while ((c = getopt(argc,argv,"D:EI:U:Vuvwh:s:lamtib:")) != EOF) //////////////
-    {
+  while ((c = getopt(argc,argv,"D:EI:U:Vuvwlamti")) != EOF)
+  // add "b:" if you want to select your back-end
+    { 
       switch (c) 
 	{
 	case 'D':
@@ -271,19 +270,22 @@ BE_parse_args(int argc, char **argv)
 	  idl_global->set_compile_flags(idl_global->compile_flags() |
 					IDL_CF_VERSION);
 	  return;
-	case 'h':
-	  o2be_global::set_hdrsuffix(optarg);
-	  break;
-	case 's':
-	  {
-	    o2be_global::set_skelsuffix(optarg);
-	    char* s = new char[strlen(optarg) + strlen("Dyn") + 1];
-	    strcpy(s, "Dyn");
-	    strcat(s, optarg);
-	    o2be_global::set_dynskelsuffix(s);
-	    delete[] s;
-	  }
-	  break;
+	  /*
+	    case 'h':
+	    o2be_global::set_hdrsuffix(optarg);
+	    break;
+	    */
+	  /*	case 's':
+		{
+		o2be_global::set_skelsuffix(optarg);
+		char* s = new char[strlen(optarg) + strlen("Dyn") + 1];
+		strcpy(s, "Dyn");
+		strcat(s, optarg);
+		o2be_global::set_dynskelsuffix(s);
+		delete[] s;
+		}
+		break;
+		*/
 	case 'u':
 	  usage();
 	  idl_global->set_compile_flags(idl_global->compile_flags() |
@@ -319,12 +321,12 @@ BE_parse_args(int argc, char **argv)
 					IDL_BE_GENERATE_TIE);
 	  break;
 
-	case 'b':                   
-       	  if ((strcmp(optarg,"ada")==0)||(strcmp(optarg,"c")==0))  idl_global->set_be(optarg);
-	  else exit(99) ;
-	  be_defined = 1;   
-	  break;
-	  
+	  /*	case 'b':                   
+		if ((strcmp(optarg,"ada")==0)||(strcmp(optarg,"c")==0))  idl_global->set_be(optarg);
+		else exit(99) ;
+		be_defined = 1;   
+		break;
+		*/
 	case '?':
 	  usage();
 	  idl_global->set_compile_flags(idl_global->compile_flags() |
@@ -335,7 +337,7 @@ BE_parse_args(int argc, char **argv)
 	  break;
 	}
     }
-  if (be_defined==0)  idl_global->set_be("c"); 
+  //  if (be_defined==0)  idl_global->set_be("c"); 
   for (; optind < argc; optind++)
     {
       DRV_files[DRV_nfiles++] = argv[optind];
