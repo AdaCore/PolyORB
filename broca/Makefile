@@ -1,4 +1,4 @@
-all:: config-stamp idlac/configure
+all:: idlac/configure config-stamp
 	cd idlac && $(MAKE) all
 	cd adasockets && $(MAKE) all
 	cd src && $(MAKE) all
