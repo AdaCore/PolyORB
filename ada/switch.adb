@@ -477,8 +477,14 @@ package body Switch is
 
             if Program = Compiler then
                Inline_Active := True;
+
             elsif Program = Binder then
                Bind_Main_Program := False;
+
+               --  Note: The -L option of the binder also implies -n, so
+               --  any change here must also be reflected in the processing
+               --  for -L that is found in Gnatbind.Scan_Bind_Arg.
+
             elsif Program = Make then
                Do_Not_Execute := True;
             else
@@ -619,7 +625,7 @@ package body Switch is
                then
                   C := Switch_Chars (Ptr);
 
-                  if C in '3' .. '9' then
+                  if C in '4' .. '9' then
                      raise Bad_Switch;
                   else
                      List_Representation_Info :=
@@ -787,6 +793,7 @@ package body Switch is
                         Check_Unreferenced           := False;
                         Check_Withs                  := False;
                         Implementation_Unit_Warnings := False;
+                        Warn_On_Biased_Rounding      := False;
                         Warn_On_Hiding               := False;
                         Warn_On_Redundant_Constructs := False;
                         Ineffective_Inline_Warnings  := False;
@@ -797,8 +804,14 @@ package body Switch is
                      when 'C' =>
                         Constant_Condition_Warnings := False;
 
+                     when 'b' =>
+                        Warn_On_Biased_Rounding := True;
+
+                     when 'B' =>
+                        Warn_On_Biased_Rounding := False;
+
                      when 'e' =>
-                        Warning_Mode  := Treat_As_Error;
+                        Warning_Mode := Treat_As_Error;
 
                      when 'h' =>
                         Warn_On_Hiding := True;

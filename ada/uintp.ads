@@ -457,7 +457,7 @@ private
 
    --  Some subprograms defined in this package manipulate the Udigits
    --  table directly, while for others it is more convenient to work with
-   --  locally defined arrays of the digits of the the Universal Integers.
+   --  locally defined arrays of the digits of the Universal Integers.
    --  The type UI_Vector is defined for this purpose and some internal
    --  subprograms used for converting from one to the other are defined.
 

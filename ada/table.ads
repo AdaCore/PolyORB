@@ -58,7 +58,13 @@ pragma Elaborate_Body (Table);
       --  array, Table_Low_Bound is the lower bound. Index_type must be an
       --  integer type. The effect is roughly to declare:
 
-      --    Table : array (Table_Low_Bound .. <>) of Table_Component_Type;
+      --    Table : array (Table_Index_Type range Table_Low_Bound .. <>)
+      --                       of Table_Component_Type;
+
+      --    Note: since the upper bound can be one less than the lower
+      --    bound for an empty array, the table index type must be able
+      --    to cover this range, e.g. if the lower bound is 1, then the
+      --    Table_Index_Type should be Natural rather than Positive.
 
       --  Table_Component_Type may be any Ada type, but note that default
       --  initialization will NOT occur for the array components.

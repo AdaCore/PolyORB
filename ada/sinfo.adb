@@ -716,7 +716,7 @@ package body Sinfo is
    begin
       pragma Assert (False
         or else NT (N).Nkind = N_Discriminant_Specification);
-      return Node2 (N);
+      return Node5 (N);
    end Discriminant_Type;
 
    function Do_Access_Check
@@ -1564,6 +1564,14 @@ package body Sinfo is
         or else NT (N).Nkind = N_Enumeration_Type_Definition);
       return List1 (N);
    end Literals;
+
+   function Loop_Actions
+      (N : Node_Id) return List_Id is
+   begin
+      pragma Assert (False
+        or else NT (N).Nkind = N_Component_Association);
+      return List2 (N);
+   end Loop_Actions;
 
    function Loop_Parameter_Specification
       (N : Node_Id) return Node_Id is
@@ -3057,7 +3065,7 @@ package body Sinfo is
    begin
       pragma Assert (False
         or else NT (N).Nkind = N_Discriminant_Specification);
-      Set_Node2_With_Parent (N, Val);
+      Set_Node5_With_Parent (N, Val);
    end Set_Discriminant_Type;
 
    procedure Set_Do_Access_Check
@@ -3905,6 +3913,14 @@ package body Sinfo is
         or else NT (N).Nkind = N_Enumeration_Type_Definition);
       Set_List1_With_Parent (N, Val);
    end Set_Literals;
+
+   procedure Set_Loop_Actions
+      (N : Node_Id; Val : List_Id) is
+   begin
+      pragma Assert (False
+        or else NT (N).Nkind = N_Component_Association);
+      Set_List2 (N, Val); -- semantic field, no parent set
+   end Set_Loop_Actions;
 
    procedure Set_Loop_Parameter_Specification
       (N : Node_Id; Val : Node_Id) is

@@ -89,7 +89,7 @@ package body Einfo is
    --    Handler_Records                 List10
    --    Referenced_Object               Node10
 
-   --    Component_First_Bit             Uint11
+   --    Component_Bit_Offset            Uint11
    --    Full_View                       Node11
    --    Entry_Component                 Node11
    --    Enumeration_Pos                 Uint11
@@ -385,8 +385,8 @@ package body Einfo is
    --    Has_Object_Size_Clause         Flag172
    --    Has_Fully_Qualified_Name       Flag173
    --    Elaboration_Entity_Required    Flag174
+   --    Has_Forward_Instantiation      Flag175
 
-   --    (unused)                       Flag175
    --    (unused)                       Flag176
    --    (unused)                       Flag177
    --    (unused)                       Flag178
@@ -500,19 +500,19 @@ package body Einfo is
       return Node16 (Id);
    end Cloned_Subtype;
 
+   function Component_Bit_Offset (Id : E) return U is
+   begin
+      pragma Assert
+        (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
+      return Uint11 (Id);
+   end Component_Bit_Offset;
+
    function Component_Clause (Id : E) return N is
    begin
       pragma Assert
         (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
       return Node13 (Id);
    end Component_Clause;
-
-   function Component_First_Bit (Id : E) return U is
-   begin
-      pragma Assert
-        (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
-      return Uint11 (Id);
-   end Component_First_Bit;
 
    function Component_Size (Id : E) return U is
    begin
@@ -997,6 +997,11 @@ package body Einfo is
       pragma Assert (Is_Tagged_Type (Id));
       return Flag110 (Id);
    end Has_External_Tag_Rep_Clause;
+
+   function Has_Forward_Instantiation (Id : E) return B is
+   begin
+      return Flag175 (Id);
+   end Has_Forward_Instantiation;
 
    function Has_Fully_Qualified_Name (Id : E) return B is
    begin
@@ -2275,19 +2280,19 @@ package body Einfo is
       Set_Node16 (Id, V);
    end Set_Cloned_Subtype;
 
+   procedure Set_Component_Bit_Offset (Id : E; V : U) is
+   begin
+      pragma Assert
+        (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
+      Set_Uint11 (Id, V);
+   end Set_Component_Bit_Offset;
+
    procedure Set_Component_Clause (Id : E; V : N) is
    begin
       pragma Assert
         (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
       Set_Node13 (Id, V);
    end Set_Component_Clause;
-
-   procedure Set_Component_First_Bit (Id : E; V : U) is
-   begin
-      pragma Assert
-        (Ekind (Id) = E_Component or else Ekind (Id) = E_Discriminant);
-      Set_Uint11 (Id, V);
-   end Set_Component_First_Bit;
 
    procedure Set_Component_Size (Id : E; V : U) is
    begin
@@ -2786,6 +2791,11 @@ package body Einfo is
       pragma Assert (Is_Tagged_Type (Id));
       Set_Flag110 (Id, V);
    end Set_Has_External_Tag_Rep_Clause;
+
+   procedure Set_Has_Forward_Instantiation (Id : E; V : B := True) is
+   begin
+      Set_Flag175 (Id, V);
+   end Set_Has_Forward_Instantiation;
 
    procedure Set_Has_Fully_Qualified_Name (Id : E; V : B := True) is
    begin
@@ -3324,6 +3334,12 @@ package body Einfo is
 
    procedure Set_Is_Statically_Allocated (Id : E; V : B := True) is
    begin
+      pragma Assert
+        (Ekind (Id) = E_Exception
+          or else Ekind (Id) = E_Variable
+          or else Ekind (Id) = E_Constant
+          or else Is_Type (Id)
+          or else Ekind (Id) = E_Void);
       Set_Flag28 (Id, V);
    end Set_Is_Statically_Allocated;
 
@@ -3819,15 +3835,15 @@ package body Einfo is
       Set_Uint14 (Id, UI_From_Int (V));
    end Init_Alignment;
 
-   procedure Init_Component_First_Bit (Id : E) is
+   procedure Init_Component_Bit_Offset (Id : E) is
    begin
       Set_Uint11 (Id, No_Uint);
-   end Init_Component_First_Bit;
+   end Init_Component_Bit_Offset;
 
-   procedure Init_Component_First_Bit (Id : E; V : Int) is
+   procedure Init_Component_Bit_Offset (Id : E; V : Int) is
    begin
       Set_Uint11 (Id, UI_From_Int (V));
-   end Init_Component_First_Bit;
+   end Init_Component_Bit_Offset;
 
    procedure Init_Component_Size (Id : E) is
    begin
@@ -3891,14 +3907,14 @@ package body Einfo is
       return Uint14 (E) /= Uint_0;
    end Known_Alignment;
 
-   function Known_Component_First_Bit        (E : Entity_Id) return B is
+   function Known_Component_Bit_Offset       (E : Entity_Id) return B is
    begin
       return Uint11 (E) /= No_Uint;
-   end Known_Component_First_Bit;
+   end Known_Component_Bit_Offset;
 
    function Known_Component_Size             (E : Entity_Id) return B is
    begin
-      return Uint22 (E) /= Uint_0;
+      return Uint22 (Base_Type (E)) /= Uint_0;
    end Known_Component_Size;
 
    function Known_Esize                      (E : Entity_Id) return B is
@@ -3912,15 +3928,15 @@ package body Einfo is
         or else Is_Discrete_Type (E);
    end Known_RM_Size;
 
-   function Known_Static_Component_First_Bit (E : Entity_Id) return B is
+   function Known_Static_Component_Bit_Offset (E : Entity_Id) return B is
    begin
       return Uint11 (E) /= No_Uint
         and then Uint11 (E) >= Uint_0;
-   end Known_Static_Component_First_Bit;
+   end Known_Static_Component_Bit_Offset;
 
    function Known_Static_Component_Size      (E : Entity_Id) return B is
    begin
-      return Uint22 (E) > Uint_0;
+      return Uint22 (Base_Type (E)) > Uint_0;
    end Known_Static_Component_Size;
 
    function Known_Static_Esize               (E : Entity_Id) return B is
@@ -3939,14 +3955,14 @@ package body Einfo is
       return Uint14 (E) = Uint_0;
    end Unknown_Alignment;
 
-   function Unknown_Component_First_Bit      (E : Entity_Id) return B is
+   function Unknown_Component_Bit_Offset     (E : Entity_Id) return B is
    begin
       return Uint11 (E) = No_Uint;
-   end Unknown_Component_First_Bit;
+   end Unknown_Component_Bit_Offset;
 
    function Unknown_Component_Size           (E : Entity_Id) return B is
    begin
-      return Uint22 (E) = Uint_0;
+      return Uint22 (Base_Type (E)) = Uint_0;
    end Unknown_Component_Size;
 
    function Unknown_Esize                    (E : Entity_Id) return B is
@@ -5597,6 +5613,7 @@ package body Einfo is
       W ("Has_Enumeration_Rep_Clause",    Flag66  (Id));
       W ("Has_Exit",                      Flag47  (Id));
       W ("Has_External_Tag_Rep_Clause",   Flag110 (Id));
+      W ("Has_Forward_Instantiation",     Flag175 (Id));
       W ("Has_Fully_Qualified_Name",      Flag173 (Id));
       W ("Has_Gigi_Rep_Item",             Flag82  (Id));
       W ("Has_Homonym",                   Flag56  (Id));
@@ -5963,7 +5980,7 @@ package body Einfo is
 
          when E_Component                                |
               E_Discriminant                             =>
-            Write_Str ("Component_First_Bit");
+            Write_Str ("Component_Bit_Offset");
 
          when E_Constant                                 =>
             Write_Str ("Full_View");

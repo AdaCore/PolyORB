@@ -514,7 +514,7 @@ package body Prj.Nmsc is
 
             else
                Name_Buffer (1 .. Name_Len) :=
-                 Directory (Directory'First .. Directory'Last - 2);
+                 Directory (Directory'First .. Directory'Last - 3);
             end if;
 
             if Current_Verbosity = High then
@@ -532,9 +532,9 @@ package body Prj.Nmsc is
                if Root = No_Name then
                   Error_Msg_Name_1 := Base_Dir;
                   if Location = No_Location then
-                     Error_Msg_S ("{ is not a valid directory.");
+                     Error_Msg ("{ is not a valid directory.", Data.Location);
                   else
-                     Error_Msg   ("{ is not a valid directory.", Location);
+                     Error_Msg ("{ is not a valid directory.", Location);
                   end if;
 
                else
@@ -566,9 +566,9 @@ package body Prj.Nmsc is
                if Path_Name = No_Name then
                   Error_Msg_Name_1 := Directory_Id;
                   if Location = No_Location then
-                     Error_Msg_S ("{ is not a valid directory");
+                     Error_Msg ("{ is not a valid directory", Data.Location);
                   else
-                     Error_Msg   ("{ is not a valid directory", Location);
+                     Error_Msg ("{ is not a valid directory", Location);
                   end if;
                else
 
@@ -715,7 +715,8 @@ package body Prj.Nmsc is
          --  any source, then we never call Find_Sources.
 
          if Current_Source = Nil_String then
-            Error_Msg_S ("there are no sources in this project");
+            Error_Msg ("there are no sources in this project",
+                       Data.Location);
          end if;
       end Find_Sources;
 
@@ -872,68 +873,67 @@ package body Prj.Nmsc is
 
       declare
          Object_Dir : Variable_Value :=
-           Util.Value_Of (Name_Object_Dir, Data.Decl.Variables);
+           Util.Value_Of (Name_Object_Dir, Data.Decl.Attributes);
 
       begin
-         --  We set the object directory to its default
+         pragma Assert (Object_Dir.Kind = Single,
+                        "Object_Dir is not a single string");
 
-         if Current_Verbosity = High then
-            Write_Line ("Starting to look for object directory");
-         end if;
+         --  We set the object directory to its default
 
          Data.Object_Directory := Data.Directory;
 
-         case Object_Dir.Kind is
-            when Undefined =>
+         if not String_Equal (Object_Dir.Value, Empty_String) then
 
-               --  Object_Dir is not specified. Nothing to do,
-               --  because the object directory is already defaulted.
+            String_To_Name_Buffer (Object_Dir.Value);
 
-               null;
+            if Name_Len = 0 then
+               Error_Msg ("Object_Dir cannot be empty",
+                          Object_Dir.Location);
 
-            when List =>
-
-               --  It is an error for Object_Dir to be a string list
-
-               Error_Msg_S ("Object_Dir cannot be a list.");
-
-            when Single =>
-
+            else
                --  We check that the specified object directory
                --  does exist.
 
-               String_To_Name_Buffer (Object_Dir.Value);
                Canonical_Case_File_Name (Name_Buffer (1 .. Name_Len));
+
                declare
                   Dir_Id : constant Name_Id := Name_Find;
+
                begin
                   Data.Object_Directory :=
                     Locate_Directory (Dir_Id, Data.Directory);
 
                   if Data.Object_Directory = No_Name then
                      Error_Msg_Name_1 := Dir_Id;
-                     Error_Msg_S
-                       ("the object directory { cannot be found");
+                     Error_Msg
+                       ("the object directory { cannot be found",
+                        Data.Location);
                   end if;
-               end;
-         end case;
 
-         if Current_Verbosity = High then
-            if Data.Object_Directory = No_Name then
-               Write_Line ("No object directory");
-            else
-               Write_Str ("Object directory: """);
-               Write_Str (Get_Name_String (Data.Object_Directory));
-               Write_Line ("""");
+               end;
+
             end if;
+
          end if;
+
       end;
+
+      if Current_Verbosity = High then
+         if Data.Object_Directory = No_Name then
+            Write_Line ("No object directory");
+         else
+            Write_Str ("Object directory: """);
+            Write_Str (Get_Name_String (Data.Object_Directory));
+            Write_Line ("""");
+         end if;
+      end if;
 
       --  Let's check the source directories
 
       declare
          Source_Dirs : Variable_Value :=
-           Util.Value_Of (Name_Source_Dirs, Data.Decl.Variables);
+           Util.Value_Of (Name_Source_Dirs, Data.Decl.Attributes);
 
       begin
 
@@ -941,68 +941,58 @@ package body Prj.Nmsc is
             Write_Line ("Starting to look for source directories");
          end if;
 
-         case Source_Dirs.Kind is
-            when Undefined =>
+         pragma Assert (Source_Dirs.Kind = List,
+                          "Source_Dirs is not a list");
 
-               --  No Source_Dirs specified: the single source directory
-               --  is the one containing the project file
+         if Source_Dirs.Default then
 
-               String_Elements.Increment_Last;
-               Data.Source_Dirs := String_Elements.Last;
-               Start_String;
-               Store_String_Chars (Get_Name_String (Data.Directory));
-               String_Elements.Table (Data.Source_Dirs) :=
-                 (Value    => End_String,
-                  Location => No_Location,
-                  Next     => Nil_String);
+            --  No Source_Dirs specified: the single source directory
+            --  is the one containing the project file
 
-               if Current_Verbosity = High then
-                  Write_Line ("(Undefined) Single object directory:");
-                  Write_Str ("    """);
-                  Write_Str (Get_Name_String (Data.Directory));
-                  Write_Line ("""");
-               end if;
+            String_Elements.Increment_Last;
+            Data.Source_Dirs := String_Elements.Last;
+            Start_String;
+            Store_String_Chars (Get_Name_String (Data.Directory));
+            String_Elements.Table (Data.Source_Dirs) :=
+              (Value    => End_String,
+               Location => No_Location,
+               Next     => Nil_String);
 
-            when List =>
+            if Current_Verbosity = High then
+               Write_Line ("(Undefined) Single object directory:");
+               Write_Str ("    """);
+               Write_Str (Get_Name_String (Data.Directory));
+               Write_Line ("""");
+            end if;
 
-               --  Source_Dirs is a list of directories
+         elsif Source_Dirs.Values = Nil_String then
+            --  If Source_Dirs is an empty string list, this means
+            --  that this project contains no source.
 
-               declare
-                  Source_Dir : String_List_Id := Source_Dirs.Values;
-                  Element    : String_Element;
+            if Data.Object_Directory = Data.Directory then
+               Data.Object_Directory := No_Name;
+            end if;
+            Data.Source_Dirs := Nil_String;
 
-               begin
+         else
 
-                  --  We will find the source directories for each
-                  --  element of the list
+            declare
+               Source_Dir : String_List_Id := Source_Dirs.Values;
+               Element    : String_Element;
 
-                  while Source_Dir /= Nil_String loop
-                     Element := String_Elements.Table (Source_Dir);
-                     Find_Source_Dirs (Element.Value, Element.Location);
-                     Source_Dir := Element.Next;
-                  end loop;
-               end;
+            begin
 
-            when Single =>
+               --  We will find the source directories for each
+               --  element of the list
 
-               --  If Source_Dirs is an empty string, this means
-               --  that this project contains no source.
+               while Source_Dir /= Nil_String loop
+                  Element := String_Elements.Table (Source_Dir);
+                  Find_Source_Dirs (Element.Value, Element.Location);
+                  Source_Dir := Element.Next;
+               end loop;
+            end;
 
-               if Source_Dirs.Value = No_String
-                 or else String_Length (Source_Dirs.Value) = 0
-               then
-                  if Data.Object_Directory = Data.Directory then
-                     Data.Object_Directory := No_Name;
-                  end if;
-                  Data.Source_Dirs := Nil_String;
-               else
-
-                  --  Let's find the source directories
-
-                  Find_Source_Dirs (Source_Dirs.Value, Source_Dirs.Location);
-               end if;
-
-         end case;
+         end if;
 
          if Current_Verbosity = High then
             Write_Line ("Puting source directories in canonical cases");
@@ -1096,7 +1086,6 @@ package body Prj.Nmsc is
             --  We are now checking if variables Dot_Replacement, Casing,
             --  Specification_Append, Body_Append and/or Separate_Append
             --  exist.
-            --  It is an error if one of this variable is a string list.
             --  For each variable, if it does not exist, we do nothing,
             --  because we already have the default.
 
@@ -1106,30 +1095,28 @@ package body Prj.Nmsc is
                Dot_Replacement : constant Variable_Value :=
                                    Util.Value_Of
                                      (Name_Dot_Replacement,
-                                      Naming.Decl.Variables);
+                                      Naming.Decl.Attributes);
 
             begin
-               case Dot_Replacement.Kind is
-                  when Undefined =>
-                     null;
+               pragma Assert (Dot_Replacement.Kind = Single,
+                              "Dot_Replacement is not a single string");
 
-                  when List =>
-                     Error_Msg ("Dot_Replacement cannot be a list.",
+               if not Dot_Replacement.Default then
+
+                  String_To_Name_Buffer (Dot_Replacement.Value);
+
+                  if Name_Len = 0 then
+                     Error_Msg ("Dot_Replacement cannot be empty",
                                 Dot_Replacement.Location);
 
-                  when Single =>
-                     String_To_Name_Buffer (Dot_Replacement.Value);
+                  else
+                     Canonical_Case_File_Name (Name_Buffer (1 .. Name_Len));
+                     Data.Naming.Dot_Replacement := Name_Find;
+                     Data.Naming.Dot_Repl_Loc := Dot_Replacement.Location;
+                  end if;
 
-                     if Name_Len = 0 then
-                        Error_Msg
-                          ("Dot_Replacement cannot be empty",
-                           Dot_Replacement.Location);
-                     else
-                        Canonical_Case_File_Name (Name_Buffer (1 .. Name_Len));
-                        Data.Naming.Dot_Replacement := Name_Find;
-                        Data.Naming.Dot_Repl_Loc := Dot_Replacement.Location;
-                     end if;
-               end case;
+               end if;
+
             end;
 
             if Current_Verbosity = High then
@@ -1143,46 +1130,43 @@ package body Prj.Nmsc is
 
             declare
                Casing_String : constant Variable_Value :=
-                 Util.Value_Of (Name_Casing, Naming.Decl.Variables);
+                 Util.Value_Of (Name_Casing, Naming.Decl.Attributes);
 
             begin
-               case Casing_String.Kind is
-                  when Undefined =>
-                     null;
+               pragma Assert (Casing_String.Kind = Single,
+                              "Dot_Replacement is not a single string");
 
-                  when List =>
-                     Error_Msg ("Casing cannot be a list.",
-                                Casing_String.Location);
+               if not Casing_String.Default then
+                  declare
+                     Casing_Image : constant String
+                          := Get_Name_String (Casing_String.Value);
+                  begin
 
-                  when Single =>
                      declare
-                        Casing_Image : constant String
-                             := Get_Name_String (Casing_String.Value);
+                        Casing : constant Casing_Type :=
+                          Value (Casing_Image);
+
                      begin
-
-                        declare
-                           Casing : constant Casing_Type :=
-                             Value (Casing_Image);
-
-                        begin
-                           Data.Naming.Casing := Casing;
-                        end;
-
-                     exception
-                        when Constraint_Error =>
-                           if Casing_Image'Length = 0 then
-                              Error_Msg ("Casing cannot be an empty string",
-                                         Casing_String.Location);
-                           else
-                              Name_Len := Casing_Image'Length;
-                              Name_Buffer (1 .. Name_Len) := Casing_Image;
-                              Error_Msg_Name_1 := Name_Find;
-                              Error_Msg
-                                ("{ is not a correct Casing",
-                                 Casing_String.Location);
-                           end if;
+                        Data.Naming.Casing := Casing;
                      end;
-               end case;
+
+                  exception
+                     when Constraint_Error =>
+                        if Casing_Image'Length = 0 then
+                           Error_Msg ("Casing cannot be an empty string",
+                                      Casing_String.Location);
+                        else
+                           Name_Len := Casing_Image'Length;
+                           Name_Buffer (1 .. Name_Len) := Casing_Image;
+                           Error_Msg_Name_1 := Name_Find;
+                           Error_Msg
+                             ("{ is not a correct Casing",
+                              Casing_String.Location);
+                        end if;
+                  end;
+
+               end if;
+
             end;
 
             if Current_Verbosity = High then
@@ -1198,24 +1182,28 @@ package body Prj.Nmsc is
                Specification_Append : constant Variable_Value :=
                  Util.Value_Of
                  (Name_Specification_Append,
-                  Naming.Decl.Variables);
+                  Naming.Decl.Attributes);
 
             begin
-               case Specification_Append.Kind is
-                  when Undefined =>
-                     null;
+               pragma Assert (Specification_Append.Kind = Single,
+                              "Specification_Append is not a single string");
 
-                  when List =>
-                     Error_Msg ("Specification_Append cannot be a list.",
+               if not Specification_Append.Default then
+
+                  String_To_Name_Buffer (Specification_Append.Value);
+                  if Name_Len = 0 then
+                     Error_Msg ("Specification_Append cannot be empty",
                                 Specification_Append.Location);
 
-                  when Single =>
-                     String_To_Name_Buffer (Specification_Append.Value);
+                  else
                      Canonical_Case_File_Name (Name_Buffer (1 .. Name_Len));
                      Data.Naming.Specification_Append := Name_Find;
                      Data.Naming.Spec_Append_Loc :=
                        Specification_Append.Location;
-               end case;
+                  end if;
+
+               end if;
+
             end;
 
             if Current_Verbosity = High then
@@ -1228,19 +1216,21 @@ package body Prj.Nmsc is
 
             declare
                Body_Append : constant Variable_Value :=
-                 Util.Value_Of (Name_Body_Append, Naming.Decl.Variables);
+                 Util.Value_Of (Name_Body_Append, Naming.Decl.Attributes);
 
             begin
-               case Body_Append.Kind is
-                  when Undefined =>
-                     null;
+               pragma Assert (Body_Append.Kind = Single,
+                              "Body_Append is not a single string");
 
-                  when List =>
-                     Error_Msg ("Body_Append cannot be a list.",
+               if not Body_Append.Default then
+
+                  String_To_Name_Buffer (Body_Append.Value);
+
+                  if Name_Len = 0 then
+                     Error_Msg ("Body_Append cannot be empty",
                                 Body_Append.Location);
 
-                  when Single =>
-                     String_To_Name_Buffer (Body_Append.Value);
+                  else
                      Canonical_Case_File_Name (Name_Buffer (1 .. Name_Len));
                      Data.Naming.Body_Append := Name_Find;
                      Data.Naming.Body_Append_Loc := Body_Append.Location;
@@ -1250,7 +1240,10 @@ package body Prj.Nmsc is
 
                      Data.Naming.Separate_Append := Data.Naming.Body_Append;
                      Data.Naming.Sep_Append_Loc := Data.Naming.Body_Append_Loc;
-               end case;
+                  end if;
+
+               end if;
+
             end;
 
             if Current_Verbosity = High then
@@ -1263,23 +1256,28 @@ package body Prj.Nmsc is
 
             declare
                Separate_Append : constant Variable_Value :=
-                 Util.Value_Of (Name_Separate_Append, Naming.Decl.Variables);
+                 Util.Value_Of (Name_Separate_Append, Naming.Decl.Attributes);
 
             begin
-               case Separate_Append.Kind is
-                  when Undefined =>
-                     Data.Naming.Separate_Append := Data.Naming.Body_Append;
+               pragma Assert (Separate_Append.Kind = Single,
+                             "Separate_Append is not a single string");
 
-                  when List =>
-                     Error_Msg ("Separate_Append cannot be a list.",
+               if not Separate_Append.Default then
+
+                  String_To_Name_Buffer (Separate_Append.Value);
+
+                  if Name_Len = 0 then
+                     Error_Msg ("Separate_Append cannot be empty",
                                 Separate_Append.Location);
 
-                  when Single =>
-                     String_To_Name_Buffer (Separate_Append.Value);
+                  else
                      Canonical_Case_File_Name (Name_Buffer (1 .. Name_Len));
                      Data.Naming.Separate_Append := Name_Find;
                      Data.Naming.Sep_Append_Loc := Separate_Append.Location;
-               end case;
+                  end if;
+
+               end if;
+
             end;
 
             if Current_Verbosity = High then
@@ -1292,7 +1290,9 @@ package body Prj.Nmsc is
             --  Now, we check if Data.Naming is valid
 
             Check_Naming_Scheme (Data.Naming);
+
          end if;
+
       end;
 
       --  If we have source directories, then let's find the sources.
@@ -1300,125 +1300,92 @@ package body Prj.Nmsc is
       if Data.Source_Dirs /= Nil_String then
          declare
             Sources : constant Variable_Value :=
-              Util.Value_Of (Name_Source_Files, Data.Decl.Variables);
+              Util.Value_Of (Name_Source_Files, Data.Decl.Attributes);
             Source_List_File : constant Variable_Value :=
-              Util.Value_Of (Name_Source_List_File, Data.Decl.Variables);
+              Util.Value_Of (Name_Source_List_File, Data.Decl.Attributes);
 
          begin
+            pragma Assert (Sources.Kind = List,
+                          "Source_Files is not a list");
+            pragma Assert (Source_List_File.Kind = Single,
+                           "Source_List_File is not a single string");
 
-            if Sources.Kind /= Undefined
-              and then
-              Source_List_File.Kind /= Undefined
-            then
-               Error_Msg
-                 ("?both variables source_files and " &
-                  "source_list_file are present",
-                  Source_List_File.Location);
-            end if;
+            if not Sources.Default then
 
-            case  Sources.Kind is
-               when Undefined =>
+               if not Source_List_File.Default then
+                  Error_Msg
+                    ("?both variables source_files and " &
+                     "source_list_file are present",
+                     Source_List_File.Location);
+               end if;
 
-                  --  No source_files specified.
-                  --  We check Source_List_File
-                  --  Find all the files that satisfy the naming scheme
-                  --  in all the source directories.
+               --  Sources is a list of file names
 
-                  case Source_List_File.Kind is
+               declare
+                  Current_Source : String_List_Id := Nil_String;
+                  Current        : String_List_Id := Sources.Values;
+                  Element        : String_Element;
 
-                     when Undefined =>
-                        --  Find all the files that satisfy
-                        --  the naming scheme in all the source directories.
+               begin
+                  while Current /= Nil_String loop
+                     Element := String_Elements.Table (Current);
+                     String_To_Name_Buffer (Element.Value);
 
-                        Find_Sources;
-
-                     when List =>
-
-                        Error_Msg
-                          ("source_list_file cannot be a string list",
-                           Source_List_File.Location);
-
-                     when Single =>
-
-                        --  Source_List_File is the name of the file
-                        --  that contains the source file names
-
-                        declare
-                           Source_File_Path_Name : constant String :=
-                             Path_Name_Of
-                               (Source_List_File.Value, Data.Directory);
-
-                        begin
-                           if Source_File_Path_Name'Length = 0 then
-                              String_To_Name_Buffer (Source_List_File.Value);
-                              Error_Msg_Name_1 := Name_Find;
-                              Error_Msg
-                                ("file with sources { does not exist",
-                                 Source_List_File.Location);
-
-                           else
-                              Get_Sources_From_File
-                                (Source_File_Path_Name,
-                                 Source_List_File.Location);
-                           end if;
-
-                        end;
-
-                  end case;
-
-               when Single =>
-
-                  --  Sources is the name of the unique the source file
-
-                  if Sources.Value /= No_String then
-                     String_To_Name_Buffer (Sources.Value);
                      declare
                         File_Name : constant String :=
                           Name_Buffer (1 .. Name_Len);
-                        Current_Source : String_List_Id := Nil_String;
 
                      begin
                         Get_Path_Name_And_Record_Source
                           (File_Name        => File_Name,
-                           Location         => Sources.Location,
+                           Location         => Element.Location,
                            Current_Source   => Current_Source);
+                        Current := Element.Next;
 
                      end;
 
+                  end loop;
+
+               end;
+
+               --  No source_files specified.
+               --  We check Source_List_File has been specified.
+
+            elsif not Source_List_File.Default then
+
+               --  Source_List_File is the name of the file
+               --  that contains the source file names
+
+               declare
+                  Source_File_Path_Name : constant String :=
+                    Path_Name_Of (Source_List_File.Value, Data.Directory);
+
+               begin
+                  if Source_File_Path_Name'Length = 0 then
+                     String_To_Name_Buffer (Source_List_File.Value);
+                     Error_Msg_Name_1 := Name_Find;
+                     Error_Msg
+                       ("file with sources { does not exist",
+                        Source_List_File.Location);
+
+                  else
+                     Get_Sources_From_File
+                       (Source_File_Path_Name,
+                        Source_List_File.Location);
                   end if;
 
-               when List =>
+               end;
 
-                  --  Sources is a list of file names
+            else
 
-                  declare
-                     Current_Source : String_List_Id := Nil_String;
-                     Current        : String_List_Id := Sources.Values;
-                     Element        : String_Element;
+               --  Neither Source_Files nor Source_List_File has been
+               --  specified.
+               --  Find all the files that satisfy
+               --  the naming scheme in all the source directories.
 
-                  begin
-                     while Current /= Nil_String loop
-                        Element := String_Elements.Table (Current);
-                        String_To_Name_Buffer (Element.Value);
+               Find_Sources;
 
-                        declare
-                           File_Name : constant String :=
-                             Name_Buffer (1 .. Name_Len);
-
-                        begin
-                           Get_Path_Name_And_Record_Source
-                             (File_Name        => File_Name,
-                              Location         => Element.Location,
-                              Current_Source   => Current_Source);
-                           Current := Element.Next;
-
-                        end;
-
-                     end loop;
-
-                  end;
-
-            end case;
+            end if;
 
          end;
 
@@ -1738,62 +1705,40 @@ package body Prj.Nmsc is
       Parent : Name_Id)
      return   Name_Id
    is
-      The_Name : constant String := Get_Name_String (Name);
-
+      The_Name   : constant String := Get_Name_String (Name);
+      The_Parent : constant String := Get_Name_String (Parent);
    begin
 
       if Current_Verbosity = High then
          Write_Str ("Locate_Directory (""");
          Write_Str (The_Name);
          Write_Str (""", """);
-         Write_Str (Get_Name_String (Parent));
+         Write_Str (The_Parent);
          Write_Line (""")");
       end if;
 
-      if The_Name (The_Name'First) = '/' then
-         if Current_Verbosity = High then
-            Write_Str ("Checking """);
-            Write_Str (The_Name);
-            Write_Line ("""");
-         end if;
-
+      if Is_Absolute_Path (The_Name) then
          if Is_Directory (The_Name) then
-            if Current_Verbosity = High then
-               Write_Line ("    OK");
-            end if;
-
             return Name;
          end if;
 
       else
+
          declare
-            The_Full_Name : constant String :=
-              Get_Name_String (Parent) & The_Name;
-
+            Full_Path : constant String :=
+              The_Parent & Directory_Separator & The_Name;
          begin
-            if Current_Verbosity = High then
-               Write_Str ("Checking """);
-               Write_Str (The_Full_Name);
-               Write_Line ("""");
-            end if;
-
-            if Is_Directory (The_Full_Name) then
-               if Current_Verbosity = High then
-                  Write_Line ("    OK");
-               end if;
-
-               Name_Len := The_Full_Name'Length;
-               Name_Buffer (1 .. Name_Len) := The_Full_Name;
+            if Is_Directory (Full_Path) then
+               Name_Len := Full_Path'Length;
+               Name_Buffer (1 .. Name_Len) := Full_Path;
                return Name_Find;
             end if;
          end;
-      end if;
 
-      if Current_Verbosity = High then
-         Write_Line ("     directory does not exist");
       end if;
 
       return No_Name;
+
    end Locate_Directory;
 
    ------------------
@@ -1962,8 +1907,9 @@ package body Prj.Nmsc is
                         Location);
                   else
 
-                     Error_Msg_S
-                       ("duplicate source {");
+                     Error_Msg
+                       ("duplicate source {",
+                        Projects.Table (Project).Location);
                   end if;
                end if;
 

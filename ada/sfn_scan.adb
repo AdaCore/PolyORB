@@ -33,6 +33,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Exceptions; use Ada.Exceptions;
+
 package body SFN_Scan is
 
    use ASCII;
@@ -46,8 +48,11 @@ package body SFN_Scan is
    P : Natural;
    --  Subscript of next character to process in S
 
-   Error : exception;
-   --  Exception raised if a syntax error is encountered
+   Line_Num : Natural;
+   --  Current line number
+
+   Start_Of_Line : Natural;
+   --  Subscript of first character at start of current line
 
    ----------------------
    -- Local Procedures --
@@ -92,6 +97,11 @@ package body SFN_Scan is
    --  P is unchanged (except for possibly skipping past whitespace),
    --  and False is returned. S may contain only lower-case letters
    --  ('a' .. 'z').
+
+   procedure Error (Err : String);
+   --  Called if an error is detected. Raises Syntax_Error_In_GNAT_ADC
+   --  with a message of the form gnat.adc:line:col: xxx, where xxx is
+   --  the string Err passed as a parameter.
 
    procedure Require_Token (T : String);
    --  Skips white space if any, and then requires the given string
@@ -152,16 +162,14 @@ package body SFN_Scan is
       B := P;
 
       while not At_EOF loop
-         case S (P) is
-            when ' ' | VT | HT | CR | LF | FF | ',' | ')' =>
-               exit;
-            when others =>
-               P := P + 1;
-         end case;
+         exit when S (P) not in '0' .. '9'
+           and then S (P) /= '.'
+           and then S (P) < 'A';
+         P := P + 1;
       end loop;
 
       if P = B then
-         raise Syntax_Error_In_GNAT_ADC;
+         Error ("null unit name");
       end if;
 
       return S (B .. P - 1);
@@ -202,7 +210,7 @@ package body SFN_Scan is
       Skip_WS;
 
       if At_EOF then
-         raise Syntax_Error_In_GNAT_ADC;
+         Error ("unexpected end of file");
       end if;
 
       return;
@@ -260,17 +268,89 @@ package body SFN_Scan is
       end if;
    end Check_Token;
 
+   -----------
+   -- Error --
+   -----------
+
+   procedure Error (Err : String) is
+      C : Natural := 0;
+      --  Column number
+
+      M : String (1 .. 80);
+      --  Buffer used to build resulting error msg
+
+      LM : Natural := 0;
+      --  Pointer to last set location in M
+
+      procedure Add_Nat (N : Natural);
+      --  Add chars of integer to error msg buffer
+
+      procedure Add_Nat (N : Natural) is
+      begin
+         if N > 9 then
+            Add_Nat (N / 10);
+         end if;
+
+         LM := LM + 1;
+         M (LM) := Character'Val (N mod 10 + Character'Pos ('0'));
+      end Add_Nat;
+
+   --  Start of processing for Error
+
+   begin
+      M (1 .. 9) := "gnat.adc:";
+      LM := 9;
+      Add_Nat (Line_Num);
+      LM := LM + 1;
+      M (LM) := ':';
+
+      --  Determine column number
+
+      for X in Start_Of_Line .. P loop
+         C := C + 1;
+
+         if S (X) = HT then
+            C := (C + 7) / 8 * 8;
+         end if;
+      end loop;
+
+      Add_Nat (C);
+      M (LM + 1) := ':';
+      LM := LM + 1;
+      M (LM + 1) := ' ';
+      LM := LM + 1;
+
+      M (LM + 1 .. LM + Err'Length) := Err;
+      LM := LM + Err'Length;
+
+      Raise_Exception (Syntax_Error_In_GNAT_ADC'Identity, M (1 .. LM));
+   end Error;
+
    -------------------
    -- Require_Token --
    -------------------
 
    procedure Require_Token (T : String) is
+      SaveP : Natural;
+
    begin
       Skip_WS;
+      SaveP := P;
 
       for J in T'Range loop
+
          if At_EOF or else S (P) /= T (J) then
-            raise Syntax_Error_In_GNAT_ADC;
+            declare
+               S : String (1 .. T'Length + 10);
+
+            begin
+               S (1 .. 9) := "missing """;
+               S (10 .. T'Length + 9) := T;
+               S (T'Length + 10) := '"';
+               P := SaveP;
+               Error (S);
+            end;
+
          else
             P := P + 1;
          end if;
@@ -291,8 +371,10 @@ package body SFN_Scan is
       Cas  : Character;
 
    begin
+      Line_Num := 1;
       S := Source'Unrestricted_Access;
       P := Source'First;
+      Start_Of_Line := P;
 
       --  Loop through pragmas in file
 
@@ -303,7 +385,7 @@ package body SFN_Scan is
          --  Error if something other than pragma
 
          if not Check_Token ("pragma") then
-            raise Syntax_Error_In_GNAT_ADC;
+            Error ("non pragma encountered");
          end if;
 
          --  Source_File_Name pragma case
@@ -328,7 +410,7 @@ package body SFN_Scan is
                   Typ := Check_File_Type;
 
                   if Typ /= 's' and then Typ /= 'b' then
-                     raise Syntax_Error_In_GNAT_ADC;
+                     Error ("bad pragma");
                   end if;
 
                   Require_Token ("=>");
@@ -364,7 +446,7 @@ package body SFN_Scan is
                   end loop;
 
                   if Nas /= 1 then
-                     raise Syntax_Error_In_GNAT_ADC;
+                     Error ("** not allowed");
                   end if;
 
                   B := 0;
@@ -382,7 +464,7 @@ package body SFN_Scan is
                         Require_Token ("=>");
 
                         if Cas /= ' ' then
-                           raise Syntax_Error_In_GNAT_ADC; -- duplicate
+                           Error ("duplicate casing argument");
                         elsif Check_Token ("lowercase") then
                            Cas := 'l';
                         elsif Check_Token ("uppercase") then
@@ -390,20 +472,20 @@ package body SFN_Scan is
                         elsif Check_Token ("mixedcase") then
                            Cas := 'm';
                         else
-                           raise Syntax_Error_In_GNAT_ADC;
+                           Error ("invalid casing argument");
                         end if;
 
                      elsif Check_Token ("dot_replacement") then
                         Require_Token ("=>");
 
                         if E /= 0 then
-                           raise Syntax_Error_In_GNAT_ADC; -- duplicate
+                           Error ("duplicate dot_replacement");
                         else
                            Scan_String (B, E);
                         end if;
 
                      else
-                        raise Syntax_Error_In_GNAT_ADC;
+                        Error ("invalid argument");
                      end if;
                   end loop;
 
@@ -469,7 +551,7 @@ package body SFN_Scan is
       elsif S (P) = '%' then
          Q := '%';
       else
-         raise Syntax_Error_In_GNAT_ADC;
+         Error ("bad string");
       end if;
 
       --  Scan out the string, B points to first char
@@ -478,8 +560,11 @@ package body SFN_Scan is
       P := P + 1;
 
       loop
-         if At_EOF then
-            raise Syntax_Error_In_GNAT_ADC;
+         if At_EOF or else S (P) = LF or else S (P) = CR then
+            Error ("missing string quote");
+
+         elsif S (P) = HT then
+            Error ("tab character in string");
 
          elsif S (P) /= Q then
             P := P + 1;
@@ -512,14 +597,33 @@ package body SFN_Scan is
    begin
       WS_Scan : while not At_EOF loop
          case S (P) is
-            when ' ' | CR | LF | FF | VT | HT =>
+
+            --  End of physical line
+
+            when CR | LF =>
+               Line_Num := Line_Num + 1;
                P := P + 1;
+
+               while not At_EOF
+                 and then (S (P) = CR or else S (P) = LF)
+               loop
+                  P := P + 1;
+               end loop;
+
+               Start_Of_Line := P;
+
+            --  All other cases of white space characters
+
+            when ' ' | FF | VT | HT =>
+               P := P + 1;
+
+            --  Comment
 
             when '-' =>
                P := P + 1;
 
                if At_EOF then
-                  raise Syntax_Error_In_GNAT_ADC;
+                  Error ("bad comment");
 
                elsif S (P) = '-' then
                   P := P + 1;

@@ -190,7 +190,6 @@ package body Snames is
      "convention#" &
      "cpp_class#" &
      "cpp_constructor#" &
-     "cpp_destructor#" &
      "cpp_virtual#" &
      "cpp_vtable#" &
      "debug#" &

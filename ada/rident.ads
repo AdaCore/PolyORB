@@ -60,6 +60,7 @@ package Rident is
       No_Floating_Point,                       -- (RM H.4(14))
       No_IO,                                   -- (RM H.4(20))
       No_Implicit_Conditionals,                -- GNAT
+      No_Implicit_Dynamic_Code,                -- GNAT
       No_Implicit_Heap_Allocations,            -- (RM D.8(8), H.4(3))
       No_Implicit_Loops,                       -- GNAT
       No_Local_Allocators,                     -- (RM H.4(8))

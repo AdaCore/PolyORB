@@ -71,11 +71,11 @@ package body Debug is
    --  dA   All entities included in representation information output
    --  dB   Output debug encoding of type names and variants
    --  dC
-   --  dD
+   --  dD   Delete elaboration checks in inner level routines
    --  dE   Apply elaboration checks to predefined units
    --  dF   Front end data layout enabled.
    --  dG   Generate input showing file creating info for debug file
-   --  dH
+   --  dH   Hold (kill) call to gigi
    --  dI   Inhibit internal name numbering in gnatG listing
    --  dJ   Output debugging trace info for JGNAT (Java VM version of GNAT)
    --  dK   Kill all error messages
@@ -91,7 +91,7 @@ package body Debug is
    --  dU   Enable garbage collection of unreachable entities
    --  dV
    --  dW
-   --  dX   Force use of zero-cost exception approach
+   --  dX
    --  dY
    --  dZ
 
@@ -203,6 +203,21 @@ package body Debug is
    --  dd   Dynamic allocation of tables messages generated. Each time a
    --       table is reallocated, a line is output indicating the expansion.
 
+   --  dD   Delete new elaboration checks. This flag causes GNAT to return
+   --       to the 3.13a elaboration semantics, and to suppress the fixing
+   --       of two bugs. The first is in the context of inner routines in
+   --       dynamic elaboration mode, when the subprogram we are in was
+   --       called at elaboration time by a unit that was also compiled with
+   --       dynamic elaboration checks. In this case, if A calls B calls C,
+   --       and all are in different units, we need an elaboration check at
+   --       each call. These nested checks were only put in recently (see
+   --       version 1.80 of Sem_Elab) and we provide this debug flag to
+   --       revert to the previous behavior in case of regressions. The
+   --       other behavior reverted by this flag is the treatment of the
+   --       Elaborate_Body pragma in static elaboration mode. This used to
+   --       be treated as not needing elaboration checking, but in fact in
+   --       general Elaborate_All is still required because of nested calls.
+
    --  de   List the entity table
 
    --  df   Full tree/source print (includes withed units). Normally the tree
@@ -230,6 +245,10 @@ package body Debug is
    --       table chains built by the Namet package are loaded. This is useful
    --       in ensuring that the hashing algorithm (in Namet.Hash) is working
    --       effectively with typical sets of program identifiers.
+
+   --  dH   Inhibit call to gigi. This is useful for testing front end data
+   --       layout, and may be useful in other debugging situations where
+   --       you do not want gigi to intefere with the testing.
 
    --  di   Generate messages for visibility linking/delinking
 
@@ -372,14 +391,6 @@ package body Debug is
    --  dU   Enable garbage collection of unreachable entities. This enables
    --       both the reachability analysis and changing the Is_Public and
    --       Is_Eliminated flags.
-
-   --  dX   Force use of zero-cost exceptions even if the system configuration
-   --       specifies that they should not be used (i.e. the configuration
-   --       flag Zero_Cost_Exceptions is False). Whether this will actually
-   --       work at runtime depends on whether an appropriate target dependent
-   --       version of a-emstop.adb has been provided. This flag is obsolescent
-   --       since it is replaced by -gnatZ, but for compatibility with old
-   --       habits and scripts, it is retained.
 
    --  d1   Error msgs have node numbers where possible. Normally error
    --       messages have only source locations. This option is useful when

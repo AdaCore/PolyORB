@@ -40,7 +40,7 @@ with Urealp; use Urealp;
 package Einfo is
 
 --  This package defines the annotations to the abstract syntax tree that
---  are are needed to support semantic processing of an Ada compilation.
+--  are needed to support semantic processing of an Ada compilation.
 
 --  These annotations are for the most part attributes of declared entities,
 --  and they correspond to conventional symbol table information. Other
@@ -248,15 +248,15 @@ package Einfo is
 --  kinds of entities. In the latter case the attribute should only be set or
 --  accessed if the Ekind field indicates an appropriate entity.
 
---  There are two kinds of entities, stored and synthesized. Stored attributes
---  correspond to a field or flag in the entity itself. Such attributes are
---  identified in the table below by giving the field or flag in the attribute
---  that is used to hold the attribute value. Synthesized attributes are not
---  stored directly, but are rather computed as needed from other attributes,
---  or from information in the tree. These are marked "synthesized" in the
---  table below. The stored attributes have both access functions and set
---  procedures to set the corresponding values, while synthesized attributes
---  have only access functions.
+--  There are two kinds of attributes that apply to entities, stored and
+--  synthesized. Stored attributes correspond to a field or flag in the entity
+--  itself. Such attributes are identified in the table below by giving the
+--  field or flag in the attribute that is used to hold the attribute value.
+--  Synthesized attributes are not stored directly, but are rather computed as
+--  needed from other attributes, or from information in the tree. These are
+--  marked "synthesized" in the table below. The stored attributes have both
+--  access functions and set procedures to set the corresponding values, while
+--  synthesized attributes have only access functions.
 
 --  Note: in the case of Node, Uint, or Elist fields, there are cases where
 --  the same physical field is used for different purposes in different
@@ -462,16 +462,7 @@ package Einfo is
 --       the Component_Alignment pragma. Note: this field is currently
 --       stored in a non-standard way, see body for details.
 
---    Component_Clause (Node13)
---       Present in record components and discriminants. If a record
---       representation clause is present for the corresponding record
---       type a that specifies a position for the component, then the
---       Component_Clause field of the E_Component entity points to the
---       N_Component_Claue node. Set to Empty if no record representation
---       clause was present, or if there was no specification for this
---       component.
-
---    Component_First_Bit (Uint11)
+--    Component_Bit_Offset (Uint11)
 --       Present in record components (E_Component, E_Discriminant) if a
 --       component clause applies to the component. First bit position of
 --       given component, computed from the first bit and position values
@@ -484,6 +475,15 @@ package Einfo is
 --       a value which is not known at compile time, and must be computed
 --       at run-time (this happens if fields of a record have variable
 --       lengths). See package Layout for details of these values.
+
+--    Component_Clause (Node13)
+--       Present in record components and discriminants. If a record
+--       representation clause is present for the corresponding record
+--       type a that specifies a position for the component, then the
+--       Component_Clause field of the E_Component entity points to the
+--       N_Component_Claue node. Set to Empty if no record representation
+--       clause was present, or if there was no specification for this
+--       component.
 
 --    Component_Size (Uint22) [implementation base type only]
 --       Present in array types. It contains the component size value for
@@ -825,7 +825,7 @@ package Einfo is
 
 --    Enumeration_Rep (Uint12)
 --       Present in enumeration literals. Contains the representation that
---       corresponds to the value of the the enumeration literal. Note that
+--       corresponds to the value of the enumeration literal. Note that
 --       this is normally the same as Enumeration_Pos except in the presence
 --       of representation clauses, where Pos will still represent the
 --       position of the literal within the type and Rep will have be the
@@ -1236,6 +1236,14 @@ package Einfo is
 --       entity is a foreign convention (i.e. is other than Convention_Ada,
 --       Convention_Intrinsic, Convention_Entry or Convention_Protected).
 
+--    Has_Forward_Instantiation (Flag175)
+--       Present in package entities. Set true for packages that contain
+--       instantiations of local generic entities, before the corresponding
+--       generic body has been seen. If a package has a forward instantiation,
+--       we cannot inline subprograms appearing in the same package because
+--       the placement requirements of the instance will conflict with the
+--       linear elaboration of front-end inlining.
+
 --    Has_Fully_Qualified_Name (Flag173)
 --       Present in all entities. Set True if the name in the Chars field
 --       has been replaced by the fully qualified name, as used for debug
@@ -1629,7 +1637,7 @@ package Einfo is
 --       Ada.Finalization.Limited_Controlled.
 
 --    Is_Controlling_Formal (Flag97)
---       Present in in all Formal_Kind entity. Marks the controlling parameters
+--       Present in all Formal_Kind entity. Marks the controlling parameters
 --       of dispatching operations.
 
 --    Is_CPP_Class (Flag74)
@@ -2054,14 +2062,20 @@ package Einfo is
 --       all entities within such packages.
 
 --    Is_Statically_Allocated (Flag28)
---       Present in variables and constants. Indicates that the variable or
---       constant is to be statically allocated, rather than being allocated
---       on the stack. This is used in the expanded code, notably for all
---       dispatch tables. Also present in types, with the meaning that the
---       type is to be elaborated at the top level. Any variable or constant
---       that is marked Is_Statically_Allocated must have a type that is also
---       marked this way. No type marked with this flag may depend on a local
---       variable, or on some other type that does not have this flag set.
+--       Present in all entities. This can only be set True for exception,
+--       variable, constant, and type/subtype entities. If the flag is set,
+--       then the variable or constant must be allocated statically rather
+--       than on the local stack frame. For exceptions, the meaning is that
+--       the exception data should be allocated statically (and indeed this
+--       flag is always set for exceptions, since exceptions do not have
+--       local scope). For a type, the meaning is that the type must be
+--       elaborated at the global level rather than locally. No type marked
+--       with this flag may depend on a local variable, or on any other type
+--       which does not also have this flag set to True. For a variable or
+--       or constant, if the flag is set, then the type of the object must
+--       either be declared at the library level, or it must also have the
+--       flag set (since to allocate the oject statically, its type must
+--       also be elaborated globally).
 
 --    Is_Subprogram (synthesized)
 --       Applies to all entities, true for bodies of functions, procedures
@@ -2351,20 +2365,20 @@ package Einfo is
 --       on whether the record is a base type and whether it is tagged.
 --
 --       In base tagged types:
---          When the component is inherited in a record extension, it points
---          to the original component (the entity of the ancestor component
---          which is not itself inherited) otherwise it points to itself.
---          Gigi uses this attribute to implement the automatic dereference in
---          the extension and to apply the transformation:
+--         When the component is inherited in a record extension, it points
+--         to the original component (the entity of the ancestor component
+--         which is not itself inherited) otherwise it points to itself.
+--         Gigi uses this attribute to implement the automatic dereference in
+--         the extension and to apply the transformation:
 --
---             Rec_Ext.Comp -> Rec_Ext.Parent. ... .Parent.Comp
+--            Rec_Ext.Comp -> Rec_Ext.Parent. ... .Parent.Comp
 --
 --       In base non-tagged types:
---          Always points to itself except for non-girder discriminants, where
---          it points to the girder discriminant it renames.
+--         Always points to itself except for non-girder discriminants, where
+--         it points to the girder discriminant it renames.
 --
 --       In subtypes (tagged and untagged):
---          This field is equal to that of the component in the base type.
+--         Points to the component in the base type.
 
 --    Packed_Array_Type (Node23)
 --       Present in array types and subtypes, including the string literal
@@ -3602,6 +3616,7 @@ package Einfo is
    --    Is_Remote_Call_Interface      (Flag62)
    --    Is_Remote_Types               (Flag61)
    --    Is_Shared_Passive             (Flag60)
+   --    Is_Statically_Allocated       (Flag28)
    --    Is_Unchecked_Union            (Flag117)
    --    Is_VMS_Exception              (Flag133)
    --    Materialize_Entity            (Flag168)
@@ -3674,7 +3689,6 @@ package Einfo is
    --    Is_Packed                     (Flag51)   (base type only)
    --    Is_Private_Composite          (Flag107)
    --    Is_Renaming_Of_Object         (Flag112)
-   --    Is_Statically_Allocated       (Flag28)
    --    Is_Tagged_Type                (Flag55)
    --    Is_Unsigned_Type              (Flag144)
    --    Is_Volatile                   (Flag16)
@@ -3779,7 +3793,7 @@ package Einfo is
    --    (plus type attributes)
 
    --  E_Component
-   --    Component_First_Bit           (Uint11)
+   --    Component_Bit_Offset          (Uint11)
    --    Esize                         (Uint12)
    --    Component_Clause              (Node13)
    --    DT_Entry_Count                (Uint15)
@@ -3815,7 +3829,6 @@ package Einfo is
    --    Is_Atomic                     (Flag85)
    --    Is_Eliminated                 (Flag124)
    --    Is_Psected                    (Flag153)
-   --    Is_Statically_Allocated       (Flag28)
    --    Is_True_Constant              (Flag163)
    --    Is_Volatile                   (Flag16)
    --    Not_Source_Assigned           (Flag115)
@@ -3838,7 +3851,7 @@ package Einfo is
    --    (plus type attributes)
 
    --  E_Discriminant
-   --    Component_First_Bit           (Uint11)
+   --    Component_Bit_Offset          (Uint11)
    --    Esize                         (Uint12)
    --    Component_Clause              (Node13)
    --    Discriminant_Number           (Uint15)
@@ -4113,6 +4126,7 @@ package Einfo is
    --    From_With_Type                (Flag159)
    --    Has_All_Calls_Remote          (Flag79)
    --    Has_Completion                (Flag26)
+   --    Has_Forward_Instantiation     (Flag175)
    --    Has_Master_Entity             (Flag21)
    --    Has_Subprogram_Descriptor     (Flag93)
    --    In_Package_Body               (Flag48)
@@ -4367,7 +4381,6 @@ package Einfo is
    --    Is_Eliminated                 (Flag124)
    --    Is_Psected                    (Flag153)
    --    Is_Shared_Passive             (Flag60)
-   --    Is_Statically_Allocated       (Flag28)
    --    Is_True_Constant              (Flag163)
    --    Is_Volatile                   (Flag16)
    --    Not_Source_Assigned           (Flag115)
@@ -4633,7 +4646,7 @@ package Einfo is
    function Cloned_Subtype                     (Id : E) return E;
    function Component_Alignment                (Id : E) return C;
    function Component_Clause                   (Id : E) return N;
-   function Component_First_Bit                (Id : E) return U;
+   function Component_Bit_Offset               (Id : E) return U;
    function Component_Size                     (Id : E) return U;
    function Component_Type                     (Id : E) return E;
    function Corresponding_Concurrent_Type      (Id : E) return E;
@@ -4725,6 +4738,7 @@ package Einfo is
    function Has_Master_Entity                  (Id : E) return B;
    function Has_Missing_Return                 (Id : E) return B;
    function Has_Nested_Block_With_Handler      (Id : E) return B;
+   function Has_Forward_Instantiation          (Id : E) return B;
    function Has_Non_Standard_Rep               (Id : E) return B;
    function Has_Object_Size_Clause             (Id : E) return B;
    function Has_Per_Object_Constraint          (Id : E) return B;
@@ -5015,22 +5029,22 @@ package Einfo is
    --  of Alignment, dynamic values are not possible, so we do not
    --  need a separate Known_Static call in this case.
 
-   function Known_Esize                      (E : Entity_Id) return B;
-   function Known_RM_Size                    (E : Entity_Id) return B;
-   function Known_Alignment                  (E : Entity_Id) return B;
-   function Known_Component_Size             (E : Entity_Id) return B;
-   function Known_Component_First_Bit        (E : Entity_Id) return B;
+   function Known_Esize                       (E : Entity_Id) return B;
+   function Known_RM_Size                     (E : Entity_Id) return B;
+   function Known_Alignment                   (E : Entity_Id) return B;
+   function Known_Component_Size              (E : Entity_Id) return B;
+   function Known_Component_Bit_Offset        (E : Entity_Id) return B;
 
-   function Known_Static_Esize               (E : Entity_Id) return B;
-   function Known_Static_RM_Size             (E : Entity_Id) return B;
-   function Known_Static_Component_Size      (E : Entity_Id) return B;
-   function Known_Static_Component_First_Bit (E : Entity_Id) return B;
+   function Known_Static_Esize                (E : Entity_Id) return B;
+   function Known_Static_RM_Size              (E : Entity_Id) return B;
+   function Known_Static_Component_Size       (E : Entity_Id) return B;
+   function Known_Static_Component_Bit_Offset (E : Entity_Id) return B;
 
-   function Unknown_Esize                    (E : Entity_Id) return B;
-   function Unknown_RM_Size                  (E : Entity_Id) return B;
-   function Unknown_Alignment                (E : Entity_Id) return B;
-   function Unknown_Component_Size           (E : Entity_Id) return B;
-   function Unknown_Component_First_Bit      (E : Entity_Id) return B;
+   function Unknown_Esize                     (E : Entity_Id) return B;
+   function Unknown_RM_Size                   (E : Entity_Id) return B;
+   function Unknown_Alignment                 (E : Entity_Id) return B;
+   function Unknown_Component_Size            (E : Entity_Id) return B;
+   function Unknown_Component_Bit_Offset      (E : Entity_Id) return B;
 
    ------------------------------
    -- Attribute Set Procedures --
@@ -5054,8 +5068,8 @@ package Einfo is
    procedure Set_Class_Wide_Type               (Id : E; V : E);
    procedure Set_Cloned_Subtype                (Id : E; V : E);
    procedure Set_Component_Alignment           (Id : E; V : C);
+   procedure Set_Component_Bit_Offset          (Id : E; V : U);
    procedure Set_Component_Clause              (Id : E; V : N);
-   procedure Set_Component_First_Bit           (Id : E; V : U);
    procedure Set_Component_Size                (Id : E; V : U);
    procedure Set_Component_Type                (Id : E; V : E);
    procedure Set_Corresponding_Concurrent_Type (Id : E; V : E);
@@ -5145,6 +5159,7 @@ package Einfo is
    procedure Set_Has_Master_Entity             (Id : E; V : B := True);
    procedure Set_Has_Missing_Return            (Id : E; V : B := True);
    procedure Set_Has_Nested_Block_With_Handler (Id : E; V : B := True);
+   procedure Set_Has_Forward_Instantiation     (Id : E; V : B := True);
    procedure Set_Has_Non_Standard_Rep          (Id : E; V : B := True);
    procedure Set_Has_Object_Size_Clause        (Id : E; V : B := True);
    procedure Set_Has_Per_Object_Constraint     (Id : E; V : B := True);
@@ -5328,21 +5343,21 @@ package Einfo is
    --  where the argument is normally a Uint. The overloadings take an Int
    --  parameter instead, and appropriately convert it. There are also
    --  versions that implicitly initialize to the appropriate "not set"
-   --  value (usually Uint_0, except for Component_First_Bit).
+   --  value (usually Uint_0, except for Component_Bit_Offset).
 
-   procedure Init_Alignment           (Id : E; V : Int);
-   procedure Init_Component_Size      (Id : E; V : Int);
-   procedure Init_Component_First_Bit (Id : E; V : Int);
-   procedure Init_Digits_Value        (Id : E; V : Int);
-   procedure Init_Esize               (Id : E; V : Int);
-   procedure Init_RM_Size             (Id : E; V : Int);
+   procedure Init_Alignment            (Id : E; V : Int);
+   procedure Init_Component_Size       (Id : E; V : Int);
+   procedure Init_Component_Bit_Offset (Id : E; V : Int);
+   procedure Init_Digits_Value         (Id : E; V : Int);
+   procedure Init_Esize                (Id : E; V : Int);
+   procedure Init_RM_Size              (Id : E; V : Int);
 
-   procedure Init_Alignment           (Id : E);
-   procedure Init_Component_Size      (Id : E);
-   procedure Init_Component_First_Bit (Id : E);
-   procedure Init_Digits_Value        (Id : E);
-   procedure Init_Esize               (Id : E);
-   procedure Init_RM_Size             (Id : E);
+   procedure Init_Alignment            (Id : E);
+   procedure Init_Component_Size       (Id : E);
+   procedure Init_Component_Bit_Offset (Id : E);
+   procedure Init_Digits_Value         (Id : E);
+   procedure Init_Esize                (Id : E);
+   procedure Init_RM_Size              (Id : E);
 
    procedure Init_Size_Align (Id : E);
    --  This procedure initializes both size fields and the alignment
@@ -5487,8 +5502,8 @@ package Einfo is
    pragma Inline (C_Pass_By_Copy);
    pragma Inline (Class_Wide_Type);
    pragma Inline (Cloned_Subtype);
+   pragma Inline (Component_Bit_Offset);
    pragma Inline (Component_Clause);
-   pragma Inline (Component_First_Bit);
    pragma Inline (Component_Size);
    pragma Inline (Component_Type);
    pragma Inline (Corresponding_Concurrent_Type);
@@ -5578,6 +5593,7 @@ package Einfo is
    pragma Inline (Has_Master_Entity);
    pragma Inline (Has_Missing_Return);
    pragma Inline (Has_Nested_Block_With_Handler);
+   pragma Inline (Has_Forward_Instantiation);
    pragma Inline (Has_Non_Standard_Rep);
    pragma Inline (Has_Object_Size_Clause);
    pragma Inline (Has_Per_Object_Constraint);
@@ -5791,14 +5807,14 @@ package Einfo is
    pragma Inline (Warnings_Off);
 
    pragma Inline (Init_Alignment);
-   pragma Inline (Init_Component_First_Bit);
+   pragma Inline (Init_Component_Bit_Offset);
    pragma Inline (Init_Component_Size);
    pragma Inline (Init_Digits_Value);
    pragma Inline (Init_Esize);
    pragma Inline (Init_RM_Size);
 
    pragma Inline (Known_Alignment);
-   pragma Inline (Known_Component_First_Bit);
+   pragma Inline (Known_Component_Bit_Offset);
    pragma Inline (Known_Component_Size);
    pragma Inline (Known_Esize);
 
@@ -5806,7 +5822,7 @@ package Einfo is
    pragma Inline (Known_Static_Esize);
 
    pragma Inline (Unknown_Alignment);
-   pragma Inline (Unknown_Component_First_Bit);
+   pragma Inline (Unknown_Component_Bit_Offset);
    pragma Inline (Unknown_Component_Size);
    pragma Inline (Unknown_Esize);
 
@@ -5827,8 +5843,8 @@ package Einfo is
    pragma Inline (Set_C_Pass_By_Copy);
    pragma Inline (Set_Class_Wide_Type);
    pragma Inline (Set_Cloned_Subtype);
+   pragma Inline (Set_Component_Bit_Offset);
    pragma Inline (Set_Component_Clause);
-   pragma Inline (Set_Component_First_Bit);
    pragma Inline (Set_Component_Size);
    pragma Inline (Set_Component_Type);
    pragma Inline (Set_Corresponding_Concurrent_Type);
@@ -5915,6 +5931,7 @@ package Einfo is
    pragma Inline (Set_Has_Master_Entity);
    pragma Inline (Set_Has_Missing_Return);
    pragma Inline (Set_Has_Nested_Block_With_Handler);
+   pragma Inline (Set_Has_Forward_Instantiation);
    pragma Inline (Set_Has_Non_Standard_Rep);
    pragma Inline (Set_Has_Object_Size_Clause);
    pragma Inline (Set_Has_Per_Object_Constraint);
@@ -6102,7 +6119,7 @@ package Einfo is
    pragma Inline (Is_Package);
    pragma Inline (Is_Wrapper_Package);
    pragma Inline (Known_RM_Size);
-   pragma Inline (Known_Static_Component_First_Bit);
+   pragma Inline (Known_Static_Component_Bit_Offset);
    pragma Inline (Known_Static_RM_Size);
    pragma Inline (Scope_Depth);
    pragma Inline (Scope_Depth_Set);

@@ -64,6 +64,10 @@ package body Make is
    use ASCII;
    --  Make control characters visible
 
+   Standard_Library_Package_Body_Name : constant String := "s-stalib.adb";
+   --  Every program depends on this package, that must then be checked,
+   --  especially when -f and -a are used.
+
    -------------------------------------
    -- Queue (Q) Manipulation Routines --
    -------------------------------------
@@ -585,9 +589,9 @@ package body Make is
          Name_Buffer (1 .. Name_Len) := File_Name;
          Switches :=
            Prj.Util.Value_Of
-             (Name                   => Name_Find,
-              Variable_Or_Array_Name => Name_Switches,
-              In_Package             => The_Package);
+             (Name                    => Name_Find,
+              Attribute_Or_Array_Name => Name_Switches,
+              In_Package              => The_Package);
 
          case Switches.Kind is
             when Undefined =>
@@ -1309,7 +1313,6 @@ package body Make is
       Text : Text_Buffer_Ptr;
 
       Data : Prj.Project_Data;
-      Gnatmake_Element : Package_Element;
 
       Arg_Index : Natural;
       --  Index in Special_Args.Table of a given compilation file
@@ -1486,7 +1489,6 @@ package body Make is
                  Name_Buffer (1 .. Name_Len);
                Current_Project : Prj.Project_Id;
                Path_Name : File_Name_Type := Source_File;
-               Gnatmake : Prj.Package_Id;
                Compiler_Package : Prj.Package_Id;
                Switches : Prj.Variable_Value;
                Object_File : String_Access;
@@ -1555,32 +1557,20 @@ package body Make is
                      Write_Eol;
                   end if;
 
-                  --  We know look for package Gnatmake.Compiler
+                  --  We know look for package Compiler
                   --  and get the switches from this package.
 
-                  Gnatmake :=
+                  if Opt.Verbose_Mode then
+                     Write_Str ("Checking package Compiler.");
+                     Write_Eol;
+                  end if;
+
+                  Compiler_Package :=
                     Prj.Util.Value_Of
-                    (Name        => Name_Gnatmake,
+                    (Name        => Name_Compiler,
                      In_Packages => Data.Decl.Packages);
 
-                  --  Package Gnatmake exists
-
-                  if Gnatmake /= No_Package then
-
-                     --  We now look for package Gnatmake.Compiler.
-
-                     if Opt.Verbose_Mode then
-                        Write_Str ("Checking package Compiler.");
-                        Write_Eol;
-                     end if;
-
-                     Gnatmake_Element :=
-                       Packages.Table (Gnatmake);
-
-                     Compiler_Package :=
-                       Prj.Util.Value_Of
-                       (Name        => Name_Compiler,
-                        In_Packages => Gnatmake_Element.Decl.Packages);
+                  if Compiler_Package /= No_Package then
 
                      if Opt.Verbose_Mode then
                         Write_Str ("Getting the switches.");
@@ -1593,9 +1583,9 @@ package body Make is
 
                      Switches :=
                        Prj.Util.Value_Of
-                       (Name                   => Source_File,
-                        Variable_Or_Array_Name => Name_Switches,
-                        In_Package             => Compiler_Package);
+                       (Name                    => Source_File,
+                        Attribute_Or_Array_Name => Name_Switches,
+                        In_Package              => Compiler_Package);
                   end if;
 
                   case Switches.Kind is
@@ -1880,9 +1870,31 @@ package body Make is
       Insert_Q (Main_Source);
       Mark (Main_Source);
 
-      First_Compiled_File       := No_File;
-      Most_Recent_Obj_File      := No_File;
-      Main_Unit                 := False;
+      --  The following adds the standard library (s-stalib) to the
+      --  list of files to be handled by gnatmake: this file and any
+      --  files it depends on are always included in every bind, even
+      --  if they are not in the explicit dependency list).
+
+      --  However, to avoid annoying output about s-stalib.ali being
+      --  read only, when "-v" is used, we add the standard library
+      --  only when "-a" is used.
+
+      if Check_Readonly_Files then
+         declare
+            Sfile : Name_Id;
+
+         begin
+            Name_Len := Standard_Library_Package_Body_Name'Length;
+            Name_Buffer (1 .. Name_Len) := Standard_Library_Package_Body_Name;
+            Sfile := Name_Enter;
+            Insert_Q (Sfile);
+            Mark (Sfile);
+         end;
+      end if;
+
+      First_Compiled_File  := No_File;
+      Most_Recent_Obj_File := No_File;
+      Main_Unit            := False;
 
       --  Keep looping until there is no more work to do (the Q is empty)
       --  and all the outstanding compilations have terminated
@@ -2355,8 +2367,7 @@ package body Make is
 
          Prj.Pars.Parse
            (Project           => Main_Project,
-            Project_File_Name => Project_File_Name.all,
-            Package_Name      => "gnatmake");
+            Project_File_Name => Project_File_Name.all);
 
          if Main_Project = No_Project then
             Fail ("""" & Project_File_Name.all &
@@ -2381,11 +2392,23 @@ package body Make is
                                         (Name    => Main_Source_File_Name,
                                          Project => Main_Project);
 
+            The_Packages : constant Package_Id :=
+              Projects.Table (Main_Project).Decl.Packages;
+
             Gnatmake : constant Prj.Package_Id :=
                          Prj.Util.Value_Of
                            (Name        => Name_Gnatmake,
-                            In_Packages =>
-                              Projects.Table (Main_Project).Decl.Packages);
+                            In_Packages => The_Packages);
+
+            Binder_Package : constant Prj.Package_Id :=
+                         Prj.Util.Value_Of
+                           (Name        => Name_Gnatbind,
+                            In_Packages => The_Packages);
+
+            Linker_Package : constant Prj.Package_Id :=
+                         Prj.Util.Value_Of
+                           (Name       => Name_Gnatlink,
+                           In_Packages => The_Packages);
 
          begin
 
@@ -2423,8 +2446,7 @@ package body Make is
                      Write_Str ("Main source file: """);
                      Write_Str (Main_Unit_File_Name
                                 (Pos + 1 .. Main_Unit_File_Name'Last));
-                     Write_Str (""".");
-                     Write_Eol;
+                     Write_Line (""".");
                   end if;
                end;
             end if;
@@ -2432,60 +2454,50 @@ package body Make is
             --  If there is a package gnatmake in the main project
             --  file, add the switches from it.
             --  We also add the switches from packages
-            --  Gnatmake.Binder and Gnatmake.Linker, if any.
+            --  gnatbind and gnatlink, if any.
 
             if Gnatmake /= No_Package then
-               declare
-                  The_Packages : Package_Id :=
-                    Packages.Table (Gnatmake).Decl.Packages;
-                  Binder_Package : constant Prj.Package_Id :=
-                    Prj.Util.Value_Of
-                      (Name        => Name_Binder,
-                       In_Packages => The_Packages);
+               if Opt.Verbose_Mode then
+                  Write_Str ("Adding gnatmake switches for """);
+                  Write_Str (Main_Unit_File_Name);
+                  Write_Line (""".");
+               end if;
 
-                  Linker_Package : constant Prj.Package_Id :=
-                    Prj.Util.Value_Of
-                      (Name => Name_Linker,
-                       In_Packages => The_Packages);
-
-               begin
-                  if Opt.Verbose_Mode then
-                     Write_Str ("Adding gnatmake switches for """);
-                     Write_Str (Main_Unit_File_Name);
-                     Write_Str (""".");
-                     Write_Eol;
-                  end if;
-
-                  Add_Switches
-                    (File_Name   => Main_Unit_File_Name,
-                     The_Package => Gnatmake,
-                     Program     => None);
-
-                  if Opt.Verbose_Mode then
-                     Write_Str ("Adding binder switches for """);
-                     Write_Str (Main_Unit_File_Name);
-                     Write_Str (""".");
-                     Write_Eol;
-                  end if;
-
-                  Add_Switches
-                    (File_Name   => Main_Unit_File_Name,
-                     The_Package => Binder_Package,
-                     Program     => Binder);
-
-                  if Opt.Verbose_Mode then
-                     Write_Str ("Adding linker switches for""");
-                     Write_Str (Main_Unit_File_Name);
-                     Write_Str (""".");
-                     Write_Eol;
-                  end if;
-
-                  Add_Switches
-                    (File_Name   => Main_Unit_File_Name,
-                     The_Package => Linker_Package,
-                     Program     => Linker);
-               end;
+               Add_Switches
+                 (File_Name   => Main_Unit_File_Name,
+                  The_Package => Gnatmake,
+                  Program     => None);
             end if;
+
+            if Binder_Package /= No_Package then
+
+               if Opt.Verbose_Mode then
+                  Write_Str ("Adding binder switches for """);
+                  Write_Str (Main_Unit_File_Name);
+                  Write_Line (""".");
+               end if;
+
+               Add_Switches
+                 (File_Name   => Main_Unit_File_Name,
+                  The_Package => Binder_Package,
+                  Program     => Binder);
+
+            end if;
+
+            if Linker_Package /= No_Package then
+
+               if Opt.Verbose_Mode then
+                  Write_Str ("Adding linker switches for""");
+                  Write_Str (Main_Unit_File_Name);
+                  Write_Line (""".");
+               end if;
+
+               Add_Switches
+                 (File_Name   => Main_Unit_File_Name,
+                  The_Package => Linker_Package,
+                  Program     => Linker);
+            end if;
+
          end;
 
          --  Generate (if necessary) gnat.adc
@@ -2930,11 +2942,13 @@ package body Make is
       --  Read gnat.adc file to initialize Fname.UF
 
       Fname.UF.Initialize;
+
       begin
          Fname.SF.Read_Source_File_Name_Pragmas;
+
       exception
-         when SFN_Scan.Syntax_Error_In_GNAT_ADC =>
-            Osint.Fail ("syntax error in gnat.adc.");
+         when Err : SFN_Scan.Syntax_Error_In_GNAT_ADC =>
+            Osint.Fail (Exception_Message (Err));
       end;
 
    end Initialize;
@@ -3618,9 +3632,7 @@ package body Make is
       if New_Ada_Include_Path /= Current_Ada_Include_Path then
          Current_Ada_Include_Path := New_Ada_Include_Path;
 
-         if Original_Ada_Include_Path'Length = 0
-           or else Hostparm.OpenVMS
-         then
+         if Original_Ada_Include_Path'Length = 0 then
             Setenv ("ADA_INCLUDE_PATH",
                     New_Ada_Include_Path.all);
 
@@ -3648,9 +3660,7 @@ package body Make is
       if New_Ada_Objects_Path /= Current_Ada_Objects_Path then
          Current_Ada_Objects_Path := New_Ada_Objects_Path;
 
-         if Original_Ada_Objects_Path'Length = 0
-           or else Hostparm.OpenVMS
-         then
+         if Original_Ada_Objects_Path'Length = 0 then
             Setenv ("ADA_OBJECTS_PATH",
                     New_Ada_Objects_Path.all);
 

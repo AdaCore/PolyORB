@@ -31,13 +31,17 @@ with Errout;      use Errout;
 with GNAT.OS_Lib; use GNAT.OS_Lib;
 with Namet;       use Namet;
 with Osint;       use Osint;
+with Prj.Attr;
 with Prj.Env;
 with Scans;       use Scans;
 with Scn;
+with Stringt;     use Stringt;
 with Sinfo.CN;
 with Snames;      use Snames;
 
 package body Prj is
+
+   The_Empty_String : String_Id;
 
    subtype Known_Casing is Casing_Type range All_Upper_Case .. Mixed_Case;
 
@@ -70,6 +74,7 @@ package body Prj is
      (First_Referred_By  => No_Project,
       Name               => No_Name,
       Path_Name          => No_Name,
+      Location           => No_Location,
       Directory          => No_Name,
       File_Name          => No_Name,
       Sources            => Nil_String,
@@ -82,7 +87,8 @@ package body Prj is
       Imported_Projects  => Empty_Project_List,
       Include_Path       => null,
       Objects_Path       => null,
-      Gnat_Adc_Generated => False);
+      Gnat_Adc_Generated => False,
+      Checked            => False);
 
    -------------------
    -- Empty_Project --
@@ -94,6 +100,15 @@ package body Prj is
       return Project_Empty;
    end Empty_Project;
 
+   ------------------
+   -- Empty_String --
+   ------------------
+
+   function Empty_String return String_Id is
+   begin
+      return The_Empty_String;
+   end Empty_String;
+
    ------------
    -- Expect --
    ------------
@@ -101,7 +116,7 @@ package body Prj is
    procedure Expect (The_Token : Token_Type; Token_Image : String) is
    begin
       if Token /= The_Token then
-         Error_Msg_BC ("""" & Token_Image & """ expected");
+         Error_Msg ("""" & Token_Image & """ expected", Token_Ptr);
       end if;
    end Expect;
 
@@ -122,6 +137,9 @@ package body Prj is
    begin
       if not Initialized then
          Initialized := True;
+         Stringt.Initialize;
+         Start_String;
+         The_Empty_String := End_String;
          Name_Len := 4;
          Name_Buffer (1 .. 4) := ".ads";
          Canonical_Case_File_Name (Name_Buffer (1 .. 4));
@@ -134,6 +152,7 @@ package body Prj is
          Std_Naming_Data.Separate_Append      := Standard_Body_Append;
          Project_Empty.Naming                 := Std_Naming_Data;
          Prj.Env.Initialize;
+         Prj.Attr.Initialize;
          Set_Name_Table_Byte (Name_Project,   Token_Type'Pos (Tok_Project));
          Set_Name_Table_Byte (Name_Modifying, Token_Type'Pos (Tok_Modifying));
          Set_Name_Table_Byte (Name_External,  Token_Type'Pos (Tok_External));
@@ -156,12 +175,6 @@ package body Prj is
         and then Left.Separate_Append = Right.Separate_Append;
    end Same_Naming_Scheme;
 
-   function Standard_Naming_Data return Naming_Data is
-   begin
-      Initialize;
-      return Std_Naming_Data;
-   end Standard_Naming_Data;
-
    ----------
    -- Scan --
    ----------
@@ -169,12 +182,25 @@ package body Prj is
    procedure Scan is
    begin
       Scn.Scan;
+
+      --  Change operator symbol to literal strings, since that's the way
+      --  we treat all strings in a project file.
+
       if Token = Tok_Operator_Symbol then
-         --  Ada Operator Symbol are just Literal String in project files
          Sinfo.CN.Change_Operator_Symbol_To_String_Literal (Token_Node);
          Token := Tok_String_Literal;
       end if;
    end Scan;
+
+   --------------------------
+   -- Standard_Naming_Data --
+   --------------------------
+
+   function Standard_Naming_Data return Naming_Data is
+   begin
+      Initialize;
+      return Std_Naming_Data;
+   end Standard_Naming_Data;
 
    -----------
    -- Value --

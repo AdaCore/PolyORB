@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                              --
 --                                                                          --
---             Copyright (C) 2000 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -240,13 +240,13 @@ package body Prj.Util is
    end Value_Of;
 
    function Value_Of
-     (Name                   : Name_Id;
-      Variable_Or_Array_Name : Name_Id;
-      In_Package             : Package_Id)
+     (Name                    : Name_Id;
+      Attribute_Or_Array_Name : Name_Id;
+      In_Package              : Package_Id)
       return                   Variable_Value
    is
-      The_Array    : Array_Element_Id;
-      The_Variable : Variable_Value := Nil_Variable_Value;
+      The_Array     : Array_Element_Id;
+      The_Attribute : Variable_Value := Nil_Variable_Value;
 
    begin
       if In_Package /= No_Package then
@@ -255,24 +255,24 @@ package body Prj.Util is
 
          The_Array :=
            Value_Of
-             (Name      => Variable_Or_Array_Name,
+             (Name      => Attribute_Or_Array_Name,
               In_Arrays => Packages.Table (In_Package).Decl.Arrays);
-         The_Variable :=
+         The_Attribute :=
            Value_Of
              (Index    => Name,
               In_Array => The_Array);
 
          --  If there is no array element, look for a variable
 
-         if The_Variable = Nil_Variable_Value then
-            The_Variable :=
+         if The_Attribute = Nil_Variable_Value then
+            The_Attribute :=
               Value_Of
-                (Variable_Name => Variable_Or_Array_Name,
-                 In_Variables  => Packages.Table (In_Package).Decl.Variables);
+                (Variable_Name => Attribute_Or_Array_Name,
+                 In_Variables  => Packages.Table (In_Package).Decl.Attributes);
          end if;
       end if;
 
-      return The_Variable;
+      return The_Attribute;
    end Value_Of;
 
    function Value_Of

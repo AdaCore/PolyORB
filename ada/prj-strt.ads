@@ -2,13 +2,13 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                              P R J . P A R S                             --
+--                             P R J . S T R T                              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 2000-2001 Free Software Foundation, Inc.          --
+--             Copyright (C) 2001 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,19 +26,45 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 --
---  Implements the parsing of project files.
+--  This package implements parsing of string expressions in project files.
 
-package Prj.Pars is
+with Prj.Tree;  use Prj.Tree;
 
-   procedure Set_Verbosity (To : Verbosity);
-   --  Set the verbosity when parsing the project files.
+private package Prj.Strt is
 
-   procedure Parse
-     (Project           : out Project_Id;
-      Project_File_Name : String);
-   --  Parse a project files and all its imported project files.
-   --  If parsing is successful, Project_Id is the project ID
-   --  of the main project file; otherwise, Project_Id is set
-   --  to No_Project.
+   procedure Parse_String_Type_List
+     (First_String : out Project_Node_Id);
+   --  Get the list of literal string that are allowed for
+   --  a typed string.
+   --  Report an error if
+   --    - a literal string is not found at the beginning of the list
+   --      or after a comma
+   --    - two literal strings in the list are equal
 
-end Prj.Pars;
+   procedure Start_New_Case_Construction
+     (String_Type : Project_Node_Id);
+   --  This procedure is called at the beginning of a case construction
+   --  It indicates the allowed literal strings for the case labels
+
+   procedure Parse_Choice_List
+     (First_Choice : out Project_Node_Id);
+   --  Get the label for a choice list
+   --  Report an error if
+   --    - a case label is not a literal string
+   --    - a case label is not in the typed string list
+   --    - the same case label is repeated in the same case construction
+
+   procedure Parse_Expression
+     (Expression      : out Project_Node_Id;
+      Current_Project : Project_Node_Id;
+      Current_Package : Project_Node_Id);
+   --  simple string or string list
+
+   procedure Parse_Variable_Reference
+     (Variable        : out Project_Node_Id;
+      Current_Project : Project_Node_Id;
+      Current_Package : Project_Node_Id);
+   --  Parse a variable reference. Used internally (in expressions)
+   --  and for case variables (in Prj.Dect).
+
+end Prj.Strt;

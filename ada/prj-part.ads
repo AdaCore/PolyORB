@@ -2,7 +2,7 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                              P R J . P A R S                             --
+--                              P R J . P A R T                             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -26,19 +26,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 --
---  Implements the parsing of project files.
+--  Implements the parsing of project files into a tree.
 
-package Prj.Pars is
+with Prj.Tree;  use Prj.Tree;
 
-   procedure Set_Verbosity (To : Verbosity);
-   --  Set the verbosity when parsing the project files.
+package Prj.Part is
 
    procedure Parse
-     (Project           : out Project_Id;
+     (Project           : out Project_Node_Id;
       Project_File_Name : String);
-   --  Parse a project files and all its imported project files.
-   --  If parsing is successful, Project_Id is the project ID
-   --  of the main project file; otherwise, Project_Id is set
-   --  to No_Project.
+   --  Parse a project file and all its imported project files
+   --  and create a tree.
+   --  Return the node for the project (or Empty_Node if parsing failed).
 
-end Prj.Pars;
+end Prj.Part;

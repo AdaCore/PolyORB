@@ -2,13 +2,13 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                              P R J . P A R S                             --
+--                              P R J . P R O C                             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 2000-2001 Free Software Foundation, Inc.          --
+--             Copyright (C) 2001 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,19 +26,17 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 --
---  Implements the parsing of project files.
+--  This package is used to convert a project file tree (see prj-tree.ads) to
+--  project file data structures (see prj.ads), taking into account
+--  the environment (external references).
 
-package Prj.Pars is
+with Prj.Tree;  use Prj.Tree;
 
-   procedure Set_Verbosity (To : Verbosity);
-   --  Set the verbosity when parsing the project files.
+package Prj.Proc is
 
-   procedure Parse
+   procedure Process
      (Project           : out Project_Id;
-      Project_File_Name : String);
-   --  Parse a project files and all its imported project files.
-   --  If parsing is successful, Project_Id is the project ID
-   --  of the main project file; otherwise, Project_Id is set
-   --  to No_Project.
+      From_Project_Node : Project_Node_Id);
+   --  Process a project file tree into project file data structures.
 
-end Prj.Pars;
+end Prj.Proc;

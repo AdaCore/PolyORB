@@ -28,7 +28,6 @@
 
 with Atree;    use Atree;
 with Csets;    use Csets;
-with Debug;    use Debug;
 with Errout;   use Errout;
 with Hostparm; use Hostparm;
 with Namet;    use Namet;
@@ -336,7 +335,7 @@ package body Scn is
 
    procedure Error_Illegal_Wide_Character is
    begin
-      if OpenVMS or Debug_Flag_M then
+      if OpenVMS then
          Error_Msg_S
            ("illegal wide character, check " &
             "'/'W'I'D'E'_'C'H'A'R'A'C'T'E'R'_'E'N'C'O'D'I'N'G qualifer");

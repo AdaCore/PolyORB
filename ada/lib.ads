@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-2000 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-2001 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -61,7 +61,7 @@ package Lib is
    --    (j) Parent specs for with'ed child library units
 
    --  If a unit is being compiled only for syntax checking, then no subsidiary
-   --  units are loaded, the the syntax check applies only to the main unit,
+   --  units are loaded, the syntax check applies only to the main unit,
    --  i.e. the one contained in the source submitted to the library.
 
    --  If a unit is being compiled for syntax and semantic checking, then only
@@ -491,6 +491,8 @@ package Lib is
    --  its subunits (considered recursively). Units for which this enquiry
    --  returns True are those for which code will be generated. Nodes from
    --  instantiations are included in the extended main unit for this call.
+   --  If the main unit is itself a subunit, then the extended main unit
+   --  includes its parent unit, and the parent unit spec if it is separate.
 
    function In_Extended_Main_Source_Unit (N : Node_Id) return Boolean;
    --  Return True if the node is in the source text of the extended main
@@ -498,7 +500,9 @@ package Lib is
    --  its subunits (considered recursively). Units for which this enquiry
    --  returns True are those for which code will be generated. This differs
    --  from In_Extended_Main_Code_Unit only in that instantiations are not
-   --  included for the purposes of this call.
+   --  included for the purposes of this call. If the main unit is itself
+   --  a subunit, then the extended main unit includes its parent unit,
+   --  and the parent unit spec if it is separate.
 
    function Earlier_In_Extended_Unit (S1, S2 : Source_Ptr) return Boolean;
    --  Given two Sloc values  for which In_Same_Extended_Unit is true,

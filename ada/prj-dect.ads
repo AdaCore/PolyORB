@@ -2,13 +2,13 @@
 --                                                                          --
 --                         GNAT COMPILER COMPONENTS                         --
 --                                                                          --
---                              P R J . P A R S                             --
+--                              P R J . D E C T                             --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---          Copyright (C) 2000-2001 Free Software Foundation, Inc.          --
+--             Copyright (C) 2000 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -26,19 +26,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 --
---  Implements the parsing of project files.
+--  Parse a list of declarative items in a project file.
 
-package Prj.Pars is
+with Prj.Tree;
 
-   procedure Set_Verbosity (To : Verbosity);
-   --  Set the verbosity when parsing the project files.
+private package Prj.Dect is
 
    procedure Parse
-     (Project           : out Project_Id;
-      Project_File_Name : String);
-   --  Parse a project files and all its imported project files.
-   --  If parsing is successful, Project_Id is the project ID
-   --  of the main project file; otherwise, Project_Id is set
-   --  to No_Project.
+     (Declarations    : out Prj.Tree.Project_Node_Id;
+      Current_Project : Prj.Tree.Project_Node_Id;
+      Modifying       : Prj.Tree.Project_Node_Id);
+   --  Parse project declarative items.
 
-end Prj.Pars;
+end Prj.Dect;

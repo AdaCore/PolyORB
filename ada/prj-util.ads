@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---             Copyright (C) 2000 Free Software Foundation, Inc.            --
+--             Copyright (C) 2001 Free Software Foundation, Inc.            --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -50,15 +50,15 @@ package Prj.Util is
    --  (case sensitive), or if In_Array is null.
 
    function Value_Of
-     (Name                   : Name_Id;
-      Variable_Or_Array_Name : Name_Id;
-      In_Package             : Package_Id)
+     (Name                    : Name_Id;
+      Attribute_Or_Array_Name : Name_Id;
+      In_Package              : Package_Id)
       return                   Variable_Value;
    --  In a specific package,
    --   - if there exists an array Variable_Or_Array_Name with an index
    --     Name, returns the corresponding component,
-   --   - otherwise if there is a variable Variable_Or_Array_Name,
-   --     returns this variable,
+   --   - otherwise if there is a attribute Attribute_Or_Array_Name,
+   --     returns this attribute,
    --   - otherwise, returns Nil_Variable_Value.
    --  If In_Package is null, returns Nil_Variable_Value.
 

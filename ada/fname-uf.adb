@@ -87,7 +87,7 @@ package body Fname.UF is
    package SFN_Patterns is new Table.Table (
      Table_Component_Type => SFN_Pattern_Entry,
      Table_Index_Type     => Int,
-     Table_Low_Bound      => 0,
+     Table_Low_Bound      => 1,
      Table_Initial        => 10,
      Table_Increment      => 100,
      Table_Name           => "SFN_Patterns");
@@ -413,20 +413,17 @@ package body Fname.UF is
       --  Add default entries to SFN_Patterns.Table to represent the
       --  standard default GNAT rules for file name translation.
 
-      SFN_Patterns.Set_Last (2);
-
-      SFN_Patterns.Table (1) :=
+      SFN_Patterns.Append (New_Val =>
         (Pat => new String'("*.ads"),
          Typ => 's',
          Dot => new String'("-"),
-         Cas => All_Lower_Case);
+         Cas => All_Lower_Case));
 
-      SFN_Patterns.Table (2) :=
+      SFN_Patterns.Append (New_Val =>
         (Pat => new String'("*.adb"),
          Typ => 'b',
          Dot => new String'("-"),
-         Cas => All_Lower_Case);
-
+         Cas => All_Lower_Case));
    end Initialize;
 
    ----------

@@ -46,6 +46,8 @@ package Prj is
    --  Medium is more verbose.
    --  High is extremely verbose.
 
+   function Empty_String return String_Id;
+
    type String_List_Id is new Nat;
    Nil_String : constant String_List_Id := 0;
    type String_Element is record
@@ -69,19 +71,22 @@ package Prj is
 
    type Variable_Value (Kind : Variable_Kind := Undefined) is record
       Location : Source_Ptr := No_Location;
+      Default  : Boolean    := False;
       case Kind is
          when Undefined =>
             null;
          when List =>
-            Values : String_List_Id;
+            Values : String_List_Id := Nil_String;
          when Single =>
-            Value : String_Id;
+            Value : String_Id := No_String;
       end case;
    end record;
    --  Values for variables and array elements
 
    Nil_Variable_Value : constant Variable_Value :=
-                          (Kind => Undefined, Location => No_Location);
+     (Kind     => Undefined,
+      Location => No_Location,
+      Default  => False);
    --  Value of a non existing variable or array element.
 
    type Variable_Id is new Nat;
@@ -145,15 +150,17 @@ package Prj is
    type Package_Id is new Nat;
    No_Package : constant Package_Id := 0;
    type Declarations is record
-      Variables : Variable_Id := No_Variable;
-      Arrays    : Array_Id    := No_Array;
-      Packages  : Package_Id  := No_Package;
+      Variables  : Variable_Id := No_Variable;
+      Attributes : Variable_Id := No_Variable;
+      Arrays     : Array_Id    := No_Array;
+      Packages   : Package_Id  := No_Package;
    end record;
 
    No_Declarations : constant Declarations :=
-                      (Variables => No_Variable,
-                       Arrays    => No_Array,
-                       Packages  => No_Package);
+     (Variables  => No_Variable,
+      Attributes => No_Variable,
+      Arrays     => No_Array,
+      Packages   => No_Package);
    --  Declarations. Used in project structures and packages.
 
    type Package_Element is record
@@ -235,6 +242,7 @@ package Prj is
       First_Referred_By  : Project_Id     := No_Project;
       Name               : Name_Id        := No_Name;
       Path_Name          : Name_Id        := No_Name;
+      Location           : Source_Ptr     := No_Location;
       Directory          : Name_Id        := No_Name;
       File_Name          : Name_Id        := No_Name;
       Sources            : String_List_Id := Nil_String;
@@ -248,6 +256,7 @@ package Prj is
       Include_Path       : String_Access  := null;
       Objects_Path       : String_Access  := null;
       Gnat_Adc_Generated : Boolean        := False;
+      Checked            : Boolean        := False;
    end record;
    --  Project File representation.
 

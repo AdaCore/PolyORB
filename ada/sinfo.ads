@@ -1164,6 +1164,11 @@ package Sinfo is
    --    purpose as described above). Instead for a child unit, implicit
    --    with's are generated for all parents.
 
+   --  Loop_Actions (List2-Sem)
+   --    A list present in Component_Association nodes in array aggregates.
+   --    Used to collect actions that must be executed within the loop because
+   --    they may need to be evaluated anew each time through.
+
    --  Must_Not_Freeze (Flag8-Sem)
    --    A flag present in all expression nodes. Normally expressions cause
    --    freezing as described in the RM. If this flag is set, then this
@@ -2293,7 +2298,7 @@ package Sinfo is
       --  N_Discriminant_Specification
       --  Sloc points to first identifier
       --  Defining_Identifier (Node1)
-      --  Discriminant_Type (Node2) subtype mark or
+      --  Discriminant_Type (Node5) subtype mark or
       --    access parameter definition
       --  Expression (Node3) (set to Empty if no default expression)
       --  More_Ids (Flag5) (set to False if no more identifiers in list)
@@ -2900,6 +2905,7 @@ package Sinfo is
       --  N_Component_Association
       --  Sloc points to first selector name
       --  Choices (List1)
+      --  Loop_Actions (List2-Sem)
       --  Expression (Node3)
 
       --  Note: this structure is used for both record component associations
@@ -3333,7 +3339,7 @@ package Sinfo is
       --  Note: the parentheses in the (EXPRESSION) case are deemed to enclose
       --  the expression, so the Expression field of this node always points
       --  to a parenthesized expression in this case (i.e. Paren_Count will
-      --  always be non-zero for the referenced expression if is is not an
+      --  always be non-zero for the referenced expression if it is not an
       --  aggregate).
 
       --  N_Qualified_Expression
@@ -6173,19 +6179,26 @@ package Sinfo is
       -- Validate_Unchecked_Conversion --
       -----------------------------------
 
-      --  The compiler issues a warning if the size of the source and target
-      --  types for an instantiation of unchecked conversion are not the same
-      --  or if both are access types and the alignment of the target is
-      --  stricter than that of the source.
+      --  The front end does most of the validation of unchecked conversion,
+      --  including checking sizes (this is done after the back end is called
+      --  to take advantage of back-annotation of calculated sizes).
 
-      --  When possible, i.e. when the front end knows the sizes and/or
-      --  alignments involved, this check is done in the front end in
-      --  Validate_Unchecked_Conversion in Sem_Ch13.
+      --  The front end also deals with specific cases that are not allowed
+      --  e.g. involving unconstrained array types.
 
-      --  However, if it is not possible for the front end to do this check,
-      --  then it is done in Gigi. In this case, the front end constructs an
-      --  N_Validate_Unchecked_Conversion node that provides the necessary
-      --  information for Gigi to validate the sizes and alignments.
+      --  For the case of the standard gigi backend, this means that all
+      --  checks are done in the front-end.
+
+      --  However, in the case of specialized back-ends, notably the JVM
+      --  backend for JGNAT, additional requirements and restrictions apply
+      --  to unchecked conversion, and these are most conveniently performed
+      --  in the specialized back-end.
+
+      --  To accomodate this requirement, for such back ends, the following
+      --  special node is generated recording an unchecked conversion that
+      --  needs to be validated. The back end should post an appropriate
+      --  error message if the unchecked conversion is invalid or warrants
+      --  a special warning message.
 
       --  Source_Type and Target_Type point to the entities for the two
       --  types involved in the unchecked conversion instantiation that
@@ -6864,7 +6877,7 @@ package Sinfo is
      (N : Node_Id) return List_Id;    -- List4
 
    function Discriminant_Type
-     (N : Node_Id) return Node_Id;    -- Node2
+     (N : Node_Id) return Node_Id;    -- Node5
 
    function Do_Access_Check
      (N : Node_Id) return Boolean;    -- Flag11
@@ -7141,6 +7154,9 @@ package Sinfo is
 
    function Literals
      (N : Node_Id) return List_Id;    -- List1
+
+   function Loop_Actions
+     (N : Node_Id) return List_Id;    -- List2
 
    function Loop_Parameter_Specification
      (N : Node_Id) return Node_Id;    -- Node4
@@ -7608,7 +7624,7 @@ package Sinfo is
      (N : Node_Id; Val : List_Id);            -- List4
 
    procedure Set_Discriminant_Type
-     (N : Node_Id; Val : Node_Id);            -- Node2
+     (N : Node_Id; Val : Node_Id);            -- Node5
 
    procedure Set_Do_Access_Check
      (N : Node_Id; Val : Boolean := True);    -- Flag11
@@ -7885,6 +7901,9 @@ package Sinfo is
 
    procedure Set_Literals
      (N : Node_Id; Val : List_Id);            -- List1
+
+   procedure Set_Loop_Actions
+     (N : Node_Id; Val : List_Id);            -- List2
 
    procedure Set_Loop_Parameter_Specification
      (N : Node_Id; Val : Node_Id);            -- Node4
@@ -8328,6 +8347,7 @@ package Sinfo is
    pragma Inline (Left_Opnd);
    pragma Inline (Limited_Present);
    pragma Inline (Literals);
+   pragma Inline (Loop_Actions);
    pragma Inline (Loop_Parameter_Specification);
    pragma Inline (Low_Bound);
    pragma Inline (Mod_Clause);
@@ -8573,6 +8593,7 @@ package Sinfo is
    pragma Inline (Set_Left_Opnd);
    pragma Inline (Set_Limited_Present);
    pragma Inline (Set_Literals);
+   pragma Inline (Set_Loop_Actions);
    pragma Inline (Set_Loop_Parameter_Specification);
    pragma Inline (Set_Low_Bound);
    pragma Inline (Set_Mod_Clause);

@@ -248,7 +248,7 @@ begin
    --  Line for -gnatR switch
 
    Write_Switch_Char ("R?");
-   Write_Line ("List representation information (?=0/1/2 for none/types/all)");
+   Write_Line ("List rep inf (?=0/1/2/3 for none/types/all/variable)");
 
    --  Lines for -gnats switch
 
@@ -289,8 +289,10 @@ begin
 
    Write_Switch_Char ("wxx");
    Write_Line ("Enable selected warning modes, xx = list of parameters:");
-   Write_Line ("        a    turn on all optional warnings (except h)");
+   Write_Line ("        a    turn on all optional warnings (except b,h)");
    Write_Line ("        A    turn off all optional warnings");
+   Write_Line ("        b    turn on biased rounding warnings");
+   Write_Line ("        B    turn off biased rounding warnings");
    Write_Line ("        c    turn on constant conditional warnings");
    Write_Line ("        C*   turn off constant conditional warnings");
    Write_Line ("        e    treat all warnings as errors");
@@ -304,8 +306,8 @@ begin
    Write_Line ("        O    turn off address clause overlay warnings");
    Write_Line ("        p    turn on warnings for ineffective pragma inline");
    Write_Line ("        P*   turn off warnings for ineffective pragma inline");
-   Write_Line ("        r    turn on redundant assign/convert warnings");
-   Write_Line ("        R*   turn off redundant assign/convert warnings");
+   Write_Line ("        r    turn on redundant construct warnings");
+   Write_Line ("        R*   turn off redundant construct warnings");
    Write_Line ("        s    suppress all warnings");
    Write_Line ("        u    turn on warnings for unused entities");
    Write_Line ("        U*   turn off warnings for unused entities");

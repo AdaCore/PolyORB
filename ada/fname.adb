@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Alloc;
-with Debug;    use Debug;
 with Hostparm; use Hostparm;
 with Namet;    use Namet;
 with Table;
@@ -109,7 +108,7 @@ package body Fname is
       then
          return True;
 
-      elsif (OpenVMS or Debug_Flag_M)
+      elsif OpenVMS
         and then
           (Name_Buffer (1 .. 4) = "dec-"
              or else Name_Buffer (1 .. 8) = "dec     ")
