@@ -57,7 +57,7 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Persistent is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
       null;
       --  XXX Is this OK for policy PERSISTENT??

@@ -52,7 +52,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
       null;
    end Check_Compatibility;
@@ -84,7 +84,7 @@ package body PolyORB.POA_Policies.Implicit_Activation_Policy.No_Activation is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (Other_Policies);
       pragma Unreferenced (P_Servant);
       pragma Warnings (On);
       return null;

@@ -66,7 +66,7 @@ package body PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (Self);
-      pragma Unreferenced (OA);
+      pragma Unreferenced (Other_Policies);
       pragma Warnings (On);
       null;
    end Check_Compatibility;
