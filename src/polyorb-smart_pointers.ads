@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                Copyright (C) 2001 Free Software Fundation                --
+--             Copyright (C) 1999-2003 Free Software Fundation              --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-smart_pointers.ads#7 $
+--  $Id: //droopi/main/src/polyorb-smart_pointers.ads#8 $
 
 with Ada.Finalization;
 
@@ -38,11 +38,9 @@ package PolyORB.Smart_Pointers is
 
    pragma Elaborate_Body;
 
-   procedure Initialize;
-   --  Initialize subsystem.
-
    procedure Finalize;
    --  Finalize subsystem.
+   --  XXX what is the use of this function ???
 
    ------------
    -- Entity --
