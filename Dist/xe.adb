@@ -1656,7 +1656,8 @@ package body XE is
 
       else
          Get_Name_String (Dir);
-         if Name_Buffer (1) /= Separator then
+         if Name_Buffer (1) /= Separator and then
+           Name_Buffer (1) /= '/' then
 
             --  The storage dir is relative
 

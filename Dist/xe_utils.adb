@@ -812,7 +812,8 @@ package body XE_Utils is
    function Is_Relative_Dir (File : File_Name_Type) return Boolean is
    begin
       Get_Name_String (File);
-      return Name_Len = 0 or else Name_Buffer (1) /= Separator;
+      return Name_Len = 0 or else
+        (Name_Buffer (1) /= Separator and then Name_Buffer (1) /= '/');
    end Is_Relative_Dir;
 
    -----------------
