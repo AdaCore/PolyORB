@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -137,8 +137,8 @@ package body XE is
      (Configuration_Node : in Configuration_Id;
       Declaration_Node   : in Node_Id)
    is
-      CN : Node_Id := Node_Id (Configuration_Node);
-      DN : Node_Id := Node_Id (Declaration_Node);
+      CN : constant Node_Id := Node_Id (Configuration_Node);
+      DN : constant Node_Id := Declaration_Node;
 
    begin
       pragma Assert (Is_Configuration (CN));
@@ -231,9 +231,9 @@ package body XE is
      (Subprogram_Node : in Subprogram_Id;
       Parameter_Node  : in Parameter_Id)
    is
-      Node  : Node_Id := Node_Id (Subprogram_Node);
+      Node  : constant Node_Id := Node_Id (Subprogram_Node);
       List  : Node_Id;
-      Value : Node_Id := Node_Id (Parameter_Node);
+      Value : constant Node_Id := Node_Id (Parameter_Node);
 
    begin
       pragma Assert (Is_Subprogram (Node));
@@ -261,9 +261,9 @@ package body XE is
      (Type_Node       : in Type_Id;
       Component_Node  : in Component_Id)
    is
-      TN : Node_Id := Node_Id (Type_Node);
+      TN : constant Node_Id := Node_Id (Type_Node);
       CL : Node_Id;
-      CN : Node_Id := Node_Id (Component_Node);
+      CN : constant Node_Id := Node_Id (Component_Node);
 
    begin
       pragma Assert (Is_Type (TN));
@@ -289,9 +289,9 @@ package body XE is
      (Variable_Node   : in Variable_Id;
       Component_Node  : in Component_Id)
    is
-      Node  : Node_Id := Node_Id (Variable_Node);
+      Node  : constant Node_Id := Node_Id (Variable_Node);
       List  : Node_Id;
-      Value : Node_Id := Node_Id (Component_Node);
+      Value : constant Node_Id := Node_Id (Component_Node);
 
    begin
       pragma Assert (Is_Variable (Node));
@@ -317,7 +317,7 @@ package body XE is
      (Component_Node : in Component_Id;
       Is_Initialized : in Boolean)
    is
-      Node : Node_Id := Node_Id (Component_Node);
+      Node : constant Node_Id := Node_Id (Component_Node);
 
    begin
       pragma Assert (Is_Component (Node));
@@ -589,7 +589,7 @@ package body XE is
      (Configuration_Node : in  Configuration_Id;
       Declaration_Node   : out Node_Id)
    is
-      Conf : Node_Id := Node_Id (Configuration_Node);
+      Conf : constant Node_Id := Node_Id (Configuration_Node);
 
    begin
       pragma Assert (Is_Configuration (Conf));
@@ -616,7 +616,7 @@ package body XE is
      (Subprogram_Node : in Subprogram_Id;
       Parameter_Node  : out Parameter_Id)
    is
-      Node : Node_Id := Node_Id (Subprogram_Node);
+      Node : constant Node_Id := Node_Id (Subprogram_Node);
       List : Node_Id;
 
    begin
@@ -634,7 +634,7 @@ package body XE is
      (Type_Node       : in Type_Id;
       Component_Node  : out Component_Id)
    is
-      TN : Node_Id := Node_Id (Type_Node);
+      TN : constant Node_Id := Node_Id (Type_Node);
       CL : Node_Id;
 
    begin
@@ -655,7 +655,7 @@ package body XE is
      (Variable_Node   : in Variable_Id;
       Component_Node  : out Component_Id)
    is
-      VN : Node_Id := Node_Id (Variable_Node);
+      VN : constant Node_Id := Node_Id (Variable_Node);
       CL : Node_Id;
 
    begin
@@ -676,7 +676,7 @@ package body XE is
      (Type_Node   : in Type_Id)
      return Type_Id
    is
-      TN : Node_Id := Node_Id (Type_Node);
+      TN : constant Node_Id := Node_Id (Type_Node);
 
    begin
       pragma Assert (Is_Type_Composite (Type_Node));
@@ -695,7 +695,7 @@ package body XE is
      (Type_Node : Type_Id)
      return Int
    is
-      TN : Node_Id := Node_Id (Type_Node);
+      TN : constant Node_Id := Node_Id (Type_Node);
       CL : Node_Id;
 
    begin
@@ -712,8 +712,8 @@ package body XE is
      (Variable_Node : Variable_Id)
      return Int
    is
-      VN : Node_Id := Node_Id (Variable_Node);
-      VT : Type_Id := Get_Variable_Type (Variable_Node);
+      VN : constant Node_Id := Node_Id (Variable_Node);
+      VT : constant Type_Id := Get_Variable_Type (Variable_Node);
 
    begin
       pragma Assert (Is_Variable (VN));
@@ -729,7 +729,7 @@ package body XE is
      (Component_Node : in Component_Id)
      return Attribute_Type
    is
-      Node : Node_Id := Node_Id (Component_Node);
+      Node : constant Node_Id := Node_Id (Component_Node);
 
    begin
       pragma Assert (Is_Component (Node));
@@ -755,7 +755,7 @@ package body XE is
      (Component_Node : in Component_Id)
      return Type_Id
    is
-      Node  : Node_Id := Node_Id (Component_Node);
+      Node  : constant Node_Id := Node_Id (Component_Node);
 
    begin
       pragma Assert (Is_Component (Node));
@@ -839,7 +839,7 @@ package body XE is
      (Subprogram_Node : in Subprogram_Id)
      return Pragma_Type
    is
-      Node : Node_Id := Node_Id (Subprogram_Node);
+      Node : constant Node_Id := Node_Id (Subprogram_Node);
 
    begin
       pragma Assert (Is_Subprogram (Node));
@@ -854,7 +854,7 @@ package body XE is
      (Variable_Node : Variable_Id)
      return Int
    is
-      Node : Node_Id := Node_Id (Variable_Node);
+      Node : constant Node_Id := Node_Id (Variable_Node);
       VT   : Type_Id;
 
    begin
@@ -872,7 +872,7 @@ package body XE is
      (Statement_Node  : in Statement_Id)
      return Subprogram_Id
    is
-      Node : Node_Id := Node_Id (Statement_Node);
+      Node : constant Node_Id := Node_Id (Statement_Node);
 
    begin
       pragma Assert (Is_Statement (Node));
@@ -906,7 +906,7 @@ package body XE is
      (Type_Node : in Type_Id)
      return Predefined_Type
    is
-      Node : Node_Id := Node_Id (Type_Node);
+      Node : constant Node_Id := Node_Id (Type_Node);
 
    begin
       pragma Assert (Is_Type (Node));
@@ -932,7 +932,7 @@ package body XE is
      (Variable_Node : in Variable_Id)
      return Type_Id
    is
-      Node : Node_Id := Node_Id (Variable_Node);
+      Node : constant Node_Id := Node_Id (Variable_Node);
 
    begin
       pragma Assert (Is_Variable (Node));
@@ -1002,7 +1002,7 @@ package body XE is
      (Component_Node : Component_Id)
      return Boolean
    is
-      Node : Node_Id := Node_Id (Component_Node);
+      Node : constant Node_Id := Node_Id (Component_Node);
 
    begin
       pragma Assert (Is_Component (Node));
@@ -1048,7 +1048,7 @@ package body XE is
      (Parameter_Node : in Parameter_Id)
      return Boolean
    is
-      Node : Node_Id := Node_Id (Parameter_Node);
+      Node : constant Node_Id := Node_Id (Parameter_Node);
 
    begin
       pragma Assert (Is_Variable (Node));
@@ -1081,7 +1081,7 @@ package body XE is
      (Subprogram_Node : in Subprogram_Id)
      return Boolean
    is
-      Node : Node_Id := Node_Id (Subprogram_Node);
+      Node : constant Node_Id := Node_Id (Subprogram_Node);
 
    begin
       pragma Assert (Is_Subprogram (Node));
@@ -1105,7 +1105,7 @@ package body XE is
      (Type_Node : in Type_Id)
      return Boolean
    is
-      TN : Node_Id := Node_Id (Type_Node);
+      TN : constant Node_Id := Node_Id (Type_Node);
 
    begin
       pragma Assert (Is_Type (TN));
@@ -1130,7 +1130,7 @@ package body XE is
      (Variable_Node : Variable_Id)
      return Boolean
    is
-      Node : Node_Id := Node_Id (Variable_Node);
+      Node : constant Node_Id := Node_Id (Variable_Node);
 
    begin
       pragma Assert (Is_Variable (Node));
@@ -1223,7 +1223,7 @@ package body XE is
    procedure Next_Subprogram_Parameter
      (Parameter_Node  : in out Parameter_Id)
    is
-      Node : Node_Id := Node_Id (Parameter_Node);
+      Node : constant Node_Id := Node_Id (Parameter_Node);
 
    begin
       pragma Assert (Is_Variable (Node));
@@ -1237,7 +1237,7 @@ package body XE is
    procedure Next_Type_Component
      (Component_Node  : in out Component_Id)
    is
-      Node : Node_Id := Node_Id (Component_Node);
+      Node : constant Node_Id := Node_Id (Component_Node);
 
    begin
       Component_Node := Component_Id (Nodes.Table (Node).Node_1);
@@ -1250,7 +1250,7 @@ package body XE is
    procedure Next_Variable_Component
      (Component_Node  : in out Component_Id)
    is
-      Node : Node_Id := Node_Id (Component_Node);
+      Node : constant Node_Id := Node_Id (Component_Node);
 
    begin
       Component_Node := Component_Id (Nodes.Table (Node).Node_1);
@@ -1264,7 +1264,7 @@ package body XE is
      (Parameter_Node : in Parameter_Id;
       Is_Initialized : in Boolean)
    is
-      Node : Node_Id := Node_Id (Parameter_Node);
+      Node : constant Node_Id := Node_Id (Parameter_Node);
 
    begin
       pragma Assert (Is_Variable (Node));
@@ -1293,7 +1293,7 @@ package body XE is
      (Type_Node : in Type_Id;
       Comp_Type : in Type_Id)
    is
-      Node : Node_Id := Node_Id (Type_Node);
+      Node : constant Node_Id := Node_Id (Type_Node);
 
    begin
       pragma Assert (Is_Type (Node));
@@ -1308,7 +1308,7 @@ package body XE is
      (Type_Node    : in Type_Id;
       Array_Length : in Int)
    is
-      TN : Node_Id := Node_Id (Type_Node);
+      TN : constant Node_Id := Node_Id (Type_Node);
       CL : Node_Id;
 
    begin
@@ -1325,7 +1325,7 @@ package body XE is
      (Variable_Node : in Variable_Id;
       Array_Length  : in Int)
    is
-      VN : Node_Id := Node_Id (Variable_Node);
+      VN : constant Node_Id := Node_Id (Variable_Node);
       VT : Type_Id;
 
    begin
@@ -1344,7 +1344,7 @@ package body XE is
      (Component_Node : in Component_Id;
       Attribute_Kind : in Attribute_Type)
    is
-      Node : Node_Id := Node_Id (Component_Node);
+      Node : constant Node_Id := Node_Id (Component_Node);
 
    begin
       pragma Assert (Is_Component (Node));
@@ -1359,8 +1359,8 @@ package body XE is
      (Component_Node : in Component_Id;
       Type_Node      : in Type_Id)
    is
-      Node  : Node_Id := Node_Id (Component_Node);
-      Ntype : Node_Id := Node_Id (Type_Node);
+      Node  : constant Node_Id := Node_Id (Component_Node);
+      Ntype : constant Node_Id := Node_Id (Type_Node);
 
    begin
       pragma Assert (Is_Component (Node));
@@ -1376,7 +1376,7 @@ package body XE is
      (Component_Node : in Component_Id;
       Value_Node     : in Variable_Id)
    is
-      Node  : Node_Id := Node_Id (Component_Node);
+      Node  : constant Node_Id := Node_Id (Component_Node);
 
    begin
       pragma Assert (Is_Component (Node));
@@ -1416,7 +1416,7 @@ package body XE is
      (Subprogram_Node : in Subprogram_Id;
       Pragma_Kind     : in Pragma_Type)
    is
-      Node : Node_Id := Node_Id (Subprogram_Node);
+      Node : constant Node_Id := Node_Id (Subprogram_Node);
 
    begin
       pragma Assert (Is_Subprogram (Node));
@@ -1431,7 +1431,7 @@ package body XE is
      (Variable_Node : in Variable_Id;
       Scalar_Value  : in Int)
    is
-      Node : Node_Id := Node_Id (Variable_Node);
+      Node : constant Node_Id := Node_Id (Variable_Node);
 
    begin
       pragma Assert (Is_Variable (Node));
@@ -1447,8 +1447,8 @@ package body XE is
      (Statement_Node  : in Statement_Id;
       Subprogram_Node : in Subprogram_Id)
    is
-      Statement  : Node_Id := Node_Id (Statement_Node);
-      Subprogram : Node_Id := Node_Id (Subprogram_Node);
+      Statement  : constant Node_Id := Node_Id (Statement_Node);
+      Subprogram : constant Node_Id := Node_Id (Subprogram_Node);
 
    begin
       pragma Assert (Is_Statement  (Statement) and then
@@ -1482,7 +1482,7 @@ package body XE is
      (Type_Node : in Type_Id;
       Type_Kind : in Predefined_Type)
    is
-      Node : Node_Id := Node_Id (Type_Node);
+      Node : constant Node_Id := Node_Id (Type_Node);
 
    begin
       pragma Assert (Is_Type (Node));
@@ -1497,7 +1497,7 @@ package body XE is
      (Variable_Node : in Variable_Id;
       Variable_Type : in Type_Id)
    is
-      VN : Node_Id := Node_Id (Variable_Node);
+      VN : constant Node_Id := Node_Id (Variable_Node);
       L  : Node_Id;
 
    begin
@@ -1517,7 +1517,7 @@ package body XE is
      (Variable_Node : in Variable_Id;
       Value_Node    : in Variable_Id)
    is
-      Node  : Node_Id := Node_Id (Variable_Node);
+      Node  : constant Node_Id := Node_Id (Variable_Node);
 
    begin
       pragma Assert (Is_Variable (Node));
@@ -1533,7 +1533,7 @@ package body XE is
      (Subprogram_Node : in Subprogram_Id;
       Procedure_Node  : in Boolean)
    is
-      Node : Node_Id := Node_Id (Subprogram_Node);
+      Node : constant Node_Id := Node_Id (Subprogram_Node);
 
    begin
       pragma Assert (Is_Subprogram (Node));
@@ -1548,7 +1548,7 @@ package body XE is
      (Type_Node : in Type_Id;
       Composite : in Boolean)
    is
-      TN : Node_Id := Node_Id (Type_Node);
+      TN : constant Node_Id := Node_Id (Type_Node);
       L  : Node_Id;
 
    begin
@@ -1569,7 +1569,7 @@ package body XE is
      (Variable_Node  : in Variable_Id;
       Is_Initialized : in Boolean)
    is
-      Node : Node_Id := Node_Id (Variable_Node);
+      Node : constant Node_Id := Node_Id (Variable_Node);
 
    begin
       pragma Assert (Is_Variable (Node));
