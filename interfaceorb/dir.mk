@@ -68,13 +68,13 @@ lib = $(patsubst %,$(LibPattern),adabroker)
 
 all:: $(lib)
 
-$(lib): Ada_Sys_Dep $(CXXOBJS) $(ADAOBJS)
+$(lib): $(CXXOBJS) $(ADAOBJS)
 	@$(StaticLinkLibrary)
 
 clean::
 	-rm -f *.ali *.o Ada_Sys_Dep adabroker-sysdep.ads *~ libadabroker.a
 
-previous_check: Ada_Sys_Dep
+long_size_check: Ada_Sys_Dep
 	@if [ `./Ada_Sys_Dep` ]; then \
 	   echo "size of long has to be 4"; \
 	   exit 1; \
@@ -84,11 +84,13 @@ Ada_Sys_Dep: Ada_Sys_Dep.cc
 	@$(CXX) $(DIR_CPPFLAGS) Ada_Sys_Dep.cc -o Ada_Sys_Dep 
 
 
-$(ADAOBJS): adabroker-sysdep.ads
-	@gnatmake -g -gnata -i all_adabroker.ads -gnatg
+$(ADAOBJS): all_adabroker.o
+
+all_adabroker.o: long_size_check adabroker-sysdep.ads
+	gnatmake -c -g -gnata -i all_adabroker.ads -gnatg
 
 adabroker-sysdep.ads : adabroker-sysdep.ads.in
-	@sed -f $(ADABROKER_PLATFORM)/$(platform) \
+	sed -f $(ADABROKER_PLATFORM)/$(platform) \
 	  adabroker-sysdep.ads.in > adabroker-sysdep.ads
 
 export:: $(lib)
