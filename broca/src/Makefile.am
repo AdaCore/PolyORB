@@ -19,6 +19,7 @@ ADA_SPECS_WITH_BODY = \
 	   broca-iiop.ads \
 	   broca-inet_server.ads \
 	   broca-iop.ads \
+	   broca-profiles.ads \
 	   broca-ior.ads \
 	   broca-locks.ads \
            broca-names.ads \

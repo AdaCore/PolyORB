@@ -69,6 +69,8 @@ package body CORBA.Object is
       use Broca.Repository;
 
       Self_Ref : Ref := Self;
+      Object : Broca.Object.Object_Ptr
+        := Broca.Object.Object_Ptr (Object_Of (Self));
 
    begin
 
@@ -82,8 +84,9 @@ package body CORBA.Object is
 
         Is_Equivalent
         (CORBA.To_CORBA_String (Logical_Type_Id),
-         CORBA.RepositoryId (Broca.Object.Object_Ptr
-                             (Object_Of (Self)).Type_Id))
+         CORBA.RepositoryId
+         (Broca.Object.Get_Type_Id (Object.all))
+         )
       --  Any object is of the class of its
       --  actual (i. e. most derived) type.
 

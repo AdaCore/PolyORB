@@ -38,8 +38,9 @@ with Sequences.Unbounded;
 with Broca.Sequences;
 with Broca.Buffers;
 with Broca.Refs;
-with Broca.IOP;
+with Broca.IOP;             use Broca.IOP;
 pragma Elaborate (Broca.IOP);
+with Broca.Profiles;        use Broca.Profiles;
 
 package Broca.IIOP is
 
@@ -53,11 +54,16 @@ package Broca.IIOP is
      := (Major => 1, Minor => 0);
    --  The version of IIOP implemented by this ORB.
 
+   --  Priority value for the IIOP 1.0 profile
+   IIOP_1_0_Profile_Priority : constant Profile_Priority := 20;
+   --  Priority value for the IIOP 1.X profile
+   IIOP_1_1_Profile_Priority : constant Profile_Priority := 10;
+
    type Strand_List_Ref is new Broca.Refs.Ref with null record;
 
-   type Profile_IIOP_Type is new IOP.Profile_Type with
+   type Profile_IIOP_1_0_Type is new IOP.Profile_Type with
       record
-         Version : Version_Type := IIOP_Version;
+         Version : Version_Type := (Major => 1, Minor => 0);
          Host    : CORBA.String;
          Port    : CORBA.Unsigned_Short;
          ObjKey  : Broca.Sequences.Octet_Sequence;
@@ -66,28 +72,52 @@ package Broca.IIOP is
    --  Most of the fields come from the IOR itself. Socket_Addr is
    --  built from Host and Port.
 
-   type Profile_IIOP_Access is access all Profile_IIOP_Type;
-   --  FIXME: Rename to Profile_IIOP_Ptr. Make classwide.
+   type Profile_IIOP_1_0_Access is access Profile_IIOP_1_0_Type;
 
    function Find_Connection
-     (Profile : access Profile_IIOP_Type)
+     (Profile : access Profile_IIOP_1_0_Type)
      return IOP.Connection_Ptr;
    --  Find a free connection (or create a new one) to communicate
    --  with an OBJECT via PROFILE.
 
+   function Get_Object_Key
+     (Profile : Profile_IIOP_1_0_Type)
+     return Broca.Sequences.Octet_Sequence;
+
    function Get_Profile_Tag
-     (Profile : Profile_IIOP_Type)
+     (Profile : Profile_IIOP_1_0_Type)
      return IOP.Profile_Tag;
+
+   function Get_Profile_Priority
+     (Profile : in Profile_IIOP_1_0_Type)
+     return Profile_Priority;
 
    procedure Marshall_Profile_Body
      (Buffer  : access Buffers.Buffer_Type;
-      Profile : Profile_IIOP_Type);
+      Profile : Profile_IIOP_1_0_Type);
+
+   type Profile_IIOP_Ptr is access Profile_IIOP_1_0_Type'Class;
+
+   --  IIOP 1.1 is not realized yet
+   type Profile_IIOP_1_1_Type is new Profile_IIOP_1_0_Type with
+      record
+         Components : Tagged_Components_Ptr;
+      end record;
+
+   type Profile_IIOP_1_1_Access is access Profile_IIOP_1_1_Type;
+
+   procedure Finalization
+     (Profile : in out Profile_IIOP_1_1_Type);
+
+   function Get_Profile_Priority
+     (Profile : in Profile_IIOP_1_1_Type)
+     return Profile_Priority;
+
+   procedure Marshall_Profile_Body
+     (Buffer  : access Buffers.Buffer_Type;
+      Profile : Profile_IIOP_1_1_Type);
 
 private
-
-   function Get_Object_Key
-     (Profile : Profile_IIOP_Type)
-     return Broca.Sequences.Octet_Sequence;
 
    type Strand_List;
    type Strand_List_Ptr is access all Strand_List;

@@ -34,6 +34,7 @@
 with Ada.Unchecked_Deallocation;
 
 with Broca.IOP;
+with Broca.Profiles; use Broca.Profiles;
 with Broca.Buffers; use Broca.Buffers;
 with Broca.Exceptions;
 with Broca.Debug;
@@ -61,12 +62,14 @@ package body Broca.Object is
 
    begin
       pragma Debug (O ("In Finalize (Object_Type):"));
-      for I in X.Profiles'Range loop
-         pragma Debug (O ("Freeing Profiles (" & I'Img & ")"));
-         Free (X.Profiles (I));
-      end loop;
-      pragma Debug (O ("Freeing Profiles"));
-      Free (X.Profiles);
+      if X.Profiles /= null then
+         for I in X.Profiles'Range loop
+            pragma Debug (O ("Freeing Profiles (" & I'Img & ")"));
+            Free (X.Profiles (I));
+         end loop;
+         pragma Debug (O ("Freeing Profiles"));
+         Free (X.Profiles);
+      end if;
    end Finalize;
 
    --------------
@@ -75,9 +78,15 @@ package body Broca.Object is
 
    procedure Marshall
      (Buffer : access Buffer_Type;
-      Value  : in Broca.Object.Object_Type) is
+      Value  : in Broca.Object.Object_Type)
+   is
+      use Broca.IOP;
    begin
-      Broca.IOP.Encapsulate_IOR (Buffer, Value.Type_Id, Value.Profiles);
+      if Value.Profiles = null then
+         Broca.Exceptions.Raise_Internal;
+      end if;
+      Broca.Profiles.Encapsulate_IOR
+        (Buffer, Value.Type_Id, Value.Profiles);
    end Marshall;
 
    ----------------
@@ -89,7 +98,13 @@ package body Broca.Object is
       Result : out Broca.Object.Object_Type)
    is
    begin
-      Broca.IOP.Decapsulate_IOR (Buffer, Result.Type_Id, Result.Profiles);
+      Broca.Profiles.Decapsulate_IOR
+        (Buffer,
+         Result.Type_Id,
+         Result.Profiles,
+         Result.Used_Profile_Index,
+         Result.Is_Supported_Profile
+         );
    end Unmarshall;
 
    ------------------
@@ -105,21 +120,96 @@ package body Broca.Object is
 
    begin
       pragma Assert (Object /= null);
-
-      --  FIXME: Knowledge about what transport
-      --     protocols are supported should not
-      --     be embedded here. For now, only IIOP
-      --     is supported.
-
-      for I in Object.Profiles'Range loop
-         if Get_Profile_Tag (Object.Profiles (I).all)
-           = Tag_Internet_IOP then
-            return Object.Profiles (I);
-         end if;
-      end loop;
-
-      Broca.Exceptions.Raise_Bad_Param;
-      return null;
+      if Object.Local_Object then
+         --  Should not be called for local objects
+         Broca.Exceptions.Raise_Internal;
+      elsif Object.Profiles /= null then
+         return Object.Profiles (Object.Used_Profile_Index);
+      else
+         Broca.Exceptions.Raise_Internal;
+      end if;
    end Find_Profile;
 
+   ---------------
+   --  Get_Type_Id
+   ---------------
+
+   function Get_Type_Id (Object : in Object_Type) return CORBA.String is
+   begin
+      return Object.Type_Id;
+   end Get_Type_Id;
+
+   ---------------------------
+   --  Create_Object_From_IOR
+   ---------------------------
+
+   function Create_Object_From_IOR
+     (IOR : access Broca.Buffers.Buffer_Type)
+     return Object_Ptr
+   is
+      Type_Id : CORBA.String;
+      Obj : Object_Ptr := new Object_Type (Local_Object => False);
+   begin
+      pragma Debug (O ("Create_Object_From_IOR : enter"));
+
+      Broca.Profiles.Decapsulate_IOR
+        (IOR,
+         Obj.Type_Id,
+         Obj.Profiles,
+         Obj.Used_Profile_Index,
+         Obj.Is_Supported_Profile
+         );
+
+      pragma Debug (O ("Create_Object_From_IOR : Type_Id unmarshalled : "
+                       & CORBA.To_Standard_String (Type_Id)));
+      return Obj;
+   end Create_Object_From_IOR;
+
+   ----------------------
+   --  Create custom IOR
+   ----------------------
+
+--     function Create_Custom_Object
+--       (Type_Id : in CORBA.String;
+--        Host : in CORBA.String;
+--        Port : in CORBA.Unsigned_Short;
+--        Object_Key : in Broca.Sequences.Octet_Sequence)
+--        return Object_Ptr
+--     is
+--        use Broca.IIOP;
+--        Profile : Profile_IIOP_1_0_Access := new Profile_IIOP_1_0_Type;
+--        Obj : Object_Ptr := new Object_Type;
+--     begin
+--        Profile.Host := Host;
+--        Profile.Port := Port;
+--        Profile.ObjKey := Object_Key;
+--        Obj.Type_Id := Type_Id;
+--        Obj.Profiles := new Broca.IOP.Profile_Ptr_Array'
+--          (1 => Broca.IOP.Profile_Ptr (Profile));
+--        Obj.Used_Profile_Index := 1;
+--        Obj.Is_Supported_Profile := True;
+--        return Obj;
+--     end Create_Custom_Object;
+
+   function Create_Object
+     (Type_Id : in CORBA.String;
+      Profiles : Broca.IOP.Profile_Ptr_Array_Ptr;
+      Local_Object : in Boolean)
+     return Object_Ptr
+   is
+      Obj : Object_Ptr := new Object_Type (Local_Object);
+   begin
+      Obj.Type_Id := Type_Id;
+      Obj.Profiles := Profiles;
+      if not Local_Object then
+         Broca.IOP.Find_Best_Profile
+           (Profiles, Obj.Used_Profile_Index, Obj.Is_Supported_Profile);
+      end if;
+      return Obj;
+   end Create_Object;
+
 end Broca.Object;
+
+
+
+

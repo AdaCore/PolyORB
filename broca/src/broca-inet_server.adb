@@ -702,8 +702,8 @@ package body Broca.Inet_Server is
       use Broca.Sequences;
       use Broca.IIOP;
 
-      Res : Profile_IIOP_Access
-        := new Profile_IIOP_Type;
+      Res : Profile_IIOP_1_0_Access
+        := new Profile_IIOP_1_0_Type;
    begin
       Res.Version := IIOP_Version;
       Res.Host    := IIOP_Host;
