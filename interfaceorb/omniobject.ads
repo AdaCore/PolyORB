@@ -87,6 +87,19 @@ package OmniObject is
    type Implemented_Object_Ptr is access all Implemented_Object'Class ;
 
 
+   type Dispatch_Procedure is access
+     procedure (Self : Implemented_Object_Ptr ;
+                Orls : in out Giop_S.Object ;
+                Orl_Op : in Standard.String ;
+                Orl_Response_Expected : in Corba.Boolean ;
+                Success : out Corba.Boolean) ;
+   -- this type is used to make the dispatchnig call.
+   -- this type is made to handle dispatchnig calls
+   -- from the ORB. This procedure cannot be made a primitive
+   -- of Implemented_Object, therwise it would have to
+   -- for each descendant in the user's code.
+
+
    -----------------------------------------------
    --             Omniobject                    --
    --     this type is imported from C++        --
@@ -128,9 +141,11 @@ package OmniObject is
    -----------------------------------------------
 
    procedure Init_Local_Object (Self : in out Implemented_Object'Class ;
-                                Repo_Id : in Corba.String) ;
+                                Repo_Id : in Corba.String ;
+                                Disp : in Dispatch_Procedure ) ;
    -- calls the C++ Init to set the init_ok boolean to true
-   -- and sets the repoID of this object
+   -- and sets the repoID of this object. It also sets
+   -- the dispatch procedure associated with this object
 
 
    function Is_Nil(Self : in Implemented_Object) return Corba.Boolean ;
@@ -153,16 +168,6 @@ package OmniObject is
    -----------------------------------------------
    --        dispatching operators              --
    -----------------------------------------------
-
-   procedure Dispatch (Self : access Implemented_Object ;
-                       Orls : in out Giop_S.Object ;
-                       Orl_Op : in Standard.String ;
-                       Orl_Response_Expected : in Corba.Boolean ;
-                       Success : out Corba.Boolean) is abstract ;
-   -- this function is called by the C one
-   -- It is implemented in the sub-classes of omniObject
-   -- this function on this object should never be called
-
 
    function Is_A(Self: in Implemented_Object ;
                  Logical_Type_Id : in Corba.String)
@@ -382,7 +387,8 @@ private
 
   type Implemented_Object is abstract new Ada.Finalization.Controlled with record
       Omniobj : Object_Ptr ;
-   end record ;
+      Dispatch : Dispatch_Procedure ;
+  end record ;
 
 
    -----------------------------------------------

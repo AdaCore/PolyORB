@@ -94,7 +94,8 @@ package body OmniObject is
    -- Init_Local_Object
    --------------------
    procedure Init_Local_Object (Self : in out Implemented_Object'Class ;
-                                Repo_Id : in Corba.String) is
+                                Repo_Id : in Corba.String ;
+                                Disp : in Dispatch_Procedure ) is
       C_Repoid : Interfaces.C.Strings.Chars_Ptr ;
    begin
       Initialize(Implemented_Object(Self)) ;
@@ -102,6 +103,7 @@ package body OmniObject is
          C_Repoid := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Repo_Id)) ;
          C_Init_Local_Object (Self.Omniobj.all, C_repoid) ;
          Interfaces.C.Strings.Free(C_Repoid) ;
+         Self.Dispatch := Disp ;
       else
          Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
                                         "Omniobject.Init(Implemented_Object, Corba.String"
@@ -626,6 +628,7 @@ package body OmniObject is
    begin
       Tmp.all.Implobj := To_Implemented_Object_Ptr(Self'Access) ;
       Self.Omniobj := Tmp ;
+      Self.Dispatch := null ;
    end ;
 
 
@@ -738,11 +741,11 @@ package body OmniObject is
       else
        pragma Debug(Output(Omniobject,
                           "Omniobject.Dispatch : making dispatching call")) ;
-       Dispatch(Self.Implobj,
-                Orls,
-                Orl_Op,
-                Orl_Response_Expected,
-                success) ;
+       Self.Implobj.all.Dispatch(Self.Implobj,
+                                 Orls,
+                                 Orl_Op,
+                                 Orl_Response_Expected,
+                                 success) ;
       end if ;
    end ;
 
@@ -758,6 +761,7 @@ package body OmniObject is
       Ada_Orl_Response_Expected : Corba.Boolean ;
       Ada_Success : Corba.Boolean ;
    begin
+      pragma Debug(Output(Omniobject, "OmniObject.C_Dispatch : starting")) ;
       -- transforms the arguments in a Ada type, ...
       pragma Debug(Output(Omniobject,
                           "Omniobject.C_Dispatch : arriving in Ada code")) ;

@@ -101,6 +101,9 @@ omniObject_C2Ada::dispatch(GIOP_S &giop_s,
 
   // declaration of the arguments for the Ada function
   Ada_Giop_s ada_giop_s(&giop_s) ;
+#ifdef DEBUG
+  cerr << "omniObject_C2Ada::dispatch : Ada_Giop_s created" << endl ;
+#endif
   _CORBA_Boolean success ;
 
 #ifdef DEBUG

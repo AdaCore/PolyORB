@@ -17,7 +17,7 @@ ADA_PREP = gnatprep
 GNATMAKE = gnatmake -gnatf -gnata
 
 # C++ compiler
-CPP_COMP = g++
+CPP_COMP = g++ -g
 
 # compilation flag
 DO_NOT_LINK = -c
@@ -76,8 +76,7 @@ Ada_Corba_Boa.o : Ada_Corba_Boa.hh Ada_Corba_Boa.cc Ada_exceptions.hh
 
 Ada_Corba_Orb.o : Ada_Corba_Orb.hh Ada_Corba_Orb.cc Ada_exceptions.hh
 
-Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh exceptions.ads \
-exceptions.adb
+Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh
 
 Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc Ada_netBufferedStream.hh \
 Ada_exceptions.hh
@@ -94,7 +93,7 @@ Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc \
 Ada_exceptions.hh
 
 Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc omniObject_C2Ada.hh \
-omniobject.ads Ada_OmniRopeAndKey.hh Ada_exceptions.hh
+ Ada_OmniRopeAndKey.hh Ada_exceptions.hh
 
 Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc \
 Ada_exceptions.hh
