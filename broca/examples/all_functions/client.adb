@@ -198,10 +198,8 @@ begin
    Output ("test in and out and inout param function", Ok);
 
    begin
-      Ada.Text_IO.Put_Line ("Calling void proc");
       Oneway_Void_Proc (MyObj);
       delay 1.0;
-      Ada.Text_IO.Put_Line ("Calling oneway checker");
       Ok := Oneway_Checker (MyObj) = 1;
       if Ok then
          delay 5.0;

@@ -162,10 +162,8 @@ package Broca.GIOP is
 
 private
 
-   type Octet_Array_Ptr is access Broca.Opaque.Octet_Array;
-
    type Request_Handler_Data is limited record
-     Message_Body : Octet_Array_Ptr := null;
+     Message_Body : Broca.Opaque.Octet_Array_Ptr := null;
    end record;
 
 end Broca.GIOP;

@@ -1,15 +1,23 @@
 IDLAC = ../../idlac/idlac
+SOCK_CONS = ../../adasockets/src/sockets-constants.ads
 
-EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir)/../generic \
+EXAMPLES_GNATMAKE_FLAGS = -I$(srcdir) \
+                          -I$(srcdir)/../generic \
                           -I../../src \
                           -I$(srcdir)/../../src \
                           -I../../adasockets/src \
                           -I$(srcdir)/../../adasockets/src \
-                          -g -O2 -m -gnata
+                          -g -O2 -m -gnata -i
 
 CLEANFILES = *.o *.ali b~*.*
 
 %.ads %.adb: %.idl
 	$(IDLAC) $<
 
-force::
+$(IDLAC):
+	cd ../../idlac && $(MAKE) idlac
+
+$(SOCK_CONS):
+	cd ../../adasockets/src && $(MAKE) sockets-constants.ads
+
+force:: $(IDLAC) $(SOCK_CONS)

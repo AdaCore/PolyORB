@@ -35,6 +35,8 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
 with Interfaces;
+with Sequences.Unbounded;
+pragma Elaborate_All (Sequences.Unbounded);
 
 package CORBA is
 
@@ -337,14 +339,14 @@ package CORBA is
        Tk_Abstract_Interface);
 
    type ValueModifier is new Short;
-   VTM_NONE : constant ValueModifier := 0;
-   VTM_CUSTOM : constant ValueModifier := 1;
-   VTM_ABSTRACT : constant ValueModifier := 2;
-   VTM_TRUNCATABLE : constant ValueModifier := 3;
+   VTM_NONE : constant ValueModifier;
+   VTM_CUSTOM : constant ValueModifier;
+   VTM_ABSTRACT : constant ValueModifier;
+   VTM_TRUNCATABLE : constant ValueModifier;
 
    type Visibility is new Short;
-   PRIVATE_MEMBER : constant Visibility := 0;
-   PUBLIC_MEMBER : constant Visibility := 1;
+   PRIVATE_MEMBER : constant Visibility;
+   PUBLIC_MEMBER : constant Visibility;
 
 
    package TypeCode is
@@ -376,7 +378,8 @@ package CORBA is
         renames "=";
 
       --  equivalence between two typecodes
-      --  FIXME : to be defined
+      --  the equivalence is defined in section 10.7.1 of the
+      --  CORBA V2.3 spec : the Typecode interface
       function Equivalent (Left, Right : in Object)
                            return Boolean;
 
@@ -429,16 +432,16 @@ package CORBA is
           (Self  : in Object;
            Index : in CORBA.Unsigned_Long) return CORBA.Any;
 
-      --  returns the position of the default index in the parameters
-      --  of a typecode in case its kind is union.
-      --  Raises badKind else.
-      --  If there is no default index, return 0
-      function Discriminator_Type (Self : in Object)
-                                   return Object;
-
       --  returns the discriminator type associated with a typecode
       --  in case its kind is union.
       --  Raises badKind else.
+      function Discriminator_Type (Self : in Object)
+                                   return Object;
+
+      --  returns the position of the default index in the parameters
+      --  of a typecode in case its kind is union.
+      --  Raises badKind else.
+      --  If there is no default index, return -1
       function Default_Index (Self : in Object)
                               return CORBA.Long;
 
@@ -522,11 +525,24 @@ package CORBA is
       function TC_Octet              return TypeCode.Object;
       function TC_Any                return TypeCode.Object;
       function TC_TypeCode           return TypeCode.Object;
-
+      --  TC_Object defined in CORBA.Object
       function TC_String             return TypeCode.Object;
       function TC_Wide_String        return TypeCode.Object;
 
-      --  not in spec
+      function TC_Struct             return TypeCode.Object;
+      function TC_Union              return TypeCode.Object;
+      function TC_Enum               return TypeCode.Object;
+      function TC_Alias              return TypeCode.Object;
+      function TC_Except             return TypeCode.Object;
+      function TC_Objref             return TypeCode.Object;
+      function TC_Fixed              return TypeCode.Object;
+      function TC_Sequence           return TypeCode.Object;
+      function TC_Array              return TypeCode.Object;
+      function TC_Value              return TypeCode.Object;
+      function TC_Valuebox           return TypeCode.Object;
+      function TC_Native             return TypeCode.Object;
+      function TC_Abstract_Interface return TypeCode.Object;
+
       --  returns the number of parameters of Self
       function Parameter_Count (Self : in Object)
                                 return Unsigned_Long;
@@ -566,7 +582,7 @@ package CORBA is
       --  discriminator type. Then we'll have alternatively a
       --  member label, a member type and a member name. At least,
       --  we could have a default label. In this case, the member
-      --  label would be an any containing null. So the number of
+      --  label would be an any containing the zero octet. So the number of
       --  parameters will be 3 * number_of_members + 3
       --    for the enum, the next parameters will be names of the
       --  different members. So the number of parameters will be
@@ -579,10 +595,12 @@ package CORBA is
       --  3 * number_of_members + 4.
       --    for the valueBox, the third parameter is the content type
       --    for the string and wide_string, the only parameter will
-      --  be the length of the string.
+      --  be the length of the string. Its value will be 0 in case of
+      --  unbounded strings or wide strings.
       --    for the sequence and the array, the first parameter will
       --  be the length of the sequence or the array and the second
-      --  the content type
+      --  the content type. As for strings, an unbounded sequence will
+      --  have a length of 0.
       --    for the fixed, the first parameter will be the digits
       --  number and the second the scale.
 
@@ -608,7 +626,63 @@ package CORBA is
       PTC_String             : constant Object := (Tk_String, null);
       PTC_Wide_String        : constant Object := (Tk_Wstring, null);
 
+      PTC_Struct             : constant Object := (Tk_Struct, null);
+      PTC_Union              : constant Object := (Tk_Union, null);
+      PTC_Enum               : constant Object := (Tk_Enum, null);
+      PTC_Alias              : constant Object := (Tk_Alias, null);
+      PTC_Except             : constant Object := (Tk_Except, null);
+      PTC_Objref             : constant Object := (Tk_Objref, null);
+      PTC_Fixed              : constant Object := (Tk_Fixed, null);
+      PTC_Sequence           : constant Object := (Tk_Sequence, null);
+      PTC_Array              : constant Object := (Tk_Array, null);
+      PTC_Value              : constant Object := (Tk_Value, null);
+      PTC_Valuebox           : constant Object := (Tk_Valuebox, null);
+      PTC_Native             : constant Object := (Tk_Native, null);
+      PTC_Abstract_Interface : constant Object
+        := (Tk_Abstract_Interface, null);
+
    end TypeCode;
+
+   --  pre-defined TypeCode "constants"
+   function TC_Null               return TypeCode.Object
+     renames TypeCode.TC_Null;
+   function TC_Void               return TypeCode.Object
+     renames TypeCode.TC_Void;
+   function TC_Short              return TypeCode.Object
+     renames TypeCode.TC_Short;
+   function TC_Long               return TypeCode.Object
+     renames TypeCode.TC_Long;
+   function TC_Long_Long          return TypeCode.Object
+     renames TypeCode.TC_Long_Long;
+   function TC_Unsigned_Short     return TypeCode.Object
+     renames TypeCode.TC_Unsigned_Short;
+   function TC_Unsigned_Long      return TypeCode.Object
+     renames TypeCode.TC_Unsigned_Long;
+   function TC_Unsigned_Long_Long return TypeCode.Object
+     renames TypeCode.TC_Unsigned_Long_Long;
+   function TC_Float              return TypeCode.Object
+     renames TypeCode.TC_Float;
+   function TC_Double             return TypeCode.Object
+     renames TypeCode.TC_Double;
+   function TC_Long_Double        return TypeCode.Object
+     renames TypeCode.TC_Long_Double;
+   function TC_Boolean            return TypeCode.Object
+     renames TypeCode.TC_Boolean;
+   function TC_Char               return TypeCode.Object
+     renames TypeCode.TC_Char;
+   function TC_Wchar              return TypeCode.Object
+     renames TypeCode.TC_Wchar;
+   function TC_Octet              return TypeCode.Object
+     renames TypeCode.TC_Octet;
+   function TC_Any                return TypeCode.Object
+     renames TypeCode.TC_Any;
+   function TC_TypeCode           return TypeCode.Object
+     renames TypeCode.TC_TypeCode;
+   --  TC_Object defined in CORBA.Object
+   function TC_String             return TypeCode.Object
+     renames TypeCode.TC_String;
+   function TC_Wide_String        return TypeCode.Object
+     renames TypeCode.TC_Wide_String;
 
 
    -----------
@@ -665,11 +739,85 @@ package CORBA is
    procedure Iterate_Over_Any_Elements (In_Any : in Any);
 
 
+   ------------------
+   --  Named_Value --
+   ------------------
+
+   type Flags is new CORBA.Unsigned_Long;
+
+   ARG_IN :        constant Flags;
+   ARG_OUT :       constant Flags;
+   ARG_INOUT :     constant Flags;
+   IN_COPY_VALUE : constant Flags;
+
+   type NamedValue is record
+      Name :      CORBA.Identifier;
+      Argument :  CORBA.Any;
+      Arg_Modes : CORBA.Flags;
+   end record;
+
+
+   ----------------------------
+   --  Interface Repository  --
+   ----------------------------
+
+   type VersionSpec is new CORBA.String;
+
+   --  Structs
+   type StructMember is record
+      Name : CORBA.Identifier;
+      IDL_Type : CORBA.TypeCode.Object;
+      --  Type_Def : IDLType;
+   end record;
+
+   package IDL_SEQUENCE_StructMember is
+      new Sequences.Unbounded (StructMember);
+   type StructMemberSeq is new IDL_SEQUENCE_StructMember.Sequence;
+
+   --  Unions
+   type UnionMember is record
+      Name : CORBA.Identifier;
+--      Label : CORBA.Any;
+      IDL_Type : CORBA.TypeCode.Object;
+      --  Type_Def : IDLType ;
+   end record;
+
+   package IDL_SEQUENCE_UnionMember is
+      new Sequences.Unbounded (UnionMember);
+   type UnionMemberSeq is new IDL_SEQUENCE_UnionMember.Sequence;
+
+   --  Enums
+   package IDL_SEQUENCE_Identifier is
+      new Sequences.Unbounded (CORBA.Identifier);
+   type EnumMemberSeq is new IDL_SEQUENCE_Identifier.Sequence;
+
+   --  values
+   type ValueMember is record
+      Name :       CORBA.Identifier;
+      Id :         CORBA.RepositoryId;
+      Defined_In : CORBA.RepositoryId;
+      Version :    CORBA.VersionSpec;
+      IDL_Type :   CORBA.TypeCode.Object;
+      --  Type_Def :   CORBA.IDLtype;
+      IDL_Access : CORBA.Visibility;
+   end record;
+
+   package IDL_SEQUENCE_ValueMember is
+      new Sequences.Unbounded (ValueMember);
+   type ValueMemberSeq is new IDL_SEQUENCE_ValueMember.Sequence;
+
 private
 
    --  Null_String : constant CORBA.String :=
    --  CORBA.String (Ada.Strings.Unbounded.Null_Unbounded_String);
 
+   VTM_NONE : constant ValueModifier := 0;
+   VTM_CUSTOM : constant ValueModifier := 1;
+   VTM_ABSTRACT : constant ValueModifier := 2;
+   VTM_TRUNCATABLE : constant ValueModifier := 3;
+
+   PRIVATE_MEMBER : constant Visibility := 0;
+   PUBLIC_MEMBER : constant Visibility := 1;
 
    -----------
    --  Any  --
@@ -819,5 +967,15 @@ private
         The_Value : Any_Content_Ptr;
         The_Type  : CORBA.TypeCode.Object;
      end record;
+
+
+   ------------------
+   --  Named_Value --
+   ------------------
+
+   ARG_IN :        constant Flags := 0;
+   ARG_OUT :       constant Flags := 1;
+   ARG_INOUT :     constant Flags := 2;
+   IN_COPY_VALUE : constant Flags := 3;
 
 end CORBA;

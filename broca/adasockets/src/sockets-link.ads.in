@@ -34,7 +34,7 @@
 --                                                                         --
 -----------------------------------------------------------------------------
 
-private package Sockets.Link is
+package Sockets.Link is
 
    @NSLNEEDED@pragma Linker_Options ("-lnsl");
    @SOCKETNEEDED@pragma Linker_Options ("-lsocket");

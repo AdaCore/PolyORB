@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                         C O R B A . I M P L                              --
+--                           C O R B A . I M P L                            --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,18 +31,20 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Finalization;
+
 package CORBA.Impl is
 
    type Object is abstract new Ada.Finalization.Limited_Controlled with record
       --  COUNTER is used to count the number of references
-      Counter: Integer := 0;
+      Counter : Integer := 0;
    end record;
 
    type Object_Ptr is access all Object'Class;
 
 private
 
-   procedure Initialize (Object : in out Object);
-   procedure Finalize (Object : in out Object);
+   procedure Initialize (This : in out Object);
+   procedure Finalize (This : in out Object);
 
 end CORBA.Impl;

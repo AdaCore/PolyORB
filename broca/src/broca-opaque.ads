@@ -31,6 +31,8 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Unchecked_Deallocation;
+
 with Interfaces;
 
 with System;
@@ -38,7 +40,7 @@ with System;
 
 package Broca.Opaque is
 
-   pragma Pure;
+   pragma Preelaborate;
 
    subtype Opaque_Pointer is System.Address;
    --  The address of some data.
@@ -52,6 +54,11 @@ package Broca.Opaque is
      of aliased Octet;
    pragma Convention (C, Octet_Array);
    --  Some storage space.
+
+   type Octet_Array_Ptr is access Octet_Array;
+
+   procedure Free is
+      new Ada.Unchecked_Deallocation (Octet_Array, Octet_Array_Ptr);
 
    subtype Alignment_Type is Index_Type range 1 .. 8;
 

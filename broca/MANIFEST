@@ -13,7 +13,6 @@ adasockets/Makefile.am
 adasockets/Makefile.in
 adasockets/NEWS
 adasockets/README
-adasockets/README.import
 adasockets/aclocal.m4
 adasockets/configure
 adasockets/configure.in
@@ -24,14 +23,9 @@ adasockets/src/config.h.in
 adasockets/src/constants.c
 adasockets/src/constants.sh
 adasockets/src/sockets-link.ads.in
-adasockets/src/sockets-multicast.adb
-adasockets/src/sockets-multicast.ads
 adasockets/src/sockets-naming.adb
 adasockets/src/sockets-naming.ads
 adasockets/src/sockets-thin.ads
-adasockets/src/sockets-utils.adb
-adasockets/src/sockets-utils.ads
-adasockets/src/sockets.adb
 adasockets/src/sockets.ads
 adasockets/src/split.adb
 adasockets/src/stamp-h.in
@@ -104,12 +98,12 @@ idlac/ada_be-source_streams.adb
 idlac/ada_be-source_streams.ads
 idlac/ada_be-temporaries.ads
 idlac/ada_be.ads
+idlac/errors.adb
+idlac/errors.ads
 idlac/idl_fe-debug.adb
 idlac/idl_fe-debug.ads
 idlac/idl_fe-display_tree.adb
 idlac/idl_fe-display_tree.ads
-idlac/idl_fe-errors.adb
-idlac/idl_fe-errors.ads
 idlac/idl_fe-lexer.adb
 idlac/idl_fe-lexer.ads
 idlac/idl_fe-parser.adb
@@ -128,7 +122,6 @@ idlac/idlac.adb
 idlac/make_nodes.py
 idlac/nodes.txt
 idlac/platform.ads.in
-idlac/testexpansion.adb
 idlac/testgen.adb
 idlac/testlexer.adb
 idlac/testparser.adb
@@ -192,8 +185,6 @@ src/broca-ior.adb
 src/broca-ior.ads
 src/broca-locks.adb
 src/broca-locks.ads
-src/broca-marshalling.adb
-src/broca-marshalling.ads
 src/broca-object.adb
 src/broca-object.ads
 src/broca-opaque-chunk_pools.adb
@@ -219,11 +210,9 @@ src/broca-stream.adb
 src/broca-stream.ads
 src/broca-task_attributes.adb
 src/broca-task_attributes.ads
-src/broca-types.ads
 src/broca-vararray.adb
 src/broca-vararray.ads
 src/broca.ads
-src/corba-boa.ads
 src/corba-current.ads
 src/corba-forward.adb
 src/corba-forward.ads
@@ -260,8 +249,6 @@ src/portableserver-servantlocator.ads
 src/portableserver-servantmanager-impl.adb
 src/portableserver-servantmanager-impl.ads
 src/portableserver-servantmanager.ads
-src/portableserver-servantretentionpolicy.ads
-src/portableserver-threadpolicy.ads
 src/portableserver.adb
 src/portableserver.ads
 src/test_cdr.adb

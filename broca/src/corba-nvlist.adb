@@ -2,9 +2,9 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---                         B R O C A . P O L I C Y                          --
+--                        C O R B A . N V L I S T                           --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --          Copyright (C) 1999-2000 ENST Paris University, France.          --
 --                                                                          --
@@ -31,24 +31,66 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with CORBA;
-with Broca.Refs;
+package body CORBA.NVList is
 
-package Broca.Policy is
+   ----------------
+   --  Add_Item  --
+   ----------------
+   procedure Add_Item
+     (Self       :    Ref;
+      Item_Name  : in Identifier;
+      Item_Type  : in CORBA.TypeCode.Object;
+      Value      : in System.Address;
+      Len        : in Long;
+      Item_Flags : in Flags) is
+   begin
+      null;
+   end Add_Item;
 
-   type Policy_Object_Type is abstract new Broca.Refs.Ref_Type with
-     record
-        Policy : CORBA.PolicyType;
-     end record;
+   ----------------
+   --  Add_Item  --
+   ----------------
+   procedure Add_Item
+     (Self       :    Ref;
+      Item_Name  : in Identifier;
+      Item       : in CORBA.Any;
+      Item_Flags : in Flags) is
+   begin
+      null;
+   end Add_Item;
 
-   type Policy_Object_Ptr is access all Policy_Object_Type'Class;
+   ----------------
+   --  Add_Item  --
+   ----------------
+   procedure Add_Item
+     (Self : Ref;
+      Item : NamedValue) is
+   begin
+      null;
+   end Add_Item;
 
-   function Get_Policy_Type
-     (Self : Policy_Object_Type)
-     return CORBA.PolicyType;
+   ------------
+   --  Free  --
+   ------------
+   procedure Free (Self : Ref) is
+   begin
+      null;
+   end Free;
 
-   function Copy
-     (Self : Policy_Object_Type)
-     return Policy_Object_Ptr is abstract;
+   -------------------
+   --  Free_Memory  --
+   -------------------
+   procedure Free_Memory (Self : Ref) is
+   begin
+      null;
+   end Free_Memory;
 
-end Broca.Policy;
+   -----------------
+   --  Get_Count  --
+   -----------------
+   function Get_Count (Self : Ref) return CORBA.Long is
+   begin
+      return 0;
+   end Get_Count;
+
+end CORBA.NVList;

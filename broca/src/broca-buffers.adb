@@ -44,8 +44,7 @@ with Ada.Unchecked_Conversion;
 --  For conversions between Opaque_Pointer and Caddr_T.
 --  For conversions between System.Address and Interfaces.C.int.
 
-with System.Address_To_Access_Conversions;
---  For Dump.
+with System.Storage_Elements; use System.Storage_Elements;
 
 with CORBA;
 --  For CORBA.Octet and CORBA.Bool.
@@ -73,6 +72,11 @@ package body Broca.Buffers is
    -- General operations --
    ------------------------
 
+   function Length (Buffer : access Buffer_Type) return Index_Type is
+   begin
+      return Buffer.Length;
+   end Length;
+
    function Endianness
      (Buffer : Buffer_Type)
      return Endianness_Type is
@@ -88,6 +92,7 @@ package body Broca.Buffers is
       Buffer.CDR_Position := 0;
       Buffer.Initial_CDR_Position := 0;
       Buffer.Endianness := Host_Order;
+      Buffer.Length := 0;
    end Release;
 
    procedure Initialize_Buffer
@@ -113,6 +118,8 @@ package body Broca.Buffers is
       Append
         (Iovec_Pool => Buffer.Contents,
          An_Iovec   => Data_Iovec);
+
+      Buffer.Length := Size;
    end Initialize_Buffer;
 
    procedure Prepend
@@ -126,25 +133,16 @@ package body Broca.Buffers is
       Iovec_Pools.Prepend_Pool (Prefix.Contents, Buffer.Contents);
 
       Buffer.Initial_CDR_Position := Prefix.Initial_CDR_Position;
+
+      Buffer.Length := Buffer.Length + Prefix.Length;
    end Prepend;
 
    function Copy
      (Buffer : access Buffer_Type)
      return Buffer_Access
    is
-      Into : constant Buffer_Access
-        := new Buffer_Type;
-
-      Octets : constant Octet_Array
-        := Dump (Buffer.Contents);
+      Into         : constant Buffer_Access := new Buffer_Type;
       Copy_Address : Opaque_Pointer;
-
-      subtype Data is Octet_Array (Octets'Range);
-
-      package Opaque_Pointer_To_Data_Access is
-         new System.Address_To_Access_Conversions (Data);
-
-      use Opaque_Pointer_To_Data_Access;
 
    begin
       Into.Endianness := Buffer.Endianness;
@@ -152,12 +150,12 @@ package body Broca.Buffers is
 
       Allocate_And_Insert_Cooked_Data
         (Into,
-         Octets'Length,
+         Buffer.Length,
          Copy_Address);
-      To_Pointer (Copy_Address).all := Octets;
+
+      Iovec_Pools.Dump (Buffer.Contents, Copy_Address);
 
       Into.CDR_Position := Buffer.Initial_CDR_Position;
-
       return Into;
    end Copy;
 
@@ -179,11 +177,15 @@ package body Broca.Buffers is
 
    function Encapsulate
      (Buffer   : access Buffer_Type)
-     return Encapsulation is
+     return Encapsulation
+   is
+      Contents : Octet_Array_Ptr        := Iovec_Pools.Dump (Buffer.Contents);
+      Result   : constant Encapsulation := Contents.all;
    begin
       pragma Assert (Buffer.Initial_CDR_Position = 0);
 
-      return Iovec_Pools.Dump (Buffer.Contents);
+      Free (Contents);
+      return Result;
    end Encapsulate;
 
    procedure Decapsulate
@@ -268,6 +270,8 @@ package body Broca.Buffers is
       Buffer.CDR_Position := Buffer.CDR_Position + Padding;
       --  Advance the CDR position to the new alignment.
 
+      Buffer.Length := Buffer.Length + Padding;
+
       pragma Assert (Buffer.CDR_Position mod Alignment = 0);
       --  Post-condition: the buffer is aligned as requested.
    end Align;
@@ -289,6 +293,7 @@ package body Broca.Buffers is
         (Iovec_Pool => Buffer.Contents,
          An_Iovec   => Data_Iovec);
       Buffer.CDR_Position := Buffer.CDR_Position + Size;
+      Buffer.Length := Buffer.Length;
    end Insert_Raw_Data;
 
    procedure Allocate_And_Insert_Cooked_Data
@@ -301,32 +306,29 @@ package body Broca.Buffers is
       Grow (Buffer.Contents'Access, Size, A_Data);
       --  First try to grow an existing Iovec.
 
-      if A_Data /= Null_Address then
-         Buffer.CDR_Position := Buffer.CDR_Position + Size;
-         Data := A_Data;
-         return;
+      if A_Data = Null_Address then
+         declare
+            A_Chunk : Chunk_Access;
+            Data_Iovec : Iovec;
+         begin
+            Allocate (Buffer.Storage'Access, A_Chunk);
+            Data_Iovec := (Iov_Base => Chunk_Storage (A_Chunk),
+                           Iov_Len  => C_int (Size));
+
+            A_Data := Chunk_Storage (A_Chunk);
+            Metadata (A_Chunk).all :=
+              (Last_Used             => Size);
+            Append
+              (Iovec_Pool => Buffer.Contents,
+               An_Iovec   => Data_Iovec,
+               A_Chunk    => A_Chunk);
+            pragma Assert (A_Data /= Null_Address);
+         end;
       end if;
 
-      declare
-         A_Chunk : Chunk_Access;
-         Data_Iovec : Iovec;
-      begin
-         Allocate (Buffer.Storage'Access, A_Chunk);
-         Data_Iovec := (Iov_Base => Chunk_Storage (A_Chunk),
-                        Iov_Len  => C_int (Size));
-
-         A_Data := Chunk_Storage (A_Chunk);
-         pragma Assert (A_Data /= Null_Address);
-         Data := A_Data;
-
-         Metadata (A_Chunk).all :=
-           (Last_Used             => Size);
-         Append
-           (Iovec_Pool => Buffer.Contents,
-            An_Iovec   => Data_Iovec,
-            A_Chunk    => A_Chunk);
-         Buffer.CDR_Position := Buffer.CDR_Position + Size;
-      end;
+      Data := A_Data;
+      Buffer.CDR_Position := Buffer.CDR_Position + Size;
+      Buffer.Length := Buffer.Length + Size;
    end Allocate_And_Insert_Cooked_Data;
 
    procedure Extract_Data
@@ -342,24 +344,17 @@ package body Broca.Buffers is
       Buffer.CDR_Position := Buffer.CDR_Position + Size;
    end Extract_Data;
 
-   function Length
-     (Buffer : access Buffer_Type)
-     return Index_Type is
-   begin
-      return Buffer.CDR_Position - Buffer.Initial_CDR_Position;
-   end Length;
-
    -------------------------
    -- Utility subprograms --
    -------------------------
 
    procedure Show
-     (Octets : Octet_Array);
+     (Octets : access Octet_Array);
    --  Display the contents of Octets for
    --  debugging purposes.
 
    procedure Show
-     (Octets : Octet_Array)
+     (Octets : access Octet_Array)
    is
       Output : Output_Line;
       Index  : Natural := 1;
@@ -397,7 +392,8 @@ package body Broca.Buffers is
                        & Endianness_Type'Image (Buffer.Endianness)
                        & " buffer, CDR position is "
                        & Index_Type'Image
-                       (Buffer.CDR_Position)));
+                       (Buffer.CDR_Position) & " (of" &
+                       Index_Type'Image (Buffer.Length) & ")"));
 
       Show (Iovec_Pools.Dump (Buffer.Contents));
    end Show;
@@ -507,9 +503,14 @@ package body Broca.Buffers is
       --  Require, then does nothing, else
       --  make it Allocate Iovecs long.
 
+      procedure Dump
+        (Iovecs : Iovec_Array;
+         Into   : Opaque_Pointer);
+      --  Dump the content of Iovecs into Into.
+
       function Dump
         (Iovecs : Iovec_Array)
-        return Octet_Array;
+        return Octet_Array_Ptr;
       --  Dump the data designated by an Iovec_Array
       --  into an array of octets.
 
@@ -537,47 +538,39 @@ package body Broca.Buffers is
          end if;
       end Iovecs;
 
+      procedure Dump
+        (Iovecs : Iovec_Array;
+         Into   : Opaque_Pointer)
+      is
+         Offset : Storage_Offset := 0;
+      begin
+         for I in Iovecs'Range loop
+            declare
+               L : constant Index_Type := Index_Type (Iovecs (I) .Iov_Len);
+               S : Octet_Array (1 .. L);
+               for S'Address use Iovecs (I) .Iov_Base;
+               D : Octet_Array (1 .. L);
+               for D'Address use Into + Offset;
+            begin
+               D := S;
+               Offset := Offset + Storage_Offset (L);
+            end;
+         end loop;
+      end Dump;
+
       function Dump
         (Iovecs : Iovec_Array)
-        return Octet_Array
+        return Octet_Array_Ptr
       is
+         Result : Octet_Array_Ptr;
          Length : Index_Type := 0;
       begin
          for I in Iovecs'Range loop
             Length := Length + Index_Type (Iovecs (I).Iov_Len);
          end loop;
-
-         declare
-            Result  : Octet_Array (1 .. Length);
-            Current : Index_Type := Result'First;
-         begin
-            for I in Iovecs'Range loop
-               declare
-                  subtype Data is
-                    Octet_Array (1 .. Index_Type
-                                 (Iovecs (I).Iov_Len));
-
-                  package Opaque_Pointer_To_Data_Access is
-                      new System.Address_To_Access_Conversions
-                      (Data);
-
-                  use Opaque_Pointer_To_Data_Access;
-
-                  Octets : constant Object_Pointer
-                    := To_Pointer (Iovecs (I).Iov_Base);
-               begin
-                  Result
-                    (Current .. Current
-                     + Index_Type (Iovecs (I).Iov_Len) - 1)
-                    := Octets.all;
-                  Current := Current
-                    + Index_Type (Iovecs (I).Iov_Len);
-               end;
-            end loop;
-
-            return Result;
-
-         end;
+         Result := new Octet_Array (1 .. Length);
+         Dump (Iovecs, Result.all'Address);
+         return Result;
       end Dump;
 
       -------------------------------------------
@@ -701,9 +694,17 @@ package body Broca.Buffers is
          Iovec_Pool.Length := Iovec_Pool.Prealloc_Array'Length;
       end Release;
 
+      procedure Dump
+        (Iovec_Pool : Iovec_Pool_Type;
+         Into       : Opaque_Pointer)
+      is
+      begin
+         Dump (Iovecs (Iovec_Pool), Into);
+      end Dump;
+
       function Dump
         (Iovec_Pool : in Iovec_Pool_Type)
-        return Octet_Array is
+        return Octet_Array_Ptr is
       begin
          if Is_Dynamic (Iovec_Pool) then
             return Dump (Iovec_Pool.Dynamic_Array

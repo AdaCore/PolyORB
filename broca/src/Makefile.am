@@ -18,20 +18,24 @@ ADA_FULL = \
            broca-object.ads \
            broca-orb.ads \
            broca-poa.ads \
+           broca-policy.ads \
            broca-refs.ads \
            broca-repository.ads \
            broca-rootpoa.ads \
            broca-sequences.ads \
            broca-server.ads \
            broca-stream.ads \
+           broca-task_attributes.ads \
            broca-vararray.ads \
            corba-forward.ads \
            corba-object.ads \
            corba-orb.ads \
+           corba-sequences-bounded.ads \
            corba-sequences-unbounded.ads \
            corba.ads \
            portableserver-adapteractivator-impl.ads \
            portableserver-adapteractivator.ads \
+           portableserver-current.ads \
            portableserver-poa.ads \
            portableserver-poamanager.ads \
            portableserver-servantactivator.ads \
@@ -41,8 +45,9 @@ ADA_FULL = \
 
 ADA_SPECS = $(ADA_FULL) \
            broca.ads \
-	   broca-opaque.ads \
+           broca-opaque.ads \
            broca-iop.ads \
+           corba-current.ads \
            corba-sequences.ads \
            portableserver-servantactivator-impl.ads \
            portableserver-servantlocator-impl.ads \
@@ -55,10 +60,8 @@ ADA_LIBADD = $(ADA_SPECS:.ads=.lo) $(ADASOCKET_OBJECTS:.o=.lo)
 ADASOCKET_OBJECTS = \
 	sockets-constants.o \
 	sockets-link.o \
-	sockets-multicast.o \
 	sockets-naming.o \
 	sockets-thin.o \
-	sockets-utils.o \
 	sockets.o
 
 bin_SCRIPTS = adabroker-config
@@ -96,7 +99,7 @@ $(ADA_LIBADD): ../adasockets/src/sockets-constants.ads
 
 install-data-local:
 	$(INSTALL) -d $(DESTDIR)$(alidir)
-	$(INSTALL) -m 444 *.ad[bs] ../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
+	$(INSTALL) -m 444 ../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
 	$(INSTALL) -m 444 $(srcdir)/*.ad[bs] $(srcdir)/../adasockets/src/*.ad[bs] $(DESTDIR)$(alidir)
 	$(INSTALL) -m 444 *.ali $(DESTDIR)$(alidir)
 

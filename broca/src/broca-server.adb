@@ -322,7 +322,6 @@ package body Broca.Server is
             --  Its was an objectId for a transient POA.
             POA := null;
             Broca.POA.All_POAs_Lock.Unlock_R;
-
             return;
          end if;
 
@@ -345,9 +344,6 @@ package body Broca.Server is
             if Current_POA = null then
                Old_POA.Link_Lock.Unlock_R;
                Broca.Exceptions.Raise_Object_Not_Exist;
-
-               --  Dummy return, never reached.
-               return;
             end if;
             Current_POA.Link_Lock.Lock_R;
             Old_POA.Link_Lock.Unlock_R;
@@ -378,7 +374,8 @@ package body Broca.Server is
    --------------------------------------------------------------------------
 
    procedure Handle_Request (Stream : Broca.Stream.Stream_Ptr;
-                             Buffer : access Buffer_Type);
+                             Buffer : access Buffer_Type;
+                             Asynchronous : Boolean := False);
 
    --  Internal type for server_table.
    --  It defines the server for an identifier.
@@ -428,7 +425,7 @@ package body Broca.Server is
       --  It is only used by Unqueue_By_POA.
 
       type Request_Cell_Type is private;
-      type Request_Call_Ptr is access Request_Cell_Type;
+      type Request_Cell_Ptr is access Request_Cell_Type;
 
       protected Wait_Queue is
          --  The Wait_Queue contains all requests that can be
@@ -441,24 +438,24 @@ package body Broca.Server is
                            Buffer : Buffer_Access;
                            POA : Broca.POA.POA_Object_Ptr);
 
+         --  Prepend a request in front of the queue
+         procedure Prepend
+           (Stream : Broca.Stream.Stream_Ptr;
+            Buffer : Buffer_Access);
+
          --  Form used by HOLD_QUEUE.
          --  Note: Cell.Next must be null.
-         procedure Append (Cell : Request_Call_Ptr);
+         procedure Append (Cell : Request_Cell_Ptr);
 
          --  Fetch the first request, and remove it from the queue.
          entry Fetch (Stream : out Broca.Stream.Stream_Ptr;
                       Buffer : out Buffer_Access;
                       POA : out Broca.POA.POA_Object_Ptr);
 
-         --  Internal use only.
---          procedure Try_Fetch (Stream: out Broca.Stream.Stream_Ptr;
---                               Buffer: access Buffer_Type;
---                               POA : out Broca.POA.POA_Object_Ptr;
---                               Success: out Boolean);
       private
          --  The queue is a single linked list, with an head and a tail.
-         Head : Request_Call_Ptr := null;
-         Tail : Request_Call_Ptr := null;
+         Head : Request_Cell_Ptr := null;
+         Tail : Request_Cell_Ptr := null;
       end Wait_Queue;
 
       protected Hold_Queue is
@@ -488,8 +485,8 @@ package body Broca.Server is
            (POA : Broca.POA.POA_Object_Ptr);
       private
          --  The queue is a single linked list, with an head and a tail.
-         Head : Request_Call_Ptr := null;
-         Tail : Request_Call_Ptr := null;
+         Head : Request_Cell_Ptr := null;
+         Tail : Request_Cell_Ptr := null;
       end Hold_Queue;
 
    private
@@ -499,7 +496,7 @@ package body Broca.Server is
             POA    : Broca.POA.POA_Object_Ptr;
             Stream : Broca.Stream.Stream_Ptr;
             Bd     : Buffer_Access;
-            Next   : Request_Call_Ptr;
+            Next   : Request_Cell_Ptr;
          end record;
    end Queues;
 
@@ -545,27 +542,27 @@ package body Broca.Server is
 
    package body Queues is
       procedure Free is new Ada.Unchecked_Deallocation
-        (Object => Request_Cell_Type, Name => Request_Call_Ptr);
+        (Object => Request_Cell_Type, Name => Request_Cell_Ptr);
 
       Wait_Server_Id : Server_Id_Type;
 
       protected body Wait_Queue is
-         function Is_Empty return Boolean is
-         begin
-            return Head = null;
-         end Is_Empty;
 
-         procedure Append (Cell : Request_Call_Ptr) is
+         procedure Append (Stream : Broca.Stream.Stream_Ptr;
+                           Buffer : Buffer_Access;
+                           POA : Broca.POA.POA_Object_Ptr) is
          begin
-            if Cell.Next /= null then
-               --  internal consistency
-               Broca.Exceptions.Raise_Internal (1, Completed_No);
-            end if;
-            if Head = null then
-               if Tail /= null then
-                  --  internal consistency.
-                  Broca.Exceptions.Raise_Internal (2, Completed_No);
-               end if;
+            Append (new Request_Cell_Type'(POA    => POA,
+                                           Stream => Stream,
+                                           Bd     => Buffer,
+                                           Next   => null));
+         end Append;
+
+         procedure Append (Cell : Request_Cell_Ptr) is
+         begin
+            pragma Assert (not (Head = null xor Tail = null));
+            pragma Assert (Cell.Next = null);
+            if Tail = null then
                Head := Cell;
                Tail := Cell;
             else
@@ -575,58 +572,41 @@ package body Broca.Server is
             Server_Table.New_Request (Wait_Server_Id);
          end Append;
 
-         procedure Append (Stream : Broca.Stream.Stream_Ptr;
-                           Buffer : Buffer_Access;
-                           POA : Broca.POA.POA_Object_Ptr) is
-         begin
-            --  Simply encapsulate the arguments into a cell.
-            Append (new Request_Cell_Type'
-                    (POA => POA,
-                     Stream => Stream,
-                     Bd => Buffer,
-                     Next => null));
-         end Append;
-
-         procedure Try_Fetch (Stream : out Broca.Stream.Stream_Ptr;
-                              Buffer : out Buffer_Access;
-                              POA : out Broca.POA.POA_Object_Ptr;
-                              Success : out Boolean)
+         procedure Prepend
+           (Stream : Broca.Stream.Stream_Ptr;
+            Buffer : Buffer_Access)
          is
-            Cell : Request_Call_Ptr;
          begin
+            pragma Assert (not (Head = null xor Tail = null));
+            Head := new Request_Cell_Type'(POA    => null,
+                                           Stream => Stream,
+                                           BD     => Buffer,
+                                           Next   => Head);
+            if Tail = null then
+               Tail := Head;
+            end if;
+            Server_Table.New_Request (Wait_Server_Id);
+         end Prepend;
+
+         entry Fetch
+           (Stream : out Broca.Stream.Stream_Ptr;
+            Buffer : out Buffer_Access;
+            POA    : out Broca.POA.POA_Object_Ptr)
+         when Head /= null
+         is
+            Old : Request_Cell_Ptr := Head;
+         begin
+            pragma Assert (Tail /= null);
+            Stream := Head.Stream;
+            Buffer := Head.Bd;
+            POA    := Head.POA;
+            Free (Old);
+            Head := Head.Next;
             if Head = null then
-               Success := False;
-               return;
-            else
-               Success := True;
-            end if;
-
-            Cell := Head;
-            if Cell = Tail then
-               --  There was only one cell, make the queue empty.
                Tail := null;
-               Head := null;
-            else
-               Head := Head.Next;
-            end if;
-            --  Free the memory associed with BUFFER, since it is overwritten.
-            Stream := Cell.Stream;
-            Buffer := Cell.Bd;
-            POA := Cell.POA;
-            Free (Cell);
-         end Try_Fetch;
-
-         entry Fetch (Stream : out Broca.Stream.Stream_Ptr;
-                      Buffer : out Buffer_Access;
-                      POA : out Broca.POA.POA_Object_Ptr)
-         when Head /= null is
-            Res : Boolean;
-         begin
-            Try_Fetch (Stream, Buffer, POA, Res);
-            if not Res then
-               raise Program_Error;
             end if;
          end Fetch;
+
       end Wait_Queue;
 
       --  Define a pseudo-server for the Wait_Queue.
@@ -653,14 +633,16 @@ package body Broca.Server is
          POA : Broca.POA.POA_Object_Ptr;
          Buffer : Buffer_Access;
       begin
-         pragma Debug (O ("Perform_Work : enter"));
+         pragma Debug (O ("Perform_Work: enter"));
          --  Simply get an entry...
          Queues.Wait_Queue.Fetch (Stream, Buffer, POA);
+         pragma Debug (O ("Perform_Work: got a new dequeued job"));
          --  ... and handles (processes) it.
          if POA /= null then
             Broca.POA.Cleanup (POA);
          else
-            Handle_Request (Stream, Buffer);
+            pragma Debug (O ("Perform_Work: executing an asynchronous job"));
+            Handle_Request (Stream, Buffer, Asynchronous => True);
             Release (Buffer);
          end if;
       end Perform_Work;
@@ -689,7 +671,7 @@ package body Broca.Server is
                            Buffer : Buffer_Access;
                            POA : Broca.POA.POA_Object_Ptr)
          is
-            Cell  : Request_Call_Ptr;
+            Cell  : Request_Cell_Ptr;
          begin
             Cell := new Request_Cell_Type'
               (POA => POA,
@@ -712,7 +694,7 @@ package body Broca.Server is
          procedure Unqueue_By_POA (POA : Broca.POA.POA_Object_Ptr)
          is
             use Broca.POA;
-            Cell, Prev_Cell : Request_Call_Ptr;
+            Cell, Prev_Cell : Request_Cell_Ptr;
          begin
             --  Unqueue messages.
 
@@ -762,7 +744,8 @@ package body Broca.Server is
    --  Process a GIOP request.
    --  the current position of buffer must be a GIOP RequestHeader.
    procedure Handle_Request (Stream : Broca.Stream.Stream_Ptr;
-                             Buffer : access Buffer_Type) is
+                             Buffer : access Buffer_Type;
+                             Asynchronous : Boolean := False) is
       use Broca.POA;
       use Broca.Stream;
       Context    : CORBA.Unsigned_Long;
@@ -818,6 +801,19 @@ package body Broca.Server is
 
                pragma Debug (O ("Handle_Request : POA is active"));
                Log ("invoke method");
+
+               --  If no response is expected and the current context is
+               --  synchronous, requeue the request for an asynchronous
+               --  handling. Then just leave, our work is over.
+
+               if not Response_Expected and then not Asynchronous then
+                  pragma Debug
+                    (O ("Handle_Request: requeuing asynchronous request"));
+                  POA.Link_Lock.Unlock_R;
+                  Queues.Wait_Queue.Prepend (Stream, Copy (Buffer));
+                  Release (Reply_Buffer);
+                  return;
+               end if;
 
                --  Operation
                pragma Debug (O ("Handle_Request : unmarshalling operation"));
@@ -875,26 +871,24 @@ package body Broca.Server is
                      end;
                end;
 
-               pragma Debug (O ("Handle_Request : locking before send"));
-               Lock_Send (Stream);
-               pragma Debug (O ("Handle_Request : sending"));
-
                begin
                   if Response_Expected then
+                     Lock_Send (Stream);
                      Send (Stream, Reply_Buffer'Access);
+                     Unlock_Send (Stream);
                   else
                      pragma Debug
                        (O ("Handle_Request: not sending unexpected response"));
-                     Release (Reply_Buffer);
+                     null;
                   end if;
+
+                  Release (Reply_Buffer);
                exception
                   when Connection_Closed =>
                      --  We could not send the answer
                      pragma Debug (O ("Handle_Request: cannot send reply"));
-                     null;
+                     Release (Reply_Buffer);
                end;
-
-               Unlock_Send (Stream);
 
             when Discarding =>
 
