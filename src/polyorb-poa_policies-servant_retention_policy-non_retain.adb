@@ -33,6 +33,7 @@
 with Ada.Tags;
 
 with PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+with PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;
 
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
 
@@ -62,8 +63,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       use Ada.Tags;
 
       use PolyORB.Exceptions;
-      use PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
       use PolyORB.POA_Policies.Request_Processing_Policy;
+      use PolyORB.POA_Policies.Request_Processing_Policy.Use_Default_Servant;
+      use PolyORB.POA_Policies.Request_Processing_Policy.Use_Servant_Manager;
 
    begin
       --  Compatiblity between Non_Retain and Id_Uniqueness done in
@@ -72,13 +74,13 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
       --  Non_Retain requires either Use_Default_Servent
       --   or Use_Servant_Manager.
 
-      --  XXX Use_Servant_Manager not implemented !!! Test incomplete.
-
       for J in Other_Policies'Range loop
          if Other_Policies (J).all in RequestProcessingPolicy'Class
-           and then Other_Policies (J).all'Tag
-           /= Use_Default_Servant_Policy'Tag then
-
+           and then not (Other_Policies (J).all'Tag
+                         = Use_Default_Servant_Policy'Tag
+                         or else Other_Policies (J).all'Tag
+                         = Use_Servant_Manager_Policy'Tag)
+         then
             Throw
               (Error,
                Invalid_Policy'Identity,
@@ -132,9 +134,9 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Non_Retain is
    --------------------------------
 
    procedure Forget_Servant_Association
-     (Self  : Non_Retain_Policy;
-      OA    : PolyORB.POA_Types.Obj_Adapter_Access;
-      U_Oid : Unmarshalled_Oid;
+     (Self  :        Non_Retain_Policy;
+      OA    :        PolyORB.POA_Types.Obj_Adapter_Access;
+      U_Oid :        Unmarshalled_Oid;
       Error : in out PolyORB.Exceptions.Error_Container)
    is
       pragma Warnings (Off);

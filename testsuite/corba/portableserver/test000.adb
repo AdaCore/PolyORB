@@ -655,13 +655,6 @@ procedure Test000 is
           Policies));
 
       return Child_POA;
-
-   exception
-      when E : others =>
-         Put_Line ("Got exception when creating POA:"
-                   & Exception_Name (E));
-
-         raise;
    end Create_POA_With_Policies;
 
    --------------------
@@ -705,7 +698,6 @@ procedure Test000 is
                  and then not (Ap = SYSTEM_ID and Sp = RETAIN))
         or else (Rp = USE_ACTIVE_OBJECT_MAP_ONLY and then Sp /= RETAIN)
         or else (Rp = USE_DEFAULT_SERVANT and then Up /= MULTIPLE_ID)
-        or else Rp = USE_SERVANT_MANAGER -- XXX not implemented.
       then
          return False;
       else
@@ -737,8 +729,6 @@ procedure Test000 is
       return Are_Policies_Valid (Tp, Lp, Up, Ap, Ip, Sp, Rp);
 
    exception
-      when PolyORB.Not_Implemented => return True;
-
       when E : others =>
          if Are_Policies_Valid (Tp, Lp, Up, Ap, Ip, Sp, Rp) then
             --  If policies are valid, then there is a problem.
@@ -767,6 +757,8 @@ procedure Test000 is
       Result : Boolean := True;
 
    begin
+      New_Test ("POA Creation");
+
       for Tp in ThreadPolicyValue'Range loop
          for Lp in LifespanPolicyValue'Range loop
             for Up in IdUniquenessPolicyValue'Range loop
