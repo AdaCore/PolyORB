@@ -223,7 +223,7 @@ package body PolyORB.Protocols.SOAP_Pr is
 
    begin
       if R = null then
-         raise Protocol_Error;
+         raise PolyORB.SOAP_P.SOAP_Error;
          --  Received a reply with no pending request.
       end if;
       R.Result.Arg_Modes := ARG_OUT;
