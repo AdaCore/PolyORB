@@ -6,6 +6,7 @@ with Ada.Interrupts.Names;
 with System.Garlic.Constants; use System.Garlic.Constants;
 with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Heart; use System.Garlic.Heart;
+with System.Garlic.Priorities;
 with System.Garlic.Termination;
 
 package body System.Garlic.Non_Blocking is
@@ -100,10 +101,14 @@ package body System.Garlic.Non_Blocking is
       Occurred : Boolean := False;
    end Sigio_Keeper;
 
-   task Sigio_Simulation;
+   task Sigio_Simulation is
+      pragma Priority (Priorities.Polling_Priority);
+   end Sigio_Simulation;
    --  This task will simulate SIGIOs every <N> seconds.
 
-   task Selection;
+   task Selection is
+      pragma Priority (Priorities.Polling_Priority);
+   end Selection;
    --  This task is in charge of calling C_Select.
 
    -----------------------

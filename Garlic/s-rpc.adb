@@ -33,6 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with Ada.Dynamic_Priorities;
 with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug; use System.Garlic.Debug;
@@ -260,6 +261,7 @@ package body System.RPC is
       Task_Pool.Get_One;
       Task_Pool.Unabort_One (Partition, Id);
       Partition_ID'Read (Params, Dest);
+      Ada.Dynamic_Priorities.Set_Priority (Any_Priority'Input (Params));
       Receiver_Map.Get (Dest) (Receiver);
       select
          Task_Pool.Is_Aborted (Partition, Id);
@@ -409,6 +411,7 @@ package body System.RPC is
          Header.Id := Id;
          Insert_Request (Params, Header);
          Partition_ID'Write (Params, Partition);
+         Any_Priority'Output (Params, Ada.Dynamic_Priorities.Get_Priority);
          Send (Partition, Remote_Call, Params);
          Keeper.Id        := Id;
          Keeper.Partition := Partition;

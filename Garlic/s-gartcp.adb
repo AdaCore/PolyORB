@@ -42,6 +42,7 @@ with System.Garlic.Heart;  use System.Garlic.Heart;
 with System.Garlic.Naming; use System.Garlic.Naming;
 with System.Garlic.Options;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
+with System.Garlic.Priorities;
 with System.Garlic.Termination; use System.Garlic.Termination;
 with System.Garlic.Thin;   use System.Garlic.Thin;
 with System.Garlic.TCP.Platform_Specific;
@@ -161,6 +162,7 @@ package body System.Garlic.TCP is
 
    task Accept_Handler is
       pragma Storage_Size (150_000);
+      pragma Priority (Priorities.RPC_Priority);
       entry Start;
    end Accept_Handler;
    --  The task which will accept new connections.
@@ -169,6 +171,7 @@ package body System.Garlic.TCP is
                                           Receiving : Boolean;
                                           Remote    : Partition_ID) is
       pragma Storage_Size (150_000);
+      pragma Priority (Priorities.RPC_Priority);
    end Incoming_Connection_Handler;
    type Incoming_Connection_Handler_Access is
       access Incoming_Connection_Handler;
