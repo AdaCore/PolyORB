@@ -281,8 +281,6 @@ package body PolyORB.Transport.Connected.Sockets is
       pragma Debug (O ("Write: enter"));
 
       --  Send_Buffer is not atomic, needs to be protected.
-      --  ??? Actually Send_Buffer *is* atomic on platforms where
-      --      writev for sockets is a system call.
 
       Enter (TE.Mutex);
       pragma Debug (O ("TE mutex acquired"));
