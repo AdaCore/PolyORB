@@ -69,18 +69,4 @@ package body PolyORB.Binding_Data is
       return Profile.Object_Id;
    end Get_Object_Key;
 
-   function Get_Binding_Object
-     (Profile : Profile_Type)
-     return Components.Component_Access is
-   begin
-      return Profile.Binding_Object;
-   end Get_Binding_Object;
-
-   procedure Set_Binding_Object
-     (Profile : in out Profile_Type;
-      BO      :        Components.Component_Access) is
-   begin
-      Profile.Binding_Object := BO;
-   end Set_Binding_Object;
-
 end PolyORB.Binding_Data;

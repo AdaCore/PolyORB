@@ -33,7 +33,7 @@
 --  Management of binding data, i. e. the elements of information
 --  that designate a remote middleware TSAP.
 
---  $Id: //droopi/main/src/polyorb-binding_data.ads#5 $
+--  $Id: //droopi/main/src/polyorb-binding_data.ads#6 $
 
 with Ada.Finalization;
 
@@ -96,17 +96,6 @@ package PolyORB.Binding_Data is
    --  in order to send a message to the designated middleware.
    --  The Transport_Endpoint at the bottom of the transport stack
    --  and the Filter just above (ie the base of the protocol stack).
-
-   function Get_Binding_Object
-     (Profile : Profile_Type)
-     return Components.Component_Access;
-   --  Return the binding object associated with Profile, if
-   --  it is already bound. Otherwise, return null.
-
-   procedure Set_Binding_Object
-     (Profile : in out Profile_Type;
-      BO      :        Components.Component_Access);
-   --  Set the binding object associated with Profile to be BO.
 
    function Get_Profile_Tag
      (Profile : Profile_Type)
@@ -174,14 +163,6 @@ private
 
    type Profile_Type is
      abstract new Ada.Finalization.Limited_Controlled with record
-      Binding_Object : Components.Component_Access;
-      --  A profile is part of a surrogate for an object.
-      --  When the surrogate is free, it is not linked
-      --  to a binding object, and this component is null.
-      --  When the profile (and thus the surrogate) is bound,
-      --  this component denotes the associated binding object
-      --  on the local ORB (= the Session).
-
       Object_Id : Objects.Object_Id_Access;
      end record;
 

@@ -50,6 +50,20 @@ package body PolyORB.References is
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
+   type Reference_Info_Access is access all Reference_Info'Class;
+
+   function Ref_Info_Of (R : Ref) return Reference_Info_Access;
+
+   function Ref_Info_Of (R : Ref) return Reference_Info_Access is
+      E : constant Entity_Ptr := Entity_Of (R);
+   begin
+      if E = null or else E.all not in Reference_Info'Class then
+         raise Constraint_Error;
+      else
+         return Reference_Info_Access (E);
+      end if;
+   end Ref_Info_Of;
+
    procedure Create_Reference
      (Profiles : Profile_Array;
       Type_Id  : String;
@@ -74,40 +88,17 @@ package body PolyORB.References is
       end if;
    end Create_Reference;
 
-   function Profiles_Of (R : Ref) return Profile_Array
-   is
-      RIP : constant Entity_Ptr
-        := Entity_Of (R);
+   function Profiles_Of (R : Ref) return Profile_Array is
    begin
-      if RIP = null
-        or else not (RIP.all in Reference_Info'Class) then
-         raise Constraint_Error;
-         --  XXX should this be allowed? (implicit export)
-      end if;
-
       return Profile_Seqs.To_Element_Array
-        (Reference_Info (RIP.all).Profiles);
+        (Ref_Info_Of (R).Profiles);
    end Profiles_Of;
 
-   function Type_Id_Of (R : Ref) return String
-   is
-      RIP : constant Entity_Ptr
-        := Entity_Of (R);
+   function Type_Id_Of (R : Ref) return String is
    begin
-      if RIP = null then
-         pragma Debug (O ("Attempted to obtain type id of a null ref"));
-         raise Constraint_Error;
-      end if;
-
-      if RIP.all not in Reference_Info'Class then
-         pragma Debug (O ("Attempted to obtain type id of a "
-                          & Ada.Tags.External_Tag (RIP.all'Tag)));
-         raise Constraint_Error;
-         --  XXX should this be allowed? (denoted entity
-         --  could have an intrinsic type).
-      end if;
-
-      return Reference_Info (RIP.all).Type_Id.all;
+      return Ref_Info_Of (R).Type_Id.all;
+      --  XXX Perhaps some cases of R not designating
+      --  a ref_info should be supported here?
    end Type_Id_Of;
 
    function Image (R : Ref) return String
@@ -140,5 +131,58 @@ package body PolyORB.References is
          Destroy_Profile (Profiles (I));
       end loop;
    end Finalize;
+
+   type Binding_Object is new Smart_Pointers.Entity with record
+      BO_Component : Components.Component_Access;
+   end record;
+
+   procedure Finalize (X : in out Binding_Object);
+
+   procedure Finalize (X : in out Binding_Object) is
+   begin
+      pragma Debug (O ("Finalizing binding object"));
+      Components.Destroy (X.BO_Component);
+   end Finalize;
+
+   use type Components.Component_Access;
+
+   procedure Get_Binding_Info
+     (R   :     Ref;
+      BOC : out Components.Component_Access;
+      Pro : out Binding_Data.Profile_Access)
+   is
+      RI : constant Reference_Info_Access
+        := Ref_Info_Of (R);
+      BOP : constant Entity_Ptr := Entity_Of (RI.Binding_Object_Ref);
+   begin
+      if BOP = null then
+         BOC := null;
+         Pro := null;
+      else
+         declare
+            BO : Binding_Object renames Binding_Object (BOP.all);
+         begin
+            pragma Assert (BO.BO_Component /= null);
+            BOC := BO.BO_Component;
+            Pro := RI.Binding_Object_Profile;
+         end;
+      end if;
+   end Get_Binding_Info;
+
+   procedure Set_Binding_Info
+     (R   : Ref;
+      BOC : Components.Component_Access;
+      Pro : Binding_Data.Profile_Access)
+   is
+      RI : constant Reference_Info_Access := Ref_Info_Of (R);
+      BOP : constant Entity_Ptr := new Binding_Object;
+      BO : Binding_Object renames Binding_Object (BOP.all);
+   begin
+      pragma Assert (Is_Nil (RI.Binding_Object_Ref));
+      pragma Assert (BOC /= null);
+      BO.BO_Component := BOC;
+      Set (RI.Binding_Object_Ref, BOP);
+      RI.Binding_Object_Profile := Pro;
+   end Set_Binding_Info;
 
 end PolyORB.References;

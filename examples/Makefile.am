@@ -7,6 +7,8 @@ TESTS=  polyorb-test-no_tasking \
         polyorb-test-no_tasking_poa \
         polyorb-test-thread_pool_poa
 
+CLEANFILES=	*.o *.ali
+
 all: $(TESTS)
 
 $(TESTS): force

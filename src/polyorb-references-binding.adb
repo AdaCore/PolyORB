@@ -60,10 +60,22 @@ package body PolyORB.References.Binding is
       Servant   : out Components.Component_Access;
       Pro       : out Binding_Data.Profile_Access)
    is
+      use type Components.Component_Access;
+      Existing_Servant : Components.Component_Access;
+      Existing_Profile : Binding_Data.Profile_Access;
    begin
       pragma Debug (O ("Bind: enter"));
       if Is_Nil (R) then
          raise Invalid_Reference;
+      end if;
+
+      Get_Binding_Info (R, Existing_Servant, Existing_Profile);
+      if Existing_Servant /= null then
+         --  The reference is already bound: reuse the binding
+         --  object.
+         Servant := Existing_Servant;
+         Pro := Existing_Profile;
+         return;
       end if;
 
       declare
@@ -138,38 +150,32 @@ package body PolyORB.References.Binding is
                   use PolyORB.Components;
                   use PolyORB.Filters;
 
-                  Binding_Object : Components.Component_Access;
                   New_TE      : Transport.Transport_Endpoint_Access;
                   New_Filter  : Filter_Access;
                   FU : Filter_Access;
                begin
                   pragma Debug (O ("Binding profile"));
-                  Binding_Object := Binding_Data.Get_Binding_Object (P.all);
+                  pragma Debug (O ("Creating new binding object"));
 
-                  if Binding_Object /= null then
-                     pragma Debug (O ("Using existing binding object"));
-                     Servant := Binding_Object;
-                  else
-                     pragma Debug (O ("Creating new binding object"));
+                  PolyORB.Binding_Data.Bind_Profile
+                    (P.all, New_TE, Component_Access (New_Filter));
+                  ORB.Register_Endpoint
+                    (Local_ORB, New_TE, New_Filter, Client);
 
-                     PolyORB.Binding_Data.Bind_Profile
-                       (P.all, New_TE, Component_Access (New_Filter));
-                     ORB.Register_Endpoint
-                       (Local_ORB, New_TE, New_Filter, Client);
+                  loop
+                     FU := Filter_Access (Upper (New_Filter));
+                     exit when FU = null;
+                     New_Filter := FU;
+                  end loop;
 
-                     loop
-                        FU := Filter_Access (Upper (New_Filter));
-                        exit when FU = null;
-                        New_Filter := FU;
-                     end loop;
+                  Set_Binding_Info
+                    (R, Components.Component_Access
+                     (New_Filter),
+                     P);
+                  Servant := Components.Component_Access (New_Filter);
+                  --  The Session itself acts as a remote surrogate
+                  --  of the designated object.
 
-                     Set_Binding_Object
-                       (P.all, Components.Component_Access (New_Filter));
-                     Servant := Components.Component_Access (New_Filter);
-                     --  The Session itself acts as a remote surrogate
-                     --  of the designated object.
-
-                  end if;
                end;
             end if;
 

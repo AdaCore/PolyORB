@@ -38,6 +38,7 @@ with Ada.Unchecked_Deallocation;
 with Sequences.Unbounded;
 
 with PolyORB.Binding_Data; use PolyORB.Binding_Data;
+with PolyORB.Components;
 with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 
@@ -69,6 +70,20 @@ package PolyORB.References is
    --  True iff R is a Nil reference, i.e. a reference that
    --  does not designate any object.
 
+   procedure Get_Binding_Info
+     (R   :     Ref;
+      BOC : out Components.Component_Access;
+      Pro : out Binding_Data.Profile_Access);
+   --  Retrieve the binding object associated with R, if R is bound.
+   --  Otherwise, return null.
+
+   procedure Set_Binding_Info
+     (R   : Ref;
+      BOC : Components.Component_Access;
+      Pro : Binding_Data.Profile_Access);
+   --  Set BOC to be the binding object associated with R.
+   --  R must not be already bound.
+
    function Image (R : Ref) return String;
    --  For debugging purposes.
 
@@ -87,6 +102,25 @@ private
          --  The collection of tagged profiles that designate
          --  transport access points where this object can be
          --  contacted, together with the object ids to be used.
+
+         --  A reference constitutes a surrogate for an object.
+         --  When the surrogate is free, it is not linked
+         --  to a binding object, and this component is null.
+         --  When the profile (and thus the surrogate) is bound,
+         --  this component denotes the associated binding object
+         --  on the local ORB (= the Session).
+
+         Binding_Object_Ref : Smart_Pointers.Ref;
+         Binding_Object_Profile : Binding_Data.Profile_Access;
+         --  If a reference is already bound, the Binding_Object_Ref
+         --  will designate the component that serves as the
+         --  binding object, and Binding_Object_Profile will be
+         --  the profile (among Profiles above) associated with
+         --  the protocol of that component.
+         --  The profile is stored here, in the reference, rather
+         --  than in the designated Binding_Object to allow sharing
+         --  of Binding_Objects among references to different objects
+         --  residing on the same node.
       end record;
 
    procedure Finalize (RI : in out Reference_Info);
