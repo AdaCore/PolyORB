@@ -53,6 +53,18 @@ package body Nutils is
       Set_Node       (N, E);
    end Bind_Identifier_To_Entity;
 
+   -----------------------
+   -- Insert_After_Node --
+   -----------------------
+
+   procedure Insert_After_Node (E : Node_Id; N : Node_Id)
+   is
+      Next : constant Node_Id := Next_Node (N);
+   begin
+      Set_Next_Node (N, E);
+      Set_Next_Node (E, Next);
+   end Insert_After_Node;
+
    ---------------------
    -- Is_A_Forward_Of --
    ---------------------
@@ -203,6 +215,64 @@ package body Nutils is
             return False;
       end case;
    end Is_Interface_Redefinable_Node;
+
+   ----------------------
+   -- Make_Scoped_Name --
+   ----------------------
+
+   function Make_Scoped_Name
+     (Loc        : Location;
+      Identifier : Node_Id;
+      Parent     : Node_Id)
+     return Node_Id
+   is
+      N : constant Node_Id := New_Node (K_Scoped_Name, Loc);
+   begin
+      pragma Assert (Kind (Identifier) = K_Identifier);
+      Set_Identifier (N, Identifier);
+      pragma Assert (Kind (Identifier) = K_Identifier);
+      Set_Parent     (N, Parent);
+
+      return N;
+   end Make_Scoped_Name;
+
+   ---------------------
+   -- Make_Identifier --
+   ---------------------
+
+   function Make_Identifier
+     (Loc        : Location;
+      Name       : Name_Id;
+      IDL_Name   : Name_Id)
+     return Node_Id
+   is
+      N : constant Node_Id := New_Node (K_Identifier, Loc);
+   begin
+      Set_Name     (N, Name);
+      Set_IDL_Name (N, IDL_Name);
+
+      return N;
+   end Make_Identifier;
+
+   -------------------------------
+   -- Make_Constant_Declaration --
+   -------------------------------
+
+   function Make_Constant_Declaration
+     (Loc        : Location;
+      Type_Spec  : Node_Id;
+      Identifier : Node_Id;
+      Expression : Node_Id)
+     return Node_Id
+   is
+      N : constant Node_Id := New_Node (K_Constant_Declaration, Loc);
+   begin
+      Set_Type_Spec  (N, Type_Spec);
+      Set_Identifier (N, Identifier);
+      Set_Expression (N, Expression);
+
+      return N;
+   end Make_Constant_Declaration;
 
    --------------
    -- New_Copy --

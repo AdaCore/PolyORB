@@ -254,8 +254,8 @@ module Nodes {
   /*********************/
 
   interface Scoped_Name : Definition {
-    Node_Id     Parent;
     Node_Id     Reference;
+    Node_Id     Parent;
     Node_Id     Next_Scoped_Name;
   };
 

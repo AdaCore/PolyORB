@@ -154,8 +154,8 @@ package body Debug is
         or else A = "Homonym"
         or else A = "Name"
         or else A = "Scoped_Identifiers"
-        or else A = "Immediately_Visible"
-        or else A = "Potentially_Visible"
+--          or else A = "Immediately_Visible"
+--          or else A = "Potentially_Visible"
         or else A = "Next_Identifier"
       then
          return;

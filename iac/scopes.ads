@@ -16,17 +16,32 @@ package Scopes is
 
    procedure Push_Scope (S : Node_Id);
    procedure Pop_Scope;
+   --  Handle special scoping rules for types names (see 3.15.3). The
+   --  potential scope of a type name extends over all its enclosing
+   --  scopes out to the enclosing non-module scope. Remove nodes
+   --  from their homonym chains (used to apply visibility rules).
 
    function  Current_Scope return Node_Id;
+   --  Return current scope
 
-   function Node_In_Scope (N : Node_Id; S : Node_Id) return Node_Id;
-   function Node_In_Current_Scope (N : Node_Id) return Node_Id;
-   --  Search into scope S (or current scope) for an identifier N.
+   function Node_Explicitly_In_Scope (N : Node_Id; S : Node_Id) return Node_Id;
+   --  Find whether there is a definition for identifier N in scope
+   --  S. This node must be explicitly declared in S and not imported
+   --  because of special scoping rules.
 
-   function Current_Node (N : Node_Id) return Node_Id;
+   function Node_Implicitly_In_Scope (N : Node_Id; S : Node_Id) return Node_Id;
+   --  Find whether there is a definition for identifier N in scope
+   --  S. This node can be implicitly declared in S that is explicitly
+   --  declared or imported because of special scoping rules.
+
+   function Visible_Node (N : Node_Id) return Node_Id;
+   --  Find the currently visible definition for a given identifier,
+   --  that is to say the first entry in the visibility chain
+   --  (implemented using the homonyms chain).
 
    procedure Make_Node_Visible
      (E : Node_Id; Visible : Boolean; Immediately : Boolean := True);
+
    procedure Make_Enclosed_Nodes_Visible
      (E : Node_Id; Visible : Boolean; Immediately : Boolean := True);
 

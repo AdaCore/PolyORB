@@ -37,11 +37,11 @@ package body Scopes is
       end if;
    end Current_Scope;
 
-   --------------------
-   -- Current_Node --
-   --------------------
+   ------------------
+   -- Visible_Node --
+   ------------------
 
-   function Current_Node (N : Node_Id) return Node_Id
+   function Visible_Node (N : Node_Id) return Node_Id
    is
       H : Node_Id := First_Homonym (N);
       E : Node_Id;
@@ -87,22 +87,13 @@ package body Scopes is
       DE ("#is undefined");
 
       return No_Node;
-   end Current_Node;
+   end Visible_Node;
 
-   -----------------------------
-   -- Node_In_Current_Scope --
-   -----------------------------
+   ---------------------------
+   -- Node_Implicitly_In_Scope --
+   ---------------------------
 
-   function Node_In_Current_Scope (N : Node_Id) return Node_Id is
-   begin
-      return Node_In_Scope (N, Current_Scope);
-   end Node_In_Current_Scope;
-
-   -------------------
-   -- Node_In_Scope --
-   -------------------
-
-   function Node_In_Scope (N : Node_Id; S : Node_Id) return Node_Id
+   function Node_Implicitly_In_Scope (N : Node_Id; S : Node_Id) return Node_Id
    is
       H : Node_Id := First_Homonym (N);
       X : Node_Id;
@@ -136,7 +127,28 @@ package body Scopes is
       end loop;
 
       return No_Node;
-   end Node_In_Scope;
+   end Node_Implicitly_In_Scope;
+
+   ------------------------------
+   -- Node_Explicitly_In_Scope --
+   ------------------------------
+
+   function Node_Explicitly_In_Scope (N : Node_Id; S : Node_Id) return Node_Id
+   is
+      C : Node_Id := Scoped_Identifiers (S);
+      X : constant Name_Id := Name (N);
+   begin
+      while Present (C) loop
+         if Scope (N) = S
+           and then Name (C) = X
+         then
+            return Node (C);
+         end if;
+         C := Next_Node (C);
+      end loop;
+
+      return No_Node;
+   end Node_Explicitly_In_Scope;
 
    -------------------------
    -- Enter_Name_In_Scope --
@@ -144,9 +156,9 @@ package body Scopes is
 
    procedure Enter_Name_In_Scope (N : Node_Id)
    is
-      C : constant Node_Id := Node_In_Current_Scope (N);
       E : constant Node_Id := Node (N);
       S : constant Node_Id := Current_Scope;
+      C : constant Node_Id := Node_Implicitly_In_Scope (N, S);
       H : Node_Id;
    begin
       if Present (C) then
@@ -193,10 +205,12 @@ package body Scopes is
          Set_Immediately_Visible (N, True);
       end if;
 
-      Set_Next_Node        (N, Scoped_Identifiers (S));
-      Set_Scoped_Identifiers     (S, N);
-      Insert_Into_Homonyms (N);
-      Set_Scope            (N, S);
+      Set_Next_Node          (N, Scoped_Identifiers (S));
+      Set_Scoped_Identifiers (S, N);
+      Insert_Into_Homonyms   (N);
+      if No (Scope (N)) then
+         Set_Scope (N, S);
+      end if;
    end Enter_Name_In_Scope;
 
    ----------------
@@ -317,14 +331,15 @@ package body Scopes is
          if T then
             E := Node (C);
             if Kind (E) = K_Scoped_Name then
-               E := New_Copy (E);
                N := New_Copy (C);
-               Bind_Identifier_To_Entity (N, E);
+               Set_Node  (N, E);
+               Set_Scope (N, S);
                Enter_Name_In_Scope (N);
             end if;
          end if;
          C := Next_Node (C);
       end loop;
+
       if D_Scopes then
          W_Eol;
       end if;

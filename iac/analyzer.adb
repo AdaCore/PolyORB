@@ -223,12 +223,19 @@ package body Analyzer is
 
       while Present (T) loop
          K := Kind (T);
-         exit when K = K_Fixed_Point_Type or else K in K_Float .. K_Octet;
+         exit when K = K_Fixed_Point_Type
+           or else K in K_Float .. K_Octet;
+
          if K = K_Simple_Declarator then
             T := Type_Spec (Declaration (T));
 
          elsif K = K_Scoped_Name then
             T := Reference (T);
+
+         --  This is in fact an enumerator
+
+         elsif K = K_Enumeration_Type then
+            exit;
 
          else
             DE ("invalid type for constant");
@@ -250,18 +257,27 @@ package body Analyzer is
    procedure Analyze_Enumeration_Type (E : Node_Id)
    is
       C : Node_Id;
-      S : Node_Id;
       N : Node_Id;
+      L : Node_Id := E;
    begin
       Enter_Name_In_Scope (Identifier (E));
 
-      N := New_Copy (Identifier (E));
-      S := New_Node (K_Scoped_Name, Loc (E));
-      Bind_Identifier_To_Entity (N, S);
-
       C := First_Node (Enumerators (E));
       while Present (C) loop
-         Analyze (C);
+         N := Make_Constant_Declaration
+           (Loc (E),
+            Make_Scoped_Name
+              (Loc (E),
+               Identifier (E),
+               No_Node),
+            Make_Identifier
+              (Loc (C),
+               Name (Identifier (C)),
+               IDL_Name (Identifier (C))),
+            C);
+         Bind_Identifier_To_Entity (Identifier (N), N);
+         Insert_After_Node (N, L);
+         L := N;
          C := Next_Node (C);
       end loop;
    end Analyze_Enumeration_Type;
@@ -649,7 +665,7 @@ package body Analyzer is
    procedure Analyze_Scoped_Name (E : Node_Id)
    is
       P : Node_Id := Parent (E);
-      N : Node_Id   := Identifier (E);
+      N : Node_Id := Identifier (E);
       C : Node_Id;
    begin
 
@@ -659,7 +675,7 @@ package body Analyzer is
       --  correct.
 
       if No (P) then
-         C := Current_Node (N);
+         C := Visible_Node (N);
          if Present (C) then
             Set_Reference (E, C);
             Enter_Name_In_Scope (N);
@@ -677,7 +693,7 @@ package body Analyzer is
          P := Reference (P);
          if Present (P) then
             if Is_A_Scope (P) then
-               C := Node_In_Scope (N, P);
+               C := Node_Explicitly_In_Scope (N, P);
                if Present (C) then
                   Set_Reference (E, C);
                   Check_Identifier (N, Identifier (C));
@@ -878,11 +894,11 @@ package body Analyzer is
          K    : Node_Kind)
          return Value_Type
       is
-         KT : Node_Kind;
+         KT : Node_Kind := Kind (T);
          RE : Node_Id := E;
          RV : Value_Type;
          R  : Value_Id;
-         KE : constant Node_Kind := Kind (E);
+         KE : Node_Kind := Kind (E);
          I  : Unsigned_Long_Long;
          S  : Short_Short;
 
@@ -904,7 +920,48 @@ package body Analyzer is
             return Bad_Value;
          end if;
          RV := Value (R);
-         KT := Kind (T);
+
+         --  For an enumeration type, check the reference designates
+         --  either an enumerator or a valid constant value.
+
+         if KT = K_Enumeration_Type then
+            KE := Kind (RE);
+            if KE = K_Enumerator then
+               return RV;
+            end if;
+
+            if KE /= K_Constant_Declaration then
+               Error_Loc (1)  := Loc (E);
+               Error_Name (1) := IDL_Name (Identifier (T));
+               DE ("expected type#");
+               return Bad_Value;
+            end if;
+
+            declare
+               CT : Node_Id := Type_Spec (RE);
+            begin
+               if Kind (CT) = K_Scoped_Name then
+                  CT := Reference (CT);
+               end if;
+
+               if Kind (CT) /= K_Enumeration_Type
+                 or else T /= CT
+               then
+                  Error_Loc (1)  := Loc (E);
+                  Error_Name (1) := IDL_Name (Identifier (T));
+                  DE ("expected type#");
+                  return Bad_Value;
+               end if;
+
+               R := Value (RE);
+               if R = No_Value then
+                  return Bad_Value;
+               end if;
+
+               RV := Value (R);
+               return RV;
+            end;
+         end if;
 
          case RV.K is
             when K_Short .. K_Unsigned_Long_Long | K_Octet =>

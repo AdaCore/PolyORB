@@ -243,18 +243,36 @@ package body Backend.BE_IDL is
    -- Generate_Constant_Declaration --
    ----------------------------------
 
-   procedure Generate_Constant_Declaration (E : Node_Id) is
+   procedure Generate_Constant_Declaration (E : Node_Id)
+   is
+      Typ : Node_Id  := Type_Spec (E);
+      Val : constant Value_Id := Value (E);
+      Pos : Unsigned_Long_Long;
+      Enu : Node_Id;
    begin
       Write_Indentation;
       Write (T_Const);
       Write_Space;
-      Generate (Type_Spec (E));
+      Generate (Typ);
       Write_Space;
       Generate (Identifier (E));
       Write_Space;
       Write (T_Equal);
       Write_Space;
-      Write_Str (Image (Value (E)));
+      if Kind (Typ) = K_Scoped_Name then
+         Typ := Reference (Typ);
+      end if;
+      if Kind (Typ) = K_Enumeration_Type then
+         Pos   := Value (Val).IVal;
+         Enu := First_Node (Enumerators (Typ));
+         while Pos /= 1 loop
+            Enu := Next_Node (Enu);
+            Pos := Pos - 1;
+         end loop;
+         Write_Name (IDL_Name (Identifier (Enu)));
+      else
+         Write_Str (Image (Val));
+      end if;
    end Generate_Constant_Declaration;
 
    -------------------------

@@ -4,23 +4,24 @@ with Types;  use Types;
 
 package Debug is
 
+   N_Indents : Natural := 0;
+
    procedure W_Eol                       renames Output.Write_Eol;
    procedure W_Int         (N : Int)     renames Output.Write_Int;
-   procedure W_Indentation (N : Natural);
    procedure W_Line        (N : String)  renames Output.Write_Line;
    procedure W_Str         (N : String)  renames Output.Write_Str;
+   procedure W_Indents;
 
    procedure W_Boolean     (N : Boolean);
    procedure W_Byte        (N : Byte);
-   procedure W_List_Id     (I : Natural; L : List_Id);
-   procedure W_Node_Id     (I : Natural; N : Node_Id);
-   procedure W_Node_Header (I : Natural; N : Node_Id);
+   procedure W_List_Id     (L : List_Id);
+   procedure W_Node_Id     (N : Node_Id);
+   procedure W_Node_Header (N : Node_Id);
    procedure W_Full_Tree;
 
    procedure W_Node_Attribute
-     (I : Natural;
-      A : String;
-      T : String;
+     (A : String;
+      K : String;
       V : String;
       N : Int := 0);
 
