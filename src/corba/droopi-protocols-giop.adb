@@ -552,37 +552,37 @@ package body Droopi.Protocols.GIOP is
    -- No_Exception_Reply --
    ------------------------
 
-
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
-      Pend_Req      : access Pending_Request;
-      --   Request_Id    : in Types.Unsigned_Long;
-      Fragment_Next : out Boolean)
-
+      Request       :        Requests.Request_Access;
+      Fragment_Next :    out Boolean)
    is
       Header_Buffer : Buffer_Access := new Buffer_Type;
       Header_Space : constant Reservation
         := Reserve (Ses.Buffer_Out, Message_Header_Size);
+      N : Request_Note;
+      Request_Id : Types.Unsigned_Long renames N.Id;
    begin
+      Get_Note (Request.Notepad, N);
 
       Fragment_Next := False;
 
       case Ses.Minor_Version is
          when Ver0 =>
             GIOP.GIOP_1_0.Marshall_No_Exception
-              (Ses.Buffer_Out, Pend_Req.Request_Id);
+              (Ses.Buffer_Out, Request_Id);
 
          when Ver1 =>
             GIOP.GIOP_1_1.Marshall_No_Exception
-              (Ses.Buffer_Out, Pend_Req.Request_Id);
+              (Ses.Buffer_Out, Request_Id);
 
          when Ver2 =>
             GIOP.GIOP_1_2.Marshall_No_Exception
-              (Ses.Buffer_Out, Pend_Req.Request_Id);
+              (Ses.Buffer_Out, Request_Id);
       end case;
 
       --  Marshall the reply Body
-      Marshall (Ses.Buffer_Out, Pend_Req.Req.Result);
+      Marshall (Ses.Buffer_Out, Request.Result);
 
       if Length (Ses.Buffer_Out)  > Maximum_Message_Size then
          Fragment_Next := True;
@@ -1168,12 +1168,6 @@ package body Droopi.Protocols.GIOP is
         (Req.Notepad, Request_Note'
          (Annotations.Note with Id => Request_Id));
 
-      declare
-         Pend : Pending_Request;
-      begin
-         Store_Request (Ses, Req, Pend);
-      end;
-
       Emit_No_Reply
         (Component_Access (ORB),
          Queue_Request'
@@ -1484,11 +1478,6 @@ package body Droopi.Protocols.GIOP is
       use Req_Seq;
 
       Fragment_Next : Boolean := False;
-      Current_Req : aliased Pending_Request;
-      --   Pending_Request'(Req => null,
-      --   Request_Id => 0, Role => Server);
-      Pending_Note  : Request_Note;
-      Current_Note  : Request_Note;
 
    begin
 
@@ -1496,23 +1485,8 @@ package body Droopi.Protocols.GIOP is
          raise GIOP_Error;
       end if;
 
-      Get_Note (R.Notepad, Current_Note);
-
-      pragma Debug (O ("Notepad" &
-      Types.Unsigned_Long'Image (Current_Note.Id)));
-
-      for I in 1 .. Length (S.Pending_Rq) loop
-         Current_Req := Element_Of (S.Pending_Rq, I);
-         Get_Note (Current_Req.Req.Notepad, Pending_Note);
-         if Pending_Note.Id = Current_Note.Id then
-            Delete (S.Pending_Rq, I, 1);
-            exit;
-         end if;
-         raise GIOP_Error;
-      end loop;
-
       Release_Contents (S.Buffer_Out.all);
-      No_Exception_Reply (S, Current_Req'Access, Fragment_Next);
+      No_Exception_Reply (S, R, Fragment_Next);
 
       pragma Debug (O ("Sending Reply"));
 

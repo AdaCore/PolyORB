@@ -278,11 +278,9 @@ package Droopi.Protocols.GIOP is
       Request_Id    : out Types.Unsigned_Long;
       Locate_Status : out Locate_Status_Type);
 
-
-
-   ---------------------------------------
-   ---  Marshalling switch  -----------
-   --------------------------------------
+   ------------------------
+   -- Marshalling switch --
+   ------------------------
 
    procedure Request_Message
      (Ses               : access GIOP_Session;
@@ -292,10 +290,8 @@ package Droopi.Protocols.GIOP is
 
    procedure No_Exception_Reply
      (Ses           : access GIOP_Session;
-      Pend_Req      : access Pending_Request;
-      --  Request_Id    : in Types.Unsigned_Long;
-      Fragment_Next : out Boolean);
-
+      Request       :        Requests.Request_Access;
+      Fragment_Next :    out Boolean);
 
    procedure Exception_Reply
      (Ses             : access GIOP_Session;
