@@ -188,11 +188,6 @@ package PolyORB.POA_Types is
    pragma Inline (Create_Id);
    --  Create an Unmarshalled_Oid, and then marshall it into an Object_Id
 
-   function Get_Name
-     (Oid : Object_Id)
-     return Types.String;
-   --  Return Name component marshalled in Oid.
-
    function Oid_To_U_Oid
      (Oid : access Object_Id)
      return Unmarshalled_Oid;
