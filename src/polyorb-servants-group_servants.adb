@@ -377,7 +377,7 @@ package body PolyORB.Servants.Group_Servants is
    procedure Destroy_Group_Servant
      (Group : in out PolyORB.Servants.Servant_Access)
    is
-      GS : Group_Servant_Access := Group_Servant (Group.all)'Access;
+      GS : constant Group_Servant_Access := Group_Servant (Group.all)'Access;
 
    begin
       TPL.Deallocate (GS.Target_List);
