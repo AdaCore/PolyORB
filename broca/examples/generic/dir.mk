@@ -9,7 +9,7 @@ server:: $(CORBA_LIB_DEPEND) $(GENERATED_FILES) server.adb ../generic/genericser
 	$(GNATMAKE) $(BROCA_FLAGS) -i server.adb
 
 $(GENERATED_FILES):: $(IDL_INTERFACE).idl
-	echo Mapping IDL contract...
+	@echo Mapping IDL contract...
 	$(ADABROKER) $(IDL_INTERFACE).idl
 
 stubs:: $(IDL_INTERFACE).idl
