@@ -80,6 +80,9 @@ package System.Garlic.Table is
       --  empty string when this index corresponds to a non-allocated
       --  component.
 
+      function Last return Index_Type;
+      --  Return last index used.
+
       procedure Leave (Version : out Utils.Version_Id);
       --  Unlock table. Return internal version for later use. Version is
       --  updated by Set_Component.

@@ -105,9 +105,9 @@ package System.Garlic.Partitions is
    package Partitions is new System.Garlic.Table.Complex
      (Index_Type     => Types.Partition_ID,
       Null_Index     => Types.Null_PID,
-      First_Index    => Types.Valid_Partition_ID'First,
-      Initial_Size   => Natural (Types.Valid_Partition_ID'Last),
-      Increment_Size => 0,
+      First_Index    => Types.First_PID,
+      Initial_Size   => Natural (Types.Partition_ID_Increment),
+      Increment_Size => Natural (Types.Partition_ID_Increment),
       Component_Type => Partition_Info,
       Null_Component => Null_Partition);
 

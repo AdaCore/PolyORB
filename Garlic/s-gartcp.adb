@@ -376,9 +376,9 @@ package body System.Garlic.TCP is
 
          --  If this connection is broken before partition
          --  identification, then try to rescue New_PID especially for
-         --  the boot server.
+         --  the boot server. ???: When does this happen?
 
-         if New_PID = Last_PID then
+         if New_PID = Null_PID then
             New_PID := Boot_PID;
          end if;
 
@@ -386,9 +386,7 @@ package body System.Garlic.TCP is
          --  executing a shutdown operation. If we are, then it is
          --  likely that Partition_Map is already deallocated.
 
-         if New_PID /= Null_PID
-           and then not Shutdown_In_Progress
-         then
+         if not Shutdown_In_Progress then
             Enter (New_PID);
             Socket_Table (New_PID).Socket := Failure;
             Leave (New_PID);
@@ -656,6 +654,13 @@ package body System.Garlic.TCP is
       end if;
 
       if Boot_Mode then
+
+         --  If the Boot_PID (Boot_First) changes because the current
+         --  partition is in fact a boot mirror (not Boot_First), then
+         --  the connection task in charge of the update. Note that
+         --  this occurs as soon as the task receives a request from
+         --  the real boot server, that means during initialization.
+
          Enter (Boot_PID);
          if Boot_Data /= null
            and then Boot_Data.all /= ""

@@ -272,17 +272,12 @@ package body System.Garlic.Heart is
             --  fake partition info in its slot. Deallocate the fake slot.
 
             Partitions.Enter;
+            Self_PID    := Boot_PID;
 
-            Server_Info := Partitions.Get_Component (Boot_PID);
-            Server_Info.Allocated := False;
-            Server_Info.Status    := None;
-            Partitions.Set_Component (Boot_PID, Server_Info);
-
-            Boot_PID := Null_PID + 1;
-            Self_PID := Boot_PID;
+            Server_Info                := Partitions.Get_Component (Boot_PID);
             Server_Info.Allocated      := True;
             Server_Info.Status         := Done;
-            Server_Info.Boot_Partition := Self_PID;
+            Server_Info.Boot_Partition := Boot_PID;
             Partitions.Set_Component (Boot_PID, Server_Info);
 
             Partitions.Leave;
@@ -394,8 +389,6 @@ package body System.Garlic.Heart is
    begin
       Create (Elaboration_Barrier);
       Create (Self_PID_Barrier);
-      Self_PID := Null_PID;
-      Boot_PID := Last_PID;
    end Initialize;
 
    ----------------------------

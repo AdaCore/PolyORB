@@ -478,6 +478,10 @@ package body System.Garlic.Partitions is
             if Self_PID = Null_PID then
                if Boot_PID /= Partition then
                   Info := Partitions.Get_Component (Boot_PID);
+                  if Info.Logical_Name /= null then
+                     Free (Info.Logical_Name);
+                  end if;
+                  Free (Info.Location);
                   Info.Allocated := False;
                   Info.Status    := None;
                   Partitions.Set_Component (Boot_PID, Info);
@@ -560,7 +564,7 @@ package body System.Garlic.Partitions is
       --  the first boot mirror.
 
       if Partition = Boot_PID then
-         while Mirror < Last_PID
+         while Mirror <= Partitions.Last
            and then
            (Partitions.Table (Mirror).Status /= Done
             or else not Partitions.Table (Mirror).Is_Boot_Mirror
@@ -569,7 +573,7 @@ package body System.Garlic.Partitions is
             Mirror := Mirror + 1;
          end loop;
 
-         if Mirror /= Last_PID then
+         if Mirror < Partitions.Last then
             pragma Debug (D ("New boot PID is" & Mirror'Img));
 
             Boot_PID := Mirror;
@@ -723,6 +727,7 @@ package body System.Garlic.Partitions is
                Info.Logical_Name := new String'(Logical_Name);
             end if;
          end if;
+         Info.Allocated      := True;
          Info.Termination    := Termination;
          Info.Reconnection   := Reconnection;
          Info.Has_Light_PCS  := Has_Light_PCS;

@@ -1,5 +1,15 @@
 1999-07-12  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* s-garhea.adb, s-gartcp.adb, s-gartyp.ads, s-garhea.adb,
+ 	s-garpar.ads, s-garpar.adb: Do not use Last_PID slot in partition
+ 	table to save temporary info on Boot_Partition. Do not use
+ 	Last_PID to scan partition table, use Partitions.Last. Do not
+ 	initialize the whole partition id table and increment size when
+ 	needed.
+
+	* s-gartab.adb, s-gartab.ads: Add function Last to get the last
+	index of the current table.
+
 	* s-garpar.adb, s-garpar.ads: Fix remaining memory leaks. Info
  	concerning dead partitions are now kept to the minimum in terms of
  	memory and data exchanged between boot mirrors.

@@ -54,11 +54,12 @@ package body System.Garlic.Table is
 
    package body Complex is
 
-      Min_Pos : constant Integer    := Index_Type'Pos (First_Index);
-      Max_Pos :          Integer    := Min_Pos + Initial_Size - 1;
+      Min_Pos  : constant Integer := Integer (First_Index);
+      Max_Pos  :          Integer := Min_Pos + Initial_Size - 1;
+      Last_Pos :          Integer := Min_Pos - 1;
 
-      Min     : constant Index_Type := Index_Type'Val (Min_Pos);
-      Max     :          Index_Type := Index_Type'Val (Max_Pos);
+      Min     : constant Index_Type := Index_Type (Min_Pos);
+      Max     :          Index_Type := Index_Type (Max_Pos);
 
       type Usage_Type is record
          Name : Name_Id;
@@ -113,6 +114,9 @@ package body System.Garlic.Table is
          for Index in Min .. Max loop
             if Usage (Index).Free then
                Usage (Index).Free := False;
+               if Last_Pos < Integer (Index) then
+                  Last_Pos := Integer (Index);
+               end if;
                return Index;
             end if;
          end loop;
@@ -123,8 +127,9 @@ package body System.Garlic.Table is
          Old_Table := Table;
          Old_Usage := Usage;
 
+         Last_Pos  := Max_Pos + 1;
          Max_Pos   := Max_Pos + Increment_Size;
-         Max       := Index_Type'Val (Max_Pos);
+         Max       := Index_Type (Max_Pos);
          Table     := new Component_Table_Type (Min .. Max);
          Usage     := new Usage_Table_Type     (Min .. Max);
 
@@ -144,7 +149,6 @@ package body System.Garlic.Table is
          Free (Old_Usage);
 
          Usage (Old_Max + 1).Free := False;
-
          return Old_Max + 1;
       end Allocate;
 
@@ -203,9 +207,9 @@ package body System.Garlic.Table is
             Index := Allocate;
             Table (Index) := Null_Component;
             Usage (Index).Name := Name;
-            Set_Info (Name, Integer (Index_Type'Pos (Index)));
+            Set_Info (Name, Integer (Integer (Index)));
          else
-            Index := Index_Type'Val (Info);
+            Index := Index_Type (Info);
          end if;
          Leave_Critical_Section;
 
@@ -230,6 +234,15 @@ package body System.Garlic.Table is
 
          return Get (Name);
       end Get_Name;
+
+      ----------
+      -- Last --
+      ----------
+
+      function Last return Index_Type is
+      begin
+         return Index_Type (Last_Pos);
+      end Last;
 
       -----------
       -- Leave --
@@ -274,7 +287,7 @@ package body System.Garlic.Table is
          Enter_Critical_Section;
          Validate (N);
          Usage (N).Name := Get (S);
-         Set_Info (Usage (N).Name, Integer (Index_Type'Pos (N)));
+         Set_Info (Usage (N).Name, Integer (N));
          Leave_Critical_Section;
       end Set_Name;
 
@@ -521,13 +534,12 @@ package body System.Garlic.Table is
 
    package body Simple is
 
-      Min_Pos : constant Integer := Index_Type'Pos (First_Index);
-      Max_Pos :          Integer := Min_Pos + Initial_Size - 1;
+      Min_Pos  : constant Integer := Integer (First_Index);
+      Max_Pos  :          Integer := Min_Pos + Initial_Size - 1;
 
-      Min     : constant Index_Type := Index_Type'Val (Min_Pos);
-      Max     :          Index_Type := Index_Type'Val (Max_Pos);
-
-      Last    : Index_Type'Base     := First_Index - 1;
+      Min     : constant Index_Type := Index_Type (Min_Pos);
+      Max     :          Index_Type := Index_Type (Max_Pos);
+      Last    :          Index_Type := Index_Type (Min_Pos - 1);
 
       procedure Free is
         new Ada.Unchecked_Deallocation
@@ -543,11 +555,11 @@ package body System.Garlic.Table is
       begin
          if Last = Max then
             Max_Pos := Max_Pos + Increment_Size;
-            Max     := Index_Type'Val (Max_Pos);
+            Max     := Index_Type (Max_Pos);
             Old     := Table;
             Table   := new Component_Table_Type (Min .. Max);
 
-            Table (Min .. Last)     := Old (Min .. Last);
+            Table (Min .. Last) := Old (Min .. Last);
             Table (Last + 1 .. Max) := (others => Null_Component);
 
             Free (Old);
