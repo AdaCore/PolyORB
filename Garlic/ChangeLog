@@ -1,5 +1,9 @@
 1999-07-13  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* s-garpar.adb: Improve partition id table use.
+
+	* s-gartab.adb: Improve Last computation.
+
 	* s-garfil.adb: Fix bug introduced by recent checkins. As we do
 	not look at partition id table directly, reload channel copy
 	because it may be updated in the meantime.

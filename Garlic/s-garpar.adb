@@ -553,7 +553,7 @@ package body System.Garlic.Partitions is
    procedure Invalidate_Partition
      (Partition : in Partition_ID)
    is
-      Mirror : Partition_ID := Partitions.Table'First;
+      Mirror : Partition_ID := First_PID;
       Query  : aliased Params_Stream_Type (0);
       Info   : Partition_Info;
       Error  : Error_Type;
@@ -577,7 +577,7 @@ package body System.Garlic.Partitions is
             Mirror := Mirror + 1;
          end loop;
 
-         if Mirror < Partitions.Last then
+         if Mirror <= Partitions.Last then
             pragma Debug (D ("New boot PID is" & Mirror'Img));
 
             Boot_PID := Mirror;
@@ -597,6 +597,8 @@ package body System.Garlic.Partitions is
          Write_Partitions    (Query'Access);
          Send_Boot_Server (Partition_Operation, Query'Access, Error);
       end if;
+
+      pragma Debug (Dump_Partition_Table);
    end Invalidate_Partition;
 
    -------------

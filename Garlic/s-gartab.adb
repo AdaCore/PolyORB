@@ -114,9 +114,6 @@ package body System.Garlic.Table is
          for Index in Min .. Max loop
             if Usage (Index).Free then
                Usage (Index).Free := False;
-               if Last_Pos < Integer (Index) then
-                  Last_Pos := Integer (Index);
-               end if;
                return Index;
             end if;
          end loop;
@@ -127,7 +124,6 @@ package body System.Garlic.Table is
          Old_Table := Table;
          Old_Usage := Usage;
 
-         Last_Pos  := Max_Pos + 1;
          Max_Pos   := Max_Pos + Increment_Size;
          Max       := Index_Type (Max_Pos);
          Table     := new Component_Table_Type (Min .. Max);
@@ -311,6 +307,9 @@ package body System.Garlic.Table is
          while N > Max loop
             Dummy := Allocate;
          end loop;
+         if Last_Pos < Integer (N) then
+            Last_Pos := Integer (N);
+         end if;
       end Validate;
 
    begin
