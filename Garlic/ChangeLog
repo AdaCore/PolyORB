@@ -1,3 +1,10 @@
+1998-10-26  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* 5bgtplsp.ads: New file, AIX version.
+
+	* Makefile.am: Use ${CP} instead of ${INSTALL} to install
+	libgnat.a, as it causes problems on AIX.
+
 1998-10-23  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* Makefile.am: Add BOOT_SERVER macros.
@@ -43,8 +50,6 @@
 	* s-garsta.adb: Split initialization in three steps (See above).
 	Force a given location when BOOT_MIRROR or LOCATION is provided.
 
-	
-	
 1998-10-20  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* isthrbio.adb: Do not require the package name to be created on

@@ -1646,6 +1646,7 @@ else
   mips*-sgi-irix*)     PLATFORM_SPECIFIC=g;;
   mips*-sni-sysv4*)    PLATFORM_SPECIFIC=x;;
   hppa*-hp-hpux*)      PLATFORM_SPECIFIC=h;;
+  powerpc-*-aix4*)     PLATFORM_SPECIFIC=b;;
   *-*-rtems*)          PLATFORM_SPECIFIC=r;;
   *)                   { echo "configure: error: Unsupported platform "${target}"" 1>&2; exit 1; };;
 esac
@@ -1662,6 +1663,7 @@ case "${PLATFORM_SPECIFIC}" in
    g) PSNAME="SGI";;
    x) PSNAME="SNI";;
    h) PSNAME="HP";;
+   b) PSNAME="AIX";;
    e) PSNAME="Empty";;
    r) PSNAME="RTEMS";;
    *) PSNAME="Unknown (${PLATFORM_SPECIFIC})";;
@@ -1669,7 +1671,7 @@ esac
 
 echo "$ac_t""$PSNAME" 1>&6
 echo $ac_n "checking preserve the original file properties with""... $ac_c" 1>&6
-echo "configure:1673: checking preserve the original file properties with" >&5
+echo "configure:1675: checking preserve the original file properties with" >&5
 case "${PLATFORM_SPECIFIC}" in
    w) CP_PRESERVE="-lf";;
    *) CP_PRESERVE="-p";;
@@ -1681,7 +1683,7 @@ echo "$ac_t""$CP_PRESERVE" 1>&6
 # LinuxThreads with libc1. This crashes the machine.
 #
 echo $ac_n "checking if platform supports local launching""... $ac_c" 1>&6
-echo "configure:1685: checking if platform supports local launching" >&5
+echo "configure:1687: checking if platform supports local launching" >&5
 case "${target}" in
   *-linux*libc1*)	SUPPORTS_LOCAL_LAUNCH=False; echo "$ac_t""no" 1>&6;;
   *)            	SUPPORTS_LOCAL_LAUNCH=True; echo "$ac_t""yes" 1>&6;;
@@ -1691,7 +1693,7 @@ esac
 # Remote shell
 #
 echo $ac_n "checking which remote shell to use""... $ac_c" 1>&6
-echo "configure:1695: checking which remote shell to use" >&5
+echo "configure:1697: checking which remote shell to use" >&5
 # Check whether --with-remsh or --without-remsh was given.
 if test "${with_remsh+set}" = set; then
   withval="$with_remsh"
@@ -1713,7 +1715,7 @@ if test "${with_protocols+set}" = set; then
   withval="$with_protocols"
   
   echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1717: checking default protocols" >&5
+echo "configure:1719: checking default protocols" >&5
   LIST="";
   PROTOCOLSSOURCES="";
   PROTOCOLSOBJECTS="";
@@ -1742,7 +1744,7 @@ echo "configure:1717: checking default protocols" >&5
 else
   
 echo $ac_n "checking default protocols""... $ac_c" 1>&6
-echo "configure:1746: checking default protocols" >&5
+echo "configure:1748: checking default protocols" >&5
 PROTOCOLSSOURCES="\$(TCPSOURCES)";
 PROTOCOLSOBJECTS="\$(TCPOBJECTS)";
 TCP_INCLUDED=""
@@ -1804,7 +1806,7 @@ if test "${with_boot_server+set}" = set; then
   withval="$with_boot_server"
   
 echo $ac_n "checking for default boot server address""... $ac_c" 1>&6
-echo "configure:1808: checking for default boot server address" >&5
+echo "configure:1810: checking for default boot server address" >&5
 BOOT_SERVER=${withval}
 echo "$ac_t""${BOOT_SERVER}" 1>&6
 
@@ -1812,7 +1814,7 @@ else
   
 if test "${DEFAULTPROTOCOL}" = "tcp"; then
   echo $ac_n "checking for default boot server address""... $ac_c" 1>&6
-echo "configure:1816: checking for default boot server address" >&5
+echo "configure:1818: checking for default boot server address" >&5
   BOOT_SERVER=`echo 000$$ | ${SED} 's,^.*\(...\)$,tcp://localhost:5\1,'`
   echo "$ac_t""${BOOT_SERVER}" 1>&6
 else
@@ -1838,7 +1840,7 @@ else
 fi
 
 echo $ac_n "checking default filters""... $ac_c" 1>&6
-echo "configure:1842: checking default filters" >&5
+echo "configure:1844: checking default filters" >&5
 
 if test -d Garlic; then
   :
@@ -1873,7 +1875,7 @@ fi
 #
 if test $target = $host; then
 echo $ac_n "checking how to run the C preprocessor""... $ac_c" 1>&6
-echo "configure:1877: checking how to run the C preprocessor" >&5
+echo "configure:1879: checking how to run the C preprocessor" >&5
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
   CPP=
@@ -1888,13 +1890,13 @@ else
   # On the NeXT, cc -E runs the code through the compiler's parser,
   # not just through cpp.
   cat > conftest.$ac_ext <<EOF
-#line 1892 "configure"
+#line 1894 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1898: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1900: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   :
@@ -1905,13 +1907,13 @@ else
   rm -rf conftest*
   CPP="${CC-cc} -E -traditional-cpp"
   cat > conftest.$ac_ext <<EOF
-#line 1909 "configure"
+#line 1911 "configure"
 #include "confdefs.h"
 #include <assert.h>
 Syntax Error
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1915: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1917: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   :
@@ -1937,17 +1939,17 @@ for ac_hdr in stdio.h sys/types.h sys/socket.h errno.h netdb.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:1941: checking for $ac_hdr" >&5
+echo "configure:1943: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1946 "configure"
+#line 1948 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1951: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1953: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1977,17 +1979,17 @@ for ac_hdr in netinet/in.h signal.h fcntl.h termio.h termios.h sys/file.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:1981: checking for $ac_hdr" >&5
+echo "configure:1983: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 1986 "configure"
+#line 1988 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1991: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1993: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2017,17 +2019,17 @@ for ac_hdr in sys/ioctl.h netinet/tcp.h sys/systeminfo.h poll.h stropts.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:2021: checking for $ac_hdr" >&5
+echo "configure:2023: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2026 "configure"
+#line 2028 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2031: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2033: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -2057,17 +2059,17 @@ for ac_hdr in sys/conf.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
-echo "configure:2061: checking for $ac_hdr" >&5
+echo "configure:2063: checking for $ac_hdr" >&5
 if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   cat > conftest.$ac_ext <<EOF
-#line 2066 "configure"
+#line 2068 "configure"
 #include "confdefs.h"
 #include <$ac_hdr>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:2071: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:2073: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*

@@ -98,6 +98,7 @@ AC_ARG_WITH(platform,
   mips*-sgi-irix*)     PLATFORM_SPECIFIC=g;;
   mips*-sni-sysv4*)    PLATFORM_SPECIFIC=x;;
   hppa*-hp-hpux*)      PLATFORM_SPECIFIC=h;;
+  powerpc-*-aix4*)     PLATFORM_SPECIFIC=b;;
   *-*-rtems*)          PLATFORM_SPECIFIC=r;;
   *)                   ]AC_MSG_ERROR([Unsupported platform "${target}"])[;;
 esac])
@@ -112,6 +113,7 @@ AC_SUBST(PLATFORM_SPECIFIC)
    g) PSNAME="SGI";;
    x) PSNAME="SNI";;
    h) PSNAME="HP";;
+   b) PSNAME="AIX";;
    e) PSNAME="Empty";;
    r) PSNAME="RTEMS";;
    *) PSNAME="Unknown (${PLATFORM_SPECIFIC})";;

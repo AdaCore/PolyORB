@@ -145,6 +145,7 @@ Examples/Messages/pingpong.cfg
 Examples/Messages/rci.adb
 Examples/Messages/rci.ads
 Examples/Messages/pure.ads
+Garlic/5bgtplsp.ads
 Garlic/5egtplsp.ads
 Garlic/5sgtplsp.ads
 Garlic/5wgarcon.ads
