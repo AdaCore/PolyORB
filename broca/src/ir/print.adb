@@ -191,7 +191,7 @@ procedure Print is
         := PDS.To_Element_Array (PDS.Sequence (Des));
    begin
       for I in A'Range loop
-         Put_Line (Inc & "Param " & Integer'Image (I + 1) & " : ");
+         Put_Line (Inc & "Param " & Integer'Image (I) & " : ");
          Put (Inc & "    type   : ");
          Print_TypeCode (A (I).IDL_Type, Inc & "        ");
          Put_Line (" ");
@@ -295,7 +295,7 @@ procedure Print is
                null;
             end;
       end case;
-   end;
+   end Print_Description;
 
    procedure Print_Content (In_Seq : ContainedSeq;
                             Inc : Standard.String) is
@@ -397,8 +397,7 @@ procedure Print is
             end case;
          end;
       end loop;
-
-   end;
+   end Print_Content;
 
    Sent_Msg, Rcvd_Msg, IOR : CORBA.String;
    Myrep : Repository.Ref;
@@ -426,6 +425,7 @@ begin
                                        Dk_All,
                                        True),
                   " ");
-
+   Put_Line (" ");
+   Put_Line (" End of Print Interface Repository client!");
 
 end Print;

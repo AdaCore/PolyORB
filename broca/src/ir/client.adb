@@ -31,6 +31,7 @@ with Ada.Command_Line;
 with Text_IO; use Text_IO;
 with CORBA; use CORBA;
 with CORBA.ORB;
+with CORBA.Object;
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.Repository;
@@ -105,8 +106,34 @@ begin
            := ExceptionDefSeq (EDS.Null_Sequence);
          Con : ContextIdSeq
            := ContextIdSeq (CIS.Null_Sequence);
+         Memb : ParameterDescription;
       begin
-         Id := To_CORBA_String ("idl:toto/titi/myop:1.0");
+
+         --  create the members
+         Name := To_CORBA_String ("oper1");
+         Memb :=  (Name => Name,
+                   IDL_Type => TC_Long,
+                   Type_Def => IDLType.Convert_Forward.To_Forward
+                   (IDLType.Ref
+                    (Repository.Get_Primitive
+                     (Myrep,
+                      Pk_Long))),
+                   Mode => PARAM_IN);
+         PDS.Append (PDS.Sequence (Mem), Memb);
+
+         Name := To_CORBA_String ("oper2");
+         Memb :=  (Name => Name,
+                   IDL_Type => TC_Long,
+                   Type_Def => IDLType.Convert_Forward.To_Forward
+                   (IDLType.Ref
+                    (Repository.Get_Primitive
+                     (Myrep,
+                      Pk_Long))),
+                   Mode => PARAM_IN);
+         PDS.Append (PDS.Sequence (Mem), Memb);
+
+         --  create the operation
+         Id := To_CORBA_String ("idl:toto/titi/myop:1.1");
          Name := To_CORBA_String ("myop");
          Version := To_CORBA_String ("1.1");
          Op1 := InterfaceDef.Create_Operation (InterfaceDef.Convert_Forward.
