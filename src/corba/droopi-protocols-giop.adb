@@ -1027,23 +1027,6 @@ package body Droopi.Protocols.GIOP is
    -------------------
 
    procedure Store_Request
-     (Ses      :  access GIOP_Session;
-      R        :  Requests.Request_Access;
-      Pending  :  out Pending_Request)
-   is
-      use Req_Seq;
-   begin
-      Set_Note (R.Notepad, Request_Note'(Annotations.Note with
-                                          Id => Current_Request_Id));
-      Pending := Pending_Request'(Req => R,
-                       Target_Profile => null);
-      Append (Ses.Pending_Rq, Pending);
-      Current_Request_Id := Current_Request_Id + 1;
-   end Store_Request;
-
-
-
-   procedure Store_Request
      (Ses     :  access GIOP_Session;
       R       :  Requests.Request_Access;
       Profile :  Profile_Access;
@@ -1185,12 +1168,8 @@ package body Droopi.Protocols.GIOP is
          Result    => Result,
          Req       => Req);
 
-      declare
-         Pend : Pending_Request;
-      begin
-         Store_Request (Ses, Req, Pend);
-      end;
-
+      Set_Note (Req.Notepad, Request_Note'(Annotations.Note with
+                                          Id => Request_Id));
 
       Emit_No_Reply
         (Component_Access (ORB),
@@ -1487,33 +1466,13 @@ package body Droopi.Protocols.GIOP is
       use Representations.CDR;
       use Droopi.Filters.Interface;
       use Req_Seq;
-
       Fragment_Next : Boolean := False;
-      Current_Req : aliased Pending_Request;
-      Current_Note  : Request_Note;
-      N             : Request_Note;
 
    begin
 
       if S.Role  = Client then
          raise GIOP_Error;
       end if;
-
-      Get_Note (R.Notepad, Current_Note);
-
-      pragma Debug (O ("Notepad" &
-      Types.Unsigned_Long'Image (Current_Note.Id)));
-
-      for I in 1 .. Length (S.Pending_Rq) loop
-         Current_Req := Element_Of (S.Pending_Rq, I);
-         Get_Note (Current_Req.Req.Notepad, N);
-         if N.Id = Current_Note.Id then
-            Delete (S.Pending_Rq, I, 1);
-            exit;
-         end if;
-         raise GIOP_Error;
-      end loop;
-
 
       Release_Contents (S.Buffer_Out.all);
       No_Exception_Reply (S, R, Fragment_Next);

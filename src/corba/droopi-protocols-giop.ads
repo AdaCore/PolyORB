@@ -340,11 +340,6 @@ package Droopi.Protocols.GIOP is
    ----  Store Request
    ----------------------------
 
-   procedure Store_Request
-    (Ses     :  access GIOP_Session;
-     R       :  Requests.Request_Access;
-     Pending :  out Pending_Request);
-
 
    procedure Store_Request
      (Ses     :  access GIOP_Session;
