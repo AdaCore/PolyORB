@@ -2978,11 +2978,11 @@ package body PolyORB.Any is
 
       procedure Set_Value
         (Obj : in out Any; The_Value : in Any_Content_Ptr)
-        renames Any.Set_Value;
+        renames PolyORB.Any.Set_Value;
 
       procedure Inc_Usage
         (Obj : in Any)
-        renames Any.Inc_Usage;
+        renames PolyORB.Any.Inc_Usage;
 
    end Internals;
 

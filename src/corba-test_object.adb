@@ -81,8 +81,8 @@ package body CORBA.Test_Object is
          declare
             Req : Request_Access
               := Execute_Request (Msg).Req;
-            Args_Sequence : Internals.NV_Sequence_Access :=
-              Internals.List_Of (Req.all.Args);
+            Args_Sequence : PolyORB.Any.NVList.Internals.NV_Sequence_Access
+              := PolyORB.Any.NVList.Internals.List_Of (Req.all.Args);
          begin
             pragma Debug (Output ("The server is executing the request:"
                              & PolyORB.Requests.Image (Req.all)));

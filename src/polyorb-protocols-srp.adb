@@ -498,8 +498,8 @@ package body PolyORB.Protocols.SRP is
                               Args   : in out Any.NVList.Ref)
    is
       use PolyORB.Any.NVList;
-      use Internals;
-      use Internals.NV_Sequence;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Sequence;
 
       Args_List : NV_Sequence_Access;
       Temp_Arg  : NamedValue;
@@ -536,8 +536,8 @@ package body PolyORB.Protocols.SRP is
    procedure Unmarshall (Args : in out Any.NVList.Ref; Info_SRP : Split_SRP)
    is
       use PolyORB.Any.NVList;
-      use Internals;
-      use Internals.NV_Sequence;
+      use PolyORB.Any.NVList.Internals;
+      use PolyORB.Any.NVList.Internals.NV_Sequence;
       use PolyORB.Opaque;
       use PolyORB.Utils;
 
