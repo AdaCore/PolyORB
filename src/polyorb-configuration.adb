@@ -145,6 +145,40 @@ package body PolyORB.Configuration is
       end if;
    end Fetch;
 
+   ----------------
+   -- To_Boolean --
+   ----------------
+
+   function To_Boolean (V : String) return Boolean;
+   --  Convert a String value to a Boolean value according
+   --  to the rules indicated in the spec for boolean configuration
+   --  variables.
+
+   function To_Boolean (V : String) return Boolean is
+      VV : constant String := To_Lower (V);
+      Result : Boolean := False;
+   begin
+      if V'Length > 0 then
+         case V (V'First) is
+            when '0' | 'n' =>
+               null;
+            when '1' | 'y' =>
+               Result := True;
+            when 'o' =>
+               if VV = "on" then
+                  Result := True;
+               elsif VV = "off" then
+                  null;
+               else
+                  raise Constraint_Error;
+               end if;
+            when others =>
+               raise Constraint_Error;
+         end case;
+      end if;
+      return Result;
+   end To_Boolean;
+
    --------------
    -- Get_Conf --
    --------------
@@ -165,6 +199,15 @@ package body PolyORB.Configuration is
             (Make_Global_Key (Section, Key),
              String_Ptr'(Default_Value'Unchecked_Access)).all);
       end if;
+   end Get_Conf;
+
+   function Get_Conf (Section, Key : String; Default : Boolean := False)
+     return Boolean
+   is
+      Default_Value : constant array (Boolean'Range) of
+        String (1 .. 1) := (False => "0", True => "1");
+   begin
+      return To_Boolean (Get_Conf (Section, Key, Default_Value (Default)));
    end Get_Conf;
 
    -------------

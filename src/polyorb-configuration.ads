@@ -81,4 +81,13 @@ package PolyORB.Configuration is
    --  Return the value of the global variable Key or Default if this
    --  variable is not defined.
 
+   function Get_Conf (Section, Key : String; Default : Boolean := False)
+     return Boolean;
+   --  Return the value of the global variable Key or Default if this
+   --  variable is not defined, interpreting the value as a Boolean:
+   --  True if the value starts with '1' or 'Y' or 'y' or is "on"
+   --  False if the value starts with '0' or 'n' or 'N' or is "off"
+   --  or is empty.
+   --  An exception is raised if the value is set to anything else.
+
 end PolyORB.Configuration;

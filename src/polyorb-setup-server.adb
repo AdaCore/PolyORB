@@ -37,6 +37,7 @@
 
 with PolyORB.Initialization;
 pragma Elaborate_All (PolyORB.Initialization);
+with PolyORB.Configuration;
 with PolyORB.Filters;
 with PolyORB.Filters.Slicers;
 with PolyORB.Protocols;
@@ -121,50 +122,57 @@ package body PolyORB.Setup.Server is
 
    procedure Initialize_Access_Points;
 
-   procedure Initialize_Access_Points is
+   procedure Initialize_Access_Points
+   is
+      use PolyORB.Configuration;
    begin
+      if Get_Conf ("access_points", "enable_giop", True) then
+         ---------------------------------------------
+         -- Create server (listening) socket - GIOP --
+         ---------------------------------------------
 
-      ---------------------------------------------
-      -- Create server (listening) socket - GIOP --
-      ---------------------------------------------
+         Initialize_Socket (GIOP_Access_Point, Any_Port);
+         Chain_Factories ((0 => Slicer_Factory'Unchecked_Access,
+                           1 => GIOP_Protocol'Unchecked_Access));
+         Register_Access_Point
+           (ORB    => The_ORB,
+            TAP    => GIOP_Access_Point.SAP,
+            Chain  => Slicer_Factory'Unchecked_Access,
+            PF     => GIOP_Access_Point.PF);
+      end if;
 
-      Initialize_Socket (GIOP_Access_Point, Any_Port);
-      Chain_Factories ((0 => Slicer_Factory'Unchecked_Access,
-                        1 => GIOP_Protocol'Unchecked_Access));
-      Register_Access_Point
-        (ORB    => The_ORB,
-         TAP    => GIOP_Access_Point.SAP,
-         Chain  => Slicer_Factory'Unchecked_Access,
-         PF     => GIOP_Access_Point.PF);
+      if Get_Conf ("access_points", "enable_srp", True) then
+         --------------------------------------------
+         -- Create server (listening) socket - SRP --
+         --------------------------------------------
 
-      --------------------------------------------
-      -- Create server (listening) socket - SRP --
-      --------------------------------------------
+         Initialize_Socket (SRP_Access_Point, Any_Port);
+         Register_Access_Point
+           (ORB    => The_ORB,
+            TAP    => SRP_Access_Point.SAP,
+            Chain  => SRP_Protocol'Unchecked_Access,
+            PF     => SRP_Access_Point.PF);
+         --  Register socket with ORB object, associating a protocol
+         --  to the transport service access point.
+      end if;
 
-      Initialize_Socket (SRP_Access_Point, Any_Port);
-      Register_Access_Point
-        (ORB    => The_ORB,
-         TAP    => SRP_Access_Point.SAP,
-         Chain  => SRP_Protocol'Unchecked_Access,
-         PF     => SRP_Access_Point.PF);
-      --  Register socket with ORB object, associating a protocol
-      --  to the transport service access point.
+      if Get_Conf ("access_points", "enable_soap", True) then
+         ---------------------------------------------
+         -- Create server (listening) socket - SOAP --
+         ---------------------------------------------
 
-      ---------------------------------------------
-      -- Create server (listening) socket - SOAP --
-      ---------------------------------------------
-
-      Initialize_Socket (SOAP_Access_Point, 8080);
-      Chain_Factories
-        ((0 => HTTP_Filter'Unchecked_Access,
-          1 => SOAP_Protocol'Unchecked_Access));
-      Register_Access_Point
-        (ORB    => The_ORB,
-         TAP    => SOAP_Access_Point.SAP,
-         Chain  => HTTP_Filter'Unchecked_Access,
-         PF     => SOAP_Access_Point.PF);
-      --  Register socket with ORB object, associating a protocol
-      --  to the transport service access point.
+         Initialize_Socket (SOAP_Access_Point, 8080);
+         Chain_Factories
+           ((0 => HTTP_Filter'Unchecked_Access,
+             1 => SOAP_Protocol'Unchecked_Access));
+         Register_Access_Point
+           (ORB    => The_ORB,
+            TAP    => SOAP_Access_Point.SAP,
+            Chain  => HTTP_Filter'Unchecked_Access,
+            PF     => SOAP_Access_Point.PF);
+         --  Register socket with ORB object, associating a protocol
+         --  to the transport service access point.
+      end if;
    end Initialize_Access_Points;
 
    use PolyORB.Initialization;
