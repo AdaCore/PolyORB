@@ -240,9 +240,8 @@ package body PolyORB.Servants.Group_Servants is
             Args : Ref;
          begin
             pragma Debug (O ("Forward to : "
-                             & To_Standard_String
-                             (PolyORB.References.IOR.Object_To_String
-                              (TPL.Value (It).all))));
+                             & PolyORB.References.IOR.Object_To_String
+                                (TPL.Value (It).all)));
 
             Create_Request
               (Target                     =>
@@ -329,8 +328,7 @@ package body PolyORB.Servants.Group_Servants is
       pragma Debug (O ("Register on group servant : "
                        & PolyORB.Objects.Image (Self.Oid.all)));
       pragma Debug (O ("Ref : "
-                       & To_Standard_String
-                       (PolyORB.References.IOR.Object_To_String (Ref))));
+                       & PolyORB.References.IOR.Object_To_String (Ref)));
       Enter (Self.Group_Lock);
       TPL.Append (Self.Target_List, Ref);
       Leave (Self.Group_Lock);
@@ -351,8 +349,7 @@ package body PolyORB.Servants.Group_Servants is
       pragma Debug (O ("Unregister on group servant : "
                        & PolyORB.Objects.Image (Self.Oid.all)));
       pragma Debug (O ("Ref : "
-                       & To_Standard_String
-                       (PolyORB.References.IOR.Object_To_String (Ref))));
+                       & PolyORB.References.IOR.Object_To_String (Ref)));
       Enter (Self.Group_Lock);
       TPL.Remove (Self.Target_List, Ref);
       pragma Debug (O ("Group Length :" & TPL.Length (Self.Target_List)'Img));

@@ -43,8 +43,6 @@ pragma Warnings (Off, PolyORB.Setup.Client);
 
 with PolyORB.Initialization;
 with PolyORB.References;
-with PolyORB.References.IOR;
-with PolyORB.Types;
 
 with PolyORB.Services.Naming.NamingContext.Client;
 with PolyORB.Services.Naming.NamingContext.Helper;
@@ -52,8 +50,6 @@ with PolyORB.Services.Naming.NamingContext.Helper;
 procedure Test_Naming_Generic is
 
    use PolyORB.References;
-   use PolyORB.References.IOR;
-   use PolyORB.Types;
 
    use PolyORB.Services.Naming;
    use PolyORB.Services.Naming.NamingContext;
@@ -73,8 +69,7 @@ begin
       return;
    end if;
 
-   Ref_Context := String_To_Object
-     (To_PolyORB_String (Ada.Command_Line.Argument (1)));
+   String_To_Object (Ada.Command_Line.Argument (1), Ref_Context);
 
    --
    --  Test 1 : bind 1 object, lookup and then destroy

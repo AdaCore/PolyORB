@@ -82,8 +82,7 @@ begin
 
    Ada.Text_IO.Put_Line
      ("POLYORB_CORBA_NAMING_IOR=" &
-      PolyORB.Types.To_Standard_String
-      (PolyORB.References.IOR.Object_To_String (NC_Ref)));
+      PolyORB.References.IOR.Object_To_String (NC_Ref));
 
    Run_Server;
 end PO_Names;
