@@ -31,7 +31,7 @@ package Droopi.References.IOR is
 
    type Unmarshall_Profile_Body_Type is access function
      (Buffer  : access Buffers.Buffer_Type)
-     return Profile_Type'Class;
+     return Profile_Access;
 
    type Profile_Record is record
       Marshall_Profile_Body   : Marshall_Profile_Body_Type;

@@ -7,7 +7,7 @@ with CORBA;
 with Droopi.Buffers; use Droopi.Buffers;
 with Droopi.Log;
 with Droopi.Representations.CDR; use Droopi.Representations.CDR;
-with Droopi.Binding_Data;
+
 
 
 package body Droopi.References.IOR is
@@ -75,8 +75,8 @@ package body Droopi.References.IOR is
                      Temp_Tag : CORBA.Unsigned_Long := Unmarshall (Buffer);
                      Tag      : constant Profile_Tag := Profile_Tag (Temp_Tag);
                begin
-                     Profs (N) :=
-                       Callbacks (Tag).Unmarshall_Profile_Body (Buffer);
+                     Profs (N) := Callbacks (Tag).
+                               Unmarshall_Profile_Body (Buffer);
                end;
             end loop;
 
@@ -98,8 +98,5 @@ package body Droopi.References.IOR is
       Callbacks (Profile).Marshall_Profile_Body := Marshall_Profile_Body;
       Callbacks (Profile).Unmarshall_Profile_Body := Unmarshall_Profile_Body;
    end Register;
-
-
-
 
 end Droopi.References.IOR;
