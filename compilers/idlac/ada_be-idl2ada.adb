@@ -2022,7 +2022,7 @@ package body Ada_Be.Idl2Ada is
                            Arg_Name : constant String
                              := Ada_Name (Declarator (P_Node));
                            Prefix : constant String
-                             := Ada_Helper_Name (Param_Type (P_Node));
+                             := Helper_Unit (Param_Type (P_Node));
                         begin
                            Add_With (CU, Prefix);
 
@@ -2183,7 +2183,7 @@ package body Ada_Be.Idl2Ada is
 
                         declare
                            Prefix : constant String
-                             := Ada_Helper_Name
+                             := Helper_Unit
                              (Original_Operation_Type (Node));
                         begin
                            Add_With (CU, Prefix);
@@ -2223,7 +2223,7 @@ package body Ada_Be.Idl2Ada is
                                  Gen_Forward_Conversion
                                    (CU, Param_Type (P_Node),
                                     "To_Forward",
-                                    Ada_Helper_Name (Param_Type (P_Node))
+                                    Helper_Unit (Param_Type (P_Node))
                                     & ".From_Any"
                                     & ASCII.LF & "  ("
                                     & T_Argument
@@ -2653,7 +2653,7 @@ package body Ada_Be.Idl2Ada is
            K_Sequence_Instance |
            K_String_Instance =>
 
-            return Ada_Helper_Name (Node) & ".TC_" & Ada_Name (Node);
+            return Helper_Unit (Node) & ".TC_" & Ada_Name (Node);
 
          when K_Declarator =>
             declare
@@ -2672,12 +2672,12 @@ package body Ada_Be.Idl2Ada is
                           K_Forward_ValueType =>
                            return TC_Name (T_Node);
                         when others =>
-                           return Ada_Helper_Name (Node) & ".TC_"
+                           return Helper_Unit (Node) & ".TC_"
                              & Ada_Name (Node);
                      end case;
                   end;
                else
-                  return Ada_Helper_Name (Node) & ".TC_" & Ada_Name (Node);
+                  return Helper_Unit (Node) & ".TC_" & Ada_Name (Node);
                end if;
             end;
 
@@ -2752,6 +2752,33 @@ package body Ada_Be.Idl2Ada is
 
       end case;
    end TC_Name;
+
+   -----------------
+   -- Helper_Unit --
+   -----------------
+
+   function Helper_Unit
+     (Node : Node_Id)
+     return String
+   is
+      NK : constant Node_Kind := Kind (Node);
+   begin
+
+      case NK is
+         when
+           K_Forward_Interface |
+           K_Forward_ValueType =>
+            return Helper_Unit (Forward (Node));
+            --  Different from Ada_Helper_Name (Node).
+
+         when K_Scoped_Name =>
+            return Helper_Unit (Value (Node));
+            --  Potentially different from Ada_Helper_Name (Node).
+
+         when others =>
+            return Ada_Helper_Name (Node);
+      end case;
+   end Helper_Unit;
 
    ----------------------
    -- Access_Type_Name --
@@ -2997,9 +3024,6 @@ package body Ada_Be.Idl2Ada is
    -- Ada_Helper_Name --
    ---------------------
 
-   --  This must be kept in sync with the computation of
-   --  Helper_Name in Gen_*_Scope.
-
    function Ada_Helper_Name
      (Node : in     Node_Id)
      return String
@@ -3008,12 +3032,15 @@ package body Ada_Be.Idl2Ada is
    begin
       case NK is
          when
-           K_Interface         =>
+           K_Interface | K_ValueType =>
             return Client_Stubs_Unit_Name (Mapping, Node)
               & Helper.Suffix;
 
          when
-           K_Forward_Interface |
+           K_Forward_Interface | K_Forward_ValueType =>
+            return Parent_Scope_Name (Node) & Helper.Suffix;
+
+         when
            K_Sequence_Instance |
            K_String_Instance   |
            K_Enum              |
@@ -3021,7 +3048,9 @@ package body Ada_Be.Idl2Ada is
            K_Struct            |
            K_Exception         |
            K_Declarator        =>
-            return Client_Stubs_Unit_Name (Mapping, Parent_Scope (Node))
+
+            return Client_Stubs_Unit_Name
+              (Mapping, Parent_Scope (Node))
               & Helper.Suffix;
 
          when K_Scoped_Name =>
