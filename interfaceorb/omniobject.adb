@@ -797,6 +797,8 @@ package body OmniObject is
                           "Omniobject.Dispatch : about to make dispatching call")) ;
       -- check there is no error
       if Self.Implobj = null then
+         pragma Debug(Output(Omniobject,
+                             "Omniobject.Dispatch : raise Fatal error")) ;
          Ada.Exceptions.Raise_Exception(Corba.Adabroker_Fatal_Error'Identity,
                                         "Omniobject.Dispatch should not be called on a proxy object") ;
       else

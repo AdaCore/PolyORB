@@ -139,16 +139,6 @@ extern void Raise_Ada_FatalException (const char* file,
 
 
 ///////////////////////////////////
-// Handling of system exceptions //
-///////////////////////////////////
-
-void Raise_Corba_Exception (CORBA::SystemException e);
-// This method is never called if all goes normally
-// It is overwritten by all Raise_Corba_Exception methods
-// which handle more precise types
-
-
-///////////////////////////////////
 // Handling of UNKNOWN exception //
 ///////////////////////////////////
 

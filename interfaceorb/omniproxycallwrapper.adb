@@ -116,6 +116,8 @@ package body omniProxyCallWrapper is
 
          -- verify that the underlying omniobject is not null
          if OmniObj_Ptr = null then
+            pragma Debug(Output(Debug,
+                                "Corba.omniproxycallwrapper.invoke : raise fatal_error")) ;
             Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
                                             "Cannot call subprogram on nil reference !"
                                             & Corba.CRLF
@@ -234,9 +236,11 @@ package body omniProxyCallWrapper is
                   declare
                      RepoID : Corba.String ;
                   begin
+                     pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : Unmarshall raised exception")) ;
                      -- UnMarshalls the RepoID
                      Netbufferedstream.UnMarshall (RepoID,Giop_Client.Real) ;
 
+                     pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : call User_exception")) ;
                      -- may be simplified,
                      -- it was done like this in C++ for memory allocation
                      Omniproxycalldesc.User_Exception(Call_Desc,
@@ -247,6 +251,7 @@ package body omniProxyCallWrapper is
                      -- the preceding operations must raise either
                      -- a user exception or Corba.Marshal
 
+                     pragma Debug(Output(Debug, "omniproxycallwrapper.invoke : raise Fatal_error")) ;
                      Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
                                                     "Should never reach this point,"
                                                     & Corba.CRLF
