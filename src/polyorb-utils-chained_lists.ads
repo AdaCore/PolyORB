@@ -62,6 +62,13 @@ package PolyORB.Utils.Chained_Lists is
    procedure Prepend (L : in out List; I : T);
    procedure Append (L : in out List; I : T);
 
+   procedure Insert (L : in out List; I : T; Before : in out Iterator);
+   --  Insert I into L before the designated position.
+
+   procedure Remove (L : in out List; I : in out Iterator);
+   --  Remove the item designated by I, and advance I to the next
+   --  item in L.
+
    procedure Remove (L : in out List; I : T);
    --  Remove all occurences of I from list L.
 
@@ -92,6 +99,8 @@ private
    pragma Inline (Next);
    pragma Inline (Prepend);
    pragma Inline (Append);
+   pragma Inline (Insert);
+   pragma Inline (Remove);
    pragma Inline ("+");
    pragma Inline ("&");
 
@@ -102,7 +111,9 @@ private
       Next  : Node_Access;
    end record;
 
-   type Iterator is new Node_Access;
+   type Iterator is record
+     Current, Previous : Node_Access;
+   end record;
 
    type List is record
       First, Last : Node_Access;
