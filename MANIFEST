@@ -294,6 +294,13 @@ examples/corba/random/random.idl
 examples/corba/random/server.adb
 examples/corba/rtcorba/Makefile.am
 examples/corba/rtcorba/Makefile.in
+examples/corba/rtcorba/client_propagated/Makefile.am
+examples/corba/rtcorba/client_propagated/Makefile.in
+examples/corba/rtcorba/client_propagated/client.adb
+examples/corba/rtcorba/client_propagated/echo.idl
+examples/corba/rtcorba/client_propagated/echo-impl.adb
+examples/corba/rtcorba/client_propagated/echo-impl.ads
+examples/corba/rtcorba/client_propagated/server.adb
 examples/corba/rtcorba/server_declared/Makefile.am
 examples/corba/rtcorba/server_declared/Makefile.in
 examples/corba/rtcorba/server_declared/echo-impl.adb
