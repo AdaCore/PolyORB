@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---          Copyright (C) 1992-2004, Free Software Foundation, Inc.         --
+--          Copyright (C) 2002-2004, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -58,8 +58,7 @@ package body Exp_Hlpr is
    --  (copied from exp_attr.adb)
 
    function Find_Numeric_Representation
-     (Typ : Entity_Id)
-      return Entity_Id;
+     (Typ : Entity_Id) return Entity_Id;
    --  Given a numeric type Typ, return the smallest integer or floarting point
    --  type from Standard, or the smallest unsigned (modular) type from
    --  System.Unsigned_Types, whose range  encompasses that of Typ.
@@ -67,8 +66,7 @@ package body Exp_Hlpr is
    function Make_Stream_Procedure_Function_Name
      (Loc : Source_Ptr;
       Typ : Entity_Id;
-      Nam : Name_Id)
-      return Entity_Id;
+      Nam : Name_Id) return Entity_Id;
    --  Return the name to be assigned for stream subprogram Nam of Typ.
    --  (copied from exp_strm.adb)
 
@@ -80,8 +78,7 @@ package body Exp_Hlpr is
      (Loc : Source_Ptr;
       Any : Entity_Id;
       TC  : Node_Id;
-      Idx : Node_Id)
-     return Node_Id;
+      Idx : Node_Id) return Node_Id;
    --  Build a call to Get_Aggregate_Element on Any
    --  for typecode TC, returning the Idx'th element.
 
@@ -119,19 +116,19 @@ package body Exp_Hlpr is
       --  The record entity being dealt with.
 
       with procedure Add_Process_Element
-        (Stmts     :        List_Id;
-         Container :        Node_Or_Entity_Id;
+        (Stmts     : List_Id;
+         Container : Node_Or_Entity_Id;
          Counter   : in out Int;
-         Rec       :        Entity_Id;
-         Field     :        Node_Id);
+         Rec       : Entity_Id;
+         Field     : Node_Id);
       --  Rec is the instance of the record type, or Empty.
       --  Field is either the N_Defining_Identifier for a component,
       --  or an N_Variant_Part.
 
    procedure Append_Record_Traversal
-     (Stmts     :        List_Id;
-      Clist     :        Node_Id;
-      Container :        Node_Or_Entity_Id;
+     (Stmts     : List_Id;
+      Clist     : Node_Id;
+      Container : Node_Or_Entity_Id;
       Counter   : in out Int);
    --  Process component list Clist. Individual fields are passed
    --  to Field_Processing. Each variant part is also processed.
@@ -143,9 +140,9 @@ package body Exp_Hlpr is
    -----------------------------
 
    procedure Append_Record_Traversal
-     (Stmts     :        List_Id;
-      Clist     :        Node_Id;
-      Container :        Node_Or_Entity_Id;
+     (Stmts     : List_Id;
+      Clist     : Node_Id;
+      Container : Node_Or_Entity_Id;
       Counter   : in out Int)
    is
       CI : constant List_Id := Component_Items (Clist);
@@ -176,15 +173,11 @@ package body Exp_Hlpr is
    function Build_From_Any_Call
      (Typ   : Entity_Id;
       N     : Node_Id;
-      Decls : List_Id)
-      return Node_Id
+      Decls : List_Id) return Node_Id
    is
       Loc : constant Source_Ptr := Sloc (N);
-      U_Type : Entity_Id  := Underlying_Type (Typ);
-      --  Rt_Type : constant Entity_Id  := Root_Type (U_Type);
 
-      --  FST     : constant Entity_Id  := First_Subtype (U_Type);
-      --  P_Size  : constant Uint       := Esize (FST);
+      U_Type : Entity_Id  := Underlying_Type (Typ);
 
       Fnam : Entity_Id := Empty;
       Lib_RE  : RE_Id := RE_Null;
@@ -298,8 +291,8 @@ package body Exp_Hlpr is
    -----------------------------
 
    procedure Build_From_Any_Function
-     (Loc  :     Source_Ptr;
-      Typ  :     Entity_Id;
+     (Loc  : Source_Ptr;
+      Typ  : Entity_Id;
       Decl : out Node_Id;
       Fnam : out Entity_Id)
    is
@@ -876,8 +869,7 @@ package body Exp_Hlpr is
      (Loc : Source_Ptr;
       Any : Entity_Id;
       TC  : Node_Id;
-      Idx : Node_Id)
-      return Node_Id
+      Idx : Node_Id) return Node_Id
    is
    begin
       return Make_Function_Call (Loc,
@@ -895,7 +887,7 @@ package body Exp_Hlpr is
    -------------------------
 
    procedure Build_Name_And_Repository_Id
-     (E           :     Entity_Id;
+     (E           : Entity_Id;
       Name_Str    : out String_Id;
       Repo_Id_Str : out String_Id) is
    begin
@@ -919,16 +911,12 @@ package body Exp_Hlpr is
 
    function Build_To_Any_Call
      (N     : Node_Id;
-      Decls : List_Id)
-      return Node_Id
+      Decls : List_Id) return Node_Id
    is
       Loc : constant Source_Ptr := Sloc (N);
+
       Typ : Entity_Id := Etype (N);
       U_Type  : Entity_Id;
-
-      --  Rt_Type : constant Entity_Id  := Root_Type (U_Type);
-      --  FST     : constant Entity_Id  := First_Subtype (U_Type);
-      --  P_Size  : constant Uint       := Esize (FST);
 
       Fnam : Entity_Id := Empty;
       Lib_RE  : RE_Id := RE_Null;
@@ -1023,15 +1011,6 @@ package body Exp_Hlpr is
       elsif U_Type = RTE (RE_Long_Long_Unsigned) then
          Lib_RE := RE_TA_LLU;
 
-      --  Access types
-
---        elsif Is_Access_Type (U_Type) then
---           if P_Size > System_Address_Size then
---              Lib_RE := RE_TA_AD;
---           else
---              Lib_RE := RE_TA_AS;
---           end if;
-
       elsif U_Type = Standard_String then
          Lib_RE := RE_TA_String;
 
@@ -1067,19 +1046,19 @@ package body Exp_Hlpr is
    ---------------------------
 
    procedure Build_To_Any_Function
-     (Loc  :     Source_Ptr;
-      Typ  :     Entity_Id;
+     (Loc  : Source_Ptr;
+      Typ  : Entity_Id;
       Decl : out Node_Id;
       Fnam : out Entity_Id)
    is
       Spec : Node_Id;
       Decls : constant List_Id := New_List;
       Stms : constant List_Id := New_List;
-      Expr_Parameter : constant Entity_Id
-        := Make_Defining_Identifier (Loc, Name_E);
+      Expr_Parameter : constant Entity_Id :=
+                         Make_Defining_Identifier (Loc, Name_E);
       Any : constant Entity_Id :=
-        Make_Defining_Identifier (Loc, Name_A);
-      Any_Decl : Node_Id;
+              Make_Defining_Identifier (Loc, Name_A);
+      Any_Decl  : Node_Id;
       Result_TC : Node_Id := Build_TypeCode_Call (Loc, Typ, Decls);
    begin
       Fnam := Make_Stream_Procedure_Function_Name (Loc, Typ, Name_uTo_Any);
@@ -1103,9 +1082,7 @@ package body Exp_Hlpr is
           Object_Definition   =>
             New_Occurrence_Of (RTE (RE_Any), Loc));
 
-      if Is_Derived_Type (Typ)
-        and then not Is_Tagged_Type (Typ)
-      then
+      if Is_Derived_Type (Typ) and then not Is_Tagged_Type (Typ) then
          declare
             Rt_Type : constant Entity_Id
               := Root_Type (Typ);
@@ -1113,13 +1090,11 @@ package body Exp_Hlpr is
               := OK_Convert_To (
                    Rt_Type,
                    New_Occurrence_Of (Expr_Parameter, Loc));
-
          begin
             Set_Expression (Any_Decl, Build_To_Any_Call (Expr, Decls));
          end;
-      elsif Is_Record_Type (Typ)
-        and then not Is_Tagged_Type (Typ)
-      then
+
+      elsif Is_Record_Type (Typ) and then not Is_Tagged_Type (Typ) then
          if Nkind (Declaration_Node (Typ)) = N_Subtype_Declaration then
             declare
                Rt_Type : constant Entity_Id
@@ -1136,16 +1111,16 @@ package body Exp_Hlpr is
             declare
                Disc : Entity_Id := Empty;
                Rdef : constant Node_Id :=
-                 Type_Definition (Declaration_Node (Typ));
+                        Type_Definition (Declaration_Node (Typ));
                Counter : Int := 0;
                Elements : constant List_Id := New_List;
 
                procedure TA_Rec_Add_Process_Element
-                 (Stmts     :        List_Id;
-                  Container :        Node_Or_Entity_Id;
+                 (Stmts     : List_Id;
+                  Container : Node_Or_Entity_Id;
                   Counter   : in out Int;
-                  Rec       :        Entity_Id;
-                  Field     :        Node_Id);
+                  Rec       : Entity_Id;
+                  Field     : Node_Id);
 
                procedure TA_Append_Record_Traversal is
                   new Append_Record_Traversal
@@ -1153,11 +1128,11 @@ package body Exp_Hlpr is
                      Add_Process_Element => TA_Rec_Add_Process_Element);
 
                procedure TA_Rec_Add_Process_Element
-                 (Stmts     :        List_Id;
-                  Container :        Node_Or_Entity_Id;
+                 (Stmts     : List_Id;
+                  Container : Node_Or_Entity_Id;
                   Counter   : in out Int;
-                  Rec       :        Entity_Id;
-                  Field     :        Node_Id)
+                  Rec       : Entity_Id;
+                  Field     : Node_Id)
                is
                   Field_Ref : Node_Id;
                begin
@@ -1586,16 +1561,11 @@ package body Exp_Hlpr is
    function Build_TypeCode_Call
      (Loc   : Source_Ptr;
       Typ   : Entity_Id;
-      Decls : List_Id)
-      return Node_Id
+      Decls : List_Id) return Node_Id
    is
       U_Type  : Entity_Id  := Underlying_Type (Typ);
       --  The full view, if Typ is private; the completion,
       --  if Typ is incomplete.
-
-      --  Rt_Type : constant Entity_Id  := Root_Type (U_Type);
-      --  FST     : constant Entity_Id  := First_Subtype (U_Type);
-      --  P_Size  : constant Uint       := Esize (FST);
 
       Fnam : Entity_Id := Empty;
       Tnam : Entity_Id := Empty;
@@ -1722,15 +1692,6 @@ package body Exp_Hlpr is
          elsif U_Type = RTE (RE_Long_Long_Unsigned) then
             Lib_RE := RE_TC_LLU;
 
-         --  Access types
-
-   --        elsif Is_Access_Type (U_Type) then
-   --           if P_Size > System_Address_Size then
-   --              Lib_RE := RE_TC_AD;
-   --           else
-   --              Lib_RE := RE_TC_AS;
-   --           end if;
-
          elsif U_Type = Standard_String then
             Lib_RE := RE_TC_String;
 
@@ -1768,8 +1729,8 @@ package body Exp_Hlpr is
    -----------------------------
 
    procedure Build_TypeCode_Function
-     (Loc  :     Source_Ptr;
-      Typ  :     Entity_Id;
+     (Loc  : Source_Ptr;
+      Typ  : Entity_Id;
       Decl : out Node_Id;
       Fnam : out Entity_Id)
    is
@@ -1777,10 +1738,9 @@ package body Exp_Hlpr is
       Decls : constant List_Id := New_List;
       Stms : constant List_Id := New_List;
 
-      TCNam : constant Entity_Id
-        := Make_Stream_Procedure_Function_Name
-        (Loc, Typ, Name_uTypeCode);
-
+      TCNam : constant Entity_Id :=
+                Make_Stream_Procedure_Function_Name (Loc,
+                  Typ, Name_uTypeCode);
 
       Parameters : List_Id;
 
@@ -1807,9 +1767,8 @@ package body Exp_Hlpr is
       --  for a parameterized typecode: name and repository id.
 
       function Make_Constructed_TypeCode
-        (Kind : Entity_Id;
-         Parameters : List_Id)
-         return Node_Id;
+        (Kind       : Entity_Id;
+         Parameters : List_Id) return Node_Id;
       --  Call TC_Build with the given kind and parameters.
 
       procedure Return_Constructed_TypeCode (Kind : Entity_Id);
@@ -1817,8 +1776,7 @@ package body Exp_Hlpr is
       --  the given typecode kind, and the constructed parameters
       --  list.
 
-      procedure Return_Alias_TypeCode
-        (Base_TypeCode  : Node_Id);
+      procedure Return_Alias_TypeCode (Base_TypeCode  : Node_Id);
       --  Return a typecode that is a TC_Alias for the given
       --  typecode.
 
@@ -1880,9 +1838,8 @@ package body Exp_Hlpr is
       end Return_Alias_TypeCode;
 
       function Make_Constructed_TypeCode
-        (Kind : Entity_Id;
-         Parameters : List_Id)
-         return Node_Id
+        (Kind       : Entity_Id;
+         Parameters : List_Id) return Node_Id
       is
          Constructed_TC : constant Node_Id :=
            Make_Function_Call (Loc,
@@ -2277,9 +2234,7 @@ package body Exp_Hlpr is
    -- Find_Numeric_Representation --
    ---------------------------------
 
-   function Find_Numeric_Representation
-     (Typ : Entity_Id)
-      return Entity_Id
+   function Find_Numeric_Representation (Typ : Entity_Id) return Entity_Id
    is
       FST : constant Entity_Id := First_Subtype (Typ);
       P_Size : constant Uint := Esize (FST);
@@ -2525,8 +2480,7 @@ package body Exp_Hlpr is
    function Make_Stream_Procedure_Function_Name
      (Loc : Source_Ptr;
       Typ : Entity_Id;
-      Nam : Name_Id)
-      return Entity_Id
+      Nam : Name_Id) return Entity_Id
    is
    begin
       --  For tagged types, we use a canonical name so that it matches the
