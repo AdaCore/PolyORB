@@ -46,8 +46,8 @@ portableserver-servantretentionpolicy.ads
 portableserver-threadpolicy.ads
 portableserver.ads
 
-DONE:
------
+DONE in that list:
+------------------
 
 corba
 corba-abstractbase
@@ -112,6 +112,8 @@ corba-orb
      events.
 
 * Architecture documentation.
+
+* Make idlac compilable under -gnaty.
 
 Items processed
 ---------------
