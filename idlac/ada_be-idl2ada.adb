@@ -208,13 +208,6 @@ package body Ada_Be.Idl2Ada is
    --  with the Self formal parameter mode and type taken
    --  from the Object_Type string.
 
-   procedure Gen_To_Ref
-     (Stubs_Spec : in out Compilation_Unit;
-      Stubs_Body : in out Compilation_Unit);
-   --  Generate the declaration and implementation
-   --  of the Unchecked_To_Ref and To_Ref operations
-   --  of an interface.
-
    procedure Gen_Helper
      (Node : in Node_Id;
       Helper_Spec : in out Compilation_Unit;
@@ -852,8 +845,6 @@ package body Ada_Be.Idl2Ada is
             DI (Stubs_Body);
             PL (Stubs_Body, "end Is_A;");
 
-            --  backward compatibility, will disappear
-            --  Gen_To_Ref (Stubs_Spec, Stubs_Body);
             --  CORBA 2.3
             Gen_Helper (Node, Helper_Spec, Helper_Body);
 
@@ -3354,64 +3345,6 @@ package body Ada_Be.Idl2Ada is
       return Name (Node);
    end Idl_Operation_Id;
 
-   procedure Gen_To_Ref
-     (Stubs_Spec : in out Compilation_Unit;
-      Stubs_Body : in out Compilation_Unit) is
-   begin
-      Add_With (Stubs_Spec, "CORBA.Object");
-      NL (Stubs_Spec);
-      PL (Stubs_Spec, "function Unchecked_To_Ref");
-      PL (Stubs_Spec, "  (The_Ref : in CORBA.Object.Ref'Class)");
-      PL (Stubs_Spec, "  return Ref;");
-      PL (Stubs_Spec, "function To_Ref");
-      PL (Stubs_Spec, "  (The_Ref : in CORBA.Object.Ref'Class)");
-      PL (Stubs_Spec, "  return Ref;");
-
-      Add_With (Stubs_Body, "Broca.Refs");
-      Add_With (Stubs_Body, "Broca.Exceptions");
-
-      NL (Stubs_Body);
-      PL (Stubs_Body, "function Unchecked_To_Ref");
-      PL (Stubs_Body, "  (The_Ref : in CORBA.Object.Ref'Class)");
-      PL (Stubs_Body, "  return Ref");
-      PL (Stubs_Body, "is");
-      II (Stubs_Body);
-      PL (Stubs_Body, "Result : Ref;");
-      DI (Stubs_Body);
-      PL (Stubs_Body, "begin");
-      II (Stubs_Body);
-      PL (Stubs_Body, "Broca.Refs.Set");
-      PL (Stubs_Body, "  (Broca.Refs.Ref (Result),");
-      PL (Stubs_Body,
-          "   Broca.Refs.Get (Broca.Refs.Ref (The_Ref)));");
-      PL (Stubs_Body, "return Result;");
-      DI (Stubs_Body);
-      PL (Stubs_Body, "end Unchecked_To_Ref;");
-      NL (Stubs_Body);
-      PL (Stubs_Body, "function To_Ref");
-      PL (Stubs_Body, "  (The_Ref : in CORBA.Object.Ref'Class)");
-      PL (Stubs_Body, "  return Ref");
-      PL (Stubs_Body, "is");
-      II (Stubs_Body);
-      PL (Stubs_Body, "Result : Ref;");
-      DI (Stubs_Body);
-      PL (Stubs_Body, "begin");
-      II (Stubs_Body);
-      PL (Stubs_Body, "Result := Unchecked_To_Ref (The_Ref);");
-      PL (Stubs_Body, "if Is_A (Result, "
-          & T_Repository_Id & ") then");
-      II (Stubs_Body);
-      PL (Stubs_Body, "return Result;");
-      DI (Stubs_Body);
-      PL (Stubs_Body, "else");
-      II (Stubs_Body);
-      PL (Stubs_Body, "Broca.Exceptions.Raise_Bad_Param;");
-      DI (Stubs_Body);
-      PL (Stubs_Body, "end if;");
-      DI (Stubs_Body);
-      PL (Stubs_Body, "end To_Ref;");
-   end Gen_To_Ref;
-
    ----------------
    -- Gen_Helper --
    ----------------
@@ -3427,6 +3360,9 @@ package body Ada_Be.Idl2Ada is
       NK : constant Node_Kind
         := Kind (Node);
    begin
+
+      --  Unchecked_To_<reference>
+
       Add_With (Helper_Spec, "CORBA.Object");
       NL (Helper_Spec);
       PL (Helper_Spec, "function Unchecked_To_" & Short_Type_Name);
@@ -3455,6 +3391,9 @@ package body Ada_Be.Idl2Ada is
       PL (Helper_Body, "return Result;");
       DI (Helper_Body);
       PL (Helper_Body, "end Unchecked_To_" & Short_Type_Name & ";");
+
+      --  To_<reference>
+
       NL (Helper_Body);
       PL (Helper_Body, "function To_" & Short_Type_Name);
       PL (Helper_Body, "  (The_Ref : in CORBA.Object.Ref'Class)");
@@ -3482,17 +3421,20 @@ package body Ada_Be.Idl2Ada is
       DI (Helper_Body);
       PL (Helper_Body, "end To_" & Short_Type_Name & ";");
 
-      --  from_any functions
+      --  From_Any
+
       case NK is
-         when K_Interface
-           | K_ValueType =>
+         when
+           K_Interface |
+           K_ValueType =>
+
             NL (Helper_Spec);
             Gen_From_Any_Profile (Helper_Spec, Node);
             NL (Helper_Spec);
             II (Helper_Spec);
             PL (Helper_Spec, "renames "
-                & Ada_Name (Node)
-                & ".From_Any");
+                & Ada_Full_Name (Node)
+                & ".From_Any;");
             DI (Helper_Spec);
 
          when K_Enum =>
