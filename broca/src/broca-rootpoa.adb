@@ -61,11 +61,12 @@ with Broca.Locks;
 with Broca.GIOP;
 with Broca.Task_Attributes;
 
-pragma Elaborate_All (CORBA.Object);
-pragma Elaborate_All (Broca.Vararray);
-pragma Elaborate_All (Broca.Refs);
-pragma Elaborate_All (Broca.Server);
+pragma Elaborate (Broca.Refs);
+pragma Elaborate (CORBA.Object);
+pragma Elaborate (Broca.Server);
+
 pragma Elaborate_All (Broca.POA);
+pragma Elaborate_All (Broca.Vararray);
 
 with Broca.Debug;
 pragma Elaborate_All (Broca.Debug);

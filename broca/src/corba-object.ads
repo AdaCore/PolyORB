@@ -56,8 +56,6 @@ package CORBA.Object is
    --  CORBA 2.3
    type Ref is new CORBA.AbstractBase.Ref with private;
 
-
-
    function Object_To_String (Obj : Ref) return CORBA.String;
    --  Returns the IOR corresponding to this object it is called by
    --  CORBA.ORB.Object_To_String see CORBA specification for details

@@ -39,7 +39,7 @@ with Broca.Sequences;
 with Broca.Buffers;
 with Broca.Refs;
 with Broca.IOP;
-pragma Elaborate_All (Broca.IOP);
+pragma Elaborate (Broca.IOP);
 
 package Broca.IIOP is
 

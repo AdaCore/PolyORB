@@ -39,8 +39,6 @@ with Broca.Buffers; use Broca.Buffers;
 
 package Broca.CDR is
 
-   --  pragma Elaborate_Body;
-
    procedure Marshall
      (Buffer : access Buffer_Type;
       Data   : access CORBA.Octet);

@@ -33,7 +33,7 @@
 
 package Broca.RootPOA is
 
-   pragma Elaborate_Body (Broca.RootPOA);
+   pragma Elaborate_Body;
    pragma Warnings (Off, Broca.RootPOA);
 
 end Broca.RootPOA;
