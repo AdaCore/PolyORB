@@ -153,6 +153,16 @@ package Namet is
    --  their source forms (special characters and enclosed in quotes), and
    --  character literals appear surrounded by apostrophes.
 
+   procedure Get_Decoded_Name_String_With_Brackets (Id : Name_Id);
+   --  This routine is similar to Decoded_Name, except that the brackets
+   --  notation (Uhh replaced by ["hh"], Whhhh replaced by ["hhhh"]) is
+   --  used for all non-lower half characters, regardless of the setting
+   --  of Opt.Wide_Character_Encoding_Method, and also in that characters
+   --  in the range 16#80# .. 16#FF# are converted to brackets notation
+   --  in all cases. This routine can be used when there is a requirement
+   --  for a canonical representation not affected by the character set
+   --  options (e.g. in the binder generation of symbols).
+
    function Get_Name_Table_Byte (Id : Name_Id) return Byte;
    pragma Inline (Get_Name_Table_Byte);
    --  Fetches the Byte value associated with the given name

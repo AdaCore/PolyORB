@@ -30,11 +30,11 @@
 
 --  Note: this version of the package should be usable in both Unix and DOS
 
-with Debug;   use Debug;
-with Osint;   use Osint;
-with Opt;     use Opt;
-with Stylesw; use Stylesw;
-with Types;   use Types;
+with Debug;    use Debug;
+with Osint;    use Osint;
+with Opt;      use Opt;
+with Stylesw;  use Stylesw;
+with Types;    use Types;
 
 with System.WCh_Con; use System.WCh_Con;
 
@@ -226,6 +226,14 @@ package body Switch is
                end if;
             end loop;
 
+            --  Make sure Zero_Cost_Exceptions is set if gnatdX set. This
+            --  is for backwards compatibility with old versions and usage.
+
+            if Debug_Flag_XX then
+               Zero_Cost_Exceptions_Set := True;
+               Zero_Cost_Exceptions_Val := True;
+            end if;
+
             return;
 
          --  Processing for D switch
@@ -404,6 +412,18 @@ package body Switch is
                Full_List := True;
             elsif Program = Binder then
                Elab_Order_Output := True;
+            else
+               raise Bad_Switch;
+            end if;
+
+         --  Processing for L switch
+
+         elsif C = 'L' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler then
+               Zero_Cost_Exceptions_Set := True;
+               Zero_Cost_Exceptions_Val := False;
             else
                raise Bad_Switch;
             end if;
@@ -661,13 +681,25 @@ package body Switch is
             if Program = Compiler or else Program = Binder then
 
                case Switches (Ptr) is
-                  when 's' => Warning_Mode  := Suppress;
-                  when 'e' => Warning_Mode  := Treat_As_Error;
-                  when 'l' => Elab_Warnings := True;
+                  when 's' =>
+                     Warning_Mode  := Suppress;
+
+                  when 'e' =>
+                     Warning_Mode  := Treat_As_Error;
+
+                  when 'l' =>
+                     Elab_Warnings := True;
+
+                  when 'L' =>
+                     Elab_Warnings := False;
 
                   when 'u' =>
                      Check_Unreferenced := True;
                      Check_Withs        := True;
+
+                  when 'U' =>
+                     Check_Unreferenced := False;
+                     Check_Withs        := False;
 
                   when others =>
                      raise Bad_Switch;
@@ -801,6 +833,18 @@ package body Switch is
             then
                No_Main_Subprogram := True;
 
+            else
+               raise Bad_Switch;
+            end if;
+
+         --  Processing for Z switch
+
+         elsif C = 'Z' then
+            Ptr := Ptr + 1;
+
+            if Program = Compiler then
+               Zero_Cost_Exceptions_Set := True;
+               Zero_Cost_Exceptions_Val := True;
             else
                raise Bad_Switch;
             end if;

@@ -404,12 +404,23 @@ package Opt is
    --  GNATMAKE
    --  Set to True if the list of compilation commands should not be output.
 
+   Shared_Libgnat : Boolean;
+   --  GNATBIND
+   --  Set to True if a shared libgnat is requested by using the -shared
+   --  option for GNATBIND and to False when using the -static option. The
+   --  value of this switch is set by Gnatbind.Scan_Bind_Arg.
+
    Software_Overflow_Checking : Boolean;
    --  GNAT
    --  Set to True by Osint.Initialize if the target requires the software
    --  approach to integer arithmetic overflow checking (i.e. the use of
    --  double length arithmetic followed by a range check). Set to False
    --  if the target implements hardware overflow checking.
+
+   Stack_Check_Probes_Val : Boolean;
+   --  GNAT
+   --  Set to the return value of Sem_Util.Stack_Check_Probes
+   --  in Frontend, before Gigi is called.
 
    Strict_Math : aliased Boolean := False;
    --  GNAT
@@ -508,6 +519,10 @@ package Opt is
    --  is set True, and upper half characters in the source indicate the
    --  start of a wide character sequence.
 
+   Usage_Requested : Boolean := False;
+   --  GNAT, GNATBIND, GNATMAKE
+   --  Set to True if h switch encountered requesting usage information
+
    Use_VADS_Size : Boolean := False;
    --  GNAT
    --  Set to True if a valid pragma Use_VADS_Size is processed
@@ -544,6 +559,27 @@ package Opt is
    Xref_Active : Boolean := True;
    --  GNAT
    --  Set if cross-referencing is enabled (i.e. xref info in ali files)
+
+   Zero_Cost_Exceptions_Val : Boolean;
+   --  GNAT
+   --  Shows whether zero cost exception mode is active. This value can
+   --  be read only if Zero_Cost_Exceptions_Set is True, indicating that
+   --  the value has been set. This flag can be set either by Switch
+   --  or by the processing in Sem_Util.Zero_Cost_Exceptions. Note
+   --  that gigi may freely reference this swich, since the call to
+   --  Sem_Util.Zero_Cost_Exceptions in Frontend guarantees that the
+   --  value has been properly set. Note that in the compiler itself,
+   --  clients should use the function in Sem_Util, rather than accessing
+   --  this value directly.
+
+   Zero_Cost_Exceptions_Set : Boolean := False;
+   --  GNAT
+   --  If this flag is False, then the value of Zero_Cost_Exceptions_Val
+   --  has not been set yet, and cannot be read. If this flag is True,
+   --  then Zero_Cost_Exceptions_Val is properly set. This flag can be
+   --  set either by Switch or by Sem_Util.Zero_Cost_Exceptions. Note
+   --  that when Gigi is called, this switch always has the value True
+   --  as a result of the Frontend call to Sem_Util.Zero_Cost_Exceptions.
 
    -----------------
    -- Subprograms --

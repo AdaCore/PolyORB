@@ -425,10 +425,15 @@ package ALI is
       Original_Pos  : Positive;
    end record;
 
+   --  Declare the Linker_Options Table
+
+   --  The indexes of active entries in this table range from 1 to the
+   --  value of Linker_Options.Last. The zero'th element is for sort call.
+
    package Linker_Options is new Table.Table (
      Table_Component_Type => Linker_Option_Record,
      Table_Index_Type     => Integer,
-     Table_Low_Bound      => 1,
+     Table_Low_Bound      => 0,
      Table_Initial        => 200,
      Table_Increment      => 400,
      Table_Name           => "Linker_Options");

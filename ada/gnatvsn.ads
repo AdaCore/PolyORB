@@ -31,7 +31,7 @@
 
 package Gnatvsn is
 
-   Gnat_Version_String : constant String := "3.12w (19990406)";
+   Gnat_Version_String : constant String := "3.12a (19990519)";
    --  Version output when GNAT (compiler), or its related tools, including
    --  GNATBIND, GNATCHOP, GNATFIND, GNATLINK, GNATMAKE, GNATXREF, are run
    --  (with appropriate verbose option switch set).
@@ -47,7 +47,7 @@ package Gnatvsn is
    --  value should never be decreased in the future, but it would be
    --  OK to increase it if absolutely necessary.
 
-   Library_Version : constant String := "GNAT Lib v3.11b ";
+   Library_Version : constant String := "GNAT Lib v3.12  ";
    --  Library version. This value must be updated whenever any change to the
    --  compiler affects the library formats in such a way as to obsolete
    --  previously compiled library modules.

@@ -39,9 +39,9 @@ with Opt;      use Opt;
 with Osint;    use Osint;
 with Gnatvsn;
 with Output;   use Output;
-with Switch;   use Switch;
 with Table;
 with Types;    use Types;
+with Switch;   use Switch;
 
 with Ada.Command_Line; use Ada.Command_Line;
 
@@ -861,7 +861,7 @@ package body Make is
 
       --  Process linker options from the ALI files.
 
-      for Opt in Linker_Options.First .. Linker_Options.Last loop
+      for Opt in 1 .. Linker_Options.Last loop
          Check_File (Linker_Options.Table (Opt).Name);
       end loop;
 
@@ -1696,7 +1696,7 @@ package body Make is
       Output.Set_Standard_Error;
       Osint.Initialize (Osint.Make); --  reads gnatmake switches
 
-      if Switch.Usage_Requested then
+      if Usage_Requested then
          Makeusg;
       end if;
 

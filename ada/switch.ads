@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$                             --
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -42,9 +42,6 @@ package Switch is
    --  Switches_Case_Sensitive is False. If this is the case, switch
    --  characters, or letters appearing in the parameter to a switch, may be
    --  either upper case or lower case.
-
-   Usage_Requested : Boolean := False;
-   --  Set to True if ? switch encountered requesting usage information
 
    -----------------
    -- Subprograms --

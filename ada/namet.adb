@@ -477,6 +477,8 @@ package body Namet is
    -----------------------------
 
    procedure Get_Decoded_Name_String (Id : Name_Id) is
+      P : Natural;
+
    begin
       Get_Name_String (Id);
 
@@ -561,17 +563,19 @@ package body Namet is
       --  Only remaining task is to decode Uhh and Whhhh sequences. First
       --  a quick check to see if there are any such sequences in the name
 
-      for J in 1 .. Name_Len loop
-         if Name_Buffer (J) = 'U' or else Name_Buffer (J) = 'W' then
-            goto Do_Decode;
+      P := 1;
+      loop
+         if P = Name_Len then
+            return;
          end if;
-      end loop;
 
-      return;
+         exit when Name_Buffer (P) = 'U' or else Name_Buffer (P) = 'W';
+         P := P + 1;
+      end loop;
 
       --  Here we have to decode one or more Uhh or Whhhh sequences
 
-      <<Do_Decode>> declare
+      declare
          New_Len : Natural;
          Old     : Positive;
          New_Buf : String (1 .. Hostparm.Max_Name_Length);
@@ -625,6 +629,66 @@ package body Namet is
          Name_Buffer (1 .. New_Len) := New_Buf (1 .. New_Len);
       end;
    end Get_Decoded_Name_String;
+
+   -------------------------------------------
+   -- Get_Decoded_Name_String_With_Brackets --
+   -------------------------------------------
+
+   procedure Get_Decoded_Name_String_With_Brackets (Id : Name_Id) is
+      P : Natural;
+
+   begin
+      --  Case of operator name, normal decoding is fine
+
+      if Name_Buffer (1) = 'O' then
+         Get_Decoded_Name_String (Id);
+
+      --  For character literals, normal decoding is fine
+
+      elsif Name_Buffer (1) = 'Q' then
+         Get_Decoded_Name_String (Id);
+
+      --  Only remaining issue is U/W sequences
+
+      else
+         Get_Name_String (Id);
+
+         P := 1;
+         while P < Name_Len loop
+            if Name_Buffer (P) = 'U' then
+               for J in reverse P + 3 .. P + Name_Len loop
+                  Name_Buffer (J + 3) := Name_Buffer (J);
+               end loop;
+
+               Name_Len := Name_Len + 3;
+               Name_Buffer (P + 3) := Name_Buffer (P + 2);
+               Name_Buffer (P + 2) := Name_Buffer (P + 1);
+               Name_Buffer (P)     := '[';
+               Name_Buffer (P + 1) := '"';
+               Name_Buffer (P + 4) := '"';
+               Name_Buffer (P + 5) := ']';
+               P := P + 6;
+
+            elsif Name_Buffer (P) = 'W' then
+               Name_Buffer (P + 8 .. P + Name_Len + 5) :=
+                 Name_Buffer (P + 5 .. Name_Len);
+               Name_Buffer (P + 5) := Name_Buffer (P + 4);
+               Name_Buffer (P + 4) := Name_Buffer (P + 3);
+               Name_Buffer (P + 3) := Name_Buffer (P + 2);
+               Name_Buffer (P + 2) := Name_Buffer (P + 1);
+               Name_Buffer (P)     := '[';
+               Name_Buffer (P + 1) := '"';
+               Name_Buffer (P + 6) := '"';
+               Name_Buffer (P + 7) := ']';
+               Name_Len := Name_Len + 5;
+               P := P + 8;
+
+            else
+               P := P + 1;
+            end if;
+         end loop;
+      end if;
+   end Get_Decoded_Name_String_With_Brackets;
 
    -------------------------
    -- Get_Name_Table_Byte --

@@ -109,8 +109,6 @@ package body Osint is
    function Next_Main_File return File_Name_Type;
    --  Implements Next_Main_Source and Next_Main_Lib_File.
 
-   type File_Type is (Source, Library);
-
    function Locate_File
      (N    : File_Name_Type;
       T    : File_Type;
@@ -122,19 +120,6 @@ package body Osint is
    --  Otherwise if T = Source, Dir is an index into the
    --  Src_Search_Directories table. Returns the File_Name_Type of the
    --  full file name if file found, or No_File if not found.
-
-   function Find_File
-     (N :    File_Name_Type;
-      T :    File_Type)
-      return File_Name_Type;
-   --  Finds a source or library file depending on the value of T following
-   --  the directory search order rules unless N is the name of the file
-   --  just read with Next_Main_File and already contains directiory
-   --  information, in which case just look in the Primary_Directory.
-   --  Returns File_Name_Type of the full file name if found, No_File if
-   --  file not found. Note that for the special case of gnat.adc, only the
-   --  compilation environment directory is searched, i.e. the directory
-   --  where the ali and object files are written
 
    function C_String_Length (S : Address) return Integer;
    --  Returns length of a C string. Returns zero for a null address.
@@ -634,6 +619,7 @@ package body Osint is
 
    procedure Fail (S1 : String; S2 : String := ""; S3 : String := "") is
    begin
+      Set_Standard_Error;
       Osint.Write_Program_Name;
       Write_Str (": ");
       Write_Str (S1);
@@ -1760,10 +1746,12 @@ package body Osint is
 
             elsif Fatal_Err then
                Get_Name_String (Current_Full_Obj_Name);
+               Close (Lib_FD);
                Fail ("Cannot find: ", Name_Buffer (1 .. Name_Len));
 
             else
                Current_Full_Obj_Stamp := Empty_Time_Stamp;
+               Close (Lib_FD);
                return null;
             end if;
          end if;
@@ -1773,9 +1761,11 @@ package body Osint is
          if Current_Full_Lib_Stamp > Current_Full_Obj_Stamp then
             if Fatal_Err then
                Get_Name_String (Current_Full_Obj_Name);
+               Close (Lib_FD);
                Fail ("Bad time stamp: ", Name_Buffer (1 .. Name_Len));
             else
                Current_Full_Obj_Stamp := Empty_Time_Stamp;
+               Close (Lib_FD);
                return null;
             end if;
          end if;
@@ -2471,9 +2461,11 @@ package body Osint is
          raise Program_Error;
       end if;
 
-      --  Change *.ads to *.ats and *.adb to *.atb
+      --  Change exctension to adt
 
-      Name_Buffer (Dot_Index + 2) := 't';
+      Name_Buffer (Dot_Index + 1) := 'a';
+      Name_Buffer (Dot_Index + 2) := 'd';
+      Name_Buffer (Dot_Index + 3) := 't';
       Name_Buffer (Dot_Index + 4) := Ascii.NUL;
       Name_Len := Dot_Index + 3;
       Create_File_And_Check (Output_FD, Binary);

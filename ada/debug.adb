@@ -6,9 +6,9 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
---          Copyright (C) 1992-1998 Free Software Foundation, Inc.          --
+--          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -81,7 +81,7 @@ package body Debug is
    --  dK
    --  dL   Output trace information on elaboration checking
    --  dM
-   --  dN   Generate file/line exception messages with zero-cost exception
+   --  dN   Do not generate file/line exception messages
    --  dO
    --  dP   Do not check for controlled objects in preelaborable packages
    --  dQ
@@ -215,6 +215,8 @@ package body Debug is
    --  dg   Print the source recreated from the generated tree. In the case
    --       where the tree has been rewritten this output includes only the
    --       generated code, not the original code (see also df,do,ds,dz).
+   --       This flag is obsolescent, since it is replaced by -gnatG, but
+   --       it is retained for compaibility with old habits and scripts.
 
    --  dh   Generates a table at the end of a compilation showing how the hash
    --       table chains built by the Namet package are loaded. This is useful
@@ -252,12 +254,9 @@ package body Debug is
    --       generated. This option is useful in seeing where the parser is
    --       blowing up.;
 
-   --  dN   Generate file/line exception messages even when using zero cost
-   --       exceptions. Normally when using zero cost exceptions, we do not
-   --       do the explicit generation of these messages, since they are
-   --       redundant with respect to the trace back information, but for
-   --       debugging purposes (and fixed regression runs), it is useful to
-   --       be able to force the generation of these messages all the time.
+   --  dN   Do not generate file/line exception messages. Normally we do the
+   --       explicit generation of these messages, but since these can only
+   --       be disabled using pragma Discard_Names, this switch may be useful.
 
    --  do   Print the source recreated from the generated tree. In the case
    --       where the tree has been rewritten, this output includes only the
@@ -340,7 +339,9 @@ package body Debug is
    --       specifies that they should not be used (i.e. the configuration
    --       flag Zero_Cost_Exceptions is False). Whether this will actually
    --       work at runtime depends on whether an appropriate target dependent
-   --       version of a-emstop.adb has been provided.
+   --       version of a-emstop.adb has been provided. This flag is obsolescent
+   --       since it is replaced by -gnatZ, but for compatibility with old
+   --       habits and scripts, it is retained.
 
    --  d1   Error msgs have node numbers where possible. Normally error
    --       messages have only source locations. This option is useful when

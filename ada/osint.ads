@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision$                             --
+--                            $Revision$
 --                                                                          --
 --          Copyright (C) 1992-1999 Free Software Foundation, Inc.          --
 --                                                                          --
@@ -88,6 +88,21 @@ package Osint is
    --  Verify and normalize a directory name. If directory name is invalid,
    --  this will return an empty string. Otherwise it will insure a trailing
    --  slash and make other normalizations.
+
+   type File_Type is (Source, Library);
+
+   function Find_File
+     (N :    File_Name_Type;
+      T :    File_Type)
+      return File_Name_Type;
+   --  Finds a source or library file depending on the value of T following
+   --  the directory search order rules unless N is the name of the file
+   --  just read with Next_Main_File and already contains directiory
+   --  information, in which case just look in the Primary_Directory.
+   --  Returns File_Name_Type of the full file name if found, No_File if
+   --  file not found. Note that for the special case of gnat.adc, only the
+   --  compilation environment directory is searched, i.e. the directory
+   --  where the ali and object files are written
 
    function Get_Switch_Character return Character;
    pragma Import (C, Get_Switch_Character,

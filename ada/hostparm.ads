@@ -60,10 +60,6 @@ pragma Pure (Hostparm);
    --  flag, which should be sorted out some time??? For now we have no cross
    --  compilers with OpenVMS as the target so there is no confusion.
 
-   Zero_Cost_Exceptions : constant Boolean := False;
-   --  This switch is set to True if zero cost exceptions are implemented
-   --  on the current target. See unit Ada.Exceptions for full details.
-
    Long_Integer_Size : constant := 0;
    --  This is the length of the long integer type in bits. A value of
    --  zero means that the length is to be taken from the C type long.

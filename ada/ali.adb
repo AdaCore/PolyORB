@@ -59,6 +59,10 @@ package body ALI is
       Sdep.Init;
       Linker_Options.Init;
 
+      --  Add dummy zero'th item in Linker_Options for the sort function
+
+      Linker_Options.Increment_Last;
+
       Float_Format_Specified             := ' ';
       Locking_Policy_Specified           := ' ';
       No_Normalize_Scalars_Specified     := False;
@@ -206,6 +210,7 @@ package body ALI is
             raise Bad_ALI_Format;
          end if;
 
+         Set_Standard_Error;
          Write_Str ("fatal error: file ");
          Write_Name (F);
          Write_Str (" is incorrectly formatted");
@@ -674,20 +679,21 @@ package body ALI is
                --  If Err is not set, then this is a fatal error
 
                else
-                  Write_Str ("duplicate unit name: ");
+                  Set_Standard_Error;
+                  Write_Str ("error: duplicate unit name: ");
                   Write_Eol;
 
-                  Write_Str ("  unit ");
+                  Write_Str ("error: unit """);
                   Write_Unit_Name (Units.Table (Units.Last).Uname);
-                  Write_Str ("found in file """);
-                  Get_Decoded_Name_String (Units.Table (Units.Last).Sfile);
+                  Write_Str (""" found in file """);
+                  Write_Name_Decoded (Units.Table (Units.Last).Sfile);
                   Write_Char ('"');
                   Write_Eol;
 
-                  Write_Str ("  unit ");
+                  Write_Str ("error: unit """);
                   Write_Unit_Name (Units.Table (Unit_Id (Info)).Uname);
-                  Write_Str ("found in file """);
-                  Get_Decoded_Name_String (Units.Table (Unit_Id (Info)).Sfile);
+                  Write_Str (""" found in file """);
+                  Write_Name_Decoded (Units.Table (Unit_Id (Info)).Sfile);
                   Write_Char ('"');
                   Write_Eol;
 
