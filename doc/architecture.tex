@@ -10,6 +10,7 @@
 \usepackage{graphics}
 \usepackage{psfig}
 \usepackage{array}
+\usepackage{amsmath}
 
 \title{Architecture de DROOPI}
 \author{Thomas Quinot}
@@ -581,7 +582,137 @@ L'implémentation d'une personnalité protocolaire doit~:
   sous forme de message à l'ORB client.
 \end{itemize}
 
+\section{Intégration des fonctions dans l'architecture}
+
+%%  XXX Ajouter un schéma pour la lecture de chaque fonction sur l'architecture globale.
+
+\subsection{Adressage}
+
+\emph{Fonction faisant intervenir la couche applicative et la couche protocolaire}
+
+La création d'une référence pour un objet enregistré auprès de l'ORB nécessite
+l'association d'un identifiant local de l'objet enregistré (information fournie
+par la couche applicative) et d'une adresse de transport (information fournie
+par la couche protocolaire). Elle doit donc être accomplie par un module
+(\emph{Refs}) situé à l'interface entre les deux, dans la couche générique.
+
+Ce module définit une structure de donnée agrégeant d'une part l'identifiant
+d'objet (fourni par le répertoire d'objets que constitue l'\emph{Object Adapter}),
+et d'autre part une collection d'adresses de point d'accès de transport, correspondant
+à la liste des points d'accès enregistrés par la couche protocolaire.
+
+\subsection{Transport}
+
+\emph{Fonction faisant intervenir seulement la couche protocolaire}
+
+Le service de transport consiste à transférer une information d'un point à un
+autre~: il correspond au niveau le plus bas du système de communication.
+
+Ce service est réalisé en concrétisant un certain nombre de classes abstraites~:
+\begin{description}
+\item[Transport\_Access\_Point]
+\item[Transport\_Endpoint]
+\item[Asynchronous\_Event\_Source]
+\end{description}
+
+\subsection{Représentation}
+
+\emph{Fonction faisant intervenir seulement la couche protocolaire}
+
+La fonction de représentation convertit une donnée $D$ de type $T$ en message transmissible
+à un autre ORB, conformément à la représentation imposée par un protocole de communication
+entre ORBs~:
+$$<D>_T\ \xrightarrow{Representation}\ \mathit{msg}$$
+Cette transformation peut s'effectuer avec une perte d'information~: le message résultant
+doit contenir suffisemment d'information pour reconstituer la valeur $D$ connaissant
+$T$ et $\mathit{msg}$, mais pas nécessairement pour reconstituer $<D>_T$ en connaissant
+seulement $\mathit{msg}$ (par exemple dans GIOP, une suite quelconque de quatre octets
+peut correspondre à un entier long ou bien à deux entiers courts)
+En effet, cela nécessiterait la reconstitution «~magique~» de l'information de type qui
+a été perdue lors de la première transformation.
+
+La transformation réciproque que doit offrir le mécanisme de représentation doit
+donc prendre $\mathit{msg}$ \textbf{et} $T$ en entrée, et restituer la donnée
+correctement typée . Nous la définissons donc par~:
+$$(\mathit{msg},<\cdot>_T)\ \xrightarrow{Representation}\ <D>_T$$
+où $<\cdot>_T$ représente un conteneur vide mais possédant l'information
+de type $T$.
+
+On impose ainsi au client du service de représentation de connaître \emph{a priori}
+le type des données qu'il souhaite recevoir~: on a éludé le problème de la
+reconstitution du typage en le transférant au client.
+
+Le service de représentation sera réalisé en concrétisant une interface abstraite fournissant
+les deux transformations indiquées ci-dessus.
+
+\subsection{Protocole}
+
+\emph{Fonction faisant intervenir seulement la couche protocolaire}
+
+La fonction «~protocole d'invocation de méthodes~» présente des similarités
+avec la fonction de représentation, au sens où elle transforme des données
+d'une représentation locale vers une forme transmissible au sein d'un
+message, et réciproquement.
+
+Par ailleurs, cette fonction orchestre le déroulement d'un appel de méthode~:
+à partir d'une demande d'invocation locale, préparation et émission d'un
+message, puis attente d'une réponse et restitution de la réponse à la couche
+applicative~; à partir d'une demande d'invocation reçue d'un autre ORB,
+récupération des paramètres et de l'indentité de l'objet cible, puis exécution
+de la requête.
+
+Les requêtes manipulées par la fonction protocole sont représentées comme un
+objet générique de classe \emph{Request}, qui doit contenir~:
+\begin{itemize}
+\item l'identité de l'objet cible~;
+\item l'identification de la méthode à invoquer (ce qui suppose que les moyens
+  d'identifier les méthodes utilisés d'une part par les personnalités applicatives,
+  d'autre part par les personnalités protocolaires, sont projetés dans le méta-modèle.
+  En particulier, le méta-modèle ne peut se satisfaire du seul nom d'une méthode
+  pour identifier celle-ci, sous peine de ne pouvoir supporter de personnalité
+  autorisant la surcharge des identificateurs)~;
+\item les paramètres et le résultat de l'invocation.
+\end{itemize}
+
+Cette classe ressemble aux interfaces \emph{Request} et \emph{ServerRequest}
+de CORBA.
+
+L'interface qui doit être implémentée par chaque protocole spécifique contient
+donc au moins les fonctionnalités suivantes~:
+\begin{itemize}
+\item transformation d'une requête en message~;
+\item transformation d'un message en requête, en interrogeant l'object adapter
+  pour obtenir des informations sur la signature de la méthode appelée (et
+  ainsi pouvoir fournir à la fonction de représentation le conteneur typé
+  nécessaire à la désérialisation des paramètres).
+\end{itemize}
+
+\subsection{Activation}
+
+\emph{Fonction faisant intervenir seulement la couche applicative}
+
+Lorsqu'une requête reçue par la couche protocolaire est prête à être exécutée,
+il appartient à l'ORB d'associer l'objet logique sur lequel l'appel est effectué
+avec un objet concret qui l'implémente. Cette tâche consistant à «~incarner~» un
+objet est dévolue à l'\emph{Object adapter} (terminologie CORBA).
+
+\subsection{Aiguillage}
+
+\emph{Fonction faisant intervenir seulement la couche applicative}
+
+Un appel de méthode correspondant à une requête reçue doit être affecté
+à un flot d'exécution. Ce flot doit être soit prêté par l'application,
+soit pris dans un pool de tâches de l'ORB, soit avoir été créé pour
+la session ou pour la requête.
+
+Ces différents comportements sont implémentés par l'object \emph{Scheduler},
+responsable de faire exécuter toutes les activités de l'ORB (y compris
+les exécutions d'appels de méthodes reçus). La configuration des différentes
+options possibles est assurée par délégation d'une partie des fonctions
+du scheduler à des objets de type \emph{Tasking\_Policy}.
+
 \section{Conception d'une solution}
+
 \subsection{Vue d'ensemble}
 
 \begin{figure}
@@ -912,6 +1043,22 @@ est défini comme un moyen d'associer une session et une représentation à un TE.
   Extension possible~: verrou avec priority ceiling.
 \end{description}
 
+\section{Perspectives}
+
+Parallèles et relations avec d'autres systèmes de répartition basés
+sur d'autres paradigmes que les objets répartis~:
+\begin{itemize}
+\item mémoire partagée~;
+\item passage de messages (MPI, MOM~: JMS, mqseries...)
+\end{itemize}
+
+Considérer ces autres systèmes de répartition selon deux angles~:
+\begin{enumerate}
+\item peut-on les utiliser comme des transports pour DROOPI~?
+\item peut-on utiliser DROOPI comme base d'un middleware réalisant
+  ces systèmes (i. e. compatibilité de ces systèmes avec le méta-modèle
+  côté application)~?
+\end{enumerate}
 %%  ./droopi-jobs.ads
 %%  
 %%  A Job is anything that can keep a task busy (like a Runnable
