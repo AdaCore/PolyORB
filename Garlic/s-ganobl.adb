@@ -422,7 +422,7 @@ package body System.Garlic.Non_Blocking is
 
                if RFD (I) or else WFD (I) then
 
-                  if Platform_Specific.Use_Poll then
+                  if TCP.Platform_Specific.Use_Poll then
 
                      --  There is something to do on this file descriptor
 
