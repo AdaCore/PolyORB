@@ -1,3 +1,5 @@
+--  $Id$
+
 with Ada.Unchecked_Deallocation;
 
 package body Droopi.Soft_Links is

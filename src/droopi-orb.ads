@@ -1,4 +1,5 @@
---  The ORB core.
+--  The ORB main loop and scheduler.
+
 --  $Id$
 
 with Droopi.Asynchronous_Events;
