@@ -413,10 +413,7 @@ package body Broca.IIOP is
       then
          pragma Debug (O ("Unmarshall_IIOP_Profile_Body : "
                           & "Invalid IIOP version number"));
-         null;
-         --  Broca.Exceptions.Raise_Bad_Param;
-         --  ORBACUS java uses IIOP 1.2 but adabroker semms to understan it
-         --  and I need to make tests
+         Broca.Exceptions.Raise_Bad_Param;
       end if;
 
       Key.Host   := Unmarshall (Profile_Buffer'Access);
