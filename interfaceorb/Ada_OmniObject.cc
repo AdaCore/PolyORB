@@ -51,6 +51,13 @@ Ada_OmniObject::Init (const char *repoId,
   return;
 };
 
+void
+Ada_OmniObject::Init (omniObject_C2Ada *omniobj)
+{
+  C_OmniObject = omniobj;
+  Init_Ok = true;
+  return;
+}
 
 void
 Ada_OmniObject::PR_IRRepositoryId(const char* s) {

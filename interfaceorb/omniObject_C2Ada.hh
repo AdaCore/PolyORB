@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////
 ////                                                                    ////
-////     This class provides is a descendant of the omniObject          ////
+////     This class is a descendant of the omniObject                   ////
 ////     class. It provides the sames functions plus a pointer          ////
 ////     on a Ada_OmniObject.                                           ////
 ////                                                                    ////
@@ -43,11 +43,17 @@ public:
   // constructor for proxy objects
 
   
+  static omniObject_C2Ada *get_omniObject_C2Ada (omniObject *omniobj) ;
+  // makes an omniObject_C2Ada out of an omniObject
+
+  
   virtual _CORBA_Boolean dispatch(GIOP_S &,const char *operation,
 				  _CORBA_Boolean response_expected);
   // overwrites omniObject::dispatch
   // calls dispatch on Ada_Omniobject
 
+  Ada_OmniObject * get_Ada_OmniObject ();
+  // returns the underlying Ada_Omniobject object
   
 private:
   Ada_OmniObject* Ada_OmniObject_Pointer;

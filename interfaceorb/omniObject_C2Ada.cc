@@ -45,7 +45,28 @@ omniObject_C2Ada::omniObject_C2Ada(const char *repoId,
   Ada_OmniObject_Pointer = Ada_Ptr;
 };
 
+omniObject_C2Ada *
+omniObject_C2Ada::get_omniObject_C2Ada (omniObject *omniobj)
+{
+  // creates a omniObject_C2Ada object (and its associated Ada_Omniobject)
+  // out of an omniObject
+  
+  Ada_OmniObject *ada_omniobj = new Ada_OmniObject ();
+  // makes a new empty Ada_Omniobject
+  
+  omniObject_C2Ada *result = (omniObject_C2Ada *) omniobj;
+  // cast the omniobj object into an omniObject_C2Ada object
+  
+  ada_omniobj->Init (result);
+  // initialize the Ada_Omniobject object with this new omniObject_C2Ada object
+  
+  result->Ada_OmniObject_Pointer = ada_omniobj;
+  // and makes the new omniObject_C2Ada object point on ada_omniobj 
+  
+  return result;
+};
 
+ 
 _CORBA_Boolean
 omniObject_C2Ada::dispatch(GIOP_S &giop,
 			   const char *operation,
@@ -57,4 +78,11 @@ omniObject_C2Ada::dispatch(GIOP_S &giop,
   // calls dispatch on the Ada_OmniObject pointed by Ada_OmniObject_Pointer
   // This function allows the C code to call the Ada function dispatch
 };
+
+
+Ada_OmniObject *
+omniObject_C2Ada::get_Ada_OmniObject ()
+{
+  return Ada_OmniObject_Pointer;
+}
 

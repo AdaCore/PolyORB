@@ -46,6 +46,9 @@ public:
 	     _CORBA_Boolean release); 
   // Initialisation of a proxy object via call to the
   // omniObject_C2Ada constructor on C_OmniObject
+
+  void Init (omniObject_C2Ada *omniobj);
+  //Initialisation by giving the underlying omniObject_C2Ada pointer
   
   void  PR_IRRepositoryId(const char* s);
   // calls the PR_IRRepositoryId function of C_OmniObject

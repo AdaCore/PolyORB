@@ -51,7 +51,7 @@ c2ada : Ada_Sys_Dep sys_dep.o Ada_Rope.o rope.o Ada_OmniRopeAndKey.o \
 omniropeandkey.o omniobjectmanager.o omniObject_C2Ada.o Ada_OmniObject.o \
 omniobject.o giop.o Ada_Giop_s.o giop_s.o Ada_Giop_c.o giop_c.o \
 Ada_netBufferedStream.o netbufferedstream.o corba-object.o corba-boa.o \
-membufferedstream.o iop.o proxyObjectFactory_C2Ada.o
+membufferedstream.o iop.o proxyObjectFactory_C2Ada.o omni_C2Ada.o
 
 Ada_Sys_Dep : Ada_Sys_Dep.cc
 	$(CPP_COMP) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) Ada_Sys_Dep.cc -o Ada_Sys_Dep
@@ -120,9 +120,12 @@ membufferedstream.o : membufferedstream.ads #membufferedstream.adb
 iop.o : iop.ads #iop.adb
 	$(ADA_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) iop.ads
 
-
 proxyObjectFactory_C2Ada.o: proxyObjectFactory_C2Ada.hh proxyObjectFactory_C2Ada.cc
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) proxyObjectFactory_C2Ada.cc
+
+omni_C2Ada.o: omni_C2Ada.hh omni_C2Ada.cc
+	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) omni_C2Ada.cc
+
 
 ################################################
 # compilation of files that do not depend on C++
