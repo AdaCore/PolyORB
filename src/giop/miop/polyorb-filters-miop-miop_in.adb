@@ -118,7 +118,9 @@ package body PolyORB.Filters.MIOP.MIOP_In is
 
             when Wait_Unique_Id =>
                --  Unique id received
-               Unmarshall_Unique_Id (F.MIOP_Buf, F.Header);
+               Unmarshall_Unique_Id (F.MIOP_Buf,
+                                     F.Header.Unique_Id_Size,
+                                     F.Header.Unique_Id);
                pragma Debug (O ("Unique Id : "
                                 & To_Standard_String (F.Header.Unique_Id)));
 

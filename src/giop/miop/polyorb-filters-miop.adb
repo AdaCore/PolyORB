@@ -193,14 +193,15 @@ package body PolyORB.Filters.MIOP is
 
    procedure Unmarshall_Unique_Id
      (Buffer : access Buffers.Buffer_Type;
-      Header :    out MIOP_Header)
+      Length : in     Types.Unsigned_Long;
+      Str    :    out Types.String)
    is
       use PolyORB.Types;
 
-      Equiv : String (1 .. Integer (Header.Unique_Id_Size - 1));
+      Equiv : String (1 .. Integer (Length - 1));
    begin
-      if Header.Unique_Id_Size = 0 then
-         Header.Unique_Id := To_PolyORB_String ("");
+      if Length = 0 then
+         Str := To_PolyORB_String ("");
          return;
       end if;
 
@@ -216,7 +217,7 @@ package body PolyORB.Filters.MIOP is
          raise Constraint_Error;
       end if;
 
-      Header.Unique_Id := To_PolyORB_String (Equiv);
+      Str := To_PolyORB_String (Equiv);
    end Unmarshall_Unique_Id;
 
    ------------------------

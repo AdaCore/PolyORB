@@ -107,7 +107,8 @@ private
    --  Unmarshall Unique Id
    procedure Unmarshall_Unique_Id
      (Buffer : access Buffers.Buffer_Type;
-      Header :    out MIOP_Header);
+      Length : in     Types.Unsigned_Long;
+      Str    :    out Types.String);
 
    --  Generate a new Unique Id
    function Generate_Unique_Id
