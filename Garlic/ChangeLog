@@ -1,3 +1,18 @@
+1998-02-15  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* s-rpc.adb: Remove unused variables.
+
+	* s-rpstio.adb: Likewise.
+
+	* s-gartcp.adb: Likewise.
+	
+	* s-stratt.adb: Likewise.
+
+	* s-garhea.adb: Use pragma Warnings to remove bogus warning about
+	unused entities.
+
+	* s-garsta.adb: Likewise.
+
 1998-02-12  Laurent Guerby  <guerby@gnat.com>
 
 	* DOFF: Removed: duplicates UNDALL (!)

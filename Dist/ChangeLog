@@ -1,3 +1,7 @@
+1998-02-15  Samuel Tardieu  <sam@inf.enst.fr>
+
+	* xe_back.adb: Remove unused variables.
+
 1998-01-08  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* xe_back.adb: Convert filter names to all lower in order to have
