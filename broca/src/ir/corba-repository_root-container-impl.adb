@@ -6,6 +6,7 @@
 with Ada.Strings.Unbounded;
 with CORBA.AbstractBase;
 with CORBA.Impl;
+with CORBA.ORB.Typecode;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained;
@@ -15,6 +16,10 @@ with CORBA.Repository_Root.UnionDef.Impl;
 with CORBA.Repository_Root.Repository.Impl;
 with CORBA.Repository_Root.InterfaceDef.Impl;
 with CORBA.Repository_Root.ValueDef.Impl;
+with CORBA.Repository_Root.ModuleDef.Impl;
+with CORBA.Repository_Root.IDLType;
+with CORBA.Repository_Root.IDLType.Impl;
+with CORBA.Repository_Root.ConstantDef.Impl;
 
 with Broca.Exceptions;
 with Broca.Debug;
@@ -52,13 +57,24 @@ package body CORBA.Repository_Root.Container.Impl is
    --  To_Object  --
    -----------------
    function To_Object (Fw_Ref : Container_Forward.Ref)
-                       return Container.Impl.Object_Ptr is
+                       return Object_Ptr is
    begin
-      return Container.Impl.Object_Ptr
+      return Object_Ptr
         (Container.Object_Of
          (Container.Convert_Forward.To_Ref
           (Fw_Ref)));
    end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return Container_Forward.Ref is
+      Ref : Container.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return Container.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
 
    ------------------------------------------
    --  manipulation of the contents field  --
@@ -217,6 +233,102 @@ package body CORBA.Repository_Root.Container.Impl is
             end;
       end case;
    end To_Container;
+
+   ----------------------
+   --  Get_Repository  --
+   ----------------------
+   function Get_Repository (Self : access Object)
+     return Repository.Impl.Object_Ptr is
+   begin
+      if Get_Def_Kind (Self) = Dk_Repository then
+         return Repository.Impl.Object_Ptr (Object_Ptr (Self));
+      else
+         return Repository.Impl.To_Object
+           (Contained.Impl.Get_Containing_Repository
+            (Contained.Impl.To_Contained (Get_Real_Object (Self))));
+      end if;
+   end Get_Repository;
+
+   ----------------
+   --  Check_Id  --
+   ----------------
+   function Check_Id (Self : access Object;
+                        Id : RepositoryId) return Boolean
+   is
+      Rep : Repository.Impl.Object_Ptr
+        := Get_Repository (Self);
+      use Contained.Impl;
+   begin
+      if not Contained.Is_Nil (Repository.Impl.Lookup_Id (Rep, Id)) then
+         --  The same Id already exists in this repository
+         Broca.Exceptions.Raise_Bad_Param(2);
+         return False;
+      end if;
+
+      return True;
+   end Check_Id;
+
+   ------------------
+   --  Check_Node  --
+   ------------------
+   function Check_Name (Self : access Object;
+                        Name : Identifier) return Boolean
+   is
+      package Contained_For_Seq renames IDL_SEQUENCE_CORBA_Repository_Root_Contained_Forward;
+      use Contained_For_Seq;
+   begin
+      if Contained_For_Seq.Sequence
+        (Lookup_Name (Self, Name, -1, Dk_All, True)) /=
+        Contained_For_Seq.Null_Sequence then
+         --  there is already a node using this name in this scope.
+         Broca.Exceptions.Raise_Bad_Param (Minor => 3);
+         return False;
+      end if;
+
+      return True;
+   end Check_Name;
+
+   -----------------------
+   --  Check_structure  --
+   -----------------------
+   function Check_Structure (Self : access Object;
+                             Kind : DefinitionKind) return Boolean
+   is
+      Not_Allowed : Boolean := False;
+   begin
+      --  the move or creation should comply with p10-8 of the IR spec.
+      --  (structure and navigation in the IR)
+      case Kind is
+         when
+           Dk_Operation |
+           Dk_Attribute =>
+            if Get_Def_Kind (Self) = Dk_Repository
+              or Get_Def_Kind (Self) = Dk_Module then
+               Not_Allowed := True;
+            end if;
+         when
+           Dk_ValueMember =>
+            if Get_Def_Kind (Self) /= Dk_Value
+            then
+               Not_Allowed := True;
+            end if;
+         when
+           Dk_Interface |
+           Dk_Value  =>
+            if Get_Def_Kind (Self) = Dk_Interface
+              or Get_Def_Kind (Self) = Dk_Value then
+               Not_Allowed := True;
+            end if;
+         when others =>
+            null;
+      end case;
+      if Not_Allowed then
+         Broca.Exceptions.Raise_Bad_Param (Minor => 4);
+         return False;
+      end if;
+
+      return True;
+   end Check_Structure;
 
    -------------
    -- IR spec --
@@ -619,7 +731,9 @@ package body CORBA.Repository_Root.Container.Impl is
    end describe_contents;
 
 
-
+   -------------------------
+   --  create operations  --
+   -------------------------
    function create_module
      (Self : access Object;
       id : in CORBA.RepositoryId;
@@ -627,12 +741,25 @@ package body CORBA.Repository_Root.Container.Impl is
       version : in CORBA.Repository_Root.VersionSpec)
      return CORBA.Repository_Root.ModuleDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.ModuleDef_Forward.Ref;
+      Obj : ModuleDef.Impl.Object_Ptr := new ModuleDef.Impl.Object;
+      Cont_Obj : Contained.Impl.Object_Ptr := new Contained.Impl.Object;
    begin
+      --  initialization of the object
+      ModuleDef.Impl.Init (Obj,
+                           IRObject.Impl.Object_Ptr (Obj),
+                           Dk_Module,
+                           Id,
+                           Name,
+                           Version,
+                           To_Forward (Object_Ptr (Self)),
+                           Contained.Impl.Contained_Seq.Null_Sequence,
+                           Cont_Obj);
+      --  add it to the contents field of this container
+      Append_To_Contents
+        (Self,
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      --  Insert implementation of create_module
-
-      return Result;
+      return ModuleDef.Impl.To_Forward (Obj);
    end create_module;
 
 
@@ -643,14 +770,26 @@ package body CORBA.Repository_Root.Container.Impl is
       version : in CORBA.Repository_Root.VersionSpec;
       IDL_type : in CORBA.Repository_Root.IDLType_Forward.Ref;
       value : in CORBA.Any)
-     return CORBA.Repository_Root.ConstantDef_Forward.Ref
+      return CORBA.Repository_Root.ConstantDef_Forward.Ref
    is
-      Result : CORBA.Repository_Root.ConstantDef_Forward.Ref;
+      Obj : ConstantDef.Impl.Object_Ptr := new ConstantDef.Impl.Object;
    begin
+      --  initialization of the object
+      ConstantDef.Impl.Init (Obj,
+                             IRObject.Impl.Object_Ptr (Obj),
+                             Dk_Constant,
+                             Id,
+                             Name,
+                             Version,
+                             To_Forward (Object_Ptr (Self)),
+                             IDLType.Convert_Forward.To_Ref (IDL_Type),
+                             Value);
+      --  add it to the contents field of this container
+      Append_To_Contents
+        (Self,
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
-      --  Insert implementation of create_constant
-
-      return Result;
+      return ConstantDef.Impl.To_Forward (Obj);
    end create_constant;
 
 
@@ -663,9 +802,31 @@ package body CORBA.Repository_Root.Container.Impl is
      return CORBA.Repository_Root.StructDef_Forward.Ref
    is
       Result : CORBA.Repository_Root.StructDef_Forward.Ref;
+      Obj : StructDef.Impl.Object_Ptr := new StructDef.Impl.Object;
+      Container_Obj : Object_Ptr := new Object;
+      IDLType_Obj : IDLType.Impl.Object_Ptr := new IDLType.Impl.Object;
    begin
+      --  initialization of the object
+      StructDef.Impl.Init (Obj,
+                           IRObject.Impl.Object_Ptr (Obj),
+                           Dk_Struct,
+                           Id,
+                           Name,
+                           Version,
+                           To_Forward (Object_Ptr (Self)),
+--                           CORBA.TypeCode.TC_Struct,
+                           CORBA.ORB.Typecode.Create_Struct_Tc (Id,
+                                                                Name,
+                                                                Members),
+                           IDLType_Obj,
+                           Contained.Impl.Contained_Seq.Null_Sequence,
+                           Container_Obj,
+                           Members);
 
-      --  Insert implementation of create_struct
+      --  add it to the contents field of this container
+      Append_To_Contents
+        (Self,
+         Contained.Impl.To_Contained (IRObject.Impl.Object_Ptr (Obj)));
 
       return Result;
    end create_struct;

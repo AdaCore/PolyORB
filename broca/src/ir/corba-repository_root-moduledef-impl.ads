@@ -17,6 +17,14 @@ package CORBA.Repository_Root.ModuleDef.Impl is
 
    type Object_Ptr is access all Object'Class;
 
+   --  To transform a forward_ref in impl.object_ptr.
+   function To_Object (Fw_Ref : ModuleDef_Forward.Ref)
+                       return Object_Ptr;
+
+   --  To transform an object_ptr into Forward_ref
+   function To_Forward (Obj : Object_Ptr)
+                        return ModuleDef_Forward.Ref;
+
    --  method used to initialize recursively the object fields.
    procedure Init (Self : access Object;
                    Real_Object :
@@ -26,9 +34,6 @@ package CORBA.Repository_Root.ModuleDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   Absolute_Name : CORBA.ScopedName;
-                   Containing_Repository :
-                     CORBA.Repository_Root.Repository_Forward.Ref;
                    Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
                    Contained_View :  CORBA.Repository_Root.Contained.Impl.Object_Ptr);

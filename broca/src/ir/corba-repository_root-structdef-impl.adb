@@ -3,6 +3,8 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.Impl;
+
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.TypedefDef.Impl;
 with CORBA.Repository_Root.Container;
@@ -12,6 +14,30 @@ with CORBA.Repository_Root.StructDef.Skel;
 with CORBA.Repository_Root.IDLType.Impl;
 
 package body CORBA.Repository_Root.StructDef.Impl is
+
+    -----------------
+   --  To_Object  --
+   -----------------
+   function To_Object (Fw_Ref : StructDef_Forward.Ref)
+     return Object_Ptr is
+   begin
+      return Object_Ptr
+        (StructDef.Object_Of
+         (StructDef.Convert_Forward.To_Ref
+          (Fw_Ref)));
+   end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return StructDef_Forward.Ref is
+      Ref : StructDef.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return StructDef.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
+
 
    ------------
    --  INIT  --
@@ -24,9 +50,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   Absolute_Name : CORBA.ScopedName;
-                   Containing_Repository :
-                     CORBA.Repository_Root.Repository_Forward.Ref;
                    IDL_Type : CORBA.TypeCode.Object;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
                    Contents :
@@ -41,8 +64,6 @@ package body CORBA.Repository_Root.StructDef.Impl is
                            Name,
                            Version,
                            Defined_In,
-                           Absolute_Name,
-                           Containing_Repository,
                            IDL_Type,
                            IDLType_View);
      Container.Impl.Init (Container_View,

@@ -25,6 +25,10 @@ package CORBA.Repository_Root.Repository.Impl is
    function To_Object (Fw_Ref : Repository_Forward.Ref)
      return Repository.Impl.Object_Ptr;
 
+   --  To transform an object_ptr into Forward_ref
+   function To_Forward (Obj : Object_Ptr)
+                        return Repository_Forward.Ref;
+
    function lookup_id
      (Self : access Object;
       search_id : in CORBA.RepositoryId)

@@ -21,14 +21,15 @@ package CORBA.Repository_Root.Contained.Impl is
                    Id : CORBA.RepositoryId;
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
-                   Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   Absolute_Name : CORBA.ScopedName;
-                   Containing_Repository :
-                     CORBA.Repository_Root.Repository_Forward.Ref);
+                   Defined_In : CORBA.Repository_Root.Container_Forward.Ref);
 
    --  Transform the forward to an impl.object.ptr.
    function To_Object (Fw_Ref : Contained_Forward.Ref)
                        return Object_Ptr;
+
+   --  To transform an object_ptr into Forward_ref
+   function To_Forward (Obj : Object_Ptr)
+                        return Contained_Forward.Ref;
 
    --  usefull for the multiple inhertance
    --  transform an IRObject to a container
@@ -147,7 +148,6 @@ private
         Name : CORBA.Identifier;
         Version : CORBA.Repository_Root.VersionSpec;
         Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-        Absolute_Name : CORBA.ScopedName;
         Containing_Repository : CORBA.Repository_Root.Repository_Forward.Ref;
      end record;
 

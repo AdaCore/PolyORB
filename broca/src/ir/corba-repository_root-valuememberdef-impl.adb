@@ -21,9 +21,6 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   Absolute_Name : CORBA.ScopedName;
-                   Containing_Repository :
-                     CORBA.Repository_Root.Repository_Forward.Ref;
                    IDL_Type : CORBA.TypeCode.Object;
                    Type_Def : CORBA.Repository_Root.IDLType.Ref;
                    IDL_Access : CORBA.Repository_Root.Visibility) is
@@ -34,9 +31,7 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
                            Id,
                            Name,
                            Version,
-                           Defined_In,
-                           Absolute_Name,
-                           Containing_Repository);
+                           Defined_In);
       Self.IDL_Type := IDL_Type;
       Self.Type_Def := Type_Def;
       Self.IDL_Access := IDL_Access;

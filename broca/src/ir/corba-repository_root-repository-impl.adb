@@ -23,14 +23,29 @@ with CORBA.Repository_Root.IRObject.Impl;
 package body CORBA.Repository_Root.Repository.Impl is
 
 
+   -----------------
+   --  To_Object  --
+   -----------------
    function To_Object (Fw_Ref : Repository_Forward.Ref)
-     return Repository.Impl.Object_Ptr is
+     return Object_Ptr is
    begin
-      return Repository.Impl.Object_Ptr
+      return Object_Ptr
         (Repository.Object_Of
          (Repository.Convert_Forward.To_Ref
           (Fw_Ref)));
    end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return Repository_Forward.Ref is
+      Ref : Repository.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return Repository.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
+
 
    function lookup_id
      (Self : access Object;

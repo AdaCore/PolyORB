@@ -330,8 +330,8 @@ src/corba-object-helper.adb
 src/corba-object-helper.ads
 src/corba-object.adb
 src/corba-object.ads
-src/corba-orb-typecode_creation.adb
-src/corba-orb-typecode_creation.ads
+src/corba-orb-typecode.adb
+src/corba-orb-typecode.ads
 src/corba-orb.adb
 src/corba-orb.ads
 src/corba-policy.adb

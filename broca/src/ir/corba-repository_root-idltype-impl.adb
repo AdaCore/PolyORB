@@ -3,11 +3,36 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.Impl;
+
 with Corba.Repository_Root; use Corba.Repository_Root;
 with CORBA.Repository_Root.IDLType.Skel;
 with CORBA.Repository_Root.IRObject.Impl;
 
 package body CORBA.Repository_Root.IDLType.Impl is
+
+   -----------------
+   --  To_Object  --
+   -----------------
+   function To_Object (Fw_Ref : IDLType_Forward.Ref)
+                       return Object_Ptr is
+   begin
+      return Object_Ptr
+        (IDLType.Object_Of
+         (IDLType.Convert_Forward.To_Ref
+          (Fw_Ref)));
+   end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return IDLType_Forward.Ref is
+      Ref : IDLType.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return IDLType.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
 
    ----------------------
    --  Procedure init  --

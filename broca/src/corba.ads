@@ -37,8 +37,6 @@ with Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
 with Ada.Unchecked_Deallocation;
 with Interfaces;
-with Sequences.Unbounded;
-pragma Elaborate_All (Sequences.Unbounded);
 
 package CORBA is
 
@@ -858,55 +856,6 @@ package CORBA is
       Argument :  CORBA.Any;
       Arg_Modes : CORBA.Flags;
    end record;
-
-   ----------------------------
-   --  Interface Repository  --
-   ----------------------------
-
-   type VersionSpec is new CORBA.String;
-
-   --  Structs
-   type StructMember is record
-      Name : CORBA.Identifier;
-      IDL_Type : CORBA.TypeCode.Object;
-      --  Type_Def : IDLType;
-   end record;
-
-   package IDL_SEQUENCE_StructMember is
-      new Sequences.Unbounded (StructMember);
-   type StructMemberSeq is new IDL_SEQUENCE_StructMember.Sequence;
-
-   --  Unions
-   type UnionMember is record
-      Name : CORBA.Identifier;
---      Label : CORBA.Any;
-      IDL_Type : CORBA.TypeCode.Object;
-      --  Type_Def : IDLType ;
-   end record;
-
-   package IDL_SEQUENCE_UnionMember is
-      new Sequences.Unbounded (UnionMember);
-   type UnionMemberSeq is new IDL_SEQUENCE_UnionMember.Sequence;
-
-   --  Enums
-   package IDL_SEQUENCE_Identifier is
-      new Sequences.Unbounded (CORBA.Identifier);
-   type EnumMemberSeq is new IDL_SEQUENCE_Identifier.Sequence;
-
-   --  values
-   type ValueMember is record
-      Name :       CORBA.Identifier;
-      Id :         CORBA.RepositoryId;
-      Defined_In : CORBA.RepositoryId;
-      Version :    CORBA.VersionSpec;
-      IDL_Type :   CORBA.TypeCode.Object;
-      --  Type_Def :   CORBA.IDLtype;
-      IDL_Access : CORBA.Visibility;
-   end record;
-
-   package IDL_SEQUENCE_ValueMember is
-      new Sequences.Unbounded (ValueMember);
-   type ValueMemberSeq is new IDL_SEQUENCE_ValueMember.Sequence;
 
 private
 

@@ -2,7 +2,7 @@
 --                                                                          --
 --                          ADABROKER COMPONENTS                            --
 --                                                                          --
---          C O R B A . O R B . T Y P E C O D E _ C R E A T I O N           --
+--                    C O R B A . O R B . T Y P E C O D E                   --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -31,25 +31,27 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package CORBA.ORB.Typecode_Creation is
+with CORBA.Repository_Root;
+
+package CORBA.ORB.Typecode is
 
    function Create_Struct_Tc
      (Id      : in CORBA.RepositoryId;
       Name    : in CORBA.Identifier;
-      Members : in CORBA.StructMemberSeq)
+      Members : in CORBA.Repository_Root.StructMemberSeq)
       return CORBA.TypeCode.Object;
 
    function Create_Union_Tc
      (Id                 : in CORBA.RepositoryId;
       Name               : in CORBA.Identifier;
       Discriminator_Type : in CORBA.TypeCode.Object;
-      Members            : in CORBA.UnionMemberSeq)
+      Members            : in CORBA.Repository_Root.UnionMemberSeq)
       return CORBA.TypeCode.Object;
 
    function Create_Enum_Tc
      (Id      : in CORBA.RepositoryId;
       Name    : in CORBA.Identifier;
-      Members : in CORBA.EnumMemberSeq)
+      Members : in CORBA.Repository_Root.EnumMemberSeq)
       return CORBA.TypeCode.Object;
 
    function Create_Alias_Tc
@@ -61,7 +63,7 @@ package CORBA.ORB.Typecode_Creation is
    function Create_Exception_Tc
      (Id      : in CORBA.RepositoryId;
       Name    : in CORBA.Identifier;
-      Members : in CORBA.StructMemberSeq)
+      Members : in CORBA.Repository_Root.StructMemberSeq)
       return CORBA.TypeCode.Object;
 
    function Create_Interface_Tc
@@ -102,7 +104,7 @@ package CORBA.ORB.Typecode_Creation is
       Name          : in CORBA.Identifier;
       Type_Modifier : in CORBA.ValueModifier;
       Concrete_Base : in CORBA.TypeCode.Object;
-      Members       : in CORBA.ValueMemberSeq)
+      Members       : in CORBA.Repository_Root.ValueMemberSeq)
       return CORBA.TypeCode.Object;
 
    function Create_Value_Box_Tc
@@ -125,4 +127,4 @@ package CORBA.ORB.Typecode_Creation is
       Name : in CORBA.Identifier)
       return CORBA.TypeCode.Object;
 
-end CORBA.ORB.Typecode_Creation;
+end CORBA.ORB.Typecode;

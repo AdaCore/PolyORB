@@ -3,6 +3,8 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.Impl;
+
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.ModuleDef.Skel;
@@ -10,6 +12,29 @@ with CORBA.Repository_Root.Helper;
 
 package body CORBA.Repository_Root.ModuleDef.Impl is
 
+
+   -----------------
+   --  To_Object  --
+   -----------------
+   function To_Object (Fw_Ref : ModuleDef_Forward.Ref)
+                       return Object_Ptr is
+   begin
+      return Object_Ptr
+        (ModuleDef.Object_Of
+         (ModuleDef.Convert_Forward.To_Ref
+          (Fw_Ref)));
+   end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return ModuleDef_Forward.Ref is
+      Ref : ModuleDef.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return ModuleDef.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
 
    ----------------------
    --  Procedure init  --
@@ -22,9 +47,6 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   Absolute_Name : CORBA.ScopedName;
-                   Containing_Repository :
-                     CORBA.Repository_Root.Repository_Forward.Ref;
                    Contents :
                      CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
                    Contained_View :  CORBA.Repository_Root.Contained.Impl.Object_Ptr)
@@ -40,9 +62,7 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
                            Id,
                            Name,
                            Version,
-                           Defined_In,
-                           Absolute_Name,
-                           Containing_Repository);
+                           Defined_In);
       Self.Contained_View := Contained_View;
    end Init;
 

@@ -28,6 +28,10 @@ package CORBA.Repository_Root.Container.Impl is
    function To_Object (Fw_Ref : Container_Forward.Ref)
      return Container.Impl.Object_Ptr;
 
+   --  To transform an object_ptr into Forward_ref
+   function To_Forward (Obj : Object_Ptr)
+                        return Container_Forward.Ref;
+
    --  Our function to get the contents list.
    function Get_Contents (Self : access Object)
      return CORBA.Repository_Root.Contained.Impl.Contained_Seq.Sequence;
@@ -57,6 +61,26 @@ package CORBA.Repository_Root.Container.Impl is
    function To_Container
      (Self : CORBA.Repository_Root.IRObject.Impl.Object_Ptr)
      return Object_Ptr;
+
+
+   --  Check if a node of this Id already exists in self.
+   --  If yes, raise bad_param (2) and returns false.
+   --  Returns true if no node was found.
+   function Check_Id (Self : access Object;
+                      Id : RepositoryId) return Boolean;
+
+   --  Check if a node of this name already exists in self.
+   --  If yes, rais bad_param (3) and returns false.
+   --  Returns true if no node was found.
+   function Check_Name (Self : access Object;
+                        Name : Identifier) return Boolean;
+
+   --  Check if a node of kind "Kind", can be created or moved in Self,
+   --  according to the navigation and structure rules!
+   --  raise bad_param(4) if not compliant and returns false.
+   -- Retruns true if compliant.
+   function Check_Structure (Self : access Object;
+                             Kind : DefinitionKind) return Boolean;
 
    -------------
    -- IR spec --

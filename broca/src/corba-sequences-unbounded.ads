@@ -32,6 +32,7 @@
 ------------------------------------------------------------------------------
 
 with Sequences.Unbounded;
+pragma Elaborate_All (Sequences.Unbounded);
 
 generic
 package CORBA.Sequences.Unbounded renames Standard.Sequences.Unbounded;

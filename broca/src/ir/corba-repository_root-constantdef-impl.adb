@@ -3,6 +3,8 @@
 --  by AdaBroker (http://adabroker.eu.org/)
 ----------------------------------------------
 
+with CORBA.Impl;
+
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.ConstantDef.Skel;
@@ -10,6 +12,29 @@ with CORBA.Repository_Root.Helper;
 
 package body CORBA.Repository_Root.ConstantDef.Impl is
 
+
+   -----------------
+   --  To_Object  --
+   -----------------
+   function To_Object (Fw_Ref : ConstantDef_Forward.Ref)
+     return Object_Ptr is
+   begin
+      return Object_Ptr
+        (ConstantDef.Object_Of
+         (ConstantDef.Convert_Forward.To_Ref
+          (Fw_Ref)));
+   end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return ConstantDef_Forward.Ref is
+      Ref : ConstantDef.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return ConstantDef.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
 
    ----------------------
    --  Procedure init  --
@@ -21,10 +46,6 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   Absolute_Name : CORBA.ScopedName;
-                   Containing_Repository :
-                     CORBA.Repository_Root.Repository_Forward.Ref;
-                   IDL_Type : CORBA.TypeCode.Object;
                    Type_Def : CORBA.Repository_Root.IDLType.Ref;
                    Value : CORBA.Any) is
    begin
@@ -34,10 +55,7 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
                            Id,
                            Name,
                            Version,
-                           Defined_In,
-                           Absolute_Name,
-                           Containing_Repository);
-      Self.IDL_Type := IDL_Type;
+                           Defined_In);
       Self.Type_Def := Type_Def;
       Self.Value := Value;
    end Init;
@@ -47,7 +65,8 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
      return CORBA.TypeCode.Object
    is
    begin
-      return Self.IDL_Type;
+      --  The type should be the type of the TypeCode
+      return Corba.Get_Type (Self.Value);
    end get_type;
 
 
@@ -98,7 +117,7 @@ package body CORBA.Repository_Root.ConstantDef.Impl is
                Id => Get_Id (Self),
                Defined_In => Get_Defined_In (Self),
                Version => Get_Version (Self),
-               IDL_Type => Self.IDL_Type,
+               IDL_Type => Get_Type (Self),
                Value => Self.Value);
       Result := (Kind => Get_Def_Kind (Self),
                  Value => CORBA.Repository_Root.Helper.To_Any (Desc));

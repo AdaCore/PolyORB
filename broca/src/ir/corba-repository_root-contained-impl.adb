@@ -51,73 +51,14 @@ package body CORBA.Repository_Root.Contained.Impl is
                    Id : CORBA.RepositoryId;
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
-                   Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   Absolute_Name : CORBA.ScopedName;
-                   Containing_Repository :
-                     CORBA.Repository_Root.Repository_Forward.Ref) is
+                   Defined_In : CORBA.Repository_Root.Container_Forward.Ref) is
    begin
       IRObject.Impl.Init (IRObject.Impl.Object_Ptr (Self), Real_Object, Def_Kind);
       Self.Id := Id;
       Self.Name := Name;
       Self.Version := Version;
       Self.Defined_In := Defined_In;
-      Self.Absolute_Name := Absolute_Name;
-      Self.Containing_Repository := Containing_Repository;
    end Init;
-
-
-
-   --------------------------------------
-   --  Procedure change_absolute_name  --
-   --------------------------------------
-   --  change the absolute name of the contained_object
-   --  if its name or the parent has changed
-   procedure Change_Absolute_Name (Contained_Object : Object_Ptr) is
-      --  gives a pointer to the container object
-      Scope : Container.Impl.Object_Ptr :=
-        Container.Impl.To_Object (Contained_Object.Defined_In);
-      Scope_As_Contained : Object_Ptr;
-      Success : Boolean;
-   begin
-      --  We must change the absolute_name depending on the case
-      if   Container.Impl.Get_Def_Kind (Scope)
-        = Dk_Repository
-      then
-         Contained_Object.Absolute_Name :=
-           CORBA.ScopedName (CORBA.To_CORBA_String ("::")
-                       & CORBA.String (Contained_Object.Name));
-      else
-         To_Contained (Container.Impl.Get_Real_Object(Scope),
-                       Success,
-                       Scope_As_Contained);
-         if not Success then
-            Broca.Exceptions.Raise_Internal;
-         end if;
-         Contained_Object.Absolute_Name :=
-           CORBA.ScopedName (CORBA.String (Get_Name (Scope_As_Contained))
-                       & CORBA.To_CORBA_String ("::")
-                       & CORBA.String (Contained_Object.Name));
-      end if;
-      --  change also recursively all ist descendant if it is a container
-      declare
-         Container_Object : Container.Impl.Object_Ptr;
-      begin
-         Container.Impl.To_Container (Get_Real_Object (Contained_Object),
-                                      Success,
-                                      Container_Object);
-         if Success then
-            declare
-               Cont_Array : Contained_Seq.Element_Array
-                 := Contained_Seq.To_Element_Array
-                 (Container.Impl.Get_Contents (Container_Object));
-            begin
-               for I in Cont_Array'Range loop
-                  Change_Absolute_Name (Cont_Array (I));
-               end loop;
-            end;
-         end if;
-      end;
-   end Change_Absolute_Name;
 
 
    -----------------
@@ -131,6 +72,17 @@ package body CORBA.Repository_Root.Contained.Impl is
          (Contained.Convert_Forward.To_Ref
           (Fw_Ref)));
    end To_Object;
+
+   ------------------
+   --  To_Forward  --
+   ------------------
+   function To_Forward (Obj : Object_Ptr)
+                        return Contained_Forward.Ref is
+      Ref : Contained.Ref;
+   begin
+      Set (Ref, CORBA.Impl.Object_Ptr (Obj));
+      return Contained.Convert_Forward.To_Forward (Ref);
+   end To_Forward;
 
    --------------------
    --  To_Contained  --
@@ -296,13 +248,11 @@ package body CORBA.Repository_Root.Contained.Impl is
       To : in CORBA.RepositoryId) is
    begin
       --  If the Id is already used, raise an exception.
-      if CORBA.AbstractBase.Is_Nil
-        --  Convert to AbstractBase.Ref for using Is_Nil.
-        (CORBA.AbstractBase.Ref
-         (Repository.Impl.Lookup_Id
-          --  Convert the ref to object (must cast).
-          (Repository.Impl.To_Object (Self.Containing_Repository),
-          To))) then
+      if Contained.Is_Nil
+        (Repository.Impl.Lookup_Id
+         --  Convert the ref to object (must cast).
+         (Repository.Impl.To_Object (Get_Containing_Repository (Self)),
+          To)) then
          Self.Id := To;
       else
          Broca.Exceptions.Raise_Bad_Param(2);
@@ -336,8 +286,6 @@ package body CORBA.Repository_Root.Contained.Impl is
       if Contained_For_Seq.Null_Sequence = (Contained_For_Seq.Sequence (Other))
       then
          Self.Name := To;
-         --  We must change the absolute_name
-         Change_Absolute_Name (Object_Ptr (Self));
       else
          Broca.Exceptions.Raise_Bad_Param(1);
       end if;
@@ -432,19 +380,42 @@ package body CORBA.Repository_Root.Contained.Impl is
 
    function get_absolute_name
      (Self : access Object)
-     return CORBA.ScopedName
+      return CORBA.ScopedName
    is
+      use Container.Impl;
    begin
-      return Self.Absolute_Name;
+      if Get_Def_Kind (To_Object (Self.Defined_In)) = Dk_Repository then
+         --  if we are in the repository, then just append "::" to the name...
+         return CORBA.ScopedName (CORBA.To_CORBA_String ("::")
+                                  & CORBA.String (Self.Name));
+      else
+         declare
+            Scope : Object_Ptr
+              := To_Contained (Get_Real_Object (To_Object (Self.Defined_In)));
+         begin
+            -- ... else append "::" and the name to the previous absolute_name.
+            return CORBA.ScopedName (CORBA.String (Get_Absolute_Name (Scope))
+                                     & CORBA.To_CORBA_String ("::")
+                                     & CORBA.String (Self.Name));
+         end;
+      end if;
    end get_absolute_name;
-
 
    function get_containing_repository
      (Self : access Object)
      return Repository_Forward.Ref
    is
+      use Container.Impl;
    begin
-      return Self.Containing_Repository;
+      if Get_Def_Kind (To_Object (Self.Defined_In)) = Dk_Repository then
+         --  the define_in is the repository
+         return Repository.Impl.To_Forward
+           (Repository.Impl.Object_Ptr (To_Object (Self.Defined_In)));
+      else
+         -- returns the repository of the parent
+         return Get_Containing_Repository
+           (To_Contained (Get_Real_Object (To_Object (Self.Defined_In))));
+      end if;
    end get_containing_repository;
 
 
@@ -536,10 +507,8 @@ package body CORBA.Repository_Root.Contained.Impl is
         := Container.Impl.To_Object (Self.Defined_In);
       New_Container_Ptr : Container.Impl.Object_Ptr
         := Container.Impl.To_Object (New_Container);
-      New_Contained : Object_Ptr;
-      Success : Boolean;
       Rep1 : Repository.Impl.Object_Ptr
-        := Repository.Impl.To_Object (Self.Containing_Repository);
+        := Repository.Impl.To_Object (Get_Containing_Repository (Self));
       Rep2 : Repository.Impl.Object_Ptr;
       Not_Allowed : Boolean := False;
       use Repository.Impl;
@@ -547,15 +516,10 @@ package body CORBA.Repository_Root.Contained.Impl is
       if Container.Impl.Get_Def_Kind (New_Container_Ptr) = Dk_Repository then
          Rep2 := Repository.Impl.Object_Ptr (New_Container_Ptr);
       else
-         To_Contained (Container.Impl.Get_Real_Object (New_Container_Ptr),
-                       Success,
-                       New_Contained);
-         if not Success then
-            Broca.Exceptions.Raise_Internal;
-            return;
-         end if;
          Rep2 := Repository.Impl.To_Object
-           (Get_Containing_Repository (New_Contained));
+           (Get_Containing_Repository
+            (To_Contained
+             (Container.Impl.Get_Real_Object (New_Container_Ptr))));
       end if;
       -- It must be in the same Repository
       if Rep1 /= Rep2 then
@@ -563,64 +527,25 @@ package body CORBA.Repository_Root.Contained.Impl is
          Not_Allowed := True;
       else
 
-         --  the move should comply with with p10-8 of the IR spec.
+         --  the move should comply with p10-8 of the IR spec.
          --  (structure and navigation in the IR)
-         case Get_Def_Kind (Self) is
-            when
-              Dk_Operation |
-              Dk_Attribute =>
-               if Container.Impl.Get_Def_Kind (New_Container_Ptr) = Dk_Repository
-                 or
-                 Container.Impl.Get_Def_Kind (New_Container_Ptr) = Dk_Module then
-                  Not_Allowed := True;
-               end if;
-            when
-              Dk_ValueMember =>
-               if Container.Impl.Get_Def_Kind (New_Container_Ptr) /= Dk_Value
-               then
-                  Not_Allowed := True;
-               end if;
-            when
-              Dk_Interface |
-              Dk_Value  =>
-               if Container.Impl.Get_Def_Kind (New_Container_Ptr) = Dk_Interface
-                 or
-                 Container.Impl.Get_Def_Kind (New_Container_Ptr) = Dk_Value then
-                  Not_Allowed := True;
-               end if;
-            when others =>
-               null;
-         end case;
-         if Not_Allowed then
-            Broca.Exceptions.Raise_Bad_Param (Minor => 4);
-         else
-            --  check if the name is already used in this scope.
-            --  should be more precise
-            declare
-               Other : ContainedSeq;
-               use Contained_For_Seq;
-            begin
-               Other := Container.Impl.Lookup_Name
-                 (New_Container_Ptr, New_Name, 1, Dk_All, False);
-               if (Contained_For_Seq.Null_Sequence = Contained_For_Seq.Sequence (Other))
-               then
-                  Not_Allowed := True;
-                  Broca.Exceptions.Raise_Bad_Param (Minor => 3);
-               else
-                  --  remove the contained from the previous container
-                  Container.Impl.Delete_From_Contents (For_Container_Ptr,
-                                                       Object_Ptr (Self));
-                  --  we can move this contained to this container
-                  Self.Defined_In := New_Container;
-                  Self.Name := New_Name;
-                  Self.Version := New_Version;
-                  --  we must change the absolute_name, recursively
-                  Change_Absolute_Name (Object_Ptr (Self));
-                  --  add the contained to the new container
-                  Container.Impl.Append_To_Contents (New_Container_Ptr,
-                                                     Object_Ptr (Self));
-               end if;
-            end;
+         --  it raises the bad_param if the structure is not correct
+         if Container.Impl.Check_Structure (New_Container_Ptr,
+                                            Get_Def_Kind (Self)) then
+            --  check if the name is not already used in this scope.
+            if Container.Impl.Check_Name (New_Container_Ptr,
+                                          New_Name) then
+               --  remove the contained from the previous container
+               Container.Impl.Delete_From_Contents (For_Container_Ptr,
+                                                    Object_Ptr (Self));
+               --  we can move this contained to this container
+               Self.Defined_In := New_Container;
+               Self.Name := New_Name;
+               Self.Version := New_Version;
+               --  add the contained to the new container
+               Container.Impl.Append_To_Contents (New_Container_Ptr,
+                                                  Object_Ptr (Self));
+            end if;
          end if;
       end if;
    end move;
@@ -825,10 +750,8 @@ package body CORBA.Repository_Root.Contained.Impl is
          declare
             Cont : Object_Ptr := Cont_Array (I);
          begin
-            Contained.Set (The_Ref,
-                           CORBA.Impl.Object_Ptr (Cont));
             Contained_For_Seq.Append (Contained_For_Seq.Sequence (Result),
-                                      Contained.Convert_Forward.To_Forward (The_Ref));
+                                      To_Forward (Cont));
          end;
       end loop;
       return Result;

@@ -24,9 +24,6 @@ package CORBA.Repository_Root.EnumDef.Impl is
                    Name : CORBA.Identifier;
                    Version : CORBA.Repository_Root.VersionSpec;
                    Defined_In : CORBA.Repository_Root.Container_Forward.Ref;
-                   Absolute_Name : CORBA.ScopedName;
-                   Containing_Repository :
-                     CORBA.Repository_Root.Repository_Forward.Ref;
                    IDL_Type : CORBA.TypeCode.Object;
                    IDLType_View : CORBA.Repository_Root.IDLType.Impl.Object_Ptr;
                    Members : Corba.Repository_Root.EnumMemberSeq);
