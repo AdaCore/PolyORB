@@ -1,9 +1,9 @@
 2004-07-10  souli  <souli@neraka.enst.fr>
 
-	* backend-be_ada.adb: Minor reformating. 
+	* backend-be_ada.adb: Minor reformatting. 
 
 	* backend-be_ada-nutils.adb: Moved Make_Designator to Expand package, and
-	changed its prefix  "Make_" with "Expand".   
+	changed its prefix  "Make_" with "Expand_".   
 
 	* backend-be_ada-expand.adb: New file. This package contain routines
 	that expand an Ada node to another ADA node.   
