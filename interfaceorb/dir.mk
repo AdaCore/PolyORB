@@ -33,7 +33,7 @@ CXXSRCS       =   \
 		proxyObjectFactory_C2Ada.cc
 
 
-DIR_CPPFLAGS = -I. -I../omniORB_2.7.0/include
+DIR_CPPFLAGS = -I. -I$(TOP)/include
 DIR_CPPFLAGS += $(CORBA_CPPFLAGS) 
 
 lib = $(patsubst %,$(LibPattern),adabroker)
