@@ -2,13 +2,13 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                             X E _ B U I L D                              --
+--                              X E _ M A I N                               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -26,4 +26,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-procedure XE_Build;
+--  This is the main procedure of GNATDIST
+
+procedure XE_Main;

@@ -2,13 +2,13 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                             X E _ C H E C K                              --
+--                             X E _ T Y P E S                              --
 --                                                                          --
---                                 S p e c                                  --
+--                                 B o d y                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -26,9 +26,35 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package XE_Check is
+package body XE_Types is
 
-   procedure Check;
-   procedure Initialize;
+   -----------
+   -- Dummy --
+   -----------
 
-end XE_Check;
+   procedure Dummy (E : Node_Id) is
+   begin
+      if Present (E) then
+         null;
+      end if;
+   end Dummy;
+
+   --------
+   -- No --
+   --------
+
+   function No (E : Node_Id) return Boolean is
+   begin
+      return E = No_Node;
+   end No;
+
+   -------------
+   -- Present --
+   -------------
+
+   function Present (E : Node_Id) return Boolean is
+   begin
+      return E /= No_Node;
+   end Present;
+
+end XE_Types;

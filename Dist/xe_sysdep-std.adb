@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -35,17 +35,22 @@
 --    the user) to a file.
 
 with GNAT.OS_Lib;  use GNAT.OS_Lib;
+with XE_IO;        use XE_IO;
 with XE_Utils;     use XE_Utils;
 
 package body XE_Sysdep is
 
    Chmod : String_Access;
+   Mode  : String_Access;
 
    ------------------------------
    -- Set_Executable_Attribute --
    ------------------------------
 
-   procedure Set_Executable_Attribute (File : String) is
+   procedure Set_Executable_Attribute (Fname : String) is
+      File     : String_Access;
+      Success  : Boolean;
+
    begin
       if Chmod = null then
          --  looks for chmod in the PATH
@@ -55,12 +60,12 @@ package body XE_Sysdep is
             Message ("chmod is not in your path");
             raise Fatal_Error;
          end if;
-      end if;
 
-      Execute
-        (Chmod,
-         (1 => new String'("u+x"),
-          2 => new String'(File)));
+         Mode := new String'("u+x");
+      end if;
+      File := new String'(Fname);
+      Execute (Chmod, (Mode, File), Success);
+      Free (File);
    end Set_Executable_Attribute;
 
 end XE_Sysdep;

@@ -2,13 +2,13 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                             X E _ S T U B S                              --
+--                              X E _ L I S T                               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -26,21 +26,36 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with ALI;
-with XE_Back;
+--  This package contains all the routines to parse the GNATLS outputs
+--  and to load the ALI files.
 
-package XE_Stubs is
+with XE_Types; use XE_Types;
 
-   procedure Mark_Units_On_Partition
-     (PID : in XE_Back.PID_Type;
-      Lib : in ALI.ALI_Id);
-   --  Starting from an ali file, search though all the dependency
-   --  chain to mark units present on a partition PID. This allows
-   --  to compute the partition closure.
+package XE_List is
 
-   procedure Build;
-   --  Main procedure to generate all stubs and partition executables.
+   procedure Register_Unit_To_Load (Uname : Unit_Name_Type);
+
+   procedure Load_All_Registered_Units;
+      --  All unit names and file names are entered into the Names
+      --  table. The Info and Byte fields of these entries are used as
+      --  follows:
+      --
+      --    Unit name           Info field has Unit_Id
+      --                        Byte fiels has Partition_Id (*)
+      --    Conf. unit name     Info field has ALI_Id
+      --                        Byte fiels has Partition_Id (*)
+      --    ALI file name       Info field has ALI_Id
+      --    Source file name    Info field has ALI_Id
+      --
+      --  (*) A (normal, RT) unit may be assigned to several partitions.
+
+      --  We want to detect whether these configured units are real
+      --  ada units. Set the configured unit name to No_ALI_Id. When
+      --  we load an ali file, its unit name is set to its ali id. If
+      --  a configured unit name has no ali id, it is not an Ada unit.
+      --  Assign byte field of configured unit name to No_Partition_Id
+      --  in order to detect units that are multiply assigned.
 
    procedure Initialize;
 
-end XE_Stubs;
+end XE_List;

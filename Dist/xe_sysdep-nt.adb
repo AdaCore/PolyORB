@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2002 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -37,8 +37,8 @@ package body XE_Sysdep is
    --  there is nothing to be done under NT. An executable is a file with
    --  ".exe" suffix under NT. There is no executable file attribute under NT.
 
-   procedure Set_Executable_Attribute (File : String) is
-      pragma Unreferenced (File);
+   procedure Set_Executable_Attribute (Fname : String) is
+      pragma Unreferenced (Fname);
    begin
       null;
    end Set_Executable_Attribute;

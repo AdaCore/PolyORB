@@ -2,13 +2,13 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                              X E _ L E A D                               --
+--                               X E _ S E M                                --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -26,4 +26,11 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-procedure XE_Lead;
+--  This package provides the routines to analyze the consistency of
+--  configuration.
+
+package XE_Sem is
+
+   procedure Analyze;
+
+end XE_Sem;

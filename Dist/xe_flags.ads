@@ -2,7 +2,7 @@
 --                                                                          --
 --                            GLADE COMPONENTS                              --
 --                                                                          --
---                              X E _ D E F S                               --
+--                             X E _ F L A G S                              --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -26,17 +26,47 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-package XE_Defs is
+--  This package contains the flags available for GNATDIST as well as
+--  those used by GNATDIST and passed to GNATMAKE and GNATLS.
 
-   --  This package contains the default values for the GLADE library.
+with GNAT.Table;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 
-   procedure Initialize;
-   function Get_Rsh_Command return String;
-   function Get_Rsh_Options return String;
-   function Get_Def_Storage_Data return String;
-   function Get_Def_Storage_Name return String;
-   function Get_Def_Protocol_Data return String;
-   function Get_Def_Protocol_Name return String;
-   function Get_PCS_Name return String;
+package XE_Flags is
 
-end XE_Defs;
+   Verbose_Mode       : Boolean;
+   Debug_Mode         : Boolean;
+   Quiet_Mode         : Boolean;
+
+   Readonly_Flag      : constant String_Access := new String'("-a");
+   Bind_Only_Flag     : constant String_Access := new String'("-b");
+   Compile_Only_Flag  : constant String_Access := new String'("-c");
+   Object_Dir_Flag    : constant String_Access := new String'("-D");
+   Dependencies_Flag  : constant String_Access := new String'("-d");
+   Keep_Going_Flag    : constant String_Access := new String'("-k");
+   Link_Only_Flag     : constant String_Access := new String'("-l");
+   Output_Flag        : constant String_Access := new String'("-o");
+   Quiet_Flag         : constant String_Access := new String'("-q");
+   Verbose_Flag       : constant String_Access := new String'("-v");
+   Semantic_Only_Flag : constant String_Access := new String'("-gnatc");
+   Skel_Flag          : constant String_Access := new String'("-gnatzr");
+   Stub_Flag          : constant String_Access := new String'("-gnatzc");
+   Comp_Arg_Flag      : constant String_Access := new String'("-cargs");
+   Bind_Arg_Flag      : constant String_Access := new String'("-bargs");
+   Link_Arg_Flag      : constant String_Access := new String'("-largs");
+
+   package Make_Switches is new GNAT.Table (
+     Table_Component_Type => String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100);
+
+   package List_Switches is new GNAT.Table (
+     Table_Component_Type => String_Access,
+     Table_Index_Type     => Integer,
+     Table_Low_Bound      => 1,
+     Table_Initial        => 20,
+     Table_Increment      => 100);
+
+end XE_Flags;

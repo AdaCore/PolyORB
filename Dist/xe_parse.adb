@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2003 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -26,16 +26,16 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Namet;            use Namet;
-with Output;           use Output;
-with Types;            use Types;
+with XE_Names;            use XE_Names;
+with XE_Types;            use XE_Types;
+
 with XE;               use XE;
+with XE_Flags;         use XE_Flags;
+with XE_IO;            use XE_IO;
 with XE_Scan;          use XE_Scan;
 with XE_Utils;         use XE_Utils;
 
 package body XE_Parse is
-
-   subtype Node_Id is XE.Node_Id;
 
    Indent : constant String := "   ";
 
@@ -46,39 +46,39 @@ package body XE_Parse is
 
    Fatal_Error    : Boolean := True;
 
-   procedure Print_Node (Node : in Node_Id);
+   procedure Print_Node (Node : Node_Id);
    --  Print only this node.
 
    procedure Write_Conflict_Error
-     (SLOC  : in Location_Type;
-      Name  : in Name_Id);
+     (SLOC  : Location_Type;
+      Name  : Name_Id);
 
    procedure Write_Declaration_Error
-     (SLOC  : in Location_Type;
-      Name  : in Name_Id);
+     (SLOC  : Location_Type;
+      Name  : Name_Id);
 
    procedure Write_Error_Message
-     (SLOC  : in Location_Type;
-      Mesg1 : in String  := "";
-      Name1 : in Name_Id := No_Name;
-      Mesg2 : in String  := "";
-      Name2 : in Name_Id := No_Name);
+     (SLOC  : Location_Type;
+      Mesg1 : String  := "";
+      Name1 : Name_Id := No_Name;
+      Mesg2 : String  := "";
+      Name2 : Name_Id := No_Name);
 
    procedure Write_Indent
-     (Many : in Int := 1;
-      Mesg : in String := "");
+     (Many : Int := 1;
+      Mesg : String := "");
 
    procedure Write_Type_Error
-     (SLOC  : in Location_Type;
-      Name  : in Name_Id);
+     (SLOC  : Location_Type;
+      Name  : Name_Id);
 
    ------------------------
    -- Check_Not_Declared --
    ------------------------
 
    procedure Check_Not_Declared
-     (Declaration_Name : in Name_Id;
-      Declaration_Sloc : in Location_Type)
+     (Declaration_Name : Name_Id;
+      Declaration_Sloc : Location_Type)
    is
       Node : Node_Id;
    begin
@@ -118,8 +118,8 @@ package body XE_Parse is
    ----------------------------
 
    procedure Declare_Procedure_Call
-     (Subprogram_Node : in Subprogram_Id;
-      Subprogram_Sloc : in Location_Type)
+     (Subprogram_Node : Subprogram_Id;
+      Subprogram_Sloc : Location_Type)
    is
       New_Statement  : Statement_Id;
       Old_Subprogram : Subprogram_Id;
@@ -301,11 +301,11 @@ package body XE_Parse is
    ----------------------------
 
    procedure Declare_Type_Attribute
-     (Type_Node          : in Type_Id;
-      Attribute_Name     : in Name_Id;
-      Attr_Type_Node     : in Type_Id;
-      Attribute_Kind     : in Attribute_Type;
-      Attribute_Sloc     : in Location_Type;
+     (Type_Node          : Type_Id;
+      Attribute_Name     : Name_Id;
+      Attr_Type_Node     : Type_Id;
+      Attribute_Kind     : Attribute_Type;
+      Attribute_Sloc     : Location_Type;
       Attribute_Node     : out Attribute_Id)
    is
       A : Attribute_Id;
@@ -325,10 +325,10 @@ package body XE_Parse is
    ----------------------------
 
    procedure Declare_Type_Component
-     (Type_Node          : in Type_Id;
-      Component_Name     : in Name_Id;
-      Comp_Type_Node     : in Type_Id;
-      Component_Sloc     : in Location_Type;
+     (Type_Node          : Type_Id;
+      Component_Name     : Name_Id;
+      Comp_Type_Node     : Type_Id;
+      Component_Sloc     : Location_Type;
       Component_Node     : out Component_Id)
    is
       C : Component_Id;
@@ -390,11 +390,11 @@ package body XE_Parse is
    --------------------------------
 
    procedure Declare_Variable_Component
-     (Variable_Node      : in Variable_Id;
-      Component_Name     : in Name_Id;
-      Component_Type     : in Type_Id;
-      Attribute_Kind     : in Attribute_Type;
-      Component_Sloc     : in Location_Type;
+     (Variable_Node      : Variable_Id;
+      Component_Name     : Name_Id;
+      Component_Type     : Type_Id;
+      Attribute_Kind     : Attribute_Type;
+      Component_Sloc     : Location_Type;
       Component_Node     : out Component_Id)
    is
       VC : Component_Id;
@@ -426,7 +426,7 @@ package body XE_Parse is
    ------------------------
 
    procedure Duplicate_Variable
-     (Source, Target : in Variable_Id)
+     (Source, Target : Variable_Id)
    is
       SC : Component_Id;
       VT : Type_Id;
@@ -492,13 +492,13 @@ package body XE_Parse is
 
    procedure Initialize is
    begin
-      Attribute_Prefix  := Str_To_Id ("attribute ");
-      Pragma_Prefix     := Str_To_Id ("pragma ");
-      Type_Prefix       := Str_To_Id ("type ");
+      Attribute_Prefix  := Id ("attribute ");
+      Pragma_Prefix     := Id ("pragma ");
+      Type_Prefix       := Id ("type ");
 
-      Function_Name_Id  := Str_To_Id ("function");
-      Procedure_Name_Id := Str_To_Id ("procedure");
-      Return_Name_Id    := Str_To_Id ("return");
+      Function_Name_Id  := Id ("function");
+      Procedure_Name_Id := Id ("procedure");
+      Return_Name_Id    := Id ("return");
    end Initialize;
 
    ------------------------------
@@ -506,7 +506,7 @@ package body XE_Parse is
    ------------------------------
 
    procedure Match_Actual_With_Formal
-     (Subprogram_Node : in Subprogram_Id)
+     (Subprogram_Node : Subprogram_Id)
    is
       Convention     : Convention_Type;
       Actual_Name    : Name_Id;
@@ -641,7 +641,7 @@ package body XE_Parse is
    -----------------------------
 
    procedure P_Aggregate_Assignment
-     (Variable_Node : in Variable_Id)
+     (Variable_Node : Variable_Id)
    is
       Expression_Name   : Name_Id;
       Expression_Node   : Variable_Id;
@@ -1187,7 +1187,7 @@ package body XE_Parse is
             Component_Node     => Component_Node);
          Set_Component_Value (Component_Node, Ada_Unit_Node);
 
-         Search_Variable (Str_To_Id ("true"), Constant_True);
+         Search_Variable (Id ("true"), Constant_True);
 
          Declare_Variable_Component
            (Variable_Node      => Partition_Node,
@@ -1431,8 +1431,8 @@ package body XE_Parse is
    ---------------------------------
 
    procedure P_Variable_List_Declaration
-     (Previous_Name : in Name_Id;
-      Previous_Sloc : in Location_Type)
+     (Previous_Name : Name_Id;
+      Previous_Sloc : Location_Type)
    is
       Previous_Node : Variable_Id;
       Variable_Name : Name_Id;
@@ -1517,7 +1517,7 @@ package body XE_Parse is
 
    procedure Parse is
    begin
-      Load_File (Configuration_File);
+      Load_File (Configuration_File_Name);
 
       P_Configuration_Declaration;
       loop
@@ -1598,8 +1598,8 @@ package body XE_Parse is
    ---------------------
 
    procedure Print_Component
-     (Node : in Component_Id;
-      Many : in Int)
+     (Node : Component_Id;
+      Many : Int)
    is
       T : Type_Id;
       N : Variable_Id;
@@ -1622,7 +1622,7 @@ package body XE_Parse is
    ----------------
 
    procedure Print_Node
-     (Node : in Node_Id)
+     (Node : Node_Id)
    is
       X, Y : Int;
       C    : Character;
@@ -1673,8 +1673,8 @@ package body XE_Parse is
    ---------------------
 
    procedure Print_Parameter
-     (Node : in Parameter_Id;
-      Many : in Int)
+     (Node : Parameter_Id;
+      Many : Int)
    is
       T : Type_Id;
       V : Variable_Id;
@@ -1697,8 +1697,8 @@ package body XE_Parse is
    ---------------------
 
    procedure Print_Statement
-     (Node : in Statement_Id;
-      Many : in Int)
+     (Node : Statement_Id;
+      Many : Int)
    is
       S : Subprogram_Id;
    begin
@@ -1714,8 +1714,8 @@ package body XE_Parse is
    ----------------------
 
    procedure Print_Subprogram
-     (Node : in Subprogram_Id;
-      Many : in Int)
+     (Node : Subprogram_Id;
+      Many : Int)
    is
       P : Parameter_Id;
    begin
@@ -1731,8 +1731,8 @@ package body XE_Parse is
    ----------------
 
    procedure Print_Type
-     (Node : in Type_Id;
-      Many : in Int)
+     (Node : Type_Id;
+      Many : Int)
    is
       C : Component_Id;
       S : Int;
@@ -1777,8 +1777,8 @@ package body XE_Parse is
    --------------------
 
    procedure Print_Variable
-     (Node : in Variable_Id;
-      Many : in Int)
+     (Node : Variable_Id;
+      Many : Int)
    is
       T : Type_Id;
       S : Int;
@@ -1895,7 +1895,7 @@ package body XE_Parse is
    ------------------------
 
    procedure Search_Declaration
-     (Declaration_Name : in Name_Id;
+     (Declaration_Name : Name_Id;
       Declaration_Node : out Node_Id)
    is
       Node : Node_Id;
@@ -1915,7 +1915,7 @@ package body XE_Parse is
    ----------------------------------------
 
    procedure Search_Function_Returned_Parameter
-     (Function_Node  : in Subprogram_Id;
+     (Function_Node  : Subprogram_Id;
       Parameter_Node : out Parameter_Id)
    is
       Prev, Next : Parameter_Id;
@@ -1937,8 +1937,8 @@ package body XE_Parse is
    -------------------------------
 
    procedure Search_Matching_Parameter
-     (Subprogram_Node : in Subprogram_Id;
-      Convention      : in Convention_Type;
+     (Subprogram_Node : Subprogram_Id;
+      Convention      : Convention_Type;
       Formal_Name     : in out Name_Id;
       Formal_Type     :    out Type_Id;
       Parameter_Node  : in out Parameter_Id) is
@@ -1989,13 +1989,13 @@ package body XE_Parse is
    -----------------------------
 
    procedure Search_Next_Declaration
-     (Declaration_Name : in Name_Id;
+     (Declaration_Name : Name_Id;
       Declaration_Node : in out Node_Id)
    is
       Node : Node_Id;
       Name : Name_Id;
    begin
-      Node := Node_Id (Declaration_Node);
+      Node := Declaration_Node;
       Next_Configuration_Declaration (Node);
       while Node /= Null_Node loop
          Name := Get_Node_Name (Node);
@@ -2144,8 +2144,8 @@ package body XE_Parse is
    -----------------------
 
    procedure Set_Node_Location
-     (Node     : in Node_Id;
-      Location : in Location_Type)
+     (Node     : Node_Id;
+      Location : Location_Type)
    is
       X, Y : Int;
    begin
@@ -2399,8 +2399,8 @@ package body XE_Parse is
    --------------------------
 
    procedure Write_Conflict_Error
-     (SLOC  : in Location_Type;
-      Name  : in Name_Id) is
+     (SLOC  : Location_Type;
+      Name  : Name_Id) is
    begin
       Write_Error_Message
         (SLOC, """", Name, """ conflicts with a previous declaration");
@@ -2411,8 +2411,8 @@ package body XE_Parse is
    -----------------------------
 
    procedure Write_Declaration_Error
-     (SLOC  : in Location_Type;
-      Name  : in Name_Id) is
+     (SLOC  : Location_Type;
+      Name  : Name_Id) is
    begin
       Write_Error_Message
         (SLOC, """", Name, """ is undefined");
@@ -2423,11 +2423,11 @@ package body XE_Parse is
    -------------------------
 
    procedure Write_Error_Message
-     (SLOC  : in Location_Type;
-      Mesg1 : in String  := "";
-      Name1 : in Name_Id := No_Name;
-      Mesg2 : in String  := "";
-      Name2 : in Name_Id := No_Name) is
+     (SLOC  : Location_Type;
+      Mesg1 : String  := "";
+      Name1 : Name_Id := No_Name;
+      Mesg2 : String  := "";
+      Name2 : Name_Id := No_Name) is
    begin
       if Fatal_Error
         or else Debug_Mode
@@ -2436,13 +2436,13 @@ package body XE_Parse is
          if Mesg1 /= "" then
             Write_Str (Mesg1);
          end if;
-         if Name1 /= No_Name then
+         if Present (Name1) then
             Write_Name (Name1);
          end if;
          if Mesg2 /= "" then
             Write_Str (Mesg2);
          end if;
-         if Name2 /= No_Name then
+         if Present (Name2) then
             Write_Name (Name2);
          end if;
          Write_Eol;
@@ -2455,8 +2455,8 @@ package body XE_Parse is
    ------------------
 
    procedure Write_Indent
-     (Many : in Int := 1;
-      Mesg : in String := "") is
+     (Many : Int := 1;
+      Mesg : String := "") is
    begin
       for I in 1 .. Many loop
          Write_Str (Indent);
@@ -2469,8 +2469,8 @@ package body XE_Parse is
    ----------------------
 
    procedure Write_Type_Error
-     (SLOC  : in Location_Type;
-      Name  : in Name_Id) is
+     (SLOC  : Location_Type;
+      Name  : Name_Id) is
    begin
       Write_Error_Message (SLOC, """", Name, """ is not the expected type");
    end Write_Type_Error;

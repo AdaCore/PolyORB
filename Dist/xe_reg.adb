@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -27,7 +27,6 @@
 ------------------------------------------------------------------------------
 
 with GNAT.Registry; use GNAT.Registry;
-with Gnatvsn;       use Gnatvsn;
 
 package body XE_Reg is
 
@@ -90,7 +89,7 @@ package body XE_Reg is
    ----------------------
 
    function Get_GNAT_Version return String is
-      GSVS : String renames Gnat_Static_Version_String;
+      GSVS : constant String := "5.03w";
    begin
       for K in GSVS'Range loop
          if GSVS (K) = ' ' then

@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2001 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -26,19 +26,21 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Types;
-with XE;
+--  This package provides routines to scan the configuration file.
+
+with XE;       use XE;
+with XE_Types; use XE_Types;
 
 package XE_Scan is
 
-   Token_Name     : Types.Name_Id;
-   Token          : XE.Token_Type;
+   Token_Name : XE_Types.Name_Id;
+   Token      : Token_Type;
 
    type Location_Type is
       record
-         Line  : Types.Int;
-         First : Types.Source_Ptr;
-         Last  : Types.Source_Ptr;
+         Line  : XE_Types.Int;
+         First : XE_Types.Text_Ptr;
+         Last  : XE_Types.Text_Ptr;
       end record;
 
    Null_Location  : constant Location_Type := (0, 0, 0);
@@ -48,22 +50,22 @@ package XE_Scan is
    procedure Initialize;
    --  Load all kind of keywords
 
-   procedure Load_File (File : in Types.File_Name_Type);
+   procedure Load_File (File : XE_Types.File_Name_Type);
    --  Load this file in a memory buffer
 
    procedure Location_To_XY
      (Where : in  Location_Type;
-      Loc_X : out Types.Int;
-      Loc_Y : out Types.Int);
+      Loc_X : out XE_Types.Int;
+      Loc_Y : out XE_Types.Int);
 
    procedure Next_Token;
    --  Find next token and update internal variables
 
-   procedure Set_Token_Location (Where : in Location_Type);
+   procedure Set_Token_Location (Where : Location_Type);
 
-   procedure Write_Location (Where : in Location_Type);
+   procedure Write_Location (Where : Location_Type);
    --  Display line and column where the error occured
 
-   procedure Write_Token (T : in XE.Token_Type);
+   procedure Write_Token (T : Token_Type);
 
 end XE_Scan;

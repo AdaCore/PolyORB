@@ -1,3 +1,76 @@
+2004-08-11  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* b_xe_defs.adb, Makefile.am, Makefile.in: do not depend on gnat
+	sources anymore.
+	Part of the work needed for CA22-003.
+
+	* xe_utils.adb, xe_utils.ads: provides several global variables,
+	routines and exceptions of general use.
+	Part of the work needed for CA22-003.
+
+	* xe_usage.adb, xe_usage.ads: Output usage.
+
+	* xe_units.adb, xe_units.ads: provides all the types and tables
+	needed to represent the configuration of the distributed system
+	like Ada units, configured units, partitions, channels, locations.
+	Part of the work needed for CA22-003.
+
+	* xe_types.adb, xe_types: provides all the basic types used in
+	gnatdist.
+	Part of the work needed for CA22-003.
+
+	* xe_stdcnf.adb, xe_stdcnf.ads: contains predefined entities
+	needed to described a configuration like types, pragmas,
+	attributes.
+	Part of the work needed for CA22-003.
+
+	* xe_sem.adb, xe_sem.ads: provides the routines to analyze the
+	consistency of configurations. Replace xe_check.
+	Part of the work needed for CA22-003.
+
+	* xe_scan.adb, xe_scan.ads: provides routines to scan the
+	configuration file. Same functions as before.
+	Part of the work needed for CA22-003.
+
+	* xe_parse.ads, xe_parse.ads: contains routines to parse the
+	configuration file. Same functions as before.
+
+	* xe_names.adb, xe_names.ads: This package contains routines to
+	handle a name table. Very close to Namet.
+	Part of the work needed for CA22-003.
+
+	* xe_list.adb, xe_list.ads: contains all the routines to parse the
+	gnatls output and to load the ALI files.
+	Part of the work needed for CA22-003.
+
+	* xe_io.adb, xe_io.ads: contains all the routines needed to handle
+	input and output operations.
+	Part of the work needed for CA22-003.
+
+	* xe_front.adb, xe_front.ads: contains all the data structures
+	needed to represent the configuration of the distributed
+	system. These structures provide the intermediate data required to
+	produce stubs, skels and automatically generated PCS packages.
+	Part of the work needed for CA22-003.
+
+	* xe_flags.ads: contains the flags available for gnatdist as well
+	as those used by gnatdist and passed to gnatmake and gnatls.
+	Part of the work needed for CA22-003.
+
+	* xe_back.adb, xe_back.ads: contains all the routines to generate
+	stubs (object files), skeleton files (object files), PCS units
+	(source and object files) and eventually executable files.
+	Part of the work needed for CA22-003.
+
+	* xe.adb, xe.ads: contains the routines used by the parser to
+	handle nodes corresponding to the configuration file. Same
+	functions as before.
+	Part of the work needed for CA22-003.
+	
+	* xe_build.adb, xe_build.ads, xe_check.adb, xe_check.ads,
+	xe_lead.adb, xe_lead.ads, xe_stubs.adb, xe_stubs.ads: Removed.
+	Part of the work needed for CA22-003.
+
 2004-07-10  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* b_xe_defs.adb, xe.adb, xe.ads, xe_back.adb, xe_back.ads,

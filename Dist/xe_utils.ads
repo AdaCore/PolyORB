@@ -8,7 +8,7 @@
 --                                                                          --
 --                            $Revision$
 --                                                                          --
---         Copyright (C) 1996-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 1995-2004 Free Software Foundation, Inc.           --
 --                                                                          --
 -- GNATDIST is  free software;  you  can redistribute  it and/or  modify it --
 -- under terms of the  GNU General Public License  as published by the Free --
@@ -26,289 +26,143 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Unchecked_Deallocation;
-with GNAT.OS_Lib;
-with Types;
-with XE;
+--  This package provides several global variables, routines and
+--  exceptions of general use.
+
+with GNAT.OS_Lib; use GNAT.OS_Lib;
+pragma Elaborate_All (GNAT.OS_Lib);
+with XE_Types;    use XE_Types;
 
 package XE_Utils is
 
-   No_Str        : constant String := "";
+   ----------------------
+   -- Global Variables --
+   ----------------------
 
-   Cfg_Suffix    : Types.File_Name_Type;
-   Obj_Suffix    : Types.File_Name_Type;
-   Exe_Suffix    : Types.File_Name_Type;
+   Root          : constant String := "dsa";
+   Cfg_Suffix    : constant String := ".cfg";
+   Obj_Suffix    : constant String := Get_Object_Suffix.all;
+   Exe_Suffix    : constant String := Get_Executable_Suffix.all;
+   ALI_Suffix    : constant String := ".ali";
+   ADB_Suffix    : constant String := ".adb";
+   ADS_Suffix    : constant String := ".ads";
+   Cfg_Suffix_Id : File_Name_Type;
+   Obj_Suffix_Id : File_Name_Type;
+   Exe_Suffix_Id : File_Name_Type;
+   ALI_Suffix_Id : File_Name_Type;
+   ADB_Suffix_Id : File_Name_Type;
+   ADS_Suffix_Id : File_Name_Type;
+   Stub_Dir_Name : File_Name_Type;
+   Skel_Dir_Name : File_Name_Type;
+   PWD_Id        : File_Name_Type;
+   Stub_Dir      : String_Access;
+   Skel_Dir      : String_Access;
+   I_Current_Dir : String_Access;
+   E_Current_Dir : String_Access;
+   I_Stub_Dir    : String_Access;
 
-   ALI_Suffix    : Types.File_Name_Type;
-   ADS_Suffix    : Types.File_Name_Type;
-   ADB_Suffix    : Types.File_Name_Type;
+   Part_Main_Src_Name : File_Name_Type;
+   Part_Main_ALI_Name : File_Name_Type;
+   Part_Main_Obj_Name : File_Name_Type;
 
-   Spec_Suffix   : Types.File_Name_Type;
-   Body_Suffix   : Types.File_Name_Type;
+   No_Args : constant Argument_List (1 .. 0) := (others => null);
 
-   DSA_Dir       : Types.File_Name_Type;
-   Caller_Dir    : Types.File_Name_Type;
-   Receiver_Dir  : Types.File_Name_Type;
+   procedure Initialize;
+   --  Initialize global variables, global flags, ...
 
-   I_Current_Dir : GNAT.OS_Lib.String_Access;
-   I_Caller_Dir  : GNAT.OS_Lib.String_Access;
+   ------------------------------
+   -- String and Name Handling --
+   ------------------------------
 
-   L_Current_Dir : GNAT.OS_Lib.String_Access;
-   L_Caller_Dir  : GNAT.OS_Lib.String_Access;
+   function Id (S : String) return Name_Id;
+   --  Add S into name table and return id.
 
-   GNATLib_Compile_Flag  : GNAT.OS_Lib.String_Access;
+   function Quote (N : Name_Id) return Name_Id;
+   --  Make a string containing N and return it as a Name_Id.
 
-   PWD_Id                : Types.File_Name_Type;
+   function "&" (L : Name_Id; R : Name_Id) return Name_Id;
+   function "&" (L : Name_Id; R : String) return Name_Id;
 
-   No_Args : constant GNAT.OS_Lib.Argument_List (1 .. 0) := (others => null);
+   function No (N : Name_Id) return Boolean;
+   function Present (N : Name_Id) return Boolean;
 
-   -- Exceptions --
+   procedure Capitalize (S : in out String);
+   function Capitalize (N : Name_Id) return Name_Id;
+   function Capitalize (S : String) return String;
+   --  Capitalize string or name id
+
+   function  To_Lower   (C : Character) return Character;
+   procedure To_Lower   (S : in out String);
+   procedure To_Lower   (N : in out Name_Id);
+   function  To_Lower   (N : Name_Id) return Name_Id;
+
+   function Name (N : Name_Id) return Name_Id;
+   --  Remove any encoded info from unit name (%s or %b)
+
+   ------------------------------------
+   -- Command Line Argument Handling --
+   ------------------------------------
+
+   procedure Scan_Dist_Arg (Argv : String);
+
+   function More_Source_Files return Boolean;
+   function Next_Main_Source return Name_Id;
+   function Number_Of_Files return Natural;
+
+   --------------------
+   -- Error Handling --
+   --------------------
 
    Fatal_Error         : exception;   --  Operating system error
    Scanning_Error      : exception;   --  Error during scanning
    Parsing_Error       : exception;   --  Error during parsing
    Matching_Error      : exception;   --  Error on overloading
    Partitioning_Error  : exception;   --  Error during partitionning
+   Compilation_Error   : exception;   --  Error during compilation
    Usage_Error         : exception;   --  Command line error
    Not_Yet_Implemented : exception;
 
-   function "&" (N1, N2 : Types.Name_Id) return Types.Name_Id;
-   function "&" (N1 : Types.Name_Id; N2 : String) return Types.Name_Id;
+   type Exit_Code_Type is
+     (E_Success,    -- No warnings or errors
+      E_Fatal);     -- Fatal (serious) error
 
-   function  GNAT_Style (N : Types.Name_Id) return Types.Name_Id;
-   --  Return a string that approx. follows GNAT style.
+   procedure Exit_Program (Code : Exit_Code_Type);
+   --  Call exit() with return code
 
-   function C   (N : Types.Name_Id) return Types.Name_Id renames GNAT_Style;
-   function C   (S : String) return Types.Name_Id;
-   procedure Change_Dir (To : in Types.File_Name_Type);
-   --  Changes the working directory of the current execution environment
+   procedure Fail (S1 : String; S2 : String := No_Str; S3 : String := No_Str);
+   --  Output an error message and exit with fatal error
 
-   procedure Compilation_Error (File : Types.File_Name_Type);
-   --  Write standard error message when GNAT cannot compile File
+   procedure Write_Missing_File (Fname : File_Name_Type);
+   --  Output an error message to indicate that Fname is missing
 
-   procedure Compile_RCI_Caller
-     (Source, Object : in Types.File_Name_Type);
-   --  Compile the caller stubs (-gnatzC).
-
-   procedure Compile_RCI_Receiver
-     (Source, Object : in Types.File_Name_Type);
-   --  Compile the receiver stubs (-gnatzR).
-
-   procedure Copy_With_File_Stamp
-     (Source, Target : in Types.File_Name_Type;
-      Maybe_Symbolic : in Boolean := False);
-   --  Copy source into target and preserves file stamps.
-
-   procedure Create
-     (File  : out GNAT.OS_Lib.File_Descriptor;
-      Name  : in Types.File_Name_Type;
-      Exec  : in Boolean := False);
-
-   procedure Create_Dir
-     (To : in Types.File_Name_Type);
-   --  Create a directory whose pathname is given in To. This
-   --  function create all the subdirectories (separated by a
-   --  Directory_Separator) one by one and then create the final
-   --  directory. So it is not required that the path to the directory
-   --  to be created exist when calling Create_Dir.
-
-   procedure Delete
-     (File : in Types.File_Name_Type);
-   --   Delete File, fail silently if the file does not exists but raise
-   --   Fatal Error if it file exists and cannot be deleted.
-
-   function Dir
-     (D1 : Types.File_Name_Type;
-      D2 : Types.File_Name_Type := Types.No_File;
-      D3 : Types.File_Name_Type := Types.No_File;
-      D4 : Types.File_Name_Type := Types.No_File)
-      return Types.File_Name_Type;
-   --  Concatenate several names and insert a directory separator between them.
+   -----------------------
+   --  Command Handling --
+   -----------------------
 
    procedure Execute
-     (Prog  : in GNAT.OS_Lib.String_Access;
-      Args  : in GNAT.OS_Lib.Argument_List;
-      Fatal : in Boolean := True);
-   --  Execute the command and raise Fatal Error if not successful
+     (Command   : String_Access;
+      Arguments : Argument_List;
+      Success   : out Boolean);
 
-   procedure Execute_Bind
-     (Lib  : in Types.File_Name_Type;
-      Args : in GNAT.OS_Lib.Argument_List;
-      Fatal : in Boolean := True);
-   --  Execute gnatbind and add gnatdist flags
+   procedure Build
+     (Library    : File_Name_Type;
+      Executable : File_Name_Type;
+      Arguments  : Argument_List;
+      Fatal      : Boolean := True);
+   --  Execute gnat make and add gnatdist link flags
 
-   procedure Execute_Gcc
-     (File   : in Types.File_Name_Type;
-      Object : in Types.File_Name_Type;
-      Args   : in GNAT.OS_Lib.Argument_List;
-      Fatal  : in Boolean := True);
-   --  Execute gcc and add gnatdist compilation flags
+   procedure Compile
+     (Source    : File_Name_Type;
+      Arguments : Argument_List;
+      Fatal     : Boolean := True);
+   --  Execute gnat compile and add gnatdist gcc flags
 
-   procedure Execute_Link
-     (Lib   : in Types.File_Name_Type;
-      Exec  : in Types.File_Name_Type;
-      Args  : in GNAT.OS_Lib.Argument_List;
-      Fatal : in Boolean := True);
-   --  Execute gnatlink and add gnatdist flags
-
-   function Find_Source
-     (Uname : Types.Unit_Name_Type;
-      Fatal : Boolean := False)
-      return Types.File_Name_Type;
-   --  Retrieve main source file of unit U.
-
-   procedure Free is
-     new Unchecked_Deallocation (String, GNAT.OS_Lib.String_Access);
-
-   Get_Conf_Suffix       : constant String := ".cfg";
-
-   procedure Initialize;
-   --  Must be called before any other calls in this package
-
-   function Is_Directory    (File : Types.File_Name_Type) return Boolean;
-   function Is_Regular_File (File : Types.File_Name_Type) return Boolean;
-   function Is_Relative_Dir (File : Types.File_Name_Type) return Boolean;
-
-   function Is_Body_Name (U : Types.Unit_Name_Type) return Boolean;
-   --  Returns True iff the given name is the unit name of a body (i.e. if
-   --  it ends with the characters %b).
-
-   function Is_Spec_Name (U : Types.Unit_Name_Type) return Boolean;
-   --  Returns True iff the given name is the unit name of a spec (i.e. if
-   --  it ends with the characters %s).
-
-   function To_Spec (U : Types.Unit_Name_Type) return Types.Unit_Name_Type;
-   --  Returns the unit name of a spec from a given name (i.e. it ends
-   --  with the characters %s).
-
-   function Quote
-     (N : Types.Name_Id)
-     return Types.Name_Id;
-   --  Make a string containing N and return it as a Name_Id.
-
-   function Split_String
-     (N : Types.Name_Id;
-      I : Natural  := 0;
-      S : Positive := 64)
-     return Types.Name_Id;
-   --  If N is not a string, return N. Otherwise, split the string in
-   --  several chunks of size lesser than S. For each chunk add I
-   --  indentations of 3 spaces.
-
-   procedure Remove_GNAT_Flag (Flag : in String);
-   --  Remove from command line any gnat flag beginning with string
-   --  Flag.
-
-   procedure Source_File_Error (Uname : Types.Unit_Name_Type);
-   --  Write standard error message when we cannot find a source file
-   --  for a given unit.
-
-   function Stamp (F : Types.File_Name_Type) return String;
-
-   function Str_To_Id (S : String) return Types.Name_Id;
-   --  Set into name table and return id.
-
-   function Strlen (Name : in Types.Name_Id) return Natural;
-
-   function  To_Lower   (C : Character) return Character;
-   procedure To_Lower   (S : in out String);
-   procedure To_Lower   (N : in out Types.Name_Id);
-   function  To_Lower   (N : Types.Name_Id) return Types.Name_Id;
-
-   function U_To_N
-     (U : in Types.Unit_Name_Type)
-      return Types.Name_Id;
-   --  Strip %[bs] from U.
-
-   function System_Tasking_Child (N : Types.Name_Id) return Boolean;
-
-   procedure Message
-     (S1 : in String        := "";
-      S2 : in Types.Name_Id := Types.No_Name;
-      S3 : in String        := "";
-      S4 : in Types.Name_Id := Types.No_Name;
-      S5 : in String        := "");
-   --  Display a message to the standard output. The message is the
-   --  concatenation of S1 to S5. Parameters with default values are not
-   --  displayed.
-
-   procedure Write_Compile_Command (Name : in Types.File_Name_Type);
-   --  Generates on standard-out the command needed to compile
-   --  a sub-tree from a given package.
-
-   procedure Write_Eol
-     (File   : in GNAT.OS_Lib.File_Descriptor;
-      Stdout : in Boolean := False);
-
-   procedure Write_File_Stamp
-     (File : in Types.File_Name_Type);
-
-   procedure Write_Missing_File
-     (File  : in Types.File_Name_Type);
-
-   procedure Write_Name
-     (File   : in GNAT.OS_Lib.File_Descriptor;
-      Name   : in Types.File_Name_Type;
-      Stdout : in Boolean := False);
-
-   procedure Write_Stamp_Comparison
-     (Newer, Older   : in Types.File_Name_Type);
-
-   procedure Write_Str
-     (File   : in GNAT.OS_Lib.File_Descriptor;
-      Line   : in String;
-      Stdout : in Boolean := False);
-
-   procedure Write_Unit_Name
-     (U : in Types.Unit_Name_Type);
-
-   procedure Dwrite_Call
-     (File   : in GNAT.OS_Lib.File_Descriptor;
-      Ind    : in Natural;
-      S1     : in String;
-      N1     : in Types.Name_Id := Types.No_Name;
-      S2     : in String        := No_Str;
-      N2     : in Types.Name_Id := Types.No_Name;
-      S3     : in String        := No_Str;
-      N3     : in Types.Name_Id := Types.No_Name);
-   --  Insert a procedure call. The first non-null parameter
-   --  is supposed to be the procedure name. The next parameters
-   --  are parameters for this procedure call.
-
-   procedure Dwrite_Eol
-     (File   : in GNAT.OS_Lib.File_Descriptor;
-      Stdout : in Boolean := XE.Building_Script)
-     renames Write_Eol;
-   --  Changed default parameter.
-
-   procedure Dwrite_Line
-     (File : in GNAT.OS_Lib.File_Descriptor;
-      Ind  : in Types.Int;
-      S1   : in String;
-      N1   : in Types.Name_Id := Types.No_Name;
-      S2   : in String        := No_Str;
-      N2   : in Types.Name_Id := Types.No_Name;
-      S3   : in String        := No_Str;
-      N3   : in Types.Name_Id := Types.No_Name);
-
-   procedure Dwrite_Name
-     (File   : in GNAT.OS_Lib.File_Descriptor;
-      Name   : in Types.Name_Id;
-      Stdout : in Boolean := XE.Building_Script)
-     renames Write_Name;
-   --  Changed default parameter.
-
-   procedure Dwrite_Str
-     (File   : in GNAT.OS_Lib.File_Descriptor;
-      Line   : in String;
-      Stdout : in Boolean := XE.Building_Script)
-     renames Write_Str;
-   --  Changed default parameter.
-
-   procedure Dwrite_With_Clause
-     (File : in GNAT.OS_Lib.File_Descriptor;
-      Used : in Boolean;
-      Unit : in Types.Name_Id);
-   --  Add a with clause and possibly a use clause as well.
+   procedure List
+     (Source    : File_Name_Type;
+      Arguments : Argument_List;
+      Output    : out File_Name_Type;
+      Fatal     : Boolean := True);
+   --  List source info into Output and raise Fatal Error if not
+   --  successful. The user has to close Output afterwards.
 
 end XE_Utils;
