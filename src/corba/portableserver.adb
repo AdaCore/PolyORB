@@ -44,9 +44,7 @@ pragma Elaborate_All (PolyORB.Initialization); --  WAG:3.15
 with PolyORB.Log;
 with PolyORB.Requests;
 with PolyORB.Objects.Interface;
-with PolyORB.POA_Types;
 with PolyORB.Tasking.Mutexes;
-with PolyORB.Types;
 with PolyORB.Utils.Chained_Lists;
 with PolyORB.Utils.Strings;
 
@@ -223,20 +221,9 @@ package body PortableServer is
 
    function String_To_ObjectId
      (Id : String)
-     return ObjectId
-   is
-      use PolyORB.POA_Types;
-
-      U_OID : constant Unmarshalled_Oid
-        := Create_Id
-        (Name             => PolyORB.Types.To_PolyORB_String (Id),
-         System_Generated => False,
-         Persistency_Flag => 0,
-         Creator          => PolyORB.Types.To_PolyORB_String (""));
-
-      OID : constant Object_Id := U_Oid_To_Oid (U_OID);
+     return ObjectId is
    begin
-      return ObjectId (OID);
+      return ObjectId (PolyORB.Objects.To_Oid (Id));
    end String_To_ObjectId;
 
    ------------------------
@@ -245,11 +232,9 @@ package body PortableServer is
 
    function ObjectId_To_String
      (Id : ObjectId)
-     return String
-   is
-      use PolyORB.POA_Types;
+     return String is
    begin
-      return PolyORB.Types.To_String (Get_Name (Object_Id (Id)));
+      return PolyORB.Objects.To_String (PolyORB.Objects.Object_Id (Id));
    end ObjectId_To_String;
 
    -----------------
