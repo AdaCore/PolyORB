@@ -502,6 +502,8 @@ src/polyorb-poa_policies-request_processing_policy-active_object_map_only.ads
 src/polyorb-poa_policies-request_processing_policy-use_default_servant.adb
 src/polyorb-poa_policies-request_processing_policy-use_default_servant.ads
 src/polyorb-poa_policies-request_processing_policy.ads
+src/polyorb-poa_policies-servant_retention_policy-non_retain.adb
+src/polyorb-poa_policies-servant_retention_policy-non_retain.ads
 src/polyorb-poa_policies-servant_retention_policy-retain.adb
 src/polyorb-poa_policies-servant_retention_policy-retain.ads
 src/polyorb-poa_policies-servant_retention_policy.ads
