@@ -22,6 +22,7 @@ module Nodes {
 
   interface Identifier : Node_Id {
     Name_Id    Name;
+    Name_Id    Display_Name;
   };
 
   interface Identifiers_List : List_Id { };

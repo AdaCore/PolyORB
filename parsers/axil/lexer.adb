@@ -11,28 +11,26 @@ package body Lexer is
 
    use ASCII;
 
-   Buffer           : Text_Buffer_Ptr;
+   Buffer              : Text_Buffer_Ptr;
    --  Once preprocessed, the idl file is loaded in Buffer and
    --  Token_Location.Scan is used to scan the source file.
 
-   AADL_Name_Buffer : String (1 .. 1024);
+   Display_Name_Buffer : String (1 .. 1024);
    --  This buffer is used to store temporarily an AADL identifier
 
-   AADL_Name_Len    : Natural;
+   Display_Name_Len    : Natural;
    --  Length of name stored in AADL_Name_Buffer
 
-   Display_Error    : constant Boolean := True;
+   Display_Error      : constant Boolean := True;
    pragma Unreferenced (Display_Error);
 
-   Token_Image      : array (Token_Type) of Name_Id;
+   Token_Image        : array (Token_Type) of Name_Id;
 
    procedure New_Line;
    --  Increment the line number and save the current position in the
    --  buffer in order to compute later on the column number.
 
-   procedure New_Token
-     (Token : Token_Type;
-      Image : String);
+   procedure New_Token (Token : Token_Type; Image : String);
    --  Compute token image and store it in Token_Image table.
    --  When Token is a reserved word, embrace its image between
    --  double quotes. Enter the lower-case form of a reserved word
@@ -133,7 +131,7 @@ package body Lexer is
             return "[ERROR]";
 
          when T_Identifier =>
-            return "<" & Get_Name_String (Token_Name) & ">";
+            return "<" & Get_Name_String (Display_Name) & ">";
 
          when T_Quotation_Mark .. T_End_Annex =>
             return "'" & Image (Token) & "'";
@@ -574,7 +572,6 @@ package body Lexer is
 
    procedure Scan_Identifier is
       B            : Byte;
-      AADL_Name_Id : Name_Id;
 
    begin
       --  The first character of identifier is an alphabetic character.
@@ -584,16 +581,17 @@ package body Lexer is
       Name_Len := 0;   --  initialize string buffer
       Add_Char_To_Name_Buffer (To_Lower (Buffer (Token_Location.Scan)));
 
-      AADL_Name_Len := 1;
-      AADL_Name_Buffer (AADL_Name_Len) := Buffer (Token_Location.Scan);
+      Display_Name_Len := 1;
+      Display_Name_Buffer (Display_Name_Len) := Buffer (Token_Location.Scan);
 
       Token_Location.Scan := Token_Location.Scan + 1;
 
       while Is_Identifier_Character (Buffer (Token_Location.Scan)) loop
          Add_Char_To_Name_Buffer (To_Lower (Buffer (Token_Location.Scan)));
 
-         AADL_Name_Len := AADL_Name_Len + 1;
-         AADL_Name_Buffer (AADL_Name_Len) := Buffer (Token_Location.Scan);
+         Display_Name_Len := Display_Name_Len + 1;
+         Display_Name_Buffer (Display_Name_Len) :=
+           Buffer (Token_Location.Scan);
 
          Token_Location.Scan := Token_Location.Scan + 1;
       end loop;
@@ -605,22 +603,16 @@ package body Lexer is
       B := Get_Name_Table_Byte (Name_Find);
       if B in First_Reserved_Word_Pos .. Last_Reserved_Word_Pos then
          Token := Token_Type'Val (B);
-         --  Identifier_Name is not necessairy here
+         --  Token_Name is not necessairy here
       else
          Token := T_Identifier;
 
-         if Get_Name_Table_Info (Token_Name) = 0 then
-            --  It is the FIRST time identifier is defined
-            --  Add its display string with case-sensitive
-
-            Name_Len := 0;
-            for I in 1 .. AADL_Name_Len loop
-               Add_Char_To_Name_Buffer (AADL_Name_Buffer (I));
-            end loop;
-            AADL_Name_Id := Name_Find;
-
-            Set_Name_Table_Info (Token_Name, Int (AADL_Name_Id));
-         end if;
+         --  Add identifier display string with case-sensitive
+         Name_Len := 0;
+         for I in 1 .. Display_Name_Len loop
+            Add_Char_To_Name_Buffer (Display_Name_Buffer (I));
+         end loop;
+         Display_Name := Name_Find;
       end if;
    end Scan_Identifier;
 

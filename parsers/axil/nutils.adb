@@ -1,3 +1,5 @@
+with Lexer;
+
 package body Nutils is
 
    -------------------------
@@ -42,6 +44,36 @@ package body Nutils is
    begin
       return L = No_List or else No (First_Node (L));
    end Is_Empty;
+
+   -----------------------------
+   -- Make_Current_Identifier --
+   -----------------------------
+
+   function Make_Current_Identifier return Node_Id
+   is
+      Node : constant Node_Id := New_Node (K_Identifier, Lexer.Token_Location);
+
+   begin
+      Set_Name (Node, Lexer.Token_Name);
+      Set_Display_Name (Node, Lexer.Display_Name);
+      return Node;
+   end Make_Current_Identifier;
+
+   ---------------------
+   -- Make_Identifier --
+   ---------------------
+
+   function Make_Identifier (Loc          : Location;
+                             Name         : Name_Id;
+                             Display_Name : Name_Id) return Node_Id
+   is
+      Node : constant Node_Id := New_Node (K_Identifier, Loc);
+
+   begin
+      Set_Name (Node, Name);
+      Set_Display_Name (Node, Display_Name);
+      return Node;
+   end Make_Identifier;
 
    --------------
    -- New_Copy --

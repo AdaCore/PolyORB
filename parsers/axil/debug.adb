@@ -130,9 +130,7 @@ package body Debug is
             Write_Eol;
 
          when K_Identifier =>
-            Str := Name (N);
-            Str := Name_Id (Get_Name_Table_Info (Str));
-            Write_Str (Get_Name_String (Str));
+            Write_Name (Display_Name (N));
 
          when K_AADL_Specification =>
             W_Indents;

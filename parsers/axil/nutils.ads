@@ -23,6 +23,14 @@ package Nutils is
    function New_List (Kind : Node_Kind; Loc : Location) return List_Id;
    --  Create a new list
 
-   function New_Copy (N : Node_Id)   return Node_Id;
+   function New_Copy (N : Node_Id) return Node_Id;
+
+   function Make_Current_Identifier return Node_Id;
+   --  Make an identifier from current token
+
+   function Make_Identifier (Loc          : Location;
+                             Name         : Name_Id;
+                             Display_Name : Name_Id) return Node_Id;
+   --  Make an identifier
 
 end Nutils;

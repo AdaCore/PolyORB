@@ -369,8 +369,7 @@ package body Parser is
       Save_Lexer (Loc);
       Scan_Token;
       if Token = T_Identifier then
-         Ident := New_Node (K_Identifier, Token_Location);
-         Set_Name (Ident, Token_Name);
+         Ident := Make_Current_Identifier;
          Save_Lexer (Loc);
          Scan_Token;
 
@@ -669,8 +668,7 @@ package body Parser is
          Save_Lexer (Loc);
          Scan_Token;
          if Token = T_Identifier then
-            Identifier := New_Node (K_Identifier, Token_Location);
-            Set_Name (Identifier, Token_Name);
+            Identifier := Make_Current_Identifier;
             Append_Node_To_List (Identifier, Identifiers);
          else
             DPE (PC_Identifiers);
