@@ -1,0 +1,131 @@
+%% Proposition de sujet de stage de DEA.
+%% $Id$
+
+\documentclass[a4paper,10pt]{article}
+\usepackage[french]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{url}
+
+\author{
+  Laurent \textsc{Pautet}, \texttt{Laurent.Pautet@enst.fr}\\
+  Jérôme \textsc{Hugues}, \texttt{Jerome.Hugues@enst.fr}\\
+}
+
+\title{Conception et mise en {\oe}uvre du service de notification de CORBA
+pour PolyORB}
+
+\date{\today{}}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction}
+
+L'interconnexion des machines se généralisant, le champ d'application
+de la répartition s'élargit. Son développement intense dans des
+domaines applicatifs aussi variés que le temps réel ou l'Internet
+amplifie le besoin en de nouveaux modèles de répartition tels que ceux
+de CORBA (Common Object Request Broker Architecture) \cite{corba}, les
+services Web au travers de SOAP (Simple Object Access Protocol)
+\cite{soap} ou encore les intergiciels orientés messages (MOM) tels
+que JMS \cite{jms}. Ces modèles de répartition s'articulent autour de
+mécanismes de répartition tels que l'envoi de messages, les
+sous-programmes distants ou encore les objets répartis.
+
+Une barrière technologique s'oppose à l'émergence, l'extension ou la
+spécialisation de ces modèles de répartition~: la capacité de
+développement d'intergiciels, ou \textit{middlewares}, répondant
+efficacement aux contraintes de l'application et aux besoins du
+modèle. Une approche consiste à produire des intergiciels génériques
+comme {\tt Jonathan} \cite{dumant98jonathan} dont l'instanciation en
+fonction d'un modèle de répartition donne lieu à une
+personnalité. Cependant, le travail de personnalisation peut s'avérer
+fort coûteux. Il rentre parfois également en conflit avec la
+possibilité d'aborder des problèmatiques de systèmes embarqués ou
+temps réel en raison d'une faible configurablité.
+
+Dans le domaine des intergiciels, l'interopérabilité entre des modèles
+de répartition prend une dimension toute particulière. En effet,
+l'hétérogénéité peut apparaître à différents niveaux~: architectures
+matérielles, langages de programmation mais également les modèles de
+répartition. Cette problématique industrielle émergente, résumée par
+le concept de {\it M2M} pour {\it Middleware To Middleware}
+\cite{baker01m2m}, est rendue essentielle par la réutilisation de
+composants préexistants ; elle ne doit pas être limitée en raison du
+modèle de répartition choisi.
+
+\section*{Contexte}     
+
+Nous avons introduit le concept novateur de \textit{schizophrénie}
+dans le domaine des intergiciels afin de résoudre le problème
+d'interopérabilité entre les modèles de répartition         
+\cite{pautet01hdr}. Un intergiciel schizophrène généralise un
+intergiciel générique en permettant d'instancier plusieurs
+personnalités cohabitantes et interagissantes.
+
+La plate-forme que nous avons réalisée, PolyORB
+\cite{pautet01architecture}, découple la partie applicative de la partie
+protocolaire grâce à une couche neutre du point de vue du modèle de
+répartition. Techniquement, cette couche neutre, bâtie autour de
+gabarits de conception ou \textit{design patterns}
+\cite{gamma94design}, généralise les mécanismes d'invocation et
+d'implémentation dynamique d'interfaces présents dans {\tt
+CORBA}. Elle fournit automatiquement un mécanisme de passerelle sur
+chacune des plates-formes PolyORB. Par ailleurs, la schizophrénie se
+caractérise par une forte configurabilité particulièrement adaptée aux
+systèmes embarqués et temps réel.
+
+Nous distribuons PolyORB sous forme de logiciel libre         
+\footnote{\url{http://libre.act-europe.fr}}. Il propose plusieurs
+personnalités applicatives implémentant les mécanismes de {\tt CORBA},
+de l'annexe des systèmes répartis de Ada, et d'un MOM, et les
+personnalités protocolaires {\tt GIOP} (utilisé par {\tt CORBA}) et {\tt
+SOAP}. Ayant développé {\tt AdaBroker}, un environnement libre {\tt
+CORBA} pour Ada~95, nous avons comparé ses performances à celles de la
+personnalité {\tt CORBA} de PolyORB sans aucune optimisation. Nous
+avons ainsi montré que le surcoût de la schizophrénie s'évalue à 10\%
+du temps d'exécution pour un client et 5\% pour un serveur. La
+factorisation des composants dans la couche neutre permet de montrer
+que 66\% de la personnalité {\tt CORBA} se compose du code partagé par
+les autres instanciations, comparé à moins de 40\% pour d'autres
+intergiciels personnalisables.
+                
+\section*{Travail à réaliser}
+
+PolyORB ne dispose actuellement que du service d'événement de CORBA
+COS Events. Nous souhaitons traiter plus finement de la problématique
+temps réel et notamment en fournissant un service étendu de la gestion
+d'évenement. Celle-ci est abordée dans CORBA par l'intermédiaire du
+service de notification. Le travail consiste donc à étudier ce service
+de gestion d'événements enrichi et à proposer une mise en oeuvre
+configurable dans le cadre du projet PolyORB.
+
+Le travail demandera à prendre en compte soigneusement les aspects
+temps réel de cette spécification. Notamment certaines remises en
+cause de l'architecture actuelle de PolyORB seront appréciées afin
+d'enrichir cet intergiciel configurable et générique de
+caractéristiques temps réel. Le travail devra s'accompagner de tests
+démontrant la validité du travail.
+
+\bibliographystyle{plain}
+\bibliography{biblio}
+
+\section*{Informations administratives}                  
+
+\begin{itemize}
+\item Responsables du stage~:
+\begin{itemize}
+\item L. Pautet, Mail : Laurent.Pautet@enst.fr                 
+\end{itemize}
+\item Encadrants du stage~:
+\begin{itemize}
+\item L. Pautet, Mail: Laurent.Pautet@enst.fr
+\item J. Hugues, Mail : Jérôme.Hugues@enst.fr                 
+\end{itemize}
+\item Lieu du stage~: ENST - 46, rue Barrault - 75013 Paris
+\item Rémunération : 800E/mois - quatre mois                      
+\end{itemize}
+\end{document}
+

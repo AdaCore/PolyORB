@@ -1,0 +1,152 @@
+%% Proposition de sujet de stage de DEA.
+%% $Id$
+
+\documentclass[a4paper,10pt]{article}
+\usepackage[french]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{url}
+
+\author{
+  Laurent \textsc{Pautet}, \texttt{Laurent.Pautet@enst.fr} \\
+   Mejdi \textsc{Kaddour}, \texttt{Mejdi.Kaddour@enst.fr}
+}
+
+\title{Extension des Mécanismes de Configuration d'un Intergiciel Mobile Orienté Messages }
+
+\date{\today{}}
+
+\begin{document}
+\maketitle
+\section*{Introduction}
+
+Les technologies mobiles ont vu récemment l'émergence de
+différents types de réseaux sans fil et l'apparition de terminaux
+de plus en plus performants, capables d'accompagner l'utilisateur
+dans tous ses déplacements et dotés de capacités de communication.
+Ces avancées permettront la conception de nouveaux types
+d'applications caractérisées notamment par l'accès dynamique aux
+ressources et aux services disponibles dans le voisinage physique
+et par la collaboration impromptue entre plusieurs terminaux.
+Toutefois, dans ce domaine en pleine effervescence, les solutions
+proposées jusqu'à maintenant n'ont pas encore atteint la maturité
+nécessaire, car les problématiques rencontrées dans les
+environnements fixes traditionnels prennent une autre dimension
+dans les environnements mobiles. La difficulté essentielle réside
+dans la nature physique des réseaux sans fil caractérisés par une
+bande passante limitée et variable, ainsi que des déconnexions
+fréquentes. D'autre part, les terminaux mobiles possèdent des
+capacités limitées en terme de mémoire et de puissance de calcul,
+et la durée de vie de leurs batteries est assez limitée.
+
+Dans ce contexte, les intergiciels, ou \textit{middleware}, seront
+appelés à jouer un rôle primordial dans les plates-formes du
+futur. A coté des fonctions traditionnelles qu'ils assurent
+(invocation transparente des méthodes, synchronisation,
+localisation des services...), ils doivent évoluer pour prendre en
+compte de nouveaux besoins et exigences, comme la découverte de
+services, l'adaptation à la variabilité de l'environnement ou le
+partage des données et des tâches. Malgré quelques extensions
+récentes, les standards actuels (CORBA, Java/RMI), de par leur
+manque de souplesse et d'ouverture, restent encore mal adaptés à
+l'environnement mobile.
+
+\section*{Contexte}
+Les intergiciels orientés message (MOM) sont depuis longtemps
+utilisés pour la transmission faible de données d'un système vers
+un autre. Les MOMs adoptent un paradigme de communication
+asynchrone, basé sur l'envoi de message, permettant ainsi le
+découplage entre les activités de chaque partie communicante.
+L'établissement de la communication ne nécessite pas la
+disponibilité simultanée des parties communicantes. Ces propriétés
+naturelles des MOMs fournissent une réponse à quelques unes des
+problématiques des environnements mobiles. Le passage de message
+asynchrone et le fort degré de découplage permettent justement de
+mieux gérer les problèmes des déconnexions réseau fréquentes et de
+la mobilité des terminaux.
+
+Dans cet esprit, nous concevons et développons un MOM dédié aux
+environnements mobiles. Ce MOM est développé dans le soucis
+d'optimiser l'utilisation des ressources physiques ainsi que
+d'accroître la vitesse d'exécution. Par ailleurs, des modules
+conçus spécifiquement pour l'environnement mobile seront
+incorporés pour améliorer et enrichir les fonctionnalités du MOM
+comme le stockage temporaire des messages en cas d'absence de
+connexion (store and forward), la gestion transparente de la
+mobilité du terminal ou encore l'adaptation à la bande passante
+réseau variable. Ce MOM respecte la spécification JMS de
+Sun~\cite{hapner} et se base sur le noyau de l'intergiciel
+Jonathan\cite{jona}, plate-forme générique d'objets répartis se
+caractérisant par son ouverture et sa souplesse. Jonathan définit
+un ensemble d'abstractions et de composants de base qui servent à
+concevoir des personnalités spécifiques. La personnalité est l'
+interface normalisée que fournit la plate-forme aux applications,
+elle est construite à partir de la spécialisation et
+l'enrichissement des composants de base. Par exemple, CORBA et
+Java/RMI constituent deux personnalités spécifiques.
+
+\section*{Travail à réaliser}
+Jonathan inclut une infrastructure nommée KILIM~\cite{kilim} qui
+permet la configuration de ses différents composants (protocoles
+de communication, gestionnaires des ressources, ordonnanceurs,
+etc.). Cette configuration est la représentation symbolique des
+différents composants et de leur assemblage. La modification de
+cette configuration permet de modifier le contenu et la structure
+de la plate-forme et donc son comportement pour répondre à des
+besoins spécifiques. Cependant, la configuration adoptée reste
+statique dans le sens où elle se fait uniquement lors du démarrage
+de la plate-forme et ne peut être modifiée en cours d'exécution.
+
+Nous souhaitons d'une part, utiliser ces mécanismes pour permettre
+la configuration des composants JMS, et d'autre part étendre les
+possibilités actuelles pour pouvoir reconfigurer dynamiquement
+certains des comportements du MOM afin de l'adapter aux conditions
+variables de l'environnement.
+
+
+\section*{Informations administratives}
+\begin{itemize}
+\item Responsable du stage~:
+\begin{itemize}
+\item L. Pautet, Mail : Laurent.Pautet@enst.fr
+\end{itemize}
+\item Encadrants du stage~:
+\begin{itemize}
+\item L. Pautet, Mail: Laurent.Pautet@enst.fr
+\item M. Kaddour, Mail: Mejdi.Kaddour@enst.fr
+\end{itemize}
+\item Lieu du stage~: ENST - 46, rue Barrault - 75013 Paris
+\item Rémunération : 850E/mois - pour six mois
+\end{itemize}
+
+
+\begin{thebibliography}{9}
+
+\bibitem{jona} B. Dumant, F. Dang Tran, F. Horn, and J.-B. Stefani. Jonathan: an
+open distributed processing environment in java. In N. Davies, K.
+Raymond, and J. Seitz, editors, Middleware'98: IFIP International
+Conference on Distributed Systems Platforms and Open Distributed
+Processing, The Lake District, U.K., September 1998.
+
+\bibitem{hapner}M. Hapner et al. Java Message Service specification 1.1. Technical
+Report. Sun Microsystems. April, 2002
+
+\bibitem{joseph}A. D. JOSEPH  and M. F. KAASHOEK. Building reliable mobile-aware
+applications using the Rover toolkit. Wireless Networks 3, 5,
+405-419. 1997
+
+\bibitem{kilim} http://www.objectweb.org/kilim/index.html.
+
+\bibitem{kon}F. Kon, M. Roman, P. Liu, J. Mao, T. Yamane, L. M. aes, and R.
+Cambpell. Monitoring, Security, and Dynamic Configuration with the
+dynamicTAO Reflective ORB. In International Conference on
+Distributed Systems Platforms and Open Distributed Processing
+(Middleware'2000), pages 121-143, New York, Apr. 2000. ACM/IFIP.
+
+
+\bibitem{maffeis}S. Maffeis. CTO, Softwired AG. An introduction to Wireless JMS.
+www.softwired-inc.com. 2001
+
+
+\end{thebibliography}
+\end{document}

@@ -1,0 +1,169 @@
+% Index
+\newcommand{\I}[1]{\textbf{#1}\index{#1}}
+\newcommand{\A}[1]{\texttt{'#1}}
+
+% Mots avec oe
+\newcommand{\oeuvre}{{\oe}uvre\xspace}
+\newcommand{\coeur}{c{\oe}ur\xspace}
+\newcommand{\noeud}{n{\oe}ud\xspace}
+\newcommand{\noeuds}{n{\oe}uds\xspace}
+
+% Utils
+\renewcommand{\labelitemi}{$\bullet$}
+\renewcommand{\labelitemii}{$\diamond$}
+
+\newcommand{\G}[1]{\textit{#1}}
+% \newcommand{\CITE}{[\texttt{??}]}
+\newcommand{\T}[1]{\texttt{#1}}
+\newcommand{\SkipLine}[0]{\ \\}
+\newcommand{\CIAO}[1]{CIAO::#1}
+\newcommand{\Eng}[1]{\textit{#1}}
+
+% Mots longs
+\newcommand{\ub}{uni\-té de bi\-blio\-thè\-que}
+\newcommand{\ubs}{uni\-tés de bi\-blio\-thè\-que}
+\newcommand{\syscom}{sys\-tème de com\-mu\-ni\-ca\-tion}
+\newcommand{\syscoms}{sys\-tèmes de com\-mu\-ni\-ca\-tion}
+\newcommand{\te}{\Eng{Tran\-sport\_\-End\_\-Point}}
+\newcommand{\tap}{\Eng{Tran\-sport\_\-Ac\-cess\_\-Point}}
+\newcommand{\aes}{\Eng{Asyn\-chro\-nous\_\-Event\_\-Source}}
+
+% Outils
+\newcommand{\Tool}[1]{\texttt{#1}\xspace{}}
+\newcommand{\gcc}{\Tool{GCC}}
+\newcommand{\garlic}{\Tool{GAR\-LIC}}
+\newcommand{\gnatgcc}{\Tool{GNAT}}
+\newcommand{\gnatdist}{\Tool{GNAT\-DIST}}
+\newcommand{\idlac}{\Tool{IDLAC}}
+\newcommand{\broca}{\Tool{BRO\-CA}}
+
+% Modèles, langages et concepts
+\newcommand{\Concept}[1]{#1\xspace}
+\newcommand{\www}{\Concept{WWW}}
+\newcommand{\web}{\Concept{Web}}
+\newcommand{\asis}{\Concept{ASIS}}
+\newcommand{\corba}{\Concept{COR\-BA}}
+\newcommand{\dsa}{\Concept{DSA}}
+\newcommand{\aop}{\Concept{AOP}}
+\newcommand{\soap}{\Concept{SOAP}}
+\newcommand{\mom}{\Concept{MOM}}
+\newcommand{\rmi}{\Concept{RMI}}
+\newcommand{\mpi}{\Concept{MPI}}
+\newcommand{\ada}{\Concept{Ada~95}}
+\newcommand{\corbascript}{\Concept{CorbaScript}}
+\newcommand{\oldada}{\Concept{Ada~83}}
+\newcommand{\java}{\Concept{Java}}
+\newcommand{\cpp}{\Concept{\mbox{C++}}}
+\newcommand{\hpcpp}{\Concept{\mbox{HPC++}}}
+
+% Projets
+\newcommand{\Project}[1]{\textsf{#1}\xspace{}}
+\newcommand{\corbaweb}{\Project{CorbaWeb}}
+\newcommand{\polyorb}{\Project{Po\-ly\-ORB}}
+\newcommand{\adabroker}{\Project{Ada\-Bro\-ker}}
+\newcommand{\glade}{\Project{GLADE}}
+\newcommand{\gnat}{\Project{GNAT}}
+\newcommand{\ciao}{\Project{CIAO}}
+\newcommand{\omniorb}{\Project{omni\-ORB}}
+\newcommand{\tao}{\Project{TAO}}
+\newcommand{\openorb}{\Project{OpenORB}}
+\newcommand{\xk}{\Project{$x$-Ker\-nel}}
+\newcommand{\jon}{\Project{Jo\-na\-than}}
+\newcommand{\act}{\Project{ACT}}
+\newcommand{\jxa}{\Project{JxA}}
+\newcommand{\adept}{\Project{ADEPT}}
+\newcommand{\qw}{\Project{Quar\-ter\-Ware}}
+\newcommand{\spring}{\Project{Spring}}
+\newcommand{\gnack}{\Project{GNACK}}
+\newcommand{\orbit}{\Project{ORBit}}
+
+% Pragmas
+\newcommand{\rci}{\texttt{Re\-mote\_\-Call\_\-Inter\-face}\xspace}
+\newcommand{\acr}{\texttt{All\_\-Calls\_\-Re\-mote}\xspace}
+\newcommand{\shp}{\texttt{Sha\-red\_\-Pas\-sive}\xspace}
+\newcommand{\pure}{\texttt{Pure}\xspace}
+\newcommand{\rt}{\texttt{Re\-mote\_\-Types}\xspace}
+\newcommand{\asyn}{\texttt{Asyn\-chro\-nous}\xspace}
+
+% Ada Keywords
+\newcommand{\AT}        [0]{\ \ \ }
+\newcommand{\AC}        [1]{-{}-\ \ \textit{#1}}
+\newcommand{\Aaccess}   [0]{\textbf{access}}
+\newcommand{\Aaliased}  [0]{\textbf{aliased}}
+\newcommand{\Aall}      [0]{\textbf{all}}
+\newcommand{\Aend}      [0]{\textbf{end}}
+\newcommand{\Afunction} [0]{\textbf{function}}
+\newcommand{\Ais}       [0]{\textbf{is}}
+\newcommand{\Ain}       [0]{\textbf{in}}
+\newcommand{\Aout}      [0]{\textbf{out}}
+\newcommand{\Ainout}    [0]{\textbf{inout}}
+\newcommand{\Alimited}  [0]{\textbf{limited}}
+\newcommand{\Anew}      [0]{\textbf{new}}
+\newcommand{\Aprocedure}[0]{\textbf{procedure}}
+\newcommand{\Aprivate}  [0]{\textbf{private}}
+\newcommand{\Arecord}   [0]{\textbf{record}}
+\newcommand{\Areturn}   [0]{\textbf{return}}
+\newcommand{\Atype}     [0]{\textbf{type}}
+
+\newcommand{\onefig}[4]{%
+  \begin{figure}[thbp]
+    \centerline{\epsfig{file=#1.eps,width=#4\textwidth}}
+    \caption{#2}
+    \label{#3}
+  \end{figure}
+}
+
+\newcommand{\onehalffig}[3]{%
+  \begin{figure}[thbp]
+    \centerline{\epsfig{file=#1.eps,width=.45\textwidth}}
+    \caption{#2}
+    \label{#3}
+  \end{figure}
+}
+
+\newcommand{\onefullfig}[3]{%
+  \begin{figure}[thbp]
+    \centerline{\epsfig{file=#1.eps,width=.9\textwidth}}
+    \caption{#2}
+    \label{#3}
+  \end{figure}
+}
+
+\newcounter{xerulecptr}
+\newenvironment{xerule}%
+ {\vspace{1em}\refstepcounter{xerulecptr}\itshape\noindent Proposition
+P\thexerulecptr :}%
+ {\vspace{1em}}%
+
+\newcommand{\R}[1]{P\ref{#1}}
+
+\newcommand{\twohalvesfig}[7]{%
+  \begin{figure}[thbp]
+  \subfigure[#2]{\epsfig{file=#1.eps,width=.45\textwidth} \label{#3}}
+  \hfill
+  \subfigure[#5]{\epsfig{file=#4.eps,width=.45\textwidth} \label{#6}}
+  \caption{#7}
+  \end{figure}
+}
+
+\newcommand{\twofullfig}[6]{%
+  \begin{figure}
+    \begin{minipage}[thbp]{.45\textwidth}
+      \centering
+      \epsfig{file=#1.eps,width=.9\textwidth}
+      \caption{#2\label{#3}}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[thbp]{.45\textwidth}
+      \centering
+      \epsfig{file=#4.eps,width=.9\textwidth}
+      \caption{#5\label{#6}}
+    \end{minipage}
+  \end{figure}
+}
+
+\newcommand{\cfgcode}[1]{%
+\ \\\centerline{\fbox{\epsfig{file=#1.eps,width=.9\textwidth}}}\ \\
+}
+
+\newcommand{\PAR}[1]{\paragraph{#1}\ \\}
