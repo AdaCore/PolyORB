@@ -1,3 +1,7 @@
+2000-03-15  Pascal Obry <obry@gnat.com>
+
+	* xe_usage.adb: Update copyright notice
+	
 2000-03-01  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_usage.adb: Replace @gnat_version@ and @glade_version@ with
