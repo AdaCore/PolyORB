@@ -13,6 +13,8 @@ with Ada.Streams;   use Ada.Streams;
 with CORBA;
 --  For Exception_Occurrence.
 
+with Sequences.Unbounded;
+
 with Droopi.Buffers;
 with Droopi.Binding_Data;
 with Droopi.References;
@@ -21,12 +23,7 @@ with Droopi.Requests;
 with Droopi.Objects;
 with Droopi.ORB;
 with Droopi.Types;
---   with Droopi.Any;
 with Droopi.Representations.CDR;
-
-
-with Sequences.Unbounded;
-
 
 package Droopi.Protocols.GIOP is
 
@@ -35,6 +32,8 @@ package Droopi.Protocols.GIOP is
 
    use Droopi.Binding_Data;
    use ORB;
+
+   GIOP_Error : exception;
 
    --    package Arg_Seq is new Sequences.Unbounded (Any.NamedValue);
 
@@ -45,17 +44,7 @@ package Droopi.Protocols.GIOP is
 
    Max_Nb_Tries         : constant Integer;
 
-
-   Magic : constant Stream_Element_Array :=
-     (Character'Pos ('G'),
-      Character'Pos ('I'),
-      Character'Pos ('O'),
-      Character'Pos ('P'));
-
-
-
    type GIOP_Session is new Session with private;
-
    type GIOP_Protocol is new Protocol with private;
 
    type Sync_Scope is (NONE, WITH_TRANSPORT, WITH_SERVER, WITH_TARGET);
@@ -68,8 +57,6 @@ package Droopi.Protocols.GIOP is
    type IOR_Addressing_Info_Access is access all IOR_Addressing_Info;
 
    type Addressing_Disposition is (Key_Addr, Profile_Addr, Reference_Addr);
-
-   type Version is (Ver0, Ver1, Ver2);
 
    type Target_Address (Address_Type : Addressing_Disposition) is record
       case Address_Type is
@@ -95,7 +82,6 @@ package Droopi.Protocols.GIOP is
       Message_Error,
       Fragment);
 
-
    --  GIOP::ReplyStatusType
    type Reply_Status_Type is
      (No_Exception,
@@ -115,8 +101,6 @@ package Droopi.Protocols.GIOP is
       Loc_Needs_Addressing_Mode);
 
    type Pending_Request is private;
-
-
 
    --  type Response_Sync(Version :  range 0 .. 1) is
    --  record
@@ -146,8 +130,6 @@ package Droopi.Protocols.GIOP is
       Sr_Loc_Needs_Addressing_Mode
       );
 
-
-
    type ServiceId is
      (Transaction_Service,
       Code_Sets,
@@ -160,13 +142,11 @@ package Droopi.Protocols.GIOP is
       Forwarded_Identity,
       Unknown_Exception_Info);
 
-
    AddressingDisposition_To_Unsigned_Long :
      constant array (Addressing_Disposition'Range) of Types.Unsigned_Long
      := (Key_Addr => 0,
          Profile_Addr => 1,
          Reference_Addr => 2);
-
 
    Unsigned_Long_To_AddressingDisposition :
      constant array (Types.Unsigned_Long range 0 .. 2)
@@ -175,26 +155,7 @@ package Droopi.Protocols.GIOP is
          1 => Profile_Addr,
          2 => Reference_Addr);
 
-
-   Version_To_Octet :
-     constant array (Version'Range) of Types.Octet
-     := (Ver0  => 0,
-         Ver1  => 1,
-         Ver2  => 2);
-
-
-   Octet_To_Version :
-     constant array (Types.Octet range 0 .. 2) of Version
-     := (0 => Ver0,
-         1 => Ver1,
-         2 => Ver2);
-
-   -------------------------
-   --  Initialize the Lock
-   -----------------------
-
    procedure Initialize;
-
    procedure Finalize;
 
    -------------------------
@@ -227,18 +188,6 @@ package Droopi.Protocols.GIOP is
      (Buffer : access Buffers. Buffer_Type)
      return Locate_Status_Type;
 
-   procedure Marshall
-     (Buffer : access Buffers.Buffer_Type;
-      Value  : in Version);
-
-   function Unmarshall
-     (Buffer : access Buffers.Buffer_Type)
-    return Version;
-
-
-
-
-
    ----------------------------------------------------------
    -- Common marshalling procedures for GIOP 1.0, 1.1, 1.2 --
    ----------------------------------------------------------
@@ -270,9 +219,9 @@ package Droopi.Protocols.GIOP is
       Request_Id     : in Types.Unsigned_Long;
       Locate_Status  : in Locate_Status_Type);
 
-   -----------------------------------
-   --  Unmarshall
-   ----------------------------------
+   ----------------
+   -- Unmarshall --
+   ----------------
 
    procedure Unmarshall_GIOP_Header
      (Ses                   : access GIOP_Session;
@@ -336,9 +285,9 @@ package Droopi.Protocols.GIOP is
       Request         : Requests.Request_Access;
       Locate_Status   : in Locate_Status_Type);
 
-   ----------------------------
-   --  Store Profile
-   ---------------------------
+   -------------------
+   -- Store_Profile --
+   -------------------
 
    procedure Store_Profile
     (Ses     : access GIOP_Session;
@@ -346,9 +295,9 @@ package Droopi.Protocols.GIOP is
    --  XXX What does this procedure do?
    --  Why does it need to be visible?
 
-   -----------------------------
-   ----  Store Request
-   ----------------------------
+   -------------------
+   -- Store_Request --
+   -------------------
 
    procedure Store_Request
      (Ses     :  access GIOP_Session;
@@ -358,10 +307,9 @@ package Droopi.Protocols.GIOP is
    --  XXX What does this procedure do?
    --  Why does it need to be visible?
 
-   -------------------------------------------
-   --  Session procedures
-   ------------------------------------------
-
+   ------------------------
+   -- Session primitives --
+   ------------------------
 
    procedure Create
      (Proto   : access GIOP_Protocol;
@@ -384,21 +332,21 @@ package Droopi.Protocols.GIOP is
 
    procedure Handle_Disconnect (S : access GIOP_Session);
 
-   ------------------------------
-   --   Utility function for testing
-   ------------------------------
+   ----------------------------------
+   -- Utility function for testing --
+   ----------------------------------
+
    procedure To_Buffer
-             (S   : access GIOP_Session;
-              Octets : access Representations.CDR.Encapsulation);
-
-
-   ----------------------------------------
-   ---  Pending requests primitives
-   ---------------------------------------
-
-   GIOP_Error : exception;
+     (S   : access GIOP_Session;
+      Octets : access Representations.CDR.Encapsulation);
 
 private
+
+   Magic : constant Stream_Element_Array
+     := (Character'Pos ('G'),
+         Character'Pos ('I'),
+         Character'Pos ('O'),
+         Character'Pos ('P'));
 
    type Pending_Request is
      record
@@ -411,11 +359,13 @@ private
    package Req_Seq is new Sequences.Unbounded (Requests.Request_Access);
 
    type GIOP_Session is new Session with record
-      Major_Version        : Version := Ver1;
-      Minor_Version        : Version := Ver2;
+      Major_Version        : Types.Octet := 1;
+      Minor_Version        : Types.Octet := 2;
+      --  By default, we implement GIOP 1.2.
+
       Buffer_Out           : Buffers.Buffer_Access;
       Buffer_In            : Buffers.Buffer_Access;
-      Role                 : ORB.Endpoint_Role := Client;
+      Role                 : ORB.Endpoint_Role;
       Pending_Rq           : Pend_Req_Seq.Sequence;
       Processing_Rq        : Req_Seq.Sequence;
       Current_Profile      : Profile_Access;
@@ -423,6 +373,7 @@ private
       Nbr_Tries            : Natural := 0;
       Expect_Header        : Boolean := True;
       Mess_Type_Received   : Msg_Type;
+      --  XXX to be documented.
    end record;
 
    type GIOP_Protocol is new Protocol with null record;

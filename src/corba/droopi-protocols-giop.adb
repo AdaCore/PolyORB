@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
 --                                                                          --
---                          ADABROKER COMPONENTS                            --
+--                          Adabroker COMPONENTS                            --
 --                                                                          --
 --                           B R O C A . G I O P                            --
 --                                                                          --
@@ -11,7 +11,6 @@
 
 
 with Ada.Streams;                use Ada.Streams;
-with Ada.Text_IO; use Ada.Text_IO;
 
 with Sequences.Unbounded;
 
@@ -255,33 +254,9 @@ package body Droopi.Protocols.GIOP is
       return Unsigned_Long_To_LocateStatusType (Unmarshall (Buffer));
    end Unmarshall;
 
-   ------------------------------------
-   -- Marshalling the Version Number --
-   ------------------------------------
-
-   procedure Marshall
-     (Buffer : access Buffer_Type;
-      Value  : in Version) is
-
-   begin
-      Marshall (Buffer, Version_To_Octet (Value));
-   end Marshall;
-
-
-   function Unmarshall
-     (Buffer : access Buffer_Type)
-     return Version
-   is
-      V : constant Types.Octet := Unmarshall (Buffer);
-   begin
-      pragma Debug (O ("Got version value: (ulong)" & V'Img));
-      return Octet_To_Version (V);
-   end Unmarshall;
-
-
-   --------------------------
-   ---  Spec
-   -------------------------
+   ----------
+   -- Spec --
+   ----------
 
    procedure Unmarshall_Locate_Request
      (Buffer        : access Buffer_Type;
@@ -342,17 +317,15 @@ package body Droopi.Protocols.GIOP is
       Request_Id     : in Types.Unsigned_Long;
       Locate_Status  : in Locate_Status_Type) is
    begin
-
       --  Request id
       Marshall (Buffer, Request_Id);
 
       --  Locate Status
       Marshall (Buffer, Locate_Status);
-
    end  Marshall_Locate_Reply;
 
    ----------------------------
-   -- GIOP_Header_Unmarshall --
+   -- Unarmshall_GIOP_Header --
    ----------------------------
 
    procedure Unmarshall_GIOP_Header
@@ -362,14 +335,13 @@ package body Droopi.Protocols.GIOP is
       Fragment_Next         : out Types.Boolean;
       Success               : out Boolean)
    is
-
       Buffer : Buffer_Access renames Ses.Buffer_In;
 
       Stream_Header          : constant Stream_Element_Array
         := To_Stream_Element_Array (Buffer);
       Message_Magic          : Stream_Element_Array (Magic'Range);
-      Message_Major_Version  : Version;
-      Message_Minor_Version  : Version;
+      Message_Major_Version  : Octet;
+      Message_Minor_Version  : Octet;
       Message_Endianness     : Endianness_Type;
       Endianness             : Endianness_Type;
       Flags                  : Types.Octet;
@@ -424,7 +396,7 @@ package body Droopi.Protocols.GIOP is
 
       pragma Assert (Message_Endianness = Endianness);
 
-      if Message_Minor_Version /= Ver0 then
+      if Message_Minor_Version > 0 then
          Fragment_Next := Is_Set (Flags, Fragment_Bit);
       end if;
 
@@ -435,19 +407,17 @@ package body Droopi.Protocols.GIOP is
       --  Message size
       Message_Size := Unmarshall (Buffer);
 
-      Put_Line ("Size: " &
-      Types.Unsigned_Long'Image (Message_Size));
+      pragma Debug (O ("Size:" & Message_Size'Img));
 
-      --  Everything allright
       Ses.Major_Version := Message_Major_Version;
       Ses.Minor_Version := Message_Minor_Version;
+      --  XXX questionable.
 
-      Put_Line ("Major:" & Version'Image (Ses.Major_Version));
-      Put_Line ("Major:" & Version'Image (Ses.Minor_Version));
+      pragma Debug (O ("Major:" & Ses.Major_Version'Img));
+      pragma Debug (O ("Major:" & Ses.Minor_Version'Img));
 
       Success := True;
       Release_Contents (Buffer.all);
-
    end Unmarshall_GIOP_Header;
 
    --------------------------------
@@ -510,47 +480,57 @@ package body Droopi.Protocols.GIOP is
       Get_Note (Pend_Req.Req.Notepad, N);
       Fragment_Next := False;
 
+      --  Major version 1 is assumed.
+
       case Ses.Minor_Version is
-         when Ver0 =>
+         when 0 =>
+            --  GIOP 1.0
+
             GIOP.GIOP_1_0.Marshall_Request_Message
               (Ses.Buffer_Out, Request_Id,
                Pend_Req.Target_Profile, Response_Expected,
                To_Standard_String (Pend_Req.Req.Operation));
 
-         when Ver1 =>
+         when 1 =>
+            --  GIOP 1.1
+
             GIOP.GIOP_1_1.Marshall_Request_Message
               (Ses.Buffer_Out, Request_Id,
                Pend_Req.Target_Profile, Response_Expected,
                To_Standard_String (Pend_Req.Req.Operation));
 
-         when Ver2 =>
+         when 2 =>
+            --  GIOP 1.2
 
-                  if Response_Expected then
-                     Sync := WITH_TARGET;
-                  else
-                     Sync := NONE;
-                  end if;
+            if Response_Expected then
+               Sync := WITH_TARGET;
+            else
+               Sync := NONE;
+            end if;
 
-                  pragma Debug  (O (Image (IIOP_Profile_Type
-                     (Pend_Req.Target_Profile.all))));
+            pragma Debug
+              (O (Image (IIOP_Profile_Type
+                         (Pend_Req.Target_Profile.all))));
 
-                  declare
-                     Key : aliased Object_Id :=  Binding_Data.IIOP.
-                       Get_Object_Key
-                       (IIOP_Profile_Type (Pend_Req.Target_Profile.all));
-                  begin
-
-                     GIOP.GIOP_1_2.Marshall_Request_Message
-                       (Ses.Buffer_Out,
-                        Request_Id,
-                        Target_Address'
-                        (Address_Type => Key_Addr,
-                         Object_Key   => Key'Unchecked_Access),
-                         Sync,
-                        To_Standard_String (Pend_Req.Req.Operation));
-                  end;
+            declare
+               Key : aliased Object_Id :=  Binding_Data.IIOP.
+                 Get_Object_Key
+                 (IIOP_Profile_Type (Pend_Req.Target_Profile.all));
+            begin
+               GIOP.GIOP_1_2.Marshall_Request_Message
+                 (Ses.Buffer_Out,
+                  Request_Id,
+                  Target_Address'
+                  (Address_Type => Key_Addr,
+                   Object_Key   => Key'Unchecked_Access),
+                  Sync,
+                  To_Standard_String (Pend_Req.Req.Operation));
+            end;
+         when others =>
+            raise GIOP_Error;
+            --  An invalid value for the Minor_Version:
+            --  should not happen.
       end case;
-
 
       --  Marshall the request's Body not yet implemented
       List :=  List_Of (Pend_Req.Req.Args);
@@ -564,28 +544,30 @@ package body Droopi.Protocols.GIOP is
       end if;
 
       case Ses.Minor_Version is
-         when Ver0 =>
+         when 0 =>
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Request,  Length (Ses.Buffer_Out));
 
-         when Ver1 =>
+         when 1 =>
             GIOP.GIOP_1_1.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Request, Length (Ses.Buffer_Out),
                Fragment_Next);
 
-         when Ver2 =>
+         when 2 =>
             GIOP.GIOP_1_2.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Request, Length (Ses.Buffer_Out),
                Fragment_Next);
+         when others =>
+            raise GIOP_Error;
       end case;
 
       Copy_Data (Header_Buffer.all, Header_Space);
       Release (Header_Buffer);
 
-      Show (Ses.Buffer_Out.all);
+      pragma Debug (Show (Ses.Buffer_Out.all));
    end Request_Message;
 
    ------------------------
@@ -608,17 +590,19 @@ package body Droopi.Protocols.GIOP is
       Fragment_Next := False;
 
       case Ses.Minor_Version is
-         when Ver0 =>
+         when 0 =>
             GIOP.GIOP_1_0.Marshall_No_Exception
               (Ses.Buffer_Out, Request_Id);
 
-         when Ver1 =>
+         when 1 =>
             GIOP.GIOP_1_1.Marshall_No_Exception
               (Ses.Buffer_Out, Request_Id);
 
-         when Ver2 =>
+         when 2 =>
             GIOP.GIOP_1_2.Marshall_No_Exception
               (Ses.Buffer_Out, Request_Id);
+         when others =>
+            raise GIOP_Error;
       end case;
 
       --  Marshall the reply Body
@@ -629,13 +613,13 @@ package body Droopi.Protocols.GIOP is
       end if;
 
       case Ses.Minor_Version is
-         when Ver0 =>
+         when 0 =>
 
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Reply, Length (Ses.Buffer_Out));
 
-         when Ver1 =>
+         when 1 =>
 
             GIOP.GIOP_1_1.Marshall_GIOP_Header
               (Header_Buffer,
@@ -643,12 +627,15 @@ package body Droopi.Protocols.GIOP is
                Length (Ses.Buffer_Out),
                Fragment_Next);
 
-         when Ver2 =>
+         when 2 =>
             GIOP.GIOP_1_2.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Reply,
                Length (Ses.Buffer_Out),
                Fragment_Next);
+
+         when others =>
+            raise GIOP_Error;
 
       end case;
 
@@ -680,7 +667,7 @@ package body Droopi.Protocols.GIOP is
       pragma Assert (Exception_Type in User_Exception  .. System_Exception);
 
       case Ses.Minor_Version is
-         when Ver0 =>
+         when 0 =>
 
             GIOP.GIOP_1_0.Marshall_Exception
               (Ses.Buffer_Out, Request_Id,
@@ -690,7 +677,7 @@ package body Droopi.Protocols.GIOP is
               (Header_Buffer,
                GIOP.Reply, Length (Ses.Buffer_Out));
 
-         when Ver1 =>
+         when 1 =>
 
             GIOP.GIOP_1_1.Marshall_Exception
               (Ses.Buffer_Out,
@@ -707,7 +694,7 @@ package body Droopi.Protocols.GIOP is
                GIOP.Reply, Length (Ses.Buffer_Out),
                Fragment_Next);
 
-         when Ver2 =>
+         when 2 =>
 
             GIOP.GIOP_1_2.Marshall_Exception
               (Ses.Buffer_Out,
@@ -724,7 +711,8 @@ package body Droopi.Protocols.GIOP is
                GIOP.Reply, Length (Ses.Buffer_Out),
                Fragment_Next);
 
-
+         when others =>
+            raise GIOP_Error;
       end case;
 
       Copy_Data (Header_Buffer.all, Header_Space);
@@ -754,7 +742,7 @@ package body Droopi.Protocols.GIOP is
       Fragment_Next := False;
 
       case Ses.Minor_Version is
-         when Ver0 =>
+         when 0 =>
 
             GIOP.GIOP_1_0.Marshall_Location_Forward
               (Ses.Buffer_Out, Request_Id,
@@ -765,7 +753,7 @@ package body Droopi.Protocols.GIOP is
                GIOP.Reply,
                Length (Ses.Buffer_Out));
 
-         when Ver1 =>
+         when 1 =>
 
             GIOP.GIOP_1_1.Marshall_Location_Forward
               (Ses.Buffer_Out, Request_Id,
@@ -782,7 +770,7 @@ package body Droopi.Protocols.GIOP is
                GIOP.Reply, Length (Ses.Buffer_Out),
                Fragment_Next);
 
-         when Ver2 =>
+         when 2 =>
 
             GIOP.GIOP_1_2.Marshall_Location_Forward
               (Ses.Buffer_Out, Request_Id,
@@ -799,6 +787,9 @@ package body Droopi.Protocols.GIOP is
               (Header_Buffer,
                GIOP.Reply, Length (Ses.Buffer_Out),
                Fragment_Next);
+
+         when others =>
+            raise GIOP_Error;
       end case;
 
       Copy_Data (Header_Buffer.all, Header_Space);
@@ -825,7 +816,7 @@ package body Droopi.Protocols.GIOP is
 
       Get_Note (Request.Notepad, N);
 
-      if Ses.Minor_Version /=  Ver2 then
+      if Ses.Minor_Version /=  2 then
          raise GIOP_Error;
       end if;
 
@@ -859,7 +850,7 @@ package body Droopi.Protocols.GIOP is
 
       Get_Note (Request.Notepad, N);
       case Ses.Minor_Version is
-         when Ver0 =>
+         when 0 =>
 
             GIOP.Marshall_Cancel_Request
               (Ses.Buffer_Out, Request_Id);
@@ -867,7 +858,7 @@ package body Droopi.Protocols.GIOP is
               (Header_Buffer,
                GIOP.Cancel_Request, Length (Ses.Buffer_Out));
 
-         when Ver1 =>
+         when 1 =>
 
             GIOP.Marshall_Cancel_Request
               (Ses.Buffer_Out, Request_Id);
@@ -876,7 +867,7 @@ package body Droopi.Protocols.GIOP is
                GIOP.Cancel_Request, Length (Ses.Buffer_Out),
                False);
 
-         when Ver2 =>
+         when 2 =>
 
             GIOP.Marshall_Cancel_Request
               (Ses.Buffer_Out, Request_Id);
@@ -916,7 +907,7 @@ package body Droopi.Protocols.GIOP is
       Fragment_Next := False;
 
       case Ses.Minor_Version is
-         when Ver0 =>
+         when 0 =>
             GIOP.Marshall_Locate_Request
               (Ses.Buffer_Out, Request_Id,
                Object_Key);
@@ -926,7 +917,7 @@ package body Droopi.Protocols.GIOP is
                GIOP.Locate_Request,
                Length (Ses.Buffer_Out));
 
-         when Ver1 =>
+         when 1 =>
             GIOP.Marshall_Locate_Request
               (Ses.Buffer_Out, Request_Id,
                Object_Key);
@@ -937,7 +928,7 @@ package body Droopi.Protocols.GIOP is
                Length (Ses.Buffer_Out),
                False);
 
-         when Ver2 =>
+         when 2 =>
             GIOP.GIOP_1_2.Marshall_Locate_Request
               (Ses.Buffer_Out, Request_Id,
                Target_Address'(Address_Type => Key_Addr,
@@ -952,6 +943,9 @@ package body Droopi.Protocols.GIOP is
                GIOP.Locate_Request,
                Length (Ses.Buffer_Out),
                False);
+
+         when others =>
+            raise GIOP_Error;
       end case;
 
       Copy_Data (Header_Buffer.all, Header_Space);
@@ -978,10 +972,12 @@ package body Droopi.Protocols.GIOP is
 
       Get_Note (Request.Notepad, N);
 
-      if (Ses.Minor_Version = Ver0 or else Ses.Minor_Version = Ver1) and then
-        (Locate_Status = Object_Forward_Perm or else
-        Locate_Status = Loc_System_Exception or else
-        Locate_Status = Loc_Needs_Addressing_Mode)
+      if Ses.Minor_Version < 2
+        and then
+        (False
+         or else Locate_Status = Object_Forward_Perm
+         or else Locate_Status = Loc_System_Exception
+         or else Locate_Status = Loc_Needs_Addressing_Mode)
       then
          raise GIOP_Error;
       end if;
@@ -990,23 +986,25 @@ package body Droopi.Protocols.GIOP is
         (Ses.Buffer_Out, Request_Id, Locate_Status);
 
       case Ses.Minor_Version is
-         when Ver0 =>
+         when 0 =>
 
             GIOP.GIOP_1_0.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Locate_Reply, Length (Ses.Buffer_Out));
 
-         when Ver1 =>
+         when 1 =>
             GIOP.GIOP_1_1.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Locate_Reply,
                Length (Ses.Buffer_Out), False);
 
-         when Ver2 =>
+         when 2 =>
             GIOP.GIOP_1_2.Marshall_GIOP_Header
               (Header_Buffer,
                GIOP.Locate_Reply,
                Length (Ses.Buffer_Out), False);
+         when others =>
+            raise GIOP_Error;
       end case;
 
       Copy_Data (Header_Buffer.all, Header_Space);
@@ -1116,7 +1114,7 @@ package body Droopi.Protocols.GIOP is
    begin
 
       case Ses.Minor_Version is
-         when Ver0 =>
+         when 0 =>
             GIOP.GIOP_1_0.Unmarshall_Request_Message
               (Ses.Buffer_In,
                Request_Id,
@@ -1124,7 +1122,7 @@ package body Droopi.Protocols.GIOP is
                Object_Key,
                Operation);
 
-         when Ver1 =>
+         when 1 =>
             GIOP.GIOP_1_1.Unmarshall_Request_Message
               (Ses.Buffer_In,
                Request_Id,
@@ -1132,7 +1130,7 @@ package body Droopi.Protocols.GIOP is
                Object_Key,
                Operation);
 
-         when Ver2 =>
+         when 2 =>
             GIOP.GIOP_1_2.Unmarshall_Request_Message
               (Ses.Buffer_In,
                Request_Id,
@@ -1142,7 +1140,8 @@ package body Droopi.Protocols.GIOP is
             if Target_Ref.Address_Type = Key_Addr then
                Object_Key := Target_Ref.Object_Key;
             end if;
-
+         when others =>
+            raise GIOP_Error;
       end case;
 
       Args := Obj_Adapters.Get_Empty_Arg_List
@@ -1167,11 +1166,11 @@ package body Droopi.Protocols.GIOP is
 
       --  XXX Target_Ref is statically null (see above).
       --  Since we have already raised Program_Error if
-      --  Ses.Minor_Version = Ver2, we known that it won't
+      --  Ses.Minor_Version = 2, we known that it won't
       --  actually be dereferenced, and we can ignore the
       --  warning for now.
       pragma Warnings (Off);
-      if Ses.Minor_Version = Ver2
+      if Ses.Minor_Version = 2
         and then Target_Ref.Address_Type /= Key_Addr
       then
          pragma Warnings (On);
@@ -1227,7 +1226,7 @@ package body Droopi.Protocols.GIOP is
    begin
 
       case Ses.Minor_Version is
-         when  Ver0 =>
+         when  0 =>
             GIOP.GIOP_1_0.Unmarshall_Reply_Message
               (Ses.Buffer_In,
                Request_Id,
@@ -1237,7 +1236,7 @@ package body Droopi.Protocols.GIOP is
                raise GIOP_Error;
             end if;
 
-         when Ver1 =>
+         when 1 =>
             GIOP.GIOP_1_1.Unmarshall_Reply_Message
               (Ses.Buffer_In,
                Request_Id,
@@ -1249,11 +1248,14 @@ package body Droopi.Protocols.GIOP is
                raise GIOP_Error;
             end if;
 
-         when  Ver2 =>
+         when  2 =>
             GIOP.GIOP_1_2.Unmarshall_Reply_Message
               (Ses.Buffer_In,
                Request_Id,
                Reply_Status);
+
+         when others =>
+            raise GIOP_Error;
       end case;
 
       for I in 1 .. Length (Ses.Pending_Rq) loop
@@ -1337,7 +1339,7 @@ package body Droopi.Protocols.GIOP is
       Target_Ref    : Target_Address_Access := null;
    begin
 
-      if Ses.Minor_Version /= Ver2 then
+      if Ses.Minor_Version /= 2 then
          GIOP.Unmarshall_Locate_Request
            (Ses.Buffer_In,
             Request_Id,
@@ -1708,7 +1710,7 @@ package body Droopi.Protocols.GIOP is
             end if;
 
          when Close_Connection =>
-            if S.Role = Server or else S.Minor_Version = Ver2 then
+            if S.Role = Server or else S.Minor_Version = 2 then
                raise Program_Error;
             else
                raise Not_Implemented;
