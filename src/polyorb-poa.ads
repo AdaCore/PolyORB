@@ -158,7 +158,6 @@ package PolyORB.POA is
    --  Policies are optionnal : defaults values are provided.
    --  Compability of Policies is checked.
 
-
    procedure Find_POA
      (Self        : access Obj_Adapter;
       Name        :        String;
