@@ -1,7 +1,7 @@
 package Platform is
 pragma Pure;
 
-   Ada_Compiler : constant String := "gnatgcc";
+   Ada_Compiler : constant String := "@ADA@";
 
 end Platform;
 
