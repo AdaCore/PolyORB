@@ -25,7 +25,7 @@ This is the documentation for AdaBroker version @adabroker_version@.
 Build requirements
 ------------------
 
-Ada 95 compiler: GNAT 3.12p, 3.13a or 3.13a1.
+Ada 95 compiler: GNAT 3.13p, 3.13a or 3.13a1.
 
 Build instructions
 ------------------
