@@ -33,9 +33,9 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Real_Time;                   use Ada.Real_Time;
 with Ada.Streams.Stream_IO;           use Ada.Streams.Stream_IO;
 with System.Garlic.Debug;             use System.Garlic.Debug;
+with System.Garlic.Exceptions;        use System.Garlic.Exceptions;
 with System.Garlic.Heart;             use System.Garlic.Heart;
 with System.Garlic.Options;           use System.Garlic.Options;
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
@@ -45,7 +45,7 @@ with System.Garlic.Trace;             use System.Garlic.Trace;
 with System.Garlic.Types;             use System.Garlic.Types;
 with System.Garlic.Utils;             use System.Garlic.Utils;
 
-package body System.Garlic.Replay is
+package body System.Garlic.Protocols.Replay is
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("S_GARREP", "(s-garrep): ");
@@ -106,12 +106,8 @@ package body System.Garlic.Replay is
             --  The message should arrive at about the same time as
             --  during the recorded execution.
 
-            declare
-               Latency : Duration := To_Duration (Trace.Time);
-            begin
-               pragma Debug (D ("Replay network latency" & Latency'Img));
-               delay Latency;
-            end;
+            pragma Debug (D ("Replay network latency" & Trace.Time'Img));
+            delay Trace.Time;
 
             --  Deliver message
 
@@ -174,13 +170,25 @@ package body System.Garlic.Replay is
 
    procedure Initialize
      (Protocol  : access Replay_Protocol;
-      Self_Data : in Utils.String_Access;
+      Self_Data : in String;
       Required  : in Boolean;
       Performed : out Boolean;
       Error     : in out Error_Type) is
    begin
       Performed := False;
    end Initialize;
+
+   -------------
+   -- Receive --
+   -------------
+
+   function Receive
+     (Protocol  : access Replay_Protocol;
+      Timeout   : Protocols.Milliseconds)
+     return Boolean is
+   begin
+      return True;
+   end Receive;
 
    ----------
    -- Send --
@@ -213,7 +221,7 @@ package body System.Garlic.Replay is
 
    procedure Set_Boot_Data
      (Protocol  : access Replay_Protocol;
-      Boot_Data : in Utils.String_Access;
+      Boot_Data : in String;
       Error     : in out Error_Type)
    is
    begin
@@ -225,10 +233,8 @@ package body System.Garlic.Replay is
          return;
       end if;
 
-      if Boot_Data /= null
-        and then Boot_Data'Length /= 0
-      then
-         Set_Trace_File_Name (Boot_Data.all);
+      if Boot_Data'Length /= 0 then
+         Set_Trace_File_Name (Boot_Data);
       end if;
 
       begin
@@ -257,5 +263,5 @@ package body System.Garlic.Replay is
       end if;
    end Shutdown;
 
-end System.Garlic.Replay;
+end System.Garlic.Protocols.Replay;
 

@@ -34,11 +34,12 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+with System.Garlic.Exceptions;
 with System.Garlic.Protocols;
 with System.Garlic.Types;
 with System.Garlic.Utils;
 
-package System.Garlic.Replay is
+package System.Garlic.Protocols.Replay is
 
    --  See System.Garlic.Protocols.
 
@@ -58,21 +59,26 @@ package System.Garlic.Replay is
 
    procedure Initialize
      (Protocol  : access Replay_Protocol;
-      Self_Data : in Utils.String_Access;
+      Self_Data : in String;
       Required  : in Boolean;
       Performed : out Boolean;
-      Error     : in out Utils.Error_Type);
+      Error     : in out Exceptions.Error_Type);
+
+   function Receive
+     (Protocol  : access Replay_Protocol;
+      Timeout   : Protocols.Milliseconds)
+     return Boolean;
 
    procedure Send
       (Protocol  : access Replay_Protocol;
        Partition : in Types.Partition_ID;
        Data      : access Ada.Streams.Stream_Element_Array;
-       Error     : in out Utils.Error_Type);
+       Error     : in out Exceptions.Error_Type);
 
    procedure Set_Boot_Data
      (Protocol  : access Replay_Protocol;
-      Boot_Data : in Utils.String_Access;
-      Error     : in out Utils.Error_Type);
+      Boot_Data : in String;
+      Error     : in out Exceptions.Error_Type);
 
    procedure Shutdown (Protocol : access Replay_Protocol);
 
@@ -81,4 +87,4 @@ private
    type Replay_Protocol is new System.Garlic.Protocols.Protocol_Type
      with null record;
 
-end System.Garlic.Replay;
+end System.Garlic.Protocols.Replay;
