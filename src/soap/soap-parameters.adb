@@ -68,7 +68,7 @@ package body SOAP.Parameters is
    function Argument (P : in List; N : in Positive)
      return NamedValue is
    begin
-      return Element (List_Of (Ref (P)).all, N).all;
+      return Element (List_Of (Ref (P)).all, N - 1).all;
    exception
       when others =>
          raise SOAP.Types.Data_Error;
