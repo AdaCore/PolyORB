@@ -105,8 +105,9 @@ package System.Garlic.Streams is
    pragma Inline (Deallocate);
    procedure Deallocate (Stream : in out Params_Stream_Access);
    pragma Inline (Deallocate);
-   --  This procedure make sure that unconsumed data has been freed. This
-   --  may occur in case of cancellation.
+   --  This procedure make sure that unconsumed data has been
+   --  freed. This may occur in case of cancellation or when a
+   --  Params_Stream_Type is used to fill a Stream_Element_Array.
 
    procedure Dump
      (Stream : access Ada.Streams.Stream_Element_Array;

@@ -217,10 +217,6 @@ package System.Garlic.Thin is
       Arg    : C.int := 0)
       return C.int;
 
-   function C_Getenv
-     (Name   : Strings.chars_ptr)
-      return Strings.chars_ptr;
-
    function C_Gethostbyaddr
      (Addr     : System.Address;
       Length   : C.int;
@@ -420,7 +416,6 @@ private
    pragma Import (C, C_Connect, "connect");
    pragma Import (C, C_Dup2, "dup2");
    pragma Import (C, C_Fcntl, "fcntl");
-   pragma Import (C, C_Getenv, "getenv");
    pragma Import (C, C_Gethostbyaddr, "gethostbyaddr");
    pragma Import (C, C_Gethostbyname, "gethostbyname");
    pragma Import (C, C_Gethostname, "gethostname");

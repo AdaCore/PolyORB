@@ -78,7 +78,7 @@ package body System.Garlic.Filters is
    Partition_ID_Size : constant Natural
      := Natural (Last_Partition) - Natural (First_Partition) + 1;
 
-   Filter_ID_Size : constant := 8;
+   Filter_ID_Increment : constant := 10;
 
    type Filter_Id is new Natural;
    Null_Filter    : constant Filter_Id := 0;
@@ -129,12 +129,22 @@ package body System.Garlic.Filters is
    Init : constant Request_Type := (Get_Params, null);
 
    package Filters is new Complex
-     (Filter_Id, Null_Filter, First_Filter,
-      Filter_ID_Size, 0, Filter_Access, null);
+     (Index_Type     => Filter_Id,
+      Null_Index     => Null_Filter,
+      First_Index    => First_Filter,
+      Initial_Size   => Filter_ID_Increment,
+      Increment_Size => Filter_ID_Increment,
+      Component_Type => Filter_Access,
+      Null_Component => null);
 
    package Channels is new Complex
-     (Partition_ID, Null_Partition, First_Partition,
-      Partition_ID_Size, 0, Channel_Type, Null_Channel);
+     (Index_Type     => Partition_ID,
+      Null_Index     => Null_Partition,
+      First_Index    => First_Partition,
+      Initial_Size   => Natural (Partition_ID_Increment),
+      Increment_Size => Natural (Partition_ID_Increment),
+      Component_Type => Channel_Type,
+      Null_Component => Null_Channel);
 
    procedure Get_Params_For_Incoming
      (Partition : in Partition_ID;

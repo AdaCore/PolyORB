@@ -40,7 +40,6 @@ with System.Garlic.Platform_Specific; use System.Garlic.Platform_Specific;
 with System.Garlic.Types;             use System.Garlic.Types;
 with System.Garlic.Utils;             use System.Garlic.Utils;
 with GNAT.OS_Lib;
-with Unchecked_Deallocation;
 
 package body System.Garlic.Options is
 
@@ -58,9 +57,6 @@ package body System.Garlic.Options is
 
    function Value (S : String) return Reconnection_Type;
    function Value (S : String) return Termination_Type;
-
-   procedure Free is
-     new Unchecked_Deallocation (String, GNAT.OS_Lib.String_Access);
 
    --------------------------------
    -- Initialize_Default_Options --
@@ -92,61 +88,61 @@ package body System.Garlic.Options is
       if EV.all /= "" then
          Set_Boot_Server (EV.all);
       end if;
-      Free (EV);
+      GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("CONNECTION_HITS");
       if EV.all /= "" then
          Set_Connection_Hits (Natural'Value (EV.all));
       end if;
-      Free (EV);
+      GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("DETACH");
       if EV.all /= "" then
          Set_Detach (True);
       end if;
-      Free (EV);
+      GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("SELF_LOCATION");
       if EV.all /= "" then
          Set_Self_Location (EV.all);
       end if;
-      Free (EV);
+      GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("BOOT_MIRROR");
       if EV.all /= "" then
          Set_Boot_Mirror (True);
       end if;
-      Free (EV);
+      GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("NOLAUNCH");
       if EV.all /= "" then
          Set_Nolaunch (True);
       end if;
-      Free (EV);
+      GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("SLAVE");
       if EV.all /= "" then
          Set_Slave (True);
       end if;
-      Free (EV);
+      GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("MIRROR_EXPECTED");
       if EV.all /= "" then
          Set_Mirror_Expected (True);
       end if;
-      Free (EV);
+      GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("RECONNECTION");
       if EV.all /= "" then
          Set_Reconnection (Value (EV.all));
       end if;
-      Free (EV);
+      GNAT.OS_Lib.Free (EV);
 
       EV := GNAT.OS_Lib.Getenv ("TERMINATION");
       if EV.all /= "" then
          Set_Termination (Value (EV.all));
       end if;
-      Free (EV);
+      GNAT.OS_Lib.Free (EV);
 
       while Index <= Argument_Count loop
 

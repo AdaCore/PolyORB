@@ -504,6 +504,7 @@ package body System.Garlic.Heart is
 
       Handle_Any_Request
         (Partition, Opcode, Query'Access, Reply'Access, Error);
+      Deallocate (Query);
 
       if not Empty (Reply'Access) then
          pragma Debug (D ("Send reply to" & Partition'Img));

@@ -340,6 +340,10 @@ package body System.Garlic.TCP is
          Free (Unfiltered);
       end loop;
 
+      --  We always exit with an error. Catch it to print the error message
+      --  and to deallocate it.
+      Catch (Error);
+
       --  If this connection is broken before partition identification,
       --  then try to rescue New_PID especially for the boot server.
 

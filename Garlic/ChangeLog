@@ -1,3 +1,23 @@
+1999-07-10  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* s-garfil.adb: Reduce initial size of filter table (not
+	frequently used).
+
+	* s-gargro.adb: Deallocate Inner_Query on error or when it is not
+ 	going to be consumed.
+
+	* s-garhea.adb: In Process_Stream, a query can be left not
+	entirely consumed because of group communication (a partition
+	receives its own query). Deallocated it anyway.
+
+	* s-garopt.adb: Do not redefine Free for GNAT.OS_Lib.String_Access.
+	
+	* s-garthi.ads: Remove Getenv.
+
+	* s-garuni.ads: Minor reformatting.
+
+	* s-gartcp.adb: Catch an error to deallocate its error message.
+	
 1999-07-01  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* s-garhea.adb: In a comment, change "unfiltered" by

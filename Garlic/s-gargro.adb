@@ -110,6 +110,7 @@ package body System.Garlic.Group is
          Inner_Reply'Access,
          Error);
       if Found (Error) then
+         Deallocate (Inner_Query);
          return;
       end if;
 
@@ -123,6 +124,7 @@ package body System.Garlic.Group is
 
             Send_Neighbor (Group_Service, Reply);
          end if;
+         Deallocate (Inner_Query);
 
       else
          if Empty (Inner_Query'Access) then

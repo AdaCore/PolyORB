@@ -47,6 +47,7 @@ package System.Garlic.Units is
    type Unit_Id is new Natural;
    Null_Unit_Id  : constant Unit_Id := 0;
    First_Unit_Id : constant Unit_Id := 2_000_000;
+   Unit_Id_Increment : constant := 10;
 
    type Request_List is array (Types.Partition_ID) of Boolean;
    Null_List : constant Request_List := (others => False);
@@ -119,8 +120,8 @@ package System.Garlic.Units is
      (Index_Type     => Unit_Id,
       Null_Index     => Null_Unit_Id,
       First_Index    => First_Unit_Id,
-      Initial_Size   => 20,
-      Increment_Size => 20,
+      Initial_Size   => Unit_Id_Increment,
+      Increment_Size => Unit_Id_Increment,
       Component_Type => Unit_Info,
       Null_Component => Null_Unit);
 

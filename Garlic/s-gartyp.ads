@@ -52,6 +52,8 @@ package System.Garlic.Types is
    subtype Valid_Partition_ID is Partition_ID range Null_PID + 1 .. Last_PID;
    --  A partition whose ID fits in Valid_Partition_ID is a real partition
 
+   Partition_ID_Increment : constant Valid_Partition_ID := 10;
+
    type Shutdown_Access is access procedure;
 
    --  This package defines basic types that are used throughout Garlic
