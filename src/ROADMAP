@@ -1,0 +1,96 @@
+DROOPI source code roadmap
+--------------------------
+
+$Id$
+
+The source code of DROOPI is not for the faint of heart.
+Caveat emptor.
+
+
+./UNUSED/
+
+Spare parts. Reserved for future use.
+
+./droopi.ads
+
+Empty package, provides a common namespace for generic ORB
+components.
+
+./corba/corba-*.ads
+
+Standard CORBA packages
+
+./corba/broca-*.ads
+
+Internal components of the CORBA personality.
+
+./droopi-orb.ads
+
+Logging facility. Provides a unified means for other units
+to output debugging, diagnostics and error messages.
+
+./droopi-channels.ads
+
+Channels are the objects that convert raw system transport
+entities (sockets, message queues, shared memory segments,
+avian carriers...) into unified message exchange abstractions.
+
+./droopi-soft_links.ads
+
+Abstraction layer for all library units that drag the tasking
+runtime.
+
+./droopi-protected_objects.ads
+
+Implementation of soft_links for a context with tasking.
+Uses protected objects.
+
+./droopi-representations.ads
+
+The abstraction of a method to represent data in a form
+suitable for transmission. Children of this unit are expected
+to derive the Droopi.Representations.Representation abstract
+type into a concrete type implementing one representation
+mechanism.
+
+./droopi-jobs.ads
+
+A Job is anything that can keep a task busy (like a Runnable
+in Java). This unit declares an abstract Job type, and a means
+to queue jobs for execution.
+
+./sequences.ads
+./sequences-bounded.ads
+./sequences-unbounded.ads
+
+{Bounded,unbounded} variable length arrays (cf. CORBA.Sequences.
+Notionally based on Ada.Strings.Unbounded.)
+
+----------
+
+Others are undocumented as of yet.
+
+./droopi-representations-test.ads
+./droopi-transport_endpoints.ads
+./droopi-locks.ads
+./sequences-unbounded-search.ads
+./droopi-protocols.ads
+./droopi-sockets.ads
+./droopi-protocols-giop.ads
+./droopi-setup.ads
+./droopi-transport.ads
+./droopi-requests.ads
+./droopi-buffers.ads
+./droopi-refs.ads
+./droopi-opaque-chunk_pools.ads
+./droopi-opaque.ads
+./droopi-no_tasking.ads
+./droopi-orb-task_policies.ads
+./droopi-obj_adapters.ads
+./droopi-surrogates.ads
+./droopi-binding_data.ads
+./droopi-types.ads
+./droopi-servers.ads
+./droopi-protocols-echo.ads
+./droopi-layers.ads
+./broca-names.ads
