@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.Representations.CDR.GIOP_Utils is
 
    --  'NamedValue' type

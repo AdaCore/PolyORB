@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Log;
 
 package body PolyORB.Representations.CDR.GIOP_Utils is

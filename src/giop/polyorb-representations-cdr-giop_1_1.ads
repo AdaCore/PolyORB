@@ -33,8 +33,6 @@
 
 --  Support package for CDR representation of char and strings for GIOP 1.1
 
---  $Id$
-
 with PolyORB.Representations.CDR.GIOP_1_0;
 
 package PolyORB.Representations.CDR.GIOP_1_1 is

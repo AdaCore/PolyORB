@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Representations.CDR.Common;
 
 package body PolyORB.Representations.CDR.GIOP_1_1 is

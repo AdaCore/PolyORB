@@ -33,8 +33,6 @@
 
 --  Support package for CDR representation of char and strings for GIOP 1.0
 
---  $Id$
-
 package PolyORB.Representations.CDR.GIOP_1_0 is
 
    pragma Elaborate_Body;
