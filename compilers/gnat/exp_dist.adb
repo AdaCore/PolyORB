@@ -364,13 +364,13 @@ package body Exp_Dist is
 
    package Asynchronous_Flags_Table is
       new Simple_HTable (Header_Num => Hash_Index,
-                         Element    => Entity_Id,
+                         Element    => Node_Id,
                          No_Element => Empty,
                          Key        => Entity_Id,
                          Hash       => Hash,
                          Equal      => "=");
-   --  Mapping between a RACW type and a constant having the value True
-   --  if the RACW is asynchronous and False otherwise.
+   --  Mapping between a RACW type and the node holding the value True if
+   --  the RACW is asynchronous and False otherwise.
 
    package RCI_Locator_Table is
       new Simple_HTable (Header_Num => Hash_Index,
@@ -830,7 +830,7 @@ package body Exp_Dist is
       --  we also create a stub for local subprograms if a pragma
       --  All_Calls_Remote applies.
 
-      Asynchronous_Flag : constant Entity_Id :=
+      Asynchronous_Node : constant Node_Id :=
         Asynchronous_Flags_Table.Get (RACW_Type);
       --  The asynchronous flag object declared in Add_RACW_Read_Attribute.
    begin
@@ -933,7 +933,8 @@ package body Exp_Dist is
             Prefix        => New_Occurrence_Of (Stubbed_Result, Loc),
             Selector_Name => Make_Identifier (Loc, Name_Asynchronous)),
           Expression =>
-            New_Occurrence_Of (Asynchronous_Flag, Loc)));
+            New_Occurrence_Of (
+              Defining_Identifier (Asynchronous_Node), Loc)));
 
       Append_List_To (Stub_Statements,
         Build_Get_Unique_RP_Call (Loc, Stubbed_Result, Stub_Type));
@@ -1289,6 +1290,7 @@ package body Exp_Dist is
       Asynchronous_Flag : constant Entity_Id :=
                             Make_Defining_Identifier
                               (Loc, New_Internal_Name ('S'));
+      Asynchronous_Node : Node_Id;
 
       --  Functions to create occurrences of the formal
       --  parameter names.
@@ -1315,15 +1317,15 @@ package body Exp_Dist is
       --  node gets stored since it may be rewritten when we process the
       --  asynchronous pragma.
 
-      Append_To (Declarations,
-        Make_Object_Declaration (Loc,
+      Asynchronous_Node := Make_Object_Declaration (Loc,
           Defining_Identifier => Asynchronous_Flag,
           Constant_Present    => True,
           Object_Definition   => New_Occurrence_Of (Standard_Boolean, Loc),
-          Expression          => New_Occurrence_Of (Standard_False, Loc)));
+          Expression          => New_Occurrence_Of (Standard_False, Loc));
+      Append_To (Declarations, Asynchronous_Node);
       Set_Ekind (Asynchronous_Flag, E_Variable);
       Set_Etype (Asynchronous_Flag, Standard_Boolean);
-      Asynchronous_Flags_Table.Set (RACW_Type, Asynchronous_Flag);
+      Asynchronous_Flags_Table.Set (RACW_Type, Asynchronous_Node);
 
       --  Object declarations
 
@@ -5731,13 +5733,11 @@ package body Exp_Dist is
    -------------------------------
 
    procedure RACW_Type_Is_Asynchronous (RACW_Type : Entity_Id) is
-      Asynchronous_Flag : constant Entity_Id :=
-        Asynchronous_Flags_Table.Get (RACW_Type);
-      pragma Assert (Present (Asynchronous_Flag));
+      N : constant Node_Id := Asynchronous_Flags_Table.Get (RACW_Type);
+      pragma Assert (N /= Empty);
 
    begin
-      Replace (Expression (Parent (Asynchronous_Flag)),
-        New_Occurrence_Of (Standard_True, Sloc (Asynchronous_Flag)));
+      Replace (Expression (N), New_Occurrence_Of (Standard_True, Sloc (N)));
    end RACW_Type_Is_Asynchronous;
 
    -------------------------
