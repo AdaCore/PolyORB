@@ -1,3 +1,12 @@
+2003-11-03  Laurent Pautet  <pautet@enst.fr>
+
+	* MANIFEST: Add Dist/b_xe_defs.adb which builds a specific version
+	of Dist/xe_defs.adb.
+	Continued work for CA22-003.
+
+	* configure.in, configure: Replace space with slash in "Windows	NT".
+	Continued work for CA22-003.
+
 2003-03-15  Pascal Obry  <obry@gnat.com>
 
 	* MANIFEST: Add tempdir.ad[sb].

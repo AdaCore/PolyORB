@@ -1,3 +1,7 @@
+2003-11-03  Laurent Pautet  <pautet@enst.fr>
+
+	* Makefile.am, Makefile.in: Typos in EXEEXT.
+
 2003-09-03  Thomas Quinot  <quinot@gnat.com>
 
 	* s-gaprtc.adb: Reuse the same Selector across successive

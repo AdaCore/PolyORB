@@ -1,3 +1,24 @@
+2003-11-04  Laurent Pautet  <pautet@enst.fr>
+
+	* b_xe_defs.adb: Build xe_defs.adb and in particular procedure
+	Initialize to install the used by GNATDIST to get access to the
+	communication subsystem (GARLIC or PolyORB).
+	Continued work for CA22-003.
+
+	* xe_defs.ads: Add a procedure Initialize to install the flags
+	used by GNATDIST.
+	Continued work for CA22-003.
+
+	* xe.ads: Add tables to store the flags used by GNATDIST.
+	Continued work for CA22-003.
+
+	* xe_utils.adb: Use new scheme to install the flags used by
+	GNATDIST.
+	Continued work for CA22-003.
+
+	* Makefile.am, Makefile.in: Use new scheme to build xe_defs.adb.
+	Continued work for CA22-003.
+	
 2003-09-02  Samuel Tardieu  <sam@gnat.com>
 
 	* config.sdefault: Use pragma Style_Checks (Off) to prevent long-line
