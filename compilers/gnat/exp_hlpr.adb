@@ -1028,6 +1028,7 @@ package body Exp_Hlpr is
 
       Fnam : Entity_Id := Empty;
       Tnam : Entity_Id := Empty;
+      Pnam : Entity_Id := Empty;
       Args : List_Id := Empty_List;
       Lib_RE  : RE_Id := RE_Null;
 
@@ -1063,6 +1064,8 @@ package body Exp_Hlpr is
 
          Tnam := Make_Defining_Identifier (Loc,
                    New_Internal_Name ('T'));
+         Pnam := Make_Defining_Identifier (Loc,
+                   New_Internal_Name ('P'));
 
          Append_To (Decls,
            Make_Full_Type_Declaration (Loc,
@@ -1071,13 +1074,15 @@ package body Exp_Hlpr is
                Make_Access_To_Object_Definition (Loc,
                  Subtype_Indication =>
                    New_Occurrence_Of (U_Type, Loc))));
+         Append_To (Decls,
+           Make_Object_Declaration (Loc,
+             Defining_Identifier => Pnam,
+             Constant_Present    => True,
+             Object_Definition   => New_Occurrence_Of (Tnam, Loc),
+             Expression          => Make_Null (Loc)));
+         --  Use a variable here to force proper freezing of Tnam.
 
-         Args := New_List (
-           Make_Qualified_Expression (Loc,
-             Subtype_Mark =>
-               New_Occurrence_Of (Tnam, Loc),
-             Expression =>
-                Make_Null (Loc)));
+         Args := New_List (New_Occurrence_Of (Pnam, Loc));
          --  Normally, calling _TypeCode with a null access parameter
          --  should raise Constraint_Error, but this check is suppressed
          --  for expanded code, and we do not care anyway because we do not
