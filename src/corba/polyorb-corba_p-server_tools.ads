@@ -33,9 +33,6 @@
 
 --  Helper functions for CORBA servers.
 
---  XXX The Initiatie Server and stuff related to the Root POA should
---  be placed in the CORBA app. personnality init. process !!
-
 --  $Id$
 
 with CORBA.Object;
