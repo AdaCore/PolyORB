@@ -33,7 +33,7 @@
 
 --  All_Types client.
 
---  $Id: //droopi/main/examples/corba/all_types/client.adb#13 $
+--  $Id: //droopi/main/examples/corba/all_types/client.adb#14 $
 
 with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
@@ -246,14 +246,13 @@ begin
                (Switch => 1, Counter => 1212),
                (Switch => 2, Flag => True),
                (Switch => 3, Hue => Green));
-         Pass : Boolean := True;
+         Pass : Boolean;
       begin
-         for I in Test_Unions'Range loop
-            Pass := Pass and then echoUnion (Myall_types, Test_Unions (I))
-              = Test_Unions (I);
-            exit when not Pass;
+         for J in Test_Unions'Range loop
+            Pass := echoUnion (Myall_types, Test_Unions (J))
+              = Test_Unions (J);
+            Output ("test union" & Test_Unions (J).Switch'Img, Pass);
          end loop;
-         Output ("test union", Pass);
       end;
 
       declare
@@ -261,15 +260,14 @@ begin
            := ((Switch => Red, Foo => 31337),
                (Switch => Green, Bar => 534),
                (Switch => Blue, Baz => CORBA.To_CORBA_String ("grümpf")));
-         Pass : Boolean := True;
+         Pass : Boolean;
       begin
-         for I in Test_Unions'Range loop
-            Pass := Pass
-              and then echoUnionEnumSwitch (Myall_types, Test_Unions (I))
-              = Test_Unions (I);
-            exit when not Pass;
+         for J in Test_Unions'Range loop
+            Pass := echoUnionEnumSwitch (Myall_types, Test_Unions (J))
+              = Test_Unions (J);
+            Output ("test union with enum switch "
+                    & Test_Unions (J).Switch'Img, Pass);
          end loop;
-         Output ("test union with enum switch", Pass);
       end;
 
       --  Arrays
