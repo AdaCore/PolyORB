@@ -107,8 +107,7 @@ $(PROGS): $(FORCE) $(GEN)
 	-bargs $(BARGS) \
 	-largs $(LDFLAGS) \
 	--LINK=$(LINKER) \
-        $(POLYORB_LIBS) $(XMLADA_LIBS) 
-
+	$(POLYORB_LIBS) $(XMLADA_LIBS) 
 
 force::
 	for dir in $(top_builddir)/src $(COS_DIRS);\
