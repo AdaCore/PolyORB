@@ -48,7 +48,7 @@ with PolyORB.ORB;
 with PolyORB.POA;
 with PolyORB.POA.Basic_POA;
 with PolyORB.POA_Config;
-with PolyORB.POA_Config.Minimum;
+with PolyORB.POA_Config.Root_POA;
 with PolyORB.POA_Manager;
 with PolyORB.POA_Types;
 with PolyORB.References;
@@ -76,7 +76,7 @@ package body PolyORB.Setup.Test_POA is
    begin
       Put ("Initializing OA confiuration... ");
       PolyORB.POA_Config.Set_Configuration
-        (new PolyORB.POA_Config.Minimum.Minimum_Configuration);
+        (new PolyORB.POA_Config.Root_POA.Root_POA_Configuration);
 
       Put ("Creating object adapter... ");
       Obj_Adapter := new POA.Basic_POA.Basic_Obj_Adapter;

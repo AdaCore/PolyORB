@@ -38,7 +38,7 @@ with Ada.Text_IO;
 
 with PolyORB.Initialization;
 with PolyORB.POA.Basic_POA;
-with PolyORB.POA_Config.Minimum;
+with PolyORB.POA_Config.Root_POA;
 with PolyORB.Utils.Report;
 
 with PolyORB.Setup.No_Tasking_Server;
@@ -57,7 +57,7 @@ procedure Test001 is
 begin
    PolyORB.Initialization.Initialize_World;
    PolyORB.POA_Config.Set_Configuration
-     (new PolyORB.POA_Config.Minimum.Minimum_Configuration);
+     (new PolyORB.POA_Config.Root_POA.Root_POA_Configuration);
 
    Test_Common.Test_Simple_OA (new Basic_Obj_Adapter);
    PolyORB.Utils.Report.End_Report;
