@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/polyorb-exceptions.adb#1 $
+--  $Id: //droopi/main/src/polyorb-exceptions.adb#2 $
 
 with Ada.Unchecked_Conversion;
 
@@ -500,14 +500,14 @@ package body PolyORB.Exceptions is
    -- Raise_From_Any --
    --------------------
 
-   procedure Raise_From_Any (Occurrence : Any.Any) 
+   procedure Raise_From_Any (Occurrence : Any.Any)
    is
       Repository_Id : constant PolyORB.Types.RepositoryId
         := Any.TypeCode.Id (Get_Type (Occurrence));
 
       System_Id : Ada.Exceptions.Exception_Id;
       Is_CORBA_System_Exc : Boolean;
-   
+
    begin
       Get_ExcepId_By_RepositoryId
         (To_Standard_String (Repository_Id),
