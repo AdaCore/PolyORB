@@ -34,6 +34,15 @@ and
 .IR ADABROKER_NAMING_PORT .
 It is mainly used to reference a non-AdaBroker naming service.
 
+.PP
+Any environment variable but
+.B ADABROKER_NAMING_HOST
+may contain a value looking like
+.RI file: path .
+In this case, the content of the file designated by
+.I path
+(if it exists) will be used as the value for the corresponding variable.
+
 .SH BUGS
 AdaBroker is still in its infancy and is not complete.
 
