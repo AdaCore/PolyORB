@@ -37,6 +37,37 @@ GLADE is the GNAT implementation of Distributed Systems Annex.
 
 @end ifinfo
 
+@node About This Guide
+@unnumbered About This Guide
+
+@node What This Guide Contains
+@unnumberedsec What This Guide Contains
+
+@noindent
+This guide contains the following chapters:
+
+@itemize @bullet
+@item
+@ref{Introduction to Distributed Systems}, describes different ways to
+develop distributed systems.
+
+@item
+@ref{The Distributed Systems Annex}, describes the different features
+available in Annex E of Ada 95. This chapter provides a tutorial for
+beginners and includes several useful examples for more advanced
+programmers.
+
+@item
+@ref{Getting Started with GLADE}, describes how to use the configuration 
+tool Gnatdist. It also provides several useful information on GLADE
+Partition Communication Subsystem, GARLIC.
+
+@item
+@ref{DSA and CORBA}, is a quite fair comparison between CORBA and the
+Distributed System Annex.
+
+@end itemize
+
 @menu
 * Distributed Systems::         
 * The Distributed Systems Annex::  
@@ -45,17 +76,7 @@ GLADE is the GNAT implementation of Distributed Systems Annex.
 @end menu
 
 @node  Distributed Systems, The Distributed Systems Annex, Top, Top
-@chapter Distributed Systems
-
-
-
-@menu
-* Introduction To Distributed Systems::  
-@end menu
-
-@node  Introduction To Distributed Systems,  , Distributed Systems, Distributed Systems
-@section Introduction To Distributed Systems
-
+@chapter Introduction to Distributed Systems
 
 A distributed system architecture comprises a network of computers and the
 software components that execute on the computers. Such architectures are
@@ -65,14 +86,8 @@ available to remotely-located components, components must communicate using
 some form of message-passing abstraction.
 
 
-@menu
-* Using OS Network Services::   
-* Using A Middleware Environment::  
-* Using A Distributed Language::  
-@end menu
-
-@node  Using OS Network Services, Using A Middleware Environment, Introduction To Distributed Systems, Introduction To Distributed Systems
-@subsection Using OS Network Services
+@node
+@section Using OS Network Services
 
 There are several programming techniques for developing distributed
 applications. These applications have traditionally been developed using
@@ -101,8 +116,8 @@ table-driven model. The scheduling code would be embedded into the user
 code. This solution is error-prone and fragile in regard to any future
 modification.
 
-@node Using A Middleware Environment, Using A Distributed Language, Using OS Network Services, Introduction To Distributed Systems
-@subsection Using A Middleware Environment
+@node
+@section Using a Middleware Environment
 
 A middleware environment is intended to provide high level abstractions
 in order to easily develop user applications.  Environments like CORBA
@@ -151,8 +166,8 @@ distribution is a pre-compilation process and the distributed boundaries
 are always explicit. Using CORBA, the distributed part is written in IDL
 and the core of the application is written in a host language.
 
-@node Using A Distributed Language,  , Using A Middleware Environment, Introduction To Distributed Systems
-@subsection Using A Distributed Language
+@node
+@section Using a Distributed Language
 
 Rather than defining a new language like an IDL, an alternative idea is
 to extend a programming language in order to provide distributed
@@ -263,12 +278,13 @@ sections.
 * Pragma Remote_Call_Interface::  
 * Pragma Remote_Types::         
 * Pragma Shared_Passive::       
+* ::                            
 * More About Categorization Pragmas::  
 * Most Features in One Example::  
 @end menu
 
 @node Architecture of A Distributed Ada95 Application, Categorization Pragmas, The Distributed Systems Annex, The Distributed Systems Annex
-@section Architecture of A Distributed Ada95 Application
+@section Architecture of a Distributed Ada95 Application
 
 A distributed system is an interconnection of one or more processing
 nodes and zero or more storage nodes. A distributed program comprises
@@ -294,12 +310,11 @@ mostly declared in library units categorized as remote call interface
 (RCI).
   
 @item Distributed objects:
-Remote-pointer particular access types can be defined, which designate
-remote objects. When a primitive dispatching operation is invoked on an
-object designated by a remote access, a remote call is performed
-transparently on the partition on which the object was created. These
-distributed objects are declared in library units categorized as remote
-types (RT).
+Particular access types can be defined, which designate remote
+objects. When a primitive dispatching operation is invoked on an object
+designated by a remote access, a remote call is performed transparently
+on the partition on which the object was created. These distributed
+objects are declared in library units categorized as remote types (RT).
   
 @item Shared objects:
 Global data can be shared between active partitions, providing a
@@ -389,10 +404,10 @@ types - RACW). These remote access types can be declared in a RCI
 package as well.
 
 A remote access type (RAS or RACW) can be viewed as a fat pointer or a
-structure with a remote address and a local address. The remote address
-describes for instance the host on which the entity has been created;
-the local address describes the classical local memory address (like an
-URL).
+structure with a remote address and a local address (like an URL). The
+remote address describes for instance the host on which the entity has
+been created; the local address describes the classical local memory
+address.
 
 @node Regular Remote Subprograms (RCI), Remote Access To Subprograms (RAS), Overview of Pragma Remote_Call_Interface, Pragma Remote_Call_Interface
 @subsection Regular Remote Subprograms (RCI)
@@ -405,9 +420,10 @@ the body of this package.
 
 @image{types.ads}
 @image{rcibank.ads}
+@image{rciclient.ads}
 
 @node Remote Access To Subprograms (RAS), Remote Access To Class Wide Types (RACW), Regular Remote Subprograms (RCI), Pragma Remote_Call_Interface
-@subsection Remote Access To Subprograms (RAS)
+@subsection Remote Access to Subprograms (RAS)
 
 In the following example, several mirroring banks offer their
 services. Each bank registers a reference to each of its services to a
@@ -436,7 +452,7 @@ type.
 
 
 @node Remote Access To Class Wide Types (RACW), Summary on Pragma Remote_Call_Interface, Remote Access To Subprograms (RAS), Pragma Remote_Call_Interface
-@subsection Remote Access To Class Wide Types (RACW)
+@subsection Remote Access to Class Wide Types (RACW)
 
 A bank client is now connected to a bank through a terminal. The bank
 wants to notify a connected client with a message on its terminal when
@@ -468,7 +484,7 @@ Allow statically bound remote calls (remote subprogram)
 Allow dynamically bound remote calls (remote access types)
 
 @item
-Forbid variables and access types
+Forbid variables and non-remote access types
 
 @item
 Prevent specification from depending on normal units
@@ -491,12 +507,13 @@ Prevent specification from depending on normal units
 @node Overview of Pragma Remote_Types, Distributed Object, Pragma Remote_Types, Pragma Remote_Types
 @subsection Overview of Pragma Remote_Types
 
-Unlike to RCI units, library units categorized with this pragma can
-define distributed objects and remote methods on them. Both RCI and RT
-units can define a remote access type described above (RACW). A
-subprogram defined in a RT unit is not a remote subprogram. Unlike to
-RCI units, a RT unit can be duplicated on several partitions in which
-case all its entities are different with each other.
+Unlike RCI units, library units categorized with this pragma can define
+distributed objects and remote methods on them. Both RCI and RT units
+can define a remote access type described above (RACW). A subprogram
+defined in a RT unit is not a remote subprogram. Unlike RCI units, a RT
+unit can be duplicated on several partitions in which case all its
+entities are different with each other. This unit is different on each
+partition in which it is defined.
 
 @node Distributed Object, Transmitting Dynamic Structure, Overview of Pragma Remote_Types, Pragma Remote_Types
 @subsection Distributed Object
@@ -569,7 +586,7 @@ Prevent specification from depending on normal units
 
 @end itemize
 
-@node Pragma Shared_Passive, More About Categorization Pragmas, Pragma Remote_Types, The Distributed Systems Annex
+@node Pragma Shared_Passive, , Pragma Remote_Types, The Distributed Systems Annex
 @section Pragma Shared_Passive
 
 
@@ -618,7 +635,18 @@ Prevent specification from depending on normal units
 
 @end itemize
 
-@node More About Categorization Pragmas, Most Features in One Example, Pragma Shared_Passive, The Distributed Systems Annex
+@node Overview of Pragma Pure, More About Categorization Pragmas, Pragma Shared_Passive, The Distributed Systems Annex
+@section Overview of Pragma Pure
+
+This pragma is not specific to the Distributed Systems Annex. But a pure
+package can be withed in the specification of any of the other
+categorized packages. A pure package is a preelaborable package that
+does not contain the declaration of any variable or named access
+type. It is particularly useful to define types, constants and
+subprograms shared by several categorized packages. Remember that normal
+packages cannot be withed in categorized package declarations.
+
+@node More About Categorization Pragmas, Most Features in One Example, Overview of Pragma Pure, The Distributed Systems Annex
 @section More About Categorization Pragmas
 
 
@@ -815,7 +843,7 @@ workers and also several remote workers.
 
 In sample above, we define an unique place where workers wait for
 jobs. Workers is a Remote_Call_Interface package with services to hire
-and free workers. Unlike to Remote_Types packages, Remote_Call_Interface
+and free workers. Unlike Remote_Types packages, Remote_Call_Interface
 packages cannot be duplicated.
 
 @image{workercity.ads}
@@ -848,7 +876,7 @@ distributed programs.
 @end menu
 
 @node Introduction To GLADE, How to Configure a Distributed Application with Gnatdist, Getting Started With GLADE, Getting Started With GLADE
-@section Introduction To GLADE
+@section Introduction to GLADE
 
 An Ada 95 distributed application comprises a number of partitions
 which can be executed concurrently on the same machine or, and this is
@@ -1049,7 +1077,7 @@ executables, all the Ada keywords have been reserved even if they are
 not used in the configuration language.
 
 @node Partition main procedure, Physical nodes, Partition Declaration, The Configuration Language
-@subsection Partition main procedure
+@subsection Partition Main Procedure
 
 Basically, the distributed system annex helps a user in building a
 distributed application from a non-distributed application. The user
@@ -1096,7 +1124,7 @@ pragma Starter (Method => Method_Type);
 @end smallexample
 
 @node Physical nodes, Boot Server, Partition main procedure, The Configuration Language
-@subsection Physical nodes
+@subsection Physical Nodes
 
 Logical nodes (or partitions) can be mapped onto physical
 nodes. gnatdist default behavior is to ask for themi nteractively. It is
@@ -1141,7 +1169,7 @@ PRAGMA ::=
 @end smallexample
 
 @node Executable location, Partition Termination, Boot Server, The Configuration Language
-@subsection Executable location
+@subsection Executable Location
 
 There are several other attributes that can be applied to a
 partition. Storage_Dir allows the user to specify in which directory
@@ -1213,7 +1241,7 @@ pragma Version (True | False);
 @end smallexample
 
 @node An example with most of the configuration language features,  , Version Consistency, The Configuration Language
-@subsection An example with most of the configuration language features
+@subsection An Example with Most of the Configuration Language Features
 
 Every keyword and construct defined in the configuration language have
 been used in the following sample configuration file.
@@ -1458,7 +1486,7 @@ depending on the configuration of the distributed application.
 @end menu
 
 @node Configuring filtering, Implementing Your Own Filters, Filtering, Filtering
-@subsection Configuring filtering
+@subsection Configuring Filtering
 
 As a default, no filtering is performed by GLADE. As a default, the
 compression filter is available. Therefore, you can configure your
@@ -1658,34 +1686,53 @@ distributed objects. In some respects, it can be compared to Java as
 this language provides only an object-oriented programming model, and
 discards the classical structured programming model.
 
-An IDL pre-compiler generates client stubs and server skeletons in a
-host language (C++, C, Java, Smalltalk, Ada95); a language mapping
-specifies how CORBA constructs are implemented in the host language. Of
-course, if the host language is Java or C++, as the IDL is already
-closed to these languages, the mapping is quite straightforward. If the
-language is Ada95, then the user can have significantly much work to
-suit the generated code to his actual needs.
+An IDL translator generates client stubs and server skeletons in a host
+language (@t{C++}, @t{C}, Java, Smalltalk, Ada95); a language mapping
+specifies how IDL entities are implemented in the host
+language. Depending on the features available in the host language, the
+mapping can be more or less straightforward.  When an IDL feature is not
+defined in the host language, the mapping provides a standardized but
+complex way of simulating the missing feature.  Although the user works
+with the generated code, a good understanding of the language mapping is
+often necessary.
 
-The IDL pre-compiler produces two host language source files: a client
-file called stub and a server file called skeleton. These files are
-specific to a vendor and product, as they make calls to a proprietary
-communication subsystem, but their structure is supposed to follow a
-standard canvas.  The client stubs convert user queries into requests to
-the ORB, which transmits these requests through an object adaptor to the
-server skeleton.
+When the host language does not provide object-oriented features, the
+user has to deal with a complex simulation of those functions. A @t{C++}
+programmer has to follow several rules related to parameters passed by
+reference. Defining whether the callee or the caller is responsible for
+parameter memory allocation can be considered as @t{C++} programming
+conventions. The most difficult parts of the Ada mapping, that an Ada
+programmer should avoid when possible, are multiple inheritance and
+forward declarations.
+
+The IDL translator produces several host language source files depending
+on the language mapping: client files called stubs and server files
+called skeletons. These files are specific to a vendor and product, as
+they make calls to a proprietary communication subsystem, but their
+structure and interface are supposed to follow a standard canvas.  The
+client stubs convert user queries into requests to the ORB, which
+transmits these requests through an object adapter to the server
+skeleton.
 
 @node Interface Definition Language, Network Communication Subsystem, CORBA Architecture, DSA and CORBA
 @section Interface Definition Language
 
 In DSA, the IDL is a subset of Ada95. The user identifies at compile
-time interface packages. Some interface packages are categorized using
-pragmas and these interface packages have to be unit libraries. There
-are three kinds of categorization pragmas:
+time interface packages. Some library-level packages are categorized
+using pragmas and these interface packages have to be unit
+libraries.
 
 In CORBA, the IDL is a descriptive language; it supports @t{C++}
 syntax for constant, type and operation declarations. From IDL
-descriptions, a pre-compiler can directly generate client header files
+descriptions, a translator can directly generate client header files
 and server implementation skeletons.
+
+An IDL file starts by defining a module. This provides a name space to
+gather a set of interfaces. This is a way to introduce a level of
+hierarchy whose designation looks like
+(<@t{module}>::<@t{interface}>::<@t{operation}>). The Ada95 binding maps
+this element into a (child) package.  @t{#include} statements make any
+other name spaces visible.
 
 An IDL file can start by defining a module. This provides a name-space
 to gather a set of interfaces. This is a way to introduce a level of
@@ -1693,96 +1740,116 @@ hierarchy (<@i{module}>::<@i{interface}>::<@i{operation}>). The Ada95
 binding maps this element into a (child) package. @t{#include}
 will make any other namespaces visible.
 
-A module can define interfaces. An interface defines a set of
-methods that a client can invoke on an object. An interface can also
-define exceptions and attributes. An exception is like a @t{C++}
-exception and a component can be attached to it. An attribute is a
-component field. For each of them, the implementation automatically
-creates Get and Set operations. Only Get is provided for
-readonly attributes. An interface can derived from one or more
-interfaces (multiple inheritance).
+A module can define interfaces. An interface defines a set of methods
+that a client can invoke on an object. An interface can also define
+exceptions and attributes. An exception is like a @t{C++} exception: a
+data component can be attached to it. An attribute is a component
+field. For each @i{Attribute}, the implementation automatically creates
+the subprograms Get_@i{Attribute} and Set_@i{Attribute}. Only Get is
+provided for @i{readonly} attributes. An interface can derive from one
+or more interfaces (multiple inheritance).
 
-The Ada95 binding maps this element into a package or a child
+The Ada~95 binding maps this element into a package or a child
 package. For the client stub, the implementation will automatically
 create a tagged type named Ref (which is derived from CORBA.Object.Ref
-or from the derived type Ref of another interface) in a package named
-like the interface. For the server skeleton, the implementation will
-automatically create a tagged type named Object (which is derived from
-an implementation defined private tagged type Object) in a package named
-Impl, child package of a package named like the interface
-(<@i{interface}>.Impl).
+or from another Ref type defined in another interface) in a package
+whose name matches the one of the interface. For the server skeleton,
+the implementation will automatically create a tagged type named
+Object (which is derived from an implementation defined private tagged
+type Object) in a package named Impl, which is a child package of a
+package named after the interface name (<@i{interface}>.Impl).
 
 @image{naming.idl}
 
-A method is defined by its unique name (no overloading allowed) and its
+A method is defined by a unique name (no overloading is allowed) and its
 signature (the types of its formal parameters). Each parameter can be of
-mode @b{in}, @b{out} or @b{inout}, whose meaning is
-comparable to their Ada homonyms. Every exception that can be raised by
-a method must also be declared as part of the method signature.
+mode @b{in}, @b{out} or @b{inout}, whose meanings are comparable to
+their Ada homonyms. Every exception that can be raised by a method must
+also be declared as part of the method signature.
 
-In addition, the @b{oneway} attribute can be applied to a subprogram,
-making it an asynchronous method. The caller of an asynchronous method
-will continue its execution path without waiting for the completion of
-the remote call.
+The @b{oneway} attribute can be applied to a subprogram, giving it
+at-most-once semantics instead of the exactly-once default.
+This precludes a method from having output parameters, a return
+value, or raised exception. It is not portable to assume that the caller
+resumes its execution once the input parameters are sent.
 
-Most CORBA data types map naturally onto predefined Ada types, with
-the exception of @t{any} and @t{sequence}. @t{any},
-that can designate any CORBA type, will be mapped onto a stream type
-with @t{read} and @t{write} operations. A @t{sequence}
-holds a list of data with a given type and will be represented in Ada
-using a pair of lengthy generic packages (the declaration itself would
-take about 20 pages). One may note that the CORBA @t{string} type
-is mapped onto the @t{Unbounded\_String} predefined Ada type.
+Most CORBA data types map in a straightforward way onto predefined Ada
+types, with the exception of @t{any} and @t{sequence}.  @t{any}, that
+can designate any CORBA type, is mapped onto a stream type with @t{read}
+and @t{write} operations. A @t{sequence} holds a list of items of a
+given type and is represented in Ada using a pair of lengthy generic
+packages. One may note that the CORBA @t{string} type is mapped onto the
+@t{Unbounded_String} Ada95 type. The IDL does not provide an equivalent
+to unconstrained arrays.
 
-The Ada95 mapping provides special mechanisms to implement two difficult
-CORBA features. First, it provides a way to implement multiple
-inheritance. As described above, an Ada95 package defines a type derived
-from the first interface and extends the list of its primitives to
-achieve inheritance from other interfaces. Another difficult feature of
-CORBA comes from forward declarations. In Ada, two package
-specifications cannot ``with'' each others, but this can occur between
-to IDL interfaces (see IDL specification above). To solve this, the
-mapping proposes to create ``forward'' packages. This can result in a
-very non-intuitive situation where the client stub does not ``with'' its
-usual interface packages but ``forward'' packages.
+The Ada95 mapping provides special mechanisms to implement two
+difficult-to-map CORBA features. First, it provides a translation of
+multiple inheritance. As described above, an Ada95 package defines a
+type derived from the first interface, and extends the list of its
+primitive operations to achieve inheritance from other
+interfaces. Another unnatural feature of CORBA for an Ada programmer
+comes from forward declarations. In Ada, two package specifications
+cannot ``with'' each others, but this can occur between two IDL
+interfaces.  To solve this, the mapping proposes to create ``forward''
+packages.  This can result in a very non-intuitive situation where the
+client stub does not ``with'' its usual interface packages but
+``forward'' packages instead.
 
-We can note that to develop a distributed application with CORBA, a good
-understanding of the IDL is not enough. The user has also to understand
-very well the language mapping defined for the host language he wants to
-use. This can introduce a high level of complexity in the user code.
+When developping a distributed application with CORBA, two situations
+may appear. On the server side, the programmer is responsible for the
+IDL file. He has to understand the Ada95 language mapping in order to
+avoid structures with a non-trivial implementation whenever possible,
+such as forward declaration and multiple inheritance. On both the server
+and the client side, the programmer has to deal with the generated
+code. A good understanding of the mapping is useful to get back and
+forth from the IDL file to the generated code in order to keep an
+overview of the distributed application. Understanding this mapping can
+be a tedious task depending of the host language.
 
-Interface information coded in IDL can be stored in an on-line database
-of object definitions called Interface Repository. A CORBA specification
-describes how the interface repository is organized and how to retrieve
-information on IDL from this repository. The reader familiar with Ada95
-tools will note that this information is very close to what ASIS would
-provide.
+IDL interface information can be stored on-line in a database called
+Interface Repository (IR). A CORBA specification describes how the
+interface repository is organized and how to retrieve information from
+it.  The reader will note that this information is close to what the Ada
+Semantic Interface Specification can provide.
 
-This interface repository becomes useful when a client wants to invoke a
-method for which he does not know the signature. CORBA defines an API to
-retrieve in the database the data that defines the server operation. It
-also defines a way to build a full request by generating the parameters
-needed for a method invocation.
+The interface repository allows a client to discover the signature of a
+method which it did not know at compile time. It can subsequently use
+this knowledge together with values for the method's parameters to
+construct a complete request and invoke the method. The set of functions
+that permits the construction of a method invocation request at run time
+is the Dynamic Invocation Interface (DII).
 
-Basically, this API allows the client to explore the repository classes
-to obtain a module definition tree. From this tree, the client is able
-to extract subtrees defining constants, types, exceptions and
-interfaces. From an interface subtree, the client can select an
-operation with its list of parameters (type, name and mode) and
-exceptions.
+The IR API allows the client to explore the repository classes to obtain
+a module definition tree. From this tree, the client extracts subtrees
+defining constants, types, exceptions, and interfaces. From an interface
+subtree, the client can select an operation with its list of parameters
+(type, name and mode) and exceptions.
 
-Therefore, the client has three ways to invoke the request. He can send
-the request and wait for the results. But he can also defer to get the
-result or ask to ignore the results (oneway). This mechanism is known as
-Dynamic Invocation Interface (DII). This mechanism is also available on
-the server side and is known as Dynamic Skeleton Interface. Of course,
-these mechanisms are powerful but very complex and tedious to use. Most
-of the users will keep working with static invocations.
+A client has then three ways to make a request. As in the static case,
+he can send it and wait for the result; he can also may a one-way call
+and discard the result. With dynamic requests, a third mechanism is
+offered: the client can send the request without waiting for the result,
+and obtain it later, asynchronously.
+
+The DII has a server-side counterpart, called Dynamic Skeleton
+Interface. Both mechanisms are powerful but very complex and tedious to
+use. In some respects, they also violate the Ada~95 philosophy, because
+strong typing is not preserved.  Most users will keep working with
+static invocations.
 
 @node Network Communication Subsystem, Distributed Application Development, Interface Definition Language, DSA and CORBA
 @section Network Communication Subsystem
 
+The communication subsystem is one of the key points of a
+distributed system: it offers basic services such as the capability to
+transmit a message from one part of the distributed program to
+another. Those elementary services are then used by higher level
+services to build a fully functional distributed system.
 
+The limit between what belongs to the communication subsystem and what
+belongs to an external service may sometimes be difficult to draw.
+Moreover, something considered as a service in CORBA may be viewed as
+purely internal in DSA.
 
 @menu
 * DSA PCS::                     
@@ -1792,23 +1859,24 @@ of the users will keep working with static invocations.
 @node DSA PCS, CORBA ORB, Network Communication Subsystem, Network Communication Subsystem
 @subsection DSA PCS
 
-In the DSA world, everything that is not done by the compiler in regard
-to the distribution belongs to the partition communication subsystem
-(PCS). For example figuring out on which partition a package that will
-be called remotely is located is part of the PCS responsibility.
+In the DSA world, everything that is not done by the compiler in
+regard to the distribution belongs to the partition communication
+subsystem (PCS). For example, figuring out on which partition a package
+that will be called remotely is located is part of the PCS's
+responsibility.
 
-The PCS entry points are well defined in the Distributed Systems Annex
-and described in the @t{System.RPC} package declaration.  By looking at
-this package, one can notice that there is nothing related to abortion
-of remote subprogram calls, although the Annex states that if such a
-call is aborted, an abortion message must be sent to the remote
-partition to cancel remote processing. That means that the PCS is in
-charge of detecting that a call to one of its entry points has been
-aborted and must send such an abortion message, without any help from
-the compiler.
+The PCS entry points are well defined in DSA, and described in the
+@t{System.RPC} package declaration.  By looking at this package,
+one can notice that there is nothing related to abortion of remote
+subprogram calls, although the Annex states that if such a call is
+aborted, an abortion message must be sent to the remote partition to
+cancel remote processing. That means that the PCS is in charge of
+detecting that a call to one of its entry points has been aborted and
+must send such an abortion message, without any help from the
+compiler.
 
 Another interesting characteristic of the PCS is its behavior regarding
-unknown exceptions. When an exception is raised as the result of the
+unknown exceptions. When an exception is raised as a result of the
 execution of a remote subprogram call, it is propagated back to the
 caller. However, the caller may not have any visibility over the
 exception declaration, but may still catch it with a @t{when
@@ -1823,24 +1891,29 @@ runtime.
 @node CORBA ORB,  , DSA PCS, Network Communication Subsystem
 @subsection CORBA ORB
 
-CORBA has adopted a much more fragmented point of view in regard to
-services: as much services as possible will be defined externally.  For
-example, the naming service (whose duty is to locate remote objects from
-their name) is itself a distributed object with a standardized IDL
-interface.
+In CORBA, a much more fragmented approach of services was adopted:
+they are essentially defined externally.  For example, the naming
+service (which maps object names to object references) is a
+distributed object with a standard IDL interface.
 
-While this looks like more pure an approach, this may also induce some
-slowdowns. Being itself a distributed object, the naming service cannot
-be optimized specifically for the ORB needs.  Also some magic is
-required in the ORB to be able to locate the naming service itself
-(chicken and egg problem).
+While this approach seems more pure, it has performance drawbacks.
+Being itself a distributed object, the naming service cannot be
+optimized for the needs of a specific ORB. A special case is also
+required in the ORB for it to be able to locate the naming service
+itself (chicken and egg problem): in order to get a reference on a
+distributed object (an IOR, Interface Object Reference) to start with,
+the programmer needs to have an IOR for the naming service.  This IOR
+can be retrieved from the command line, from a file or by invoking the
+ORB Interface, depending on the CORBA version.
 
 Regarding exception propagation, an ORB is not able to propagate an
 exception that has not been declared in the IDL interface. This
 restriction, although annoying because it restricts the usage of
 exceptions, is understandable given the multi-language CORBA approach:
-what should be done for example with a C++ exception which reaches a
-caller written in Ada?
+what should be done, for example, when a @t{C++} exception reaches a
+caller written in Ada? Note that an implementation may provide more
+information in the CORBA exception message, such as the @t{C++} or Ada
+exception name.
 
 @node Distributed Application Development, Some elements of comparison, Network Communication Subsystem, DSA and CORBA
 @section Distributed Application Development
@@ -1858,21 +1931,57 @@ caller written in Ada?
 The DSA does not describe how a distributed application should be
 configured. It is up to the user (using a partitioning tool whose
 specification is outside the scope of the annex) to define what the
-partitions in her program are and on which machines they should be
+partitions in his program are and on which machines they should be
 executed.
 
 GLADE provides a Configuration Tool and a Partition Communication
 Subsystem to build a distributed application. The GNATDIST tool and its
-configuration language have been purposely designed to let the user
-partition her program and specify the machines where the individual
+configuration language have been specially designed to let the user
+partition his program and specify the machines where the individual
 partitions will be executing. The Generic Ada Reusable Library for
 Interpartition Communication (GARLIC) is a high level communication
-library that implements with object-oriented techniques the interface
-between the Partition Communication Subsystem defined in the Reference
-Manual and the network communication layer.
+library that implements the interface between the Partition
+Communication Subsystem defined in the Reference Manual and the network
+communication layer with object-oriented techniques.
 
 @node CORBA Application Development,  , DSA Application Development, Distributed Application Development
 @subsection CORBA Application Development
+
+The ORB provides a core of basic services. All other services are
+provided by objects with IDL. The OMG has standardized a set of useful
+services like Naming, Trading, Events, Licensing, Life Cycle, Events,
+... A CORBA vendor is free to provide an implementation of these
+services.
+
+The Naming Service allows the association (@i{binding}) of an
+object reference with user-friendly names. A name binding is always
+defined relative to a @i{naming context} wherein it is unique. A
+naming context is an object itself, and so can be bound to a name in
+another naming context. One thus creates a @i{naming graph}, a
+directed graph with naming contexts as vertices and names as edge
+labels. Given a context in a naming graph, a sequence of names can
+thus reference an object. This is very similar to the naming
+hierarchies that exist in the Domain Name System and the UNIX file
+system. A typical scenario consists in providing a well-known remote
+reference that defines the root of a naming and naming context
+hierarchy and in executing naming operations on this hierarchy. The
+Trading Service provides a higher level of abstraction than the Naming
+Service. If the Naming Service can be compared to the White Pages, the
+Trading Service can be compared to the Yellow Pages.
+
+The Events service provides a way for servers and clients to interact
+through asynchronous events between anonymous objects. A @i{supplier}
+produces events when a @i{consumer} receives notification and data. An
+@i{event channel} is the mediator between consumers and
+suppliers. @i{consumer admins} and @i{supplier admins} are in charge of
+providing @i{proxies} to allow consumers and suppliers to get access to
+the event channel. Suppliers and consumers produce and receive events
+through their associated proxies. From the event channel point of view,
+a @i{proxy supplier} (or @i{proxy consumer}) is seen as a consumer (or a
+supplier).  Therefore, a proxy supplier (or proxy consumer) is an
+extended interface of consumer (or supplier). The Events service defines
+@i{push} and @i{pull} methods to exchange events. This allows to
+define four models to exchange events and data.
 
 @c \reviewers{We shall give more details on the distributed
 @c   application development in the final paper. This will also describe
@@ -1880,31 +1989,25 @@ Manual and the network communication layer.
 @c   ...}
 
 @node Some elements of comparison,  , Distributed Application Development, DSA and CORBA
-@section Some elements of comparison
+@section Some Elements of Comparison
 
 CORBA provides an outstanding and very popular framework. The IDL syntax
-is close to @t{C++}. The object model is close to @t{Java}: CORBA
-defines only distributed objects. Furthermore, the stub and skeleton
-generated code is close to Java with two root classes, Ref for clients
-and Object for servers.
+is close to @i{C++}. The object model is close to Java: CORBA defines
+only distributed objects. Furthermore, when using the Ada mapping, the
+stub and skeleton generated code is close to Java with two root classes,
+Ref for clients and Object for servers.
 
 DSA provides a more general model. This includes distributed objects,
-but also regular remote subprograms and references on remote
+but also regular remote subprograms and references to remote
 subprograms. Shared passive packages can be defined as an abstraction
 for a (distributed) shared memory, a persistency support or a database.
 Basically, the IDL is a subset of Ada95 and the remote services are
 defined in packages categorized by three kinds of pragmas (RCI, RT,
 SP). The distributed boundaries are more transparent as the application
-is not split into IDL sources and others sources in some host languages.
-
-To use a client stub or server skeleton, a CORBA user has to perfectly
-understand the Ada95 mapping or any other language mapping. Some types
-can be quite difficult or expensive to map like exceptions, any, string
-and sequence. Some IDL features are also difficult to implement in
-Ada95 like multiple inheritance and forward declarations.
+is not split into IDL and host language sources.  host languages.
 
 In DSA, any Ada type can be used except access types, but this can be
-solved by providing the marshaling operations for such a type. The
+solved by providing the marshalling operations for such a type. The
 exception model is entirely preserved. Overloading is allowed in DSA
 (not in CORBA). The user can also define generic packages and use mixin
 mechanism to obtain some kind of multiple inheritance.
@@ -1912,37 +2015,77 @@ mechanism to obtain some kind of multiple inheritance.
 The DSA user can design, implement and test his application in a
 non-distributed environment, and then switch to a distributed situation.
 With this two-phase design approach, the user always works within his
-favorite Ada95 environment. Pragma All_Calls_Remote also facilitates
-debugging of a distributed application in a non-distributed context.
+favorite Ada95 environment. The use of pragma All_Calls_Remote also
+facilitates debugging of a distributed application in a non-distributed
+context.
+
+To work on client stubs or server skeletons, the CORBA user will have to
+deal with generated code. In any case, understanding the host language
+mapping is always very useful. It can be required for some languages
+like @i{C++}. An Ada programmer should avoid using forward declaration
+or multiple inheritance (and in some respects, sequence).
 
 The CORBA user has to re-adapt his code to the code generated by the
-pre-compiler from the IDL file anytime it is modified. He also has to
-use the predefined CORBA types instead of Ada standard types; he has to
-call adaptor services to obtain remote object references or a specific
-naming service.
+translator from the IDL file anytime the latter is modified. He also has
+to use the predefined CORBA types instead of Ada standard types; he has
+to call ORB functions or a naming service to obtain remote object
+references.
 
-As Ada95 is the IDL, the user will not have to deal with any generated
-stub or skeleton code. The configuration environment will take care of
-updating object, stub and skeleton files when sources have been
-updated. The system will automatically take in charge some naming
-services like declaring RCI services. It will also take care of aborting
-remote procedure calls, detecting the distributed termination, checking
-version consistency between clients and servers or preserving and
-propagating remote exceptions.
+As Ada95 is its own IDL, the user does not deal with any generated stub
+or skeleton code. The configuration environment takes care of updating
+object, stub and skeleton files when sources have been updated. The
+system automatically provides some naming functions like declaring RCI
+services. It also takes care of aborting remote procedure calls,
+detecting distributed termination, checking version consistency between
+clients and servers, and preserving and propagating any remote
+exception.
 
-CORBA is a very rich but very complex system. The drawbacks include the
-high learning curve for developing and managing CORBA applications
+The RM does not require a DSA implementation to work on heterogeneous
+systems but GLADE, like any reasonable implementation, provides default
+XDR-like marshalling operations. This feature can be inhibited for
+performance reasons. An ORB is required to implement a Common Data
+Representation (CDR) to ensure safe communications between heterogeneous
+systems.
+
+CORBA is a very rich but very complex standard. Its drawbacks include
+the high learning curve for developing and managing CORBA applications
 effectively, performance limitations, as well as the lack of portability
-and security.  These drawbacks are the price to pay for language
-interoperability, a facility the Ada95-oriented DSA does not provide.
+and security. These drawbacks are the price to pay for language
+interoperability, a facility the Ada~95-oriented DSA does not provide.
 
-Using its IDL, the OMG has described a number of @i{Common Object
-Services} that are frequently needed to develop distributed
-systems. Unfortunately, these specifications are limited to an IDL
-description, and most of the semantics is up to the vendor. The DSA
-misses such a user-level library including basic distributed software
+Interoperability between compilers is not yet an issue with DSA because
+there is only one implementation available (GLADE). But it is a
+validation requirement to permit a user to replace his current PCS with
+a third-party PCS. We can note this issue was not resolved in CORBA
+until revision 2.2. For the same reasons, we can expect future DSA
+implementations to ensure PCS compatibility.
+
+Using its IDL, the OMG has described a number of @t{Common Object
+  Services} (COS) that are frequently needed in distributed
+systems. Unfortunately, these specifications are limited to IDL
+descriptions, and most of the semantics are up to the vendor. The DSA
+misses such user-level libraries, including basic distributed software
 components.  More generally, the lack of component libraries has always
 been a problem for Ada.
+
+Implementing CORBA services as native Ada95 distributed objects, taking
+advantage of the standard language features, yields a simpler, easy to
+understand and use specification. We have already implemented the Naming
+service, the Events service and a service close to the Concurrency one
+with DSA. Developping the CORBA services was an interesting experience.
+We realized that although those services are nicely specified by an IDL
+file, their semantics is quite vague in such a way portability is
+dramatically broken. This work will be described in a future paper.
+
+Another major goal of the GLADE team is to export DSA services to the
+CORBA world.
+
+The idea is to translate all DSA features to equivalent IDL features
+using ASIS. This would allow a DSA user to connect his DSA server to an
+ORB. This would also allow applications written in other languages to
+invoke DSA features. We are also seeking to use this approach to offer a
+DII mechanism for DSA.
+
 
 @c XXXXX Index is nonexistent
 @c @node
