@@ -31,7 +31,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  All_Types client.
+--  All_Types client
 
 with Ada.Characters.Handling;
 with Ada.Command_Line; use Ada.Command_Line;
@@ -150,10 +150,15 @@ begin
               (echoString
                (Myall_types, To_CORBA_String ("hello distributed world")))
               = "hello distributed world");
-      pragma Warnings (Off);
-      --  Comparison with True
-      Output ("test boolean", echoBoolean (Myall_types, True) = True);
-      pragma Warnings (On);
+
+      Output ("test wstring",
+              To_Standard_Wide_String
+              (echoWString
+               (Myall_types, To_CORBA_Wide_String
+                ("hello distributed world")))
+              = "hello distributed world");
+
+      Output ("test boolean", echoBoolean (Myall_types, True));
       Output ("test short", echoShort (Myall_types, 123) = 123);
       Output ("test long",  echoLong (Myall_types, 456) = 456);
       Output ("test unsigned_short", echoUShort (Myall_types, 456) = 456);
@@ -167,6 +172,9 @@ begin
             Ada.Text_IO.Put_Line ("Got exception:");
             Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (E));
       end;
+
+      Output ("test wchar", echoWChar (Myall_types, 'A') = 'A');
+
       Output ("test octet", echoOctet (Myall_types, 5) = 5);
       begin
          Output ("test enum", echoColor (Myall_types, Blue) = Blue);

@@ -10,8 +10,10 @@ interface all_types {
   float echoFloat(in float arg) ;
   double echoDouble(in double arg) ;
   char echoChar(in char arg) ;
+  wchar echoWChar(in wchar arg) ;
   octet echoOctet (in octet arg) ;
   string echoString (in string arg) ;
+  wstring echoWString (in wstring arg) ;
   all_types echoRef (in all_types arg);
   Object echoObject (in Object arg);
 

@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
---         Copyright (C) 2002-2004 Free Software Foundation, Inc.           --
+--         Copyright (C) 2002-2005 Free Software Foundation, Inc.           --
 --                                                                          --
 -- PolyORB is free software; you  can  redistribute  it and/or modify it    --
 -- under terms of the  GNU General Public License as published by the  Free --
@@ -26,8 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
---                PolyORB is maintained by ACT Europe.                      --
---                    (email: sales@act-europe.fr)                          --
+--                  PolyORB is maintained by AdaCore                        --
+--                     (email: sales@adacore.com)                           --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -118,6 +118,15 @@ package body all_types.Impl is
       return arg;
    end echoChar;
 
+   function echoWChar
+     (Self : access Object;
+      arg : in CORBA.Wchar)
+     return CORBA.Wchar
+   is
+   begin
+      return arg;
+   end echoWChar;
+
    function echoOctet
      (Self : access Object;
       arg : in CORBA.Octet)
@@ -139,6 +148,15 @@ package body all_types.Impl is
          & " »");
       return arg;
    end echoString;
+
+   function echoWString
+     (Self : access Object;
+      arg : in CORBA.Wide_String)
+      return CORBA.Wide_String
+   is
+   begin
+      return arg;
+   end echoWString;
 
    function echoRef
      (Self : access Object;
