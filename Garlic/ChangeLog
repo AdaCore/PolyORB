@@ -11,7 +11,7 @@ Fri May  2 16:40:02 1997  Samuel Tardieu <sam@inf.enst.fr>
 
 	* constants.sh: Ditto.
 
-	* split.adb: New utility.
+	* split.adb: New utility to configure GLADE.
 
 	* s-garpri.ads: Made a pure package.
 
