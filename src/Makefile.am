@@ -1,8 +1,9 @@
-corba_dir = corba 
-giop_dir = giop
-moma_dir = moma
-soap_dir = soap
-srp_dir = srp
+corba_dir=	corba 
+#dsa_dir=	dsa
+giop_dir=	giop
+moma_dir=	moma
+soap_dir=	soap
+srp_dir=	srp
 
 SUBDIRS = . @PROTO_DIRS@ @APPLI_DIRS@
 

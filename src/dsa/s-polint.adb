@@ -47,6 +47,7 @@ with CORBA.Object;
 with PolyORB.CORBA_P.Naming_Tools;
 with CosNaming.Helper;
 with CosNaming.NamingContext;
+--  XXX THESE DEPS UPON CORBA MUST BE REMOVED!!!!!
 --  RCI package references are managed through the CORBA
 --  naming service. RCIs also act as naming contexts themselves
 --  for the purpose of providing access to each of their subprograms
