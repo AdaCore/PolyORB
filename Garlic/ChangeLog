@@ -1,3 +1,25 @@
+1998-03-24  Laurent Pautet  <pautet@dorine.enst.fr>
+
+	* s-gafizi.adb, s-gafizi.ads, s-gaphlo.adb, s-gaphlo.ads,
+ 	s-garfil.adb, s-garfil.ads, s-garhea.adb, s-garhea.ads,
+ 	s-garloo.adb, s-garloo.ads, s-garpro.ads, s-garrem.adb,
+ 	s-garrep.adb, s-garrep.ads, s-garsta.adb, s-garstr.adb,
+ 	s-garstr.ads, s-gartcp.adb, s-gartcp.ads, s-garter.adb,
+ 	s-garter.ads, s-gartra.adb, s-gartra.ads, s-gartyp.ads,
+ 	s-garuni.adb, s-garuni.ads, s-garuti.adb, s-gaseli.ads,
+ 	s-parint.adb, s-parint.ads, s-rpc.adb, s-rpc.ads, s-rpcpoo.adb,
+ 	s-rpcpoo.ads, s-parint.adb, s-rpstio.adb, s-rpstio.ads: Use
+ 	Partition_ID, Params_Stream_Type and RPC_Receiver from
+ 	System.Garlic.Types and System.Garlic.Streams to cut down a
+ 	circular dependency which appears when a different system.rpc is
+ 	used. Change pragma Elaborate_All into pragma Elaborate because it
+ 	was overkilled and causes a circular dependency. This fixes
+ 	cxe5003. And will help to fix cxe5002. Unfortunatly, cxe5002 needs
+ 	pragma All_Calls_Remote.
+
+	* Makefile.am, Makefile.in, s-rpcuti.ads, s-rpcuti.adb: Unit longer
+ 	needed.
+	
 1998-03-24  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* Makefile.am: Change 2<letter>* into 5<letter>*.

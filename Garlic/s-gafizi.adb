@@ -38,9 +38,11 @@ with Interfaces.C;
 
 pragma Warnings (Off);
 with System.Garlic.Filters;
-pragma Elaborate_All (System.Garlic.Filters);
+pragma Elaborate (System.Garlic.Filters);
 pragma Warnings (On);
+
 with System.Garlic.Streams; use System.Garlic.Streams;
+pragma Elaborate (System.Garlic.Streams);
 
 package body System.Garlic.Filters.Zip is
 
@@ -106,7 +108,7 @@ package body System.Garlic.Filters.Zip is
    function Filter_Outgoing
       (Filter : in     Compress_Filter_Type;
        Params : in     Filter_Params_Access;
-       Stream : access System.RPC.Params_Stream_Type)
+       Stream : access Streams.Params_Stream_Type)
       return Stream_Element_Access is
       Source_Length : Stream_Element_Offset;
       Target_Length : Stream_Element_Offset;

@@ -82,7 +82,6 @@ s-parint.o\
 s-rpc.o\
 s-rpcini.o\
 s-rpcpoo.o\
-s-rpcuti.o\
 s-rpstio.o\
 s-stratt.o
 
@@ -119,7 +118,6 @@ ${srcdir}/s-painst.ads ${srcdir}/s-painst.adb \
 ${srcdir}/s-rpc.ads    ${srcdir}/s-rpc.adb    \
 ${srcdir}/s-rpcini.ads ${srcdir}/s-rpcini.adb \
 ${srcdir}/s-rpcpoo.ads ${srcdir}/s-rpcpoo.adb \
-${srcdir}/s-rpcuti.ads ${srcdir}/s-rpcuti.adb \
 ${srcdir}/s-rpstio.ads ${srcdir}/s-rpstio.adb \
 ${srcdir}/s-stratt.adb
 
@@ -196,19 +194,18 @@ install-dirs-local:
 	${top_srcdir}/mkinstalldirs ${GARLIC}
 
 inlining: all-local
-	-${RM} -r gnatlib;
 	@echo 'with Text_IO; use Text_IO;'  >inline.adb
 	@echo 'procedure Inline is'        >>inline.adb
 	@echo 'begin Put_Line ("a"); end;' >>inline.adb
 	-@${GNATMAKE} -I. inline.adb
 	@if test -f inline; then\
 	   echo no >inlining;\
-	fi;
-	@if test -f inline; then\
 	   echo "Run-time compiled without inlining flags";\
-	   echo no  >inlining;\
 	else\
 	   echo "Run-time compiled with inlining flags";\
+	fi;
+	@if test ! -f inlining; then\
+	   ${RM} -r gnatlib;\
 	   mkdir gnatlib;\
 	   grep s-stratt `${srcdir}/../Dist/config.sdefault pathtolib`*.ali |\
 	      ${SED} 's,^.*[/]\(.*\)\.ali:.*$$,\1.o,g' >gnatlib/tocheck;\

@@ -53,7 +53,7 @@ private
    function Filter_Outgoing
      (Filter : in     Compress_Filter_Type;
       Params : in     Filter_Params_Access;
-      Stream : access System.RPC.Params_Stream_Type)
+      Stream : access Streams.Params_Stream_Type)
      return Streams.Stream_Element_Access;
 
    function Filter_Params_Read

@@ -33,19 +33,24 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
+with System.Garlic.Streams;
+with System.Garlic.Types;
+
 private package System.RPC.Pool is
 
    --  This package handles a pool of anonymous tasks which will be used
    --  by System.RPC to handle incoming calls.
 
-   procedure Allocate_Task (Partition    : in Partition_ID;
-                            Id           : in Request_Id;
-                            Params       : in Params_Stream_Access;
-                            Asynchronous : in Boolean);
+   procedure Allocate_Task
+     (Partition    : in System.Garlic.Types.Partition_ID;
+      Id           : in System.RPC.Request_Id;
+      Params       : in System.Garlic.Streams.Params_Stream_Access;
+      Asynchronous : in Boolean);
    --  Start a new anonymous task to handle the request
 
-   procedure Abort_Task (Partition : in Partition_ID;
-                         Id        : in Request_Id);
+   procedure Abort_Task
+     (Partition : in System.Garlic.Types.Partition_ID;
+      Id        : in System.RPC.Request_Id);
    --  Abort a running task
 
    procedure Initialize;

@@ -39,6 +39,10 @@ package System.Garlic.Types is
 
    pragma Preelaborate;
 
+   type Partition_ID is range 0 .. 63;
+
+   Communication_Error : exception;
+
    --  This package defines basic types that are used throughout Garlic
    --  as well as commonly used deallocation and conversion subprograms.
 

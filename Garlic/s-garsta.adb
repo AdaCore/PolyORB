@@ -58,6 +58,9 @@ pragma Elaborate_All (System.Garlic.Heart);
 with System.Garlic.Termination; use System.Garlic.Termination;
 pragma Elaborate_All (System.Garlic.Termination);
 
+with System.Garlic.Types; use System.Garlic.Types;
+pragma Elaborate_All (System.Garlic.Types);
+
 with System.Garlic.Services;
 pragma Elaborate_All (System.Garlic.Services);
 
@@ -159,7 +162,7 @@ begin
       --  First, let boot server know about this partition
 
       pragma Warnings (Off);
-      P : constant System.RPC.Partition_ID := Get_My_Partition_ID;
+      P : constant Types.Partition_ID := Get_My_Partition_ID;
       pragma Warnings (On);
 
       --  Then, let this partition know about boot server

@@ -37,15 +37,14 @@ with Ada.Exceptions;
 with Ada.Streams;
 with System.Garlic.Name_Table;
 with System.Garlic.Physical_Location;
+with System.Garlic.Streams;
 with System.Garlic.Types;
-with System.RPC;
 
 --  These ones should not be needed, but the binder needs them to get a
 --  correct dependencies order ???
 
 pragma Warnings (Off);
 with System.Tasking.Initialization;
-pragma Elaborate_All (System.Tasking);
 pragma Elaborate_All (System.Tasking.Initialization);
 with System.Tasking.Protected_Objects;
 pragma Elaborate_All (System.Tasking.Protected_Objects);
@@ -55,7 +54,7 @@ package System.Garlic.Heart is
 
    My_Partition_Name : Name_Table.Name_Id;
 
-   Null_Partition_ID : constant System.RPC.Partition_ID;
+   Null_Partition_ID : constant Types.Partition_ID;
    --  Means "no Partition_ID known at this time"
 
    type Partition_Data is record
@@ -76,7 +75,7 @@ package System.Garlic.Heart is
    function Get_Boot_Server return String;
    --  This function returns the coordinates of the boot server
 
-   function Get_Boot_Server return System.RPC.Partition_ID;
+   function Get_Boot_Server return Types.Partition_ID;
    --  Return the partition of the boot server
 
    procedure Initialize;
@@ -180,41 +179,41 @@ package System.Garlic.Heart is
      return System.Garlic.Physical_Location.Location_Type;
    --  Get my coordinates
 
-   function Get_My_Partition_ID return System.RPC.Partition_ID;
+   function Get_My_Partition_ID return Types.Partition_ID;
    --  Return the Partition_ID of the running partition. If the
    --  Partition_ID isn't known yet the function will block until
    --  the server gives it to us.
 
    function Get_My_Partition_ID_Immediately
-     return System.RPC.Partition_ID;
+     return Types.Partition_ID;
    pragma Inline (Get_My_Partition_ID_Immediately);
    --  Return the Partition_ID if it's known otherwise return
    --  Null_Partition_ID.
 
-   procedure Set_My_Partition_ID (Partition : System.RPC.Partition_ID);
+   procedure Set_My_Partition_ID (Partition : Types.Partition_ID);
    --  Set my partition ID
 
    ----------------------
    -- Remote partition --
    ----------------------
 
-   procedure Add_New_Partition_ID (Partition : in System.RPC.Partition_ID);
+   procedure Add_New_Partition_ID (Partition : in Types.Partition_ID);
    --  Declare that a Partition is to be used. This means that if needed
    --  we will connect to it.
 
    procedure Remote_Partition_Error
-     (Partition : in System.RPC.Partition_ID);
+     (Partition : in Types.Partition_ID);
    --  Signal that a partition is dead
 
    type RPC_Error_Notifier_Type is
-      access procedure (Partition : in System.RPC.Partition_ID);
+      access procedure (Partition : in Types.Partition_ID);
 
    procedure Register_Partition_Error_Notification
      (Callback : in RPC_Error_Notifier_Type);
    --  Register a procedure that will be called whenever a communication
    --  error occurs during a remote call.
 
-   function Get_Partition_Data (Partition : System.RPC.Partition_ID)
+   function Get_Partition_Data (Partition : Types.Partition_ID)
      return Partition_Data;
    --  Return a partition's location
 
@@ -238,15 +237,15 @@ package System.Garlic.Heart is
    --  request. These types *must* be updated as soon as Opcode is updated
 
    type Public_Receiver is
-      access procedure (Partition : in System.RPC.Partition_ID;
+      access procedure (Partition : in Types.Partition_ID;
                         Operation : in Public_Opcode;
-                        Params    : access System.RPC.Params_Stream_Type);
+                        Params    : access Streams.Params_Stream_Type);
    --  A procedure which will get the requests
 
    procedure Send
-     (Partition : in System.RPC.Partition_ID;
+     (Partition : in Types.Partition_ID;
       Operation : in Opcode;
-      Params    : access System.RPC.Params_Stream_Type);
+      Params    : access Streams.Params_Stream_Type);
    --  Send something to a remote partition
 
    procedure Receive
@@ -256,7 +255,7 @@ package System.Garlic.Heart is
    --  receiver will have to read the Params_Stream_Type before returning.
 
    procedure Has_Arrived
-     (Partition : in System.RPC.Partition_ID;
+     (Partition : in Types.Partition_ID;
       Data      : in Ada.Streams.Stream_Element_Array);
    --  Called by a protocol to signal that something has arrived
 
@@ -264,16 +263,15 @@ package System.Garlic.Heart is
    -- PID server --
    ----------------
 
-   function Allocate_Partition_ID return System.RPC.Partition_ID;
+   function Allocate_Partition_ID return Types.Partition_ID;
    --  Allocate a new partition ID
 
-   function Latest_Allocated_Partition_ID return System.RPC.Partition_ID;
+   function Latest_Allocated_Partition_ID return Types.Partition_ID;
    --  This function is used by the Termination mechanism which needs
    --  to address all the partitions.
 
 private
 
-   Null_Partition_ID : constant System.RPC.Partition_ID :=
-     System.RPC.Partition_ID'First;
+   Null_Partition_ID : constant Types.Partition_ID := Types.Partition_ID'First;
 
 end System.Garlic.Heart;

@@ -33,8 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.RPC;
-
 package System.Garlic.Termination is
 
    pragma Elaborate_Body;

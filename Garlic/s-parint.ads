@@ -82,14 +82,14 @@ package System.Partition_Interface is
    generic
       RCI_Name : String;
    package RCI_Info is
-      function Get_RCI_Package_Receiver return System.RPC.RPC_Receiver;
-      function Get_Active_Partition_ID  return System.RPC.Partition_ID;
+      function Get_RCI_Package_Receiver return RPC.RPC_Receiver;
+      function Get_Active_Partition_ID return RPC.Partition_ID;
    end RCI_Info;
    --  RCI package information caching
 
    type RACW_Stub_Type is tagged record
-      Origin       : System.RPC.Partition_ID;
-      Receiver     : System.RPC.RPC_Receiver;
+      Origin       : RPC.Partition_ID;
+      Receiver     : RPC.RPC_Receiver;
       Addr         : System.Address;
       Asynchronous : Boolean;
    end record;

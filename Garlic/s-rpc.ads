@@ -34,6 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
+with System.Garlic.Streams;
 with System.Storage_Elements;
 
 package System.RPC is
@@ -84,22 +85,9 @@ private
    pragma Inline (Read);
    pragma Inline (Write);
 
-   type Node (<>);
-   type Node_Ptr is access Node;
-
-   type Node (Size : Ada.Streams.Stream_Element_Count) is record
-      Content : Ada.Streams.Stream_Element_Array (1 .. Size);
-      Current : Ada.Streams.Stream_Element_Offset := 1;
-      Last    : Ada.Streams.Stream_Element_Offset := 1;
-      Next    : Node_Ptr;
-   end record;
-
    type Params_Stream_Type (Initial_Size : Ada.Streams.Stream_Element_Count) is
      new Ada.Streams.Root_Stream_Type with record
-        First         : Node_Ptr;
-        Current       : Node_Ptr;
-        Special_First : Boolean := False;
-        Count         : Ada.Streams.Stream_Element_Count := 0;
+        X : aliased System.Garlic.Streams.Params_Stream_Type (Initial_Size);
      end record;
 
    type Params_Stream_Access is access Params_Stream_Type;
@@ -125,7 +113,7 @@ private
    end record;
 
    procedure Insert_Request
-     (Params : access Params_Stream_Type;
+     (Params : access System.Garlic.Streams.Params_Stream_Type;
       Header : in Request_Header);
    --  Add a Request_Header in front of Params
 
@@ -135,9 +123,8 @@ private
    procedure Shutdown;
    --  Shutdown System.RPC and its private child packages
 
-   function Get_RPC_Receiver return RPC_Receiver;
-   --  Get the currently installed RPC_Receiver. If none has been installed
-   --  yet, wait until one is.
+   procedure When_Established;
+   --  Wait for partition to be established.
 
 end System.RPC;
 

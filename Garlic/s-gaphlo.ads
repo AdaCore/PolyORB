@@ -35,7 +35,7 @@
 
 with Ada.Streams;
 with System.Garlic.Protocols;
-with System.RPC;
+with System.Garlic.Types;
 
 package System.Garlic.Physical_Location is
 
@@ -57,18 +57,18 @@ package System.Garlic.Physical_Location is
    --  Register a protocol to be able to use it later
 
    procedure Register_Partition
-     (P : in System.RPC.Partition_ID;
+     (P : in Types.Partition_ID;
       L : in String);
    --  Set the location of a partition. This may be called several times
    --  in case of replication and recovery on error (fault tolerance).
 
    procedure Register_Partition
-     (P : in System.RPC.Partition_ID;
+     (P : in Types.Partition_ID;
       L : in Locations);
    --  Idem, but for the whole set
 
    procedure Unregister_Partition
-     (P : in System.RPC.Partition_ID;
+     (P : in Types.Partition_ID;
       L : in String := "");
    --  Unregister a given location. If no string is given, this means that
    --  the first occurrence of a partition must be unregistered (the one
@@ -76,13 +76,13 @@ package System.Garlic.Physical_Location is
    --  corresponding location for this partition.
 
    function Get_Partition
-     (P : System.RPC.Partition_ID)
+     (P : Types.Partition_ID)
      return String;
    --  Get the first occurrence of a partition localization or raise
    --  No_Such_Location.
 
    function Get_Partition
-     (P : System.RPC.Partition_ID)
+     (P : Types.Partition_ID)
      return Location_Type;
    --  Get a partition location or raise No_Such_Location
 

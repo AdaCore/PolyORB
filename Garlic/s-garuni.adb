@@ -35,17 +35,9 @@
 
 with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Heart; use System.Garlic.Heart;
-pragma Elaborate_All (System.Garlic.Heart);
-pragma Warnings (Off);
-with System.Garlic.Startup;
-pragma Elaborate_All (System.Garlic.Startup);
-with System.Garlic.Termination;
-pragma Elaborate_All (System.Garlic.Termination);
-pragma Warnings (On);
+with System.Garlic.Streams; use System.Garlic.Streams;
+with System.Garlic.Types; use System.Garlic.Types;
 with System.Garlic.Utils; use System.Garlic.Utils;
-pragma Elaborate_All (System.Garlic.Utils);
-with System.RPC;          use System.RPC;
-pragma Elaborate_All (System.RPC);
 
 package body System.Garlic.Units is
 
@@ -69,14 +61,14 @@ package body System.Garlic.Units is
       ------------------
 
       procedure Get_RCI_Data
-        (Receiver  : out RPC_Receiver;
-         Partition : out Partition_ID;
+        (Receiver  : out Streams.RPC_Receiver;
+         Partition : out Types.Partition_ID;
          Done      : out Boolean) is
       begin
          if not Cache_Consistent then
             Done      := False;
             Receiver  := null;
-            Partition := Partition_ID'First;
+            Partition := Types.Partition_ID'First;
          else
             Done      := True;
             Receiver  := Package_Receiver;
@@ -89,8 +81,8 @@ package body System.Garlic.Units is
       ------------------
 
       procedure Set_RCI_Data
-        (Receiver  : in RPC_Receiver;
-         Partition : in Partition_ID) is
+        (Receiver  : in Streams.RPC_Receiver;
+         Partition : in Types.Partition_ID) is
       begin
          Cache_Consistent := True;
          Package_Receiver := Receiver;

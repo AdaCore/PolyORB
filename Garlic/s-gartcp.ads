@@ -35,7 +35,7 @@
 
 with Ada.Streams;
 with System.Garlic.Protocols;
-with System.RPC;
+with System.Garlic.Types;
 
 package System.Garlic.TCP is
 
@@ -57,7 +57,7 @@ package System.Garlic.TCP is
 
    procedure Send
      (Protocol  : access TCP_Protocol;
-      Partition : in System.RPC.Partition_ID;
+      Partition : in Types.Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array);
 
    procedure Shutdown (Protocol : access TCP_Protocol);

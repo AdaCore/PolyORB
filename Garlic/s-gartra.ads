@@ -34,8 +34,8 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with System.RPC;
 with System.Garlic.Heart;
+with System.Garlic.Types;
 
 package System.Garlic.Trace is
 
@@ -44,12 +44,12 @@ package System.Garlic.Trace is
    --  file. Read partition id and force it.
 
    procedure Trace_Data
-     (Partition : in System.RPC.Partition_ID;
+     (Partition : in Types.Partition_ID;
       Data      : in Ada.Streams.Stream_Element_Array);
    --  Trace the message Data (and the time that has passed since the
    --  previous recording) and record it in the partition trace file.
 
-   procedure Trace_Partition_ID (Partition : in System.RPC.Partition_ID);
+   procedure Trace_Partition_ID (Partition : in Types.Partition_ID);
    --  Save the partition ID to the trace file
 
    procedure Shutdown;

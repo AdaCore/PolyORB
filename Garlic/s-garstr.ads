@@ -38,9 +38,40 @@ with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;
 with System.Garlic.Storage_Handling;
 pragma Elaborate_All (System.Garlic.Storage_Handling);
-with System.RPC;
 
 package System.Garlic.Streams is
+
+   type Node (<>);
+   type Node_Ptr is access Node;
+
+   type Node (Size : Ada.Streams.Stream_Element_Count) is record
+      Content : Ada.Streams.Stream_Element_Array (1 .. Size);
+      Current : Ada.Streams.Stream_Element_Offset := 1;
+      Last    : Ada.Streams.Stream_Element_Offset := 1;
+      Next    : Node_Ptr;
+   end record;
+
+   type Params_Stream_Type (Initial_Size : Ada.Streams.Stream_Element_Count) is
+     new Ada.Streams.Root_Stream_Type with record
+        First         : Node_Ptr;
+        Current       : Node_Ptr;
+        Special_First : Boolean := False;
+        Count         : Ada.Streams.Stream_Element_Count := 0;
+     end record;
+
+   type Params_Stream_Access is access Params_Stream_Type;
+
+   procedure Read
+     (Stream : in out Params_Stream_Type;
+      Item   : out Ada.Streams.Stream_Element_Array;
+      Last   : out Ada.Streams.Stream_Element_Offset);
+
+   procedure Write
+     (Stream : in out Params_Stream_Type;
+      Item   : in Ada.Streams.Stream_Element_Array);
+
+   pragma Inline (Read);
+   pragma Inline (Write);
 
    package Streams_Pools is new Storage_Handling
      (Max_Objects        => 16,
@@ -51,9 +82,18 @@ package System.Garlic.Streams is
    type Stream_Element_Access is access Ada.Streams.Stream_Element_Array;
    for Stream_Element_Access'Storage_Pool use Streams_Pool;
 
-   procedure Free is
-      new Ada.Unchecked_Deallocation (Ada.Streams.Stream_Element_Array,
-                                      Stream_Element_Access);
+   procedure Copy
+     (Source : in out Params_Stream_Type;
+      Target : access Params_Stream_Type);
+   pragma Inline (Copy);
+   --  Deep copy Source into Target and read the original packet. This is
+   --  needed to be able to drop the Params_Stream_Type without losing its
+   --  content.
+
+   procedure Deallocate (Stream : in out Params_Stream_Access);
+   pragma Inline (Deallocate);
+   --  This procedure make sure that unconsumed data has been freed. This
+   --  may occur in case of cancellation.
 
    procedure Dump
      (Level  : in System.Garlic.Debug.Debug_Level;
@@ -62,8 +102,22 @@ package System.Garlic.Streams is
    --  Same as Print_Debug_info except that this procedure prints
    --  Stream content.
 
+   procedure Free is
+     new Ada.Unchecked_Deallocation
+     (Ada.Streams.Stream_Element_Array, Stream_Element_Access);
+
+   procedure To_Params_Stream_Type
+     (Content : Ada.Streams.Stream_Element_Array;
+      Params  : access Params_Stream_Type);
+   pragma Inline (To_Params_Stream_Type);
+
+   function To_Stream_Element_Access
+     (Params : access Params_Stream_Type;
+      Unused : Ada.Streams.Stream_Element_Count := 0)
+     return Stream_Element_Access;
+
    function To_Stream_Element_Array
-     (Params : access System.RPC.Params_Stream_Type;
+     (Params : access Params_Stream_Type;
       Unused : Ada.Streams.Stream_Element_Count := 0)
       return Ada.Streams.Stream_Element_Array;
    pragma Inline (To_Stream_Element_Array);
@@ -71,16 +125,13 @@ package System.Garlic.Streams is
    --  Stream_Element_Array which will be sent accross the network. It
    --  also let Unused places to sKtore extra information.
 
-   function To_Stream_Element_Access
-     (Params : access System.RPC.Params_Stream_Type;
-      Unused : Ada.Streams.Stream_Element_Count := 0)
-     return Stream_Element_Access;
-   --  Same thing, but return a dynamically allocated pointer
+   procedure Free is
+     new Ada.Unchecked_Deallocation
+     (Params_Stream_Type, Params_Stream_Access);
 
-   procedure To_Params_Stream_Type
-     (Content : Ada.Streams.Stream_Element_Array;
-      Params  : access System.RPC.Params_Stream_Type);
-   pragma Inline (To_Params_Stream_Type);
-   --  Other way
+   type RPC_Receiver is
+     access procedure
+       (Params     : access Params_Stream_Type;
+        Result     : access Params_Stream_Type);
 
 end System.Garlic.Streams;

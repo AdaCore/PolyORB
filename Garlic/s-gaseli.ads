@@ -35,7 +35,6 @@
 
 with Ada.Streams;
 with System.Garlic.Protocols;
-with System.RPC;
 
 package System.Garlic.Serial_Line is
 

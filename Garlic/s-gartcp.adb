@@ -33,7 +33,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Exceptions;                      use Ada.Exceptions;
+with Ada.Exceptions;                  use Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with Interfaces.C.Strings;
@@ -42,7 +42,6 @@ with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Heart;             use System.Garlic.Heart;
 with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
 with System.Garlic.Naming;            use System.Garlic.Naming;
-pragma Elaborate_All (System.Garlic.Naming);
 with System.Garlic.Options;
 with System.Garlic.Physical_Location;     use System.Garlic.Physical_Location;
 with System.Garlic.Priorities;
@@ -71,7 +70,8 @@ package body System.Garlic.TCP is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use Ada.Streams, System.Garlic.Protocols, System.RPC;
+   use Ada.Streams, System.Garlic.Protocols, System.Garlic.Types;
+
    package C renames Interfaces.C;
    package Strings renames C.Strings;
    use type C.int;

@@ -41,7 +41,7 @@ with System.Garlic.Debug;             use System.Garlic.Debug;
 
 package body System.Garlic.Loopback is
 
-   use type System.RPC.Partition_ID;
+   use type Types.Partition_ID;
    use type Ada.Streams.Stream_Element_Offset;
 
    Private_Debug_Key : constant Debug_Key :=
@@ -87,7 +87,7 @@ package body System.Garlic.Loopback is
 
    procedure Send
      (Protocol  : access Loopback_Protocol;
-      Partition : in System.RPC.Partition_ID;
+      Partition : in Types.Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array) is
    begin
       pragma Assert (Partition = System.Garlic.Heart.Get_My_Partition_ID);

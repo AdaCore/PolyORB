@@ -39,11 +39,13 @@ with System.Garlic.Debug;             use System.Garlic.Debug;
 with System.Garlic.Filters;           use System.Garlic.Filters;
 with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
 with System.Garlic.Options;
+pragma Elaborate (System.Garlic.Options);
 with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Protocols;
 with System.Garlic.Streams;           use System.Garlic.Streams;
 with System.Garlic.Termination;
 with System.Garlic.Trace;             use System.Garlic.Trace;
+with System.Garlic.Types;             use System.Garlic.Types;
 with System.Garlic.Utils;
 with System.RPC.Initialization;
 with System.Standard_Library;
@@ -69,7 +71,7 @@ package body System.Garlic.Heart is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use System.RPC, System.Garlic.Types, System.Garlic.Utils;
+   use System.Garlic.Types, System.Garlic.Utils;
    use type Ada.Exceptions.Exception_Id;
 
    subtype Valid_Partition_ID is Partition_ID
@@ -231,8 +233,8 @@ package body System.Garlic.Heart is
    --  Call this procedure when a partition dies
 
    procedure Partition_RPC_Receiver
-     (Params : access Params_Stream_Type;
-      Result : access Params_Stream_Type);
+     (Params : access System.RPC.Params_Stream_Type;
+      Result : access System.RPC.Params_Stream_Type);
    --  Global RPC receiver
 
    --------------------------
@@ -269,8 +271,6 @@ package body System.Garlic.Heart is
 
    procedure Elaboration_Is_Terminated is
    begin
-      System.RPC.Establish_RPC_Receiver
-        (Local_Partition, Partition_RPC_Receiver'Access);
       pragma Debug
         (D (D_Elaborate, "Signaling that elaboration is terminated"));
       Elaboration_Barrier.Signal_All (Permanent => True);
@@ -857,11 +857,11 @@ package body System.Garlic.Heart is
    ----------------------------
 
    procedure Partition_RPC_Receiver
-     (Params : access Params_Stream_Type;
-      Result : access Params_Stream_Type) is
-      Receiver : RPC_Receiver;
+     (Params : access System.RPC.Params_Stream_Type;
+      Result : access System.RPC.Params_Stream_Type) is
+      Receiver : System.RPC.RPC_Receiver;
    begin
-      RPC_Receiver'Read (Params, Receiver);
+      System.RPC.RPC_Receiver'Read (Params, Receiver);
       Receiver (Params, Result);
    end Partition_RPC_Receiver;
 
@@ -944,7 +944,7 @@ package body System.Garlic.Heart is
    procedure Send
      (Partition : in     Partition_ID;
       Operation : in     Opcode;
-      Params    : access System.RPC.Params_Stream_Type) is
+      Params    : access Streams.Params_Stream_Type) is
       Protocol  : constant Protocols.Protocol_Access :=
         Get_Protocol (Partition);
       Op_Params : aliased Params_Stream_Type (Opcode_Size);
@@ -1070,7 +1070,7 @@ package body System.Garlic.Heart is
       Trace.Shutdown;
       Termination.Shutdown;
       Physical_Location.Shutdown;
-      RPC.Initialization.Shutdown;
+      System.RPC.Initialization.Shutdown;
       Free (Local_Partition_ID);
       Free (Partition_Map);
       Free (Partition_ID_Allocation);

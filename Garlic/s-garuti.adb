@@ -36,7 +36,7 @@
 with Ada.Unchecked_Deallocation;
 with GNAT.OS_Lib;                use GNAT.OS_Lib;
 with Interfaces.C;               use Interfaces.C;
-with System.RPC;                 use System.RPC;
+with System.Garlic.Types;
 
 package body System.Garlic.Utils is
 
@@ -221,9 +221,9 @@ package body System.Garlic.Utils is
    procedure Raise_Communication_Error (Msg : in String := "") is
    begin
       if Msg = "" then
-         Raise_With_Errno (System.RPC.Communication_Error'Identity);
+         Raise_With_Errno (Types.Communication_Error'Identity);
       else
-         Raise_Exception (System.RPC.Communication_Error'Identity, Msg);
+         Raise_Exception (Types.Communication_Error'Identity, Msg);
       end if;
    end Raise_Communication_Error;
 

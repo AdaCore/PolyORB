@@ -34,7 +34,6 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with System.RPC;
 
 package System.RPC.Stream_IO is
 
@@ -80,8 +79,10 @@ private
    Any_Partition : constant System.RPC.Partition_ID
      := System.RPC.Partition_ID'First;
 
-   type Partition_Stream_Type is new Ada.Streams.Root_Stream_Type with record
-      PID  : System.RPC.Partition_ID;
-   end record;
+   type Partition_Stream_Type is
+     new Ada.Streams.Root_Stream_Type with
+      record
+         PID : System.RPC.Partition_ID;
+      end record;
 
 end System.RPC.Stream_IO;

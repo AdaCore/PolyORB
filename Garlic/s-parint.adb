@@ -33,25 +33,34 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Debug; use System.Garlic.Debug;
-with System.Garlic.Utils; use System.Garlic.Utils;
-with System.Garlic.Heart; use System.Garlic.Heart;
-pragma Elaborate_All (System.Garlic.Heart);
+with Ada.Unchecked_Deallocation;
+with Ada.Unchecked_Conversion;
+
+with GNAT.HTable; use GNAT.HTable;
+
+with System.Garlic.Debug;   use System.Garlic.Debug;
+
+with System.Garlic.Heart;   use System.Garlic.Heart;
+pragma Elaborate (System.Garlic.Heart);
 
 pragma Warnings (Off);
 with System.Garlic.Startup;
-pragma Elaborate_All (System.Garlic.Startup);
-with System.Garlic.Termination;
-pragma Elaborate_All (System.Garlic.Termination);
+pragma Elaborate (System.Garlic.Startup);
 pragma Warnings (On);
 
-with System.Garlic.Units; use System.Garlic.Units;
-pragma Elaborate_All (System.Garlic.Units);
-with System.RPC; use System.RPC;
-pragma Elaborate_All (System.RPC);
+with System.Garlic.Streams; use System.Garlic.Streams;
+pragma Elaborate (System.Garlic.Streams);
 
-with Ada.Unchecked_Deallocation;
-with GNAT.HTable; use GNAT.HTable;
+with System.Garlic.Types;   use System.Garlic.Types;
+pragma Elaborate (System.Garlic.Types);
+
+with System.Garlic.Units;   use System.Garlic.Units;
+pragma Elaborate (System.Garlic.Units);
+
+with System.Garlic.Utils;   use System.Garlic.Utils;
+pragma Elaborate (System.Garlic.Utils);
+
+with System.RPC;
 
 package body System.Partition_Interface is
 
@@ -63,6 +72,14 @@ package body System.Partition_Interface is
       Message : in String;
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
+
+   function Convert is
+     new Ada.Unchecked_Conversion
+     (RPC_Receiver, RPC.RPC_Receiver);
+
+   function Convert is
+     new Ada.Unchecked_Conversion
+     (RPC.RPC_Receiver, RPC_Receiver);
 
    procedure Process
      (N       : in Unit_Id;
@@ -119,7 +136,7 @@ package body System.Partition_Interface is
 
    function Get_Active_Partition_ID
      (Name : Unit_Name)
-      return Partition_ID is
+      return RPC.Partition_ID is
       N : String := Name;
       U : Unit_Id;
 
@@ -129,7 +146,7 @@ package body System.Partition_Interface is
       pragma Debug (D (D_Debug, "Request Get_Active_Partition_ID"));
 
       Units.Apply (U, Get_Unit_Request, Process'Access);
-      return Units.Get_Component (U).Partition;
+      return RPC.Partition_ID (Units.Get_Component (U).Partition);
    end Get_Active_Partition_ID;
 
    ------------------------
@@ -156,9 +173,9 @@ package body System.Partition_Interface is
    ----------------------------
 
    function Get_Local_Partition_ID
-     return Partition_ID is
+     return RPC.Partition_ID is
    begin
-      return Local_Partition;
+      return RPC.Partition_ID (Local_Partition);
    end Get_Local_Partition_ID;
 
    ------------------------------
@@ -167,9 +184,9 @@ package body System.Partition_Interface is
 
    function Get_Passive_Partition_ID
      (Name : Unit_Name)
-      return Partition_ID is
+      return RPC.Partition_ID is
    begin
-      return Null_Partition_ID;
+      return RPC.Partition_ID (Null_Partition_ID);
    end Get_Passive_Partition_ID;
 
    ------------------------------
@@ -178,7 +195,7 @@ package body System.Partition_Interface is
 
    function Get_RCI_Package_Receiver
      (Name : Unit_Name)
-      return RPC_Receiver is
+      return RPC.RPC_Receiver is
       N : String := Name;
       U : Unit_Id;
 
@@ -188,7 +205,7 @@ package body System.Partition_Interface is
       pragma Debug (D (D_Debug, "Request Get_Package_Receiver"));
 
       Units.Apply (U, Get_Unit_Request, Process'Access);
-      return Units.Get_Component (U).Receiver;
+      return Convert (Units.Get_Component (U).Receiver);
    end Get_RCI_Package_Receiver;
 
    -------------------------------
@@ -382,11 +399,13 @@ package body System.Partition_Interface is
 
    procedure Register_Receiving_Stub
      (Name     : in Unit_Name;
-      Receiver : in RPC_Receiver;
+      Receiver : in RPC.RPC_Receiver;
       Version  : in String := "") is
       Uname   : String := Name;
       Request : Request_Type
-        := (Set_Unit, Local_Partition, Receiver, new String'(Version), null);
+        := (Set_Unit, Local_Partition,
+            Convert (Receiver),
+            new String'(Version), null);
 
    begin
       pragma Debug (D (D_Debug, "Request Register_Receiving_Stub"));
@@ -411,7 +430,7 @@ package body System.Partition_Interface is
       -- Get_Active_Partition_ID --
       -----------------------------
 
-      function Get_Active_Partition_ID return Partition_ID is
+      function Get_Active_Partition_ID return RPC.Partition_ID is
          Unit : Unit_Type;
          Done : Boolean;
 
@@ -424,14 +443,14 @@ package body System.Partition_Interface is
             Unit := Units.Get_Component (Uname);
             Cache.Set_RCI_Data (Unit.Receiver, Unit.Partition);
          end if;
-         return Unit.Partition;
+         return RPC.Partition_ID (Unit.Partition);
       end Get_Active_Partition_ID;
 
       ------------------------------
       -- Get_RCI_Package_Receiver --
       ------------------------------
 
-      function Get_RCI_Package_Receiver return RPC_Receiver is
+      function Get_RCI_Package_Receiver return RPC.RPC_Receiver is
          Unit : Unit_Type;
          Done : Boolean;
 
@@ -443,7 +462,7 @@ package body System.Partition_Interface is
             Units.Apply (Uname, Request, Process'Access);
             Cache.Set_RCI_Data (Unit.Receiver, Unit.Partition);
          end if;
-         return Unit.Receiver;
+         return Convert (Unit.Receiver);
       end Get_RCI_Package_Receiver;
 
    begin

@@ -47,7 +47,7 @@ package body System.Garlic.Replay is
    --  This package should be modified not to require the Storage_Size
    --  pragma on the Engine_Type task ???
 
-   use type System.RPC.Partition_ID;
+   use type Types.Partition_ID;
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("GARREP", "(s-garrep): ");
@@ -63,7 +63,7 @@ package body System.Garlic.Replay is
       record
          Time : Ada.Real_Time.Time_Span;
          Data : Ada.Streams.Stream_Element_Array (1 .. Length);
-         PID  : System.RPC.Partition_ID := Null_Partition_ID;
+         PID  : Types.Partition_ID := Null_Partition_ID;
       end record;
 
    Trace_File : File_Type;
@@ -153,7 +153,7 @@ package body System.Garlic.Replay is
 
    procedure Send
      (Protocol  : access Replay_Protocol;
-      Partition : in System.RPC.Partition_ID;
+      Partition : in Types.Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array) is
    begin
       pragma Debug
@@ -176,7 +176,7 @@ package body System.Garlic.Replay is
       Is_Master        : in Boolean := False)
    is
       Engine    : Engine_Type_Access;
-      Partition : System.RPC.Partition_ID;
+      Partition : Types.Partition_ID;
    begin
       --  Replay protocol is always loaded because its activation
       --  is determined at run-time. It should be activated here when
@@ -200,7 +200,7 @@ package body System.Garlic.Replay is
          if not Is_Master then
             pragma Debug
               (D (D_Debug, "Force partition ID read from trace file"));
-            System.RPC.Partition_ID'Read (Stream (Trace_File), Partition);
+            Types.Partition_ID'Read (Stream (Trace_File), Partition);
             Set_My_Partition_ID (Partition);
          end if;
 

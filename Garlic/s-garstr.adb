@@ -35,7 +35,6 @@
 
 with Ada.Streams;         use Ada.Streams;
 with System.Garlic.Debug; use System.Garlic.Debug;
-with System.RPC;          use System.RPC;
 
 package body System.Garlic.Streams is
 
@@ -46,17 +45,44 @@ package body System.Garlic.Streams is
 
    Node_Size : constant Stream_Element_Count := 4096;
 
-   type Node;
-   type Node_Ptr is access all Node;
-
-   type Node is record
-      Content : Stream_Element_Array (1 .. Node_Size);
-      Last    : Stream_Element_Offset;
-      Next    : Node_Ptr;
-   end record;
-
    procedure Free is
       new Ada.Unchecked_Deallocation (Node, Node_Ptr);
+
+   ----------
+   -- Copy --
+   ----------
+
+   procedure Copy
+     (Source : in out Params_Stream_Type;
+      Target : access Params_Stream_Type) is
+   begin
+      if Target.First /= null then
+         Free (Target.First);
+      end if;
+      Target.First         := Source.First;
+      Target.Current       := Source.Current;
+      Target.Special_First := Source.Special_First;
+      Target.Count         := Source.Count;
+      Source.First         := null;
+   end Copy;
+
+   ----------------
+   -- Deallocate --
+   ----------------
+
+   procedure Deallocate (Stream : in out Params_Stream_Access) is
+      Next : Node_Ptr;
+   begin
+      if Stream = null then
+         return;
+      end if;
+      while Stream.First /= null loop
+         Next := Stream.First.Next;
+         Free (Stream.First);
+         Stream.First := Next;
+      end loop;
+      Free (Stream);
+   end Deallocate;
 
    ----------
    -- Dump --
@@ -65,8 +91,7 @@ package body System.Garlic.Streams is
    procedure Dump
      (Level  : in System.Garlic.Debug.Debug_Level;
       Stream : in Ada.Streams.Stream_Element_Array;
-      Key    : in System.Garlic.Debug.Debug_Key)
-   is
+      Key    : in System.Garlic.Debug.Debug_Key) is
       Index   : Natural := 1;
       Output  : Output_Line;
    begin
@@ -90,16 +115,54 @@ package body System.Garlic.Streams is
       end if;
    end Dump;
 
+   ----------
+   -- Read --
+   ----------
+
+   procedure Read
+     (Stream : in out Params_Stream_Type;
+      Item   : out Stream_Element_Array;
+      Last   : out Stream_Element_Offset) is
+      First  : Node_Ptr renames Stream.First;
+      Other  : Node_Ptr;
+      Offset : Stream_Element_Offset := Item'First;
+      Count  : Stream_Element_Count := Item'Length;
+      Length : Stream_Element_Count;
+   begin
+      while First /= null and then Count > 0 loop
+         Length :=
+           Stream_Element_Count'Min (First.Last - First.Current, Count);
+         Item (Offset .. Offset + Length - 1) :=
+           First.Content (First.Current .. First.Current + Length - 1);
+         Count := Count - Length;
+         Offset := Offset + Length;
+         First.Current := First.Current + Length;
+         if First.Current >= First.Last then
+            Other := First;
+            First := First.Next;
+            Free (Other);
+         end if;
+      end loop;
+      Last := Offset - 1;
+      Stream.Count := Stream.Count - (Offset - Item'First);
+      if First = null then
+
+         --  Set Current to null to allow further Write to be done
+
+         Stream.Current := null;
+
+      end if;
+   end Read;
+
    ---------------------------
    -- To_Params_Stream_Type --
    ---------------------------
 
    procedure To_Params_Stream_Type
      (Content : Stream_Element_Array;
-      Params  : access Params_Stream_Type)
-   is
+      Params  : access Params_Stream_Type) is
    begin
-      System.RPC.Write (Params.all, Content);
+      Write (Params.all, Content);
    end To_Params_Stream_Type;
 
    ------------------------------
@@ -107,20 +170,19 @@ package body System.Garlic.Streams is
    ------------------------------
 
    function To_Stream_Element_Access
-     (Params : access System.RPC.Params_Stream_Type;
+     (Params : access Params_Stream_Type;
       Unused : Ada.Streams.Stream_Element_Count := 0)
-     return Stream_Element_Access
-   is
-      First   : Node_Ptr := new Node;
+     return Stream_Element_Access is
+      First   : Node_Ptr := new Node (Node_Size);
       Current : Node_Ptr := First;
       Total   : Stream_Element_Count := 0;
    begin
       loop
          Current.Last := 0;
-         System.RPC.Read (Params.all, Current.Content, Current.Last);
+         Read (Params.all, Current.Content, Current.Last);
          Total := Total + Current.Last;
          exit when Current.Last < Node_Size;
-         Current.Next := new Node;
+         Current.Next := new Node (Node_Size);
          Current := Current.Next;
       end loop;
       declare
@@ -146,15 +208,80 @@ package body System.Garlic.Streams is
    -----------------------------
 
    function To_Stream_Element_Array
-     (Params : access System.RPC.Params_Stream_Type;
+     (Params : access Params_Stream_Type;
       Unused : Ada.Streams.Stream_Element_Count := 0)
-      return Stream_Element_Array
-   is
+      return Stream_Element_Array is
       Data   : Stream_Element_Access := To_Stream_Element_Access (Params);
       Result : constant Stream_Element_Array := Data.all;
    begin
       Free (Data);
       return Result;
    end To_Stream_Element_Array;
+
+   -----------
+   -- Write --
+   -----------
+
+   procedure Write
+     (Stream : in out Params_Stream_Type;
+      Item   : in Stream_Element_Array) is
+      Length  : constant Stream_Element_Count := Item'Length;
+      Current : Node_Ptr renames Stream.Current;
+   begin
+      if Current = null then
+         if Stream.First = null then
+
+            --  This is the first call (maybe after a full read)
+
+            Stream.First :=
+              new Node (Stream_Element_Count'Max
+                        (Stream.Initial_Size,
+                         Stream_Element_Count'Max (Node_Size, Length)));
+         end if;
+         Current := Stream.First;
+      end if;
+
+      Stream.Count := Stream.Count + Item'Length;
+
+      if Stream.Special_First then
+
+         --  We make a special handling to add a header in front of
+         --  the packet. Current points to the head, and new packets
+         --  (if needed) will be added in order in front of regular
+         --  packets.
+
+         declare
+            Special : Node_Ptr :=
+             new Node (Stream_Element_Count'Max (Node_Size, Length));
+         begin
+            Special.Next := Stream.First;
+            Stream.First := Special;
+            Current := Stream.First;
+            Current.Content (1 .. Length) := Item;
+            Current.Last := Length + 1;
+            Stream.Special_First := False;
+            Stream.Count := Stream.Count + Length;
+            return;
+         end;
+      end if;
+      if Length + Current.Last - 1 > Current.Size then
+         declare
+            Old_Next : constant Node_Ptr := Current.Next;
+         begin
+
+            --  We chain to the 'Current' packet, while preserving the
+            --  original Next field. This is used in the case where we
+            --  insert the header at the beginning of the Stream.
+
+            Current.Next :=
+             new Node (Stream_Element_Count'Max (Node_Size, Length));
+            Current := Current.Next;
+            Current.Next := Old_Next;
+         end;
+      end if;
+      Current.Content (Current.Last .. Current.Last + Length - 1) :=
+        Item;
+      Current.Last := Current.Last + Length;
+   end Write;
 
 end System.Garlic.Streams;

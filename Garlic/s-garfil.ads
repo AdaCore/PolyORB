@@ -38,22 +38,22 @@ with Ada.Unchecked_Deallocation;
 with System.Garlic.Heart;
 with System.Garlic.Name_Table;
 with System.Garlic.Streams;
-with System.RPC;
+with System.Garlic.Types;
 
 package System.Garlic.Filters is
 
    pragma Elaborate_Body;
 
    function Filter_Incoming
-      (Partition : in System.RPC.Partition_ID;
+      (Partition : in Types.Partition_ID;
        Operation : in System.Garlic.Heart.Opcode;
        Stream    : in Ada.Streams.Stream_Element_Array)
       return Streams.Stream_Element_Access;
 
    function Filter_Outgoing
-      (Partition : in     System.RPC.Partition_ID;
+      (Partition : in     Types.Partition_ID;
        Operation : in     System.Garlic.Heart.Opcode;
-       Stream    : access System.RPC.Params_Stream_Type)
+       Stream    : access Streams.Params_Stream_Type)
       return Streams.Stream_Element_Access;
 
    procedure Initialize;
@@ -88,7 +88,7 @@ private
    function Filter_Outgoing
       (Filter : in     Filter_Type;
        Params : in     Filter_Params_Access;
-       Stream : access System.RPC.Params_Stream_Type)
+       Stream : access Streams.Params_Stream_Type)
       return Streams.Stream_Element_Access is abstract;
 
    function Filter_Params_Read

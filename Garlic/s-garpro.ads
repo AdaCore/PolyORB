@@ -34,7 +34,7 @@
 ------------------------------------------------------------------------------
 
 with Ada.Streams;
-with System.RPC;
+with System.Garlic.Types;
 
 package System.Garlic.Protocols is
 
@@ -74,7 +74,7 @@ package System.Garlic.Protocols is
 
    procedure Send
      (Protocol  : access Protocol_Type;
-      Partition : in System.RPC.Partition_ID;
+      Partition : in Types.Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array) is abstract;
    --  Send data to a remote partition. See comment about Unused_Space
    --  above.

@@ -38,7 +38,7 @@ with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 with System.Garlic.Options; use System.Garlic.Options;
 with System.Garlic.Debug;   use System.Garlic.Debug;
 with System.Garlic.Heart;   use System.Garlic.Heart;
-with System.RPC;
+with System.Garlic.Types;   use System.Garlic.Types;
 
 package body System.Garlic.Trace is
 
@@ -55,7 +55,7 @@ package body System.Garlic.Trace is
       record
          Time : Ada.Real_Time.Time_Span;
          Data : Ada.Streams.Stream_Element_Array (1 .. Length);
-         PID  : System.RPC.Partition_ID := Null_Partition_ID;
+         PID  : Types.Partition_ID := Null_Partition_ID;
       end record;
 
    Trace_File : File_Type;
@@ -87,7 +87,7 @@ package body System.Garlic.Trace is
    ----------------
 
    procedure Trace_Data
-     (Partition : in System.RPC.Partition_ID;
+     (Partition : in Types.Partition_ID;
       Data      : in Ada.Streams.Stream_Element_Array) is
       Trace : Trace_Type (Data'Length);
       Date  : Time;
@@ -115,14 +115,14 @@ package body System.Garlic.Trace is
    -- Trace_Partition_ID --
    ------------------------
 
-   procedure Trace_Partition_ID (Partition : in System.RPC.Partition_ID) is
+   procedure Trace_Partition_ID (Partition : in Types.Partition_ID) is
    begin
       --  The partition ID is the first thing written to the
       --  trace file (not for the boot partition though).
       --  We can be sure of this since the partition has to have
       --  an ID before any message reception can take place.
 
-      System.RPC.Partition_ID'Write (Stream (Trace_File), Partition);
+      Types.Partition_ID'Write (Stream (Trace_File), Partition);
    end Trace_Partition_ID;
 
    --------------

@@ -40,8 +40,8 @@ with System.Garlic.Heart;      use System.Garlic.Heart;
 with System.Garlic.Name_Table; use System.Garlic.Name_Table;
 with System.Garlic.Streams;    use System.Garlic.Streams;
 with System.Garlic.Table;      use System.Garlic.Table;
+with System.Garlic.Types;      use System.Garlic.Types;
 with System.Garlic.Utils;      use System.Garlic.Utils;
-with System.RPC;               use System.RPC;
 
 package body System.Garlic.Filters is
 
@@ -179,7 +179,7 @@ package body System.Garlic.Filters is
    ---------------------
 
    function Filter_Incoming
-      (Partition : in System.RPC.Partition_ID;
+      (Partition : in Types.Partition_ID;
        Operation : in System.Garlic.Heart.Opcode;
        Stream    : in Ada.Streams.Stream_Element_Array)
       return Streams.Stream_Element_Access is
@@ -225,9 +225,9 @@ package body System.Garlic.Filters is
    ---------------------
 
    function Filter_Outgoing
-      (Partition : in     System.RPC.Partition_ID;
+      (Partition : in     Types.Partition_ID;
        Operation : in     System.Garlic.Heart.Opcode;
-       Stream    : access System.RPC.Params_Stream_Type)
+       Stream    : access Streams.Params_Stream_Type)
       return Streams.Stream_Element_Access is
    begin
       --  Only remote calls are filtered

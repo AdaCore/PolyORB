@@ -35,7 +35,7 @@
 
 with Ada.Streams;
 with System.Garlic.Protocols;
-with System.RPC;
+with System.Garlic.Types;
 
 package System.Garlic.Loopback is
 
@@ -60,7 +60,7 @@ package System.Garlic.Loopback is
 
    procedure Send
      (Protocol  : access Loopback_Protocol;
-      Partition : in System.RPC.Partition_ID;
+      Partition : in Types.Partition_ID;
       Data      : access Ada.Streams.Stream_Element_Array);
    --  Send data
 

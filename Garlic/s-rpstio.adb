@@ -33,11 +33,13 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with Ada.Streams;          use Ada.Streams;
-with System.RPC;           use System.RPC;
-with System.Garlic.Debug;  use System.Garlic.Debug;
-with System.Garlic.Heart;  use System.Garlic.Heart;
-with System.Garlic.Utils;  use System.Garlic.Utils;
+with Ada.Streams;           use Ada.Streams;
+with System.Garlic;         use System.Garlic;
+with System.Garlic.Debug;   use System.Garlic.Debug;
+with System.Garlic.Heart;   use System.Garlic.Heart;
+with System.Garlic.Streams;
+with System.Garlic.Types;
+with System.Garlic.Utils;   use System.Garlic.Utils;
 
 package body System.RPC.Stream_IO is
 
@@ -54,8 +56,8 @@ package body System.RPC.Stream_IO is
    type Partition_Stream_Record is
       record
          Mode      : Stream_Mode;
-         Incoming  : aliased Params_Stream_Type (0);
-         Outgoing  : aliased Params_Stream_Type (0);
+         Incoming  : aliased Streams.Params_Stream_Type (0);
+         Outgoing  : aliased Streams.Params_Stream_Type (0);
          Consumer  : Barrier_Type;
          Available : Mutex_Type;
          Critical  : Mutex_Type;
@@ -76,9 +78,9 @@ package body System.RPC.Stream_IO is
      return Partition_Stream_Access;
 
    procedure Receive
-     (Partition : in Partition_ID;
+     (Partition : in Types.Partition_ID;
       Operation : in Public_Opcode;
-      Params    : access Params_Stream_Type);
+      Params    : access Garlic.Streams.Params_Stream_Type);
 
    -----------
    -- Close --
@@ -91,7 +93,7 @@ package body System.RPC.Stream_IO is
       pragma Debug (D (D_Debug, "Close stream" & Stream.PID'Img));
 
       if Str.Mode = Out_Mode then
-         Send (Stream.PID, Msgcode, Str.Outgoing'Access);
+         Send (Types.Partition_ID (Stream.PID), Msgcode, Str.Outgoing'Access);
       end if;
 
       pragma Debug (D (D_Debug, "Close - Unlock stream" & Stream.PID'Img));
@@ -203,7 +205,7 @@ package body System.RPC.Stream_IO is
             Streams (P).Critical.Enter;
 
             pragma Debug (D (D_Debug, "Read from stream" & P'Img));
-            Read (Streams (P).Incoming, Item, Len);
+            System.Garlic.Streams.Read (Streams (P).Incoming, Item, Len);
 
             pragma Debug (D (D_Debug, "Read - Unlock stream" & P'Img));
             Streams (P).Critical.Leave;
@@ -228,19 +230,19 @@ package body System.RPC.Stream_IO is
    -------------
 
    procedure Receive
-     (Partition : in Partition_ID;
+     (Partition : in Types.Partition_ID;
       Operation : in Public_Opcode;
-      Params    : access System.RPC.Params_Stream_Type) is
+      Params    : access Garlic.Streams.Params_Stream_Type) is
       SEA : Stream_Element_Array (1 .. Params.Count);
       Len : Stream_Element_Offset;
-      Str : Partition_Stream_Access := Fetch (Partition);
+      Str : Partition_Stream_Access := Fetch (Partition_ID (Partition));
    begin
       pragma Debug (D (D_Debug, "Receive new message"));
       pragma Debug (D (D_Debug, "Receive - Lock stream" & Partition'Img));
       Str.Critical.Enter;
 
-      Read (Params.all, SEA, Len);
-      Write (Str.Incoming, SEA);
+      Garlic.Streams.Read (Params.all, SEA, Len);
+      Garlic.Streams.Write (Str.Incoming, SEA);
 
       pragma Debug (D (D_Debug, "Receive - Unlock stream" & Partition'Img));
       Str.Critical.Leave;
@@ -270,7 +272,7 @@ package body System.RPC.Stream_IO is
       Str.Critical.Enter;
 
       pragma Debug (D (D_Debug, "Write to stream" & Stream.PID'Img));
-      Write (Str.Outgoing, Item);
+      Garlic.Streams.Write (Str.Outgoing, Item);
 
       pragma Debug (D (D_Debug, "Write - Unlock stream" & Stream.PID'Img));
       Str.Critical.Leave;

@@ -66,13 +66,13 @@ package body System.Garlic.Physical_Location is
       Count : Natural := 0;
    end record;
 
-   Partition_ID_To_Location : array (System.RPC.Partition_ID) of List;
+   Partition_ID_To_Location : array (Types.Partition_ID) of List;
 
    Protocols_List : array (1 .. 10) of Protocol_Access;
    --  This should be enough but may be increased in the future if needed
 
    procedure Register_Partition
-     (P : in System.RPC.Partition_ID;
+     (P : in Types.Partition_ID;
       L : in Location_Type);
    --  Add a partition into the base
 
@@ -96,7 +96,7 @@ package body System.Garlic.Physical_Location is
    -------------------
 
    function Get_Partition
-     (P : System.RPC.Partition_ID)
+     (P : Types.Partition_ID)
       return Location_Type
    is
       First : Node_Ptr renames Partition_ID_To_Location (P) .First;
@@ -113,7 +113,7 @@ package body System.Garlic.Physical_Location is
    -------------------
 
    function Get_Partition
-     (P : System.RPC.Partition_ID)
+     (P : Types.Partition_ID)
       return String
    is
    begin
@@ -180,7 +180,7 @@ package body System.Garlic.Physical_Location is
    ------------------------
 
    procedure Register_Partition
-     (P : in System.RPC.Partition_ID;
+     (P : in Types.Partition_ID;
       L : in Location_Type)
    is
       Current  : List renames Partition_ID_To_Location (P);
@@ -203,7 +203,7 @@ package body System.Garlic.Physical_Location is
    ------------------------
 
    procedure Register_Partition
-     (P : in System.RPC.Partition_ID;
+     (P : in Types.Partition_ID;
       L : in String)
    is
    begin
@@ -215,7 +215,7 @@ package body System.Garlic.Physical_Location is
    ------------------------
 
    procedure Register_Partition
-     (P : in System.RPC.Partition_ID;
+     (P : in Types.Partition_ID;
       L : in Locations)
    is
    begin
@@ -311,7 +311,7 @@ package body System.Garlic.Physical_Location is
    --------------------------
 
    procedure Unregister_Partition
-     (P : in System.RPC.Partition_ID;
+     (P : in Types.Partition_ID;
       L : in String := "")
    is
       procedure Free is new Unchecked_Deallocation (Node, Node_Ptr);
