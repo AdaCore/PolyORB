@@ -153,6 +153,32 @@ package body Idl_Fe.Types is
       end if;
    end Append_Node;
 
+   -------------------
+   --  Remove_Node  --
+   -------------------
+
+   function Remove_Node
+     (List : Node_List;
+      Node : Node_Id)
+     return Node_List is
+   begin
+      if List /= Nil_List then
+         if List.Car = Node then
+            declare
+               --  XXX  Old_List : Node_List := List;
+               Old_Cdr : constant Node_List
+                 := List.Cdr;
+            begin
+               --  XXX Free (Old_List);
+               return Old_Cdr;
+            end;
+         else
+            List.Cdr := Remove_Node (List.Cdr, Node);
+         end if;
+      end if;
+      return List;
+   end Remove_Node;
+
    procedure Insert_Before
      (List : in out Node_List;
       Node : Node_Id;

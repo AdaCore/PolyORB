@@ -72,15 +72,15 @@ package body Ada_Be.Expansion is
      (Node : Node_Id);
    procedure Expand_Member
      (Node : Node_Id);
-   --  Expand struct members: for each member, expand M_Type.
+   --  Expand struct members: for each member,
+   --  isolate array declarators, then expand M_Type.
 
    procedure Expand_Union
      (Node : Node_Id);
    procedure Expand_Case
      (Node : Node_Id);
-   --  Expand union: for each case, expand Case_Type.
-   --  FIXME: Should expand Switch_Type into a Scoped Name
-   --    if it is an Enum
+   --  Expand union: for each case, isolate array declarators,
+   --  then expand Case_Type.
 
    procedure Expand_Sequence
      (Node : Node_Id);
@@ -90,10 +90,25 @@ package body Ada_Be.Expansion is
    --  scope.
 
    procedure Expand_Constructed_Type
-     (Node : Node_Id);
+     (Node : Node_Id;
+      Replacement_Node : out Node_Id);
    --  Expand a constructed type (enum, struct, or union)
-   --  not occurring directly as a declaration into
-   --  a declaration and a reference.
+   --  occurring in a type_spec.
+   --  If the node is expanded, the type_spec must set to
+   --  with Replacement_Node, which is a valid node id, else
+   --  Replacement_Node is No_Node.
+
+   procedure Expand_Array_Declarators
+     (Node : Node_Id);
+   --  Expand all the array declarators in a member.
+   procedure Expand_Array_Declarator
+     (Node : Node_Id);
+   --  Expand on array declarator into a simple declarator
+   --  whose parent member or case has a reference to
+   --  an array typedef as type.
+   --  Precondition: The declarator must be the only one
+   --  in the parent member or case declarator list.
+   --  (This precondition is guaranteed by Expand_Array_Declarators).
 
    ----------------------
    -- Utility routines --
@@ -119,6 +134,13 @@ package body Ada_Be.Expansion is
    --  The name corresponding to type Node as used
    --  to construct the name of an instance of
    --  CORBA.Sequences.Bounded or CORBA.Sequences.Unbounded.
+
+   procedure Add_Identifier_With_Renaming
+     (Node : Node_Id;
+      Identifier : String);
+   --  Assign Identifier to Node in the current scope,
+   --  possibly appending a numeric prefix if a conflict
+   --  would otherwise be introduced.
 
    -----------------
    -- Expand_Node --
@@ -555,37 +577,63 @@ package body Ada_Be.Expansion is
    end Expand_Exception;
 
    procedure Expand_Type_Declarator
-     (Node : Node_Id) is
+     (Node : Node_Id)
+   is
+      R_Node : Node_Id;
    begin
-      Expand_Constructed_Type (T_Type (Node));
+      Expand_Constructed_Type (T_Type (Node), R_Node);
+      if R_Node /= No_Node then
+         Set_T_Type (Node, R_Node);
+      end if;
       Expand_Node (T_Type (Node));
    end Expand_Type_Declarator;
 
    procedure Expand_Struct
      (Node : Node_Id) is
    begin
+      --  Push_Scope (Node);
       Expand_Node_List (Members (Node), False);
+      --  Pop_Scope;
    end Expand_Struct;
 
    procedure Expand_Member
-     (Node : Node_Id) is
+     (Node : Node_Id)
+   is
+      R_Node : Node_Id;
    begin
-      Expand_Constructed_Type (M_Type (Node));
+      Expand_Constructed_Type (M_Type (Node), R_Node);
+      if R_Node /= No_Node then
+         Set_M_Type (Node, R_Node);
+      end if;
       Expand_Node (M_Type (Node));
+      Expand_Array_Declarators (Node);
    end Expand_Member;
 
    procedure Expand_Union
-     (Node : Node_Id) is
+     (Node : Node_Id)
+   is
+      R_Node : Node_Id;
    begin
-      Expand_Constructed_Type (Switch_Type (Node));
+      --  Push_Scope (Node);
+      Expand_Constructed_Type (Switch_Type (Node), R_Node);
+      if R_Node /= No_Node then
+         Set_Switch_Type (Node, R_Node);
+      end if;
       Expand_Node_List (Cases (Node), False);
+      --  Pop_Scope;
    end Expand_Union;
 
    procedure Expand_Case
-     (Node : Node_Id) is
+     (Node : Node_Id)
+   is
+      R_Node : Node_Id;
    begin
-      Expand_Constructed_Type (Case_Type (Node));
+      Expand_Constructed_Type (Case_Type (Node), R_Node);
+      if R_Node /= No_Node then
+         Set_Case_Type (Node, R_Node);
+      end if;
       Expand_Node (Case_Type (Node));
+      Expand_Array_Declarator (Case_Decl (Node));
    end Expand_Case;
 
    procedure Expand_Sequence
@@ -597,18 +645,16 @@ package body Ada_Be.Expansion is
         := Make_Scoped_Name;
       Seq_Inst_Node : Node_Id
         := Make_Sequence_Instance;
-      Success : Boolean;
    begin
-      Success := Add_Identifier
+      Add_Identifier_With_Renaming
         (Seq_Inst_Node,
          "IDL_" & Sequence_Type_Name (Node));
-      pragma Assert (Success);
       --  FIXME: The Add_Identifier should be performed
       --    in the Current_Gen_Scope, not in the Current_Scope.
       --  FIXME: If the identifier is not available
-      --     in the current gen scope, that means that the
+      --     in the current gen scope, that may mean that the
       --     correct sequence type has already been created.
-      --     We should reuse it.
+      --     If it is the case, maybe we should reuse it.
 
       Expand_Node (Sequence_Type (Node));
 
@@ -634,12 +680,15 @@ package body Ada_Be.Expansion is
    end Expand_Sequence;
 
    procedure Expand_Constructed_Type
-     (Node : Node_Id)
+     (Node : Node_Id;
+      Replacement_Node : out Node_Id)
    is
       NK : constant Node_Kind
         := Kind (Node);
 
    begin
+      Replacement_Node := No_Node;
+
       if not (False
         or else NK = K_Enum
         or else NK = K_Union
@@ -660,13 +709,10 @@ package body Ada_Be.Expansion is
          Constr_Type_Ref_Node : Node_Id
            := Make_Scoped_Name;
 
-         Success : Boolean;
       begin
          pragma Assert (Is_Gen_Scope (Current_Gen_Scope));
          Current_Scope_Contents
            := Contents (Current_Gen_Scope);
-
-         Replace_Node (Constr_Type_Node, Constr_Type_Ref_Node);
 
          Insert_Before
            (Current_Scope_Contents,
@@ -674,9 +720,8 @@ package body Ada_Be.Expansion is
             Before => Current_Position_In_List);
 
          if Parent_Scope (Constr_Type_Node) /= Current_Gen_Scope then
-            Success :=
-              Add_Identifier (Constr_Type_Node, Name (Constr_Type_Node));
-            pragma Assert (Success);
+            Add_Identifier_With_Renaming
+              (Constr_Type_Node, Name (Constr_Type_Node));
             --  FIXME: We change the parent scope of Constr_Type_Node
             --    (it becomes Current_Scope). Actually this should
             --    be Current_Gen_Scope.
@@ -693,8 +738,8 @@ package body Ada_Be.Expansion is
                while not Is_End (It) loop
                   Get_Next_Node (It, E_Node);
 
-                  Success := Add_Identifier (E_Node, Name (E_Node));
-                  pragma Assert (Success);
+                  Add_Identifier_With_Renaming
+                    (E_Node, Name (E_Node));
                   --   FIXME: See above.
                end loop;
             end;
@@ -704,8 +749,120 @@ package body Ada_Be.Expansion is
 
          Set_Value (Constr_Type_Ref_Node, Constr_Type_Node);
          Set_S_Type (Constr_Type_Ref_Node, Constr_Type_Node);
+         Replacement_Node := Constr_Type_Ref_Node;
       end;
    end Expand_Constructed_Type;
+
+   procedure Expand_Array_Declarators
+     (Node : Node_Id)
+   is
+      It : Node_Iterator;
+      D_Node : Node_Id;
+      Position : Node_Id := Node;
+      First : Boolean := True;
+   begin
+      pragma Assert (Kind (Node) = K_Member);
+      pragma Debug (O ("Expand_Array_Declarators : enter"));
+      Init (It, Decl (Node));
+      while not Is_End (It) loop
+         Get_Next_Node (It, D_Node);
+
+         if Kind (D_Node) /= K_Declarator then
+            Ada.Text_IO.Put_Line
+              ("ERROR: Unexpected " & Kind (D_Node)'Img);
+            raise Program_Error;
+         end if;
+
+         if not Is_Empty (Array_Bounds (D_Node)) then
+            if not (First and then Is_End (It)) then
+               declare
+                  New_Node : constant Node_Id
+                    := Copy_Node (Node);
+               begin
+                  Set_Decl
+                    (Node, Remove_Node (Decl (Node), D_Node));
+                  Set_Decl
+                    (New_Node, Append_Node (Nil_List, D_Node));
+                  Set_Parent (D_Node, New_Node);
+                  Insert_After
+                    (Members (Parent_Scope (D_Node)), New_Node, Position);
+                  --  The new member will be processed again later.
+                  Position := New_Node;
+               end;
+            else
+               Expand_Array_Declarator (D_Node);
+            end if;
+         end if;
+         First := False;
+      end loop;
+      pragma Debug (O ("Expand_Array_Declarators : leave"));
+   end Expand_Array_Declarators;
+
+   procedure Expand_Array_Declarator
+     (Node : Node_Id)
+   is
+   begin
+      if Is_Empty (Array_Bounds (Node)) then
+         return;
+      end if;
+
+      declare
+         Current_Gen_Scope : constant Node_Id
+           := Get_Current_Gen_Scope;
+         Current_Scope_Contents : Node_List;
+
+         Parent_Node : constant Node_Id
+           := Parent (Node);
+
+         Array_Node : constant Node_Id := Make_Declarator;
+         Array_Type_Node : constant Node_Id
+           := Make_Type_Declarator;
+
+         Element_Type_Node : Node_Id;
+         Array_Ref_Node : Node_Id
+        := Make_Scoped_Name;
+
+         Success : Boolean;
+      begin
+         pragma Debug (O ("Expand_Array_Declarator: enter"));
+         pragma Assert (Is_Gen_Scope (Current_Gen_Scope));
+
+         Current_Scope_Contents
+           := Contents (Current_Gen_Scope);
+
+         case Kind (Parent_Node) is
+            when K_Member =>
+               Element_Type_Node := M_Type (Parent_Node);
+            when K_Case =>
+               Element_Type_Node := Case_Type (Parent_Node);
+            when others =>
+               pragma Assert (False);
+               null;
+         end case;
+         Set_Value (Array_Ref_Node, Array_Node);
+         Set_S_Type (Array_Ref_Node, Array_Node);
+
+         Replace_Node (Element_Type_Node, Array_Ref_Node);
+
+         Set_T_Type (Array_Type_Node, Element_Type_Node);
+         Set_Declarators
+           (Array_Type_Node,
+            Append_Node (Nil_List, Array_Node));
+         Success := Add_Identifier
+           (Array_Node, Name (Node) & "_Array");
+         pragma Assert (Success);
+         --  FIXME: In current /gen/scope (see comment in Expand_Sequence).
+
+         Insert_Before
+           (Current_Scope_Contents,
+            Array_Type_Node,
+            Before => Current_Position_In_List);
+         Set_Contents (Current_Gen_Scope, Current_Scope_Contents);
+
+         Set_Array_Bounds (Array_Node, Array_Bounds (Node));
+         Set_Array_Bounds (Node, Nil_List);
+      end;
+   end Expand_Array_Declarator;
 
    -----------------------------------------
    --          private utilities          --
@@ -841,5 +998,19 @@ package body Ada_Be.Expansion is
             raise Program_Error;
       end case;
    end Sequence_Type_Name;
+
+   procedure Add_Identifier_With_Renaming
+     (Node : Node_Id;
+      Identifier : String)
+   is
+      Suffix : Integer := 1;
+   begin
+      if not Add_Identifier (Node, Identifier) then
+         while not Add_Identifier
+           (Node, Identifier & "_" & Img (Suffix)) loop
+            Suffix := Suffix + 1;
+         end loop;
+      end if;
+   end Add_Identifier_With_Renaming;
 
 end Ada_Be.Expansion;

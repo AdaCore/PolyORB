@@ -1,3 +1,4 @@
+with Ada.Exceptions;
 with GNAT.Command_Line;
 with Idl_Fe.Types;
 with Idl_Fe.Errors;
@@ -16,7 +17,13 @@ begin
    Put_Line ("Testexpansion : Parsing");
    Rep := Idl_Fe.Parser.Parse_Specification;
    Put_Line ("Testexpansion : Expanding ");
-   Ada_Be.Expansion.Expand_Repository (Rep);
+   begin
+      Ada_Be.Expansion.Expand_Repository (Rep);
+   exception
+      when E : others =>
+         Put_Line ("Exception raised during expansion!");
+         Put_Line (Ada.Exceptions.Exception_Information (E));
+   end;
    Put_Line ("Testexpansion : Displaying ");
    Idl_Fe.Display_Tree.Disp_Tree (Rep);
    Put_Line ("Testexpansion : Finished ");

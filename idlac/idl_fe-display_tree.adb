@@ -1,6 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Characters.Latin_1;
 
+with Utils; use Utils;
 with Idl_Fe.Tree.Synthetic; use Idl_Fe.Tree, Idl_Fe.Tree.Synthetic;
 
 package body Idl_Fe.Display_Tree is
@@ -75,12 +76,15 @@ package body Idl_Fe.Display_Tree is
          Put_Line ("node not properly defined");
          return;
       end if;
+      Put ("[" & Img (N) & "] ");
       case Kind (N) is
          when K_Scoped_Name =>
-            Put ("scoped name: " & Name (Value (N)));
+            Put ("scoped name: -> " & Img (Value (N))
+                 & " " & Name (Value (N)));
             if S_Type (N) /= No_Node then
-               Put_Line (" (type : " &
-                         Node_Kind'Image (Kind (S_Type (N))) &
+               Put_Line (" (type : "
+                         & Img (S_Type (N)) & " "
+                         & Node_Kind'Image (Kind (S_Type (N))) &
                          ")");
             else
                Put_Line ("");

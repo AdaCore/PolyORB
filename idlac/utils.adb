@@ -14,6 +14,19 @@ package body Utils is
    -- Img --
    ---------
 
+   function Img (N : Node_Id) return String is
+   begin
+      if N = No_Node then
+         return "No_Node";
+      else
+         return Img (Natural (N));
+      end if;
+   end Img;
+
+   ---------
+   -- Img --
+   ---------
+
    function Img (B : Boolean) return String is
    begin
       if B then

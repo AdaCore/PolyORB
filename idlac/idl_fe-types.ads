@@ -168,6 +168,12 @@ package Idl_Fe.Types is
    function Append_Node (List : in Node_List;
                          Node : Node_Id) return Node_List;
 
+   --  Remove the first occurrence of Node from List
+   function Remove_Node
+     (List : in Node_List;
+      Node : Node_Id)
+     return Node_List;
+
    --  Insert Node into List immediately before the first
    --  occurrence of Before.
    procedure Insert_Before
