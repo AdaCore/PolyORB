@@ -30,7 +30,7 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id: //droopi/main/src/corba/portableserver.ads#8 $
+--  $Id$
 
 with PolyORB.Components;
 with PolyORB.Objects;
@@ -163,9 +163,9 @@ package PortableServer is
    --  XXX Old AdaBroker-specific spec, kept here for
    --  now for easy reference. Please do not remove yet.
 
---    -----------------------
---    -- Specific to Broca --
---    -----------------------
+   -------------------------
+   -- Specific to PolyORB --
+   -------------------------
 
 --    procedure Marshall
 --      (Buffer : access Broca.Buffers.Buffer_Type;
@@ -175,8 +175,8 @@ package PortableServer is
 --      (Buffer : access Broca.Buffers.Buffer_Type)
 --      return ObjectId;
 
---    function Get_Type_Id
---      (For_Servant : Servant) return CORBA.RepositoryId;
+   function Get_Type_Id (For_Servant : Servant)
+     return CORBA.RepositoryId;
 
 --    procedure GIOP_Dispatch
 --      (For_Servant       : in Servant;
@@ -201,14 +201,20 @@ package PortableServer is
 --       Request_Buffer   : access Broca.Buffers.Buffer_Type;
 --       Reply_Buffer     : access Broca.Buffers.Buffer_Type);
 
---    type Servant_Class_Predicate is access function
---      (For_Servant : Servant)
---      return Boolean;
+   type Request_Dispatcher is access procedure
+     (For_Servant : in Servant;
+      Request     : in CORBA.ServerRequest.Object_Ptr);
+   --  Same signature as primitive 'Invoke' of type
+   --  DynamicImplementation.
 
---    procedure Register_Skeleton
---      (Type_Id    : in CORBA.RepositoryId;
---       Is_A       : in Servant_Class_Predicate;
---       Dispatcher : in GIOP_Dispatcher);
+   type Servant_Class_Predicate is access function
+     (For_Servant : Servant)
+     return Boolean;
+
+   procedure Register_Skeleton
+     (Type_Id    : in CORBA.RepositoryId;
+      Is_A       : in Servant_Class_Predicate;
+      Dispatcher : in Request_Dispatcher);
 
 --    --  Calling ForwardRequest does not increase the usage counter of
 --    --  REFERENCE.  As a result, the user must ensure not to release
