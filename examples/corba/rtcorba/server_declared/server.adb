@@ -123,7 +123,7 @@ begin
 
    Output ("ORB is configured", True);
 
-   New_Test ("RTORB");
+   New_Test ("SERVER_DECLARED server");
 
    declare
       RT_ORB : RTCORBA.RTORB.Ref;
@@ -231,6 +231,8 @@ begin
 
       --  Set up new object and attach it to Child_POA
 
+      Echo.Impl.Object (Obj_Server_1.all).Priority := Default_Priority_1;
+
       Ref_Server_1 := PortableServer.POA.Servant_To_Reference
         (PortableServer.POA.Ref (Child_POA_Server_1),
          PortableServer.Servant (Obj_Server_1));
@@ -301,6 +303,8 @@ begin
       Output ("Create Child POA with these policies", True);
 
       --  Set up new object and attach it to Child_POA
+
+      Echo.Impl.Object (Obj_Server_2.all).Priority := Default_Priority_2;
 
       Ref_Server_2 := PortableServer.POA.Servant_To_Reference
         (PortableServer.POA.Ref (Child_POA_Server_2),

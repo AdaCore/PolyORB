@@ -41,6 +41,7 @@ pragma Warnings (Off, Echo.Skel);
 
 with RTCORBA.PriorityMapping;
 with PolyORB.RTCORBA_P.Setup;
+with PolyORB.Utils.Report;
 
 with System;
 
@@ -55,15 +56,12 @@ package body Echo.Impl is
       Mesg : in     CORBA.String)
      return CORBA.String
    is
-      pragma Warnings (Off);
-      pragma Unreferenced (Self);
-      pragma Warnings (On);
-
       use Ada.Dynamic_Priorities;
       use Ada.Text_IO;
+      use RTCORBA;
 
       Ada_Priority : constant System.Any_Priority := Get_Priority;
-
+      Rounded_Priority : RTCORBA.NativePriority;
       CORBA_Priority : RTCORBA.Priority;
       Ok : Boolean;
 
@@ -78,11 +76,28 @@ package body Echo.Impl is
          raise Program_Error;
       end if;
 
+      RTCORBA.PriorityMapping.To_Native
+        (PolyORB.RTCORBA_P.Setup.Get_Priority_Mapping.all,
+         Self.Priority,
+         Rounded_Priority,
+         Ok);
+
+      if not Ok then
+         raise Program_Error;
+      end if;
+
       Put_Line ("In echo servant, running thread at "
                 & "Ada native priority"
                 & System.Any_Priority'Image (Ada_Priority)
                 & ", CORBA priority (approximation)"
                 & RTCORBA.Priority'Image (CORBA_Priority));
+
+      --  Test wether execution priority matches setup priority
+
+      PolyORB.Utils.Report.Output
+        ("Execution priority conformant",
+         Rounded_Priority = RTCORBA.NativePriority (Ada_Priority));
+
       Put_Line
         ("Echoing string: « " & CORBA.To_Standard_String (Mesg)
          & " »");
