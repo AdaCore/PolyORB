@@ -459,12 +459,16 @@ package Opt is
    --  but do not count as errors. In Treat_As_Error mode, warning messages
    --  are generated and are treated as errors.
 
-   Wide_Character_Encoding_Method : WC_Encoding_Method := WCEM_None;
+   Wide_Character_Encoding_Method : WC_Encoding_Method := WCEM_Brackets;
    --  GNAT, GNATF
    --  Method used for encoding wide characters in the source program. See
    --  description of type in unit System.WCh_Con for a list of the methods
-   --  that are currently supported. The default mode (WCEM_None) prohibits
-   --  wide character encodings from appearing in the program completely.
+   --  that are currently supported. Note that brackets notation is always
+   --  recognized in source programs regardless of the setting of this
+   --  variable. The default setting causes only the brackets notation
+   --  to be recognized. If this is the main unit, this setting also
+   --  controls the output of the W=? parameter in the ali file, which
+   --  is used to provide the default for Wide_Text_IO files.
 
    Xref_Analyze : Boolean := False;
    --  GNAT, GNATF

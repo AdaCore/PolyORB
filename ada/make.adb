@@ -477,6 +477,10 @@ package body Make is
          --  which has a spec not mentioned inali file A. If True is returned
          --  Spec_File_Name above is set to the name of this spec file.
 
+         --------------
+         -- New_Spec --
+         --------------
+
          function New_Spec (Uname : Unit_Name_Type) return Boolean is
             Spec_Name : Unit_Name_Type;
             File_Name : File_Name_Type;
@@ -603,9 +607,13 @@ package body Make is
          end if;
 
       else
-         ALI := Scan_ALI (Lib_File, Text);
+         ALI := Scan_ALI (Lib_File, Text, Err => True);
 
-         if ALIs.Table (ALI).Ver /= Library_Version then
+         if ALI = No_ALI_Id then
+            Verbose_Msg (Full_Lib_File, "incorrectly formatted ALI file");
+            return;
+
+         elsif ALIs.Table (ALI).Ver /= Library_Version then
             Verbose_Msg (Full_Lib_File, "compiled with old GNAT version");
             ALI := No_ALI_Id;
             return;
@@ -845,18 +853,18 @@ package body Make is
          Comp_Last : Integer;
 
          function Ada_File_Name (Name : Name_Id) return Boolean;
-         --  Returns True if Name is the name of an ada source file (i.e. it
-         --  has an extension recognized as Ada by default by the gcc driver)
+         --  Returns True if Name is the name of an ada source file
+         --  (i.e. suffix is .ads or .adb)
 
          function Ada_File_Name (Name : Name_Id) return Boolean is
          begin
             Get_Name_String (Name);
             return
               Name_Len > 4
-              and then Name_Buffer (Name_Len - 3 .. Name_Len - 1) = ".ad"
-              and then (Name_Buffer (Name_Len) = 'b'
-                         or else Name_Buffer (Name_Len) = 's'
-                         or else Name_Buffer (Name_Len) = 'a');
+                and then Name_Buffer (Name_Len - 3 .. Name_Len - 1) = ".ad"
+                and then (Name_Buffer (Name_Len) = 'b'
+                            or else
+                          Name_Buffer (Name_Len) = 's');
          end Ada_File_Name;
 
       --  Start of processing for Compile

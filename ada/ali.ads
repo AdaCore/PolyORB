@@ -128,6 +128,9 @@ package ALI is
       --  line. A value of -1 indicates that no T=xxx parameter was found,
       --  or no M line was present.
 
+      WC_Encoding : Character;
+      --  Wide character encoding if main procedure. Otherwise not relevant.
+
       Locking_Policy : Character;
       --  Indicates locking policy for units in this file. Space means
       --  tasking was not used, or that no Locking_Policy pragma was
@@ -482,11 +485,17 @@ package ALI is
    --  been processed; and for each that hasn't, reading, scanning, and
    --  recursively processing.
 
-   function Scan_ALI (F : File_Name_Type; T : Text_Buffer_Ptr) return ALI_Id;
+   function Scan_ALI
+     (F    : File_Name_Type;
+      T    : Text_Buffer_Ptr;
+      Err  : Boolean := False)
+      return ALI_Id;
    --  Given the text of an ALI file, scan and store the information from
    --  the file, and return the Id of the resulting entry in the ALI table.
-   --  If the file is found to be incorrectly formatted, an error message
-   --  is generated, and the program is terminated.
+   --  The parameter Err determines the action taken on an incorrectly
+   --  formatted file. If Err is False (the default), then an error message
+   --  is generated, and the program is terminated. If Err is True, then
+   --  no error message is output, and No_ALI_Id is returned.
 
    procedure Set_Source_Table (A : ALI_Id);
    --  Build source table entry corresponding to the ALI file whose id is A.

@@ -34,15 +34,16 @@
 ------------------------------------------------------------------------------
 
 with Hostparm;
-with Namet;         use Namet;
-with Output;        use Output;
-with Switch;        use Switch;
-with Opt;           use Opt;
-with Sdefault;      use Sdefault;
-with Tree_IO;       use Tree_IO;
+with Namet;       use Namet;
+with Output;      use Output;
+with Switch;      use Switch;
+with Opt;         use Opt;
+with Sdefault;    use Sdefault;
+with Tree_IO;     use Tree_IO;
+
 with Unchecked_Conversion;
 
-with GNAT.OS_Lib;   use GNAT.OS_Lib;
+with GNAT.OS_Lib; use GNAT.OS_Lib;
 with GNAT.HTable;
 
 package body Osint is
@@ -64,7 +65,10 @@ package body Osint is
    -- Local Subprograms --
    -----------------------
 
-   function Append (Name : Name_Id; Suffix : String) return Name_Id;
+   function Append_Suffix_To_File_Name
+     (Name   : Name_Id;
+      Suffix : String)
+      return   Name_Id;
    --  Appends Suffix to Name and returns the new name.
 
    function OS_Time_To_GNAT_Time (T : OS_Time) return Time_Stamp_Type;
@@ -111,8 +115,8 @@ package body Osint is
    --  full file name if file found, or No_File if not found.
 
    function Find_File
-     (N : File_Name_Type;
-      T : File_Type)
+     (N :    File_Name_Type;
+      T :    File_Type)
       return File_Name_Type;
    --  Finds a source or library file depending on the value of T following
    --  the directory search order rules unless N is the name of the file
@@ -130,7 +134,7 @@ package body Osint is
    function To_Path_String_Access
      (Path_Addr : Address;
       Path_Len  : Integer)
-      return String_Access;
+      return      String_Access;
    --  Converts a C String to an Ada String.  Are we doing this to avoid
    --  withing Interfaces.C.Strings ???
 
@@ -165,10 +169,6 @@ package body Osint is
    --  Read_Source_File. If the file name argument to Read_Source_File is
    --  No_File, that indicates that the file whose name was returned by the
    --  last call to Next_Main_Source (and stored here) is to be read.
-
-   Current_Main_Has_Dir : Boolean := False;
-   --  Used to record that the Current_Main has directory
-   --  information in it since it affects gnatmake behavior.
 
    Current_Full_Source_Name  : File_Name_Type  := No_File;
    Current_Full_Source_Stamp : Time_Stamp_Type := Empty_Time_Stamp;
@@ -316,17 +316,21 @@ package body Osint is
         Normalize_Directory_Name (Dir);
    end Add_Src_Search_Dir;
 
-   ------------
-   -- Append --
-   ------------
+   --------------------------------
+   -- Append_Suffix_To_File_Name --
+   --------------------------------
 
-   function Append (Name : Name_Id; Suffix : String) return Name_Id is
+   function Append_Suffix_To_File_Name
+     (Name   : Name_Id;
+      Suffix : String)
+      return   Name_Id
+   is
    begin
       Get_Name_String (Name);
       Name_Buffer (Name_Len + 1 .. Name_Len + Suffix'Length) := Suffix;
       Name_Len := Name_Len + Suffix'Length;
       return Name_Find;
-   end Append;
+   end Append_Suffix_To_File_Name;
 
    -------------------------
    -- Close_Binder_Output --
@@ -732,11 +736,11 @@ package body Osint is
    begin
       Get_Name_String (Name);
 
-      for I in reverse 1 .. Name_Len loop
-         if Name_Buffer (I) = Directory_Separator
-           or else Name_Buffer (I) = '/'
+      for J in reverse 1 .. Name_Len loop
+         if Name_Buffer (J) = Directory_Separator
+           or else Name_Buffer (J) = '/'
          then
-            Name_Len := I;
+            Name_Len := J;
             return Name_Find;
          end if;
       end loop;
@@ -798,8 +802,8 @@ package body Osint is
    ---------------
 
    function Find_File
-     (N : File_Name_Type;
-      T : File_Type)
+     (N :    File_Name_Type;
+      T :    File_Type)
       return File_Name_Type
    is
    begin
@@ -820,7 +824,7 @@ package body Osint is
          --  If we are trying to find the current main file just look in the
          --  directory where the user said it was.
 
-         elsif Current_Main_Has_Dir and then Current_Main = N then
+         elsif Current_Main = N then
             return Locate_File (N, T, Primary_Directory, File_Name);
 
          --  Otherwise do standard search for source file
@@ -1233,8 +1237,6 @@ package body Osint is
    -----------------------------
 
    procedure Add_Default_Search_Dirs is
-
-
       Search_Dir  : String_Access;
       Search_Path : String_Access;
 
@@ -1255,6 +1257,10 @@ package body Osint is
       --  the location where GNAT is installed.   See the file prefix.c
       --  in GCC for more details.
 
+      --------------------
+      -- Add_Search_Dir --
+      --------------------
+
       procedure Add_Search_Dir
         (Search_Dir            : String_Access;
          Additional_Source_Dir : Boolean)
@@ -1266,6 +1272,10 @@ package body Osint is
             Add_Lib_Search_Dir (Search_Dir.all);
          end if;
       end Add_Search_Dir;
+
+      ---------------------------------
+      -- Get_Libraries_From_Registry --
+      ---------------------------------
 
       function Get_Libraries_From_Registry return String_Ptr is
          function C_Get_Libraries_From_Registry return Address;
@@ -1280,7 +1290,6 @@ package body Osint is
          Out_String : String_Ptr;
 
       begin
-
          Result_Ptr := C_Get_Libraries_From_Registry;
          Result_Length := Strlen (Result_Ptr);
 
@@ -1288,6 +1297,10 @@ package body Osint is
          Strncpy (Out_String.all'Address, Result_Ptr, Result_Length);
          return Out_String;
       end Get_Libraries_From_Registry;
+
+      -----------------
+      -- Update_Path --
+      -----------------
 
       function Update_Path (Path : String_Ptr) return String_Ptr is
 
@@ -1386,7 +1399,6 @@ package body Osint is
    begin
       if Opt.Look_In_Primary_Dir then
          return Src_Search_Directories.Last -  Primary_Directory + 1;
-
       else
          return Src_Search_Directories.Last -  Primary_Directory;
       end if;
@@ -1414,7 +1426,6 @@ package body Osint is
    begin
       if Opt.Look_In_Primary_Dir then
          return Lib_Search_Directories.Last -  Primary_Directory + 1;
-
       else
          return Lib_Search_Directories.Last -  Primary_Directory;
       end if;
@@ -1433,7 +1444,6 @@ package body Osint is
          return Lib_Search_Directories.Table (Primary_Directory + Position);
       end if;
    end Dir_In_Obj_Search_Path;
-
 
    -------------------
    -- Lib_File_Name --
@@ -1546,9 +1556,6 @@ package body Osint is
 
       elsif In_Make then
          Src_Search_Directories.Table (Primary_Directory) := Dir_Name;
-         if Fptr > File_Name'First then
-            Current_Main_Has_Dir := True;
-         end if;
 
       elsif In_Binder then
          Dir_Name := Normalize_Directory_Name (Dir_Name.all);
@@ -1573,10 +1580,11 @@ package body Osint is
 
          begin
             if Strip_Suffix (Orig_Main) = Orig_Main then
-               Current_Main := Append (Orig_Main, ".adb");
+               Current_Main := Append_Suffix_To_File_Name (Orig_Main, ".adb");
 
                if Full_Source_Name (Current_Main) = No_File then
-                  Current_Main := Append (Orig_Main, ".ads");
+                  Current_Main :=
+                    Append_Suffix_To_File_Name (Orig_Main, ".ads");
 
                   if Full_Source_Name (Current_Main) = No_File then
                      Current_Main := Orig_Main;
@@ -1959,11 +1967,11 @@ package body Osint is
    ----------------------
 
    function Smart_File_Stamp
-     (N : File_Name_Type;
-      T : File_Type)
+     (N    : File_Name_Type;
+      T    : File_Type)
       return Time_Stamp_Type
    is
-      Time_Stamp     : Time_Stamp_Type;
+      Time_Stamp : Time_Stamp_Type;
 
    begin
       if not File_Cache_Enabled then
@@ -2093,12 +2101,12 @@ package body Osint is
    function To_Canonical_Dir_Spec
      (Host_Dir     : String;
       Prefix_Style : Boolean)
-      return String_Access
+      return         String_Access
    is
       function To_Canonical_Dir_Spec
-        (Host_Dir : Address;
+        (Host_Dir    : Address;
          Prefix_Flag : Integer)
-         return Address;
+         return        Address;
       pragma Import (C, To_Canonical_Dir_Spec, "to_canonical_dir_spec");
 
       C_Host_Dir      : String (1 .. Host_Dir'Length + 1);
@@ -2121,6 +2129,7 @@ package body Osint is
       else
          return To_Path_String_Access (Canonical_Dir_Addr, Canonical_Dir_Len);
       end if;
+
    exception
       when others =>
          Fail ("erroneous directory spec: ", Host_Dir);
@@ -2133,7 +2142,7 @@ package body Osint is
 
    function To_Canonical_File_Spec
      (Host_File : String)
-      return String_Access
+      return      String_Access
    is
       function To_Canonical_File_Spec (Host_File : Address) return Address;
       pragma Import (C, To_Canonical_File_Spec, "to_canonical_file_spec");
@@ -2155,6 +2164,7 @@ package body Osint is
          return To_Path_String_Access
                   (Canonical_File_Addr, Canonical_File_Len);
       end if;
+
    exception
       when others =>
          Fail ("erroneous file spec: ", Host_File);
@@ -2167,7 +2177,7 @@ package body Osint is
 
    function To_Canonical_Path_Spec
      (Host_Path : String)
-      return String_Access
+      return      String_Access
    is
       function To_Canonical_Path_Spec (Host_Path : Address) return Address;
       pragma Import (C, To_Canonical_Path_Spec, "to_canonical_path_spec");
@@ -2185,7 +2195,9 @@ package body Osint is
 
       --  Return a null string (vice a null) for zero length paths, for
       --  compatibility with getenv().
+
       return To_Path_String_Access (Canonical_Path_Addr, Canonical_Path_Len);
+
    exception
       when others =>
          Fail ("erroneous path spec: ", Host_Path);
@@ -2199,12 +2211,12 @@ package body Osint is
    function To_Host_Dir_Spec
      (Canonical_Dir : String;
       Prefix_Style  : Boolean)
-      return String_Access
+      return          String_Access
    is
       function To_Host_Dir_Spec
         (Canonical_Dir : Address;
          Prefix_Flag   : Integer)
-         return Address;
+         return          Address;
       pragma Import (C, To_Host_Dir_Spec, "to_host_dir_spec");
 
       C_Canonical_Dir : String (1 .. Canonical_Dir'Length + 1);
@@ -2235,7 +2247,7 @@ package body Osint is
 
    function To_Host_File_Spec
      (Canonical_File : String)
-      return String_Access
+      return           String_Access
    is
       function To_Host_File_Spec (Canonical_File : Address) return Address;
       pragma Import (C, To_Host_File_Spec, "to_host_file_spec");
@@ -2266,8 +2278,8 @@ package body Osint is
    function To_Path_String_Access
      (Path_Addr : Address;
       Path_Len  : Integer)
-      return String_Access is
-
+      return      String_Access
+   is
       subtype Path_String is String (1 .. Path_Len);
       type    Path_String_Access is access Path_String;
 
@@ -2358,7 +2370,6 @@ package body Osint is
       Write_With_Check (EOL'Address, 1);
    end Write_Library_Info;
 
-
    -----------------------
    -- Find_Program_Name --
    -----------------------
@@ -2379,21 +2390,21 @@ package body Osint is
       --  situation is more complicated because there are two characters to
       --  check for.
 
-      for I in reverse Cindex1 .. Cindex2 loop
-         if Command_Name (I) = Directory_Separator
-           or else Command_Name (I) = '/'
+      for J in reverse Cindex1 .. Cindex2 loop
+         if Command_Name (J) = Directory_Separator
+           or else Command_Name (J) = '/'
            or else (Hostparm.OpenVMS
-                    and then (Command_Name (I) = ']'
-                              or else Command_Name (I) = ':'))
+                    and then (Command_Name (J) = ']'
+                              or else Command_Name (J) = ':'))
          then
-            Cindex1 := I + 1;
+            Cindex1 := J + 1;
             exit;
          end if;
       end loop;
 
-      for I in reverse Cindex1 .. Cindex2 loop
-         if Command_Name (I) = '.' then
-            Cindex2 := I - 1;
+      for J in reverse Cindex1 .. Cindex2 loop
+         if Command_Name (J) = '.' then
+            Cindex2 := J - 1;
             exit;
          end if;
       end loop;
@@ -2410,7 +2421,6 @@ package body Osint is
       Res : String_Access;
 
    begin
-
       --  Get the name of the current program being executed
 
       Find_Program_Name;

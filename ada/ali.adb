@@ -339,7 +339,12 @@ package body ALI is
    -- Scan_ALI --
    --------------
 
-   function Scan_ALI (F : File_Name_Type; T : Text_Buffer_Ptr) return ALI_Id is
+   function Scan_ALI
+     (F    : File_Name_Type;
+      T    : Text_Buffer_Ptr;
+      Err  : Boolean := False)
+      return ALI_Id
+   is
       P        : Text_Ptr := T'First;
       Line     : Logical_Line_Number := 1;
       Id       : ALI_Id;
@@ -358,8 +363,11 @@ package body ALI is
       procedure Checkc (C : Character);
       --  Check next character is C. If so bump past it, if not fatal error
 
+      Bad_ALI_Format : exception;
+
       procedure Fatal_Error;
-      --  Generate fatal error message for badly formatted ALI file
+      --  Generate fatal error message for badly formatted ALI file if
+      --  Err is false, or raise Bad_ALI_Format if Err is True.
 
       function Getc return Character;
       --  Get next character, bumping P past the character obtained
@@ -456,6 +464,10 @@ package body ALI is
       --  Start of processing for Fatal_Error
 
       begin
+         if Err then
+            raise Bad_ALI_Format;
+         end if;
+
          Write_Str ("fatal error: file ");
          Write_Name (F);
          Write_Str (" is incorrectly formatted");
@@ -668,6 +680,7 @@ package body ALI is
       ALIs.Table (Id).Queuing_Policy          := ' ';
       ALIs.Table (Id).Task_Dispatching_Policy := ' ';
       ALIs.Table (Id).Time_Slice_Value        := -1;
+      ALIs.Table (Id).WC_Encoding             := '8';
       ALIs.Table (Id).Unit_Exception_Table    := False;
       ALIs.Table (Id).Zero_Cost_Exceptions    := False;
 
@@ -675,6 +688,7 @@ package body ALI is
 
       Checkc ('V');
       Checkc (' ');
+      Skip_Space;
       Checkc ('"');
 
       for J in ALIs.Table (Id).Ver'Range loop
@@ -690,6 +704,7 @@ package body ALI is
 
       if C = 'M' then
          Checkc (' ');
+         Skip_Space;
 
          C := Getc;
 
@@ -711,11 +726,17 @@ package body ALI is
 
             Skip_Space;
 
-            if not At_Eol then
-               Checkc ('T');
+            if Nextc = 'T' then
+               P := P + 1;
                Checkc ('=');
                ALIs.Table (Id).Time_Slice_Value := Get_Nat;
             end if;
+
+            Skip_Space;
+
+            Checkc ('W');
+            Checkc ('=');
+            ALIs.Table (Id).WC_Encoding := Getc;
          end if;
 
          Skip_Eol;
@@ -744,6 +765,7 @@ package body ALI is
 
       while not At_Eol loop
          Checkc (' ');
+         Skip_Space;
          C := Getc;
 
          if C = 'F' then
@@ -830,6 +852,7 @@ package body ALI is
 
       Unit_Loop : while C = 'U' loop
          Checkc (' ');
+         Skip_Space;
          Unit.Increment_Last;
 
          if ALIs.Table (Id).First_Unit = No_Unit_Id then
@@ -1053,6 +1076,7 @@ package body ALI is
 
          With_Loop : while C = 'W' loop
             Checkc (' ');
+            Skip_Space;
             Withs.Increment_Last;
             Withs.Table (Withs.Last).Uname              := Get_Name;
             Withs.Table (Withs.Last).Elaborate          := False;
@@ -1142,6 +1166,7 @@ package body ALI is
 
       while C = 'L' loop
          Checkc (' ');
+         Skip_Space;
          Checkc ('"');
 
          Name_Len := 0;
@@ -1184,6 +1209,7 @@ package body ALI is
 
       while C = 'D' loop
          Checkc (' ');
+         Skip_Space;
          Sdep.Increment_Last;
          Sdep.Table (Sdep.Last).Sfile := Get_Name;
          Sdep.Table (Sdep.Last).Stamp := Get_Stamp;
@@ -1244,6 +1270,11 @@ package body ALI is
       end if;
 
       return Id;
+
+   exception
+      when Bad_ALI_Format =>
+         return No_ALI_Id;
+
    end Scan_ALI;
 
    ----------------------
