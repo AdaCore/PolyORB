@@ -818,41 +818,30 @@ package body Idl_Fe.Lexer is
             end loop;
             Set_End_Mark;
             return T_Lit_Octal_Integer;
+         elsif View_Next_Char = 'D' or View_Next_Char = 'd' or
+           View_Next_Char = 'E' or View_Next_Char = 'e' then
+            null;
          else
             --  This is only a digit.
             return T_Lit_Decimal_Integer;
          end if;
-      else
-         if Get_Current_Char /= '.' then
-            while Is_Digit_Character (View_Next_Char) loop
-               Skip_Char;
-            end loop;
-         end if;
-         if Get_Current_Char /= '.' and View_Next_Char = '.' then
+      end if;
+      if Get_Current_Char /= '.' then
+         while Is_Digit_Character (View_Next_Char) loop
             Skip_Char;
-         end if;
-         if Get_Current_Char = '.' then
-            while Is_Digit_Character (View_Next_Char) loop
-               Skip_Char;
-            end loop;
-            if View_Next_Char = 'D' or else View_Next_Char = 'd' then
-               Skip_Char;
-               Set_End_Mark;
-               return T_Lit_Floating_Fixed_Point;
-            elsif View_Next_Char = 'E' or else View_Next_Char = 'e' then
-               Skip_Char;
-               if View_Next_Char = '+' or else View_Next_Char = '-' then
-                  Skip_Char;
-               end if;
-               while Is_Digit_Character (View_Next_Char) loop
-                  Skip_Char;
-               end loop;
-               Set_End_Mark;
-               return T_Lit_Exponent_Floating_Point;
-            else
-               Set_End_Mark;
-               return T_Lit_Simple_Floating_Point;
-            end if;
+         end loop;
+      end if;
+      if Get_Current_Char /= '.' and View_Next_Char = '.' then
+         Skip_Char;
+      end if;
+      if Get_Current_Char = '.' then
+         while Is_Digit_Character (View_Next_Char) loop
+            Skip_Char;
+         end loop;
+         if View_Next_Char = 'D' or else View_Next_Char = 'd' then
+            Skip_Char;
+            Set_End_Mark;
+            return T_Lit_Floating_Fixed_Point;
          elsif View_Next_Char = 'E' or else View_Next_Char = 'e' then
             Skip_Char;
             if View_Next_Char = '+' or else View_Next_Char = '-' then
@@ -862,15 +851,28 @@ package body Idl_Fe.Lexer is
                Skip_Char;
             end loop;
             Set_End_Mark;
-            return T_Lit_Pure_Exponent_Floating_Point;
-         elsif View_Next_Char = 'D' or else View_Next_Char = 'd' then
-            Skip_Char;
-            Set_End_Mark;
-            return T_Lit_Simple_Fixed_Point;
+            return T_Lit_Exponent_Floating_Point;
          else
             Set_End_Mark;
-            return T_Lit_Decimal_Integer;
+            return T_Lit_Simple_Floating_Point;
          end if;
+      elsif View_Next_Char = 'E' or else View_Next_Char = 'e' then
+         Skip_Char;
+         if View_Next_Char = '+' or else View_Next_Char = '-' then
+            Skip_Char;
+         end if;
+         while Is_Digit_Character (View_Next_Char) loop
+            Skip_Char;
+         end loop;
+         Set_End_Mark;
+         return T_Lit_Pure_Exponent_Floating_Point;
+      elsif View_Next_Char = 'D' or else View_Next_Char = 'd' then
+         Skip_Char;
+         Set_End_Mark;
+         return T_Lit_Simple_Fixed_Point;
+      else
+         Set_End_Mark;
+         return T_Lit_Decimal_Integer;
       end if;
    end Scan_Numeric;
 

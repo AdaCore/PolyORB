@@ -1215,7 +1215,7 @@ const float constU = ~ 1.23;
 /*** constant management : value types and scoped names ***/
 // not a regular type
 interface interfaceAB {};
-const short const V = interfaceAB;
+const short constV = interfaceAB;
 // incompatible types
 const short constW = 4;
 const char constX = constW;
@@ -1247,147 +1247,151 @@ const wstring constAH = "string";
 const float constAI = L"string";
 // wide string literal and string type
 const string constAJ = L"string";
+// too long string literal
+const string<4> constAK = "string";
+// too long wide string literal
+const wstring<4> constAL = L"wstring";
 // char literal but no char type
-const float constAK = 'c';
+const float constAM = 'c';
 // char literal and wide char type
-const wchar constAL = 'c';
+const wchar constAN = 'c';
 // wide char literal but no wide char type
-const float constAM = L'c';
+const float constAO = L'c';
 // wide char literal and char type
-const char constAN = L'c';
+const char constAP = L'c';
 // floating point literal but no floating point type
-const long constAO = 5.2;
+const long constAQ = 5.2;
 // fixed point literal but no fixed point type
-const float constAP = 5.4d;
+const float constAR = 5.4d;
 // precision in fixed point literals
-const fixed<3,2> constAQ = .434d;
+const fixed<3,2> constAS = .434d;
 // precision in fixed point literals
-const fixed<3,1> constAR = 234.7d;
+const fixed<3,1> constAT = 234.7d;
 // boolean literal but no boolean type
-const float constAS = TRUE;
+const float constAU = TRUE;
 
 
 
 /*** constant management : direct value ranges ***/
 // octet range
-const octet constAT = -2;
+const octet constAV = -2;
 // octet range
-const octet constAU = 280;
+const octet constAW = 280;
 // short range
-const short constAV = -33000;
+const short constAX = -33000;
 // short range
-const short constAW = 33000;
+const short constAY = 33000;
 // long range
-const short constAX = -3000000000;
+const long constAZ = -3000000000;
 // long range
-const short constAY = 3000000000;
+const long constBA = 3000000000;
 // longlong range
-//const short constAZ = -10000000000000000000;
+//const long long constBB = -10000000000000000000;
 // longlong range
-//const short constBA = 10000000000000000000;
+//const long long constBC = 10000000000000000000;
 // unsigned short range
-const short constBB = -3;
+const unsigned short constBD = -3;
 // unsigned short range
-const short constBC = 70000;
+const unsigned short constBE = 70000;
 // unsigned long range
-const short constBD = -3;
+const unsigned long constBF = -3;
 // unsigned long range
-const short constBE = 5000000000;
+const unsigned long constBG = 5000000000;
 // unsigned longlong range
-const short constBF = -1;
+const unsigned long long constBH = -1;
 // unsigned longlong range
-//const short constBG = 18000000000000000000;
+//const unsigned long long constBI = 18000000000000000000;
 // float range
-const float constBH = -4e38;
+const float constBJ = -4e38;
 // float range
-const float constBI = 4e38;
+const float constBK = 4e38;
 // double range
-const double constBJ = -2E308;
+const double constBL = -2E308;
 // double range
-const double constBK = 2e308;
+const double constBM = 2e308;
 // long double range
-const long double constBL = -1.2E4932;
+const long double constBN = -1.2E4932;
 // long double range
-const long double constBM = 1.2E4932;
+const long double constBO = 1.2E4932;
 // fixed point range
-const fixed <32,4> constBN = 12344.254d;
+const fixed <32,4> constBP = 12344.254d;
 // fixed point range
-const fixed <4,5> constBO = .01254d;
+const fixed <4,5> constBQ = .01254d;
 
 
 /*** constant management : indirect value ranges ***/
 // octet range
-const octet constBP = 5 - 3;
+const octet constBR = 5 - 8;
 // octet range
-const octet constBQ = 230 + 50;
+const octet constBS = 230 + 50;
 // octet range
-const octet constBR = 23 * 23;
+const octet constBT = 23 * 23;
 // short range
-const short constBS = -30000 - 3000;
+const short constBU = -30000 - 3000;
 // short range
-const short constBT = 30000 + 3000;
+const short constBV = 30000 + 3000;
 // short range
-const short constBU = 30000 * 2;
+const short constBW = 30000 * 2;
 // long range
-const short constBV = -2000000000 - 1000000000;
+const long constBX = -2000000000 - 1000000000;
 // long range
-const short constBW = 2000000000 + 1000000000;
+const long constBY = 2000000000 + 1000000000;
 // long range
-const short constBX = 2000000000 * 2;
+const long constBZ = 2000000000 * 2;
 // longlong range
-//const short constBY = -5000000000000000000 - 5000000000000000000;
+//const long long constCA = -5000000000000000000 - 5000000000000000000;
 // longlong range
-//const short constBZ = 5000000000000000000 + 5000000000000000000;
+//const long long constCB = 5000000000000000000 + 5000000000000000000;
 // unsigned short range
-//const short constCA = 5000000000000000000 *2;
+//const long long constCC = 5000000000000000000 *2;
 // unsigned short range
-const short constCB = 5 - 8;
+const unsigned short constCD = 5 - 8;
 // unsigned short range
-const short constCD = 40000 + 30000;
+const unsigned short constCE = 40000 + 30000;
 // unsigned short range
-const short constCE = 40000 * 2;
+const unsigned short constCF = 40000 * 2;
 // unsigned long range
-const short constCF = 5 - 8;
+const unsigned long constCG = 5 - 8;
 // unsigned long range
-const short constCG = 3000000000 + 2000000000;
+const unsigned long constCH = 3000000000 + 2000000000;
 // unsigned long range
-const short constCH = 3000000000 * 2;
+const unsigned long constCI = 3000000000 * 2;
 // unsigned longlong range
-const short constCI = 5 - 8;
+const unsigned long long constCJ = 5 - 8;
 // unsigned longlong range
-//const short constCJ = 9000000000000000000 + 9000000000000000000;
+//const unsigned long long constCK = 9000000000000000000 + 9000000000000000000;
 // unsigned longlong range
-//const short constCK = 9000000000000000000 * 2;
+//const unsigned long long constCL = 9000000000000000000 * 2;
 // float range
-const float constCL = -2e38 - 2e38;
+const float constCM = -2e38 - 2e38;
 // float range
-const float constCM = 2e38 + 2e38;
+const float constCN = 2e38 + 2e38;
 // float range
-const float constCN = 2e38 * 2;
+const float constCO = 2e38 * 2;
 // double range
-const double constCO = -1E308 - 1E308;
+const double constCP = -1E308 - 1E308;
 // double range
-const double constCP = 1E308 + 1E308;
+const double constCQ = 1E308 + 1E308;
 // long double range
-const double constCQ = 1E308 * 2.;
+const double constCR = 1E308 * 2.;
 // long double range
-const long double constCR = -0.6E4932 - 0.6E4932;
+const long double constCS = -0.6E4932 - 0.6E4932;
 // long double range
-const long double constCS = 0.6E4932 + 0.6E4932;
+const long double constCT = 0.6E4932 + 0.6E4932;
 // long double range
-const long double constCT = 0.6E4932 * 2.;
+const long double constCU = 0.6E4932 * 2.;
 // fixed point range
-const fixed <3,0> constCU = 605d + 605d;
+const fixed <3,0> constCV = 605d + 605d;
 // fixed point range
-const fixed <3,0> constCV = -605d - 605d;
+const fixed <3,0> constCW = -605d - 605d;
 // fixed point range
-const fixed <3,0> constCW = 605d * 2d;
+const fixed <3,0> constCX = 605d * 2d;
 
 
 /*** type declarations and scoped names ***/
 // invalid type
-const long constCX = 5;
-typedef constCX typeD;
+const long constCY = 5;
+typedef constCY typeD;
 // invalid type
 module moduleD { const long constA = 5; };
 typedef moduleD typeE;
@@ -1400,7 +1404,7 @@ union unionC switch (typeF) { case TRUE : long elementA; };
 // identifier clash
 union unionD switch (enum enumG {eS, eT, eU}) {
   case eS : long eT;
-}
+};
 
 /*** switch types : case label management ***/
 // duplicated label

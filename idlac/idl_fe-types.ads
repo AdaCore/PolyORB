@@ -159,8 +159,10 @@ package Idl_Fe.Types is
            | C_General_Float =>
             Float_Value : Idl_Float;
          when C_String =>
+            String_Length : Idl_Integer;
             String_Value : Idl_String;
          when C_WString =>
+            WString_Length : Idl_Integer;
             WString_Value : Idl_Wide_String;
          when C_Fixed
            | C_General_Fixed =>

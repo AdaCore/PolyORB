@@ -884,18 +884,18 @@ package body Idl_Fe.Parser is
                   Idl_Fe.Errors.Display_Location (Loc),
                   Idl_Fe.Errors.Warning,
                   Get_Token_Location);
-
-               --  FIXME: Why bother to do the following
+               --  Why bother to do the following
                --  since we have produced a parser error anyway?
                --  Thomas 2000-04-12
+               --  Because it is not an error but a warning. The idl
+               --  allows such multiple forward declarations.
+               --  Sebastien 2000-04-20
                Fd_Res := Make_Forward_Interface;
                Set_Location (Fd_Res, Get_Location (Res));
                Set_Forward (Fd_Res, No_Node);
                Set_Abst (Fd_Res, Abst (Res));
                Set_Repository_Id (Fd_Res, Repository_Id (Res));
-               --  The first forward should be the right one
-               --  not the last
-               --  Redefine_Identifier (Definition, Fd_Res);
+               --  FIXME : we must deallocate this node : Free (Res);
                Success := True;
                Result := Fd_Res;
                return;
@@ -909,7 +909,7 @@ package body Idl_Fe.Parser is
             Set_Repository_Id (Fd_Res, Repository_Id (Res));
             --  A forward declaration should be added
             Add_Int_Val_Forward (Fd_Res);
-            --  Free (Res); ???????????????????
+            --  FIXME : we must deallocate this node : Free (Res);
             Result := Fd_Res;
             Success := True;
             return;
@@ -1789,11 +1789,10 @@ package body Idl_Fe.Parser is
             raise Idl_Fe.Errors.Internal_Error;
          end if;
          Set_Default_Repository_Id (Result);
-
+         Add_Int_Val_Forward (Result);
       end if;
       --  consumes the identifier
       Next_Token;
-      Add_Int_Val_Forward (Result);
       Success := True;
       return;
    end Parse_End_Value_Forward_Dcl;
@@ -1823,6 +1822,9 @@ package body Idl_Fe.Parser is
                ". It can not be a boxed one.",
                Idl_Fe.Errors.Error,
                Get_Previous_Token_Location);
+            --  To avoid a second error, due to the non declaration
+            --  of the forward value
+            Add_Int_Val_Definition (Definition.Node);
          else
             Idl_Fe.Errors.Parser_Error
               ("The identifier used for this valuetype is already "
@@ -2795,8 +2797,20 @@ package body Idl_Fe.Parser is
                  (Scale (Constant_Type)).Integer_Value;
             when K_String =>
                C_Type := new Constant_Value (Kind => C_String);
+               if Bound (Constant_Type) = No_Node then
+                  C_Type.String_Length := -1;
+               else
+                  C_Type.String_Length :=
+                    Expr_Value (Bound (Constant_Type)).Integer_Value;
+               end if;
             when K_Wide_String =>
                C_Type := new Constant_Value (Kind => C_WString);
+               if Bound (Constant_Type) = No_Node then
+                  C_Type.WString_Length := -1;
+               else
+                  C_Type.WString_Length :=
+                    Expr_Value (Bound (Constant_Type)).Integer_Value;
+               end if;
             when K_Octet =>
                C_Type := new Constant_Value (Kind => C_Octet);
             when K_Enum =>
@@ -2839,8 +2853,22 @@ package body Idl_Fe.Parser is
                        .Integer_Value;
                   when K_String =>
                      C_Type := new Constant_Value (Kind => C_String);
+                     if Bound (S_Type (Constant_Type)) = No_Node then
+                        C_Type.String_Length := -1;
+                     else
+                        C_Type.String_Length :=
+                          Expr_Value (Bound (S_Type (Constant_Type)))
+                          .Integer_Value;
+                     end if;
                   when K_Wide_String =>
                      C_Type := new Constant_Value (Kind => C_WString);
+                     if Bound (S_Type (Constant_Type)) = No_Node then
+                        C_Type.WString_Length := -1;
+                     else
+                        C_Type.WString_Length :=
+                          Expr_Value (Bound (S_Type (Constant_Type)))
+                          .Integer_Value;
+                     end if;
                   when K_Octet =>
                      C_Type := new Constant_Value (Kind => C_Octet);
                   when K_Enum =>
@@ -2907,7 +2935,8 @@ package body Idl_Fe.Parser is
                return;
             end if;
             --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
+            if Expr_Type.Kind = C_Octet or
+              Expr_Type.Kind = C_Short or
               Expr_Type.Kind = C_Long or
               Expr_Type.Kind = C_LongLong or
               Expr_Type.Kind = C_UShort or
@@ -2917,7 +2946,13 @@ package body Idl_Fe.Parser is
                --  test if both sons have a type
                if Expr_Value (Left (Res)).Kind /= C_No_Kind and
                  Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Res, Duplicate (Expr_Type));
+                  if Expr_Value (Right (Res)).Kind /= C_General_Integer and
+                    Expr_Value (Left (Res)).Kind /= C_General_Integer then
+                     Set_Expr_Value (Res, Duplicate (Expr_Type));
+                  else
+                     Set_Expr_Value
+                       (Res, new Constant_Value (Kind => C_General_Integer));
+                  end if;
                   Expr_Value (Res).Integer_Value :=
                     Expr_Value (Left (Res)).Integer_Value or
                     Expr_Value (Right (Res)).Integer_Value;
@@ -2980,7 +3015,8 @@ package body Idl_Fe.Parser is
                return;
             end if;
             --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
+            if Expr_Type.Kind = C_Octet or
+              Expr_Type.Kind = C_Short or
               Expr_Type.Kind = C_Long or
               Expr_Type.Kind = C_LongLong or
               Expr_Type.Kind = C_UShort or
@@ -2990,7 +3026,13 @@ package body Idl_Fe.Parser is
                --  test if both sons have a type
                if Expr_Value (Left (Res)).Kind /= C_No_Kind and
                  Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Res, Duplicate (Expr_Type));
+                  if Expr_Value (Right (Res)).Kind /= C_General_Integer and
+                    Expr_Value (Left (Res)).Kind /= C_General_Integer then
+                     Set_Expr_Value (Res, Duplicate (Expr_Type));
+                  else
+                     Set_Expr_Value
+                       (Res, new Constant_Value (Kind => C_General_Integer));
+                  end if;
                   Expr_Value (Res).Integer_Value :=
                     Expr_Value (Left (Res)).Integer_Value xor
                     Expr_Value (Right (Res)).Integer_Value;
@@ -3053,7 +3095,8 @@ package body Idl_Fe.Parser is
                return;
             end if;
             --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
+            if Expr_Type.Kind = C_Octet or
+              Expr_Type.Kind = C_Short or
               Expr_Type.Kind = C_Long or
               Expr_Type.Kind = C_LongLong or
               Expr_Type.Kind = C_UShort or
@@ -3063,7 +3106,13 @@ package body Idl_Fe.Parser is
                --  test if both sons have a type
                if Expr_Value (Left (Res)).Kind /= C_No_Kind and
                  Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Res, Duplicate (Expr_Type));
+                  if Expr_Value (Right (Res)).Kind /= C_General_Integer and
+                    Expr_Value (Left (Res)).Kind /= C_General_Integer then
+                     Set_Expr_Value (Res, Duplicate (Expr_Type));
+                  else
+                     Set_Expr_Value
+                       (Res, new Constant_Value (Kind => C_General_Integer));
+                  end if;
                   Expr_Value (Res).Integer_Value :=
                     Expr_Value (Left (Res)).Integer_Value and
                     Expr_Value (Right (Res)).Integer_Value;
@@ -3159,7 +3208,8 @@ package body Idl_Fe.Parser is
                return;
             end if;
             --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
+            if Expr_Type.Kind = C_Octet or
+              Expr_Type.Kind = C_Short or
               Expr_Type.Kind = C_Long or
               Expr_Type.Kind = C_LongLong or
               Expr_Type.Kind = C_UShort or
@@ -3169,7 +3219,13 @@ package body Idl_Fe.Parser is
                --  test if both sons have a type
                if Expr_Value (Left (Res)).Kind /= C_No_Kind and
                  Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Res, Duplicate (Expr_Type));
+                  if Expr_Value (Right (Res)).Kind /= C_General_Integer and
+                    Expr_Value (Left (Res)).Kind /= C_General_Integer then
+                     Set_Expr_Value (Res, Duplicate (Expr_Type));
+                  else
+                     Set_Expr_Value
+                       (Res, new Constant_Value (Kind => C_General_Integer));
+                  end if;
                   --  check the value of the right operand
                   if Expr_Value (Right (Res)).Integer_Value < 0 or
                     Expr_Value (Right (Res)).Integer_Value > 63
@@ -3268,7 +3324,8 @@ package body Idl_Fe.Parser is
                return;
             end if;
             --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
+            if Expr_Type.Kind = C_Octet or
+              Expr_Type.Kind = C_Short or
               Expr_Type.Kind = C_Long or
               Expr_Type.Kind = C_LongLong or
               Expr_Type.Kind = C_UShort or
@@ -3284,14 +3341,22 @@ package body Idl_Fe.Parser is
                --  test if both sons have a type
                if Expr_Value (Left (Res)).Kind /= C_No_Kind and
                  Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Res, Duplicate (Expr_Type));
-                  if Expr_Type.Kind = C_Short or
+                  if Expr_Type.Kind = C_Octet or
+                    Expr_Type.Kind = C_Short or
                     Expr_Type.Kind = C_Long or
                     Expr_Type.Kind = C_LongLong or
                     Expr_Type.Kind = C_UShort or
                     Expr_Type.Kind = C_ULong or
                     Expr_Type.Kind = C_ULongLong or
                     Expr_Type.Kind = C_General_Integer then
+                     if Expr_Value (Right (Res)).Kind /= C_General_Integer and
+                       Expr_Value (Left (Res)).Kind /= C_General_Integer then
+                        Set_Expr_Value (Res, Duplicate (Expr_Type));
+                     else
+                        Set_Expr_Value
+                          (Res,
+                           new Constant_Value (Kind => C_General_Integer));
+                     end if;
                      if Plus then
                         Expr_Value (Res).Integer_Value :=
                           Expr_Value (Left (Res)).Integer_Value +
@@ -3305,6 +3370,13 @@ package body Idl_Fe.Parser is
                     Expr_Type.Kind = C_Double or
                     Expr_Type.Kind = C_LongDouble or
                     Expr_Type.Kind = C_General_Float then
+                     if Expr_Value (Right (Res)).Kind /= C_General_Float and
+                       Expr_Value (Left (Res)).Kind /= C_General_Float then
+                        Set_Expr_Value (Res, Duplicate (Expr_Type));
+                     else
+                        Set_Expr_Value
+                          (Res, new Constant_Value (Kind => C_General_Float));
+                     end if;
                      if Plus then
                         Expr_Value (Res).Float_Value :=
                           Expr_Value (Left (Res)).Float_Value +
@@ -3315,6 +3387,15 @@ package body Idl_Fe.Parser is
                           Expr_Value (Right (Res)).Float_Value;
                      end if;
                   else
+                     if Expr_Value (Right (Res)).Kind /= C_General_Fixed and
+                       Expr_Value (Left (Res)).Kind /= C_General_Fixed then
+                        Set_Expr_Value (Res, Duplicate (Expr_Type));
+                     else
+                        Set_Expr_Value
+                          (Res, new Constant_Value (Kind => C_General_Fixed));
+                        Expr_Value (Res).Digits_Nb := Expr_Type.Digits_Nb;
+                        Expr_Value (Res).Scale := Expr_Type.Scale;
+                     end if;
                      declare
                         Res_Expr : Constant_Value_Ptr := Expr_Value (Res);
                      begin
@@ -3429,7 +3510,8 @@ package body Idl_Fe.Parser is
                return;
             end if;
             --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
+            if Expr_Type.Kind = C_Octet or
+              Expr_Type.Kind = C_Short or
               Expr_Type.Kind = C_Long or
               Expr_Type.Kind = C_LongLong or
               Expr_Type.Kind = C_UShort or
@@ -3446,14 +3528,22 @@ package body Idl_Fe.Parser is
                --  test if both sons have a type
                if Expr_Value (Left (Res)).Kind /= C_No_Kind and
                  Expr_Value (Right (Res)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Res, Duplicate (Expr_Type));
-                  if Expr_Type.Kind = C_Short or
+                  if Expr_Type.Kind = C_Octet or
+                    Expr_Type.Kind = C_Short or
                     Expr_Type.Kind = C_Long or
                     Expr_Type.Kind = C_LongLong or
                     Expr_Type.Kind = C_UShort or
                     Expr_Type.Kind = C_ULong or
                     Expr_Type.Kind = C_ULongLong or
                     Expr_Type.Kind = C_General_Integer then
+                     if Expr_Value (Right (Res)).Kind /= C_General_Integer and
+                       Expr_Value (Left (Res)).Kind /= C_General_Integer then
+                        Set_Expr_Value (Res, Duplicate (Expr_Type));
+                     else
+                        Set_Expr_Value
+                          (Res,
+                           new Constant_Value (Kind => C_General_Integer));
+                     end if;
                      if Op = Mul then
                         Expr_Value (Res).Integer_Value :=
                           Expr_Value (Left (Res)).Integer_Value *
@@ -3491,6 +3581,13 @@ package body Idl_Fe.Parser is
                     Expr_Type.Kind = C_Double or
                     Expr_Type.Kind = C_LongDouble or
                     Expr_Type.Kind = C_General_Float then
+                     if Expr_Value (Right (Res)).Kind /= C_General_Float and
+                       Expr_Value (Left (Res)).Kind /= C_General_Float then
+                        Set_Expr_Value (Res, Duplicate (Expr_Type));
+                     else
+                        Set_Expr_Value
+                          (Res, new Constant_Value (Kind => C_General_Float));
+                     end if;
                      if Op = Mul then
                         Expr_Value (Res).Float_Value :=
                           Expr_Value (Left (Res)).Float_Value *
@@ -3511,6 +3608,15 @@ package body Idl_Fe.Parser is
                         end if;
                      end if;
                   else
+                     if Expr_Value (Right (Res)).Kind /= C_General_Fixed and
+                       Expr_Value (Left (Res)).Kind /= C_General_Fixed then
+                        Set_Expr_Value (Res, Duplicate (Expr_Type));
+                     else
+                        Set_Expr_Value
+                          (Res, new Constant_Value (Kind => C_General_Fixed));
+                        Expr_Value (Res).Digits_Nb := Expr_Type.Digits_Nb;
+                        Expr_Value (Res).Scale := Expr_Type.Scale;
+                     end if;
                      declare
                         Res_Expr : Constant_Value_Ptr := Expr_Value (Res);
                      begin
@@ -3626,12 +3732,14 @@ package body Idl_Fe.Parser is
                   Set_Operand (Result, No_Node);
                   Set_Expr_Value
                     (Result, new Constant_Value (Kind => C_No_Kind));
+                  pragma Debug (O2 ("Parse_Unary_Expr : end"));
                   return;
                end if;
                Set_Operand (Result, Operand);
             end;
             --  test if the types are ok for the or operation
-            if Expr_Type.Kind = C_Short or
+            if Expr_Type.Kind = C_Octet or
+              Expr_Type.Kind = C_Short or
               Expr_Type.Kind = C_Long or
               Expr_Type.Kind = C_LongLong or
               Expr_Type.Kind = C_UShort or
@@ -3647,14 +3755,22 @@ package body Idl_Fe.Parser is
                Op /= Tilde) then
                --  test if the operand has a type
                if Expr_Value (Operand (Result)).Kind /= C_No_Kind then
-                  Set_Expr_Value (Result, Duplicate (Expr_Type));
-                  if Expr_Type.Kind = C_Short or
+                  if Expr_Type.Kind = C_Octet or
+                    Expr_Type.Kind = C_Short or
                     Expr_Type.Kind = C_Long or
                     Expr_Type.Kind = C_LongLong or
                     Expr_Type.Kind = C_UShort or
                     Expr_Type.Kind = C_ULong or
                     Expr_Type.Kind = C_ULongLong or
                     Expr_Type.Kind = C_General_Integer then
+                     if Expr_Value (Operand (Result)).Kind
+                       /= C_General_Integer then
+                        Set_Expr_Value (Result, Duplicate (Expr_Type));
+                     else
+                        Set_Expr_Value
+                          (Result,
+                           new Constant_Value (Kind => C_General_Integer));
+                     end if;
                      if Op = Plus then
                         Expr_Value (Result).Integer_Value :=
                           Expr_Value (Operand (Result)).Integer_Value;
@@ -3669,6 +3785,14 @@ package body Idl_Fe.Parser is
                     Expr_Type.Kind = C_Double or
                     Expr_Type.Kind = C_LongDouble or
                     Expr_Type.Kind = C_General_Float then
+                     if Expr_Value (Operand (Result)).Kind
+                       /= C_General_Float then
+                        Set_Expr_Value (Result, Duplicate (Expr_Type));
+                     else
+                        Set_Expr_Value
+                          (Result,
+                           new Constant_Value (Kind => C_General_Float));
+                     end if;
                      if Op = Plus then
                         Expr_Value (Result).Float_Value :=
                           Expr_Value (Operand (Result)).Float_Value;
@@ -3677,6 +3801,16 @@ package body Idl_Fe.Parser is
                           -Expr_Value (Operand (Result)).Float_Value;
                      end if;
                   else
+                     if Expr_Value (Operand (Result)).Kind
+                       /= C_General_Fixed then
+                        Set_Expr_Value (Result, Duplicate (Expr_Type));
+                     else
+                        Set_Expr_Value
+                          (Result,
+                           new Constant_Value (Kind => C_General_Fixed));
+                        Expr_Value (Result).Digits_Nb := Expr_Type.Digits_Nb;
+                        Expr_Value (Result).Scale := Expr_Type.Scale;
+                     end if;
                      declare
                         Res_Expr : Constant_Value_Ptr := Expr_Value (Result);
                      begin
@@ -3713,6 +3847,7 @@ package body Idl_Fe.Parser is
          when others =>
             Parse_Primary_Expr (Result, Success, Expr_Type);
       end case;
+      pragma Debug (O2 ("Parse_Unary_Expr : end"));
       return;
    end Parse_Unary_Expr;
 
@@ -6372,6 +6507,7 @@ package body Idl_Fe.Parser is
          String_Type : Constant_Value_Ptr :=
           new Constant_Value (Kind => C_String);
       begin
+         String_Type.String_Length := -1;
          Parse_String_Literal (Name,
                                Success,
                                String_Type);
@@ -6389,6 +6525,7 @@ package body Idl_Fe.Parser is
             String_Type : Constant_Value_Ptr :=
              new Constant_Value (Kind => C_String);
          begin
+            String_Type.String_Length := -1;
             Parse_String_Literal (Name,
                                   Success,
                                   String_Type);
@@ -6733,6 +6870,7 @@ package body Idl_Fe.Parser is
                String_Constant_Type : Constant_Value_Ptr :=
                  new Constant_Value (Kind => C_String);
             begin
+               String_Constant_Type.String_Length := -1;
                Next_Token;
                Parse_Scoped_Name (Name_Node, Res_Success);
                if not Res_Success then
@@ -6784,6 +6922,7 @@ package body Idl_Fe.Parser is
                Val : constant Constant_Value_Ptr
                  := new Constant_Value (Kind => C_String);
             begin
+               Val.String_Length := -1;
                Next_Token;
 
                Parse_String_Literal
@@ -7148,6 +7287,15 @@ package body Idl_Fe.Parser is
                I := I + Offset;
             end if;
          end loop;
+         if Expr_Type.String_Length >= 0 then
+            if L > Integer (Expr_Type.String_Length) then
+               Idl_Fe.Errors.Parser_Error
+                 ("This value does not match with the specified type : " &
+                  "the string is too long.",
+                  Idl_Fe.Errors.Error,
+                  Get_Token_Location);
+            end if;
+         end if;
          return new String'(Result (1 .. L));
       end Get_String_Literal;
 
@@ -7213,6 +7361,15 @@ package body Idl_Fe.Parser is
                I := I + Offset;
             end if;
          end loop;
+         if Expr_Type.WString_Length >= 0 then
+            if L > Integer (Expr_Type.WString_Length) then
+               Idl_Fe.Errors.Parser_Error
+                 ("This value does not match with the specified type : " &
+                  "the string is too long.",
+                  Idl_Fe.Errors.Error,
+                  Get_Token_Location);
+            end if;
+         end if;
          return new Wide_String'(Result (1 .. L));
       end Get_WString_Literal;
 
@@ -7452,16 +7609,6 @@ package body Idl_Fe.Parser is
          end if;
          Res := Res / 10 ** Last_Zeros_Nb;
          --  check type precision
-         pragma Debug
-           (O ("Parse_Add_Expr : value integer part length = " &
-               Integer'Image (L1) &
-               ", value decimal part length = " &
-               Integer'Image (L2 - Last_Zeros_Nb)));
-         pragma Debug
-           (O ("Parse_Add_Expr : type digits_nb = " &
-               Idl_Integer'Image (Expr_Type.Digits_Nb) &
-               ", type scale = " &
-               Idl_Integer'Image (Expr_Type.Scale)));
          if (L1 /= 0 and
              Idl_Integer (L1) > Expr_Type.Digits_Nb - Expr_Type.Scale) or
            (Idl_Integer (L2 - Last_Zeros_Nb) > Expr_Type.Scale) then

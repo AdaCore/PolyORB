@@ -220,6 +220,8 @@ L'\uabcde'
 5e3
 3E4
 .3e4
+0.
+0e0
 
 /* strings */
 "a string"
@@ -279,5 +281,5 @@ L"with a bad escape char : \g"
 5D
 3.4d
 .5d
-
+0d
 
