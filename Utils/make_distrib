@@ -37,6 +37,7 @@ find . -type d -print | xargs rmdir 2>/dev/null
 find . -name aclocal.m4 -exec touch {} \;
 find . -name Makefile.in -exec touch {} \;
 find . -name configure -exec touch {} \;
+chmod -R og=u-w .
 cd ..
 tar cvf ${dir}.tar ${dir}
 gzip --best ${dir}.tar

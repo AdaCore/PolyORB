@@ -1,6 +1,7 @@
 Mon Apr  7 16:43:08 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* make_distrib: Commented out PGP command.
+	Use correct modes.
 
 Wed Feb 12 18:29:12 1997  Samuel Tardieu  <sam@inf.enst.fr>
 
