@@ -1,11 +1,11 @@
 	  in Doc/install_guide.txt.
 
-	* INSTALL: fix minor typos
+Tue Oct 29 18:31:35 1996  Samuel Tardieu  <sam@inf.enst.fr>
 Wed Nov 27 15:58:22 1996  Laurent Pautet <pautet@inf.enst.fr>
 	* configure.in: Check for get_errno or __get_errno.
 
-	* INSTALL: rewrite completely and move all non obvious stuff
-	  in Doc/install_guide.txt
+	* configure: Bug in Linux configuration.
+
 Mon Oct 28 14:44:58 1996  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* COPYING: Added to the distribution.
