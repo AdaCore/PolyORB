@@ -59,6 +59,14 @@ package Idl_Fe.Tree.Synthetic is
      return String;
    --  The name of a K_Named node.
 
+   function Original_Operation_Type
+     (Node : in Node_Id)
+     return Node_Id;
+   --  The type that was initially declared for an operation.
+   --  The type of a non-void operation that has inout or
+   --  out arguments is changed to void by the expander;
+   --  this returns the original, non-void type.
+
    function Original_Parent_Scope
      (Node : in Node_Id)
      return Node_Id;

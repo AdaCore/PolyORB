@@ -67,52 +67,57 @@ package body CORBA.Request is
       Handler : Broca.GIOP.Request_Handler;
       Send_Request_Result : Broca.GIOP.Send_Request_Result_Type;
    begin
-      pragma Debug (O ("Invoke : enter"));
+      pragma Debug (O ("Invoke: enter"));
       loop
-         --  create the request handler
+         --  Create request handler
          Broca.GIOP.Send_Request_Marshall
            (Handler,
             Target_Ref,
             True,
             Self.Operation);
 
-         pragma Debug (O ("Invoke : ready to marshall arguments"));
+         pragma Debug (O ("Invoke: ready to marshall arguments"));
          --  Marshall in and inout arguments.
          CORBA.NVList.Marshall (Handler.Buffer'Access,
                                 Self.Args_List);
 
-         pragma Debug (O ("Invoke : arguments marshalled"));
-         --  send the request
+         pragma Debug (O ("Invoke: arguments marshalled"));
+
          Broca.GIOP.Send_Request_Send
            (Handler,
             Target_Ref,
             True,
             Send_Request_Result);
 
-         pragma Debug (O ("Invoke : request sent"));
+         pragma Debug (O ("Invoke: request sent"));
          case Send_Request_Result is
             when Broca.GIOP.Sr_Reply =>
-               pragma Debug (O ("Invoke : unmarshalling out args"));
-               --  Unmarshall out args
+
+               pragma Debug (O ("Invoke: unmarshalling return value"));
+               Broca.CDR.Unmarshall (Handler.Buffer'Access, Self.Result);
+
+               pragma Debug
+                 (O ("Invoke: unmarshalling inout and out arguments"));
                CORBA.NVList.Unmarshall (Handler.Buffer'Access,
                                         Self.Args_List);
-               pragma Debug (O ("Invoke : unmarshalling return value"));
-               --  Unmarshall return value
-               Broca.CDR.Unmarshall (Handler.Buffer'Access, Self.Result);
                Broca.GIOP.Release (Handler);
-               pragma Debug (O ("Invoke : end"));
+               pragma Debug (O ("Invoke: end"));
                return;
+
             when Broca.GIOP.Sr_No_Reply =>
                Broca.GIOP.Release (Handler);
-               pragma Debug (O ("Invoke : end"));
+               pragma Debug (O ("Invoke: end"));
                raise Program_Error;
+
             when Broca.GIOP.Sr_User_Exception =>
-               --  try to find the returned exception in the exception
-               --  list of the request
-               pragma Debug (O ("Invoke : Exc_List length is " &
+               --  Try to find the returned exception in the exception
+               --  list of the request.
+
+               pragma Debug (O ("Invoke: Exc_List length is " &
                                 CORBA.Unsigned_Long'Image
                                 (CORBA.ExceptionList.Get_Count
                                  (Self.Exc_List))));
+
                declare
                   Exception_Repo_Id : CORBA.RepositoryId
                     := Broca.CDR.Unmarshall (Handler.Buffer'Access);
@@ -120,7 +125,7 @@ package body CORBA.Request is
                     := CORBA.ExceptionList.Search_Exception_Id
                     (Self.Exc_List, Exception_Repo_Id);
                begin
-                  pragma Debug (O ("Invoke : Index = " &
+                  pragma Debug (O ("Invoke: Index = " &
                                    CORBA.Unsigned_Long'Image (Index)));
                   if Index > 0 then
                      declare
@@ -132,7 +137,7 @@ package body CORBA.Request is
                         Broca.CDR.Unmarshall_To_Any
                           (Handler.Buffer'Access,
                            Member.IDL_Exception);
-                        pragma Debug (O ("Invoke : end"));
+                        pragma Debug (O ("Invoke: end"));
                         Broca.GIOP.Release (Handler);
                         Broca.Exceptions.User_Raise_Exception
                           (UnknownUserException'Identity,
@@ -140,7 +145,7 @@ package body CORBA.Request is
                      end;
                   else
                      Broca.GIOP.Release (Handler);
-                     pragma Debug (O ("Invoke : end"));
+                     pragma Debug (O ("Invoke: end"));
                      raise Program_Error;
                   end if;
                end;
@@ -204,7 +209,8 @@ package body CORBA.Request is
       Exc_List  : in     ExceptionList.Ref;
       Ctxt_List : in     ContextList.Ref;
       Request   :    out CORBA.Request.Object;
-      Req_Flags : in     Flags) is
+      Req_Flags : in     Flags)
+   is
       Argument : CORBA.Any;
       The_Value : Any_Content_Ptr;
       The_Counter : Natural_Ptr;
