@@ -239,8 +239,12 @@ package body NetBufferedStream is
       C_A : Interfaces.C.Short ;
    begin
       -- transforms the arguments in a C type ...
-      C_A := Interfaces.C.Short(C_A) ;
+      pragma Debug(Output(Debug,"Netbufferedstream : marshalling Short "
+                          & Corba.Short'Image(A))) ;
+      C_A := Interfaces.C.Short(A) ;
       -- ... and calls the C procedure
+      pragma Debug(Output(Debug,"Netbufferedstream : marshalling Short "
+                          & Interfaces.C.Short'Image(C_A))) ;
       C_Marshall_3 (C_A,S) ;
    end;
 
@@ -263,7 +267,11 @@ package body NetBufferedStream is
       C_A : Interfaces.C.Short ;
    begin
       C_UnMarshall_3 (C_A,S) ;
+      pragma Debug(Output(Debug,"Netbufferedstream : unmarshalling Short "
+                          & Interfaces.C.Short'Image(C_A))) ;
       A := Corba.Short(C_A) ;
+      pragma Debug(Output(Debug,"Netbufferedstream : unmarshalling Short "
+                          & Corba.Short'Image(A))) ;
    end;
 
 
