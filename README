@@ -6,38 +6,69 @@
 
 Installation :
 --------------
-- create a symbolic link in AdaBroker, pointing to omniORB_2.7.0
-( if you use another version of omniORB, update the config.mk file
-in AdaBroker/config
+
+- create a symbolic link in AdaBroker, pointing to omniORB_2.7.1 (if
+  you use another version of omniORB, update the config.mk file in
+  AdaBroker/config)
 
 - add AdaBroker/bin to your PATH
 
-- run make in AdaBroker/
---> It will compile the AdaBroker libraries, omniidl2
-with the ada backend (and the C++ backend), and the examples
+- run make in AdaBroker directory. It will compile the AdaBroker
+  libraries, omniidl2 with the ada backend (and the C++ backend), and
+  the examples.
 
 Usage :
 -------
--> omniidl2 -bada [ -i ] myinterface.idl creates several files :
 
-- myinterface.ads, myinterface.adb : these files contain
-the mapping for user defined types (client and server side)
+   omniidl2 -bada [ -i ] myinterface.idl creates several files :
 
-- myinterface-impl.ads, myinterface-impl.adb : these files
-are to be filled by the user. They contain the implementation
-of the server. They are generated only if the -i flag is specified.
+- myinterface.ads, myinterface.adb : these files contain the mapping
+  for user defined types (client and server side).
+
+- myinterface-impl.ads, myinterface-impl.adb : these files are to be
+  filled by the user. They contain the implementation of the
+  server. They are generated only if the -i flag is specified.
 
 - myinterface-proxies.ads, myinterface-proxies.adb : these files
-contain utilities to make proxy calls
+  contain utilities to make proxy calls.
 
 - myinterface-skeleton.ads, myinterface-skeleton.adb : these files
-contain utilities for the server-side implementation.
+  contain utilities for the server-side implementation.
 
 - myinterface-marshal.ads, marshal-marshal.adb : they contain
-subprograms to marshall types according to the GIOP protocol.
+  subprograms to marshall types according to the GIOP protocol.
 
+Bug reports:
+------------
 
+If you find a bug and would like to submit fixes, please do so
+indicating what release you use. We accept patch files. To produce
+such a patch file, put your files in the AdaBroker directory and our
+files in the directory AdaBroker.orig, and use the following command:
 
-ENST 1999
-Fabien Azavant, Sebastien Ponce,
-Vincent Niebel, Laurent Kubler, Jean-Marie Cottin
+  diff --recursive --context AdaBroker.orig AdaBroker > patch_file
+
+and send us the patch_file via E-mail at the address broker@inf.enst.fr.
+
+If your diff version do not understand the --recursive or --context
+option, please use the GNU diffutils package which may be found on any
+GNU archive (e.g. ftp://ftp.lip6.fr/pub/gnu/).
+
+Note that unified diff files (-u option of GNU diff) are also welcomed.
+
+Contributors:
+-------------
+
+AdaBroker has been developped since January, 1999 by the following
+contributors:
+
+* Fabien Azavant (azavant@enst.fr)
+* Emmanuel Chavane (chavane@enst.fr)
+* Jean-Marie Cottin (cottin@enst.fr)
+* Laurent Kubler (kubler@enst.fr)
+* Vincent Niebel (niebel@enst.fr)
+* Laurent Pautet (pautet@enst.fr)
+* Sebastien Ponce (ponce@enst.fr)
+* Thomas Quinot (quinot@enst.fr)
+* Frank Singhoff (singhoff@enst.fr)
+* Samuel Tardieu (tardieu@enst.fr)
