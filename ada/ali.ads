@@ -36,6 +36,8 @@ with Rident;  use Rident;
 with Table;
 with Types;   use Types;
 
+with GNAT.HTable; use GNAT.HTable;
+
 package ALI is
 
    --------------
@@ -440,6 +442,31 @@ package ALI is
      Table_Initial        => 200,
      Table_Increment      => 400,
      Table_Name           => "Linker_Options");
+
+   -------------------------------------------
+   -- External Version Reference Hash Table --
+   -------------------------------------------
+
+   --  This hash table keeps track of external version reference strings
+   --  as read from E lines in the ali file. The stored values do not
+   --  include the terminating quote characters.
+
+   type Vindex is range 0 .. 98;
+   --  Type to define range of headers
+
+   function SHash (S : String_Ptr) return Vindex;
+   --  Hash function for this table
+
+   function SEq (F1, F2 : String_Ptr) return Boolean;
+   --  Equality function for this table
+
+   package Version_Ref is new Simple_HTable (
+     Header_Num => Vindex,
+     Element    => Boolean,
+     No_Element => False,
+     Key        => String_Ptr,
+     Hash       => SHash,
+     Equal      => SEq);
 
    ------------------------------------
    -- Sdep (Source Dependency) Table --

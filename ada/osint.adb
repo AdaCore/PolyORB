@@ -2204,51 +2204,64 @@ package body Osint is
    end Time_From_Last_Bind;
 
    ---------------------------
-   -- To_Canonical_Dir_List --
+   -- To_Canonical_File_List --
    ---------------------------
 
-   function To_Canonical_Dir_List
-     (Wildcard_Host_Dir : String)
+   function To_Canonical_File_List
+     (Wildcard_Host_File : String;
+      Only_Dirs          : Boolean)
    return String_Access_List_Access
    is
-      function To_Canonical_Dir_List_Init (Host_Dir : Address) return Integer;
-      pragma Import (C, To_Canonical_Dir_List_Init,
-                     "to_canonical_dir_list_init");
+      function To_Canonical_File_List_Init
+        (Host_File : Address;
+         Only_Dirs : Integer)
+      return Integer;
+      pragma Import (C, To_Canonical_File_List_Init,
+                     "to_canonical_file_list_init");
 
-      function To_Canonical_Dir_List_Next return Address;
-      pragma Import (C, To_Canonical_Dir_List_Next,
-                     "to_canonical_dir_list_next");
+      function To_Canonical_File_List_Next return Address;
+      pragma Import (C, To_Canonical_File_List_Next,
+                     "to_canonical_file_list_next");
 
-      Num_Files           : Integer;
-      C_Wildcard_Host_Dir : String (1 .. Wildcard_Host_Dir'Length + 1);
+      procedure To_Canonical_File_List_Free;
+      pragma Import (C, To_Canonical_File_List_Free,
+                     "to_canonical_file_list_free");
+
+      Num_Files            : Integer;
+      C_Wildcard_Host_File : String (1 .. Wildcard_Host_File'Length + 1);
    begin
-      C_Wildcard_Host_Dir (1 .. Wildcard_Host_Dir'Length)
-        := Wildcard_Host_Dir;
-      C_Wildcard_Host_Dir (C_Wildcard_Host_Dir'Last)
+      C_Wildcard_Host_File (1 .. Wildcard_Host_File'Length)
+        := Wildcard_Host_File;
+      C_Wildcard_Host_File (C_Wildcard_Host_File'Last)
         := Ascii.NUL;
 
       --  Do the expansion and say how many there are
 
-      Num_Files := To_Canonical_Dir_List_Init (C_Wildcard_Host_Dir'Address);
+      Num_Files := To_Canonical_File_List_Init
+         (C_Wildcard_Host_File'Address, Boolean'Pos (Only_Dirs));
 
       declare
-         Canonical_Dir_List : String_Access_List (1 .. Num_Files);
-         Canonical_Dir_Addr : Address;
-         Canonical_Dir_Len  : Integer;
+         Canonical_File_List : String_Access_List (1 .. Num_Files);
+         Canonical_File_Addr : Address;
+         Canonical_File_Len  : Integer;
       begin
 
          --  Retrieve the expanded directoy names and build the list
 
          for I in 1 .. Num_Files loop
-            Canonical_Dir_Addr := To_Canonical_Dir_List_Next;
-            Canonical_Dir_Len  := C_String_Length (Canonical_Dir_Addr);
-            Canonical_Dir_List (I) := To_Path_String_Access
-                  (Canonical_Dir_Addr, Canonical_Dir_Len);
+            Canonical_File_Addr := To_Canonical_File_List_Next;
+            Canonical_File_Len  := C_String_Length (Canonical_File_Addr);
+            Canonical_File_List (I) := To_Path_String_Access
+                  (Canonical_File_Addr, Canonical_File_Len);
          end loop;
 
-         return new String_Access_List'(Canonical_Dir_List);
+         --  Free up the storage
+
+         To_Canonical_File_List_Free;
+
+         return new String_Access_List'(Canonical_File_List);
       end;
-   end To_Canonical_Dir_List;
+   end To_Canonical_File_List;
 
    ---------------------------
    -- To_Canonical_Dir_Spec --

@@ -220,19 +220,21 @@ package Osint is
    --  accurate and in particular does not take leap years into account.
 
    type String_Access_List is array (Positive range <>) of String_Access;
-   --  Deferenced type used to return a list of directory specs in
-   --  To_Canonical_Dir_List.
+   --  Deferenced type used to return a list of file specs in
+   --  To_Canonical_File_List.
 
    type String_Access_List_Access is access all String_Access_List;
    --  Type used to return a String_Access_List  without dragging in secondary
    --  stack.
 
-   function To_Canonical_Dir_List
-     (Wildcard_Host_Dir : String)
+   function To_Canonical_File_List
+     (Wildcard_Host_File : String; Only_Dirs : Boolean)
    return String_Access_List_Access;
-   --  Expand a wildcard host syntax directory specification (e.g. on a
-   --  VMS host, any directory spec that contains: "*", or "%", or "...")
-   --  and return a list of valid Unix syntax directory specs.
+   --  Expand a wildcard host syntax file or directory specification (e.g. on
+   --  a VMS host, any file or directory spec that contains:
+   --  "*", or "%", or "...")
+   --  and return a list of valid Unix syntax file or directory specs.
+   --  If Only_Dirs is True, then only return directories.
 
    function To_Canonical_Dir_Spec
      (Host_Dir     : String;

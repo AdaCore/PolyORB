@@ -58,6 +58,7 @@ package body ALI is
       Withs.Init;
       Sdep.Init;
       Linker_Options.Init;
+      Version_Ref.Reset;
 
       --  Add dummy zero'th item in Linker_Options for the sort function
 
@@ -977,7 +978,6 @@ package body ALI is
          Checkc ('"');
 
          Name_Len := 0;
-
          loop
             C := Getc;
 
@@ -1008,6 +1008,30 @@ package body ALI is
          Linker_Options.Table (Linker_Options.Last).Original_Pos
            := Linker_Options.Last;
 
+      end loop;
+
+      --  Scan out external version references and put in hash table
+
+      while C = 'E' loop
+         Checkc (' ');
+         Skip_Space;
+
+         Name_Len := 0;
+         Name_Len := 0;
+         loop
+            C := Getc;
+
+            if C < ' ' then
+               Fatal_Error;
+            end if;
+
+            exit when At_End_Of_Field;
+            Add_Char_To_Name_Buffer (C);
+         end loop;
+
+         Version_Ref.Set (new String'(Name_Buffer (1 .. Name_Len)), True);
+         Skip_Eol;
+         C := Getc;
       end loop;
 
       --  Scan out source dependency lines for this ALI file
@@ -1093,4 +1117,30 @@ package body ALI is
          return No_ALI_Id;
 
    end Scan_ALI;
+
+   ---------
+   -- SEq --
+   ---------
+
+   function SEq (F1, F2 : String_Ptr) return Boolean is
+   begin
+      return F1.all = F2.all;
+   end SEq;
+
+   -----------
+   -- SHash --
+   -----------
+
+   function SHash (S : String_Ptr) return Vindex is
+      H : Word;
+
+   begin
+      H := 0;
+      for J in S.all'Range loop
+         H := H * 2 + Character'Pos (S (J));
+      end loop;
+
+      return Vindex (Vindex'First + Vindex (H mod Vindex'Range_Length));
+   end SHash;
+
 end ALI;

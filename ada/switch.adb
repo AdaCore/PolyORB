@@ -64,11 +64,6 @@ package body Switch is
       Max : Integer := Switch_Chars'Last;
       C   : Character := ' ';
 
-      Switches : String (Switch_Chars'Range);
-      --  Copy of switches which is actually scanned. Switches in GNAT are
-      --  always case sensitive and therefore not folded to upper case since
-      --  that is the convention in GCC.
-
       function Scan_Nat return Nat;
       --  Scan natural integer parameter for switch. On entry, Ptr points
       --  just past the switch character, on exit it points past the last
@@ -87,13 +82,13 @@ package body Switch is
          Val : Int := 0;
 
       begin
-         if Ptr > Max or else Switches (Ptr) not in '0' .. '9' then
+         if Ptr > Max or else Switch_Chars (Ptr) not in '0' .. '9' then
             raise Missing_Switch_Value;
          end if;
 
-         while Ptr <= Max and then Switches (Ptr) in '0' .. '9' loop
+         while Ptr <= Max and then Switch_Chars (Ptr) in '0' .. '9' loop
             Val := Val * 10 +
-              Character'Pos (Switches (Ptr)) - Character'Pos ('0');
+              Character'Pos (Switch_Chars (Ptr)) - Character'Pos ('0');
             Ptr := Ptr + 1;
 
             if Val > Switch_Max_Value then
@@ -122,10 +117,6 @@ package body Switch is
    --  Start of processing for Scan_Switches
 
    begin
-      for J in Switches'Range loop
-         Switches (J) := Switch_Chars (J);
-      end loop;
-
       --  Skip past the initial character (must be the switch character)
 
       if Ptr = Max then
@@ -134,10 +125,20 @@ package body Switch is
          Ptr := Ptr + 1;
       end if;
 
+      --  A little check, "gnat" at the start of a switch is not allowed
+      --  except for the compiler (where it was already removed)
+
+      if Switch_Chars'Length >= 5
+        and then Switch_Chars (2 .. 5) = "gnat"
+      then
+         Osint.Fail
+           ("invalid switch: """, Switch_Chars, """ (gnat not needed here)");
+      end if;
+
       --  Loop to scan through switches given in switch string
 
       while Ptr <= Max loop
-         C := Switches (Ptr);
+         C := Switch_Chars (Ptr);
 
          --  Processing for a switch
 
@@ -213,7 +214,7 @@ package body Switch is
 
             while Ptr < Max loop
                Ptr := Ptr + 1;
-               C := Switches (Ptr);
+               C := Switch_Chars (Ptr);
                exit when C = Ascii.NUL or else C = '/' or else C = '-';
 
                if C in '1' .. '9' or else
@@ -325,10 +326,11 @@ package body Switch is
 
             elsif Program = Binder then
                if Ptr <= Max then
-                  C := Switches (Ptr);
+                  C := Switch_Chars (Ptr);
                   if C in '0' .. '3' then
                      Debugger_Level :=
-                       Character'Pos (Switches (Ptr)) - Character'Pos ('0');
+                       Character'Pos
+                         (Switch_Chars (Ptr)) - Character'Pos ('0');
                      Ptr := Ptr + 1;
                   end if;
                else
@@ -368,7 +370,7 @@ package body Switch is
                end if;
 
                Ptr := Ptr + 1;
-               C := Switches (Ptr);
+               C := Switch_Chars (Ptr);
 
                if C = '1' or else
                   C = '2' or else
@@ -687,7 +689,7 @@ package body Switch is
 
             if Program = Compiler or else Program = Binder then
 
-               case Switches (Ptr) is
+               case Switch_Chars (Ptr) is
                   when 's' =>
                      Warning_Mode  := Suppress;
 
@@ -728,7 +730,7 @@ package body Switch is
               or else Program = Binder
             then
                for J in WC_Encoding_Method loop
-                  if Switches (Ptr) = WC_Encoding_Letters (J) then
+                  if Switch_Chars (Ptr) = WC_Encoding_Letters (J) then
                      Wide_Character_Encoding_Method := J;
                      exit;
 
@@ -789,7 +791,7 @@ package body Switch is
 
                   begin
                      while Ptr <= Max loop
-                        C := Switches (Ptr);
+                        C := Switch_Chars (Ptr);
 
                         if C = 'M' then
                            Ptr := Ptr + 1;
@@ -822,7 +824,7 @@ package body Switch is
             if Program = Compiler
               and then Distribution_Stub_Mode = No_Stubs
             then
-               case Switches (Ptr) is
+               case Switch_Chars (Ptr) is
                   when 'r' =>
                      Distribution_Stub_Mode := Generate_Receiver_Stub_Body;
 
@@ -867,7 +869,7 @@ package body Switch is
 
                Ptr := Ptr + 1;
 
-               if Switches (Ptr) /= '3' then
+               if Switch_Chars (Ptr) /= '3' then
                   raise Bad_Switch;
                else
                   Ptr := Ptr + 1;

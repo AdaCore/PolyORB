@@ -77,7 +77,7 @@ package body Debug is
    --  dG
    --  dH
    --  dI
-   --  dJ
+   --  dJ   Output debugging trace info for JGNAT (Java VM version of GNAT)
    --  dK
    --  dL   Output trace information on elaboration checking
    --  dM
@@ -230,6 +230,11 @@ package body Debug is
    --       explicitly check such access values against the null literal.
    --       Neither of these is valid Ada, but both were allowed in versions of
    --       GNAT before 3.10, so this switch can ease the transition process.
+
+   --  dJ   Generate debugging trace output for the JGNAT back end. This
+   --       consists of symbolic Java Byte Code sequences for all generated
+   --       classes plus additional information to indicate local variables
+   --       and methods.
 
    --  dk   Immediate kill on abort. Normally on an abort (i.e. a call to
    --       Comperr.Compiler_Abort), the GNATBUG message is not given if
