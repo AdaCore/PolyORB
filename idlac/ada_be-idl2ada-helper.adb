@@ -64,6 +64,16 @@ package body Ada_Be.Idl2Ada.Helper is
       Node      : in     Node_Id);
    --  Generate the body of the helper package for an interface declaration
 
+   procedure Gen_ValueType_Spec
+     (CU : in out Compilation_Unit;
+      Node : in Node_Id);
+   --  Generate the spec of the helper package for a valuetype declaration
+
+   procedure Gen_ValueType_Body
+     (CU : in out Compilation_Unit;
+      Node : in Node_Id);
+   --  Generate the body of the helper package for a valuetype declaration
+
    procedure Gen_Enum_Spec
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id);
@@ -224,8 +234,7 @@ package body Ada_Be.Idl2Ada.Helper is
             Add_With (CU, "CORBA");
 
          when K_ValueType =>
-            PL (CU, "--  put here spec for valuetypes to/from_any");
-            PL (CU, "null;");
+            Gen_ValueType_Spec (CU, Node);
 
          when others =>
             null;
@@ -336,8 +345,7 @@ package body Ada_Be.Idl2Ada.Helper is
 --             PL (CU, "end To_Any;");
 
          when K_ValueType =>
-            PL (CU, "--  put here body for valuetypes to/from_any");
-            PL (CU, "null;");
+            Gen_ValueType_Body (CU, Node);
 
          when others =>
             null;
@@ -424,12 +432,79 @@ package body Ada_Be.Idl2Ada.Helper is
    end Gen_Interface_Spec;
 
    --------------------------
+   --  Gen_ValueType_Spec  --
+   --------------------------
+   procedure Gen_ValueType_Spec
+     (CU : in out Compilation_Unit;
+      Node : in Node_Id) is
+      NK : constant Node_Kind := Kind (Node);
+      Short_Type_Name : constant String
+        := Ada_Type_Defining_Name (Node);
+      Type_Name : constant String
+        := Ada_Type_Name (Node);
+   begin
+      pragma Assert (NK = K_ValueType);
+      NL (CU);
+      PL (CU, "function To_" & Short_Type_Name);
+      PL (CU, "  (The_Ref : in CORBA.Value.Base'Class)");
+      PL (CU, "  return " & Type_Name & ";");
+
+   end Gen_ValueType_Spec;
+
+   --------------------------
+   --  Gen_ValueType_Body  --
+   --------------------------
+   procedure Gen_ValueType_Body
+     (CU : in out Compilation_Unit;
+      Node : in Node_Id) is
+      NK : constant Node_Kind := Kind (Node);
+      Short_Type_Name : constant String
+        := Ada_Type_Defining_Name (Node);
+      Type_Name : constant String
+        := Ada_Type_Name (Node);
+   begin
+      pragma Assert (NK = K_ValueType);
+      NL (CU);
+      PL (CU, "function To_" & Short_Type_Name);
+      PL (CU, "  (The_Ref : in CORBA.Value.Base'Class)");
+      PL (CU, "  return " & Type_Name & " is");
+      Add_With (CU, "Broca.Exceptions");
+      Add_With (CU, "CORBA.AbstractBase");
+      II (CU);
+      PL (CU, "Result : " & Type_Name & ";");
+      PL (CU, "use CORBA.Value;");
+      DI (CU);
+      PL (CU, "begin");
+      II (CU);
+      PL (CU, "if Is_A (The_Ref, "
+          & T_Repository_Id & ") then");
+      II (CU);
+      PL (CU, "Set (Result,");
+      PL (CU,
+          "     CORBA.Value.Object_Of (The_Ref));");
+      PL (CU, "return Result;");
+      DI (CU);
+      PL (CU, "else");
+      II (CU);
+      PL (CU, "Broca.Exceptions.Raise_Bad_Param;");
+      DI (CU);
+      PL (CU, "end if;");
+      DI (CU);
+      PL (CU, "end To_" & Short_Type_Name & ";");
+
+
+   end Gen_ValueType_Body;
+
+
+
+   --------------------------
    --  Gen_Interface_Body  --
    --------------------------
    procedure Gen_Interface_Body
      (CU        : in out Compilation_Unit;
       Node      : in     Node_Id) is
    begin
+
       --  Unchecked_To_<reference>
       declare
          Short_Type_Name : constant String
@@ -441,6 +516,7 @@ package body Ada_Be.Idl2Ada.Helper is
          Add_With (CU, "Broca.Exceptions");
 
          NL (CU);
+         Add_With (CU, "CORBA.AbstractBase");
          PL (CU, "function Unchecked_To_" & Short_Type_Name);
          Add_With (CU, "CORBA.Object");
          PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
@@ -461,23 +537,20 @@ package body Ada_Be.Idl2Ada.Helper is
          --  To_<reference>
          NL (CU);
          PL (CU, "function To_" & Short_Type_Name);
-         Add_With (CU, "CORBA.Object");
          PL (CU, "  (The_Ref : in CORBA.Object.Ref'Class)");
          PL (CU, "  return " & Type_Name);
          PL (CU, "is");
          II (CU);
-         PL (CU, "Result : " & Type_Name & ";");
+         PL (CU, "use CORBA.Object;");
          DI (CU);
          PL (CU, "begin");
          II (CU);
-         PL (CU,
-             "Result := Unchecked_To_"
-             & Short_Type_Name
-             & " (The_Ref);");
-         PL (CU, "if Is_A (Result, "
+         PL (CU, "if Is_A (The_Ref, "
              & T_Repository_Id & ") then");
          II (CU);
-         PL (CU, "return Result;");
+         PL (CU, "return Unchecked_To_"
+             & Short_Type_Name
+             & " (The_Ref);");
          DI (CU);
          PL (CU, "else");
          II (CU);

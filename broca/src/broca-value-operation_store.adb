@@ -1,3 +1,4 @@
+with Broca.Exceptions;
 with Broca.Soft_Links;
 
 package body Broca.Value.Operation_Store is

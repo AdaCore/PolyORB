@@ -50,6 +50,7 @@ package CORBA.AbstractBase is
      renames Object_Of;
 
    Nil_Ref : constant Ref;
+
 private
 
    type Ref is new Broca.Refs.Ref with null record;

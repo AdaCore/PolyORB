@@ -89,10 +89,13 @@ private
    procedure Gen_Operation_Profile
      (CU : in out Compilation_Unit;
       Object_Type : in String;
-      Node : Node_Id);
+      Node : Node_Id;
+      With_Name : Boolean := True);
    --  Generate the profile for an K_Operation node,
    --  with the Self formal parameter mode and type taken
    --  from the Object_Type string.
+   --  If With_name is false, then the profile is generated, without
+   --  the subprogram name, to create an access to subprogram type.
 
    procedure Gen_Initializer_Profile
      (CU : in out Compilation_Unit;

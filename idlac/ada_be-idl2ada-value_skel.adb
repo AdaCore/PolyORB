@@ -41,11 +41,13 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                        & "_Type is access ");
                   Gen_Operation_Profile (CU,
                                          "in CORBA.Impl.Object_Ptr",
-                                         Node);
+                                         Node,
+                                         False);
                   PL (CU, ";");
                   NL (CU);
                   PL (CU,
-                      Opname
+                      "package "
+                      & Opname
                       & "_Store is new Broca.Value.Operation_Store");
                   II (CU);
                   PL (CU,
@@ -129,9 +131,15 @@ package body Ada_Be.Idl2Ada.Value_Skel is
                   if Original_Operation /= No_Node then
                      Put (CU,
                           Parent_Scope_Name (Original_Operation));
+                     Add_With (CU,
+                               Parent_Scope_Name (Original_Operation)
+                               & ".Value_Skel");
                   else
                      Put (CU,
                           Parent_Scope_Name (Node));
+                     Add_With (CU,
+                               Parent_Scope_Name (Node)
+                               & ".Value_Skel");
                   end if;
 
                   PL (CU,

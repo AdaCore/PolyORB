@@ -37,6 +37,24 @@ with Broca.CDR;     use Broca.CDR;
 
 package body CORBA.Object is
 
+   ------------
+   --  Is_A  --
+   ------------
+   function Is_A
+     (Self : Ref;
+      Type_Id : CORBA.RepositoryId)
+      return CORBA.Boolean
+   is
+      use CORBA;
+   begin
+      return Type_Id = CORBA.To_CORBA_String
+        ("IDL:omg.org/CORBA/Object:1.0")
+        or else Type_Id = CORBA.To_CORBA_String
+        ("IDL:omg.org/CORBA/AbstactBase:1.0")
+        or else False;
+   end Is_A;
+
+
    ----------------------
    -- Object_To_String --
    ----------------------

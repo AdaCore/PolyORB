@@ -91,6 +91,14 @@ package body Ada_Be.Idl2Ada is
    -- Specialised generation subprograms --
    ----------------------------------------
 
+   procedure Gen_Is_A
+     (Node : in Node_Id;
+      Spec : in out Compilation_Unit;
+      Bod  : in out Compilation_Unit);
+   --  Generated code for Repository_Id and Is_A
+   --  functions. This is common to interfaces and
+   --  valuetypes.
+
    procedure Gen_Object_Reference_Declaration
      (CU        : in out Compilation_Unit;
       Node      : Node_Id);
@@ -239,14 +247,17 @@ package body Ada_Be.Idl2Ada is
          Divert (Stubs_Spec, Visible_Declarations);
       end if;
 
-      --  Marshalling subprograms for the reference type
+      --  Repository_Id and Is_A function
+      Gen_Is_A (Node, Stubs_Spec, Stubs_Body);
 
+      --  Marshalling subprograms for the reference type
       Stream.Gen_Node_Spec (Stream_Spec, Node);
       Stream.Gen_Node_Body (Stream_Body, Node);
 
       if not Abst (Node) then
          --  Value_Impl type
          Value_Impl.Gen_Node_Spec (Value_Impl_Spec, Node);
+         Suppress_Warning_Message (Value_Impl_Body);
       end if;
 
       --  Helper package
@@ -342,6 +353,9 @@ package body Ada_Be.Idl2Ada is
                      Node);
                   PL (CU, " is");
                   II (CU);
+                  Add_With (CU,
+                            Parent_Scope_Name (Original_Operation)
+                            & Value_Skel.Suffix);
                   PL (CU,
                       Ada_Be.Temporaries.T_Value_Operation
                       & " : "
@@ -376,7 +390,9 @@ package body Ada_Be.Idl2Ada is
                       & Value_Skel.Suffix
                       & "."
                       & Op_Name
-                      & "_Store.Get_Operation (Obj.all'Tag);");
+                      & "_Store.Get_Operation ("
+                      & Ada_Be.Temporaries.T_Impl_Object_Ptr
+                      & ".all'Tag);");
 
                   NL (CU);
                   PL (CU, "--  call the operation");
@@ -682,61 +698,7 @@ package body Ada_Be.Idl2Ada is
                end loop;
             end;
 
-            Add_With (Stubs_Spec, "CORBA",
-                      Use_It => False,
-                      Elab_Control => Elaborate_All);
-            NL (Stubs_Spec);
-            PL (Stubs_Spec, T_Repository_Id
-                & " : constant CORBA.RepositoryId");
-            PL (Stubs_Spec, "  := CORBA.To_CORBA_String ("""
-                & Idl_Repository_Id (Node) & """);");
-            NL (Stubs_Spec);
-            PL (Stubs_Spec, "function Is_A");
-            PL (Stubs_Spec, "  (Self : "
-                & Ada_Type_Defining_Name (Node)
-                & ";");
-            PL (Stubs_Spec, "   Type_Id : CORBA.RepositoryId)");
-            PL (Stubs_Spec, "  return CORBA.Boolean;");
-
-            NL (Stubs_Body);
-            PL (Stubs_Body, "function Is_A");
-            PL (Stubs_Body, "  (Self : "
-                & Ada_Type_Defining_Name (Node)
-                & ";");
-            PL (Stubs_Body, "   Type_Id : CORBA.RepositoryId)");
-            PL (Stubs_Body, "  return CORBA.Boolean");
-            PL (Stubs_Body, "is");
-            II (Stubs_Body);
-            PL (Stubs_Body, "use CORBA;");
-            DI (Stubs_Body);
-            PL (Stubs_Body, "begin");
-            II (Stubs_Body);
-            PL (Stubs_Body, "return Type_Id = " & T_Repository_Id);
-            PL (Stubs_Body, "  or else Type_Id =");
-            PL (Stubs_Body, "    CORBA.To_CORBA_String");
-            PL (Stubs_Body, "      (""IDL:omg.org/CORBA/OBJECT:1.0"")");
-
-            declare
-               Parents : Node_List
-                 := All_Ancestors (Node);
-               It : Node_Iterator;
-               P_Node : Node_Id;
-            begin
-               Init (It, Parents);
-               while not Is_End (It) loop
-                  Get_Next_Node (It, P_Node);
-
-                  Add_With (Stubs_Body, Ada_Full_Name (P_Node));
-                  PL (Stubs_Body, "  or else Type_Id = "
-                      & Ada_Full_Name (P_Node)
-                      & "." & T_Repository_Id);
-               end loop;
-               Free (Parents);
-            end;
-
-            PL (Stubs_Body, "  or else False;");
-            DI (Stubs_Body);
-            PL (Stubs_Body, "end Is_A;");
+            Gen_Is_A (Node, Stubs_Spec, Stubs_Body);
 
             --  CORBA 2.3
             Helper.Gen_Node_Spec (Helper_Spec, Node);
@@ -808,6 +770,83 @@ package body Ada_Be.Idl2Ada is
          end if;
       end;
    end Gen_Interface_Module_Scope;
+
+
+   ----------------
+   --  Gen_Is_A  --
+   ----------------
+   procedure Gen_Is_A
+     (Node : in Node_Id;
+      Spec : in out Compilation_Unit;
+      Bod  : in out Compilation_Unit) is
+      NK : constant Node_Kind
+        := Kind (Node);
+   begin
+      pragma Assert ((NK = K_Interface)
+                     or (NK = K_ValueType));
+      Add_With (Spec, "CORBA",
+                Use_It => False,
+                Elab_Control => Elaborate_All);
+      NL (Spec);
+      PL (Spec, T_Repository_Id
+          & " : constant CORBA.RepositoryId");
+      PL (Spec, "  := CORBA.To_CORBA_String ("""
+          & Idl_Repository_Id (Node) & """);");
+      NL (Spec);
+      PL (Spec, "function Is_A");
+      PL (Spec, "  (Self : "
+          & Ada_Type_Defining_Name (Node)
+          & ";");
+      PL (Spec, "   Type_Id : CORBA.RepositoryId)");
+      PL (Spec, "  return CORBA.Boolean;");
+
+      NL (Bod);
+      PL (Bod, "function Is_A");
+      PL (Bod, "  (Self : "
+          & Ada_Type_Defining_Name (Node)
+          & ";");
+      PL (Bod, "   Type_Id : CORBA.RepositoryId)");
+      PL (Bod, "  return CORBA.Boolean");
+      PL (Bod, "is");
+      II (Bod);
+      PL (Bod, "use CORBA;");
+      DI (Bod);
+      PL (Bod, "begin");
+      II (Bod);
+      PL (Bod, "return Type_Id = " & T_Repository_Id);
+      PL (Bod, "  or else Type_Id =");
+      PL (Bod, "    CORBA.To_CORBA_String");
+      if Kind (Node) = K_Interface then
+         PL (Bod, "      (""IDL:omg.org/CORBA/OBJECT:1.0"")");
+      else
+         PL (Bod, "      (""IDL:omg.org/CORBA/ValueBase:1.0"")");
+      end if;
+      PL (Bod, "  or else Type_Id =");
+      PL (Bod, "    CORBA.To_CORBA_String");
+      PL (Bod, "      (""IDL:omg.org/CORBA/AbstractBase:1.0"")");
+
+      declare
+         Parents : Node_List
+           := All_Ancestors (Node);
+         It : Node_Iterator;
+         P_Node : Node_Id;
+      begin
+         Init (It, Parents);
+         while not Is_End (It) loop
+            Get_Next_Node (It, P_Node);
+
+            Add_With (Bod, Ada_Full_Name (P_Node));
+            PL (Bod, "  or else Type_Id = "
+                & Ada_Full_Name (P_Node)
+                & "." & T_Repository_Id);
+         end loop;
+         Free (Parents);
+      end;
+
+      PL (Bod, "  or else False;");
+      DI (Bod);
+      PL (Bod, "end Is_A;");
+   end Gen_Is_A;
 
    ---------------------------------------
    --  Gen_Object_Reference_Declaration --
@@ -1972,7 +2011,8 @@ package body Ada_Be.Idl2Ada is
    procedure Gen_Operation_Profile
      (CU : in out Compilation_Unit;
       Object_Type : in String;
-      Node : Node_Id) is
+      Node : Node_Id;
+      With_Name : Boolean := True) is
    begin
       case Kind (Node) is
 
@@ -1987,7 +2027,12 @@ package body Ada_Be.Idl2Ada is
                Put (CU, "function ");
             end if;
 
-            Put (CU, Ada_Operation_Name (Node));
+            --  In .value_skel, we need the profile
+            --  of the subprogram without the name, to create
+            --  an access to subprogram type
+            if With_Name then
+               Put (CU, Ada_Operation_Name (Node));
+            end if;
 
             --  Formals
 

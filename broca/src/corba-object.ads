@@ -63,12 +63,14 @@ package CORBA.Object is
 
 --    procedure Release (Self : in out Ref);
 
---    function Is_A
---      (Self            : in Ref;
---       Logical_Type_Id : in CORBA.String)
---       return CORBA.Boolean;
---    --  Returns True if this object is of this Logical_Type_Id (here
---    --  Logical_Type_Id is a Repository_Id) or one of its descendants
+   function Is_A
+     (Self            : in Ref;
+      Type_Id : in RepositoryId)
+      return CORBA.Boolean;
+   --  Returns True if this object is of this Logical_Type_Id (here
+   --  Logical_Type_Id is a Repository_Id) or one of its descendants
+   --  This method is now in corba.AbstractBase because valuetypes need
+   --  it too. (Fabien)
 
 --    function Non_Existent
 --      (Self : in Ref)

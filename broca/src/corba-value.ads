@@ -54,4 +54,14 @@ package CORBA.Value is
    --
    --  An issue against ptc/00-05-04 has been raised with OMG.
 
+   --  I suggest that we define Is_A here to be able to
+   --  implement To_Ref and To_Abstract_Ref for valuetypes.
+   --  (Fabien)
+   --  Shall we raise an issue to OMG ?
+   function Is_A
+     (Self : in Base;
+      Type_Id : CORBA.RepositoryId)
+      return CORBA.Boolean;
+
+
 end CORBA.Value;
