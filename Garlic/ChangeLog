@@ -1,3 +1,7 @@
+2002-05-09  Laurent Pautet  <pautet@arlequin.enst.fr>
+
+	* b_gaprco.adb: Fix header.
+
 2002-04-22  Laurent Pautet  <pautet@arlequin.enst.fr>
 
 	* zlib: Update zlib to 1.1.4 because of a vulnerability uncovered
