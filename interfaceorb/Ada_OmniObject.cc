@@ -206,3 +206,22 @@ Ada_OmniObject::iopProfiles() {
     raise_ada_exception ("Call of Ada_OmniObject::getRepositoryId without initialising object.");
   }
 }
+
+Ada_OmniObject*
+Ada_OmniObject::ada_create_objref(const char* repoId,
+				  IOP::TaggedProfileList* profiles,
+				  _CORBA_Boolean release) {
+  omniObject *objptr = omni::createObjRef(repoId,
+					  0, // omniORB believes that we just
+					  // want to cast the result into a
+					  // CORBA::Object_ptr
+					  profiles,
+					  release) ;
+  omniObject_C2Ada *adaobj = dynamic_cast<omniObject_C2Ada*>(objptr) ;
+  
+  if (adaobj == 0) {
+    return 0 ;
+  } else {
+    return adaobj->Ada_OmniObject_Pointer ;
+  }
+}

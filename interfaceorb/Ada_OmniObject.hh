@@ -90,6 +90,16 @@ public:
   // and cast the result into an Ada_OmniObject.
   // it can only be called by Corba.Orb.String_To_Object
 
+  static Ada_OmniObject* ada_create_objref(const char* repoId,
+					   IOP::TaggedProfileList* profiles,
+					   _CORBA_Boolean release) ;
+  // this function is called by the Ada code
+  // to create aCorba.Object.Ref when unmarshalling
+  // out of a bufferedstream.
+  // it calls omni:: createObjRef
+  // in objectRef.cc L 391
+					   
+
   static char* ada_object_to_string(Ada_OmniObject* objptr) ;
   // this function calls omni::objectToString
   // on the underlying object

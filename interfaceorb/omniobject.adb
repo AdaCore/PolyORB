@@ -132,6 +132,46 @@ package body OmniObject is
    -----------------------------------------------
 
 
+   -- C_Create_Omniobject
+   ----------------------
+   function C_Create_Omniobject(Most_Derived_Repoid : in Interfaces.C.Strings.Chars_ptr ;
+                                Profiles : in System.Address ;
+                                Release : in Sys_Dep.C_Boolean)
+                                return System.Address ;
+   pragma Import(CPP, C_Create_Omniobject, "ada_create_objref__14Ada_OmniObjectPCcPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileb") ;
+   -- corresponds to  Ada_OmniObject::ada_create_objref
+   -- see Ada_OmniObject.hh
+
+    -- Create_Omniobject
+   --------------------
+   function Create_Omniobject(Most_Derived_Repoid : in Corba.String ;
+                              Profiles : in Iop.Tagged_Profile_List ;
+                              Release : in Corba.Boolean)
+                              return Object_Ptr is
+      package Address_To_Object_ptr is
+        new System.Address_To_Access_Conversions (Object) ;
+      -- to convert access to object to Object_Ptr
+      function To_Object_Ptr is
+        new Ada.Unchecked_Conversion (Address_To_Object_ptr.Object_Pointer,
+                                      Object_Ptr);
+      C_Mdr : Interfaces.C.Strings.Chars_Ptr ;
+      C_R : Sys_Dep.C_Boolean ;
+      C_Profiles : System.Address ;
+      C_Result : System.Address ;
+      Result : Address_To_Object_Ptr.Object_Pointer ;
+   begin
+      C_Mdr := Interfaces.C.Strings.New_String(Corba.To_Standard_String(Most_Derived_Repoid)) ;
+      -- never deallocatd, it will be stored in the object
+      C_R := Sys_Dep.Boolean_Ada_To_C(Release) ;
+      C_Profiles := System.Address(Profiles) ;
+
+      C_Result := C_Create_Omniobject(C_Mdr, C_Profiles, C_R) ;
+      Result := Address_To_Object_Ptr.To_Pointer(C_Result) ;
+      return To_Object_Ptr(Result) ;
+   end ;
+
+
+
    -- C_Set_Repository_Id
    ----------------------
    procedure C_Set_Repository_Id(Self : in out Object'Class ;

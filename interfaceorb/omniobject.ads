@@ -134,6 +134,15 @@ package OmniObject is
    --        SUBPROGRAMS DECLARATION            --
    -----------------------------------------------
 
+   function Create_Omniobject(Most_Derived_Repoid : in Corba.String ;
+                              Profiles : in Iop.Tagged_Profile_List ;
+                              Release : in Corba.Boolean)
+                              return Object_Ptr ;
+   -- this function is called by corba.object.create_ref,
+   -- which is called by corba.object.unmarshall
+   -- We use this when we want to unmarshall an object out of
+   -- a bufferedstream, and to create a Corba.object.ref'class.
+
    procedure Duplicate(Self : in Object'Class) ;
    -- calls the C++ equivalent :
    -- omni::objectDuplicate(omniObject*)

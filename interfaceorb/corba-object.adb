@@ -178,6 +178,7 @@ package body Corba.Object is
    procedure String_to_Object (From : in CORBA.String;
                                To : out CORBA.Object.Ref'class) is
       RepoId : Corba.String ;
+      Most_Derived_Type : Constant_Ref_Ptr ;
    begin
       -- Get the omniobject
       To.Omniobj:= Omniobject.String_To_Object(From) ;
@@ -188,8 +189,11 @@ package body Corba.Object is
          -- check if the omniobject we got can be put into
          -- To (type implied the repoId)
          RepoId := Omniobject.Get_Repository_Id(To.Omniobj.all) ;
+         Most_Derived_Type := Get_Dynamic_Type_From_Repository_Id(Repoid) ;
+         -- dyn_type is now an object of the most derived type
+         -- of the new created object
 
-         if Is_A(To, RepoId) then
+         if Is_A(Most_Derived_Type.all, Get_Repository_Id(To)) then
             To.Dynamic_Type := Get_Dynamic_Type_From_Repository_Id(From) ;
             return ;
          end if ;
@@ -226,6 +230,42 @@ package body Corba.Object is
     --------------------------------------------------
     ---        omniORB specific                    ---
     --------------------------------------------------
+
+   -- Create_Ref
+   -------------
+   procedure Create_Ref(Most_Derived_Repoid : in Corba.String ;
+                        Profiles : in Iop.Tagged_Profile_List ;
+                        Release : in Corba.Boolean ;
+                        To : in out Ref'Class ) is
+      Most_Derived_Type : Constant_Ref_Ptr ;
+   begin
+      -- check if the omniobject we got can be put into
+      -- To (type implied the repoId)
+         Most_Derived_Type := Get_Dynamic_Type_From_Repository_Id(Most_Derived_Repoid) ;
+         -- most_derived_type is now an object of the most derived type
+         -- of the new created object
+      if Is_A(Most_Derived_Type.all, Get_Repository_Id(To)) then
+
+         -- Get the omniobject
+         To.Omniobj := Omniobject.Create_Omniobject(Most_Derived_Repoid,
+                                                    Profiles,
+                                                    Release) ;
+         -- if the result is correct
+         if not (To.Omniobj = null) then
+
+            To.Dynamic_Type
+              := Get_Dynamic_Type_From_Repository_Id(Most_Derived_Repoid) ;
+            return ;
+         end if ;
+      end if ;
+
+      -- otherwise, the operation is illegal return Nil_Ref
+      -- in the right class
+      To.Omniobj := null ;
+      To.Dynamic_Type := null ;
+
+   end ;
+
 
     -- C_Create_Proxy_Object_Factory
    ---------------------------------
