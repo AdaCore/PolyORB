@@ -1,8 +1,6 @@
 1998-09-02  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* MANIFEST: Add missing Examples/Filters/Makefile.am.
-	Add Garlic/s-ganase.ad[bs] to the distribution.
-	Add Garlic/s-gapise.ad[bs] to the distribution.
 
 1998-09-02  Laurent Pautet  <pautet@scapin.enst.fr>
 
@@ -14,7 +12,11 @@
 
 1998-09-02  Samuel Tardieu  <sam@inf.enst.fr>
 
-	* configure.in (TISTHRBIO): Use a reliable method that works with
+	* MANIFEST: Add missing Examples/Filters/Makefile.am.
+	Add Garlic/s-ganase.ad[bs] to the distribution.
+	Add Garlic/s-gapise.ad[bs] to the distribution.
+
+	* configure.in (ISTHRBIO): Use a reliable method that works with
 	GNAT-inlined/GLADE-not-inlined, GNAT-not-inlined/GLADE-inlined,
 	both-inlined or both-non-inlined.
 
