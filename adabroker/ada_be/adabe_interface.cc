@@ -852,7 +852,7 @@ adabe_interface::produce_skel_ads(dep_list& with, string &body, string &previous
   body += "                       Orls : in out Giop_S.Object ;\n";
   body += "                       Orl_Op : in Standard.String ;\n";
   body += "                       Orl_Response_Expected : in Corba.Boolean ;\n";
-  body += "                       Returns : out Corba.Boolean) ;\n\n";
+  body += "                       Dispatch_Returns : out Corba.Boolean) ;\n\n";
 
   // end of the package
   body += "end " + get_ada_full_name() + ".Skeleton  ;\n";
@@ -934,7 +934,7 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
   body += "                       Orls : in out Giop_S.Object ;\n";
   body += "                       Orl_Op : in Standard.String ;\n";
   body += "                       Orl_Response_Expected : in Corba.Boolean ;\n";
-  body += "                       Returns : out Corba.Boolean) is\n";
+  body += "                       Dispatch_Returns : out Corba.Boolean) is\n";
   body += "      Self : ";
   body += get_ada_local_name();
   body += ".Impl.Object_Ptr := ";
@@ -1020,7 +1020,7 @@ adabe_interface::produce_skel_adb(dep_list& with, string &body, string &previous
     }
   }
   
-  body += "      Returns := false ;\n";
+  body += "      Dispatch_Returns := false ;\n";
   body += "   end ;\n\n";
 
   // end of the package

@@ -89,7 +89,7 @@ adabe_operation::produce_ads(dep_list& with,string &body, string &previous)
 	}
       // if it was an IDL function, add the Result parameter
       if (!return_is_void()) {
-	body += "; Result : out ";
+	body += "; Returns : out ";
 	AST_Decl *b = return_type();
 	body += dynamic_cast<adabe_name *>(b)->dump_name(with, previous) ;
 	}
@@ -134,10 +134,10 @@ adabe_operation::produce_adb(dep_list& with,string &body, string &previous)
     }
   if ((!return_is_void()) && (!is_function())) 
     {
-      out_args += ", Result";
+      out_args += ", Returns";
       AST_Decl *b = return_type();
       string tmp = dynamic_cast<adabe_name *>(b)->dump_name(with, previous) ;
-      in_decls += ";\n              " + space + "Result : out " +  tmp;
+      in_decls += ";\n              " + space + "Returns : out " +  tmp;
     }
   in_decls += ")";
   in_args += ") ;\n";
@@ -223,7 +223,7 @@ adabe_operation::produce_impl_ads(dep_list& with,string &body, string &previous)
 	  i.next();
 	}
       if (!return_is_void()) {
-	body += "; Result : out ";
+	body += "; Returns : out ";
 	AST_Decl *b = return_type();
 	body +=  dynamic_cast<adabe_name *>(b)->dump_name(with, previous) ;
       }
@@ -280,7 +280,7 @@ adabe_operation::produce_impl_adb(dep_list& with,string &body, string &previous)
       if (!return_is_void()) {
 	   AST_Decl *b = return_type();
            string name =   dynamic_cast<adabe_name *>(b)->dump_name(with, previous);
-	   body += "; Result : out " + name + ") is\n";
+	   body += "; Returns : out " + name + ") is\n";
       }
       else   body += ") is \n";
       body += "   begin \n";
@@ -320,8 +320,8 @@ adabe_operation::produce_proxies_ads(dep_list& with,string &body, string &privat
     {
       AST_Decl *b = return_type();
       string tmp = dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition) ;
-      out_args += "; Result : out " + tmp;
-      fields += "      Result : ";
+      out_args += "; Returns : out " + tmp;
+      fields += "      Returns : ";
       fields += tmp;
       fields += "_Ptr := null ;\n";
     }
@@ -427,16 +427,16 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
     {
       AST_Decl *b = return_type();
       string tmp = dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition) ;
-      unmarshall_decls += "      Result : ";
+      unmarshall_decls += "      Returns : ";
       unmarshall_decls += tmp;
       unmarshall_decls += " ;\n";
-      unmarshall += "      Unmarshall(Result ,Giop_Client) ;\n";
-      unmarshall += "      Self.Result := new ";
+      unmarshall += "      Unmarshall(Returns ,Giop_Client) ;\n";
+      unmarshall += "      Self.Returns := new ";
       unmarshall += tmp;
-      unmarshall += "'(Result) ;\n";
-      out_args += "; Result : out " + tmp;
-      result_decls += "      Result := Self.Result.all ;\n";
-      finalize += "      Free(Self.Result) ;\n";
+      unmarshall += "'(Returns) ;\n";
+      out_args += "; Returns : out " + tmp;
+      result_decls += "      Returns := Self.Returns.all ;\n";
+      finalize += "      Free(Self.Returns) ;\n";
    }
   in_decls += ") is\n";
 
@@ -504,13 +504,13 @@ adabe_operation::produce_proxies_adb(dep_list& with,string &body,
 	AST_Decl *b = return_type();
 	result_name =  dynamic_cast<adabe_name *>(b)->dump_name(with, private_definition); 
 	dynamic_cast<adabe_name *>(b)->is_marshal_imported(with);
-	body += "      Result : " + result_name + " ;\n";
+	body += "      Returns : " + result_name + " ;\n";
       }
     body += "   begin\n";
     body += unmarshall;
     if (is_function()) {
-      body += "      Unmarshall(Result, Giop_client) ;\n";
-      body += "      Self.Private_Result := new " + result_name + "'(Result) ;\n";
+      body += "      Unmarshall(Returns, Giop_client) ;\n";
+      body += "      Self.Private_Result := new " + result_name + "'(Returns) ;\n";
     }
     body += "   end ;\n\n\n";      
   }
@@ -599,24 +599,28 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
       else throw adabe_internal_error(__FILE__,__LINE__,"Unexpected node in operation");
       i.next();
     }
+  // if it was an IDL function, add the Result parameter
+  if ((!is_function())&&(!return_is_void())) {
+    call_args += ", Returns ";
+  }
+  
 
   body += "      if Orl_Op = \"";
   body += get_ada_local_name ();
   body += "\" then\n";
   body += "         declare\n";
   body += in_decls;
-  if (is_function())
+  if (!return_is_void())
     {
       // get the type of the result
       AST_Decl *b = return_type();
       adabe_name *e = dynamic_cast<adabe_name *>(b);
       result_name = e->dump_name(with, private_definition);
       e->is_marshal_imported(with);
-      body += "            Result : ";
+      body += "            Returns : ";
       body += result_name;
       body += " ;\n";
     }
-
   body += "            Mesg_Size : Corba.Unsigned_Long ;\n";
 
   body += "         begin\n";
@@ -631,7 +635,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
 
   body += "            -- call the implementation\n";
   body += "            ";
-  if (is_function()) body += "Result := ";
+  if (is_function()) body += "Returns := ";
   body += pack_name;
   body += ".Impl.";
   body += get_ada_local_name ();
@@ -642,7 +646,7 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   body += "            -- compute the size of the replied message\n";
   body += "            Mesg_Size := Giop_S.Reply_Header_Size ;\n";
   if ((!no_out) || (is_function())) {
-    body += "            Mesg_Size := Align_Size (Result, Mesg_Size) ;\n";
+    body += "            Mesg_Size := Align_Size (Returns, Mesg_Size) ;\n";
   }
   body += "            -- Initialisation of the reply\n";
   body += "            Giop_S.Initialize_Reply (Orls, Giop.NO_EXCEPTION, Mesg_Size) ;\n";
@@ -651,13 +655,13 @@ adabe_operation::produce_skel_adb(dep_list& with,string &body, string &private_d
   body += marshall;
 
   if (is_function())
-    body += "            Marshall (Result, Orls) ;\n";
+    body += "            Marshall (Returns, Orls) ;\n";
   
 
   body += "            -- inform the orb\n";
   body += "            Giop_S.Reply_Completed (Orls) ;\n";
 
-  body += "            Returns := True ;\n";
+  body += "            Dispatch_Returns := True ;\n";
   body += "            return ;\n";
 
   UTL_ExceptlistActiveIterator except_iterator(exceptions()) ;

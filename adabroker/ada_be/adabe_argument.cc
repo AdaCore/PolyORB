@@ -24,6 +24,9 @@
 *************************************************************************************************/
 #include <adabe.h>
 
+////////////////////////////////////////////////////////////////////////
+////////////////      constructor    ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 adabe_argument::adabe_argument(AST_Argument::Direction d, AST_Type *ft, UTL_ScopedName *n,UTL_StrList *p)
 	   : AST_Argument(d, ft, n, p),
 	     AST_Field(AST_Decl::NT_argument, ft, n, p),
@@ -32,6 +35,9 @@ adabe_argument::adabe_argument(AST_Argument::Direction d, AST_Type *ft, UTL_Scop
 {
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_ads     ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_argument::produce_ads(dep_list& with, string &body, string &previous)
 {
@@ -54,6 +60,9 @@ adabe_argument::produce_ads(dep_list& with, string &body, string &previous)
   body +=  dynamic_cast<adabe_name *>(d)->dump_name(with, previous); // virtual method
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_ads     ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_argument::produce_adb(dep_list& with, bool &no_out, string space,
 			    string &in_decls, string &in_args, string &out_args)
@@ -88,29 +97,9 @@ adabe_argument::produce_adb(dep_list& with, bool &no_out, string space,
     }
 }
 
-/*
-  void
-  adabe_argument::produce_adb(dep_list& with,string &body, string &previous)
-  {
-  produce_ads(with, body, previous);
-  }
-
-  void
-  adabe_argument::produce_impl_ads(dep_list& with,string &body, string &previous)
-  {
-  produce_ads( with, body, previous); 
-  }
-  
-  ///////////////perhaps useless////////////////////////
-  void
-  adabe_argument::produce_impl_adb(dep_list& with,string &body, string &previous)
-  {
-  produce_ads(with, body, previous);
-  }
-*/
-
-
-
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_proxies_ads     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 void 
 adabe_argument::produce_proxies_ads(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &fields, string &out_args)
 {
@@ -138,6 +127,9 @@ adabe_argument::produce_proxies_ads(dep_list &with, string &in_decls, bool &no_i
   fields += "_Ptr := null ;\n";
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_proxies_adb     ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 void 
 adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_in, bool &no_out, string &init,
                                     string &align_size, string&marshall, string &unmarshall_decls, string &unmarshall,
@@ -211,6 +203,9 @@ adabe_argument::produce_proxies_adb(dep_list &with, string &in_decls, bool &no_i
   finalize += ") ;\n";
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     produce_skel_adb     //////////////////////////////
+////////////////////////////////////////////////////////////////////////
 void
 adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
 				 bool &no_in, bool no_out,
@@ -249,6 +244,9 @@ adabe_argument::produce_skel_adb(dep_list &with, string &in_decls ,
     }      
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////     miscellaneous           ///////////////////////////
+////////////////////////////////////////////////////////////////////////
 IMPL_NARROW_METHODS1(adabe_argument, AST_Argument)
 IMPL_NARROW_FROM_DECL(adabe_argument)
   

@@ -340,7 +340,7 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
   body += "            -- inform the orb\n";
   body += "            Giop_S.Reply_Completed (Orls) ;\n";
 
-  body += "            Returns := True ;\n";
+  body += "            Dispatch_Returns := True ;\n";
   body += "            return ;\n";
   body += "         end ;\n";
   body += "      end if ;\n\n";
@@ -377,7 +377,7 @@ adabe_attribute::produce_skel_adb(dep_list& with, string &body, string &private_
       body += "            -- inform the orb\n";
       body += "            Giop_S.Reply_Completed (Orls) ;\n";
       
-      body += "            Returns := True ;\n";
+      body += "            Dispatch_Returns := True ;\n";
       body += "            return ;\n";
       body += "         end ;\n";
       body += "      end if ;\n\n";
