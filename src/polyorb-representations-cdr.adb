@@ -1733,40 +1733,45 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Struct | Tk_Except =>
             declare
-               Nb : constant Unsigned_Long
-                 := TypeCode.Member_Count (Tc);
-               Arg : PolyORB.Any.Any := Get_Empty_Any_Aggregate
-                 (Get_Type (Data));
+               Nb : constant Unsigned_Long := TypeCode.Member_Count (Tc);
+               Element_TC : TypeCode.Object;
                Val : PolyORB.Any.Any;
+
+               Add_Elements : Boolean := True;
+
             begin
                pragma Debug (O ("Unmarshall_To_Any : dealing with a struct"
-                                 & " or exception"));
-
-               if Nb /= 0 then
-                  for J in 0 .. Nb - 1 loop
-                     pragma Debug (O ("Unmarshall_To_Any : get the element"));
-                     Val := Get_Empty_Any (TypeCode.Member_Type (Tc, J));
-
-                     pragma Debug (O ("Unmarshall_To_Any : about to "
-                                      & "unmarshall a parameter"));
-                     Unmarshall_To_Any
-                       (CDR_Representation'Class (R),
-                        Buffer,
-                        Val,
-                        Error);
-
-                     if Found (Error) then
-                        return;
-                     end if;
-
-                     Add_Aggregate_Element (Arg, Val);
-                  end loop;
+                                & " or exception"));
+               if Is_Empty (Data) then
+                  Move_Any_Value (Data,
+                    Get_Empty_Any_Aggregate (Get_Type (Data)));
+               elsif Get_Aggregate_Count (Data) /= 0 then
+                  pragma Assert (Get_Aggregate_Count (Data) = Nb);
+                  Add_Elements := False;
                end if;
-               Copy_Any_Value (Data, Arg);
-               --  XXX VERY inefficient if Data was initially
-               --  not empty. In that case, should unmarshall
-               --  directly into the already-allocate aggregate
-               --  elements.
+
+               for J in 1 .. Nb loop
+                  pragma Debug (O ("Unmarshall_To_Any : get the element"));
+                  Element_TC := TypeCode.Member_Type (Tc, J - 1);
+                  if Add_Elements then
+                     Val := Get_Empty_Any (Element_TC);
+                     Add_Aggregate_Element (Data, Val);
+                  else
+                     Val := Get_Aggregate_Element (Data, Element_TC, J - 1);
+                  end if;
+
+                  pragma Debug (O ("Unmarshall_To_Any : about to "
+                                   & "unmarshall a parameter"));
+                  Unmarshall_To_Any
+                    (CDR_Representation'Class (R),
+                     Buffer,
+                     Val,
+                     Error);
+
+                  if Found (Error) then
+                     return;
+                  end if;
+               end loop;
             end;
 
          when Tk_Union =>
@@ -1852,26 +1857,44 @@ package body PolyORB.Representations.CDR is
 
          when Tk_Sequence =>
             declare
-               Nb : constant PolyORB.Types.Unsigned_Long
-                 := Unmarshall (Buffer);
-               Max_Nb : constant Unsigned_Long := TypeCode.Length (Tc);
-               Arg : PolyORB.Any.Any
-                 := Get_Empty_Any_Aggregate (Get_Type (Data));
+               Len        : constant Unsigned_Long   := Unmarshall (Buffer);
+               Max_Len    : constant Unsigned_Long   := TypeCode.Length (Tc);
+               Element_TC : constant TypeCode.Object :=
+                              TypeCode.Content_Type (Tc);
+
                Val : PolyORB.Any.Any;
+
+               Add_Elements : Boolean;
+
             begin
                pragma Debug
                  (O ("Unmarshall_To_Any : dealing with a sequence"));
-               if Max_Nb > 0 and then Nb > Max_Nb then
+               if Max_Len > 0 and then Len > Max_Len then
                   raise Constraint_Error;
+               end if;
+
+               if Is_Empty (Data)
+                 or else Get_Aggregate_Count (Data) /= Len
+               then
+                  Move_Any_Value (Data,
+                    Get_Empty_Any_Aggregate (Get_Type (Data)));
+                  Add_Elements := True;
+                  Add_Aggregate_Element (Data, To_Any (Len));
+               else
+                  Add_Elements := False;
                end if;
 
                pragma Debug
                  (O ("Unmarshall_To_Any: unmarshalling"
-                     & Unsigned_Long'Image (Nb) & " elements"));
-               Add_Aggregate_Element (Arg, To_Any (Nb));
+                     & Unsigned_Long'Image (Len) & " elements"));
 
-               for J in 1 .. Nb loop
-                  Val := Get_Empty_Any (TypeCode.Content_Type (Tc));
+               for J in 1 .. Len loop
+                  if Add_Elements then
+                     Val := Get_Empty_Any (Element_TC);
+                     Add_Aggregate_Element (Data, Val);
+                  else
+                     Val := Get_Aggregate_Element (Data, Element_TC, J);
+                  end if;
                   Unmarshall_To_Any
                     (CDR_Representation'Class (R),
                      Buffer,
@@ -1881,12 +1904,8 @@ package body PolyORB.Representations.CDR is
                   if Found (Error) then
                      return;
                   end if;
-
-                  Add_Aggregate_Element (Arg, Val);
                end loop;
                pragma Debug (O ("Unmarshalled sequence."));
-
-               Copy_Any_Value (Data, Arg);
             end;
 
          when Tk_Array =>
