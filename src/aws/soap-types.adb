@@ -1070,7 +1070,7 @@ package body SOAP.Types is
       elsif Kind_Of_Any = Tk_Long then
          declare
             Obj : XSD_Integer;
-            Value : constant PolyORB.Types.Long_Long
+            Value : constant PolyORB.Types.Long
               := PolyORB.Any.From_Any (Item);
          begin
             Obj.V := Integer (Value);
@@ -1081,7 +1081,7 @@ package body SOAP.Types is
       elsif Kind_Of_Any = Tk_Double then
          declare
             Obj : XSD_Float;
-            Value : constant PolyORB.Types.Long_Double
+            Value : constant PolyORB.Types.Double
               := PolyORB.Any.From_Any (Item);
          begin
             Obj.V := Long_Float (Value);
