@@ -74,8 +74,6 @@ package PolyORB.Parameters is
    --  representation of an integer number.
    --  Constraint_Error is raised if the value is set to anything else.
 
-   type Parameters_Initializer is access procedure;
-
    procedure Reset;
    --  Clear all variables previously positioned using Set_Conf.
 
