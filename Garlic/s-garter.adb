@@ -37,7 +37,6 @@ with System.Garlic.Debug;         use System.Garlic.Debug;
 with System.Garlic.Heart;         use System.Garlic.Heart;
 with System.Garlic.Options;
 with System.Garlic.Priorities;
-with System.Garlic.Utils;
 with System.RPC;                  use System.RPC;
 with System.Task_Primitives.Operations;
 with System.Tasking.Utilities;    use System.Tasking, System.Tasking.Utilities;

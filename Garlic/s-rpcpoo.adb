@@ -41,10 +41,9 @@ with System.Garlic.Heart;        use System.Garlic.Heart;
 with System.Garlic.Options;
 with System.Garlic.Priorities;   use System.Garlic.Priorities;
 with System.Garlic.Termination;  use System.Garlic.Termination;
+with System.RPC.Util;            use System.RPC.Util;
 
 package body System.RPC.Pool is
-
-   use System.RPC.Util;
 
    Private_Debug_Key : constant Debug_Key :=
      Debug_Initialize ("RPCPOO", "(s-rpcpoo): ");

@@ -29,7 +29,6 @@
 with Unchecked_Deallocation;
 with ALI;
 with GNAT.OS_Lib;
-with Opt;
 with Types;
 
 package XE_Utils is

@@ -38,7 +38,6 @@
 -- Federal Institute of Technology in Lausanne (EPFL).                      --
 
 with Ada.Streams;
-with System.Garlic.Filters;
 with System.Garlic.Streams;
 
 package System.Garlic.Filters.Zip is

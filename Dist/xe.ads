@@ -27,7 +27,6 @@
 ------------------------------------------------------------------------------
 
 with Table;
-with Opt;
 with XE_Utils;   use XE_Utils;
 
 package XE is

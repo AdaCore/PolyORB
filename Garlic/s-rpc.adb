@@ -39,7 +39,6 @@ with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 with System.Garlic.Debug;        use System.Garlic.Debug;
 with System.Garlic.Heart;        use System.Garlic.Heart;
-with System.Garlic.Termination;
 with System.Garlic.Utils;        use System.Garlic.Utils;
 pragma Elaborate (System.Garlic.Utils);
 with System.RPC.Pool;            use System.RPC.Pool;

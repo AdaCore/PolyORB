@@ -32,10 +32,8 @@ with Make;             use Make;
 with Namet;            use Namet;
 with Opt;
 with Osint;            use Osint;
-with Output;           use Output;
 with XE;               use XE;
 with XE_Back;          use XE_Back;
-with XE_Stubs;         use XE_Stubs;
 with XE_Utils;         use XE_Utils;
 
 package body XE_Check is

@@ -35,8 +35,10 @@
 
 with Ada.Streams; use Ada.Streams;
 
+pragma Warnings (Off);
 with System.Garlic.Filters;
 pragma Elaborate (System.Garlic.Filters);
+pragma Warnings (On);
 
 with System.Garlic.Streams; use System.Garlic.Streams;
 

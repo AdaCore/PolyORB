@@ -28,7 +28,6 @@
 
 with Namet;            use Namet;
 with Osint;            use Osint;
-with Output;           use Output;
 with XE;               use XE;
 with XE_Back;          use XE_Back;
 with XE_Defs;          use XE_Defs;

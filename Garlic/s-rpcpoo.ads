@@ -33,8 +33,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.RPC.Util;
-
 private package System.RPC.Pool is
 
    --  This package handles a pool of anonymous tasks which will be used

@@ -37,12 +37,16 @@ with System.Garlic.Debug; use System.Garlic.Debug;
 with System.Garlic.Utils; use System.Garlic.Utils;
 with System.Garlic.Heart; use System.Garlic.Heart;
 pragma Elaborate_All (System.Garlic.Heart);
+
+pragma Warnings (Off);
 with System.Garlic.Startup;
 pragma Elaborate_All (System.Garlic.Startup);
-with System.Garlic.Units; use System.Garlic.Units;
-pragma Elaborate_All (System.Garlic.Units);
 with System.Garlic.Termination;
 pragma Elaborate_All (System.Garlic.Termination);
+pragma Warnings (On);
+
+with System.Garlic.Units; use System.Garlic.Units;
+pragma Elaborate_All (System.Garlic.Units);
 with System.RPC; use System.RPC;
 pragma Elaborate_All (System.RPC);
 

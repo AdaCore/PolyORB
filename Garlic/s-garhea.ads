@@ -40,13 +40,16 @@ with System.Garlic.Physical_Location;
 with System.Garlic.Types;
 with System.RPC;
 
---  These ones should not be needed, but the binder needs them ???
+--  These ones should not be needed, but the binder needs them to get a
+--  correct dependencies order ???
 
+pragma Warnings (Off);
 with System.Tasking.Initialization;
 pragma Elaborate_All (System.Tasking);
 pragma Elaborate_All (System.Tasking.Initialization);
 with System.Tasking.Protected_Objects;
 pragma Elaborate_All (System.Tasking.Protected_Objects);
+pragma Warnings (On);
 
 package System.Garlic.Heart is
 
