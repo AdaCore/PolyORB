@@ -1,0 +1,45 @@
+.TH ADABROKER 7 "June 30, 2000" "AdaBroker team" "AdaBroker documentation"
+
+.SH NAME
+AdaBroker \- a 100% Ada CORBA implementation
+
+.SH ENVIRONMENT
+.B AdaBroker
+recognizes the following environment variables:
+.HP
+.B ADABROKER_CONFIG 
+is the name of a configuration file (by default
+.IR /etc/adabroker.conf ).
+This file contains on each line an assignment of the form
+.IR VARIABLE=VALUE .
+This assignment is only taken in account if no environment variable with
+the name
+.I VARIABLE
+exists.
+.HP
+.B ADABROKER_NAMING_HOST
+designates the machine name on which AdaBroker naming service has been
+started. Default is
+.IR localhost .
+.HP
+.B ADABROKER_NAMING_PORT
+is the port on which AdaBroker naming service has been started, or on which it
+should be started. Default is 4161.
+.HP
+.B ADABROKER_NAMING_IOR
+can be used to locate the naming service. This variable has precedence
+over
+.I ADABROKER_NAMING_HOST
+and
+.IR ADABROKER_NAMING_PORT .
+It is mainly used to reference a non-AdaBroker naming service.
+
+.SH BUGS
+AdaBroker is still in its infancy and is not complete.
+
+.SH AUTHORS
+The AdaBroker team, adabroker@adabroker.eu.org
+
+.SH SEE ALSO
+.BR ab_gnome (1)
+.BR ab_names (1)

@@ -238,6 +238,11 @@ idlac/testsuite/parser/alldefinitions.idl
 idlac/testsuite/parser/testparser.idl
 idlac/utils.adb
 idlac/utils.ads
+man/Makefile.am
+man/Makefile.in
+man/ab_gnome.1
+man/ab_names.1
+man/adabroker.7
 src/ChangeLog
 src/Makefile.am
 src/Makefile.in
