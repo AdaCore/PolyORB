@@ -13,7 +13,7 @@ pragma Warnings (Off);' \
          -e '/with CORBA.Stream; use CORBA.Stream;/ D' \
          -e '/with CORBA.TypeCode.Helper;/ D' \
          -e '/\& "CORBA.Helper"/ D' \
-         -e 's/TypeCode.Helper.//g' < $file > $file.new
+         -e 's/TypeCode\.Helper\.//g' < $file > $file.new
   mv $file.new $file
 done
 ${RM} -f corba.* corba-helper* corba-typecode* ir_idl_file*
