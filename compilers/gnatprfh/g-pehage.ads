@@ -6,8 +6,6 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $LastChangedRevision$
---                                                                          --
 --                 Copyright (C) 2002 Ada Core Technologies, Inc.           --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
@@ -28,7 +26,8 @@
 -- however invalidate  any other reasons why  the executable file  might be --
 -- covered by the  GNU Public License.                                      --
 --                                                                          --
--- GNAT is maintained by Ada Core Technologies Inc (http://www.gnat.com).   --
+-- GNAT was originally developed  by the GNAT team at  New York University. --
+-- Extensive contributions were provided by Ada Core Technologies Inc.      --
 --                                                                          --
 ------------------------------------------------------------------------------
 
@@ -43,7 +42,7 @@
 
 package GNAT.Perfect_Hash.Generators is
 
-   Default_K_To_V   : constant Float  := 2.05;
+   Default_K_To_V : constant Float  := 2.05;
    --  Default ratio for the algorithm. When K is the number of keys,
    --  V = (K_To_V) * K is the size of the main table of the hash function.
 
@@ -82,35 +81,34 @@ package GNAT.Perfect_Hash.Generators is
    --  of a key. With an empty position, the generator automatically
    --  produces positions to reduce the memory usage.
 
-   procedure Produce
-     (Pkg_Name  : String := Default_Pkg_Name);
+   procedure Produce (Pkg_Name  : String := Default_Pkg_Name);
    --  Generate the hash function package Pkg_Name. This package
    --  includes the minimal perfect Hash function.
 
-   --  The routines and structures defined below allow to produce the
+   --  The routines and structures defined below allow producing the
    --  hash function using a different way from the procedure above.
    --  The procedure Define returns the lengths of an internal table
    --  and its item type size. The function Value returns the value of
    --  each item in the table.
-   --
+
    --  The hash function has the following form:
-   --
+
    --             h (w) = (g (f1 (w)) + g (f2 (w))) mod m
-   --
+
    --  G is a function based on a graph table [0,n-1] -> [0,m-1]. m is
    --  the number of keys. n is an internally computed value and it
    --  can be obtained as the length of vector G.
-   --
+
    --  F1 and F2 are two functions based on two function tables T1 and
    --  T2. Their definition depends on the chosen optimization mode.
-   --
+
    --  Only some character positions are used in the keys because they
    --  are significant. They are listed in a character position table
    --  (P in the pseudo-code below). For instance, in {"jan", "feb",
    --  "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov", "dec"},
    --  only positions 2 and 3 are significant (the first character can
    --  be ignored). In this example, P = {2, 3}
-   --
+
    --  When Optimization is CPU_Time, the first dimension of T1 and T2
    --  corresponds to the character position in the key and the second
    --  to the character set. As all the character set is not used, we
@@ -119,40 +117,44 @@ package GNAT.Perfect_Hash.Generators is
    --  zero). In this case, the second dimension of T1 and T2 is
    --  reduced to the used character set (C in the pseudo-code
    --  below). Therefore, the hash function has the following:
-   --
+
    --    function Hash (S : String) return Natural is
-   --       F : constant Natural := S'First - 1;
-   --       L : constant Natural := S'Length;
+   --       F      : constant Natural := S'First - 1;
+   --       L      : constant Natural := S'Length;
    --       F1, F2 : Natural := 0;
-   --       J : <t>;
+   --       J      : <t>;
+
    --    begin
-   --       for I in P'Range loop
-   --          exit when L < P (I);
-   --          J  := C (S (P (I) + F));
-   --          F1 := (F1 + Natural (T1 (I, J))) mod <n>;
-   --          F2 := (F2 + Natural (T2 (I, J))) mod <n>;
+   --       for K in P'Range loop
+   --          exit when L < P (K);
+   --          J  := C (S (P (K) + F));
+   --          F1 := (F1 + Natural (T1 (K, J))) mod <n>;
+   --          F2 := (F2 + Natural (T2 (K, J))) mod <n>;
    --       end loop;
+
    --       return (Natural (G (F1)) + Natural (G (F2))) mod <m>;
    --    end Hash;
-   --
+
    --  When Optimization is Memory_Space, the first dimension of T1
    --  and T2 corresponds to the character position in the key and the
    --  second dimension is ignored. T1 and T2 are no longer matrices
    --  but vectors. Therefore, the used character table is not
    --  available. The hash function has the following form:
-   --
+
    --     function Hash (S : String) return Natural is
-   --        F : constant Natural := S'First - 1;
-   --        L : constant Natural := S'Length;
+   --        F      : constant Natural := S'First - 1;
+   --        L      : constant Natural := S'Length;
    --        F1, F2 : Natural := 0;
-   --        J : <t>;
+   --        J      : <t>;
+
    --     begin
-   --        for I in P'Range loop
-   --           exit when L < P (I);
-   --           J  := Character'Pos (S (P (I) + F));
-   --           F1 := (F1 + Natural (T1 (I) * J)) mod <n>;
-   --           F2 := (F2 + Natural (T2 (I) * J)) mod <n>;
+   --        for K in P'Range loop
+   --           exit when L < P (K);
+   --           J  := Character'Pos (S (P (K) + F));
+   --           F1 := (F1 + Natural (T1 (K) * J)) mod <n>;
+   --           F2 := (F2 + Natural (T2 (K) * J)) mod <n>;
    --        end loop;
+
    --        return (Natural (G (F1)) + Natural (G (F2))) mod <m>;
    --     end Hash;
 
@@ -175,9 +177,9 @@ package GNAT.Perfect_Hash.Generators is
 
    function Value
      (Name : Table_Name;
-      I    : Natural;
-      J    : Natural := 0)
-     return Natural;
+      J    : Natural;
+      K    : Natural := 0)
+      return Natural;
    --  Return the value of the component (I, J) of the table
    --  Name. When the table has only one dimension, J is ignored.
 
