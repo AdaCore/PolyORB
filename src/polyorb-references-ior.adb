@@ -32,9 +32,7 @@
 
 --  $Id$
 
-with Ada.Streams; use Ada.Streams;
-
-with PolyORB.Sequences.Unbounded;
+with Ada.Streams;
 
 with PolyORB.Binding_Data;
 with PolyORB.Buffers; use PolyORB.Buffers;
@@ -45,10 +43,13 @@ with PolyORB.Utils;
 
 package body PolyORB.References.IOR is
 
+   use Ada.Streams;
+
    use PolyORB.Log;
    use PolyORB.Utils;
    use PolyORB.Representations.CDR;
    use PolyORB.Binding_Data;
+
    use Profile_Record_Seq;
 
    package L is new PolyORB.Log.Facility_Log ("polyorb.references.ior");
@@ -90,7 +91,7 @@ package body PolyORB.References.IOR is
                      & Get_Profile_Tag
                      (Profs (Profile_Index).all)'Img));
 
-               for I in 1 .. Length (Callbacks) loop
+               for J in 1 .. Length (Callbacks) loop
                   pragma Assert (Profs (Profile_Index) /= null);
 
                   declare
@@ -99,10 +100,10 @@ package body PolyORB.References.IOR is
                        (Profs (Profile_Index).all);
 
                      Info : constant Profile_Record
-                       := Element_Of (Callbacks, I);
+                       := Element_Of (Callbacks, J);
                   begin
                      pragma Debug
-                       (O ("... with callback" & I'Img
+                       (O ("... with callback" & Integer'Image (J)
                            & " whose tag is "
                            & Profile_Tag'Image (Info.Tag)));
 
@@ -168,7 +169,7 @@ package body PolyORB.References.IOR is
 
       pragma Debug
         (O ("Decapsulate_IOR: type " & Type_Id
-            & " (" & N_Profiles'Img & " profiles)."));
+            & " (" & Unsigned_Long'Image (N_Profiles) & " profiles)."));
 
       All_Profiles :
       for N in 1 .. N_Profiles loop
@@ -181,13 +182,15 @@ package body PolyORB.References.IOR is
                              & Profile_Tag'Image (Tag)));
 
             All_Callbacks :
-            for I in 1 .. Length (Callbacks) loop
+            for J in 1 .. Length (Callbacks) loop
                pragma Debug
-                 (O ("... with callback" & I'Img & " whose tag is "
-                     & Profile_Tag'Image (Element_Of (Callbacks, I).Tag)));
-               if Element_Of (Callbacks, I).Tag = Tag then
+                 (O ("... with callback" & Integer'Image (J)
+                     & " whose tag is "
+                     & Profile_Tag'Image (Element_Of (Callbacks, J).Tag)));
+
+               if Element_Of (Callbacks, J).Tag = Tag then
                   Last_Profile := Last_Profile + 1;
-                  Profs (Last_Profile) := Element_Of (Callbacks, I).
+                  Profs (Last_Profile) := Element_Of (Callbacks, J).
                     Unmarshall_Profile_Body (Buffer);
                   Known := True;
                   --  Profiles dynamically allocated here
