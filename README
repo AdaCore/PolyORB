@@ -10,19 +10,22 @@ Installation :
 ( if you use another version of omniORB, update the config.mk file
 in AdaBroker/config
 
-- run make in AdaBroker/omniidl2 to compile omniidl2
+- add AdaBroker/bin to your PATH
+
 - run make in AdaBroker/
+--> It will compile the AdaBroker libraries, omniidl2
+with the ada backend (and the C++ backend), and the examples
 
 Usage :
 -------
--> omniidl2 -bada myinterface.idl creates several files :
+-> omniidl2 -bada [ -i ] myinterface.idl creates several files :
 
 - myinterface.ads, myinterface.adb : these files contain
 the mapping for user defined types (client and server side)
 
 - myinterface-impl.ads, myinterface-impl.adb : these files
 are to be filled by the user. They contain the implementation
-of the server.
+of the server. They are generated only if the -i flag is specified.
 
 - myinterface-proxies.ads, myinterface-proxies.adb : these files
 contain utilities to make proxy calls
