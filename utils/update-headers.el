@@ -1,5 +1,5 @@
 ;;;
-;;; $Id: //droopi/main/utils/update-headers.el#5 $
+;;; $Id: //droopi/main/utils/update-headers.el#6 $
 ;;;
 ;;; Emacs macros to update Ada source files headers.
 ;;;
@@ -30,10 +30,10 @@
 
     ; compute 'name' and 'spec'
     (goto-char (point-min))
-    (if (re-search-forward "package body \\(.+\\) is" nil t)
+    (if (re-search-forward "^package body \\(.+\\) is" nil t)
 	(setq name (buffer-substring (match-beginning 1) (match-end 1)))
       (goto-char (point-min))
-      (if (re-search-forward "package \\(.+\\) \\(is\\|renames\\)" nil t)
+      (if (re-search-forward "^package \\(.+\\) \\(is\\|renames\\)" nil t)
 	  (setq name (buffer-substring (match-beginning 1) (match-end 1))
 		spec t)
 	(goto-char (point-min))
@@ -140,7 +140,7 @@
 (defun update-headers ()
   "Update headers of files given on the command line"
   (interactive)
-  (let ((l (directory-files "." nil "\\.ad[bs]\\(\\.in\\|\\)$" nil t)))
+  (let ((l (directory-files "." nil "\\.ad[bs]\\(\\.in\\|\\)$" t)))
     (while l
       (let ((current (car l)))
 	(message "Updating %s..." current)
@@ -187,7 +187,8 @@ YYYYY
 --                PolyORB is maintained by ACT Europe.                      --
 --                    (email: sales@act-europe.fr)                          --
 --                                                                          --
-------------------------------------------------------------------------------")
+------------------------------------------------------------------------------
+")
 
 ;;
 ;; header-omg: secondary header for CORBA specs.
