@@ -1,10 +1,7 @@
 --  A protocol similar to the HTTP protocol
 --  SRP : Simple Request Protocol
 
-with Ada.Unchecked_Deallocation;
-
 with Droopi.Buffers;
-with Droopi.Objects; use Droopi.Objects;
 
 package Droopi.Protocols.SRP is
 
@@ -12,21 +9,6 @@ package Droopi.Protocols.SRP is
 
    type SRP_Protocol is new Protocol with private;
    --   type String_Ptr is access all String;
-
-   type Arg_Info;
-   type Arg_Info_Ptr is access Arg_Info;
-   type Arg_Info is record
-      Name  : String_Ptr;
-      Value : String_Ptr;
-      Next  : Arg_Info_Ptr := null;
-   end record;
-
-   type Split_SRP is record
-      Method : String_Ptr;
-      Oid    : Object_Id_Access;
-      Args   : Arg_Info_Ptr;
-   end record;
-
 
    procedure Create
      (Proto   : access SRP_Protocol;
@@ -62,8 +44,5 @@ private
       Buffer : Buffers.Buffer_Access;
       Out_Buffer : Buffers.Buffer_Access;
    end record;
-
-   procedure Free_Arg_Info is new Ada.Unchecked_Deallocation
-     (Arg_Info, Arg_Info_Ptr);
 
 end Droopi.Protocols.SRP;

@@ -3,6 +3,7 @@
 --  $Id$
 
 with Droopi.Buffers; use Droopi.Buffers;
+with Droopi.Utils.SRP; use Droopi.Utils.SRP;
 
 package Droopi.Representations.SRP is
 
@@ -34,7 +35,17 @@ package Droopi.Representations.SRP is
 
    -----------------------------------
 
+   --  Only encodes the parameters' values
+   --  Warning, Str must be a well-formed SRP string, otherwise
+   --  Constraint_Error may be raised
    function Encode_URL (Str : in String) return String;
+
+   --  Only encodes the parameters' values
+   --  Is less error prone than the previous function
+   procedure Encode_URL (SRP_Info : in out Split_SRP);
+
+   --  Encodes the entire string
+   function Encode_String (Str : in String) return String;
 
    procedure Marshall_From_Any
      (R      : Rep_SRP;
@@ -74,6 +85,13 @@ package Droopi.Representations.SRP is
    function Unmarshall_To_Any
      (R      : Rep_SRP;
       Buffer : access Buffers.Buffer_Type) return CORBA.Any;
+
+   --  Temporary procedure. Should be replaces by Marshall_From_Any when
+   --  we will be able to [un]marshall Split_SRP [from] to Any
+   procedure Marshall_From_Split_SRP
+     (R       : Rep_SRP;
+      Buffer  : access Buffers.Buffer_Type;
+      SRP_Info : Split_SRP);
 
 private
 
