@@ -1064,10 +1064,10 @@ package body XE_Back is
       --  If this attribute applies to partition type itself, it may not
       --  have a value. No big deal, we use defaults.
 
-      if Partition = Null_PID and then
-        not Is_Component_Initialized (Component_Id (Attribute)) then
-         return;
-      end if;
+--       if Partition = Null_PID and then
+--         not Is_Component_Initialized (Component_Id (Attribute)) then
+--          return;
+--       end if;
 
       --  Apply attribute to a partition.
 
@@ -1080,11 +1080,13 @@ package body XE_Back is
          return;
       end if;
 
-      if Partition = Null_PID then
-         PID := Default_Partition;
-      else
-         PID := Partition;
-      end if;
+      PID := Partition;
+
+--       if Partition = Null_PID then
+--          PID := Default_Partition;
+--       else
+--          PID := Partition;
+--       end if;
 
       case Attr_Kind is
          when Attribute_PFilter =>
@@ -1095,7 +1097,7 @@ package body XE_Back is
               Get_Variable_Type (Variable_Id (Attr_Item)) /=
               String_Type_Node then
                Write_SLOC (Node_Id (Attribute));
-               Write_Name (Partitions.Table (Partition).Name);
+               Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s filter attribute must be ");
                Write_Str ("a string literal");
                Write_Eol;
@@ -1105,16 +1107,15 @@ package body XE_Back is
             --  Does it apply to all partitions ? Therefore, check
             --  that this has not already been done.
 
-            if Partition = Null_PID and then
-               Partitions.Table (Default_Partition).Filter = No_Filter_Name
+            if PID = Default_Partition and then
+               Partitions.Table (PID).Filter = No_Filter_Name
             then
-               Partitions.Table (Default_Partition).Filter
-                 := Get_Node_Name (Attr_Item);
+               Partitions.Table (PID).Filter := Get_Node_Name (Attr_Item);
 
             --  Apply to one partition. Check that it has not already
             --  been done.
 
-            elsif Partition /= Null_PID then
+            elsif PID /= Default_Partition then
                Write_SLOC (Node_Id (Attribute));
                Write_Str ("a partition filter attribute applies only to ");
                Write_Eol;
@@ -1137,7 +1138,7 @@ package body XE_Back is
               Get_Variable_Type (Variable_Id (Attr_Item)) /=
               String_Type_Node then
                Write_SLOC (Node_Id (Attribute));
-               Write_Name (Partitions.Table (Partition).Name);
+               Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s storage_dir attribute must be ");
                Write_Str ("a string litteral");
                Write_Eol;
@@ -1169,7 +1170,7 @@ package body XE_Back is
 
                when others =>
                   Write_SLOC (Node_Id (Attribute));
-                  Write_Name (Partitions.Table (Partition).Name);
+                  Write_Name (Partitions.Table (PID).Name);
                   Write_Str  ("'s host attribute must of string type");
                   Write_Eol;
                   raise Parsing_Error;
@@ -1177,8 +1178,8 @@ package body XE_Back is
 
             --  Check that it has not already been assigned.
 
-            if Partitions.Table (Partition).Host = Null_HID then
-               Partitions.Table (Partition).Host := Host;
+            if Partitions.Table (PID).Host = Null_HID then
+               Partitions.Table (PID).Host := Host;
             else
                Write_Error_Message (Node_Id (Attribute), PID, "host");
             end if;
@@ -1195,7 +1196,7 @@ package body XE_Back is
                --  has been configured on partition.
 
                Ada_Unit := Get_Node_Name (Node_Id (Attr_Item));
-               Add_Conf_Unit (Ada_Unit, Partition);
+               Add_Conf_Unit (Ada_Unit, PID);
 
             else
                Write_Error_Message (Node_Id (Attribute), PID, "main");
@@ -1209,7 +1210,7 @@ package body XE_Back is
               Get_Variable_Type (Variable_Id (Attr_Item)) /=
               String_Type_Node then
                Write_SLOC (Node_Id (Attribute));
-               Write_Name (Partitions.Table (Partition).Name);
+               Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s command line attribute must be string litteral");
                Write_Eol;
                raise Parsing_Error;
@@ -1232,7 +1233,7 @@ package body XE_Back is
               Get_Variable_Type (Variable_Id (Attr_Item)) /=
               Integer_Type_Node then
                Write_SLOC (Node_Id (Attribute));
-               Write_Name (Partitions.Table (Partition).Name);
+               Write_Name (Partitions.Table (PID).Name);
                Write_Str ("'s termination attribute must be ");
                Write_Str ("of termination type");
                Write_Eol;
@@ -1259,20 +1260,11 @@ package body XE_Back is
          when Attribute_Task_Pool =>
 
             First_Variable_Component (Variable_Id (Attr_Item), Comp_Node);
-            declare
-               P : PID_Type;
-            begin
-               if Partition = Null_PID then
-                  P := Default_Partition;
-               else
-                  P := Partition;
-               end if;
-               for B in Partitions.Table (P).Task_Pool'Range loop
-                  Partitions.Table (P).Task_Pool (B)
-                    := Get_Node_Name (Get_Component_Value (Comp_Node));
-                  Next_Variable_Component (Comp_Node);
-               end loop;
-            end;
+            for B in Partitions.Table (PID).Task_Pool'Range loop
+               Partitions.Table (PID).Task_Pool (B)
+                 := Get_Node_Name (Get_Component_Value (Comp_Node));
+               Next_Variable_Component (Comp_Node);
+            end loop;
 
          when Attribute_CFilter | Attribute_Unknown =>
             raise Fatal_Error;
@@ -1376,11 +1368,11 @@ package body XE_Back is
                case Pre_Type_Id is
                   when Pre_Type_Partition =>
                      Set_Partition_Attribute
-                       (Attribute_Id (Component_Node), Null_PID);
+                       (Attribute_Id (Component_Node), Default_Partition);
 
                   when Pre_Type_Channel   =>
                      Set_Channel_Attribute
-                       (Attribute_Id (Component_Node), Null_CID);
+                       (Attribute_Id (Component_Node), Default_Channel);
 
                   when others =>
                      null;
