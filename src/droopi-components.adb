@@ -2,9 +2,21 @@
 
 --  $Id$
 
+with Ada.Tags;
+pragma Warnings (Off, Ada.Tags);
+--  Only used within pragma Debug.
+
+with Droopi.Log;
+
 package body Droopi.Components is
 
+   use Ada.Tags;
+   use Droopi.Log;
    use Component_Seqs;
+
+   package L is new Droopi.Log.Facility_Log ("droopi.components");
+   procedure O (Message : in String; Level : Log_Level := Debug)
+     renames L.Output;
 
    procedure Connect
      (Signal : out Component_Access;
@@ -19,8 +31,10 @@ package body Droopi.Components is
    is
       Dummy : Boolean;
    begin
+      pragma Debug (O ("Sending message " & External_Tag (Msg'Tag)
+                       & " to target " & External_Tag (Signal.all'Tag)));
       if Signal /= null then
-         Dummy := Handle_Message (Signal.all, Msg);
+         Dummy := Handle_Message (Signal, Msg);
       end if;
    end Emit;
 
@@ -50,7 +64,7 @@ package body Droopi.Components is
    end Unsubscribe;
 
    function Handle_Message
-     (Grp : Multicast_Group;
+     (Grp : access Multicast_Group;
       Msg : Message'Class)
      return Boolean
    is
@@ -60,13 +74,13 @@ package body Droopi.Components is
    begin
       for I in Members'Range loop
          Handled := Handled
-           or else Handle_Message (Members (I).all, Msg);
+           or else Handle_Message (Members (I), Msg);
       end loop;
       return Handled;
    end Handle_Message;
 
    function Handle_Message
-     (Grp : Anycast_Group;
+     (Grp : access Anycast_Group;
       Msg : Message'Class)
      return Boolean
    is
@@ -74,7 +88,7 @@ package body Droopi.Components is
         := To_Element_Array (Grp.Members);
    begin
       for I in Members'Range loop
-         if Handle_Message (Members (I).all, Msg) then
+         if Handle_Message (Members (I), Msg) then
             return True;
          end if;
       end loop;

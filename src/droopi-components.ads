@@ -1,4 +1,4 @@
---  A communication filter (a transport Data_Unit handler/forwarder).
+--  Abstract components communicating through synchronous messages.
 
 --  $Id$
 
@@ -10,13 +10,13 @@ package Droopi.Components is
    -- Abstract message and components --
    -------------------------------------
 
-   type Message is abstract tagged private;
+   type Message is abstract tagged null record;
 
    type Component is abstract tagged limited private;
    type Component_Access is access all Component'Class;
 
    function Handle_Message
-     (C : Component;
+     (C : access Component;
       M : Message'Class)
      return Boolean
       is abstract;
@@ -64,8 +64,6 @@ package Droopi.Components is
 
 private
 
-   type Message is abstract tagged null record;
-
    type Component is abstract tagged limited null record;
 
    package Component_Seqs is new Sequences.Unbounded
@@ -79,14 +77,14 @@ private
    type Multicast_Group is new Group with null record;
 
    function Handle_Message
-     (Grp : Multicast_Group;
+     (Grp : access Multicast_Group;
       Msg : Message'Class)
      return Boolean;
 
    type Anycast_Group is new Group with null record;
 
    function Handle_Message
-     (Grp : Anycast_Group;
+     (Grp : access Anycast_Group;
       Msg : Message'Class)
      return Boolean;
 
