@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package Test_Suite.Test_Case.Parser is
 
    function Extract_Test

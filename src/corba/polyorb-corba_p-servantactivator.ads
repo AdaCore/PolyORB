@@ -34,8 +34,6 @@
 --  This package provides glue codee between PolyORB's
 --  ServantActivator and CORBA specific ServantActivator.
 
---  $Id$
-
 with PortableServer.ServantActivator;
 
 with PolyORB.POA_Types;

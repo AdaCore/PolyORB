@@ -31,8 +31,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.Servants;
 with PolyORB.Components;
 with PolyORB.Types;
