@@ -54,6 +54,12 @@ with PolyORB.ORB_Controller.Basic;
 pragma Warnings (Off, PolyORB.ORB_Controller.Basic);
 pragma Elaborate_All (PolyORB.ORB_Controller.Basic);
 
+with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations;
+pragma Elaborate_All
+  (PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations);
+pragma Warnings
+  (Off, PolyORB.Tasking.Profiles.Full_Tasking.Threads.Annotations);
+
 with PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities;
 pragma Elaborate_All
   (PolyORB.Tasking.Profiles.Full_Tasking.Threads.Dynamic_Priorities);
