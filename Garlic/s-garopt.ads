@@ -43,7 +43,7 @@ package System.Garlic.Options is
    Def_Task_Pool_Low_Bound  : constant := 1;
    Def_Task_Pool_High_Bound : constant := 5;
    Def_Task_Pool_Max_Bound  : constant := 512;
-   Def_Connection_Hits      : constant := 5;
+   Def_Connection_Hits      : constant := 10;
 
    Task_Pool_Low_Bound  : Natural;
    Task_Pool_High_Bound : Natural;
