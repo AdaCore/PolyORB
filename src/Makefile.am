@@ -4,6 +4,8 @@ else
 SUBDIRS=	. corba
 endif
 
+include $(srcdir)/Makefile.common
+
 alidir = $(libdir)/polyorb
 
 ADA_SPECS_WITH_BODY = \

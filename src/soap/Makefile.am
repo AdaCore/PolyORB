@@ -1,5 +1,7 @@
 SUBDIRS = .
 
+include $(srcdir)/../Makefile.common
+
 alidir = $(libdir)/polyorb-soap
 
 GPERF_SPECS = \
@@ -43,8 +45,8 @@ CLEANFILES = *.ali
 
 LINK = $(LIBTOOL) $(ADA) -o libpolyorb-soap.la
 
-ADAFLAGS = $(GNATFLAGS) -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
-	-I$(srcdir)/../corba $(XMLADA_INCLUDE)
+ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. \
+	-I$(srcdir)/../corba $(XMLADA_INCLUDE) $(GNATFLAGS)
 # XXX CORBA included temporarily because of dep of P.Binding_Data.SOAP on
 # P.Representations.CDR.
 

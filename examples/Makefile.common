@@ -20,7 +20,7 @@ GNATMAKE_FLAGS = \
 	-largs $(LDFLAGS) --LINK=$(LINKER) \
 	../../src/libpolyorb.la \
 	../../src/corba/libpolyorb-corba.la \
-	../../src/soap/libpolyorb-soap.la
+	../../src/soap/libpolyorb-soap.la \
 	$(XMLADA_LIBS) 
 
 #	-I$(srcdir)/$(EXAMPLES_ROOT)/../cos/naming \

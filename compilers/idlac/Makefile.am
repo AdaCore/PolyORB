@@ -1,5 +1,7 @@
 SUBDIRS = testsuite
 
+include $(srcdir)/../Makefile.common
+
 if DEBUG
 TESTPROGS = testparser testlexer testgen
 else

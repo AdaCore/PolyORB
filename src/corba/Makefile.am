@@ -1,5 +1,7 @@
 SUBDIRS = .
 
+include $(srcdir)/../Makefile.common
+
 alidir = $(libdir)/polyorb-corba
 
 ADA_SPECS_WITH_BODY = \
@@ -52,8 +54,7 @@ CLEANFILES = *.ali
 
 LINK = $(LIBTOOL) $(ADA) -o libpolyorb-corba.la
 
-ADAFLAGS = $(GNATFLAGS) \
-	-I. -I$(srcdir) -I.. -I$(srcdir)/..
+ADAFLAGS = -I. -I$(srcdir) -I.. -I$(srcdir)/.. $(GNATFLAGS)
 
 ADACOMPILER = ../../support/adacompiler
 
