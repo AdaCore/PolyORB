@@ -1,5 +1,6 @@
 with CORBA.Policy_Values;           use CORBA.Policy_Values;
 with CORBA.Object_Map;              use CORBA.Object_Map;
+with CORBA.POA_Types;               use CORBA.POA_Types;
 
 package CORBA.Policy.Id_Uniqueness_Policy is
 
@@ -26,15 +27,26 @@ package CORBA.Policy.Id_Uniqueness_Policy is
                    Ptr : in out Policy_Access)
       is abstract;
 
---    procedure Ensure_Servant_Uniqueness
---      (Self          : in out IdUniquenessPolicy_Access;
---       Map           : in out CORBA.Object_Map.Object_Map;
---       P_Servant     : in Servant)
---      is abstract;
---    --  Case UNIQUE_ID:
---    --  Checks that the specified servant is not yet in the Active Objects Map.
---    --  If not, throws a ServantAlreadyActive exception.
---    --  Case MULTIPLE_ID:
---    --  Does nothing
+   procedure Ensure_Servant_Uniqueness
+     (Self      : IdUniquenessPolicy;
+      OA        : CORBA.POA_Types.Obj_Adapter_Access;
+      P_Servant : Servant_Access)
+     is abstract;
+   --  Case UNIQUE_ID:
+   --  Checks that the specified servant is not yet in the Active Objects Map.
+   --  If not, throws a ServantAlreadyActive exception.
+   --  Case MULTIPLE_ID:
+   --  Does nothing
+
+   function Servant_To_Id (Self      : IdUniquenessPolicy;
+                           OA        : CORBA.POA_Types.Obj_Adapter_Access;
+                           P_Servant : Servant_Access) return Object_Id_Access
+      is abstract;
+   --  Case UNIQUE_ID:
+   --    Looks for the specified servant in the Active Object Map.
+   --    If found, returns its Object_Id.
+   --    Otherwise, returns null.
+   --  Case MULTIPLE_ID:
+   --    Returns null.
 
 end CORBA.Policy.Id_Uniqueness_Policy;

@@ -1,3 +1,7 @@
+with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
+
+with CORBA.POA;
+
 package body CORBA.Policy.Lifespan_Policy.Transient is
 
    use CORBA.Policy_Values;
@@ -27,6 +31,36 @@ package body CORBA.Policy.Lifespan_Policy.Transient is
    begin
       null;
    end Check_Compatibility;
+
+   --------------------
+   -- Get_Time_Stamp --
+   --------------------
+
+   function Get_Time_Stamp (P  : Transient_Policy;
+                            OA : CORBA.POA_Types.Obj_Adapter_Access)
+     return Time_Stamp
+   is
+      POA : CORBA.POA.Obj_Adapter_Access
+        := CORBA.POA.Obj_Adapter_Access (OA);
+   begin
+      return POA.Boot_Time;
+   end Get_Time_Stamp;
+
+   ---------------------
+   -- Ensure_Lifespan --
+   ---------------------
+
+   procedure Ensure_Lifespan (P     : Transient_Policy;
+                              OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                              U_Oid : Unmarshalled_Oid_Access)
+   is
+      POA : CORBA.POA.Obj_Adapter_Access
+        := CORBA.POA.Obj_Adapter_Access (OA);
+   begin
+      if U_Oid.Persistency_Flag /= POA.Boot_Time then
+         Raise_Bad_Param;
+      end if;
+   end Ensure_Lifespan;
 
    ----------
    -- Free --

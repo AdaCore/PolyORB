@@ -9,10 +9,20 @@ package CORBA.Policy.Lifespan_Policy.Transient is
    procedure Check_Compatibility (Self : Transient_Policy;
                                   OA   : CORBA.POA_Types.Obj_Adapter_Access);
 
-   procedure Free (P   : in     Transient_Policy;
-                   Ptr : in out Policy_Access);
+   function Get_Time_Stamp (P  : Transient_Policy;
+                            OA : CORBA.POA_Types.Obj_Adapter_Access)
+                           return Time_Stamp;
 
-   procedure Free is new Ada.Unchecked_Deallocation (Transient_Policy,
-                                                     Transient_Policy_Access);
+   procedure Ensure_Lifespan (P     : Transient_Policy;
+                              OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                              U_Oid : Unmarshalled_Oid_Access);
+
+   procedure Free
+     (P   : in     Transient_Policy;
+      Ptr : in out Policy_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Transient_Policy,
+      Transient_Policy_Access);
 
 end CORBA.Policy.Lifespan_Policy.Transient;

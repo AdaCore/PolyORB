@@ -1,6 +1,7 @@
-with CORBA.POA;
-with Droopi.CORBA_P.Exceptions;
+with Droopi.CORBA_P.Exceptions; use Droopi.CORBA_P.Exceptions;
+with CORBA.Policy.Servant_Retention_Policy;
 with CORBA.Policy_Values;
+with CORBA.POA;
 
 package body CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
 
@@ -41,6 +42,61 @@ package body CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
       null;
    end Check_Compatibility;
 
+   ---------------------
+   -- Etherealize_All --
+   ---------------------
+
+   procedure Etherealize_All (Self  : Active_Map_Only_Policy;
+                              OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                              U_Oid : Unmarshalled_Oid_Access)
+   is
+   begin
+      null;
+   end Etherealize_All;
+
+   -------------------
+   -- Servant_To_Id --
+   -------------------
+
+   function Servant_To_Id (Self  : Active_Map_Only_Policy;
+                           OA    : CORBA.POA_Types.Obj_Adapter_Access;
+                           P_Servant : Servant_Access) return Object_Id_Access
+   is
+      use CORBA.Policy.Servant_Retention_Policy;
+      POA : CORBA.POA.Obj_Adapter_Access
+        := CORBA.POA.Obj_Adapter_Access (OA);
+      Oid : Object_Id_Access;
+   begin
+      Oid := Servant_To_Id (POA.Servant_Retention_Policy.all,
+                            OA,
+                            P_Servant);
+      return Oid;
+   end Servant_To_Id;
+
+   -------------------
+   -- Id_To_Servant --
+   -------------------
+
+   function Id_To_Servant (Self : Active_Map_Only_Policy;
+                           OA   : CORBA.POA_Types.Obj_Adapter_Access;
+                           Oid  : Object_Id) return Servant_Access
+   is
+      use CORBA.Policy.Servant_Retention_Policy;
+      POA     : CORBA.POA.Obj_Adapter_Access
+        := CORBA.POA.Obj_Adapter_Access (OA);
+      U_Oid   : Unmarshalled_Oid_Access
+        := Oid_To_U_Oid (Oid);
+      Servant : Servant_Access;
+   begin
+      Servant := Id_To_Servant (POA.Servant_Retention_Policy.all,
+                                OA,
+                                U_Oid);
+      if Servant = null then
+         Raise_Object_Not_Active;
+      end if;
+      return Servant;
+   end Id_To_Servant;
+
    ----------
    -- Free --
    ----------
@@ -51,6 +107,5 @@ package body CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only is
    begin
       Free (Active_Map_Only_Policy_Access (Ptr));
    end Free;
-
 
 end CORBA.Policy.Request_Processing_Policy.Active_Object_Map_Only;

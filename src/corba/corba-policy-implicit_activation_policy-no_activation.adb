@@ -30,6 +30,19 @@ package body CORBA.Policy.Implicit_Activation_Policy.No_Activation is
       null;
    end Check_Compatibility;
 
+   ----------------------
+   -- Activate_Servant --
+   ----------------------
+
+   function Activate_Servant (Self      : No_Activation_Policy;
+                              OA        : CORBA.POA_Types.Obj_Adapter_Access;
+                              P_Servant : Servant_Access)
+                             return Object_Id_Access
+   is
+   begin
+      return null;
+   end Activate_Servant;
+
    ----------
    -- Free --
    ----------

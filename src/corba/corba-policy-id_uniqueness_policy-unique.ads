@@ -10,10 +10,21 @@ package CORBA.Policy.Id_Uniqueness_Policy.Unique is
    procedure Check_Compatibility (Self : Unique_Id_Policy;
                                   OA   : CORBA.POA_Types.Obj_Adapter_Access);
 
-   procedure Free (P   : in     Unique_Id_Policy;
-                   Ptr : in out Policy_Access);
+   procedure Ensure_Servant_Uniqueness
+     (Self      : Unique_Id_Policy;
+      OA        : CORBA.POA_Types.Obj_Adapter_Access;
+      P_Servant : Servant_Access);
 
-   procedure Free is new Ada.Unchecked_Deallocation (Unique_Id_Policy,
-                                                     Unique_Id_Policy_Access);
+   function Servant_To_Id (Self      : Unique_Id_Policy;
+                           OA        : CORBA.POA_Types.Obj_Adapter_Access;
+                           P_Servant : Servant_Access) return Object_Id_Access;
+
+   procedure Free
+     (P   : in     Unique_Id_Policy;
+      Ptr : in out Policy_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Unique_Id_Policy,
+      Unique_Id_Policy_Access);
 
 end CORBA.Policy.Id_Uniqueness_Policy.Unique;

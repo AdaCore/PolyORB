@@ -24,18 +24,18 @@ package CORBA.Policy.Implicit_Activation_Policy is
    --  The real creation function that has to be implemented for each
    --  possible Policy
 
+   function Activate_Servant (Self      : ImplicitActivationPolicy;
+                              OA        : CORBA.POA_Types.Obj_Adapter_Access;
+                              P_Servant : Servant_Access)
+                             return Object_Id_Access
+      is abstract;
+   --  Case NO_ACTIVATION:
+   --    Returns null
+   --  Case ACTIVATION:
+   --    Activates the servant in the Active Object Map.
+
    procedure Free (P   : in     ImplicitActivationPolicy;
                    Ptr : in out Policy_Access)
       is abstract;
-
---    function Activate_Servant
---      (Self             : access ImplicitActivationPolicy;
---       OA               : access CORBA.POA_Types.Obj_Adapter;
---       P_Servant        : Servant)
---      return Object_Id is abstract;
---    --  Case IMPLICIT_ACTIVATION:
---    --  Activate the servant and returns its Id
---    --  Case NO_IMPLICIT_ACTIVATION:
---    --  Returns Nil
 
 end CORBA.Policy.Implicit_Activation_Policy;
