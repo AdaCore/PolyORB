@@ -33,13 +33,13 @@
 
 --  $Id$
 
+with Ada.Command_Line;
 with Ada.Text_IO;
 
 with CORBA.ORB;
 with CORBA.Repository_Root;
 with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.Repository;
-with CORBA.Repository_Root.Repository.Helper;
 with CORBA.Repository_Root.Container;
 with CORBA.Repository_Root.Container.Helper;
 with CORBA.Repository_Root.Contained;
@@ -49,8 +49,6 @@ with CORBA.Repository_Root.InterfaceDef.Helper;
 with CORBA.Repository_Root.ExceptionDef.Helper;
 with CORBA.Repository_Root.ValueDef.Helper;
 with CORBA.Repository_Root.ModuleDef.Helper;
-
-with PolyORB.CORBA_P.Naming_Tools;
 
 with PolyORB.Setup.Client;
 pragma Elaborate_All (PolyORB.Setup.Client);
@@ -209,6 +207,10 @@ procedure Print is
             Put ("Native");
          when Tk_Abstract_Interface =>
             Put ("Abstr-Ref");
+         when others =>
+            raise Program_Error;
+            --  XXX for now, the IR does not support
+            --  values in Tk_Local_Interface .. Tk_Event
       end case;
    end Print_TypeCode;
 
@@ -420,32 +422,35 @@ procedure Print is
       end loop;
    end Print_Contents;
 
-   Myrep : Repository.Ref;
+   Interface_Repo : Repository.Ref;
 
 begin
    CORBA.ORB.Initialize ("ORB");
-   Myrep := Repository.Helper.To_Ref
-     (PolyORB.CORBA_P.Naming_Tools.Locate ("Interface_Repository"));
 
---  If Ada.Command_Line.Argument_Count < 1 then
---      Put_Line ("usage : client <IOR_string_from_server>");
---      return;
---   end if;
+   if Ada.Command_Line.Argument_Count < 1 then
+      Put_Line ("usage : client <IOR_string_from_server>");
+      return;
+   end if;
 
-   --  transforms the Ada string into CORBA.String
---   IOR := CORBA.To_CORBA_String (Ada.Command_Line.Argument (1));
+   --  Getting the CORBA.Object
 
-   --  getting the CORBA.Object
---   CORBA.ORB.String_To_Object (IOR, Myrep);
+   CORBA.ORB.String_To_Object
+     (CORBA.To_CORBA_String (Ada.Command_Line.Argument (1)),
+      Interface_Repo);
 
-   --  checking if it worked
-   if Repository.Is_Nil (Myrep) then
+   --  Checking if it worked
+
+   if Repository.Is_Nil (Interface_Repo) then
       Put_Line ("main : cannot invoke on a nil reference");
       return;
    end if;
 
+   --  Dumping Interface Repository content
+
    Put_Line ("Start IR dump");
-   Print_Contents (Repository.contents (Myrep, dk_all, True), " ");
+   Print_Contents
+     (Repository.contents (Interface_Repo, dk_all, True), " ");
+
    New_Line;
    Put_Line ("End of Print Interface Repository client!");
 
