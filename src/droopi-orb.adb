@@ -37,11 +37,7 @@ package body Droopi.ORB is
       Run (ORB, Exit_When, True);
    end Run;
 
-   function Create_ORB
-     (Tasking_Policy : Tasking_Policy_Access)
-     return ORB_Access
-   is
-      ORB : constant ORB_Access := new ORB_Type (Tasking_Policy);
+   procedure Create (ORB : in out ORB_Type) is
    begin
       Create (ORB.ORB_Lock);
       --  From now on access to ORB state is protected by this mutex.
@@ -54,9 +50,7 @@ package body Droopi.ORB is
       ORB.Shutdown := False;
       ORB.Polling  := False;
       Leave (ORB.ORB_Lock.all);
-
-      return ORB;
-   end Create_ORB;
+   end Create;
 
    procedure Start (ORB : access ORB_Type);
 

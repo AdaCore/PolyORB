@@ -14,9 +14,9 @@ package Droopi.Transport.Sockets is
    --  A listening transport service access point as
    --  a listening stream-oriented socket.
 
-   function Create_Transport_Access_Point
-     (Socket : Socket_Type)
-     return Transport_Access_Point_Access;
+   procedure Create
+     (SAP : in out Socket_Access_Point;
+      Socket : Socket_Type);
 
    function Create_Event_Source
      (TAP : Socket_Access_Point)

@@ -19,12 +19,16 @@ procedure Droopi.Setup.Test
 is
    use Droopi.ORB;
    use Droopi.Sockets;
+   use Droopi.Transport;
    use Droopi.Transport.Sockets;
 
    Server : Socket_Type;
    Addr : Sock_Addr_Type;
 
    Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
+
+   SAP : constant Transport_Access_Point_Access
+     := new Socket_Access_Point;
 
 begin
    -------------------------------
@@ -45,8 +49,9 @@ begin
    --  Depends on Soft_Links.
 
    Put_Line ("@@4");
-   Setup.The_ORB := Droopi.ORB.Create_ORB
+   Setup.The_ORB := new ORB.ORB_Type
      (Tasking_Policy_Access'(new Task_Policies.No_Tasking));
+   Droopi.ORB.Create (Setup.The_ORB.all);
    --  Create ORB singleton.
 
    --------------------------------------
@@ -81,9 +86,10 @@ begin
 
    Listen_Socket (Server);
 
+   Create (Socket_Access_Point (SAP.all), Server);
    Register_Access_Point
      (The_ORB,
-      TAP => Create_Transport_Access_Point (Server),
+      TAP => SAP,
       Chain => new Filters.Factory_Chain'
       (This => new Protocols.Echo.Echo_Protocol,
        Upper => null));

@@ -72,11 +72,8 @@ package Droopi.ORB is
      (ORB : access ORB_Type; Exit_When : Exit_Condition_Access);
    --  Override inherited primitive.
 
-   function Create_ORB
-     (Tasking_Policy : Tasking_Policy_Access)
-     return ORB_Access;
-   --  Create a new ORB with the given Tasking_Policy and
-   --  initialize it.
+   procedure Create (ORB : in out ORB_Type);
+   --  Initialize a newly-allocated ORB object.
 
    procedure Run
      (ORB            : access ORB_Type;

@@ -48,7 +48,7 @@ private
 
    type Socket_Event_Monitor is new Asynch_Ev_Monitor
      with record
-        Selector : Droopi.Sockets.Selector_Access;
+        Selector : Droopi.Sockets.Selector_Type;
      end record;
 
 end Droopi.Asynch_Ev.Sockets;

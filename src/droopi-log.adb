@@ -13,7 +13,7 @@ package body Droopi.Log is
    -- associated with each facility.             --
    ------------------------------------------------
 
-   type String_Ptr is access String;
+   type String_Ptr is access all String;
    procedure Free is new Ada.Unchecked_Deallocation (String, String_Ptr);
 
    type Hash_Val is new Integer range 0 .. 32;
@@ -61,10 +61,9 @@ package body Droopi.Log is
      (Facility : in String)
       return Log_Level
    is
-      F   : String_Ptr := new String'(Facility);
-      LLI : constant Log_Level_Info := HT.Get (F);
+      F   : aliased String := Facility;
+      LLI : constant Log_Level_Info := HT.Get (F'Unchecked_Access);
    begin
-      Free (F);
       return LLI.Level;
    end Get_Log_Level;
 

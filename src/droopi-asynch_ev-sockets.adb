@@ -2,8 +2,6 @@
 
 --  $Id$
 
-with Ada.Unchecked_Deallocation;
-
 with Droopi.Log;
 
 package body Droopi.Asynch_Ev.Sockets is
@@ -18,20 +16,12 @@ package body Droopi.Asynch_Ev.Sockets is
 
    procedure Create (AEM : out Socket_Event_Monitor) is
    begin
-      pragma Assert (AEM.Selector = null);
-      AEM.Selector := new Droopi.Sockets.Selector_Type;
-      pragma Assert (AEM.Selector /= null);
-      Create_Selector (AEM.Selector.all);
+      Create_Selector (AEM.Selector);
    end Create;
 
-   procedure Destroy (AEM : in out Socket_Event_Monitor)
-   is
-      procedure Free is new Ada.Unchecked_Deallocation
-        (Selector_Type, Selector_Access);
+   procedure Destroy (AEM : in out Socket_Event_Monitor) is
    begin
-      pragma Assert (AEM.Selector /= null);
-      Close_Selector (AEM.Selector.all);
-      Free (AEM.Selector);
+      Close_Selector (AEM.Selector);
    end Destroy;
 
    procedure Register_Source
@@ -102,7 +92,7 @@ package body Droopi.Asynch_Ev.Sockets is
       end if;
 
       Check_Selector
-        (Selector     => AEM.Selector.all,
+        (Selector     => AEM.Selector,
          R_Socket_Set => R_Set,
          W_Socket_Set => W_Set,
          Status       => Status,
@@ -147,7 +137,7 @@ package body Droopi.Asynch_Ev.Sockets is
    begin
       --  XXX check that selector is currently blocking!
       --  (and do it in a thread-safe manner, if applicable!)
-      Abort_Selector (AEM.Selector.all);
+      Abort_Selector (AEM.Selector);
    end Abort_Check_Sources;
 
    function Create_Event_Source
