@@ -51,10 +51,15 @@ package CORBA.Object is
    function To_CORBA_Object
      (O : in Droopi.Objects.Object_Id)
      return Ref;
+   --  XXX What does this do?
 
    function To_Droopi_Object
      (R : in Ref)
      return Droopi.Objects.Object_Id;
+   -- XXX What is this supposed to do?
+   --   It is not possible in general to associate a Droopi Object_Id
+   --   with a CORBA.Object.Ref. This can be done only when R designates
+   --   an object located on this middleware instance.
 
 private
 
