@@ -1213,8 +1213,8 @@ package body PolyORB.Protocols.GIOP is
    procedure Expect_Message (S : access GIOP_Session) is
    begin
       Buffers.Release_Contents (S.Buffer_In.all);
-      Expect_Data (S, S.Buffer_In, Message_Header_Size);
       S.State := Expect_Header;
+      Expect_Data (S, S.Buffer_In, Message_Header_Size);
    end Expect_Message;
 
    -------------------------
