@@ -4,6 +4,18 @@ DROOPI vs. Jonthan
 1. What we cannot reuse from Jonathan
 -------------------------------------
 
+1.0 Architecture
+----------------
+
+The architecture of Jonathan is based on a small class,
+JKernel, that provide a framework to compose middleware
+elements. JKernel is based on an abstract Kernel class.
+
+This class is derived by David into IIOPKernel (which
+delegates some of its functionalities to a Kernel instance);
+Jeremie, on the other hand, does not extend the default
+Kernel.
+
 1.1. Target
 -----------
 
@@ -33,8 +45,8 @@ DROOPI development is interoperability between distributed
 OO platforms, and more specifically between CORBA objects and
 the Ada 95 Distributed Systems Annex.
 
-The possibility to export the same object to different personalities
-in Jonathan is not demonstrated.
+Jonathan does not offer the possibility of exporting the same
+object to different personalities.
 
 1.4. Ada/Java integration
 -------------------------
