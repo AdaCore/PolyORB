@@ -314,6 +314,18 @@ begin
            echoBigMatrix (Myall_types, B) = B);
       end;
 
+      declare
+         B : sixteenKb;
+      begin
+         for I in B'Range (1) loop
+            for J in B'Range (2) loop
+               B (I, J) := Long ((I + 1) * (J + 2));
+            end loop;
+         end loop;
+         Output ("test huge (16 Kb) multi-dimensional array",
+           echoSixteenKb (Myall_types, B) = B);
+      end;
+
       --  Attributes
       set_myColor (Myall_types, Green);
       Output ("test attribute", get_myColor (Myall_types) = Green);
@@ -370,7 +382,7 @@ begin
    end loop;
 
    begin
-      echoStopServer (Myall_types);
+      StopServer (Myall_types);
       Ok := True;
    exception
       when others =>

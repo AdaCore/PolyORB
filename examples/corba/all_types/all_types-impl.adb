@@ -243,6 +243,15 @@ package body all_types.Impl is
       return arg;
    end echoBigMatrix;
 
+   function echoSixteenKb
+     (Self : access Object;
+      arg : in sixteenKb)
+      return sixteenKb
+   is
+   begin
+      return arg;
+   end echoSixteenKb;
+
    procedure testException
      (Self : access Object;
       arg : in CORBA.Long)
@@ -350,9 +359,9 @@ package body all_types.Impl is
       return Self.Attr_Counter;
    end get_Counter;
 
-   procedure echoStopServer (Self : access Object) is
+   procedure StopServer (Self : access Object) is
    begin
       CORBA.ORB.Shutdown (Wait_For_Completion => False);
-   end echoStopServer;
+   end StopServer;
 
 end all_types.Impl;

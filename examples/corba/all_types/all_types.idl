@@ -66,6 +66,12 @@ interface all_types {
   typedef long bigmatrix[30][15];
   bigmatrix echoBigMatrix (in bigmatrix arg);
 
+  // Big arrays
+  // ----------
+
+  typedef long sixteenKb[64][64];
+  sixteenKb echoSixteenKb (in sixteenKb arg);
+
   // Structs
   // -------
   struct simple_struct {
@@ -109,6 +115,6 @@ interface all_types {
   readonly attribute long Counter;
   attribute Color myColor;
 
-  void echoStopServer ();
+  void StopServer ();
   // Shut down server
 };
