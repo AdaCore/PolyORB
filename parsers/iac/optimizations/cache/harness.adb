@@ -11,18 +11,24 @@ with PolyORB.Smart_Pointers;
 with PolyORB.Utils.Strings;
 with PolyORB.Utils.Strings.Lists;
 with PolyORB.Initialization;
+with PolyORB.Any.ExceptionList;
+with PolyORB.Request_QOS;
 
 package body Harness is
 
    procedure echoULong_Cache_Init;
 
-   function echoULong_Get_Request
+   procedure echoULong_Get_Request
      (Arg_List : in PolyORB.Any.NVList.Ref;
-      Ref      : in PolyORB.References.Ref)
-     return PolyORB.Requests.Request_Access;
+      Ref      : in PolyORB.References.Ref;
+      Result   : in PolyORB.Any.NamedValue;
+      Request  : out PolyORB.Requests.Request_Access;
+      Index    : out Natural);
+   pragma Inline (echoULong_Get_Request);
 
    procedure echoULong_Free_Request
-     (Request : PolyORB.Requests.Request_Access);
+     (Index : Natural);
+   pragma Inline (echoULong_Free_Request);
 
    echoULong_Arg_Name_U_arg : PolyORB.Types.Identifier :=
      PolyORB.Types.To_PolyORB_String
@@ -36,8 +42,8 @@ package body Harness is
      ("Result");
 
    Request_Cache_Tab : array (1..10) of PolyORB.Requests.Request_Access;
-   Request_Cache_Tab_Used : array (1..10) of Boolean
-     := (others => false);
+   Request_Cache_Tab_Free : array (1..10) of Boolean
+     := (others => True);
 
    --------------------------
    -- echoULong_Result_U_V --
@@ -74,6 +80,7 @@ package body Harness is
       Request_ü : PolyORB.Requests.Request_Access;
       Result_ü : PolyORB.Any.NamedValue
         := echoULong_Result_U_V;
+      Index : Natural;
    begin
       if CORBA.Object.Is_Nil
         (Self_Ref_ü)
@@ -81,8 +88,10 @@ package body Harness is
          CORBA.Raise_Inv_Objref
            (CORBA.Default_Sys_Member);
       end if;
+
       PolyORB.Any.NVList.Create
         (Argument_List_ü);
+
       PolyORB.Any.NVList.Add_Item
         (Argument_List_ü,
          echoULong_Arg_Name_U_arg,
@@ -90,16 +99,24 @@ package body Harness is
            (Argument_U_arg),
          PolyORB.Any.ARG_IN);
 
-      Request_Ü := EchoULong_Get_Request
+
+      --  Get the request from the cache
+
+      EchoULong_Get_Request
         (Argument_List_Ü,
          CORBA.Object.To_PolyORB_Ref
-           (CORBA.Object.Ref
-              (Self)));
+         (CORBA.Object.Ref
+          (Self)),
+         Result_Ü,
+         Request_Ü,
+         Index);
+
+      --  Invoke the operation on the server
 
       PolyORB.CORBA_P.Interceptors_Hooks.Client_Invoke
         (Request_ü,
          PolyORB.Requests.Flags
-           (0));
+         (0));
       if not PolyORB.Any.Is_Empty
         (Request_ü.Exception_Info)
       then
@@ -111,37 +128,45 @@ package body Harness is
            (Result_ü.Argument);
       end if;
 
-      EchoULong_Free_Request (Request_ü);
+      --   free the request
+
+      EchoULong_Free_Request (Index);
 
       return CORBA.From_Any
         (CORBA.Internals.To_CORBA_Any
            (Result_ü.Argument));
    end echoULong;
 
-   --   PolyORB.Requests.Create_Request
-   --     (Target => CORBA.Object.To_PolyORB_Ref
-   --        (CORBA.Object.Ref
-   --            (Self)),
-   --      Operation => echoULong_Operation_Name_ü,
-   --      Arg_List => Argument_List_ü,
-   --      Result => Result_ü,
-   --      Req => Request_ü);
-
-
    ---------------------------
    -- echoULong_Get_Request --
    ---------------------------
 
-   function echoULong_Get_Request
+   procedure echoULong_Get_Request
      (Arg_List : in PolyORB.Any.NVList.Ref;
-      Ref      : in PolyORB.References.Ref)
-     return PolyORB.Requests.Request_Access is
+      Ref      : in PolyORB.References.Ref;
+      Result   : in PolyORB.Any.NamedValue;
+      Request  : out PolyORB.Requests.Request_Access;
+      Index    : out Natural)
+   is
       I : Natural := 1;
    begin
+      --  There is always a free request in the cache.
+      --  A solution with mutex will be developped to handle the concurency problem.
+
+      loop
+         exit when Request_Cache_Tab_Free (I);
+         I := I + 1;
+      end loop;
+
       Request_Cache_Tab (I).all.Target := Ref;
       Request_Cache_Tab (I).all.Args := Arg_List;
+      Request_Cache_Tab (I).all.Result := Result;
+      --  Request_Cache_Tab_Free (I) := False;
 
-      return Request_Cache_Tab (I);
+      --  Set returns values
+
+      Index := I;
+      Request :=  Request_Cache_Tab (I);
    end echoULong_Get_Request;
 
    ----------------------------
@@ -149,11 +174,28 @@ package body Harness is
    ----------------------------
 
    procedure echoULong_Free_Request
-     (Request : PolyORB.Requests.Request_Access)
+     (Index : Natural)
    is
-      pragma Unreferenced (Request);
    begin
-      null;
+      --  Request_Cache_Tab (Index).all.Req_Flags
+      --  := PolyORB.Requests.Default_Flags;
+      --  Request_Cache_Tab (Index).all.Deferred_Arguments_Session
+      --  := null;
+      --  Request_Cache_Tab (Index).all.Args_Ident
+      --  := PolyORB.Requests.Ident_By_Position;
+      Request_Cache_Tab (Index).all.Exc_List
+        := PolyORB.Any.ExceptionList.Nil_Ref;
+      Request_Cache_Tab (Index).all.Completed
+        := False;
+      Request_Cache_Tab (Index).all.Arguments_Called
+        := False;
+
+      --  PolyORB.Request_QoS.Set_QoS
+      --  (Request_Cache_Tab (Index),
+      --   PolyORB.Request_QoS.Fetch_QoS
+      --   (Request_Cache_Tab (Index).all.Target));
+
+      Request_Cache_Tab_Free (Index) := True;
    end echoULong_Free_Request;
 
    --------------------------
@@ -163,7 +205,8 @@ package body Harness is
    procedure echoULong_Cache_Init is
       Operation_Name_ü : constant Standard.String :=
         "echoULong";
-      Result_U     : PolyORB.Any.NamedValue;
+      Result_U     : PolyORB.Any.NamedValue
+        := echoULong_Result_U_V;
       Arg_List_Nil : PolyORB.Any.NVList.Ref;
    begin
 
@@ -224,10 +267,8 @@ package body Harness is
 begin
    declare
       List : PolyORB.Utils.Strings.Lists.List;
-
    begin
       PolyORB.Utils.Strings.Lists.Append (List, "smart_pointers");
-
       PolyORB.Initialization.Register_Module
         (PolyORB.Initialization.Module_Info'
          (Name => PolyORB.Utils.Strings."+"
