@@ -373,8 +373,8 @@ src/soap/polyorb-http_headers_GPERF.c
 src/soap/polyorb-http_methods.adb
 src/soap/polyorb-http_methods.ads
 src/soap/polyorb-http_methods_GPERF.c
-src/soap/polyorb-protocols-soap.adb
-src/soap/polyorb-protocols-soap.ads
+src/soap/polyorb-protocols-soap_pr.adb
+src/soap/polyorb-protocols-soap_pr.ads
 src/soap/soap-message-payload.adb
 src/soap/soap-message-payload.ads
 src/soap/soap-message-reader.adb

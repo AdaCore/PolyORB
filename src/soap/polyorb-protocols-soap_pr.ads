@@ -36,7 +36,7 @@ with PolyORB.Buffers;
 with PolyORB.ORB;
 with PolyORB.Types;
 
-package PolyORB.Protocols.SOAP is
+package PolyORB.Protocols.SOAP_Pr is
 
    pragma Elaborate_Body;
 
@@ -85,4 +85,4 @@ private
       S : Components.Message'Class)
      return Components.Message'Class;
 
-end PolyORB.Protocols.SOAP;
+end PolyORB.Protocols.SOAP_Pr;

@@ -11,7 +11,7 @@ GPERF_LIBADD = $(GPERF_C:.c=.lo)
 ADA_SPECS_WITH_BODY = \
 	$(GPERF_SPECS) \
 	polyorb-filters-http.ads \
-	polyorb-protocols-soap.ads \
+	polyorb-protocols-soap_pr.ads \
 	aws-mime.ads \
 	aws-response.ads \
 	soap-message-payload.ads \

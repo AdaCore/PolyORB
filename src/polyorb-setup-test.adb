@@ -77,9 +77,7 @@ with PolyORB.Protocols.SRP;
 --  --  SOAP
 --  with PolyORB.Binding_Data.SOAP;
 with PolyORB.Filters.HTTP;
-with PolyORB.Protocols.SOAP;
-pragma Warnings (Off, PolyORB.Filters.HTTP);
-pragma Warnings (Off, PolyORB.Protocols.SOAP);
+with PolyORB.Protocols.SOAP_Pr;
 
 --  Utility.
 with PolyORB.References.IOR;
@@ -189,7 +187,7 @@ package body PolyORB.Setup.Test is
          --         PF      => new Binding_Data.SOAP.SOAP_Profile_Factory);
          PF      => null);
    HTTP_Filter   : aliased PolyORB.Filters.HTTP.HTTP_Filter_Factory;
-   SOAP_Protocol : aliased Protocols.SOAP.SOAP_Protocol;
+   SOAP_Protocol : aliased Protocols.SOAP_Pr.SOAP_Protocol;
    --  XXX
    --  It is not a very satisfying thing to have to chain
    --  HTTP_Filter and SOAP_Protocol explicitly on the server

@@ -32,11 +32,15 @@
 
 --  $Id$
 
+with AWS.Response;
+
 with SOAP.Message;
 with SOAP.Message.XML;
 with SOAP.Message.Payload;
 with SOAP.Message.Response;
+with SOAP.Parameters;
 
+with PolyORB.Annotations;
 with PolyORB.Binding_Data;
 with PolyORB.Binding_Data.Local;
 with PolyORB.Filters.Interface;
@@ -46,15 +50,20 @@ with PolyORB.Objects;
 with PolyORB.References;
 with PolyORB.Utils.Text_Buffers;
 
-package body PolyORB.Protocols.SOAP  is
+package body PolyORB.Protocols.SOAP_Pr is
 
    use PolyORB.Filters.Interface;
    use PolyORB.Log;
    use PolyORB.ORB;
+   use Standard.SOAP;
 
-   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.soap");
+   package L is new PolyORB.Log.Facility_Log ("polyorb.protocols.soap_pr");
    procedure O (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
+
+   type Request_Note is new PolyORB.Annotations.Note with record
+      SOAP_Req : SOAP.Message.Payload.Object;
+   end record;
 
    procedure Create
      (Proto   : access SOAP_Protocol;
@@ -88,10 +97,67 @@ package body PolyORB.Protocols.SOAP  is
       (S : access SOAP_Session;
        R : Requests.Request_Access)
    is
+      N : Request_Note;
    begin
-      raise PolyORB.Not_Implemented;
+      Annotations.Get_Note (R.Notepad, N);
+      declare
+         use PolyORB.Any;
+         use PolyORB.Any.NVList;
+         use PolyORB.Any.NVList.Internals;
+         use PolyORB.Any.NVList.Internals.NV_Sequence;
+
+         use SOAP.Parameters;
+
+         RO : SOAP.Message.Response.Object
+           := SOAP.Message.Response.From (N.SOAP_Req);
+         RP : SOAP.Parameters.List;
+
+         Args : constant NV_Sequence_Access
+           := List_Of (R.Args);
+         A : Any.NamedValue;
+      begin
+         RP := +R.Result;
+         for I in 1 .. Get_Count (R.Args) loop
+            A :=  NV_Sequence.Element_Of (Args.all, Positive (I));
+            if False
+              or else A.Arg_Modes = ARG_INOUT
+              or else A.Arg_Modes = ARG_OUT
+            then
+               RP := RP & A;
+            end if;
+         end loop;
+
+         SOAP.Message.Set_Parameters (RO, RP);
+         declare
+            RD : AWS.Response.Data
+              := SOAP.Message.Response.Build (RO);
+            --  XXX possible abstraction violation detected!
+            --  Here we construct an /AWS/ response object.
+            --  Does this mean we assume that this SOAP engine
+            --  is bound to an HTTP engine? (esp. considering that
+            --  AWS.Response.Data contains an /HTTP/ status code. :( ).
+            --  (but that also means that AWS suffers from the same
+            --  abstraction violation).
+            pragma Warnings (Off, RD);
+            --  XXX not referenced yet
+         begin
+            --  XXX send out RD.
+            raise Not_Implemented;
+         end;
+      end;
    end Send_Reply;
 
+   function URI_To_Oid (URI : PolyORB.Types.String)
+     return Objects.Object_Id;
+
+   function URI_To_Oid (URI : PolyORB.Types.String)
+     return Objects.Object_Id
+   is
+      S : constant String := PolyORB.Types.To_Standard_String (URI);
+   begin
+      return PolyORB.Objects.To_Oid (S (S'First + 1 .. S'Last));
+      --  For now use /<hexdigits> as URI.
+   end URI_To_Oid;
 
    procedure Handle_Data_Indication
      (S : access SOAP_Session;
@@ -108,8 +174,8 @@ package body PolyORB.Protocols.SOAP  is
             use PolyORB.Binding_Data.Local;
             use PolyORB.Types;
 
-            M : constant Standard.SOAP.Message.Payload.Object
-              := Standard.SOAP.Message.XML.Load_Payload (Entity);
+            M : constant Message.Payload.Object
+              := Message.XML.Load_Payload (Entity);
             Req : Request_Access;
 
             Result : Any.NamedValue;
@@ -118,24 +184,14 @@ package body PolyORB.Protocols.SOAP  is
 
             ORB : constant ORB_Access := ORB_Access (S.Server);
 
-            Target_URI : constant String
-              := To_Standard_String (S.Target);
-            Target_Oid : Objects.Object_Id (1 .. Target_URI'Length);
-            --  XXX URLdecode?????
-
             Target : PolyORB.References.Ref;
             Target_Profile : Binding_Data.Profile_Access
               := new Local_Profile_Type;
             --  Should be free'd when Target is finalized.
 
          begin
-            for I in Target_URI'Range loop
-               Target_Oid (Stream_Element_Offset (I))
-                 := Character'Pos (Target_URI (I));
-            end loop;
-
             Create_Local_Profile
-              (Target_Oid, Local_Profile_Type (Target_Profile.all));
+              (URI_To_Oid (S.Target), Local_Profile_Type (Target_Profile.all));
             PolyORB.References.Create_Reference
               ((1 => Target_Profile),
                Type_Id => "", R => Target);
@@ -150,6 +206,11 @@ package body PolyORB.Protocols.SOAP  is
                Deferred_Arguments_Session => null,
                Req       => Req);
             S.Target := PolyORB.Types.To_PolyORB_String ("");
+
+            Annotations.Set_Note
+              (Req.Notepad,
+               Request_Note'(Annotations.Note
+                             with SOAP_Req => M));
 
             PolyORB.ORB.Queue_Request_To_Handler
               (ORB.Tasking_Policy, ORB,
@@ -208,4 +269,4 @@ package body PolyORB.Protocols.SOAP  is
       end if;
    end Handle_Message;
 
-end PolyORB.Protocols.SOAP;
+end PolyORB.Protocols.SOAP_Pr;
