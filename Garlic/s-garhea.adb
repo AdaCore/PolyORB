@@ -143,7 +143,16 @@ package body System.Garlic.Heart is
 
       if Self /= Environment_Task then
          Soft_Links.Enter_Critical_Section;
-         if Shutdown_Activation = None then
+
+         --  If the partition is not yet elaborated, resume main task
+         --  which will execute the termination procedure. When the
+         --  partition is not elaborated, it is blocked waiting for
+         --  its partition id.
+
+         if Self_PID = Null_PID then
+            Soft_Links.Signal_All (Self_PID_Barrier);
+
+         elsif Shutdown_Activation = None then
             Shutdown_Activation := Busy;
          end if;
          Soft_Links.Leave_Critical_Section;
@@ -168,7 +177,7 @@ package body System.Garlic.Heart is
       if Options.Is_Boot_Server then
 
          --  Global shutdown has been detected. Send shutdown operation to
-         --  any alive partition interested by a global termination. Ignore
+         --  any online partition interested by a global termination. Ignore
          --  any communication error as this is a shutdown.
 
          declare
@@ -267,7 +276,7 @@ package body System.Garlic.Heart is
       if PID = Null_PID
         and then Options.Is_Boot_Mirror
       then
-         Allocate_PID (PID, Error);
+         Allocate_PID (PID, Null_String, Error);
          if Found (Error) then
             return;
          end if;
@@ -337,8 +346,7 @@ package body System.Garlic.Heart is
 
    procedure Get_My_Partition_ID
      (PID   : out Partition_ID;
-      Error : in out Error_Type)
-   is
+      Error : in out Error_Type) is
    begin
       PID := Self_PID;
 
@@ -356,11 +364,27 @@ package body System.Garlic.Heart is
             end if;
 
          else
-            Send_Boot_Request (Error);
+            Send_Partition_Definition
+              (Partition      => Null_PID,
+               Partition_Name => Options.Partition_Name,
+               Is_Active_Part => True,
+               Net_Locations  => new String'(Merge_String
+                                             (Options.Self_Location)),
+               Mem_Locations  => new String'(Merge_String
+                                             (Options.Data_Location)),
+               Termination    => Options.Termination,
+               Reconnection   => Options.Reconnection,
+               Has_Light_PCS  => Can_Have_A_Light_Runtime,
+               Is_Boot_Mirror => Options.Is_Boot_Mirror,
+               Error          => Error);
             if Found (Error) then
                return;
             end if;
+
             Wait_For_My_Partition_ID;
+            if Self_PID = Null_PID then
+               Throw (Error, "boot partition failed to return partition id");
+            end if;
          end if;
       end if;
 
