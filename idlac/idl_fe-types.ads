@@ -39,7 +39,8 @@ package Idl_Fe.Types is
       C_String,
       C_WString,
       C_Octet,
-      C_Enum);
+      C_Enum,
+      C_No_Kind);
 
    --  type of a constant
    type Idl_Fixed_Digits_Nb is new Long_Long_Integer range 0 .. 31;
@@ -487,7 +488,7 @@ private
    type Identifier_Definition_Cell;
    type Identifier_Definition_List is access Identifier_Definition_Cell;
    type Identifier_Definition_Cell is record
-      Definition : Identifier_Definition;
+      Definition : Identifier_Definition_Acc;
       Next : Identifier_Definition_List;
    end record;
 

@@ -379,7 +379,7 @@ package body Idl_Fe.Types is
    begin
       pragma Debug (O2 ("Add_Identifier_Definition : enter"));
       List := new Identifier_Definition_Cell'
-        (Definition => Identifier.all,
+        (Definition => Identifier,
          Next => Identifier_List (Scope));
       Set_Identifier_List (Scope, List);
       Add_Definition_To_Storage (Identifier);
@@ -661,6 +661,48 @@ package body Idl_Fe.Types is
       return Current_Scope.Parent.Scope;
    end Get_Previous_Scope;
 
+   --------------------------
+   -- Identifiers handling --
+   --------------------------
+
+   function Identifier_Index
+     (Identifier : String;
+      Hash_Table : Hash_Table_Type;
+      Table : Idl_Fe.Types.Table)
+     return Uniq_Id;
+   --  Return the Uniq_id of Identifier if it is defined in
+   --  Table, or else return Nil_Uniq_Id.
+
+   function Imported_Identifier_Index
+     (Identifier : String)
+     return Uniq_Id;
+   --  Check if the  uniq_id from an identifier is already defined
+   --  in the imported table.
+   --  return it or Nil_Unqiq_Id
+
+   procedure Create_Identifier_Index
+     (Identifier : String;
+      Hash_Table : in out Hash_Table_Type;
+      Table : in out Idl_Fe.Types.Table;
+      Index : out Uniq_Id);
+   --  Create the uniq_id entry for an identifier if it doesn't exist
+   --  return it
+
+   function Create_Identifier_In_Storage
+     (Identifier : String)
+     return Uniq_Id;
+   --  Create the uniq_id entry for an identifier in the storage table
+   --  at the end of the scope parsing
+   --  return it
+
+   function Create_Identifier_In_Imported
+     (Identifier : String;
+      Scope : Node_Id)
+     return Uniq_Id;
+   --  Create the uniq_id entry for an identifier in the imported table of
+   --  the given scope
+   --  return it
+
    ------------------
    --  Push_Scope  --
    ------------------
@@ -669,6 +711,8 @@ package body Idl_Fe.Types is
      (Scope : Node_Id)
    is
       Stack : Scope_Stack_Acc;
+      Definition_List : Identifier_Definition_List;
+      Index : Uniq_Id;
    begin
       pragma Debug (O2 ("Push_scope : enter"));
       Stack := new Scope_Stack;
@@ -682,6 +726,30 @@ package body Idl_Fe.Types is
          Root_Scope := Stack;
       end if;
       Current_Scope := Stack;
+
+      pragma Debug (O ("Push_scope : puting the old definition " &
+                       "in the id_table."));
+      --  add all definition of the new scope into the hash table,
+      --  in case there are some. Usefull when a scoped is reopened
+      Definition_List := Identifier_List (Scope);
+      while Definition_List /= null loop
+         pragma Debug (O ("Push_scope : call to create_identifier_index."));
+         --  first find a place for this identifier in the table
+         Create_Identifier_Index
+           (Definition_List.Definition.Name.all,
+            Hash_Table,
+            Id_Table,
+            Index);
+         --  set its fields previous_definition and id that were
+         --  not used in the scope table
+         Definition_List.Definition.Previous_Definition :=
+           Id_Table.Table (Index).Definition;
+         Definition_List.Definition.Id := Index;
+         --  and finally add it to the scope
+         Id_Table.Table (Index).Definition := Definition_List.Definition;
+         Definition_List := Definition_List.Next;
+         pragma Debug (O ("Push_scope : end of loop."));
+      end loop;
       pragma Debug (O2 ("Push_scope : end"));
    end Push_Scope;
 
@@ -693,6 +761,7 @@ package body Idl_Fe.Types is
       Old_Scope : Scope_Stack_Acc;
       Definition_List : Identifier_Definition_List;
       Old_Definition_List : Identifier_Definition_List;
+      Old_Definition : Identifier_Definition_Acc;
       Forward_Defs : Node_Iterator;
       Forward_Def : Node_Id;
       Hash_Index : Hash_Value_Type;
@@ -704,6 +773,8 @@ package body Idl_Fe.Types is
       --  Add these definition to the identifier_table of the current_scope
       Definition_List := Identifier_List (Current_Scope.Scope);
       while Definition_List /= null loop
+         Old_Definition := Definition_List.Definition;
+         --  remove the identifier from the id_table
          Id_Table.Table (Definition_List.Definition.Id).Definition :=
            Definition_List.Definition.Previous_Definition;
          if Definition_List.Definition.Previous_Definition = null then
@@ -720,6 +791,11 @@ package body Idl_Fe.Types is
                Id_Table.Table (Index).Next := Nil_Uniq_Id;
             end if;
          end if;
+         --  once the definition is no more in the id table but
+         --  only in the table of the scope, the previous_definition
+         --  field has no more interest, as well as the Id field
+         Old_Definition.Previous_Definition := null;
+         Old_Definition.Id := Nil_Uniq_Id;
 
          Old_Definition_List := Definition_List;
          Definition_List := Definition_List.Next;
@@ -765,48 +841,6 @@ package body Idl_Fe.Types is
       Unchecked_Deallocation (Old_Scope);
       pragma Debug (O2 ("Pop_Scope : end"));
    end Pop_Scope;
-
-   --------------------------
-   -- Identifiers handling --
-   --------------------------
-
-   function Identifier_Index
-     (Identifier : String;
-      Hash_Table : Hash_Table_Type;
-      Table : Idl_Fe.Types.Table)
-     return Uniq_Id;
-   --  Return the Uniq_id of Identifier if it is defined in
-   --  Table, or else return Nil_Uniq_Id.
-
-   function Imported_Identifier_Index
-     (Identifier : String)
-     return Uniq_Id;
-   --  Check if the  uniq_id from an identifier is already defined
-   --  in the imported table.
-   --  return it or Nil_Unqiq_Id
-
-   procedure Create_Identifier_Index
-     (Identifier : String;
-      Hash_Table : in out Hash_Table_Type;
-      Table : in out Idl_Fe.Types.Table;
-      Index : out Uniq_Id);
-   --  Create the uniq_id entry for an identifier if it doesn't exist
-   --  return it
-
-   function Create_Identifier_In_Storage
-     (Identifier : String)
-     return Uniq_Id;
-   --  Create the uniq_id entry for an identifier in the storage table
-   --  at the end of the scope parsing
-   --  return it
-
-   function Create_Identifier_In_Imported
-     (Identifier : String;
-      Scope : Node_Id)
-     return Uniq_Id;
-   --  Create the uniq_id entry for an identifier in the imported table of
-   --  the given scope
-   --  return it
 
    --------------------
    -- Is_Redefinable --
@@ -1174,17 +1208,13 @@ package body Idl_Fe.Types is
      (Definition : in Identifier_Definition_Acc)
    is
       Index : Uniq_Id;
-      Definition_Test : Identifier_Definition_Acc;
    begin
       pragma Debug (O2 ("Add_Definition_To_Storage : enter"));
       Index := Create_Identifier_In_Storage (Definition.Name.all);
-      Definition_Test :=
-        Identifier_Table (Current_Scope.Scope).Content_Table.
-        Table (Index).Definition;
       --  their shouldn't be any redefinition
-      if Definition_Test /= null then
-         raise Idl_Fe.Errors.Internal_Error;
-      end if;
+      pragma Assert (Identifier_Table
+                     (Current_Scope.Scope).Content_Table.
+                     Table (Index).Definition = null);
       Identifier_Table (Current_Scope.Scope).Content_Table.
         Table (Index).Definition := Definition;
       pragma Debug (O2 ("Add_Definition_To_Storage : end"));
@@ -1318,11 +1348,13 @@ package body Idl_Fe.Types is
       Result_List : Node_List := null;
       First_List : Node_List := null;
    begin
+      pragma Debug (O2 ("Find_Inherited_Identifier_Definition : enter"));
       --  There are no imports in modules.
       if not (False
         or else Kind (Current_Scope.Scope) = K_Interface
         or else Kind (Current_Scope.Scope) = K_ValueType)
       then
+         pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
          return null;
       end if;
 
@@ -1335,6 +1367,7 @@ package body Idl_Fe.Types is
       if Get_Length (Result_List) = 0 then
          pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
                           "Nothing found in inheritance"));
+         pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
          return null;
       elsif  Get_Length (Result_List) = 1 then
          declare
@@ -1343,6 +1376,7 @@ package body Idl_Fe.Types is
             pragma Debug (O ("Find_Inherited_Identifier_Definition : " &
                              "One definition found in inheritance"));
             Node := Head (Result_List);
+            pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
             return Definition (Node);
          end;
       else
@@ -1360,6 +1394,7 @@ package body Idl_Fe.Types is
 
             Node := Head (Result_List);
             Free (Result_List);
+            pragma Debug (O2 ("Find_Inherited_Identifier_Definition : end"));
             return Definition (Node);
          end;
       end if;

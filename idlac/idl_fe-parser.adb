@@ -128,6 +128,7 @@ package body Idl_Fe.Parser is
          when others =>
             String_Buffer (Newest_Index) := null;
       end case;
+      pragma Debug (O ("Get_Token_From_Lexer : end"));
    end Get_Token_From_Lexer;
 
    ------------------
@@ -555,25 +556,47 @@ package body Idl_Fe.Parser is
          when  T_Identifier =>
             case View_Next_Token is
                when T_Left_Cbracket =>
-                  --  Creation of the node
-                  Result := Make_Module;
-                  Types.Set_Location (Result,
-                                      Get_Previous_Token_Location);
-                  --  try to add the identifier to the scope
-                  if not Types.Add_Identifier (Result,
-                                               Get_Token_String) then
+                  --  See if the identifier is not already used
+                  if Is_Redefinable (Get_Token_String) then
+                     declare
+                        Ok : Boolean;
+                     begin
+                        --  Creation of the node
+                        Result := Make_Module;
+                        Types.Set_Location (Result,
+                                            Get_Previous_Token_Location);
+                        Ok := Types.Add_Identifier (Result,
+                                                    Get_Token_String);
+                        pragma Assert (Ok = True);
+                     end;
+                  else
                      --  there is a name collision with the module name
                      declare
-                        Loc : Idl_Fe.Errors.Location;
+                        Def : Node_Id;
                      begin
-                        Loc := Types.Get_Location
-                          (Find_Identifier_Node (Get_Token_String));
-                        Idl_Fe.Errors.Parser_Error
-                          ("This module name is already defined in" &
-                           " this scope : " &
-                           Idl_Fe.Errors.Display_Location (Loc),
-                           Idl_Fe.Errors.Error,
-                           Get_Token_Location);
+                        Def := Find_Identifier_Definition
+                          (Get_Token_String).Node;
+                        if Kind (Def) = K_Module then
+                           --  if the previous definition was a module,
+                           --  then reopen it
+                           pragma Debug (O ("Parse_Module : reopening a " &
+                                            "module"));
+                           Result := Def;
+                        else
+                           --  else raise an error
+                           declare
+                              Loc : Idl_Fe.Errors.Location;
+                           begin
+                              Loc := Types.Get_Location
+                                (Find_Identifier_Node (Get_Token_String));
+                              Idl_Fe.Errors.Parser_Error
+                                ("This module name is already defined in" &
+                                 " this scope : " &
+                                 Idl_Fe.Errors.Display_Location (Loc),
+                                 Idl_Fe.Errors.Error,
+                                 Get_Token_Location);
+                           end;
+                        end if;
                      end;
                   end if;
                   --  consume the T_Left_Cbracket token
@@ -886,23 +909,15 @@ package body Idl_Fe.Parser is
                Scoped_Success : Boolean;
                Name : Node_Id;
             begin
-               --  FIXME : no test on scoped_success
-               Parse_Scoped_Name (Name, Scoped_Success);
+               Parse_Interface_Name (Name, Scoped_Success);
                if not Scoped_Success then
                   Go_To_Next_Left_Cbracket;
                   exit;
-               else
-                  --  the inheritance should be an interface
-                  if Kind (Value (Name)) /= K_Interface then
-                     Idl_Fe.Errors.Parser_Error
-                       ("inheritance is not an interface",
-                        Idl_Fe.Errors.Error,
-                        Get_Previous_Token_Location);
-                  else
-                     Set_Parents (Result,
-                                  Append_Node (Parents (Result),
-                                               Name));
-                  end if;
+               end if;
+               if Name /= No_Node then
+                  Set_Parents (Result,
+                               Append_Node (Parents (Result),
+                                            Name));
                end if;
             end;
             exit when Get_Token /= T_Comma;
@@ -977,6 +992,25 @@ package body Idl_Fe.Parser is
       end loop;
    end Parse_Interface_Body;
 
+   ----------------------------
+   --  Parse_Interface_Name  --
+   ----------------------------
+
+   procedure Parse_Interface_Name (Result : out Node_Id;
+                                   Success : out Boolean) is
+   begin
+      Parse_Scoped_Name (Result, Success);
+      --  the scoped name should denote an interface
+      if Success and then
+        Result /= No_Node then
+         if Kind (Value (Result)) /= K_Interface then
+            Idl_Fe.Errors.Parser_Error
+              ("the inherited scoped name should denote an interface",
+               Idl_Fe.Errors.Error,
+               Get_Previous_Token_Location);
+         end if;
+      end if;
+   end Parse_Interface_Name;
 
    -------------------------
    --  Parse_Scoped_Name  --
@@ -1126,7 +1160,7 @@ package body Idl_Fe.Parser is
             end if;
             A_Name := Def.Node;
             --  if it is not the end of the scoped name, the
-            --  current identifier may denote a node
+            --  current identifier should denote a node
             if View_Next_Token = T_Colon_Colon then
                if not Is_Scope (A_Name) then
                   Idl_Fe.Errors.Parser_Error
@@ -1712,7 +1746,8 @@ package body Idl_Fe.Parser is
             Name_Success : Boolean;
          begin
             Parse_Value_Name (Name, Name_Success);
-            if Name_Success then
+            if Name_Success and then
+              Name /= No_Node then
                case Kind (Value (Name)) is
                   when K_ValueType =>
                      if Abst (Result) then
@@ -1780,7 +1815,8 @@ package body Idl_Fe.Parser is
                Name_Success : Boolean;
             begin
                Parse_Value_Name (Name, Name_Success);
-               if Name_Success then
+               if Name_Success and then
+                 Name /= No_Node then
                   case Kind (Value (Name)) is
                      when K_ValueType =>
                         pragma Debug (O ("Parse_Value_Inheritance_Spec : " &
@@ -1857,7 +1893,7 @@ package body Idl_Fe.Parser is
                   Name : Node_Id;
                   Name_Success : Boolean;
                begin
-                  Parse_Value_Name (Name, Name_Success);
+                  Parse_Interface_Name (Name, Name_Success);
                   if Name_Success then
                      case Kind (Value (Name)) is
                         when K_Interface =>
@@ -1906,7 +1942,7 @@ package body Idl_Fe.Parser is
                      Name : Node_Id;
                      Name_Success : Boolean;
                   begin
-                     Parse_Value_Name (Name, Name_Success);
+                     Parse_Interface_Name (Name, Name_Success);
                      if Name_Success then
                         case Kind (Value (Name)) is
                            when K_Interface =>
@@ -1982,6 +2018,26 @@ package body Idl_Fe.Parser is
       end case;
       pragma Debug (O2 ("Parse_Value_Inheritance_Spec : enter"));
    end Parse_Value_Inheritance_Spec;
+
+   ------------------------
+   --  Parse_Value_Name  --
+   ------------------------
+
+   procedure Parse_Value_Name (Result : out Node_Id;
+                               Success : out Boolean) is
+   begin
+      Parse_Scoped_Name (Result, Success);
+      --  the scoped name should denote a valuetype
+      if Success and then
+        Result /= No_Node then
+         if Kind (Value (Result)) /= K_ValueType then
+            Idl_Fe.Errors.Parser_Error
+              ("the inherited scoped name should denote a ValueType",
+               Idl_Fe.Errors.Error,
+               Get_Previous_Token_Location);
+         end if;
+      end if;
+   end Parse_Value_Name;
 
    ---------------------------
    --  Parse_Value_Element  --
@@ -2453,82 +2509,66 @@ package body Idl_Fe.Parser is
            | T_Unsigned =>
             Parse_Integer_Type (Result, Success);
          when T_Char =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Char_Type (Res, Success);
-               Result := Res;
-            end;
+               Parse_Char_Type (Result, Success);
          when T_Wchar =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Wide_Char_Type (Res, Success);
-               Result := Res;
-            end;
+            Parse_Wide_Char_Type (Result, Success);
          when T_Boolean =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Boolean_Type (Res, Success);
-               Result := Res;
-            end;
+            Parse_Boolean_Type (Result, Success);
          when T_Float
            | T_Double =>
             Parse_Floating_Pt_Type (Result, Success);
          when T_String =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_String_Type (Res, Success);
-               Result := Res;
-            end;
+               Parse_String_Type (Result, Success);
          when T_Wstring =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Wide_String_Type (Res, Success);
-               Result := Res;
-            end;
+            Parse_Wide_String_Type (Result, Success);
          when T_Fixed =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Fixed_Pt_Type (Res, Success);
-               Result := Res;
-            end;
+            Parse_Fixed_Pt_Type (Result, Success);
          when T_Colon_Colon
            | T_Identifier =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Scoped_Name (Res, Success);
-               --  The <scoped_name> in the <const_type> production
-               --  must be a previously defined integer, char, wide_char,
-               --  boolean, floating_pt, string, wide_string, octet or
-               --  enum type.
-               pragma Debug (O ("Parse_Const_Type : scoped name found. " &
-                                "Its type is " &
-                                Node_Kind'Image (Kind (S_Type (Res)))));
-               case Kind (S_Type (Res)) is
-                  when K_Short
-                    | K_Long
-                    | K_Long_Long
-                    | K_Unsigned_Short
-                    | K_Unsigned_Long
-                    | K_Unsigned_Long_Long
-                    | K_Char
-                    | K_Wide_Char
-                    | K_Boolean
-                    | K_Float
-                    | K_Double
-                    | K_Long_Double
-                    | K_String
-                    | K_Wide_String
-                    | K_Octet
-                    | K_Enum =>
-                     null;
-                  when others =>
+            Parse_Scoped_Name (Result, Success);
+            --  The <scoped_name> in the <const_type> production
+            --  must be a previously defined integer, char, wide_char,
+            --  boolean, floating_pt, string, wide_string, octet or
+            --  enum type.
+            if not Success then
+               Result := No_Node;
+               pragma Debug (O2 ("Parse_Const_Type : end"));
+               return;
+            end if;
+            if Result /= No_Node then
+               declare
+                  Invalid_Type : Boolean := False;
+               begin
+                  if S_Type (Result) /= No_Node then
+                     pragma Debug (O ("Parse_Const_Type : scoped name " &
+                                      "found. Its type is " &
+                                      Node_Kind'Image
+                                      (Kind (S_Type (Result)))));
+                     case Kind (S_Type (Result)) is
+                        when K_Short
+                          | K_Long
+                          | K_Long_Long
+                          | K_Unsigned_Short
+                          | K_Unsigned_Long
+                          | K_Unsigned_Long_Long
+                          | K_Char
+                          | K_Wide_Char
+                          | K_Boolean
+                          | K_Float
+                          | K_Double
+                          | K_Long_Double
+                          | K_String
+                          | K_Wide_String
+                          | K_Octet
+                          | K_Enum =>
+                           null;
+                        when others =>
+                           Invalid_Type := True;
+                     end case;
+                  else
+                     Invalid_Type := True;
+                  end if;
+                  if Invalid_Type then
                      Idl_Fe.Errors.Parser_Error
                        ("Invalid type in constant. The " &
                         "scoped name should refer to " &
@@ -2538,16 +2578,11 @@ package body Idl_Fe.Parser is
                         Idl_Fe.Errors.Error,
                         Get_Token_Location);
                      Success := False;
-               end case;
-               Result := Res;
-            end;
+                  end if;
+               end;
+            end if;
          when T_Octet =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Octet_Type (Res, Success);
-               Result := Res;
-            end;
+            Parse_Octet_Type (Result, Success);
          when others =>
             Idl_Fe.Errors.Parser_Error ("constant type expected.",
                                  Idl_Fe.Errors.Error,
@@ -2570,83 +2605,87 @@ package body Idl_Fe.Parser is
    begin
       pragma Debug (O2 ("Parse_Const_Exp : enter"));
       Loc := Get_Token_Location;
-      case Kind (Constant_Type) is
-         when K_Short
-           | K_Unsigned_Short =>
-            C_Type := new Const_Type (Kind => C_Short);
-         when K_Long
-           | K_Unsigned_Long =>
-            C_Type := new Const_Type (Kind => C_Long);
-         when K_Long_Long =>
-            C_Type := new Const_Type (Kind => C_LongLong);
-         when K_Unsigned_Long_Long =>
-            C_Type := new Const_Type (Kind => C_ULongLong);
-         when K_Char =>
-            C_Type := new Const_Type (Kind => C_Char);
-         when K_Wide_Char =>
-            C_Type := new Const_Type (Kind => C_WChar);
-         when K_Boolean =>
-            C_Type := new Const_Type (Kind => C_Boolean);
-         when K_Float =>
-            C_Type := new Const_Type (Kind => C_Float);
-         when K_Double =>
-            C_Type := new Const_Type (Kind => C_Double);
-         when K_Long_Double =>
-            C_Type := new Const_Type (Kind => C_LongDouble);
-         when K_Fixed =>
-            C_Type := new Const_Type (Kind => C_Fixed);
-            C_Type.Digits_Nb := 0;
-            C_Type.Scale := 0;
-         when K_String =>
-            C_Type := new Const_Type (Kind => C_String);
-         when K_Wide_String =>
-            C_Type := new Const_Type (Kind => C_WString);
-         when K_Octet =>
-            C_Type := new Const_Type (Kind => C_Octet);
-         when K_Enum =>
-            C_Type := new Const_Type (Kind => C_Enum);
-         when K_Scoped_Name =>
-            case Kind (S_Type (Constant_Type)) is
-               when K_Short
-                 | K_Unsigned_Short =>
-                  C_Type := new Const_Type (Kind => C_Short);
-               when K_Long
-                 | K_Unsigned_Long =>
-                  C_Type := new Const_Type (Kind => C_Long);
-               when K_Long_Long =>
-                  C_Type := new Const_Type (Kind => C_LongLong);
-               when K_Unsigned_Long_Long =>
-                  C_Type := new Const_Type (Kind => C_ULongLong);
-               when K_Char =>
-                  C_Type := new Const_Type (Kind => C_Char);
-               when K_Wide_Char =>
-                  C_Type := new Const_Type (Kind => C_WChar);
-               when K_Boolean =>
-                  C_Type := new Const_Type (Kind => C_Boolean);
-               when K_Float =>
-                  C_Type := new Const_Type (Kind => C_Float);
-               when K_Double =>
-                  C_Type := new Const_Type (Kind => C_Double);
-               when K_Long_Double =>
-                  C_Type := new Const_Type (Kind => C_LongDouble);
-               when K_Fixed =>
-                  C_Type := new Const_Type (Kind => C_Fixed);
-                  C_Type.Digits_Nb := 0;
-                  C_Type.Scale := 0;
-               when K_String =>
-                  C_Type := new Const_Type (Kind => C_String);
-               when K_Wide_String =>
-                  C_Type := new Const_Type (Kind => C_WString);
-               when K_Octet =>
-                  C_Type := new Const_Type (Kind => C_Octet);
-               when K_Enum =>
-                  C_Type := new Const_Type (Kind => C_Enum);
-               when others =>
-                  raise Idl_Fe.Errors.Internal_Error;
-            end case;
-         when others =>
-            raise Idl_Fe.Errors.Internal_Error;
-      end case;
+      if Constant_Type /= No_Node then
+         case Kind (Constant_Type) is
+            when K_Short
+              | K_Unsigned_Short =>
+               C_Type := new Const_Type (Kind => C_Short);
+            when K_Long
+              | K_Unsigned_Long =>
+               C_Type := new Const_Type (Kind => C_Long);
+            when K_Long_Long =>
+               C_Type := new Const_Type (Kind => C_LongLong);
+            when K_Unsigned_Long_Long =>
+               C_Type := new Const_Type (Kind => C_ULongLong);
+            when K_Char =>
+               C_Type := new Const_Type (Kind => C_Char);
+            when K_Wide_Char =>
+               C_Type := new Const_Type (Kind => C_WChar);
+            when K_Boolean =>
+               C_Type := new Const_Type (Kind => C_Boolean);
+            when K_Float =>
+               C_Type := new Const_Type (Kind => C_Float);
+            when K_Double =>
+               C_Type := new Const_Type (Kind => C_Double);
+            when K_Long_Double =>
+               C_Type := new Const_Type (Kind => C_LongDouble);
+            when K_Fixed =>
+               C_Type := new Const_Type (Kind => C_Fixed);
+               C_Type.Digits_Nb := 0;
+               C_Type.Scale := 0;
+            when K_String =>
+               C_Type := new Const_Type (Kind => C_String);
+            when K_Wide_String =>
+               C_Type := new Const_Type (Kind => C_WString);
+            when K_Octet =>
+               C_Type := new Const_Type (Kind => C_Octet);
+            when K_Enum =>
+               C_Type := new Const_Type (Kind => C_Enum);
+            when K_Scoped_Name =>
+               case Kind (S_Type (Constant_Type)) is
+                  when K_Short
+                    | K_Unsigned_Short =>
+                     C_Type := new Const_Type (Kind => C_Short);
+                  when K_Long
+                    | K_Unsigned_Long =>
+                     C_Type := new Const_Type (Kind => C_Long);
+                  when K_Long_Long =>
+                     C_Type := new Const_Type (Kind => C_LongLong);
+                  when K_Unsigned_Long_Long =>
+                     C_Type := new Const_Type (Kind => C_ULongLong);
+                  when K_Char =>
+                     C_Type := new Const_Type (Kind => C_Char);
+                  when K_Wide_Char =>
+                     C_Type := new Const_Type (Kind => C_WChar);
+                  when K_Boolean =>
+                     C_Type := new Const_Type (Kind => C_Boolean);
+                  when K_Float =>
+                     C_Type := new Const_Type (Kind => C_Float);
+                  when K_Double =>
+                     C_Type := new Const_Type (Kind => C_Double);
+                  when K_Long_Double =>
+                     C_Type := new Const_Type (Kind => C_LongDouble);
+                  when K_Fixed =>
+                     C_Type := new Const_Type (Kind => C_Fixed);
+                     C_Type.Digits_Nb := 0;
+                     C_Type.Scale := 0;
+                  when K_String =>
+                     C_Type := new Const_Type (Kind => C_String);
+                  when K_Wide_String =>
+                     C_Type := new Const_Type (Kind => C_WString);
+                  when K_Octet =>
+                     C_Type := new Const_Type (Kind => C_Octet);
+                  when K_Enum =>
+                     C_Type := new Const_Type (Kind => C_Enum);
+                  when others =>
+                     raise Idl_Fe.Errors.Internal_Error;
+               end case;
+            when others =>
+               raise Idl_Fe.Errors.Internal_Error;
+         end case;
+      else
+         C_Type := new Const_Type (Kind => C_No_Kind);
+      end if;
       Parse_Or_Expr (Result, Success, C_Type);
       if not Success then
          return;
@@ -3272,7 +3311,20 @@ package body Idl_Fe.Parser is
                   Local_Res : Node_Id;
                begin
                   Parse_Scoped_Name (Local_Res, Success);
-                  Set_Operand (Res, Local_Res);
+                  if Success then
+                     --  this scoped name must denote a previously
+                     --  defined constant
+                     if Local_Res /= No_Node then
+                        if Kind (Value (Local_Res)) /= K_Const_Dcl and
+                          Kind (Value (Local_Res)) /= K_Enumerator then
+                           Idl_Fe.Errors.Parser_Error
+                             ("This scoped name must denote a constant value",
+                              Idl_Fe.Errors.Error,
+                              Get_Token_Location);
+                        end if;
+                     end if;
+                     Set_Operand (Res, Local_Res);
+                  end if;
                end;
          when T_Lit_Decimal_Integer
            | T_Lit_Octal_Integer
@@ -3628,6 +3680,9 @@ package body Idl_Fe.Parser is
             Parse_Scoped_Name (Result, Success);
             --  checks that the scoped name denotes a type and
             --  not an interface for example
+            if not Success then
+               Result := No_Node;
+            end if;
             if Result /= No_Node then
                declare
                   Not_A_Type : Boolean := False;
@@ -3661,7 +3716,11 @@ package body Idl_Fe.Parser is
                           | K_Fixed
                           | K_Enum
                           | K_Struct
-                          | K_Union =>
+                          | K_Union
+                          | K_Interface
+                          | K_Forward_Interface
+                          | K_ValueType
+                          | K_Forward_ValueType =>
                            null;
                         when others =>
                            Not_A_Type := True;
@@ -4536,46 +4595,44 @@ package body Idl_Fe.Parser is
            | T_Unsigned =>
             Parse_Integer_Type (Result, Success);
          when T_Char =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Char_Type (Res, Success);
-               Result := Res;
-            end;
+            Parse_Char_Type (Result, Success);
          when T_Boolean =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Boolean_Type (Res, Success);
-               Result := Res;
-            end;
+            Parse_Boolean_Type (Result, Success);
          when T_Enum =>
-            declare
-               Res : Node_Id;
-            begin
-               Parse_Enum_Type (Res, Success);
-               Result := Res;
-            end;
+            Parse_Enum_Type (Result, Success);
          when T_Colon_Colon
            | T_Identifier =>
             Parse_Scoped_Name (Result, Success);
             --  The <scoped_name> in the <switch_type_spec> production
             --  must be a previously defined integer, char, boolean
             --  or enum type.
+            if not Success then
+               Result := No_Node;
+            end if;
             if Result /= No_Node then
-               case Kind (S_Type (Result)) is
-                  when K_Short
-                    | K_Long
-                    | K_Long_Long
-                    | K_Unsigned_Short
-                    | K_Unsigned_Long
-                    | K_Unsigned_Long_Long
-                    | K_Char
-                    | K_Wide_Char
-                    | K_Boolean
-                    | K_Enum =>
-                     null;
-                  when others =>
+               declare
+                  Invalid_Type : Boolean := False;
+               begin
+                  if S_Type (Result) /= No_Node then
+                     case Kind (S_Type (Result)) is
+                        when K_Short
+                          | K_Long
+                          | K_Long_Long
+                          | K_Unsigned_Short
+                          | K_Unsigned_Long
+                          | K_Unsigned_Long_Long
+                          | K_Char
+                          | K_Wide_Char
+                          | K_Boolean
+                          | K_Enum =>
+                           null;
+                        when others =>
+                           Invalid_Type := True;
+                     end case;
+                  else
+                     Invalid_Type := True;
+                  end if;
+                  if Invalid_Type then
                      Idl_Fe.Errors.Parser_Error
                        ("Invalid type in switch. The " &
                         "scoped name should refer to " &
@@ -4583,7 +4640,8 @@ package body Idl_Fe.Parser is
                         " enum type.",
                         Idl_Fe.Errors.Error,
                         Get_Token_Location);
-               end case;
+                  end if;
+               end;
             end if;
          when others =>
             Idl_Fe.Errors.Parser_Error
@@ -5824,7 +5882,11 @@ package body Idl_Fe.Parser is
                           | K_Wide_String
                           | K_Enum
                           | K_Struct
-                          | K_Union =>
+                          | K_Union
+                          | K_Interface
+                          | K_Forward_Interface
+                          | K_ValueType
+                          | K_Forward_ValueType =>
                            null;
                         when others =>
                            Not_A_Type := True;

@@ -129,7 +129,7 @@ private
    --  CORVA V2.3, 3.4
    --
 
-   --  Rule 2:
+   --  Rule 2
    --  <definition> ::= <type_dcl> ";"
    --               |   <const_dcl> ";"
    --               |   <except_dcl> ";"
@@ -139,21 +139,21 @@ private
    procedure Parse_Definition (Result : out Node_Id;
                                Success : out Boolean);
 
-   --  Rule 3:
+   --  Rule 3
    --  <module> ::= "module" <identifier> "{" <definition>+ "}"
    procedure Parse_Module (Result : out Node_Id;
                            Success : out Boolean);
 
-   --  Rule 4:
+   --  Rule 4
    --  <interface> ::= <interface_dcl> | <forward_dcl>
    --
-   --  Rule 5:
+   --  Rule 5
    --  <interface_decl> ::= <interface_header> "{" <interface_body> "}"
    --
-   --  Rule 6:
+   --  Rule 6
    --  <forward_dcl> ::= ["abstract"] "interface" <identifier>
    --
-   --  Rule 7:
+   --  Rule 7
    --  <interface_header> ::= ["abstract"] "interface" <identifier>
    --                         [ <interface_inheritance_spec> ]
    --
@@ -173,12 +173,12 @@ private
    procedure Parse_Interface (Result : out Node_Id;
                               Success : out Boolean);
 
-   --  Rule 8:
+   --  Rule 8
    --  <interface_body> ::= <export>*
    procedure Parse_Interface_Body (List : in out Node_List;
                                    Success : out Boolean);
 
-   --  Rule 9:
+   --  Rule 9
    --  <export> ::= <type_dcl> ";"
    --           |   <const_dcl> ";"
    --           |   <except_dcl> ";"
@@ -190,19 +190,24 @@ private
    --  <interface_dcl_end> ::= [<interface_inheritance_spec>] "{"
    --                          <interface_body> "}"
    --
-   --  Rule 10:
-   --  <inheritance_spec> ::= ":" <scoped_name> { "," <scoped_name> }*
+   --  Rule 10
+   --  <inheritance_spec> ::= ":" <interface_name> { "," <interface_name> }*
    procedure Parse_Interface_Dcl_End (Result : in out Node_Id;
                                       Success : out Boolean);
 
-   --  Rule 12:
+   --  Rule 11
+   --  <interface_name> ::= <scoped_name>
+   procedure Parse_Interface_Name (Result : out Node_Id;
+                                   Success : out Boolean);
+
+   --  Rule 12
    --  <scoped_name> ::= <identifier>
    --                | "::" <identifier>
    --                | <scoped_name> "::" <identifier>
    procedure Parse_Scoped_Name (Result : out Node_Id;
                                 Success : out Boolean);
 
-   --  Rule 13:
+   --  Rule 13
    --  <value> ::= ( <value_dcl>
    --              | <value_abs_dcl>
    --              | <value_box_dcl>
@@ -318,8 +323,7 @@ private
    --  Rule 20
    --  <value_name> ::= <scoped_name>
    procedure Parse_Value_Name (Result : out Node_Id;
-                               Success : out Boolean)
-     renames Parse_Scoped_Name;
+                               Success : out Boolean);
 
    --  Rule 21
    --  <value_element> ::= <export> | < state_member> | <init_dcl>
