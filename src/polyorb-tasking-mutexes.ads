@@ -72,9 +72,9 @@ package PolyORB.Tasking.Mutexes is
    --  calling thread is not the owner of the lock, the behavior of the
    --  program is undefined.
 
-   ---------------------
+   -------------------
    -- Mutex_Factory --
-   ---------------------
+   -------------------
 
    type Mutex_Factory_Type is abstract tagged limited null record;
    --  This type is a factory for the mutex type.

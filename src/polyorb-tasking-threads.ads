@@ -61,7 +61,7 @@ package PolyORB.Tasking.Threads is
 
    procedure Run (R : access Runnable)
      is abstract;
-   --  main procedure for the Runnable.
+   --  Main procedure for the Runnable.
 
    type Runnable_Controller is tagged limited null record;
    --  A Runnable_Controller is used by the tasking runtime to
