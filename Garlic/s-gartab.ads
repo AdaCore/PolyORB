@@ -40,6 +40,7 @@ package System.Garlic.Table is
    generic
       type Index_Type is range <>;
       Null_Index     : Index_Type;
+      pragma Unreferenced (Null_Index);
       First_Index    : Index_Type;
 
       Initial_Size   : Positive;
