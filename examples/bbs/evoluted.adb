@@ -1,7 +1,7 @@
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;      use Ada.Text_IO;
-with Ada.Real_Time;    use Ada.Real_Time;
+with Ada.Calendar;     use Ada.Calendar;
 with Exceptions;       use Exceptions;
 with Evoluted_Pkg;     use Evoluted_Pkg;
 with Server;           use Server;
@@ -157,8 +157,7 @@ begin
          delay 0.1;
       end loop;
       declare
-         Elapsed : constant Duration
-           := To_Duration (Clock - Start);
+         Elapsed : constant Duration := Clock - Start;
       begin
          Put_Line ("Elapsed :" & Duration'Image (Elapsed));
       end;

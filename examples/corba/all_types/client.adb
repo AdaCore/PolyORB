@@ -28,7 +28,7 @@
 
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
-with Ada.Real_Time; use Ada.Real_Time;
+with Ada.Calendar; use Ada.Calendar;
 with Ada.Text_IO;
 
 with CORBA; use CORBA;
@@ -299,8 +299,7 @@ begin
    end loop;
 
    declare
-      Elapsed : constant Duration
-        := To_Duration (Clock - Start);
+      Elapsed : constant Duration := Clock - Start;
    begin
       Ada.Text_IO.Put_Line ("Elapsed:" & Duration'Image (Elapsed));
    end;

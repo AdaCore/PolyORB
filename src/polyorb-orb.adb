@@ -35,7 +35,6 @@
 --  $Id$
 
 with Ada.Exceptions;
-with Ada.Real_Time;
 with Ada.Tags;
 with Ada.Unchecked_Deallocation;
 
@@ -458,7 +457,7 @@ package body PolyORB.ORB is
                if Monitors'Length = 1 then
                   Timeout := PolyORB.Constants.Forever;
                else
-                  Timeout := 0.0;
+                  Timeout := Poll_Interval;
                end if;
 
                --  ORB.ORB_Lock is held.
@@ -511,19 +510,6 @@ package body PolyORB.ORB is
                end loop;
 
                --  ORB.ORB_Lock is held.
-
-               if Monitors'Length /= 1 then
-                  declare
-                     use Ada.Real_Time;
-
-                     Poll_Expire : constant Time
-                       := Clock + To_Time_Span (Poll_Interval);
-                  begin
-                     Leave (ORB.ORB_Lock);
-                     delay until Poll_Expire;
-                     Enter (ORB.ORB_Lock);
-                  end;
-               end if;
             end;
 
          else
