@@ -220,7 +220,7 @@ package body System.Garlic.Debug is
 
    begin
 
-      if Dir (Dir'Last) /= Directory_Separator then
+      if Dir'Length /= 0 and then Dir (Dir'Last) /= Directory_Separator then
          Last := Last + 1;
          Name (Last) := Directory_Separator;
       end if;

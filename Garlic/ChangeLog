@@ -1,5 +1,7 @@
 1998-08-03  Laurent Pautet  <pautet@scapin.enst.fr>
 
+	* s-gardeb.adb: Fix a warning. In fact, gnat is over pessimistic.
+
 	* s-gaplsp.ads.in: Add a new variable RTS_Sanity_Directory which
 	is used when --with-sanity=dir is activated.
 
