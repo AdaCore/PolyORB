@@ -900,9 +900,23 @@ package body Broca.Server is
       POA_State : Broca.POA.Processing_State_Type;
       Key : Buffer_Descriptor;
       Nothing : Buffer_Type (1 .. 0);
+      Header_Correct : Boolean;
 
    begin
-      Unmarshall_GIOP_Header (Buffer, Message_Type, Message_Size);
+      Unmarshall_GIOP_Header (Buffer,
+                              Message_Type, Message_Size,
+                              Header_Correct);
+
+      if not Header_Correct then
+            --  FIXME.
+            Broca.GIOP.Compute_GIOP_Header_Size (Buffer);
+            Broca.GIOP.Marshall_GIOP_Header (Buffer, Broca.GIOP.Message_Error);
+
+            Lock_Send (Stream);
+            Send (Stream, Buffer);
+            Unlock_Send (Stream);
+            return;
+      end if;
 
       --  Receive body of the message.
       Allocate_Buffer_And_Clear_Pos

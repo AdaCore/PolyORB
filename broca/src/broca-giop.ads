@@ -102,7 +102,8 @@ package Broca.GIOP is
    procedure Unmarshall_GIOP_Header
      (Buffer       : in out Buffers.Buffer_Descriptor;
       Message_Type : out MsgType;
-      Message_Size : out CORBA.Unsigned_Long);
+      Message_Size : out CORBA.Unsigned_Long;
+      Success      : out Boolean);
 
    type Request_Handler is
       record

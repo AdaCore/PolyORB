@@ -14,13 +14,16 @@ package body Broca.GIOP is
    Flag : constant Natural := Broca.Debug.Is_Active ("broca.giop");
    procedure O is new Broca.Debug.Output (Flag);
 
-   Magic : constant Buffer_Type (0 .. 5) :=
+   Magic : constant Buffer_Type :=
      (Character'Pos ('G'),
       Character'Pos ('I'),
       Character'Pos ('O'),
-      Character'Pos ('P'),
-      1,
-      0);
+      Character'Pos ('P'));
+
+   Major_Version : constant CORBA.Octet
+     := 1;
+   Minor_Version : constant CORBA.Octet
+     := 0;
 
    Nobody_Principal : constant CORBA.String :=
      CORBA.To_CORBA_String ("nobody");
@@ -99,8 +102,12 @@ package body Broca.GIOP is
 
       Message_Size := Full_Size (Buffer) - Message_Header_Size;
       --  1.2.1 The message header.
-      --  Magic + Version
+      --  Magic
       Write (Buffer, Magic);
+
+      --  Version
+      Marshall (Buffer, Major_Version);
+      Marshall (Buffer, Minor_Version);
 
       --  Byte order
       Marshall (Buffer, Is_Little_Endian);
@@ -118,17 +125,29 @@ package body Broca.GIOP is
 
    procedure Unmarshall_GIOP_Header
      (Buffer       : in out Buffer_Descriptor;
-      Message_Type : out MsgType;
-      Message_Size : out CORBA.Unsigned_Long)
+      Message_Type          : out MsgType;
+      Message_Size          : out CORBA.Unsigned_Long;
+      Success               : out Boolean)
    is
       use Broca.Marshalling;
       Magic_Num : Buffer_Type := Magic;
+      Message_Major_Version : CORBA.Octet;
+      Message_Minor_Version : CORBA.Octet;
       Endianess : CORBA.Boolean;
    begin
-      --  Magic + Version
+      Success := False;
+
+      --  Magic
       Read (Buffer, Magic_Num);
       if Magic_Num /= Magic then
-         Broca.Exceptions.Raise_Comm_Failure;
+         return;
+      end if;
+
+      Unmarshall (Buffer, Message_Major_Version);
+      Unmarshall (Buffer, Message_Minor_Version);
+      if not CORBA."=" (Message_Major_Version, Major_Version)
+        or else CORBA."<" (Minor_Version, Message_Minor_Version) then
+         return;
       end if;
 
       --  Byte order
@@ -140,6 +159,8 @@ package body Broca.GIOP is
 
       --  Message size
       Unmarshall (Buffer, Message_Size);
+
+      Success := True;
    end Unmarshall_GIOP_Header;
 
    ----------------------
@@ -339,6 +360,7 @@ package body Broca.GIOP is
       Reply_Status    : ReplyStatusType;
       Request_Id      : CORBA.Unsigned_Long;
       Nothing         : Buffer_Type (1 .. 0);
+      Header_Correct  : Boolean;
    begin
       --  1.3 Send request.
       IOP.Send (Handler.Connection, Handler.Buffer);
@@ -357,7 +379,13 @@ package body Broca.GIOP is
       IOP.Receive (Handler.Connection, Handler.Buffer);
       pragma Debug (O ("Receive answer done"));
 
-      Unmarshall_GIOP_Header (Handler.Buffer, Message_Type, Message_Size);
+      Unmarshall_GIOP_Header (Handler.Buffer,
+                              Message_Type, Message_Size,
+                              Header_Correct);
+
+      if not Header_Correct then
+         Broca.Exceptions.Raise_Comm_Failure;
+      end if;
 
       --  Allocate enough bytes for the message.
       Allocate_Buffer_And_Clear_Pos

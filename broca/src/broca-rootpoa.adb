@@ -244,11 +244,31 @@ package body Broca.Rootpoa is
       Current_POA       : PortableServer.POA_Forward.Ref;
    end record;
 
-   Nil_Attribute : POA_Task_Attribute;
+   type POA_Task_Attribute_Handle is
+     access POA_Task_Attribute;
+
+   Nil_Attribute : POA_Task_Attribute_Handle := null;
 
    package Attributes is new Ada.Task_Attributes
-     (Attribute => POA_Task_Attribute,
+     (Attribute => POA_Task_Attribute_Handle,
       Initial_Value => Nil_Attribute);
+
+   procedure Set_Attributes_Value
+     (Current_Object    : PortableServer.ObjectId;
+      Current_POA       : PortableServer.POA_Forward.Ref);
+
+   procedure Set_Attributes_Value
+     (Current_Object    : PortableServer.ObjectId;
+      Current_POA       : PortableServer.POA_Forward.Ref) is
+   begin
+      if Attributes.Value = Nil_Attribute then
+         Attributes.Set_Value (new POA_Task_Attribute);
+      end if;
+
+      Attributes.Value.all :=
+        POA_Task_Attribute'(Current_Object,
+                            Current_POA);
+   end Set_Attributes_Value;
 
    type Cell_State_Type is (Free, Reserved, Active, To_Be_Destroyed);
    --  A servant_cell_type is in fact an object map entry.
@@ -1105,9 +1125,12 @@ package body Broca.Rootpoa is
                     (PortableServer.ServantLocator.Impl.Object'Class
                      (Skel.P_Servant.all),
                      Oid, A_Poa, Operation, The_Cookie, A_Servant);
-                  Attributes.Set_Value
-                    (POA_Task_Attribute'
-                     (Oid, PortableServer.POA.Convert.To_Forward (A_Poa)));
+
+                  Set_Attributes_Value
+                    (Oid, PortableServer.POA.Convert.To_Forward (A_Poa));
+                  --  Attributes.Set_Value
+                  --    (POA_Task_Attribute'
+                  --     (Oid, PortableServer.POA.Convert.To_Forward (A_Poa)));
                   GIOP_Dispatch
                     (A_Servant, CORBA.To_Standard_String (Operation),
                      Request_Id, Reponse_Expected, Message);
@@ -1128,15 +1151,20 @@ package body Broca.Rootpoa is
             pragma Debug (O ("Giop_Invoke: Got Read lock on request (2)."));
          end if;
 
-         pragma Debug (O ("Giop_Invoke: Preparing POA_Task_Attributes."));
-         declare
-            My_Task_Attributes : constant POA_Task_Attribute
-              := (Oid, PortableServer.POA.Convert.To_Forward (A_Poa));
-         begin
-            pragma Debug (O ("Giop_Invoke: Setting POA_Task_Attributes."));
-            Attributes.Set_Value (My_Task_Attributes);
-            pragma Debug (O ("Giop_Invoke: Did set POA_Task_Attributes."));
-         end;
+--           pragma Debug (O ("Giop_Invoke: Preparing POA_Task_Attributes."));
+--           declare
+--              My_Task_Attributes : constant POA_Task_Attribute
+--                := (Oid, PortableServer.POA.Convert.To_Forward (A_Poa));
+--           begin
+--              pragma Debug (O ("Giop_Invoke: Setting POA_Task_Attributes."));
+--              --  Attributes.Set_Value (My_Task_Attributes);
+--              pragma Debug (O ("Giop_Invoke: Did set POA_Task_Attributes."));
+--           end;
+--
+
+         Set_Attributes_Value
+           (Oid, PortableServer.POA.Convert.To_Forward (A_Poa));
+
 
          pragma Debug
            (O ("Giop_Invoke: call giop_dispatch for " &
