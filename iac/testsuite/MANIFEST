@@ -1,8 +1,19 @@
+# Tests from CORBA 2.6 Chapter 3
+idl15001/tin.idl
+idl15011/tin.idl
+idl15012/tin.idl
+idl15021/tin.idl
+idl15022/tin.idl
+idl15023/tin.idl
+idl15024/tin.idl
+idl15025/tin.idl
+# Tests from IAC some are redundant with those above
 iac001/tin.idl
 iac002/tin.idl
 iac003/tin.idl
 iac004/tin.idl
 iac005/tin.idl
+# Tests from vsorb
 test001/tin.idl
 test002/tin.idl
 test003/tin.idl
