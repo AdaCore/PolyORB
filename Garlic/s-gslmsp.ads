@@ -2,9 +2,9 @@
 --                                                                          --
 --                           GARLIC COMPONENTS                              --
 --                                                                          --
---      S Y S T E M . G A R L I C . P R O T O C O L S . C O N F I G         --
+-- S Y S T E M . G A R L I C . S E R I A L _ L I N E . M A C H I N E _ S P E C I F I C  --
 --                                                                          --
---                                B o d y                                   --
+--                                S p e c                                   --
 --                                                                          --
 --                           $Revision$                              --
 --                                                                          --
@@ -33,43 +33,36 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Loopback;
-pragma Elaborate_All (System.Garlic.Loopback);
+private package System.Garlic.Serial_Line.Machine_Specific is
 
---  with System.Garlic.TCP;
---  pragma Elaborate_All (System.Garlic.TCP);
+   --  This package contains definition for machine specific access
+   --  to a serial device. The body of this package must provide a way
+   --  of sending and receiving reliably data over a serial link.
 
-package body System.Garlic.Protocols.Config is
+   type Serial_Device is private;
 
-   --  This package should be created during GARLIC installation.
-   --  It should register all the protocols present in the distribution
+   function Open (Description : String) return Serial_Device;
+   --  Open a device and return an handler on it. If it's impossible,
+   --  then System.RPC.Communication_Error must be raised.
 
-   procedure Register (P : in Protocol_Access);
-   --  Register the protocol as a present protocol.
+   procedure Close (Device : in Serial_Device);
+   --  Close a serial device.
 
-   --------------
-   -- Register --
-   --------------
+   procedure Send
+     (Device : in Serial_Device;
+      Data   : access Ada.Streams.Stream_Element_Array);
+   --  Send data over a serial link. System.RPC.Communication_Error must be
+   --  raised if it is impossible to send data.
 
-   procedure Register (P : in Protocol_Access) is
-   begin
-      for I in Protocol_Table'Range loop
-         if Protocol_Table (I) = null then
-            Protocol_Table (I) := P;
-            return;
-         end if;
-      end loop;
-      raise Constraint_Error;
-   end Register;
+   procedure Receive
+     (Device : in Serial_Device;
+      Data   : access Ada.Streams.Stream_Element_Array);
+   --  Receive data from a serial link. Exactly Data'Length bytes will
+   --  be received. If it is impossible to receive data, then
+   --  System.RPC.Communication_Error must be raised.
 
-   ------------
-   -- Create --
-   ------------
+private
 
-   procedure Create is
-   begin
-      Register (System.Garlic.Loopback.Create);
-      --  Register (System.Garlic.TCP.Create);
-   end Create;
+   type Serial_Device is new Natural;
 
-end System.Garlic.Protocols.Config;
+end System.Garlic.Serial_Line.Machine_Specific;

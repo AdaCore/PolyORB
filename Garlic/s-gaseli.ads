@@ -2,9 +2,9 @@
 --                                                                          --
 --                           GARLIC COMPONENTS                              --
 --                                                                          --
---      S Y S T E M . G A R L I C . P R O T O C O L S . C O N F I G         --
+--           S Y S T E M . G A R L I C . S E R I A L _ L I N E              --
 --                                                                          --
---                                B o d y                                   --
+--                                S p e c                                   --
 --                                                                          --
 --                           $Revision$                              --
 --                                                                          --
@@ -33,43 +33,41 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Loopback;
-pragma Elaborate_All (System.Garlic.Loopback);
+with Ada.Streams;
+with System.Garlic.Protocols;
+with System.RPC;
 
---  with System.Garlic.TCP;
---  pragma Elaborate_All (System.Garlic.TCP);
+package System.Garlic.Serial_Line is
 
-package body System.Garlic.Protocols.Config is
+   --  This package implements a protocol which exchanges data over
+   --  a serial peripheral like a wire or a radio device. Its main use
+   --  is for embedded systems.
 
-   --  This package should be created during GARLIC installation.
-   --  It should register all the protocols present in the distribution
+   type Serial_Protocol is
+      new System.Garlic.Protocols.Protocol_Type with private;
 
-   procedure Register (P : in Protocol_Access);
-   --  Register the protocol as a present protocol.
+   function Create return System.Garlic.Protocols.Protocol_Access;
 
-   --------------
-   -- Register --
-   --------------
+   function Get_Name (P : access Serial_Protocol) return String;
 
-   procedure Register (P : in Protocol_Access) is
-   begin
-      for I in Protocol_Table'Range loop
-         if Protocol_Table (I) = null then
-            Protocol_Table (I) := P;
-            return;
-         end if;
-      end loop;
-      raise Constraint_Error;
-   end Register;
+   procedure Set_Boot_Data
+     (Protocol         : access Serial_Protocol;
+      Is_Boot_Protocol : in Boolean := False;
+      Boot_Data        : in String  := "";
+      Is_Master        : in Boolean := False);
 
-   ------------
-   -- Create --
-   ------------
+   function Get_Info (P : access Serial_Protocol) return String;
 
-   procedure Create is
-   begin
-      Register (System.Garlic.Loopback.Create);
-      --  Register (System.Garlic.TCP.Create);
-   end Create;
+   procedure Send
+     (Protocol  : access Serial_Protocol;
+      Partition : in System.RPC.Partition_ID;
+      Data      : access Ada.Streams.Stream_Element_Array);
 
-end System.Garlic.Protocols.Config;
+   procedure Shutdown (Protocol : access Serial_Protocol);
+
+private
+
+   type Serial_Protocol is new System.Garlic.Protocols.Protocol_Type
+     with null record;
+
+end System.Garlic.Serial_Line;

@@ -58,6 +58,9 @@ pragma Elaborate_All (System.Garlic.Heart);
 with System.Garlic.Termination; use System.Garlic.Termination;
 pragma Elaborate_All (System.Garlic.Termination);
 
+with System.Garlic.Services;
+pragma Elaborate_All (System.Garlic.Services);
+
 with System.RPC;
 
 package body System.Garlic.Startup is
@@ -78,11 +81,7 @@ begin
 
    --  Phase (1) (see s-garlic.ads)
 
-   if Get_Detach then
-      pragma Debug
-        (D (D_Elaborate, "Detaching, you won't see any more debug messages"));
-      Detach;
-   end if;
+   System.Garlic.Services.Initialize;
 
    --  Phase (2) (see s-garlic.ads)
 

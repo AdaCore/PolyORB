@@ -34,18 +34,33 @@ AC_SUBST(GNATFLAGS)
 #
 # Include or not launching facilities
 #
-AC_ARG_WITH(embedded,
-[  --with-embedded         Don't include launching facilities],
+AC_ARG_WITH(launching,
+[  --with-launching        Don't include launching facilities],
 [
-NON_EMBEDDED_SOURCES="\$(NON_EMBEDDED_SOURCES)";
-NON_EMBEDDED_OBJECTS="\$(NON_EMBEDDED_OBJECTS)"
+  AC_MSG_CHECKING([for launching facilities])
+  case ${withval} in
+  yes)
+     LAUNCHING_SOURCES="\$(LAUNCHING_SOURCES)";
+     LAUNCHING_OBJECTS="\$(LAUNCHING_OBJECTS)";
+     LAUNCHING_INCLUDED="";
+     AC_MSG_RESULT([yes]);;
+  *)
+     LAUNCHING_SOURCES="";
+     LAUNCHING_OBJECTS="";
+     LAUNCHING_INCLUDED="--  ";
+     AC_MSG_RESULT([no]);;
+  esac;
 ],
 [
-NON_EMBEDDED_SOURCES="";
-NON_EMBEDDED_OBJECTS=""
+AC_MSG_CHECKING([for launching facilities])
+LAUNCHING_SOURCES="\$(LAUNCHING_SOURCES)";
+LAUNCHING_OBJECTS="\$(LAUNCHING_OBJECTS)";
+LAUNCHING_INCLUDED="";
+AC_MSG_RESULT([yes])
 ])
-AC_SUBST(NON_EMBEDDED_SOURCES)
-AC_SUBST(NON_EMBEDDED_OBJECTS)
+AC_SUBST(LAUNCHING_SOURCES)
+AC_SUBST(LAUNCHING_OBJECTS)
+AC_SUBST(LAUNCHING_INCLUDED)
 #
 # Protocol list
 #
@@ -147,6 +162,7 @@ AC_OUTPUT([Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile
            Garlic/s-gaprco.adb
+           Garlic/s-garser.adb
            Examples/check-config
            Examples/Makefile
            Examples/Prime/Makefile

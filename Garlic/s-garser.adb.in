@@ -2,7 +2,7 @@
 --                                                                          --
 --                           GARLIC COMPONENTS                              --
 --                                                                          --
---      S Y S T E M . G A R L I C . P R O T O C O L S . C O N F I G         --
+--              S Y S T E M . G A R L I C . S E R V I C E S                 --
 --                                                                          --
 --                                B o d y                                   --
 --                                                                          --
@@ -33,43 +33,32 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with System.Garlic.Loopback;
-pragma Elaborate_All (System.Garlic.Loopback);
+with System.Garlic.Options; use System.Garlic.Options;
+with System.Garlic.Debug; use System.Garlic.Debug;
 
---  with System.Garlic.TCP;
---  pragma Elaborate_All (System.Garlic.TCP);
+@LAUNCHING_INCLUDED@with System.Garlic.Debug; use System.Garlic.Debug;
 
-package body System.Garlic.Protocols.Config is
+package body System.Garlic.Services is
 
-   --  This package should be created during GARLIC installation.
-   --  It should register all the protocols present in the distribution
+   Private_Debug_Key : constant Debug_Key :=
+     Debug_Initialize ("SERVICES", "(s-garser): ");
+   procedure D
+     (Level   : in Debug_Level;
+      Message : in String;
+      Key     : in Debug_Key := Private_Debug_Key)
+     renames Print_Debug_Info;
 
-   procedure Register (P : in Protocol_Access);
-   --  Register the protocol as a present protocol.
-
-   --------------
-   -- Register --
-   --------------
-
-   procedure Register (P : in Protocol_Access) is
+   procedure Initialize is
    begin
-      for I in Protocol_Table'Range loop
-         if Protocol_Table (I) = null then
-            Protocol_Table (I) := P;
-            return;
-         end if;
-      end loop;
-      raise Constraint_Error;
-   end Register;
 
-   ------------
-   -- Create --
-   ------------
+      if Get_Detach then
+         pragma Debug
+            (D (D_Elaborate,
+                "Detaching, you won't see any more debug messages"));
+         @LAUNCHING_INCLUDED@Detach;
+         null;
+      end if;
 
-   procedure Create is
-   begin
-      Register (System.Garlic.Loopback.Create);
-      --  Register (System.Garlic.TCP.Create);
-   end Create;
+   end Initialize;
 
-end System.Garlic.Protocols.Config;
+end System.Garlic.Services;

@@ -14,7 +14,7 @@ ac_default_prefix=/usr/local
 ac_help="$ac_help
   --enable-debug          Turn on debugging options"
 ac_help="$ac_help
-  --with-embedded         Don't include launching facilities"
+  --with-launching        Don't include launching facilities"
 ac_help="$ac_help
   --with-protocols        Enumerate protocol list"
 ac_help="$ac_help
@@ -920,19 +920,34 @@ fi
 #
 # Include or not launching facilities
 #
-# Check whether --with-embedded or --without-embedded was given.
-if test "${with_embedded+set}" = set; then
-  withval="$with_embedded"
+# Check whether --with-launching or --without-launching was given.
+if test "${with_launching+set}" = set; then
+  withval="$with_launching"
   
-NON_EMBEDDED_SOURCES="\$(NON_EMBEDDED_SOURCES)";
-NON_EMBEDDED_OBJECTS="\$(NON_EMBEDDED_OBJECTS)"
+  echo $ac_n "checking for launching facilities""... $ac_c" 1>&6
+  case ${withval} in
+  yes)
+     LAUNCHING_SOURCES="\$(LAUNCHING_SOURCES)";
+     LAUNCHING_OBJECTS="\$(LAUNCHING_OBJECTS)";
+     LAUNCHING_INCLUDED="";
+     echo "$ac_t""yes" 1>&6;;
+  *)
+     LAUNCHING_SOURCES="";
+     LAUNCHING_OBJECTS="";
+     LAUNCHING_INCLUDED="--  ";
+     echo "$ac_t""no" 1>&6;;
+  esac;
 
 else
   
-NON_EMBEDDED_SOURCES="";
-NON_EMBEDDED_OBJECTS=""
+echo $ac_n "checking for launching facilities""... $ac_c" 1>&6
+LAUNCHING_SOURCES="\$(LAUNCHING_SOURCES)";
+LAUNCHING_OBJECTS="\$(LAUNCHING_OBJECTS)";
+LAUNCHING_INCLUDED="";
+echo "$ac_t""yes" 1>&6
 
 fi
+
 
 
 
@@ -1171,6 +1186,7 @@ trap 'rm -fr `echo "Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile
            Garlic/s-gaprco.adb
+           Garlic/s-garser.adb
            Examples/check-config
            Examples/Makefile
            Examples/Prime/Makefile
@@ -1228,8 +1244,9 @@ s%@build_cpu@%$build_cpu%g
 s%@build_vendor@%$build_vendor%g
 s%@build_os@%$build_os%g
 s%@GNATFLAGS@%$GNATFLAGS%g
-s%@NON_EMBEDDED_SOURCES@%$NON_EMBEDDED_SOURCES%g
-s%@NON_EMBEDDED_OBJECTS@%$NON_EMBEDDED_OBJECTS%g
+s%@LAUNCHING_SOURCES@%$LAUNCHING_SOURCES%g
+s%@LAUNCHING_OBJECTS@%$LAUNCHING_OBJECTS%g
+s%@LAUNCHING_INCLUDED@%$LAUNCHING_INCLUDED%g
 s%@PROTOCOLS_SOURCES@%$PROTOCOLS_SOURCES%g
 s%@PROTOCOLS_OBJECTS@%$PROTOCOLS_OBJECTS%g
 s%@TCP_INCLUDED@%$TCP_INCLUDED%g
@@ -1246,6 +1263,7 @@ CONFIG_FILES=\${CONFIG_FILES-"Makefile
            Dist/Makefile Dist/xe-gcc Dist/xe-gcc-filter
            Garlic/Makefile
            Garlic/s-gaprco.adb
+           Garlic/s-garser.adb
            Examples/check-config
            Examples/Makefile
            Examples/Prime/Makefile
