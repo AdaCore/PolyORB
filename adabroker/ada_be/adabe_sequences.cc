@@ -51,13 +51,18 @@ void
 adabe_sequence::produce_marshal_adb(dep_list& with, string &body, string &previous)
 {
   string tmp="";
+  adabe_name *adabe_base_type;
+  string type_name;
+
+  adabe_base_type =  dynamic_cast<adabe_name *> (base_type());
+  type_name =  adabe_base_type->dump_name(with, body, previous);
 
   tmp +="procedure Marshall (A : in ";
   tmp += get_ada_local_name();
   tmp +="; S : in out Object'Class) is \n";
   tmp +="begin \n";
-  tmp +="   Marshall ("+get_ada_local_name()+"; S);";
-  tmp +="   
+  tmp +="   Marshall ("+"; S);";
+  tmp +="";   
   tmp += "end Marshall;";
 
   body+=tmp;
