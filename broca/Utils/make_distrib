@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: //depot/adabroker/main/broca/Utils/make_distrib#1 $
+# $Id: //depot/adabroker/main/broca/Utils/make_distrib#2 $
 #
 # This script builds a compressed archive suitable for distribution.
 #
@@ -31,7 +31,7 @@ kk=
 nocheckout=false
 s=false
 
-if test "x$1" = -s; then
+if test "x$1" = "x-s"; then
     s=true
     shift
 fi
@@ -71,7 +71,7 @@ if [ -f Utils/VERSION.INFO ]; then
     echo "(with no implicit version information)"
     . Utils/VERSION.INFO
   else
-    echo "(with GNAT/GLADE version information derived from ${dir})"
+    echo "(with AdaBroker version information derived from ${dir})"
     . Utils/VERSION.INFO ${dir}
   fi
   rm -f Utils/VERSION.INFO
