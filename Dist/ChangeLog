@@ -1,3 +1,7 @@
+1998-04-20  Laurent Pautet  <pautet@scapin.enst.fr>
+
+	* config.sdefault: Fix some problems with NT (????)
+
 1998-04-17  Laurent Pautet  <pautet@scapin.enst.fr>
 
 	* xe_stubs.adb: Compute partition checksum. Move code to compute

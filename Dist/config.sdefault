@@ -1,7 +1,7 @@
 #!/bin/sh
 S1="/usr/local/lib/gcc-lib/`gcc -dumpmachine`/`gcc -dumpversion`/adainclude/"
 S2="/usr/local/lib/gcc-lib/`gcc -dumpmachine`/`gcc -dumpversion`/adalib/"
-S3=`gcc -c -dumpmachine`
+S3=`gcc -c -dumpmachine | sed 's/\013//'`
 for i in `gnatls -v | sed -e '1,/Source Search Path/ d' | \
                       sed -e '/Object Search Path/,$ d' | \
                       grep -v 'Current_Directory'`; do
@@ -17,6 +17,7 @@ for i in `gnatls -v | sed -e '1,/Object Search Path/ d' | \
     break
   fi
 done
+S2=`echo ${S2} | sed 's/^[a-zA-Z]://'`
 if test "x$1" = "xpathtolib"; then
   echo "${S2}"
   exit 0
