@@ -59,7 +59,7 @@ package body XE_Utils is
 
    Up_To_Low : constant := Character'Pos ('A') - Character'Pos ('a');
 
-   EOL : constant String := (1 => Ascii.LF);
+   EOL : constant String := (1 => ASCII.LF);
 
    Output_Flag           : constant String_Access := new String' ("-o");
    Symbolic              : constant String_Access := new String' ("-s");
@@ -241,7 +241,7 @@ package body XE_Utils is
    begin
       Get_Name_String (Name);
       File_Name (1 .. File_Name_Len) := Name_Buffer (1 .. Name_Len);
-      File_Name (File_Name_Len + 1) := Ascii.Nul;
+      File_Name (File_Name_Len + 1) := ASCII.Nul;
 
       if Verbose_Mode then
          Message ("creating file", Name);
@@ -294,7 +294,7 @@ package body XE_Utils is
       end if;
       Get_Name_String (File);
       Name_Len := Name_Len + 1;
-      Name_Buffer (Name_Len) := Ascii.Nul;
+      Name_Buffer (Name_Len) := ASCII.Nul;
       Delete_File (Name_Buffer'Address, Error);
    end Delete;
 

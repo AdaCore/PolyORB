@@ -115,7 +115,7 @@ package body System.Garlic.Debug is
       Write_PID;
 
       Termination_Filename :=
-       new String'(Dir & Name (1 .. Last) & ".dsa" & Ascii.NUL);
+       new String'(Dir & Name (1 .. Last) & ".dsa" & ASCII.NUL);
 
       Termination_Sanity_FD :=
         Create_New_File (Termination_Filename.all'Address, Binary);

@@ -46,7 +46,7 @@ package body System.Garlic.Name_Table is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use Ascii, Ada.Streams;
+   use ASCII, Ada.Streams;
 
    Size  : constant := 2 ** 9;
    --  Size of actual string names table
@@ -144,7 +144,7 @@ package body System.Garlic.Name_Table is
             Max := Max + Size;
             Table := new String (Min .. Max);
             Table (Min .. Last) := Old (Min .. Last);
-            Table (Last + 1 .. Max) := (others => Ascii.Nul);
+            Table (Last + 1 .. Max) := (others => ASCII.Nul);
             Destroy (Old);
          end;
       end if;

@@ -178,7 +178,7 @@ package body XE_Scan is
 
    procedure Next_Token is
 
-      use Ascii;
+      use ASCII;
 
       Char  : Character;
       Found : Boolean := False;
@@ -429,7 +429,7 @@ package body XE_Scan is
    procedure Write_Location
      (Where   : in Location_Type) is
 
-      use Ascii;
+      use ASCII;
 
    begin
       Write_Name (Configuration_File);
