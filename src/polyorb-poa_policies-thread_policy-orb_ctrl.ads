@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 package PolyORB.POA_Policies.Thread_Policy.ORB_Ctrl is
 
    type ORB_Ctrl_Policy is new ThreadPolicy with null record;

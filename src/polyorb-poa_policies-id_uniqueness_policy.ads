@@ -30,8 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  $Id$
-
 with PolyORB.POA_Types;               use PolyORB.POA_Types;
 
 package PolyORB.POA_Policies.Id_Uniqueness_Policy is
