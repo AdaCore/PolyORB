@@ -62,10 +62,10 @@ package body Droopi.Obj_Adapters.Simple is
       Destroy (OA.Lock);
    end Destroy;
 
-   procedure Export
-     (OA  : in out Simple_Obj_Adapter;
-      Obj : Objects.Servant_Access;
-      Id  : out Object_Id) is
+   function Export
+     (OA  : access Simple_Obj_Adapter;
+      Obj : Objects.Servant_Access)
+     return Object_Id is
    begin
       Enter (OA.Lock);
       declare
@@ -92,14 +92,14 @@ package body Droopi.Obj_Adapters.Simple is
          end if;
          Leave (OA.Lock);
 
-         Id := Object_Id (Index_To_Oid (New_Id - M'First + 1));
+         return Object_Id (Index_To_Oid (New_Id - M'First + 1));
       end;
    end Export;
 
    --  XXX There is FAR TOO MUCH code duplication in here!
 
    procedure Unexport
-     (OA : in out Simple_Obj_Adapter;
+     (OA : access Simple_Obj_Adapter;
       Id : Object_Id)
    is
       Index : constant Integer := Oid_To_Index (Simple_OA_Oid (Id));
@@ -109,7 +109,7 @@ package body Droopi.Obj_Adapters.Simple is
       begin
          declare
             OME : Object_Map_Entry
-              := Find_Entry (OA, Index);
+              := Find_Entry (OA.all, Index);
          begin
             pragma Assert (OME.Servant /= null);
             OME := (Servant => null, If_Desc => (null, null));

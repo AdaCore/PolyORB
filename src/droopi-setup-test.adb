@@ -8,15 +8,18 @@ with Droopi.Filters;
 with Droopi.Log;
 with Droopi.No_Tasking;
 with Droopi.Obj_Adapters.Simple;
+with Droopi.Objects;
 with Droopi.ORB.Task_Policies;
 with Droopi.Protocols;
 with Droopi.Protocols.Echo;
 with Droopi.Smart_Pointers;
 with Droopi.Sockets;
+with Droopi.Test_Object;
 with Droopi.Transport.Sockets;
 
 procedure Droopi.Setup.Test
 is
+   use Droopi.Objects;
    use Droopi.ORB;
    use Droopi.Sockets;
    use Droopi.Transport;
@@ -27,6 +30,8 @@ is
 
    Obj_Adapter : Obj_Adapters.Obj_Adapter_Access;
 
+   My_Servant : Servant_Access;
+
    SAP : constant Transport_Access_Point_Access
      := new Socket_Access_Point;
 
@@ -35,28 +40,38 @@ begin
    -- Initialize all subsystems --
    -------------------------------
 
-   Put_Line ("@@1");
+   Put ("Initializing subsystems...");
+
    Droopi.Log.Initialize;
    --  Logging subsystem. Start this one first so we can debug
    --  problems in others.
 
-   Put_Line ("@@2");
+   Put (" logging");
+
    Droopi.No_Tasking.Initialize;
    --  Setup soft links.
 
-   Put_Line ("@@3");
+   Put (" no-tasking");
+
    Droopi.Smart_Pointers.Initialize;
    --  Depends on Soft_Links.
 
-   Put_Line ("@@4");
+   Put (" smart-pointers");
+
    Setup.The_ORB := new ORB.ORB_Type
      (Tasking_Policy_Access'(new Task_Policies.No_Tasking));
    Droopi.ORB.Create (Setup.The_ORB.all);
    --  Create ORB singleton.
 
+   Put (" ORB");
+
+   Put_Line (" done");
+
    --------------------------------------
    -- Create server (listening) socket --
    --------------------------------------
+
+   Put ("Creating socket...");
 
    Create_Socket (Server);
 
@@ -72,8 +87,9 @@ begin
 
    loop
       begin
-         Put_Line ("Binding to port" & Addr.Port'Img);
+         Put (" binding to port" & Addr.Port'Img & "...");
          Bind_Socket (Server, Addr);
+         Put_Line ("done.");
          exit;
       exception
          when Droopi.Sockets.Socket_Error =>
@@ -100,12 +116,27 @@ begin
    -- Create simple object adapter --
    ----------------------------------
 
+   Put ("Creating object adapter...");
    Obj_Adapter := new Obj_Adapters.Simple.Simple_Obj_Adapter;
    Obj_Adapters.Create (Obj_Adapter.all);
+   --  Create object adapter
 
    Set_Object_Adapter (The_ORB, Obj_Adapter);
+   --  Link object adapter with ORB.
 
-   Run (The_ORB, May_Poll => True);
-   --  Execute the ORB.
+   My_Servant := new Test_Object.My_Object;
+   --  Create application server object.
+
+   Put_Line (" done.");
+
+   declare
+      My_Id : constant Object_Id
+        := Obj_Adapters.Export (Obj_Adapter, My_Servant);
+      --  Register it with the SOA.
+   begin
+      Put_Line ("Registered object: " & Image (My_Id));
+      Run (The_ORB, May_Poll => True);
+      --  Execute the ORB.
+   end;
 
 end Droopi.Setup.Test;

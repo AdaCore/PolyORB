@@ -8,8 +8,17 @@ with Droopi.Components;
 
 package Droopi.Objects is
 
+   pragma Elaborate_Body;
+
    type Object_Id is new Stream_Element_Array;
    --  XXX ???
+   function To_String (Oid : Object_Id) return String;
+   function To_Oid (S : String) return Object_Id;
+   --  Generic helper functions: convert an oid from/to
+   --  a printable string representation.
+
+   function Image (Oid : Object_Id) return String;
+   --  For debugging purposes.
 
    type Servant is abstract new Droopi.Components.Component
      with private;
@@ -19,7 +28,7 @@ package Droopi.Objects is
    --  defined in Droopi.Objects.Interface.
 
    function Handle_Message
-     (S : Servant;
+     (S   : access Servant;
       Msg : Components.Message'Class)
      return Components.Message'Class is abstract;
 

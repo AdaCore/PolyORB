@@ -31,14 +31,14 @@ package Droopi.Obj_Adapters is
    -- Interface to application objects --
    --------------------------------------
 
-   procedure Export
-     (OA  : in out Obj_Adapter;
-      Obj : Objects.Servant_Access;
-      Id  : out Object_Id) is abstract;
+   function Export
+     (OA  : access Obj_Adapter;
+      Obj : Objects.Servant_Access)
+     return Object_Id is abstract;
    --  Create an identifier for Obj within OA.
 
    procedure Unexport
-     (OA : in out Obj_Adapter;
+     (OA : access Obj_Adapter;
       Id : Object_Id) is abstract;
    --  Id is an object identifier attributed by OA.
    --  The corresponding association is suppressed.

@@ -9,9 +9,10 @@ with CORBA.NVList;
 
 with Droopi.Buffers;
 with Droopi.Log;
-with Droopi.Schedulers;
+with Droopi.Objects;
 with Droopi.References;
 with Droopi.Requests; use Droopi.Requests;
+with Droopi.Schedulers;
 
 with Droopi.Representations.Test; use Droopi.Representations.Test;
 
@@ -94,7 +95,9 @@ package body Droopi.Protocols.Echo is
       end loop;
    end Free;
 
-   procedure Handle_Data_Indication (S : access Echo_Session) is
+   procedure Handle_Data_Indication (S : access Echo_Session)
+   is
+      use Objects;
    begin
       pragma Debug (O ("Received data on echo service..."));
       pragma Debug (Buffers.Show (S.Buffer.all));
@@ -104,7 +107,7 @@ package body Droopi.Protocols.Echo is
            := Split (Unmarshall_String (Rep, S.Buffer));
 
          Method     : constant String := Argv (1).all;
-         Oid        : constant String := Argv (2).all;
+         Oid        : constant Object_Id := To_Oid (Argv (2).all);
          Arg_String : constant String := Argv (3).all;
 
          Req : Request_Access := null;
@@ -120,7 +123,7 @@ package body Droopi.Protocols.Echo is
 
          begin
             pragma Debug (O ("Received request " & Method
-                             & " on object " & Oid
+                             & " on object " & Image (Oid)
                              & " with args " & Arg_String));
 
             --  Args := Get_Empty_Arg_List (OA, Oid, Method);

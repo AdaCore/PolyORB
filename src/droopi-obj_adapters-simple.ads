@@ -15,13 +15,13 @@ package Droopi.Obj_Adapters.Simple is
 
    procedure Destroy (OA : in out Simple_Obj_Adapter);
 
-   procedure Export
-     (OA  : in out Simple_Obj_Adapter;
-      Obj : Objects.Servant_Access;
-      Id  : out Object_Id);
+   function Export
+     (OA  : access Simple_Obj_Adapter;
+      Obj : Objects.Servant_Access)
+     return Object_Id;
 
    procedure Unexport
-     (OA : in out Simple_Obj_Adapter;
+     (OA : access Simple_Obj_Adapter;
       Id : Object_Id);
 
    --  In the Simple Object Adapter, the methods of an object
