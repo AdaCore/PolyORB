@@ -1,0 +1,85 @@
+----------------------------------------
+--                                    --
+--       ----  ---     --  ----       --
+--       -      -     - -  -  -       --
+--       -      -    ----  -  -       --
+--       ----  ---  -   -  ----       --
+--                                    --
+----------------------------------------
+--  CORBA                             --
+--  Interface for                     --
+--  Ada'95 distributed systems annex  --
+--  Objects                           --
+----------------------------------------
+--  Copyright (C) 1999                --
+--  École nationale supérieure des    --
+--  télécommunications                --
+----------------------------------------
+--  Parts Copyright (C)               --
+--  Free Software Fundation, Inc.     --
+----------------------------------------
+
+Created by Thomas Quinot <quinot@inf.enst.fr>.
+
+$Id: //depot/ciao/main/README#7 $
+
+The purpose of the CIAO project is to provide an automated means
+of providing a CORBA interface for CORBA clients to perform
+requests on existing Ada'95 Distributed Systems Annex packages.
+
+CIAO comprises:
+  - a translator that generates an OMG IDL description of
+    the visible part of a Remote_Types or Remote_Call_Interface
+    Ada'95 package;
+  - a code generator which produces an agent that listens to CORBA
+    requests for the CORBA objects corresponding to the DSA package,
+    and services them by performing the corresponding DSA calls.
+
+The translator accepts as entry all legal Ada'95 library units
+that have the Pure, Remote_Types or Remote_Call_Interface category,
+with some restrictions listed in the documentation.
+
+Usage
+-----
+
+1. Run ciao once for the specification of each RCI or RT package
+   in your application:
+
+$ ciao -tkf rci1.ads
+$ ciao -tkf rci2.ads
+$ ciao -tkf rt1.ads
+$ ciao -tkf rt2.ads
+
+This produces IDL declarations and proxy implementation for each
+package.
+
+2. Run idlac, AdaBroker's IDL to Ada compiler, for each of the generated
+IDL contracts:
+
+$ idlac rci1.idl
+$ idlac rci2.idl
+$ idlac rt1.idl
+$ idlac rt2.idl
+
+3. Add the proxy partition in your GNATDIST configuration file:
+
+   ProxyP : Partition := (DSA_RCI1.Impl, DSA_RCI2.Impl);
+   --  List all RCI impls here.
+   procedure Proxy_Main;
+   --  proxy_main.adb is part of the CIAO distribution
+   for ProxyP'Main use Proxy_Main;
+   for ProxyP'Termination use Local_Termination;
+
+4. Run gnatdist. You need to have a configured AdaBroker source
+   tree in $AB_SRC.
+
+$ gnatdist <your-args> `adabroker-config --cflags` \
+  -I$AB_SRC/cos/naming -I$AB_SRC/idls/cos/naming \
+  -largs `adabroker-config --libs`
+
+The generated proxy partition acts as a CORBA server.
+It will register each RCI package with the CORBA Naming
+Service. CORBA clients can then query the naming service to
+obtain references to RCI packages, and invoke services provided
+by these packages to obtain references to DSA distributed objects.
+
