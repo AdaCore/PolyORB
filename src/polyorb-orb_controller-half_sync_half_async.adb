@@ -701,7 +701,7 @@ package body PolyORB.ORB_Controller.Half_Sync_Half_Async is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"orb_controller.basic",
+      (Name      => +"orb_controller.half_sync_half_async",
        Conflicts => +"orb.no_tasking",
        Depends   => +"tasking.condition_variables"
        & "tasking.mutexes"

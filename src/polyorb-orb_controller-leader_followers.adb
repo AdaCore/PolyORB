@@ -54,7 +54,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 
    package L is
       new PolyORB.Log.Facility_Log
-     ("polyorb.orb_controller.half_sync_half_async");
+     ("polyorb.orb_controller.leader_followers");
    procedure O1 (Message : in String; Level : Log_Level := Debug)
      renames L.Output;
 
@@ -703,7 +703,7 @@ package body PolyORB.ORB_Controller.Leader_Followers is
 begin
    Register_Module
      (Module_Info'
-      (Name      => +"orb_controller.basic",
+      (Name      => +"orb_controller.leader_followers",
        Conflicts => +"orb.no_tasking",
        Depends   => +"tasking.condition_variables"
        &"tasking.mutexes",
