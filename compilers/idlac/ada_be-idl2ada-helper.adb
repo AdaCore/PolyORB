@@ -599,8 +599,6 @@ package body Ada_Be.Idl2Ada.Helper is
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
-         --  Add_With (CU, "Broca.Refs");
-         --  XXX Is this necessary?
          Add_With (CU, "PolyORB.CORBA_P.Exceptions");
 
          NL (CU);
@@ -743,7 +741,6 @@ package body Ada_Be.Idl2Ada.Helper is
          Type_Name : constant String
            := Ada_Type_Name (Node);
       begin
-         Add_With (CU, "Broca.Refs");
          Add_With (CU, "PolyORB.CORBA_P.Exceptions");
 
          NL (CU);
