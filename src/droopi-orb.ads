@@ -115,6 +115,14 @@ package Droopi.ORB is
    --  chain is instanciated using Chain, and associated
    --  to the corresponding transport endpoint.
 
+   procedure Register_Endpoint
+     (ORB   : access ORB_Type;
+      TE    : Transport_Endoint_Access;
+      Chain : Filters.Factory_Chain_Access);
+   --  Register a newly-created transport endpoint with ORB.
+   --  A filter chain is instanciated using Chain, and associated
+   --  with TE.
+
    procedure Set_Object_Adapter
      (ORB : access ORB_Type;
       OA  : Obj_Adapters.Obj_Adapter_Access);
