@@ -2,10 +2,11 @@
 
 # cobuild: Build something from a checked-out wavefront.
 
-# $Id: //droopi/main/utils/cobuild#15 $
+# $Id: //droopi/main/utils/cobuild#16 $
 
 PROJECT=DROOPI
 GNUMAKE=gmake
+export GNUMAKE
 
 usage () {
   echo "Usage: $0 -m EMAIL_ADDRESS -C CLIENT_WORKSPACE_TOP -o OUTPUT_DIR [ -c CHANGELIST ]"
@@ -103,7 +104,7 @@ echo "---------- Syncing"
 
 #p4 sync "#none"
 #rm -fr $CLIENT_TOP/*
-p4 sync -f @$CHANGELIST
+p4 sync @$CHANGELIST
 
 CHANGE=`p4 changes -m 1 ...#have | awk '{print \$2}'`
 export CHANGE
