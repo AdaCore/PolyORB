@@ -368,6 +368,7 @@ depend: $(SOURCES)
 ### dependencies or to use the "fast" target.
 ###
 ### DO NOT REMOVE THIS LINE, IT IS USED BY MAKEDEPEND ###
+b_gaprco.o: b_gaprco.adb
 b~isthrbio.o: b~isthrbio.ads b~isthrbio.adb
 isthrbio.o: isthrbio.adb s-garlic.ads s-garcon.ads s-gtplsp.ads s-garthi.ads
 linktest.o: linktest.adb s-garlic.ads s-gardeb.ads s-garexc.ads s-ganota.ads s-ganobl.ads s-garpro.ads s-gaprre.ads s-gprese.ads s-gaprtc.ads s-gptcse.ads s-gasoli.ads s-gastha.ads s-garsto.ads s-gastdf.ads s-gastds.ads s-garstr.ads s-gartas.ads s-garter.ads s-gartyp.ads s-garuti.ads s-parint.ads s-rpc.ads s-rpcser.ads s-rpstio.ads
