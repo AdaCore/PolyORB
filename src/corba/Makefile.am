@@ -68,11 +68,9 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) \
 
 ADA_BODIES = $(ADA_SPECS_WITH_BODY:.ads=.adb)
 
-ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
-
 lib_LTLIBRARIES = libpolyorb-corba.la
-libpolyorb_corba_la_SOURCES =
-libpolyorb_corba_la_LIBADD = $(ADA_LIBADD)
+libpolyorb_corba_la_SOURCES = $(ADA_SPECS) $(ADA_BODIES)
+libpolyorb_corba_la_LIBADD = 
 libpolyorb_corba_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)
 
 CLEANFILES = *.ali

@@ -167,8 +167,8 @@ DISTCLEANFILES += $(GEN) $(GEN_BODIES)
 #
 
 ADA_SPECS_WITH_BODY = \
-	$(IMPL_SPECS_WITH_BODY) \
 	$(GEN_SPECS_WITH_BODY) \
+	$(IMPL_SPECS_WITH_BODY) \
 	corba-orb-typecode.ads \
 	polyorb-corba_p-ir_tools.ads
 
@@ -177,6 +177,6 @@ ADA_SPECS_NO_BODY = \
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-ir-impl.la
 
-libpolyorb_corba_cos_ir_impl_la_SOURCES = $(GEN_BODIES)
-libpolyorb_corba_cos_ir_impl_la_LIBADD  = $(ADA_LIBADD)
+libpolyorb_corba_cos_ir_impl_la_SOURCES = $(ADA_SPECS) $(ADA_BODIES)
+libpolyorb_corba_cos_ir_impl_la_LIBADD  = 
 libpolyorb_corba_cos_ir_impl_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)

@@ -81,6 +81,8 @@ GEN= \
         $(GEN_SPECS_NO_BODY) \
         $(GEN_SPECS_WITH_BODY)
 
+ALL = $(GEN) $(GEN_BODIES)
+
 $(GEN): $(IDL) $(IDLAC)
 	for i in $(IDL); do \
 	    $(IDLAC) $$i -I$(srcdir); \
@@ -89,9 +91,7 @@ $(GEN): $(IDL) $(IDLAC)
 
 $(GEN_BODIES): $(GEN)
 
-$(ADA_LIBADD): $(GEN)
-
-DISTCLEANFILES = $(GEN) $(GEN_BODIES)
+DISTCLEANFILES = $(ALL)
 
 #
 # Building libpolyorb-corba-cos-event library
@@ -105,6 +105,6 @@ ADA_SPECS_NO_BODY = \
 
 lib_LTLIBRARIES = libpolyorb-corba-cos-event.la
 
-libpolyorb_corba_cos_event_la_SOURCES = $(GEN_BODIES)
-libpolyorb_corba_cos_event_la_LIBADD  = $(ADA_LIBADD)
+libpolyorb_corba_cos_event_la_SOURCES = $(ALL)
+libpolyorb_corba_cos_event_la_LIBADD  = 
 libpolyorb_corba_cos_event_la_LDFLAGS = -no-undefined -version-info $(LIBVERSIONINFO)

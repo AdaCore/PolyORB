@@ -92,8 +92,8 @@ done
 exec_prefix="@exec_prefix@"
 includedir="@includedir@"
 libdir="@libdir@"
-polyorb_dir="@XMLADA_INCS@ -I${includedir}/polyorb"
-polyorb_lib="@XMLADA_LIBS@ -L${libdir}"
+polyorb_dir="-I${includedir}/polyorb"
+polyorb_lib="-L${libdir}"
 corba_idl_dir=" -I${includedir}/polyorb/corba/idls/CORBA_IDL"
 
 for P in $appli
@@ -105,10 +105,9 @@ do
  then
    polyorb_dir="$polyorb_dir -I${includedir}/polyorb/corba/cos -I${includedir}/polyorb/corba/messaging -I${includedir}/polyorb/corba/portableinterceptor -I${includedir}/polyorb/corba/rtcorba"
    polyorb_lib="$polyorb_lib -lpolyorb-corba-messaging -lpolyorb-corba-portableinterceptor -lpolyorb-corba-rtcorba"
-   polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-event -lpolyorb-corba-cos-naming -lpolyorb-corba-cos-time"
    for S in $services
    do
-      polyorb_lib="$polyorb_lib -lpolyorb-corba-cos-${S}-impl"
+      polyorb_lib="$polyorb_lib  -lpolyorb-corba-cos-${S} -lpolyorb-corba-cos-${S}-impl"
       corba_idl_dir="$corba_idl_dir -I${includedir}/polyorb/corba/idls/cos/${S}"
    done
  fi 
@@ -137,6 +136,9 @@ do
    polyorb_lib="$polyorb_lib -lpolyorb-web_common"
  fi
 done
+
+polyorb_dir="$polyorb_dir @XMLADA_INCS@"
+polyorb_lib="$polyorb_lib -lpolyorb @XMLADA_LIBS@"
 
 if test ! x"$echo_prefix" = x"true"  -a ! x"$echo_exec_prefix" = x"true" -a ! x"$echo_cflags" = x"true" -a ! x"$echo_libs" = x"true" -a ! x"$echo_idls" = x"true"; then
    echo $polyorb_dir -largs $polyorb_lib

@@ -16,13 +16,14 @@ LINK=		$(LINKER) -o $(lib_LTLIBRARIES)
 .c.lo:
 	$(LTCOMPILE) -c $<
 
-.adb.lo:
-	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) $(LIBTOOL_TAG) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
-
 .ads.lo:
 	@chmod a+x $(ADACOMPILER)
-	$(LIBTOOL) $(LIBTOOL_TAG) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<
+	if [ -f `echo $< | sed -e 's/s$$/b/'` ]; then \
+	  $(LIBTOOL) $(LIBTOOL_TAG) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) \
+	  `echo $< | sed -e 's/s$$/b/'`; \
+	else \
+	  $(LIBTOOL) $(LIBTOOL_TAG) --mode=compile $(ADACOMPILER) -c $(ADAFLAGS) $<; \
+	fi
 
 .idl.ads:
 	$(IDLAC) -I$(srcdir) $(IDLAC_FLAGS) $<

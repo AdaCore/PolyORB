@@ -67,8 +67,6 @@ ADA_SPECS = $(ADA_SPECS_WITH_BODY) $(ADA_SPECS_NO_BODY)
 
 ADA_ALIS = $(ADA_SPECS:.ads=.ali)
 
-ADA_LIBADD = $(ADA_SPECS:.ads=.lo)
-
 #
 # File to be cleaned
 #
