@@ -109,14 +109,38 @@ package CORBA.Object is
       Maximum : CORBA.Unsigned_Long)
      return CORBA.Unsigned_Long;
 
-   --    procedure Set_Policy_Overrides
-   --      (Self : in Ref;
-   --       Policies : CORBA.Policy.PolicyList;
-   --       Set_Add : SetOverrideType);
+   --  Implementation Note: The following policy management related
+   --  Object operations were moved into child package
+   --  CORBA.Object.Policies to avoid circular dependency.
+   --
+   --     function Get_Policy
+   --       (Self        : in Ref;
+   --        Policy_Type : in PolicyType)
+   --       return CORBA.Policy.Ref;
 
    --     function Get_Domain_Managers
    --       (Self : Ref)
    --       return CORBA.DomainManager.DomainManagerList;
+
+   --     procedure Set_Policy_Overrides
+   --       (Self     : in Ref;
+   --        Policies : in CORBA.Policy.PolicyList;
+   --        Set_Add  : in SetOverrideType);
+
+   --     function Get_Client_Policy
+   --       (Self     : in Ref;
+   --        The_Type : in PolicyType)
+   --       return CORBA.Policy.Ref;
+
+   --     function Get_Policy_Overrides
+   --       (Self  : in Ref;
+   --        Types : in CORBA.Policy.PolicyTypeSeq)
+   --       return CORBA.Policy.PolicyList;
+
+   --     procedure Validate_Connection
+   --       (Self                  : in     Ref;
+   --        Inconsistent_Policies :    out CORBA.Policy.PolicyList;
+   --        Result                :    out Boolean);
 
    function TC_Object return CORBA.TypeCode.Object;
 
