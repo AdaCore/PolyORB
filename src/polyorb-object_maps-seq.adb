@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---        C O R B A . O B J E C T _ M A P . S E Q U E N C E _ M A P         --
+--              P O L Y O R B . O B J E C T _ M A P S . S E Q               --
 --                                                                          --
 --                                 B o d y                                  --
 --                                                                          --
@@ -32,7 +32,7 @@
 
 --  $Id$
 
-package body CORBA.Object_Map.Sequence_Map is
+package body PolyORB.Object_Maps.Seq is
 
    use Active_Object_Map;
    use PolyORB.POA_Types;
@@ -241,4 +241,4 @@ package body CORBA.Object_Map.Sequence_Map is
       return Active_Object_Map.Remove_By_Index (O_Map.Map.all'Access, Index);
    end Remove_By_Index;
 
-end CORBA.Object_Map.Sequence_Map;
+end PolyORB.Object_Maps.Seq;

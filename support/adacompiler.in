@@ -26,7 +26,6 @@ then
   $ADA $cline$newname
   mv gnat.adc- gnat.adc
 else
-  echo "... with gnat.adc"
   $ADA $cline$newname
 fi
 mv $newname $1

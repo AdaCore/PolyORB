@@ -2,7 +2,7 @@
 --                                                                          --
 --                           POLYORB COMPONENTS                             --
 --                                                                          --
---                     C O R B A . O B J E C T _ M A P                      --
+--              P O L Y O R B . O B J E C T _ M A P S . S E Q               --
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
@@ -30,82 +30,128 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
---  Abstract model for the Active Object Map.
---  An implementation of this map needs to be able to access an entry
---  by its index (an Integer).
+--  An implementation of the Active Object Map using the sequences from PolyORB
+--  (PolyORB.Unbounded_Sequences). It uses the generic package
+--  PolyORB.Object_Map to do so.
 
 --  $Id$
 
+with Ada.Unchecked_Deallocation;
+
+with PolyORB.Object_Map;
+pragma Elaborate_All (PolyORB.Object_Map);
 with PolyORB.POA_Types;
 
-package CORBA.Object_Map is
+package PolyORB.Object_Maps.Seq is
 
-   type Object_Map_Entry is abstract tagged
-      record
-         Oid     : PolyORB.POA_Types.Unmarshalled_Oid_Access;
-         Servant : PolyORB.POA_Types.Servant_Access;
-      end record;
-   type Object_Map_Entry_Access is access all Object_Map_Entry'Class;
+   type Seq_Object_Map_Entry is
+     new PolyORB.Object_Maps.Object_Map_Entry with null record;
+   type Seq_Object_Map_Entry_Access is
+     access all Seq_Object_Map_Entry;
 
-   type Object_Map is abstract tagged null record;
-   type Object_Map_Access is access all Object_Map'Class;
+   function Is_Servant_Equal
+     (Item : in Object_Map_Entry_Access;
+      To   : in PolyORB.POA_Types.Servant_Access)
+     return Boolean;
 
-   function Add (O_Map : access Object_Map;
+   function Is_Object_Id_Equal
+     (Item : in Object_Map_Entry_Access;
+      To   : in PolyORB.POA_Types.Unmarshalled_Oid_Access)
+     return Boolean;
+
+   function Is_Null (Item : in Object_Map_Entry_Access)
+                    return Boolean;
+
+   function Null_Entry return Object_Map_Entry_Access;
+
+   package Active_Object_Map is
+      new PolyORB.Object_Map (Object_Map_Entry_Access,
+                             PolyORB.POA_Types.Servant_Access,
+                             PolyORB.POA_Types.Unmarshalled_Oid_Access);
+   --  Instanciation of the generic package PolyORB.Object_Map
+
+   type Seq_Object_Map is new PolyORB.Object_Maps.Object_Map with private;
+   type Seq_Object_Map_Access is access all Seq_Object_Map;
+   --  The composite type for this implementation of the Active Object Map
+
+   function New_Map return Seq_Object_Map_Access;
+   --  Creates a new Seq_Object_Map_Access
+
+   procedure Free_Map (S_Map : in out Seq_Object_Map_Access);
+   --  Frees a Seq_Object_Map object
+
+   function Add (O_Map : access Seq_Object_Map;
                  Obj   : in     Object_Map_Entry_Access)
-                return Integer is abstract;
+                return Integer;
    --  Adds a new entry in the map
    --  and returns it's index
 
-   procedure Replace_By_Index (O_Map : access Object_Map;
+   procedure Replace_By_Index (O_Map : access Seq_Object_Map;
                                Obj   : in     Object_Map_Entry_Access;
-                               Index : in     Integer)
-      is abstract;
+                               Index : in     Integer);
    --  Replace an element in the map, given an index
 
-   function Is_Servant_In (O_Map : in Object_Map;
-                           Item  : in PolyORB.POA_Types.Servant_Access)
-                          return Boolean is abstract;
+   function Is_Servant_In (O_Map  : in Seq_Object_Map;
+                           Item   : in PolyORB.POA_Types.Servant_Access)
+                          return Boolean;
    --  Checks if a servant is already in the map
    --  (and return True if it is the case)
 
    function Is_Object_Id_In
-     (O_Map  : in Object_Map;
+     (O_Map  : in Seq_Object_Map;
       Item   : in PolyORB.POA_Types.Unmarshalled_Oid_Access)
-     return Boolean is abstract;
+     return Boolean;
    --  Checks if an object_id is already used in the map
    --  (and return True if it is the case)
 
-   function Get_By_Id (O_Map : in Object_Map;
-                       Item  : in PolyORB.POA_Types.Unmarshalled_Oid_Access)
-                      return Object_Map_Entry_Access is abstract;
-   --  Given an Object_Id, looks for the corresponding map entry.
-   --  If not found, returns null.
+   function Get_By_Id (O_Map  : in Seq_Object_Map;
+                       Item   : in PolyORB.POA_Types.Unmarshalled_Oid_Access)
+                      return Object_Map_Entry_Access;
+   --  Given an Object_Id, looks for the corresponding map entry
 
-   function Get_By_Servant (O_Map  : in Object_Map;
+   function Get_By_Servant (O_Map  : in Seq_Object_Map;
                             Item   : in PolyORB.POA_Types.Servant_Access)
-                           return Object_Map_Entry_Access is abstract;
+                           return Object_Map_Entry_Access;
    --  Given a servant, looks for the corresponding map entry
    --  Doesn't check that the servant is only once in the map
-   --  If not found, returns null.
 
-   function Get_By_Index (O_Map : in Object_Map;
+   function Get_By_Index (O_Map : in Seq_Object_Map;
                           Index : in Integer)
-                         return Object_Map_Entry_Access is abstract;
+                         return Object_Map_Entry_Access;
    --  Given an index, returns the corrsponding map entry
-   --  If Index is out of bounds, returns null.
 
-   function Remove (O_Map : access Object_Map;
+   function Remove (O_Map : access Seq_Object_Map;
                     Item  : in     PolyORB.POA_Types.Unmarshalled_Oid_Access)
-                   return Object_Map_Entry_Access is abstract;
+                   return Object_Map_Entry_Access;
    --  Given an Object_Id, removes an entry from the map
    --  and returns it . A null value means
    --  that the object_id wasn't in the map.
 
-   function Remove_By_Index (O_Map : access Object_Map;
+   function Remove_By_Index (O_Map : access Seq_Object_Map;
                              Index : in     Integer)
-                            return Object_Map_Entry_Access is abstract;
+                            return Object_Map_Entry_Access;
    --  Given an index, removes an entry from the map
    --  and returns it. A null value means that the index
    --  points to an empty value.
 
-end CORBA.Object_Map;
+   procedure Free is new
+     Ada.Unchecked_Deallocation (Seq_Object_Map_Entry,
+                                 Seq_Object_Map_Entry_Access);
+   --  Frees an entry of the map
+
+private
+
+   type Seq_Object_Map is new PolyORB.Object_Maps.Object_Map with
+      record
+         Map : Active_Object_Map.Object_Map_Access;
+      end record;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Active_Object_Map.Object_Map,
+      Active_Object_Map.Object_Map_Access);
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Seq_Object_Map,
+      Seq_Object_Map_Access);
+
+end PolyORB.Object_Maps.Seq;

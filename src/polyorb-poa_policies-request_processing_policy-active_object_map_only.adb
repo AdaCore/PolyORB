@@ -30,7 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
 with PolyORB.POA_Policies.Servant_Retention_Policy;
 with PolyORB.POA_Policies.Servant_Retention_Policy.Retain;
 with PolyORB.POA;
@@ -54,16 +53,13 @@ is
 
    procedure Check_Compatibility
      (Self : Active_Map_Only_Policy;
-      OA   : PolyORB.POA_Types.Obj_Adapter_Access)
-   is
-      use PolyORB.CORBA_P.Exceptions;
-
+      OA   : PolyORB.POA_Types.Obj_Adapter_Access) is
    begin
       if not
         (POA.Obj_Adapter_Access (OA).Servant_Retention_Policy.all in
          POA_Policies.Servant_Retention_Policy.Retain.Retain_Policy)
       then
-         Raise_Invalid_Policy;
+         raise PolyORB.POA.Invalid_Policy;
       end if;
    end Check_Compatibility;
 
@@ -132,7 +128,7 @@ is
          OA,
          U_Oid);
       if Servant = null then
-         Raise_Object_Not_Active;
+         raise PolyORB.POA.Object_Not_Active;
       end if;
       return Servant;
    end Id_To_Servant;

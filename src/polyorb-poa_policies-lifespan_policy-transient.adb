@@ -30,9 +30,6 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
---  XXX remove dep on CORBA_P!
-
 with PolyORB.POA;
 with PolyORB.Types;
 
@@ -96,7 +93,7 @@ package body PolyORB.POA_Policies.Lifespan_Policy.Transient is
       if U_Oid.Persistency_Flag
         /= PolyORB.POA.Obj_Adapter_Access (OA).Boot_Time
       then
-         Raise_Bad_Param;
+         raise PolyORB.POA.Bad_Param;
       end if;
    end Ensure_Lifespan;
 

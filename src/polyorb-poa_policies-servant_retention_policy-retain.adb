@@ -30,13 +30,12 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.CORBA_P.Exceptions;          use PolyORB.CORBA_P.Exceptions;
+with PolyORB.POA;
 with PolyORB.POA_Policies.Id_Assignment_Policy;
 with PolyORB.POA_Policies.Id_Uniqueness_Policy;
 with PolyORB.POA_Policies.Lifespan_Policy;
 with PolyORB.POA_Policies.Request_Processing_Policy;
 with PolyORB.POA_Policies.Implicit_Activation_Policy;
-with PolyORB.POA;
 
 package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
 
@@ -91,11 +90,11 @@ package body PolyORB.POA_Policies.Servant_Retention_Policy.Retain is
         := POA.Id_Assignment_Policy;
    begin
       if not Is_System (P.all) then
-         Raise_Wrong_Policy;
+         raise PolyORB.POA.Invalid_Policy;
+         --  XXX was Wrong_Policy, is that the same?
       end if;
-      Ensure_Servant_Uniqueness (POA.Id_Uniqueness_Policy.all,
-                                 OA,
-                                 P_Servant);
+      Ensure_Servant_Uniqueness
+        (POA.Id_Uniqueness_Policy.all,OA, P_Servant);
       return Activate_Object (POA.Id_Assignment_Policy.all, OA, P_Servant);
    end Activate_Object;
 

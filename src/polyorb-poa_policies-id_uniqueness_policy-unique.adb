@@ -30,13 +30,14 @@
 --                                                                          --
 ------------------------------------------------------------------------------
 
-with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
-with PolyORB.Locks;              use PolyORB.Locks;
-
+with PolyORB.Locks;
+with PolyORB.Object_Maps;
 with PolyORB.POA;
-with CORBA.Object_Map;
 
 package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
+
+   use PolyORB.Locks;
+   use PolyORB.Object_Maps;
 
    ------------
    -- Create --
@@ -78,15 +79,13 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
       OA        : PolyORB.POA_Types.Obj_Adapter_Access;
       P_Servant : Servant_Access)
    is
-      use CORBA.Object_Map;
-
       P_OA : PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
    begin
       if P_OA.Active_Object_Map /= null then
          Lock_R (P_OA.Map_Lock);
          if Is_Servant_In (P_OA.Active_Object_Map.all, P_Servant) then
-            Raise_Servant_Already_Active;
+            raise PolyORB.POA.Servant_Already_Active;
          end if;
          Unlock_R (P_OA.Map_Lock);
       end if;
@@ -100,7 +99,6 @@ package body PolyORB.POA_Policies.Id_Uniqueness_Policy.Unique is
                            OA        : PolyORB.POA_Types.Obj_Adapter_Access;
                            P_Servant : Servant_Access) return Object_Id_Access
    is
-      use CORBA.Object_Map;
       P_OA        : PolyORB.POA.Obj_Adapter_Access
         := PolyORB.POA.Obj_Adapter_Access (OA);
       An_Entry    : Object_Map_Entry_Access;

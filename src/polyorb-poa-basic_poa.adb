@@ -38,31 +38,22 @@ with Ada.Real_Time;
 
 with PolyORB.Log;
 pragma Elaborate_All (PolyORB.Log);
-
 with PolyORB.Objects;
-with PolyORB.Smart_Pointers;
-
-with CORBA;
-with PolyORB.CORBA_P.Exceptions; use PolyORB.CORBA_P.Exceptions;
---  For CORBA exceptions (XXX should not!)
-
-with PolyORB.Types;
-
-with PolyORB.POA_Types;
-with PolyORB.POA_Manager.Basic_Manager;
 with PolyORB.POA_Config;
+with PolyORB.POA_Manager.Basic_Manager;
+with PolyORB.POA_Types;
+with PolyORB.Smart_Pointers;
+with PolyORB.Types;
 
 package body PolyORB.POA.Basic_POA is
 
-   use PolyORB.Types;
-
-   use POA_Types;
-
    use PolyORB.Locks;
    use PolyORB.Log;
-   use PolyORB.POA_Policies;
    use PolyORB.POA_Manager;
    use PolyORB.POA_Manager.Basic_Manager;
+   use PolyORB.POA_Policies;
+   use PolyORB.POA_Types;
+   use PolyORB.Types;
 
    package L is new PolyORB.Log.Facility_Log ("corba.poa.basic_poa");
    procedure O (Message : in Standard.String; Level : Log_Level := Debug)
@@ -517,7 +508,7 @@ package body PolyORB.POA.Basic_POA is
          --  we add the new child.
          Children_Locked := True;
          if Get_Child (Self, To_Standard_String (Adapter_Name)) /= null then
-            PolyORB.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
+            raise PolyORB.POA.Adapter_Already_Exists;
          end if;
       end if;
 
@@ -575,10 +566,8 @@ package body PolyORB.POA.Basic_POA is
       return Obj_Adapter_Access (New_Obj_Adapter);
 
    exception
-      when CORBA.Adapter_Already_Exists =>
-         --  Reraise exception
-         PolyORB.CORBA_P.Exceptions.Raise_Adapter_Already_Exists;
-         return null;
+      when PolyORB.POA.Adapter_Already_Exists =>
+         raise;
       when others =>
          Destroy_OA (New_Obj_Adapter);
          raise;
@@ -703,7 +692,7 @@ package body PolyORB.POA.Basic_POA is
                           P_Servant);
    begin
       if Oid = null then
-         Raise_Servant_Not_Active;
+         raise PolyORB.POA.Servant_Not_Active;
       end if;
       return Oid.all;
    end Servant_To_Id;
@@ -988,8 +977,9 @@ package body PolyORB.POA.Basic_POA is
       if Do_Check = CHECK then
          case Get_State (POA_Manager_Of (OA).all) is
             when DISCARDING | INACTIVE =>
-               Raise_Transient (1);
+               --  Raise_Transient (1);
                --  ??? Do we have to do something special for INACTIVE
+               raise Transient;
             when HOLDING =>
                declare
                   S : PolyORB.Objects.Servant_Access;
