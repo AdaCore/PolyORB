@@ -56,9 +56,9 @@ package body Corba.Boa is
    procedure C_Implementation_Is_Ready(Self : in Object ;
                                        ImplementationDef_ptr : in System.Address ;
                                        Non_Blocking : in Sys_Dep.C_Boolean );
-   pragma Import(CPP, C_Implementation_Is_Ready, "impl_is_ready__Q25CORBA3BOAPQ25CORBA17ImplementationDefb") ;
-   -- corresponds to CORBA::BOA::impl_is_ready
-   -- see CORBA.h L1967
+   pragma Import(CPP, C_Implementation_Is_Ready, "impl_is_ready__FPQ25CORBA3BOAPQ25CORBA17ImplementationDefb") ;
+   -- corresponds to Ada_Corba_Boa method impl is ready
+   -- see Ada_Corba_Boa.hh
 
 
    -- Implementation_Is_Ready
@@ -92,13 +92,4 @@ package body Corba.Boa is
       Omniobject.Dispose_Object(Obj) ;
    end ;
 
-
-
-
 end Corba.Boa ;
-
-
-
-
-
-

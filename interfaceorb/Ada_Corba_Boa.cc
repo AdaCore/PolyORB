@@ -60,3 +60,12 @@ ADABROKER_TRY
   b->destroy ();
 ADABROKER_CATCH
 }
+
+void impl_is_ready (CORBA::BOA *b,
+		    CORBA::ImplementationDef_ptr p,
+		    CORBA::Boolean NonBlocking=0)
+{
+ADABROKER_TRY
+  b->impl_is_ready (p,NonBlocking);
+ADABROKER_CATCH
+}

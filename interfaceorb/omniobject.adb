@@ -759,6 +759,8 @@ package body OmniObject is
       Ada_Success : Corba.Boolean ;
    begin
       -- transforms the arguments in a Ada type, ...
+      pragma Debug(Output(Omniobject,
+                          "Omniobject.C_Dispatch : arriving in Ada code")) ;
       Ada_Orl_Response_Expected := Sys_Dep.Boolean_C_To_Ada (Orl_Response_Expected) ;
       -- ... calls the ada function ...
       Dispatch (Self,

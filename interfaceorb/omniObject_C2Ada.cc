@@ -96,12 +96,16 @@ omniObject_C2Ada::dispatch(GIOP_S &giop_s,
 			   _CORBA_Boolean response_expected)
 {
 #ifdef DEBUG
-  cerr << "omniObject_C2Ada::dispatch" << endl ;
+  cerr << "omniObject_C2Ada::dispatch : begin" << endl ;
 #endif
 
   // declaration of the arguments for the Ada function
   Ada_Giop_s ada_giop_s(&giop_s) ;
   _CORBA_Boolean success ;
+
+#ifdef DEBUG
+  cerr << "omniObject_C2Ada::dispatch : call the Ada code" << endl ;
+#endif
 
   Ada_OmniObject_Pointer->dispatch(ada_giop_s,
 				   operation,
