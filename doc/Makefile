@@ -1,5 +1,11 @@
 EPSFILES=\
 droopi-arch.eps\
+droopi-func-addressing.eps\
+droopi-func-transport.eps\
+droopi-func-representation.eps\
+droopi-func-protocol.eps\
+droopi-func-activation.eps\
+droopi-func-dispatching.eps\
 droopi-design.eps\
 components.eps\
 annotations.eps
@@ -59,7 +65,7 @@ ${SOURCES}: src.ada
 #	else mv $<.tmp.eps $@ ;\
 #	fi
 #	${RM} $<.tmp.*
-	fig2dev -L eps $< $@
+	(unset LANG;unset LC_NUMERIC;unset LC_ALL;fig2dev -L eps $< $@)
 
 %.eps: %.dia
 	dia -e $@ $<

@@ -585,10 +585,22 @@ L'implémentation d'une personnalité protocolaire doit~:
 \section{Intégration des fonctions dans l'architecture}
 
 %%  XXX Ajouter un schéma pour la lecture de chaque fonction sur l'architecture globale.
+\newcommand{\funcfig}[2]{% \funcfig{fooing}{Caption}
+\begin{figure}
+\begin{center}
+\mbox{\psfig{file=droopi-func-#1.eps,width=8cm}}
+\end{center}
+\caption{#2}
+\label{fig:func-#1}
+\end{figure}
+}
 
 \subsection{Adressage}
 
-\emph{Fonction faisant intervenir la couche applicative et la couche protocolaire}
+\funcfig{addressing}{Fonction \emph{adressage}}
+
+\emph{Fonction faisant intervenir la couche applicative et la couche protocolaire.
+Cf. figure \ref{fig:func-addressing}.}
 
 La création d'une référence pour un objet enregistré auprès de l'ORB nécessite
 l'association d'un identifiant local de l'objet enregistré (information fournie
@@ -603,7 +615,10 @@ et d'autre part une collection d'adresses de point d'accès de transport, corresp
 
 \subsection{Transport}
 
-\emph{Fonction faisant intervenir seulement la couche protocolaire}
+\funcfig{transport}{Fonction \emph{transport}}
+
+\emph{Fonction faisant intervenir seulement la couche protocolaire.
+Cf. figure \ref{fig:func-transport}.}
 
 Le service de transport consiste à transférer une information d'un point à un
 autre~: il correspond au niveau le plus bas du système de communication.
@@ -615,9 +630,14 @@ Ce service est réalisé en concrétisant un certain nombre de classes abstraites~:
 \item[Asynchronous\_Event\_Source]
 \end{description}
 
+%%  XXX à compléter !
+
 \subsection{Représentation}
 
-\emph{Fonction faisant intervenir seulement la couche protocolaire}
+\funcfig{representation}{Fonction \emph{représentation}}
+
+\emph{Fonction faisant intervenir seulement la couche protocolaire.
+Cf. figure \ref{fig:func-representation}.}
 
 La fonction de représentation convertit une donnée $D$ de type $T$ en message transmissible
 à un autre ORB, conformément à la représentation imposée par un protocole de communication
@@ -647,7 +667,10 @@ les deux transformations indiquées ci-dessus.
 
 \subsection{Protocole}
 
-\emph{Fonction faisant intervenir seulement la couche protocolaire}
+\funcfig{protocol}{Fonction \emph{protocole d'invocation}}
+
+\emph{Fonction faisant intervenir seulement la couche protocolaire.
+Cf. figure \ref{fig:func-protocol}.}
 
 La fonction «~protocole d'invocation de méthodes~» présente des similarités
 avec la fonction de représentation, au sens où elle transforme des données
@@ -689,7 +712,10 @@ donc au moins les fonctionnalités suivantes~:
 
 \subsection{Activation}
 
-\emph{Fonction faisant intervenir seulement la couche applicative}
+\funcfig{activation}{Fonction \emph{activation des objets d'implémentation}}
+
+\emph{Fonction faisant intervenir seulement la couche applicative.
+Cf. figure \ref{fig:func-activation}.}
 
 Lorsqu'une requête reçue par la couche protocolaire est prête à être exécutée,
 il appartient à l'ORB d'associer l'objet logique sur lequel l'appel est effectué
@@ -698,7 +724,10 @@ objet est dévolue à l'\emph{Object adapter} (terminologie CORBA).
 
 \subsection{Aiguillage}
 
-\emph{Fonction faisant intervenir seulement la couche applicative}
+\funcfig{dispatching}{Fonction \emph{aiguillage}}
+
+\emph{Fonction faisant intervenir seulement la couche applicative.
+Cf. figure \ref{fig:func-dispatching}.}
 
 Un appel de méthode correspondant à une requête reçue doit être affecté
 à un flot d'exécution. Ce flot doit être soit prêté par l'application,
@@ -809,7 +838,7 @@ méthode d'objet.
 \mbox{\psfig{file=annotations.eps,width=12cm}}
 \end{center}
 \caption{Pattern «~Annotation~»}
-\label{fig:components}
+\label{fig:annotation}
 \end{figure}
 
 %  Il peut être nécessaire pour un client d'un objet d'associer des
@@ -1014,6 +1043,7 @@ un flot d'octets et vice-versa.
 Exemples de dérivations concrètes possibles~: CDR, XDR.
 
 \subsubsection{Protocole d'invocation~: Protocols et Sessions}
+\label{sec:protocoles}
 
 Droopi.Session est l'abstraction d'une connexion ouverte avec un autre
 middleware, sur laquelle on peut émettre ou recevoir des requêtes d'invocation
