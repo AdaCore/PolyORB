@@ -174,5 +174,8 @@ AC_OUTPUT([Makefile
            Garlic/s-gaosli.ads
            Examples/check-config
            Examples/Makefile
-           Examples/Prime/Makefile
+           Examples/Eratho/Makefile
+           Examples/Eratho/cycle/Makefile
+           Examples/Eratho/dynamic/Makefile
+           Examples/Eratho/spiral/Makefile
            Examples/RACW/Makefile])

@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = Prime RACW
+SUBDIRS = Eratho RACW
 
 CLEANFILES = check-stamp
 DISTCLEANFILES = check-config

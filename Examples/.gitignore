@@ -1,2 +1,3 @@
 Makefile
 check-config
+check-stamp

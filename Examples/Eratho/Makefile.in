@@ -30,7 +30,7 @@ pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
 
-top_builddir = ..
+top_builddir = ../..
 
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -63,13 +63,10 @@ PROTOCOLSOBJECTS = @PROTOCOLSOBJECTS@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = Eratho RACW
-
-CLEANFILES = check-stamp
-DISTCLEANFILES = check-config
+SUBDIRS = cycle dynamic spiral
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES =  check-config
-DIST_COMMON =  ChangeLog Makefile.am Makefile.in check-config.in
+CONFIG_CLEAN_FILES = 
+DIST_COMMON =  README Makefile.am Makefile.in README
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) \
@@ -85,8 +82,6 @@ $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in
 Makefile: $(top_builddir)/config.status $(srcdir)/Makefile.in $(BUILT_SOURCES)
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
-check-config: $(top_builddir)/config.status check-config.in
-	cd $(top_builddir) && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= ./config.status
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -136,7 +131,7 @@ maintainer-clean-tags:
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
-subdir = Examples
+subdir = Examples/Eratho
 distdir: $(DISTFILES)
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
