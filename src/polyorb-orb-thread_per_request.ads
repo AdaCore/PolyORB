@@ -54,7 +54,7 @@ package PolyORB.ORB.Thread_Per_Request is
    procedure Handle_Request_Execution
      (P   : access Thread_Per_Request_Policy;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class);
+      RJ  : access Request_Job'Class);
 
    procedure Idle
      (P : access Thread_Per_Request_Policy;

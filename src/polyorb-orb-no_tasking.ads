@@ -62,7 +62,7 @@ package PolyORB.ORB.No_Tasking is
    procedure Handle_Request_Execution
      (P   : access No_Tasking;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class);
+      RJ  : access Request_Job'Class);
 
    procedure Idle (P : access No_Tasking; ORB : ORB_Access);
 

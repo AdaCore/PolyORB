@@ -98,7 +98,7 @@ package body PolyORB.ORB.No_Tasking is
    procedure Handle_Request_Execution
      (P   : access No_Tasking;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class) is
+      RJ  : access Request_Job'Class) is
    begin
       pragma Warnings (Off);
       pragma Unreferenced (P);
@@ -106,8 +106,7 @@ package body PolyORB.ORB.No_Tasking is
       pragma Warnings (On);
       pragma Debug (O ("No_Tasking: request execution"));
 
-      pragma Assert (RJ.all in Request_Job);
-      Jobs.Run (RJ);
+      Run_Request (RJ);
       --  No tasking: execute the request in the current task.
    end Handle_Request_Execution;
 

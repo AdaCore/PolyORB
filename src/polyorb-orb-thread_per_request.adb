@@ -87,7 +87,7 @@ package body PolyORB.ORB.Thread_Per_Request is
       pragma Debug (O ("Thread "
         & Soft_Links.Image (Soft_Links.Current_Task)
         & " is executing a job"));
-      Jobs.Run (Job);
+      Run_Request (Request_Job (Job.all)'Access);
       Jobs.Free (Job);
       pragma Debug (O ("Thread "
         & Soft_Links.Image (Soft_Links.Current_Task)
@@ -141,7 +141,7 @@ package body PolyORB.ORB.Thread_Per_Request is
    procedure Handle_Request_Execution
      (P   : access Thread_Per_Request_Policy;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class)
+      RJ  : access Request_Job'Class)
    is
    begin
       pragma Warnings (Off);
@@ -149,7 +149,6 @@ package body PolyORB.ORB.Thread_Per_Request is
       pragma Unreferenced (ORB);
       pragma Warnings (On);
       pragma Debug (O ("Handle_Request_Execution : Run Job"));
-      pragma Assert (RJ.all in Request_Job);
 
       A_Job := PolyORB.ORB.Duplicate_Request_Job (RJ);
       Create_Task (Main_Request_Thread'Access);

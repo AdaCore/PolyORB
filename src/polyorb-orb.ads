@@ -57,6 +57,8 @@ package PolyORB.ORB is
    use PolyORB.Transport;
    use PolyORB.Components;
 
+   type Request_Job is new Jobs.Job with private;
+
    ----------------------------------
    -- Abstract tasking policy type --
    ----------------------------------
@@ -72,9 +74,12 @@ package PolyORB.ORB is
    type Tasking_Policy_Type is abstract tagged limited private;
    type Tasking_Policy_Access is access all Tasking_Policy_Type'Class;
 
+   ----------------------------------------
+   -- Utility routines for jobs handling --
+   ----------------------------------------
+
    procedure Run_And_Free_Job
-     (P : access Tasking_Policy_Type;
-      J : in out Jobs.Job_Access);
+     (J : in out Jobs.Job_Access);
    --  Execute job J in the context of tasking policy P.
    --  J is ran in the context of the calling task, except in
    --  cases where the policy mandates otherwise.
@@ -104,6 +109,9 @@ package PolyORB.ORB is
       TE  : Transport_Endpoint_Access;
    end record;
 
+   --  Abstract primitives of Tasking_Policy_Type (need to
+   --  be visible, RM 3.9.3(10)).
+
    procedure Handle_New_Server_Connection
      (P   : access Tasking_Policy_Type;
       ORB : ORB_Access;
@@ -121,7 +129,7 @@ package PolyORB.ORB is
    procedure Handle_Request_Execution
      (P   : access Tasking_Policy_Type;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class)
+      RJ  : access Request_Job'Class)
       is abstract;
    --  Create the necessary processing resources for the execution
    --  of request execution job RJ, and start this execution.
@@ -137,6 +145,8 @@ package PolyORB.ORB is
      (P   : access Tasking_Policy_Type;
       ORB : ORB_Access;
       Msg : Message'Class) is abstract;
+   --  Externally-visible interface to tasking policy.
+   --  XXX to be documented!
 
    ------------------------------
    -- Server object operations --
@@ -243,6 +253,28 @@ package PolyORB.ORB is
 
 private
 
+   --------------------------------------------
+   -- Job type for method execution requests --
+   --------------------------------------------
+
+   type Request_Job is new Jobs.Job with record
+      ORB       : ORB_Access;
+      Request   : Requests.Request_Access;
+      Requestor : Components.Component_Access;
+   end record;
+
+   procedure Run (J : access Request_Job);
+   --  Overload the abstract Run primitive for Job:
+   --  dispatch through tasking policy.
+
+   procedure Run_Request (J : access Request_Job);
+   --  Execute the request associated with J within the
+   --  current task.
+
+   ---------------------------------------
+   -- Tasking policy abstract interface --
+   ---------------------------------------
+
    type Tasking_Policy_Type is abstract tagged limited null record;
 
    package Monitor_Seqs is new PolyORB.Sequences.Unbounded
@@ -330,17 +362,5 @@ private
       AES : in out Asynch_Ev_Source_Access);
    --  Delete AES from the set of asynchronous event sources
    --  monitored by ORB. AES is destroyed.
-
-   --------------------------------------------
-   -- Job type for method execution requests --
-   --------------------------------------------
-
-   type Request_Job is new Jobs.Job with record
-      ORB       : ORB_Access;
-      Request   : Requests.Request_Access;
-      Requestor : Components.Component_Access;
-   end record;
-
-   procedure Run (J : access Request_Job);
 
 end PolyORB.ORB;

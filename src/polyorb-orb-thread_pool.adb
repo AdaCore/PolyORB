@@ -36,7 +36,6 @@ with PolyORB.Components;
 with PolyORB.Configuration;
 with PolyORB.Initialization;
 with PolyORB.Filters.Interface;
-with PolyORB.Jobs;
 with PolyORB.Log;
 with PolyORB.Setup;
 with PolyORB.Utils.Strings;
@@ -135,7 +134,7 @@ package body PolyORB.ORB.Thread_Pool is
    procedure Handle_Request_Execution
      (P   : access Thread_Pool_Policy;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class)
+      RJ  : access Request_Job'Class)
    is
    begin
       pragma Warnings (Off);
@@ -145,8 +144,7 @@ package body PolyORB.ORB.Thread_Pool is
       pragma Debug (O ("Thread "
                        & Image (Current_Task)
                          & " handles request execution"));
-      pragma Assert (RJ.all in Request_Job);
-      Jobs.Run (RJ);
+      Run_Request (RJ);
    end Handle_Request_Execution;
 
    ----------

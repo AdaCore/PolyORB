@@ -123,7 +123,7 @@ package body PolyORB.ORB.Thread_Per_Session is
          pragma Debug (O ("Thread number"
                           & Integer'Image (Id)
                           & " is executing Job"));
-         Jobs.Run (Q.Job);
+         Run_Request (Request_Job (Q.Job.all)'Access);
          Jobs.Free (Q.Job);
          pragma Debug (O ("Thread number"
                           & Integer'Image (Id)
@@ -179,7 +179,7 @@ package body PolyORB.ORB.Thread_Per_Session is
    procedure Handle_Request_Execution
      (P   : access Thread_Per_Session_Policy;
       ORB : ORB_Access;
-      RJ  : access Jobs.Job'Class)
+      RJ  : access Request_Job'Class)
    is
       S : Session_Access := null;
    begin
@@ -188,9 +188,8 @@ package body PolyORB.ORB.Thread_Per_Session is
       pragma Unreferenced (ORB);
       pragma Warnings (On);
       pragma Debug (O ("Handle_Request_Execution : Run Job"));
-      pragma Assert (RJ.all in Request_Job);
 
-      S := Session_Access (Request_Job (RJ.all).Requestor);
+      S := Session_Access (RJ.Requestor);
       Add_Request
         (S, Request_Info'(Job => PolyORB.ORB.Duplicate_Request_Job (RJ)));
    end Handle_Request_Execution;

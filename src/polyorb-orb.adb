@@ -86,20 +86,10 @@ package body PolyORB.ORB is
    ----------------------
 
    procedure Run_And_Free_Job
-     (P : access Tasking_Policy_Type;
-      J : in out Jobs.Job_Access) is
+     (J : in out Jobs.Job_Access) is
    begin
-      if J.all in Request_Job then
-         Handle_Request_Execution
-           (P   => Tasking_Policy_Access (P),
-            ORB => Request_Job (J.all).ORB,
-            RJ  => J);
-      else
-         Run (J);
-      end if;
-
+      Run (J);
       Free (J);
-
    exception
       when others =>
          if J /= null then
@@ -226,7 +216,7 @@ package body PolyORB.ORB is
             Leave (ORB.ORB_Lock.all);
 
             pragma Assert (Job /= null);
-            Run_And_Free_Job (ORB.Tasking_Policy, Job);
+            Run_And_Free_Job (Job);
             return True;
          end;
       else
@@ -825,6 +815,16 @@ package body PolyORB.ORB is
 
    procedure Run (J : access Request_Job) is
    begin
+      Handle_Request_Execution
+        (P => J.ORB.Tasking_Policy, ORB => J.ORB, RJ => J);
+   end Run;
+
+   -----------------
+   -- Run_Request --
+   -----------------
+
+   procedure Run_Request (J : access Request_Job) is
+   begin
       pragma Debug (O ("Run Request_Job: enter"));
       pragma Assert (J.Request /= null);
 
@@ -910,7 +910,7 @@ package body PolyORB.ORB is
                           & Ada.Exceptions.Exception_Information (E)));
          raise;
 
-   end Run;
+   end Run_Request;
 
    ----------------------
    -- Create_Reference --
