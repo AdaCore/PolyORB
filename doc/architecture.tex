@@ -514,7 +514,7 @@ les divers environnements de répartition existants~:
   réparties sont \emph{Requête} et \emph{Réponse}, qui interviennent
   dans la réalisation de l'appel à distance de sous-programmes. Le
   protocole peut également offrir un mécanisme d'avortement d'une
-  requête en cors.
+  requête en cours.
 
   Des primitives supplémentaires peuvent exister dans certaines
   plates-formes de répartition. Elles sont utilisées pour effectuer
@@ -560,7 +560,8 @@ les divers environnements de répartition existants~:
   
   \begin{description} \item[Définition]
   Quand une requête arrive sur un n{\oe}ud, des ressources d'exécution
-  (un fil de contrôle) doit être affecté à son traitement. L'exécutif
+  (fil d'exécution, structures de contrôle) doivent être affectées
+  à son traitement. L'exécutif
   de répartition doit fournir ce fil d'exécution (en choisissant
   un fil existant, dans le cadre de la politique de gestion des tâches
   en vigueur sur le n{\oe}ud, ou bien en en créant un pour l'occasion).
