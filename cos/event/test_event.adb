@@ -94,6 +94,8 @@ with Menu; use Menu;
 with Ada.Text_IO;
 with Ada.Exceptions; use Ada.Exceptions;
 
+with GNAT.OS_Lib;
+
 procedure Test_Event is
 
    use  PolyORB.Log;
@@ -159,37 +161,35 @@ procedure Test_Event is
 
    task body Auto_Display is
    begin
-      select
-         accept Activate (O : CORBA.Impl.Object_Ptr) do
-            declare
-               B : CORBA.Boolean;
-               A : CORBA.Any;
-               Ptr : PushConsumer.Impl.Object_Ptr;
-               EndDisplay : Boolean := False;
-            begin
+      declare
+         B : CORBA.Boolean;
+         A : CORBA.Any;
+         Ptr : PushConsumer.Impl.Object_Ptr;
+         EndDisplay : Boolean;
+      begin
+         loop
+            EndDisplay := False;
+            accept Activate (O : CORBA.Impl.Object_Ptr) do
                Ptr := PushConsumer.Impl.Object_Ptr (O);
-               loop
-                  exit when EndDisplay = True;
-                  select
-                     accept DesActivate do
-                        EndDisplay := True;
-                     end DesActivate;
+            end Activate;
+            loop
+               exit when EndDisplay = True;
+               select
+                  accept DesActivate do
+                     EndDisplay := True;
+                  end DesActivate;
+               else
+                  Try_Pull (Ptr, B, A);
+                  if B then
+                     Ada.Text_IO.Put_Line (
+                          To_Standard_String (From_Any (A)));
                   else
-                     Try_Pull (Ptr, B, A);
-                     if B then
-                        Ada.Text_IO.Put_Line (
-                             To_Standard_String (From_Any (A)));
-                     else
-                        Ada.Text_IO.Put ("");
-                     end if;
-                  end select;
-               end loop;
-               null;
-            end;
-         end Activate;
-      or
-         terminate;
-      end select;
+                     Ada.Text_IO.Put ("");
+                  end if;
+               end select;
+            end loop;
+         end loop;
+      end;
    end Auto_Display;
 
    --------------------
@@ -559,6 +559,7 @@ begin
                   Usage;
 
                when Quit =>
+                  GNAT.OS_Lib.OS_Exit (1);
                   exit;
 
                when Create =>
