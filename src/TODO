@@ -28,11 +28,18 @@ Items still requiring attention
   -> define an interface with the compiler and with user code
      (ie the interface of stub and skeleton objects).
    
+* General run-time configuration mechanism (config file, eg to
+  set the preference for each profile type, and to integrate the
+  configuration of the logging subsystem into a more general config
+  manager).
+
+* Bind-time configuration tool (to help the user generate a configuration
+  package suited to his needs.)
+
 * See whether Buffers.Set_Initial_Position can be made private
   or moved to unit body.
 
 * Support logging to syslog (also for Java ?)
-* Unified runtime configuration file (modifications to Droopi.Log).
 
 * Droopi.Buffers: remove mentions of CDR.
 * Droopi.Buffers: remove mention of sockets.
@@ -60,13 +67,9 @@ Items still requiring attention
      protocol (eg UDP with ack/retransmission)
      
   -> A mechanism for message exchange not based on sockets
-     (eg SysV IPC).
-     A provision for polling multiple sources of asynchronous
-     events.
+     (eg SysV IPC, serial lines).
 
 * Architecture documentation.
-
-* Make idlac compilable under -gnaty.
 
 Items processed
 ---------------
@@ -115,3 +118,5 @@ Items processed
   sure that before calling the object, the parameters are present
   and marked with proper modes. Then, the SOAP engine knows to
   send out any INOUT or OUT argument with the reply.
+
+* Make idlac compilable under -gnaty.
