@@ -467,6 +467,8 @@ src/corba/polyorb-corba_p-exceptions.adb
 src/corba/polyorb-corba_p-exceptions.ads
 src/corba/polyorb-corba_p-initial_references.adb
 src/corba/polyorb-corba_p-initial_references.ads
+src/corba/polyorb-corba_p-local.adb
+src/corba/polyorb-corba_p-local.ads
 src/corba/polyorb-corba_p-names.adb
 src/corba/polyorb-corba_p-names.ads
 src/corba/polyorb-corba_p-poa_config.adb
