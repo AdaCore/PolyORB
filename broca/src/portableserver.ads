@@ -6,7 +6,7 @@
 --                                                                          --
 --                                 S p e c                                  --
 --                                                                          --
---                            $Revision: 1.7 $
+--                            $Revision: 1.8 $
 --                                                                          --
 --         Copyright (C) 1999, 2000 ENST Paris University, France.          --
 --                                                                          --
@@ -94,6 +94,11 @@ package PortableServer is
    --  Calling ForwardRequest does not increase the usage counter of
    --  REFERENCE.  As a result, the user must ensure not to release
    --  REFERENCE while the exception is processed.
+   --  There is a dilemna here:
+   --  - if we increase the counter, the usage counter will never
+   --    be decreased if get_members is not called
+   --  - if we do not increase it, the object may be deleted
+   --   before the exception is caught.
    procedure Raise_Forward_Request (Reference : CORBA.Object.Ref);
    pragma No_Return (Raise_Forward_Request);
 
