@@ -43,7 +43,6 @@ with PolyORB.Filters.Interface;
 with PolyORB.Log;
 with PolyORB.Obj_Adapters;
 with PolyORB.Objects;
-with PolyORB.Opaque;
 with PolyORB.ORB;
 with PolyORB.ORB.Interface;
 with PolyORB.References;
@@ -406,7 +405,6 @@ package body PolyORB.Protocols.SRP is
       use PolyORB.Any.NVList;
       use PolyORB.Any.NVList.Internals;
       use PolyORB.Any.NVList.Internals.NV_Sequence;
-      use PolyORB.Opaque;
       use PolyORB.Utils;
 
       function To_SEA (S : Types.String) return Stream_Element_Array;
@@ -440,13 +438,10 @@ package body PolyORB.Protocols.SRP is
          declare
             Value : aliased Stream_Element_Array :=
               To_SEA (Current_Arg.all.Value.all & ASCII.nul);
-            Z : constant Zone_Access
-              := Zone_Access'(Value'Unchecked_Access);
          begin
             Initialize_Buffer (Buffer     => Temp_Buffer'Access,
                                Size       => Value'Length,
-                               Data       => (Zone   => Z,
-                                              Offset => Z'First),
+                               Data       => Value (Value'First)'Address,
                                Endianness => Little_Endian,
                                Initial_CDR_Position => 0);
             Show (Temp_Buffer);
