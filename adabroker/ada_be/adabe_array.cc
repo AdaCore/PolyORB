@@ -114,7 +114,6 @@ adabe_array::produce_ads(dep_list& with,string &body, string &previous) {
   body += get_ada_local_name() + " ;\n\n";
   body += "   procedure Free is new Ada.Unchecked_Deallocation(";
   body += get_ada_local_name() + ", " + get_ada_local_name ()+ "_Ptr) ;\n\n\n";
-  cerr << " Size  of " << f->node_type() << " : " <<  f->has_fixed_size() << endl;  
   if (!f->has_fixed_size()) no_fixed_size();
   set_already_defined();
 }
@@ -195,17 +194,16 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
   align_size += "                        Initial_Offset : in Corba.Unsigned_Long ;\n";
   align_size += "                        N : in Corba.Unsigned_Long := 1)\n";
   align_size += "                        return Corba.Unsigned_Long is\n";
+  align_size += "      Tmp : Corba.Unsigned_long := Initial_Offset ;\n";
+  align_size += "   begin\n";
   if (b->has_fixed_size())
     {
-      align_size += "   begin\n";
-      align_size += "      return Align_Size (A(A'First), Initial_Offset, N * ";
+      align_size += "      Tmp := Align_Size (A(A'First), Initial_Offset, N * ";
       align_size += Size;
       align_size += ") ;\n";
     } 
   else 
     {
-      align_size += "      Tmp : Corba.Unsigned_long := Initial_Offset ;\n";
-      align_size += "   begin\n";
       align_size += "      for I in 1..N loop\n";
     }
 
@@ -240,7 +238,8 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
 
   marshall += spaces + "Marshall (A(I1";
   unmarshall += spaces + "UnMarshall (A(I1";
-  align_size += spaces + "   Tmp := Align_Size (A(I1";
+  if (!b->has_fixed_size())
+    align_size += spaces + "   Tmp := Align_Size (A(I1";
 
   for (unsigned int i = 1 ; i < n_dims() ; i++) 
     {
@@ -251,25 +250,31 @@ adabe_array::produce_marshal_adb(dep_list& with,string &body, string &previous)
       marshall +=  number;
       unmarshall += ", I";
       unmarshall += number;
-      align_size += ", I";
-      align_size += number;
+      if (!b->has_fixed_size())
+	{
+	  align_size += ", I";
+	  align_size += number;
+	}
     }
 
   marshall += "), S) ; \n";
   unmarshall += "), S) ; \n";
-  align_size += "), Tmp) ; \n";
+  if (!b->has_fixed_size())
+    align_size += "), Tmp) ; \n";
 
   for (unsigned int i = 0 ; i < n_dims() ; i++) 
     {
       spaces = spaces.substr(0,spaces.length()-3);
       marshall += spaces + "end loop ;\n";
       unmarshall += spaces + "end loop ;\n";
-      align_size += spaces + "   end loop ;\n";
+      if (!b->has_fixed_size())
+	align_size += spaces + "   end loop ;\n";
     }
       
   marshall += "   end Marshall ;\n\n";
   unmarshall += "   end UnMarshall ;\n\n";
-  align_size += "      end loop ;\n";
+  if (!b->has_fixed_size())
+    align_size += "      end loop ;\n";
   align_size += "      return Tmp ;\n";
   align_size += "   end Align_Size ;\n\n\n";      
 
