@@ -75,6 +75,9 @@ package body PolyORB.Any.ExceptionList is
       return PolyORB.Types.Unsigned_Long is
       Obj : constant Object_Ptr := Object_Ptr (Entity_Of (Self));
    begin
+      if Obj = null then
+         return 0;
+      end if;
       return PolyORB.Types.Unsigned_Long
         (Exception_Sequences.Length (Obj.List));
    end Get_Count;
@@ -181,12 +184,18 @@ package body PolyORB.Any.ExceptionList is
       pragma Debug (O ("Search_Exception_Id : Obj.list length is " &
                        PolyORB.Types.Unsigned_Long'Image (Get_Count (Self))));
       pragma Debug (O ("Search_Exception_Id : Name = """ &
-                       To_Standard_String (Name) & """"));
+                         To_Standard_String (Name) & """"));
+
+      if Obj = null then
+         pragma Debug (O ("Search_Exception_Id: null list."));
+         return 0;
+      end if;
+
       pragma Debug (O ("Search_Exception_Id : first excpt id = """ &
                        To_Standard_String
                        (TypeCode.Id
                         (Exception_Sequences.Element_Of
-                         (Obj.List, 1))) & """"));
+                           (Obj.List, 1))) & """"));
       return PolyORB.Types.Unsigned_Long
         (Exception_Search.Index (Obj.List, Name));
    end Search_Exception_Id;
