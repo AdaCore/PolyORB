@@ -119,7 +119,8 @@ package Giop_C is
    -- (see giopDriver.h L150 for more details)
 
 
-   function Request_Header_Size (Objkeysize : in Corba.Unsigned_long ;
+   function Request_Header_Size (Self : in Object'Class ;
+                                 Objkeysize : in Corba.Unsigned_long ;
                                  Opnamesize : in Corba.Unsigned_long)
                                  return Corba.Unsigned_long ;
    -- Returns the header size. This includes the size of the GIOP message

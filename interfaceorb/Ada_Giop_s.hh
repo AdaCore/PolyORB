@@ -75,7 +75,10 @@ public:
 
   void ReplyCompleted();
   // wrapper around void ReplyCompleted();
-  
+
+  size_t ReplyHeaderSize();
+  // wrapper around size_t GIOP_S::ReplyHeaderSize();
+    
 private:
 
   void* VTable1;

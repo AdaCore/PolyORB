@@ -46,6 +46,8 @@
 
 #include "proxyObjectFactory_C2Ada.hh"
 #include "omniObject_C2Ada.hh"
+#include "Ada_exceptions.hh"
+
 
 // DEBUG is defined at the beginning of each file
 // and undefined at the end of each file
@@ -112,9 +114,11 @@ proxyObjectFactory_C2Ada::is_a(const char *base_repoId) const {
 // createProxyObjectFactory
 //-------------------------
 void createProxyObjectFactory(const char* repoID) {
+ADABROKER_TRY
   proxyObjectFactory_C2Ada *p = new proxyObjectFactory_C2Ada(repoID) ;
   // no memory leak
   // a pointer to this object is kept by the ORB
+ADABROKER_CATCH 
 }
 
 

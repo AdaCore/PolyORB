@@ -68,6 +68,7 @@ Ada_Giop_c::Ada_Giop_c () : Ada_netBufferedStream::Ada_netBufferedStream ()
 void
 Ada_Giop_c::Init (Rope *r)
 {
+ADABROKER_TRY
   if (C_Object) {
     // if we already have an object, release it
     // before creating a new one !
@@ -82,6 +83,7 @@ Ada_Giop_c::Init (Rope *r)
 
   C_Object = new GIOP_C (r);
   Init_Ok = true;
+ADABROKER_CATCH
 };
 
 
@@ -90,11 +92,13 @@ Ada_Giop_c::Init (Rope *r)
 void
 Ada_Giop_c::Free()
 {
+ADABROKER_TRY
   if (C_Object) {
     delete (GIOP_C*) C_Object ;
     C_Object = 0 ;
   }
   Init_Ok = false ;
+ADABROKER_CATCH
 }
 
 
@@ -108,6 +112,7 @@ Ada_Giop_c::InitialiseRequest(const void          *objkey,
 			      const size_t         msgsize,
 			      const _CORBA_Boolean oneway)
 {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -121,6 +126,7 @@ Ada_Giop_c::InitialiseRequest(const void          *objkey,
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_c::InitialiseRequest without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 // ReceiveReply
@@ -128,7 +134,7 @@ Ada_Giop_c::InitialiseRequest(const void          *objkey,
 void
 Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
 {
-  try {
+ADABROKER_TRY
     if (Init_Ok) {
       // if Initialisation was made then call the corresponding
       // function on C_Object
@@ -137,15 +143,7 @@ Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
       // else raise an Ada Exception
       raise_ada_exception ("Call of Ada_Giop_c::ReceiveReply without initialising object.");
     }
-  } catch (CORBA::SystemException &e) {
-    Raise_Corba_Exception (e);
-  } catch (omniORB::fatalException &e) {
-    Raise_Corba_Exception (e);    
-  } catch (...) {
-    Raise_Ada_FatalException ("Ada_Giop_c.cc",
-			      117,
-			      "An unknown C exception was catched.\nI can not raise it in Ada.");
-  }
+ADABROKER_CATCH
 };
 
 
@@ -154,6 +152,7 @@ Ada_Giop_c::ReceiveReply(GIOP::ReplyStatusType &result)
 void
 Ada_Giop_c::RequestCompleted(_CORBA_Boolean skip)
 {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -162,6 +161,21 @@ Ada_Giop_c::RequestCompleted(_CORBA_Boolean skip)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_c::RequestCompleted without initialising object.");
   }
+ADABROKER_CATCH
 };
 
+
+// RequestHeaderSize
+//------------------
+size_t
+Ada_Giop_c::RequestHeaderSize(const size_t objkeysize,
+			      const size_t opnamesize)
+{
+ADABROKER_TRY
+  return GIOP_C::RequestHeaderSize (objkeysize,opnamesize);
+ADABROKER_CATCH
+}
+
+
 #undef DEBUG
+

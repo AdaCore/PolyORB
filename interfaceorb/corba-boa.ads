@@ -35,8 +35,8 @@
 ----     This package is wrapped around a C++ class whose name     ----
 ----   is BOA declared in file CORBA.h.                            ----
 ----     It provides two types of methods : the C functions        ----
-----   of the BOA class and their equivalent in                    ----
-----   Ada. (the first ones have a C_ prefix.)                     ----
+----   of the BOA class (see Ada_Corba_Boa.hh) and their           ----
+----   equivalent in Ada. (the first ones have a C_ prefix.)       ----
 ----                                                               ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
@@ -66,7 +66,7 @@ package Corba.Boa is
 
 
    procedure Implementation_Shutdown(Self : in Object) ;
-   Pragma Import (CPP, Implementation_Shutdown, "impl_shutdown__Q25CORBA3BOA") ;
+   Pragma Import (CPP, Implementation_Shutdown, "impl_shutdown__FPQ25CORBA3BOA") ;
    -- omniORB2 specific.
    -- This is the reverse of impl_is_ready().
    -- When this call returns, all the internal threads and network
@@ -83,7 +83,7 @@ package Corba.Boa is
 
 
    procedure Destroy(Self : in Object) ;
-   pragma Import(Cpp, Destroy, "destroy__Q25CORBA3BOA") ;
+   pragma Import(CPP, Destroy, "destroy__FPQ25CORBA3BOA") ;
    -- omniORB2 specific.
    -- Calling this function will destroy this BOA. The function will call
    -- impl_shutdown() implicitly if it has not been called. When this call

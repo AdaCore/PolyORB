@@ -181,18 +181,20 @@ package body Giop_C is
 
    -- C_Request_Header_Size
    ------------------------
-   function C_Request_Header_Size (Objkeysize : in Interfaces.C.Unsigned_long ;
+   function C_Request_Header_Size (Self : in Object'Class ;
+                                   Objkeysize : in Interfaces.C.Unsigned_long ;
                                    Opnamesize : in Interfaces.C.Unsigned_long)
                                    return Interfaces.C.Unsigned_long ;
-   pragma Import (CPP,C_Request_Header_Size,"RequestHeaderSize__6GIOP_CUiUi") ;
-   -- wrapper around GIOP_C procedure Request_Header_Size
-   -- (see giopDriver.h)
+   pragma Import (CPP,C_Request_Header_Size,"RequestHeaderSize__10Ada_Giop_cUiUi") ;
+   -- wrapper around Ada_Giop_c procedure Request_Header_Size
+   -- (see Ada_Giop_c.hh)
    -- called by the Ada equivalent : Request_Header_Size
 
 
    -- Request_Header_Size
    ----------------------
-   function Request_Header_Size (Objkeysize : in Corba.Unsigned_long ;
+   function Request_Header_Size (Self : in Object'Class;
+                                 Objkeysize : in Corba.Unsigned_long ;
                                  Opnamesize : in Corba.Unsigned_long)
                                  return Corba.Unsigned_long is
       C_Objkeysize : Interfaces.C.Unsigned_Long ;
@@ -203,7 +205,7 @@ package body Giop_C is
       C_Objkeysize := Interfaces.C.Unsigned_Long (Objkeysize) ;
       C_Opnamesize := Interfaces.C.Unsigned_Long (Opnamesize) ;
       -- ... calls the C procedure ...
-      C_Result := C_Request_Header_Size (C_Objkeysize, C_Opnamesize) ;
+      C_Result := C_Request_Header_Size (Self, C_Objkeysize, C_Opnamesize) ;
       -- ... and transforms the result into an Ada type
       return  Corba.Unsigned_Long (C_Result) ;
    end;

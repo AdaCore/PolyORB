@@ -82,6 +82,10 @@ public:
 
   void RequestCompleted(_CORBA_Boolean skip);
   // wrapper around void RequestCompleted(_CORBA_Boolean skip=0);
+
+  size_t RequestHeaderSize(const size_t objkeysize,
+			   const size_t opnamesize);
+  // wrapper around size_t GIOP_C::RequestHeaderSize
   
 private:
 

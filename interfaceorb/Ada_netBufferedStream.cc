@@ -50,6 +50,7 @@
 ///////////////////////////////////////////////////////////////////////
 
 #include "Ada_netBufferedStream.hh"
+#include "Ada_exceptions.hh"
 
 
 // Ada_netBufferedStream
@@ -63,29 +64,17 @@ Ada_netBufferedStream::Ada_netBufferedStream ()
 
 // Init
 //-----
-void 
-Ada_netBufferedStream::Init (Strand *s, _CORBA_Boolean RdLock,
-                             _CORBA_Boolean WrLock, size_t Bufsize)
-{
-  // Creation of the underlying omniobject_C2Ada object
-  C_Object = new NetBufferedStream (s,RdLock,WrLock,Bufsize);
-  // updating of Init_OK flag 
-  Init_Ok = true;
-  return;
-};
-
-
-// Init
-//-----
 void
 Ada_netBufferedStream::Init (Rope *r, _CORBA_Boolean RdLock,
                              _CORBA_Boolean WrLock, size_t Bufsize)
 {
+ADABROKER_TRY
   // Creation of the underlying omniobject_C2Ada object
   C_Object = new NetBufferedStream (r,RdLock,WrLock,Bufsize);
   // updating of Init_OK flag
   Init_Ok = true;
   return;
+ADABROKER_CATCH
 };
 
 
@@ -94,6 +83,7 @@ Ada_netBufferedStream::Init (Rope *r, _CORBA_Boolean RdLock,
 void
 Ada_netBufferedStream::marshall (_CORBA_Char a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -102,6 +92,7 @@ Ada_netBufferedStream::marshall (_CORBA_Char a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -110,6 +101,7 @@ Ada_netBufferedStream::marshall (_CORBA_Char a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::unmarshall (_CORBA_Char& a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -118,6 +110,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Char& a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -126,6 +119,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Char& a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::marshall (_CORBA_Boolean a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -134,6 +128,7 @@ Ada_netBufferedStream::marshall (_CORBA_Boolean a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -142,6 +137,7 @@ Ada_netBufferedStream::marshall (_CORBA_Boolean a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::unmarshall (_CORBA_Boolean& a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -150,6 +146,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Boolean& a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -158,6 +155,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Boolean& a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::marshall (_CORBA_Short a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -166,6 +164,7 @@ Ada_netBufferedStream::marshall (_CORBA_Short a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -174,6 +173,7 @@ Ada_netBufferedStream::marshall (_CORBA_Short a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::unmarshall (_CORBA_Short& a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -182,6 +182,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Short& a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -190,6 +191,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Short& a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::marshall (_CORBA_UShort a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -198,6 +200,7 @@ Ada_netBufferedStream::marshall (_CORBA_UShort a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -206,6 +209,7 @@ Ada_netBufferedStream::marshall (_CORBA_UShort a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::unmarshall (_CORBA_UShort& a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -214,6 +218,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_UShort& a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -222,6 +227,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_UShort& a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::marshall (_CORBA_Long a, Ada_netBufferedStream &s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -230,11 +236,13 @@ Ada_netBufferedStream::marshall (_CORBA_Long a, Ada_netBufferedStream &s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 void
 Ada_netBufferedStream::unmarshall (_CORBA_Long& a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -243,6 +251,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Long& a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -251,6 +260,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Long& a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::marshall (_CORBA_ULong a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -259,6 +269,7 @@ Ada_netBufferedStream::marshall (_CORBA_ULong a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -267,6 +278,7 @@ Ada_netBufferedStream::marshall (_CORBA_ULong a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::unmarshall (_CORBA_ULong& a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -275,6 +287,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_ULong& a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -283,6 +296,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_ULong& a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::marshall (_CORBA_Float a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -291,6 +305,7 @@ Ada_netBufferedStream::marshall (_CORBA_Float a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -299,6 +314,7 @@ Ada_netBufferedStream::marshall (_CORBA_Float a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::unmarshall (_CORBA_Float& a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -307,6 +323,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Float& a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -315,6 +332,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Float& a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::marshall (_CORBA_Double a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -323,6 +341,7 @@ Ada_netBufferedStream::marshall (_CORBA_Double a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator>>= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -331,6 +350,7 @@ Ada_netBufferedStream::marshall (_CORBA_Double a, Ada_netBufferedStream& s)
 void
 Ada_netBufferedStream::unmarshall (_CORBA_Double& a, Ada_netBufferedStream& s)
 {
+ADABROKER_TRY
   if (s.Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -339,6 +359,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Double& a, Ada_netBufferedStream& s)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_netBufferedStream::operator<<= without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -347,6 +368,7 @@ Ada_netBufferedStream::unmarshall (_CORBA_Double& a, Ada_netBufferedStream& s)
 _CORBA_Boolean
 Ada_netBufferedStream::isReUsingExistingConnection()
 {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -355,4 +377,12 @@ Ada_netBufferedStream::isReUsingExistingConnection()
     // else raise an Ada Exception
     raise_ada_exception ("Call of isReUsingExistingConnection without initialising object.");
   }
+ADABROKER_CATCH
 };
+
+
+
+
+
+
+

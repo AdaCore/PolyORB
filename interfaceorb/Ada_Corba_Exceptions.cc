@@ -50,6 +50,8 @@
 
 
 #include "Ada_Corba_Exceptions.hh"
+#include "Ada_exceptions.hh"
+
 
 CORBA::Boolean
 _omni_callTransientExceptionHandler(omniObject* omniobj,
@@ -57,12 +59,14 @@ _omni_callTransientExceptionHandler(omniObject* omniobj,
 				    CORBA::ULong minor,
 				    CORBA::CompletionStatus status)
 {
+ADABROKER_TRY
   // creates an exception object
   CORBA::TRANSIENT ex (minor, status);
   // throws it
   return _omni_callTransientExceptionHandler (omniobj,
 					      retries,
 					      ex);
+ADABROKER_CATCH
 };
 
 
@@ -72,12 +76,14 @@ _omni_callCommFailureExceptionHandler(omniObject* omniobj,
 				      CORBA::ULong minor,
 				      CORBA::CompletionStatus status)
 {
+ADABROKER_TRY
   // creates an exception object
   CORBA::COMM_FAILURE ex (minor, status);
   // throws it
   return _omni_callCommFailureExceptionHandler (omniobj,
 						retries,
 						ex);
+ADABROKER_CATCH
 };
 
 
@@ -87,27 +93,13 @@ _omni_callSystemExceptionHandler(omniObject* omniobj,
 				 CORBA::ULong minor,
 				 CORBA::CompletionStatus status)
 {
+ADABROKER_TRY
   // creates an exception object
   CORBA::SystemException ex (minor, status);
   // throws it
   return _omni_callSystemExceptionHandler (omniobj,
 					   retries,
 					   ex);
+ADABROKER_CATCH
 };
-
-CORBA::Boolean
-_omni_callObjectNotExistExceptionHandler(omniObject* omniobj,
-					 CORBA::ULong retries,
-					 CORBA::ULong minor,
-					 CORBA::CompletionStatus status)
-{
-  // creates an exception object
-  CORBA::OBJECT_NOT_EXIST ex (minor, status);
-  // throws it
-  return _omni_callSystemExceptionHandler (omniobj,
-					   retries,
-					   ex);
-};
-
-
 

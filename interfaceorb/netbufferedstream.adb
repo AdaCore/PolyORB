@@ -754,7 +754,7 @@ package body NetBufferedStream is
    -----------------------------------
    function C_Is_Reusing_Existing_Connection (Self : in Object'Class)
                                               return Sys_Dep.C_Boolean;
-   pragma Import (C,C_Is_Reusing_Existing_Connection,"isReUsingExistingConnection__CQ26Strand4Sync") ;
+   pragma Import (C,C_Is_Reusing_Existing_Connection,"isReUsingExistingConnection__21Ada_netBufferedStream") ;
    -- wrapper around     _CORBA_Boolean isReUsingExistingConnection() const;
    -- (see rope.h L 395)
    -- called by the Ada equivalent : Is_Reusing_Existing_Connection

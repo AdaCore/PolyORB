@@ -49,6 +49,7 @@
 
 
 #include "Ada_OmniRopeAndKey.hh"
+#include "Ada_exceptions.hh"
 
 
 // Ada_OmniRopeAndKey
@@ -65,11 +66,13 @@ Ada_OmniRopeAndKey::Ada_OmniRopeAndKey ()
 void
 Ada_OmniRopeAndKey::Init ()
 {
+ADABROKER_TRY
   if (C_Object) {
     delete C_Object ;
   }
   C_Object = new omniRopeAndKey ();
   Init_Ok = true;
+ADABROKER_CATCH
 };
 
 // Free
@@ -77,10 +80,12 @@ Ada_OmniRopeAndKey::Init ()
 void
 Ada_OmniRopeAndKey::Free ()
 {
+ADABROKER_TRY
   if (C_Object) {
     delete C_Object ;
   }
   Init_Ok = false ;
+ADABROKER_CATCH
 };
 
 
@@ -89,6 +94,7 @@ Ada_OmniRopeAndKey::Free ()
 Rope*
 Ada_OmniRopeAndKey::rope()
 {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -97,6 +103,7 @@ Ada_OmniRopeAndKey::rope()
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniRopeAndKey::rope without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -105,6 +112,7 @@ Ada_OmniRopeAndKey::rope()
 _CORBA_Octet*
 Ada_OmniRopeAndKey::key()
 {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -113,6 +121,7 @@ Ada_OmniRopeAndKey::key()
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniRopeAndKey::key without initialising object.");
   }
+ADABROKER_CATCH 
 };
 
 
@@ -121,6 +130,7 @@ Ada_OmniRopeAndKey::key()
 _CORBA_ULong
 Ada_OmniRopeAndKey::keysize()
 {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -129,6 +139,7 @@ Ada_OmniRopeAndKey::keysize()
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniRopeAndKey::keysize without initialising object.");
   }
+ADABROKER_CATCH 
 };
 
 
@@ -136,6 +147,7 @@ Ada_OmniRopeAndKey::keysize()
 //-------
 _CORBA_Boolean
 Ada_OmniRopeAndKey::equals(Ada_OmniRopeAndKey other) {
+ADABROKER_TRY
   if ( (Init_Ok) && (other.assertInit_Ok())) {
     // if Initialisation was made then 
     // compare effectively the two objects
@@ -155,6 +167,7 @@ Ada_OmniRopeAndKey::equals(Ada_OmniRopeAndKey other) {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniRopeAndKey::equals without initialising object.");
   }
+ADABROKER_CATCH 
 }
 
 

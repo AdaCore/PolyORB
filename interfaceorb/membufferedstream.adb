@@ -69,7 +69,7 @@ package body MemBufferedStream is
    ---------
    procedure C_Init (Self : in Object'Class ;
                      Bufsize : in Interfaces.C.Unsigned_Long) ;
-   pragma Import (C,C_Init,"__17MemBufferedStreamUi") ;
+   pragma Import (C,C_Init,"Init__21Ada_memBufferedStreamUi") ;
    -- wrapper around Ada_MemBufferedStream function Init
    -- (see Ada_MemBufferedStream.hh)
    -- name was changed to avoid conflict
@@ -734,29 +734,6 @@ package body MemBufferedStream is
       return Initial_Offset + (8 * N) - 3 ;
       -- an Ex_body has two fields : an unsigned_long -> 4 bytes
       --                             and a Completion_Status -> 1 bytes
-   end ;
-
-
-   -- C_Is_Reusing_Existing_Connection
-   -----------------------------------
-   function C_Is_Reusing_Existing_Connection (Self : in Object'Class)
-                                              return Sys_Dep.C_Boolean;
-   pragma Import (C,C_Is_Reusing_Existing_Connection,"isReUsingExistingConnection__CQ26Strand4Sync") ;
-   -- wrapper around     _CORBA_Boolean isReUsingExistingConnection() const;
-   -- (see rope.h L 395)
-   -- called by the Ada equivalent : Is_Reusing_Existing_Connection
-
-
-   -- Is_Reusing_Existing_Connection
-   ---------------------------------
-   function Is_Reusing_Existing_Connection (Self : in Object'Class)
-                                            return CORBA.Boolean is
-      C_Result : Sys_Dep.C_Boolean ;
-   begin
-      -- calls the C function ...
-      C_Result := C_Is_Reusing_Existing_Connection (Self) ;
-      -- ...and transforms the result into an Ada type
-      return Sys_Dep.Boolean_C_To_Ada (C_Result) ;
    end ;
 
 end MemBufferedStream ;

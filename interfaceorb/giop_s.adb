@@ -59,7 +59,7 @@ package body Giop_S is
    ----------------------
    function C_Reply_Header_Size (Self : in Object'Class)
                                  return Interfaces.C.Unsigned_Long ;
-   pragma Import (CPP,C_Reply_Header_Size,"ReplyHeaderSize__6GIOP_S") ;
+   pragma Import (CPP,C_Reply_Header_Size,"ReplyHeaderSize__10Ada_Giop_s") ;
 
    -- Reply_Header_Size
    --------------------

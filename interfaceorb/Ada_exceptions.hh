@@ -48,6 +48,80 @@
 
 #include <omniORB2/CORBA.h>
 
+
+///////////////////////////////////////////
+// handling od corba exception in C code //
+///////////////////////////////////////////
+
+#define ADABROKER_TRY try {
+#define ADABROKER_CATCH \
+} catch (CORBA::UNKNOWN &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::BAD_PARAM &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::IMP_LIMIT &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::COMM_FAILURE &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::INV_OBJREF &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::OBJECT_NOT_EXIST &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::NO_PERMISSION &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::INTERNAL &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::MARSHAL &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::INITIALIZE &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::NO_IMPLEMENT &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::BAD_TYPECODE &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::BAD_OPERATION &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::NO_RESOURCES &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::NO_RESPONSE &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::PERSIST_STORE &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::BAD_INV_ORDER &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::TRANSIENT &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::FREE_MEM &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::INV_IDENT &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::INV_FLAG &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::INTF_REPOS &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::BAD_CONTEXT &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::OBJ_ADAPTER &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::DATA_CONVERSION &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::TRANSACTION_REQUIRED &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::TRANSACTION_ROLLEDBACK &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::INVALID_TRANSACTION &e) { \
+  Raise_Corba_Exception (e); \
+} catch (CORBA::WRONG_TRANSACTION &e) { \
+  Raise_Corba_Exception (e); \
+} catch (omniORB::fatalException &e) { \
+  Raise_Corba_Exception (e); \
+} catch (...) { \
+  Raise_Ada_FatalException (__FILE__, \
+			    __LINE__, \
+			    "An unknown C exception was catched.\nI can not raise it in Ada."); \
+}
+
+
 /////////////////////////////////
 // Handling of Fatal exception //
 /////////////////////////////////

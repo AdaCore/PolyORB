@@ -58,19 +58,23 @@ main: C_files Sys_Dep
 # compilation of C++ files
 ##########################
 C_files : \
-Ada_Corba_Exceptions.o Ada_Corba_Orb.o Ada_exceptions.o \
-Ada_Giop_c.o Ada_Giop_s.o Ada_memBufferedStream.o Ada_netBufferedStream.o \
-Ada_OmniObject.o Ada_OmniRopeAndKey.o omniObject_C2Ada.o \
-proxyObjectFactory_C2Ada.o omniObject_C2Ada.o proxyObjectFactory_C2Ada.o  
+Ada_Corba_Exceptions.o Ada_Corba_Orb.o Ada_Corba_Boa.o Ada_exceptions.o \
+Ada_Giop_c.o Ada_Giop_s.o Ada_Iop.o Ada_memBufferedStream.o \
+Ada_netBufferedStream.o Ada_OmniObject.o Ada_OmniRopeAndKey.o \
+omniObject_C2Ada.o proxyObjectFactory_C2Ada.o omniObject_C2Ada.o \
+proxyObjectFactory_C2Ada.o  
 
 .SUFFIXES: .cc .o
 
 .cc.o:
 	$(CPP_COMP) $(DO_NOT_LINK) $(OMNIORB_LIBS) $(OMNIORB_SYSDEP_FLAGS) $<
 
-Ada_Corba_Exceptions.o : Ada_Corba_Exceptions.hh Ada_Corba_Exceptions.cc
+Ada_Corba_Exceptions.o : Ada_Corba_Exceptions.hh Ada_Corba_Exceptions.cc \
+Ada_exceptions.hh
 
-Ada_Corba_Orb.o : Ada_Corba_Orb.hh Ada_Corba_Orb.cc
+Ada_Corba_Boa.o : Ada_Corba_Boa.hh Ada_Corba_Boa.cc Ada_exceptions.hh
+
+Ada_Corba_Orb.o : Ada_Corba_Orb.hh Ada_Corba_Orb.cc Ada_exceptions.hh
 
 Ada_exceptions.o : Ada_exceptions.cc Ada_exceptions.hh exceptions.ads \
 exceptions.adb
@@ -78,21 +82,28 @@ exceptions.adb
 Ada_Giop_c.o : Ada_Giop_c.hh Ada_Giop_c.cc Ada_netBufferedStream.hh \
 Ada_exceptions.hh
 
-Ada_Giop_s.o : Ada_Giop_s.hh Ada_Giop_s.cc Ada_netBufferedStream.hh
+Ada_Giop_s.o : Ada_Giop_s.hh Ada_Giop_s.cc Ada_netBufferedStream.hh \
+Ada_exceptions.hh
 
-Ada_memBufferedStream.o : Ada_memBufferedStream.hh Ada_memBufferedStream.cc
+Ada_Iop.o : Ada_Iop.hh Ada_Iop.cc Ada_exceptions.hh
 
-Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc
+Ada_memBufferedStream.o : Ada_memBufferedStream.hh Ada_memBufferedStream.cc \
+Ada_exceptions.hh
+
+Ada_netBufferedStream.o : Ada_netBufferedStream.hh Ada_netBufferedStream.cc \
+Ada_exceptions.hh
 
 Ada_OmniObject.o : Ada_OmniObject.hh Ada_OmniObject.cc omniObject_C2Ada.hh \
-omniobject.ads Ada_OmniRopeAndKey.hh
+omniobject.ads Ada_OmniRopeAndKey.hh Ada_exceptions.hh
 
-Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc
+Ada_OmniRopeAndKey.o : Ada_OmniRopeAndKey.hh Ada_OmniRopeAndKey.cc \
+Ada_exceptions.hh
 
 omniObject_C2Ada.o : omniObject_C2Ada.hh omniObject_C2Ada.cc
 
 proxyObjectFactory_C2Ada.o: proxyObjectFactory_C2Ada.hh \
-proxyObjectFactory_C2Ada.cc omniObject_C2Ada.hh Ada_OmniObject.hh
+proxyObjectFactory_C2Ada.cc omniObject_C2Ada.hh Ada_OmniObject.hh \
+Ada_exceptions.hh
 
 
 

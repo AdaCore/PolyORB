@@ -48,6 +48,7 @@
 
 
 #include "Ada_Giop_s.hh"
+#include "Ada_exceptions.hh"
 
 
 // Default Constructor
@@ -81,6 +82,7 @@ Ada_Giop_s::Init (Strand *s)
 void
 Ada_Giop_s::RequestReceived(_CORBA_Boolean skip)
 {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -89,6 +91,7 @@ Ada_Giop_s::RequestReceived(_CORBA_Boolean skip)
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_s::RequestReceived without initialising object.");
   }
+ADABROKER_CATCH
 };
 
 
@@ -98,6 +101,7 @@ void
 Ada_Giop_s::InitialiseReply(const int status,
 			    const size_t  msgsize)
 {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -107,6 +111,7 @@ Ada_Giop_s::InitialiseReply(const int status,
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_s::InitialiseReply without initialising object.");
   }
+ADABROKER_CATCH 
 };
 
 
@@ -115,6 +120,7 @@ Ada_Giop_s::InitialiseReply(const int status,
 void
 Ada_Giop_s::ReplyCompleted()
 {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -123,14 +129,17 @@ Ada_Giop_s::ReplyCompleted()
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_Giop_s::ReplyCompleted without initialising object.");
   }
+ADABROKER_CATCH 
 };
 
 
-
-
-
-
-
-
-
+// ReplyHeaderSize
+//----------------
+size_t
+Ada_Giop_s::ReplyHeaderSize()
+{
+ADABROKER_TRY
+  GIOP_S::ReplyHeaderSize ();
+ADABROKER_CATCH
+}
 

@@ -259,7 +259,7 @@ package body Corba.Object is
    pragma Import (CPP, C_Create_Proxy_Object_Factory, "createProxyObjectFactory__FPCc") ;
    -- corresponds to
    -- void createProxyObjectFactory(const char* repoID)
-   -- see proxyObjectFactory.hh
+   -- see proxyObjectFactory_C2Ada.hh
 
 
    -- Create_Proxy_Object_Factory

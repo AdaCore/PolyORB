@@ -141,7 +141,8 @@ package body omniProxyCallWrapper is
          -- first the size of the header
          Message_Size :=
            Giop_C.Request_Header_Size
-           (Omniropeandkey.Key_Size(Rope_And_Key.Real),
+           (Giop_Client.Real,
+            Omniropeandkey.Key_Size(Rope_And_Key.Real),
             Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
 
          pragma Debug(Output(Debug,
@@ -374,7 +375,6 @@ package body omniProxyCallWrapper is
          declare
             Member : Corba.Inv_Objref_Members ;
          begin
-            Put_Line ("hello coucou");
             if Omni_System_Exception_Handler
               (OmniObj_Ptr.all, Retries, Member.Minor, Member.Completed) then
                Corba.Raise_Corba_Exception (Ada.Exceptions.Exception_Identity (E),
@@ -438,7 +438,8 @@ package body omniProxyCallWrapper is
          -- first the size of the header
          Message_Size :=
            Giop_C.Request_Header_Size
-           (Omniropeandkey.Key_Size(Rope_And_Key.Real),
+           (Giop_Client.Real,
+            Omniropeandkey.Key_Size(Rope_And_Key.Real),
             Corba.Length(Omniproxycalldesc.Operation(Call_Desc))) ;
          -- and then the size of the message itself
          Message_Size := Omniproxycalldesc.Align_Size (Call_Desc,

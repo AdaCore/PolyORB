@@ -43,20 +43,17 @@
 ///////////////////////////////////////////////////////////////////////
 
 #include <omniORB2/CORBA.h>
+#include "Ada_exceptions.hh"
 
 	      
 // Ada_ORB_init
 //-------------
 CORBA::ORB_ptr
-Ada_ORB_init(int argc, char **argv,const char *orb_identifier) {
-
-  try {
+Ada_ORB_init(int argc, char **argv,const char *orb_identifier)
+{
+ADABROKER_TRY
     return CORBA::ORB_init(argc, argv, orb_identifier) ;
-  } catch (...) {
-    cerr << "Ada_Orb_Init : caught C++ exception" << endl ;
-    throw ;
-  }
-  
+ADABROKER_CATCH
 }
 
 
@@ -66,13 +63,9 @@ CORBA::BOA_ptr
 Ada_BOA_init(CORBA::ORB_ptr orb,
 	     int argc,
 	     char **argv,
-	     const char *boa_identifier) {
-
-  try {
+	     const char *boa_identifier)
+{
+ADABROKER_TRY
     return orb->BOA_init(argc, argv, boa_identifier) ;
-  } catch (...) {
-    cerr << "Ada_Boa_init : caught C++ exception" << endl ;
-    throw ;
-  }
-  
+ADABROKER_CATCH
 }

@@ -62,11 +62,17 @@ package Iop is
 
    procedure Marshall (A : in Iop.Tagged_Profile_List ;
                        S : in out Netbufferedstream.Object'Class);
+   pragma Import (CPP,Marshall,"marshall__FPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileR17NetBufferedStream") ;
+   -- wrapper around Ada_Iop method marshall
+   -- (see Ada_Iop.h)
    -- Marshalls a Tagged_Profile_List into a Netbufferedstream
 
 
    procedure UnMarshall (A : out IOP.Tagged_Profile_List ;
                          S : in out Netbufferedstream.Object'Class);
+   pragma Import (CPP,UnMarshall,"unmarshall__FPt25_CORBA_Unbounded_Sequence1ZQ23IOP13TaggedProfileR17NetBufferedStream") ;
+   -- wrapper around Ada_Iop method marshall
+   -- (see Ada_Iop.h)
    -- UnMarshalls a Tagged_Profile_List from a Netbufferedstream
 
 

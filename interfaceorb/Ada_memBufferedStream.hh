@@ -78,8 +78,6 @@ public:
   static void unmarshall (_CORBA_Double& a, Ada_memBufferedStream& s);
   // wrapper around friend inliney void operator<<=
 
-  
-  
 private:
 
   MemBufferedStream *C_Object;

@@ -50,7 +50,9 @@
 
 
 #include "Ada_OmniObject.hh"
+#include "Ada_exceptions.hh"
 #include <omniORB2/CORBA.h>
+
 // DEBUG is defined at the beginning of each file
 // and undefined at the end of each file
 //#define DEBUG
@@ -83,7 +85,9 @@ Ada_OmniObject::~Ada_OmniObject()
 //------------
 Ada_OmniObject*
 Ada_OmniObject::Constructor() {
+ADABROKER_TRY
   return new Ada_OmniObject() ;
+ADABROKER_CATCH
 }
 
 
@@ -91,11 +95,13 @@ Ada_OmniObject::Constructor() {
 //------------
 void
 Ada_OmniObject::Destructor(Ada_OmniObject* o) {
+ADABROKER_TRY
   if (o->Init_Ok) {
     delete o ;
   } else {
     raise_ada_exception("Ada_OmniObject::Destructor cannot be called on a non-initialized object") ;
   }
+ADABROKER_CATCH
 }
 
 
@@ -104,6 +110,7 @@ Ada_OmniObject::Destructor(Ada_OmniObject* o) {
 void
 Ada_OmniObject::initLocalObject (const char* repoid)
 {
+ADABROKER_TRY
   // Creation of the underlying omniobject_C2Ada object
   try {
      C_Object = new omniObject_C2Ada (this) ;
@@ -115,6 +122,7 @@ Ada_OmniObject::initLocalObject (const char* repoid)
   // updating of Init_OK flag
   Init_Ok = true;
   return;
+ADABROKER_CATCH
 }
 
 
@@ -147,6 +155,7 @@ Ada_OmniObject::initProxyObject (const char *repoId,
 //-----------------
 Ada_OmniObject*
 Ada_OmniObject::objectDuplicate(Ada_OmniObject* same) {
+ADABROKER_TRY
   if (same->Init_Ok) {
     omni::objectDuplicate(same->C_Object) ;
     // register a new pointer to this object
@@ -157,6 +166,7 @@ Ada_OmniObject::objectDuplicate(Ada_OmniObject* same) {
   } else {
     raise_ada_exception("Ada_OmniObject::objectDuplicate cannot be called on a non-initialized object") ;
   }
+ADABROKER_CATCH 
 }
 
 
@@ -164,11 +174,13 @@ Ada_OmniObject::objectDuplicate(Ada_OmniObject* same) {
 //--------------
 void
 Ada_OmniObject::objectIsReady() {
+ADABROKER_TRY
   if (Init_Ok) {
     omni::objectIsReady(C_Object) ;
   } else {
     raise_ada_exception("Ada_OmniObject::objectIsReady cannot be called on a non-initialized object") ;
   }
+ADABROKER_CATCH
 }
 
 
@@ -176,11 +188,13 @@ Ada_OmniObject::objectIsReady() {
 //--------------
 void
 Ada_OmniObject::disposeObject() {
+ADABROKER_TRY
   if (Init_Ok) {
   omni::disposeObject(C_Object) ;
   } else {
     raise_ada_exception("Ada_OmniObject::disposeObject cannot be called on a non-initialized object") ;
   }
+ADABROKER_CATCH
 }
 
 
@@ -221,6 +235,7 @@ Ada_OmniObject::non_existent() {
 void
 Ada_OmniObject::setRopeAndKey(const Ada_OmniRopeAndKey& l,_CORBA_Boolean keepIOP=1)
 {
+ADABROKER_TRY
   if ( (Init_Ok) && (l.assertInit_Ok())) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -230,6 +245,7 @@ Ada_OmniObject::setRopeAndKey(const Ada_OmniRopeAndKey& l,_CORBA_Boolean keepIOP
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniObject::setRopeAndKey without initialising object.");
   }
+ADABROKER_CATCH 
 };
 
 
@@ -238,6 +254,7 @@ Ada_OmniObject::setRopeAndKey(const Ada_OmniRopeAndKey& l,_CORBA_Boolean keepIOP
 void
 Ada_OmniObject::resetRopeAndKey ()
 {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -247,6 +264,7 @@ Ada_OmniObject::resetRopeAndKey ()
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniObject::resetRopeAndKey without initialising object.");
   }
+ADABROKER_CATCH 
 };
   
 
@@ -255,6 +273,7 @@ Ada_OmniObject::resetRopeAndKey ()
 //--------------
 void
 Ada_OmniObject::getRopeAndKey(Ada_OmniRopeAndKey& l, _CORBA_Boolean& success) {
+ADABROKER_TRY
   if ((Init_Ok) && (l.assertInit_Ok())) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -264,6 +283,7 @@ Ada_OmniObject::getRopeAndKey(Ada_OmniRopeAndKey& l, _CORBA_Boolean& success) {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniObject::getRopeAndKey without initialising objects.");
   }
+ADABROKER_CATCH 
 }
       
   
@@ -271,6 +291,7 @@ Ada_OmniObject::getRopeAndKey(Ada_OmniRopeAndKey& l, _CORBA_Boolean& success) {
 //---------------------
 void
 Ada_OmniObject::assertObjectExistent() {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -281,6 +302,7 @@ Ada_OmniObject::assertObjectExistent() {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniObject::assertObjectExistent without initialising object.");    
   }
+ADABROKER_CATCH 
 }
 
 
@@ -317,6 +339,7 @@ extern _CORBA_Boolean Ada_Is_A(const char* repoId) ;
 //----------------
 void
 Ada_OmniObject::setRepositoryID(const char* repoId) {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -326,6 +349,7 @@ Ada_OmniObject::setRepositoryID(const char* repoId) {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniObject::setRepositoryId without initialising object.");
   }
+ADABROKER_CATCH
 }
 
 
@@ -333,6 +357,7 @@ Ada_OmniObject::setRepositoryID(const char* repoId) {
 //----------------
 const char*
 Ada_OmniObject::getRepositoryID() {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -347,6 +372,7 @@ Ada_OmniObject::getRepositoryID() {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniObject::getRepositoryId without initialising object.");
   }
+ADABROKER_CATCH
 }
  
 
@@ -354,6 +380,7 @@ Ada_OmniObject::getRepositoryID() {
 //---------------------
 Ada_OmniObject*
 Ada_OmniObject::string_to_ada_object(const char *repoId) {
+ADABROKER_TRY
   omniObject *objptr = omni::stringToObject(repoId) ;
   omniObject_C2Ada *adaobj = dynamic_cast<omniObject_C2Ada*>(objptr) ;
 
@@ -362,6 +389,7 @@ Ada_OmniObject::string_to_ada_object(const char *repoId) {
   } else {
     return adaobj->Ada_OmniObject_Pointer ;
   }
+ADABROKER_CATCH
 }
 
 
@@ -369,6 +397,7 @@ Ada_OmniObject::string_to_ada_object(const char *repoId) {
 //---------------------
 char*
 Ada_OmniObject::ada_object_to_string(Ada_OmniObject* objptr) {
+ADABROKER_TRY
   if ( objptr == 0 ) {
     return omni::objectToString(0) ;
   } else {
@@ -378,6 +407,7 @@ Ada_OmniObject::ada_object_to_string(Ada_OmniObject* objptr) {
       raise_ada_exception("Ada_OmniObject::ada_object_to_string cannot be called on a non-initialized object") ;
     }
   }
+ADABROKER_CATCH
 }
 
 
@@ -385,6 +415,7 @@ Ada_OmniObject::ada_object_to_string(Ada_OmniObject* objptr) {
 //------------
 IOP::TaggedProfileList*
 Ada_OmniObject::iopProfiles() {
+ADABROKER_TRY
   if (Init_Ok) {
     // if Initialisation was made then call the corresponding
     // function on C_Object
@@ -393,6 +424,7 @@ Ada_OmniObject::iopProfiles() {
     // else raise an Ada Exception
     raise_ada_exception ("Call of Ada_OmniObject::getRepositoryId without initialising object.");
   }
+ADABROKER_CATCH
 }
 
 
@@ -413,6 +445,7 @@ Ada_OmniObject*
 Ada_OmniObject::ada_create_objref(const char* repoId,
 				  IOP::TaggedProfileList* profiles,
 				  _CORBA_Boolean release) {
+ADABROKER_TRY
   omniObject *objptr = omni::createObjRef(repoId,
 					  0, // omniORB believes that we just
 					  // want to cast the result into a
@@ -426,6 +459,7 @@ Ada_OmniObject::ada_create_objref(const char* repoId,
   } else {
     return adaobj->Ada_OmniObject_Pointer ;
   }
+ADABROKER_CATCH
 }
 
 

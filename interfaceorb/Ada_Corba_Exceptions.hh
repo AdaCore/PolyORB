@@ -82,15 +82,3 @@ _omni_callSystemExceptionHandler(omniObject*,
 //             				          CORBA::ULong,
 //				                  const CORBA::SystemException&);
 // (see CORBA.h L 2712)
-
-
-CORBA::Boolean
-_omni_callObjectNot_ExistExceptionHandler(omniObject*,
-					  CORBA::ULong,
-					  CORBA::ULong minor,
-					  CORBA::CompletionStatus status);
-// There's no Equivalent in C.
-// Actually this function uses the C method _omni_callSystemExceptionHandler
-// as the previous one but t raises a OBJECT_NOT_EXIST exception instead
-// of a SystemException.
-
