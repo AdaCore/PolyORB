@@ -1,3 +1,17 @@
+2004-06-30  Saber Souli <souli@enst.fr>
+
+	* backend-be_ada.adb : Generate assignment statement, and record
+	aggregate.
+   
+	* backend-be_ada-runtime.adb : Respect the case sensitiveness of
+	runtime packages name.
+   
+	* backend-be_ada-nodes.idl : Add assignment statement node, and
+	record aggregate node.
+   
+	* backend-be_ada-nutils.ad{b,s} : Add Make_List_Id,
+	Make_Record_Aggregate, Make_Assignment_Statement and Length.
+	
 2004-06-30  Laurent Pautet  <pautet@dorine.enst.fr>
 
 	* backend-be_ada-runtime.adb: Remove 6619 as it causes RE_X_Y to
