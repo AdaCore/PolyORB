@@ -28,6 +28,7 @@
 
 with ALI;              use ALI;
 with GNAT.OS_Lib;      use GNAT.OS_Lib;
+with Hostparm;         use Hostparm;
 with Namet;            use Namet;
 with Osint;            use Osint;
 with Table;
@@ -635,14 +636,13 @@ package body XE_Stubs is
       Execute_Gcc
         (Dir (Directory, Elaboration_File & ADB_Suffix),
          Dir (Directory, Elaboration_File & Obj_Suffix),
-         (GNATLib_Compile_Flag,
-          I_GARLIC_Dir)
+         (GNATLib_Compile_Flag, Include)
          );
 
       Execute_Gcc
         (Dir (Directory, Partition_Main_File & ADB_Suffix),
          Dir (Directory, Partition_Main_File & Obj_Suffix),
-         (Include, I_Caller_Dir, I_Current_Dir)
+         (Include, I_Caller_Dir)
          );
 
       Source := Dir (Directory, Protocol_Config_File & ADB_Suffix);
@@ -650,8 +650,7 @@ package body XE_Stubs is
          Execute_Gcc
            (Source,
             Dir (Directory, Protocol_Config_File & Obj_Suffix),
-            (GNATLib_Compile_Flag,
-             I_GARLIC_Dir)
+            (GNATLib_Compile_Flag, Include)
             );
       end if;
 
@@ -660,14 +659,13 @@ package body XE_Stubs is
          Execute_Gcc
            (Source,
             Dir (Directory, Storage_Config_File & Obj_Suffix),
-            (GNATLib_Compile_Flag,
-             I_GARLIC_Dir)
+            (GNATLib_Compile_Flag, Include)
             );
       end if;
 
       Execute_Bind
         (Dir (Directory, Partition_Main_File & ALI_Suffix),
-         (Include, I_Caller_Dir, I_Current_Dir)
+         (Include, I_Caller_Dir)
          );
 
       if Optimization_Mode then
@@ -675,7 +673,7 @@ package body XE_Stubs is
          Execute_Link
            (Dir (Directory, Partition_Main_File & ALI_Suffix),
             Partitions.Table (PID).Executable_File,
-            (Library, L_Caller_Dir, L_Current_Dir, Strip_Flag)
+            (Library, L_Caller_Dir, Strip_Flag)
             );
 
       else
@@ -683,7 +681,7 @@ package body XE_Stubs is
          Execute_Link
            (Dir (Directory, Partition_Main_File & ALI_Suffix),
             Partitions.Table (PID).Executable_File,
-            (Library, L_Caller_Dir, L_Current_Dir)
+            (Library, L_Caller_Dir)
             );
 
       end if;
@@ -1142,6 +1140,23 @@ package body XE_Stubs is
    -----------------
 
    procedure Create_Stub (A : in ALI_Id; Both : Boolean) is
+
+      function Skip_CWD (File : File_Name_Type) return File_Name_Type;
+
+      function Skip_CWD (File : File_Name_Type) return File_Name_Type
+      is
+         Len : constant Natural := Normalized_CWD'Length;
+      begin
+         Get_Name_String (File);
+         if Name_Len > Len
+           and then Name_Buffer (1 .. Len) = Normalized_CWD
+         then
+            return Str_To_Id (Name_Buffer (Len + 1 .. Name_Len));
+         else
+            return File;
+         end if;
+      end Skip_CWD;
+
       Obsolete         : Boolean;
       Full_Unit_Spec   : File_Name_Type;
       Full_Unit_Body   : File_Name_Type;
@@ -1238,7 +1253,8 @@ package body XE_Stubs is
 
          if not Quiet_Mode then
             Message
-              ("building", Unit_Name, "caller stubs from", Full_Unit_File);
+              ("building", Unit_Name,
+               "caller stubs from", Skip_CWD (Full_Unit_File));
          end if;
 
          declare
@@ -1300,7 +1316,8 @@ package body XE_Stubs is
       if Obsolete then
          if not Quiet_Mode then
             Message
-              ("building", Unit_Name, "receiver stubs from", Full_Unit_Body);
+              ("building", Unit_Name,
+               "receiver stubs from", Skip_CWD (Full_Unit_Body));
          end if;
 
          Compile_RCI_Receiver (Full_Unit_Body, Receiver_Object);
