@@ -5,6 +5,8 @@
 
 with CORBA.ORB.Typecode;
 
+with CORBA.Repository_Root; use CORBA.Repository_Root;
+with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.ValueBoxDef.Skel;
@@ -72,8 +74,9 @@ package body CORBA.Repository_Root.ValueBoxDef.Impl is
       return CORBA.TypeCode.Object
    is
       Orig_TC : CORBA.TypeCode.Object :=  IDLType.Impl.Get_Type
-        (IDLType.Impl.Object_Ptr
-         (IDLType.Object_Of (Self.Original_Type_Def)));
+        (IDLType.Impl.To_IDLType
+         (IRObject.Impl.Object_Ptr
+          (IDLType.Object_Of (Self.Original_Type_Def))));
    begin
       return  CORBA.ORB.Typecode.Create_Value_Box_Tc (Get_Id (Self),
                                                       Get_Name (Self),

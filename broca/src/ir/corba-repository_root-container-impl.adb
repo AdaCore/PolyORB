@@ -9,6 +9,7 @@ with CORBA.Impl;
 
 with CORBA.Repository_Root; use CORBA.Repository_Root;
 with CORBA.Repository_Root.Contained;
+with CORBA.Repository_Root.Container.Helper;
 with CORBA.Repository_Root.Container.Skel;
 with CORBA.Repository_Root.StructDef.Impl;
 with CORBA.Repository_Root.UnionDef.Impl;
@@ -24,6 +25,14 @@ with CORBA.Repository_Root.ModuleDef.Impl;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.ConstantDef.Impl;
+
+with CORBA.Repository_Root.ModuleDef;
+with CORBA.Repository_Root.ExceptionDef;
+with CORBA.Repository_Root.InterfaceDef;
+with CORBA.Repository_Root.ValueDef;
+with CORBA.Repository_Root.StructDef;
+with CORBA.Repository_Root.UnionDef;
+with CORBA.Repository_Root.Repository;
 
 with Broca.Exceptions;
 with Broca.Debug;
@@ -65,12 +74,14 @@ package body CORBA.Repository_Root.Container.Impl is
    -----------------
    function To_Object (Fw_Ref : Container_Forward.Ref)
                        return Object_Ptr is
-   begin
-      pragma Debug (O2 ("to_object (container)"));
-      return Object_Ptr
+      Result : IRObject.Impl.Object_Ptr
+        := IRObject.Impl.Object_Ptr
         (Container.Object_Of
          (Container.Convert_Forward.To_Ref
           (Fw_Ref)));
+   begin
+      pragma Debug (O2 ("to_object (container)"));
+      return To_Container (Result);
    end To_Object;
 
    ------------------
@@ -78,12 +89,101 @@ package body CORBA.Repository_Root.Container.Impl is
    ------------------
    function To_Forward (Obj : Object_Ptr)
                         return Container_Forward.Ref is
-      Ref : Container.Ref;
+      Result : Container_Forward.Ref;
    begin
-      pragma Debug (O2 ("to_forward (container)"));
-      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
-                                           Ref);
-      return Container.Convert_Forward.To_Forward (Ref);
+      case Get_Def_Kind (Obj) is
+         when
+           Dk_Primitive  |
+           Dk_String     |
+           Dk_Sequence   |
+           Dk_Array      |
+           Dk_Wstring    |
+           Dk_Fixed      |
+           Dk_All        |
+           Dk_Typedef    |
+           Dk_Enum       |
+           Dk_Alias      |
+           Dk_Native     |
+           Dk_ValueBox   |
+           Dk_Attribute  |
+           Dk_Constant   |
+           Dk_Operation  |
+           Dk_ValueMember|
+           Dk_None       =>
+            Broca.Exceptions.Raise_Internal;
+            return Result;
+         when Dk_Interface  =>
+            declare
+               The_Ref : InterfaceDef.Ref;
+            begin
+               Broca.Server_Tools.Initiate_Servant (PortableServer.Servant
+                                                    (Get_Real_Object (Obj)),
+                                                    The_Ref);
+               return Container.Convert_Forward.To_Forward
+                 (Container.Helper.To_Ref (The_Ref));
+            end;
+         when Dk_Value      =>
+            declare
+               The_Ref : ValueDef.Ref;
+            begin
+               Broca.Server_Tools.Initiate_Servant (PortableServer.Servant
+                                                    (Get_Real_Object (Obj)),
+                                                    The_Ref);
+               return Container.Convert_Forward.To_Forward
+                 (Container.Helper.To_Ref (The_Ref));
+            end;
+         when  Dk_Struct     =>
+            declare
+               The_Ref : StructDef.Ref;
+            begin
+               Broca.Server_Tools.Initiate_Servant (PortableServer.Servant
+                                                    (Get_Real_Object (Obj)),
+                                                    The_Ref);
+               return Container.Convert_Forward.To_Forward
+                 (Container.Helper.To_Ref (The_Ref));
+            end;
+         when  Dk_Union      =>
+            declare
+               The_Ref : UnionDef.Ref;
+            begin
+               Broca.Server_Tools.Initiate_Servant (PortableServer.Servant
+                                                    (Get_Real_Object (Obj)),
+                                                    The_Ref);
+               return Container.Convert_Forward.To_Forward
+                 (Container.Helper.To_Ref (The_Ref));
+            end;
+         when Dk_Exception  =>
+            declare
+               The_Ref : ExceptionDef.Ref;
+            begin
+               Broca.Server_Tools.Initiate_Servant (PortableServer.Servant
+                                                    (Get_Real_Object (Obj)),
+                                                    The_Ref);
+               return Container.Convert_Forward.To_Forward
+                 (Container.Helper.To_Ref (The_Ref));
+            end;
+         when Dk_Module     =>
+            declare
+               The_Ref : ModuleDef.Ref;
+            begin
+               Broca.Server_Tools.Initiate_Servant (PortableServer.Servant
+                                                    (Get_Real_Object (Obj)),
+                                                    The_Ref);
+               return Container.Convert_Forward.To_Forward
+                 (Container.Helper.To_Ref (The_Ref));
+            end;
+         when Dk_Repository     =>
+            declare
+               The_Ref : Repository.Ref;
+            begin
+               Broca.Server_Tools.Initiate_Servant (PortableServer.Servant
+                                                    (Get_Real_Object (Obj)),
+                                                    The_Ref);
+               return Container.Convert_Forward.To_Forward
+                 (Container.Helper.To_Ref (The_Ref));
+            end;
+
+      end case;
    end To_Forward;
 
    ------------------------------------------

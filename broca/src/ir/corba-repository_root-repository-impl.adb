@@ -243,7 +243,9 @@ package body CORBA.Repository_Root.Repository.Impl is
    is
       Result : CORBA.Repository_Root.SequenceDef.Ref;
       Element : CORBA.TypeCode.Object := IDLType.Impl.Get_Type
-        (IDLType.Impl.Object_Ptr (IDLType.Object_Of (Element_Type)));
+        (IDLType.Impl.To_IDLType
+         (IRObject.Impl.Object_Ptr
+          (IDLType.Object_Of (Element_Type))));
       Obj : SequenceDef.Impl.Object_Ptr := new SequenceDef.Impl.Object;
    begin
       --  initialization of the Sequence
@@ -269,7 +271,9 @@ package body CORBA.Repository_Root.Repository.Impl is
    is
       Result : CORBA.Repository_Root.ArrayDef.Ref;
       Element : CORBA.TypeCode.Object := IDLType.Impl.Get_Type
-        (IDLType.Impl.Object_Ptr (IDLType.Object_Of (Element_Type)));
+        (IDLType.Impl.To_IDLType
+         (IRObject.Impl.Object_Ptr
+          (IDLType.Object_Of (Element_Type))));
       Obj : ArrayDef.Impl.Object_Ptr := new ArrayDef.Impl.Object;
    begin
       --  initialization of the Array

@@ -9,6 +9,7 @@ with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.OperationDef.Skel;
 with CORBA.Repository_Root.Helper;
 with CORBA.Repository_Root.ExceptionDef.Impl;
+with CORBA.Repository_Root.IRObject.Impl;
 
 package body CORBA.Repository_Root.OperationDef.Impl is
 
@@ -51,7 +52,9 @@ package body CORBA.Repository_Root.OperationDef.Impl is
    begin
       --  The result should be the type of the result_def
       return IDLType.Impl.Get_Type
-        (IDLType.Impl.Object_Ptr (IDLType.Object_Of (Self.Result_Def)));
+        (IDLType.Impl.To_IDLType
+         (IRObject.Impl.Object_Ptr
+          (IDLType.Object_Of (Self.Result_Def))));
    end get_result;
 
 

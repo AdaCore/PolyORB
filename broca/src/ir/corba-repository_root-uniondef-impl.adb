@@ -12,6 +12,7 @@ with CORBA.Repository_Root.Contained;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.UnionDef.Skel;
 with CORBA.Repository_Root.IDLType.Impl;
+with CORBA.Repository_Root.IRObject.Impl;
 
 with Broca.Server_Tools;
 with PortableServer;
@@ -130,8 +131,9 @@ package body CORBA.Repository_Root.UnionDef.Impl is
      return CORBA.TypeCode.Object
    is
       Discriminator : IDLType.Impl.Object_Ptr
-        :=  IDLType.Impl.Object_Ptr
-        (IDLType.Object_Of (Self.Discriminator_Type_Def));
+        := IDLType.Impl.To_IDLType
+        (IRObject.Impl.Object_Ptr
+         (IDLType.Object_Of (Self.Discriminator_Type_Def)));
    begin
       return IDLType.Impl.Get_Type (Discriminator);
    end get_discriminator_type;

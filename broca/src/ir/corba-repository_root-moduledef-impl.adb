@@ -165,7 +165,13 @@ package body CORBA.Repository_Root.ModuleDef.Impl is
      (Self : access Object)
       return CORBA.ScopedName
    is
+      use Contained.Impl;
    begin
+      pragma Debug (O ("get_absolute_name : enter"));
+      if (Self.Contained_View = null) then
+         null;
+         pragma Debug (O ("get_absolute_name : Contained_view is null"));
+      end if;
       return Contained.Impl.Get_Absolute_Name (Self.Contained_View);
    end get_absolute_name;
 

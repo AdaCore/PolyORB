@@ -67,9 +67,10 @@ package body CORBA.Repository_Root.SequenceDef.Impl is
    is
    begin
       return IDLType.Impl.Get_Type
-        (IDLType.Impl.Object_Ptr
-         (IDLType.Object_Of
-          (Self.Element_Type_Def)));
+        (IDLType.Impl.To_IDLType
+         (IRObject.Impl.Object_Ptr
+          (IDLType.Object_Of
+           (Self.Element_Type_Def))));
    end get_element_type;
 
 

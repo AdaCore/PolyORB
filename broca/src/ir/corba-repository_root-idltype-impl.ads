@@ -4,6 +4,7 @@
 ----------------------------------------------
 
 with CORBA.Repository_Root.IRObject.Impl;
+with CORBA.Impl;
 
 package CORBA.Repository_Root.IDLType.Impl is
 
@@ -12,13 +13,10 @@ package CORBA.Repository_Root.IDLType.Impl is
 
    type Object_Ptr is access all Object'Class;
 
-   --  To transform a forward_ref in impl.object_ptr.
-   function To_Object (Fw_Ref : IDLType_Forward.Ref)
-                       return Object_Ptr;
-
-   --  To transform an object_ptr into Forward_ref
-   function To_Forward (Obj : Object_Ptr)
-                        return IDLType_Forward.Ref;
+   --  should only be called if the cast is safe!
+   function To_IDLType
+     (Self : CORBA.Repository_Root.IRObject.Impl.Object_Ptr)
+      return Object_Ptr;
 
    --  method used to initialize recursively the object fields.
    procedure Init (Self : access Object;

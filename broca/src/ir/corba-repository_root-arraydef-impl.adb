@@ -5,6 +5,8 @@
 
 with CORBA.ORB.Typecode;
 
+with CORBA.Repository_Root; use CORBA.Repository_Root;
+with CORBA.Repository_Root.IRObject.Impl;
 with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.ArrayDef.Skel;
@@ -66,9 +68,10 @@ package body CORBA.Repository_Root.ArrayDef.Impl is
    is
    begin
       return IDLType.Impl.Get_Type
-        (IDLType.Impl.Object_Ptr
-         (IDLType.Object_Of
-          (Self.Element_Type_Def)));
+        (IDLType.Impl.To_IDLType
+         (IRObject.Impl.Object_Ptr
+          (IDLType.Object_Of
+           (Self.Element_Type_Def))));
    end get_element_type;
 
 

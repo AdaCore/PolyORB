@@ -8,6 +8,7 @@ with CORBA.Repository_Root.IDLType;
 with CORBA.Repository_Root.IDLType.Impl;
 with CORBA.Repository_Root.ValueMemberDef.Skel;
 with CORBA.Repository_Root.Helper;
+with CORBA.Repository_Root.IRObject.Impl;
 
 package body CORBA.Repository_Root.ValueMemberDef.Impl is
 
@@ -44,7 +45,9 @@ package body CORBA.Repository_Root.ValueMemberDef.Impl is
    begin
       --  The type should be the type of the Type_def
       return IDLType.Impl.Get_Type
-        (IDLType.Impl.Object_Ptr (IDLType.Object_Of (Self.Type_Def)));
+        (IDLType.Impl.To_IDLType
+         (IRObject.Impl.Object_Ptr
+          (IDLType.Object_Of (Self.Type_Def))));
    end get_type;
 
 

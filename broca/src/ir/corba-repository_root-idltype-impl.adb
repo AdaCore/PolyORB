@@ -20,6 +20,7 @@ with CORBA.Repository_Root.EnumDef.Impl;
 with CORBA.Repository_Root.AliasDef.Impl;
 with CORBA.Repository_Root.NativeDef.Impl;
 with CORBA.Repository_Root.ValueBoxDef.Impl;
+with CORBA.Repository_Root.TypedefDef.Impl;
 
 with Broca.Exceptions;
 with Broca.Server_Tools;
@@ -27,29 +28,72 @@ with PortableServer;
 
 package body CORBA.Repository_Root.IDLType.Impl is
 
-   -----------------
-   --  To_Object  --
-   -----------------
-   function To_Object (Fw_Ref : IDLType_Forward.Ref)
-                       return Object_Ptr is
-   begin
-      return Object_Ptr
-        (IDLType.Object_Of
-         (IDLType.Convert_Forward.To_Ref
-          (Fw_Ref)));
-   end To_Object;
 
    ------------------
-   --  To_Forward  --
+   --  To_IDLType  --
    ------------------
-   function To_Forward (Obj : Object_Ptr)
-                        return IDLType_Forward.Ref is
-      Ref : IDLType.Ref;
+   function To_IDLType
+     (Self : IRObject.Impl.Object_Ptr)
+     return  Object_ptr
+   is
    begin
-      Broca.Server_Tools.Initiate_Servant (PortableServer.Servant (Obj),
-                                           Ref);
-      return IDLType.Convert_Forward.To_Forward (Ref);
-   end To_Forward;
+      case IRObject.Impl.Get_Def_Kind
+        (Self) is
+         when
+           Dk_Repository |
+           Dk_Attribute  |
+           dk_ValueMember|
+           Dk_Typedef    |
+           Dk_Constant   |
+           Dk_Operation  |
+           Dk_Exception  |
+           Dk_Module     |
+           Dk_All        |
+           Dk_None       =>
+            Broca.Exceptions.Raise_Internal;
+            return null;
+         when
+           --  inherited types
+           Dk_Primitive  |
+           Dk_String     |
+           Dk_Sequence   |
+           Dk_Array      |
+           Dk_Wstring    |
+           Dk_Fixed      =>
+            return Object_Ptr (Self);
+         -- types containing a "idltype_view" field
+         when
+           Dk_Alias      |
+           Dk_Struct     |
+           Dk_Union      |
+           Dk_Enum       |
+           Dk_ValueBox   |
+           dk_Native =>
+            declare
+               Interm : TypedefDef.Impl.Object_Ptr :=
+                 TypedefDef.Impl.Object_Ptr (Self);
+            begin
+               return TypedefDef.Impl.Get_IDLType_View (Interm);
+            end;
+         when
+           Dk_Value      =>
+            declare
+               Interm : Valuedef.Impl.Object_Ptr :=
+                 Valuedef.Impl.Object_Ptr (Self);
+            begin
+               return Valuedef.Impl.Get_IDLType_View (Interm);
+            end;
+         when
+           Dk_Interface  =>
+            declare
+               Interm : Interfacedef.Impl.Object_Ptr :=
+                 Interfacedef.Impl.Object_Ptr (Self);
+            begin
+               return Interfacedef.Impl.Get_IDLType_View (Interm);
+            end;
+      end case;
+   end To_IDLType;
+
 
    ----------------------
    --  Procedure init  --
