@@ -140,10 +140,14 @@ package Corba.Object is
    -- the repository ID of Corba.Object.Ref
 
 
-   function Get_Nil_Ref(Self: in Ref) return Ref ;
+   function Get_Nil_Ref(Self : in Ref) return Ref ;
    -- this function returns a Nil_Ref of the same type
    -- of the object it is given. It is used for
    -- typing (see below)
+
+
+   function Get_OmniObject_Ptr (Self : in Ref) return Omniobject.Object_Ptr ;
+   -- return the underlying omniobject
 
 
    function Object_To_String (Self : in CORBA.Object.Ref'class)

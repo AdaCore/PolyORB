@@ -101,12 +101,12 @@ package OmniRopeAndKey is
    -- (see omniInternal.h L248 for more information)
 
 
-   function Get_Key (Self : in Object'Class) return CORBA.Octet;
+   function Get_Key (Self : in Object'Class) return Corba.Octet;
    -- returns the key attribute of the OmniRopeAndKey object
    -- (see omniInternal.h L250 for more information)
 
 
-   function Key_Size (Self : in Object'Class) return CORBA.Unsigned_Long ;
+   function Key_Size (Self : in Object'Class) return Corba.Unsigned_Long ;
    -- returns the size of the key attribute of the OmniRopeAndKey object
    -- (see omniInternal.h L259 for more information)
 

@@ -163,6 +163,14 @@ package body Corba.Object is
    end ;
 
 
+   -- Get_OmniObject_Ptr
+   ---------------------
+   function Get_OmniObject_Ptr (Self : in Ref) return Omniobject.Object_Ptr is
+   begin
+      return Self.Omniobj ;
+   end ;
+
+
    -- Object_To_String
    -------------------
    function Object_To_String (Self : in Ref'class)

@@ -71,82 +71,98 @@ package body omniProxyCallWrapper is
    -- and the infinite loop
    --
    ----------------
-   procedure Invoke (The_Obj : in Corba.Object.Ref'Class ;
+   procedure Invoke (Obj : in Corba.Object.Ref'Class ;
                      Call_Desc : in out OmniProxyCallDesc.Object'Class ) is
-      The_Parameter_Obj : Corba.Object.Ref'Class := The_Obj ;
-      Retries : Corba.Unsigned_Long := 0 ;
+      OmniObj_Ptr : Omniobject.Object_Ptr := OmniObject.GetOmniObject (Obj);
+--      Retries : Corba.Unsigned_Long := 0 ;
       Rope_And_Key : Omniropeandkey.Object ;
       Is_Fwd : Corba.Boolean ;
       Reuse : Corba.Boolean := False ;
       Giop_Client : Giop_C.Object ;
-      Message_Size : Corba.Unsigned_Long ;
+--      Message_Size : Corba.Unsigned_Long ;
    begin
-      null ;
+      loop
+         -- verify that the underlying omniobject is not null
+         if OmniObj_Ptr = null then
+            Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
+                                            "null omniobject_ptr found in method invoke (omniProxyCallWrapper L 86)") ;
+         end if ;
 
-      -- sould start infinite loop
-      -- to be done when exceptions are handled
+         -- verify that the object exists
+         Omniobject.Assert_Object_Existent(OmniObj_Ptr.all) ;
 
-      Corba.Object.Assert_Object_Existent(The_Parameter_Obj) ;
+         -- get the current values of the rope and the key
+         Omniobject.Get_Rope_And_Key(OmniObj_Ptr.all,Rope_And_Key,Is_Fwd) ;
 
-      Corba.Object.Get_Rope_And_Key(The_Parameter_Obj, Rope_And_Key, Is_Fwd) ;
+         -- Get a GIOP driven strand
+         Giop_C.Init (Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key)) ;
 
-      -- Get a GIOP driven strand
-      Giop_C.Init(Giop_Client, Omniropeandkey.Get_Rope(Rope_And_Key)) ;
-      Reuse := Is_Reusing_Existing_Connection(Giop_Client) ;
+         -- do the giop_client reuse an existing connection ?
+         Reuse := Netbufferedstream.Is_Reusing_Existing_Connection(Giop_Client) ;
 
-      -- Calculate the size of the message
-      Message_Size :=
-        Giop_C.Request_Header_Size(Omniropeandkey.Key_Size(Rope_And_Key),
-                                   Corba.Length(Operation(Call_Desc))) ;
-      -- +1 ? ? ? ? ?
+         -- Calculates the size of the message
+         -- first the size of the header
+         Message_Size :=
+           Giop_C.Request_Header_Size(Omniropeandkey.Key_Size(Rope_And_Key),
+                                      Corba.Length(Operation(Call_Desc))) ;
+         -- and then the size of the message itself
+         Message_Size := Omniproxycalldesc.Aligned_Size (Call_Desc,
+                                                         Message_Size) ;
 
-      Aligned_Size(Call_Desc,Message_Size) ;
+         -- Initialise the request
+         Giop_C.Initialize_Request(Giop_Client,
+                                   Omniropeandkey.Get_Key(Rope_And_Key),
+                                   Omniropeandkey.Key_Size(Rope_And_Key),
+                                   OmniProxycalldesc.Operation(Call_Desc),
+                                   Message_Size,
+                                   False);
 
-      Giop_C.Initialize_Request(Giop_Client,
-                                Omniropeandkey.Get_Key(Rope_And_Key),
-                                Omniropeandkey.Key_Size(Rope_And_Key),
-                                OmniProxycalldesc.Operation(Call_Desc),
-                                Message_Size,
-                                False);
+         -- Marshal the arguments to the operation
+         Omniproxycalldesc.Marshal_Arguments (Call_Desc, Giop_Client) ;
 
-      -- Marshal the arguments to the operation
-      Marshal_Arguments(Call_Desc, Giop_Client) ;
+         -- wait for the reply
+         case Giop_C.Receive_Reply(Giop_Client) is
 
-      -- wait for the reply
-      case Giop_C.Receive_Reply(Giop_Client) is
-         when Giop.NO_EXCEPTION =>
-            unmarshal the results and out/inout arguments
-            Unmarshal_Returned_Values(Call_Desc, Giop_Client) ;
-            Giop_C.Request_Completed(Giop_Client) ;
-            return ;
-         when Giop.USER_EXCEPTION =>
-            -- check if the proxy was allowed to raise an exception
-            if not Omniproxycalldesc.Has_User_Exceptions(Call_Desc) then
-               declare
-                  Excpt_Members : Corba.Unknown_Members ;
-               begin
-                  Giop_C.Request_Completed(Giop_Client, True) ;
-                  Excpt_Members := (0, Corba.Completed_Maybe) ;
-                  Corba.Raise_Corba_Exception(Corba.Unknown'Identity,
-                                              Excpt_Members) ;
-               end ;
+            when Giop.NO_EXCEPTION =>
+               -- unmarshal the results and out/inout arguments
+               Omniproxycalldesc.Unmarshal_Returned_Values(Call_Desc,
+                                                           Giop_Client) ;
+               -- inform the ORB that the request was completed
+               Giop_C.Request_Completed(Giop_Client) ;
+               return ;
 
-            end if ;
+            when Giop.USER_EXCEPTION =>
+               -- check if the exception is due to the proxycalldesc
+               if not Omniproxycalldesc.Has_User_Exceptions(Call_Desc) then
+                  declare
+                     Excpt_Members : Corba.Unknown_Members ;
+                  begin
+                     -- inform the ORB that the message was skiped
+                     Giop_C.Request_Completed(Giop_Client,True) ;
+                     -- raise an Unknown exception
+                     Excpt_Members := (0, Corba.Completed_Maybe) ;
+                     Corba.Raise_Corba_Exception(Corba.Unknown'Identity,
+                                                 Excpt_Members) ;
+                  end ;
+               end if ;
 
             -- retrieve the interface repository ID of the exception
             declare
-               RepoID_Len : Corba.Unsigned_Long ;
                RepoID : Corba.String ;
             begin
-               RepoID_Len := UnMarshal(Giop_Client) ;
-               Get_Char_Array(Giop_Client, RepoID, RepoID_Len) ;
+               -- UnMarshalls the RepoID
+               Netbufferedstream.UnMarshal(RepoID,Giop_Client) ;
+
                -- may be simplified,
                -- it was done like this in C++ for memory allocation
-               Omniproxycalldesc.User_Exception(Call_Desc, Giop_Client, RepoID) ;
+               Omniproxycalldesc.User_Exception(Call_Desc,
+                                                Giop_Client,
+                                                RepoID) ;
 
                -- never reach this point,
                -- the preceding operations must raise either
                -- a user exception or Corba.Marshal
+
                Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
                                               "Should never reach this point,"
                                               & Corba.CRLF
@@ -157,40 +173,72 @@ package body omniProxyCallWrapper is
                                               & "when Giop.USER_EXCEPTION") ;
             end ;
 
-         when Giop.SYSTEM_EXCEPTION =>
-            Giop_C.Request_Completed(Giop_Client, True) ;
-            Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
-                                           "Giop.SYSTEM_EXCEPTION should not be returned"
-                                           & Corba.CRLF
-                                           & "by Giop_C.Receive_Reply"
-                                           & Corba.CRLF
-                                           & "in omniproxycallwrapper.adb"
-                                           & Corba.CRLF
-                                           & "procedure invoke, when giop.SYSTEM_EXCEPTION") ;
+            when Giop.SYSTEM_EXCEPTION =>
+               -- inform the ORB that the message was skiped
+               Giop_C.Request_Completed(Giop_Client, True) ;
+               -- and raise a fatal exception
+               Ada.Exceptions.Raise_Exception(Corba.AdaBroker_Fatal_Error'Identity,
+                                              "Giop.SYSTEM_EXCEPTION should not be returned"
+                                              & Corba.CRLF
+                                              & "by Giop_C.Receive_Reply"
+                                              & Corba.CRLF
+                                              & "in omniproxycallwrapper.adb"
+                                              & Corba.CRLF
+                                              & "procedure invoke, when giop.SYSTEM_EXCEPTION") ;
 
-         when Giop.LOCATION_FORWARD =>
-            declare
-               Obj : Corba.Object.Ref'Class :=
-                 Corba.Object.UnMarshal_Obj_Ref(Giop_Client) ;
-               Excpt_Members : Corba.Comm_Failure_Members ;
-               R : Omniropeandkey.Object ;
-               Unneeded_Result : Corba.Boolean ;
-            begin
-               Giop_C.Request_Completed(Giop_Client) ;
-               if Corba.Object.Is_Nil(Obj) then
-                  -- omniORB's log info : omitted
-                  Excpt_Members := (0, Corba.Completed_No) ;
-                  -- Corba.Raise_Corba_Exception(Corba.Comm_Failure'Identity,
-                  Excpt_Members) ;
-               end if;
-               Corba.Object.Get_Rope_And_Key(Obj, R, Unneeded_result) ;
-               Corba.Object.Set_Rope_And_Key(The_Parameter_Obj, R) ;
-               -- omniORB's log info : omitted
+            when Giop.LOCATION_FORWARD =>
+               declare
+                  Obj_Ref : Corba.Object.Ref'Class ;
+                  Omniobj_Ptr2 : Omniobject.Object_Ptr ;
+                  R : Omniropeandkey.Object ;
+                  Unneeded_Result : Corba.Boolean ;
+               begin
+                  -- unmarshall the object
+                  Corba.Object.UnMarshal (Obj_Ref,Giop_Client) ;
+                  -- inform the ORB that the request was completed
+                  Giop_C.Request_Completed(Giop_Client) ;
+                  -- verify that the object is not null
+                  if Corba.Object.Is_Nil(Obj_Ref) then
+                     declare
+                        Excpt_Members : Corba.Comm_Failure_Members ;
+                        begin
+                           -- raise a Comm_Failure exception
+                           Excpt_Members := (0, Corba.Completed_No) ;
+                           Corba.Raise_Corba_Exception (Corba.Comm_Failure'Identity,
+                                                        Excpt_Members) ;
+                        end ;
+                  end if;
+                  -- get the underlying omniobject object
+                  Omniobj_Ptr2 := Corba.Object.Get_OmniObject_Ptr(Obj_Ref) ;
+                  -- verify it is not null
+                  if OmniObj_Ptr2 = null then
+                     Ada.Exceptions.Raise_Exception (Corba.AdaBroker_Fatal_Error'Identity,
+                                                     "null omniobject_ptr found in method invoke (omniProxyCallWrapper L 216)") ;
+                  end if ;
+                  -- get the rope and the key of the object
+                  Corba.Object.Get_Rope_And_Key (Omniobj2_Ptr.all,
+                                                 R,
+                                                 Unneeded_result) ;
+                  -- and set these rope and key to Omniobj
+                  Corba.Object.Set_Rope_And_Key(Omniobj.all, R) ;
+                  return ;
 
-               -- we go back to the beginning of the infinite loop
-               -- with a modified Omniobject
-            end ;
-      end case ;
+               end ;
+         end case ;
+
+      exception
+
+         when
+
+               ----------------------------------------------------
+               ----------------------------------------------------
+               ------------------- J'EN SUIS LA -------------------
+               ----------------------------------------------------
+               ----------------------------------------------------
+
+
+
+
 
       -- Exception handlers
       -- are not imlpemented yet
@@ -229,6 +277,7 @@ package body omniProxyCallWrapper is
          -- should end infinite loop
          -- to be done when exceptions are handled
 
+      end loop ;
    end;
 
 

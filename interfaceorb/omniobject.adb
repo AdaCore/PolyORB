@@ -549,7 +549,7 @@ package body OmniObject is
    -------------------
    procedure Set_Rope_And_Key (Self : in out Object'Class ;
                                L : in Omniropeandkey.Object ;
-                               KeepIOP : in Boolean) is
+                               KeepIOP : in Boolean := True) is
       C_L : System.Address;
       C_KeepIOP : Sys_Dep.C_Boolean ;
    begin

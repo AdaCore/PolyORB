@@ -1,22 +1,51 @@
 -----------------------------------------------------------------------
+-----------------------------------------------------------------------
 ----                                                               ----
-----                  AdaBroker                                    ----
+----                         AdaBroker                             ----
+----                                                               ----
+----                       package Giop_s                          ----
+----                                                               ----
+----                                                               ----
+----   Copyright (C) 1999 ENST                                     ----
+----                                                               ----
+----   This file is part of the AdaBroker library                  ----
+----                                                               ----
+----   The AdaBroker library is free software; you can             ----
+----   redistribute it and/or modify it under the terms of the     ----
+----   GNU Library General Public License as published by the      ----
+----   Free Software Foundation; either version 2 of the License,  ----
+----   or (at your option) any later version.                      ----
+----                                                               ----
+----   This library is distributed in the hope that it will be     ----
+----   useful, but WITHOUT ANY WARRANTY; without even the implied  ----
+----   warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR     ----
+----   PURPOSE.  See the GNU Library General Public License for    ----
+----   more details.                                               ----
+----                                                               ----
+----   You should have received a copy of the GNU Library General  ----
+----   Public License along with this library; if not, write to    ----
+----   the Free Software Foundation, Inc., 59 Temple Place -       ----
+----   Suite 330, Boston, MA 02111-1307, USA                       ----
+----                                                               ----
+----                                                               ----
+----                                                               ----
+----   Description                                                 ----
+----   -----------                                                 ----
 ----                                                               ----
 ----     This package is wrapped around the C++ class              ----
-----   Ada_Giop_c declared in Ada_Giop_c.hh.                       ----
+----   Ada_Giop_s declared in Ada_Giop_s.hh.                       ----
 ----     It provides the same functions as this package plus       ----
 ----   the Ada version of thouse where arguments types are         ----
 ----   to be change.                                               ----
-----     It includes the definition of the function                ----
-----   RequestHeaderSize declared in giopDriver.h but not          ----
-----   present in Ada_Giop_c since it is a static function.        ----
+----     It does not include an Init function since it is          ----
+----   useless for AdaBroker. (AdaBroker never creates a Giop_s    ----
+----   object)                                                     ----
 ----                                                               ----
-----                  package body Giop_C                          ----
 ----                                                               ----
 ----   authors : Sebastien Ponce, Fabien Azavant                   ----
 ----   date    : 02/28/99                                          ----
 ----                                                               ----
-----                                                               ----
+-----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
 
@@ -42,7 +71,7 @@ package body Giop_C is
 
    -- Init
    -------
-   procedure Init (Self : in Object'Class ;
+   procedure Init (Self : in out Object'Class ;
                    R : in Rope.Object) is
    begin
       -- just calls the C procedure
@@ -79,7 +108,7 @@ package body Giop_C is
    procedure Initialize_Request (Self : in Object'Class ;
                                  Objkey : in Corba.Octet ;
                                  Objkeysize : in Corba.Unsigned_Long ;
-                                 Opname : in Corba.STRING ;
+                                 Opname : in Corba.String ;
                                  MsgSize : in Corba.Unsigned_Long ;
                                  Oneway : in Corba.Boolean) is
       C_Objkey : System.Address ;
