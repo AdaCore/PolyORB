@@ -71,18 +71,36 @@ package body Ada_Be.Mappings.CORBA is
            K_Forward_Interface | K_Forward_ValueType =>
             return Parent_Scope_Name (Node) & Helper_Suffix;
 
+         when K_Declarator =>
+            declare
+               P : constant Node_Id := Parent (Node);
+            begin
+               if Kind (P) = K_Type_Declarator then
+                  declare
+                     T_Node : constant Node_Id := T_Type (P);
+                  begin
+                     case Kind (T_Node) is
+                        when
+                          K_Interface         |
+                          K_Forward_Interface |
+                          K_ValueType         |
+                          K_Scoped_Name       |
+                          K_Forward_ValueType =>
+                           return Ada_Helper_Unit_Name (Mapping, T_Node);
+                        when others =>
+                           null;
+                     end case;
+                  end;
+               end if;
+            end;
          when
            K_Sequence_Instance |
            K_String_Instance   |
            K_Enum              |
            K_Union             |
            K_Struct            |
-           K_Exception         |
-           K_Declarator        =>
-
-            return Client_Stubs_Unit_Name
-              (Mapping, Parent_Scope (Node))
-              & Helper_Suffix;
+           K_Exception         =>
+            null;
 
          when K_Scoped_Name =>
             return Ada_Helper_Unit_Name (Mapping, Value (Node));
@@ -120,6 +138,8 @@ package body Ada_Be.Mappings.CORBA is
             --  Keep the compiler happy.
             raise Program_Error;
       end case;
+      return Client_Stubs_Unit_Name (Mapping, Parent_Scope (Node))
+               & Helper_Suffix;
    end Ada_Helper_Unit_Name;
 
    ----------------------------
