@@ -83,8 +83,6 @@ package body System.Garlic.Startup is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use System.Garlic.Protocols;
-
 begin
 
    pragma Debug (D (D_Elaborate, "Entering partition startup phase"));
@@ -104,12 +102,12 @@ begin
    System.Garlic.Protocols.Config.Initialize;
 
    declare
-      Boot_Location : constant Location
+      Boot_Location : constant Location_Type
         := To_Location (Options.Boot_Server.all);
       Boot_Protocol : constant Protocol_Access := Get_Protocol (Boot_Location);
       Boot_Data     : constant String := Get_Data (Boot_Location);
       Is_Master     : constant Boolean := not Options.Is_Slave;
-      New_Location  : Location;
+      New_Location  : Location_Type;
    begin
 
       if Boot_Protocol = null then
@@ -119,7 +117,7 @@ begin
 
       --  Phase (3) (see s-garlic.ads)
 
-      Is_Boot_Partition (Is_Master);
+      Set_Is_Boot_Partition (Is_Master);
 
       --  Phase (4) (see s-garlic.ads)
 
@@ -127,7 +125,7 @@ begin
          exit when Config.Protocol_Table (I) = null;
          if Config.Protocol_Table (I) = Boot_Protocol then
             Set_Boot_Data (Boot_Protocol, True, Boot_Data, Is_Master);
-            Is_Boot_Partition (Is_Master);
+            Set_Is_Boot_Partition (Is_Master);
             Set_My_Location (To_Location (Boot_Protocol,
                                           Get_Info (Boot_Protocol)));
             if Is_Master then
@@ -163,7 +161,6 @@ begin
    begin
       null;
    end;
-
 
    pragma Debug (D (D_Elaborate, "Startup phase terminated"));
 

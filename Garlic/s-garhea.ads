@@ -35,45 +35,63 @@
 
 with Ada.Exceptions;
 with Ada.Streams;
+with System.Garlic.Name_Table;
 with System.Garlic.Physical_Location;
 with System.RPC;
 
---  XXXXX These ones should not be needed, but the binder needs them
+--  These ones should not be needed, but the binder needs them ???
 
 with System.Tasking.Initialization;
-with System.Tasking.Protected_Objects;
 pragma Elaborate_All (System.Tasking);
 pragma Elaborate_All (System.Tasking.Initialization);
+with System.Tasking.Protected_Objects;
 pragma Elaborate_All (System.Tasking.Protected_Objects);
 
 package System.Garlic.Heart is
 
-   Null_Partition_ID : constant System.RPC.Partition_ID;
-   --  Means "no Partition_ID known at this time".
+   My_Partition_Name : Name_Table.Name_Id;
 
-   --  Boot server coordinates.
+   Null_Partition_ID : constant System.RPC.Partition_ID;
+   --  Means "no Partition_ID known at this time"
+
+   type Partition_Data is record
+      Location : Physical_Location.Location_Type;
+      Name     : Name_Table.Name_Id;
+      Known    : Boolean;
+      Queried  : Boolean;
+   end record;
+   --  Location holds the location, Name the name of the partition, Known
+   --  the fact that we already have information on this partition, and
+   --  Queried the fact that the caller has to obtain the information using
+   --  another way.
+
+   -----------------
+   -- Boot server --
+   -----------------
 
    function Get_Boot_Server return String;
-   --  This function returns the coordinates of the boot server.
+   --  This function returns the coordinates of the boot server
 
    function Get_Boot_Server return System.RPC.Partition_ID;
-   --  Return the partition of the boot server.
+   --  Return the partition of the boot server
 
    procedure Initialize;
-   --  Initialize the package.
+   --  Initialize the package
 
-   procedure Is_Boot_Partition (Yes : in Boolean);
-   --  Called when we are on the boot partition.
+   procedure Set_Is_Boot_Partition (Yes : in Boolean);
+   --  Called when we are on the boot partition
 
    function Is_Boot_Partition return Boolean;
    --  This function return True when the local partition is the boot
    --  partition.
 
    procedure Set_Boot_Location
-     (Location : in System.Garlic.Physical_Location.Location);
-   --  Set boot server coordinates.
+     (Location : in System.Garlic.Physical_Location.Location_Type);
+   --  Set boot server coordinates
 
-   --  Garlic settings.
+   --------------
+   -- Settings --
+   --------------
 
    type Reconnection_Type is (Immediately,
                               When_Needed);
@@ -83,14 +101,14 @@ package System.Garlic.Heart is
    type Shutdown_Type is (Shutdown_On_Any_Partition_Error,
                           Shutdown_On_Boot_Partition_Error,
                           Never_Shutdown_On_Partition_Error);
-   --  Three ways of terminating Garlic.
+   --  Three ways of terminating Garlic
 
    type Termination_Type is (Unknown_Termination,
                              Local_Termination,
                              Global_Termination,
                              Deferred_Termination);
-   --  XXXXX : Three ways of terminating a partition. Should be
-   --  synchronized with the type above.
+   --  Three ways of terminating a partition. Should be synchronized with
+   --  the type above ???
 
    type Execution_Mode_Type is (Trace_Mode,
                                 Replay_Mode,
@@ -99,9 +117,11 @@ package System.Garlic.Heart is
    procedure Set_Policy
      (Reconnection : Reconnection_Type := Immediately;
       Shutdown     : Shutdown_Type     := Shutdown_On_Boot_Partition_Error);
-   --  Sets Garlic policy about Shutdowns and reconnections.
+   --  Sets Garlic policy about Shutdowns and reconnections
 
-   --  Elaboration control.
+   -------------------------
+   -- Elaboration control --
+   -------------------------
 
    procedure Elaboration_Is_Terminated;
    --  This procedure must be called as the first instruction of the
@@ -126,9 +146,13 @@ package System.Garlic.Heart is
    --  a shutdown has been decided. It prevents requests from being
    --  blocked upon program logical termination.
 
-   --  Execution control.
+   -----------------------
+   -- Execution control --
+   -----------------------
 
    type String_Ptr is access String;
+   --  This duplicates the String_Access type declared in s-garuti.ads.
+   --  Maybe the basic types should go in a preelaborated package ???
 
    protected Fatal_Error is
       entry Occurred
@@ -144,15 +168,17 @@ package System.Garlic.Heart is
    --  This protected object is a keeper to cancel the main procedure if
    --  needed.
 
-   --  Local partition.
+   ---------------------
+   -- Local partition --
+   ---------------------
 
    procedure Set_My_Location
-     (Location : in System.Garlic.Physical_Location.Location);
-   --  Set my coordinates.
+     (Location : in System.Garlic.Physical_Location.Location_Type);
+   --  Set my coordinates
 
    function Get_My_Location
-     return System.Garlic.Physical_Location.Location;
-   --  Get my coordinates.
+     return System.Garlic.Physical_Location.Location_Type;
+   --  Get my coordinates
 
    function Get_My_Partition_ID return System.RPC.Partition_ID;
    --  Return the Partition_ID of the running partition. If the
@@ -166,9 +192,11 @@ package System.Garlic.Heart is
    --  Null_Partition_ID.
 
    procedure Set_My_Partition_ID (Partition : System.RPC.Partition_ID);
-   --  Set my partition ID.
+   --  Set my partition ID
 
-   --  Remote partition.
+   ----------------------
+   -- Remote partition --
+   ----------------------
 
    procedure Add_New_Partition_ID (Partition : in System.RPC.Partition_ID);
    --  Declare that a Partition is to be used. This means that if needed
@@ -176,18 +204,19 @@ package System.Garlic.Heart is
 
    procedure Remote_Partition_Error
      (Partition : in System.RPC.Partition_ID);
-   --  Signal that a partition is dead.
+   --  Signal that a partition is dead
 
    type RPC_Error_Notifier_Type is
       access procedure (Partition : in System.RPC.Partition_ID);
 
    procedure Register_Partition_Error_Notification
      (Callback : in RPC_Error_Notifier_Type);
-   --  Signal that Communication_Error on pending RPCs
+   --  Register a procedure that will be called whenever a communication
+   --  error occurs during a remote call.
 
-   function Get_Partition_Location (Partition : System.RPC.Partition_ID)
-     return System.Garlic.Physical_Location.Location;
-   --  Return a partition's location.
+   function Get_Partition_Data (Partition : System.RPC.Partition_ID)
+     return Partition_Data;
+   --  Return a partition's location
 
    type Opcode is (Invalid_Operation,        -- First Internal Opcode
                    No_Operation,
@@ -212,13 +241,13 @@ package System.Garlic.Heart is
       access procedure (Partition : in System.RPC.Partition_ID;
                         Operation : in Public_Opcode;
                         Params    : access System.RPC.Params_Stream_Type);
-   --  A procedure which will get the requests.
+   --  A procedure which will get the requests
 
    procedure Send
      (Partition : in System.RPC.Partition_ID;
       Operation : in Opcode;
       Params    : access System.RPC.Params_Stream_Type);
-   --  Send something to a remote partition.
+   --  Send something to a remote partition
 
    procedure Receive
      (Operation : in Opcode;
@@ -229,18 +258,14 @@ package System.Garlic.Heart is
    procedure Has_Arrived
      (Partition : in System.RPC.Partition_ID;
       Data      : in Ada.Streams.Stream_Element_Array);
-   --  Called by a protocol to signal that something has arrived.
+   --  Called by a protocol to signal that something has arrived
 
-   --  "Name service" functions.
+   ----------------
+   -- PID server --
+   ----------------
 
    function Allocate_Partition_ID return System.RPC.Partition_ID;
-   --  Allocate a new partition ID.
-
-   procedure Register
-     (Partition : in System.RPC.Partition_ID;
-      Location  : in System.Garlic.Physical_Location.Location);
-   --  Register a partition whose location has been queried or
-   --  received spontaneously.
+   --  Allocate a new partition ID
 
    function Latest_Allocated_Partition_ID return System.RPC.Partition_ID;
    --  This function is used by the Termination mechanism which needs

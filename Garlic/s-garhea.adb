@@ -35,13 +35,15 @@
 
 with Ada.Unchecked_Deallocation;
 
-with System.Garlic.Debug;       use System.Garlic.Debug;
-with System.Garlic.Filters;     use System.Garlic.Filters;
+with System.Garlic.Debug;             use System.Garlic.Debug;
+with System.Garlic.Filters;           use System.Garlic.Filters;
+with System.Garlic.Name_Table;        use System.Garlic.Name_Table;
 with System.Garlic.Options;
+with System.Garlic.Physical_Location; use System.Garlic.Physical_Location;
 with System.Garlic.Protocols;
-with System.Garlic.Streams;     use System.Garlic.Streams;
+with System.Garlic.Streams;           use System.Garlic.Streams;
 with System.Garlic.Termination;
-with System.Garlic.Trace;       use System.Garlic.Trace;
+with System.Garlic.Trace;             use System.Garlic.Trace;
 with System.Garlic.Utils;
 with System.RPC.Initialization;
 with System.Standard_Library;
@@ -51,8 +53,8 @@ package body System.Garlic.Heart is
    --  The protocol used is:
    --
    --   - <QUERY_LOCATION> <PARTITION_ID>
-   --   - <QUERY_LOCATION_ANSWER> <PARTITION_ID> <LOCATION>
-   --   - <SET_LOCATION> <LOCATION>
+   --   - <QUERY_LOCATION_ANSWER> <PARTITION_ID> <LOCATION> <NAME>
+   --   - <SET_LOCATION> <LOCATION> <NAME>
    --   - <SHUTDOWN>
 
    Private_Debug_Key : constant Debug_Key :=
@@ -63,21 +65,16 @@ package body System.Garlic.Heart is
       Key     : in Debug_Key := Private_Debug_Key)
      renames Print_Debug_Info;
 
-   use System.RPC;
-   --  Needed to make Partition_ID and Params_Stream_Type visible.
-
+   use System.RPC, System.Garlic.Utils;
    use type Ada.Exceptions.Exception_Id;
-   --  Needed to have /=.
-
-   use System.Garlic.Utils;
-   --  Needed to have To_Stream_Element_Array.
-
-   --  Constants and subtypes of System.RPC.Partition_ID.
 
    subtype Valid_Partition_ID is Partition_ID
-     range Null_Partition_ID + 1 .. Partition_ID'Last;
-   Server_Partition_ID : constant Valid_Partition_ID
-     := Valid_Partition_ID'First;
+     range Partition_ID'Succ (Null_Partition_ID) .. Partition_ID'Last;
+   --  A partition whose ID fits in Valid_Partition_ID is a real partition
+
+   Server_Partition_ID : constant Valid_Partition_ID :=
+     Valid_Partition_ID'First;
+   --  The partition ID server does have this partition ID
 
    Reconnection_Policy : Reconnection_Type := Immediately;
    Shutdown_Policy     : Shutdown_Type     := Shutdown_On_Boot_Partition_Error;
@@ -94,8 +91,7 @@ package body System.Garlic.Heart is
      (Partition : Partition_ID)
       return Protocols.Protocol_Access;
    pragma Inline (Get_Protocol);
-   --  Return (fast) the protocol of a partition using a cache
-   --  whenever possible.
+   --  Return the protocol of a partition using a cache whenever possible
 
    protected type Local_Partition_ID_Type is
       entry Get (Partition : out Partition_ID);
@@ -104,7 +100,7 @@ package body System.Garlic.Heart is
    private
       In_Progress     : Boolean := False;
    end Local_Partition_ID_Type;
-   --  Local partition ID.
+   --  Local partition ID. Needs comments ???
 
    type Local_Partition_ID_Access is access Local_Partition_ID_Type;
    procedure Free is
@@ -113,24 +109,17 @@ package body System.Garlic.Heart is
 
    Local_Partition_ID : Local_Partition_ID_Access :=
      new Local_Partition_ID_Type;
+   --  Kludge to raise Program_Error at deallocation time. Should be cleaned
+   --  up in the future ???
 
    Local_Partition : Partition_ID := Null_Partition_ID;
-   --  Fast version for direct access.
+   --  Fast version for direct access
 
    Is_Boot : Boolean;
-   --  Set to True if we are on the boot partition.
+   --  Set to True if we are on the boot partition
 
    Opcode_Size : Ada.Streams.Stream_Element_Count;
-   --  Set in 'Initialize': length of result of an 'Opcode'Write'.
-
-   type Partition_Data is record
-      Location : Physical_Location.Location;
-      Known    : Boolean := False;
-      Queried  : Boolean := False;
-   end record;
-   --  Location holds the location, Known the fact that we already have
-   --  information on this partition, and Queried the fact that the caller
-   --  has to obtain the information using another way.
+   --  Set in 'Initialize': length of result of an Opcode'Write
 
    type Partition_Data_Array is array (Valid_Partition_ID) of Partition_Data;
 
@@ -143,11 +132,13 @@ package body System.Garlic.Heart is
                            Data      : out Partition_Data);
 
    private
-      Map : Partition_Data_Array;
-      New_Data : Boolean := False;  -- Local barrier
-
       entry Queue (Partition : in  Partition_ID;
                    Data      : out Partition_Data);
+
+      Map : Partition_Data_Array;
+      New_Data : Boolean := False;
+      --  Local barrier
+
    end Partition_Map_Type;
    --  Data available for a partition. When the data is not available for
    --  a given partition, Wait_For_Data will block, unless the caller *has*
@@ -165,21 +156,20 @@ package body System.Garlic.Heart is
    --  of the protected type to query a partition location.
 
    Protocols_Cache : array (Partition_ID) of Protocols.Protocol_Access;
-   --  Copy of the protocol type of the Partition_Map_Cache.
+   --  Copy of the protocol type of the Partition_Map_Cache
 
    type Partition_Map_Access is access Partition_Map_Type;
    procedure Free is
       new Ada.Unchecked_Deallocation (Partition_Map_Type,
                                       Partition_Map_Access);
+   Partition_Map : Partition_Map_Access := new Partition_Map_Type;
+   --  Same kludge as above to raise Program_Error at deallocation time ???
 
-   Partition_Map : Partition_Map_Access :=
-     new Partition_Map_Type;
-
-   My_Location : Physical_Location.Location;
-   --  My own location.
+   My_Location : Location_Type;
+   --  Location of the current partition
 
    type Allocated_Map is array (Partition_ID range <>) of Boolean;
-   --  Type of allocated partitions.
+   --  Type of allocated partitions
 
    protected type Partition_ID_Allocation_Type is
       procedure Allocate (Partition : out Partition_ID);
@@ -193,32 +183,25 @@ package body System.Garlic.Heart is
          others              => False);
    end Partition_ID_Allocation_Type;
 
-   type Partition_ID_Allocation_Access is
-      access Partition_ID_Allocation_Type;
+   type Partition_ID_Allocation_Access is access Partition_ID_Allocation_Type;
    procedure Free is
       new Ada.Unchecked_Deallocation (Partition_ID_Allocation_Type,
                                       Partition_ID_Allocation_Access);
-
    Partition_ID_Allocation : Partition_ID_Allocation_Access :=
      new Partition_ID_Allocation_Type;
+   --  Same kludge as above ???
 
    procedure Handle_Internal
      (Partition : in Partition_ID;
       Operation : in Internal_Opcode;
       Params    : access Params_Stream_Type);
-   --  Internal operation.
-
-   procedure Replay_Handle_Internal
-     (Partition : in Partition_ID;
-      Operation : in Internal_Opcode;
-      Params    : access Params_Stream_Type);
-   --  Internal operation during replay.
+   --  Internal operation
 
    procedure Handle_Public
      (Partition : in Partition_ID;
       Operation : in Public_Opcode;
       Params    : access Params_Stream_Type);
-   --  Public operation.
+   --  Public operation
 
    type Receiver_Array is array (Public_Opcode) of Public_Receiver;
 
@@ -228,20 +211,20 @@ package body System.Garlic.Heart is
    private
       Receiver_Data : Receiver_Array;
    end Receiver_Map_Type;
-   --  A list of receivers.
+   --  List of receivers for every opcode
 
    type Receiver_Map_Access is access Receiver_Map_Type;
    procedure Free is
       new Ada.Unchecked_Deallocation (Receiver_Map_Type,
                                       Receiver_Map_Access);
-
    Receiver_Map : Receiver_Map_Access := new Receiver_Map_Type;
+   --  Same kludge as above ???
 
    procedure Shutdown;
-   --  Generates a local shutdown.
+   --  Generates a local shutdown
 
    Partition_Error_Notification : RPC_Error_Notifier_Type;
-   --  Call this procedure when a partition dies.
+   --  Call this procedure when a partition dies
 
    --------------------------
    -- Add_New_Partition_ID --
@@ -252,7 +235,7 @@ package body System.Garlic.Heart is
    begin
       if Reconnection_Policy = Immediately then
 
-         --  Send a NOP to establish the connection.
+         --  Send a NOP to establish the connection
 
          pragma Debug (D (D_Debug, "Sending a No_Operation"));
          Send (Partition, No_Operation, Empty'Access);
@@ -335,15 +318,14 @@ package body System.Garlic.Heart is
       Data : Partition_Data;
    begin
       Partition_Map.Wait_For_Data (Server_Partition_ID, Data);
-      return Physical_Location.To_String
-        (Data.Location);
+      return To_String (Data.Location);
    end Get_Boot_Server;
 
    ---------------------
    -- Get_My_Location --
    ---------------------
 
-   function Get_My_Location return Physical_Location.Location is
+   function Get_My_Location return Location_Type is
    begin
       return My_Location;
    end Get_My_Location;
@@ -354,12 +336,14 @@ package body System.Garlic.Heart is
 
    function Get_My_Partition_ID return Partition_ID is
       Partition : Partition_ID;
+
    begin
       Local_Partition_ID.Get (Partition);
+
       if Partition = Null_Partition_ID then
          declare
-            use Physical_Location;
             Params : aliased Params_Stream_Type (0);
+
          begin
 
             --  We will send a Set_Location to the server. This will cause
@@ -367,12 +351,13 @@ package body System.Garlic.Heart is
             --  allocated, and our location will be registered into
             --  the server's base.
 
-            Location'Write (Params'Access,
-                            My_Location);
+            Location_Type'Write (Params'Access, My_Location);
+            String'Output (Params'Access, Get (My_Partition_Name));
             Send (Server_Partition_ID, Set_Location, Params'Access);
             Local_Partition_ID.Get (Partition);
          end;
       end if;
+
       return Partition;
    end Get_My_Partition_ID;
 
@@ -389,34 +374,24 @@ package body System.Garlic.Heart is
       end if;
    end Get_My_Partition_ID_Immediately;
 
-   ----------------------------
-   -- Get_Partition_Location --
-   ----------------------------
+   ------------------------
+   -- Get_Partition_Data --
+   ------------------------
 
-   function Get_Partition_Location (Partition : Partition_ID)
-     return Physical_Location.Location is
+   function Get_Partition_Data (Partition : Partition_ID)
+     return Partition_Data is
       Data : Partition_Data;
-      Replay_Location : constant Physical_Location.Location
-        := Physical_Location.To_Location ("replay://");
 
    begin
       pragma Debug
         (D (D_Table,
-            "Looking in my tables for location of partition" & Partition'Img));
-
-      if Options.Execution_Mode = Replay_Mode then
-         --  Hack warning!
-         Partition_Map.Set_Data (Partition, (Location => Replay_Location,
-                                             Known    => True,
-                                             Queried  => False));
-         return Replay_Location;
-      end if;
+            "Looking locally for information on partition" & Partition'Img));
 
       --  If the partition location is in the cache, then get it from
       --  there instead of using the protected type.
 
       if Partition_Map_Cache (Partition) .Known then
-         return Partition_Map_Cache (Partition) .Location;
+         return Partition_Map_Cache (Partition);
       end if;
 
       Partition_Map.Wait_For_Data (Partition, Data);
@@ -426,10 +401,11 @@ package body System.Garlic.Heart is
 
          declare
             Params : aliased Params_Stream_Type (0);
+
          begin
             pragma Debug
               (D (D_Garlic,
-                  "Asking for location of partition" & Partition'Img));
+                  "Asking for information on partition" & Partition'Img));
             Partition_ID'Write (Params'Access, Partition);
             Send (Server_Partition_ID, Query_Location, Params'Access);
          end;
@@ -438,27 +414,28 @@ package body System.Garlic.Heart is
 
          pragma Debug
            (D (D_Table,
-               "Can now serve location of partition" & Partition'Img));
+               "Caching information on partition" & Partition'Img));
       end if;
-      return Data.Location;
-   end Get_Partition_Location;
+
+      return Data;
+   end Get_Partition_Data;
 
    ------------------
    -- Get_Protocol --
    ------------------
 
-   function Get_Protocol (Partition : Partition_ID)
-     return Protocols.Protocol_Access
-   is
+   function Get_Protocol
+     (Partition : Partition_ID)
+      return Protocols.Protocol_Access is
    begin
       if not Partition_Map_Cache (Partition) .Known then
          declare
-            Dummy : constant Physical_Location.Location :=
-              Get_Partition_Location (Partition);
+            Dummy : constant Partition_Data := Get_Partition_Data (Partition);
          begin
             null;
          end;
       end if;
+
       return Protocols_Cache (Partition);
    end Get_Protocol;
 
@@ -469,8 +446,10 @@ package body System.Garlic.Heart is
    procedure Handle_Internal
      (Partition : in Partition_ID;
       Operation : in Internal_Opcode;
-      Params    : access Params_Stream_Type)
-   is
+      Params    : access Params_Stream_Type) is
+      Data  : Partition_Data;
+      Asked : Partition_ID;
+
    begin
 
       Termination.Activity_Detected;
@@ -480,80 +459,86 @@ package body System.Garlic.Heart is
          when No_Operation => null;
 
          when Set_Location =>
-            --  Received only on the server partition!
-            declare
-               Loc  : Physical_Location.Location;
-               Data : Partition_Data;
-            begin
-               pragma Debug
-                 (D (D_Server,
-                     "I received location of partition" & Partition'Img));
-               Physical_Location.Location'Read (Params, Loc);
-               pragma Debug
-                 (D (D_Server,
-                     "Partition" & Partition'Img &
-                     " is at " & Physical_Location.To_String (Loc)));
-               Data := (Location => Loc,
-                        Known    => True,
-                        Queried  => False);
-               pragma Debug (D (D_Debug, "Setting location"));
-               Partition_Map.Set_Data (Partition, Data);
-               pragma Debug (D (D_Debug, "Location set"));
-            end;
+
+            pragma Debug
+              (D (D_Server,
+                  "Receive information on partition" & Partition'Img));
+
+            Location_Type'Read (Params, Data.Location);
+            if Options.Execution_Mode = Replay_Mode then
+               Data.Location := To_Location ("replay://");
+            end if;
+
+            Data.Name    := Get (String'Input (Params));
+            Data.Known   := True;
+            Data.Queried := False;
+
+            pragma Debug
+              (D (D_Server,
+                  "Receive that partition" & Partition'Img &
+                  " is named " & Get (Data.Name) &
+                  " and is located at " & To_String (Data.Location)));
+
+            Partition_Map.Set_Data (Partition, Data);
 
          when Query_Location =>
             declare
-               Asked    : Partition_ID;
-               Loc      : Physical_Location.Location;
-               Ans      : aliased Params_Stream_Type (0);
+               Answer : aliased Params_Stream_Type (0);
+
             begin
                Partition_ID'Read (Params, Asked);
                if not Asked'Valid then
-                  pragma Debug
-                    (D (D_Debug, "Received invalid partition ID"));
+                  pragma Debug (D (D_Debug, "Invalid partition ID"));
                   raise Constraint_Error;
                end if;
+
                pragma Debug
                  (D (D_Server,
                      "Partition" & Partition'Img &
-                     " asked me for location of partition" & Asked'Img));
-               Loc := Get_Partition_Location (Asked);
+                     " is looking for information on partition" & Asked'Img));
+
+               Data := Get_Partition_Data (Asked);
+
                pragma Debug
                  (D (D_Server,
-                     "Giving location of partition" & Asked'Img &
-                     " to partition" & Partition'Img));
-               Partition_ID'Write (Ans'Access, Asked);
-               Physical_Location.Location'Write (Ans'Access, Loc);
-               Send (Partition, Query_Location_Answer, Ans'Access);
+                     "Reply that partition" & Asked'Img &
+                     " is named " & Get (Data.Name) &
+                     " and is located at " & To_String (Data.Location)));
+
+               Partition_ID'Write (Answer'Access, Asked);
+               Location_Type'Write (Answer'Access, Data.Location);
+               String'Output (Answer'Access, Get (Data.Name));
+               Send (Partition, Query_Location_Answer, Answer'Access);
             end;
 
          when Query_Location_Answer =>
-            declare
-               Asked : Partition_ID;
-               Loc   : Physical_Location.Location;
-               Data  : Partition_Data;
-            begin
-               Partition_ID'Read (Params, Asked);
-               if not Asked'Valid then
-                  pragma Debug (D (D_Debug, "Received invalid partition ID"));
-                  raise Constraint_Error;
-               end if;
-               pragma Debug
-                 (D (D_Garlic,
-                     "I received the answer for location of partition" &
-                     Asked'Img));
-               Physical_Location.Location'Read (Params, Loc);
-               Data := (Location => Loc,
-                        Known    => True,
-                        Queried  => False);
-               Partition_Map.Set_Data (Asked, Data);
-            end;
 
-         when Shutdown =>
+            Partition_ID'Read (Params, Asked);
+            if not Asked'Valid then
+               pragma Debug (D (D_Debug, "Invalid partition ID"));
+               raise Constraint_Error;
+            end if;
+
             pragma Debug
               (D (D_Garlic,
-                  "I received a shutdown request from partition" &
-                  Partition'Img));
+                  "Receive query for information on partition" & Asked'Img));
+
+            Location_Type'Read (Params, Data.Location);
+            if Options.Execution_Mode = Replay_Mode then
+               Data.Location := To_Location ("replay://");
+            end if;
+
+            Data.Name    := Get (String'Input (Params));
+            Data.Known   := True;
+            Data.Queried := False;
+            Partition_Map.Set_Data (Asked, Data);
+
+         when Shutdown =>
+
+            pragma Debug
+              (D (D_Garlic,
+                  "Receive shutdown request from partition" & Partition'Img));
+
             Heart.Shutdown;
 
       end case;
@@ -563,120 +548,6 @@ package body System.Garlic.Heart is
             pragma Debug (D (D_Garlic, "Handle internal: fatal error"));
             raise Communication_Error;
    end Handle_Internal;
-
-   ----------------------------
-   -- Replay_Handle_Internal --
-   ----------------------------
-
-   procedure Replay_Handle_Internal
-     (Partition : in Partition_ID;
-      Operation : in Internal_Opcode;
-      Params    : access Params_Stream_Type)
-   is
-      Replay_Location : constant Physical_Location.Location
-        := Physical_Location.To_Location ("replay://");
-      --    := Physical_Location.To_Location
-      --         (Protocols.Protocol_Type (Replay.Replay_Protocol'Access, ""));
-      --  the 2 lines above result in:
-      --     gcc: Internal compiler error: program gnat1 got fatal signal 11
-   begin
-
-      Termination.Activity_Detected;
-
-      case Operation is
-
-         when No_Operation => null;
-
-         when Set_Location =>
-            declare
-               Loc  : Physical_Location.Location;
-               Data : Partition_Data;
-            begin
-               pragma Debug
-                 (D (D_Server,
-                     "I received location of partition" & Partition'Img));
-               Physical_Location.Location'Read (Params, Loc);
-               pragma Debug
-                 (D (D_Server,
-                     "Partition" & Partition'Img &
-                     " is at " & Physical_Location.To_String (Loc)));
-
-               --  In replay mode we have to make sure that all partitions
-               --  have location ``replay://''.
-               Data := (Location => Replay_Location,
-                        Known    => True,
-                        Queried  => False);
-               Partition_Map.Set_Data (Partition, Data);
-            end;
-
-         when Query_Location =>
-            declare
-               Asked : Partition_ID;
-               Loc   : Physical_Location.Location;
-               Ans   : aliased Params_Stream_Type (0);
-            begin
-               Partition_ID'Read (Params, Asked);
-               if not Asked'Valid then
-                  pragma Debug
-                    (D (D_Debug, "Received invalid partition ID"));
-                  raise Constraint_Error;
-               end if;
-               pragma Debug
-                 (D (D_Server,
-                     "Partition" & Partition'Img &
-                     " asked me for location of partition" & Asked'Img));
-
-               Loc := Replay_Location;
-
-               pragma Debug
-                 (D (D_Server,
-                     "Giving location of partition" & Asked'Img &
-                     " to partition" & Partition'Img));
-               Partition_ID'Write (Ans'Access, Asked);
-               Physical_Location.Location'Write (Ans'Access, Loc);
-               Send (Partition, Query_Location_Answer, Ans'Access);
-            end;
-
-         when Query_Location_Answer =>
-            declare
-               Asked : Partition_ID;
-               Loc   : Physical_Location.Location;
-               Data  : Partition_Data;
-            begin
-               Partition_ID'Read (Params, Asked);
-               if not Asked'Valid then
-                  pragma Debug (D (D_Debug, "Received invalid partition ID"));
-                  raise Constraint_Error;
-               end if;
-               pragma Debug
-                 (D (D_Garlic,
-                     "I received the answer for location of partition" &
-                     Asked'Img));
-               Physical_Location.Location'Read (Params, Loc);
-
-               --  In replay mode we have to make sure that all partitions
-               --  have location ``replay://...''.
-               Data := (Location => Replay_Location,
-                        Known    => True,
-                        Queried  => False);
-               Partition_Map.Set_Data (Asked, Data);
-            end;
-
-         when Shutdown =>
-            pragma Debug
-              (D (D_Garlic,
-                  "I received a shutdown request from partition" &
-                  Partition'Img));
-            Heart.Shutdown;
-
-      end case;
-
-      exception
-         when others =>
-            pragma Debug
-              (D (D_Garlic, "Handle internal (replay): fatal error"));
-            raise Communication_Error;
-   end Replay_Handle_Internal;
 
    -------------------
    -- Handle_Public --
@@ -742,13 +613,7 @@ package body System.Garlic.Heart is
          To_Params_Stream_Type (Filtered_Data.all, Filtered_Params'Access);
          Free (Filtered_Data);
          if Operation in Internal_Opcode then
-            if Options.Execution_Mode = Replay_Mode then
-               Replay_Handle_Internal
-                 (Partition, Operation, Filtered_Params'Access);
-            else
-               Handle_Internal
-                 (Partition, Operation, Filtered_Params'Access);
-            end if;
+            Handle_Internal (Partition, Operation, Filtered_Params'Access);
          elsif Operation in Public_Opcode then
             Handle_Public (Partition, Operation, Filtered_Params'Access);
          else
@@ -764,8 +629,9 @@ package body System.Garlic.Heart is
 
    procedure Initialize is
       Stream : aliased Params_Stream_Type (32);
-      --  Some size that certainly is enough.
+      --  Some size that certainly is enough
    begin
+      My_Partition_Name := Get (Options.Partition_Name.all);
       Opcode'Write (Stream'Access, Opcode'Last);
       declare
          Buffer : Ada.Streams.Stream_Element_Array
@@ -774,18 +640,6 @@ package body System.Garlic.Heart is
          Opcode_Size := Buffer'Length;
       end;
    end Initialize;
-
-   -----------------------
-   -- Is_Boot_Partition --
-   -----------------------
-
-   procedure Is_Boot_Partition (Yes : in Boolean) is
-   begin
-      Is_Boot := Yes;
-      if Is_Boot then
-         Local_Partition_ID.Set (Server_Partition_ID);
-      end if;
-   end Is_Boot_Partition;
 
    -----------------------
    -- Is_Boot_Partition --
@@ -889,6 +743,7 @@ package body System.Garlic.Heart is
             --  has to stay allocated.
 
             pragma Assert (False);
+            raise Program_Error;
 
          end if;
       end Free;
@@ -1009,21 +864,6 @@ package body System.Garlic.Heart is
 
    end Receiver_Map_Type;
 
-   --------------
-   -- Register --
-   --------------
-
-   procedure Register
-     (Partition : in Partition_ID;
-      Location  : in Physical_Location.Location)
-   is
-      Data : constant Partition_Data := (Location => Location,
-                                         Known    => True,
-                                         Queried  => False);
-   begin
-      Partition_Map.Set_Data (Partition, Data);
-   end Register;
-
    -------------------------------------------
    -- Register_Partition_Error_Notification --
    -------------------------------------------
@@ -1113,20 +953,30 @@ package body System.Garlic.Heart is
    -- Set_Boot_Location --
    -----------------------
 
-   procedure Set_Boot_Location (Location : in Physical_Location.Location)
-   is
-      Data : constant Partition_Data := (Location => Location,
-                                         Known    => True,
-                                         Queried  => False);
+   procedure Set_Boot_Location (Location : in Location_Type) is
+      Data : constant Partition_Data := (Location, Null_Name, True, False);
+
    begin
       Partition_Map.Set_Data (Server_Partition_ID, Data);
    end Set_Boot_Location;
+
+   ---------------------------
+   -- Set_Is_Boot_Partition --
+   ---------------------------
+
+   procedure Set_Is_Boot_Partition (Yes : in Boolean) is
+   begin
+      Is_Boot := Yes;
+      if Is_Boot then
+         Local_Partition_ID.Set (Server_Partition_ID);
+      end if;
+   end Set_Is_Boot_Partition;
 
    ---------------------
    -- Set_My_Location --
    ---------------------
 
-   procedure Set_My_Location (Location : in Physical_Location.Location)
+   procedure Set_My_Location (Location : in Location_Type)
    is
    begin
       My_Location := Location;
