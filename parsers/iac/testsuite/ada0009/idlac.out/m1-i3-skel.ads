@@ -8,17 +8,8 @@
 -------------------------------------------------
 pragma Style_Checks (Off);
 
-with PolyORB.CORBA_P.IR_Tools;
- use PolyORB.CORBA_P.IR_Tools;
-with CORBA.Repository_Root;
- use CORBA.Repository_Root;
+package m1.i3.Skel is
 
-package body tin_IDL_File.IR_Info is
+   pragma Elaborate_Body;
 
-   
-   procedure Register_IR_Info is
-   begin
-      null;
-   end Register_IR_Info;
-
-end tin_IDL_File.IR_Info;
+end m1.i3.Skel;

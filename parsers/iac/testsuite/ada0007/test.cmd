@@ -3,23 +3,10 @@ TMP=.tmp_rep/
 LOG=log.test
 mkdir $TMP 
 cd $TMP
-idlac ../tin.idl > /dev/null 2> /dev/null
-idlac -i ../tin.idl > /dev/null 2> /dev/null 
+cp ../idlac.out/*.adb .
 cp ../../Makefile.ada ./Makefile > /dev/null
-iac -ada -ds ../tin.idl > iac.ada
+iac -ada -ds -i ../tin.idl > iac.ada
 gnatchop -w iac.ada > /dev/null
-
-# Effacer tous les fichiers .adb qui n'ont pas un fichier .ads associe. 
-for f in `ls *.adb`
-do 
-  ff=`basename $f .adb`.ads
-  ls $ff 2> /dev/null >&2
-  a=$?
-  if [ $a = 1 ]
-  then 
-    rm $f
-  fi
-done
 
 make > /dev/null 2>$LOG
 CODE=$?

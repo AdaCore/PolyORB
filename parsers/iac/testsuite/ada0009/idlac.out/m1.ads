@@ -8,8 +8,23 @@
 -------------------------------------------------
 pragma Style_Checks (Off);
 
-package tin_IDL_File.IR_Info is
+with CORBA;
 
-   procedure Register_IR_Info;
+package m1 is
 
-end tin_IDL_File.IR_Info;
+   type b1 is
+     new CORBA.Boolean;
+
+   b1_Repository_Id : constant Standard.String
+     := "IDL:m1/b1:1.0";
+
+   --  Interface i1
+
+   --  Interface i2
+
+   --  Interface i3
+
+   Repository_Id : constant Standard.String
+     := "IDL:m1:1.0";
+
+end m1;

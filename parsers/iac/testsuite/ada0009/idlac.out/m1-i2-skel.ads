@@ -8,8 +8,8 @@
 -------------------------------------------------
 pragma Style_Checks (Off);
 
-package tin_IDL_File is
+package m1.i2.Skel is
 
-   --  Interface i1
+   pragma Elaborate_Body;
 
-end tin_IDL_File;
+end m1.i2.Skel;
