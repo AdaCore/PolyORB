@@ -35,6 +35,8 @@ package Menu is
 
    type String_Access is access String;
 
+   function "+" (S : String) return String_Access;
+
    function Argument
      (Index : Natural)
      return String_Access;

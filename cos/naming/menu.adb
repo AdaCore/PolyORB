@@ -48,6 +48,15 @@ package body Menu is
 
    function Next return String;
 
+   ---------
+   -- "+" --
+   ---------
+
+   function "+" (S : String) return String_Access is
+   begin
+      return new String'(S);
+   end "+";
+
    --------------
    -- Argument --
    --------------
